@@ -2229,6 +2229,53 @@ function loadFilterPreferences() {
       // Update URL with selected project
       updateURLState({ project: f.properties.title.toLowerCase().replace(/\s+/g, '-') });
     }
+// Extract lazy loading setup to reusable function - place this BEFORE renderGrid function
+function setupLazyLoading(grid) {
+  const imageObserver = new IntersectionObserver((entries, observer) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const img = entry.target;
+        const src = img.getAttribute('data-src');
+        
+        const newImg = new Image();
+        newImg.onload = () => {
+          img.src = src;
+          img.classList.remove('lazy-loading');
+          img.classList.add('loaded');
+          observer.unobserve(img);
+        };
+        newImg.onerror = () => {
+          img.classList.remove('lazy-loading');
+          img.classList.add('loaded');
+          observer.unobserve(img);
+        };
+        newImg.src = src;
+      }
+    });
+  }, {
+    rootMargin: '50px',
+    threshold: 0.01
+  });
+  
+  const fadeObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting && !entry.target.classList.contains('visible')) {
+        requestAnimationFrame(() => {
+          entry.target.classList.add('visible');
+        });
+      }
+    });
+  }, {
+    threshold: 0.1,
+    rootMargin: '0px'
+  });
+  
+  const gridItems = grid.querySelectorAll('.grid-item');
+  const images = grid.querySelectorAll('.grid-item img');
+  
+  gridItems.forEach(item => fadeObserver.observe(item));
+  images.forEach(img => imageObserver.observe(img));
+}
  function renderGrid(targetId = 'grid') {
   const grid = document.getElementById(targetId);
   if (!grid) return;
