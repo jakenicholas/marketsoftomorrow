@@ -2055,7 +2055,7 @@
       // Update URL with selected project
       updateURLState({ project: f.properties.title.toLowerCase().replace(/\s+/g, '-') });
     }
-    function renderGrid(targetId = 'grid') {
+   function renderGrid(targetId = 'grid') {
       const grid=document.getElementById(targetId);
       if (!grid) return;
       
@@ -2115,6 +2115,12 @@
         });
       }
       
+      // IMPORTANT: Filter to only show projects within the current map bounds
+      // Only apply this filter when using default sort (not alphabetical)
+      if (sortType === 'default') {
+        features = features.filter(f => f.inBounds);
+      }
+      
       // Apply sorting
       if (sortType === 'az') {
         features.sort((a, b) => {
@@ -2133,27 +2139,17 @@
           return b.properties.title.localeCompare(a.properties.title);
         });
       } else {
-        // Default sort by distance with featured priority within view
+        // Default sort by distance with featured priority
+        // Since we've already filtered to only in-bounds items, we just sort by featured status and distance
         features.sort((a, b) => {
-          // Priority 1: Featured items that are in bounds
-          const aFeaturedInBounds = a.inBounds && a.properties.featured;
-          const bFeaturedInBounds = b.inBounds && b.properties.featured;
+          // Featured items first
+          if (a.properties.featured && !b.properties.featured) return -1;
+          if (!a.properties.featured && b.properties.featured) return 1;
           
-          if (aFeaturedInBounds && !bFeaturedInBounds) return -1;
-          if (!aFeaturedInBounds && bFeaturedInBounds) return 1;
-          
-          // Priority 2: Non-featured items in bounds
-          const aInBounds = a.inBounds && !a.properties.featured;
-          const bInBounds = b.inBounds && !b.properties.featured;
-          
-          if (aInBounds && !b.inBounds) return -1;
-          if (!aInBounds && b.inBounds) return 1;
-          
-          // Priority 3: Everything else by distance
+          // Then by distance from center
           return a.distance - b.distance;
         });
       }
-      
       // Create document fragment for better performance
       const fragment = document.createDocumentFragment();
       
