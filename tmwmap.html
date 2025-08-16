@@ -2229,292 +2229,230 @@ function loadFilterPreferences() {
       // Update URL with selected project
       updateURLState({ project: f.properties.title.toLowerCase().replace(/\s+/g, '-') });
     }
-   function renderGrid(targetId = 'grid') {
-      const grid=document.getElementById(targetId);
-      if (!grid) return;
-      
-      grid.innerHTML='';
-      
-      if (!map.getSource('projects') || !map.getSource('projects')._data) return;
-      
-      let features = [...map.getSource('projects')._data.features];
-      
-      // Get current map center and bounds
-      const mapCenter = map.getCenter();
-      const mapBounds = map.getBounds();
-      
-      // Calculate distance for each feature from map center
-      features = features.map(f => {
-        const coords = f.geometry.coordinates;
-        const distance = calculateDistance(
-          mapCenter.lat, 
-          mapCenter.lng, 
-          coords[1], // latitude
-          coords[0]  // longitude
-        );
-        // Check if feature is within current map bounds
-        const inBounds = mapBounds.contains([coords[0], coords[1]]);
-        return { ...f, distance, inBounds };
-      });
-      
-      // Determine which filters to use based on target
-      let locationFilter, projectTypeFilter, sortType;
-      
-      if (targetId === 'gridDesktop') {
-        locationFilter = document.getElementById('locationFilterDesktop')?.value || 'all';
-        projectTypeFilter = document.getElementById('projectTypeFilterDesktop')?.value || 'all';
-        sortType = document.getElementById('sortSelectDesktop')?.value || 'default';
-      } else if (targetId === 'gridMobile') {
-        // Mobile uses its own filters
-        locationFilter = document.getElementById('locationFilterMobile')?.value || 'all';
-        projectTypeFilter = document.getElementById('projectTypeFilterMobile')?.value || 'all';
-        sortType = document.getElementById('sortSelectMobile')?.value || 'default';
-      } else {
-        // Original grid
-        locationFilter = document.getElementById('locationFilter')?.value || 'all';
-        projectTypeFilter = document.getElementById('projectTypeFilter')?.value || 'all';
-        sortType = document.getElementById('sortSelect')?.value || 'default';
-      }
-      
-      // Apply location filter
-      if (locationFilter !== 'all') {
-        features = features.filter(f => f.properties.city === locationFilter);
-      }
-      
-      // Apply project type filter
-      if (projectTypeFilter !== 'all') {
-        features = features.filter(f => {
-          return f.properties.projectTypes && 
-                 f.properties.projectTypes.includes(projectTypeFilter.toLowerCase());
-        });
-      }
-      
-      // IMPORTANT: Filter to only show projects within the current map bounds
-      // Only apply this filter when using default sort (not alphabetical)
-      if (sortType === 'default') {
-        features = features.filter(f => f.inBounds);
-      }
-      
-      // Apply sorting
-      if (sortType === 'az') {
-        features.sort((a, b) => {
-          // Featured items first
-          if (a.properties.featured && !b.properties.featured) return -1;
-          if (!a.properties.featured && b.properties.featured) return 1;
-          // Then alphabetical
-          return a.properties.title.localeCompare(b.properties.title);
-        });
-      } else if (sortType === 'za') {
-        features.sort((a, b) => {
-          // Featured items first
-          if (a.properties.featured && !b.properties.featured) return -1;
-          if (!a.properties.featured && b.properties.featured) return 1;
-          // Then reverse alphabetical
-          return b.properties.title.localeCompare(a.properties.title);
-        });
-      } else {
-        // Default sort by distance with featured priority
-        // Since we've already filtered to only in-bounds items, we just sort by featured status and distance
-        features.sort((a, b) => {
-          // Featured items first
-          if (a.properties.featured && !b.properties.featured) return -1;
-          if (!a.properties.featured && b.properties.featured) return 1;
-          
-          // Then by distance from center
-          return a.distance - b.distance;
-        });
-      }
-      // Create document fragment for better performance
-     // Check if we have no features to display
-if (features.length === 0) {
-  let emptyMessage = '';
+ function renderGrid(targetId = 'grid') {
+  const grid = document.getElementById(targetId);
+  if (!grid) return;
   
-  if (locationFilter !== 'all' || projectTypeFilter !== 'all') {
-    // Filters are active
-    emptyMessage = `
-      <div class="empty-state">
-        <div class="empty-state-icon">
-          <svg viewBox="0 0 24 24">
-            <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 15.5h-1.5V14h1.5v4.5zm0-6.5h-1.5v-1.5h1.5V12z"/>
-          </svg>
-        </div>
-        <h3>No projects match your filters</h3>
-        <p>Try adjusting your filters or zooming out to see more projects.</p>
-        <div class="empty-state-actions">
-          <button class="empty-state-btn" onclick="clearAllFilters('${targetId}')">Clear Filters</button>
-          <button class="empty-state-btn primary" onclick="map.flyTo({center: [-81.1961527, 26.7807395], zoom: ${isMobile ? 6 : 7}, duration: 1000})">Reset Map View</button>
-        </div>
-      </div>
-    `;
-  } else if (sortType === 'default') {
-    // No filters, but no projects in view
-    emptyMessage = `
-      <div class="empty-state">
-        <div class="empty-state-icon">
-          <svg viewBox="0 0 24 24">
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
-          </svg>
-        </div>
-        <h3>No projects in this area</h3>
-        <p>Zoom out or pan the map to explore other areas with upcoming developments.</p>
-        <div class="empty-state-actions">
-          <button class="empty-state-btn primary" onclick="map.flyTo({center: [-81.1961527, 26.7807395], zoom: ${isMobile ? 6 : 7}, duration: 1000})">View All Projects</button>
-        </div>
-      </div>
-    `;
+  grid.innerHTML = '';
+  
+  // Check if the map source exists and has data
+  if (!map.getSource('projects') || !map.getSource('projects')._data || !map.getSource('projects')._data.features) {
+    console.log('Projects data not yet loaded');
+    return;
   }
   
-  grid.innerHTML = emptyMessage;
-  return;
-}
-
-// Create document fragment for better performance
-const fragment = document.createDocumentFragment();
-
-// First, create skeleton loaders
-features.forEach((f, index) => {
-  const skeleton = document.createElement('div');
-  skeleton.className = 'grid-item skeleton';
-  skeleton.innerHTML = `
-    <div class="image-wrapper">
-      <div class="skeleton-box skeleton-image"></div>
-    </div>
-    <div class="grid-item-content">
-      <div class="skeleton-box skeleton-title"></div>
-      <div class="skeleton-box skeleton-city"></div>
-      <div class="skeleton-box skeleton-button"></div>
-    </div>
-  `;
-  fragment.appendChild(skeleton);
-});
-
-// Append skeletons first
-grid.appendChild(fragment);
-
-// Then create actual content and replace skeletons
-setTimeout(() => {
-  const skeletons = grid.querySelectorAll('.grid-item.skeleton');
+  let features = [...map.getSource('projects')._data.features];
   
-  features.forEach((f, index) => {
-    const d=document.createElement('div');
-    d.className='grid-item';
-    
-    // Use placeholder image initially
-    const imageSrc = f.properties.image;
-    const placeholderSrc = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="300" height="120"%3E%3Crect width="300" height="120" fill="%23333"/%3E%3C/svg%3E';
-    
-    d.innerHTML=`
-      <div class="image-wrapper">
-        <img src="${placeholderSrc}" 
-             data-src="${imageSrc}" 
-             loading="lazy" 
-             alt="${f.properties.title}"
-             class="lazy-loading" />
-      </div>
-      ${f.properties.featured ? `
-        <div class="featured-badge">
-          <svg viewBox="0 0 24 24">
-            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-          </svg>
-          Featured
-        </div>
-      ` : ''}
-      <a class="tile-favorite" href="https://www.oftmw.com/livehere" target="_blank" onclick="event.stopPropagation(); gtag('event', 'live_here_click', {'project_name': '${f.properties.title}', 'click_location': 'tile'});">
-        <svg viewBox="0 0 18 18"><path d="M9 1v16M1 9h16"/></svg>
-      </a>
-      <div class="grid-item-content">
-        <h3 style="color: #ffffff !important; margin: 0 0 4px; font-size: 16px;">${f.properties.title}</h3>
-        <p class="city" style="color: #cccccc !important; margin: 0 0 auto 0; font-size: 12px; padding-bottom: 8px;">${f.properties.city}</p>
-        <p class="website-btn">
-          <a href="${f.properties.website}" target="_blank" class="website-link" onclick="event.stopPropagation(); gtag('event', 'learn_more_click', {'project_name': '${f.properties.title}', 'project_city': '${f.properties.city}', 'click_location': 'tile', 'device_type': '${isMobile ? 'mobile' : 'desktop'}'});">Learn More</a>
-        </p>
-      </div>`;
-    d.onclick=()=>{ 
-      // Track tile click with GA4
-      gtag('event', 'project_click', {
-        'project_name': f.properties.title,
-        'project_city': f.properties.city,
-        'project_featured': f.properties.featured || false,
-        'project_type': f.properties.projectType || 'unknown',
-        'click_source': 'tile',
-        'device_type': isMobile ? 'mobile' : 'desktop',
-        'grid_position': index + 1
-      });
-      
-      showPopup(f); 
-      // On mobile, immediately close the drawer when tile is clicked
-      if (targetId === 'gridMobile') {
-        const drawer = document.getElementById('mobileDrawer');
-        const mapBtn = document.getElementById('mapReturnButton');
-        const content = document.getElementById('mobileDrawerContent');
-        
-        // Immediately collapse - fully hide
-        drawer.classList.remove('expanded');
-        drawer.style.transform = 'translateY(100%)'; // Fully hidden
-        mapBtn.classList.remove('visible');
-        content.scrollTop = 0;
-      }
-    };
-    
-    // Replace skeleton with actual content
-    if (skeletons[index]) {
-      skeletons[index].replaceWith(d);
-    } else {
-      grid.appendChild(d);
-    }
+  // Get current map center and bounds
+  const mapCenter = map.getCenter();
+  const mapBounds = map.getBounds();
+  
+  // Calculate distance for each feature from map center
+  features = features.map(f => {
+    const coords = f.geometry.coordinates;
+    const distance = calculateDistance(
+      mapCenter.lat, 
+      mapCenter.lng, 
+      coords[1], // latitude
+      coords[0]  // longitude
+    );
+    // Check if feature is within current map bounds
+    const inBounds = mapBounds.contains([coords[0], coords[1]]);
+    return { ...f, distance, inBounds };
   });
   
-  // Set up lazy loading
-  setupLazyLoading(grid);
-}, 100); // Small delay to show skeleton effect
+  // Determine which filters to use based on target
+  let locationFilter, projectTypeFilter, sortType;
+  
+  if (targetId === 'gridDesktop') {
+    locationFilter = document.getElementById('locationFilterDesktop')?.value || 'all';
+    projectTypeFilter = document.getElementById('projectTypeFilterDesktop')?.value || 'all';
+    sortType = document.getElementById('sortSelectDesktop')?.value || 'default';
+  } else if (targetId === 'gridMobile') {
+    locationFilter = document.getElementById('locationFilterMobile')?.value || 'all';
+    projectTypeFilter = document.getElementById('projectTypeFilterMobile')?.value || 'all';
+    sortType = document.getElementById('sortSelectMobile')?.value || 'default';
+  } else {
+    locationFilter = document.getElementById('locationFilter')?.value || 'all';
+    projectTypeFilter = document.getElementById('projectTypeFilter')?.value || 'all';
+    sortType = document.getElementById('sortSelect')?.value || 'default';
+  }
+  
+  // Apply location filter
+  if (locationFilter !== 'all') {
+    features = features.filter(f => f.properties.city === locationFilter);
+  }
+  
+  // Apply project type filter
+  if (projectTypeFilter !== 'all') {
+    features = features.filter(f => {
+      return f.properties.projectTypes && 
+             f.properties.projectTypes.includes(projectTypeFilter.toLowerCase());
+    });
+  }
+  
+  // Apply sorting
+  if (sortType === 'az') {
+    features.sort((a, b) => {
+      if (a.properties.featured && !b.properties.featured) return -1;
+      if (!a.properties.featured && b.properties.featured) return 1;
+      return a.properties.title.localeCompare(b.properties.title);
+    });
+  } else if (sortType === 'za') {
+    features.sort((a, b) => {
+      if (a.properties.featured && !b.properties.featured) return -1;
+      if (!a.properties.featured && b.properties.featured) return 1;
+      return b.properties.title.localeCompare(a.properties.title);
+    });
+  } else {
+    // Default sort by distance - DON'T filter by bounds for tiles view
+    // We want to show all projects sorted by distance, not just visible ones
+    features.sort((a, b) => {
+      if (a.properties.featured && !b.properties.featured) return -1;
+      if (!a.properties.featured && b.properties.featured) return 1;
+      return a.distance - b.distance;
+    });
+  }
+  
+  // Check if we have no features to display
+  if (features.length === 0) {
+    let emptyMessage = '';
+    
+    if (locationFilter !== 'all' || projectTypeFilter !== 'all') {
+      emptyMessage = `
+        <div class="empty-state">
+          <div class="empty-state-icon">
+            <svg viewBox="0 0 24 24">
+              <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 15.5h-1.5V14h1.5v4.5zm0-6.5h-1.5v-1.5h1.5V12z"/>
+            </svg>
+          </div>
+          <h3>No projects match your filters</h3>
+          <p>Try adjusting your filters or zooming out to see more projects.</p>
+          <div class="empty-state-actions">
+            <button class="empty-state-btn" onclick="clearAllFilters('${targetId}')">Clear Filters</button>
+            <button class="empty-state-btn primary" onclick="map.flyTo({center: [-81.1961527, 26.7807395], zoom: ${isMobile ? 6 : 7}, duration: 1000})">Reset Map View</button>
+          </div>
+        </div>
+      `;
+    } else {
+      emptyMessage = `
+        <div class="empty-state">
+          <div class="empty-state-icon">
+            <svg viewBox="0 0 24 24">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+            </svg>
+          </div>
+          <h3>No projects found</h3>
+          <p>The project data is still loading. Please wait a moment.</p>
+        </div>
+      `;
     }
-    // Global variable to track mobile drawer state
-    window.mobileDrawerCollapse = null;
-    // Mobile drawer functionality
-    function setupMobileDrawer() {
-      const drawer = document.getElementById('mobileDrawer');
-      const handle = document.getElementById('mobileDrawerHandle');
-      const content = document.getElementById('mobileDrawerContent');
-      const mapBtn = document.getElementById('mapReturnButton');
+    
+    grid.innerHTML = emptyMessage;
+    return;
+  }
+  
+  // Create document fragment for better performance
+  const fragment = document.createDocumentFragment();
+  
+  // First, create skeleton loaders
+  features.forEach((f, index) => {
+    const skeleton = document.createElement('div');
+    skeleton.className = 'grid-item skeleton';
+    skeleton.innerHTML = `
+      <div class="image-wrapper">
+        <div class="skeleton-box skeleton-image"></div>
+      </div>
+      <div class="grid-item-content">
+        <div class="skeleton-box skeleton-title"></div>
+        <div class="skeleton-box skeleton-city"></div>
+        <div class="skeleton-box skeleton-button"></div>
+      </div>
+    `;
+    fragment.appendChild(skeleton);
+  });
+  
+  // Append skeletons first
+  grid.appendChild(fragment);
+  
+  // Then create actual content and replace skeletons
+  setTimeout(() => {
+    const skeletons = grid.querySelectorAll('.grid-item.skeleton');
+    
+    features.forEach((f, index) => {
+      const d = document.createElement('div');
+      d.className = 'grid-item';
       
-      let startY = 0;
-      let currentY = 0;
-      let startTransform = 0;
-      let isDragging = false;
-      let isExpanded = false;
+      // Use placeholder image initially
+      const imageSrc = f.properties.image;
+      const placeholderSrc = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="300" height="120"%3E%3Crect width="300" height="120" fill="%23333"/%3E%3C/svg%3E';
       
-      // Use CSS variable for dynamic height
-      const getViewportHeight = () => {
-        const appHeight = getComputedStyle(document.documentElement).getPropertyValue('--app-height');
-        return parseInt(appHeight) - 50; // Account for header
+      d.innerHTML = `
+        <div class="image-wrapper">
+          <img src="${placeholderSrc}" 
+               data-src="${imageSrc}" 
+               loading="lazy" 
+               alt="${f.properties.title}"
+               class="lazy-loading" />
+        </div>
+        ${f.properties.featured ? `
+          <div class="featured-badge">
+            <svg viewBox="0 0 24 24">
+              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+            </svg>
+            Featured
+          </div>
+        ` : ''}
+        <a class="tile-favorite" href="https://www.oftmw.com/livehere" target="_blank" onclick="event.stopPropagation(); gtag('event', 'live_here_click', {'project_name': '${f.properties.title}', 'click_location': 'tile'});">
+          <svg viewBox="0 0 18 18"><path d="M9 1v16M1 9h16"/></svg>
+        </a>
+        <div class="grid-item-content">
+          <h3 style="color: #ffffff !important; margin: 0 0 4px; font-size: 16px;">${f.properties.title}</h3>
+          <p class="city" style="color: #cccccc !important; margin: 0 0 auto 0; font-size: 12px; padding-bottom: 8px;">${f.properties.city}</p>
+          <p class="website-btn">
+            <a href="${f.properties.website}" target="_blank" class="website-link" onclick="event.stopPropagation(); gtag('event', 'learn_more_click', {'project_name': '${f.properties.title}', 'project_city': '${f.properties.city}', 'click_location': 'tile', 'device_type': '${isMobile ? 'mobile' : 'desktop'}'});">Learn More</a>
+          </p>
+        </div>`;
+      
+      d.onclick = () => { 
+        // Track tile click with GA4
+        gtag('event', 'project_click', {
+          'project_name': f.properties.title,
+          'project_city': f.properties.city,
+          'project_featured': f.properties.featured || false,
+          'project_type': f.properties.projectType || 'unknown',
+          'click_source': 'tile',
+          'device_type': isMobile ? 'mobile' : 'desktop',
+          'grid_position': index + 1
+        });
+        
+        showPopup(f); 
+        // On mobile, immediately close the drawer when tile is clicked
+        if (targetId === 'gridMobile') {
+          const drawer = document.getElementById('mobileDrawer');
+          const mapBtn = document.getElementById('mapReturnButton');
+          const content = document.getElementById('mobileDrawerContent');
+          
+          // Immediately collapse - fully hide
+          drawer.classList.remove('expanded');
+          drawer.style.transform = 'translateY(100%)'; // Fully hidden
+          mapBtn.classList.remove('visible');
+          content.scrollTop = 0;
+        }
       };
-      // Function to collapse drawer
-      function collapseDrawer() {
-        isExpanded = false;
-        drawer.classList.remove('expanded');
-        drawer.style.transform = `translateY(100%)`; // Fully hidden
-        mapBtn.classList.remove('visible');
-        // Reset scroll position when closing
-        content.scrollTop = 0;
-      }
       
-      // Function to expand drawer
-      function expandDrawer() {
-        isExpanded = true;
-        drawer.classList.add('expanded');
-        drawer.style.transform = 'translateY(0)';
-        mapBtn.classList.add('visible');
-        
-        // Force enable scrolling on the content
-        content.style.overflow = 'auto';
-        content.style.overflowY = 'scroll';
-        content.style.webkitOverflowScrolling = 'touch';
-        content.style.pointerEvents = 'auto';
-        content.style.touchAction = 'auto';
-        
-        // Update grid when expanding drawer
-        renderGrid('gridMobile');
+      // Replace skeleton with actual content
+      if (skeletons[index]) {
+        skeletons[index].replaceWith(d);
+      } else {
+        grid.appendChild(d);
       }
+    });
+    
+    // Set up lazy loading
+    setupLazyLoading(grid);
+  }, 100); // Small delay to show skeleton effect
+}
       
       // Make collapseDrawer globally available
       window.mobileDrawerCollapse = collapseDrawer;
