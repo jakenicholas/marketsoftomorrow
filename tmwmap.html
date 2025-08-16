@@ -717,121 +717,119 @@
       will-change: opacity;
       overflow: visible; /* Allow elements to overflow */
     }
-    
     /* Skeleton loader styles */
-    .grid-item.skeleton {
-      opacity: 1;
-      pointer-events: none;
-      cursor: default;
-    }
-    
-    .skeleton-box {
-      background: linear-gradient(90deg, #2a2a2a 25%, #333 50%, #2a2a2a 75%);
-      background-size: 200% 100%;
-      animation: loading 1.5s infinite;
-      border-radius: 4px;
-    }
-    
-    @keyframes loading {
-      0% { background-position: 200% 0; }
-      100% { background-position: -200% 0; }
-    }
-    
-    .skeleton .image-wrapper {
-      height: 180px;
-      background: none;
-    }
-    
-    .skeleton .skeleton-image {
-      width: 100%;
-      height: 100%;
-      border-radius: 4px;
-    }
-    
-    .skeleton .skeleton-title {
-      height: 20px;
-      width: 80%;
-      margin: 8px 0 4px;
-    }
-    
-    .skeleton .skeleton-city {
-      height: 16px;
-      width: 60%;
-      margin-bottom: 8px;
-    }
-    
-    .skeleton .skeleton-button {
-      height: 32px;
-      width: 100%;
-      margin-top: auto;
-    }
-    
-    /* Empty state styles */
-    .empty-state {
-      text-align: center;
-      padding: 60px 20px;
-      color: #999;
-    }
-    
-    .empty-state-icon {
-      width: 80px;
-      height: 80px;
-      margin: 0 auto 20px;
-      opacity: 0.3;
-    }
-    
-    .empty-state-icon svg {
-      width: 100%;
-      height: 100%;
-      fill: #666;
-    }
-    
-    .empty-state h3 {
-      font-size: 20px;
-      color: #fff;
-      margin: 0 0 12px;
-      font-weight: 500;
-    }
-    
-    .empty-state p {
-      font-size: 16px;
-      margin: 0 0 24px;
-      line-height: 1.5;
-    }
-    
-    .empty-state-actions {
-      display: flex;
-      gap: 12px;
-      justify-content: center;
-      flex-wrap: wrap;
-    }
-    
-    .empty-state-btn {
-      background: #1e1e1e;
-      color: #fff;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 6px;
-      font-size: 14px;
-      cursor: pointer;
-      transition: background 0.3s;
-      text-decoration: none;
-      display: inline-block;
-    }
-    
-    .empty-state-btn:hover {
-      background: #333;
-    }
-    
-    .empty-state-btn.primary {
-      background: #1FDF67;
-      color: #000;
-    }
-    
-    .empty-state-btn.primary:hover {
-      background: #00C850;
-    }
-    
+.grid-item.skeleton {
+  opacity: 1;
+  pointer-events: none;
+  cursor: default;
+}
+
+.skeleton-box {
+  background: linear-gradient(90deg, #2a2a2a 25%, #333 50%, #2a2a2a 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+  border-radius: 4px;
+}
+
+@keyframes loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.skeleton .image-wrapper {
+  height: 180px;
+  background: none;
+}
+
+.skeleton .skeleton-image {
+  width: 100%;
+  height: 100%;
+  border-radius: 4px;
+}
+
+.skeleton .skeleton-title {
+  height: 20px;
+  width: 80%;
+  margin: 8px 0 4px;
+}
+
+.skeleton .skeleton-city {
+  height: 16px;
+  width: 60%;
+  margin-bottom: 8px;
+}
+
+.skeleton .skeleton-button {
+  height: 32px;
+  width: 100%;
+  margin-top: auto;
+}
+
+/* Empty state styles */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #999;
+}
+
+.empty-state-icon {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 20px;
+  opacity: 0.3;
+}
+
+.empty-state-icon svg {
+  width: 100%;
+  height: 100%;
+  fill: #666;
+}
+
+.empty-state h3 {
+  font-size: 20px;
+  color: #fff;
+  margin: 0 0 12px;
+  font-weight: 500;
+}
+
+.empty-state p {
+  font-size: 16px;
+  margin: 0 0 24px;
+  line-height: 1.5;
+}
+
+.empty-state-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.empty-state-btn {
+  background: #1e1e1e;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.3s;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.empty-state-btn:hover {
+  background: #333;
+}
+
+.empty-state-btn.primary {
+  background: #1FDF67;
+  color: #000;
+}
+
+.empty-state-btn.primary:hover {
+  background: #00C850;
+}
     /* Smaller tiles for sidebar */
     #desktopSidebar .grid-item {
       padding: 5px;
@@ -1550,2098 +1548,8 @@
     <div class="loading-content">
       <div class="loading-spinner"></div>
       <div class="loading-text">Loading Map of Tomorrow...</div>
-      <div class="loading-subtitle">Development Pipeline Map      </div>
+      <div class="loading-subtitle">Development Pipeline Map</div>
     </div>
-    
-    <!-- Mobile Drawer -->
-    <div id="mobileDrawer">
-      <div id="mobileDrawerHandle"></div>
-      <div id="mobileDrawerContent">
-        <div class="mobile-header">
-          <!-- Mobile Search without close button -->
-          <div style="margin-bottom: 12px; width: 95%; margin-left: auto; margin-right: auto;">
-            <input id="mobileSearchBar" type="text" placeholder="Search projects or city..." />
-          </div>
-          
-          <!-- Mobile Filters -->
-          <div id="mobileFilterControls">
-            <select id="sortSelectMobile">
-              <option value="default">Nearest</option>
-              <option value="az">A to Z</option>
-              <option value="za">Z to A</option>
-            </select>
-            <select id="projectTypeFilterMobile">
-              <option value="all">All Types</option>
-            </select>
-            <select id="locationFilterMobile">
-              <option value="all">All Cities</option>
-            </select>
-          </div>
-        </div>
-        
-        <div class="mobile-content allow-scroll">
-          <div class="leaf-grid" id="gridMobile"></div>
-        </div>
-      </div>
-      <!-- Map button floating at bottom when drawer is expanded -->
-      <button id="mobileMapButton">
-        <svg viewBox="0 0 24 24">
-          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.94-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
-        </svg>
-        Map
-      </button>
-    </div>
-    
-    <!-- Tiles button on map view -->
-    <button id="mobileTilesButton">
-      <svg viewBox="0 0 24 24">
-        <path d="M4 8h4V4H4v4zm6 12h4v-4h-4v4zm-6 0h4v-4H4v4zm0-6h4v-4H4v4zm6 0h4v-4h-4v4zm6-10v4h4V4h-4zm-6 4h4V4h-4v4zm6 6h4v-4h-4v4zm0 6h4v-4h-4v4z"/>
-      </svg>
-      Tiles
-    </button>
-    
-    <!-- Mobile home button -->
-    <a id="mobileHomeButton" href="https://www.oftmw.com" target="_blank">
-      <svg viewBox="0 0 24 24">
-        <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
-      </svg>
-    </a>
-    
-    <!-- Map Return Button (Mobile) -->
-    <button id="mapReturnButton">Map</button>
-    
-    <div id="map"></div>
-    
-    <!-- Fullscreen modal -->
-    <div id="fullscreenModal">
-      <button id="exitFullscreen">✕ Exit</button>
-      <div id="fullscreenMap"></div>
-    </div>
-    <button id="fullscreenButton">⛶ Fullscreen</button>
-    <!-- Instagram logo -->
-    <a id="instagramLogo" href="https://www.instagram.com/floridaoftomorrow" target="_blank" style="display: block;">
-      <img src="https://static.wixstatic.com/shapes/ca3b83_ec9d065676444a08a5392c3be54599ec.svg" alt="Follow us on Instagram" />
-    </a>
-    <!-- Hover icon SVG -->
-    <img
-      id="hoverIcon"
-      src="https://static.wixstatic.com/shapes/ca3b83_ec9d065676444a08a5392c3be54599ec.svg"
-      alt="hover icon"
-    />
-  </div>
-  
-  <!-- Toast notification -->
-  <div id="toast" class="toast"></div>
-  
-  <script>
-    // Enhanced mobile viewport height fix with more aggressive handling
-    const setAppHeight = () => {
-      const doc = document.documentElement;
-      
-      // Get the actual inner height of the window
-      let vh = window.innerHeight;
-      
-      // For mobile browsers, we need to be more aggressive
-      if (window.innerWidth <= 800) {
-        // Try multiple methods to get the correct height
-        if ('visualViewport' in window && window.visualViewport) {
-          vh = window.visualViewport.height;
-        } else if (window.screen && window.screen.availHeight) {
-          // Some browsers report better values through screen
-          const screenHeight = window.screen.availHeight;
-          const currentHeight = window.innerHeight;
-          vh = Math.min(screenHeight, currentHeight);
-        }
-        
-        // Apply the height to multiple elements to ensure it takes effect
-        doc.style.height = `${vh}px`;
-        document.body.style.height = `${vh}px`;
-        
-        // Also set on the app container directly
-        const appContainer = document.getElementById('app-container');
-        if (appContainer) {
-          appContainer.style.height = `${vh}px`;
-          appContainer.style.maxHeight = `${vh}px`;
-        }
-      }
-      
-      // Set CSS variables
-      doc.style.setProperty('--app-height', `${vh}px`);
-      doc.style.setProperty('--viewport-height', `${vh}px`);
-      
-      // Force a layout recalculation
-      document.body.offsetHeight;
-      
-      // Send height to parent if in iframe
-      if (window.parent !== window) {
-        window.parent.postMessage({
-          type: 'iframeHeight',
-          height: vh
-        }, '*');
-      }
-    };
-    
-    // Mobile browser toolbar detection and adjustment
-    const detectMobileToolbar = () => {
-      if (window.innerWidth > 800) return;
-      
-      const doc = document.documentElement;
-      const userAgent = navigator.userAgent.toLowerCase();
-      
-      // Detect browser and platform
-      const isIOS = /iphone|ipad|ipod/.test(userAgent) && !window.MSStream;
-      const isAndroid = /android/.test(userAgent);
-      const isChrome = /chrome/.test(userAgent) && !/edg/.test(userAgent);
-      const isSafari = /safari/.test(userAgent) && !/chrome/.test(userAgent);
-      const isInstagram = /instagram/.test(userAgent);
-      const isFacebook = /fb/.test(userAgent) || /facebook/.test(userAgent);
-      
-      let buttonOffset = 80; // Default offset in pixels
-      
-      // Detect if we're in a WebView (Instagram, Facebook, etc.)
-      const isWebView = isInstagram || isFacebook || 
-                       (window.navigator.standalone === false) ||
-                       (document.referrer.includes('instagram.com')) ||
-                       (document.referrer.includes('facebook.com'));
-      
-      if (isWebView) {
-        // Instagram/Facebook WebView - these work well with fixed positioning
-        buttonOffset = window.innerHeight * 0.15; // 15% from bottom
-      } else if (isIOS && isSafari) {
-        // iOS Safari - needs more space due to bottom toolbar
-        buttonOffset = window.innerHeight * 0.20; // 20% from bottom
-      } else if (isAndroid && isChrome) {
-        // Android Chrome - detect if toolbar is present
-        if ('visualViewport' in window) {
-          const visualVH = window.visualViewport.height;
-          const windowVH = window.innerHeight;
-          const toolbarHeight = windowVH - visualVH;
-          
-          // If toolbar is detected, add extra space
-          buttonOffset = toolbarHeight > 0 ? 
-                        (toolbarHeight + window.innerHeight * 0.12) : // 12% above toolbar
-                        window.innerHeight * 0.15; // 15% if no toolbar
-        } else {
-          buttonOffset = window.innerHeight * 0.15; // 15% fallback
-        }
-      } else {
-        // Other browsers - use conservative positioning
-        buttonOffset = window.innerHeight * 0.15;
-      }
-      
-      // Set CSS variable for button offset
-      doc.style.setProperty('--button-bottom-offset', `${buttonOffset}px`);
-      
-      // Monitor viewport changes
-      if ('visualViewport' in window) {
-        window.visualViewport.addEventListener('resize', () => {
-          const visualVH = window.visualViewport.height;
-          const windowVH = window.innerHeight;
-          const toolbarHeight = windowVH - visualVH;
-          
-          // Adjust offset based on current state
-          if (isWebView) {
-            buttonOffset = window.innerHeight * 0.15;
-          } else if (isIOS && isSafari) {
-            buttonOffset = window.innerHeight * 0.20;
-          } else if (isAndroid && isChrome) {
-            buttonOffset = toolbarHeight > 0 ? 
-                          (toolbarHeight + window.innerHeight * 0.12) :
-                          window.innerHeight * 0.15;
-          }
-          
-          doc.style.setProperty('--button-bottom-offset', `${buttonOffset}px`);
-        });
-      }
-      
-      // Handle orientation changes
-      window.addEventListener('orientationchange', () => {
-        setTimeout(() => {
-          detectMobileToolbar();
-        }, 300);
-      });
-    };
-    
-    // Call toolbar detection after setting app height
-    setAppHeight();
-    detectMobileToolbar();
-    
-    // Aggressive event listeners for all possible resize scenarios
-    let resizeTimeout;
-    const debouncedSetHeight = () => {
-      clearTimeout(resizeTimeout);
-      resizeTimeout = setTimeout(setAppHeight, 100);
-    };
-    
-    // Listen to all relevant events
-    window.addEventListener('resize', debouncedSetHeight);
-    window.addEventListener('orientationchange', () => {
-      setTimeout(() => {
-        setAppHeight();
-        detectMobileToolbar();
-      }, 200);
-    });
-    
-    // Visual viewport API for modern browsers
-    if ('visualViewport' in window) {
-      window.visualViewport.addEventListener('resize', setAppHeight);
-      window.visualViewport.addEventListener('scroll', setAppHeight);
-    }
-    
-    // Also listen for scroll events which might indicate toolbar changes
-    window.addEventListener('scroll', debouncedSetHeight, { passive: true });
-    document.addEventListener('scroll', debouncedSetHeight, { passive: true });
-    
-    // Set height when DOM is ready
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', setAppHeight);
-    } else {
-      setAppHeight();
-    }
-    
-    // Set height when everything is loaded
-    window.addEventListener('load', () => {
-      setAppHeight();
-      detectMobileToolbar();
-      // Double-check after animations
-      setTimeout(() => {
-        setAppHeight();
-        detectMobileToolbar();
-      }, 100);
-      setTimeout(setAppHeight, 300);
-      setTimeout(setAppHeight, 1000);
-    });
-    
-    // Handle visibility changes
-    document.addEventListener('visibilitychange', () => {
-      if (!document.hidden) {
-        setAppHeight();
-      }
-    });
-    
-    // iOS specific handling
-    const iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-    if (iOS) {
-      // Set a class we can use for iOS-specific styling
-      document.documentElement.classList.add('ios-device');
-    }
-    
-    // Android specific handling
-    const isAndroid = /Android/.test(navigator.userAgent);
-    if (isAndroid) {
-      document.documentElement.classList.add('android-device');
-      
-      // Android Chrome has specific issues with viewport units
-      window.addEventListener('resize', () => {
-        // Force a more aggressive recalculation on Android
-        const vh = window.innerHeight;
-        document.documentElement.style.setProperty('--app-height', `${vh}px`);
-        document.body.style.height = `${vh}px`;
-        const appContainer = document.getElementById('app-container');
-        if (appContainer) {
-          appContainer.style.height = `${vh}px`;
-        }
-      });
-    }
-    
-    // App-like features
-    const showToast = (message, duration = 3000) => {
-      const toast = document.getElementById('toast');
-      toast.textContent = message;
-      toast.classList.add('show');
-      setTimeout(() => {
-        toast.classList.remove('show');
-      }, duration);
-    };
-    
-    // Keyboard shortcuts
-    document.addEventListener('keydown', (e) => {
-      // Only if not typing in an input
-      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-      
-      switch(e.key) {
-        case 'Escape':
-          // Close any open popups or drawers
-          if (activePopup) {
-            activePopup.remove();
-            activePopup = null;
-          }
-          if (isMobile && document.getElementById('mobileDrawer').classList.contains('expanded')) {
-            window.mobileDrawerCollapse();
-          }
-          if (!isMobile && document.getElementById('desktopSidebar').classList.contains('open')) {
-            toggleSidebar();
-          }
-          break;
-          
-        case '/':
-        case 'f':
-          if (e.ctrlKey || e.metaKey) {
-            e.preventDefault();
-            // Focus search
-            if (isMobile) {
-              const drawer = document.getElementById('mobileDrawer');
-              if (!drawer.classList.contains('expanded')) {
-                drawer.classList.add('expanded');
-                drawer.style.transform = 'translateY(0)';
-              }
-              document.getElementById('mobileSearchBar').focus();
-            } else {
-              if (!document.getElementById('desktopSidebar').classList.contains('open')) {
-                toggleSidebar();
-              }
-              document.getElementById('sidebarSearchBar').focus();
-            }
-          }
-          break;
-          
-        case 't':
-          // Toggle tiles view
-          if (!isMobile) {
-            toggleSidebar();
-          }
-          break;
-          
-        case 'm':
-          // Focus on map
-          if (activePopup) {
-            activePopup.remove();
-            activePopup = null;
-          }
-          map.flyTo({
-            center: [-81.1961527, 26.7807395],
-            zoom: isMobile ? 6 : 7,
-            duration: 1000
-          });
-          showToast('Returned to default view');
-          break;
-      }
-    });
-    
-    // Add URL state management
-    const updateURLState = (state) => {
-      const url = new URL(window.location);
-      Object.keys(state).forEach(key => {
-        if (state[key]) {
-          url.searchParams.set(key, state[key]);
-        } else {
-          url.searchParams.delete(key);
-        }
-      });
-      window.history.replaceState({}, '', url);
-    };
-    
-    // Smooth loading experience
-    window.addEventListener('load', () => {
-      setTimeout(() => {
-        const loadingOverlay = document.getElementById('loadingOverlay');
-        loadingOverlay.classList.add('fade-out');
-        setTimeout(() => {
-          loadingOverlay.style.display = 'none';
-        }, 500);
-      }, 2500); // Increased from 1000ms to 2500ms (1.5 seconds longer)
-    });
-    
-    // Prevent pinch zoom on iOS
-    document.addEventListener('gesturestart', (e) => {
-      e.preventDefault();
-    });
-    
-    // Add smooth scrolling to all scrollable elements
-    const smoothScrollElements = document.querySelectorAll('#desktopSidebar, #mobileDrawerContent');
-    smoothScrollElements.forEach(el => {
-      el.style.scrollBehavior = 'smooth';
-      el.style.webkitOverflowScrolling = 'touch';
-    });
-    
-    // Clear all filters function
-    function clearAllFilters(targetId) {
-      if (targetId === 'gridDesktop') {
-        document.getElementById('sortSelectDesktop').value = 'default';
-        document.getElementById('locationFilterDesktop').value = 'all';
-        document.getElementById('projectTypeFilterDesktop').value = 'all';
-      } else if (targetId === 'gridMobile') {
-        document.getElementById('sortSelectMobile').value = 'default';
-        document.getElementById('locationFilterMobile').value = 'all';
-        document.getElementById('projectTypeFilterMobile').value = 'all';
-      }
-      
-      // Clear stored preferences
-      localStorage.removeItem('mapFilters');
-      
-      // Re-render the grid
-      renderGrid(targetId);
-    }
-    
-    // Save filter preferences to localStorage
-    function saveFilterPreferences() {
-      const filters = {
-        desktop: {
-          sort: document.getElementById('sortSelectDesktop')?.value || 'default',
-          location: document.getElementById('locationFilterDesktop')?.value || 'all',
-          projectType: document.getElementById('projectTypeFilterDesktop')?.value || 'all'
-        },
-        mobile: {
-          sort: document.getElementById('sortSelectMobile')?.value || 'default',
-          location: document.getElementById('locationFilterMobile')?.value || 'all',
-          projectType: document.getElementById('projectTypeFilterMobile')?.value || 'all'
-        }
-      };
-      
-      localStorage.setItem('mapFilters', JSON.stringify(filters));
-    }
-    
-    // Load filter preferences from localStorage
-    function loadFilterPreferences() {
-      const stored = localStorage.getItem('mapFilters');
-      if (!stored) return;
-      
-      try {
-        const filters = JSON.parse(stored);
-        
-        // Desktop filters
-        if (filters.desktop) {
-          const sortDesktop = document.getElementById('sortSelectDesktop');
-          const locationDesktop = document.getElementById('locationFilterDesktop');
-          const typeDesktop = document.getElementById('projectTypeFilterDesktop');
-          
-          if (sortDesktop && filters.desktop.sort) sortDesktop.value = filters.desktop.sort;
-          if (locationDesktop && filters.desktop.location) locationDesktop.value = filters.desktop.location;
-          if (typeDesktop && filters.desktop.projectType) typeDesktop.value = filters.desktop.projectType;
-        }
-        
-        // Mobile filters
-        if (filters.mobile) {
-          const sortMobile = document.getElementById('sortSelectMobile');
-          const locationMobile = document.getElementById('locationFilterMobile');
-          const typeMobile = document.getElementById('projectTypeFilterMobile');
-          
-          if (sortMobile && filters.mobile.sort) sortMobile.value = filters.mobile.sort;
-          if (locationMobile && filters.mobile.location) locationMobile.value = filters.mobile.location;
-          if (typeMobile && filters.mobile.projectType) typeMobile.value = filters.mobile.projectType;
-        }
-      } catch (e) {
-        console.error('Error loading filter preferences:', e);
-      }
-    }
-    
-    const isMobile = window.innerWidth <= 800;
-    
-    // Initialize desktop/mobile specific elements after DOM loads
-    if (isMobile) {
-      // Use immediate check and also DOM loaded event
-      const removeHidden = () => {
-        const searchBtn = document.getElementById('openSearch');
-        if (searchBtn) searchBtn.classList.remove('hidden');
-      };
-      
-      // Try immediately
-      removeHidden();
-      
-      // Also try after DOM loaded
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', removeHidden);
-      }
-    }
-    
-    mapboxgl.accessToken = 'pk.eyJ1IjoiZmxvcmlkYW9mdG9tb3Jyb3ciLCJhIjoiY2xrYmpmdGQ2MGdibTNzcXZjMnA4aXh3ZiJ9.uBeYS7jmKwWS6xAgY-R1UA';
-    const map = new mapboxgl.Map({
-      container: 'map',
-      style: 'mapbox://styles/floridaoftomorrow/clkbk4qlw000a01qw94rj0xa7',
-      center: [-81.1961527, 26.7807395],
-      zoom: isMobile ? 6 : 7
-    });
-    let activePopup;
-    let stationPopup;
-    let fullscreenMap;
-    const hoverIcon = document.getElementById('hoverIcon');
-    // Station coordinates
-    const stations = [
-      { name: 'Brightline Miami Central', coords: [ -80.19566705369766, 25.779947075732274 ] },
-      { name: 'Brightline Space Coast (Future Expansion)', coords: [ -80.75202413906919, 28.397871260389884 ] },
-      { name: 'Brightline Treasure Coast (Future Expansion)', coords: [ -80.25077272459303, 27.19613680836344 ] },
-      { name: 'Brightline Tampa (Future Expansion)', coords: [ -82.44012243487249, 27.9601013 ] },
-      { name: 'Brightline Aventura', coords: [ -80.14727549271636, 25.95864554962915 ] },
-      { name: 'Brightline Fort Lauderdale', coords: [ -80.14604744023525, 26.123679482466038 ] },
-      { name: 'Brightline Boca Raton', coords: [ -80.08775544484952, 26.35487530600287 ] },
-      { name: 'Brightline West Palm Beach', coords: [ -80.05544183114269, 26.71256721532643 ] },
-      { name: 'Brightline Orlando', coords: [ -81.30766141153542, 28.41186811070061 ] }
-    ];
-    // Toggle sidebar functionality
-    function toggleSidebar() {
-      const sidebar = document.getElementById('desktopSidebar');
-      const toggleBtn = document.getElementById('toggleView');
-      const searchBtn = document.getElementById('openSearch');
-      
-      if (sidebar.classList.contains('open')) {
-        // Close sidebar
-        sidebar.classList.remove('open');
-        toggleBtn.querySelector('span').textContent = 'Tiles';
-        // Show buttons again
-        toggleBtn.classList.remove('hidden');
-        searchBtn.classList.remove('hidden');
-      } else {
-        // Open sidebar
-        sidebar.classList.add('open');
-        toggleBtn.querySelector('span').textContent = 'Map';
-        // Hide buttons when sidebar is open
-        toggleBtn.classList.add('hidden');
-        searchBtn.classList.add('hidden');
-        // Update grid when opening sidebar
-        renderGrid('gridDesktop');
-      }
-    }
-    
-    // Add toggle button functionality
-    if (!isMobile) {
-      const toggleBtn = document.getElementById('toggleView');
-      const sidebar = document.getElementById('desktopSidebar');
-      
-      // Set initial button text based on sidebar state
-      if (sidebar.classList.contains('open')) {
-        toggleBtn.querySelector('span').textContent = 'Map';
-      }
-      
-      if (toggleBtn) {
-        toggleBtn.onclick = toggleSidebar;
-      }
-      
-      // Add close button functionality
-      const closeBtn = document.getElementById('closeSidebar');
-      if (closeBtn) {
-        closeBtn.onclick = () => {
-          const sidebar = document.getElementById('desktopSidebar');
-          const toggleBtn = document.getElementById('toggleView');
-          const searchBtn = document.getElementById('openSearch');
-          
-          // Close sidebar
-          sidebar.classList.remove('open');
-          toggleBtn.querySelector('span').textContent = 'Tiles';
-          // Show buttons again
-          toggleBtn.classList.remove('hidden');
-          searchBtn.classList.remove('hidden');
-        };
-      }
-    }
-    // Helper function to calculate distance between two coordinates
-    function calculateDistance(lat1, lon1, lat2, lon2) {
-      const R = 3959; // Earth's radius in miles
-      const dLat = (lat2 - lat1) * Math.PI / 180;
-      const dLon = (lon2 - lon1) * Math.PI / 180;
-      const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-                Math.sin(dLon/2) * Math.sin(dLon/2);
-      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-      return R * c;
-    }
-    // Helper functions that need to be global
-    function showPopup(f) {
-      // Add subtle haptic feedback on mobile
-      if (isMobile && 'vibrate' in navigator) {
-        navigator.vibrate(10);
-      }
-      
-      if(activePopup) activePopup.remove();
-      // Close station popup when showing project popup
-      if (stationPopup) {
-        stationPopup.remove();
-        stationPopup = null;
-      }
-      const co=f.geometry.coordinates;
-      activePopup=new mapboxgl.Popup({closeButton:false})
-        .setLngLat(co)
-        .setHTML(`
-          <div class="popup-content">
-            <img src="${f.properties.image}" alt="${f.properties.title}" />
-            ${f.properties.featured ? `
-              <div class="featured-badge" style="top: -5px; left: -5px;">
-                <svg viewBox="0 0 24 24">
-                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                </svg>
-                Featured
-              </div>
-            ` : ''}
-            <h3>${f.properties.title}</h3>
-            <p class="city">${f.properties.city}</p>
-            <p class="description">${f.properties.description}</p>
-            <p class="delivery"><em>${f.properties.delivery}</em></p>
-            <a class="favorite" href="https://www.oftmw.com/livehere" onclick="gtag('event', 'live_here_click', {'project_name': '${f.properties.title}', 'click_location': 'popup'});">
-              <svg viewBox="0 0 18 18"><path d="M9 1v16M1 9h16"/></svg>
-            </a>
-            <div class="popup-buttons">
-              <a href="${f.properties.website}" target="_blank" onclick="gtag('event', 'learn_more_click', {'project_name': '${f.properties.title}', 'project_city': '${f.properties.city}', 'click_location': 'popup', 'device_type': '${isMobile ? 'mobile' : 'desktop'}'});">Learn More</a>
-            </div>
-          </div>
-        `).addTo(map);
-      const off = isMobile ? [0, activePopup.getElement().offsetHeight/2] : [0, -25];
-      map.flyTo({ center:co, zoom:14, offset:off });
-      
-      // Track popup view with GA4
-      gtag('event', 'project_view', {
-        'project_name': f.properties.title,
-        'project_city': f.properties.city,
-        'project_featured': f.properties.featured || false,
-        'project_type': f.properties.projectType || 'unknown',
-        'view_source': 'map_popup',
-        'device_type': isMobile ? 'mobile' : 'desktop'
-      });
-      
-      // Update URL with selected project
-      updateURLState({ project: f.properties.title.toLowerCase().replace(/\s+/g, '-') });
-    }
-    function renderGrid(targetId = 'grid') {
-      const grid=document.getElementById(targetId);
-      if (!grid) return;
-      
-      grid.innerHTML='';
-      
-      if (!map.getSource('projects') || !map.getSource('projects')._data) return;
-      
-      let features = [...map.getSource('projects')._data.features];
-      
-      // Get current map center and bounds
-      const mapCenter = map.getCenter();
-      const mapBounds = map.getBounds();
-      
-      // Calculate distance for each feature from map center
-      features = features.map(f => {
-        const coords = f.geometry.coordinates;
-        const distance = calculateDistance(
-          mapCenter.lat, 
-          mapCenter.lng, 
-          coords[1], // latitude
-          coords[0]  // longitude
-        );
-        // Check if feature is within current map bounds
-        const inBounds = mapBounds.contains([coords[0], coords[1]]);
-        return { ...f, distance, inBounds };
-      });
-      
-      // Determine which filters to use based on target
-      let locationFilter, projectTypeFilter, sortType;
-      
-      if (targetId === 'gridDesktop') {
-        locationFilter = document.getElementById('locationFilterDesktop')?.value || 'all';
-        projectTypeFilter = document.getElementById('projectTypeFilterDesktop')?.value || 'all';
-        sortType = document.getElementById('sortSelectDesktop')?.value || 'default';
-      } else if (targetId === 'gridMobile') {
-        // Mobile uses its own filters
-        locationFilter = document.getElementById('locationFilterMobile')?.value || 'all';
-        projectTypeFilter = document.getElementById('projectTypeFilterMobile')?.value || 'all';
-        sortType = document.getElementById('sortSelectMobile')?.value || 'default';
-      } else {
-        // Original grid
-        locationFilter = document.getElementById('locationFilter')?.value || 'all';
-        projectTypeFilter = document.getElementById('projectTypeFilter')?.value || 'all';
-        sortType = document.getElementById('sortSelect')?.value || 'default';
-      }
-      
-      // Apply location filter
-      if (locationFilter !== 'all') {
-        features = features.filter(f => f.properties.city === locationFilter);
-      }
-      
-      // Apply project type filter
-      if (projectTypeFilter !== 'all') {
-        features = features.filter(f => {
-          return f.properties.projectTypes && 
-                 f.properties.projectTypes.includes(projectTypeFilter.toLowerCase());
-        });
-      }
-      
-      // IMPORTANT: Filter to only show projects within the current map bounds
-      // Only apply this filter when using default sort (not alphabetical)
-      if (sortType === 'default') {
-        features = features.filter(f => f.inBounds);
-      }
-      
-      // Check if we have no features to display
-      if (features.length === 0) {
-        let emptyMessage = '';
-        
-        if (locationFilter !== 'all' || projectTypeFilter !== 'all') {
-          // Filters are active
-          emptyMessage = `
-            <div class="empty-state">
-              <div class="empty-state-icon">
-                <svg viewBox="0 0 24 24">
-                  <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 15.5h-1.5V14h1.5v4.5zm0-6.5h-1.5v-1.5h1.5V12z"/>
-                </svg>
-              </div>
-              <h3>No projects match your filters</h3>
-              <p>Try adjusting your filters or zooming out to see more projects.</p>
-              <div class="empty-state-actions">
-                <button class="empty-state-btn" onclick="clearAllFilters('${targetId}')">Clear Filters</button>
-                <button class="empty-state-btn primary" onclick="map.flyTo({center: [-81.1961527, 26.7807395], zoom: ${isMobile ? 6 : 7}, duration: 1000})">Reset Map View</button>
-              </div>
-            </div>
-          `;
-        } else if (sortType === 'default') {
-          // No filters, but no projects in view
-          emptyMessage = `
-            <div class="empty-state">
-              <div class="empty-state-icon">
-                <svg viewBox="0 0 24 24">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
-                </svg>
-              </div>
-              <h3>No projects in this area</h3>
-              <p>Zoom out or pan the map to explore other areas with upcoming developments.</p>
-              <div class="empty-state-actions">
-                <button class="empty-state-btn primary" onclick="map.flyTo({center: [-81.1961527, 26.7807395], zoom: ${isMobile ? 6 : 7}, duration: 1000})">View All Projects</button>
-              </div>
-            </div>
-          `;
-        }
-        
-        grid.innerHTML = emptyMessage;
-        return;
-      }
-      
-      // Apply sorting
-      if (sortType === 'az') {
-        features.sort((a, b) => {
-          // Featured items first
-          if (a.properties.featured && !b.properties.featured) return -1;
-          if (!a.properties.featured && b.properties.featured) return 1;
-          // Then alphabetical
-          return a.properties.title.localeCompare(b.properties.title);
-        });
-      } else if (sortType === 'za') {
-        features.sort((a, b) => {
-          // Featured items first
-          if (a.properties.featured && !b.properties.featured) return -1;
-          if (!a.properties.featured && b.properties.featured) return 1;
-          // Then reverse alphabetical
-          return b.properties.title.localeCompare(a.properties.title);
-        });
-      } else {
-        // Default sort by distance with featured priority
-        // Since we've already filtered to only in-bounds items, we just sort by featured status and distance
-        features.sort((a, b) => {
-          // Featured items first
-          if (a.properties.featured && !b.properties.featured) return -1;
-          if (!a.properties.featured && b.properties.featured) return 1;
-          
-          // Then by distance from center
-          return a.distance - b.distance;
-        });
-      }
-      
-      // Create document fragment for better performance
-      const fragment = document.createDocumentFragment();
-      
-      // First, create skeleton loaders
-      features.forEach((f, index) => {
-        const skeleton = document.createElement('div');
-        skeleton.className = 'grid-item skeleton';
-        skeleton.innerHTML = `
-          <div class="image-wrapper">
-            <div class="skeleton-box skeleton-image"></div>
-          </div>
-          <div class="grid-item-content">
-            <div class="skeleton-box skeleton-title"></div>
-            <div class="skeleton-box skeleton-city"></div>
-            <div class="skeleton-box skeleton-button"></div>
-          </div>
-        `;
-        fragment.appendChild(skeleton);
-      });
-      
-      // Append skeletons first
-      grid.appendChild(fragment);
-      
-      // Then create actual content and replace skeletons
-      setTimeout(() => {
-        const skeletons = grid.querySelectorAll('.grid-item.skeleton');
-        
-        features.forEach((f, index) => {
-          const d=document.createElement('div');
-          d.className='grid-item';
-          
-          // Use placeholder image initially
-          const imageSrc = f.properties.image;
-          const placeholderSrc = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="300" height="120"%3E%3Crect width="300" height="120" fill="%23333"/%3E%3C/svg%3E';
-          
-          d.innerHTML=`
-            <div class="image-wrapper">
-              <img src="${placeholderSrc}" 
-                   data-src="${imageSrc}" 
-                   loading="lazy" 
-                   alt="${f.properties.title}"
-                   class="lazy-loading" />
-            </div>
-            ${f.properties.featured ? `
-              <div class="featured-badge">
-                <svg viewBox="0 0 24 24">
-                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                </svg>
-                Featured
-              </div>
-            ` : ''}
-            <a class="tile-favorite" href="https://www.oftmw.com/livehere" target="_blank" onclick="event.stopPropagation(); gtag('event', 'live_here_click', {'project_name': '${f.properties.title}', 'click_location': 'tile'});">
-              <svg viewBox="0 0 18 18"><path d="M9 1v16M1 9h16"/></svg>
-            </a>
-            <div class="grid-item-content">
-              <h3 style="color: #ffffff !important; margin: 0 0 4px; font-size: 16px;">${f.properties.title}</h3>
-              <p class="city" style="color: #cccccc !important; margin: 0 0 auto 0; font-size: 12px; padding-bottom: 8px;">${f.properties.city}</p>
-              <p class="website-btn">
-                <a href="${f.properties.website}" target="_blank" class="website-link" onclick="event.stopPropagation(); gtag('event', 'learn_more_click', {'project_name': '${f.properties.title}', 'project_city': '${f.properties.city}', 'click_location': 'tile', 'device_type': '${isMobile ? 'mobile' : 'desktop'}'});">Learn More</a>
-              </p>
-            </div>`;
-          d.onclick=()=>{ 
-            // Track tile click with GA4
-            gtag('event', 'project_click', {
-              'project_name': f.properties.title,
-              'project_city': f.properties.city,
-              'project_featured': f.properties.featured || false,
-              'project_type': f.properties.projectType || 'unknown',
-              'click_source': 'tile',
-              'device_type': isMobile ? 'mobile' : 'desktop',
-              'grid_position': index + 1
-            });
-            
-            showPopup(f); 
-            // On mobile, immediately close the drawer when tile is clicked
-            if (targetId === 'gridMobile') {
-              const drawer = document.getElementById('mobileDrawer');
-              const mapBtn = document.getElementById('mapReturnButton');
-              const content = document.getElementById('mobileDrawerContent');
-              
-              // Immediately collapse - fully hide
-              drawer.classList.remove('expanded');
-              drawer.style.transform = 'translateY(100%)'; // Fully hidden
-              mapBtn.classList.remove('visible');
-              content.scrollTop = 0;
-            }
-          };
-          
-          // Replace skeleton with actual content
-          if (skeletons[index]) {
-            skeletons[index].replaceWith(d);
-          } else {
-            grid.appendChild(d);
-          }
-        });
-        
-        // Set up lazy loading
-        setupLazyLoading(grid);
-      }, 100); // Small delay to show skeleton effect
-    }
-    function populateLocationFilter() {
-      if (!map.getSource('projects') || !map.getSource('projects')._data) return;
-      
-      const features = map.getSource('projects')._data.features;
-      
-      // Get all filter elements
-      const locationFilters = [
-        document.getElementById('locationFilter'),
-        document.getElementById('locationFilterDesktop'),
-        document.getElementById('locationFilterMobile')
-      ];
-      
-      const projectTypeFilters = [
-        document.getElementById('projectTypeFilter'),
-        document.getElementById('projectTypeFilterDesktop'),
-        document.getElementById('projectTypeFilterMobile')
-      ];
-      
-      // Populate cities
-      const cities = [...new Set(features.map(f => f.properties.city))];
-      cities.sort();
-      
-      locationFilters.forEach(filter => {
-        if (filter) {
-          filter.innerHTML = '<option value="all">All Cities</option>';
-          cities.forEach(city => {
-            const option = document.createElement('option');
-            option.value = city;
-            option.textContent = city;
-            filter.appendChild(option);
-          });
-        }
-      });
-      
-      // Populate project types
-      const allTypes = new Set();
-      features.forEach(f => {
-        if (f.properties.projectTypes && f.properties.projectTypes.length > 0) {
-          f.properties.projectTypes.forEach(type => allTypes.add(type));
-        }
-      });
-      
-      const projectTypes = [...allTypes].sort((a, b) => a.localeCompare(b));
-      
-      projectTypeFilters.forEach(filter => {
-        if (filter) {
-          filter.innerHTML = '<option value="all">All Types</option>';
-          projectTypes.forEach(type => {
-            const option = document.createElement('option');
-            option.value = type;
-            option.textContent = type.charAt(0).toUpperCase() + type.slice(1);
-            filter.appendChild(option);
-          });
-        }
-      });
-    }
-    // Add event listeners for desktop filters
-    const setupDesktopFilters = () => {
-      const desktopFilters = ['sortSelectDesktop', 'locationFilterDesktop', 'projectTypeFilterDesktop'];
-      desktopFilters.forEach(id => {
-        const element = document.getElementById(id);
-        if (element) {
-          element.addEventListener('change', () => {
-            // Track filter usage
-            gtag('event', 'filter_change', {
-              'filter_type': id.replace('Desktop', '').replace('Filter', '').replace('Select', ''),
-              'filter_value': element.value,
-              'platform': 'desktop'
-            });
-            saveFilterPreferences();
-            renderGrid('gridDesktop');
-          });
-        }
-      });
-    };
-    // Add event listeners for mobile filters
-    const setupMobileFilters = () => {
-      const mobileFilters = ['sortSelectMobile', 'locationFilterMobile', 'projectTypeFilterMobile'];
-      mobileFilters.forEach(id => {
-        const element = document.getElementById(id);
-        if (element) {
-          element.addEventListener('change', () => {
-            // Track filter usage
-            gtag('event', 'filter_change', {
-              'filter_type': id.replace('Mobile', '').replace('Filter', '').replace('Select', ''),
-              'filter_value': element.value,
-              'platform': 'mobile'
-            });
-            saveFilterPreferences();
-            renderGrid('gridMobile');
-          });
-        }
-      });
-      
-      // Setup mobile search
-      const mobileSearchBar = document.getElementById('mobileSearchBar');
-      if (mobileSearchBar) {
-        mobileSearchBar.addEventListener('input', (e) => {
-          const query = e.target.value.trim().toLowerCase();
-          
-          // Track mobile search
-          if (query.length > 2) {
-            gtag('event', 'search', {
-              'search_term': query,
-              'search_location': 'mobile_drawer',
-              'device_type': 'mobile'
-            });
-          }
-          
-          if (!query) {
-            renderGrid('gridMobile');
-            return;
-          }
-          
-          const source = map.getSource('projects');
-          if (!source || !source._data) return;
-          
-          const features = source._data.features;
-          
-          // Find exact match
-          const exactMatch = features.find(f => 
-            f.properties.title.toLowerCase() === query
-          );
-          
-          // Filter features
-          let filteredFeatures;
-          
-          if (exactMatch) {
-            // If exact match, show ONLY that item
-            filteredFeatures = [exactMatch];
-            // No automatic jump to map - user must click
-          } else {
-            // Otherwise show partial matches
-            filteredFeatures = features.filter(f =>
-              f.properties.title.toLowerCase().includes(query) ||
-              f.properties.city.toLowerCase().includes(query)
-            );
-          }
-          
-          renderFilteredGrid('gridMobile', filteredFeatures);
-        });
-      }
-    };
-    // Sidebar search functionality
-    const setupSidebarSearch = () => {
-      const searchBar = document.getElementById('sidebarSearchBar');
-      const resultsEl = document.getElementById('sidebarResults');
-      
-      if (!searchBar || !map.getSource) return;
-      
-      searchBar.addEventListener('input', (e) => {
-        const query = e.target.value.trim().toLowerCase();
-        resultsEl.classList.add('hidden'); // Hide dropdown results
-        
-        if (!query) {
-          // If search is empty, render all projects
-          renderGrid('gridDesktop');
-          return;
-        }
-        
-        const source = map.getSource('projects');
-        if (!source || !source._data) return;
-        
-        const features = source._data.features;
-        
-        // Find exact match
-        const exactMatch = features.find(f => 
-          f.properties.title.toLowerCase() === query
-        );
-        
-        // Filter and sort features
-        let filteredFeatures = [...features];
-        
-        if (exactMatch) {
-          // If exact match found, show it first, then other projects sorted by distance
-          const mapCenter = map.getCenter();
-          const matchCoords = exactMatch.geometry.coordinates;
-          
-          // Calculate distances for all features
-          filteredFeatures = features.map(f => {
-            const coords = f.geometry.coordinates;
-            const distance = calculateDistance(
-              mapCenter.lat, 
-              mapCenter.lng, 
-              coords[1], 
-              coords[0]
-            );
-            return { ...f, distance };
-          });
-          
-          // Sort by distance but put exact match first
-          filteredFeatures = [
-            exactMatch,
-            ...filteredFeatures.filter(f => f !== exactMatch).sort((a, b) => a.distance - b.distance)
-          ];
-          
-          // Also jump to location on map
-          showPopup(exactMatch);
-        } else {
-          // Filter by city or title containing the query
-          filteredFeatures = features.filter(f =>
-            f.properties.title.toLowerCase().includes(query) ||
-            f.properties.city.toLowerCase().includes(query)
-          );
-        }
-        
-        // Render filtered grid
-        renderFilteredGrid('gridDesktop', filteredFeatures);
-      });
-    };
-    
-    // New function to render filtered grid
-    function renderFilteredGrid(targetId, features) {
-      const grid = document.getElementById(targetId);
-      if (!grid) return;
-      
-      grid.innerHTML = '';
-      
-      // Get current map center and bounds
-      const mapCenter = map.getCenter();
-      const mapBounds = map.getBounds();
-      
-      // Calculate distance and check bounds for filtered features
-      features = features.map(f => {
-        const coords = f.geometry.coordinates;
-        const distance = calculateDistance(
-          mapCenter.lat, 
-          mapCenter.lng, 
-          coords[1], // latitude
-          coords[0]  // longitude
-        );
-        const inBounds = mapBounds.contains([coords[0], coords[1]]);
-        return { ...f, distance, inBounds };
-      });
-      
-      // When searching, show all results but prioritize those in view
-      // Sort with featured priority within view
-      features.sort((a, b) => {
-        // Priority 1: Featured items that are in bounds
-        const aFeaturedInBounds = a.inBounds && a.properties.featured;
-        const bFeaturedInBounds = b.inBounds && b.properties.featured;
-        
-        if (aFeaturedInBounds && !bFeaturedInBounds) return -1;
-        if (!aFeaturedInBounds && bFeaturedInBounds) return 1;
-        
-        // Priority 2: Non-featured items in bounds
-        const aInBounds = a.inBounds && !a.properties.featured;
-        const bInBounds = b.inBounds && !b.properties.featured;
-        
-        if (aInBounds && !b.inBounds) return -1;
-        if (!aInBounds && b.inBounds) return 1;
-        
-        // Priority 3: Everything else by distance
-        return a.distance - b.distance;
-      });
-      
-      // Create document fragment for better performance
-      const fragment = document.createDocumentFragment();
-      
-      features.forEach((f, index) => {
-        const d = document.createElement('div');
-        d.className = 'grid-item';
-        
-        // Use placeholder image initially
-        const imageSrc = f.properties.image;
-        const placeholderSrc = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="300" height="120"%3E%3Crect width="300" height="120" fill="%23333"/%3E%3C/svg%3E';
-        
-        d.innerHTML = `
-          <div class="image-wrapper">
-            <img src="${placeholderSrc}" 
-                 data-src="${imageSrc}" 
-                 loading="lazy" 
-                 alt="${f.properties.title}"
-                 class="lazy-loading" />
-          </div>
-          ${f.properties.featured ? `
-            <div class="featured-badge">
-              <svg viewBox="0 0 24 24">
-                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-              </svg>
-              Featured
-            </div>
-          ` : ''}
-          <a class="tile-favorite" href="https://www.oftmw.com/livehere" target="_blank" onclick="event.stopPropagation();">
-            <svg viewBox="0 0 18 18"><path d="M9 1v16M1 9h16"/></svg>
-          </a>
-          <div class="grid-item-content">
-            <h3 style="color: #ffffff !important; margin: 0 0 4px; font-size: 16px;">${f.properties.title}</h3>
-            <p class="city" style="color: #cccccc !important; margin: 0 0 auto 0; font-size: 12px; padding-bottom: 8px;">${f.properties.city}</p>
-            <p class="website-btn">
-              <a href="${f.properties.website}" target="_blank" class="website-link" onclick="event.stopPropagation();">Learn More</a>
-            </p>
-          </div>`;
-        d.onclick = () => { 
-          showPopup(f); 
-          // On mobile, immediately close the drawer when tile is clicked
-          if (targetId === 'gridMobile') {
-            const drawer = document.getElementById('mobileDrawer');
-            const mapBtn = document.getElementById('mapReturnButton');
-            const content = document.getElementById('mobileDrawerContent');
-            
-            // Immediately collapse - fully hide
-            drawer.classList.remove('expanded');
-            drawer.style.transform = 'translateY(100%)'; // Fully hidden
-            mapBtn.classList.remove('visible');
-            content.scrollTop = 0;
-          }
-        };
-        fragment.appendChild(d);
-      });
-      
-      // Append all at once
-      grid.appendChild(fragment);
-      
-      // Set up lazy loading
-      setupLazyLoading(grid);
-    }
-    
-    // Extract lazy loading setup to reusable function
-    function setupLazyLoading(grid) {
-      const imageObserver = new IntersectionObserver((entries, observer) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            const img = entry.target;
-            const src = img.getAttribute('data-src');
-            
-            const newImg = new Image();
-            newImg.onload = () => {
-              img.src = src;
-              img.classList.remove('lazy-loading');
-              img.classList.add('loaded');
-              observer.unobserve(img);
-            };
-            newImg.onerror = () => {
-              img.classList.remove('lazy-loading');
-              img.classList.add('loaded');
-              observer.unobserve(img);
-            };
-            newImg.src = src;
-          }
-        });
-      }, {
-        rootMargin: '50px',
-        threshold: 0.01
-      });
-      
-      const fadeObserver = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting && !entry.target.classList.contains('visible')) {
-            requestAnimationFrame(() => {
-              entry.target.classList.add('visible');
-            });
-          }
-        });
-      }, {
-        threshold: 0.1,
-        rootMargin: '0px'
-      });
-      
-      const gridItems = grid.querySelectorAll('.grid-item');
-      const images = grid.querySelectorAll('.grid-item img');
-      
-      gridItems.forEach(item => fadeObserver.observe(item));
-      images.forEach(img => imageObserver.observe(img));
-    }
-    // Global variable to track mobile drawer state
-    window.mobileDrawerCollapse = null;
-    // Mobile drawer functionality
-    function setupMobileDrawer() {
-      const drawer = document.getElementById('mobileDrawer');
-      const handle = document.getElementById('mobileDrawerHandle');
-      const content = document.getElementById('mobileDrawerContent');
-      const mapBtn = document.getElementById('mapReturnButton');
-      
-      let startY = 0;
-      let currentY = 0;
-      let startTransform = 0;
-      let isDragging = false;
-      let isExpanded = false;
-      
-      // Use CSS variable for dynamic height
-      const getViewportHeight = () => {
-        const appHeight = getComputedStyle(document.documentElement).getPropertyValue('--app-height');
-        return parseInt(appHeight) - 50; // Account for header
-      };
-      // Function to collapse drawer
-      function collapseDrawer() {
-        isExpanded = false;
-        drawer.classList.remove('expanded');
-        drawer.style.transform = `translateY(100%)`; // Fully hidden
-        mapBtn.classList.remove('visible');
-        // Reset scroll position when closing
-        content.scrollTop = 0;
-      }
-      
-      // Function to expand drawer
-      function expandDrawer() {
-        isExpanded = true;
-        drawer.classList.add('expanded');
-        drawer.style.transform = 'translateY(0)';
-        mapBtn.classList.add('visible');
-        
-        // Force enable scrolling on the content
-        content.style.overflow = 'auto';
-        content.style.overflowY = 'scroll';
-        content.style.webkitOverflowScrolling = 'touch';
-        content.style.pointerEvents = 'auto';
-        content.style.touchAction = 'auto';
-        
-        // Update grid when expanding drawer
-        renderGrid('gridMobile');
-      }
-      
-      // Make collapseDrawer globally available
-      window.mobileDrawerCollapse = collapseDrawer;
-      // Prevent touch interactions on content only when collapsed
-      content.addEventListener('touchstart', (e) => {
-        if (!isExpanded) {
-          e.preventDefault();
-          e.stopPropagation();
-          return false;
-        }
-      }, { passive: false });
-      // Handle drag start
-      handle.addEventListener('touchstart', (e) => {
-        isDragging = true;
-        startY = e.touches[0].clientY;
-        drawer.style.transition = 'none';
-        
-        // Calculate current position
-        const computedStyle = window.getComputedStyle(drawer);
-        const matrix = new DOMMatrix(computedStyle.transform);
-        const viewportHeight = getViewportHeight();
-        const collapsedY = viewportHeight;
-        startTransform = matrix.m42 || (isExpanded ? 0 : collapsedY);
-      }, { passive: true });
-      // Handle drag move
-      handle.addEventListener('touchmove', (e) => {
-        if (!isDragging) return;
-        e.preventDefault();
-        
-        currentY = e.touches[0].clientY;
-        const deltaY = currentY - startY;
-        let newY = startTransform + deltaY;
-        
-        // Constrain position
-        const viewportHeight = getViewportHeight();
-        const collapsedY = viewportHeight;
-        newY = Math.max(0, Math.min(newY, collapsedY));
-        
-        drawer.style.transform = `translateY(${newY}px)`;
-      }, { passive: false });
-      // Handle drag end
-      handle.addEventListener('touchend', (e) => {
-        if (!isDragging) return;
-        isDragging = false;
-        
-        const deltaY = currentY - startY;
-        drawer.style.transition = 'transform 0.3s ease';
-        
-        // Determine expand/collapse based on position and direction  
-        const viewportHeight = getViewportHeight();
-        const currentPosition = startTransform + deltaY;
-        const threshold = viewportHeight * 0.5;
-        
-        if (currentPosition < threshold || (!isExpanded && deltaY < -30)) {
-          expandDrawer();
-        } else {
-          collapseDrawer();
-        }
-      }, { passive: true });
-      // Click to toggle
-      handle.addEventListener('click', (e) => {
-        e.stopPropagation();
-        drawer.style.transition = 'transform 0.3s ease';
-        if (isExpanded) {
-          collapseDrawer();
-        } else {
-          expandDrawer();
-        }
-      });
-      // Tiles button opens drawer (new floating button)
-      const mobileTilesBtn = document.getElementById('mobileTilesButton');
-      if (mobileTilesBtn && isMobile) {
-        mobileTilesBtn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          drawer.style.transition = 'transform 0.3s ease';
-          expandDrawer();
-          
-          // Track tiles view opened
-          gtag('event', 'view_change', {
-            'view_type': 'tiles',
-            'action': 'open_drawer',
-            'device_type': 'mobile'
-          });
-        });
-      }
-      // Map return button (now on the drawer handle)
-      const mobileMapBtn = document.getElementById('mobileMapButton');
-      if (mobileMapBtn) {
-        mobileMapBtn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          drawer.style.transition = 'transform 0.3s ease';
-          collapseDrawer();
-          
-          // Track return to map
-          gtag('event', 'view_change', {
-            'view_type': 'map',
-            'action': 'close_drawer',
-            'device_type': 'mobile'
-          });
-        });
-      }
-      
-      // Old map return button (keep for compatibility)
-      mapBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        drawer.style.transition = 'transform 0.3s ease';
-        collapseDrawer();
-      });
-    }
-    map.on('load', () => {
-      // Build custom Brightline GeoJSON with your coordinates
-      const brightlineGeo = {
-        type: 'FeatureCollection',
-        features: [
-          {
-            type: 'Feature',
-            properties: { segment: 'existing' },
-            geometry: {
-              type: 'LineString',
-              coordinates: [
-                [-80.1961527,25.7807395,0],
-                [-80.1963673,25.7876179,0],
-                [-80.1909599,25.8105687,0],
-                [-80.1874838,25.8254033,0],
-                [-80.1888571,25.8510117,0],
-                [-80.1689444,25.8942205,0],
-                [-80.1605759,25.9030611,0],
-                [-80.1591167,25.9051457,0],
-                [-80.1577864,25.9145259,0],
-                [-80.1472721,25.9481418,0],
-                [-80.1499329,26.0372102,0],
-                [-80.1448259,26.0585318,0],
-                [-80.1430664,26.0631581,0],
-                [-80.1375303,26.0684395,0],
-                [-80.1358566,26.0707139,0],
-                [-80.1352129,26.0729111,0],
-                [-80.1360712,26.0764575,0],
-                [-80.1392899,26.0808903,0],
-                [-80.1449976,26.1071368,0],
-                [-80.1456842,26.1276366,0],
-                [-80.1448688,26.130064,0],
-                [-80.1419077,26.1333389,0],
-                [-80.1332388,26.1425083,0],
-                [-80.1312218,26.1454362,0],
-                [-80.1307926,26.1482099,0],
-                [-80.1324234,26.2071741,0],
-                [-80.1322947,26.2087912,0],
-                [-80.1166735,26.2639533,0],
-                [-80.1064596,26.2996618,0],
-                [-80.1007948,26.3193199,0],
-                [-80.0997648,26.3218587,0],
-                [-80.0913105,26.3319363,0],
-                [-80.0725994,26.4469586,0],
-                [-80.0547037,26.5589104,0],
-                [-80.0542746,26.5613288,0],
-                [-80.0536308,26.5777184,0],
-                [-80.0523434,26.5820937,0],
-                [-80.0521288,26.5854326,0],
-                [-80.0523434,26.5911507,0],
-                [-80.0585232,26.6031618,0],
-                [-80.0596819,26.607114,0],
-                [-80.0580511,26.6764285,0],
-                [-80.0568066,26.6799948,0],
-                [-80.0559483,26.6825256,0],
-                [-80.0553474,26.7119709,0],
-                [-80.0552187,26.7164561,0],
-                [-80.0603685,26.7497633,0],
-                [-80.0592527,26.7641716,0],
-                [-80.0694237,26.7888456,0],
-                [-80.0791225,26.8126332,0],
-                [-80.08041,26.8153909,0],
-                [-80.0897655,26.82554,0],
-                [-80.0914392,26.8274932,0],
-                [-80.0968037,26.848401,0],
-                [-80.0936279,26.9432803,0],
-                [-80.0931559,26.9443897,0],
-                [-80.0894222,26.9489422,0],
-                [-80.0871477,26.9520026,0],
-                [-80.0866756,26.953571,0],
-                [-80.0872335,26.9559044,0],
-                [-80.0892506,26.9593854,0],
-                [-80.0992069,26.9813397,0],
-                [-80.1007948,26.9842845,0],
-                [-80.1040134,26.9894089,0],
-                [-80.1061592,26.9948009,0],
-                [-80.1177463,27.0226741,0],
-                [-80.1178322,27.0294788,0],
-                [-80.1173601,27.0445778,0],
-                [-80.1178322,27.0464507,0],
-                [-80.1195917,27.0491262,0],
-                [-80.1355133,27.067318,0],
-                [-80.1487312,27.0975419,0],
-                [-80.1567135,27.1101106,0],
-                [-80.170661,27.1314625,0],
-                [-80.1723776,27.1328756,0],
-                [-80.1869259,27.137917,0],
-                [-80.2101002,27.1545669,0],
-                [-80.2352056,27.1800717,0],
-                [-80.2433596,27.1880884,0],
-                [-80.253273,27.1977841,0],
-                [-80.2616415,27.2037386,0],
-                [-80.2620277,27.2061431,0],
-                [-80.2592382,27.2137764,0],
-                [-80.2571354,27.2157609,0],
-                [-80.2356777,27.2236225,0],
-                [-80.2268801,27.2266754,0],
-                [-80.224906,27.2282399,0],
-                [-80.2237043,27.2308348,0],
-                [-80.2237902,27.2340401,0],
-                [-80.2257214,27.2393439,0],
-                [-80.2307425,27.2554065,0],
-                [-80.2394114,27.2660119,0],
-                [-80.2414713,27.2700554,0],
-                [-80.2452049,27.2755482,0],
-                [-80.2722416,27.3311097,0],
-                [-80.2855453,27.3560785,0],
-                [-80.2961884,27.380432,0],
-                [-80.2993641,27.3884724,0],
-                [-80.3096209,27.4047801,0],
-                [-80.3131399,27.4130854,0],
-                [-80.3144703,27.4191045,0],
-                [-80.3242979,27.44611,0],
-                [-80.3282032,27.4582204,0],
-                [-80.3294477,27.4643512,0],
-                [-80.3326235,27.4720048,0],
-                [-80.3571281,27.5313113,0],
-                [-80.371376,27.5657842,0],
-                [-80.3788004,27.5847663,0],
-                [-80.3798304,27.5902435,0],
-                [-80.3833494,27.6070918,0],
-                [-80.3891859,27.617055,0],
-                [-80.3963528,27.6363324,0],
-                [-80.401803,27.6540098,0],
-                [-80.4071674,27.6663254,0],
-                [-80.4175959,27.7013637,0],
-                [-80.4243336,27.7241973,0],
-                [-80.440856,27.7548117,0],
-                [-80.4568034,27.784967,0],
-                [-80.4679613,27.8089977,0],
-                [-80.47015,27.8156403,0],
-                [-80.4723387,27.8199293,0],
-                [-80.4752999,27.8233452,0],
-                [-80.4854279,27.830708,0],
-                [-80.4958563,27.8375011,0],
-                [-80.5000191,27.8406888,0],
-                [-80.5014353,27.8431554,0],
-                [-80.5027657,27.8767333,0],
-                [-80.504139,27.8802612,0],
-                [-80.5167132,27.9068497,0],
-                [-80.5356818,27.9463221,0],
-                [-80.5461102,27.9686493,0],
-                [-80.5564099,27.9834304,0],
-                [-80.5588529,27.988041,0],
-                [-80.5716846,28.0151334,0],
-                [-80.5792806,28.0261578,0],
-                [-80.5887649,28.0447567,0],
-                [-80.6015108,28.0698278,0],
-                [-80.6063602,28.0816418,0],
-                [-80.6089351,28.0867532,0],
-                [-80.6248567,28.1037138,0],
-                [-80.6324527,28.1113225,0],
-                [-80.633354,28.113745,0],
-                [-80.6345556,28.1413734,0],
-                [-80.6351564,28.1432276,0],
-                [-80.6403921,28.1501524,0],
-                [-80.6503055,28.1708106,0],
-                [-80.658674,28.1838617,0],
-                [-80.6665275,28.2040595,0],
-                [-80.6779859,28.2341222,0],
-                [-80.6897876,28.2653859,0],
-                [-80.7021473,28.2982276,0],
-                [-80.7076404,28.308165,0],
-                [-80.7121465,28.3141345,0],
-                [-80.7143781,28.320406,0],
-                [-80.7258365,28.3341566,0],
-                [-80.73472,28.35882,0],
-                [-80.7372949,28.3659574,0],
-                [-80.7373807,28.3745291,0],
-                [-80.7398698,28.3794755,0],
-                [-80.7535598,28.400882,0],
-                [-80.7604692,28.4032225,0],
-                [-80.7643745,28.403751,0],
-                [-80.7685802,28.4030337,0],
-                [-80.7721851,28.4035245,0],
-                [-80.8025262,28.4104701,0],
-                [-80.8109376,28.4115647,0],
-                [-80.8307645,28.4114892,0],
-                [-80.8380601,28.413452,0],
-                [-80.8453558,28.4200196,0],
-                [-80.8707616,28.4480969,0],
-                [-80.8759115,28.4512664,0],
-                [-80.8818338,28.4526248,0],
-                [-81.2452409,28.4514173,0],
-                [-81.2572572,28.4485497,0],
-                [-81.2763975,28.4483233,0],
-                [-81.3004301,28.4513419,0],
-                [-81.3082407,28.4512664,0],
-                [-81.3073824,28.4495307,0],
-                [-81.3063524,28.4464366,0],
-                [-81.3073824,28.4410028,0],
-                [-81.3082407,28.4377574,0],
-                [-81.3059232,28.434663,0],
-                [-81.3046358,28.4308891,0],
-                [-81.3054941,28.4280963,0],
-                [-81.3069532,28.4256809,0],
-                [-81.306524,28.4203215,0],
-                [-81.3060949,28.4175285,0],
-                [-81.3084981,28.4151883,0],
-                [-81.3084981,28.4113383,0]
-              ]
-            }
-          },
-          { type: 'Feature', properties: { segment: 'future' }, geometry: { type: 'LineString', coordinates: [
-                [-81.3084981,28.4113383,0],
-                [-81.3084038,28.4080096,0],
-                [-81.3082965,28.4040838,0],
-                [-81.3084896,28.4031401,0],
-                [-81.3091762,28.4018188,0],
-                [-81.3127167,28.3987233,0],
-                [-81.3184245,28.3981948,0],
-                [-81.3320716,28.3988743,0],
-                [-81.3378222,28.4031778,0],
-                [-81.3709529,28.4034043,0],
-                [-81.3730128,28.4026871,0],
-                [-81.3739569,28.4018566,0],
-                [-81.3748153,28.3977418,0],
-                [-81.3728841,28.3722189,0],
-                [-81.3727553,28.3695756,0],
-                [-81.3739999,28.3665547,0],
-                [-81.3874753,28.3515997,0],
-                [-81.3898785,28.3430639,0],
-                [-81.3994916,28.3038507,0],
-                [-81.4023788,28.2961045,0],
-                [-81.4089878,28.2889246,0],
-                [-81.4643486,28.2584616,0],
-                [-81.4883812,28.258764,0],
-                [-81.5212544,28.2667018,0],
-                [-81.5272625,28.266853,0],
-                [-81.5367039,28.2637535,0],
-                [-81.5510376,28.2574032,0],
-                [-81.5581615,28.2507499,0],
-                [-81.5821083,28.2099144,0],
-                [-81.596442,28.1823037,0],
-                [-81.6059692,28.1555184,0],
-                [-81.6110333,28.1491615,0],
-                [-81.613694,28.1437882,0],
-                [-81.6150673,28.1290291,0],
-                [-81.6273866,28.1088639,0],
-                [-81.6306481,28.1057599,0],
-                [-81.6361413,28.1058356,0],
-                [-81.6578565,28.1145418,0],
-                [-81.7069516,28.10258,0],
-                [-81.7480645,28.0883453,0],
-                [-81.7639432,28.0869823,0],
-                [-81.7667756,28.085695,0],
-                [-81.797503,28.0583553,0],
-                [-81.8165574,28.0536591,0],
-                [-81.8750939,28.0443419,0],
-                [-81.9349179,28.0488112,0],
-                [-81.9477067,28.047069,0],
-                [-82.0556817,28.0266143,0],
-                [-82.106236,28.0185829,0],
-                [-82.1783338,28.0044886,0],
-                [-82.2401318,27.9898619,0],
-                [-82.2727475,27.9846321,0],
-                [-82.2811589,27.9814487,0],
-                [-82.2930036,27.9767871,0],
-                [-82.3071656,27.9781136,0],
-                [-82.3156199,27.9736034,0],
-                [-82.3388801,27.9720874,0],
-                [-82.3781905,27.9622325,0],
-                [-82.3931389,27.9597981,0],
-                [-82.44012243487249,27.9601013,0]
-              ]
-            } }
-        ]
-      };
-      map.addSource('brightline', { type: 'geojson', data: brightlineGeo });
-      map.addLayer({ id: 'brightline-existing', type: 'line', source: 'brightline', filter: ['==', ['get','segment'], 'existing'], layout: { 'line-join':'round','line-cap':'round' }, paint: { 'line-color':'#FFD300','line-width':2 } });
-      map.addLayer({ id: 'brightline-future', type: 'line', source: 'brightline', filter: ['==', ['get','segment'], 'future'], layout: { 'line-join':'round','line-cap':'round' }, paint: { 'line-color':'#FFD300','line-width':2,'line-dasharray':[1,2] } });
-      // Add Brightline stations as yellow circles
-      const stationFeatures = stations.map(s => ({ 
-        type: 'Feature', 
-        properties: { name: s.name }, 
-        geometry: { type: 'Point', coordinates: s.coords } 
-      }));
-      map.addSource('stations', { 
-        type: 'geojson', 
-        data: { type: 'FeatureCollection', features: stationFeatures } 
-      });
-      map.addLayer({
-        id: 'station-dots',
-        type: 'circle',
-        source: 'stations',
-        paint: {
-          'circle-color': '#FFD300',
-          'circle-radius': 6,
-          'circle-stroke-color': '#fff',
-          'circle-stroke-width': 2
-        }
-      });
-      // Add invisible larger hover area for stations (positioned above visible dots)
-      map.addLayer({
-        id: 'station-hover',
-        type: 'circle',
-        source: 'stations',
-        paint: {
-          'circle-color': 'transparent',
-          'circle-radius': 18, // Even larger hover area
-          'circle-stroke-width': 0
-        }
-      });
-      // Add station hover functionality with larger hover area
-      map.on('mouseenter', 'station-hover', (e) => {
-        if (stationPopup) stationPopup.remove();
-        map.getCanvas().style.cursor = 'pointer';
-        const feature = e.features[0];
-        stationPopup = new mapboxgl.Popup({
-          closeButton: false,
-          closeOnClick: false,
-          offset: [0, -10]
-        })
-        .setLngLat(feature.geometry.coordinates)
-        .setHTML(`<div style="background: rgba(20,20,20,0.9); color: #fff; padding: 8px 12px; border-radius: 6px; font-size: 14px; font-weight: 500;">${feature.properties.name}</div>`)
-        .addTo(map);
-      });
-      map.on('mouseleave', 'station-hover', () => {
-        map.getCanvas().style.cursor = '';
-        if (stationPopup) {
-          stationPopup.remove();
-          stationPopup = null;
-        }
-      });
-      // Mobile touch for stations (using hover layer)
-      if (isMobile) {
-        map.on('click', 'station-hover', (e) => {
-          if (stationPopup) stationPopup.remove();
-          const feature = e.features[0];
-          stationPopup = new mapboxgl.Popup({
-            closeButton: false,
-            closeOnClick: false,
-            offset: [0, -10]
-          })
-          .setLngLat(feature.geometry.coordinates)
-          .setHTML(`<div style="background: rgba(20,20,20,0.9); color: #fff; padding: 8px 12px; border-radius: 6px; font-size: 14px; font-weight: 500;">${feature.properties.name}</div>`)
-          .addTo(map);
-        });
-      }
-      // Close station popup on map move, zoom, or other interactions
-      map.on('movestart', () => {
-        if (stationPopup) {
-          stationPopup.remove();
-          stationPopup = null;
-        }
-      });
-      map.on('zoomstart', () => {
-        if (stationPopup) {
-          stationPopup.remove();
-          stationPopup = null;
-        }
-      });
-      // Brightline hover animation setup
-      function setupHover() {
-        // Desktop hover
-        map.on('mouseenter', 'brightline-existing', () => {
-          map.getCanvas().style.cursor = 'pointer';
-          hoverIcon.style.display = 'block';
-        });
-        map.on('mouseleave', 'brightline-existing', () => {
-          map.getCanvas().style.cursor = '';
-          hoverIcon.style.display = 'none';
-        });
-        map.on('mousemove', 'brightline-existing', (e) => {
-          hoverIcon.style.left = `${e.point.x}px`;
-          hoverIcon.style.top = `${e.point.y}px`;
-        });
-        // Mobile tap
-        if (isMobile) {
-          map.on('click', 'brightline-existing', (e) => {
-            // Close station popup when interacting with brightline
-            if (stationPopup) {
-              stationPopup.remove();
-              stationPopup = null;
-            }
-            hoverIcon.style.left = `${e.point.x}px`;
-            hoverIcon.style.top = `${e.point.y}px`;
-            hoverIcon.style.display = 'block';
-          });
-          map.on('movestart', () => {
-            hoverIcon.style.display = 'none';
-            // Close station popup on map move
-            if (stationPopup) {
-              stationPopup.remove();
-              stationPopup = null;
-            }
-          });
-          map.on('click','clusters', () => hoverIcon.style.display = 'none');
-          map.on('click','unclustered-point', () => hoverIcon.style.display = 'none');
-        }
-      }
-      setupHover();
-      // Add fullscreen button for both mobile and desktop
-      const fullscreenBtn = document.getElementById('fullscreenButton');
-      fullscreenBtn.style.display = 'flex';
-      
-      // Add compass control with double-click functionality
-      const navControl = new mapboxgl.NavigationControl({
-        showCompass: true,
-        showZoom: false,
-        visualizePitch: false
-      });
-      
-      // Always bottom-right corner for both mobile and desktop
-      map.addControl(navControl, 'bottom-right');
-      
-      // Add double-click handler to compass after a small delay to ensure it's rendered
-      setTimeout(() => {
-        const compassBtn = document.querySelector('.mapboxgl-ctrl-compass');
-        if (compassBtn) {
-          compassBtn.addEventListener('dblclick', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            // Reset to default view with original center and zoom
-            map.flyTo({
-              center: [-81.1961527, 26.7807395],
-              zoom: isMobile ? 6 : 7,
-              bearing: 0,
-              pitch: 0,
-              duration: 1000
-            });
-          });
-        }
-      }, 100);
-      
-      // Check if we're in fullscreen mode (opened in new tab)
-      const isFullscreen = window.location.href.includes('fullscreen=true') || window.opener !== null;
-      
-      // Set initial toggle button text for desktop
-      if (!isMobile) {
-        const toggleBtn = document.getElementById('toggleView');
-        if (toggleBtn) {
-          toggleBtn.querySelector('span').textContent = 'Map'; // Since sidebar opens by default
-        }
-      }
-      
-      if (isFullscreen) {
-        fullscreenBtn.innerHTML = '✕ Exit Fullscreen';
-        fullscreenBtn.onclick = () => {
-          // Return to the original page
-          window.location.href = 'https://www.oftmw.com/florida/development-map';
-        };
-        
-        // Auto-trigger fullscreen on desktop if fullscreen=true parameter exists
-        if (!isMobile && window.location.href.includes('fullscreen=true')) {
-          setTimeout(() => {
-            const appContainer = document.getElementById('app-container');
-            appContainer.requestFullscreen().catch(err => {
-              console.log('Auto-fullscreen failed:', err);
-            });
-          }, 500);
-        }
-      }
-      initializeData();
-      setupDesktopFilters();
-      setupMobileFilters();
-      setupSidebarSearch();
-    });
-    function initializeData() {
-      Papa.parse('https://docs.google.com/spreadsheets/d/1qwU7ykIDUrtPlIQu-qk2FIJwiz-WWg5caq02ja30sgM/export?format=csv&gid=0',{
-        download:true, header:true, complete: results => {
-          const rows = results.data.filter(r => r.Latitude && r.Longitude);
-          const projectGeo = { type:'FeatureCollection', features: rows.map(p=>({
-            type:'Feature',
-            geometry:{ type:'Point', coordinates:[+p.Longitude, +p.Latitude] },
-            properties:{ 
-              title:p.Title, 
-              city:p.City, 
-              description:p.Description, 
-              delivery:p.Delivery, 
-              image:p.ImageURL, 
-              website:p.OfficialWebsite, 
-              projectType:p.ProjectType,
-              projectTypes: p.ProjectType ? p.ProjectType.split(',').map(t => t.trim().toLowerCase()).filter(t => t) : [],
-              featured: p.Featured && p.Featured.trim().toLowerCase() === 'featured' ? true : false
-            }
-          }))};
-          map.addSource('projects',{ type:'geojson', data:projectGeo, cluster:true, clusterMaxZoom:16, clusterRadius:35 });
-          map.addLayer({ id:'clusters', type:'circle', source:'projects', filter:['has','point_count'], paint:{ 'circle-color':'#1FDF67','circle-radius':['step',['get','point_count'],20,100,30,750,40],'circle-stroke-width':2,'circle-stroke-color':'#fff' } });
-          map.addLayer({ id:'cluster-count', type:'symbol', source:'projects', filter:['has','point_count'], layout:{ 'text-field':'{point_count_abbreviated}','text-size':12 }, paint:{ 'text-color':'#ffffff' } });
-          map.addLayer({ id:'unclustered-point', type:'circle', source:'projects', filter:['!',['has','point_count']], paint:{ 'circle-color':'#1FDF67','circle-radius':8,'circle-stroke-width':2,'circle-stroke-color':'#fff' } });
-          
-          // Add glow layer for featured pins
-          map.addLayer({ 
-            id:'featured-glow', 
-            type:'circle', 
-            source:'projects', 
-            filter:['all', ['!',['has','point_count']], ['==', ['get', 'featured'], true]], 
-            paint:{ 
-              'circle-color':'transparent',
-              'circle-radius':16,
-              'circle-blur':0.8,
-              'circle-stroke-width':3,
-              'circle-stroke-color':'#FFD300',
-              'circle-stroke-opacity':0.6
-            } 
-          }, 'unclustered-point'); // Place below the main pin layer
-          map.on('click','clusters',e=>{ 
-            // Close station popup when clicking clusters
-            if (stationPopup) {
-              stationPopup.remove();
-              stationPopup = null;
-            }
-            const f=e.features[0]; 
-            map.getSource('projects').getClusterExpansionZoom(f.properties.cluster_id,(err,z)=>map.flyTo({center:f.geometry.coordinates,zoom:z})); 
-          });
-          map.on('click','unclustered-point',e=>{
-            // Close station popup when clicking pins
-            if (stationPopup) {
-              stationPopup.remove();
-              stationPopup = null;
-            }
-            
-            const feature = e.features[0];
-            
-            // Track map pin click
-            gtag('event', 'project_click', {
-              'project_name': feature.properties.title,
-              'project_city': feature.properties.city,
-              'project_featured': feature.properties.featured || false,
-              'project_type': feature.properties.projectType || 'unknown',
-              'click_source': 'map_pin',
-              'device_type': isMobile ? 'mobile' : 'desktop'
-            });
-            
-            showPopup(feature);
-          });
-          renderGrid('gridDesktop');
-          renderGrid('gridMobile');
-          populateLocationFilter();
-          
-          // Load saved filter preferences after filters are populated
-          setTimeout(() => {
-            loadFilterPreferences();
-            // Re-render with loaded preferences
-            renderGrid('gridDesktop');
-            renderGrid('gridMobile');
-          }, 100);
-          
-          // Setup mobile drawer interactions
-          setupMobileDrawer();
-          
-          // Add map move/zoom listeners to update tile order
-          let updateTimeout;
-          const updateGridsOnMapChange = () => {
-            // Debounce updates to avoid too many re-renders
-            clearTimeout(updateTimeout);
-            updateTimeout = setTimeout(() => {
-              // Update desktop grid if sidebar is open
-              const sidebar = document.getElementById('desktopSidebar');
-              if (sidebar && sidebar.classList.contains('open')) {
-                renderGrid('gridDesktop');
-              }
-              // Update mobile grid if drawer is expanded
-              const drawer = document.getElementById('mobileDrawer');
-              if (drawer && drawer.classList.contains('expanded')) {
-                renderGrid('gridMobile');
-              }
-            }, 300);
-          };
-          
-          map.on('moveend', updateGridsOnMapChange);
-          map.on('zoomend', updateGridsOnMapChange);
-      }});
-    }
-    document.getElementById('openSearch').onclick=()=>{
-      const searchContainer = document.getElementById('searchContainer');
-      searchContainer.classList.remove('hidden');
-      // Ensure it stays in the correct position
-      if (window.innerWidth > 800) {
-        searchContainer.style.left = 'calc(120px + var(--safe-area-left))';
-      }
-      document.getElementById('openSearch').style.display='none';
-    };
-    document.getElementById('closeSearch').onclick=()=>{
-      document.getElementById('searchContainer').classList.add('hidden');
-      document.getElementById('openSearch').style.display='block';
-    };
-    // ——— Search functionality ———
-    const searchBarEl=document.getElementById('searchBar'),
-          resultsEl=document.getElementById('results');
-    
-    // Update placeholder text on mobile
-    if (isMobile) {
-      searchBarEl.placeholder = 'Search...';
-    }
-    searchBarEl.addEventListener('input',e=>{
-      const query=e.target.value.trim().toLowerCase();
-      if(!query){ resultsEl.classList.add('hidden'); return; }
-      const features=map.getSource('projects')._data.features;
-      const matches=features.filter(f=>
-        f.properties.title.toLowerCase().includes(query)||
-        f.properties.city.toLowerCase().includes(query)
-      );
-      
-      // Track search query with GA4
-      if (query.length > 2) { // Only track meaningful searches
-        gtag('event', 'search', {
-          'search_term': query,
-          'results_count': matches.length,
-          'search_location': 'main_search',
-          'device_type': isMobile ? 'mobile' : 'desktop'
-        });
-      }
-      resultsEl.innerHTML='';
-      if(matches.length){
-        matches.forEach(f=>{
-          const div=document.createElement('div');
-          div.className='result-item';
-          div.innerHTML=`<h4>${f.properties.title}</h4><p>${f.properties.city}</p>`;
-          div.onclick=()=>{
-            // Track search result click
-            gtag('event', 'search_result_click', {
-              'project_name': f.properties.title,
-              'search_term': query,
-              'result_position': matches.indexOf(f) + 1
-            });
-            
-            showPopup(f);
-            resultsEl.classList.add('hidden');
-            document.getElementById('searchContainer').classList.add('hidden');
-            document.getElementById('openSearch').style.display='block';
-          };
-          resultsEl.appendChild(div);
-        });
-      } else {
-        resultsEl.innerHTML='<div class="result-item">No results found</div>';
-      }
-      resultsEl.classList.remove('hidden');
-    });
-    // Fullscreen functionality
-    const fullscreenBtn = document.getElementById('fullscreenButton');
-    const appContainer = document.getElementById('app-container');
-    
-    // Check if we're in mobile fullscreen mode (has fullscreen parameter AND was opened in new tab)
-    const hasFullscreenParam = window.location.href.includes('fullscreen=true');
-    const isNewTab = window.opener !== null || (window.history.length === 1 && hasFullscreenParam);
-    const isMobileFullscreen = hasFullscreenParam && isNewTab && isMobile;
-    
-    if (isMobileFullscreen) {
-      fullscreenBtn.innerHTML = '✕ Exit Fullscreen';
-      fullscreenBtn.onclick = () => {
-        // Remove the fullscreen parameter when returning
-        window.location.href = 'https://www.oftmw.com/florida/development-map';
-      };
-    } else {
-      // Regular fullscreen handling
-      fullscreenBtn.onclick = () => {
-        if (!isMobile) {
-          // Desktop: Use native fullscreen API on app container
-          if (!document.fullscreenElement) {
-            appContainer.requestFullscreen().then(() => {
-              fullscreenBtn.innerHTML = '✕ Exit Fullscreen';
-            }).catch(err => {
-              console.log('Fullscreen request failed:', err);
-            });
-          } else {
-            document.exitFullscreen().then(() => {
-              fullscreenBtn.innerHTML = '⛶ Fullscreen';
-            });
-          }
-        } else {
-          // Mobile: Always open the HTML file directly in new tab
-          // This ensures we're opening the actual map file, not the parent page
-          const mapUrl = window.location.origin + window.location.pathname + '?fullscreen=true';
-          window.open(mapUrl, '_blank');
-        }
-      };
-      
-      // Listen for fullscreen changes on desktop
-      if (!isMobile) {
-        document.addEventListener('fullscreenchange', () => {
-          if (document.fullscreenElement) {
-            fullscreenBtn.innerHTML = '✕ Exit Fullscreen';
-          } else {
-            fullscreenBtn.innerHTML = '⛶ Fullscreen';
-          }
-        });
-      }
-    }
-    
-    document.getElementById('exitFullscreen').onclick = () => {
-      document.getElementById('fullscreenModal').classList.remove('active');
-      // Sync main map with fullscreen map position
-      if (fullscreenMap) {
-        map.setCenter(fullscreenMap.getCenter());
-        map.setZoom(fullscreenMap.getZoom());
-      }
-    };
-  </script>
-</body>
-</html>
-                
   </div>
   
   <div id="app-container">
@@ -4094,7 +2002,69 @@
       el.style.scrollBehavior = 'smooth';
       el.style.webkitOverflowScrolling = 'touch';
     });
+    // Clear all filters function
+function clearAllFilters(targetId) {
+  if (targetId === 'gridDesktop') {
+    document.getElementById('sortSelectDesktop').value = 'default';
+    document.getElementById('locationFilterDesktop').value = 'all';
+    document.getElementById('projectTypeFilterDesktop').value = 'all';
+  } else if (targetId === 'gridMobile') {
+    document.getElementById('sortSelectMobile').value = 'default';
+    document.getElementById('locationFilterMobile').value = 'all';
+    document.getElementById('projectTypeFilterMobile').value = 'all';
+  }
+  
+  localStorage.removeItem('mapFilters');
+  renderGrid(targetId);
+}
+
+function saveFilterPreferences() {
+  const filters = {
+    desktop: {
+      sort: document.getElementById('sortSelectDesktop')?.value || 'default',
+      location: document.getElementById('locationFilterDesktop')?.value || 'all',
+      projectType: document.getElementById('projectTypeFilterDesktop')?.value || 'all'
+    },
+    mobile: {
+      sort: document.getElementById('sortSelectMobile')?.value || 'default',
+      location: document.getElementById('locationFilterMobile')?.value || 'all',
+      projectType: document.getElementById('projectTypeFilterMobile')?.value || 'all'
+    }
+  };
+  
+  localStorage.setItem('mapFilters', JSON.stringify(filters));
+}
+
+function loadFilterPreferences() {
+  const stored = localStorage.getItem('mapFilters');
+  if (!stored) return;
+  
+  try {
+    const filters = JSON.parse(stored);
     
+    if (filters.desktop) {
+      const sortDesktop = document.getElementById('sortSelectDesktop');
+      const locationDesktop = document.getElementById('locationFilterDesktop');
+      const typeDesktop = document.getElementById('projectTypeFilterDesktop');
+      
+      if (sortDesktop && filters.desktop.sort) sortDesktop.value = filters.desktop.sort;
+      if (locationDesktop && filters.desktop.location) locationDesktop.value = filters.desktop.location;
+      if (typeDesktop && filters.desktop.projectType) typeDesktop.value = filters.desktop.projectType;
+    }
+    
+    if (filters.mobile) {
+      const sortMobile = document.getElementById('sortSelectMobile');
+      const locationMobile = document.getElementById('locationFilterMobile');
+      const typeMobile = document.getElementById('projectTypeFilterMobile');
+      
+      if (sortMobile && filters.mobile.sort) sortMobile.value = filters.mobile.sort;
+      if (locationMobile && filters.mobile.location) locationMobile.value = filters.mobile.location;
+      if (typeMobile && filters.mobile.projectType) typeMobile.value = filters.mobile.projectType;
+    }
+  } catch (e) {
+    console.error('Error loading filter preferences:', e);
+  }
+}
     const isMobile = window.innerWidth <= 800;
     
     // Initialize desktop/mobile specific elements after DOM loads
@@ -4355,486 +2325,148 @@
         });
       }
       // Create document fragment for better performance
-      const fragment = document.createDocumentFragment();
+     // Check if we have no features to display
+if (features.length === 0) {
+  let emptyMessage = '';
+  
+  if (locationFilter !== 'all' || projectTypeFilter !== 'all') {
+    // Filters are active
+    emptyMessage = `
+      <div class="empty-state">
+        <div class="empty-state-icon">
+          <svg viewBox="0 0 24 24">
+            <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 15.5h-1.5V14h1.5v4.5zm0-6.5h-1.5v-1.5h1.5V12z"/>
+          </svg>
+        </div>
+        <h3>No projects match your filters</h3>
+        <p>Try adjusting your filters or zooming out to see more projects.</p>
+        <div class="empty-state-actions">
+          <button class="empty-state-btn" onclick="clearAllFilters('${targetId}')">Clear Filters</button>
+          <button class="empty-state-btn primary" onclick="map.flyTo({center: [-81.1961527, 26.7807395], zoom: ${isMobile ? 6 : 7}, duration: 1000})">Reset Map View</button>
+        </div>
+      </div>
+    `;
+  } else if (sortType === 'default') {
+    // No filters, but no projects in view
+    emptyMessage = `
+      <div class="empty-state">
+        <div class="empty-state-icon">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+          </svg>
+        </div>
+        <h3>No projects in this area</h3>
+        <p>Zoom out or pan the map to explore other areas with upcoming developments.</p>
+        <div class="empty-state-actions">
+          <button class="empty-state-btn primary" onclick="map.flyTo({center: [-81.1961527, 26.7807395], zoom: ${isMobile ? 6 : 7}, duration: 1000})">View All Projects</button>
+        </div>
+      </div>
+    `;
+  }
+  
+  grid.innerHTML = emptyMessage;
+  return;
+}
+
+// Create document fragment for better performance
+const fragment = document.createDocumentFragment();
+
+// First, create skeleton loaders
+features.forEach((f, index) => {
+  const skeleton = document.createElement('div');
+  skeleton.className = 'grid-item skeleton';
+  skeleton.innerHTML = `
+    <div class="image-wrapper">
+      <div class="skeleton-box skeleton-image"></div>
+    </div>
+    <div class="grid-item-content">
+      <div class="skeleton-box skeleton-title"></div>
+      <div class="skeleton-box skeleton-city"></div>
+      <div class="skeleton-box skeleton-button"></div>
+    </div>
+  `;
+  fragment.appendChild(skeleton);
+});
+
+// Append skeletons first
+grid.appendChild(fragment);
+
+// Then create actual content and replace skeletons
+setTimeout(() => {
+  const skeletons = grid.querySelectorAll('.grid-item.skeleton');
+  
+  features.forEach((f, index) => {
+    const d=document.createElement('div');
+    d.className='grid-item';
+    
+    // Use placeholder image initially
+    const imageSrc = f.properties.image;
+    const placeholderSrc = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="300" height="120"%3E%3Crect width="300" height="120" fill="%23333"/%3E%3C/svg%3E';
+    
+    d.innerHTML=`
+      <div class="image-wrapper">
+        <img src="${placeholderSrc}" 
+             data-src="${imageSrc}" 
+             loading="lazy" 
+             alt="${f.properties.title}"
+             class="lazy-loading" />
+      </div>
+      ${f.properties.featured ? `
+        <div class="featured-badge">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+          </svg>
+          Featured
+        </div>
+      ` : ''}
+      <a class="tile-favorite" href="https://www.oftmw.com/livehere" target="_blank" onclick="event.stopPropagation(); gtag('event', 'live_here_click', {'project_name': '${f.properties.title}', 'click_location': 'tile'});">
+        <svg viewBox="0 0 18 18"><path d="M9 1v16M1 9h16"/></svg>
+      </a>
+      <div class="grid-item-content">
+        <h3 style="color: #ffffff !important; margin: 0 0 4px; font-size: 16px;">${f.properties.title}</h3>
+        <p class="city" style="color: #cccccc !important; margin: 0 0 auto 0; font-size: 12px; padding-bottom: 8px;">${f.properties.city}</p>
+        <p class="website-btn">
+          <a href="${f.properties.website}" target="_blank" class="website-link" onclick="event.stopPropagation(); gtag('event', 'learn_more_click', {'project_name': '${f.properties.title}', 'project_city': '${f.properties.city}', 'click_location': 'tile', 'device_type': '${isMobile ? 'mobile' : 'desktop'}'});">Learn More</a>
+        </p>
+      </div>`;
+    d.onclick=()=>{ 
+      // Track tile click with GA4
+      gtag('event', 'project_click', {
+        'project_name': f.properties.title,
+        'project_city': f.properties.city,
+        'project_featured': f.properties.featured || false,
+        'project_type': f.properties.projectType || 'unknown',
+        'click_source': 'tile',
+        'device_type': isMobile ? 'mobile' : 'desktop',
+        'grid_position': index + 1
+      });
       
-      features.forEach((f, index) => {
-        const d=document.createElement('div');
-        d.className='grid-item';
+      showPopup(f); 
+      // On mobile, immediately close the drawer when tile is clicked
+      if (targetId === 'gridMobile') {
+        const drawer = document.getElementById('mobileDrawer');
+        const mapBtn = document.getElementById('mapReturnButton');
+        const content = document.getElementById('mobileDrawerContent');
         
-        // Use placeholder image initially
-        const imageSrc = f.properties.image;
-        const placeholderSrc = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="300" height="120"%3E%3Crect width="300" height="120" fill="%23333"/%3E%3C/svg%3E';
-        
-        d.innerHTML=`
-          <div class="image-wrapper">
-            <img src="${placeholderSrc}" 
-                 data-src="${imageSrc}" 
-                 loading="lazy" 
-                 alt="${f.properties.title}"
-                 class="lazy-loading" />
-          </div>
-          ${f.properties.featured ? `
-            <div class="featured-badge">
-              <svg viewBox="0 0 24 24">
-                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-              </svg>
-              Featured
-            </div>
-          ` : ''}
-          <a class="tile-favorite" href="https://www.oftmw.com/livehere" target="_blank" onclick="event.stopPropagation(); gtag('event', 'live_here_click', {'project_name': '${f.properties.title}', 'click_location': 'tile'});">
-            <svg viewBox="0 0 18 18"><path d="M9 1v16M1 9h16"/></svg>
-          </a>
-          <div class="grid-item-content">
-            <h3 style="color: #ffffff !important; margin: 0 0 4px; font-size: 16px;">${f.properties.title}</h3>
-            <p class="city" style="color: #cccccc !important; margin: 0 0 auto 0; font-size: 12px; padding-bottom: 8px;">${f.properties.city}</p>
-            <p class="website-btn">
-              <a href="${f.properties.website}" target="_blank" class="website-link" onclick="event.stopPropagation(); gtag('event', 'learn_more_click', {'project_name': '${f.properties.title}', 'project_city': '${f.properties.city}', 'click_location': 'tile', 'device_type': '${isMobile ? 'mobile' : 'desktop'}'});">Learn More</a>
-            </p>
-          </div>`;
-        d.onclick=()=>{ 
-          // Track tile click with GA4
-          gtag('event', 'project_click', {
-            'project_name': f.properties.title,
-            'project_city': f.properties.city,
-            'project_featured': f.properties.featured || false,
-            'project_type': f.properties.projectType || 'unknown',
-            'click_source': 'tile',
-            'device_type': isMobile ? 'mobile' : 'desktop',
-            'grid_position': index + 1
-          });
-          
-          showPopup(f); 
-          // On mobile, immediately close the drawer when tile is clicked
-          if (targetId === 'gridMobile') {
-            const drawer = document.getElementById('mobileDrawer');
-            const mapBtn = document.getElementById('mapReturnButton');
-            const content = document.getElementById('mobileDrawerContent');
-            
-            // Immediately collapse - fully hide
-            drawer.classList.remove('expanded');
-            drawer.style.transform = 'translateY(100%)'; // Fully hidden
-            mapBtn.classList.remove('visible');
-            content.scrollTop = 0;
-          }
-        };
-        fragment.appendChild(d);
-      });
-      
-      // Append all at once
-      grid.appendChild(fragment);
-      
-      // Set up lazy loading with Intersection Observer
-      const imageObserver = new IntersectionObserver((entries, observer) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            const img = entry.target;
-            const src = img.getAttribute('data-src');
-            
-            // Create new image to preload
-            const newImg = new Image();
-            newImg.onload = () => {
-              img.src = src;
-              img.classList.remove('lazy-loading');
-              img.classList.add('loaded');
-              observer.unobserve(img);
-            };
-            newImg.onerror = () => {
-              // On error, still mark as loaded to prevent retries
-              img.classList.remove('lazy-loading');
-              img.classList.add('loaded');
-              observer.unobserve(img);
-            };
-            newImg.src = src;
-          }
-        });
-      }, {
-        rootMargin: '50px',
-        threshold: 0.01
-      });
-      
-      // Set up intersection observer for fade animations
-      const fadeObserver = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting && !entry.target.classList.contains('visible')) {
-            // Use requestAnimationFrame for smoother animations
-            requestAnimationFrame(() => {
-              entry.target.classList.add('visible');
-            });
-          }
-        });
-      }, {
-        threshold: 0.1,
-        rootMargin: '0px'
-      });
-      
-      // Observe all grid items and images
-      const gridItems = grid.querySelectorAll('.grid-item');
-      const images = grid.querySelectorAll('.grid-item img');
-      
-      gridItems.forEach(item => fadeObserver.observe(item));
-      images.forEach(img => imageObserver.observe(img));
-    }
-    function populateLocationFilter() {
-      if (!map.getSource('projects') || !map.getSource('projects')._data) return;
-      
-      const features = map.getSource('projects')._data.features;
-      
-      // Get all filter elements
-      const locationFilters = [
-        document.getElementById('locationFilter'),
-        document.getElementById('locationFilterDesktop'),
-        document.getElementById('locationFilterMobile')
-      ];
-      
-      const projectTypeFilters = [
-        document.getElementById('projectTypeFilter'),
-        document.getElementById('projectTypeFilterDesktop'),
-        document.getElementById('projectTypeFilterMobile')
-      ];
-      
-      // Populate cities
-      const cities = [...new Set(features.map(f => f.properties.city))];
-      cities.sort();
-      
-      locationFilters.forEach(filter => {
-        if (filter) {
-          filter.innerHTML = '<option value="all">All Cities</option>';
-          cities.forEach(city => {
-            const option = document.createElement('option');
-            option.value = city;
-            option.textContent = city;
-            filter.appendChild(option);
-          });
-        }
-      });
-      
-      // Populate project types
-      const allTypes = new Set();
-      features.forEach(f => {
-        if (f.properties.projectTypes && f.properties.projectTypes.length > 0) {
-          f.properties.projectTypes.forEach(type => allTypes.add(type));
-        }
-      });
-      
-      const projectTypes = [...allTypes].sort((a, b) => a.localeCompare(b));
-      
-      projectTypeFilters.forEach(filter => {
-        if (filter) {
-          filter.innerHTML = '<option value="all">All Types</option>';
-          projectTypes.forEach(type => {
-            const option = document.createElement('option');
-            option.value = type;
-            option.textContent = type.charAt(0).toUpperCase() + type.slice(1);
-            filter.appendChild(option);
-          });
-        }
-      });
-    }
-    // Add event listeners for desktop filters
-    const setupDesktopFilters = () => {
-      const desktopFilters = ['sortSelectDesktop', 'locationFilterDesktop', 'projectTypeFilterDesktop'];
-      desktopFilters.forEach(id => {
-        const element = document.getElementById(id);
-        if (element) {
-          element.addEventListener('change', () => {
-            // Track filter usage
-            gtag('event', 'filter_change', {
-              'filter_type': id.replace('Desktop', '').replace('Filter', '').replace('Select', ''),
-              'filter_value': element.value,
-              'platform': 'desktop'
-            });
-            renderGrid('gridDesktop');
-          });
-        }
-      });
-    };
-    // Add event listeners for mobile filters
-    const setupMobileFilters = () => {
-      const mobileFilters = ['sortSelectMobile', 'locationFilterMobile', 'projectTypeFilterMobile'];
-      mobileFilters.forEach(id => {
-        const element = document.getElementById(id);
-        if (element) {
-          element.addEventListener('change', () => {
-            // Track filter usage
-            gtag('event', 'filter_change', {
-              'filter_type': id.replace('Mobile', '').replace('Filter', '').replace('Select', ''),
-              'filter_value': element.value,
-              'platform': 'mobile'
-            });
-            renderGrid('gridMobile');
-          });
-        }
-      });
-      
-      // Setup mobile search
-      const mobileSearchBar = document.getElementById('mobileSearchBar');
-      if (mobileSearchBar) {
-        mobileSearchBar.addEventListener('input', (e) => {
-          const query = e.target.value.trim().toLowerCase();
-          
-          // Track mobile search
-          if (query.length > 2) {
-            gtag('event', 'search', {
-              'search_term': query,
-              'search_location': 'mobile_drawer',
-              'device_type': 'mobile'
-            });
-          }
-          
-          if (!query) {
-            renderGrid('gridMobile');
-            return;
-          }
-          
-          const source = map.getSource('projects');
-          if (!source || !source._data) return;
-          
-          const features = source._data.features;
-          
-          // Find exact match
-          const exactMatch = features.find(f => 
-            f.properties.title.toLowerCase() === query
-          );
-          
-          // Filter features
-          let filteredFeatures;
-          
-          if (exactMatch) {
-            // If exact match, show ONLY that item
-            filteredFeatures = [exactMatch];
-            // No automatic jump to map - user must click
-          } else {
-            // Otherwise show partial matches
-            filteredFeatures = features.filter(f =>
-              f.properties.title.toLowerCase().includes(query) ||
-              f.properties.city.toLowerCase().includes(query)
-            );
-          }
-          
-          renderFilteredGrid('gridMobile', filteredFeatures);
-        });
+        // Immediately collapse - fully hide
+        drawer.classList.remove('expanded');
+        drawer.style.transform = 'translateY(100%)'; // Fully hidden
+        mapBtn.classList.remove('visible');
+        content.scrollTop = 0;
       }
     };
-    // Sidebar search functionality
-    const setupSidebarSearch = () => {
-      const searchBar = document.getElementById('sidebarSearchBar');
-      const resultsEl = document.getElementById('sidebarResults');
-      
-      if (!searchBar || !map.getSource) return;
-      
-      searchBar.addEventListener('input', (e) => {
-        const query = e.target.value.trim().toLowerCase();
-        resultsEl.classList.add('hidden'); // Hide dropdown results
-        
-        if (!query) {
-          // If search is empty, render all projects
-          renderGrid('gridDesktop');
-          return;
-        }
-        
-        const source = map.getSource('projects');
-        if (!source || !source._data) return;
-        
-        const features = source._data.features;
-        
-        // Find exact match
-        const exactMatch = features.find(f => 
-          f.properties.title.toLowerCase() === query
-        );
-        
-        // Filter and sort features
-        let filteredFeatures = [...features];
-        
-        if (exactMatch) {
-          // If exact match found, show it first, then other projects sorted by distance
-          const mapCenter = map.getCenter();
-          const matchCoords = exactMatch.geometry.coordinates;
-          
-          // Calculate distances for all features
-          filteredFeatures = features.map(f => {
-            const coords = f.geometry.coordinates;
-            const distance = calculateDistance(
-              mapCenter.lat, 
-              mapCenter.lng, 
-              coords[1], 
-              coords[0]
-            );
-            return { ...f, distance };
-          });
-          
-          // Sort by distance but put exact match first
-          filteredFeatures = [
-            exactMatch,
-            ...filteredFeatures.filter(f => f !== exactMatch).sort((a, b) => a.distance - b.distance)
-          ];
-          
-          // Also jump to location on map
-          showPopup(exactMatch);
-        } else {
-          // Filter by city or title containing the query
-          filteredFeatures = features.filter(f =>
-            f.properties.title.toLowerCase().includes(query) ||
-            f.properties.city.toLowerCase().includes(query)
-          );
-        }
-        
-        // Render filtered grid
-        renderFilteredGrid('gridDesktop', filteredFeatures);
-      });
-    };
     
-    // New function to render filtered grid
-    function renderFilteredGrid(targetId, features) {
-      const grid = document.getElementById(targetId);
-      if (!grid) return;
-      
-      grid.innerHTML = '';
-      
-      // Get current map center and bounds
-      const mapCenter = map.getCenter();
-      const mapBounds = map.getBounds();
-      
-      // Calculate distance and check bounds for filtered features
-      features = features.map(f => {
-        const coords = f.geometry.coordinates;
-        const distance = calculateDistance(
-          mapCenter.lat, 
-          mapCenter.lng, 
-          coords[1], // latitude
-          coords[0]  // longitude
-        );
-        const inBounds = mapBounds.contains([coords[0], coords[1]]);
-        return { ...f, distance, inBounds };
-      });
-      
-      // Sort with featured priority within view
-      features.sort((a, b) => {
-        // Priority 1: Featured items that are in bounds
-        const aFeaturedInBounds = a.inBounds && a.properties.featured;
-        const bFeaturedInBounds = b.inBounds && b.properties.featured;
-        
-        if (aFeaturedInBounds && !bFeaturedInBounds) return -1;
-        if (!aFeaturedInBounds && bFeaturedInBounds) return 1;
-        
-        // Priority 2: Non-featured items in bounds
-        const aInBounds = a.inBounds && !a.properties.featured;
-        const bInBounds = b.inBounds && !b.properties.featured;
-        
-        if (aInBounds && !b.inBounds) return -1;
-        if (!aInBounds && b.inBounds) return 1;
-        
-        // Priority 3: Everything else by distance
-        return a.distance - b.distance;
-      });
-      
-      // Create document fragment for better performance
-      const fragment = document.createDocumentFragment();
-      
-      features.forEach((f, index) => {
-        const d = document.createElement('div');
-        d.className = 'grid-item';
-        
-        // Use placeholder image initially
-        const imageSrc = f.properties.image;
-        const placeholderSrc = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="300" height="120"%3E%3Crect width="300" height="120" fill="%23333"/%3E%3C/svg%3E';
-        
-        d.innerHTML = `
-          <div class="image-wrapper">
-            <img src="${placeholderSrc}" 
-                 data-src="${imageSrc}" 
-                 loading="lazy" 
-                 alt="${f.properties.title}"
-                 class="lazy-loading" />
-          </div>
-          ${f.properties.featured ? `
-            <div class="featured-badge">
-              <svg viewBox="0 0 24 24">
-                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-              </svg>
-              Featured
-            </div>
-          ` : ''}
-          <a class="tile-favorite" href="https://www.oftmw.com/livehere" target="_blank" onclick="event.stopPropagation();">
-            <svg viewBox="0 0 18 18"><path d="M9 1v16M1 9h16"/></svg>
-          </a>
-          <div class="grid-item-content">
-            <h3 style="color: #ffffff !important; margin: 0 0 4px; font-size: 16px;">${f.properties.title}</h3>
-            <p class="city" style="color: #cccccc !important; margin: 0 0 auto 0; font-size: 12px; padding-bottom: 8px;">${f.properties.city}</p>
-            <p class="website-btn">
-              <a href="${f.properties.website}" target="_blank" class="website-link" onclick="event.stopPropagation();">Learn More</a>
-            </p>
-          </div>`;
-        d.onclick = () => { 
-          showPopup(f); 
-          // On mobile, immediately close the drawer when tile is clicked
-          if (targetId === 'gridMobile') {
-            const drawer = document.getElementById('mobileDrawer');
-            const mapBtn = document.getElementById('mapReturnButton');
-            const content = document.getElementById('mobileDrawerContent');
-            
-            // Immediately collapse - fully hide
-            drawer.classList.remove('expanded');
-            drawer.style.transform = 'translateY(100%)'; // Fully hidden
-            mapBtn.classList.remove('visible');
-            content.scrollTop = 0;
-          }
-        };
-        fragment.appendChild(d);
-      });
-      
-      // Append all at once
-      grid.appendChild(fragment);
-      
-      // Set up lazy loading
-      setupLazyLoading(grid);
+    // Replace skeleton with actual content
+    if (skeletons[index]) {
+      skeletons[index].replaceWith(d);
+    } else {
+      grid.appendChild(d);
     }
-    
-    // Extract lazy loading setup to reusable function
-    function setupLazyLoading(grid) {
-      const imageObserver = new IntersectionObserver((entries, observer) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            const img = entry.target;
-            const src = img.getAttribute('data-src');
-            
-            const newImg = new Image();
-            newImg.onload = () => {
-              img.src = src;
-              img.classList.remove('lazy-loading');
-              img.classList.add('loaded');
-              observer.unobserve(img);
-            };
-            newImg.onerror = () => {
-              img.classList.remove('lazy-loading');
-              img.classList.add('loaded');
-              observer.unobserve(img);
-            };
-            newImg.src = src;
-          }
-        });
-      }, {
-        rootMargin: '50px',
-        threshold: 0.01
-      });
-      
-      const fadeObserver = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting && !entry.target.classList.contains('visible')) {
-            requestAnimationFrame(() => {
-              entry.target.classList.add('visible');
-            });
-          }
-        });
-      }, {
-        threshold: 0.1,
-        rootMargin: '0px'
-      });
-      
-      const gridItems = grid.querySelectorAll('.grid-item');
-      const images = grid.querySelectorAll('.grid-item img');
-      
-      gridItems.forEach(item => fadeObserver.observe(item));
-      images.forEach(img => imageObserver.observe(img));
+  });
+  
+  // Set up lazy loading
+  setupLazyLoading(grid);
+}, 100); // Small delay to show skeleton effect
     }
     // Global variable to track mobile drawer state
     window.mobileDrawerCollapse = null;
@@ -5521,7 +3153,55 @@
           });
           renderGrid('gridDesktop');
           renderGrid('gridMobile');
+          // Extract lazy loading setup to reusable function
+function setupLazyLoading(grid) {
+  const imageObserver = new IntersectionObserver((entries, observer) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const img = entry.target;
+        const src = img.getAttribute('data-src');
+        
+        const newImg = new Image();
+        newImg.onload = () => {
+          img.src = src;
+          img.classList.remove('lazy-loading');
+          img.classList.add('loaded');
+          observer.unobserve(img);
+        };
+        newImg.onerror = () => {
+          img.classList.remove('lazy-loading');
+          img.classList.add('loaded');
+          observer.unobserve(img);
+        };
+        newImg.src = src;
+      }
+    });
+  }, {
+    rootMargin: '50px',
+    threshold: 0.01
+  });
+  
+  const fadeObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting && !entry.target.classList.contains('visible')) {
+        requestAnimationFrame(() => {
+          entry.target.classList.add('visible');
+        });
+      }
+    });
+  }, {
+    threshold: 0.1,
+    rootMargin: '0px'
+  });
+  
+  const gridItems = grid.querySelectorAll('.grid-item');
+  const images = grid.querySelectorAll('.grid-item img');
+  
+  gridItems.forEach(item => fadeObserver.observe(item));
+  images.forEach(img => imageObserver.observe(img));
+}
           populateLocationFilter();
+
           
           // Setup mobile drawer interactions
           setupMobileDrawer();
