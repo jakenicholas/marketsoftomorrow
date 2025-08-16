@@ -2502,72 +2502,411 @@ function setupLazyLoading(grid) {
 }
       
       // Make collapseDrawer globally available
-      window.mobileDrawerCollapse = collapseDrawer;
-      // Prevent touch interactions on content only when collapsed
-      content.addEventListener('touchstart', (e) => {
-        if (!isExpanded) {
-          e.preventDefault();
-          e.stopPropagation();
-          return false;
-        }
-      }, { passive: false });
-      // Handle drag start
-      handle.addEventListener('touchstart', (e) => {
-        isDragging = true;
-        startY = e.touches[0].clientY;
-        drawer.style.transition = 'none';
+   // Global variable to track mobile drawer state
+window.mobileDrawerCollapse = null;
+
+// Mobile drawer functionality
+function setupMobileDrawer() {
+  const drawer = document.getElementById('mobileDrawer');
+  const handle = document.getElementById('mobileDrawerHandle');
+  const content = document.getElementById('mobileDrawerContent');
+  const mapBtn = document.getElementById('mapReturnButton');
+  
+  let startY = 0;
+  let currentY = 0;
+  let startTransform = 0;
+  let isDragging = false;
+  let isExpanded = false;
+  
+  // Use CSS variable for dynamic height
+  const getViewportHeight = () => {
+    const appHeight = getComputedStyle(document.documentElement).getPropertyValue('--app-height');
+    return parseInt(appHeight) - 50; // Account for header
+  };
+  
+  // Function to collapse drawer
+  function collapseDrawer() {
+    isExpanded = false;
+    drawer.classList.remove('expanded');
+    drawer.style.transform = `translateY(100%)`; // Fully hidden
+    mapBtn.classList.remove('visible');
+    // Reset scroll position when closing
+    content.scrollTop = 0;
+  }
+  
+  // Function to expand drawer
+  function expandDrawer() {
+    isExpanded = true;
+    drawer.classList.add('expanded');
+    drawer.style.transform = 'translateY(0)';
+    mapBtn.classList.add('visible');
+    
+    // Force enable scrolling on the content
+    content.style.overflow = 'auto';
+    content.style.overflowY = 'scroll';
+    content.style.webkitOverflowScrolling = 'touch';
+    content.style.pointerEvents = 'auto';
+    content.style.touchAction = 'auto';
+    
+    // Update grid when expanding drawer
+    renderGrid('gridMobile');
+  }
+  
+  // Make collapseDrawer globally available
+  window.mobileDrawerCollapse = collapseDrawer;
+  
+  // Prevent touch interactions on content only when collapsed
+  content.addEventListener('touchstart', (e) => {
+    if (!isExpanded) {
+      e.preventDefault();
+      e.stopPropagation();
+      return false;
+    }
+  }, { passive: false });
+  
+  // Handle drag start
+  handle.addEventListener('touchstart', (e) => {
+    isDragging = true;
+    startY = e.touches[0].clientY;
+    drawer.style.transition = 'none';
+    
+    // Calculate current position
+    const computedStyle = window.getComputedStyle(drawer);
+    const matrix = new DOMMatrix(computedStyle.transform);
+    const viewportHeight = getViewportHeight();
+    const collapsedY = viewportHeight;
+    startTransform = matrix.m42 || (isExpanded ? 0 : collapsedY);
+  }, { passive: true });
+  
+  // Handle drag move
+  handle.addEventListener('touchmove', (e) => {
+    if (!isDragging) return;
+    e.preventDefault();
+    
+    currentY = e.touches[0].clientY;
+    const deltaY = currentY - startY;
+    let newY = startTransform + deltaY;
+    
+    // Constrain position
+    const viewportHeight = getViewportHeight();
+    const collapsedY = viewportHeight;
+    newY = Math.max(0, Math.min(newY, collapsedY));
+    
+    drawer.style.transform = `translateY(${newY}px)`;
+  }, { passive: false });
+  
+  // Handle drag end
+  handle.addEventListener('touchend', (e) => {
+    if (!isDragging) return;
+    isDragging = false;
+    
+    const deltaY = currentY - startY;
+    drawer.style.transition = 'transform 0.3s ease';
+    
+    // Determine expand/collapse based on position and direction  
+    const viewportHeight = getViewportHeight();
+    const currentPosition = startTransform + deltaY;
+    const threshold = viewportHeight * 0.5;
+    
+    if (currentPosition < threshold || (!isExpanded && deltaY < -30)) {
+      expandDrawer();
+    } else {
+      collapseDrawer();
+    }
+  }, { passive: true });
+  
+  // Click to toggle
+  handle.addEventListener('click', (e) => {
+    e.stopPropagation();
+    drawer.style.transition = 'transform 0.3s ease';
+    if (isExpanded) {
+      collapseDrawer();
+    } else {
+      expandDrawer();
+    }
+  });
+  
+  // Tiles button opens drawer (new floating button)
+  const mobileTilesBtn = document.getElementById('mobileTilesButton');
+  if (mobileTilesBtn && isMobile) {
+    mobileTilesBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      drawer.style.transition = 'transform 0.3s ease';
+      expandDrawer();
+      
+      // Track tiles view opened
+      gtag('event', 'view_change', {
+        'view_type': 'tiles',
+        'action': 'open_drawer',
+        'device_type': 'mobile'
+      });
+    });
+  }
+  
+  // Map return button (now on the drawer handle)
+  const mobileMapBtn = document.getElementById('mobileMapButton');
+  if (mobileMapBtn) {
+    mobileMapBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      drawer.style.transition = 'transform 0.3s ease';
+      collapseDrawer();
+      
+      // Track return to map
+      gtag('event', 'view_change', {
+        'view_type': 'map',
+        'action': 'close_drawer',
+        'device_type': 'mobile'
+      });
+    });
+  }
+  
+  // Old map return button (keep for compatibility)
+  mapBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    drawer.style.transition = 'transform 0.3s ease';
+    collapseDrawer();
+  });
+}
+
+// Populate location filter
+function populateLocationFilter() {
+  if (!map.getSource('projects') || !map.getSource('projects')._data) return;
+  
+  const features = map.getSource('projects')._data.features;
+  const cities = [...new Set(features.map(f => f.properties.city))].sort();
+  
+  // Desktop filters
+  const locationFilterDesktop = document.getElementById('locationFilterDesktop');
+  if (locationFilterDesktop) {
+    locationFilterDesktop.innerHTML = '<option value="all">All Cities</option>';
+    cities.forEach(city => {
+      const option = document.createElement('option');
+      option.value = city;
+      option.textContent = city;
+      locationFilterDesktop.appendChild(option);
+    });
+  }
+  
+  // Mobile filters
+  const locationFilterMobile = document.getElementById('locationFilterMobile');
+  if (locationFilterMobile) {
+    locationFilterMobile.innerHTML = '<option value="all">All Cities</option>';
+    cities.forEach(city => {
+      const option = document.createElement('option');
+      option.value = city;
+      option.textContent = city;
+      locationFilterMobile.appendChild(option);
+    });
+  }
+  
+  // Also populate project types
+  const projectTypes = [...new Set(features.flatMap(f => 
+    f.properties.projectTypes || []
+  ))].filter(t => t).sort();
+  
+  // Desktop project type filter
+  const projectTypeFilterDesktop = document.getElementById('projectTypeFilterDesktop');
+  if (projectTypeFilterDesktop) {
+    projectTypeFilterDesktop.innerHTML = '<option value="all">All Types</option>';
+    projectTypes.forEach(type => {
+      const option = document.createElement('option');
+      option.value = type;
+      option.textContent = type.charAt(0).toUpperCase() + type.slice(1);
+      projectTypeFilterDesktop.appendChild(option);
+    });
+  }
+  
+  // Mobile project type filter
+  const projectTypeFilterMobile = document.getElementById('projectTypeFilterMobile');
+  if (projectTypeFilterMobile) {
+    projectTypeFilterMobile.innerHTML = '<option value="all">All Types</option>';
+    projectTypes.forEach(type => {
+      const option = document.createElement('option');
+      option.value = type;
+      option.textContent = type.charAt(0).toUpperCase() + type.slice(1);
+      projectTypeFilterMobile.appendChild(option);
+    });
+  }
+  
+  // Load saved preferences
+  loadFilterPreferences();
+}
+
+// Setup desktop filters
+function setupDesktopFilters() {
+  const sortSelect = document.getElementById('sortSelectDesktop');
+  const locationFilter = document.getElementById('locationFilterDesktop');
+  const projectTypeFilter = document.getElementById('projectTypeFilterDesktop');
+  
+  if (sortSelect) {
+    sortSelect.addEventListener('change', () => {
+      saveFilterPreferences();
+      renderGrid('gridDesktop');
+    });
+  }
+  
+  if (locationFilter) {
+    locationFilter.addEventListener('change', () => {
+      saveFilterPreferences();
+      renderGrid('gridDesktop');
+    });
+  }
+  
+  if (projectTypeFilter) {
+    projectTypeFilter.addEventListener('change', () => {
+      saveFilterPreferences();
+      renderGrid('gridDesktop');
+    });
+  }
+}
+
+// Setup mobile filters
+function setupMobileFilters() {
+  const sortSelect = document.getElementById('sortSelectMobile');
+  const locationFilter = document.getElementById('locationFilterMobile');
+  const projectTypeFilter = document.getElementById('projectTypeFilterMobile');
+  const searchBar = document.getElementById('mobileSearchBar');
+  
+  if (sortSelect) {
+    sortSelect.addEventListener('change', () => {
+      saveFilterPreferences();
+      renderGrid('gridMobile');
+    });
+  }
+  
+  if (locationFilter) {
+    locationFilter.addEventListener('change', () => {
+      saveFilterPreferences();
+      renderGrid('gridMobile');
+    });
+  }
+  
+  if (projectTypeFilter) {
+    projectTypeFilter.addEventListener('change', () => {
+      saveFilterPreferences();
+      renderGrid('gridMobile');
+    });
+  }
+  
+  if (searchBar) {
+    searchBar.addEventListener('input', (e) => {
+      const query = e.target.value.trim().toLowerCase();
+      if (!query) {
+        renderGrid('gridMobile');
+        return;
+      }
+      
+      const features = map.getSource('projects')._data.features;
+      const matches = features.filter(f =>
+        f.properties.title.toLowerCase().includes(query) ||
+        f.properties.city.toLowerCase().includes(query)
+      );
+      
+      // Render only matching items
+      const grid = document.getElementById('gridMobile');
+      grid.innerHTML = '';
+      
+      if (matches.length === 0) {
+        grid.innerHTML = `
+          <div class="empty-state">
+            <h3>No projects found</h3>
+            <p>Try a different search term</p>
+          </div>
+        `;
+        return;
+      }
+      
+      // Render matching items
+      matches.forEach((f, index) => {
+        const d = document.createElement('div');
+        d.className = 'grid-item visible';
         
-        // Calculate current position
-        const computedStyle = window.getComputedStyle(drawer);
-        const matrix = new DOMMatrix(computedStyle.transform);
-        const viewportHeight = getViewportHeight();
-        const collapsedY = viewportHeight;
-        startTransform = matrix.m42 || (isExpanded ? 0 : collapsedY);
-      }, { passive: true });
-      // Handle drag move
-      handle.addEventListener('touchmove', (e) => {
-        if (!isDragging) return;
-        e.preventDefault();
+        const imageSrc = f.properties.image;
         
-        currentY = e.touches[0].clientY;
-        const deltaY = currentY - startY;
-        let newY = startTransform + deltaY;
+        d.innerHTML = `
+          <div class="image-wrapper">
+            <img src="${imageSrc}" alt="${f.properties.title}" />
+          </div>
+          ${f.properties.featured ? `
+            <div class="featured-badge">
+              <svg viewBox="0 0 24 24">
+                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+              </svg>
+              Featured
+            </div>
+          ` : ''}
+          <a class="tile-favorite" href="https://www.oftmw.com/livehere" target="_blank" onclick="event.stopPropagation();">
+            <svg viewBox="0 0 18 18"><path d="M9 1v16M1 9h16"/></svg>
+          </a>
+          <div class="grid-item-content">
+            <h3>${f.properties.title}</h3>
+            <p class="city">${f.properties.city}</p>
+            <p class="website-btn">
+              <a href="${f.properties.website}" target="_blank" class="website-link" onclick="event.stopPropagation();">Learn More</a>
+            </p>
+          </div>`;
         
-        // Constrain position
-        const viewportHeight = getViewportHeight();
-        const collapsedY = viewportHeight;
-        newY = Math.max(0, Math.min(newY, collapsedY));
+        d.onclick = () => {
+          showPopup(f);
+          window.mobileDrawerCollapse();
+        };
         
-        drawer.style.transform = `translateY(${newY}px)`;
-      }, { passive: false });
-      // Handle drag end
-      handle.addEventListener('touchend', (e) => {
-        if (!isDragging) return;
-        isDragging = false;
-        
-        const deltaY = currentY - startY;
-        drawer.style.transition = 'transform 0.3s ease';
-        
-        // Determine expand/collapse based on position and direction  
-        const viewportHeight = getViewportHeight();
-        const currentPosition = startTransform + deltaY;
-        const threshold = viewportHeight * 0.5;
-        
-        if (currentPosition < threshold || (!isExpanded && deltaY < -30)) {
-          expandDrawer();
-        } else {
-          collapseDrawer();
-        }
-      }, { passive: true });
-      // Click to toggle
-      handle.addEventListener('click', (e) => {
-        e.stopPropagation();
-        drawer.style.transition = 'transform 0.3s ease';
-        if (isExpanded) {
-          collapseDrawer();
-        } else {
-          expandDrawer();
-        }
+        grid.appendChild(d);
+      });
+    });
+  }
+}
+
+// Setup sidebar search
+function setupSidebarSearch() {
+  const searchBar = document.getElementById('sidebarSearchBar');
+  const resultsDiv = document.getElementById('sidebarResults');
+  
+  if (!searchBar || !resultsDiv) return;
+  
+  searchBar.addEventListener('input', (e) => {
+    const query = e.target.value.trim().toLowerCase();
+    
+    if (!query) {
+      resultsDiv.classList.add('hidden');
+      renderGrid('gridDesktop');
+      return;
+    }
+    
+    const features = map.getSource('projects')._data.features;
+    const matches = features.filter(f =>
+      f.properties.title.toLowerCase().includes(query) ||
+      f.properties.city.toLowerCase().includes(query)
+    );
+    
+    // Show results in dropdown
+    resultsDiv.innerHTML = '';
+    if (matches.length) {
+      resultsDiv.classList.remove('hidden');
+      matches.forEach(f => {
+        const div = document.createElement('div');
+        div.className = 'result-item';
+        div.innerHTML = `<h4>${f.properties.title}</h4><p>${f.properties.city}</p>`;
+        div.onclick = () => {
+          showPopup(f);
+          resultsDiv.classList.add('hidden');
+          searchBar.value = '';
+        };
+        resultsDiv.appendChild(div);
+      });
+    } else {
+      resultsDiv.innerHTML = '<div class="result-item">No results found</div>';
+      resultsDiv.classList.remove('hidden');
+    }
+  });
+  
+  // Hide results when clicking outside
+  document.addEventListener('click', (e) => {
+    if (!searchBar.contains(e.target) && !resultsDiv.contains(e.target)) {
+      resultsDiv.classList.add('hidden');
+    }
+  });
+}
       });
       // Tiles button opens drawer (new floating button)
       const mobileTilesBtn = document.getElementById('mobileTilesButton');
