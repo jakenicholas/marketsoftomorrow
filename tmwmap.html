@@ -794,6 +794,47 @@
     .grid-item img.loaded {
       opacity: 1;
     }
+    
+    /* Skeleton loader styles */
+    .skeleton-loader {
+      background: linear-gradient(90deg, #333 25%, #444 50%, #333 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 4px;
+    }
+    
+    @keyframes shimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+    
+    .grid-item .skeleton-placeholder {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #333;
+      border-radius: 4px;
+      z-index: 1;
+    }
+    
+    .grid-item .skeleton-placeholder::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent 25%, rgba(255,255,255,0.1) 50%, transparent 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 4px;
+    }
+    
+    .grid-item .skeleton-placeholder.hidden {
+      display: none;
+    }
     .grid-item-content { padding:8px; display: flex; flex-direction: column; flex: 1; }
     .grid-item-content h3 { 
       margin:0 0 4px; 
@@ -1020,6 +1061,313 @@
     .result-item:hover { background:rgba(255,255,255,0.05); }
     .result-item h4 { margin:0 0 4px; font-size:16px; color:#fff; }
     .result-item p { margin:0; font-size:12px; color:#ccc; }
+    
+    /* Enhanced empty state styles */
+    .result-item.no-results {
+      padding: 20px;
+      text-align: center;
+      border: none;
+    }
+    
+    .no-results-content {
+      max-width: 280px;
+      margin: 0 auto;
+    }
+    
+    .no-results-icon {
+      font-size: 32px;
+      margin-bottom: 12px;
+      opacity: 0.6;
+    }
+    
+    .no-results-content h4 {
+      font-size: 18px;
+      margin-bottom: 8px;
+      color: #fff;
+    }
+    
+    .no-results-content p {
+      margin-bottom: 12px;
+      color: #ccc;
+      font-size: 14px;
+    }
+    
+    .no-results-content ul {
+      text-align: left;
+      margin: 0;
+      padding: 0 0 0 20px;
+      font-size: 13px;
+      color: #aaa;
+    }
+    
+    .no-results-content li {
+      margin-bottom: 6px;
+      line-height: 1.4;
+    }
+    
+    /* Multi-select filter styles */
+    .filter-dropdown {
+      position: relative;
+      display: inline-block;
+    }
+    
+    .filter-dropdown-toggle {
+      min-width: 120px;
+      background: #1a1a1a;
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 8px 36px 8px 12px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%23999' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .filter-dropdown-toggle:hover {
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+    
+    .filter-dropdown-toggle.active {
+      border-color: #1FDF67;
+    }
+    
+    .filter-dropdown-menu {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: #1a1a1a;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      margin-top: 4px;
+      max-height: 200px;
+      overflow-y: auto;
+      z-index: 1000;
+      display: none;
+    }
+    
+    .filter-dropdown-menu.show {
+      display: block;
+    }
+    
+    .filter-option {
+      padding: 8px 12px;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+    }
+    
+    .filter-option:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+    
+    .filter-option input[type="checkbox"] {
+      margin: 0;
+      accent-color: #1FDF67;
+    }
+    
+    .filter-counter {
+      background: #1FDF67;
+      color: #000;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 6px;
+      border-radius: 10px;
+      margin-left: 8px;
+      min-width: 16px;
+      text-align: center;
+    }
+    
+    /* Clear filters button */
+    .clear-filters-btn {
+      background: transparent;
+      color: #ff6b6b;
+      border: 1px solid #ff6b6b;
+      border-radius: 6px;
+      padding: 6px 12px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      margin-left: 8px;
+    }
+    
+    .clear-filters-btn:hover {
+      background: #ff6b6b;
+      color: #fff;
+    }
+    
+    .clear-filters-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      border-color: #666;
+      color: #666;
+    }
+    
+    .clear-filters-btn:disabled:hover {
+      background: transparent;
+      color: #666;
+    }
+    
+    /* Quick filter buttons */
+    .quick-filters {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+    
+    .quick-filter-btn {
+      background: #333;
+      color: #fff;
+      border: 1px solid #555;
+      border-radius: 6px;
+      padding: 6px 12px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .quick-filter-btn:hover {
+      background: #444;
+      border-color: #666;
+    }
+    
+    .quick-filter-btn.active {
+      background: #1FDF67;
+      color: #000;
+      border-color: #1FDF67;
+    }
+    
+    /* Empty grid state styles */
+    .empty-grid-state {
+      grid-column: 1 / -1;
+      padding: 60px 20px;
+      text-align: center;
+      color: #ccc;
+    }
+    
+    .empty-state-content {
+      max-width: 400px;
+      margin: 0 auto;
+    }
+    
+    .empty-state-icon {
+      font-size: 48px;
+      margin-bottom: 20px;
+      opacity: 0.6;
+    }
+    
+    .empty-state-content h3 {
+      font-size: 24px;
+      margin-bottom: 12px;
+      color: #fff;
+    }
+    
+    .empty-state-content > p {
+      font-size: 16px;
+      margin-bottom: 20px;
+      color: #aaa;
+    }
+    
+    .empty-state-suggestions {
+      background: rgba(255,255,255,0.05);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+      text-align: left;
+    }
+    
+    .empty-state-suggestions p {
+      margin: 0 0 10px 0;
+      font-weight: 600;
+      color: #ccc;
+    }
+    
+    .empty-state-suggestions ul {
+      margin: 0;
+      padding: 0 0 0 20px;
+      color: #aaa;
+    }
+    
+    .empty-state-suggestions li {
+      margin-bottom: 8px;
+      line-height: 1.4;
+    }
+    
+    .clear-filters-suggestion {
+      background: #1FDF67;
+      color: #000;
+      border: none;
+      border-radius: 6px;
+      padding: 10px 20px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    /* Grid skeleton loader styles */
+    .grid-skeleton {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      grid-gap: 20px;
+      padding: 20px;
+    }
+    
+    .grid-skeleton-item {
+      background: rgba(20,20,20,0.8);
+      border-radius: 6px;
+      padding: 6px;
+      height: 250px;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .grid-skeleton-image {
+      height: 180px;
+      background: #333;
+      border-radius: 4px;
+      margin-bottom: 8px;
+    }
+    
+    .grid-skeleton-text {
+      flex: 1;
+      padding: 8px;
+    }
+    
+    .grid-skeleton-title {
+      height: 16px;
+      background: #444;
+      border-radius: 4px;
+      margin-bottom: 8px;
+      width: 80%;
+    }
+    
+    .grid-skeleton-subtitle {
+      height: 12px;
+      background: #383838;
+      border-radius: 4px;
+      width: 60%;
+    }
+    
+    .grid-skeleton-item .skeleton-loader,
+    .grid-skeleton-image,
+    .grid-skeleton-title,
+    .grid-skeleton-subtitle {
+      background: linear-gradient(90deg, #333 25%, #444 50%, #333 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+    }
     .mapboxgl-popup-content { 
       background:rgba(20,20,20,0.8)!important; 
       box-shadow:0 4px 20px rgba(0,0,0,0.3); 
@@ -1470,6 +1818,26 @@
           <button id="closeSidebar" style="background: #1e1e1e; border: none; color: #fff; font-size: 20px; cursor: pointer; padding: 0; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 4px;">✕</button>
         </div>
         <div id="sidebarResults" class="hidden"></div>
+        <!-- Quick filter buttons -->
+        <div class="quick-filters">
+          <button class="quick-filter-btn" data-filter="6months">Next 6 Months</button>
+          <button class="quick-filter-btn" data-filter="1year">Next Year</button>
+          <button class="quick-filter-btn" data-filter="featured">Featured Only</button>
+        </div>
+        
+        <!-- Date range filter -->
+        <div class="date-range-filter" style="margin-bottom: 12px;">
+          <label style="font-size: 12px; color: #aaa; margin-bottom: 4px; display: block;">Delivery Date Range:</label>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <select id="dateRangeFilter" style="flex: 1; background: #1a1a1a; color: #fff; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 6px; padding: 6px 8px; font-size: 12px;">
+              <option value="all">All Dates</option>
+              <option value="2024">2024</option>
+              <option value="2025">2025</option>
+              <option value="2026">2026</option>
+              <option value="2027">2027+</option>
+            </select>
+          </div>
+        </div>
         
         <div id="filterControlsDesktop" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
           <select id="sortSelectDesktop" style="flex: 1; min-width: 100px; background: #1a1a1a; color: #fff; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 8px 12px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s ease; appearance: none; background-image: url(&quot;data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%23999' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E&quot;); background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px;">
@@ -1477,15 +1845,36 @@
             <option value="az">Sort: A to Z</option>
             <option value="za">Sort: Z to A</option>
           </select>
-          <select id="projectTypeFilterDesktop" style="flex: 1; min-width: 120px; background: #1a1a1a; color: #fff; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 8px 12px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s ease; appearance: none; background-image: url(&quot;data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%23999' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E&quot;); background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px;">
-            <option value="all">All Types</option>
-          </select>
-          <select id="locationFilterDesktop" style="flex: 1; min-width: 100px; background: #1a1a1a; color: #fff; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 8px 12px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s ease; appearance: none; background-image: url(&quot;data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%23999' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E&quot;); background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px;">
-            <option value="all">All Cities</option>
-          </select>
+          
+          <!-- Multi-select project type filter -->
+          <div class="filter-dropdown" style="flex: 1; min-width: 120px;">
+            <div class="filter-dropdown-toggle" id="projectTypeFilterDesktop" data-filter="projectType">
+              <span class="filter-text">All Types</span>
+              <span class="filter-counter" style="display: none;">0</span>
+            </div>
+            <div class="filter-dropdown-menu" id="projectTypeDropdownDesktop">
+              <!-- Options will be populated dynamically -->
+            </div>
+          </div>
+          
+          <!-- Multi-select location filter -->
+          <div class="filter-dropdown" style="flex: 1; min-width: 100px;">
+            <div class="filter-dropdown-toggle" id="locationFilterDesktop" data-filter="location">
+              <span class="filter-text">All Cities</span>
+              <span class="filter-counter" style="display: none;">0</span>
+            </div>
+            <div class="filter-dropdown-menu" id="locationDropdownDesktop">
+              <!-- Options will be populated dynamically -->
+            </div>
+          </div>
+          
+          <button class="clear-filters-btn" id="clearFiltersDesktop" disabled>Clear All</button>
         </div>
       </div>
       <div class="sidebar-content">
+        <div class="results-counter" id="resultsCounterDesktop" style="margin-bottom: 12px; font-size: 14px; color: #aaa; display: none;">
+          Showing <span class="results-count">0</span> projects
+        </div>
         <div class="leaf-grid" id="gridDesktop"></div>
       </div>
     </div>
@@ -2000,6 +2389,66 @@
       const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
       return R * c;
     }
+    // Show loading skeleton for grid
+    function showGridSkeleton(targetId) {
+      const grid = document.getElementById(targetId);
+      if (!grid) return;
+      
+      grid.innerHTML = '';
+      grid.className = 'grid-skeleton';
+      
+      // Create 6 skeleton items
+      for (let i = 0; i < 6; i++) {
+        const skeletonItem = document.createElement('div');
+        skeletonItem.className = 'grid-skeleton-item';
+        skeletonItem.innerHTML = `
+          <div class="grid-skeleton-image"></div>
+          <div class="grid-skeleton-text">
+            <div class="grid-skeleton-title"></div>
+            <div class="grid-skeleton-subtitle"></div>
+          </div>
+        `;
+        grid.appendChild(skeletonItem);
+      }
+    }
+    
+    // Helper function to parse delivery dates and check if they fall within range
+    function isWithinDateRange(deliveryText, months) {
+      if (!deliveryText) return false;
+      
+      const now = new Date();
+      const targetDate = new Date(now.getFullYear(), now.getMonth() + months, now.getDate());
+      
+      // Try to extract year from delivery text
+      const yearMatch = deliveryText.match(/\b(20\d{2})\b/);
+      if (!yearMatch) return false;
+      
+      const deliveryYear = parseInt(yearMatch[1]);
+      const currentYear = now.getFullYear();
+      
+      // Simple logic: if delivery year is within the target range
+      if (months === 6) {
+        // Next 6 months: current year or next year if we're in second half
+        return deliveryYear === currentYear || (deliveryYear === currentYear + 1 && now.getMonth() >= 6);
+      } else if (months === 12) {
+        // Next year: current year or next year
+        return deliveryYear === currentYear || deliveryYear === currentYear + 1;
+      }
+      
+      return false;
+    }
+    
+    // Helper function to format delivery dates
+    function formatDeliveryDate(deliveryText) {
+      if (!deliveryText) return '';
+      const text = deliveryText.trim();
+      // Check if "Estimated" is already in the text (case insensitive)
+      if (text.toLowerCase().includes('estimated')) {
+        return text;
+      }
+      return `Estimated ${text}`;
+    }
+    
     // Helper functions that need to be global
     function showPopup(f) {
       // Add subtle haptic feedback on mobile
@@ -2030,7 +2479,7 @@
             <h3>${f.properties.title}</h3>
             <p class="city">${f.properties.city}</p>
             <p class="description">${f.properties.description}</p>
-            <p class="delivery"><em>${f.properties.delivery}</em></p>
+            <p class="delivery"><em>${formatDeliveryDate(f.properties.delivery)}</em></p>
             <a class="favorite" href="https://www.oftmw.com/livehere" onclick="gtag('event', 'live_here_click', {'project_name': '${f.properties.title}', 'click_location': 'popup'});">
               <svg viewBox="0 0 18 18"><path d="M9 1v16M1 9h16"/></svg>
             </a>
@@ -2060,8 +2509,14 @@
       if (!grid) return;
       
       grid.innerHTML='';
+      // Restore proper grid class
+      grid.className = 'leaf-grid';
       
-      if (!map.getSource('projects') || !map.getSource('projects')._data) return;
+      if (!map.getSource('projects') || !map.getSource('projects')._data) {
+        // Show skeleton while data is loading
+        showGridSkeleton(targetId);
+        return;
+      }
       
       let features = [...map.getSource('projects')._data.features];
       
@@ -2087,32 +2542,90 @@
       let locationFilter, projectTypeFilter, sortType;
       
       if (targetId === 'gridDesktop') {
-        locationFilter = document.getElementById('locationFilterDesktop')?.value || 'all';
-        projectTypeFilter = document.getElementById('projectTypeFilterDesktop')?.value || 'all';
+        // For desktop, use multi-select filters
         sortType = document.getElementById('sortSelectDesktop')?.value || 'default';
+        
+        // Apply multi-select location filter
+        if (selectedFilters.location.size > 0) {
+          features = features.filter(f => selectedFilters.location.has(f.properties.city));
+        }
+        
+        // Apply multi-select project type filter
+        if (selectedFilters.projectType.size > 0) {
+          features = features.filter(f => {
+            return f.properties.projectTypes && 
+                   f.properties.projectTypes.some(type => selectedFilters.projectType.has(type));
+          });
+        }
+        
+        // Apply quick filter
+        if (selectedFilters.quickFilter) {
+          switch (selectedFilters.quickFilter) {
+            case '6months':
+              features = features.filter(f => isWithinDateRange(f.properties.delivery, 6));
+              break;
+            case '1year':
+              features = features.filter(f => isWithinDateRange(f.properties.delivery, 12));
+              break;
+            case 'featured':
+              features = features.filter(f => f.properties.featured);
+              break;
+          }
+        }
+        
+        // Apply date range filter
+        if (selectedFilters.dateRange !== 'all') {
+          features = features.filter(f => {
+            const deliveryText = f.properties.delivery || '';
+            const yearMatch = deliveryText.match(/\b(20\d{2})\b/);
+            if (!yearMatch) return false;
+            
+            const deliveryYear = parseInt(yearMatch[1]);
+            const filterYear = selectedFilters.dateRange;
+            
+            if (filterYear === '2027') {
+              return deliveryYear >= 2027;
+            } else {
+              return deliveryYear.toString() === filterYear;
+            }
+          });
+        }
       } else if (targetId === 'gridMobile') {
-        // Mobile uses its own filters
+        // Mobile uses original simple filters
         locationFilter = document.getElementById('locationFilterMobile')?.value || 'all';
         projectTypeFilter = document.getElementById('projectTypeFilterMobile')?.value || 'all';
         sortType = document.getElementById('sortSelectMobile')?.value || 'default';
+        
+        // Apply location filter
+        if (locationFilter !== 'all') {
+          features = features.filter(f => f.properties.city === locationFilter);
+        }
+        
+        // Apply project type filter
+        if (projectTypeFilter !== 'all') {
+          features = features.filter(f => {
+            return f.properties.projectTypes && 
+                   f.properties.projectTypes.includes(projectTypeFilter.toLowerCase());
+          });
+        }
       } else {
-        // Original grid
+        // Original grid uses simple filters
         locationFilter = document.getElementById('locationFilter')?.value || 'all';
         projectTypeFilter = document.getElementById('projectTypeFilter')?.value || 'all';
         sortType = document.getElementById('sortSelect')?.value || 'default';
-      }
-      
-      // Apply location filter
-      if (locationFilter !== 'all') {
-        features = features.filter(f => f.properties.city === locationFilter);
-      }
-      
-      // Apply project type filter
-      if (projectTypeFilter !== 'all') {
-        features = features.filter(f => {
-          return f.properties.projectTypes && 
-                 f.properties.projectTypes.includes(projectTypeFilter.toLowerCase());
-        });
+        
+        // Apply location filter
+        if (locationFilter !== 'all') {
+          features = features.filter(f => f.properties.city === locationFilter);
+        }
+        
+        // Apply project type filter
+        if (projectTypeFilter !== 'all') {
+          features = features.filter(f => {
+            return f.properties.projectTypes && 
+                   f.properties.projectTypes.includes(projectTypeFilter.toLowerCase());
+          });
+        }
       }
       
       // IMPORTANT: Filter to only show projects within the current map bounds
@@ -2163,6 +2676,7 @@
         
         d.innerHTML=`
           <div class="image-wrapper">
+            <div class="skeleton-placeholder"></div>
             <img src="${placeholderSrc}" 
                  data-src="${imageSrc}" 
                  loading="lazy" 
@@ -2219,6 +2733,40 @@
       // Append all at once
       grid.appendChild(fragment);
       
+      // Update results counter for desktop
+      if (targetId === 'gridDesktop') {
+        const counter = document.getElementById('resultsCounterDesktop');
+        const countSpan = counter?.querySelector('.results-count');
+        if (counter && countSpan) {
+          countSpan.textContent = features.length;
+          counter.style.display = features.length > 0 ? 'block' : 'none';
+        }
+      }
+      
+      // Show empty state if no results
+      if (features.length === 0) {
+        const emptyState = document.createElement('div');
+        emptyState.className = 'empty-grid-state';
+        emptyState.innerHTML = `
+          <div class="empty-state-content">
+            <div class="empty-state-icon">🗺️</div>
+            <h3>No projects found</h3>
+            <p>No projects match your current filters or map view.</p>
+            <div class="empty-state-suggestions">
+              <p><strong>Try:</strong></p>
+              <ul>
+                <li>Zooming out to see more areas</li>
+                <li>Clearing some filters</li>
+                <li>Using different search terms</li>
+              </ul>
+            </div>
+            ${selectedFilters.location.size > 0 || selectedFilters.projectType.size > 0 || selectedFilters.quickFilter ? 
+              '<button class="clear-filters-suggestion" onclick="clearAllFilters()">Clear All Filters</button>' : ''}
+          </div>
+        `;
+        grid.appendChild(emptyState);
+      }
+      
       // Set up lazy loading with Intersection Observer
       const imageObserver = new IntersectionObserver((entries, observer) => {
         entries.forEach(entry => {
@@ -2270,6 +2818,138 @@
       gridItems.forEach(item => fadeObserver.observe(item));
       images.forEach(img => imageObserver.observe(img));
     }
+    // Multi-select filter management
+    let selectedFilters = {
+      location: new Set(),
+      projectType: new Set(),
+      quickFilter: null,
+      dateRange: 'all'
+    };
+    
+    // Initialize multi-select filter dropdowns
+    function initializeMultiSelectFilters() {
+      // Setup dropdown toggles
+      document.querySelectorAll('.filter-dropdown-toggle').forEach(toggle => {
+        toggle.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const dropdown = toggle.nextElementSibling;
+          const isOpen = dropdown.classList.contains('show');
+          
+          // Close all other dropdowns
+          document.querySelectorAll('.filter-dropdown-menu').forEach(menu => menu.classList.remove('show'));
+          document.querySelectorAll('.filter-dropdown-toggle').forEach(t => t.classList.remove('active'));
+          
+          if (!isOpen) {
+            dropdown.classList.add('show');
+            toggle.classList.add('active');
+          }
+        });
+      });
+      
+      // Close dropdowns when clicking outside
+      document.addEventListener('click', () => {
+        document.querySelectorAll('.filter-dropdown-menu').forEach(menu => menu.classList.remove('show'));
+        document.querySelectorAll('.filter-dropdown-toggle').forEach(toggle => toggle.classList.remove('active'));
+      });
+      
+      // Prevent dropdown from closing when clicking inside
+      document.querySelectorAll('.filter-dropdown-menu').forEach(menu => {
+        menu.addEventListener('click', (e) => e.stopPropagation());
+      });
+    }
+    
+    // Update filter display text and counter
+    function updateFilterDisplay(filterType, platform = 'Desktop') {
+      const toggle = document.getElementById(`${filterType}Filter${platform}`);
+      const textSpan = toggle.querySelector('.filter-text');
+      const counterSpan = toggle.querySelector('.filter-counter');
+      const selectedSet = selectedFilters[filterType];
+      
+      if (selectedSet.size === 0) {
+        textSpan.textContent = filterType === 'location' ? 'All Cities' : 'All Types';
+        counterSpan.style.display = 'none';
+      } else if (selectedSet.size === 1) {
+        textSpan.textContent = Array.from(selectedSet)[0];
+        counterSpan.style.display = 'none';
+      } else {
+        textSpan.textContent = filterType === 'location' ? 'Multiple Cities' : 'Multiple Types';
+        counterSpan.textContent = selectedSet.size;
+        counterSpan.style.display = 'inline-block';
+      }
+      
+      // Update clear button state
+      updateClearButtonState();
+    }
+    
+    // Update clear button state
+    function updateClearButtonState() {
+      const clearBtn = document.getElementById('clearFiltersDesktop');
+      const hasActiveFilters = selectedFilters.location.size > 0 || 
+                              selectedFilters.projectType.size > 0 || 
+                              selectedFilters.quickFilter !== null ||
+                              selectedFilters.dateRange !== 'all';
+      
+      clearBtn.disabled = !hasActiveFilters;
+    }
+    
+    // Clear all filters
+    function clearAllFilters() {
+      selectedFilters.location.clear();
+      selectedFilters.projectType.clear();
+      selectedFilters.quickFilter = null;
+      selectedFilters.dateRange = 'all';
+      
+      // Update UI
+      updateFilterDisplay('location');
+      updateFilterDisplay('projectType');
+      document.querySelectorAll('.quick-filter-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.filter-dropdown-menu input[type="checkbox"]').forEach(cb => cb.checked = false);
+      
+      // Reset date range filter
+      const dateRangeFilter = document.getElementById('dateRangeFilter');
+      if (dateRangeFilter) dateRangeFilter.value = 'all';
+      
+      // Re-render grid
+      renderGrid('gridDesktop');
+    }
+    
+    // Setup quick filter buttons
+    function initializeQuickFilters() {
+      document.querySelectorAll('.quick-filter-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const filterType = btn.dataset.filter;
+          
+          // Toggle active state
+          const wasActive = btn.classList.contains('active');
+          document.querySelectorAll('.quick-filter-btn').forEach(b => b.classList.remove('active'));
+          
+          if (!wasActive) {
+            btn.classList.add('active');
+            selectedFilters.quickFilter = filterType;
+          } else {
+            selectedFilters.quickFilter = null;
+          }
+          
+          updateClearButtonState();
+          renderGrid('gridDesktop');
+        });
+      });
+    }
+    
+    // Handle checkbox changes in filter dropdowns
+    function handleFilterCheckboxChange(checkbox, filterType, value) {
+      const selectedSet = selectedFilters[filterType];
+      
+      if (checkbox.checked) {
+        selectedSet.add(value);
+      } else {
+        selectedSet.delete(value);
+      }
+      
+      updateFilterDisplay(filterType);
+      renderGrid('gridDesktop');
+    }
+    
     function populateLocationFilter() {
       if (!map.getSource('projects') || !map.getSource('projects')._data) return;
       
@@ -2328,21 +3008,43 @@
     }
     // Add event listeners for desktop filters
     const setupDesktopFilters = () => {
-      const desktopFilters = ['sortSelectDesktop', 'locationFilterDesktop', 'projectTypeFilterDesktop'];
-      desktopFilters.forEach(id => {
-        const element = document.getElementById(id);
-        if (element) {
-          element.addEventListener('change', () => {
-            // Track filter usage
-            gtag('event', 'filter_change', {
-              'filter_type': id.replace('Desktop', '').replace('Filter', '').replace('Select', ''),
-              'filter_value': element.value,
-              'platform': 'desktop'
-            });
-            renderGrid('gridDesktop');
+      // Initialize multi-select filters
+      initializeMultiSelectFilters();
+      initializeQuickFilters();
+      
+      // Setup clear filters button
+      const clearBtn = document.getElementById('clearFiltersDesktop');
+      if (clearBtn) {
+        clearBtn.addEventListener('click', clearAllFilters);
+      }
+      
+      // Setup sort dropdown (still simple dropdown)
+      const sortSelect = document.getElementById('sortSelectDesktop');
+      if (sortSelect) {
+        sortSelect.addEventListener('change', () => {
+          gtag('event', 'filter_change', {
+            'filter_type': 'sort',
+            'filter_value': sortSelect.value,
+            'platform': 'desktop'
           });
-        }
-      });
+          renderGrid('gridDesktop');
+        });
+      }
+      
+      // Setup date range filter
+      const dateRangeFilter = document.getElementById('dateRangeFilter');
+      if (dateRangeFilter) {
+        dateRangeFilter.addEventListener('change', () => {
+          selectedFilters.dateRange = dateRangeFilter.value;
+          updateClearButtonState();
+          gtag('event', 'filter_change', {
+            'filter_type': 'dateRange',
+            'filter_value': dateRangeFilter.value,
+            'platform': 'desktop'
+          });
+          renderGrid('gridDesktop');
+        });
+      }
     };
     // Add event listeners for mobile filters
     const setupMobileFilters = () => {
@@ -2592,17 +3294,20 @@
           if (entry.isIntersecting) {
             const img = entry.target;
             const src = img.getAttribute('data-src');
+            const skeleton = img.parentElement.querySelector('.skeleton-placeholder');
             
             const newImg = new Image();
             newImg.onload = () => {
               img.src = src;
               img.classList.remove('lazy-loading');
               img.classList.add('loaded');
+              if (skeleton) skeleton.classList.add('hidden');
               observer.unobserve(img);
             };
             newImg.onerror = () => {
               img.classList.remove('lazy-loading');
               img.classList.add('loaded');
+              if (skeleton) skeleton.classList.add('hidden');
               observer.unobserve(img);
             };
             newImg.src = src;
@@ -3406,7 +4111,20 @@
           resultsEl.appendChild(div);
         });
       } else {
-        resultsEl.innerHTML='<div class="result-item">No results found</div>';
+        resultsEl.innerHTML=`
+          <div class="result-item no-results">
+            <div class="no-results-content">
+              <div class="no-results-icon">🔍</div>
+              <h4>No projects found</h4>
+              <p>Try adjusting your search or consider:</p>
+              <ul>
+                <li>Searching for a different city name</li>
+                <li>Using fewer keywords</li>
+                <li>Zooming out on the map to see more areas</li>
+              </ul>
+            </div>
+          </div>
+        `;
       }
       resultsEl.classList.remove('hidden');
     });
