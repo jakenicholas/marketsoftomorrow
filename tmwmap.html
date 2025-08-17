@@ -2343,27 +2343,56 @@
         }
       });
     }
-    // Add event listeners for desktop filters
-    const setupDesktopFilters = () => {
-      const desktopFilters = ['sortSelectDesktop', 'locationFilterDesktop', 'projectTypeFilterDesktop'];
-      desktopFilters.forEach(id => {
-        const element = document.getElementById(id);
-        if (element) {
-            element.addEventListener('change', () => {
-            // Save filter state
-              saveFilterState();
-  
-            // Track filter usage
-            gtag('event', 'filter_change', {
-              'filter_type': id.replace('Desktop', '').replace('Filter', '').replace('Select', ''),
-              'filter_value': element.value,
-              'platform': 'desktop'
-            });
-            renderGrid('gridDesktop');
-          });
+    
+    // Persistent filter storage functions
+    function saveFilterState() {
+      const filterState = {
+        desktop: {
+          sort: document.getElementById('sortSelectDesktop')?.value,
+          projectType: document.getElementById('projectTypeFilterDesktop')?.value,
+          location: document.getElementById('locationFilterDesktop')?.value
+        },
+        mobile: {
+          sort: document.getElementById('sortSelectMobile')?.value,
+          projectType: document.getElementById('projectTypeFilterMobile')?.value,
+          location: document.getElementById('locationFilterMobile')?.value
         }
-      });
-    };
+      };
+      localStorage.setItem('floridaTomorrowFilters', JSON.stringify(filterState));
+    }
+
+   function loadFilterState() {
+  try {
+    const saved = localStorage.getItem('floridaTomorrowFilters');
+    if (!saved) return;
+    
+    const filterState = JSON.parse(saved);
+    
+    // Load desktop filters
+    if (filterState.desktop) {
+      const sortDesktop = document.getElementById('sortSelectDesktop');
+      const typeDesktop = document.getElementById('projectTypeFilterDesktop');
+      const locationDesktop = document.getElementById('locationFilterDesktop');
+      
+      if (sortDesktop && filterState.desktop.sort) sortDesktop.value = filterState.desktop.sort;
+      if (typeDesktop && filterState.desktop.projectType) typeDesktop.value = filterState.desktop.projectType;
+      if (locationDesktop && filterState.desktop.location) locationDesktop.value = filterState.desktop.location;
+    }
+    
+    // Load mobile filters
+    if (filterState.mobile) {
+      const sortMobile = document.getElementById('sortSelectMobile');
+      const typeMobile = document.getElementById('projectTypeFilterMobile');
+      const locationMobile = document.getElementById('locationFilterMobile');
+      
+      if (sortMobile && filterState.mobile.sort) sortMobile.value = filterState.mobile.sort;
+      if (typeMobile && filterState.mobile.projectType) typeMobile.value = filterState.mobile.projectType;
+      if (locationMobile && filterState.mobile.location) locationMobile.value = filterState.mobile.location;
+    }
+  } catch (e) {
+    console.error('Error loading filter state:', e);
+  }
+}
     // Add event listeners for mobile filters
     const setupMobileFilters = () => {
       const mobileFilters = ['sortSelectMobile', 'locationFilterMobile', 'projectTypeFilterMobile'];
