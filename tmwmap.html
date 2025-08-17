@@ -717,119 +717,7 @@
       will-change: opacity;
       overflow: visible; /* Allow elements to overflow */
     }
-    /* Skeleton loader styles */
-.grid-item.skeleton {
-  opacity: 1;
-  pointer-events: none;
-  cursor: default;
-}
-
-.skeleton-box {
-  background: linear-gradient(90deg, #2a2a2a 25%, #333 50%, #2a2a2a 75%);
-  background-size: 200% 100%;
-  animation: loading 1.5s infinite;
-  border-radius: 4px;
-}
-
-@keyframes loading {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
-}
-
-.skeleton .image-wrapper {
-  height: 180px;
-  background: none;
-}
-
-.skeleton .skeleton-image {
-  width: 100%;
-  height: 100%;
-  border-radius: 4px;
-}
-
-.skeleton .skeleton-title {
-  height: 20px;
-  width: 80%;
-  margin: 8px 0 4px;
-}
-
-.skeleton .skeleton-city {
-  height: 16px;
-  width: 60%;
-  margin-bottom: 8px;
-}
-
-.skeleton .skeleton-button {
-  height: 32px;
-  width: 100%;
-  margin-top: auto;
-}
-
-/* Empty state styles */
-.empty-state {
-  text-align: center;
-  padding: 60px 20px;
-  color: #999;
-}
-
-.empty-state-icon {
-  width: 80px;
-  height: 80px;
-  margin: 0 auto 20px;
-  opacity: 0.3;
-}
-
-.empty-state-icon svg {
-  width: 100%;
-  height: 100%;
-  fill: #666;
-}
-
-.empty-state h3 {
-  font-size: 20px;
-  color: #fff;
-  margin: 0 0 12px;
-  font-weight: 500;
-}
-
-.empty-state p {
-  font-size: 16px;
-  margin: 0 0 24px;
-  line-height: 1.5;
-}
-
-.empty-state-actions {
-  display: flex;
-  gap: 12px;
-  justify-content: center;
-  flex-wrap: wrap;
-}
-
-.empty-state-btn {
-  background: #1e1e1e;
-  color: #fff;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 6px;
-  font-size: 14px;
-  cursor: pointer;
-  transition: background 0.3s;
-  text-decoration: none;
-  display: inline-block;
-}
-
-.empty-state-btn:hover {
-  background: #333;
-}
-
-.empty-state-btn.primary {
-  background: #1FDF67;
-  color: #000;
-}
-
-.empty-state-btn.primary:hover {
-  background: #00C850;
-}
+    
     /* Smaller tiles for sidebar */
     #desktopSidebar .grid-item {
       padding: 5px;
@@ -2002,69 +1890,7 @@
       el.style.scrollBehavior = 'smooth';
       el.style.webkitOverflowScrolling = 'touch';
     });
-    // Clear all filters function
-function clearAllFilters(targetId) {
-  if (targetId === 'gridDesktop') {
-    document.getElementById('sortSelectDesktop').value = 'default';
-    document.getElementById('locationFilterDesktop').value = 'all';
-    document.getElementById('projectTypeFilterDesktop').value = 'all';
-  } else if (targetId === 'gridMobile') {
-    document.getElementById('sortSelectMobile').value = 'default';
-    document.getElementById('locationFilterMobile').value = 'all';
-    document.getElementById('projectTypeFilterMobile').value = 'all';
-  }
-  
-  localStorage.removeItem('mapFilters');
-  renderGrid(targetId);
-}
-
-function saveFilterPreferences() {
-  const filters = {
-    desktop: {
-      sort: document.getElementById('sortSelectDesktop')?.value || 'default',
-      location: document.getElementById('locationFilterDesktop')?.value || 'all',
-      projectType: document.getElementById('projectTypeFilterDesktop')?.value || 'all'
-    },
-    mobile: {
-      sort: document.getElementById('sortSelectMobile')?.value || 'default',
-      location: document.getElementById('locationFilterMobile')?.value || 'all',
-      projectType: document.getElementById('projectTypeFilterMobile')?.value || 'all'
-    }
-  };
-  
-  localStorage.setItem('mapFilters', JSON.stringify(filters));
-}
-
-function loadFilterPreferences() {
-  const stored = localStorage.getItem('mapFilters');
-  if (!stored) return;
-  
-  try {
-    const filters = JSON.parse(stored);
     
-    if (filters.desktop) {
-      const sortDesktop = document.getElementById('sortSelectDesktop');
-      const locationDesktop = document.getElementById('locationFilterDesktop');
-      const typeDesktop = document.getElementById('projectTypeFilterDesktop');
-      
-      if (sortDesktop && filters.desktop.sort) sortDesktop.value = filters.desktop.sort;
-      if (locationDesktop && filters.desktop.location) locationDesktop.value = filters.desktop.location;
-      if (typeDesktop && filters.desktop.projectType) typeDesktop.value = filters.desktop.projectType;
-    }
-    
-    if (filters.mobile) {
-      const sortMobile = document.getElementById('sortSelectMobile');
-      const locationMobile = document.getElementById('locationFilterMobile');
-      const typeMobile = document.getElementById('projectTypeFilterMobile');
-      
-      if (sortMobile && filters.mobile.sort) sortMobile.value = filters.mobile.sort;
-      if (locationMobile && filters.mobile.location) locationMobile.value = filters.mobile.location;
-      if (typeMobile && filters.mobile.projectType) typeMobile.value = filters.mobile.projectType;
-    }
-  } catch (e) {
-    console.error('Error loading filter preferences:', e);
-  }
-}
     const isMobile = window.innerWidth <= 800;
     
     // Initialize desktop/mobile specific elements after DOM loads
@@ -2229,603 +2055,492 @@ function loadFilterPreferences() {
       // Update URL with selected project
       updateURLState({ project: f.properties.title.toLowerCase().replace(/\s+/g, '-') });
     }
-// Extract lazy loading setup to reusable function - place this BEFORE renderGrid function
-function setupLazyLoading(grid) {
-  const imageObserver = new IntersectionObserver((entries, observer) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        const img = entry.target;
-        const src = img.getAttribute('data-src');
-        
-        const newImg = new Image();
-        newImg.onload = () => {
-          img.src = src;
-          img.classList.remove('lazy-loading');
-          img.classList.add('loaded');
-          observer.unobserve(img);
-        };
-        newImg.onerror = () => {
-          img.classList.remove('lazy-loading');
-          img.classList.add('loaded');
-          observer.unobserve(img);
-        };
-        newImg.src = src;
-      }
-    });
-  }, {
-    rootMargin: '50px',
-    threshold: 0.01
-  });
-  
-  const fadeObserver = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting && !entry.target.classList.contains('visible')) {
-        requestAnimationFrame(() => {
-          entry.target.classList.add('visible');
-        });
-      }
-    });
-  }, {
-    threshold: 0.1,
-    rootMargin: '0px'
-  });
-  
-  const gridItems = grid.querySelectorAll('.grid-item');
-  const images = grid.querySelectorAll('.grid-item img');
-  
-  gridItems.forEach(item => fadeObserver.observe(item));
-  images.forEach(img => imageObserver.observe(img));
-}
- function renderGrid(targetId = 'grid') {
-  const grid = document.getElementById(targetId);
-  if (!grid) return;
-  
-  grid.innerHTML = '';
-  
-  // Check if the map source exists and has data
-  if (!map.getSource('projects') || !map.getSource('projects')._data || !map.getSource('projects')._data.features) {
-    console.log('Projects data not yet loaded');
-    return;
-  }
-  
-  let features = [...map.getSource('projects')._data.features];
-  
-  // Get current map center and bounds
-  const mapCenter = map.getCenter();
-  const mapBounds = map.getBounds();
-  
-  // Calculate distance for each feature from map center
-  features = features.map(f => {
-    const coords = f.geometry.coordinates;
-    const distance = calculateDistance(
-      mapCenter.lat, 
-      mapCenter.lng, 
-      coords[1], // latitude
-      coords[0]  // longitude
-    );
-    // Check if feature is within current map bounds
-    const inBounds = mapBounds.contains([coords[0], coords[1]]);
-    return { ...f, distance, inBounds };
-  });
-  
-  // Determine which filters to use based on target
-  let locationFilter, projectTypeFilter, sortType;
-  
-  if (targetId === 'gridDesktop') {
-    locationFilter = document.getElementById('locationFilterDesktop')?.value || 'all';
-    projectTypeFilter = document.getElementById('projectTypeFilterDesktop')?.value || 'all';
-    sortType = document.getElementById('sortSelectDesktop')?.value || 'default';
-  } else if (targetId === 'gridMobile') {
-    locationFilter = document.getElementById('locationFilterMobile')?.value || 'all';
-    projectTypeFilter = document.getElementById('projectTypeFilterMobile')?.value || 'all';
-    sortType = document.getElementById('sortSelectMobile')?.value || 'default';
-  } else {
-    locationFilter = document.getElementById('locationFilter')?.value || 'all';
-    projectTypeFilter = document.getElementById('projectTypeFilter')?.value || 'all';
-    sortType = document.getElementById('sortSelect')?.value || 'default';
-  }
-  
-  // Apply location filter
-  if (locationFilter !== 'all') {
-    features = features.filter(f => f.properties.city === locationFilter);
-  }
-  
-  // Apply project type filter
-  if (projectTypeFilter !== 'all') {
-    features = features.filter(f => {
-      return f.properties.projectTypes && 
-             f.properties.projectTypes.includes(projectTypeFilter.toLowerCase());
-    });
-  }
-  
-  // Apply sorting
-  if (sortType === 'az') {
-    features.sort((a, b) => {
-      if (a.properties.featured && !b.properties.featured) return -1;
-      if (!a.properties.featured && b.properties.featured) return 1;
-      return a.properties.title.localeCompare(b.properties.title);
-    });
-  } else if (sortType === 'za') {
-    features.sort((a, b) => {
-      if (a.properties.featured && !b.properties.featured) return -1;
-      if (!a.properties.featured && b.properties.featured) return 1;
-      return b.properties.title.localeCompare(a.properties.title);
-    });
-  } else {
-    // Default sort by distance - DON'T filter by bounds for tiles view
-    // We want to show all projects sorted by distance, not just visible ones
-    features.sort((a, b) => {
-      if (a.properties.featured && !b.properties.featured) return -1;
-      if (!a.properties.featured && b.properties.featured) return 1;
-      return a.distance - b.distance;
-    });
-  }
-  
-  // Check if we have no features to display
-  if (features.length === 0) {
-    let emptyMessage = '';
-    
-    if (locationFilter !== 'all' || projectTypeFilter !== 'all') {
-      emptyMessage = `
-        <div class="empty-state">
-          <div class="empty-state-icon">
-            <svg viewBox="0 0 24 24">
-              <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 15.5h-1.5V14h1.5v4.5zm0-6.5h-1.5v-1.5h1.5V12z"/>
-            </svg>
-          </div>
-          <h3>No projects match your filters</h3>
-          <p>Try adjusting your filters or zooming out to see more projects.</p>
-          <div class="empty-state-actions">
-            <button class="empty-state-btn" onclick="clearAllFilters('${targetId}')">Clear Filters</button>
-            <button class="empty-state-btn primary" onclick="map.flyTo({center: [-81.1961527, 26.7807395], zoom: ${isMobile ? 6 : 7}, duration: 1000})">Reset Map View</button>
-          </div>
-        </div>
-      `;
-    } else {
-      emptyMessage = `
-        <div class="empty-state">
-          <div class="empty-state-icon">
-            <svg viewBox="0 0 24 24">
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
-            </svg>
-          </div>
-          <h3>No projects found</h3>
-          <p>The project data is still loading. Please wait a moment.</p>
-        </div>
-      `;
-    }
-    
-    grid.innerHTML = emptyMessage;
-    return;
-  }
-  
-  // Create document fragment for better performance
-  const fragment = document.createDocumentFragment();
-  
-  // First, create skeleton loaders
-  features.forEach((f, index) => {
-    const skeleton = document.createElement('div');
-    skeleton.className = 'grid-item skeleton';
-    skeleton.innerHTML = `
-      <div class="image-wrapper">
-        <div class="skeleton-box skeleton-image"></div>
-      </div>
-      <div class="grid-item-content">
-        <div class="skeleton-box skeleton-title"></div>
-        <div class="skeleton-box skeleton-city"></div>
-        <div class="skeleton-box skeleton-button"></div>
-      </div>
-    `;
-    fragment.appendChild(skeleton);
-  });
-  
-  // Append skeletons first
-  grid.appendChild(fragment);
-  
-  // Then create actual content and replace skeletons
-  setTimeout(() => {
-    const skeletons = grid.querySelectorAll('.grid-item.skeleton');
-    
-    features.forEach((f, index) => {
-      const d = document.createElement('div');
-      d.className = 'grid-item';
+   function renderGrid(targetId = 'grid') {
+      const grid=document.getElementById(targetId);
+      if (!grid) return;
       
-      // Use placeholder image initially
-      const imageSrc = f.properties.image;
-      const placeholderSrc = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="300" height="120"%3E%3Crect width="300" height="120" fill="%23333"/%3E%3C/svg%3E';
+      grid.innerHTML='';
       
-      d.innerHTML = `
-        <div class="image-wrapper">
-          <img src="${placeholderSrc}" 
-               data-src="${imageSrc}" 
-               loading="lazy" 
-               alt="${f.properties.title}"
-               class="lazy-loading" />
-        </div>
-        ${f.properties.featured ? `
-          <div class="featured-badge">
-            <svg viewBox="0 0 24 24">
-              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-            </svg>
-            Featured
-          </div>
-        ` : ''}
-        <a class="tile-favorite" href="https://www.oftmw.com/livehere" target="_blank" onclick="event.stopPropagation(); gtag('event', 'live_here_click', {'project_name': '${f.properties.title}', 'click_location': 'tile'});">
-          <svg viewBox="0 0 18 18"><path d="M9 1v16M1 9h16"/></svg>
-        </a>
-        <div class="grid-item-content">
-          <h3 style="color: #ffffff !important; margin: 0 0 4px; font-size: 16px;">${f.properties.title}</h3>
-          <p class="city" style="color: #cccccc !important; margin: 0 0 auto 0; font-size: 12px; padding-bottom: 8px;">${f.properties.city}</p>
-          <p class="website-btn">
-            <a href="${f.properties.website}" target="_blank" class="website-link" onclick="event.stopPropagation(); gtag('event', 'learn_more_click', {'project_name': '${f.properties.title}', 'project_city': '${f.properties.city}', 'click_location': 'tile', 'device_type': '${isMobile ? 'mobile' : 'desktop'}'});">Learn More</a>
-          </p>
-        </div>`;
+      if (!map.getSource('projects') || !map.getSource('projects')._data) return;
       
-      d.onclick = () => { 
-        // Track tile click with GA4
-        gtag('event', 'project_click', {
-          'project_name': f.properties.title,
-          'project_city': f.properties.city,
-          'project_featured': f.properties.featured || false,
-          'project_type': f.properties.projectType || 'unknown',
-          'click_source': 'tile',
-          'device_type': isMobile ? 'mobile' : 'desktop',
-          'grid_position': index + 1
-        });
-        
-        showPopup(f); 
-        // On mobile, immediately close the drawer when tile is clicked
-        if (targetId === 'gridMobile') {
-          const drawer = document.getElementById('mobileDrawer');
-          const mapBtn = document.getElementById('mapReturnButton');
-          const content = document.getElementById('mobileDrawerContent');
-          
-          // Immediately collapse - fully hide
-          drawer.classList.remove('expanded');
-          drawer.style.transform = 'translateY(100%)'; // Fully hidden
-          mapBtn.classList.remove('visible');
-          content.scrollTop = 0;
-        }
-      };
+      let features = [...map.getSource('projects')._data.features];
       
-      // Replace skeleton with actual content
-      if (skeletons[index]) {
-        skeletons[index].replaceWith(d);
+      // Get current map center and bounds
+      const mapCenter = map.getCenter();
+      const mapBounds = map.getBounds();
+      
+      // Calculate distance for each feature from map center
+      features = features.map(f => {
+        const coords = f.geometry.coordinates;
+        const distance = calculateDistance(
+          mapCenter.lat, 
+          mapCenter.lng, 
+          coords[1], // latitude
+          coords[0]  // longitude
+        );
+        // Check if feature is within current map bounds
+        const inBounds = mapBounds.contains([coords[0], coords[1]]);
+        return { ...f, distance, inBounds };
+      });
+      
+      // Determine which filters to use based on target
+      let locationFilter, projectTypeFilter, sortType;
+      
+      if (targetId === 'gridDesktop') {
+        locationFilter = document.getElementById('locationFilterDesktop')?.value || 'all';
+        projectTypeFilter = document.getElementById('projectTypeFilterDesktop')?.value || 'all';
+        sortType = document.getElementById('sortSelectDesktop')?.value || 'default';
+      } else if (targetId === 'gridMobile') {
+        // Mobile uses its own filters
+        locationFilter = document.getElementById('locationFilterMobile')?.value || 'all';
+        projectTypeFilter = document.getElementById('projectTypeFilterMobile')?.value || 'all';
+        sortType = document.getElementById('sortSelectMobile')?.value || 'default';
       } else {
-        grid.appendChild(d);
+        // Original grid
+        locationFilter = document.getElementById('locationFilter')?.value || 'all';
+        projectTypeFilter = document.getElementById('projectTypeFilter')?.value || 'all';
+        sortType = document.getElementById('sortSelect')?.value || 'default';
       }
-    });
-    
-    // Set up lazy loading
-    setupLazyLoading(grid);
-  }, 100); // Small delay to show skeleton effect
-}
       
-      // Make collapseDrawer globally available
-   // Global variable to track mobile drawer state
-window.mobileDrawerCollapse = null;
-
-// Mobile drawer functionality
-function setupMobileDrawer() {
-  const drawer = document.getElementById('mobileDrawer');
-  const handle = document.getElementById('mobileDrawerHandle');
-  const content = document.getElementById('mobileDrawerContent');
-  const mapBtn = document.getElementById('mapReturnButton');
-  
-  let startY = 0;
-  let currentY = 0;
-  let startTransform = 0;
-  let isDragging = false;
-  let isExpanded = false;
-  
-  // Use CSS variable for dynamic height
-  const getViewportHeight = () => {
-    const appHeight = getComputedStyle(document.documentElement).getPropertyValue('--app-height');
-    return parseInt(appHeight) - 50; // Account for header
-  };
-  
-  // Function to collapse drawer
-  function collapseDrawer() {
-    isExpanded = false;
-    drawer.classList.remove('expanded');
-    drawer.style.transform = `translateY(100%)`; // Fully hidden
-    mapBtn.classList.remove('visible');
-    // Reset scroll position when closing
-    content.scrollTop = 0;
-  }
-  
-  // Function to expand drawer
-  function expandDrawer() {
-    isExpanded = true;
-    drawer.classList.add('expanded');
-    drawer.style.transform = 'translateY(0)';
-    mapBtn.classList.add('visible');
-    
-    // Force enable scrolling on the content
-    content.style.overflow = 'auto';
-    content.style.overflowY = 'scroll';
-    content.style.webkitOverflowScrolling = 'touch';
-    content.style.pointerEvents = 'auto';
-    content.style.touchAction = 'auto';
-    
-    // Update grid when expanding drawer
-    renderGrid('gridMobile');
-  }
-  
-  // Make collapseDrawer globally available
-  window.mobileDrawerCollapse = collapseDrawer;
-  
-  // Prevent touch interactions on content only when collapsed
-  content.addEventListener('touchstart', (e) => {
-    if (!isExpanded) {
-      e.preventDefault();
-      e.stopPropagation();
-      return false;
-    }
-  }, { passive: false });
-  
-  // Handle drag start
-  handle.addEventListener('touchstart', (e) => {
-    isDragging = true;
-    startY = e.touches[0].clientY;
-    drawer.style.transition = 'none';
-    
-    // Calculate current position
-    const computedStyle = window.getComputedStyle(drawer);
-    const matrix = new DOMMatrix(computedStyle.transform);
-    const viewportHeight = getViewportHeight();
-    const collapsedY = viewportHeight;
-    startTransform = matrix.m42 || (isExpanded ? 0 : collapsedY);
-  }, { passive: true });
-  
-  // Handle drag move
-  handle.addEventListener('touchmove', (e) => {
-    if (!isDragging) return;
-    e.preventDefault();
-    
-    currentY = e.touches[0].clientY;
-    const deltaY = currentY - startY;
-    let newY = startTransform + deltaY;
-    
-    // Constrain position
-    const viewportHeight = getViewportHeight();
-    const collapsedY = viewportHeight;
-    newY = Math.max(0, Math.min(newY, collapsedY));
-    
-    drawer.style.transform = `translateY(${newY}px)`;
-  }, { passive: false });
-  
-  // Handle drag end
-  handle.addEventListener('touchend', (e) => {
-    if (!isDragging) return;
-    isDragging = false;
-    
-    const deltaY = currentY - startY;
-    drawer.style.transition = 'transform 0.3s ease';
-    
-    // Determine expand/collapse based on position and direction  
-    const viewportHeight = getViewportHeight();
-    const currentPosition = startTransform + deltaY;
-    const threshold = viewportHeight * 0.5;
-    
-    if (currentPosition < threshold || (!isExpanded && deltaY < -30)) {
-      expandDrawer();
-    } else {
-      collapseDrawer();
-    }
-  }, { passive: true });
-  
-  // Click to toggle
-  handle.addEventListener('click', (e) => {
-    e.stopPropagation();
-    drawer.style.transition = 'transform 0.3s ease';
-    if (isExpanded) {
-      collapseDrawer();
-    } else {
-      expandDrawer();
-    }
-  });
-  
-  // Tiles button opens drawer (new floating button)
-  const mobileTilesBtn = document.getElementById('mobileTilesButton');
-  if (mobileTilesBtn && isMobile) {
-    mobileTilesBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      drawer.style.transition = 'transform 0.3s ease';
-      expandDrawer();
-      
-      // Track tiles view opened
-      gtag('event', 'view_change', {
-        'view_type': 'tiles',
-        'action': 'open_drawer',
-        'device_type': 'mobile'
-      });
-    });
-  }
-  
-  // Map return button (now on the drawer handle)
-  const mobileMapBtn = document.getElementById('mobileMapButton');
-  if (mobileMapBtn) {
-    mobileMapBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      drawer.style.transition = 'transform 0.3s ease';
-      collapseDrawer();
-      
-      // Track return to map
-      gtag('event', 'view_change', {
-        'view_type': 'map',
-        'action': 'close_drawer',
-        'device_type': 'mobile'
-      });
-    });
-  }
-  
-  // Old map return button (keep for compatibility)
-  mapBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    drawer.style.transition = 'transform 0.3s ease';
-    collapseDrawer();
-  });
-}
-
-// Populate location filter
-function populateLocationFilter() {
-  if (!map.getSource('projects') || !map.getSource('projects')._data) return;
-  
-  const features = map.getSource('projects')._data.features;
-  const cities = [...new Set(features.map(f => f.properties.city))].sort();
-  
-  // Desktop filters
-  const locationFilterDesktop = document.getElementById('locationFilterDesktop');
-  if (locationFilterDesktop) {
-    locationFilterDesktop.innerHTML = '<option value="all">All Cities</option>';
-    cities.forEach(city => {
-      const option = document.createElement('option');
-      option.value = city;
-      option.textContent = city;
-      locationFilterDesktop.appendChild(option);
-    });
-  }
-  
-  // Mobile filters
-  const locationFilterMobile = document.getElementById('locationFilterMobile');
-  if (locationFilterMobile) {
-    locationFilterMobile.innerHTML = '<option value="all">All Cities</option>';
-    cities.forEach(city => {
-      const option = document.createElement('option');
-      option.value = city;
-      option.textContent = city;
-      locationFilterMobile.appendChild(option);
-    });
-  }
-  
-  // Also populate project types
-  const projectTypes = [...new Set(features.flatMap(f => 
-    f.properties.projectTypes || []
-  ))].filter(t => t).sort();
-  
-  // Desktop project type filter
-  const projectTypeFilterDesktop = document.getElementById('projectTypeFilterDesktop');
-  if (projectTypeFilterDesktop) {
-    projectTypeFilterDesktop.innerHTML = '<option value="all">All Types</option>';
-    projectTypes.forEach(type => {
-      const option = document.createElement('option');
-      option.value = type;
-      option.textContent = type.charAt(0).toUpperCase() + type.slice(1);
-      projectTypeFilterDesktop.appendChild(option);
-    });
-  }
-  
-  // Mobile project type filter
-  const projectTypeFilterMobile = document.getElementById('projectTypeFilterMobile');
-  if (projectTypeFilterMobile) {
-    projectTypeFilterMobile.innerHTML = '<option value="all">All Types</option>';
-    projectTypes.forEach(type => {
-      const option = document.createElement('option');
-      option.value = type;
-      option.textContent = type.charAt(0).toUpperCase() + type.slice(1);
-      projectTypeFilterMobile.appendChild(option);
-    });
-  }
-  
-  // Load saved preferences
-  loadFilterPreferences();
-}
-
-// Setup desktop filters
-function setupDesktopFilters() {
-  const sortSelect = document.getElementById('sortSelectDesktop');
-  const locationFilter = document.getElementById('locationFilterDesktop');
-  const projectTypeFilter = document.getElementById('projectTypeFilterDesktop');
-  
-  if (sortSelect) {
-    sortSelect.addEventListener('change', () => {
-      saveFilterPreferences();
-      renderGrid('gridDesktop');
-    });
-  }
-  
-  if (locationFilter) {
-    locationFilter.addEventListener('change', () => {
-      saveFilterPreferences();
-      renderGrid('gridDesktop');
-    });
-  }
-  
-  if (projectTypeFilter) {
-    projectTypeFilter.addEventListener('change', () => {
-      saveFilterPreferences();
-      renderGrid('gridDesktop');
-    });
-  }
-}
-
-// Setup mobile filters
-function setupMobileFilters() {
-  const sortSelect = document.getElementById('sortSelectMobile');
-  const locationFilter = document.getElementById('locationFilterMobile');
-  const projectTypeFilter = document.getElementById('projectTypeFilterMobile');
-  const searchBar = document.getElementById('mobileSearchBar');
-  
-  if (sortSelect) {
-    sortSelect.addEventListener('change', () => {
-      saveFilterPreferences();
-      renderGrid('gridMobile');
-    });
-  }
-  
-  if (locationFilter) {
-    locationFilter.addEventListener('change', () => {
-      saveFilterPreferences();
-      renderGrid('gridMobile');
-    });
-  }
-  
-  if (projectTypeFilter) {
-    projectTypeFilter.addEventListener('change', () => {
-      saveFilterPreferences();
-      renderGrid('gridMobile');
-    });
-  }
-  
-  if (searchBar) {
-    searchBar.addEventListener('input', (e) => {
-      const query = e.target.value.trim().toLowerCase();
-      if (!query) {
-        renderGrid('gridMobile');
-        return;
+      // Apply location filter
+      if (locationFilter !== 'all') {
+        features = features.filter(f => f.properties.city === locationFilter);
       }
+      
+      // Apply project type filter
+      if (projectTypeFilter !== 'all') {
+        features = features.filter(f => {
+          return f.properties.projectTypes && 
+                 f.properties.projectTypes.includes(projectTypeFilter.toLowerCase());
+        });
+      }
+      
+      // IMPORTANT: Filter to only show projects within the current map bounds
+      // Only apply this filter when using default sort (not alphabetical)
+      if (sortType === 'default') {
+        features = features.filter(f => f.inBounds);
+      }
+      
+      // Apply sorting
+      if (sortType === 'az') {
+        features.sort((a, b) => {
+          // Featured items first
+          if (a.properties.featured && !b.properties.featured) return -1;
+          if (!a.properties.featured && b.properties.featured) return 1;
+          // Then alphabetical
+          return a.properties.title.localeCompare(b.properties.title);
+        });
+      } else if (sortType === 'za') {
+        features.sort((a, b) => {
+          // Featured items first
+          if (a.properties.featured && !b.properties.featured) return -1;
+          if (!a.properties.featured && b.properties.featured) return 1;
+          // Then reverse alphabetical
+          return b.properties.title.localeCompare(a.properties.title);
+        });
+      } else {
+        // Default sort by distance with featured priority
+        // Since we've already filtered to only in-bounds items, we just sort by featured status and distance
+        features.sort((a, b) => {
+          // Featured items first
+          if (a.properties.featured && !b.properties.featured) return -1;
+          if (!a.properties.featured && b.properties.featured) return 1;
+          
+          // Then by distance from center
+          return a.distance - b.distance;
+        });
+      }
+      // Create document fragment for better performance
+      const fragment = document.createDocumentFragment();
+      
+      features.forEach((f, index) => {
+        const d=document.createElement('div');
+        d.className='grid-item';
+        
+        // Use placeholder image initially
+        const imageSrc = f.properties.image;
+        const placeholderSrc = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="300" height="120"%3E%3Crect width="300" height="120" fill="%23333"/%3E%3C/svg%3E';
+        
+        d.innerHTML=`
+          <div class="image-wrapper">
+            <img src="${placeholderSrc}" 
+                 data-src="${imageSrc}" 
+                 loading="lazy" 
+                 alt="${f.properties.title}"
+                 class="lazy-loading" />
+          </div>
+          ${f.properties.featured ? `
+            <div class="featured-badge">
+              <svg viewBox="0 0 24 24">
+                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+              </svg>
+              Featured
+            </div>
+          ` : ''}
+          <a class="tile-favorite" href="https://www.oftmw.com/livehere" target="_blank" onclick="event.stopPropagation(); gtag('event', 'live_here_click', {'project_name': '${f.properties.title}', 'click_location': 'tile'});">
+            <svg viewBox="0 0 18 18"><path d="M9 1v16M1 9h16"/></svg>
+          </a>
+          <div class="grid-item-content">
+            <h3 style="color: #ffffff !important; margin: 0 0 4px; font-size: 16px;">${f.properties.title}</h3>
+            <p class="city" style="color: #cccccc !important; margin: 0 0 auto 0; font-size: 12px; padding-bottom: 8px;">${f.properties.city}</p>
+            <p class="website-btn">
+              <a href="${f.properties.website}" target="_blank" class="website-link" onclick="event.stopPropagation(); gtag('event', 'learn_more_click', {'project_name': '${f.properties.title}', 'project_city': '${f.properties.city}', 'click_location': 'tile', 'device_type': '${isMobile ? 'mobile' : 'desktop'}'});">Learn More</a>
+            </p>
+          </div>`;
+        d.onclick=()=>{ 
+          // Track tile click with GA4
+          gtag('event', 'project_click', {
+            'project_name': f.properties.title,
+            'project_city': f.properties.city,
+            'project_featured': f.properties.featured || false,
+            'project_type': f.properties.projectType || 'unknown',
+            'click_source': 'tile',
+            'device_type': isMobile ? 'mobile' : 'desktop',
+            'grid_position': index + 1
+          });
+          
+          showPopup(f); 
+          // On mobile, immediately close the drawer when tile is clicked
+          if (targetId === 'gridMobile') {
+            const drawer = document.getElementById('mobileDrawer');
+            const mapBtn = document.getElementById('mapReturnButton');
+            const content = document.getElementById('mobileDrawerContent');
+            
+            // Immediately collapse - fully hide
+            drawer.classList.remove('expanded');
+            drawer.style.transform = 'translateY(100%)'; // Fully hidden
+            mapBtn.classList.remove('visible');
+            content.scrollTop = 0;
+          }
+        };
+        fragment.appendChild(d);
+      });
+      
+      // Append all at once
+      grid.appendChild(fragment);
+      
+      // Set up lazy loading with Intersection Observer
+      const imageObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const img = entry.target;
+            const src = img.getAttribute('data-src');
+            
+            // Create new image to preload
+            const newImg = new Image();
+            newImg.onload = () => {
+              img.src = src;
+              img.classList.remove('lazy-loading');
+              img.classList.add('loaded');
+              observer.unobserve(img);
+            };
+            newImg.onerror = () => {
+              // On error, still mark as loaded to prevent retries
+              img.classList.remove('lazy-loading');
+              img.classList.add('loaded');
+              observer.unobserve(img);
+            };
+            newImg.src = src;
+          }
+        });
+      }, {
+        rootMargin: '50px',
+        threshold: 0.01
+      });
+      
+      // Set up intersection observer for fade animations
+      const fadeObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting && !entry.target.classList.contains('visible')) {
+            // Use requestAnimationFrame for smoother animations
+            requestAnimationFrame(() => {
+              entry.target.classList.add('visible');
+            });
+          }
+        });
+      }, {
+        threshold: 0.1,
+        rootMargin: '0px'
+      });
+      
+      // Observe all grid items and images
+      const gridItems = grid.querySelectorAll('.grid-item');
+      const images = grid.querySelectorAll('.grid-item img');
+      
+      gridItems.forEach(item => fadeObserver.observe(item));
+      images.forEach(img => imageObserver.observe(img));
+    }
+    function populateLocationFilter() {
+      if (!map.getSource('projects') || !map.getSource('projects')._data) return;
       
       const features = map.getSource('projects')._data.features;
-      const matches = features.filter(f =>
-        f.properties.title.toLowerCase().includes(query) ||
-        f.properties.city.toLowerCase().includes(query)
-      );
       
-      // Render only matching items
-      const grid = document.getElementById('gridMobile');
+      // Get all filter elements
+      const locationFilters = [
+        document.getElementById('locationFilter'),
+        document.getElementById('locationFilterDesktop'),
+        document.getElementById('locationFilterMobile')
+      ];
+      
+      const projectTypeFilters = [
+        document.getElementById('projectTypeFilter'),
+        document.getElementById('projectTypeFilterDesktop'),
+        document.getElementById('projectTypeFilterMobile')
+      ];
+      
+      // Populate cities
+      const cities = [...new Set(features.map(f => f.properties.city))];
+      cities.sort();
+      
+      locationFilters.forEach(filter => {
+        if (filter) {
+          filter.innerHTML = '<option value="all">All Cities</option>';
+          cities.forEach(city => {
+            const option = document.createElement('option');
+            option.value = city;
+            option.textContent = city;
+            filter.appendChild(option);
+          });
+        }
+      });
+      
+      // Populate project types
+      const allTypes = new Set();
+      features.forEach(f => {
+        if (f.properties.projectTypes && f.properties.projectTypes.length > 0) {
+          f.properties.projectTypes.forEach(type => allTypes.add(type));
+        }
+      });
+      
+      const projectTypes = [...allTypes].sort((a, b) => a.localeCompare(b));
+      
+      projectTypeFilters.forEach(filter => {
+        if (filter) {
+          filter.innerHTML = '<option value="all">All Types</option>';
+          projectTypes.forEach(type => {
+            const option = document.createElement('option');
+            option.value = type;
+            option.textContent = type.charAt(0).toUpperCase() + type.slice(1);
+            filter.appendChild(option);
+          });
+        }
+      });
+    }
+    // Add event listeners for desktop filters
+    const setupDesktopFilters = () => {
+      const desktopFilters = ['sortSelectDesktop', 'locationFilterDesktop', 'projectTypeFilterDesktop'];
+      desktopFilters.forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+          element.addEventListener('change', () => {
+            // Track filter usage
+            gtag('event', 'filter_change', {
+              'filter_type': id.replace('Desktop', '').replace('Filter', '').replace('Select', ''),
+              'filter_value': element.value,
+              'platform': 'desktop'
+            });
+            renderGrid('gridDesktop');
+          });
+        }
+      });
+    };
+    // Add event listeners for mobile filters
+    const setupMobileFilters = () => {
+      const mobileFilters = ['sortSelectMobile', 'locationFilterMobile', 'projectTypeFilterMobile'];
+      mobileFilters.forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+          element.addEventListener('change', () => {
+            // Track filter usage
+            gtag('event', 'filter_change', {
+              'filter_type': id.replace('Mobile', '').replace('Filter', '').replace('Select', ''),
+              'filter_value': element.value,
+              'platform': 'mobile'
+            });
+            renderGrid('gridMobile');
+          });
+        }
+      });
+      
+      // Setup mobile search
+      const mobileSearchBar = document.getElementById('mobileSearchBar');
+      if (mobileSearchBar) {
+        mobileSearchBar.addEventListener('input', (e) => {
+          const query = e.target.value.trim().toLowerCase();
+          
+          // Track mobile search
+          if (query.length > 2) {
+            gtag('event', 'search', {
+              'search_term': query,
+              'search_location': 'mobile_drawer',
+              'device_type': 'mobile'
+            });
+          }
+          
+          if (!query) {
+            renderGrid('gridMobile');
+            return;
+          }
+          
+          const source = map.getSource('projects');
+          if (!source || !source._data) return;
+          
+          const features = source._data.features;
+          
+          // Find exact match
+          const exactMatch = features.find(f => 
+            f.properties.title.toLowerCase() === query
+          );
+          
+          // Filter features
+          let filteredFeatures;
+          
+          if (exactMatch) {
+            // If exact match, show ONLY that item
+            filteredFeatures = [exactMatch];
+            // No automatic jump to map - user must click
+          } else {
+            // Otherwise show partial matches
+            filteredFeatures = features.filter(f =>
+              f.properties.title.toLowerCase().includes(query) ||
+              f.properties.city.toLowerCase().includes(query)
+            );
+          }
+          
+          renderFilteredGrid('gridMobile', filteredFeatures);
+        });
+      }
+    };
+    // Sidebar search functionality
+    const setupSidebarSearch = () => {
+      const searchBar = document.getElementById('sidebarSearchBar');
+      const resultsEl = document.getElementById('sidebarResults');
+      
+      if (!searchBar || !map.getSource) return;
+      
+      searchBar.addEventListener('input', (e) => {
+        const query = e.target.value.trim().toLowerCase();
+        resultsEl.classList.add('hidden'); // Hide dropdown results
+        
+        if (!query) {
+          // If search is empty, render all projects
+          renderGrid('gridDesktop');
+          return;
+        }
+        
+        const source = map.getSource('projects');
+        if (!source || !source._data) return;
+        
+        const features = source._data.features;
+        
+        // Find exact match
+        const exactMatch = features.find(f => 
+          f.properties.title.toLowerCase() === query
+        );
+        
+        // Filter and sort features
+        let filteredFeatures = [...features];
+        
+        if (exactMatch) {
+          // If exact match found, show it first, then other projects sorted by distance
+          const mapCenter = map.getCenter();
+          const matchCoords = exactMatch.geometry.coordinates;
+          
+          // Calculate distances for all features
+          filteredFeatures = features.map(f => {
+            const coords = f.geometry.coordinates;
+            const distance = calculateDistance(
+              mapCenter.lat, 
+              mapCenter.lng, 
+              coords[1], 
+              coords[0]
+            );
+            return { ...f, distance };
+          });
+          
+          // Sort by distance but put exact match first
+          filteredFeatures = [
+            exactMatch,
+            ...filteredFeatures.filter(f => f !== exactMatch).sort((a, b) => a.distance - b.distance)
+          ];
+          
+          // Also jump to location on map
+          showPopup(exactMatch);
+        } else {
+          // Filter by city or title containing the query
+          filteredFeatures = features.filter(f =>
+            f.properties.title.toLowerCase().includes(query) ||
+            f.properties.city.toLowerCase().includes(query)
+          );
+        }
+        
+        // Render filtered grid
+        renderFilteredGrid('gridDesktop', filteredFeatures);
+      });
+    };
+    
+    // New function to render filtered grid
+    function renderFilteredGrid(targetId, features) {
+      const grid = document.getElementById(targetId);
+      if (!grid) return;
+      
       grid.innerHTML = '';
       
-      if (matches.length === 0) {
-        grid.innerHTML = `
-          <div class="empty-state">
-            <h3>No projects found</h3>
-            <p>Try a different search term</p>
-          </div>
-        `;
-        return;
-      }
+      // Get current map center and bounds
+      const mapCenter = map.getCenter();
+      const mapBounds = map.getBounds();
       
-      // Render matching items
-      matches.forEach((f, index) => {
-        const d = document.createElement('div');
-        d.className = 'grid-item visible';
+      // Calculate distance and check bounds for filtered features
+      features = features.map(f => {
+        const coords = f.geometry.coordinates;
+        const distance = calculateDistance(
+          mapCenter.lat, 
+          mapCenter.lng, 
+          coords[1], // latitude
+          coords[0]  // longitude
+        );
+        const inBounds = mapBounds.contains([coords[0], coords[1]]);
+        return { ...f, distance, inBounds };
+      });
+      
+      // Sort with featured priority within view
+      features.sort((a, b) => {
+        // Priority 1: Featured items that are in bounds
+        const aFeaturedInBounds = a.inBounds && a.properties.featured;
+        const bFeaturedInBounds = b.inBounds && b.properties.featured;
         
+        if (aFeaturedInBounds && !bFeaturedInBounds) return -1;
+        if (!aFeaturedInBounds && bFeaturedInBounds) return 1;
+        
+        // Priority 2: Non-featured items in bounds
+        const aInBounds = a.inBounds && !a.properties.featured;
+        const bInBounds = b.inBounds && !b.properties.featured;
+        
+        if (aInBounds && !b.inBounds) return -1;
+        if (!aInBounds && b.inBounds) return 1;
+        
+        // Priority 3: Everything else by distance
+        return a.distance - b.distance;
+      });
+      
+      // Create document fragment for better performance
+      const fragment = document.createDocumentFragment();
+      
+      features.forEach((f, index) => {
+        const d = document.createElement('div');
+        d.className = 'grid-item';
+        
+        // Use placeholder image initially
         const imageSrc = f.properties.image;
+        const placeholderSrc = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="300" height="120"%3E%3Crect width="300" height="120" fill="%23333"/%3E%3C/svg%3E';
         
         d.innerHTML = `
           <div class="image-wrapper">
-            <img src="${imageSrc}" alt="${f.properties.title}" />
+            <img src="${placeholderSrc}" 
+                 data-src="${imageSrc}" 
+                 loading="lazy" 
+                 alt="${f.properties.title}"
+                 class="lazy-loading" />
           </div>
           ${f.properties.featured ? `
             <div class="featured-badge">
@@ -2839,74 +2554,199 @@ function setupMobileFilters() {
             <svg viewBox="0 0 18 18"><path d="M9 1v16M1 9h16"/></svg>
           </a>
           <div class="grid-item-content">
-            <h3>${f.properties.title}</h3>
-            <p class="city">${f.properties.city}</p>
+            <h3 style="color: #ffffff !important; margin: 0 0 4px; font-size: 16px;">${f.properties.title}</h3>
+            <p class="city" style="color: #cccccc !important; margin: 0 0 auto 0; font-size: 12px; padding-bottom: 8px;">${f.properties.city}</p>
             <p class="website-btn">
               <a href="${f.properties.website}" target="_blank" class="website-link" onclick="event.stopPropagation();">Learn More</a>
             </p>
           </div>`;
-        
-        d.onclick = () => {
-          showPopup(f);
-          window.mobileDrawerCollapse();
+        d.onclick = () => { 
+          showPopup(f); 
+          // On mobile, immediately close the drawer when tile is clicked
+          if (targetId === 'gridMobile') {
+            const drawer = document.getElementById('mobileDrawer');
+            const mapBtn = document.getElementById('mapReturnButton');
+            const content = document.getElementById('mobileDrawerContent');
+            
+            // Immediately collapse - fully hide
+            drawer.classList.remove('expanded');
+            drawer.style.transform = 'translateY(100%)'; // Fully hidden
+            mapBtn.classList.remove('visible');
+            content.scrollTop = 0;
+          }
         };
+        fragment.appendChild(d);
+      });
+      
+      // Append all at once
+      grid.appendChild(fragment);
+      
+      // Set up lazy loading
+      setupLazyLoading(grid);
+    }
+    
+    // Extract lazy loading setup to reusable function
+    function setupLazyLoading(grid) {
+      const imageObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const img = entry.target;
+            const src = img.getAttribute('data-src');
+            
+            const newImg = new Image();
+            newImg.onload = () => {
+              img.src = src;
+              img.classList.remove('lazy-loading');
+              img.classList.add('loaded');
+              observer.unobserve(img);
+            };
+            newImg.onerror = () => {
+              img.classList.remove('lazy-loading');
+              img.classList.add('loaded');
+              observer.unobserve(img);
+            };
+            newImg.src = src;
+          }
+        });
+      }, {
+        rootMargin: '50px',
+        threshold: 0.01
+      });
+      
+      const fadeObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting && !entry.target.classList.contains('visible')) {
+            requestAnimationFrame(() => {
+              entry.target.classList.add('visible');
+            });
+          }
+        });
+      }, {
+        threshold: 0.1,
+        rootMargin: '0px'
+      });
+      
+      const gridItems = grid.querySelectorAll('.grid-item');
+      const images = grid.querySelectorAll('.grid-item img');
+      
+      gridItems.forEach(item => fadeObserver.observe(item));
+      images.forEach(img => imageObserver.observe(img));
+    }
+    // Global variable to track mobile drawer state
+    window.mobileDrawerCollapse = null;
+    // Mobile drawer functionality
+    function setupMobileDrawer() {
+      const drawer = document.getElementById('mobileDrawer');
+      const handle = document.getElementById('mobileDrawerHandle');
+      const content = document.getElementById('mobileDrawerContent');
+      const mapBtn = document.getElementById('mapReturnButton');
+      
+      let startY = 0;
+      let currentY = 0;
+      let startTransform = 0;
+      let isDragging = false;
+      let isExpanded = false;
+      
+      // Use CSS variable for dynamic height
+      const getViewportHeight = () => {
+        const appHeight = getComputedStyle(document.documentElement).getPropertyValue('--app-height');
+        return parseInt(appHeight) - 50; // Account for header
+      };
+      // Function to collapse drawer
+      function collapseDrawer() {
+        isExpanded = false;
+        drawer.classList.remove('expanded');
+        drawer.style.transform = `translateY(100%)`; // Fully hidden
+        mapBtn.classList.remove('visible');
+        // Reset scroll position when closing
+        content.scrollTop = 0;
+      }
+      
+      // Function to expand drawer
+      function expandDrawer() {
+        isExpanded = true;
+        drawer.classList.add('expanded');
+        drawer.style.transform = 'translateY(0)';
+        mapBtn.classList.add('visible');
         
-        grid.appendChild(d);
-      });
-    });
-  }
-}
-
-// Setup sidebar search
-function setupSidebarSearch() {
-  const searchBar = document.getElementById('sidebarSearchBar');
-  const resultsDiv = document.getElementById('sidebarResults');
-  
-  if (!searchBar || !resultsDiv) return;
-  
-  searchBar.addEventListener('input', (e) => {
-    const query = e.target.value.trim().toLowerCase();
-    
-    if (!query) {
-      resultsDiv.classList.add('hidden');
-      renderGrid('gridDesktop');
-      return;
-    }
-    
-    const features = map.getSource('projects')._data.features;
-    const matches = features.filter(f =>
-      f.properties.title.toLowerCase().includes(query) ||
-      f.properties.city.toLowerCase().includes(query)
-    );
-    
-    // Show results in dropdown
-    resultsDiv.innerHTML = '';
-    if (matches.length) {
-      resultsDiv.classList.remove('hidden');
-      matches.forEach(f => {
-        const div = document.createElement('div');
-        div.className = 'result-item';
-        div.innerHTML = `<h4>${f.properties.title}</h4><p>${f.properties.city}</p>`;
-        div.onclick = () => {
-          showPopup(f);
-          resultsDiv.classList.add('hidden');
-          searchBar.value = '';
-        };
-        resultsDiv.appendChild(div);
-      });
-    } else {
-      resultsDiv.innerHTML = '<div class="result-item">No results found</div>';
-      resultsDiv.classList.remove('hidden');
-    }
-  });
-  
-  // Hide results when clicking outside
-  document.addEventListener('click', (e) => {
-    if (!searchBar.contains(e.target) && !resultsDiv.contains(e.target)) {
-      resultsDiv.classList.add('hidden');
-    }
-  });
-}
+        // Force enable scrolling on the content
+        content.style.overflow = 'auto';
+        content.style.overflowY = 'scroll';
+        content.style.webkitOverflowScrolling = 'touch';
+        content.style.pointerEvents = 'auto';
+        content.style.touchAction = 'auto';
+        
+        // Update grid when expanding drawer
+        renderGrid('gridMobile');
+      }
+      
+      // Make collapseDrawer globally available
+      window.mobileDrawerCollapse = collapseDrawer;
+      // Prevent touch interactions on content only when collapsed
+      content.addEventListener('touchstart', (e) => {
+        if (!isExpanded) {
+          e.preventDefault();
+          e.stopPropagation();
+          return false;
+        }
+      }, { passive: false });
+      // Handle drag start
+      handle.addEventListener('touchstart', (e) => {
+        isDragging = true;
+        startY = e.touches[0].clientY;
+        drawer.style.transition = 'none';
+        
+        // Calculate current position
+        const computedStyle = window.getComputedStyle(drawer);
+        const matrix = new DOMMatrix(computedStyle.transform);
+        const viewportHeight = getViewportHeight();
+        const collapsedY = viewportHeight;
+        startTransform = matrix.m42 || (isExpanded ? 0 : collapsedY);
+      }, { passive: true });
+      // Handle drag move
+      handle.addEventListener('touchmove', (e) => {
+        if (!isDragging) return;
+        e.preventDefault();
+        
+        currentY = e.touches[0].clientY;
+        const deltaY = currentY - startY;
+        let newY = startTransform + deltaY;
+        
+        // Constrain position
+        const viewportHeight = getViewportHeight();
+        const collapsedY = viewportHeight;
+        newY = Math.max(0, Math.min(newY, collapsedY));
+        
+        drawer.style.transform = `translateY(${newY}px)`;
+      }, { passive: false });
+      // Handle drag end
+      handle.addEventListener('touchend', (e) => {
+        if (!isDragging) return;
+        isDragging = false;
+        
+        const deltaY = currentY - startY;
+        drawer.style.transition = 'transform 0.3s ease';
+        
+        // Determine expand/collapse based on position and direction  
+        const viewportHeight = getViewportHeight();
+        const currentPosition = startTransform + deltaY;
+        const threshold = viewportHeight * 0.5;
+        
+        if (currentPosition < threshold || (!isExpanded && deltaY < -30)) {
+          expandDrawer();
+        } else {
+          collapseDrawer();
+        }
+      }, { passive: true });
+      // Click to toggle
+      handle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        drawer.style.transition = 'transform 0.3s ease';
+        if (isExpanded) {
+          collapseDrawer();
+        } else {
+          expandDrawer();
+        }
       });
       // Tiles button opens drawer (new floating button)
       const mobileTilesBtn = document.getElementById('mobileTilesButton');
@@ -3477,55 +3317,7 @@ function setupSidebarSearch() {
           });
           renderGrid('gridDesktop');
           renderGrid('gridMobile');
-          // Extract lazy loading setup to reusable function
-function setupLazyLoading(grid) {
-  const imageObserver = new IntersectionObserver((entries, observer) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        const img = entry.target;
-        const src = img.getAttribute('data-src');
-        
-        const newImg = new Image();
-        newImg.onload = () => {
-          img.src = src;
-          img.classList.remove('lazy-loading');
-          img.classList.add('loaded');
-          observer.unobserve(img);
-        };
-        newImg.onerror = () => {
-          img.classList.remove('lazy-loading');
-          img.classList.add('loaded');
-          observer.unobserve(img);
-        };
-        newImg.src = src;
-      }
-    });
-  }, {
-    rootMargin: '50px',
-    threshold: 0.01
-  });
-  
-  const fadeObserver = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting && !entry.target.classList.contains('visible')) {
-        requestAnimationFrame(() => {
-          entry.target.classList.add('visible');
-        });
-      }
-    });
-  }, {
-    threshold: 0.1,
-    rootMargin: '0px'
-  });
-  
-  const gridItems = grid.querySelectorAll('.grid-item');
-  const images = grid.querySelectorAll('.grid-item img');
-  
-  gridItems.forEach(item => fadeObserver.observe(item));
-  images.forEach(img => imageObserver.observe(img));
-}
           populateLocationFilter();
-
           
           // Setup mobile drawer interactions
           setupMobileDrawer();
