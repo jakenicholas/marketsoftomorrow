@@ -1112,7 +1112,8 @@
     }
     
     .filter-dropdown-toggle {
-      min-width: 120px;
+      width: 100%;
+      min-width: 80px;
       background: #1a1a1a;
       color: #fff;
       border: 1px solid rgba(255, 255, 255, 0.1);
@@ -1858,17 +1859,17 @@
         </div>
         
         <!-- Filter Controls Row -->
-        <div id="filterControlsDesktop" style="display: flex; gap: 2%; align-items: stretch; margin-bottom: 12px;">
+        <div id="filterControlsDesktop" style="display: flex; gap: 1%; align-items: stretch; margin-bottom: 12px;">
           <!-- Sorting Filter -->
-          <select id="sortSelectDesktop" style="flex: 0 0 22.5%; background: #1a1a1a; color: #fff; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 8px 12px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s ease; appearance: none; background-image: url(&quot;data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%23999' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E&quot;); background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px;">
+          <select id="sortSelectDesktop" style="flex: 1; min-width: 0; background: #1a1a1a; color: #fff; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 8px 12px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s ease; appearance: none; background-image: url(&quot;data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%23999' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E&quot;); background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px;">
             <option value="default">Sort: Nearest</option>
             <option value="az">Sort: A to Z</option>
             <option value="za">Sort: Z to A</option>
           </select>
           
           <!-- Delivery Date Filter -->
-          <select id="dateRangeFilter" style="flex: 0 0 22.5%; background: #1a1a1a; color: #fff; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 8px 12px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s ease; appearance: none; background-image: url(&quot;data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%23999' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E&quot;); background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px;">
-            <option value="all">All Dates</option>
+          <select id="dateRangeFilter" style="flex: 1; min-width: 0; background: #1a1a1a; color: #fff; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 8px 12px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s ease; appearance: none; background-image: url(&quot;data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%23999' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E&quot;); background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px;">
+            <option value="all">Delivery</option>
             <option value="2024">2024</option>
             <option value="2025">2025</option>
             <option value="2026">2026</option>
@@ -1879,9 +1880,9 @@
           </select>
           
           <!-- Multi-select project type filter -->
-          <div class="filter-dropdown" style="flex: 0 0 22.5%;">
+          <div class="filter-dropdown" style="flex: 1; min-width: 0;">
             <div class="filter-dropdown-toggle" id="projectTypeFilterDesktop" data-filter="projectType">
-              <span class="filter-text">All Types</span>
+              <span class="filter-text">Types</span>
               <span class="filter-counter" style="display: none;">0</span>
             </div>
             <div class="filter-dropdown-menu" id="projectTypeDropdownDesktop">
@@ -1890,7 +1891,7 @@
           </div>
           
           <!-- Multi-select location filter -->
-          <div class="filter-dropdown" style="flex: 0 0 22.5%;">
+          <div class="filter-dropdown" style="flex: 1; min-width: 0;">
             <div class="filter-dropdown-toggle" id="locationFilterDesktop" data-filter="location">
               <span class="filter-text">All Cities</span>
               <span class="filter-counter" style="display: none;">0</span>
@@ -1932,7 +1933,7 @@
               <option value="za">Z to A</option>
             </select>
             <select id="projectTypeFilterMobile">
-              <option value="all">All Types</option>
+              <option value="all">Types</option>
             </select>
             <select id="locationFilterMobile">
               <option value="all">All Cities</option>
@@ -2905,7 +2906,7 @@
       const selectedSet = selectedFilters[filterType];
       
       if (selectedSet.size === 0) {
-        textSpan.textContent = filterType === 'location' ? 'All Cities' : 'All Types';
+        textSpan.textContent = filterType === 'location' ? 'All Cities' : 'Types';
         counterSpan.style.display = 'none';
       } else if (selectedSet.size === 1) {
         textSpan.textContent = Array.from(selectedSet)[0];
@@ -3122,7 +3123,7 @@
       // Populate mobile select elements with option elements
       mobileProjectTypeFilters.forEach(filter => {
         if (filter && filter.tagName === 'SELECT') {
-          filter.innerHTML = '<option value="all">All Types</option>';
+          filter.innerHTML = '<option value="all">Types</option>';
           projectTypes.forEach(type => {
             const option = document.createElement('option');
             option.value = type;
