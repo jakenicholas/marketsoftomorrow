@@ -2955,25 +2955,33 @@
       
       const features = map.getSource('projects')._data.features;
       
-      // Get dropdown menu containers for the new multi-select structure
-      const locationDropdowns = [
+      // Get dropdown menu containers for the new desktop multi-select structure
+      const desktopLocationDropdowns = [
         document.getElementById('locationDropdown'),
-        document.getElementById('locationDropdownDesktop'),
-        document.getElementById('locationDropdownMobile')
+        document.getElementById('locationDropdownDesktop')
       ];
       
-      const projectTypeDropdowns = [
+      const desktopProjectTypeDropdowns = [
         document.getElementById('projectTypeDropdown'),
-        document.getElementById('projectTypeDropdownDesktop'),
-        document.getElementById('projectTypeDropdownMobile')
+        document.getElementById('projectTypeDropdownDesktop')
+      ];
+      
+      // Get mobile select elements (keeping old structure)
+      const mobileLocationFilters = [
+        document.getElementById('locationFilterMobile')
+      ];
+      
+      const mobileProjectTypeFilters = [
+        document.getElementById('projectTypeFilterMobile')
       ];
       
       // Populate cities
       const cities = [...new Set(features.map(f => f.properties.city))];
       cities.sort();
       
-      locationDropdowns.forEach(dropdown => {
-        if (dropdown) {
+      // Populate desktop dropdowns with checkbox options
+      desktopLocationDropdowns.forEach(dropdown => {
+        if (dropdown && dropdown.tagName === 'DIV') {
           dropdown.innerHTML = '';
           cities.forEach(city => {
             const optionDiv = document.createElement('div');
@@ -3002,6 +3010,19 @@
         }
       });
       
+      // Populate mobile select elements with option elements
+      mobileLocationFilters.forEach(filter => {
+        if (filter && filter.tagName === 'SELECT') {
+          filter.innerHTML = '<option value="all">All Cities</option>';
+          cities.forEach(city => {
+            const option = document.createElement('option');
+            option.value = city;
+            option.textContent = city;
+            filter.appendChild(option);
+          });
+        }
+      });
+      
       // Populate project types
       const allTypes = new Set();
       features.forEach(f => {
@@ -3012,8 +3033,9 @@
       
       const projectTypes = [...allTypes].sort((a, b) => a.localeCompare(b));
       
-      projectTypeDropdowns.forEach(dropdown => {
-        if (dropdown) {
+      // Populate desktop dropdowns with checkbox options
+      desktopProjectTypeDropdowns.forEach(dropdown => {
+        if (dropdown && dropdown.tagName === 'DIV') {
           dropdown.innerHTML = '';
           projectTypes.forEach(type => {
             const optionDiv = document.createElement('div');
@@ -3038,6 +3060,19 @@
             optionDiv.appendChild(checkbox);
             optionDiv.appendChild(label);
             dropdown.appendChild(optionDiv);
+          });
+        }
+      });
+      
+      // Populate mobile select elements with option elements
+      mobileProjectTypeFilters.forEach(filter => {
+        if (filter && filter.tagName === 'SELECT') {
+          filter.innerHTML = '<option value="all">All Types</option>';
+          projectTypes.forEach(type => {
+            const option = document.createElement('option');
+            option.value = type;
+            option.textContent = type.charAt(0).toUpperCase() + type.slice(1);
+            filter.appendChild(option);
           });
         }
       });
