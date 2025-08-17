@@ -1885,7 +1885,7 @@
           <!-- Multi-select location filter -->
           <div class="filter-dropdown" style="flex: 1 1 0;">
             <div class="filter-dropdown-toggle" id="locationFilterDesktop" data-filter="location">
-              <span class="filter-text">All Cities</span>
+              <span class="filter-text">Cities</span>
               <span class="filter-counter" style="display: none;">0</span>
             </div>
             <div class="filter-dropdown-menu" id="locationDropdownDesktop">
@@ -1948,7 +1948,7 @@
               <option value="za">Z to A</option>
             </select>
             <select id="locationFilterMobile">
-              <option value="all">All Cities</option>
+              <option value="all">Cities</option>
             </select>
             <select id="projectTypeFilterMobile">
               <option value="all">Types</option>
@@ -2950,7 +2950,7 @@
       const selectedSet = selectedFilters[filterType];
       
       if (selectedSet.size === 0) {
-        textSpan.textContent = filterType === 'location' ? 'All Cities' : 'Type';
+        textSpan.textContent = filterType === 'location' ? 'Cities' : 'Type';
         counterSpan.style.display = 'none';
       } else if (selectedSet.size === 1) {
         textSpan.textContent = Array.from(selectedSet)[0];
@@ -3101,7 +3101,7 @@
       // Populate mobile select elements with option elements
       mobileLocationFilters.forEach(filter => {
         if (filter && filter.tagName === 'SELECT') {
-          filter.innerHTML = '<option value="all">All Cities</option>';
+          filter.innerHTML = '<option value="all">Cities</option>';
           cities.forEach(city => {
             const option = document.createElement('option');
             option.value = city;
