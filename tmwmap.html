@@ -2955,31 +2955,49 @@
       
       const features = map.getSource('projects')._data.features;
       
-      // Get all filter elements
-      const locationFilters = [
-        document.getElementById('locationFilter'),
-        document.getElementById('locationFilterDesktop'),
-        document.getElementById('locationFilterMobile')
+      // Get dropdown menu containers for the new multi-select structure
+      const locationDropdowns = [
+        document.getElementById('locationDropdown'),
+        document.getElementById('locationDropdownDesktop'),
+        document.getElementById('locationDropdownMobile')
       ];
       
-      const projectTypeFilters = [
-        document.getElementById('projectTypeFilter'),
-        document.getElementById('projectTypeFilterDesktop'),
-        document.getElementById('projectTypeFilterMobile')
+      const projectTypeDropdowns = [
+        document.getElementById('projectTypeDropdown'),
+        document.getElementById('projectTypeDropdownDesktop'),
+        document.getElementById('projectTypeDropdownMobile')
       ];
       
       // Populate cities
       const cities = [...new Set(features.map(f => f.properties.city))];
       cities.sort();
       
-      locationFilters.forEach(filter => {
-        if (filter) {
-          filter.innerHTML = '<option value="all">All Cities</option>';
+      locationDropdowns.forEach(dropdown => {
+        if (dropdown) {
+          dropdown.innerHTML = '';
           cities.forEach(city => {
-            const option = document.createElement('option');
-            option.value = city;
-            option.textContent = city;
-            filter.appendChild(option);
+            const optionDiv = document.createElement('div');
+            optionDiv.className = 'filter-option';
+            
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.value = city;
+            checkbox.addEventListener('change', () => {
+              handleFilterCheckboxChange(checkbox, 'location', city);
+            });
+            
+            const label = document.createElement('label');
+            label.textContent = city;
+            label.style.cursor = 'pointer';
+            label.addEventListener('click', (e) => {
+              e.preventDefault();
+              checkbox.checked = !checkbox.checked;
+              handleFilterCheckboxChange(checkbox, 'location', city);
+            });
+            
+            optionDiv.appendChild(checkbox);
+            optionDiv.appendChild(label);
+            dropdown.appendChild(optionDiv);
           });
         }
       });
@@ -2994,14 +3012,32 @@
       
       const projectTypes = [...allTypes].sort((a, b) => a.localeCompare(b));
       
-      projectTypeFilters.forEach(filter => {
-        if (filter) {
-          filter.innerHTML = '<option value="all">All Types</option>';
+      projectTypeDropdowns.forEach(dropdown => {
+        if (dropdown) {
+          dropdown.innerHTML = '';
           projectTypes.forEach(type => {
-            const option = document.createElement('option');
-            option.value = type;
-            option.textContent = type.charAt(0).toUpperCase() + type.slice(1);
-            filter.appendChild(option);
+            const optionDiv = document.createElement('div');
+            optionDiv.className = 'filter-option';
+            
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.value = type;
+            checkbox.addEventListener('change', () => {
+              handleFilterCheckboxChange(checkbox, 'projectType', type);
+            });
+            
+            const label = document.createElement('label');
+            label.textContent = type.charAt(0).toUpperCase() + type.slice(1);
+            label.style.cursor = 'pointer';
+            label.addEventListener('click', (e) => {
+              e.preventDefault();
+              checkbox.checked = !checkbox.checked;
+              handleFilterCheckboxChange(checkbox, 'projectType', type);
+            });
+            
+            optionDiv.appendChild(checkbox);
+            optionDiv.appendChild(label);
+            dropdown.appendChild(optionDiv);
           });
         }
       });
