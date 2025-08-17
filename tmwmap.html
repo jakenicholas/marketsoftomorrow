@@ -1143,7 +1143,7 @@
       position: absolute;
       top: 100%;
       left: 0;
-      right: 0;
+      width: 100%;
       background: #1a1a1a;
       border: 1px solid rgba(255, 255, 255, 0.2);
       border-radius: 8px;
@@ -1152,6 +1152,7 @@
       overflow-y: auto;
       z-index: 1000;
       display: none;
+      box-sizing: border-box;
     }
     
     .filter-dropdown-menu.show {
@@ -1863,9 +1864,9 @@
         <div id="filterControlsDesktop" style="display: flex; gap: 8px; align-items: stretch; margin-bottom: 12px; padding: 0;">
           <!-- Sorting Filter -->
           <select id="sortSelectDesktop" style="flex: 0 0 20%; min-width: 0; background: #1a1a1a; color: #fff; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 8px 12px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s ease; appearance: none; background-image: url(&quot;data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%23999' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E&quot;); background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px;">
-            <option value="default">Sort: Nearest</option>
-            <option value="az">Sort: A to Z</option>
-            <option value="za">Sort: Z to A</option>
+            <option value="default">Nearest</option>
+            <option value="az">A to Z</option>
+            <option value="za">Z to A</option>
           </select>
           
           <!-- Multi-select location filter -->
@@ -1933,11 +1934,21 @@
               <option value="az">A to Z</option>
               <option value="za">Z to A</option>
             </select>
+            <select id="locationFilterMobile">
+              <option value="all">All Cities</option>
+            </select>
             <select id="projectTypeFilterMobile">
               <option value="all">Types</option>
             </select>
-            <select id="locationFilterMobile">
-              <option value="all">All Cities</option>
+            <select id="dateRangeFilterMobile">
+              <option value="all">Delivery</option>
+              <option value="2024">2024</option>
+              <option value="2025">2025</option>
+              <option value="2026">2026</option>
+              <option value="2027">2027</option>
+              <option value="2028">2028</option>
+              <option value="2029">2029</option>
+              <option value="2030">2030+</option>
             </select>
           </div>
         </div>
@@ -2640,6 +2651,7 @@
         locationFilter = document.getElementById('locationFilterMobile')?.value || 'all';
         projectTypeFilter = document.getElementById('projectTypeFilterMobile')?.value || 'all';
         sortType = document.getElementById('sortSelectMobile')?.value || 'default';
+        const dateFilter = document.getElementById('dateRangeFilterMobile')?.value || 'all';
         
         // Apply location filter
         if (locationFilter !== 'all') {
@@ -2651,6 +2663,24 @@
           features = features.filter(f => {
             return f.properties.projectTypes && 
                    f.properties.projectTypes.includes(projectTypeFilter.toLowerCase());
+          });
+        }
+        
+        // Apply date filter
+        if (dateFilter !== 'all') {
+          const filterYear = dateFilter;
+          features = features.filter(f => {
+            const deliveryText = f.properties.delivery || '';
+            const yearMatch = deliveryText.match(/\b(20\d{2})\b/);
+            if (!yearMatch) return false;
+            
+            const deliveryYear = parseInt(yearMatch[1]);
+            
+            if (filterYear === '2030') {
+              return deliveryYear >= 2030;
+            } else {
+              return deliveryYear.toString() === filterYear;
+            }
           });
         }
       } else {
@@ -3176,7 +3206,7 @@
     };
     // Add event listeners for mobile filters
     const setupMobileFilters = () => {
-      const mobileFilters = ['sortSelectMobile', 'locationFilterMobile', 'projectTypeFilterMobile'];
+      const mobileFilters = ['sortSelectMobile', 'locationFilterMobile', 'projectTypeFilterMobile', 'dateRangeFilterMobile'];
       mobileFilters.forEach(id => {
         const element = document.getElementById(id);
         if (element) {
