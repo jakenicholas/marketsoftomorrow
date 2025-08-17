@@ -1106,29 +1106,33 @@
     }
     
     /* Multi-select filter styles */
-    .filter-dropdown {
-      position: relative;
-      display: inline-block;
-    }
-    
-    .filter-dropdown-toggle {
-      width: 100%;
-      min-width: 60px;
-      background: #1a1a1a;
-      color: #fff;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 8px;
-      padding: 8px 36px 8px 12px;
-      font-size: 14px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%23999' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: right 12px center;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+  .filter-dropdown {
+  position: relative;
+  display: inline-block;
+  flex: 0 1 23% !important;
+  max-width: 90px !important;
+}
+
+.filter-dropdown-toggle {
+  width: 100%;
+  min-width: 0;
+  max-width: 90px;
+  background: #1a1a1a;
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 6px 22px 6px 8px; /* Reduced right padding */
+  font-size: 14px; /* Back to 14px as requested */
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%23999' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 6px center; /* Adjusted position */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
     }
     
     .filter-dropdown-toggle:hover {
@@ -1606,44 +1610,45 @@
     }
     /* Compact filter styles for sidebar */
 /* Force compact filters in desktop sidebar */
+/* Force compact filters in desktop sidebar */
 #desktopSidebar #filterControlsDesktop {
   width: 100%;
   box-sizing: border-box;
 }
 
 #desktopSidebar #filterControlsDesktop > * {
-  flex: 0 1 24% !important;
+  flex: 0 1 23% !important;
   min-width: 0 !important;
-  max-width: 25% !important;
+  max-width: 90px !important;
   box-sizing: border-box !important;
 }
 
 #desktopSidebar #filterControlsDesktop select,
 #desktopSidebar .filter-dropdown-toggle {
-  font-size: 11px !important;
-  padding: 5px 24px 5px 8px !important;
+  font-size: 14px !important; /* Back to 14px as requested */
+  padding: 6px 22px 6px 8px !important; /* Reduced padding */
   white-space: nowrap !important;
   overflow: hidden !important;
   text-overflow: ellipsis !important;
 }
 
 #desktopSidebar .filter-dropdown {
-  flex: 0 1 24% !important;
+  flex: 0 1 23% !important;
   min-width: 0 !important;
-  max-width: 25% !important;
+  max-width: 90px !important;
 }
 
 #desktopSidebar #filterControlsDesktop select {
   background-position: right 6px center !important;
-  padding-right: 24px !important;
+  padding-right: 22px !important; /* Reduced */
+  max-width: 90px !important;
 }
 
 /* Make the counter even smaller */
 #desktopSidebar .filter-counter {
-  font-size: 9px !important;
+  font-size: 10px !important; /* Slightly bigger than before */
   padding: 1px 4px !important;
   margin-left: 4px !important;
-}
 }
     #instagramLogo img {
       width: 100%;
@@ -1919,14 +1924,14 @@
         <!-- Filter Controls Row -->
        <div id="filterControlsDesktop" style="display: flex; gap: 4px; align-items: stretch; margin-bottom: 12px; padding: 0; flex-wrap: nowrap;">
           <!-- Sorting Filter -->
-          <select id="sortSelectDesktop" style="flex: 0 1 24%; min-width: 0; background: #1a1a1a; color: #fff; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 8px 12px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s ease; appearance: none; background-image: url(&quot;data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%23999' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E&quot;); background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px;">
+          <select id="sortSelectDesktop" style="flex: 0 1 20%; min-width: 0; max-width: 90px; background: #1a1a1a; color: #fff; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 8px 12px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s ease; appearance: none; background-image: url(&quot;data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%23999' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E&quot;); background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px;">
             <option value="default">Nearest</option>
             <option value="az">A to Z</option>
             <option value="za">Z to A</option>
           </select>
           
           <!-- Multi-select location filter -->
-          <div class="filter-dropdown" style="flex: 1 1 0;">
+          <div class="filter-dropdown" style="flex: 0 1 23%; max-width: 90px;">
             <div class="filter-dropdown-toggle" id="locationFilterDesktop" data-filter="location">
               <span class="filter-text">All Cities</span>
               <span class="filter-counter" style="display: none;">0</span>
@@ -1937,7 +1942,7 @@
           </div>
           
           <!-- Multi-select project type filter -->
-          <div class="filter-dropdown" style="flex: 1 1 0;">
+          <div class="filter-dropdown" style="flex: 0 1 23%; max-width: 90px;">
             <div class="filter-dropdown-toggle" id="projectTypeFilterDesktop" data-filter="projectType">
               <span class="filter-text">Type</span>
               <span class="filter-counter" style="display: none;">0</span>
