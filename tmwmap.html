@@ -1316,9 +1316,57 @@
       transition: all 0.2s ease;
     }
     
-    .clear-filters-suggestion:hover {
-      background: #1bb354;
-      transform: translateY(-1px);
+    /* Grid skeleton loader styles */
+    .grid-skeleton {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      grid-gap: 20px;
+      padding: 20px;
+    }
+    
+    .grid-skeleton-item {
+      background: rgba(20,20,20,0.8);
+      border-radius: 6px;
+      padding: 6px;
+      height: 250px;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .grid-skeleton-image {
+      height: 180px;
+      background: #333;
+      border-radius: 4px;
+      margin-bottom: 8px;
+    }
+    
+    .grid-skeleton-text {
+      flex: 1;
+      padding: 8px;
+    }
+    
+    .grid-skeleton-title {
+      height: 16px;
+      background: #444;
+      border-radius: 4px;
+      margin-bottom: 8px;
+      width: 80%;
+    }
+    
+    .grid-skeleton-subtitle {
+      height: 12px;
+      background: #383838;
+      border-radius: 4px;
+      width: 60%;
+    }
+    
+    .grid-skeleton-item .skeleton-loader,
+    .grid-skeleton-image,
+    .grid-skeleton-title,
+    .grid-skeleton-subtitle {
+      background: linear-gradient(90deg, #333 25%, #444 50%, #333 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
     }
     .mapboxgl-popup-content { 
       background:rgba(20,20,20,0.8)!important; 
@@ -1775,6 +1823,20 @@
           <button class="quick-filter-btn" data-filter="6months">Next 6 Months</button>
           <button class="quick-filter-btn" data-filter="1year">Next Year</button>
           <button class="quick-filter-btn" data-filter="featured">Featured Only</button>
+        </div>
+        
+        <!-- Date range filter -->
+        <div class="date-range-filter" style="margin-bottom: 12px;">
+          <label style="font-size: 12px; color: #aaa; margin-bottom: 4px; display: block;">Delivery Date Range:</label>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <select id="dateRangeFilter" style="flex: 1; background: #1a1a1a; color: #fff; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 6px; padding: 6px 8px; font-size: 12px;">
+              <option value="all">All Dates</option>
+              <option value="2024">2024</option>
+              <option value="2025">2025</option>
+              <option value="2026">2026</option>
+              <option value="2027">2027+</option>
+            </select>
+          </div>
         </div>
         
         <div id="filterControlsDesktop" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
@@ -2327,6 +2389,55 @@
       const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
       return R * c;
     }
+    // Show loading skeleton for grid
+    function showGridSkeleton(targetId) {
+      const grid = document.getElementById(targetId);
+      if (!grid) return;
+      
+      grid.innerHTML = '';
+      grid.className = 'grid-skeleton';
+      
+      // Create 6 skeleton items
+      for (let i = 0; i < 6; i++) {
+        const skeletonItem = document.createElement('div');
+        skeletonItem.className = 'grid-skeleton-item';
+        skeletonItem.innerHTML = `
+          <div class="grid-skeleton-image"></div>
+          <div class="grid-skeleton-text">
+            <div class="grid-skeleton-title"></div>
+            <div class="grid-skeleton-subtitle"></div>
+          </div>
+        `;
+        grid.appendChild(skeletonItem);
+      }
+    }
+    
+    // Helper function to parse delivery dates and check if they fall within range
+    function isWithinDateRange(deliveryText, months) {
+      if (!deliveryText) return false;
+      
+      const now = new Date();
+      const targetDate = new Date(now.getFullYear(), now.getMonth() + months, now.getDate());
+      
+      // Try to extract year from delivery text
+      const yearMatch = deliveryText.match(/\b(20\d{2})\b/);
+      if (!yearMatch) return false;
+      
+      const deliveryYear = parseInt(yearMatch[1]);
+      const currentYear = now.getFullYear();
+      
+      // Simple logic: if delivery year is within the target range
+      if (months === 6) {
+        // Next 6 months: current year or next year if we're in second half
+        return deliveryYear === currentYear || (deliveryYear === currentYear + 1 && now.getMonth() >= 6);
+      } else if (months === 12) {
+        // Next year: current year or next year
+        return deliveryYear === currentYear || deliveryYear === currentYear + 1;
+      }
+      
+      return false;
+    }
+    
     // Helper function to format delivery dates
     function formatDeliveryDate(deliveryText) {
       if (!deliveryText) return '';
@@ -2398,8 +2509,14 @@
       if (!grid) return;
       
       grid.innerHTML='';
+      // Restore proper grid class
+      grid.className = 'leaf-grid';
       
-      if (!map.getSource('projects') || !map.getSource('projects')._data) return;
+      if (!map.getSource('projects') || !map.getSource('projects')._data) {
+        // Show skeleton while data is loading
+        showGridSkeleton(targetId);
+        return;
+      }
       
       let features = [...map.getSource('projects')._data.features];
       
@@ -2443,28 +2560,35 @@
         
         // Apply quick filter
         if (selectedFilters.quickFilter) {
-          const now = new Date();
-          const sixMonthsFromNow = new Date(now.getFullYear(), now.getMonth() + 6, now.getDate());
-          const oneYearFromNow = new Date(now.getFullYear() + 1, now.getMonth(), now.getDate());
-          
           switch (selectedFilters.quickFilter) {
             case '6months':
-              features = features.filter(f => {
-                // This is a placeholder - would need actual delivery date parsing
-                // For now, just show a random subset to demonstrate functionality
-                return Math.random() > 0.7;
-              });
+              features = features.filter(f => isWithinDateRange(f.properties.delivery, 6));
               break;
             case '1year':
-              features = features.filter(f => {
-                // Placeholder for 1-year filter
-                return Math.random() > 0.5;
-              });
+              features = features.filter(f => isWithinDateRange(f.properties.delivery, 12));
               break;
             case 'featured':
               features = features.filter(f => f.properties.featured);
               break;
           }
+        }
+        
+        // Apply date range filter
+        if (selectedFilters.dateRange !== 'all') {
+          features = features.filter(f => {
+            const deliveryText = f.properties.delivery || '';
+            const yearMatch = deliveryText.match(/\b(20\d{2})\b/);
+            if (!yearMatch) return false;
+            
+            const deliveryYear = parseInt(yearMatch[1]);
+            const filterYear = selectedFilters.dateRange;
+            
+            if (filterYear === '2027') {
+              return deliveryYear >= 2027;
+            } else {
+              return deliveryYear.toString() === filterYear;
+            }
+          });
         }
       } else if (targetId === 'gridMobile') {
         // Mobile uses original simple filters
@@ -2698,7 +2822,8 @@
     let selectedFilters = {
       location: new Set(),
       projectType: new Set(),
-      quickFilter: null
+      quickFilter: null,
+      dateRange: 'all'
     };
     
     // Initialize multi-select filter dropdowns
@@ -2761,7 +2886,8 @@
       const clearBtn = document.getElementById('clearFiltersDesktop');
       const hasActiveFilters = selectedFilters.location.size > 0 || 
                               selectedFilters.projectType.size > 0 || 
-                              selectedFilters.quickFilter !== null;
+                              selectedFilters.quickFilter !== null ||
+                              selectedFilters.dateRange !== 'all';
       
       clearBtn.disabled = !hasActiveFilters;
     }
@@ -2771,12 +2897,17 @@
       selectedFilters.location.clear();
       selectedFilters.projectType.clear();
       selectedFilters.quickFilter = null;
+      selectedFilters.dateRange = 'all';
       
       // Update UI
       updateFilterDisplay('location');
       updateFilterDisplay('projectType');
       document.querySelectorAll('.quick-filter-btn').forEach(btn => btn.classList.remove('active'));
       document.querySelectorAll('.filter-dropdown-menu input[type="checkbox"]').forEach(cb => cb.checked = false);
+      
+      // Reset date range filter
+      const dateRangeFilter = document.getElementById('dateRangeFilter');
+      if (dateRangeFilter) dateRangeFilter.value = 'all';
       
       // Re-render grid
       renderGrid('gridDesktop');
@@ -2894,6 +3025,21 @@
           gtag('event', 'filter_change', {
             'filter_type': 'sort',
             'filter_value': sortSelect.value,
+            'platform': 'desktop'
+          });
+          renderGrid('gridDesktop');
+        });
+      }
+      
+      // Setup date range filter
+      const dateRangeFilter = document.getElementById('dateRangeFilter');
+      if (dateRangeFilter) {
+        dateRangeFilter.addEventListener('change', () => {
+          selectedFilters.dateRange = dateRangeFilter.value;
+          updateClearButtonState();
+          gtag('event', 'filter_change', {
+            'filter_type': 'dateRange',
+            'filter_value': dateRangeFilter.value,
             'platform': 'desktop'
           });
           renderGrid('gridDesktop');
