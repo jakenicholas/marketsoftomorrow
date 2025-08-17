@@ -2172,13 +2172,15 @@
         const placeholderSrc = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="300" height="120"%3E%3Crect width="300" height="120" fill="%23333"/%3E%3C/svg%3E';
         
         d.innerHTML=`
-          <div class="image-wrapper">
-            <img src="${placeholderSrc}" 
-                 data-src="${imageSrc}" 
-                 loading="lazy" 
-                 alt="${f.properties.title}"
-                 class="lazy-loading" />
-          </div>
+    <div class="image-wrapper">
+      <div class="skeleton" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border-radius: 4px;"></div>
+      <img src="${placeholderSrc}" 
+         data-src="${imageSrc}" 
+         loading="lazy" 
+         alt="${f.properties.title}"
+         class="lazy-loading" 
+         style="position: relative; z-index: 1;" />
+    </div>
           ${f.properties.featured ? `
             <div class="featured-badge">
               <svg viewBox="0 0 24 24">
@@ -2238,12 +2240,17 @@
             
             // Create new image to preload
             const newImg = new Image();
-            newImg.onload = () => {
-              img.src = src;
-              img.classList.remove('lazy-loading');
-              img.classList.add('loaded');
-              observer.unobserve(img);
-            };
+           newImg.onload = () => {
+      img.src = src;
+      img.classList.remove('lazy-loading');
+      img.classList.add('loaded');
+      // Hide skeleton after image loads
+      const skeleton = img.parentElement.querySelector('.skeleton');
+      if (skeleton) {
+        skeleton.style.display = 'none';
+      }
+      observer.unobserve(img);
+      };
             newImg.onerror = () => {
               // On error, still mark as loaded to prevent retries
               img.classList.remove('lazy-loading');
@@ -2342,7 +2349,10 @@
       desktopFilters.forEach(id => {
         const element = document.getElementById(id);
         if (element) {
-          element.addEventListener('change', () => {
+            element.addEventListener('change', () => {
+            // Save filter state
+              saveFilterState();
+  
             // Track filter usage
             gtag('event', 'filter_change', {
               'filter_type': id.replace('Desktop', '').replace('Filter', '').replace('Select', ''),
@@ -2361,6 +2371,8 @@
         const element = document.getElementById(id);
         if (element) {
           element.addEventListener('change', () => {
+          // Save filter state
+          saveFilterState();
             // Track filter usage
             gtag('event', 'filter_change', {
               'filter_type': id.replace('Mobile', '').replace('Filter', '').replace('Select', ''),
@@ -2545,13 +2557,15 @@
         const placeholderSrc = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="300" height="120"%3E%3Crect width="300" height="120" fill="%23333"/%3E%3C/svg%3E';
         
         d.innerHTML = `
-          <div class="image-wrapper">
-            <img src="${placeholderSrc}" 
-                 data-src="${imageSrc}" 
-                 loading="lazy" 
-                 alt="${f.properties.title}"
-                 class="lazy-loading" />
-          </div>
+    <div class="image-wrapper">
+      <div class="skeleton" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border-radius: 4px;"></div>
+      <img src="${placeholderSrc}" 
+           data-src="${imageSrc}" 
+           loading="lazy" 
+           alt="${f.properties.title}"
+           class="lazy-loading" 
+           style="position: relative; z-index: 1;" />
+    </div>
           ${f.properties.featured ? `
             <div class="featured-badge">
               <svg viewBox="0 0 24 24">
@@ -2603,13 +2617,18 @@
             const img = entry.target;
             const src = img.getAttribute('data-src');
             
-            const newImg = new Image();
-            newImg.onload = () => {
-              img.src = src;
-              img.classList.remove('lazy-loading');
-              img.classList.add('loaded');
-              observer.unobserve(img);
-            };
+      const newImg = new Image();
+        newImg.onload = () => {
+        img.src = src;
+        img.classList.remove('lazy-loading');
+        img.classList.add('loaded');
+        // Hide skeleton after image loads
+        const skeleton = img.parentElement.querySelector('.skeleton');
+        if (skeleton) {
+        skeleton.style.display = 'none';
+      }
+        observer.unobserve(img);
+      };
             newImg.onerror = () => {
               img.classList.remove('lazy-loading');
               img.classList.add('loaded');
@@ -3329,6 +3348,8 @@
           renderGrid('gridMobile');
           populateLocationFilter();
           
+          // Load saved filter states
+          loadFilterState();
           // Setup mobile drawer interactions
           setupMobileDrawer();
           
