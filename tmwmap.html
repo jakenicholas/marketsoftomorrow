@@ -1203,13 +1203,8 @@
       
       #filterControlsDesktop select,
       #filterControlsDesktop .filter-dropdown {
-        flex: 1 1 auto;
+        flex: 1 1 auto !important;
         min-width: auto;
-      }
-      
-      #filterControlsDesktop .clear-filters-btn {
-        align-self: center;
-        flex: 0 0 auto;
       }
     }
     
@@ -1862,29 +1857,29 @@
           <button class="quick-filter-btn" data-filter="featured">Featured Only</button>
         </div>
         
-        <!-- Date range filter -->
-        <div class="date-range-filter" style="margin-bottom: 12px;">
-          <label style="font-size: 12px; color: #aaa; margin-bottom: 4px; display: block;">Delivery Date Range:</label>
-          <div style="display: flex; gap: 8px; align-items: center;">
-            <select id="dateRangeFilter" style="flex: 1; background: #1a1a1a; color: #fff; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 6px; padding: 6px 8px; font-size: 12px;">
-              <option value="all">All Dates</option>
-              <option value="2024">2024</option>
-              <option value="2025">2025</option>
-              <option value="2026">2026</option>
-              <option value="2027">2027+</option>
-            </select>
-          </div>
-        </div>
-        
-        <div id="filterControlsDesktop" style="display: flex; gap: 12px; align-items: stretch; flex-wrap: wrap; margin-bottom: 8px;">
-          <select id="sortSelectDesktop" style="flex: 0 1 140px; min-width: 120px; background: #1a1a1a; color: #fff; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 8px 12px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s ease; appearance: none; background-image: url(&quot;data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%23999' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E&quot;); background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px;">
+        <!-- Filter Controls Row -->
+        <div id="filterControlsDesktop" style="display: flex; gap: 2%; align-items: stretch; margin-bottom: 12px;">
+          <!-- Sorting Filter -->
+          <select id="sortSelectDesktop" style="flex: 0 0 22.5%; background: #1a1a1a; color: #fff; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 8px 12px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s ease; appearance: none; background-image: url(&quot;data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%23999' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E&quot;); background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px;">
             <option value="default">Sort: Nearest</option>
             <option value="az">Sort: A to Z</option>
             <option value="za">Sort: Z to A</option>
           </select>
           
+          <!-- Delivery Date Filter -->
+          <select id="dateRangeFilter" style="flex: 0 0 22.5%; background: #1a1a1a; color: #fff; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 8px 12px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s ease; appearance: none; background-image: url(&quot;data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%23999' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E&quot;); background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px;">
+            <option value="all">All Dates</option>
+            <option value="2024">2024</option>
+            <option value="2025">2025</option>
+            <option value="2026">2026</option>
+            <option value="2027">2027</option>
+            <option value="2028">2028</option>
+            <option value="2029">2029</option>
+            <option value="2030">2030+</option>
+          </select>
+          
           <!-- Multi-select project type filter -->
-          <div class="filter-dropdown" style="flex: 0 1 140px; min-width: 120px;">
+          <div class="filter-dropdown" style="flex: 0 0 22.5%;">
             <div class="filter-dropdown-toggle" id="projectTypeFilterDesktop" data-filter="projectType">
               <span class="filter-text">All Types</span>
               <span class="filter-counter" style="display: none;">0</span>
@@ -1895,7 +1890,7 @@
           </div>
           
           <!-- Multi-select location filter -->
-          <div class="filter-dropdown" style="flex: 0 1 130px; min-width: 110px;">
+          <div class="filter-dropdown" style="flex: 0 0 22.5%;">
             <div class="filter-dropdown-toggle" id="locationFilterDesktop" data-filter="location">
               <span class="filter-text">All Cities</span>
               <span class="filter-counter" style="display: none;">0</span>
@@ -1904,8 +1899,11 @@
               <!-- Options will be populated dynamically -->
             </div>
           </div>
-          
-          <button class="clear-filters-btn" id="clearFiltersDesktop" disabled style="flex: 0 0 auto;">Clear All</button>
+        </div>
+        
+        <!-- Clear Button Row -->
+        <div id="clearButtonRow" style="display: none; margin-bottom: 8px;">
+          <button class="clear-filters-btn" id="clearFiltersDesktop">Clear All</button>
         </div>
       </div>
       <div class="sidebar-content">
@@ -2319,6 +2317,14 @@
     
     const isMobile = window.innerWidth <= 800;
     
+    // Multi-select filter management - declare early to avoid initialization issues
+    let selectedFilters = {
+      location: new Set(),
+      projectType: new Set(),
+      quickFilter: null,
+      dateRange: 'all'
+    };
+    
     // Initialize desktop/mobile specific elements after DOM loads
     if (isMobile) {
       // Use immediate check and also DOM loaded event
@@ -2620,8 +2626,8 @@
             const deliveryYear = parseInt(yearMatch[1]);
             const filterYear = selectedFilters.dateRange;
             
-            if (filterYear === '2027') {
-              return deliveryYear >= 2027;
+            if (filterYear === '2030') {
+              return deliveryYear >= 2030;
             } else {
               return deliveryYear.toString() === filterYear;
             }
@@ -2858,13 +2864,6 @@
       gridItems.forEach(item => fadeObserver.observe(item));
       images.forEach(img => imageObserver.observe(img));
     }
-    // Multi-select filter management
-    let selectedFilters = {
-      location: new Set(),
-      projectType: new Set(),
-      quickFilter: null,
-      dateRange: 'all'
-    };
     
     // Initialize multi-select filter dropdowns
     function initializeMultiSelectFilters() {
@@ -2923,13 +2922,19 @@
     
     // Update clear button state
     function updateClearButtonState() {
-      const clearBtn = document.getElementById('clearFiltersDesktop');
-      const hasActiveFilters = selectedFilters.location.size > 0 || 
-                              selectedFilters.projectType.size > 0 || 
-                              selectedFilters.quickFilter !== null ||
-                              selectedFilters.dateRange !== 'all';
+      const clearButtonRow = document.getElementById('clearButtonRow');
+      if (!clearButtonRow) return;
       
-      clearBtn.disabled = !hasActiveFilters;
+      try {
+        const hasActiveFilters = selectedFilters.location.size > 0 || 
+                                selectedFilters.projectType.size > 0 || 
+                                selectedFilters.quickFilter !== null ||
+                                selectedFilters.dateRange !== 'all';
+        
+        clearButtonRow.style.display = hasActiveFilters ? 'block' : 'none';
+      } catch (e) {
+        console.warn('Error updating clear button state:', e);
+      }
     }
     
     // Clear all filters
