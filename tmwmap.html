@@ -18,6 +18,11 @@
   <meta name="format-detection" content="date=no">
   <meta name="format-detection" content="address=no">
   <meta name="format-detection" content="email=no">
+
+  <!-- iOS Safari fullscreen fixes -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   
   <script src="https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
@@ -83,6 +88,7 @@
       padding: 0; 
       width: 100%; 
       height: 100%; 
+      height: -webkit-fill-available;
       overflow: hidden;
     }
     
@@ -724,11 +730,11 @@
     }
     
     #desktopSidebar .grid-item .image-wrapper {
-      min-height: 100px; /* Changed to 100px */
+      min-height: 150px; /* Changed to 100px */
     }
     
     #desktopSidebar .grid-item img {
-      height: 100px; /* Changed to 100px */
+      height: 150px; /* Changed to 100px */
     }
     
     #desktopSidebar .grid-item-content {
@@ -772,11 +778,11 @@
       border-radius:4px; 
       flex-shrink: 0; 
       background: #333;
-      min-height: 120px;
+      min-height: 180px;
     }
     .grid-item img { 
       width:100%; 
-      height:120px; 
+      height:180px; 
       object-fit:cover; 
       display:block; 
       background: #333;
@@ -1911,12 +1917,10 @@
       center: [-81.1961527, 26.7807395],
       zoom: isMobile ? 6 : 7
     });
-
     let activePopup;
     let stationPopup;
     let fullscreenMap;
     const hoverIcon = document.getElementById('hoverIcon');
-
     // Station coordinates
     const stations = [
       { name: 'Brightline Miami Central', coords: [ -80.19566705369766, 25.779947075732274 ] },
@@ -1929,7 +1933,6 @@
       { name: 'Brightline West Palm Beach', coords: [ -80.05544183114269, 26.71256721532643 ] },
       { name: 'Brightline Orlando', coords: [ -81.30766141153542, 28.41186811070061 ] }
     ];
-
     // Toggle sidebar functionality
     function toggleSidebar() {
       const sidebar = document.getElementById('desktopSidebar');
@@ -1986,7 +1989,6 @@
         };
       }
     }
-
     // Helper function to calculate distance between two coordinates
     function calculateDistance(lat1, lon1, lat2, lon2) {
       const R = 3959; // Earth's radius in miles
@@ -1998,7 +2000,6 @@
       const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
       return R * c;
     }
-
     // Helper functions that need to be global
     function showPopup(f) {
       // Add subtle haptic feedback on mobile
@@ -2054,7 +2055,6 @@
       // Update URL with selected project
       updateURLState({ project: f.properties.title.toLowerCase().replace(/\s+/g, '-') });
     }
-
     function renderGrid(targetId = 'grid') {
       const grid=document.getElementById(targetId);
       if (!grid) return;
@@ -2274,7 +2274,6 @@
       gridItems.forEach(item => fadeObserver.observe(item));
       images.forEach(img => imageObserver.observe(img));
     }
-
     function populateLocationFilter() {
       if (!map.getSource('projects') || !map.getSource('projects')._data) return;
       
@@ -2331,7 +2330,6 @@
         }
       });
     }
-
     // Add event listeners for desktop filters
     const setupDesktopFilters = () => {
       const desktopFilters = ['sortSelectDesktop', 'locationFilterDesktop', 'projectTypeFilterDesktop'];
@@ -2350,7 +2348,6 @@
         }
       });
     };
-
     // Add event listeners for mobile filters
     const setupMobileFilters = () => {
       const mobileFilters = ['sortSelectMobile', 'locationFilterMobile', 'projectTypeFilterMobile'];
@@ -2418,7 +2415,6 @@
         });
       }
     };
-
     // Sidebar search functionality
     const setupSidebarSearch = () => {
       const searchBar = document.getElementById('sidebarSearchBar');
@@ -2640,10 +2636,8 @@
       gridItems.forEach(item => fadeObserver.observe(item));
       images.forEach(img => imageObserver.observe(img));
     }
-
     // Global variable to track mobile drawer state
     window.mobileDrawerCollapse = null;
-
     // Mobile drawer functionality
     function setupMobileDrawer() {
       const drawer = document.getElementById('mobileDrawer');
@@ -2662,7 +2656,6 @@
         const appHeight = getComputedStyle(document.documentElement).getPropertyValue('--app-height');
         return parseInt(appHeight) - 50; // Account for header
       };
-
       // Function to collapse drawer
       function collapseDrawer() {
         isExpanded = false;
@@ -2693,7 +2686,6 @@
       
       // Make collapseDrawer globally available
       window.mobileDrawerCollapse = collapseDrawer;
-
       // Prevent touch interactions on content only when collapsed
       content.addEventListener('touchstart', (e) => {
         if (!isExpanded) {
@@ -2702,7 +2694,6 @@
           return false;
         }
       }, { passive: false });
-
       // Handle drag start
       handle.addEventListener('touchstart', (e) => {
         isDragging = true;
@@ -2716,7 +2707,6 @@
         const collapsedY = viewportHeight;
         startTransform = matrix.m42 || (isExpanded ? 0 : collapsedY);
       }, { passive: true });
-
       // Handle drag move
       handle.addEventListener('touchmove', (e) => {
         if (!isDragging) return;
@@ -2733,7 +2723,6 @@
         
         drawer.style.transform = `translateY(${newY}px)`;
       }, { passive: false });
-
       // Handle drag end
       handle.addEventListener('touchend', (e) => {
         if (!isDragging) return;
@@ -2753,7 +2742,6 @@
           collapseDrawer();
         }
       }, { passive: true });
-
       // Click to toggle
       handle.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -2764,7 +2752,6 @@
           expandDrawer();
         }
       });
-
       // Tiles button opens drawer (new floating button)
       const mobileTilesBtn = document.getElementById('mobileTilesButton');
       if (mobileTilesBtn && isMobile) {
@@ -2781,7 +2768,6 @@
           });
         });
       }
-
       // Map return button (now on the drawer handle)
       const mobileMapBtn = document.getElementById('mobileMapButton');
       if (mobileMapBtn) {
@@ -2806,7 +2792,6 @@
         collapseDrawer();
       });
     }
-
     map.on('load', () => {
       // Build custom Brightline GeoJSON with your coordinates
       const brightlineGeo = {
@@ -3075,23 +3060,19 @@
             } }
         ]
       };
-
       map.addSource('brightline', { type: 'geojson', data: brightlineGeo });
       map.addLayer({ id: 'brightline-existing', type: 'line', source: 'brightline', filter: ['==', ['get','segment'], 'existing'], layout: { 'line-join':'round','line-cap':'round' }, paint: { 'line-color':'#FFD300','line-width':2 } });
       map.addLayer({ id: 'brightline-future', type: 'line', source: 'brightline', filter: ['==', ['get','segment'], 'future'], layout: { 'line-join':'round','line-cap':'round' }, paint: { 'line-color':'#FFD300','line-width':2,'line-dasharray':[1,2] } });
-
       // Add Brightline stations as yellow circles
       const stationFeatures = stations.map(s => ({ 
         type: 'Feature', 
         properties: { name: s.name }, 
         geometry: { type: 'Point', coordinates: s.coords } 
       }));
-
       map.addSource('stations', { 
         type: 'geojson', 
         data: { type: 'FeatureCollection', features: stationFeatures } 
       });
-
       map.addLayer({
         id: 'station-dots',
         type: 'circle',
@@ -3103,7 +3084,6 @@
           'circle-stroke-width': 2
         }
       });
-
       // Add invisible larger hover area for stations (positioned above visible dots)
       map.addLayer({
         id: 'station-hover',
@@ -3115,7 +3095,6 @@
           'circle-stroke-width': 0
         }
       });
-
       // Add station hover functionality with larger hover area
       map.on('mouseenter', 'station-hover', (e) => {
         if (stationPopup) stationPopup.remove();
@@ -3130,7 +3109,6 @@
         .setHTML(`<div style="background: rgba(20,20,20,0.9); color: #fff; padding: 8px 12px; border-radius: 6px; font-size: 14px; font-weight: 500;">${feature.properties.name}</div>`)
         .addTo(map);
       });
-
       map.on('mouseleave', 'station-hover', () => {
         map.getCanvas().style.cursor = '';
         if (stationPopup) {
@@ -3138,7 +3116,6 @@
           stationPopup = null;
         }
       });
-
       // Mobile touch for stations (using hover layer)
       if (isMobile) {
         map.on('click', 'station-hover', (e) => {
@@ -3154,7 +3131,6 @@
           .addTo(map);
         });
       }
-
       // Close station popup on map move, zoom, or other interactions
       map.on('movestart', () => {
         if (stationPopup) {
@@ -3162,14 +3138,12 @@
           stationPopup = null;
         }
       });
-
       map.on('zoomstart', () => {
         if (stationPopup) {
           stationPopup.remove();
           stationPopup = null;
         }
       });
-
       // Brightline hover animation setup
       function setupHover() {
         // Desktop hover
@@ -3177,17 +3151,14 @@
           map.getCanvas().style.cursor = 'pointer';
           hoverIcon.style.display = 'block';
         });
-
         map.on('mouseleave', 'brightline-existing', () => {
           map.getCanvas().style.cursor = '';
           hoverIcon.style.display = 'none';
         });
-
         map.on('mousemove', 'brightline-existing', (e) => {
           hoverIcon.style.left = `${e.point.x}px`;
           hoverIcon.style.top = `${e.point.y}px`;
         });
-
         // Mobile tap
         if (isMobile) {
           map.on('click', 'brightline-existing', (e) => {
@@ -3200,7 +3171,6 @@
             hoverIcon.style.top = `${e.point.y}px`;
             hoverIcon.style.display = 'block';
           });
-
           map.on('movestart', () => {
             hoverIcon.style.display = 'none';
             // Close station popup on map move
@@ -3213,9 +3183,7 @@
           map.on('click','unclustered-point', () => hoverIcon.style.display = 'none');
         }
       }
-
       setupHover();
-
       // Add fullscreen button for both mobile and desktop
       const fullscreenBtn = document.getElementById('fullscreenButton');
       fullscreenBtn.style.display = 'flex';
@@ -3277,13 +3245,11 @@
           }, 500);
         }
       }
-
       initializeData();
       setupDesktopFilters();
       setupMobileFilters();
       setupSidebarSearch();
     });
-
     function initializeData() {
       Papa.parse('https://docs.google.com/spreadsheets/d/1qwU7ykIDUrtPlIQu-qk2FIJwiz-WWg5caq02ja30sgM/export?format=csv&gid=0',{
         download:true, header:true, complete: results => {
@@ -3303,13 +3269,9 @@
               featured: p.Featured && p.Featured.trim().toLowerCase() === 'featured' ? true : false
             }
           }))};
-
           map.addSource('projects',{ type:'geojson', data:projectGeo, cluster:true, clusterMaxZoom:16, clusterRadius:35 });
-
           map.addLayer({ id:'clusters', type:'circle', source:'projects', filter:['has','point_count'], paint:{ 'circle-color':'#1FDF67','circle-radius':['step',['get','point_count'],20,100,30,750,40],'circle-stroke-width':2,'circle-stroke-color':'#fff' } });
-
           map.addLayer({ id:'cluster-count', type:'symbol', source:'projects', filter:['has','point_count'], layout:{ 'text-field':'{point_count_abbreviated}','text-size':12 }, paint:{ 'text-color':'#ffffff' } });
-
           map.addLayer({ id:'unclustered-point', type:'circle', source:'projects', filter:['!',['has','point_count']], paint:{ 'circle-color':'#1FDF67','circle-radius':8,'circle-stroke-width':2,'circle-stroke-color':'#fff' } });
           
           // Add glow layer for featured pins
@@ -3327,7 +3289,6 @@
               'circle-stroke-opacity':0.6
             } 
           }, 'unclustered-point'); // Place below the main pin layer
-
           map.on('click','clusters',e=>{ 
             // Close station popup when clicking clusters
             if (stationPopup) {
@@ -3337,7 +3298,6 @@
             const f=e.features[0]; 
             map.getSource('projects').getClusterExpansionZoom(f.properties.cluster_id,(err,z)=>map.flyTo({center:f.geometry.coordinates,zoom:z})); 
           });
-
           map.on('click','unclustered-point',e=>{
             // Close station popup when clicking pins
             if (stationPopup) {
@@ -3359,7 +3319,6 @@
             
             showPopup(feature);
           });
-
           renderGrid('gridDesktop');
           renderGrid('gridMobile');
           populateLocationFilter();
@@ -3390,7 +3349,6 @@
           map.on('zoomend', updateGridsOnMapChange);
       }});
     }
-
     document.getElementById('openSearch').onclick=()=>{
       const searchContainer = document.getElementById('searchContainer');
       searchContainer.classList.remove('hidden');
@@ -3400,12 +3358,10 @@
       }
       document.getElementById('openSearch').style.display='none';
     };
-
     document.getElementById('closeSearch').onclick=()=>{
       document.getElementById('searchContainer').classList.add('hidden');
       document.getElementById('openSearch').style.display='block';
     };
-
     // ——— Search functionality ———
     const searchBarEl=document.getElementById('searchBar'),
           resultsEl=document.getElementById('results');
@@ -3414,11 +3370,9 @@
     if (isMobile) {
       searchBarEl.placeholder = 'Search...';
     }
-
     searchBarEl.addEventListener('input',e=>{
       const query=e.target.value.trim().toLowerCase();
       if(!query){ resultsEl.classList.add('hidden'); return; }
-
       const features=map.getSource('projects')._data.features;
       const matches=features.filter(f=>
         f.properties.title.toLowerCase().includes(query)||
@@ -3434,7 +3388,6 @@
           'device_type': isMobile ? 'mobile' : 'desktop'
         });
       }
-
       resultsEl.innerHTML='';
       if(matches.length){
         matches.forEach(f=>{
@@ -3461,7 +3414,6 @@
       }
       resultsEl.classList.remove('hidden');
     });
-
     // Fullscreen functionality
     const fullscreenBtn = document.getElementById('fullscreenButton');
     const appContainer = document.getElementById('app-container');
@@ -3521,7 +3473,6 @@
         map.setZoom(fullscreenMap.getZoom());
       }
     };
-
   </script>
 </body>
 </html>
