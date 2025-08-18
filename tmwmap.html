@@ -1602,9 +1602,9 @@
       }
       
       #sortSelectMobile {
-        flex: 0.6; /* Reduce from 0.8 to 0.6 (40% smaller) */
-        min-width: 60px; /* Reduce from 80px */
-        max-width: 80px; /* Add max width to prevent expanding */
+        flex: 0.6 !important; /* Reduce from 0.8 to 0.6 (40% smaller) */
+        min-width: 60px !important; /* Reduce from 80px */
+        max-width: 80px !important; /* Add max width to prevent expanding */
       }
       
       #mobileFilterControls .multi-select-container {
@@ -2239,8 +2239,8 @@
     const hoverIcon = document.getElementById('hoverIcon');
     
     // Multi-select filter state
-    let selectedProjectTypes = [];
-    let selectedCities = [];
+    window.selectedProjectTypes = [];
+    window.selectedCities = [];
     // Station coordinates
     const stations = [
       { name: 'Brightline Miami Central', coords: [ -80.19566705369766, 25.779947075732274 ] },
@@ -2417,20 +2417,20 @@
       }
       
       // Apply project type filter - ALL selected types must be included
-      if (selectedProjectTypes.length > 0) {
+      if (window.selectedProjectTypes.length > 0) {
         features = features.filter(f => {
           const projectTypes = f.properties.projectTypes || [];
           // Check if ALL selected types are included in this project
-          return selectedProjectTypes.every(selectedType => 
+          return window.selectedProjectTypes.every(selectedType => 
             projectTypes.includes(selectedType.toLowerCase())
           );
         });
       }
       
       // Apply location filter - ANY selected city matches
-      if (selectedCities.length > 0) {
+      if (window.selectedCities.length > 0) {
         features = features.filter(f => 
-          selectedCities.includes(f.properties.city)
+          window.selectedCities.includes(f.properties.city)
         );
       }
       
@@ -2725,19 +2725,19 @@
           // Update selection arrays
           if (containerId.includes('projectType')) {
             if (option.classList.contains('selected')) {
-              if (!selectedProjectTypes.includes(value)) {
-                selectedProjectTypes.push(value);
+              if (!window.selectedProjectTypes.includes(value)) {
+                window.selectedProjectTypes.push(value);
               }
             } else {
-              selectedProjectTypes = selectedProjectTypes.filter(type => type !== value);
+              window.selectedProjectTypes = window.selectedProjectTypes.filter(type => type !== value);
             }
           } else if (containerId.includes('location')) {
             if (option.classList.contains('selected')) {
-              if (!selectedCities.includes(value)) {
-                selectedCities.push(value);
+              if (!window.selectedCities.includes(value)) {
+                window.selectedCities.push(value);
               }
             } else {
-              selectedCities = selectedCities.filter(city => city !== value);
+              window.selectedCities = window.selectedCities.filter(city => city !== value);
             }
           }
           
@@ -2782,7 +2782,7 @@
       const count = container.querySelector('.multi-select-count');
       
       if (containerId.includes('projectType')) {
-        const selectedCount = selectedProjectTypes.length;
+        const selectedCount = window.selectedProjectTypes.length;
         if (selectedCount === 0) {
           trigger.innerHTML = `
             <span class="multi-select-label">Includes</span>
@@ -2791,7 +2791,7 @@
             </svg>
           `;
         } else if (selectedCount === 1) {
-          const displayText = selectedProjectTypes[0].charAt(0).toUpperCase() + selectedProjectTypes[0].slice(1);
+          const displayText = window.selectedProjectTypes[0].charAt(0).toUpperCase() + window.selectedProjectTypes[0].slice(1);
           trigger.innerHTML = `
             <span class="multi-select-label">${displayText}</span>
             <svg class="dropdown-arrow" width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-left: auto;">
@@ -2807,7 +2807,7 @@
           `;
         }
       } else if (containerId.includes('location')) {
-        const selectedCount = selectedCities.length;
+        const selectedCount = window.selectedCities.length;
         if (selectedCount === 0) {
           trigger.innerHTML = `
             <span class="multi-select-label">All Cities</span>
@@ -2817,7 +2817,7 @@
           `;
         } else if (selectedCount === 1) {
           trigger.innerHTML = `
-            <span class="multi-select-label">${selectedCities[0]}</span>
+            <span class="multi-select-label">${window.selectedCities[0]}</span>
             <svg class="dropdown-arrow" width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-left: auto;">
               <path d="M1 1.5L6 6.5L11 1.5" stroke="#999" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
@@ -2839,7 +2839,7 @@
       const clearBtn = document.getElementById(btnId);
       
       // Check if any filters have selections
-      const hasSelections = selectedProjectTypes.length > 0 || selectedCities.length > 0;
+      const hasSelections = window.selectedProjectTypes.length > 0 || window.selectedCities.length > 0;
       
       if (clearBtn) {
         clearBtn.style.display = hasSelections ? 'block' : 'none';
@@ -2866,8 +2866,8 @@
         if (btn) {
           btn.addEventListener('click', () => {
             // Clear all selections
-            selectedProjectTypes = [];
-            selectedCities = [];
+            window.selectedProjectTypes = [];
+            window.selectedCities = [];
             
             // Update UI
             document.querySelectorAll('.multi-select-option').forEach(opt => {
