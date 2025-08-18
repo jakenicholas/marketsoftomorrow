@@ -1393,6 +1393,89 @@
       margin-top: 8px;
     }
     
+    /* Multi-select styles - DO NOT change existing filter container positioning */
+    .multi-select-container {
+      position: relative;
+      /* Keep all existing flex, min-width styles from original select */
+    }
+
+    .multi-select-trigger {
+      /* Copy ALL styles from existing select elements */
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+    }
+
+    .multi-select-count {
+      background: #1FDF67;
+      color: #1a1a1a;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 600;
+      margin-right: 8px;
+    }
+
+    .multi-select-count.visible {
+      display: flex;
+    }
+
+    .multi-select-dropdown {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: #1a1a1a;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      margin-top: 4px;
+      max-height: 200px;
+      overflow-y: auto;
+      display: none;
+      z-index: 100;
+    }
+
+    .multi-select-dropdown.open {
+      display: block;
+    }
+
+    .multi-select-option {
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .multi-select-option:hover {
+      background: #333;
+      border: 1px solid #666;
+      margin: -1px;
+    }
+
+    .multi-select-option.selected {
+      background: #333;
+      border: 1px solid #666;
+      margin: -1px;
+    }
+
+    .check-icon {
+      width: 16px;
+      height: 16px;
+      margin-right: 8px;
+      color: #1FDF67;
+      opacity: 0;
+    }
+
+    .multi-select-option.selected .check-icon {
+      opacity: 1;
+    }
+
     /* Smooth transitions for all interactive elements */
     * {
       -webkit-tap-highlight-color: transparent;
@@ -1511,12 +1594,30 @@
             <option value="az">Sort: A to Z</option>
             <option value="za">Sort: Z to A</option>
           </select>
-          <select id="projectTypeFilterDesktop" style="flex: 1; min-width: 120px; background: #1a1a1a; color: #fff; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 8px 12px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s ease; appearance: none; background-image: url(&quot;data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%23999' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E&quot;); background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px;">
-            <option value="all">All Types</option>
-          </select>
-          <select id="locationFilterDesktop" style="flex: 1; min-width: 100px; background: #1a1a1a; color: #fff; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 8px 12px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s ease; appearance: none; background-image: url(&quot;data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%23999' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E&quot;); background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px;">
-            <option value="all">All Cities</option>
-          </select>
+          <div class="multi-select-container" id="projectTypeFilterDesktop" style="flex: 1; min-width: 120px;">
+            <div class="multi-select-trigger" style="background: #1a1a1a; color: #fff; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 8px 12px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s ease;">
+              <span class="multi-select-label">Includes</span>
+              <span class="multi-select-count"></span>
+              <svg class="dropdown-arrow" width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-left: auto;">
+                <path d="M1 1.5L6 6.5L11 1.5" stroke="#999" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <div class="multi-select-dropdown" id="projectTypeDropdownDesktop">
+              <!-- Options will be populated by JavaScript -->
+            </div>
+          </div>
+          <div class="multi-select-container" id="locationFilterDesktop" style="flex: 1; min-width: 100px;">
+            <div class="multi-select-trigger" style="background: #1a1a1a; color: #fff; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 8px 12px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s ease;">
+              <span class="multi-select-label">All Cities</span>
+              <span class="multi-select-count"></span>
+              <svg class="dropdown-arrow" width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-left: auto;">
+                <path d="M1 1.5L6 6.5L11 1.5" stroke="#999" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <div class="multi-select-dropdown" id="locationDropdownDesktop">
+              <!-- Options will be populated by JavaScript -->
+            </div>
+          </div>
         </div>
       </div>
       <div class="sidebar-content">
@@ -1541,12 +1642,30 @@
               <option value="az">A to Z</option>
               <option value="za">Z to A</option>
             </select>
-            <select id="projectTypeFilterMobile">
-              <option value="all">All Types</option>
-            </select>
-            <select id="locationFilterMobile">
-              <option value="all">All Cities</option>
-            </select>
+            <div class="multi-select-container" id="projectTypeFilterMobile" style="flex: 1; min-width: 90px;">
+              <div class="multi-select-trigger" style="background: #1a1a1a; color: #fff; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 8px 12px; font-size: 9px; font-weight: 500; cursor: pointer; transition: all 0.2s ease;">
+                <span class="multi-select-label">Includes</span>
+                <span class="multi-select-count"></span>
+                <svg class="dropdown-arrow" width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-left: auto;">
+                  <path d="M1 1.5L6 6.5L11 1.5" stroke="#999" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+              <div class="multi-select-dropdown" id="projectTypeDropdownMobile">
+                <!-- Options will be populated by JavaScript -->
+              </div>
+            </div>
+            <div class="multi-select-container" id="locationFilterMobile" style="flex: 1; min-width: 90px;">
+              <div class="multi-select-trigger" style="background: #1a1a1a; color: #fff; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 8px 12px; font-size: 9px; font-weight: 500; cursor: pointer; transition: all 0.2s ease;">
+                <span class="multi-select-label">All Cities</span>
+                <span class="multi-select-count"></span>
+                <svg class="dropdown-arrow" width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-left: auto;">
+                  <path d="M1 1.5L6 6.5L11 1.5" stroke="#999" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+              <div class="multi-select-dropdown" id="locationDropdownMobile">
+                <!-- Options will be populated by JavaScript -->
+              </div>
+            </div>
           </div>
         </div>
         
@@ -1955,6 +2074,10 @@
     let stationPopup;
     let fullscreenMap;
     const hoverIcon = document.getElementById('hoverIcon');
+    
+    // Multi-select filter state
+    let selectedProjectTypes = [];
+    let selectedCities = [];
     // Station coordinates
     const stations = [
       { name: 'Brightline Miami Central', coords: [ -80.19566705369766, 25.779947075732274 ] },
@@ -2118,35 +2241,34 @@
       });
       
       // Determine which filters to use based on target
-      let locationFilter, projectTypeFilter, sortType;
+      let sortType;
       
       if (targetId === 'gridDesktop') {
-        locationFilter = document.getElementById('locationFilterDesktop')?.value || 'all';
-        projectTypeFilter = document.getElementById('projectTypeFilterDesktop')?.value || 'all';
         sortType = document.getElementById('sortSelectDesktop')?.value || 'default';
       } else if (targetId === 'gridMobile') {
         // Mobile uses its own filters
-        locationFilter = document.getElementById('locationFilterMobile')?.value || 'all';
-        projectTypeFilter = document.getElementById('projectTypeFilterMobile')?.value || 'all';
         sortType = document.getElementById('sortSelectMobile')?.value || 'default';
       } else {
         // Original grid
-        locationFilter = document.getElementById('locationFilter')?.value || 'all';
-        projectTypeFilter = document.getElementById('projectTypeFilter')?.value || 'all';
         sortType = document.getElementById('sortSelect')?.value || 'default';
       }
       
-      // Apply location filter
-      if (locationFilter !== 'all') {
-        features = features.filter(f => f.properties.city === locationFilter);
+      // Apply project type filter - ALL selected types must be included
+      if (selectedProjectTypes.length > 0) {
+        features = features.filter(f => {
+          const projectTypes = f.properties.projectTypes || [];
+          // Check if ALL selected types are included in this project
+          return selectedProjectTypes.every(selectedType => 
+            projectTypes.includes(selectedType.toLowerCase())
+          );
+        });
       }
       
-      // Apply project type filter
-      if (projectTypeFilter !== 'all') {
-        features = features.filter(f => {
-          return f.properties.projectTypes && 
-                 f.properties.projectTypes.includes(projectTypeFilter.toLowerCase());
-        });
+      // Apply location filter - ANY selected city matches
+      if (selectedCities.length > 0) {
+        features = features.filter(f => 
+          selectedCities.includes(f.properties.city)
+        );
       }
       
       // Apply sorting
@@ -2324,36 +2446,33 @@
       
       const features = map.getSource('projects')._data.features;
       
-      // Get all filter elements
-      const locationFilters = [
-        document.getElementById('locationFilter'),
-        document.getElementById('locationFilterDesktop'),
-        document.getElementById('locationFilterMobile')
-      ];
-      
-      const projectTypeFilters = [
-        document.getElementById('projectTypeFilter'),
-        document.getElementById('projectTypeFilterDesktop'),
-        document.getElementById('projectTypeFilterMobile')
-      ];
-      
-      // Populate cities
+      // Populate cities for multi-select dropdowns
       const cities = [...new Set(features.map(f => f.properties.city))];
       cities.sort();
       
-      locationFilters.forEach(filter => {
-        if (filter) {
-          filter.innerHTML = '<option value="all">All Cities</option>';
+      // Populate city dropdowns
+      const locationDropdowns = [
+        document.getElementById('locationDropdownDesktop'),
+        document.getElementById('locationDropdownMobile')
+      ];
+      
+      locationDropdowns.forEach(dropdown => {
+        if (dropdown) {
+          dropdown.innerHTML = '';
           cities.forEach(city => {
-            const option = document.createElement('option');
-            option.value = city;
-            option.textContent = city;
-            filter.appendChild(option);
+            const option = document.createElement('div');
+            option.className = 'multi-select-option';
+            option.setAttribute('data-value', city);
+            option.innerHTML = `
+              <svg class="check-icon">✓</svg>
+              <span>${city}</span>
+            `;
+            dropdown.appendChild(option);
           });
         }
       });
       
-      // Populate project types
+      // Populate project types for multi-select dropdowns
       const allTypes = new Set();
       features.forEach(f => {
         if (f.properties.projectTypes && f.properties.projectTypes.length > 0) {
@@ -2363,21 +2482,164 @@
       
       const projectTypes = [...allTypes].sort((a, b) => a.localeCompare(b));
       
-      projectTypeFilters.forEach(filter => {
-        if (filter) {
-          filter.innerHTML = '<option value="all">All Types</option>';
+      // Populate project type dropdowns
+      const projectTypeDropdowns = [
+        document.getElementById('projectTypeDropdownDesktop'),
+        document.getElementById('projectTypeDropdownMobile')
+      ];
+      
+      projectTypeDropdowns.forEach(dropdown => {
+        if (dropdown) {
+          dropdown.innerHTML = '';
           projectTypes.forEach(type => {
-            const option = document.createElement('option');
-            option.value = type;
-            option.textContent = type.charAt(0).toUpperCase() + type.slice(1);
-            filter.appendChild(option);
+            const option = document.createElement('div');
+            option.className = 'multi-select-option';
+            option.setAttribute('data-value', type);
+            option.innerHTML = `
+              <svg class="check-icon">✓</svg>
+              <span>${type.charAt(0).toUpperCase() + type.slice(1)}</span>
+            `;
+            dropdown.appendChild(option);
           });
         }
       });
+      
+      // Setup multi-select functionality
+      setupMultiSelectHandlers();
+    }
+    
+    // Multi-select dropdown handlers
+    function setupMultiSelectHandlers() {
+      // Handle desktop and mobile multi-select dropdowns
+      const containers = [
+        'projectTypeFilterDesktop',
+        'locationFilterDesktop', 
+        'projectTypeFilterMobile',
+        'locationFilterMobile'
+      ];
+      
+      containers.forEach(containerId => {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        
+        const trigger = container.querySelector('.multi-select-trigger');
+        const dropdown = container.querySelector('.multi-select-dropdown');
+        const label = container.querySelector('.multi-select-label');
+        const count = container.querySelector('.multi-select-count');
+        
+        if (!trigger || !dropdown || !label || !count) return;
+        
+        // Toggle dropdown on trigger click
+        trigger.addEventListener('click', (e) => {
+          e.stopPropagation();
+          
+          // Close other dropdowns
+          containers.forEach(otherId => {
+            if (otherId !== containerId) {
+              const otherDropdown = document.getElementById(otherId)?.querySelector('.multi-select-dropdown');
+              if (otherDropdown) {
+                otherDropdown.classList.remove('open');
+              }
+            }
+          });
+          
+          dropdown.classList.toggle('open');
+        });
+        
+        // Handle option clicks
+        dropdown.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const option = e.target.closest('.multi-select-option');
+          if (!option) return;
+          
+          const value = option.getAttribute('data-value');
+          option.classList.toggle('selected');
+          
+          // Update selection arrays
+          if (containerId.includes('projectType')) {
+            if (option.classList.contains('selected')) {
+              if (!selectedProjectTypes.includes(value)) {
+                selectedProjectTypes.push(value);
+              }
+            } else {
+              selectedProjectTypes = selectedProjectTypes.filter(type => type !== value);
+            }
+          } else if (containerId.includes('location')) {
+            if (option.classList.contains('selected')) {
+              if (!selectedCities.includes(value)) {
+                selectedCities.push(value);
+              }
+            } else {
+              selectedCities = selectedCities.filter(city => city !== value);
+            }
+          }
+          
+          // Update UI
+          updateMultiSelectUI(containerId);
+          
+          // Trigger filtering
+          renderGrid(containerId.includes('Desktop') ? 'gridDesktop' : 'gridMobile');
+          
+          // Track filter usage
+          gtag('event', 'filter_change', {
+            'filter_type': containerId.replace('Desktop', '').replace('Mobile', '').replace('Filter', ''),
+            'filter_value': value,
+            'action': option.classList.contains('selected') ? 'select' : 'deselect',
+            'platform': containerId.includes('Desktop') ? 'desktop' : 'mobile'
+          });
+        });
+      });
+      
+      // Close dropdowns when clicking outside
+      document.addEventListener('click', () => {
+        containers.forEach(containerId => {
+          const dropdown = document.getElementById(containerId)?.querySelector('.multi-select-dropdown');
+          if (dropdown) {
+            dropdown.classList.remove('open');
+          }
+        });
+      });
+    }
+    
+    // Update multi-select UI labels and counts
+    function updateMultiSelectUI(containerId) {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+      
+      const label = container.querySelector('.multi-select-label');
+      const count = container.querySelector('.multi-select-count');
+      
+      if (containerId.includes('projectType')) {
+        const selectedCount = selectedProjectTypes.length;
+        if (selectedCount === 0) {
+          label.textContent = 'Includes';
+          count.classList.remove('visible');
+        } else if (selectedCount === 1) {
+          label.textContent = selectedProjectTypes[0].charAt(0).toUpperCase() + selectedProjectTypes[0].slice(1);
+          count.classList.remove('visible');
+        } else {
+          label.textContent = 'Multiple';
+          count.textContent = selectedCount;
+          count.classList.add('visible');
+        }
+      } else if (containerId.includes('location')) {
+        const selectedCount = selectedCities.length;
+        if (selectedCount === 0) {
+          label.textContent = 'All Cities';
+          count.classList.remove('visible');
+        } else if (selectedCount === 1) {
+          label.textContent = selectedCities[0];
+          count.classList.remove('visible');
+        } else {
+          label.textContent = 'Multiple';
+          count.textContent = selectedCount;
+          count.classList.add('visible');
+        }
+      }
     }
     // Add event listeners for desktop filters
     const setupDesktopFilters = () => {
-      const desktopFilters = ['sortSelectDesktop', 'locationFilterDesktop', 'projectTypeFilterDesktop'];
+      const desktopFilters = ['sortSelectDesktop'];
       desktopFilters.forEach(id => {
         const element = document.getElementById(id);
         if (element) {
@@ -2395,7 +2657,7 @@
     };
     // Add event listeners for mobile filters
     const setupMobileFilters = () => {
-      const mobileFilters = ['sortSelectMobile', 'locationFilterMobile', 'projectTypeFilterMobile'];
+      const mobileFilters = ['sortSelectMobile'];
       mobileFilters.forEach(id => {
         const element = document.getElementById(id);
         if (element) {
