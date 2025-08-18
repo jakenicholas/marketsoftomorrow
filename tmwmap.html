@@ -1591,7 +1591,16 @@
     .clear-selections-btn:active {
       transform: scale(0.98);
     }
-
+    /* Mobile-specific multi-select count pill styles */
+    @media(max-width:800px) {
+    #mobileFilterControls .multi-select-count {
+    width: auto; /* Allow width to adjust to content */
+    height: 16px; /* Make it less tall */
+    padding: 0 8px; /* Add horizontal padding for pill shape */
+    border-radius: 999px; /* Max rounded corners for pill shape */
+    line-height: 16px; /* Center text vertically */
+  }
+}
     /* Mobile-specific multi-select adjustments */
     @media(max-width:800px) {
       #mobileFilterControls {
