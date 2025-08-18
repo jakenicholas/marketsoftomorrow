@@ -1436,7 +1436,9 @@
       border-radius: 8px;
       margin-top: 4px;
       max-height: 200px;
-      overflow-y: auto;
+      overflow-y: auto; /* Only vertical scroll */
+      overflow-x: hidden; /* Prevent horizontal scroll */
+      -webkit-overflow-scrolling: touch; /* Smooth iOS scrolling */
       display: none;
       z-index: 100;
     }
@@ -1588,6 +1590,54 @@
 
     .clear-selections-btn:active {
       transform: scale(0.98);
+    }
+
+    /* Mobile-specific multi-select adjustments */
+    @media(max-width:800px) {
+      #mobileFilterControls {
+        align-items: stretch; /* Ensure all children have same height */
+      }
+      
+      #sortSelectMobile {
+        min-width: 80px; /* Reduced from 90px */
+        flex: 0.8; /* Slightly less flex grow */
+      }
+      
+      #mobileFilterControls .multi-select-container {
+        flex: 1; /* Equal flex for multi-selects */
+        min-width: 100px; /* Ensure minimum width */
+      }
+      
+      #mobileFilterControls select {
+        height: 36px; /* Consistent height */
+        font-size: 14px !important; /* Increase from 9px to 14px, override auto-zoom prevention */
+        box-sizing: border-box; /* Include border in height */
+        padding: 8px 36px 8px 12px; /* Ensure consistent padding */
+      }
+      
+      #mobileFilterControls .multi-select-trigger {
+        height: 36px !important; /* Consistent height */
+        line-height: 36px !important; /* Ensure vertical centering */
+        padding: 0 36px 0 12px !important; /* Match sort select padding */
+        font-size: 14px !important; /* Match sort select font size - NOT 9px */
+        box-sizing: border-box; /* Include border in height */
+      }
+      
+      #mobileFilterControls .multi-select-label {
+        font-size: 14px !important; /* Ensure label matches */
+      }
+
+      #mobileFilterControls .multi-select-dropdown {
+        width: max-content; /* Expand to fit content */
+        min-width: 100%; /* At least as wide as trigger */
+        max-width: 250px; /* Reasonable max width */
+      }
+      
+      #mobileFilterControls .multi-select-option {
+        white-space: nowrap; /* Prevent text wrapping */
+        text-align: left; /* Left align text */
+        padding: 10px 12px; /* Adequate padding */
+      }
     }
   </style>
 </head>
