@@ -1600,6 +1600,33 @@
         line-height: 16px; /* Center text vertically */
         min-width: unset; /* Remove any min-width constraints */
       }
+      
+      /* Fix mobile multi-select filter height to match sort select */
+      #mobileFilterControls .multi-select-trigger {
+        height: 36px !important; /* Match the sort select height */
+        line-height: 36px !important; /* Ensure vertical centering */
+        padding: 0 36px 0 12px !important; /* Match sort select padding */
+        font-size: 14px !important; /* Match sort select font size */
+      }
+      
+      /* Fix sort dropdown width (40% shorter) */
+      #sortSelectMobile {
+        flex: 0.6 !important; /* Reduce from 1 to 0.6 (40% smaller) */
+        min-width: 60px !important; /* Reduce from 90px */
+        max-width: 80px !important; /* Add max width to prevent expanding */
+      }
+      
+      /* Prevent text overflow/stacking */
+      #mobileFilterControls {
+        flex-wrap: nowrap !important; /* Never wrap */
+      }
+      
+      #mobileFilterControls select,
+      #mobileFilterControls .multi-select-trigger {
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important; /* Cut off text with ... instead of stacking */
+      }
     }
   </style>
 </head>
