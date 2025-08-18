@@ -1418,7 +1418,8 @@
       justify-content: center;
       font-size: 11px;
       font-weight: 600;
-      margin-right: 8px;
+      margin-left: 8px; /* Add space before the count circle */
+      margin-right: 8px; /* Keep existing right margin */
     }
 
     .multi-select-count.visible {
@@ -1450,6 +1451,7 @@
       align-items: center;
       cursor: pointer;
       transition: all 0.2s ease;
+      color: #fff;
     }
 
     .multi-select-option:hover {
@@ -1468,8 +1470,9 @@
       width: 16px;
       height: 16px;
       margin-right: 8px;
-      color: #1FDF67;
+      color: #1FDF67; /* Same green as pins/clusters */
       opacity: 0;
+      transition: opacity 0.2s ease;
     }
 
     .multi-select-option.selected .check-icon {
@@ -1532,6 +1535,29 @@
     .toast.show {
       transform: translateX(-50%) translateY(0);
       opacity: 1;
+    }
+    
+    /* Clear selections button */
+    .clear-selections-btn {
+      background: #dc2626; /* Red color */
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      margin-top: 12px;
+      width: 100%;
+    }
+
+    .clear-selections-btn:hover {
+      background: #b91c1c; /* Darker red on hover */
+    }
+
+    .clear-selections-btn:active {
+      transform: scale(0.98);
     }
   </style>
 </head>
@@ -1619,6 +1645,9 @@
             </div>
           </div>
         </div>
+        <button id="clearSelectionsDesktop" class="clear-selections-btn" style="display: none;">
+          Clear Selections
+        </button>
       </div>
       <div class="sidebar-content">
         <div class="leaf-grid" id="gridDesktop"></div>
@@ -1667,6 +1696,9 @@
               </div>
             </div>
           </div>
+          <button id="clearSelectionsMobile" class="clear-selections-btn" style="display: none;">
+            Clear Selections
+          </button>
         </div>
         
         <div class="mobile-content allow-scroll">
@@ -2464,7 +2496,9 @@
             option.className = 'multi-select-option';
             option.setAttribute('data-value', city);
             option.innerHTML = `
-              <svg class="check-icon">✓</svg>
+              <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                <path d="M20 6L9 17l-5-5"/>
+              </svg>
               <span>${city}</span>
             `;
             dropdown.appendChild(option);
@@ -2496,7 +2530,9 @@
             option.className = 'multi-select-option';
             option.setAttribute('data-value', type);
             option.innerHTML = `
-              <svg class="check-icon">✓</svg>
+              <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                <path d="M20 6L9 17l-5-5"/>
+              </svg>
               <span>${type.charAt(0).toUpperCase() + type.slice(1)}</span>
             `;
             dropdown.appendChild(option);
@@ -2577,6 +2613,10 @@
           // Update UI
           updateMultiSelectUI(containerId);
           
+          // Update clear button visibility
+          const platform = containerId.includes('Desktop') ? 'desktop' : 'mobile';
+          updateClearButton(platform);
+          
           // Trigger filtering
           renderGrid(containerId.includes('Desktop') ? 'gridDesktop' : 'gridMobile');
           
@@ -2637,6 +2677,62 @@
         }
       }
     }
+    
+    // Function to update clear button visibility
+    function updateClearButton(platform) {
+      const btnId = platform === 'desktop' ? 'clearSelectionsDesktop' : 'clearSelectionsMobile';
+      const clearBtn = document.getElementById(btnId);
+      
+      // Check if any filters have selections
+      const hasSelections = selectedProjectTypes.length > 0 || selectedCities.length > 0;
+      
+      if (clearBtn) {
+        clearBtn.style.display = hasSelections ? 'block' : 'none';
+      }
+    }
+
+    // Modified updateMultiSelectUI to also update clear buttons
+    function updateMultiSelectLabels() {
+      // Update both desktop and mobile UI
+      updateMultiSelectUI('projectTypeFilterDesktop');
+      updateMultiSelectUI('locationFilterDesktop');
+      updateMultiSelectUI('projectTypeFilterMobile');
+      updateMultiSelectUI('locationFilterMobile');
+      
+      // Update clear buttons
+      updateClearButton('desktop');
+      updateClearButton('mobile');
+    }
+    
+    // Add click handlers for clear buttons
+    function setupClearButtons() {
+      ['clearSelectionsDesktop', 'clearSelectionsMobile'].forEach(btnId => {
+        const btn = document.getElementById(btnId);
+        if (btn) {
+          btn.addEventListener('click', () => {
+            // Clear all selections
+            selectedProjectTypes = [];
+            selectedCities = [];
+            
+            // Update UI
+            document.querySelectorAll('.multi-select-option').forEach(opt => {
+              opt.classList.remove('selected');
+            });
+            
+            // Update labels and counts
+            updateMultiSelectLabels();
+            
+            // Hide clear button
+            btn.style.display = 'none';
+            
+            // Re-render grid
+            const platform = btnId.includes('Desktop') ? 'desktop' : 'mobile';
+            renderGrid(platform === 'desktop' ? 'gridDesktop' : 'gridMobile');
+          });
+        }
+      });
+    }
+    
     // Add event listeners for desktop filters
     const setupDesktopFilters = () => {
       const desktopFilters = ['sortSelectDesktop'];
@@ -3566,6 +3662,7 @@
       initializeData();
       setupDesktopFilters();
       setupMobileFilters();
+      setupClearButtons();
       setupSidebarSearch();
     });
     function initializeData() {
