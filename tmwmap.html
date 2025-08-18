@@ -2763,7 +2763,8 @@
         if (selectedCount === 0) {
           label.textContent = 'Includes';
           count.classList.remove('visible');
-          // Reset mobile trigger if no selections
+          
+          // For mobile, ensure complete trigger reset
           if (containerId.includes('Mobile') && trigger) {
             trigger.innerHTML = `
               <span class="multi-select-label">Includes</span>
@@ -2806,7 +2807,8 @@
         if (selectedCount === 0) {
           label.textContent = 'All Cities';
           count.classList.remove('visible');
-          // Reset mobile trigger if no selections
+          
+          // For mobile, ensure complete trigger reset
           if (containerId.includes('Mobile') && trigger) {
             trigger.innerHTML = `
               <span class="multi-select-label">All Cities</span>
@@ -2873,33 +2875,72 @@
       updateClearButton('mobile');
     }
     
+    // Clear all selections function
+    function clearAllSelections(btnId) {
+      // Clear the arrays
+      selectedProjectTypes = [];
+      selectedCities = [];
+      
+      // Remove all selected classes
+      document.querySelectorAll('.multi-select-option.selected').forEach(option => {
+        option.classList.remove('selected');
+      });
+      
+      // Reset UI for all containers
+      const platform = btnId.includes('Desktop') ? 'desktop' : 'mobile';
+      
+      if (platform === 'mobile') {
+        // Reset project type filter trigger
+        const projectTypeTrigger = document.querySelector('#projectTypeFilterMobile .multi-select-trigger');
+        if (projectTypeTrigger) {
+          projectTypeTrigger.innerHTML = `
+            <span class="multi-select-label">Includes</span>
+            <span class="multi-select-count"></span>
+            <svg class="dropdown-arrow" width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-left: auto;">
+              <path d="M1 1.5L6 6.5L11 1.5" stroke="#999" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          `;
+        }
+        
+        // Reset location filter trigger
+        const locationTrigger = document.querySelector('#locationFilterMobile .multi-select-trigger');
+        if (locationTrigger) {
+          locationTrigger.innerHTML = `
+            <span class="multi-select-label">All Cities</span>
+            <span class="multi-select-count"></span>
+            <svg class="dropdown-arrow" width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-left: auto;">
+              <path d="M1 1.5L6 6.5L11 1.5" stroke="#999" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          `;
+        }
+        
+        // Update all mobile UI elements
+        updateMultiSelectUI('projectTypeFilterMobile');
+        updateMultiSelectUI('locationFilterMobile');
+      } else {
+        // Update desktop UI elements
+        updateMultiSelectUI('projectTypeFilterDesktop');
+        updateMultiSelectUI('locationFilterDesktop');
+      }
+      
+      // Hide clear button
+      updateClearButton(platform);
+      
+      // Re-render the appropriate grid
+      if (btnId === 'clearSelectionsDesktop') {
+        renderGrid('gridDesktop');
+      } else if (btnId === 'clearSelectionsMobile') {
+        renderGrid('gridMobile');
+      }
+    }
+
     // Add click handlers for clear buttons
     function setupClearButtons() {
       ['clearSelectionsDesktop', 'clearSelectionsMobile'].forEach(btnId => {
         const btn = document.getElementById(btnId);
         if (btn) {
           btn.addEventListener('click', () => {
-            // Clear all selections
-            selectedProjectTypes = [];
-            selectedCities = [];
-            
-            // Update UI
-            document.querySelectorAll('.multi-select-option').forEach(opt => {
-              opt.classList.remove('selected');
-            });
-            
-            // Update labels and counts
-            updateMultiSelectLabels();
-            
-            // Hide clear button
-            btn.style.display = 'none';
-            
-            // Re-render grid - explicitly handle both desktop and mobile
-            if (btnId === 'clearSelectionsDesktop') {
-              renderGrid('gridDesktop');
-            } else if (btnId === 'clearSelectionsMobile') {
-              renderGrid('gridMobile');
-            }
+            clearAllSelections(btnId);
           });
         }
       });
