@@ -1627,6 +1627,45 @@
         overflow: hidden !important;
         text-overflow: ellipsis !important; /* Cut off text with ... instead of stacking */
       }
+      
+      /* Left-align dropdown item text */
+      #mobileFilterControls .multi-select-option {
+        text-align: left !important;
+        justify-content: flex-start !important; /* Align check icon and text to left */
+      }
+      
+      /* Make dropdown width fit content */
+      #mobileFilterControls .multi-select-dropdown {
+        width: max-content !important; /* Expand to fit longest item */
+        min-width: 100% !important; /* At least as wide as trigger */
+        max-width: 250px !important; /* Reasonable max width */
+      }
+      
+      /* Right-align the last multi-select dropdown (Cities) */
+      #locationFilterMobile .multi-select-dropdown {
+        left: auto !important;
+        right: 0 !important;
+      }
+      
+      /* Full-width green pill for selected items */
+      .selection-pill-full {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+        background: #1FDF67;
+        color: #1a1a1a;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 600;
+        padding: 0 36px 0 12px; /* Right padding for arrow */
+      }
+      
+      /* Hide the separate count badge when using full pill */
+      #mobileFilterControls .multi-select-count {
+        display: none !important;
+      }
     }
   </style>
 </head>
@@ -2717,32 +2756,93 @@
       
       const label = container.querySelector('.multi-select-label');
       const count = container.querySelector('.multi-select-count');
+      const trigger = container.querySelector('.multi-select-trigger');
       
       if (containerId.includes('projectType')) {
         const selectedCount = selectedProjectTypes.length;
         if (selectedCount === 0) {
           label.textContent = 'Includes';
           count.classList.remove('visible');
+          // Reset mobile trigger if no selections
+          if (containerId.includes('Mobile') && trigger) {
+            trigger.innerHTML = `
+              <span class="multi-select-label">Includes</span>
+              <span class="multi-select-count"></span>
+              <svg class="dropdown-arrow" width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-left: auto;">
+                <path d="M1 1.5L6 6.5L11 1.5" stroke="#999" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            `;
+          }
         } else if (selectedCount === 1) {
           label.textContent = selectedProjectTypes[0].charAt(0).toUpperCase() + selectedProjectTypes[0].slice(1);
           count.classList.remove('visible');
+          // Reset mobile trigger for single selection
+          if (containerId.includes('Mobile') && trigger) {
+            trigger.innerHTML = `
+              <span class="multi-select-label">${selectedProjectTypes[0].charAt(0).toUpperCase() + selectedProjectTypes[0].slice(1)}</span>
+              <span class="multi-select-count"></span>
+              <svg class="dropdown-arrow" width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-left: auto;">
+                <path d="M1 1.5L6 6.5L11 1.5" stroke="#999" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            `;
+          }
         } else {
-          label.textContent = 'Multiple';
-          count.textContent = selectedCount;
-          count.classList.add('visible');
+          // For mobile, replace entire trigger content with green pill
+          if (containerId.includes('Mobile') && trigger) {
+            trigger.innerHTML = `
+              <span class="selection-pill-full">${selectedCount} Selected</span>
+              <svg class="dropdown-arrow" width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg" style="position: absolute; right: 12px;">
+                <path d="M1 1.5L6 6.5L11 1.5" stroke="#999" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            `;
+          } else {
+            label.textContent = 'Multiple';
+            count.textContent = selectedCount;
+            count.classList.add('visible');
+          }
         }
       } else if (containerId.includes('location')) {
         const selectedCount = selectedCities.length;
         if (selectedCount === 0) {
           label.textContent = 'All Cities';
           count.classList.remove('visible');
+          // Reset mobile trigger if no selections
+          if (containerId.includes('Mobile') && trigger) {
+            trigger.innerHTML = `
+              <span class="multi-select-label">All Cities</span>
+              <span class="multi-select-count"></span>
+              <svg class="dropdown-arrow" width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-left: auto;">
+                <path d="M1 1.5L6 6.5L11 1.5" stroke="#999" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            `;
+          }
         } else if (selectedCount === 1) {
           label.textContent = selectedCities[0];
           count.classList.remove('visible');
+          // Reset mobile trigger for single selection
+          if (containerId.includes('Mobile') && trigger) {
+            trigger.innerHTML = `
+              <span class="multi-select-label">${selectedCities[0]}</span>
+              <span class="multi-select-count"></span>
+              <svg class="dropdown-arrow" width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-left: auto;">
+                <path d="M1 1.5L6 6.5L11 1.5" stroke="#999" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            `;
+          }
         } else {
-          label.textContent = 'Multiple';
-          count.textContent = selectedCount;
-          count.classList.add('visible');
+          // For mobile, replace entire trigger content with green pill
+          if (containerId.includes('Mobile') && trigger) {
+            trigger.innerHTML = `
+              <span class="selection-pill-full">${selectedCount} Selected</span>
+              <svg class="dropdown-arrow" width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg" style="position: absolute; right: 12px;">
+                <path d="M1 1.5L6 6.5L11 1.5" stroke="#999" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            `;
+          } else {
+            label.textContent = 'Multiple';
+            count.textContent = selectedCount;
+            count.classList.add('visible');
+          }
         }
       }
     }
