@@ -586,7 +586,7 @@
       display: flex;
       gap: 8px;
       margin-bottom: 0;
-      flex-wrap: wrap;
+      flex-wrap: nowrap; /* Never wrap */
       width: 95%; /* Changed to 95% width */
       margin-left: auto;
       margin-right: auto;
@@ -1595,17 +1595,28 @@
     /* Mobile-specific multi-select adjustments */
     @media(max-width:800px) {
       #mobileFilterControls {
+        display: flex;
+        gap: 8px;
+        flex-wrap: nowrap; /* Never wrap */
         align-items: stretch; /* Ensure all children have same height */
       }
       
       #sortSelectMobile {
-        min-width: 80px; /* Reduced from 90px */
-        flex: 0.8; /* Slightly less flex grow */
+        flex: 0.6 !important; /* Reduce from 0.8 to 0.6 (40% smaller) */
+        min-width: 60px !important; /* Reduce from 80px */
+        max-width: 80px !important; /* Add max width to prevent expanding */
       }
       
       #mobileFilterControls .multi-select-container {
-        flex: 1; /* Equal flex for multi-selects */
-        min-width: 100px; /* Ensure minimum width */
+        flex: 1; /* Equal space for multi-selects */
+        min-width: 0; /* Allow shrinking to prevent overflow */
+      }
+      
+      #mobileFilterControls select,
+      #mobileFilterControls .multi-select-trigger {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis; /* Cut off text with ... instead of stacking */
       }
       
       #mobileFilterControls select {
@@ -1618,9 +1629,17 @@
       #mobileFilterControls .multi-select-trigger {
         height: 36px !important; /* Consistent height */
         line-height: 36px !important; /* Ensure vertical centering */
-        padding: 0 36px 0 12px !important; /* Match sort select padding */
+        padding-right: 36px; /* Ensure space for arrow */
+        padding-left: 12px !important;
         font-size: 14px !important; /* Match sort select font size - NOT 9px */
         box-sizing: border-box; /* Include border in height */
+      }
+      
+      #mobileFilterControls .dropdown-arrow {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
       }
       
       #mobileFilterControls .multi-select-label {
@@ -1633,11 +1652,43 @@
         max-width: 250px; /* Reasonable max width */
       }
       
+      /* Right-align the last multi-select dropdown (Cities) */
+      #mobileFilterControls .multi-select-container:last-child .multi-select-dropdown {
+        left: auto;
+        right: 0;
+      }
+      
       #mobileFilterControls .multi-select-option {
         white-space: nowrap; /* Prevent text wrapping */
         text-align: left; /* Left align text */
         padding: 10px 12px; /* Adequate padding */
       }
+      
+      /* Fix squished green circle - prevent shrinking */
+      #mobileFilterControls .multi-select-count {
+        width: 20px;
+        height: 20px;
+        min-width: 20px; /* Prevent squishing */
+        min-height: 20px; /* Prevent squishing */
+        flex-shrink: 0; /* Don't allow shrinking */
+      }
+    }
+
+    /* Green pill badge styles for mobile */
+    .selection-pill {
+      background: #1FDF67;
+      color: #1a1a1a;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+      display: inline-block;
+      white-space: nowrap;
+    }
+
+    /* Remove the circular count badge when using pill */
+    .multi-select-trigger .multi-select-count {
+      display: none;
     }
   </style>
 </head>
@@ -2188,8 +2239,8 @@
     const hoverIcon = document.getElementById('hoverIcon');
     
     // Multi-select filter state
-    let selectedProjectTypes = [];
-    let selectedCities = [];
+    window.selectedProjectTypes = [];
+    window.selectedCities = [];
     // Station coordinates
     const stations = [
       { name: 'Brightline Miami Central', coords: [ -80.19566705369766, 25.779947075732274 ] },
@@ -2366,20 +2417,20 @@
       }
       
       // Apply project type filter - ALL selected types must be included
-      if (selectedProjectTypes.length > 0) {
+      if (window.selectedProjectTypes.length > 0) {
         features = features.filter(f => {
           const projectTypes = f.properties.projectTypes || [];
           // Check if ALL selected types are included in this project
-          return selectedProjectTypes.every(selectedType => 
+          return window.selectedProjectTypes.every(selectedType => 
             projectTypes.includes(selectedType.toLowerCase())
           );
         });
       }
       
       // Apply location filter - ANY selected city matches
-      if (selectedCities.length > 0) {
+      if (window.selectedCities.length > 0) {
         features = features.filter(f => 
-          selectedCities.includes(f.properties.city)
+          window.selectedCities.includes(f.properties.city)
         );
       }
       
@@ -2674,19 +2725,19 @@
           // Update selection arrays
           if (containerId.includes('projectType')) {
             if (option.classList.contains('selected')) {
-              if (!selectedProjectTypes.includes(value)) {
-                selectedProjectTypes.push(value);
+              if (!window.selectedProjectTypes.includes(value)) {
+                window.selectedProjectTypes.push(value);
               }
             } else {
-              selectedProjectTypes = selectedProjectTypes.filter(type => type !== value);
+              window.selectedProjectTypes = window.selectedProjectTypes.filter(type => type !== value);
             }
           } else if (containerId.includes('location')) {
             if (option.classList.contains('selected')) {
-              if (!selectedCities.includes(value)) {
-                selectedCities.push(value);
+              if (!window.selectedCities.includes(value)) {
+                window.selectedCities.push(value);
               }
             } else {
-              selectedCities = selectedCities.filter(city => city !== value);
+              window.selectedCities = window.selectedCities.filter(city => city !== value);
             }
           }
           
@@ -2726,34 +2777,58 @@
       const container = document.getElementById(containerId);
       if (!container) return;
       
+      const trigger = container.querySelector('.multi-select-trigger');
       const label = container.querySelector('.multi-select-label');
       const count = container.querySelector('.multi-select-count');
       
       if (containerId.includes('projectType')) {
-        const selectedCount = selectedProjectTypes.length;
+        const selectedCount = window.selectedProjectTypes.length;
         if (selectedCount === 0) {
-          label.textContent = 'Includes';
-          count.classList.remove('visible');
+          trigger.innerHTML = `
+            <span class="multi-select-label">Includes</span>
+            <svg class="dropdown-arrow" width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-left: auto;">
+              <path d="M1 1.5L6 6.5L11 1.5" stroke="#999" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          `;
         } else if (selectedCount === 1) {
-          label.textContent = selectedProjectTypes[0].charAt(0).toUpperCase() + selectedProjectTypes[0].slice(1);
-          count.classList.remove('visible');
+          const displayText = window.selectedProjectTypes[0].charAt(0).toUpperCase() + window.selectedProjectTypes[0].slice(1);
+          trigger.innerHTML = `
+            <span class="multi-select-label">${displayText}</span>
+            <svg class="dropdown-arrow" width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-left: auto;">
+              <path d="M1 1.5L6 6.5L11 1.5" stroke="#999" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          `;
         } else {
-          label.textContent = 'Multiple';
-          count.textContent = selectedCount;
-          count.classList.add('visible');
+          trigger.innerHTML = `
+            <span class="selection-pill">${selectedCount} Selected</span>
+            <svg class="dropdown-arrow" width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-left: auto;">
+              <path d="M1 1.5L6 6.5L11 1.5" stroke="#999" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          `;
         }
       } else if (containerId.includes('location')) {
-        const selectedCount = selectedCities.length;
+        const selectedCount = window.selectedCities.length;
         if (selectedCount === 0) {
-          label.textContent = 'All Cities';
-          count.classList.remove('visible');
+          trigger.innerHTML = `
+            <span class="multi-select-label">All Cities</span>
+            <svg class="dropdown-arrow" width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-left: auto;">
+              <path d="M1 1.5L6 6.5L11 1.5" stroke="#999" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          `;
         } else if (selectedCount === 1) {
-          label.textContent = selectedCities[0];
-          count.classList.remove('visible');
+          trigger.innerHTML = `
+            <span class="multi-select-label">${window.selectedCities[0]}</span>
+            <svg class="dropdown-arrow" width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-left: auto;">
+              <path d="M1 1.5L6 6.5L11 1.5" stroke="#999" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          `;
         } else {
-          label.textContent = 'Multiple';
-          count.textContent = selectedCount;
-          count.classList.add('visible');
+          trigger.innerHTML = `
+            <span class="selection-pill">${selectedCount} Selected</span>
+            <svg class="dropdown-arrow" width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-left: auto;">
+              <path d="M1 1.5L6 6.5L11 1.5" stroke="#999" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          `;
         }
       }
     }
@@ -2764,7 +2839,7 @@
       const clearBtn = document.getElementById(btnId);
       
       // Check if any filters have selections
-      const hasSelections = selectedProjectTypes.length > 0 || selectedCities.length > 0;
+      const hasSelections = window.selectedProjectTypes.length > 0 || window.selectedCities.length > 0;
       
       if (clearBtn) {
         clearBtn.style.display = hasSelections ? 'block' : 'none';
@@ -2791,8 +2866,8 @@
         if (btn) {
           btn.addEventListener('click', () => {
             // Clear all selections
-            selectedProjectTypes = [];
-            selectedCities = [];
+            window.selectedProjectTypes = [];
+            window.selectedCities = [];
             
             // Update UI
             document.querySelectorAll('.multi-select-option').forEach(opt => {
