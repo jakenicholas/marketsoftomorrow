@@ -2894,9 +2894,12 @@
             // Hide clear button
             btn.style.display = 'none';
             
-            // Re-render grid
-            const platform = btnId.includes('Desktop') ? 'desktop' : 'mobile';
-            renderGrid(platform === 'desktop' ? 'gridDesktop' : 'gridMobile');
+            // Re-render grid - explicitly handle both desktop and mobile
+            if (btnId === 'clearSelectionsDesktop') {
+              renderGrid('gridDesktop');
+            } else if (btnId === 'clearSelectionsMobile') {
+              renderGrid('gridMobile');
+            }
           });
         }
       });
