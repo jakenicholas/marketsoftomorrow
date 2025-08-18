@@ -1925,14 +1925,14 @@
         <!-- Filter Controls Row -->
        <div id="filterControlsDesktop" style="display: flex; gap: 4px; align-items: stretch; margin-bottom: 12px; padding: 0; flex-wrap: nowrap;">
           <!-- Sorting Filter -->
-          <select id="sortSelectDesktop" style="flex: 0 1 20%; min-width: 0; max-width: 90px; background: #1a1a1a; color: #fff; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 8px 12px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s ease; appearance: none; background-image: url(&quot;data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%23999' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E&quot;); background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px;">
+          <select id="sortSelectDesktop" style="flex: 1; min-width: 0; background: #1a1a1a; color: #fff; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 8px 12px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s ease; appearance: none; background-image: url(&quot;data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%23999' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E&quot;); background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px;">
             <option value="default">Nearest</option>
             <option value="az">A to Z</option>
             <option value="za">Z to A</option>
           </select>
           
           <!-- Multi-select location filter -->
-          <div class="filter-dropdown" style="flex: 0 1 23%; max-width: 90px;">
+          <div class="filter-dropdown" style="flex: 1; min-width: 0;">
             <div class="filter-dropdown-toggle" id="locationFilterDesktop" data-filter="location">
               <span class="filter-text">All Cities</span>
               <span class="filter-counter" style="display: none;">0</span>
@@ -1943,7 +1943,7 @@
           </div>
           
           <!-- Multi-select project type filter -->
-          <div class="filter-dropdown" style="flex: 0 1 23%; max-width: 90px;">
+          <div class="filter-dropdown" style="flex: 1; min-width: 0;">
             <div class="filter-dropdown-toggle" id="projectTypeFilterDesktop" data-filter="projectType">
               <span class="filter-text">Type</span>
               <span class="filter-counter" style="display: none;">0</span>
@@ -1953,17 +1953,7 @@
             </div>
           </div>
           
-          <!-- Delivery Date Filter (right-aligned with close button) -->
-          <select id="dateRangeFilter" style="flex: 1 1 0; background: #1a1a1a; color: #fff; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 8px 12px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s ease; appearance: none; background-image: url(&quot;data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%23999' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E&quot;); background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px;">
-            <option value="all">Delivery</option>
-            <option value="2024">2024</option>
-            <option value="2025">2025</option>
-            <option value="2026">2026</option>
-            <option value="2027">2027</option>
-            <option value="2028">2028</option>
-            <option value="2029">2029</option>
-            <option value="2030">2030+</option>
-          </select>
+
         </div>
         
         <!-- Clear Button Row -->
@@ -2001,16 +1991,6 @@
             </select>
             <select id="projectTypeFilterMobile">
               <option value="all">Types</option>
-            </select>
-            <select id="dateRangeFilterMobile">
-              <option value="all">Delivery</option>
-              <option value="2024">2024</option>
-              <option value="2025">2025</option>
-              <option value="2026">2026</option>
-              <option value="2027">2027</option>
-              <option value="2028">2028</option>
-              <option value="2029">2029</option>
-              <option value="2030">2030+</option>
             </select>
           </div>
         </div>
@@ -2396,8 +2376,7 @@
     let selectedFilters = {
       location: new Set(),
       projectType: new Set(),
-      quickFilter: null,
-      dateRange: 'all'
+      quickFilter: null
     };
     
     // Initialize desktop/mobile specific elements after DOM loads
@@ -2691,29 +2670,12 @@
           }
         }
         
-        // Apply date range filter
-        if (selectedFilters.dateRange !== 'all') {
-          features = features.filter(f => {
-            const deliveryText = f.properties.delivery || '';
-            const yearMatch = deliveryText.match(/\b(20\d{2})\b/);
-            if (!yearMatch) return false;
-            
-            const deliveryYear = parseInt(yearMatch[1]);
-            const filterYear = selectedFilters.dateRange;
-            
-            if (filterYear === '2030') {
-              return deliveryYear >= 2030;
-            } else {
-              return deliveryYear.toString() === filterYear;
-            }
-          });
-        }
       } else if (targetId === 'gridMobile') {
         // Mobile uses original simple filters
         locationFilter = document.getElementById('locationFilterMobile')?.value || 'all';
         projectTypeFilter = document.getElementById('projectTypeFilterMobile')?.value || 'all';
         sortType = document.getElementById('sortSelectMobile')?.value || 'default';
-        const dateFilter = document.getElementById('dateRangeFilterMobile')?.value || 'all';
+        const dateFilter = 'all';
         
         // Apply location filter
         if (locationFilter !== 'all') {
@@ -3022,8 +2984,7 @@
       try {
         const hasActiveFilters = selectedFilters.location.size > 0 || 
                                 selectedFilters.projectType.size > 0 || 
-                                selectedFilters.quickFilter !== null ||
-                                selectedFilters.dateRange !== 'all';
+                                selectedFilters.quickFilter !== null;
         
         clearButtonRow.style.display = hasActiveFilters ? 'block' : 'none';
       } catch (e) {
@@ -3036,17 +2997,12 @@
       selectedFilters.location.clear();
       selectedFilters.projectType.clear();
       selectedFilters.quickFilter = null;
-      selectedFilters.dateRange = 'all';
       
       // Update UI
       updateFilterDisplay('location');
       updateFilterDisplay('projectType');
       document.querySelectorAll('.quick-filter-btn').forEach(btn => btn.classList.remove('active'));
       document.querySelectorAll('.filter-option').forEach(option => option.classList.remove('selected'));
-      
-      // Reset date range filter
-      const dateRangeFilter = document.getElementById('dateRangeFilter');
-      if (dateRangeFilter) dateRangeFilter.value = 'all';
       
       // Re-render grid
       renderGrid('gridDesktop');
@@ -3250,25 +3206,10 @@
           renderGrid('gridDesktop');
         });
       }
-      
-      // Setup date range filter
-      const dateRangeFilter = document.getElementById('dateRangeFilter');
-      if (dateRangeFilter) {
-        dateRangeFilter.addEventListener('change', () => {
-          selectedFilters.dateRange = dateRangeFilter.value;
-          updateClearButtonState();
-          gtag('event', 'filter_change', {
-            'filter_type': 'dateRange',
-            'filter_value': dateRangeFilter.value,
-            'platform': 'desktop'
-          });
-          renderGrid('gridDesktop');
-        });
-      }
     };
     // Add event listeners for mobile filters
     const setupMobileFilters = () => {
-      const mobileFilters = ['sortSelectMobile', 'locationFilterMobile', 'projectTypeFilterMobile', 'dateRangeFilterMobile'];
+      const mobileFilters = ['sortSelectMobile', 'locationFilterMobile', 'projectTypeFilterMobile'];
       mobileFilters.forEach(id => {
         const element = document.getElementById(id);
         if (element) {
