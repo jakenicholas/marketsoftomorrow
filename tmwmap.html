@@ -308,8 +308,8 @@
     
     /* Desktop sidebar content with padding */
     #desktopSidebar .sidebar-content {
-      padding: 0 8px 16px 8px;
-      padding-left: calc(8px + var(--safe-area-left));
+      padding: 0 16px 16px 16px;
+      padding-left: calc(16px + var(--safe-area-left));
       padding-top: 12px; /* Add top padding for space below filters */
     }
     
@@ -684,9 +684,8 @@
     @media(min-width:801px) {
       #desktopSidebar .leaf-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
-        grid-gap: 8px;
-        width: 100%;
-        box-sizing: border-box;
+        grid-gap: 10px;
+        padding-right: 5px;
       }
     }
     
@@ -794,47 +793,6 @@
     }
     .grid-item img.loaded {
       opacity: 1;
-    }
-    
-    /* Skeleton loader styles */
-    .skeleton-loader {
-      background: linear-gradient(90deg, #333 25%, #444 50%, #333 75%);
-      background-size: 200% 100%;
-      animation: shimmer 1.5s infinite;
-      border-radius: 4px;
-    }
-    
-    @keyframes shimmer {
-      0% { background-position: -200% 0; }
-      100% { background-position: 200% 0; }
-    }
-    
-    .grid-item .skeleton-placeholder {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: #333;
-      border-radius: 4px;
-      z-index: 1;
-    }
-    
-    .grid-item .skeleton-placeholder::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent 25%, rgba(255,255,255,0.1) 50%, transparent 75%);
-      background-size: 200% 100%;
-      animation: shimmer 1.5s infinite;
-      border-radius: 4px;
-    }
-    
-    .grid-item .skeleton-placeholder.hidden {
-      display: none;
     }
     .grid-item-content { padding:8px; display: flex; flex-direction: column; flex: 1; }
     .grid-item-content h3 { 
@@ -1062,367 +1020,6 @@
     .result-item:hover { background:rgba(255,255,255,0.05); }
     .result-item h4 { margin:0 0 4px; font-size:16px; color:#fff; }
     .result-item p { margin:0; font-size:12px; color:#ccc; }
-    
-    /* Enhanced empty state styles */
-    .result-item.no-results {
-      padding: 20px;
-      text-align: center;
-      border: none;
-    }
-    
-    .no-results-content {
-      max-width: 280px;
-      margin: 0 auto;
-    }
-    
-    .no-results-icon {
-      font-size: 32px;
-      margin-bottom: 12px;
-      opacity: 0.6;
-    }
-    
-    .no-results-content h4 {
-      font-size: 18px;
-      margin-bottom: 8px;
-      color: #fff;
-    }
-    
-    .no-results-content p {
-      margin-bottom: 12px;
-      color: #ccc;
-      font-size: 14px;
-    }
-    
-    .no-results-content ul {
-      text-align: left;
-      margin: 0;
-      padding: 0 0 0 20px;
-      font-size: 13px;
-      color: #aaa;
-    }
-    
-    .no-results-content li {
-      margin-bottom: 6px;
-      line-height: 1.4;
-    }
-    
-    /* Multi-select filter styles */
-  .filter-dropdown {
-  position: relative;
-  display: inline-block;
-  flex: 0 1 23% !important;
-  max-width: 90px !important;
-}
-
-.filter-dropdown-toggle {
-  width: 100%;
-  min-width: 0;
-  max-width: 90px;
-  background: #1a1a1a;
-  color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  padding: 6px 22px 6px 8px; /* Reduced right padding */
-  font-size: 14px; /* Back to 14px as requested */
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%23999' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 6px center; /* Adjusted position */
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-    }
-    
-    .filter-dropdown-toggle:hover {
-      border-color: rgba(255, 255, 255, 0.2);
-    }
-    
-    .filter-dropdown-toggle.active {
-      border-color: #1FDF67;
-    }
-    
-    .filter-dropdown-menu {
-      position: absolute;
-      top: 100%;
-      left: 0;
-      width: 100%;
-      min-width: 100%;
-      background: #1a1a1a;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      border-radius: 8px;
-      margin-top: 4px;
-      max-height: 300px;
-      overflow-y: auto;
-      z-index: 1000;
-      display: none;
-      box-sizing: border-box;
-    }
-    
-    .filter-dropdown-menu.show {
-      display: block;
-    }
-    
-    .filter-option {
-      padding: 10px 12px;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-size: 14px;
-      color: #fff;
-      border: 1px solid transparent;
-      margin: 2px;
-      border-radius: 4px;
-      position: relative;
-    }
-    
-    .filter-option:hover {
-      background: #333;
-      border-color: rgba(255, 255, 255, 0.1);
-    }
-    
-    .filter-option.selected {
-      background: #333;
-      border-color: rgba(255, 255, 255, 0.2);
-    }
-    
-    .filter-option .selection-arrow {
-      width: 16px;
-      height: 16px;
-      opacity: 0;
-      transition: opacity 0.2s ease;
-    }
-    
-    .filter-option.selected .selection-arrow {
-      opacity: 1;
-    }
-    
-    /* Mobile responsive improvements for filters */
-    @media(max-width: 800px) {
-      #filterControlsDesktop {
-        flex-direction: column;
-        gap: 8px;
-        align-items: stretch;
-        padding: 0 !important;
-      }
-      
-      #filterControlsDesktop select,
-      #filterControlsDesktop .filter-dropdown {
-        flex: 1 1 auto !important;
-        min-width: auto;
-      }
-    }
-    
-    .filter-counter {
-      background: #1FDF67;
-      color: #000;
-      font-size: 11px;
-      font-weight: 600;
-      padding: 2px 6px;
-      border-radius: 10px;
-      margin-left: 8px;
-      min-width: 16px;
-      text-align: center;
-    }
-    
-    /* Clear filters button */
-    .clear-filters-btn {
-      background: transparent;
-      color: #ff6b6b;
-      border: 1px solid #ff6b6b;
-      border-radius: 6px;
-      padding: 6px 12px;
-      font-size: 12px;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      margin-left: 8px;
-    }
-    
-    .clear-filters-btn:hover {
-      background: #ff6b6b;
-      color: #fff;
-    }
-    
-    .clear-filters-btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      border-color: #666;
-      color: #666;
-    }
-    
-    /* Responsive filter layout - adjusted for proper sidebar width calculation */
-@media(max-width: 1200px) {
-  #filterControlsDesktop {
-    flex-wrap: wrap !important;
-  }
-  
-  #filterControlsDesktop > * {
-    flex: 1 1 48% !important;
-    margin-bottom: 8px;
-    min-width: 0 !important; /* Allow items to shrink below their content width */
-  }
-}
-    }
-    
-    .clear-filters-btn:disabled:hover {
-      background: transparent;
-      color: #666;
-    }
-    
-    /* Quick filter buttons */
-    .quick-filters {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 12px;
-      flex-wrap: wrap;
-    }
-    
-    .quick-filter-btn {
-      background: #333;
-      color: #fff;
-      border: 1px solid #555;
-      border-radius: 6px;
-      padding: 6px 12px;
-      font-size: 12px;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-    
-    .quick-filter-btn:hover {
-      background: #444;
-      border-color: #666;
-    }
-    
-    .quick-filter-btn.active {
-      background: #1FDF67;
-      color: #000;
-      border-color: #1FDF67;
-    }
-    
-    /* Empty grid state styles */
-    .empty-grid-state {
-      grid-column: 1 / -1;
-      padding: 60px 20px;
-      text-align: center;
-      color: #ccc;
-    }
-    
-    .empty-state-content {
-      max-width: 400px;
-      margin: 0 auto;
-    }
-    
-    .empty-state-icon {
-      font-size: 48px;
-      margin-bottom: 20px;
-      opacity: 0.6;
-    }
-    
-    .empty-state-content h3 {
-      font-size: 24px;
-      margin-bottom: 12px;
-      color: #fff;
-    }
-    
-    .empty-state-content > p {
-      font-size: 16px;
-      margin-bottom: 20px;
-      color: #aaa;
-    }
-    
-    .empty-state-suggestions {
-      background: rgba(255,255,255,0.05);
-      border-radius: 8px;
-      padding: 20px;
-      margin-bottom: 20px;
-      text-align: left;
-    }
-    
-    .empty-state-suggestions p {
-      margin: 0 0 10px 0;
-      font-weight: 600;
-      color: #ccc;
-    }
-    
-    .empty-state-suggestions ul {
-      margin: 0;
-      padding: 0 0 0 20px;
-      color: #aaa;
-    }
-    
-    .empty-state-suggestions li {
-      margin-bottom: 8px;
-      line-height: 1.4;
-    }
-    
-    .clear-filters-suggestion {
-      background: #1FDF67;
-      color: #000;
-      border: none;
-      border-radius: 6px;
-      padding: 10px 20px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-    
-    /* Grid skeleton loader styles */
-    .grid-skeleton {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      grid-gap: 20px;
-      padding: 20px;
-    }
-    
-    .grid-skeleton-item {
-      background: rgba(20,20,20,0.8);
-      border-radius: 6px;
-      padding: 6px;
-      height: 250px;
-      display: flex;
-      flex-direction: column;
-    }
-    
-    .grid-skeleton-image {
-      height: 180px;
-      background: #333;
-      border-radius: 4px;
-      margin-bottom: 8px;
-    }
-    
-    .grid-skeleton-text {
-      flex: 1;
-      padding: 8px;
-    }
-    
-    .grid-skeleton-title {
-      height: 16px;
-      background: #444;
-      border-radius: 4px;
-      margin-bottom: 8px;
-      width: 80%;
-    }
-    
-    .grid-skeleton-subtitle {
-      height: 12px;
-      background: #383838;
-      border-radius: 4px;
-      width: 60%;
-    }
-    
-    .grid-skeleton-item .skeleton-loader,
-    .grid-skeleton-image,
-    .grid-skeleton-title,
-    .grid-skeleton-subtitle {
-      background: linear-gradient(90deg, #333 25%, #444 50%, #333 75%);
-      background-size: 200% 100%;
-      animation: shimmer 1.5s infinite;
-    }
     .mapboxgl-popup-content { 
       background:rgba(20,20,20,0.8)!important; 
       box-shadow:0 4px 20px rgba(0,0,0,0.3); 
@@ -1609,48 +1206,6 @@
       border-color: #1FDF67 !important;
       box-shadow: 0 0 0 3px rgba(31, 223, 103, 0.1) !important;
     }
-    /* Compact filter styles for sidebar */
-/* Force compact filters in desktop sidebar */
-/* Force compact filters in desktop sidebar */
-#desktopSidebar #filterControlsDesktop {
-  width: 100%;
-  box-sizing: border-box;
-}
-
-#desktopSidebar #filterControlsDesktop > * {
-  flex: 0 1 23% !important;
-  min-width: 0 !important;
-  max-width: 90px !important;
-  box-sizing: border-box !important;
-}
-
-#desktopSidebar #filterControlsDesktop select,
-#desktopSidebar .filter-dropdown-toggle {
-  font-size: 14px !important; /* Back to 14px as requested */
-  padding: 6px 22px 6px 8px !important; /* Reduced padding */
-  white-space: nowrap !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-}
-
-#desktopSidebar .filter-dropdown {
-  flex: 0 1 23% !important;
-  min-width: 0 !important;
-  max-width: 90px !important;
-}
-
-#desktopSidebar #filterControlsDesktop select {
-  background-position: right 6px center !important;
-  padding-right: 22px !important; /* Reduced */
-  max-width: 90px !important;
-}
-
-/* Make the counter even smaller */
-#desktopSidebar .filter-counter {
-  font-size: 10px !important; /* Slightly bigger than before */
-  padding: 1px 4px !important;
-  margin-left: 4px !important;
-}
     #instagramLogo img {
       width: 100%;
       height: 100%;
@@ -1915,56 +1470,22 @@
           <button id="closeSidebar" style="background: #1e1e1e; border: none; color: #fff; font-size: 20px; cursor: pointer; padding: 0; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 4px;">✕</button>
         </div>
         <div id="sidebarResults" class="hidden"></div>
-        <!-- Quick filter buttons -->
-        <div class="quick-filters">
-          <button class="quick-filter-btn" data-filter="6months">Next 6 Months</button>
-          <button class="quick-filter-btn" data-filter="1year">Next Year</button>
-          <button class="quick-filter-btn" data-filter="featured">Featured Only</button>
-        </div>
         
-        <!-- Filter Controls Row -->
-       <div id="filterControlsDesktop" style="display: flex; gap: 4px; align-items: stretch; margin-bottom: 12px; padding: 0; flex-wrap: nowrap;">
-          <!-- Sorting Filter -->
-          <select id="sortSelectDesktop" style="flex: 1; min-width: 0; background: #1a1a1a; color: #fff; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 8px 12px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s ease; appearance: none; background-image: url(&quot;data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%23999' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E&quot;); background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px;">
-            <option value="default">Nearest</option>
-            <option value="az">A to Z</option>
-            <option value="za">Z to A</option>
+        <div id="filterControlsDesktop" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+          <select id="sortSelectDesktop" style="flex: 1; min-width: 100px; background: #1a1a1a; color: #fff; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 8px 12px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s ease; appearance: none; background-image: url(&quot;data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%23999' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E&quot;); background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px;">
+            <option value="default">Sort: Nearest</option>
+            <option value="az">Sort: A to Z</option>
+            <option value="za">Sort: Z to A</option>
           </select>
-          
-          <!-- Multi-select location filter -->
-          <div class="filter-dropdown" style="flex: 1; min-width: 0;">
-            <div class="filter-dropdown-toggle" id="locationFilterDesktop" data-filter="location">
-              <span class="filter-text">All Cities</span>
-              <span class="filter-counter" style="display: none;">0</span>
-            </div>
-            <div class="filter-dropdown-menu" id="locationDropdownDesktop">
-              <!-- Options will be populated dynamically -->
-            </div>
-          </div>
-          
-          <!-- Multi-select project type filter -->
-          <div class="filter-dropdown" style="flex: 1; min-width: 0;">
-            <div class="filter-dropdown-toggle" id="projectTypeFilterDesktop" data-filter="projectType">
-              <span class="filter-text">Type</span>
-              <span class="filter-counter" style="display: none;">0</span>
-            </div>
-            <div class="filter-dropdown-menu" id="projectTypeDropdownDesktop">
-              <!-- Options will be populated dynamically -->
-            </div>
-          </div>
-          
-
-        </div>
-        
-        <!-- Clear Button Row -->
-        <div id="clearButtonRow" style="display: none; margin-bottom: 8px;">
-          <button class="clear-filters-btn" id="clearFiltersDesktop">Clear All</button>
+          <select id="projectTypeFilterDesktop" style="flex: 1; min-width: 120px; background: #1a1a1a; color: #fff; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 8px 12px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s ease; appearance: none; background-image: url(&quot;data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%23999' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E&quot;); background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px;">
+            <option value="all">All Types</option>
+          </select>
+          <select id="locationFilterDesktop" style="flex: 1; min-width: 100px; background: #1a1a1a; color: #fff; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 8px 12px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s ease; appearance: none; background-image: url(&quot;data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%23999' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E&quot;); background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px;">
+            <option value="all">All Cities</option>
+          </select>
         </div>
       </div>
       <div class="sidebar-content">
-        <div class="results-counter" id="resultsCounterDesktop" style="margin-bottom: 12px; font-size: 14px; color: #aaa; display: none;">
-          Showing <span class="results-count">0</span> projects
-        </div>
         <div class="leaf-grid" id="gridDesktop"></div>
       </div>
     </div>
@@ -1986,11 +1507,11 @@
               <option value="az">A to Z</option>
               <option value="za">Z to A</option>
             </select>
+            <select id="projectTypeFilterMobile">
+              <option value="all">All Types</option>
+            </select>
             <select id="locationFilterMobile">
               <option value="all">All Cities</option>
-            </select>
-            <select id="projectTypeFilterMobile">
-              <option value="all">Types</option>
             </select>
           </div>
         </div>
@@ -2372,13 +1893,6 @@
     
     const isMobile = window.innerWidth <= 800;
     
-    // Multi-select filter management - declare early to avoid initialization issues
-    let selectedFilters = {
-      location: new Set(),
-      projectType: new Set(),
-      quickFilter: null
-    };
-    
     // Initialize desktop/mobile specific elements after DOM loads
     if (isMobile) {
       // Use immediate check and also DOM loaded event
@@ -2486,66 +2000,6 @@
       const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
       return R * c;
     }
-    // Show loading skeleton for grid
-    function showGridSkeleton(targetId) {
-      const grid = document.getElementById(targetId);
-      if (!grid) return;
-      
-      grid.innerHTML = '';
-      grid.className = 'grid-skeleton';
-      
-      // Create 6 skeleton items
-      for (let i = 0; i < 6; i++) {
-        const skeletonItem = document.createElement('div');
-        skeletonItem.className = 'grid-skeleton-item';
-        skeletonItem.innerHTML = `
-          <div class="grid-skeleton-image"></div>
-          <div class="grid-skeleton-text">
-            <div class="grid-skeleton-title"></div>
-            <div class="grid-skeleton-subtitle"></div>
-          </div>
-        `;
-        grid.appendChild(skeletonItem);
-      }
-    }
-    
-    // Helper function to parse delivery dates and check if they fall within range
-    function isWithinDateRange(deliveryText, months) {
-      if (!deliveryText) return false;
-      
-      const now = new Date();
-      const targetDate = new Date(now.getFullYear(), now.getMonth() + months, now.getDate());
-      
-      // Try to extract year from delivery text
-      const yearMatch = deliveryText.match(/\b(20\d{2})\b/);
-      if (!yearMatch) return false;
-      
-      const deliveryYear = parseInt(yearMatch[1]);
-      const currentYear = now.getFullYear();
-      
-      // Simple logic: if delivery year is within the target range
-      if (months === 6) {
-        // Next 6 months: current year or next year if we're in second half
-        return deliveryYear === currentYear || (deliveryYear === currentYear + 1 && now.getMonth() >= 6);
-      } else if (months === 12) {
-        // Next year: current year or next year
-        return deliveryYear === currentYear || deliveryYear === currentYear + 1;
-      }
-      
-      return false;
-    }
-    
-    // Helper function to format delivery dates
-    function formatDeliveryDate(deliveryText) {
-      if (!deliveryText) return '';
-      const text = deliveryText.trim();
-      // Check if "Estimated" is already in the text (case insensitive)
-      if (text.toLowerCase().includes('estimated')) {
-        return text;
-      }
-      return `Estimated ${text}`;
-    }
-    
     // Helper functions that need to be global
     function showPopup(f) {
       // Add subtle haptic feedback on mobile
@@ -2576,7 +2030,7 @@
             <h3>${f.properties.title}</h3>
             <p class="city">${f.properties.city}</p>
             <p class="description">${f.properties.description}</p>
-            <p class="delivery"><em>${formatDeliveryDate(f.properties.delivery)}</em></p>
+            <p class="delivery"><em>${f.properties.delivery}</em></p>
             <a class="favorite" href="https://www.oftmw.com/livehere" onclick="gtag('event', 'live_here_click', {'project_name': '${f.properties.title}', 'click_location': 'popup'});">
               <svg viewBox="0 0 18 18"><path d="M9 1v16M1 9h16"/></svg>
             </a>
@@ -2601,19 +2055,13 @@
       // Update URL with selected project
       updateURLState({ project: f.properties.title.toLowerCase().replace(/\s+/g, '-') });
     }
-   function renderGrid(targetId = 'grid') {
+    function renderGrid(targetId = 'grid') {
       const grid=document.getElementById(targetId);
       if (!grid) return;
       
       grid.innerHTML='';
-      // Restore proper grid class
-      grid.className = 'leaf-grid';
       
-      if (!map.getSource('projects') || !map.getSource('projects')._data) {
-        // Show skeleton while data is loading
-        showGridSkeleton(targetId);
-        return;
-      }
+      if (!map.getSource('projects') || !map.getSource('projects')._data) return;
       
       let features = [...map.getSource('projects')._data.features];
       
@@ -2639,98 +2087,32 @@
       let locationFilter, projectTypeFilter, sortType;
       
       if (targetId === 'gridDesktop') {
-        // For desktop, use multi-select filters
+        locationFilter = document.getElementById('locationFilterDesktop')?.value || 'all';
+        projectTypeFilter = document.getElementById('projectTypeFilterDesktop')?.value || 'all';
         sortType = document.getElementById('sortSelectDesktop')?.value || 'default';
-        
-        // Apply multi-select location filter
-        if (selectedFilters.location.size > 0) {
-          features = features.filter(f => selectedFilters.location.has(f.properties.city));
-        }
-        
-        // Apply multi-select project type filter
-        if (selectedFilters.projectType.size > 0) {
-          features = features.filter(f => {
-            return f.properties.projectTypes && 
-                   f.properties.projectTypes.some(type => selectedFilters.projectType.has(type));
-          });
-        }
-        
-        // Apply quick filter
-        if (selectedFilters.quickFilter) {
-          switch (selectedFilters.quickFilter) {
-            case '6months':
-              features = features.filter(f => isWithinDateRange(f.properties.delivery, 6));
-              break;
-            case '1year':
-              features = features.filter(f => isWithinDateRange(f.properties.delivery, 12));
-              break;
-            case 'featured':
-              features = features.filter(f => f.properties.featured);
-              break;
-          }
-        }
-        
       } else if (targetId === 'gridMobile') {
-        // Mobile uses original simple filters
+        // Mobile uses its own filters
         locationFilter = document.getElementById('locationFilterMobile')?.value || 'all';
         projectTypeFilter = document.getElementById('projectTypeFilterMobile')?.value || 'all';
         sortType = document.getElementById('sortSelectMobile')?.value || 'default';
-        const dateFilter = 'all';
-        
-        // Apply location filter
-        if (locationFilter !== 'all') {
-          features = features.filter(f => f.properties.city === locationFilter);
-        }
-        
-        // Apply project type filter
-        if (projectTypeFilter !== 'all') {
-          features = features.filter(f => {
-            return f.properties.projectTypes && 
-                   f.properties.projectTypes.includes(projectTypeFilter.toLowerCase());
-          });
-        }
-        
-        // Apply date filter
-        if (dateFilter !== 'all') {
-          const filterYear = dateFilter;
-          features = features.filter(f => {
-            const deliveryText = f.properties.delivery || '';
-            const yearMatch = deliveryText.match(/\b(20\d{2})\b/);
-            if (!yearMatch) return false;
-            
-            const deliveryYear = parseInt(yearMatch[1]);
-            
-            if (filterYear === '2030') {
-              return deliveryYear >= 2030;
-            } else {
-              return deliveryYear.toString() === filterYear;
-            }
-          });
-        }
       } else {
-        // Original grid uses simple filters
+        // Original grid
         locationFilter = document.getElementById('locationFilter')?.value || 'all';
         projectTypeFilter = document.getElementById('projectTypeFilter')?.value || 'all';
         sortType = document.getElementById('sortSelect')?.value || 'default';
-        
-        // Apply location filter
-        if (locationFilter !== 'all') {
-          features = features.filter(f => f.properties.city === locationFilter);
-        }
-        
-        // Apply project type filter
-        if (projectTypeFilter !== 'all') {
-          features = features.filter(f => {
-            return f.properties.projectTypes && 
-                   f.properties.projectTypes.includes(projectTypeFilter.toLowerCase());
-          });
-        }
       }
       
-      // IMPORTANT: Filter to only show projects within the current map bounds
-      // Only apply this filter when using default sort (not alphabetical)
-      if (sortType === 'default') {
-        features = features.filter(f => f.inBounds);
+      // Apply location filter
+      if (locationFilter !== 'all') {
+        features = features.filter(f => f.properties.city === locationFilter);
+      }
+      
+      // Apply project type filter
+      if (projectTypeFilter !== 'all') {
+        features = features.filter(f => {
+          return f.properties.projectTypes && 
+                 f.properties.projectTypes.includes(projectTypeFilter.toLowerCase());
+        });
       }
       
       // Apply sorting
@@ -2751,17 +2133,27 @@
           return b.properties.title.localeCompare(a.properties.title);
         });
       } else {
-        // Default sort by distance with featured priority
-        // Since we've already filtered to only in-bounds items, we just sort by featured status and distance
+        // Default sort by distance with featured priority within view
         features.sort((a, b) => {
-          // Featured items first
-          if (a.properties.featured && !b.properties.featured) return -1;
-          if (!a.properties.featured && b.properties.featured) return 1;
+          // Priority 1: Featured items that are in bounds
+          const aFeaturedInBounds = a.inBounds && a.properties.featured;
+          const bFeaturedInBounds = b.inBounds && b.properties.featured;
           
-          // Then by distance from center
+          if (aFeaturedInBounds && !bFeaturedInBounds) return -1;
+          if (!aFeaturedInBounds && bFeaturedInBounds) return 1;
+          
+          // Priority 2: Non-featured items in bounds
+          const aInBounds = a.inBounds && !a.properties.featured;
+          const bInBounds = b.inBounds && !b.properties.featured;
+          
+          if (aInBounds && !b.inBounds) return -1;
+          if (!aInBounds && b.inBounds) return 1;
+          
+          // Priority 3: Everything else by distance
           return a.distance - b.distance;
         });
       }
+      
       // Create document fragment for better performance
       const fragment = document.createDocumentFragment();
       
@@ -2775,7 +2167,6 @@
         
         d.innerHTML=`
           <div class="image-wrapper">
-            <div class="skeleton-placeholder"></div>
             <img src="${placeholderSrc}" 
                  data-src="${imageSrc}" 
                  loading="lazy" 
@@ -2832,47 +2223,12 @@
       // Append all at once
       grid.appendChild(fragment);
       
-      // Update results counter for desktop
-      if (targetId === 'gridDesktop') {
-        const counter = document.getElementById('resultsCounterDesktop');
-        const countSpan = counter?.querySelector('.results-count');
-        if (counter && countSpan) {
-          countSpan.textContent = features.length;
-          counter.style.display = features.length > 0 ? 'block' : 'none';
-        }
-      }
-      
-      // Show empty state if no results
-      if (features.length === 0) {
-        const emptyState = document.createElement('div');
-        emptyState.className = 'empty-grid-state';
-        emptyState.innerHTML = `
-          <div class="empty-state-content">
-            <div class="empty-state-icon">🗺️</div>
-            <h3>No projects found</h3>
-            <p>No projects match your current filters or map view.</p>
-            <div class="empty-state-suggestions">
-              <p><strong>Try:</strong></p>
-              <ul>
-                <li>Zooming out to see more areas</li>
-                <li>Clearing some filters</li>
-                <li>Using different search terms</li>
-              </ul>
-            </div>
-            ${selectedFilters.location.size > 0 || selectedFilters.projectType.size > 0 || selectedFilters.quickFilter ? 
-              '<button class="clear-filters-suggestion" onclick="clearAllFilters()">Clear All Filters</button>' : ''}
-          </div>
-        `;
-        grid.appendChild(emptyState);
-      }
-      
       // Set up lazy loading with Intersection Observer
       const imageObserver = new IntersectionObserver((entries, observer) => {
         entries.forEach(entry => {
           if (entry.isIntersecting) {
             const img = entry.target;
             const src = img.getAttribute('data-src');
-            const skeleton = img.parentElement.querySelector('.skeleton-placeholder');
             
             // Create new image to preload
             const newImg = new Image();
@@ -2880,14 +2236,12 @@
               img.src = src;
               img.classList.remove('lazy-loading');
               img.classList.add('loaded');
-              if (skeleton) skeleton.classList.add('hidden');
               observer.unobserve(img);
             };
             newImg.onerror = () => {
               // On error, still mark as loaded to prevent retries
               img.classList.remove('lazy-loading');
               img.classList.add('loaded');
-              if (skeleton) skeleton.classList.add('hidden');
               observer.unobserve(img);
             };
             newImg.src = src;
@@ -2920,139 +2274,21 @@
       gridItems.forEach(item => fadeObserver.observe(item));
       images.forEach(img => imageObserver.observe(img));
     }
-    
-    // Initialize multi-select filter dropdowns
-    function initializeMultiSelectFilters() {
-      // Setup dropdown toggles
-      document.querySelectorAll('.filter-dropdown-toggle').forEach(toggle => {
-        toggle.addEventListener('click', (e) => {
-          e.stopPropagation();
-          const dropdown = toggle.nextElementSibling;
-          const isOpen = dropdown.classList.contains('show');
-          
-          // Close all other dropdowns
-          document.querySelectorAll('.filter-dropdown-menu').forEach(menu => menu.classList.remove('show'));
-          document.querySelectorAll('.filter-dropdown-toggle').forEach(t => t.classList.remove('active'));
-          
-          if (!isOpen) {
-            dropdown.classList.add('show');
-            toggle.classList.add('active');
-          }
-        });
-      });
-      
-      // Close dropdowns when clicking outside
-      document.addEventListener('click', () => {
-        document.querySelectorAll('.filter-dropdown-menu').forEach(menu => menu.classList.remove('show'));
-        document.querySelectorAll('.filter-dropdown-toggle').forEach(toggle => toggle.classList.remove('active'));
-      });
-      
-      // Prevent dropdown from closing when clicking inside
-      document.querySelectorAll('.filter-dropdown-menu').forEach(menu => {
-        menu.addEventListener('click', (e) => e.stopPropagation());
-      });
-    }
-    
-    // Update filter display text and counter
-    function updateFilterDisplay(filterType, platform = 'Desktop') {
-      const toggle = document.getElementById(`${filterType}Filter${platform}`);
-      const textSpan = toggle.querySelector('.filter-text');
-      const counterSpan = toggle.querySelector('.filter-counter');
-      const selectedSet = selectedFilters[filterType];
-      
-      if (selectedSet.size === 0) {
-        textSpan.textContent = filterType === 'location' ? 'All Cities' : 'Type';
-        counterSpan.style.display = 'none';
-      } else if (selectedSet.size === 1) {
-        textSpan.textContent = Array.from(selectedSet)[0];
-        counterSpan.style.display = 'none';
-      } else {
-        textSpan.textContent = filterType === 'location' ? 'Multiple Cities' : 'Multiple Types';
-        counterSpan.textContent = selectedSet.size;
-        counterSpan.style.display = 'inline-block';
-      }
-      
-      // Update clear button state
-      updateClearButtonState();
-    }
-    
-    // Update clear button state
-    function updateClearButtonState() {
-      const clearButtonRow = document.getElementById('clearButtonRow');
-      if (!clearButtonRow) return;
-      
-      try {
-        const hasActiveFilters = selectedFilters.location.size > 0 || 
-                                selectedFilters.projectType.size > 0 || 
-                                selectedFilters.quickFilter !== null;
-        
-        clearButtonRow.style.display = hasActiveFilters ? 'block' : 'none';
-      } catch (e) {
-        console.warn('Error updating clear button state:', e);
-      }
-    }
-    
-    // Clear all filters
-    function clearAllFilters() {
-      selectedFilters.location.clear();
-      selectedFilters.projectType.clear();
-      selectedFilters.quickFilter = null;
-      
-      // Update UI
-      updateFilterDisplay('location');
-      updateFilterDisplay('projectType');
-      document.querySelectorAll('.quick-filter-btn').forEach(btn => btn.classList.remove('active'));
-      document.querySelectorAll('.filter-option').forEach(option => option.classList.remove('selected'));
-      
-      // Re-render grid
-      renderGrid('gridDesktop');
-    }
-    
-    // Setup quick filter buttons
-    function initializeQuickFilters() {
-      document.querySelectorAll('.quick-filter-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const filterType = btn.dataset.filter;
-          
-          // Toggle active state
-          const wasActive = btn.classList.contains('active');
-          document.querySelectorAll('.quick-filter-btn').forEach(b => b.classList.remove('active'));
-          
-          if (!wasActive) {
-            btn.classList.add('active');
-            selectedFilters.quickFilter = filterType;
-          } else {
-            selectedFilters.quickFilter = null;
-          }
-          
-          updateClearButtonState();
-          renderGrid('gridDesktop');
-        });
-      });
-    }
-    
     function populateLocationFilter() {
       if (!map.getSource('projects') || !map.getSource('projects')._data) return;
       
       const features = map.getSource('projects')._data.features;
       
-      // Get dropdown menu containers for the new desktop multi-select structure
-      const desktopLocationDropdowns = [
-        document.getElementById('locationDropdown'),
-        document.getElementById('locationDropdownDesktop')
-      ];
-      
-      const desktopProjectTypeDropdowns = [
-        document.getElementById('projectTypeDropdown'),
-        document.getElementById('projectTypeDropdownDesktop')
-      ];
-      
-      // Get mobile select elements (keeping old structure)
-      const mobileLocationFilters = [
+      // Get all filter elements
+      const locationFilters = [
+        document.getElementById('locationFilter'),
+        document.getElementById('locationFilterDesktop'),
         document.getElementById('locationFilterMobile')
       ];
       
-      const mobileProjectTypeFilters = [
+      const projectTypeFilters = [
+        document.getElementById('projectTypeFilter'),
+        document.getElementById('projectTypeFilterDesktop'),
         document.getElementById('projectTypeFilterMobile')
       ];
       
@@ -3060,52 +2296,8 @@
       const cities = [...new Set(features.map(f => f.properties.city))];
       cities.sort();
       
-      // Populate desktop dropdowns with checkbox options
-      desktopLocationDropdowns.forEach(dropdown => {
-        if (dropdown && dropdown.tagName === 'DIV') {
-          dropdown.innerHTML = '';
-          cities.forEach(city => {
-            const optionDiv = document.createElement('div');
-            optionDiv.className = 'filter-option';
-            optionDiv.dataset.value = city;
-            
-            const label = document.createElement('span');
-            label.textContent = city;
-            label.style.cursor = 'pointer';
-            
-            const arrow = document.createElement('div');
-            arrow.className = 'selection-arrow';
-            arrow.innerHTML = `<svg viewBox="0 0 16 16" fill="#1FDF67">
-              <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/>
-            </svg>`;
-            
-            optionDiv.addEventListener('click', (e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              
-              const isSelected = optionDiv.classList.contains('selected');
-              if (isSelected) {
-                optionDiv.classList.remove('selected');
-                selectedFilters.location.delete(city);
-              } else {
-                optionDiv.classList.add('selected');
-                selectedFilters.location.add(city);
-              }
-              
-              updateFilterDisplay('location');
-              renderGrid('gridDesktop');
-            });
-            
-            optionDiv.appendChild(label);
-            optionDiv.appendChild(arrow);
-            dropdown.appendChild(optionDiv);
-          });
-        }
-      });
-      
-      // Populate mobile select elements with option elements
-      mobileLocationFilters.forEach(filter => {
-        if (filter && filter.tagName === 'SELECT') {
+      locationFilters.forEach(filter => {
+        if (filter) {
           filter.innerHTML = '<option value="all">All Cities</option>';
           cities.forEach(city => {
             const option = document.createElement('option');
@@ -3126,53 +2318,9 @@
       
       const projectTypes = [...allTypes].sort((a, b) => a.localeCompare(b));
       
-      // Populate desktop dropdowns with checkbox options
-      desktopProjectTypeDropdowns.forEach(dropdown => {
-        if (dropdown && dropdown.tagName === 'DIV') {
-          dropdown.innerHTML = '';
-          projectTypes.forEach(type => {
-            const optionDiv = document.createElement('div');
-            optionDiv.className = 'filter-option';
-            optionDiv.dataset.value = type;
-            
-            const label = document.createElement('span');
-            label.textContent = type.charAt(0).toUpperCase() + type.slice(1);
-            label.style.cursor = 'pointer';
-            
-            const arrow = document.createElement('div');
-            arrow.className = 'selection-arrow';
-            arrow.innerHTML = `<svg viewBox="0 0 16 16" fill="#1FDF67">
-              <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/>
-            </svg>`;
-            
-            optionDiv.addEventListener('click', (e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              
-              const isSelected = optionDiv.classList.contains('selected');
-              if (isSelected) {
-                optionDiv.classList.remove('selected');
-                selectedFilters.projectType.delete(type);
-              } else {
-                optionDiv.classList.add('selected');
-                selectedFilters.projectType.add(type);
-              }
-              
-              updateFilterDisplay('projectType');
-              renderGrid('gridDesktop');
-            });
-            
-            optionDiv.appendChild(label);
-            optionDiv.appendChild(arrow);
-            dropdown.appendChild(optionDiv);
-          });
-        }
-      });
-      
-      // Populate mobile select elements with option elements
-      mobileProjectTypeFilters.forEach(filter => {
-        if (filter && filter.tagName === 'SELECT') {
-          filter.innerHTML = '<option value="all">Types</option>';
+      projectTypeFilters.forEach(filter => {
+        if (filter) {
+          filter.innerHTML = '<option value="all">All Types</option>';
           projectTypes.forEach(type => {
             const option = document.createElement('option');
             option.value = type;
@@ -3184,28 +2332,21 @@
     }
     // Add event listeners for desktop filters
     const setupDesktopFilters = () => {
-      // Initialize multi-select filters
-      initializeMultiSelectFilters();
-      initializeQuickFilters();
-      
-      // Setup clear filters button
-      const clearBtn = document.getElementById('clearFiltersDesktop');
-      if (clearBtn) {
-        clearBtn.addEventListener('click', clearAllFilters);
-      }
-      
-      // Setup sort dropdown (still simple dropdown)
-      const sortSelect = document.getElementById('sortSelectDesktop');
-      if (sortSelect) {
-        sortSelect.addEventListener('change', () => {
-          gtag('event', 'filter_change', {
-            'filter_type': 'sort',
-            'filter_value': sortSelect.value,
-            'platform': 'desktop'
+      const desktopFilters = ['sortSelectDesktop', 'locationFilterDesktop', 'projectTypeFilterDesktop'];
+      desktopFilters.forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+          element.addEventListener('change', () => {
+            // Track filter usage
+            gtag('event', 'filter_change', {
+              'filter_type': id.replace('Desktop', '').replace('Filter', '').replace('Select', ''),
+              'filter_value': element.value,
+              'platform': 'desktop'
+            });
+            renderGrid('gridDesktop');
           });
-          renderGrid('gridDesktop');
-        });
-      }
+        }
+      });
     };
     // Add event listeners for mobile filters
     const setupMobileFilters = () => {
@@ -3399,7 +2540,6 @@
         
         d.innerHTML = `
           <div class="image-wrapper">
-            <div class="skeleton-placeholder"></div>
             <img src="${placeholderSrc}" 
                  data-src="${imageSrc}" 
                  loading="lazy" 
@@ -3456,20 +2596,17 @@
           if (entry.isIntersecting) {
             const img = entry.target;
             const src = img.getAttribute('data-src');
-            const skeleton = img.parentElement.querySelector('.skeleton-placeholder');
             
             const newImg = new Image();
             newImg.onload = () => {
               img.src = src;
               img.classList.remove('lazy-loading');
               img.classList.add('loaded');
-              if (skeleton) skeleton.classList.add('hidden');
               observer.unobserve(img);
             };
             newImg.onerror = () => {
               img.classList.remove('lazy-loading');
               img.classList.add('loaded');
-              if (skeleton) skeleton.classList.add('hidden');
               observer.unobserve(img);
             };
             newImg.src = src;
@@ -4273,20 +3410,7 @@
           resultsEl.appendChild(div);
         });
       } else {
-        resultsEl.innerHTML=`
-          <div class="result-item no-results">
-            <div class="no-results-content">
-              <div class="no-results-icon">🔍</div>
-              <h4>No projects found</h4>
-              <p>Try adjusting your search or consider:</p>
-              <ul>
-                <li>Searching for a different city name</li>
-                <li>Using fewer keywords</li>
-                <li>Zooming out on the map to see more areas</li>
-              </ul>
-            </div>
-          </div>
-        `;
+        resultsEl.innerHTML='<div class="result-item">No results found</div>';
       }
       resultsEl.classList.remove('hidden');
     });
@@ -4352,4 +3476,3 @@
   </script>
 </body>
 </html>
-
