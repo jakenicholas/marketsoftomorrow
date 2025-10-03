@@ -2413,8 +2413,13 @@
         d.onclick=(event)=>{ 
   // Prevent action if clicking on links or buttons inside the tile
   if (event.target.closest('a') || event.target.closest('button')) {
+    event.stopPropagation();
     return; // Don't show popup if clicking links/buttons
   }
+  
+  // Stop event from bubbling up
+  event.stopPropagation();
+  event.preventDefault();
   
   // Track tile click with GA4
   gtag('event', 'project_click', {
