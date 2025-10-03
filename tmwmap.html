@@ -787,46 +787,12 @@
       display:block; 
       background: #333;
     }
-    /* Skeleton loader styles */
-    .grid-item .image-wrapper {
-      position: relative;
-      overflow: hidden;
-    }
-    
     .grid-item img.lazy-loading {
       opacity: 0;
+      transition: opacity 0.3s ease;
     }
-    
     .grid-item img.loaded {
       opacity: 1;
-      transition: opacity 0.3s ease;
-    }
-    
-    /* Skeleton loader overlay */
-    .skeleton-loader {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg, #333 25%, #444 50%, #333 75%);
-      background-size: 200% 100%;
-      animation: skeleton-shimmer 1.5s ease-in-out infinite;
-      border-radius: 4px;
-    }
-    
-    .skeleton-loader.hidden {
-      opacity: 0;
-      transition: opacity 0.3s ease;
-    }
-    
-    @keyframes skeleton-shimmer {
-      0% {
-        background-position: -200% 0;
-      }
-      100% {
-        background-position: 200% 0;
-      }
     }
     .grid-item-content { padding:8px; display: flex; flex-direction: column; flex: 1; }
     .grid-item-content h3 { 
@@ -1393,120 +1359,6 @@
       margin-top: 8px;
     }
     
-    /* Multi-select styles - DO NOT change existing filter container positioning */
-    .multi-select-container {
-      position: relative;
-      /* Keep all existing flex, min-width styles from original select */
-    }
-
-    .multi-select-trigger {
-      /* Copy ALL styles from existing select elements */
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      cursor: pointer;
-    }
-
-    .multi-select-count {
-      background: #1FDF67;
-      color: #1a1a1a;
-      border-radius: 50%;
-      width: 20px;
-      height: 20px;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      font-size: 11px;
-      font-weight: 600;
-      margin-left: 8px; /* Add space before the count circle */
-      margin-right: 8px; /* Keep existing right margin */
-    }
-
-    .multi-select-count.visible {
-      display: flex;
-    }
-
-    .multi-select-dropdown {
-      position: absolute;
-      top: 100%;
-      left: 0;
-      right: 0;
-      background: #1a1a1a;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 8px;
-      margin-top: 4px;
-      max-height: 200px;
-      overflow-y: auto;
-      display: none;
-      z-index: 100;
-    }
-
-    .multi-select-dropdown.open {
-      display: block;
-    }
-
-    .multi-select-option {
-      padding: 8px 12px;
-      display: flex;
-      align-items: center;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      position: relative;
-      color: #fff;
-    }
-
-    .multi-select-option:hover {
-      background: rgba(255, 255, 255, 0.05); /* Subtle white overlay */
-      /* Remove the border that causes movement */
-    }
-
-    .multi-select-option.selected {
-      background: rgba(31, 223, 103, 0.1); /* Subtle green tint for selected */
-    }
-
-    /* Add a modern hover indicator without movement */
-    .multi-select-option::before {
-      content: '';
-      position: absolute;
-      left: 0;
-      top: 0;
-      bottom: 0;
-      width: 3px;
-      background: #1FDF67;
-      opacity: 0;
-      transition: opacity 0.2s ease;
-    }
-
-    .multi-select-option:hover::before {
-      opacity: 0.5;
-    }
-
-    .multi-select-option.selected::before {
-      opacity: 1;
-    }
-
-    /* Optional: Add subtle background gradient on hover */
-    .multi-select-option:hover {
-      background: linear-gradient(90deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
-    }
-
-    .multi-select-option.selected:hover {
-      background: linear-gradient(90deg, rgba(31, 223, 103, 0.15) 0%, rgba(31, 223, 103, 0.05) 100%);
-    }
-
-    .check-icon {
-      width: 16px;
-      height: 16px;
-      margin-right: 8px;
-      color: #1FDF67; /* Same green as pins/clusters */
-      opacity: 0;
-      transition: opacity 0.2s ease;
-    }
-
-    .multi-select-option.selected .check-icon {
-      opacity: 1;
-    }
-
     /* Smooth transitions for all interactive elements */
     * {
       -webkit-tap-highlight-color: transparent;
@@ -1563,31 +1415,6 @@
     .toast.show {
       transform: translateX(-50%) translateY(0);
       opacity: 1;
-    }
-    
-    /* Clear selections button */
-    .clear-selections-btn {
-      background: rgba(220, 38, 38, 0.15); /* Very transparent red background */
-      color: #dc2626; /* Red text */
-      border: 1px solid #dc2626; /* Thin red border */
-      border-radius: 8px;
-      padding: 8px 16px;
-      font-size: 13px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      margin-top: 12px;
-      width: 100%;
-    }
-
-    .clear-selections-btn:hover {
-      background: rgba(220, 38, 38, 0.25); /* Slightly less transparent on hover */
-      border-color: #ef4444; /* Brighter red border on hover */
-      color: #ef4444; /* Brighter red text on hover */
-    }
-
-    .clear-selections-btn:active {
-      transform: scale(0.98);
     }
   </style>
 </head>
@@ -1650,34 +1477,13 @@
             <option value="az">Sort: A to Z</option>
             <option value="za">Sort: Z to A</option>
           </select>
-          <div class="multi-select-container" id="projectTypeFilterDesktop" style="flex: 1; min-width: 120px;">
-            <div class="multi-select-trigger" style="background: #1a1a1a; color: #fff; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 8px 12px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s ease;">
-              <span class="multi-select-label">Includes</span>
-              <span class="multi-select-count"></span>
-              <svg class="dropdown-arrow" width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-left: auto;">
-                <path d="M1 1.5L6 6.5L11 1.5" stroke="#999" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </div>
-            <div class="multi-select-dropdown" id="projectTypeDropdownDesktop">
-              <!-- Options will be populated by JavaScript -->
-            </div>
-          </div>
-          <div class="multi-select-container" id="locationFilterDesktop" style="flex: 1; min-width: 100px;">
-            <div class="multi-select-trigger" style="background: #1a1a1a; color: #fff; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 8px 12px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s ease;">
-              <span class="multi-select-label">All Cities</span>
-              <span class="multi-select-count"></span>
-              <svg class="dropdown-arrow" width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-left: auto;">
-                <path d="M1 1.5L6 6.5L11 1.5" stroke="#999" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </div>
-            <div class="multi-select-dropdown" id="locationDropdownDesktop">
-              <!-- Options will be populated by JavaScript -->
-            </div>
-          </div>
+          <select id="projectTypeFilterDesktop" style="flex: 1; min-width: 120px; background: #1a1a1a; color: #fff; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 8px 12px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s ease; appearance: none; background-image: url(&quot;data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%23999' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E&quot;); background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px;">
+            <option value="all">All Types</option>
+          </select>
+          <select id="locationFilterDesktop" style="flex: 1; min-width: 100px; background: #1a1a1a; color: #fff; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 8px 12px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s ease; appearance: none; background-image: url(&quot;data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%23999' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E&quot;); background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px;">
+            <option value="all">All Cities</option>
+          </select>
         </div>
-        <button id="clearSelectionsDesktop" class="clear-selections-btn" style="display: none;">
-          Clear Selections
-        </button>
       </div>
       <div class="sidebar-content">
         <div class="leaf-grid" id="gridDesktop"></div>
@@ -1701,34 +1507,13 @@
               <option value="az">A to Z</option>
               <option value="za">Z to A</option>
             </select>
-            <div class="multi-select-container" id="projectTypeFilterMobile" style="flex: 1; min-width: 90px;">
-              <div class="multi-select-trigger" style="background: #1a1a1a; color: #fff; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 8px 12px; font-size: 9px; font-weight: 500; cursor: pointer; transition: all 0.2s ease;">
-                <span class="multi-select-label">Includes</span>
-                <span class="multi-select-count"></span>
-                <svg class="dropdown-arrow" width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-left: auto;">
-                  <path d="M1 1.5L6 6.5L11 1.5" stroke="#999" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-              </div>
-              <div class="multi-select-dropdown" id="projectTypeDropdownMobile">
-                <!-- Options will be populated by JavaScript -->
-              </div>
-            </div>
-            <div class="multi-select-container" id="locationFilterMobile" style="flex: 1; min-width: 90px;">
-              <div class="multi-select-trigger" style="background: #1a1a1a; color: #fff; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 8px 12px; font-size: 9px; font-weight: 500; cursor: pointer; transition: all 0.2s ease;">
-                <span class="multi-select-label">All Cities</span>
-                <span class="multi-select-count"></span>
-                <svg class="dropdown-arrow" width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-left: auto;">
-                  <path d="M1 1.5L6 6.5L11 1.5" stroke="#999" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-              </div>
-              <div class="multi-select-dropdown" id="locationDropdownMobile">
-                <!-- Options will be populated by JavaScript -->
-              </div>
-            </div>
+            <select id="projectTypeFilterMobile">
+              <option value="all">All Types</option>
+            </select>
+            <select id="locationFilterMobile">
+              <option value="all">All Cities</option>
+            </select>
           </div>
-          <button id="clearSelectionsMobile" class="clear-selections-btn" style="display: none;">
-            Clear Selections
-          </button>
         </div>
         
         <div class="mobile-content allow-scroll">
@@ -2136,10 +1921,6 @@
     let stationPopup;
     let fullscreenMap;
     const hoverIcon = document.getElementById('hoverIcon');
-    
-    // Multi-select filter state
-    let selectedProjectTypes = [];
-    let selectedCities = [];
     // Station coordinates
     const stations = [
       { name: 'Brightline Miami Central', coords: [ -80.19566705369766, 25.779947075732274 ] },
@@ -2274,7 +2055,7 @@
       // Update URL with selected project
       updateURLState({ project: f.properties.title.toLowerCase().replace(/\s+/g, '-') });
     }
-    function renderGrid(targetId = 'grid') {
+   function renderGrid(targetId = 'grid') {
       const grid=document.getElementById(targetId);
       if (!grid) return;
       
@@ -2303,34 +2084,41 @@
       });
       
       // Determine which filters to use based on target
-      let sortType;
+      let locationFilter, projectTypeFilter, sortType;
       
       if (targetId === 'gridDesktop') {
+        locationFilter = document.getElementById('locationFilterDesktop')?.value || 'all';
+        projectTypeFilter = document.getElementById('projectTypeFilterDesktop')?.value || 'all';
         sortType = document.getElementById('sortSelectDesktop')?.value || 'default';
       } else if (targetId === 'gridMobile') {
         // Mobile uses its own filters
+        locationFilter = document.getElementById('locationFilterMobile')?.value || 'all';
+        projectTypeFilter = document.getElementById('projectTypeFilterMobile')?.value || 'all';
         sortType = document.getElementById('sortSelectMobile')?.value || 'default';
       } else {
         // Original grid
+        locationFilter = document.getElementById('locationFilter')?.value || 'all';
+        projectTypeFilter = document.getElementById('projectTypeFilter')?.value || 'all';
         sortType = document.getElementById('sortSelect')?.value || 'default';
       }
       
-      // Apply project type filter - ALL selected types must be included
-      if (selectedProjectTypes.length > 0) {
+      // Apply location filter
+      if (locationFilter !== 'all') {
+        features = features.filter(f => f.properties.city === locationFilter);
+      }
+      
+      // Apply project type filter
+      if (projectTypeFilter !== 'all') {
         features = features.filter(f => {
-          const projectTypes = f.properties.projectTypes || [];
-          // Check if ALL selected types are included in this project
-          return selectedProjectTypes.every(selectedType => 
-            projectTypes.includes(selectedType.toLowerCase())
-          );
+          return f.properties.projectTypes && 
+                 f.properties.projectTypes.includes(projectTypeFilter.toLowerCase());
         });
       }
       
-      // Apply location filter - ANY selected city matches
-      if (selectedCities.length > 0) {
-        features = features.filter(f => 
-          selectedCities.includes(f.properties.city)
-        );
+      // IMPORTANT: Filter to only show projects within the current map bounds
+      // Only apply this filter when using default sort (not alphabetical)
+      if (sortType === 'default') {
+        features = features.filter(f => f.inBounds);
       }
       
       // Apply sorting
@@ -2351,27 +2139,17 @@
           return b.properties.title.localeCompare(a.properties.title);
         });
       } else {
-        // Default sort by distance with featured priority within view
+        // Default sort by distance with featured priority
+        // Since we've already filtered to only in-bounds items, we just sort by featured status and distance
         features.sort((a, b) => {
-          // Priority 1: Featured items that are in bounds
-          const aFeaturedInBounds = a.inBounds && a.properties.featured;
-          const bFeaturedInBounds = b.inBounds && b.properties.featured;
+          // Featured items first
+          if (a.properties.featured && !b.properties.featured) return -1;
+          if (!a.properties.featured && b.properties.featured) return 1;
           
-          if (aFeaturedInBounds && !bFeaturedInBounds) return -1;
-          if (!aFeaturedInBounds && bFeaturedInBounds) return 1;
-          
-          // Priority 2: Non-featured items in bounds
-          const aInBounds = a.inBounds && !a.properties.featured;
-          const bInBounds = b.inBounds && !b.properties.featured;
-          
-          if (aInBounds && !b.inBounds) return -1;
-          if (!aInBounds && b.inBounds) return 1;
-          
-          // Priority 3: Everything else by distance
+          // Then by distance from center
           return a.distance - b.distance;
         });
       }
-      
       // Create document fragment for better performance
       const fragment = document.createDocumentFragment();
       
@@ -2390,7 +2168,6 @@
                  loading="lazy" 
                  alt="${f.properties.title}"
                  class="lazy-loading" />
-            <div class="skeleton-loader"></div>
           </div>
           ${f.properties.featured ? `
             <div class="featured-badge">
@@ -2410,54 +2187,80 @@
               <a href="${f.properties.website}" target="_blank" class="website-link" onclick="event.stopPropagation(); gtag('event', 'learn_more_click', {'project_name': '${f.properties.title}', 'project_city': '${f.properties.city}', 'click_location': 'tile', 'device_type': '${isMobile ? 'mobile' : 'desktop'}'});">Learn More</a>
             </p>
           </div>`;
-        d.onclick=(event)=>{ 
-  // Prevent action if clicking on links or buttons inside the tile
-  if (event.target.closest('a') || event.target.closest('button')) {
-    event.stopPropagation();
-    return; // Don't show popup if clicking links/buttons
-  }
-  
-  // Stop event from bubbling up
-  event.stopPropagation();
-  event.preventDefault();
-  
-  // Track tile click with GA4
-  gtag('event', 'project_click', {
-    'project_name': f.properties.title,
-    'project_city': f.properties.city,
-    'project_featured': f.properties.featured || false,
-    'project_type': f.properties.projectType || 'unknown',
-    'click_source': 'tile',
-    'device_type': isMobile ? 'mobile' : 'desktop',
-    'grid_position': index + 1
-  });
-  
-  showPopup(f); 
-  
-  // On mobile, close drawer after a brief delay to allow map to start flying
-  if (targetId === 'gridMobile') {
-    setTimeout(() => {
-      const drawer = document.getElementById('mobileDrawer');
-      const mapBtn = document.getElementById('mapReturnButton');
-      const content = document.getElementById('mobileDrawerContent');
-      
-      if (drawer) {
-        drawer.classList.remove('expanded');
-        drawer.style.transform = 'translateY(100%)';
-      }
-      if (mapBtn) {
-        mapBtn.classList.remove('visible');
-      }
-      if (content) {
-        content.scrollTop = 0;
-      }
-    }, 100);
-  }
-};
-fragment.appendChild(d);
+        d.onclick=()=>{ 
+          // Track tile click with GA4
+          gtag('event', 'project_click', {
+            'project_name': f.properties.title,
+            'project_city': f.properties.city,
+            'project_featured': f.properties.featured || false,
+            'project_type': f.properties.projectType || 'unknown',
+            'click_source': 'tile',
+            'device_type': isMobile ? 'mobile' : 'desktop',
+            'grid_position': index + 1
+          });
+          
+          showPopup(f); 
+          // On mobile, immediately close the drawer when tile is clicked
+          if (targetId === 'gridMobile') {
+            const drawer = document.getElementById('mobileDrawer');
+            const mapBtn = document.getElementById('mapReturnButton');
+            const content = document.getElementById('mobileDrawerContent');
+            
+            // Immediately collapse - fully hide
+            drawer.classList.remove('expanded');
+            drawer.style.transform = 'translateY(100%)'; // Fully hidden
+            mapBtn.classList.remove('visible');
+            content.scrollTop = 0;
+          }
+        };
+        fragment.appendChild(d);
+      });
       
       // Append all at once
+      // Append all at once
       grid.appendChild(fragment);
+      
+      // Add pagination controls for mobile
+      if (targetId === 'gridMobile' && window.allMobileFeatures) {
+        const totalPages = Math.ceil(window.allMobileFeatures.length / MOBILE_PAGE_SIZE);
+        const currentPage = window.mobileGridPage || 0;
+        
+        if (totalPages > 1) {
+          const paginationDiv = document.createElement('div');
+          paginationDiv.style.cssText = 'display: flex; gap: 8px; justify-content: center; margin-top: 20px; padding: 16px;';
+          
+          if (currentPage > 0) {
+            const prevBtn = document.createElement('button');
+            prevBtn.textContent = '← Previous';
+            prevBtn.style.cssText = 'padding: 10px 20px; background: #1e1e1e; color: #fff; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;';
+            prevBtn.onclick = () => {
+              window.mobileGridPage--;
+              renderGrid('gridMobile');
+              document.getElementById('mobileDrawerContent').scrollTop = 0;
+            };
+            paginationDiv.appendChild(prevBtn);
+          }
+          
+          const pageInfo = document.createElement('span');
+          pageInfo.textContent = `Page ${currentPage + 1} of ${totalPages}`;
+          pageInfo.style.cssText = 'padding: 10px 20px; color: #fff; display: flex; align-items: center; font-weight: 500;';
+          paginationDiv.appendChild(pageInfo);
+          
+          if (currentPage < totalPages - 1) {
+            const nextBtn = document.createElement('button');
+            nextBtn.textContent = 'Next →';
+            nextBtn.style.cssText = 'padding: 10px 20px; background: #1e1e1e; color: #fff; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;';
+            nextBtn.onclick = () => {
+              window.mobileGridPage++;
+              renderGrid('gridMobile');
+              document.getElementById('mobileDrawerContent').scrollTop = 0;
+            };
+            paginationDiv.appendChild(nextBtn);
+          }
+          
+          grid.appendChild(paginationDiv);
+        }
+      }
       
       // Set up lazy loading with Intersection Observer
       const imageObserver = new IntersectionObserver((entries, observer) => {
@@ -2472,22 +2275,12 @@ fragment.appendChild(d);
               img.src = src;
               img.classList.remove('lazy-loading');
               img.classList.add('loaded');
-              // Hide skeleton loader
-              const skeletonLoader = img.parentElement.querySelector('.skeleton-loader');
-              if (skeletonLoader) {
-                skeletonLoader.classList.add('hidden');
-              }
               observer.unobserve(img);
             };
             newImg.onerror = () => {
               // On error, still mark as loaded to prevent retries
               img.classList.remove('lazy-loading');
               img.classList.add('loaded');
-              // Hide skeleton loader
-              const skeletonLoader = img.parentElement.querySelector('.skeleton-loader');
-              if (skeletonLoader) {
-                skeletonLoader.classList.add('hidden');
-              }
               observer.unobserve(img);
             };
             newImg.src = src;
@@ -2525,35 +2318,36 @@ fragment.appendChild(d);
       
       const features = map.getSource('projects')._data.features;
       
-      // Populate cities for multi-select dropdowns
+      // Get all filter elements
+      const locationFilters = [
+        document.getElementById('locationFilter'),
+        document.getElementById('locationFilterDesktop'),
+        document.getElementById('locationFilterMobile')
+      ];
+      
+      const projectTypeFilters = [
+        document.getElementById('projectTypeFilter'),
+        document.getElementById('projectTypeFilterDesktop'),
+        document.getElementById('projectTypeFilterMobile')
+      ];
+      
+      // Populate cities
       const cities = [...new Set(features.map(f => f.properties.city))];
       cities.sort();
       
-      // Populate city dropdowns
-      const locationDropdowns = [
-        document.getElementById('locationDropdownDesktop'),
-        document.getElementById('locationDropdownMobile')
-      ];
-      
-      locationDropdowns.forEach(dropdown => {
-        if (dropdown) {
-          dropdown.innerHTML = '';
+      locationFilters.forEach(filter => {
+        if (filter) {
+          filter.innerHTML = '<option value="all">All Cities</option>';
           cities.forEach(city => {
-            const option = document.createElement('div');
-            option.className = 'multi-select-option';
-            option.setAttribute('data-value', city);
-            option.innerHTML = `
-              <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
-                <path d="M20 6L9 17l-5-5"/>
-              </svg>
-              <span>${city}</span>
-            `;
-            dropdown.appendChild(option);
+            const option = document.createElement('option');
+            option.value = city;
+            option.textContent = city;
+            filter.appendChild(option);
           });
         }
       });
       
-      // Populate project types for multi-select dropdowns
+      // Populate project types
       const allTypes = new Set();
       features.forEach(f => {
         if (f.properties.projectTypes && f.properties.projectTypes.length > 0) {
@@ -2563,226 +2357,21 @@ fragment.appendChild(d);
       
       const projectTypes = [...allTypes].sort((a, b) => a.localeCompare(b));
       
-      // Populate project type dropdowns
-      const projectTypeDropdowns = [
-        document.getElementById('projectTypeDropdownDesktop'),
-        document.getElementById('projectTypeDropdownMobile')
-      ];
-      
-      projectTypeDropdowns.forEach(dropdown => {
-        if (dropdown) {
-          dropdown.innerHTML = '';
+      projectTypeFilters.forEach(filter => {
+        if (filter) {
+          filter.innerHTML = '<option value="all">All Types</option>';
           projectTypes.forEach(type => {
-            const option = document.createElement('div');
-            option.className = 'multi-select-option';
-            option.setAttribute('data-value', type);
-            option.innerHTML = `
-              <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
-                <path d="M20 6L9 17l-5-5"/>
-              </svg>
-              <span>${type.charAt(0).toUpperCase() + type.slice(1)}</span>
-            `;
-            dropdown.appendChild(option);
-          });
-        }
-      });
-      
-      // Setup multi-select functionality
-      setupMultiSelectHandlers();
-    }
-    
-    // Multi-select dropdown handlers
-    function setupMultiSelectHandlers() {
-      // Handle desktop and mobile multi-select dropdowns
-      const containers = [
-        'projectTypeFilterDesktop',
-        'locationFilterDesktop', 
-        'projectTypeFilterMobile',
-        'locationFilterMobile'
-      ];
-      
-      containers.forEach(containerId => {
-        const container = document.getElementById(containerId);
-        if (!container) return;
-        
-        const trigger = container.querySelector('.multi-select-trigger');
-        const dropdown = container.querySelector('.multi-select-dropdown');
-        const label = container.querySelector('.multi-select-label');
-        const count = container.querySelector('.multi-select-count');
-        
-        if (!trigger || !dropdown || !label || !count) return;
-        
-        // Toggle dropdown on trigger click
-        trigger.addEventListener('click', (e) => {
-          e.stopPropagation();
-          
-          // Close other dropdowns
-          containers.forEach(otherId => {
-            if (otherId !== containerId) {
-              const otherDropdown = document.getElementById(otherId)?.querySelector('.multi-select-dropdown');
-              if (otherDropdown) {
-                otherDropdown.classList.remove('open');
-              }
-            }
-          });
-          
-          dropdown.classList.toggle('open');
-        });
-        
-        // Handle option clicks
-        dropdown.addEventListener('click', (e) => {
-          e.stopPropagation();
-          const option = e.target.closest('.multi-select-option');
-          if (!option) return;
-          
-          const value = option.getAttribute('data-value');
-          option.classList.toggle('selected');
-          
-          // Update selection arrays
-          if (containerId.includes('projectType')) {
-            if (option.classList.contains('selected')) {
-              if (!selectedProjectTypes.includes(value)) {
-                selectedProjectTypes.push(value);
-              }
-            } else {
-              selectedProjectTypes = selectedProjectTypes.filter(type => type !== value);
-            }
-          } else if (containerId.includes('location')) {
-            if (option.classList.contains('selected')) {
-              if (!selectedCities.includes(value)) {
-                selectedCities.push(value);
-              }
-            } else {
-              selectedCities = selectedCities.filter(city => city !== value);
-            }
-          }
-          
-          // Update UI
-          updateMultiSelectUI(containerId);
-          
-          // Update clear button visibility
-          const platform = containerId.includes('Desktop') ? 'desktop' : 'mobile';
-          updateClearButton(platform);
-          
-          // Trigger filtering
-          renderGrid(containerId.includes('Desktop') ? 'gridDesktop' : 'gridMobile');
-          
-          // Track filter usage
-          gtag('event', 'filter_change', {
-            'filter_type': containerId.replace('Desktop', '').replace('Mobile', '').replace('Filter', ''),
-            'filter_value': value,
-            'action': option.classList.contains('selected') ? 'select' : 'deselect',
-            'platform': containerId.includes('Desktop') ? 'desktop' : 'mobile'
-          });
-        });
-      });
-      
-      // Close dropdowns when clicking outside
-      document.addEventListener('click', () => {
-        containers.forEach(containerId => {
-          const dropdown = document.getElementById(containerId)?.querySelector('.multi-select-dropdown');
-          if (dropdown) {
-            dropdown.classList.remove('open');
-          }
-        });
-      });
-    }
-    
-    // Update multi-select UI labels and counts
-    function updateMultiSelectUI(containerId) {
-      const container = document.getElementById(containerId);
-      if (!container) return;
-      
-      const label = container.querySelector('.multi-select-label');
-      const count = container.querySelector('.multi-select-count');
-      
-      if (containerId.includes('projectType')) {
-        const selectedCount = selectedProjectTypes.length;
-        if (selectedCount === 0) {
-          label.textContent = 'Includes';
-          count.classList.remove('visible');
-        } else if (selectedCount === 1) {
-          label.textContent = selectedProjectTypes[0].charAt(0).toUpperCase() + selectedProjectTypes[0].slice(1);
-          count.classList.remove('visible');
-        } else {
-          label.textContent = 'Multiple';
-          count.textContent = selectedCount;
-          count.classList.add('visible');
-        }
-      } else if (containerId.includes('location')) {
-        const selectedCount = selectedCities.length;
-        if (selectedCount === 0) {
-          label.textContent = 'All Cities';
-          count.classList.remove('visible');
-        } else if (selectedCount === 1) {
-          label.textContent = selectedCities[0];
-          count.classList.remove('visible');
-        } else {
-          label.textContent = 'Multiple';
-          count.textContent = selectedCount;
-          count.classList.add('visible');
-        }
-      }
-    }
-    
-    // Function to update clear button visibility
-    function updateClearButton(platform) {
-      const btnId = platform === 'desktop' ? 'clearSelectionsDesktop' : 'clearSelectionsMobile';
-      const clearBtn = document.getElementById(btnId);
-      
-      // Check if any filters have selections
-      const hasSelections = selectedProjectTypes.length > 0 || selectedCities.length > 0;
-      
-      if (clearBtn) {
-        clearBtn.style.display = hasSelections ? 'block' : 'none';
-      }
-    }
-
-    // Modified updateMultiSelectUI to also update clear buttons
-    function updateMultiSelectLabels() {
-      // Update both desktop and mobile UI
-      updateMultiSelectUI('projectTypeFilterDesktop');
-      updateMultiSelectUI('locationFilterDesktop');
-      updateMultiSelectUI('projectTypeFilterMobile');
-      updateMultiSelectUI('locationFilterMobile');
-      
-      // Update clear buttons
-      updateClearButton('desktop');
-      updateClearButton('mobile');
-    }
-    
-    // Add click handlers for clear buttons
-    function setupClearButtons() {
-      ['clearSelectionsDesktop', 'clearSelectionsMobile'].forEach(btnId => {
-        const btn = document.getElementById(btnId);
-        if (btn) {
-          btn.addEventListener('click', () => {
-            // Clear all selections
-            selectedProjectTypes = [];
-            selectedCities = [];
-            
-            // Update UI
-            document.querySelectorAll('.multi-select-option').forEach(opt => {
-              opt.classList.remove('selected');
-            });
-            
-            // Update labels and counts
-            updateMultiSelectLabels();
-            
-            // Hide clear button
-            btn.style.display = 'none';
-            
-            // Re-render grid
-            const platform = btnId.includes('Desktop') ? 'desktop' : 'mobile';
-            renderGrid(platform === 'desktop' ? 'gridDesktop' : 'gridMobile');
+            const option = document.createElement('option');
+            option.value = type;
+            option.textContent = type.charAt(0).toUpperCase() + type.slice(1);
+            filter.appendChild(option);
           });
         }
       });
     }
-    
     // Add event listeners for desktop filters
     const setupDesktopFilters = () => {
-      const desktopFilters = ['sortSelectDesktop'];
+      const desktopFilters = ['sortSelectDesktop', 'locationFilterDesktop', 'projectTypeFilterDesktop'];
       desktopFilters.forEach(id => {
         const element = document.getElementById(id);
         if (element) {
@@ -2800,7 +2389,7 @@ fragment.appendChild(d);
     };
     // Add event listeners for mobile filters
     const setupMobileFilters = () => {
-      const mobileFilters = ['sortSelectMobile'];
+      const mobileFilters = ['sortSelectMobile', 'locationFilterMobile', 'projectTypeFilterMobile'];
       mobileFilters.forEach(id => {
         const element = document.getElementById(id);
         if (element) {
@@ -2979,6 +2568,23 @@ fragment.appendChild(d);
       
       // Create document fragment for better performance
       const fragment = document.createDocumentFragment();
+      // Add pagination for mobile to prevent iOS 26 memory crashes
+      const MOBILE_PAGE_SIZE = 12;
+      
+      if (targetId === 'gridMobile') {
+        if (!window.mobileGridPage) {
+          window.mobileGridPage = 0;
+        }
+        
+        window.allMobileFeatures = features;
+        
+        const startIdx = window.mobileGridPage * MOBILE_PAGE_SIZE;
+        const endIdx = startIdx + MOBILE_PAGE_SIZE;
+        features = features.slice(startIdx, endIdx);
+      }
+      
+      // Create document fragment for better performance
+      const fragment = document.createDocumentFragment();
       
       features.forEach((f, index) => {
         const d = document.createElement('div');
@@ -2995,7 +2601,6 @@ fragment.appendChild(d);
                  loading="lazy" 
                  alt="${f.properties.title}"
                  class="lazy-loading" />
-            <div class="skeleton-loader"></div>
           </div>
           ${f.properties.featured ? `
             <div class="featured-badge">
@@ -3016,28 +2621,20 @@ fragment.appendChild(d);
             </p>
           </div>`;
         d.onclick = () => { 
-  showPopup(f); 
-  
-  // On mobile, close drawer after a brief delay to allow map to start flying
-  if (targetId === 'gridMobile') {
-    setTimeout(() => {
-      const drawer = document.getElementById('mobileDrawer');
-      const mapBtn = document.getElementById('mapReturnButton');
-      const content = document.getElementById('mobileDrawerContent');
-      
-      if (drawer) {
-        drawer.classList.remove('expanded');
-        drawer.style.transform = 'translateY(100%)';
-      }
-      if (mapBtn) {
-        mapBtn.classList.remove('visible');
-      }
-      if (content) {
-        content.scrollTop = 0;
-      }
-    }, 100);
-  }
-};
+          showPopup(f); 
+          // On mobile, immediately close the drawer when tile is clicked
+          if (targetId === 'gridMobile') {
+            const drawer = document.getElementById('mobileDrawer');
+            const mapBtn = document.getElementById('mapReturnButton');
+            const content = document.getElementById('mobileDrawerContent');
+            
+            // Immediately collapse - fully hide
+            drawer.classList.remove('expanded');
+            drawer.style.transform = 'translateY(100%)'; // Fully hidden
+            mapBtn.classList.remove('visible');
+            content.scrollTop = 0;
+          }
+        };
         fragment.appendChild(d);
       });
       
@@ -3061,21 +2658,11 @@ fragment.appendChild(d);
               img.src = src;
               img.classList.remove('lazy-loading');
               img.classList.add('loaded');
-              // Hide skeleton loader
-              const skeletonLoader = img.parentElement.querySelector('.skeleton-loader');
-              if (skeletonLoader) {
-                skeletonLoader.classList.add('hidden');
-              }
               observer.unobserve(img);
             };
             newImg.onerror = () => {
               img.classList.remove('lazy-loading');
               img.classList.add('loaded');
-              // Hide skeleton loader
-              const skeletonLoader = img.parentElement.querySelector('.skeleton-loader');
-              if (skeletonLoader) {
-                skeletonLoader.classList.add('hidden');
-              }
               observer.unobserve(img);
             };
             newImg.src = src;
@@ -3717,7 +3304,6 @@ fragment.appendChild(d);
       initializeData();
       setupDesktopFilters();
       setupMobileFilters();
-      setupClearButtons();
       setupSidebarSearch();
     });
     function initializeData() {
@@ -3946,3 +3532,4 @@ fragment.appendChild(d);
   </script>
 </body>
 </html>
+
