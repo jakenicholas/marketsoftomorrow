@@ -2411,30 +2411,6 @@
             </p>
           </div>`;
         d.onclick=()=>{ 
-          // Track tile click with GA4
-          gtag('event', 'project_click', {
-            'project_name': f.properties.title,
-            'project_city': f.properties.city,
-            'project_featured': f.properties.featured || false,
-            'project_type': f.properties.projectType || 'unknown',
-            'click_source': 'tile',
-            'device_type': isMobile ? 'mobile' : 'desktop',
-            'grid_position': index + 1
-          });
-          
-          d.onclick=()=>{ 
-  // Track tile click with GA4
-  gtag('event', 'project_click', {
-    'project_name': f.properties.title,
-    'project_city': f.properties.city,
-    'project_featured': f.properties.featured || false,
-    'project_type': f.properties.projectType || 'unknown',
-    'click_source': 'tile',
-    'device_type': isMobile ? 'mobile' : 'desktop',
-    'grid_position': index + 1
-  });
-  
-  d.onclick=()=>{ 
   // Track tile click with GA4
   gtag('event', 'project_click', {
     'project_name': f.properties.title,
@@ -2465,11 +2441,10 @@
       if (content) {
         content.scrollTop = 0;
       }
-    }, 100); // 100ms delay
+    }, 100);
   }
 };
-        fragment.appendChild(d);
-      });
+fragment.appendChild(d);
       
       // Append all at once
       grid.appendChild(fragment);
