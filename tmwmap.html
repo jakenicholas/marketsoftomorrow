@@ -2249,11 +2249,19 @@
         window.mobileScrollObserver = new IntersectionObserver((entries) => {
           entries.forEach(entry => {
             if (entry.isIntersecting && window.allMobileFeatures) {
+              // Prevent concurrent loads
+              if (window.mobileScrollLoading) return;
+              
               // Load more items
               const remainingItems = window.allMobileFeatures.length - window.mobileLoadedCount;
               if (remainingItems > 0) {
+                window.mobileScrollLoading = true;
                 window.mobileLoadedCount += 12; // Load 12 more items
                 renderGrid('gridMobile');
+                // Reset flag after a short delay to allow render to complete
+                setTimeout(() => {
+                  window.mobileScrollLoading = false;
+                }, 100);
               }
             }
           });
@@ -2406,6 +2414,7 @@
             });
             // Reset infinite scroll counter when filters change
             window.mobileLoadedCount = 12;
+            window.mobileScrollLoading = false;
             renderGrid('gridMobile');
           });
         }
@@ -2428,6 +2437,7 @@
           
           // Reset infinite scroll counter when search changes
           window.mobileLoadedCount = 12;
+          window.mobileScrollLoading = false;
           
           if (!query) {
             renderGrid('gridMobile');
@@ -2665,11 +2675,19 @@
         window.mobileScrollObserver = new IntersectionObserver((entries) => {
           entries.forEach(entry => {
             if (entry.isIntersecting && window.allMobileFeatures) {
+              // Prevent concurrent loads
+              if (window.mobileScrollLoading) return;
+              
               // Load more items
               const remainingItems = window.allMobileFeatures.length - window.mobileLoadedCount;
               if (remainingItems > 0) {
+                window.mobileScrollLoading = true;
                 window.mobileLoadedCount += 12; // Load 12 more items
                 renderFilteredGrid(targetId, window.allMobileFeatures);
+                // Reset flag after a short delay to allow render to complete
+                setTimeout(() => {
+                  window.mobileScrollLoading = false;
+                }, 100);
               }
             }
           });
@@ -2761,6 +2779,11 @@
         mapBtn.classList.remove('visible');
         // Reset scroll position when closing
         content.scrollTop = 0;
+        // Clean up scroll observer to prevent memory leaks
+        if (window.mobileScrollObserver) {
+          window.mobileScrollObserver.disconnect();
+        }
+        window.mobileScrollLoading = false;
       }
       
       // Function to expand drawer
@@ -2779,6 +2802,7 @@
         
         // Reset infinite scroll counter when opening drawer
         window.mobileLoadedCount = 12;
+        window.mobileScrollLoading = false;
         
         // Update grid when expanding drawer
         renderGrid('gridMobile');
