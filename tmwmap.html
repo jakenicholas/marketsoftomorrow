@@ -2410,7 +2410,12 @@
               <a href="${f.properties.website}" target="_blank" class="website-link" onclick="event.stopPropagation(); gtag('event', 'learn_more_click', {'project_name': '${f.properties.title}', 'project_city': '${f.properties.city}', 'click_location': 'tile', 'device_type': '${isMobile ? 'mobile' : 'desktop'}'});">Learn More</a>
             </p>
           </div>`;
-        d.onclick=()=>{ 
+        d.onclick=(event)=>{ 
+  // Prevent action if clicking on links or buttons inside the tile
+  if (event.target.closest('a') || event.target.closest('button')) {
+    return; // Don't show popup if clicking links/buttons
+  }
+  
   // Track tile click with GA4
   gtag('event', 'project_click', {
     'project_name': f.properties.title,
