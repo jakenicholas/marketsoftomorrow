@@ -2150,6 +2150,21 @@
           return a.distance - b.distance;
         });
       }
+      
+      // Infinite scroll for mobile - load initial batch, then more as user scrolls
+      if (targetId === 'gridMobile') {
+        // Store all features for infinite scroll
+        window.allMobileFeatures = features;
+        
+        // Initialize or get current loaded count
+        if (!window.mobileLoadedCount || window.mobileLoadedCount === 0) {
+          window.mobileLoadedCount = 12;
+        }
+        
+        // Load only the items up to current count
+        features = features.slice(0, window.mobileLoadedCount);
+      }
+      
       // Create document fragment for better performance
       const fragment = document.createDocumentFragment();
       
@@ -2217,49 +2232,38 @@
       });
       
       // Append all at once
-      // Append all at once
       grid.appendChild(fragment);
       
-      // Add pagination controls for mobile
-      if (targetId === 'gridMobile' && window.allMobileFeatures) {
-        const totalPages = Math.ceil(window.allMobileFeatures.length / MOBILE_PAGE_SIZE);
-        const currentPage = window.mobileGridPage || 0;
+      // Add infinite scroll trigger for mobile
+      if (targetId === 'gridMobile' && window.allMobileFeatures && window.mobileLoadedCount < window.allMobileFeatures.length) {
+        const loadMoreTrigger = document.createElement('div');
+        loadMoreTrigger.id = 'mobile-load-more-trigger';
+        loadMoreTrigger.style.cssText = 'height: 20px; width: 100%; margin-top: 20px;';
+        grid.appendChild(loadMoreTrigger);
         
-        if (totalPages > 1) {
-          const paginationDiv = document.createElement('div');
-          paginationDiv.style.cssText = 'display: flex; gap: 8px; justify-content: center; margin-top: 20px; padding: 16px;';
-          
-          if (currentPage > 0) {
-            const prevBtn = document.createElement('button');
-            prevBtn.textContent = '← Previous';
-            prevBtn.style.cssText = 'padding: 10px 20px; background: #1e1e1e; color: #fff; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;';
-            prevBtn.onclick = () => {
-              window.mobileGridPage--;
-              renderGrid('gridMobile');
-              document.getElementById('mobileDrawerContent').scrollTop = 0;
-            };
-            paginationDiv.appendChild(prevBtn);
-          }
-          
-          const pageInfo = document.createElement('span');
-          pageInfo.textContent = `Page ${currentPage + 1} of ${totalPages}`;
-          pageInfo.style.cssText = 'padding: 10px 20px; color: #fff; display: flex; align-items: center; font-weight: 500;';
-          paginationDiv.appendChild(pageInfo);
-          
-          if (currentPage < totalPages - 1) {
-            const nextBtn = document.createElement('button');
-            nextBtn.textContent = 'Next →';
-            nextBtn.style.cssText = 'padding: 10px 20px; background: #1e1e1e; color: #fff; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;';
-            nextBtn.onclick = () => {
-              window.mobileGridPage++;
-              renderGrid('gridMobile');
-              document.getElementById('mobileDrawerContent').scrollTop = 0;
-            };
-            paginationDiv.appendChild(nextBtn);
-          }
-          
-          grid.appendChild(paginationDiv);
+        // Setup intersection observer for infinite scroll
+        if (window.mobileScrollObserver) {
+          window.mobileScrollObserver.disconnect();
         }
+        
+        window.mobileScrollObserver = new IntersectionObserver((entries) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting && window.allMobileFeatures) {
+              // Load more items
+              const remainingItems = window.allMobileFeatures.length - window.mobileLoadedCount;
+              if (remainingItems > 0) {
+                window.mobileLoadedCount += 12; // Load 12 more items
+                renderGrid('gridMobile');
+              }
+            }
+          });
+        }, {
+          root: document.getElementById('mobileDrawerContent'),
+          rootMargin: '100px',
+          threshold: 0.1
+        });
+        
+        window.mobileScrollObserver.observe(loadMoreTrigger);
       }
       
       // Set up lazy loading with Intersection Observer
@@ -2400,6 +2404,8 @@
               'filter_value': element.value,
               'platform': 'mobile'
             });
+            // Reset infinite scroll counter when filters change
+            window.mobileLoadedCount = 12;
             renderGrid('gridMobile');
           });
         }
@@ -2419,6 +2425,9 @@
               'device_type': 'mobile'
             });
           }
+          
+          // Reset infinite scroll counter when search changes
+          window.mobileLoadedCount = 12;
           
           if (!query) {
             renderGrid('gridMobile');
@@ -2566,25 +2575,21 @@
         return a.distance - b.distance;
       });
       
-      // Add pagination for mobile to prevent iOS 26 memory crashes
-      const MOBILE_PAGE_SIZE = 12;
+      // Infinite scroll for mobile - load initial batch, then more as user scrolls
+      const MOBILE_INITIAL_BATCH = 12; // Initial items to show
+      const MOBILE_LOAD_MORE_BATCH = 12; // Items to load per scroll
       
       if (targetId === 'gridMobile') {
-        if (!window.mobileGridPage) {
-          window.mobileGridPage = 0;
-        }
-        
+        // Store all features for infinite scroll
         window.allMobileFeatures = features;
         
-        // Reset to page 0 if current page is out of bounds for the new feature set
-        const totalPages = Math.ceil(features.length / MOBILE_PAGE_SIZE);
-        if (window.mobileGridPage >= totalPages) {
-          window.mobileGridPage = 0;
+        // Initialize or get current loaded count
+        if (!window.mobileLoadedCount || window.mobileLoadedCount === 0) {
+          window.mobileLoadedCount = MOBILE_INITIAL_BATCH;
         }
         
-        const startIdx = window.mobileGridPage * MOBILE_PAGE_SIZE;
-        const endIdx = startIdx + MOBILE_PAGE_SIZE;
-        features = features.slice(startIdx, endIdx);
+        // Load only the items up to current count
+        features = features.slice(0, window.mobileLoadedCount);
       }
       
       // Create document fragment for better performance
@@ -2645,46 +2650,36 @@
       // Append all at once
       grid.appendChild(fragment);
       
-      // Add pagination controls for mobile
-      if (targetId === 'gridMobile' && window.allMobileFeatures) {
-        const totalPages = Math.ceil(window.allMobileFeatures.length / MOBILE_PAGE_SIZE);
-        const currentPage = window.mobileGridPage || 0;
+      // Add infinite scroll trigger for mobile
+      if (targetId === 'gridMobile' && window.allMobileFeatures && window.mobileLoadedCount < window.allMobileFeatures.length) {
+        const loadMoreTrigger = document.createElement('div');
+        loadMoreTrigger.id = 'mobile-load-more-trigger';
+        loadMoreTrigger.style.cssText = 'height: 20px; width: 100%; margin-top: 20px;';
+        grid.appendChild(loadMoreTrigger);
         
-        if (totalPages > 1) {
-          const paginationDiv = document.createElement('div');
-          paginationDiv.style.cssText = 'display: flex; gap: 8px; justify-content: center; margin-top: 20px; padding: 16px;';
-          
-          if (currentPage > 0) {
-            const prevBtn = document.createElement('button');
-            prevBtn.textContent = '← Previous';
-            prevBtn.style.cssText = 'padding: 10px 20px; background: #1e1e1e; color: #fff; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;';
-            prevBtn.onclick = () => {
-              window.mobileGridPage--;
-              renderFilteredGrid(targetId, window.allMobileFeatures);
-              document.getElementById('mobileDrawerContent').scrollTop = 0;
-            };
-            paginationDiv.appendChild(prevBtn);
-          }
-          
-          const pageInfo = document.createElement('span');
-          pageInfo.textContent = `Page ${currentPage + 1} of ${totalPages}`;
-          pageInfo.style.cssText = 'padding: 10px 20px; color: #fff; display: flex; align-items: center; font-weight: 500;';
-          paginationDiv.appendChild(pageInfo);
-          
-          if (currentPage < totalPages - 1) {
-            const nextBtn = document.createElement('button');
-            nextBtn.textContent = 'Next →';
-            nextBtn.style.cssText = 'padding: 10px 20px; background: #1e1e1e; color: #fff; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;';
-            nextBtn.onclick = () => {
-              window.mobileGridPage++;
-              renderFilteredGrid(targetId, window.allMobileFeatures);
-              document.getElementById('mobileDrawerContent').scrollTop = 0;
-            };
-            paginationDiv.appendChild(nextBtn);
-          }
-          
-          grid.appendChild(paginationDiv);
+        // Setup intersection observer for infinite scroll
+        if (window.mobileScrollObserver) {
+          window.mobileScrollObserver.disconnect();
         }
+        
+        window.mobileScrollObserver = new IntersectionObserver((entries) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting && window.allMobileFeatures) {
+              // Load more items
+              const remainingItems = window.allMobileFeatures.length - window.mobileLoadedCount;
+              if (remainingItems > 0) {
+                window.mobileLoadedCount += 12; // Load 12 more items
+                renderFilteredGrid(targetId, window.allMobileFeatures);
+              }
+            }
+          });
+        }, {
+          root: document.getElementById('mobileDrawerContent'),
+          rootMargin: '100px',
+          threshold: 0.1
+        });
+        
+        window.mobileScrollObserver.observe(loadMoreTrigger);
       }
       
       // Set up lazy loading
@@ -2781,6 +2776,9 @@
         content.style.webkitOverflowScrolling = 'touch';
         content.style.pointerEvents = 'auto';
         content.style.touchAction = 'auto';
+        
+        // Reset infinite scroll counter when opening drawer
+        window.mobileLoadedCount = 12;
         
         // Update grid when expanding drawer
         renderGrid('gridMobile');
