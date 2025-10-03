@@ -2779,6 +2779,11 @@
         mapBtn.classList.remove('visible');
         // Reset scroll position when closing
         content.scrollTop = 0;
+        // Clean up scroll observer to prevent memory leaks
+        if (window.mobileScrollObserver) {
+          window.mobileScrollObserver.disconnect();
+        }
+        window.mobileScrollLoading = false;
       }
       
       // Function to expand drawer
