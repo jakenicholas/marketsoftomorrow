@@ -2760,6 +2760,12 @@
       const content = document.getElementById('mobileDrawerContent');
       const mapBtn = document.getElementById('mapReturnButton');
       
+      // Add null checks to prevent crashes
+      if (!drawer || !handle || !content || !mapBtn) {
+        console.warn('Mobile drawer elements not found');
+        return;
+      }
+      
       let startY = 0;
       let currentY = 0;
       let startTransform = 0;
@@ -2768,8 +2774,15 @@
       
       // Use CSS variable for dynamic height
       const getViewportHeight = () => {
-        const appHeight = getComputedStyle(document.documentElement).getPropertyValue('--app-height');
-        return parseInt(appHeight) - 50; // Account for header
+        try {
+          const appHeight = getComputedStyle(document.documentElement).getPropertyValue('--app-height');
+          const height = parseInt(appHeight);
+          // Fallback to window.innerHeight if parsing fails
+          return isNaN(height) ? window.innerHeight - 50 : height - 50; // Account for header
+        } catch (error) {
+          console.warn('Error getting viewport height:', error);
+          return window.innerHeight - 50; // Fallback to window.innerHeight
+        }
       };
       // Function to collapse drawer
       function collapseDrawer() {
@@ -2813,8 +2826,12 @@
       // Prevent touch interactions on content only when collapsed
       content.addEventListener('touchstart', (e) => {
         if (!isExpanded) {
-          e.preventDefault();
-          e.stopPropagation();
+          try {
+            e.preventDefault();
+            e.stopPropagation();
+          } catch (error) {
+            console.warn('Could not prevent touch on collapsed drawer:', error);
+          }
           return false;
         }
       }, { passive: false });
@@ -2824,17 +2841,42 @@
         startY = e.touches[0].clientY;
         drawer.style.transition = 'none';
         
-        // Calculate current position
-        const computedStyle = window.getComputedStyle(drawer);
-        const matrix = new DOMMatrix(computedStyle.transform);
-        const viewportHeight = getViewportHeight();
-        const collapsedY = viewportHeight;
-        startTransform = matrix.m42 || (isExpanded ? 0 : collapsedY);
+        // Calculate current position with error handling
+        try {
+          const computedStyle = window.getComputedStyle(drawer);
+          const transform = computedStyle.transform;
+          const viewportHeight = getViewportHeight();
+          const collapsedY = viewportHeight;
+          
+          // Handle 'none' or invalid transform values
+          if (transform && transform !== 'none') {
+            const matrix = new DOMMatrix(transform);
+            startTransform = matrix.m42 || (isExpanded ? 0 : collapsedY);
+          } else {
+            startTransform = isExpanded ? 0 : collapsedY;
+          }
+        } catch (error) {
+          console.warn('Error calculating transform:', error);
+          const viewportHeight = getViewportHeight();
+          startTransform = isExpanded ? 0 : viewportHeight;
+        }
       }, { passive: true });
       // Handle drag move
       handle.addEventListener('touchmove', (e) => {
         if (!isDragging) return;
-        e.preventDefault();
+        
+        // Try to prevent default, but catch any errors
+        try {
+          e.preventDefault();
+        } catch (error) {
+          console.warn('Could not prevent default on touchmove:', error);
+        }
+        
+        // Ensure touches array exists and has elements
+        if (!e.touches || !e.touches[0]) {
+          console.warn('No touch data available');
+          return;
+        }
         
         currentY = e.touches[0].clientY;
         const deltaY = currentY - startY;
@@ -2910,11 +2952,13 @@
       }
       
       // Old map return button (keep for compatibility)
-      mapBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        drawer.style.transition = 'transform 0.3s ease';
-        collapseDrawer();
-      });
+      if (mapBtn) {
+        mapBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          drawer.style.transition = 'transform 0.3s ease';
+          collapseDrawer();
+        });
+      }
     }
     map.on('load', () => {
       // Build custom Brightline GeoJSON with your coordinates
