@@ -3031,20 +3031,28 @@
             </p>
           </div>`;
         d.onclick = () => { 
-          showPopup(f); 
-          // On mobile, immediately close the drawer when tile is clicked
-          if (targetId === 'gridMobile') {
-            const drawer = document.getElementById('mobileDrawer');
-            const mapBtn = document.getElementById('mapReturnButton');
-            const content = document.getElementById('mobileDrawerContent');
-            
-            // Immediately collapse - fully hide
-            drawer.classList.remove('expanded');
-            drawer.style.transform = 'translateY(100%)'; // Fully hidden
-            mapBtn.classList.remove('visible');
-            content.scrollTop = 0;
-          }
-        };
+  showPopup(f); 
+  
+  // On mobile, close drawer after a brief delay to allow map to start flying
+  if (targetId === 'gridMobile') {
+    setTimeout(() => {
+      const drawer = document.getElementById('mobileDrawer');
+      const mapBtn = document.getElementById('mapReturnButton');
+      const content = document.getElementById('mobileDrawerContent');
+      
+      if (drawer) {
+        drawer.classList.remove('expanded');
+        drawer.style.transform = 'translateY(100%)';
+      }
+      if (mapBtn) {
+        mapBtn.classList.remove('visible');
+      }
+      if (content) {
+        content.scrollTop = 0;
+      }
+    }, 100);
+  }
+};
         fragment.appendChild(d);
       });
       
