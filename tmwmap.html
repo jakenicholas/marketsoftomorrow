@@ -2646,6 +2646,17 @@
             </p>
           </div>`;
         d.onclick = () => { 
+          // Track tile click with GA4
+          gtag('event', 'project_click', {
+            'project_name': f.properties.title,
+            'project_city': f.properties.city,
+            'project_featured': f.properties.featured || false,
+            'project_type': f.properties.projectType || 'unknown',
+            'click_source': 'tile',
+            'device_type': isMobile ? 'mobile' : 'desktop',
+            'grid_position': index + 1
+          });
+          
           showPopup(f); 
           // On mobile, immediately close the drawer when tile is clicked
           if (targetId === 'gridMobile') {
