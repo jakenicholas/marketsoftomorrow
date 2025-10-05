@@ -2017,22 +2017,27 @@
       updateURLState({ project: f.properties.title.toLowerCase().replace(/\s+/g, '-') });
     }
    function renderGrid(targetId = 'grid') {
-      const grid=document.getElementById(targetId);
+      const grid = document.getElementById(targetId);
       if (!grid) return;
       
       // Race condition fix: Disable pointer events during rendering
       grid.style.pointerEvents = 'none';
+      window.gridRendering = window.gridRendering || {};
       window.gridRendering[targetId] = true;
       
-      grid.innerHTML='';
+      grid.innerHTML = '';
       
-      if (!map.getSource('projects') || !map.getSource('projects')._data) return;
+      if (!map.getSource('projects') || !map.getSource('projects')._data) {
+        // Re-enable pointer events even if no data
+        grid.style.pointerEvents = 'auto';
+        window.gridRendering[targetId] = false;
+        return;
+      }
       
       let features = [...map.getSource('projects')._data.features];
       
-      // Get current map center and bounds
+      // Get current map center
       const mapCenter = map.getCenter();
-      const mapBounds = map.getBounds();
       
       // Calculate distance for each feature from map center
       features = features.map(f => {
@@ -2043,9 +2048,7 @@
           coords[1], // latitude
           coords[0]  // longitude
         );
-        // Check if feature is within current map bounds
-        const inBounds = mapBounds.contains([coords[0], coords[1]]);
-        return { ...f, distance, inBounds };
+        return { ...f, distance };
       });
       
       // Determine which filters to use based on target
@@ -2056,12 +2059,10 @@
         projectTypeFilter = document.getElementById('projectTypeFilterDesktop')?.value || 'all';
         sortType = document.getElementById('sortSelectDesktop')?.value || 'default';
       } else if (targetId === 'gridMobile') {
-        // Mobile uses its own filters
         locationFilter = document.getElementById('locationFilterMobile')?.value || 'all';
         projectTypeFilter = document.getElementById('projectTypeFilterMobile')?.value || 'all';
         sortType = document.getElementById('sortSelectMobile')?.value || 'default';
       } else {
-        // Original grid
         locationFilter = document.getElementById('locationFilter')?.value || 'all';
         projectTypeFilter = document.getElementById('projectTypeFilter')?.value || 'all';
         sortType = document.getElementById('sortSelect')?.value || 'default';
@@ -2080,38 +2081,24 @@
         });
       }
       
-      // IMPORTANT: Filter to only show projects within the current map bounds
-      // Only apply this filter when using default sort (not alphabetical)
-      if (sortType === 'default') {
-        features = features.filter(f => f.inBounds);
-      }
-      
       // Apply sorting
       if (sortType === 'az') {
         features.sort((a, b) => {
-          // Featured items first
           if (a.properties.featured && !b.properties.featured) return -1;
           if (!a.properties.featured && b.properties.featured) return 1;
-          // Then alphabetical
           return a.properties.title.localeCompare(b.properties.title);
         });
       } else if (sortType === 'za') {
         features.sort((a, b) => {
-          // Featured items first
           if (a.properties.featured && !b.properties.featured) return -1;
           if (!a.properties.featured && b.properties.featured) return 1;
-          // Then reverse alphabetical
           return b.properties.title.localeCompare(a.properties.title);
         });
       } else {
-        // Default sort by distance with featured priority
-        // Since we've already filtered to only in-bounds items, we just sort by featured status and distance
+        // Default sort - featured first, then by distance
         features.sort((a, b) => {
-          // Featured items first
           if (a.properties.featured && !b.properties.featured) return -1;
           if (!a.properties.featured && b.properties.featured) return 1;
-          
-          // Then by distance from center
           return a.distance - b.distance;
         });
       }
@@ -2130,24 +2117,20 @@
         features = features.slice(0, window.mobileLoadedCount);
       }
       
-      // Create document fragment for better performance
+      // Create tiles
       const fragment = document.createDocumentFragment();
       
       features.forEach((f, index) => {
-        const d=document.createElement('div');
-        d.className='grid-item';
+        const d = document.createElement('div');
+        d.className = 'grid-item visible'; // CRITICAL FIX: Add 'visible' class immediately
         
-        // Use placeholder image initially
         const imageSrc = f.properties.image;
-        const placeholderSrc = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="300" height="120"%3E%3Crect width="300" height="120" fill="%23333"/%3E%3C/svg%3E';
         
-        d.innerHTML=`
+        d.innerHTML = `
           <div class="image-wrapper">
-            <img src="${placeholderSrc}" 
-                 data-src="${imageSrc}" 
-                 loading="lazy" 
+            <img src="${imageSrc}" 
                  alt="${f.properties.title}"
-                 class="lazy-loading" />
+                 loading="lazy" />
           </div>
           ${f.properties.featured ? `
             <div class="featured-badge">
@@ -2167,18 +2150,10 @@
               <a href="${f.properties.website}" target="_blank" class="website-link" onclick="event.stopPropagation(); gtag('event', 'learn_more_click', {'project_name': '${f.properties.title}', 'project_city': '${f.properties.city}', 'click_location': 'tile', 'device_type': '${isMobile ? 'mobile' : 'desktop'}'});">Learn More</a>
             </p>
           </div>`;
-        d.onclick = () => { 
-          // Race condition fix: Check if grid is still rendering
-          if (window.gridRendering[targetId]) {
-            console.log('Grid still rendering, click ignored');
-            return;
-          }
           
-          // Check if data exists before showing popup
-          if (!map.getSource('projects') || !map.getSource('projects')._data) {
-            console.warn('Project data not loaded yet');
-            return;
-          }
+        d.onclick = () => { 
+          if (window.gridRendering[targetId]) return;
+          if (!map.getSource('projects') || !map.getSource('projects')._data) return;
           
           gtag('event', 'project_click', {
             'project_name': f.properties.title,
@@ -2190,7 +2165,7 @@
             'grid_position': index + 1
           });
           
-          showPopup(f); 
+          showPopup(f);
           
           if (targetId === 'gridMobile') {
             setTimeout(() => {
@@ -2211,10 +2186,10 @@
             }, 100);
           }
         };
+        
         fragment.appendChild(d);
       });
       
-      // Append all at once
       grid.appendChild(fragment);
       
       // Add infinite scroll trigger for mobile
@@ -2257,14 +2232,11 @@
         window.mobileScrollObserver.observe(loadMoreTrigger);
       }
       
-      // iOS 26 FIX: Set up lazy loading with updated settings
-      setupLazyLoading(grid, targetId);
-      
-      // Race condition fix: Re-enable pointer events after 150ms delay
+      // Re-enable pointer events
       setTimeout(() => {
         grid.style.pointerEvents = 'auto';
         window.gridRendering[targetId] = false;
-      }, 150);
+      }, 100);
     }
     function populateLocationFilter() {
       if (!map.getSource('projects') || !map.getSource('projects')._data) return;
