@@ -258,15 +258,9 @@
     /* Mobile: add padding bottom for header and use dynamic height */
     @media(max-width:800px) {
       #app-container {
-        height: var(--app-height);
-        padding-bottom: 0;
-        /* Allow map to overflow */
-        overflow: visible;
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
+        height: 100vh;
+        height: 100dvh; /* Use dynamic viewport height for better mobile support */
+        padding-bottom: 0; /* Remove bottom padding since no header */
       }
     }
     
@@ -276,43 +270,7 @@
       left: 0; 
       right: 0; 
       bottom: 0; 
-      z-index: 1;
-      /* Allow map to extend behind iOS Safari UI */
-      height: 100vh;
-      height: -webkit-fill-available;
-    }
-
-    /* Mobile: make map extend beyond viewport */
-    @media(max-width:800px) {
-      #map {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        width: 100vw;
-        height: 100vh;
-        min-height: 100vh;
-        min-height: -webkit-fill-available;
-        /* Critical: allow scrolling behind Safari UI */
-        overflow: visible !important;
-      }
-      
-      /* Force Mapbox canvas to render behind Safari UI on iOS */
-      .mapboxgl-canvas-container,
-      .mapboxgl-canvas {
-        position: fixed !important;
-        top: 0 !important;
-        left: 0 !important;
-        width: 100vw !important;
-        height: 100vh !important;
-        height: -webkit-fill-available !important;
-      }
-      
-      /* Ensure map controls don't get cut off */
-      .mapboxgl-ctrl-bottom-right {
-        padding-bottom: calc(env(safe-area-inset-bottom) + 20px);
-      }
+      z-index: 1; 
     }
     
     /* Desktop sidebar styles */
@@ -1601,31 +1559,16 @@
       // Get the actual inner height of the window
       let vh = window.innerHeight;
       
-      // For mobile browsers, we need to be more aggressive
+      // For mobile browsers, try visualViewport if available (better accuracy)
       if (window.innerWidth <= 800) {
-        // Try multiple methods to get the correct height
         if ('visualViewport' in window && window.visualViewport) {
           vh = window.visualViewport.height;
-        } else if (window.screen && window.screen.availHeight) {
-          const screenHeight = window.screen.availHeight;
-          const currentHeight = window.innerHeight;
-          vh = Math.min(screenHeight, currentHeight);
         }
-        
-        // Apply the height to body elements but NOT to map
-        doc.style.height = `${vh}px`;
-        document.body.style.height = `${vh}px`;
-        
-        // REMOVED: Don't constrain app container on mobile for map
-        // Let the map breathe behind Safari UI
       }
       
-      // Set CSS variables
+      // Set CSS variables as fallback for browsers that don't support dvh
       doc.style.setProperty('--app-height', `${vh}px`);
       doc.style.setProperty('--viewport-height', `${vh}px`);
-      
-      // Force a layout recalculation
-      document.body.offsetHeight;
       
       // Send height to parent if in iframe
       if (window.parent !== window) {
@@ -1935,62 +1878,6 @@
       center: [-81.1961527, 26.7807395],
       zoom: isMobile ? 6 : 7
     });
-    
-    // Allow map to render behind iOS Safari UI
-    if (isMobile) {
-      map.on('load', () => {
-        // Force resize immediately
-        map.resize();
-        
-        // Get the actual screen dimensions
-        const screenHeight = window.screen.height;
-        const screenWidth = window.screen.width;
-        
-        // Apply to canvas container
-        const canvasContainer = document.querySelector('.mapboxgl-canvas-container');
-        if (canvasContainer) {
-          canvasContainer.style.position = 'fixed';
-          canvasContainer.style.top = '0';
-          canvasContainer.style.left = '0';
-          canvasContainer.style.width = `${screenWidth}px`;
-          canvasContainer.style.height = `${screenHeight}px`;
-        }
-        
-        // Apply to canvas itself
-        const canvas = document.querySelector('.mapboxgl-canvas');
-        if (canvas) {
-          canvas.style.position = 'fixed';
-          canvas.style.top = '0';
-          canvas.style.left = '0';
-          canvas.width = screenWidth * window.devicePixelRatio;
-          canvas.height = screenHeight * window.devicePixelRatio;
-          canvas.style.width = `${screenWidth}px`;
-          canvas.style.height = `${screenHeight}px`;
-        }
-        
-        // Force another resize after canvas updates
-        setTimeout(() => {
-          map.resize();
-        }, 100);
-      });
-      
-      // Handle orientation changes
-      window.addEventListener('orientationchange', () => {
-        setTimeout(() => {
-          map.resize();
-          const canvas = document.querySelector('.mapboxgl-canvas');
-          if (canvas) {
-            const screenHeight = window.screen.height;
-            const screenWidth = window.screen.width;
-            canvas.width = screenWidth * window.devicePixelRatio;
-            canvas.height = screenHeight * window.devicePixelRatio;
-            canvas.style.width = `${screenWidth}px`;
-            canvas.style.height = `${screenHeight}px`;
-          }
-        }, 200);
-      });
-    }
-    
     let activePopup;
     let stationPopup;
     let fullscreenMap;
