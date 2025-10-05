@@ -2274,8 +2274,16 @@
         window.mobileScrollObserver.observe(loadMoreTrigger);
       }
       
+      // Clean up old observers before creating new ones to prevent memory leaks
+      if (window.imageObserver) {
+        window.imageObserver.disconnect();
+      }
+      if (window.fadeObserver) {
+        window.fadeObserver.disconnect();
+      }
+      
       // Set up lazy loading with Intersection Observer
-      const imageObserver = new IntersectionObserver((entries, observer) => {
+      window.imageObserver = new IntersectionObserver((entries, observer) => {
         entries.forEach(entry => {
           if (entry.isIntersecting) {
             const img = entry.target;
@@ -2304,13 +2312,11 @@
       });
       
       // Set up intersection observer for fade animations
-      const fadeObserver = new IntersectionObserver((entries) => {
+      window.fadeObserver = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
           if (entry.isIntersecting && !entry.target.classList.contains('visible')) {
-            // Use requestAnimationFrame for smoother animations
-            requestAnimationFrame(() => {
-              entry.target.classList.add('visible');
-            });
+            // Removed requestAnimationFrame for better mobile performance
+            entry.target.classList.add('visible');
           }
         });
       }, {
@@ -2322,8 +2328,8 @@
       const gridItems = grid.querySelectorAll('.grid-item');
       const images = grid.querySelectorAll('.grid-item img');
       
-      gridItems.forEach(item => fadeObserver.observe(item));
-      images.forEach(img => imageObserver.observe(img));
+      gridItems.forEach(item => window.fadeObserver.observe(item));
+      images.forEach(img => window.imageObserver.observe(img));
     }
     function populateLocationFilter() {
       if (!map.getSource('projects') || !map.getSource('projects')._data) return;
@@ -2706,7 +2712,15 @@
     
     // Extract lazy loading setup to reusable function
     function setupLazyLoading(grid) {
-      const imageObserver = new IntersectionObserver((entries, observer) => {
+      // Clean up old observers before creating new ones to prevent memory leaks
+      if (window.imageObserver) {
+        window.imageObserver.disconnect();
+      }
+      if (window.fadeObserver) {
+        window.fadeObserver.disconnect();
+      }
+      
+      window.imageObserver = new IntersectionObserver((entries, observer) => {
         entries.forEach(entry => {
           if (entry.isIntersecting) {
             const img = entry.target;
@@ -2732,12 +2746,11 @@
         threshold: 0.01
       });
       
-      const fadeObserver = new IntersectionObserver((entries) => {
+      window.fadeObserver = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
           if (entry.isIntersecting && !entry.target.classList.contains('visible')) {
-            requestAnimationFrame(() => {
-              entry.target.classList.add('visible');
-            });
+            // Removed requestAnimationFrame for better mobile performance
+            entry.target.classList.add('visible');
           }
         });
       }, {
@@ -2748,9 +2761,13 @@
       const gridItems = grid.querySelectorAll('.grid-item');
       const images = grid.querySelectorAll('.grid-item img');
       
-      gridItems.forEach(item => fadeObserver.observe(item));
-      images.forEach(img => imageObserver.observe(img));
+      gridItems.forEach(item => window.fadeObserver.observe(item));
+      images.forEach(img => window.imageObserver.observe(img));
     }
+    // Global variables for observer cleanup to prevent memory leaks
+    window.imageObserver = null;
+    window.fadeObserver = null;
+    
     // Global variable to track mobile drawer state
     window.mobileDrawerCollapse = null;
     // Mobile drawer functionality
