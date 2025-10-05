@@ -258,9 +258,15 @@
     /* Mobile: add padding bottom for header and use dynamic height */
     @media(max-width:800px) {
       #app-container {
-        height: 100vh;
-        height: 100dvh; /* Use dynamic viewport height for better mobile support */
-        padding-bottom: 0; /* Remove bottom padding since no header */
+        height: var(--app-height);
+        padding-bottom: 0;
+        /* Allow map to overflow */
+        overflow: visible;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
       }
     }
     
@@ -270,7 +276,27 @@
       left: 0; 
       right: 0; 
       bottom: 0; 
-      z-index: 1; 
+      z-index: 1;
+      /* Allow map to extend behind iOS Safari UI */
+      height: 100vh;
+      height: -webkit-fill-available;
+    }
+
+    /* Mobile: make map extend beyond viewport */
+    @media(max-width:800px) {
+      #map {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100vw;
+        height: 100vh;
+        min-height: 100vh;
+        min-height: -webkit-fill-available;
+        /* Critical: allow scrolling behind Safari UI */
+        overflow: visible !important;
+      }
     }
     
     /* Desktop sidebar styles */
@@ -1878,6 +1904,25 @@
       center: [-81.1961527, 26.7807395],
       zoom: isMobile ? 6 : 7
     });
+    
+    // Allow map to render behind iOS Safari UI
+    if (isMobile) {
+      map.on('load', () => {
+        // Force map to fill entire viewport including under Safari bars
+        map.resize();
+        
+        // Prevent map container from being constrained
+        const mapCanvas = document.querySelector('.mapboxgl-canvas');
+        if (mapCanvas) {
+          mapCanvas.style.position = 'fixed';
+          mapCanvas.style.top = '0';
+          mapCanvas.style.left = '0';
+          mapCanvas.style.width = '100vw';
+          mapCanvas.style.height = '100vh';
+        }
+      });
+    }
+    
     let activePopup;
     let stationPopup;
     let fullscreenMap;
