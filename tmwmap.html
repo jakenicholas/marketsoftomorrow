@@ -2267,69 +2267,15 @@
           });
         }, {
           root: document.getElementById('mobileDrawerContent'),
-          rootMargin: '100px',
+          rootMargin: '200px', // iOS 26 FIX: Increased from 100px for better async handling
           threshold: 0.1
         });
         
         window.mobileScrollObserver.observe(loadMoreTrigger);
       }
       
-      // Clean up old observers before creating new ones to prevent memory leaks
-      if (window.imageObserver) {
-        window.imageObserver.disconnect();
-      }
-      if (window.fadeObserver) {
-        window.fadeObserver.disconnect();
-      }
-      
-      // Set up lazy loading with Intersection Observer
-      window.imageObserver = new IntersectionObserver((entries, observer) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            const img = entry.target;
-            const src = img.getAttribute('data-src');
-            
-            // Create new image to preload
-            const newImg = new Image();
-            newImg.onload = () => {
-              img.src = src;
-              img.classList.remove('lazy-loading');
-              img.classList.add('loaded');
-              observer.unobserve(img);
-            };
-            newImg.onerror = () => {
-              // On error, still mark as loaded to prevent retries
-              img.classList.remove('lazy-loading');
-              img.classList.add('loaded');
-              observer.unobserve(img);
-            };
-            newImg.src = src;
-          }
-        });
-      }, {
-        rootMargin: '50px',
-        threshold: 0.01
-      });
-      
-      // Set up intersection observer for fade animations
-      window.fadeObserver = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting && !entry.target.classList.contains('visible')) {
-            // Removed requestAnimationFrame for better mobile performance
-            entry.target.classList.add('visible');
-          }
-        });
-      }, {
-        threshold: 0.1,
-        rootMargin: '0px'
-      });
-      
-      // Observe all grid items and images
-      const gridItems = grid.querySelectorAll('.grid-item');
-      const images = grid.querySelectorAll('.grid-item img');
-      
-      gridItems.forEach(item => window.fadeObserver.observe(item));
-      images.forEach(img => window.imageObserver.observe(img));
+      // iOS 26 FIX: Set up lazy loading with updated settings
+      setupLazyLoading(grid);
     }
     function populateLocationFilter() {
       if (!map.getSource('projects') || !map.getSource('projects')._data) return;
@@ -2710,7 +2656,7 @@
           });
         }, {
           root: document.getElementById('mobileDrawerContent'),
-          rootMargin: '100px',
+          rootMargin: '200px', // iOS 26 FIX: Increased from 100px for better async handling
           threshold: 0.1
         });
         
@@ -2731,38 +2677,48 @@
         window.fadeObserver.disconnect();
       }
       
+      // iOS 26 FIX: Use requestIdleCallback to batch async observer callbacks
+      const requestIdleCallback = window.requestIdleCallback || ((cb) => setTimeout(cb, 1));
+      
       window.imageObserver = new IntersectionObserver((entries, observer) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            const img = entry.target;
-            const src = img.getAttribute('data-src');
-            
-            const newImg = new Image();
-            newImg.onload = () => {
-              img.src = src;
-              img.classList.remove('lazy-loading');
-              img.classList.add('loaded');
-              observer.unobserve(img);
-            };
-            newImg.onerror = () => {
-              img.classList.remove('lazy-loading');
-              img.classList.add('loaded');
-              observer.unobserve(img);
-            };
-            newImg.src = src;
-          }
+        // iOS 26 FIX: Batch process entries during idle time
+        requestIdleCallback(() => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              const img = entry.target;
+              const src = img.getAttribute('data-src');
+              
+              const newImg = new Image();
+              newImg.onload = () => {
+                img.src = src;
+                img.classList.remove('lazy-loading');
+                img.classList.add('loaded');
+                observer.unobserve(img);
+              };
+              newImg.onerror = () => {
+                img.classList.remove('lazy-loading');
+                img.classList.add('loaded');
+                observer.unobserve(img);
+              };
+              newImg.src = src;
+            }
+          });
         });
       }, {
-        rootMargin: '50px',
+        rootMargin: '200px', // iOS 26 FIX: Increased from 50px for "near viewport" loading
         threshold: 0.01
       });
       
-      window.fadeObserver = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting && !entry.target.classList.contains('visible')) {
-            // Removed requestAnimationFrame for better mobile performance
-            entry.target.classList.add('visible');
-          }
+      window.fadeObserver = new IntersectionObserver((entries, observer) => {
+        // iOS 26 FIX: Batch process entries during idle time
+        requestIdleCallback(() => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting && !entry.target.classList.contains('visible')) {
+              entry.target.classList.add('visible');
+              // iOS 26 FIX: Auto-unobserve after fading in to save memory
+              observer.unobserve(entry.target);
+            }
+          });
         });
       }, {
         threshold: 0.1,
@@ -2775,6 +2731,18 @@
       gridItems.forEach(item => window.fadeObserver.observe(item));
       images.forEach(img => window.imageObserver.observe(img));
     }
+    
+    // iOS 26 FIX: Add cleanup on visibility change to prevent memory leaks
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        if (window.imageObserver) {
+          window.imageObserver.disconnect();
+        }
+        if (window.fadeObserver) {
+          window.fadeObserver.disconnect();
+        }
+      }
+    });
     // Global variables for observer cleanup to prevent memory leaks
     window.imageObserver = null;
     window.fadeObserver = null;
