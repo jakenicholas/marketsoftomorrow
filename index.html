@@ -2258,7 +2258,7 @@
       }
       
       // iOS 26 FIX: Set up lazy loading with updated settings
-      setupLazyLoading(grid);
+      setupLazyLoading(grid, targetId);
       
       // Race condition fix: Re-enable pointer events after 150ms delay
       setTimeout(() => {
@@ -2675,7 +2675,7 @@
       }
       
       // Set up lazy loading
-      setupLazyLoading(grid);
+      setupLazyLoading(grid, targetId);
       
       // Race condition fix: Re-enable pointer events after 150ms delay
       setTimeout(() => {
@@ -2685,7 +2685,7 @@
     }
     
     // Extract lazy loading setup to reusable function
-    function setupLazyLoading(grid) {
+    function setupLazyLoading(grid, targetId) {
       // Clean up old observers before creating new ones to prevent memory leaks
       if (window.imageObserver) {
         window.imageObserver.disconnect();
@@ -2739,7 +2739,8 @@
         });
       }, {
         threshold: 0.1,
-        rootMargin: '0px'
+        rootMargin: '50px',  // Changed from 0px to 50px
+        root: targetId === 'gridDesktop' ? document.getElementById('desktopSidebar') : null  // Specify the scrolling container
       });
       
       const gridItems = grid.querySelectorAll('.grid-item');
@@ -2747,6 +2748,22 @@
       
       gridItems.forEach(item => window.fadeObserver.observe(item));
       images.forEach(img => window.imageObserver.observe(img));
+      
+      // Force immediate visibility for items already in view (desktop sidebar fix)
+      if (targetId === 'gridDesktop') {
+        setTimeout(() => {
+          gridItems.forEach(item => {
+            const rect = item.getBoundingClientRect();
+            const sidebar = document.getElementById('desktopSidebar');
+            const sidebarRect = sidebar.getBoundingClientRect();
+            
+            // Check if item is within visible area of sidebar
+            if (rect.top < sidebarRect.bottom && rect.bottom > sidebarRect.top) {
+              item.classList.add('visible');
+            }
+          });
+        }, 100);
+      }
     }
     
     // iOS 26 FIX: Add cleanup on visibility change to prevent memory leaks
