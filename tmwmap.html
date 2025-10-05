@@ -459,13 +459,19 @@
       align-items: center;
       gap: 6px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-      transition: background 0.3s;
+      transition: background 0.3s, opacity 0.3s;
       z-index: 25;
+      opacity: 0.5;
     }
     
     /* Only show Map button when drawer is expanded */
     #mobileDrawer.expanded #mobileMapButton {
       display: flex;
+    }
+    
+    /* Map button fully visible when ready */
+    #mobileMapButton.ready {
+      opacity: 1.0;
     }
     
     #mobileMapButton:active {
@@ -2059,6 +2065,10 @@
       const grid=document.getElementById(targetId);
       if (!grid) return;
       
+      // Race condition fix: Disable pointer events during rendering
+      grid.style.pointerEvents = 'none';
+      window.gridRendering[targetId] = true;
+      
       grid.innerHTML='';
       
       if (!map.getSource('projects') || !map.getSource('projects')._data) return;
@@ -2203,6 +2213,12 @@
             </p>
           </div>`;
         d.onclick = () => { 
+          // Race condition fix: Check if grid is still rendering
+          if (window.gridRendering[targetId]) {
+            console.log('Grid still rendering, click ignored');
+            return;
+          }
+          
           // Check if data exists before showing popup
           if (!map.getSource('projects') || !map.getSource('projects')._data) {
             console.warn('Project data not loaded yet');
@@ -2288,6 +2304,12 @@
       
       // iOS 26 FIX: Set up lazy loading with updated settings
       setupLazyLoading(grid);
+      
+      // Race condition fix: Re-enable pointer events after 150ms delay
+      setTimeout(() => {
+        grid.style.pointerEvents = 'auto';
+        window.gridRendering[targetId] = false;
+      }, 150);
     }
     function populateLocationFilter() {
       if (!map.getSource('projects') || !map.getSource('projects')._data) return;
@@ -2510,6 +2532,10 @@
       const grid = document.getElementById(targetId);
       if (!grid) return;
       
+      // Race condition fix: Disable pointer events during rendering
+      grid.style.pointerEvents = 'none';
+      window.gridRendering[targetId] = true;
+      
       grid.innerHTML = '';
       
       // Get current map center and bounds
@@ -2604,6 +2630,12 @@
             </p>
           </div>`;
         d.onclick = () => { 
+          // Race condition fix: Check if grid is still rendering
+          if (window.gridRendering[targetId]) {
+            console.log('Grid still rendering, click ignored');
+            return;
+          }
+          
           // Check if data exists before showing popup
           if (!map.getSource('projects') || !map.getSource('projects')._data) {
             console.warn('Project data not loaded yet');
@@ -2689,6 +2721,12 @@
       
       // Set up lazy loading
       setupLazyLoading(grid);
+      
+      // Race condition fix: Re-enable pointer events after 150ms delay
+      setTimeout(() => {
+        grid.style.pointerEvents = 'auto';
+        window.gridRendering[targetId] = false;
+      }, 150);
     }
     
     // Extract lazy loading setup to reusable function
@@ -2773,6 +2811,9 @@
     
     // Global variable to track mobile drawer state
     window.mobileDrawerCollapse = null;
+    
+    // Global variable to track grid rendering state (race condition fix)
+    window.gridRendering = {};
     // Mobile drawer functionality
     function setupMobileDrawer() {
       const drawer = document.getElementById('mobileDrawer');
@@ -2836,6 +2877,19 @@
         // Reset infinite scroll counter when opening drawer
         window.mobileLoadedCount = 12;
         window.mobileScrollLoading = false;
+        
+        // Race condition fix: Set map button to semi-transparent initially
+        const mobileMapBtn = document.getElementById('mobileMapButton');
+        if (mobileMapBtn) {
+          mobileMapBtn.classList.remove('ready');
+          mobileMapBtn.style.opacity = '0.5';
+          
+          // Make button fully visible after 150ms
+          setTimeout(() => {
+            mobileMapBtn.classList.add('ready');
+            mobileMapBtn.style.opacity = '1.0';
+          }, 150);
+        }
         
         // Update grid when expanding drawer
         renderGrid('gridMobile');
@@ -2989,6 +3043,13 @@
       if (mobileMapBtn) {
         mobileMapBtn.addEventListener('click', (e) => {
           e.stopPropagation();
+          
+          // Race condition fix: Check if grid is still rendering before closing drawer
+          if (window.gridRendering['gridMobile']) {
+            console.log('Grid still rendering, map button click ignored');
+            return;
+          }
+          
           drawer.style.transition = 'transform 0.3s ease';
           collapseDrawer();
           
