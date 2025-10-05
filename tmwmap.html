@@ -112,16 +112,19 @@
       html {
         position: fixed;
         width: 100%;
-        height: 100%;
+        height: 100vh;
+        height: 100dvh; /* Use dynamic viewport height */
       }
       
       body {
         position: fixed;
         width: 100%;
-        height: 100%;
-        height: var(--app-height);
-        max-height: var(--app-height);
-        min-height: var(--app-height);
+        height: 100vh;
+        height: 100dvh; /* Use dynamic viewport height */
+        max-height: 100vh;
+        max-height: 100dvh;
+        min-height: 100vh;
+        min-height: 100dvh;
         overflow: hidden;
         -webkit-overflow-scrolling: touch;
       }
@@ -134,8 +137,8 @@
         right: 0 !important;
         bottom: 0 !important;
         width: 100% !important;
-        height: 100% !important;
-        height: var(--app-height) !important;
+        height: 100vh !important;
+        height: 100dvh !important; /* Use dynamic viewport height */
         overflow: hidden !important;
       }
       
@@ -255,7 +258,8 @@
     /* Mobile: add padding bottom for header and use dynamic height */
     @media(max-width:800px) {
       #app-container {
-        height: var(--app-height);
+        height: 100vh;
+        height: 100dvh; /* Use dynamic viewport height for better mobile support */
         padding-bottom: 0; /* Remove bottom padding since no header */
       }
     }
@@ -330,8 +334,10 @@
       bottom: 0;
       left: 0;
       right: 0;
-      height: calc(var(--app-height) - var(--header-height));
-      max-height: calc(var(--app-height) - var(--header-height));
+      height: calc(100vh - var(--header-height));
+      height: calc(100dvh - var(--header-height)); /* Use dynamic viewport height */
+      max-height: calc(100vh - var(--header-height));
+      max-height: calc(100dvh - var(--header-height)); /* Use dynamic viewport height */
       background: rgba(17,17,17,0.95);
       backdrop-filter: blur(15px) brightness(0.7);
       -webkit-backdrop-filter: blur(15px) brightness(0.7);
@@ -351,8 +357,10 @@
     @supports (bottom: env(safe-area-inset-bottom)) {
       #mobileDrawer {
         bottom: 0; /* No header to account for */
-        height: var(--app-height);
-        max-height: var(--app-height);
+        height: 100vh;
+        height: 100dvh; /* Use dynamic viewport height */
+        max-height: 100vh;
+        max-height: 100dvh; /* Use dynamic viewport height */
       }
     }
     
@@ -1117,39 +1125,7 @@
       cursor: pointer;
       border-radius: 4px;
     }
-    #fullscreenButton {
-      position: absolute;
-      right: calc(10px + var(--safe-area-right));
-      z-index: 3;
-      background: rgba(30,30,30,0.9);
-      color: #fff;
-      border: none;
-      padding: 8px 12px;
-      font-size: 14px;
-      cursor: pointer;
-      border-radius: 4px;
-      height: 36px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    
-    /* Desktop: position below header */
-    @media(min-width:801px) {
-      #fullscreenButton {
-        top: calc(60px + var(--safe-area-top));
-      }
-    }
-    
-    /* Mobile: normal positioning */
-    @media(max-width:800px) {
-      #fullscreenButton {
-        top: calc(10px + var(--safe-area-top));
-      }
-    }
-    #fullscreenButton:hover {
-      background: rgba(50,50,50,0.9);
-    }
+
     /* Hide Mapbox attribution and info button */
     .mapboxgl-control-container .mapboxgl-ctrl-bottom-left,
     .mapboxgl-control-container .mapboxgl-ctrl-bottom-right .mapboxgl-ctrl-attrib {
@@ -1560,7 +1536,6 @@
       <button id="exitFullscreen">✕ Exit</button>
       <div id="fullscreenMap"></div>
     </div>
-    <button id="fullscreenButton">⛶ Fullscreen</button>
     <!-- Instagram logo -->
     <a id="instagramLogo" href="https://www.instagram.com/floridaoftomorrow" target="_blank" style="display: block;">
       <img src="https://static.wixstatic.com/shapes/ca3b83_ec9d065676444a08a5392c3be54599ec.svg" alt="Follow us on Instagram" />
@@ -1584,36 +1559,16 @@
       // Get the actual inner height of the window
       let vh = window.innerHeight;
       
-      // For mobile browsers, we need to be more aggressive
+      // For mobile browsers, try visualViewport if available (better accuracy)
       if (window.innerWidth <= 800) {
-        // Try multiple methods to get the correct height
         if ('visualViewport' in window && window.visualViewport) {
           vh = window.visualViewport.height;
-        } else if (window.screen && window.screen.availHeight) {
-          // Some browsers report better values through screen
-          const screenHeight = window.screen.availHeight;
-          const currentHeight = window.innerHeight;
-          vh = Math.min(screenHeight, currentHeight);
-        }
-        
-        // Apply the height to multiple elements to ensure it takes effect
-        doc.style.height = `${vh}px`;
-        document.body.style.height = `${vh}px`;
-        
-        // Also set on the app container directly
-        const appContainer = document.getElementById('app-container');
-        if (appContainer) {
-          appContainer.style.height = `${vh}px`;
-          appContainer.style.maxHeight = `${vh}px`;
         }
       }
       
-      // Set CSS variables
+      // Set CSS variables as fallback for browsers that don't support dvh
       doc.style.setProperty('--app-height', `${vh}px`);
       doc.style.setProperty('--viewport-height', `${vh}px`);
-      
-      // Force a layout recalculation
-      document.body.offsetHeight;
       
       // Send height to parent if in iframe
       if (window.parent !== window) {
@@ -3463,9 +3418,6 @@
         }
       }
       setupHover();
-      // Add fullscreen button for both mobile and desktop
-      const fullscreenBtn = document.getElementById('fullscreenButton');
-      fullscreenBtn.style.display = 'flex';
       
       // Add compass control with double-click functionality
       const navControl = new mapboxgl.NavigationControl({
@@ -3496,9 +3448,6 @@
         }
       }, 100);
       
-      // Check if we're in fullscreen mode (opened in new tab)
-      const isFullscreen = window.location.href.includes('fullscreen=true') || window.opener !== null;
-      
       // Set initial toggle button text for desktop
       if (!isMobile) {
         const toggleBtn = document.getElementById('toggleView');
@@ -3507,23 +3456,6 @@
         }
       }
       
-      if (isFullscreen) {
-        fullscreenBtn.innerHTML = '✕ Exit Fullscreen';
-        fullscreenBtn.onclick = () => {
-          // Return to the original page
-          window.location.href = 'https://www.oftmw.com/florida/development-map';
-        };
-        
-        // Auto-trigger fullscreen on desktop if fullscreen=true parameter exists
-        if (!isMobile && window.location.href.includes('fullscreen=true')) {
-          setTimeout(() => {
-            const appContainer = document.getElementById('app-container');
-            appContainer.requestFullscreen().catch(err => {
-              console.log('Auto-fullscreen failed:', err);
-            });
-          }, 500);
-        }
-      }
       initializeData();
       setupDesktopFilters();
       setupMobileFilters();
@@ -3693,56 +3625,6 @@
       }
       resultsEl.classList.remove('hidden');
     });
-    // Fullscreen functionality
-    const fullscreenBtn = document.getElementById('fullscreenButton');
-    const appContainer = document.getElementById('app-container');
-    
-    // Check if we're in mobile fullscreen mode (has fullscreen parameter AND was opened in new tab)
-    const hasFullscreenParam = window.location.href.includes('fullscreen=true');
-    const isNewTab = window.opener !== null || (window.history.length === 1 && hasFullscreenParam);
-    const isMobileFullscreen = hasFullscreenParam && isNewTab && isMobile;
-    
-    if (isMobileFullscreen) {
-      fullscreenBtn.innerHTML = '✕ Exit Fullscreen';
-      fullscreenBtn.onclick = () => {
-        // Remove the fullscreen parameter when returning
-        window.location.href = 'https://www.oftmw.com/florida/development-map';
-      };
-    } else {
-      // Regular fullscreen handling
-      fullscreenBtn.onclick = () => {
-        if (!isMobile) {
-          // Desktop: Use native fullscreen API on app container
-          if (!document.fullscreenElement) {
-            appContainer.requestFullscreen().then(() => {
-              fullscreenBtn.innerHTML = '✕ Exit Fullscreen';
-            }).catch(err => {
-              console.log('Fullscreen request failed:', err);
-            });
-          } else {
-            document.exitFullscreen().then(() => {
-              fullscreenBtn.innerHTML = '⛶ Fullscreen';
-            });
-          }
-        } else {
-          // Mobile: Always open the HTML file directly in new tab
-          // This ensures we're opening the actual map file, not the parent page
-          const mapUrl = window.location.origin + window.location.pathname + '?fullscreen=true';
-          window.open(mapUrl, '_blank');
-        }
-      };
-      
-      // Listen for fullscreen changes on desktop
-      if (!isMobile) {
-        document.addEventListener('fullscreenchange', () => {
-          if (document.fullscreenElement) {
-            fullscreenBtn.innerHTML = '✕ Exit Fullscreen';
-          } else {
-            fullscreenBtn.innerHTML = '⛶ Fullscreen';
-          }
-        });
-      }
-    }
     
     document.getElementById('exitFullscreen').onclick = () => {
       document.getElementById('fullscreenModal').classList.remove('active');
