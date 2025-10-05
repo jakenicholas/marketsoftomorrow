@@ -2203,6 +2203,12 @@
             </p>
           </div>`;
         d.onclick = () => { 
+          // Check if data exists before showing popup
+          if (!map.getSource('projects') || !map.getSource('projects')._data) {
+            console.warn('Project data not loaded yet');
+            return;
+          }
+          
           gtag('event', 'project_click', {
             'project_name': f.properties.title,
             'project_city': f.properties.city,
@@ -2598,6 +2604,12 @@
             </p>
           </div>`;
         d.onclick = () => { 
+          // Check if data exists before showing popup
+          if (!map.getSource('projects') || !map.getSource('projects')._data) {
+            console.warn('Project data not loaded yet');
+            return;
+          }
+          
           gtag('event', 'project_click', {
             'project_name': f.properties.title,
             'project_city': f.properties.city,
@@ -2932,14 +2944,44 @@
         mobileTilesBtn.addEventListener('click', (e) => {
           e.stopPropagation();
           drawer.style.transition = 'transform 0.3s ease';
-          expandDrawer();
           
-          // Track tiles view opened
-          gtag('event', 'view_change', {
-            'view_type': 'tiles',
-            'action': 'open_drawer',
-            'device_type': 'mobile'
-          });
+          // Check if data is loaded before opening drawer
+          const checkDataAndOpen = () => {
+            if (map.getSource('projects') && map.getSource('projects')._data) {
+              expandDrawer();
+              
+              // Track tiles view opened
+              gtag('event', 'view_change', {
+                'view_type': 'tiles',
+                'action': 'open_drawer',
+                'device_type': 'mobile'
+              });
+            } else {
+              // Data not loaded yet, wait and check again
+              let attempts = 0;
+              const maxAttempts = 50; // 5 seconds total (50 * 100ms)
+              const checkInterval = setInterval(() => {
+                attempts++;
+                if (map.getSource('projects') && map.getSource('projects')._data) {
+                  clearInterval(checkInterval);
+                  expandDrawer();
+                  
+                  // Track tiles view opened
+                  gtag('event', 'view_change', {
+                    'view_type': 'tiles',
+                    'action': 'open_drawer',
+                    'device_type': 'mobile'
+                  });
+                } else if (attempts >= maxAttempts) {
+                  clearInterval(checkInterval);
+                  // Show error message if data still not loaded after 5 seconds
+                  console.error('Failed to load project data');
+                }
+              }, 100);
+            }
+          };
+          
+          checkDataAndOpen();
         });
       }
       // Map return button (now on the drawer handle)
