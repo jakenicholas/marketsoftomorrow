@@ -2095,10 +2095,30 @@
           return b.properties.title.localeCompare(a.properties.title);
         });
       } else {
-        // Default sort - featured first, then by distance
+        // Default sort - filter by map bounds, then sort: featured first, then by distance
+        const mapBounds = map.getBounds();
+        
+        // Add inBounds property to each feature
+        features = features.map(f => {
+          const coords = f.geometry.coordinates;
+          const inBounds = mapBounds.contains([coords[0], coords[1]]);
+          return { ...f, inBounds };
+        });
+        
+        // Sort with featured items in bounds first, then non-featured in bounds, then by distance
         features.sort((a, b) => {
-          if (a.properties.featured && !b.properties.featured) return -1;
-          if (!a.properties.featured && b.properties.featured) return 1;
+          // Priority 1: Featured items that are in bounds
+          const aFeaturedInBounds = a.inBounds && a.properties.featured;
+          const bFeaturedInBounds = b.inBounds && b.properties.featured;
+          
+          if (aFeaturedInBounds && !bFeaturedInBounds) return -1;
+          if (!aFeaturedInBounds && bFeaturedInBounds) return 1;
+          
+          // Priority 2: Non-featured items in bounds
+          if (a.inBounds && !b.inBounds) return -1;
+          if (!a.inBounds && b.inBounds) return 1;
+          
+          // Priority 3: Everything else by distance
           return a.distance - b.distance;
         });
       }
@@ -3543,15 +3563,26 @@
             // Debounce updates to avoid too many re-renders
             clearTimeout(updateTimeout);
             updateTimeout = setTimeout(() => {
-              // Update desktop grid if sidebar is open
-              const sidebar = document.getElementById('desktopSidebar');
-              if (sidebar && sidebar.classList.contains('open')) {
-                renderGrid('gridDesktop');
+              // Only update grid when in default sort mode (not alphabetical)
+              const desktopSort = document.getElementById('sortSelectDesktop')?.value;
+              const mobileSort = document.getElementById('sortSelectMobile')?.value;
+              
+              // Update desktop grid if sidebar is open and using default sort
+              if (!isMobile) {
+                const sidebar = document.getElementById('desktopSidebar');
+                if (sidebar && sidebar.classList.contains('open') && desktopSort === 'default') {
+                  renderGrid('gridDesktop');
+                }
               }
-              // Update mobile grid if drawer is expanded
-              const drawer = document.getElementById('mobileDrawer');
-              if (drawer && drawer.classList.contains('expanded')) {
-                renderGrid('gridMobile');
+              
+              // Update mobile grid if drawer is expanded and using default sort
+              if (isMobile) {
+                const drawer = document.getElementById('mobileDrawer');
+                if (drawer && drawer.classList.contains('expanded') && mobileSort === 'default') {
+                  // Reset mobile scroll counter when map moves
+                  window.mobileLoadedCount = 12;
+                  renderGrid('gridMobile');
+                }
               }
             }, 300);
           };
