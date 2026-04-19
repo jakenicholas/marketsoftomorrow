@@ -1190,49 +1190,64 @@
     }
 
     function removePill(platform, filterKey, pillEl) {
-      // Animate out
       pillEl.classList.add('removing');
       setTimeout(() => {
-        // Reset the filter value
-        activeFilters[platform][filterKey] = filterKey === 'sort' ? 'default' : 'all';
+        const resetVal = filterKey === 'sort' ? 'default' : 'all';
 
-        // Reset the corresponding select element
-        const suffix = platform === 'desktop' ? 'Desktop' : 'Mobile';
+        // Reset BOTH platforms for type+city (they share the map)
+        activeFilters.desktop[filterKey] = resetVal;
+        activeFilters.mobile[filterKey]  = resetVal;
+
+        // Reset dropdowns on both platforms
         const selectMap = {
-          sort: `sortSelect${suffix}`,
-          type: `projectTypeFilter${suffix}`,
-          city: `locationFilter${suffix}`
+          sort: 'sortSelect',
+          type: 'projectTypeFilter',
+          city: 'locationFilter'
         };
-        const selectEl = document.getElementById(selectMap[filterKey]);
-        if (selectEl) {
-          selectEl.value = filterKey === 'sort' ? 'default' : 'all';
-          selectEl.classList.remove('filter-active');
-        }
+        ['Desktop', 'Mobile'].forEach(suffix => {
+          const el = document.getElementById(`${selectMap[filterKey]}${suffix}`);
+          if (el) { el.value = resetVal; el.classList.remove('filter-active'); }
+        });
 
-        renderPills(platform);
+        renderPills('desktop');
+        renderPills('mobile');
         updateMapPinFilters();
-        if (platform === 'desktop') { renderGrid('gridDesktop'); updateResultCount('gridDesktop'); }
-        else { window.mobileLoadedCount = 12; renderGrid('gridMobile'); updateResultCount('gridMobile'); }
+        renderGrid('gridDesktop'); updateResultCount('gridDesktop');
+        window.mobileLoadedCount = 12;
+        renderGrid('gridMobile');  updateResultCount('gridMobile');
       }, 220);
     }
 
     function clearAllFilters(platform) {
-      activeFilters[platform] = { sort: 'default', type: 'all', city: 'all' };
-      const suffix = platform === 'desktop' ? 'Desktop' : 'Mobile';
-      ['sortSelect', 'projectTypeFilter', 'locationFilter'].forEach(prefix => {
-        const el = document.getElementById(`${prefix}${suffix}`);
-        if (el) {
-          el.value = prefix === 'sortSelect' ? 'default' : 'all';
-          el.classList.remove('filter-active');
-        }
+      // Reset both platforms — updateMapPinFilters reads from both
+      activeFilters.desktop = { sort: 'default', type: 'all', city: 'all' };
+      activeFilters.mobile  = { sort: 'default', type: 'all', city: 'all' };
+
+      // Reset all dropdowns on both platforms
+      ['Desktop', 'Mobile'].forEach(suffix => {
+        ['sortSelect', 'projectTypeFilter', 'locationFilter'].forEach(prefix => {
+          const el = document.getElementById(`${prefix}${suffix}`);
+          if (el) {
+            el.value = prefix === 'sortSelect' ? 'default' : 'all';
+            el.classList.remove('filter-active');
+          }
+        });
       });
-      // Clear search too
-      const searchEl = document.getElementById(platform === 'desktop' ? 'sidebarSearchBar' : 'mobileSearchBar');
-      if (searchEl) searchEl.value = '';
-      renderPills(platform);
+
+      // Clear search inputs on both
+      const desktopSearch = document.getElementById('sidebarSearchBar');
+      const mobileSearch  = document.getElementById('mobileSearchBar');
+      if (desktopSearch) desktopSearch.value = '';
+      if (mobileSearch)  mobileSearch.value  = '';
+
+      renderPills('desktop');
+      renderPills('mobile');
       updateMapPinFilters();
-      if (platform === 'desktop') { renderGrid('gridDesktop'); updateResultCount('gridDesktop'); }
-      else { window.mobileLoadedCount = 12; renderGrid('gridMobile'); updateResultCount('gridMobile'); }
+      renderGrid('gridDesktop');
+      updateResultCount('gridDesktop');
+      window.mobileLoadedCount = 12;
+      renderGrid('gridMobile');
+      updateResultCount('gridMobile');
     }
 
     function updateSelectActiveState(selectEl, value, defaultValue) {
