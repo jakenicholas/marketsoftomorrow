@@ -829,7 +829,102 @@
     @media(max-width:800px) { .toast { bottom: calc(80px + var(--safe-area-bottom)); } }
     .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
 
-    /* ─── EMPTY STATE ─────────────────────────────────────────────────────── */
+    /* ─── SEARCH AUTOCOMPLETE ─────────────────────────────────────────────── */
+    .autocomplete-dropdown {
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0;
+      right: 0;
+      background: rgba(17,17,17,0.98);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      overflow: hidden;
+      z-index: 100;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+      animation: tileEntrance 0.2s ease both;
+    }
+    .autocomplete-dropdown.hidden { display: none; }
+
+    .autocomplete-section-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.3);
+      padding: 8px 12px 4px;
+    }
+
+    .autocomplete-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 12px;
+      cursor: pointer;
+      transition: background var(--transition-fast);
+      animation: resultItemIn 0.15s ease both;
+    }
+    .autocomplete-item:hover { background: rgba(255,255,255,0.07); }
+    .autocomplete-item:active { background: rgba(255,255,255,0.12); }
+
+    .autocomplete-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .autocomplete-icon.location {
+      background: rgba(31,223,103,0.12);
+    }
+    .autocomplete-icon.project {
+      background: rgba(255,211,0,0.12);
+    }
+    .autocomplete-icon svg {
+      width: 14px;
+      height: 14px;
+    }
+    .autocomplete-icon.location svg { fill: var(--accent); }
+    .autocomplete-icon.project svg  { fill: var(--accent-yellow); }
+
+    .autocomplete-text { flex: 1; min-width: 0; }
+    .autocomplete-text strong {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: #fff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .autocomplete-text span {
+      display: block;
+      font-size: 11px;
+      color: rgba(255,255,255,0.4);
+      margin-top: 1px;
+    }
+
+    /* highlight matched portion */
+    .autocomplete-text strong em {
+      font-style: normal;
+      color: var(--accent);
+    }
+
+    .autocomplete-divider {
+      height: 1px;
+      background: rgba(255,255,255,0.06);
+      margin: 4px 0;
+    }
+
+    /* Wrap search inputs in a relative container for dropdown positioning */
+    .search-input-wrap {
+      position: relative;
+      flex: 1;
+    }
+    .search-input-wrap input {
+      width: 100%;
+    }
     .empty-state {
       grid-column: 1 / -1;
       text-align: center;
@@ -884,8 +979,11 @@
     <div id="desktopSidebar" class="open">
       <div class="sidebar-header">
         <div style="display:flex;gap:10px;align-items:center;margin-bottom:16px;position:relative;">
-          <input id="sidebarSearchBar" type="text" placeholder="Search projects..." style="flex:1;width:85%;" />
-          <button id="closeSidebar" style="background:#1e1e1e;border:none;color:#fff;font-size:20px;cursor:pointer;padding:0;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:4px;">✕</button>
+          <div class="search-input-wrap">
+            <input id="sidebarSearchBar" type="text" placeholder="Search projects or city..." style="flex:1;width:100%;" />
+            <div id="sidebarAutocomplete" class="autocomplete-dropdown hidden"></div>
+          </div>
+          <button id="closeSidebar" style="background:#1e1e1e;border:none;color:#fff;font-size:20px;cursor:pointer;padding:0;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:4px;flex-shrink:0;">✕</button>
           <div id="sidebarResults" class="hidden"></div>
         </div>
         
@@ -896,10 +994,10 @@
             <option value="za">Sort: Z to A</option>
           </select>
           <select id="projectTypeFilterDesktop" style="flex:1;min-width:120px;background:#1a1a1a;color:#fff;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:8px 36px 8px 12px;font-size:14px;font-weight:500;cursor:pointer;transition:all 0.25s ease;appearance:none;background-image:url(&quot;data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%23999' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E&quot;);background-repeat:no-repeat;background-position:right 12px center;">
-            <option value="all">All Types</option>
+            <option value="all" disabled selected>Type</option>
           </select>
           <select id="locationFilterDesktop" style="flex:1;min-width:100px;background:#1a1a1a;color:#fff;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:8px 36px 8px 12px;font-size:14px;font-weight:500;cursor:pointer;transition:all 0.25s ease;appearance:none;background-image:url(&quot;data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%23999' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E&quot;);background-repeat:no-repeat;background-position:right 12px center;">
-            <option value="all">Status</option>
+            <option value="all" disabled selected>Status</option>
           </select>
         </div>
 
@@ -920,8 +1018,9 @@
       <div id="mobileDrawerHandle"></div>
       <div id="mobileDrawerContent">
         <div class="mobile-header">
-          <div style="margin-bottom:12px;width:95%;margin-left:auto;margin-right:auto;">
-            <input id="mobileSearchBar" type="text" placeholder="Search projects or city..." />
+          <div style="margin-bottom:12px;width:95%;margin-left:auto;margin-right:auto;position:relative;">
+            <input id="mobileSearchBar" type="text" placeholder="Search projects or city..." style="width:100%;" />
+            <div id="mobileAutocomplete" class="autocomplete-dropdown hidden"></div>
           </div>
           <div id="mobileFilterControls">
             <select id="sortSelectMobile">
@@ -930,10 +1029,10 @@
               <option value="za">Z to A</option>
             </select>
             <select id="projectTypeFilterMobile">
-              <option value="all">All Types</option>
+              <option value="all" disabled selected>Type</option>
             </select>
             <select id="locationFilterMobile">
-              <option value="all">Status</option>
+              <option value="all" disabled selected>Status</option>
             </select>
           </div>
           <!-- Active filter pills (mobile) -->
@@ -1654,7 +1753,7 @@
       });
       locationFilters.forEach(f => {
         if (!f) return;
-        f.innerHTML = '<option value="all">Status</option>';
+        f.innerHTML = '<option value="all" disabled>Status</option>';
         statuses.forEach(s => { const o = document.createElement('option'); o.value = o.textContent = s; f.appendChild(o); });
       });
 
@@ -1664,9 +1763,102 @@
       const types = [...allTypes].sort();
       typeFilters.forEach(f => {
         if (!f) return;
-        f.innerHTML = '<option value="all">All Types</option>';
+        f.innerHTML = '<option value="all" disabled>Type</option>';
         types.forEach(t => { const o = document.createElement('option'); o.value = t; o.textContent = t.charAt(0).toUpperCase() + t.slice(1); f.appendChild(o); });
       });
+    }
+
+    // ─── AUTOCOMPLETE BUILDER ────────────────────────────────────────────────
+    // Shared by both desktop sidebar and mobile search.
+    // Renders city suggestions (pin icon) and project suggestions (building icon).
+    function buildAutocomplete(query, features, container, onSelect) {
+      const ql = query.toLowerCase();
+      const PIN_SVG   = `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5S10.62 6.5 12 6.5s2.5 1.12 2.5 2.5S13.38 11.5 12 11.5z"/></svg>`;
+      const BLDG_SVG  = `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M17 11V3H7v4H3v14h8v-4h2v4h8V11h-4zM7 19H5v-2h2v2zm0-4H5v-2h2v2zm0-4H5v-2h2v2zm4 4H9v-2h2v2zm0-4H9v-2h2v2zm0-4H9V7h2v2zm4 8h-2v-2h2v2zm0-4h-2v-2h2v2zm0-4h-2V7h2v2zm4 8h-2v-2h2v2zm0-4h-2v-2h2v2z"/></svg>`;
+
+      // Highlight matched portion of text
+      function highlight(text, q) {
+        const idx = text.toLowerCase().indexOf(q);
+        if (idx === -1) return text;
+        return text.slice(0, idx) + '<em>' + text.slice(idx, idx + q.length) + '</em>' + text.slice(idx + q.length);
+      }
+
+      // Gather unique cities matching query
+      const cityMap = {};
+      features.forEach(f => {
+        const city = f.properties.city;
+        if (city && city.toLowerCase().includes(ql)) {
+          if (!cityMap[city]) cityMap[city] = 0;
+          cityMap[city]++;
+        }
+      });
+      const cities = Object.entries(cityMap)
+        .sort((a, b) => b[1] - a[1]) // most projects first
+        .slice(0, 4);
+
+      // Gather project names matching query
+      const projects = features
+        .filter(f => f.properties.title.toLowerCase().includes(ql))
+        .slice(0, 5);
+
+      if (!cities.length && !projects.length) {
+        container.classList.add('hidden');
+        return;
+      }
+
+      container.innerHTML = '';
+
+      if (cities.length) {
+        const label = document.createElement('div');
+        label.className = 'autocomplete-section-label';
+        label.textContent = 'Locations';
+        container.appendChild(label);
+
+        cities.forEach(([city, count], i) => {
+          const item = document.createElement('div');
+          item.className = 'autocomplete-item';
+          item.style.animationDelay = `${i * 0.04}s`;
+          item.innerHTML = `
+            <div class="autocomplete-icon location">${PIN_SVG}</div>
+            <div class="autocomplete-text">
+              <strong>${highlight(city, ql)}, FL</strong>
+              <span>${count} project${count !== 1 ? 's' : ''}</span>
+            </div>`;
+          // Attach city data for handler
+          item.addEventListener('mousedown', () => {
+            onSelect({ _cityLabel: `${city}, FL`, _cityValue: city }, true);
+          });
+          container.appendChild(item);
+        });
+      }
+
+      if (projects.length) {
+        if (cities.length) {
+          const div = document.createElement('div');
+          div.className = 'autocomplete-divider';
+          container.appendChild(div);
+        }
+        const label = document.createElement('div');
+        label.className = 'autocomplete-section-label';
+        label.textContent = 'Projects';
+        container.appendChild(label);
+
+        projects.forEach((f, i) => {
+          const item = document.createElement('div');
+          item.className = 'autocomplete-item';
+          item.style.animationDelay = `${(cities.length + i) * 0.04}s`;
+          item.innerHTML = `
+            <div class="autocomplete-icon project">${BLDG_SVG}</div>
+            <div class="autocomplete-text">
+              <strong>${highlight(f.properties.title, ql)}</strong>
+              <span>${f.properties.city}</span>
+            </div>`;
+          item.addEventListener('mousedown', () => { onSelect(f, false); });
+          container.appendChild(item);
+        });
+      }
+
+      container.classList.remove('hidden');
     }
 
     // ─── SETUP DESKTOP FILTERS ───────────────────────────────────────────────
@@ -1717,47 +1909,78 @@
         });
       });
 
-      // Mobile search
+      // Mobile search with autocomplete
       const mobileSearchBar = document.getElementById('mobileSearchBar');
-      if (mobileSearchBar) {
+      const mobileAC = document.getElementById('mobileAutocomplete');
+      if (mobileSearchBar && mobileAC) {
         mobileSearchBar.addEventListener('input', (e) => {
-          const query = e.target.value.trim().toLowerCase();
-          if (query.length > 2) gtag('event', 'search', { 'search_term': query, 'search_location': 'mobile_drawer', 'device_type': 'mobile' });
+          const query = e.target.value.trim();
           window.mobileLoadedCount = 12; window.mobileScrollLoading = false;
-          if (!query) { renderGrid('gridMobile'); updateResultCount('gridMobile'); return; }
+          if (!query) {
+            mobileAC.classList.add('hidden');
+            renderGrid('gridMobile'); updateResultCount('gridMobile'); return;
+          }
           const source = map.getSource('projects');
           if (!source?._data) return;
-          const exactMatch = source._data.features.find(f => f.properties.title.toLowerCase() === query);
-          let filtered = exactMatch ? [exactMatch] : source._data.features.filter(f => f.properties.title.toLowerCase().includes(query) || f.properties.city.toLowerCase().includes(query));
+          buildAutocomplete(query, source._data.features, mobileAC, (f, isCity) => {
+            mobileSearchBar.value = isCity ? f._cityLabel : f.properties.title;
+            mobileAC.classList.add('hidden');
+            if (isCity) {
+              const cityFeatures = (window.allProjectFeatures || source._data.features)
+                .filter(p => p.properties.city === f._cityValue);
+              renderFilteredGrid('gridMobile', cityFeatures);
+              if (cityFeatures.length) map.flyTo({ center: cityFeatures[0].geometry.coordinates, zoom: 11 });
+            } else {
+              showPopup(f);
+              const drawer = document.getElementById('mobileDrawer');
+              if (drawer) { drawer.classList.remove('expanded'); drawer.style.transform = 'translateY(100%)'; }
+            }
+          });
+          if (query.length > 2) gtag('event', 'search', { 'search_term': query, 'search_location': 'mobile_drawer', 'device_type': 'mobile' });
+          // Also filter grid as user types
+          const ql = query.toLowerCase();
+          const filtered = (window.allProjectFeatures || source._data.features)
+            .filter(f => f.properties.title.toLowerCase().includes(ql) || f.properties.city.toLowerCase().includes(ql));
           renderFilteredGrid('gridMobile', filtered);
         });
+        mobileSearchBar.addEventListener('blur', () => { setTimeout(() => mobileAC.classList.add('hidden'), 150); });
+        mobileSearchBar.addEventListener('focus', (e) => { if (e.target.value.trim()) e.target.dispatchEvent(new Event('input')); });
       }
     }
 
     // ─── SIDEBAR SEARCH ───────────────────────────────────────────────────────
     function setupSidebarSearch() {
       const searchBar = document.getElementById('sidebarSearchBar');
-      const resultsEl = document.getElementById('sidebarResults');
+      const sidebarAC = document.getElementById('sidebarAutocomplete');
       if (!searchBar) return;
       searchBar.addEventListener('input', (e) => {
-        const query = e.target.value.trim().toLowerCase();
-        resultsEl.classList.add('hidden');
-        if (!query) { renderGrid('gridDesktop'); updateResultCount('gridDesktop'); return; }
+        const query = e.target.value.trim();
+        if (!query) {
+          sidebarAC.classList.add('hidden');
+          renderGrid('gridDesktop'); updateResultCount('gridDesktop'); return;
+        }
         const source = map.getSource('projects');
         if (!source?._data) return;
-        const features = source._data.features;
-        const exactMatch = features.find(f => f.properties.title.toLowerCase() === query);
-        let filtered;
-        if (exactMatch) {
-          const mapCenter = map.getCenter();
-          filtered = features.map(f => ({ ...f, distance: calculateDistance(mapCenter.lat, mapCenter.lng, f.geometry.coordinates[1], f.geometry.coordinates[0]) }));
-          filtered = [exactMatch, ...filtered.filter(f => f !== exactMatch).sort((a,b) => a.distance - b.distance)];
-          showPopup(exactMatch);
-        } else {
-          filtered = features.filter(f => f.properties.title.toLowerCase().includes(query) || f.properties.city.toLowerCase().includes(query));
-        }
+        buildAutocomplete(query, source._data.features, sidebarAC, (f, isCity) => {
+          searchBar.value = isCity ? f._cityLabel : f.properties.title;
+          sidebarAC.classList.add('hidden');
+          if (isCity) {
+            const cityFeatures = (window.allProjectFeatures || source._data.features)
+              .filter(p => p.properties.city === f._cityValue);
+            renderFilteredGrid('gridDesktop', cityFeatures);
+            if (cityFeatures.length) map.flyTo({ center: cityFeatures[0].geometry.coordinates, zoom: 11 });
+          } else {
+            showPopup(f);
+          }
+        });
+        // Also filter grid as user types
+        const ql = query.toLowerCase();
+        const filtered = (window.allProjectFeatures || source._data.features)
+          .filter(f => f.properties.title.toLowerCase().includes(ql) || f.properties.city.toLowerCase().includes(ql));
         renderFilteredGrid('gridDesktop', filtered);
       });
+      searchBar.addEventListener('blur', () => { setTimeout(() => sidebarAC.classList.add('hidden'), 150); });
+      searchBar.addEventListener('focus', (e) => { if (e.target.value.trim()) e.target.dispatchEvent(new Event('input')); });
     }
 
     // ─── MOBILE DRAWER ────────────────────────────────────────────────────────
