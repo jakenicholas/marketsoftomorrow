@@ -1243,55 +1243,38 @@
       }
     }
 
-    // ─── MAP PIN FILTER ───────────────────────────────────────────────────────
-    // Builds Mapbox filter expressions from the current activeFilters state
-    // and applies them to clusters, unclustered-point, and featured-glow layers.
-    // Uses the most-recently-changed platform's type+city filters since both
-    // desktop and mobile share the same map.
-    function updateMapPinFilters() {
-      // Merge: if either platform has an active filter, use it (desktop takes precedence)
-      const typeFilter  = activeFilters.desktop.type  !== 'all' ? activeFilters.desktop.type  : activeFilters.mobile.type;
-      const cityFilter  = activeFilters.desktop.city  !== 'all' ? activeFilters.desktop.city  : activeFilters.mobile.city;
 
-      // Build sub-expressions
-      const conditions = [];
+    // ─── MAP PIN FILTER ───────────────────────────────────────────────────────
+    // Clustered GeoJSON sources cannot be filtered by feature properties via
+    // setFilter() — Mapbox ignores property filters on cluster layers.
+    // The only reliable approach is source.setData() with just the matching
+    // features, which forces Mapbox to re-cluster only those points.
+    function updateMapPinFilters() {
+      const source = map.getSource('projects');
+      if (!source || !window.allProjectFeatures) return;
+
+      const typeFilter = activeFilters.desktop.type !== 'all'
+        ? activeFilters.desktop.type
+        : activeFilters.mobile.type;
+      const cityFilter = activeFilters.desktop.city !== 'all'
+        ? activeFilters.desktop.city
+        : activeFilters.mobile.city;
+
+      let filtered = window.allProjectFeatures;
 
       if (typeFilter && typeFilter !== 'all') {
-        // projectTypes is stored as a comma-joined lowercase string in the GeoJSON properties.
-        // We use 'in' operator: ['in', value, ['get', 'projectType']] won't work for arrays,
-        // so we match against the raw projectType string with case-insensitive contains via
-        // a string search expression supported in Mapbox GL JS v2+.
-        conditions.push(['in', typeFilter, ['downcase', ['coalesce', ['get', 'projectType'], '']]]);
+        // Use _projectTypes (real JS array attached to feature object)
+        filtered = filtered.filter(f =>
+          Array.isArray(f._projectTypes) &&
+          f._projectTypes.includes(typeFilter.toLowerCase())
+        );
       }
 
       if (cityFilter && cityFilter !== 'all') {
-        conditions.push(['==', ['get', 'city'], cityFilter]);
+        filtered = filtered.filter(f => f.properties.city === cityFilter);
       }
 
-      // Compose final filter expressions for each layer
-      // Clusters: always need ['has','point_count']
-      // Unclustered: always need ['!', ['has','point_count']]
-      // Featured-glow: always need unclustered + featured===true
-
-      let clusterFilter, unclusteredFilter, glowFilter;
-
-      if (conditions.length === 0) {
-        // No active filters — restore defaults
-        clusterFilter     = ['has', 'point_count'];
-        unclusteredFilter = ['!', ['has', 'point_count']];
-        glowFilter        = ['all', ['!', ['has', 'point_count']], ['==', ['get', 'featured'], true]];
-      } else {
-        const matchExpr = conditions.length === 1 ? conditions[0] : ['all', ...conditions];
-        clusterFilter     = ['all', ['has', 'point_count'], matchExpr];
-        unclusteredFilter = ['all', ['!', ['has', 'point_count']], matchExpr];
-        glowFilter        = ['all', ['!', ['has', 'point_count']], ['==', ['get', 'featured'], true], matchExpr];
-      }
-
-      // Only update if layers exist (data may not be loaded yet)
-      if (map.getLayer('clusters'))          map.setFilter('clusters',          clusterFilter);
-      if (map.getLayer('cluster-count'))     map.setFilter('cluster-count',     clusterFilter);
-      if (map.getLayer('unclustered-point')) map.setFilter('unclustered-point', unclusteredFilter);
-      if (map.getLayer('featured-glow'))     map.setFilter('featured-glow',     glowFilter);
+      source.setData({ type: 'FeatureCollection', features: filtered });
     }
 
     function updateResultCount(targetId) {
@@ -1918,20 +1901,34 @@
       Papa.parse('https://docs.google.com/spreadsheets/d/1qwU7ykIDUrtPlIQu-qk2FIJwiz-WWg5caq02ja30sgM/export?format=csv&gid=0', {
         download: true, header: true, complete: results => {
           const rows = results.data.filter(r => r.Latitude && r.Longitude);
-          const projectGeo = {
-            type: 'FeatureCollection',
-            features: rows.map(p => ({
+          const features = rows.map(p => {
+            const types = p.ProjectType
+              ? p.ProjectType.split(',').map(t => t.trim().toLowerCase()).filter(t => t)
+              : [];
+            return {
               type: 'Feature',
               geometry: { type: 'Point', coordinates: [+p.Longitude, +p.Latitude] },
               properties: {
                 title: p.Title, city: p.City, description: p.Description,
                 delivery: p.Delivery, image: p.ImageURL, website: p.OfficialWebsite,
                 projectType: p.ProjectType,
-                projectTypes: p.ProjectType ? p.ProjectType.split(',').map(t => t.trim().toLowerCase()).filter(t => t) : [],
+                // Store as plain comma string — arrays get mangled by Mapbox serialization
+                projectTypesStr: types.join(','),
+                // Keep JS array on the feature object itself for grid filtering (not used by Mapbox)
                 featured: p.Featured?.trim().toLowerCase() === 'featured'
-              }
-            }))
-          };
+              },
+              // Attach types array directly on feature (accessible in JS, not Mapbox)
+              _projectTypes: types
+            };
+          });
+
+          // Master list — never mutated, used to restore pins on clear
+          window.allProjectFeatures = features;
+
+          // Also patch projectTypes back onto features for grid rendering
+          features.forEach(f => { f.properties.projectTypes = f._projectTypes; });
+
+          const projectGeo = { type: 'FeatureCollection', features };
           map.addSource('projects', { type:'geojson', data:projectGeo, cluster:true, clusterMaxZoom:16, clusterRadius:35 });
           map.addLayer({ id:'clusters', type:'circle', source:'projects', filter:['has','point_count'], paint:{'circle-color':'#1FDF67','circle-radius':['step',['get','point_count'],20,100,30,750,40],'circle-stroke-width':2,'circle-stroke-color':'#fff'} });
           map.addLayer({ id:'cluster-count', type:'symbol', source:'projects', filter:['has','point_count'], layout:{'text-field':'{point_count_abbreviated}','text-size':12}, paint:{'text-color':'#ffffff'} });
@@ -1939,7 +1936,16 @@
           map.addLayer({ id:'featured-glow', type:'circle', source:'projects', filter:['all',['!',['has','point_count']],['==',['get','featured'],true]], paint:{'circle-color':'transparent','circle-radius':16,'circle-blur':0.8,'circle-stroke-width':3,'circle-stroke-color':'#FFD300','circle-stroke-opacity':0.6} }, 'unclustered-point');
 
           map.on('click','clusters',e=>{if(stationPopup){stationPopup.remove();stationPopup=null;}const f=e.features[0];map.getSource('projects').getClusterExpansionZoom(f.properties.cluster_id,(err,z)=>map.flyTo({center:f.geometry.coordinates,zoom:z}));});
-          map.on('click','unclustered-point',e=>{if(stationPopup){stationPopup.remove();stationPopup=null;}const f=e.features[0];gtag('event','project_click',{'project_name':f.properties.title,'project_city':f.properties.city,'project_featured':f.properties.featured||false,'click_source':'map_pin','device_type':isMobile?'mobile':'desktop'});showPopup(f);});
+          map.on('click','unclustered-point',e=>{
+            if(stationPopup){stationPopup.remove();stationPopup=null;}
+            const raw = e.features[0];
+            // Look up the full feature from master list (Mapbox serializes away JS arrays)
+            const f = window.allProjectFeatures
+              ? (window.allProjectFeatures.find(p => p.properties.title === raw.properties.title) || raw)
+              : raw;
+            gtag('event','project_click',{'project_name':f.properties.title,'project_city':f.properties.city,'project_featured':f.properties.featured||false,'click_source':'map_pin','device_type':isMobile?'mobile':'desktop'});
+            showPopup(f);
+          });
 
           renderGrid('gridDesktop');
           renderGrid('gridMobile');
