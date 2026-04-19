@@ -1210,6 +1210,7 @@
         }
 
         renderPills(platform);
+        updateMapPinFilters();
         if (platform === 'desktop') { renderGrid('gridDesktop'); updateResultCount('gridDesktop'); }
         else { window.mobileLoadedCount = 12; renderGrid('gridMobile'); updateResultCount('gridMobile'); }
       }, 220);
@@ -1229,6 +1230,7 @@
       const searchEl = document.getElementById(platform === 'desktop' ? 'sidebarSearchBar' : 'mobileSearchBar');
       if (searchEl) searchEl.value = '';
       renderPills(platform);
+      updateMapPinFilters();
       if (platform === 'desktop') { renderGrid('gridDesktop'); updateResultCount('gridDesktop'); }
       else { window.mobileLoadedCount = 12; renderGrid('gridMobile'); updateResultCount('gridMobile'); }
     }
@@ -1239,6 +1241,57 @@
       } else {
         selectEl.classList.remove('filter-active');
       }
+    }
+
+    // ─── MAP PIN FILTER ───────────────────────────────────────────────────────
+    // Builds Mapbox filter expressions from the current activeFilters state
+    // and applies them to clusters, unclustered-point, and featured-glow layers.
+    // Uses the most-recently-changed platform's type+city filters since both
+    // desktop and mobile share the same map.
+    function updateMapPinFilters() {
+      // Merge: if either platform has an active filter, use it (desktop takes precedence)
+      const typeFilter  = activeFilters.desktop.type  !== 'all' ? activeFilters.desktop.type  : activeFilters.mobile.type;
+      const cityFilter  = activeFilters.desktop.city  !== 'all' ? activeFilters.desktop.city  : activeFilters.mobile.city;
+
+      // Build sub-expressions
+      const conditions = [];
+
+      if (typeFilter && typeFilter !== 'all') {
+        // projectTypes is stored as a comma-joined lowercase string in the GeoJSON properties.
+        // We use 'in' operator: ['in', value, ['get', 'projectType']] won't work for arrays,
+        // so we match against the raw projectType string with case-insensitive contains via
+        // a string search expression supported in Mapbox GL JS v2+.
+        conditions.push(['in', typeFilter, ['downcase', ['coalesce', ['get', 'projectType'], '']]]);
+      }
+
+      if (cityFilter && cityFilter !== 'all') {
+        conditions.push(['==', ['get', 'city'], cityFilter]);
+      }
+
+      // Compose final filter expressions for each layer
+      // Clusters: always need ['has','point_count']
+      // Unclustered: always need ['!', ['has','point_count']]
+      // Featured-glow: always need unclustered + featured===true
+
+      let clusterFilter, unclusteredFilter, glowFilter;
+
+      if (conditions.length === 0) {
+        // No active filters — restore defaults
+        clusterFilter     = ['has', 'point_count'];
+        unclusteredFilter = ['!', ['has', 'point_count']];
+        glowFilter        = ['all', ['!', ['has', 'point_count']], ['==', ['get', 'featured'], true]];
+      } else {
+        const matchExpr = conditions.length === 1 ? conditions[0] : ['all', ...conditions];
+        clusterFilter     = ['all', ['has', 'point_count'], matchExpr];
+        unclusteredFilter = ['all', ['!', ['has', 'point_count']], matchExpr];
+        glowFilter        = ['all', ['!', ['has', 'point_count']], ['==', ['get', 'featured'], true], matchExpr];
+      }
+
+      // Only update if layers exist (data may not be loaded yet)
+      if (map.getLayer('clusters'))          map.setFilter('clusters',          clusterFilter);
+      if (map.getLayer('cluster-count'))     map.setFilter('cluster-count',     clusterFilter);
+      if (map.getLayer('unclustered-point')) map.setFilter('unclustered-point', unclusteredFilter);
+      if (map.getLayer('featured-glow'))     map.setFilter('featured-glow',     glowFilter);
     }
 
     function updateResultCount(targetId) {
@@ -1617,9 +1670,12 @@
         if (!el) return;
         el.addEventListener('change', () => {
           activeFilters.desktop[key] = el.value;
+          // Keep mobile in sync for map pin filtering (type + city only, not sort)
+          if (key !== 'sort') activeFilters.mobile[key] = el.value;
           updateSelectActiveState(el, el.value, key === 'sort' ? 'default' : 'all');
           gtag('event', 'filter_change', { 'filter_type': key, 'filter_value': el.value, 'platform': 'desktop' });
           renderPills('desktop');
+          updateMapPinFilters();
           renderGrid('gridDesktop');
           updateResultCount('gridDesktop');
         });
@@ -1638,10 +1694,13 @@
         if (!el) return;
         el.addEventListener('change', () => {
           activeFilters.mobile[key] = el.value;
+          // Keep desktop in sync for map pin filtering (type + city only, not sort)
+          if (key !== 'sort') activeFilters.desktop[key] = el.value;
           updateSelectActiveState(el, el.value, key === 'sort' ? 'default' : 'all');
           gtag('event', 'filter_change', { 'filter_type': key, 'filter_value': el.value, 'platform': 'mobile' });
           window.mobileLoadedCount = 12; window.mobileScrollLoading = false;
           renderPills('mobile');
+          updateMapPinFilters();
           renderGrid('gridMobile');
           updateResultCount('gridMobile');
         });
