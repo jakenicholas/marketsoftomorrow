@@ -899,7 +899,7 @@
             <option value="all">All Types</option>
           </select>
           <select id="locationFilterDesktop" style="flex:1;min-width:100px;background:#1a1a1a;color:#fff;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:8px 36px 8px 12px;font-size:14px;font-weight:500;cursor:pointer;transition:all 0.25s ease;appearance:none;background-image:url(&quot;data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%23999' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E&quot;);background-repeat:no-repeat;background-position:right 12px center;">
-            <option value="all">All Cities</option>
+            <option value="all">All Statuses</option>
           </select>
         </div>
 
@@ -933,7 +933,7 @@
               <option value="all">All Types</option>
             </select>
             <select id="locationFilterMobile">
-              <option value="all">All Cities</option>
+              <option value="all">All Statuses</option>
             </select>
           </div>
           <!-- Active filter pills (mobile) -->
@@ -1138,14 +1138,14 @@
     // ─── FILTER PILLS SYSTEM ─────────────────────────────────────────────────
     // Tracks current active filters
     const activeFilters = {
-      desktop: { sort: 'default', type: 'all', city: 'all' },
-      mobile:  { sort: 'default', type: 'all', city: 'all' }
+      desktop: { sort: 'default', type: 'all', status: 'all' },
+      mobile:  { sort: 'default', type: 'all', status: 'all' }
     };
 
     const FILTER_LABELS = {
       sort: { az: 'A → Z', za: 'Z → A', default: null },
       type: (v) => v !== 'all' ? (v.charAt(0).toUpperCase() + v.slice(1)) : null,
-      city: (v) => v !== 'all' ? v : null
+      status: (v) => v !== 'all' ? v : null
     };
 
     function renderPills(platform) {
@@ -1163,9 +1163,9 @@
       const typeLabel = typeof FILTER_LABELS.type === 'function' ? FILTER_LABELS.type(filters.type) : null;
       if (typeLabel) pills.push({ key: 'type', label: `Type: ${typeLabel}` });
 
-      // City pill
-      const cityLabel = typeof FILTER_LABELS.city === 'function' ? FILTER_LABELS.city(filters.city) : null;
-      if (cityLabel) pills.push({ key: 'city', label: filters.city });
+      // Status pill
+      const statusLabel = typeof FILTER_LABELS.status === 'function' ? FILTER_LABELS.status(filters.status) : null;
+      if (statusLabel) pills.push({ key: 'status', label: filters.status });
 
       // Build HTML
       pillsRow.innerHTML = '';
@@ -1202,7 +1202,7 @@
         const selectMap = {
           sort: 'sortSelect',
           type: 'projectTypeFilter',
-          city: 'locationFilter'
+          status: 'locationFilter'
         };
         ['Desktop', 'Mobile'].forEach(suffix => {
           const el = document.getElementById(`${selectMap[filterKey]}${suffix}`);
@@ -1220,8 +1220,8 @@
 
     function clearAllFilters(platform) {
       // Reset both platforms — updateMapPinFilters reads from both
-      activeFilters.desktop = { sort: 'default', type: 'all', city: 'all' };
-      activeFilters.mobile  = { sort: 'default', type: 'all', city: 'all' };
+      activeFilters.desktop = { sort: 'default', type: 'all', status: 'all' };
+      activeFilters.mobile  = { sort: 'default', type: 'all', status: 'all' };
 
       // Reset all dropdowns on both platforms
       ['Desktop', 'Mobile'].forEach(suffix => {
@@ -1271,9 +1271,9 @@
       const typeFilter = activeFilters.desktop.type !== 'all'
         ? activeFilters.desktop.type
         : activeFilters.mobile.type;
-      const cityFilter = activeFilters.desktop.city !== 'all'
-        ? activeFilters.desktop.city
-        : activeFilters.mobile.city;
+      const statusFilter = activeFilters.desktop.status !== 'all'
+        ? activeFilters.desktop.status
+        : activeFilters.mobile.status;
 
       let filtered = window.allProjectFeatures;
 
@@ -1285,8 +1285,8 @@
         );
       }
 
-      if (cityFilter && cityFilter !== 'all') {
-        filtered = filtered.filter(f => f.properties.city === cityFilter);
+      if (statusFilter && statusFilter !== 'all') {
+        filtered = filtered.filter(f => f.properties.delivery === statusFilter);
       }
 
       source.setData({ type: 'FeatureCollection', features: filtered });
@@ -1402,10 +1402,11 @@
       });
 
       const platform = targetId === 'gridDesktop' ? 'desktop' : 'mobile';
-      const { sort: sortType, type: projectTypeFilter, city: locationFilter } = activeFilters[platform];
+      const { sort: sortType, type: projectTypeFilter, status: statusFilter } = activeFilters[platform];
 
       if (locationFilter !== 'all') features = features.filter(f => f.properties.city === locationFilter);
       if (projectTypeFilter !== 'all') features = features.filter(f => f.properties.projectTypes?.includes(projectTypeFilter.toLowerCase()));
+      if (statusFilter !== 'all') features = features.filter(f => f.properties.delivery === statusFilter);
 
       if (sortType === 'az') {
         features.sort((a,b) => { if (a.properties.featured && !b.properties.featured) return -1; if (!a.properties.featured && b.properties.featured) return 1; return a.properties.title.localeCompare(b.properties.title); });
@@ -1640,12 +1641,25 @@
       const features = map.getSource('projects')._data.features;
       const locationFilters = ['locationFilter', 'locationFilterDesktop', 'locationFilterMobile'].map(id => document.getElementById(id));
       const typeFilters = ['projectTypeFilter', 'projectTypeFilterDesktop', 'projectTypeFilterMobile'].map(id => document.getElementById(id));
-      const cities = [...new Set(features.map(f => f.properties.city))].sort();
+
+      // Populate status (delivery) values
+      const statuses = [...new Set(features.map(f => f.properties.delivery).filter(Boolean))];
+      // Sort by logical stage order, fallback to alphabetical
+      const stageOrder = ['Announced', 'Under Construction', 'Opening Soon', 'Open'];
+      statuses.sort((a, b) => {
+        const ai = stageOrder.indexOf(a), bi = stageOrder.indexOf(b);
+        if (ai !== -1 && bi !== -1) return ai - bi;
+        if (ai !== -1) return -1;
+        if (bi !== -1) return 1;
+        return a.localeCompare(b);
+      });
       locationFilters.forEach(f => {
         if (!f) return;
-        f.innerHTML = '<option value="all">All Cities</option>';
-        cities.forEach(city => { const o = document.createElement('option'); o.value = o.textContent = city; f.appendChild(o); });
+        f.innerHTML = '<option value="all">All Statuses</option>';
+        statuses.forEach(s => { const o = document.createElement('option'); o.value = o.textContent = s; f.appendChild(o); });
       });
+
+      // Populate project types (unchanged)
       const allTypes = new Set();
       features.forEach(f => f.properties.projectTypes?.forEach(t => allTypes.add(t)));
       const types = [...allTypes].sort();
@@ -1660,7 +1674,7 @@
     function setupDesktopFilters() {
       const filterMap = {
         sortSelectDesktop:         'sort',
-        locationFilterDesktop:     'city',
+        locationFilterDesktop:     'status',
         projectTypeFilterDesktop:  'type'
       };
       Object.entries(filterMap).forEach(([id, key]) => {
@@ -1668,7 +1682,7 @@
         if (!el) return;
         el.addEventListener('change', () => {
           activeFilters.desktop[key] = el.value;
-          // Keep mobile in sync for map pin filtering (type + city only, not sort)
+          // Keep mobile in sync for map pin filtering (type + status only, not sort)
           if (key !== 'sort') activeFilters.mobile[key] = el.value;
           updateSelectActiveState(el, el.value, key === 'sort' ? 'default' : 'all');
           gtag('event', 'filter_change', { 'filter_type': key, 'filter_value': el.value, 'platform': 'desktop' });
@@ -1684,7 +1698,7 @@
     function setupMobileFilters() {
       const filterMap = {
         sortSelectMobile:         'sort',
-        locationFilterMobile:     'city',
+        locationFilterMobile:     'status',
         projectTypeFilterMobile:  'type'
       };
       Object.entries(filterMap).forEach(([id, key]) => {
@@ -1692,7 +1706,7 @@
         if (!el) return;
         el.addEventListener('change', () => {
           activeFilters.mobile[key] = el.value;
-          // Keep desktop in sync for map pin filtering (type + city only, not sort)
+          // Keep desktop in sync for map pin filtering (type + status only, not sort)
           if (key !== 'sort') activeFilters.desktop[key] = el.value;
           updateSelectActiveState(el, el.value, key === 'sort' ? 'default' : 'all');
           gtag('event', 'filter_change', { 'filter_type': key, 'filter_value': el.value, 'platform': 'mobile' });
