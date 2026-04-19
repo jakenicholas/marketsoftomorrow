@@ -899,7 +899,7 @@
             <option value="all">All Types</option>
           </select>
           <select id="locationFilterDesktop" style="flex:1;min-width:100px;background:#1a1a1a;color:#fff;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:8px 36px 8px 12px;font-size:14px;font-weight:500;cursor:pointer;transition:all 0.25s ease;appearance:none;background-image:url(&quot;data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%23999' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E&quot;);background-repeat:no-repeat;background-position:right 12px center;">
-            <option value="all">All Statuses</option>
+            <option value="all">Status</option>
           </select>
         </div>
 
@@ -933,7 +933,7 @@
               <option value="all">All Types</option>
             </select>
             <select id="locationFilterMobile">
-              <option value="all">All Statuses</option>
+              <option value="all">Status</option>
             </select>
           </div>
           <!-- Active filter pills (mobile) -->
@@ -1404,7 +1404,6 @@
       const platform = targetId === 'gridDesktop' ? 'desktop' : 'mobile';
       const { sort: sortType, type: projectTypeFilter, status: statusFilter } = activeFilters[platform];
 
-      if (locationFilter !== 'all') features = features.filter(f => f.properties.city === locationFilter);
       if (projectTypeFilter !== 'all') features = features.filter(f => f.properties.projectTypes?.includes(projectTypeFilter.toLowerCase()));
       if (statusFilter !== 'all') features = features.filter(f => f.properties.delivery === statusFilter);
 
@@ -1655,7 +1654,7 @@
       });
       locationFilters.forEach(f => {
         if (!f) return;
-        f.innerHTML = '<option value="all">All Statuses</option>';
+        f.innerHTML = '<option value="all">Status</option>';
         statuses.forEach(s => { const o = document.createElement('option'); o.value = o.textContent = s; f.appendChild(o); });
       });
 
