@@ -1498,7 +1498,8 @@
       if (!map.getSource('projects') || !map.getSource('projects')._data) {
         grid.style.pointerEvents = 'auto'; window.gridRendering[targetId] = false; return;
       }
-      let features = [...map.getSource('projects')._data.features];
+      // Use JS master list so _projectTypes arrays are intact for type filtering
+      let features = [...(window.allProjectFeatures || map.getSource('projects')._data.features)];
       const mapCenter = map.getCenter();
       features = features.map(f => {
         const coords = f.geometry.coordinates;
