@@ -1741,13 +1741,16 @@
     // ─── POPULATE FILTERS ────────────────────────────────────────────────────
     function populateLocationFilter() {
       if (!map.getSource('projects')?._data) return;
-      const features = map.getSource('projects')._data.features;
+      // Delivery/status comes from the Mapbox source (plain string property, survives serialization)
+      const mapFeatures = map.getSource('projects')._data.features;
+      // projectTypes was stripped from Mapbox source — must use master JS list
+      const jsFeatures = window.allProjectFeatures || mapFeatures;
+
       const locationFilters = ['locationFilter', 'locationFilterDesktop', 'locationFilterMobile'].map(id => document.getElementById(id));
       const typeFilters = ['projectTypeFilter', 'projectTypeFilterDesktop', 'projectTypeFilterMobile'].map(id => document.getElementById(id));
 
-      // Populate status (delivery) values
-      const statuses = [...new Set(features.map(f => f.properties.delivery).filter(Boolean))];
-      // Sort by logical stage order, fallback to alphabetical
+      // Populate status (delivery) from Mapbox source — plain string, safe
+      const statuses = [...new Set(mapFeatures.map(f => f.properties.delivery).filter(Boolean))];
       const stageOrder = ['Announced', 'Under Construction', 'Opening Soon', 'Open'];
       statuses.sort((a, b) => {
         const ai = stageOrder.indexOf(a), bi = stageOrder.indexOf(b);
@@ -1756,20 +1759,20 @@
         if (bi !== -1) return 1;
         return a.localeCompare(b);
       });
-      locationFilters.forEach(f => {
-        if (!f) return;
-        f.innerHTML = '<option value="all" disabled>Status</option>';
-        statuses.forEach(s => { const o = document.createElement('option'); o.value = o.textContent = s; f.appendChild(o); });
+      locationFilters.forEach(el => {
+        if (!el) return;
+        el.innerHTML = '<option value="all" disabled selected>Status</option>';
+        statuses.forEach(s => { const o = document.createElement('option'); o.value = o.textContent = s; el.appendChild(o); });
       });
 
-      // Populate project types (unchanged)
+      // Populate project types from JS master list — _projectTypes array is intact there
       const allTypes = new Set();
-      features.forEach(f => f.properties.projectTypes?.forEach(t => allTypes.add(t)));
+      jsFeatures.forEach(f => f._projectTypes?.forEach(t => allTypes.add(t)));
       const types = [...allTypes].sort();
-      typeFilters.forEach(f => {
-        if (!f) return;
-        f.innerHTML = '<option value="all" disabled>Type</option>';
-        types.forEach(t => { const o = document.createElement('option'); o.value = t; o.textContent = t.charAt(0).toUpperCase() + t.slice(1); f.appendChild(o); });
+      typeFilters.forEach(el => {
+        if (!el) return;
+        el.innerHTML = '<option value="all" disabled selected>Type</option>';
+        types.forEach(t => { const o = document.createElement('option'); o.value = t; o.textContent = t.charAt(0).toUpperCase() + t.slice(1); el.appendChild(o); });
       });
     }
 
