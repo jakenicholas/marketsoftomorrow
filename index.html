@@ -476,7 +476,6 @@
       box-shadow: 0 4px 12px rgba(0,0,0,0.5);
       text-decoration: none; z-index: 25;
     }
-    #mobileHomeButton svg { width: 20px; height: 20px; fill: #fff; }
     #mobileHomeButton:active { background: #333; }
 
     @media(max-width:800px) {
@@ -753,19 +752,29 @@
       padding: 0;
       cursor: pointer;
       border-radius: 8px;
-      display: none;
+      display: flex;
       align-items: center;
       justify-content: center;
       width: 36px;
       height: 36px;
       transition: background var(--transition-med), border-color var(--transition-med);
-      /* Below layers button on mobile right side */
-      top: calc(var(--safe-area-top) + 10px + 36px + 10px + 36px + 10px);
       right: calc(var(--safe-area-right) + 15px);
     }
     #locationButton svg { width: 20px; height: 20px; fill: #fff; }
     #locationButton.locating svg { fill: var(--accent); }
-    @media(max-width:800px) { #locationButton { display: flex; } }
+
+    /* Desktop: below layers button (layers is at 60px, so 60+36+10=106px) */
+    @media(min-width:801px) {
+      #locationButton {
+        top: calc(60px + var(--safe-area-top) + 36px + 10px);
+      }
+    }
+    /* Mobile: below layers button */
+    @media(max-width:800px) {
+      #locationButton {
+        top: calc(var(--safe-area-top) + 10px + 36px + 10px + 36px + 10px);
+      }
+    }
 
     /* ─── USER LOCATION DOT ───────────────────────────────────────────────── */
     @keyframes locationPulse {
@@ -793,7 +802,41 @@
       z-index: 1;
     }
 
-    /* ─── DESKTOP SEARCH PILL ─────────────────────────────────────────────── */
+    /* ─── FILTER COUNT BADGE in pills ────────────────────────────────────── */
+    .pill-filter-badge {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 20px;
+      padding: 0 10px;
+      height: 28px;
+      margin: 0 6px;
+      flex-shrink: 0;
+      cursor: pointer;
+      transition: background var(--transition-fast), border-color var(--transition-fast);
+      animation: pillBounceIn 0.3s cubic-bezier(0.34,1.56,0.64,1) both;
+    }
+    .pill-filter-badge:hover {
+      background: rgba(255,80,80,0.15);
+      border-color: rgba(255,80,80,0.4);
+    }
+    .pill-filter-badge.visible { display: flex; }
+    .pill-filter-badge .badge-icon svg {
+      width: 13px; height: 13px;
+      stroke: rgba(255,255,255,0.7); fill: none; stroke-width: 2;
+    }
+    .pill-filter-badge .badge-count {
+      font-size: 11px; font-weight: 700;
+      color: #fff;
+      background: var(--accent);
+      border-radius: 50%;
+      width: 16px; height: 16px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
     #desktopSearchPill {
       position: fixed;
       top: calc(60px + var(--safe-area-top));
@@ -1176,6 +1219,10 @@
         <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
       </div>
       <span class="pill-text">Search projects or city...</span>
+      <div class="pill-filter-badge" id="desktopPillFilterBadge">
+        <span class="badge-icon"><svg viewBox="0 0 24 24"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg></span>
+        <span class="badge-count" id="desktopPillFilterCount">0</span>
+      </div>
       <div class="pill-divider"></div>
       <div class="pill-count" id="desktopPillCount">— results</div>
     </div>
@@ -1263,11 +1310,15 @@
         <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
       </div>
       <span class="pill-text">Search projects or city...</span>
+      <div class="pill-filter-badge" id="mobilePillFilterBadge">
+        <span class="badge-icon"><svg viewBox="0 0 24 24"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg></span>
+        <span class="badge-count" id="mobilePillFilterCount">0</span>
+      </div>
       <div class="pill-divider"></div>
       <div class="pill-count" id="mobilePillCount">— results</div>
     </button>
     <a id="mobileHomeButton" href="https://www.oftmw.com" target="_blank">
-      <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+      <img src="https://static.wixstatic.com/shapes/ca3b83_a647b53cad4c49c5b012af991d286a86.svg" alt="Markets of Tomorrow" style="width:22px;height:22px;filter:brightness(0) invert(1);object-fit:contain;" />
     </a>
     <button id="mapReturnButton">Map</button>
     
@@ -1457,6 +1508,32 @@
       status: (v) => v !== 'all' ? v : null
     };
 
+    // ─── FILTER BADGE UPDATE ─────────────────────────────────────────────────
+    function updateFilterBadge(platform) {
+      const filters = activeFilters[platform];
+      // Count active filters (exclude sort:default)
+      let count = 0;
+      if (filters.type   !== 'all')     count++;
+      if (filters.status !== 'all')     count++;
+      if (filters.sort   !== 'default') count++;
+
+      const isDesktop = platform === 'desktop';
+      const badge     = document.getElementById(isDesktop ? 'desktopPillFilterBadge' : 'mobilePillFilterBadge');
+      const countEl   = document.getElementById(isDesktop ? 'desktopPillFilterCount'  : 'mobilePillFilterCount');
+
+      if (!badge || !countEl) return;
+
+      if (count > 0) {
+        countEl.textContent = count;
+        badge.classList.add('visible');
+        // Clicking badge clears all filters
+        badge.onclick = () => clearAllFilters(platform);
+      } else {
+        badge.classList.remove('visible');
+        badge.onclick = null;
+      }
+    }
+
     function renderPills(platform) {
       const pillsRow = document.getElementById(platform === 'desktop' ? 'desktopPillsRow' : 'mobilePillsRow');
       if (!pillsRow) return;
@@ -1518,8 +1595,8 @@
           if (el) { el.value = resetVal; el.classList.remove('filter-active'); }
         });
 
-        renderPills('desktop');
-        renderPills('mobile');
+        renderPills('desktop'); updateFilterBadge('desktop');
+        renderPills('mobile'); updateFilterBadge('mobile');
         updateMapPinFilters();
         renderGrid('gridDesktop'); updateResultCount('gridDesktop');
         window.mobileLoadedCount = 12;
@@ -1549,8 +1626,8 @@
       if (desktopSearch) desktopSearch.value = '';
       if (mobileSearch)  mobileSearch.value  = '';
 
-      renderPills('desktop');
-      renderPills('mobile');
+      renderPills('desktop'); updateFilterBadge('desktop');
+      renderPills('mobile'); updateFilterBadge('mobile');
       updateMapPinFilters();
       renderGrid('gridDesktop');
       updateResultCount('gridDesktop');
@@ -2141,7 +2218,7 @@
           if (key !== 'sort') activeFilters.mobile[key] = el.value;
           updateSelectActiveState(el, el.value, key === 'sort' ? 'default' : 'all');
           gtag('event', 'filter_change', { 'filter_type': key, 'filter_value': el.value, 'platform': 'desktop' });
-          renderPills('desktop');
+          renderPills('desktop'); updateFilterBadge('desktop');
           updateMapPinFilters();
           renderGrid('gridDesktop');
           updateResultCount('gridDesktop');
@@ -2166,7 +2243,7 @@
           updateSelectActiveState(el, el.value, key === 'sort' ? 'default' : 'all');
           gtag('event', 'filter_change', { 'filter_type': key, 'filter_value': el.value, 'platform': 'mobile' });
           window.mobileLoadedCount = 12; window.mobileScrollLoading = false;
-          renderPills('mobile');
+          renderPills('mobile'); updateFilterBadge('mobile');
           updateMapPinFilters();
           renderGrid('gridMobile');
           updateResultCount('gridMobile');
