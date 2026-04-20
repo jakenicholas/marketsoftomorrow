@@ -1,5 +1,7 @@
 <!DOCTYPE html>
 
+<!-- v2026-04-20T23:17:06.502295 -->
+
 <html>
 <head>
   <meta charset="utf-8">
@@ -2503,6 +2505,9 @@
         }
         renderGrid('gridMobile');
         renderPills('mobile'); updateFilterBadge('mobile');
+      }
+
+      window.mobileDrawerCollapse = collapseDrawer;
 
       content.addEventListener('touchstart', (e) => {
         if (!isExpanded) { try { e.preventDefault(); e.stopPropagation(); } catch {} return false; }
