@@ -828,8 +828,8 @@
     }
     .pill-filter-badge.visible { display: flex; }
     .pill-filter-badge .badge-icon svg {
-      width: 13px; height: 13px;
-      stroke: rgba(255,255,255,0.7); fill: none; stroke-width: 2;
+      width: 15px; height: 15px;
+      stroke: rgba(255,255,255,0.7); fill: none; stroke-width: 1.8;
     }
     .pill-filter-badge .badge-count {
       font-size: 11px; font-weight: 700;
@@ -1226,7 +1226,7 @@
   </div>
   <span class="pill-text">Search projects or city...</span>
   <div class="pill-filter-badge" id="desktopPillFilterBadge">
-    <span class="badge-icon"><svg viewBox="0 0 24 24"><circle cx="6" cy="7" r="2"/><line x1="2" y1="7" x2="4" y2="7"/><line x1="8" y1="7" x2="22" y2="7"/><circle cx="16" cy="12" r="2"/><line x1="2" y1="12" x2="14" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><circle cx="9" cy="17" r="2"/><line x1="2" y1="17" x2="7" y2="17"/><line x1="11" y1="17" x2="22" y2="17"/></svg></span>
+    <span class="badge-icon"><svg viewBox="0 0 24 24"><circle cx="6" cy="5" r="2"/><line x1="2" y1="5" x2="4" y2="5"/><line x1="8" y1="5" x2="22" y2="5"/><circle cx="16" cy="12" r="2"/><line x1="2" y1="12" x2="14" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><circle cx="9" cy="19" r="2"/><line x1="2" y1="19" x2="7" y2="19"/><line x1="11" y1="19" x2="22" y2="19"/></svg></span>
     <span class="badge-count" id="desktopPillFilterCount">0</span>
   </div>
   <div class="pill-divider"></div>
@@ -1317,7 +1317,7 @@
   </div>
   <span class="pill-text">Search projects or city...</span>
   <div class="pill-filter-badge" id="mobilePillFilterBadge">
-    <span class="badge-icon"><svg viewBox="0 0 24 24"><circle cx="6" cy="7" r="2"/><line x1="2" y1="7" x2="4" y2="7"/><line x1="8" y1="7" x2="22" y2="7"/><circle cx="16" cy="12" r="2"/><line x1="2" y1="12" x2="14" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><circle cx="9" cy="17" r="2"/><line x1="2" y1="17" x2="7" y2="17"/><line x1="11" y1="17" x2="22" y2="17"/></svg></span>
+    <span class="badge-icon"><svg viewBox="0 0 24 24"><circle cx="6" cy="5" r="2"/><line x1="2" y1="5" x2="4" y2="5"/><line x1="8" y1="5" x2="22" y2="5"/><circle cx="16" cy="12" r="2"/><line x1="2" y1="12" x2="14" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><circle cx="9" cy="19" r="2"/><line x1="2" y1="19" x2="7" y2="19"/><line x1="11" y1="19" x2="22" y2="19"/></svg></span>
     <span class="badge-count" id="mobilePillFilterCount">0</span>
   </div>
   <div class="pill-divider"></div>
@@ -1593,8 +1593,8 @@
         pillsRow.appendChild(el);
       });
 
-      // Clear all button
-      if (pills.length > 1) {
+      // Clear all button — show whenever any filter is active
+      if (pills.length >= 1) {
         const clearBtn = document.createElement('button');
         clearBtn.className = 'clear-all-btn';
         clearBtn.innerHTML = '✕ Clear all';
@@ -2502,9 +2502,7 @@
           setTimeout(() => { mobileMapBtn.classList.add('ready'); mobileMapBtn.style.opacity = '1.0'; }, 150);
         }
         renderGrid('gridMobile');
-      }
-
-      window.mobileDrawerCollapse = collapseDrawer;
+        renderPills('mobile'); updateFilterBadge('mobile');
 
       content.addEventListener('touchstart', (e) => {
         if (!isExpanded) { try { e.preventDefault(); e.stopPropagation(); } catch {} return false; }
