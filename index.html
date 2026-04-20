@@ -709,14 +709,13 @@
       border-color: rgba(255,255,255,0.18) !important;
     }
 
-    /* ─── LAYERS BUTTON (replaces old openSearch) ────────────────────────── */
+    /* ─── LAYERS BUTTON — top-right desktop, top-left mobile ─────────────── */
     #layersButton {
-      position: absolute;
+      position: fixed;
       z-index: 3;
       color: #fff;
       border: none;
       padding: 0;
-      font-size: 18px;
       cursor: pointer;
       border-radius: 8px;
       display: flex;
@@ -731,16 +730,67 @@
     #layersButton.active svg { fill: var(--accent); }
 
     @media(min-width:801px) {
-      #layersButton { top: calc(60px + var(--safe-area-top)); left: calc(15px + var(--safe-area-left)); }
+      #layersButton {
+        top: calc(60px + var(--safe-area-top));
+        right: calc(15px + var(--safe-area-right));
+      }
     }
     @media(max-width:800px) {
-      #layersButton { top: calc(10px + var(--safe-area-top)); left: calc(15px + var(--safe-area-left)); }
+      #layersButton {
+        top: calc(10px + var(--safe-area-top));
+        left: calc(15px + var(--safe-area-left));
+      }
     }
+
+    /* ─── DESKTOP SEARCH PILL ─────────────────────────────────────────────── */
+    #desktopSearchPill {
+      position: fixed;
+      top: calc(60px + var(--safe-area-top));
+      left: calc(15px + var(--safe-area-left));
+      height: 40px;
+      width: 280px;
+      display: none;
+      align-items: center;
+      border-radius: 24px;
+      overflow: hidden;
+      z-index: 3;
+      cursor: pointer;
+      transition: width var(--transition-med), box-shadow var(--transition-med);
+    }
+    @media(min-width:801px) {
+      #desktopSearchPill { display: flex; }
+    }
+    #desktopSearchPill .pill-search-icon {
+      display: flex; align-items: center; justify-content: center;
+      padding: 0 12px 0 16px; flex-shrink: 0;
+    }
+    #desktopSearchPill .pill-search-icon svg {
+      width: 16px; height: 16px;
+      stroke: rgba(255,255,255,0.6); fill: none; stroke-width: 2;
+    }
+    #desktopSearchPill .pill-text {
+      flex: 1; font-size: 13px; font-weight: 400;
+      color: rgba(255,255,255,0.5);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    #desktopSearchPill .pill-divider {
+      width: 1px; height: 20px;
+      background: rgba(255,255,255,0.12); flex-shrink: 0; margin: 0 4px;
+    }
+    #desktopSearchPill .pill-count {
+      display: flex; align-items: center; justify-content: center;
+      padding: 0 14px; flex-shrink: 0;
+      font-size: 11px; font-weight: 700;
+      color: var(--accent); white-space: nowrap;
+    }
+    #desktopSearchPill:active { opacity: 0.85; }
+
+    /* Hide compass entirely on both desktop and mobile */
+    .mapboxgl-ctrl-compass,
+    .mapboxgl-ctrl-group { display: none !important; }
 
     /* Hide old search/toggle buttons entirely */
     #openSearch, #toggleView, #searchContainer { display: none !important; }
-
-    /* ─── GLASS PILL — mobile search/tiles bar ───────────────────────────── */
     #mobileTilesButton {
       background: rgba(15,15,15,0.55) !important;
       backdrop-filter: blur(16px) saturate(1.4) !important;
@@ -877,34 +927,6 @@
     /* ─── MISC CONTROLS ───────────────────────────────────────────────────── */
     #desktopSidebar select:focus { outline: none !important; border-color: var(--accent) !important; box-shadow: 0 0 0 3px rgba(31,223,103,0.1) !important; }
     #instagramLogo img { width: 100%; height: 100%; filter: brightness(0) invert(1); }
-
-    .mapboxgl-ctrl-compass {
-      background-color: #1e1e1e !important; width: 36px !important; height: 36px !important;
-      border-radius: 4px !important; transition: background-color var(--transition-med);
-    }
-    @media(max-width:800px) {
-      .mapboxgl-ctrl-bottom-right {
-        bottom: auto !important; right: auto !important;
-        top: calc(10px + var(--safe-area-top)) !important;
-        left: calc(15px + var(--safe-area-left)) !important;
-      }
-      .mapboxgl-ctrl-compass:hover::after {
-        bottom: auto; top: 100%; right: auto; left: 0; margin-right: 0; margin-top: 8px;
-      }
-    }
-    .mapboxgl-ctrl-compass:hover { background-color: rgba(50,50,50,0.9) !important; }
-    .mapboxgl-ctrl-compass .mapboxgl-ctrl-icon {
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='36' viewBox='0 0 36 36'%3E%3Cg transform='translate(18,18)'%3E%3Cg transform='rotate(0)'%3E%3Ccircle cx='0' cy='0' r='10' fill='none' stroke='%23fff' stroke-width='1'/%3E%3Ctext x='0' y='-12' text-anchor='middle' fill='%23fff' font-size='6' font-weight='500'%3EN%3C/text%3E%3Ctext x='0' y='15' text-anchor='middle' fill='%23fff' font-size='6' font-weight='500'%3ES%3C/text%3E%3Ctext x='-12' y='2' text-anchor='middle' fill='%23fff' font-size='6' font-weight='500'%3EW%3C/text%3E%3Ctext x='12' y='2' text-anchor='middle' fill='%23fff' font-size='6' font-weight='500'%3EE%3C/text%3E%3Cpath d='M 0,-6 L -2,2 L 0,0 L 2,2 Z' fill='%231FDF67'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") !important;
-      width: 36px !important; height: 36px !important;
-    }
-    .mapboxgl-ctrl-compass::before { display: none !important; }
-    .mapboxgl-ctrl-compass:hover::after {
-      content: "One click: reset north bearing\A Double click: reset to original view";
-      white-space: pre-line; position: absolute; bottom: 0; right: 100%;
-      background: rgba(0,0,0,0.8); color: white; padding: 8px 12px;
-      border-radius: 4px; font-size: 12px; pointer-events: none;
-      margin-right: 8px; width: max-content; max-width: 200px; text-align: center; line-height: 1.4;
-    }
 
     #hoverIcon { position: fixed; width: 96px; height: 96px; display: none; pointer-events: none; z-index: 10000; transform: translate(-50%, -50%); }
 
@@ -1084,6 +1106,16 @@
     <button id="layersButton" class="glass-btn" title="Switch map style">
       <svg viewBox="0 0 24 24"><path d="M11.99 18.54l-7.37-5.73L3 14.07l9 7 9-7-1.63-1.27-7.38 5.74zM12 16l7.36-5.73L21 9l-9-7-9 7 1.63 1.27L12 16z"/></svg>
     </button>
+
+    <!-- Desktop search pill (top-left, visible only on desktop) -->
+    <div id="desktopSearchPill" class="glass-btn">
+      <div class="pill-search-icon">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <span class="pill-text">Search projects or city...</span>
+      <div class="pill-divider"></div>
+      <div class="pill-count" id="desktopPillCount">— results</div>
+    </div>
     
     <!-- Desktop Sidebar -->
     <div id="desktopSidebar" class="open">
@@ -1543,6 +1575,14 @@
         }
       }
 
+      // Update desktop pill count
+      const desktopPillCount = document.getElementById('desktopPillCount');
+      if (desktopPillCount) {
+        desktopPillCount.textContent = filteredTotal < total
+          ? `${inFrame} of ${filteredTotal} results`
+          : `${inFrame} of ${total} results`;
+      }
+
       // Update mobile pill count
       const pillCount = document.getElementById('mobilePillCount');
       if (pillCount) {
@@ -1571,6 +1611,20 @@
         closeBtn.onclick = () => {
           if (sidebar) sidebar.classList.remove('open');
         };
+      }
+      // Desktop pill opens sidebar and focuses search
+      const desktopPill = document.getElementById('desktopSearchPill');
+      if (desktopPill) {
+        desktopPill.addEventListener('click', () => {
+          if (sidebar && !sidebar.classList.contains('open')) {
+            sidebar.classList.add('open');
+            renderGrid('gridDesktop');
+          }
+          setTimeout(() => {
+            const sb = document.getElementById('sidebarSearchBar');
+            if (sb) sb.focus();
+          }, 150);
+        });
       }
     }
 
@@ -2356,14 +2410,6 @@
         map.on('mouseleave','brightline-existing',()=>{ map.getCanvas().style.cursor=''; hoverIcon.style.display='none'; });
         map.on('mousemove','brightline-existing',(e)=>{ hoverIcon.style.left=`${e.point.x}px`; hoverIcon.style.top=`${e.point.y}px`; });
         if(isMobile){ map.on('click','brightline-existing',(e)=>{ if(stationPopup){stationPopup.remove();stationPopup=null;} hoverIcon.style.left=`${e.point.x}px`; hoverIcon.style.top=`${e.point.y}px`; hoverIcon.style.display='block'; }); map.on('movestart',()=>{ hoverIcon.style.display='none'; }); }
-      }
-
-      // Nav control (only add once)
-      if (!window._navControlAdded) {
-        window._navControlAdded = true;
-        const navControl = new mapboxgl.NavigationControl({showCompass:true,showZoom:false,visualizePitch:false});
-        map.addControl(navControl,'bottom-right');
-        setTimeout(()=>{ const cb=document.querySelector('.mapboxgl-ctrl-compass'); if(cb){ cb.addEventListener('dblclick',(e)=>{ e.preventDefault(); e.stopPropagation(); map.flyTo({center:[-81.1961527,26.7807395],zoom:isMobile?6:7,bearing:0,pitch:0,duration:1000}); }); } },100);
       }
 
       // Load project data — if already loaded, just restore from master list
