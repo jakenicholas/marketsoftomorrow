@@ -748,7 +748,7 @@
       top: calc(60px + var(--safe-area-top));
       left: calc(15px + var(--safe-area-left));
       height: 40px;
-      width: 280px;
+      width: 350px;
       display: none;
       align-items: center;
       border-radius: 24px;
@@ -1985,8 +1985,14 @@
         }
       });
       const cities = Object.entries(cityMap)
-        .sort((a, b) => b[1] - a[1]) // most projects first
+        .sort((a, b) => b[1] - a[1])
         .slice(0, 4);
+
+      // Helper: get display label using cached state lookup
+      const getCityLabel = (city) => {
+        const state = window.cityStateMap?.[city] || '';
+        return state ? `${city}, ${state}` : city;
+      };
 
       // Gather project names matching query
       const projects = features
@@ -2007,18 +2013,18 @@
         container.appendChild(label);
 
         cities.forEach(([city, count], i) => {
+          const cityLabel = getCityLabel(city);
           const item = document.createElement('div');
           item.className = 'autocomplete-item';
           item.style.animationDelay = `${i * 0.04}s`;
           item.innerHTML = `
             <div class="autocomplete-icon location">${PIN_SVG}</div>
             <div class="autocomplete-text">
-              <strong>${highlight(city, ql)}, FL</strong>
+              <strong>${highlight(cityLabel, ql)}</strong>
               <span>${count} project${count !== 1 ? 's' : ''}</span>
             </div>`;
-          // Attach city data for handler
           item.addEventListener('mousedown', () => {
-            onSelect({ _cityLabel: `${city}, FL`, _cityValue: city }, true);
+            onSelect({ _cityLabel: cityLabel, _cityValue: city }, true);
           });
           container.appendChild(item);
         });
@@ -2502,6 +2508,43 @@
           renderGrid('gridMobile');
           populateLocationFilter();
           setupMobileDrawer();
+
+          // ── Build city→state map via Mapbox reverse geocoding ──────────────
+          // One API call per unique city using a representative coordinate.
+          // Results cached in window.cityStateMap for autocomplete labels.
+          (async () => {
+            window.cityStateMap = window.cityStateMap || {};
+            const token = mapboxgl.accessToken;
+            // Collect one coordinate per city not yet cached
+            const cityCoords = {};
+            allProjectFeatures.forEach(f => {
+              const city = f.properties.city;
+              if (city && !window.cityStateMap[city] && !cityCoords[city]) {
+                cityCoords[city] = f.geometry.coordinates; // [lng, lat]
+              }
+            });
+            const entries = Object.entries(cityCoords);
+            if (!entries.length) return;
+            // Batch with a small delay between calls to avoid rate limits
+            for (const [city, [lng, lat]] of entries) {
+              try {
+                const res = await fetch(
+                  `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?types=region&access_token=${token}`
+                );
+                const data = await res.json();
+                const region = data.features?.[0];
+                if (region) {
+                  // Use short code like "FL", "NY", "TX" — strip country prefix
+                  const code = region.properties?.short_code || '';
+                  const state = code.replace(/^US-/i, '').toUpperCase();
+                  window.cityStateMap[city] = state || region.text || '';
+                }
+              } catch (e) {
+                // Silently skip on error — label will just show city name
+              }
+              await new Promise(r => setTimeout(r, 50)); // 50ms between calls
+            }
+          })();
 
           let updateTimeout;
           map.on('moveend', () => {
