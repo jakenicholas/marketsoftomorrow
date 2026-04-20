@@ -1660,7 +1660,7 @@
             </div>
           </div>
         `).addTo(map);
-      const off = isMobile ? [0, activePopup.getElement().offsetHeight/2] : [0, -25];
+      const off = isMobile ? [0, Math.round(window.innerHeight * 0.15)] : [0, -25];
       map.flyTo({ center: co, zoom: 14, offset: off });
       gtag('event', 'project_view', {
         'project_name': f.properties.title, 'project_city': f.properties.city,
