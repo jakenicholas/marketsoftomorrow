@@ -928,8 +928,6 @@
     #desktopSidebar select:focus { outline: none !important; border-color: var(--accent) !important; box-shadow: 0 0 0 3px rgba(31,223,103,0.1) !important; }
     #instagramLogo img { width: 100%; height: 100%; filter: brightness(0) invert(1); }
 
-    #hoverIcon { position: fixed; width: 96px; height: 96px; display: none; pointer-events: none; z-index: 10000; transform: translate(-50%, -50%); }
-
     /* ─── LOADING OVERLAY ─────────────────────────────────────────────────── */
     #loadingOverlay {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -1217,7 +1215,6 @@
     <a id="instagramLogo" href="https://www.instagram.com/floridaoftomorrow" target="_blank" style="display:block;">
       <img src="https://static.wixstatic.com/shapes/ca3b83_ec9d065676444a08a5392c3be54599ec.svg" alt="Follow us on Instagram" />
     </a>
-    <img id="hoverIcon" src="https://static.wixstatic.com/shapes/ca3b83_ec9d065676444a08a5392c3be54599ec.svg" alt="hover icon" />
   </div>
   
   <div id="toast" class="toast"></div>
@@ -1364,7 +1361,6 @@
       zoom: isMobile ? 6 : 7
     });
     let activePopup, stationPopup, fullscreenMap;
-    const hoverIcon = document.getElementById('hoverIcon');
 
     const stations = [
       { name: 'Brightline Miami Central', coords: [-80.19566705369766,25.779947075732274] },
@@ -2176,8 +2172,6 @@
       btn.addEventListener('click', () => {
         isSatellite = !isSatellite;
         btn.classList.toggle('active', isSatellite);
-        // Hide hover icon AND instagram logo during transition to prevent SVG flash
-        hoverIcon.style.display = 'none';
         const igLogo = document.getElementById('instagramLogo');
         if (igLogo) igLogo.style.opacity = '0';
         map.setStyle(isSatellite ? SATELLITE_STYLE : STREET_STYLE);
@@ -2464,10 +2458,10 @@
         if(isMobile){ map.on('click','station-hover',(e)=>{ if(stationPopup)stationPopup.remove(); const f=e.features[0]; stationPopup=new mapboxgl.Popup({closeButton:false,closeOnClick:false,offset:[0,-10]}).setLngLat(f.geometry.coordinates).setHTML(`<div style="background:rgba(20,20,20,0.9);color:#fff;padding:8px 12px;border-radius:6px;font-size:14px;font-weight:500;">${f.properties.name}</div>`).addTo(map); }); }
         map.on('movestart',()=>{ if(stationPopup){stationPopup.remove();stationPopup=null;} });
         map.on('zoomstart',()=>{ if(stationPopup){stationPopup.remove();stationPopup=null;} });
-        map.on('mouseenter','brightline-existing',()=>{ map.getCanvas().style.cursor='pointer'; hoverIcon.style.display='block'; });
-        map.on('mouseleave','brightline-existing',()=>{ map.getCanvas().style.cursor=''; hoverIcon.style.display='none'; });
-        map.on('mousemove','brightline-existing',(e)=>{ hoverIcon.style.left=`${e.point.x}px`; hoverIcon.style.top=`${e.point.y}px`; });
-        if(isMobile){ map.on('click','brightline-existing',(e)=>{ if(stationPopup){stationPopup.remove();stationPopup=null;} hoverIcon.style.left=`${e.point.x}px`; hoverIcon.style.top=`${e.point.y}px`; hoverIcon.style.display='block'; }); map.on('movestart',()=>{ hoverIcon.style.display='none'; }); }
+        map.on('mouseenter','brightline-existing',()=>{ map.getCanvas().style.cursor='pointer'; });
+        map.on('mouseleave','brightline-existing',()=>{ map.getCanvas().style.cursor=''; });
+        map.on('mousemove','brightline-existing',()=>{});
+        if(isMobile){ map.on('click','brightline-existing',(e)=>{ if(stationPopup){stationPopup.remove();stationPopup=null;} }); map.on('movestart',()=>{}); }
       }
 
       // Load project data — if already loaded, just restore from master list
