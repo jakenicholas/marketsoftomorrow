@@ -1403,12 +1403,13 @@
       const grid = document.getElementById(targetId);
       if (!grid) return;
       const count = grid.querySelectorAll('.grid-item').length;
-      const total = map.getSource('projects')?._data?.features?.length || 0;
+      const total = (window.allProjectFeatures || []).length || map.getSource('projects')?._data?.features?.length || 0;
+      if (total === 0) { countEl.style.display = 'none'; return; }
+      countEl.style.display = 'block';
       if (count < total) {
-        countEl.style.display = 'block';
         countEl.innerHTML = `Showing <strong>${count}</strong> of ${total} projects`;
       } else {
-        countEl.style.display = 'none';
+        countEl.innerHTML = `Showing <strong>${total}</strong> project${total !== 1 ? 's' : ''}`;
       }
     }
 
