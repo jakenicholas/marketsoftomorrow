@@ -737,9 +737,60 @@
     }
     @media(max-width:800px) {
       #layersButton {
-        top: calc(10px + var(--safe-area-top));
-        left: calc(15px + var(--safe-area-left));
+        /* Below home button on right side */
+        top: calc(var(--safe-area-top) + 10px + 36px + 10px);
+        right: calc(var(--safe-area-right) + 15px);
+        left: auto;
       }
+    }
+
+    /* ─── LOCATION BUTTON ─────────────────────────────────────────────────── */
+    #locationButton {
+      position: fixed;
+      z-index: 25;
+      color: #fff;
+      border: none;
+      padding: 0;
+      cursor: pointer;
+      border-radius: 8px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      transition: background var(--transition-med), border-color var(--transition-med);
+      /* Below layers button on mobile right side */
+      top: calc(var(--safe-area-top) + 10px + 36px + 10px + 36px + 10px);
+      right: calc(var(--safe-area-right) + 15px);
+    }
+    #locationButton svg { width: 20px; height: 20px; fill: #fff; }
+    #locationButton.locating svg { fill: var(--accent); }
+    @media(max-width:800px) { #locationButton { display: flex; } }
+
+    /* ─── USER LOCATION DOT ───────────────────────────────────────────────── */
+    @keyframes locationPulse {
+      0%   { transform: translate(-50%,-50%) scale(1);   opacity: 0.6; }
+      70%  { transform: translate(-50%,-50%) scale(2.8); opacity: 0; }
+      100% { transform: translate(-50%,-50%) scale(1);   opacity: 0; }
+    }
+    .user-location-dot {
+      width: 14px; height: 14px;
+      background: #2979FF;
+      border: 2px solid #fff;
+      border-radius: 50%;
+      position: absolute;
+      transform: translate(-50%, -50%);
+      box-shadow: 0 0 6px rgba(41,121,255,0.6);
+      z-index: 2;
+    }
+    .user-location-pulse {
+      width: 14px; height: 14px;
+      background: rgba(41,121,255,0.35);
+      border-radius: 50%;
+      position: absolute;
+      transform: translate(-50%, -50%);
+      animation: locationPulse 2s ease-out infinite;
+      z-index: 1;
     }
 
     /* ─── DESKTOP SEARCH PILL ─────────────────────────────────────────────── */
@@ -811,6 +862,15 @@
       border: 1px solid rgba(255,255,255,0.10) !important;
       box-shadow: 0 4px 24px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.06) !important;
       border-radius: 8px !important;
+    }
+
+    /* ─── GLASS — location button ────────────────────────────────────────── */
+    #locationButton {
+      background: rgba(15,15,15,0.55) !important;
+      backdrop-filter: blur(16px) saturate(1.4) !important;
+      -webkit-backdrop-filter: blur(16px) saturate(1.4) !important;
+      border: 1px solid rgba(255,255,255,0.10) !important;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.06) !important;
     }
 
     /* ─── GLASS — Mapbox compass ─────────────────────────────────────────── */
@@ -1103,6 +1163,11 @@
     <!-- Layers toggle button -->
     <button id="layersButton" class="glass-btn" title="Switch map style">
       <svg viewBox="0 0 24 24"><path d="M11.99 18.54l-7.37-5.73L3 14.07l9 7 9-7-1.63-1.27-7.38 5.74zM12 16l7.36-5.73L21 9l-9-7-9 7 1.63 1.27L12 16z"/></svg>
+    </button>
+
+    <!-- Location button (mobile only) -->
+    <button id="locationButton" title="Go to my location">
+      <svg viewBox="0 0 24 24"><path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3c-.46-4.17-3.77-7.48-7.94-7.94V1h-2v2.06C6.83 3.52 3.52 6.83 3.06 11H1v2h2.06c.46 4.17 3.77 7.48 7.94 7.94V23h2v-2.06c4.17-.46 7.48-3.77 7.94-7.94H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/></svg>
     </button>
 
     <!-- Desktop search pill (top-left, visible only on desktop) -->
@@ -2182,7 +2247,59 @@
       });
     })();
 
-    // ─── SIDEBAR SEARCH ───────────────────────────────────────────────────────
+    // ─── LOCATION BUTTON ─────────────────────────────────────────────────────
+    (function setupLocationButton() {
+      const btn = document.getElementById('locationButton');
+      if (!btn) return;
+
+      let locationMarker = null;
+      let watchId = null;
+
+      function showLocationDot(lng, lat) {
+        // Remove existing marker
+        if (locationMarker) locationMarker.remove();
+
+        // Build the pulsing dot element
+        const el = document.createElement('div');
+        el.style.cssText = 'position:relative;width:14px;height:14px;';
+
+        const pulse = document.createElement('div');
+        pulse.className = 'user-location-pulse';
+
+        const dot = document.createElement('div');
+        dot.className = 'user-location-dot';
+
+        el.appendChild(pulse);
+        el.appendChild(dot);
+
+        locationMarker = new mapboxgl.Marker({ element: el, anchor: 'center' })
+          .setLngLat([lng, lat])
+          .addTo(map);
+      }
+
+      btn.addEventListener('click', () => {
+        if (!navigator.geolocation) {
+          showToast('Location not supported on this device');
+          return;
+        }
+
+        btn.classList.add('locating');
+
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            const { longitude, latitude } = pos.coords;
+            btn.classList.remove('locating');
+            showLocationDot(longitude, latitude);
+            map.flyTo({ center: [longitude, latitude], zoom: 13, duration: 1200 });
+          },
+          (err) => {
+            btn.classList.remove('locating');
+            showToast('Unable to get your location');
+          },
+          { enableHighAccuracy: true, timeout: 8000 }
+        );
+      });
+    })();
     function setupSidebarSearch() {
       const searchBar  = document.getElementById('sidebarSearchBar');
       const clearBtn   = document.getElementById('sidebarSearchClear');
