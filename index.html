@@ -1555,32 +1555,21 @@
     // ─── SIDEBAR TOGGLE ───────────────────────────────────────────────────────
     function toggleSidebar() {
       const sidebar = document.getElementById('desktopSidebar');
-      const toggleBtn = document.getElementById('toggleView');
-      const searchBtn = document.getElementById('openSearch');
+      if (!sidebar) return;
       if (sidebar.classList.contains('open')) {
         sidebar.classList.remove('open');
-        toggleBtn.querySelector('span').textContent = 'Tiles';
-        toggleBtn.classList.remove('hidden'); searchBtn.classList.remove('hidden');
       } else {
         sidebar.classList.add('open');
-        toggleBtn.querySelector('span').textContent = 'Map';
-        toggleBtn.classList.add('hidden'); searchBtn.classList.add('hidden');
         renderGrid('gridDesktop');
       }
     }
 
     if (!isMobile) {
-      const toggleBtn = document.getElementById('toggleView');
       const sidebar = document.getElementById('desktopSidebar');
-      if (sidebar.classList.contains('open') && toggleBtn) toggleBtn.querySelector('span').textContent = 'Map';
-      if (toggleBtn) toggleBtn.onclick = toggleSidebar;
       const closeBtn = document.getElementById('closeSidebar');
       if (closeBtn) {
         closeBtn.onclick = () => {
-          sidebar.classList.remove('open');
-          toggleBtn.querySelector('span').textContent = 'Tiles';
-          toggleBtn.classList.remove('hidden');
-          document.getElementById('openSearch').classList.remove('hidden');
+          if (sidebar) sidebar.classList.remove('open');
         };
       }
     }
