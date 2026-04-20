@@ -2122,10 +2122,14 @@
       btn.addEventListener('click', () => {
         isSatellite = !isSatellite;
         btn.classList.toggle('active', isSatellite);
+        // Hide hover icon AND instagram logo during transition to prevent SVG flash
+        hoverIcon.style.display = 'none';
+        const igLogo = document.getElementById('instagramLogo');
+        if (igLogo) igLogo.style.opacity = '0';
         map.setStyle(isSatellite ? SATELLITE_STYLE : STREET_STYLE);
-        // Re-add sources/layers after style change
         map.once('style.load', () => {
-          initializeData();
+          addAllMapLayers();
+          if (igLogo) setTimeout(() => igLogo.style.opacity = '', 300);
         });
       });
     })();
@@ -2308,50 +2312,97 @@
     }
 
     // ─── MAP LOAD ─────────────────────────────────────────────────────────────
+    // ─── MAP LOAD ─────────────────────────────────────────────────────────────
     map.on('load', () => {
-      const brightlineGeo = {
-        type: 'FeatureCollection',
-        features: [
-          { type:'Feature', properties:{ segment:'existing' }, geometry:{ type:'LineString', coordinates:[[-80.1961527,25.7807395,0],[-80.1963673,25.7876179,0],[-80.1909599,25.8105687,0],[-80.1874838,25.8254033,0],[-80.1888571,25.8510117,0],[-80.1689444,25.8942205,0],[-80.1605759,25.9030611,0],[-80.1591167,25.9051457,0],[-80.1577864,25.9145259,0],[-80.1472721,25.9481418,0],[-80.1499329,26.0372102,0],[-80.1448259,26.0585318,0],[-80.1430664,26.0631581,0],[-80.1375303,26.0684395,0],[-80.1358566,26.0707139,0],[-80.1352129,26.0729111,0],[-80.1360712,26.0764575,0],[-80.1392899,26.0808903,0],[-80.1449976,26.1071368,0],[-80.1456842,26.1276366,0],[-80.1448688,26.130064,0],[-80.1419077,26.1333389,0],[-80.1332388,26.1425083,0],[-80.1312218,26.1454362,0],[-80.1307926,26.1482099,0],[-80.1324234,26.2071741,0],[-80.1322947,26.2087912,0],[-80.1166735,26.2639533,0],[-80.1064596,26.2996618,0],[-80.1007948,26.3193199,0],[-80.0997648,26.3218587,0],[-80.0913105,26.3319363,0],[-80.0725994,26.4469586,0],[-80.0547037,26.5589104,0],[-80.0542746,26.5613288,0],[-80.0536308,26.5777184,0],[-80.0523434,26.5820937,0],[-80.0521288,26.5854326,0],[-80.0523434,26.5911507,0],[-80.0585232,26.6031618,0],[-80.0596819,26.607114,0],[-80.0580511,26.6764285,0],[-80.0568066,26.6799948,0],[-80.0559483,26.6825256,0],[-80.0553474,26.7119709,0],[-80.0552187,26.7164561,0],[-80.0603685,26.7497633,0],[-80.0592527,26.7641716,0],[-80.0694237,26.7888456,0],[-80.0791225,26.8126332,0],[-80.08041,26.8153909,0],[-80.0897655,26.82554,0],[-80.0914392,26.8274932,0],[-80.0968037,26.848401,0],[-80.0936279,26.9432803,0],[-80.0931559,26.9443897,0],[-80.0894222,26.9489422,0],[-80.0871477,26.9520026,0],[-80.0866756,26.953571,0],[-80.0872335,26.9559044,0],[-80.0892506,26.9593854,0],[-80.0992069,26.9813397,0],[-80.1007948,26.9842845,0],[-80.1040134,26.9894089,0],[-80.1061592,26.9948009,0],[-80.1177463,27.0226741,0],[-80.1178322,27.0294788,0],[-80.1173601,27.0445778,0],[-80.1178322,27.0464507,0],[-80.1195917,27.0491262,0],[-80.1355133,27.067318,0],[-80.1487312,27.0975419,0],[-80.1567135,27.1101106,0],[-80.170661,27.1314625,0],[-80.1723776,27.1328756,0],[-80.1869259,27.137917,0],[-80.2101002,27.1545669,0],[-80.2352056,27.1800717,0],[-80.2433596,27.1880884,0],[-80.253273,27.1977841,0],[-80.2616415,27.2037386,0],[-80.2620277,27.2061431,0],[-80.2592382,27.2137764,0],[-80.2571354,27.2157609,0],[-80.2356777,27.2236225,0],[-80.2268801,27.2266754,0],[-80.224906,27.2282399,0],[-80.2237043,27.2308348,0],[-80.2237902,27.2340401,0],[-80.2257214,27.2393439,0],[-80.2307425,27.2554065,0],[-80.2394114,27.2660119,0],[-80.2414713,27.2700554,0],[-80.2452049,27.2755482,0],[-80.2722416,27.3311097,0],[-80.2855453,27.3560785,0],[-80.2961884,27.380432,0],[-80.2993641,27.3884724,0],[-80.3096209,27.4047801,0],[-80.3131399,27.4130854,0],[-80.3144703,27.4191045,0],[-80.3242979,27.44611,0],[-80.3282032,27.4582204,0],[-80.3294477,27.4643512,0],[-80.3326235,27.4720048,0],[-80.3571281,27.5313113,0],[-80.371376,27.5657842,0],[-80.3788004,27.5847663,0],[-80.3798304,27.5902435,0],[-80.3833494,27.6070918,0],[-80.3891859,27.617055,0],[-80.3963528,27.6363324,0],[-80.401803,27.6540098,0],[-80.4071674,27.6663254,0],[-80.4175959,27.7013637,0],[-80.4243336,27.7241973,0],[-80.440856,27.7548117,0],[-80.4568034,27.784967,0],[-80.4679613,27.8089977,0],[-80.47015,27.8156403,0],[-80.4723387,27.8199293,0],[-80.4752999,27.8233452,0],[-80.4854279,27.830708,0],[-80.4958563,27.8375011,0],[-80.5000191,27.8406888,0],[-80.5014353,27.8431554,0],[-80.5027657,27.8767333,0],[-80.504139,27.8802612,0],[-80.5167132,27.9068497,0],[-80.5356818,27.9463221,0],[-80.5461102,27.9686493,0],[-80.5564099,27.9834304,0],[-80.5588529,27.988041,0],[-80.5716846,28.0151334,0],[-80.5792806,28.0261578,0],[-80.5887649,28.0447567,0],[-80.6015108,28.0698278,0],[-80.6063602,28.0816418,0],[-80.6089351,28.0867532,0],[-80.6248567,28.1037138,0],[-80.6324527,28.1113225,0],[-80.633354,28.113745,0],[-80.6345556,28.1413734,0],[-80.6351564,28.1432276,0],[-80.6403921,28.1501524,0],[-80.6503055,28.1708106,0],[-80.658674,28.1838617,0],[-80.6665275,28.2040595,0],[-80.6779859,28.2341222,0],[-80.6897876,28.2653859,0],[-80.7021473,28.2982276,0],[-80.7076404,28.308165,0],[-80.7121465,28.3141345,0],[-80.7143781,28.320406,0],[-80.7258365,28.3341566,0],[-80.73472,28.35882,0],[-80.7372949,28.3659574,0],[-80.7373807,28.3745291,0],[-80.7398698,28.3794755,0],[-80.7535598,28.400882,0],[-80.7604692,28.4032225,0],[-80.7643745,28.403751,0],[-80.7685802,28.4030337,0],[-80.7721851,28.4035245,0],[-80.8025262,28.4104701,0],[-80.8109376,28.4115647,0],[-80.8307645,28.4114892,0],[-80.8380601,28.413452,0],[-80.8453558,28.4200196,0],[-80.8707616,28.4480969,0],[-80.8759115,28.4512664,0],[-80.8818338,28.4526248,0],[-81.2452409,28.4514173,0],[-81.2572572,28.4485497,0],[-81.2763975,28.4483233,0],[-81.3004301,28.4513419,0],[-81.3082407,28.4512664,0],[-81.3073824,28.4495307,0],[-81.3063524,28.4464366,0],[-81.3073824,28.4410028,0],[-81.3082407,28.4377574,0],[-81.3059232,28.434663,0],[-81.3046358,28.4308891,0],[-81.3054941,28.4280963,0],[-81.3069532,28.4256809,0],[-81.306524,28.4203215,0],[-81.3060949,28.4175285,0],[-81.3084981,28.4151883,0],[-81.3084981,28.4113383,0]] } },
-          { type:'Feature', properties:{ segment:'future' }, geometry:{ type:'LineString', coordinates:[[-81.3084981,28.4113383,0],[-81.3084038,28.4080096,0],[-81.3082965,28.4040838,0],[-81.3084896,28.4031401,0],[-81.3091762,28.4018188,0],[-81.3127167,28.3987233,0],[-81.3184245,28.3981948,0],[-81.3320716,28.3988743,0],[-81.3378222,28.4031778,0],[-81.3709529,28.4034043,0],[-81.3730128,28.4026871,0],[-81.3739569,28.4018566,0],[-81.3748153,28.3977418,0],[-81.3728841,28.3722189,0],[-81.3727553,28.3695756,0],[-81.3739999,28.3665547,0],[-81.3874753,28.3515997,0],[-81.3898785,28.3430639,0],[-81.3994916,28.3038507,0],[-81.4023788,28.2961045,0],[-81.4089878,28.2889246,0],[-81.4643486,28.2584616,0],[-81.4883812,28.258764,0],[-81.5212544,28.2667018,0],[-81.5272625,28.266853,0],[-81.5367039,28.2637535,0],[-81.5510376,28.2574032,0],[-81.5581615,28.2507499,0],[-81.5821083,28.2099144,0],[-81.596442,28.1823037,0],[-81.6059692,28.1555184,0],[-81.6110333,28.1491615,0],[-81.613694,28.1437882,0],[-81.6150673,28.1290291,0],[-81.6273866,28.1088639,0],[-81.6306481,28.1057599,0],[-81.6361413,28.1058356,0],[-81.6578565,28.1145418,0],[-81.7069516,28.10258,0],[-81.7480645,28.0883453,0],[-81.7639432,28.0869823,0],[-81.7667756,28.085695,0],[-81.797503,28.0583553,0],[-81.8165574,28.0536591,0],[-81.8750939,28.0443419,0],[-81.9349179,28.0488112,0],[-81.9477067,28.047069,0],[-82.0556817,28.0266143,0],[-82.106236,28.0185829,0],[-82.1783338,28.0044886,0],[-82.2401318,27.9898619,0],[-82.2727475,27.9846321,0],[-82.2811589,27.9814487,0],[-82.2930036,27.9767871,0],[-82.3071656,27.9781136,0],[-82.3156199,27.9736034,0],[-82.3388801,27.9720874,0],[-82.3781905,27.9622325,0],[-82.3931389,27.9597981,0],[-82.44012243487249,27.9601013,0]] } }
-        ]
-      };
-
-      map.addSource('brightline', { type:'geojson', data:brightlineGeo });
-      map.addLayer({ id:'brightline-existing', type:'line', source:'brightline', filter:['==',['get','segment'],'existing'], layout:{'line-join':'round','line-cap':'round'}, paint:{'line-color':'#FFD300','line-width':2} });
-      map.addLayer({ id:'brightline-future', type:'line', source:'brightline', filter:['==',['get','segment'],'future'], layout:{'line-join':'round','line-cap':'round'}, paint:{'line-color':'#FFD300','line-width':2,'line-dasharray':[1,2]} });
-
-      const stationFeatures = stations.map(s => ({ type:'Feature', properties:{ name:s.name }, geometry:{ type:'Point', coordinates:s.coords } }));
-      map.addSource('stations', { type:'geojson', data:{ type:'FeatureCollection', features:stationFeatures } });
-      map.addLayer({ id:'station-dots', type:'circle', source:'stations', paint:{'circle-color':'#FFD300','circle-radius':6,'circle-stroke-color':'#fff','circle-stroke-width':2} });
-      map.addLayer({ id:'station-hover', type:'circle', source:'stations', paint:{'circle-color':'transparent','circle-radius':18,'circle-stroke-width':0} });
-
-      map.on('mouseenter','station-hover',(e)=>{
-        if(stationPopup)stationPopup.remove();map.getCanvas().style.cursor='pointer';
-        const f=e.features[0];
-        stationPopup=new mapboxgl.Popup({closeButton:false,closeOnClick:false,offset:[0,-10]}).setLngLat(f.geometry.coordinates).setHTML(`<div style="background:rgba(20,20,20,0.9);color:#fff;padding:8px 12px;border-radius:6px;font-size:14px;font-weight:500;">${f.properties.name}</div>`).addTo(map);
-      });
-      map.on('mouseleave','station-hover',()=>{map.getCanvas().style.cursor='';if(stationPopup){stationPopup.remove();stationPopup=null;}});
-      if(isMobile){map.on('click','station-hover',(e)=>{if(stationPopup)stationPopup.remove();const f=e.features[0];stationPopup=new mapboxgl.Popup({closeButton:false,closeOnClick:false,offset:[0,-10]}).setLngLat(f.geometry.coordinates).setHTML(`<div style="background:rgba(20,20,20,0.9);color:#fff;padding:8px 12px;border-radius:6px;font-size:14px;font-weight:500;">${f.properties.name}</div>`).addTo(map);});}
-      map.on('movestart',()=>{if(stationPopup){stationPopup.remove();stationPopup=null;}});
-      map.on('zoomstart',()=>{if(stationPopup){stationPopup.remove();stationPopup=null;}});
-
-      map.on('mouseenter','brightline-existing',()=>{map.getCanvas().style.cursor='pointer';hoverIcon.style.display='block';});
-      map.on('mouseleave','brightline-existing',()=>{map.getCanvas().style.cursor='';hoverIcon.style.display='none';});
-      map.on('mousemove','brightline-existing',(e)=>{hoverIcon.style.left=`${e.point.x}px`;hoverIcon.style.top=`${e.point.y}px`;});
-      if(isMobile){map.on('click','brightline-existing',(e)=>{if(stationPopup){stationPopup.remove();stationPopup=null;}hoverIcon.style.left=`${e.point.x}px`;hoverIcon.style.top=`${e.point.y}px`;hoverIcon.style.display='block';});map.on('movestart',()=>{hoverIcon.style.display='none';});}
-
-      const navControl=new mapboxgl.NavigationControl({showCompass:true,showZoom:false,visualizePitch:false});
-      map.addControl(navControl,'bottom-right');
-      setTimeout(()=>{const cb=document.querySelector('.mapboxgl-ctrl-compass');if(cb){cb.addEventListener('dblclick',(e)=>{e.preventDefault();e.stopPropagation();map.flyTo({center:[-81.1961527,26.7807395],zoom:isMobile?6:7,bearing:0,pitch:0,duration:1000});});}},100);
-
-      if(!isMobile){const toggleBtn=document.getElementById('toggleView');if(toggleBtn)toggleBtn.querySelector('span').textContent='Map';}
-
-      initializeData();
+      addAllMapLayers();
       setupDesktopFilters();
       setupMobileFilters();
       setupSidebarSearch();
     });
+
+    // ─── ADD ALL MAP LAYERS ───────────────────────────────────────────────────
+    // Called on initial load AND after every style switch. Guards duplicates.
+    function addAllMapLayers() {
+      const brightlineCoords_existing = [[-80.1961527,25.7807395],[-80.1963673,25.7876179],[-80.1909599,25.8105687],[-80.1874838,25.8254033],[-80.1888571,25.8510117],[-80.1689444,25.8942205],[-80.1605759,25.9030611],[-80.1591167,25.9051457],[-80.1577864,25.9145259],[-80.1472721,25.9481418],[-80.1499329,26.0372102],[-80.1448259,26.0585318],[-80.1430664,26.0631581],[-80.1375303,26.0684395],[-80.1358566,26.0707139],[-80.1352129,26.0729111],[-80.1360712,26.0764575],[-80.1392899,26.0808903],[-80.1449976,26.1071368],[-80.1456842,26.1276366],[-80.1448688,26.130064],[-80.1419077,26.1333389],[-80.1332388,26.1425083],[-80.1312218,26.1454362],[-80.1307926,26.1482099],[-80.1324234,26.2071741],[-80.1322947,26.2087912],[-80.1166735,26.2639533],[-80.1064596,26.2996618],[-80.1007948,26.3193199],[-80.0997648,26.3218587],[-80.0913105,26.3319363],[-80.0725994,26.4469586],[-80.0547037,26.5589104],[-80.0542746,26.5613288],[-80.0536308,26.5777184],[-80.0523434,26.5820937],[-80.0521288,26.5854326],[-80.0523434,26.5911507],[-80.0585232,26.6031618],[-80.0596819,26.607114],[-80.0580511,26.6764285],[-80.0568066,26.6799948],[-80.0559483,26.6825256],[-80.0553474,26.7119709],[-80.0552187,26.7164561],[-80.0603685,26.7497633],[-80.0592527,26.7641716],[-80.0694237,26.7888456],[-80.0791225,26.8126332],[-80.08041,26.8153909],[-80.0897655,26.82554],[-80.0914392,26.8274932],[-80.0968037,26.848401],[-80.0936279,26.9432803],[-80.0931559,26.9443897],[-80.0894222,26.9489422],[-80.0871477,26.9520026],[-80.0866756,26.953571],[-80.0872335,26.9559044],[-80.0892506,26.9593854],[-80.0992069,26.9813397],[-80.1007948,26.9842845],[-80.1040134,26.9894089],[-80.1061592,26.9948009],[-80.1177463,27.0226741],[-80.1178322,27.0294788],[-80.1173601,27.0445778],[-80.1178322,27.0464507],[-80.1195917,27.0491262],[-80.1355133,27.067318],[-80.1487312,27.0975419],[-80.1567135,27.1101106],[-80.170661,27.1314625],[-80.1723776,27.1328756],[-80.1869259,27.137917],[-80.2101002,27.1545669],[-80.2352056,27.1800717],[-80.2433596,27.1880884],[-80.253273,27.1977841],[-80.2616415,27.2037386],[-80.2620277,27.2061431],[-80.2592382,27.2137764],[-80.2571354,27.2157609],[-80.2356777,27.2236225],[-80.2268801,27.2266754],[-80.224906,27.2282399],[-80.2237043,27.2308348],[-80.2237902,27.2340401],[-80.2257214,27.2393439],[-80.2307425,27.2554065],[-80.2394114,27.2660119],[-80.2414713,27.2700554],[-80.2452049,27.2755482],[-80.2722416,27.3311097],[-80.2855453,27.3560785],[-80.2961884,27.380432],[-80.2993641,27.3884724],[-80.3096209,27.4047801],[-80.3131399,27.4130854],[-80.3144703,27.4191045],[-80.3242979,27.44611],[-80.3282032,27.4582204],[-80.3294477,27.4643512],[-80.3326235,27.4720048],[-80.3571281,27.5313113],[-80.371376,27.5657842],[-80.3788004,27.5847663],[-80.3798304,27.5902435],[-80.3833494,27.6070918],[-80.3891859,27.617055],[-80.3963528,27.6363324],[-80.401803,27.6540098],[-80.4071674,27.6663254],[-80.4175959,27.7013637],[-80.4243336,27.7241973],[-80.440856,27.7548117],[-80.4568034,27.784967],[-80.4679613,27.8089977],[-80.47015,27.8156403],[-80.4723387,27.8199293],[-80.4752999,27.8233452],[-80.4854279,27.830708],[-80.4958563,27.8375011],[-80.5000191,27.8406888],[-80.5014353,27.8431554],[-80.5027657,27.8767333],[-80.504139,27.8802612],[-80.5167132,27.9068497],[-80.5356818,27.9463221],[-80.5461102,27.9686493],[-80.5564099,27.9834304],[-80.5588529,27.988041],[-80.5716846,28.0151334],[-80.5792806,28.0261578],[-80.5887649,28.0447567],[-80.6015108,28.0698278],[-80.6063602,28.0816418],[-80.6089351,28.0867532],[-80.6248567,28.1037138],[-80.6324527,28.1113225],[-80.633354,28.113745],[-80.6345556,28.1413734],[-80.6351564,28.1432276],[-80.6403921,28.1501524],[-80.6503055,28.1708106],[-80.658674,28.1838617],[-80.6665275,28.2040595],[-80.6779859,28.2341222],[-80.6897876,28.2653859],[-80.7021473,28.2982276],[-80.7076404,28.308165],[-80.7121465,28.3141345],[-80.7143781,28.320406],[-80.7258365,28.3341566],[-80.73472,28.35882],[-80.7372949,28.3659574],[-80.7373807,28.3745291],[-80.7398698,28.3794755],[-80.7535598,28.400882],[-80.7604692,28.4032225],[-80.7643745,28.403751],[-80.7685802,28.4030337],[-80.7721851,28.4035245],[-80.8025262,28.4104701],[-80.8109376,28.4115647],[-80.8307645,28.4114892],[-80.8380601,28.413452],[-80.8453558,28.4200196],[-80.8707616,28.4480969],[-80.8759115,28.4512664],[-80.8818338,28.4526248],[-81.2452409,28.4514173],[-81.2572572,28.4485497],[-81.2763975,28.4483233],[-81.3004301,28.4513419],[-81.3082407,28.4512664],[-81.3073824,28.4495307],[-81.3063524,28.4464366],[-81.3073824,28.4410028],[-81.3082407,28.4377574],[-81.3059232,28.434663],[-81.3046358,28.4308891],[-81.3054941,28.4280963],[-81.3069532,28.4256809],[-81.306524,28.4203215],[-81.3060949,28.4175285],[-81.3084981,28.4151883],[-81.3084981,28.4113383]];
+      const brightlineCoords_future = [[-81.3084981,28.4113383],[-81.3084038,28.4080096],[-81.3082965,28.4040838],[-81.3084896,28.4031401],[-81.3091762,28.4018188],[-81.3127167,28.3987233],[-81.3184245,28.3981948],[-81.3320716,28.3988743],[-81.3378222,28.4031778],[-81.3709529,28.4034043],[-81.3730128,28.4026871],[-81.3739569,28.4018566],[-81.3748153,28.3977418],[-81.3728841,28.3722189],[-81.3727553,28.3695756],[-81.3739999,28.3665547],[-81.3874753,28.3515997],[-81.3898785,28.3430639],[-81.3994916,28.3038507],[-81.4023788,28.2961045],[-81.4089878,28.2889246],[-81.4643486,28.2584616],[-81.4883812,28.258764],[-81.5212544,28.2667018],[-81.5272625,28.266853],[-81.5367039,28.2637535],[-81.5510376,28.2574032],[-81.5581615,28.2507499],[-81.5821083,28.2099144],[-81.596442,28.1823037],[-81.6059692,28.1555184],[-81.6110333,28.1491615],[-81.613694,28.1437882],[-81.6150673,28.1290291],[-81.6273866,28.1088639],[-81.6306481,28.1057599],[-81.6361413,28.1058356],[-81.6578565,28.1145418],[-81.7069516,28.10258],[-81.7480645,28.0883453],[-81.7639432,28.0869823],[-81.7667756,28.085695],[-81.797503,28.0583553],[-81.8165574,28.0536591],[-81.8750939,28.0443419],[-81.9349179,28.0488112],[-81.9477067,28.047069],[-82.0556817,28.0266143],[-82.106236,28.0185829],[-82.1783338,28.0044886],[-82.2401318,27.9898619],[-82.2727475,27.9846321],[-82.2811589,27.9814487],[-82.2930036,27.9767871],[-82.3071656,27.9781136],[-82.3156199,27.9736034],[-82.3388801,27.9720874],[-82.3781905,27.9622325],[-82.3931389,27.9597981],[-82.44012243487249,27.9601013]];
+
+      const brightlineGeo = { type:'FeatureCollection', features:[
+        { type:'Feature', properties:{ segment:'existing' }, geometry:{ type:'LineString', coordinates: brightlineCoords_existing }},
+        { type:'Feature', properties:{ segment:'future'   }, geometry:{ type:'LineString', coordinates: brightlineCoords_future   }}
+      ]};
+
+      if (!map.getSource('brightline')) {
+        map.addSource('brightline', { type:'geojson', data:brightlineGeo });
+      } else {
+        map.getSource('brightline').setData(brightlineGeo);
+      }
+      if (!map.getLayer('brightline-existing')) map.addLayer({ id:'brightline-existing', type:'line', source:'brightline', filter:['==',['get','segment'],'existing'], layout:{'line-join':'round','line-cap':'round'}, paint:{'line-color':'#FFD300','line-width':2} });
+      if (!map.getLayer('brightline-future'))  map.addLayer({ id:'brightline-future',  type:'line', source:'brightline', filter:['==',['get','segment'],'future'],   layout:{'line-join':'round','line-cap':'round'}, paint:{'line-color':'#FFD300','line-width':2,'line-dasharray':[1,2]} });
+
+      const stationFeatures = stations.map(s => ({ type:'Feature', properties:{ name:s.name }, geometry:{ type:'Point', coordinates:s.coords } }));
+      const stationGeo = { type:'FeatureCollection', features:stationFeatures };
+      if (!map.getSource('stations')) {
+        map.addSource('stations', { type:'geojson', data:stationGeo });
+      } else {
+        map.getSource('stations').setData(stationGeo);
+      }
+      if (!map.getLayer('station-dots'))  map.addLayer({ id:'station-dots',  type:'circle', source:'stations', paint:{'circle-color':'#FFD300','circle-radius':6,'circle-stroke-color':'#fff','circle-stroke-width':2} });
+      if (!map.getLayer('station-hover')) map.addLayer({ id:'station-hover', type:'circle', source:'stations', paint:{'circle-color':'transparent','circle-radius':18,'circle-stroke-width':0} });
+
+      // Station interactions (safe to re-register — Mapbox deduplicates on same handler ref,
+      // but we guard with a flag to avoid stacking listeners on style switch)
+      if (!window._mapListenersAdded) {
+        window._mapListenersAdded = true;
+
+        map.on('mouseenter','station-hover',(e)=>{
+          if(stationPopup)stationPopup.remove(); map.getCanvas().style.cursor='pointer';
+          const f=e.features[0];
+          stationPopup=new mapboxgl.Popup({closeButton:false,closeOnClick:false,offset:[0,-10]}).setLngLat(f.geometry.coordinates).setHTML(`<div style="background:rgba(20,20,20,0.9);color:#fff;padding:8px 12px;border-radius:6px;font-size:14px;font-weight:500;">${f.properties.name}</div>`).addTo(map);
+        });
+        map.on('mouseleave','station-hover',()=>{ map.getCanvas().style.cursor=''; if(stationPopup){stationPopup.remove();stationPopup=null;} });
+        if(isMobile){ map.on('click','station-hover',(e)=>{ if(stationPopup)stationPopup.remove(); const f=e.features[0]; stationPopup=new mapboxgl.Popup({closeButton:false,closeOnClick:false,offset:[0,-10]}).setLngLat(f.geometry.coordinates).setHTML(`<div style="background:rgba(20,20,20,0.9);color:#fff;padding:8px 12px;border-radius:6px;font-size:14px;font-weight:500;">${f.properties.name}</div>`).addTo(map); }); }
+        map.on('movestart',()=>{ if(stationPopup){stationPopup.remove();stationPopup=null;} });
+        map.on('zoomstart',()=>{ if(stationPopup){stationPopup.remove();stationPopup=null;} });
+        map.on('mouseenter','brightline-existing',()=>{ map.getCanvas().style.cursor='pointer'; hoverIcon.style.display='block'; });
+        map.on('mouseleave','brightline-existing',()=>{ map.getCanvas().style.cursor=''; hoverIcon.style.display='none'; });
+        map.on('mousemove','brightline-existing',(e)=>{ hoverIcon.style.left=`${e.point.x}px`; hoverIcon.style.top=`${e.point.y}px`; });
+        if(isMobile){ map.on('click','brightline-existing',(e)=>{ if(stationPopup){stationPopup.remove();stationPopup=null;} hoverIcon.style.left=`${e.point.x}px`; hoverIcon.style.top=`${e.point.y}px`; hoverIcon.style.display='block'; }); map.on('movestart',()=>{ hoverIcon.style.display='none'; }); }
+      }
+
+      // Nav control (only add once)
+      if (!window._navControlAdded) {
+        window._navControlAdded = true;
+        const navControl = new mapboxgl.NavigationControl({showCompass:true,showZoom:false,visualizePitch:false});
+        map.addControl(navControl,'bottom-right');
+        setTimeout(()=>{ const cb=document.querySelector('.mapboxgl-ctrl-compass'); if(cb){ cb.addEventListener('dblclick',(e)=>{ e.preventDefault(); e.stopPropagation(); map.flyTo({center:[-81.1961527,26.7807395],zoom:isMobile?6:7,bearing:0,pitch:0,duration:1000}); }); } },100);
+      }
+
+      // Load project data — if already loaded, just restore from master list
+      if (window.allProjectFeatures) {
+        // Style switched — re-add projects source from cached data
+        const geoFeatures = window.allProjectFeatures.map(f => ({
+          type: 'Feature', geometry: f.geometry,
+          properties: Object.assign({}, f.properties, { projectTypes: undefined })
+        }));
+        if (!map.getSource('projects')) {
+          map.addSource('projects', { type:'geojson', data:{ type:'FeatureCollection', features:geoFeatures }, cluster:true, clusterMaxZoom:16, clusterRadius:35 });
+        }
+        if (!map.getLayer('clusters'))          map.addLayer({ id:'clusters',          type:'circle', source:'projects', filter:['has','point_count'], paint:{'circle-color':'#1FDF67','circle-radius':['step',['get','point_count'],20,100,30,750,40],'circle-stroke-width':2,'circle-stroke-color':'#fff'} });
+        if (!map.getLayer('cluster-count'))     map.addLayer({ id:'cluster-count',     type:'symbol', source:'projects', filter:['has','point_count'], layout:{'text-field':'{point_count_abbreviated}','text-size':12}, paint:{'text-color':'#ffffff'} });
+        if (!map.getLayer('unclustered-point')) map.addLayer({ id:'unclustered-point', type:'circle', source:'projects', filter:['!',['has','point_count']], paint:{'circle-color':'#1FDF67','circle-radius':8,'circle-stroke-width':2,'circle-stroke-color':'#fff'} });
+        if (!map.getLayer('featured-glow'))     map.addLayer({ id:'featured-glow',     type:'circle', source:'projects', filter:['all',['!',['has','point_count']],['==',['get','featured'],true]], paint:{'circle-color':'transparent','circle-radius':16,'circle-blur':0.8,'circle-stroke-width':3,'circle-stroke-color':'#FFD300','circle-stroke-opacity':0.6} }, 'unclustered-point');
+        // Re-apply any active filters
+        updateMapPinFilters();
+        renderGrid('gridDesktop');
+        renderGrid('gridMobile');
+        updateResultCount('gridDesktop');
+        updateResultCount('gridMobile');
+      } else {
+        // First load — fetch from CSV
+        initializeData();
+      }
+    }
+
 
     // ─── INITIALIZE DATA ─────────────────────────────────────────────────────
     function initializeData() {
