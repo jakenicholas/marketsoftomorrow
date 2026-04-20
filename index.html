@@ -391,7 +391,7 @@
         max-height: 100dvh;
       }
     }
-    #mobileDrawer.expanded { transform: translateY(0); z-index: 20; }
+    #mobileDrawer.expanded { transform: translateY(0); z-index: 30; }
 
     /* ─── MOBILE FLOATING BUTTONS ─────────────────────────────────────────── */
     /* ─── MOBILE SEARCH PILL (Redfin-style) ─────────────────────────────────── */
@@ -696,24 +696,82 @@
     }
 
     /* ─── MAP SEARCH BUTTONS ──────────────────────────────────────────────── */
-    #openSearch, #toggleView {
-      position: absolute; z-index: 3; background: #1e1e1e; color: #fff;
-      border: none; padding: 8px 10px; font-size: 18px; cursor: pointer;
-      border-radius: 4px; display: flex; align-items: center; justify-content: center;
-      gap: 6px; height: 36px; transition: background var(--transition-med);
+    /* ─── GLASS MIXIN for all map overlay controls ───────────────────────── */
+    .glass-btn {
+      background: rgba(15,15,15,0.55) !important;
+      backdrop-filter: blur(16px) saturate(1.4) !important;
+      -webkit-backdrop-filter: blur(16px) saturate(1.4) !important;
+      border: 1px solid rgba(255,255,255,0.10) !important;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.06) !important;
     }
-    #toggleView svg { width: 18px; height: 18px; fill: currentColor; }
+    .glass-btn:hover {
+      background: rgba(30,30,30,0.7) !important;
+      border-color: rgba(255,255,255,0.18) !important;
+    }
+
+    /* ─── LAYERS BUTTON (replaces old openSearch) ────────────────────────── */
+    #layersButton {
+      position: absolute;
+      z-index: 3;
+      color: #fff;
+      border: none;
+      padding: 0;
+      font-size: 18px;
+      cursor: pointer;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      transition: background var(--transition-med), border-color var(--transition-med);
+    }
+    #layersButton svg { width: 20px; height: 20px; fill: #fff; }
+    #layersButton.active { border-color: var(--accent) !important; }
+    #layersButton.active svg { fill: var(--accent); }
+
     @media(min-width:801px) {
-      #openSearch, #toggleView { top: calc(60px + var(--safe-area-top)); }
-      #toggleView { left: calc(15px + var(--safe-area-left)); }
-      #openSearch { left: calc(120px + var(--safe-area-left)); }
+      #layersButton { top: calc(60px + var(--safe-area-top)); left: calc(15px + var(--safe-area-left)); }
     }
     @media(max-width:800px) {
-      #openSearch { top: calc(10px + var(--safe-area-top)); left: calc(60px + var(--safe-area-left)) !important; }
-      #toggleView { display: none !important; }
+      #layersButton { top: calc(10px + var(--safe-area-top)); left: calc(15px + var(--safe-area-left)); }
     }
-    #openSearch:hover, #toggleView:hover { background: rgba(50,50,50,0.9); }
-    #openSearch svg { margin-top: 2px; }
+
+    /* Hide old search/toggle buttons entirely */
+    #openSearch, #toggleView, #searchContainer { display: none !important; }
+
+    /* ─── GLASS PILL — mobile search/tiles bar ───────────────────────────── */
+    #mobileTilesButton {
+      background: rgba(15,15,15,0.55) !important;
+      backdrop-filter: blur(16px) saturate(1.4) !important;
+      -webkit-backdrop-filter: blur(16px) saturate(1.4) !important;
+      border: 1px solid rgba(255,255,255,0.10) !important;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.06) !important;
+    }
+    #mobileTilesButton:active {
+      background: rgba(30,30,30,0.75) !important;
+      transform: translateX(-50%) scale(0.98);
+    }
+
+    /* ─── GLASS — mobile home button ─────────────────────────────────────── */
+    #mobileHomeButton {
+      background: rgba(15,15,15,0.55) !important;
+      backdrop-filter: blur(16px) saturate(1.4) !important;
+      -webkit-backdrop-filter: blur(16px) saturate(1.4) !important;
+      border: 1px solid rgba(255,255,255,0.10) !important;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.06) !important;
+      border-radius: 8px !important;
+    }
+
+    /* ─── GLASS — Mapbox compass ─────────────────────────────────────────── */
+    .mapboxgl-ctrl-compass {
+      background: rgba(15,15,15,0.55) !important;
+      backdrop-filter: blur(16px) saturate(1.4) !important;
+      -webkit-backdrop-filter: blur(16px) saturate(1.4) !important;
+      border: 1px solid rgba(255,255,255,0.10) !important;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.06) !important;
+      border-radius: 8px !important;
+    }
 
     /* ─── MAP SEARCH CONTAINER ────────────────────────────────────────────── */
     #searchContainer {
@@ -782,12 +840,6 @@
 
     @media(max-width:800px) {
       .leaf-grid { grid-template-columns: repeat(2,1fr); grid-gap: 8px 10px; row-gap: 20px; }
-      #toggleView { display: none !important; }
-      #searchContainer {
-        width: 25% !important; min-width: 150px !important;
-        left: calc(60px + var(--safe-area-left)) !important;
-        top: calc(10px + var(--safe-area-top)) !important;
-      }
       .mapboxgl-popup-content { width: 210px !important; font-size: 12px; padding: 14px !important; }
     }
 
@@ -1018,29 +1070,28 @@
   </div>
   
   <div id="app-container">
-    <button id="toggleView" class="hidden">
-      <svg viewBox="0 0 24 24"><path d="M4 8h4V4H4v4zm6 12h4v-4h-4v4zm-6 0h4v-4H4v4zm0-6h4v-4H4v4zm6 0h4v-4h-4v4zm6-10v4h4V4h-4zm-6 4h4V4h-4v4zm6 6h4v-4h-4v4zm0 6h4v-4h-4v4z"/></svg>
-      <span>Map</span>
-    </button>
-    <button id="openSearch" class="hidden">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path>
-      </svg>
-    </button>
-    <div id="searchContainer" class="hidden">
+    <button id="toggleView" class="hidden" style="display:none!important"></button>
+    <button id="openSearch" class="hidden" style="display:none!important"></button>
+    <div id="searchContainer" class="hidden" style="display:none!important">
       <div class="search-row">
         <button id="closeSearch">×</button>
         <input id="searchBar" type="text" placeholder="Search by name or city" />
       </div>
       <div id="results" class="hidden"></div>
     </div>
+
+    <!-- Layers toggle button -->
+    <button id="layersButton" class="glass-btn" title="Switch map style">
+      <svg viewBox="0 0 24 24"><path d="M11.99 18.54l-7.37-5.73L3 14.07l9 7 9-7-1.63-1.27-7.38 5.74zM12 16l7.36-5.73L21 9l-9-7-9 7 1.63 1.27L12 16z"/></svg>
+    </button>
     
     <!-- Desktop Sidebar -->
     <div id="desktopSidebar" class="open">
       <div class="sidebar-header">
         <div style="display:flex;gap:10px;align-items:center;margin-bottom:16px;position:relative;">
-          <div class="search-input-wrap">
-            <input id="sidebarSearchBar" type="text" placeholder="Search projects or city..." style="flex:1;width:100%;" />
+          <div class="search-input-wrap" style="position:relative;flex:1;">
+            <input id="sidebarSearchBar" type="text" placeholder="Search projects or city..." style="width:100%;" />
+            <button id="sidebarSearchClear" style="display:none;position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;color:rgba(255,255,255,0.4);font-size:16px;cursor:pointer;padding:2px 4px;line-height:1;border-radius:4px;" title="Clear search">✕</button>
             <div id="sidebarAutocomplete" class="autocomplete-dropdown hidden"></div>
           </div>
           <button id="closeSidebar" style="background:#1e1e1e;border:none;color:#fff;font-size:20px;cursor:pointer;padding:0;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:4px;flex-shrink:0;">✕</button>
@@ -1079,7 +1130,8 @@
       <div id="mobileDrawerContent">
         <div class="mobile-header">
           <div style="margin-bottom:12px;width:95%;margin-left:auto;margin-right:auto;position:relative;">
-            <input id="mobileSearchBar" type="text" placeholder="Search projects or city..." style="width:100%;" />
+            <input id="mobileSearchBar" type="text" placeholder="Search projects or city..." style="width:100%;padding-right:36px;" />
+            <button id="mobileSearchClear" style="display:none;position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;color:rgba(255,255,255,0.4);font-size:16px;cursor:pointer;padding:2px 4px;line-height:1;border-radius:4px;" title="Clear search">✕</button>
             <div id="mobileAutocomplete" class="autocomplete-dropdown hidden"></div>
           </div>
           <div id="mobileFilterControls">
@@ -1251,11 +1303,7 @@
     });
 
     const isMobile = window.innerWidth <= 800;
-    if (isMobile) {
-      const removeHidden = () => { const b = document.getElementById('openSearch'); if (b) b.classList.remove('hidden'); };
-      removeHidden();
-      if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', removeHidden);
-    }
+    // Layers button is always visible on mobile — no legacy search button needed
 
     // ─── KEYBOARD SHORTCUTS ───────────────────────────────────────────────────
     document.addEventListener('keydown', (e) => {
@@ -2012,10 +2060,25 @@
 
       // Mobile search with autocomplete
       const mobileSearchBar = document.getElementById('mobileSearchBar');
-      const mobileAC = document.getElementById('mobileAutocomplete');
+      const mobileAC        = document.getElementById('mobileAutocomplete');
+      const mobileClearBtn  = document.getElementById('mobileSearchClear');
       if (mobileSearchBar && mobileAC) {
+        if (mobileClearBtn) {
+          mobileClearBtn.addEventListener('click', () => {
+            mobileSearchBar.value = '';
+            mobileClearBtn.style.display = 'none';
+            mobileAC.classList.add('hidden');
+            window.mobileLoadedCount = 12;
+            renderGrid('gridMobile'); updateResultCount('gridMobile');
+            mobileSearchBar.focus();
+          });
+          mobileClearBtn.addEventListener('mouseenter', () => mobileClearBtn.style.color = '#fff');
+          mobileClearBtn.addEventListener('mouseleave', () => mobileClearBtn.style.color = 'rgba(255,255,255,0.4)');
+        }
+
         mobileSearchBar.addEventListener('input', (e) => {
           const query = e.target.value.trim();
+          if (mobileClearBtn) mobileClearBtn.style.display = query ? 'block' : 'none';
           window.mobileLoadedCount = 12; window.mobileScrollLoading = false;
           if (!query) {
             mobileAC.classList.add('hidden');
@@ -2025,6 +2088,7 @@
           if (!source?._data) return;
           buildAutocomplete(query, source._data.features, mobileAC, (f, isCity) => {
             mobileSearchBar.value = isCity ? f._cityLabel : f.properties.title;
+            if (mobileClearBtn) mobileClearBtn.style.display = 'block';
             mobileAC.classList.add('hidden');
             if (isCity) {
               const cityFeatures = (window.allProjectFeatures || source._data.features)
@@ -2038,7 +2102,6 @@
             }
           });
           if (query.length > 2) gtag('event', 'search', { 'search_term': query, 'search_location': 'mobile_drawer', 'device_type': 'mobile' });
-          // Also filter grid as user types
           const ql = query.toLowerCase();
           const filtered = (window.allProjectFeatures || source._data.features)
             .filter(f => f.properties.title.toLowerCase().includes(ql) || f.properties.city.toLowerCase().includes(ql));
@@ -2049,13 +2112,50 @@
       }
     }
 
+    // ─── LAYERS BUTTON ────────────────────────────────────────────────────────
+    (function setupLayersButton() {
+      const btn = document.getElementById('layersButton');
+      if (!btn) return;
+      let isSatellite = false;
+      const STREET_STYLE    = 'mapbox://styles/floridaoftomorrow/clkbk4qlw000a01qw94rj0xa7';
+      const SATELLITE_STYLE = 'mapbox://styles/mapbox/satellite-streets-v12';
+      btn.addEventListener('click', () => {
+        isSatellite = !isSatellite;
+        btn.classList.toggle('active', isSatellite);
+        map.setStyle(isSatellite ? SATELLITE_STYLE : STREET_STYLE);
+        // Re-add sources/layers after style change
+        map.once('style.load', () => {
+          initializeData();
+        });
+      });
+    })();
+
     // ─── SIDEBAR SEARCH ───────────────────────────────────────────────────────
     function setupSidebarSearch() {
-      const searchBar = document.getElementById('sidebarSearchBar');
-      const sidebarAC = document.getElementById('sidebarAutocomplete');
+      const searchBar  = document.getElementById('sidebarSearchBar');
+      const clearBtn   = document.getElementById('sidebarSearchClear');
+      const sidebarAC  = document.getElementById('sidebarAutocomplete');
       if (!searchBar) return;
+
+      const handleClear = () => {
+        searchBar.value = '';
+        clearBtn.style.display = 'none';
+        sidebarAC.classList.add('hidden');
+        renderGrid('gridDesktop'); updateResultCount('gridDesktop');
+        searchBar.focus();
+      };
+
+      if (clearBtn) {
+        clearBtn.addEventListener('click', handleClear);
+        // Style on hover
+        clearBtn.addEventListener('mouseenter', () => clearBtn.style.color = '#fff');
+        clearBtn.addEventListener('mouseleave', () => clearBtn.style.color = 'rgba(255,255,255,0.4)');
+      }
+
       searchBar.addEventListener('input', (e) => {
         const query = e.target.value.trim();
+        // Show/hide clear button
+        if (clearBtn) clearBtn.style.display = query ? 'block' : 'none';
         if (!query) {
           sidebarAC.classList.add('hidden');
           renderGrid('gridDesktop'); updateResultCount('gridDesktop'); return;
@@ -2064,6 +2164,7 @@
         if (!source?._data) return;
         buildAutocomplete(query, source._data.features, sidebarAC, (f, isCity) => {
           searchBar.value = isCity ? f._cityLabel : f.properties.title;
+          if (clearBtn) clearBtn.style.display = 'block';
           sidebarAC.classList.add('hidden');
           if (isCity) {
             const cityFeatures = (window.allProjectFeatures || source._data.features)
@@ -2074,7 +2175,6 @@
             showPopup(f);
           }
         });
-        // Also filter grid as user types
         const ql = query.toLowerCase();
         const filtered = (window.allProjectFeatures || source._data.features)
           .filter(f => f.properties.title.toLowerCase().includes(ql) || f.properties.city.toLowerCase().includes(ql));
@@ -2349,18 +2449,9 @@
     }
 
     // ─── SEARCH BUTTON ────────────────────────────────────────────────────────
-    document.getElementById('openSearch').onclick = () => {
-      document.getElementById('searchContainer').classList.remove('hidden');
-      document.getElementById('openSearch').style.display = 'none';
-    };
-    document.getElementById('closeSearch').onclick = () => {
-      document.getElementById('searchContainer').classList.add('hidden');
-      document.getElementById('openSearch').style.display = 'block';
-    };
-
     const searchBarEl = document.getElementById('searchBar');
-    const resultsEl = document.getElementById('results');
-    if (isMobile) searchBarEl.placeholder = 'Search...';
+    const resultsEl   = document.getElementById('results');
+    // Legacy map search bar kept hidden — autocomplete system is used instead
 
     searchBarEl.addEventListener('input', e => {
       const query = e.target.value.trim().toLowerCase();
