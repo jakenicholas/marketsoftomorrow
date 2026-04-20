@@ -1375,7 +1375,12 @@
       { name: 'Brightline Fort Lauderdale', coords: [-80.14604744023525,26.123679482466038] },
       { name: 'Brightline Boca Raton', coords: [-80.08775544484952,26.35487530600287] },
       { name: 'Brightline West Palm Beach', coords: [-80.05544183114269,26.71256721532643] },
-      { name: 'Brightline Orlando', coords: [-81.30766141153542,28.41186811070061] }
+      { name: 'Brightline Orlando', coords: [-81.30766141153542,28.41186811070061] },
+      // Brightline West stations
+      { name: 'Brightline West — Rancho Cucamonga (Future)', coords: [-117.5614, 34.1060] },
+      { name: 'Brightline West — Hesperia (Future)', coords: [-117.3089, 34.4073] },
+      { name: 'Brightline West — Victor Valley / Apple Valley (Future)', coords: [-117.2156, 34.5583] },
+      { name: 'Brightline West — Las Vegas (Future)', coords: [-115.1764, 36.0283] }
     ];
 
     // ─── FILTER PILLS SYSTEM ─────────────────────────────────────────────────
@@ -2387,6 +2392,53 @@
       }
       if (!map.getLayer('brightline-existing')) map.addLayer({ id:'brightline-existing', type:'line', source:'brightline', filter:['==',['get','segment'],'existing'], layout:{'line-join':'round','line-cap':'round'}, paint:{'line-color':'#FFD300','line-width':2} });
       if (!map.getLayer('brightline-future'))  map.addLayer({ id:'brightline-future',  type:'line', source:'brightline', filter:['==',['get','segment'],'future'],   layout:{'line-join':'round','line-cap':'round'}, paint:{'line-color':'#FFD300','line-width':2,'line-dasharray':[1,2]} });
+
+      // ── Brightline West (I-15 corridor: Rancho Cucamonga → Las Vegas) ───────
+      // Route traces I-15 northbound through Cajon Pass, Victorville, Barstow, Baker, into Las Vegas
+      const brightlineWestCoords = [
+        [-117.5614, 34.1060], // Rancho Cucamonga station
+        [-117.4921, 34.1332], // I-15/I-215 Devore interchange
+        [-117.4380, 34.1921], // Cajon Pass approach
+        [-117.4180, 34.2520], // Summit, Cajon Pass
+        [-117.3840, 34.3010], // Hesperia north
+        [-117.3089, 34.4073], // Hesperia station (I-15/Joshua St)
+        [-117.2520, 34.4780], // Hesperia/Apple Valley border
+        [-117.2156, 34.5583], // Victor Valley station (Apple Valley, SE of Dale Evans Pkwy)
+        [-117.1780, 34.6190], // I-15 heading NE toward Barstow
+        [-117.0250, 34.7520], // Near Lenwood
+        [-116.9310, 34.8370], // Barstow I-15/I-40 junction
+        [-116.8130, 34.9580], // East of Barstow
+        [-116.5950, 35.1380], // Calico area
+        [-116.3720, 35.3280], // Yermo
+        [-116.0760, 35.5340], // Baker, CA
+        [-115.9120, 35.6820], // Primm approach
+        [-115.7780, 35.7940], // Primm / NV state line
+        [-115.6210, 35.9050], // Jean, NV
+        [-115.4450, 35.9820], // Sloan, NV (maintenance facility)
+        [-115.3230, 36.0020], // I-15 south Las Vegas Valley
+        [-115.2340, 36.0180], // Las Vegas south approach
+        [-115.1764, 36.0283]  // Las Vegas station (Las Vegas Blvd & Blue Diamond Rd)
+      ];
+
+      const brightlineWestGeo = {
+        type: 'FeatureCollection',
+        features: [{ type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: brightlineWestCoords } }]
+      };
+
+      if (!map.getSource('brightline-west')) {
+        map.addSource('brightline-west', { type: 'geojson', data: brightlineWestGeo });
+      } else {
+        map.getSource('brightline-west').setData(brightlineWestGeo);
+      }
+      if (!map.getLayer('brightline-west-future')) {
+        map.addLayer({
+          id: 'brightline-west-future',
+          type: 'line',
+          source: 'brightline-west',
+          layout: { 'line-join': 'round', 'line-cap': 'round' },
+          paint: { 'line-color': '#FFD300', 'line-width': 2, 'line-dasharray': [1, 2] }
+        });
+      }
 
       const stationFeatures = stations.map(s => ({ type:'Feature', properties:{ name:s.name }, geometry:{ type:'Point', coordinates:s.coords } }));
       const stationGeo = { type:'FeatureCollection', features:stationFeatures };
