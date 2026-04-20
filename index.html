@@ -890,7 +890,7 @@
 
     @media(max-width:800px) {
       .leaf-grid { grid-template-columns: repeat(2,1fr); grid-gap: 8px 10px; row-gap: 20px; }
-      .mapboxgl-popup-content { width: 210px !important; font-size: 12px; padding: 14px !important; }
+      .mapboxgl-popup-content { width: 260px !important; font-size: 12px; padding: 14px !important; }
     }
 
     /* ─── FULLSCREEN MODAL ────────────────────────────────────────────────── */
@@ -1373,10 +1373,10 @@
       { name: 'Brightline West Palm Beach', coords: [-80.05544183114269,26.71256721532643] },
       { name: 'Brightline Orlando', coords: [-81.30766141153542,28.41186811070061] },
       // Brightline West stations
-      { name: 'Brightline West — Rancho Cucamonga (Future)', coords: [-117.5614, 34.1060] },
-      { name: 'Brightline West — Hesperia (Future)', coords: [-117.3089, 34.4073] },
-      { name: 'Brightline West — Victor Valley / Apple Valley (Future)', coords: [-117.2156, 34.5583] },
-      { name: 'Brightline West — Las Vegas (Future)', coords: [-115.1764, 36.0283] }
+      { name: 'Brightline West — Rancho Cucamonga (Future Expansion)', coords: [-117.5614, 34.1060] },
+      { name: 'Brightline West — Hesperia (Future Expansion)', coords: [-117.3089, 34.4073] },
+      { name: 'Brightline West — Victor Valley / Apple Valley (Future Expansion)', coords: [-117.2156, 34.5583] },
+      { name: 'Brightline West — Las Vegas (Future Expansion)', coords: [-115.1764, 36.0283] }
     ];
 
     // ─── FILTER PILLS SYSTEM ─────────────────────────────────────────────────
@@ -1642,7 +1642,7 @@
       if (activePopup) activePopup.remove();
       if (stationPopup) { stationPopup.remove(); stationPopup = null; }
       const co = f.geometry.coordinates;
-      activePopup = new mapboxgl.Popup({ closeButton: false })
+      activePopup = new mapboxgl.Popup({ closeButton: false, anchor: 'bottom', offset: [0, -12] })
         .setLngLat(co)
         .setHTML(`
           <div class="popup-content">
