@@ -1546,15 +1546,9 @@
               renderGrid('gridDesktop');
             }
           } else {
-            const drawer = document.getElementById('mobileDrawer');
-            if (drawer && !drawer.classList.contains('expanded')) {
-              window.mobileDrawerCollapse && drawer.classList.contains('expanded')
-                ? null
-                : (() => {
-                    drawer.classList.add('expanded');
-                    drawer.style.transform = 'translateY(0)';
-                    if (typeof renderGrid === 'function') renderGrid('gridMobile');
-                  })();
+            // Use the proper expandDrawer function so isExpanded closure var is set
+            if (typeof window.mobileDrawerExpand === 'function') {
+              window.mobileDrawerExpand();
             }
           }
         };
@@ -2504,10 +2498,14 @@
           setTimeout(() => { mobileMapBtn.classList.add('ready'); mobileMapBtn.style.opacity = '1.0'; }, 150);
         }
         renderGrid('gridMobile');
-        renderPills('mobile'); updateFilterBadge('mobile');
+        // Render pills after grid pointer-events are restored (100ms delay in renderGrid)
+        setTimeout(() => {
+          renderPills('mobile'); updateFilterBadge('mobile');
+        }, 150);
       }
 
       window.mobileDrawerCollapse = collapseDrawer;
+      window.mobileDrawerExpand   = expandDrawer;
 
       content.addEventListener('touchstart', (e) => {
         if (!isExpanded) { try { e.preventDefault(); e.stopPropagation(); } catch {} return false; }
