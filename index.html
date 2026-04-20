@@ -2499,39 +2499,6 @@
       });
     }
 
-    // ─── SEARCH BUTTON ────────────────────────────────────────────────────────
-    const searchBarEl = document.getElementById('searchBar');
-    const resultsEl   = document.getElementById('results');
-    // Legacy map search bar kept hidden — autocomplete system is used instead
-
-    searchBarEl.addEventListener('input', e => {
-      const query = e.target.value.trim().toLowerCase();
-      if (!query) { resultsEl.classList.add('hidden'); return; }
-      const features = map.getSource('projects')._data.features;
-      const matches = features.filter(f => f.properties.title.toLowerCase().includes(query) || f.properties.city.toLowerCase().includes(query));
-      if (query.length > 2) gtag('event','search',{'search_term':query,'results_count':matches.length,'search_location':'main_search','device_type':isMobile?'mobile':'desktop'});
-      resultsEl.innerHTML = '';
-      if (matches.length) {
-        matches.forEach((f, i) => {
-          const div = document.createElement('div');
-          div.className = 'result-item';
-          div.style.animationDelay = `${i * 0.04}s`;
-          div.innerHTML = `<h4>${f.properties.title}</h4><p>${f.properties.city}</p>`;
-          div.onclick = () => {
-            gtag('event','search_result_click',{'project_name':f.properties.title,'search_term':query,'result_position':i+1});
-            showPopup(f);
-            resultsEl.classList.add('hidden');
-            document.getElementById('searchContainer').classList.add('hidden');
-            document.getElementById('openSearch').style.display = 'block';
-          };
-          resultsEl.appendChild(div);
-        });
-      } else {
-        resultsEl.innerHTML = '<div class="result-item">No results found</div>';
-      }
-      resultsEl.classList.remove('hidden');
-    });
-
     document.getElementById('exitFullscreen').onclick = () => {
       document.getElementById('fullscreenModal').classList.remove('active');
       if (fullscreenMap) { map.setCenter(fullscreenMap.getCenter()); map.setZoom(fullscreenMap.getZoom()); }
