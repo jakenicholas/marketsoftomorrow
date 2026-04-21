@@ -528,8 +528,9 @@
     #mobileMapButton .map-btn-label {
       font-size: 15px; font-weight: 600;
       color: rgba(255,255,255,0.85); text-align: left;
-      padding-right: 18px;
+      padding-right: 16px;
     }
+    #mobileMapButton:not(:has(.map-btn-badge.visible)) .map-btn-label { padding-right: 18px; }
     #mobileMapButton .map-btn-divider {
       display: none;
       width: 1px; height: 24px;
@@ -538,7 +539,7 @@
     #mobileMapButton .map-btn-divider.visible { display: block; }
     #mobileMapButton .map-btn-badge {
       display: none; align-items: center; justify-content: center;
-      gap: 5px; padding: 0 16px 0 0; flex-shrink: 0;
+      gap: 5px; padding: 0 14px; flex-shrink: 0;
     }
     #mobileMapButton .map-btn-badge.visible { display: flex; }
     #mobileMapButton .map-btn-badge svg {
@@ -1099,7 +1100,7 @@
     * { -webkit-tap-highlight-color: transparent; }
     .mapboxgl-ctrl-group { transition: transform var(--transition-fast); }
     .mapboxgl-ctrl-group:active { transform: scale(0.95); }
-    button:focus, input:focus, select:focus, a:focus { outline: 2px solid var(--accent); outline-offset: 2px; }
+    button:focus, input:focus, select:focus, a:focus { outline: none; }
 
     /* ─── TOAST ───────────────────────────────────────────────────────────── */
     .toast {
@@ -2125,17 +2126,21 @@
       }
 
       const fragment = document.createDocumentFragment();
+      const NEARBY_RADIUS_MILES = 300;
+      const trueInView  = features.filter(f => f.inBounds);
+      const trueOutView = features.filter(f => !f.inBounds && f.distance <= NEARBY_RADIUS_MILES);
 
-      if (features.length === 0) {
-        const empty = document.createElement('div');
-        empty.className = 'empty-state';
-        empty.innerHTML = `<div class="empty-icon">🔍</div><p>No results found.<br>Try a different search term.</p>`;
-        fragment.appendChild(empty);
-      } else {
-        features.forEach((f, index) => {
-          const d = document.createElement('div');
-          d.className = 'grid-item';
-          d.innerHTML = `
+      const makeHeader = (title, count, isInView) => {
+        const wrap = document.createElement('div');
+        wrap.className = 'section-header-wrap';
+        wrap.innerHTML = `<span class="section-title${isInView ? ' in-view' : ''}">${title}</span><span class="section-count${isInView ? '' : ' muted'}">${count}</span>`;
+        return wrap;
+      };
+
+      const makeTile = (f) => {
+        const d = document.createElement('div');
+        d.className = 'grid-item';
+        d.innerHTML = `
             <div class="image-wrapper">
               <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='120'%3E%3Crect width='300' height='120' fill='%23333'/%3E%3C/svg%3E"
                    data-src="${f.properties.image}" loading="lazy" alt="${f.properties.title}" class="lazy-loading" />
@@ -2149,19 +2154,40 @@
               <p class="city" style="color:#ccc!important;margin:0 0 auto;font-size:12px;padding-bottom:8px;">${f.properties.city}</p>
               <p class="website-btn"><a href="${f.properties.website}" target="_blank" class="website-link" onclick="event.stopPropagation();">Learn More</a></p>
             </div>`;
-          d.onclick = () => {
-            if (window.gridRendering[targetId] || !map.getSource('projects')?._data) return;
-            showPopup(f);
-            if (targetId === 'gridMobile') {
-              setTimeout(() => {
-                const drawer = document.getElementById('mobileDrawer');
-                if (drawer) { drawer.classList.remove('expanded'); drawer.style.transform = 'translateY(100%)'; }
-                document.getElementById('mobileDrawerContent')?.scrollTo(0, 0);
-              }, 100);
-            }
-          };
-          fragment.appendChild(d);
-        });
+        d.onclick = () => {
+          if (window.gridRendering[targetId] || !map.getSource('projects')?._data) return;
+          showPopup(f);
+          if (targetId === 'gridMobile') {
+            setTimeout(() => {
+              const drawer = document.getElementById('mobileDrawer');
+              if (drawer) { drawer.classList.remove('expanded'); drawer.style.transform = 'translateY(100%)'; }
+              document.getElementById('mobileDrawerContent')?.scrollTo(0, 0);
+            }, 100);
+          }
+        };
+        return d;
+      };
+
+      if (features.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'empty-state';
+        empty.innerHTML = `<div class="empty-icon">🔍</div><p>No results found.<br>Try a different search term.</p>`;
+        fragment.appendChild(empty);
+      } else {
+        const inView  = features.filter(f => f.inBounds);
+        const outView = features.filter(f => !f.inBounds && f.distance <= NEARBY_RADIUS_MILES);
+        if (inView.length > 0) {
+          fragment.appendChild(makeHeader('In view', `${trueInView.length} project${trueInView.length !== 1 ? 's' : ''}`, true));
+          inView.forEach(f => fragment.appendChild(makeTile(f)));
+        }
+        if (outView.length > 0) {
+          fragment.appendChild(makeHeader('More nearby', `${trueOutView.length}`, false));
+          outView.forEach(f => fragment.appendChild(makeTile(f)));
+        }
+        if (inView.length === 0 && outView.length === 0 && features.length > 0) {
+          // All features are beyond 300mi — show flat list
+          features.forEach(f => fragment.appendChild(makeTile(f)));
+        }
       }
 
       grid.appendChild(fragment);
