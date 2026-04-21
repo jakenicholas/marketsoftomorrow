@@ -568,6 +568,8 @@
       height: calc(100% - 24px); overflow-y: scroll !important;
       overflow-x: hidden !important; -webkit-overflow-scrolling: touch !important;
       position: relative; pointer-events: auto !important; touch-action: pan-y !important;
+      transform: translateZ(0);
+      -webkit-transform: translateZ(0);
     }
     #mobileDrawerContent .mobile-content {
       padding: 16px calc(16px + var(--safe-area-right)) 16px calc(16px + var(--safe-area-left));
@@ -665,21 +667,8 @@
     }
     /* Staggered tile entrance animation */
     .grid-item.visible {
-      animation: tileEntrance 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+      animation: tileEntrance 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
     }
-    /* Stagger delays for first 12 items */
-    .grid-item.visible:nth-child(1)  { animation-delay: 0.00s; }
-    .grid-item.visible:nth-child(2)  { animation-delay: 0.04s; }
-    .grid-item.visible:nth-child(3)  { animation-delay: 0.08s; }
-    .grid-item.visible:nth-child(4)  { animation-delay: 0.12s; }
-    .grid-item.visible:nth-child(5)  { animation-delay: 0.16s; }
-    .grid-item.visible:nth-child(6)  { animation-delay: 0.20s; }
-    .grid-item.visible:nth-child(7)  { animation-delay: 0.24s; }
-    .grid-item.visible:nth-child(8)  { animation-delay: 0.28s; }
-    .grid-item.visible:nth-child(9)  { animation-delay: 0.32s; }
-    .grid-item.visible:nth-child(10) { animation-delay: 0.36s; }
-    .grid-item.visible:nth-child(11) { animation-delay: 0.40s; }
-    .grid-item.visible:nth-child(12) { animation-delay: 0.44s; }
 
     #desktopSidebar .grid-item { padding: 5px; }
     #desktopSidebar .grid-item:hover { transform: none; box-shadow: none; }
@@ -1229,7 +1218,10 @@
       position: sticky;
       top: 0;
       z-index: 5;
-      background: rgba(17,17,17,0.97);
+      background: #111111;
+      transform: translateZ(0);
+      -webkit-transform: translateZ(0);
+      will-change: transform;
     }
     .section-header-wrap:first-child { padding-top: 4px; }
     .section-title {
@@ -2681,7 +2673,19 @@
           mobileMapBtn.style.opacity = '0.5';
           setTimeout(() => { mobileMapBtn.classList.add('ready'); mobileMapBtn.style.opacity = '1.0'; }, 150);
         }
-        renderGrid('gridMobile');
+
+        // If search bar has text, re-apply the search filter rather than wiping it
+        const mobileSearch = document.getElementById('mobileSearchBar');
+        const searchQuery = mobileSearch ? mobileSearch.value.trim().toLowerCase() : '';
+        if (searchQuery && window.allProjectFeatures) {
+          const filtered = window.allProjectFeatures.filter(f =>
+            f.properties.title.toLowerCase().includes(searchQuery) ||
+            f.properties.city.toLowerCase().includes(searchQuery)
+          );
+          renderFilteredGrid('gridMobile', filtered);
+        } else {
+          renderGrid('gridMobile');
+        }
         // Render pills after grid pointer-events are restored (100ms delay in renderGrid)
         setTimeout(() => {
           renderPills('mobile'); updateFilterBadge('mobile');
