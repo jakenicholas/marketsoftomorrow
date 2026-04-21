@@ -1924,10 +1924,17 @@
         empty.innerHTML = `<div class="empty-icon">🔍</div><p>No projects match your filters.<br><strong>Clear filters</strong> to see all projects.</p>`;
         fragment.appendChild(empty);
       } else {
+        // Snap desktop sidebar to top whenever grid re-renders (filter change, etc.)
+        if (targetId === 'gridDesktop') {
+          const sidebar = document.getElementById('desktopSidebar');
+          if (sidebar) sidebar.scrollTop = 0;
+        }
+
         // Split into in-view and out-of-view groups (only in default sort mode)
         const useGroups = sortType === 'default' || sortType === undefined;
+        const NEARBY_RADIUS_MILES = 50;
         const inView  = useGroups ? features.filter(f => f.inBounds) : features;
-        const outView = useGroups ? features.filter(f => !f.inBounds) : [];
+        const outView = useGroups ? features.filter(f => !f.inBounds && f.distance <= NEARBY_RADIUS_MILES) : [];
 
         const makeTile = (f, index) => {
           const d = document.createElement('div');
