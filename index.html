@@ -1932,7 +1932,7 @@
 
         // Split into in-view and out-of-view groups (only in default sort mode)
         const useGroups = sortType === 'default' || sortType === undefined;
-        const NEARBY_RADIUS_MILES = 50;
+        const NEARBY_RADIUS_MILES = 300;
         const inView  = useGroups ? features.filter(f => f.inBounds) : features;
         const outView = useGroups ? features.filter(f => !f.inBounds && f.distance <= NEARBY_RADIUS_MILES) : [];
 
