@@ -1944,7 +1944,7 @@
           const sidebar = document.getElementById('desktopSidebar');
           if (sidebar) sidebar.scrollTop = 0;
         }
-        if (targetId === 'gridMobile') {
+        if (targetId === 'gridMobile' && !window.mobileScrollLoading) {
           const content = document.getElementById('mobileDrawerContent');
           if (content) content.scrollTop = 0;
         }
