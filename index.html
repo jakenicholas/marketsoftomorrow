@@ -969,6 +969,15 @@
       width: 350px !important; overflow: visible !important;
     }
     .mapboxgl-popup-close-button, .mapboxgl-popup-tip { display: none; }
+    /* Station name tooltips — slim, no thick border */
+    .station-tooltip .mapboxgl-popup-content {
+      background: rgba(20,20,20,0.92) !important;
+      padding: 6px 10px !important;
+      border-radius: 6px !important;
+      width: auto !important;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.4) !important;
+      font-size: 13px !important;
+    }
     .popup-content { position: relative; overflow: visible; }
     .popup-content img { width: 100%; height: 160px; object-fit: cover; border-radius: 6px; }
     .popup-content h3 { margin: 10px 0 5px; font-size: 18px; text-decoration: none !important; }
@@ -1030,7 +1039,7 @@
 
     /* ─── MISC CONTROLS ───────────────────────────────────────────────────── */
     #desktopSidebar select:focus { outline: none !important; border-color: var(--accent) !important; box-shadow: 0 0 0 3px rgba(31,223,103,0.1) !important; }
-    #instagramLogo img { width: 100%; height: 100%; filter: brightness(0) invert(1); }
+    #instagramLogo { display: none !important; }
 
     /* ─── LOADING OVERLAY ─────────────────────────────────────────────────── */
     #loadingOverlay {
@@ -1329,9 +1338,6 @@
       <button id="exitFullscreen">✕ Exit</button>
       <div id="fullscreenMap"></div>
     </div>
-    <a id="instagramLogo" href="https://www.instagram.com/floridaoftomorrow" target="_blank" style="display:block;">
-      <img src="https://static.wixstatic.com/shapes/ca3b83_ec9d065676444a08a5392c3be54599ec.svg" alt="Follow us on Instagram" />
-    </a>
   </div>
   
   <div id="toast" class="toast"></div>
@@ -1817,7 +1823,7 @@
             </div>
           </div>
         `).addTo(map);
-      const off = isMobile ? [0, Math.round(window.innerHeight * 0.15)] : [0, -25];
+      const off = isMobile ? [0, Math.round(window.innerHeight * 0.15)] : [0, -Math.round(window.innerHeight * 0.05)];
       map.flyTo({ center: co, zoom: 14, offset: off });
       gtag('event', 'project_view', {
         'project_name': f.properties.title, 'project_city': f.properties.city,
@@ -2329,12 +2335,9 @@
       btn.addEventListener('click', () => {
         isSatellite = !isSatellite;
         btn.classList.toggle('active', isSatellite);
-        const igLogo = document.getElementById('instagramLogo');
-        if (igLogo) igLogo.style.opacity = '0';
         map.setStyle(isSatellite ? SATELLITE_STYLE : STREET_STYLE);
         map.once('style.load', () => {
           addAllMapLayers();
-          if (igLogo) setTimeout(() => igLogo.style.opacity = '', 300);
         });
       });
     })();
@@ -2666,10 +2669,10 @@
         map.on('mouseenter','station-hover',(e)=>{
           if(stationPopup)stationPopup.remove(); map.getCanvas().style.cursor='pointer';
           const f=e.features[0];
-          stationPopup=new mapboxgl.Popup({closeButton:false,closeOnClick:false,offset:[0,-10]}).setLngLat(f.geometry.coordinates).setHTML(`<div style="background:rgba(20,20,20,0.9);color:#fff;padding:8px 12px;border-radius:6px;font-size:14px;font-weight:500;">${f.properties.name}</div>`).addTo(map);
+          stationPopup=new mapboxgl.Popup({closeButton:false,closeOnClick:false,offset:[0,-10],className:"station-tooltip"}).setLngLat(f.geometry.coordinates).setHTML(`<div style="background:rgba(20,20,20,0.9);color:#fff;padding:8px 12px;border-radius:6px;font-size:14px;font-weight:500;">${f.properties.name}</div>`).addTo(map);
         });
         map.on('mouseleave','station-hover',()=>{ map.getCanvas().style.cursor=''; if(stationPopup){stationPopup.remove();stationPopup=null;} });
-        if(isMobile){ map.on('click','station-hover',(e)=>{ if(stationPopup)stationPopup.remove(); const f=e.features[0]; stationPopup=new mapboxgl.Popup({closeButton:false,closeOnClick:false,offset:[0,-10]}).setLngLat(f.geometry.coordinates).setHTML(`<div style="background:rgba(20,20,20,0.9);color:#fff;padding:8px 12px;border-radius:6px;font-size:14px;font-weight:500;">${f.properties.name}</div>`).addTo(map); }); }
+        if(isMobile){ map.on('click','station-hover',(e)=>{ if(stationPopup)stationPopup.remove(); const f=e.features[0]; stationPopup=new mapboxgl.Popup({closeButton:false,closeOnClick:false,offset:[0,-10],className:"station-tooltip"}).setLngLat(f.geometry.coordinates).setHTML(`<div style="background:rgba(20,20,20,0.9);color:#fff;padding:8px 12px;border-radius:6px;font-size:14px;font-weight:500;">${f.properties.name}</div>`).addTo(map); }); }
         map.on('movestart',()=>{ if(stationPopup){stationPopup.remove();stationPopup=null;} });
         map.on('zoomstart',()=>{ if(stationPopup){stationPopup.remove();stationPopup=null;} });
         map.on('mouseenter','brightline-existing',()=>{ map.getCanvas().style.cursor='pointer'; });
