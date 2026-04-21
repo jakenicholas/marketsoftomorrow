@@ -522,20 +522,23 @@
     /* Map button inner layout — mirrors search pill */
     #mobileMapButton .map-btn-icon {
       display: flex; align-items: center; justify-content: center;
-      padding: 0 14px 0 18px; flex-shrink: 0;
+      padding: 0 10px 0 18px; flex-shrink: 0;
     }
     #mobileMapButton .map-btn-icon svg { width: 18px; height: 18px; fill: rgba(255,255,255,0.7); }
     #mobileMapButton .map-btn-label {
-      flex: 1; font-size: 15px; font-weight: 600;
+      font-size: 15px; font-weight: 600;
       color: rgba(255,255,255,0.85); text-align: left;
+      padding-right: 18px;
     }
     #mobileMapButton .map-btn-divider {
+      display: none;
       width: 1px; height: 24px;
       background: rgba(255,255,255,0.12); flex-shrink: 0; margin: 0 4px;
     }
+    #mobileMapButton .map-btn-divider.visible { display: block; }
     #mobileMapButton .map-btn-badge {
       display: none; align-items: center; justify-content: center;
-      gap: 5px; padding: 0 16px; flex-shrink: 0;
+      gap: 5px; padding: 0 16px 0 0; flex-shrink: 0;
     }
     #mobileMapButton .map-btn-badge.visible { display: flex; }
     #mobileMapButton .map-btn-badge svg {
@@ -1623,12 +1626,15 @@
       // Update mobile map button badge too
       const mapBtnBadge    = document.getElementById('mapBtnFilterBadge');
       const mapBtnCountEl  = document.getElementById('mapBtnFilterCount');
+      const mapBtnDivider  = document.querySelector('#mobileMapButton .map-btn-divider');
       if (mapBtnBadge && mapBtnCountEl && !isDesktop) {
         if (count > 0) {
           mapBtnCountEl.textContent = count;
           mapBtnBadge.classList.add('visible');
+          if (mapBtnDivider) mapBtnDivider.classList.add('visible');
         } else {
           mapBtnBadge.classList.remove('visible');
+          if (mapBtnDivider) mapBtnDivider.classList.remove('visible');
         }
       }
 
