@@ -2287,34 +2287,45 @@
       const PIN_SVG   = `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5S10.62 6.5 12 6.5s2.5 1.12 2.5 2.5S13.38 11.5 12 11.5z"/></svg>`;
       const BLDG_SVG  = `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M17 11V3H7v4H3v14h8v-4h2v4h8V11h-4zM7 19H5v-2h2v2zm0-4H5v-2h2v2zm0-4H5v-2h2v2zm4 4H9v-2h2v2zm0-4H9v-2h2v2zm0-4H9V7h2v2zm4 8h-2v-2h2v2zm0-4h-2v-2h2v2zm0-4h-2V7h2v2zm4 8h-2v-2h2v2zm0-4h-2v-2h2v2z"/></svg>`;
 
-      // Highlight matched portion of text
       function highlight(text, q) {
         const idx = text.toLowerCase().indexOf(q);
         if (idx === -1) return text;
         return text.slice(0, idx) + '<em>' + text.slice(idx, idx + q.length) + '</em>' + text.slice(idx + q.length);
       }
 
-      // Gather unique cities matching query
-      const cityMap = {};
+      // Build city suggestions from ALL projects (ignoring active filters)
+      // so cities with 0 matching filtered projects still appear
+      const allFeatures = window.allProjectFeatures || features;
+
+      // cityTotalMap: all projects per city (unfiltered)
+      const cityTotalMap = {};
+      allFeatures.forEach(f => {
+        const city = f.properties.city;
+        if (city && city.toLowerCase().includes(ql)) {
+          cityTotalMap[city] = (cityTotalMap[city] || 0) + 1;
+        }
+      });
+
+      // cityFilteredMap: only projects matching current filters per city
+      const cityFilteredMap = {};
       features.forEach(f => {
         const city = f.properties.city;
         if (city && city.toLowerCase().includes(ql)) {
-          if (!cityMap[city]) cityMap[city] = 0;
-          cityMap[city]++;
+          cityFilteredMap[city] = (cityFilteredMap[city] || 0) + 1;
         }
       });
-      const cities = Object.entries(cityMap)
+
+      const cities = Object.entries(cityTotalMap)
         .sort((a, b) => b[1] - a[1])
         .slice(0, 4);
 
-      // Helper: get display label using cached state lookup
       const getCityLabel = (city) => {
         const state = window.cityStateMap?.[city] || '';
         return state ? `${city}, ${state}` : city;
       };
 
-      // Gather project names matching query
-      const projects = features
+      // Projects: search across ALL features, not just filtered ones
+      const projects = allFeatures
         .filter(f => f.properties.title.toLowerCase().includes(ql))
         .slice(0, 5);
 
@@ -2331,8 +2342,15 @@
         label.textContent = 'Locations';
         container.appendChild(label);
 
-        cities.forEach(([city, count], i) => {
+        cities.forEach(([city], i) => {
           const cityLabel = getCityLabel(city);
+          const filteredCount = cityFilteredMap[city] || 0;
+          const hasFilters = activeFilters.desktop.type !== 'all' || activeFilters.desktop.status !== 'all' ||
+                             activeFilters.mobile.type !== 'all'  || activeFilters.mobile.status !== 'all';
+          const countText = hasFilters
+            ? `${filteredCount} matching · ${cityTotalMap[city]} total`
+            : `${cityTotalMap[city]} project${cityTotalMap[city] !== 1 ? 's' : ''}`;
+
           const item = document.createElement('div');
           item.className = 'autocomplete-item';
           item.style.animationDelay = `${i * 0.04}s`;
@@ -2340,7 +2358,7 @@
             <div class="autocomplete-icon location">${PIN_SVG}</div>
             <div class="autocomplete-text">
               <strong>${highlight(cityLabel, ql)}</strong>
-              <span>${count} project${count !== 1 ? 's' : ''}</span>
+              <span>${countText}</span>
             </div>`;
           item.addEventListener('mousedown', () => {
             onSelect({ _cityLabel: cityLabel, _cityValue: city }, true);
@@ -2459,11 +2477,20 @@
             if (mobileClearBtn) mobileClearBtn.style.display = 'block';
             mobileAC.classList.add('hidden');
             if (isCity) {
+              // Fly to city and show all its projects unfiltered
               const cityFeatures = (window.allProjectFeatures || source._data.features)
                 .filter(p => p.properties.city === f._cityValue);
               renderFilteredGrid('gridMobile', cityFeatures);
-              if (cityFeatures.length) map.flyTo({ center: cityFeatures[0].geometry.coordinates, zoom: 11 });
+              const firstInCity = cityFeatures[0];
+              if (firstInCity) map.flyTo({ center: firstInCity.geometry.coordinates, zoom: 11 });
             } else {
+              // Clicking a specific project — clear type/status filters so it's not confusing
+              const projectMatchesFilters =
+                (activeFilters.mobile.type === 'all' || f._projectTypes?.includes(activeFilters.mobile.type.toLowerCase())) &&
+                (activeFilters.mobile.status === 'all' || f.properties.delivery === activeFilters.mobile.status);
+              if (!projectMatchesFilters) {
+                clearAllFilters('mobile');
+              }
               showPopup(f);
               const drawer = document.getElementById('mobileDrawer');
               if (drawer) { drawer.classList.remove('expanded'); drawer.style.transform = 'translateY(100%)'; }
@@ -2589,8 +2616,16 @@
             const cityFeatures = (window.allProjectFeatures || source._data.features)
               .filter(p => p.properties.city === f._cityValue);
             renderFilteredGrid('gridDesktop', cityFeatures);
-            if (cityFeatures.length) map.flyTo({ center: cityFeatures[0].geometry.coordinates, zoom: 11 });
+            const firstInCity = cityFeatures[0];
+            if (firstInCity) map.flyTo({ center: firstInCity.geometry.coordinates, zoom: 11 });
           } else {
+            // Clear type/status filters if project doesn't match them
+            const projectMatchesFilters =
+              (activeFilters.desktop.type === 'all' || f._projectTypes?.includes(activeFilters.desktop.type.toLowerCase())) &&
+              (activeFilters.desktop.status === 'all' || f.properties.delivery === activeFilters.desktop.status);
+            if (!projectMatchesFilters) {
+              clearAllFilters('desktop');
+            }
             showPopup(f);
           }
         });
