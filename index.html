@@ -2460,6 +2460,7 @@
           window.mobileLoadedCount = 12; window.mobileScrollLoading = false;
           if (!query) {
             mobileAC.classList.add('hidden');
+            window.mobileSearchFeatures = null; // clear stored search
             renderGrid('gridMobile'); updateResultCount('gridMobile'); return;
           }
           const source = map.getSource('projects');
@@ -2469,20 +2470,17 @@
             if (mobileClearBtn) mobileClearBtn.style.display = 'block';
             mobileAC.classList.add('hidden');
             if (isCity) {
-              // Fly to city and show all its projects unfiltered
               const cityFeatures = (window.allProjectFeatures || source._data.features)
                 .filter(p => p.properties.city === f._cityValue);
+              window.mobileSearchFeatures = cityFeatures; // store for re-open
               renderFilteredGrid('gridMobile', cityFeatures);
               const firstInCity = cityFeatures[0];
               if (firstInCity) map.flyTo({ center: firstInCity.geometry.coordinates, zoom: 11 });
             } else {
-              // Clicking a specific project — clear type/status filters so it's not confusing
               const projectMatchesFilters =
                 (activeFilters.mobile.type === 'all' || f._projectTypes?.includes(activeFilters.mobile.type.toLowerCase())) &&
                 (activeFilters.mobile.status === 'all' || f.properties.delivery === activeFilters.mobile.status);
-              if (!projectMatchesFilters) {
-                clearAllFilters('mobile');
-              }
+              if (!projectMatchesFilters) clearAllFilters('mobile');
               showPopup(f);
               const drawer = document.getElementById('mobileDrawer');
               if (drawer) { drawer.classList.remove('expanded'); drawer.style.transform = 'translateY(100%)'; }
@@ -2492,10 +2490,10 @@
           const ql = query.toLowerCase();
           const filtered = (window.allProjectFeatures || source._data.features)
             .filter(f => f.properties.title.toLowerCase().includes(ql) || f.properties.city.toLowerCase().includes(ql));
+          window.mobileSearchFeatures = filtered; // store for re-open
           renderFilteredGrid('gridMobile', filtered);
         });
         mobileSearchBar.addEventListener('blur', () => { setTimeout(() => mobileAC.classList.add('hidden'), 150); });
-        mobileSearchBar.addEventListener('focus', (e) => { if (e.target.value.trim()) e.target.dispatchEvent(new Event('input')); });
       }
     }
 
@@ -2674,15 +2672,21 @@
           setTimeout(() => { mobileMapBtn.classList.add('ready'); mobileMapBtn.style.opacity = '1.0'; }, 150);
         }
 
-        // If search bar has text, re-apply the search filter rather than wiping it
+        // Restore search results if search was active, using stored features for reliability
         const mobileSearch = document.getElementById('mobileSearchBar');
-        const searchQuery = mobileSearch ? mobileSearch.value.trim().toLowerCase() : '';
-        if (searchQuery && window.allProjectFeatures) {
-          const filtered = window.allProjectFeatures.filter(f =>
-            f.properties.title.toLowerCase().includes(searchQuery) ||
-            f.properties.city.toLowerCase().includes(searchQuery)
-          );
-          renderFilteredGrid('gridMobile', filtered);
+        const searchQuery = mobileSearch ? mobileSearch.value.trim() : '';
+        if (searchQuery) {
+          if (window.mobileSearchFeatures) {
+            // Use the exactly stored result set — most reliable
+            renderFilteredGrid('gridMobile', window.mobileSearchFeatures);
+          } else if (window.allProjectFeatures) {
+            const ql = searchQuery.toLowerCase();
+            const filtered = window.allProjectFeatures.filter(f =>
+              f.properties.title.toLowerCase().includes(ql) ||
+              f.properties.city.toLowerCase().includes(ql)
+            );
+            renderFilteredGrid('gridMobile', filtered);
+          }
         } else {
           renderGrid('gridMobile');
         }
@@ -2738,10 +2742,11 @@
           const tryOpen = () => {
             if (map.getSource('projects')?._data) {
               expandDrawer();
-              // Focus search so keyboard opens naturally if user tapped search area
+              // Only focus search if no active query — prevents re-firing input event
+              // which would wipe city/search filtered results
               setTimeout(() => {
                 const mobileSearch = document.getElementById('mobileSearchBar');
-                if (mobileSearch) mobileSearch.focus();
+                if (mobileSearch && !mobileSearch.value.trim()) mobileSearch.focus();
               }, 350);
               gtag('event', 'view_change', { 'view_type': 'tiles', 'action': 'open_drawer', 'device_type': 'mobile' });
             } else {
