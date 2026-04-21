@@ -3014,11 +3014,17 @@
               updateResultCount('gridMobile');
               if (!isMobile) {
                 const sidebar = document.getElementById('desktopSidebar');
-                if (sidebar?.classList.contains('open') && dsort === 'default') renderGrid('gridDesktop');
+                const desktopSearch = document.getElementById('sidebarSearchBar');
+                const hasActiveSearch = desktopSearch && desktopSearch.value.trim().length > 0;
+                if (sidebar?.classList.contains('open') && dsort === 'default' && !hasActiveSearch) renderGrid('gridDesktop');
               }
               if (isMobile) {
                 const drawer = document.getElementById('mobileDrawer');
-                if (drawer?.classList.contains('expanded') && msort === 'default') { window.mobileLoadedCount = 12; renderGrid('gridMobile'); }
+                const mobileSearch = document.getElementById('mobileSearchBar');
+                const hasActiveSearch = mobileSearch && mobileSearch.value.trim().length > 0;
+                if (drawer?.classList.contains('expanded') && msort === 'default' && !hasActiveSearch) {
+                  window.mobileLoadedCount = 12; renderGrid('gridMobile');
+                }
               }
             }, 300);
           });
