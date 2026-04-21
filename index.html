@@ -1170,7 +1170,41 @@
     .search-input-wrap input {
       width: 100%;
     }
-    .empty-state {
+    /* ─── SECTION HEADERS (Option A) ─────────────────────────────────────── */
+    .section-header-wrap {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 0 6px;
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      background: rgba(17,17,17,0.97);
+    }
+    .section-header-wrap:first-child { padding-top: 4px; }
+    .section-title {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+    .section-title.in-view { color: var(--accent); }
+    .section-count {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--accent);
+      background: rgba(31,223,103,0.1);
+      border-radius: 10px;
+      padding: 2px 8px;
+    }
+    .section-count.muted {
+      color: var(--text-muted);
+      background: rgba(255,255,255,0.06);
+    }
+
+    /* ─── EMPTY STATE ─────────────────────────────────────────────────────── */
       grid-column: 1 / -1;
       text-align: center;
       padding: 40px 20px;
@@ -1859,13 +1893,15 @@
       if (projectTypeFilter !== 'all') features = features.filter(f => f.properties.projectTypes?.includes(projectTypeFilter.toLowerCase()));
       if (statusFilter !== 'all') features = features.filter(f => f.properties.delivery === statusFilter);
 
+      // Always compute inBounds so section headers work regardless of sort mode
+      const mapBounds = map.getBounds();
+      features = features.map(f => ({ ...f, inBounds: mapBounds.contains([f.geometry.coordinates[0], f.geometry.coordinates[1]]) }));
+
       if (sortType === 'az') {
         features.sort((a,b) => { if (a.properties.featured && !b.properties.featured) return -1; if (!a.properties.featured && b.properties.featured) return 1; return a.properties.title.localeCompare(b.properties.title); });
       } else if (sortType === 'za') {
         features.sort((a,b) => { if (a.properties.featured && !b.properties.featured) return -1; if (!a.properties.featured && b.properties.featured) return 1; return b.properties.title.localeCompare(a.properties.title); });
       } else {
-        const mapBounds = map.getBounds();
-        features = features.map(f => ({ ...f, inBounds: mapBounds.contains([f.geometry.coordinates[0], f.geometry.coordinates[1]]) }));
         features.sort((a,b) => {
           const aFIB = a.inBounds && a.properties.featured, bFIB = b.inBounds && b.properties.featured;
           if (aFIB && !bFIB) return -1; if (!aFIB && bFIB) return 1;
@@ -1888,7 +1924,12 @@
         empty.innerHTML = `<div class="empty-icon">🔍</div><p>No projects match your filters.<br><strong>Clear filters</strong> to see all projects.</p>`;
         fragment.appendChild(empty);
       } else {
-        features.forEach((f, index) => {
+        // Split into in-view and out-of-view groups (only in default sort mode)
+        const useGroups = sortType === 'default' || sortType === undefined;
+        const inView  = useGroups ? features.filter(f => f.inBounds) : features;
+        const outView = useGroups ? features.filter(f => !f.inBounds) : [];
+
+        const makeTile = (f, index) => {
           const d = document.createElement('div');
           d.className = 'grid-item visible';
           d.innerHTML = `
@@ -1919,8 +1960,31 @@
               }, 100);
             }
           };
-          fragment.appendChild(d);
-        });
+          return d;
+        };
+
+        const makeHeader = (title, count, isInView) => {
+          const wrap = document.createElement('div');
+          wrap.className = 'section-header-wrap';
+          wrap.innerHTML = `<span class="section-title${isInView ? ' in-view' : ''}">${title}</span><span class="section-count${isInView ? '' : ' muted'}">${count}</span>`;
+          return wrap;
+        };
+
+        if (useGroups && (inView.length > 0 || outView.length > 0)) {
+          // In view section
+          if (inView.length > 0) {
+            fragment.appendChild(makeHeader('In view', `${inView.length} project${inView.length !== 1 ? 's' : ''}`, true));
+            inView.forEach((f, i) => fragment.appendChild(makeTile(f, i)));
+          }
+          // More nearby section
+          if (outView.length > 0) {
+            fragment.appendChild(makeHeader('More nearby', `${outView.length}`, false));
+            outView.forEach((f, i) => fragment.appendChild(makeTile(f, inView.length + i)));
+          }
+        } else {
+          // A-Z / Z-A sort — no sections, just flat list
+          features.forEach((f, i) => fragment.appendChild(makeTile(f, i)));
+        }
       }
 
       grid.appendChild(fragment);
