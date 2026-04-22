@@ -2061,20 +2061,14 @@
         }
       }
 
-      // Update desktop pill count
       const desktopPillCount = document.getElementById('desktopPillCount');
       if (desktopPillCount) {
-        desktopPillCount.textContent = filteredTotal < total
-          ? `${inFrame} of ${filteredTotal} results`
-          : `${inFrame} of ${total} results`;
+        desktopPillCount.textContent = `${inFrame} results`;
       }
 
-      // Update mobile pill count
       const pillCount = document.getElementById('mobilePillCount');
       if (pillCount) {
-        pillCount.textContent = filteredTotal < total
-          ? `${inFrame} of ${filteredTotal} results`
-          : `${inFrame} of ${total} results`;
+        pillCount.textContent = `${inFrame} results`;
       }
     }
 
