@@ -2184,10 +2184,23 @@
       const fragment = document.createDocumentFragment();
 
       if (features.length === 0) {
-        const empty = document.createElement('div');
-        empty.className = 'empty-state';
-        empty.innerHTML = `<div class="empty-icon">🔍</div><p>No projects match your filters.<br><strong>Clear filters</strong> to see all projects.</p>`;
-        fragment.appendChild(empty);
+        // No filtered results — show "In view: 0" + nearest unfiltered fallback
+        const makeHdr = (title, count, isInView) => {
+          const wrap = document.createElement('div');
+          wrap.className = 'section-header-wrap';
+          wrap.innerHTML = `<span class="section-title${isInView ? ' in-view' : ''}">${title}</span><span class="section-count${isInView ? '' : ' muted'}">${count}</span>`;
+          return wrap;
+        };
+        fragment.appendChild(makeHdr('In view', '0 projects', true));
+        const allF = window.allProjectFeatures || [];
+        const fallback = allF.map(f => {
+          const coords = f.geometry.coordinates;
+          return { ...f, distance: calculateDistance(mapCenter.lat, mapCenter.lng, coords[1], coords[0]) };
+        }).sort((a,b) => a.distance - b.distance).slice(0, 12);
+        if (fallback.length > 0) {
+          fragment.appendChild(makeHdr('More nearby', `${fallback.length}`, false));
+          fallback.forEach((f, i) => fragment.appendChild(makeTile(f, i)));
+        }
       } else {
         // Snap to top on filter/render
         if (targetId === 'gridDesktop') {
@@ -2244,19 +2257,28 @@
           return wrap;
         };
 
-        if (useGroups && (trueInView.length > 0 || trueOutView.length > 0)) {
-          // In view section — header uses true total, tiles use sliced list
-          if (inView.length > 0) {
-            fragment.appendChild(makeHeader('In view', `${trueInView.length} project${trueInView.length !== 1 ? 's' : ''}`, true));
-            inView.forEach((f, i) => fragment.appendChild(makeTile(f, i)));
-          }
-          // More nearby section
+        if (useGroups && features.length > 0) {
+          // Always show In view header
+          fragment.appendChild(makeHeader('In view', trueInView.length > 0 ? `${trueInView.length} project${trueInView.length !== 1 ? 's' : ''}` : '0 projects', true));
+          inView.forEach((f, i) => fragment.appendChild(makeTile(f, i)));
+
           if (outView.length > 0) {
             fragment.appendChild(makeHeader('More nearby', `${trueOutView.length}`, false));
             outView.forEach((f, i) => fragment.appendChild(makeTile(f, inView.length + i)));
+          } else if (inView.length === 0) {
+            // Nothing in view or nearby — show closest unfiltered projects
+            const allF = window.allProjectFeatures || [];
+            const fallback = allF.map(f => {
+              const coords = f.geometry.coordinates;
+              return { ...f, distance: calculateDistance(mapCenter.lat, mapCenter.lng, coords[1], coords[0]) };
+            }).filter(f => !f.inBounds).sort((a,b) => a.distance - b.distance).slice(0, 12);
+            if (fallback.length > 0) {
+              fragment.appendChild(makeHeader('More nearby', `${fallback.length}`, false));
+              fallback.forEach((f, i) => fragment.appendChild(makeTile(f, i)));
+            }
           }
         } else {
-          // A-Z / Z-A sort — no sections, just flat list
+          // A-Z / Z-A sort — flat list
           features.forEach((f, i) => fragment.appendChild(makeTile(f, i)));
         }
       }
@@ -2366,24 +2388,45 @@
       };
 
       if (features.length === 0) {
-        const empty = document.createElement('div');
-        empty.className = 'empty-state';
-        empty.innerHTML = `<div class="empty-icon">🔍</div><p>No results found.<br>Try a different search term.</p>`;
-        fragment.appendChild(empty);
+        // No filtered results at all — show "In view: 0" and fall back to nearest unfiltered projects
+        fragment.appendChild(makeHeader('In view', '0 projects', true));
+        const fallbackFeatures = (window.allProjectFeatures || [])
+          .map(f => {
+            const coords = f.geometry.coordinates;
+            return { ...f, distance: calculateDistance(mapCenter.lat, mapCenter.lng, coords[1], coords[0]), inBounds: mapBounds.contains([coords[0], coords[1]]) };
+          })
+          .sort((a, b) => a.distance - b.distance)
+          .slice(0, 12);
+        if (fallbackFeatures.length > 0) {
+          fragment.appendChild(makeHeader('More nearby', `${fallbackFeatures.length}`, false));
+          fallbackFeatures.forEach(f => fragment.appendChild(makeTile(f)));
+        }
       } else {
         const inView  = features.filter(f => f.inBounds);
         const outView = features.filter(f => !f.inBounds && f.distance <= NEARBY_RADIUS_MILES);
-        if (inView.length > 0) {
-          fragment.appendChild(makeHeader('In view', `${trueInView.length} project${trueInView.length !== 1 ? 's' : ''}`, true));
-          inView.forEach(f => fragment.appendChild(makeTile(f)));
-        }
+
+        // Always show In view header (even if 0)
+        fragment.appendChild(makeHeader('In view', inView.length > 0 ? `${trueInView.length} project${trueInView.length !== 1 ? 's' : ''}` : '0 projects', true));
+        inView.forEach(f => fragment.appendChild(makeTile(f)));
+
+        // More nearby: show filtered nearby, or fall back to nearest unfiltered if none within 300mi
         if (outView.length > 0) {
           fragment.appendChild(makeHeader('More nearby', `${trueOutView.length}`, false));
           outView.forEach(f => fragment.appendChild(makeTile(f)));
-        }
-        if (inView.length === 0 && outView.length === 0 && features.length > 0) {
-          // All features are beyond 300mi — show flat list
-          features.forEach(f => fragment.appendChild(makeTile(f)));
+        } else if (inView.length === 0) {
+          // Nothing in view AND nothing nearby with filter — show closest unfiltered projects
+          const fallback = (window.allProjectFeatures || [])
+            .map(f => {
+              const coords = f.geometry.coordinates;
+              return { ...f, distance: calculateDistance(mapCenter.lat, mapCenter.lng, coords[1], coords[0]), inBounds: mapBounds.contains([coords[0], coords[1]]) };
+            })
+            .filter(f => !f.inBounds)
+            .sort((a, b) => a.distance - b.distance)
+            .slice(0, 12);
+          if (fallback.length > 0) {
+            fragment.appendChild(makeHeader('More nearby', `${fallback.length}`, false));
+            fallback.forEach(f => fragment.appendChild(makeTile(f)));
+          }
         }
       }
 
