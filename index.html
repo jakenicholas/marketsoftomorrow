@@ -580,45 +580,104 @@
     #mobileDrawerContent .leaf-grid { overflow: visible !important; height: auto !important; }
 
     /* ─── MOBILE SEARCH + FILTERS ─────────────────────────────────────────── */
-    #mobileSearchContainer { margin-bottom: 12px; width: 95%; margin-left: auto; margin-right: auto; }
-    #mobileSearchBar {
-      width: 100%; height: 36px; line-height: 36px;
-      border: none; padding: 0 12px; border-radius: 4px;
-      background: #1e1e1e; color: #fff; font-size: 16px;
-      -webkit-text-size-adjust: 100%;
-    }
     #mobileDrawerContent .mobile-header {
       position: sticky; top: 0; z-index: 10;
-      background: var(--surface);
-      padding: 16px calc(16px + var(--safe-area-right)) 20px calc(16px + var(--safe-area-left));
+      background: #111111;
+      padding: 12px calc(14px + var(--safe-area-right)) 10px calc(14px + var(--safe-area-left));
+      display: flex; flex-direction: column; gap: 7px;
     }
+
+    /* Row 1: Search glass pill */
+    .mobile-search-pill {
+      display: flex;
+      align-items: center;
+      height: 46px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.09);
+      border-radius: 23px;
+      backdrop-filter: blur(16px) saturate(1.4);
+      -webkit-backdrop-filter: blur(16px) saturate(1.4);
+      box-shadow: 0 2px 16px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.06);
+      position: relative;
+      overflow: hidden;
+    }
+    .mobile-search-pill .search-pill-icon {
+      display: flex; align-items: center; justify-content: center;
+      padding: 0 12px 0 16px; flex-shrink: 0;
+    }
+    .mobile-search-pill .search-pill-icon svg {
+      width: 16px; height: 16px; stroke: rgba(255,255,255,0.35);
+      fill: none; stroke-width: 2;
+    }
+    #mobileSearchBar {
+      flex: 1; background: none; border: none; outline: none;
+      color: #fff; font-size: 16px; font-family: inherit;
+      padding: 0; min-width: 0;
+      -webkit-text-size-adjust: 100%;
+    }
+    #mobileSearchBar::placeholder { color: rgba(255,255,255,0.3); }
+    #mobileSearchClear {
+      display: none; align-items: center; justify-content: center;
+      width: 32px; height: 32px; margin-right: 7px;
+      background: rgba(255,255,255,0.08);
+      border: none; border-radius: 50%; cursor: pointer;
+      color: rgba(255,255,255,0.5); font-size: 14px; flex-shrink: 0;
+    }
+
+    /* Row 2: Filter glass pill with three segments */
+    .mobile-filter-pill {
+      display: flex;
+      align-items: center;
+      height: 38px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 19px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+      overflow: hidden;
+    }
+    .filter-seg {
+      position: relative;
+      display: flex; align-items: center; justify-content: center;
+      gap: 4px;
+      flex: 1; height: 100%;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .filter-seg:hover { background: rgba(255,255,255,0.04); }
+    .filter-seg.active { background: rgba(31,223,103,0.07); }
+    .filter-seg-label {
+      font-size: 12px; font-weight: 500;
+      color: rgba(255,255,255,0.45);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      max-width: 80px;
+      pointer-events: none;
+      transition: color 0.15s;
+    }
+    .filter-seg.active .filter-seg-label { color: #1FDF67; }
+    .filter-seg-chevron {
+      width: 8px; height: 8px; flex-shrink: 0;
+      pointer-events: none; transition: fill 0.15s;
+      fill: rgba(255,255,255,0.25);
+    }
+    .filter-seg.active .filter-seg-chevron { fill: #1FDF67; }
+    .filter-seg select {
+      position: absolute; inset: 0;
+      opacity: 0; width: 100%; height: 100%;
+      cursor: pointer; font-size: 16px;
+    }
+    .filter-seg-div {
+      width: 1px; height: 18px;
+      background: rgba(255,255,255,0.07); flex-shrink: 0;
+    }
+
+    /* Pills row */
+    #mobilePillsRow { margin-top: 2px; }
 
     @media(max-width:800px) {
       input[type="text"], input[type="search"], input[type="email"],
       input[type="tel"], textarea, select {
         font-size: 16px !important; -webkit-text-size-adjust: 100%;
       }
-      input:focus { font-size: 16px !important; }
-    }
-
-    #mobileFilterControls {
-      display: flex; gap: 8px; margin-bottom: 0; flex-wrap: wrap;
-      width: 95%; margin-left: auto; margin-right: auto;
-    }
-    #mobileFilterControls select {
-      flex: 1; min-width: 90px; background: var(--surface-light); color: #fff;
-      border: 1px solid var(--border); border-radius: 8px;
-      padding: 8px 36px 8px 12px; font-size: 9px; font-weight: 500;
-      cursor: pointer; transition: all var(--transition-med); appearance: none;
-      background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%23999' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-      background-repeat: no-repeat; background-position: right 12px center;
-    }
-    #mobileFilterControls select:hover { background-color: #222; border-color: rgba(255,255,255,0.2); }
-    #mobileFilterControls select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(31,223,103,0.1); }
-
-    /* Mobile pills row */
-    #mobilePillsRow {
-      width: 95%; margin: 8px auto 0;
     }
 
     @media(max-width:800px) {
@@ -1360,28 +1419,49 @@
   <div id="mobileDrawerHandle"></div>
   <div id="mobileDrawerContent">
     <div class="mobile-header">
-      <div style="margin-bottom:12px;width:95%;margin-left:auto;margin-right:auto;position:relative;">
-        <input id="mobileSearchBar" type="text" placeholder="Search projects or city..." style="width:100%;padding-right:36px;" />
-        <button id="mobileSearchClear" style="display:none;position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;color:rgba(255,255,255,0.4);font-size:16px;cursor:pointer;padding:2px 4px;line-height:1;border-radius:4px;" title="Clear search">✕</button>
+      <!-- Row 1: Glass search pill -->
+      <div class="mobile-search-pill">
+        <div class="search-pill-icon">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        </div>
+        <input id="mobileSearchBar" type="text" placeholder="Search projects or city..." />
+        <button id="mobileSearchClear" title="Clear search">✕</button>
         <div id="mobileAutocomplete" class="autocomplete-dropdown hidden"></div>
       </div>
-      <div id="mobileFilterControls">
-        <select id="sortSelectMobile">
-          <option value="default">Nearest</option>
-          <option value="az">A to Z</option>
-          <option value="za">Z to A</option>
-        </select>
-        <select id="projectTypeFilterMobile">
-          <option value="all" disabled selected>Type</option>
-        </select>
-        <select id="locationFilterMobile">
-          <option value="all" disabled selected>Status</option>
-        </select>
+
+      <!-- Row 2: Glass filter pill with three segments -->
+      <div class="mobile-filter-pill">
+        <div class="filter-seg" id="mobileSegSort">
+          <span class="filter-seg-label" id="mobileLabelSort">Nearest</span>
+          <svg class="filter-seg-chevron" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <select id="sortSelectMobile">
+            <option value="default">Nearest</option>
+            <option value="az">A to Z</option>
+            <option value="za">Z to A</option>
+          </select>
+        </div>
+        <div class="filter-seg-div"></div>
+        <div class="filter-seg" id="mobileSegType">
+          <span class="filter-seg-label" id="mobileLabelType">Type</span>
+          <svg class="filter-seg-chevron" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <select id="projectTypeFilterMobile">
+            <option value="all">All Types</option>
+          </select>
+        </div>
+        <div class="filter-seg-div"></div>
+        <div class="filter-seg" id="mobileSegStatus">
+          <span class="filter-seg-label" id="mobileLabelStatus">Status</span>
+          <svg class="filter-seg-chevron" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <select id="locationFilterMobile">
+            <option value="all">All Status</option>
+          </select>
+        </div>
       </div>
-      <!-- Active filter pills (mobile) -->
-      <div class="filter-pills-row" id="mobilePillsRow" style="width:95%;margin:8px auto 0;"></div>
-      <!-- Result count (mobile) -->
-      <div class="result-count" id="mobileResultCount" style="display:none;width:95%;margin:4px auto 0;"></div>
+
+      <!-- Active filter pills -->
+      <div class="filter-pills-row" id="mobilePillsRow"></div>
+      <!-- Result count -->
+      <div class="result-count" id="mobileResultCount" style="display:none;margin-top:2px;"></div>
     </div>
     
     <div class="mobile-content allow-scroll">
@@ -1752,6 +1832,7 @@
 
       renderPills('desktop'); updateFilterBadge('desktop');
       renderPills('mobile'); updateFilterBadge('mobile');
+      updateMobileSegmentLabels();
       updateMapPinFilters();
       renderGrid('gridDesktop');
       updateResultCount('gridDesktop');
@@ -1766,6 +1847,27 @@
       } else {
         selectEl.classList.remove('filter-active');
       }
+    }
+
+    // Update glass filter pill segment labels + active states
+    function updateMobileSegmentLabels() {
+      const defs = [
+        { segId: 'mobileSegSort',   labelId: 'mobileLabelSort',   selId: 'sortSelectMobile',        defaultVal: 'default' },
+        { segId: 'mobileSegType',   labelId: 'mobileLabelType',   selId: 'projectTypeFilterMobile', defaultVal: 'all'     },
+        { segId: 'mobileSegStatus', labelId: 'mobileLabelStatus', selId: 'locationFilterMobile',    defaultVal: 'all'     },
+      ];
+      const fallbacks = { 'mobileSegSort': 'Nearest', 'mobileSegType': 'Type', 'mobileSegStatus': 'Status' };
+      defs.forEach(({ segId, labelId, selId, defaultVal }) => {
+        const seg = document.getElementById(segId);
+        const label = document.getElementById(labelId);
+        const sel = document.getElementById(selId);
+        if (!seg || !label || !sel) return;
+        const val = sel.value;
+        const isActive = val !== defaultVal && val !== 'all';
+        const selectedText = sel.options[sel.selectedIndex]?.text || fallbacks[segId];
+        label.textContent = isActive ? selectedText : fallbacks[segId];
+        seg.classList.toggle('active', isActive);
+      });
     }
 
 
@@ -2460,6 +2562,7 @@
           // Keep desktop in sync for map pin filtering (type + status only, not sort)
           if (key !== 'sort') activeFilters.desktop[key] = el.value;
           updateSelectActiveState(el, el.value, key === 'sort' ? 'default' : 'all');
+          updateMobileSegmentLabels();
           gtag('event', 'filter_change', { 'filter_type': key, 'filter_value': el.value, 'platform': 'mobile' });
           window.mobileLoadedCount = 12; window.mobileScrollLoading = false;
           renderPills('mobile'); updateFilterBadge('mobile');
@@ -2500,7 +2603,7 @@
           if (!source?._data) return;
           buildAutocomplete(query, source._data.features, mobileAC, (f, isCity) => {
             mobileSearchBar.value = isCity ? f._cityLabel : f.properties.title;
-            if (mobileClearBtn) mobileClearBtn.style.display = 'block';
+            if (mobileClearBtn) mobileClearBtn.style.display = 'flex';
             mobileAC.classList.add('hidden');
             if (isCity) {
               // Pass ALL projects — renderFilteredGrid applies active type/status filters
@@ -3004,6 +3107,7 @@
           renderGrid('gridDesktop');
           renderGrid('gridMobile');
           populateLocationFilter();
+          updateMobileSegmentLabels();
           setupMobileDrawer();
 
           // ── Build city→state map via Mapbox reverse geocoding ──────────────
