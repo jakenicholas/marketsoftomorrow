@@ -1,7 +1,5 @@
 <!DOCTYPE html>
-
 <!-- v2026-04-20T23:17:06.502295 -->
-
 <html>
 <head>
   <meta charset="utf-8">
@@ -40,13 +38,11 @@
   <meta name="format-detection" content="date=no">
   <meta name="format-detection" content="address=no">
   <meta name="format-detection" content="email=no">
-
+  
   <script src="https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.js"></script>
-
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-
+  
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-6NPTWCVFCG"></script>
-
   <script>
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
@@ -68,7 +64,7 @@
     "description": "Interactive map of the world's most exciting developments by Markets of Tomorrow."
   }
   </script>
-
+  
   <link href="https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.css" rel="stylesheet" />
 
   <style>
@@ -268,11 +264,6 @@
     }
     #desktopSidebar.open { transform: translateX(0); }
 
-    #desktopSidebar .sidebar-header {
-      position: sticky; top: 0; z-index: 10;
-      background: var(--surface);
-      padding: 16px calc(16px + var(--safe-area-left)) 12px;
-    }
     #desktopSidebar .sidebar-content {
       padding: 12px calc(16px + var(--safe-area-left)) 16px 16px;
     }
@@ -689,15 +680,74 @@
 
     /* ─── SIDEBAR SEARCH ──────────────────────────────────────────────────── */
     #sidebarSearchBar {
-      height: 36px; line-height: 36px; border: none; padding: 0 12px;
-      border-radius: 4px; background: #1e1e1e; color: #fff; font-size: 16px;
+      flex: 1; background: none; border: none; outline: none;
+      color: #fff; font-size: 15px; font-family: inherit;
+      padding: 0; min-width: 0;
     }
-    #sidebarResults {
-      position: absolute; top: 40px; left: 0; width: 100%;
-      max-height: 200px; overflow-y: auto; background: var(--surface);
-      padding: 4px; border-radius: 6px; box-sizing: border-box; z-index: 10;
-    }
+    #sidebarSearchBar::placeholder { color: rgba(255,255,255,0.3); }
+    #sidebarResults { display: none; }
     #sidebarResults.hidden { display: none; }
+
+    /* Desktop sidebar header glass pills */
+    #desktopSidebar .sidebar-header {
+      position: sticky; top: 0; z-index: 10;
+      background: #111111;
+      padding: 12px 14px 10px;
+      display: flex; flex-direction: column; gap: 7px;
+    }
+
+    /* Search row: pill + close button side by side */
+    .desktop-search-row {
+      display: flex; align-items: center; gap: 8px;
+    }
+    .desktop-search-pill {
+      display: flex; align-items: center;
+      height: 44px; flex: 1;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.09);
+      border-radius: 22px;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.06);
+      position: relative;
+    }
+    .desktop-search-pill .search-pill-icon {
+      display: flex; align-items: center; justify-content: center;
+      padding: 0 10px 0 14px; flex-shrink: 0;
+    }
+    .desktop-search-pill .search-pill-icon svg {
+      width: 15px; height: 15px; stroke: rgba(255,255,255,0.35);
+      fill: none; stroke-width: 2;
+    }
+    #sidebarSearchClear {
+      display: none; align-items: center; justify-content: center;
+      width: 28px; height: 28px; margin-right: 7px;
+      background: rgba(255,255,255,0.08);
+      border: none; border-radius: 50%; cursor: pointer;
+      color: rgba(255,255,255,0.5); font-size: 13px; flex-shrink: 0;
+    }
+    #closeSidebar {
+      background: rgba(255,255,255,0.06) !important;
+      border: 1px solid rgba(255,255,255,0.09) !important;
+      border-radius: 50% !important;
+      width: 36px !important; height: 36px !important;
+      color: rgba(255,255,255,0.5) !important;
+      font-size: 16px !important;
+      flex-shrink: 0;
+    }
+    #closeSidebar:hover { background: rgba(255,255,255,0.1) !important; }
+
+    /* Desktop filter pill — same 3-segment glass pill */
+    .desktop-filter-pill {
+      display: flex; align-items: stretch;
+      height: 36px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 18px;
+      overflow: hidden;
+    }
+    .desktop-filter-pill .filter-seg { padding: 0 8px 0 12px; }
+    .desktop-filter-pill .filter-seg-label { font-size: 12px; }
+
+    #desktopSidebar .sidebar-header select { display: none; } /* hidden — overlaid */
 
     /* ─── GRID LAYOUT ─────────────────────────────────────────────────────── */
     .leaf-grid { display: grid; grid-gap: 16px; grid-template-columns: repeat(2,1fr); }
@@ -1316,7 +1366,6 @@
     .empty-state p { margin: 0; font-size: 14px; line-height: 1.5; }
     .empty-state strong { color: var(--accent); }
   </style>
-
 </head>
 <body>
   <!-- Header Bar -->
@@ -1328,9 +1377,8 @@
       <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
     </a>
   </div>
-
+  
   <!-- Loading Overlay -->
-
   <div id="loadingOverlay">
     <div class="loading-content">
       <div class="loading-spinner"></div>
@@ -1338,7 +1386,7 @@
       <div class="loading-subtitle">Development Pipeline Map</div>
     </div>
   </div>
-
+  
   <div id="app-container">
     <button id="toggleView" class="hidden" style="display:none!important"></button>
     <button id="openSearch" class="hidden" style="display:none!important"></button>
@@ -1350,168 +1398,185 @@
       <div id="results" class="hidden"></div>
     </div>
 
-```
-<!-- Layers toggle button -->
-<button id="layersButton" class="glass-btn" title="Switch map style">
-  <svg viewBox="0 0 24 24"><path d="M11.99 18.54l-7.37-5.73L3 14.07l9 7 9-7-1.63-1.27-7.38 5.74zM12 16l7.36-5.73L21 9l-9-7-9 7 1.63 1.27L12 16z"/></svg>
-</button>
+    <!-- Layers toggle button -->
+    <button id="layersButton" class="glass-btn" title="Switch map style">
+      <svg viewBox="0 0 24 24"><path d="M11.99 18.54l-7.37-5.73L3 14.07l9 7 9-7-1.63-1.27-7.38 5.74zM12 16l7.36-5.73L21 9l-9-7-9 7 1.63 1.27L12 16z"/></svg>
+    </button>
 
-<!-- Location button (mobile only) -->
-<button id="locationButton" title="Go to my location">
-  <svg viewBox="0 0 24 24"><path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3c-.46-4.17-3.77-7.48-7.94-7.94V1h-2v2.06C6.83 3.52 3.52 6.83 3.06 11H1v2h2.06c.46 4.17 3.77 7.48 7.94 7.94V23h2v-2.06c4.17-.46 7.48-3.77 7.94-7.94H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/></svg>
-</button>
+    <!-- Location button (mobile only) -->
+    <button id="locationButton" title="Go to my location">
+      <svg viewBox="0 0 24 24"><path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3c-.46-4.17-3.77-7.48-7.94-7.94V1h-2v2.06C6.83 3.52 3.52 6.83 3.06 11H1v2h2.06c.46 4.17 3.77 7.48 7.94 7.94V23h2v-2.06c4.17-.46 7.48-3.77 7.94-7.94H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/></svg>
+    </button>
 
-<!-- Desktop search pill (top-left, visible only on desktop) -->
-<div id="desktopSearchPill" class="glass-btn">
-  <div class="pill-search-icon">
-    <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-  </div>
-  <span class="pill-text">Search projects or city...</span>
-  <div class="pill-filter-badge" id="desktopPillFilterBadge">
-    <span class="badge-icon"><svg viewBox="0 0 24 24"><circle cx="6" cy="5" r="2"/><line x1="2" y1="5" x2="4" y2="5"/><line x1="8" y1="5" x2="22" y2="5"/><circle cx="16" cy="12" r="2"/><line x1="2" y1="12" x2="14" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><circle cx="9" cy="19" r="2"/><line x1="2" y1="19" x2="7" y2="19"/><line x1="11" y1="19" x2="22" y2="19"/></svg></span>
-    <span class="badge-count" id="desktopPillFilterCount">0</span>
-  </div>
-  <div class="pill-divider"></div>
-  <div class="pill-count" id="desktopPillCount">— results</div>
-</div>
-
-<!-- Desktop Sidebar -->
-<div id="desktopSidebar">
-  <div class="sidebar-header">
-    <div style="display:flex;gap:10px;align-items:center;margin-bottom:16px;position:relative;">
-      <div class="search-input-wrap" style="position:relative;flex:1;">
-        <input id="sidebarSearchBar" type="text" placeholder="Search projects or city..." style="width:100%;" />
-        <button id="sidebarSearchClear" style="display:none;position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;color:rgba(255,255,255,0.4);font-size:16px;cursor:pointer;padding:2px 4px;line-height:1;border-radius:4px;" title="Clear search">✕</button>
-        <div id="sidebarAutocomplete" class="autocomplete-dropdown hidden"></div>
+    <!-- Desktop search pill (top-left, visible only on desktop) -->
+    <div id="desktopSearchPill" class="glass-btn">
+      <div class="pill-search-icon">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
       </div>
-      <button id="closeSidebar" style="background:#1e1e1e;border:none;color:#fff;font-size:20px;cursor:pointer;padding:0;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:4px;flex-shrink:0;">✕</button>
-      <div id="sidebarResults" class="hidden"></div>
+      <span class="pill-text">Search projects or city...</span>
+      <div class="pill-filter-badge" id="desktopPillFilterBadge">
+        <span class="badge-icon"><svg viewBox="0 0 24 24"><circle cx="6" cy="5" r="2"/><line x1="2" y1="5" x2="4" y2="5"/><line x1="8" y1="5" x2="22" y2="5"/><circle cx="16" cy="12" r="2"/><line x1="2" y1="12" x2="14" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><circle cx="9" cy="19" r="2"/><line x1="2" y1="19" x2="7" y2="19"/><line x1="11" y1="19" x2="22" y2="19"/></svg></span>
+        <span class="badge-count" id="desktopPillFilterCount">0</span>
+      </div>
+      <div class="pill-divider"></div>
+      <div class="pill-count" id="desktopPillCount">— results</div>
     </div>
     
-    <div id="filterControlsDesktop" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-      <select id="sortSelectDesktop" style="flex:1;min-width:100px;background:#1a1a1a;color:#fff;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:8px 36px 8px 12px;font-size:14px;font-weight:500;cursor:pointer;transition:all 0.25s ease;appearance:none;background-image:url(&quot;data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%23999' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E&quot;);background-repeat:no-repeat;background-position:right 12px center;">
-        <option value="default">Sort: Nearest</option>
-        <option value="az">Sort: A to Z</option>
-        <option value="za">Sort: Z to A</option>
-      </select>
-      <select id="projectTypeFilterDesktop" style="flex:1;min-width:120px;background:#1a1a1a;color:#fff;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:8px 36px 8px 12px;font-size:14px;font-weight:500;cursor:pointer;transition:all 0.25s ease;appearance:none;background-image:url(&quot;data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%23999' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E&quot;);background-repeat:no-repeat;background-position:right 12px center;">
-        <option value="all" disabled selected>Type</option>
-      </select>
-      <select id="locationFilterDesktop" style="flex:1;min-width:100px;background:#1a1a1a;color:#fff;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:8px 36px 8px 12px;font-size:14px;font-weight:500;cursor:pointer;transition:all 0.25s ease;appearance:none;background-image:url(&quot;data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%23999' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E&quot;);background-repeat:no-repeat;background-position:right 12px center;">
-        <option value="all" disabled selected>Status</option>
-      </select>
-    </div>
+    <!-- Desktop Sidebar -->
+    <div id="desktopSidebar">
+      <div class="sidebar-header">
 
-    <!-- Active filter pills (desktop) -->
-    <div class="filter-pills-row" id="desktopPillsRow"></div>
-
-    <!-- Result count (desktop) -->
-    <div class="result-count" id="desktopResultCount" style="display:none;"></div>
-  </div>
-
-  <div class="sidebar-content">
-    <div class="leaf-grid" id="gridDesktop"></div>
-  </div>
-</div>
-
-<!-- Mobile Drawer -->
-<div id="mobileDrawer">
-  <div id="mobileDrawerHandle"></div>
-  <div id="mobileDrawerContent">
-    <div class="mobile-header">
-      <!-- Row 1: Glass search pill with autocomplete outside overflow:hidden -->
-      <div style="position:relative;">
-        <div class="mobile-search-pill">
-          <div class="search-pill-icon">
-            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <!-- Row 1: Search glass pill + close button -->
+        <div class="desktop-search-row">
+          <div class="desktop-search-pill">
+            <div class="search-pill-icon">
+              <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            </div>
+            <input id="sidebarSearchBar" type="text" placeholder="Search projects or city..." />
+            <button id="sidebarSearchClear" title="Clear search">✕</button>
+            <div id="sidebarAutocomplete" class="autocomplete-dropdown hidden"></div>
           </div>
-          <input id="mobileSearchBar" type="text" placeholder="Search projects or city..." />
-          <button id="mobileSearchClear" title="Clear search">✕</button>
+          <button id="closeSidebar" title="Close">✕</button>
+          <div id="sidebarResults" class="hidden"></div>
         </div>
-        <div id="mobileAutocomplete" class="autocomplete-dropdown hidden"></div>
+
+        <!-- Row 2: Glass filter pill with three segments -->
+        <div class="desktop-filter-pill mobile-filter-pill">
+          <div class="filter-seg" id="desktopSegSort">
+            <span class="filter-seg-label" id="desktopLabelSort">Nearest</span>
+            <svg class="filter-seg-chevron" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-linecap="round"/></svg>
+            <select id="sortSelectDesktop">
+              <option value="default">Nearest</option>
+              <option value="az">A to Z</option>
+              <option value="za">Z to A</option>
+            </select>
+          </div>
+          <div class="filter-seg-div"></div>
+          <div class="filter-seg" id="desktopSegType">
+            <span class="filter-seg-label" id="desktopLabelType">Type</span>
+            <svg class="filter-seg-chevron" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-linecap="round"/></svg>
+            <select id="projectTypeFilterDesktop">
+              <option value="all">All Types</option>
+            </select>
+          </div>
+          <div class="filter-seg-div"></div>
+          <div class="filter-seg" id="desktopSegStatus">
+            <span class="filter-seg-label" id="desktopLabelStatus">Status</span>
+            <svg class="filter-seg-chevron" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-linecap="round"/></svg>
+            <select id="locationFilterDesktop">
+              <option value="all">All Status</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Active filter pills (desktop) -->
+        <div class="filter-pills-row" id="desktopPillsRow"></div>
+
+        <!-- Result count (desktop) -->
+        <div class="result-count" id="desktopResultCount" style="display:none;margin-top:2px;"></div>
       </div>
 
-      <!-- Row 2: Glass filter pill with three equal segments -->
-      <div class="mobile-filter-pill">
-        <div class="filter-seg" id="mobileSegSort">
-          <span class="filter-seg-label" id="mobileLabelSort">Nearest</span>
-          <svg class="filter-seg-chevron" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-linecap="round"/></svg>
-          <select id="sortSelectMobile">
-            <option value="default">Nearest</option>
-            <option value="az">A to Z</option>
-            <option value="za">Z to A</option>
-          </select>
-        </div>
-        <div class="filter-seg-div"></div>
-        <div class="filter-seg" id="mobileSegType">
-          <span class="filter-seg-label" id="mobileLabelType">Type</span>
-          <svg class="filter-seg-chevron" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-linecap="round"/></svg>
-          <select id="projectTypeFilterMobile">
-            <option value="all">All Types</option>
-          </select>
-        </div>
-        <div class="filter-seg-div"></div>
-        <div class="filter-seg" id="mobileSegStatus">
-          <span class="filter-seg-label" id="mobileLabelStatus">Status</span>
-          <svg class="filter-seg-chevron" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-linecap="round"/></svg>
-          <select id="locationFilterMobile">
-            <option value="all">All Status</option>
-          </select>
-        </div>
+      <div class="sidebar-content">
+        <div class="leaf-grid" id="gridDesktop"></div>
       </div>
-
-      <!-- Active filter pills -->
-      <div class="filter-pills-row" id="mobilePillsRow"></div>
-      <!-- Result count -->
-      <div class="result-count" id="mobileResultCount" style="display:none;margin-top:2px;"></div>
     </div>
     
-    <div class="mobile-content allow-scroll">
-      <div class="leaf-grid" id="gridMobile"></div>
+    <!-- Mobile Drawer -->
+    <div id="mobileDrawer">
+      <div id="mobileDrawerHandle"></div>
+      <div id="mobileDrawerContent">
+        <div class="mobile-header">
+          <!-- Row 1: Glass search pill with autocomplete outside overflow:hidden -->
+          <div style="position:relative;">
+            <div class="mobile-search-pill">
+              <div class="search-pill-icon">
+                <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+              </div>
+              <input id="mobileSearchBar" type="text" placeholder="Search projects or city..." />
+              <button id="mobileSearchClear" title="Clear search">✕</button>
+            </div>
+            <div id="mobileAutocomplete" class="autocomplete-dropdown hidden"></div>
+          </div>
+
+          <!-- Row 2: Glass filter pill with three equal segments -->
+          <div class="mobile-filter-pill">
+            <div class="filter-seg" id="mobileSegSort">
+              <span class="filter-seg-label" id="mobileLabelSort">Nearest</span>
+              <svg class="filter-seg-chevron" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-linecap="round"/></svg>
+              <select id="sortSelectMobile">
+                <option value="default">Nearest</option>
+                <option value="az">A to Z</option>
+                <option value="za">Z to A</option>
+              </select>
+            </div>
+            <div class="filter-seg-div"></div>
+            <div class="filter-seg" id="mobileSegType">
+              <span class="filter-seg-label" id="mobileLabelType">Type</span>
+              <svg class="filter-seg-chevron" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-linecap="round"/></svg>
+              <select id="projectTypeFilterMobile">
+                <option value="all">All Types</option>
+              </select>
+            </div>
+            <div class="filter-seg-div"></div>
+            <div class="filter-seg" id="mobileSegStatus">
+              <span class="filter-seg-label" id="mobileLabelStatus">Status</span>
+              <svg class="filter-seg-chevron" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-linecap="round"/></svg>
+              <select id="locationFilterMobile">
+                <option value="all">All Status</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Active filter pills -->
+          <div class="filter-pills-row" id="mobilePillsRow"></div>
+          <!-- Result count -->
+          <div class="result-count" id="mobileResultCount" style="display:none;margin-top:2px;"></div>
+        </div>
+        
+        <div class="mobile-content allow-scroll">
+          <div class="leaf-grid" id="gridMobile"></div>
+        </div>
+      </div>
+      <button id="mobileMapButton">
+        <div class="map-btn-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.94-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+        </div>
+        <span class="map-btn-label">Map</span>
+        <div class="map-btn-divider"></div>
+        <div class="map-btn-badge" id="mapBtnFilterBadge">
+          <svg viewBox="0 0 24 24"><circle cx="6" cy="5" r="2"/><line x1="2" y1="5" x2="4" y2="5"/><line x1="8" y1="5" x2="22" y2="5"/><circle cx="16" cy="12" r="2"/><line x1="2" y1="12" x2="14" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><circle cx="9" cy="19" r="2"/><line x1="2" y1="19" x2="7" y2="19"/><line x1="11" y1="19" x2="22" y2="19"/></svg>
+          <span class="badge-num" id="mapBtnFilterCount">0</span>
+        </div>
+      </button>
+    </div>
+    
+    <button id="mobileTilesButton">
+      <div class="pill-search-icon">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <span class="pill-text">Search projects or city...</span>
+      <div class="pill-filter-badge" id="mobilePillFilterBadge">
+        <span class="badge-icon"><svg viewBox="0 0 24 24"><circle cx="6" cy="5" r="2"/><line x1="2" y1="5" x2="4" y2="5"/><line x1="8" y1="5" x2="22" y2="5"/><circle cx="16" cy="12" r="2"/><line x1="2" y1="12" x2="14" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><circle cx="9" cy="19" r="2"/><line x1="2" y1="19" x2="7" y2="19"/><line x1="11" y1="19" x2="22" y2="19"/></svg></span>
+        <span class="badge-count" id="mobilePillFilterCount">0</span>
+      </div>
+      <div class="pill-divider"></div>
+      <div class="pill-count" id="mobilePillCount">— results</div>
+    </button>
+    <a id="mobileHomeButton" href="https://www.oftmw.com" target="_blank">
+      <img src="https://static.wixstatic.com/shapes/ca3b83_a647b53cad4c49c5b012af991d286a86.svg" alt="Markets of Tomorrow" style="width:95%;height:95%;filter:brightness(0) invert(1);object-fit:contain;" />
+    </a>
+    <button id="mapReturnButton">Map</button>
+    
+    <div id="map"></div>
+    
+    <div id="fullscreenModal">
+      <button id="exitFullscreen">✕ Exit</button>
+      <div id="fullscreenMap"></div>
     </div>
   </div>
-  <button id="mobileMapButton">
-    <div class="map-btn-icon">
-      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.94-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
-    </div>
-    <span class="map-btn-label">Map</span>
-    <div class="map-btn-divider"></div>
-    <div class="map-btn-badge" id="mapBtnFilterBadge">
-      <svg viewBox="0 0 24 24"><circle cx="6" cy="5" r="2"/><line x1="2" y1="5" x2="4" y2="5"/><line x1="8" y1="5" x2="22" y2="5"/><circle cx="16" cy="12" r="2"/><line x1="2" y1="12" x2="14" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><circle cx="9" cy="19" r="2"/><line x1="2" y1="19" x2="7" y2="19"/><line x1="11" y1="19" x2="22" y2="19"/></svg>
-      <span class="badge-num" id="mapBtnFilterCount">0</span>
-    </div>
-  </button>
-</div>
-
-<button id="mobileTilesButton">
-  <div class="pill-search-icon">
-    <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-  </div>
-  <span class="pill-text">Search projects or city...</span>
-  <div class="pill-filter-badge" id="mobilePillFilterBadge">
-    <span class="badge-icon"><svg viewBox="0 0 24 24"><circle cx="6" cy="5" r="2"/><line x1="2" y1="5" x2="4" y2="5"/><line x1="8" y1="5" x2="22" y2="5"/><circle cx="16" cy="12" r="2"/><line x1="2" y1="12" x2="14" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><circle cx="9" cy="19" r="2"/><line x1="2" y1="19" x2="7" y2="19"/><line x1="11" y1="19" x2="22" y2="19"/></svg></span>
-    <span class="badge-count" id="mobilePillFilterCount">0</span>
-  </div>
-  <div class="pill-divider"></div>
-  <div class="pill-count" id="mobilePillCount">— results</div>
-</button>
-<a id="mobileHomeButton" href="https://www.oftmw.com" target="_blank">
-  <img src="https://static.wixstatic.com/shapes/ca3b83_a647b53cad4c49c5b012af991d286a86.svg" alt="Markets of Tomorrow" style="width:95%;height:95%;filter:brightness(0) invert(1);object-fit:contain;" />
-</a>
-<button id="mapReturnButton">Map</button>
-
-<div id="map"></div>
-
-<div id="fullscreenModal">
-  <button id="exitFullscreen">✕ Exit</button>
-  <div id="fullscreenMap"></div>
-</div>
-```
-
-  </div>
-
+  
   <div id="toast" class="toast"></div>
-
+  
   <script>
     // ─── VIEWPORT HEIGHT ─────────────────────────────────────────────────────
     const setAppHeight = () => {
@@ -1834,6 +1899,7 @@
 
       renderPills('desktop'); updateFilterBadge('desktop');
       renderPills('mobile'); updateFilterBadge('mobile');
+      updateDesktopSegmentLabels();
       updateMobileSegmentLabels();
       updateMapPinFilters();
       renderGrid('gridDesktop');
@@ -1859,6 +1925,26 @@
         { segId: 'mobileSegStatus', labelId: 'mobileLabelStatus', selId: 'locationFilterMobile',    defaultVal: 'all'     },
       ];
       const fallbacks = { 'mobileSegSort': 'Nearest', 'mobileSegType': 'Type', 'mobileSegStatus': 'Status' };
+      defs.forEach(({ segId, labelId, selId, defaultVal }) => {
+        const seg = document.getElementById(segId);
+        const label = document.getElementById(labelId);
+        const sel = document.getElementById(selId);
+        if (!seg || !label || !sel) return;
+        const val = sel.value;
+        const isActive = val !== defaultVal && val !== 'all';
+        const selectedText = sel.options[sel.selectedIndex]?.text || fallbacks[segId];
+        label.textContent = isActive ? selectedText : fallbacks[segId];
+        seg.classList.toggle('active', isActive);
+      });
+    }
+
+    function updateDesktopSegmentLabels() {
+      const defs = [
+        { segId: 'desktopSegSort',   labelId: 'desktopLabelSort',   selId: 'sortSelectDesktop',        defaultVal: 'default' },
+        { segId: 'desktopSegType',   labelId: 'desktopLabelType',   selId: 'projectTypeFilterDesktop', defaultVal: 'all'     },
+        { segId: 'desktopSegStatus', labelId: 'desktopLabelStatus', selId: 'locationFilterDesktop',    defaultVal: 'all'     },
+      ];
+      const fallbacks = { 'desktopSegSort': 'Nearest', 'desktopSegType': 'Type', 'desktopSegStatus': 'Status' };
       defs.forEach(({ segId, labelId, selId, defaultVal }) => {
         const seg = document.getElementById(segId);
         const label = document.getElementById(labelId);
@@ -2540,6 +2626,7 @@
           // Keep mobile in sync for map pin filtering (type + status only, not sort)
           if (key !== 'sort') activeFilters.mobile[key] = el.value;
           updateSelectActiveState(el, el.value, key === 'sort' ? 'default' : 'all');
+          updateDesktopSegmentLabels();
           gtag('event', 'filter_change', { 'filter_type': key, 'filter_value': el.value, 'platform': 'desktop' });
           renderPills('desktop'); updateFilterBadge('desktop');
           updateMapPinFilters();
@@ -2609,18 +2696,20 @@
             mobileAC.classList.add('hidden');
             if (isCity) {
               const allFeats = window.allProjectFeatures || source._data.features;
+              // Clear stale cache immediately so expandDrawer doesn't restore old city
               window.mobileSearchFeatures = allFeats;
+              // Render immediately with current filters applied
+              window.mobileLoadedCount = 12;
+              renderFilteredGrid('gridMobile', allFeats);
               const cityFeatures = allFeats.filter(p => p.properties.city === f._cityValue);
               const firstInCity = cityFeatures[0];
               if (firstInCity) {
                 map.flyTo({ center: firstInCity.geometry.coordinates, zoom: 11 });
-                // Re-render once flyTo lands so In View reflects Nashville's actual bounds
+                // Re-render once flyTo lands so In View reflects new city's bounds
                 map.once('moveend', () => {
                   window.mobileLoadedCount = 12;
                   renderFilteredGrid('gridMobile', allFeats);
                 });
-              } else {
-                renderFilteredGrid('gridMobile', allFeats);
               }
             } else {
               const projectMatchesFilters =
@@ -2746,10 +2835,11 @@
         if (!source?._data) return;
         buildAutocomplete(query, source._data.features, sidebarAC, (f, isCity) => {
           searchBar.value = isCity ? f._cityLabel : f.properties.title;
-          if (clearBtn) clearBtn.style.display = 'block';
+          if (clearBtn) clearBtn.style.display = 'flex';
           sidebarAC.classList.add('hidden');
           if (isCity) {
             const allFeats = window.allProjectFeatures || source._data.features;
+            renderFilteredGrid('gridDesktop', allFeats);
             const cityFeatures = allFeats.filter(p => p.properties.city === f._cityValue);
             const firstInCity = cityFeatures[0];
             if (firstInCity) {
@@ -2757,8 +2847,6 @@
               map.once('moveend', () => {
                 renderFilteredGrid('gridDesktop', allFeats);
               });
-            } else {
-              renderFilteredGrid('gridDesktop', allFeats);
             }
           } else {
             // Clear type/status filters if project doesn't match them
@@ -3121,6 +3209,7 @@
           renderGrid('gridDesktop');
           renderGrid('gridMobile');
           populateLocationFilter();
+          updateDesktopSegmentLabels();
           updateMobileSegmentLabels();
           setupMobileDrawer();
 
@@ -3203,6 +3292,5 @@
       if (fullscreenMap) { map.setCenter(fullscreenMap.getCenter()); map.setZoom(fullscreenMap.getZoom()); }
     };
   </script>
-
 </body>
 </html>
