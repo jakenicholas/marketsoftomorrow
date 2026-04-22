@@ -2255,9 +2255,6 @@
             <div class="grid-item-content">
               <h3 style="color:#fff!important;margin:0 0 4px;font-size:16px;">${f.properties.title}</h3>
               <p class="city" style="color:#ccc!important;margin:0 0 auto;font-size:12px;padding-bottom:8px;">${f.properties.city}</p>
-              <p class="website-btn">
-                <a href="${f.properties.website}" target="_blank" class="website-link" onclick="event.stopPropagation();gtag('event','learn_more_click',{'project_name':'${f.properties.title}','project_city':'${f.properties.city}','click_location':'tile','device_type':'${isMobile?'mobile':'desktop'}'});">Learn More</a>
-              </p>
             </div>`;
           d.onclick = () => {
             if (window.gridRendering[targetId]) return;
@@ -2392,7 +2389,6 @@
             <div class="grid-item-content">
               <h3 style="color:#fff!important;margin:0 0 4px;font-size:16px;">${f.properties.title}</h3>
               <p class="city" style="color:#ccc!important;margin:0 0 auto;font-size:12px;padding-bottom:8px;">${f.properties.city}</p>
-              <p class="website-btn"><a href="${f.properties.website}" target="_blank" class="website-link" onclick="event.stopPropagation();">Learn More</a></p>
             </div>`;
         d.onclick = () => {
           if (window.gridRendering[targetId] || !map.getSource('projects')?._data) return;
