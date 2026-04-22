@@ -622,8 +622,10 @@
       border: 1px solid rgba(255,255,255,0.08);
       border-radius: 19px;
       box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
-      overflow: hidden;
+      overflow: visible;
     }
+    .filter-seg:first-child { border-radius: 19px 0 0 19px; }
+    .filter-seg:last-child  { border-radius: 0 19px 19px 0; }
     .filter-seg {
       position: relative;
       display: flex; align-items: center; justify-content: center;
@@ -746,8 +748,6 @@
     }
     .desktop-filter-pill .filter-seg { padding: 0 8px 0 12px; }
     .desktop-filter-pill .filter-seg-label { font-size: 12px; }
-
-    #desktopSidebar .sidebar-header select { display: none; } /* hidden — overlaid */
 
     /* ─── GRID LAYOUT ─────────────────────────────────────────────────────── */
     .leaf-grid { display: grid; grid-gap: 16px; grid-template-columns: repeat(2,1fr); }
