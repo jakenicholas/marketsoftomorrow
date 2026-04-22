@@ -598,8 +598,6 @@
       backdrop-filter: blur(16px) saturate(1.4);
       -webkit-backdrop-filter: blur(16px) saturate(1.4);
       box-shadow: 0 2px 16px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.06);
-      position: relative;
-      overflow: hidden;
     }
     .mobile-search-pill .search-pill-icon {
       display: flex; align-items: center; justify-content: center;
@@ -627,7 +625,7 @@
     /* Row 2: Filter glass pill with three segments */
     .mobile-filter-pill {
       display: flex;
-      align-items: center;
+      align-items: stretch;
       height: 38px;
       background: rgba(255,255,255,0.04);
       border: 1px solid rgba(255,255,255,0.08);
@@ -638,10 +636,11 @@
     .filter-seg {
       position: relative;
       display: flex; align-items: center; justify-content: center;
-      gap: 4px;
+      gap: 0;
       flex: 1; height: 100%;
       cursor: pointer;
       transition: background 0.15s;
+      padding: 0 8px 0 12px;
     }
     .filter-seg:hover { background: rgba(255,255,255,0.04); }
     .filter-seg.active { background: rgba(31,223,103,0.07); }
@@ -649,24 +648,25 @@
       font-size: 12px; font-weight: 500;
       color: rgba(255,255,255,0.45);
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-      max-width: 80px;
+      flex: 1;
       pointer-events: none;
       transition: color 0.15s;
     }
     .filter-seg.active .filter-seg-label { color: #1FDF67; }
     .filter-seg-chevron {
-      width: 8px; height: 8px; flex-shrink: 0;
-      pointer-events: none; transition: fill 0.15s;
-      fill: rgba(255,255,255,0.25);
+      width: 9px; height: 9px; flex-shrink: 0;
+      pointer-events: none; transition: stroke 0.15s;
+      margin-left: 4px;
     }
-    .filter-seg.active .filter-seg-chevron { fill: #1FDF67; }
+    .filter-seg.active .filter-seg-chevron path { stroke: #1FDF67 !important; }
     .filter-seg select {
       position: absolute; inset: 0;
       opacity: 0; width: 100%; height: 100%;
       cursor: pointer; font-size: 16px;
     }
     .filter-seg-div {
-      width: 1px; height: 18px;
+      width: 1px;
+      align-self: stretch;
       background: rgba(255,255,255,0.07); flex-shrink: 0;
     }
 
@@ -1419,21 +1419,24 @@
   <div id="mobileDrawerHandle"></div>
   <div id="mobileDrawerContent">
     <div class="mobile-header">
-      <!-- Row 1: Glass search pill -->
-      <div class="mobile-search-pill">
-        <div class="search-pill-icon">
-          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <div class="mobile-header">
+      <!-- Row 1: Glass search pill with autocomplete outside overflow:hidden -->
+      <div style="position:relative;">
+        <div class="mobile-search-pill">
+          <div class="search-pill-icon">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          </div>
+          <input id="mobileSearchBar" type="text" placeholder="Search projects or city..." />
+          <button id="mobileSearchClear" title="Clear search">✕</button>
         </div>
-        <input id="mobileSearchBar" type="text" placeholder="Search projects or city..." />
-        <button id="mobileSearchClear" title="Clear search">✕</button>
         <div id="mobileAutocomplete" class="autocomplete-dropdown hidden"></div>
       </div>
 
-      <!-- Row 2: Glass filter pill with three segments -->
+      <!-- Row 2: Glass filter pill with three equal segments -->
       <div class="mobile-filter-pill">
         <div class="filter-seg" id="mobileSegSort">
           <span class="filter-seg-label" id="mobileLabelSort">Nearest</span>
-          <svg class="filter-seg-chevron" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <svg class="filter-seg-chevron" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-linecap="round"/></svg>
           <select id="sortSelectMobile">
             <option value="default">Nearest</option>
             <option value="az">A to Z</option>
@@ -1443,7 +1446,7 @@
         <div class="filter-seg-div"></div>
         <div class="filter-seg" id="mobileSegType">
           <span class="filter-seg-label" id="mobileLabelType">Type</span>
-          <svg class="filter-seg-chevron" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <svg class="filter-seg-chevron" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-linecap="round"/></svg>
           <select id="projectTypeFilterMobile">
             <option value="all">All Types</option>
           </select>
@@ -1451,7 +1454,7 @@
         <div class="filter-seg-div"></div>
         <div class="filter-seg" id="mobileSegStatus">
           <span class="filter-seg-label" id="mobileLabelStatus">Status</span>
-          <svg class="filter-seg-chevron" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <svg class="filter-seg-chevron" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-linecap="round"/></svg>
           <select id="locationFilterMobile">
             <option value="all">All Status</option>
           </select>
