@@ -1868,6 +1868,8 @@
 
         renderPills('desktop'); updateFilterBadge('desktop');
         renderPills('mobile'); updateFilterBadge('mobile');
+        updateDesktopSegmentLabels();
+        updateMobileSegmentLabels();
         updateMapPinFilters();
         renderGrid('gridDesktop'); updateResultCount('gridDesktop');
         window.mobileLoadedCount = 12;
