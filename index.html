@@ -2106,6 +2106,13 @@
       window.gridRendering = window.gridRendering || {};
       window.gridRendering[targetId] = true;
       grid.innerHTML = '';
+
+      // Apply active type/status filters on top of the search-filtered list
+      const platform = targetId === 'gridDesktop' ? 'desktop' : 'mobile';
+      const { type: typeFilter, status: statusFilter } = activeFilters[platform];
+      if (typeFilter !== 'all') features = features.filter(f => f.properties.projectTypes?.includes(typeFilter.toLowerCase()) || f._projectTypes?.includes(typeFilter.toLowerCase()));
+      if (statusFilter !== 'all') features = features.filter(f => f.properties.delivery === statusFilter);
+
       const mapCenter = map.getCenter();
       const mapBounds = map.getBounds();
       features = features.map(f => {
@@ -2496,10 +2503,12 @@
             if (mobileClearBtn) mobileClearBtn.style.display = 'block';
             mobileAC.classList.add('hidden');
             if (isCity) {
-              const cityFeatures = (window.allProjectFeatures || source._data.features)
-                .filter(p => p.properties.city === f._cityValue);
-              window.mobileSearchFeatures = cityFeatures; // store for re-open
-              renderFilteredGrid('gridMobile', cityFeatures);
+              // Pass ALL projects — renderFilteredGrid applies active type/status filters
+              // The flyTo sets the map view; section headers show what's in view vs nearby
+              const allFeats = window.allProjectFeatures || source._data.features;
+              window.mobileSearchFeatures = allFeats;
+              renderFilteredGrid('gridMobile', allFeats);
+              const cityFeatures = allFeats.filter(p => p.properties.city === f._cityValue);
               const firstInCity = cityFeatures[0];
               if (firstInCity) map.flyTo({ center: firstInCity.geometry.coordinates, zoom: 11 });
             } else {
@@ -2629,9 +2638,9 @@
           if (clearBtn) clearBtn.style.display = 'block';
           sidebarAC.classList.add('hidden');
           if (isCity) {
-            const cityFeatures = (window.allProjectFeatures || source._data.features)
-              .filter(p => p.properties.city === f._cityValue);
-            renderFilteredGrid('gridDesktop', cityFeatures);
+            const allFeats = window.allProjectFeatures || source._data.features;
+            renderFilteredGrid('gridDesktop', allFeats);
+            const cityFeatures = allFeats.filter(p => p.properties.city === f._cityValue);
             const firstInCity = cityFeatures[0];
             if (firstInCity) map.flyTo({ center: firstInCity.geometry.coordinates, zoom: 11 });
           } else {
