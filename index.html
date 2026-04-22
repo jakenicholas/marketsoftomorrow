@@ -2608,14 +2608,20 @@
             if (mobileClearBtn) mobileClearBtn.style.display = 'flex';
             mobileAC.classList.add('hidden');
             if (isCity) {
-              // Pass ALL projects — renderFilteredGrid applies active type/status filters
-              // The flyTo sets the map view; section headers show what's in view vs nearby
               const allFeats = window.allProjectFeatures || source._data.features;
               window.mobileSearchFeatures = allFeats;
-              renderFilteredGrid('gridMobile', allFeats);
               const cityFeatures = allFeats.filter(p => p.properties.city === f._cityValue);
               const firstInCity = cityFeatures[0];
-              if (firstInCity) map.flyTo({ center: firstInCity.geometry.coordinates, zoom: 11 });
+              if (firstInCity) {
+                map.flyTo({ center: firstInCity.geometry.coordinates, zoom: 11 });
+                // Re-render once flyTo lands so In View reflects Nashville's actual bounds
+                map.once('moveend', () => {
+                  window.mobileLoadedCount = 12;
+                  renderFilteredGrid('gridMobile', allFeats);
+                });
+              } else {
+                renderFilteredGrid('gridMobile', allFeats);
+              }
             } else {
               const projectMatchesFilters =
                 (activeFilters.mobile.type === 'all' || f._projectTypes?.includes(activeFilters.mobile.type.toLowerCase())) &&
@@ -2744,10 +2750,16 @@
           sidebarAC.classList.add('hidden');
           if (isCity) {
             const allFeats = window.allProjectFeatures || source._data.features;
-            renderFilteredGrid('gridDesktop', allFeats);
             const cityFeatures = allFeats.filter(p => p.properties.city === f._cityValue);
             const firstInCity = cityFeatures[0];
-            if (firstInCity) map.flyTo({ center: firstInCity.geometry.coordinates, zoom: 11 });
+            if (firstInCity) {
+              map.flyTo({ center: firstInCity.geometry.coordinates, zoom: 11 });
+              map.once('moveend', () => {
+                renderFilteredGrid('gridDesktop', allFeats);
+              });
+            } else {
+              renderFilteredGrid('gridDesktop', allFeats);
+            }
           } else {
             // Clear type/status filters if project doesn't match them
             const projectMatchesFilters =
