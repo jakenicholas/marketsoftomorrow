@@ -2163,9 +2163,7 @@
       grid.style.pointerEvents = 'none';
       window.gridRendering = window.gridRendering || {};
       window.gridRendering[targetId] = true;
-
-      // Show loading spinner immediately
-      grid.innerHTML = '<div class="grid-loading"><div class="grid-loading-spinner"></div><div class="grid-loading-text">Loading...</div></div>';
+      grid.innerHTML = '';
       if (!map.getSource('projects') || !map.getSource('projects')._data) {
         grid.style.pointerEvents = 'auto'; window.gridRendering[targetId] = false; return;
       }
@@ -2340,7 +2338,7 @@
       grid.style.pointerEvents = 'none';
       window.gridRendering = window.gridRendering || {};
       window.gridRendering[targetId] = true;
-      grid.innerHTML = '<div class="grid-loading"><div class="grid-loading-spinner"></div><div class="grid-loading-text">Loading...</div></div>';
+      grid.innerHTML = '';
 
       // Apply active type/status filters on top of the search-filtered list
       const platform = targetId === 'gridDesktop' ? 'desktop' : 'mobile';
@@ -2785,20 +2783,21 @@
             mobileAC.classList.add('hidden');
             if (isCity) {
               const allFeats = window.allProjectFeatures || source._data.features;
-              // Clear stale cache immediately so expandDrawer doesn't restore old city
               window.mobileSearchFeatures = allFeats;
-              // Render immediately with current filters applied
               window.mobileLoadedCount = 12;
-              renderFilteredGrid('gridMobile', allFeats);
               const cityFeatures = allFeats.filter(p => p.properties.city === f._cityValue);
               const firstInCity = cityFeatures[0];
               if (firstInCity) {
+                // Show spinner during flyTo
+                const g = document.getElementById('gridMobile');
+                if (g) g.innerHTML = '<div class="grid-loading"><div class="grid-loading-spinner"></div><div class="grid-loading-text">Loading...</div></div>';
                 map.flyTo({ center: firstInCity.geometry.coordinates, zoom: 11 });
-                // Re-render once flyTo lands so In View reflects new city's bounds
                 map.once('moveend', () => {
                   window.mobileLoadedCount = 12;
                   renderFilteredGrid('gridMobile', allFeats);
                 });
+              } else {
+                renderFilteredGrid('gridMobile', allFeats);
               }
             } else {
               const projectMatchesFilters =
@@ -2928,14 +2927,18 @@
           sidebarAC.classList.add('hidden');
           if (isCity) {
             const allFeats = window.allProjectFeatures || source._data.features;
-            renderFilteredGrid('gridDesktop', allFeats);
             const cityFeatures = allFeats.filter(p => p.properties.city === f._cityValue);
             const firstInCity = cityFeatures[0];
             if (firstInCity) {
+              // Show spinner during flyTo
+              const g = document.getElementById('gridDesktop');
+              if (g) g.innerHTML = '<div class="grid-loading"><div class="grid-loading-spinner"></div><div class="grid-loading-text">Loading...</div></div>';
               map.flyTo({ center: firstInCity.geometry.coordinates, zoom: 11 });
               map.once('moveend', () => {
                 renderFilteredGrid('gridDesktop', allFeats);
               });
+            } else {
+              renderFilteredGrid('gridDesktop', allFeats);
             }
           } else {
             // Clear type/status filters if project doesn't match them
