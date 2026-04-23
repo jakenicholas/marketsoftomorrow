@@ -2686,8 +2686,23 @@
     }
 
     // ─── GEOCODE SEARCH ───────────────────────────────────────────────────────
-    // Geocodes any query via Mapbox and flies map to result with smart zoom
-    async function geocodeAndFly(query, onResult) {
+    // Smart fly-to for a Mapbox geocode feature — always uses center + zoom, never broken bbox
+    function flyToGeoFeature(gf) {
+      const placeType = gf.place_type?.[0] || '';
+      const zoom = placeType === 'country' ? 4
+                 : placeType === 'region'  ? 6
+                 : placeType === 'district'? 8
+                 : placeType === 'place'   ? 11
+                 : placeType === 'locality'|| placeType === 'neighborhood' ? 13
+                 : 11;
+      // Only use bbox for countries where center+zoom would be misleading
+      // For regions/places like Tokyo Prefecture, always use center to avoid ocean snap
+      if (gf.bbox && placeType === 'country') {
+        map.fitBounds(gf.bbox, { padding: 60, maxZoom: zoom, duration: 1200 });
+      } else {
+        map.flyTo({ center: gf.center, zoom, duration: 1200 });
+      }
+    }
       const token = mapboxgl.accessToken;
       const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${token}&limit=1`;
       try {
@@ -2708,7 +2723,7 @@
         else if (placeType === 'poi')    zoom = 14;
 
         // Use bbox if available for better framing
-        if (feature.bbox) {
+        if (feature.bbox && placeType === 'country') {
           map.fitBounds(feature.bbox, { padding: 60, maxZoom: zoom, duration: 1200 });
         } else {
           map.flyTo({ center: [lng, lat], zoom, duration: 1200 });
@@ -2821,13 +2836,7 @@
               const allFeats = window.allProjectFeatures || source._data.features;
               window.mobileSearchFeatures = allFeats;
               window.mobileLoadedCount = 12;
-              if (gf.bbox) {
-                map.fitBounds(gf.bbox, { padding: 60, maxZoom: 12, duration: 1200 });
-              } else {
-                const placeType = gf.place_type?.[0] || '';
-                const zoom = placeType === 'country' ? 4 : placeType === 'region' ? 6 : placeType === 'district' ? 8 : 11;
-                map.flyTo({ center: gf.center, zoom, duration: 1200 });
-              }
+              flyToGeoFeature(gf);
               map.once('moveend', () => {
                 window.mobileLoadedCount = 12;
                 renderFilteredGrid('gridMobile', allFeats);
@@ -2986,13 +2995,7 @@
             const g = document.getElementById('gridDesktop');
             if (g) g.innerHTML = '<div class="grid-loading"><div class="grid-loading-spinner"></div><div class="grid-loading-text">Loading...</div></div>';
             const allFeats = window.allProjectFeatures || source._data.features;
-            if (gf.bbox) {
-              map.fitBounds(gf.bbox, { padding: 60, maxZoom: 12, duration: 1200 });
-            } else {
-              const placeType = gf.place_type?.[0] || '';
-              const zoom = placeType === 'country' ? 4 : placeType === 'region' ? 6 : placeType === 'district' ? 8 : 11;
-              map.flyTo({ center: gf.center, zoom, duration: 1200 });
-            }
+            flyToGeoFeature(gf);
             map.once('moveend', () => { renderFilteredGrid('gridDesktop', allFeats); });
             return;
           }
