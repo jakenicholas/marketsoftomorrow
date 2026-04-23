@@ -2610,8 +2610,15 @@
       // Fire geocoding in parallel for broad place types (state, country, region)
       if (query.length >= 3) {
         geocodeSuggest(query).then(geoFeatures => {
-          const broadTypes = ['country', 'region', 'district'];
-          const broadResults = geoFeatures.filter(gf => gf.place_type?.some(t => broadTypes.includes(t))).slice(0, 2);
+          const broadTypes = ['country', 'region', 'district', 'place', 'locality'];
+          const localCityNames = cities.map(([c]) => c.toLowerCase());
+          const broadResults = geoFeatures.filter(gf => {
+            if (!gf.place_type?.some(t => broadTypes.includes(t))) return false;
+            // Don't show city-level geo results if already in local data
+            const name = (gf.text || '').toLowerCase();
+            if (['place','locality'].includes(gf.place_type?.[0]) && localCityNames.includes(name)) return false;
+            return true;
+          }).slice(0, 2);
           if (!broadResults.length) return;
 
           // Prepend Places section at top
