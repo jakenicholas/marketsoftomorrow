@@ -447,14 +447,14 @@
       height: 24px;
       background: rgba(255,255,255,0.12);
       flex-shrink: 0;
-      margin: 0 4px;
+      margin: 0;
     }
 
     #mobileTilesButton .pill-count {
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 0 16px;
+      padding: 0 18px;
       flex-shrink: 0;
       font-size: 12px;
       font-weight: 700;
@@ -1022,11 +1022,11 @@
     }
     #desktopSearchPill .pill-divider {
       width: 1px; height: 20px;
-      background: rgba(255,255,255,0.12); flex-shrink: 0; margin: 0 4px;
+      background: rgba(255,255,255,0.12); flex-shrink: 0; margin: 0;
     }
     #desktopSearchPill .pill-count {
       display: flex; align-items: center; justify-content: center;
-      padding: 0 14px; flex-shrink: 0;
+      padding: 0 16px; flex-shrink: 0;
       font-size: 11px; font-weight: 700;
       color: var(--accent); white-space: nowrap;
     }
@@ -2654,38 +2654,42 @@
     // ─── FALLBACK NEARBY HIERARCHY ───────────────────────────────────────────
     // 1. Same type + same status  2. Same type only  3. Closest projects
     function getFallbackFeatures(mapCenter, typeFilter, statusFilter, excludeInBounds) {
+      const NEARBY_RADIUS_MILES = 300;
       const allF = (window.allProjectFeatures || []).map(f => {
         const coords = f.geometry.coordinates;
         return { ...f, distance: calculateDistance(mapCenter.lat, mapCenter.lng, coords[1], coords[0]) };
       });
-      const pool = excludeInBounds
-        ? allF.filter(f => {
-            const bounds = map.getBounds();
-            return !bounds.contains([f.geometry.coordinates[0], f.geometry.coordinates[1]]);
-          })
-        : allF;
-      const sorted = pool.sort((a, b) => a.distance - b.distance);
 
-      // Tier 1: exact type + status match
+      const bounds = map.getBounds();
+      const pool = allF.filter(f => {
+        const inBounds = bounds.contains([f.geometry.coordinates[0], f.geometry.coordinates[1]]);
+        if (excludeInBounds && inBounds) return false;
+        return true;
+      }).sort((a, b) => a.distance - b.distance);
+
+      // Only consider projects within 300 miles for all tiers
+      const nearby = pool.filter(f => f.distance <= NEARBY_RADIUS_MILES);
+
+      // Tier 1: same type + same status within 300mi
       if (typeFilter !== 'all' && statusFilter !== 'all') {
-        const t1 = sorted.filter(f =>
-          f._projectTypes?.includes(typeFilter.toLowerCase()) &&
+        const t1 = nearby.filter(f =>
+          (f._projectTypes?.includes(typeFilter.toLowerCase()) || f.properties.projectTypes?.includes(typeFilter.toLowerCase())) &&
           f.properties.delivery === statusFilter
         ).slice(0, 12);
         if (t1.length > 0) return { features: t1, tier: 1 };
       }
 
-      // Tier 2: type match only
+      // Tier 2: same type within 300mi
       if (typeFilter !== 'all') {
-        const t2 = sorted.filter(f =>
+        const t2 = nearby.filter(f =>
           f._projectTypes?.includes(typeFilter.toLowerCase()) ||
           f.properties.projectTypes?.includes(typeFilter.toLowerCase())
         ).slice(0, 12);
         if (t2.length > 0) return { features: t2, tier: 2 };
       }
 
-      // Tier 3: closest regardless of filter
-      return { features: sorted.slice(0, 12), tier: 3 };
+      // Tier 3: any projects within 300mi — ignore filter entirely
+      return { features: nearby.slice(0, 12), tier: 3 };
     }
 
     // ─── SETUP DESKTOP FILTERS ───────────────────────────────────────────────
