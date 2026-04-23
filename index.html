@@ -2703,6 +2703,9 @@
         map.flyTo({ center: gf.center, zoom, duration: 1200 });
       }
     }
+
+    // Geocodes any query via Mapbox and flies map to result with smart zoom
+    async function geocodeAndFly(query, onResult) {
       const token = mapboxgl.accessToken;
       const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${token}&limit=1`;
       try {
