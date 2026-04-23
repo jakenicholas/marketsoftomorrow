@@ -2539,137 +2539,102 @@
         return text.slice(0, idx) + '<em>' + text.slice(idx, idx + q.length) + '</em>' + text.slice(idx + q.length);
       }
 
-      // Build city suggestions from ALL projects (ignoring active filters)
-      // so cities with 0 matching filtered projects still appear
       const allFeatures = window.allProjectFeatures || features;
-
-      // cityTotalMap: all projects per city (unfiltered)
       const cityTotalMap = {};
       allFeatures.forEach(f => {
         const city = f.properties.city;
-        if (city && city.toLowerCase().includes(ql)) {
-          cityTotalMap[city] = (cityTotalMap[city] || 0) + 1;
-        }
+        if (city && city.toLowerCase().includes(ql)) cityTotalMap[city] = (cityTotalMap[city] || 0) + 1;
       });
-
-      // cityFilteredMap: only projects matching current filters per city
       const cityFilteredMap = {};
       features.forEach(f => {
         const city = f.properties.city;
-        if (city && city.toLowerCase().includes(ql)) {
-          cityFilteredMap[city] = (cityFilteredMap[city] || 0) + 1;
-        }
+        if (city && city.toLowerCase().includes(ql)) cityFilteredMap[city] = (cityFilteredMap[city] || 0) + 1;
       });
-
-      const cities = Object.entries(cityTotalMap)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 4);
-
+      const cities = Object.entries(cityTotalMap).sort((a, b) => b[1] - a[1]).slice(0, 3);
       const getCityLabel = (city) => {
         const state = window.cityStateMap?.[city] || '';
         return state ? `${city}, ${state}` : city;
       };
+      const projects = allFeatures.filter(f => f.properties.title.toLowerCase().includes(ql)).slice(0, 4);
+      const hasLocal = cities.length > 0 || projects.length > 0;
 
-      // Projects: search across ALL features, not just filtered ones
-      const projects = allFeatures
-        .filter(f => f.properties.title.toLowerCase().includes(ql))
-        .slice(0, 5);
+      if (query.length < 3 && !hasLocal) { container.classList.add('hidden'); return; }
 
-      if (!cities.length && !projects.length) {
-        // No local matches — try Mapbox geocoding for places like "Florida", "Chicago", "Japan"
-        container.innerHTML = '';
-        container.classList.remove('hidden');
-        const loadingEl = document.createElement('div');
-        loadingEl.className = 'autocomplete-section-label';
-        loadingEl.textContent = 'Searching...';
-        container.appendChild(loadingEl);
+      const hasFilters = activeFilters.desktop.type !== 'all' || activeFilters.desktop.status !== 'all' ||
+                         activeFilters.mobile.type !== 'all'  || activeFilters.mobile.status !== 'all';
 
+      const renderLocal = () => {
+        if (cities.length) {
+          const label = document.createElement('div');
+          label.className = 'autocomplete-section-label';
+          label.textContent = 'Cities';
+          container.appendChild(label);
+          cities.forEach(([city], i) => {
+            const cityLabel = getCityLabel(city);
+            const filteredCount = cityFilteredMap[city] || 0;
+            const countText = hasFilters
+              ? `${filteredCount} matching · ${cityTotalMap[city]} total`
+              : `${cityTotalMap[city]} project${cityTotalMap[city] !== 1 ? 's' : ''}`;
+            const item = document.createElement('div');
+            item.className = 'autocomplete-item';
+            item.style.animationDelay = `${i * 0.04}s`;
+            item.innerHTML = `<div class="autocomplete-icon location">${PIN_SVG}</div><div class="autocomplete-text"><strong>${highlight(cityLabel, ql)}</strong><span>${countText}</span></div>`;
+            item.addEventListener('mousedown', () => onSelect({ _cityLabel: cityLabel, _cityValue: city }, true));
+            container.appendChild(item);
+          });
+        }
+        if (projects.length) {
+          if (cities.length) { const d = document.createElement('div'); d.className = 'autocomplete-divider'; container.appendChild(d); }
+          const label = document.createElement('div');
+          label.className = 'autocomplete-section-label';
+          label.textContent = 'Projects';
+          container.appendChild(label);
+          projects.forEach((f, i) => {
+            const item = document.createElement('div');
+            item.className = 'autocomplete-item';
+            item.style.animationDelay = `${(cities.length + i) * 0.04}s`;
+            item.innerHTML = `<div class="autocomplete-icon project">${BLDG_SVG}</div><div class="autocomplete-text"><strong>${highlight(f.properties.title, ql)}</strong><span>${f.properties.city}</span></div>`;
+            item.addEventListener('mousedown', () => onSelect(f, false));
+            container.appendChild(item);
+          });
+        }
+      };
+
+      container.innerHTML = '';
+      container.classList.remove('hidden');
+
+      // Show local results immediately
+      renderLocal();
+      if (!hasLocal) container.classList.add('hidden');
+
+      // Fire geocoding in parallel for broad place types (state, country, region)
+      if (query.length >= 3) {
         geocodeSuggest(query).then(geoFeatures => {
+          const broadTypes = ['country', 'region', 'district'];
+          const broadResults = geoFeatures.filter(gf => gf.place_type?.some(t => broadTypes.includes(t))).slice(0, 2);
+          if (!broadResults.length) return;
+
+          // Prepend Places section at top
           container.innerHTML = '';
-          if (!geoFeatures.length) { container.classList.add('hidden'); return; }
           const label = document.createElement('div');
           label.className = 'autocomplete-section-label';
           label.textContent = 'Places';
           container.appendChild(label);
-          geoFeatures.slice(0, 4).forEach((gf, i) => {
+          broadResults.forEach((gf, i) => {
             const item = document.createElement('div');
             item.className = 'autocomplete-item';
             item.style.animationDelay = `${i * 0.04}s`;
-            item.innerHTML = `
-              <div class="autocomplete-icon location">${PIN_SVG}</div>
-              <div class="autocomplete-text">
-                <strong>${gf.place_name?.split(',')[0] || gf.text}</strong>
-                <span>${gf.place_name?.split(',').slice(1).join(',').trim() || ''}</span>
-              </div>`;
-            item.addEventListener('mousedown', () => {
-              onSelect({ _geoFeature: gf, _geoLabel: gf.place_name || gf.text }, 'geo');
-            });
+            const name = gf.text || gf.place_name?.split(',')[0] || '';
+            const context = gf.place_name?.split(',').slice(1).join(',').trim() || '';
+            item.innerHTML = `<div class="autocomplete-icon location">${PIN_SVG}</div><div class="autocomplete-text"><strong>${highlight(name, ql)}</strong><span>${context}</span></div>`;
+            item.addEventListener('mousedown', () => onSelect({ _geoFeature: gf, _geoLabel: gf.place_name || gf.text }, 'geo'));
             container.appendChild(item);
           });
-        });
-        return;
-      }
-
-      container.innerHTML = '';
-
-      if (cities.length) {
-        const label = document.createElement('div');
-        label.className = 'autocomplete-section-label';
-        label.textContent = 'Locations';
-        container.appendChild(label);
-
-        cities.forEach(([city], i) => {
-          const cityLabel = getCityLabel(city);
-          const filteredCount = cityFilteredMap[city] || 0;
-          const hasFilters = activeFilters.desktop.type !== 'all' || activeFilters.desktop.status !== 'all' ||
-                             activeFilters.mobile.type !== 'all'  || activeFilters.mobile.status !== 'all';
-          const countText = hasFilters
-            ? `${filteredCount} matching · ${cityTotalMap[city]} total`
-            : `${cityTotalMap[city]} project${cityTotalMap[city] !== 1 ? 's' : ''}`;
-
-          const item = document.createElement('div');
-          item.className = 'autocomplete-item';
-          item.style.animationDelay = `${i * 0.04}s`;
-          item.innerHTML = `
-            <div class="autocomplete-icon location">${PIN_SVG}</div>
-            <div class="autocomplete-text">
-              <strong>${highlight(cityLabel, ql)}</strong>
-              <span>${countText}</span>
-            </div>`;
-          item.addEventListener('mousedown', () => {
-            onSelect({ _cityLabel: cityLabel, _cityValue: city }, true);
-          });
-          container.appendChild(item);
+          if (hasLocal) { const d = document.createElement('div'); d.className = 'autocomplete-divider'; container.appendChild(d); }
+          renderLocal();
+          container.classList.remove('hidden');
         });
       }
-
-      if (projects.length) {
-        if (cities.length) {
-          const div = document.createElement('div');
-          div.className = 'autocomplete-divider';
-          container.appendChild(div);
-        }
-        const label = document.createElement('div');
-        label.className = 'autocomplete-section-label';
-        label.textContent = 'Projects';
-        container.appendChild(label);
-
-        projects.forEach((f, i) => {
-          const item = document.createElement('div');
-          item.className = 'autocomplete-item';
-          item.style.animationDelay = `${(cities.length + i) * 0.04}s`;
-          item.innerHTML = `
-            <div class="autocomplete-icon project">${BLDG_SVG}</div>
-            <div class="autocomplete-text">
-              <strong>${highlight(f.properties.title, ql)}</strong>
-              <span>${f.properties.city}</span>
-            </div>`;
-          item.addEventListener('mousedown', () => { onSelect(f, false); });
-          container.appendChild(item);
-        });
-      }
-
-      container.classList.remove('hidden');
     }
 
     // ─── FALLBACK NEARBY HIERARCHY ───────────────────────────────────────────
