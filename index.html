@@ -2616,8 +2616,8 @@
           const broadResults = geoFeatures.filter(gf => {
             if (!gf.place_type?.some(t => broadTypes.includes(t))) return false;
             const name = (gf.text || '').toLowerCase();
-            // Suppress if a local city already covers this name (any type)
-            if (localCityNames.some(lc => lc.startsWith(name) || name.startsWith(lc))) return false;
+            // Only suppress city/locality geo results if exactly in local data
+            if (['place','locality'].includes(gf.place_type?.[0]) && localCityNames.includes(name)) return false;
             // Deduplicate geo results against each other by text
             if (seenNames.has(name)) return false;
             seenNames.add(name);
