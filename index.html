@@ -2282,8 +2282,8 @@
             fragment.appendChild(makeHeader('More nearby', `${trueOutView.length}`, false));
             outView.forEach((f, i) => fragment.appendChild(makeTile(f, inView.length + i)));
           } else if (inView.length === 0) {
-            // Nothing in view or nearby with filter — use hierarchy fallback
-            const { features: fallback } = getFallbackFeatures(mapCenter, projectTypeFilter, statusFilter, true);
+            // 0 in view and nothing nearby with filter — don't exclude in-bounds since nothing showed in view
+            const { features: fallback } = getFallbackFeatures(mapCenter, projectTypeFilter, statusFilter, false);
             if (fallback.length > 0) {
               fragment.appendChild(makeHeader('More nearby', `${fallback.length}`, false));
               fallback.forEach((f, i) => fragment.appendChild(makeTile(f, i)));
@@ -2419,7 +2419,7 @@
           fragment.appendChild(makeHeader('More nearby', `${trueOutView.length}`, false));
           outView.forEach(f => fragment.appendChild(makeTile(f)));
         } else if (inView.length === 0) {
-          const { features: fallback } = getFallbackFeatures(mapCenter, typeFilter, statusFilter, true);
+          const { features: fallback } = getFallbackFeatures(mapCenter, typeFilter, statusFilter, false);
           if (fallback.length > 0) {
             fragment.appendChild(makeHeader('More nearby', `${fallback.length}`, false));
             fallback.forEach(f => fragment.appendChild(makeTile(f)));
