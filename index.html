@@ -2530,8 +2530,8 @@
     // Renders city suggestions (pin icon) and project suggestions (building icon).
     function buildAutocomplete(query, features, container, onSelect) {
       const ql = query.toLowerCase();
-      const PIN_SVG   = `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5S10.62 6.5 12 6.5s2.5 1.12 2.5 2.5S13.38 11.5 12 11.5z"/></svg>`;
-      const BLDG_SVG  = `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M17 11V3H7v4H3v14h8v-4h2v4h8V11h-4zM7 19H5v-2h2v2zm0-4H5v-2h2v2zm0-4H5v-2h2v2zm4 4H9v-2h2v2zm0-4H9v-2h2v2zm0-4H9V7h2v2zm4 8h-2v-2h2v2zm0-4h-2v-2h2v2zm0-4h-2V7h2v2zm4 8h-2v-2h2v2zm0-4h-2v-2h2v2z"/></svg>`;
+      const PIN_SVG  = `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5S10.62 6.5 12 6.5s2.5 1.12 2.5 2.5S13.38 11.5 12 11.5z"/></svg>`;
+      const BLDG_SVG = `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M17 11V3H7v4H3v14h8v-4h2v4h8V11h-4zM7 19H5v-2h2v2zm0-4H5v-2h2v2zm0-4H5v-2h2v2zm4 4H9v-2h2v2zm0-4H9v-2h2v2zm0-4H9V7h2v2zm4 8h-2v-2h2v2zm0-4h-2v-2h2v2zm0-4h-2V7h2v2zm4 8h-2v-2h2v2zm0-4h-2v-2h2v2z"/></svg>`;
 
       function highlight(text, q) {
         const idx = text.toLowerCase().indexOf(q);
@@ -2540,6 +2540,8 @@
       }
 
       const allFeatures = window.allProjectFeatures || features;
+
+      // TMW cities matching query (from spreadsheet)
       const cityTotalMap = {};
       allFeatures.forEach(f => {
         const city = f.properties.city;
@@ -2550,100 +2552,116 @@
         const city = f.properties.city;
         if (city && city.toLowerCase().includes(ql)) cityFilteredMap[city] = (cityFilteredMap[city] || 0) + 1;
       });
-      const cities = Object.entries(cityTotalMap).sort((a, b) => b[1] - a[1]).slice(0, 3);
+      const twmCities = Object.entries(cityTotalMap).sort((a, b) => b[1] - a[1]).slice(0, 3);
       const getCityLabel = (city) => {
         const state = window.cityStateMap?.[city] || '';
         return state ? `${city}, ${state}` : city;
       };
-      const projects = allFeatures.filter(f => f.properties.title.toLowerCase().includes(ql)).slice(0, 4);
-      const hasLocal = cities.length > 0 || projects.length > 0;
-
-      if (query.length < 3 && !hasLocal) { container.classList.add('hidden'); return; }
-
       const hasFilters = activeFilters.desktop.type !== 'all' || activeFilters.desktop.status !== 'all' ||
                          activeFilters.mobile.type !== 'all'  || activeFilters.mobile.status !== 'all';
 
-      const renderLocal = () => {
-        if (cities.length) {
-          const label = document.createElement('div');
-          label.className = 'autocomplete-section-label';
-          label.textContent = 'Cities';
-          container.appendChild(label);
-          cities.forEach(([city], i) => {
-            const cityLabel = getCityLabel(city);
-            const filteredCount = cityFilteredMap[city] || 0;
-            const countText = hasFilters
-              ? `${filteredCount} matching · ${cityTotalMap[city]} total`
-              : `${cityTotalMap[city]} project${cityTotalMap[city] !== 1 ? 's' : ''}`;
-            const item = document.createElement('div');
-            item.className = 'autocomplete-item';
-            item.style.animationDelay = `${i * 0.04}s`;
-            item.innerHTML = `<div class="autocomplete-icon location">${PIN_SVG}</div><div class="autocomplete-text"><strong>${highlight(cityLabel, ql)}</strong><span>${countText}</span></div>`;
-            item.addEventListener('mousedown', () => onSelect({ _cityLabel: cityLabel, _cityValue: city }, true));
-            container.appendChild(item);
-          });
-        }
-        if (projects.length) {
-          if (cities.length) { const d = document.createElement('div'); d.className = 'autocomplete-divider'; container.appendChild(d); }
-          const label = document.createElement('div');
-          label.className = 'autocomplete-section-label';
-          label.textContent = 'Projects';
-          container.appendChild(label);
-          projects.forEach((f, i) => {
-            const item = document.createElement('div');
-            item.className = 'autocomplete-item';
-            item.style.animationDelay = `${(cities.length + i) * 0.04}s`;
-            item.innerHTML = `<div class="autocomplete-icon project">${BLDG_SVG}</div><div class="autocomplete-text"><strong>${highlight(f.properties.title, ql)}</strong><span>${f.properties.city}</span></div>`;
-            item.addEventListener('mousedown', () => onSelect(f, false));
-            container.appendChild(item);
-          });
-        }
-      };
+      // Project name matches
+      const projects = allFeatures.filter(f => f.properties.title.toLowerCase().includes(ql)).slice(0, 4);
+
+      const hasLocal = twmCities.length > 0 || projects.length > 0;
+
+      if (query.length < 2 && !hasLocal) { container.classList.add('hidden'); return; }
 
       container.innerHTML = '';
       container.classList.remove('hidden');
 
-      // Show local results immediately
-      renderLocal();
+      // Helper: render TMW cities as Place items
+      const renderTMWCities = () => {
+        twmCities.forEach(([city], i) => {
+          const cityLabel = getCityLabel(city);
+          const filteredCount = cityFilteredMap[city] || 0;
+          const countText = hasFilters
+            ? `${filteredCount} matching · ${cityTotalMap[city]} total`
+            : `${cityTotalMap[city]} project${cityTotalMap[city] !== 1 ? 's' : ''}`;
+          const item = document.createElement('div');
+          item.className = 'autocomplete-item';
+          item.style.animationDelay = `${i * 0.04}s`;
+          item.innerHTML = `<div class="autocomplete-icon location">${PIN_SVG}</div><div class="autocomplete-text"><strong>${highlight(cityLabel, ql)}</strong><span>${countText}</span></div>`;
+          item.addEventListener('mousedown', () => onSelect({ _cityLabel: cityLabel, _cityValue: city }, true));
+          container.appendChild(item);
+        });
+      };
+
+      // Helper: render project items
+      const renderProjects = () => {
+        if (!projects.length) return;
+        if (container.children.length > 0) {
+          const d = document.createElement('div'); d.className = 'autocomplete-divider'; container.appendChild(d);
+        }
+        const label = document.createElement('div');
+        label.className = 'autocomplete-section-label';
+        label.textContent = 'Projects';
+        container.appendChild(label);
+        projects.forEach((f, i) => {
+          const item = document.createElement('div');
+          item.className = 'autocomplete-item';
+          item.style.animationDelay = `${i * 0.04}s`;
+          item.innerHTML = `<div class="autocomplete-icon project">${BLDG_SVG}</div><div class="autocomplete-text"><strong>${highlight(f.properties.title, ql)}</strong><span>${f.properties.city}</span></div>`;
+          item.addEventListener('mousedown', () => onSelect(f, false));
+          container.appendChild(item);
+        });
+      };
+
+      // Always show Places header, TMW cities first
+      if (twmCities.length > 0 || query.length >= 3) {
+        const label = document.createElement('div');
+        label.className = 'autocomplete-section-label';
+        label.textContent = 'Places';
+        container.appendChild(label);
+      }
+      renderTMWCities();
+
+      // Show local results (no geocoding yet)
+      renderProjects();
       if (!hasLocal) container.classList.add('hidden');
 
-      // Fire geocoding in parallel for broad place types (state, country, region)
+      // Fire geocoding in parallel — append geo places after TMW cities
       if (query.length >= 3) {
         geocodeSuggest(query).then(geoFeatures => {
           const broadTypes = ['country', 'region', 'district', 'place', 'locality'];
-          const localCityNames = cities.map(([c]) => c.toLowerCase());
-          const seenNames = new Set();
+          const localCityNames = twmCities.map(([c]) => c.toLowerCase());
+          const seenNames = new Set(localCityNames);
           const broadResults = geoFeatures.filter(gf => {
             if (!gf.place_type?.some(t => broadTypes.includes(t))) return false;
             const name = (gf.text || '').toLowerCase();
-            // Only suppress city/locality geo results if exactly in local data
             if (['place','locality'].includes(gf.place_type?.[0]) && localCityNames.includes(name)) return false;
-            // Deduplicate geo results against each other by text
             if (seenNames.has(name)) return false;
             seenNames.add(name);
             return true;
           }).slice(0, 2);
-          if (!broadResults.length) return;
 
-          // Prepend Places section at top
+          if (!broadResults.length && hasLocal) return; // no change needed
+
+          // Rebuild: Places header -> TMW cities -> geo places -> divider -> Projects
           container.innerHTML = '';
-          const label = document.createElement('div');
-          label.className = 'autocomplete-section-label';
-          label.textContent = 'Places';
-          container.appendChild(label);
+          if (twmCities.length > 0 || broadResults.length > 0) {
+            const label = document.createElement('div');
+            label.className = 'autocomplete-section-label';
+            label.textContent = 'Places';
+            container.appendChild(label);
+          }
+          renderTMWCities();
           broadResults.forEach((gf, i) => {
             const item = document.createElement('div');
             item.className = 'autocomplete-item';
-            item.style.animationDelay = `${i * 0.04}s`;
+            item.style.animationDelay = `${(twmCities.length + i) * 0.04}s`;
             const name = gf.text || gf.place_name?.split(',')[0] || '';
             const context = gf.place_name?.split(',').slice(1).join(',').trim() || '';
             item.innerHTML = `<div class="autocomplete-icon location">${PIN_SVG}</div><div class="autocomplete-text"><strong>${highlight(name, ql)}</strong><span>${context}</span></div>`;
             item.addEventListener('mousedown', () => onSelect({ _geoFeature: gf, _geoLabel: gf.place_name || gf.text }, 'geo'));
             container.appendChild(item);
           });
-          if (hasLocal) { const d = document.createElement('div'); d.className = 'autocomplete-divider'; container.appendChild(d); }
-          renderLocal();
-          container.classList.remove('hidden');
+          renderProjects();
+          if (!twmCities.length && !broadResults.length && !projects.length) {
+            container.classList.add('hidden');
+          } else {
+            container.classList.remove('hidden');
+          }
         });
       }
     }
@@ -2876,9 +2894,18 @@
                 (activeFilters.mobile.type === 'all' || f._projectTypes?.includes(activeFilters.mobile.type.toLowerCase())) &&
                 (activeFilters.mobile.status === 'all' || f.properties.delivery === activeFilters.mobile.status);
               if (!projectMatchesFilters) clearAllFilters('mobile');
+              // Show spinner, fly to project, re-render tiles on moveend
+              const g = document.getElementById('gridMobile');
+              if (g) g.innerHTML = '<div class="grid-loading"><div class="grid-loading-spinner"></div><div class="grid-loading-text">Loading...</div></div>';
+              const allFeats = window.allProjectFeatures || source._data.features;
+              window.mobileSearchFeatures = allFeats;
               showPopup(f);
               const drawer = document.getElementById('mobileDrawer');
               if (drawer) { drawer.classList.remove('expanded'); drawer.style.transform = 'translateY(100%)'; }
+              map.once('moveend', () => {
+                window.mobileLoadedCount = 12;
+                renderFilteredGrid('gridMobile', allFeats);
+              });
             }
           });
           if (query.length > 2) gtag('event', 'search', { 'search_term': query, 'search_location': 'mobile_drawer', 'device_type': 'mobile' });
@@ -3025,14 +3052,16 @@
               renderFilteredGrid('gridDesktop', allFeats);
             }
           } else {
-            // Clear type/status filters if project doesn't match them
             const projectMatchesFilters =
               (activeFilters.desktop.type === 'all' || f._projectTypes?.includes(activeFilters.desktop.type.toLowerCase())) &&
               (activeFilters.desktop.status === 'all' || f.properties.delivery === activeFilters.desktop.status);
-            if (!projectMatchesFilters) {
-              clearAllFilters('desktop');
-            }
+            if (!projectMatchesFilters) clearAllFilters('desktop');
+            // Show spinner, fly to project, re-render tiles on moveend
+            const g = document.getElementById('gridDesktop');
+            if (g) g.innerHTML = '<div class="grid-loading"><div class="grid-loading-spinner"></div><div class="grid-loading-text">Loading...</div></div>';
+            const allFeats = window.allProjectFeatures || source._data.features;
             showPopup(f);
+            map.once('moveend', () => { renderFilteredGrid('gridDesktop', allFeats); });
           }
         });
         const ql = query.toLowerCase();
