@@ -2335,12 +2335,12 @@
           if (outView.length > 0) {
             fragment.appendChild(makeHeader('More nearby', `${trueOutView.length}`, false));
             outView.forEach((f, i) => fragment.appendChild(makeTile(f, inView.length + i)));
-          } else if (inView.length === 0) {
-            // 0 in view and nothing nearby with filter — don't exclude in-bounds since nothing showed in view
-            const { features: fallback } = getFallbackFeatures(mapCenter, projectTypeFilter, statusFilter, false);
+          } else {
+            // No filtered nearby — always show fallback so More Nearby is never empty
+            const { features: fallback } = getFallbackFeatures(mapCenter, projectTypeFilter, statusFilter, inView.length > 0);
             if (fallback.length > 0) {
               fragment.appendChild(makeHeader('More nearby', `${fallback.length}`, false));
-              fallback.forEach((f, i) => fragment.appendChild(makeTile(f, i)));
+              fallback.forEach((f, i) => fragment.appendChild(makeTile(f, inView.length + i)));
             }
           }
         } else {
@@ -2472,8 +2472,9 @@
         if (outView.length > 0) {
           fragment.appendChild(makeHeader('More nearby', `${trueOutView.length}`, false));
           outView.forEach(f => fragment.appendChild(makeTile(f)));
-        } else if (inView.length === 0) {
-          const { features: fallback } = getFallbackFeatures(mapCenter, typeFilter, statusFilter, false);
+        } else {
+          // No filtered nearby — always show fallback
+          const { features: fallback } = getFallbackFeatures(mapCenter, typeFilter, statusFilter, inView.length > 0);
           if (fallback.length > 0) {
             fragment.appendChild(makeHeader('More nearby', `${fallback.length}`, false));
             fallback.forEach(f => fragment.appendChild(makeTile(f)));
