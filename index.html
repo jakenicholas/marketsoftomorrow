@@ -2332,12 +2332,15 @@
           fragment.appendChild(makeHeader('In view', trueInView.length > 0 ? `${trueInView.length} project${trueInView.length !== 1 ? 's' : ''}` : '0 projects', true));
           inView.forEach((f, i) => fragment.appendChild(makeTile(f, i)));
 
-          if (outView.length > 0) {
+          // Sort outView strictly by distance for More Nearby
+          const outViewSorted = outView.slice().sort((a, b) => a.distance - b.distance);
+
+          if (outViewSorted.length > 0) {
             fragment.appendChild(makeHeader('More nearby', `${trueOutView.length}`, false));
-            outView.forEach((f, i) => fragment.appendChild(makeTile(f, inView.length + i)));
+            outViewSorted.forEach((f, i) => fragment.appendChild(makeTile(f, inView.length + i)));
           } else {
             // No filtered nearby — always show fallback so More Nearby is never empty
-            const { features: fallback } = getFallbackFeatures(mapCenter, projectTypeFilter, statusFilter, inView.length > 0);
+            const { features: fallback } = getFallbackFeatures(mapCenter, projectTypeFilter, statusFilter, false);
             if (fallback.length > 0) {
               fragment.appendChild(makeHeader('More nearby', `${fallback.length}`, false));
               fallback.forEach((f, i) => fragment.appendChild(makeTile(f, inView.length + i)));
@@ -2469,12 +2472,15 @@
         inView.forEach(f => fragment.appendChild(makeTile(f)));
 
         // More nearby: show filtered nearby, or fallback hierarchy if none
-        if (outView.length > 0) {
+        // Sort outView strictly by distance for More Nearby
+        const outViewSorted = outView.slice().sort((a, b) => a.distance - b.distance);
+
+        if (outViewSorted.length > 0) {
           fragment.appendChild(makeHeader('More nearby', `${trueOutView.length}`, false));
-          outView.forEach(f => fragment.appendChild(makeTile(f)));
+          outViewSorted.forEach(f => fragment.appendChild(makeTile(f)));
         } else {
           // No filtered nearby — always show fallback
-          const { features: fallback } = getFallbackFeatures(mapCenter, typeFilter, statusFilter, inView.length > 0);
+          const { features: fallback } = getFallbackFeatures(mapCenter, typeFilter, statusFilter, false);
           if (fallback.length > 0) {
             fragment.appendChild(makeHeader('More nearby', `${fallback.length}`, false));
             fallback.forEach(f => fragment.appendChild(makeTile(f)));
