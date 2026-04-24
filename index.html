@@ -770,14 +770,11 @@
       background: rgba(20,20,20,0.8); border-radius: 6px; cursor: pointer;
       position: relative; padding: 6px;
       display: flex; flex-direction: column; height: 100%;
-      /* Start hidden; visible class triggers animation */
-      opacity: 0;
-      will-change: opacity, transform;
       overflow: visible;
     }
-    /* Staggered tile entrance animation */
     .grid-item.visible {
-      animation: tileEntrance 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
+      opacity: 1;
+      transform: none;
     }
 
     #desktopSidebar .grid-item { padding: 5px; }
