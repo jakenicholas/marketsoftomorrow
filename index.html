@@ -955,13 +955,13 @@
 
     /* Desktop: zoom-in below location, zoom-out below zoom-in */
     @media(min-width:801px) {
-      #zoomInButton  { top: calc(60px + var(--safe-area-top) + 36px + 10px + 36px + 14px); }
-      #zoomOutButton { top: calc(60px + var(--safe-area-top) + 36px + 10px + 36px + 14px + 36px + 6px); }
+      #zoomInButton  { top: calc(60px + var(--safe-area-top) + 36px + 10px + 36px + 10px); }
+      #zoomOutButton { top: calc(60px + var(--safe-area-top) + 36px + 10px + 36px + 10px + 36px + 10px); }
     }
     /* Mobile: same pattern below location */
     @media(max-width:800px) {
-      #zoomInButton  { top: calc(var(--safe-area-top) + 10px + 36px + 10px + 36px + 10px + 36px + 14px); }
-      #zoomOutButton { top: calc(var(--safe-area-top) + 10px + 36px + 10px + 36px + 10px + 36px + 14px + 36px + 6px); }
+      #zoomInButton  { top: calc(var(--safe-area-top) + 10px + 36px + 10px + 36px + 10px + 36px + 10px); }
+      #zoomOutButton { top: calc(var(--safe-area-top) + 10px + 36px + 10px + 36px + 10px + 36px + 10px + 36px + 10px); }
     }
     @keyframes locationPulse {
       0%   { transform: translate(-50%,-50%) scale(1);   opacity: 0.6; }
