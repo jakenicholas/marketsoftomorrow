@@ -2082,18 +2082,26 @@
         mapBounds.contains([f.geometry.coordinates[0], f.geometry.coordinates[1]])
       ).length : filteredFeatures.length;
 
+      // Count nearby (within 300mi, not in bounds)
+      const mapCenter = map.getCenter();
+      const NEARBY_RADIUS_MILES = 300;
+      const nearbyCount = filteredFeatures.filter(f => {
+        if (!mapBounds) return false;
+        const inBounds = mapBounds.contains([f.geometry.coordinates[0], f.geometry.coordinates[1]]);
+        if (inBounds) return false;
+        const dist = calculateDistance(mapCenter.lat, mapCenter.lng, f.geometry.coordinates[1], f.geometry.coordinates[0]);
+        return dist <= NEARBY_RADIUS_MILES;
+      }).length;
+
+      const totalInRange = inFrame + nearbyCount;
       const filteredTotal = filteredFeatures.length;
 
-      // Update desktop sidebar count
+      // Update drawer count
       if (countEl) {
         if (total === 0) { countEl.style.display = 'none'; }
         else {
           countEl.style.display = 'block';
-          if (filteredTotal < total) {
-            countEl.innerHTML = `Showing <strong>${inFrame}</strong> projects in view`;
-          } else {
-            countEl.innerHTML = `Showing <strong>${inFrame}</strong> projects in view`;
-          }
+          countEl.innerHTML = `Showing <strong>${totalInRange}</strong> projects in range`;
         }
       }
 
