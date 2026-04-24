@@ -2339,11 +2339,13 @@
             fragment.appendChild(makeHeader('More nearby', `${trueOutView.length}`, false));
             outViewSorted.forEach((f, i) => fragment.appendChild(makeTile(f, inView.length + i)));
           } else {
-            // No filtered nearby — always show fallback so More Nearby is never empty
+            // No filtered nearby — show fallback excluding projects already in view
+            const inViewIds = new Set(inView.map(f => f.properties.title));
             const { features: fallback } = getFallbackFeatures(mapCenter, projectTypeFilter, statusFilter, false);
-            if (fallback.length > 0) {
-              fragment.appendChild(makeHeader('More nearby', `${fallback.length}`, false));
-              fallback.forEach((f, i) => fragment.appendChild(makeTile(f, inView.length + i)));
+            const dedupedFallback = fallback.filter(f => !inViewIds.has(f.properties.title));
+            if (dedupedFallback.length > 0) {
+              fragment.appendChild(makeHeader('More nearby', `${dedupedFallback.length}`, false));
+              dedupedFallback.forEach((f, i) => fragment.appendChild(makeTile(f, inView.length + i)));
             }
           }
         } else {
@@ -2479,11 +2481,13 @@
           fragment.appendChild(makeHeader('More nearby', `${trueOutView.length}`, false));
           outViewSorted.forEach(f => fragment.appendChild(makeTile(f)));
         } else {
-          // No filtered nearby — always show fallback
+          // No filtered nearby — show fallback excluding projects already in view
+          const inViewIds = new Set(inView.map(f => f.properties.title));
           const { features: fallback } = getFallbackFeatures(mapCenter, typeFilter, statusFilter, false);
-          if (fallback.length > 0) {
-            fragment.appendChild(makeHeader('More nearby', `${fallback.length}`, false));
-            fallback.forEach(f => fragment.appendChild(makeTile(f)));
+          const dedupedFallback = fallback.filter(f => !inViewIds.has(f.properties.title));
+          if (dedupedFallback.length > 0) {
+            fragment.appendChild(makeHeader('More nearby', `${dedupedFallback.length}`, false));
+            dedupedFallback.forEach(f => fragment.appendChild(makeTile(f)));
           }
         }
       }
