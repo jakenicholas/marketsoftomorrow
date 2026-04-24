@@ -2082,10 +2082,10 @@
         mapBounds.contains([f.geometry.coordinates[0], f.geometry.coordinates[1]])
       ).length : filteredFeatures.length;
 
-      // Count nearby (within 300mi, not in bounds)
+      // Nearby = within 300mi, not in bounds, from filtered set
       const mapCenter = map.getCenter();
       const NEARBY_RADIUS_MILES = 300;
-      const nearbyCount = filteredFeatures.filter(f => {
+      const nearbyFiltered = filteredFeatures.filter(f => {
         if (!mapBounds) return false;
         const inBounds = mapBounds.contains([f.geometry.coordinates[0], f.geometry.coordinates[1]]);
         if (inBounds) return false;
@@ -2093,10 +2093,20 @@
         return dist <= NEARBY_RADIUS_MILES;
       }).length;
 
+      // If filter yields nothing nearby, count fallback results that tiles actually show
+      let nearbyCount = nearbyFiltered;
+      if (inFrame === 0 && nearbyFiltered === 0 && filteredFeatures.length === 0) {
+        // Tiles are showing fallback — count those
+        const { features: fallback } = getFallbackFeatures(mapCenter, typeFilter, statusFilter, false);
+        nearbyCount = fallback.length;
+      } else if (inFrame === 0 && nearbyFiltered === 0) {
+        const { features: fallback } = getFallbackFeatures(mapCenter, typeFilter, statusFilter, false);
+        nearbyCount = fallback.length;
+      }
+
       const totalInRange = inFrame + nearbyCount;
       const filteredTotal = filteredFeatures.length;
 
-      // Update drawer count
       if (countEl) {
         if (total === 0) { countEl.style.display = 'none'; }
         else {
