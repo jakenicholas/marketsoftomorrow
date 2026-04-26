@@ -3340,30 +3340,42 @@
         if (currentTransitLayersAdded) return;
         currentTransitLayersAdded = true;
 
-        if (!map.getSource('openrailwaymap')) {
-          map.addSource('openrailwaymap', {
-            type: 'raster',
-            tiles: ['https://tiles.openrailwaymap.org/standard/{z}/{x}/{y}.png'],
-            tileSize: 256,
-            attribution: '© OpenRailwayMap',
-            minzoom: 0,
-            maxzoom: 19
-          });
-        }
-        if (!map.getLayer('current-transit-rail')) {
+        if (window._workingTransitSource && !map.getLayer('current-transit-rail')) {
+          // Vector — perfect quality, no labels, thin orange lines
           map.addLayer({
             id: 'current-transit-rail',
-            type: 'raster',
-            source: 'openrailwaymap',
-            layout: { visibility: 'none' },
+            type: 'line',
+            source: window._workingTransitSource,
+            'source-layer': window._workingTransitLayer,
+            filter: ['in', ['get', 'class'], ['literal', ['major_rail','minor_rail','rail','subway','metro','tram','light_rail','monorail']]],
+            layout: { 'line-join': 'round', 'line-cap': 'round', visibility: 'none' },
             paint: {
-              'raster-opacity': 0.7,
-              'raster-hue-rotate': 190,
-              'raster-saturation': 0.5,
-              'raster-brightness-min': 0.1,
-              'raster-contrast': 0.2
+              'line-color': '#FF6B00',
+              'line-width': ['interpolate', ['linear'], ['zoom'], 2, 0.5, 8, 1, 14, 1.8],
+              'line-opacity': 0.8
             }
           }, 'unclustered-point');
+        } else {
+          // Fallback: OpenRailwayMap raster
+          if (!map.getSource('openrailwaymap')) {
+            map.addSource('openrailwaymap', {
+              type: 'raster',
+              tiles: ['https://tiles.openrailwaymap.org/standard/{z}/{x}/{y}.png'],
+              tileSize: 256,
+              attribution: '© OpenRailwayMap',
+              minzoom: 0,
+              maxzoom: 19
+            });
+          }
+          if (!map.getLayer('current-transit-rail')) {
+            map.addLayer({
+              id: 'current-transit-rail',
+              type: 'raster',
+              source: 'openrailwaymap',
+              layout: { visibility: 'none' },
+              paint: { 'raster-opacity': 0.7, 'raster-hue-rotate': 190, 'raster-saturation': 0.5 }
+            }, 'unclustered-point');
+          }
         }
         window._transitLayerIds = ['current-transit-rail'];
       }
@@ -3732,17 +3744,40 @@
       setupDesktopFilters();
       setupMobileFilters();
       setupSidebarSearch();
-      // Preload OpenRailwayMap so Current Transit toggle is instant
-      if (!map.getSource('openrailwaymap')) {
-        map.addSource('openrailwaymap', {
-          type: 'raster',
-          tiles: ['https://tiles.openrailwaymap.org/standard/{z}/{x}/{y}.png'],
-          tileSize: 256,
-          attribution: '© OpenRailwayMap',
-          minzoom: 0,
-          maxzoom: 19
-        });
-      }
+
+      // Try adding current transit vector layer immediately on load
+      // so it's ready when user toggles it
+      setTimeout(() => {
+        const style = map.getStyle();
+        const sources = style?.sources || {};
+        // Try every vector source
+        for (const [srcId, src] of Object.entries(sources)) {
+          if (src.type !== 'vector') continue;
+          // Try every known rail source-layer name
+          const candidates = ['road', 'transit_line', 'rail', 'railway', 'transportation', 'roads'];
+          for (const sl of candidates) {
+            try {
+              const testId = `transit-test-${srcId}-${sl}`;
+              map.addLayer({
+                id: testId,
+                type: 'line',
+                source: srcId,
+                'source-layer': sl,
+                filter: ['in', ['get', 'class'], ['literal', ['major_rail','minor_rail','rail','subway','metro','tram','light_rail','monorail']]],
+                layout: { visibility: 'none' },
+                paint: { 'line-color': '#FF6B00', 'line-width': 0.1 }
+              });
+              // If it didn't throw, this source+layer combo works — store it
+              window._workingTransitSource = srcId;
+              window._workingTransitLayer = sl;
+              map.removeLayer(testId);
+              console.log('Found working transit:', srcId, sl);
+              break;
+            } catch(e) { /* try next */ }
+          }
+          if (window._workingTransitSource) break;
+        }
+      }, 1000);
     });
 
     // ─── ADD ALL MAP LAYERS ───────────────────────────────────────────────────
