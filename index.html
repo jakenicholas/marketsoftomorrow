@@ -3340,30 +3340,15 @@
         if (currentTransitLayersAdded) return;
         currentTransitLayersAdded = true;
 
-        // Use Mapbox's own composite source (already loaded) with correct v8 class names
-        // Streets v8 road layer classes for passenger rail: 'major_rail', 'minor_rail'
-        // service_rail = yards/sidings — exclude those
-        // No labels since this is a line layer (labels would need a separate symbol layer)
-
         const style = map.getStyle();
         const sources = style?.sources || {};
-
-        // Find the right source — custom styles often wrap composite differently
-        let sourceId = null;
-        let sourceLayerName = 'road';
-
-        // Check for composite source (standard Mapbox)
-        if (sources['composite']) {
-          sourceId = 'composite';
-        } else {
-          // Find first vector source
+        let sourceId = sources['composite'] ? 'composite' : null;
+        if (!sourceId) {
           for (const [id, s] of Object.entries(sources)) {
             if (s.type === 'vector') { sourceId = id; break; }
           }
         }
-
         if (!sourceId) {
-          // Add streets-v8 as fallback
           map.addSource('streets-v8', { type: 'vector', url: 'mapbox://mapbox.mapbox-streets-v8' });
           sourceId = 'streets-v8';
         }
@@ -3374,31 +3359,23 @@
               id: 'current-transit-rail',
               type: 'line',
               source: sourceId,
-              'source-layer': sourceLayerName,
+              'source-layer': 'road',
               filter: ['in', ['get', 'class'], ['literal', ['major_rail', 'minor_rail']]],
-              minzoom: 2,
-              layout: {
-                'line-join': 'round',
-                'line-cap': 'round',
-                visibility: 'none'
-              },
+              layout: { 'line-join': 'round', 'line-cap': 'round', visibility: 'none' },
               paint: {
                 'line-color': '#FF6B00',
                 'line-width': ['interpolate', ['linear'], ['zoom'], 2, 0.4, 6, 0.7, 10, 1, 14, 1.5],
-                'line-opacity': ['interpolate', ['linear'], ['zoom'], 2, 0.5, 8, 0.75]
+                'line-opacity': 0.75
               }
             }, 'unclustered-point');
             window._transitLayerIds = ['current-transit-rail'];
           } catch(e) {
-            // Vector approach failed — fall back to OpenRailwayMap raster but thinner/no hue shift
             if (!map.getSource('openrailwaymap')) {
               map.addSource('openrailwaymap', {
                 type: 'raster',
                 tiles: ['https://tiles.openrailwaymap.org/standard/{z}/{x}/{y}.png'],
                 tileSize: 256,
-                attribution: '© OpenRailwayMap',
-                minzoom: 2,
-                maxzoom: 19
+                attribution: '© OpenRailwayMap'
               });
             }
             if (!map.getLayer('current-transit-rail')) {
@@ -3779,6 +3756,16 @@
       setupDesktopFilters();
       setupMobileFilters();
       setupSidebarSearch();
+
+      // Preload OpenRailwayMap source so Current Transit toggle is instant
+      if (!map.getSource('openrailwaymap')) {
+        map.addSource('openrailwaymap', {
+          type: 'raster',
+          tiles: ['https://tiles.openrailwaymap.org/standard/{z}/{x}/{y}.png'],
+          tileSize: 256,
+          attribution: '© OpenRailwayMap'
+        });
+      }
     });
 
     // ─── ADD ALL MAP LAYERS ───────────────────────────────────────────────────
