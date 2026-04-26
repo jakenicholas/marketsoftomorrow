@@ -926,7 +926,11 @@
       }
     }
 
-    /* ─── ZOOM BUTTONS ────────────────────────────────────────────────────── */
+    /* Prevent double-tap zoom on all map control buttons */
+    #layersButton, #locationButton, #zoomInButton, #zoomOutButton,
+    .glass-btn, .zoom-btn, #layersPanel, #layersPanel * {
+      touch-action: manipulation;
+    }
     .zoom-btn {
       position: fixed;
       z-index: 25;
