@@ -3340,68 +3340,29 @@
         if (currentTransitLayersAdded) return;
         currentTransitLayersAdded = true;
 
-        // The custom style uses 'composite' source which includes mapbox-streets-v8
-        // In streets-v8, rail data is in the 'road' source-layer with class = 'major_rail' or 'minor_rail'
-        // (not just 'rail' — that was v7 naming)
-        const token = mapboxgl.accessToken;
-        const railClasses = ['major_rail', 'minor_rail', 'service_rail'];
-
-        // Try composite first (already loaded, no extra network request)
-        const sources = map.getStyle()?.sources || {};
-        const sourceId = sources['composite'] ? 'composite' : 'mapbox-streets';
-
-        if (sourceId === 'mapbox-streets' && !map.getSource('mapbox-streets')) {
-          map.addSource('mapbox-streets', {
-            type: 'vector',
-            url: 'mapbox://mapbox.mapbox-streets-v8'
+        if (!map.getSource('openrailwaymap')) {
+          map.addSource('openrailwaymap', {
+            type: 'raster',
+            tiles: ['https://tiles.openrailwaymap.org/standard/{z}/{x}/{y}.png'],
+            tileSize: 256,
+            attribution: '© OpenRailwayMap',
+            minzoom: 2,
+            maxzoom: 19
           });
         }
-
         if (!map.getLayer('current-transit-rail')) {
-          try {
-            map.addLayer({
-              id: 'current-transit-rail',
-              type: 'line',
-              source: sourceId,
-              'source-layer': 'road',
-              filter: ['in', ['get', 'class'], ['literal', railClasses]],
-              minzoom: 3,
-              layout: { 'line-join': 'round', 'line-cap': 'round', visibility: 'none' },
-              paint: {
-                'line-color': '#FF8C00',
-                'line-width': ['interpolate', ['linear'], ['zoom'], 3, 0.5, 7, 1, 10, 1.5, 14, 2.5],
-                'line-opacity': 0.85
-              }
-            }, 'unclustered-point');
-            window._transitLayerIds = ['current-transit-rail'];
-            console.log('[Transit] Added rail layer using source:', sourceId);
-          } catch(e) {
-            console.warn('[Transit] Failed with', sourceId, ':', e.message);
-            // Last resort: try mapbox-streets-v8 directly
-            if (!map.getSource('mapbox-streets')) {
-              map.addSource('mapbox-streets', { type: 'vector', url: 'mapbox://mapbox.mapbox-streets-v8' });
+          map.addLayer({
+            id: 'current-transit-rail',
+            type: 'raster',
+            source: 'openrailwaymap',
+            layout: { visibility: 'none' },
+            paint: {
+              'raster-opacity': 0.85,
+              'raster-hue-rotate': 200  // shifts the default red/black to orange-ish
             }
-            try {
-              map.addLayer({
-                id: 'current-transit-rail',
-                type: 'line',
-                source: 'mapbox-streets',
-                'source-layer': 'road',
-                filter: ['in', ['get', 'class'], ['literal', railClasses]],
-                minzoom: 3,
-                layout: { 'line-join': 'round', 'line-cap': 'round', visibility: 'none' },
-                paint: {
-                  'line-color': '#FF8C00',
-                  'line-width': ['interpolate', ['linear'], ['zoom'], 3, 0.5, 7, 1, 10, 1.5, 14, 2.5],
-                  'line-opacity': 0.85
-                }
-              }, 'unclustered-point');
-              window._transitLayerIds = ['current-transit-rail'];
-            } catch(e2) {
-              console.error('[Transit] Both sources failed:', e2.message);
-            }
-          }
+          }, 'unclustered-point');
         }
+        window._transitLayerIds = ['current-transit-rail'];
       }
 
       function setCurrentTransitVisibility(visible) {
