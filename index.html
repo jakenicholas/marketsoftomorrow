@@ -1009,7 +1009,7 @@
     .layers-checkbox svg { width: 11px; height: 11px; fill: none; stroke: #fff; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; display: none; }
     .layers-checkbox.checked svg { display: block; }
     .layers-checkbox-label { font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.85); }
-    .layers-checkbox-row.disabled .layers-checkbox-label { color: rgba(255,255,255,0.4); }
+    .layers-checkbox-row.disabled .layers-checkbox-label { color: rgba(255,255,255,0.85); }
     .layers-divider { height: 1px; background: rgba(255,255,255,0.08); margin: 12px 0; }
     .layers-map-options { display: flex; gap: 8px; }
     .layers-map-option {
@@ -1557,11 +1557,11 @@
       <div class="layers-section-title">Map Style</div>
       <div class="layers-map-options">
         <div class="layers-map-option selected" id="styleDefault">
-          <img src="https://api.mapbox.com/styles/v1/floridaoftomorrow/clkbk4qlw000a01qw94rj0xa7/static/-80.19,25.77,8,0/88x60?access_token=pk.eyJ1IjoiZmxvcmlkYW9mdG9tb3Jyb3ciLCJhIjoiY2xrYjFhaTB4MGMyZDNlcDUzNzJyeXcyMSJ9.BzAoFgpuuMNXCBGLkFBjJA" alt="Default" onerror="this.style.background='#222';this.removeAttribute('src')"/>
+          <img src="https://static.wixstatic.com/media/ca3b83_4e8814226f3c44c6be6d4d405a46dcac~mv2.jpg" alt="Default" style="object-fit:cover;width:100%;height:60px;display:block;"/>
           <div class="layers-map-option-label">Default</div>
         </div>
         <div class="layers-map-option" id="styleSatellite">
-          <img src="https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v12/static/-80.19,25.77,8,0/88x60?access_token=pk.eyJ1IjoiZmxvcmlkYW9mdG9tb3Jyb3ciLCJhIjoiY2xrYjFhaTB4MGMyZDNlcDUzNzJyeXcyMSJ9.BzAoFgpuuMNXCBGLkFBjJA" alt="Satellite" onerror="this.style.background='#1a2a1a';this.removeAttribute('src')"/>
+          <img src="https://static.wixstatic.com/media/ca3b83_7ef4124aa18b4c119cb645ec8b7a9ff9~mv2.jpg" alt="Satellite" style="object-fit:cover;width:100%;height:60px;display:block;"/>
           <div class="layers-map-option-label">Satellite</div>
         </div>
       </div>
@@ -3275,7 +3275,7 @@
 
       // All transit layer IDs
       const TRANSIT_LAYERS = [
-        'brightline-existing-line','brightline-future-line','brightline-west-line',
+        'brightline-existing','brightline-future','brightline-west-future',
         'music-city-loop-line','cahsr-line','gateway-line',
         'raleigh-richmond-line','cascadia-hsr-line',
         'chuo-maglev-line','india-mahsr-line','thailand-hsr-line','iran-hsr-line',
