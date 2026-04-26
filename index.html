@@ -1809,7 +1809,11 @@
       { name: 'Brightline West — Rancho Cucamonga (Future Expansion)', coords: [-117.5614, 34.1060] },
       { name: 'Brightline West — Hesperia (Future Expansion)', coords: [-117.3089, 34.4073] },
       { name: 'Brightline West — Victor Valley / Apple Valley (Future Expansion)', coords: [-117.2156, 34.5583] },
-      { name: 'Brightline West — Las Vegas (Future Expansion)', coords: [-115.1764, 36.0283] }
+      { name: 'Brightline West — Las Vegas (Future Expansion)', coords: [-115.1764, 36.0283] },
+      // Music City Loop stations
+      { name: 'Music City Loop — Tennessee State Capitol (Future)', coords: [-86.7844, 36.1654] },
+      { name: 'Music City Loop — Music City Center (Future)', coords: [-86.7756, 36.1558] },
+      { name: 'Music City Loop — Nashville International Airport / BNA (Future)', coords: [-86.6782, 36.1245] }
     ];
 
     // ─── FILTER PILLS SYSTEM ─────────────────────────────────────────────────
@@ -3434,6 +3438,46 @@
           id: 'brightline-west-future',
           type: 'line',
           source: 'brightline-west',
+          layout: { 'line-join': 'round', 'line-cap': 'round' },
+          paint: { 'line-color': '#FFD300', 'line-width': 2, 'line-dasharray': [1, 2] }
+        });
+      }
+
+      // ── Music City Loop (Nashville: State Capitol → Music City Center → BNA) ─
+      // Route traces Rosa Parks Blvd → 8th Ave → Lafayette St → Murfreesboro Pike → BNA
+      const musicCityLoopCoords = [
+        [-86.7844, 36.1654], // Tennessee State Capitol (Lot 16 launch site)
+        [-86.7837, 36.1628], // Rosa Parks Blvd south
+        [-86.7821, 36.1600], // Rosa Parks Blvd continuing south
+        [-86.7800, 36.1580], // Transition to 8th Ave S
+        [-86.7789, 36.1565], // 8th Ave S north
+        [-86.7775, 36.1558], // Music City Center area
+        [-86.7756, 36.1558], // Music City Center station
+        [-86.7740, 36.1550], // Lafayette St heading east
+        [-86.7710, 36.1530], // Lafayette St / Murfreesboro Pike
+        [-86.7665, 36.1495], // Murfreesboro Pike south
+        [-86.7590, 36.1420], // Murfreesboro Pike continuing
+        [-86.7490, 36.1355], // Donelson Pike area
+        [-86.7350, 36.1295], // Donelson Pike heading to airport
+        [-86.7180, 36.1260], // Airport approach road
+        [-86.6782, 36.1245]  // Nashville International Airport / BNA
+      ];
+
+      const musicCityLoopGeo = {
+        type: 'FeatureCollection',
+        features: [{ type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: musicCityLoopCoords } }]
+      };
+
+      if (!map.getSource('music-city-loop')) {
+        map.addSource('music-city-loop', { type: 'geojson', data: musicCityLoopGeo });
+      } else {
+        map.getSource('music-city-loop').setData(musicCityLoopGeo);
+      }
+      if (!map.getLayer('music-city-loop-line')) {
+        map.addLayer({
+          id: 'music-city-loop-line',
+          type: 'line',
+          source: 'music-city-loop',
           layout: { 'line-join': 'round', 'line-cap': 'round' },
           paint: { 'line-color': '#FFD300', 'line-width': 2, 'line-dasharray': [1, 2] }
         });
