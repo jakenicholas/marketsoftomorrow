@@ -1,5 +1,7 @@
 <!DOCTYPE html>
+
 <!-- v2026-04-20T23:17:06.502295 -->
+
 <html>
 <head>
   <meta charset="utf-8">
@@ -38,11 +40,13 @@
   <meta name="format-detection" content="date=no">
   <meta name="format-detection" content="address=no">
   <meta name="format-detection" content="email=no">
-  
+
   <script src="https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.js"></script>
+
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-  
+
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-6NPTWCVFCG"></script>
+
   <script>
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
@@ -64,7 +68,7 @@
     "description": "Interactive map of the world's most exciting developments by Markets of Tomorrow."
   }
   </script>
-  
+
   <link href="https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.css" rel="stylesheet" />
 
   <style>
@@ -1435,6 +1439,7 @@
     .empty-state p { margin: 0; font-size: 14px; line-height: 1.5; }
     .empty-state strong { color: var(--accent); }
   </style>
+
 </head>
 <body>
   <!-- Header Bar -->
@@ -1446,8 +1451,9 @@
       <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
     </a>
   </div>
-  
+
   <!-- Loading Overlay -->
+
   <div id="loadingOverlay">
     <div class="loading-content">
       <div class="loading-spinner"></div>
@@ -1459,7 +1465,7 @@
       <span class="presented-brand">MARKETS OF TOMORROW</span>
     </div>
   </div>
-  
+
   <div id="app-container">
     <button id="toggleView" class="hidden" style="display:none!important"></button>
     <button id="openSearch" class="hidden" style="display:none!important"></button>
@@ -1471,187 +1477,190 @@
       <div id="results" class="hidden"></div>
     </div>
 
-    <!-- Layers toggle button -->
-    <button id="layersButton" class="glass-btn" title="Switch map style">
-      <svg viewBox="0 0 24 24"><path d="M11.99 18.54l-7.37-5.73L3 14.07l9 7 9-7-1.63-1.27-7.38 5.74zM12 16l7.36-5.73L21 9l-9-7-9 7 1.63 1.27L12 16z"/></svg>
-    </button>
+```
+<!-- Layers toggle button -->
+<button id="layersButton" class="glass-btn" title="Switch map style">
+  <svg viewBox="0 0 24 24"><path d="M11.99 18.54l-7.37-5.73L3 14.07l9 7 9-7-1.63-1.27-7.38 5.74zM12 16l7.36-5.73L21 9l-9-7-9 7 1.63 1.27L12 16z"/></svg>
+</button>
 
-    <!-- Location button (mobile only) -->
-    <button id="locationButton" title="Go to my location">
-      <svg viewBox="0 0 24 24"><path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3c-.46-4.17-3.77-7.48-7.94-7.94V1h-2v2.06C6.83 3.52 3.52 6.83 3.06 11H1v2h2.06c.46 4.17 3.77 7.48 7.94 7.94V23h2v-2.06c4.17-.46 7.48-3.77 7.94-7.94H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/></svg>
-    </button>
+<!-- Location button (mobile only) -->
+<button id="locationButton" title="Go to my location">
+  <svg viewBox="0 0 24 24"><path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3c-.46-4.17-3.77-7.48-7.94-7.94V1h-2v2.06C6.83 3.52 3.52 6.83 3.06 11H1v2h2.06c.46 4.17 3.77 7.48 7.94 7.94V23h2v-2.06c4.17-.46 7.48-3.77 7.94-7.94H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/></svg>
+</button>
 
-    <!-- Zoom buttons -->
-    <button id="zoomInButton" class="zoom-btn" title="Zoom in">+</button>
-    <button id="zoomOutButton" class="zoom-btn" title="Zoom out">−</button>
-    <div id="desktopSearchPill" class="glass-btn">
-      <div class="pill-search-icon">
-        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+<!-- Zoom buttons -->
+<button id="zoomInButton" class="zoom-btn" title="Zoom in">+</button>
+<button id="zoomOutButton" class="zoom-btn" title="Zoom out">−</button>
+<div id="desktopSearchPill" class="glass-btn">
+  <div class="pill-search-icon">
+    <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+  </div>
+  <span class="pill-text">Search projects or city...</span>
+  <div class="pill-filter-badge" id="desktopPillFilterBadge">
+    <span class="badge-icon"><svg viewBox="0 0 24 24"><circle cx="6" cy="5" r="2"/><line x1="2" y1="5" x2="4" y2="5"/><line x1="8" y1="5" x2="22" y2="5"/><circle cx="16" cy="12" r="2"/><line x1="2" y1="12" x2="14" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><circle cx="9" cy="19" r="2"/><line x1="2" y1="19" x2="7" y2="19"/><line x1="11" y1="19" x2="22" y2="19"/></svg></span>
+    <span class="badge-count" id="desktopPillFilterCount">0</span>
+  </div>
+  <div class="pill-divider"></div>
+  <div class="pill-count" id="desktopPillCount">— results</div>
+</div>
+
+<!-- Desktop Sidebar -->
+<div id="desktopSidebar">
+  <div class="sidebar-header">
+
+    <!-- Row 1: Search glass pill + close button -->
+    <div class="desktop-search-row">
+      <div class="desktop-search-pill">
+        <div class="search-pill-icon">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        </div>
+        <input id="sidebarSearchBar" type="text" placeholder="Search projects or city..." />
+        <button id="sidebarSearchClear" title="Clear search">✕</button>
+        <div id="sidebarAutocomplete" class="autocomplete-dropdown hidden"></div>
       </div>
-      <span class="pill-text">Search projects or city...</span>
-      <div class="pill-filter-badge" id="desktopPillFilterBadge">
-        <span class="badge-icon"><svg viewBox="0 0 24 24"><circle cx="6" cy="5" r="2"/><line x1="2" y1="5" x2="4" y2="5"/><line x1="8" y1="5" x2="22" y2="5"/><circle cx="16" cy="12" r="2"/><line x1="2" y1="12" x2="14" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><circle cx="9" cy="19" r="2"/><line x1="2" y1="19" x2="7" y2="19"/><line x1="11" y1="19" x2="22" y2="19"/></svg></span>
-        <span class="badge-count" id="desktopPillFilterCount">0</span>
-      </div>
-      <div class="pill-divider"></div>
-      <div class="pill-count" id="desktopPillCount">— results</div>
+      <button id="closeSidebar" title="Close">✕</button>
+      <div id="sidebarResults" class="hidden"></div>
     </div>
-    
-    <!-- Desktop Sidebar -->
-    <div id="desktopSidebar">
-      <div class="sidebar-header">
 
-        <!-- Row 1: Search glass pill + close button -->
-        <div class="desktop-search-row">
-          <div class="desktop-search-pill">
-            <div class="search-pill-icon">
-              <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-            </div>
-            <input id="sidebarSearchBar" type="text" placeholder="Search projects or city..." />
-            <button id="sidebarSearchClear" title="Clear search">✕</button>
-            <div id="sidebarAutocomplete" class="autocomplete-dropdown hidden"></div>
-          </div>
-          <button id="closeSidebar" title="Close">✕</button>
-          <div id="sidebarResults" class="hidden"></div>
-        </div>
-
-        <!-- Row 2: Glass filter pill with three segments -->
-        <div class="desktop-filter-pill mobile-filter-pill">
-          <div class="filter-seg" id="desktopSegSort">
-            <span class="filter-seg-label" id="desktopLabelSort">Nearest</span>
-            <svg class="filter-seg-chevron" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-linecap="round"/></svg>
-            <select id="sortSelectDesktop">
-              <option value="default">Nearest</option>
-              <option value="az">A to Z</option>
-              <option value="za">Z to A</option>
-            </select>
-          </div>
-          <div class="filter-seg-div"></div>
-          <div class="filter-seg" id="desktopSegType">
-            <span class="filter-seg-label" id="desktopLabelType">Type</span>
-            <svg class="filter-seg-chevron" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-linecap="round"/></svg>
-            <select id="projectTypeFilterDesktop">
-              <option value="all">All Types</option>
-            </select>
-          </div>
-          <div class="filter-seg-div"></div>
-          <div class="filter-seg" id="desktopSegStatus">
-            <span class="filter-seg-label" id="desktopLabelStatus">Status</span>
-            <svg class="filter-seg-chevron" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-linecap="round"/></svg>
-            <select id="locationFilterDesktop">
-              <option value="all">All Status</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- Active filter pills (desktop) -->
-        <div class="filter-pills-row" id="desktopPillsRow"></div>
-
-        <!-- Result count (desktop) -->
-        <div class="result-count" id="desktopResultCount" style="display:none;margin-top:2px;"></div>
+    <!-- Row 2: Glass filter pill with three segments -->
+    <div class="desktop-filter-pill mobile-filter-pill">
+      <div class="filter-seg" id="desktopSegSort">
+        <span class="filter-seg-label" id="desktopLabelSort">Nearest</span>
+        <svg class="filter-seg-chevron" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-linecap="round"/></svg>
+        <select id="sortSelectDesktop">
+          <option value="default">Nearest</option>
+          <option value="az">A to Z</option>
+          <option value="za">Z to A</option>
+        </select>
       </div>
-
-      <div class="sidebar-content">
-        <div class="leaf-grid" id="gridDesktop"></div>
+      <div class="filter-seg-div"></div>
+      <div class="filter-seg" id="desktopSegType">
+        <span class="filter-seg-label" id="desktopLabelType">Type</span>
+        <svg class="filter-seg-chevron" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-linecap="round"/></svg>
+        <select id="projectTypeFilterDesktop">
+          <option value="all">All Types</option>
+        </select>
+      </div>
+      <div class="filter-seg-div"></div>
+      <div class="filter-seg" id="desktopSegStatus">
+        <span class="filter-seg-label" id="desktopLabelStatus">Status</span>
+        <svg class="filter-seg-chevron" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-linecap="round"/></svg>
+        <select id="locationFilterDesktop">
+          <option value="all">All Status</option>
+        </select>
       </div>
     </div>
-    
-    <!-- Mobile Drawer -->
-    <div id="mobileDrawer">
-      <div id="mobileDrawerHandle"></div>
-      <div id="mobileDrawerContent">
-        <div class="mobile-header">
-          <!-- Row 1: Glass search pill with autocomplete outside overflow:hidden -->
-          <div style="position:relative;">
-            <div class="mobile-search-pill">
-              <div class="search-pill-icon">
-                <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-              </div>
-              <input id="mobileSearchBar" type="text" placeholder="Search projects or city..." />
-              <button id="mobileSearchClear" title="Clear search">✕</button>
-            </div>
-            <div id="mobileAutocomplete" class="autocomplete-dropdown hidden"></div>
-          </div>
 
-          <!-- Row 2: Glass filter pill with three equal segments -->
-          <div class="mobile-filter-pill">
-            <div class="filter-seg" id="mobileSegSort">
-              <span class="filter-seg-label" id="mobileLabelSort">Nearest</span>
-              <svg class="filter-seg-chevron" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-linecap="round"/></svg>
-              <select id="sortSelectMobile">
-                <option value="default">Nearest</option>
-                <option value="az">A to Z</option>
-                <option value="za">Z to A</option>
-              </select>
-            </div>
-            <div class="filter-seg-div"></div>
-            <div class="filter-seg" id="mobileSegType">
-              <span class="filter-seg-label" id="mobileLabelType">Type</span>
-              <svg class="filter-seg-chevron" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-linecap="round"/></svg>
-              <select id="projectTypeFilterMobile">
-                <option value="all">All Types</option>
-              </select>
-            </div>
-            <div class="filter-seg-div"></div>
-            <div class="filter-seg" id="mobileSegStatus">
-              <span class="filter-seg-label" id="mobileLabelStatus">Status</span>
-              <svg class="filter-seg-chevron" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-linecap="round"/></svg>
-              <select id="locationFilterMobile">
-                <option value="all">All Status</option>
-              </select>
-            </div>
-          </div>
+    <!-- Active filter pills (desktop) -->
+    <div class="filter-pills-row" id="desktopPillsRow"></div>
 
-          <!-- Active filter pills -->
-          <div class="filter-pills-row" id="mobilePillsRow"></div>
-          <!-- Result count -->
-          <div class="result-count" id="mobileResultCount" style="display:none;margin-top:2px;"></div>
+    <!-- Result count (desktop) -->
+    <div class="result-count" id="desktopResultCount" style="display:none;margin-top:2px;"></div>
+  </div>
+
+  <div class="sidebar-content">
+    <div class="leaf-grid" id="gridDesktop"></div>
+  </div>
+</div>
+
+<!-- Mobile Drawer -->
+<div id="mobileDrawer">
+  <div id="mobileDrawerHandle"></div>
+  <div id="mobileDrawerContent">
+    <div class="mobile-header">
+      <!-- Row 1: Glass search pill with autocomplete outside overflow:hidden -->
+      <div style="position:relative;">
+        <div class="mobile-search-pill">
+          <div class="search-pill-icon">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          </div>
+          <input id="mobileSearchBar" type="text" placeholder="Search projects or city..." />
+          <button id="mobileSearchClear" title="Clear search">✕</button>
         </div>
-        
-        <div class="mobile-content allow-scroll">
-          <div class="leaf-grid" id="gridMobile"></div>
+        <div id="mobileAutocomplete" class="autocomplete-dropdown hidden"></div>
+      </div>
+
+      <!-- Row 2: Glass filter pill with three equal segments -->
+      <div class="mobile-filter-pill">
+        <div class="filter-seg" id="mobileSegSort">
+          <span class="filter-seg-label" id="mobileLabelSort">Nearest</span>
+          <svg class="filter-seg-chevron" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <select id="sortSelectMobile">
+            <option value="default">Nearest</option>
+            <option value="az">A to Z</option>
+            <option value="za">Z to A</option>
+          </select>
+        </div>
+        <div class="filter-seg-div"></div>
+        <div class="filter-seg" id="mobileSegType">
+          <span class="filter-seg-label" id="mobileLabelType">Type</span>
+          <svg class="filter-seg-chevron" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <select id="projectTypeFilterMobile">
+            <option value="all">All Types</option>
+          </select>
+        </div>
+        <div class="filter-seg-div"></div>
+        <div class="filter-seg" id="mobileSegStatus">
+          <span class="filter-seg-label" id="mobileLabelStatus">Status</span>
+          <svg class="filter-seg-chevron" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <select id="locationFilterMobile">
+            <option value="all">All Status</option>
+          </select>
         </div>
       </div>
-      <button id="mobileMapButton">
-        <div class="map-btn-icon">
-          <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.94-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
-        </div>
-        <span class="map-btn-label">Map</span>
-        <div class="map-btn-divider"></div>
-        <div class="map-btn-badge" id="mapBtnFilterBadge">
-          <svg viewBox="0 0 24 24"><circle cx="6" cy="5" r="2"/><line x1="2" y1="5" x2="4" y2="5"/><line x1="8" y1="5" x2="22" y2="5"/><circle cx="16" cy="12" r="2"/><line x1="2" y1="12" x2="14" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><circle cx="9" cy="19" r="2"/><line x1="2" y1="19" x2="7" y2="19"/><line x1="11" y1="19" x2="22" y2="19"/></svg>
-          <span class="badge-num" id="mapBtnFilterCount">0</span>
-        </div>
-      </button>
+
+      <!-- Active filter pills -->
+      <div class="filter-pills-row" id="mobilePillsRow"></div>
+      <!-- Result count -->
+      <div class="result-count" id="mobileResultCount" style="display:none;margin-top:2px;"></div>
     </div>
     
-    <button id="mobileTilesButton">
-      <div class="pill-search-icon">
-        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-      </div>
-      <span class="pill-text">Search projects or city...</span>
-      <div class="pill-filter-badge" id="mobilePillFilterBadge">
-        <span class="badge-icon"><svg viewBox="0 0 24 24"><circle cx="6" cy="5" r="2"/><line x1="2" y1="5" x2="4" y2="5"/><line x1="8" y1="5" x2="22" y2="5"/><circle cx="16" cy="12" r="2"/><line x1="2" y1="12" x2="14" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><circle cx="9" cy="19" r="2"/><line x1="2" y1="19" x2="7" y2="19"/><line x1="11" y1="19" x2="22" y2="19"/></svg></span>
-        <span class="badge-count" id="mobilePillFilterCount">0</span>
-      </div>
-      <div class="pill-divider"></div>
-      <div class="pill-count" id="mobilePillCount">— results</div>
-    </button>
-    <a id="mobileHomeButton" href="https://www.oftmw.com" target="_blank">
-      <img src="https://static.wixstatic.com/shapes/ca3b83_a647b53cad4c49c5b012af991d286a86.svg" alt="Markets of Tomorrow" style="width:95%;height:95%;filter:brightness(0) invert(1);object-fit:contain;" />
-    </a>
-    <button id="mapReturnButton">Map</button>
-    
-    <div id="map"></div>
-    
-    <div id="fullscreenModal">
-      <button id="exitFullscreen">✕ Exit</button>
-      <div id="fullscreenMap"></div>
+    <div class="mobile-content allow-scroll">
+      <div class="leaf-grid" id="gridMobile"></div>
     </div>
   </div>
-  
+  <button id="mobileMapButton">
+    <div class="map-btn-icon">
+      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.94-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+    </div>
+    <span class="map-btn-label">Map</span>
+    <div class="map-btn-divider"></div>
+    <div class="map-btn-badge" id="mapBtnFilterBadge">
+      <svg viewBox="0 0 24 24"><circle cx="6" cy="5" r="2"/><line x1="2" y1="5" x2="4" y2="5"/><line x1="8" y1="5" x2="22" y2="5"/><circle cx="16" cy="12" r="2"/><line x1="2" y1="12" x2="14" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><circle cx="9" cy="19" r="2"/><line x1="2" y1="19" x2="7" y2="19"/><line x1="11" y1="19" x2="22" y2="19"/></svg>
+      <span class="badge-num" id="mapBtnFilterCount">0</span>
+    </div>
+  </button>
+</div>
+
+<button id="mobileTilesButton">
+  <div class="pill-search-icon">
+    <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+  </div>
+  <span class="pill-text">Search projects or city...</span>
+  <div class="pill-filter-badge" id="mobilePillFilterBadge">
+    <span class="badge-icon"><svg viewBox="0 0 24 24"><circle cx="6" cy="5" r="2"/><line x1="2" y1="5" x2="4" y2="5"/><line x1="8" y1="5" x2="22" y2="5"/><circle cx="16" cy="12" r="2"/><line x1="2" y1="12" x2="14" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><circle cx="9" cy="19" r="2"/><line x1="2" y1="19" x2="7" y2="19"/><line x1="11" y1="19" x2="22" y2="19"/></svg></span>
+    <span class="badge-count" id="mobilePillFilterCount">0</span>
+  </div>
+  <div class="pill-divider"></div>
+  <div class="pill-count" id="mobilePillCount">— results</div>
+</button>
+<a id="mobileHomeButton" href="https://www.oftmw.com" target="_blank">
+  <img src="https://static.wixstatic.com/shapes/ca3b83_a647b53cad4c49c5b012af991d286a86.svg" alt="Markets of Tomorrow" style="width:95%;height:95%;filter:brightness(0) invert(1);object-fit:contain;" />
+</a>
+<button id="mapReturnButton">Map</button>
+
+<div id="map"></div>
+
+<div id="fullscreenModal">
+  <button id="exitFullscreen">✕ Exit</button>
+  <div id="fullscreenMap"></div>
+</div>
+```
+
+  </div>
+
   <div id="toast" class="toast"></div>
-  
+
   <script>
     // ─── VIEWPORT HEIGHT ─────────────────────────────────────────────────────
     const setAppHeight = () => {
@@ -1815,51 +1824,38 @@
       { name: 'Music City Loop — Music City Center (Future)', color: '#FFD300', coords: [-86.7756, 36.1558] },
       { name: 'Music City Loop — Nashville International Airport / BNA (Future)', color: '#FFD300', coords: [-86.6782, 36.1245] },
       // California High-Speed Rail
-      { name: 'CA HSR — San Francisco Salesforce Transit Center (Future)', color: '#E91E63', coords: [-122.3965, 37.7749] },
-      { name: 'CA HSR — San Jose Diridon (Future)', color: '#E91E63', coords: [-122.2711, 37.5630] },
-      { name: 'CA HSR — Merced (Under Construction)', color: '#E91E63', coords: [-120.4740, 36.9959] },
-      { name: 'CA HSR — Fresno (Under Construction)', color: '#E91E63', coords: [-119.7730, 36.7378] },
-      { name: 'CA HSR — Kings/Tulare (Under Construction)', color: '#E91E63', coords: [-119.3187, 36.3287] },
-      { name: 'CA HSR — Bakersfield (Under Construction)', color: '#E91E63', coords: [-118.9869, 35.3733] },
-      { name: 'CA HSR — Palmdale (Future)', color: '#E91E63', coords: [-118.3579, 34.5748] },
-      { name: 'CA HSR — Burbank (Future)', color: '#E91E63', coords: [-118.3280, 34.1814] },
-      { name: 'CA HSR — Los Angeles Union Station (Future)', color: '#E91E63', coords: [-118.2337, 34.0556] },
-      { name: 'CA HSR — Anaheim (Future)', color: '#E91E63', coords: [-117.9256, 33.8358] },
+      { name: 'CA HSR — San Francisco Salesforce Transit Center (Future)', color: '#FFD300', coords: [-122.3965, 37.7749] },
+      { name: 'CA HSR — San Jose Diridon (Future)', color: '#FFD300', coords: [-122.2711, 37.5630] },
+      { name: 'CA HSR — Merced (Under Construction)', color: '#FFD300', coords: [-120.4740, 36.9959] },
+      { name: 'CA HSR — Fresno (Under Construction)', color: '#FFD300', coords: [-119.7730, 36.7378] },
+      { name: 'CA HSR — Kings/Tulare (Under Construction)', color: '#FFD300', coords: [-119.3187, 36.3287] },
+      { name: 'CA HSR — Bakersfield (Under Construction)', color: '#FFD300', coords: [-118.9869, 35.3733] },
+      { name: 'CA HSR — Palmdale (Future)', color: '#FFD300', coords: [-118.3579, 34.5748] },
+      { name: 'CA HSR — Burbank (Future)', color: '#FFD300', coords: [-118.3280, 34.1814] },
+      { name: 'CA HSR — Los Angeles Union Station (Future)', color: '#FFD300', coords: [-118.2337, 34.0556] },
+      { name: 'CA HSR — Anaheim (Future)', color: '#FFD300', coords: [-117.9256, 33.8358] },
       // Gateway Program
-      { name: 'Gateway Program — Newark Penn Station (Under Construction)', color: '#2196F3', coords: [-74.1724, 40.7357] },
-      { name: 'Gateway Program — Secaucus Junction (Future)', color: '#2196F3', coords: [-74.0776, 40.7550] },
-      { name: 'Gateway Program — New York Penn Station (Under Construction)', color: '#2196F3', coords: [-73.9930, 40.7506] },
+      { name: 'Gateway Program — Newark Penn Station (Under Construction)', color: '#FFD300', coords: [-74.1724, 40.7357] },
+      { name: 'Gateway Program — Secaucus Junction (Future)', color: '#FFD300', coords: [-74.0776, 40.7550] },
+      { name: 'Gateway Program — New York Penn Station (Under Construction)', color: '#FFD300', coords: [-73.9930, 40.7506] },
       // Portal North Bridge
-      { name: 'Portal North Bridge — Hackensack River Crossing (Under Construction)', color: '#FF9800', coords: [-74.0986, 40.7519] },
       // Connecticut River Bridge
-      { name: 'Connecticut River Bridge Replacement — Old Saybrook/Old Lyme CT (Future)', color: '#FF9800', coords: [-72.3580, 41.2960] },
       // B&P Tunnel / Frederick Douglass Tunnel
-      { name: 'B&P Tunnel Replacement — Baltimore Penn Station (Under Construction)', color: '#FF9800', coords: [-76.6230, 39.3088] },
-      { name: 'B&P Tunnel Replacement — West Baltimore MARC Station (Under Construction)', color: '#FF9800', coords: [-76.6680, 39.2820] },
       // Newark AirTrain
-      { name: 'Newark AirTrain Replacement — Rail Link Station (Under Construction)', color: '#9C27B0', coords: [-74.1741, 40.7043] },
-      { name: 'Newark AirTrain Replacement — Terminal A (Under Construction)', color: '#9C27B0', coords: [-74.1820, 40.6960] },
-      { name: 'Newark AirTrain Replacement — Terminal B/C (Under Construction)', color: '#9C27B0', coords: [-74.1920, 40.6890] },
       // Raleigh–Richmond S-Line
-      { name: 'SE Corridor — Raleigh Union Station (Under Construction)', color: '#4CAF50', coords: [-78.6382, 35.7796] },
-      { name: 'SE Corridor — Petersburg VA (Future)', color: '#4CAF50', coords: [-77.4360, 36.8210] },
-      { name: 'SE Corridor — Richmond Main Street Station (Future)', color: '#4CAF50', coords: [-77.4292, 37.1530] },
+      { name: 'SE Corridor — Raleigh Union Station (Under Construction)', color: '#FFD300', coords: [-78.6382, 35.7796] },
+      { name: 'SE Corridor — Petersburg VA (Future)', color: '#FFD300', coords: [-77.4360, 36.8210] },
+      { name: 'SE Corridor — Richmond Main Street Station (Future)', color: '#FFD300', coords: [-77.4292, 37.1530] },
       // Cascadia HSR
-      { name: 'Cascadia HSR — Portland Union Station (Future)', color: '#00BCD4', coords: [-122.6784, 45.5231] },
-      { name: 'Cascadia HSR — Tacoma (Future)', color: '#00BCD4', coords: [-122.4302, 47.2529] },
-      { name: 'Cascadia HSR — Seattle King Street (Future)', color: '#00BCD4', coords: [-122.3320, 47.6062] },
-      { name: 'Cascadia HSR — Everett (Future)', color: '#00BCD4', coords: [-122.3400, 47.9590] },
-      { name: 'Cascadia HSR — Bellingham (Future)', color: '#00BCD4', coords: [-122.3580, 48.7510] },
-      { name: 'Cascadia HSR — Vancouver BC (Future)', color: '#00BCD4', coords: [-123.1130, 49.2827] },
+      { name: 'Cascadia HSR — Portland Union Station (Future)', color: '#FFD300', coords: [-122.6784, 45.5231] },
+      { name: 'Cascadia HSR — Tacoma (Future)', color: '#FFD300', coords: [-122.4302, 47.2529] },
+      { name: 'Cascadia HSR — Seattle King Street (Future)', color: '#FFD300', coords: [-122.3320, 47.6062] },
+      { name: 'Cascadia HSR — Everett (Future)', color: '#FFD300', coords: [-122.3400, 47.9590] },
+      { name: 'Cascadia HSR — Bellingham (Future)', color: '#FFD300', coords: [-122.3580, 48.7510] },
+      { name: 'Cascadia HSR — Vancouver BC (Future)', color: '#FFD300', coords: [-123.1130, 49.2827] },
       // Amtrak Connect US – Las Vegas corridor
-      { name: 'Amtrak Connect US — Las Vegas (Future)', color: '#FF5722', coords: [-115.1398, 36.0274] },
-      { name: 'Amtrak Connect US — Palm Springs (Future)', color: '#FF5722', coords: [-116.5438, 33.8311] },
       // NextGen Acela / Airo (key NEC stations)
-      { name: 'NextGen Acela / Amtrak Airo — Washington Union Station', color: '#673AB7', coords: [-77.0065, 38.8971] },
-      { name: 'NextGen Acela / Amtrak Airo — New York Penn Station', color: '#673AB7', coords: [-73.9930, 40.7506] },
-      { name: 'NextGen Acela / Amtrak Airo — Boston South Station', color: '#673AB7', coords: [-71.0589, 42.3601] },
       // Long Bridge
-      { name: 'Long Bridge Project — Potomac River Crossing, DC/Virginia (Under Construction)', color: '#FF9800', coords: [-77.0280, 38.8620] },
     ];
 
     // ─── FILTER PILLS SYSTEM ─────────────────────────────────────────────────
@@ -3552,7 +3548,7 @@
         [-118.3280, 34.1814], // Burbank
         [-118.2337, 34.0556], // LA Union Station
         [-117.9256, 33.8358], // Anaheim
-      ], '#E91E63');
+      ], '#FFD300');
 
       // ── 2. Gateway Program / Hudson Tunnel (Newark → NY Penn Station) ────────
       addRailLine('gateway', [
@@ -3563,41 +3559,10 @@
         [-74.0040, 40.7500], // Under Hudson River
         [-73.9965, 40.7505], // NY Penn Station entrance
         [-73.9930, 40.7506], // NY Penn Station
-      ], '#2196F3');
+      ], '#FFD300');
 
       // ── 3. Portal North Bridge (Hackensack River, Kearny NJ) ─────────────────
-      addRailLine('portal-north', [
-        [-74.1042, 40.7462], // South of bridge, Kearny
-        [-74.0986, 40.7519], // Portal Bridge location (Hackensack River)
-        [-74.0898, 40.7557], // North of bridge, Secaucus
-      ], '#FF9800');
-
-      // ── 4. Connecticut River Bridge (Old Saybrook / Old Lyme CT) ─────────────
-      addRailLine('ct-river-bridge', [
-        [-72.3756, 41.2857], // Old Saybrook station area
-        [-72.3580, 41.2960], // Connecticut River crossing
-        [-72.3450, 41.3140], // Old Lyme (north bank)
-      ], '#FF9800');
-
-      // ── 5. B&P Tunnel Replacement / Frederick Douglass Tunnel (Baltimore) ────
-      addRailLine('bp-tunnel', [
-        [-76.6230, 39.3088], // Baltimore Penn Station
-        [-76.6310, 39.3030], // West Baltimore (tunnel south portal)
-        [-76.6450, 39.2960], // Mid-tunnel, West Baltimore
-        [-76.6550, 39.2890], // North tunnel portal area
-        [-76.6680, 39.2820], // West Baltimore MARC station
-      ], '#FF9800');
-
-      // ── 6. Newark AirTrain Replacement (EWR) ─────────────────────────────────
-      addRailLine('ewr-airtrain', [
-        [-74.1741, 40.7043], // EWR Rail Link Station (NEC connection)
-        [-74.1820, 40.6960], // Terminal A area
-        [-74.1870, 40.6900], // ConRAC / rental cars
-        [-74.1920, 40.6890], // Terminal B / C area
-        [-74.1952, 40.6960], // Loop back toward Terminal A
-      ], '#9C27B0');
-
-      // ── 7. Raleigh–Richmond Southeast Corridor (S-Line) ──────────────────────
+      // ── 3. Raleigh–Richmond Southeast Corridor (S-Line) ──────────────────────
       addRailLine('raleigh-richmond', [
         [-78.6382, 35.7796], // Raleigh Union Station
         [-78.5190, 35.9720], // Wake Forest (S-Line enters)
@@ -3606,9 +3571,9 @@
         [-77.4360, 36.8210], // Petersburg VA
         [-77.4292, 37.1530], // Richmond Main Street Station
         [-77.4360, 37.5540], // Richmond Staples Mill (RVR)
-      ], '#4CAF50');
+      ], '#FFD300');
 
-      // ── 8. Cascadia High-Speed Rail (Portland → Seattle → Vancouver BC) ───────
+      // ── 4. Cascadia High-Speed Rail (Portland → Seattle → Vancouver BC) ───────
       addRailLine('cascadia-hsr', [
         [-122.6784, 45.5231], // Portland Union Station
         [-122.6732, 45.6280], // Vancouver WA
@@ -3620,40 +3585,7 @@
         [-122.3580, 48.7510], // Bellingham
         [-122.5010, 49.0003], // US/Canada border crossing
         [-123.1130, 49.2827], // Vancouver BC Pacific Central
-      ], '#00BCD4');
-
-      // ── 9. Amtrak Connect US – key new corridors (symbolic representation) ───
-      // Las Vegas to LA (proposed new Amtrak corridor)
-      addRailLine('amtrak-connect-lasvegas', [
-        [-118.2337, 34.0556], // LA Union Station
-        [-117.1870, 34.0550], // San Bernardino
-        [-116.5438, 33.8311], // Palm Springs
-        [-115.5730, 33.1580], // Indio/Coachella
-        [-115.1398, 36.0274], // Las Vegas
-      ], '#FF5722');
-
-      // ── 10. Amtrak Airo Fleet / NextGen Acela (NEC: Washington → Boston) ─────
-      // This is an upgrade to existing NEC — show as enhancement overlay
-      addRailLine('nextgen-acela', [
-        [-77.0065, 38.8971], // Washington Union Station
-        [-76.6230, 39.3088], // Baltimore Penn
-        [-75.7295, 39.6780], // Wilmington DE
-        [-75.1808, 39.9526], // Philadelphia 30th St
-        [-74.9950, 40.2040], // Trenton
-        [-74.1724, 40.7357], // Newark Penn
-        [-73.9930, 40.7506], // NY Penn Station
-        [-72.9275, 41.3040], // New Haven
-        [-71.8226, 41.8240], // Providence
-        [-71.0589, 42.3601], // Boston South Station
-      ], '#673AB7');
-
-      // ── 11. Long Bridge Project (DC to Alexandria VA, Potomac River) ──────────
-      addRailLine('long-bridge', [
-        [-77.0230, 38.8750], // DC side (L'Enfant Plaza area)
-        [-77.0280, 38.8620], // Mid-Potomac River
-        [-77.0430, 38.8540], // Alexandria VA (Crystal City area)
-        [-77.0500, 38.8430], // Alexandria station
-      ], '#FF9800');
+      ], '#FFD300');
 
       const stationFeatures = stations.map(s => ({ type:'Feature', properties:{ name:s.name, color: s.color || '#FFD300' }, geometry:{ type:'Point', coordinates:s.coords } }));
       const stationGeo = { type:'FeatureCollection', features:stationFeatures };
@@ -3870,5 +3802,6 @@
       if (fullscreenMap) { map.setCenter(fullscreenMap.getCenter()); map.setZoom(fullscreenMap.getZoom()); }
     };
   </script>
+
 </body>
 </html>
