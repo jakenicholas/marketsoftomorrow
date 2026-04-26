@@ -2235,7 +2235,7 @@
       const off = isMobile ? [0, Math.round(window.innerHeight * 0.15)] : [0, Math.round(window.innerHeight * 0.18)];
       const targetZoom = Math.max(map.getZoom(), 14);
       const distMiles = calculateDistance(map.getCenter().lat, map.getCenter().lng, co[1], co[0]);
-      const flyDuration = distMiles < 50 ? 800 : distMiles < 300 ? 1200 : 1800;
+      const flyDuration = distMiles < 50 ? 1200 : distMiles < 300 ? 1400 : 1800;
       window._mapFlyingTo = true;
       map.flyTo({ center: co, zoom: targetZoom, offset: off, duration: flyDuration, essential: true });
       gtag('event', 'project_view', {
