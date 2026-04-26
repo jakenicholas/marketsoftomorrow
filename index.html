@@ -1796,70 +1796,70 @@
     let activePopup, stationPopup, fullscreenMap;
 
     const stations = [
-      { name: 'Brightline Miami Central', coords: [-80.19566705369766,25.779947075732274] },
-      { name: 'Brightline Space Coast (Future Expansion)', coords: [-80.75202413906919,28.397871260389884] },
-      { name: 'Brightline Treasure Coast (Future Expansion)', coords: [-80.25077272459303,27.19613680836344] },
-      { name: 'Brightline Tampa (Future Expansion)', coords: [-82.44012243487249,27.9601013] },
-      { name: 'Brightline Aventura', coords: [-80.14727549271636,25.95864554962915] },
-      { name: 'Brightline Fort Lauderdale', coords: [-80.14604744023525,26.123679482466038] },
-      { name: 'Brightline Boca Raton', coords: [-80.08775544484952,26.35487530600287] },
-      { name: 'Brightline West Palm Beach', coords: [-80.05544183114269,26.71256721532643] },
-      { name: 'Brightline Orlando', coords: [-81.30766141153542,28.41186811070061] },
+      { name: 'Brightline Miami Central', color: '#FFD300', coords: [-80.19566705369766,25.779947075732274] },
+      { name: 'Brightline Space Coast (Future Expansion)', color: '#FFD300', coords: [-80.75202413906919,28.397871260389884] },
+      { name: 'Brightline Treasure Coast (Future Expansion)', color: '#FFD300', coords: [-80.25077272459303,27.19613680836344] },
+      { name: 'Brightline Tampa (Future Expansion)', color: '#FFD300', coords: [-82.44012243487249,27.9601013] },
+      { name: 'Brightline Aventura', color: '#FFD300', coords: [-80.14727549271636,25.95864554962915] },
+      { name: 'Brightline Fort Lauderdale', color: '#FFD300', coords: [-80.14604744023525,26.123679482466038] },
+      { name: 'Brightline Boca Raton', color: '#FFD300', coords: [-80.08775544484952,26.35487530600287] },
+      { name: 'Brightline West Palm Beach', color: '#FFD300', coords: [-80.05544183114269,26.71256721532643] },
+      { name: 'Brightline Orlando', color: '#FFD300', coords: [-81.30766141153542,28.41186811070061] },
       // Brightline West stations
-      { name: 'Brightline West — Rancho Cucamonga (Future Expansion)', coords: [-117.5614, 34.1060] },
-      { name: 'Brightline West — Hesperia (Future Expansion)', coords: [-117.3089, 34.4073] },
-      { name: 'Brightline West — Victor Valley / Apple Valley (Future Expansion)', coords: [-117.2156, 34.5583] },
-      { name: 'Brightline West — Las Vegas (Future Expansion)', coords: [-115.1764, 36.0283] },
+      { name: 'Brightline West — Rancho Cucamonga (Future Expansion)', color: '#FFD300', coords: [-117.5614, 34.1060] },
+      { name: 'Brightline West — Hesperia (Future Expansion)', color: '#FFD300', coords: [-117.3089, 34.4073] },
+      { name: 'Brightline West — Victor Valley / Apple Valley (Future Expansion)', color: '#FFD300', coords: [-117.2156, 34.5583] },
+      { name: 'Brightline West — Las Vegas (Future Expansion)', color: '#FFD300', coords: [-115.1764, 36.0283] },
       // Music City Loop stations
-      { name: 'Music City Loop — Tennessee State Capitol (Future)', coords: [-86.7844, 36.1654] },
-      { name: 'Music City Loop — Music City Center (Future)', coords: [-86.7756, 36.1558] },
-      { name: 'Music City Loop — Nashville International Airport / BNA (Future)', coords: [-86.6782, 36.1245] },
+      { name: 'Music City Loop — Tennessee State Capitol (Future)', color: '#FFD300', coords: [-86.7844, 36.1654] },
+      { name: 'Music City Loop — Music City Center (Future)', color: '#FFD300', coords: [-86.7756, 36.1558] },
+      { name: 'Music City Loop — Nashville International Airport / BNA (Future)', color: '#FFD300', coords: [-86.6782, 36.1245] },
       // California High-Speed Rail
-      { name: 'CA HSR — San Francisco Salesforce Transit Center (Future)', coords: [-122.3965, 37.7749] },
-      { name: 'CA HSR — San Jose Diridon (Future)', coords: [-122.2711, 37.5630] },
-      { name: 'CA HSR — Merced (Under Construction)', coords: [-120.4740, 36.9959] },
-      { name: 'CA HSR — Fresno (Under Construction)', coords: [-119.7730, 36.7378] },
-      { name: 'CA HSR — Kings/Tulare (Under Construction)', coords: [-119.3187, 36.3287] },
-      { name: 'CA HSR — Bakersfield (Under Construction)', coords: [-118.9869, 35.3733] },
-      { name: 'CA HSR — Palmdale (Future)', coords: [-118.3579, 34.5748] },
-      { name: 'CA HSR — Burbank (Future)', coords: [-118.3280, 34.1814] },
-      { name: 'CA HSR — Los Angeles Union Station (Future)', coords: [-118.2337, 34.0556] },
-      { name: 'CA HSR — Anaheim (Future)', coords: [-117.9256, 33.8358] },
+      { name: 'CA HSR — San Francisco Salesforce Transit Center (Future)', color: '#E91E63', coords: [-122.3965, 37.7749] },
+      { name: 'CA HSR — San Jose Diridon (Future)', color: '#E91E63', coords: [-122.2711, 37.5630] },
+      { name: 'CA HSR — Merced (Under Construction)', color: '#E91E63', coords: [-120.4740, 36.9959] },
+      { name: 'CA HSR — Fresno (Under Construction)', color: '#E91E63', coords: [-119.7730, 36.7378] },
+      { name: 'CA HSR — Kings/Tulare (Under Construction)', color: '#E91E63', coords: [-119.3187, 36.3287] },
+      { name: 'CA HSR — Bakersfield (Under Construction)', color: '#E91E63', coords: [-118.9869, 35.3733] },
+      { name: 'CA HSR — Palmdale (Future)', color: '#E91E63', coords: [-118.3579, 34.5748] },
+      { name: 'CA HSR — Burbank (Future)', color: '#E91E63', coords: [-118.3280, 34.1814] },
+      { name: 'CA HSR — Los Angeles Union Station (Future)', color: '#E91E63', coords: [-118.2337, 34.0556] },
+      { name: 'CA HSR — Anaheim (Future)', color: '#E91E63', coords: [-117.9256, 33.8358] },
       // Gateway Program
-      { name: 'Gateway Program — Newark Penn Station (Under Construction)', coords: [-74.1724, 40.7357] },
-      { name: 'Gateway Program — Secaucus Junction (Future)', coords: [-74.0776, 40.7550] },
-      { name: 'Gateway Program — New York Penn Station (Under Construction)', coords: [-73.9930, 40.7506] },
+      { name: 'Gateway Program — Newark Penn Station (Under Construction)', color: '#2196F3', coords: [-74.1724, 40.7357] },
+      { name: 'Gateway Program — Secaucus Junction (Future)', color: '#2196F3', coords: [-74.0776, 40.7550] },
+      { name: 'Gateway Program — New York Penn Station (Under Construction)', color: '#2196F3', coords: [-73.9930, 40.7506] },
       // Portal North Bridge
-      { name: 'Portal North Bridge — Hackensack River Crossing (Under Construction)', coords: [-74.0986, 40.7519] },
+      { name: 'Portal North Bridge — Hackensack River Crossing (Under Construction)', color: '#FF9800', coords: [-74.0986, 40.7519] },
       // Connecticut River Bridge
-      { name: 'Connecticut River Bridge Replacement — Old Saybrook/Old Lyme CT (Future)', coords: [-72.3580, 41.2960] },
+      { name: 'Connecticut River Bridge Replacement — Old Saybrook/Old Lyme CT (Future)', color: '#FF9800', coords: [-72.3580, 41.2960] },
       // B&P Tunnel / Frederick Douglass Tunnel
-      { name: 'B&P Tunnel Replacement — Baltimore Penn Station (Under Construction)', coords: [-76.6230, 39.3088] },
-      { name: 'B&P Tunnel Replacement — West Baltimore MARC Station (Under Construction)', coords: [-76.6680, 39.2820] },
+      { name: 'B&P Tunnel Replacement — Baltimore Penn Station (Under Construction)', color: '#FF9800', coords: [-76.6230, 39.3088] },
+      { name: 'B&P Tunnel Replacement — West Baltimore MARC Station (Under Construction)', color: '#FF9800', coords: [-76.6680, 39.2820] },
       // Newark AirTrain
-      { name: 'Newark AirTrain Replacement — Rail Link Station (Under Construction)', coords: [-74.1741, 40.7043] },
-      { name: 'Newark AirTrain Replacement — Terminal A (Under Construction)', coords: [-74.1820, 40.6960] },
-      { name: 'Newark AirTrain Replacement — Terminal B/C (Under Construction)', coords: [-74.1920, 40.6890] },
+      { name: 'Newark AirTrain Replacement — Rail Link Station (Under Construction)', color: '#9C27B0', coords: [-74.1741, 40.7043] },
+      { name: 'Newark AirTrain Replacement — Terminal A (Under Construction)', color: '#9C27B0', coords: [-74.1820, 40.6960] },
+      { name: 'Newark AirTrain Replacement — Terminal B/C (Under Construction)', color: '#9C27B0', coords: [-74.1920, 40.6890] },
       // Raleigh–Richmond S-Line
-      { name: 'SE Corridor — Raleigh Union Station (Under Construction)', coords: [-78.6382, 35.7796] },
-      { name: 'SE Corridor — Petersburg VA (Future)', coords: [-77.4360, 36.8210] },
-      { name: 'SE Corridor — Richmond Main Street Station (Future)', coords: [-77.4292, 37.1530] },
+      { name: 'SE Corridor — Raleigh Union Station (Under Construction)', color: '#4CAF50', coords: [-78.6382, 35.7796] },
+      { name: 'SE Corridor — Petersburg VA (Future)', color: '#4CAF50', coords: [-77.4360, 36.8210] },
+      { name: 'SE Corridor — Richmond Main Street Station (Future)', color: '#4CAF50', coords: [-77.4292, 37.1530] },
       // Cascadia HSR
-      { name: 'Cascadia HSR — Portland Union Station (Future)', coords: [-122.6784, 45.5231] },
-      { name: 'Cascadia HSR — Tacoma (Future)', coords: [-122.4302, 47.2529] },
-      { name: 'Cascadia HSR — Seattle King Street (Future)', coords: [-122.3320, 47.6062] },
-      { name: 'Cascadia HSR — Everett (Future)', coords: [-122.3400, 47.9590] },
-      { name: 'Cascadia HSR — Bellingham (Future)', coords: [-122.3580, 48.7510] },
-      { name: 'Cascadia HSR — Vancouver BC (Future)', coords: [-123.1130, 49.2827] },
+      { name: 'Cascadia HSR — Portland Union Station (Future)', color: '#00BCD4', coords: [-122.6784, 45.5231] },
+      { name: 'Cascadia HSR — Tacoma (Future)', color: '#00BCD4', coords: [-122.4302, 47.2529] },
+      { name: 'Cascadia HSR — Seattle King Street (Future)', color: '#00BCD4', coords: [-122.3320, 47.6062] },
+      { name: 'Cascadia HSR — Everett (Future)', color: '#00BCD4', coords: [-122.3400, 47.9590] },
+      { name: 'Cascadia HSR — Bellingham (Future)', color: '#00BCD4', coords: [-122.3580, 48.7510] },
+      { name: 'Cascadia HSR — Vancouver BC (Future)', color: '#00BCD4', coords: [-123.1130, 49.2827] },
       // Amtrak Connect US – Las Vegas corridor
-      { name: 'Amtrak Connect US — Las Vegas (Future)', coords: [-115.1398, 36.0274] },
-      { name: 'Amtrak Connect US — Palm Springs (Future)', coords: [-116.5438, 33.8311] },
+      { name: 'Amtrak Connect US — Las Vegas (Future)', color: '#FF5722', coords: [-115.1398, 36.0274] },
+      { name: 'Amtrak Connect US — Palm Springs (Future)', color: '#FF5722', coords: [-116.5438, 33.8311] },
       // NextGen Acela / Airo (key NEC stations)
-      { name: 'NextGen Acela / Amtrak Airo — Washington Union Station', coords: [-77.0065, 38.8971] },
-      { name: 'NextGen Acela / Amtrak Airo — New York Penn Station', coords: [-73.9930, 40.7506] },
-      { name: 'NextGen Acela / Amtrak Airo — Boston South Station', coords: [-71.0589, 42.3601] },
+      { name: 'NextGen Acela / Amtrak Airo — Washington Union Station', color: '#673AB7', coords: [-77.0065, 38.8971] },
+      { name: 'NextGen Acela / Amtrak Airo — New York Penn Station', color: '#673AB7', coords: [-73.9930, 40.7506] },
+      { name: 'NextGen Acela / Amtrak Airo — Boston South Station', color: '#673AB7', coords: [-71.0589, 42.3601] },
       // Long Bridge
-      { name: 'Long Bridge Project — Potomac River Crossing, DC/Virginia (Under Construction)', coords: [-77.0280, 38.8620] },
+      { name: 'Long Bridge Project — Potomac River Crossing, DC/Virginia (Under Construction)', color: '#FF9800', coords: [-77.0280, 38.8620] },
     ];
 
     // ─── FILTER PILLS SYSTEM ─────────────────────────────────────────────────
@@ -3655,14 +3655,14 @@
         [-77.0500, 38.8430], // Alexandria station
       ], '#FF9800');
 
-      const stationFeatures = stations.map(s => ({ type:'Feature', properties:{ name:s.name }, geometry:{ type:'Point', coordinates:s.coords } }));
+      const stationFeatures = stations.map(s => ({ type:'Feature', properties:{ name:s.name, color: s.color || '#FFD300' }, geometry:{ type:'Point', coordinates:s.coords } }));
       const stationGeo = { type:'FeatureCollection', features:stationFeatures };
       if (!map.getSource('stations')) {
         map.addSource('stations', { type:'geojson', data:stationGeo });
       } else {
         map.getSource('stations').setData(stationGeo);
       }
-      if (!map.getLayer('station-dots'))  map.addLayer({ id:'station-dots',  type:'circle', source:'stations', paint:{'circle-color':'#FFD300','circle-radius':6,'circle-stroke-color':'#fff','circle-stroke-width':2} });
+      if (!map.getLayer('station-dots'))  map.addLayer({ id:'station-dots',  type:'circle', source:'stations', paint:{'circle-color':['get','color'],'circle-radius':6,'circle-stroke-color':'#fff','circle-stroke-width':2} });
       if (!map.getLayer('station-hover')) map.addLayer({ id:'station-hover', type:'circle', source:'stations', paint:{'circle-color':'transparent','circle-radius':18,'circle-stroke-width':0} });
 
       // Station interactions (safe to re-register — Mapbox deduplicates on same handler ref,
