@@ -1549,7 +1549,10 @@
         <div class="layers-checkbox checked" id="transitCheckbox">
           <svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg>
         </div>
-        <span class="layers-checkbox-label">Future Transit</span>
+        <span class="layers-checkbox-label" style="display:flex;align-items:center;gap:6px;">
+          Future Transit
+          <svg width="18" height="6" viewBox="0 0 18 6" style="flex-shrink:0;"><line x1="0" y1="3" x2="18" y2="3" stroke="#FFD300" stroke-width="2" stroke-dasharray="3,2"/></svg>
+        </span>
       </div>
 
       <div class="layers-checkbox-row" id="currentTransitToggleRow">
@@ -3387,22 +3390,8 @@
         setCurrentTransitVisibility(currentTransitVisible);
       });
 
-      // Restore current transit after style switch
-      const _origSwitchStyle = window._switchStyle;
-      map.on('style.load', () => {
-        currentTransitLayersAdded = false;
-        window._transitLayerIds = [];
-        if (currentTransitVisible) {
-          setTimeout(() => {
-            addCurrentTransitLayer();
-            setTimeout(() => {
-              window._transitLayerIds.forEach(id => {
-                if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', 'visible');
-              });
-            }, 300);
-          }, 500);
-        }
-      });
+      // Restore current transit after style switch — handled inside switchStyle below
+
       transitRow?.addEventListener('click', () => {
         transitVisible = !transitVisible;
         transitCb.classList.toggle('checked', transitVisible);
@@ -3421,6 +3410,19 @@
         map.setStyle(isSatellite ? SATELLITE_STYLE : STREET_STYLE);
         map.once('style.load', () => {
           addAllMapLayers();
+          // Reset and restore current transit layer after style switch
+          currentTransitLayersAdded = false;
+          window._transitLayerIds = [];
+          if (currentTransitVisible) {
+            setTimeout(() => {
+              addCurrentTransitLayer();
+              setTimeout(() => {
+                window._transitLayerIds.forEach(id => {
+                  if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', 'visible');
+                });
+              }, 300);
+            }, 200);
+          }
           if (!transitVisible) setTimeout(() => setTransitVisibility(false), 100);
         });
       }
