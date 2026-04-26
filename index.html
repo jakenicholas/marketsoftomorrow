@@ -3340,23 +3340,6 @@
         if (currentTransitLayersAdded) return;
         currentTransitLayersAdded = true;
 
-        // mapbox-streets-v8 is publicly available and contains 'road' source-layer
-        // with transit types: rail, subway, tramway, light_rail, monorail, ferry
-        // Also try 'transit' source-layer for station/line data
-        const layersToAdd = [
-          {
-            id: 'current-transit-rail',
-            'source-layer': 'road',
-            filter: ['in', 'class', 'rail', 'subway', 'tramway', 'light_rail', 'monorail', 'ferry']
-          },
-          {
-            id: 'current-transit-ferry',
-            'source-layer': 'transit',
-            filter: null
-          }
-        ];
-
-        // Try adding using mapbox-streets-v8 tileset
         if (!map.getSource('mapbox-streets')) {
           map.addSource('mapbox-streets', {
             type: 'vector',
@@ -3364,32 +3347,28 @@
           });
         }
 
-        const added = [];
-        layersToAdd.forEach(({ id, 'source-layer': sl, filter }) => {
-          if (map.getLayer(id)) return;
+        // Only rail class — covers subway, metro, commuter rail, light rail globally
+        // Explicitly exclude ferry/waterway
+        if (!map.getLayer('current-transit-rail')) {
           try {
-            const layerDef = {
-              id,
+            map.addLayer({
+              id: 'current-transit-rail',
               type: 'line',
               source: 'mapbox-streets',
-              'source-layer': sl,
+              'source-layer': 'road',
+              filter: ['==', ['get', 'class'], 'rail'],
               layout: { 'line-join': 'round', 'line-cap': 'round', visibility: 'none' },
               paint: {
                 'line-color': '#FF8C00',
-                'line-width': ['interpolate', ['linear'], ['zoom'], 2, 0.5, 6, 1, 10, 1.5, 14, 2.5],
-                'line-opacity': 0.85
+                'line-width': ['interpolate', ['linear'], ['zoom'], 2, 0.4, 5, 0.8, 8, 1.2, 12, 2],
+                'line-opacity': 0.8
               }
-            };
-            if (filter) layerDef.filter = filter;
-            map.addLayer(layerDef, 'unclustered-point');
-            added.push(id);
+            }, 'unclustered-point');
+            window._transitLayerIds = ['current-transit-rail'];
           } catch(e) {
-            console.warn('[Transit]', id, 'failed:', e.message);
+            console.warn('[Transit] rail layer failed:', e.message);
           }
-        });
-
-        window._transitLayerIds = added.length ? added : ['current-transit-rail'];
-        console.log('[Transit] Added layers:', window._transitLayerIds);
+        }
       }
 
       function setCurrentTransitVisibility(visible) {
