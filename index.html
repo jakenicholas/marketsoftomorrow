@@ -3285,7 +3285,7 @@
         'chuo-maglev-line','india-mahsr-line','thailand-hsr-line','iran-hsr-line',
         'iraq-hsr-north-line','iraq-hsr-south-line',
         'hs2-line','belgrade-budapest-line','rail-baltica-line',
-        'gcc-rail-line','gcc-bahrain-line','gcc-uae-oman-line','gcc-dubai-line',
+        'gcc-rail-line','gcc-bahrain-line','gcc-qatar-line','gcc-uae-oman-line',
         'saudi-hsr-line','sa-hsr-line',
         'station-dots','station-hover'
       ];
@@ -3931,69 +3931,85 @@
       ], '#FFD300');
 
       // ── GCC Gulf Railway (Kuwait → Saudi → Qatar → UAE → Oman) ───────────────
-      // ── GCC Gulf Railway — main coastal line: Kuwait → Dammam → UAE → Oman ────
+      // ── GCC Gulf Railway — main coastal line: Kuwait → Dammam ─────────────────
+      // Follows the Gulf coast road, staying on land
       addRailLine('gcc-rail', [
         [47.9783, 29.3697], // Kuwait City
-        [48.1500, 28.9000], // Al Nuwaiseeb / Kuwait-Saudi border
-        [48.4900, 28.4000], // Al Khafji, Saudi Arabia
-        [48.9500, 27.9000], // Jubail area
+        [48.0500, 29.0500], // South Kuwait coast
+        [48.1700, 28.6500], // Al Nuwaiseeb border
+        [48.3500, 28.2000], // Al Khafji
+        [48.6500, 27.7500], // Ras al-Khair area
+        [48.9500, 27.3000], // Jubail coast
+        [49.3500, 26.9000], // Between Jubail and Dammam
         [49.8600, 26.4200], // Dammam
-        [50.0500, 26.1000], // Al Khobar
-        [50.6100, 26.0800], // King Fahd Causeway (Bahrain branch junction)
-        [51.5500, 24.6500], // Al Ahsa / Hofuf area
-        [51.2000, 24.2000], // Saudi/Qatar border (Salwa)
-        [51.5310, 25.2854], // Doha, Qatar
       ], '#FFD300');
 
-      // ── GCC Gulf Railway — Bahrain branch (from King Fahd Causeway) ────────────
+      // ── GCC Bahrain branch ─────────────────────────────────────────────────────
       addRailLine('gcc-bahrain', [
-        [50.6100, 26.0800], // King Fahd Causeway junction
-        [50.5100, 26.1500], // Causeway crossing
-        [50.4900, 26.2000], // Bahrain arrival
-        [50.5600, 26.2300], // Khalifa Port area
+        [49.8600, 26.4200], // Dammam
+        [50.0500, 26.2200], // King Fahd Causeway Saudi side
+        [50.2500, 26.1800], // Causeway mid-point
+        [50.4900, 26.1900], // Bahrain arrival
+        [50.5600, 26.2200], // Khalifa Port
         [50.6050, 26.2320], // Bahrain Airport
-        [50.6300, 26.2600], // Amwaj Islands / Manama
       ], '#FFD300');
 
-      // ── GCC Gulf Railway — UAE/Oman section (Etihad Rail + Hafeet Rail) ────────
+      // ── GCC Qatar branch ───────────────────────────────────────────────────────
+      // Runs south along Saudi coast then turns east to Salwa/Qatar
+      addRailLine('gcc-qatar', [
+        [49.8600, 26.4200], // Dammam
+        [49.9500, 26.0000], // Al Khobar south
+        [50.1000, 25.5000], // Saudi Eastern Province south
+        [50.5000, 25.0000], // Salwa border area
+        [50.7500, 25.1000], // Salwa Port / Qatar entry
+        [51.0500, 25.1500], // Southern Qatar
+        [51.2500, 25.2000], // Heading to Doha
+        [51.5310, 25.2854], // Doha
+      ], '#FFD300');
+
+      // ── GCC UAE/Oman section (Etihad Rail + Hafeet Rail) ──────────────────────
+      // From UAE/Saudi border along coast to Muscat
       addRailLine('gcc-uae-oman', [
-        [51.2000, 24.2000], // Saudi/Qatar border (Salwa) — join from Doha/Saudi
-        [51.6000, 23.9000], // UAE entry (Al Sila / Ghuweifat)
-        [52.6000, 24.0000], // Ruwais / Al Dhafra
-        [53.7000, 24.0000], // Al Mirfa
+        [51.5310, 25.2854], // Doha
+        [51.5000, 24.7000], // Qatar south / UAE approach
+        [51.6000, 24.2000], // Al Sila (UAE entry from Saudi)
+        [52.2000, 24.1000], // Ruwais / Al Dhafra
+        [53.0000, 24.0000], // Al Mirfa
+        [54.0000, 24.2000], // Abu Dhabi outskirts
         [54.3700, 24.4539], // Abu Dhabi
-        [55.1000, 24.8000], // Al Ain approach
-        [55.7500, 24.2000], // Al Ain / UAE-Oman border
-        [56.3000, 23.9500], // Sohar approach
-        [56.7000, 23.7000], // Sohar
+        [54.9000, 24.7000], // Between Abu Dhabi and Dubai
+        [55.2700, 25.2048], // Dubai
+        [55.7000, 24.2000], // Al Ain area
+        [56.2500, 23.9700], // Fujairah/Sohar approach
+        [56.7000, 23.7500], // Sohar
+        [57.5000, 23.6500], // Oman coast heading east
         [58.5930, 23.6140], // Muscat
       ], '#FFD300');
 
-      // ── GCC Gulf Railway — Dubai connector (Etihad Rail Abu Dhabi → Dubai) ─────
-      addRailLine('gcc-dubai', [
-        [54.3700, 24.4539], // Abu Dhabi
-        [54.9000, 25.0000], // Between Abu Dhabi and Dubai
-        [55.2700, 25.2048], // Dubai
-      ], '#FFD300');
-
-      // ── Saudi Arabia: Riyadh–Dammam HSR (separate inland route) ──────────────
+      // ── Saudi Arabia: Riyadh–Dammam HSR (inland route) ────────────────────────
       addRailLine('saudi-hsr', [
         [46.7219, 24.6877], // Riyadh
-        [47.5000, 24.9000], // NE heading
-        [48.3000, 25.4000], // Haradh area
-        [49.1000, 25.9000], // Hofuf / Al Ahsa
+        [47.4000, 24.8500], // NE heading
+        [48.0000, 25.1000], // Haradh area
+        [48.9000, 25.6000], // Al Ahsa / Hofuf area
+        [49.5000, 26.1000], // Approaching Dammam
         [49.8600, 26.4200], // Dammam
       ], '#FFD300');
 
       // ── South Africa: Pretoria–Polokwane HSR (N1 corridor) ─────────────────────
-      // N1 highway runs almost due north from Pretoria, staying ~28.3-28.7 lon
+      // N1 starts due north from Pretoria then gradually curves NE toward Polokwane
+      // Reference: Pretoria 28.19E,-25.75S → Bela-Bela 28.29E,-24.88S → 
+      // Modimolle 28.40E,-24.69S → Mokopane 28.72E,-24.19S → Polokwane 29.47E,-23.90S
       addRailLine('sa-hsr', [
-        [28.2293, -25.7461], // Pretoria
-        [28.2800, -25.4000], // Bela-Bela approach / Hammanskraal
-        [28.3200, -24.8500], // Bela-Bela
-        [28.4200, -24.5500], // Mokopane / Nylstroom
-        [28.5500, -24.1500], // Makhado approach
-        [28.7000, -23.9000], // Louis Trichardt area
+        [28.1900, -25.7500], // Pretoria station
+        [28.2100, -25.5500], // Hammanskraal area
+        [28.2400, -25.3000], // N1 heading north
+        [28.2900, -24.8800], // Bela-Bela (Warmbaths)
+        [28.3700, -24.6900], // Modimolle (Nylstroom)
+        [28.5000, -24.4500], // Mookgophong
+        [28.7200, -24.1900], // Mokopane (Potgietersrus)
+        [28.9500, -24.0500], // N1 northeast toward Polokwane
+        [29.2000, -23.9700], // Polokwane approach
         [29.4486, -23.9060], // Polokwane
       ], '#FFD300');
       // ── 4. Cascadia High-Speed Rail (Portland → Seattle → Vancouver BC) ───────
