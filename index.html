@@ -2350,28 +2350,23 @@
       const flyDuration = distMiles < 50 ? 1200 : distMiles < 300 ? 1600 : 2400;
       window._mapFlyingTo = true;
 
+      const COMFORTABLE_ZOOM = 13;
       const currentZoom = map.getZoom();
-      const DEFAULT_TARGET = 13; // comfortable project-level zoom
-      // If already zoomed in close (≥13), stay at current zoom
-      // If zoomed out, fly to midpoint between current and DEFAULT_TARGET
-      const midZoom = currentZoom >= DEFAULT_TARGET
-        ? currentZoom
-        : currentZoom + (DEFAULT_TARGET - currentZoom) * 0.65;
-
-      // Check if target pin is inside a cluster at current zoom — if so, zoom enough to break it
-      const source = map.getSource('projects');
-      let targetZoom = Math.max(midZoom, currentZoom); // never zoom out
+      // If already zoomed in past comfortable level, stay there; otherwise use comfortable zoom
+      let targetZoom = Math.max(currentZoom, COMFORTABLE_ZOOM);
 
       const checkClusterAndFly = () => {
         map.flyTo({ center: co, zoom: targetZoom, offset: off, duration: flyDuration, essential: true });
       };
 
-      // Query clusters at current position to see if our pin is clustered
-      const pointFeatures = map.queryRenderedFeatures(map.project(co), { layers: ['clusters'] });
-      if (pointFeatures.length > 0 && source && source.getClusterExpansionZoom) {
-        // Pin is inside a cluster — zoom to expansion zoom + 1 to separate it
-        source.getClusterExpansionZoom(pointFeatures[0].properties.cluster_id, (err, expansionZoom) => {
-          if (!err) targetZoom = Math.max(targetZoom, expansionZoom + 1);
+      // Check if the pin is inside a cluster at the TARGET zoom by querying clusters at current view
+      // We use getClusterExpansionZoom on any nearby cluster to know if we need to go deeper
+      const nearbyPixel = map.project(co);
+      const clustersAtPin = map.queryRenderedFeatures(nearbyPixel, { layers: ['clusters'] });
+      if (clustersAtPin.length > 0) {
+        const source = map.getSource('projects');
+        source.getClusterExpansionZoom(clustersAtPin[0].properties.cluster_id, (err, expansionZoom) => {
+          if (!err && expansionZoom > targetZoom) targetZoom = expansionZoom + 1;
           checkClusterAndFly();
         });
       } else {
