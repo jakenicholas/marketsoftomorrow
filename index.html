@@ -965,6 +965,64 @@
       70%  { transform: translate(-50%,-50%) scale(2.8); opacity: 0; }
       100% { transform: translate(-50%,-50%) scale(1);   opacity: 0; }
     }
+    /* ─── LAYERS PANEL ─────────────────────────────────────────────────────── */
+    #layersPanel {
+      position: fixed;
+      z-index: 100;
+      right: calc(var(--safe-area-right) + 58px);
+      background: rgba(12,12,12,0.92);
+      backdrop-filter: blur(20px) saturate(1.4);
+      -webkit-backdrop-filter: blur(20px) saturate(1.4);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 14px;
+      padding: 16px;
+      width: 220px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+      display: none;
+      flex-direction: column;
+      gap: 0;
+      user-select: none;
+    }
+    #layersPanel.open { display: flex; }
+    @media(min-width:801px) { #layersPanel { top: calc(60px + var(--safe-area-top)); } }
+    @media(max-width:800px) { #layersPanel { top: calc(var(--safe-area-top) + 10px + 36px + 10px); } }
+
+    .layers-section-title {
+      font-size: 10px; font-weight: 600; letter-spacing: 0.08em;
+      color: rgba(255,255,255,0.4); text-transform: uppercase; margin-bottom: 10px;
+    }
+    .layers-checkbox-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 6px 0; cursor: pointer;
+    }
+    .layers-checkbox-row.disabled { cursor: default; }
+    .layers-checkbox {
+      width: 18px; height: 18px; border-radius: 5px;
+      border: 1.5px solid rgba(255,255,255,0.3);
+      background: transparent;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .layers-checkbox.checked { background: var(--accent); border-color: var(--accent); }
+    .layers-checkbox.checked.grayed { background: rgba(31,223,103,0.3); border-color: rgba(31,223,103,0.3); }
+    .layers-checkbox svg { width: 11px; height: 11px; fill: none; stroke: #fff; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; display: none; }
+    .layers-checkbox.checked svg { display: block; }
+    .layers-checkbox-label { font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.85); }
+    .layers-checkbox-row.disabled .layers-checkbox-label { color: rgba(255,255,255,0.4); }
+    .layers-divider { height: 1px; background: rgba(255,255,255,0.08); margin: 12px 0; }
+    .layers-map-options { display: flex; gap: 8px; }
+    .layers-map-option {
+      flex: 1; border-radius: 8px; overflow: hidden;
+      cursor: pointer; border: 2px solid transparent; transition: border-color 0.15s;
+    }
+    .layers-map-option.selected { border-color: var(--accent); }
+    .layers-map-option img { width: 100%; height: 60px; object-fit: cover; display: block; }
+    .layers-map-option-label {
+      font-size: 10px; font-weight: 600; text-align: center;
+      padding: 4px 0 2px; color: rgba(255,255,255,0.7); letter-spacing: 0.04em;
+    }
+
     .user-location-dot {
       width: 14px; height: 14px;
       background: #2979FF;
@@ -1472,9 +1530,42 @@
     </div>
 
     <!-- Layers toggle button -->
-    <button id="layersButton" class="glass-btn" title="Switch map style">
+    <button id="layersButton" class="glass-btn" title="Map layers">
       <svg viewBox="0 0 24 24"><path d="M11.99 18.54l-7.37-5.73L3 14.07l9 7 9-7-1.63-1.27-7.38 5.74zM12 16l7.36-5.73L21 9l-9-7-9 7 1.63 1.27L12 16z"/></svg>
     </button>
+
+    <!-- Layers panel -->
+    <div id="layersPanel">
+      <div class="layers-section-title">Layers</div>
+
+      <div class="layers-checkbox-row disabled" title="Developments cannot be hidden">
+        <div class="layers-checkbox checked grayed">
+          <svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg>
+        </div>
+        <span class="layers-checkbox-label">Developments</span>
+      </div>
+
+      <div class="layers-checkbox-row" id="transitToggleRow">
+        <div class="layers-checkbox checked" id="transitCheckbox">
+          <svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg>
+        </div>
+        <span class="layers-checkbox-label">Transit Routes</span>
+      </div>
+
+      <div class="layers-divider"></div>
+
+      <div class="layers-section-title">Map Style</div>
+      <div class="layers-map-options">
+        <div class="layers-map-option selected" id="styleDefault">
+          <img src="https://api.mapbox.com/styles/v1/floridaoftomorrow/clkbk4qlw000a01qw94rj0xa7/static/-80.19,25.77,8,0/88x60?access_token=pk.eyJ1IjoiZmxvcmlkYW9mdG9tb3Jyb3ciLCJhIjoiY2xrYjFhaTB4MGMyZDNlcDUzNzJyeXcyMSJ9.BzAoFgpuuMNXCBGLkFBjJA" alt="Default" onerror="this.style.background='#222';this.removeAttribute('src')"/>
+          <div class="layers-map-option-label">Default</div>
+        </div>
+        <div class="layers-map-option" id="styleSatellite">
+          <img src="https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v12/static/-80.19,25.77,8,0/88x60?access_token=pk.eyJ1IjoiZmxvcmlkYW9mdG9tb3Jyb3ciLCJhIjoiY2xrYjFhaTB4MGMyZDNlcDUzNzJyeXcyMSJ9.BzAoFgpuuMNXCBGLkFBjJA" alt="Satellite" onerror="this.style.background='#1a2a1a';this.removeAttribute('src')"/>
+          <div class="layers-map-option-label">Satellite</div>
+        </div>
+      </div>
+    </div>
 
     <!-- Location button (mobile only) -->
     <button id="locationButton" title="Go to my location">
@@ -3174,18 +3265,74 @@
     // ─── LAYERS BUTTON ────────────────────────────────────────────────────────
     (function setupLayersButton() {
       const btn = document.getElementById('layersButton');
-      if (!btn) return;
+      const panel = document.getElementById('layersPanel');
+      if (!btn || !panel) return;
+
       let isSatellite = false;
+      let transitVisible = true;
       const STREET_STYLE    = 'mapbox://styles/floridaoftomorrow/clkbk4qlw000a01qw94rj0xa7';
       const SATELLITE_STYLE = 'mapbox://styles/mapbox/satellite-streets-v12';
-      btn.addEventListener('click', () => {
-        isSatellite = !isSatellite;
-        btn.classList.toggle('active', isSatellite);
+
+      // All transit layer IDs
+      const TRANSIT_LAYERS = [
+        'brightline-existing-line','brightline-future-line','brightline-west-line',
+        'music-city-loop-line','cahsr-line','gateway-line',
+        'raleigh-richmond-line','cascadia-hsr-line',
+        'chuo-maglev-line','india-mahsr-line','thailand-hsr-line','iran-hsr-line',
+        'iraq-hsr-north-line','iraq-hsr-south-line',
+        'hs2-line','belgrade-budapest-line','rail-baltica-line',
+        'gcc-rail-line','saudi-hsr-line','sa-hsr-line',
+        'station-dots','station-hover'
+      ];
+
+      function setTransitVisibility(visible) {
+        TRANSIT_LAYERS.forEach(id => {
+          if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', visible ? 'visible' : 'none');
+        });
+      }
+
+      // Toggle panel open/close
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        panel.classList.toggle('open');
+        btn.classList.toggle('active', panel.classList.contains('open'));
+      });
+
+      // Close panel when clicking outside
+      document.addEventListener('click', (e) => {
+        if (!panel.contains(e.target) && e.target !== btn) {
+          panel.classList.remove('open');
+          btn.classList.remove('active');
+        }
+      });
+
+      // Transit toggle
+      const transitRow = document.getElementById('transitToggleRow');
+      const transitCb  = document.getElementById('transitCheckbox');
+      transitRow?.addEventListener('click', () => {
+        transitVisible = !transitVisible;
+        transitCb.classList.toggle('checked', transitVisible);
+        setTransitVisibility(transitVisible);
+      });
+
+      // Map style switchers
+      const styleDefault   = document.getElementById('styleDefault');
+      const styleSatellite = document.getElementById('styleSatellite');
+
+      function switchStyle(satellite) {
+        isSatellite = satellite;
+        styleDefault.classList.toggle('selected', !isSatellite);
+        styleSatellite.classList.toggle('selected', isSatellite);
+        btn.classList.toggle('active', panel.classList.contains('open'));
         map.setStyle(isSatellite ? SATELLITE_STYLE : STREET_STYLE);
         map.once('style.load', () => {
           addAllMapLayers();
+          if (!transitVisible) setTimeout(() => setTransitVisibility(false), 100);
         });
-      });
+      }
+
+      styleDefault?.addEventListener('click',   () => { if (isSatellite)  switchStyle(false); });
+      styleSatellite?.addEventListener('click', () => { if (!isSatellite) switchStyle(true);  });
     })();
 
     // ─── LOCATION BUTTON ─────────────────────────────────────────────────────
