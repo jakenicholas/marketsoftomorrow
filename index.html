@@ -1882,8 +1882,12 @@
       { name: 'Belgrade–Budapest HSR — Budapest (Under Construction)', color: '#FFD300', coords: [19.0500, 47.4984] },
       // Rail Baltica
       { name: 'Rail Baltica — Tallinn, Estonia (Under Construction)', color: '#FFD300', coords: [24.7536, 59.4370] },
+      { name: 'Rail Baltica — Pärnu, Estonia (Under Construction)', color: '#FFD300', coords: [24.5000, 58.3800] },
       { name: 'Rail Baltica — Riga, Latvia (Under Construction)', color: '#FFD300', coords: [24.1050, 57.1590] },
-      { name: 'Rail Baltica — Vilnius, Lithuania (Under Construction)', color: '#FFD300', coords: [25.2800, 54.6872] },
+      { name: 'Rail Baltica — Panevėžys, Lithuania (Under Construction)', color: '#FFD300', coords: [24.8500, 55.7300] },
+      { name: 'Rail Baltica — Kaunas, Lithuania (Under Construction)', color: '#FFD300', coords: [23.9500, 54.6872] },
+      { name: 'Rail Baltica — Białystok, Poland (Future)', color: '#FFD300', coords: [23.1688, 53.1325] },
+      { name: 'Rail Baltica — Warsaw Centralna (Future)', color: '#FFD300', coords: [21.1330, 52.2297] },
       // GCC Gulf Railway
       { name: 'GCC Gulf Railway — Kuwait City (Future)', color: '#FFD300', coords: [47.9783, 29.3697] },
       { name: 'GCC Gulf Railway — Riyadh (Future)', color: '#FFD300', coords: [46.7219, 24.6877] },
@@ -1895,8 +1899,8 @@
       { name: 'Saudi Arabia HSR — Riyadh (Future)', color: '#FFD300', coords: [46.7219, 24.6877] },
       { name: 'Saudi Arabia HSR — Dammam (Future)', color: '#FFD300', coords: [49.8600, 26.4200] },
       // South Africa HSR
-      { name: 'South Africa HSR — Pretoria (Future)', color: '#FFD300', coords: [28.2293, 25.7461] },
-      { name: 'South Africa HSR — Polokwane (Future)', color: '#FFD300', coords: [29.4486, 23.9060] },
+      { name: 'South Africa HSR — Pretoria (Future)', color: '#FFD300', coords: [28.2293, -25.7461] },
+      { name: 'South Africa HSR — Polokwane (Future)', color: '#FFD300', coords: [29.4486, -23.9060] },
       // Cascadia HSR
       { name: 'Cascadia HSR — Portland Union Station (Future)', color: '#FFD300', coords: [-122.6784, 45.5231] },
       { name: 'Cascadia HSR — Tacoma (Future)', color: '#FFD300', coords: [-122.4302, 47.2529] },
@@ -3625,22 +3629,29 @@
 
       // ── INTERNATIONAL PROJECTS ─────────────────────────────────────────────────
 
-      // ── Japan: Chuo Shinkansen Maglev (Tokyo → Nagoya → Osaka) ───────────────
+      // ── Japan: Chuo Shinkansen Maglev (Tokyo → Nagoya) ────────────────────────
       addRailLine('chuo-maglev', [
         [139.7400, 35.6300], // Shinagawa, Tokyo
-        [139.5600, 35.5900], // South of Tokyo tunneling west
-        [139.3700, 35.5700], // Sagamihara, Kanagawa
+        [139.5900, 35.5800], // Machida heading west
+        [139.4200, 35.5600], // Sagamihara, Kanagawa
+        [139.1500, 35.5900], // Sagami River valley
         [138.9000, 35.6600], // Kofu, Yamanashi
-        [138.2600, 35.5100], // Southern Alps tunnel
+        [138.6500, 35.6000], // Fujikawa valley
+        [138.4000, 35.5500], // Torii Pass approach
+        [138.1500, 35.5200], // Ina valley heading south
         [137.8100, 35.5300], // Iida, Nagano
+        [137.6500, 35.4900], // Nakatsugawa approach
         [137.5500, 35.4800], // Nakatsugawa, Gifu
+        [137.3500, 35.3200], // Through mountains
+        [137.1500, 35.2200], // Approaching Nagoya basin
         [136.9060, 35.1815], // Nagoya Station
       ], '#FFD300');
 
       // ── India: Mumbai–Ahmedabad HSR ────────────────────────────────────────────
       addRailLine('india-mahsr', [
-        [72.8777, 19.0760], // Mumbai BKC Station
-        [72.9781, 19.2183], // Thane
+        [72.8777, 19.0760], // Mumbai BKC
+        [72.9650, 19.2100], // Thane
+        [72.7900, 19.3500], // Vasai area
         [72.8311, 19.4750], // Virar
         [72.7440, 19.7000], // Boisar
         [72.9100, 20.3730], // Vapi
@@ -3655,99 +3666,147 @@
 
       // ── Thailand: Bangkok HSR ──────────────────────────────────────────────────
       addRailLine('thailand-hsr', [
-        [100.5170, 13.7380], // Bangkok (Don Mueang Airport)
+        [100.5170, 13.7380], // Bangkok Don Mueang
+        [100.5600, 13.9300], // Rangsit
         [100.6070, 14.0700], // Pathum Thani
+        [100.6500, 14.2500], // Lop Buri approach
         [100.8780, 14.4650], // Ayutthaya
+        [100.9500, 14.7000], // Saraburi approach
         [100.7800, 14.8000], // Saraburi
-        [101.1380, 15.2440], // Pak Chong (near Khao Yai)
-        [101.7260, 15.9910], // Nakhon Ratchasima (Korat)
+        [101.0500, 15.0500], // Pak Chong area
+        [101.1380, 15.2440], // Pak Chong / Khao Yai
+        [101.4000, 15.5000], // Mid-section
+        [101.7260, 15.9910], // Nakhon Ratchasima / Korat
       ], '#FFD300');
 
       // ── Iran: Tehran–Esfahan HSR ───────────────────────────────────────────────
       addRailLine('iran-hsr', [
         [51.3890, 35.6892], // Tehran
+        [51.4200, 35.1500], // South Tehran
         [51.4400, 34.8000], // Qom
-        [51.6600, 34.0900], // Kashan
+        [51.5000, 34.3000], // South of Qom
+        [51.5500, 33.9500], // Kashan area
+        [51.6000, 33.4000], // Central Iran plains
         [51.6757, 32.6546], // Esfahan
       ], '#FFD300');
 
-      // ── Iraq: National HSR ─────────────────────────────────────────────────────
-      addRailLine('iraq-hsr', [
+      // ── Iraq: National HSR (Baghdad → Mosul + Baghdad → Basra) ───────────────
+      addRailLine('iraq-hsr-north', [
         [44.3661, 33.3152], // Baghdad
+        [43.9800, 33.9000], // Taji
+        [43.8000, 34.3000], // Balad
         [43.6800, 34.4500], // Samarra
+        [43.5000, 34.8500], // Tikrit
+        [43.3000, 35.4000], // Baiji
         [43.1300, 36.3400], // Mosul
-        [42.7500, 37.1000], // Dohuk area (north)
-        [44.0100, 36.1900], // Erbil
-        [45.4360, 35.4770], // Kirkuk
-        [44.4000, 32.0000], // Kut area south
-        [47.7900, 31.0000], // Basra region
+      ], '#FFD300');
+      addRailLine('iraq-hsr-south', [
+        [44.3661, 33.3152], // Baghdad
+        [44.5000, 32.7000], // Mahmudiyah
+        [45.0000, 32.4000], // Kut approach
+        [45.8200, 32.5000], // Kut
+        [46.5000, 31.7000], // Amara
+        [47.1000, 31.1000], // Basra approaches
         [47.8309, 30.5081], // Basra
       ], '#FFD300');
 
       // ── UK: HS2 (London → Birmingham → Manchester) ────────────────────────────
       addRailLine('hs2', [
         [-0.1276, 51.5074], // London Euston
-        [-0.2500, 51.5700], // Old Oak Common (interchange)
-        [-1.5000, 52.2300], // Birmingham Interchange / NEC
+        [-0.2500, 51.5700], // Old Oak Common
+        [-0.4800, 51.6800], // Hertfordshire
+        [-0.7500, 51.8200], // Chilterns tunnel
+        [-0.9500, 51.9500], // North Chilterns
+        [-1.1500, 52.0800], // Northamptonshire
+        [-1.4000, 52.2300], // Approaching Birmingham
+        [-1.5000, 52.4000], // Birmingham Interchange
         [-1.8904, 52.4862], // Birmingham Curzon Street
-        [-2.1000, 52.7000], // Crewe (Phase 2b proposed)
+        [-2.0700, 52.6500], // Lichfield
+        [-2.1000, 52.8500], // Staffordshire
+        [-2.2000, 53.0500], // Crewe area
         [-2.2280, 53.4808], // Manchester Piccadilly
       ], '#FFD300');
 
       // ── Serbia–Hungary: Belgrade–Budapest ─────────────────────────────────────
       addRailLine('belgrade-budapest', [
         [20.4612, 44.8048], // Belgrade
+        [19.9500, 45.0500], // NW of Belgrade
         [19.8317, 45.2671], // Novi Sad
-        [19.1000, 45.7800], // Subotica (border)
-        [19.0700, 46.0800], // Kelebia (Hungary)
+        [19.6600, 45.8000], // Subotica
+        [19.6700, 46.0800], // Kelebia border
+        [19.5500, 46.3000], // Southern Hungary
         [19.1270, 46.5790], // Kiskunhalas
-        [18.9420, 47.0000], // Kecskemét
+        [19.0500, 46.9000], // Kecskemét area
+        [19.0500, 47.2000], // Central Hungary
         [19.0500, 47.4984], // Budapest Keleti
       ], '#FFD300');
 
-      // ── Baltic Rail (Rail Baltica: Tallinn → Riga → Vilnius → Warsaw) ─────────
+      // ── Rail Baltica (Tallinn → Pärnu → Riga → Panevėžys → Kaunas → Białystok → Warsaw)
       addRailLine('rail-baltica', [
-        [24.7536, 59.4370], // Tallinn
-        [24.5000, 58.9000], // Pärnu
+        [24.7536, 59.4370], // Tallinn Ülemiste
+        [24.6500, 59.1500], // South of Tallinn
+        [24.5200, 58.8500], // Pärnu approach
+        [24.5000, 58.3800], // Pärnu
+        [24.4000, 57.9000], // Latvia border
+        [24.2500, 57.5500], // South Latvia
         [24.1050, 57.1590], // Riga
-        [25.3000, 56.5000], // Jelgava area
-        [23.9900, 56.1500], // Lithuanian border
-        [25.2800, 54.6872], // Vilnius
-        [23.9200, 54.3000], // Kaunas
-        [21.1330, 52.2297], // Warsaw
+        [24.0800, 56.9500], // Salaspils
+        [24.3500, 56.6000], // Heading SE Latvia
+        [25.0000, 56.3000], // Latvia/Lithuania border
+        [24.9000, 55.9000], // North Lithuania
+        [24.8500, 55.7300], // Panevėžys
+        [24.1000, 55.2000], // Heading south
+        [23.9200, 54.9000], // Kaunas approach
+        [23.9500, 54.6872], // Kaunas
+        [23.5500, 54.4000], // South Kaunas
+        [23.0500, 54.0000], // Lithuanian/Polish border
+        [22.8000, 53.7500], // Suwałki area
+        [22.3000, 53.3500], // Augustów
+        [23.1688, 53.1325], // Białystok
+        [22.5000, 52.5000], // SW toward Warsaw
+        [21.1330, 52.2297], // Warsaw Centralna
       ], '#FFD300');
 
-      // ── Gulf Railway (GCC Rail: Kuwait → Saudi → UAE → Oman) ─────────────────
+      // ── GCC Gulf Railway (Kuwait → Saudi → Qatar → UAE → Oman) ───────────────
       addRailLine('gcc-rail', [
         [47.9783, 29.3697], // Kuwait City
         [47.8700, 28.4500], // Kuwait/Saudi border
-        [48.4800, 28.3800], // Northern Saudi Arabia
-        [47.0000, 26.9000], // Riyadh approach north
+        [48.2000, 27.6000], // Saudi north
+        [47.8500, 26.2000], // Central Saudi
+        [47.0000, 25.4000], // Qassim area
         [46.7219, 24.6877], // Riyadh
+        [49.0000, 25.5000], // East Riyadh
         [49.8600, 26.4200], // Dammam
-        [50.5900, 26.2200], // Bahrain causeway area
-        [51.5310, 25.2854], // Doha, Qatar
-        [55.3500, 25.2697], // Dubai
+        [50.2000, 26.0000], // Bahrain causeway
+        [50.5500, 26.1900], // Bahrain
+        [51.0000, 25.7000], // Qatar approach
+        [51.5310, 25.2854], // Doha
+        [52.5000, 25.5000], // UAE border
         [54.3700, 24.4539], // Abu Dhabi
-        [55.9750, 22.5750], // Al Ain area
+        [55.4000, 25.3000], // Dubai
+        [56.2000, 25.0000], // Fujairah area
+        [57.5000, 23.6000], // Oman coast
         [58.5930, 23.6140], // Muscat
       ], '#FFD300');
 
       // ── Saudi Arabia: Riyadh–Dammam HSR ───────────────────────────────────────
       addRailLine('saudi-hsr', [
         [46.7219, 24.6877], // Riyadh
-        [48.5000, 25.0000], // Midpoint
+        [47.5000, 25.0000], // NE of Riyadh
+        [48.5000, 25.5000], // Mid-route
+        [49.1000, 26.0000], // Hofuf area
         [49.8600, 26.4200], // Dammam
       ], '#FFD300');
 
       // ── South Africa: Pretoria–Polokwane HSR ───────────────────────────────────
       addRailLine('sa-hsr', [
-        [28.2293, 25.7461], // Pretoria
-        [28.4000, 24.7000], // Mokopane area
-        [28.4469, 23.9045], // Potgietersrus
-        [29.4486, 23.9060], // Polokwane
+        [28.2293, -25.7461], // Pretoria
+        [28.3000, -25.1000], // North of Pretoria
+        [28.4000, -24.7000], // Mokopane area
+        [28.4000, -24.2000], // Modimolle
+        [28.4500, -23.9000], // Bela-Bela
+        [29.4486, -23.9060], // Polokwane
       ], '#FFD300');
-
       // ── 4. Cascadia High-Speed Rail (Portland → Seattle → Vancouver BC) ───────
       addRailLine('cascadia-hsr', [
         [-122.6784, 45.5231], // Portland Union Station
