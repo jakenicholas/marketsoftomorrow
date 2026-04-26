@@ -2181,6 +2181,24 @@
       }
       window._selectedPinTitle = selectedTitle;
 
+      // Pink pulse ring around selected pin (CSS animated, sits behind the pin)
+      const pulseEl = document.createElement('div');
+      pulseEl.style.cssText = 'position:relative;width:22px;height:22px;pointer-events:none;';
+      const pulseRing = document.createElement('div');
+      pulseRing.style.cssText = `
+        position:absolute;
+        width:22px;height:22px;
+        border-radius:50%;
+        background:rgba(255,107,157,0.35);
+        transform:translate(-50%,-50%);
+        top:50%;left:50%;
+        animation:locationPulse 1.8s ease-out infinite;
+      `;
+      pulseEl.appendChild(pulseRing);
+      window._selectedPinMarker = new mapboxgl.Marker({ element: pulseEl, anchor: 'center' })
+        .setLngLat(co)
+        .addTo(map);
+
       activePopup = new mapboxgl.Popup({ closeButton: false, anchor: 'bottom', offset: [0, -12] })
         .setLngLat(co)
         .setHTML(`
@@ -2200,20 +2218,20 @@
           </div>
         `).addTo(map);
 
-      // Restore green pin when popup closes
+      // Restore green pin and remove pulse when popup closes
       activePopup.on('close', () => {
         if (map.getLayer('unclustered-point')) {
           map.setPaintProperty('unclustered-point', 'circle-color', '#1FDF67');
           map.setPaintProperty('unclustered-point', 'circle-radius', 8);
         }
+        if (window._selectedPinMarker) { window._selectedPinMarker.remove(); window._selectedPinMarker = null; }
         window._selectedPinTitle = null;
       });
 
       const off = isMobile ? [0, Math.round(window.innerHeight * 0.15)] : [0, Math.round(window.innerHeight * 0.18)];
-      // Zoom in if current zoom is low, but never zoom out from where user already is
       const targetZoom = Math.max(map.getZoom(), 14);
       window._mapFlyingTo = true;
-      map.flyTo({ center: co, zoom: targetZoom, offset: off, duration: 600 });
+      map.flyTo({ center: co, zoom: targetZoom, offset: off, duration: 800, essential: true });
       gtag('event', 'project_view', {
         'project_name': f.properties.title, 'project_city': f.properties.city,
         'project_featured': f.properties.featured || false,
