@@ -3340,41 +3340,38 @@
         if (currentTransitLayersAdded) return;
         currentTransitLayersAdded = true;
 
-        if (window._workingTransitSource && !map.getLayer('current-transit-rail')) {
-          // Vector — perfect quality, no labels, thin orange lines
+        // Layer may already exist from map load — just set visible
+        if (map.getLayer('current-transit-rail')) {
+          window._transitLayerIds = ['current-transit-rail'];
+          return;
+        }
+
+        // Add mbstreets source if needed
+        if (!map.getSource('mbstreets')) {
+          map.addSource('mbstreets', { type: 'vector', url: 'mapbox://mapbox.mapbox-streets-v8' });
+        }
+
+        try {
           map.addLayer({
             id: 'current-transit-rail',
             type: 'line',
-            source: window._workingTransitSource,
-            'source-layer': window._workingTransitLayer,
-            filter: ['in', ['get', 'class'], ['literal', ['major_rail','minor_rail','rail','subway','metro','tram','light_rail','monorail']]],
+            source: 'mbstreets',
+            'source-layer': 'road',
+            filter: ['in', ['get', 'class'], ['literal', ['major_rail', 'minor_rail']]],
             layout: { 'line-join': 'round', 'line-cap': 'round', visibility: 'none' },
             paint: {
               'line-color': '#FF6B00',
-              'line-width': ['interpolate', ['linear'], ['zoom'], 2, 0.5, 8, 1, 14, 1.8],
-              'line-opacity': 0.8
+              'line-width': ['interpolate', ['linear'], ['zoom'], 0, 0.3, 4, 0.5, 8, 1, 12, 1.5, 16, 2],
+              'line-opacity': 0.85
             }
           }, 'unclustered-point');
-        } else {
-          // Fallback: OpenRailwayMap raster
+        } catch(e) {
+          // Fallback to raster
           if (!map.getSource('openrailwaymap')) {
-            map.addSource('openrailwaymap', {
-              type: 'raster',
-              tiles: ['https://tiles.openrailwaymap.org/standard/{z}/{x}/{y}.png'],
-              tileSize: 256,
-              attribution: '© OpenRailwayMap',
-              minzoom: 0,
-              maxzoom: 19
-            });
+            map.addSource('openrailwaymap', { type:'raster', tiles:['https://tiles.openrailwaymap.org/standard/{z}/{x}/{y}.png'], tileSize:256, attribution:'© OpenRailwayMap' });
           }
           if (!map.getLayer('current-transit-rail')) {
-            map.addLayer({
-              id: 'current-transit-rail',
-              type: 'raster',
-              source: 'openrailwaymap',
-              layout: { visibility: 'none' },
-              paint: { 'raster-opacity': 0.7, 'raster-hue-rotate': 190, 'raster-saturation': 0.5 }
-            }, 'unclustered-point');
+            map.addLayer({ id:'current-transit-rail', type:'raster', source:'openrailwaymap', layout:{visibility:'none'}, paint:{'raster-opacity':0.7,'raster-hue-rotate':190,'raster-saturation':0.5} }, 'unclustered-point');
           }
         }
         window._transitLayerIds = ['current-transit-rail'];
@@ -3745,39 +3742,40 @@
       setupMobileFilters();
       setupSidebarSearch();
 
-      // Try adding current transit vector layer immediately on load
-      // so it's ready when user toggles it
-      setTimeout(() => {
-        const style = map.getStyle();
-        const sources = style?.sources || {};
-        // Try every vector source
-        for (const [srcId, src] of Object.entries(sources)) {
-          if (src.type !== 'vector') continue;
-          // Try every known rail source-layer name
-          const candidates = ['road', 'transit_line', 'rail', 'railway', 'transportation', 'roads'];
-          for (const sl of candidates) {
-            try {
-              const testId = `transit-test-${srcId}-${sl}`;
-              map.addLayer({
-                id: testId,
-                type: 'line',
-                source: srcId,
-                'source-layer': sl,
-                filter: ['in', ['get', 'class'], ['literal', ['major_rail','minor_rail','rail','subway','metro','tram','light_rail','monorail']]],
-                layout: { visibility: 'none' },
-                paint: { 'line-color': '#FF6B00', 'line-width': 0.1 }
-              });
-              // If it didn't throw, this source+layer combo works — store it
-              window._workingTransitSource = srcId;
-              window._workingTransitLayer = sl;
-              map.removeLayer(testId);
-              console.log('Found working transit:', srcId, sl);
-              break;
-            } catch(e) { /* try next */ }
-          }
-          if (window._workingTransitSource) break;
+      // Pre-add mapbox-streets-v8 as a dedicated source for current transit
+      // This is separate from the custom style composite so we always get the right data
+      if (!map.getSource('mbstreets')) {
+        map.addSource('mbstreets', {
+          type: 'vector',
+          url: 'mapbox://mapbox.mapbox-streets-v8'
+        });
+      }
+      // Try adding rail layer immediately — streets-v8 'road' source-layer
+      // has major_rail and minor_rail classes for passenger rail globally
+      // No minzoom so lines appear at any zoom level
+      const railClasses = ['major_rail','minor_rail'];
+      if (!map.getLayer('current-transit-rail')) {
+        try {
+          map.addLayer({
+            id: 'current-transit-rail',
+            type: 'line',
+            source: 'mbstreets',
+            'source-layer': 'road',
+            filter: ['in', ['get', 'class'], ['literal', railClasses]],
+            layout: { 'line-join': 'round', 'line-cap': 'round', visibility: 'none' },
+            paint: {
+              'line-color': '#FF6B00',
+              'line-width': ['interpolate', ['linear'], ['zoom'], 0, 0.3, 4, 0.5, 8, 1, 12, 1.5, 16, 2],
+              'line-opacity': 0.85
+            }
+          }, 'unclustered-point');
+          window._transitLayerIds = ['current-transit-rail'];
+          window._workingTransitSource = 'mbstreets';
+        } catch(e) {
+          // Source not ready yet — will be added when user toggles
+          window._workingTransitSource = null;
         }
-      }, 1000);
+      }
     });
 
     // ─── ADD ALL MAP LAYERS ───────────────────────────────────────────────────
