@@ -3338,30 +3338,60 @@
 
       function addCurrentTransitLayer() {
         if (currentTransitLayersAdded) return;
-        // Add a GeoJSON source using Mapbox's transit tileset
-        // We use the mapbox.mapbox-transit-v2 tileset for global rail lines
-        if (!map.getSource('global-transit')) {
-          map.addSource('global-transit', {
-            type: 'vector',
-            url: 'mapbox://mapbox.mapbox-transit-v2'
+
+        const allLayers = map.getStyle()?.layers || [];
+        const allSources = map.getStyle()?.sources || {};
+        console.log('[Transit] Sources:', Object.keys(allSources));
+        console.log('[Transit] Total layers:', allLayers.length);
+
+        // Find transit-related line layers already in the style
+        const transitKeywords = ['rail','transit','train','subway','metro','tram','ferry'];
+        const found = allLayers.filter(layer => {
+          if (layer.type !== 'line') return false;
+          const id = layer.id.toLowerCase();
+          const sl = (layer['source-layer'] || '').toLowerCase();
+          return transitKeywords.some(k => id.includes(k) || sl.includes(k));
+        });
+        console.log('[Transit] Found layers:', found.map(l => l.id));
+
+        // Try composite source with transit_line source-layer (present in most Mapbox styles)
+        const hasComposite = !!allSources['composite'];
+        console.log('[Transit] Has composite source:', hasComposite);
+
+        if (hasComposite && !map.getLayer('current-transit-rail')) {
+          try {
+            map.addLayer({
+              id: 'current-transit-rail',
+              type: 'line',
+              source: 'composite',
+              'source-layer': 'transit_line',
+              layout: { 'line-join': 'round', 'line-cap': 'round', visibility: 'none' },
+              paint: {
+                'line-color': '#FF8C00',
+                'line-width': ['interpolate', ['linear'], ['zoom'], 4, 0.8, 8, 1.5, 12, 2.5],
+                'line-opacity': 0.85
+              }
+            }, 'unclustered-point');
+            window._transitLayerIds = ['current-transit-rail'];
+            console.log('[Transit] Added current-transit-rail layer');
+          } catch(e) {
+            console.warn('[Transit] composite/transit_line failed:', e.message);
+            // Fall back to existing style layers
+            found.forEach(layer => {
+              try { map.setPaintProperty(layer.id, 'line-color', '#FF8C00'); } catch(e2) {}
+            });
+            window._transitLayerIds = found.map(l => l.id);
+          }
+        } else if (found.length > 0) {
+          found.forEach(layer => {
+            try { map.setPaintProperty(layer.id, 'line-color', '#FF8C00'); } catch(e) {}
           });
+          window._transitLayerIds = found.map(l => l.id);
+          console.log('[Transit] Using existing layers:', window._transitLayerIds);
+        } else {
+          console.warn('[Transit] No transit layers found');
         }
-        // Rail lines layer
-        if (!map.getLayer('current-transit-rail')) {
-          map.addLayer({
-            id: 'current-transit-rail',
-            type: 'line',
-            source: 'global-transit',
-            'source-layer': 'transit_line',
-            layout: { 'line-join': 'round', 'line-cap': 'round', visibility: 'none' },
-            paint: {
-              'line-color': '#FF8C00',
-              'line-width': ['interpolate', ['linear'], ['zoom'], 4, 0.5, 8, 1, 12, 2],
-              'line-opacity': 0.7
-            }
-          }, 'unclustered-point'); // render below project pins
-        }
-        window._transitLayerIds = ['current-transit-rail'];
+
         currentTransitLayersAdded = true;
       }
 
