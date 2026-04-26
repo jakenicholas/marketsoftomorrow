@@ -1813,7 +1813,53 @@
       // Music City Loop stations
       { name: 'Music City Loop — Tennessee State Capitol (Future)', coords: [-86.7844, 36.1654] },
       { name: 'Music City Loop — Music City Center (Future)', coords: [-86.7756, 36.1558] },
-      { name: 'Music City Loop — Nashville International Airport / BNA (Future)', coords: [-86.6782, 36.1245] }
+      { name: 'Music City Loop — Nashville International Airport / BNA (Future)', coords: [-86.6782, 36.1245] },
+      // California High-Speed Rail
+      { name: 'CA HSR — San Francisco Salesforce Transit Center (Future)', coords: [-122.3965, 37.7749] },
+      { name: 'CA HSR — San Jose Diridon (Future)', coords: [-122.2711, 37.5630] },
+      { name: 'CA HSR — Merced (Under Construction)', coords: [-120.4740, 36.9959] },
+      { name: 'CA HSR — Fresno (Under Construction)', coords: [-119.7730, 36.7378] },
+      { name: 'CA HSR — Kings/Tulare (Under Construction)', coords: [-119.3187, 36.3287] },
+      { name: 'CA HSR — Bakersfield (Under Construction)', coords: [-118.9869, 35.3733] },
+      { name: 'CA HSR — Palmdale (Future)', coords: [-118.3579, 34.5748] },
+      { name: 'CA HSR — Burbank (Future)', coords: [-118.3280, 34.1814] },
+      { name: 'CA HSR — Los Angeles Union Station (Future)', coords: [-118.2337, 34.0556] },
+      { name: 'CA HSR — Anaheim (Future)', coords: [-117.9256, 33.8358] },
+      // Gateway Program
+      { name: 'Gateway Program — Newark Penn Station (Under Construction)', coords: [-74.1724, 40.7357] },
+      { name: 'Gateway Program — Secaucus Junction (Future)', coords: [-74.0776, 40.7550] },
+      { name: 'Gateway Program — New York Penn Station (Under Construction)', coords: [-73.9930, 40.7506] },
+      // Portal North Bridge
+      { name: 'Portal North Bridge — Hackensack River Crossing (Under Construction)', coords: [-74.0986, 40.7519] },
+      // Connecticut River Bridge
+      { name: 'Connecticut River Bridge Replacement — Old Saybrook/Old Lyme CT (Future)', coords: [-72.3580, 41.2960] },
+      // B&P Tunnel / Frederick Douglass Tunnel
+      { name: 'B&P Tunnel Replacement — Baltimore Penn Station (Under Construction)', coords: [-76.6230, 39.3088] },
+      { name: 'B&P Tunnel Replacement — West Baltimore MARC Station (Under Construction)', coords: [-76.6680, 39.2820] },
+      // Newark AirTrain
+      { name: 'Newark AirTrain Replacement — Rail Link Station (Under Construction)', coords: [-74.1741, 40.7043] },
+      { name: 'Newark AirTrain Replacement — Terminal A (Under Construction)', coords: [-74.1820, 40.6960] },
+      { name: 'Newark AirTrain Replacement — Terminal B/C (Under Construction)', coords: [-74.1920, 40.6890] },
+      // Raleigh–Richmond S-Line
+      { name: 'SE Corridor — Raleigh Union Station (Under Construction)', coords: [-78.6382, 35.7796] },
+      { name: 'SE Corridor — Petersburg VA (Future)', coords: [-77.4360, 36.8210] },
+      { name: 'SE Corridor — Richmond Main Street Station (Future)', coords: [-77.4292, 37.1530] },
+      // Cascadia HSR
+      { name: 'Cascadia HSR — Portland Union Station (Future)', coords: [-122.6784, 45.5231] },
+      { name: 'Cascadia HSR — Tacoma (Future)', coords: [-122.4302, 47.2529] },
+      { name: 'Cascadia HSR — Seattle King Street (Future)', coords: [-122.3320, 47.6062] },
+      { name: 'Cascadia HSR — Everett (Future)', coords: [-122.3400, 47.9590] },
+      { name: 'Cascadia HSR — Bellingham (Future)', coords: [-122.3580, 48.7510] },
+      { name: 'Cascadia HSR — Vancouver BC (Future)', coords: [-123.1130, 49.2827] },
+      // Amtrak Connect US – Las Vegas corridor
+      { name: 'Amtrak Connect US — Las Vegas (Future)', coords: [-115.1398, 36.0274] },
+      { name: 'Amtrak Connect US — Palm Springs (Future)', coords: [-116.5438, 33.8311] },
+      // NextGen Acela / Airo (key NEC stations)
+      { name: 'NextGen Acela / Amtrak Airo — Washington Union Station', coords: [-77.0065, 38.8971] },
+      { name: 'NextGen Acela / Amtrak Airo — New York Penn Station', coords: [-73.9930, 40.7506] },
+      { name: 'NextGen Acela / Amtrak Airo — Boston South Station', coords: [-71.0589, 42.3601] },
+      // Long Bridge
+      { name: 'Long Bridge Project — Potomac River Crossing, DC/Virginia (Under Construction)', coords: [-77.0280, 38.8620] },
     ];
 
     // ─── FILTER PILLS SYSTEM ─────────────────────────────────────────────────
@@ -3482,6 +3528,132 @@
           paint: { 'line-color': '#FFD300', 'line-width': 2, 'line-dasharray': [1, 2] }
         });
       }
+
+      // ─── HELPER: add a dashed future rail line ────────────────────────────
+      function addRailLine(id, coords, color) {
+        const geo = { type:'FeatureCollection', features:[{ type:'Feature', properties:{}, geometry:{ type:'LineString', coordinates:coords } }] };
+        if (!map.getSource(id)) map.addSource(id, { type:'geojson', data:geo });
+        else map.getSource(id).setData(geo);
+        if (!map.getLayer(id+'-line')) map.addLayer({ id:id+'-line', type:'line', source:id, layout:{'line-join':'round','line-cap':'round'}, paint:{'line-color':color,'line-width':2,'line-dasharray':[1,2]} });
+      }
+
+      // ── 1. California High-Speed Rail (San Francisco → Los Angeles → Anaheim) ─
+      addRailLine('cahsr', [
+        [-122.3965, 37.7749], // SF Salesforce Transit Center
+        [-122.2711, 37.5630], // San Jose Diridon
+        [-121.9552, 37.3541], // Gilroy
+        [-121.2281, 37.0007], // Pacheco Pass
+        [-120.4740, 36.9959], // Merced
+        [-119.7871, 36.8874], // Madera
+        [-119.7730, 36.7378], // Fresno
+        [-119.3187, 36.3287], // Kings/Tulare (Hanford)
+        [-118.9869, 35.3733], // Bakersfield
+        [-118.3579, 34.5748], // Palmdale
+        [-118.3280, 34.1814], // Burbank
+        [-118.2337, 34.0556], // LA Union Station
+        [-117.9256, 33.8358], // Anaheim
+      ], '#E91E63');
+
+      // ── 2. Gateway Program / Hudson Tunnel (Newark → NY Penn Station) ────────
+      addRailLine('gateway', [
+        [-74.1724, 40.7357], // Newark Penn Station
+        [-74.1550, 40.7420], // NJ Meadowlands (Portal Bridge area)
+        [-74.0776, 40.7550], // Secaucus Junction
+        [-74.0200, 40.7580], // Hudson River NJ portal (North Bergen)
+        [-74.0040, 40.7500], // Under Hudson River
+        [-73.9965, 40.7505], // NY Penn Station entrance
+        [-73.9930, 40.7506], // NY Penn Station
+      ], '#2196F3');
+
+      // ── 3. Portal North Bridge (Hackensack River, Kearny NJ) ─────────────────
+      addRailLine('portal-north', [
+        [-74.1042, 40.7462], // South of bridge, Kearny
+        [-74.0986, 40.7519], // Portal Bridge location (Hackensack River)
+        [-74.0898, 40.7557], // North of bridge, Secaucus
+      ], '#FF9800');
+
+      // ── 4. Connecticut River Bridge (Old Saybrook / Old Lyme CT) ─────────────
+      addRailLine('ct-river-bridge', [
+        [-72.3756, 41.2857], // Old Saybrook station area
+        [-72.3580, 41.2960], // Connecticut River crossing
+        [-72.3450, 41.3140], // Old Lyme (north bank)
+      ], '#FF9800');
+
+      // ── 5. B&P Tunnel Replacement / Frederick Douglass Tunnel (Baltimore) ────
+      addRailLine('bp-tunnel', [
+        [-76.6230, 39.3088], // Baltimore Penn Station
+        [-76.6310, 39.3030], // West Baltimore (tunnel south portal)
+        [-76.6450, 39.2960], // Mid-tunnel, West Baltimore
+        [-76.6550, 39.2890], // North tunnel portal area
+        [-76.6680, 39.2820], // West Baltimore MARC station
+      ], '#FF9800');
+
+      // ── 6. Newark AirTrain Replacement (EWR) ─────────────────────────────────
+      addRailLine('ewr-airtrain', [
+        [-74.1741, 40.7043], // EWR Rail Link Station (NEC connection)
+        [-74.1820, 40.6960], // Terminal A area
+        [-74.1870, 40.6900], // ConRAC / rental cars
+        [-74.1920, 40.6890], // Terminal B / C area
+        [-74.1952, 40.6960], // Loop back toward Terminal A
+      ], '#9C27B0');
+
+      // ── 7. Raleigh–Richmond Southeast Corridor (S-Line) ──────────────────────
+      addRailLine('raleigh-richmond', [
+        [-78.6382, 35.7796], // Raleigh Union Station
+        [-78.5190, 35.9720], // Wake Forest (S-Line enters)
+        [-78.2960, 36.3350], // Henderson NC
+        [-77.9050, 36.5910], // Ridgeway NC / VA border area
+        [-77.4360, 36.8210], // Petersburg VA
+        [-77.4292, 37.1530], // Richmond Main Street Station
+        [-77.4360, 37.5540], // Richmond Staples Mill (RVR)
+      ], '#4CAF50');
+
+      // ── 8. Cascadia High-Speed Rail (Portland → Seattle → Vancouver BC) ───────
+      addRailLine('cascadia-hsr', [
+        [-122.6784, 45.5231], // Portland Union Station
+        [-122.6732, 45.6280], // Vancouver WA
+        [-122.9010, 46.1320], // Kelso/Longview area
+        [-122.9050, 46.5850], // Centralia / Chehalis
+        [-122.4302, 47.2529], // Tacoma
+        [-122.3320, 47.6062], // Seattle King Street Station
+        [-122.3400, 47.9590], // Everett
+        [-122.3580, 48.7510], // Bellingham
+        [-122.5010, 49.0003], // US/Canada border crossing
+        [-123.1130, 49.2827], // Vancouver BC Pacific Central
+      ], '#00BCD4');
+
+      // ── 9. Amtrak Connect US – key new corridors (symbolic representation) ───
+      // Las Vegas to LA (proposed new Amtrak corridor)
+      addRailLine('amtrak-connect-lasvegas', [
+        [-118.2337, 34.0556], // LA Union Station
+        [-117.1870, 34.0550], // San Bernardino
+        [-116.5438, 33.8311], // Palm Springs
+        [-115.5730, 33.1580], // Indio/Coachella
+        [-115.1398, 36.0274], // Las Vegas
+      ], '#FF5722');
+
+      // ── 10. Amtrak Airo Fleet / NextGen Acela (NEC: Washington → Boston) ─────
+      // This is an upgrade to existing NEC — show as enhancement overlay
+      addRailLine('nextgen-acela', [
+        [-77.0065, 38.8971], // Washington Union Station
+        [-76.6230, 39.3088], // Baltimore Penn
+        [-75.7295, 39.6780], // Wilmington DE
+        [-75.1808, 39.9526], // Philadelphia 30th St
+        [-74.9950, 40.2040], // Trenton
+        [-74.1724, 40.7357], // Newark Penn
+        [-73.9930, 40.7506], // NY Penn Station
+        [-72.9275, 41.3040], // New Haven
+        [-71.8226, 41.8240], // Providence
+        [-71.0589, 42.3601], // Boston South Station
+      ], '#673AB7');
+
+      // ── 11. Long Bridge Project (DC to Alexandria VA, Potomac River) ──────────
+      addRailLine('long-bridge', [
+        [-77.0230, 38.8750], // DC side (L'Enfant Plaza area)
+        [-77.0280, 38.8620], // Mid-Potomac River
+        [-77.0430, 38.8540], // Alexandria VA (Crystal City area)
+        [-77.0500, 38.8430], // Alexandria station
+      ], '#FF9800');
 
       const stationFeatures = stations.map(s => ({ type:'Feature', properties:{ name:s.name }, geometry:{ type:'Point', coordinates:s.coords } }));
       const stationGeo = { type:'FeatureCollection', features:stationFeatures };
