@@ -1846,6 +1846,7 @@
       { name: 'SE Corridor — Raleigh Union Station (Under Construction)', color: '#FFD300', coords: [-78.6382, 35.7796] },
       { name: 'SE Corridor — Petersburg VA (Future)', color: '#FFD300', coords: [-77.4360, 36.8210] },
       { name: 'SE Corridor — Richmond Main Street Station (Future)', color: '#FFD300', coords: [-77.4292, 37.1530] },
+      { name: 'SE Corridor — Richmond Staples Mill Road Station (Future)', color: '#FFD300', coords: [-77.4360, 37.5540] },
       // Cascadia HSR
       { name: 'Cascadia HSR — Portland Union Station (Future)', color: '#FFD300', coords: [-122.6784, 45.5231] },
       { name: 'Cascadia HSR — Tacoma (Future)', color: '#FFD300', coords: [-122.4302, 47.2529] },
@@ -3594,7 +3595,7 @@
       } else {
         map.getSource('stations').setData(stationGeo);
       }
-      if (!map.getLayer('station-dots'))  map.addLayer({ id:'station-dots',  type:'circle', source:'stations', paint:{'circle-color':['get','color'],'circle-radius':6,'circle-stroke-color':'#fff','circle-stroke-width':2} });
+      if (!map.getLayer('station-dots'))  map.addLayer({ id:'station-dots',  type:'circle', source:'stations', paint:{'circle-color':['get','color'],'circle-radius':['interpolate',['linear'],['zoom'],4,2,8,4,12,6,15,8],'circle-stroke-color':'#fff','circle-stroke-width':['interpolate',['linear'],['zoom'],4,0.5,10,1.5,14,2]} });
       if (!map.getLayer('station-hover')) map.addLayer({ id:'station-hover', type:'circle', source:'stations', paint:{'circle-color':'transparent','circle-radius':18,'circle-stroke-width':0} });
 
       // Station interactions (safe to re-register — Mapbox deduplicates on same handler ref,
