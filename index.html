@@ -1549,7 +1549,17 @@
         <div class="layers-checkbox checked" id="transitCheckbox">
           <svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg>
         </div>
-        <span class="layers-checkbox-label">Transit Routes</span>
+        <span class="layers-checkbox-label">Future Transit</span>
+      </div>
+
+      <div class="layers-checkbox-row" id="currentTransitToggleRow">
+        <div class="layers-checkbox" id="currentTransitCheckbox">
+          <svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg>
+        </div>
+        <span class="layers-checkbox-label" style="display:flex;align-items:center;gap:6px;">
+          Current Transit
+          <span style="display:inline-block;width:16px;height:3px;background:#FF8C00;border-radius:2px;flex-shrink:0;"></span>
+        </span>
       </div>
 
       <div class="layers-divider"></div>
@@ -1972,21 +1982,29 @@
       { name: 'Rail Baltica — Warsaw Centralna (Future)', color: '#FFD300', coords: [21.1330, 52.2297] },
       // GCC Gulf Railway
       { name: 'GCC Gulf Railway — Kuwait City (Future)', color: '#FFD300', coords: [47.9783, 29.3697] },
-      { name: 'GCC Gulf Railway — Al Khafji, Saudi Arabia (Future)', color: '#FFD300', coords: [48.4900, 28.4000] },
+      { name: 'GCC Gulf Railway — Jubail, Saudi Arabia (Future)', color: '#FFD300', coords: [48.6800, 27.9500] },
+      { name: 'GCC Gulf Railway — Abu Hadriyah (Future)', color: '#FFD300', coords: [48.8500, 27.4500] },
       { name: 'GCC Gulf Railway — Dammam (Future)', color: '#FFD300', coords: [49.8600, 26.4200] },
-      { name: 'GCC Gulf Railway — Bahrain (Future)', color: '#FFD300', coords: [50.5600, 26.2300] },
+      { name: 'GCC Gulf Railway — Bahrain (Future)', color: '#FFD300', coords: [50.6050, 26.2320] },
       { name: 'GCC Gulf Railway — Doha, Qatar (Future)', color: '#FFD300', coords: [51.5310, 25.2854] },
       { name: 'GCC Gulf Railway — Abu Dhabi (Future)', color: '#FFD300', coords: [54.3700, 24.4539] },
       { name: 'GCC Gulf Railway — Dubai (Future)', color: '#FFD300', coords: [55.2700, 25.2048] },
+      { name: 'GCC Gulf Railway — Fujairah (Future)', color: '#FFD300', coords: [56.3500, 25.1200] },
+      { name: 'GCC Gulf Railway — Sohar, Oman (Future)', color: '#FFD300', coords: [56.7000, 24.3500] },
       { name: 'GCC Gulf Railway — Muscat, Oman (Future)', color: '#FFD300', coords: [58.5930, 23.6140] },
+      { name: 'GCC Gulf Railway — Duqm, Oman (Future)', color: '#FFD300', coords: [57.7000, 20.6500] },
+      { name: 'GCC Gulf Railway — Salalah, Oman (Future)', color: '#FFD300', coords: [54.0900, 17.0200] },
       // Saudi Arabia Riyadh–Dammam
       { name: 'Saudi Arabia HSR — Riyadh (Future)', color: '#FFD300', coords: [46.7219, 24.6877] },
       { name: 'Saudi Arabia HSR — Dammam (Future)', color: '#FFD300', coords: [49.8600, 26.4200] },
       // South Africa HSR
-      { name: 'South Africa HSR — Pretoria (Future)', color: '#FFD300', coords: [28.2293, -25.7461] },
-      { name: 'South Africa HSR — Bela-Bela (Future)', color: '#FFD300', coords: [28.3200, -24.8500] },
-      { name: 'South Africa HSR — Mokopane (Future)', color: '#FFD300', coords: [28.4200, -24.5500] },
+      { name: 'South Africa HSR — Pretoria (Future)', color: '#FFD300', coords: [28.1900, -25.7500] },
+      { name: 'South Africa HSR — Hammanskraal (Future)', color: '#FFD300', coords: [28.2500, -25.1500] },
+      { name: 'South Africa HSR — Bela-Bela (Future)', color: '#FFD300', coords: [28.2900, -24.8800] },
+      { name: 'South Africa HSR — Mokopane (Future)', color: '#FFD300', coords: [28.6500, -24.2000] },
       { name: 'South Africa HSR — Polokwane (Future)', color: '#FFD300', coords: [29.4486, -23.9060] },
+      { name: 'South Africa HSR — Louis Trichardt (Future)', color: '#FFD300', coords: [29.9200, -23.0400] },
+      { name: 'South Africa HSR — Musina (Future)', color: '#FFD300', coords: [30.0500, -22.3600] },
       // Cascadia HSR
       { name: 'Cascadia HSR — Portland Union Station (Future)', color: '#FFD300', coords: [-122.6784, 45.5231] },
       { name: 'Cascadia HSR — Tacoma (Future)', color: '#FFD300', coords: [-122.4302, 47.2529] },
@@ -3285,7 +3303,7 @@
         'chuo-maglev-line','india-mahsr-line','thailand-hsr-line','iran-hsr-line',
         'iraq-hsr-north-line','iraq-hsr-south-line',
         'hs2-line','belgrade-budapest-line','rail-baltica-line',
-        'gcc-rail-line','gcc-bahrain-line','gcc-qatar-line','gcc-uae-oman-line',
+        'gcc-rail-line','gcc-qatar-uae-line','gcc-uae-oman-line','gcc-bahrain-line',
         'saudi-hsr-line','sa-hsr-line',
         'station-dots','station-hover'
       ];
@@ -3311,9 +3329,80 @@
         }
       });
 
-      // Transit toggle
-      const transitRow = document.getElementById('transitToggleRow');
-      const transitCb  = document.getElementById('transitCheckbox');
+      let currentTransitVisible = false;
+      let currentTransitLayersAdded = false;
+      window._transitLayerIds = [];
+
+      function addCurrentTransitLayer() {
+        if (currentTransitLayersAdded) return;
+        // Add a GeoJSON source using Mapbox's transit tileset
+        // We use the mapbox.mapbox-transit-v2 tileset for global rail lines
+        if (!map.getSource('global-transit')) {
+          map.addSource('global-transit', {
+            type: 'vector',
+            url: 'mapbox://mapbox.mapbox-transit-v2'
+          });
+        }
+        // Rail lines layer
+        if (!map.getLayer('current-transit-rail')) {
+          map.addLayer({
+            id: 'current-transit-rail',
+            type: 'line',
+            source: 'global-transit',
+            'source-layer': 'transit_line',
+            layout: { 'line-join': 'round', 'line-cap': 'round', visibility: 'none' },
+            paint: {
+              'line-color': '#FF8C00',
+              'line-width': ['interpolate', ['linear'], ['zoom'], 4, 0.5, 8, 1, 12, 2],
+              'line-opacity': 0.7
+            }
+          }, 'unclustered-point'); // render below project pins
+        }
+        window._transitLayerIds = ['current-transit-rail'];
+        currentTransitLayersAdded = true;
+      }
+
+      function setCurrentTransitVisibility(visible) {
+        if (visible && !currentTransitLayersAdded) {
+          addCurrentTransitLayer();
+          // Small delay for source to load
+          setTimeout(() => {
+            window._transitLayerIds.forEach(id => {
+              if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', 'visible');
+            });
+          }, 300);
+        } else {
+          window._transitLayerIds.forEach(id => {
+            if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', visible ? 'visible' : 'none');
+          });
+        }
+      }
+
+      // Current transit toggle
+      const currentTransitRow = document.getElementById('currentTransitToggleRow');
+      const currentTransitCb  = document.getElementById('currentTransitCheckbox');
+      currentTransitRow?.addEventListener('click', () => {
+        currentTransitVisible = !currentTransitVisible;
+        currentTransitCb.classList.toggle('checked', currentTransitVisible);
+        setCurrentTransitVisibility(currentTransitVisible);
+      });
+
+      // Restore current transit after style switch
+      const _origSwitchStyle = window._switchStyle;
+      map.on('style.load', () => {
+        currentTransitLayersAdded = false;
+        window._transitLayerIds = [];
+        if (currentTransitVisible) {
+          setTimeout(() => {
+            addCurrentTransitLayer();
+            setTimeout(() => {
+              window._transitLayerIds.forEach(id => {
+                if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', 'visible');
+              });
+            }, 300);
+          }, 500);
+        }
+      });
       transitRow?.addEventListener('click', () => {
         transitVisible = !transitVisible;
         transitCb.classList.toggle('checked', transitVisible);
@@ -3931,86 +4020,82 @@
       ], '#FFD300');
 
       // ── GCC Gulf Railway (Kuwait → Saudi → Qatar → UAE → Oman) ───────────────
-      // ── GCC Gulf Railway — main coastal line: Kuwait → Dammam ─────────────────
-      // Follows the Gulf coast road, staying on land
+      // ── GCC Gulf Railway — Kuwait → Dammam (main north-south coastal line) ──────
       addRailLine('gcc-rail', [
         [47.9783, 29.3697], // Kuwait City
-        [48.0500, 29.0500], // South Kuwait coast
-        [48.1700, 28.6500], // Al Nuwaiseeb border
-        [48.3500, 28.2000], // Al Khafji
-        [48.6500, 27.7500], // Ras al-Khair area
-        [48.9500, 27.3000], // Jubail coast
-        [49.3500, 26.9000], // Between Jubail and Dammam
+        [48.4500, 28.5000], // South Kuwait coast
+        [48.6800, 27.9500], // Jubail
+        [48.8500, 27.4500], // Abu Hadriyah
         [49.8600, 26.4200], // Dammam
       ], '#FFD300');
 
-      // ── GCC Bahrain branch ─────────────────────────────────────────────────────
+      // ── GCC — Dammam → Qatar → Abu Dhabi → Dubai ──────────────────────────────
+      addRailLine('gcc-qatar-uae', [
+        [49.8600, 26.4200], // Dammam
+        [50.2000, 25.9000], // South of Dammam along coast
+        [50.6000, 25.4500], // Saudi/Qatar border region
+        [51.0000, 25.1500], // Qatar entry
+        [51.3500, 25.2500], // Central Qatar
+        [51.5310, 25.2854], // Doha
+        [51.4500, 24.8000], // South Qatar toward UAE
+        [51.5500, 24.2000], // UAE border / Al Sila
+        [53.0000, 24.0500], // Abu Dhabi outskirts west
+        [54.3700, 24.4539], // Abu Dhabi
+        [55.0000, 24.8500], // Between Abu Dhabi and Dubai
+        [55.2700, 25.2048], // Dubai
+      ], '#FFD300');
+
+      // ── GCC — Dubai → Fujairah → Sohar → Muscat → Duqm → Salalah ──────────────
+      addRailLine('gcc-uae-oman', [
+        [55.2700, 25.2048], // Dubai
+        [55.7000, 25.1500], // Sharjah/UAE east coast approach
+        [56.0500, 25.2500], // Ras Al Khaimah area
+        [56.3300, 25.1200], // Fujairah approach
+        [56.3500, 25.1200], // Fujairah
+        [56.7000, 24.4000], // Sohar approach
+        [56.7000, 24.3500], // Sohar
+        [57.5000, 23.9000], // Oman coast heading SE
+        [58.5930, 23.6140], // Muscat
+        [58.8000, 22.5000], // South of Muscat heading to Duqm
+        [57.7000, 20.6500], // Duqm
+        [54.0900, 17.0200], // Salalah
+      ], '#FFD300');
+
+      // ── GCC — Bahrain branch from Dammam ──────────────────────────────────────
       addRailLine('gcc-bahrain', [
         [49.8600, 26.4200], // Dammam
-        [50.0500, 26.2200], // King Fahd Causeway Saudi side
-        [50.2500, 26.1800], // Causeway mid-point
+        [50.1000, 26.2200], // King Fahd Causeway
         [50.4900, 26.1900], // Bahrain arrival
-        [50.5600, 26.2200], // Khalifa Port
-        [50.6050, 26.2320], // Bahrain Airport
+        [50.6050, 26.2320], // Bahrain Airport / Manama
       ], '#FFD300');
 
-      // ── GCC Qatar branch ───────────────────────────────────────────────────────
-      // Runs south along Saudi coast then turns east to Salwa/Qatar
-      addRailLine('gcc-qatar', [
-        [49.8600, 26.4200], // Dammam
-        [49.9500, 26.0000], // Al Khobar south
-        [50.1000, 25.5000], // Saudi Eastern Province south
-        [50.5000, 25.0000], // Salwa border area
-        [50.7500, 25.1000], // Salwa Port / Qatar entry
-        [51.0500, 25.1500], // Southern Qatar
-        [51.2500, 25.2000], // Heading to Doha
-        [51.5310, 25.2854], // Doha
-      ], '#FFD300');
-
-      // ── GCC UAE/Oman section (Etihad Rail + Hafeet Rail) ──────────────────────
-      // From UAE/Saudi border along coast to Muscat
-      addRailLine('gcc-uae-oman', [
-        [51.5310, 25.2854], // Doha
-        [51.5000, 24.7000], // Qatar south / UAE approach
-        [51.6000, 24.2000], // Al Sila (UAE entry from Saudi)
-        [52.2000, 24.1000], // Ruwais / Al Dhafra
-        [53.0000, 24.0000], // Al Mirfa
-        [54.0000, 24.2000], // Abu Dhabi outskirts
-        [54.3700, 24.4539], // Abu Dhabi
-        [54.9000, 24.7000], // Between Abu Dhabi and Dubai
-        [55.2700, 25.2048], // Dubai
-        [55.7000, 24.2000], // Al Ain area
-        [56.2500, 23.9700], // Fujairah/Sohar approach
-        [56.7000, 23.7500], // Sohar
-        [57.5000, 23.6500], // Oman coast heading east
-        [58.5930, 23.6140], // Muscat
-      ], '#FFD300');
-
-      // ── Saudi Arabia: Riyadh–Dammam HSR (inland route) ────────────────────────
+      // ── Saudi Arabia: Riyadh–Dammam HSR ───────────────────────────────────────
       addRailLine('saudi-hsr', [
         [46.7219, 24.6877], // Riyadh
         [47.4000, 24.8500], // NE heading
-        [48.0000, 25.1000], // Haradh area
-        [48.9000, 25.6000], // Al Ahsa / Hofuf area
-        [49.5000, 26.1000], // Approaching Dammam
+        [48.0000, 25.2000], // Haradh
+        [48.9000, 25.7500], // Hofuf / Al Ahsa
+        [49.5500, 26.1500], // Approaching Dammam
         [49.8600, 26.4200], // Dammam
       ], '#FFD300');
 
-      // ── South Africa: Pretoria–Polokwane HSR (N1 corridor) ─────────────────────
-      // N1 starts due north from Pretoria then gradually curves NE toward Polokwane
-      // Reference: Pretoria 28.19E,-25.75S → Bela-Bela 28.29E,-24.88S → 
-      // Modimolle 28.40E,-24.69S → Mokopane 28.72E,-24.19S → Polokwane 29.47E,-23.90S
+      // ── South Africa: Pretoria–Musina HSR (N1 corridor) ────────────────────────
+      // Based on reference map: Pretoria → Hammanskraal → Bela-Bela → Mokopane
+      // → Polokwane → Louis Trichardt → Musina (Zimbabwe border)
+      // Route stays near 28.3-29.0°E, fairly straight N then NE
       addRailLine('sa-hsr', [
-        [28.1900, -25.7500], // Pretoria station
-        [28.2100, -25.5500], // Hammanskraal area
-        [28.2400, -25.3000], // N1 heading north
-        [28.2900, -24.8800], // Bela-Bela (Warmbaths)
-        [28.3700, -24.6900], // Modimolle (Nylstroom)
-        [28.5000, -24.4500], // Mookgophong
-        [28.7200, -24.1900], // Mokopane (Potgietersrus)
-        [28.9500, -24.0500], // N1 northeast toward Polokwane
-        [29.2000, -23.9700], // Polokwane approach
+        [28.1900, -25.7500], // Pretoria
+        [28.2100, -25.4500], // Centurion/Hammanskraal approach
+        [28.2500, -25.1500], // Hammanskraal
+        [28.2900, -24.8800], // Bela-Bela
+        [28.4000, -24.5500], // Modimolle
+        [28.6500, -24.2000], // Mokopane
+        [28.9500, -23.9500], // Between Mokopane and Polokwane
         [29.4486, -23.9060], // Polokwane
+        [29.9000, -23.0500], // Louis Trichardt approach
+        [29.9200, -23.0400], // Louis Trichardt
+        [30.0300, -22.3500], // Heading to Musina
+        [30.0500, -22.3600], // Musina (Zimbabwe border)
       ], '#FFD300');
       // ── 4. Cascadia High-Speed Rail (Portland → Seattle → Vancouver BC) ───────
       addRailLine('cascadia-hsr', [
