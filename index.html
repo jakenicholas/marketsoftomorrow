@@ -3392,6 +3392,9 @@
 
       // Restore current transit after style switch — handled inside switchStyle below
 
+      // Transit toggle
+      const transitRow = document.getElementById('transitToggleRow');
+      const transitCb  = document.getElementById('transitCheckbox');
       transitRow?.addEventListener('click', () => {
         transitVisible = !transitVisible;
         transitCb.classList.toggle('checked', transitVisible);
