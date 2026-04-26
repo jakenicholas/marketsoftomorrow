@@ -3338,61 +3338,58 @@
 
       function addCurrentTransitLayer() {
         if (currentTransitLayersAdded) return;
+        currentTransitLayersAdded = true;
 
-        const allLayers = map.getStyle()?.layers || [];
-        const allSources = map.getStyle()?.sources || {};
-        console.log('[Transit] Sources:', Object.keys(allSources));
-        console.log('[Transit] Total layers:', allLayers.length);
+        // mapbox-streets-v8 is publicly available and contains 'road' source-layer
+        // with transit types: rail, subway, tramway, light_rail, monorail, ferry
+        // Also try 'transit' source-layer for station/line data
+        const layersToAdd = [
+          {
+            id: 'current-transit-rail',
+            'source-layer': 'road',
+            filter: ['in', 'class', 'rail', 'subway', 'tramway', 'light_rail', 'monorail', 'ferry']
+          },
+          {
+            id: 'current-transit-ferry',
+            'source-layer': 'transit',
+            filter: null
+          }
+        ];
 
-        // Find transit-related line layers already in the style
-        const transitKeywords = ['rail','transit','train','subway','metro','tram','ferry'];
-        const found = allLayers.filter(layer => {
-          if (layer.type !== 'line') return false;
-          const id = layer.id.toLowerCase();
-          const sl = (layer['source-layer'] || '').toLowerCase();
-          return transitKeywords.some(k => id.includes(k) || sl.includes(k));
-        });
-        console.log('[Transit] Found layers:', found.map(l => l.id));
+        // Try adding using mapbox-streets-v8 tileset
+        if (!map.getSource('mapbox-streets')) {
+          map.addSource('mapbox-streets', {
+            type: 'vector',
+            url: 'mapbox://mapbox.mapbox-streets-v8'
+          });
+        }
 
-        // Try composite source with transit_line source-layer (present in most Mapbox styles)
-        const hasComposite = !!allSources['composite'];
-        console.log('[Transit] Has composite source:', hasComposite);
-
-        if (hasComposite && !map.getLayer('current-transit-rail')) {
+        const added = [];
+        layersToAdd.forEach(({ id, 'source-layer': sl, filter }) => {
+          if (map.getLayer(id)) return;
           try {
-            map.addLayer({
-              id: 'current-transit-rail',
+            const layerDef = {
+              id,
               type: 'line',
-              source: 'composite',
-              'source-layer': 'transit_line',
+              source: 'mapbox-streets',
+              'source-layer': sl,
               layout: { 'line-join': 'round', 'line-cap': 'round', visibility: 'none' },
               paint: {
                 'line-color': '#FF8C00',
-                'line-width': ['interpolate', ['linear'], ['zoom'], 4, 0.8, 8, 1.5, 12, 2.5],
+                'line-width': ['interpolate', ['linear'], ['zoom'], 2, 0.5, 6, 1, 10, 1.5, 14, 2.5],
                 'line-opacity': 0.85
               }
-            }, 'unclustered-point');
-            window._transitLayerIds = ['current-transit-rail'];
-            console.log('[Transit] Added current-transit-rail layer');
+            };
+            if (filter) layerDef.filter = filter;
+            map.addLayer(layerDef, 'unclustered-point');
+            added.push(id);
           } catch(e) {
-            console.warn('[Transit] composite/transit_line failed:', e.message);
-            // Fall back to existing style layers
-            found.forEach(layer => {
-              try { map.setPaintProperty(layer.id, 'line-color', '#FF8C00'); } catch(e2) {}
-            });
-            window._transitLayerIds = found.map(l => l.id);
+            console.warn('[Transit]', id, 'failed:', e.message);
           }
-        } else if (found.length > 0) {
-          found.forEach(layer => {
-            try { map.setPaintProperty(layer.id, 'line-color', '#FF8C00'); } catch(e) {}
-          });
-          window._transitLayerIds = found.map(l => l.id);
-          console.log('[Transit] Using existing layers:', window._transitLayerIds);
-        } else {
-          console.warn('[Transit] No transit layers found');
-        }
+        });
 
-        currentTransitLayersAdded = true;
+        window._transitLayerIds = added.length ? added : ['current-transit-rail'];
+        console.log('[Transit] Added layers:', window._transitLayerIds);
       }
 
       function setCurrentTransitVisibility(visible) {
