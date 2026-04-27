@@ -1460,12 +1460,12 @@
       padding: 10px 0 6px;
       background: #111111;
     }
-    /* Sticky section headers — direct children of the scrolling grid */
+    /* Sticky section headers — sit just below the filter row */
     .section-sticky {
       grid-column: 1 / -1;
       position: sticky;
-      top: 0;
-      z-index: 10;
+      top: var(--drawer-header-h, 120px);
+      z-index: 9;
       background: #111111;
       padding: 10px 0 6px;
     }
@@ -2495,6 +2495,19 @@
     // ─── RENDER GRID ──────────────────────────────────────────────────────────
     // Returns map bounds for only the VISIBLE portion of the map
     // On mobile, excludes the bottom drawer area and top search bar
+    function updateStickyOffset() {
+      // Measure the sticky filter header in mobile drawer and desktop sidebar
+      const mobileHdr = document.querySelector('#mobileDrawerContent .mobile-header');
+      const desktopHdr = document.querySelector('#desktopSidebar .sidebar-header');
+      if (mobileHdr) {
+        const h = mobileHdr.getBoundingClientRect().height;
+        document.documentElement.style.setProperty('--drawer-header-h', h + 'px');
+      } else if (desktopHdr) {
+        const h = desktopHdr.getBoundingClientRect().height;
+        document.documentElement.style.setProperty('--drawer-header-h', h + 'px');
+      }
+    }
+
     function getVisibleBounds() {
       const canvas = map.getCanvas();
       const W = canvas.clientWidth;
@@ -4283,6 +4296,8 @@
           updateDesktopSegmentLabels();
           updateMobileSegmentLabels();
           setupMobileDrawer();
+          updateStickyOffset();
+          window.addEventListener('resize', updateStickyOffset);
 
           // Re-render once map is fully idle so in-view bounds are accurate
           map.once('idle', () => {
