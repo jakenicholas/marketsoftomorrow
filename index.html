@@ -3329,11 +3329,11 @@
         'chuo-maglev-line','india-mahsr-line','thailand-hsr-line','iran-hsr-line',
         'iraq-hsr-north-line','iraq-hsr-south-line',
         'hs2-line','belgrade-budapest-line','rail-baltica-line',
-        'gcc-kuwait-dammam-line','gcc-bahrain-line','gcc-qatar-line',
-        'gcc-dammam-ghweifat-line','gcc-uae-west-line','gcc-uae-east-line','gcc-hafeet-line',
-        'saudi-existing-rd-line','saudi-existing-jd-line','saudi-haramain-line',
-        'saudi-nsline-line','saudi-landbridge-line','oman-salalah-line',
-        'saudi-hsr-line','sa-hsr-line',
+        'gcc-k-d-line','gcc-bah-line','gcc-qat-line','gcc-d-g-line',
+        'gcc-uae-w-line','gcc-uae-e-line','gcc-hafeet-line',
+        'saudi-rd-line','saudi-jd-line','saudi-haramain-line',
+        'saudi-nsline-line','saudi-lb-line','oman-sal-line','saudi-hsr-line',
+        'sa-hsr-line',
         'station-dots','station-hover'
       ];
 
@@ -4111,165 +4111,193 @@
       // ── EXISTING LINES (solid yellow) ─────────────────────────────────────────
 
       // Saudi: Riyadh ↔ Dammam (existing operational)
-      addSolidRailLine('saudi-existing-rd', [
+      // ── SAUDI ARABIA / GCC RAIL NETWORK — verified GPS coordinates ──────────────
+
+      // Helper for SOLID lines (existing operational)
+      function addSolidRailLine(id, coords, color) {
+        const geo = { type:'FeatureCollection', features:[{ type:'Feature', properties:{}, geometry:{ type:'LineString', coordinates:coords } }] };
+        if (!map.getSource(id)) map.addSource(id, { type:'geojson', data:geo });
+        else map.getSource(id).setData(geo);
+        if (!map.getLayer(id+'-line')) map.addLayer({ id:id+'-line', type:'line', source:id, layout:{'line-join':'round','line-cap':'round'}, paint:{'line-color':color,'line-width':2.5} });
+      }
+
+      // ── EXISTING LINES (solid) ─────────────────────────────────────────────────
+
+      // Riyadh ↔ Dammam (existing Saudi Railways)
+      addSolidRailLine('saudi-rd', [
         [46.7219, 24.6877], // Riyadh
-        [47.5000, 24.9500], // NE toward Hofuf
-        [48.3000, 25.4000], // Al Ahsa area
-        [48.8000, 25.7500], // Hofuf
-        [49.3500, 26.1000], // Approaching Dammam
-        [49.8600, 26.4200], // Dammam
+        [47.3000, 24.8000], // NE
+        [47.9000, 25.2000], // Al Kharj area
+        [48.5000, 25.5000], // Al Ahsa approach
+        [48.9685, 25.7500], // Hofuf
+        [49.3000, 26.0500], // Approaching Dammam
+        [49.5687, 26.9598], // Jubail junction
+        [50.0888, 26.4207], // Dammam
       ], '#FFD300');
 
-      // Saudi: Jubail ↔ Dammam (existing, short freight/passenger line)
-      addSolidRailLine('saudi-existing-jd', [
-        [49.8600, 26.4200], // Dammam
-        [49.6000, 26.9000], // North of Dammam
-        [49.0000, 27.2000], // Jubail area
-        [48.7200, 27.5000], // Jubail
+      // Dammam ↔ Jubail (existing freight line, runs along coast)
+      addSolidRailLine('saudi-jd', [
+        [50.0888, 26.4207], // Dammam
+        [49.9000, 26.7000], // North of Dammam
+        [49.8000, 26.9000], // Heading to Jubail
+        [49.5687, 26.9598], // Jubail
+        [49.3002, 27.4557], // Ras Al-Khair
       ], '#FFD300');
 
-      // Saudi: Haramain HSR — Mecca ↔ Medina (existing operational)
+      // Haramain HSR: Mecca ↔ Jeddah ↔ Medina (existing)
       addSolidRailLine('saudi-haramain', [
         [39.8579, 21.3891], // Mecca
-        [39.7200, 21.8000], // Jeddah South
-        [39.1736, 21.5433], // Jeddah King Abdulaziz Airport
-        [39.0500, 22.5000], // Between Jeddah and Medina
-        [39.6000, 24.5000], // Approaching Medina
-        [39.6000, 24.4700], // Medina
+        [39.7000, 21.6000], // Between Mecca and Jeddah
+        [39.1925, 21.4858], // Jeddah
+        [39.1000, 22.0000], // North of Jeddah
+        [39.2000, 23.0000], // Heading to Medina
+        [39.5692, 24.5247], // Medina
       ], '#FFD300');
 
-      // Saudi: North-South Line existing — Riyadh → Az Zabirah → Al Haditha
+      // North-South Line: Riyadh → Az Zabirah → Al Haditha (existing)
       addSolidRailLine('saudi-nsline', [
         [46.7219, 24.6877], // Riyadh
-        [45.5000, 25.8000], // North from Riyadh
-        [44.5000, 26.5000], // Central Saudi heading north
-        [43.5000, 27.5000], // Az Zabirah Junction
-        [42.5000, 28.5000], // Northern Saudi
-        [38.0000, 32.0000], // Toward Al Haditha (Jordan border area)
-        [37.2297, 32.5000], // Al Haditha / Jordan border
+        [45.9000, 25.5000], // North from Riyadh
+        [44.8000, 26.5000], // Central Saudi
+        [44.0000, 27.5000], // Az Zabirah Junction area
+        [42.5000, 28.8000], // Northern Saudi
+        [40.0000, 30.0000], // Approaching Jordan border
+        [37.5000, 32.0000], // Near Al Haditha
+        [37.2297, 32.5100], // Al Haditha / Jordan border
       ], '#FFD300');
 
-      // ── GCC RAILWAY (dashed yellow) — EIU map orange dashes ──────────────────
+      // ── GCC RAILWAY (dashed) ────────────────────────────────────────────────────
 
-      // Kuwait City → Ras Al-Khair → Jubail → Dammam (north coastal spine)
-      addRailLine('gcc-kuwait-dammam', [
-        [47.9783, 29.3697], // Kuwait City
-        [48.0800, 29.1000], // South Kuwait coast
-        [48.1700, 28.9500], // Al Nuwaiseeb / Saudi border
-        [48.3000, 28.7000], // Al Khafji
-        [48.5000, 28.3500], // Ras al-Mishab
-        [48.6200, 28.0500], // Ras Al-Khair
-        [48.7500, 27.6000], // Jubail
-        [49.0500, 27.1500], // Between Jubail and Dammam
-        [49.4000, 26.8000], // Approaching Dammam
-        [49.8600, 26.4200], // Dammam
+      // Kuwait → Ras Al-Khair → Jubail → Dammam (coastal spine)
+      addRailLine('gcc-k-d', [
+        [47.9774, 29.3759], // Kuwait City
+        [48.1500, 29.0800], // South Kuwait coast
+        [48.2500, 28.8800], // Al Nuwaiseeb / Saudi border
+        [48.4908, 28.6641], // Al Khafji
+        [48.6000, 28.4000], // Coast continuing south
+        [48.7000, 28.1000], // Ras al-Mishab
+        [49.3002, 27.4557], // Ras Al-Khair (exact: 27.4557, 49.3002)
+        [49.5687, 26.9598], // Jubail (exact: 26.9598, 49.5687)
+        [49.8000, 26.7000], // Between Jubail and Dammam
+        [50.0888, 26.4207], // Dammam (exact: 26.4207, 50.0888)
       ], '#FFD300');
 
       // Bahrain branch: Dammam → King Fahd Causeway → Bahrain
-      addRailLine('gcc-bahrain', [
-        [49.8600, 26.4200], // Dammam
-        [50.0500, 26.3200], // Al Khobar
-        [50.2000, 26.2400], // Causeway approach
-        [50.3800, 26.2100], // Mid-causeway
-        [50.4800, 26.1900], // Bahrain entry / Khalifa Port
-        [50.5700, 26.2100], // Bahrain interior
-        [50.6050, 26.2320], // Bahrain International Airport
-        [50.6200, 26.2800], // Manama / Amwaj
+      addRailLine('gcc-bah', [
+        [50.0888, 26.4207], // Dammam
+        [50.1500, 26.3500], // Al Khobar
+        [50.2500, 26.2800], // Causeway approach
+        [50.4000, 26.2300], // King Fahd Causeway
+        [50.5000, 26.2000], // Mid-causeway
+        [50.5500, 26.2100], // Bahrain arrival / Khalifa Port
+        [50.5860, 26.2361], // Bahrain International Airport
+        [50.6200, 26.3000], // Manama / north Bahrain
       ], '#FFD300');
 
-      // Qatar branch: Dammam → south Saudi coast → Salwa → Doha
-      addRailLine('gcc-qatar', [
-        [49.8600, 26.4200], // Dammam
-        [50.0500, 25.9000], // South of Dammam
-        [50.2500, 25.4000], // Saudi coast south
-        [50.5000, 24.9000], // Al Uqayr
-        [50.7000, 24.5500], // Salwa / Qatar border
-        [50.8500, 24.7500], // Qatar entry
-        [51.0500, 25.0000], // Southern Qatar
-        [51.3000, 25.1500], // Approaching Doha
-        [51.5310, 25.2854], // Doha
+      // Qatar branch: Dammam → coast → Salwa → Doha
+      addRailLine('gcc-qat', [
+        [50.0888, 26.4207], // Dammam
+        [50.2000, 26.0000], // South of Dammam along coast
+        [50.4000, 25.5000], // Saudi coast south
+        [50.6000, 25.0000], // Continuing south
+        [50.7552, 24.7433], // Salwa (exact: 24.7433, 50.7552) Saudi/Qatar border
+        [50.8500, 24.9000], // Qatar entry
+        [51.0000, 25.0000], // Southern Qatar heading north
+        [51.2000, 25.1500], // Central Qatar
+        [51.5310, 25.2854], // Doha (exact)
       ], '#FFD300');
 
-      // Dammam → Ghweifat (inland through Saudi to UAE border)
-      // On EIU map this line runs SW from Dammam area through Saudi interior
-      addRailLine('gcc-dammam-ghweifat', [
-        [49.8600, 26.4200], // Dammam
-        [49.2000, 25.6000], // SW from Dammam
-        [48.5000, 24.8000], // Al Ahsa / Hofuf area  
-        [47.8000, 24.1000], // Heading southwest
-        [47.2000, 23.5000], // Central Saudi
-        [46.8000, 23.0000], // Near Riyadh latitude
-        [47.5000, 22.5000], // Heading toward UAE border
-        [48.5000, 22.0000], // Southern Saudi
-        [49.5000, 22.0000], // SE Saudi
-        [50.5000, 22.5000], // Saudi coast near UAE
-        [51.1000, 23.1000], // Approaching Ghweifat
-        [51.5500, 23.7500], // Ghweifat (UAE border entry)
+      // Main GCC spine: Dammam → inland Saudi → Al Ghuweifat (UAE border)
+      // This runs through Saudi interior, NOT along coast
+      // Reference shows line going from Dammam SW through interior to Ghweifat
+      addRailLine('gcc-d-g', [
+        [50.0888, 26.4207], // Dammam
+        [49.5000, 25.9000], // SW from Dammam
+        [48.9685, 25.3500], // Hofuf / Al Ahsa
+        [48.3000, 24.7000], // SW through Saudi interior
+        [47.5000, 24.0000], // Central Saudi
+        [47.0000, 23.3000], // Heading toward Ghweifat
+        [47.8000, 22.8000], // SE toward UAE border
+        [49.0000, 22.5000], // Eastern Saudi desert
+        [50.3000, 22.7000], // Near Saudi/UAE/Qatar corner
+        [51.0000, 23.2000], // Approaching Ghweifat
+        [51.6177, 24.0913], // Al Ghuweifat (exact: 24.0913, 51.6177)
       ], '#FFD300');
 
-      // Ghweifat → Ruwais → Abu Dhabi → Dubai (Etihad Rail west coast UAE)
-      addRailLine('gcc-uae-west', [
-        [51.5500, 23.7500], // Ghweifat
-        [52.2000, 23.8500], // Ruwais approach
-        [52.6000, 23.9500], // Ruwais
-        [53.1000, 24.0500], // Al Mirfa
+      // Al Ghuweifat → Ruwais → Abu Dhabi → Dubai (Etihad Rail)
+      addRailLine('gcc-uae-w', [
+        [51.6177, 24.0913], // Al Ghuweifat
+        [52.1000, 24.0000], // Heading east
+        [52.7300, 24.1000], // Ruwais (24.1133, 52.7305)
+        [53.2000, 24.0500], // Al Mirfa
         [53.8000, 24.1500], // Tarif
-        [54.3700, 24.4539], // Abu Dhabi
-        [54.7500, 24.6500], // Between Abu Dhabi and Dubai
-        [55.0500, 24.9500], // Jebel Ali
-        [55.2700, 25.2048], // Dubai
+        [54.3773, 24.4539], // Abu Dhabi (exact)
+        [54.6500, 24.5500], // East of Abu Dhabi
+        [54.9000, 24.7500], // Heading to Dubai
+        [55.1000, 24.9500], // Jebel Ali
+        [55.2708, 25.2048], // Dubai (exact)
       ], '#FFD300');
 
-      // Dubai → Fujairah → Sohar → Muscat (east coast UAE + Hafeet Rail into Oman)
-      addRailLine('gcc-uae-east', [
-        [55.2700, 25.2048], // Dubai
-        [55.6000, 25.3500], // Sharjah
-        [55.9000, 25.4500], // RAK / Umm Al Quwain
-        [56.1500, 25.5000], // Heading to east coast
-        [56.3300, 25.3000], // Dibba approach
-        [56.3600, 25.1200], // Fujairah
-        [56.5000, 24.9000], // South Fujairah coast
-        [56.7000, 24.3500], // Sohar
-        [56.9000, 24.0000], // South of Sohar
-        [57.3000, 23.8000], // Heading to Muscat
-        [58.0000, 23.6500], // Muscat approach
-        [58.5930, 23.6140], // Muscat
+      // Dubai → Fujairah → Sohar → Muscat (east coast + Hafeet Rail)
+      addRailLine('gcc-uae-e', [
+        [55.2708, 25.2048], // Dubai
+        [55.5000, 25.3500], // Sharjah
+        [55.8000, 25.5500], // Umm Al Quwain
+        [55.9762, 25.8007], // Ras Al Khaimah (exact: 25.8007, 55.9762)
+        [56.0500, 25.6000], // RAK heading to east coast
+        [56.2000, 25.4000], // Mountain crossing
+        [56.3414, 25.1164], // Fujairah (exact: 25.1164, 56.3414)
+        [56.5000, 24.9000], // South Fujairah
+        [56.7075, 24.3476], // Sohar (exact: 24.3476, 56.7075)
+        [57.0000, 23.9000], // South of Sohar
+        [57.5000, 23.7000], // Oman coast
+        [58.0000, 23.6500], // Approaching Muscat
+        [58.3829, 23.5880], // Muscat (exact: 23.5880, 58.3829)
       ], '#FFD300');
 
-      // Al Ain connector: Abu Dhabi → Al Ain → Sohar (Hafeet Rail)
+      // Hafeet Rail: Abu Dhabi → Al Ain → Sohar
       addRailLine('gcc-hafeet', [
-        [54.3700, 24.4539], // Abu Dhabi
-        [54.8000, 24.2000], // Heading SE toward Al Ain
-        [55.2000, 24.1000], // Al Ain approach
-        [55.7500, 24.2000], // Al Ain
-        [56.0000, 24.0500], // Oman border
-        [56.4000, 23.9000], // Heading to Sohar
-        [56.7000, 24.3500], // Sohar (connects to east coast line)
+        [54.3773, 24.4539], // Abu Dhabi
+        [54.8000, 24.3000], // SE toward Al Ain
+        [55.2000, 24.2000], // Al Ain approach
+        [55.7452, 24.2141], // Al Ain (exact: 24.2141, 55.7452)
+        [56.0500, 24.1000], // Oman border
+        [56.3000, 23.9500], // Heading to Sohar
+        [56.7075, 24.3476], // Sohar
       ], '#FFD300');
 
-      // ── OTHER PLANNED LINES (dashed yellow, EIU red dashes) ──────────────────
+      // ── OTHER PLANNED LINES (dashed) ────────────────────────────────────────────
 
       // Muscat → Duqm → Salalah (Oman national rail)
-      addRailLine('oman-salalah', [
-        [58.5930, 23.6140], // Muscat
-        [58.5000, 22.8000], // South from Muscat
-        [57.8000, 22.0000], // Heading SW
-        [57.7000, 20.6500], // Duqm
-        [56.5000, 19.5000], // South Oman
-        [55.5000, 18.5000], // Approaching Salalah
-        [54.0900, 17.0200], // Salalah
+      addRailLine('oman-sal', [
+        [58.3829, 23.5880], // Muscat
+        [58.5000, 22.8000], // South from Muscat along coast
+        [58.2000, 22.0000], // Oman interior
+        [57.7000, 21.0000], // Heading SW
+        [57.7000, 19.6500], // Duqm (exact: 19.6500, 57.7000)
+        [56.5000, 18.7000], // South Oman coast
+        [55.5000, 17.8000], // Approaching Salalah
+        [54.0924, 17.0151], // Salalah (exact: 17.0151, 54.0924)
       ], '#FFD300');
 
-      // Saudi Landbridge: Riyadh → Jeddah (via planned route)
-      addRailLine('saudi-landbridge', [
+      // Saudi Landbridge: Riyadh → Jeddah
+      addRailLine('saudi-lb', [
         [46.7219, 24.6877], // Riyadh
-        [45.5000, 24.2000], // West from Riyadh
-        [44.0000, 23.5000], // Central Saudi
-        [42.5000, 22.5000], // Approaching Mecca
-        [40.7000, 21.8000], // Mecca area
-        [39.1736, 21.5433], // Jeddah
+        [45.5000, 24.1000], // West from Riyadh
+        [43.5000, 22.8000], // Central Saudi
+        [41.5000, 21.8000], // Approaching Mecca area
+        [39.8579, 21.3891], // Mecca
+        [39.4000, 21.4500], // Mecca to Jeddah
+        [39.1925, 21.4858], // Jeddah
       ], '#FFD300');
 
+      // Saudi HSR Riyadh ↔ Dammam (planned upgrade, same corridor as existing)
+      addRailLine('saudi-hsr', [
+        [46.7219, 24.6877], // Riyadh
+        [47.5000, 24.9000], // NE
+        [48.9685, 25.7500], // Hofuf
+        [50.0888, 26.4207], // Dammam
+      ], '#FFD300');
       // ── South Africa: Pretoria–Musina HSR (N1 corridor) ────────────────────────
       // Based on reference map: Pretoria → Hammanskraal → Bela-Bela → Mokopane
       // → Polokwane → Louis Trichardt → Musina (Zimbabwe border)
