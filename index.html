@@ -568,6 +568,7 @@
       padding: 16px calc(16px + var(--safe-area-right)) 16px calc(16px + var(--safe-area-left));
       padding-top: 4px; overflow-y: visible !important; overflow-x: hidden !important;
       height: auto !important;
+      position: relative; z-index: 1;
     }
     #mobileDrawerContent .leaf-grid { overflow: visible !important; height: auto !important; }
 
@@ -1272,7 +1273,7 @@
       background: var(--accent-yellow); color: #000;
       padding: 4px 10px; border-radius: 12px;
       font-size: 11px; font-weight: 600;
-      display: flex; align-items: center; gap: 4px; z-index: 10;
+      display: flex; align-items: center; gap: 4px; z-index: 2;
       box-shadow: 0 2px 4px rgba(0,0,0,0.3);
     }
     @media(max-width:800px) {
@@ -2385,6 +2386,22 @@
 
       const pillCount = document.getElementById('mobilePillCount');
       if (pillCount) pillCount.textContent = `${inFrame} results`;
+
+      // Initialize section bar count if it's showing In View
+      const mobileSsbTitle = document.getElementById('mobileSsbTitle');
+      const mobileSsbCount = document.getElementById('mobileSsbCount');
+      if (mobileSsbTitle && mobileSsbCount && mobileSsbTitle.textContent === 'In View') {
+        const label = `${inFrame} project${inFrame !== 1 ? 's' : ''}`;
+        mobileSsbCount.textContent = label;
+        mobileSsbCount.className = 'ssb-count green';
+      }
+      const desktopSsbTitle = document.getElementById('desktopSsbTitle');
+      const desktopSsbCount = document.getElementById('desktopSsbCount');
+      if (desktopSsbTitle && desktopSsbCount && desktopSsbTitle.textContent === 'In View') {
+        const label = `${inFrame} project${inFrame !== 1 ? 's' : ''}`;
+        desktopSsbCount.textContent = label;
+        desktopSsbCount.className = 'ssb-count green';
+      }
     }
 
     // ─── SIDEBAR TOGGLE ───────────────────────────────────────────────────────
@@ -2814,7 +2831,24 @@
         window.mobileScrollObserver.observe(trigger);
       }
 
-      setTimeout(() => { grid.style.pointerEvents = 'auto'; window.gridRendering[targetId] = false; updateResultCount(targetId); }, 100);
+      setTimeout(() => {
+        grid.style.pointerEvents = 'auto';
+        window.gridRendering[targetId] = false;
+        updateResultCount(targetId);
+        if (targetId === 'gridMobile') {
+          setupSectionBar(
+            document.getElementById('mobileDrawerContent'),
+            document.getElementById('mobileSsbTitle'),
+            document.getElementById('mobileSsbCount')
+          );
+        } else {
+          setupSectionBar(
+            document.querySelector('#desktopSidebar .sidebar-content'),
+            document.getElementById('desktopSsbTitle'),
+            document.getElementById('desktopSsbCount')
+          );
+        }
+      }, 100);
     }
 
     // ─── RENDER FILTERED GRID (for search) ───────────────────────────────────
@@ -2968,7 +3002,24 @@
       }
 
       setupLazyLoading(grid, targetId);
-      setTimeout(() => { grid.style.pointerEvents = 'auto'; window.gridRendering[targetId] = false; updateResultCount(targetId); }, 150);
+      setTimeout(() => {
+        grid.style.pointerEvents = 'auto';
+        window.gridRendering[targetId] = false;
+        updateResultCount(targetId);
+        if (targetId === 'gridMobile') {
+          setupSectionBar(
+            document.getElementById('mobileDrawerContent'),
+            document.getElementById('mobileSsbTitle'),
+            document.getElementById('mobileSsbCount')
+          );
+        } else {
+          setupSectionBar(
+            document.querySelector('#desktopSidebar .sidebar-content'),
+            document.getElementById('desktopSsbTitle'),
+            document.getElementById('desktopSsbCount')
+          );
+        }
+      }, 150);
     }
 
     // ─── LAZY LOADING ─────────────────────────────────────────────────────────
