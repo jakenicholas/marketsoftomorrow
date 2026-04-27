@@ -3323,7 +3323,7 @@
         'chuo-maglev-line','india-mahsr-line','thailand-hsr-line','iran-hsr-line',
         'iraq-hsr-north-line','iraq-hsr-south-line',
         'hs2-line','belgrade-budapest-line','rail-baltica-line',
-        'gcc-rail-line','gcc-bahrain-line','gcc-qatar-line','gcc-uae-line','gcc-oman-line',
+        'gcc-rail-line','gcc-bahrain-line','gcc-qatar-line','gcc-dubai-line','gcc-oman-line',
         'saudi-hsr-line','sa-hsr-line',
         'station-dots','station-hover'
       ];
@@ -4089,104 +4089,75 @@
       ], '#FFD300');
 
       // ── GCC Gulf Railway (Kuwait → Saudi → Qatar → UAE → Oman) ───────────────
-      // ── GCC: Kuwait → Dammam (hugs Gulf coast, Kuwait runs along coastline) ──
+      // ── GCC Railway — Kuwait → coast → Dammam → east Saudi coast → UAE ────────
       addRailLine('gcc-rail', [
-        [47.8850, 29.2500], // Al Shadadiya station (SW of Kuwait City, actual start)
-        [47.9400, 29.3200], // Heading east toward coast
         [47.9783, 29.3697], // Kuwait City
-        [48.0800, 29.1500], // South Kuwait coast
+        [48.0800, 29.0500], // South Kuwait coast
         [48.1700, 28.9800], // Al Nuwaiseeb / Saudi border
-        [48.3000, 28.7500], // Al Khafji area
-        [48.4200, 28.5500], // Continuing south along coast
-        [48.5500, 28.2500], // Ras al-Mishab
-        [48.7200, 27.9500], // Ras al-Khair industrial
-        [48.8500, 27.6500], // Jubail approach
-        [49.0200, 27.0000], // Between Jubail and Dammam
-        [49.3500, 26.7500], // Continuing south
-        [49.6500, 26.5800], // Approaching Dammam
+        [48.3500, 28.6500], // Al Khafji
+        [48.5000, 28.3000], // Ras al-Mishab
+        [48.6500, 28.0000], // Ras al-Khair
+        [48.7500, 27.5500], // Jubail
+        [49.0500, 27.1000], // Between Jubail and Dammam
+        [49.5000, 26.7000], // Approaching Dammam
         [49.8600, 26.4200], // Dammam
+        [49.9000, 25.9000], // South of Dammam, hugging coast
+        [50.0000, 25.4000], // Al Uqayr area
+        [50.1000, 24.9000], // Continuing south along coast
+        [50.2000, 24.4000], // Near Salwa
+        [50.4000, 23.8000], // Saudi coast heading SE
+        [50.6000, 23.2000], // Eastern Saudi coast
+        [51.0000, 22.8000], // Continuing southeast
+        [51.5000, 22.5000], // Saudi/UAE border area
+        [51.5500, 23.7800], // Ghweifat (UAE entry — Etihad Rail connection)
+        [52.6000, 23.9500], // Ruwais
+        [53.5000, 24.0000], // Al Mirfa
+        [54.3700, 24.4539], // Abu Dhabi
+        [55.7500, 24.2000], // Al Ain
+        [56.7000, 23.6500], // Sohar
+        [58.5930, 23.6140], // Muscat
+        [58.5000, 22.5000], // South from Muscat
+        [57.7000, 20.6500], // Duqm
+        [55.5000, 18.5000], // South Oman coast
+        [54.0900, 17.0200], // Salalah
       ], '#FFD300');
 
-      // ── GCC Bahrain branch: Dammam → King Fahd Causeway → Bahrain ────────────
+      // Bahrain branch: Dammam → causeway → Bahrain
       addRailLine('gcc-bahrain', [
         [49.8600, 26.4200], // Dammam
-        [50.0200, 26.3000], // Al Khobar heading to causeway
-        [50.1700, 26.2400], // King Fahd Causeway Saudi side
-        [50.3200, 26.2000], // Mid-causeway
-        [50.4500, 26.1900], // Bahrain entry - Khalifa Bin Salman Port
-        [50.5300, 26.2000], // Heading north in Bahrain
-        [50.5800, 26.2200], // Khalifa Port station
-        [50.6000, 26.2700], // Bahrain International Airport
-        [50.6100, 26.3100], // Amwaj Islands (end - future sea bridge to Qatar)
+        [50.0800, 26.2800], // Al Khobar
+        [50.2500, 26.2200], // King Fahd Causeway
+        [50.4500, 26.2000], // Bahrain entry
+        [50.5500, 26.2100], // Khalifa Port
+        [50.6050, 26.2320], // Bahrain International Airport
       ], '#FFD300');
 
-      // ── GCC Qatar branch: Dammam → south Saudi coast → Salwa → Doha ─────────
+      // Qatar branch: junction near Salwa → Doha
       addRailLine('gcc-qatar', [
-        [49.8600, 26.4200], // Dammam
-        [49.9500, 26.1000], // Al Khobar / Dhahran area
-        [50.1000, 25.9000], // South along Saudi Eastern Province coast
-        [50.2500, 25.6000], // Continuing south
-        [50.3500, 25.3000], // Al Uqayr area
-        [50.4500, 25.0000], // Approaching Qatar border
-        [50.5500, 24.7000], // Near Salwa
-        [50.6500, 24.4000], // Salwa port - Saudi/Qatar border
-        [50.7500, 24.5500], // Qatar entry
-        [50.8500, 24.7000], // Southern Qatar
-        [51.0000, 24.9000], // Central Qatar heading north
-        [51.2000, 25.0500], // Continuing to Doha
-        [51.4000, 25.2000], // Doha approach
-        [51.5310, 25.2854], // Doha / Hamad International Airport
+        [50.2000, 24.4000], // Junction from main GCC line near Salwa
+        [50.5000, 24.6000], // Salwa / Qatar border
+        [50.7500, 24.7000], // Southern Qatar
+        [51.0000, 24.9000], // Heading north
+        [51.2500, 25.1000], // Central Qatar
+        [51.5310, 25.2854], // Doha
       ], '#FFD300');
 
-      // ── GCC UAE section: Dammam → Al Batha → Abu Dhabi → Dubai ──────────────
-      // Main line goes inland from Dammam south toward UAE border at Al Batha/Ghuweifat
-      addRailLine('gcc-uae', [
-        [49.8600, 26.4200], // Dammam
-        [49.8000, 25.8000], // Heading south through Saudi Eastern Province
-        [49.7000, 25.0000], // Al Hofuf area
-        [49.5000, 24.3000], // Continuing south
-        [49.2000, 23.8000], // Approaching UAE border area
-        [48.8000, 23.5000], // Al Batha / Saudi-UAE border
-        [51.5000, 23.8000], // Al Ghuweifat (UAE entry from Saudi - Etihad Rail)
-        [52.5000, 23.9500], // Ruwais / Al Dhafra
-        [53.3000, 23.9000], // Al Mirfa
-        [54.0000, 24.1000], // Abu Dhabi approach
+      // Dubai connector from Al Ain/Abu Dhabi
+      addRailLine('gcc-dubai', [
         [54.3700, 24.4539], // Abu Dhabi
-        [54.7000, 24.6500], // Between Abu Dhabi and Dubai
-        [55.0000, 24.9000], // Jebel Ali area
+        [54.8000, 24.7000], // Heading toward Dubai
+        [55.0000, 24.9500], // Jebel Ali
         [55.2700, 25.2048], // Dubai
-        [55.5000, 25.3500], // Sharjah
-        [55.7500, 25.5000], // Ras Al Khaimah direction
       ], '#FFD300');
 
-      // ── GCC Hafeet Rail: Abu Dhabi → Al Ain → Sohar → Muscat ─────────────────
-      addRailLine('gcc-oman', [
-        [54.3700, 24.4539], // Abu Dhabi
-        [54.8000, 24.2000], // Heading southeast toward Al Ain
-        [55.2000, 24.1000], // Al Ain approach
-        [55.7500, 24.2000], // Al Ain / UAE-Oman border (Hafeet Rail)
-        [56.0000, 24.0000], // Oman border crossing
-        [56.3000, 23.8500], // Sohar approach
-        [56.7000, 23.6500], // Sohar port
-        [57.0000, 23.6000], // Heading east along Oman coast
-        [57.5000, 23.6200], // Oman coast
-        [57.9000, 23.5500], // Continuing to Muscat
-        [58.3000, 23.5800], // Muscat approach
-        [58.5930, 23.6140], // Muscat
-      ], '#FFD300');
-
-      // ── Saudi Arabia Riyadh–Doha HSR (new Dec 2025 agreement, via Hofuf/Dammam)
+      // Saudi Arabia: Riyadh ↔ Dammam (existing line shown in black on reference)
       addRailLine('saudi-hsr', [
-        [46.7219, 24.6877], // Riyadh / King Salman Airport
-        [47.3000, 24.8000], // NE from Riyadh
-        [48.0000, 25.2000], // Al Kharj area
-        [48.8000, 25.7500], // Hofuf / Al Ahsa station
-        [49.3000, 26.0000], // Approaching Dammam
-        [49.8600, 26.4200], // Dammam station
-        [50.2000, 25.7000], // East from Dammam toward Qatar sea bridge
-        [50.6500, 24.4000], // Salwa area
-        [51.0000, 24.9000], // Qatar entry
-        [51.5310, 25.2854], // Doha / Hamad International Airport
+        [46.7219, 24.6877], // Riyadh
+        [47.5000, 24.9000], // NE from Riyadh
+        [48.3000, 25.4000], // Al Ahsa approach
+        [48.8000, 25.7500], // Hofuf / Al Ahsa
+        [49.3500, 26.1000], // Approaching Dammam
+        [49.8600, 26.4200], // Dammam
       ], '#FFD300');
 
       // ── South Africa: Pretoria–Musina HSR (N1 corridor) ────────────────────────
