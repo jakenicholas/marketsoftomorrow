@@ -1464,17 +1464,19 @@
       padding: 10px 0 6px;
       background: #111111;
     }
-    /* Green border + glow wrapping the entire in-view section */
+    /* In-view section — no border, just a grid container like nearby */
     .inview-section {
       grid-column: 1 / -1;
-      border: 1.5px solid rgba(31,223,103,0.4);
-      border-radius: 12px;
-      box-shadow: 0 0 20px rgba(31,223,103,0.08);
-      padding: 10px;
+      padding: 10px 10px 0;
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 8px;
       contain: layout paint style;
+    }
+    /* Green glow border on images of in-view tiles only */
+    .inview-section .grid-item img {
+      box-shadow: 0 0 0 1.5px rgba(31,223,103,0.55), 0 0 10px rgba(31,223,103,0.2);
+      border-radius: 8px 8px 0 0;
     }
     /* More Nearby section — matches inview spacing but no border */
     .nearby-section {
