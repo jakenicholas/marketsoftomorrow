@@ -794,11 +794,11 @@
 
     .grid-item .image-wrapper {
       position: relative; overflow: hidden; border-radius: 4px;
-      flex-shrink: 0; background: #1a1a1a; min-height: 180px;
+      flex-shrink: 0; background: rgba(20,20,20,0.8); min-height: 180px;
     }
     .grid-item img {
       width: 100%; height: 180px; object-fit: cover; display: block;
-      background: #1a1a1a;
+      background: rgba(20,20,20,0.8);
     }
     .grid-item img.lazy-loading { opacity: 1; }
     .grid-item img.loaded { opacity: 1; }
@@ -1461,7 +1461,16 @@
       align-items: center;
       justify-content: space-between;
       padding: 10px 0 6px;
+      position: sticky;
+      top: 0;
+      z-index: 5;
       background: #111111;
+    }
+    .inview-section .section-header-wrap {
+      position: static;
+      background: transparent;
+      padding-top: 2px;
+      padding-bottom: 8px;
     }
     /* Header inside the green inview box must NOT be sticky — causes scroll jank */
     .inview-section .section-header-wrap {
