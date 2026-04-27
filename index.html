@@ -561,8 +561,9 @@
     #mobileDrawerHandle:hover::after { background: #999; width: 50px; }
 
     #mobileDrawerContent {
-      height: calc(100% - 24px); overflow-y: scroll !important;
+      height: calc(100% - 24px); overflow-y: auto !important;
       overflow-x: hidden !important; -webkit-overflow-scrolling: touch !important;
+      overscroll-behavior: contain;
       position: relative; pointer-events: auto !important; touch-action: pan-y !important;
       transform: translateZ(0);
       -webkit-transform: translateZ(0);
@@ -1461,9 +1462,6 @@
       align-items: center;
       justify-content: space-between;
       padding: 10px 0 6px;
-      position: sticky;
-      top: 0;
-      z-index: 5;
       background: #111111;
     }
     .inview-section .section-header-wrap {
