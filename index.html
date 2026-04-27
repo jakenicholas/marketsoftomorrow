@@ -1461,8 +1461,8 @@
       padding: 10px 0 6px;
       background: #111111;
     }
-    /* Hidden sentinel elements for scroll detection — replaced by pinned status bar */
-    .section-sticky {
+    /* In-view sentinel — hidden, kept for scroll detection only */
+    .section-sticky.sentinel-inview {
       grid-column: 1 / -1;
       visibility: hidden;
       height: 1px;
@@ -1471,11 +1471,24 @@
       overflow: hidden;
       pointer-events: none;
     }
+    /* More Nearby header in drawer — visible, acts as section divider */
+    .section-sticky.sentinel-nearby {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 0 6px;
+      background: #111111;
+      visibility: visible;
+      height: auto;
+      overflow: visible;
+      pointer-events: auto;
+    }
     /* Section status bar — sits inside sticky filter header */
     .section-status-bar {
       display: flex;
       align-items: center;
-      padding: 6px 0 2px;
+      padding: 6px 0 4px;
       overflow: hidden;
     }
     .ssb-inner {
@@ -1483,6 +1496,7 @@
       align-items: center;
       justify-content: space-between;
       width: 100%;
+      padding: 0 2px; /* align with search pill edges */
       transition: opacity 0.2s ease, transform 0.2s ease;
     }
     .ssb-inner.flip-out {
@@ -2773,7 +2787,7 @@
           // In view: sticky header in main grid + tiles in sub-grid with green glow
           const inviewHdr = makeHeader('In view', trueInView.length > 0 ? `${trueInView.length} project${trueInView.length !== 1 ? 's' : ''}` : '0 projects', true);
           inviewHdr.style.gridColumn = '1 / -1';
-          inviewHdr.classList.add('section-sticky');
+          inviewHdr.classList.add('section-sticky', 'sentinel-inview');
           inviewHdr.dataset.section = 'inview';
           inviewHdr.dataset.label = 'In View';
           inviewHdr.dataset.count = trueInView.length > 0 ? `${trueInView.length} project${trueInView.length !== 1 ? 's' : ''}` : '0 projects';
@@ -2789,7 +2803,7 @@
           if (outViewSorted.length > 0) {
             const nh = makeHeader('More nearby', `${trueOutView.length}`, false);
             nh.style.gridColumn = '1 / -1';
-            nh.classList.add('section-sticky');
+            nh.classList.add('section-sticky', 'sentinel-nearby');
             fragment.appendChild(nh);
             const nearbyWrap = document.createElement('div');
             nearbyWrap.className = 'nearby-section';
@@ -2803,7 +2817,7 @@
             if (dedupedFallback.length > 0) {
               const nh2 = makeHeader('More nearby', `${dedupedFallback.length}`, false);
               nh2.style.gridColumn = '1 / -1';
-              nh2.classList.add('section-sticky');
+              nh2.classList.add('section-sticky', 'sentinel-nearby');
               fragment.appendChild(nh2);
               const nearbyWrap2 = document.createElement('div');
               nearbyWrap2.className = 'nearby-section';
@@ -2952,7 +2966,7 @@
         // In view: sticky header + tiles in sub-grid
         const inviewHdrF = makeHeader('In view', inView.length > 0 ? `${trueInView.length} project${trueInView.length !== 1 ? 's' : ''}` : '0 projects', true);
         inviewHdrF.style.gridColumn = '1 / -1';
-        inviewHdrF.classList.add('section-sticky');
+        inviewHdrF.classList.add('section-sticky', 'sentinel-inview');
         fragment.appendChild(inviewHdrF);
         const inviewWrap2 = document.createElement('div');
         inviewWrap2.className = 'inview-section';
@@ -2965,7 +2979,7 @@
         if (outViewSorted.length > 0) {
           const nhF = makeHeader('More nearby', `${trueOutView.length}`, false);
           nhF.style.gridColumn = '1 / -1';
-          nhF.classList.add('section-sticky');
+          nhF.classList.add('section-sticky', 'sentinel-nearby');
           fragment.appendChild(nhF);
           const nearbyWrapF = document.createElement('div');
           nearbyWrapF.className = 'nearby-section';
@@ -2978,7 +2992,7 @@
           if (dedupedFallback.length > 0) {
             const nhF2 = makeHeader('More nearby', `${dedupedFallback.length}`, false);
             nhF2.style.gridColumn = '1 / -1';
-            nhF2.classList.add('section-sticky');
+            nhF2.classList.add('section-sticky', 'sentinel-nearby');
             fragment.appendChild(nhF2);
             const nearbyWrapF2 = document.createElement('div');
             nearbyWrapF2.className = 'nearby-section';
