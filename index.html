@@ -2505,17 +2505,21 @@
 
       if (isMobile) {
         // Top: search bar + filter row ≈ 130px
-        // Bottom: drawer collapsed handle ≈ 120px (excludes tiles behind drawer)
         const topOffset = 130;
-        const bottomOffset = 130;
-        const topLeft     = map.unproject([0,         topOffset]);
-        const bottomRight = map.unproject([W,         H - bottomOffset]);
+        // Bottom: check if drawer is expanded — if so, map is only visible in top ~45%
+        const drawer = document.getElementById('mobileDrawer');
+        const drawerExpanded = drawer?.classList.contains('expanded');
+        // Expanded drawer covers ~58% of screen height; collapsed shows ~120px handle
+        const bottomOffset = drawerExpanded
+          ? Math.round(H * 0.60)  // drawer covers 60% from bottom
+          : 130;
+        const topLeft     = map.unproject([0, topOffset]);
+        const bottomRight = map.unproject([W, H - bottomOffset]);
         return new mapboxgl.LngLatBounds(
           [topLeft.lng,     bottomRight.lat],
           [bottomRight.lng, topLeft.lat]
         );
       } else {
-        // Desktop: sidebar on left, small top bar
         const sidebarWidth = document.getElementById('desktopSidebar')?.classList.contains('open') ? 480 : 0;
         const topOffset = 60;
         const topLeft     = map.unproject([sidebarWidth, topOffset]);
