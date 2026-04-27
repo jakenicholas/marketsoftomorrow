@@ -1474,14 +1474,26 @@
       margin-top: 4px;
       padding-top: 14px;
     }
-    .nearby-divider {
-      grid-column: 1 / -1;
-      height: 1px;
-      background: rgba(255,255,255,0.10);
-      margin: 8px 0 0;
+    .nearby-divider { display: none; }
+    .grid-item.nearby-tile { background: rgba(20,20,20,0.8); }
+
+    /* Green border + glow on in-view header */
+    .section-header-wrap.inview-header {
+      border: 1px solid rgba(31,223,103,0.4);
+      border-bottom: none;
+      border-radius: 10px 10px 0 0;
+      padding: 8px 10px 6px;
+      margin-top: 4px;
+      box-shadow: 0 0 12px rgba(31,223,103,0.12);
     }
-    .grid-item.nearby-tile {
-      background: rgba(30,30,30,0.95) !important;
+    /* Green border on in-view tiles */
+    .grid-item.inview-tile {
+      border: 1px solid rgba(31,223,103,0.3) !important;
+      box-shadow: 0 0 10px rgba(31,223,103,0.08) !important;
+    }
+    /* Last in-view tile gets bottom border radius */
+    .grid-item.inview-tile.inview-last {
+      border-radius: 0 0 10px 10px !important;
     }
     .section-header-wrap:first-child { padding-top: 4px; }
     .section-title {
@@ -2563,14 +2575,13 @@
         // No filtered results — show "In view: 0" + fallback hierarchy
         const makeHdr = (title, count, isInView) => {
           const wrap = document.createElement('div');
-          wrap.className = 'section-header-wrap' + (isInView ? '' : ' nearby-header');
+          wrap.className = 'section-header-wrap' + (isInView ? ' inview-header' : ' nearby-header');
           wrap.innerHTML = `<span class="section-title${isInView ? ' in-view' : ''}">${title}</span><span class="section-count${isInView ? '' : ' muted'}">${count}</span>`;
           return wrap;
         };
         fragment.appendChild(makeHdr('In view', '0 projects', true));
         const { features: fallback } = getFallbackFeatures(mapCenter, projectTypeFilter, statusFilter, false);
         if (fallback.length > 0) {
-          const _nd1=document.createElement('div');_nd1.className='nearby-divider';fragment.appendChild(_nd1);
           fragment.appendChild(makeHdr('More nearby', `${fallback.length}`, false));
           fallback.forEach((f, i) => fragment.appendChild(makeTile(f, i)));
         }
@@ -2589,9 +2600,9 @@
         const inView  = useGroups ? features.filter(f => f.inBounds) : features;
         const outView = useGroups ? features.filter(f => !f.inBounds && f.distance <= NEARBY_RADIUS_MILES) : [];
 
-        const makeTile = (f, index, nearby=false) => {
+        const makeTile = (f, index) => {
           const d = document.createElement('div');
-          d.className = 'grid-item visible' + (nearby ? ' nearby-tile' : '');
+          d.className = 'grid-item visible';
           d.innerHTML = `
             <div class="image-wrapper">
               <img src="${f.properties.image}" alt="${f.properties.title}" loading="lazy" />
@@ -2622,7 +2633,7 @@
 
         const makeHeader = (title, count, isInView) => {
           const wrap = document.createElement('div');
-          wrap.className = 'section-header-wrap' + (isInView ? '' : ' nearby-header');
+          wrap.className = 'section-header-wrap' + (isInView ? ' inview-header' : ' nearby-header');
           wrap.innerHTML = `<span class="section-title${isInView ? ' in-view' : ''}">${title}</span><span class="section-count${isInView ? '' : ' muted'}">${count}</span>`;
           return wrap;
         };
@@ -2630,24 +2641,22 @@
         if (useGroups && features.length > 0) {
           // Always show In view header
           fragment.appendChild(makeHeader('In view', trueInView.length > 0 ? `${trueInView.length} project${trueInView.length !== 1 ? 's' : ''}` : '0 projects', true));
-          inView.forEach((f, i) => fragment.appendChild(makeTile(f, i)));
+          inView.forEach((f, i) => { const t = makeTile(f, i); t.classList.add('inview-tile'); if (i === inView.length-1) t.classList.add('inview-last'); fragment.appendChild(t); });
 
           // Sort outView strictly by distance for More Nearby
           const outViewSorted = outView.slice().sort((a, b) => a.distance - b.distance);
 
           if (outViewSorted.length > 0) {
-            const _nd2=document.createElement('div');_nd2.className='nearby-divider';fragment.appendChild(_nd2);
             fragment.appendChild(makeHeader('More nearby', `${trueOutView.length}`, false));
-            outViewSorted.forEach((f, i) => fragment.appendChild(makeTile(f, inView.length + i, true)));
+            outViewSorted.forEach((f, i) => fragment.appendChild(makeTile(f, inView.length + i)));
           } else {
             // No filtered nearby — show fallback excluding projects already in view
             const inViewIds = new Set(inView.map(f => f.properties.title));
             const { features: fallback } = getFallbackFeatures(mapCenter, projectTypeFilter, statusFilter, false);
             const dedupedFallback = fallback.filter(f => !inViewIds.has(f.properties.title));
             if (dedupedFallback.length > 0) {
-              const _nd2=document.createElement('div');_nd2.className='nearby-divider';fragment.appendChild(_nd2);
-            fragment.appendChild(makeHeader('More nearby', `${dedupedFallback.length}`, false));
-              dedupedFallback.forEach((f, i) => fragment.appendChild(makeTile(f, inView.length + i, true)));
+              fragment.appendChild(makeHeader('More nearby', `${dedupedFallback.length}`, false));
+              dedupedFallback.forEach((f, i) => fragment.appendChild(makeTile(f, inView.length + i)));
             }
           }
         } else {
@@ -2724,7 +2733,7 @@
 
       const makeHeader = (title, count, isInView) => {
         const wrap = document.createElement('div');
-        wrap.className = 'section-header-wrap' + (isInView ? '' : ' nearby-header');
+        wrap.className = 'section-header-wrap' + (isInView ? ' inview-header' : ' nearby-header');
         wrap.innerHTML = `<span class="section-title${isInView ? ' in-view' : ''}">${title}</span><span class="section-count${isInView ? '' : ' muted'}">${count}</span>`;
         return wrap;
       };
@@ -2764,8 +2773,7 @@
         fragment.appendChild(makeHeader('In view', '0 projects', true));
         const { features: fallback } = getFallbackFeatures(mapCenter, typeFilter, statusFilter, false);
         if (fallback.length > 0) {
-          const _nd2=document.createElement('div');_nd2.className='nearby-divider';fragment.appendChild(_nd2);
-            fragment.appendChild(makeHeader('More nearby', `${fallback.length}`, false));
+          fragment.appendChild(makeHeader('More nearby', `${fallback.length}`, false));
           fallback.forEach(f => fragment.appendChild(makeTile(f)));
         }
       } else {
@@ -2781,8 +2789,7 @@
         const outViewSorted = outView.slice().sort((a, b) => a.distance - b.distance);
 
         if (outViewSorted.length > 0) {
-          const _nd2=document.createElement('div');_nd2.className='nearby-divider';fragment.appendChild(_nd2);
-            fragment.appendChild(makeHeader('More nearby', `${trueOutView.length}`, false));
+          fragment.appendChild(makeHeader('More nearby', `${trueOutView.length}`, false));
           outViewSorted.forEach(f => fragment.appendChild(makeTile(f)));
         } else {
           // No filtered nearby — show fallback excluding projects already in view
@@ -2790,7 +2797,6 @@
           const { features: fallback } = getFallbackFeatures(mapCenter, typeFilter, statusFilter, false);
           const dedupedFallback = fallback.filter(f => !inViewIds.has(f.properties.title));
           if (dedupedFallback.length > 0) {
-            const _nd2=document.createElement('div');_nd2.className='nearby-divider';fragment.appendChild(_nd2);
             fragment.appendChild(makeHeader('More nearby', `${dedupedFallback.length}`, false));
             dedupedFallback.forEach(f => fragment.appendChild(makeTile(f)));
           }
