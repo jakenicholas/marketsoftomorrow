@@ -1474,13 +1474,23 @@
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 8px;
+      contain: layout paint style;
     }
-    /* Header inside green inview box — NOT sticky (sticky inside nested grid causes scroll jank) */
-    .inview-section .section-header-wrap {
+    /* More Nearby section — matches inview spacing but no border */
+    .nearby-section {
+      grid-column: 1 / -1;
+      padding: 10px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      contain: layout paint style;
+    }
+    /* Headers inside nested sections — NOT sticky (sticky inside nested grid causes scroll jank) */
+    .inview-section .section-header-wrap,
+    .nearby-section .section-header-wrap {
       position: static;
       background: transparent;
-      padding-top: 2px;
-      padding-bottom: 8px;
+      padding: 2px 0 8px;
     }
     /* Style the nearby header sticky background */
     .section-header-wrap.nearby-header {
@@ -2641,16 +2651,26 @@
           const outViewSorted = outView.slice().sort((a, b) => a.distance - b.distance);
 
           if (outViewSorted.length > 0) {
-            fragment.appendChild(makeHeader('More nearby', `${trueOutView.length}`, false));
-            outViewSorted.forEach((f, i) => fragment.appendChild(makeTile(f, inView.length + i)));
+            const nearbyWrap = document.createElement('div');
+            nearbyWrap.className = 'nearby-section';
+            const nh = makeHeader('More nearby', `${trueOutView.length}`, false);
+            nh.style.gridColumn = '1 / -1';
+            nearbyWrap.appendChild(nh);
+            outViewSorted.forEach((f, i) => nearbyWrap.appendChild(makeTile(f, inView.length + i)));
+            fragment.appendChild(nearbyWrap);
           } else {
             // No filtered nearby — show fallback excluding projects already in view
             const inViewIds = new Set(inView.map(f => f.properties.title));
             const { features: fallback } = getFallbackFeatures(mapCenter, projectTypeFilter, statusFilter, false);
             const dedupedFallback = fallback.filter(f => !inViewIds.has(f.properties.title));
             if (dedupedFallback.length > 0) {
-              fragment.appendChild(makeHeader('More nearby', `${dedupedFallback.length}`, false));
-              dedupedFallback.forEach((f, i) => fragment.appendChild(makeTile(f, inView.length + i)));
+              const nearbyWrap = document.createElement('div');
+              nearbyWrap.className = 'nearby-section';
+              const nh = makeHeader('More nearby', `${dedupedFallback.length}`, false);
+              nh.style.gridColumn = '1 / -1';
+              nearbyWrap.appendChild(nh);
+              dedupedFallback.forEach((f, i) => nearbyWrap.appendChild(makeTile(f, inView.length + i)));
+              fragment.appendChild(nearbyWrap);
             }
           }
         } else {
@@ -2788,16 +2808,26 @@
         const outViewSorted = outView.slice().sort((a, b) => a.distance - b.distance);
 
         if (outViewSorted.length > 0) {
-          fragment.appendChild(makeHeader('More nearby', `${trueOutView.length}`, false));
-          outViewSorted.forEach(f => fragment.appendChild(makeTile(f)));
+          const nearbyWrap = document.createElement('div');
+          nearbyWrap.className = 'nearby-section';
+          const nh = makeHeader('More nearby', `${trueOutView.length}`, false);
+          nh.style.gridColumn = '1 / -1';
+          nearbyWrap.appendChild(nh);
+          outViewSorted.forEach(f => nearbyWrap.appendChild(makeTile(f)));
+          fragment.appendChild(nearbyWrap);
         } else {
           // No filtered nearby — show fallback excluding projects already in view
           const inViewIds = new Set(inView.map(f => f.properties.title));
           const { features: fallback } = getFallbackFeatures(mapCenter, typeFilter, statusFilter, false);
           const dedupedFallback = fallback.filter(f => !inViewIds.has(f.properties.title));
           if (dedupedFallback.length > 0) {
-            fragment.appendChild(makeHeader('More nearby', `${dedupedFallback.length}`, false));
-            dedupedFallback.forEach(f => fragment.appendChild(makeTile(f)));
+            const nearbyWrap = document.createElement('div');
+            nearbyWrap.className = 'nearby-section';
+            const nh = makeHeader('More nearby', `${dedupedFallback.length}`, false);
+            nh.style.gridColumn = '1 / -1';
+            nearbyWrap.appendChild(nh);
+            dedupedFallback.forEach(f => nearbyWrap.appendChild(makeTile(f)));
+            fragment.appendChild(nearbyWrap);
           }
         }
       }
