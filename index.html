@@ -1464,13 +1464,18 @@
       padding: 10px 0 6px;
       background: #111111;
     }
-    .inview-section .section-header-wrap {
-      position: static;
-      background: transparent;
-      padding-top: 2px;
-      padding-bottom: 8px;
+    /* Green border + glow wrapping the entire in-view section */
+    .inview-section {
+      grid-column: 1 / -1;
+      border: 1.5px solid rgba(31,223,103,0.4);
+      border-radius: 12px;
+      box-shadow: 0 0 20px rgba(31,223,103,0.08);
+      padding: 10px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
     }
-    /* Header inside the green inview box must NOT be sticky — causes scroll jank */
+    /* Header inside green inview box — NOT sticky (sticky inside nested grid causes scroll jank) */
     .inview-section .section-header-wrap {
       position: static;
       background: transparent;
@@ -2623,9 +2628,14 @@
         };
 
         if (useGroups && features.length > 0) {
-          // In view header + tiles
-          fragment.appendChild(makeHeader('In view', trueInView.length > 0 ? `${trueInView.length} project${trueInView.length !== 1 ? 's' : ''}` : '0 projects', true));
-          inView.forEach((f, i) => fragment.appendChild(makeTile(f, i)));
+          // In view header + tiles wrapped in green-bordered container
+          const inviewWrap = document.createElement('div');
+          inviewWrap.className = 'inview-section';
+          const inviewHdr = makeHeader('In view', trueInView.length > 0 ? `${trueInView.length} project${trueInView.length !== 1 ? 's' : ''}` : '0 projects', true);
+          inviewHdr.style.gridColumn = '1 / -1';
+          inviewWrap.appendChild(inviewHdr);
+          inView.forEach((f, i) => inviewWrap.appendChild(makeTile(f, i)));
+          fragment.appendChild(inviewWrap);
 
           // Sort outView strictly by distance for More Nearby
           const outViewSorted = outView.slice().sort((a, b) => a.distance - b.distance);
@@ -2764,9 +2774,14 @@
         const inView  = features.filter(f => f.inBounds);
         const outView = features.filter(f => !f.inBounds && f.distance <= NEARBY_RADIUS_MILES);
 
-        // In view header + tiles
-        fragment.appendChild(makeHeader('In view', inView.length > 0 ? `${trueInView.length} project${trueInView.length !== 1 ? 's' : ''}` : '0 projects', true));
-        inView.forEach(f => fragment.appendChild(makeTile(f)));
+        // In view header + tiles wrapped in green-bordered container
+        const inviewWrap2 = document.createElement('div');
+        inviewWrap2.className = 'inview-section';
+        const inviewHdr2 = makeHeader('In view', inView.length > 0 ? `${trueInView.length} project${trueInView.length !== 1 ? 's' : ''}` : '0 projects', true);
+        inviewHdr2.style.gridColumn = '1 / -1';
+        inviewWrap2.appendChild(inviewHdr2);
+        inView.forEach(f => inviewWrap2.appendChild(makeTile(f)));
+        fragment.appendChild(inviewWrap2);
 
         // More nearby: show filtered nearby, or fallback hierarchy if none
         // Sort outView strictly by distance for More Nearby
