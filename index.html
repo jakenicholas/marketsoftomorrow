@@ -1460,12 +1460,27 @@
       padding: 10px 0 6px;
       background: #111111;
     }
-    /* Section status bar — sits inside sticky filter header, updates on scroll */
+    /* Section status bar — sits inside sticky filter header */
     .section-status-bar {
       display: flex;
       align-items: center;
-      justify-content: space-between;
       padding: 6px 0 2px;
+      overflow: hidden;
+    }
+    .ssb-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+    .ssb-inner.flip-out {
+      opacity: 0;
+      transform: translateY(-8px);
+    }
+    .ssb-inner.flip-in {
+      opacity: 0;
+      transform: translateY(8px);
     }
     .ssb-title {
       font-size: 11px;
@@ -1473,7 +1488,6 @@
       letter-spacing: 0.06em;
       text-transform: uppercase;
       color: rgba(255,255,255,0.45);
-      transition: color 0.2s;
     }
     .ssb-title.in-view { color: var(--accent); }
     .ssb-count {
@@ -1481,7 +1495,6 @@
       font-weight: 600;
       border-radius: 20px;
       padding: 2px 8px;
-      transition: background 0.2s, color 0.2s;
     }
     .ssb-count.green {
       background: rgba(31,223,103,0.15);
@@ -1728,8 +1741,10 @@
 
         <!-- Section status bar (desktop) -->
         <div id="desktopSectionBar" class="section-status-bar">
-          <span class="ssb-title in-view" id="desktopSsbTitle">In View</span>
-          <span class="ssb-count green" id="desktopSsbCount"></span>
+          <div class="ssb-inner" id="desktopSsbInner">
+            <span class="ssb-title in-view" id="desktopSsbTitle">In View</span>
+            <span class="ssb-count green" id="desktopSsbCount"></span>
+          </div>
         </div>
       </div>
 
@@ -1786,10 +1801,12 @@
 
           <!-- Active filter pills -->
           <div class="filter-pills-row" id="mobilePillsRow"></div>
-          <!-- Section status bar -->
+          <!-- Section indicator: lives below filters, animates between In View / More Nearby -->
           <div id="mobileSectionBar" class="section-status-bar">
-            <span class="ssb-title in-view" id="mobileSsbTitle">In View</span>
-            <span class="ssb-count green" id="mobileSsbCount"></span>
+            <div class="ssb-inner" id="mobileSsbInner">
+              <span class="ssb-title in-view" id="mobileSsbTitle">In View</span>
+              <span class="ssb-count green" id="mobileSsbCount"></span>
+            </div>
           </div>
         </div>
         
@@ -2531,6 +2548,31 @@
       if (window._sectionBarScrollHandler && window._sectionBarContainer) {
         window._sectionBarContainer.removeEventListener('scroll', window._sectionBarScrollHandler);
       }
+      const inner = titleEl.closest('.ssb-inner');
+      let lastSection = null;
+
+      function animateTo(isInView, label, count) {
+        if (lastSection === (isInView ? 'inview' : 'nearby')) return; // no change
+        lastSection = isInView ? 'inview' : 'nearby';
+        if (inner) {
+          inner.classList.add('flip-out');
+          setTimeout(() => {
+            titleEl.textContent = label;
+            titleEl.className = 'ssb-title' + (isInView ? ' in-view' : '');
+            countEl.textContent = count;
+            countEl.className = 'ssb-count' + (isInView ? ' green' : ' gray');
+            inner.classList.remove('flip-out');
+            inner.classList.add('flip-in');
+            requestAnimationFrame(() => requestAnimationFrame(() => inner.classList.remove('flip-in')));
+          }, 180);
+        } else {
+          titleEl.textContent = label;
+          titleEl.className = 'ssb-title' + (isInView ? ' in-view' : '');
+          countEl.textContent = count;
+          countEl.className = 'ssb-count' + (isInView ? ' green' : ' gray');
+        }
+      }
+
       function updateBar() {
         const all = Array.from(scrollContainer.querySelectorAll('.section-sticky'));
         if (!all.length) return;
@@ -2540,11 +2582,9 @@
           if (h.getBoundingClientRect().top < containerRect.top + 10) active = h;
         }
         const isInView = active.dataset.section === 'inview';
-        titleEl.textContent = active.dataset.label || 'In View';
-        titleEl.className = 'ssb-title' + (isInView ? ' in-view' : '');
-        countEl.textContent = active.dataset.count || '';
-        countEl.className = 'ssb-count' + (isInView ? ' green' : ' gray');
+        animateTo(isInView, active.dataset.label || (isInView ? 'In View' : 'More Nearby'), active.dataset.count || '');
       }
+
       window._sectionBarScrollHandler = updateBar;
       window._sectionBarContainer = scrollContainer;
       scrollContainer.addEventListener('scroll', updateBar, { passive: true });
