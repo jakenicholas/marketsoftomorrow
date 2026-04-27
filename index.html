@@ -1468,6 +1468,17 @@
       -webkit-transform: translateZ(0);
       will-change: transform;
     }
+    /* Style the nearby header sticky background */
+    .section-header-wrap.nearby-header {
+      background: #1a1a1a;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      margin-top: 4px;
+      padding-top: 12px;
+    }
+    /* All grid items that follow a nearby-header get the lighter background */
+    .nearby-header ~ .grid-item {
+      background: rgba(32,32,32,0.95);
+    }
     .section-header-wrap:first-child { padding-top: 4px; }
     .section-title {
       font-size: 11px;
@@ -2280,16 +2291,11 @@
       source.setData({ type: 'FeatureCollection', features: geoFeatures });
     }
 
-    function updateResultCount(targetId) { return; // removed display per user request
+    function updateResultCount(targetId) {
       const isDesktop = targetId === 'gridDesktop';
-      const countEl = document.getElementById(isDesktop ? 'desktopResultCount' : 'mobileResultCount');
-
-      // Count projects currently visible in the map frame
       const total = (window.allProjectFeatures || []).length;
       const mapBounds = getVisibleBounds();
       const allFeatures = window.allProjectFeatures || [];
-
-      // Apply active filters to get the filtered set
       const platform = isDesktop ? 'desktop' : 'mobile';
       const { type: typeFilter, status: statusFilter } = activeFilters[platform];
       let filteredFeatures = allFeatures;
@@ -2300,48 +2306,11 @@
         mapBounds.contains([f.geometry.coordinates[0], f.geometry.coordinates[1]])
       ).length : filteredFeatures.length;
 
-      // Nearby = within 300mi, not in bounds, from filtered set
-      const mapCenter = map.getCenter();
-      const NEARBY_RADIUS_MILES = 300;
-      const nearbyFiltered = filteredFeatures.filter(f => {
-        if (!mapBounds) return false;
-        const inBounds = mapBounds.contains([f.geometry.coordinates[0], f.geometry.coordinates[1]]);
-        if (inBounds) return false;
-        const dist = calculateDistance(mapCenter.lat, mapCenter.lng, f.geometry.coordinates[1], f.geometry.coordinates[0]);
-        return dist <= NEARBY_RADIUS_MILES;
-      }).length;
-
-      // If filter yields nothing nearby, count fallback results that tiles actually show
-      let nearbyCount = nearbyFiltered;
-      if (inFrame === 0 && nearbyFiltered === 0 && filteredFeatures.length === 0) {
-        // Tiles are showing fallback — count those
-        const { features: fallback } = getFallbackFeatures(mapCenter, typeFilter, statusFilter, false);
-        nearbyCount = fallback.length;
-      } else if (inFrame === 0 && nearbyFiltered === 0) {
-        const { features: fallback } = getFallbackFeatures(mapCenter, typeFilter, statusFilter, false);
-        nearbyCount = fallback.length;
-      }
-
-      const totalInRange = inFrame + nearbyCount;
-      const filteredTotal = filteredFeatures.length;
-
-      if (countEl) {
-        if (total === 0) { countEl.style.display = 'none'; }
-        else {
-          countEl.style.display = 'block';
-          countEl.innerHTML = `Showing <strong>${totalInRange}</strong> projects in range`;
-        }
-      }
-
       const desktopPillCount = document.getElementById('desktopPillCount');
-      if (desktopPillCount) {
-        desktopPillCount.textContent = `${inFrame} results`;
-      }
+      if (desktopPillCount) desktopPillCount.textContent = `${inFrame} results`;
 
       const pillCount = document.getElementById('mobilePillCount');
-      if (pillCount) {
-        pillCount.textContent = `${inFrame} results`;
-      }
+      if (pillCount) pillCount.textContent = `${inFrame} results`;
     }
 
     // ─── SIDEBAR TOGGLE ───────────────────────────────────────────────────────
@@ -2590,7 +2559,7 @@
         // No filtered results — show "In view: 0" + fallback hierarchy
         const makeHdr = (title, count, isInView) => {
           const wrap = document.createElement('div');
-          wrap.className = 'section-header-wrap';
+          wrap.className = 'section-header-wrap' + (isInView ? '' : ' nearby-header');
           wrap.innerHTML = `<span class="section-title${isInView ? ' in-view' : ''}">${title}</span><span class="section-count${isInView ? '' : ' muted'}">${count}</span>`;
           return wrap;
         };
@@ -2648,7 +2617,7 @@
 
         const makeHeader = (title, count, isInView) => {
           const wrap = document.createElement('div');
-          wrap.className = 'section-header-wrap';
+          wrap.className = 'section-header-wrap' + (isInView ? '' : ' nearby-header');
           wrap.innerHTML = `<span class="section-title${isInView ? ' in-view' : ''}">${title}</span><span class="section-count${isInView ? '' : ' muted'}">${count}</span>`;
           return wrap;
         };
@@ -2748,7 +2717,7 @@
 
       const makeHeader = (title, count, isInView) => {
         const wrap = document.createElement('div');
-        wrap.className = 'section-header-wrap';
+        wrap.className = 'section-header-wrap' + (isInView ? '' : ' nearby-header');
         wrap.innerHTML = `<span class="section-title${isInView ? ' in-view' : ''}">${title}</span><span class="section-count${isInView ? '' : ' muted'}">${count}</span>`;
         return wrap;
       };
