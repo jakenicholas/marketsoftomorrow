@@ -1464,30 +1464,29 @@
       padding: 10px 0 6px;
       background: #111111;
     }
-    /* In-view section — no border, just a grid container like nearby */
+    /* In-view section — grid container, no border */
     .inview-section {
       grid-column: 1 / -1;
       padding: 10px 10px 0;
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 8px;
-      contain: layout paint style;
     }
-    /* Green glow border on images of in-view tiles only */
+    /* Green outline on in-view tile images */
     .inview-section .grid-item img {
-      box-shadow: 0 0 0 1.5px rgba(31,223,103,0.55), 0 0 10px rgba(31,223,103,0.2);
-      border-radius: 8px 8px 0 0;
+      border-radius: 4px;
+      outline: 1.5px solid rgba(31,223,103,0.7);
+      filter: drop-shadow(0 0 5px rgba(31,223,103,0.4));
     }
-    /* More Nearby section — matches inview spacing but no border */
+    /* More Nearby section */
     .nearby-section {
       grid-column: 1 / -1;
       padding: 10px;
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 8px;
-      contain: layout paint style;
     }
-    /* Headers inside nested sections — NOT sticky (sticky inside nested grid causes scroll jank) */
+    /* Headers inside nested sections — NOT sticky */
     .inview-section .section-header-wrap,
     .nearby-section .section-header-wrap {
       position: static;
