@@ -799,9 +799,6 @@
     .grid-item img {
       width: 100%; height: 180px; object-fit: cover; display: block;
       background: #1a1a1a;
-      -webkit-backface-visibility: hidden;
-      backface-visibility: hidden;
-      transform: translateZ(0);
     }
     .grid-item img.lazy-loading { opacity: 1; }
     .grid-item img.loaded { opacity: 1; }
@@ -2425,7 +2422,7 @@
         .setLngLat(co)
         .setHTML(`
           <div class="popup-content">
-            <img src="${f.properties.image}" alt="${f.properties.title}" />
+            <img src="${f.properties.image}" loading="lazy" alt="${f.properties.title}" />
             ${f.properties.featured ? `<div class="featured-badge" style="top:-5px;left:-5px;"><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>Featured</div>` : ''}
             <h3>${f.properties.title}</h3>
             <p class="city">${f.properties.city}</p>
@@ -2597,7 +2594,7 @@
           d.className = 'grid-item visible';
           d.innerHTML = `
             <div class="image-wrapper">
-              <img src="${f.properties.image}" alt="${f.properties.title}"  />
+              <img src="${f.properties.image}" loading="lazy" alt="${f.properties.title}"  />
             </div>
             ${f.properties.featured ? `<div class="featured-badge"><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>Featured</div>` : ''}
             <a class="tile-favorite" href="https://www.oftmw.com/livehere" target="_blank" onclick="event.stopPropagation();gtag('event','live_here_click',{'project_name':'${f.properties.title}','click_location':'tile'});">
