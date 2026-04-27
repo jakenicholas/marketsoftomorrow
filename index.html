@@ -1480,6 +1480,9 @@
       background: rgba(255,255,255,0.10);
       margin: 8px 0 0;
     }
+    .grid-item.nearby-tile {
+      background: rgba(30,30,30,0.95) !important;
+    }
     .section-header-wrap:first-child { padding-top: 4px; }
     .section-title {
       font-size: 11px;
@@ -2586,9 +2589,9 @@
         const inView  = useGroups ? features.filter(f => f.inBounds) : features;
         const outView = useGroups ? features.filter(f => !f.inBounds && f.distance <= NEARBY_RADIUS_MILES) : [];
 
-        const makeTile = (f, index) => {
+        const makeTile = (f, index, nearby=false) => {
           const d = document.createElement('div');
-          d.className = 'grid-item visible';
+          d.className = 'grid-item visible' + (nearby ? ' nearby-tile' : '');
           d.innerHTML = `
             <div class="image-wrapper">
               <img src="${f.properties.image}" alt="${f.properties.title}" loading="lazy" />
@@ -2635,7 +2638,7 @@
           if (outViewSorted.length > 0) {
             const _nd2=document.createElement('div');_nd2.className='nearby-divider';fragment.appendChild(_nd2);
             fragment.appendChild(makeHeader('More nearby', `${trueOutView.length}`, false));
-            outViewSorted.forEach((f, i) => fragment.appendChild(makeTile(f, inView.length + i)));
+            outViewSorted.forEach((f, i) => fragment.appendChild(makeTile(f, inView.length + i, true)));
           } else {
             // No filtered nearby — show fallback excluding projects already in view
             const inViewIds = new Set(inView.map(f => f.properties.title));
@@ -2644,7 +2647,7 @@
             if (dedupedFallback.length > 0) {
               const _nd2=document.createElement('div');_nd2.className='nearby-divider';fragment.appendChild(_nd2);
             fragment.appendChild(makeHeader('More nearby', `${dedupedFallback.length}`, false));
-              dedupedFallback.forEach((f, i) => fragment.appendChild(makeTile(f, inView.length + i)));
+              dedupedFallback.forEach((f, i) => fragment.appendChild(makeTile(f, inView.length + i, true)));
             }
           }
         } else {
