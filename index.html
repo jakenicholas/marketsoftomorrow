@@ -2286,7 +2286,7 @@
 
       // Count projects currently visible in the map frame
       const total = (window.allProjectFeatures || []).length;
-      const mapBounds = map.getBounds();
+      const mapBounds = getVisibleBounds();
       const allFeatures = window.allProjectFeatures || [];
 
       // Apply active filters to get the filtered set
@@ -2496,6 +2496,37 @@
     }
 
     // ─── RENDER GRID ──────────────────────────────────────────────────────────
+    // Returns map bounds for only the VISIBLE portion of the map
+    // On mobile, excludes the bottom drawer area and top search bar
+    function getVisibleBounds() {
+      const canvas = map.getCanvas();
+      const W = canvas.clientWidth;
+      const H = canvas.clientHeight;
+
+      if (isMobile) {
+        // Top: search bar + filter row ≈ 130px
+        // Bottom: drawer collapsed handle ≈ 120px (excludes tiles behind drawer)
+        const topOffset = 130;
+        const bottomOffset = 130;
+        const topLeft     = map.unproject([0,         topOffset]);
+        const bottomRight = map.unproject([W,         H - bottomOffset]);
+        return new mapboxgl.LngLatBounds(
+          [topLeft.lng,     bottomRight.lat],
+          [bottomRight.lng, topLeft.lat]
+        );
+      } else {
+        // Desktop: sidebar on left, small top bar
+        const sidebarWidth = document.getElementById('desktopSidebar')?.classList.contains('open') ? 480 : 0;
+        const topOffset = 60;
+        const topLeft     = map.unproject([sidebarWidth, topOffset]);
+        const bottomRight = map.unproject([W,            H]);
+        return new mapboxgl.LngLatBounds(
+          [topLeft.lng,     bottomRight.lat],
+          [bottomRight.lng, topLeft.lat]
+        );
+      }
+    }
+
     function renderGrid(targetId = 'grid') {
       const grid = document.getElementById(targetId);
       if (!grid) return;
@@ -2521,7 +2552,7 @@
       if (statusFilter !== 'all') features = features.filter(f => f.properties.delivery === statusFilter);
 
       // Always compute inBounds so section headers work regardless of sort mode
-      const mapBounds = map.getBounds();
+      const mapBounds = getVisibleBounds();
       features = features.map(f => ({ ...f, inBounds: mapBounds.contains([f.geometry.coordinates[0], f.geometry.coordinates[1]]) }));
 
       if (sortType === 'az') {
@@ -2688,7 +2719,7 @@
       if (statusFilter !== 'all') features = features.filter(f => f.properties.delivery === statusFilter);
 
       const mapCenter = map.getCenter();
-      const mapBounds = map.getBounds();
+      const mapBounds = getVisibleBounds();
       features = features.map(f => {
         const coords = f.geometry.coordinates;
         return { ...f, distance: calculateDistance(mapCenter.lat, mapCenter.lng, coords[1], coords[0]), inBounds: mapBounds.contains([coords[0], coords[1]]) };
@@ -3040,7 +3071,7 @@
         return { ...f, distance: calculateDistance(mapCenter.lat, mapCenter.lng, coords[1], coords[0]) };
       });
 
-      const bounds = map.getBounds();
+      const bounds = getVisibleBounds();
       const pool = allF.filter(f => {
         const inBounds = bounds.contains([f.geometry.coordinates[0], f.geometry.coordinates[1]]);
         if (excludeInBounds && inBounds) return false;
