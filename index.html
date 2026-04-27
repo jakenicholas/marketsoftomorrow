@@ -1997,22 +1997,26 @@
       { name: 'Rail Baltica — Białystok, Poland (Future)', color: '#FFD300', coords: [23.1688, 53.1325] },
       { name: 'Rail Baltica — Warsaw Centralna (Future)', color: '#FFD300', coords: [21.1330, 52.2297] },
       // GCC Gulf Railway
+      { name: 'GCC Gulf Railway — Al Shadadiya Station, Kuwait (Future)', color: '#FFD300', coords: [47.8850, 29.2500] },
       { name: 'GCC Gulf Railway — Kuwait City (Future)', color: '#FFD300', coords: [47.9783, 29.3697] },
-      { name: 'GCC Gulf Railway — Jubail, Saudi Arabia (Future)', color: '#FFD300', coords: [48.6800, 27.9500] },
-      { name: 'GCC Gulf Railway — Abu Hadriyah (Future)', color: '#FFD300', coords: [48.8500, 27.4500] },
+      { name: 'GCC Gulf Railway — Al Nuwaiseeb, Kuwait/Saudi Border (Future)', color: '#FFD300', coords: [48.1700, 28.9800] },
+      { name: 'GCC Gulf Railway — Al Khafji, Saudi Arabia (Future)', color: '#FFD300', coords: [48.3000, 28.7500] },
+      { name: 'GCC Gulf Railway — Jubail (Future)', color: '#FFD300', coords: [48.8500, 27.6500] },
       { name: 'GCC Gulf Railway — Dammam (Future)', color: '#FFD300', coords: [49.8600, 26.4200] },
-      { name: 'GCC Gulf Railway — Bahrain (Future)', color: '#FFD300', coords: [50.6050, 26.2320] },
-      { name: 'GCC Gulf Railway — Doha, Qatar (Future)', color: '#FFD300', coords: [51.5310, 25.2854] },
+      { name: 'GCC Gulf Railway — Bahrain Khalifa Port (Future)', color: '#FFD300', coords: [50.5800, 26.2200] },
+      { name: 'GCC Gulf Railway — Bahrain International Airport (Future)', color: '#FFD300', coords: [50.6000, 26.2700] },
+      { name: 'GCC Gulf Railway — Salwa Border, Saudi/Qatar (Future)', color: '#FFD300', coords: [50.6500, 24.4000] },
+      { name: 'GCC Gulf Railway — Doha / Hamad International Airport (Future)', color: '#FFD300', coords: [51.5310, 25.2854] },
+      { name: 'GCC Gulf Railway — Al Ghuweifat, UAE Entry (Future)', color: '#FFD300', coords: [51.5000, 23.8000] },
       { name: 'GCC Gulf Railway — Abu Dhabi (Future)', color: '#FFD300', coords: [54.3700, 24.4539] },
       { name: 'GCC Gulf Railway — Dubai (Future)', color: '#FFD300', coords: [55.2700, 25.2048] },
-      { name: 'GCC Gulf Railway — Fujairah (Future)', color: '#FFD300', coords: [56.3500, 25.1200] },
-      { name: 'GCC Gulf Railway — Sohar, Oman (Future)', color: '#FFD300', coords: [56.7000, 24.3500] },
-      { name: 'GCC Gulf Railway — Muscat, Oman (Future)', color: '#FFD300', coords: [58.5930, 23.6140] },
-      { name: 'GCC Gulf Railway — Duqm, Oman (Future)', color: '#FFD300', coords: [57.7000, 20.6500] },
-      { name: 'GCC Gulf Railway — Salalah, Oman (Future)', color: '#FFD300', coords: [54.0900, 17.0200] },
-      // Saudi Arabia Riyadh–Dammam
-      { name: 'Saudi Arabia HSR — Riyadh (Future)', color: '#FFD300', coords: [46.7219, 24.6877] },
-      { name: 'Saudi Arabia HSR — Dammam (Future)', color: '#FFD300', coords: [49.8600, 26.4200] },
+      { name: 'GCC Gulf Railway — Al Ain (Future)', color: '#FFD300', coords: [55.7500, 24.2000] },
+      { name: 'GCC Gulf Railway — Sohar, Oman (Future)', color: '#FFD300', coords: [56.7000, 23.6500] },
+      { name: 'GCC Gulf Railway — Muscat (Future)', color: '#FFD300', coords: [58.5930, 23.6140] },
+      // Saudi Arabia Riyadh–Doha HSR
+      { name: 'Saudi HSR — Riyadh / King Salman Airport (Future)', color: '#FFD300', coords: [46.7219, 24.6877] },
+      { name: 'Saudi HSR — Hofuf / Al Ahsa (Future)', color: '#FFD300', coords: [48.8000, 25.7500] },
+      { name: 'Saudi HSR — Dammam (Future)', color: '#FFD300', coords: [49.8600, 26.4200] },
       // South Africa HSR
       { name: 'South Africa HSR — Pretoria (Future)', color: '#FFD300', coords: [28.1900, -25.7500] },
       { name: 'South Africa HSR — Hammanskraal (Future)', color: '#FFD300', coords: [28.2500, -25.1500] },
@@ -3319,7 +3323,7 @@
         'chuo-maglev-line','india-mahsr-line','thailand-hsr-line','iran-hsr-line',
         'iraq-hsr-north-line','iraq-hsr-south-line',
         'hs2-line','belgrade-budapest-line','rail-baltica-line',
-        'gcc-rail-line','gcc-qatar-uae-line','gcc-uae-oman-line','gcc-bahrain-line',
+        'gcc-rail-line','gcc-bahrain-line','gcc-qatar-line','gcc-uae-line','gcc-oman-line',
         'saudi-hsr-line','sa-hsr-line',
         'station-dots','station-hover'
       ];
@@ -4085,63 +4089,104 @@
       ], '#FFD300');
 
       // ── GCC Gulf Railway (Kuwait → Saudi → Qatar → UAE → Oman) ───────────────
-      // ── GCC Gulf Railway — Kuwait → Dammam (main north-south coastal line) ──────
+      // ── GCC: Kuwait → Dammam (hugs Gulf coast, Kuwait runs along coastline) ──
       addRailLine('gcc-rail', [
+        [47.8850, 29.2500], // Al Shadadiya station (SW of Kuwait City, actual start)
+        [47.9400, 29.3200], // Heading east toward coast
         [47.9783, 29.3697], // Kuwait City
-        [48.4500, 28.5000], // South Kuwait coast
-        [48.6800, 27.9500], // Jubail
-        [48.8500, 27.4500], // Abu Hadriyah
+        [48.0800, 29.1500], // South Kuwait coast
+        [48.1700, 28.9800], // Al Nuwaiseeb / Saudi border
+        [48.3000, 28.7500], // Al Khafji area
+        [48.4200, 28.5500], // Continuing south along coast
+        [48.5500, 28.2500], // Ras al-Mishab
+        [48.7200, 27.9500], // Ras al-Khair industrial
+        [48.8500, 27.6500], // Jubail approach
+        [49.0200, 27.0000], // Between Jubail and Dammam
+        [49.3500, 26.7500], // Continuing south
+        [49.6500, 26.5800], // Approaching Dammam
         [49.8600, 26.4200], // Dammam
       ], '#FFD300');
 
-      // ── GCC — Dammam → Qatar → Abu Dhabi → Dubai ──────────────────────────────
-      addRailLine('gcc-qatar-uae', [
-        [49.8600, 26.4200], // Dammam
-        [50.2000, 25.9000], // South of Dammam along coast
-        [50.6000, 25.4500], // Saudi/Qatar border region
-        [51.0000, 25.1500], // Qatar entry
-        [51.3500, 25.2500], // Central Qatar
-        [51.5310, 25.2854], // Doha
-        [51.4500, 24.8000], // South Qatar toward UAE
-        [51.5500, 24.2000], // UAE border / Al Sila
-        [53.0000, 24.0500], // Abu Dhabi outskirts west
-        [54.3700, 24.4539], // Abu Dhabi
-        [55.0000, 24.8500], // Between Abu Dhabi and Dubai
-        [55.2700, 25.2048], // Dubai
-      ], '#FFD300');
-
-      // ── GCC — Dubai → Fujairah → Sohar → Muscat → Duqm → Salalah ──────────────
-      addRailLine('gcc-uae-oman', [
-        [55.2700, 25.2048], // Dubai
-        [55.7000, 25.1500], // Sharjah/UAE east coast approach
-        [56.0500, 25.2500], // Ras Al Khaimah area
-        [56.3300, 25.1200], // Fujairah approach
-        [56.3500, 25.1200], // Fujairah
-        [56.7000, 24.4000], // Sohar approach
-        [56.7000, 24.3500], // Sohar
-        [57.5000, 23.9000], // Oman coast heading SE
-        [58.5930, 23.6140], // Muscat
-        [58.8000, 22.5000], // South of Muscat heading to Duqm
-        [57.7000, 20.6500], // Duqm
-        [54.0900, 17.0200], // Salalah
-      ], '#FFD300');
-
-      // ── GCC — Bahrain branch from Dammam ──────────────────────────────────────
+      // ── GCC Bahrain branch: Dammam → King Fahd Causeway → Bahrain ────────────
       addRailLine('gcc-bahrain', [
         [49.8600, 26.4200], // Dammam
-        [50.1000, 26.2200], // King Fahd Causeway
-        [50.4900, 26.1900], // Bahrain arrival
-        [50.6050, 26.2320], // Bahrain Airport / Manama
+        [50.0200, 26.3000], // Al Khobar heading to causeway
+        [50.1700, 26.2400], // King Fahd Causeway Saudi side
+        [50.3200, 26.2000], // Mid-causeway
+        [50.4500, 26.1900], // Bahrain entry - Khalifa Bin Salman Port
+        [50.5300, 26.2000], // Heading north in Bahrain
+        [50.5800, 26.2200], // Khalifa Port station
+        [50.6000, 26.2700], // Bahrain International Airport
+        [50.6100, 26.3100], // Amwaj Islands (end - future sea bridge to Qatar)
       ], '#FFD300');
 
-      // ── Saudi Arabia: Riyadh–Dammam HSR ───────────────────────────────────────
-      addRailLine('saudi-hsr', [
-        [46.7219, 24.6877], // Riyadh
-        [47.4000, 24.8500], // NE heading
-        [48.0000, 25.2000], // Haradh
-        [48.9000, 25.7500], // Hofuf / Al Ahsa
-        [49.5500, 26.1500], // Approaching Dammam
+      // ── GCC Qatar branch: Dammam → south Saudi coast → Salwa → Doha ─────────
+      addRailLine('gcc-qatar', [
         [49.8600, 26.4200], // Dammam
+        [49.9500, 26.1000], // Al Khobar / Dhahran area
+        [50.1000, 25.9000], // South along Saudi Eastern Province coast
+        [50.2500, 25.6000], // Continuing south
+        [50.3500, 25.3000], // Al Uqayr area
+        [50.4500, 25.0000], // Approaching Qatar border
+        [50.5500, 24.7000], // Near Salwa
+        [50.6500, 24.4000], // Salwa port - Saudi/Qatar border
+        [50.7500, 24.5500], // Qatar entry
+        [50.8500, 24.7000], // Southern Qatar
+        [51.0000, 24.9000], // Central Qatar heading north
+        [51.2000, 25.0500], // Continuing to Doha
+        [51.4000, 25.2000], // Doha approach
+        [51.5310, 25.2854], // Doha / Hamad International Airport
+      ], '#FFD300');
+
+      // ── GCC UAE section: Dammam → Al Batha → Abu Dhabi → Dubai ──────────────
+      // Main line goes inland from Dammam south toward UAE border at Al Batha/Ghuweifat
+      addRailLine('gcc-uae', [
+        [49.8600, 26.4200], // Dammam
+        [49.8000, 25.8000], // Heading south through Saudi Eastern Province
+        [49.7000, 25.0000], // Al Hofuf area
+        [49.5000, 24.3000], // Continuing south
+        [49.2000, 23.8000], // Approaching UAE border area
+        [48.8000, 23.5000], // Al Batha / Saudi-UAE border
+        [51.5000, 23.8000], // Al Ghuweifat (UAE entry from Saudi - Etihad Rail)
+        [52.5000, 23.9500], // Ruwais / Al Dhafra
+        [53.3000, 23.9000], // Al Mirfa
+        [54.0000, 24.1000], // Abu Dhabi approach
+        [54.3700, 24.4539], // Abu Dhabi
+        [54.7000, 24.6500], // Between Abu Dhabi and Dubai
+        [55.0000, 24.9000], // Jebel Ali area
+        [55.2700, 25.2048], // Dubai
+        [55.5000, 25.3500], // Sharjah
+        [55.7500, 25.5000], // Ras Al Khaimah direction
+      ], '#FFD300');
+
+      // ── GCC Hafeet Rail: Abu Dhabi → Al Ain → Sohar → Muscat ─────────────────
+      addRailLine('gcc-oman', [
+        [54.3700, 24.4539], // Abu Dhabi
+        [54.8000, 24.2000], // Heading southeast toward Al Ain
+        [55.2000, 24.1000], // Al Ain approach
+        [55.7500, 24.2000], // Al Ain / UAE-Oman border (Hafeet Rail)
+        [56.0000, 24.0000], // Oman border crossing
+        [56.3000, 23.8500], // Sohar approach
+        [56.7000, 23.6500], // Sohar port
+        [57.0000, 23.6000], // Heading east along Oman coast
+        [57.5000, 23.6200], // Oman coast
+        [57.9000, 23.5500], // Continuing to Muscat
+        [58.3000, 23.5800], // Muscat approach
+        [58.5930, 23.6140], // Muscat
+      ], '#FFD300');
+
+      // ── Saudi Arabia Riyadh–Doha HSR (new Dec 2025 agreement, via Hofuf/Dammam)
+      addRailLine('saudi-hsr', [
+        [46.7219, 24.6877], // Riyadh / King Salman Airport
+        [47.3000, 24.8000], // NE from Riyadh
+        [48.0000, 25.2000], // Al Kharj area
+        [48.8000, 25.7500], // Hofuf / Al Ahsa station
+        [49.3000, 26.0000], // Approaching Dammam
+        [49.8600, 26.4200], // Dammam station
+        [50.2000, 25.7000], // East from Dammam toward Qatar sea bridge
+        [50.6500, 24.4000], // Salwa area
+        [51.0000, 24.9000], // Qatar entry
+        [51.5310, 25.2854], // Doha / Hamad International Airport
       ], '#FFD300');
 
       // ── South Africa: Pretoria–Musina HSR (N1 corridor) ────────────────────────
