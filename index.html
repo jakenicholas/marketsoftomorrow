@@ -1663,7 +1663,7 @@
     <div class="filter-pills-row" id="desktopPillsRow"></div>
 
     <!-- Result count (desktop) -->
-    <div class="result-count" id="desktopResultCount" style="display:none;margin-top:2px;"></div>
+    
   </div>
 
   <div class="sidebar-content">
@@ -1720,7 +1720,7 @@
       <!-- Active filter pills -->
       <div class="filter-pills-row" id="mobilePillsRow"></div>
       <!-- Result count -->
-      <div class="result-count" id="mobileResultCount" style="display:none;margin-top:2px;"></div>
+      
     </div>
     
     <div class="mobile-content allow-scroll">
@@ -2280,7 +2280,7 @@
       source.setData({ type: 'FeatureCollection', features: geoFeatures });
     }
 
-    function updateResultCount(targetId) {
+    function updateResultCount(targetId) { return; // removed display per user request
       const isDesktop = targetId === 'gridDesktop';
       const countEl = document.getElementById(isDesktop ? 'desktopResultCount' : 'mobileResultCount');
 
