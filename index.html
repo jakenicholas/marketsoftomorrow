@@ -112,7 +112,7 @@
 
     /* Featured pin yellow pulse — same soft style as pink selected pulse */
     @keyframes featuredYellowPulse {
-      0%   { transform: translate(-50%,-50%) scale(1);   opacity: 0.55; }
+      0%   { transform: translate(-50%,-50%) scale(1);   opacity: 0.4; }
       70%  { transform: translate(-50%,-50%) scale(2.8); opacity: 0; }
       100% { transform: translate(-50%,-50%) scale(1);   opacity: 0; }
     }
@@ -125,11 +125,11 @@
       position: absolute;
       width: 28px; height: 28px;
       border-radius: 50%;
-      background: rgba(255,211,0,0.45);
+      background: rgba(255,211,0,0.35);
       top: 0; left: 0;
-      animation: featuredYellowPulse 2s ease-out infinite;
+      animation: featuredYellowPulse 2.6s ease-out infinite;
     }
-    .featured-pin-pulse:nth-child(2) { animation-delay: 1s; }
+    .featured-pin-pulse:nth-child(2) { animation-delay: 1.3s; }
     .featured-pin-star {
       position: absolute;
       width: 20px; height: 20px;
@@ -4067,7 +4067,7 @@
 
         const starWrap = document.createElement('div');
         starWrap.className = 'featured-pin-star';
-        starWrap.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="#1a1a1a" opacity="0.8"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>`;
+        starWrap.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="#ffffff" opacity="0.9"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>`;
 
         el.appendChild(pulse1);
         el.appendChild(pulse2);
@@ -4082,6 +4082,8 @@
       });
 
       updateFeaturedMarkerVisibility();
+      // Re-check after map is fully settled to fix any initial offset
+      map.once('idle', updateFeaturedMarkerVisibility);
     }
 
     function updateFeaturedMarkerVisibility() {
