@@ -4002,6 +4002,8 @@
       setupDesktopFilters();
       setupMobileFilters();
       setupSidebarSearch();
+      map.on('moveend', updateFeaturedMarkerVisibility);
+      map.on('zoomend', updateFeaturedMarkerVisibility);
 
       // Pre-add mapbox-streets-v8 as a dedicated source for current transit
       // This is separate from the custom style composite so we always get the right data
@@ -4044,7 +4046,6 @@
     // Animated yellow pulse markers for featured pins
     window._featuredMarkers = [];
     function addFeaturedMarkers() {
-      // Remove existing
       window._featuredMarkers.forEach(m => m.remove());
       window._featuredMarkers = [];
 
@@ -4055,14 +4056,13 @@
 
         const el = document.createElement('div');
         el.className = 'featured-pin-marker';
+        el.style.display = 'none'; // hidden until zoom check
 
-        // Two pulse rings staggered
         const pulse1 = document.createElement('div');
         pulse1.className = 'featured-pin-pulse';
         const pulse2 = document.createElement('div');
         pulse2.className = 'featured-pin-pulse';
 
-        // Dark star icon in center
         const starWrap = document.createElement('div');
         starWrap.className = 'featured-pin-star';
         starWrap.innerHTML = `<svg width="10" height="10" viewBox="0 0 24 24" fill="#1a1a1a" opacity="0.85"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>`;
@@ -4075,7 +4075,22 @@
           .setLngLat([lng, lat])
           .addTo(map);
 
+        marker._featuredCoords = [lng, lat];
         window._featuredMarkers.push(marker);
+      });
+
+      updateFeaturedMarkerVisibility();
+    }
+
+    function updateFeaturedMarkerVisibility() {
+      if (!window._featuredMarkers?.length) return;
+      window._featuredMarkers.forEach(marker => {
+        const el = marker.getElement();
+        const pt = map.project(marker.getLngLat());
+        // Check if this pin is inside a cluster at current zoom
+        const clusters = map.queryRenderedFeatures(pt, { layers: ['clusters'] });
+        const unclustered = map.queryRenderedFeatures(pt, { layers: ['unclustered-point'] });
+        el.style.display = (clusters.length === 0 && unclustered.length > 0) ? 'block' : 'none';
       });
     }
 
