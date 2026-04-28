@@ -4004,8 +4004,8 @@
       setupDesktopFilters();
       setupMobileFilters();
       setupSidebarSearch();
-      map.on('moveend', updateFeaturedMarkerVisibility);
-      map.on('zoomend', updateFeaturedMarkerVisibility);
+      map.on('move', hideFeaturedMarkers);
+      map.on('idle', updateFeaturedMarkerVisibility);
 
       // Pre-add mapbox-streets-v8 as a dedicated source for current transit
       // This is separate from the custom style composite so we always get the right data
@@ -4091,11 +4091,14 @@
       window._featuredMarkers.forEach(marker => {
         const el = marker.getElement();
         const pt = map.project(marker.getLngLat());
-        // Check if this pin is inside a cluster at current zoom
         const clusters = map.queryRenderedFeatures(pt, { layers: ['clusters'] });
         const unclustered = map.queryRenderedFeatures(pt, { layers: ['unclustered-point'] });
         el.style.display = (clusters.length === 0 && unclustered.length > 0) ? 'block' : 'none';
       });
+    }
+
+    function hideFeaturedMarkers() {
+      window._featuredMarkers?.forEach(m => m.getElement().style.display = 'none');
     }
 
     function addAllMapLayers() {
