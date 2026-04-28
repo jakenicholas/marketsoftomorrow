@@ -110,28 +110,31 @@
       100% { box-shadow: 0 0 0 0 rgba(31,223,103,0); }
     }
 
-    /* Featured pin yellow pulse ring */
-    @keyframes featuredPulse {
-      0%   { transform: scale(1);   opacity: 0.8; }
-      50%  { transform: scale(1.9); opacity: 0;   }
-      100% { transform: scale(1);   opacity: 0;   }
+    /* Featured pin yellow pulse — same soft style as pink selected pulse */
+    @keyframes featuredYellowPulse {
+      0%   { transform: translate(-50%,-50%) scale(1);   opacity: 0.55; }
+      70%  { transform: translate(-50%,-50%) scale(2.8); opacity: 0; }
+      100% { transform: translate(-50%,-50%) scale(1);   opacity: 0; }
     }
     .featured-pin-marker {
       position: relative;
-      width: 20px; height: 20px;
+      width: 0; height: 0;
       pointer-events: none;
     }
     .featured-pin-pulse {
       position: absolute;
-      inset: -4px;
+      width: 28px; height: 28px;
       border-radius: 50%;
-      border: 2px solid #FFD300;
-      animation: featuredPulse 2s ease-out infinite;
+      background: rgba(255,211,0,0.45);
+      top: 0; left: 0;
+      animation: featuredYellowPulse 2s ease-out infinite;
     }
-    .featured-pin-pulse:nth-child(2) { animation-delay: 0.7s; }
+    .featured-pin-pulse:nth-child(2) { animation-delay: 1s; }
     .featured-pin-star {
       position: absolute;
-      inset: 0;
+      width: 20px; height: 20px;
+      top: 0; left: 0;
+      transform: translate(-50%, -50%);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -2522,17 +2525,16 @@
 
       // Pink pulse ring around selected pin — delayed so pin color sets first
       setTimeout(() => {
-        if (window._selectedPinTitle !== selectedTitle) return; // popup already closed
+        if (window._selectedPinTitle !== selectedTitle) return;
         const pulseEl = document.createElement('div');
-        pulseEl.style.cssText = 'position:relative;width:22px;height:22px;pointer-events:none;';
+        pulseEl.style.cssText = 'position:relative;width:0;height:0;pointer-events:none;';
         const pulseRing = document.createElement('div');
         pulseRing.style.cssText = `
           position:absolute;
-          width:22px;height:22px;
+          width:28px;height:28px;
           border-radius:50%;
-          background:rgba(255,107,157,0.35);
-          transform:translate(-50%,-50%);
-          top:50%;left:50%;
+          background:rgba(255,107,157,0.4);
+          top:0;left:0;
           animation:locationPulse 1.8s ease-out infinite;
         `;
         pulseEl.appendChild(pulseRing);
@@ -4065,7 +4067,7 @@
 
         const starWrap = document.createElement('div');
         starWrap.className = 'featured-pin-star';
-        starWrap.innerHTML = `<svg width="10" height="10" viewBox="0 0 24 24" fill="#1a1a1a" opacity="0.85"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>`;
+        starWrap.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="#1a1a1a" opacity="0.8"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>`;
 
         el.appendChild(pulse1);
         el.appendChild(pulse2);
