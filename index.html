@@ -4433,19 +4433,22 @@
           map.addSource('featured-pts', { type:'geojson', data:featPts });
         }
         if (!map.getLayer('featured-pulse-a') && map.getSource('featured-pts')) {
+          // Add BEFORE all other layers so pulse is at the very back
+          const firstLayerId = map.getStyle().layers[0]?.id;
           map.addLayer({ id:'featured-pulse-a', type:'circle', source:'featured-pts', minzoom: 10,
             paint:{ 'circle-color':'#FFD300','circle-radius':8,'circle-stroke-width':0,'circle-opacity':0 }
-          }, 'unclustered-point');
+          }, firstLayerId);
           map.addLayer({ id:'featured-pulse-b', type:'circle', source:'featured-pts', minzoom: 10,
             paint:{ 'circle-color':'#FFD300','circle-radius':8,'circle-stroke-width':0,'circle-opacity':0 }
-          }, 'unclustered-point');
+          }, firstLayerId);
           let phase = 0;
           const animPulse = () => {
             if (!map.getLayer('featured-pulse-a')) return;
-            phase = (phase + 0.003) % 1; // slow and smooth
+            phase = (phase + 0.003) % 1;
             const phB = (phase + 0.5) % 1;
-            const oA = Math.max(0, 0.4 * (1 - phase * 1.3));
-            const oB = Math.max(0, 0.4 * (1 - phB * 1.3));
+            // Smooth ease-out: no zap — opacity fades from 0.4 to 0 over full cycle
+            const oA = 0.4 * Math.pow(1 - phase, 1.5);
+            const oB = 0.4 * Math.pow(1 - phB, 1.5);
             try {
               map.setPaintProperty('featured-pulse-a','circle-radius', 8 + phase * 24);
               map.setPaintProperty('featured-pulse-a','circle-opacity', oA);
