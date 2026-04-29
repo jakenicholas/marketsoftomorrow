@@ -4433,20 +4433,19 @@
           map.addSource('featured-pts', { type:'geojson', data:featPts });
         }
         if (!map.getLayer('featured-pulse-a') && map.getSource('featured-pts')) {
-          // Add BEFORE all other layers so pulse is at the very back
-          const firstLayerId = map.getStyle().layers[0]?.id;
+          // Add before clusters so pulse sits behind pins and clusters
+          const beforeId = map.getLayer('clusters') ? 'clusters' : (map.getLayer('unclustered-point') ? 'unclustered-point' : undefined);
           map.addLayer({ id:'featured-pulse-a', type:'circle', source:'featured-pts', minzoom: 10,
             paint:{ 'circle-color':'#FFD300','circle-radius':8,'circle-stroke-width':0,'circle-opacity':0 }
-          }, firstLayerId);
+          }, beforeId);
           map.addLayer({ id:'featured-pulse-b', type:'circle', source:'featured-pts', minzoom: 10,
             paint:{ 'circle-color':'#FFD300','circle-radius':8,'circle-stroke-width':0,'circle-opacity':0 }
-          }, firstLayerId);
+          }, beforeId);
           let phase = 0;
           const animPulse = () => {
             if (!map.getLayer('featured-pulse-a')) return;
             phase = (phase + 0.003) % 1;
             const phB = (phase + 0.5) % 1;
-            // Smooth ease-out: no zap — opacity fades from 0.4 to 0 over full cycle
             const oA = 0.4 * Math.pow(1 - phase, 1.5);
             const oB = 0.4 * Math.pow(1 - phB, 1.5);
             try {
