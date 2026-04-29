@@ -4004,8 +4004,6 @@
       setupDesktopFilters();
       setupMobileFilters();
       setupSidebarSearch();
-      map.on('move', hideFeaturedMarkers);
-      map.on('idle', updateFeaturedMarkerVisibility);
 
       // Pre-add mapbox-streets-v8 as a dedicated source for current transit
       // This is separate from the custom style composite so we always get the right data
@@ -4046,37 +4044,6 @@
     // ─── ADD ALL MAP LAYERS ───────────────────────────────────────────────────
     // Called on initial load AND after every style switch. Guards duplicates.
 
-    // Featured pin animated pulse markers
-    window._featuredMarkers = [];
-    function addFeaturedMarkers() {
-      window._featuredMarkers.forEach(m => m.remove());
-      window._featuredMarkers = [];
-      (window.allProjectFeatures || []).forEach(f => {
-        if (!f.properties.featured) return;
-        const [lng, lat] = f.geometry.coordinates;
-        const el = document.createElement('div');
-        el.className = 'featured-pin-marker';
-        el.style.display = 'none';
-        const p1 = document.createElement('div'); p1.className = 'featured-pin-pulse';
-        const p2 = document.createElement('div'); p2.className = 'featured-pin-pulse';
-        el.appendChild(p1); el.appendChild(p2);
-        const marker = new mapboxgl.Marker({ element: el, anchor: 'center' }).setLngLat([lng, lat]).addTo(map);
-        window._featuredMarkers.push(marker);
-      });
-    }
-    function hideFeaturedMarkers() {
-      window._featuredMarkers?.forEach(m => m.getElement().style.display = 'none');
-    }
-    function updateFeaturedMarkerVisibility() {
-      if (!window._featuredMarkers?.length) return;
-      window._featuredMarkers.forEach(marker => {
-        const el = marker.getElement();
-        const pt = map.project(marker.getLngLat());
-        const clusters = map.queryRenderedFeatures(pt, { layers: ['clusters'] });
-        const pins = map.queryRenderedFeatures(pt, { layers: ['unclustered-point'] });
-        el.style.display = (clusters.length === 0 && pins.length > 0) ? 'block' : 'none';
-      });
-    }
 
     function addAllMapLayers() {
       const brightlineCoords_existing = [[-80.1961527,25.7807395],[-80.1963673,25.7876179],[-80.1909599,25.8105687],[-80.1874838,25.8254033],[-80.1888571,25.8510117],[-80.1689444,25.8942205],[-80.1605759,25.9030611],[-80.1591167,25.9051457],[-80.1577864,25.9145259],[-80.1472721,25.9481418],[-80.1499329,26.0372102],[-80.1448259,26.0585318],[-80.1430664,26.0631581],[-80.1375303,26.0684395],[-80.1358566,26.0707139],[-80.1352129,26.0729111],[-80.1360712,26.0764575],[-80.1392899,26.0808903],[-80.1449976,26.1071368],[-80.1456842,26.1276366],[-80.1448688,26.130064],[-80.1419077,26.1333389],[-80.1332388,26.1425083],[-80.1312218,26.1454362],[-80.1307926,26.1482099],[-80.1324234,26.2071741],[-80.1322947,26.2087912],[-80.1166735,26.2639533],[-80.1064596,26.2996618],[-80.1007948,26.3193199],[-80.0997648,26.3218587],[-80.0913105,26.3319363],[-80.0725994,26.4469586],[-80.0547037,26.5589104],[-80.0542746,26.5613288],[-80.0536308,26.5777184],[-80.0523434,26.5820937],[-80.0521288,26.5854326],[-80.0523434,26.5911507],[-80.0585232,26.6031618],[-80.0596819,26.607114],[-80.0580511,26.6764285],[-80.0568066,26.6799948],[-80.0559483,26.6825256],[-80.0553474,26.7119709],[-80.0552187,26.7164561],[-80.0603685,26.7497633],[-80.0592527,26.7641716],[-80.0694237,26.7888456],[-80.0791225,26.8126332],[-80.08041,26.8153909],[-80.0897655,26.82554],[-80.0914392,26.8274932],[-80.0968037,26.848401],[-80.0936279,26.9432803],[-80.0931559,26.9443897],[-80.0894222,26.9489422],[-80.0871477,26.9520026],[-80.0866756,26.953571],[-80.0872335,26.9559044],[-80.0892506,26.9593854],[-80.0992069,26.9813397],[-80.1007948,26.9842845],[-80.1040134,26.9894089],[-80.1061592,26.9948009],[-80.1177463,27.0226741],[-80.1178322,27.0294788],[-80.1173601,27.0445778],[-80.1178322,27.0464507],[-80.1195917,27.0491262],[-80.1355133,27.067318],[-80.1487312,27.0975419],[-80.1567135,27.1101106],[-80.170661,27.1314625],[-80.1723776,27.1328756],[-80.1869259,27.137917],[-80.2101002,27.1545669],[-80.2352056,27.1800717],[-80.2433596,27.1880884],[-80.253273,27.1977841],[-80.2616415,27.2037386],[-80.2620277,27.2061431],[-80.2592382,27.2137764],[-80.2571354,27.2157609],[-80.2356777,27.2236225],[-80.2268801,27.2266754],[-80.224906,27.2282399],[-80.2237043,27.2308348],[-80.2237902,27.2340401],[-80.2257214,27.2393439],[-80.2307425,27.2554065],[-80.2394114,27.2660119],[-80.2414713,27.2700554],[-80.2452049,27.2755482],[-80.2722416,27.3311097],[-80.2855453,27.3560785],[-80.2961884,27.380432],[-80.2993641,27.3884724],[-80.3096209,27.4047801],[-80.3131399,27.4130854],[-80.3144703,27.4191045],[-80.3242979,27.44611],[-80.3282032,27.4582204],[-80.3294477,27.4643512],[-80.3326235,27.4720048],[-80.3571281,27.5313113],[-80.371376,27.5657842],[-80.3788004,27.5847663],[-80.3798304,27.5902435],[-80.3833494,27.6070918],[-80.3891859,27.617055],[-80.3963528,27.6363324],[-80.401803,27.6540098],[-80.4071674,27.6663254],[-80.4175959,27.7013637],[-80.4243336,27.7241973],[-80.440856,27.7548117],[-80.4568034,27.784967],[-80.4679613,27.8089977],[-80.47015,27.8156403],[-80.4723387,27.8199293],[-80.4752999,27.8233452],[-80.4854279,27.830708],[-80.4958563,27.8375011],[-80.5000191,27.8406888],[-80.5014353,27.8431554],[-80.5027657,27.8767333],[-80.504139,27.8802612],[-80.5167132,27.9068497],[-80.5356818,27.9463221],[-80.5461102,27.9686493],[-80.5564099,27.9834304],[-80.5588529,27.988041],[-80.5716846,28.0151334],[-80.5792806,28.0261578],[-80.5887649,28.0447567],[-80.6015108,28.0698278],[-80.6063602,28.0816418],[-80.6089351,28.0867532],[-80.6248567,28.1037138],[-80.6324527,28.1113225],[-80.633354,28.113745],[-80.6345556,28.1413734],[-80.6351564,28.1432276],[-80.6403921,28.1501524],[-80.6503055,28.1708106],[-80.658674,28.1838617],[-80.6665275,28.2040595],[-80.6779859,28.2341222],[-80.6897876,28.2653859],[-80.7021473,28.2982276],[-80.7076404,28.308165],[-80.7121465,28.3141345],[-80.7143781,28.320406],[-80.7258365,28.3341566],[-80.73472,28.35882],[-80.7372949,28.3659574],[-80.7373807,28.3745291],[-80.7398698,28.3794755],[-80.7535598,28.400882],[-80.7604692,28.4032225],[-80.7643745,28.403751],[-80.7685802,28.4030337],[-80.7721851,28.4035245],[-80.8025262,28.4104701],[-80.8109376,28.4115647],[-80.8307645,28.4114892],[-80.8380601,28.413452],[-80.8453558,28.4200196],[-80.8707616,28.4480969],[-80.8759115,28.4512664],[-80.8818338,28.4526248],[-81.2452409,28.4514173],[-81.2572572,28.4485497],[-81.2763975,28.4483233],[-81.3004301,28.4513419],[-81.3082407,28.4512664],[-81.3073824,28.4495307],[-81.3063524,28.4464366],[-81.3073824,28.4410028],[-81.3082407,28.4377574],[-81.3059232,28.434663],[-81.3046358,28.4308891],[-81.3054941,28.4280963],[-81.3069532,28.4256809],[-81.306524,28.4203215],[-81.3060949,28.4175285],[-81.3084981,28.4151883],[-81.3084981,28.4113383]];
@@ -4453,16 +4420,43 @@
         if (!map.getLayer('cluster-count'))     map.addLayer({ id:'cluster-count',     type:'symbol', source:'projects', filter:['has','point_count'], layout:{'text-field':'{point_count_abbreviated}','text-size':12}, paint:{'text-color':'#ffffff'} });
         if (!map.getLayer('unclustered-point')) map.addLayer({ id:'unclustered-point', type:'circle', source:'projects', filter:['!',['has','point_count']], paint:{'circle-color':'#1FDF67','circle-radius':8,'circle-stroke-width':2,'circle-stroke-color':'#fff'} });
 
-        // Featured star symbol on featured pins
+        // Featured star + pulse — pure GL, no HTML markers, no offset possible
         const featuredFilter = ['all',['!',['has','point_count']],['==',['get','featured'],true]];
         if (!map.getLayer('featured-star')) {
           map.addLayer({ id:'featured-star', type:'symbol', source:'projects', filter: featuredFilter,
-            layout:{ 'text-field':'★', 'text-size':13, 'text-allow-overlap':true, 'text-ignore-placement':true },
-            paint:{ 'text-color':'#ffffff', 'text-opacity':1 }
+            layout:{ 'text-field':'★', 'text-size':13, 'text-allow-overlap':true, 'text-ignore-placement':true, 'text-anchor':'center' },
+            paint:{ 'text-color':'#ffffff', 'text-halo-width':0 }
           });
         }
-        // CSS-animated pulse markers (HTML markers, hidden during move, shown on idle)
-        addFeaturedMarkers();
+        if (!map.getSource('featured-pts') && window.allProjectFeatures) {
+          const featPts = { type:'FeatureCollection', features:(window.allProjectFeatures||[]).filter(f=>f.properties.featured) };
+          map.addSource('featured-pts', { type:'geojson', data:featPts });
+        }
+        if (!map.getLayer('featured-pulse-a') && map.getSource('featured-pts')) {
+          map.addLayer({ id:'featured-pulse-a', type:'circle', source:'featured-pts',
+            paint:{ 'circle-color':'rgba(0,0,0,0)','circle-radius':8,'circle-stroke-width':2.5,'circle-stroke-color':'#FFD300','circle-stroke-opacity':0,'circle-opacity':0 }
+          }, 'unclustered-point');
+          map.addLayer({ id:'featured-pulse-b', type:'circle', source:'featured-pts',
+            paint:{ 'circle-color':'rgba(0,0,0,0)','circle-radius':8,'circle-stroke-width':2.5,'circle-stroke-color':'#FFD300','circle-stroke-opacity':0,'circle-opacity':0 }
+          }, 'unclustered-point');
+          let phase = 0;
+          const animPulse = () => {
+            if (!map.getLayer('featured-pulse-a')) return;
+            phase = (phase + 0.010) % 1;
+            const phB = (phase + 0.5) % 1;
+            const ease = t => t < 0.5 ? 2*t*t : -1+(4-2*t)*t;
+            const oA = Math.max(0, 0.45 * (1 - phase * 1.5));
+            const oB = Math.max(0, 0.45 * (1 - phB * 1.5));
+            try {
+              map.setPaintProperty('featured-pulse-a','circle-radius', 8 + phase * 20);
+              map.setPaintProperty('featured-pulse-a','circle-stroke-opacity', oA);
+              map.setPaintProperty('featured-pulse-b','circle-radius', 8 + phB * 20);
+              map.setPaintProperty('featured-pulse-b','circle-stroke-opacity', oB);
+            } catch(e) {}
+            requestAnimationFrame(animPulse);
+          };
+          requestAnimationFrame(animPulse);
+        }
           // Re-apply any active filters
         updateMapPinFilters();
         renderGrid('gridDesktop');
@@ -4504,7 +4498,10 @@
 
           // Master list — never mutated, used to restore pins on clear
           window.allProjectFeatures = features;
-          addFeaturedMarkers();
+          // Update featured pulse source
+          if (map.getSource('featured-pts')) {
+            map.getSource('featured-pts').setData({ type:'FeatureCollection', features: features.filter(f=>f.properties.featured) });
+          }
     
           // projectTypes lives only on _projectTypes (JS array, not in GeoJSON properties)
           // renderGrid reads f.properties.projectTypes — patch it here for grid use only
