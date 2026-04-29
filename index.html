@@ -4498,9 +4498,14 @@
 
           // Master list — never mutated, used to restore pins on clear
           window.allProjectFeatures = features;
-          // Update featured pulse source
+          // Update featured pulse source — create if map already loaded, update if exists
+          const featPts = { type:'FeatureCollection', features: features.filter(f=>f.properties.featured) };
           if (map.getSource('featured-pts')) {
-            map.getSource('featured-pts').setData({ type:'FeatureCollection', features: features.filter(f=>f.properties.featured) });
+            map.getSource('featured-pts').setData(featPts);
+          } else if (map.isStyleLoaded()) {
+            map.addSource('featured-pts', { type:'geojson', data: featPts });
+            // Re-run addAllMapLayers to pick up the new source and add pulse layers
+            addAllMapLayers();
           }
     
           // projectTypes lives only on _projectTypes (JS array, not in GeoJSON properties)
