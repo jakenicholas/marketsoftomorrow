@@ -4423,7 +4423,7 @@
         // Featured star + pulse — pure GL, no HTML markers, no offset possible
         const featuredFilter = ['all',['!',['has','point_count']],['==',['get','featured'],true]];
         if (!map.getLayer('featured-star')) {
-          map.addLayer({ id:'featured-star', type:'symbol', source:'projects', filter: featuredFilter,
+          map.addLayer({ id:'featured-star', type:'symbol', source:'projects', filter: featuredFilter, minzoom: 10,
             layout:{ 'text-field':'★', 'text-size':13, 'text-allow-overlap':true, 'text-ignore-placement':true, 'text-anchor':'center' },
             paint:{ 'text-color':'#ffffff', 'text-halo-width':0 }
           });
@@ -4433,24 +4433,23 @@
           map.addSource('featured-pts', { type:'geojson', data:featPts });
         }
         if (!map.getLayer('featured-pulse-a') && map.getSource('featured-pts')) {
-          map.addLayer({ id:'featured-pulse-a', type:'circle', source:'featured-pts',
-            paint:{ 'circle-color':'rgba(0,0,0,0)','circle-radius':8,'circle-stroke-width':2.5,'circle-stroke-color':'#FFD300','circle-stroke-opacity':0,'circle-opacity':0 }
+          map.addLayer({ id:'featured-pulse-a', type:'circle', source:'featured-pts', minzoom: 10,
+            paint:{ 'circle-color':'rgba(0,0,0,0)','circle-radius':8,'circle-stroke-width':2,'circle-stroke-color':'#FFD300','circle-stroke-opacity':0,'circle-opacity':0 }
           }, 'unclustered-point');
-          map.addLayer({ id:'featured-pulse-b', type:'circle', source:'featured-pts',
-            paint:{ 'circle-color':'rgba(0,0,0,0)','circle-radius':8,'circle-stroke-width':2.5,'circle-stroke-color':'#FFD300','circle-stroke-opacity':0,'circle-opacity':0 }
+          map.addLayer({ id:'featured-pulse-b', type:'circle', source:'featured-pts', minzoom: 10,
+            paint:{ 'circle-color':'rgba(0,0,0,0)','circle-radius':8,'circle-stroke-width':2,'circle-stroke-color':'#FFD300','circle-stroke-opacity':0,'circle-opacity':0 }
           }, 'unclustered-point');
           let phase = 0;
           const animPulse = () => {
             if (!map.getLayer('featured-pulse-a')) return;
-            phase = (phase + 0.010) % 1;
+            phase = (phase + 0.004) % 1; // slow — same speed as pink pulse
             const phB = (phase + 0.5) % 1;
-            const ease = t => t < 0.5 ? 2*t*t : -1+(4-2*t)*t;
-            const oA = Math.max(0, 0.45 * (1 - phase * 1.5));
-            const oB = Math.max(0, 0.45 * (1 - phB * 1.5));
+            const oA = Math.max(0, 0.35 * (1 - phase * 1.4));
+            const oB = Math.max(0, 0.35 * (1 - phB * 1.4));
             try {
-              map.setPaintProperty('featured-pulse-a','circle-radius', 8 + phase * 20);
+              map.setPaintProperty('featured-pulse-a','circle-radius', 8 + phase * 22);
               map.setPaintProperty('featured-pulse-a','circle-stroke-opacity', oA);
-              map.setPaintProperty('featured-pulse-b','circle-radius', 8 + phB * 20);
+              map.setPaintProperty('featured-pulse-b','circle-radius', 8 + phB * 22);
               map.setPaintProperty('featured-pulse-b','circle-stroke-opacity', oB);
             } catch(e) {}
             requestAnimationFrame(animPulse);
