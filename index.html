@@ -4434,23 +4434,23 @@
         }
         if (!map.getLayer('featured-pulse-a') && map.getSource('featured-pts')) {
           map.addLayer({ id:'featured-pulse-a', type:'circle', source:'featured-pts', minzoom: 10,
-            paint:{ 'circle-color':'rgba(0,0,0,0)','circle-radius':8,'circle-stroke-width':2,'circle-stroke-color':'#FFD300','circle-stroke-opacity':0,'circle-opacity':0 }
+            paint:{ 'circle-color':'#FFD300','circle-radius':8,'circle-stroke-width':0,'circle-opacity':0 }
           }, 'unclustered-point');
           map.addLayer({ id:'featured-pulse-b', type:'circle', source:'featured-pts', minzoom: 10,
-            paint:{ 'circle-color':'rgba(0,0,0,0)','circle-radius':8,'circle-stroke-width':2,'circle-stroke-color':'#FFD300','circle-stroke-opacity':0,'circle-opacity':0 }
+            paint:{ 'circle-color':'#FFD300','circle-radius':8,'circle-stroke-width':0,'circle-opacity':0 }
           }, 'unclustered-point');
           let phase = 0;
           const animPulse = () => {
             if (!map.getLayer('featured-pulse-a')) return;
-            phase = (phase + 0.004) % 1; // slow — same speed as pink pulse
+            phase = (phase + 0.003) % 1; // slow and smooth
             const phB = (phase + 0.5) % 1;
-            const oA = Math.max(0, 0.35 * (1 - phase * 1.4));
-            const oB = Math.max(0, 0.35 * (1 - phB * 1.4));
+            const oA = Math.max(0, 0.4 * (1 - phase * 1.3));
+            const oB = Math.max(0, 0.4 * (1 - phB * 1.3));
             try {
-              map.setPaintProperty('featured-pulse-a','circle-radius', 8 + phase * 22);
-              map.setPaintProperty('featured-pulse-a','circle-stroke-opacity', oA);
-              map.setPaintProperty('featured-pulse-b','circle-radius', 8 + phB * 22);
-              map.setPaintProperty('featured-pulse-b','circle-stroke-opacity', oB);
+              map.setPaintProperty('featured-pulse-a','circle-radius', 8 + phase * 24);
+              map.setPaintProperty('featured-pulse-a','circle-opacity', oA);
+              map.setPaintProperty('featured-pulse-b','circle-radius', 8 + phB * 24);
+              map.setPaintProperty('featured-pulse-b','circle-opacity', oB);
             } catch(e) {}
             requestAnimationFrame(animPulse);
           };
