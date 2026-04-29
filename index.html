@@ -249,22 +249,7 @@
     #map { position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 1; }
 
     /* iOS Safari: force map canvas to fill true screen including under notch and chrome */
-    @supports (-webkit-touch-callout: none) {
-      @media(max-width:800px) {
-        #map {
-          height: -webkit-fill-available;
-          height: 100dvh;
-        }
-        #app-container {
-          height: -webkit-fill-available;
-          height: 100dvh;
-        }
-        html, body {
-          height: -webkit-fill-available;
-          height: 100dvh;
-        }
-      }
-    }
+
 
     /* ─── DESKTOP SIDEBAR ─────────────────────────────────────────────────── */
     #desktopSidebar {
@@ -3993,8 +3978,6 @@
     // ─── MAP LOAD ─────────────────────────────────────────────────────────────
     // ─── MAP LOAD ─────────────────────────────────────────────────────────────
     map.on('load', () => {
-      // Force Mapbox to recalculate canvas size for iOS full-screen
-      setTimeout(() => map.resize(), 100);
       addAllMapLayers();
       setupDesktopFilters();
       setupMobileFilters();
