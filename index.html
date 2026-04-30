@@ -4397,6 +4397,32 @@
           map.addLayer({ id:'focus-city-line', type:'line', source:'focus-cities',
             paint:{ 'line-color':'#1FDF67', 'line-width':['interpolate',['linear'],['zoom'],4,0.5,8,1,12,1.5], 'line-opacity':0.35, 'line-blur':1 }
           }, 'brightline-existing');
+
+          // Pulse animation — breathes the glow layers in and out like the pink pin pulse
+          let pulseT = 0;
+          const PULSE_MS = 2400;
+          setInterval(() => {
+            if (!map.getLayer('focus-city-glow-outer')) return;
+            pulseT = (pulseT + 50) % PULSE_MS;
+            const p = pulseT / PULSE_MS; // 0→1
+            // ease-out: fast expand, slow fade — matches locationPulse feel
+            const eased = 1 - Math.pow(1 - p, 2);
+            // outer glow: expands and fades
+            const outerOpacity = 0.06 + eased * 0.10;
+            const outerWidth   = 1 + eased * 1.4; // multiplier on base width
+            // mid glow: lags slightly behind outer
+            const midP         = ((pulseT + PULSE_MS * 0.15) % PULSE_MS) / PULSE_MS;
+            const midEased     = 1 - Math.pow(1 - midP, 2);
+            const midOpacity   = 0.12 + midEased * 0.10;
+            // sharp line: subtle brightness pulse
+            const lineOpacity  = 0.30 + eased * 0.25;
+
+            try {
+              map.setPaintProperty('focus-city-glow-outer', 'line-opacity', outerOpacity);
+              map.setPaintProperty('focus-city-glow-mid',   'line-opacity', midOpacity);
+              map.setPaintProperty('focus-city-line',       'line-opacity', lineOpacity);
+            } catch(e) {}
+          }, 50);
         }
       })();
 
