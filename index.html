@@ -4358,13 +4358,13 @@
 
       // ── Green glow borders for hyper-focus markets (no fill, line only) ────
       if (!map.getSource('focus-markets')) {
-        fetch('https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json')
+        fetch('https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_10m_admin_1_states_provinces_lakes.geojson')
           .then(r => r.json())
           .then(data => {
             const focusNames = ['Florida','Tennessee','Texas','Utah','Idaho'];
             const filtered = {
               type: 'FeatureCollection',
-              features: data.features.filter(f => focusNames.includes(f.properties.name))
+              features: data.features.filter(f => focusNames.includes(f.properties.name) || focusNames.includes(f.properties.NAME))
             };
             if (!map.getSource('focus-markets')) {
               map.addSource('focus-markets', { type: 'geojson', data: filtered });
@@ -4402,8 +4402,7 @@
                 }
               }, 'brightline-existing');
             }
-          })
-          .catch(e => console.warn('Focus market boundaries failed:', e));
+        })();
 
       }
 
