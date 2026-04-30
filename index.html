@@ -4357,27 +4357,48 @@
       if (!map.getLayer('station-hover')) map.addLayer({ id:'station-hover', type:'circle', source:'stations', paint:{'circle-color':'transparent','circle-radius':18,'circle-stroke-width':0} });
 
       // ── Green glow borders for hyper-focus markets (no fill, line only) ────
-      // ── Green glow borders for focus markets — fetched async, never blocks map load
-      fetch('https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json')
-        .then(r => r.json())
-        .then(data => {
-          const focusNames = ['Florida','Tennessee','Texas','Utah','Idaho'];
-          const filtered = { type:'FeatureCollection', features: data.features.filter(f => focusNames.includes(f.properties.name)) };
-          if (!map.getSource('focus-markets')) map.addSource('focus-markets', { type:'geojson', data:filtered });
-          else map.getSource('focus-markets').setData(filtered);
-          if (!map.getLayer('focus-market-glow-outer')) {
-            map.addLayer({ id:'focus-market-glow-outer', type:'line', source:'focus-markets',
-              paint:{ 'line-color':'#1FDF67', 'line-width':['interpolate',['linear'],['zoom'],2,16,5,24,8,32], 'line-opacity':0.06, 'line-blur':20 }
-            }, 'brightline-existing');
-            map.addLayer({ id:'focus-market-glow-mid', type:'line', source:'focus-markets',
-              paint:{ 'line-color':'#1FDF67', 'line-width':['interpolate',['linear'],['zoom'],2,8,5,12,8,16], 'line-opacity':0.12, 'line-blur':10 }
-            }, 'brightline-existing');
-            map.addLayer({ id:'focus-market-line', type:'line', source:'focus-markets',
-              paint:{ 'line-color':'#1FDF67', 'line-width':['interpolate',['linear'],['zoom'],2,0.5,5,1,8,1.5], 'line-opacity':0.35, 'line-blur':1 }
-            }, 'brightline-existing');
+      // ── Green glow borders for hyper-focus cities ─────────────────────────
+      // Each city is a circle approximation centered on the city core
+      (function() {
+        function cityCircle(lng, lat, radiusMiles, points) {
+          const coords = [];
+          const R = 3959;
+          const d = radiusMiles / R;
+          for (let i = 0; i <= points; i++) {
+            const bearing = (i * 360 / points) * Math.PI / 180;
+            const latR = lat * Math.PI / 180;
+            const newLat = Math.asin(Math.sin(latR)*Math.cos(d) + Math.cos(latR)*Math.sin(d)*Math.cos(bearing));
+            const newLng = lng + Math.atan2(Math.sin(bearing)*Math.sin(d)*Math.cos(latR), Math.cos(d)-Math.sin(latR)*Math.sin(newLat)) * 180 / Math.PI;
+            coords.push([newLng, newLat * 180 / Math.PI]);
           }
-        })
-        .catch(e => console.warn('Focus market borders failed:', e));
+          return coords;
+        }
+        const cities = [
+          { name:'West Palm Beach', lng:-80.0534, lat:26.7153, r:6 },
+          { name:'Boca Raton',      lng:-80.0998, lat:26.3683, r:6 },
+          { name:'Miami',           lng:-80.1918, lat:25.7617, r:10 },
+          { name:'Nashville',       lng:-86.7816, lat:36.1627, r:8 },
+          { name:'Salt Lake City',  lng:-111.8910, lat:40.7608, r:8 },
+          { name:'Boise',           lng:-116.2023, lat:43.6150, r:7 },
+        ];
+        const features = cities.map(c => ({
+          type:'Feature', properties:{ name:c.name },
+          geometry:{ type:'Polygon', coordinates:[ cityCircle(c.lng, c.lat, c.r, 64) ] }
+        }));
+        const geo = { type:'FeatureCollection', features };
+        if (!map.getSource('focus-cities')) {
+          map.addSource('focus-cities', { type:'geojson', data:geo });
+          map.addLayer({ id:'focus-city-glow-outer', type:'line', source:'focus-cities',
+            paint:{ 'line-color':'#1FDF67', 'line-width':['interpolate',['linear'],['zoom'],4,12,8,20,12,28], 'line-opacity':0.06, 'line-blur':20 }
+          }, 'brightline-existing');
+          map.addLayer({ id:'focus-city-glow-mid', type:'line', source:'focus-cities',
+            paint:{ 'line-color':'#1FDF67', 'line-width':['interpolate',['linear'],['zoom'],4,6,8,10,12,14], 'line-opacity':0.12, 'line-blur':10 }
+          }, 'brightline-existing');
+          map.addLayer({ id:'focus-city-line', type:'line', source:'focus-cities',
+            paint:{ 'line-color':'#1FDF67', 'line-width':['interpolate',['linear'],['zoom'],4,0.5,8,1,12,1.5], 'line-opacity':0.35, 'line-blur':1 }
+          }, 'brightline-existing');
+        }
+      })();
 
       // Station interactions (safe to re-register — Mapbox deduplicates on same handler ref,
       // but we guard with a flag to avoid stacking listeners on style switch)
