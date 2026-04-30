@@ -4356,6 +4356,79 @@
       if (!map.getLayer('station-dots'))  map.addLayer({ id:'station-dots',  type:'circle', source:'stations', paint:{'circle-color':['get','color'],'circle-radius':['interpolate',['linear'],['zoom'],4,2,8,4,12,6,15,8],'circle-stroke-color':'#fff','circle-stroke-width':['interpolate',['linear'],['zoom'],4,0.5,10,1.5,14,2]} });
       if (!map.getLayer('station-hover')) map.addLayer({ id:'station-hover', type:'circle', source:'stations', paint:{'circle-color':'transparent','circle-radius':18,'circle-stroke-width':0} });
 
+      // ── Green glow borders for hyper-focus markets ─────────────────────────
+      // Uses Mapbox Streets composite source — admin boundaries at level 1 (states)
+      // State FIPS codes: FL=12, TN=47, TX=48, UT=49, ID=16
+      // Manhattan uses admin level 2 (county) — New York County FIPS 36061
+      const focusStates = ['Florida','Tennessee','Texas','Utah','Idaho'];
+      if (!map.getLayer('focus-market-fill')) {
+        map.addLayer({
+          id: 'focus-market-fill',
+          type: 'fill',
+          source: 'composite',
+          'source-layer': 'admin',
+          filter: ['all',
+            ['==', ['get', 'admin_level'], 1],
+            ['==', ['get', 'disputed'], 'false'],
+            ['==', ['get', 'maritime'], 'false'],
+            ['in', ['get', 'name'], ['literal', focusStates]]
+          ],
+          paint: {
+            'fill-color': 'rgba(31,223,103,0.04)',
+            'fill-opacity': 1
+          }
+        });
+        map.addLayer({
+          id: 'focus-market-line',
+          type: 'line',
+          source: 'composite',
+          'source-layer': 'admin',
+          filter: ['all',
+            ['==', ['get', 'admin_level'], 1],
+            ['==', ['get', 'disputed'], 'false'],
+            ['==', ['get', 'maritime'], 'false'],
+            ['in', ['get', 'name'], ['literal', focusStates]]
+          ],
+          paint: {
+            'line-color': '#1FDF67',
+            'line-width': ['interpolate', ['linear'], ['zoom'], 3, 1, 6, 1.5, 10, 2],
+            'line-opacity': ['interpolate', ['linear'], ['zoom'], 3, 0.5, 6, 0.7, 10, 0.9],
+            'line-blur': 1
+          }
+        });
+        // Manhattan — New York County outline using admin level 2
+        map.addLayer({
+          id: 'focus-market-manhattan-fill',
+          type: 'fill',
+          source: 'composite',
+          'source-layer': 'admin',
+          filter: ['all',
+            ['==', ['get', 'admin_level'], 2],
+            ['==', ['get', 'name'], 'New York County']
+          ],
+          paint: {
+            'fill-color': 'rgba(31,223,103,0.06)',
+            'fill-opacity': 1
+          }
+        });
+        map.addLayer({
+          id: 'focus-market-manhattan-line',
+          type: 'line',
+          source: 'composite',
+          'source-layer': 'admin',
+          filter: ['all',
+            ['==', ['get', 'admin_level'], 2],
+            ['==', ['get', 'name'], 'New York County']
+          ],
+          paint: {
+            'line-color': '#1FDF67',
+            'line-width': ['interpolate', ['linear'], ['zoom'], 8, 1, 12, 2, 14, 2.5],
+            'line-opacity': ['interpolate', ['linear'], ['zoom'], 8, 0.5, 12, 0.9],
+            'line-blur': 0.5
+          }
+        });
+      }
+
       // Station interactions (safe to re-register — Mapbox deduplicates on same handler ref,
       // but we guard with a flag to avoid stacking listeners on style switch)
       if (!window._mapListenersAdded) {
