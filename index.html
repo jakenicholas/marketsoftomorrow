@@ -116,6 +116,7 @@
       60%  { transform: translate(-50%, -50%) scale(1);   opacity: 0.3; }
       100% { transform: translate(-50%, -50%) scale(1.4); opacity: 0; }
     }
+    .city-ping-hidden { visibility: hidden !important; }
 
     /* Map pin pulse for hovered tile */    @keyframes pinPulse {
       0%   { r: 8; opacity: 1; }
@@ -4373,11 +4374,11 @@
           { name:'Salt Lake City',  lng:-111.8910, lat:40.7608 },
           { name:'Boise',           lng:-116.2023, lat:43.6150 },
         ];
-        cities.forEach((city, i) => {
+        const pingEls = [];
+        cities.forEach((city) => {
           const el = document.createElement('div');
           el.style.cssText = 'position:relative;width:0;height:0;pointer-events:none;';
-          // Three rings staggered — each starts from center and expands outward
-          [0, 800, 1600].forEach(delay => {
+          [0, 1333, 2666].forEach(delay => {
             const ring = document.createElement('div');
             ring.style.cssText = `
               position: absolute;
@@ -4385,16 +4386,26 @@
               border-radius: 50%;
               transform: translate(-50%, -50%) scale(0);
               background: radial-gradient(circle, rgba(31,223,103,0.25) 0%, rgba(31,223,103,0.10) 40%, rgba(31,223,103,0) 70%);
-              animation: cityPing 2.4s ease-out infinite;
+              animation: cityPing 4s ease-out infinite;
               animation-delay: ${delay}ms;
               pointer-events: none;
             `;
             el.appendChild(ring);
           });
+          pingEls.push(el);
           new mapboxgl.Marker({ element: el, anchor: 'center' })
             .setLngLat([city.lng, city.lat])
             .addTo(map);
         });
+
+        // Hide pings when zoomed in past cluster breakpoint (clusterMaxZoom=16, pins separate ~z10+)
+        const HIDE_ZOOM = 10;
+        function updatePingVisibility() {
+          const hidden = map.getZoom() >= HIDE_ZOOM;
+          pingEls.forEach(el => el.classList.toggle('city-ping-hidden', hidden));
+        }
+        map.on('zoom', updatePingVisibility);
+        updatePingVisibility();
 
         // Remove old GL line layers if they exist from previous version
         ['focus-city-glow-outer','focus-city-glow-mid','focus-city-line'].forEach(id => {
