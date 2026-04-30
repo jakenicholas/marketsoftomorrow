@@ -248,6 +248,9 @@
 
     #map { position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 1; }
 
+    /* iOS Safari: force map canvas to fill true screen including under notch and chrome */
+
+
     /* ─── DESKTOP SIDEBAR ─────────────────────────────────────────────────── */
     #desktopSidebar {
       position: fixed; left: 0;
@@ -561,8 +564,6 @@
       overflow-x: hidden !important; -webkit-overflow-scrolling: touch !important;
       overscroll-behavior: contain;
       position: relative; pointer-events: auto !important; touch-action: pan-y !important;
-      transform: translateZ(0);
-      -webkit-transform: translateZ(0);
     }
     #mobileDrawerContent .mobile-content {
       padding: 16px calc(16px + var(--safe-area-right)) 16px calc(16px + var(--safe-area-left));
@@ -1991,7 +1992,7 @@
     });
 
     document.addEventListener('gesturestart', e => e.preventDefault());
-    const smoothScrollElements = document.querySelectorAll('#desktopSidebar, #mobileDrawerContent');
+    const smoothScrollElements = document.querySelectorAll('#desktopSidebar');
     smoothScrollElements.forEach(el => {
       el.style.scrollBehavior = 'smooth';
       el.style.webkitOverflowScrolling = 'touch';
