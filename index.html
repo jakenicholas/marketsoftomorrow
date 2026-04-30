@@ -2029,7 +2029,7 @@
         case 't': if (!isMobile) toggleSidebar(); break;
         case 'm':
           if (activePopup) { activePopup.remove(); activePopup = null; }
-          map.flyTo({ center: isMobile ? [-80.0, 28.0] : [-95.0, 38.5], zoom: isMobile ? 3.0 : 4, duration: 1000 });
+          map.flyTo({ center: isMobile ? [-90.0, 35.0] : [-95.0, 38.5], zoom: isMobile ? 3.0 : 4, duration: 1000 });
           showToast('Returned to default view');
           break;
       }
@@ -2040,7 +2040,7 @@
     const map = new mapboxgl.Map({
       container: 'map',
       style: 'mapbox://styles/floridaoftomorrow/clkbk4qlw000a01qw94rj0xa7',
-      center: isMobile ? [-80.0, 28.0] : [-95.0, 38.5],
+      center: isMobile ? [-90.0, 35.0] : [-95.0, 38.5],
       zoom: isMobile ? 3.0 : 4
     });
     let activePopup, stationPopup, fullscreenMap;
