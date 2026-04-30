@@ -4357,76 +4357,101 @@
       if (!map.getLayer('station-hover')) map.addLayer({ id:'station-hover', type:'circle', source:'stations', paint:{'circle-color':'transparent','circle-radius':18,'circle-stroke-width':0} });
 
       // ── Green glow borders for hyper-focus markets ─────────────────────────
-      // Uses Mapbox Streets composite source — admin boundaries at level 1 (states)
-      // State FIPS codes: FL=12, TN=47, TX=48, UT=49, ID=16
-      // Manhattan uses admin level 2 (county) — New York County FIPS 36061
-      const focusStates = ['Florida','Tennessee','Texas','Utah','Idaho'];
-      if (!map.getLayer('focus-market-fill')) {
-        map.addLayer({
-          id: 'focus-market-fill',
-          type: 'fill',
-          source: 'composite',
-          'source-layer': 'admin',
-          filter: ['all',
-            ['==', ['get', 'admin_level'], 1],
-            ['==', ['get', 'disputed'], 'false'],
-            ['==', ['get', 'maritime'], 'false'],
-            ['in', ['get', 'name'], ['literal', focusStates]]
-          ],
-          paint: {
-            'fill-color': 'rgba(31,223,103,0.04)',
-            'fill-opacity': 1
-          }
-        });
-        map.addLayer({
-          id: 'focus-market-line',
-          type: 'line',
-          source: 'composite',
-          'source-layer': 'admin',
-          filter: ['all',
-            ['==', ['get', 'admin_level'], 1],
-            ['==', ['get', 'disputed'], 'false'],
-            ['==', ['get', 'maritime'], 'false'],
-            ['in', ['get', 'name'], ['literal', focusStates]]
-          ],
-          paint: {
-            'line-color': '#1FDF67',
-            'line-width': ['interpolate', ['linear'], ['zoom'], 3, 1, 6, 1.5, 10, 2],
-            'line-opacity': ['interpolate', ['linear'], ['zoom'], 3, 0.5, 6, 0.7, 10, 0.9],
-            'line-blur': 1
-          }
-        });
-        // Manhattan — New York County outline using admin level 2
-        map.addLayer({
-          id: 'focus-market-manhattan-fill',
-          type: 'fill',
-          source: 'composite',
-          'source-layer': 'admin',
-          filter: ['all',
-            ['==', ['get', 'admin_level'], 2],
-            ['==', ['get', 'name'], 'New York County']
-          ],
-          paint: {
-            'fill-color': 'rgba(31,223,103,0.06)',
-            'fill-opacity': 1
-          }
-        });
-        map.addLayer({
-          id: 'focus-market-manhattan-line',
-          type: 'line',
-          source: 'composite',
-          'source-layer': 'admin',
-          filter: ['all',
-            ['==', ['get', 'admin_level'], 2],
-            ['==', ['get', 'name'], 'New York County']
-          ],
-          paint: {
-            'line-color': '#1FDF67',
-            'line-width': ['interpolate', ['linear'], ['zoom'], 8, 1, 12, 2, 14, 2.5],
-            'line-opacity': ['interpolate', ['linear'], ['zoom'], 8, 0.5, 12, 0.9],
-            'line-blur': 0.5
-          }
-        });
+      // Uses Mapbox Boundaries tileset (mapbox.enterprise-boundaries-a2-v2)
+      // Fallback: draw outlines using simplified GeoJSON polygons per state
+      if (!map.getSource('focus-markets')) {
+        // Fetch US state boundaries from public Mapbox tileset
+        // We use the US Census cartographic boundary API — small file, no auth needed
+        fetch('https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json')
+          .then(r => r.json())
+          .then(data => {
+            const focusNames = ['Florida','Tennessee','Texas','Utah','Idaho'];
+            const filtered = {
+              type: 'FeatureCollection',
+              features: data.features.filter(f => focusNames.includes(f.properties.name))
+            };
+            if (!map.getSource('focus-markets')) {
+              map.addSource('focus-markets', { type: 'geojson', data: filtered });
+            }
+            if (!map.getLayer('focus-market-fill')) {
+              map.addLayer({
+                id: 'focus-market-fill',
+                type: 'fill',
+                source: 'focus-markets',
+                paint: {
+                  'fill-color': 'rgba(31,223,103,0.04)',
+                  'fill-opacity': 1,
+                  'fill-antialias': true
+                }
+              }, 'brightline-existing');
+            }
+            if (!map.getLayer('focus-market-line')) {
+              map.addLayer({
+                id: 'focus-market-line',
+                type: 'line',
+                source: 'focus-markets',
+                paint: {
+                  'line-color': '#1FDF67',
+                  'line-width': ['interpolate', ['linear'], ['zoom'], 3, 1, 6, 1.5, 10, 2.5],
+                  'line-opacity': ['interpolate', ['linear'], ['zoom'], 3, 0.6, 6, 0.8, 10, 1],
+                  'line-blur': 2
+                }
+              }, 'brightline-existing');
+            }
+          })
+          .catch(e => console.warn('Focus market boundaries failed to load:', e));
+
+        // Manhattan — simplified bounding polygon (New York County)
+        const manhattanGeo = {
+          type: 'FeatureCollection',
+          features: [{
+            type: 'Feature',
+            properties: { name: 'Manhattan' },
+            geometry: {
+              type: 'Polygon',
+              coordinates: [[
+                [-74.0479, 40.6829], [-74.0200, 40.6996], [-73.9730, 40.7001],
+                [-73.9730, 40.7020], [-73.9692, 40.7052], [-73.9730, 40.7100],
+                [-73.9769, 40.7143], [-73.9809, 40.7169], [-73.9730, 40.7300],
+                [-73.9730, 40.7400], [-73.9600, 40.7500], [-73.9500, 40.7600],
+                [-73.9300, 40.7700], [-73.9150, 40.7800], [-73.9070, 40.7870],
+                [-73.9120, 40.7960], [-73.9200, 40.8050], [-73.9300, 40.8150],
+                [-73.9330, 40.8250], [-73.9290, 40.8380], [-73.9330, 40.8510],
+                [-73.9410, 40.8600], [-73.9500, 40.8680], [-73.9330, 40.8780],
+                [-73.9120, 40.8780], [-73.9070, 40.8700], [-73.9070, 40.8580],
+                [-73.9000, 40.8460], [-73.9000, 40.8350], [-73.9000, 40.8250],
+                [-73.9050, 40.8100], [-73.9000, 40.8000], [-73.8900, 40.7900],
+                [-73.8800, 40.7800], [-73.8700, 40.7680], [-73.8700, 40.7500],
+                [-73.9000, 40.7300], [-73.9200, 40.7100], [-73.9400, 40.7000],
+                [-73.9700, 40.6900], [-74.0100, 40.6850], [-74.0479, 40.6829]
+              ]]
+            }
+          }]
+        };
+        if (!map.getSource('focus-manhattan')) {
+          map.addSource('focus-manhattan', { type: 'geojson', data: manhattanGeo });
+        }
+        if (!map.getLayer('focus-manhattan-fill')) {
+          map.addLayer({
+            id: 'focus-manhattan-fill',
+            type: 'fill',
+            source: 'focus-manhattan',
+            paint: { 'fill-color': 'rgba(31,223,103,0.06)', 'fill-opacity': 1 }
+          }, 'brightline-existing');
+        }
+        if (!map.getLayer('focus-manhattan-line')) {
+          map.addLayer({
+            id: 'focus-manhattan-line',
+            type: 'line',
+            source: 'focus-manhattan',
+            paint: {
+              'line-color': '#1FDF67',
+              'line-width': ['interpolate', ['linear'], ['zoom'], 8, 1.5, 12, 2.5, 14, 3],
+              'line-opacity': ['interpolate', ['linear'], ['zoom'], 8, 0.6, 12, 1],
+              'line-blur': 1.5
+            }
+          }, 'brightline-existing');
+        }
       }
 
       // Station interactions (safe to re-register — Mapbox deduplicates on same handler ref,
