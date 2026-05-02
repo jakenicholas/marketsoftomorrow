@@ -1487,8 +1487,7 @@
       align-items: center;
       justify-content: space-between;
       padding: 14px 0 6px;
-      background: rgba(11,11,11,0.96);
-      visibility: visible;
+      background: transparent;
       height: auto;
       overflow: visible;
       pointer-events: auto;
@@ -1576,7 +1575,7 @@
     }
     /* Style the nearby header sticky background */
     .section-header-wrap.nearby-header {
-      background: rgba(11,11,11,0.96);
+      background: transparent;
       margin-top: 4px;
       padding-top: 14px;
     }
@@ -2700,12 +2699,22 @@
       const H = canvas.clientHeight;
 
       if (isMobile) {
+        // Trim bounds to exclude the bottom area covered by the search pill (~120px)
+        const pillOffset = 120;
+        const topLeft     = map.unproject([0, 0]);
+        const bottomRight = map.unproject([W, H - pillOffset]);
+        if (topLeft && bottomRight) {
+          return new mapboxgl.LngLatBounds(
+            [topLeft.lng, bottomRight.lat],
+            [bottomRight.lng, topLeft.lat]
+          );
+        }
         return map.getBounds();
       } else {
         const sidebarWidth = document.getElementById('desktopSidebar')?.classList.contains('open') ? 480 : 0;
         const topOffset = 60;
         const topLeft     = map.unproject([sidebarWidth, topOffset]);
-        const bottomRight = map.unproject([W,            H]);
+        const bottomRight = map.unproject([W, H]);
         return new mapboxgl.LngLatBounds(
           [topLeft.lng,     bottomRight.lat],
           [bottomRight.lng, topLeft.lat]
