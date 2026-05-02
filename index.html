@@ -2938,6 +2938,18 @@
         window.gridRendering[targetId] = false;
         updateResultCount(targetId);
         if (targetId === 'gridMobile') {
+          const inViewCount = (window.allMobileFeatures || []).filter(f => {
+            const bounds = getVisibleBounds();
+            return bounds && bounds.contains([f.geometry.coordinates[0], f.geometry.coordinates[1]]);
+          }).length;
+          const mobileSsbTitle = document.getElementById('mobileSsbTitle');
+          const mobileSsbCount = document.getElementById('mobileSsbCount');
+          if (mobileSsbTitle && mobileSsbCount && inViewCount > 0) {
+            mobileSsbTitle.textContent = 'In View';
+            mobileSsbTitle.className = 'ssb-title in-view';
+            mobileSsbCount.textContent = `${inViewCount} project${inViewCount !== 1 ? 's' : ''}`;
+            mobileSsbCount.className = 'ssb-count green';
+          }
           setupSectionBar(
             document.getElementById('mobileDrawerContent'),
             document.getElementById('mobileSsbTitle'),
@@ -3112,6 +3124,21 @@
         window.gridRendering[targetId] = false;
         updateResultCount(targetId);
         if (targetId === 'gridMobile') {
+          // Force SSB to In View if there are in-view results — setupSectionBar
+          // can incorrectly flip to More Nearby on initial render due to scroll pos
+          const inViewCount = (window.allMobileFeatures || []).filter(f => {
+            const bounds = getVisibleBounds();
+            return bounds && bounds.contains([f.geometry.coordinates[0], f.geometry.coordinates[1]]);
+          }).length;
+          const mobileSsbTitle = document.getElementById('mobileSsbTitle');
+          const mobileSsbCount = document.getElementById('mobileSsbCount');
+          const mobileSsbInner = document.getElementById('mobileSsbInner');
+          if (mobileSsbTitle && mobileSsbCount && inViewCount > 0) {
+            mobileSsbTitle.textContent = 'In View';
+            mobileSsbTitle.className = 'ssb-title in-view';
+            mobileSsbCount.textContent = `${inViewCount} project${inViewCount !== 1 ? 's' : ''}`;
+            mobileSsbCount.className = 'ssb-count green';
+          }
           setupSectionBar(
             document.getElementById('mobileDrawerContent'),
             document.getElementById('mobileSsbTitle'),
