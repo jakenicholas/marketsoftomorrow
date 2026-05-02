@@ -583,11 +583,17 @@
     /* ─── MOBILE SEARCH + FILTERS ─────────────────────────────────────────── */
     #mobileDrawerContent .mobile-header {
       position: sticky; top: 0; z-index: 10;
+      background: rgba(11,11,11,0);
+      backdrop-filter: blur(0px);
+      -webkit-backdrop-filter: blur(0px);
+      transition: background 0.25s ease, backdrop-filter 0.25s ease, -webkit-backdrop-filter 0.25s ease;
+      padding: 12px calc(14px + var(--safe-area-right)) 10px calc(14px + var(--safe-area-left));
+      display: flex; flex-direction: column; gap: 7px;
+    }
+    #mobileDrawerContent .mobile-header.scrolled {
       background: rgba(11,11,11,0.96);
       backdrop-filter: blur(24px) brightness(0.65);
       -webkit-backdrop-filter: blur(24px) brightness(0.65);
-      padding: 12px calc(14px + var(--safe-area-right)) 10px calc(14px + var(--safe-area-left));
-      display: flex; flex-direction: column; gap: 7px;
     }
 
     /* Row 1: Search glass pill */
@@ -3965,9 +3971,18 @@
         drawer.style.transform = 'translateY(100%)';
         mapBtn.classList.remove('visible');
         content.scrollTop = 0;
+        // Reset header to transparent when drawer closes
+        const mobileHeader = content.querySelector('.mobile-header');
+        if (mobileHeader) mobileHeader.classList.remove('scrolled');
         window.mobileScrollObserver?.disconnect();
         window.mobileScrollLoading = false;
       }
+
+      // Toggle header opacity based on scroll position
+      const mobileHeader = content.querySelector('.mobile-header');
+      content.addEventListener('scroll', () => {
+        if (mobileHeader) mobileHeader.classList.toggle('scrolled', content.scrollTop > 10);
+      }, { passive: true });
 
       function expandDrawer() {
         isExpanded = true;
