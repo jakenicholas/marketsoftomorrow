@@ -583,9 +583,9 @@
     /* ─── MOBILE SEARCH + FILTERS ─────────────────────────────────────────── */
     #mobileDrawerContent .mobile-header {
       position: sticky; top: 0; z-index: 10;
-      background: rgba(11,11,11,0.85);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
+      background: rgba(11,11,11,0.72);
+      backdrop-filter: blur(24px) brightness(0.65);
+      -webkit-backdrop-filter: blur(24px) brightness(0.65);
       padding: 12px calc(14px + var(--safe-area-right)) 10px calc(14px + var(--safe-area-left));
       display: flex; flex-direction: column; gap: 7px;
     }
@@ -705,9 +705,9 @@
     /* Desktop sidebar header glass pills */
     #desktopSidebar .sidebar-header {
       position: sticky; top: 0; z-index: 10;
-      background: rgba(11,11,11,0.85);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
+      background: rgba(11,11,11,0.72);
+      backdrop-filter: blur(24px) brightness(0.65);
+      -webkit-backdrop-filter: blur(24px) brightness(0.65);
       padding: 12px 14px 10px;
       display: flex; flex-direction: column; gap: 7px;
     }
@@ -1469,9 +1469,7 @@
       align-items: center;
       justify-content: space-between;
       padding: 10px 0 6px;
-      background: #111111;
-    }
-    /* In-view sentinel — hidden, kept for scroll detection only */
+      background: transparent;
     .section-sticky.sentinel-inview {
       grid-column: 1 / -1;
       visibility: hidden;
@@ -1488,7 +1486,7 @@
       align-items: center;
       justify-content: space-between;
       padding: 14px 0 6px;
-      background: #111111;
+      background: transparent;
       visibility: visible;
       height: auto;
       overflow: visible;
@@ -1577,7 +1575,7 @@
     }
     /* Style the nearby header sticky background */
     .section-header-wrap.nearby-header {
-      background: #111111;
+      background: transparent;
       margin-top: 4px;
       padding-top: 14px;
     }
@@ -2701,7 +2699,18 @@
       const H = canvas.clientHeight;
 
       if (isMobile) {
-        return map.getBounds();
+        // On mobile the drawer covers roughly 55% of screen height when expanded
+        // Use the visible map area only (above where the drawer sits)
+        const drawer = document.getElementById('mobileDrawer');
+        const drawerOpen = drawer && drawer.classList.contains('expanded');
+        // When drawer open, visible map = top ~45% of screen; when closed full map
+        const visibleH = drawerOpen ? H * 0.45 : H;
+        const topLeft     = map.unproject([0, 0]);
+        const bottomRight = map.unproject([W, visibleH]);
+        return new mapboxgl.LngLatBounds(
+          [topLeft.lng,     bottomRight.lat],
+          [bottomRight.lng, topLeft.lat]
+        );
       } else {
         const sidebarWidth = document.getElementById('desktopSidebar')?.classList.contains('open') ? 480 : 0;
         const topOffset = 60;
