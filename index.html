@@ -264,9 +264,9 @@
       top: calc(var(--header-height) + var(--safe-area-top));
       width: 35%;
       height: calc(100% - var(--header-height) - var(--safe-area-top));
-      background: rgba(11,11,11,0.75);
-      backdrop-filter: blur(24px) brightness(0.65);
-      -webkit-backdrop-filter: blur(24px) brightness(0.65);
+      background: linear-gradient(to bottom, rgba(11,11,11,0) 0px, rgba(11,11,11,0) 140px, rgba(11,11,11,0.80) 220px, rgba(11,11,11,0.80) 100%);
+      backdrop-filter: blur(40px) brightness(0.65);
+      -webkit-backdrop-filter: blur(40px) brightness(0.65);
       overflow-y: auto; z-index: 4; padding: 0;
       padding-left: var(--safe-area-left);
       transform: translateX(-100%);
@@ -381,8 +381,8 @@
       height: calc(100dvh - var(--header-height));
       max-height: calc(100dvh - var(--header-height));
       background: linear-gradient(to bottom, rgba(11,11,11,0) 0px, rgba(11,11,11,0) 140px, rgba(11,11,11,0.80) 220px, rgba(11,11,11,0.80) 100%);
-      backdrop-filter: blur(24px) brightness(0.65);
-      -webkit-backdrop-filter: blur(24px) brightness(0.65);
+      backdrop-filter: blur(40px) brightness(0.65);
+      -webkit-backdrop-filter: blur(40px) brightness(0.65);
       z-index: 10; display: none;
       transform: translateY(100%);
       transition: transform 0.35s cubic-bezier(0.34, 1.2, 0.64, 1);
@@ -587,8 +587,8 @@
     #mobileDrawerContent .mobile-header {
       position: sticky; top: 0; z-index: 10;
       background: rgba(11,11,11,0);
-      backdrop-filter: blur(20px) brightness(0.7);
-      -webkit-backdrop-filter: blur(20px) brightness(0.7);
+      backdrop-filter: blur(40px) brightness(0.7);
+      -webkit-backdrop-filter: blur(40px) brightness(0.7);
       transition: background 0.3s ease;
       padding: 12px calc(14px + var(--safe-area-right)) 10px calc(14px + var(--safe-area-left));
       display: flex; flex-direction: column; gap: 7px;
@@ -712,11 +712,15 @@
     /* Desktop sidebar header glass pills */
     #desktopSidebar .sidebar-header {
       position: sticky; top: 0; z-index: 10;
-      background: rgba(11,11,11,0.96);
-      backdrop-filter: blur(24px) brightness(0.65);
-      -webkit-backdrop-filter: blur(24px) brightness(0.65);
+      background: rgba(11,11,11,0);
+      backdrop-filter: blur(40px) brightness(0.7);
+      -webkit-backdrop-filter: blur(40px) brightness(0.7);
+      transition: background 0.3s ease;
       padding: 12px 14px 10px;
       display: flex; flex-direction: column; gap: 7px;
+    }
+    #desktopSidebar .sidebar-header.scrolled {
+      background: rgba(11,11,11,0.55);
     }
 
     /* Search row: pill + close button side by side */
@@ -2497,8 +2501,20 @@
       const closeBtn = document.getElementById('closeSidebar');
       if (closeBtn) {
         closeBtn.onclick = () => {
-          if (sidebar) sidebar.classList.remove('open');
+          if (sidebar) {
+            sidebar.classList.remove('open');
+            const sidebarHeader = sidebar.querySelector('.sidebar-header');
+            if (sidebarHeader) sidebarHeader.classList.remove('scrolled');
+            sidebar.scrollTop = 0;
+          }
         };
+      }
+      // Scroll listener for desktop header transparency
+      if (sidebar) {
+        const sidebarHeader = sidebar.querySelector('.sidebar-header');
+        sidebar.addEventListener('scroll', () => {
+          if (sidebarHeader) sidebarHeader.classList.toggle('scrolled', sidebar.scrollTop > 10);
+        }, { passive: true });
       }
       // Desktop pill opens sidebar and focuses search
       const desktopPill = document.getElementById('desktopSearchPill');
