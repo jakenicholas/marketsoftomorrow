@@ -3022,6 +3022,9 @@
       const makeHeader = (title, count, isInView) => {
         const wrap = document.createElement('div');
         wrap.className = 'section-header-wrap' + (isInView ? '' : ' nearby-header');
+        wrap.dataset.section = isInView ? 'inview' : 'nearby';
+        wrap.dataset.label = isInView ? 'In View' : 'More Nearby';
+        wrap.dataset.count = count;
         wrap.innerHTML = `<span class="section-title${isInView ? ' in-view' : ''}">${title}</span><span class="section-count${isInView ? '' : ' muted'}">${count}</span>`;
         return wrap;
       };
