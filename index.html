@@ -1469,7 +1469,8 @@
       align-items: center;
       justify-content: space-between;
       padding: 10px 0 6px;
-      background: transparent;
+      background: rgba(11,11,11,0.96);
+    }
     .section-sticky.sentinel-inview {
       grid-column: 1 / -1;
       visibility: hidden;
@@ -2699,18 +2700,7 @@
       const H = canvas.clientHeight;
 
       if (isMobile) {
-        // On mobile the drawer covers roughly 55% of screen height when expanded
-        // Use the visible map area only (above where the drawer sits)
-        const drawer = document.getElementById('mobileDrawer');
-        const drawerOpen = drawer && drawer.classList.contains('expanded');
-        // When drawer open, visible map = top ~45% of screen; when closed full map
-        const visibleH = drawerOpen ? H * 0.45 : H;
-        const topLeft     = map.unproject([0, 0]);
-        const bottomRight = map.unproject([W, visibleH]);
-        return new mapboxgl.LngLatBounds(
-          [topLeft.lng,     bottomRight.lat],
-          [bottomRight.lng, topLeft.lat]
-        );
+        return map.getBounds();
       } else {
         const sidebarWidth = document.getElementById('desktopSidebar')?.classList.contains('open') ? 480 : 0;
         const topOffset = 60;
