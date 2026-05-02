@@ -2679,6 +2679,18 @@
         const all = Array.from(scrollContainer.querySelectorAll('.section-sticky'));
         if (!all.length) return;
         const containerRect = scrollContainer.getBoundingClientRect();
+        const scrollTop = scrollContainer.scrollTop;
+
+        // If at the very top of the scroll container, always show In View
+        // (sentinel-inview is invisible 1px — can't use its position reliably at top)
+        if (scrollTop < 10) {
+          const inviewSentinel = scrollContainer.querySelector('.sentinel-inview');
+          if (inviewSentinel) {
+            animateTo(true, inviewSentinel.dataset.label || 'In View', inviewSentinel.dataset.count || '');
+            return;
+          }
+        }
+
         let active = all[0];
         for (const h of all) {
           if (h.getBoundingClientRect().top < containerRect.top + 10) active = h;
