@@ -645,8 +645,52 @@ def main():
     # Generate /projects/index.html
     build_index(index_items)
 
+    # Generate sitemap.xml + robots.txt at repo root for SEO
+    build_sitemap(index_items)
+    build_robots()
+
     print(f"\n✅ Done! Generated {generated} pages, skipped {skipped}")
     print(f"   Output: ./{OUTPUT_DIR}/")
+
+def build_sitemap(items):
+    """Write sitemap.xml to repo root listing homepage + projects index + all project pages."""
+    from datetime import date
+    today = date.today().isoformat()
+
+    urls = []
+    # Homepage — highest priority, changes most often (sheet updates daily)
+    urls.append((SITE_URL + '/', '1.0', 'daily'))
+    # All-projects index page
+    urls.append((f"{SITE_URL}/projects/", '0.9', 'daily'))
+    # Individual project pages
+    for slug, title, city, delivery, image in items:
+        urls.append((f"{SITE_URL}/projects/{slug}/", '0.8', 'weekly'))
+
+    lines = ['<?xml version="1.0" encoding="UTF-8"?>',
+             '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
+    for loc, priority, changefreq in urls:
+        lines.append('  <url>')
+        lines.append(f'    <loc>{loc}</loc>')
+        lines.append(f'    <lastmod>{today}</lastmod>')
+        lines.append(f'    <changefreq>{changefreq}</changefreq>')
+        lines.append(f'    <priority>{priority}</priority>')
+        lines.append('  </url>')
+    lines.append('</urlset>')
+
+    with open('sitemap.xml', 'w', encoding='utf-8') as f:
+        f.write('\n'.join(lines))
+    print(f"  ✓ sitemap.xml: {len(urls)} URLs")
+
+def build_robots():
+    """Write robots.txt at repo root pointing crawlers to the sitemap."""
+    content = f"""User-agent: *
+Allow: /
+
+Sitemap: {SITE_URL}/sitemap.xml
+"""
+    with open('robots.txt', 'w', encoding='utf-8') as f:
+        f.write(content)
+    print(f"  ✓ robots.txt")
 
 def build_index(items):
     cards = ''
