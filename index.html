@@ -1690,10 +1690,34 @@
   @media (max-width: 767px) {
     #projectModal {
       top: 0; left: 0; right: 0; bottom: 0;
+      height: 100dvh;
       transform: translateY(100%);
       transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+      display: none;
+      flex-direction: column;
     }
-    #projectModal.open { transform: translateY(0); }
+    #projectModal.open { transform: translateY(0); display: flex !important; }
+    #projectModal .pm-scroll {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+      padding-bottom: 0;
+    }
+    #projectModal .pm-body {
+      display: flex;
+      flex-direction: column;
+    }
+    #projectModal .pm-cta {
+      position: sticky;
+      bottom: 0;
+      background: #0d0d0d;
+      padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+      margin: 0 -16px;
+      border-top: 0.5px solid rgba(255,255,255,0.1);
+      z-index: 5;
+    }
   }
   #projectModal .pm-scroll {
     height: 100%;
@@ -1753,9 +1777,10 @@
     content: attr(data-count);
     position: absolute; inset: 0;
     display: flex; align-items: center; justify-content: center;
-    background: rgba(0,0,0,0.5);
-    color: rgba(255,255,255,0.7);
-    font-size: 12px; font-weight: 600;
+    background: rgba(0,0,0,0.55);
+    color: rgba(255,255,255,0.85);
+    font-size: 11px; font-weight: 600;
+    letter-spacing: 0.02em;
   }
   /* Content area */
   #projectModal .pm-body {
@@ -2181,11 +2206,15 @@
           <div class="pm-div"></div>
           <div class="pm-stats" id="pmStats" style="margin-top:12px;"></div>
           <div class="pm-cta">
-            <a class="pm-btn-learn" id="pmLearnBtn" href="#" target="_blank">Official Website ↗</a>
+            <a class="pm-btn-learn" id="pmLearnBtn" href="#" target="_blank">
+                Official Website&nbsp;<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;flex-shrink:0;"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+              </a>
             <div class="pm-btn-icon" id="pmShareIconBtn">
               <svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
             </div>
-            <div class="pm-btn-icon" id="pmLikeBtn">♡</div>
+            <div class="pm-btn-icon" id="pmLikeBtn">
+              <svg id="pmHeartSvg" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            </div>
           </div>
         </div>
       </div>
@@ -2870,31 +2899,35 @@
         heroImg.src = p.image || '';
         heroImg.alt = p.title || '';
 
-        // Thumbs — stub 3 copies of main image until Image2-5 columns exist
+        // Smart gallery — collect available images, show strip only if >1
+        const imgs = [p.image, p.image2, p.image3, p.image4, p.image5]
+          .filter(u => u && u.trim());
         const thumbs = document.getElementById('pmThumbs');
-        thumbs.innerHTML = [0,1,2].map((i, idx) => {
-          if (idx === 2) return `<div class="pm-thumb more" data-count="+${0}" style="background-image:url('${p.image}')"></div>`;
-          return `<div class="pm-thumb" style="background-image:url('${p.image}')"></div>`;
-        }).join('');
-        // Hide the "+0" more div if no extras
-        thumbs.innerHTML = `
-          <div class="pm-thumb" style="background-image:url('${p.image || ''}')"></div>
-          <div class="pm-thumb" style="background-image:url('${p.image || ''}');opacity:0.6;"></div>
-          <div class="pm-thumb" style="background-image:url('${p.image || ''}');opacity:0.4;"></div>`;
-
-        // Pills
-        const pills = document.getElementById('pmPills');
-        let pillsHTML = '';
-        if (p.featured) pillsHTML += `<span class="pm-featured-pill">★ Featured</span>`;
-        if (p.projectType) {
-          const t = p.projectType.split(',')[0].trim();
-          if (t) pillsHTML += `<span class="pm-type-pill">${t}</span>`;
+        if (imgs.length <= 1) {
+          // Single image — hide strip entirely
+          thumbs.style.display = 'none';
+        } else {
+          thumbs.style.display = 'grid';
+          const show = imgs.slice(1, 4); // up to 3 thumbs
+          const remaining = imgs.length - 4; // imgs beyond first 4
+          thumbs.innerHTML = show.map((url, i) => {
+            const isLast = i === show.length - 1 && remaining > 0;
+            return `<div class="pm-thumb${isLast ? ' more' : ''}"
+              style="background-image:url('${url}')"
+              ${isLast ? `data-count="+${remaining} more"` : ''}></div>`;
+          }).join('');
         }
-        pills.innerHTML = pillsHTML;
 
-        // Title + city
+        // Pills — featured only, no type pill
+        const pills = document.getElementById('pmPills');
+        pills.innerHTML = p.featured ? `<span class="pm-featured-pill">★ Featured</span>` : '';
+
+        // Title + city · project type
         document.getElementById('pmTitle').textContent = p.title || '';
-        document.getElementById('pmCity').textContent = p.city || '';
+        const typeLabel = p.projectType ? p.projectType.split(',')[0].trim() : '';
+        document.getElementById('pmCity').textContent = typeLabel
+          ? `${p.city || ''} • ${typeLabel}`
+          : (p.city || '');
 
         // Progress
         document.getElementById('pmProgress').innerHTML = buildProgress(p.delivery);
@@ -2938,7 +2971,9 @@
         document.getElementById('pmLikeBtn').classList.remove('liked');
         document.getElementById('pmLikeBtn').textContent = '♡';
 
-        // Show modal
+        // Show modal — push URL so share link works
+        const slug = projectSlug(p.title);
+        history.pushState({ project: slug }, '', `?fullscreen=true&project=${slug}`);
         modal.style.display = 'block';
         requestAnimationFrame(() => {
           requestAnimationFrame(() => modal.classList.add('open'));
@@ -2956,6 +2991,7 @@
       function closeModal() {
         modal.classList.remove('open');
         setTimeout(() => { modal.style.display = 'none'; }, 350);
+        history.pushState({}, '', `?fullscreen=true`);
 
         // On mobile: re-expand the drawer if we came from a tile
         if (isMobile && fromSource === 'tile') {
@@ -2978,6 +3014,9 @@
         const slug = (title || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
         const base = window.location.origin + window.location.pathname;
         return `${base}?fullscreen=true&project=${slug}`;
+      }
+      function projectSlug(title) {
+        return (title || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
       }
 
       // Share helper
@@ -3004,7 +3043,11 @@
       // Like button
       document.getElementById('pmLikeBtn').addEventListener('click', function() {
         liked = !liked;
-        this.textContent = liked ? '♥' : '♡';
+        const svg = this.querySelector('svg');
+        if (svg) {
+          svg.setAttribute('fill', liked ? '#FF6B9D' : 'none');
+          svg.setAttribute('stroke', liked ? '#FF6B9D' : 'rgba(255,255,255,0.6)');
+        }
         this.classList.toggle('liked', liked);
       });
 
@@ -5119,6 +5162,10 @@
                 architect: p.Architect || '',
                 deliveryDate: p.DeliveryDate || '',
                 descriptionLong: p.DescriptionLong || '',
+                image2: p.Image2 || '',
+                image3: p.Image3 || '',
+                image4: p.Image4 || '',
+                image5: p.Image5 || '',
                 // Keep JS array on the feature object itself for grid filtering (not used by Mapbox)
                 featured: p.Featured?.trim().toLowerCase() === 'featured'
               },
