@@ -1714,7 +1714,7 @@
       bottom: 0;
       background: #0d0d0d;
       padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
-      margin: 0 -16px;
+      margin: 0;
       border-top: 0.5px solid rgba(255,255,255,0.1);
       z-index: 5;
     }
@@ -1728,7 +1728,7 @@
   /* Hero image */
   #projectModal .pm-hero {
     position: relative;
-    height: 220px;
+    height: 260px;
     background: #1a2e1a;
     flex-shrink: 0;
     overflow: hidden;
@@ -2852,7 +2852,7 @@
       // Fly to pin
       const currentZoom = map.getZoom();
       const targetZoom = Math.max(currentZoom, 13);
-      map.flyTo({ center: co, zoom: targetZoom, duration: 800, essential: true });
+      map.flyTo({ center: co, zoom: targetZoom, duration: 1400, essential: true });
     }
 
     // ── Deep-link: open project modal from ?project= URL param ──────────
@@ -3017,9 +3017,21 @@
         document.getElementById('pmLikeBtn').classList.remove('liked');
         document.getElementById('pmLikeBtn').textContent = '♡';
 
-        // Show modal — push URL so share link works
+        // Show modal — push URL + update SEO meta for sharing
         const slug = projectSlug(p.title);
         history.pushState({ project: slug }, '', `?fullscreen=true&project=${slug}`);
+        const seoTitle = `${p.title}, ${p.city} | Markets of Tomorrow`;
+        const seoDesc = p.descriptionLong || p.description || `Explore ${p.title} on the Map of Tomorrow — Markets of Tomorrow's interactive development map.`;
+        const seoImg = p.image || 'https://static.wixstatic.com/media/ca3b83_93ffb2f000f94a12aa874fe44153be18~mv2.jpg';
+        const seoUrl = projectShareUrl(p.title);
+        document.title = seoTitle;
+        document.querySelector('meta[property="og:title"]')?.setAttribute('content', seoTitle);
+        document.querySelector('meta[property="og:description"]')?.setAttribute('content', seoDesc);
+        document.querySelector('meta[property="og:image"]')?.setAttribute('content', seoImg);
+        document.querySelector('meta[property="og:url"]')?.setAttribute('content', seoUrl);
+        document.querySelector('meta[name="twitter:title"]')?.setAttribute('content', seoTitle);
+        document.querySelector('meta[name="twitter:image"]')?.setAttribute('content', seoImg);
+        document.querySelector('meta[name="description"]')?.setAttribute('content', seoDesc);
         modal.style.display = 'block';
         requestAnimationFrame(() => {
           requestAnimationFrame(() => modal.classList.add('open'));
@@ -3038,6 +3050,13 @@
         modal.classList.remove('open');
         setTimeout(() => { modal.style.display = 'none'; }, 350);
         history.pushState({}, '', `?fullscreen=true`);
+        // Restore SEO meta to defaults
+        document.title = 'Map of Tomorrow | Interactive Future Development Map | Markets of Tomorrow';
+        document.querySelector('meta[property="og:title"]')?.setAttribute('content', 'Map of Tomorrow | Interactive Future Development Map | Markets of Tomorrow');
+        document.querySelector('meta[property="og:url"]')?.setAttribute('content', 'https://map.oftmw.com/');
+        document.querySelector('meta[property="og:image"]')?.setAttribute('content', 'https://static.wixstatic.com/media/ca3b83_93ffb2f000f94a12aa874fe44153be18~mv2.jpg');
+        document.querySelector('meta[name="twitter:title"]')?.setAttribute('content', 'Map of Tomorrow | Interactive Future Development Map | Markets of Tomorrow');
+        document.querySelector('meta[name="twitter:image"]')?.setAttribute('content', 'https://static.wixstatic.com/media/ca3b83_93ffb2f000f94a12aa874fe44153be18~mv2.jpg');
         // Restore green pin if opened from tile or deeplink (no popup to handle cleanup)
         if (fromSource === 'tile' || fromSource === 'deeplink') {
           if (map.getLayer('unclustered-point')) {
