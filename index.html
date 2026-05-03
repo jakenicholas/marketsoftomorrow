@@ -2166,13 +2166,7 @@
             <button class="pm-icon-btn" id="pmCloseBtn" aria-label="Close">
               <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             </button>
-            <div style="display:flex;gap:6px;">
-              <button class="pm-icon-btn" id="pmShareBtn" aria-label="Share">
-                <svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
-              </button>
-            </div>
           </div>
-          <div class="pm-counter" id="pmCounter">1 / 1</div>
         </div>
         <!-- Thumbnail strip -->
         <div class="pm-thumbs" id="pmThumbs"></div>
@@ -2876,9 +2870,6 @@
         heroImg.src = p.image || '';
         heroImg.alt = p.title || '';
 
-        // Counter (stub — will update when multi-image added)
-        document.getElementById('pmCounter').textContent = '1 / 1';
-
         // Thumbs — stub 3 copies of main image until Image2-5 columns exist
         const thumbs = document.getElementById('pmThumbs');
         thumbs.innerHTML = [0,1,2].map((i, idx) => {
@@ -2903,8 +2894,7 @@
 
         // Title + city
         document.getElementById('pmTitle').textContent = p.title || '';
-        document.getElementById('pmCity').textContent = [p.city, p.architect ? p.architect.split('/')[0].trim() : '']
-          .filter(Boolean).join(' · ');
+        document.getElementById('pmCity').textContent = p.city || '';
 
         // Progress
         document.getElementById('pmProgress').innerHTML = buildProgress(p.delivery);
@@ -2983,31 +2973,32 @@
       // Close button
       document.getElementById('pmCloseBtn').addEventListener('click', closeModal);
 
-      // Share buttons
-      function doShare(title, url) {
+      // Build deep-link URL for a project
+      function projectShareUrl(title) {
+        const slug = (title || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
+        const base = window.location.origin + window.location.pathname;
+        return `${base}?fullscreen=true&project=${slug}`;
+      }
+
+      // Share helper
+      function doShare(title) {
+        const url = projectShareUrl(title);
         if (navigator.share) {
-          navigator.share({ title, url }).catch(() => {});
+          navigator.share({ title: title + ' | Map of Tomorrow', url }).catch(() => {});
         } else {
           navigator.clipboard?.writeText(url).then(() => {
-            // Brief visual feedback
             const btn = document.getElementById('pmShareIconBtn');
+            const orig = btn.innerHTML;
+            btn.innerHTML = '✓';
             btn.style.color = '#1FDF67';
-            setTimeout(() => btn.style.color = '', 1200);
+            setTimeout(() => { btn.innerHTML = orig; btn.style.color = ''; }, 1500);
           }).catch(() => {});
         }
       }
 
-      document.getElementById('pmShareBtn').addEventListener('click', () => {
-        const p = currentFeature?.properties;
-        if (!p) return;
-        const url = p.website || window.location.href;
-        doShare(p.title, url);
-      });
       document.getElementById('pmShareIconBtn').addEventListener('click', () => {
         const p = currentFeature?.properties;
-        if (!p) return;
-        const url = p.website || window.location.href;
-        doShare(p.title, url);
+        if (p) doShare(p.title);
       });
 
       // Like button
