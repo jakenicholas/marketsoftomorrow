@@ -41,6 +41,10 @@
   
   <script src="https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
+  <!-- Memberstack DOM Package — handles auth + Stripe checkout for the paywall -->
+  <script src="https://static.memberstack.com/scripts/v1/memberstack.js"
+          data-memberstack-app="app_cmoq79nvv002d0syef7wpel3c"></script>
   
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-6NPTWCVFCG"></script>
   <script>
@@ -1921,6 +1925,201 @@
     border-radius: 20px; padding: 3px 10px;
     font-size: 10px; color: rgba(255,255,255,0.6);
   }
+
+  /* ═══════════════════════════════════════════════════════════════════════
+     PAYWALL MODAL + AUTH HEADER UI
+     ═══════════════════════════════════════════════════════════════════════ */
+
+  /* Auth header — small "Sign in" / member status pill, top-left of viewport */
+  #paywallAuthHeader {
+    position: fixed;
+    z-index: 30;
+    top: calc(var(--safe-area-top, 0px) + 14px);
+    left: calc(var(--safe-area-left, 0px) + 14px);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    pointer-events: auto;
+  }
+  /* On desktop, push it below the existing header logo */
+  @media(min-width: 801px) {
+    #paywallAuthHeader { top: calc(var(--safe-area-top, 0px) + 60px); }
+  }
+  #paywallAuthHeader button,
+  #paywallAuthHeader .auth-status {
+    background: rgba(15,15,15,0.6);
+    backdrop-filter: blur(16px) saturate(1.4);
+    -webkit-backdrop-filter: blur(16px) saturate(1.4);
+    border: 1px solid rgba(255,255,255,0.12);
+    color: rgba(255,255,255,0.9);
+    font-size: 12px;
+    font-weight: 500;
+    padding: 7px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.15s;
+    white-space: nowrap;
+  }
+  #paywallAuthHeader button:hover { background: rgba(40,40,40,0.75); }
+  #paywallAuthHeader .auth-status { cursor: default; padding-right: 10px; }
+
+  /* Paywall modal — full-screen, hard-blocking */
+  #paywallModal {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    padding-top: calc(20px + env(safe-area-inset-top));
+    padding-bottom: calc(20px + env(safe-area-inset-bottom));
+  }
+  #paywallModal.active { display: flex; }
+
+  .paywall-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(8,8,8,0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+  .paywall-card {
+    position: relative;
+    width: 100%;
+    max-width: 440px;
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
+    background: linear-gradient(180deg, rgba(28,28,28,0.95) 0%, rgba(15,15,15,0.95) 100%);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 18px;
+    padding: 28px 24px 22px;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.05);
+    color: #fff;
+    text-align: center;
+    animation: paywallPop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  @keyframes paywallPop {
+    from { opacity: 0; transform: scale(0.9) translateY(20px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
+  }
+  .paywall-icon {
+    width: 56px; height: 56px;
+    margin: 0 auto 16px;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(31,223,103,0.12);
+    border: 1px solid rgba(31,223,103,0.25);
+    border-radius: 14px;
+    color: #1FDF67;
+  }
+  .paywall-title {
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 8px;
+  }
+  .paywall-subtitle {
+    font-size: 13px;
+    color: rgba(255,255,255,0.55);
+    line-height: 1.5;
+    margin-bottom: 22px;
+  }
+  .paywall-plans {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+  .paywall-plan {
+    position: relative;
+    background: rgba(255,255,255,0.04);
+    border: 1.5px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    padding: 16px 18px;
+    color: #fff;
+    cursor: pointer;
+    text-align: left;
+    transition: border-color 0.15s, background 0.15s, transform 0.1s;
+    font-family: inherit;
+  }
+  .paywall-plan:hover {
+    border-color: rgba(31,223,103,0.5);
+    background: rgba(255,255,255,0.06);
+  }
+  .paywall-plan:active { transform: scale(0.99); }
+  .paywall-plan-annual {
+    border-color: #1FDF67;
+    background: rgba(31,223,103,0.06);
+  }
+  .paywall-plan-tag {
+    position: absolute;
+    top: -8px;
+    right: 14px;
+    background: #1FDF67;
+    color: #000;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    padding: 3px 8px;
+    border-radius: 20px;
+  }
+  .paywall-plan-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.5);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 4px;
+  }
+  .paywall-plan-price {
+    font-size: 26px;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .paywall-plan-per {
+    font-size: 13px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.45);
+    margin-left: 2px;
+  }
+  .paywall-plan-note {
+    font-size: 11px;
+    color: rgba(255,255,255,0.5);
+  }
+  .paywall-features {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 14px 0;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    margin-bottom: 14px;
+  }
+  .paywall-feature {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: rgba(255,255,255,0.7);
+    text-align: left;
+  }
+  .paywall-signin {
+    font-size: 12px;
+    color: rgba(255,255,255,0.45);
+  }
+  .paywall-signin a {
+    color: #1FDF67;
+    text-decoration: none;
+    font-weight: 600;
+  }
+  .paywall-signin a:hover { text-decoration: underline; }
+
+  @media (max-width: 480px) {
+    .paywall-card { padding: 24px 18px 18px; max-width: 100%; }
+    .paywall-title { font-size: 19px; }
+    .paywall-plan-price { font-size: 22px; }
+  }
   </style>
 </head>
 <body>
@@ -2947,6 +3146,10 @@
       }
 
       window.openProjectModal = function(f, source) {
+        // Paywall gate — only count fresh project interactions.
+        // 'tile' = direct desktop tile click (skips showPopup).
+        // 'popup' / 'deeplink' = continuation of an interaction already counted by showPopup.
+        if (source === 'tile' && window.paywallCheck && !window.paywallCheck()) return;
         currentFeature = f;
         fromSource = source || 'tile';
         liked = false;
@@ -3156,6 +3359,8 @@
     // ── End Project Detail Modal ────────────────────────────────────────
 
     function showPopup(f) {
+      // Paywall gate — counts as a project interaction
+      if (window.paywallCheck && !window.paywallCheck()) return;
       window._popupFeatureRef = f; // used by Learn More button in popup
       if (isMobile && 'vibrate' in navigator) navigator.vibrate(10);
       if (activePopup) activePopup.remove();
@@ -5444,6 +5649,239 @@
       document.getElementById('fullscreenModal').classList.remove('active');
       if (fullscreenMap) { map.setCenter(fullscreenMap.getCenter()); map.setZoom(fullscreenMap.getZoom()); }
     };
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // PAYWALL — Memberstack-powered subscription gate after 5 project clicks
+    // ═══════════════════════════════════════════════════════════════════════
+    (function() {
+      const FREE_CLICK_LIMIT = 5;
+      const STORAGE_KEY = 'mot_click_count';
+      const PRICE_ID_MONTHLY = 'prc_monthly-86u0uyc';
+      const PRICE_ID_ANNUAL  = 'prc_annual-9i2e0eab';
+
+      let isPaidMember = false;
+      let memberstackReady = false;
+
+      function getClickCount() {
+        return parseInt(localStorage.getItem(STORAGE_KEY) || '0', 10);
+      }
+      function setClickCount(n) {
+        localStorage.setItem(STORAGE_KEY, String(n));
+      }
+      function resetClickCount() {
+        localStorage.removeItem(STORAGE_KEY);
+      }
+
+      // Wait for Memberstack DOM package to load, then check member status
+      function waitForMemberstack(callback) {
+        if (window.$memberstackDom) {
+          callback(window.$memberstackDom);
+          return;
+        }
+        // Poll for up to 5 seconds
+        let attempts = 0;
+        const interval = setInterval(() => {
+          attempts++;
+          if (window.$memberstackDom) {
+            clearInterval(interval);
+            callback(window.$memberstackDom);
+          } else if (attempts > 50) {
+            clearInterval(interval);
+            console.warn('[Paywall] Memberstack failed to load — paywall disabled');
+          }
+        }, 100);
+      }
+
+      // Check if currently logged-in member has active paid plan
+      async function refreshMemberStatus() {
+        if (!window.$memberstackDom) return;
+        try {
+          const result = await window.$memberstackDom.getCurrentMember();
+          const member = result?.data;
+          if (!member) {
+            isPaidMember = false;
+            return;
+          }
+          // Has any active plan connection? (Memberstack stores plans on the member object)
+          const plans = member.planConnections || [];
+          isPaidMember = plans.some(p => p.active === true || p.status === 'ACTIVE');
+          if (isPaidMember) {
+            // Logged in + paid → reset counter so they have unlimited access
+            resetClickCount();
+            hidePaywall();
+            updateAuthHeaderUI(member);
+          } else {
+            updateAuthHeaderUI(member);
+          }
+        } catch (e) {
+          console.warn('[Paywall] Could not check member status:', e);
+        }
+      }
+
+      // ─── Build paywall modal ──────────────────────────────────────────────
+      function buildPaywallModal() {
+        if (document.getElementById('paywallModal')) return;
+        const modal = document.createElement('div');
+        modal.id = 'paywallModal';
+        modal.innerHTML = `
+          <div class="paywall-backdrop"></div>
+          <div class="paywall-card">
+            <div class="paywall-icon">
+              <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+              </svg>
+            </div>
+            <h2 class="paywall-title">Unlock the full Map</h2>
+            <p class="paywall-subtitle">You've explored ${FREE_CLICK_LIMIT} projects. Subscribe for unlimited access to every development on the Map of Tomorrow.</p>
+
+            <div class="paywall-plans">
+              <button class="paywall-plan paywall-plan-annual" data-price-id="${PRICE_ID_ANNUAL}">
+                <div class="paywall-plan-tag">BEST VALUE</div>
+                <div class="paywall-plan-name">Annual</div>
+                <div class="paywall-plan-price">$90<span class="paywall-plan-per">/year</span></div>
+                <div class="paywall-plan-note">Just $7.50/month — save 17%</div>
+              </button>
+              <button class="paywall-plan paywall-plan-monthly" data-price-id="${PRICE_ID_MONTHLY}">
+                <div class="paywall-plan-name">Monthly</div>
+                <div class="paywall-plan-price">$9<span class="paywall-plan-per">/month</span></div>
+                <div class="paywall-plan-note">Cancel anytime</div>
+              </button>
+            </div>
+
+            <div class="paywall-features">
+              <div class="paywall-feature"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#1FDF67" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Unlimited project exploration</div>
+              <div class="paywall-feature"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#1FDF67" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Full developer + architect details</div>
+              <div class="paywall-feature"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#1FDF67" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Cancel anytime</div>
+            </div>
+
+            <div class="paywall-signin">
+              Already a member? <a href="#" id="paywallSignInLink">Sign in</a>
+            </div>
+          </div>
+        `;
+        document.body.appendChild(modal);
+
+        // Wire up plan buttons
+        modal.querySelectorAll('.paywall-plan').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const priceId = btn.getAttribute('data-price-id');
+            startCheckout(priceId);
+          });
+        });
+
+        // Wire up sign-in link
+        modal.querySelector('#paywallSignInLink').addEventListener('click', (e) => {
+          e.preventDefault();
+          openSignIn();
+        });
+      }
+
+      function showPaywall() {
+        buildPaywallModal();
+        document.getElementById('paywallModal').classList.add('active');
+        // Track for analytics
+        if (window.gtag) gtag('event', 'paywall_shown', { 'click_count': getClickCount() });
+      }
+      function hidePaywall() {
+        const m = document.getElementById('paywallModal');
+        if (m) m.classList.remove('active');
+      }
+
+      // ─── Memberstack actions ──────────────────────────────────────────────
+      async function startCheckout(priceId) {
+        if (!window.$memberstackDom) {
+          alert('Payment system loading — please try again in a moment.');
+          return;
+        }
+        try {
+          if (window.gtag) gtag('event', 'paywall_subscribe_clicked', { 'price_id': priceId });
+          // Memberstack handles signup-if-needed + Stripe checkout in one flow
+          await window.$memberstackDom.purchasePlansWithCheckout({
+            priceIds: [priceId],
+            cancelUrl: window.location.href,
+            successUrl: window.location.href + '?subscribed=1'
+          });
+        } catch (e) {
+          console.error('[Paywall] Checkout error:', e);
+          alert('Could not start checkout: ' + (e.message || 'unknown error'));
+        }
+      }
+
+      async function openSignIn() {
+        if (!window.$memberstackDom) return;
+        try {
+          await window.$memberstackDom.openModal('LOGIN');
+          // After login, refresh status
+          await refreshMemberStatus();
+        } catch (e) {
+          console.error('[Paywall] Sign-in error:', e);
+        }
+      }
+
+      async function signOut() {
+        if (!window.$memberstackDom) return;
+        try {
+          await window.$memberstackDom.logout();
+          isPaidMember = false;
+          updateAuthHeaderUI(null);
+        } catch (e) {
+          console.error('[Paywall] Logout error:', e);
+        }
+      }
+
+      // ─── Header auth UI (shows "Sign in" or member email) ─────────────────
+      function updateAuthHeaderUI(member) {
+        let el = document.getElementById('paywallAuthHeader');
+        if (!el) {
+          el = document.createElement('div');
+          el.id = 'paywallAuthHeader';
+          document.body.appendChild(el);
+        }
+        if (member) {
+          const email = member.auth?.email || member.email || 'Account';
+          const shortEmail = email.length > 22 ? email.substring(0, 20) + '…' : email;
+          el.innerHTML = `
+            <span class="auth-status">${isPaidMember ? '✓ ' : ''}${shortEmail}</span>
+            <button id="authSignOutBtn">Sign out</button>
+          `;
+          el.querySelector('#authSignOutBtn').addEventListener('click', signOut);
+        } else {
+          el.innerHTML = `<button id="authSignInBtn">Sign in</button>`;
+          el.querySelector('#authSignInBtn').addEventListener('click', openSignIn);
+        }
+      }
+
+      // ─── Public API: called by tile/popup/modal click sites ───────────────
+      // Returns true if interaction is allowed, false if blocked by paywall
+      window.paywallCheck = function() {
+        if (isPaidMember) return true;
+        const count = getClickCount();
+        if (count >= FREE_CLICK_LIMIT) {
+          showPaywall();
+          return false;
+        }
+        setClickCount(count + 1);
+        return true;
+      };
+
+      // ─── Init ─────────────────────────────────────────────────────────────
+      waitForMemberstack(async (ms) => {
+        memberstackReady = true;
+        await refreshMemberStatus();
+
+        // If returning from successful checkout, refresh immediately
+        if (new URLSearchParams(window.location.search).get('subscribed') === '1') {
+          // Small delay to let Memberstack/Stripe sync
+          setTimeout(refreshMemberStatus, 1500);
+          // Clean up URL
+          history.replaceState({}, '', window.location.pathname + window.location.search.replace(/[?&]subscribed=1/, ''));
+        }
+      });
+
+      // Build the auth UI immediately (will say "Sign in" until member status loads)
+      updateAuthHeaderUI(null);
+    })();
   </script>
 </body>
 </html>
