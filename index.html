@@ -1733,6 +1733,10 @@
     flex-shrink: 0;
     overflow: hidden;
   }
+  @media (min-width: 768px) {
+    #projectModal .pm-hero { height: 300px; }
+    #projectModal .pm-thumbs { height: 80px; }
+  }
   #projectModal .pm-hero img {
     width: 100%; height: 100%; object-fit: cover;
     display: block;
@@ -2833,6 +2837,48 @@
     }
 
     // ─── POPUP ────────────────────────────────────────────────────────────────
+    // ── Zoom to pin without popup (desktop tile click) ──────────────────
+    function zoomToPinOnly(f) {
+      const co = f.geometry.coordinates;
+      const selectedTitle = f.properties.title;
+      // Pink pin
+      const pinkPinExpr = ['case', ['==', ['get', 'title'], selectedTitle], '#FF6B9D', '#1FDF67'];
+      const pinkRadiusExpr = ['case', ['==', ['get', 'title'], selectedTitle], 11, 8];
+      if (map.getLayer('unclustered-point')) {
+        map.setPaintProperty('unclustered-point', 'circle-color', pinkPinExpr);
+        map.setPaintProperty('unclustered-point', 'circle-radius', pinkRadiusExpr);
+      }
+      window._selectedPinTitle = selectedTitle;
+      // Fly to pin
+      const currentZoom = map.getZoom();
+      const targetZoom = Math.max(currentZoom, 13);
+      map.flyTo({ center: co, zoom: targetZoom, duration: 800, essential: true });
+    }
+
+    // ── Deep-link: open project modal from ?project= URL param ──────────
+    function handleDeepLink() {
+      const params = new URLSearchParams(window.location.search);
+      const slug = params.get('project');
+      if (!slug || !window.allProjectFeatures) return;
+      const match = window.allProjectFeatures.find(f => {
+        const s = (f.properties.title || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
+        return s === slug;
+      });
+      if (match) {
+        // Open sidebar on desktop first so modal has somewhere to slide over
+        if (!isMobile) {
+          const sidebar = document.getElementById('desktopSidebar');
+          if (sidebar && !sidebar.classList.contains('open')) {
+            sidebar.classList.add('open');
+          }
+        }
+        // Small delay to let map settle
+        setTimeout(() => {
+          window.openProjectModal(match, 'deeplink');
+        }, 600);
+      }
+    }
+
     // ── Project Detail Modal ────────────────────────────────────────────
     (function() {
       const modal   = document.getElementById('projectModal');
@@ -2992,6 +3038,15 @@
         modal.classList.remove('open');
         setTimeout(() => { modal.style.display = 'none'; }, 350);
         history.pushState({}, '', `?fullscreen=true`);
+        // Restore green pin if opened from tile or deeplink (no popup to handle cleanup)
+        if (fromSource === 'tile' || fromSource === 'deeplink') {
+          if (map.getLayer('unclustered-point')) {
+            map.setPaintProperty('unclustered-point', 'circle-color', '#1FDF67');
+            map.setPaintProperty('unclustered-point', 'circle-radius', 8);
+          }
+          if (window._selectedPinMarker) { window._selectedPinMarker.remove(); window._selectedPinMarker = null; }
+          window._selectedPinTitle = null;
+        }
 
         // On mobile: re-expand the drawer if we came from a tile
         if (isMobile && fromSource === 'tile') {
@@ -3396,6 +3451,7 @@
             if (window.gridRendering[targetId]) return;
             if (!map.getSource('projects')?._data) return;
             gtag('event', 'project_click', { 'project_name': f.properties.title, 'project_city': f.properties.city, 'project_featured': f.properties.featured||false, 'click_source': 'tile', 'device_type': isMobile?'mobile':'desktop', 'grid_position': index+1 });
+            if (!isMobile) zoomToPinOnly(f);
             window.openProjectModal(f, 'tile');
           };
           return d;
@@ -3589,6 +3645,7 @@
             </div>${deliveryBarHTML(f.properties.delivery)}`;
         d.onclick = () => {
           if (window.gridRendering[targetId] || !map.getSource('projects')?._data) return;
+          if (!isMobile) zoomToPinOnly(f);
           window.openProjectModal(f, 'tile');
         };
         return d;
@@ -5224,6 +5281,8 @@
             renderGrid('gridMobile');
             updateResultCount('gridDesktop');
             updateResultCount('gridMobile');
+            // Handle deep-link URL after everything is ready
+            handleDeepLink();
           });
 
           // ── Build city→state map via Mapbox reverse geocoding ──────────────
