@@ -11,7 +11,13 @@ SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1qwU7ykIDUrtPlIQu-qk2FIJ
 OUTPUT_DIR = "projects"
 SITE_URL = "https://map.oftmw.com"
 DEFAULT_IMAGE = "https://static.wixstatic.com/media/ca3b83_93ffb2f000f94a12aa874fe44153be18~mv2.jpg"
-LOGO_URL = "https://static.wixstatic.com/media/ca3b83_71f3cd2ef61049028b2daf4e2ff71d52~mv2.png"
+# SVG wordmark — same logo used in main map header
+LOGO_URL = "https://static.wixstatic.com/shapes/ca3b83_a647b53cad4c49c5b012af991d286a86.svg"
+FAVICON_URL = "https://static.wixstatic.com/media/ca3b83_71f3cd2ef61049028b2daf4e2ff71d52~mv2.png"
+
+# Mapbox config — same token + style as main map
+MAPBOX_TOKEN = "pk.eyJ1IjoiZmxvcmlkYW9mdG9tb3Jyb3ciLCJhIjoiY2xrYmpmdGQ2MGdibTNzcXZjMnA4aXh3ZiJ9.uBeYS7jmKwWS6xAgY-R1UA"
+MAPBOX_STYLE = "floridaoftomorrow/clkbk4qlw000a01qw94rj0xa7"
 
 def slugify(title):
     s = title.lower()
@@ -115,6 +121,37 @@ def truncate_developer(dev):
         return parts[0].strip() + ' & More'
     return dev
 
+def map_preview_html(lat, lng, map_url):
+    """Render a clickable static Mapbox preview for the project location."""
+    if not lat or not lng:
+        return ''
+    try:
+        latf = float(lat)
+        lngf = float(lng)
+    except (ValueError, TypeError):
+        return ''
+
+    # Static Mapbox image — green pin (#1FDF67) at project location, zoom 14
+    # 2x for retina, 600x300 displayed at 100% width
+    style_path = MAPBOX_STYLE  # username/styleid
+    static_url = (
+        f"https://api.mapbox.com/styles/v1/{style_path}/static/"
+        f"pin-l+1fdf67({lngf},{latf})/"
+        f"{lngf},{latf},14,0/600x300@2x"
+        f"?access_token={MAPBOX_TOKEN}&attribution=false&logo=false"
+    )
+
+    return f'''
+    <a class="map-preview" href="{map_url}" aria-label="View on Map of Tomorrow">
+      <img src="{static_url}" alt="Project location map" loading="lazy" />
+      <div class="map-preview-overlay">
+        <span class="map-preview-cta">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>
+          View on Map of Tomorrow
+        </span>
+      </div>
+    </a>'''
+
 def build_page(row):
     title = row.get('Title','').strip()
     city  = row.get('City','').strip()
@@ -127,6 +164,8 @@ def build_page(row):
     image = row.get('ImageURL','').strip() or DEFAULT_IMAGE
     website = row.get('OfficialWebsite','').strip()
     featured = row.get('Featured','').strip().lower() == 'featured'
+    lat = row.get('Latitude','').strip()
+    lng = row.get('Longitude','').strip()
 
     slug     = slugify(title)
     mslug    = map_slug(title)
@@ -136,12 +175,10 @@ def build_page(row):
     seo_title = f"{title}, {city} | Markets of Tomorrow"
     seo_desc  = description[:200].rstrip() + ('…' if len(description) > 200 else '')
 
-    # Pills
+    # Pills (featured only — project type pill removed per design update)
     pills = ''
     if featured:
         pills += '<span class="pill pill-featured">★ Featured</span>'
-    if proj_type:
-        pills += f'<span class="pill pill-type">{proj_type}</span>'
 
     # Stats
     stats = ''
@@ -150,6 +187,9 @@ def build_page(row):
     stats += stat_card('Delivery', delivery_date or delivery)
     stats += stat_card('Market', city)
     stats_section = f'<div class="stats-grid">{stats}</div>' if stats.strip() else ''
+
+    # Mini map preview (above CTAs)
+    map_preview = map_preview_html(lat, lng, map_url)
 
     # Website button
     if website:
@@ -177,7 +217,7 @@ def build_page(row):
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>{seo_title}</title>
   <meta name="description" content="{seo_desc}">
   <meta name="robots" content="index, follow">
@@ -199,40 +239,79 @@ def build_page(row):
   <meta name="twitter:image" content="{image}">
 
   <!-- Favicon -->
-  <link rel="icon" href="{LOGO_URL}" type="image/png">
+  <link rel="icon" href="{FAVICON_URL}" type="image/png">
 
   <!-- JSON-LD -->
   <script type="application/ld+json">{jsonld}</script>
 
   <style>
     *, *::before, *::after {{ box-sizing: border-box; margin: 0; padding: 0; }}
-    body {{ background: #0d0d0d; color: #fff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; min-height: 100vh; }}
+    html, body {{ overflow-x: hidden; max-width: 100vw; }}
+    body {{ background: #0d0d0d; color: #fff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; min-height: 100vh; -webkit-text-size-adjust: 100%; }}
 
-    /* Header */
-    .site-header {{ display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.08); position: sticky; top: 0; background: rgba(13,13,13,0.92); backdrop-filter: blur(12px); z-index: 10; }}
-    .site-logo img {{ height: 28px; }}
-    .header-map-btn {{ display: flex; align-items: center; gap: 7px; background: rgba(255,255,255,0.07); border: 0.5px solid rgba(255,255,255,0.15); border-radius: 8px; padding: 8px 14px; color: rgba(255,255,255,0.8); text-decoration: none; font-size: 13px; font-weight: 500; transition: background 0.15s; }}
-    .header-map-btn:hover {{ background: rgba(255,255,255,0.12); }}
-    .header-map-btn svg {{ opacity: 0.6; }}
+    /* Header — transparent, no background, logo only */
+    .site-header {{
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 20px;
+      padding-top: calc(16px + env(safe-area-inset-top));
+      padding-left: calc(20px + env(safe-area-inset-left));
+      padding-right: calc(20px + env(safe-area-inset-right));
+      z-index: 10;
+      pointer-events: none; /* let map/scroll through, only logo+button receive */
+    }}
+    .site-logo, .header-map-btn {{ pointer-events: auto; }}
+
+    /* Logo — bigger, no bg, drop shadow for visibility on light hero images */
+    .site-logo {{ display: flex; align-items: center; text-decoration: none; }}
+    .site-logo img {{
+      height: 48px; width: auto; display: block;
+      filter: brightness(0) invert(1) drop-shadow(0 2px 8px rgba(0,0,0,0.6));
+    }}
+
+    /* Header map button — glass pill */
+    .header-map-btn {{
+      display: flex; align-items: center; gap: 7px;
+      background: rgba(15,15,15,0.55);
+      backdrop-filter: blur(16px) saturate(1.4);
+      -webkit-backdrop-filter: blur(16px) saturate(1.4);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 10px;
+      padding: 9px 14px;
+      color: rgba(255,255,255,0.92);
+      text-decoration: none;
+      font-size: 13px; font-weight: 500;
+      transition: background 0.15s;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.35);
+    }}
+    .header-map-btn:hover {{ background: rgba(30,30,30,0.7); }}
+    .header-map-btn svg {{ opacity: 0.85; }}
 
     /* Gallery */
-    .gallery {{ width: 100%; }}
-    .gallery-hero {{ width: 100%; height: 320px; object-fit: cover; display: block; }}
-    .gt-strip {{ display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; }}
+    .gallery {{ width: 100%; max-width: 100vw; overflow: hidden; }}
+    .gallery-hero {{ width: 100%; height: 60vh; max-height: 520px; object-fit: cover; display: block; }}
+    .gt-strip {{ display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; width: 100%; }}
     .gt-thumb {{ height: 80px; background-size: cover; background-position: center; position: relative; }}
     .gt-overlay {{ position: absolute; inset: 0; background: rgba(0,0,0,0.55); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.85); }}
 
     /* Content */
-    .content {{ max-width: 560px; margin: 0 auto; padding: 20px 20px 40px; }}
+    .content {{
+      max-width: 560px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 20px 20px 40px;
+      padding-left: max(20px, env(safe-area-inset-left));
+      padding-right: max(20px, env(safe-area-inset-right));
+    }}
 
     /* Pills */
     .pills {{ display: flex; gap: 6px; margin-bottom: 12px; }}
     .pill {{ font-size: 9px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 3px 9px; border-radius: 20px; }}
     .pill-featured {{ background: #FFD300; color: #000; }}
-    .pill-type {{ background: rgba(31,223,103,0.12); color: #1FDF67; }}
 
     /* Title */
-    .project-title {{ font-size: 28px; font-weight: 700; line-height: 1.15; margin-bottom: 4px; }}
+    .project-title {{ font-size: 28px; font-weight: 700; line-height: 1.15; margin-bottom: 4px; word-wrap: break-word; overflow-wrap: break-word; }}
     .project-city {{ font-size: 13px; color: rgba(255,255,255,0.45); margin-bottom: 16px; }}
 
     /* Progress */
@@ -241,52 +320,114 @@ def build_page(row):
     .ps-stage {{ font-size: 10px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; }}
     .ps-pct {{ font-size: 10px; color: rgba(255,255,255,0.25); }}
     .ps-steps {{ display: flex; gap: 3px; margin-bottom: 5px; }}
-    .ps-step {{ flex: 1; height: 3px; border-radius: 2px; background: rgba(255,255,255,0.08); }}
+    .ps-step {{ flex: 1; height: 3px; border-radius: 2px; background: rgba(255,255,255,0.08); min-width: 0; }}
     .ps-done {{ background: var(--sc); }}
     .ps-active {{ background: var(--sc); opacity: 0.5; }}
-    .ps-labels {{ display: flex; justify-content: space-between; }}
-    .ps-label {{ font-size: 7px; color: rgba(255,255,255,0.2); }}
+    .ps-labels {{ display: flex; justify-content: space-between; gap: 4px; }}
+    .ps-label {{ font-size: 7px; color: rgba(255,255,255,0.2); flex: 1; text-align: center; min-width: 0; }}
+    .ps-label:first-child {{ text-align: left; }}
+    .ps-label:last-child {{ text-align: right; }}
     .ps-cur {{ color: var(--sc, #FF9500); }}
 
     /* Divider */
     .divider {{ height: 0.5px; background: rgba(255,255,255,0.07); margin: 16px 0; }}
 
     /* Description */
-    .description {{ font-size: 14px; color: rgba(255,255,255,0.6); line-height: 1.7; margin-bottom: 16px; }}
+    .description {{ font-size: 14px; color: rgba(255,255,255,0.6); line-height: 1.7; margin-bottom: 16px; word-wrap: break-word; overflow-wrap: break-word; }}
 
-    /* Stats */
-    .stats-grid {{ display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 20px; }}
-    .stat-card {{ background: rgba(255,255,255,0.04); border-radius: 8px; padding: 10px 12px; }}
+    /* Stats — fits within viewport, wraps long values */
+    .stats-grid {{
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin-bottom: 20px;
+    }}
+    .stat-card {{
+      background: rgba(255,255,255,0.04);
+      border-radius: 8px;
+      padding: 10px 12px;
+      min-width: 0; /* allow content to shrink */
+      overflow: hidden;
+    }}
     .stat-label {{ font-size: 8px; color: rgba(255,255,255,0.28); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 3px; }}
-    .stat-val {{ font-size: 13px; color: #fff; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }}
+    .stat-val {{
+      font-size: 13px;
+      color: #fff;
+      font-weight: 500;
+      line-height: 1.3;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      hyphens: auto;
+    }}
+
+    /* Mini map preview */
+    .map-preview {{
+      display: block;
+      position: relative;
+      width: 100%;
+      height: 180px;
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 12px;
+      text-decoration: none;
+      background: rgba(255,255,255,0.04);
+      border: 0.5px solid rgba(255,255,255,0.08);
+      transition: transform 0.15s, border-color 0.15s;
+    }}
+    .map-preview:hover {{ transform: translateY(-1px); border-color: rgba(31,223,103,0.35); }}
+    .map-preview img {{ width: 100%; height: 100%; object-fit: cover; display: block; }}
+    .map-preview-overlay {{
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: flex-end;
+      justify-content: flex-start;
+      padding: 12px;
+      background: linear-gradient(to top, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0) 50%);
+      pointer-events: none;
+    }}
+    .map-preview-cta {{
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(15,15,15,0.7);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 0.5px solid rgba(255,255,255,0.15);
+      border-radius: 8px;
+      padding: 7px 11px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #fff;
+    }}
+    .map-preview-cta svg {{ opacity: 0.85; }}
 
     /* CTA */
-    .cta-row {{ display: flex; gap: 10px; align-items: center; margin-bottom: 12px; }}
-    .btn-primary {{ flex: 1; background: #1FDF67; color: #000; border: none; border-radius: 10px; padding: 13px 16px; font-size: 14px; font-weight: 700; cursor: pointer; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 6px; }}
+    .cta-row {{ display: flex; gap: 10px; align-items: stretch; margin-bottom: 12px; }}
+    .btn-primary {{
+      flex: 1;
+      background: #1FDF67; color: #000; border: none; border-radius: 10px;
+      padding: 13px 16px;
+      font-size: 14px; font-weight: 700; cursor: pointer; text-decoration: none;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      min-width: 0; /* allow shrinking */
+    }}
     .btn-primary:hover {{ background: #18c75a; }}
     .btn-disabled {{ background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.3); cursor: default; }}
-    .btn-map {{ display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.06); border: 0.5px solid rgba(255,255,255,0.12); border-radius: 10px; padding: 13px 16px; color: rgba(255,255,255,0.75); text-decoration: none; font-size: 14px; font-weight: 500; white-space: nowrap; transition: background 0.15s; }}
-    .btn-map:hover {{ background: rgba(255,255,255,0.1); }}
-    .btn-map svg {{ opacity: 0.6; }}
-
-    /* Back breadcrumb */
-    .breadcrumb {{ font-size: 12px; color: rgba(255,255,255,0.3); margin-bottom: 20px; }}
-    .breadcrumb a {{ color: rgba(255,255,255,0.4); text-decoration: none; }}
-    .breadcrumb a:hover {{ color: rgba(255,255,255,0.7); }}
 
     @media (max-width: 480px) {{
-      .gallery-hero {{ height: 260px; }}
+      .gallery-hero {{ height: 50vh; max-height: 360px; }}
       .project-title {{ font-size: 24px; }}
-      .stats-grid {{ grid-template-columns: 1fr 1fr; }}
-      .cta-row {{ flex-wrap: wrap; }}
-      .btn-map {{ width: 100%; justify-content: center; }}
+      .map-preview {{ height: 160px; }}
+      .site-logo img {{ height: 42px; }}
+      .header-map-btn {{ font-size: 12px; padding: 8px 12px; }}
     }}
   </style>
 </head>
 <body>
 
   <header class="site-header">
-    <a class="site-logo" href="{SITE_URL}">
+    <a class="site-logo" href="{SITE_URL}" aria-label="Markets of Tomorrow home">
       <img src="{LOGO_URL}" alt="Markets of Tomorrow" />
     </a>
     <a class="header-map-btn" href="{map_url}">
@@ -298,7 +439,6 @@ def build_page(row):
   {gallery_html(row)}
 
   <div class="content">
-    <p class="breadcrumb"><a href="{SITE_URL}">Map of Tomorrow</a> / {city} / {title}</p>
     <div class="pills">{pills}</div>
     <h1 class="project-title">{title}</h1>
     <p class="project-city">{city}{' • ' + proj_type if proj_type else ''}</p>
@@ -307,12 +447,9 @@ def build_page(row):
     <p class="description">{description}</p>
     <div class="divider"></div>
     {stats_section}
+    {map_preview}
     <div class="cta-row">
       {website_btn}
-      <a class="btn-map" href="{map_url}">
-        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>
-        View on Map
-      </a>
     </div>
   </div>
 
@@ -390,30 +527,56 @@ def build_index(items):
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>All Projects | Markets of Tomorrow</title>
   <meta name="description" content="Browse all {len(items)} projects tracked on the Map of Tomorrow — luxury real estate, hotels, stadiums, and more from Markets of Tomorrow.">
   <meta property="og:title" content="All Projects | Markets of Tomorrow">
   <meta property="og:description" content="Browse {len(items)} future developments on the Map of Tomorrow.">
   <meta property="og:image" content="{DEFAULT_IMAGE}">
-  <link rel="icon" href="{LOGO_URL}" type="image/png">
+  <link rel="icon" href="{FAVICON_URL}" type="image/png">
   <style>
     *, *::before, *::after {{ box-sizing: border-box; margin: 0; padding: 0; }}
+    html, body {{ overflow-x: hidden; max-width: 100vw; }}
     body {{ background: #0d0d0d; color: #fff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }}
-    .site-header {{ display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.08); position: sticky; top:0; background: rgba(13,13,13,0.92); backdrop-filter: blur(12px); z-index:10; }}
-    .site-logo img {{ height: 28px; }}
-    .header-map-btn {{ display:flex;align-items:center;gap:7px;background:rgba(255,255,255,0.07);border:0.5px solid rgba(255,255,255,0.15);border-radius:8px;padding:8px 14px;color:rgba(255,255,255,0.8);text-decoration:none;font-size:13px;font-weight:500; }}
+    .site-header {{
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 20px;
+      padding-top: calc(16px + env(safe-area-inset-top));
+      border-bottom: 0.5px solid rgba(255,255,255,0.08);
+      position: sticky; top: 0;
+      background: rgba(13,13,13,0.92); backdrop-filter: blur(12px); z-index: 10;
+    }}
+    .site-logo img {{ height: 42px; width: auto; display: block; filter: brightness(0) invert(1); }}
+    .header-map-btn {{
+      display: flex; align-items: center; gap: 7px;
+      background: rgba(255,255,255,0.07); border: 0.5px solid rgba(255,255,255,0.15);
+      border-radius: 8px; padding: 8px 14px;
+      color: rgba(255,255,255,0.8); text-decoration: none;
+      font-size: 13px; font-weight: 500;
+    }}
     .page-header {{ padding: 32px 20px 20px; max-width: 1200px; margin: 0 auto; }}
     .page-header h1 {{ font-size: 28px; font-weight: 700; margin-bottom: 6px; }}
     .page-header p {{ color: rgba(255,255,255,0.45); font-size: 14px; }}
-    .grid {{ display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; padding: 0 20px 40px; max-width: 1200px; margin: 0 auto; }}
-    .card {{ text-decoration: none; color: #fff; background: #111; border-radius: 12px; overflow: hidden; transition: transform 0.15s; }}
+    .grid {{
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 12px;
+      padding: 0 20px 40px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }}
+    .card {{ text-decoration: none; color: #fff; background: #111; border-radius: 12px; overflow: hidden; transition: transform 0.15s; min-width: 0; }}
     .card:hover {{ transform: translateY(-2px); }}
     .card-img {{ height: 160px; background-size: cover; background-position: center; }}
     .card-body {{ padding: 12px; }}
-    .card-title {{ font-size: 14px; font-weight: 600; margin-bottom: 3px; }}
+    .card-title {{ font-size: 14px; font-weight: 600; margin-bottom: 3px; word-wrap: break-word; }}
     .card-city {{ font-size: 12px; color: rgba(255,255,255,0.4); margin-bottom: 5px; }}
     .card-status {{ font-size: 10px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; }}
+    @media (max-width: 480px) {{
+      .grid {{ grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; padding: 0 14px 40px; }}
+      .card-img {{ height: 120px; }}
+      .site-logo img {{ height: 36px; }}
+    }}
   </style>
 </head>
 <body>
