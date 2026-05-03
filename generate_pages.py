@@ -87,22 +87,30 @@ def gallery_html(row):
     if not imgs:
         return ''
 
-    main = imgs[0]
-    thumbs = imgs[1:4]
-    extra = len(imgs) - 4  # images beyond first 4
-
-    thumb_html = ''
-    for i, url in enumerate(thumbs):
-        is_last = (i == len(thumbs) - 1) and extra > 0
-        overlay = f'<div class="gt-overlay">+{extra} more</div>' if is_last else ''
-        thumb_html += f'<div class="gt-thumb" style="background-image:url(\'{url}\')">{overlay}</div>'
-
-    strip = f'<div class="gt-strip">{thumb_html}</div>' if thumbs else ''
-
-    return f'''
+    # Single image: no arrows, no counter
+    if len(imgs) == 1:
+        return f'''
     <div class="gallery">
-      <img class="gallery-hero" src="{main}" alt="" loading="eager" />
-      {strip}
+      <div class="gallery-stage">
+        <img class="gallery-img" src="{imgs[0]}" alt="" loading="eager" />
+      </div>
+    </div>'''
+
+    # Multiple images: slider with arrow buttons + counter
+    # JSON array of image URLs is read by client-side JS
+    imgs_json = json.dumps(imgs)
+    return f'''
+    <div class="gallery" data-images='{imgs_json}'>
+      <div class="gallery-stage">
+        <img class="gallery-img" src="{imgs[0]}" alt="" loading="eager" />
+        <button class="gallery-arrow gallery-arrow-prev" type="button" aria-label="Previous image">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+        </button>
+        <button class="gallery-arrow gallery-arrow-next" type="button" aria-label="Next image">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </button>
+        <div class="gallery-counter"><span class="gallery-counter-cur">1</span> / {len(imgs)}</div>
+      </div>
     </div>'''
 
 def stat_card(label, value):
@@ -170,7 +178,9 @@ def build_page(row):
     slug     = slugify(title)
     mslug    = map_slug(title)
     page_url = f"{SITE_URL}/projects/{slug}/"
-    map_url  = f"{SITE_URL}/?fullscreen=true&project={mslug}"
+    # Goes to the map zoomed to the pin with the small popup preview
+    # (no fullscreen=true → no full project modal)
+    map_url  = f"{SITE_URL}/?project={mslug}"
 
     seo_title = f"{title}, {city} | Markets of Tomorrow"
     seo_desc  = description[:200].rstrip() + ('…' if len(description) > 200 else '')
@@ -288,12 +298,63 @@ def build_page(row):
     .header-map-btn:hover {{ background: rgba(30,30,30,0.7); }}
     .header-map-btn svg {{ opacity: 0.85; }}
 
-    /* Gallery */
+    /* Gallery — single image or arrow-cycling slider */
     .gallery {{ width: 100%; max-width: 100vw; overflow: hidden; }}
-    .gallery-hero {{ width: 100%; height: 60vh; max-height: 520px; object-fit: cover; display: block; }}
-    .gt-strip {{ display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; width: 100%; }}
-    .gt-thumb {{ height: 80px; background-size: cover; background-position: center; position: relative; }}
-    .gt-overlay {{ position: absolute; inset: 0; background: rgba(0,0,0,0.55); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.85); }}
+    .gallery-stage {{
+      position: relative;
+      width: 100%;
+      height: 60vh;
+      max-height: 520px;
+      background: #1a1a1a;
+      overflow: hidden;
+    }}
+    .gallery-img {{
+      width: 100%; height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: opacity 0.25s ease;
+    }}
+    .gallery-img.is-fading {{ opacity: 0; }}
+
+    /* Arrow buttons — white, glassy, only visible when multi-image */
+    .gallery-arrow {{
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 44px; height: 44px;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(0,0,0,0.35);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 50%;
+      color: #fff;
+      cursor: pointer;
+      padding: 0;
+      transition: background 0.15s, transform 0.1s;
+      z-index: 2;
+    }}
+    .gallery-arrow:hover {{ background: rgba(0,0,0,0.55); }}
+    .gallery-arrow:active {{ transform: translateY(-50%) scale(0.92); }}
+    .gallery-arrow-prev {{ left: 14px; }}
+    .gallery-arrow-next {{ right: 14px; }}
+
+    /* Counter pill */
+    .gallery-counter {{
+      position: absolute;
+      bottom: 14px;
+      right: 14px;
+      background: rgba(0,0,0,0.55);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      color: #fff;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 5px 10px;
+      border-radius: 20px;
+      pointer-events: none;
+      z-index: 2;
+    }}
 
     /* Content */
     .content {{
@@ -416,7 +477,11 @@ def build_page(row):
     .btn-disabled {{ background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.3); cursor: default; }}
 
     @media (max-width: 480px) {{
-      .gallery-hero {{ height: 50vh; max-height: 360px; }}
+      .gallery-stage {{ height: 50vh; max-height: 360px; }}
+      .gallery-arrow {{ width: 38px; height: 38px; }}
+      .gallery-arrow-prev {{ left: 10px; }}
+      .gallery-arrow-next {{ right: 10px; }}
+      .gallery-counter {{ bottom: 10px; right: 10px; font-size: 11px; padding: 4px 9px; }}
       .project-title {{ font-size: 24px; }}
       .map-preview {{ height: 160px; }}
       .site-logo img {{ height: 42px; }}
@@ -452,6 +517,81 @@ def build_page(row):
       {website_btn}
     </div>
   </div>
+
+  <script>
+    // ── Gallery slider ───────────────────────────────────────────────
+    (function() {{
+      var gallery = document.querySelector('.gallery[data-images]');
+      if (!gallery) return;
+      var images;
+      try {{ images = JSON.parse(gallery.getAttribute('data-images')); }} catch (e) {{ return; }}
+      if (!images || images.length < 2) return;
+
+      var img = gallery.querySelector('.gallery-img');
+      var counterCur = gallery.querySelector('.gallery-counter-cur');
+      var prevBtn = gallery.querySelector('.gallery-arrow-prev');
+      var nextBtn = gallery.querySelector('.gallery-arrow-next');
+      var idx = 0;
+
+      // Preload all images so cycling feels instant
+      images.forEach(function(src) {{ var i = new Image(); i.src = src; }});
+
+      function goTo(newIdx) {{
+        // Wrap around in both directions
+        idx = ((newIdx % images.length) + images.length) % images.length;
+        img.classList.add('is-fading');
+        setTimeout(function() {{
+          img.src = images[idx];
+          if (counterCur) counterCur.textContent = String(idx + 1);
+          // Force reflow then fade back in
+          requestAnimationFrame(function() {{ img.classList.remove('is-fading'); }});
+        }}, 120);
+      }}
+
+      prevBtn.addEventListener('click', function() {{ goTo(idx - 1); }});
+      nextBtn.addEventListener('click', function() {{ goTo(idx + 1); }});
+
+      // Keyboard: left/right arrows
+      document.addEventListener('keydown', function(e) {{
+        if (e.key === 'ArrowLeft') goTo(idx - 1);
+        else if (e.key === 'ArrowRight') goTo(idx + 1);
+      }});
+
+      // Touch swipe
+      var touchStartX = null;
+      img.addEventListener('touchstart', function(e) {{
+        touchStartX = e.touches[0].clientX;
+      }}, {{ passive: true }});
+      img.addEventListener('touchend', function(e) {{
+        if (touchStartX === null) return;
+        var dx = e.changedTouches[0].clientX - touchStartX;
+        if (Math.abs(dx) > 40) goTo(idx + (dx < 0 ? 1 : -1));
+        touchStartX = null;
+      }}, {{ passive: true }});
+    }})();
+
+    // ── iOS browser-chrome reset on map navigation ───────────────────
+    // iOS Safari/Chrome can end up with the URL bar stuck in a half-collapsed
+    // state after scrolling. When the user taps a "View on Map" link, scroll
+    // back to the top first so the next page loads with clean browser chrome.
+    (function() {{
+      var mapLinks = document.querySelectorAll('a[href*="/?project="]');
+      mapLinks.forEach(function(link) {{
+        link.addEventListener('click', function(e) {{
+          // Only on touch devices where the issue actually occurs
+          if (!('ontouchstart' in window)) return;
+          // If user is at the top, just let the navigation happen normally
+          if (window.scrollY < 10) return;
+          // Otherwise, prevent default, scroll to top, then navigate
+          e.preventDefault();
+          var href = this.href;
+          window.scrollTo({{ top: 0, behavior: 'instant' }});
+          // Tiny delay so iOS settles before navigating
+          setTimeout(function() {{ window.location.href = href; }}, 30);
+        }});
+      }});
+    }})();
+  </script>
 
 </body>
 </html>'''
