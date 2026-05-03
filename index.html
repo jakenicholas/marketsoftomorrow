@@ -1,7 +1,5 @@
 <!DOCTYPE html>
-
 <!-- v2026-04-20T23:17:06.502295 -->
-
 <html>
 <head>
   <meta charset="utf-8">
@@ -40,13 +38,11 @@
   <meta name="format-detection" content="date=no">
   <meta name="format-detection" content="address=no">
   <meta name="format-detection" content="email=no">
-
+  
   <script src="https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.js"></script>
-
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-
+  
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-6NPTWCVFCG"></script>
-
   <script>
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
@@ -68,7 +64,7 @@
     "description": "Interactive map of the world's most exciting developments by Markets of Tomorrow."
   }
   </script>
-
+  
   <link href="https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.css" rel="stylesheet" />
 
   <style>
@@ -1668,8 +1664,232 @@
     .empty-state .empty-icon { font-size: 32px; margin-bottom: 12px; }
     .empty-state p { margin: 0; font-size: 14px; line-height: 1.5; }
     .empty-state strong { color: var(--accent); }
-  </style>
 
+  /* ── Project Detail Modal ─────────────────────────────── */
+  #projectModal {
+    display: none;
+    position: fixed;
+    z-index: 100;
+    background: #0d0d0d;
+    overflow: hidden;
+    font-family: var(--font-sans, sans-serif);
+  }
+  /* Desktop: slides over sidebar */
+  @media (min-width: 768px) {
+    #projectModal {
+      top: calc(var(--header-height) + var(--safe-area-top));
+      left: 0;
+      width: 35%;
+      height: calc(100% - var(--header-height) - var(--safe-area-top));
+      transform: translateX(-100%);
+      transition: transform 0.32s cubic-bezier(0.32, 0.72, 0, 1);
+    }
+    #projectModal.open { transform: translateX(0); }
+  }
+  /* Mobile: slides up full screen */
+  @media (max-width: 767px) {
+    #projectModal {
+      top: 0; left: 0; right: 0; bottom: 0;
+      transform: translateY(100%);
+      transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+    }
+    #projectModal.open { transform: translateY(0); }
+  }
+  #projectModal .pm-scroll {
+    height: 100%;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+  /* Hero image */
+  #projectModal .pm-hero {
+    position: relative;
+    height: 220px;
+    background: #1a2e1a;
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+  #projectModal .pm-hero img {
+    width: 100%; height: 100%; object-fit: cover;
+    display: block;
+  }
+  #projectModal .pm-hero-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.25) 0%, rgba(13,13,13,0) 50%);
+  }
+  /* Top bar with X and share */
+  #projectModal .pm-topbar {
+    position: absolute; top: 0; left: 0; right: 0;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 14px; z-index: 5;
+  }
+  #projectModal .pm-icon-btn {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: rgba(0,0,0,0.5);
+    border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    flex-shrink: 0;
+  }
+  #projectModal .pm-icon-btn svg {
+    width: 14px; height: 14px;
+    stroke: rgba(255,255,255,0.85); fill: none; stroke-width: 2;
+  }
+  /* Thumbnail strip */
+  #projectModal .pm-thumbs {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 2px; height: 58px;
+    flex-shrink: 0;
+  }
+  #projectModal .pm-thumb {
+    background: #111;
+    background-size: cover; background-position: center;
+    cursor: pointer;
+    position: relative;
+  }
+  #projectModal .pm-thumb.more::after {
+    content: attr(data-count);
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(0,0,0,0.5);
+    color: rgba(255,255,255,0.7);
+    font-size: 12px; font-weight: 600;
+  }
+  /* Content area */
+  #projectModal .pm-body {
+    padding: 14px 16px 0;
+  }
+  #projectModal .pm-pills {
+    display: flex; align-items: center; gap: 6px;
+    margin-bottom: 8px;
+  }
+  #projectModal .pm-featured-pill {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: #FFD300; color: #000;
+    font-size: 9px; font-weight: 700; letter-spacing: 0.06em;
+    text-transform: uppercase; padding: 3px 8px;
+    border-radius: 20px;
+  }
+  #projectModal .pm-type-pill {
+    display: inline-flex;
+    background: rgba(31,223,103,0.12); color: #1FDF67;
+    font-size: 9px; font-weight: 700; letter-spacing: 0.06em;
+    text-transform: uppercase; padding: 3px 8px;
+    border-radius: 20px;
+  }
+  #projectModal .pm-title {
+    font-size: 22px; font-weight: 600; color: #fff;
+    line-height: 1.2; margin: 0 0 4px;
+  }
+  #projectModal .pm-city {
+    font-size: 12px; color: rgba(255,255,255,0.4);
+    margin: 0 0 14px;
+  }
+  /* Progress tracker */
+  #projectModal .pm-progress { margin-bottom: 14px; }
+  #projectModal .pm-progress-top {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 6px;
+  }
+  #projectModal .pm-stage {
+    font-size: 10px; font-weight: 700;
+    letter-spacing: 0.04em; text-transform: uppercase;
+  }
+  #projectModal .pm-pct {
+    font-size: 10px; color: rgba(255,255,255,0.25);
+  }
+  #projectModal .pm-steps {
+    display: flex; gap: 3px; margin-bottom: 5px;
+  }
+  #projectModal .pm-step {
+    flex: 1; height: 3px; border-radius: 2px;
+    background: rgba(255,255,255,0.08);
+  }
+  #projectModal .pm-step.done { background: var(--stage-color, #FF9500); }
+  #projectModal .pm-step.active { background: var(--stage-color, rgba(255,149,0,0.4)); }
+  #projectModal .pm-step.active { opacity: 0.5; background: var(--stage-color, #FF9500); }
+  #projectModal .pm-step-labels {
+    display: flex; justify-content: space-between;
+  }
+  #projectModal .pm-step-label {
+    font-size: 7px; color: rgba(255,255,255,0.2);
+    letter-spacing: 0.02em;
+  }
+  #projectModal .pm-step-label.cur { color: var(--stage-color, #FF9500); }
+  /* Divider */
+  #projectModal .pm-div {
+    height: 0.5px;
+    background: rgba(255,255,255,0.07);
+    margin: 0 -16px;
+  }
+  /* Description */
+  #projectModal .pm-desc {
+    font-size: 13px; color: rgba(255,255,255,0.55);
+    line-height: 1.65; padding: 12px 0;
+  }
+  /* Stat cards */
+  #projectModal .pm-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px; margin-bottom: 14px;
+  }
+  #projectModal .pm-stat {
+    background: rgba(255,255,255,0.04);
+    border-radius: 8px; padding: 9px 11px;
+  }
+  #projectModal .pm-stat-label {
+    font-size: 8px; color: rgba(255,255,255,0.28);
+    text-transform: uppercase; letter-spacing: 0.04em;
+    margin-bottom: 3px;
+  }
+  #projectModal .pm-stat-val {
+    font-size: 12px; color: #fff; font-weight: 500;
+    line-height: 1.3;
+    /* Truncate long developer names */
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  /* Bottom CTA */
+  #projectModal .pm-cta {
+    display: flex; gap: 8px;
+    padding: 12px 0 calc(16px + var(--safe-area-bottom, 0px));
+    border-top: 0.5px solid rgba(255,255,255,0.07);
+  }
+  #projectModal .pm-btn-learn {
+    flex: 1; background: #1FDF67; color: #000;
+    border: none; border-radius: 8px;
+    padding: 11px; font-size: 13px; font-weight: 700;
+    cursor: pointer; text-decoration: none;
+    display: flex; align-items: center; justify-content: center; gap: 4px;
+  }
+  #projectModal .pm-btn-learn:hover { background: #18c75a; }
+  #projectModal .pm-btn-icon {
+    width: 40px; height: 40px;
+    background: rgba(255,255,255,0.06);
+    border: 0.5px solid rgba(255,255,255,0.1);
+    border-radius: 8px; display: flex;
+    align-items: center; justify-content: center;
+    cursor: pointer; flex-shrink: 0;
+    color: rgba(255,255,255,0.6);
+    font-size: 16px; line-height: 1;
+  }
+  #projectModal .pm-btn-icon svg {
+    width: 15px; height: 15px;
+    stroke: rgba(255,255,255,0.6); fill: none; stroke-width: 2;
+  }
+  #projectModal .pm-btn-icon.liked { color: #FF6B9D; }
+  #projectModal .pm-btn-icon.liked svg { stroke: #FF6B9D; }
+  /* Page counter badge on hero */
+  #projectModal .pm-counter {
+    position: absolute; bottom: 10px; right: 12px;
+    background: rgba(0,0,0,0.5);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    border-radius: 20px; padding: 3px 10px;
+    font-size: 10px; color: rgba(255,255,255,0.6);
+  }
+  </style>
 </head>
 <body>
   <!-- Header Bar -->
@@ -1681,9 +1901,8 @@
       <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
     </a>
   </div>
-
+  
   <!-- Loading Overlay -->
-
   <div id="loadingOverlay">
     <div class="loading-content">
       <div class="loading-spinner"></div>
@@ -1695,7 +1914,7 @@
       <span class="presented-brand">MARKETS OF TOMORROW</span>
     </div>
   </div>
-
+  
   <div id="app-container">
     <button id="toggleView" class="hidden" style="display:none!important"></button>
     <button id="openSearch" class="hidden" style="display:none!important"></button>
@@ -1707,246 +1926,285 @@
       <div id="results" class="hidden"></div>
     </div>
 
-```
-<!-- Layers toggle button -->
-<button id="layersButton" class="glass-btn" title="Map layers">
-  <svg viewBox="0 0 24 24"><path d="M11.99 18.54l-7.37-5.73L3 14.07l9 7 9-7-1.63-1.27-7.38 5.74zM12 16l7.36-5.73L21 9l-9-7-9 7 1.63 1.27L12 16z"/></svg>
-</button>
+    <!-- Layers toggle button -->
+    <button id="layersButton" class="glass-btn" title="Map layers">
+      <svg viewBox="0 0 24 24"><path d="M11.99 18.54l-7.37-5.73L3 14.07l9 7 9-7-1.63-1.27-7.38 5.74zM12 16l7.36-5.73L21 9l-9-7-9 7 1.63 1.27L12 16z"/></svg>
+    </button>
 
-<!-- Layers panel -->
-<div id="layersPanel">
-  <div class="layers-section-title">Layers</div>
+    <!-- Layers panel -->
+    <div id="layersPanel">
+      <div class="layers-section-title">Layers</div>
 
-  <div class="layers-checkbox-row disabled" title="Developments cannot be hidden">
-    <div class="layers-checkbox checked grayed">
-      <svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg>
-    </div>
-    <span class="layers-checkbox-label">Developments</span>
-  </div>
-
-  <div class="layers-checkbox-row" id="transitToggleRow">
-    <div class="layers-checkbox checked" id="transitCheckbox">
-      <svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg>
-    </div>
-    <span class="layers-checkbox-label" style="display:flex;align-items:center;gap:6px;">
-      Future Transit
-      <svg width="18" height="6" viewBox="0 0 18 6" style="flex-shrink:0;"><line x1="0" y1="3" x2="18" y2="3" stroke="#FFD300" stroke-width="2" stroke-dasharray="3,2"/></svg>
-    </span>
-  </div>
-
-  <div class="layers-checkbox-row" id="currentTransitToggleRow">
-    <div class="layers-checkbox" id="currentTransitCheckbox">
-      <svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg>
-    </div>
-    <span class="layers-checkbox-label" style="display:flex;align-items:center;gap:6px;">
-      Current Transit
-      <span style="display:inline-block;width:16px;height:3px;background:#FF8C00;border-radius:2px;flex-shrink:0;"></span>
-    </span>
-  </div>
-
-  <div class="layers-divider"></div>
-
-  <div class="layers-section-title">Map Style</div>
-  <div class="layers-map-options">
-    <div class="layers-map-option selected" id="styleDefault">
-      <img src="https://static.wixstatic.com/media/ca3b83_4e8814226f3c44c6be6d4d405a46dcac~mv2.jpg" alt="Default" style="object-fit:cover;width:100%;height:60px;display:block;"/>
-      <div class="layers-map-option-label">Default</div>
-    </div>
-    <div class="layers-map-option" id="styleSatellite">
-      <img src="https://static.wixstatic.com/media/ca3b83_7ef4124aa18b4c119cb645ec8b7a9ff9~mv2.jpg" alt="Satellite" style="object-fit:cover;width:100%;height:60px;display:block;"/>
-      <div class="layers-map-option-label">Satellite</div>
-    </div>
-  </div>
-</div>
-
-<!-- Location button (mobile only) -->
-<button id="locationButton" title="Go to my location">
-  <svg viewBox="0 0 24 24"><path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3c-.46-4.17-3.77-7.48-7.94-7.94V1h-2v2.06C6.83 3.52 3.52 6.83 3.06 11H1v2h2.06c.46 4.17 3.77 7.48 7.94 7.94V23h2v-2.06c4.17-.46 7.48-3.77 7.94-7.94H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/></svg>
-</button>
-
-<!-- Zoom buttons -->
-<button id="zoomInButton" class="zoom-btn" title="Zoom in">+</button>
-<button id="zoomOutButton" class="zoom-btn" title="Zoom out">−</button>
-<div id="desktopSearchPill" class="glass-btn">
-  <div class="pill-search-icon">
-    <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-  </div>
-  <span class="pill-text">Search projects or city...</span>
-  <div class="pill-filter-badge" id="desktopPillFilterBadge">
-    <span class="badge-icon"><svg viewBox="0 0 24 24"><circle cx="6" cy="5" r="2"/><line x1="2" y1="5" x2="4" y2="5"/><line x1="8" y1="5" x2="22" y2="5"/><circle cx="16" cy="12" r="2"/><line x1="2" y1="12" x2="14" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><circle cx="9" cy="19" r="2"/><line x1="2" y1="19" x2="7" y2="19"/><line x1="11" y1="19" x2="22" y2="19"/></svg></span>
-    <span class="badge-count" id="desktopPillFilterCount">0</span>
-  </div>
-  <div class="pill-divider"></div>
-  <div class="pill-count" id="desktopPillCount">— results</div>
-</div>
-
-<!-- Desktop Sidebar -->
-<div id="desktopSidebar">
-  <div class="sidebar-header">
-
-    <!-- Row 1: Search glass pill + close button -->
-    <div class="desktop-search-row">
-      <div class="desktop-search-pill">
-        <div class="search-pill-icon">
-          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <div class="layers-checkbox-row disabled" title="Developments cannot be hidden">
+        <div class="layers-checkbox checked grayed">
+          <svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg>
         </div>
-        <input id="sidebarSearchBar" type="text" placeholder="Search projects or city..." />
-        <button id="sidebarSearchClear" title="Clear search">✕</button>
-        <div id="sidebarAutocomplete" class="autocomplete-dropdown hidden"></div>
+        <span class="layers-checkbox-label">Developments</span>
       </div>
-      <button id="closeSidebar" title="Close">✕</button>
-      <div id="sidebarResults" class="hidden"></div>
-    </div>
 
-    <!-- Row 2: Glass filter pill with three segments -->
-    <div class="desktop-filter-pill mobile-filter-pill">
-      <div class="filter-seg" id="desktopSegSort">
-        <span class="filter-seg-label" id="desktopLabelSort">Nearest</span>
-        <svg class="filter-seg-chevron" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-linecap="round"/></svg>
-        <select id="sortSelectDesktop">
-          <option value="default">Nearest</option>
-          <option value="az">A to Z</option>
-          <option value="za">Z to A</option>
-        </select>
+      <div class="layers-checkbox-row" id="transitToggleRow">
+        <div class="layers-checkbox checked" id="transitCheckbox">
+          <svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg>
+        </div>
+        <span class="layers-checkbox-label" style="display:flex;align-items:center;gap:6px;">
+          Future Transit
+          <svg width="18" height="6" viewBox="0 0 18 6" style="flex-shrink:0;"><line x1="0" y1="3" x2="18" y2="3" stroke="#FFD300" stroke-width="2" stroke-dasharray="3,2"/></svg>
+        </span>
       </div>
-      <div class="filter-seg-div"></div>
-      <div class="filter-seg" id="desktopSegType">
-        <span class="filter-seg-label" id="desktopLabelType">Type</span>
-        <svg class="filter-seg-chevron" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-linecap="round"/></svg>
-        <select id="projectTypeFilterDesktop">
-          <option value="all">All Types</option>
-        </select>
-      </div>
-      <div class="filter-seg-div"></div>
-      <div class="filter-seg" id="desktopSegStatus">
-        <span class="filter-seg-label" id="desktopLabelStatus">Status</span>
-        <svg class="filter-seg-chevron" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-linecap="round"/></svg>
-        <select id="locationFilterDesktop">
-          <option value="all">All Status</option>
-        </select>
-      </div>
-    </div>
 
-    <!-- Active filter pills (desktop) -->
-    <div class="filter-pills-row" id="desktopPillsRow"></div>
+      <div class="layers-checkbox-row" id="currentTransitToggleRow">
+        <div class="layers-checkbox" id="currentTransitCheckbox">
+          <svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg>
+        </div>
+        <span class="layers-checkbox-label" style="display:flex;align-items:center;gap:6px;">
+          Current Transit
+          <span style="display:inline-block;width:16px;height:3px;background:#FF8C00;border-radius:2px;flex-shrink:0;"></span>
+        </span>
+      </div>
 
-    <!-- Section status bar (desktop) -->
-    <div id="desktopSectionBar" class="section-status-bar">
-      <div class="ssb-inner" id="desktopSsbInner">
-        <span class="ssb-title in-view" id="desktopSsbTitle">In View</span>
-        <span class="ssb-count green" id="desktopSsbCount"></span>
+      <div class="layers-divider"></div>
+
+      <div class="layers-section-title">Map Style</div>
+      <div class="layers-map-options">
+        <div class="layers-map-option selected" id="styleDefault">
+          <img src="https://static.wixstatic.com/media/ca3b83_4e8814226f3c44c6be6d4d405a46dcac~mv2.jpg" alt="Default" style="object-fit:cover;width:100%;height:60px;display:block;"/>
+          <div class="layers-map-option-label">Default</div>
+        </div>
+        <div class="layers-map-option" id="styleSatellite">
+          <img src="https://static.wixstatic.com/media/ca3b83_7ef4124aa18b4c119cb645ec8b7a9ff9~mv2.jpg" alt="Satellite" style="object-fit:cover;width:100%;height:60px;display:block;"/>
+          <div class="layers-map-option-label">Satellite</div>
+        </div>
       </div>
     </div>
-  </div>
 
-  <div class="sidebar-content">
-    <div class="leaf-grid" id="gridDesktop"></div>
-  </div>
-</div>
+    <!-- Location button (mobile only) -->
+    <button id="locationButton" title="Go to my location">
+      <svg viewBox="0 0 24 24"><path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3c-.46-4.17-3.77-7.48-7.94-7.94V1h-2v2.06C6.83 3.52 3.52 6.83 3.06 11H1v2h2.06c.46 4.17 3.77 7.48 7.94 7.94V23h2v-2.06c4.17-.46 7.48-3.77 7.94-7.94H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/></svg>
+    </button>
 
-<!-- Mobile Drawer -->
-<div id="mobileDrawer">
-  <div id="mobileDrawerContent">
-    <div class="mobile-header">
-      <div id="mobileDrawerHandle"></div>
-      <!-- Row 1: Glass search pill with autocomplete outside overflow:hidden -->
-      <div style="position:relative;">
-        <div class="mobile-search-pill">
-          <div class="search-pill-icon">
-            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <!-- Zoom buttons -->
+    <button id="zoomInButton" class="zoom-btn" title="Zoom in">+</button>
+    <button id="zoomOutButton" class="zoom-btn" title="Zoom out">−</button>
+    <div id="desktopSearchPill" class="glass-btn">
+      <div class="pill-search-icon">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <span class="pill-text">Search projects or city...</span>
+      <div class="pill-filter-badge" id="desktopPillFilterBadge">
+        <span class="badge-icon"><svg viewBox="0 0 24 24"><circle cx="6" cy="5" r="2"/><line x1="2" y1="5" x2="4" y2="5"/><line x1="8" y1="5" x2="22" y2="5"/><circle cx="16" cy="12" r="2"/><line x1="2" y1="12" x2="14" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><circle cx="9" cy="19" r="2"/><line x1="2" y1="19" x2="7" y2="19"/><line x1="11" y1="19" x2="22" y2="19"/></svg></span>
+        <span class="badge-count" id="desktopPillFilterCount">0</span>
+      </div>
+      <div class="pill-divider"></div>
+      <div class="pill-count" id="desktopPillCount">— results</div>
+    </div>
+    
+    <!-- Desktop Sidebar -->
+    <div id="desktopSidebar">
+      <div class="sidebar-header">
+
+        <!-- Row 1: Search glass pill + close button -->
+        <div class="desktop-search-row">
+          <div class="desktop-search-pill">
+            <div class="search-pill-icon">
+              <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            </div>
+            <input id="sidebarSearchBar" type="text" placeholder="Search projects or city..." />
+            <button id="sidebarSearchClear" title="Clear search">✕</button>
+            <div id="sidebarAutocomplete" class="autocomplete-dropdown hidden"></div>
           </div>
-          <input id="mobileSearchBar" type="text" placeholder="Search projects or city..." />
-          <button id="mobileSearchClear" title="Clear search">✕</button>
+          <button id="closeSidebar" title="Close">✕</button>
+          <div id="sidebarResults" class="hidden"></div>
         </div>
-        <div id="mobileAutocomplete" class="autocomplete-dropdown hidden"></div>
+
+        <!-- Row 2: Glass filter pill with three segments -->
+        <div class="desktop-filter-pill mobile-filter-pill">
+          <div class="filter-seg" id="desktopSegSort">
+            <span class="filter-seg-label" id="desktopLabelSort">Nearest</span>
+            <svg class="filter-seg-chevron" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-linecap="round"/></svg>
+            <select id="sortSelectDesktop">
+              <option value="default">Nearest</option>
+              <option value="az">A to Z</option>
+              <option value="za">Z to A</option>
+            </select>
+          </div>
+          <div class="filter-seg-div"></div>
+          <div class="filter-seg" id="desktopSegType">
+            <span class="filter-seg-label" id="desktopLabelType">Type</span>
+            <svg class="filter-seg-chevron" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-linecap="round"/></svg>
+            <select id="projectTypeFilterDesktop">
+              <option value="all">All Types</option>
+            </select>
+          </div>
+          <div class="filter-seg-div"></div>
+          <div class="filter-seg" id="desktopSegStatus">
+            <span class="filter-seg-label" id="desktopLabelStatus">Status</span>
+            <svg class="filter-seg-chevron" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-linecap="round"/></svg>
+            <select id="locationFilterDesktop">
+              <option value="all">All Status</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Active filter pills (desktop) -->
+        <div class="filter-pills-row" id="desktopPillsRow"></div>
+
+        <!-- Section status bar (desktop) -->
+        <div id="desktopSectionBar" class="section-status-bar">
+          <div class="ssb-inner" id="desktopSsbInner">
+            <span class="ssb-title in-view" id="desktopSsbTitle">In View</span>
+            <span class="ssb-count green" id="desktopSsbCount"></span>
+          </div>
+        </div>
       </div>
 
-      <!-- Row 2: Glass filter pill with three equal segments -->
-      <div class="mobile-filter-pill">
-        <div class="filter-seg" id="mobileSegSort">
-          <span class="filter-seg-label" id="mobileLabelSort">Nearest</span>
-          <svg class="filter-seg-chevron" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-linecap="round"/></svg>
-          <select id="sortSelectMobile">
-            <option value="default">Nearest</option>
-            <option value="az">A to Z</option>
-            <option value="za">Z to A</option>
-          </select>
+      <div class="sidebar-content">
+        <div class="leaf-grid" id="gridDesktop"></div>
+      </div>
+    </div>
+    
+    <!-- Mobile Drawer -->
+    <div id="mobileDrawer">
+      <div id="mobileDrawerContent">
+        <div class="mobile-header">
+          <div id="mobileDrawerHandle"></div>
+          <!-- Row 1: Glass search pill with autocomplete outside overflow:hidden -->
+          <div style="position:relative;">
+            <div class="mobile-search-pill">
+              <div class="search-pill-icon">
+                <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+              </div>
+              <input id="mobileSearchBar" type="text" placeholder="Search projects or city..." />
+              <button id="mobileSearchClear" title="Clear search">✕</button>
+            </div>
+            <div id="mobileAutocomplete" class="autocomplete-dropdown hidden"></div>
+          </div>
+
+          <!-- Row 2: Glass filter pill with three equal segments -->
+          <div class="mobile-filter-pill">
+            <div class="filter-seg" id="mobileSegSort">
+              <span class="filter-seg-label" id="mobileLabelSort">Nearest</span>
+              <svg class="filter-seg-chevron" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-linecap="round"/></svg>
+              <select id="sortSelectMobile">
+                <option value="default">Nearest</option>
+                <option value="az">A to Z</option>
+                <option value="za">Z to A</option>
+              </select>
+            </div>
+            <div class="filter-seg-div"></div>
+            <div class="filter-seg" id="mobileSegType">
+              <span class="filter-seg-label" id="mobileLabelType">Type</span>
+              <svg class="filter-seg-chevron" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-linecap="round"/></svg>
+              <select id="projectTypeFilterMobile">
+                <option value="all">All Types</option>
+              </select>
+            </div>
+            <div class="filter-seg-div"></div>
+            <div class="filter-seg" id="mobileSegStatus">
+              <span class="filter-seg-label" id="mobileLabelStatus">Status</span>
+              <svg class="filter-seg-chevron" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-linecap="round"/></svg>
+              <select id="locationFilterMobile">
+                <option value="all">All Status</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Active filter pills -->
+          <div class="filter-pills-row" id="mobilePillsRow"></div>
+          <!-- Section indicator: lives below filters, animates between In View / More Nearby -->
+          <div id="mobileSectionBar" class="section-status-bar">
+            <div class="ssb-inner" id="mobileSsbInner">
+              <span class="ssb-title in-view" id="mobileSsbTitle">In View</span>
+              <span class="ssb-count green" id="mobileSsbCount"></span>
+            </div>
+          </div>
         </div>
-        <div class="filter-seg-div"></div>
-        <div class="filter-seg" id="mobileSegType">
-          <span class="filter-seg-label" id="mobileLabelType">Type</span>
-          <svg class="filter-seg-chevron" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-linecap="round"/></svg>
-          <select id="projectTypeFilterMobile">
-            <option value="all">All Types</option>
-          </select>
-        </div>
-        <div class="filter-seg-div"></div>
-        <div class="filter-seg" id="mobileSegStatus">
-          <span class="filter-seg-label" id="mobileLabelStatus">Status</span>
-          <svg class="filter-seg-chevron" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-linecap="round"/></svg>
-          <select id="locationFilterMobile">
-            <option value="all">All Status</option>
-          </select>
+        
+        <div class="mobile-content allow-scroll">
+          <div class="leaf-grid" id="gridMobile"></div>
         </div>
       </div>
+      <button id="mobileMapButton">
+        <div class="map-btn-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.94-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+        </div>
+        <span class="map-btn-label">Map</span>
+        <div class="map-btn-divider"></div>
+        <div class="map-btn-badge" id="mapBtnFilterBadge">
+          <svg viewBox="0 0 24 24"><circle cx="6" cy="5" r="2"/><line x1="2" y1="5" x2="4" y2="5"/><line x1="8" y1="5" x2="22" y2="5"/><circle cx="16" cy="12" r="2"/><line x1="2" y1="12" x2="14" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><circle cx="9" cy="19" r="2"/><line x1="2" y1="19" x2="7" y2="19"/><line x1="11" y1="19" x2="22" y2="19"/></svg>
+          <span class="badge-num" id="mapBtnFilterCount">0</span>
+        </div>
+      </button>
+    </div>
+    
+    <button id="mobileTilesButton">
+      <div class="pill-search-icon">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <span class="pill-text">Search projects or city...</span>
+      <div class="pill-filter-badge" id="mobilePillFilterBadge">
+        <span class="badge-icon"><svg viewBox="0 0 24 24"><circle cx="6" cy="5" r="2"/><line x1="2" y1="5" x2="4" y2="5"/><line x1="8" y1="5" x2="22" y2="5"/><circle cx="16" cy="12" r="2"/><line x1="2" y1="12" x2="14" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><circle cx="9" cy="19" r="2"/><line x1="2" y1="19" x2="7" y2="19"/><line x1="11" y1="19" x2="22" y2="19"/></svg></span>
+        <span class="badge-count" id="mobilePillFilterCount">0</span>
+      </div>
+      <div class="pill-divider"></div>
+      <div class="pill-count" id="mobilePillCount">— results</div>
+    </button>
+    <a id="mobileHomeButton" href="https://www.oftmw.com" target="_blank">
+      <img src="https://static.wixstatic.com/shapes/ca3b83_a647b53cad4c49c5b012af991d286a86.svg" alt="Markets of Tomorrow" style="width:95%;height:95%;filter:brightness(0) invert(1);object-fit:contain;" />
+    </a>
+    <button id="mapReturnButton">Map</button>
+    
+    <div id="map"></div>
 
-      <!-- Active filter pills -->
-      <div class="filter-pills-row" id="mobilePillsRow"></div>
-      <!-- Section indicator: lives below filters, animates between In View / More Nearby -->
-      <div id="mobileSectionBar" class="section-status-bar">
-        <div class="ssb-inner" id="mobileSsbInner">
-          <span class="ssb-title in-view" id="mobileSsbTitle">In View</span>
-          <span class="ssb-count green" id="mobileSsbCount"></span>
+    <!-- ── Project Detail Modal ── -->
+    <div id="projectModal">
+      <div class="pm-scroll">
+        <!-- Hero image -->
+        <div class="pm-hero">
+          <img id="pmHeroImg" src="" alt="" />
+          <div class="pm-hero-overlay"></div>
+          <div class="pm-topbar">
+            <button class="pm-icon-btn" id="pmCloseBtn" aria-label="Close">
+              <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+            <div style="display:flex;gap:6px;">
+              <button class="pm-icon-btn" id="pmShareBtn" aria-label="Share">
+                <svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+              </button>
+            </div>
+          </div>
+          <div class="pm-counter" id="pmCounter">1 / 1</div>
+        </div>
+        <!-- Thumbnail strip -->
+        <div class="pm-thumbs" id="pmThumbs"></div>
+        <!-- Body -->
+        <div class="pm-body">
+          <div class="pm-pills" id="pmPills"></div>
+          <h2 class="pm-title" id="pmTitle"></h2>
+          <p class="pm-city" id="pmCity"></p>
+          <div class="pm-progress" id="pmProgress"></div>
+          <div class="pm-div"></div>
+          <p class="pm-desc" id="pmDesc"></p>
+          <div class="pm-div"></div>
+          <div class="pm-stats" id="pmStats" style="margin-top:12px;"></div>
+          <div class="pm-cta">
+            <a class="pm-btn-learn" id="pmLearnBtn" href="#" target="_blank">Official Website ↗</a>
+            <div class="pm-btn-icon" id="pmShareIconBtn">
+              <svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+            </div>
+            <div class="pm-btn-icon" id="pmLikeBtn">♡</div>
+          </div>
         </div>
       </div>
     </div>
     
-    <div class="mobile-content allow-scroll">
-      <div class="leaf-grid" id="gridMobile"></div>
+    <div id="fullscreenModal">
+      <button id="exitFullscreen">✕ Exit</button>
+      <div id="fullscreenMap"></div>
     </div>
   </div>
-  <button id="mobileMapButton">
-    <div class="map-btn-icon">
-      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.94-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
-    </div>
-    <span class="map-btn-label">Map</span>
-    <div class="map-btn-divider"></div>
-    <div class="map-btn-badge" id="mapBtnFilterBadge">
-      <svg viewBox="0 0 24 24"><circle cx="6" cy="5" r="2"/><line x1="2" y1="5" x2="4" y2="5"/><line x1="8" y1="5" x2="22" y2="5"/><circle cx="16" cy="12" r="2"/><line x1="2" y1="12" x2="14" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><circle cx="9" cy="19" r="2"/><line x1="2" y1="19" x2="7" y2="19"/><line x1="11" y1="19" x2="22" y2="19"/></svg>
-      <span class="badge-num" id="mapBtnFilterCount">0</span>
-    </div>
-  </button>
-</div>
-
-<button id="mobileTilesButton">
-  <div class="pill-search-icon">
-    <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-  </div>
-  <span class="pill-text">Search projects or city...</span>
-  <div class="pill-filter-badge" id="mobilePillFilterBadge">
-    <span class="badge-icon"><svg viewBox="0 0 24 24"><circle cx="6" cy="5" r="2"/><line x1="2" y1="5" x2="4" y2="5"/><line x1="8" y1="5" x2="22" y2="5"/><circle cx="16" cy="12" r="2"/><line x1="2" y1="12" x2="14" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><circle cx="9" cy="19" r="2"/><line x1="2" y1="19" x2="7" y2="19"/><line x1="11" y1="19" x2="22" y2="19"/></svg></span>
-    <span class="badge-count" id="mobilePillFilterCount">0</span>
-  </div>
-  <div class="pill-divider"></div>
-  <div class="pill-count" id="mobilePillCount">— results</div>
-</button>
-<a id="mobileHomeButton" href="https://www.oftmw.com" target="_blank">
-  <img src="https://static.wixstatic.com/shapes/ca3b83_a647b53cad4c49c5b012af991d286a86.svg" alt="Markets of Tomorrow" style="width:95%;height:95%;filter:brightness(0) invert(1);object-fit:contain;" />
-</a>
-<button id="mapReturnButton">Map</button>
-
-<div id="map"></div>
-
-<div id="fullscreenModal">
-  <button id="exitFullscreen">✕ Exit</button>
-  <div id="fullscreenMap"></div>
-</div>
-```
-
-  </div>
-
+  
   <div id="toast" class="toast"></div>
-
+  
   <script>
     // ─── VIEWPORT HEIGHT ─────────────────────────────────────────────────────
     const setAppHeight = () => {
@@ -2552,7 +2810,229 @@
     }
 
     // ─── POPUP ────────────────────────────────────────────────────────────────
+    // ── Project Detail Modal ────────────────────────────────────────────
+    (function() {
+      const modal   = document.getElementById('projectModal');
+      const scrollEl = modal.querySelector('.pm-scroll');
+      let currentFeature = null;
+      let fromSource = null; // 'tile' | 'popup'
+      let liked = false;
+
+      // Delivery stage config
+      const stages = [
+        { key: 'announced',     label: 'Announced',       pct: 10,  color: 'rgba(255,255,255,0.4)' },
+        { key: 'breaking ground', label: 'Breaking Ground', pct: 30, color: '#FFD300' },
+        { key: 'under construction', label: 'Construction', pct: 60, color: '#FF9500' },
+        { key: 'opening soon',  label: 'Opening Soon',    pct: 85,  color: '#1FDF67' },
+        { key: 'now open',      label: 'Now Open',        pct: 100, color: '#1FDF67' },
+      ];
+
+      function getStageInfo(delivery) {
+        const d = (delivery || '').toLowerCase().trim();
+        return stages.find(s => d.includes(s.key)) || stages[0];
+      }
+
+      function buildProgress(delivery) {
+        const si = getStageInfo(delivery);
+        const idx = stages.indexOf(si);
+        const color = si.color;
+        const steps = stages.map((s, i) => {
+          let cls = 'pm-step';
+          if (i < idx) cls += ' done';
+          else if (i === idx) cls += ' active';
+          return `<div class="${cls}" style="--stage-color:${color}"></div>`;
+        }).join('');
+        const labels = stages.map((s, i) =>
+          `<span class="pm-step-label${i === idx ? ' cur' : ''}" style="${i === idx ? '--stage-color:'+color : ''}">${s.label}</span>`
+        ).join('');
+        return `
+          <div class="pm-progress-top">
+            <span class="pm-stage" style="color:${color}">${si.label}</span>
+            <span class="pm-pct">${si.pct}%</span>
+          </div>
+          <div class="pm-steps">${steps}</div>
+          <div class="pm-step-labels">${labels}</div>`;
+      }
+
+      function truncateDeveloper(str) {
+        if (!str) return '';
+        // If multiple developers separated by / or &, show first + "& More"
+        const parts = str.split(/\s*[\/&]\s*/);
+        if (parts.length > 2) return parts[0].trim() + ' & More';
+        return str;
+      }
+
+      window.openProjectModal = function(f, source) {
+        currentFeature = f;
+        fromSource = source || 'tile';
+        liked = false;
+        const p = f.properties;
+
+        // Reset scroll
+        scrollEl.scrollTop = 0;
+
+        // Hero
+        const heroImg = document.getElementById('pmHeroImg');
+        heroImg.src = p.image || '';
+        heroImg.alt = p.title || '';
+
+        // Counter (stub — will update when multi-image added)
+        document.getElementById('pmCounter').textContent = '1 / 1';
+
+        // Thumbs — stub 3 copies of main image until Image2-5 columns exist
+        const thumbs = document.getElementById('pmThumbs');
+        thumbs.innerHTML = [0,1,2].map((i, idx) => {
+          if (idx === 2) return `<div class="pm-thumb more" data-count="+${0}" style="background-image:url('${p.image}')"></div>`;
+          return `<div class="pm-thumb" style="background-image:url('${p.image}')"></div>`;
+        }).join('');
+        // Hide the "+0" more div if no extras
+        thumbs.innerHTML = `
+          <div class="pm-thumb" style="background-image:url('${p.image || ''}')"></div>
+          <div class="pm-thumb" style="background-image:url('${p.image || ''}');opacity:0.6;"></div>
+          <div class="pm-thumb" style="background-image:url('${p.image || ''}');opacity:0.4;"></div>`;
+
+        // Pills
+        const pills = document.getElementById('pmPills');
+        let pillsHTML = '';
+        if (p.featured) pillsHTML += `<span class="pm-featured-pill">★ Featured</span>`;
+        if (p.projectType) {
+          const t = p.projectType.split(',')[0].trim();
+          if (t) pillsHTML += `<span class="pm-type-pill">${t}</span>`;
+        }
+        pills.innerHTML = pillsHTML;
+
+        // Title + city
+        document.getElementById('pmTitle').textContent = p.title || '';
+        document.getElementById('pmCity').textContent = [p.city, p.architect ? p.architect.split('/')[0].trim() : '']
+          .filter(Boolean).join(' · ');
+
+        // Progress
+        document.getElementById('pmProgress').innerHTML = buildProgress(p.delivery);
+
+        // Description — prefer long, fall back to short
+        const desc = p.descriptionLong || p.description || '';
+        document.getElementById('pmDesc').textContent = desc;
+
+        // Stats
+        const stats = document.getElementById('pmStats');
+        const statItems = [];
+        if (p.developer) statItems.push({ label: 'Developer', val: truncateDeveloper(p.developer) });
+        if (p.architect) statItems.push({ label: 'Architect', val: p.architect.split('/')[0].trim() });
+        const deliveryDisplay = p.deliveryDate || p.delivery || '';
+        if (deliveryDisplay) statItems.push({ label: 'Delivery', val: deliveryDisplay });
+        if (p.city) statItems.push({ label: 'Market', val: p.city });
+
+        stats.innerHTML = statItems.map(s =>
+          `<div class="pm-stat">
+            <div class="pm-stat-label">${s.label}</div>
+            <div class="pm-stat-val" title="${s.val}">${s.val}</div>
+          </div>`
+        ).join('');
+
+        // Adjust stats grid — 1 col if only 1-2 items, 2 col otherwise
+        stats.style.gridTemplateColumns = statItems.length <= 2 ? '1fr' : '1fr 1fr';
+
+        // Learn More button
+        const learnBtn = document.getElementById('pmLearnBtn');
+        if (p.website) {
+          learnBtn.href = p.website;
+          learnBtn.style.opacity = '1';
+          learnBtn.style.pointerEvents = 'auto';
+        } else {
+          learnBtn.href = '#';
+          learnBtn.style.opacity = '0.4';
+          learnBtn.style.pointerEvents = 'none';
+        }
+
+        // Like button reset
+        document.getElementById('pmLikeBtn').classList.remove('liked');
+        document.getElementById('pmLikeBtn').textContent = '♡';
+
+        // Show modal
+        modal.style.display = 'block';
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => modal.classList.add('open'));
+        });
+
+        // Analytics
+        gtag('event', 'project_detail_open', {
+          project_name: p.title,
+          project_city: p.city,
+          source: fromSource,
+          device_type: isMobile ? 'mobile' : 'desktop'
+        });
+      };
+
+      function closeModal() {
+        modal.classList.remove('open');
+        setTimeout(() => { modal.style.display = 'none'; }, 350);
+
+        // On mobile: re-expand the drawer if we came from a tile
+        if (isMobile && fromSource === 'tile') {
+          const drawer = document.getElementById('mobileDrawer');
+          if (drawer) {
+            drawer.style.display = 'block';
+            requestAnimationFrame(() => {
+              drawer.style.transform = 'translateY(0)';
+              drawer.classList.add('expanded');
+            });
+          }
+        }
+      }
+
+      // Close button
+      document.getElementById('pmCloseBtn').addEventListener('click', closeModal);
+
+      // Share buttons
+      function doShare(title, url) {
+        if (navigator.share) {
+          navigator.share({ title, url }).catch(() => {});
+        } else {
+          navigator.clipboard?.writeText(url).then(() => {
+            // Brief visual feedback
+            const btn = document.getElementById('pmShareIconBtn');
+            btn.style.color = '#1FDF67';
+            setTimeout(() => btn.style.color = '', 1200);
+          }).catch(() => {});
+        }
+      }
+
+      document.getElementById('pmShareBtn').addEventListener('click', () => {
+        const p = currentFeature?.properties;
+        if (!p) return;
+        const url = p.website || window.location.href;
+        doShare(p.title, url);
+      });
+      document.getElementById('pmShareIconBtn').addEventListener('click', () => {
+        const p = currentFeature?.properties;
+        if (!p) return;
+        const url = p.website || window.location.href;
+        doShare(p.title, url);
+      });
+
+      // Like button
+      document.getElementById('pmLikeBtn').addEventListener('click', function() {
+        liked = !liked;
+        this.textContent = liked ? '♥' : '♡';
+        this.classList.toggle('liked', liked);
+      });
+
+      // Learn More click tracking
+      document.getElementById('pmLearnBtn').addEventListener('click', () => {
+        const p = currentFeature?.properties;
+        if (!p) return;
+        gtag('event', 'learn_more_click', {
+          project_name: p.title,
+          project_city: p.city,
+          click_location: 'detail_modal',
+          device_type: isMobile ? 'mobile' : 'desktop'
+        });
+      });
+    })();
+    // ── End Project Detail Modal ────────────────────────────────────────
+
     function showPopup(f) {
+      window._popupFeatureRef = f; // used by Learn More button in popup
       if (isMobile && 'vibrate' in navigator) navigator.vibrate(10);
       if (activePopup) activePopup.remove();
       if (stationPopup) { stationPopup.remove(); stationPopup = null; }
@@ -2607,7 +3087,7 @@
               <svg viewBox="0 0 18 18"><path d="M9 1v16M1 9h16"/></svg>
             </a>
             <div class="popup-buttons">
-              <a href="${f.properties.website}" target="_blank" onclick="gtag('event','learn_more_click',{'project_name':'${f.properties.title}','project_city':'${f.properties.city}','click_location':'popup','device_type':'${isMobile?'mobile':'desktop'}'});">Learn More</a>
+              <a href="#" onclick="event.preventDefault();gtag('event','learn_more_click',{'project_name':'${f.properties.title}','project_city':'${f.properties.city}','click_location':'popup','device_type':'${isMobile?'mobile':'desktop'}'});window._popupFeatureRef&&window.openProjectModal(window._popupFeatureRef,'popup');">Learn More</a>
             </div>
           </div>
         `).addTo(map);
@@ -2882,14 +3362,7 @@
             if (window.gridRendering[targetId]) return;
             if (!map.getSource('projects')?._data) return;
             gtag('event', 'project_click', { 'project_name': f.properties.title, 'project_city': f.properties.city, 'project_featured': f.properties.featured||false, 'click_source': 'tile', 'device_type': isMobile?'mobile':'desktop', 'grid_position': index+1 });
-            showPopup(f);
-            if (targetId === 'gridMobile') {
-              setTimeout(() => {
-                const drawer = document.getElementById('mobileDrawer');
-                if (drawer) { drawer.classList.remove('expanded'); drawer.style.transform = 'translateY(100%)'; }
-                document.getElementById('mobileDrawerContent')?.scrollTo(0, 0);
-              }, 100);
-            }
+            window.openProjectModal(f, 'tile');
           };
           return d;
         };
@@ -3082,14 +3555,7 @@
             </div>${deliveryBarHTML(f.properties.delivery)}`;
         d.onclick = () => {
           if (window.gridRendering[targetId] || !map.getSource('projects')?._data) return;
-          showPopup(f);
-          if (targetId === 'gridMobile') {
-            setTimeout(() => {
-              const drawer = document.getElementById('mobileDrawer');
-              if (drawer) { drawer.classList.remove('expanded'); drawer.style.transform = 'translateY(100%)'; }
-              document.getElementById('mobileDrawerContent')?.scrollTo(0, 0);
-            }, 100);
-          }
+          window.openProjectModal(f, 'tile');
         };
         return d;
       };
@@ -4657,6 +5123,11 @@
                 projectType: p.ProjectType,
                 // Store as plain comma string — arrays get mangled by Mapbox serialization
                 projectTypesStr: types.join(','),
+                // New fields
+                developer: p.Developer || '',
+                architect: p.Architect || '',
+                deliveryDate: p.DeliveryDate || '',
+                descriptionLong: p.DescriptionLong || '',
                 // Keep JS array on the feature object itself for grid filtering (not used by Mapbox)
                 featured: p.Featured?.trim().toLowerCase() === 'featured'
               },
@@ -4807,6 +5278,5 @@
       if (fullscreenMap) { map.setCenter(fullscreenMap.getCenter()); map.setZoom(fullscreenMap.getZoom()); }
     };
   </script>
-
 </body>
 </html>
