@@ -950,7 +950,7 @@
     }
 
     /* Prevent double-tap zoom on all map control buttons */
-    #layersButton, #locationButton, #zoomInButton, #zoomOutButton,
+    #layersButton, #locationButton, #zoomInButton, #zoomOutButton, #resetViewButton,
     .glass-btn, .zoom-btn, #layersPanel, #layersPanel * {
       touch-action: manipulation;
     }
@@ -983,14 +983,17 @@
 
     /* Desktop: zoom-in below location, zoom-out below zoom-in */
     @media(min-width:801px) {
-      #zoomInButton  { top: calc(60px + var(--safe-area-top) + 36px + 10px + 36px + 10px); }
-      #zoomOutButton { top: calc(60px + var(--safe-area-top) + 36px + 10px + 36px + 10px + 36px + 10px); }
+      #zoomInButton    { top: calc(60px + var(--safe-area-top) + 36px + 10px + 36px + 10px); }
+      #zoomOutButton   { top: calc(60px + var(--safe-area-top) + 36px + 10px + 36px + 10px + 36px + 10px); }
+      #resetViewButton { top: calc(60px + var(--safe-area-top) + 36px + 10px + 36px + 10px + 36px + 10px + 36px + 10px); }
     }
     /* Mobile: same pattern below location */
     @media(max-width:800px) {
-      #zoomInButton  { top: calc(var(--safe-area-top) + 10px + 36px + 10px + 36px + 10px + 36px + 10px); }
-      #zoomOutButton { top: calc(var(--safe-area-top) + 10px + 36px + 10px + 36px + 10px + 36px + 10px + 36px + 10px); }
+      #zoomInButton    { top: calc(var(--safe-area-top) + 10px + 36px + 10px + 36px + 10px + 36px + 10px); }
+      #zoomOutButton   { top: calc(var(--safe-area-top) + 10px + 36px + 10px + 36px + 10px + 36px + 10px + 36px + 10px); }
+      #resetViewButton { top: calc(var(--safe-area-top) + 10px + 36px + 10px + 36px + 10px + 36px + 10px + 36px + 10px + 36px + 10px); }
     }
+    #resetViewButton svg { width: 18px; height: 18px; color: #fff; }
     @keyframes locationPulse {
       0%   { transform: translate(-50%,-50%) scale(1);   opacity: 0.6; }
       70%  { transform: translate(-50%,-50%) scale(2.8); opacity: 0; }
@@ -2014,6 +2017,10 @@
     <!-- Zoom buttons -->
     <button id="zoomInButton" class="zoom-btn" title="Zoom in">+</button>
     <button id="zoomOutButton" class="zoom-btn" title="Zoom out">−</button>
+    <!-- Reset map view -->
+    <button id="resetViewButton" class="zoom-btn" title="Reset map view" aria-label="Reset map view">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><polyline points="3 4 3 10 9 10"/></svg>
+    </button>
     <div id="desktopSearchPill" class="glass-btn">
       <div class="pill-search-icon">
         <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
@@ -2855,7 +2862,9 @@
       map.flyTo({ center: co, zoom: targetZoom, duration: 1400, essential: true });
     }
 
-    // ── Deep-link: open project modal from ?project= URL param ──────────
+    // ── Deep-link: open project from ?project= URL param ─────────────────
+    // - ?project=slug                  → fly to pin + show small popup preview
+    // - ?fullscreen=true&project=slug  → fly to pin + open full project modal
     function handleDeepLink() {
       const params = new URLSearchParams(window.location.search);
       const slug = params.get('project');
@@ -2867,6 +2876,7 @@
       });
       if (!match) return;
       if (fullscreen) {
+        // Legacy behavior: open full project modal
         if (!isMobile) {
           const sidebar = document.getElementById('desktopSidebar');
           if (sidebar && !sidebar.classList.contains('open')) {
@@ -2875,6 +2885,7 @@
         }
         setTimeout(() => { window.openProjectModal(match, 'deeplink'); }, 600);
       } else {
+        // Default: zoom to pin + show small popup preview
         const co = match.geometry.coordinates;
         const currentZoom = map.getZoom();
         const targetZoom = Math.max(currentZoom, 13);
@@ -3475,8 +3486,16 @@
             if (window.gridRendering[targetId]) return;
             if (!map.getSource('projects')?._data) return;
             gtag('event', 'project_click', { 'project_name': f.properties.title, 'project_city': f.properties.city, 'project_featured': f.properties.featured||false, 'click_source': 'tile', 'device_type': isMobile?'mobile':'desktop', 'grid_position': index+1 });
-            if (!isMobile) zoomToPinOnly(f);
-            window.openProjectModal(f, 'tile');
+            if (isMobile) {
+              // Mobile: close drawer, fly to pin, show small popup preview.
+              // User can tap "Learn More" inside the popup for the full modal.
+              window.mobileDrawerCollapse?.();
+              zoomToPinOnly(f);
+              setTimeout(() => { showPopup(f); }, 1500);
+            } else {
+              zoomToPinOnly(f);
+              window.openProjectModal(f, 'tile');
+            }
           };
           return d;
         };
@@ -3669,8 +3688,15 @@
             </div>${deliveryBarHTML(f.properties.delivery)}`;
         d.onclick = () => {
           if (window.gridRendering[targetId] || !map.getSource('projects')?._data) return;
-          if (!isMobile) zoomToPinOnly(f);
-          window.openProjectModal(f, 'tile');
+          if (isMobile) {
+            // Mobile: close drawer, fly to pin, show small popup preview
+            window.mobileDrawerCollapse?.();
+            zoomToPinOnly(f);
+            setTimeout(() => { showPopup(f); }, 1500);
+          } else {
+            zoomToPinOnly(f);
+            window.openProjectModal(f, 'tile');
+          }
         };
         return d;
       };
@@ -4422,6 +4448,26 @@
     // ─── ZOOM BUTTONS ─────────────────────────────────────────────────────────
     document.getElementById('zoomInButton')?.addEventListener('click', () => map.zoomIn({ duration: 300 }));
     document.getElementById('zoomOutButton')?.addEventListener('click', () => map.zoomOut({ duration: 300 }));
+
+    // ─── RESET VIEW BUTTON ────────────────────────────────────────────────────
+    document.getElementById('resetViewButton')?.addEventListener('click', () => {
+      // Close any open popup or selected pin
+      if (activePopup) { activePopup.remove(); activePopup = null; }
+      if (window._selectedPinMarker) { window._selectedPinMarker.remove(); window._selectedPinMarker = null; }
+      // Reset selected-pin paint expression so all pins go back to green
+      if (map.getLayer('unclustered-point')) {
+        map.setPaintProperty('unclustered-point', 'circle-color', '#1FDF67');
+        map.setPaintProperty('unclustered-point', 'circle-radius', 8);
+      }
+      window._selectedPinTitle = null;
+      // Fly to the original load view (same as the 'm' keyboard shortcut)
+      map.flyTo({
+        center: isMobile ? [-90.0, 35.0] : [-95.0, 38.5],
+        zoom: isMobile ? 3.0 : 4,
+        duration: 1000,
+        essential: true
+      });
+    });
 
     (function setupLocationButton() {
       const btn = document.getElementById('locationButton');
