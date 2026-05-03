@@ -3085,9 +3085,10 @@
 
       // Build deep-link URL for a project
       function projectShareUrl(title) {
-        const slug = (title || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
-        const base = window.location.origin + window.location.pathname;
-        return `${base}?fullscreen=true&project=${slug}`;
+        const slug = (title || '').toLowerCase()
+          .replace(/[^a-z0-9\s-]/g, '')
+          .replace(/[\s-]+/g, '-').replace(/^-|-$/g, '');
+        return `https://map.oftmw.com/projects/${slug}/`;
       }
       function projectSlug(title) {
         return (title || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
