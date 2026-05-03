@@ -2859,23 +2859,27 @@
     function handleDeepLink() {
       const params = new URLSearchParams(window.location.search);
       const slug = params.get('project');
+      const fullscreen = params.get('fullscreen') === 'true';
       if (!slug || !window.allProjectFeatures) return;
       const match = window.allProjectFeatures.find(f => {
         const s = (f.properties.title || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
         return s === slug;
       });
-      if (match) {
-        // Open sidebar on desktop first so modal has somewhere to slide over
+      if (!match) return;
+      if (fullscreen) {
         if (!isMobile) {
           const sidebar = document.getElementById('desktopSidebar');
           if (sidebar && !sidebar.classList.contains('open')) {
             sidebar.classList.add('open');
           }
         }
-        // Small delay to let map settle
-        setTimeout(() => {
-          window.openProjectModal(match, 'deeplink');
-        }, 600);
+        setTimeout(() => { window.openProjectModal(match, 'deeplink'); }, 600);
+      } else {
+        const co = match.geometry.coordinates;
+        const currentZoom = map.getZoom();
+        const targetZoom = Math.max(currentZoom, 13);
+        map.flyTo({ center: co, zoom: targetZoom, duration: 1400, essential: true });
+        setTimeout(() => { showPopup(match); }, 1500);
       }
     }
 
