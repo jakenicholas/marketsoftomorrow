@@ -2,47 +2,46 @@ name: Generate Project Pages
 
 on:
   schedule:
-      # Runs every night at 2am UTC (10pm EST)
-          - cron: '0 2 * * *'
-            workflow_dispatch:
-                # Also allows manual trigger from GitHub Actions tab
+    # Runs every night at 2am UTC (10pm EST)
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    # Also allows manual trigger from GitHub Actions tab
 
-                jobs:
-                  build:
-                      runs-on: ubuntu-latest
-                          permissions:
-                                contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
-                                    steps:
-                                          - name: Checkout repository
-                                                  uses: actions/checkout@v4
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-                                                        - name: Set up Python
-                                                                uses: actions/setup-python@v5
-                                                                        with:
-                                                                                  python-version: '3.11'
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
 
-                                                                                        - name: Generate project pages
-                                                                                                run: python3 generate_pages.py
+      - name: Generate project pages
+        run: python3 generate_pages.py
 
-                                                                                                      - name: Check for changes
-                                                                                                              id: changes
-                                                                                                                      run: |
-                                                                                                                                git add projects/
-                                                                                                                                          if git diff --staged --quiet; then
-                                                                                                                                                      echo "changed=false" >> $GITHUB_OUTPUT
-                                                                                                                                                                else
-                                                                                                                                                                            echo "changed=true" >> $GITHUB_OUTPUT
-                                                                                                                                                                                        echo "Changes detected:"
-                                                                                                                                                                                                    git diff --staged --name-only | head -20
-                                                                                                                                                                                                              fi
-                                                                                                                                                                                                              
-                                                                                                                                                                                                                    - name: Commit and push new pages
-                                                                                                                                                                                                                            if: steps.changes.outputs.changed == 'true'
-                                                                                                                                                                                                                                    run: |
-                                                                                                                                                                                                                                              git config user.name "github-actions[bot]"
-                                                                                                                                                                                                                                                        git config user.email "github-actions[bot]@users.noreply.github.com"
-                                                                                                                                                                                                                                                                  COUNT=$(git diff --staged --name-only | grep "index.html" | wc -l)
-                                                                                                                                                                                                                                                                            git commit -m "Auto-generate project pages (${COUNT} pages updated) [skip ci]"
-                                                                                                                                                                                                                                                                                      git push
-                                                                                                                                                                                                                                                                                      
+      - name: Check for changes
+        id: changes
+        run: |
+          git add projects/
+          if git diff --staged --quiet; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+          else
+            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "Changes detected:"
+            git diff --staged --name-only | head -20
+          fi
+
+      - name: Commit and push new pages
+        if: steps.changes.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          COUNT=$(git diff --staged --name-only | grep "index.html" | wc -l)
+          git commit -m "Auto-generate project pages (${COUNT} pages updated) [skip ci]"
+          git push
