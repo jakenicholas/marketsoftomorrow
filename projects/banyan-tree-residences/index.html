@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Banyan Tree Residences, West Palm Beach | Markets of Tomorrow</title>
-  <meta name="description" content="Branded residential development in West Palm Beach affiliated with the Banyan Tree luxury hospitality brand, offering a curated wellness-focused residential experience.">
+  <meta name="description" content="Banyan Tree is officially making its United States debut with its first-ever residential development in downtown West Palm Beach.">
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://map.oftmw.com/projects/banyan-tree-residences/">
 
@@ -12,7 +12,7 @@
   <meta property="og:site_name" content="Markets of Tomorrow">
   <meta property="og:type" content="website">
   <meta property="og:title" content="Banyan Tree Residences, West Palm Beach | Markets of Tomorrow">
-  <meta property="og:description" content="Branded residential development in West Palm Beach affiliated with the Banyan Tree luxury hospitality brand, offering a curated wellness-focused residential experience.">
+  <meta property="og:description" content="Banyan Tree is officially making its United States debut with its first-ever residential development in downtown West Palm Beach.">
   <meta property="og:image" content="https://static.wixstatic.com/media/ca3b83_22b710e464784a678139ab0375a08f49~mv2.jpg">
   <meta property="og:url" content="https://map.oftmw.com/projects/banyan-tree-residences/">
 
@@ -20,7 +20,7 @@
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:site" content="@floridaoftomorrow">
   <meta name="twitter:title" content="Banyan Tree Residences, West Palm Beach | Markets of Tomorrow">
-  <meta name="twitter:description" content="Branded residential development in West Palm Beach affiliated with the Banyan Tree luxury hospitality brand, offering a curated wellness-focused residential experience.">
+  <meta name="twitter:description" content="Banyan Tree is officially making its United States debut with its first-ever residential development in downtown West Palm Beach.">
   <meta name="twitter:image" content="https://static.wixstatic.com/media/ca3b83_22b710e464784a678139ab0375a08f49~mv2.jpg">
 
   <!-- Favicon -->
@@ -31,7 +31,7 @@
   "@context": "https://schema.org",
   "@type": "Place",
   "name": "Banyan Tree Residences",
-  "description": "Branded residential development in West Palm Beach affiliated with the Banyan Tree luxury hospitality brand, offering a curated wellness-focused residential experience.",
+  "description": "Banyan Tree is officially making its United States debut with its first-ever residential development in downtown West Palm Beach.",
   "image": "https://static.wixstatic.com/media/ca3b83_22b710e464784a678139ab0375a08f49~mv2.jpg",
   "url": "https://map.oftmw.com/projects/banyan-tree-residences/",
   "address": {
@@ -101,12 +101,63 @@
     .header-map-btn:hover { background: rgba(30,30,30,0.7); }
     .header-map-btn svg { opacity: 0.85; }
 
-    /* Gallery */
+    /* Gallery — single image or arrow-cycling slider */
     .gallery { width: 100%; max-width: 100vw; overflow: hidden; }
-    .gallery-hero { width: 100%; height: 60vh; max-height: 520px; object-fit: cover; display: block; }
-    .gt-strip { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; width: 100%; }
-    .gt-thumb { height: 80px; background-size: cover; background-position: center; position: relative; }
-    .gt-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.55); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.85); }
+    .gallery-stage {
+      position: relative;
+      width: 100%;
+      height: 60vh;
+      max-height: 520px;
+      background: #1a1a1a;
+      overflow: hidden;
+    }
+    .gallery-img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: opacity 0.25s ease;
+    }
+    .gallery-img.is-fading { opacity: 0; }
+
+    /* Arrow buttons — white, glassy, only visible when multi-image */
+    .gallery-arrow {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 44px; height: 44px;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(0,0,0,0.35);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 50%;
+      color: #fff;
+      cursor: pointer;
+      padding: 0;
+      transition: background 0.15s, transform 0.1s;
+      z-index: 2;
+    }
+    .gallery-arrow:hover { background: rgba(0,0,0,0.55); }
+    .gallery-arrow:active { transform: translateY(-50%) scale(0.92); }
+    .gallery-arrow-prev { left: 14px; }
+    .gallery-arrow-next { right: 14px; }
+
+    /* Counter pill */
+    .gallery-counter {
+      position: absolute;
+      bottom: 14px;
+      right: 14px;
+      background: rgba(0,0,0,0.55);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      color: #fff;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 5px 10px;
+      border-radius: 20px;
+      pointer-events: none;
+      z-index: 2;
+    }
 
     /* Content */
     .content {
@@ -229,7 +280,11 @@
     .btn-disabled { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.3); cursor: default; }
 
     @media (max-width: 480px) {
-      .gallery-hero { height: 50vh; max-height: 360px; }
+      .gallery-stage { height: 50vh; max-height: 360px; }
+      .gallery-arrow { width: 38px; height: 38px; }
+      .gallery-arrow-prev { left: 10px; }
+      .gallery-arrow-next { right: 10px; }
+      .gallery-counter { bottom: 10px; right: 10px; font-size: 11px; padding: 4px 9px; }
       .project-title { font-size: 24px; }
       .map-preview { height: 160px; }
       .site-logo img { height: 42px; }
@@ -243,7 +298,7 @@
     <a class="site-logo" href="https://map.oftmw.com" aria-label="Markets of Tomorrow home">
       <img src="https://static.wixstatic.com/shapes/ca3b83_a647b53cad4c49c5b012af991d286a86.svg" alt="Markets of Tomorrow" />
     </a>
-    <a class="header-map-btn" href="https://map.oftmw.com/?fullscreen=true&project=banyantreeresidences">
+    <a class="header-map-btn" href="https://map.oftmw.com/?project=banyantreeresidences">
       <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>
       View on Map
     </a>
@@ -251,8 +306,9 @@
 
   
     <div class="gallery">
-      <img class="gallery-hero" src="https://static.wixstatic.com/media/ca3b83_22b710e464784a678139ab0375a08f49~mv2.jpg" alt="" loading="eager" />
-      
+      <div class="gallery-stage">
+        <img class="gallery-img" src="https://static.wixstatic.com/media/ca3b83_22b710e464784a678139ab0375a08f49~mv2.jpg" alt="" loading="eager" />
+      </div>
     </div>
 
   <div class="content">
@@ -269,7 +325,7 @@
       <div class="ps-labels"><span class="ps-label ps-cur" style="color:#999999">Announced</span><span class="ps-label" >Breaking Ground</span><span class="ps-label" >Construction</span><span class="ps-label" >Opening Soon</span><span class="ps-label" >Now Open</span></div>
     </div>
     <div class="divider"></div>
-    <p class="description">Branded residential development in West Palm Beach affiliated with the Banyan Tree luxury hospitality brand, offering a curated wellness-focused residential experience.</p>
+    <p class="description">Banyan Tree is officially making its United States debut with its first-ever residential development in downtown West Palm Beach.</p>
     <div class="divider"></div>
     <div class="stats-grid"><div class="stat-card">
       <div class="stat-label">Developer</div>
@@ -285,7 +341,7 @@
       <div class="stat-val">West Palm Beach</div>
     </div></div>
     
-    <a class="map-preview" href="https://map.oftmw.com/?fullscreen=true&project=banyantreeresidences" aria-label="View on Map of Tomorrow">
+    <a class="map-preview" href="https://map.oftmw.com/?project=banyantreeresidences" aria-label="View on Map of Tomorrow">
       <img src="https://api.mapbox.com/styles/v1/floridaoftomorrow/clkbk4qlw000a01qw94rj0xa7/static/pin-l+1fdf67(-80.05404229,26.70833585)/-80.05404229,26.70833585,14,0/600x300@2x?access_token=pk.eyJ1IjoiZmxvcmlkYW9mdG9tb3Jyb3ciLCJhIjoiY2xrYmpmdGQ2MGdibTNzcXZjMnA4aXh3ZiJ9.uBeYS7jmKwWS6xAgY-R1UA&attribution=false&logo=false" alt="Project location map" loading="lazy" />
       <div class="map-preview-overlay">
         <span class="map-preview-cta">
@@ -298,6 +354,81 @@
       <a class="btn-primary" href="https://www.oftmw.com/post/banyan-tree-unveils-its-first-u-s-project-in-downtown-west-palm-beach" target="_blank" rel="noopener">Official Website <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></a>
     </div>
   </div>
+
+  <script>
+    // ── Gallery slider ───────────────────────────────────────────────
+    (function() {
+      var gallery = document.querySelector('.gallery[data-images]');
+      if (!gallery) return;
+      var images;
+      try { images = JSON.parse(gallery.getAttribute('data-images')); } catch (e) { return; }
+      if (!images || images.length < 2) return;
+
+      var img = gallery.querySelector('.gallery-img');
+      var counterCur = gallery.querySelector('.gallery-counter-cur');
+      var prevBtn = gallery.querySelector('.gallery-arrow-prev');
+      var nextBtn = gallery.querySelector('.gallery-arrow-next');
+      var idx = 0;
+
+      // Preload all images so cycling feels instant
+      images.forEach(function(src) { var i = new Image(); i.src = src; });
+
+      function goTo(newIdx) {
+        // Wrap around in both directions
+        idx = ((newIdx % images.length) + images.length) % images.length;
+        img.classList.add('is-fading');
+        setTimeout(function() {
+          img.src = images[idx];
+          if (counterCur) counterCur.textContent = String(idx + 1);
+          // Force reflow then fade back in
+          requestAnimationFrame(function() { img.classList.remove('is-fading'); });
+        }, 120);
+      }
+
+      prevBtn.addEventListener('click', function() { goTo(idx - 1); });
+      nextBtn.addEventListener('click', function() { goTo(idx + 1); });
+
+      // Keyboard: left/right arrows
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'ArrowLeft') goTo(idx - 1);
+        else if (e.key === 'ArrowRight') goTo(idx + 1);
+      });
+
+      // Touch swipe
+      var touchStartX = null;
+      img.addEventListener('touchstart', function(e) {
+        touchStartX = e.touches[0].clientX;
+      }, { passive: true });
+      img.addEventListener('touchend', function(e) {
+        if (touchStartX === null) return;
+        var dx = e.changedTouches[0].clientX - touchStartX;
+        if (Math.abs(dx) > 40) goTo(idx + (dx < 0 ? 1 : -1));
+        touchStartX = null;
+      }, { passive: true });
+    })();
+
+    // ── iOS browser-chrome reset on map navigation ───────────────────
+    // iOS Safari/Chrome can end up with the URL bar stuck in a half-collapsed
+    // state after scrolling. When the user taps a "View on Map" link, scroll
+    // back to the top first so the next page loads with clean browser chrome.
+    (function() {
+      var mapLinks = document.querySelectorAll('a[href*="/?project="]');
+      mapLinks.forEach(function(link) {
+        link.addEventListener('click', function(e) {
+          // Only on touch devices where the issue actually occurs
+          if (!('ontouchstart' in window)) return;
+          // If user is at the top, just let the navigation happen normally
+          if (window.scrollY < 10) return;
+          // Otherwise, prevent default, scroll to top, then navigate
+          e.preventDefault();
+          var href = this.href;
+          window.scrollTo({ top: 0, behavior: 'instant' });
+          // Tiny delay so iOS settles before navigating
+          setTimeout(function() { window.location.href = href; }, 30);
+        });
+      });
+    })();
+  </script>
 
 </body>
 </html>
