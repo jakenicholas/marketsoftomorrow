@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026-05-04T22:00Z embed-hard-lockout-final -->
+<!-- v2026-05-04T05:00Z account-modal-overhaul -->
 <html>
 <head>
   <meta charset="utf-8">
@@ -42,86 +42,19 @@
   <script src="https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
-  <!-- ═══════════════════════════════════════════════════════════════════════
-       EMBED MODE
-       When the page is loaded inside an iframe with ?embed=1 (e.g. embedded on
-       oftmw.com homepage), we skip Memberstack entirely — auth/checkout in
-       iframes is fragile (Safari ITP, third-party cookies) and there's no
-       point loading 200KB+ of paywall JS just to ungate it again. Embedded
-       users browse freely; the persistent "Open full map ↗" CTA sends them
-       to map.oftmw.com when they want auth/favorites/paywall.
-
-       The flag is set BEFORE Memberstack so the script tag can be skipped.
-       Detection accepts ?embed=1 OR being inside any cross-origin iframe, as
-       a defensive fallback in case someone embeds without the param.
-       ═══════════════════════════════════════════════════════════════════════ -->
-  <script>
-    (function() {
-      var params = new URLSearchParams(window.location.search);
-      var embedParam = params.get('embed') === '1';
-      var inIframe = false;
-      try { inIframe = window.self !== window.top; } catch (_) { inIframe = true; }
-      // Only auto-treat iframes as embeds if param is also set — avoids
-      // surprising someone who embeds the full page intentionally with auth.
-      window.__isEmbed = embedParam;
-      window.__inIframe = inIframe;
-      if (window.__isEmbed) {
-        document.documentElement.classList.add('embed-mode');
-      }
-
-      // ─── Always-available utility globals ────────────────────────────────
-      // These are also defined inside the paywall IIFE further down (which
-      // additionally wires up favorites/auth on top of them). We pre-define
-      // them here so they're never undefined — the paywall IIFE simply
-      // overwrites them with the same value on full-mode loads, while embed
-      // mode (where the IIFE is skipped) still has working slugifying for
-      // the popup/grid templates that reference window.projectSlugify
-      // unguarded.
-      if (!window.projectSlugify) {
-        window.projectSlugify = function(title) {
-          return (title || '').toLowerCase()
-            .replace(/[^a-z0-9\s-]/g, '')
-            .replace(/[\s-]+/g, '-')
-            .replace(/^-|-$/g, '');
-        };
-      }
-      // Embed-safe stubs for favorites APIs called from popup/grid templates.
-      // The full implementations live inside the paywall IIFE; in embed mode
-      // we install these no-op fallbacks so unguarded callers don't throw.
-      if (!window.isFavorited) window.isFavorited = function() { return false; };
-      // filterByFavoritesIfActive is called UNGUARDED at the start of grid
-      // rendering (e.g. `filtered = window.filterByFavoritesIfActive(filtered)`),
-      // so leaving it undefined throws TypeError and silently kills grid +
-      // search rendering — the symptom is "results: -" with no clickable pins.
-      // The pass-through stub returns the input unchanged, which is correct
-      // for embed mode (no logged-in user, so no favorites filter ever active).
-      if (!window.filterByFavoritesIfActive) {
-        window.filterByFavoritesIfActive = function(features) { return features; };
-      }
-      // toggleFavorite is intentionally NOT stubbed — call sites already
-      // guard with `window.toggleFavorite && ...`, so leaving it undefined
-      // means clicks on a favorite button in embed mode are silent no-ops.
-    })();
-  </script>
-
-  <!-- Memberstack 2.0 — handles auth + Stripe checkout for the paywall.
-       Skipped in embed mode (see comment above). -->
-  <script>
-    if (!window.__isEmbed) {
-      var ms = document.createElement('script');
-      ms.setAttribute('data-memberstack-app', 'app_cmoq79nvv002d0syef7wpel3c');
-      ms.src = 'https://static.memberstack.com/scripts/v2/memberstack.js';
-      ms.type = 'text/javascript';
-      document.head.appendChild(ms);
-    }
-  </script>
+  <!-- Memberstack 2.0 — handles auth + Stripe checkout for the paywall -->
+  <script data-memberstack-app="app_cmoq79nvv002d0syef7wpel3c"
+          src="https://static.memberstack.com/scripts/v2/memberstack.js"
+          type="text/javascript"></script>
   
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-6NPTWCVFCG"></script>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-EJBRS3L2H0"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
     gtag('config', 'G-6NPTWCVFCG');
+    gtag('config', 'G-EJBRS3L2H0');
   </script>
 
   <script type="application/ld+json">
@@ -2615,251 +2548,6 @@
     .paywall-title { font-size: 19px; }
     .paywall-plan-price { font-size: 22px; }
   }
-
-  /* ═══════════════════════════════════════════════════════════════════════
-     EMBED MODE
-     Applied when ?embed=1 is set. Hides chrome that doesn't make sense
-     inside an iframe (auth header, paywall) and surfaces a persistent
-     "Open full map" CTA so engaged users have a clear way to jump out
-     to the standalone full-screen experience at map.oftmw.com.
-     ═══════════════════════════════════════════════════════════════════════ */
-  .embed-mode #paywallAuthHeader { display: none !important; }
-  .embed-mode .paywall-modal       { display: none !important; }
-
-  /* Persistent "Open full map" CTA — top-right corner of the embed. */
-  .embed-open-full {
-    position: fixed;
-    top: 12px; right: 12px;
-    z-index: 9000;
-    display: flex; align-items: center; gap: 6px;
-    background: rgba(13,13,13,0.85);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 0.5px solid rgba(255,255,255,0.18);
-    border-radius: 8px;
-    padding: 8px 12px;
-    color: #fff;
-    text-decoration: none;
-    font-size: 12px;
-    font-weight: 600;
-    letter-spacing: 0.01em;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.4);
-    transition: background 0.15s, transform 0.1s;
-  }
-  .embed-open-full:hover {
-    background: rgba(31,223,103,0.92);
-    color: #000;
-    border-color: transparent;
-  }
-  .embed-open-full:active { transform: scale(0.96); }
-  .embed-open-full svg {
-    width: 13px; height: 13px;
-    stroke: currentColor; fill: none; stroke-width: 2.2;
-    stroke-linecap: round; stroke-linejoin: round;
-    flex-shrink: 0;
-  }
-  @media (max-width: 600px) {
-    .embed-open-full { top: 10px; right: 10px; padding: 7px 10px; font-size: 11px; }
-  }
-
-  /* ─── Embed conversion banner ──────────────────────────────────────────
-     Non-blocking nudge that appears at the bottom of the embed at the soft
-     threshold (5 clicks). Dismissable. If the user keeps clicking past the
-     hard threshold (10), it's superseded by the lockout overlay below. */
-  .embed-convert-banner {
-    position: fixed;
-    left: 50%;
-    bottom: 16px;
-    transform: translateX(-50%) translateY(120%);
-    z-index: 9100;
-    width: calc(100% - 24px);
-    max-width: 480px;
-    background: rgba(13, 13, 13, 0.94);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    border: 0.5px solid rgba(31, 223, 103, 0.45);
-    border-radius: 12px;
-    padding: 14px 16px;
-    color: #fff;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 0 0 rgba(31, 223, 103, 0);
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    opacity: 0;
-    transition: transform 0.4s cubic-bezier(0.2, 0.9, 0.3, 1.2), opacity 0.3s;
-    pointer-events: none;
-    animation: embedConvertPulse 2.4s ease-in-out infinite;
-  }
-  .embed-convert-banner.visible {
-    transform: translateX(-50%) translateY(0);
-    opacity: 1;
-    pointer-events: auto;
-  }
-  @keyframes embedConvertPulse {
-    0%, 100% { box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 0 0 rgba(31, 223, 103, 0); }
-    50%      { box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 0 6px rgba(31, 223, 103, 0.18); }
-  }
-  .embed-convert-text {
-    flex: 1;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-  }
-  .embed-convert-title {
-    font-size: 13px;
-    font-weight: 700;
-    color: #fff;
-    letter-spacing: 0.005em;
-  }
-  .embed-convert-sub {
-    font-size: 11px;
-    color: rgba(255, 255, 255, 0.6);
-    line-height: 1.35;
-  }
-  .embed-convert-cta {
-    flex-shrink: 0;
-    background: #1FDF67;
-    color: #000;
-    border: none;
-    border-radius: 8px;
-    padding: 9px 14px;
-    font-size: 12px;
-    font-weight: 700;
-    cursor: pointer;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    font-family: inherit;
-    transition: background 0.15s, transform 0.1s;
-    white-space: nowrap;
-  }
-  .embed-convert-cta:hover { background: #18c75a; }
-  .embed-convert-cta:active { transform: scale(0.96); }
-  .embed-convert-cta svg {
-    width: 12px; height: 12px;
-    stroke: currentColor; fill: none; stroke-width: 2.4;
-    stroke-linecap: round; stroke-linejoin: round;
-  }
-  .embed-convert-close {
-    flex-shrink: 0;
-    background: transparent;
-    border: none;
-    color: rgba(255, 255, 255, 0.4);
-    cursor: pointer;
-    width: 22px; height: 22px;
-    border-radius: 6px;
-    display: flex; align-items: center; justify-content: center;
-    padding: 0;
-    transition: color 0.15s, background 0.15s;
-  }
-  .embed-convert-close:hover {
-    color: rgba(255, 255, 255, 0.8);
-    background: rgba(255, 255, 255, 0.06);
-  }
-  .embed-convert-close svg {
-    width: 12px; height: 12px;
-    stroke: currentColor; stroke-width: 2.4;
-    stroke-linecap: round;
-  }
-  @media (max-width: 480px) {
-    .embed-convert-banner { padding: 12px 14px; gap: 10px; bottom: 12px; }
-    .embed-convert-title { font-size: 12px; }
-    .embed-convert-sub { font-size: 10.5px; }
-    .embed-convert-cta { padding: 8px 12px; font-size: 11px; }
-  }
-
-  /* ─── Embed hard lockout overlay ───────────────────────────────────────
-     Full-cover blocker that appears once the user crosses the hard click
-     threshold. Pin clicks are blocked by paywallCheck returning false; the
-     overlay also visually covers the map so the only forward action is
-     clicking through to the full map (which loads with ?signup=1, popping
-     the signup modal on arrival). */
-  .embed-lockout {
-    position: fixed;
-    inset: 0;
-    z-index: 9200;
-    background: rgba(13, 13, 13, 0.78);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 24px;
-    opacity: 0;
-    transition: opacity 0.35s ease;
-    pointer-events: none;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  }
-  .embed-lockout.visible {
-    opacity: 1;
-    pointer-events: auto;
-  }
-  .embed-lockout-card {
-    max-width: 380px;
-    width: 100%;
-    background: #161616;
-    border: 0.5px solid rgba(255, 255, 255, 0.1);
-    border-radius: 16px;
-    padding: 28px 24px 24px;
-    text-align: center;
-    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);
-    transform: scale(0.96);
-    transition: transform 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.2);
-  }
-  .embed-lockout.visible .embed-lockout-card { transform: scale(1); }
-  .embed-lockout-icon {
-    width: 48px; height: 48px;
-    margin: 0 auto 14px;
-    border-radius: 50%;
-    background: rgba(31, 223, 103, 0.14);
-    color: #1FDF67;
-    display: flex; align-items: center; justify-content: center;
-  }
-  .embed-lockout-icon svg { width: 22px; height: 22px; }
-  .embed-lockout-title {
-    font-size: 18px;
-    font-weight: 700;
-    color: #fff;
-    margin-bottom: 8px;
-    letter-spacing: -0.005em;
-  }
-  .embed-lockout-sub {
-    font-size: 13px;
-    color: rgba(255, 255, 255, 0.6);
-    line-height: 1.5;
-    margin-bottom: 20px;
-  }
-  .embed-lockout-cta {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 7px;
-    background: #1FDF67;
-    color: #000;
-    border: none;
-    border-radius: 10px;
-    padding: 12px 20px;
-    font-size: 13px;
-    font-weight: 700;
-    cursor: pointer;
-    text-decoration: none;
-    font-family: inherit;
-    letter-spacing: 0.01em;
-    transition: background 0.15s, transform 0.1s;
-    box-shadow: 0 4px 16px rgba(31, 223, 103, 0.28);
-  }
-  .embed-lockout-cta:hover { background: #18c75a; }
-  .embed-lockout-cta:active { transform: scale(0.97); }
-  .embed-lockout-cta svg { width: 13px; height: 13px; }
-  @media (max-width: 480px) {
-    .embed-lockout-card { padding: 24px 20px 20px; }
-    .embed-lockout-title { font-size: 16px; }
-    .embed-lockout-sub { font-size: 12px; }
-  }
   </style>
 </head>
 <body>
@@ -3255,7 +2943,7 @@
     else setAppHeight();
 
     // Build version — to verify deploys in DevTools: window.__buildVersion
-    window.__buildVersion = '2026-05-04T22:00Z embed-hard-lockout-final';
+    window.__buildVersion = '2026-05-04T05:00Z account-modal-overhaul';
 
     // ─── Mirror drawer-expanded state to body class ───────────────────────────
     // The auth header (in <body>) is not a sibling of #mobileDrawer (in #app-container),
@@ -3381,9 +3069,6 @@
       center: isMobile ? [-90.0, 35.0] : [-95.0, 38.5],
       zoom: isMobile ? 3.0 : 4
     });
-    // Expose the map instance so other top-level scripts (e.g. the embed-mode
-    // "Open full map" CTA at the bottom of the file) can read viewport state.
-    window.map = map;
     let activePopup, stationPopup, fullscreenMap;
 
     const stations = [
@@ -3875,28 +3560,10 @@
     // ── Deep-link: open project from ?project= URL param ─────────────────
     // - ?project=slug                  → fly to pin + show small popup preview
     // - ?fullscreen=true&project=slug  → fly to pin + open full project modal
-    // - ?lat=X&lng=Y&zoom=Z            → restore viewport (used by embed CTA)
     function handleDeepLink() {
       const params = new URLSearchParams(window.location.search);
       const slug = params.get('project');
       const fullscreen = params.get('fullscreen') === 'true';
-
-      // Viewport restoration — used when "Open full map" is clicked from the
-      // homepage embed, so the user lands on the same view they were exploring.
-      // Applied only if no project deep-link is present (a project link wins
-      // because the user's most-recent intent was that specific pin).
-      const latParam  = parseFloat(params.get('lat'));
-      const lngParam  = parseFloat(params.get('lng'));
-      const zoomParam = parseFloat(params.get('zoom'));
-      if (!slug && Number.isFinite(latParam) && Number.isFinite(lngParam)) {
-        try {
-          map.jumpTo({
-            center: [lngParam, latParam],
-            zoom: Number.isFinite(zoomParam) ? zoomParam : map.getZoom()
-          });
-        } catch (_) { /* invalid params — fall through to default view */ }
-      }
-
       if (!slug || !window.allProjectFeatures) return;
       const match = window.allProjectFeatures.find(f => {
         const s = (f.properties.title || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
@@ -3979,10 +3646,6 @@
         // 'popup' / 'deeplink' = continuation of an interaction already counted by showPopup.
         if (source === 'tile' && window.paywallCheck && !window.paywallCheck()) return;
         currentFeature = f;
-        // Mirror to window so external scripts (e.g. the embed-mode "Open full
-        // map" CTA) can read which project is currently open without coupling
-        // to this closure.
-        window.currentFeature = f;
         fromSource = source || 'tile';
         const p = f.properties;
 
@@ -6579,12 +6242,8 @@
     //   • Paid subscribers: unlimited
     // Click count for signed-in users persists on Memberstack member record,
     // so closing tabs / opening incognito doesn't reset it.
-    //
-    // Skipped entirely in embed mode — Memberstack isn't loaded, paywall
-    // would have nothing to talk to. Embed users get free unlimited access;
-    // they convert on the full map.
     // ═══════════════════════════════════════════════════════════════════════
-    if (!window.__isEmbed) (function() {
+    (function() {
       const ANON_CLICK_LIMIT = 5;        // before email signup wall
       const FREE_MEMBER_CLICK_LIMIT = 12; // 5 anon + 7 after signup, then subscription paywall
       const STORAGE_KEY = 'mot_click_count';
@@ -7360,226 +7019,10 @@
           setTimeout(refreshMemberStatus, 1500);
           history.replaceState({}, '', window.location.pathname + window.location.search.replace(/[?&]subscribed=1/, ''));
         }
-
-        // ─── Embed funnel handoff: ?signup=1 ─────────────────────────────
-        // The hard-lockout overlay in the embed sends users here with this
-        // flag. Pop the signup wall immediately so the conversion prompt
-        // hits without requiring an extra pin click. We also strip the
-        // param from the URL so a refresh doesn't re-trigger it.
-        // Skipped if they're already signed in (no point) or paid (definitely
-        // no point — they're already a customer).
-        if (new URLSearchParams(window.location.search).get('signup') === '1') {
-          history.replaceState({}, '', window.location.pathname + window.location.search.replace(/[?&]signup=1/, ''));
-          if (!isSignedIn && !isPaidMember) {
-            // Tiny delay so the page has a beat to render its first paint
-            // before the modal appears — feels less jarring than instant.
-            setTimeout(showSignupWall, 350);
-            try { if (window.gtag) gtag('event', 'embed_funnel_signup_triggered'); } catch (_) {}
-          }
-        }
       });
 
       // Build the auth UI immediately (will say "Sign in" until member status loads)
       updateAuthHeaderUI(null);
-    })();
-  </script>
-
-  <!-- ═══════════════════════════════════════════════════════════════════════
-       EMBED MODE: persistent CTA + soft/hard conversion funnel
-       Flow:
-         • Always-visible "Open full map ↗" CTA in the corner
-         • At 5 clicks → soft, dismissable banner ("you're getting the hang of it")
-         • At 10 clicks → HARD lockout overlay covering the map. Pin clicks
-           are blocked. Only path forward is "Open full map," which carries
-           a ?signup=1 flag that the full map honors by opening the signup
-           modal on load — instant conversion prompt, no extra click required.
-
-       Click count is stored in localStorage under the SAME key the full
-       map's paywall uses ('mot_click_count'), and the embed runs at the
-       same origin (map.oftmw.com), so the count carries over. By the time
-       the user clicks through, they're already past the full map's 5-click
-       anonymous limit, which combined with the ?signup=1 flag yields an
-       immediate paywall hit on the full map.
-       ═══════════════════════════════════════════════════════════════════════ -->
-  <script>
-    (function() {
-      if (!window.__isEmbed) return;
-
-      // ─── Configuration ────────────────────────────────────────────────────
-      var STORAGE_KEY     = 'mot_click_count';   // shared with full-map paywall
-      var SOFT_THRESHOLD  = 5;                   // dismissable banner appears
-      var HARD_THRESHOLD  = 10;                  // hard lockout overlay
-      var DISMISS_KEY     = 'mot_embed_banner_dismissed';
-
-      // ─── Compute the "Open full map" URL with current viewport state ─────
-      // `signupFlag` adds &signup=1 so the full map opens the signup modal
-      // on arrival — used by the hard lockout for an instant conversion hit.
-      function fullMapHref(signupFlag) {
-        var base = 'https://map.oftmw.com/';
-        var parts = [];
-        try {
-          if (window.map && typeof window.map.getCenter === 'function') {
-            var c = window.map.getCenter();
-            var z = window.map.getZoom();
-            parts.push('lat=' + c.lat.toFixed(5));
-            parts.push('lng=' + c.lng.toFixed(5));
-            parts.push('zoom=' + z.toFixed(2));
-          }
-          var openProject = window.currentFeature && window.currentFeature.properties
-            ? window.currentFeature.properties.title : null;
-          if (openProject) {
-            var slug = openProject.toLowerCase().replace(/[^a-z0-9]+/g, '');
-            parts.push('project=' + slug);
-          }
-          if (signupFlag) parts.push('signup=1');
-        } catch (e) { /* fall back to bare URL */ }
-        return parts.length ? base + '?' + parts.join('&') : base;
-      }
-
-      // ─── 1. Top-right "Open full map" CTA ────────────────────────────────
-      var cornerBtn = document.createElement('a');
-      cornerBtn.className = 'embed-open-full';
-      cornerBtn.target = '_blank';
-      cornerBtn.rel = 'noopener';
-      cornerBtn.href = 'https://map.oftmw.com/';
-      cornerBtn.setAttribute('aria-label', 'Open full map in new tab');
-      cornerBtn.innerHTML =
-        '<span>Open full map</span>' +
-        '<svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>' +
-        '<polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>';
-      cornerBtn.addEventListener('click', function() {
-        cornerBtn.href = fullMapHref(false);
-        try { if (window.gtag) gtag('event', 'embed_open_full_map_clicked', { source: 'corner_cta' }); } catch (_) {}
-      });
-      document.body.appendChild(cornerBtn);
-
-      // ─── 2. Soft banner (built once, lazily) ─────────────────────────────
-      var banner, bannerCta;
-      function buildBanner() {
-        if (banner) return;
-        banner = document.createElement('div');
-        banner.className = 'embed-convert-banner';
-        banner.setAttribute('role', 'dialog');
-        banner.setAttribute('aria-live', 'polite');
-        banner.innerHTML =
-          '<div class="embed-convert-text">' +
-            '<div class="embed-convert-title">You\u2019re getting the hang of it</div>' +
-            '<div class="embed-convert-sub">Open the full map to save favorites, get alerts, and explore without limits.</div>' +
-          '</div>' +
-          '<a class="embed-convert-cta" target="_blank" rel="noopener" href="https://map.oftmw.com/">' +
-            '<span>Open full map</span>' +
-            '<svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>' +
-            '<polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>' +
-          '</a>' +
-          '<button class="embed-convert-close" type="button" aria-label="Dismiss">' +
-            '<svg viewBox="0 0 24 24"><line x1="6" y1="6" x2="18" y2="18"/><line x1="6" y1="18" x2="18" y2="6"/></svg>' +
-          '</button>';
-        bannerCta = banner.querySelector('.embed-convert-cta');
-        bannerCta.addEventListener('click', function() {
-          bannerCta.href = fullMapHref(false);
-          try { if (window.gtag) gtag('event', 'embed_open_full_map_clicked', { source: 'banner_soft' }); } catch (_) {}
-        });
-        banner.querySelector('.embed-convert-close').addEventListener('click', function() {
-          banner.classList.remove('visible');
-          try { localStorage.setItem(DISMISS_KEY, '1'); } catch (_) {}
-          try { if (window.gtag) gtag('event', 'embed_banner_dismissed', { click_count: getClicks() }); } catch (_) {}
-        });
-        document.body.appendChild(banner);
-      }
-      function showSoftBanner() {
-        buildBanner();
-        // Force a reflow so the slide-up transition runs even on first show.
-        void banner.offsetWidth;
-        banner.classList.add('visible');
-        try { if (window.gtag) gtag('event', 'embed_banner_shown', { tier: 'soft', click_count: getClicks() }); } catch (_) {}
-      }
-
-      // ─── 3. Hard lockout overlay (built once, lazily) ────────────────────
-      // Full-screen overlay that covers the entire map area. Once shown,
-      // it stays — pin clicks are blocked by paywallCheck returning false.
-      var lockout, lockoutShown = false;
-      function buildLockout() {
-        if (lockout) return;
-        lockout = document.createElement('div');
-        lockout.className = 'embed-lockout';
-        lockout.innerHTML =
-          '<div class="embed-lockout-card">' +
-            '<div class="embed-lockout-icon">' +
-              '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
-                '<rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>' +
-            '</div>' +
-            '<div class="embed-lockout-title">Continue on the full map</div>' +
-            '<div class="embed-lockout-sub">You\u2019ve explored a lot — sign up free to keep going, save favorites, and get alerts when projects break ground.</div>' +
-            '<a class="embed-lockout-cta" target="_blank" rel="noopener" href="https://map.oftmw.com/?signup=1">' +
-              '<span>Open full map &amp; sign up</span>' +
-              '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">' +
-                '<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>' +
-                '<polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>' +
-            '</a>' +
-          '</div>';
-        var cta = lockout.querySelector('.embed-lockout-cta');
-        cta.addEventListener('click', function() {
-          cta.href = fullMapHref(true);  // include &signup=1
-          try { if (window.gtag) gtag('event', 'embed_open_full_map_clicked', { source: 'lockout' }); } catch (_) {}
-        });
-        document.body.appendChild(lockout);
-      }
-      function showLockout() {
-        if (lockoutShown) return;
-        lockoutShown = true;
-        // Hide the soft banner if it was up — the lockout supersedes it.
-        if (banner) banner.classList.remove('visible');
-        buildLockout();
-        void lockout.offsetWidth;
-        lockout.classList.add('visible');
-        try { if (window.gtag) gtag('event', 'embed_lockout_shown', { click_count: getClicks() }); } catch (_) {}
-      }
-
-      // ─── 4. Click counter ────────────────────────────────────────────────
-      function getClicks() {
-        try { return parseInt(localStorage.getItem(STORAGE_KEY) || '0', 10) || 0; }
-        catch (_) { return 0; }
-      }
-      function setClicks(n) {
-        try { localStorage.setItem(STORAGE_KEY, String(n)); } catch (_) {}
-      }
-      function wasDismissed() {
-        try { return localStorage.getItem(DISMISS_KEY) === '1'; }
-        catch (_) { return false; }
-      }
-
-      // If they're already past the hard threshold from a prior session,
-      // show the lockout immediately on load (don't wait for a click).
-      if (getClicks() >= HARD_THRESHOLD) {
-        // Defer one tick so DOM is ready and CSS has rendered.
-        setTimeout(showLockout, 50);
-      }
-
-      // ─── 5. Embed-mode paywallCheck ──────────────────────────────────────
-      // Increments the SHARED counter (so clicks carry over to the full
-      // map's paywall), surfaces the soft banner at SOFT_THRESHOLD, and
-      // BLOCKS clicks once HARD_THRESHOLD is hit by returning false.
-      // Non-embed mode still gets the full paywall via the IIFE (which
-      // overwrites this assignment by running later in the file).
-      window.paywallCheck = function() {
-        // Hard tier already engaged — block all further clicks.
-        if (lockoutShown) return false;
-
-        var count = getClicks();
-        var next = count + 1;
-        setClicks(next);
-
-        if (next >= HARD_THRESHOLD) {
-          showLockout();
-          return false;  // BLOCK the click that triggered it
-        }
-        // Show soft banner the first time we cross the soft threshold,
-        // unless the user already dismissed it earlier.
-        if (next === SOFT_THRESHOLD && !wasDismissed()) {
-          showSoftBanner();
-        }
-        return true;
-      };
     })();
   </script>
 </body>
