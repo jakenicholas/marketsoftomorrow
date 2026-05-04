@@ -544,8 +544,52 @@ def main():
     # Generate /projects/index.html
     build_index(index_items)
 
+    # Generate sitemap.xml + robots.txt at repo root
+    write_sitemap_and_robots(index_items)
+
     print(f"\n✅ Done! Generated {generated} pages, skipped {skipped}")
     print(f"   Output: ./{OUTPUT_DIR}/")
+    print(f"   Sitemap: ./sitemap.xml ({generated + 2} URLs)")
+
+def write_sitemap_and_robots(items):
+    """Write sitemap.xml and robots.txt to repo root for SEO."""
+    from datetime import datetime
+    today = datetime.utcnow().strftime('%Y-%m-%d')
+
+    urls = []
+    # Map root (highest priority)
+    urls.append({'loc': SITE_URL + '/', 'priority': '1.0', 'changefreq': 'daily'})
+    # Projects index
+    urls.append({'loc': SITE_URL + '/projects/', 'priority': '0.9', 'changefreq': 'daily'})
+    # Each individual project page
+    for slug, title, city, delivery, image in items:
+        urls.append({
+            'loc': f"{SITE_URL}/projects/{slug}/",
+            'priority': '0.8',
+            'changefreq': 'weekly',
+        })
+
+    sitemap_xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
+    sitemap_xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+    for u in urls:
+        sitemap_xml += '  <url>\n'
+        sitemap_xml += f'    <loc>{u["loc"]}</loc>\n'
+        sitemap_xml += f'    <lastmod>{today}</lastmod>\n'
+        sitemap_xml += f'    <changefreq>{u["changefreq"]}</changefreq>\n'
+        sitemap_xml += f'    <priority>{u["priority"]}</priority>\n'
+        sitemap_xml += '  </url>\n'
+    sitemap_xml += '</urlset>\n'
+
+    with open('sitemap.xml', 'w', encoding='utf-8') as f:
+        f.write(sitemap_xml)
+
+    robots_txt = (
+        "User-agent: *\n"
+        "Allow: /\n\n"
+        f"Sitemap: {SITE_URL}/sitemap.xml\n"
+    )
+    with open('robots.txt', 'w', encoding='utf-8') as f:
+        f.write(robots_txt)
 
 def build_index(items):
     cards = ''
