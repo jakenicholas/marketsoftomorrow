@@ -126,12 +126,12 @@ def map_preview_html(lat, lng, map_url):
         f"?access_token={MAPBOX_TOKEN}"
     )
     return f'''
-    <a class="map-preview" href="{map_url}" aria-label="View on interactive map">
+    <a class="map-preview" href="{map_url}" aria-label="View on map">
       <img src="{img_url}" alt="Map location" loading="lazy" />
       <div class="map-preview-overlay">
         <div class="map-preview-cta">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>
-          View on Interactive Map
+          View on Map
         </div>
       </div>
     </a>'''
@@ -170,7 +170,9 @@ def build_page(row):
     slug     = slugify(title)
     mslug    = map_slug(title)
     page_url = f"{SITE_URL}/projects/{slug}/"
-    map_url  = f"{SITE_URL}/?fullscreen=true&project={mslug}"
+    # Deep-link to map: omit fullscreen=true so the map opens with a small popup
+    # preview hovering over the pin (not the full modal). Per UX spec.
+    map_url  = f"{SITE_URL}/?project={mslug}"
 
     seo_title = f"{title}, {city} | Markets of Tomorrow"
     seo_desc  = description[:200].rstrip() + ('…' if len(description) > 200 else '')
@@ -390,15 +392,39 @@ def build_page(row):
     .breadcrumb a {{ color: rgba(255,255,255,0.4); text-decoration: none; }}
     .breadcrumb a:hover {{ color: rgba(255,255,255,0.7); }}
 
+    /* Footer logo (mobile only) — centered Markets of Tomorrow wordmark below content */
+    .footer-logo {{
+      display: none; /* desktop hides this — header is the brand on desktop */
+      padding: 32px 20px 40px;
+      text-align: center;
+    }}
+    .footer-logo a {{
+      display: inline-block;
+      transition: opacity 0.2s;
+    }}
+    .footer-logo a:hover {{ opacity: 0.8; }}
+    .footer-logo img {{
+      height: 38px;
+      width: auto;
+      filter: brightness(0) invert(1);
+      opacity: 0.9;
+    }}
+
     @media (max-width: 480px) {{
-      .gallery-hero {{ height: 260px; }}
-      .gs-slider {{ height: 260px; }}
+      /* Mobile: remove top black header bar entirely */
+      .site-header {{ display: none !important; }}
+      /* Show centered footer logo at bottom of page */
+      .footer-logo {{ display: block; }}
+      .footer-logo img {{ height: 42px; }}
+      /* Gallery taller on mobile since header reclaim is freed up */
+      .gallery-hero {{ height: 280px; }}
+      .gs-slider {{ height: 280px; }}
       .gs-arrow {{ width: 34px; height: 34px; }}
       .gs-prev {{ left: 10px; }}
       .gs-next {{ right: 10px; }}
       .project-title {{ font-size: 24px; }}
       .stats-grid {{ grid-template-columns: 1fr 1fr; }}
-      .map-preview {{ height: 160px; }}
+      .map-preview {{ height: 180px; }}
     }}
   </style>
 </head>
@@ -430,6 +456,13 @@ def build_page(row):
       {website_btn}
     </div>
     {map_preview_html(lat, lng, map_url)}
+  </div>
+
+  <!-- Footer logo (mobile only, centered) — desktop hides this since header has the brand -->
+  <div class="footer-logo">
+    <a href="{SITE_URL}" aria-label="Markets of Tomorrow home">
+      <img src="https://static.wixstatic.com/shapes/ca3b83_a647b53cad4c49c5b012af991d286a86.svg" alt="Markets of Tomorrow" />
+    </a>
   </div>
 
   <script>
