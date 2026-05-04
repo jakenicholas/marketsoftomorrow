@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026-04-20T23:17:06.502295 -->
+<!-- v2026-05-04T01:46Z favorites-ecosystem-pass-2 -->
 <html>
 <head>
   <meta charset="utf-8">
@@ -2087,9 +2087,14 @@
 
   /* Mobile: hide auth UI when drawer is expanded so it doesn't overlap tile content.
      Auth header lives in <body>, drawer lives in #app-container — they're not siblings,
-     so we use :has() to walk up to body and check the drawer's state. */
+     so we mirror drawer.expanded → body.drawer-expanded via a MutationObserver, then
+     target the body class here. Works in all browsers regardless of :has() support. */
   @media(max-width: 800px) {
-    body:has(#mobileDrawer.expanded) #paywallAuthHeader {
+    body.drawer-expanded #paywallAuthHeader {
+      display: none !important;
+    }
+    /* Also hide the favorites view banner — drawer takes the full screen */
+    body.drawer-expanded #favViewBanner {
       display: none !important;
     }
   }
@@ -2848,6 +2853,44 @@
     document.addEventListener('scroll', debouncedSetHeight, { passive: true });
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', setAppHeight);
     else setAppHeight();
+
+    // Build version — to verify deploys in DevTools: window.__buildVersion
+    window.__buildVersion = '2026-05-04T01:46Z favorites-ecosystem-pass-2';
+
+    // ─── Mirror drawer-expanded state to body class ───────────────────────────
+    // The auth header (in <body>) is not a sibling of #mobileDrawer (in #app-container),
+    // so CSS sibling selectors won't work. We use a MutationObserver to mirror the
+    // drawer's `expanded` class to <body class="drawer-expanded">, which we can target
+    // with a simple CSS rule. This is bulletproof across all browsers regardless of :has() support.
+    function syncDrawerStateToBody() {
+      const md = document.getElementById('mobileDrawer');
+      if (!md) return;
+      const apply = () => {
+        const expanded = md.classList.contains('expanded');
+        document.body.classList.toggle('drawer-expanded', expanded);
+        // Belt-and-suspenders: also enforce inline display:none on the auth header
+        // when drawer is open on mobile, in case any CSS rule fails to apply.
+        const ah = document.getElementById('paywallAuthHeader');
+        const isMobile = window.matchMedia('(max-width: 800px)').matches;
+        if (ah) {
+          if (expanded && isMobile) {
+            ah.dataset._hiddenByDrawer = '1';
+            ah.style.display = 'none';
+          } else if (ah.dataset._hiddenByDrawer === '1') {
+            ah.style.display = '';
+            delete ah.dataset._hiddenByDrawer;
+          }
+        }
+      };
+      apply();
+      new MutationObserver(apply).observe(md, { attributes: true, attributeFilter: ['class'] });
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', syncDrawerStateToBody);
+    } else {
+      syncDrawerStateToBody();
+    }
+
     window.addEventListener('load', () => {
       setAppHeight(); detectMobileToolbar();
       setTimeout(() => { setAppHeight(); detectMobileToolbar(); }, 100);
@@ -6414,6 +6457,7 @@
 
       function updateAuthHeaderUI(member) {
         let el = document.getElementById('paywallAuthHeader');
+        const justCreated = !el;
         if (!el) {
           el = document.createElement('div');
           el.id = 'paywallAuthHeader';
@@ -6425,6 +6469,16 @@
             headerBar.appendChild(el);
           } else {
             document.body.appendChild(el);
+          }
+        }
+        // If auth header was just created, immediately apply current drawer state
+        // so it's hidden if drawer is already expanded
+        if (justCreated) {
+          const md = document.getElementById('mobileDrawer');
+          const isMobileViewport = window.matchMedia('(max-width: 800px)').matches;
+          if (md && md.classList.contains('expanded') && isMobileViewport) {
+            el.dataset._hiddenByDrawer = '1';
+            el.style.display = 'none';
           }
         }
         if (member) {
