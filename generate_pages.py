@@ -13,6 +13,10 @@ SITE_URL = "https://map.oftmw.com"
 DEFAULT_IMAGE = "https://static.wixstatic.com/media/ca3b83_93ffb2f000f94a12aa874fe44153be18~mv2.jpg"
 LOGO_URL = "https://static.wixstatic.com/media/ca3b83_71f3cd2ef61049028b2daf4e2ff71d52~mv2.png"
 
+# Mapbox static image config — used for the mini map preview at bottom of project pages
+MAPBOX_TOKEN = "pk.eyJ1IjoiZmxvcmlkYW9mdG9tb3Jyb3ciLCJhIjoiY2xrYmpmdGQ2MGdibTNzcXZjMnA4aXh3ZiJ9.uBeYS7jmKwWS6xAgY-R1UA"
+MAPBOX_STYLE = "floridaoftomorrow/clkbk4qlw000a01qw94rj0xa7"
+
 def slugify(title):
     s = title.lower()
     s = re.sub(r'[^a-z0-9\s-]', '', s)
@@ -106,6 +110,32 @@ def gallery_html(row):
       <div class="gs-counter"><span class="gs-cur">1</span> / {len(imgs)}</div>
     </div>'''
 
+def map_preview_html(lat, lng, map_url):
+    """Generate a clickable Mapbox static image preview with a green pin at the project location."""
+    if not lat or not lng:
+        return ''
+    try:
+        flat, flng = float(lat), float(lng)
+    except (TypeError, ValueError):
+        return ''
+    # Mapbox Static Image API URL — green pin at coords, zoom 14, 720x320 retina
+    img_url = (
+        f"https://api.mapbox.com/styles/v1/{MAPBOX_STYLE}/static/"
+        f"pin-l+1FDF67({flng},{flat})/"
+        f"{flng},{flat},14,0/720x320@2x"
+        f"?access_token={MAPBOX_TOKEN}"
+    )
+    return f'''
+    <a class="map-preview" href="{map_url}" aria-label="View on interactive map">
+      <img src="{img_url}" alt="Map location" loading="lazy" />
+      <div class="map-preview-overlay">
+        <div class="map-preview-cta">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>
+          View on Interactive Map
+        </div>
+      </div>
+    </a>'''
+
 def stat_card(label, value):
     if not value or not value.strip():
         return ''
@@ -134,6 +164,8 @@ def build_page(row):
     image = row.get('ImageURL','').strip() or DEFAULT_IMAGE
     website = row.get('OfficialWebsite','').strip()
     featured = row.get('Featured','').strip().lower() == 'featured'
+    lat = row.get('Latitude','').strip()
+    lng = row.get('Longitude','').strip()
 
     slug     = slugify(title)
     mslug    = map_slug(title)
@@ -210,11 +242,6 @@ def build_page(row):
 
   <!-- JSON-LD -->
   <script type="application/ld+json">{jsonld}</script>
-
-  <!-- Memberstack 2.0 (for favorites toggle if signed in) -->
-  <script data-memberstack-app="app_cmoq79nvv002d0syef7wpel3c"
-          src="https://static.memberstack.com/scripts/v2/memberstack.js"
-          type="text/javascript"></script>
 
   <style>
     *, *::before, *::after {{ box-sizing: border-box; margin: 0; padding: 0; }}
@@ -316,34 +343,47 @@ def build_page(row):
     .stat-val {{ font-size: 13px; color: #fff; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }}
 
     /* CTA */
-    .cta-row {{ display: flex; gap: 10px; align-items: center; margin-bottom: 12px; }}
+    .cta-row {{ display: flex; gap: 10px; align-items: center; margin-bottom: 16px; }}
     .btn-primary {{ flex: 1; background: #1FDF67; color: #000; border: none; border-radius: 10px; padding: 13px 16px; font-size: 14px; font-weight: 700; cursor: pointer; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 6px; }}
     .btn-primary:hover {{ background: #18c75a; }}
     .btn-disabled {{ background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.3); cursor: default; }}
-    .btn-map {{ display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.06); border: 0.5px solid rgba(255,255,255,0.12); border-radius: 10px; padding: 13px 16px; color: rgba(255,255,255,0.75); text-decoration: none; font-size: 14px; font-weight: 500; white-space: nowrap; transition: background 0.15s; }}
-    .btn-map:hover {{ background: rgba(255,255,255,0.1); }}
-    .btn-map svg {{ opacity: 0.6; }}
-    /* Favorite button — circular + that turns green when favorited */
-    .btn-fav {{
-      width: 46px; height: 46px;
-      border-radius: 50%;
-      background: rgba(255,255,255,0.06);
-      border: 0.5px solid rgba(255,255,255,0.12);
-      color: rgba(255,255,255,0.75);
-      cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0;
-      padding: 0;
-      transition: background 0.15s, transform 0.1s, color 0.15s;
+
+    /* Mini map preview — clickable Mapbox static image with overlay CTA */
+    .map-preview {{
+      display: block;
+      position: relative;
+      width: 100%;
+      height: 180px;
+      border-radius: 12px;
+      overflow: hidden;
+      text-decoration: none;
+      margin-bottom: 16px;
+      background: #1a1a1a;
+      transition: transform 0.15s, box-shadow 0.15s;
     }}
-    .btn-fav:hover {{ background: rgba(255,255,255,0.1); }}
-    .btn-fav:active {{ transform: scale(0.94); }}
-    .btn-fav.favorited {{
-      background: #1FDF67;
-      border-color: transparent;
-      color: #fff;
+    .map-preview:hover {{ transform: translateY(-1px); box-shadow: 0 6px 20px rgba(0,0,0,0.4); }}
+    .map-preview img {{
+      width: 100%; height: 100%;
+      object-fit: cover;
+      display: block;
     }}
-    .btn-fav.favorited:hover {{ background: #18c75a; }}
+    .map-preview-overlay {{
+      position: absolute; inset: 0;
+      background: linear-gradient(to bottom, rgba(0,0,0,0) 50%, rgba(0,0,0,0.7) 100%);
+      display: flex; align-items: flex-end; justify-content: center;
+      padding: 14px;
+    }}
+    .map-preview-cta {{
+      display: flex; align-items: center; gap: 8px;
+      background: rgba(31,223,103,0.95);
+      color: #000;
+      padding: 10px 16px;
+      border-radius: 22px;
+      font-size: 13px; font-weight: 700;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.4);
+      transition: background 0.15s;
+    }}
+    .map-preview:hover .map-preview-cta {{ background: #1FDF67; }}
 
     /* Back breadcrumb */
     .breadcrumb {{ font-size: 12px; color: rgba(255,255,255,0.3); margin-bottom: 20px; }}
@@ -358,8 +398,7 @@ def build_page(row):
       .gs-next {{ right: 10px; }}
       .project-title {{ font-size: 24px; }}
       .stats-grid {{ grid-template-columns: 1fr 1fr; }}
-      .cta-row {{ flex-wrap: wrap; }}
-      .btn-map {{ width: 100%; justify-content: center; }}
+      .map-preview {{ height: 160px; }}
     }}
   </style>
 </head>
@@ -389,79 +428,11 @@ def build_page(row):
     {stats_section}
     <div class="cta-row">
       {website_btn}
-      <a class="btn-map" href="{map_url}">
-        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>
-        View on Map
-      </a>
-      <button class="btn-fav" id="btnFav" type="button" aria-label="Add to favorites" data-fav-slug="{slug}" data-map-slug="{mslug}">
-        <svg viewBox="0 0 18 18" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M9 1v16M1 9h16"/></svg>
-      </button>
     </div>
+    {map_preview_html(lat, lng, map_url)}
   </div>
 
   <script>
-    // Favorite button — toggles project as a favorite (paid only).
-    // Free / anonymous users get redirected to the map (which has the paywall flows).
-    (function() {{
-      const btn = document.getElementById('btnFav');
-      if (!btn) return;
-      const slug = btn.getAttribute('data-fav-slug');
-      const mapSlug = btn.getAttribute('data-map-slug');
-      const MAP_URL = 'https://map.oftmw.com/?fullscreen=true&project=' + mapSlug;
-
-      // Wait for Memberstack to be ready, then load current state
-      function whenReady(cb, tries=0) {{
-        if (window.$memberstackDom) return cb();
-        if (tries > 40) return; // give up after ~4s
-        setTimeout(() => whenReady(cb, tries+1), 100);
-      }}
-
-      let isPaid = false;
-      let isSignedIn = false;
-      let favorites = new Set();
-
-      async function loadState() {{
-        try {{
-          const ms = window.$memberstackDom;
-          const m = await ms.getCurrentMember();
-          const member = m?.data;
-          isSignedIn = !!member;
-          // Detect paid via planConnections (active subscription)
-          const plans = member?.planConnections || [];
-          isPaid = plans.some(pc => pc.status === 'ACTIVE' || pc.status === 'TRIALING');
-          if (isSignedIn) {{
-            const j = await ms.getMemberJSON();
-            const arr = Array.isArray(j?.data?.favorites) ? j.data.favorites : [];
-            favorites = new Set(arr);
-          }}
-          render();
-        }} catch (e) {{ console.warn('[Favorites] load error', e); }}
-      }}
-
-      function render() {{
-        btn.classList.toggle('favorited', favorites.has(slug));
-      }}
-
-      btn.addEventListener('click', async () => {{
-        // Anonymous or free → bounce to map where paywall handles them
-        if (!isSignedIn || !isPaid) {{
-          window.location.href = MAP_URL;
-          return;
-        }}
-        // Paid → toggle and persist
-        if (favorites.has(slug)) favorites.delete(slug);
-        else favorites.add(slug);
-        render();
-        try {{
-          await window.$memberstackDom.updateMemberJSON({{
-            json: {{ favorites: Array.from(favorites) }}
-          }});
-        }} catch (e) {{ console.warn('[Favorites] save error', e); }}
-      }});
-
-      whenReady(loadState);
-    }})();
-
     // Gallery slider — arrow cycling, keyboard arrows, and touch swipe
     (function() {{
       const slider = document.querySelector('.gs-slider');
