@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026-05-04T01:46Z favorites-ecosystem-pass-2 -->
+<!-- v2026-05-04T02:25Z bottom-pinned-favorites-banner -->
 <html>
 <head>
   <meta charset="utf-8">
@@ -2099,21 +2099,22 @@
     }
   }
 
-  /* ─── Favorites view banner ─── */
+  /* ─── Favorites view banner — pinned to BOTTOM of viewport ─── */
   #favViewBanner {
     position: fixed;
-    top: var(--header-height, 60px);
+    bottom: 0;
     left: 0; right: 0;
     z-index: 25;
-    background: linear-gradient(135deg, rgba(31,223,103,0.18) 0%, rgba(31,223,103,0.08) 100%);
+    background: linear-gradient(135deg, rgba(31,223,103,0.22) 0%, rgba(31,223,103,0.10) 100%);
     backdrop-filter: blur(20px) saturate(1.4);
     -webkit-backdrop-filter: blur(20px) saturate(1.4);
-    border-bottom: 1px solid rgba(31,223,103,0.25);
-    padding: 8px 14px;
-    transform: translateY(-100%);
+    border-top: 1px solid rgba(31,223,103,0.30);
+    padding: 12px 18px calc(12px + var(--safe-area-bottom, 0px)) 18px;
+    box-shadow: 0 -6px 24px rgba(0,0,0,0.35);
+    transform: translateY(110%);
     opacity: 0;
     pointer-events: none;
-    transition: transform 0.25s ease, opacity 0.2s;
+    transition: transform 0.28s cubic-bezier(0.34, 1.2, 0.64, 1), opacity 0.2s;
   }
   #favViewBanner.visible {
     transform: translateY(0);
@@ -2151,19 +2152,22 @@
     border: 0.5px solid rgba(255,255,255,0.15);
     color: rgba(255,255,255,0.85);
     font-size: 12px; font-weight: 600;
-    padding: 5px 10px;
+    padding: 6px 12px;
     border-radius: 6px;
     cursor: pointer;
     font-family: inherit;
     transition: background 0.15s;
   }
   #favViewBanner .fav-banner-exit:hover { background: rgba(255,255,255,0.15); }
-  /* Mobile: full-width banner over the map (no header) */
+  /* Mobile: keep pinned at bottom, tighter spacing — and lift above the
+     mobile floating action buttons (search pill, map/tiles toggle) so it
+     doesn't sit behind them. */
   @media(max-width: 800px) {
     #favViewBanner {
-      top: calc(var(--safe-area-top, 0px) + 60px); /* leave space for floating auth UI */
+      padding: 10px 14px calc(10px + var(--safe-area-bottom, 0px)) 14px;
     }
     #favViewBanner .fav-banner-inner { font-size: 12px; gap: 8px; }
+    #favViewBanner .fav-banner-exit { font-size: 11px; padding: 5px 10px; }
   }
 
   /* Avatar + dropdown menu */
@@ -2855,7 +2859,7 @@
     else setAppHeight();
 
     // Build version — to verify deploys in DevTools: window.__buildVersion
-    window.__buildVersion = '2026-05-04T01:46Z favorites-ecosystem-pass-2';
+    window.__buildVersion = '2026-05-04T02:25Z bottom-pinned-favorites-banner';
 
     // ─── Mirror drawer-expanded state to body class ───────────────────────────
     // The auth header (in <body>) is not a sibling of #mobileDrawer (in #app-container),
