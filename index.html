@@ -1970,6 +1970,94 @@
   #paywallAuthHeader button:hover { background: rgba(255,255,255,0.2); }
   #paywallAuthHeader .auth-status { cursor: default; padding-right: 10px; }
 
+  /* Avatar + dropdown menu */
+  .auth-avatar-wrap { position: relative; }
+  .auth-avatar {
+    position: relative;
+    width: 34px; height: 34px;
+    padding: 0 !important;
+    border-radius: 50% !important;
+    background: linear-gradient(135deg, #1FDF67 0%, #18a04a 100%) !important;
+    border: 1.5px solid rgba(255,255,255,0.15) !important;
+    color: #000 !important;
+    font-weight: 700 !important;
+    font-size: 13px !important;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: transform 0.1s, box-shadow 0.15s !important;
+  }
+  .auth-avatar:hover { transform: scale(1.04); box-shadow: 0 4px 14px rgba(31,223,103,0.3); }
+  .auth-avatar-initials { display: block; }
+  .auth-avatar-pro {
+    position: absolute;
+    bottom: -2px; right: -3px;
+    width: 14px; height: 14px;
+    background: #FFD300;
+    color: #000;
+    border: 1.5px solid #1a1a1a;
+    border-radius: 50%;
+    font-size: 9px;
+    line-height: 11px;
+    font-weight: 700;
+    text-align: center;
+  }
+  .auth-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    min-width: 200px;
+    background: rgba(20,20,20,0.96);
+    backdrop-filter: blur(20px) saturate(1.4);
+    -webkit-backdrop-filter: blur(20px) saturate(1.4);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
+    box-shadow: 0 12px 32px rgba(0,0,0,0.5);
+    padding: 6px;
+    opacity: 0;
+    transform: translateY(-4px);
+    pointer-events: none;
+    transition: opacity 0.15s, transform 0.15s;
+    z-index: 100;
+  }
+  .auth-dropdown.open {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+  .auth-dropdown-item {
+    display: flex; align-items: center; gap: 10px;
+    width: 100%;
+    background: transparent !important;
+    border: none !important;
+    border-radius: 6px !important;
+    padding: 9px 12px !important;
+    color: rgba(255,255,255,0.85) !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.1s !important;
+  }
+  .auth-dropdown-item:hover { background: rgba(255,255,255,0.07) !important; }
+  .auth-dropdown-item svg { opacity: 0.65; flex-shrink: 0; }
+  .auth-dropdown-soon {
+    margin-left: auto;
+    font-size: 9px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.4);
+    background: rgba(255,255,255,0.06);
+    padding: 2px 6px;
+    border-radius: 4px;
+    letter-spacing: 0.04em;
+  }
+  .auth-dropdown-sep {
+    height: 1px;
+    background: rgba(255,255,255,0.08);
+    margin: 4px 0;
+  }
+  .auth-dropdown-signout { color: rgba(255,150,150,0.85) !important; }
+  .auth-dropdown-signout:hover { background: rgba(255,80,80,0.1) !important; }
+
   /* Paywall modal — full-screen, hard-blocking. Class is shared by signup wall + subscription paywall */
   .paywall-modal {
     position: fixed;
@@ -5683,7 +5771,7 @@
     // ═══════════════════════════════════════════════════════════════════════
     (function() {
       const ANON_CLICK_LIMIT = 5;        // before email signup wall
-      const FREE_MEMBER_CLICK_LIMIT = 30; // before subscription paywall
+      const FREE_MEMBER_CLICK_LIMIT = 15; // before subscription paywall
       const STORAGE_KEY = 'mot_click_count';
       const PRICE_ID_MONTHLY = 'prc_monthly-86u0uyc';
       const PRICE_ID_ANNUAL  = 'prc_annual-9i2e0eab';
@@ -5940,7 +6028,7 @@
           if (member) {
             // Logged-in user → straight to Stripe Checkout
             await window.$memberstackDom.purchasePlansWithCheckout({
-              priceIds: [priceId],
+              priceId: priceId,
               cancelUrl: window.location.href,
               successUrl: window.location.href.split('?')[0] + '?subscribed=1'
             });
@@ -5973,6 +6061,16 @@
       }
 
       // ─── Header auth UI ───────────────────────────────────────────────────
+      // Anonymous: "Sign in" pill button
+      // Signed-in: circular avatar with initials → click opens dropdown (Account / Favorites / Sign out)
+      function getInitials(member) {
+        const f = member.customFields?.['first-name'] || member.customFields?.firstName || '';
+        const l = member.customFields?.['last-name']  || member.customFields?.lastName  || '';
+        if (f || l) return ((f[0] || '') + (l[0] || '')).toUpperCase() || '?';
+        const email = member.auth?.email || member.email || '';
+        return (email[0] || '?').toUpperCase();
+      }
+
       function updateAuthHeaderUI(member) {
         let el = document.getElementById('paywallAuthHeader');
         if (!el) {
@@ -5989,13 +6087,71 @@
           }
         }
         if (member) {
-          const email = member.auth?.email || member.email || 'Account';
-          const shortEmail = email.length > 22 ? email.substring(0, 20) + '…' : email;
+          const initials = getInitials(member);
           el.innerHTML = `
-            <span class="auth-status">${isPaidMember ? '✓ ' : ''}${shortEmail}</span>
-            <button id="authSignOutBtn">Sign out</button>
+            <div class="auth-avatar-wrap">
+              <button class="auth-avatar" id="authAvatarBtn" aria-label="Account menu" aria-haspopup="true" aria-expanded="false">
+                <span class="auth-avatar-initials">${initials}</span>
+                ${isPaidMember ? '<span class="auth-avatar-pro" title="Pro member">★</span>' : ''}
+              </button>
+              <div class="auth-dropdown" id="authDropdown" role="menu">
+                <button class="auth-dropdown-item" id="authMenuAccount" role="menuitem">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                  Account
+                </button>
+                <button class="auth-dropdown-item" id="authMenuFavorites" role="menuitem">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                  Favorites
+                  <span class="auth-dropdown-soon">Coming soon</span>
+                </button>
+                <div class="auth-dropdown-sep"></div>
+                <button class="auth-dropdown-item auth-dropdown-signout" id="authMenuSignOut" role="menuitem">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                  Sign out
+                </button>
+              </div>
+            </div>
           `;
-          el.querySelector('#authSignOutBtn').addEventListener('click', signOut);
+          // Wire interactions
+          const avatarBtn = el.querySelector('#authAvatarBtn');
+          const dropdown = el.querySelector('#authDropdown');
+          avatarBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isOpen = dropdown.classList.toggle('open');
+            avatarBtn.setAttribute('aria-expanded', String(isOpen));
+          });
+          // Close on outside click
+          if (!window._authDropdownOutsideHandler) {
+            window._authDropdownOutsideHandler = (e) => {
+              const dd = document.getElementById('authDropdown');
+              if (dd && !dd.contains(e.target) && !document.getElementById('authAvatarBtn')?.contains(e.target)) {
+                dd.classList.remove('open');
+                document.getElementById('authAvatarBtn')?.setAttribute('aria-expanded', 'false');
+              }
+            };
+            document.addEventListener('click', window._authDropdownOutsideHandler);
+          }
+          el.querySelector('#authMenuAccount').addEventListener('click', async () => {
+            dropdown.classList.remove('open');
+            // Open Memberstack's "Manage Subscription" (Stripe customer portal) for paid members,
+            // or just show profile info for free members
+            if (isPaidMember && window.$memberstackDom?.launchStripeCustomerPortal) {
+              try {
+                await window.$memberstackDom.launchStripeCustomerPortal({ returnUrl: window.location.href });
+              } catch (e) { console.error(e); }
+            } else {
+              try { await window.$memberstackDom.openModal('PROFILE'); } catch (e) { console.error(e); }
+            }
+          });
+          el.querySelector('#authMenuFavorites').addEventListener('click', () => {
+            dropdown.classList.remove('open');
+            // Placeholder until Favorites feature ships
+            alert('Favorites are coming soon — save the projects you love.');
+          });
+          el.querySelector('#authMenuSignOut').addEventListener('click', () => {
+            dropdown.classList.remove('open');
+            signOut();
+          });
         } else {
           el.innerHTML = `<button id="authSignInBtn">Sign in</button>`;
           el.querySelector('#authSignInBtn').addEventListener('click', openSignIn);
@@ -6037,8 +6193,16 @@
 
         // Listen for any auth state change (login, signup, logout)
         if (typeof ms.onAuthChange === 'function') {
-          ms.onAuthChange(async () => {
+          ms.onAuthChange(async (member) => {
+            // If a signup/login just succeeded while a Memberstack modal is open, close it.
+            if (member) {
+              try { await ms.hideModal(); } catch (e) { /* modal might not be open */ }
+            }
             await refreshMemberStatus();
+            // Also dismiss our own paywall/signup walls if the user is now allowed through
+            if (isPaidMember || (isSignedIn && memberClickCount < FREE_MEMBER_CLICK_LIMIT)) {
+              hideAllPaywalls();
+            }
           });
         }
 
