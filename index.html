@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026-05-04T04:10Z signup-only-button -->
+<!-- v2026-05-04T05:00Z account-modal-overhaul -->
 <html>
 <head>
   <meta charset="utf-8">
@@ -2007,6 +2007,89 @@
      PAYWALL MODAL + AUTH HEADER UI
      ═══════════════════════════════════════════════════════════════════════ */
 
+  /* ─── Customizations injected into Memberstack's PROFILE modal ─── */
+  /* "Cancel Plan" link style — smaller, subtle, sits next to plan name */
+  .mot-cancel-link {
+    background: none !important;
+    border: none !important;
+    color: rgba(255, 80, 80, 0.85) !important;
+    font-size: 11px !important;
+    font-weight: 500 !important;
+    padding: 2px 6px !important;
+    text-decoration: underline !important;
+    cursor: pointer !important;
+    text-transform: none !important;
+    letter-spacing: 0.01em !important;
+    box-shadow: none !important;
+  }
+  .mot-cancel-link:hover {
+    color: rgba(255, 80, 80, 1) !important;
+    background: rgba(255, 80, 80, 0.08) !important;
+  }
+  /* Green pulsing live dot — added to active plan name for paid members */
+  .mot-live-dot {
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #1FDF67;
+    margin-right: 7px;
+    vertical-align: middle;
+    box-shadow: 0 0 0 0 rgba(31, 223, 103, 0.7);
+    animation: motLivePulse 2s infinite;
+    flex-shrink: 0;
+  }
+  @keyframes motLivePulse {
+    0% { box-shadow: 0 0 0 0 rgba(31, 223, 103, 0.5); }
+    70% { box-shadow: 0 0 0 6px rgba(31, 223, 103, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(31, 223, 103, 0); }
+  }
+  /* Subscribe CTA injected into Plans section for non-paid users */
+  .mot-subscribe-cta {
+    margin: 18px 0 8px;
+    padding: 18px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(31,223,103,0.18) 0%, rgba(31,223,103,0.06) 100%);
+    border: 1px solid rgba(31,223,103,0.30);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .mot-subscribe-cta .mot-cta-text {
+    flex: 1; min-width: 180px;
+    display: flex; flex-direction: column; gap: 3px;
+  }
+  .mot-subscribe-cta .mot-cta-text strong {
+    color: #fff;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+  }
+  .mot-subscribe-cta .mot-cta-text span {
+    color: rgba(255,255,255,0.7);
+    font-size: 12px;
+    line-height: 1.4;
+  }
+  .mot-subscribe-cta .mot-cta-btn {
+    background: #1FDF67;
+    color: #000;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 18px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    letter-spacing: 0.02em;
+    transition: background 0.15s, transform 0.1s;
+    box-shadow: 0 2px 8px rgba(31,223,103,0.25);
+  }
+  .mot-subscribe-cta .mot-cta-btn:hover {
+    background: #18c75a;
+    transform: translateY(-1px);
+  }
+  .mot-subscribe-cta .mot-cta-btn:active { transform: translateY(0); }
+
   /* Auth UI — on desktop lives inside the header at top-right; on mobile floats top-left */
   #paywallAuthHeader {
     display: flex;
@@ -2858,7 +2941,7 @@
     else setAppHeight();
 
     // Build version — to verify deploys in DevTools: window.__buildVersion
-    window.__buildVersion = '2026-05-04T04:10Z signup-only-button';
+    window.__buildVersion = '2026-05-04T05:00Z account-modal-overhaul';
 
     // ─── Mirror drawer-expanded state to body class ───────────────────────────
     // The auth header (in <body>) is not a sibling of #mobileDrawer (in #app-container),
@@ -6476,32 +6559,35 @@
         return (email[0] || '?').toUpperCase();
       }
 
-      // ─── Profile modal: relabel "Remove" → "Cancel" and route to Stripe portal ──
-      // The Memberstack PROFILE modal renders a "Remove" button next to each plan.
-      // We watch for it to appear in the DOM, relabel it to "Cancel", and intercept
-      // the click so it opens the Stripe customer portal (where users can actually
-      // cancel their subscription) instead of removing the plan record.
+      // ─── Profile modal customizations ──────────────────────────────────────
+      // Memberstack's PROFILE modal already supports email change + plan management.
+      // We enhance it three ways:
+      //   1. Relabel any "Remove" plan button to "Cancel Plan" (smaller, link-style)
+      //   2. Add a green "live" dot before the active plan name (paid members)
+      //   3. For non-paid members on the Plans section, inject a "Subscribe" CTA
+      //      that opens our subscription paywall.
+      // Click on Cancel Plan → close PROFILE modal → open Stripe customer portal.
       function interceptProfileRemoveBtn() {
-        const start = Date.now();
-        const TIMEOUT_MS = 8000; // give up if Memberstack modal doesn't open in 8s
-        const seen = new WeakSet();
+        const TIMEOUT_MS = 8000;
+        const seenBtns = new WeakSet();
+        const seenPlanNames = new WeakSet();
+        let injectedNoPlanCta = false;
 
-        const processOne = (btn) => {
-          if (seen.has(btn)) return;
+        // ---- Relabel "Remove" button + intercept click ----
+        const rewireRemoveBtn = (btn) => {
+          if (seenBtns.has(btn)) return;
           const txt = (btn.textContent || '').trim().toLowerCase();
           if (txt !== 'remove') return;
-          seen.add(btn);
-          // Relabel
-          btn.textContent = 'Cancel';
+          seenBtns.add(btn);
+          btn.textContent = 'Cancel Plan';
           btn.setAttribute('data-mot-cancel-rewired', '1');
-          // Intercept click — capture phase so we run before Memberstack
+          btn.classList.add('mot-cancel-link'); // styled in CSS — small link-style
           btn.addEventListener('click', async (e) => {
             e.preventDefault();
             e.stopPropagation();
             e.stopImmediatePropagation();
             const ms = window.$memberstackDom;
             if (!ms) return;
-            // Close the profile modal first, then open Stripe portal
             try { await ms.hideModal?.(); } catch (_) {}
             if (typeof ms.launchStripeCustomerPortal === 'function') {
               try {
@@ -6511,22 +6597,88 @@
                 alert("We couldn't open the cancellation page. Please email support.");
               }
             } else {
-              console.warn('[Cancel] launchStripeCustomerPortal unavailable');
               alert('Cancellation requires Stripe portal access. Please email support.');
             }
           }, true);
         };
 
-        const scan = () => {
-          // Look for any button with text "Remove" — Memberstack class names can change
-          document.querySelectorAll('button').forEach(processOne);
+        // ---- Add green live dot before plan name (paid users) ----
+        const addLiveDot = (planNameEl) => {
+          if (seenPlanNames.has(planNameEl)) return;
+          // Only do this for active plans — check sibling for status indicator,
+          // OR just rely on isPaidMember at outer scope.
+          if (!isPaidMember) return;
+          if (planNameEl.querySelector('.mot-live-dot')) return;
+          seenPlanNames.add(planNameEl);
+          const dot = document.createElement('span');
+          dot.className = 'mot-live-dot';
+          dot.title = 'Active subscription';
+          planNameEl.insertBefore(dot, planNameEl.firstChild);
         };
 
-        // Initial scan + observer for late-rendered modals
+        // ---- For non-paid users with no plans: inject "Subscribe" CTA ----
+        const injectSubscribeCta = () => {
+          if (injectedNoPlanCta) return;
+          if (isPaidMember) return; // only for non-paid
+          // Find the Memberstack profile modal's plans area. Try a few selectors.
+          const planList = document.querySelector(
+            '[class*="plans"]:not([class*="modal__plans__"]), ' +
+            '[class*="ms-modal__plans"], ' +
+            '[id*="plans" i][role="region"]'
+          );
+          // Fallback: search for any heading with text "Plans" or "Subscription"
+          let host = planList;
+          if (!host) {
+            const headings = document.querySelectorAll('h1, h2, h3, h4, [class*="title"], [class*="header"]');
+            for (const h of headings) {
+              const t = (h.textContent || '').trim().toLowerCase();
+              if (t === 'plans' || t === 'subscription' || t === 'subscriptions' || t === 'membership') {
+                // Use the heading's parent as the host
+                host = h.closest('section') || h.parentElement;
+                break;
+              }
+            }
+          }
+          if (!host) return;
+          // Don't inject if there's already a plan visible inside this section
+          // (paid users with plans). But we already returned early if isPaidMember.
+          if (host.querySelector('.mot-subscribe-cta')) return;
+          const cta = document.createElement('div');
+          cta.className = 'mot-subscribe-cta';
+          cta.innerHTML = `
+            <div class="mot-cta-text">
+              <strong>Unlock Pro</strong>
+              <span>Get unlimited project access + favorites</span>
+            </div>
+            <button type="button" class="mot-cta-btn">View Plans</button>
+          `;
+          host.appendChild(cta);
+          injectedNoPlanCta = true;
+          cta.querySelector('.mot-cta-btn').addEventListener('click', async () => {
+            const ms = window.$memberstackDom;
+            try { await ms?.hideModal?.(); } catch (_) {}
+            // Small delay so the modal-close animation doesn't fight with paywall open
+            setTimeout(() => { showSubscriptionPaywall(); }, 150);
+          });
+        };
+
+        const scan = () => {
+          // Buttons → relabel Remove
+          document.querySelectorAll('button').forEach(rewireRemoveBtn);
+          // Plan names → add live dot. Memberstack typically renders plan name in
+          // an element with a "name" or "plan" class. We scan generously.
+          document.querySelectorAll(
+            '[class*="ms-modal"] [class*="plan-name"], ' +
+            '[class*="ms-modal"] [class*="planName"], ' +
+            '[class*="ms-modal"] [class*="plan__name"]'
+          ).forEach(addLiveDot);
+          // Non-paid → inject Subscribe CTA in Plans section
+          injectSubscribeCta();
+        };
+
         scan();
         const obs = new MutationObserver(scan);
         obs.observe(document.body, { childList: true, subtree: true });
-        // Stop observing after timeout to avoid leaks
         setTimeout(() => obs.disconnect(), TIMEOUT_MS);
       }
       window.interceptProfileRemoveBtn = interceptProfileRemoveBtn;
@@ -6574,6 +6726,12 @@
                   Account
                   ${isPaidMember ? '<span class="auth-dropdown-pro">PRO</span>' : ''}
                 </button>
+                ${!isPaidMember ? `
+                <button class="auth-dropdown-item" id="authMenuPlans" role="menuitem">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+                  Plans
+                  <span class="auth-dropdown-pro" style="background:#FFD300">UPGRADE</span>
+                </button>` : ''}
                 <button class="auth-dropdown-item" id="authMenuFavorites" role="menuitem">
                   <svg viewBox="0 0 18 18" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M9 1v16M1 9h16"/></svg>
                   My Favorites
@@ -6608,29 +6766,26 @@
           }
           el.querySelector('#authMenuAccount').addEventListener('click', async () => {
             dropdown.classList.remove('open');
-            // Account button → Stripe Customer Portal (where users can cancel/manage their plan)
-            // For paid members: opens Stripe portal directly via Memberstack
-            // For free members: opens Memberstack profile (since they have no Stripe subscription yet)
+            // Account button → Memberstack PROFILE modal for everyone.
+            // The interceptor (interceptProfileRemoveBtn) customizes the modal:
+            //   - paid users: live dot + Cancel Plan link to Stripe portal
+            //   - non-paid users: Subscribe CTA opens our paywall
+            //   - both: lets them edit email / change password
             const ms = window.$memberstackDom;
             if (!ms) { console.warn('[Account] Memberstack not loaded'); return; }
-            if (isPaidMember) {
-              if (typeof ms.launchStripeCustomerPortal === 'function') {
-                try {
-                  await ms.launchStripeCustomerPortal({ returnUrl: window.location.href });
-                } catch (e) {
-                  console.error('[Account] Stripe portal launch failed:', e);
-                  // Fallback: try the profile modal so the user has SOMETHING
-                  try { await ms.openModal('PROFILE'); interceptProfileRemoveBtn(); } catch (e2) { console.error(e2); }
-                }
-              } else {
-                console.warn('[Account] launchStripeCustomerPortal not available — using profile modal');
-                try { await ms.openModal('PROFILE'); interceptProfileRemoveBtn(); } catch (e) { console.error(e); }
-              }
-            } else {
-              // Free member — no Stripe subscription yet, show profile
-              try { await ms.openModal('PROFILE'); interceptProfileRemoveBtn(); } catch (e) { console.error(e); }
-            }
+            try {
+              await ms.openModal('PROFILE');
+              interceptProfileRemoveBtn();
+            } catch (e) { console.error('[Account] openModal failed:', e); }
           });
+          // "Plans" menu item — only rendered for non-paid users (see template)
+          const plansBtn = el.querySelector('#authMenuPlans');
+          if (plansBtn) {
+            plansBtn.addEventListener('click', () => {
+              dropdown.classList.remove('open');
+              showSubscriptionPaywall();
+            });
+          }
           el.querySelector('#authMenuFavorites').addEventListener('click', () => {
             dropdown.classList.remove('open');
             if (!isPaidMember) {
