@@ -183,12 +183,11 @@ def build_page(row):
     seo_title = f"{title}, {city} | Markets of Tomorrow"
     seo_desc  = description[:200].rstrip() + ('…' if len(description) > 200 else '')
 
-    # Pills
+    # Pills (only the Featured pill — the green project-type pill was removed
+    # per design; project type is still shown inline next to the city)
     pills = ''
     if featured:
         pills += '<span class="pill pill-featured">★ Featured</span>'
-    if proj_type:
-        pills += f'<span class="pill pill-type">{proj_type}</span>'
 
     # Stats
     stats = ''
@@ -354,9 +353,9 @@ def build_page(row):
 
     /* Pills */
     .pills {{ display: flex; gap: 6px; margin-bottom: 12px; }}
+    .pills:empty {{ display: none; }}
     .pill {{ font-size: 9px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 3px 9px; border-radius: 20px; }}
     .pill-featured {{ background: #FFD300; color: #000; }}
-    .pill-type {{ background: rgba(31,223,103,0.12); color: #1FDF67; }}
 
     /* Title */
     .project-title {{ font-size: 28px; font-weight: 700; line-height: 1.15; margin-bottom: 4px; }}
