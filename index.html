@@ -864,6 +864,22 @@
     .grid-item .tile-favorite svg {
       width: 12px; height: 12px; stroke: #000; stroke-width: 4; fill: none;
     }
+    /* Favorited state — green background, white + */
+    .grid-item .tile-favorite.favorited {
+      background: var(--accent);
+    }
+    .grid-item .tile-favorite.favorited svg { stroke: #fff; }
+    .grid-item .tile-favorite.favorited:hover {
+      background: var(--accent);
+      transform: scale(1.15) rotate(45deg); /* + rotates to X on hover when favorited */
+    }
+    /* Tile favorite is now a button, not an anchor — strip default button chrome */
+    button.tile-favorite {
+      cursor: pointer;
+      padding: 0;
+      font: inherit;
+    }
+    button.tile-favorite:focus { outline: none; }
 
     /* ─── MAP SEARCH BUTTONS ──────────────────────────────────────────────── */
     /* ─── GLASS MIXIN for all map overlay controls ───────────────────────── */
@@ -1272,6 +1288,13 @@
     .favorite svg { width: 12px; height: 12px; stroke: #000; stroke-width: 4; fill: none; }
     .favorite:hover { background: var(--accent); transform: scale(1.15) rotate(90deg); }
     .favorite:hover svg { stroke: #fff; }
+    /* Favorited state — green background, white + */
+    .favorite.favorited { background: var(--accent); }
+    .favorite.favorited svg { stroke: #fff; }
+    .favorite.favorited:hover { transform: scale(1.15) rotate(45deg); }
+    /* Popup favorite is now a button, not an anchor */
+    button.favorite { cursor: pointer; padding: 0; font: inherit; border: none; }
+    button.favorite:focus { outline: none; }
 
     @media(max-width:800px) {
       .leaf-grid { grid-template-columns: repeat(2,1fr); grid-gap: 8px 10px; row-gap: 20px; }
@@ -1908,8 +1931,12 @@
     width: 15px; height: 15px;
     stroke: rgba(255,255,255,0.6); fill: none; stroke-width: 2;
   }
-  #projectModal .pm-btn-icon.liked { color: #FF6B9D; }
-  #projectModal .pm-btn-icon.liked svg { stroke: #FF6B9D; }
+  #projectModal .pm-btn-icon.favorited {
+    background: var(--accent);
+    border-color: transparent;
+    color: #000;
+  }
+  #projectModal .pm-btn-icon.favorited svg { stroke: #fff; }
   /* Page counter badge on hero */
   #projectModal .pm-counter {
     position: absolute; bottom: 10px; right: 12px;
@@ -2050,6 +2077,17 @@
     padding: 2px 6px;
     border-radius: 4px;
     letter-spacing: 0.04em;
+  }
+  .auth-dropdown-pro {
+    margin-left: auto;
+    font-size: 9px;
+    font-weight: 800;
+    color: #000;
+    background: #FFD300;
+    padding: 2px 7px;
+    border-radius: 4px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
   }
   .auth-dropdown-sep {
     height: 1px;
@@ -2535,8 +2573,8 @@
             <div class="pm-btn-icon" id="pmShareIconBtn">
               <svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
             </div>
-            <div class="pm-btn-icon" id="pmLikeBtn">
-              <svg id="pmHeartSvg" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            <div class="pm-btn-icon" id="pmLikeBtn" role="button" aria-label="Add to favorites">
+              <svg id="pmHeartSvg" viewBox="0 0 18 18" width="18" height="18" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="2.4" stroke-linecap="round"><path d="M9 1v16M1 9h16"/></svg>
             </div>
           </div>
         </div>
@@ -3212,7 +3250,6 @@
       const scrollEl = modal.querySelector('.pm-scroll');
       let currentFeature = null;
       let fromSource = null; // 'tile' | 'popup'
-      let liked = false;
 
       // Delivery stage config
       const stages = [
@@ -3265,7 +3302,6 @@
         if (source === 'tile' && window.paywallCheck && !window.paywallCheck()) return;
         currentFeature = f;
         fromSource = source || 'tile';
-        liked = false;
         const p = f.properties;
 
         // Reset scroll
@@ -3344,9 +3380,13 @@
           learnBtn.style.pointerEvents = 'none';
         }
 
-        // Like button reset
-        document.getElementById('pmLikeBtn').classList.remove('liked');
-        document.getElementById('pmLikeBtn').textContent = '♡';
+        // Favorite button — sync to current favorite state for this project
+        const likeBtn = document.getElementById('pmLikeBtn');
+        if (likeBtn) {
+          const favSlug = (p.title || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+          likeBtn.setAttribute('data-fav-slug', favSlug);
+          likeBtn.classList.toggle('favorited', !!(window.isFavorited && window.isFavorited(p.title)));
+        }
 
         // Show modal — push URL + update SEO meta for sharing
         const slug = projectSlug(p.title);
@@ -3446,15 +3486,11 @@
         if (p) doShare(p.title);
       });
 
-      // Like button
+      // Favorite button — toggles the project as a favorite (paid only)
       document.getElementById('pmLikeBtn').addEventListener('click', function() {
-        liked = !liked;
-        const svg = this.querySelector('svg');
-        if (svg) {
-          svg.setAttribute('fill', liked ? '#FF6B9D' : 'none');
-          svg.setAttribute('stroke', liked ? '#FF6B9D' : 'rgba(255,255,255,0.6)');
-        }
-        this.classList.toggle('liked', liked);
+        const p = currentFeature?.properties;
+        if (!p || !window.toggleFavorite) return;
+        window.toggleFavorite(p.title, this);
       });
 
       // Learn More click tracking
@@ -3525,9 +3561,9 @@
             <p class="city">${f.properties.city}</p>
             <p class="description">${f.properties.description}</p>
             ${deliveryBarHTML(f.properties.delivery)}
-            <a class="favorite" href="https://www.oftmw.com/livehere" onclick="gtag('event','live_here_click',{'project_name':'${f.properties.title}','click_location':'popup'});">
+            <button class="favorite${window.isFavorited && window.isFavorited(f.properties.title) ? ' favorited' : ''}" data-fav-slug="${window.projectSlugify(f.properties.title)}" type="button" aria-label="Add to favorites" onclick="event.stopPropagation();window.toggleFavorite&&window.toggleFavorite('${(f.properties.title || '').replace(/'/g, "\\'")}', this);">
               <svg viewBox="0 0 18 18"><path d="M9 1v16M1 9h16"/></svg>
-            </a>
+            </button>
             <div class="popup-buttons">
               <a href="#" onclick="event.preventDefault();gtag('event','learn_more_click',{'project_name':'${f.properties.title}','project_city':'${f.properties.city}','click_location':'popup','device_type':'${isMobile?'mobile':'desktop'}'});window._popupFeatureRef&&window.openProjectModal(window._popupFeatureRef,'popup');">Learn More</a>
             </div>
@@ -3793,9 +3829,9 @@
               <img src="${f.properties.image}" loading="lazy" alt="${f.properties.title}"  />
             </div>
             ${f.properties.featured ? `<div class="featured-badge"><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>Featured</div>` : ''}
-            <a class="tile-favorite" href="https://www.oftmw.com/livehere" target="_blank" onclick="event.stopPropagation();gtag('event','live_here_click',{'project_name':'${f.properties.title}','click_location':'tile'});">
+            <button class="tile-favorite${window.isFavorited && window.isFavorited(f.properties.title) ? ' favorited' : ''}" data-fav-slug="${window.projectSlugify(f.properties.title)}" type="button" aria-label="Add to favorites" onclick="event.stopPropagation();window.toggleFavorite&&window.toggleFavorite('${(f.properties.title || '').replace(/'/g, "\\'")}', this);">
               <svg viewBox="0 0 18 18"><path d="M9 1v16M1 9h16"/></svg>
-            </a>
+            </button>
             <div class="grid-item-content">
               <h3 style="color:#fff!important;margin:0 0 4px;font-size:16px;">${f.properties.title}</h3>
               <p class="city" style="color:#ccc!important;margin:0 0 auto;font-size:12px;padding-bottom:8px;">${f.properties.city}</p>
@@ -3997,9 +4033,9 @@
                    data-src="${f.properties.image}"  alt="${f.properties.title}" class="lazy-loading" />
             </div>
             ${f.properties.featured ? `<div class="featured-badge"><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>Featured</div>` : ''}
-            <a class="tile-favorite" href="https://www.oftmw.com/livehere" target="_blank" onclick="event.stopPropagation();">
+            <button class="tile-favorite${window.isFavorited && window.isFavorited(f.properties.title) ? ' favorited' : ''}" data-fav-slug="${window.projectSlugify(f.properties.title)}" type="button" aria-label="Add to favorites" onclick="event.stopPropagation();window.toggleFavorite&&window.toggleFavorite('${(f.properties.title || '').replace(/'/g, "\\'")}', this);">
               <svg viewBox="0 0 18 18"><path d="M9 1v16M1 9h16"/></svg>
-            </a>
+            </button>
             <div class="grid-item-content">
               <h3 style="color:#fff!important;margin:0 0 4px;font-size:16px;">${f.properties.title}</h3>
               <p class="city" style="color:#ccc!important;margin:0 0 auto;font-size:12px;padding-bottom:8px;">${f.properties.city}</p>
@@ -5882,6 +5918,14 @@
             hideAllPaywalls();
           }
 
+          // Load favorites whenever we have an authenticated member
+          if (isSignedIn) {
+            await loadFavoritesFromMember();
+          } else {
+            window._favorites = new Set();
+            syncFavoritesUI();
+          }
+
           updateAuthHeaderUI(member);
         } catch (e) {
           console.warn('[Paywall] refreshMemberStatus error:', e);
@@ -5901,7 +5945,7 @@
               <img src="https://static.wixstatic.com/shapes/ca3b83_a647b53cad4c49c5b012af991d286a86.svg" alt="Markets of Tomorrow" />
             </div>
             <h2 class="paywall-title">Unlock the full Map</h2>
-            <p class="paywall-subtitle">You've explored ${FREE_MEMBER_CLICK_LIMIT} projects. Subscribe for unlimited access to every development on the Map of Tomorrow.</p>
+            <p class="paywall-subtitle">Subscribe for unlimited access to every development on the Map of Tomorrow.</p>
             <div class="paywall-plans">
               <button class="paywall-plan paywall-plan-annual" data-price-id="${PRICE_ID_ANNUAL}">
                 <div class="paywall-plan-tag">BEST VALUE</div>
@@ -6094,6 +6138,7 @@
                 <button class="auth-dropdown-item" id="authMenuAccount" role="menuitem">
                   <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
                   Account
+                  ${isPaidMember ? '<span class="auth-dropdown-pro">PRO</span>' : ''}
                 </button>
                 <button class="auth-dropdown-item" id="authMenuFavorites" role="menuitem">
                   <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
@@ -6154,6 +6199,90 @@
         }
       }
 
+      // ─── Favorites store (Memberstack metaData) ───────────────────────────
+      // Stored as: member.metaData.favorites = ["marina-village", "water-street", ...]
+      // Cache mirrors the array as a Set for O(1) lookups + instant UI updates.
+      window._favorites = new Set();
+
+      function projectSlugify(title) {
+        // Must produce the SAME slug as Python's slugify() in generate_pages.py
+        // so favorites toggled from project pages match favorites toggled from the map.
+        // Python: lower → strip chars not in [a-z0-9\s-] → collapse [\s-]+ → trim '-'
+        return (title || '').toLowerCase()
+          .replace(/[^a-z0-9\s-]/g, '')
+          .replace(/[\s-]+/g, '-')
+          .replace(/^-|-$/g, '');
+      }
+      window.projectSlugify = projectSlugify;
+
+      async function loadFavoritesFromMember() {
+        if (!window.$memberstackDom) return;
+        try {
+          const result = await window.$memberstackDom.getMemberJSON();
+          const json = result?.data || {};
+          const arr = Array.isArray(json.favorites) ? json.favorites : [];
+          window._favorites = new Set(arr.filter(s => typeof s === 'string'));
+          syncFavoritesUI();
+        } catch (e) { console.warn('[Favorites] load error:', e); }
+      }
+
+      async function saveFavoritesToMember() {
+        if (!window.$memberstackDom) return;
+        try {
+          // updateMemberJSON merges with existing JSON
+          await window.$memberstackDom.updateMemberJSON({
+            json: { favorites: Array.from(window._favorites) }
+          });
+        } catch (e) { console.warn('[Favorites] save error:', e); }
+      }
+
+      // Public API: toggles a project favorite. Returns new state or false if blocked.
+      // - Anonymous → opens signup wall
+      // - Free signed-in → opens subscription paywall
+      // - Paid → toggles + persists
+      window.toggleFavorite = function(projectTitle, btnEl) {
+        const slug = projectSlugify(projectTitle);
+        if (!slug) return false;
+
+        if (!isPaidMember) {
+          // Show appropriate paywall — favorites are paid-only
+          if (!isSignedIn) {
+            showSignupWall();
+          } else {
+            showSubscriptionPaywall();
+          }
+          if (window.gtag) gtag('event', 'favorite_blocked', { 'project_slug': slug, 'reason': isSignedIn ? 'free_member' : 'anonymous' });
+          return false;
+        }
+
+        const isFav = window._favorites.has(slug);
+        if (isFav) {
+          window._favorites.delete(slug);
+        } else {
+          window._favorites.add(slug);
+        }
+        // Update all UI representations of this project
+        syncFavoritesUI();
+        // Persist async (don't block click)
+        saveFavoritesToMember();
+        if (window.gtag) gtag('event', isFav ? 'favorite_removed' : 'favorite_added', { 'project_slug': slug });
+        return !isFav;
+      };
+
+      // Public: is a project favorited?
+      window.isFavorited = function(projectTitle) {
+        return window._favorites.has(projectSlugify(projectTitle));
+      };
+
+      // Update all visible favorite buttons to reflect current state
+      function syncFavoritesUI() {
+        document.querySelectorAll('[data-fav-slug]').forEach(el => {
+          const slug = el.getAttribute('data-fav-slug');
+          el.classList.toggle('favorited', window._favorites.has(slug));
+        });
+      }
+      window.syncFavoritesUI = syncFavoritesUI;
+
       // ─── Public API: gate every project interaction ───────────────────────
       // Returns true if interaction is allowed, false if blocked
       window.paywallCheck = function() {
@@ -6187,18 +6316,21 @@
         memberstackReady = true;
         await refreshMemberStatus();
 
-        // Listen for any auth state change (login, signup, logout)
+        // Listen for any auth state change (login, signup, logout).
+        // CRITICAL: keep this callback synchronous and defer work to a microtask.
+        // Memberstack's internal dispatcher can mishandle async callbacks (manifests
+        // as a "c(...) is not a function" toast), so we schedule and return immediately.
         if (typeof ms.onAuthChange === 'function') {
-          ms.onAuthChange(async (member) => {
-            // If a signup/login just succeeded while a Memberstack modal is open, close it.
-            if (member) {
-              try { await ms.hideModal(); } catch (e) { /* modal might not be open */ }
-            }
-            await refreshMemberStatus();
-            // Also dismiss our own paywall/signup walls if the user is now allowed through
-            if (isPaidMember || (isSignedIn && memberClickCount < FREE_MEMBER_CLICK_LIMIT)) {
-              hideAllPaywalls();
-            }
+          ms.onAuthChange((member) => {
+            setTimeout(async () => {
+              if (member) {
+                try { await ms.hideModal(); } catch (e) { /* modal might not be open */ }
+              }
+              await refreshMemberStatus();
+              if (isPaidMember || (isSignedIn && memberClickCount < FREE_MEMBER_CLICK_LIMIT)) {
+                hideAllPaywalls();
+              }
+            }, 0);
           });
         }
 
