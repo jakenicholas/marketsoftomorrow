@@ -1759,15 +1759,65 @@
   }
   @media (min-width: 768px) {
     #projectModal .pm-hero { height: 300px; }
-    #projectModal .pm-thumbs { height: 80px; }
   }
-  #projectModal .pm-hero img {
+  /* Slider track + slides — replaces single hero img */
+  #projectModal .pm-slider {
+    position: absolute; inset: 0;
+    background: #0a0a0a;
+    overflow: hidden;
+  }
+  #projectModal .pm-slide {
+    position: absolute; inset: 0;
     width: 100%; height: 100%; object-fit: cover;
-    display: block;
+    opacity: 0;
+    transition: opacity 0.35s ease;
+    pointer-events: none;
   }
+  #projectModal .pm-slide.active { opacity: 1; pointer-events: auto; }
   #projectModal .pm-hero-overlay {
     position: absolute; inset: 0;
     background: linear-gradient(to bottom, rgba(0,0,0,0.25) 0%, rgba(13,13,13,0) 50%);
+    pointer-events: none;
+    z-index: 1;
+  }
+  /* Slider arrows — circular white buttons */
+  #projectModal .pm-slide-arrow {
+    position: absolute;
+    top: 50%; transform: translateY(-50%);
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.92);
+    border: none;
+    color: #000;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.4);
+    transition: background 0.15s, transform 0.1s;
+    z-index: 4;
+  }
+  #projectModal .pm-slide-arrow:hover { background: #fff; }
+  #projectModal .pm-slide-arrow:active { transform: translateY(-50%) scale(0.94); }
+  #projectModal .pm-slide-arrow svg { width: 18px; height: 18px; }
+  #projectModal .pm-slide-prev { left: 14px; }
+  #projectModal .pm-slide-next { right: 14px; }
+  #projectModal .pm-slide-counter {
+    position: absolute;
+    bottom: 14px; right: 14px;
+    background: rgba(0,0,0,0.55);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    color: rgba(255,255,255,0.95);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 20px;
+    z-index: 4;
+    letter-spacing: 0.02em;
+  }
+  @media (max-width: 480px) {
+    #projectModal .pm-slide-arrow { width: 34px; height: 34px; }
+    #projectModal .pm-slide-prev { left: 10px; }
+    #projectModal .pm-slide-next { right: 10px; }
   }
   /* Top bar with X and share */
   #projectModal .pm-topbar {
@@ -1787,28 +1837,6 @@
   #projectModal .pm-icon-btn svg {
     width: 14px; height: 14px;
     stroke: rgba(255,255,255,0.85); fill: none; stroke-width: 2;
-  }
-  /* Thumbnail strip */
-  #projectModal .pm-thumbs {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 2px; height: 58px;
-    flex-shrink: 0;
-  }
-  #projectModal .pm-thumb {
-    background: #111;
-    background-size: cover; background-position: center;
-    cursor: pointer;
-    position: relative;
-  }
-  #projectModal .pm-thumb.more::after {
-    content: attr(data-count);
-    position: absolute; inset: 0;
-    display: flex; align-items: center; justify-content: center;
-    background: rgba(0,0,0,0.55);
-    color: rgba(255,255,255,0.85);
-    font-size: 11px; font-weight: 600;
-    letter-spacing: 0.02em;
   }
   /* Content area */
   #projectModal .pm-body {
@@ -1985,6 +2013,25 @@
     white-space: nowrap;
     font-family: inherit;
   }
+  /* Sign-in button — green with yellow border, slightly larger (desktop + mobile) */
+  #paywallAuthHeader #authSignInBtn {
+    background: var(--accent) !important;
+    border: 2px solid #FFD300 !important;
+    color: #000 !important;
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    padding: 9px 18px !important;
+    border-radius: 8px !important;
+    letter-spacing: 0.01em;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.25);
+    transition: background 0.15s, transform 0.1s, box-shadow 0.15s !important;
+  }
+  #paywallAuthHeader #authSignInBtn:hover {
+    background: #18c75a !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(31,223,103,0.35), 0 0 0 1px rgba(255,211,0,0.2);
+  }
+  #paywallAuthHeader #authSignInBtn:active { transform: translateY(0); }
   /* On mobile (over the map) use the heavier glass treatment */
   @media(max-width: 800px) {
     #paywallAuthHeader button,
@@ -1994,9 +2041,23 @@
       -webkit-backdrop-filter: blur(16px) saturate(1.4);
       border-radius: 8px;
     }
+    /* Mobile sign-in keeps the green-yellow look — override glass */
+    #paywallAuthHeader #authSignInBtn {
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+      padding: 10px 20px !important;
+      font-size: 14px !important;
+    }
   }
   #paywallAuthHeader button:hover { background: rgba(255,255,255,0.2); }
   #paywallAuthHeader .auth-status { cursor: default; padding-right: 10px; }
+
+  /* Mobile: hide auth UI when drawer is expanded so it doesn't overlap tile content */
+  @media(max-width: 800px) {
+    #mobileDrawer.expanded ~ #paywallAuthHeader {
+      display: none !important;
+    }
+  }
 
   /* Avatar + dropdown menu */
   .auth-avatar-wrap { position: relative; }
@@ -2046,6 +2107,13 @@
     pointer-events: none;
     transition: opacity 0.15s, transform 0.15s;
     z-index: 100;
+  }
+  /* On mobile, auth UI is top-left of viewport — flip dropdown to left-align */
+  @media(max-width: 800px) {
+    .auth-dropdown {
+      right: auto;
+      left: 0;
+    }
   }
   .auth-dropdown.open {
     opacity: 1;
@@ -2368,8 +2436,8 @@
     <button id="zoomInButton" class="zoom-btn" title="Zoom in">+</button>
     <button id="zoomOutButton" class="zoom-btn" title="Zoom out">−</button>
     <!-- Reset map view -->
-    <button id="resetViewButton" class="zoom-btn" title="Reset map view" aria-label="Reset map view">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><polyline points="3 4 3 10 9 10"/></svg>
+    <button id="resetViewButton" class="zoom-btn" title="Reset map view (north-up)" aria-label="Reset map view">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polygon points="12 5 14 12 12 19 10 12" fill="currentColor" stroke="none"/></svg>
     </button>
     <div id="desktopSearchPill" class="glass-btn">
       <div class="pill-search-icon">
@@ -2544,18 +2612,23 @@
     <!-- ── Project Detail Modal ── -->
     <div id="projectModal">
       <div class="pm-scroll">
-        <!-- Hero image -->
+        <!-- Hero gallery: arrow-cycling slider when 2+ images -->
         <div class="pm-hero">
-          <img id="pmHeroImg" src="" alt="" />
+          <div class="pm-slider" id="pmSlider"></div>
           <div class="pm-hero-overlay"></div>
+          <button class="pm-slide-arrow pm-slide-prev" id="pmSlidePrev" aria-label="Previous image">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+          <button class="pm-slide-arrow pm-slide-next" id="pmSlideNext" aria-label="Next image">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+          <div class="pm-slide-counter" id="pmSlideCounter"><span id="pmSlideCur">1</span> / <span id="pmSlideTotal">1</span></div>
           <div class="pm-topbar">
             <button class="pm-icon-btn" id="pmCloseBtn" aria-label="Close">
               <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             </button>
           </div>
         </div>
-        <!-- Thumbnail strip -->
-        <div class="pm-thumbs" id="pmThumbs"></div>
         <!-- Body -->
         <div class="pm-body">
           <div class="pm-pills" id="pmPills"></div>
@@ -3307,28 +3380,41 @@
         // Reset scroll
         scrollEl.scrollTop = 0;
 
-        // Hero
-        const heroImg = document.getElementById('pmHeroImg');
-        heroImg.src = p.image || '';
-        heroImg.alt = p.title || '';
-
-        // Smart gallery — collect available images, show strip only if >1
+        // Slider gallery — arrow-cycling for 2+ images, single static for 1
         const imgs = [p.image, p.image2, p.image3, p.image4, p.image5]
           .filter(u => u && u.trim());
-        const thumbs = document.getElementById('pmThumbs');
-        if (imgs.length <= 1) {
-          // Single image — hide strip entirely
-          thumbs.style.display = 'none';
+        const sliderEl = document.getElementById('pmSlider');
+        const counterEl = document.getElementById('pmSlideCounter');
+        const prevBtn = document.getElementById('pmSlidePrev');
+        const nextBtn = document.getElementById('pmSlideNext');
+        const totalEl = document.getElementById('pmSlideTotal');
+        const curEl = document.getElementById('pmSlideCur');
+        // Populate slides
+        if (imgs.length === 0) {
+          sliderEl.innerHTML = '';
         } else {
-          thumbs.style.display = 'grid';
-          const show = imgs.slice(1, 4); // up to 3 thumbs
-          const remaining = imgs.length - 4; // imgs beyond first 4
-          thumbs.innerHTML = show.map((url, i) => {
-            const isLast = i === show.length - 1 && remaining > 0;
-            return `<div class="pm-thumb${isLast ? ' more' : ''}"
-              style="background-image:url('${url}')"
-              ${isLast ? `data-count="+${remaining} more"` : ''}></div>`;
-          }).join('');
+          sliderEl.innerHTML = imgs.map((u, i) =>
+            `<img class="pm-slide${i === 0 ? ' active' : ''}" src="${u}" alt="" loading="${i === 0 ? 'eager' : 'lazy'}" data-i="${i}" />`
+          ).join('');
+        }
+        if (totalEl) totalEl.textContent = imgs.length;
+        if (curEl) curEl.textContent = '1';
+        // Hide arrows + counter on single-image
+        const showChrome = imgs.length > 1;
+        if (prevBtn) prevBtn.style.display = showChrome ? '' : 'none';
+        if (nextBtn) nextBtn.style.display = showChrome ? '' : 'none';
+        if (counterEl) counterEl.style.display = showChrome ? '' : 'none';
+        // Wire navigation (re-attach each open with current image set)
+        window._pmSlideState = { cur: 0, total: imgs.length };
+        if (showChrome) {
+          // Preload next neighbors
+          const preload = (idx) => {
+            const slide = sliderEl.querySelector(`.pm-slide[data-i="${idx}"]`);
+            if (!slide || slide.dataset.preloaded) return;
+            const ghost = new Image(); ghost.src = slide.src;
+            slide.dataset.preloaded = '1';
+          };
+          preload(1 % imgs.length);
         }
 
         // Pills — featured only, no type pill
@@ -3453,6 +3539,62 @@
 
       // Close button
       document.getElementById('pmCloseBtn').addEventListener('click', closeModal);
+
+      // Project modal slider — arrow + keyboard + swipe navigation
+      (function() {
+        const sliderEl = document.getElementById('pmSlider');
+        const prevBtn = document.getElementById('pmSlidePrev');
+        const nextBtn = document.getElementById('pmSlideNext');
+        const curEl = document.getElementById('pmSlideCur');
+        if (!sliderEl) return;
+
+        function go(dir) {
+          const state = window._pmSlideState;
+          if (!state || state.total <= 1) return;
+          const slides = sliderEl.querySelectorAll('.pm-slide');
+          if (!slides.length) return;
+          const next = (state.cur + dir + state.total) % state.total;
+          if (next === state.cur) return;
+          slides[state.cur]?.classList.remove('active');
+          slides[next]?.classList.add('active');
+          state.cur = next;
+          if (curEl) curEl.textContent = next + 1;
+          // Preload neighbors
+          const preload = (idx) => {
+            const s = slides[idx];
+            if (!s || s.dataset.preloaded) return;
+            const g = new Image(); g.src = s.src;
+            s.dataset.preloaded = '1';
+          };
+          preload((next + 1) % state.total);
+          preload((next - 1 + state.total) % state.total);
+        }
+
+        prevBtn?.addEventListener('click', (e) => { e.stopPropagation(); go(-1); });
+        nextBtn?.addEventListener('click', (e) => { e.stopPropagation(); go(1); });
+
+        // Keyboard arrows when modal is visible
+        document.addEventListener('keydown', (e) => {
+          const modal = document.getElementById('projectModal');
+          if (!modal || !modal.classList.contains('open')) return;
+          if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+          if (e.key === 'ArrowLeft')  go(-1);
+          if (e.key === 'ArrowRight') go(1);
+        });
+
+        // Touch swipe on the slider area
+        let startX = 0, startY = 0;
+        sliderEl.addEventListener('touchstart', (e) => {
+          startX = e.touches[0].clientX; startY = e.touches[0].clientY;
+        }, { passive: true });
+        sliderEl.addEventListener('touchend', (e) => {
+          const dx = e.changedTouches[0].clientX - startX;
+          const dy = e.changedTouches[0].clientY - startY;
+          if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) {
+            go(dx < 0 ? 1 : -1);
+          }
+        }, { passive: true });
+      })();
 
       // Build deep-link URL for a project
       function projectShareUrl(title) {
@@ -4814,10 +4956,12 @@
         map.setPaintProperty('unclustered-point', 'circle-radius', 8);
       }
       window._selectedPinTitle = null;
-      // Fly to the original load view (same as the 'm' keyboard shortcut)
+      // Fly to the original load view + reset orientation to north-up, no tilt
       map.flyTo({
         center: isMobile ? [-90.0, 35.0] : [-95.0, 38.5],
         zoom: isMobile ? 3.0 : 4,
+        bearing: 0,   // north-up
+        pitch: 0,     // top-down (no tilt)
         duration: 1000,
         essential: true
       });
