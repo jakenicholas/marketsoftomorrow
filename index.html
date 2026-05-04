@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026-05-04T02:25Z bottom-pinned-favorites-banner -->
+<!-- v2026-05-04T02:55Z hide-auth-ui-on-modal-open -->
 <html>
 <head>
   <meta charset="utf-8">
@@ -2085,16 +2085,17 @@
   #paywallAuthHeader button:hover { background: rgba(255,255,255,0.2); }
   #paywallAuthHeader .auth-status { cursor: default; padding-right: 10px; }
 
-  /* Mobile: hide auth UI when drawer is expanded so it doesn't overlap tile content.
-     Auth header lives in <body>, drawer lives in #app-container — they're not siblings,
-     so we mirror drawer.expanded → body.drawer-expanded via a MutationObserver, then
-     target the body class here. Works in all browsers regardless of :has() support. */
+  /* Mobile: hide auth UI when drawer is expanded OR project modal is open,
+     so it doesn't overlay tile content / modal buttons. We mirror these states
+     to body.{drawer-expanded,modal-open} via a MutationObserver in JS. */
   @media(max-width: 800px) {
-    body.drawer-expanded #paywallAuthHeader {
+    body.drawer-expanded #paywallAuthHeader,
+    body.modal-open #paywallAuthHeader {
       display: none !important;
     }
-    /* Also hide the favorites view banner — drawer takes the full screen */
-    body.drawer-expanded #favViewBanner {
+    /* Also hide the favorites view banner when these overlays are up */
+    body.drawer-expanded #favViewBanner,
+    body.modal-open #favViewBanner {
       display: none !important;
     }
   }
@@ -2859,35 +2860,43 @@
     else setAppHeight();
 
     // Build version — to verify deploys in DevTools: window.__buildVersion
-    window.__buildVersion = '2026-05-04T02:25Z bottom-pinned-favorites-banner';
+    window.__buildVersion = '2026-05-04T02:55Z hide-auth-ui-on-modal-open';
 
     // ─── Mirror drawer-expanded state to body class ───────────────────────────
     // The auth header (in <body>) is not a sibling of #mobileDrawer (in #app-container),
     // so CSS sibling selectors won't work. We use a MutationObserver to mirror the
     // drawer's `expanded` class to <body class="drawer-expanded">, which we can target
     // with a simple CSS rule. This is bulletproof across all browsers regardless of :has() support.
+    // We do the same for #projectModal.open — when the full project modal is open,
+    // the auth header on mobile would otherwise overlay it, blocking buttons.
     function syncDrawerStateToBody() {
       const md = document.getElementById('mobileDrawer');
-      if (!md) return;
+      const pm = document.getElementById('projectModal');
+      if (!md && !pm) return;
       const apply = () => {
-        const expanded = md.classList.contains('expanded');
-        document.body.classList.toggle('drawer-expanded', expanded);
+        const drawerOpen = !!(md && md.classList.contains('expanded'));
+        const modalOpen  = !!(pm && pm.classList.contains('open'));
+        document.body.classList.toggle('drawer-expanded', drawerOpen);
+        document.body.classList.toggle('modal-open', modalOpen);
         // Belt-and-suspenders: also enforce inline display:none on the auth header
-        // when drawer is open on mobile, in case any CSS rule fails to apply.
+        // when drawer OR modal is open on mobile, in case any CSS rule fails to apply.
         const ah = document.getElementById('paywallAuthHeader');
         const isMobile = window.matchMedia('(max-width: 800px)').matches;
         if (ah) {
-          if (expanded && isMobile) {
-            ah.dataset._hiddenByDrawer = '1';
+          const shouldHide = (drawerOpen || modalOpen) && isMobile;
+          if (shouldHide) {
+            ah.dataset._hiddenByOverlay = '1';
             ah.style.display = 'none';
-          } else if (ah.dataset._hiddenByDrawer === '1') {
+          } else if (ah.dataset._hiddenByOverlay === '1') {
             ah.style.display = '';
-            delete ah.dataset._hiddenByDrawer;
+            delete ah.dataset._hiddenByOverlay;
           }
         }
       };
       apply();
-      new MutationObserver(apply).observe(md, { attributes: true, attributeFilter: ['class'] });
+      const obsOpts = { attributes: true, attributeFilter: ['class'] };
+      if (md) new MutationObserver(apply).observe(md, obsOpts);
+      if (pm) new MutationObserver(apply).observe(pm, obsOpts);
     }
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', syncDrawerStateToBody);
@@ -6475,13 +6484,16 @@
             document.body.appendChild(el);
           }
         }
-        // If auth header was just created, immediately apply current drawer state
-        // so it's hidden if drawer is already expanded
+        // If auth header was just created, immediately apply current overlay state
+        // so it's hidden if drawer or project modal is already open
         if (justCreated) {
           const md = document.getElementById('mobileDrawer');
+          const pm = document.getElementById('projectModal');
           const isMobileViewport = window.matchMedia('(max-width: 800px)').matches;
-          if (md && md.classList.contains('expanded') && isMobileViewport) {
-            el.dataset._hiddenByDrawer = '1';
+          const drawerOpen = !!(md && md.classList.contains('expanded'));
+          const modalOpen  = !!(pm && pm.classList.contains('open'));
+          if (isMobileViewport && (drawerOpen || modalOpen)) {
+            el.dataset._hiddenByOverlay = '1';
             el.style.display = 'none';
           }
         }
