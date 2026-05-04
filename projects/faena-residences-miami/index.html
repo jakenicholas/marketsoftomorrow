@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Faena Residences Miami, Miami | Markets of Tomorrow</title>
   <meta name="description" content="A visionary riverfront development featuring 434 exclusive residences across two 60-story towers, world-class wellness and cultural amenities, and serving as the anchor of the newly unveiled Faena Dis…">
   <meta name="robots" content="index, follow">
@@ -57,125 +57,83 @@
   ]
 }</script>
 
+  <!-- Memberstack 2.0 (for favorites toggle if signed in) -->
+  <script data-memberstack-app="app_cmoq79nvv002d0syef7wpel3c"
+          src="https://static.memberstack.com/scripts/v2/memberstack.js"
+          type="text/javascript"></script>
+
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { overflow-x: hidden; max-width: 100vw; }
-    body { background: #0d0d0d; color: #fff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; min-height: 100vh; -webkit-text-size-adjust: 100%; }
+    body { background: #0d0d0d; color: #fff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; min-height: 100vh; }
 
-    /* Header — transparent, no background, logo only */
-    .site-header {
-      position: fixed;
-      top: 0; left: 0; right: 0;
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 16px 20px;
-      padding-top: calc(16px + env(safe-area-inset-top));
-      padding-left: calc(20px + env(safe-area-inset-left));
-      padding-right: calc(20px + env(safe-area-inset-right));
-      z-index: 10;
-      pointer-events: none; /* let map/scroll through, only logo+button receive */
-    }
-    .site-logo, .header-map-btn { pointer-events: auto; }
+    /* Header */
+    .site-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.08); position: sticky; top: 0; background: rgba(13,13,13,0.92); backdrop-filter: blur(12px); z-index: 10; }
+    .site-logo img { height: 28px; }
+    .header-map-btn { display: flex; align-items: center; gap: 7px; background: rgba(255,255,255,0.07); border: 0.5px solid rgba(255,255,255,0.15); border-radius: 8px; padding: 8px 14px; color: rgba(255,255,255,0.8); text-decoration: none; font-size: 13px; font-weight: 500; transition: background 0.15s; }
+    .header-map-btn:hover { background: rgba(255,255,255,0.12); }
+    .header-map-btn svg { opacity: 0.6; }
 
-    /* Logo — bigger, no bg, drop shadow for visibility on light hero images */
-    .site-logo { display: flex; align-items: center; text-decoration: none; }
-    .site-logo img {
-      height: 48px; width: auto; display: block;
-      filter: brightness(0) invert(1) drop-shadow(0 2px 8px rgba(0,0,0,0.6));
-    }
+    /* Gallery */
+    .gallery { width: 100%; position: relative; overflow: hidden; }
+    .gallery-hero { width: 100%; height: 320px; object-fit: cover; display: block; }
 
-    /* Header map button — glass pill */
-    .header-map-btn {
-      display: flex; align-items: center; gap: 7px;
-      background: rgba(15,15,15,0.55);
-      backdrop-filter: blur(16px) saturate(1.4);
-      -webkit-backdrop-filter: blur(16px) saturate(1.4);
-      border: 1px solid rgba(255,255,255,0.12);
-      border-radius: 10px;
-      padding: 9px 14px;
-      color: rgba(255,255,255,0.92);
-      text-decoration: none;
-      font-size: 13px; font-weight: 500;
-      transition: background 0.15s;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.35);
-    }
-    .header-map-btn:hover { background: rgba(30,30,30,0.7); }
-    .header-map-btn svg { opacity: 0.85; }
-
-    /* Gallery — single image or arrow-cycling slider */
-    .gallery { width: 100%; max-width: 100vw; overflow: hidden; }
-    .gallery-stage {
-      position: relative;
-      width: 100%;
-      height: 60vh;
-      max-height: 520px;
-      background: #1a1a1a;
-      overflow: hidden;
-    }
-    .gallery-img {
+    /* Slider — multi-image cycling gallery */
+    .gs-slider { height: 320px; background: #0a0a0a; }
+    .gs-track { position: relative; width: 100%; height: 100%; }
+    .gs-slide {
+      position: absolute; inset: 0;
       width: 100%; height: 100%;
       object-fit: cover;
-      display: block;
-      transition: opacity 0.25s ease;
+      opacity: 0;
+      transition: opacity 0.35s ease;
+      pointer-events: none;
     }
-    .gallery-img.is-fading { opacity: 0; }
-
-    /* Arrow buttons — white, glassy, only visible when multi-image */
-    .gallery-arrow {
+    .gs-slide.active { opacity: 1; pointer-events: auto; }
+    .gs-arrow {
       position: absolute;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 44px; height: 44px;
-      display: flex; align-items: center; justify-content: center;
-      background: rgba(0,0,0,0.35);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      border: 1px solid rgba(255,255,255,0.2);
+      top: 50%; transform: translateY(-50%);
+      width: 38px; height: 38px;
       border-radius: 50%;
-      color: #fff;
+      background: rgba(255,255,255,0.92);
+      border: none;
+      color: #000;
       cursor: pointer;
-      padding: 0;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.4);
       transition: background 0.15s, transform 0.1s;
       z-index: 2;
     }
-    .gallery-arrow:hover { background: rgba(0,0,0,0.55); }
-    .gallery-arrow:active { transform: translateY(-50%) scale(0.92); }
-    .gallery-arrow-prev { left: 14px; }
-    .gallery-arrow-next { right: 14px; }
-
-    /* Counter pill */
-    .gallery-counter {
+    .gs-arrow:hover { background: #fff; }
+    .gs-arrow:active { transform: translateY(-50%) scale(0.94); }
+    .gs-arrow svg { width: 18px; height: 18px; }
+    .gs-prev { left: 14px; }
+    .gs-next { right: 14px; }
+    .gs-counter {
       position: absolute;
-      bottom: 14px;
-      right: 14px;
+      bottom: 14px; right: 14px;
       background: rgba(0,0,0,0.55);
       backdrop-filter: blur(8px);
       -webkit-backdrop-filter: blur(8px);
-      color: #fff;
-      font-size: 12px;
+      color: rgba(255,255,255,0.95);
+      font-size: 11px;
       font-weight: 600;
-      padding: 5px 10px;
+      padding: 4px 10px;
       border-radius: 20px;
-      pointer-events: none;
       z-index: 2;
+      letter-spacing: 0.02em;
     }
 
     /* Content */
-    .content {
-      max-width: 560px;
-      width: 100%;
-      margin: 0 auto;
-      padding: 20px 20px 40px;
-      padding-left: max(20px, env(safe-area-inset-left));
-      padding-right: max(20px, env(safe-area-inset-right));
-    }
+    .content { max-width: 560px; margin: 0 auto; padding: 20px 20px 40px; }
 
     /* Pills */
     .pills { display: flex; gap: 6px; margin-bottom: 12px; }
     .pill { font-size: 9px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 3px 9px; border-radius: 20px; }
     .pill-featured { background: #FFD300; color: #000; }
+    .pill-type { background: rgba(31,223,103,0.12); color: #1FDF67; }
 
     /* Title */
-    .project-title { font-size: 28px; font-weight: 700; line-height: 1.15; margin-bottom: 4px; word-wrap: break-word; overflow-wrap: break-word; }
+    .project-title { font-size: 28px; font-weight: 700; line-height: 1.15; margin-bottom: 4px; }
     .project-city { font-size: 13px; color: rgba(255,255,255,0.45); margin-bottom: 16px; }
 
     /* Progress */
@@ -184,121 +142,80 @@
     .ps-stage { font-size: 10px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; }
     .ps-pct { font-size: 10px; color: rgba(255,255,255,0.25); }
     .ps-steps { display: flex; gap: 3px; margin-bottom: 5px; }
-    .ps-step { flex: 1; height: 3px; border-radius: 2px; background: rgba(255,255,255,0.08); min-width: 0; }
+    .ps-step { flex: 1; height: 3px; border-radius: 2px; background: rgba(255,255,255,0.08); }
     .ps-done { background: var(--sc); }
     .ps-active { background: var(--sc); opacity: 0.5; }
-    .ps-labels { display: flex; justify-content: space-between; gap: 4px; }
-    .ps-label { font-size: 7px; color: rgba(255,255,255,0.2); flex: 1; text-align: center; min-width: 0; }
-    .ps-label:first-child { text-align: left; }
-    .ps-label:last-child { text-align: right; }
+    .ps-labels { display: flex; justify-content: space-between; }
+    .ps-label { font-size: 7px; color: rgba(255,255,255,0.2); }
     .ps-cur { color: var(--sc, #FF9500); }
 
     /* Divider */
     .divider { height: 0.5px; background: rgba(255,255,255,0.07); margin: 16px 0; }
 
     /* Description */
-    .description { font-size: 14px; color: rgba(255,255,255,0.6); line-height: 1.7; margin-bottom: 16px; word-wrap: break-word; overflow-wrap: break-word; }
+    .description { font-size: 14px; color: rgba(255,255,255,0.6); line-height: 1.7; margin-bottom: 16px; }
 
-    /* Stats — fits within viewport, wraps long values */
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 8px;
-      margin-bottom: 20px;
-    }
-    .stat-card {
-      background: rgba(255,255,255,0.04);
-      border-radius: 8px;
-      padding: 10px 12px;
-      min-width: 0; /* allow content to shrink */
-      overflow: hidden;
-    }
+    /* Stats */
+    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 20px; }
+    .stat-card { background: rgba(255,255,255,0.04); border-radius: 8px; padding: 10px 12px; }
     .stat-label { font-size: 8px; color: rgba(255,255,255,0.28); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 3px; }
-    .stat-val {
-      font-size: 13px;
-      color: #fff;
-      font-weight: 500;
-      line-height: 1.3;
-      word-wrap: break-word;
-      overflow-wrap: break-word;
-      hyphens: auto;
-    }
-
-    /* Mini map preview */
-    .map-preview {
-      display: block;
-      position: relative;
-      width: 100%;
-      height: 180px;
-      border-radius: 12px;
-      overflow: hidden;
-      margin-bottom: 12px;
-      text-decoration: none;
-      background: rgba(255,255,255,0.04);
-      border: 0.5px solid rgba(255,255,255,0.08);
-      transition: transform 0.15s, border-color 0.15s;
-    }
-    .map-preview:hover { transform: translateY(-1px); border-color: rgba(31,223,103,0.35); }
-    .map-preview img { width: 100%; height: 100%; object-fit: cover; display: block; }
-    .map-preview-overlay {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      align-items: flex-end;
-      justify-content: flex-start;
-      padding: 12px;
-      background: linear-gradient(to top, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0) 50%);
-      pointer-events: none;
-    }
-    .map-preview-cta {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      background: rgba(15,15,15,0.7);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      border: 0.5px solid rgba(255,255,255,0.15);
-      border-radius: 8px;
-      padding: 7px 11px;
-      font-size: 12px;
-      font-weight: 600;
-      color: #fff;
-    }
-    .map-preview-cta svg { opacity: 0.85; }
+    .stat-val { font-size: 13px; color: #fff; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
     /* CTA */
-    .cta-row { display: flex; gap: 10px; align-items: stretch; margin-bottom: 12px; }
-    .btn-primary {
-      flex: 1;
-      background: #1FDF67; color: #000; border: none; border-radius: 10px;
-      padding: 13px 16px;
-      font-size: 14px; font-weight: 700; cursor: pointer; text-decoration: none;
-      display: flex; align-items: center; justify-content: center; gap: 6px;
-      min-width: 0; /* allow shrinking */
-    }
+    .cta-row { display: flex; gap: 10px; align-items: center; margin-bottom: 12px; }
+    .btn-primary { flex: 1; background: #1FDF67; color: #000; border: none; border-radius: 10px; padding: 13px 16px; font-size: 14px; font-weight: 700; cursor: pointer; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 6px; }
     .btn-primary:hover { background: #18c75a; }
     .btn-disabled { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.3); cursor: default; }
+    .btn-map { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.06); border: 0.5px solid rgba(255,255,255,0.12); border-radius: 10px; padding: 13px 16px; color: rgba(255,255,255,0.75); text-decoration: none; font-size: 14px; font-weight: 500; white-space: nowrap; transition: background 0.15s; }
+    .btn-map:hover { background: rgba(255,255,255,0.1); }
+    .btn-map svg { opacity: 0.6; }
+    /* Favorite button — circular + that turns green when favorited */
+    .btn-fav {
+      width: 46px; height: 46px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.06);
+      border: 0.5px solid rgba(255,255,255,0.12);
+      color: rgba(255,255,255,0.75);
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      padding: 0;
+      transition: background 0.15s, transform 0.1s, color 0.15s;
+    }
+    .btn-fav:hover { background: rgba(255,255,255,0.1); }
+    .btn-fav:active { transform: scale(0.94); }
+    .btn-fav.favorited {
+      background: #1FDF67;
+      border-color: transparent;
+      color: #fff;
+    }
+    .btn-fav.favorited:hover { background: #18c75a; }
+
+    /* Back breadcrumb */
+    .breadcrumb { font-size: 12px; color: rgba(255,255,255,0.3); margin-bottom: 20px; }
+    .breadcrumb a { color: rgba(255,255,255,0.4); text-decoration: none; }
+    .breadcrumb a:hover { color: rgba(255,255,255,0.7); }
 
     @media (max-width: 480px) {
-      .gallery-stage { height: 50vh; max-height: 360px; }
-      .gallery-arrow { width: 38px; height: 38px; }
-      .gallery-arrow-prev { left: 10px; }
-      .gallery-arrow-next { right: 10px; }
-      .gallery-counter { bottom: 10px; right: 10px; font-size: 11px; padding: 4px 9px; }
+      .gallery-hero { height: 260px; }
+      .gs-slider { height: 260px; }
+      .gs-arrow { width: 34px; height: 34px; }
+      .gs-prev { left: 10px; }
+      .gs-next { right: 10px; }
       .project-title { font-size: 24px; }
-      .map-preview { height: 160px; }
-      .site-logo img { height: 42px; }
-      .header-map-btn { font-size: 12px; padding: 8px 12px; }
+      .stats-grid { grid-template-columns: 1fr 1fr; }
+      .cta-row { flex-wrap: wrap; }
+      .btn-map { width: 100%; justify-content: center; }
     }
   </style>
 </head>
 <body>
 
   <header class="site-header">
-    <a class="site-logo" href="https://map.oftmw.com" aria-label="Markets of Tomorrow home">
-      <img src="https://static.wixstatic.com/shapes/ca3b83_a647b53cad4c49c5b012af991d286a86.svg" alt="Markets of Tomorrow" />
+    <a class="site-logo" href="https://map.oftmw.com">
+      <img src="https://static.wixstatic.com/media/ca3b83_71f3cd2ef61049028b2daf4e2ff71d52~mv2.png" alt="Markets of Tomorrow" />
     </a>
-    <a class="header-map-btn" href="https://map.oftmw.com/?project=faenaresidencesmiami">
+    <a class="header-map-btn" href="https://map.oftmw.com/?fullscreen=true&project=faenaresidencesmiami">
       <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>
       View on Map
     </a>
@@ -306,13 +223,12 @@
 
   
     <div class="gallery">
-      <div class="gallery-stage">
-        <img class="gallery-img" src="https://static.wixstatic.com/media/ca3b83_0c506a6b7f194770a270e526bd1ed625~mv2.jpg" alt="" loading="eager" />
-      </div>
+      <img class="gallery-hero" src="https://static.wixstatic.com/media/ca3b83_0c506a6b7f194770a270e526bd1ed625~mv2.jpg" alt="" loading="eager" />
     </div>
 
   <div class="content">
-    <div class="pills"></div>
+    <p class="breadcrumb"><a href="https://map.oftmw.com">Map of Tomorrow</a> / Miami / Faena Residences Miami</p>
+    <div class="pills"><span class="pill pill-type">Residences</span></div>
     <h1 class="project-title">Faena Residences Miami</h1>
     <p class="project-city">Miami • Residences</p>
     
@@ -340,95 +256,139 @@
       <div class="stat-label">Market</div>
       <div class="stat-val">Miami</div>
     </div></div>
-    
-    <a class="map-preview" href="https://map.oftmw.com/?project=faenaresidencesmiami" aria-label="View on Map of Tomorrow">
-      <img src="https://api.mapbox.com/styles/v1/floridaoftomorrow/clkbk4qlw000a01qw94rj0xa7/static/pin-l+1fdf67(-80.19453133,25.77108171)/-80.19453133,25.77108171,14,0/600x300@2x?access_token=pk.eyJ1IjoiZmxvcmlkYW9mdG9tb3Jyb3ciLCJhIjoiY2xrYmpmdGQ2MGdibTNzcXZjMnA4aXh3ZiJ9.uBeYS7jmKwWS6xAgY-R1UA&attribution=false&logo=false" alt="Project location map" loading="lazy" />
-      <div class="map-preview-overlay">
-        <span class="map-preview-cta">
-          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>
-          View on Map of Tomorrow
-        </span>
-      </div>
-    </a>
     <div class="cta-row">
       <a class="btn-primary" href="https://www.faenaresidencesmiami.com/" target="_blank" rel="noopener">Official Website <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></a>
+      <a class="btn-map" href="https://map.oftmw.com/?fullscreen=true&project=faenaresidencesmiami">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>
+        View on Map
+      </a>
+      <button class="btn-fav" id="btnFav" type="button" aria-label="Add to favorites" data-fav-slug="faena-residences-miami" data-map-slug="faenaresidencesmiami">
+        <svg viewBox="0 0 18 18" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M9 1v16M1 9h16"/></svg>
+      </button>
     </div>
   </div>
 
   <script>
-    // ── Gallery slider ───────────────────────────────────────────────
+    // Favorite button — toggles project as a favorite (paid only).
+    // Free / anonymous users get redirected to the map (which has the paywall flows).
     (function() {
-      var gallery = document.querySelector('.gallery[data-images]');
-      if (!gallery) return;
-      var images;
-      try { images = JSON.parse(gallery.getAttribute('data-images')); } catch (e) { return; }
-      if (!images || images.length < 2) return;
+      const btn = document.getElementById('btnFav');
+      if (!btn) return;
+      const slug = btn.getAttribute('data-fav-slug');
+      const mapSlug = btn.getAttribute('data-map-slug');
+      const MAP_URL = 'https://map.oftmw.com/?fullscreen=true&project=' + mapSlug;
 
-      var img = gallery.querySelector('.gallery-img');
-      var counterCur = gallery.querySelector('.gallery-counter-cur');
-      var prevBtn = gallery.querySelector('.gallery-arrow-prev');
-      var nextBtn = gallery.querySelector('.gallery-arrow-next');
-      var idx = 0;
-
-      // Preload all images so cycling feels instant
-      images.forEach(function(src) { var i = new Image(); i.src = src; });
-
-      function goTo(newIdx) {
-        // Wrap around in both directions
-        idx = ((newIdx % images.length) + images.length) % images.length;
-        img.classList.add('is-fading');
-        setTimeout(function() {
-          img.src = images[idx];
-          if (counterCur) counterCur.textContent = String(idx + 1);
-          // Force reflow then fade back in
-          requestAnimationFrame(function() { img.classList.remove('is-fading'); });
-        }, 120);
+      // Wait for Memberstack to be ready, then load current state
+      function whenReady(cb, tries=0) {
+        if (window.$memberstackDom) return cb();
+        if (tries > 40) return; // give up after ~4s
+        setTimeout(() => whenReady(cb, tries+1), 100);
       }
 
-      prevBtn.addEventListener('click', function() { goTo(idx - 1); });
-      nextBtn.addEventListener('click', function() { goTo(idx + 1); });
+      let isPaid = false;
+      let isSignedIn = false;
+      let favorites = new Set();
 
-      // Keyboard: left/right arrows
-      document.addEventListener('keydown', function(e) {
-        if (e.key === 'ArrowLeft') goTo(idx - 1);
-        else if (e.key === 'ArrowRight') goTo(idx + 1);
+      async function loadState() {
+        try {
+          const ms = window.$memberstackDom;
+          const m = await ms.getCurrentMember();
+          const member = m?.data;
+          isSignedIn = !!member;
+          // Detect paid via planConnections (active subscription)
+          const plans = member?.planConnections || [];
+          isPaid = plans.some(pc => pc.status === 'ACTIVE' || pc.status === 'TRIALING');
+          if (isSignedIn) {
+            const j = await ms.getMemberJSON();
+            const arr = Array.isArray(j?.data?.favorites) ? j.data.favorites : [];
+            favorites = new Set(arr);
+          }
+          render();
+        } catch (e) { console.warn('[Favorites] load error', e); }
+      }
+
+      function render() {
+        btn.classList.toggle('favorited', favorites.has(slug));
+      }
+
+      btn.addEventListener('click', async () => {
+        // Anonymous or free → bounce to map where paywall handles them
+        if (!isSignedIn || !isPaid) {
+          window.location.href = MAP_URL;
+          return;
+        }
+        // Paid → toggle and persist
+        if (favorites.has(slug)) favorites.delete(slug);
+        else favorites.add(slug);
+        render();
+        try {
+          await window.$memberstackDom.updateMemberJSON({
+            json: { favorites: Array.from(favorites) }
+          });
+        } catch (e) { console.warn('[Favorites] save error', e); }
       });
 
-      // Touch swipe
-      var touchStartX = null;
-      img.addEventListener('touchstart', function(e) {
-        touchStartX = e.touches[0].clientX;
-      }, { passive: true });
-      img.addEventListener('touchend', function(e) {
-        if (touchStartX === null) return;
-        var dx = e.changedTouches[0].clientX - touchStartX;
-        if (Math.abs(dx) > 40) goTo(idx + (dx < 0 ? 1 : -1));
-        touchStartX = null;
-      }, { passive: true });
+      whenReady(loadState);
     })();
 
-    // ── iOS browser-chrome reset on map navigation ───────────────────
-    // iOS Safari/Chrome can end up with the URL bar stuck in a half-collapsed
-    // state after scrolling. When the user taps a "View on Map" link, scroll
-    // back to the top first so the next page loads with clean browser chrome.
+    // Gallery slider — arrow cycling, keyboard arrows, and touch swipe
     (function() {
-      var mapLinks = document.querySelectorAll('a[href*="/?project="]');
-      mapLinks.forEach(function(link) {
-        link.addEventListener('click', function(e) {
-          // Only on touch devices where the issue actually occurs
-          if (!('ontouchstart' in window)) return;
-          // If user is at the top, just let the navigation happen normally
-          if (window.scrollY < 10) return;
-          // Otherwise, prevent default, scroll to top, then navigate
-          e.preventDefault();
-          var href = this.href;
-          window.scrollTo({ top: 0, behavior: 'instant' });
-          // Tiny delay so iOS settles before navigating
-          setTimeout(function() { window.location.href = href; }, 30);
-        });
+      const slider = document.querySelector('.gs-slider');
+      if (!slider) return;
+      const slides = slider.querySelectorAll('.gs-slide');
+      const counter = slider.querySelector('.gs-cur');
+      const prevBtn = slider.querySelector('.gs-prev');
+      const nextBtn = slider.querySelector('.gs-next');
+      const total = slides.length;
+      let cur = 0;
+
+      // Preload next image so transitions feel instant
+      function preload(idx) {
+        const img = slides[idx];
+        if (!img) return;
+        if (img.dataset.preloaded) return;
+        const ghost = new Image();
+        ghost.src = img.src;
+        img.dataset.preloaded = '1';
+      }
+
+      function go(next) {
+        if (next === cur) return;
+        slides[cur].classList.remove('active');
+        cur = (next + total) % total;
+        slides[cur].classList.add('active');
+        if (counter) counter.textContent = cur + 1;
+        // Preload neighbors
+        preload((cur + 1) % total);
+        preload((cur - 1 + total) % total);
+      }
+
+      prevBtn?.addEventListener('click', () => go(cur - 1));
+      nextBtn?.addEventListener('click', () => go(cur + 1));
+
+      // Keyboard arrows when slider is focused/in view
+      document.addEventListener('keydown', (e) => {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+        if (e.key === 'ArrowLeft')  go(cur - 1);
+        if (e.key === 'ArrowRight') go(cur + 1);
       });
+
+      // Touch swipe for mobile
+      let startX = 0, startY = 0;
+      slider.addEventListener('touchstart', (e) => {
+        startX = e.touches[0].clientX; startY = e.touches[0].clientY;
+      }, { passive: true });
+      slider.addEventListener('touchend', (e) => {
+        const dx = e.changedTouches[0].clientX - startX;
+        const dy = e.changedTouches[0].clientY - startY;
+        if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) {
+          go(dx < 0 ? cur + 1 : cur - 1);
+        }
+      }, { passive: true });
+
+      // Preload the second image immediately
+      preload(1 % total);
     })();
   </script>
-
 </body>
 </html>
