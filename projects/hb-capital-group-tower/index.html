@@ -160,9 +160,9 @@
 
     /* Pills */
     .pills { display: flex; gap: 6px; margin-bottom: 12px; }
+    .pills:empty { display: none; }
     .pill { font-size: 9px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 3px 9px; border-radius: 20px; }
     .pill-featured { background: #FFD300; color: #000; }
-    .pill-type { background: rgba(31,223,103,0.12); color: #1FDF67; }
 
     /* Title */
     .project-title { font-size: 28px; font-weight: 700; line-height: 1.15; margin-bottom: 4px; }
@@ -321,7 +321,7 @@
     </div>
 
   <div class="content">
-    <div class="pills"><span class="pill pill-type">Residences</span></div>
+    <div class="pills"></div>
     <h1 class="project-title">HB Capital Group Tower</h1>
     <p class="project-city">Orlando • Residences</p>
     
