@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026-05-04T19:00Z embed-mode-stubs-fix -->
+<!-- v2026-05-04T20:00Z embed-conversion-banner -->
 <html>
 <head>
   <meta charset="utf-8">
@@ -2662,6 +2662,124 @@
   @media (max-width: 600px) {
     .embed-open-full { top: 10px; right: 10px; padding: 7px 10px; font-size: 11px; }
   }
+
+  /* ─── Embed conversion banner ──────────────────────────────────────────
+     Non-blocking nudge that appears at the bottom of the embed after the
+     visitor has clicked enough pins to be considered "engaged." Soft tier
+     is dismissable (X button); hard tier appears only if they ignore the
+     soft tier and is sticky until they click through. Both tiers funnel
+     to the full map in a new tab. */
+  .embed-convert-banner {
+    position: fixed;
+    left: 50%;
+    bottom: 16px;
+    transform: translateX(-50%) translateY(120%);
+    z-index: 9100;
+    width: calc(100% - 24px);
+    max-width: 480px;
+    background: rgba(13, 13, 13, 0.94);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 0.5px solid rgba(255, 255, 255, 0.16);
+    border-radius: 12px;
+    padding: 14px 16px;
+    color: #fff;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    opacity: 0;
+    transition: transform 0.4s cubic-bezier(0.2, 0.9, 0.3, 1.2), opacity 0.3s;
+    pointer-events: none;
+  }
+  .embed-convert-banner.visible {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+    pointer-events: auto;
+  }
+  /* Hard-tier styling: subtle pulsing accent border to draw the eye without
+     being obnoxious — they've already ignored the soft tier once. */
+  .embed-convert-banner.hard {
+    border-color: rgba(31, 223, 103, 0.55);
+    animation: embedConvertPulse 2.4s ease-in-out infinite;
+  }
+  @keyframes embedConvertPulse {
+    0%, 100% { box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 0 0 rgba(31, 223, 103, 0); }
+    50%      { box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 0 6px rgba(31, 223, 103, 0.18); }
+  }
+  .embed-convert-text {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .embed-convert-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 0.005em;
+  }
+  .embed-convert-sub {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.6);
+    line-height: 1.35;
+  }
+  .embed-convert-cta {
+    flex-shrink: 0;
+    background: #1FDF67;
+    color: #000;
+    border: none;
+    border-radius: 8px;
+    padding: 9px 14px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-family: inherit;
+    transition: background 0.15s, transform 0.1s;
+    white-space: nowrap;
+  }
+  .embed-convert-cta:hover { background: #18c75a; }
+  .embed-convert-cta:active { transform: scale(0.96); }
+  .embed-convert-cta svg {
+    width: 12px; height: 12px;
+    stroke: currentColor; fill: none; stroke-width: 2.4;
+    stroke-linecap: round; stroke-linejoin: round;
+  }
+  .embed-convert-close {
+    flex-shrink: 0;
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.4);
+    cursor: pointer;
+    width: 22px; height: 22px;
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    padding: 0;
+    transition: color 0.15s, background 0.15s;
+  }
+  .embed-convert-close:hover {
+    color: rgba(255, 255, 255, 0.8);
+    background: rgba(255, 255, 255, 0.06);
+  }
+  .embed-convert-close svg {
+    width: 12px; height: 12px;
+    stroke: currentColor; stroke-width: 2.4;
+    stroke-linecap: round;
+  }
+  /* Hard tier hides the close button entirely — it's sticky on purpose. */
+  .embed-convert-banner.hard .embed-convert-close { display: none; }
+  @media (max-width: 480px) {
+    .embed-convert-banner { padding: 12px 14px; gap: 10px; bottom: 12px; }
+    .embed-convert-title { font-size: 12px; }
+    .embed-convert-sub { font-size: 10.5px; }
+    .embed-convert-cta { padding: 8px 12px; font-size: 11px; }
+  }
   </style>
 </head>
 <body>
@@ -3057,7 +3175,7 @@
     else setAppHeight();
 
     // Build version — to verify deploys in DevTools: window.__buildVersion
-    window.__buildVersion = '2026-05-04T19:00Z embed-mode-stubs-fix';
+    window.__buildVersion = '2026-05-04T20:00Z embed-conversion-banner';
 
     // ─── Mirror drawer-expanded state to body class ───────────────────────────
     // The auth header (in <body>) is not a sibling of #mobileDrawer (in #app-container),
@@ -7170,18 +7288,31 @@
   </script>
 
   <!-- ═══════════════════════════════════════════════════════════════════════
-       EMBED MODE: persistent "Open full map ↗" CTA
-       Only injects when ?embed=1 is set. Click takes user to map.oftmw.com
-       in a new tab, preserving the current view (lat/lng/zoom + open project
-       deep-link if a modal is currently open). The CTA is positioned top-right
-       in fixed position, above all map controls.
+       EMBED MODE: persistent CTA + soft conversion funnel
+       Two pieces:
+         1. Persistent "Open full map ↗" CTA in the corner (always visible)
+         2. After 8 clicks → soft banner suggests opening the full map.
+            After 15 clicks → sticky non-dismissable banner doubles down.
+
+       Click count is stored in localStorage under the SAME key the full
+       map's paywall uses ('mot_click_count'), and the embed runs at the
+       same origin (map.oftmw.com) — so the count carries over. When the
+       user clicks through to the full map, the existing paywall
+       (5 anon → email wall → 12 → subscription) picks up where the embed
+       counter left off. The embed itself never blocks clicks; it only
+       nudges. Conversion happens on the full map where Memberstack works.
        ═══════════════════════════════════════════════════════════════════════ -->
   <script>
     (function() {
       if (!window.__isEmbed) return;
 
-      // Compute a URL that opens map.oftmw.com with the user's current
-      // viewport state, so jumping to the full map doesn't reset their context.
+      // ─── Configuration ────────────────────────────────────────────────────
+      var STORAGE_KEY     = 'mot_click_count';   // shared with full-map paywall
+      var SOFT_THRESHOLD  = 8;                   // dismissable banner appears
+      var HARD_THRESHOLD  = 15;                  // sticky banner appears
+      var DISMISS_KEY     = 'mot_embed_banner_dismissed_at_count';
+
+      // ─── Compute the "Open full map" URL with current viewport state ─────
       function fullMapHref() {
         var base = 'https://map.oftmw.com/';
         var parts = [];
@@ -7189,12 +7320,10 @@
           if (window.map && typeof window.map.getCenter === 'function') {
             var c = window.map.getCenter();
             var z = window.map.getZoom();
-            // Round to keep URLs short — Mapbox handles ~5 decimals fine
             parts.push('lat=' + c.lat.toFixed(5));
             parts.push('lng=' + c.lng.toFixed(5));
             parts.push('zoom=' + z.toFixed(2));
           }
-          // If a project modal is currently open, deep-link to it
           var openProject = window.currentFeature && window.currentFeature.properties
             ? window.currentFeature.properties.title : null;
           if (openProject) {
@@ -7205,25 +7334,131 @@
         return parts.length ? base + '?' + parts.join('&') : base;
       }
 
-      // Inject the CTA. We rebuild the href on click so the URL always
-      // reflects the latest map state, not the state at page load.
-      var btn = document.createElement('a');
-      btn.className = 'embed-open-full';
-      btn.target = '_blank';
-      btn.rel = 'noopener';
-      btn.href = 'https://map.oftmw.com/';
-      btn.setAttribute('aria-label', 'Open full map in new tab');
-      btn.innerHTML =
+      // ─── 1. Top-right "Open full map" CTA ────────────────────────────────
+      var cornerBtn = document.createElement('a');
+      cornerBtn.className = 'embed-open-full';
+      cornerBtn.target = '_blank';
+      cornerBtn.rel = 'noopener';
+      cornerBtn.href = 'https://map.oftmw.com/';
+      cornerBtn.setAttribute('aria-label', 'Open full map in new tab');
+      cornerBtn.innerHTML =
         '<span>Open full map</span>' +
         '<svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>' +
         '<polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>';
-      btn.addEventListener('click', function() {
-        // Update href right before the browser navigates
-        btn.href = fullMapHref();
-        // Optional analytics signal (gtag is loaded; if not, no-op)
-        try { if (window.gtag) gtag('event', 'embed_open_full_map_clicked'); } catch (_) {}
+      cornerBtn.addEventListener('click', function() {
+        cornerBtn.href = fullMapHref();
+        try { if (window.gtag) gtag('event', 'embed_open_full_map_clicked', { source: 'corner_cta' }); } catch (_) {}
       });
-      document.body.appendChild(btn);
+      document.body.appendChild(cornerBtn);
+
+      // ─── 2. Conversion banner ────────────────────────────────────────────
+      // Built once, lazily appended on first show. Two visual tiers, same DOM.
+      var banner, bannerCta, bannerTitle, bannerSub, bannerClose;
+      function buildBanner() {
+        if (banner) return;
+        banner = document.createElement('div');
+        banner.className = 'embed-convert-banner';
+        banner.setAttribute('role', 'dialog');
+        banner.setAttribute('aria-live', 'polite');
+        banner.innerHTML =
+          '<div class="embed-convert-text">' +
+            '<div class="embed-convert-title"></div>' +
+            '<div class="embed-convert-sub"></div>' +
+          '</div>' +
+          '<a class="embed-convert-cta" target="_blank" rel="noopener" href="https://map.oftmw.com/">' +
+            '<span>Open full map</span>' +
+            '<svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>' +
+            '<polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>' +
+          '</a>' +
+          '<button class="embed-convert-close" type="button" aria-label="Dismiss">' +
+            '<svg viewBox="0 0 24 24"><line x1="6" y1="6" x2="18" y2="18"/><line x1="6" y1="18" x2="18" y2="6"/></svg>' +
+          '</button>';
+        bannerTitle = banner.querySelector('.embed-convert-title');
+        bannerSub   = banner.querySelector('.embed-convert-sub');
+        bannerCta   = banner.querySelector('.embed-convert-cta');
+        bannerClose = banner.querySelector('.embed-convert-close');
+
+        bannerCta.addEventListener('click', function() {
+          bannerCta.href = fullMapHref();
+          var tier = banner.classList.contains('hard') ? 'hard' : 'soft';
+          try { if (window.gtag) gtag('event', 'embed_open_full_map_clicked', { source: 'banner_' + tier }); } catch (_) {}
+        });
+        bannerClose.addEventListener('click', function() {
+          banner.classList.remove('visible');
+          // Remember which click count tier we dismissed at, so we don't
+          // immediately re-show the soft banner on the very next click.
+          try { localStorage.setItem(DISMISS_KEY, String(getClicks())); } catch (_) {}
+          try { if (window.gtag) gtag('event', 'embed_banner_dismissed', { click_count: getClicks() }); } catch (_) {}
+        });
+        document.body.appendChild(banner);
+      }
+
+      function showSoftBanner() {
+        buildBanner();
+        banner.classList.remove('hard');
+        bannerTitle.textContent = "You're getting the hang of it";
+        bannerSub.textContent = 'Open the full map to save favorites, get alerts, and explore without limits.';
+        // Force a reflow so the transition from hidden → visible animates
+        // even on the first show.
+        void banner.offsetWidth;
+        banner.classList.add('visible');
+        try { if (window.gtag) gtag('event', 'embed_banner_shown', { tier: 'soft', click_count: getClicks() }); } catch (_) {}
+      }
+      function showHardBanner() {
+        buildBanner();
+        banner.classList.add('hard');
+        bannerTitle.textContent = 'Continue on the full map →';
+        bannerSub.textContent = 'Sign up free to keep exploring all projects in the pipeline.';
+        void banner.offsetWidth;
+        banner.classList.add('visible');
+        try { if (window.gtag) gtag('event', 'embed_banner_shown', { tier: 'hard', click_count: getClicks() }); } catch (_) {}
+      }
+
+      // ─── 3. Click counter + threshold logic ──────────────────────────────
+      function getClicks() {
+        try { return parseInt(localStorage.getItem(STORAGE_KEY) || '0', 10) || 0; }
+        catch (_) { return 0; }  // localStorage can throw in privacy modes
+      }
+      function setClicks(n) {
+        try { localStorage.setItem(STORAGE_KEY, String(n)); } catch (_) {}
+      }
+      function getDismissedAt() {
+        try { return parseInt(localStorage.getItem(DISMISS_KEY) || '0', 10) || 0; }
+        catch (_) { return 0; }
+      }
+
+      // Embed-mode paywallCheck — increments the SHARED counter (so clicks
+      // carry over to the full map's paywall), never blocks the click, and
+      // surfaces the banner at thresholds. This overrides any stub installed
+      // earlier; non-embed mode still gets the full paywall implementation
+      // assigned later from inside the paywall IIFE.
+      window.paywallCheck = function() {
+        var count = getClicks();
+        var next = count + 1;
+        setClicks(next);
+
+        // Hard tier always wins — once they hit 15+, show the sticky banner
+        // every time they click (it's already visible if they didn't navigate).
+        if (next >= HARD_THRESHOLD) {
+          if (!banner || !banner.classList.contains('visible') || !banner.classList.contains('hard')) {
+            showHardBanner();
+          }
+        }
+        // Soft tier: show once at SOFT_THRESHOLD, and not again if dismissed.
+        // If they dismissed and then crossed HARD_THRESHOLD, the block above
+        // re-engages with the harder banner.
+        else if (next >= SOFT_THRESHOLD) {
+          var dismissedAt = getDismissedAt();
+          if (dismissedAt < SOFT_THRESHOLD) {
+            // Show only on the click that crosses the threshold to avoid
+            // re-showing on every subsequent click between SOFT and HARD.
+            if (count < SOFT_THRESHOLD) {
+              showSoftBanner();
+            }
+          }
+        }
+        return true;  // never block
+      };
     })();
   </script>
 </body>
