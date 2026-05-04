@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026-05-04T02:55Z hide-auth-ui-on-modal-open -->
+<!-- v2026-05-04T03:10Z account-stripe-portal-hardened -->
 <html>
 <head>
   <meta charset="utf-8">
@@ -2860,7 +2860,7 @@
     else setAppHeight();
 
     // Build version — to verify deploys in DevTools: window.__buildVersion
-    window.__buildVersion = '2026-05-04T02:55Z hide-auth-ui-on-modal-open';
+    window.__buildVersion = '2026-05-04T03:10Z account-stripe-portal-hardened';
 
     // ─── Mirror drawer-expanded state to body class ───────────────────────────
     // The auth header (in <body>) is not a sibling of #mobileDrawer (in #app-container),
@@ -6545,14 +6545,27 @@
           }
           el.querySelector('#authMenuAccount').addEventListener('click', async () => {
             dropdown.classList.remove('open');
-            // Open Memberstack's "Manage Subscription" (Stripe customer portal) for paid members,
-            // or just show profile info for free members
-            if (isPaidMember && window.$memberstackDom?.launchStripeCustomerPortal) {
-              try {
-                await window.$memberstackDom.launchStripeCustomerPortal({ returnUrl: window.location.href });
-              } catch (e) { console.error(e); }
+            // Account button → Stripe Customer Portal (where users can cancel/manage their plan)
+            // For paid members: opens Stripe portal directly via Memberstack
+            // For free members: opens Memberstack profile (since they have no Stripe subscription yet)
+            const ms = window.$memberstackDom;
+            if (!ms) { console.warn('[Account] Memberstack not loaded'); return; }
+            if (isPaidMember) {
+              if (typeof ms.launchStripeCustomerPortal === 'function') {
+                try {
+                  await ms.launchStripeCustomerPortal({ returnUrl: window.location.href });
+                } catch (e) {
+                  console.error('[Account] Stripe portal launch failed:', e);
+                  // Fallback: try the profile modal so the user has SOMETHING
+                  try { await ms.openModal('PROFILE'); } catch (e2) { console.error(e2); }
+                }
+              } else {
+                console.warn('[Account] launchStripeCustomerPortal not available — using profile modal');
+                try { await ms.openModal('PROFILE'); } catch (e) { console.error(e); }
+              }
             } else {
-              try { await window.$memberstackDom.openModal('PROFILE'); } catch (e) { console.error(e); }
+              // Free member — no Stripe subscription yet, show profile
+              try { await ms.openModal('PROFILE'); } catch (e) { console.error(e); }
             }
           });
           el.querySelector('#authMenuFavorites').addEventListener('click', () => {
