@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026-05-04T05:00Z account-modal-overhaul -->
+<!-- v2026-05-04T18:00Z embed-mode-support -->
 <html>
 <head>
   <meta charset="utf-8">
@@ -42,10 +42,46 @@
   <script src="https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
-  <!-- Memberstack 2.0 — handles auth + Stripe checkout for the paywall -->
-  <script data-memberstack-app="app_cmoq79nvv002d0syef7wpel3c"
-          src="https://static.memberstack.com/scripts/v2/memberstack.js"
-          type="text/javascript"></script>
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       EMBED MODE
+       When the page is loaded inside an iframe with ?embed=1 (e.g. embedded on
+       oftmw.com homepage), we skip Memberstack entirely — auth/checkout in
+       iframes is fragile (Safari ITP, third-party cookies) and there's no
+       point loading 200KB+ of paywall JS just to ungate it again. Embedded
+       users browse freely; the persistent "Open full map ↗" CTA sends them
+       to map.oftmw.com when they want auth/favorites/paywall.
+
+       The flag is set BEFORE Memberstack so the script tag can be skipped.
+       Detection accepts ?embed=1 OR being inside any cross-origin iframe, as
+       a defensive fallback in case someone embeds without the param.
+       ═══════════════════════════════════════════════════════════════════════ -->
+  <script>
+    (function() {
+      var params = new URLSearchParams(window.location.search);
+      var embedParam = params.get('embed') === '1';
+      var inIframe = false;
+      try { inIframe = window.self !== window.top; } catch (_) { inIframe = true; }
+      // Only auto-treat iframes as embeds if param is also set — avoids
+      // surprising someone who embeds the full page intentionally with auth.
+      window.__isEmbed = embedParam;
+      window.__inIframe = inIframe;
+      if (window.__isEmbed) {
+        document.documentElement.classList.add('embed-mode');
+      }
+    })();
+  </script>
+
+  <!-- Memberstack 2.0 — handles auth + Stripe checkout for the paywall.
+       Skipped in embed mode (see comment above). -->
+  <script>
+    if (!window.__isEmbed) {
+      var ms = document.createElement('script');
+      ms.setAttribute('data-memberstack-app', 'app_cmoq79nvv002d0syef7wpel3c');
+      ms.src = 'https://static.memberstack.com/scripts/v2/memberstack.js';
+      ms.type = 'text/javascript';
+      document.head.appendChild(ms);
+    }
+  </script>
   
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-6NPTWCVFCG"></script>
   <script>
@@ -2546,6 +2582,53 @@
     .paywall-title { font-size: 19px; }
     .paywall-plan-price { font-size: 22px; }
   }
+
+  /* ═══════════════════════════════════════════════════════════════════════
+     EMBED MODE
+     Applied when ?embed=1 is set. Hides chrome that doesn't make sense
+     inside an iframe (auth header, paywall) and surfaces a persistent
+     "Open full map" CTA so engaged users have a clear way to jump out
+     to the standalone full-screen experience at map.oftmw.com.
+     ═══════════════════════════════════════════════════════════════════════ */
+  .embed-mode #paywallAuthHeader { display: none !important; }
+  .embed-mode .paywall-modal       { display: none !important; }
+
+  /* Persistent "Open full map" CTA — top-right corner of the embed. */
+  .embed-open-full {
+    position: fixed;
+    top: 12px; right: 12px;
+    z-index: 9000;
+    display: flex; align-items: center; gap: 6px;
+    background: rgba(13,13,13,0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 0.5px solid rgba(255,255,255,0.18);
+    border-radius: 8px;
+    padding: 8px 12px;
+    color: #fff;
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.4);
+    transition: background 0.15s, transform 0.1s;
+  }
+  .embed-open-full:hover {
+    background: rgba(31,223,103,0.92);
+    color: #000;
+    border-color: transparent;
+  }
+  .embed-open-full:active { transform: scale(0.96); }
+  .embed-open-full svg {
+    width: 13px; height: 13px;
+    stroke: currentColor; fill: none; stroke-width: 2.2;
+    stroke-linecap: round; stroke-linejoin: round;
+    flex-shrink: 0;
+  }
+  @media (max-width: 600px) {
+    .embed-open-full { top: 10px; right: 10px; padding: 7px 10px; font-size: 11px; }
+  }
   </style>
 </head>
 <body>
@@ -2941,7 +3024,7 @@
     else setAppHeight();
 
     // Build version — to verify deploys in DevTools: window.__buildVersion
-    window.__buildVersion = '2026-05-04T05:00Z account-modal-overhaul';
+    window.__buildVersion = '2026-05-04T18:00Z embed-mode-support';
 
     // ─── Mirror drawer-expanded state to body class ───────────────────────────
     // The auth header (in <body>) is not a sibling of #mobileDrawer (in #app-container),
@@ -3067,6 +3150,9 @@
       center: isMobile ? [-90.0, 35.0] : [-95.0, 38.5],
       zoom: isMobile ? 3.0 : 4
     });
+    // Expose the map instance so other top-level scripts (e.g. the embed-mode
+    // "Open full map" CTA at the bottom of the file) can read viewport state.
+    window.map = map;
     let activePopup, stationPopup, fullscreenMap;
 
     const stations = [
@@ -3558,10 +3644,28 @@
     // ── Deep-link: open project from ?project= URL param ─────────────────
     // - ?project=slug                  → fly to pin + show small popup preview
     // - ?fullscreen=true&project=slug  → fly to pin + open full project modal
+    // - ?lat=X&lng=Y&zoom=Z            → restore viewport (used by embed CTA)
     function handleDeepLink() {
       const params = new URLSearchParams(window.location.search);
       const slug = params.get('project');
       const fullscreen = params.get('fullscreen') === 'true';
+
+      // Viewport restoration — used when "Open full map" is clicked from the
+      // homepage embed, so the user lands on the same view they were exploring.
+      // Applied only if no project deep-link is present (a project link wins
+      // because the user's most-recent intent was that specific pin).
+      const latParam  = parseFloat(params.get('lat'));
+      const lngParam  = parseFloat(params.get('lng'));
+      const zoomParam = parseFloat(params.get('zoom'));
+      if (!slug && Number.isFinite(latParam) && Number.isFinite(lngParam)) {
+        try {
+          map.jumpTo({
+            center: [lngParam, latParam],
+            zoom: Number.isFinite(zoomParam) ? zoomParam : map.getZoom()
+          });
+        } catch (_) { /* invalid params — fall through to default view */ }
+      }
+
       if (!slug || !window.allProjectFeatures) return;
       const match = window.allProjectFeatures.find(f => {
         const s = (f.properties.title || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
@@ -3644,6 +3748,10 @@
         // 'popup' / 'deeplink' = continuation of an interaction already counted by showPopup.
         if (source === 'tile' && window.paywallCheck && !window.paywallCheck()) return;
         currentFeature = f;
+        // Mirror to window so external scripts (e.g. the embed-mode "Open full
+        // map" CTA) can read which project is currently open without coupling
+        // to this closure.
+        window.currentFeature = f;
         fromSource = source || 'tile';
         const p = f.properties;
 
@@ -6240,8 +6348,12 @@
     //   • Paid subscribers: unlimited
     // Click count for signed-in users persists on Memberstack member record,
     // so closing tabs / opening incognito doesn't reset it.
+    //
+    // Skipped entirely in embed mode — Memberstack isn't loaded, paywall
+    // would have nothing to talk to. Embed users get free unlimited access;
+    // they convert on the full map.
     // ═══════════════════════════════════════════════════════════════════════
-    (function() {
+    if (!window.__isEmbed) (function() {
       const ANON_CLICK_LIMIT = 5;        // before email signup wall
       const FREE_MEMBER_CLICK_LIMIT = 12; // 5 anon + 7 after signup, then subscription paywall
       const STORAGE_KEY = 'mot_click_count';
@@ -7021,6 +7133,64 @@
 
       // Build the auth UI immediately (will say "Sign in" until member status loads)
       updateAuthHeaderUI(null);
+    })();
+  </script>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       EMBED MODE: persistent "Open full map ↗" CTA
+       Only injects when ?embed=1 is set. Click takes user to map.oftmw.com
+       in a new tab, preserving the current view (lat/lng/zoom + open project
+       deep-link if a modal is currently open). The CTA is positioned top-right
+       in fixed position, above all map controls.
+       ═══════════════════════════════════════════════════════════════════════ -->
+  <script>
+    (function() {
+      if (!window.__isEmbed) return;
+
+      // Compute a URL that opens map.oftmw.com with the user's current
+      // viewport state, so jumping to the full map doesn't reset their context.
+      function fullMapHref() {
+        var base = 'https://map.oftmw.com/';
+        var parts = [];
+        try {
+          if (window.map && typeof window.map.getCenter === 'function') {
+            var c = window.map.getCenter();
+            var z = window.map.getZoom();
+            // Round to keep URLs short — Mapbox handles ~5 decimals fine
+            parts.push('lat=' + c.lat.toFixed(5));
+            parts.push('lng=' + c.lng.toFixed(5));
+            parts.push('zoom=' + z.toFixed(2));
+          }
+          // If a project modal is currently open, deep-link to it
+          var openProject = window.currentFeature && window.currentFeature.properties
+            ? window.currentFeature.properties.title : null;
+          if (openProject) {
+            var slug = openProject.toLowerCase().replace(/[^a-z0-9]+/g, '');
+            parts.push('project=' + slug);
+          }
+        } catch (e) { /* fall back to bare URL */ }
+        return parts.length ? base + '?' + parts.join('&') : base;
+      }
+
+      // Inject the CTA. We rebuild the href on click so the URL always
+      // reflects the latest map state, not the state at page load.
+      var btn = document.createElement('a');
+      btn.className = 'embed-open-full';
+      btn.target = '_blank';
+      btn.rel = 'noopener';
+      btn.href = 'https://map.oftmw.com/';
+      btn.setAttribute('aria-label', 'Open full map in new tab');
+      btn.innerHTML =
+        '<span>Open full map</span>' +
+        '<svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>' +
+        '<polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>';
+      btn.addEventListener('click', function() {
+        // Update href right before the browser navigates
+        btn.href = fullMapHref();
+        // Optional analytics signal (gtag is loaded; if not, no-op)
+        try { if (window.gtag) gtag('event', 'embed_open_full_map_clicked'); } catch (_) {}
+      });
+      document.body.appendChild(btn);
     })();
   </script>
 </body>
