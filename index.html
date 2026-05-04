@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026-05-04T18:00Z embed-mode-support -->
+<!-- v2026-05-04T19:00Z embed-mode-stubs-fix -->
 <html>
 <head>
   <meta charset="utf-8">
@@ -68,6 +68,39 @@
       if (window.__isEmbed) {
         document.documentElement.classList.add('embed-mode');
       }
+
+      // ─── Always-available utility globals ────────────────────────────────
+      // These are also defined inside the paywall IIFE further down (which
+      // additionally wires up favorites/auth on top of them). We pre-define
+      // them here so they're never undefined — the paywall IIFE simply
+      // overwrites them with the same value on full-mode loads, while embed
+      // mode (where the IIFE is skipped) still has working slugifying for
+      // the popup/grid templates that reference window.projectSlugify
+      // unguarded.
+      if (!window.projectSlugify) {
+        window.projectSlugify = function(title) {
+          return (title || '').toLowerCase()
+            .replace(/[^a-z0-9\s-]/g, '')
+            .replace(/[\s-]+/g, '-')
+            .replace(/^-|-$/g, '');
+        };
+      }
+      // Embed-safe stubs for favorites APIs called from popup/grid templates.
+      // The full implementations live inside the paywall IIFE; in embed mode
+      // we install these no-op fallbacks so unguarded callers don't throw.
+      if (!window.isFavorited) window.isFavorited = function() { return false; };
+      // filterByFavoritesIfActive is called UNGUARDED at the start of grid
+      // rendering (e.g. `filtered = window.filterByFavoritesIfActive(filtered)`),
+      // so leaving it undefined throws TypeError and silently kills grid +
+      // search rendering — the symptom is "results: -" with no clickable pins.
+      // The pass-through stub returns the input unchanged, which is correct
+      // for embed mode (no logged-in user, so no favorites filter ever active).
+      if (!window.filterByFavoritesIfActive) {
+        window.filterByFavoritesIfActive = function(features) { return features; };
+      }
+      // toggleFavorite is intentionally NOT stubbed — call sites already
+      // guard with `window.toggleFavorite && ...`, so leaving it undefined
+      // means clicks on a favorite button in embed mode are silent no-ops.
     })();
   </script>
 
@@ -3024,7 +3057,7 @@
     else setAppHeight();
 
     // Build version — to verify deploys in DevTools: window.__buildVersion
-    window.__buildVersion = '2026-05-04T18:00Z embed-mode-support';
+    window.__buildVersion = '2026-05-04T19:00Z embed-mode-stubs-fix';
 
     // ─── Mirror drawer-expanded state to body class ───────────────────────────
     // The auth header (in <body>) is not a sibling of #mobileDrawer (in #app-container),
