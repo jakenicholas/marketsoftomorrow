@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026-05-04T03:10Z account-stripe-portal-hardened -->
+<!-- v2026-05-04T03:40Z signup-button-and-cancel-rewire -->
 <html>
 <head>
   <meta charset="utf-8">
@@ -2061,6 +2061,26 @@
     box-shadow: 0 4px 14px rgba(0,0,0,0.3);
   }
   #paywallAuthHeader #authSignInBtn:active { transform: translateY(0); }
+
+  /* Sign-up button — green primary, paired beside Sign in */
+  #paywallAuthHeader #authSignUpBtn {
+    background: var(--accent) !important;
+    border: none !important;
+    color: #000 !important;
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    padding: 9px 18px !important;
+    border-radius: 8px !important;
+    letter-spacing: 0.01em;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.25);
+    transition: background 0.15s, transform 0.1s, box-shadow 0.15s !important;
+  }
+  #paywallAuthHeader #authSignUpBtn:hover {
+    background: #18c75a !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(31,223,103,0.4);
+  }
+  #paywallAuthHeader #authSignUpBtn:active { transform: translateY(0); }
   /* On mobile (over the map) use the heavier glass treatment */
   @media(max-width: 800px) {
     #paywallAuthHeader button,
@@ -2070,13 +2090,13 @@
       -webkit-backdrop-filter: blur(16px) saturate(1.4);
       border-radius: 8px;
     }
-    /* Mobile sign-in: white, compact, matches header element height (~34px tall) */
-    #paywallAuthHeader #authSignInBtn {
+    /* Mobile sign-in/sign-up: compact, matches header element height (~34px tall) */
+    #paywallAuthHeader #authSignInBtn,
+    #paywallAuthHeader #authSignUpBtn {
       backdrop-filter: none;
       -webkit-backdrop-filter: none;
       padding: 7px 14px !important;
       font-size: 12px !important;
-      font-weight: 600 !important;
       height: 34px;
       display: inline-flex;
       align-items: center;
@@ -2860,7 +2880,7 @@
     else setAppHeight();
 
     // Build version — to verify deploys in DevTools: window.__buildVersion
-    window.__buildVersion = '2026-05-04T03:10Z account-stripe-portal-hardened';
+    window.__buildVersion = '2026-05-04T03:40Z signup-button-and-cancel-rewire';
 
     // ─── Mirror drawer-expanded state to body class ───────────────────────────
     // The auth header (in <body>) is not a sibling of #mobileDrawer (in #app-container),
@@ -6321,6 +6341,9 @@
               <div class="paywall-feature"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#1FDF67" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Full developer + architect details</div>
               <div class="paywall-feature"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#1FDF67" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Cancel anytime</div>
             </div>
+            <div class="paywall-signin" id="subPaywallSigninWrap">
+              Already a subscriber? <a href="#" id="subPaywallSigninLink">Sign in</a>
+            </div>
           </div>
         `;
         document.body.appendChild(modal);
@@ -6329,6 +6352,10 @@
             const priceId = btn.getAttribute('data-price-id');
             startCheckout(priceId);
           });
+        });
+        modal.querySelector('#subPaywallSigninLink').addEventListener('click', (e) => {
+          e.preventDefault();
+          openSignIn();
         });
       }
 
@@ -6375,6 +6402,9 @@
       function showSubscriptionPaywall() {
         buildSubscriptionPaywall();
         document.getElementById('paywallModal').classList.add('active');
+        // If already signed in, "Already a subscriber? Sign in" doesn't apply
+        const wrap = document.getElementById('subPaywallSigninWrap');
+        if (wrap) wrap.style.display = isSignedIn ? 'none' : '';
         if (window.gtag) gtag('event', 'paywall_shown', { 'click_count': memberClickCount });
       }
       function hideAllPaywalls() {
@@ -6468,6 +6498,61 @@
         return (email[0] || '?').toUpperCase();
       }
 
+      // ─── Profile modal: relabel "Remove" → "Cancel" and route to Stripe portal ──
+      // The Memberstack PROFILE modal renders a "Remove" button next to each plan.
+      // We watch for it to appear in the DOM, relabel it to "Cancel", and intercept
+      // the click so it opens the Stripe customer portal (where users can actually
+      // cancel their subscription) instead of removing the plan record.
+      function interceptProfileRemoveBtn() {
+        const start = Date.now();
+        const TIMEOUT_MS = 8000; // give up if Memberstack modal doesn't open in 8s
+        const seen = new WeakSet();
+
+        const processOne = (btn) => {
+          if (seen.has(btn)) return;
+          const txt = (btn.textContent || '').trim().toLowerCase();
+          if (txt !== 'remove') return;
+          seen.add(btn);
+          // Relabel
+          btn.textContent = 'Cancel';
+          btn.setAttribute('data-mot-cancel-rewired', '1');
+          // Intercept click — capture phase so we run before Memberstack
+          btn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+            const ms = window.$memberstackDom;
+            if (!ms) return;
+            // Close the profile modal first, then open Stripe portal
+            try { await ms.hideModal?.(); } catch (_) {}
+            if (typeof ms.launchStripeCustomerPortal === 'function') {
+              try {
+                await ms.launchStripeCustomerPortal({ returnUrl: window.location.href });
+              } catch (err) {
+                console.error('[Cancel] Stripe portal launch failed:', err);
+                alert("We couldn't open the cancellation page. Please email support.");
+              }
+            } else {
+              console.warn('[Cancel] launchStripeCustomerPortal unavailable');
+              alert('Cancellation requires Stripe portal access. Please email support.');
+            }
+          }, true);
+        };
+
+        const scan = () => {
+          // Look for any button with text "Remove" — Memberstack class names can change
+          document.querySelectorAll('button').forEach(processOne);
+        };
+
+        // Initial scan + observer for late-rendered modals
+        scan();
+        const obs = new MutationObserver(scan);
+        obs.observe(document.body, { childList: true, subtree: true });
+        // Stop observing after timeout to avoid leaks
+        setTimeout(() => obs.disconnect(), TIMEOUT_MS);
+      }
+      window.interceptProfileRemoveBtn = interceptProfileRemoveBtn;
+
       function updateAuthHeaderUI(member) {
         let el = document.getElementById('paywallAuthHeader');
         const justCreated = !el;
@@ -6557,15 +6642,15 @@
                 } catch (e) {
                   console.error('[Account] Stripe portal launch failed:', e);
                   // Fallback: try the profile modal so the user has SOMETHING
-                  try { await ms.openModal('PROFILE'); } catch (e2) { console.error(e2); }
+                  try { await ms.openModal('PROFILE'); interceptProfileRemoveBtn(); } catch (e2) { console.error(e2); }
                 }
               } else {
                 console.warn('[Account] launchStripeCustomerPortal not available — using profile modal');
-                try { await ms.openModal('PROFILE'); } catch (e) { console.error(e); }
+                try { await ms.openModal('PROFILE'); interceptProfileRemoveBtn(); } catch (e) { console.error(e); }
               }
             } else {
               // Free member — no Stripe subscription yet, show profile
-              try { await ms.openModal('PROFILE'); } catch (e) { console.error(e); }
+              try { await ms.openModal('PROFILE'); interceptProfileRemoveBtn(); } catch (e) { console.error(e); }
             }
           });
           el.querySelector('#authMenuFavorites').addEventListener('click', () => {
@@ -6581,8 +6666,12 @@
             signOut();
           });
         } else {
-          el.innerHTML = `<button id="authSignInBtn">Sign in</button>`;
+          el.innerHTML = `
+            <button id="authSignUpBtn" class="auth-signup-btn">Sign up</button>
+            <button id="authSignInBtn">Sign in</button>
+          `;
           el.querySelector('#authSignInBtn').addEventListener('click', openSignIn);
+          el.querySelector('#authSignUpBtn').addEventListener('click', openSignup);
         }
       }
 
