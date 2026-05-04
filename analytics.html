@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TMW Map — Live Analytics</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --black: #080808;
+  --white: #f0ede6;
+  --gold: #c9a84c;
+  --gold-dim: #7a6030;
+  --green: #3ddc84;
+  --red: #ff5f5f;
+  --surface: #0f0f0f;
+  --surface2: #161616;
+  --border: #1f1f1f;
+  --dim: #555;
+  --mid: #888;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--black);
+  color: var(--white);
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 300;
+  min-height: 100vh;
+  padding: 40px 24px;
+  background-image: radial-gradient(ellipse at 20% 0%, rgba(201,168,76,0.04) 0%, transparent 60%),
+                    radial-gradient(ellipse at 80% 100%, rgba(61,220,132,0.03) 0%, transparent 60%);
+}
+
+.wrap { max-width: 900px; margin: 0 auto; }
+
+/* Header */
+header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 24px;
+  margin-bottom: 36px;
+}
+
+.brand-block {}
+.brand {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: .22em;
+  color: var(--gold);
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(22px, 4vw, 34px);
+  font-weight: 400;
+  line-height: 1.1;
+  letter-spacing: -.01em;
+}
+h1 em { font-style: italic; color: var(--gold); }
+
+.live-badge {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: rgba(61,220,132,0.08);
+  border: 1px solid rgba(61,220,132,0.2);
+  border-radius: 20px;
+  padding: 6px 14px;
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: .12em;
+  color: var(--green);
+  text-transform: uppercase;
+}
+
+.pulse {
+  width: 7px; height: 7px;
+  background: var(--green);
+  border-radius: 50%;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(61,220,132,0.4); }
+  50% { opacity: 0.8; box-shadow: 0 0 0 5px rgba(61,220,132,0); }
+}
+
+/* Auth section */
+.auth-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 32px;
+  margin-bottom: 28px;
+}
+
+.auth-title {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 16px;
+}
+
+.input-row { display: flex; gap: 10px; }
+.input-row input {
+  flex: 1;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--white);
+  font-family: 'DM Mono', monospace;
+  font-size: 13px;
+  padding: 11px 14px;
+  outline: none;
+  transition: border-color .2s;
+}
+.input-row input:focus { border-color: var(--gold-dim); }
+.input-row input::placeholder { color: var(--dim); }
+
+.go-btn {
+  background: var(--gold);
+  border: none;
+  border-radius: 4px;
+  color: var(--black);
+  cursor: pointer;
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: .1em;
+  padding: 0 22px;
+  text-transform: uppercase;
+  transition: background .2s;
+  white-space: nowrap;
+}
+.go-btn:hover { background: #d4b060; }
+.go-btn:disabled { background: var(--gold-dim); cursor: not-allowed; opacity: .6; }
+
+.auth-note {
+  font-size: 11px;
+  color: var(--dim);
+  margin-top: 10px;
+  line-height: 1.6;
+}
+.auth-note a { color: var(--gold); text-decoration: none; }
+.auth-note a:hover { text-decoration: underline; }
+
+/* Dashboard */
+.dashboard { display: none; }
+.dashboard.on { display: block; animation: fadeUp .5s ease; }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Stat grid */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 22px 24px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color .2s;
+}
+
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--gold);
+  opacity: 0.4;
+}
+
+.stat-card.green::before { background: var(--green); }
+.stat-card.red::before { background: var(--red); }
+
+.stat-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--mid);
+  margin-bottom: 12px;
+}
+
+.stat-value {
+  font-family: 'Playfair Display', serif;
+  font-size: 42px;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--white);
+  margin-bottom: 4px;
+}
+
+.stat-value.green { color: var(--green); }
+
+.stat-sub {
+  font-size: 11px;
+  color: var(--dim);
+  font-family: 'DM Mono', monospace;
+}
+
+/* Sections */
+.section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  margin-bottom: 14px;
+  overflow: hidden;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface2);
+}
+
+.section-title {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--mid);
+}
+
+.section-meta {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  color: var(--dim);
+}
+
+/* Table */
+.data-table { width: 100%; }
+
+.data-row {
+  display: flex;
+  align-items: center;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border);
+  transition: background .15s;
+  gap: 12px;
+}
+
+.data-row:last-child { border-bottom: none; }
+.data-row:hover { background: rgba(255,255,255,0.02); }
+
+.row-rank {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  color: var(--dim);
+  width: 20px;
+  flex-shrink: 0;
+}
+
+.row-label {
+  flex: 1;
+  font-size: 13px;
+  color: var(--white);
+  font-weight: 300;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.row-bar-wrap {
+  width: 100px;
+  height: 3px;
+  background: var(--border);
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.row-bar {
+  height: 100%;
+  background: var(--gold);
+  border-radius: 2px;
+  transition: width .6s ease;
+}
+
+.row-bar.green { background: var(--green); }
+
+.row-value {
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  color: var(--gold);
+  width: 50px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.row-value.green { color: var(--green); }
+
+/* Refresh bar */
+.refresh-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 0 0;
+}
+
+.last-updated {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  color: var(--dim);
+}
+
+.refresh-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  color: var(--mid);
+  cursor: pointer;
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: .1em;
+  padding: 6px 14px;
+  text-transform: uppercase;
+  transition: all .2s;
+}
+.refresh-btn:hover { border-color: var(--gold-dim); color: var(--gold); }
+.refresh-btn:disabled { opacity: .4; cursor: not-allowed; }
+
+/* Error */
+.err {
+  background: rgba(255,95,95,0.08);
+  border: 1px solid rgba(255,95,95,0.2);
+  border-radius: 4px;
+  color: var(--red);
+  font-size: 13px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  display: none;
+}
+.err.on { display: block; }
+
+/* Loading skeleton */
+.skeleton {
+  background: linear-gradient(90deg, var(--surface2) 25%, var(--border) 50%, var(--surface2) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 3px;
+  height: 14px;
+}
+@keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+
+.spinning { animation: spin 1s linear infinite; display: inline-block; }
+@keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="brand-block">
+    <div class="brand">Markets of Tomorrow</div>
+    <h1>Map <em>Analytics</em></h1>
+  </div>
+  <div class="live-badge"><div class="pulse"></div>Live Data</div>
+</header>
+
+<!-- Load -->
+<div class="auth-card" id="authCard">
+  <div class="auth-title">Map of Tomorrow — Live Analytics</div>
+  <button class="go-btn" id="goBtn" onclick="loadData()" style="width:100%;padding:14px">Load Dashboard →</button>
+  <p class="auth-note" style="margin-top:10px">Pulls live data from map.oftmw.com via your analytics pipeline.</p>
+</div>
+
+<div class="err" id="errMsg"></div>
+
+<!-- Dashboard -->
+<div class="dashboard" id="dash">
+
+  <div class="stat-grid">
+    <div class="stat-card green">
+      <div class="stat-label">Active Right Now</div>
+      <div class="stat-value green" id="statActive">—</div>
+      <div class="stat-sub" id="statActiveSub">map.oftmw.com</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Views — Last 7 Days</div>
+      <div class="stat-value" id="stat7d">—</div>
+      <div class="stat-sub" id="stat7dSub">map sessions</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Views — Last 28 Days</div>
+      <div class="stat-value" id="stat28d">—</div>
+      <div class="stat-sub" id="stat28dSub">map sessions</div>
+    </div>
+  </div>
+
+  <!-- Top events -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-title">Top Events on Map</span>
+      <span class="section-meta">Last 28 days</span>
+    </div>
+    <div id="eventsTable"><div style="padding:20px 20px"><div class="skeleton" style="margin-bottom:10px"></div><div class="skeleton" style="width:70%;margin-bottom:10px"></div><div class="skeleton" style="width:50%"></div></div></div>
+  </div>
+
+  <!-- Top traffic sources -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-title">Traffic Sources</span>
+      <span class="section-meta">Last 28 days</span>
+    </div>
+    <div id="sourcesTable"><div style="padding:20px 20px"><div class="skeleton" style="margin-bottom:10px"></div><div class="skeleton" style="width:60%;margin-bottom:10px"></div><div class="skeleton" style="width:40%"></div></div></div>
+  </div>
+
+  <!-- Top countries -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-title">Users by Country</span>
+      <span class="section-meta">Last 28 days</span>
+    </div>
+    <div id="countriesTable"><div style="padding:20px 20px"><div class="skeleton" style="margin-bottom:10px"></div><div class="skeleton" style="width:55%;margin-bottom:10px"></div><div class="skeleton" style="width:35%"></div></div></div>
+  </div>
+
+  <div class="refresh-bar">
+    <div class="last-updated" id="lastUpdated">—</div>
+    <button class="refresh-btn" id="refreshBtn" onclick="loadData()">↻ Refresh</button>
+  </div>
+
+</div>
+
+</div>
+
+<script>
+const PROPERTY_ID = '336842761';
+const HOSTNAME = 'map.oftmw.com';
+
+
+function fmt(n) {
+  if (!n && n !== 0) return '—';
+  n = parseInt(n);
+  if (n >= 1000) return (n/1000).toFixed(1) + 'k';
+  return n.toString();
+}
+
+function showErr(msg) {
+  var e = document.getElementById('errMsg');
+  e.textContent = msg;
+  e.classList.add('on');
+}
+function hideErr() { document.getElementById('errMsg').classList.remove('on'); }
+
+const WORKER_URL = 'https://tmw.jakenicholas23.workers.dev';
+
+async function gaFetch(endpoint, body) {
+  var payload = JSON.stringify({ endpoint: endpoint, body: body });
+  var r = await fetch(WORKER_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: payload
+  });
+  if (!r.ok) throw new Error('Worker returned ' + r.status);
+  var d = await r.json();
+  if (d.error) throw new Error(typeof d.error === 'string' ? d.error : JSON.stringify(d.error));
+  return d;
+}
+
+async function gaReport(body) { return gaFetch(':runReport', body); }
+async function gaRealtime(body) { return gaFetch(':runRealtimeReport', body); }
+
+function hostnameFilter() {
+  return {
+    filter: {
+      fieldName: 'hostName',
+      stringFilter: { matchType: 'EXACT', value: HOSTNAME }
+    }
+  };
+}
+
+function renderTable(containerId, rows, labelKey, valueKey, color) {
+  if (!rows || rows.length === 0) {
+    document.getElementById(containerId).innerHTML = '<div style="padding:16px 20px;font-size:12px;color:var(--dim)">No data yet</div>';
+    return;
+  }
+  var maxVal = Math.max.apply(null, rows.map(function(r){ return parseInt(r[valueKey]) || 0; }));
+  var html = rows.map(function(r, i) {
+    var val = parseInt(r[valueKey]) || 0;
+    var pct = maxVal > 0 ? Math.round((val / maxVal) * 100) : 0;
+    var label = r[labelKey] || '(none)';
+    if (label.length > 55) label = label.slice(0, 55) + '…';
+    return '<div class="data-row">'
+      + '<span class="row-rank">' + (i+1) + '</span>'
+      + '<span class="row-label" title="' + r[labelKey] + '">' + label + '</span>'
+      + '<div class="row-bar-wrap"><div class="row-bar' + (color === 'green' ? ' green' : '') + '" style="width:' + pct + '%"></div></div>'
+      + '<span class="row-value' + (color === 'green' ? ' green' : '') + '">' + fmt(val) + '</span>'
+      + '</div>';
+  }).join('');
+  document.getElementById(containerId).innerHTML = html;
+}
+
+async function loadData() {
+  hideErr();
+  document.getElementById('goBtn').disabled = true;
+  document.getElementById('goBtn').textContent = 'Loading...';
+  document.getElementById('refreshBtn').disabled = true;
+
+  try {
+    // Realtime active users on map
+    var rt = await gaRealtime({
+      dimensions: [{ name: 'hostName' }],
+      metrics: [{ name: 'activeUsers' }],
+      dimensionFilter: hostnameFilter()
+    });
+
+    var activeUsers = 0;
+    if (rt.rows) {
+      rt.rows.forEach(function(r) { activeUsers += parseInt(r.metricValues[0].value) || 0; });
+    }
+    document.getElementById('statActive').textContent = activeUsers;
+    document.getElementById('statActiveSub').textContent = activeUsers === 1 ? '1 person on map right now' : activeUsers + ' people on map right now';
+
+    // 7-day views
+    var r7 = await gaReport({
+      dateRanges: [{ startDate: '7daysAgo', endDate: 'today' }],
+      metrics: [{ name: 'screenPageViews' }],
+      dimensionFilter: hostnameFilter()
+    });
+    var views7 = r7.rows ? parseInt(r7.rows[0]?.metricValues[0]?.value || 0) : 0;
+    document.getElementById('stat7d').textContent = fmt(views7);
+    document.getElementById('stat7dSub').textContent = 'page views';
+
+    // 28-day views
+    var r28 = await gaReport({
+      dateRanges: [{ startDate: '28daysAgo', endDate: 'today' }],
+      metrics: [{ name: 'screenPageViews' }],
+      dimensionFilter: hostnameFilter()
+    });
+    var views28 = r28.rows ? parseInt(r28.rows[0]?.metricValues[0]?.value || 0) : 0;
+    document.getElementById('stat28d').textContent = fmt(views28);
+    document.getElementById('stat28dSub').textContent = 'page views';
+
+    // Top events
+    var evts = await gaReport({
+      dateRanges: [{ startDate: '28daysAgo', endDate: 'today' }],
+      dimensions: [{ name: 'eventName' }],
+      metrics: [{ name: 'eventCount' }],
+      dimensionFilter: hostnameFilter(),
+      orderBys: [{ metric: { metricName: 'eventCount' }, desc: true }],
+      limit: 8
+    });
+    var evtRows = (evts.rows || []).map(function(r) {
+      return { name: r.dimensionValues[0].value, count: r.metricValues[0].value };
+    });
+    renderTable('eventsTable', evtRows, 'name', 'count', 'green');
+
+    // Traffic sources
+    var srcs = await gaReport({
+      dateRanges: [{ startDate: '28daysAgo', endDate: 'today' }],
+      dimensions: [{ name: 'sessionDefaultChannelGroup' }],
+      metrics: [{ name: 'sessions' }],
+      dimensionFilter: hostnameFilter(),
+      orderBys: [{ metric: { metricName: 'sessions' }, desc: true }],
+      limit: 6
+    });
+    var srcRows = (srcs.rows || []).map(function(r) {
+      return { name: r.dimensionValues[0].value, count: r.metricValues[0].value };
+    });
+    renderTable('sourcesTable', srcRows, 'name', 'count', '');
+
+    // Countries
+    var ctrs = await gaReport({
+      dateRanges: [{ startDate: '28daysAgo', endDate: 'today' }],
+      dimensions: [{ name: 'country' }],
+      metrics: [{ name: 'activeUsers' }],
+      dimensionFilter: hostnameFilter(),
+      orderBys: [{ metric: { metricName: 'activeUsers' }, desc: true }],
+      limit: 6
+    });
+    var ctrRows = (ctrs.rows || []).map(function(r) {
+      return { name: r.dimensionValues[0].value, count: r.metricValues[0].value };
+    });
+    renderTable('countriesTable', ctrRows, 'name', 'count', '');
+
+    // Show dashboard
+    document.getElementById('authCard').style.display = 'none';
+    document.getElementById('dash').classList.add('on');
+    document.getElementById('lastUpdated').textContent = 'Updated ' + new Date().toLocaleTimeString();
+
+    // Auto-refresh every 60s
+    setTimeout(function() { loadData(); }, 60000);
+
+  } catch(e) {
+    showErr('GA4 API error: ' + e.message + '. Make sure your API key has access to the Google Analytics Data API.');
+    console.error(e);
+  }
+
+  document.getElementById('goBtn').disabled = false;
+  document.getElementById('goBtn').textContent = 'Connect →';
+  document.getElementById('refreshBtn').disabled = false;
+}
+
+// Load on button click only
+
+</script>
+</body>
+</html>
