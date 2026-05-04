@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026-04-20T23:17:06.502295 -->
+<!-- v2026-05-04T01:46Z favorites-ecosystem-pass-2 -->
 <html>
 <head>
   <meta charset="utf-8">
@@ -1688,6 +1688,34 @@
     .empty-state .empty-icon { font-size: 32px; margin-bottom: 12px; }
     .empty-state p { margin: 0; font-size: 14px; line-height: 1.5; }
     .empty-state strong { color: var(--accent); }
+    .fav-empty-state {
+      padding: 40px 24px;
+      text-align: center;
+      color: rgba(255,255,255,0.7);
+    }
+    .fav-empty-state .empty-icon {
+      width: 56px; height: 56px;
+      margin: 0 auto 16px;
+      border-radius: 50%;
+      background: rgba(31,223,103,0.12);
+      color: var(--accent);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .fav-empty-state p { margin-bottom: 8px; }
+    .fav-empty-state .fav-empty-cta {
+      margin-top: 18px;
+      background: var(--accent);
+      color: #000;
+      border: none;
+      font-weight: 700;
+      font-size: 13px;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.15s;
+    }
+    .fav-empty-state .fav-empty-cta:hover { background: #18c75a; }
 
   /* ── Project Detail Modal ─────────────────────────────── */
   #projectModal {
@@ -2013,13 +2041,14 @@
     white-space: nowrap;
     font-family: inherit;
   }
-  /* Sign-in button — green with yellow border, slightly larger (desktop + mobile) */
+  /* Sign-in button — white, no border, clean.
+     Desktop size unchanged; mobile sized to match header element height. */
   #paywallAuthHeader #authSignInBtn {
-    background: var(--accent) !important;
-    border: 2px solid #FFD300 !important;
+    background: #ffffff !important;
+    border: none !important;
     color: #000 !important;
     font-size: 13px !important;
-    font-weight: 700 !important;
+    font-weight: 600 !important;
     padding: 9px 18px !important;
     border-radius: 8px !important;
     letter-spacing: 0.01em;
@@ -2027,9 +2056,9 @@
     transition: background 0.15s, transform 0.1s, box-shadow 0.15s !important;
   }
   #paywallAuthHeader #authSignInBtn:hover {
-    background: #18c75a !important;
+    background: #f0f0f0 !important;
     transform: translateY(-1px);
-    box-shadow: 0 4px 14px rgba(31,223,103,0.35), 0 0 0 1px rgba(255,211,0,0.2);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.3);
   }
   #paywallAuthHeader #authSignInBtn:active { transform: translateY(0); }
   /* On mobile (over the map) use the heavier glass treatment */
@@ -2041,22 +2070,100 @@
       -webkit-backdrop-filter: blur(16px) saturate(1.4);
       border-radius: 8px;
     }
-    /* Mobile sign-in keeps the green-yellow look — override glass */
+    /* Mobile sign-in: white, compact, matches header element height (~34px tall) */
     #paywallAuthHeader #authSignInBtn {
       backdrop-filter: none;
       -webkit-backdrop-filter: none;
-      padding: 10px 20px !important;
-      font-size: 14px !important;
+      padding: 7px 14px !important;
+      font-size: 12px !important;
+      font-weight: 600 !important;
+      height: 34px;
+      display: inline-flex;
+      align-items: center;
     }
   }
   #paywallAuthHeader button:hover { background: rgba(255,255,255,0.2); }
   #paywallAuthHeader .auth-status { cursor: default; padding-right: 10px; }
 
-  /* Mobile: hide auth UI when drawer is expanded so it doesn't overlap tile content */
+  /* Mobile: hide auth UI when drawer is expanded so it doesn't overlap tile content.
+     Auth header lives in <body>, drawer lives in #app-container — they're not siblings,
+     so we mirror drawer.expanded → body.drawer-expanded via a MutationObserver, then
+     target the body class here. Works in all browsers regardless of :has() support. */
   @media(max-width: 800px) {
-    #mobileDrawer.expanded ~ #paywallAuthHeader {
+    body.drawer-expanded #paywallAuthHeader {
       display: none !important;
     }
+    /* Also hide the favorites view banner — drawer takes the full screen */
+    body.drawer-expanded #favViewBanner {
+      display: none !important;
+    }
+  }
+
+  /* ─── Favorites view banner ─── */
+  #favViewBanner {
+    position: fixed;
+    top: var(--header-height, 60px);
+    left: 0; right: 0;
+    z-index: 25;
+    background: linear-gradient(135deg, rgba(31,223,103,0.18) 0%, rgba(31,223,103,0.08) 100%);
+    backdrop-filter: blur(20px) saturate(1.4);
+    -webkit-backdrop-filter: blur(20px) saturate(1.4);
+    border-bottom: 1px solid rgba(31,223,103,0.25);
+    padding: 8px 14px;
+    transform: translateY(-100%);
+    opacity: 0;
+    pointer-events: none;
+    transition: transform 0.25s ease, opacity 0.2s;
+  }
+  #favViewBanner.visible {
+    transform: translateY(0);
+    opacity: 1;
+    pointer-events: auto;
+  }
+  #favViewBanner .fav-banner-inner {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  #favViewBanner .fav-banner-icon {
+    color: var(--accent);
+    flex-shrink: 0;
+  }
+  #favViewBanner .fav-banner-text { letter-spacing: 0.01em; }
+  #favViewBanner .fav-banner-count {
+    background: var(--accent);
+    color: #000;
+    font-weight: 800;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    letter-spacing: 0.02em;
+  }
+  #favViewBanner .fav-banner-exit {
+    margin-left: auto;
+    display: inline-flex; align-items: center; gap: 5px;
+    background: rgba(255,255,255,0.08);
+    border: 0.5px solid rgba(255,255,255,0.15);
+    color: rgba(255,255,255,0.85);
+    font-size: 12px; font-weight: 600;
+    padding: 5px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.15s;
+  }
+  #favViewBanner .fav-banner-exit:hover { background: rgba(255,255,255,0.15); }
+  /* Mobile: full-width banner over the map (no header) */
+  @media(max-width: 800px) {
+    #favViewBanner {
+      top: calc(var(--safe-area-top, 0px) + 60px); /* leave space for floating auth UI */
+    }
+    #favViewBanner .fav-banner-inner { font-size: 12px; gap: 8px; }
   }
 
   /* Avatar + dropdown menu */
@@ -2156,6 +2263,18 @@
     border-radius: 4px;
     letter-spacing: 0.08em;
     text-transform: uppercase;
+  }
+  .auth-dropdown-count {
+    margin-left: auto;
+    font-size: 10px;
+    font-weight: 700;
+    color: #000;
+    background: var(--accent);
+    min-width: 20px;
+    text-align: center;
+    padding: 1px 7px;
+    border-radius: 10px;
+    letter-spacing: 0.02em;
   }
   .auth-dropdown-sep {
     height: 1px;
@@ -2606,7 +2725,20 @@
       <img src="https://static.wixstatic.com/shapes/ca3b83_a647b53cad4c49c5b012af991d286a86.svg" alt="Markets of Tomorrow" style="width:95%;height:95%;filter:brightness(0) invert(1);object-fit:contain;" />
     </a>
     <button id="mapReturnButton">Map</button>
-    
+
+    <!-- ── Favorites view banner — visible when ?view=favorites is active ── -->
+    <div id="favViewBanner" role="status" aria-live="polite">
+      <div class="fav-banner-inner">
+        <svg class="fav-banner-icon" viewBox="0 0 18 18" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M9 1v16M1 9h16"/></svg>
+        <span class="fav-banner-text">Viewing your favorites</span>
+        <span class="fav-banner-count"><span id="favViewCount">0</span></span>
+        <button class="fav-banner-exit" id="favBannerExitBtn" aria-label="Show all projects">
+          Show all
+          <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+    </div>
+
     <div id="map"></div>
 
     <!-- ── Project Detail Modal ── -->
@@ -2721,6 +2853,44 @@
     document.addEventListener('scroll', debouncedSetHeight, { passive: true });
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', setAppHeight);
     else setAppHeight();
+
+    // Build version — to verify deploys in DevTools: window.__buildVersion
+    window.__buildVersion = '2026-05-04T01:46Z favorites-ecosystem-pass-2';
+
+    // ─── Mirror drawer-expanded state to body class ───────────────────────────
+    // The auth header (in <body>) is not a sibling of #mobileDrawer (in #app-container),
+    // so CSS sibling selectors won't work. We use a MutationObserver to mirror the
+    // drawer's `expanded` class to <body class="drawer-expanded">, which we can target
+    // with a simple CSS rule. This is bulletproof across all browsers regardless of :has() support.
+    function syncDrawerStateToBody() {
+      const md = document.getElementById('mobileDrawer');
+      if (!md) return;
+      const apply = () => {
+        const expanded = md.classList.contains('expanded');
+        document.body.classList.toggle('drawer-expanded', expanded);
+        // Belt-and-suspenders: also enforce inline display:none on the auth header
+        // when drawer is open on mobile, in case any CSS rule fails to apply.
+        const ah = document.getElementById('paywallAuthHeader');
+        const isMobile = window.matchMedia('(max-width: 800px)').matches;
+        if (ah) {
+          if (expanded && isMobile) {
+            ah.dataset._hiddenByDrawer = '1';
+            ah.style.display = 'none';
+          } else if (ah.dataset._hiddenByDrawer === '1') {
+            ah.style.display = '';
+            delete ah.dataset._hiddenByDrawer;
+          }
+        }
+      };
+      apply();
+      new MutationObserver(apply).observe(md, { attributes: true, attributeFilter: ['class'] });
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', syncDrawerStateToBody);
+    } else {
+      syncDrawerStateToBody();
+    }
+
     window.addEventListener('load', () => {
       setAppHeight(); detectMobileToolbar();
       setTimeout(() => { setAppHeight(); detectMobileToolbar(); }, 100);
@@ -3165,6 +3335,11 @@
         filtered = filtered.filter(f => f.properties.delivery === statusFilter);
       }
 
+      // Favorites view filter — only show favorited projects when active
+      if (window.filterByFavoritesIfActive) {
+        filtered = window.filterByFavoritesIfActive(filtered);
+      }
+
       const geoFeatures = filtered.map(f => ({
         type: 'Feature',
         geometry: f.geometry,
@@ -3183,6 +3358,7 @@
       let filteredFeatures = allFeatures;
       if (typeFilter !== 'all') filteredFeatures = filteredFeatures.filter(f => f._projectTypes?.includes(typeFilter.toLowerCase()));
       if (statusFilter !== 'all') filteredFeatures = filteredFeatures.filter(f => f.properties.delivery === statusFilter);
+      if (window.filterByFavoritesIfActive) filteredFeatures = window.filterByFavoritesIfActive(filteredFeatures);
 
       const inFrame = mapBounds ? filteredFeatures.filter(f =>
         mapBounds.contains([f.geometry.coordinates[0], f.geometry.coordinates[1]])
@@ -3892,6 +4068,7 @@
 
       if (projectTypeFilter !== 'all') features = features.filter(f => f.properties.projectTypes?.includes(projectTypeFilter.toLowerCase()));
       if (statusFilter !== 'all') features = features.filter(f => f.properties.delivery === statusFilter);
+      if (window.filterByFavoritesIfActive) features = window.filterByFavoritesIfActive(features);
 
       // Always compute inBounds so section headers work regardless of sort mode
       const mapBounds = getVisibleBounds();
@@ -3930,6 +4107,25 @@
       }
 
       const fragment = document.createDocumentFragment();
+
+      // Favorites view + no results = special empty state
+      if (features.length === 0 && window._favoritesViewActive) {
+        const empty = document.createElement('div');
+        empty.className = 'empty-state fav-empty-state';
+        empty.innerHTML = `
+          <div class="empty-icon">
+            <svg viewBox="0 0 32 32" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M16 4v24M4 16h24"/></svg>
+          </div>
+          <p><strong>No favorites yet</strong></p>
+          <p>Tap the <strong>+</strong> icon on any project to save it here.</p>
+          <button class="fav-empty-cta" onclick="window.setFavoritesView(false)">Browse all projects</button>
+        `;
+        fragment.appendChild(empty);
+        grid.appendChild(fragment);
+        grid.style.pointerEvents = 'auto';
+        window.gridRendering[targetId] = false;
+        return;
+      }
 
       if (features.length === 0) {
         // No filtered results — show "In view: 0" + fallback hierarchy
@@ -6065,8 +6261,12 @@
           // Load favorites whenever we have an authenticated member
           if (isSignedIn) {
             await loadFavoritesFromMember();
+            // Honor ?view=favorites if user landed on the URL — paid only
+            if (window._maybeActivateFavoritesViewFromUrl) window._maybeActivateFavoritesViewFromUrl();
           } else {
             window._favorites = new Set();
+            // Exit favorites view if user logs out
+            if (window._favoritesViewActive) window.setFavoritesView(false);
             syncFavoritesUI();
           }
 
@@ -6257,6 +6457,7 @@
 
       function updateAuthHeaderUI(member) {
         let el = document.getElementById('paywallAuthHeader');
+        const justCreated = !el;
         if (!el) {
           el = document.createElement('div');
           el.id = 'paywallAuthHeader';
@@ -6268,6 +6469,16 @@
             headerBar.appendChild(el);
           } else {
             document.body.appendChild(el);
+          }
+        }
+        // If auth header was just created, immediately apply current drawer state
+        // so it's hidden if drawer is already expanded
+        if (justCreated) {
+          const md = document.getElementById('mobileDrawer');
+          const isMobileViewport = window.matchMedia('(max-width: 800px)').matches;
+          if (md && md.classList.contains('expanded') && isMobileViewport) {
+            el.dataset._hiddenByDrawer = '1';
+            el.style.display = 'none';
           }
         }
         if (member) {
@@ -6285,9 +6496,9 @@
                   ${isPaidMember ? '<span class="auth-dropdown-pro">PRO</span>' : ''}
                 </button>
                 <button class="auth-dropdown-item" id="authMenuFavorites" role="menuitem">
-                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
-                  Favorites
-                  <span class="auth-dropdown-soon">Coming soon</span>
+                  <svg viewBox="0 0 18 18" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M9 1v16M1 9h16"/></svg>
+                  My Favorites
+                  ${isPaidMember ? `<span class="auth-dropdown-count fav-count-badge" style="display:${(window._favorites?.size || 0) > 0 ? 'inline-block' : 'none'}">${window._favorites?.size || 0}</span>` : '<span class="auth-dropdown-soon">Pro only</span>'}
                 </button>
                 <div class="auth-dropdown-sep"></div>
                 <button class="auth-dropdown-item auth-dropdown-signout" id="authMenuSignOut" role="menuitem">
@@ -6330,8 +6541,11 @@
           });
           el.querySelector('#authMenuFavorites').addEventListener('click', () => {
             dropdown.classList.remove('open');
-            // Placeholder until Favorites feature ships
-            alert('Favorites are coming soon — save the projects you love.');
+            if (!isPaidMember) {
+              showSubscriptionPaywall();
+              return;
+            }
+            window.setFavoritesView(true);
           });
           el.querySelector('#authMenuSignOut').addEventListener('click', () => {
             dropdown.classList.remove('open');
@@ -6407,6 +6621,18 @@
         }
         // Update all UI representations of this project
         syncFavoritesUI();
+        // If currently in favorites view, re-apply filters so unfavorited projects disappear
+        if (window._favoritesViewActive) {
+          if (typeof updateMapPinFilters === 'function') updateMapPinFilters();
+          if (typeof renderGrid === 'function') {
+            renderGrid('gridDesktop');
+            renderGrid('gridMobile');
+          }
+          if (typeof updateResultCount === 'function') {
+            updateResultCount('gridDesktop');
+            updateResultCount('gridMobile');
+          }
+        }
         // Persist async (don't block click)
         saveFavoritesToMember();
         if (window.gtag) gtag('event', isFav ? 'favorite_removed' : 'favorite_added', { 'project_slug': slug });
@@ -6424,8 +6650,69 @@
           const slug = el.getAttribute('data-fav-slug');
           el.classList.toggle('favorited', window._favorites.has(slug));
         });
+        updateFavoritesCountUI();
       }
       window.syncFavoritesUI = syncFavoritesUI;
+
+      // ─── Favorites view (filter map + tiles to only favorited projects) ─────
+      window._favoritesViewActive = false;
+
+      function updateFavoritesCountUI() {
+        // Update the count badge on the header star button
+        const count = window._favorites.size;
+        document.querySelectorAll('.fav-count-badge').forEach(el => {
+          el.textContent = count;
+          el.style.display = count > 0 ? '' : 'none';
+        });
+        // Update banner count if visible
+        const bannerCount = document.getElementById('favViewCount');
+        if (bannerCount) bannerCount.textContent = count;
+      }
+
+      window.setFavoritesView = function(active) {
+        window._favoritesViewActive = !!active;
+        // Update URL (without triggering reload)
+        const u = new URL(window.location.href);
+        if (active) u.searchParams.set('view', 'favorites');
+        else        u.searchParams.delete('view');
+        history.replaceState({}, '', u.toString());
+        // Toggle banner visibility
+        const banner = document.getElementById('favViewBanner');
+        if (banner) banner.classList.toggle('visible', !!active);
+        // Re-apply filters to map + tiles
+        if (typeof updateMapPinFilters === 'function') updateMapPinFilters();
+        if (typeof renderGrid === 'function') {
+          renderGrid('gridDesktop');
+          renderGrid('gridMobile');
+        }
+        if (typeof updateResultCount === 'function') {
+          updateResultCount('gridDesktop');
+          updateResultCount('gridMobile');
+        }
+        updateFavoritesCountUI();
+      };
+
+      // Helper: filter a feature list to only favorited projects (used in updateMapPinFilters/renderGrid/updateResultCount)
+      window.filterByFavoritesIfActive = function(features) {
+        if (!window._favoritesViewActive) return features;
+        return features.filter(f => window._favorites.has(projectSlugify(f.properties.title)));
+      };
+
+      // Wire the banner "Show all" exit button (idempotent)
+      document.addEventListener('click', (e) => {
+        if (e.target.closest && e.target.closest('#favBannerExitBtn')) {
+          window.setFavoritesView(false);
+        }
+      });
+
+      // Honor ?view=favorites in URL on initial load — paid only.
+      // For non-paid users we leave the URL param alone so post-checkout it auto-activates.
+      window._maybeActivateFavoritesViewFromUrl = function() {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('view') === 'favorites' && isPaidMember) {
+          window.setFavoritesView(true);
+        }
+      };
 
       // ─── Public API: gate every project interaction ───────────────────────
       // Returns true if interaction is allowed, false if blocked
