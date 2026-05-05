@@ -359,9 +359,7 @@ def build_page(row):
       position: absolute;
       bottom: 38px; left: 50%;
       transform: translateX(-50%);
-      background: rgba(0,0,0,0.55);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
+      background: rgba(0,0,0,0.7);
       color: rgba(255,255,255,0.95);
       font-size: 11px;
       font-weight: 600;
@@ -480,8 +478,6 @@ def build_page(row):
       padding: 10px 16px;
       border-radius: 22px;
       font-size: 13px; font-weight: 500;
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
       box-shadow: 0 2px 10px rgba(0,0,0,0.4);
       transition: background 0.15s;
     }}
