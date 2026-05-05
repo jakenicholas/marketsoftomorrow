@@ -313,24 +313,24 @@ def build_page(row):
       z-index: 3;
     }}
     .gs-slide[data-pos="prev"] {{
-      left: -38%;
+      left: -42%;
       opacity: 0.55;
       z-index: 1;
     }}
     .gs-slide[data-pos="next"] {{
-      left: 78%;
+      left: 82%;
       opacity: 0.55;
       z-index: 1;
     }}
     /* Hidden slides park at the peek positions but invisible, so when they
        transition into prev/next state only opacity changes (no horizontal flash). */
     .gs-slide[data-pos="hidden-left"] {{
-      left: -38%;
+      left: -42%;
       opacity: 0;
       z-index: 0;
     }}
     .gs-slide[data-pos="hidden-right"] {{
-      left: 78%;
+      left: 82%;
       opacity: 0;
       z-index: 0;
     }}
