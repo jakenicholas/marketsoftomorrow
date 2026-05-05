@@ -3,6 +3,10 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Disable iOS Safari Data Detectors so phone numbers, addresses, dates, etc.
+       in body copy aren't auto-linked into tappable blue text -->
+  <meta name="format-detection" content="telephone=no, address=no, email=no, date=no">
+  <meta name="x-apple-disable-message-reformatting" content="">
   <title>Oracle Campus, Nashville | Markets of Tomorrow</title>
   <meta name="description" content="A massive $4.5 billion, 80-acre "world headquarters" campus that will include 2.7 million square feet of office, retail, hospitality, a new pedestrian bridge, greenway, and a 120-room Nobu hotel.">
   <meta name="robots" content="index, follow">
@@ -60,13 +64,15 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body { background: #0d0d0d; color: #fff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; min-height: 100vh; }
-
-    /* Header */
-    .site-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.08); position: sticky; top: 0; background: rgba(13,13,13,0.92); backdrop-filter: blur(12px); z-index: 10; }
-    .site-logo img { height: 28px; }
-    .header-map-btn { display: flex; align-items: center; gap: 7px; background: rgba(255,255,255,0.07); border: 0.5px solid rgba(255,255,255,0.15); border-radius: 8px; padding: 8px 14px; color: rgba(255,255,255,0.8); text-decoration: none; font-size: 13px; font-weight: 500; transition: background 0.15s; }
-    .header-map-btn:hover { background: rgba(255,255,255,0.12); }
-    .header-map-btn svg { opacity: 0.6; }
+    /* Belt-and-suspenders defense against iOS Safari Data Detectors:
+       even when the format-detection meta tag is set, iOS sometimes still auto-links
+       addresses/phones/dates inside body copy. Neutralize any that slip through. */
+    .description a[href^="tel:"], .description a[href^="mailto:"], .description a[x-apple-data-detectors] {
+      color: inherit !important;
+      text-decoration: inherit !important;
+      pointer-events: none !important;
+      cursor: text !important;
+    }
 
     /* Gallery */
     .gallery { width: 100%; position: relative; overflow: hidden; }
@@ -188,26 +194,33 @@
       padding: 14px;
     }
     .map-preview-cta {
-      display: flex; align-items: center; gap: 8px;
-      background: rgba(31,223,103,0.95);
-      color: #000;
+      display: flex; align-items: center; gap: 7px;
+      background: rgba(255,255,255,0.07);
+      border: 0.5px solid rgba(255,255,255,0.15);
+      color: rgba(255,255,255,0.9);
       padding: 10px 16px;
       border-radius: 22px;
-      font-size: 13px; font-weight: 700;
+      font-size: 13px; font-weight: 500;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
       box-shadow: 0 2px 10px rgba(0,0,0,0.4);
       transition: background 0.15s;
     }
-    .map-preview:hover .map-preview-cta { background: #1FDF67; }
+    .map-preview-cta svg { opacity: 0.7; }
+    .map-preview:hover .map-preview-cta { background: rgba(255,255,255,0.14); }
 
     /* Back breadcrumb */
     .breadcrumb { font-size: 12px; color: rgba(255,255,255,0.3); margin-bottom: 20px; }
     .breadcrumb a { color: rgba(255,255,255,0.4); text-decoration: none; }
     .breadcrumb a:hover { color: rgba(255,255,255,0.7); }
 
-    /* Footer logo (mobile only) — centered Markets of Tomorrow wordmark below content */
+    /* Site header is hidden across all viewports — brand lives in the footer logo */
+    .site-header { display: none !important; }
+
+    /* Footer logo — centered Markets of Tomorrow wordmark below content (all viewports) */
     .footer-logo {
-      display: none; /* desktop hides this — header is the brand on desktop */
-      padding: 32px 20px 40px;
+      display: block;
+      padding: 40px 20px 48px;
       text-align: center;
     }
     .footer-logo a {
@@ -216,18 +229,15 @@
     }
     .footer-logo a:hover { opacity: 0.8; }
     .footer-logo img {
-      height: 38px;
+      height: 56px;
       width: auto;
       filter: brightness(0) invert(1);
       opacity: 0.9;
     }
 
     @media (max-width: 480px) {
-      /* Mobile: remove top black header bar entirely */
-      .site-header { display: none !important; }
-      /* Show centered footer logo at bottom of page */
-      .footer-logo { display: block; }
-      .footer-logo img { height: 42px; }
+      /* Mobile keeps a slightly smaller footer logo */
+      .footer-logo img { height: 48px; }
       /* Gallery taller on mobile since header reclaim is freed up */
       .gallery-hero { height: 280px; }
       .gs-slider { height: 280px; }
@@ -241,16 +251,6 @@
   </style>
 </head>
 <body>
-
-  <header class="site-header">
-    <a class="site-logo" href="https://map.oftmw.com">
-      <img src="https://static.wixstatic.com/media/ca3b83_71f3cd2ef61049028b2daf4e2ff71d52~mv2.png" alt="Markets of Tomorrow" />
-    </a>
-    <a class="header-map-btn" href="https://map.oftmw.com/?project=oraclecampus">
-      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>
-      View on Map
-    </a>
-  </header>
 
   
     <div class="gallery">
@@ -302,7 +302,7 @@
     </a>
   </div>
 
-  <!-- Footer logo (mobile only, centered) — desktop hides this since header has the brand -->
+  <!-- Footer logo — centered Markets of Tomorrow wordmark, shown on all viewports -->
   <div class="footer-logo">
     <a href="https://map.oftmw.com" aria-label="Markets of Tomorrow home">
       <img src="https://static.wixstatic.com/shapes/ca3b83_a647b53cad4c49c5b012af991d286a86.svg" alt="Markets of Tomorrow" />
