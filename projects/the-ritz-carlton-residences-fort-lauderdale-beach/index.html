@@ -79,7 +79,9 @@
     .gallery-hero { width: 100%; height: 320px; object-fit: cover; display: block; }
 
     /* Slider — multi-image cycling gallery
-       Desktop: center slide at ~60% width with clean horizontal slide transitions.
+       Desktop: center slide at 60% width with prev/next visible at lower opacity.
+       Hidden slides park at the peek positions (just at opacity 0) so when they
+       transition into prev/next state only opacity animates — no horizontal flash.
        Mobile: full-width single-slide fade. */
     .gs-slider {
       height: 460px;
@@ -99,25 +101,37 @@
       transition: left 0.4s ease, opacity 0.4s ease;
       pointer-events: none;
       box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+      /* Default: parked off-screen right at opacity 0 (used until JS assigns data-pos) */
+      left: 105%;
       opacity: 0;
     }
     .gs-slide[data-pos="active"] {
       left: 20%;
       opacity: 1;
       pointer-events: auto;
-      z-index: 2;
+      z-index: 3;
     }
-    /* Off-screen prev/next slides — same size and brightness as active, just positioned
-       outside the viewport. They slide in horizontally on navigation. */
     .gs-slide[data-pos="prev"] {
-      left: -65%;
-      opacity: 1;
+      left: -38%;
+      opacity: 0.55;
       z-index: 1;
     }
     .gs-slide[data-pos="next"] {
-      left: 105%;
-      opacity: 1;
+      left: 78%;
+      opacity: 0.55;
       z-index: 1;
+    }
+    /* Hidden slides park at the peek positions but invisible, so when they
+       transition into prev/next state only opacity changes (no horizontal flash). */
+    .gs-slide[data-pos="hidden-left"] {
+      left: -38%;
+      opacity: 0;
+      z-index: 0;
+    }
+    .gs-slide[data-pos="hidden-right"] {
+      left: 78%;
+      opacity: 0;
+      z-index: 0;
     }
     .gs-arrow {
       position: absolute;
@@ -301,9 +315,12 @@
       .gallery-hero { height: 280px; }
       /* Mobile slider: revert to full-width single-image fade (no desktop peek) */
       .gs-slider { height: 280px; padding: 0; }
-      .gs-slide { border-radius: 0; box-shadow: none; }
-      .gs-slide[data-pos="active"] { left: 0; width: 100%; transform: none; }
-      .gs-slide[data-pos="prev"], .gs-slide[data-pos="next"] {
+      .gs-slide { border-radius: 0; box-shadow: none; width: 100%; left: 0; }
+      .gs-slide[data-pos="active"] { left: 0; width: 100%; transform: none; opacity: 1; }
+      .gs-slide[data-pos="prev"],
+      .gs-slide[data-pos="next"],
+      .gs-slide[data-pos="hidden-left"],
+      .gs-slide[data-pos="hidden-right"] {
         left: 0; width: 100%; opacity: 0; transform: none; filter: none; pointer-events: none;
       }
       .gs-arrow { width: 34px; height: 34px; }
@@ -444,22 +461,60 @@
       function applyPositions() {
         const prevIdx = (cur - 1 + total) % total;
         const nextIdx = (cur + 1) % total;
+
+        // Determine the new pos for each slide
+        const newPos = new Array(total);
         slides.forEach((slide, i) => {
-          // With only 2 images, the same image would be both prev AND next.
-          // Show it only as "next" in that case so we don't get duplicate peeks.
           if (i === cur) {
-            slide.setAttribute('data-pos', 'active');
-          } else if (total > 2 && i === prevIdx) {
-            slide.setAttribute('data-pos', 'prev');
+            newPos[i] = 'active';
+            return;
+          }
+          if (total === 2) {
+            newPos[i] = i === nextIdx ? 'next' : 'hidden-right';
+            return;
+          }
+          if (i === prevIdx) {
+            newPos[i] = 'prev';
           } else if (i === nextIdx) {
-            slide.setAttribute('data-pos', 'next');
-          } else if (total === 2 && i === prevIdx) {
-            // Hide the duplicate when there are only 2 slides
-            slide.setAttribute('data-pos', 'hidden');
+            newPos[i] = 'next';
           } else {
-            slide.setAttribute('data-pos', 'hidden');
+            // Park hidden slides on the side closer in cycle direction so they only
+            // need to fade in (not slide across the screen) when activated.
+            const forwardDist  = (i - cur + total) % total;
+            const backwardDist = (cur - i + total) % total;
+            newPos[i] = forwardDist <= backwardDist ? 'hidden-right' : 'hidden-left';
           }
         });
+
+        // Snap-then-animate: if a slide is changing from a left-side state to a
+        // right-side state (or vice versa), it would otherwise animate horizontally
+        // across the visible area, causing a half-image flash. Disable its `left`
+        // transition for one frame so the position change is instant, then restore
+        // the transition so subsequent state changes animate normally.
+        const LEFT_SIDE  = new Set(['prev', 'hidden-left']);
+        const RIGHT_SIDE = new Set(['next', 'hidden-right']);
+        const teleporters = [];
+        slides.forEach((slide, i) => {
+          const oldP = slide.getAttribute('data-pos');
+          const newP = newPos[i];
+          if (!oldP || oldP === newP) return;
+          const crossesSides =
+            (LEFT_SIDE.has(oldP) && RIGHT_SIDE.has(newP)) ||
+            (RIGHT_SIDE.has(oldP) && LEFT_SIDE.has(newP));
+          if (crossesSides) teleporters.push(slide);
+        });
+
+        teleporters.forEach(s => { s.style.transition = 'opacity 0.4s ease'; });
+        slides.forEach((slide, i) => slide.setAttribute('data-pos', newPos[i]));
+        if (teleporters.length) {
+          // Force layout flush, then restore the transition next frame so future
+          // state changes animate `left` normally.
+          // eslint-disable-next-line no-unused-expressions
+          teleporters[0].offsetHeight;
+          requestAnimationFrame(() => {
+            teleporters.forEach(s => { s.style.transition = ''; });
+          });
+        }
       }
 
       function go(next) {
