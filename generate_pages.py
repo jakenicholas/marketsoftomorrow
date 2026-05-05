@@ -158,7 +158,12 @@ def truncate_developer(dev):
 def build_page(row):
     title = row.get('Title','').strip()
     city  = row.get('City','').strip()
-    proj_type = row.get('ProjectType','').strip().split(',')[0].strip()
+    # Subtitle prefers the sheet's "PreferredType" column when set (a single curated
+    # label, e.g. "Apartments"); otherwise falls back to the first value from the
+    # comma-separated ProjectType list.
+    preferred_type = row.get('PreferredType','').strip()
+    first_project_type = row.get('ProjectType','').strip().split(',')[0].strip()
+    proj_type = preferred_type if preferred_type else first_project_type
     delivery  = row.get('Delivery','').strip()
     delivery_date = row.get('DeliveryDate','').strip()
     developer = truncate_developer(row.get('Developer','').strip())
