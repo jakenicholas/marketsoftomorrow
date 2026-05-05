@@ -56,7 +56,7 @@
     {
       "@type": "PropertyValue",
       "name": "Architect",
-      "value": "Various"
+      "value": "OMA"
     }
   ]
 }</script>
@@ -334,8 +334,15 @@
 <body>
 
   
-    <div class="gallery">
-      <img class="gallery-hero" src="https://static.wixstatic.com/media/ca3b83_22b710e464784a678139ab0375a08f49~mv2.jpg" alt="" loading="eager" />
+    <div class="gallery gs-slider" data-count="4">
+      <div class="gs-track"><img class="gs-slide" src="https://static.wixstatic.com/media/ca3b83_22b710e464784a678139ab0375a08f49~mv2.jpg" alt="" loading="eager" data-i="0" /><img class="gs-slide" src="https://static.wixstatic.com/media/ca3b83_38992c18d09049eb874a6e9a3a9ba47b~mv2.jpeg" alt="" loading="lazy" data-i="1" /><img class="gs-slide" src="https://static.wixstatic.com/media/ca3b83_e9e014e2fbc44b278953809376be42fe~mv2.jpeg" alt="" loading="lazy" data-i="2" /><img class="gs-slide" src="https://static.wixstatic.com/media/ca3b83_5fa21849acb6490ca76695c7ad75f826~mv2.jpeg" alt="" loading="lazy" data-i="3" /></div>
+      <button class="gs-arrow gs-prev" aria-label="Previous image">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+      </button>
+      <button class="gs-arrow gs-next" aria-label="Next image">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+      </button>
+      <div class="gs-counter"><span class="gs-cur">1</span> / 4</div>
     </div>
 
   <div class="content">
@@ -359,7 +366,7 @@
       <div class="stat-val">Banyan Tree Group</div>
     </div><div class="stat-card">
       <div class="stat-label">Architect</div>
-      <div class="stat-val">Various</div>
+      <div class="stat-val">OMA</div>
     </div><div class="stat-card">
       <div class="stat-label">Delivery</div>
       <div class="stat-val">TBD</div>
