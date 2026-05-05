@@ -3692,8 +3692,13 @@
         pills.innerHTML = p.featured ? `<span class="pm-featured-pill">★ Featured</span>` : '';
 
         // Title + city · project type
+        // Subtitle prefers the sheet's "PreferredType" column when set
+        // (a single, curated label); otherwise falls back to the first value
+        // from the comma-separated ProjectType list.
         document.getElementById('pmTitle').textContent = p.title || '';
-        const typeLabel = p.projectType ? p.projectType.split(',')[0].trim() : '';
+        const typeLabel = (p.preferredType && p.preferredType.trim())
+          ? p.preferredType.trim()
+          : (p.projectType ? p.projectType.split(',')[0].trim() : '');
         document.getElementById('pmCity').textContent = typeLabel
           ? `${p.city || ''} • ${typeLabel}`
           : (p.city || '');
@@ -6113,6 +6118,10 @@
                 title: p.Title, city: p.City, description: p.Description,
                 delivery: p.Delivery, image: p.ImageURL, website: p.OfficialWebsite,
                 projectType: p.ProjectType,
+                // Optional override — if PreferredType is set in the sheet for this row,
+                // it's the label shown in the subtitle (e.g. "Apartments" instead of
+                // "Multifamily, Mixed-Use, Retail"). Falls back to first ProjectType if blank.
+                preferredType: (p.PreferredType || '').trim(),
                 // Store as plain comma string — arrays get mangled by Mapbox serialization
                 projectTypesStr: types.join(','),
                 // New fields
