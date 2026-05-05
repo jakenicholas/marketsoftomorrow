@@ -280,55 +280,44 @@ def build_page(row):
     .gallery-hero {{ width: 100%; height: 320px; object-fit: cover; display: block; }}
 
     /* Slider — multi-image cycling gallery
-       Desktop: center slide takes ~60% width with prev/next peeking in dimmed.
+       Desktop: center slide at ~60% width with clean horizontal slide transitions.
        Mobile: full-width single-slide fade. */
     .gs-slider {{
       height: 460px;
-      background: #0a0a0a;
+      background: #0d0d0d;
       padding: 24px 0;
       box-sizing: content-box;
+      overflow: hidden;
     }}
     .gs-track {{ position: relative; width: 100%; height: 100%; }}
     .gs-slide {{
       position: absolute;
       top: 0;
       height: 100%;
+      width: 60%;
       object-fit: cover;
       border-radius: 12px;
-      transition: left 0.4s ease, width 0.4s ease, opacity 0.4s ease, filter 0.4s ease, transform 0.4s ease;
+      transition: left 0.4s ease, opacity 0.4s ease;
       pointer-events: none;
       box-shadow: 0 8px 30px rgba(0,0,0,0.5);
-    }}
-    /* Default state for any slide not assigned a position — fully off-screen and hidden */
-    .gs-slide {{
-      left: 50%;
-      width: 60%;
       opacity: 0;
-      transform: translateX(-50%) scale(0.9);
     }}
     .gs-slide[data-pos="active"] {{
       left: 20%;
-      width: 60%;
       opacity: 1;
-      transform: translateX(0) scale(1);
-      filter: none;
       pointer-events: auto;
       z-index: 2;
     }}
+    /* Off-screen prev/next slides — same size and brightness as active, just positioned
+       outside the viewport. They slide in horizontally on navigation. */
     .gs-slide[data-pos="prev"] {{
-      left: -38%;
-      width: 60%;
-      opacity: 0.55;
-      transform: translateX(0) scale(0.92);
-      filter: brightness(0.45);
+      left: -65%;
+      opacity: 1;
       z-index: 1;
     }}
     .gs-slide[data-pos="next"] {{
-      left: 78%;
-      width: 60%;
-      opacity: 0.55;
-      transform: translateX(0) scale(0.92);
-      filter: brightness(0.45);
+      left: 105%;
+      opacity: 1;
       z-index: 1;
     }}
     .gs-arrow {{
