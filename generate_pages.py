@@ -85,11 +85,14 @@ def gallery_html(row):
     if not imgs:
         return ''
 
-    # Single image — no slider chrome, just the image
+    # Single image — same centered/rounded slider styling as multi-image,
+    # just without arrow buttons or the image counter.
     if len(imgs) == 1:
         return f'''
-    <div class="gallery">
-      <img class="gallery-hero" src="{imgs[0]}" alt="" loading="eager" />
+    <div class="gallery gs-slider" data-count="1">
+      <div class="gs-track">
+        <img class="gs-slide" src="{imgs[0]}" alt="" loading="eager" data-i="0" data-pos="active" />
+      </div>
     </div>'''
 
     # Multiple images — slider with desktop peek effect; mobile fades full-width
