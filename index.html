@@ -2885,48 +2885,418 @@
     .compare-modal { align-items: flex-end; }
   }
 
-  /* ─── Comparison view (full-screen overlay: map + cards + bottom bar) ───── */
-  /* Layout uses CSS Grid with explicit row sizes so the map container has
-     a deterministic height at the moment Mapbox is constructed. Using flex
-     `flex: 1 1 auto` was causing 0-height races during init. */
+  /* ─── Comparison view: full-screen overlay with map + drawer ────────────── */
+  /* Architecture: map fills the entire viewport; drawer floats over it on the
+     left (desktop) or bottom (mobile). When user toggles "Side-by-side",
+     the drawer hides and a horizontal cards strip appears at the bottom. */
   .compare-view {
     position: fixed; inset: 0;
     z-index: 8500;
     background: #0d0d0d;
     color: #fff;
     display: none;
-    /* Rows: map (fills remaining), cards (460px). Header floats absolutely on top. */
-    grid-template-rows: 1fr 460px;
-    grid-template-columns: 1fr;
   }
-  .compare-view.open { display: grid; }
+  .compare-view.open { display: block; }
   /* Drop below the project modal (z-index 100) when a project is opened from
      within the comparison view, so the project modal renders on top. */
   .compare-view.compare-view-bg { z-index: 50; }
-  /* When the comparison view is active, prevent the underlying page from scrolling */
   body.compare-view-active { overflow: hidden; }
 
-  /* Map fills the top remaining viewport — Grid `1fr` row */
+  /* Map fills the entire viewport */
   .compare-view-map {
+    position: absolute; inset: 0;
     width: 100%;
     height: 100%;
-    position: relative;
     background: #0a0a0a;
-    min-height: 200px;
   }
 
-  /* Cards strip — fixed 460px so View project CTA is always fully visible */
-  .compare-view-cards-wrap {
+  /* ─── Drawer (left side on desktop, bottom on mobile) ───────────────────── */
+  .compare-drawer {
+    position: absolute;
+    top: 16px; left: 16px; bottom: 16px;
+    width: 420px;
+    z-index: 5;
+    background: rgba(11,11,11,0.92);
+    backdrop-filter: blur(24px) saturate(1.4);
+    -webkit-backdrop-filter: blur(24px) saturate(1.4);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .compare-drawer[hidden] { display: none; }
+
+  .compare-drawer-header {
+    padding: 16px 18px 14px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .compare-drawer-titles { flex: 1 1 auto; min-width: 0; }
+  .compare-drawer-eyebrow {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: rgba(255,255,255,0.5);
+    margin-bottom: 4px;
+  }
+  .compare-drawer-count { color: #1FDF67; }
+  .compare-drawer-title {
+    font-size: 18px;
+    font-weight: 700;
+    margin: 0;
+    line-height: 1.2;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .compare-drawer-author {
+    font-size: 11px;
+    color: rgba(255,255,255,0.45);
+    margin-top: 3px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .compare-drawer-author:empty { display: none; }
+  .compare-drawer-close {
+    flex: 0 0 auto;
+    width: 30px; height: 30px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: rgba(255,255,255,0.7);
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+  }
+  .compare-drawer-close:hover { background: rgba(255,255,255,0.12); color: #fff; }
+
+  /* Card deck stage */
+  .compare-deck-stage {
+    flex: 1 1 auto;
+    position: relative;
+    padding: 22px 18px 8px;
+    overflow: hidden;
+    min-height: 0;
+  }
+  .compare-nav-arrows {
+    position: absolute;
+    top: 50%;
+    left: 4px; right: 4px;
+    transform: translateY(-50%);
+    display: flex;
+    justify-content: space-between;
+    pointer-events: none;
+    z-index: 5;
+  }
+  .compare-nav-arrow {
+    width: 34px; height: 34px;
+    background: rgba(15,15,15,0.85);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff;
+    cursor: pointer;
+    pointer-events: auto;
+    transition: background 0.15s;
+  }
+  .compare-nav-arrow:hover { background: rgba(31,31,31,0.95); }
+
+  .compare-deck {
+    position: relative;
     height: 100%;
+    min-height: 360px;
+  }
+  .compare-deck-card {
+    position: absolute;
+    inset: 0;
+    background: #161616;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px;
+    overflow: hidden;
+    transform-origin: top center;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+    display: flex; flex-direction: column;
+  }
+  .compare-deck-card.back-2 {
+    transform: scale(0.92) translateY(-10px);
+    opacity: 0.5;
+    cursor: pointer;
+  }
+  .compare-deck-card.back-1 {
+    transform: scale(0.96) translateY(-5px);
+    opacity: 0.75;
+    cursor: pointer;
+    z-index: 2;
+  }
+  .compare-deck-card.front {
+    z-index: 3;
+  }
+
+  .compare-deck-card-img {
+    height: 170px;
+    flex: 0 0 auto;
+    background-size: cover;
+    background-position: center;
+    background-color: #0a0a0a;
+    position: relative;
+  }
+  .compare-deck-card-img-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 60%);
+  }
+  .compare-deck-card-status {
+    position: absolute;
+    top: 12px; left: 12px;
+    padding: 4px 9px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .compare-deck-card-counter {
+    position: absolute;
+    top: 12px; right: 12px;
+    padding: 4px 9px;
+    border-radius: 12px;
+    font-size: 10px;
+    font-weight: 600;
+    background: rgba(0,0,0,0.55);
+    color: #fff;
+  }
+  .compare-deck-card-body {
+    padding: 14px 16px 16px;
+    flex: 1 1 auto;
+    display: flex; flex-direction: column;
+    min-height: 0;
+  }
+  .compare-deck-card-city {
+    font-size: 11px;
+    color: rgba(255,255,255,0.45);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 4px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .compare-deck-card-title {
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.2;
+    margin: 0 0 12px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .compare-deck-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 12px;
+  }
+  .compare-deck-stat {
+    background: #161616;
+    padding: 9px 11px;
+    min-width: 0;
+  }
+  .compare-deck-stat-k {
+    font-size: 9px;
+    color: rgba(255,255,255,0.42);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 2px;
+  }
+  .compare-deck-stat-v {
+    font-size: 12px;
+    font-weight: 600;
+    color: #fff;
+    /* Two-line clamp so long developer/architect lists don't overflow */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+  .compare-deck-cta {
+    margin-top: auto;
+    background: rgba(255,255,255,0.06);
+    border: 0.5px solid rgba(255,255,255,0.1);
+    color: #fff;
+    border-radius: 8px;
+    padding: 9px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+    transition: background 0.15s, color 0.15s;
+  }
+  .compare-deck-cta:hover {
+    background: #1FDF67;
+    color: #000;
+    border-color: transparent;
+  }
+  .compare-deck-card-missing {
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px;
+    text-align: center;
+  }
+  .compare-deck-card-missing strong { display: block; margin-bottom: 4px; color: rgba(255,255,255,0.85); font-size: 13px; }
+  .compare-deck-card-missing span { color: rgba(255,255,255,0.5); font-size: 12px; }
+
+  /* Pagination dots */
+  .compare-deck-dots {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 0 6px;
+    flex: 0 0 auto;
+  }
+  .compare-deck-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.2);
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+    transition: width 0.2s, border-radius 0.2s, background 0.2s;
+  }
+  .compare-deck-dot.active {
+    width: 18px;
+    border-radius: 3px;
+    background: #1FDF67;
+  }
+
+  /* Quick swap thumbnail row */
+  .compare-thumbs {
+    flex: 0 0 auto;
+    padding: 10px 18px 12px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .compare-thumbs::-webkit-scrollbar { height: 4px; }
+  .compare-thumbs::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+  .compare-thumb {
+    flex-shrink: 0;
+    position: relative;
+    width: 52px; height: 52px;
+    border-radius: 8px;
+    background-color: #0a0a0a;
+    background-size: cover;
+    background-position: center;
+    border: 1px solid rgba(255,255,255,0.08);
+    cursor: pointer;
+    padding: 0;
+    transition: border-color 0.15s, box-shadow 0.15s, transform 0.1s;
+  }
+  .compare-thumb:hover { transform: translateY(-1px); }
+  .compare-thumb.active {
+    border-color: #1FDF67;
+    box-shadow: 0 0 0 1px #1FDF67;
+  }
+  .compare-thumb-num {
+    position: absolute;
+    bottom: 3px; left: 3px;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.7);
+    color: #fff;
+    font-size: 9px;
+    font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .compare-thumb-add {
+    flex-shrink: 0;
+    width: 52px; height: 52px;
+    border-radius: 8px;
+    border: 1px dashed rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.03);
+    color: rgba(255,255,255,0.5);
+    cursor: pointer;
+    font-size: 22px;
+    font-weight: 300;
+    line-height: 1;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+  }
+  .compare-thumb-add:hover {
+    background: rgba(255,255,255,0.08);
+    color: #fff;
+    border-color: rgba(255,255,255,0.3);
+  }
+
+  /* Drawer footer: side-by-side toggle on the left, edit + share on the right */
+  .compare-drawer-footer {
+    flex: 0 0 auto;
+    padding: 11px 14px 12px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .compare-mode-toggle {
+    flex: 1 1 auto;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: rgba(255,255,255,0.85);
+    border-radius: 10px;
+    padding: 9px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    gap: 6px;
+    transition: background 0.15s, color 0.15s;
+  }
+  .compare-mode-toggle:hover { background: rgba(255,255,255,0.1); color: #fff; }
+  .compare-drawer-actions {
+    display: flex;
+    gap: 6px;
+    flex: 0 0 auto;
+  }
+  .compare-drawer-action {
+    width: 36px; height: 36px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: rgba(255,255,255,0.85);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+  }
+  .compare-drawer-action:hover { background: rgba(255,255,255,0.1); color: #fff; }
+
+  /* ─── Side-by-side mode (toggled): cards strip at bottom over the map ──── */
+  .compare-view-cards-wrap {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    height: 460px;
+    z-index: 4;
+    background: rgba(13,13,13,0.92);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 0.5px solid rgba(255,255,255,0.08);
     overflow-x: auto;
     overflow-y: hidden;
     padding: 18px 24px;
-    background: #0d0d0d;
-    border-top: 0.5px solid rgba(255,255,255,0.06);
+    box-sizing: border-box;
     scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch;
-    box-sizing: border-box;
   }
+  .compare-view-cards-wrap[hidden] { display: none; }
   .compare-view-cards-wrap::-webkit-scrollbar { height: 8px; }
   .compare-view-cards-wrap::-webkit-scrollbar-thumb {
     background: rgba(255,255,255,0.1); border-radius: 4px;
@@ -2938,64 +3308,39 @@
     align-items: stretch;
     height: 100%;
   }
-
-  /* Floating header: positioned absolutely so it overlays the map without
-     consuming layout space. No solid background -- buttons and title pill
-     have their own translucent backgrounds for legibility against the map. */
-  .compare-view-header {
+  /* When in side-by-side mode, the cards strip needs a close button overlay
+     since the drawer (which hosted the close button) is hidden. We use a small
+     floating control via the drawer's normal close path -- so we keep the
+     drawer in DOM but hide it visually while side mode is on. Map keeps its
+     control buttons. To get back to stack mode, user clicks the toggle button
+     which we float via an overlay button below. */
+  /* Floating controls for side-by-side mode (close + toggle-back-to-stack) */
+  .compare-side-controls {
+    display: none;
     position: absolute;
-    top: 0; left: 0; right: 0;
-    z-index: 5;
-    display: flex; align-items: center; gap: 14px;
-    padding: 16px 20px;
-    pointer-events: none; /* let map receive drag events outside the buttons */
+    top: 16px; left: 16px;
+    z-index: 6;
+    gap: 8px;
+    align-items: center;
   }
-  .compare-view-header > * { pointer-events: auto; }
-  .compare-view-back {
-    background: rgba(0,0,0,0.55);
-    border: 0.5px solid rgba(255,255,255,0.18);
-    color: #fff;
-    border-radius: 50%;
+  .compare-view[data-mode="side"] .compare-side-controls { display: flex; }
+  .compare-side-controls .compare-drawer-close {
+    background: rgba(11,11,11,0.92);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: rgba(255,255,255,0.85);
     width: 38px; height: 38px;
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer;
+  }
+  .compare-side-controls .compare-mode-toggle {
+    background: rgba(11,11,11,0.92);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: #fff;
     flex: 0 0 auto;
-    transition: background 0.15s;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
   }
-  .compare-view-back:hover { background: rgba(0,0,0,0.75); }
-  .compare-view-titles {
-    flex: 1 1 auto;
-    min-width: 0;
-    display: flex; flex-direction: column;
-    line-height: 1.25;
-  }
-  .compare-view-title {
-    font-size: 15px; font-weight: 600;
-    margin: 0;
-    color: #fff;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    /* Soft shadow so plain text stays legible over light map areas */
-    text-shadow: 0 1px 4px rgba(0,0,0,0.7), 0 0 10px rgba(0,0,0,0.4);
-  }
-  .compare-view-sub {
-    font-size: 11px; color: rgba(255,255,255,0.85);
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    text-shadow: 0 1px 3px rgba(0,0,0,0.7), 0 0 8px rgba(0,0,0,0.4);
-  }
-  .compare-view-actions { display: flex; gap: 8px; flex: 0 0 auto; }
-  .compare-view-action {
-    background: rgba(0,0,0,0.55);
-    border: 0.5px solid rgba(255,255,255,0.18);
-    color: #fff;
-    border-radius: 50%;
-    width: 38px; height: 38px;
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer;
-    transition: background 0.15s;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-  }
-  .compare-view-action:hover { background: rgba(0,0,0,0.75); }
+  .compare-side-controls .compare-mode-toggle:hover { background: rgba(31,31,31,0.95); }
 
   /* Card */
   .compare-card {
@@ -3144,14 +3489,36 @@
     box-shadow: 0 4px 14px rgba(255,211,0,0.55), 0 0 0 4px rgba(255,211,0,0.18);
     z-index: 10;
   }
+  /* Active pin = the project currently in front of the stacked card deck.
+     White fill + green glow so it stands out from the other green pins. */
+  .compare-pin.active {
+    background: #fff;
+    color: #000;
+    box-shadow: 0 0 0 4px rgba(31,223,103,0.35), 0 0 16px rgba(31,223,103,0.6);
+    z-index: 11;
+  }
 
   @media (max-width: 768px) {
-    .compare-view { grid-template-rows: 1fr 420px; }
-    .compare-view-cards-wrap { padding: 14px 14px; }
-    .compare-view-header { padding: 12px 14px; gap: 10px; }
-    .compare-view-back, .compare-view-action { width: 36px; height: 36px; }
-    .compare-view-title { font-size: 14px; }
-    .compare-view-sub { font-size: 10px; }
+    /* Drawer becomes a bottom sheet on mobile (instead of left panel) */
+    .compare-drawer {
+      top: auto;
+      left: 0; right: 0; bottom: 0;
+      width: 100%;
+      max-height: 75vh;
+      border-radius: 16px 16px 0 0;
+      border-left: 0; border-right: 0; border-bottom: 0;
+    }
+    .compare-drawer-header { padding: 14px 16px 12px; }
+    .compare-drawer-title { font-size: 16px; }
+    .compare-deck-stage { padding: 16px 16px 6px; }
+    .compare-deck { min-height: 320px; }
+    .compare-deck-card-img { height: 150px; }
+    .compare-thumbs { padding: 8px 16px 10px; }
+    .compare-thumb, .compare-thumb-add { width: 48px; height: 48px; }
+    .compare-drawer-footer { padding: 10px 12px 12px; }
+
+    /* Side-by-side mode: smaller cards, smaller cards-wrap */
+    .compare-view-cards-wrap { height: 420px; padding: 14px 14px; }
     .compare-card { flex: 0 0 84vw; max-width: 320px; }
   }
 
@@ -7802,6 +8169,6 @@
        Self-contained module; relies on window.projectSlugify, window.allProjectFeatures,
        window.$memberstackDom, and the auth hint cache that the paywall code maintains.
        The ?v=2 query string busts any stale cached version after recent revisions. -->
-  <script src="compare.js?v=4"></script>
+  <script src="compare.js?v=5"></script>
 </body>
 </html>
