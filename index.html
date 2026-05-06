@@ -2552,6 +2552,281 @@
     .paywall-title { font-size: 19px; }
     .paywall-plan-price { font-size: 22px; }
   }
+  /* ─── Comparisons builder modal ──────────────────────────────────────────
+     Owned by compare.js. Themed to match the existing project modal. */
+  .compare-modal {
+    position: fixed; inset: 0;
+    z-index: 9000;
+    display: none;
+    align-items: center; justify-content: center;
+  }
+  .compare-modal.open { display: flex; }
+  .compare-modal-backdrop {
+    position: absolute; inset: 0;
+    background: rgba(0,0,0,0.6);
+  }
+  .compare-modal-card {
+    position: relative;
+    width: min(560px, calc(100vw - 24px));
+    max-height: calc(100vh - 48px);
+    background: #1a1a1a;
+    border: 0.5px solid rgba(255,255,255,0.1);
+    border-radius: 14px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+    display: flex; flex-direction: column;
+    color: #fff;
+    overflow: hidden;
+  }
+  .compare-modal-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 0.5px solid rgba(255,255,255,0.08);
+  }
+  .compare-modal-title { font-size: 16px; font-weight: 600; margin: 0; }
+  .compare-modal-close {
+    background: transparent; border: 0;
+    color: rgba(255,255,255,0.6);
+    font-size: 24px; line-height: 1; cursor: pointer;
+    padding: 4px 8px; border-radius: 6px;
+  }
+  .compare-modal-close:hover { color: #fff; background: rgba(255,255,255,0.06); }
+  .compare-modal-body {
+    padding: 16px 20px; overflow-y: auto;
+    flex: 1 1 auto;
+  }
+  .compare-modal-footer {
+    display: flex; justify-content: flex-end; gap: 8px;
+    padding: 12px 20px;
+    border-top: 0.5px solid rgba(255,255,255,0.08);
+  }
+
+  /* Saved comparisons section (top of modal) */
+  .compare-saved-section[hidden] { display: none; }
+  .compare-saved-label {
+    font-size: 9px; letter-spacing: 0.06em; text-transform: uppercase;
+    color: rgba(255,255,255,0.45);
+    margin-bottom: 8px;
+  }
+  .compare-saved-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; }
+  .compare-saved-row {
+    display: flex; align-items: center; gap: 10px;
+    background: rgba(255,255,255,0.04);
+    border: 0.5px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    padding: 10px 12px;
+  }
+  .compare-saved-row-meta { flex: 1 1 auto; min-width: 0; }
+  .compare-saved-row-name {
+    font-size: 13px; font-weight: 500;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .compare-saved-row-sub { font-size: 11px; color: rgba(255,255,255,0.45); }
+  .compare-saved-row-actions { display: flex; gap: 4px; }
+  .compare-saved-btn {
+    background: transparent; border: 0;
+    color: rgba(255,255,255,0.55);
+    cursor: pointer;
+    width: 28px; height: 28px;
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .compare-saved-btn:hover { background: rgba(255,255,255,0.06); color: #fff; }
+  .compare-saved-btn-danger:hover { color: #ff6b6b; }
+  .compare-new-btn { width: 100%; justify-content: center; }
+  .compare-saved-divider {
+    height: 1px; background: rgba(255,255,255,0.06);
+    margin: 14px 0 4px;
+  }
+
+  /* Form fields */
+  .compare-field { display: block; margin-bottom: 16px; }
+  .compare-field-label {
+    display: block;
+    font-size: 9px; letter-spacing: 0.06em; text-transform: uppercase;
+    color: rgba(255,255,255,0.45);
+    margin-bottom: 6px;
+  }
+  .compare-name-input,
+  .compare-search-input {
+    width: 100%;
+    background: rgba(255,255,255,0.05);
+    border: 0.5px solid rgba(255,255,255,0.12);
+    border-radius: 8px;
+    color: #fff;
+    font-size: 14px;
+    padding: 10px 12px;
+    outline: none;
+    box-sizing: border-box;
+  }
+  .compare-name-input:focus,
+  .compare-search-input:focus {
+    border-color: rgba(31,223,103,0.5);
+    background: rgba(255,255,255,0.08);
+  }
+  .compare-name-input::placeholder,
+  .compare-search-input::placeholder { color: rgba(255,255,255,0.3); }
+
+  /* Slot list */
+  .compare-slots-wrap { margin-bottom: 16px; }
+  .compare-slots-label {
+    display: flex; justify-content: space-between; align-items: baseline;
+    font-size: 9px; letter-spacing: 0.06em; text-transform: uppercase;
+    color: rgba(255,255,255,0.45);
+    margin-bottom: 6px;
+  }
+  .compare-slots-count { color: rgba(255,255,255,0.6); font-weight: 600; }
+  .compare-slots {
+    display: flex; flex-direction: column;
+    gap: 6px;
+  }
+  .compare-slots-empty {
+    background: rgba(255,255,255,0.03);
+    border: 1px dashed rgba(255,255,255,0.1);
+    border-radius: 8px;
+    padding: 14px;
+    text-align: center;
+    font-size: 12px;
+    color: rgba(255,255,255,0.45);
+  }
+  .compare-slot {
+    display: flex; align-items: center; gap: 10px;
+    background: rgba(255,255,255,0.05);
+    border: 0.5px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
+    padding: 8px 10px;
+  }
+  .compare-slot-num {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: rgba(31,223,103,0.15);
+    color: #1FDF67;
+    font-size: 11px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    flex: 0 0 auto;
+  }
+  .compare-slot-thumb {
+    width: 44px; height: 44px;
+    border-radius: 6px;
+    object-fit: cover;
+    flex: 0 0 auto;
+    background: #0a0a0a;
+  }
+  .compare-slot-thumb-empty { background: rgba(255,255,255,0.06); }
+  .compare-slot-meta { flex: 1 1 auto; min-width: 0; }
+  .compare-slot-title {
+    font-size: 13px; font-weight: 500;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .compare-slot-sub { font-size: 11px; color: rgba(255,255,255,0.45); }
+  .compare-slot-actions { display: flex; gap: 2px; }
+  .compare-slot-btn {
+    background: transparent; border: 0;
+    color: rgba(255,255,255,0.55);
+    cursor: pointer;
+    width: 26px; height: 26px;
+    border-radius: 6px;
+    font-size: 14px;
+  }
+  .compare-slot-btn:hover:not([disabled]) { background: rgba(255,255,255,0.08); color: #fff; }
+  .compare-slot-btn[disabled] { opacity: 0.25; cursor: default; }
+  .compare-slot-btn-remove { color: rgba(255,255,255,0.5); }
+  .compare-slot-btn-remove:hover { color: #ff6b6b; background: rgba(255,107,107,0.1); }
+
+  /* Search results */
+  .compare-search-wrap { margin-top: 8px; }
+  .compare-search-results {
+    margin-top: 8px;
+    max-height: 240px;
+    overflow-y: auto;
+    border: 0.5px solid rgba(255,255,255,0.08);
+    border-radius: 8px;
+    background: rgba(0,0,0,0.2);
+  }
+  .compare-search-row {
+    display: flex; align-items: center; justify-content: space-between;
+    width: 100%;
+    background: transparent; border: 0;
+    border-bottom: 0.5px solid rgba(255,255,255,0.05);
+    color: #fff; text-align: left;
+    padding: 10px 12px;
+    cursor: pointer;
+  }
+  .compare-search-row:last-child { border-bottom: 0; }
+  .compare-search-row:hover:not([disabled]) { background: rgba(255,255,255,0.04); }
+  .compare-search-row[disabled] { cursor: default; opacity: 0.5; }
+  .compare-search-row-meta { min-width: 0; flex: 1; }
+  .compare-search-row-title {
+    font-size: 13px; font-weight: 500;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .compare-search-row-sub { font-size: 11px; color: rgba(255,255,255,0.45); }
+  .compare-search-row-cta {
+    font-size: 11px; font-weight: 600;
+    color: #1FDF67;
+    padding: 4px 10px;
+    border-radius: 12px;
+    background: rgba(31,223,103,0.1);
+    flex: 0 0 auto;
+  }
+  .compare-search-row.is-selected .compare-search-row-cta { color: rgba(255,255,255,0.5); background: rgba(255,255,255,0.06); }
+  .compare-search-row[disabled]:not(.is-selected) .compare-search-row-cta { color: rgba(255,255,255,0.4); background: rgba(255,255,255,0.06); }
+  .compare-search-empty {
+    padding: 16px;
+    text-align: center;
+    font-size: 12px;
+    color: rgba(255,255,255,0.4);
+  }
+
+  /* Buttons */
+  .compare-btn {
+    border: 0; border-radius: 8px;
+    font-size: 13px; font-weight: 600;
+    padding: 9px 16px;
+    cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  }
+  .compare-btn-primary {
+    background: #1FDF67; color: #000;
+  }
+  .compare-btn-primary:hover:not([disabled]) { background: #18c75a; }
+  .compare-btn-primary[disabled] {
+    background: rgba(255,255,255,0.08);
+    color: rgba(255,255,255,0.3);
+    cursor: not-allowed;
+  }
+  .compare-btn-ghost {
+    background: rgba(255,255,255,0.06);
+    color: rgba(255,255,255,0.85);
+  }
+  .compare-btn-ghost:hover { background: rgba(255,255,255,0.12); color: #fff; }
+
+  /* Toast */
+  .compare-toast {
+    position: fixed;
+    left: 50%; bottom: 32px;
+    transform: translateX(-50%) translateY(20px);
+    background: #1a1a1a;
+    border: 0.5px solid rgba(255,255,255,0.12);
+    color: #fff;
+    font-size: 13px; font-weight: 500;
+    padding: 10px 16px;
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s, transform 0.2s;
+    z-index: 9100;
+  }
+  .compare-toast.open {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  @media (max-width: 480px) {
+    .compare-modal-card { width: 100vw; max-height: 100vh; border-radius: 14px 14px 0 0; align-self: flex-end; }
+    .compare-modal { align-items: flex-end; }
+  }
+
   </style>
 </head>
 <body>
@@ -6423,6 +6698,10 @@
             // Clear the auth hint so future loads don't think they're signed in
             clearMemberCache();
             setAuthHint('anon');
+            window._isPaidMember = false;
+            if (window.comparisons && typeof window.comparisons.clear === 'function') {
+              window.comparisons.clear();
+            }
             authResolved = true;
             updateAuthHeaderUI(null);
             return;
@@ -6482,6 +6761,13 @@
             // Exit favorites view if user logs out
             if (window._favoritesViewActive) window.setFavoritesView(false);
             syncFavoritesUI();
+          }
+
+          // Expose live paid state for compare.js (which reads it through a getter)
+          window._isPaidMember = isPaidMember;
+          // Hydrate the Compare feature's saved-comparisons cache
+          if (window.comparisons && typeof window.comparisons.hydrate === 'function') {
+            await window.comparisons.hydrate();
           }
 
           authResolved = true;
@@ -6667,6 +6953,10 @@
           // this browser as signed-in.
           clearMemberCache();
           setAuthHint('anon');
+          window._isPaidMember = false;
+          if (window.comparisons && typeof window.comparisons.clear === 'function') {
+            window.comparisons.clear();
+          }
           updateAuthHeaderUI(null);
         } catch (e) {
           console.error('[Paywall] Logout error:', e);
@@ -6861,6 +7151,13 @@
                   <svg viewBox="0 0 18 18" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M9 1v16M1 9h16"/></svg>
                   My Favorites
                   ${isPaidMember ? `<span class="auth-dropdown-count fav-count-badge" style="display:${(window._favorites?.size || 0) > 0 ? 'inline-block' : 'none'}">${window._favorites?.size || 0}</span>` : '<span class="auth-dropdown-soon">Pro only</span>'}
+                </button>
+                <button class="auth-dropdown-item" id="authMenuCompare" role="menuitem" data-compare-open>
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="7" height="16" rx="1"/><rect x="14" y="4" width="7" height="16" rx="1"/></svg>
+                  Comparisons
+                  ${isPaidMember
+                    ? `<span class="auth-dropdown-count" id="compareCountBadge" style="display:${(window.comparisons?.list?.().length || 0) > 0 ? 'inline-block' : 'none'}">${window.comparisons?.list?.().length || 0}</span>`
+                    : '<span class="auth-dropdown-soon">Pro only</span>'}
                 </button>
                 <div class="auth-dropdown-sep"></div>
                 <button class="auth-dropdown-item auth-dropdown-signout" id="authMenuSignOut" role="menuitem">
@@ -7162,5 +7459,10 @@
       updateAuthHeaderUI(null);
     })();
   </script>
+
+  <!-- Comparisons feature (PRO only): builder modal + saved-comparison storage.
+       Self-contained module; relies on window.projectSlugify, window.allProjectFeatures,
+       window.$memberstackDom, and the auth hint cache that the paywall code maintains. -->
+  <script src="compare.js"></script>
 </body>
 </html>
