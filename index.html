@@ -1010,13 +1010,15 @@
         right: 0;
         bottom: 0;
         width: 100%;
-        max-height: 65vh;
+        /* Locked height: handle (~26px) + header (~50px) + filter row (~44px)
+           + 5 tile rows (~60px each = 300px) + bottom safe area + slack.
+           Total ~440px so 5 rows always fit without resizing on filter change. */
+        height: calc(440px + var(--safe-area-bottom));
+        max-height: 75vh; /* on very short screens, never go past 75vh */
         border-radius: 18px 18px 0 0;
         border-left: 0;
         border-right: 0;
         border-bottom: 0;
-        /* Match the glass treatment of the search bar at the bottom: lighter
-           translucent fill + saturation boost for that frosted look. */
         background: rgba(15,15,15,0.6);
         backdrop-filter: blur(28px) saturate(1.8);
         -webkit-backdrop-filter: blur(28px) saturate(1.8);
@@ -1025,14 +1027,13 @@
         padding-bottom: var(--safe-area-bottom);
         transform: translateY(0);
         transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
-        /* Mobile: always visible (peeking) -- never fully hides */
         display: flex !important;
       }
-      /* Peek state: only the handle + header are visible, list slides below */
       #pulseStack.peek {
         transform: translateY(calc(100% - 64px - var(--safe-area-bottom)));
       }
-      /* Drag handle (mobile only) */
+      /* Drag handle (mobile only). Wider hit area via ::before so finger
+         can grab anywhere in a 60px tall band around the handle bar. */
       .pulse-sheet-handle {
         display: block;
         width: 44px; height: 5px;
@@ -1040,19 +1041,17 @@
         border-radius: 3px;
         margin: 10px auto 6px;
         cursor: grab;
-        /* Larger invisible hit area for easier touch */
         position: relative;
         touch-action: none;
+        z-index: 5;
       }
       .pulse-sheet-handle::before {
         content: '';
         position: absolute;
-        top: -14px; bottom: -14px;
-        left: -40px; right: -40px;
+        top: -22px; bottom: -22px;
+        left: -80px; right: -80px;
       }
-      .pulse-sheet-handle:active { cursor: grabbing; background: rgba(255,255,255,0.4); }
-      /* While the user is dragging, suspend the slide animation so motion
-         tracks 1:1 with the finger. */
+      .pulse-sheet-handle:active { cursor: grabbing; background: rgba(255,255,255,0.45); }
       #pulseStack.dragging { transition: none; }
     }
     /* Hide the drag handle on desktop -- not relevant there */
@@ -1194,13 +1193,9 @@
       white-space: nowrap;
       align-self: center;
     }
-    .pulse-notif-tag.article    { background: rgba(31,223,103,0.15); color: var(--accent); }
-    .pulse-notif-tag.new        { background: rgba(31,223,103,0.15); color: var(--accent); }
-    .pulse-notif-tag.opening    { background: rgba(31,223,103,0.15); color: var(--accent); }
-    .pulse-notif-tag.now-open   { background: rgba(31,223,103,0.15); color: var(--accent); }
-    .pulse-notif-tag.breaking   { background: rgba(255,211,0,0.12); color: #FFD300; }
-    .pulse-notif-tag.under-c    { background: rgba(255,149,0,0.12); color: #FF9500; }
-    .pulse-notif-tag.announced  { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.55); }
+    .pulse-notif-tag.news   { background: rgba(31,223,103,0.15); color: var(--accent); }
+    .pulse-notif-tag.add    { background: rgba(255,211,0,0.13); color: #FFD300; }
+    .pulse-notif-tag.update { background: rgba(255,149,0,0.14); color: #FF9500; }
 
     .pulse-notif-body {
       flex: 1 1 auto;
@@ -1269,7 +1264,6 @@
     #pulseStack.intro-anim .pulse-notif-wrap:nth-child(3) { animation-delay: 0.21s; }
     #pulseStack.intro-anim .pulse-notif-wrap:nth-child(4) { animation-delay: 0.29s; }
     #pulseStack.intro-anim .pulse-notif-wrap:nth-child(5) { animation-delay: 0.37s; }
-    #pulseStack.intro-anim .pulse-notif-wrap:nth-child(6) { animation-delay: 0.45s; }
     @media (prefers-reduced-motion: reduce) {
       #pulseStack.intro-anim .pulse-notif-wrap { animation: none; }
     }
@@ -4059,9 +4053,9 @@
   </div>
   <div class="pulse-filter-row" id="pulseFilterRow">
     <div class="pulse-filter-pill active" data-filter="all">All</div>
-    <div class="pulse-filter-pill" data-filter="article">Articles</div>
-    <div class="pulse-filter-pill" data-filter="status_change">Status</div>
-    <div class="pulse-filter-pill" data-filter="new_project">New</div>
+    <div class="pulse-filter-pill" data-filter="article">News</div>
+    <div class="pulse-filter-pill" data-filter="status_change">Progress</div>
+    <div class="pulse-filter-pill" data-filter="new_project">Additions</div>
   </div>
   <div id="pulseNotifList">
     <div class="pulse-skel"><div class="pulse-skel-line short"></div><div class="pulse-skel-line long"></div><div class="pulse-skel-line med"></div></div>
@@ -8694,8 +8688,9 @@
     var PULSE_URL = '/pulse.json';
     var STORAGE_LAST_SEEN = 'tmw_pulse_last_seen';
     var STORAGE_DISMISSED = 'tmw_pulse_dismissed';
-    /* How many tiles to show in the dropdown. Stack grows to fit; no scroll. */
-    var MAX_VISIBLE_TILES = 6;
+    /* How many tiles to show in the dropdown. Stack is sized for exactly 5 rows
+       on mobile so it stays a constant height regardless of filter selection. */
+    var MAX_VISIBLE_TILES = 5;
     /* Auto-refresh interval (ms). The backend regenerates pulse.json hourly,
        so polling every 5 minutes catches new events promptly without spamming
        the server. */
@@ -8788,19 +8783,23 @@
       return months + 'mo ago';
     }
 
-    // Map an event to a CSS class that controls the tag pill color
+    // Map an event to a CSS class that controls the tag pill color.
+    // article      -> green pill   "News"
+    // new_project  -> yellow pill  "Add"
+    // status_change -> orange pill "Update"
     function tagClassFor(ev) {
-      if (ev.type === 'article')      return 'article';
-      if (ev.type === 'new_project')  return 'new';
-      if (ev.type === 'status_change') {
-        var t = (ev.tag || '').toLowerCase();
-        if (t.indexOf('opening soon') >= 0)      return 'opening';
-        if (t.indexOf('now open') >= 0)          return 'now-open';
-        if (t.indexOf('breaking ground') >= 0)   return 'breaking';
-        if (t.indexOf('under construction') >= 0) return 'under-c';
-        return 'announced';
-      }
-      return 'announced';
+      if (ev.type === 'article')       return 'news';
+      if (ev.type === 'new_project')   return 'add';
+      if (ev.type === 'status_change') return 'update';
+      return 'news';
+    }
+
+    // Human-readable label for the tag bubble
+    function tagLabelFor(ev) {
+      if (ev.type === 'article')       return 'News';
+      if (ev.type === 'new_project')   return 'Add';
+      if (ev.type === 'status_change') return 'Update';
+      return 'News';
     }
 
     function pinIconSvg() {
@@ -8828,19 +8827,11 @@
       for (var i = 0; i < events.length; i++) {
         var e = events[i];
         var tagCls = tagClassFor(e);
-        // Display label: simplify "On TMW" / etc. to a clean "NEW" pill for
-        // article events; keep stage labels for status-change events.
-        var displayTag = e.type === 'article' || e.type === 'new_project'
-          ? 'New'
-          : (e.tag || '');
-        // Build meta row: time and (if available) city, separated by a dot
-        var metaParts = [timeAgo(e.timestamp)];
-        if (e.city) metaParts.push(pinIconSvg() + escapeHtml(e.city));
-        var metaHtml = '';
-        for (var k = 0; k < metaParts.length; k++) {
-          if (k > 0) metaHtml += '<span class="dot-sep">&middot;</span>';
-          metaHtml += '<span>' + metaParts[k] + '</span>';
-        }
+        var displayTag = tagLabelFor(e);
+        // Meta row: just the relative time. We intentionally don't render
+        // the city/pin here -- it looked busy and didn't add much value
+        // when the project name is already in the headline.
+        var metaHtml = '<span>' + timeAgo(e.timestamp) + '</span>';
         // Article links open in a new tab; map deep-links open in the same tab
         // so the existing handleDeepLink() picks them up.
         var target = e.type === 'article' ? ' target="_blank" rel="noopener"' : '';
@@ -9002,37 +8993,59 @@
       var handle = document.getElementById('pulseSheetHandle');
       if (!handle || !stackEl) return;
 
+      // Drag zone: the handle bar PLUS the entire header area. This way the
+      // user can grab anywhere on the top strip of the sheet to drag it.
+      // The list itself is still scrollable normally; only the top is a drag
+      // zone so list scrolling isn't hijacked.
+      var headerEl = stackEl.querySelector('.pulse-stack-header');
+      var dragZones = [handle];
+      if (headerEl) dragZones.push(headerEl);
+
       var startY = 0;
       var startWasPeek = false;
       var dragging = false;
+      var hasMoved = false;
       var dragOffset = 0;
       var sheetHeight = 0;
+      var activePointerId = null;
+
+      function getY(e) {
+        if (e.touches && e.touches.length) return e.touches[0].clientY;
+        if (e.changedTouches && e.changedTouches.length) return e.changedTouches[0].clientY;
+        return e.clientY;
+      }
 
       function onPointerDown(e) {
         if (!isMobile()) return;
-        // Use the first touch on touch events
-        var p = e.touches ? e.touches[0] : e;
-        startY = p.clientY;
+        // Don't start a drag if the user is interacting with the refresh
+        // button inside the header
+        if (e.target && e.target.closest && e.target.closest('.pulse-refresh-btn')) return;
+        startY = getY(e);
         startWasPeek = stackEl.classList.contains('peek');
         sheetHeight = stackEl.offsetHeight;
         dragging = true;
+        hasMoved = false;
         dragOffset = 0;
+        activePointerId = e.pointerId;
         stackEl.classList.add('dragging');
-        // Capture pointer so we still get events even if finger leaves the handle
-        if (e.pointerId !== undefined && handle.setPointerCapture) {
-          try { handle.setPointerCapture(e.pointerId); } catch (err) {}
+        // Capture so all subsequent move/up events route here even if the
+        // finger drifts off the original target
+        if (e.pointerId !== undefined && e.currentTarget && e.currentTarget.setPointerCapture) {
+          try { e.currentTarget.setPointerCapture(e.pointerId); } catch (err) {}
         }
+        // Prevent text selection / scroll start
         e.preventDefault();
       }
 
       function onPointerMove(e) {
         if (!dragging) return;
-        var p = e.touches ? e.touches[0] : e;
-        var dy = p.clientY - startY;
-        // Constrain motion: drag up from peek can go to fully expanded;
-        // drag down from expanded can go to fully peek (showing 64px header).
-        // We clamp the inline transform between those two extremes.
-        var peekY = sheetHeight - 64; // distance to translate when peeking
+        if (e.pointerId !== undefined && activePointerId !== null && e.pointerId !== activePointerId) return;
+        var y = getY(e);
+        var dy = y - startY;
+        if (Math.abs(dy) > 4) hasMoved = true;
+        // Constrain motion. We translate from 0 (fully expanded) to peekY
+        // (fully peeked, showing only the 64px header strip).
+        var peekY = sheetHeight - 64;
         var startBaseY = startWasPeek ? peekY : 0;
         var nextY = startBaseY + dy;
         if (nextY < 0) nextY = 0;
@@ -9044,51 +9057,64 @@
 
       function onPointerUp(e) {
         if (!dragging) return;
+        if (e.pointerId !== undefined && activePointerId !== null && e.pointerId !== activePointerId) return;
         dragging = false;
+        activePointerId = null;
         stackEl.classList.remove('dragging');
         stackEl.style.transform = '';
-        // Decide final state: if user dragged enough to flip, snap to the
-        // other state. If barely moved, treat as a tap (toggle).
         var peekY = sheetHeight - 64;
-        var threshold = 60;
-        var dy = (e.touches && e.changedTouches ? e.changedTouches[0].clientY : (e.clientY || 0)) - startY;
-        var moved = Math.abs(dy) > 8;
-        if (!moved) {
-          // Tap toggle
+        if (!hasMoved) {
+          // Tap (no drag): toggle peek/expanded
           stackEl.classList.toggle('peek');
-        } else {
-          if (startWasPeek) {
-            // started peeking; if dragged up far enough, expand
-            if (dragOffset < peekY * 0.5) {
-              stackEl.classList.remove('peek');
-            } else {
-              stackEl.classList.add('peek');
-            }
+          return;
+        }
+        // Decide final state based on where the drag ended
+        if (startWasPeek) {
+          // Started peeking; expand if dragged up at least 30% of available range
+          if (dragOffset < peekY * 0.7) {
+            stackEl.classList.remove('peek');
           } else {
-            // started expanded; if dragged down far enough, collapse
-            if (dragOffset > threshold) {
-              stackEl.classList.add('peek');
-            } else {
-              stackEl.classList.remove('peek');
-            }
+            stackEl.classList.add('peek');
+          }
+        } else {
+          // Started expanded; collapse if dragged down at least 60px
+          if (dragOffset > 60) {
+            stackEl.classList.add('peek');
+          } else {
+            stackEl.classList.remove('peek');
           }
         }
       }
 
-      // Pointer events cover mouse + touch + pen on modern browsers. Fall
-      // back to touch events on older iOS Safari versions.
-      if (window.PointerEvent) {
-        handle.addEventListener('pointerdown', onPointerDown);
-        document.addEventListener('pointermove', onPointerMove);
-        document.addEventListener('pointerup', onPointerUp);
-        document.addEventListener('pointercancel', onPointerUp);
-      } else {
-        handle.addEventListener('touchstart', onPointerDown, { passive: false });
-        document.addEventListener('touchmove', onPointerMove, { passive: false });
-        document.addEventListener('touchend', onPointerUp);
+      // Wire the down listener on each drag zone (handle + header)
+      for (var i = 0; i < dragZones.length; i++) {
+        var zone = dragZones[i];
+        if (window.PointerEvent) {
+          zone.addEventListener('pointerdown', onPointerDown);
+          // Pointer move + up must be on the SAME element that captured the
+          // pointer for capture to route events here. Use both element + window
+          // so we never miss the up event.
+          zone.addEventListener('pointermove', onPointerMove);
+          zone.addEventListener('pointerup', onPointerUp);
+          zone.addEventListener('pointercancel', onPointerUp);
+        } else {
+          zone.addEventListener('touchstart', onPointerDown, { passive: false });
+          zone.addEventListener('touchmove', onPointerMove, { passive: false });
+          zone.addEventListener('touchend', onPointerUp);
+          zone.addEventListener('touchcancel', onPointerUp);
+        }
+        // Visual cursor on header drag zone
+        if (zone !== handle) zone.style.cursor = 'grab';
       }
 
-      // Keyboard support: Enter/Space toggles peek
+      // Window-level fallback: if the pointer is released anywhere, clean up.
+      // This protects against finger lifting outside the captured element on
+      // older browsers without proper pointer capture support.
+      window.addEventListener('pointerup', function (e) {
+        if (dragging) onPointerUp(e);
+      });
+
+      // Keyboard support on the handle
       handle.addEventListener('keydown', function (e) {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
@@ -9219,7 +9245,7 @@
        window.$memberstackDom, and the auth hint cache that the paywall code maintains.
        The ?v=2 query string busts any stale cached version after recent revisions. -->
 
-  <script src="compare.js?v=6"></script>
+  <script src="compare.js?v=7"></script>
 
 </body>
 </html>
