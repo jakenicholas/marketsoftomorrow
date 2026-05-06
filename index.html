@@ -1662,6 +1662,10 @@
     .result-item p { margin: 0; font-size: 12px; color: #ccc; }
 
     /* ─── POPUP ───────────────────────────────────────────────────────────── */
+    /* Mapbox popups (project tile previews shown when clicking a pin) need
+       to render ABOVE the Pulse drawer (z 2000) so the project preview is
+       always readable, even with the bottom sheet visible. */
+    .mapboxgl-popup { z-index: 2100; }
     .mapboxgl-popup-content {
       background: rgba(20,20,20,0.8) !important;
       box-shadow: 0 4px 20px rgba(0,0,0,0.3);
@@ -2134,7 +2138,10 @@
   #projectModal {
     display: none;
     position: fixed;
-    z-index: 100;
+    /* Sits above the Pulse drawer (z 2000) so when user opens a project
+       from any context (pin click, popup, deep-link, or pulse tile) the
+       modal cleanly overlays the bottom-sheet pulse drawer. */
+    z-index: 2100;
     background: #0d0d0d;
     overflow: hidden;
     font-family: var(--font-sans, sans-serif);
@@ -3313,6 +3320,14 @@
   /* Drop below the project modal (z-index 100) when a project is opened from
      within the comparison view, so the project modal renders on top. */
   .compare-view.compare-view-bg { z-index: 50; }
+  /* Comparison view takes over the screen. Hide the Pulse drawer + bell
+     entirely while it's active so they don't render between the comparison
+     background (z 50) and the project modal (z 2100) when a project is
+     opened from within compare view. */
+  body.compare-view-active #pulseStack,
+  body.compare-view-active #pulseBellBtn {
+    display: none !important;
+  }
   body.compare-view-active { overflow: hidden; }
 
   /* Map fills the entire viewport */
