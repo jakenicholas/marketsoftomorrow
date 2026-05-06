@@ -2891,43 +2891,41 @@
   }
 
   /* ─── Comparison view (full-screen overlay: map + cards + bottom bar) ───── */
+  /* Layout uses CSS Grid with explicit row sizes so the map container has
+     a deterministic height at the moment Mapbox is constructed. Using flex
+     `flex: 1 1 auto` was causing 0-height races during init. */
   .compare-view {
     position: fixed; inset: 0;
     z-index: 8500;
     background: #0d0d0d;
     color: #fff;
     display: none;
-    flex-direction: column;
+    /* Rows: map (fills remaining), cards (460px), footer (auto) */
+    grid-template-rows: 1fr 460px auto;
+    grid-template-columns: 1fr;
   }
-  .compare-view.open { display: flex; }
+  .compare-view.open { display: grid; }
   /* Drop below the project modal (z-index 100) when a project is opened from
      within the comparison view, so the project modal renders on top. */
   .compare-view.compare-view-bg { z-index: 50; }
   /* When the comparison view is active, prevent the underlying page from scrolling */
   body.compare-view-active { overflow: hidden; }
 
-  /* Map fills the top of the viewport — no header above it.
-     Use an explicit calc height because Mapbox needs a non-zero container
-     size at init time, and flex auto-sizing can momentarily resolve to 0
-     while the cards/footer below are still measuring. */
+  /* Map fills the top remaining viewport — Grid `1fr` row */
   .compare-view-map {
-    flex: 1 1 auto;
     width: 100%;
+    height: 100%;
     position: relative;
     background: #0a0a0a;
-    /* 460px cards strip + ~67px footer (14px×2 padding + 38px button + border) */
-    height: calc(100vh - 460px - 67px);
     min-height: 200px;
   }
 
-  /* Cards — fixed height strip below the map. Tall enough that View project
-     button is fully visible at the bottom of every card. */
+  /* Cards strip — fixed 460px so View project CTA is always fully visible */
   .compare-view-cards-wrap {
-    flex: 0 0 auto;
-    height: 460px;
+    height: 100%;
     overflow-x: auto;
     overflow-y: hidden;
-    padding: 18px 24px 18px;
+    padding: 18px 24px;
     background: #0d0d0d;
     border-top: 0.5px solid rgba(255,255,255,0.06);
     scroll-snap-type: x mandatory;
@@ -2946,9 +2944,8 @@
     height: 100%;
   }
 
-  /* Bottom bar — back arrow, title block, edit + share icons */
+  /* Bottom bar: back arrow (icon-only), title + "By [name]" subtitle, edit + share icons */
   .compare-view-footer {
-    flex: 0 0 auto;
     display: flex; align-items: center; gap: 14px;
     padding: 14px 24px;
     background: #0d0d0d;
@@ -3143,13 +3140,11 @@
   }
 
   @media (max-width: 768px) {
-    /* Mobile already worked well — keep cards taller too */
-    .compare-view-cards-wrap { height: 420px; padding: 14px 14px 14px; }
+    .compare-view { grid-template-rows: 1fr 420px auto; }
+    .compare-view-cards-wrap { padding: 14px 14px; }
     .compare-view-footer { padding: 12px 14px; gap: 10px; }
     .compare-view-back, .compare-view-action { width: 36px; height: 36px; }
     .compare-card { flex: 0 0 84vw; max-width: 320px; }
-    /* 420px cards + ~62px footer */
-    .compare-view-map { height: calc(100vh - 420px - 62px); min-height: 180px; }
   }
 
   </style>
