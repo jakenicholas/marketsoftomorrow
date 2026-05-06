@@ -931,23 +931,27 @@
         left: auto;
       }
     }
-    /* Pink notification bubble overhanging the top-right of the bell.
-       Counts the number of un-dismissed events. Disappears when count = 0. */
+    /* Pink notification bubble. The CENTER of the bubble sits exactly on the
+       top-right corner of the bell button -- so it overhangs evenly to the
+       top and right. Perfect circle (no padding-induced ovaling for 1-2 digit
+       counts; we just shrink the font to fit). */
     .pulse-bell-badge {
       position: absolute;
-      top: -4px; right: -4px;
-      min-width: 18px; height: 18px;
-      padding: 0 5px;
+      top: -10px;
+      right: -10px;
+      width: 20px;
+      height: 20px;
+      padding: 0;
       background: #FF3B6B;
       color: #fff;
-      border-radius: 9px;
+      border-radius: 50%;
       font-size: 10px;
       font-weight: 700;
-      line-height: 18px;
+      line-height: 20px;
       text-align: center;
       border: 2px solid #0a0a0a;
       pointer-events: none;
-      box-sizing: content-box;
+      box-sizing: border-box;
       box-shadow: 0 2px 6px rgba(255,59,107,0.4);
     }
     .pulse-bell-badge[hidden] { display: none; }
