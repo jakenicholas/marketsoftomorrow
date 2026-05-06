@@ -2,8 +2,8 @@ name: Generate Project Pages + Pulse
 
 on:
   schedule:
-    # Runs every night at 2am UTC (10pm EST)
-    - cron: '0 2 * * *'
+    # Runs at the top of every hour
+    - cron: '0 * * * *'
   workflow_dispatch:
     # Also allows manual trigger from GitHub Actions tab
 
