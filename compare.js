@@ -318,7 +318,7 @@
     list.innerHTML = savedComparisons.map(c => {
       const count = c.slugs.length;
       return `
-        <div class="compare-saved-row" data-id="${escapeAttr(c.id)}">
+        <div class="compare-saved-row" data-id="${escapeAttr(c.id)}" data-saved-open="${escapeAttr(c.id)}" role="button" tabindex="0">
           <div class="compare-saved-row-meta">
             <div class="compare-saved-row-name">${escapeHtml(c.name)}</div>
             <div class="compare-saved-row-sub">${count} project${count === 1 ? '' : 's'}</div>
@@ -335,9 +335,27 @@
       `;
     }).join('');
 
-    // Wire actions
+    // Wire actions — open on row click, edit/delete on button click (with stopPropagation)
+    list.querySelectorAll('[data-saved-open]').forEach(row => {
+      row.addEventListener('click', (e) => {
+        // Don't open if the click was on an action button
+        if (e.target.closest('[data-saved-edit], [data-saved-remove]')) return;
+        const id = row.dataset.savedOpen;
+        closeBuilderModal();
+        navigateToComparison(id);
+      });
+      row.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          const id = row.dataset.savedOpen;
+          closeBuilderModal();
+          navigateToComparison(id);
+        }
+      });
+    });
     list.querySelectorAll('[data-saved-edit]').forEach(btn => {
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
         const id = btn.dataset.savedEdit;
         const existing = savedComparisons.find(c => c.id === id);
         if (!existing) return;
@@ -353,7 +371,8 @@
       });
     });
     list.querySelectorAll('[data-saved-remove]').forEach(btn => {
-      btn.addEventListener('click', async () => {
+      btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
         const id = btn.dataset.savedRemove;
         const existing = savedComparisons.find(c => c.id === id);
         if (!existing) return;
@@ -622,8 +641,12 @@
 
     showToast(workingDraft.id ? 'Comparison updated.' : 'Comparison saved.');
     closeBuilderModal();
-    // Notify any list view that data changed
     document.dispatchEvent(new CustomEvent('comparisons:updated'));
+    // Open the comparison view immediately after save so the user sees their
+    // creation rendered. Uses pushState so the URL reflects the active comparison.
+    if (result.entry && result.entry.id) {
+      navigateToComparison(result.entry.id);
+    }
   }
 
   // Listen for our own update event to refresh the saved-count badge in the
@@ -658,6 +681,366 @@
     }[ch]));
   }
   function escapeAttr(s) { return escapeHtml(s); }
+
+  // ─── Comparison view (map + cards) ─────────────────────────────────────
+  // Full-screen overlay with a Mapbox map on top and horizontally scrolling
+  // project cards below. Mounted on demand at /?compare=<id>, torn down when
+  // the user closes — only one Mapbox instance is ever live at a time.
+  let viewEl = null;
+  let viewMap = null;       // mapboxgl.Map instance for the comparison view
+  let viewMapMarkers = [];  // array of mapboxgl.Marker objects (parallel to slugs)
+  let activeComparisonId = null;
+
+  function ensureViewEl() {
+    if (viewEl) return viewEl;
+    viewEl = document.createElement('div');
+    viewEl.id = 'compareView';
+    viewEl.className = 'compare-view';
+    viewEl.innerHTML = `
+      <header class="compare-view-header">
+        <button type="button" class="compare-view-back" aria-label="Close comparison">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+          <span>Back to map</span>
+        </button>
+        <div class="compare-view-titles">
+          <h1 class="compare-view-title"></h1>
+          <div class="compare-view-sub"></div>
+        </div>
+        <div class="compare-view-actions">
+          <button type="button" class="compare-view-action" data-view-action="edit" aria-label="Edit comparison">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            Edit
+          </button>
+          <button type="button" class="compare-view-action compare-view-action-primary" data-view-action="share" aria-label="Share comparison">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+            Share
+          </button>
+        </div>
+      </header>
+      <div class="compare-view-map" id="compareViewMap"></div>
+      <div class="compare-view-cards-wrap">
+        <div class="compare-view-cards" role="list"></div>
+      </div>
+    `;
+    document.body.appendChild(viewEl);
+
+    viewEl.querySelector('.compare-view-back').addEventListener('click', () => {
+      closeComparisonView({ updateUrl: true });
+    });
+    viewEl.querySelector('[data-view-action="edit"]').addEventListener('click', () => {
+      if (!activeComparisonId) return;
+      openBuilderModal({ editId: activeComparisonId });
+    });
+    viewEl.querySelector('[data-view-action="share"]').addEventListener('click', handleShare);
+
+    return viewEl;
+  }
+
+  function getFeatureForSlug(slug) {
+    const features = window.allProjectFeatures || [];
+    for (const f of features) {
+      const s = window.projectSlugify(f.properties.title || '');
+      if (s === slug) return f;
+    }
+    return null;
+  }
+
+  function statusFromDelivery(delivery) {
+    const s = (delivery || '').toLowerCase();
+    if (!s) return { label: 'Announced', color: '#888' };
+    if (s.includes('open') || s.includes('now open')) return { label: 'Now Open', color: '#1FDF67' };
+    if (s.includes('opening') || s.includes('opening soon')) return { label: 'Opening Soon', color: '#1FDF67' };
+    if (s.includes('construction') || s.includes('topping')) return { label: 'Construction', color: '#FFD300' };
+    if (s.includes('breaking ground') || s.includes('groundbreak')) return { label: 'Breaking Ground', color: '#FFD300' };
+    return { label: 'Announced', color: '#888' };
+  }
+
+  function renderComparisonCards(comparison) {
+    const wrap = viewEl.querySelector('.compare-view-cards');
+    const features = comparison.slugs.map(getFeatureForSlug);
+
+    wrap.innerHTML = features.map((f, i) => {
+      if (!f) {
+        return `
+          <div class="compare-card compare-card-missing" role="listitem">
+            <div class="compare-card-num">${i + 1}</div>
+            <div class="compare-card-missing-meta">
+              <strong>Project not found</strong>
+              <span>This project may have been removed.</span>
+            </div>
+          </div>
+        `;
+      }
+      const p = f.properties;
+      const status = statusFromDelivery(p.delivery);
+      const deliveryYear = (p.deliveryDate || p.delivery || '').match(/\b(20\d{2})\b/)?.[1] || '';
+      const dev = (p.developer || '').trim();
+      const arc = (p.architect || '').trim();
+      const type = (p.preferredType && p.preferredType.trim())
+        ? p.preferredType.trim()
+        : (p.projectType ? p.projectType.split(',')[0].trim() : '');
+      const slug = window.projectSlugify(p.title || '');
+      return `
+        <article class="compare-card" role="listitem" data-slug="${escapeAttr(slug)}" data-card-idx="${i}">
+          <div class="compare-card-img-wrap">
+            ${p.image
+              ? `<img class="compare-card-img" src="${escapeAttr(p.image)}" alt="" loading="lazy" />`
+              : `<div class="compare-card-img compare-card-img-empty"></div>`}
+            <div class="compare-card-num">${i + 1}</div>
+          </div>
+          <div class="compare-card-body">
+            <div class="compare-card-title-row">
+              <h3 class="compare-card-title">${escapeHtml(p.title || '')}</h3>
+            </div>
+            <div class="compare-card-city">${escapeHtml(p.city || '')}${type ? ` <span class="compare-card-type">• ${escapeHtml(type)}</span>` : ''}</div>
+            <div class="compare-card-status-row">
+              <span class="compare-card-status" style="background:${status.color}1f;color:${status.color}">
+                ${status.label}
+              </span>
+              ${deliveryYear ? `<span class="compare-card-year">${escapeHtml(deliveryYear)}</span>` : ''}
+            </div>
+            ${dev ? `
+              <div class="compare-card-spec">
+                <div class="compare-card-spec-label">Developer</div>
+                <div class="compare-card-spec-val" title="${escapeAttr(dev)}">${escapeHtml(dev)}</div>
+              </div>` : ''}
+            ${arc ? `
+              <div class="compare-card-spec">
+                <div class="compare-card-spec-label">Architect</div>
+                <div class="compare-card-spec-val" title="${escapeAttr(arc)}">${escapeHtml(arc)}</div>
+              </div>` : ''}
+            <button type="button" class="compare-card-cta" data-open-project="${escapeAttr(slug)}">View project</button>
+          </div>
+        </article>
+      `;
+    }).join('');
+
+    wrap.querySelectorAll('[data-open-project]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const slug = btn.dataset.openProject;
+        const f = getFeatureForSlug(slug);
+        if (f && typeof window.openProjectModal === 'function') {
+          window.openProjectModal(f, 'compare-view');
+        }
+      });
+    });
+
+    wrap.querySelectorAll('.compare-card[data-card-idx]').forEach(card => {
+      const idx = parseInt(card.dataset.cardIdx, 10);
+      card.addEventListener('mouseenter', () => highlightMarker(idx, true));
+      card.addEventListener('mouseleave', () => highlightMarker(idx, false));
+      card.addEventListener('click', (e) => {
+        if (e.target.closest('[data-open-project]')) return;
+        flyToMarker(idx);
+      });
+    });
+  }
+
+  function buildMarkerEl(num, isHighlighted) {
+    const el = document.createElement('div');
+    el.className = 'compare-pin' + (isHighlighted ? ' highlighted' : '');
+    el.innerHTML = `<span class="compare-pin-num">${num}</span>`;
+    return el;
+  }
+
+  function mountComparisonMap(comparison) {
+    if (!window.mapboxgl) {
+      console.warn('[Compare] mapboxgl not available');
+      return;
+    }
+    if (viewMap) {
+      viewMapMarkers.forEach(m => m.remove());
+      viewMapMarkers = [];
+      try { viewMap.remove(); } catch (e) { /* ignore */ }
+      viewMap = null;
+    }
+
+    const features = comparison.slugs.map(getFeatureForSlug).filter(Boolean);
+    if (!features.length) return;
+
+    viewMap = new mapboxgl.Map({
+      container: 'compareViewMap',
+      style: 'mapbox://styles/floridaoftomorrow/clkbk4qlw000a01qw94rj0xa7',
+      center: [features[0].geometry.coordinates[0], features[0].geometry.coordinates[1]],
+      zoom: 9,
+      attributionControl: false,
+      cooperativeGestures: false
+    });
+    viewMap.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'top-right');
+
+    viewMap.on('load', () => {
+      comparison.slugs.forEach((slug, i) => {
+        const f = getFeatureForSlug(slug);
+        if (!f) return;
+        const el = buildMarkerEl(i + 1, false);
+        el.addEventListener('click', () => {
+          const card = viewEl.querySelector(`.compare-card[data-card-idx="${i}"]`);
+          if (card) {
+            card.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+            card.classList.add('is-flashed');
+            setTimeout(() => card.classList.remove('is-flashed'), 800);
+          }
+        });
+        const marker = new mapboxgl.Marker({ element: el, anchor: 'bottom' })
+          .setLngLat(f.geometry.coordinates)
+          .addTo(viewMap);
+        viewMapMarkers.push(marker);
+      });
+
+      if (features.length === 1) {
+        viewMap.flyTo({ center: features[0].geometry.coordinates, zoom: 13, duration: 0 });
+      } else {
+        const bounds = new mapboxgl.LngLatBounds();
+        features.forEach(f => bounds.extend(f.geometry.coordinates));
+        viewMap.fitBounds(bounds, { padding: 80, duration: 0, maxZoom: 14 });
+      }
+    });
+  }
+
+  function highlightMarker(idx, isOn) {
+    const marker = viewMapMarkers[idx];
+    if (!marker) return;
+    const el = marker.getElement();
+    el.classList.toggle('highlighted', !!isOn);
+  }
+
+  function flyToMarker(idx) {
+    const marker = viewMapMarkers[idx];
+    if (!marker || !viewMap) return;
+    viewMap.flyTo({ center: marker.getLngLat(), zoom: 14, duration: 800 });
+    highlightMarker(idx, true);
+    setTimeout(() => highlightMarker(idx, false), 1600);
+  }
+
+  function navigateToComparison(id) {
+    const url = new URL(window.location.href);
+    url.searchParams.set('compare', id);
+    url.searchParams.delete('project');
+    url.searchParams.delete('view');
+    url.searchParams.delete('city');
+    history.pushState({ compare: id }, '', url.toString());
+    openComparisonView(id);
+  }
+
+  function openComparisonView(id) {
+    if (!isSignedIn()) {
+      if (typeof window.showSignupWall === 'function') window.showSignupWall();
+      return;
+    }
+    const comparison = savedComparisons.find(c => c.id === id);
+    if (!comparison) {
+      showToast("That comparison isn't in your account.");
+      const url = new URL(window.location.href);
+      url.searchParams.delete('compare');
+      history.replaceState({}, '', url.toString());
+      return;
+    }
+
+    activeComparisonId = id;
+    const el = ensureViewEl();
+    el.querySelector('.compare-view-title').textContent = comparison.name;
+    const projectCount = comparison.slugs.length;
+    el.querySelector('.compare-view-sub').textContent =
+      `${projectCount} project${projectCount === 1 ? '' : 's'}`;
+
+    el.classList.add('open');
+    document.body.classList.add('compare-view-active');
+
+    renderComparisonCards(comparison);
+    requestAnimationFrame(() => mountComparisonMap(comparison));
+  }
+
+  function closeComparisonView(opts) {
+    opts = opts || {};
+    if (!viewEl) return;
+    viewEl.classList.remove('open');
+    document.body.classList.remove('compare-view-active');
+    activeComparisonId = null;
+
+    if (viewMap) {
+      viewMapMarkers.forEach(m => m.remove());
+      viewMapMarkers = [];
+      try { viewMap.remove(); } catch (e) { /* already removed */ }
+      viewMap = null;
+    }
+
+    if (opts.updateUrl) {
+      const url = new URL(window.location.href);
+      url.searchParams.delete('compare');
+      history.pushState({}, '', url.toString());
+    }
+  }
+
+  async function handleShare() {
+    if (!activeComparisonId) return;
+    const url = new URL(window.location.origin + window.location.pathname);
+    url.searchParams.set('compare', activeComparisonId);
+    const shareUrl = url.toString();
+    const comparison = savedComparisons.find(c => c.id === activeComparisonId);
+    const shareName = comparison ? comparison.name : 'Comparison';
+
+    if (navigator.share) {
+      try { await navigator.share({ title: shareName, url: shareUrl }); return; }
+      catch (e) { /* user dismissed */ }
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      try { await navigator.clipboard.writeText(shareUrl); showToast('Link copied to clipboard.'); return; }
+      catch (e) { /* fall through */ }
+    }
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = shareUrl; ta.setAttribute('readonly', '');
+      ta.style.position = 'absolute'; ta.style.left = '-9999px';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      showToast('Link copied to clipboard.');
+    } catch (e) {
+      showToast('Could not copy link.');
+    }
+  }
+
+  // Public API additions
+  window.comparisons.open = navigateToComparison;
+  window.comparisons.close = (opts) => closeComparisonView(opts || {});
+
+  // ─── URL routing ───────────────────────────────────────────────────────────
+  // On load, check for ?compare=<id>. We can't open it until comparisons have
+  // hydrated from Memberstack — so we wrap hydrate() to chain into the routing.
+  let hydrationDone = false;
+  const originalHydrate = window.comparisons.hydrate;
+  window.comparisons.hydrate = async function () {
+    await originalHydrate();
+    hydrationDone = true;
+    document.dispatchEvent(new CustomEvent('comparisons:hydrated'));
+    maybeRouteToComparisonFromUrl();
+  };
+
+  function maybeRouteToComparisonFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get('compare');
+    if (!id) return;
+    if (!isSignedIn()) {
+      // Anonymous viewer — fire signup wall. After signup, refreshMemberStatus
+      // will run hydrate again, which routes them in.
+      if (typeof window.showSignupWall === 'function') window.showSignupWall();
+      return;
+    }
+    openComparisonView(id);
+  }
+
+  // Browser back/forward navigation
+  window.addEventListener('popstate', () => {
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get('compare');
+    if (id && hydrationDone) {
+      openComparisonView(id);
+    } else {
+      closeComparisonView({ updateUrl: false });
+    }
+  });
 
   // ─── Hook into existing auth flow ────────────────────────────────────────
   // index.html will call window.comparisons.hydrate() once auth resolves.
