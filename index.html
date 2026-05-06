@@ -2906,13 +2906,18 @@
   /* When the comparison view is active, prevent the underlying page from scrolling */
   body.compare-view-active { overflow: hidden; }
 
-  /* Map fills the top of the viewport — no header above it */
+  /* Map fills the top of the viewport — no header above it.
+     Use an explicit calc height because Mapbox needs a non-zero container
+     size at init time, and flex auto-sizing can momentarily resolve to 0
+     while the cards/footer below are still measuring. */
   .compare-view-map {
     flex: 1 1 auto;
     width: 100%;
     position: relative;
     background: #0a0a0a;
-    min-height: 0;
+    /* 460px cards strip + ~67px footer (14px×2 padding + 38px button + border) */
+    height: calc(100vh - 460px - 67px);
+    min-height: 200px;
   }
 
   /* Cards — fixed height strip below the map. Tall enough that View project
@@ -3143,6 +3148,8 @@
     .compare-view-footer { padding: 12px 14px; gap: 10px; }
     .compare-view-back, .compare-view-action { width: 36px; height: 36px; }
     .compare-card { flex: 0 0 84vw; max-width: 320px; }
+    /* 420px cards + ~62px footer */
+    .compare-view-map { height: calc(100vh - 420px - 62px); min-height: 180px; }
   }
 
   </style>
