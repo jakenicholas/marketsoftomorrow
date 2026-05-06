@@ -403,7 +403,19 @@
         max-height: 100dvh;
       }
     }
-    #mobileDrawer.expanded { transform: translateY(0); z-index: 30; }
+    #mobileDrawer.expanded {
+      transform: translateY(0);
+      /* Sit above the Pulse drawer (z 2000) so the tile list overlays
+         the pulse bottom sheet on entrance and while open. */
+      z-index: 2100;
+    }
+    /* Closing state: while the drawer is sliding back down, drop below the
+       pulse drawer so it disappears behind it instead of in front. JS adds
+       this class at the start of the close animation and removes it once
+       the slide-down completes. */
+    #mobileDrawer.closing {
+      z-index: 1900;
+    }
 
     /* ─── MOBILE FLOATING BUTTONS ─────────────────────────────────────────── */
     /* ─── MOBILE SEARCH PILL (Redfin-style) ─────────────────────────────────── */
@@ -2145,6 +2157,11 @@
     background: #0d0d0d;
     overflow: hidden;
     font-family: var(--font-sans, sans-serif);
+  }
+  /* Closing state: while the modal is sliding away, drop it below the pulse
+     drawer so the exit animation plays behind pulse rather than over it. */
+  #projectModal.closing {
+    z-index: 1900;
   }
   /* Desktop: slides over sidebar */
   @media (min-width: 768px) {
@@ -5292,6 +5309,9 @@
         document.querySelector('meta[name="twitter:image"]')?.setAttribute('content', seoImg);
         document.querySelector('meta[name="description"]')?.setAttribute('content', seoDesc);
         modal.style.display = 'block';
+        // Clear any leftover closing class from a previous close that may
+        // not have completed before the user reopened the modal
+        modal.classList.remove('closing');
         requestAnimationFrame(() => {
           requestAnimationFrame(() => modal.classList.add('open'));
         });
@@ -5307,7 +5327,16 @@
 
       function closeModal() {
         modal.classList.remove('open');
-        setTimeout(() => { modal.style.display = 'none'; }, 350);
+        // Drop the modal below the Pulse drawer for the duration of the
+        // slide-away animation, so on exit it visually disappears behind
+        // pulse instead of in front. The CSS .closing rule handles z-index.
+        modal.classList.add('closing');
+        setTimeout(() => {
+          modal.style.display = 'none';
+          // Clean up the closing class once the slide-away animation is
+          // complete and the modal is hidden.
+          modal.classList.remove('closing');
+        }, 350);
         history.pushState({}, '', `?fullscreen=true`);
         // Restore SEO meta to defaults
         document.title = 'Map of Tomorrow | Interactive Future Development Map | Markets of Tomorrow';
@@ -6978,6 +7007,11 @@
       function collapseDrawer() {
         isExpanded = false;
         drawer.classList.remove('expanded');
+        // Add the closing class to drop z-index below the Pulse drawer
+        // for the duration of the slide-down animation. Cleared once the
+        // CSS transition completes. The CSS .closing rule handles the
+        // z-index drop so the drawer disappears behind pulse on exit.
+        drawer.classList.add('closing');
         drawer.style.transform = 'translateY(100%)';
         mapBtn.classList.remove('visible');
         content.scrollTop = 0;
@@ -6988,6 +7022,18 @@
         drawer.classList.remove('scrolled-drawer');
         window.mobileScrollObserver?.disconnect();
         window.mobileScrollLoading = false;
+        // Remove the closing class after the slide-down animation completes
+        // (drawer's CSS transition is 0.35s). Slight buffer to be safe.
+        const cleanup = () => {
+          drawer.classList.remove('closing');
+          drawer.removeEventListener('transitionend', cleanup);
+        };
+        drawer.addEventListener('transitionend', cleanup);
+        // Fallback timer in case transitionend never fires (e.g. element
+        // hidden mid-transition)
+        setTimeout(() => {
+          if (drawer.classList.contains('closing')) drawer.classList.remove('closing');
+        }, 500);
       }
 
       // Toggle header opacity based on scroll position
@@ -7002,6 +7048,9 @@
 
       function expandDrawer() {
         isExpanded = true;
+        // Clear any leftover closing class from a previous close that may
+        // not have completed before the user reopened
+        drawer.classList.remove('closing');
         drawer.classList.add('expanded');
         drawer.style.transform = 'translateY(0)';
         mapBtn.classList.add('visible');
