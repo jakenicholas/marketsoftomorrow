@@ -744,6 +744,29 @@
       <!-- Map (right of drawer on desktop, behind drawer on mobile) -->
       <div class="compare-view-map" id="compareViewMap"></div>
 
+      <!-- Floating controls visible on top of the map in BOTH stack and
+           side-by-side modes. Top-left = close X. Top-right = vertical
+           column of three buttons: mode toggle, edit, share. The mode toggle
+           icon swaps between "side-by-side" and "cards" depending on the
+           active view mode (data-mode on .compare-drawer). -->
+      <button type="button" class="compare-floating-close compare-drawer-close" aria-label="Close comparison">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+      <div class="compare-floating-actions">
+        <button type="button" class="compare-floating-btn" data-view-action="toggle-mode" aria-label="Toggle view mode" title="Toggle view mode">
+          <!-- Stack-mode icon (shown when in stack view): 2 vertical bars = side-by-side -->
+          <svg class="icon-side-by-side" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="7" height="16" rx="1"/><rect x="14" y="4" width="7" height="16" rx="1"/></svg>
+          <!-- Side-mode icon (shown when in side-by-side view): cards stack -->
+          <svg class="icon-stack" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="3" width="14" height="14" rx="2"/><path d="M4 7v12a2 2 0 0 0 2 2h12"/></svg>
+        </button>
+        <button type="button" class="compare-floating-btn" data-view-action="edit" aria-label="Edit comparison" title="Edit">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </button>
+        <button type="button" class="compare-floating-btn" data-view-action="share" aria-label="Share comparison" title="Share">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+        </button>
+      </div>
+
       <!-- Drawer: stacked-card UI on the left (desktop) or bottom (mobile) -->
       <aside class="compare-drawer" data-mode="stack">
         <header class="compare-drawer-header">
@@ -752,9 +775,6 @@
             <h1 class="compare-drawer-title"></h1>
             <div class="compare-drawer-author"></div>
           </div>
-          <button type="button" class="compare-drawer-close" aria-label="Close comparison">
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-          </button>
         </header>
 
         <!-- Stacked card stage -->
@@ -770,25 +790,6 @@
           <div class="compare-deck"></div>
           <div class="compare-deck-dots"></div>
         </div>
-
-        <!-- Quick swap thumbnail row + add chip -->
-        <div class="compare-thumbs"></div>
-
-        <!-- Footer: side-by-side toggle on the left, edit + share on the right -->
-        <footer class="compare-drawer-footer">
-          <button type="button" class="compare-mode-toggle" data-view-action="toggle-mode">
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="7" height="16" rx="1"/><rect x="14" y="4" width="7" height="16" rx="1"/></svg>
-            <span class="compare-mode-toggle-label">Side-by-side</span>
-          </button>
-          <div class="compare-drawer-actions">
-            <button type="button" class="compare-drawer-action" data-view-action="edit" aria-label="Edit comparison" title="Edit">
-              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-            </button>
-            <button type="button" class="compare-drawer-action" data-view-action="share" aria-label="Share comparison" title="Share">
-              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
-            </button>
-          </div>
-        </footer>
       </aside>
 
       <!-- Side-by-side mode: full-width strip of cards beneath the map.
@@ -796,29 +797,14 @@
       <div class="compare-view-cards-wrap" hidden>
         <div class="compare-view-cards" role="list"></div>
       </div>
-
-      <!-- Floating controls visible only in side-by-side mode.
-           The drawer (which hosts the close + mode buttons) is hidden in this
-           mode, so we surface a close button + a "back to stack" toggle here. -->
-      <div class="compare-side-controls">
-        <button type="button" class="compare-drawer-close" aria-label="Close comparison" data-side-close>
-          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-        </button>
-        <button type="button" class="compare-mode-toggle" data-view-action="toggle-mode" style="flex: 0 0 auto;">
-          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="7" height="16" rx="1"/><rect x="14" y="4" width="7" height="16" rx="1"/></svg>
-          <span>Stack view</span>
-        </button>
-      </div>
     `;
     document.body.appendChild(viewEl);
 
-    // Wire close (drawer + side mode share the same close handler)
+    // Wire close (single floating X button at top-left works in both modes)
     const closeAll = () => closeComparisonView({ updateUrl: true });
     viewEl.querySelector('.compare-drawer-close').addEventListener('click', closeAll);
-    const sideClose = viewEl.querySelector('[data-side-close]');
-    if (sideClose) sideClose.addEventListener('click', closeAll);
 
-    // Wire footer actions (delegated so we don't have to re-wire after re-render)
+    // Wire floating-action buttons (delegated so we don't re-wire after re-render)
     viewEl.addEventListener('click', (e) => {
       const target = e.target.closest('[data-view-action]');
       if (!target) return;
@@ -1030,33 +1016,10 @@
     });
   }
 
-  // Render the thumbnail strip (with quick-swap thumbs + the "+ add" chip)
+  // Thumbs row was removed in favor of the floating top-right button column.
+  // Kept as a no-op so existing call sites don't need to change.
   function renderThumbs(comparison) {
-    if (!viewEl) return;
-    const wrap = viewEl.querySelector('.compare-thumbs');
-    const features = comparison.slugs.map(getFeatureForSlug);
-
-    wrap.innerHTML = features.map((f, i) => {
-      const isActive = i === activeCardIdx;
-      const img = f?.properties?.image || '';
-      const title = f?.properties?.title || 'Project not found';
-      return `
-        <button type="button" class="compare-thumb${isActive ? ' active' : ''}"
-                data-thumb="${i}" title="${escapeAttr(title)}"
-                ${img ? `style="background-image:url('${escapeAttr(img)}')"` : ''}>
-          <span class="compare-thumb-num">${i + 1}</span>
-        </button>
-      `;
-    }).join('') + `
-      <button type="button" class="compare-thumb-add" data-view-action="edit" title="Add project">+</button>
-    `;
-
-    wrap.querySelectorAll('[data-thumb]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const i = parseInt(btn.dataset.thumb, 10);
-        if (!Number.isNaN(i)) setActiveCard(i);
-      });
-    });
+    return;
   }
 
   // Active-card helpers: changing the active card re-renders the deck, re-renders
@@ -1103,15 +1066,12 @@
     viewEl.dataset.mode = viewMode;
     const drawer = viewEl.querySelector('.compare-drawer');
     const cardsWrap = viewEl.querySelector('.compare-view-cards-wrap');
-    const toggleLabel = viewEl.querySelector('.compare-mode-toggle-label');
     if (viewMode === 'stack') {
       drawer.removeAttribute('hidden');
       cardsWrap.setAttribute('hidden', '');
-      if (toggleLabel) toggleLabel.textContent = 'Side-by-side';
     } else {
       drawer.setAttribute('hidden', '');
       cardsWrap.removeAttribute('hidden');
-      if (toggleLabel) toggleLabel.textContent = 'Stack';
       renderComparisonCards(comparison);
     }
     if (viewMap) {
@@ -1323,11 +1283,19 @@
       });
 
       if (features.length === 1) {
-        viewMap.flyTo({ center: features[0].geometry.coordinates, zoom: 13, duration: 0 });
+        viewMap.flyTo({ center: features[0].geometry.coordinates, zoom: 11, duration: 0 });
       } else {
         const bounds = new mapboxgl.LngLatBounds();
         features.forEach(f => bounds.extend(f.geometry.coordinates));
-        viewMap.fitBounds(bounds, { padding: 80, duration: 0, maxZoom: 14 });
+        // Asymmetric padding: leave room for the drawer (left/bottom on
+        // mobile, left on desktop) and the side-by-side cards strip
+        // (bottom). maxZoom is held lower to keep all pins in view from
+        // the start rather than zooming in too tightly on close clusters.
+        const isMobileVP = window.innerWidth <= 768;
+        const padding = isMobileVP
+          ? { top: 80, right: 60, bottom: 320, left: 60 }
+          : { top: 100, right: 80, bottom: 100, left: 460 };
+        viewMap.fitBounds(bounds, { padding, duration: 0, maxZoom: 11 });
       }
     });
   }
@@ -1389,8 +1357,7 @@
     // Make sure drawer is shown and side-by-side strip is hidden by default
     el.querySelector('.compare-drawer').removeAttribute('hidden');
     el.querySelector('.compare-view-cards-wrap').setAttribute('hidden', '');
-    const toggleLabel = el.querySelector('.compare-mode-toggle-label');
-    if (toggleLabel) toggleLabel.textContent = 'Side-by-side';
+    el.dataset.mode = 'stack';
 
     el.classList.add('open');
     document.body.classList.add('compare-view-active');
