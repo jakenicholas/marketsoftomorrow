@@ -1310,7 +1310,23 @@
   function flyToMarker(idx) {
     const marker = viewMapMarkers[idx];
     if (!marker || !viewMap) return;
-    viewMap.flyTo({ center: marker.getLngLat(), zoom: 14, duration: 800 });
+    // On mobile the stack drawer (and side-by-side cards strip) take up
+    // ~2/3 of the screen; with no offset the pin would land beneath them.
+    // Use the bottom padding option so Mapbox computes a center that puts
+    // the pin in the upper portion of the visible map area.
+    const isMobileVP = window.innerWidth <= 768;
+    const opts = {
+      center: marker.getLngLat(),
+      zoom: 14,
+      duration: 800,
+      essential: true,
+    };
+    if (isMobileVP) {
+      // Reserve roughly 2/3 of viewport height as "occupied" so the pin
+      // ends up in the top ~1/3 of the screen.
+      opts.padding = { top: 0, right: 0, bottom: Math.round(window.innerHeight * 0.55), left: 0 };
+    }
+    viewMap.flyTo(opts);
     highlightMarker(idx, true);
     setTimeout(() => highlightMarker(idx, false), 1600);
   }
