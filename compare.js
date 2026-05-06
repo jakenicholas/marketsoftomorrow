@@ -730,44 +730,124 @@
   let viewMapMarkers = [];  // array of mapboxgl.Marker objects (parallel to slugs)
   let activeComparisonId = null;
 
+  // Active card index within the comparison (which card is on top of the stack)
+  let activeCardIdx = 0;
+  // 'stack' = stacked card drawer view, 'side' = horizontal scrolling cards
+  let viewMode = 'stack';
+
   function ensureViewEl() {
     if (viewEl) return viewEl;
     viewEl = document.createElement('div');
     viewEl.id = 'compareView';
     viewEl.className = 'compare-view';
     viewEl.innerHTML = `
-      <header class="compare-view-header">
-        <button type="button" class="compare-view-back" aria-label="Close comparison">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
-        </button>
-        <div class="compare-view-titles">
-          <h1 class="compare-view-title"></h1>
-          <div class="compare-view-sub"></div>
-        </div>
-        <div class="compare-view-actions">
-          <button type="button" class="compare-view-action" data-view-action="edit" aria-label="Edit comparison" title="Edit">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-          </button>
-          <button type="button" class="compare-view-action" data-view-action="share" aria-label="Share comparison" title="Share">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
-          </button>
-        </div>
-      </header>
+      <!-- Map (right of drawer on desktop, behind drawer on mobile) -->
       <div class="compare-view-map" id="compareViewMap"></div>
-      <div class="compare-view-cards-wrap">
+
+      <!-- Drawer: stacked-card UI on the left (desktop) or bottom (mobile) -->
+      <aside class="compare-drawer" data-mode="stack">
+        <header class="compare-drawer-header">
+          <div class="compare-drawer-titles">
+            <div class="compare-drawer-eyebrow">Comparing <span class="compare-drawer-count"></span></div>
+            <h1 class="compare-drawer-title"></h1>
+            <div class="compare-drawer-author"></div>
+          </div>
+          <button type="button" class="compare-drawer-close" aria-label="Close comparison">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </header>
+
+        <!-- Stacked card stage -->
+        <div class="compare-deck-stage">
+          <div class="compare-nav-arrows">
+            <button type="button" class="compare-nav-arrow" data-nav="prev" aria-label="Previous project">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
+            <button type="button" class="compare-nav-arrow" data-nav="next" aria-label="Next project">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+          </div>
+          <div class="compare-deck"></div>
+          <div class="compare-deck-dots"></div>
+        </div>
+
+        <!-- Quick swap thumbnail row + add chip -->
+        <div class="compare-thumbs"></div>
+
+        <!-- Footer: side-by-side toggle on the left, edit + share on the right -->
+        <footer class="compare-drawer-footer">
+          <button type="button" class="compare-mode-toggle" data-view-action="toggle-mode">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="7" height="16" rx="1"/><rect x="14" y="4" width="7" height="16" rx="1"/></svg>
+            <span class="compare-mode-toggle-label">Side-by-side</span>
+          </button>
+          <div class="compare-drawer-actions">
+            <button type="button" class="compare-drawer-action" data-view-action="edit" aria-label="Edit comparison" title="Edit">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </button>
+            <button type="button" class="compare-drawer-action" data-view-action="share" aria-label="Share comparison" title="Share">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+            </button>
+          </div>
+        </footer>
+      </aside>
+
+      <!-- Side-by-side mode: full-width strip of cards beneath the map.
+           Hidden by default; shown when user toggles mode. -->
+      <div class="compare-view-cards-wrap" hidden>
         <div class="compare-view-cards" role="list"></div>
+      </div>
+
+      <!-- Floating controls visible only in side-by-side mode.
+           The drawer (which hosts the close + mode buttons) is hidden in this
+           mode, so we surface a close button + a "back to stack" toggle here. -->
+      <div class="compare-side-controls">
+        <button type="button" class="compare-drawer-close" aria-label="Close comparison" data-side-close>
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+        <button type="button" class="compare-mode-toggle" data-view-action="toggle-mode" style="flex: 0 0 auto;">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="7" height="16" rx="1"/><rect x="14" y="4" width="7" height="16" rx="1"/></svg>
+          <span>Stack view</span>
+        </button>
       </div>
     `;
     document.body.appendChild(viewEl);
 
-    viewEl.querySelector('.compare-view-back').addEventListener('click', () => {
-      closeComparisonView({ updateUrl: true });
+    // Wire close (drawer + side mode share the same close handler)
+    const closeAll = () => closeComparisonView({ updateUrl: true });
+    viewEl.querySelector('.compare-drawer-close').addEventListener('click', closeAll);
+    const sideClose = viewEl.querySelector('[data-side-close]');
+    if (sideClose) sideClose.addEventListener('click', closeAll);
+
+    // Wire footer actions (delegated so we don't have to re-wire after re-render)
+    viewEl.addEventListener('click', (e) => {
+      const target = e.target.closest('[data-view-action]');
+      if (!target) return;
+      const action = target.dataset.viewAction;
+      if (action === 'edit') {
+        if (activeComparisonId) openBuilderModal({ editId: activeComparisonId });
+      } else if (action === 'share') {
+        handleShare();
+      } else if (action === 'toggle-mode') {
+        toggleViewMode();
+      }
     });
-    viewEl.querySelector('[data-view-action="edit"]').addEventListener('click', () => {
-      if (!activeComparisonId) return;
-      openBuilderModal({ editId: activeComparisonId });
+
+    // Wire stack arrows (delegated)
+    viewEl.addEventListener('click', (e) => {
+      const arrow = e.target.closest('[data-nav]');
+      if (!arrow) return;
+      if (arrow.dataset.nav === 'prev') stepActiveCard(-1);
+      if (arrow.dataset.nav === 'next') stepActiveCard(1);
     });
-    viewEl.querySelector('[data-view-action="share"]').addEventListener('click', handleShare);
+
+    // Keyboard navigation when comparison is open
+    document.addEventListener('keydown', (e) => {
+      if (!viewEl || !viewEl.classList.contains('open')) return;
+      if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
+      if (e.key === 'ArrowLeft')  stepActiveCard(-1);
+      if (e.key === 'ArrowRight') stepActiveCard(1);
+      if (e.key === 'Escape')     closeComparisonView({ updateUrl: true });
+    });
 
     return viewEl;
   }
@@ -789,6 +869,226 @@
     if (s.includes('construction') || s.includes('topping')) return { label: 'Construction', color: '#FFD300' };
     if (s.includes('breaking ground') || s.includes('groundbreak')) return { label: 'Breaking Ground', color: '#FFD300' };
     return { label: 'Announced', color: '#888' };
+  }
+
+  // Render the stacked-card deck (drawer mode). Shows the active card in front
+  // with up to 2 cards behind it as a peek stack. Re-renders on activeCardIdx change.
+  function renderDeck(comparison) {
+    if (!viewEl) return;
+    const deck = viewEl.querySelector('.compare-deck');
+    const dotsEl = viewEl.querySelector('.compare-deck-dots');
+    const features = comparison.slugs.map(getFeatureForSlug);
+    const total = features.length;
+    if (!total) {
+      deck.innerHTML = '';
+      dotsEl.innerHTML = '';
+      return;
+    }
+
+    // Determine which 1-3 indices to show. Always front + up to 2 behind.
+    // We render the back-most first so DOM order matches z-stacking via CSS classes.
+    const order = [];
+    if (total >= 3) order.push((activeCardIdx + 2) % total); // back-2
+    if (total >= 2) order.push((activeCardIdx + 1) % total); // back-1
+    order.push(activeCardIdx); // front
+
+    deck.innerHTML = order.map((idx, position) => {
+      const f = features[idx];
+      const stackClass = position === order.length - 1 ? 'front'
+                       : position === order.length - 2 ? 'back-1'
+                       : 'back-2';
+      if (!f) {
+        return `
+          <div class="compare-deck-card ${stackClass} compare-deck-card-missing" data-card-idx="${idx}">
+            <div class="compare-deck-card-inner">
+              <strong>Project not found</strong>
+              <span>This project may have been removed.</span>
+            </div>
+          </div>
+        `;
+      }
+      const p = f.properties;
+      const status = statusFromDelivery(p.delivery);
+      const completion = (p.deliveryDate || '').trim() || (p.delivery || '').trim();
+      const dev = (p.developer || '').trim();
+      const arc = (p.architect || '').trim();
+      const type = (p.preferredType && p.preferredType.trim())
+        ? p.preferredType.trim()
+        : (p.projectType ? p.projectType.split(',')[0].trim() : '');
+      const slug = window.projectSlugify(p.title || '');
+      const counter = `${idx + 1} / ${total}`;
+
+      return `
+        <article class="compare-deck-card ${stackClass}" data-slug="${escapeAttr(slug)}" data-card-idx="${idx}">
+          <div class="compare-deck-card-img"${p.image ? ` style="background-image:url('${escapeAttr(p.image)}')"` : ''}>
+            <div class="compare-deck-card-img-overlay"></div>
+            <div class="compare-deck-card-status" style="background:${status.color}26;color:${status.color}">${status.label}</div>
+            <div class="compare-deck-card-counter">${counter}</div>
+          </div>
+          <div class="compare-deck-card-body">
+            <div class="compare-deck-card-city">${escapeHtml(p.city || '')}${type ? ` &middot; ${escapeHtml(type)}` : ''}</div>
+            <h3 class="compare-deck-card-title">${escapeHtml(p.title || '')}</h3>
+
+            <div class="compare-deck-stats">
+              <div class="compare-deck-stat">
+                <div class="compare-deck-stat-k">Delivery</div>
+                <div class="compare-deck-stat-v">${escapeHtml(completion || '--')}</div>
+              </div>
+              <div class="compare-deck-stat">
+                <div class="compare-deck-stat-k">Status</div>
+                <div class="compare-deck-stat-v">${escapeHtml(status.label)}</div>
+              </div>
+              <div class="compare-deck-stat">
+                <div class="compare-deck-stat-k">Developer</div>
+                <div class="compare-deck-stat-v" title="${escapeAttr(dev)}">${escapeHtml(dev || '--')}</div>
+              </div>
+              <div class="compare-deck-stat">
+                <div class="compare-deck-stat-k">Architect</div>
+                <div class="compare-deck-stat-v" title="${escapeAttr(arc)}">${escapeHtml(arc || '--')}</div>
+              </div>
+            </div>
+
+            <button type="button" class="compare-deck-cta" data-open-project="${escapeAttr(slug)}">View project</button>
+          </div>
+        </article>
+      `;
+    }).join('');
+
+    // Pagination dots
+    dotsEl.innerHTML = features.map((_, i) =>
+      `<button type="button" class="compare-deck-dot${i === activeCardIdx ? ' active' : ''}" data-dot="${i}" aria-label="Go to project ${i + 1}"></button>`
+    ).join('');
+
+    // Wire deck card clicks: front card "View project" opens modal;
+    // back cards bring themselves to front when clicked
+    deck.querySelectorAll('[data-open-project]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const slug = btn.dataset.openProject;
+        openProjectFromCompare(slug);
+      });
+    });
+    deck.querySelectorAll('.compare-deck-card').forEach(card => {
+      const idx = parseInt(card.dataset.cardIdx, 10);
+      if (Number.isNaN(idx)) return;
+      // Back cards: clicking brings them to front
+      if (!card.classList.contains('front')) {
+        card.addEventListener('click', () => setActiveCard(idx));
+      }
+    });
+
+    // Wire pagination dots
+    dotsEl.querySelectorAll('[data-dot]').forEach(dot => {
+      dot.addEventListener('click', () => {
+        const i = parseInt(dot.dataset.dot, 10);
+        if (!Number.isNaN(i)) setActiveCard(i);
+      });
+    });
+  }
+
+  // Render the thumbnail strip (with quick-swap thumbs + the "+ add" chip)
+  function renderThumbs(comparison) {
+    if (!viewEl) return;
+    const wrap = viewEl.querySelector('.compare-thumbs');
+    const features = comparison.slugs.map(getFeatureForSlug);
+
+    wrap.innerHTML = features.map((f, i) => {
+      const isActive = i === activeCardIdx;
+      const img = f?.properties?.image || '';
+      const title = f?.properties?.title || 'Project not found';
+      return `
+        <button type="button" class="compare-thumb${isActive ? ' active' : ''}"
+                data-thumb="${i}" title="${escapeAttr(title)}"
+                ${img ? `style="background-image:url('${escapeAttr(img)}')"` : ''}>
+          <span class="compare-thumb-num">${i + 1}</span>
+        </button>
+      `;
+    }).join('') + `
+      <button type="button" class="compare-thumb-add" data-view-action="edit" title="Add project">+</button>
+    `;
+
+    wrap.querySelectorAll('[data-thumb]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const i = parseInt(btn.dataset.thumb, 10);
+        if (!Number.isNaN(i)) setActiveCard(i);
+      });
+    });
+  }
+
+  // Active-card helpers: changing the active card re-renders the deck, re-renders
+  // thumbs, updates pin highlight, and flies the map to the new project.
+  function setActiveCard(idx) {
+    if (!activeComparisonId) return;
+    const comparison = savedComparisons.find(c => c.id === activeComparisonId);
+    if (!comparison || !comparison.slugs.length) return;
+    const total = comparison.slugs.length;
+    const next = ((idx % total) + total) % total;
+    if (next === activeCardIdx) return;
+    activeCardIdx = next;
+    renderDeck(comparison);
+    renderThumbs(comparison);
+    syncActivePin();
+    flyToMarker(activeCardIdx);
+  }
+
+  function stepActiveCard(delta) {
+    if (!activeComparisonId) return;
+    const comparison = savedComparisons.find(c => c.id === activeComparisonId);
+    if (!comparison || !comparison.slugs.length) return;
+    setActiveCard(activeCardIdx + delta);
+  }
+
+  // Update which pin renders in the "active" highlighted state
+  function syncActivePin() {
+    viewMapMarkers.forEach((marker, i) => {
+      const el = marker.getElement();
+      el.classList.toggle('active', i === activeCardIdx);
+    });
+  }
+
+  // Toggle between stacked-card drawer mode and side-by-side horizontal cards.
+  function toggleViewMode() {
+    if (!viewEl) return;
+    const comparison = savedComparisons.find(c => c.id === activeComparisonId);
+    if (!comparison) return;
+    viewMode = viewMode === 'stack' ? 'side' : 'stack';
+    viewEl.dataset.mode = viewMode;
+    const drawer = viewEl.querySelector('.compare-drawer');
+    const cardsWrap = viewEl.querySelector('.compare-view-cards-wrap');
+    const toggleLabel = viewEl.querySelector('.compare-mode-toggle-label');
+    if (viewMode === 'stack') {
+      drawer.removeAttribute('hidden');
+      cardsWrap.setAttribute('hidden', '');
+      if (toggleLabel) toggleLabel.textContent = 'Side-by-side';
+    } else {
+      drawer.setAttribute('hidden', '');
+      cardsWrap.removeAttribute('hidden');
+      if (toggleLabel) toggleLabel.textContent = 'Stack';
+      renderComparisonCards(comparison);
+    }
+    if (viewMap) {
+      requestAnimationFrame(() => {
+        try { viewMap.resize(); } catch (e) { /* ignore */ }
+      });
+    }
+  }
+
+  // Open a project from a comparison card. Drops our z-index below the project
+  // modal so the modal renders on top, then restores it when the modal closes.
+  function openProjectFromCompare(slug) {
+    const f = getFeatureForSlug(slug);
+    if (!f || typeof window.openProjectModal !== 'function') return;
+    viewEl.classList.add('compare-view-bg');
+    window.openProjectModal(f, 'compare-view');
+    const pm = document.getElementById('projectModal');
+    if (!pm) return;
+    const observer = new MutationObserver(() => {
+      if (!pm.classList.contains('open')) {
+        viewEl.classList.remove('compare-view-bg');
+        observer.disconnect();
+      }
+    });
+    observer.observe(pm, { attributes: true, attributeFilter: ['class'] });
   }
 
   function renderComparisonCards(comparison) {
@@ -1026,27 +1326,44 @@
     }
 
     activeComparisonId = id;
+    activeCardIdx = 0;       // start with the first card on top
+    viewMode = 'stack';       // start in stacked drawer mode
+
     const el = ensureViewEl();
-    el.querySelector('.compare-view-title').textContent = comparison.name;
+    el.dataset.mode = viewMode;
+
+    // Header titles inside the drawer
     const projectCount = comparison.slugs.length;
-    const projectsText = `${projectCount} project${projectCount === 1 ? '' : 's'}`;
+    el.querySelector('.compare-drawer-title').textContent = comparison.name;
+    el.querySelector('.compare-drawer-count').textContent =
+      `${projectCount} project${projectCount === 1 ? '' : 's'}`;
     const authorName = (window._memberDisplayName || '').trim();
-    el.querySelector('.compare-view-sub').textContent = authorName
-      ? `By ${authorName}   ${projectsText}`
-      : projectsText;
+    el.querySelector('.compare-drawer-author').textContent = authorName ? `By ${authorName}` : '';
+
+    // Make sure drawer is shown and side-by-side strip is hidden by default
+    el.querySelector('.compare-drawer').removeAttribute('hidden');
+    el.querySelector('.compare-view-cards-wrap').setAttribute('hidden', '');
+    const toggleLabel = el.querySelector('.compare-mode-toggle-label');
+    if (toggleLabel) toggleLabel.textContent = 'Side-by-side';
 
     el.classList.add('open');
     document.body.classList.add('compare-view-active');
 
+    // Render the drawer-mode UI: deck + thumbs
+    renderDeck(comparison);
+    renderThumbs(comparison);
+    // Also pre-render the side-by-side strip for instant toggle response
     renderComparisonCards(comparison);
-    // Wait for the browser to actually paint the now-visible overlay before
-    // constructing Mapbox. A single requestAnimationFrame isn't enough -- it
-    // fires BEFORE the next paint, so the container can still be unmeasured.
-    // Double rAF + a tiny timeout gives the browser time to apply the
-    // display:none   display:flex transition and resolve flex layout.
+
+    // Mount the map after layout has settled. Double rAF + setTimeout(0) is the
+    // tested pattern that survives display:none -> display:grid transitions.
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
-        setTimeout(() => mountComparisonMap(comparison), 0);
+        setTimeout(() => {
+          mountComparisonMap(comparison);
+          // Highlight the active card's pin once markers exist
+          setTimeout(syncActivePin, 100);
+        }, 0);
       });
     });
   }
