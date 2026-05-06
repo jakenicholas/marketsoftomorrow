@@ -931,23 +931,24 @@
         left: auto;
       }
     }
-    /* Unread badge — small green dot at top-right of bell.
-       Hidden by default (server sets it visible when count > 0). */
+    /* Pink notification bubble overhanging the top-right of the bell.
+       Counts the number of un-dismissed events. Disappears when count = 0. */
     .pulse-bell-badge {
       position: absolute;
-      top: 4px; right: 4px;
-      min-width: 16px; height: 16px;
-      padding: 0 4px;
-      background: var(--accent);
-      color: #000;
-      border-radius: 8px;
+      top: -4px; right: -4px;
+      min-width: 18px; height: 18px;
+      padding: 0 5px;
+      background: #FF3B6B;
+      color: #fff;
+      border-radius: 9px;
       font-size: 10px;
       font-weight: 700;
-      line-height: 16px;
+      line-height: 18px;
       text-align: center;
-      border: 2px solid rgba(15,15,15,0.95);
+      border: 2px solid #0a0a0a;
       pointer-events: none;
       box-sizing: content-box;
+      box-shadow: 0 2px 6px rgba(255,59,107,0.4);
     }
     .pulse-bell-badge[hidden] { display: none; }
 
@@ -957,11 +958,12 @@
       position: fixed;
       z-index: 2000;
       width: 320px;
-      max-height: 70vh;
       display: none;
       flex-direction: column;
-      /* No padding here -- children manage their own. The notification list
-         (the only scrolling child) gets its own padding. */
+      /* Stack itself is transparent. Each notification tile carries its own
+         dark background; no bounding box around the group. Height grows to
+         fit the (capped) 6 tiles -- no scrollbar. */
+      background: transparent;
       padding: 0;
     }
     #pulseStack.open { display: flex; }
@@ -1013,15 +1015,17 @@
       font-weight: 700;
       color: var(--accent);
       line-height: 1.2;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.7);
     }
     .pulse-stack-sub {
       font-size: 10px;
-      color: rgba(255,255,255,0.4);
+      color: rgba(255,255,255,0.6);
       line-height: 1.2;
       margin-top: 2px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.7);
     }
 
     /* Each notification card sits inside a wrapper that also holds its
@@ -1091,17 +1095,13 @@
       flex: 0 0 auto;
     }
 
-    /* Scrolling region holds the notification cards. Header + filter pills
-       above stay pinned (#4 in the user's request). */
+    /* Notification list: no scrolling, no max-height. We cap the number of
+       events shown to 6 in JS so the list always fits on screen without
+       scrolling and without cutting off the last tile. */
     #pulseNotifList {
-      flex: 1 1 auto;
-      overflow-y: auto;
+      flex: 0 0 auto;
       padding: 0 0 8px;
-      scrollbar-width: thin;
-      scrollbar-color: rgba(255,255,255,0.15) transparent;
     }
-    #pulseNotifList::-webkit-scrollbar { width: 4px; }
-    #pulseNotifList::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
     .pulse-filter-row::-webkit-scrollbar { display: none; }
     .pulse-filter-pill {
       flex-shrink: 0;
@@ -1127,6 +1127,9 @@
     }
 
     /* Notification card */
+    /* Intro pop-in animation: only runs when the stack first auto-opens
+       on page load. Triggered by adding .intro-anim to #pulseStack; tiles
+       fade + scale in one-by-one with staggered delays. */
     .pulse-notif {
       background: rgba(15,15,15,0.85);
       backdrop-filter: blur(20px) saturate(1.4);
@@ -1140,21 +1143,25 @@
       text-decoration: none;
       color: inherit;
       display: block;
-      animation: pulseNotifSlideIn 0.4s ease-out backwards;
       margin: 0 8px 6px;
     }
     .pulse-notif:last-child { margin-bottom: 0; }
-    .pulse-notif:nth-child(1) { animation-delay: 0s; }
-    .pulse-notif:nth-child(2) { animation-delay: 0.06s; }
-    .pulse-notif:nth-child(3) { animation-delay: 0.12s; }
-    .pulse-notif:nth-child(4) { animation-delay: 0.18s; }
-    .pulse-notif:nth-child(5) { animation-delay: 0.24s; }
-    .pulse-notif:nth-child(6) { animation-delay: 0.30s; }
-    .pulse-notif:nth-child(7) { animation-delay: 0.36s; }
-    .pulse-notif:nth-child(8) { animation-delay: 0.42s; }
-    @keyframes pulseNotifSlideIn {
-      from { transform: translateX(20px); opacity: 0; }
-      to { transform: translateX(0); opacity: 1; }
+    /* Intro animation only when #pulseStack has the .intro-anim class */
+    @keyframes pulseNotifPopIn {
+      from { transform: translateY(-6px) scale(0.96); opacity: 0; }
+      to   { transform: translateY(0) scale(1);       opacity: 1; }
+    }
+    #pulseStack.intro-anim .pulse-notif-wrap {
+      animation: pulseNotifPopIn 0.34s cubic-bezier(0.2, 0.8, 0.3, 1) backwards;
+    }
+    #pulseStack.intro-anim .pulse-notif-wrap:nth-child(1) { animation-delay: 0.05s; }
+    #pulseStack.intro-anim .pulse-notif-wrap:nth-child(2) { animation-delay: 0.18s; }
+    #pulseStack.intro-anim .pulse-notif-wrap:nth-child(3) { animation-delay: 0.31s; }
+    #pulseStack.intro-anim .pulse-notif-wrap:nth-child(4) { animation-delay: 0.44s; }
+    #pulseStack.intro-anim .pulse-notif-wrap:nth-child(5) { animation-delay: 0.57s; }
+    #pulseStack.intro-anim .pulse-notif-wrap:nth-child(6) { animation-delay: 0.70s; }
+    @media (prefers-reduced-motion: reduce) {
+      #pulseStack.intro-anim .pulse-notif-wrap { animation: none; }
     }
     .pulse-notif:hover {
       border-color: rgba(31,223,103,0.3);
@@ -8636,6 +8643,8 @@
     var PULSE_URL = '/pulse.json';
     var STORAGE_LAST_SEEN = 'tmw_pulse_last_seen';
     var STORAGE_DISMISSED = 'tmw_pulse_dismissed';
+    /* How many tiles to show in the dropdown. Stack grows to fit; no scroll. */
+    var MAX_VISIBLE_TILES = 6;
 
     var bellBtn, badgeEl, stackEl, subEl, listEl, filterRowEl, refreshBtn;
     var allEvents = [];
@@ -8665,6 +8674,33 @@
     function clearDismissed() {
       dismissedIds = new Set();
       try { localStorage.removeItem(STORAGE_DISMISSED); } catch (e) {}
+    }
+
+    // Track whether we've shown the auto-open intro yet so we only do it once
+    // per session (not after every refresh button press).
+    var introShown = false;
+
+    function maybeAutoOpen() {
+      if (introShown) return;
+      // Only auto-open if there's something to show
+      var visible = 0;
+      for (var i = 0; i < allEvents.length; i++) {
+        if (!dismissedIds.has(allEvents[i].id)) visible++;
+      }
+      if (visible === 0) return;
+      introShown = true;
+      // 2 second delay after load before opening
+      setTimeout(function () {
+        if (!stackEl || isStackOpen()) return;
+        stackEl.classList.add('intro-anim');
+        openStack();
+        // Remove the intro-anim class once the staggered tile animations
+        // finish so future re-renders (filter changes, dismissals) don't
+        // replay the intro pop-in.
+        setTimeout(function () {
+          if (stackEl) stackEl.classList.remove('intro-anim');
+        }, 1300);
+      }, 2000);
     }
 
     function escapeHtml(s) {
@@ -8720,6 +8756,10 @@
       if (activeFilter !== 'all') {
         events = events.filter(function (e) { return e.type === activeFilter; });
       }
+      // Cap to the most recent N tiles so the stack fits on screen without
+      // scrolling. pulse.json is already sorted newest-first so .slice(0, N)
+      // preserves the recency order.
+      events = events.slice(0, MAX_VISIBLE_TILES);
       if (!events.length) {
         listEl.innerHTML = '<div class="pulse-empty">No activity right now.<br>Tap refresh to reload.</div>';
         return;
@@ -8769,6 +8809,7 @@
           persistDismissed();
           renderEvents();
           updateHeader();
+          updateBadge();
         });
       }
     }
@@ -8815,9 +8856,15 @@
 
     function updateBadge() {
       if (!badgeEl) return;
-      var unread = unreadCount();
-      if (unread > 0) {
-        badgeEl.textContent = unread > 99 ? '99+' : String(unread);
+      // Count non-dismissed events. The badge disappears once user clears
+      // (dismisses) all of them. Reappears after the refresh button or a new
+      // pulse.json load brings events back.
+      var visible = 0;
+      for (var i = 0; i < allEvents.length; i++) {
+        if (!dismissedIds.has(allEvents[i].id)) visible++;
+      }
+      if (visible > 0) {
+        badgeEl.textContent = visible > 99 ? '99+' : String(visible);
         badgeEl.removeAttribute('hidden');
       } else {
         badgeEl.setAttribute('hidden', '');
@@ -8891,6 +8938,9 @@
           updateBadge();
           renderEvents();
           done();
+          // After first successful load, auto-open the stack with intro
+          // animation. Subsequent loads (from refresh button) skip this.
+          maybeAutoOpen();
         })
         .catch(function (err) {
           console.warn('[Pulse] failed to load:', err && err.message);
