@@ -7095,8 +7095,8 @@
 
           // Expose live paid state for compare.js (which reads it through a getter)
           window._isPaidMember = isPaidMember;
-          // Expose user display name so the comparison view can render "By [Name]"
-          const cf = member.customFields || {};
+          // Expose user display name so the comparison view can render "By [Name]".
+          // Reuse `cf` from earlier in this function (member.customFields).
           const firstName = cf['first-name'] || cf.firstName || '';
           const lastName  = cf['last-name']  || cf.lastName  || '';
           let displayName = (firstName + ' ' + lastName).trim();
