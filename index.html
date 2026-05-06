@@ -956,34 +956,33 @@
     #pulseStack {
       position: fixed;
       z-index: 2000;
-      width: 340px;
+      width: 320px;
       max-height: 70vh;
       display: none;
       flex-direction: column;
-      gap: 6px;
-      overflow-y: auto;
-      padding: 8px 4px 8px 0;
-      scrollbar-width: thin;
-      scrollbar-color: rgba(255,255,255,0.15) transparent;
+      /* No padding here -- children manage their own. The notification list
+         (the only scrolling child) gets its own padding. */
+      padding: 0;
     }
-    #pulseStack::-webkit-scrollbar { width: 4px; }
-    #pulseStack::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
     #pulseStack.open { display: flex; }
 
     @media(min-width:801px) {
       #pulseStack {
-        top: calc(60px + var(--safe-area-top) + 36px + 8px);
-        right: calc(15px + var(--safe-area-right));
+        /* Top-aligned with bell button, sits to the left of the right-side
+           button column with the same 10px gap that buttons have between each
+           other vertically. 15px page edge + 36px button + 10px = 61px from edge. */
+        top: calc(60px + var(--safe-area-top));
+        right: calc(15px + 36px + 10px + var(--safe-area-right));
       }
     }
     @media(max-width:800px) {
-      /* On mobile, pulse stack becomes near full-width and slides in from the right */
+      /* On mobile: top-aligned with bell, full-width-ish drawer to the left */
       #pulseStack {
         top: calc(var(--safe-area-top) + 10px + 36px + 10px);
-        right: calc(var(--safe-area-right) + 8px);
-        left: calc(var(--safe-area-left) + 8px);
+        right: calc(var(--safe-area-right) + 15px + 36px + 10px);
+        left: calc(var(--safe-area-left) + 15px);
         width: auto;
-        max-height: calc(100vh - var(--safe-area-top) - var(--safe-area-bottom) - 60px);
+        max-height: calc(100vh - var(--safe-area-top) - var(--safe-area-bottom) - 80px);
       }
     }
 
@@ -992,6 +991,7 @@
       align-items: center;
       justify-content: space-between;
       padding: 6px 10px 4px 10px;
+      flex: 0 0 auto;
     }
     .pulse-stack-header-left { display: flex; align-items: center; gap: 8px; min-width: 0; }
     .pulse-dot {
@@ -1024,14 +1024,84 @@
       text-overflow: ellipsis;
     }
 
+    /* Each notification card sits inside a wrapper that also holds its
+       dismiss (X) button as a positioned overlay. */
+    .pulse-notif-wrap {
+      position: relative;
+    }
+    .pulse-notif-close {
+      position: absolute;
+      top: 6px; right: 14px;
+      width: 22px; height: 22px;
+      padding: 0;
+      background: rgba(0,0,0,0.5);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 50%;
+      color: rgba(255,255,255,0.6);
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0;
+      transition: opacity 0.15s, color 0.15s, background 0.15s;
+      z-index: 2;
+    }
+    .pulse-notif-wrap:hover .pulse-notif-close,
+    .pulse-notif-close:focus {
+      opacity: 1;
+    }
+    .pulse-notif-close:hover {
+      color: #fff;
+      background: rgba(0,0,0,0.75);
+    }
+    /* Always show on touch devices since hover doesn't apply */
+    @media (hover: none) {
+      .pulse-notif-close { opacity: 0.85; }
+    }
+
+    /* Refresh button in the Pulse header */
+    .pulse-refresh-btn {
+      width: 28px; height: 28px;
+      padding: 0;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 50%;
+      color: rgba(255,255,255,0.7);
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      transition: background 0.15s, color 0.15s, transform 0.4s;
+    }
+    .pulse-refresh-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
+    .pulse-refresh-btn.spinning {
+      animation: pulseRefreshSpin 0.7s linear;
+    }
+    @keyframes pulseRefreshSpin {
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(360deg); }
+    }
+
     /* Filter pill row */
     .pulse-filter-row {
       display: flex;
       gap: 5px;
       overflow-x: auto;
-      padding: 2px 8px 4px 8px;
+      /* Padding matches the notification cards' margin (8px) so the pills
+         visually line up with the tiles below. */
+      padding: 2px 8px 8px 8px;
       scrollbar-width: none;
+      flex: 0 0 auto;
     }
+
+    /* Scrolling region holds the notification cards. Header + filter pills
+       above stay pinned (#4 in the user's request). */
+    #pulseNotifList {
+      flex: 1 1 auto;
+      overflow-y: auto;
+      padding: 0 0 8px;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255,255,255,0.15) transparent;
+    }
+    #pulseNotifList::-webkit-scrollbar { width: 4px; }
+    #pulseNotifList::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
     .pulse-filter-row::-webkit-scrollbar { display: none; }
     .pulse-filter-pill {
       flex-shrink: 0;
@@ -1063,7 +1133,7 @@
       -webkit-backdrop-filter: blur(20px) saturate(1.4);
       border: 1px solid rgba(255,255,255,0.1);
       border-radius: 12px;
-      padding: 12px 14px;
+      padding: 12px 14px 12px 14px;
       box-shadow: 0 8px 24px rgba(0,0,0,0.4);
       cursor: pointer;
       transition: border-color 0.2s, background 0.2s, transform 0.2s;
@@ -1071,8 +1141,9 @@
       color: inherit;
       display: block;
       animation: pulseNotifSlideIn 0.4s ease-out backwards;
-      margin: 0 8px;
+      margin: 0 8px 6px;
     }
+    .pulse-notif:last-child { margin-bottom: 0; }
     .pulse-notif:nth-child(1) { animation-delay: 0s; }
     .pulse-notif:nth-child(2) { animation-delay: 0.06s; }
     .pulse-notif:nth-child(3) { animation-delay: 0.12s; }
@@ -1095,6 +1166,9 @@
       align-items: center;
       gap: 8px;
       margin-bottom: 6px;
+      /* Reserve room on the right so the time stamp doesn't sit under the X
+         dismiss button which is positioned over the top-right corner. */
+      padding-right: 22px;
     }
     .pulse-notif-tag {
       display: inline-flex;
@@ -1126,6 +1200,7 @@
       font-weight: 600;
       line-height: 1.35;
       margin-bottom: 4px;
+      color: #fff;
     }
     .pulse-notif-meta {
       font-size: 11px;
@@ -3919,6 +3994,13 @@
             <div class="pulse-stack-sub" id="pulseStackSub">Loading...</div>
           </div>
         </div>
+        <button type="button" id="pulseRefreshBtn" class="pulse-refresh-btn" aria-label="Refresh Pulse" title="Refresh">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="23 4 23 10 17 10"/>
+            <polyline points="1 20 1 14 7 14"/>
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+          </svg>
+        </button>
       </div>
       <div class="pulse-filter-row" id="pulseFilterRow">
         <div class="pulse-filter-pill active" data-filter="all">All</div>
@@ -8553,12 +8635,37 @@
 
     var PULSE_URL = '/pulse.json';
     var STORAGE_LAST_SEEN = 'tmw_pulse_last_seen';
+    var STORAGE_DISMISSED = 'tmw_pulse_dismissed';
 
-    var bellBtn, badgeEl, stackEl, subEl, listEl, filterRowEl;
+    var bellBtn, badgeEl, stackEl, subEl, listEl, filterRowEl, refreshBtn;
     var allEvents = [];
     var activeFilter = 'all';
     var generatedAt = null;
     var hasLoaded = false;
+    // IDs of events the user has explicitly dismissed (X button on tile).
+    // Persisted in localStorage so dismissals survive reloads.
+    var dismissedIds = (function () {
+      try {
+        var raw = localStorage.getItem(STORAGE_DISMISSED);
+        if (!raw) return new Set();
+        var parsed = JSON.parse(raw);
+        return new Set(Array.isArray(parsed) ? parsed : []);
+      } catch (e) { return new Set(); }
+    })();
+
+    function persistDismissed() {
+      try {
+        // Convert Set to plain array for JSON.stringify
+        var arr = [];
+        dismissedIds.forEach(function (id) { arr.push(id); });
+        localStorage.setItem(STORAGE_DISMISSED, JSON.stringify(arr));
+      } catch (e) {}
+    }
+
+    function clearDismissed() {
+      dismissedIds = new Set();
+      try { localStorage.removeItem(STORAGE_DISMISSED); } catch (e) {}
+    }
 
     function escapeHtml(s) {
       return (s == null ? '' : String(s)).replace(/[&<>"']/g, function (c) {
@@ -8606,34 +8713,64 @@
 
     function renderEvents() {
       if (!listEl) return;
-      var events = allEvents;
+      var events = allEvents.filter(function (e) {
+        // Hide events the user has dismissed
+        return !dismissedIds.has(e.id);
+      });
       if (activeFilter !== 'all') {
         events = events.filter(function (e) { return e.type === activeFilter; });
       }
       if (!events.length) {
-        listEl.innerHTML = '<div class="pulse-empty">No activity yet.<br>Check back soon.</div>';
+        listEl.innerHTML = '<div class="pulse-empty">No activity right now.<br>Tap refresh to reload.</div>';
         return;
       }
       var html = '';
       for (var i = 0; i < events.length; i++) {
         var e = events[i];
         var tagCls = tagClassFor(e);
+        // Display label: simplify "On TMW" / etc. to a clean "NEW" pill for
+        // article events; keep stage labels (Breaking Ground, etc.) verbatim
+        // for status-change events.
+        var displayTag = e.type === 'article' || e.type === 'new_project'
+          ? 'New'
+          : (e.tag || '');
         var meta = e.city
           ? '<div class="pulse-notif-meta">' + pinIconSvg() + escapeHtml(e.city) + '</div>'
           : '';
         // Article links open in a new tab; map deep-links open in the same tab
         // so the existing handleDeepLink() picks them up.
         var target = e.type === 'article' ? ' target="_blank" rel="noopener"' : '';
-        html += '<a class="pulse-notif" href="' + escapeHtml(e.link || '#') + '"' + target + '>'
-              +   '<div class="pulse-notif-top">'
-              +     '<span class="pulse-notif-tag ' + tagCls + '">' + escapeHtml(e.tag || '') + '</span>'
-              +     '<span class="pulse-notif-time">' + timeAgo(e.timestamp) + '</span>'
-              +   '</div>'
-              +   '<div class="pulse-notif-title">' + escapeHtml(e.title || '') + '</div>'
-              +   meta
-              + '</a>';
+        var safeId = escapeHtml(e.id || '');
+        html += '<div class="pulse-notif-wrap">'
+              +   '<a class="pulse-notif" href="' + escapeHtml(e.link || '#') + '"' + target + '>'
+              +     '<div class="pulse-notif-top">'
+              +       '<span class="pulse-notif-tag ' + tagCls + '">' + escapeHtml(displayTag) + '</span>'
+              +       '<span class="pulse-notif-time">' + timeAgo(e.timestamp) + '</span>'
+              +     '</div>'
+              +     '<div class="pulse-notif-title">' + escapeHtml(e.title || '') + '</div>'
+              +     meta
+              +   '</a>'
+              +   '<button type="button" class="pulse-notif-close" data-dismiss="' + safeId + '" aria-label="Dismiss">'
+              +     '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>'
+              +   '</button>'
+              + '</div>';
       }
       listEl.innerHTML = html;
+
+      // Wire dismiss buttons
+      var closes = listEl.querySelectorAll('[data-dismiss]');
+      for (var j = 0; j < closes.length; j++) {
+        closes[j].addEventListener('click', function (ev) {
+          ev.preventDefault();
+          ev.stopPropagation();
+          var id = ev.currentTarget.getAttribute('data-dismiss');
+          if (!id) return;
+          dismissedIds.add(id);
+          persistDismissed();
+          renderEvents();
+          updateHeader();
+        });
+      }
     }
 
     function setupFilters() {
@@ -8667,9 +8804,12 @@
 
     function updateHeader() {
       if (!subEl) return;
-      var count = allEvents.length;
-      subEl.textContent = count
-        ? count + ' update' + (count === 1 ? '' : 's') + ' this week'
+      var visibleCount = 0;
+      for (var i = 0; i < allEvents.length; i++) {
+        if (!dismissedIds.has(allEvents[i].id)) visibleCount++;
+      }
+      subEl.textContent = visibleCount
+        ? visibleCount + ' update' + (visibleCount === 1 ? '' : 's') + ' this week'
         : 'No updates';
     }
 
@@ -8734,7 +8874,8 @@
       });
     }
 
-    function loadPulse() {
+    function loadPulse(onComplete) {
+      var done = function () { if (typeof onComplete === 'function') onComplete(); };
       // Pulse.json sits at the site root, same origin as index.html.
       // cache: 'no-store' so we always get the latest after the nightly job runs.
       fetch(PULSE_URL, { cache: 'no-store' })
@@ -8749,13 +8890,21 @@
           updateHeader();
           updateBadge();
           renderEvents();
+          done();
         })
         .catch(function (err) {
           console.warn('[Pulse] failed to load:', err && err.message);
-          // Hide the bell entirely if the feed isn't reachable so we don't
-          // dangle a broken UI element.
-          if (bellBtn) bellBtn.style.display = 'none';
-          if (stackEl) stackEl.style.display = 'none';
+          // Render a graceful empty state so the bell stays visible. Once
+          // pulse.json gets generated by the nightly workflow, the next reload
+          // will pick it up.
+          allEvents = [];
+          hasLoaded = true;
+          if (subEl) subEl.textContent = 'No updates yet';
+          if (badgeEl) badgeEl.setAttribute('hidden', '');
+          if (listEl) {
+            listEl.innerHTML = '<div class="pulse-empty">No activity yet.<br>Pulse data will appear once the nightly workflow runs.</div>';
+          }
+          done();
         });
     }
 
@@ -8766,10 +8915,33 @@
       subEl        = document.getElementById('pulseStackSub');
       listEl       = document.getElementById('pulseNotifList');
       filterRowEl  = document.getElementById('pulseFilterRow');
+      refreshBtn   = document.getElementById('pulseRefreshBtn');
       if (!bellBtn || !stackEl) return; // markup missing; bail
       setupBellToggle();
       setupFilters();
+      setupRefresh();
       loadPulse();
+    }
+
+    // Refresh button: clear dismissed list (so all events return) and re-fetch.
+    function setupRefresh() {
+      if (!refreshBtn) return;
+      refreshBtn.addEventListener('click', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        // Tiny visual hint that refresh is running
+        refreshBtn.classList.add('spinning');
+        clearDismissed();
+        // Show skeleton state immediately
+        if (listEl) {
+          listEl.innerHTML = ''
+            + '<div class="pulse-skel"><div class="pulse-skel-line short"></div><div class="pulse-skel-line long"></div><div class="pulse-skel-line med"></div></div>'
+            + '<div class="pulse-skel"><div class="pulse-skel-line short"></div><div class="pulse-skel-line long"></div><div class="pulse-skel-line med"></div></div>';
+        }
+        loadPulse(function () {
+          refreshBtn.classList.remove('spinning');
+        });
+      });
     }
 
     if (document.readyState === 'loading') {
