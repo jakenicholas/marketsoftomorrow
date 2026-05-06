@@ -1197,7 +1197,9 @@
       display: flex;
       align-items: flex-start;
       gap: 10px;
-      padding: 12px 36px 12px 14px;
+      /* Top padding bumped so date + title sit visually anchored near the
+         top of the tile rather than vertically centered. */
+      padding: 14px 36px 12px 14px;
       border-bottom: 1px solid rgba(255,255,255,0.04);
       color: #fff;
       text-decoration: none;
@@ -1216,7 +1218,10 @@
       letter-spacing: 0.06em;
       line-height: 1;
       white-space: nowrap;
-      align-self: center;
+      /* Top-align with the date row (which is now the first row in the body)
+         so the tag pill anchors to the same baseline as the timestamp. */
+      align-self: flex-start;
+      margin-top: 1px;
     }
     .pulse-notif-tag.news   { background: rgba(31,223,103,0.15); color: var(--accent); }
     .pulse-notif-tag.add    { background: rgba(255,211,0,0.13); color: #FFD300; }
@@ -1226,27 +1231,15 @@
       flex: 1 1 auto;
       min-width: 0;
     }
-    .pulse-notif-title {
-      font-size: 13px;
-      font-weight: 600;
-      line-height: 1.3;
-      color: #fff;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-      margin-bottom: 3px;
-      /* Reserve exactly 2 lines of height so every tile is the same height
-         regardless of whether the title is one or two lines long. Computed
-         as line-height * 2 + safety: 13px * 1.3 * 2 = 33.8px. */
-      min-height: 34px;
-    }
+    /* Date (meta) sits above the title now */
     .pulse-notif-meta {
       font-size: 10px;
       color: rgba(255,255,255,0.4);
       display: flex;
       align-items: center;
       gap: 6px;
+      line-height: 1;
+      margin-bottom: 5px;
     }
     .pulse-notif-meta .pulse-pin-icon {
       width: 9px; height: 9px;
@@ -1257,12 +1250,25 @@
     .pulse-notif-meta .dot-sep {
       color: rgba(255,255,255,0.2);
     }
+    .pulse-notif-title {
+      font-size: 13px;
+      font-weight: 600;
+      line-height: 1.3;
+      color: #fff;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      /* Reserve exactly 2 lines of height so every tile is the same height
+         regardless of whether the title is one or two lines long. Computed
+         as line-height * 2 + safety: 13px * 1.3 * 2 = 33.8px. */
+      min-height: 34px;
+    }
 
     .pulse-notif-close {
       position: absolute;
-      top: 50%;
+      top: 10px;
       right: 10px;
-      transform: translateY(-50%);
       width: 22px; height: 22px;
       padding: 0;
       background: transparent;
@@ -8850,8 +8856,8 @@
               +   '<a class="pulse-notif" href="' + escapeHtml(e.link || '#') + '"' + target + eventTypeAttr + '>'
               +     '<span class="pulse-notif-tag ' + tagCls + '">' + escapeHtml(displayTag) + '</span>'
               +     '<div class="pulse-notif-body">'
-              +       '<div class="pulse-notif-title">' + escapeHtml(e.title || '') + '</div>'
               +       '<div class="pulse-notif-meta">' + metaHtml + '</div>'
+              +       '<div class="pulse-notif-title">' + escapeHtml(e.title || '') + '</div>'
               +     '</div>'
               +   '</a>'
               +   '<button type="button" class="pulse-notif-close" data-dismiss="' + safeId + '" aria-label="Dismiss">'
