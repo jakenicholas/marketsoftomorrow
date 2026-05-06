@@ -871,9 +871,48 @@
     return { label: 'Announced', color: '#888' };
   }
 
+  // Construction timeline matching the project modal's pm-progress component.
+  // Stages and colors are intentionally identical so the visual reads the same
+  // across the comparison view and the full project modal.
+  const COMPARE_PROGRESS_STAGES = [
+    { key: 'announced',         label: 'Announced',       pct: 10,  color: 'rgba(255,255,255,0.4)' },
+    { key: 'breaking ground',   label: 'Breaking Ground', pct: 30,  color: '#FFD300' },
+    { key: 'under construction', label: 'Construction',    pct: 60,  color: '#FF9500' },
+    { key: 'opening soon',      label: 'Opening Soon',    pct: 85,  color: '#1FDF67' },
+    { key: 'now open',          label: 'Now Open',        pct: 100, color: '#1FDF67' },
+  ];
+
+  function buildCompareProgress(delivery) {
+    const d = (delivery || '').toLowerCase().trim();
+    const si = COMPARE_PROGRESS_STAGES.find(s => d.includes(s.key)) || COMPARE_PROGRESS_STAGES[0];
+    const idx = COMPARE_PROGRESS_STAGES.indexOf(si);
+    const color = si.color;
+    const steps = COMPARE_PROGRESS_STAGES.map((s, i) => {
+      let cls = 'compare-progress-step';
+      if (i < idx) cls += ' done';
+      else if (i === idx) cls += ' active';
+      return `<div class="${cls}" style="--stage-color:${color}"></div>`;
+    }).join('');
+    const labels = COMPARE_PROGRESS_STAGES.map((s, i) =>
+      `<span class="compare-progress-step-label${i === idx ? ' cur' : ''}" style="${i === idx ? '--stage-color:' + color : ''}">${s.label}</span>`
+    ).join('');
+    return `
+      <div class="compare-progress">
+        <div class="compare-progress-top">
+          <span class="compare-progress-stage" style="color:${color}">${si.label}</span>
+          <span class="compare-progress-pct">${si.pct}%</span>
+        </div>
+        <div class="compare-progress-steps">${steps}</div>
+        <div class="compare-progress-step-labels">${labels}</div>
+      </div>
+    `;
+  }
+
+
   // Render the stacked-card deck (drawer mode). Shows the active card in front
   // with up to 2 cards behind it as a peek stack. Re-renders on activeCardIdx change.
-  function renderDeck(comparison) {
+  // `direction` (optional 'next'|'prev') controls the flip-in animation.
+  function renderDeck(comparison, direction) {
     if (!viewEl) return;
     const deck = viewEl.querySelector('.compare-deck');
     const dotsEl = viewEl.querySelector('.compare-deck-dots');
@@ -894,9 +933,13 @@
 
     deck.innerHTML = order.map((idx, position) => {
       const f = features[idx];
-      const stackClass = position === order.length - 1 ? 'front'
-                       : position === order.length - 2 ? 'back-1'
-                       : 'back-2';
+      const isFront = position === order.length - 1;
+      let stackClass = isFront ? 'front'
+                     : position === order.length - 2 ? 'back-1'
+                     : 'back-2';
+      // Add a one-shot animation class to the front card so it flips in
+      if (isFront && direction === 'next')      stackClass += ' anim-flip-next';
+      else if (isFront && direction === 'prev') stackClass += ' anim-flip-prev';
       if (!f) {
         return `
           <div class="compare-deck-card ${stackClass} compare-deck-card-missing" data-card-idx="${idx}">
@@ -922,12 +965,13 @@
         <article class="compare-deck-card ${stackClass}" data-slug="${escapeAttr(slug)}" data-card-idx="${idx}">
           <div class="compare-deck-card-img"${p.image ? ` style="background-image:url('${escapeAttr(p.image)}')"` : ''}>
             <div class="compare-deck-card-img-overlay"></div>
-            <div class="compare-deck-card-status" style="background:${status.color}26;color:${status.color}">${status.label}</div>
             <div class="compare-deck-card-counter">${counter}</div>
           </div>
           <div class="compare-deck-card-body">
             <div class="compare-deck-card-city">${escapeHtml(p.city || '')}${type ? ` &middot; ${escapeHtml(type)}` : ''}</div>
             <h3 class="compare-deck-card-title">${escapeHtml(p.title || '')}</h3>
+
+            ${buildCompareProgress(p.delivery)}
 
             <div class="compare-deck-stats">
               <div class="compare-deck-stat">
@@ -1024,8 +1068,12 @@
     const total = comparison.slugs.length;
     const next = ((idx % total) + total) % total;
     if (next === activeCardIdx) return;
+    // Determine animation direction: shortest path around the carousel
+    const forwardDist = (next - activeCardIdx + total) % total;
+    const backwardDist = (activeCardIdx - next + total) % total;
+    const direction = forwardDist <= backwardDist ? 'next' : 'prev';
     activeCardIdx = next;
-    renderDeck(comparison);
+    renderDeck(comparison, direction);
     renderThumbs(comparison);
     syncActivePin();
     flyToMarker(activeCardIdx);
@@ -1130,11 +1178,9 @@
               <h3 class="compare-card-title">${escapeHtml(p.title || '')}</h3>
             </div>
             <div class="compare-card-city">${escapeHtml(p.city || '')}${type ? ` <span class="compare-card-type">  ${escapeHtml(type)}</span>` : ''}</div>
-            <div class="compare-card-status-row">
-              <span class="compare-card-status" style="background:${status.color}1f;color:${status.color}">
-                ${status.label}
-              </span>
-            </div>
+
+            ${buildCompareProgress(p.delivery)}
+
             ${dev ? `
               <div class="compare-card-spec">
                 <div class="compare-card-spec-label">Developer</div>
