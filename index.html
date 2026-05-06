@@ -2827,6 +2827,255 @@
     .compare-modal { align-items: flex-end; }
   }
 
+  /* ─── Comparison view (full-screen overlay: map + cards) ────────────────── */
+  .compare-view {
+    position: fixed; inset: 0;
+    z-index: 8500;
+    background: #0d0d0d;
+    color: #fff;
+    display: none;
+    flex-direction: column;
+  }
+  .compare-view.open { display: flex; }
+  /* When the comparison view is active, prevent the underlying page from scrolling */
+  body.compare-view-active { overflow: hidden; }
+
+  .compare-view-header {
+    flex: 0 0 auto;
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 20px;
+    border-bottom: 0.5px solid rgba(255,255,255,0.08);
+    background: rgba(13,13,13,0.95);
+  }
+  .compare-view-back {
+    background: rgba(255,255,255,0.06);
+    border: 0.5px solid rgba(255,255,255,0.12);
+    color: rgba(255,255,255,0.85);
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 13px; font-weight: 500;
+    display: flex; align-items: center; gap: 6px;
+    cursor: pointer;
+  }
+  .compare-view-back:hover { background: rgba(255,255,255,0.12); color: #fff; }
+  .compare-view-titles {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex; flex-direction: column;
+    line-height: 1.2;
+  }
+  .compare-view-title {
+    font-size: 16px; font-weight: 600;
+    margin: 0;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .compare-view-sub { font-size: 12px; color: rgba(255,255,255,0.5); }
+  .compare-view-actions { display: flex; gap: 8px; flex: 0 0 auto; }
+  .compare-view-action {
+    background: rgba(255,255,255,0.06);
+    border: 0.5px solid rgba(255,255,255,0.12);
+    color: rgba(255,255,255,0.85);
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 13px; font-weight: 600;
+    display: flex; align-items: center; gap: 6px;
+    cursor: pointer;
+  }
+  .compare-view-action:hover { background: rgba(255,255,255,0.12); color: #fff; }
+  .compare-view-action-primary {
+    background: #1FDF67; border-color: transparent; color: #000;
+  }
+  .compare-view-action-primary:hover { background: #18c75a; color: #000; }
+
+  /* Map (top half on desktop, top 35% on mobile) */
+  .compare-view-map {
+    flex: 0 0 55%;
+    width: 100%;
+    position: relative;
+    background: #0a0a0a;
+  }
+
+  /* Cards (bottom half on desktop, swipeable strip on mobile) */
+  .compare-view-cards-wrap {
+    flex: 1 1 auto;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 16px 20px 20px;
+    background: #0d0d0d;
+    border-top: 0.5px solid rgba(255,255,255,0.06);
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+  }
+  .compare-view-cards-wrap::-webkit-scrollbar { height: 8px; }
+  .compare-view-cards-wrap::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.1); border-radius: 4px;
+  }
+  .compare-view-cards-wrap::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+  .compare-view-cards {
+    display: flex;
+    gap: 14px;
+    align-items: stretch;
+    height: 100%;
+  }
+
+  /* Card */
+  .compare-card {
+    flex: 0 0 280px;
+    scroll-snap-align: start;
+    background: #1a1a1a;
+    border: 0.5px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    overflow: hidden;
+    display: flex; flex-direction: column;
+    cursor: pointer;
+    transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+  }
+  .compare-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(31,223,103,0.35);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  }
+  .compare-card.is-flashed {
+    border-color: #1FDF67;
+    box-shadow: 0 0 0 2px rgba(31,223,103,0.4);
+  }
+  .compare-card-img-wrap {
+    position: relative;
+    height: 140px;
+    flex: 0 0 auto;
+    background: #0a0a0a;
+  }
+  .compare-card-img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .compare-card-img-empty { background: rgba(255,255,255,0.04); }
+  .compare-card-num {
+    position: absolute;
+    top: 10px; left: 10px;
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.7);
+    color: #1FDF67;
+    border: 1px solid rgba(31,223,103,0.45);
+    font-size: 12px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .compare-card-body {
+    padding: 12px 14px 14px;
+    display: flex; flex-direction: column;
+    flex: 1 1 auto;
+  }
+  .compare-card-title-row { display: flex; align-items: flex-start; gap: 6px; margin-bottom: 2px; }
+  .compare-card-title {
+    font-size: 15px; font-weight: 600;
+    margin: 0;
+    line-height: 1.2;
+    /* Allow up to 2 lines, then ellipsis */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .compare-card-city {
+    font-size: 11px; color: rgba(255,255,255,0.55);
+    margin-bottom: 8px;
+  }
+  .compare-card-type { color: rgba(255,255,255,0.4); }
+  .compare-card-status-row {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 12px;
+  }
+  .compare-card-status {
+    font-size: 9px; font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 3px 9px;
+    border-radius: 20px;
+  }
+  .compare-card-year { font-size: 11px; color: rgba(255,255,255,0.55); font-weight: 500; }
+  .compare-card-spec {
+    font-size: 11px;
+    margin-bottom: 6px;
+  }
+  .compare-card-spec-label {
+    color: rgba(255,255,255,0.35);
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 1px;
+  }
+  .compare-card-spec-val {
+    color: rgba(255,255,255,0.85);
+    /* Two-line clamp so very long developer lists don't blow up the card */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+  .compare-card-cta {
+    margin-top: auto;
+    background: rgba(255,255,255,0.06);
+    border: 0.5px solid rgba(255,255,255,0.1);
+    color: rgba(255,255,255,0.9);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 12px; font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+    transition: background 0.15s;
+  }
+  .compare-card-cta:hover {
+    background: #1FDF67;
+    color: #000;
+    border-color: transparent;
+  }
+  .compare-card-missing {
+    flex: 0 0 280px;
+    display: flex; align-items: center; gap: 12px;
+    padding: 16px;
+    background: rgba(255,255,255,0.03);
+    border: 1px dashed rgba(255,255,255,0.1);
+    border-radius: 12px;
+  }
+  .compare-card-missing .compare-card-num { position: static; flex: 0 0 auto; }
+  .compare-card-missing-meta { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: rgba(255,255,255,0.5); }
+  .compare-card-missing-meta strong { color: rgba(255,255,255,0.85); font-size: 13px; }
+
+  /* Numbered map pins */
+  .compare-pin {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: #1FDF67;
+    border: 2px solid #fff;
+    color: #000;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.45);
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .compare-pin:hover,
+  .compare-pin.highlighted {
+    transform: scale(1.18);
+    box-shadow: 0 4px 12px rgba(31,223,103,0.55), 0 0 0 4px rgba(31,223,103,0.15);
+    z-index: 10;
+  }
+
+  @media (max-width: 768px) {
+    .compare-view-header { padding: 12px 14px; gap: 8px; }
+    .compare-view-back span { display: none; }
+    .compare-view-back { padding: 8px; }
+    .compare-view-action { padding: 8px 10px; }
+    .compare-view-action span { display: none; }
+    .compare-view-map { flex: 0 0 38%; }
+    .compare-view-cards-wrap { padding: 14px 14px 18px; }
+    .compare-card { flex: 0 0 84vw; max-width: 320px; }
+  }
+
   </style>
 </head>
 <body>
