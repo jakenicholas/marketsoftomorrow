@@ -999,8 +999,10 @@
 
     /* Mobile layout: bottom sheet docked at the bottom of the viewport.
        The sheet has two states:
-       - .open (default when shown): expanded, showing full list
-       - .open.peek: collapsed, showing only the drag handle + header */
+       - .open: expanded, showing full list
+       - .open.peek: collapsed, showing only the drag handle + header
+       On mobile the sheet stays present (peeking) -- closing the bell just
+       collapses it to peek state, never fully hides it. */
     @media(max-width:800px) {
       #pulseStack {
         top: auto;
@@ -1013,25 +1015,45 @@
         border-left: 0;
         border-right: 0;
         border-bottom: 0;
-        box-shadow: 0 -8px 30px rgba(0,0,0,0.55);
+        /* Match the glass treatment of the search bar at the bottom: lighter
+           translucent fill + saturation boost for that frosted look. */
+        background: rgba(15,15,15,0.6);
+        backdrop-filter: blur(28px) saturate(1.8);
+        -webkit-backdrop-filter: blur(28px) saturate(1.8);
+        border-top: 1px solid rgba(255,255,255,0.08);
+        box-shadow: 0 -8px 30px rgba(0,0,0,0.4);
         padding-bottom: var(--safe-area-bottom);
         transform: translateY(0);
         transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+        /* Mobile: always visible (peeking) -- never fully hides */
+        display: flex !important;
       }
-      /* Peek state: only the handle + header are visible */
+      /* Peek state: only the handle + header are visible, list slides below */
       #pulseStack.peek {
-        transform: translateY(calc(100% - 60px - var(--safe-area-bottom)));
+        transform: translateY(calc(100% - 64px - var(--safe-area-bottom)));
       }
       /* Drag handle (mobile only) */
       .pulse-sheet-handle {
         display: block;
-        width: 36px; height: 4px;
-        background: rgba(255,255,255,0.22);
-        border-radius: 2px;
-        margin: 8px auto 6px;
+        width: 44px; height: 5px;
+        background: rgba(255,255,255,0.28);
+        border-radius: 3px;
+        margin: 10px auto 6px;
         cursor: grab;
+        /* Larger invisible hit area for easier touch */
+        position: relative;
+        touch-action: none;
       }
-      .pulse-sheet-handle:active { cursor: grabbing; }
+      .pulse-sheet-handle::before {
+        content: '';
+        position: absolute;
+        top: -14px; bottom: -14px;
+        left: -40px; right: -40px;
+      }
+      .pulse-sheet-handle:active { cursor: grabbing; background: rgba(255,255,255,0.4); }
+      /* While the user is dragging, suspend the slide animation so motion
+         tracks 1:1 with the finger. */
+      #pulseStack.dragging { transition: none; }
     }
     /* Hide the drag handle on desktop -- not relevant there */
     @media(min-width:801px) {
@@ -8715,7 +8737,13 @@
 
     function maybeAutoOpen() {
       if (introShown) return;
-      // Only auto-open if there's something to show
+      // Mobile: sheet stays peeking on load -- user drags up when they want
+      // to read. Skip the auto-expand entirely.
+      if (isMobile()) {
+        introShown = true;
+        return;
+      }
+      // Desktop: auto-expand only if there's something to show
       var visible = 0;
       for (var i = 0; i < allEvents.length; i++) {
         if (!dismissedIds.has(allEvents[i].id)) visible++;
@@ -8728,8 +8756,7 @@
         stackEl.classList.add('intro-anim');
         openStack();
         // Remove the intro-anim class once the staggered tile animations
-        // finish so future re-renders (filter changes, dismissals) don't
-        // replay the intro pop-in.
+        // finish so future re-renders don't replay the intro pop-in.
         setTimeout(function () {
           if (stackEl) stackEl.classList.remove('intro-anim');
         }, 1300);
@@ -8921,6 +8948,7 @@
     function openStack() {
       if (!stackEl || !bellBtn) return;
       stackEl.classList.add('open');
+      stackEl.classList.remove('peek');
       bellBtn.classList.add('active');
       bellBtn.setAttribute('aria-expanded', 'true');
       // Mark events as seen as soon as the stack is opened
@@ -8929,14 +8957,22 @@
 
     function closeStack() {
       if (!stackEl || !bellBtn) return;
-      stackEl.classList.remove('open');
-      stackEl.classList.remove('peek');
       bellBtn.classList.remove('active');
       bellBtn.setAttribute('aria-expanded', 'false');
+      // On mobile, the sheet stays present as a peeking strip -- never fully
+      // hides. Desktop fully removes the .open class.
+      if (isMobile()) {
+        stackEl.classList.add('open', 'peek');
+      } else {
+        stackEl.classList.remove('open');
+        stackEl.classList.remove('peek');
+      }
     }
 
     function isStackOpen() {
-      return stackEl && stackEl.classList.contains('open');
+      // "Open" means expanded (not peeking). On mobile, peek is the resting
+      // state -- it's not considered open for the purpose of bell toggle.
+      return stackEl && stackEl.classList.contains('open') && !stackEl.classList.contains('peek');
     }
 
     function setupBellToggle() {
@@ -8946,11 +8982,10 @@
         if (isStackOpen()) closeStack(); else openStack();
       });
       // Close on outside click (desktop). On mobile, the sheet is anchored
-      // to the bottom of the viewport so taps elsewhere don't dismiss it --
-      // user uses the handle or scrolls past to peek.
+      // to the bottom and lives in peek state, so outside taps don't dismiss.
       document.addEventListener('click', function (e) {
         if (!isStackOpen()) return;
-        if (window.innerWidth <= 800) return; // mobile: handled by handle/peek
+        if (isMobile()) return;
         var t = e.target;
         if (stackEl.contains(t) || bellBtn.contains(t)) return;
         closeStack();
@@ -8959,24 +8994,108 @@
       document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape' && isStackOpen()) closeStack();
       });
+    }
 
-      // Mobile only: tap the drag handle to toggle peek state. Peek shows
-      // just the header at the bottom of the screen; tap again to expand.
+    /* Drag handle behavior on mobile: user can drag the handle up/down to
+       expand or collapse the sheet. Tap (no real drag) toggles peek/expanded. */
+    function setupDragHandle() {
       var handle = document.getElementById('pulseSheetHandle');
-      if (handle) {
-        handle.addEventListener('click', function (e) {
-          e.stopPropagation();
-          if (window.innerWidth > 800) return; // desktop has no peek state
-          stackEl.classList.toggle('peek');
-        });
-        handle.addEventListener('keydown', function (e) {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            if (window.innerWidth > 800) return;
-            stackEl.classList.toggle('peek');
-          }
-        });
+      if (!handle || !stackEl) return;
+
+      var startY = 0;
+      var startWasPeek = false;
+      var dragging = false;
+      var dragOffset = 0;
+      var sheetHeight = 0;
+
+      function onPointerDown(e) {
+        if (!isMobile()) return;
+        // Use the first touch on touch events
+        var p = e.touches ? e.touches[0] : e;
+        startY = p.clientY;
+        startWasPeek = stackEl.classList.contains('peek');
+        sheetHeight = stackEl.offsetHeight;
+        dragging = true;
+        dragOffset = 0;
+        stackEl.classList.add('dragging');
+        // Capture pointer so we still get events even if finger leaves the handle
+        if (e.pointerId !== undefined && handle.setPointerCapture) {
+          try { handle.setPointerCapture(e.pointerId); } catch (err) {}
+        }
+        e.preventDefault();
       }
+
+      function onPointerMove(e) {
+        if (!dragging) return;
+        var p = e.touches ? e.touches[0] : e;
+        var dy = p.clientY - startY;
+        // Constrain motion: drag up from peek can go to fully expanded;
+        // drag down from expanded can go to fully peek (showing 64px header).
+        // We clamp the inline transform between those two extremes.
+        var peekY = sheetHeight - 64; // distance to translate when peeking
+        var startBaseY = startWasPeek ? peekY : 0;
+        var nextY = startBaseY + dy;
+        if (nextY < 0) nextY = 0;
+        if (nextY > peekY) nextY = peekY;
+        dragOffset = nextY;
+        stackEl.style.transform = 'translateY(' + nextY + 'px)';
+        e.preventDefault();
+      }
+
+      function onPointerUp(e) {
+        if (!dragging) return;
+        dragging = false;
+        stackEl.classList.remove('dragging');
+        stackEl.style.transform = '';
+        // Decide final state: if user dragged enough to flip, snap to the
+        // other state. If barely moved, treat as a tap (toggle).
+        var peekY = sheetHeight - 64;
+        var threshold = 60;
+        var dy = (e.touches && e.changedTouches ? e.changedTouches[0].clientY : (e.clientY || 0)) - startY;
+        var moved = Math.abs(dy) > 8;
+        if (!moved) {
+          // Tap toggle
+          stackEl.classList.toggle('peek');
+        } else {
+          if (startWasPeek) {
+            // started peeking; if dragged up far enough, expand
+            if (dragOffset < peekY * 0.5) {
+              stackEl.classList.remove('peek');
+            } else {
+              stackEl.classList.add('peek');
+            }
+          } else {
+            // started expanded; if dragged down far enough, collapse
+            if (dragOffset > threshold) {
+              stackEl.classList.add('peek');
+            } else {
+              stackEl.classList.remove('peek');
+            }
+          }
+        }
+      }
+
+      // Pointer events cover mouse + touch + pen on modern browsers. Fall
+      // back to touch events on older iOS Safari versions.
+      if (window.PointerEvent) {
+        handle.addEventListener('pointerdown', onPointerDown);
+        document.addEventListener('pointermove', onPointerMove);
+        document.addEventListener('pointerup', onPointerUp);
+        document.addEventListener('pointercancel', onPointerUp);
+      } else {
+        handle.addEventListener('touchstart', onPointerDown, { passive: false });
+        document.addEventListener('touchmove', onPointerMove, { passive: false });
+        document.addEventListener('touchend', onPointerUp);
+      }
+
+      // Keyboard support: Enter/Space toggles peek
+      handle.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          if (!isMobile()) return;
+          stackEl.classList.toggle('peek');
+        }
+      });
     }
 
     function loadPulse(onComplete) {
@@ -9028,12 +9147,20 @@
       setupBellToggle();
       setupFilters();
       setupRefresh();
+      setupDragHandle();
+      // On mobile, the sheet always lives as a peeking strip at the bottom of
+      // the viewport. Start in peek state so the header is visible from page
+      // load. The 2s auto-expand still happens via maybeAutoOpen().
+      if (isMobile()) {
+        stackEl.classList.add('open', 'peek');
+        bellBtn.setAttribute('aria-expanded', 'false');
+      }
       loadPulse();
-      // Poll for fresh pulse.json periodically so users with the map open
-      // see new notifications without having to reload the page. We pause
-      // polling while the tab is hidden to save bandwidth + battery, and
-      // do an immediate fetch when the tab becomes visible again.
       startPolling();
+    }
+
+    function isMobile() {
+      return window.innerWidth <= 800;
     }
 
     var pollTimer = null;
