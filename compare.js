@@ -931,6 +931,20 @@ viewMap = null;
 const features = comparison.slugs.map(getFeatureForSlug).filter(Boolean);
 if (!features.length) return;
 
+// Sanity check: if the container has 0 dimensions, retry on the next
+// animation frame. Mapbox renders nothing if its container is 0×0.
+const container = document.getElementById('compareViewMap');
+if (!container) {
+  console.warn('[Compare] map container missing');
+  return;
+}
+const rect = container.getBoundingClientRect();
+if (rect.width < 10 || rect.height < 10) {
+  console.warn('[Compare] container not yet sized (' + rect.width + '×' + rect.height + '), retrying');
+  requestAnimationFrame(() => mountComparisonMap(comparison));
+  return;
+}
+
 viewMap = new mapboxgl.Map({
   container: 'compareViewMap',
   style: 'mapbox://styles/floridaoftomorrow/clkbk4qlw000a01qw94rj0xa7',
@@ -941,7 +955,24 @@ viewMap = new mapboxgl.Map({
 });
 viewMap.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'top-right');
 
+// Observe size changes on the container — if the user resizes the window
+// or the layout shifts after mount, tell Mapbox to recompute its viewport.
+if (window.ResizeObserver && !container._compareResizeObserver) {
+  const ro = new ResizeObserver(() => {
+    if (viewMap) {
+      try { viewMap.resize(); } catch (e) { /* ignore */ }
+    }
+  });
+  ro.observe(container);
+  container._compareResizeObserver = ro;
+}
+
 viewMap.on('load', () => {
+  // Defensive: in case the container measured at 0 during construction,
+  // force a resize once the layout has settled. Mapbox renders nothing
+  // when its container has 0 height/width at init time.
+  try { viewMap.resize(); } catch (e) { /* ignore */ }
+
   comparison.slugs.forEach((slug, i) => {
     const f = getFeatureForSlug(slug);
     if (!f) return;
@@ -1026,7 +1057,16 @@ el.classList.add('open');
 document.body.classList.add('compare-view-active');
 
 renderComparisonCards(comparison);
-requestAnimationFrame(() => mountComparisonMap(comparison));
+// Wait for the browser to actually paint the now-visible overlay before
+// constructing Mapbox. A single requestAnimationFrame isn't enough — it
+// fires BEFORE the next paint, so the container can still be unmeasured.
+// Double rAF + a tiny timeout gives the browser time to apply the
+// display:none → display:flex transition and resolve flex layout.
+requestAnimationFrame(() => {
+  requestAnimationFrame(() => {
+    setTimeout(() => mountComparisonMap(comparison), 0);
+  });
+});
 ```
 
 }
