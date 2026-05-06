@@ -3468,6 +3468,72 @@
   .compare-card-missing-meta { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: rgba(255,255,255,0.5); }
   .compare-card-missing-meta strong { color: rgba(255,255,255,0.85); font-size: 13px; }
 
+  /* Construction timeline (shared by deck + side-by-side cards).
+     Mirrors the project modal's pm-progress component. Stage label on left,
+     percentage on right, 5-segment bar, tiny step labels under each segment. */
+  .compare-progress { margin-bottom: 12px; }
+  .compare-progress-top {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 6px;
+  }
+  .compare-progress-stage {
+    font-size: 10px; font-weight: 700;
+    letter-spacing: 0.04em; text-transform: uppercase;
+  }
+  .compare-progress-pct {
+    font-size: 10px; color: rgba(255,255,255,0.25);
+  }
+  .compare-progress-steps {
+    display: flex; gap: 3px; margin-bottom: 5px;
+  }
+  .compare-progress-step {
+    flex: 1; height: 3px; border-radius: 2px;
+    background: rgba(255,255,255,0.08);
+  }
+  .compare-progress-step.done   { background: var(--stage-color, #FF9500); }
+  .compare-progress-step.active { opacity: 0.5; background: var(--stage-color, #FF9500); }
+  .compare-progress-step-labels {
+    display: flex; justify-content: space-between; gap: 2px;
+  }
+  .compare-progress-step-label {
+    font-size: 7px; color: rgba(255,255,255,0.2);
+    letter-spacing: 0.02em;
+    flex: 1; text-align: center;
+    white-space: nowrap;
+  }
+  .compare-progress-step-label:first-child { text-align: left; }
+  .compare-progress-step-label:last-child { text-align: right; }
+  .compare-progress-step-label.cur { color: var(--stage-color, #FF9500); }
+
+  /* Card flip animations (subtle scale + slide on the new front card). */
+  @keyframes compare-flip-next {
+    0%   { transform: scale(0.94) translateX(12px); opacity: 0.5; }
+    60%  { opacity: 1; }
+    100% { transform: scale(1) translateX(0); opacity: 1; }
+  }
+  @keyframes compare-flip-prev {
+    0%   { transform: scale(0.94) translateX(-12px); opacity: 0.5; }
+    60%  { opacity: 1; }
+    100% { transform: scale(1) translateX(0); opacity: 1; }
+  }
+  .compare-deck-card.anim-flip-next { animation: compare-flip-next 0.32s cubic-bezier(0.2, 0.8, 0.3, 1) both; }
+  .compare-deck-card.anim-flip-prev { animation: compare-flip-prev 0.32s cubic-bezier(0.2, 0.8, 0.3, 1) both; }
+  @media (prefers-reduced-motion: reduce) {
+    .compare-deck-card.anim-flip-next,
+    .compare-deck-card.anim-flip-prev { animation: none; }
+  }
+
+  /* Side-by-side card number: small neutral gray bubble. */
+  .compare-card-num {
+    background: rgba(20,20,20,0.78);
+    color: rgba(255,255,255,0.85);
+    border: 1px solid rgba(255,255,255,0.1);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+  }
+  /* The old yellow status pill row is no longer rendered. */
+  .compare-card-status-row { display: none; }
+
   /* Numbered map pins — IMPORTANT: do NOT transition `transform`. Mapbox uses
      transform translate() to position the marker on every animation frame;
      putting a CSS transition on it makes the pin lag behind the map. */
@@ -8169,6 +8235,6 @@
        Self-contained module; relies on window.projectSlugify, window.allProjectFeatures,
        window.$memberstackDom, and the auth hint cache that the paywall code maintains.
        The ?v=2 query string busts any stale cached version after recent revisions. -->
-  <script src="compare.js?v=5"></script>
+  <script src="compare.js?v=6"></script>
 </body>
 </html>
