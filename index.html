@@ -1146,10 +1146,24 @@
       font-weight: 600;
     }
     .pulse-filter-pill:hover { color: #fff; }
+    /* Default active state (used by All + News): green, matching the News tag bubble */
     .pulse-filter-pill.active {
       background: rgba(31,223,103,0.12);
       border-color: rgba(31,223,103,0.3);
       color: var(--accent);
+    }
+    /* Color-coordinate the per-filter active states with their tag bubbles:
+       Progress (status_change) -> orange to match the Update tag.
+       Additions (new_project)  -> yellow to match the Add tag. */
+    .pulse-filter-pill.active[data-filter="status_change"] {
+      background: rgba(255,149,0,0.13);
+      border-color: rgba(255,149,0,0.35);
+      color: #FF9500;
+    }
+    .pulse-filter-pill.active[data-filter="new_project"] {
+      background: rgba(255,211,0,0.13);
+      border-color: rgba(255,211,0,0.35);
+      color: #FFD300;
     }
 
     /* ─── Notification list (scrolling region, compact rows) ────────────── */
@@ -5071,6 +5085,10 @@
         setTimeout(() => { showPopup(match); }, 1500);
       }
     }
+    // Expose so the Pulse drawer's click interceptor can call this directly
+    // when a user taps an Add/Update tile, rather than triggering a full
+    // page navigation that shows the loading splash.
+    window.handleDeepLink = handleDeepLink;
 
     // ── Project Detail Modal ────────────────────────────────────────────
     (function() {
@@ -8832,12 +8850,15 @@
         // the city/pin here -- it looked busy and didn't add much value
         // when the project name is already in the headline.
         var metaHtml = '<span>' + timeAgo(e.timestamp) + '</span>';
-        // Article links open in a new tab; map deep-links open in the same tab
-        // so the existing handleDeepLink() picks them up.
+        // Article links open in a new tab. Add/Update events carry a
+        // ?project=slug deep-link; we intercept those clicks to fly the
+        // map in-place rather than letting the browser navigate (which
+        // shows the loading splash before re-deep-linking).
         var target = e.type === 'article' ? ' target="_blank" rel="noopener"' : '';
         var safeId = escapeHtml(e.id || '');
+        var eventTypeAttr = ' data-event-type="' + escapeHtml(e.type || '') + '"';
         html += '<div class="pulse-notif-wrap">'
-              +   '<a class="pulse-notif" href="' + escapeHtml(e.link || '#') + '"' + target + '>'
+              +   '<a class="pulse-notif" href="' + escapeHtml(e.link || '#') + '"' + target + eventTypeAttr + '>'
               +     '<span class="pulse-notif-tag ' + tagCls + '">' + escapeHtml(displayTag) + '</span>'
               +     '<div class="pulse-notif-body">'
               +       '<div class="pulse-notif-title">' + escapeHtml(e.title || '') + '</div>'
@@ -8850,6 +8871,49 @@
               + '</div>';
       }
       listEl.innerHTML = html;
+
+      // Intercept clicks on map-deep-link tiles (Add / Update events).
+      // Without this the anchor's href causes a full-page reload and the
+      // user sees the loading splash before the deep-link resolves.
+      // Articles still navigate naturally (target="_blank" -> new tab).
+      var anchors = listEl.querySelectorAll('a.pulse-notif[data-event-type]');
+      for (var k = 0; k < anchors.length; k++) {
+        anchors[k].addEventListener('click', function (ev) {
+          var t = ev.currentTarget.getAttribute('data-event-type');
+          if (t === 'article') return; // let the browser open the new tab
+          // Intercept Add / Update: fly the map in place
+          ev.preventDefault();
+          var href = ev.currentTarget.getAttribute('href') || '';
+          // Extract the ?project= slug from the link without a full reload
+          var slug = '';
+          try {
+            var u = new URL(href, window.location.href);
+            slug = u.searchParams.get('project') || '';
+          } catch (err) {}
+          if (!slug) return;
+          // Update the URL so handleDeepLink() reads it and so back-button
+          // works as expected. pushState avoids the page reload.
+          try {
+            history.pushState({ project: slug }, '', '?project=' + encodeURIComponent(slug));
+          } catch (err) {}
+          // Collapse to peek on mobile so the map is unobstructed once we land
+          if (typeof isMobile === 'function' && isMobile() && stackEl) {
+            stackEl.classList.add('peek');
+            if (bellBtn) {
+              bellBtn.classList.remove('active');
+              bellBtn.setAttribute('aria-expanded', 'false');
+            }
+          } else if (stackEl && !isMobile()) {
+            // Desktop: close the floating panel
+            if (typeof closeStack === 'function') closeStack();
+          }
+          // Fly the map. handleDeepLink() reads the current URL params,
+          // finds the pin, flies to it, and shows the popup.
+          if (typeof window.handleDeepLink === 'function') {
+            window.handleDeepLink();
+          }
+        });
+      }
 
       // Wire dismiss buttons
       var closes = listEl.querySelectorAll('[data-dismiss]');
