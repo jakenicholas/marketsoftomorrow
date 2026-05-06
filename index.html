@@ -2895,8 +2895,8 @@
     background: #0d0d0d;
     color: #fff;
     display: none;
-    /* Rows: map (fills remaining), cards (460px), footer (auto) */
-    grid-template-rows: 1fr 460px auto;
+    /* Rows: map (fills remaining), cards (460px). Header floats absolutely on top. */
+    grid-template-rows: 1fr 460px;
     grid-template-columns: 1fr;
   }
   .compare-view.open { display: grid; }
@@ -2939,52 +2939,66 @@
     height: 100%;
   }
 
-  /* Bottom bar: back arrow (icon-only), title + "By [name]" subtitle, edit + share icons */
-  .compare-view-footer {
+  /* Floating header: positioned absolutely so it overlays the map without
+     consuming layout space. No solid background -- buttons and title pill
+     have their own translucent backgrounds for legibility against the map. */
+  .compare-view-header {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    z-index: 5;
     display: flex; align-items: center; gap: 14px;
-    padding: 14px 24px;
-    background: #0d0d0d;
-    border-top: 0.5px solid rgba(255,255,255,0.08);
+    padding: 16px 20px;
+    pointer-events: none; /* let map receive drag events outside the buttons */
   }
+  .compare-view-header > * { pointer-events: auto; }
   .compare-view-back {
-    background: rgba(255,255,255,0.06);
-    border: 0.5px solid rgba(255,255,255,0.12);
-    color: rgba(255,255,255,0.85);
+    background: rgba(0,0,0,0.55);
+    border: 0.5px solid rgba(255,255,255,0.18);
+    color: #fff;
     border-radius: 50%;
     width: 38px; height: 38px;
     display: flex; align-items: center; justify-content: center;
     cursor: pointer;
     flex: 0 0 auto;
-    transition: background 0.15s, color 0.15s;
+    transition: background 0.15s;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
   }
-  .compare-view-back:hover { background: rgba(255,255,255,0.12); color: #fff; }
+  .compare-view-back:hover { background: rgba(0,0,0,0.75); }
   .compare-view-titles {
     flex: 1 1 auto;
     min-width: 0;
     display: flex; flex-direction: column;
     line-height: 1.25;
+    /* Translucent pill so the title stays readable over any map content */
+    background: rgba(0,0,0,0.55);
+    border: 0.5px solid rgba(255,255,255,0.12);
+    border-radius: 22px;
+    padding: 8px 16px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.35);
   }
   .compare-view-title {
-    font-size: 16px; font-weight: 600;
+    font-size: 15px; font-weight: 600;
     margin: 0;
+    color: #fff;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
   .compare-view-sub {
-    font-size: 12px; color: rgba(255,255,255,0.5);
+    font-size: 11px; color: rgba(255,255,255,0.65);
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
   .compare-view-actions { display: flex; gap: 8px; flex: 0 0 auto; }
   .compare-view-action {
-    background: rgba(255,255,255,0.06);
-    border: 0.5px solid rgba(255,255,255,0.12);
-    color: rgba(255,255,255,0.85);
+    background: rgba(0,0,0,0.55);
+    border: 0.5px solid rgba(255,255,255,0.18);
+    color: #fff;
     border-radius: 50%;
     width: 38px; height: 38px;
     display: flex; align-items: center; justify-content: center;
     cursor: pointer;
-    transition: background 0.15s, color 0.15s;
+    transition: background 0.15s;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
   }
-  .compare-view-action:hover { background: rgba(255,255,255,0.12); color: #fff; }
+  .compare-view-action:hover { background: rgba(0,0,0,0.75); }
 
   /* Card */
   .compare-card {
@@ -3135,10 +3149,13 @@
   }
 
   @media (max-width: 768px) {
-    .compare-view { grid-template-rows: 1fr 420px auto; }
+    .compare-view { grid-template-rows: 1fr 420px; }
     .compare-view-cards-wrap { padding: 14px 14px; }
-    .compare-view-footer { padding: 12px 14px; gap: 10px; }
+    .compare-view-header { padding: 12px 14px; gap: 10px; }
     .compare-view-back, .compare-view-action { width: 36px; height: 36px; }
+    .compare-view-titles { padding: 6px 12px; }
+    .compare-view-title { font-size: 14px; }
+    .compare-view-sub { font-size: 10px; }
     .compare-card { flex: 0 0 84vw; max-width: 320px; }
   }
 
@@ -7789,6 +7806,6 @@
        Self-contained module; relies on window.projectSlugify, window.allProjectFeatures,
        window.$memberstackDom, and the auth hint cache that the paywall code maintains.
        The ?v=2 query string busts any stale cached version after recent revisions. -->
-  <script src="compare.js?v=3"></script>
+  <script src="compare.js?v=4"></script>
 </body>
 </html>
