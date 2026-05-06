@@ -2969,22 +2969,19 @@
     min-width: 0;
     display: flex; flex-direction: column;
     line-height: 1.25;
-    /* Translucent pill so the title stays readable over any map content */
-    background: rgba(0,0,0,0.55);
-    border: 0.5px solid rgba(255,255,255,0.12);
-    border-radius: 22px;
-    padding: 8px 16px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.35);
   }
   .compare-view-title {
     font-size: 15px; font-weight: 600;
     margin: 0;
     color: #fff;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    /* Soft shadow so plain text stays legible over light map areas */
+    text-shadow: 0 1px 4px rgba(0,0,0,0.7), 0 0 10px rgba(0,0,0,0.4);
   }
   .compare-view-sub {
-    font-size: 11px; color: rgba(255,255,255,0.65);
+    font-size: 11px; color: rgba(255,255,255,0.85);
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.7), 0 0 8px rgba(0,0,0,0.4);
   }
   .compare-view-actions { display: flex; gap: 8px; flex: 0 0 auto; }
   .compare-view-action {
@@ -3153,7 +3150,6 @@
     .compare-view-cards-wrap { padding: 14px 14px; }
     .compare-view-header { padding: 12px 14px; gap: 10px; }
     .compare-view-back, .compare-view-action { width: 36px; height: 36px; }
-    .compare-view-titles { padding: 6px 12px; }
     .compare-view-title { font-size: 14px; }
     .compare-view-sub { font-size: 10px; }
     .compare-card { flex: 0 0 84vw; max-width: 320px; }
