@@ -217,15 +217,18 @@
         </header>
 
         <section class="compare-modal-body">
+          <!-- Saved comparisons gallery (visible when the user has any saved) -->
           <div class="compare-saved-section" hidden>
-            <div class="compare-saved-label">Saved comparisons</div>
-            <div class="compare-saved-list"></div>
-            <button type="button" class="compare-btn compare-btn-ghost compare-new-btn" data-action="new">
-              + New comparison
-            </button>
-            <div class="compare-saved-divider"></div>
+            <div class="compare-saved-header">
+              <span class="compare-saved-label">Saved comparisons</span>
+              <button type="button" class="compare-btn compare-btn-ghost compare-btn-sm" data-action="new">
+                + New comparison
+              </button>
+            </div>
+            <div class="compare-saved-grid"></div>
           </div>
 
+          <!-- Builder (collapsible when saved comparisons exist) -->
           <div class="compare-builder-section">
             <label class="compare-field">
               <span class="compare-field-label">Comparison name</span>
@@ -286,7 +289,7 @@
     const saveBtn = modalEl.querySelector('[data-action="save"]');
     saveBtn.addEventListener('click', handleSave);
 
-    // "+ New comparison" button — clears the working draft and shows the builder section
+    // "+ New comparison" button — clears the working draft and reveals the builder
     const newBtn = modalEl.querySelector('[data-action="new"]');
     newBtn.addEventListener('click', () => {
       workingDraft = createEmptyDraft();
@@ -296,38 +299,58 @@
       renderSlots();
       renderSearchResults('');
       refreshSaveButton();
-      // Hide the saved section while building so the user can focus
-      modalEl.querySelector('.compare-saved-section').setAttribute('hidden', '');
+      // Reveal the builder section. Keep the saved gallery visible above so the
+      // user has context (and can cancel back to it without closing the modal).
+      modalEl.querySelector('.compare-builder-section').removeAttribute('hidden');
       modalEl.querySelector('.compare-name-input').focus();
+      // Scroll the builder into view since gallery may have pushed it down
+      modalEl.querySelector('.compare-builder-section').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     });
 
     return modalEl;
   }
 
-  // Render the list of saved comparisons. Only shown when opening the modal
-  // without a specific edit target — gives the user a glance of what they've saved.
-  function renderSavedList() {
+  // Render the gallery of saved comparisons as tiles with a 2x2 image collage.
+  // Only shown when opening the modal without a specific edit/prefill target.
+  function renderSavedGrid() {
     if (!modalEl) return;
     const section = modalEl.querySelector('.compare-saved-section');
-    const list = modalEl.querySelector('.compare-saved-list');
+    const grid = modalEl.querySelector('.compare-saved-grid');
     if (!savedComparisons.length) {
       section.setAttribute('hidden', '');
       return;
     }
     section.removeAttribute('hidden');
-    list.innerHTML = savedComparisons.map(c => {
+
+    grid.innerHTML = savedComparisons.map(c => {
       const count = c.slugs.length;
+      // Build 2x2 image collage from the first 4 projects
+      const tileImages = c.slugs.slice(0, 4).map(slug => {
+        const f = getFeatureForSlug(slug);
+        return f?.properties?.image || '';
+      });
+      // Pad with empty strings to always have 4 cells
+      while (tileImages.length < 4) tileImages.push('');
+      const collage = `
+        <div class="compare-tile-collage" aria-hidden="true">
+          ${tileImages.map(src => src
+            ? `<div class="compare-tile-cell"><img src="${escapeAttr(src)}" alt="" loading="lazy" /></div>`
+            : `<div class="compare-tile-cell compare-tile-cell-empty"></div>`
+          ).join('')}
+        </div>
+      `;
       return `
-        <div class="compare-saved-row" data-id="${escapeAttr(c.id)}" data-saved-open="${escapeAttr(c.id)}" role="button" tabindex="0">
-          <div class="compare-saved-row-meta">
-            <div class="compare-saved-row-name">${escapeHtml(c.name)}</div>
-            <div class="compare-saved-row-sub">${count} project${count === 1 ? '' : 's'}</div>
+        <div class="compare-tile" data-saved-open="${escapeAttr(c.id)}" role="button" tabindex="0">
+          ${collage}
+          <div class="compare-tile-meta">
+            <div class="compare-tile-name" title="${escapeAttr(c.name)}">${escapeHtml(c.name)}</div>
+            <div class="compare-tile-sub">${count} project${count === 1 ? '' : 's'}</div>
           </div>
-          <div class="compare-saved-row-actions">
-            <button type="button" class="compare-saved-btn" data-saved-edit="${escapeAttr(c.id)}" aria-label="Edit">
+          <div class="compare-tile-actions">
+            <button type="button" class="compare-tile-action" data-saved-edit="${escapeAttr(c.id)}" aria-label="Edit comparison">
               <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
             </button>
-            <button type="button" class="compare-saved-btn compare-saved-btn-danger" data-saved-remove="${escapeAttr(c.id)}" aria-label="Delete">
+            <button type="button" class="compare-tile-action compare-tile-action-danger" data-saved-remove="${escapeAttr(c.id)}" aria-label="Delete comparison">
               <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
             </button>
           </div>
@@ -335,25 +358,24 @@
       `;
     }).join('');
 
-    // Wire actions — open on row click, edit/delete on button click (with stopPropagation)
-    list.querySelectorAll('[data-saved-open]').forEach(row => {
-      row.addEventListener('click', (e) => {
-        // Don't open if the click was on an action button
+    // Wire actions — open on tile click, edit/delete on action buttons (with stopPropagation)
+    grid.querySelectorAll('[data-saved-open]').forEach(tile => {
+      tile.addEventListener('click', (e) => {
         if (e.target.closest('[data-saved-edit], [data-saved-remove]')) return;
-        const id = row.dataset.savedOpen;
+        const id = tile.dataset.savedOpen;
         closeBuilderModal();
         navigateToComparison(id);
       });
-      row.addEventListener('keydown', (e) => {
+      tile.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
-          const id = row.dataset.savedOpen;
+          const id = tile.dataset.savedOpen;
           closeBuilderModal();
           navigateToComparison(id);
         }
       });
     });
-    list.querySelectorAll('[data-saved-edit]').forEach(btn => {
+    grid.querySelectorAll('[data-saved-edit]').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
         const id = btn.dataset.savedEdit;
@@ -366,11 +388,13 @@
         renderSlots();
         renderSearchResults('');
         refreshSaveButton();
-        section.setAttribute('hidden', '');
+        // Hide the saved gallery and show the builder
+        modalEl.querySelector('.compare-saved-section').setAttribute('hidden', '');
+        modalEl.querySelector('.compare-builder-section').removeAttribute('hidden');
         modalEl.querySelector('.compare-name-input').focus();
       });
     });
-    list.querySelectorAll('[data-saved-remove]').forEach(btn => {
+    grid.querySelectorAll('[data-saved-remove]').forEach(btn => {
       btn.addEventListener('click', async (e) => {
         e.stopPropagation();
         const id = btn.dataset.savedRemove;
@@ -383,7 +407,11 @@
           return;
         }
         showToast('Comparison deleted.');
-        renderSavedList();
+        renderSavedGrid();
+        // If they just deleted their last comparison, show the builder
+        if (!savedComparisons.length) {
+          modalEl.querySelector('.compare-builder-section').removeAttribute('hidden');
+        }
         document.dispatchEvent(new CustomEvent('comparisons:updated'));
       });
     });
@@ -422,7 +450,7 @@
     }
 
     el.querySelector('#compareBuilderTitle').textContent =
-      workingDraft.id ? 'Edit comparison' : 'New comparison';
+      workingDraft.id ? 'Edit comparison' : (savedComparisons.length ? 'Comparisons' : 'New comparison');
     el.querySelector('.compare-name-input').value = workingDraft.name || '';
     el.querySelector('.compare-search-input').value = '';
 
@@ -430,21 +458,32 @@
     renderSearchResults('');
     refreshSaveButton();
 
-    // Show the saved-comparisons list at the top when:
-    //   - opening fresh (no editId, no prefill) AND
-    //   - the user has at least one saved comparison
-    // Otherwise jump straight into the builder.
+    // Visibility logic:
+    //   - Editing existing OR prefilling slugs → builder visible, gallery hidden
+    //   - Opening fresh + has saved comparisons → gallery visible, builder hidden
+    //     (user clicks "+ New comparison" to expand the builder)
+    //   - Opening fresh + no saved comparisons → builder visible, gallery hidden
     const openingFresh = !opts.editId && !Array.isArray(opts.prefillSlugs);
+    const savedSection = el.querySelector('.compare-saved-section');
+    const builderSection = el.querySelector('.compare-builder-section');
+
     if (openingFresh && savedComparisons.length) {
-      renderSavedList();
+      renderSavedGrid();
+      builderSection.setAttribute('hidden', '');
     } else {
-      el.querySelector('.compare-saved-section').setAttribute('hidden', '');
+      savedSection.setAttribute('hidden', '');
+      builderSection.removeAttribute('hidden');
     }
 
     el.classList.add('open');
     document.body.style.overflow = 'hidden';
-    // Focus name field for keyboard users
-    setTimeout(() => el.querySelector('.compare-name-input').focus(), 50);
+    // Focus the most relevant field
+    setTimeout(() => {
+      const focusTarget = builderSection.hasAttribute('hidden')
+        ? null  // viewing gallery — let user click a tile
+        : el.querySelector('.compare-name-input');
+      if (focusTarget) focusTarget.focus();
+    }, 50);
   }
 
   function closeBuilderModal() {
@@ -773,7 +812,8 @@
       }
       const p = f.properties;
       const status = statusFromDelivery(p.delivery);
-      const deliveryYear = (p.deliveryDate || p.delivery || '').match(/\b(20\d{2})\b/)?.[1] || '';
+      // Expected completion: prefer DeliveryDate, fall back to Delivery, then to a year extract
+      const completion = (p.deliveryDate || '').trim() || (p.delivery || '').trim();
       const dev = (p.developer || '').trim();
       const arc = (p.architect || '').trim();
       const type = (p.preferredType && p.preferredType.trim())
@@ -797,7 +837,6 @@
               <span class="compare-card-status" style="background:${status.color}1f;color:${status.color}">
                 ${status.label}
               </span>
-              ${deliveryYear ? `<span class="compare-card-year">${escapeHtml(deliveryYear)}</span>` : ''}
             </div>
             ${dev ? `
               <div class="compare-card-spec">
@@ -808,6 +847,11 @@
               <div class="compare-card-spec">
                 <div class="compare-card-spec-label">Architect</div>
                 <div class="compare-card-spec-val" title="${escapeAttr(arc)}">${escapeHtml(arc)}</div>
+              </div>` : ''}
+            ${completion ? `
+              <div class="compare-card-spec">
+                <div class="compare-card-spec-label">Expected Completion</div>
+                <div class="compare-card-spec-val" title="${escapeAttr(completion)}">${escapeHtml(completion)}</div>
               </div>` : ''}
             <button type="button" class="compare-card-cta" data-open-project="${escapeAttr(slug)}">View project</button>
           </div>
@@ -820,9 +864,12 @@
         e.stopPropagation();
         const slug = btn.dataset.openProject;
         const f = getFeatureForSlug(slug);
-        if (f && typeof window.openProjectModal === 'function') {
-          window.openProjectModal(f, 'compare-view');
-        }
+        if (!f || typeof window.openProjectModal !== 'function') return;
+        // Close the comparison overlay so the user lands back on the map with
+        // the project modal showing on top — "bring them back to the map".
+        closeComparisonView({ updateUrl: true });
+        // Defer one frame so the overlay's removal doesn't fight the modal animation
+        requestAnimationFrame(() => window.openProjectModal(f, 'compare-view'));
       });
     });
 
@@ -882,7 +929,7 @@
             setTimeout(() => card.classList.remove('is-flashed'), 800);
           }
         });
-        const marker = new mapboxgl.Marker({ element: el, anchor: 'bottom' })
+        const marker = new mapboxgl.Marker({ element: el, anchor: 'center' })
           .setLngLat(f.geometry.coordinates)
           .addTo(viewMap);
         viewMapMarkers.push(marker);
