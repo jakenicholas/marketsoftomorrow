@@ -931,14 +931,13 @@
         left: auto;
       }
     }
-    /* Pink notification bubble. The CENTER of the bubble sits exactly on the
-       top-right corner of the bell button -- so it overhangs evenly to the
-       top and right. Perfect circle (no padding-induced ovaling for 1-2 digit
-       counts; we just shrink the font to fit). */
+    /* Pink notification bubble. Sits near the top-right corner of the bell,
+       overhanging slightly. Perfect circle with a soft pink glow instead of
+       a hard border so it reads cleaner against any map background. */
     .pulse-bell-badge {
       position: absolute;
-      top: -10px;
-      right: -10px;
+      top: -7px;
+      right: -7px;
       width: 20px;
       height: 20px;
       padding: 0;
@@ -947,12 +946,18 @@
       border-radius: 50%;
       font-size: 10px;
       font-weight: 700;
-      line-height: 20px;
-      text-align: center;
-      border: 2px solid #0a0a0a;
+      /* Use flex centering instead of line-height so multi-digit numbers
+         like "20" or "99+" sit dead-center horizontally and vertically. */
+      display: flex;
+      align-items: center;
+      justify-content: center;
       pointer-events: none;
       box-sizing: border-box;
-      box-shadow: 0 2px 6px rgba(255,59,107,0.4);
+      box-shadow:
+        0 0 0 2px rgba(15,15,15,0.7),     /* tight separator from the bell behind */
+        0 2px 8px rgba(255,59,107,0.55),  /* soft glow */
+        0 0 14px rgba(255,59,107,0.35);   /* outer halo */
+      letter-spacing: -0.02em;
     }
     .pulse-bell-badge[hidden] { display: none; }
 
@@ -8649,6 +8654,10 @@
     var STORAGE_DISMISSED = 'tmw_pulse_dismissed';
     /* How many tiles to show in the dropdown. Stack grows to fit; no scroll. */
     var MAX_VISIBLE_TILES = 6;
+    /* Auto-refresh interval (ms). The backend regenerates pulse.json hourly,
+       so polling every 5 minutes catches new events promptly without spamming
+       the server. */
+    var POLL_INTERVAL_MS = 5 * 60 * 1000;
 
     var bellBtn, badgeEl, stackEl, subEl, listEl, filterRowEl, refreshBtn;
     var allEvents = [];
@@ -8975,6 +8984,33 @@
       setupFilters();
       setupRefresh();
       loadPulse();
+      // Poll for fresh pulse.json periodically so users with the map open
+      // see new notifications without having to reload the page. We pause
+      // polling while the tab is hidden to save bandwidth + battery, and
+      // do an immediate fetch when the tab becomes visible again.
+      startPolling();
+    }
+
+    var pollTimer = null;
+
+    function startPolling() {
+      stopPolling();
+      pollTimer = setInterval(function () {
+        if (document.hidden) return; // skip while tab is in background
+        loadPulse();
+      }, POLL_INTERVAL_MS);
+      // Also fetch immediately when the tab comes back into focus, so the
+      // user sees current data as soon as they look at the page.
+      document.addEventListener('visibilitychange', function () {
+        if (!document.hidden) loadPulse();
+      });
+    }
+
+    function stopPolling() {
+      if (pollTimer) {
+        clearInterval(pollTimer);
+        pollTimer = null;
+      }
     }
 
     // Refresh button: clear dismissed list (so all events return) and re-fetch.
