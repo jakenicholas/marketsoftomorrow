@@ -895,6 +895,286 @@
       border-color: rgba(255,255,255,0.18) !important;
     }
 
+    /* ─── PULSE BELL BUTTON + STACK ─────────────────────────────────────── */
+    /* Live activity feed: bell button sits at the top of the right cluster
+       above Layers. Click opens a stack of recent events (articles + status
+       changes from the map). */
+    #pulseBellBtn {
+      position: fixed;
+      z-index: 3;
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      color: #fff;
+      border: none;
+      padding: 0;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background var(--transition-med), border-color var(--transition-med);
+    }
+    #pulseBellBtn svg { width: 18px; height: 18px; color: #fff; }
+    #pulseBellBtn.active { border-color: var(--accent) !important; }
+    #pulseBellBtn.active svg { color: var(--accent); }
+    @media(min-width:801px) {
+      #pulseBellBtn {
+        top: calc(60px + var(--safe-area-top));
+        right: calc(15px + var(--safe-area-right));
+      }
+    }
+    @media(max-width:800px) {
+      #pulseBellBtn {
+        /* Below home button, above layers */
+        top: calc(var(--safe-area-top) + 10px + 36px + 10px);
+        right: calc(var(--safe-area-right) + 15px);
+        left: auto;
+      }
+    }
+    /* Unread badge — small green dot at top-right of bell.
+       Hidden by default (server sets it visible when count > 0). */
+    .pulse-bell-badge {
+      position: absolute;
+      top: 4px; right: 4px;
+      min-width: 16px; height: 16px;
+      padding: 0 4px;
+      background: var(--accent);
+      color: #000;
+      border-radius: 8px;
+      font-size: 10px;
+      font-weight: 700;
+      line-height: 16px;
+      text-align: center;
+      border: 2px solid rgba(15,15,15,0.95);
+      pointer-events: none;
+      box-sizing: content-box;
+    }
+    .pulse-bell-badge[hidden] { display: none; }
+
+    /* Pulse stack drawer: floats below the bell on desktop, becomes a
+       bottom-anchored sheet on mobile. */
+    #pulseStack {
+      position: fixed;
+      z-index: 2000;
+      width: 340px;
+      max-height: 70vh;
+      display: none;
+      flex-direction: column;
+      gap: 6px;
+      overflow-y: auto;
+      padding: 8px 4px 8px 0;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255,255,255,0.15) transparent;
+    }
+    #pulseStack::-webkit-scrollbar { width: 4px; }
+    #pulseStack::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
+    #pulseStack.open { display: flex; }
+
+    @media(min-width:801px) {
+      #pulseStack {
+        top: calc(60px + var(--safe-area-top) + 36px + 8px);
+        right: calc(15px + var(--safe-area-right));
+      }
+    }
+    @media(max-width:800px) {
+      /* On mobile, pulse stack becomes near full-width and slides in from the right */
+      #pulseStack {
+        top: calc(var(--safe-area-top) + 10px + 36px + 10px);
+        right: calc(var(--safe-area-right) + 8px);
+        left: calc(var(--safe-area-left) + 8px);
+        width: auto;
+        max-height: calc(100vh - var(--safe-area-top) - var(--safe-area-bottom) - 60px);
+      }
+    }
+
+    .pulse-stack-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 10px 4px 10px;
+    }
+    .pulse-stack-header-left { display: flex; align-items: center; gap: 8px; min-width: 0; }
+    .pulse-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--accent);
+      flex-shrink: 0;
+      box-shadow: 0 0 0 0 rgba(31,223,103,0.6);
+      animation: pulseDotRing 2s infinite;
+    }
+    @keyframes pulseDotRing {
+      0%   { box-shadow: 0 0 0 0 rgba(31,223,103,0.6); }
+      70%  { box-shadow: 0 0 0 6px rgba(31,223,103,0); }
+      100% { box-shadow: 0 0 0 0 rgba(31,223,103,0); }
+    }
+    .pulse-stack-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 700;
+      color: var(--accent);
+      line-height: 1.2;
+    }
+    .pulse-stack-sub {
+      font-size: 10px;
+      color: rgba(255,255,255,0.4);
+      line-height: 1.2;
+      margin-top: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Filter pill row */
+    .pulse-filter-row {
+      display: flex;
+      gap: 5px;
+      overflow-x: auto;
+      padding: 2px 8px 4px 8px;
+      scrollbar-width: none;
+    }
+    .pulse-filter-row::-webkit-scrollbar { display: none; }
+    .pulse-filter-pill {
+      flex-shrink: 0;
+      padding: 5px 10px;
+      background: rgba(15,15,15,0.7);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px;
+      font-size: 10px;
+      color: rgba(255,255,255,0.55);
+      cursor: pointer;
+      transition: color 0.15s, background 0.15s, border-color 0.15s;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 600;
+    }
+    .pulse-filter-pill:hover { color: #fff; }
+    .pulse-filter-pill.active {
+      background: rgba(31,223,103,0.12);
+      border-color: rgba(31,223,103,0.3);
+      color: var(--accent);
+    }
+
+    /* Notification card */
+    .pulse-notif {
+      background: rgba(15,15,15,0.85);
+      backdrop-filter: blur(20px) saturate(1.4);
+      -webkit-backdrop-filter: blur(20px) saturate(1.4);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      padding: 12px 14px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s, transform 0.2s;
+      text-decoration: none;
+      color: inherit;
+      display: block;
+      animation: pulseNotifSlideIn 0.4s ease-out backwards;
+      margin: 0 8px;
+    }
+    .pulse-notif:nth-child(1) { animation-delay: 0s; }
+    .pulse-notif:nth-child(2) { animation-delay: 0.06s; }
+    .pulse-notif:nth-child(3) { animation-delay: 0.12s; }
+    .pulse-notif:nth-child(4) { animation-delay: 0.18s; }
+    .pulse-notif:nth-child(5) { animation-delay: 0.24s; }
+    .pulse-notif:nth-child(6) { animation-delay: 0.30s; }
+    .pulse-notif:nth-child(7) { animation-delay: 0.36s; }
+    .pulse-notif:nth-child(8) { animation-delay: 0.42s; }
+    @keyframes pulseNotifSlideIn {
+      from { transform: translateX(20px); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    .pulse-notif:hover {
+      border-color: rgba(31,223,103,0.3);
+      background: rgba(20,20,20,0.92);
+      transform: translateX(-2px);
+    }
+    .pulse-notif-top {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+    .pulse-notif-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 7px;
+      border-radius: 4px;
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      flex-shrink: 0;
+    }
+    .pulse-notif-tag.article    { background: rgba(31,223,103,0.15); color: var(--accent); }
+    .pulse-notif-tag.new        { background: rgba(31,223,103,0.15); color: var(--accent); }
+    .pulse-notif-tag.opening    { background: rgba(31,223,103,0.15); color: var(--accent); }
+    .pulse-notif-tag.now-open   { background: rgba(31,223,103,0.15); color: var(--accent); }
+    .pulse-notif-tag.breaking   { background: rgba(255,211,0,0.12); color: #FFD300; }
+    .pulse-notif-tag.under-c    { background: rgba(255,149,0,0.12); color: #FF9500; }
+    .pulse-notif-tag.announced  { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.55); }
+    .pulse-notif-time {
+      font-size: 10px;
+      color: rgba(255,255,255,0.35);
+      margin-left: auto;
+      flex-shrink: 0;
+    }
+    .pulse-notif-title {
+      font-size: 13px;
+      font-weight: 600;
+      line-height: 1.35;
+      margin-bottom: 4px;
+    }
+    .pulse-notif-meta {
+      font-size: 11px;
+      color: rgba(255,255,255,0.55);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .pulse-notif-meta .pulse-pin-icon {
+      width: 10px; height: 10px;
+      stroke: rgba(255,255,255,0.35);
+      fill: none; stroke-width: 2;
+      flex-shrink: 0;
+    }
+
+    /* Empty + skeleton loading states */
+    .pulse-empty {
+      background: rgba(15,15,15,0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      padding: 24px 16px;
+      text-align: center;
+      color: rgba(255,255,255,0.45);
+      font-size: 12px;
+      margin: 0 8px;
+    }
+    .pulse-skel {
+      background: rgba(15,15,15,0.7);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin: 0 8px 6px;
+    }
+    .pulse-skel-line {
+      height: 10px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 4px;
+      margin-bottom: 6px;
+      animation: pulseSkelShimmer 1.5s ease-in-out infinite;
+    }
+    .pulse-skel-line.short { width: 40%; height: 8px; }
+    .pulse-skel-line.long  { width: 95%; }
+    .pulse-skel-line.med   { width: 65%; }
+    @keyframes pulseSkelShimmer {
+      0%, 100% { opacity: 0.4; }
+      50%      { opacity: 0.8; }
+    }
+
     /* ─── LAYERS BUTTON — top-right desktop, top-left mobile ─────────────── */
     #layersButton {
       position: fixed;
@@ -917,14 +1197,14 @@
 
     @media(min-width:801px) {
       #layersButton {
-        top: calc(60px + var(--safe-area-top));
+        top: calc(60px + var(--safe-area-top) + 36px + 10px);
         right: calc(15px + var(--safe-area-right));
       }
     }
     @media(max-width:800px) {
       #layersButton {
-        /* Below home button on right side */
-        top: calc(var(--safe-area-top) + 10px + 36px + 10px);
+        /* Below home button + bell button */
+        top: calc(var(--safe-area-top) + 10px + 36px + 10px + 36px + 10px);
         right: calc(var(--safe-area-right) + 15px);
         left: auto;
       }
@@ -950,16 +1230,16 @@
     #locationButton svg { width: 20px; height: 20px; fill: #fff; }
     #locationButton.locating svg { fill: var(--accent); }
 
-    /* Desktop: below layers button (layers is at 60px, so 60+36+10=106px) */
+    /* Desktop: below layers button (now bell + layers above, so +46 +36 +10 = below layers) */
     @media(min-width:801px) {
       #locationButton {
-        top: calc(60px + var(--safe-area-top) + 36px + 10px);
+        top: calc(60px + var(--safe-area-top) + 36px + 10px + 36px + 10px);
       }
     }
     /* Mobile: below layers button */
     @media(max-width:800px) {
       #locationButton {
-        top: calc(var(--safe-area-top) + 10px + 36px + 10px + 36px + 10px);
+        top: calc(var(--safe-area-top) + 10px + 36px + 10px + 36px + 10px + 36px + 10px);
       }
     }
 
@@ -997,15 +1277,15 @@
 
     /* Desktop: zoom-in below location, zoom-out below zoom-in */
     @media(min-width:801px) {
-      #zoomInButton    { top: calc(60px + var(--safe-area-top) + 36px + 10px + 36px + 10px); }
-      #zoomOutButton   { top: calc(60px + var(--safe-area-top) + 36px + 10px + 36px + 10px + 36px + 10px); }
-      #resetViewButton { top: calc(60px + var(--safe-area-top) + 36px + 10px + 36px + 10px + 36px + 10px + 36px + 10px); }
+      #zoomInButton    { top: calc(60px + var(--safe-area-top) + 36px + 10px + 36px + 10px + 36px + 10px); }
+      #zoomOutButton   { top: calc(60px + var(--safe-area-top) + 36px + 10px + 36px + 10px + 36px + 10px + 36px + 10px); }
+      #resetViewButton { top: calc(60px + var(--safe-area-top) + 36px + 10px + 36px + 10px + 36px + 10px + 36px + 10px + 36px + 10px); }
     }
     /* Mobile: same pattern below location */
     @media(max-width:800px) {
-      #zoomInButton    { top: calc(var(--safe-area-top) + 10px + 36px + 10px + 36px + 10px + 36px + 10px); }
-      #zoomOutButton   { top: calc(var(--safe-area-top) + 10px + 36px + 10px + 36px + 10px + 36px + 10px + 36px + 10px); }
-      #resetViewButton { top: calc(var(--safe-area-top) + 10px + 36px + 10px + 36px + 10px + 36px + 10px + 36px + 10px + 36px + 10px); }
+      #zoomInButton    { top: calc(var(--safe-area-top) + 10px + 36px + 10px + 36px + 10px + 36px + 10px + 36px + 10px); }
+      #zoomOutButton   { top: calc(var(--safe-area-top) + 10px + 36px + 10px + 36px + 10px + 36px + 10px + 36px + 10px + 36px + 10px); }
+      #resetViewButton { top: calc(var(--safe-area-top) + 10px + 36px + 10px + 36px + 10px + 36px + 10px + 36px + 10px + 36px + 10px + 36px + 10px); }
     }
     #resetViewButton svg { width: 18px; height: 18px; color: #fff; }
     @keyframes locationPulse {
@@ -1032,8 +1312,8 @@
       user-select: none;
     }
     #layersPanel.open { display: flex; }
-    @media(min-width:801px) { #layersPanel { top: calc(60px + var(--safe-area-top)); } }
-    @media(max-width:800px) { #layersPanel { top: calc(var(--safe-area-top) + 10px + 36px + 10px); } }
+    @media(min-width:801px) { #layersPanel { top: calc(60px + var(--safe-area-top) + 36px + 10px); } }
+    @media(max-width:800px) { #layersPanel { top: calc(var(--safe-area-top) + 10px + 36px + 10px + 36px + 10px); } }
 
     .layers-section-title {
       font-size: 10px; font-weight: 600; letter-spacing: 0.08em;
@@ -3621,6 +3901,36 @@
         <input id="searchBar" type="text" placeholder="Search by name or city" />
       </div>
       <div id="results" class="hidden"></div>
+    </div>
+
+    <!-- Pulse bell button (live activity feed) -->
+    <button id="pulseBellBtn" class="glass-btn" title="Pulse" aria-label="Open Pulse activity feed" aria-expanded="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      <span id="pulseBellBadge" class="pulse-bell-badge" hidden></span>
+    </button>
+
+    <!-- Pulse stack drawer (hidden by default; toggles open/closed via bell click) -->
+    <div id="pulseStack" role="dialog" aria-label="Pulse activity feed">
+      <div class="pulse-stack-header">
+        <div class="pulse-stack-header-left">
+          <div class="pulse-dot" aria-hidden="true"></div>
+          <div>
+            <div class="pulse-stack-title">Pulse</div>
+            <div class="pulse-stack-sub" id="pulseStackSub">Loading...</div>
+          </div>
+        </div>
+      </div>
+      <div class="pulse-filter-row" id="pulseFilterRow">
+        <div class="pulse-filter-pill active" data-filter="all">All</div>
+        <div class="pulse-filter-pill" data-filter="article">Articles</div>
+        <div class="pulse-filter-pill" data-filter="status_change">Status</div>
+        <div class="pulse-filter-pill" data-filter="new_project">New</div>
+      </div>
+      <div id="pulseNotifList">
+        <div class="pulse-skel"><div class="pulse-skel-line short"></div><div class="pulse-skel-line long"></div><div class="pulse-skel-line med"></div></div>
+        <div class="pulse-skel"><div class="pulse-skel-line short"></div><div class="pulse-skel-line long"></div><div class="pulse-skel-line med"></div></div>
+        <div class="pulse-skel"><div class="pulse-skel-line short"></div><div class="pulse-skel-line long"></div><div class="pulse-skel-line med"></div></div>
+      </div>
     </div>
 
     <!-- Layers toggle button -->
@@ -8229,6 +8539,245 @@
       // Build the auth UI immediately (will say "Sign in" until member status loads)
       updateAuthHeaderUI(null);
     })();
+  </script>
+
+  <!-- Pulse: live activity feed (combines oftmw.com articles + map status changes).
+       Reads /pulse.json which is regenerated nightly by generate_pulse.py.
+       Self-contained IIFE; no globals leaked; safe to include even if pulse.json 404s. -->
+  <script>
+  (function () {
+    'use strict';
+    // ASCII-only on purpose. Github Pages has served this file with mismatched
+    // charset declarations in the past which caused multi-byte chars in
+    // adjacent JS files to be misinterpreted; better to avoid them entirely.
+
+    var PULSE_URL = '/pulse.json';
+    var STORAGE_LAST_SEEN = 'tmw_pulse_last_seen';
+
+    var bellBtn, badgeEl, stackEl, subEl, listEl, filterRowEl;
+    var allEvents = [];
+    var activeFilter = 'all';
+    var generatedAt = null;
+    var hasLoaded = false;
+
+    function escapeHtml(s) {
+      return (s == null ? '' : String(s)).replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+      });
+    }
+
+    function timeAgo(iso) {
+      if (!iso) return '';
+      var then = new Date(iso).getTime();
+      if (isNaN(then)) return '';
+      var diff = Date.now() - then;
+      if (diff < 0) diff = 0;
+      var mins = Math.floor(diff / 60000);
+      if (mins < 1) return 'just now';
+      if (mins < 60) return mins + 'm ago';
+      var hours = Math.floor(mins / 60);
+      if (hours < 24) return hours + 'h ago';
+      var days = Math.floor(hours / 24);
+      if (days < 7) return days + 'd ago';
+      var weeks = Math.floor(days / 7);
+      if (weeks < 5) return weeks + 'w ago';
+      var months = Math.floor(days / 30);
+      return months + 'mo ago';
+    }
+
+    // Map an event to a CSS class that controls the tag pill color
+    function tagClassFor(ev) {
+      if (ev.type === 'article')      return 'article';
+      if (ev.type === 'new_project')  return 'new';
+      if (ev.type === 'status_change') {
+        var t = (ev.tag || '').toLowerCase();
+        if (t.indexOf('opening soon') >= 0)      return 'opening';
+        if (t.indexOf('now open') >= 0)          return 'now-open';
+        if (t.indexOf('breaking ground') >= 0)   return 'breaking';
+        if (t.indexOf('under construction') >= 0) return 'under-c';
+        return 'announced';
+      }
+      return 'announced';
+    }
+
+    function pinIconSvg() {
+      return '<svg class="pulse-pin-icon" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>';
+    }
+
+    function renderEvents() {
+      if (!listEl) return;
+      var events = allEvents;
+      if (activeFilter !== 'all') {
+        events = events.filter(function (e) { return e.type === activeFilter; });
+      }
+      if (!events.length) {
+        listEl.innerHTML = '<div class="pulse-empty">No activity yet.<br>Check back soon.</div>';
+        return;
+      }
+      var html = '';
+      for (var i = 0; i < events.length; i++) {
+        var e = events[i];
+        var tagCls = tagClassFor(e);
+        var meta = e.city
+          ? '<div class="pulse-notif-meta">' + pinIconSvg() + escapeHtml(e.city) + '</div>'
+          : '';
+        // Article links open in a new tab; map deep-links open in the same tab
+        // so the existing handleDeepLink() picks them up.
+        var target = e.type === 'article' ? ' target="_blank" rel="noopener"' : '';
+        html += '<a class="pulse-notif" href="' + escapeHtml(e.link || '#') + '"' + target + '>'
+              +   '<div class="pulse-notif-top">'
+              +     '<span class="pulse-notif-tag ' + tagCls + '">' + escapeHtml(e.tag || '') + '</span>'
+              +     '<span class="pulse-notif-time">' + timeAgo(e.timestamp) + '</span>'
+              +   '</div>'
+              +   '<div class="pulse-notif-title">' + escapeHtml(e.title || '') + '</div>'
+              +   meta
+              + '</a>';
+      }
+      listEl.innerHTML = html;
+    }
+
+    function setupFilters() {
+      if (!filterRowEl) return;
+      var pills = filterRowEl.querySelectorAll('.pulse-filter-pill');
+      for (var i = 0; i < pills.length; i++) {
+        pills[i].addEventListener('click', function (e) {
+          var pill = e.currentTarget;
+          for (var j = 0; j < pills.length; j++) pills[j].classList.remove('active');
+          pill.classList.add('active');
+          activeFilter = pill.getAttribute('data-filter') || 'all';
+          renderEvents();
+        });
+      }
+    }
+
+    // Determine how many of the latest events the user hasn't seen yet.
+    // We persist the timestamp of the most recent event the user "saw"
+    // (any time they opened the stack) in localStorage.
+    function unreadCount() {
+      var lastSeen = 0;
+      try { lastSeen = parseInt(localStorage.getItem(STORAGE_LAST_SEEN) || '0', 10) || 0; } catch (e) {}
+      if (!allEvents.length) return 0;
+      var n = 0;
+      for (var i = 0; i < allEvents.length; i++) {
+        var t = new Date(allEvents[i].timestamp).getTime();
+        if (!isNaN(t) && t > lastSeen) n++;
+      }
+      return n;
+    }
+
+    function updateHeader() {
+      if (!subEl) return;
+      var count = allEvents.length;
+      subEl.textContent = count
+        ? count + ' update' + (count === 1 ? '' : 's') + ' this week'
+        : 'No updates';
+    }
+
+    function updateBadge() {
+      if (!badgeEl) return;
+      var unread = unreadCount();
+      if (unread > 0) {
+        badgeEl.textContent = unread > 99 ? '99+' : String(unread);
+        badgeEl.removeAttribute('hidden');
+      } else {
+        badgeEl.setAttribute('hidden', '');
+      }
+    }
+
+    function markAllSeen() {
+      if (!allEvents.length) return;
+      var newest = 0;
+      for (var i = 0; i < allEvents.length; i++) {
+        var t = new Date(allEvents[i].timestamp).getTime();
+        if (!isNaN(t) && t > newest) newest = t;
+      }
+      try { localStorage.setItem(STORAGE_LAST_SEEN, String(newest)); } catch (e) {}
+      updateBadge();
+    }
+
+    function openStack() {
+      if (!stackEl || !bellBtn) return;
+      stackEl.classList.add('open');
+      bellBtn.classList.add('active');
+      bellBtn.setAttribute('aria-expanded', 'true');
+      // Mark events as seen as soon as the stack is opened
+      markAllSeen();
+    }
+
+    function closeStack() {
+      if (!stackEl || !bellBtn) return;
+      stackEl.classList.remove('open');
+      bellBtn.classList.remove('active');
+      bellBtn.setAttribute('aria-expanded', 'false');
+    }
+
+    function isStackOpen() {
+      return stackEl && stackEl.classList.contains('open');
+    }
+
+    function setupBellToggle() {
+      if (!bellBtn) return;
+      bellBtn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        if (isStackOpen()) closeStack(); else openStack();
+      });
+      // Close on outside click
+      document.addEventListener('click', function (e) {
+        if (!isStackOpen()) return;
+        var t = e.target;
+        if (stackEl.contains(t) || bellBtn.contains(t)) return;
+        closeStack();
+      });
+      // Close on Escape
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && isStackOpen()) closeStack();
+      });
+    }
+
+    function loadPulse() {
+      // Pulse.json sits at the site root, same origin as index.html.
+      // cache: 'no-store' so we always get the latest after the nightly job runs.
+      fetch(PULSE_URL, { cache: 'no-store' })
+        .then(function (r) {
+          if (!r.ok) throw new Error('pulse.json HTTP ' + r.status);
+          return r.json();
+        })
+        .then(function (data) {
+          allEvents = (data && Array.isArray(data.events)) ? data.events : [];
+          generatedAt = data && data.generated_at ? data.generated_at : null;
+          hasLoaded = true;
+          updateHeader();
+          updateBadge();
+          renderEvents();
+        })
+        .catch(function (err) {
+          console.warn('[Pulse] failed to load:', err && err.message);
+          // Hide the bell entirely if the feed isn't reachable so we don't
+          // dangle a broken UI element.
+          if (bellBtn) bellBtn.style.display = 'none';
+          if (stackEl) stackEl.style.display = 'none';
+        });
+    }
+
+    function init() {
+      bellBtn      = document.getElementById('pulseBellBtn');
+      badgeEl      = document.getElementById('pulseBellBadge');
+      stackEl      = document.getElementById('pulseStack');
+      subEl        = document.getElementById('pulseStackSub');
+      listEl       = document.getElementById('pulseNotifList');
+      filterRowEl  = document.getElementById('pulseFilterRow');
+      if (!bellBtn || !stackEl) return; // markup missing; bail
+      setupBellToggle();
+      setupFilters();
+      loadPulse();
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+  })();
   </script>
 
   <!-- Comparisons feature (PRO only): builder modal + saved-comparison storage.
