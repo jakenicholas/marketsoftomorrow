@@ -3628,19 +3628,22 @@
     left: calc(16px + var(--safe-area-left));
     width: 36px; height: 36px;
     border-radius: 8px;
-    background: rgba(15,15,15,0.85);
-    backdrop-filter: blur(20px) saturate(1.4);
-    -webkit-backdrop-filter: blur(20px) saturate(1.4);
-    border: 1px solid rgba(255,255,255,0.08);
+    /* Match the .glass-btn look used by the right-side cluster on the main
+       map: lighter translucent fill, 16px blur with saturation, faint inset
+       highlight, and shadow for separation. */
+    background: rgba(15,15,15,0.55);
+    backdrop-filter: blur(16px) saturate(1.4);
+    -webkit-backdrop-filter: blur(16px) saturate(1.4);
+    border: 1px solid rgba(255,255,255,0.10);
     color: #fff;
     cursor: pointer;
     display: flex; align-items: center; justify-content: center;
     z-index: 20;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.4);
+    box-shadow: 0 4px 24px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.06);
     transition: background 0.15s, border-color 0.15s;
   }
   .compare-floating-close:hover {
-    background: rgba(31,31,31,0.92);
+    background: rgba(30,30,30,0.7);
     border-color: rgba(255,255,255,0.18);
   }
 
@@ -3656,19 +3659,20 @@
   .compare-floating-btn {
     width: 36px; height: 36px;
     border-radius: 8px;
-    background: rgba(15,15,15,0.85);
-    backdrop-filter: blur(20px) saturate(1.4);
-    -webkit-backdrop-filter: blur(20px) saturate(1.4);
-    border: 1px solid rgba(255,255,255,0.08);
+    /* Same glass treatment as the main map buttons */
+    background: rgba(15,15,15,0.55);
+    backdrop-filter: blur(16px) saturate(1.4);
+    -webkit-backdrop-filter: blur(16px) saturate(1.4);
+    border: 1px solid rgba(255,255,255,0.10);
     color: #fff;
     cursor: pointer;
     display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.4);
+    box-shadow: 0 4px 24px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.06);
     transition: background 0.15s, border-color 0.15s;
     padding: 0;
   }
   .compare-floating-btn:hover {
-    background: rgba(31,31,31,0.92);
+    background: rgba(30,30,30,0.7);
     border-color: rgba(255,255,255,0.18);
   }
   /* Mode-toggle icon swap: show the side-by-side icon while in stack mode,
@@ -3677,6 +3681,41 @@
   .compare-floating-btn .icon-stack { display: none; }
   .compare-view[data-mode="stack"] .compare-floating-btn .icon-side-by-side { display: block; }
   .compare-view[data-mode="side"]  .compare-floating-btn .icon-stack        { display: block; }
+
+  /* ─── Side-by-side mode: full-width strip of cards beneath the map ──────
+     Hidden by default; shown when user toggles the mode button. The strip
+     scrolls horizontally with snap-to-card. */
+  .compare-view-cards-wrap {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    height: 460px;
+    z-index: 4;
+    background: rgba(13,13,13,0.92);
+    backdrop-filter: blur(20px) saturate(1.4);
+    -webkit-backdrop-filter: blur(20px) saturate(1.4);
+    border-top: 0.5px solid rgba(255,255,255,0.08);
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 18px 20px;
+    /* Reserve space for the home indicator on iPhones */
+    padding-bottom: calc(18px + var(--safe-area-bottom));
+  }
+  .compare-view-cards-wrap[hidden] { display: none; }
+  .compare-view-cards-wrap::-webkit-scrollbar { height: 8px; }
+  .compare-view-cards-wrap::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.1);
+    border-radius: 4px;
+  }
+  .compare-view-cards-wrap::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+  .compare-view-cards {
+    display: flex;
+    gap: 14px;
+    height: 100%;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    /* Allow card shadows / borders to render fully */
+    padding: 0 4px;
+  }
 
   /* Card */
   .compare-card {
@@ -3915,12 +3954,13 @@
     .compare-deck-stage { padding: 16px 16px 6px; }
     .compare-deck { min-height: 320px; }
     .compare-deck-card-img { height: 150px; }
-    .compare-thumbs { padding: 8px 16px 10px; }
-    .compare-thumb, .compare-thumb-add { width: 48px; height: 48px; }
-    .compare-drawer-footer { padding: 10px 12px 12px; }
 
     /* Side-by-side mode: smaller cards, smaller cards-wrap */
-    .compare-view-cards-wrap { height: 420px; padding: 14px 14px; }
+    .compare-view-cards-wrap {
+      height: 420px;
+      padding: 14px 14px;
+      padding-bottom: calc(14px + var(--safe-area-bottom));
+    }
     .compare-card { flex: 0 0 84vw; max-width: 320px; }
   }
 
@@ -9257,6 +9297,6 @@
        Self-contained module; relies on window.projectSlugify, window.allProjectFeatures,
        window.$memberstackDom, and the auth hint cache that the paywall code maintains.
        The ?v=2 query string busts any stale cached version after recent revisions. -->
-  <script src="compare.js?v=8"></script>
+  <script src="compare.js?v=9"></script>
 </body>
 </html>
