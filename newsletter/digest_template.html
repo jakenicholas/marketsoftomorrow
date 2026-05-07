@@ -12,7 +12,7 @@
 {%- endmacro -%}
 {#- Reusable article card macro -#}
 {%- macro render_article(a) -%}
-<table role="presentation" class="article-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#161616" style="background-color: #161616;">
+<table role="presentation" class="article-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#222222" style="background-color: #222222;">
   {%- if a.image %}
   <tr><td>
     <a href="{{ a.link }}" style="display: block;">
@@ -33,7 +33,7 @@
 {%- endmacro -%}
 {#- Reusable grid card macro for map items -#}
 {%- macro render_grid_card(p) -%}
-<table role="presentation" class="grid-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" height="300" bgcolor="#161616" style="background-color: #161616; height: 300px;">
+<table role="presentation" class="grid-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" height="300" bgcolor="#222222" style="background-color: #222222; height: 300px;">
   {%- if p.image %}
   <tr><td height="180" style="height: 180px;">
     <a href="{{ p.url }}" style="display: block;">
@@ -72,19 +72,19 @@
   }
 
   @media (prefers-color-scheme: dark) {
-    .force-dark-bg { background-color: #0a0a0a !important; }
-    .force-dark-panel { background-color: #161616 !important; }
+    .force-dark-bg { background-color: #1a1a1a !important; }
+    .force-dark-panel { background-color: #222222 !important; }
     .force-light-text { color: #ffffff !important; }
     .force-muted-text { color: #888888 !important; }
     .force-accent-text { color: #1FDF67 !important; }
     .force-border { border-color: #262626 !important; }
-    body, .wrapper { background-color: #0a0a0a !important; }
+    body, .wrapper { background-color: #1a1a1a !important; }
   }
 
   body {
     margin: 0;
     padding: 0;
-    background-color: #0a0a0a;
+    background-color: #1a1a1a;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   }
 
@@ -106,10 +106,10 @@
     display: none;
     max-height: 0;
     overflow: hidden;
-    color: #0a0a0a;
+    color: #1a1a1a;
     visibility: hidden;
   }
-  .wrapper { background-color: #0a0a0a; width: 100%; }
+  .wrapper { background-color: #1a1a1a; width: 100%; }
   .container { max-width: 600px; width: 100%; }
 
   .hero { padding: 0 0 24px 0; text-align: center; }
@@ -134,7 +134,7 @@
 
   /* Article cards (full-width, single column) */
   .article-card {
-    background-color: #161616;
+    background-color: #222222;
     border: 1px solid #262626;
     border-radius: 12px;
     margin: 0 0 16px 0;
@@ -175,7 +175,7 @@
 
   /* 2-column grid cards — TIGHTER, fixed height */
   .grid-card {
-    background-color: #161616;
+    background-color: #222222;
     border: 1px solid #262626;
     border-radius: 12px;
     height: 300px;
@@ -224,16 +224,16 @@
   /* App updates: connected image + body */
   .app-image-wrap {
     width: 100%;
-    height: 340px;
+    height: 360px;
     overflow: hidden;
     border-radius: 12px 12px 0 0;
-    background-color: #262626;
-    background-size: cover;
+    background-color: #222222;
+    background-size: contain;
     background-position: center center;
     background-repeat: no-repeat;
   }
   .cta-block-connected {
-    background-color: #161616;
+    background-color: #222222;
     border: 1px solid #262626;
     border-top: 0;
     border-radius: 0 0 12px 12px;
@@ -294,13 +294,13 @@
   a { color: #1FDF67; }
 </style>
 </head>
-<body class="force-dark-bg" style="margin: 0; padding: 0; background-color: #0a0a0a;">
+<body class="force-dark-bg" style="margin: 0; padding: 0; background-color: #1a1a1a;">
 
 <div class="preheader">{{ preheader }}</div>
 <div style="display: none; max-height: 0; overflow: hidden;">&#847;&zwnj;&nbsp;&#847; &#847;&zwnj;&nbsp;&#847; &#847;&zwnj;&nbsp;&#847; &#847;&zwnj;&nbsp;&#847; &#847;&zwnj;&nbsp;&#847; &#847;&zwnj;&nbsp;&#847; &#847;&zwnj;&nbsp;&#847;</div>
 
-<table role="presentation" class="wrapper force-dark-bg" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#0a0a0a" style="background-color: #0a0a0a;">
-  <tr><td align="center" style="padding: 32px 16px; background-color: #0a0a0a;">
+<table role="presentation" class="wrapper force-dark-bg" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#1a1a1a" style="background-color: #1a1a1a;">
+  <tr><td align="center" style="padding: 32px 16px; background-color: #1a1a1a;">
     <table role="presentation" class="container" cellpadding="0" cellspacing="0" border="0" width="600">
 
       <!-- HERO -->
@@ -408,7 +408,7 @@
             <a href="{{ site_url }}" style="display: block;">
               <div class="app-image-wrap" style="background-image: url('{{ app_image_url }}');">
                 <!--[if mso]>
-                <img src="{{ app_image_url }}" alt="Map of Tomorrow" width="600" height="340" style="display:block;width:100%;height:340px;border:0;" />
+                <img src="{{ app_image_url }}" alt="Map of Tomorrow" width="600" height="360" style="display:block;width:100%;height:360px;border:0;" />
                 <![endif]-->
               </div>
             </a>
@@ -416,7 +416,7 @@
         </table>
 
         <!-- Connected body — no top border or radius -->
-        <div class="cta-block-connected force-dark-panel force-border" style="background-color: #161616;">
+        <div class="cta-block-connected force-dark-panel force-border" style="background-color: #222222;">
           <div class="cta-headline force-light-text">{{ app_updates.headline }}</div>
           <ul class="cta-list">
             {%- for bullet in app_updates.bullets %}
