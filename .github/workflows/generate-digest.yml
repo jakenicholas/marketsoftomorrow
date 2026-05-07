@@ -1,0 +1,44 @@
+# File: .github/workflows/generate-digest.yml
+# Runs nightly to keep digest-latest.html fresh.
+# Does NOT send anything. Sending is a separate workflow.
+
+name: Generate Newsletter Digest
+
+on:
+  schedule:
+    # Nightly at 06:00 UTC (1am EST / 2am EDT) — after generate_pulse.py runs
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install jinja2 premailer
+
+      - name: Generate digest
+        run: python3 generate_digest.py
+
+      - name: Commit if changed
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add newsletter/digest-latest.html newsletter/digest-subject.txt newsletter/digest-archive/
+          if git diff --staged --quiet; then
+            echo "No changes."
+          else
+            git commit -m "digest: nightly refresh [skip ci]"
+            git push
+          fi
