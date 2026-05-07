@@ -10,6 +10,54 @@
   </div>
 </td></tr>
 {%- endmacro -%}
+{#- Reusable article card macro -#}
+{%- macro render_article(a) -%}
+<table role="presentation" class="article-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#161616" style="background-color: #161616;">
+  {%- if a.image %}
+  <tr><td>
+    <a href="{{ a.link }}" style="display: block;">
+      <div class="article-card-image-wrap" style="background-image: url('{{ a.image }}');">
+        <!--[if mso]>
+        <img src="{{ a.image }}" alt="{{ a.title }}" width="600" height="240" style="display:block;width:100%;height:240px;border:0;" />
+        <![endif]-->
+      </div>
+    </a>
+  </td></tr>
+  {%- endif %}
+  <tr><td class="article-card-body">
+    <a href="{{ a.link }}" class="article-card-title force-light-text" style="color: #ffffff;">{{ a.title }}</a>
+    <div class="article-card-summary force-muted-text">{{ a.summary }}</div>
+    <div><a href="{{ a.link }}" class="read-more force-accent-text">Read on TMW →</a></div>
+  </td></tr>
+</table>
+{%- endmacro -%}
+{#- Reusable grid card macro for map items -#}
+{%- macro render_grid_card(p) -%}
+<table role="presentation" class="grid-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" height="300" bgcolor="#161616" style="background-color: #161616; height: 300px;">
+  {%- if p.image %}
+  <tr><td height="180" style="height: 180px;">
+    <a href="{{ p.url }}" style="display: block;">
+      <div class="grid-card-image-wrap" style="background-image: url('{{ p.image }}');">
+        <!--[if mso]>
+        <img src="{{ p.image }}" alt="{{ p.title }}" width="290" height="180" style="display:block;width:100%;height:180px;border:0;" />
+        <![endif]-->
+      </div>
+    </a>
+  </td></tr>
+  {%- endif %}
+  <tr><td class="grid-card-body" valign="top" height="120" style="height: 120px;">
+    <div class="stage-pill" style="color: {{ p.stage_color }};">
+      {%- if p.from_stage -%}
+        <span style="color: #888888;">{{ p.from_stage }} → </span>{{ p.to_stage }}
+      {%- else -%}
+        {{ p.stage_label }}
+      {%- endif -%}
+    </div>
+    <a href="{{ p.url }}" class="grid-card-title force-light-text" style="color: #ffffff;">{{ p.title }}</a>
+    <div class="grid-card-meta force-muted-text">{{ p.city }}</div>
+  </td></tr>
+</table>
+{%- endmacro -%}
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -30,9 +78,6 @@
     .force-muted-text { color: #888888 !important; }
     .force-accent-text { color: #1FDF67 !important; }
     .force-border { border-color: #262626 !important; }
-  }
-
-  @media (prefers-color-scheme: dark) {
     body, .wrapper { background-color: #0a0a0a !important; }
   }
 
@@ -43,7 +88,6 @@
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   }
 
-  /* Mobile: stack 2-column grid into single column */
   @media only screen and (max-width: 480px) {
     .two-col-cell {
       display: block !important;
@@ -53,8 +97,7 @@
     }
     .two-col-spacer { display: none !important; }
     .ad-banner { width: 100% !important; }
-    .grid-card-image-wrap { height: 200px !important; }
-    /* Reset card body height on mobile so cards size to content */
+    .grid-card-image-wrap { height: 180px !important; }
     .grid-card-body { height: auto !important; min-height: 0 !important; }
     .grid-card { height: auto !important; }
   }
@@ -89,7 +132,7 @@
     border-top: 1px solid #262626;
   }
 
-  /* Single-column journal cards (full-width) */
+  /* Article cards (full-width, single column) */
   .article-card {
     background-color: #161616;
     border: 1px solid #262626;
@@ -130,17 +173,16 @@
     display: inline-block;
   }
 
-  /* 2-column grid cards — fixed total height for alignment */
+  /* 2-column grid cards — TIGHTER, fixed height */
   .grid-card {
     background-color: #161616;
     border: 1px solid #262626;
     border-radius: 12px;
-    /* Fixed height so all tiles align regardless of title length */
-    height: 360px;
+    height: 300px;
   }
   .grid-card-image-wrap {
     width: 100%;
-    height: 200px;
+    height: 180px;
     overflow: hidden;
     border-radius: 12px 12px 0 0;
     background-color: #262626;
@@ -149,20 +191,18 @@
     background-repeat: no-repeat;
   }
   .grid-card-body {
-    padding: 14px 16px;
-    height: 160px;
+    padding: 12px 14px;
+    height: 120px;
     box-sizing: border-box;
     overflow: hidden;
   }
   .grid-card-title {
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 700;
     line-height: 1.3;
     color: #ffffff;
     text-decoration: none;
     margin: 0 0 4px 0;
-    display: block;
-    /* Clamp title to 2 lines so cards stay aligned */
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
@@ -170,23 +210,33 @@
   }
   .grid-card-meta {
     color: #888888;
-    font-size: 13px;
-    /* Single line for city */
+    font-size: 12px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
   .stage-pill {
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 600;
     margin-bottom: 6px;
   }
 
-  /* App updates block */
-  .cta-block {
+  /* App updates: connected image + body */
+  .app-image-wrap {
+    width: 100%;
+    height: 220px;
+    overflow: hidden;
+    border-radius: 12px 12px 0 0;
+    background-color: #262626;
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+  }
+  .cta-block-connected {
     background-color: #161616;
     border: 1px solid #262626;
-    border-radius: 12px;
+    border-top: 0;
+    border-radius: 0 0 12px 12px;
     padding: 24px;
   }
   .cta-headline {
@@ -215,10 +265,7 @@
   }
 
   /* Ad banner */
-  .ad-wrap {
-    padding: 24px 0;
-    text-align: center;
-  }
+  .ad-wrap { padding: 24px 0; text-align: center; }
   .ad-label {
     color: #555555;
     font-size: 10px;
@@ -250,7 +297,6 @@
 <body class="force-dark-bg" style="margin: 0; padding: 0; background-color: #0a0a0a;">
 
 <div class="preheader">{{ preheader }}</div>
-
 <div style="display: none; max-height: 0; overflow: hidden;">&#847;&zwnj;&nbsp;&#847; &#847;&zwnj;&nbsp;&#847; &#847;&zwnj;&nbsp;&#847; &#847;&zwnj;&nbsp;&#847; &#847;&zwnj;&nbsp;&#847; &#847;&zwnj;&nbsp;&#847; &#847;&zwnj;&nbsp;&#847;</div>
 
 <table role="presentation" class="wrapper force-dark-bg" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#0a0a0a" style="background-color: #0a0a0a;">
@@ -267,29 +313,12 @@
       {{ render_ad(ads.slot1) }}
       {%- endif %}
 
-      <!-- FROM THE JOURNAL -->
-      {%- if articles %}
+      <!-- FROM THE JOURNAL: FLORIDA -->
+      {%- if florida_articles %}
       <tr><td>
-        <div class="section-header force-accent-text">From the journal ({{ articles|length }})</div>
-        {%- for a in articles %}
-        <table role="presentation" class="article-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#161616" style="background-color: #161616;">
-          {%- if a.image %}
-          <tr><td>
-            <a href="{{ a.link }}" style="display: block;">
-              <div class="article-card-image-wrap" style="background-image: url('{{ a.image }}');">
-                <!--[if mso]>
-                <img src="{{ a.image }}" alt="{{ a.title }}" width="600" height="240" style="display:block;width:100%;height:240px;border:0;" />
-                <![endif]-->
-              </div>
-            </a>
-          </td></tr>
-          {%- endif %}
-          <tr><td class="article-card-body">
-            <a href="{{ a.link }}" class="article-card-title force-light-text" style="color: #ffffff;">{{ a.title }}</a>
-            <div class="article-card-summary force-muted-text">{{ a.summary }}</div>
-            <div><a href="{{ a.link }}" class="read-more force-accent-text">Read on TMW →</a></div>
-          </td></tr>
-        </table>
+        <div class="section-header force-accent-text">From the journal · Florida ({{ florida_articles|length }})</div>
+        {%- for a in florida_articles %}
+        {{ render_article(a) }}
         {%- endfor %}
       </td></tr>
       {%- endif %}
@@ -298,42 +327,32 @@
       {{ render_ad(ads.slot2) }}
       {%- endif %}
 
-      <!-- NEW ON THE MAP — combined new + status changes, 2-col grid -->
+      <!-- FROM THE JOURNAL: MORE MARKETS -->
+      {%- if more_markets_articles %}
+      <tr><td>
+        <div class="section-header force-accent-text">More markets ({{ more_markets_articles|length }})</div>
+        {%- for a in more_markets_articles %}
+        {{ render_article(a) }}
+        {%- endfor %}
+      </td></tr>
+      {%- endif %}
+
+      {%- if ads.slot3 %}
+      {{ render_ad(ads.slot3) }}
+      {%- endif %}
+
+      <!-- NEW ON THE MAP — combined, 2-col grid -->
       {%- if map_items %}
       <tr><td>
         <div class="section-header force-accent-text">New on the map ({{ map_items|length }})</div>
 
-        {# Render first 4 items in 2x2 grid #}
         {%- set first_batch = map_items[:4] %}
         {%- for row in first_batch|batch(2) %}
         <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 0 0 16px 0;">
           <tr>
           {%- for p in row %}
             <td class="two-col-cell" valign="top" width="290" style="width: 290px; padding: 0 {% if loop.first %}8px 0 0{% else %}0 0 8px{% endif %};">
-              <table role="presentation" class="grid-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" height="360" bgcolor="#161616" style="background-color: #161616; height: 360px;">
-                {%- if p.image %}
-                <tr><td height="200" style="height: 200px;">
-                  <a href="{{ p.url }}" style="display: block;">
-                    <div class="grid-card-image-wrap" style="background-image: url('{{ p.image }}');">
-                      <!--[if mso]>
-                      <img src="{{ p.image }}" alt="{{ p.title }}" width="290" height="200" style="display:block;width:100%;height:200px;border:0;" />
-                      <![endif]-->
-                    </div>
-                  </a>
-                </td></tr>
-                {%- endif %}
-                <tr><td class="grid-card-body" valign="top" height="160" style="height: 160px;">
-                  <div class="stage-pill" style="color: {{ p.stage_color }};">
-                    {%- if p.from_stage -%}
-                      <span style="color: #888888;">{{ p.from_stage }} → </span>{{ p.to_stage }}
-                    {%- else -%}
-                      {{ p.stage_label }}
-                    {%- endif -%}
-                  </div>
-                  <a href="{{ p.url }}" class="grid-card-title force-light-text" style="color: #ffffff;">{{ p.title }}</a>
-                  <div class="grid-card-meta force-muted-text">{{ p.city }}</div>
-                </td></tr>
-              </table>
+              {{ render_grid_card(p) }}
             </td>
           {%- endfor %}
           {%- if row|length == 1 %}
@@ -344,11 +363,10 @@
         {%- endfor %}
       </td></tr>
 
-      {%- if ads.slot3 %}
-      {{ render_ad(ads.slot3) }}
+      {%- if ads.slot4 %}
+      {{ render_ad(ads.slot4) }}
       {%- endif %}
 
-      {# Render remaining items (5-8) in another 2x2 grid #}
       {%- set second_batch = map_items[4:8] %}
       {%- if second_batch %}
       <tr><td>
@@ -357,30 +375,7 @@
           <tr>
           {%- for p in row %}
             <td class="two-col-cell" valign="top" width="290" style="width: 290px; padding: 0 {% if loop.first %}8px 0 0{% else %}0 0 8px{% endif %};">
-              <table role="presentation" class="grid-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" height="360" bgcolor="#161616" style="background-color: #161616; height: 360px;">
-                {%- if p.image %}
-                <tr><td height="200" style="height: 200px;">
-                  <a href="{{ p.url }}" style="display: block;">
-                    <div class="grid-card-image-wrap" style="background-image: url('{{ p.image }}');">
-                      <!--[if mso]>
-                      <img src="{{ p.image }}" alt="{{ p.title }}" width="290" height="200" style="display:block;width:100%;height:200px;border:0;" />
-                      <![endif]-->
-                    </div>
-                  </a>
-                </td></tr>
-                {%- endif %}
-                <tr><td class="grid-card-body" valign="top" height="160" style="height: 160px;">
-                  <div class="stage-pill" style="color: {{ p.stage_color }};">
-                    {%- if p.from_stage -%}
-                      <span style="color: #888888;">{{ p.from_stage }} → </span>{{ p.to_stage }}
-                    {%- else -%}
-                      {{ p.stage_label }}
-                    {%- endif -%}
-                  </div>
-                  <a href="{{ p.url }}" class="grid-card-title force-light-text" style="color: #ffffff;">{{ p.title }}</a>
-                  <div class="grid-card-meta force-muted-text">{{ p.city }}</div>
-                </td></tr>
-              </table>
+              {{ render_grid_card(p) }}
             </td>
           {%- endfor %}
           {%- if row|length == 1 %}
@@ -389,7 +384,6 @@
           </tr>
         </table>
         {%- endfor %}
-
         {%- if map_items|length > 8 %}
         <div style="text-align: center; margin: 8px 0 16px 0;">
           <a href="{{ site_url }}" class="read-more force-accent-text">+ {{ map_items|length - 8 }} more on the map →</a>
@@ -398,16 +392,31 @@
       </td></tr>
       {%- endif %}
 
-      {%- if ads.slot4 %}
-      {{ render_ad(ads.slot4) }}
+      {%- if ads.slot5 %}
+      {{ render_ad(ads.slot5) }}
       {%- endif %}
       {%- endif %}
 
-      <!-- WHAT'S NEW IN THE APP -->
+      <!-- WHAT'S NEW IN THE APP — connected image + body -->
       {%- if app_updates %}
       <tr><td>
         <div class="section-header force-accent-text">What's new in the app</div>
-        <div class="cta-block force-dark-panel force-border" style="background-color: #161616;">
+
+        <!-- Image with rounded top corners only, no bottom corners -->
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 0;">
+          <tr><td style="padding: 0; line-height: 0; font-size: 0;">
+            <a href="{{ site_url }}" style="display: block;">
+              <div class="app-image-wrap" style="background-image: url('{{ app_image_url }}');">
+                <!--[if mso]>
+                <img src="{{ app_image_url }}" alt="Map of Tomorrow" width="600" height="220" style="display:block;width:100%;height:220px;border:0;" />
+                <![endif]-->
+              </div>
+            </a>
+          </td></tr>
+        </table>
+
+        <!-- Connected body — no top border or radius -->
+        <div class="cta-block-connected force-dark-panel force-border" style="background-color: #161616;">
           <div class="cta-headline force-light-text">{{ app_updates.headline }}</div>
           <ul class="cta-list">
             {%- for bullet in app_updates.bullets %}
@@ -417,10 +426,6 @@
           <div><a href="{{ site_url }}" class="cta-button">Open the map →</a></div>
         </div>
       </td></tr>
-      {%- endif %}
-
-      {%- if ads.slot5 %}
-      {{ render_ad(ads.slot5) }}
       {%- endif %}
 
       {%- if ads.slot6 %}
