@@ -135,6 +135,7 @@ def group_events(events):
 
 def parse_articles_from_rss():
     """Parse all articles from RSS with categories and best-quality images."""
+    import html  # for unescaping HTML entities like &#38; → &
     try:
         xml = fetch(RSS_URL)
         root = ET.fromstring(xml)
@@ -147,6 +148,10 @@ def parse_articles_from_rss():
         title = (it.findtext("title") or "").strip()
         link  = (it.findtext("link")  or "").strip()
         desc  = (it.findtext("description") or "").strip()
+
+        # Decode HTML entities (&#38; → &, &amp; → &, &quot; → ", etc.)
+        title = html.unescape(title)
+        desc  = html.unescape(desc)
 
         # Categories — list of all <category> tags
         categories = [c.text.strip() for c in it.findall("category") if c.text]
