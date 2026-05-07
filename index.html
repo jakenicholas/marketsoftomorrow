@@ -1,7 +1,5 @@
 <!DOCTYPE html>
-
 <!-- v2026-05-04T05:00Z account-modal-overhaul -->
-
 <html>
 <head>
   <meta charset="utf-8">
@@ -40,19 +38,16 @@
   <meta name="format-detection" content="date=no">
   <meta name="format-detection" content="address=no">
   <meta name="format-detection" content="email=no">
-
+  
   <script src="https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.js"></script>
-
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
   <!-- Memberstack 2.0 — handles auth + Stripe checkout for the paywall -->
-
   <script data-memberstack-app="app_cmoq79nvv002d0syef7wpel3c"
           src="https://static.memberstack.com/scripts/v2/memberstack.js"
           type="text/javascript"></script>
-
+  
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-6NPTWCVFCG"></script>
-
   <script>
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
@@ -74,7 +69,7 @@
     "description": "Interactive map of the world's most exciting developments by Markets of Tomorrow."
   }
   </script>
-
+  
   <link href="https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.css" rel="stylesheet" />
 
   <style>
@@ -1252,7 +1247,7 @@
       margin-bottom: 5px;
     }
     .pulse-notif-title {
-      font-size: 13px;
+      font-size: 14px;
       font-weight: 600;
       line-height: 1.3;
       color: #fff;
@@ -1261,8 +1256,9 @@
       -webkit-box-orient: vertical;
       overflow: hidden;
       /* Reserve exactly 2 lines of height so every tile is the same height
-         regardless of whether the title is one or two lines long. */
-      min-height: 34px;
+         regardless of whether the title is one or two lines long.
+         Computed as font-size * line-height * 2: 14 * 1.3 * 2 = 36.4. */
+      min-height: 37px;
     }
 
     .pulse-notif-close {
@@ -2964,6 +2960,21 @@
     color: rgba(255,255,255,0.7);
     text-align: left;
   }
+  /* Yellow PRO pill matching the .auth-dropdown-pro tag style. Used in the
+     anon signup wall to advertise what each feature unlocks once the user
+     upgrades to a Pro subscription. */
+  .paywall-feature-pro-pill {
+    flex-shrink: 0;
+    font-size: 9px;
+    font-weight: 800;
+    color: #000;
+    background: #FFD300;
+    padding: 2px 7px;
+    border-radius: 4px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    line-height: 1.2;
+  }
   .paywall-signin {
     font-size: 12px;
     color: rgba(255,255,255,0.45);
@@ -2987,11 +2998,38 @@
     font-weight: 700;
     cursor: pointer;
     transition: background 0.15s, transform 0.1s;
-    margin-bottom: 14px;
+    margin-bottom: 10px;
     font-family: inherit;
   }
   .paywall-cta-primary:hover { background: #18c75a; }
   .paywall-cta-primary:active { transform: scale(0.99); }
+
+  /* Yellow secondary CTA: "Go Pro" - sits below "Sign up free" and routes
+     users through signup -> subscription paywall in one flow. */
+  .paywall-cta-pro {
+    width: 100%;
+    background: #FFD300;
+    color: #000;
+    border: none;
+    border-radius: 10px;
+    padding: 14px 20px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+    margin-bottom: 14px;
+    font-family: inherit;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .paywall-cta-pro:hover { background: #e6bf00; }
+  .paywall-cta-pro:active { transform: scale(0.99); }
+  .paywall-cta-pro-star {
+    font-size: 13px;
+    line-height: 1;
+  }
 
   @media (max-width: 480px) {
     .paywall-card { padding: 24px 18px 18px; max-width: 100%; }
@@ -3971,7 +4009,6 @@
   }
 
   </style>
-
 </head>
 <body>
   <!-- Header Bar -->
@@ -3981,9 +4018,8 @@
     </a>
     <!-- Auth UI gets injected here at runtime by paywall script -->
   </div>
-
+  
   <!-- Loading Overlay -->
-
   <div id="loadingOverlay">
     <div class="loading-content">
       <div class="loading-spinner"></div>
@@ -3995,7 +4031,7 @@
       <span class="presented-brand">MARKETS OF TOMORROW</span>
     </div>
   </div>
-
+  
   <div id="app-container">
     <button id="toggleView" class="hidden" style="display:none!important"></button>
     <button id="openSearch" class="hidden" style="display:none!important"></button>
@@ -4007,346 +4043,343 @@
       <div id="results" class="hidden"></div>
     </div>
 
-```
-<!-- Pulse bell button (live activity feed) -->
-<button id="pulseBellBtn" class="glass-btn" title="Pulse" aria-label="Open Pulse activity feed" aria-expanded="false">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-  <span id="pulseBellBadge" class="pulse-bell-badge" hidden></span>
-</button>
-
-<!-- Pulse stack drawer (hidden by default; toggles open/closed via bell click) -->
-<div id="pulseStack" role="dialog" aria-label="Pulse activity feed">
-  <!-- Drag handle (mobile only - hidden on desktop via media query) -->
-  <div class="pulse-sheet-handle" id="pulseSheetHandle" aria-label="Drag to peek or close" role="button" tabindex="0"></div>
-  <div class="pulse-stack-header">
-    <div class="pulse-stack-header-left">
-      <div class="pulse-dot" aria-hidden="true"></div>
-      <div>
-        <div class="pulse-stack-title">Pulse</div>
-        <div class="pulse-stack-sub" id="pulseStackSub">Loading...</div>
-      </div>
-    </div>
-    <button type="button" id="pulseRefreshBtn" class="pulse-refresh-btn" aria-label="Refresh Pulse" title="Refresh">
-      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="23 4 23 10 17 10"/>
-        <polyline points="1 20 1 14 7 14"/>
-        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
-      </svg>
+    <!-- Pulse bell button (live activity feed) -->
+    <button id="pulseBellBtn" class="glass-btn" title="Pulse" aria-label="Open Pulse activity feed" aria-expanded="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      <span id="pulseBellBadge" class="pulse-bell-badge" hidden></span>
     </button>
-  </div>
-  <div class="pulse-filter-row" id="pulseFilterRow">
-    <div class="pulse-filter-pill active" data-filter="all">All</div>
-    <div class="pulse-filter-pill" data-filter="article">News</div>
-    <div class="pulse-filter-pill" data-filter="updates">Updates</div>
-  </div>
-  <div id="pulseNotifList">
-    <div class="pulse-skel"><div class="pulse-skel-line short"></div><div class="pulse-skel-line long"></div><div class="pulse-skel-line med"></div></div>
-    <div class="pulse-skel"><div class="pulse-skel-line short"></div><div class="pulse-skel-line long"></div><div class="pulse-skel-line med"></div></div>
-    <div class="pulse-skel"><div class="pulse-skel-line short"></div><div class="pulse-skel-line long"></div><div class="pulse-skel-line med"></div></div>
-  </div>
-</div>
 
-<!-- Layers toggle button -->
-<button id="layersButton" class="glass-btn" title="Map layers">
-  <svg viewBox="0 0 24 24"><path d="M11.99 18.54l-7.37-5.73L3 14.07l9 7 9-7-1.63-1.27-7.38 5.74zM12 16l7.36-5.73L21 9l-9-7-9 7 1.63 1.27L12 16z"/></svg>
-</button>
-
-<!-- Layers panel -->
-<div id="layersPanel">
-  <div class="layers-section-title">Layers</div>
-
-  <div class="layers-checkbox-row disabled" title="Developments cannot be hidden">
-    <div class="layers-checkbox checked grayed">
-      <svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg>
-    </div>
-    <span class="layers-checkbox-label">Developments</span>
-  </div>
-
-  <div class="layers-checkbox-row" id="transitToggleRow">
-    <div class="layers-checkbox checked" id="transitCheckbox">
-      <svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg>
-    </div>
-    <span class="layers-checkbox-label" style="display:flex;align-items:center;gap:6px;">
-      Future Transit
-      <svg width="18" height="6" viewBox="0 0 18 6" style="flex-shrink:0;"><line x1="0" y1="3" x2="18" y2="3" stroke="#FFD300" stroke-width="2" stroke-dasharray="3,2"/></svg>
-    </span>
-  </div>
-
-  <div class="layers-checkbox-row" id="currentTransitToggleRow">
-    <div class="layers-checkbox" id="currentTransitCheckbox">
-      <svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg>
-    </div>
-    <span class="layers-checkbox-label" style="display:flex;align-items:center;gap:6px;">
-      Current Transit
-      <span style="display:inline-block;width:16px;height:3px;background:#FF8C00;border-radius:2px;flex-shrink:0;"></span>
-    </span>
-  </div>
-
-  <div class="layers-divider"></div>
-
-  <div class="layers-section-title">Map Style</div>
-  <div class="layers-map-options">
-    <div class="layers-map-option selected" id="styleDefault">
-      <img src="https://static.wixstatic.com/media/ca3b83_4e8814226f3c44c6be6d4d405a46dcac~mv2.jpg" alt="Default" style="object-fit:cover;width:100%;height:60px;display:block;"/>
-      <div class="layers-map-option-label">Default</div>
-    </div>
-    <div class="layers-map-option" id="styleSatellite">
-      <img src="https://static.wixstatic.com/media/ca3b83_7ef4124aa18b4c119cb645ec8b7a9ff9~mv2.jpg" alt="Satellite" style="object-fit:cover;width:100%;height:60px;display:block;"/>
-      <div class="layers-map-option-label">Satellite</div>
-    </div>
-  </div>
-</div>
-
-<!-- Location button (mobile only) -->
-<button id="locationButton" title="Go to my location">
-  <svg viewBox="0 0 24 24"><path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3c-.46-4.17-3.77-7.48-7.94-7.94V1h-2v2.06C6.83 3.52 3.52 6.83 3.06 11H1v2h2.06c.46 4.17 3.77 7.48 7.94 7.94V23h2v-2.06c4.17-.46 7.48-3.77 7.94-7.94H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/></svg>
-</button>
-
-<!-- Zoom buttons -->
-<button id="zoomInButton" class="zoom-btn" title="Zoom in">+</button>
-<button id="zoomOutButton" class="zoom-btn" title="Zoom out">−</button>
-<!-- Reset map view -->
-<button id="resetViewButton" class="zoom-btn" title="Reset map view (north-up)" aria-label="Reset map view">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polygon points="12 5 14 12 12 19 10 12" fill="currentColor" stroke="none"/></svg>
-</button>
-<div id="desktopSearchPill" class="glass-btn">
-  <div class="pill-search-icon">
-    <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-  </div>
-  <span class="pill-text">Search projects or city...</span>
-  <div class="pill-filter-badge" id="desktopPillFilterBadge">
-    <span class="badge-icon"><svg viewBox="0 0 24 24"><circle cx="6" cy="5" r="2"/><line x1="2" y1="5" x2="4" y2="5"/><line x1="8" y1="5" x2="22" y2="5"/><circle cx="16" cy="12" r="2"/><line x1="2" y1="12" x2="14" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><circle cx="9" cy="19" r="2"/><line x1="2" y1="19" x2="7" y2="19"/><line x1="11" y1="19" x2="22" y2="19"/></svg></span>
-    <span class="badge-count" id="desktopPillFilterCount">0</span>
-  </div>
-  <div class="pill-divider"></div>
-  <div class="pill-count" id="desktopPillCount">— results</div>
-</div>
-
-<!-- Desktop Sidebar -->
-<div id="desktopSidebar">
-  <div class="sidebar-header">
-
-    <!-- Row 1: Search glass pill + close button -->
-    <div class="desktop-search-row">
-      <div class="desktop-search-pill">
-        <div class="search-pill-icon">
-          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-        </div>
-        <input id="sidebarSearchBar" type="text" placeholder="Search projects or city..." />
-        <button id="sidebarSearchClear" title="Clear search">✕</button>
-        <div id="sidebarAutocomplete" class="autocomplete-dropdown hidden"></div>
-      </div>
-      <button id="closeSidebar" title="Close">✕</button>
-      <div id="sidebarResults" class="hidden"></div>
-    </div>
-
-    <!-- Row 2: Glass filter pill with three segments -->
-    <div class="desktop-filter-pill mobile-filter-pill">
-      <div class="filter-seg" id="desktopSegSort">
-        <span class="filter-seg-label" id="desktopLabelSort">Nearest</span>
-        <svg class="filter-seg-chevron" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-linecap="round"/></svg>
-        <select id="sortSelectDesktop">
-          <option value="default">Nearest</option>
-          <option value="az">A to Z</option>
-          <option value="za">Z to A</option>
-        </select>
-      </div>
-      <div class="filter-seg-div"></div>
-      <div class="filter-seg" id="desktopSegType">
-        <span class="filter-seg-label" id="desktopLabelType">Type</span>
-        <svg class="filter-seg-chevron" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-linecap="round"/></svg>
-        <select id="projectTypeFilterDesktop">
-          <option value="all">All Types</option>
-        </select>
-      </div>
-      <div class="filter-seg-div"></div>
-      <div class="filter-seg" id="desktopSegStatus">
-        <span class="filter-seg-label" id="desktopLabelStatus">Status</span>
-        <svg class="filter-seg-chevron" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-linecap="round"/></svg>
-        <select id="locationFilterDesktop">
-          <option value="all">All Status</option>
-        </select>
-      </div>
-    </div>
-
-    <!-- Active filter pills (desktop) -->
-    <div class="filter-pills-row" id="desktopPillsRow"></div>
-
-    <!-- Section status bar (desktop) -->
-    <div id="desktopSectionBar" class="section-status-bar">
-      <div class="ssb-inner" id="desktopSsbInner">
-        <span class="ssb-title in-view" id="desktopSsbTitle">In View</span>
-        <span class="ssb-count green" id="desktopSsbCount"></span>
-      </div>
-    </div>
-  </div>
-
-  <div class="sidebar-content">
-    <div class="leaf-grid" id="gridDesktop"></div>
-  </div>
-</div>
-
-<!-- Mobile Drawer -->
-<div id="mobileDrawer">
-  <div id="mobileDrawerContent">
-    <div class="mobile-header">
-      <div id="mobileDrawerHandle"></div>
-      <!-- Row 1: Glass search pill with autocomplete outside overflow:hidden -->
-      <div style="position:relative;">
-        <div class="mobile-search-pill">
-          <div class="search-pill-icon">
-            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <!-- Pulse stack drawer (hidden by default; toggles open/closed via bell click) -->
+    <div id="pulseStack" role="dialog" aria-label="Pulse activity feed">
+      <!-- Drag handle (mobile only - hidden on desktop via media query) -->
+      <div class="pulse-sheet-handle" id="pulseSheetHandle" aria-label="Drag to peek or close" role="button" tabindex="0"></div>
+      <div class="pulse-stack-header">
+        <div class="pulse-stack-header-left">
+          <div class="pulse-dot" aria-hidden="true"></div>
+          <div>
+            <div class="pulse-stack-title">Pulse</div>
+            <div class="pulse-stack-sub" id="pulseStackSub">Loading...</div>
           </div>
-          <input id="mobileSearchBar" type="text" placeholder="Search projects or city..." />
-          <button id="mobileSearchClear" title="Clear search">✕</button>
         </div>
-        <div id="mobileAutocomplete" class="autocomplete-dropdown hidden"></div>
+        <button type="button" id="pulseRefreshBtn" class="pulse-refresh-btn" aria-label="Refresh Pulse" title="Refresh">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="23 4 23 10 17 10"/>
+            <polyline points="1 20 1 14 7 14"/>
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+          </svg>
+        </button>
+      </div>
+      <div class="pulse-filter-row" id="pulseFilterRow">
+        <div class="pulse-filter-pill active" data-filter="all">All</div>
+        <div class="pulse-filter-pill" data-filter="article">News</div>
+        <div class="pulse-filter-pill" data-filter="updates">Updates</div>
+      </div>
+      <div id="pulseNotifList">
+        <div class="pulse-skel"><div class="pulse-skel-line short"></div><div class="pulse-skel-line long"></div><div class="pulse-skel-line med"></div></div>
+        <div class="pulse-skel"><div class="pulse-skel-line short"></div><div class="pulse-skel-line long"></div><div class="pulse-skel-line med"></div></div>
+        <div class="pulse-skel"><div class="pulse-skel-line short"></div><div class="pulse-skel-line long"></div><div class="pulse-skel-line med"></div></div>
+      </div>
+    </div>
+
+    <!-- Layers toggle button -->
+    <button id="layersButton" class="glass-btn" title="Map layers">
+      <svg viewBox="0 0 24 24"><path d="M11.99 18.54l-7.37-5.73L3 14.07l9 7 9-7-1.63-1.27-7.38 5.74zM12 16l7.36-5.73L21 9l-9-7-9 7 1.63 1.27L12 16z"/></svg>
+    </button>
+
+    <!-- Layers panel -->
+    <div id="layersPanel">
+      <div class="layers-section-title">Layers</div>
+
+      <div class="layers-checkbox-row disabled" title="Developments cannot be hidden">
+        <div class="layers-checkbox checked grayed">
+          <svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg>
+        </div>
+        <span class="layers-checkbox-label">Developments</span>
       </div>
 
-      <!-- Row 2: Glass filter pill with three equal segments -->
-      <div class="mobile-filter-pill">
-        <div class="filter-seg" id="mobileSegSort">
-          <span class="filter-seg-label" id="mobileLabelSort">Nearest</span>
-          <svg class="filter-seg-chevron" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-linecap="round"/></svg>
-          <select id="sortSelectMobile">
-            <option value="default">Nearest</option>
-            <option value="az">A to Z</option>
-            <option value="za">Z to A</option>
-          </select>
+      <div class="layers-checkbox-row" id="transitToggleRow">
+        <div class="layers-checkbox checked" id="transitCheckbox">
+          <svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg>
         </div>
-        <div class="filter-seg-div"></div>
-        <div class="filter-seg" id="mobileSegType">
-          <span class="filter-seg-label" id="mobileLabelType">Type</span>
-          <svg class="filter-seg-chevron" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-linecap="round"/></svg>
-          <select id="projectTypeFilterMobile">
-            <option value="all">All Types</option>
-          </select>
+        <span class="layers-checkbox-label" style="display:flex;align-items:center;gap:6px;">
+          Future Transit
+          <svg width="18" height="6" viewBox="0 0 18 6" style="flex-shrink:0;"><line x1="0" y1="3" x2="18" y2="3" stroke="#FFD300" stroke-width="2" stroke-dasharray="3,2"/></svg>
+        </span>
+      </div>
+
+      <div class="layers-checkbox-row" id="currentTransitToggleRow">
+        <div class="layers-checkbox" id="currentTransitCheckbox">
+          <svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg>
         </div>
-        <div class="filter-seg-div"></div>
-        <div class="filter-seg" id="mobileSegStatus">
-          <span class="filter-seg-label" id="mobileLabelStatus">Status</span>
-          <svg class="filter-seg-chevron" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-linecap="round"/></svg>
-          <select id="locationFilterMobile">
-            <option value="all">All Status</option>
-          </select>
+        <span class="layers-checkbox-label" style="display:flex;align-items:center;gap:6px;">
+          Current Transit
+          <span style="display:inline-block;width:16px;height:3px;background:#FF8C00;border-radius:2px;flex-shrink:0;"></span>
+        </span>
+      </div>
+
+      <div class="layers-divider"></div>
+
+      <div class="layers-section-title">Map Style</div>
+      <div class="layers-map-options">
+        <div class="layers-map-option selected" id="styleDefault">
+          <img src="https://static.wixstatic.com/media/ca3b83_4e8814226f3c44c6be6d4d405a46dcac~mv2.jpg" alt="Default" style="object-fit:cover;width:100%;height:60px;display:block;"/>
+          <div class="layers-map-option-label">Default</div>
+        </div>
+        <div class="layers-map-option" id="styleSatellite">
+          <img src="https://static.wixstatic.com/media/ca3b83_7ef4124aa18b4c119cb645ec8b7a9ff9~mv2.jpg" alt="Satellite" style="object-fit:cover;width:100%;height:60px;display:block;"/>
+          <div class="layers-map-option-label">Satellite</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Location button (mobile only) -->
+    <button id="locationButton" title="Go to my location">
+      <svg viewBox="0 0 24 24"><path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3c-.46-4.17-3.77-7.48-7.94-7.94V1h-2v2.06C6.83 3.52 3.52 6.83 3.06 11H1v2h2.06c.46 4.17 3.77 7.48 7.94 7.94V23h2v-2.06c4.17-.46 7.48-3.77 7.94-7.94H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/></svg>
+    </button>
+
+    <!-- Zoom buttons -->
+    <button id="zoomInButton" class="zoom-btn" title="Zoom in">+</button>
+    <button id="zoomOutButton" class="zoom-btn" title="Zoom out">−</button>
+    <!-- Reset map view -->
+    <button id="resetViewButton" class="zoom-btn" title="Reset map view (north-up)" aria-label="Reset map view">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polygon points="12 5 14 12 12 19 10 12" fill="currentColor" stroke="none"/></svg>
+    </button>
+    <div id="desktopSearchPill" class="glass-btn">
+      <div class="pill-search-icon">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <span class="pill-text">Search projects or city...</span>
+      <div class="pill-filter-badge" id="desktopPillFilterBadge">
+        <span class="badge-icon"><svg viewBox="0 0 24 24"><circle cx="6" cy="5" r="2"/><line x1="2" y1="5" x2="4" y2="5"/><line x1="8" y1="5" x2="22" y2="5"/><circle cx="16" cy="12" r="2"/><line x1="2" y1="12" x2="14" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><circle cx="9" cy="19" r="2"/><line x1="2" y1="19" x2="7" y2="19"/><line x1="11" y1="19" x2="22" y2="19"/></svg></span>
+        <span class="badge-count" id="desktopPillFilterCount">0</span>
+      </div>
+      <div class="pill-divider"></div>
+      <div class="pill-count" id="desktopPillCount">— results</div>
+    </div>
+    
+    <!-- Desktop Sidebar -->
+    <div id="desktopSidebar">
+      <div class="sidebar-header">
+
+        <!-- Row 1: Search glass pill + close button -->
+        <div class="desktop-search-row">
+          <div class="desktop-search-pill">
+            <div class="search-pill-icon">
+              <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            </div>
+            <input id="sidebarSearchBar" type="text" placeholder="Search projects or city..." />
+            <button id="sidebarSearchClear" title="Clear search">✕</button>
+            <div id="sidebarAutocomplete" class="autocomplete-dropdown hidden"></div>
+          </div>
+          <button id="closeSidebar" title="Close">✕</button>
+          <div id="sidebarResults" class="hidden"></div>
+        </div>
+
+        <!-- Row 2: Glass filter pill with three segments -->
+        <div class="desktop-filter-pill mobile-filter-pill">
+          <div class="filter-seg" id="desktopSegSort">
+            <span class="filter-seg-label" id="desktopLabelSort">Nearest</span>
+            <svg class="filter-seg-chevron" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-linecap="round"/></svg>
+            <select id="sortSelectDesktop">
+              <option value="default">Nearest</option>
+              <option value="az">A to Z</option>
+              <option value="za">Z to A</option>
+            </select>
+          </div>
+          <div class="filter-seg-div"></div>
+          <div class="filter-seg" id="desktopSegType">
+            <span class="filter-seg-label" id="desktopLabelType">Type</span>
+            <svg class="filter-seg-chevron" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-linecap="round"/></svg>
+            <select id="projectTypeFilterDesktop">
+              <option value="all">All Types</option>
+            </select>
+          </div>
+          <div class="filter-seg-div"></div>
+          <div class="filter-seg" id="desktopSegStatus">
+            <span class="filter-seg-label" id="desktopLabelStatus">Status</span>
+            <svg class="filter-seg-chevron" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-linecap="round"/></svg>
+            <select id="locationFilterDesktop">
+              <option value="all">All Status</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Active filter pills (desktop) -->
+        <div class="filter-pills-row" id="desktopPillsRow"></div>
+
+        <!-- Section status bar (desktop) -->
+        <div id="desktopSectionBar" class="section-status-bar">
+          <div class="ssb-inner" id="desktopSsbInner">
+            <span class="ssb-title in-view" id="desktopSsbTitle">In View</span>
+            <span class="ssb-count green" id="desktopSsbCount"></span>
+          </div>
         </div>
       </div>
 
-      <!-- Active filter pills -->
-      <div class="filter-pills-row" id="mobilePillsRow"></div>
-      <!-- Section indicator: lives below filters, animates between In View / More Nearby -->
-      <div id="mobileSectionBar" class="section-status-bar">
-        <div class="ssb-inner" id="mobileSsbInner">
-          <span class="ssb-title in-view" id="mobileSsbTitle">In View</span>
-          <span class="ssb-count green" id="mobileSsbCount"></span>
+      <div class="sidebar-content">
+        <div class="leaf-grid" id="gridDesktop"></div>
+      </div>
+    </div>
+    
+    <!-- Mobile Drawer -->
+    <div id="mobileDrawer">
+      <div id="mobileDrawerContent">
+        <div class="mobile-header">
+          <div id="mobileDrawerHandle"></div>
+          <!-- Row 1: Glass search pill with autocomplete outside overflow:hidden -->
+          <div style="position:relative;">
+            <div class="mobile-search-pill">
+              <div class="search-pill-icon">
+                <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+              </div>
+              <input id="mobileSearchBar" type="text" placeholder="Search projects or city..." />
+              <button id="mobileSearchClear" title="Clear search">✕</button>
+            </div>
+            <div id="mobileAutocomplete" class="autocomplete-dropdown hidden"></div>
+          </div>
+
+          <!-- Row 2: Glass filter pill with three equal segments -->
+          <div class="mobile-filter-pill">
+            <div class="filter-seg" id="mobileSegSort">
+              <span class="filter-seg-label" id="mobileLabelSort">Nearest</span>
+              <svg class="filter-seg-chevron" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-linecap="round"/></svg>
+              <select id="sortSelectMobile">
+                <option value="default">Nearest</option>
+                <option value="az">A to Z</option>
+                <option value="za">Z to A</option>
+              </select>
+            </div>
+            <div class="filter-seg-div"></div>
+            <div class="filter-seg" id="mobileSegType">
+              <span class="filter-seg-label" id="mobileLabelType">Type</span>
+              <svg class="filter-seg-chevron" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-linecap="round"/></svg>
+              <select id="projectTypeFilterMobile">
+                <option value="all">All Types</option>
+              </select>
+            </div>
+            <div class="filter-seg-div"></div>
+            <div class="filter-seg" id="mobileSegStatus">
+              <span class="filter-seg-label" id="mobileLabelStatus">Status</span>
+              <svg class="filter-seg-chevron" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-linecap="round"/></svg>
+              <select id="locationFilterMobile">
+                <option value="all">All Status</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Active filter pills -->
+          <div class="filter-pills-row" id="mobilePillsRow"></div>
+          <!-- Section indicator: lives below filters, animates between In View / More Nearby -->
+          <div id="mobileSectionBar" class="section-status-bar">
+            <div class="ssb-inner" id="mobileSsbInner">
+              <span class="ssb-title in-view" id="mobileSsbTitle">In View</span>
+              <span class="ssb-count green" id="mobileSsbCount"></span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="mobile-content allow-scroll">
+          <div class="leaf-grid" id="gridMobile"></div>
+        </div>
+      </div>
+      <button id="mobileMapButton">
+        <div class="map-btn-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.94-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+        </div>
+        <span class="map-btn-label">Map</span>
+        <div class="map-btn-divider"></div>
+        <div class="map-btn-badge" id="mapBtnFilterBadge">
+          <svg viewBox="0 0 24 24"><circle cx="6" cy="5" r="2"/><line x1="2" y1="5" x2="4" y2="5"/><line x1="8" y1="5" x2="22" y2="5"/><circle cx="16" cy="12" r="2"/><line x1="2" y1="12" x2="14" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><circle cx="9" cy="19" r="2"/><line x1="2" y1="19" x2="7" y2="19"/><line x1="11" y1="19" x2="22" y2="19"/></svg>
+          <span class="badge-num" id="mapBtnFilterCount">0</span>
+        </div>
+      </button>
+    </div>
+    
+    <button id="mobileTilesButton">
+      <div class="pill-search-icon">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <span class="pill-text">Search projects or city...</span>
+      <div class="pill-filter-badge" id="mobilePillFilterBadge">
+        <span class="badge-icon"><svg viewBox="0 0 24 24"><circle cx="6" cy="5" r="2"/><line x1="2" y1="5" x2="4" y2="5"/><line x1="8" y1="5" x2="22" y2="5"/><circle cx="16" cy="12" r="2"/><line x1="2" y1="12" x2="14" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><circle cx="9" cy="19" r="2"/><line x1="2" y1="19" x2="7" y2="19"/><line x1="11" y1="19" x2="22" y2="19"/></svg></span>
+        <span class="badge-count" id="mobilePillFilterCount">0</span>
+      </div>
+      <div class="pill-divider"></div>
+      <div class="pill-count" id="mobilePillCount">— results</div>
+    </button>
+    <a id="mobileHomeButton" href="https://www.oftmw.com" target="_blank">
+      <img src="https://static.wixstatic.com/shapes/ca3b83_a647b53cad4c49c5b012af991d286a86.svg" alt="Markets of Tomorrow" style="width:95%;height:95%;filter:brightness(0) invert(1);object-fit:contain;" />
+    </a>
+    <button id="mapReturnButton">Map</button>
+
+    <!-- ── Favorites view banner — visible when ?view=favorites is active ── -->
+    <div id="favViewBanner" role="status" aria-live="polite">
+      <div class="fav-banner-inner">
+        <svg class="fav-banner-icon" viewBox="0 0 18 18" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M9 1v16M1 9h16"/></svg>
+        <span class="fav-banner-text">Viewing your favorites</span>
+        <span class="fav-banner-count"><span id="favViewCount">0</span></span>
+        <button class="fav-banner-exit" id="favBannerExitBtn" aria-label="Show all projects">
+          Show all
+          <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div id="map"></div>
+
+    <!-- ── Project Detail Modal ── -->
+    <div id="projectModal">
+      <div class="pm-scroll">
+        <!-- Hero gallery: arrow-cycling slider when 2+ images -->
+        <div class="pm-hero">
+          <div class="pm-slider" id="pmSlider"></div>
+          <div class="pm-hero-overlay"></div>
+          <button class="pm-slide-arrow pm-slide-prev" id="pmSlidePrev" aria-label="Previous image">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+          <button class="pm-slide-arrow pm-slide-next" id="pmSlideNext" aria-label="Next image">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+          <div class="pm-slide-counter" id="pmSlideCounter"><span id="pmSlideCur">1</span> / <span id="pmSlideTotal">1</span></div>
+          <div class="pm-topbar">
+            <button class="pm-icon-btn" id="pmCloseBtn" aria-label="Close">
+              <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+        </div>
+        <!-- Body -->
+        <div class="pm-body">
+          <div class="pm-pills" id="pmPills"></div>
+          <h2 class="pm-title" id="pmTitle"></h2>
+          <p class="pm-city" id="pmCity"></p>
+          <div class="pm-progress" id="pmProgress"></div>
+          <div class="pm-div"></div>
+          <p class="pm-desc" id="pmDesc"></p>
+          <div class="pm-div"></div>
+          <div class="pm-stats" id="pmStats" style="margin-top:12px;"></div>
+          <div class="pm-cta">
+            <a class="pm-btn-learn" id="pmLearnBtn" href="#" target="_blank">
+                Official Website&nbsp;<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;flex-shrink:0;"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+              </a>
+            <div class="pm-btn-icon" id="pmShareIconBtn">
+              <svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+            </div>
+            <div class="pm-btn-icon" id="pmLikeBtn" role="button" aria-label="Add to favorites">
+              <svg id="pmHeartSvg" viewBox="0 0 18 18" width="18" height="18" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="2.4" stroke-linecap="round"><path d="M9 1v16M1 9h16"/></svg>
+            </div>
+          </div>
         </div>
       </div>
     </div>
     
-    <div class="mobile-content allow-scroll">
-      <div class="leaf-grid" id="gridMobile"></div>
+    <div id="fullscreenModal">
+      <button id="exitFullscreen">✕ Exit</button>
+      <div id="fullscreenMap"></div>
     </div>
   </div>
-  <button id="mobileMapButton">
-    <div class="map-btn-icon">
-      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.94-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
-    </div>
-    <span class="map-btn-label">Map</span>
-    <div class="map-btn-divider"></div>
-    <div class="map-btn-badge" id="mapBtnFilterBadge">
-      <svg viewBox="0 0 24 24"><circle cx="6" cy="5" r="2"/><line x1="2" y1="5" x2="4" y2="5"/><line x1="8" y1="5" x2="22" y2="5"/><circle cx="16" cy="12" r="2"/><line x1="2" y1="12" x2="14" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><circle cx="9" cy="19" r="2"/><line x1="2" y1="19" x2="7" y2="19"/><line x1="11" y1="19" x2="22" y2="19"/></svg>
-      <span class="badge-num" id="mapBtnFilterCount">0</span>
-    </div>
-  </button>
-</div>
-
-<button id="mobileTilesButton">
-  <div class="pill-search-icon">
-    <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-  </div>
-  <span class="pill-text">Search projects or city...</span>
-  <div class="pill-filter-badge" id="mobilePillFilterBadge">
-    <span class="badge-icon"><svg viewBox="0 0 24 24"><circle cx="6" cy="5" r="2"/><line x1="2" y1="5" x2="4" y2="5"/><line x1="8" y1="5" x2="22" y2="5"/><circle cx="16" cy="12" r="2"/><line x1="2" y1="12" x2="14" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><circle cx="9" cy="19" r="2"/><line x1="2" y1="19" x2="7" y2="19"/><line x1="11" y1="19" x2="22" y2="19"/></svg></span>
-    <span class="badge-count" id="mobilePillFilterCount">0</span>
-  </div>
-  <div class="pill-divider"></div>
-  <div class="pill-count" id="mobilePillCount">— results</div>
-</button>
-<a id="mobileHomeButton" href="https://www.oftmw.com" target="_blank">
-  <img src="https://static.wixstatic.com/shapes/ca3b83_a647b53cad4c49c5b012af991d286a86.svg" alt="Markets of Tomorrow" style="width:95%;height:95%;filter:brightness(0) invert(1);object-fit:contain;" />
-</a>
-<button id="mapReturnButton">Map</button>
-
-<!-- ── Favorites view banner — visible when ?view=favorites is active ── -->
-<div id="favViewBanner" role="status" aria-live="polite">
-  <div class="fav-banner-inner">
-    <svg class="fav-banner-icon" viewBox="0 0 18 18" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M9 1v16M1 9h16"/></svg>
-    <span class="fav-banner-text">Viewing your favorites</span>
-    <span class="fav-banner-count"><span id="favViewCount">0</span></span>
-    <button class="fav-banner-exit" id="favBannerExitBtn" aria-label="Show all projects">
-      Show all
-      <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-    </button>
-  </div>
-</div>
-
-<div id="map"></div>
-
-<!-- ── Project Detail Modal ── -->
-<div id="projectModal">
-  <div class="pm-scroll">
-    <!-- Hero gallery: arrow-cycling slider when 2+ images -->
-    <div class="pm-hero">
-      <div class="pm-slider" id="pmSlider"></div>
-      <div class="pm-hero-overlay"></div>
-      <button class="pm-slide-arrow pm-slide-prev" id="pmSlidePrev" aria-label="Previous image">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-      </button>
-      <button class="pm-slide-arrow pm-slide-next" id="pmSlideNext" aria-label="Next image">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-      </button>
-      <div class="pm-slide-counter" id="pmSlideCounter"><span id="pmSlideCur">1</span> / <span id="pmSlideTotal">1</span></div>
-      <div class="pm-topbar">
-        <button class="pm-icon-btn" id="pmCloseBtn" aria-label="Close">
-          <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-        </button>
-      </div>
-    </div>
-    <!-- Body -->
-    <div class="pm-body">
-      <div class="pm-pills" id="pmPills"></div>
-      <h2 class="pm-title" id="pmTitle"></h2>
-      <p class="pm-city" id="pmCity"></p>
-      <div class="pm-progress" id="pmProgress"></div>
-      <div class="pm-div"></div>
-      <p class="pm-desc" id="pmDesc"></p>
-      <div class="pm-div"></div>
-      <div class="pm-stats" id="pmStats" style="margin-top:12px;"></div>
-      <div class="pm-cta">
-        <a class="pm-btn-learn" id="pmLearnBtn" href="#" target="_blank">
-            Official Website&nbsp;<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;flex-shrink:0;"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-          </a>
-        <div class="pm-btn-icon" id="pmShareIconBtn">
-          <svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
-        </div>
-        <div class="pm-btn-icon" id="pmLikeBtn" role="button" aria-label="Add to favorites">
-          <svg id="pmHeartSvg" viewBox="0 0 18 18" width="18" height="18" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="2.4" stroke-linecap="round"><path d="M9 1v16M1 9h16"/></svg>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div id="fullscreenModal">
-  <button id="exitFullscreen">✕ Exit</button>
-  <div id="fullscreenMap"></div>
-</div>
-```
-
-  </div>
-
+  
   <div id="toast" class="toast"></div>
-
+  
   <script>
     // ─── VIEWPORT HEIGHT ─────────────────────────────────────────────────────
     const setAppHeight = () => {
@@ -8039,7 +8072,10 @@
             <div class="paywall-features">
               <div class="paywall-feature"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#1FDF67" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Unlimited project exploration</div>
               <div class="paywall-feature"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#1FDF67" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Full developer + architect details</div>
-              <div class="paywall-feature"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#1FDF67" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Cancel anytime</div>
+              <div class="paywall-feature"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#1FDF67" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Save your favorites</div>
+              <div class="paywall-feature"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#1FDF67" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Build project comparison views</div>
+              <div class="paywall-feature"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#1FDF67" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Share projects with friends</div>
+              <div class="paywall-feature"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#1FDF67" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Project update notifications</div>
             </div>
             <div class="paywall-signin" id="subPaywallSigninWrap">
               Already a subscriber? <a href="#" id="subPaywallSigninLink">Sign in</a>
@@ -8065,6 +8101,25 @@
         const modal = document.createElement('div');
         modal.id = 'signupWall';
         modal.className = 'paywall-modal';
+        // Pro features advertised on the anon wall. Each row gets a yellow
+        // PRO pill (matching the avatar dropdown tag) instead of a green
+        // checkmark to communicate that these are paid features unlocked
+        // by upgrading. Build the rows with a helper to keep the markup
+        // readable.
+        const proFeatures = [
+          'Unlimited project exploration',
+          'Full developer + architect details',
+          'Save your favorites',
+          'Build project comparison views',
+          'Share projects with friends',
+          'Project update notifications',
+        ];
+        const proFeatureRows = proFeatures.map(label =>
+          `<div class="paywall-feature">
+            <span class="paywall-feature-pro-pill">PRO</span>
+            <span>${label}</span>
+          </div>`
+        ).join('');
         modal.innerHTML = `
           <div class="paywall-backdrop"></div>
           <div class="paywall-card">
@@ -8076,10 +8131,12 @@
             <button class="paywall-cta-primary" id="signupWallSignupBtn">
               Sign up free
             </button>
+            <button class="paywall-cta-pro" id="signupWallGoProBtn">
+              <span class="paywall-cta-pro-star">★</span>
+              Go Pro
+            </button>
             <div class="paywall-features">
-              <div class="paywall-feature"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#1FDF67" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> ${FREE_MEMBER_CLICK_LIMIT - ANON_CLICK_LIMIT} more free project views</div>
-              <div class="paywall-feature"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#1FDF67" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Save your favorites (coming soon)</div>
-              <div class="paywall-feature"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#1FDF67" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Email-only — takes 10 seconds</div>
+              ${proFeatureRows}
             </div>
             <div class="paywall-signin">
               Already have an account? <a href="#" id="signupWallSigninLink">Sign in</a>
@@ -8088,6 +8145,19 @@
         `;
         document.body.appendChild(modal);
         modal.querySelector('#signupWallSignupBtn').addEventListener('click', openSignup);
+        // Go Pro: send user through signup flow, then immediately surface
+        // the subscription paywall once they've created an account. If they
+        // already have an account, openSignup's no-op-on-existing-user path
+        // still hands off cleanly via the post-modal status refresh.
+        modal.querySelector('#signupWallGoProBtn').addEventListener('click', async () => {
+          if (window.gtag) gtag('event', 'go_pro_clicked', { 'source': 'anon_wall' });
+          await openSignup();
+          // After signup completes, openSignup hides walls + sets isSignedIn.
+          // Show the subscription paywall on top so the user can pick a plan.
+          if (isSignedIn && !isPaidMember) {
+            showSubscriptionPaywall();
+          }
+        });
         modal.querySelector('#signupWallSigninLink').addEventListener('click', (e) => {
           e.preventDefault();
           openSignIn();
@@ -8695,7 +8765,6 @@
   <!-- Pulse: live activity feed (combines oftmw.com articles + map status changes).
        Reads /pulse.json which is regenerated nightly by generate_pulse.py.
        Self-contained IIFE; no globals leaked; safe to include even if pulse.json 404s. -->
-
   <script>
   (function () {
     'use strict';
@@ -9318,8 +9387,6 @@
        Self-contained module; relies on window.projectSlugify, window.allProjectFeatures,
        window.$memberstackDom, and the auth hint cache that the paywall code maintains.
        The ?v=2 query string busts any stale cached version after recent revisions. -->
-
   <script src="compare.js?v=9"></script>
-
 </body>
 </html>
