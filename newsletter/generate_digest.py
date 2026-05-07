@@ -5,15 +5,12 @@ generate_digest.py — Renders the weekly newsletter HTML.
 Reads:
   - pulse.json (output of generate_pulse.py — single source of truth for events)
   - newsletter/app_updates.md (manual log of what shipped this week)
+  - newsletter/ads.json (banner ads to insert into 6 slots)
 
 Writes:
-  - newsletter/digest-latest.html  (current draft, overwritten each run)
-  - newsletter/digest-subject.txt  (dynamic subject line)
-  - newsletter/digest-archive/YYYY-MM-DD.html  (archived snapshot)
-
-Does NOT send anything. Sending is handled by send_digest.py on Tuesdays.
-
-Run: python3 generate_digest.py
+  - newsletter/digest-latest.html
+  - newsletter/digest-subject.txt
+  - newsletter/digest-archive/YYYY-MM-DD.html
 """
 
 import json, os, re, sys, urllib.request
@@ -27,6 +24,7 @@ from premailer import Premailer
 # ─── CONFIG ──────────────────────────────────────────────────────────────────
 PULSE_PATH    = "pulse.json"
 UPDATES_PATH  = "newsletter/app_updates.md"
+ADS_PATH      = "newsletter/ads.json"
 TEMPLATE_PATH = "newsletter/digest_template.html"
 
 OUT_HTML      = "newsletter/digest-latest.html"
@@ -59,7 +57,6 @@ def fetch(url, timeout=30):
         return r.read().decode("utf-8", errors="ignore")
 
 def load_pulse():
-    """Load pulse.json — expects shape: {events: [{type, project, ...timestamp, ...}, ...]}"""
     if not os.path.exists(PULSE_PATH):
         print(f"[err] {PULSE_PATH} not found — run generate_pulse.py first", file=sys.stderr)
         return {"events": []}
@@ -67,26 +64,22 @@ def load_pulse():
         return json.load(f)
 
 def filter_recent(events, days=LOOKBACK_DAYS):
-    """Filter events to those within the lookback window."""
     if not events: return []
     cutoff = datetime.now(timezone.utc) - timedelta(days=days)
     out = []
     for e in events:
         ts = e.get("timestamp") or e.get("date") or ""
         try:
-            # Try common ISO formats
             dt = datetime.fromisoformat(ts.replace("Z", "+00:00"))
             if dt.tzinfo is None:
                 dt = dt.replace(tzinfo=timezone.utc)
             if dt >= cutoff:
                 out.append(e)
         except (ValueError, AttributeError):
-            # If we can't parse the timestamp, include it (safer than excluding)
             out.append(e)
     return out
 
 def group_events(events):
-    """Split events into new_projects and status_changes for the template."""
     new_projects, status_changes = [], []
     for e in events:
         etype = (e.get("type") or "").lower()
@@ -121,7 +114,6 @@ def group_events(events):
     return new_projects, status_changes
 
 def load_articles(limit=3):
-    """Pull latest articles from oftmw.com RSS."""
     try:
         xml = fetch(RSS_URL)
         root = ET.fromstring(xml)
@@ -142,7 +134,6 @@ def load_articles(limit=3):
     return out
 
 def load_app_updates():
-    """Read newsletter/app_updates.md. First H1 = headline, bullets = updates."""
     if not os.path.exists(UPDATES_PATH): return None
     with open(UPDATES_PATH) as f:
         text = f.read().strip()
@@ -157,20 +148,39 @@ def load_app_updates():
     if not bullets: return None
     return {"headline": headline or "What's new in the app", "bullets": bullets}
 
+def load_ads():
+    """Load ads.json. Returns dict with slot1-slot6 keys (None for empty slots)."""
+    slots = {f"slot{i}": None for i in range(1, 7)}
+    if not os.path.exists(ADS_PATH):
+        print(f"[info] no {ADS_PATH} — running with no ads")
+        return slots
+    try:
+        with open(ADS_PATH) as f:
+            data = json.load(f)
+    except json.JSONDecodeError as e:
+        print(f"[warn] {ADS_PATH} is invalid JSON: {e} — running with no ads", file=sys.stderr)
+        return slots
+
+    ads_data = data.get("ads", {})
+    for slot_key in slots:
+        ad = ads_data.get(slot_key)
+        if ad and ad.get("image_url") and ad.get("click_url"):
+            slots[slot_key] = {
+                "image_url": ad["image_url"],
+                "click_url": ad["click_url"],
+                "alt_text":  ad.get("alt_text", "Sponsor"),
+            }
+    filled = sum(1 for v in slots.values() if v)
+    print(f"[info] {filled} ad slot(s) filled")
+    return slots
+
 def build_subject(new_projects, status_changes, articles, app_updates):
-    """
-    Generate a dynamic subject line — the single most interesting fact of the week.
-    Priority order: status changes that hit a milestone > new projects > app updates > articles > fallback.
-    """
-    # Status changes are highest signal — something went from "under construction" to "now open"
     for c in status_changes:
         to = (c.get("to_stage") or "").lower()
         if "now open" in to or "opening soon" in to:
             return f"{c['title']} is opening"
         if "under construction" in to:
             return f"{c['title']} broke ground"
-
-    # New projects in significant locations or quantity
     if len(new_projects) >= 3:
         return f"{len(new_projects)} new projects on the map"
     if new_projects:
@@ -178,29 +188,22 @@ def build_subject(new_projects, status_changes, articles, app_updates):
         if first.get("city"):
             return f"New: {first['title']} in {first['city']}"
         return f"New: {first['title']}"
-
-    # App updates
     if app_updates and app_updates["bullets"]:
         first_bullet = app_updates["bullets"][0]
-        # Trim to subject-line length
         if len(first_bullet) > 60:
             first_bullet = first_bullet[:57] + "…"
         return first_bullet
-
-    # Articles fallback
     if articles:
         return articles[0]["title"][:80]
-
-    # Last-resort fallback
     return f"The Weekly · {datetime.now(timezone.utc).strftime('%B %d')}"
 
-def build_preheader(new_projects, status_changes):
-    """Inbox preview text — second most important thing after subject."""
+def build_preheader(new_projects, status_changes, articles):
     bits = []
-    if new_projects:   bits.append(f"{len(new_projects)} new")
-    if status_changes: bits.append(f"{len(status_changes)} status changes")
-    if not bits:       return "This week on the map of tomorrow."
-    return f"{', '.join(bits)} this week on the map."
+    if articles:        bits.append(f"{len(articles)} stories")
+    if new_projects:    bits.append(f"{len(new_projects)} new")
+    if status_changes:  bits.append(f"{len(status_changes)} updates")
+    if not bits:        return "This week on the map of tomorrow."
+    return f"{', '.join(bits)} this week."
 
 # ─── MAIN ────────────────────────────────────────────────────────────────────
 def main():
@@ -209,10 +212,9 @@ def main():
 
     print(f"[info] generating digest for {today}")
 
-    # Load data
     pulse  = load_pulse()
     events = pulse.get("events", [])
-    print(f"[info] pulse.json has {len(events)} total events")
+    print(f"[info] pulse.json: {len(events)} total events")
 
     recent = filter_recent(events, LOOKBACK_DAYS)
     print(f"[info] {len(recent)} events in last {LOOKBACK_DAYS} days")
@@ -220,20 +222,18 @@ def main():
     new_projects, status_changes = group_events(recent)
     articles    = load_articles(limit=3)
     app_updates = load_app_updates()
+    ads         = load_ads()
 
-    print(f"[info] new_projects={len(new_projects)} status_changes={len(status_changes)} articles={len(articles)} app_updates={'yes' if app_updates else 'no'}")
+    print(f"[info] new={len(new_projects)} status={len(status_changes)} articles={len(articles)} app_updates={'yes' if app_updates else 'no'}")
 
-    # Skip if nothing to say
     if not (new_projects or status_changes or articles or app_updates):
         print("[info] nothing to publish — skipping")
         return
 
-    # Build subject + preheader
     subject   = build_subject(new_projects, status_changes, articles, app_updates)
-    preheader = build_preheader(new_projects, status_changes)
+    preheader = build_preheader(new_projects, status_changes, articles)
     print(f"[info] subject: {subject}")
 
-    # Render template
     env = Environment(
         loader=FileSystemLoader(os.path.dirname(TEMPLATE_PATH) or "."),
         autoescape=select_autoescape(["html", "xml"]),
@@ -242,19 +242,17 @@ def main():
     raw_html = template.render(
         subject=subject, preheader=preheader, week_label=week_label,
         new_projects=new_projects, status_changes=status_changes,
-        articles=articles, app_updates=app_updates,
+        articles=articles, app_updates=app_updates, ads=ads,
         site_url=SITE_URL, tmw_url=TMW_URL, logo_url=LOGO_URL,
     )
 
-    # Inline CSS for email-client compatibility
     inlined = Premailer(
         raw_html,
-        keep_style_tags=True,        # Keep media queries / pseudo-classes
-        remove_classes=False,         # Easier debugging
+        keep_style_tags=True,
+        remove_classes=False,
         strip_important=False,
     ).transform()
 
-    # Write outputs
     os.makedirs(os.path.dirname(OUT_HTML), exist_ok=True)
     os.makedirs(ARCHIVE_DIR, exist_ok=True)
 
