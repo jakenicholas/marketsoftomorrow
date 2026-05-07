@@ -71,6 +71,7 @@ def main():
         headers={
             "Authorization": f"Bearer {API_KEY}",
             "Content-Type":  "application/json",
+            "User-Agent":    "TMW-Newsletter/1.0",
         },
         method="POST",
     )
