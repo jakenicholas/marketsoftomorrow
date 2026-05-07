@@ -29,7 +29,7 @@ jobs:
         run: pip install jinja2 premailer
 
       - name: Generate digest
-        run: python3 generate_digest.py
+        run: python3 newsletter/generate_digest.py
 
       - name: Commit if changed
         run: |
