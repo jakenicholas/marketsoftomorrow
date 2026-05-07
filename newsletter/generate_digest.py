@@ -3,9 +3,9 @@
 generate_digest.py — Renders the weekly newsletter HTML.
 
 Reads:
-  - pulse.json (output of generate_pulse.py)
+  - pulse.json
   - newsletter/app_updates.md
-  - newsletter/ads.json (banner ads, 6 slots)
+  - newsletter/ads.json
 
 Writes:
   - newsletter/digest-latest.html
@@ -35,9 +35,12 @@ RSS_URL       = "https://www.oftmw.com/blog-feed.xml"
 SITE_URL      = "https://map.oftmw.com"
 TMW_URL       = "https://www.oftmw.com"
 LOGO_URL      = "https://static.wixstatic.com/media/ca3b83_f76e4d711a1d486db904e04babc39e84~mv2.png"
+APP_IMAGE_URL = "https://static.wixstatic.com/media/ca3b83_653622edfc9f4e6b86432f9412ed5843~mv2.jpg"
 
-LOOKBACK_DAYS = 7
-ARTICLE_LIMIT = 5
+LOOKBACK_DAYS    = 7
+FLORIDA_LIMIT    = 5   # Articles in Florida section
+MORE_MKTS_LIMIT  = 3   # Articles in More Markets section
+FLORIDA_CATEGORY = "Florida of Tomorrow"
 
 # ─── HELPERS ─────────────────────────────────────────────────────────────────
 def slugify(title):
@@ -56,6 +59,16 @@ def fetch(url, timeout=30):
     req = urllib.request.Request(url, headers={"User-Agent": "TMW-Digest/1.0"})
     with urllib.request.urlopen(req, timeout=timeout) as r:
         return r.read().decode("utf-8", errors="ignore")
+
+def clean_wix_image_url(url):
+    """Strip Wix's image transformation path so we get the original full-quality image.
+    Example: ...mv2.jpg/v1/fit/w_1000,h_1000,al_c,q_80/file.png → ...mv2.jpg
+    """
+    if not url: return ""
+    # Match Wix CDN transformation suffix
+    m = re.match(r'(https?://static\.wixstatic\.com/media/[^/]+\.(jpg|jpeg|png|webp|gif))', url)
+    if m: return m.group(1)
+    return url
 
 def load_pulse():
     if not os.path.exists(PULSE_PATH):
@@ -81,10 +94,6 @@ def filter_recent(events, days=LOOKBACK_DAYS):
     return out
 
 def group_events(events):
-    """
-    Combined output: list of map_items (both new projects AND status changes),
-    sorted with most-recent first. Status changes have from_stage/to_stage set.
-    """
     map_items = []
     for e in events:
         etype = (e.get("type") or "").lower()
@@ -113,7 +122,6 @@ def group_events(events):
                 "stage_label": to_stage,
             })
         else:
-            # New project (or "added"/"announced")
             delivery = proj.get("delivery") or e.get("delivery") or ""
             map_items.append({
                 **base,
@@ -122,30 +130,63 @@ def group_events(events):
                 "stage_color": stage_color(delivery),
                 "stage_label": delivery or "Announced",
             })
-
-    # Sort most-recent first
     map_items.sort(key=lambda x: x.get("_ts", ""), reverse=True)
     return map_items
 
-def load_articles(limit=ARTICLE_LIMIT):
+def parse_articles_from_rss():
+    """Parse all articles from RSS with categories and best-quality images."""
     try:
         xml = fetch(RSS_URL)
         root = ET.fromstring(xml)
     except Exception as e:
         print(f"[warn] RSS unavailable: {e}", file=sys.stderr)
         return []
+
     out = []
-    for it in root.findall(".//item")[:limit]:
+    for it in root.findall(".//item"):
         title = (it.findtext("title") or "").strip()
         link  = (it.findtext("link")  or "").strip()
         desc  = (it.findtext("description") or "").strip()
-        img_match = re.search(r'<img[^>]+src=["\']([^"\']+)["\']', desc)
-        image = img_match.group(1) if img_match else ""
+
+        # Categories — list of all <category> tags
+        categories = [c.text.strip() for c in it.findall("category") if c.text]
+
+        # Image — prefer enclosure URL (cleaner), fall back to first <img> in description
+        image = ""
+        encl = it.find("enclosure")
+        if encl is not None and encl.get("url"):
+            image = clean_wix_image_url(encl.get("url"))
+        if not image:
+            img_match = re.search(r'<img[^>]+src=["\']([^"\']+)["\']', desc)
+            if img_match:
+                image = clean_wix_image_url(img_match.group(1))
+
+        # Summary — strip HTML, trim to ~160 chars
         summary = re.sub(r"<[^>]+>", "", desc).strip()
         summary = re.sub(r"\s+", " ", summary)[:160]
         if summary and len(summary) == 160: summary += "…"
-        out.append({"title": title, "link": link, "image": image, "summary": summary})
+
+        out.append({
+            "title": title,
+            "link":  link,
+            "image": image,
+            "summary": summary,
+            "categories": categories,
+        })
     return out
+
+def split_articles(articles):
+    """Split articles into (florida, more_markets) lists.
+    Florida = articles tagged 'Florida of Tomorrow'
+    More Markets = articles NOT tagged 'Florida of Tomorrow'
+    """
+    florida, others = [], []
+    for a in articles:
+        if FLORIDA_CATEGORY in a.get("categories", []):
+            florida.append(a)
+        else:
+            others.append(a)
+    return florida[:FLORIDA_LIMIT], others[:MORE_MKTS_LIMIT]
 
 def load_app_updates():
     if not os.path.exists(UPDATES_PATH): return None
@@ -163,7 +204,6 @@ def load_app_updates():
     return {"headline": headline or "What's new in the app", "bullets": bullets}
 
 def load_ads():
-    """Load ads.json. Returns dict with slot1-slot6 keys (None for empty slots)."""
     slots = {f"slot{i}": None for i in range(1, 7)}
     if not os.path.exists(ADS_PATH):
         print(f"[info] no {ADS_PATH} found — running with no ads")
@@ -173,14 +213,9 @@ def load_ads():
             data = json.load(f)
     except json.JSONDecodeError as e:
         print(f"[err] {ADS_PATH} is INVALID JSON: {e}", file=sys.stderr)
-        print(f"[err]   ads will not appear until file is fixed", file=sys.stderr)
         return slots
 
     ads_data = data.get("ads", {})
-    if not ads_data:
-        print(f"[warn] {ADS_PATH} has no 'ads' key or it's empty")
-        return slots
-
     for slot_key in slots:
         ad = ads_data.get(slot_key)
         if ad and ad.get("image_url") and ad.get("click_url"):
@@ -190,13 +225,11 @@ def load_ads():
                 "alt_text":  ad.get("alt_text", "Sponsor"),
             }
             print(f"[info]   {slot_key}: {ad.get('alt_text', '?')}")
-
     filled = sum(1 for v in slots.values() if v)
     print(f"[info] {filled} ad slot(s) filled out of 6")
     return slots
 
-def build_subject(map_items, articles, app_updates):
-    # Highest-impact: a status change to "now open" or similar milestone
+def build_subject(map_items, florida_articles, more_markets_articles, app_updates):
     for m in map_items:
         to = (m.get("to_stage") or "").lower()
         if "now open" in to or "opening soon" in to:
@@ -204,7 +237,6 @@ def build_subject(map_items, articles, app_updates):
         if "under construction" in to and m.get("from_stage"):
             return f"{m['title']} broke ground"
 
-    # New project announcements
     new_only = [m for m in map_items if not m.get("from_stage")]
     if len(new_only) >= 3:
         return f"{len(new_only)} new projects on the map"
@@ -214,24 +246,25 @@ def build_subject(map_items, articles, app_updates):
             return f"New: {first['title']} in {first['city']}"
         return f"New: {first['title']}"
 
-    # App updates
     if app_updates and app_updates["bullets"]:
         first_bullet = app_updates["bullets"][0]
         if len(first_bullet) > 60:
             first_bullet = first_bullet[:57] + "…"
         return first_bullet
 
-    # Articles fallback
-    if articles:
-        return articles[0]["title"][:80]
+    if florida_articles:
+        return florida_articles[0]["title"][:80]
+    if more_markets_articles:
+        return more_markets_articles[0]["title"][:80]
 
     return f"The Weekly · {datetime.now(timezone.utc).strftime('%B %d')}"
 
-def build_preheader(map_items, articles):
+def build_preheader(map_items, florida_articles, more_markets_articles):
     bits = []
-    if articles:   bits.append(f"{len(articles)} stories")
-    if map_items:  bits.append(f"{len(map_items)} updates")
-    if not bits:   return "This week on the map of tomorrow."
+    total_articles = len(florida_articles) + len(more_markets_articles)
+    if total_articles: bits.append(f"{total_articles} stories")
+    if map_items:      bits.append(f"{len(map_items)} updates")
+    if not bits:       return "This week on the map of tomorrow."
     return f"{', '.join(bits)} this week."
 
 # ─── MAIN ────────────────────────────────────────────────────────────────────
@@ -248,19 +281,24 @@ def main():
     recent = filter_recent(events, LOOKBACK_DAYS)
     print(f"[info] {len(recent)} events in last {LOOKBACK_DAYS} days")
 
-    map_items   = group_events(recent)
-    articles    = load_articles(limit=ARTICLE_LIMIT)
+    map_items = group_events(recent)
+
+    all_articles = parse_articles_from_rss()
+    print(f"[info] RSS: {len(all_articles)} total articles")
+    florida_articles, more_markets_articles = split_articles(all_articles)
+    print(f"[info]   florida={len(florida_articles)} more_markets={len(more_markets_articles)}")
+
     app_updates = load_app_updates()
     ads         = load_ads()
 
-    print(f"[info] map_items={len(map_items)} articles={len(articles)} app_updates={'yes' if app_updates else 'no'}")
+    print(f"[info] map_items={len(map_items)} app_updates={'yes' if app_updates else 'no'}")
 
-    if not (map_items or articles or app_updates):
+    if not (map_items or florida_articles or more_markets_articles or app_updates):
         print("[info] nothing to publish — skipping")
         return
 
-    subject   = build_subject(map_items, articles, app_updates)
-    preheader = build_preheader(map_items, articles)
+    subject   = build_subject(map_items, florida_articles, more_markets_articles, app_updates)
+    preheader = build_preheader(map_items, florida_articles, more_markets_articles)
     print(f"[info] subject: {subject}")
 
     env = Environment(
@@ -270,8 +308,12 @@ def main():
     template = env.get_template(os.path.basename(TEMPLATE_PATH))
     raw_html = template.render(
         subject=subject, preheader=preheader, week_label=week_label,
-        map_items=map_items, articles=articles, app_updates=app_updates, ads=ads,
+        map_items=map_items,
+        florida_articles=florida_articles,
+        more_markets_articles=more_markets_articles,
+        app_updates=app_updates, ads=ads,
         site_url=SITE_URL, tmw_url=TMW_URL, logo_url=LOGO_URL,
+        app_image_url=APP_IMAGE_URL,
     )
 
     inlined = Premailer(
