@@ -48,6 +48,11 @@ def slugify(title):
     s = re.sub(r'[^a-z0-9\s-]', '', s)
     return re.sub(r'[\s-]+', '-', s).strip('-')
 
+def map_slug(title):
+    """Slug used in map URLs — alphanumeric only, no hyphens or spaces."""
+    s = (title or "").lower()
+    return re.sub(r'[^a-z0-9]', '', s)
+
 def stage_color(delivery):
     d = (delivery or "").lower()
     if "now open" in d or "opening soon" in d: return "#1FDF67"
@@ -102,12 +107,13 @@ def group_events(events):
         if not title: continue
 
         slug = slugify(title)
+        mslug = map_slug(title)
         ts = e.get("timestamp") or e.get("date") or ""
         base = {
             "title": title,
             "city":  proj.get("city") or e.get("city") or "",
             "image": proj.get("image") or proj.get("imageUrl") or e.get("image") or "",
-            "url":   f"{SITE_URL}/projects/{slug}/",
+            "url":   f"{SITE_URL}/?fullscreen=true&project={mslug}",
             "_ts":   ts,
         }
 
