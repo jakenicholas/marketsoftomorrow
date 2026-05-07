@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark light">
+<meta name="supported-color-schemes" content="dark light">
+<title>{{ subject }}</title>
+<style>
+  /* Premailer will inline these into style="" attributes at build time.
+     Anything that can't be inlined (media queries, pseudo-classes) goes in <style> at the end. */
+  body {
+    margin: 0;
+    padding: 0;
+    background: #0a0a0a;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+  .preheader {
+    display: none;
+    max-height: 0;
+    overflow: hidden;
+    color: #0a0a0a;
+  }
+  .wrapper {
+    background: #0a0a0a;
+    width: 100%;
+  }
+  .container {
+    max-width: 600px;
+    width: 100%;
+  }
+  .hero {
+    padding: 0 0 24px 0;
+    text-align: center;
+  }
+  .hero img { display: inline-block; max-width: 180px; height: auto; border: 0; }
+  .hero-label {
+    color: #888888;
+    font-size: 12px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-top: 18px;
+    font-weight: 600;
+  }
+  .section-header {
+    color: #1FDF67;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 32px 0 16px 0;
+    border-top: 1px solid #262626;
+  }
+  .card {
+    background: #161616;
+    border: 1px solid #262626;
+    border-radius: 12px;
+    margin: 0 0 16px 0;
+  }
+  .card-image {
+    display: block;
+    width: 100%;
+    max-width: 600px;
+    height: auto;
+    border-radius: 12px 12px 0 0;
+    border: 0;
+  }
+  .card-body { padding: 18px 20px 20px 20px; }
+  .card-title {
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.3;
+    color: #ffffff;
+    text-decoration: none;
+    margin: 0 0 4px 0;
+    display: block;
+  }
+  .card-meta { color: #888888; font-size: 14px; }
+  .card-summary {
+    color: #888888;
+    font-size: 14px;
+    line-height: 1.5;
+    margin-top: 6px;
+  }
+  .stage-pill {
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .read-more {
+    color: #1FDF67;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 600;
+    margin-top: 12px;
+    display: inline-block;
+  }
+  .cta-block {
+    background: #161616;
+    border: 1px solid #262626;
+    border-radius: 12px;
+    padding: 24px;
+  }
+  .cta-headline {
+    font-size: 18px;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 14px;
+  }
+  .cta-list {
+    margin: 0;
+    padding: 0 0 0 20px;
+  }
+  .cta-list li {
+    color: #ffffff;
+    font-size: 15px;
+    line-height: 1.6;
+    margin-bottom: 8px;
+  }
+  .cta-button {
+    display: inline-block;
+    background: #1FDF67;
+    color: #000;
+    padding: 12px 22px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 14px;
+    margin-top: 18px;
+  }
+  .footer {
+    padding: 40px 0 20px 0;
+    border-top: 1px solid #262626;
+    text-align: center;
+  }
+  .footer-text {
+    color: #888888;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+  .footer-links {
+    color: #888888;
+    font-size: 12px;
+    margin-top: 12px;
+  }
+  .footer-links a { color: #888888; text-decoration: none; }
+  a { color: #1FDF67; }
+</style>
+</head>
+<body>
+
+<div class="preheader">{{ preheader }}</div>
+
+<table role="presentation" class="wrapper" cellpadding="0" cellspacing="0" border="0" width="100%">
+  <tr><td align="center" style="padding: 32px 16px;">
+    <table role="presentation" class="container" cellpadding="0" cellspacing="0" border="0" width="600">
+
+      <!-- Hero -->
+      <tr><td class="hero">
+        <a href="{{ tmw_url }}"><img src="{{ logo_url }}" alt="Markets of Tomorrow" width="180"></a>
+        <div class="hero-label">The Weekly · {{ week_label }}</div>
+      </td></tr>
+
+      {%- if new_projects %}
+      <tr><td>
+        <div class="section-header">New on the map ({{ new_projects|length }})</div>
+        {%- for p in new_projects[:6] %}
+        <table role="presentation" class="card" cellpadding="0" cellspacing="0" border="0" width="100%">
+          {%- if p.image %}
+          <tr><td><a href="{{ p.url }}"><img src="{{ p.image }}" alt="{{ p.title }}" class="card-image" width="600"></a></td></tr>
+          {%- endif %}
+          <tr><td class="card-body">
+            <div class="stage-pill" style="color: {{ p.stage_color }};">{{ p.stage_label }}</div>
+            <a href="{{ p.url }}" class="card-title">{{ p.title }}</a>
+            <div class="card-meta">{{ p.city }}</div>
+          </td></tr>
+        </table>
+        {%- endfor %}
+        {%- if new_projects|length > 6 %}
+        <div style="text-align: center; margin: 8px 0 16px 0;">
+          <a href="{{ site_url }}" class="read-more">+ {{ new_projects|length - 6 }} more on the map →</a>
+        </div>
+        {%- endif %}
+      </td></tr>
+      {%- endif %}
+
+      {%- if status_changes %}
+      <tr><td>
+        <div class="section-header">Status changes ({{ status_changes|length }})</div>
+        {%- for c in status_changes[:5] %}
+        <table role="presentation" class="card" cellpadding="0" cellspacing="0" border="0" width="100%">
+          {%- if c.image %}
+          <tr><td><a href="{{ c.url }}"><img src="{{ c.image }}" alt="{{ c.title }}" class="card-image" width="600"></a></td></tr>
+          {%- endif %}
+          <tr><td class="card-body">
+            <div class="stage-pill">
+              <span style="color: #888888;">{{ c.from_stage }} → </span>
+              <span style="color: {{ c.stage_color }};">{{ c.to_stage }}</span>
+            </div>
+            <a href="{{ c.url }}" class="card-title">{{ c.title }}</a>
+            <div class="card-meta">{{ c.city }}</div>
+          </td></tr>
+        </table>
+        {%- endfor %}
+      </td></tr>
+      {%- endif %}
+
+      {%- if articles %}
+      <tr><td>
+        <div class="section-header">From the journal</div>
+        {%- for a in articles %}
+        <table role="presentation" class="card" cellpadding="0" cellspacing="0" border="0" width="100%">
+          {%- if a.image %}
+          <tr><td><a href="{{ a.link }}"><img src="{{ a.image }}" alt="{{ a.title }}" class="card-image" width="600"></a></td></tr>
+          {%- endif %}
+          <tr><td class="card-body">
+            <a href="{{ a.link }}" class="card-title">{{ a.title }}</a>
+            <div class="card-summary">{{ a.summary }}</div>
+            <div><a href="{{ a.link }}" class="read-more">Read on TMW →</a></div>
+          </td></tr>
+        </table>
+        {%- endfor %}
+      </td></tr>
+      {%- endif %}
+
+      {%- if app_updates %}
+      <tr><td>
+        <div class="section-header">What's new in the app</div>
+        <div class="cta-block">
+          <div class="cta-headline">{{ app_updates.headline }}</div>
+          <ul class="cta-list">
+            {%- for bullet in app_updates.bullets %}
+            <li>{{ bullet }}</li>
+            {%- endfor %}
+          </ul>
+          <div><a href="{{ site_url }}" class="cta-button">Open the map →</a></div>
+        </div>
+      </td></tr>
+      {%- endif %}
+
+      <!-- Footer -->
+      <tr><td class="footer">
+        <div class="footer-text">
+          You're getting this from <strong>media@marketsoftomorrow.com</strong> because you subscribed at
+          <a href="{{ tmw_url }}">oftmw.com</a>.
+        </div>
+        <div class="footer-links">
+          <a href="{{ site_url }}">Map</a> ·
+          <a href="{{ tmw_url }}">Journal</a> ·
+          <a href="{{ '{{' }}RESEND_UNSUBSCRIBE_URL{{ '}}' }}">Unsubscribe</a>
+        </div>
+      </td></tr>
+
+    </table>
+  </td></tr>
+</table>
+
+</body>
+</html>
