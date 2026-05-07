@@ -435,6 +435,20 @@ def main():
     by_id = {e['id']: e for e in existing_events}
     for e in new_events:
         by_id[e['id']] = e
+
+    # Backfill: any existing event missing an image gets one filled in from
+    # the current project data (if available). This handles events that were
+    # emitted before the ImageURL column lookup was fixed -- without this they
+    # would forever show the empty placeholder thumb.
+    for ev_id, ev in by_id.items():
+        if ev.get('image'):
+            continue
+        slug = ev.get('project_slug')
+        if slug and slug in current_projects:
+            project_image = current_projects[slug].get('image') or ''
+            if project_image:
+                ev['image'] = project_image
+
     all_events = list(by_id.values())
     all_events.sort(key=lambda e: e.get('timestamp') or '', reverse=True)
     all_events = all_events[:MAX_EVENTS]
