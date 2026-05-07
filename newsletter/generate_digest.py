@@ -3,9 +3,9 @@
 generate_digest.py — Renders the weekly newsletter HTML.
 
 Reads:
-  - pulse.json (output of generate_pulse.py — single source of truth for events)
-  - newsletter/app_updates.md (manual log of what shipped this week)
-  - newsletter/ads.json (banner ads to insert into 6 slots)
+  - pulse.json (output of generate_pulse.py)
+  - newsletter/app_updates.md
+  - newsletter/ads.json (banner ads, 6 slots)
 
 Writes:
   - newsletter/digest-latest.html
@@ -34,9 +34,10 @@ ARCHIVE_DIR   = "newsletter/digest-archive"
 RSS_URL       = "https://www.oftmw.com/blog-feed.xml"
 SITE_URL      = "https://map.oftmw.com"
 TMW_URL       = "https://www.oftmw.com"
-LOGO_URL      = "https://static.wixstatic.com/media/ca3b83_71f3cd2ef61049028b2daf4e2ff71d52~mv2.png"
+LOGO_URL      = "https://static.wixstatic.com/media/ca3b83_f76e4d711a1d486db904e04babc39e84~mv2.png"
 
 LOOKBACK_DAYS = 7
+ARTICLE_LIMIT = 5
 
 # ─── HELPERS ─────────────────────────────────────────────────────────────────
 def slugify(title):
@@ -80,7 +81,11 @@ def filter_recent(events, days=LOOKBACK_DAYS):
     return out
 
 def group_events(events):
-    new_projects, status_changes = [], []
+    """
+    Combined output: list of map_items (both new projects AND status changes),
+    sorted with most-recent first. Status changes have from_stage/to_stage set.
+    """
+    map_items = []
     for e in events:
         etype = (e.get("type") or "").lower()
         proj = e.get("project") or {}
@@ -88,32 +93,41 @@ def group_events(events):
         if not title: continue
 
         slug = slugify(title)
+        ts = e.get("timestamp") or e.get("date") or ""
         base = {
             "title": title,
             "city":  proj.get("city") or e.get("city") or "",
             "image": proj.get("image") or proj.get("imageUrl") or e.get("image") or "",
             "url":   f"{SITE_URL}/projects/{slug}/",
+            "_ts":   ts,
         }
 
-        if "new" in etype or "added" in etype or "announced" in etype:
-            delivery = proj.get("delivery") or e.get("delivery") or ""
-            new_projects.append({
-                **base,
-                "stage_color": stage_color(delivery),
-                "stage_label": delivery or "Announced",
-            })
-        elif "status" in etype or "change" in etype or "update" in etype:
+        if "status" in etype or "change" in etype or "update" in etype:
             from_stage = e.get("from") or e.get("previousStage") or ""
             to_stage   = e.get("to")   or e.get("currentStage")  or proj.get("delivery") or ""
-            status_changes.append({
+            map_items.append({
                 **base,
                 "from_stage": from_stage,
                 "to_stage":   to_stage,
                 "stage_color": stage_color(to_stage),
+                "stage_label": to_stage,
             })
-    return new_projects, status_changes
+        else:
+            # New project (or "added"/"announced")
+            delivery = proj.get("delivery") or e.get("delivery") or ""
+            map_items.append({
+                **base,
+                "from_stage": "",
+                "to_stage":   "",
+                "stage_color": stage_color(delivery),
+                "stage_label": delivery or "Announced",
+            })
 
-def load_articles(limit=3):
+    # Sort most-recent first
+    map_items.sort(key=lambda x: x.get("_ts", ""), reverse=True)
+    return map_items
+
+def load_articles(limit=ARTICLE_LIMIT):
     try:
         xml = fetch(RSS_URL)
         root = ET.fromstring(xml)
@@ -152,16 +166,21 @@ def load_ads():
     """Load ads.json. Returns dict with slot1-slot6 keys (None for empty slots)."""
     slots = {f"slot{i}": None for i in range(1, 7)}
     if not os.path.exists(ADS_PATH):
-        print(f"[info] no {ADS_PATH} — running with no ads")
+        print(f"[info] no {ADS_PATH} found — running with no ads")
         return slots
     try:
         with open(ADS_PATH) as f:
             data = json.load(f)
     except json.JSONDecodeError as e:
-        print(f"[warn] {ADS_PATH} is invalid JSON: {e} — running with no ads", file=sys.stderr)
+        print(f"[err] {ADS_PATH} is INVALID JSON: {e}", file=sys.stderr)
+        print(f"[err]   ads will not appear until file is fixed", file=sys.stderr)
         return slots
 
     ads_data = data.get("ads", {})
+    if not ads_data:
+        print(f"[warn] {ADS_PATH} has no 'ads' key or it's empty")
+        return slots
+
     for slot_key in slots:
         ad = ads_data.get(slot_key)
         if ad and ad.get("image_url") and ad.get("click_url"):
@@ -170,39 +189,49 @@ def load_ads():
                 "click_url": ad["click_url"],
                 "alt_text":  ad.get("alt_text", "Sponsor"),
             }
+            print(f"[info]   {slot_key}: {ad.get('alt_text', '?')}")
+
     filled = sum(1 for v in slots.values() if v)
-    print(f"[info] {filled} ad slot(s) filled")
+    print(f"[info] {filled} ad slot(s) filled out of 6")
     return slots
 
-def build_subject(new_projects, status_changes, articles, app_updates):
-    for c in status_changes:
-        to = (c.get("to_stage") or "").lower()
+def build_subject(map_items, articles, app_updates):
+    # Highest-impact: a status change to "now open" or similar milestone
+    for m in map_items:
+        to = (m.get("to_stage") or "").lower()
         if "now open" in to or "opening soon" in to:
-            return f"{c['title']} is opening"
-        if "under construction" in to:
-            return f"{c['title']} broke ground"
-    if len(new_projects) >= 3:
-        return f"{len(new_projects)} new projects on the map"
-    if new_projects:
-        first = new_projects[0]
+            return f"{m['title']} is opening"
+        if "under construction" in to and m.get("from_stage"):
+            return f"{m['title']} broke ground"
+
+    # New project announcements
+    new_only = [m for m in map_items if not m.get("from_stage")]
+    if len(new_only) >= 3:
+        return f"{len(new_only)} new projects on the map"
+    if new_only:
+        first = new_only[0]
         if first.get("city"):
             return f"New: {first['title']} in {first['city']}"
         return f"New: {first['title']}"
+
+    # App updates
     if app_updates and app_updates["bullets"]:
         first_bullet = app_updates["bullets"][0]
         if len(first_bullet) > 60:
             first_bullet = first_bullet[:57] + "…"
         return first_bullet
+
+    # Articles fallback
     if articles:
         return articles[0]["title"][:80]
+
     return f"The Weekly · {datetime.now(timezone.utc).strftime('%B %d')}"
 
-def build_preheader(new_projects, status_changes, articles):
+def build_preheader(map_items, articles):
     bits = []
-    if articles:        bits.append(f"{len(articles)} stories")
-    if new_projects:    bits.append(f"{len(new_projects)} new")
-    if status_changes:  bits.append(f"{len(status_changes)} updates")
-    if not bits:        return "This week on the map of tomorrow."
+    if articles:   bits.append(f"{len(articles)} stories")
+    if map_items:  bits.append(f"{len(map_items)} updates")
+    if not bits:   return "This week on the map of tomorrow."
     return f"{', '.join(bits)} this week."
 
 # ─── MAIN ────────────────────────────────────────────────────────────────────
@@ -219,19 +248,19 @@ def main():
     recent = filter_recent(events, LOOKBACK_DAYS)
     print(f"[info] {len(recent)} events in last {LOOKBACK_DAYS} days")
 
-    new_projects, status_changes = group_events(recent)
-    articles    = load_articles(limit=3)
+    map_items   = group_events(recent)
+    articles    = load_articles(limit=ARTICLE_LIMIT)
     app_updates = load_app_updates()
     ads         = load_ads()
 
-    print(f"[info] new={len(new_projects)} status={len(status_changes)} articles={len(articles)} app_updates={'yes' if app_updates else 'no'}")
+    print(f"[info] map_items={len(map_items)} articles={len(articles)} app_updates={'yes' if app_updates else 'no'}")
 
-    if not (new_projects or status_changes or articles or app_updates):
+    if not (map_items or articles or app_updates):
         print("[info] nothing to publish — skipping")
         return
 
-    subject   = build_subject(new_projects, status_changes, articles, app_updates)
-    preheader = build_preheader(new_projects, status_changes, articles)
+    subject   = build_subject(map_items, articles, app_updates)
+    preheader = build_preheader(map_items, articles)
     print(f"[info] subject: {subject}")
 
     env = Environment(
@@ -241,8 +270,7 @@ def main():
     template = env.get_template(os.path.basename(TEMPLATE_PATH))
     raw_html = template.render(
         subject=subject, preheader=preheader, week_label=week_label,
-        new_projects=new_projects, status_changes=status_changes,
-        articles=articles, app_updates=app_updates, ads=ads,
+        map_items=map_items, articles=articles, app_updates=app_updates, ads=ads,
         site_url=SITE_URL, tmw_url=TMW_URL, logo_url=LOGO_URL,
     )
 
