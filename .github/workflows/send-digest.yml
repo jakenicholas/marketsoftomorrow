@@ -1,14 +1,12 @@
-# File: .github/workflows/send-digest.yml
-# Runs Tuesday morning to create a Resend DRAFT for human review.
-# You receive an email from Resend, review the draft, hit send manually.
-
 name: Send Newsletter Digest (Draft)
 
 on:
-  schedule:
-    # Tuesdays at 14:00 UTC (9am EST / 10am EDT)
-    - cron: '0 14 * * 2'
+  # Manual trigger from Actions tab
   workflow_dispatch:
+
+  # Tuesdays at 14:00 UTC (10am EDT / 9am EST)
+  schedule:
+    - cron: '0 14 * * 2'
 
 jobs:
   send:
@@ -25,7 +23,8 @@ jobs:
 
       - name: Create Resend draft
         env:
-          RESEND_API_KEY:     ${{ secrets.RESEND_API_KEY }}
-          RESEND_AUDIENCE_ID: ${{ secrets.RESEND_AUDIENCE_ID }}
-          RESEND_FROM:        ${{ secrets.RESEND_FROM }}
+          RESEND_API_KEY:         ${{ secrets.RESEND_API_KEY }}
+          RESEND_AUDIENCE_ID:     ${{ secrets.RESEND_AUDIENCE_ID }}
+          RESEND_AUDIENCE_LABELS: ${{ secrets.RESEND_AUDIENCE_LABELS }}
+          RESEND_FROM:            ${{ secrets.RESEND_FROM }}
         run: python3 send_digest.py
