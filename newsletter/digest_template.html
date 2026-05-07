@@ -14,18 +14,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<!-- Force dark mode in supporting clients -->
 <meta name="color-scheme" content="dark only">
 <meta name="supported-color-schemes" content="dark only">
 <title>{{ subject }}</title>
 <style>
-  /* Force dark mode for clients that support color-scheme */
   :root {
     color-scheme: dark only;
     supported-color-schemes: dark only;
   }
 
-  /* Defeat Gmail mobile auto-inversion via media query — Gmail dark mode respects this */
   @media (prefers-color-scheme: dark) {
     .force-dark-bg { background-color: #0a0a0a !important; }
     .force-dark-panel { background-color: #161616 !important; }
@@ -35,7 +32,6 @@
     .force-border { border-color: #262626 !important; }
   }
 
-  /* Apple Mail / iOS Mail dark mode override */
   @media (prefers-color-scheme: dark) {
     body, .wrapper { background-color: #0a0a0a !important; }
   }
@@ -53,11 +49,14 @@
       display: block !important;
       width: 100% !important;
       max-width: 100% !important;
-      padding-left: 0 !important;
-      padding-right: 0 !important;
+      padding: 0 0 16px 0 !important;
     }
     .two-col-spacer { display: none !important; }
     .ad-banner { width: 100% !important; }
+    .grid-card-image-wrap { height: 200px !important; }
+    /* Reset card body height on mobile so cards size to content */
+    .grid-card-body { height: auto !important; min-height: 0 !important; }
+    .grid-card { height: auto !important; }
   }
 
   .preheader {
@@ -71,7 +70,7 @@
   .container { max-width: 600px; width: 100%; }
 
   .hero { padding: 0 0 24px 0; text-align: center; }
-  .hero img { display: inline-block; max-width: 180px; height: auto; border: 0; }
+  .hero img { display: inline-block; max-width: 200px; height: auto; border: 0; }
   .hero-label {
     color: #888888;
     font-size: 12px;
@@ -90,15 +89,56 @@
     border-top: 1px solid #262626;
   }
 
-  /* Card styling */
-  .card {
+  /* Single-column journal cards (full-width) */
+  .article-card {
     background-color: #161616;
     border: 1px solid #262626;
     border-radius: 12px;
     margin: 0 0 16px 0;
   }
-  .card-image-wrap {
-    /* Fixed-aspect container: crops via background-image so all tiles are uniform */
+  .article-card-image-wrap {
+    width: 100%;
+    height: 240px;
+    overflow: hidden;
+    border-radius: 12px 12px 0 0;
+    background-color: #262626;
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+  }
+  .article-card-body { padding: 18px 20px 20px 20px; }
+  .article-card-title {
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.3;
+    color: #ffffff;
+    text-decoration: none;
+    margin: 0 0 6px 0;
+    display: block;
+  }
+  .article-card-summary {
+    color: #888888;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .read-more {
+    color: #1FDF67;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 600;
+    margin-top: 10px;
+    display: inline-block;
+  }
+
+  /* 2-column grid cards — fixed total height for alignment */
+  .grid-card {
+    background-color: #161616;
+    border: 1px solid #262626;
+    border-radius: 12px;
+    /* Fixed height so all tiles align regardless of title length */
+    height: 360px;
+  }
+  .grid-card-image-wrap {
     width: 100%;
     height: 200px;
     overflow: hidden;
@@ -108,43 +148,38 @@
     background-position: center center;
     background-repeat: no-repeat;
   }
-  .card-image-wrap img {
-    /* Hidden in clients that support background-image (most). Fallback for clients that don't. */
-    width: 100%;
-    height: 200px;
-    object-fit: cover;
-    display: block;
-    border: 0;
+  .grid-card-body {
+    padding: 14px 16px;
+    height: 160px;
+    box-sizing: border-box;
+    overflow: hidden;
   }
-  .card-body { padding: 16px 18px 18px 18px; }
-  .card-title {
-    font-size: 17px;
+  .grid-card-title {
+    font-size: 16px;
     font-weight: 700;
     line-height: 1.3;
     color: #ffffff;
     text-decoration: none;
     margin: 0 0 4px 0;
     display: block;
+    /* Clamp title to 2 lines so cards stay aligned */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
-  .card-meta { color: #888888; font-size: 13px; }
-  .card-summary {
+  .grid-card-meta {
     color: #888888;
-    font-size: 14px;
-    line-height: 1.5;
-    margin-top: 6px;
+    font-size: 13px;
+    /* Single line for city */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   .stage-pill {
     font-size: 12px;
     font-weight: 600;
     margin-bottom: 6px;
-  }
-  .read-more {
-    color: #1FDF67;
-    text-decoration: none;
-    font-size: 13px;
-    font-weight: 600;
-    margin-top: 10px;
-    display: inline-block;
   }
 
   /* App updates block */
@@ -214,10 +249,8 @@
 </head>
 <body class="force-dark-bg" style="margin: 0; padding: 0; background-color: #0a0a0a;">
 
-<!-- Hidden preheader (inbox preview text) -->
 <div class="preheader">{{ preheader }}</div>
 
-<!-- Invisible character that signals dark theme to Gmail -->
 <div style="display: none; max-height: 0; overflow: hidden;">&#847;&zwnj;&nbsp;&#847; &#847;&zwnj;&nbsp;&#847; &#847;&zwnj;&nbsp;&#847; &#847;&zwnj;&nbsp;&#847; &#847;&zwnj;&nbsp;&#847; &#847;&zwnj;&nbsp;&#847; &#847;&zwnj;&nbsp;&#847;</div>
 
 <table role="presentation" class="wrapper force-dark-bg" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#0a0a0a" style="background-color: #0a0a0a;">
@@ -226,7 +259,7 @@
 
       <!-- HERO -->
       <tr><td class="hero">
-        <a href="{{ tmw_url }}"><img src="{{ logo_url }}" alt="Markets of Tomorrow" width="180"></a>
+        <a href="{{ tmw_url }}"><img src="{{ logo_url }}" alt="Markets of Tomorrow" width="200"></a>
         <div class="hero-label force-muted-text">The Weekly · {{ week_label }}</div>
       </td></tr>
 
@@ -234,26 +267,26 @@
       {{ render_ad(ads.slot1) }}
       {%- endif %}
 
-      <!-- FROM THE JOURNAL — moved to top -->
+      <!-- FROM THE JOURNAL -->
       {%- if articles %}
       <tr><td>
-        <div class="section-header force-accent-text">From the journal</div>
+        <div class="section-header force-accent-text">From the journal ({{ articles|length }})</div>
         {%- for a in articles %}
-        <table role="presentation" class="card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#161616" style="background-color: #161616;">
+        <table role="presentation" class="article-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#161616" style="background-color: #161616;">
           {%- if a.image %}
           <tr><td>
             <a href="{{ a.link }}" style="display: block;">
-              <div class="card-image-wrap" style="background-image: url('{{ a.image }}');">
+              <div class="article-card-image-wrap" style="background-image: url('{{ a.image }}');">
                 <!--[if mso]>
-                <img src="{{ a.image }}" alt="{{ a.title }}" width="600" height="200" style="display:block;width:100%;height:200px;border:0;" />
+                <img src="{{ a.image }}" alt="{{ a.title }}" width="600" height="240" style="display:block;width:100%;height:240px;border:0;" />
                 <![endif]-->
               </div>
             </a>
           </td></tr>
           {%- endif %}
-          <tr><td class="card-body">
-            <a href="{{ a.link }}" class="card-title force-light-text" style="color: #ffffff;">{{ a.title }}</a>
-            <div class="card-summary force-muted-text">{{ a.summary }}</div>
+          <tr><td class="article-card-body">
+            <a href="{{ a.link }}" class="article-card-title force-light-text" style="color: #ffffff;">{{ a.title }}</a>
+            <div class="article-card-summary force-muted-text">{{ a.summary }}</div>
             <div><a href="{{ a.link }}" class="read-more force-accent-text">Read on TMW →</a></div>
           </td></tr>
         </table>
@@ -265,21 +298,23 @@
       {{ render_ad(ads.slot2) }}
       {%- endif %}
 
-      <!-- NEW ON THE MAP — 2-column grid -->
-      {%- if new_projects %}
+      <!-- NEW ON THE MAP — combined new + status changes, 2-col grid -->
+      {%- if map_items %}
       <tr><td>
-        <div class="section-header force-accent-text">New on the map ({{ new_projects|length }})</div>
+        <div class="section-header force-accent-text">New on the map ({{ map_items|length }})</div>
 
-        {%- for row in new_projects[:6]|batch(2) %}
+        {# Render first 4 items in 2x2 grid #}
+        {%- set first_batch = map_items[:4] %}
+        {%- for row in first_batch|batch(2) %}
         <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 0 0 16px 0;">
           <tr>
           {%- for p in row %}
             <td class="two-col-cell" valign="top" width="290" style="width: 290px; padding: 0 {% if loop.first %}8px 0 0{% else %}0 0 8px{% endif %};">
-              <table role="presentation" class="card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#161616" style="background-color: #161616;">
+              <table role="presentation" class="grid-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" height="360" bgcolor="#161616" style="background-color: #161616; height: 360px;">
                 {%- if p.image %}
-                <tr><td>
+                <tr><td height="200" style="height: 200px;">
                   <a href="{{ p.url }}" style="display: block;">
-                    <div class="card-image-wrap" style="background-image: url('{{ p.image }}');">
+                    <div class="grid-card-image-wrap" style="background-image: url('{{ p.image }}');">
                       <!--[if mso]>
                       <img src="{{ p.image }}" alt="{{ p.title }}" width="290" height="200" style="display:block;width:100%;height:200px;border:0;" />
                       <![endif]-->
@@ -287,16 +322,66 @@
                   </a>
                 </td></tr>
                 {%- endif %}
-                <tr><td class="card-body">
-                  <div class="stage-pill" style="color: {{ p.stage_color }};">{{ p.stage_label }}</div>
-                  <a href="{{ p.url }}" class="card-title force-light-text" style="color: #ffffff;">{{ p.title }}</a>
-                  <div class="card-meta force-muted-text">{{ p.city }}</div>
+                <tr><td class="grid-card-body" valign="top" height="160" style="height: 160px;">
+                  <div class="stage-pill" style="color: {{ p.stage_color }};">
+                    {%- if p.from_stage -%}
+                      <span style="color: #888888;">{{ p.from_stage }} → </span>{{ p.to_stage }}
+                    {%- else -%}
+                      {{ p.stage_label }}
+                    {%- endif -%}
+                  </div>
+                  <a href="{{ p.url }}" class="grid-card-title force-light-text" style="color: #ffffff;">{{ p.title }}</a>
+                  <div class="grid-card-meta force-muted-text">{{ p.city }}</div>
                 </td></tr>
               </table>
             </td>
-            {%- if loop.first and loop.length == 2 %}
-            <td class="two-col-spacer" width="0" style="width: 0;"></td>
-            {%- endif %}
+          {%- endfor %}
+          {%- if row|length == 1 %}
+            <td class="two-col-cell" width="290" style="width: 290px;">&nbsp;</td>
+          {%- endif %}
+          </tr>
+        </table>
+        {%- endfor %}
+      </td></tr>
+
+      {%- if ads.slot3 %}
+      {{ render_ad(ads.slot3) }}
+      {%- endif %}
+
+      {# Render remaining items (5-8) in another 2x2 grid #}
+      {%- set second_batch = map_items[4:8] %}
+      {%- if second_batch %}
+      <tr><td>
+        {%- for row in second_batch|batch(2) %}
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 0 0 16px 0;">
+          <tr>
+          {%- for p in row %}
+            <td class="two-col-cell" valign="top" width="290" style="width: 290px; padding: 0 {% if loop.first %}8px 0 0{% else %}0 0 8px{% endif %};">
+              <table role="presentation" class="grid-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" height="360" bgcolor="#161616" style="background-color: #161616; height: 360px;">
+                {%- if p.image %}
+                <tr><td height="200" style="height: 200px;">
+                  <a href="{{ p.url }}" style="display: block;">
+                    <div class="grid-card-image-wrap" style="background-image: url('{{ p.image }}');">
+                      <!--[if mso]>
+                      <img src="{{ p.image }}" alt="{{ p.title }}" width="290" height="200" style="display:block;width:100%;height:200px;border:0;" />
+                      <![endif]-->
+                    </div>
+                  </a>
+                </td></tr>
+                {%- endif %}
+                <tr><td class="grid-card-body" valign="top" height="160" style="height: 160px;">
+                  <div class="stage-pill" style="color: {{ p.stage_color }};">
+                    {%- if p.from_stage -%}
+                      <span style="color: #888888;">{{ p.from_stage }} → </span>{{ p.to_stage }}
+                    {%- else -%}
+                      {{ p.stage_label }}
+                    {%- endif -%}
+                  </div>
+                  <a href="{{ p.url }}" class="grid-card-title force-light-text" style="color: #ffffff;">{{ p.title }}</a>
+                  <div class="grid-card-meta force-muted-text">{{ p.city }}</div>
+                </td></tr>
+              </table>
+            </td>
           {%- endfor %}
           {%- if row|length == 1 %}
             <td class="two-col-cell" width="290" style="width: 290px;">&nbsp;</td>
@@ -305,50 +390,17 @@
         </table>
         {%- endfor %}
 
-        {%- if new_projects|length > 6 %}
+        {%- if map_items|length > 8 %}
         <div style="text-align: center; margin: 8px 0 16px 0;">
-          <a href="{{ site_url }}" class="read-more force-accent-text">+ {{ new_projects|length - 6 }} more on the map →</a>
+          <a href="{{ site_url }}" class="read-more force-accent-text">+ {{ map_items|length - 8 }} more on the map →</a>
         </div>
         {%- endif %}
       </td></tr>
       {%- endif %}
 
-      {%- if ads.slot3 %}
-      {{ render_ad(ads.slot3) }}
-      {%- endif %}
-
-      <!-- STATUS CHANGES — single column -->
-      {%- if status_changes %}
-      <tr><td>
-        <div class="section-header force-accent-text">Status changes ({{ status_changes|length }})</div>
-        {%- for c in status_changes[:5] %}
-        <table role="presentation" class="card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#161616" style="background-color: #161616;">
-          {%- if c.image %}
-          <tr><td>
-            <a href="{{ c.url }}" style="display: block;">
-              <div class="card-image-wrap" style="background-image: url('{{ c.image }}');">
-                <!--[if mso]>
-                <img src="{{ c.image }}" alt="{{ c.title }}" width="600" height="200" style="display:block;width:100%;height:200px;border:0;" />
-                <![endif]-->
-              </div>
-            </a>
-          </td></tr>
-          {%- endif %}
-          <tr><td class="card-body">
-            <div class="stage-pill">
-              <span class="force-muted-text" style="color: #888888;">{{ c.from_stage }} → </span>
-              <span style="color: {{ c.stage_color }};">{{ c.to_stage }}</span>
-            </div>
-            <a href="{{ c.url }}" class="card-title force-light-text" style="color: #ffffff;">{{ c.title }}</a>
-            <div class="card-meta force-muted-text">{{ c.city }}</div>
-          </td></tr>
-        </table>
-        {%- endfor %}
-      </td></tr>
-      {%- endif %}
-
       {%- if ads.slot4 %}
       {{ render_ad(ads.slot4) }}
+      {%- endif %}
       {%- endif %}
 
       <!-- WHAT'S NEW IN THE APP -->
