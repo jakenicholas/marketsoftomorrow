@@ -34,7 +34,7 @@ ARCHIVE_DIR   = "newsletter/digest-archive"
 RSS_URL       = "https://www.oftmw.com/blog-feed.xml"
 SITE_URL      = "https://map.oftmw.com"
 TMW_URL       = "https://www.oftmw.com"
-LOGO_URL      = "https://static.wixstatic.com/media/ca3b83_f76e4d711a1d486db904e04babc39e84~mv2.png"
+LOGO_URL      = "https://static.wixstatic.com/media/ca3b83_e80e88810ca942459bfaa140e9fc2267~mv2.png"
 APP_IMAGE_URL = "https://static.wixstatic.com/media/ca3b83_653622edfc9f4e6b86432f9412ed5843~mv2.jpg"
 
 LOOKBACK_DAYS    = 7
