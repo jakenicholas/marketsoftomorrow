@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
 """
-send_digest.py — Creates a Resend broadcast DRAFT for human review.
+send_digest.py — Creates Resend broadcast DRAFTS (one per audience) for human review.
 
 Reads:
-  - newsletter/digest-latest.html  (rendered by generate_digest.py)
-  - newsletter/digest-subject.txt  (subject line)
+  - newsletter/digest-latest.html
+  - newsletter/digest-subject.txt
 
-Does NOT auto-send. Creates a draft in Resend and emails the operator.
-You review in Resend dashboard, edit if needed, hit send manually.
+Creates one draft per audience ID listed in RESEND_AUDIENCE_IDS (comma-separated).
+Does NOT auto-send. You review each draft in Resend and hit Send manually.
 
 Required env vars:
   - RESEND_API_KEY
-  - RESEND_AUDIENCE_ID  (the audience to send to)
-  - RESEND_FROM         (e.g. "Markets of Tomorrow <media@marketsoftomorrow.com>")
+  - RESEND_AUDIENCE_IDS  (comma-separated audience IDs, e.g. "aud_111,aud_222,aud_333")
+  - RESEND_FROM          (e.g. "Markets of Tomorrow <media@marketsoftomorrow.com>")
 
 Run: python3 send_digest.py
 """
@@ -22,20 +22,56 @@ import json, os, sys, urllib.request, urllib.error
 OUT_HTML    = "newsletter/digest-latest.html"
 OUT_SUBJECT = "newsletter/digest-subject.txt"
 
-API_KEY  = os.environ.get("RESEND_API_KEY", "").strip()
-AUDIENCE = os.environ.get("RESEND_AUDIENCE_ID", "").strip()
-SENDER   = os.environ.get("RESEND_FROM", "").strip()
+API_KEY      = os.environ.get("RESEND_API_KEY", "").strip()
+AUDIENCE_IDS = os.environ.get("RESEND_AUDIENCE_IDS", "").strip()
+SENDER       = os.environ.get("RESEND_FROM", "").strip()
+
+# Backward compatibility: support old single-ID secret name if present
+if not AUDIENCE_IDS:
+    AUDIENCE_IDS = os.environ.get("RESEND_AUDIENCE_ID", "").strip()
 
 def fail(msg, code=1):
     print(f"[err] {msg}", file=sys.stderr)
     sys.exit(code)
 
+def create_broadcast(api_key, audience_id, sender, subject, html):
+    """Create a single Resend broadcast draft. Returns broadcast_id or None."""
+    payload = json.dumps({
+        "audience_id": audience_id,
+        "from":        sender,
+        "subject":     subject,
+        "html":        html,
+    }).encode("utf-8")
+
+    req = urllib.request.Request(
+        "https://api.resend.com/broadcasts",
+        data=payload,
+        headers={
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type":  "application/json",
+            "User-Agent":    "TMW-Newsletter/1.0",
+        },
+        method="POST",
+    )
+
+    try:
+        with urllib.request.urlopen(req, timeout=30) as r:
+            data = json.loads(r.read().decode("utf-8"))
+            return data.get("id")
+    except urllib.error.HTTPError as e:
+        body = e.read().decode("utf-8", errors="ignore")
+        print(f"[err]   API {e.code}: {body}", file=sys.stderr)
+        return None
+    except Exception as e:
+        print(f"[err]   request failed: {e}", file=sys.stderr)
+        return None
+
 def main():
     # Validate env
     missing = [k for k, v in {
-        "RESEND_API_KEY":     API_KEY,
-        "RESEND_AUDIENCE_ID": AUDIENCE,
-        "RESEND_FROM":        SENDER,
+        "RESEND_API_KEY":      API_KEY,
+        "RESEND_AUDIENCE_IDS": AUDIENCE_IDS,
+        "RESEND_FROM":         SENDER,
     }.items() if not v]
     if missing:
         fail(f"missing env vars: {', '.join(missing)}")
@@ -49,45 +85,38 @@ def main():
     with open(OUT_HTML) as f:    html    = f.read()
     with open(OUT_SUBJECT) as f: subject = f.read().strip()
 
-    if not html.strip():    fail(f"{OUT_HTML} is empty")
-    if not subject:         fail(f"{OUT_SUBJECT} is empty")
+    if not html.strip(): fail(f"{OUT_HTML} is empty")
+    if not subject:      fail(f"{OUT_SUBJECT} is empty")
 
-    print(f"[info] subject: {subject}")
+    # Parse audience IDs (comma-separated, strip whitespace)
+    audience_ids = [a.strip() for a in AUDIENCE_IDS.split(",") if a.strip()]
+    if not audience_ids:
+        fail("no audience IDs found in RESEND_AUDIENCE_IDS")
+
+    print(f"[info] subject:   {subject}")
     print(f"[info] html size: {len(html):,} chars")
-    print(f"[info] from: {SENDER}")
-    print(f"[info] audience: {AUDIENCE}")
+    print(f"[info] from:      {SENDER}")
+    print(f"[info] audiences: {len(audience_ids)} target(s)")
+    print()
 
-    # Create Resend broadcast as draft (no scheduled_at = stays in draft)
-    payload = json.dumps({
-        "audience_id": AUDIENCE,
-        "from":        SENDER,
-        "subject":     subject,
-        "html":        html,
-    }).encode("utf-8")
+    successes, failures = 0, 0
+    for i, audience_id in enumerate(audience_ids, 1):
+        print(f"[{i}/{len(audience_ids)}] creating draft for audience {audience_id}...")
+        broadcast_id = create_broadcast(API_KEY, audience_id, SENDER, subject, html)
+        if broadcast_id:
+            print(f"        ✓ draft created: {broadcast_id}")
+            print(f"        ✓ review at: https://resend.com/broadcasts/{broadcast_id}")
+            successes += 1
+        else:
+            print(f"        ✗ failed")
+            failures += 1
+        print()
 
-    req = urllib.request.Request(
-        "https://api.resend.com/broadcasts",
-        data=payload,
-        headers={
-            "Authorization": f"Bearer {API_KEY}",
-            "Content-Type":  "application/json",
-            "User-Agent":    "TMW-Newsletter/1.0",
-        },
-        method="POST",
-    )
+    print(f"[done] {successes} draft(s) created, {failures} failed")
 
-    try:
-        with urllib.request.urlopen(req, timeout=30) as r:
-            data = json.loads(r.read().decode("utf-8"))
-            broadcast_id = data.get("id", "(unknown)")
-            print(f"[ok] draft created: {broadcast_id}")
-            print(f"[ok] review at: https://resend.com/broadcasts/{broadcast_id}")
-            print("[info] review in Resend dashboard, then hit Send manually")
-    except urllib.error.HTTPError as e:
-        body = e.read().decode("utf-8", errors="ignore")
-        fail(f"Resend API error {e.code}: {body}")
-    except Exception as e:
-        fail(f"Resend request failed: {e}")
+    # Exit with error if any failed (so the workflow shows red)
+    if failures > 0:
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()
