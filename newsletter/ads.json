@@ -1,15 +1,13 @@
 {
-  "_README": "Edit this file each week with the ads you want to run. Slots 1-6 map to positions in the email. Any slot not present is silently skipped, so you can run anywhere from 0 to 6 ads. Image dimensions: aim for 1200x300px (4:1 ratio) for best appearance. Image must be a public HTTPS URL — host on your Wix CDN, Cloudinary, or similar.",
-
+  "_README": "Edit this file each week with the ads you want to run. Slots 1-6 map to positions in the email. Any slot not present is silently skipped. Image dimensions: 1200x300px (4:1) for best appearance. Image must be a public HTTPS URL.",
   "_SLOT_POSITIONS": {
-    "slot1": "After hero, before Journal section",
+    "slot1": "After hero, before Journal",
     "slot2": "After Journal, before New on Map",
-    "slot3": "After New on Map, before Status Changes",
-    "slot4": "After Status Changes, before What's New in App",
+    "slot3": "Mid-grid (after first 4 New on Map tiles)",
+    "slot4": "After New on Map (full grid)",
     "slot5": "After What's New in App",
-    "slot6": "Bottom, before footer"
+    "slot6": "Before footer"
   },
-
   "ads": {
     "slot1": {
       "image_url": "https://static.wixstatic.com/media/ca3b83_e72132e0118b4facbea0faf135eb7f2d~mv2.gif",
@@ -20,25 +18,26 @@
       "image_url": "https://static.wixstatic.com/media/ca3b83_2d5d000b937148afb27d53d464e024c1~mv2.gif",
       "click_url": "https://linkly.link/2EtNq",
       "alt_text": "Eudemonia"
-    }
-     "slot3": {
+    },
+    "slot3": {
       "image_url": "https://static.wixstatic.com/media/ca3b83_737186baa47b4ee68339f624b359a7b8~mv2.gif",
       "click_url": "https://linkly.link/2eU4h",
       "alt_text": "Delano"
-  }
+    },
     "slot4": {
       "image_url": "https://static.wixstatic.com/media/ca3b83_0d5792b1dc1344a6934ea9f46ea71a21~mv2.gif",
       "click_url": "https://linkly.link/2i4Zm",
       "alt_text": "DUOS Wynwood"
-  }
-     "slot5": {
+    },
+    "slot5": {
       "image_url": "https://static.wixstatic.com/media/ca3b83_69f04f4a96074f19aa342d237e4a4090~mv2.gif",
       "click_url": "https://linkly.link/2183i",
       "alt_text": "Marina Pointe"
-  }
-     "slot6": {
+    },
+    "slot6": {
       "image_url": "https://static.wixstatic.com/media/ca3b83_1c21386eadf1417a9f0a067212c7638c~mv2.gif",
       "click_url": "https://linkly.link/26wPJ",
-      "alt_text": "Waldorf Astoria St. Pete"     
+      "alt_text": "Waldorf Astoria St. Pete"
+    }
   }
 }
