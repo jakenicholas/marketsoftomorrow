@@ -48,6 +48,29 @@ def slugify(title):
     s = re.sub(r'[^a-z0-9\s-]', '', s)
     return re.sub(r'[\s-]+', '-', s).strip('-')
 
+def clean_event_title(title):
+    """Remove event-action suffixes from a project title.
+    Used both for display and for slug generation."""
+    if not title: return ""
+    s = title.strip()
+    # Common suffixes that get appended in pulse events
+    suffixes_lower = [
+        " added to the map",
+        " was added to the map",
+        " has been added to the map",
+        " is now open",
+        " now open",
+        " update",
+        " status changed",
+        " stage changed",
+    ]
+    s_lower = s.lower()
+    for suffix in suffixes_lower:
+        if s_lower.endswith(suffix):
+            s = s[:-len(suffix)]
+            break
+    return s.strip()
+
 def map_slug(title):
     """Slug used in map URLs — alphanumeric only, no hyphens or spaces."""
     s = (title or "").lower()
@@ -99,27 +122,63 @@ def filter_recent(events, days=LOOKBACK_DAYS):
     return out
 
 def group_events(events):
+    """Build map_items list from pulse.json events.
+    Pulse events use these fields (with fallbacks for older data):
+      - project_title  → clean name without event suffix
+      - project_slug   → URL-safe slug
+      - link           → full pre-built URL to the project on the map
+      - city, image, timestamp
+    """
     map_items = []
     for e in events:
         etype = (e.get("type") or "").lower()
-        proj = e.get("project") or {}
-        title = proj.get("title") or e.get("title") or ""
-        if not title: continue
 
-        slug = slugify(title)
-        mslug = map_slug(title)
+        # Skip article events (those come from RSS separately)
+        if etype == "article":
+            continue
+
+        # Prefer the clean project_title; fall back to cleaning the event title
+        title = e.get("project_title") or clean_event_title(e.get("title") or "")
+        if not title:
+            # Fallback for very old data with project sub-object
+            proj = e.get("project") or {}
+            title = clean_event_title(proj.get("title") or "")
+        if not title:
+            continue
+
+        # Prefer the pre-built link from pulse.json; fall back to building one
+        url = e.get("link")
+        if url:
+            # Add fullscreen=true if not already in URL (for fullscreen project view)
+            if "fullscreen=" not in url:
+                separator = "&" if "?" in url else "?"
+                url = f"{url}{separator}fullscreen=true"
+        else:
+            mslug = map_slug(title)
+            url = f"{SITE_URL}/?fullscreen=true&project={mslug}"
+
+        # City: top-level field first, then project sub-object
+        proj = e.get("project") or {}
+        city = e.get("city") or proj.get("city") or ""
+
+        # Image: top-level first, then project sub-object
+        image = e.get("image") or proj.get("image") or proj.get("imageUrl") or ""
+        # Strip Wix transformation suffixes
+        image = clean_wix_image_url(image)
+
         ts = e.get("timestamp") or e.get("date") or ""
+
         base = {
             "title": title,
-            "city":  proj.get("city") or e.get("city") or "",
-            "image": proj.get("image") or proj.get("imageUrl") or e.get("image") or "",
-            "url":   f"{SITE_URL}/?fullscreen=true&project={mslug}",
+            "city":  city,
+            "image": image,
+            "url":   url,
             "_ts":   ts,
         }
 
         if "status" in etype or "change" in etype or "update" in etype:
             from_stage = e.get("from") or e.get("previousStage") or ""
-            to_stage   = e.get("to")   or e.get("currentStage")  or proj.get("delivery") or ""
+            to_stage   = e.get("to")   or e.get("currentStage")  or proj.get("delivery") or e.get("tag") or ""
             map_items.append({
                 **base,
                 "from_stage": from_stage,
@@ -128,7 +187,7 @@ def group_events(events):
                 "stage_label": to_stage,
             })
         else:
-            delivery = proj.get("delivery") or e.get("delivery") or ""
+            delivery = proj.get("delivery") or e.get("delivery") or e.get("tag") or ""
             map_items.append({
                 **base,
                 "from_stage": "",
