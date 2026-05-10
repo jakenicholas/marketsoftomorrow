@@ -245,11 +245,17 @@ def fetch_rss():
         body_text = re.sub(r'<[^>]+>', ' ', raw_body)
         body_text = re.sub(r'\s+', ' ', body_text).strip()
 
+        # Use the article's public URL as the canonical guid. The backfill
+        # script (which hits the Wix REST API) does the same, so the same
+        # article from either source dedupes cleanly in the archive merge.
+        link_text = link_el.text.strip() if link_el is not None and link_el.text else ''
+        canonical_guid = link_text or (guid_el.text if guid_el is not None and guid_el.text else title)
+
         articles.append({
-            'guid': (guid_el.text if guid_el is not None and guid_el.text else title)[:128],
+            'guid': canonical_guid[:256],
             'title_full': title,
             'title': punchify(title),
-            'link': link_el.text.strip() if link_el is not None and link_el.text else '',
+            'link': link_text,
             'image': image_url,
             'description': (desc_el.text or '').strip() if desc_el is not None else '',
             'body': body_text,
@@ -428,12 +434,31 @@ def update_articles_archive(articles: list, projects: dict) -> dict:
         for t in unmatched_titles:
             print(f"     - {t}")
 
-    # Sort each project's articles newest first and cap to a reasonable
-    # depth so the JSON file doesn't grow unbounded over years.
+    # Sort each project's articles newest first, dedupe by link (catching
+    # any cross-source duplicates with different guids), and cap to a
+    # reasonable depth so the JSON doesn't grow unbounded over years.
     MAX_PER_PROJECT = 50
     for slug, entries in archive.items():
-        entries.sort(key=lambda e: e.get('published_at') or '', reverse=True)
-        archive[slug] = entries[:MAX_PER_PROJECT]
+        # Dedupe by canonical link. If two entries share a link, keep the
+        # newest published_at -- which gives us the latest title/image data.
+        by_link = {}
+        for e in entries:
+            link = (e.get('link') or '').strip()
+            key = link or e.get('guid') or ''
+            if not key:
+                continue
+            existing = by_link.get(key)
+            if existing is None:
+                by_link[key] = e
+            else:
+                # Keep the entry with the newer published_at
+                new_ts = e.get('published_at') or ''
+                old_ts = existing.get('published_at') or ''
+                if new_ts > old_ts:
+                    by_link[key] = e
+        deduped = list(by_link.values())
+        deduped.sort(key=lambda e: e.get('published_at') or '', reverse=True)
+        archive[slug] = deduped[:MAX_PER_PROJECT]
     return archive
 
 def save_articles_archive(archive: dict):
