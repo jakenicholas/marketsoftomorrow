@@ -151,12 +151,17 @@ def fetch_all_wix_posts():
     offset = 0
     print(f"Fetching all blog posts from Wix API...")
     while True:
-        params = {
-            'paging.limit': PAGE_SIZE,
-            'paging.offset': offset,
-            # Include the body (rich content) so we can search it
-            'fieldsets': 'CONTENT',
-        }
+        # fieldsets options used here:
+        #   CONTENT_TEXT -- adds the read-only `contentText` field (plain
+        #                   text body, up to 400k chars). Easiest to search.
+        #   URL          -- adds the canonical post URL so we can link to it.
+        # Sending multiple values via repeated query keys (Wix's convention).
+        params = [
+            ('paging.limit', PAGE_SIZE),
+            ('paging.offset', offset),
+            ('fieldsets', 'CONTENT_TEXT'),
+            ('fieldsets', 'URL'),
+        ]
         url = f"{WIX_LIST_URL}?{urllib.parse.urlencode(params)}"
         try:
             data = http_get_json(url, headers)
@@ -185,7 +190,9 @@ def fetch_all_wix_posts():
         if not page:
             break
         posts.extend(page)
-        print(f"   offset={offset}: got {len(page)} posts (total so far: {len(posts)})")
+        # Diagnostic: how many posts in this page have actual body text?
+        with_body = sum(1 for p in page if (p.get('contentText') or '').strip())
+        print(f"   offset={offset}: got {len(page)} posts ({with_body} with body text). Total so far: {len(posts)}")
         # Pagination: if fewer than PAGE_SIZE, we're done
         if len(page) < PAGE_SIZE:
             break
@@ -206,12 +213,17 @@ def article_dict_from_post(post):
     title = post.get('title') or ''
     # First-published-date is the most reliable timestamp; fall back to lastPublishedDate
     published_at = post.get('firstPublishedDate') or post.get('lastPublishedDate') or ''
-    # Build the public URL: Wix posts are typically at /blog/<slug>
-    slug = post.get('slug') or ''
-    link = f"https://www.oftmw.com/post/{slug}" if slug else ''
-    # Body text from rich content (CONTENT fieldset)
-    rich = post.get('richContent') or post.get('content')
-    body = extract_text_from_rich_content(rich)
+    # Public URL: prefer the API's url.base + url.path if URL fieldset is present
+    url_obj = post.get('url') or {}
+    if isinstance(url_obj, dict):
+        base = url_obj.get('base') or 'https://www.oftmw.com'
+        path = url_obj.get('path') or ''
+        link = f"{base}{path}" if path else (base or '')
+    else:
+        slug = post.get('slug') or ''
+        link = f"https://www.oftmw.com/post/{slug}" if slug else ''
+    # Body: contentText is plain text, no walking needed
+    body = (post.get('contentText') or '').strip()
     # Image
     image = extract_post_image(post)
     return {
