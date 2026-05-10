@@ -2451,6 +2451,179 @@
     font-size: 10px; color: rgba(255,255,255,0.6);
   }
 
+  /* ─── Coverage on TMW (article history for the current project) ───────── */
+  /* Hidden until articles are loaded; the section reveals itself only when
+     the project has at least one matching article in articles.json. */
+  #projectModal .pm-coverage[hidden] { display: none; }
+  #projectModal .pm-coverage {
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 0.5px solid rgba(255,255,255,0.07);
+  }
+  #projectModal .pm-coverage-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  #projectModal .pm-coverage-title {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-weight: 700;
+    color: #fff;
+    display: flex; align-items: center; gap: 8px;
+  }
+  #projectModal .pm-coverage-count {
+    font-size: 10px;
+    background: rgba(31,223,103,0.12);
+    color: #1FDF67;
+    padding: 2px 7px;
+    border-radius: 10px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+  }
+
+  /* Featured (most recent) article -- big hero card */
+  #projectModal .pm-coverage-featured {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    overflow: hidden;
+    cursor: pointer;
+    margin-bottom: 12px;
+    transition: border-color 0.15s, transform 0.15s;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+  }
+  #projectModal .pm-coverage-featured:hover {
+    border-color: rgba(31,223,103,0.3);
+  }
+  #projectModal .pm-coverage-featured-img {
+    width: 100%;
+    height: 140px;
+    background-size: cover;
+    background-position: center;
+    background-color: rgba(255,255,255,0.04);
+    position: relative;
+  }
+  #projectModal .pm-coverage-featured-tag {
+    position: absolute;
+    top: 10px; left: 10px;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    color: #1FDF67;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  #projectModal .pm-coverage-featured-body {
+    padding: 12px 14px 14px;
+  }
+  #projectModal .pm-coverage-featured-title {
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.35;
+    margin-bottom: 6px;
+    color: #fff;
+  }
+  #projectModal .pm-coverage-meta {
+    font-size: 11px;
+    color: rgba(255,255,255,0.4);
+  }
+
+  /* Compact list of older articles */
+  #projectModal .pm-coverage-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  #projectModal .pm-coverage-row {
+    background: rgba(255,255,255,0.03);
+    padding: 12px 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: background 0.15s;
+    text-decoration: none;
+    color: inherit;
+  }
+  #projectModal .pm-coverage-row:hover { background: rgba(255,255,255,0.06); }
+  #projectModal .pm-coverage-thumb {
+    width: 56px; height: 56px;
+    flex-shrink: 0;
+    background-size: cover;
+    background-position: center;
+    background-color: rgba(255,255,255,0.06);
+    border-radius: 8px;
+  }
+  #projectModal .pm-coverage-row-body {
+    flex: 1;
+    min-width: 0;
+  }
+  #projectModal .pm-coverage-row-title {
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.35;
+    margin-bottom: 3px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    color: #fff;
+  }
+  #projectModal .pm-coverage-row-meta {
+    font-size: 11px;
+    color: rgba(255,255,255,0.4);
+  }
+  #projectModal .pm-coverage-row-arrow {
+    color: rgba(255,255,255,0.4);
+    flex-shrink: 0;
+  }
+  #projectModal .pm-coverage-row-arrow svg {
+    width: 12px; height: 12px;
+    stroke: currentColor; fill: none; stroke-width: 2;
+  }
+
+  /* "View all N" footer button -- only shown when there are more articles
+     than fit comfortably in the modal (>5). */
+  #projectModal .pm-coverage-view-all {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 12px;
+    margin-top: 12px;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 12px;
+    color: rgba(255,255,255,0.55);
+    transition: color 0.15s, border-color 0.15s;
+    font-weight: 600;
+    background: transparent;
+    width: 100%;
+    font-family: inherit;
+    text-decoration: none;
+  }
+  #projectModal .pm-coverage-view-all:hover {
+    color: #fff;
+    border-color: rgba(255,255,255,0.18);
+  }
+  #projectModal .pm-coverage-view-all svg {
+    width: 12px; height: 12px;
+    stroke: currentColor; fill: none; stroke-width: 2;
+  }
+
   /* ═══════════════════════════════════════════════════════════════════════
      PAYWALL MODAL + AUTH HEADER UI
      ═══════════════════════════════════════════════════════════════════════ */
@@ -4368,6 +4541,18 @@
               <svg id="pmHeartSvg" viewBox="0 0 18 18" width="18" height="18" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="2.4" stroke-linecap="round"><path d="M9 1v16M1 9h16"/></svg>
             </div>
           </div>
+          <!-- Coverage on TMW: list of articles from oftmw.com that mention
+               this project. Hidden by default; populated by JS when articles.json
+               is fetched and the project has at least one matching article. -->
+          <div class="pm-coverage" id="pmCoverage" hidden>
+            <div class="pm-coverage-header">
+              <div class="pm-coverage-title">
+                Coverage on TMW
+                <span class="pm-coverage-count" id="pmCoverageCount"></span>
+              </div>
+            </div>
+            <div id="pmCoverageBody"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -5142,6 +5327,144 @@
         return str;
       }
 
+      // ─── Coverage section: articles.json fetch + render ────────────────
+      // Fetched lazily on first use, cached in this scope. Same archive is
+      // used for every project the user opens during a session.
+      let articlesArchive = null;
+      let articlesArchivePromise = null;
+
+      function loadArticlesArchive() {
+        if (articlesArchive) return Promise.resolve(articlesArchive);
+        if (articlesArchivePromise) return articlesArchivePromise;
+        articlesArchivePromise = fetch('/articles.json', { cache: 'no-store' })
+          .then(r => r.ok ? r.json() : {})
+          .then(data => {
+            articlesArchive = (data && typeof data === 'object') ? data : {};
+            return articlesArchive;
+          })
+          .catch(() => {
+            articlesArchive = {};
+            return articlesArchive;
+          });
+        return articlesArchivePromise;
+      }
+
+      // Project title -> hyphenated slug. Mirrors the Python slugify in
+      // generate_pulse.py so the keys line up.
+      function pyStyleSlug(title) {
+        return (title || '')
+          .toLowerCase()
+          .replace(/[^a-z0-9\s-]/g, '')
+          .replace(/[\s-]+/g, '-')
+          .replace(/^-|-$/g, '');
+      }
+
+      // Format an ISO timestamp as "Mar 12, 2026"
+      function formatArticleDate(iso) {
+        if (!iso) return '';
+        try {
+          const d = new Date(iso);
+          if (Number.isNaN(d.getTime())) return '';
+          return d.toLocaleDateString('en-US', {
+            month: 'short', day: 'numeric', year: 'numeric',
+          });
+        } catch (e) { return ''; }
+      }
+
+      // Cheap HTML escape for article content we drop into innerHTML
+      function escapeArticleHtml(s) {
+        return String(s || '')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+      }
+
+      function renderCoverageSection(projectTitle, projectImage) {
+        const wrap = document.getElementById('pmCoverage');
+        const body = document.getElementById('pmCoverageBody');
+        const countEl = document.getElementById('pmCoverageCount');
+        if (!wrap || !body) return;
+        // Hide while loading so a stale section from the previous project
+        // doesn't flash on screen
+        wrap.setAttribute('hidden', '');
+        body.innerHTML = '';
+
+        loadArticlesArchive().then(archive => {
+          const slug = pyStyleSlug(projectTitle);
+          const articles = (archive && archive[slug]) ? archive[slug] : [];
+          if (!articles.length) {
+            wrap.setAttribute('hidden', '');
+            return;
+          }
+
+          // Featured = most recent. List = next up to 4.
+          const featured = articles[0];
+          const rest = articles.slice(1, 5);
+          const remaining = articles.length - (1 + rest.length);
+
+          let html = '';
+          // Featured card
+          const featuredImg = featured.image || projectImage || '';
+          const featuredImgStyle = featuredImg
+            ? `style="background-image:url('${escapeArticleHtml(featuredImg)}')"`
+            : '';
+          html += `
+            <a class="pm-coverage-featured" href="${escapeArticleHtml(featured.link)}" target="_blank" rel="noopener">
+              <div class="pm-coverage-featured-img" ${featuredImgStyle}>
+                <div class="pm-coverage-featured-tag">Latest</div>
+              </div>
+              <div class="pm-coverage-featured-body">
+                <div class="pm-coverage-featured-title">${escapeArticleHtml(featured.title)}</div>
+                <div class="pm-coverage-meta">${formatArticleDate(featured.published_at)}</div>
+              </div>
+            </a>
+          `;
+
+          // Compact rows for next batch
+          if (rest.length) {
+            html += '<div class="pm-coverage-list">';
+            rest.forEach(a => {
+              const img = a.image || projectImage || '';
+              const thumbStyle = img
+                ? `style="background-image:url('${escapeArticleHtml(img)}')"`
+                : '';
+              html += `
+                <a class="pm-coverage-row" href="${escapeArticleHtml(a.link)}" target="_blank" rel="noopener">
+                  <div class="pm-coverage-thumb" ${thumbStyle}></div>
+                  <div class="pm-coverage-row-body">
+                    <div class="pm-coverage-row-title">${escapeArticleHtml(a.title)}</div>
+                    <div class="pm-coverage-row-meta">${formatArticleDate(a.published_at)}</div>
+                  </div>
+                  <div class="pm-coverage-row-arrow">
+                    <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+                  </div>
+                </a>
+              `;
+            });
+            html += '</div>';
+          }
+
+          // "View all N" link to the project's TMW search page when there
+          // are more articles than fit in the modal.
+          if (remaining > 0) {
+            const searchUrl = 'https://www.oftmw.com/blog?q=' +
+              encodeURIComponent(projectTitle);
+            html += `
+              <a class="pm-coverage-view-all" href="${escapeArticleHtml(searchUrl)}" target="_blank" rel="noopener">
+                View all ${articles.length} articles
+                <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+              </a>
+            `;
+          }
+
+          body.innerHTML = html;
+          if (countEl) countEl.textContent = articles.length;
+          wrap.removeAttribute('hidden');
+        });
+      }
+
       window.openProjectModal = function(f, source) {
         // Paywall gate — only count fresh project interactions.
         // 'tile' = direct desktop tile click (skips showPopup).
@@ -5292,6 +5615,11 @@
           source: fromSource,
           device_type: isMobile ? 'mobile' : 'desktop'
         });
+
+        // Coverage section: render asynchronously from articles.json. The
+        // section stays hidden if no articles match this project, so the
+        // modal doesn't show an empty section for projects without press.
+        renderCoverageSection(p.title, p.image || '');
       };
 
       function closeModal() {
