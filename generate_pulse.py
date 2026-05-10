@@ -313,14 +313,23 @@ STATUS_LABELS = {
 
 # --- ARTICLE  PROJECT MATCHING ---------------------------------------------
 def match_article_to_project(article: dict, projects: dict) -> str | None:
-    """Try to find a matching project slug for an article. Returns slug or None."""
-    title_lower = article['title_full'].lower()
-    # Try exact project name match first (longest first to avoid substring misfires)
+    """Try to find a matching project slug for an article. Returns slug or None.
+
+    Used to attach a single project to a pulse event (the news feed). Title-
+    only match (we don't search the body here -- the pulse event is meant to
+    be the article *about* a project, not every article that mentions one).
+    """
+    title_lower = (article.get('title_full') or '').lower()
+    if not title_lower:
+        return None
+    # Try longest-first to avoid 'Aman' matching before 'Aman Miami Beach'
     sorted_projects = sorted(projects.values(), key=lambda p: -len(p['title']))
     for p in sorted_projects:
-        if len(p['title']) < 5:
+        name = p['title']
+        if len(name) < 4:
             continue
-        if p['title'].lower() in title_lower:
+        pattern = r'(?:^|\W)' + re.escape(name.lower()) + r'(?:\W|$)'
+        if re.search(pattern, title_lower):
             return p['slug']
     return None
 
@@ -333,8 +342,10 @@ def match_article_to_all_projects(article: dict, projects: dict) -> list:
     when the project name only appears in the body, not the headline.
 
     Matching is word-boundary regex (case insensitive) so 'Antara' won't
-    match 'Antarayo'. Project titles shorter than 5 characters are skipped
-    to avoid noise from generic short names ('Met', 'Hub', etc.).
+    match 'Antarayo'. Project titles shorter than 4 characters are skipped
+    to avoid noise from very generic short names (e.g. 'Met', 'Hub'); 4-char
+    names like 'Biba' or 'Aman' are common enough in hospitality that we
+    accept the small false-positive risk in exchange for catching them.
     """
     title_lower = (article.get('title_full') or '').lower()
     body_lower = (article.get('body') or '').lower()
@@ -345,7 +356,7 @@ def match_article_to_all_projects(article: dict, projects: dict) -> list:
     sorted_projects = sorted(projects.values(), key=lambda p: -len(p['title']))
     for p in sorted_projects:
         name = p['title']
-        if len(name) < 5:
+        if len(name) < 4:
             continue
         # Word-boundary regex around the escaped name. \b alone doesn't
         # work cleanly when the name contains punctuation (& - .) so we
@@ -379,13 +390,24 @@ def update_articles_archive(articles: list, projects: dict) -> dict:
     re-run doesn't create duplicates. Sort each project's list newest first.
     """
     archive = load_articles_archive()
+
+    # Diagnostics: track how many of this run's articles matched at least
+    # one project. Logs help debug "why is articles.json so small?" issues.
+    matched_count = 0
+    unmatched_titles = []
+
     for article in articles:
         guid = article.get('guid') or article.get('link') or ''
         if not guid:
             continue
         slugs = match_article_to_all_projects(article, projects)
         if not slugs:
+            # Save up to 5 unmatched headlines for the log -- helps eyeball
+            # whether matches should have been found
+            if len(unmatched_titles) < 5:
+                unmatched_titles.append(article.get('title_full', '')[:80])
             continue
+        matched_count += 1
         entry = {
             'guid': guid,
             'title': article.get('title_full') or article.get('title') or '',
@@ -399,6 +421,12 @@ def update_articles_archive(articles: list, projects: dict) -> dict:
             existing = [e for e in existing if e.get('guid') != guid]
             existing.append(entry)
             archive[slug] = existing
+
+    print(f"   Matching diagnostic: {matched_count}/{len(articles)} RSS articles matched to >= 1 project")
+    if unmatched_titles:
+        print("   Sample of unmatched headlines (these contained no project name in title or body):")
+        for t in unmatched_titles:
+            print(f"     - {t}")
 
     # Sort each project's articles newest first and cap to a reasonable
     # depth so the JSON file doesn't grow unbounded over years.
@@ -509,7 +537,18 @@ def main():
     # 3. Fetch RSS articles
     print(" Fetching RSS feed...")
     articles = fetch_rss()
-    print(f"   {len(articles)} articles parsed")
+    print(f"   {len(articles)} articles parsed from RSS feed")
+
+    # Diagnostics: how many articles have body content (helps confirm
+    # whether <content:encoded> is being served by Wix). If most articles
+    # have body=='', the feed only serves headlines + excerpts.
+    with_body = sum(1 for a in articles if (a.get('body') or '').strip())
+    avg_body_len = (sum(len((a.get('body') or '')) for a in articles) // max(1, len(articles)))
+    print(f"   Body-content stats: {with_body}/{len(articles)} articles have body text, avg length {avg_body_len} chars")
+    if articles:
+        sample = articles[0]
+        print(f"   First article preview: '{sample.get('title_full','')[:80]}'")
+        print(f"   First article body preview: '{(sample.get('body') or '')[:120]}...'")
 
     # 4. Diff projects to detect status changes + new additions
     new_events = []
