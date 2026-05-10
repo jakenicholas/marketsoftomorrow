@@ -226,8 +226,12 @@ def article_dict_from_post(post):
     body = (post.get('contentText') or '').strip()
     # Image
     image = extract_post_image(post)
+    # IMPORTANT: use the public URL as guid (not post.id). The RSS pipeline
+    # uses Wix UUIDs from <guid> elements, while the REST API returns Mongo
+    # ObjectIDs. Same article, two different IDs -- dedupe would fail. Using
+    # the canonical post URL as the guid keeps both code paths consistent.
     return {
-        'guid': post.get('id') or post.get('slug') or title,
+        'guid': link or post.get('slug') or title,
         'title': title,
         'title_full': title,
         'body': body,
@@ -276,10 +280,27 @@ def build_archive(articles, projects):
         for slug in slugs:
             archive.setdefault(slug, []).append(entry)
             total_assignments += 1
-    # Sort newest first within each project + cap depth
+    # Dedupe within each project by canonical link (catches cases where the
+    # same article was added under different guids from different sources),
+    # then sort newest first and cap depth.
     for slug, entries in archive.items():
-        entries.sort(key=lambda e: e.get('published_at') or '', reverse=True)
-        archive[slug] = entries[:MAX_PER_PROJECT]
+        by_link = {}
+        for e in entries:
+            link = (e.get('link') or '').strip()
+            key = link or e.get('guid') or ''
+            if not key:
+                continue
+            existing = by_link.get(key)
+            if existing is None:
+                by_link[key] = e
+            else:
+                new_ts = e.get('published_at') or ''
+                old_ts = existing.get('published_at') or ''
+                if new_ts > old_ts:
+                    by_link[key] = e
+        deduped = list(by_link.values())
+        deduped.sort(key=lambda e: e.get('published_at') or '', reverse=True)
+        archive[slug] = deduped[:MAX_PER_PROJECT]
     print(f"Matching: {matched} articles matched, {total_assignments} project-article links across {len(archive)} projects")
     return archive
 
