@@ -29,7 +29,7 @@ SNAPSHOT_JSON = ".pulse-snapshot.json"  # internal state file for diffing
 # How many events to keep in the public feed
 MAX_EVENTS = 50
 # How many RSS articles to consider per run
-MAX_RSS_ITEMS = 20
+MAX_RSS_ITEMS = 100      # how many RSS items to consider per run (feed may return fewer)
 # Hard cap on truncated title length
 TITLE_CHAR_CAP = 50
 
@@ -181,7 +181,15 @@ def punchify(title: str) -> str:
 
 # --- RSS PARSING ------------------------------------------------------------
 def fetch_rss():
-    """Fetch and parse oftmw.com RSS. Returns list of article dicts."""
+    """Fetch and parse oftmw.com RSS. Returns list of article dicts.
+
+    Each article dict includes both the headline (`title_full`) and a
+    cleaned plain-text version of the article body (`body`) so the matcher
+    can search both. The body is best-effort: Wix RSS may or may not serve
+    the full article text in <content:encoded>; if not, we fall back to
+    <description> (typically an excerpt). Either way the field exists so
+    downstream code can search it without conditionals.
+    """
     try:
         req = urllib.request.Request(RSS_URL, headers={'User-Agent': 'TMW-Pulse/1.0'})
         with urllib.request.urlopen(req, timeout=20) as resp:
@@ -196,6 +204,10 @@ def fetch_rss():
         print(f"   RSS parse failed: {e}", file=sys.stderr)
         return []
 
+    # The <content:encoded> element lives in the standard RSS content
+    # namespace. ElementTree needs the full URI to find it.
+    CONTENT_NS = '{http://purl.org/rss/1.0/modules/content/}encoded'
+
     articles = []
     for item in root.findall('.//item')[:MAX_RSS_ITEMS]:
         title_el = item.find('title')
@@ -203,6 +215,7 @@ def fetch_rss():
         date_el = item.find('pubDate')
         guid_el = item.find('guid')
         desc_el = item.find('description')
+        content_el = item.find(CONTENT_NS)
 
         # Image from <enclosure url="...">
         enclosure = item.find('enclosure')
@@ -221,6 +234,17 @@ def fetch_rss():
         except Exception:
             pub_iso = None
 
+        # Body extraction: prefer the full article from <content:encoded>,
+        # fall back to <description>. Strip HTML tags + collapse whitespace
+        # so a project name living inside an <h2> or <a> still matches.
+        raw_body = ''
+        if content_el is not None and content_el.text:
+            raw_body = content_el.text
+        elif desc_el is not None and desc_el.text:
+            raw_body = desc_el.text
+        body_text = re.sub(r'<[^>]+>', ' ', raw_body)
+        body_text = re.sub(r'\s+', ' ', body_text).strip()
+
         articles.append({
             'guid': (guid_el.text if guid_el is not None and guid_el.text else title)[:128],
             'title_full': title,
@@ -228,6 +252,7 @@ def fetch_rss():
             'link': link_el.text.strip() if link_el is not None and link_el.text else '',
             'image': image_url,
             'description': (desc_el.text or '').strip() if desc_el is not None else '',
+            'body': body_text,
             'categories': categories,
             'published_at': pub_iso,
         })
@@ -300,20 +325,33 @@ def match_article_to_project(article: dict, projects: dict) -> str | None:
     return None
 
 def match_article_to_all_projects(article: dict, projects: dict) -> list:
-    """Find every project mentioned in an article's title.
+    """Find every project mentioned in an article's title OR body.
 
-    Unlike match_article_to_project (which returns the first match for the
-    pulse event), Coverage needs the full set: a single article may discuss
-    several projects, and each project's modal should list every article
-    that mentions it.
+    Used to populate the Coverage section. A single article may discuss
+    several projects (a market roundup, an architect feature, etc.), and
+    each project's modal should list every article that mentions it -- even
+    when the project name only appears in the body, not the headline.
+
+    Matching is word-boundary regex (case insensitive) so 'Antara' won't
+    match 'Antarayo'. Project titles shorter than 5 characters are skipped
+    to avoid noise from generic short names ('Met', 'Hub', etc.).
     """
-    title_lower = article['title_full'].lower()
+    title_lower = (article.get('title_full') or '').lower()
+    body_lower = (article.get('body') or '').lower()
+    if not title_lower and not body_lower:
+        return []
+
     matches = []
     sorted_projects = sorted(projects.values(), key=lambda p: -len(p['title']))
     for p in sorted_projects:
-        if len(p['title']) < 5:
+        name = p['title']
+        if len(name) < 5:
             continue
-        if p['title'].lower() in title_lower:
+        # Word-boundary regex around the escaped name. \b alone doesn't
+        # work cleanly when the name contains punctuation (& - .) so we
+        # use lookarounds for non-word chars / start / end.
+        pattern = r'(?:^|\W)' + re.escape(name.lower()) + r'(?:\W|$)'
+        if re.search(pattern, title_lower) or re.search(pattern, body_lower):
             matches.append(p['slug'])
     return matches
 
