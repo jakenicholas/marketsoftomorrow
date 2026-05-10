@@ -31,7 +31,12 @@ jobs:
       - name: Check for changes
         id: changes
         run: |
-          git add projects/ sitemap.xml robots.txt pulse.json .pulse-snapshot.json
+          # Stage every output file the scripts may have produced. The
+          # --ignore-errors flag means git add won't fail the whole step
+          # just because one of these paths doesn't exist yet on a fresh
+          # repo or after a rollback (e.g. .pulse-snapshot.json missing
+          # before the first successful pulse run).
+          git add --ignore-errors projects/ sitemap.xml robots.txt pulse.json articles.json .pulse-snapshot.json || true
           if git diff --staged --quiet; then
             echo "changed=false" >> $GITHUB_OUTPUT
           else
