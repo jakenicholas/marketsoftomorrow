@@ -245,7 +245,10 @@ def match_article_to_all_projects(article, projects):
     sorted_projects = sorted(projects.values(), key=lambda p: -len(p['title']))
     for p in sorted_projects:
         name = p['title']
-        if len(name) < 5:
+        # 4-char minimum (not 5) so legit short names like 'Biba', 'Aman'
+        # match. The word-boundary regex still prevents 'biba' inside
+        # another word from false-matching.
+        if len(name) < 4:
             continue
         pattern = r'(?:^|\W)' + re.escape(name.lower()) + r'(?:\W|$)'
         if re.search(pattern, title_lower) or re.search(pattern, body_lower):
