@@ -299,6 +299,81 @@ def match_article_to_project(article: dict, projects: dict) -> str | None:
             return p['slug']
     return None
 
+def match_article_to_all_projects(article: dict, projects: dict) -> list:
+    """Find every project mentioned in an article's title.
+
+    Unlike match_article_to_project (which returns the first match for the
+    pulse event), Coverage needs the full set: a single article may discuss
+    several projects, and each project's modal should list every article
+    that mentions it.
+    """
+    title_lower = article['title_full'].lower()
+    matches = []
+    sorted_projects = sorted(projects.values(), key=lambda p: -len(p['title']))
+    for p in sorted_projects:
+        if len(p['title']) < 5:
+            continue
+        if p['title'].lower() in title_lower:
+            matches.append(p['slug'])
+    return matches
+
+# --- ARTICLES ARCHIVE -------------------------------------------------------
+# A persistent map of project_slug -> list of articles that mention the
+# project. Used by the Project Modal's "Coverage on TMW" section. Survives
+# across runs even when articles fall off the RSS feed (which only holds
+# ~20 most recent items).
+ARTICLES_JSON = 'articles.json'
+
+def load_articles_archive() -> dict:
+    """Load the existing articles archive. Returns {} if missing."""
+    try:
+        with open(ARTICLES_JSON, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        return data if isinstance(data, dict) else {}
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {}
+
+def update_articles_archive(articles: list, projects: dict) -> dict:
+    """Merge current RSS articles into the archive, preserving existing entries.
+
+    For each fresh article matched to one or more projects, append (or update)
+    that article entry under each project's slug. Dedupe by article guid so a
+    re-run doesn't create duplicates. Sort each project's list newest first.
+    """
+    archive = load_articles_archive()
+    for article in articles:
+        guid = article.get('guid') or article.get('link') or ''
+        if not guid:
+            continue
+        slugs = match_article_to_all_projects(article, projects)
+        if not slugs:
+            continue
+        entry = {
+            'guid': guid,
+            'title': article.get('title_full') or article.get('title') or '',
+            'link': article.get('link') or '',
+            'image': article.get('image') or '',
+            'published_at': article.get('published_at') or '',
+        }
+        for slug in slugs:
+            existing = archive.setdefault(slug, [])
+            # Replace by guid if present, else append
+            existing = [e for e in existing if e.get('guid') != guid]
+            existing.append(entry)
+            archive[slug] = existing
+
+    # Sort each project's articles newest first and cap to a reasonable
+    # depth so the JSON file doesn't grow unbounded over years.
+    MAX_PER_PROJECT = 50
+    for slug, entries in archive.items():
+        entries.sort(key=lambda e: e.get('published_at') or '', reverse=True)
+        archive[slug] = entries[:MAX_PER_PROJECT]
+    return archive
+
+def save_articles_archive(archive: dict):
+    with open(ARTICLES_JSON, 'w', encoding='utf-8') as f:
+        json.dump(archive, f, indent=2, ensure_ascii=False)
+
 # --- EVENT BUILDERS ---------------------------------------------------------
 def build_status_change_event(slug, project, prev_status, new_status):
     return {
@@ -463,7 +538,16 @@ def main():
         json.dump(output, f, indent=2, ensure_ascii=False)
     print(f"   Wrote {PULSE_JSON} ({len(all_events)} events)")
 
-    # 8. Save snapshot for next run
+    # 8. Update the articles archive (project_slug -> list of articles).
+    # Used by the Project Modal "Coverage on TMW" section. We re-scan every
+    # current RSS article (not just unseen ones) and merge into the archive
+    # by guid so newly-added projects retroactively pick up older coverage.
+    archive = update_articles_archive(articles, current_projects)
+    save_articles_archive(archive)
+    coverage_total = sum(len(v) for v in archive.values())
+    print(f"   Wrote {ARTICLES_JSON} ({coverage_total} article entries across {len(archive)} projects)")
+
+    # 9. Save snapshot for next run
     save_snapshot(current_projects, seen_guids)
     print(f"   Wrote {SNAPSHOT_JSON}")
 
