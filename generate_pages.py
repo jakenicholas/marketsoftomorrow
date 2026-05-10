@@ -5,7 +5,7 @@ Reads Google Sheet CSV → generates /projects/{slug}/index.html for each projec
 Run: python3 generate_pages.py
 """
 
-import csv, io, os, re, json, urllib.request, sys
+import csv, io, os, re, json, urllib.request, urllib.parse, sys
 
 SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1qwU7ykIDUrtPlIQu-qk2FIJwiz-WWg5caq02ja30sgM/export?format=csv&gid=0"
 OUTPUT_DIR = "projects"
@@ -155,7 +155,106 @@ def truncate_developer(dev):
         return parts[0].strip() + ' & More'
     return dev
 
-def build_page(row):
+
+def _format_article_date(iso):
+    """Convert an ISO timestamp to 'Mar 12, 2026'. Empty input -> empty string."""
+    if not iso:
+        return ''
+    try:
+        from datetime import datetime
+        # Articles.json publishes ISO 8601 with timezone; strip Z if present
+        cleaned = iso.replace('Z', '+00:00') if iso.endswith('Z') else iso
+        d = datetime.fromisoformat(cleaned)
+        return d.strftime('%b %-d, %Y')
+    except Exception:
+        return ''
+
+
+def _escape_attr(s):
+    """Escape a string for safe use inside an HTML attribute value."""
+    return (s or '').replace('&', '&amp;').replace('"', '&quot;').replace('<', '&lt;').replace('>', '&gt;')
+
+
+def _escape_text(s):
+    """Escape a string for safe insertion into HTML text content."""
+    return (s or '').replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+
+
+def coverage_section_html(articles, project_title, default_image):
+    """Render the 'Coverage on TMW' section as static HTML.
+
+    articles: list of {title, link, image, published_at, guid} dicts (already
+              sorted newest first by the pulse pipeline).
+    project_title: used to build a fallback search link if there are more
+                   articles than fit in the section.
+    default_image: project's hero image, used as a thumbnail fallback when
+                   an article has no image of its own.
+
+    Returns empty string if the project has no matching articles -- the
+    section won't appear on those pages.
+    """
+    if not articles:
+        return ''
+
+    featured = articles[0]
+    rest = articles[1:5]
+    total = len(articles)
+
+    f_img = featured.get('image') or default_image or ''
+    f_img_style = f' style="background-image:url(\'{_escape_attr(f_img)}\')"' if f_img else ''
+
+    rows_html = ''
+    for a in rest:
+        a_img = a.get('image') or default_image or ''
+        a_thumb_style = f' style="background-image:url(\'{_escape_attr(a_img)}\')"' if a_img else ''
+        rows_html += f'''
+          <a class="cv-row" href="{_escape_attr(a.get('link',''))}" target="_blank" rel="noopener">
+            <div class="cv-thumb"{a_thumb_style}></div>
+            <div class="cv-row-body">
+              <div class="cv-row-title">{_escape_text(a.get('title',''))}</div>
+              <div class="cv-row-meta">{_escape_text(_format_article_date(a.get('published_at','')))}</div>
+            </div>
+            <div class="cv-row-arrow">
+              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+            </div>
+          </a>
+        '''
+
+    list_html = f'<div class="cv-list">{rows_html}</div>' if rows_html.strip() else ''
+
+    view_all_html = ''
+    if total > 5:
+        search_url = f"https://www.oftmw.com/blog?q={urllib.parse.quote(project_title)}"
+        view_all_html = f'''
+          <a class="cv-view-all" href="{_escape_attr(search_url)}" target="_blank" rel="noopener">
+            View all {total} articles
+            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+          </a>
+        '''
+
+    # Inline styles -- self-contained so this drops into any project page
+    # without needing edits to the shared stylesheet.
+    return f'''
+  <section class="coverage-section">
+    <div class="cv-header">
+      <h2 class="cv-title">Coverage on TMW <span class="cv-count">{total}</span></h2>
+    </div>
+    <a class="cv-featured" href="{_escape_attr(featured.get('link',''))}" target="_blank" rel="noopener">
+      <div class="cv-featured-img"{f_img_style}>
+        <div class="cv-featured-tag">Latest</div>
+      </div>
+      <div class="cv-featured-body">
+        <div class="cv-featured-title">{_escape_text(featured.get('title',''))}</div>
+        <div class="cv-meta">{_escape_text(_format_article_date(featured.get('published_at','')))}</div>
+      </div>
+    </a>
+    {list_html}
+    {view_all_html}
+  </section>
+'''
+
+
+def build_page(row, articles=None):
     title = row.get('Title','').strip()
     city  = row.get('City','').strip()
     # Subtitle prefers the sheet's "PreferredType" column when set (a single curated
@@ -538,6 +637,31 @@ def build_page(row):
       .stats-grid {{ grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }}
       .map-preview {{ height: 180px; }}
     }}
+
+    /* ── Coverage on TMW: list of articles mentioning this project ── */
+    .coverage-section {{ margin-top: 28px; padding-top: 22px; border-top: 1px solid rgba(255,255,255,0.08); }}
+    .cv-header {{ display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }}
+    .cv-title {{ font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; color: #fff; margin: 0; display: flex; align-items: center; gap: 8px; }}
+    .cv-count {{ font-size: 10px; background: rgba(31,223,103,0.12); color: #1FDF67; padding: 2px 7px; border-radius: 10px; font-weight: 700; letter-spacing: 0.04em; }}
+    .cv-featured {{ display: block; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; overflow: hidden; text-decoration: none; color: inherit; margin-bottom: 12px; transition: border-color 0.15s; }}
+    .cv-featured:hover {{ border-color: rgba(31,223,103,0.3); }}
+    .cv-featured-img {{ width: 100%; height: 160px; background-size: cover; background-position: center; background-color: rgba(255,255,255,0.04); position: relative; }}
+    .cv-featured-tag {{ position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); color: #1FDF67; padding: 3px 8px; border-radius: 4px; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; }}
+    .cv-featured-body {{ padding: 14px 16px 16px; }}
+    .cv-featured-title {{ font-size: 15px; font-weight: 600; line-height: 1.35; margin-bottom: 6px; color: #fff; }}
+    .cv-meta {{ font-size: 11px; color: rgba(255,255,255,0.4); }}
+    .cv-list {{ display: flex; flex-direction: column; gap: 1px; background: rgba(255,255,255,0.08); border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.08); }}
+    .cv-row {{ background: rgba(255,255,255,0.03); padding: 12px 14px; display: flex; align-items: center; gap: 12px; text-decoration: none; color: inherit; transition: background 0.15s; }}
+    .cv-row:hover {{ background: rgba(255,255,255,0.06); }}
+    .cv-thumb {{ width: 56px; height: 56px; flex-shrink: 0; background-size: cover; background-position: center; background-color: rgba(255,255,255,0.06); border-radius: 8px; }}
+    .cv-row-body {{ flex: 1; min-width: 0; }}
+    .cv-row-title {{ font-size: 13px; font-weight: 600; line-height: 1.35; margin-bottom: 3px; color: #fff; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }}
+    .cv-row-meta {{ font-size: 11px; color: rgba(255,255,255,0.4); }}
+    .cv-row-arrow {{ color: rgba(255,255,255,0.4); flex-shrink: 0; }}
+    .cv-row-arrow svg {{ stroke: currentColor; fill: none; }}
+    .cv-view-all {{ display: flex; align-items: center; justify-content: center; gap: 6px; padding: 12px; margin-top: 12px; border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; font-size: 12px; color: rgba(255,255,255,0.55); font-weight: 600; text-decoration: none; transition: color 0.15s, border-color 0.15s; }}
+    .cv-view-all:hover {{ color: #fff; border-color: rgba(255,255,255,0.18); }}
+    .cv-view-all svg {{ stroke: currentColor; fill: none; }}
   </style>
 </head>
 <body>
@@ -558,6 +682,7 @@ def build_page(row):
       {share_btn}
     </div>
     {map_preview_html(lat, lng, map_url)}
+    {coverage_section_html(articles or [], title, image)}
   </div>
 
   <!-- Footer logo — centered Markets of Tomorrow wordmark, shown on all viewports -->
@@ -765,19 +890,41 @@ def main():
     rows = [r for r in rows if r.get('Title','').strip()]
     print(f"  {len(rows)} projects found")
 
+    # Load articles.json so we can render the "Coverage on TMW" section on
+    # individual project pages. Lookup keys are the same hyphenated slugs the
+    # pulse pipeline writes. If articles.json doesn't exist yet (first run
+    # before generate_pulse.py has written it), fall back to {} -- pages
+    # render fine, just without coverage.
+    articles_archive = {}
+    try:
+        with open('articles.json', 'r', encoding='utf-8') as f:
+            articles_archive = json.load(f)
+        if not isinstance(articles_archive, dict):
+            articles_archive = {}
+        print(f"  ✓ Loaded articles.json ({sum(len(v) for v in articles_archive.values())} articles across {len(articles_archive)} projects)")
+    except FileNotFoundError:
+        print("  · articles.json not found yet (skipping Coverage sections)")
+    except Exception as e:
+        print(f"  · articles.json load error: {e}")
+
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
     # Generate index page
     index_items = []
     generated = 0
     skipped = 0
+    pages_with_coverage = 0  # diagnostic: how many pages got a Coverage section
 
     for row in rows:
         title = row.get('Title','').strip()
         if not title:
             continue
         try:
-            html, slug = build_page(row)
+            slug_for_lookup = slugify(title)
+            page_articles = articles_archive.get(slug_for_lookup, [])
+            if page_articles:
+                pages_with_coverage += 1
+            html, slug = build_page(row, articles=page_articles)
             page_dir = os.path.join(OUTPUT_DIR, slug)
             os.makedirs(page_dir, exist_ok=True)
             with open(os.path.join(page_dir, 'index.html'), 'w', encoding='utf-8') as f:
@@ -785,8 +932,10 @@ def main():
             generated += 1
             index_items.append((slug, title, row.get('City',''), row.get('Delivery',''), row.get('ImageURL','')))
         except Exception as e:
-            print(f"  ✗ Error on '{title}': {e}")
+            print(f"  Error on '{title}': {e}")
             skipped += 1
+
+    print(f"  Coverage diagnostic: {pages_with_coverage}/{generated} pages have a Coverage section")
 
     # Generate /projects/index.html
     build_index(index_items)
