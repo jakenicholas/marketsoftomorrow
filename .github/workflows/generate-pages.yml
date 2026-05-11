@@ -2,10 +2,19 @@ name: Generate Project Pages + Pulse
 
 on:
   schedule:
-    # Runs at the top of every hour
+    # Hourly so sheet edits land within ~1h max. (Was nightly, which made
+    # manual edits feel broken because they didn't ship until 2am UTC.)
     - cron: '0 * * * *'
   workflow_dispatch:
-    # Also allows manual trigger from GitHub Actions tab
+    # Manual trigger from the Actions tab. Use this after editing the sheet
+    # to force a near-instant rebuild instead of waiting for the schedule.
+
+# Cancel any in-flight runs when a new one starts. Without this, two
+# back-to-back manual triggers could race and the older run's commit
+# might overwrite the newer one.
+concurrency:
+  group: generate-pages-pulse
+  cancel-in-progress: true
 
 jobs:
   build:
@@ -22,27 +31,35 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Generate Pulse feed
-        run: python3 generate_pulse.py
-
+      # Static project pages: regenerate every /projects/<slug>/index.html
+      # plus sitemap.xml + robots.txt from the Google Sheet.
       - name: Generate project pages
         run: python3 generate_pages.py
+
+      # Pulse pipeline: rebuild pulse.json (recent site activity feed) and
+      # articles.json (per-project article archive used by Coverage section).
+      # Reads RSS + the sheet, diffs against prior state, writes both JSONs.
+      - name: Generate pulse + articles archive
+        env:
+          WIX_API_KEY: ${{ secrets.WIX_API_KEY }}
+          WIX_SITE_ID: ${{ secrets.WIX_SITE_ID }}
+        run: python3 generate_pulse.py
 
       - name: Check for changes
         id: changes
         run: |
-          # Stage every output file the scripts may have produced. The
-          # --ignore-errors flag means git add won't fail the whole step
-          # just because one of these paths doesn't exist yet on a fresh
-          # repo or after a rollback (e.g. .pulse-snapshot.json missing
-          # before the first successful pulse run).
-          git add --ignore-errors projects/ sitemap.xml robots.txt pulse.json articles.json .pulse-snapshot.json || true
+          # Stage all outputs so we can detect any change. articles.json and
+          # pulse.json need to be tracked too -- without them, manual sheet
+          # edits would update static pages but pulse/coverage would stay
+          # stale until the next nightly run.
+          git add projects/ sitemap.xml robots.txt pulse.json articles.json 2>/dev/null || true
           if git diff --staged --quiet; then
             echo "changed=false" >> $GITHUB_OUTPUT
+            echo "No changes detected."
           else
             echo "changed=true" >> $GITHUB_OUTPUT
             echo "Changes detected:"
-            git diff --staged --name-only | head -20
+            git diff --staged --name-only | head -30
           fi
 
       - name: Commit and push
@@ -50,14 +67,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          PAGE_COUNT=$(git diff --staged --name-only | grep "index.html" | wc -l)
-          PULSE_CHANGED=$(git diff --staged --name-only | grep -c "pulse.json" || echo "0")
-          if [ "$PAGE_COUNT" -gt "0" ] && [ "$PULSE_CHANGED" -gt "0" ]; then
-            MSG="Auto-generate: ${PAGE_COUNT} pages + Pulse feed updated [skip ci]"
-          elif [ "$PAGE_COUNT" -gt "0" ]; then
-            MSG="Auto-generate project pages (${PAGE_COUNT} pages updated) [skip ci]"
-          else
-            MSG="Update Pulse feed [skip ci]"
-          fi
+          PAGE_COUNT=$(git diff --staged --name-only | grep "projects/.*index.html" | wc -l)
+          MSG="Auto-update: ${PAGE_COUNT} pages + pulse [skip ci]"
           git commit -m "$MSG"
           git push
