@@ -361,6 +361,106 @@ def build_page(row, articles=None):
           src="https://static.memberstack.com/scripts/v2/memberstack.js"
           type="text/javascript"></script>
 
+  <!-- Memberstack modal dark theme — mirrors the map app so signed-in/
+       signed-up/profile flows are consistent across surfaces. Same broad
+       overrides as the main app; see index.html for the rationale. -->
+  <style>
+    #ms-overlay, #ms-modal-overlay, [id^="ms-modal"], .ms-modal, .ms-overlay {{
+      background: rgba(0,0,0,0.78) !important;
+      backdrop-filter: blur(8px) !important;
+      -webkit-backdrop-filter: blur(8px) !important;
+    }}
+    #ms-overlay > div, #ms-modal-overlay > div,
+    #ms-overlay [role="dialog"], #ms-modal-overlay [role="dialog"],
+    .ms-modal-card, .ms-modal__content,
+    [class*="ms-modal"][class*="card"], [class*="ms-modal"][class*="content"] {{
+      background: #0f0f0f !important;
+      color: #fff !important;
+      border: 1px solid rgba(255,255,255,0.08) !important;
+      border-radius: 16px !important;
+      box-shadow: 0 30px 90px rgba(0,0,0,0.55) !important;
+    }}
+    #ms-overlay, #ms-overlay *, #ms-modal-overlay, #ms-modal-overlay * {{
+      color: #fff !important;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+    }}
+    #ms-overlay h1, #ms-overlay h2, #ms-overlay h3,
+    #ms-modal-overlay h1, #ms-modal-overlay h2, #ms-modal-overlay h3 {{
+      color: #fff !important;
+      letter-spacing: -0.01em !important;
+    }}
+    #ms-overlay p, #ms-modal-overlay p,
+    #ms-overlay label, #ms-modal-overlay label,
+    #ms-overlay small, #ms-modal-overlay small,
+    #ms-overlay span, #ms-modal-overlay span {{
+      color: rgba(255,255,255,0.7) !important;
+    }}
+    #ms-overlay input, #ms-modal-overlay input,
+    #ms-overlay textarea, #ms-modal-overlay textarea,
+    #ms-overlay select, #ms-modal-overlay select {{
+      background: rgba(255,255,255,0.04) !important;
+      border: 1px solid rgba(255,255,255,0.12) !important;
+      color: #fff !important;
+      border-radius: 10px !important;
+      padding: 12px 14px !important;
+      font-size: 14px !important;
+    }}
+    #ms-overlay input:focus, #ms-modal-overlay input:focus,
+    #ms-overlay textarea:focus, #ms-modal-overlay textarea:focus {{
+      outline: none !important;
+      border-color: #1FDF67 !important;
+      background: rgba(255,255,255,0.06) !important;
+      box-shadow: 0 0 0 3px rgba(31,223,103,0.18) !important;
+    }}
+    #ms-overlay input::placeholder, #ms-modal-overlay input::placeholder {{
+      color: rgba(255,255,255,0.35) !important;
+    }}
+    #ms-overlay button[type="submit"], #ms-modal-overlay button[type="submit"],
+    #ms-overlay button.ms-primary, #ms-modal-overlay button.ms-primary,
+    #ms-overlay button[class*="primary"], #ms-modal-overlay button[class*="primary"] {{
+      background: #1FDF67 !important;
+      color: #000 !important;
+      border: none !important;
+      border-radius: 10px !important;
+      font-weight: 700 !important;
+      padding: 13px 18px !important;
+      cursor: pointer !important;
+    }}
+    #ms-overlay button[type="submit"]:hover, #ms-modal-overlay button[type="submit"]:hover {{
+      background: #18c75a !important;
+    }}
+    #ms-overlay button:not([type="submit"]):not([class*="primary"]),
+    #ms-modal-overlay button:not([type="submit"]):not([class*="primary"]) {{
+      background: rgba(255,255,255,0.06) !important;
+      color: #fff !important;
+      border: 1px solid rgba(255,255,255,0.10) !important;
+      border-radius: 10px !important;
+      cursor: pointer !important;
+    }}
+    #ms-overlay a, #ms-modal-overlay a {{
+      color: #1FDF67 !important;
+      text-decoration: none !important;
+    }}
+    #ms-overlay button[aria-label*="lose"], #ms-modal-overlay button[aria-label*="lose"],
+    #ms-overlay [class*="close"], #ms-modal-overlay [class*="close"] {{
+      color: rgba(255,255,255,0.5) !important;
+      background: transparent !important;
+      border: none !important;
+    }}
+    #ms-overlay hr, #ms-modal-overlay hr {{
+      border: none !important;
+      border-top: 1px solid rgba(255,255,255,0.08) !important;
+    }}
+    #ms-overlay [class*="error"], #ms-modal-overlay [class*="error"],
+    #ms-overlay [role="alert"], #ms-modal-overlay [role="alert"] {{
+      color: #FF6B6B !important;
+      background: rgba(255,107,107,0.10) !important;
+      border: 1px solid rgba(255,107,107,0.25) !important;
+      border-radius: 8px !important;
+      padding: 10px 12px !important;
+    }}
+  </style>
+
   <!-- Open Graph -->
   <meta property="og:site_name" content="Markets of Tomorrow">
   <meta property="og:type" content="website">
