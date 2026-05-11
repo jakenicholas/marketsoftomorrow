@@ -35,7 +35,7 @@ RSS_URL       = "https://www.oftmw.com/blog-feed.xml"
 SITE_URL      = "https://map.oftmw.com"
 TMW_URL       = "https://www.oftmw.com"
 LOGO_URL      = "https://static.wixstatic.com/media/ca3b83_e80e88810ca942459bfaa140e9fc2267~mv2.png"
-APP_IMAGE_URL = "https://static.wixstatic.com/media/ca3b83_653622edfc9f4e6b86432f9412ed5843~mv2.jpg"
+APP_IMAGE_URL = "https://static.wixstatic.com/media/ca3b83_c21aded84c7642bf8fa3de0f0c470a73~mv2.jpeg"
 
 LOOKBACK_DAYS    = 7
 FLORIDA_LIMIT    = 5   # Articles in Florida section
