@@ -626,7 +626,35 @@ def main():
             if project_image:
                 ev['image'] = project_image
 
-    all_events = list(by_id.values())
+    # Secondary dedupe pass for article events: collapse duplicates that share
+    # the same link but have different ids. This happens when the guid format
+    # changes between runs (e.g. the recent switch from RSS <guid> UUIDs to
+    # canonical URLs as the article guid). Without this pass, the same news
+    # article shows up twice in pulse.json with two different `article-*` ids.
+    seen_article_links = {}
+    deduped_events = []
+    for ev in by_id.values():
+        if ev.get('type') == 'article':
+            link = (ev.get('link') or '').strip()
+            if link:
+                prior = seen_article_links.get(link)
+                if prior is None:
+                    seen_article_links[link] = ev
+                    deduped_events.append(ev)
+                else:
+                    # Keep whichever has the newer timestamp (data is more
+                    # likely fresh); discard the older duplicate.
+                    if (ev.get('timestamp') or '') > (prior.get('timestamp') or ''):
+                        # Replace the prior entry in deduped_events with ev
+                        for i, prev in enumerate(deduped_events):
+                            if prev is prior:
+                                deduped_events[i] = ev
+                                break
+                        seen_article_links[link] = ev
+                continue
+        deduped_events.append(ev)
+
+    all_events = deduped_events
     all_events.sort(key=lambda e: e.get('timestamp') or '', reverse=True)
     all_events = all_events[:MAX_EVENTS]
 
