@@ -1490,9 +1490,26 @@
       border-radius: 3px;
       margin: 10px auto 4px;
       flex-shrink: 0;
+      cursor: grab;
+      touch-action: none;
+      position: relative;
+      z-index: 5;
     }
+    /* Oversized invisible hit area around the handle so a finger anywhere
+       in the top band of the sheet can grab it. Matches the Pulse drawer's
+       handle pattern (see .pulse-sheet-handle::before). */
+    .wl-handle::before {
+      content: '';
+      position: absolute;
+      top: -22px; bottom: -22px;
+      left: -80px; right: -80px;
+    }
+    .wl-handle:active { cursor: grabbing; background: rgba(255,255,255,0.45); }
     @media(max-width:800px) {
       .wl-handle { display: block; }
+      /* On mobile the drag handle replaces the × close button entirely --
+         drag down to dismiss, like every other native bottom sheet. */
+      .wl-close-btn { display: none; }
     }
 
     /* ─── Sticky header ──────────────────────────────────────────────── */
@@ -9746,23 +9763,44 @@
           if (watchBtnEl) watchBtnEl.classList.remove('has-unread');
           return;
         }
+        // Show the card on EVERY watched project (not just ones with unread).
+        // The copy adapts to whether there's actually new activity. Reinforces
+        // the "I'm tracking this" identity for the user on every visit.
         const { count, lastEvent } = window.getUnreadForProject(projectTitle);
-        if (count <= 0) {
-          card.setAttribute('hidden', '');
+        if (count > 0) {
+          if (watchBtnEl) watchBtnEl.classList.add('has-unread');
+          let detail = '';
+          if (lastEvent) {
+            const t = lastEvent.type || '';
+            if (t === 'article') detail = ' — incl. a new article';
+            else if (t === 'status_change') detail = ' — incl. a status change';
+            else if (t === 'new_project') detail = '';
+          }
+          const noun = count === 1 ? 'update' : 'updates';
+          body.innerHTML = '<strong>' + count + ' new ' + noun + '</strong> since you last viewed' + detail;
+        } else {
+          // No unread. Show a quieter "tracking this" line. If we know when
+          // they last viewed, include relative time; otherwise lead with a
+          // simple confirmation that they're on the list.
           if (watchBtnEl) watchBtnEl.classList.remove('has-unread');
-          return;
+          const slug = (window.projectSlugify && window.projectSlugify(projectTitle)) || '';
+          const lastViewed = (slug && window._lastViewed && window._lastViewed[slug]) || '';
+          if (lastViewed) {
+            const t = new Date(lastViewed).getTime();
+            let when = '';
+            if (t) {
+              const s = Math.max(1, Math.floor((Date.now() - t) / 1000));
+              if (s < 60)        when = 'just now';
+              else if (s < 3600) when = Math.floor(s / 60)   + 'm ago';
+              else if (s < 86400) when = Math.floor(s / 3600) + 'h ago';
+              else if (s < 604800) when = Math.floor(s / 86400) + 'd ago';
+              else                when = Math.floor(s / 604800) + 'w ago';
+            }
+            body.innerHTML = '<strong>You\u2019re up to date</strong>' + (when ? ' \u2014 last viewed ' + when : '');
+          } else {
+            body.innerHTML = '<strong>Tracking this project</strong> \u2014 we\u2019ll surface news and status changes here.';
+          }
         }
-        if (watchBtnEl) watchBtnEl.classList.add('has-unread');
-        // Build a one-liner. If we can describe the most recent event, do.
-        let detail = '';
-        if (lastEvent) {
-          const t = lastEvent.type || '';
-          if (t === 'article') detail = ' — incl. a new article';
-          else if (t === 'status_change') detail = ' — incl. a status change';
-          else if (t === 'new_project') detail = '';
-        }
-        const noun = count === 1 ? 'update' : 'updates';
-        body.innerHTML = '<strong>' + count + ' new ' + noun + '</strong> since you last viewed' + detail;
         card.removeAttribute('hidden');
       };
 
@@ -9894,15 +9932,31 @@
 
         // Map of delivery-string to color + display label. Pulled from the
         // existing modal's stage colors so the pills here match the modal.
+        // Stage metadata. Labels match the site's canonical taxonomy
+        // (Announced / Breaking Ground / Under Construction / Opening Soon /
+        // Now Open) so the watchlist reads consistently with the map's
+        // delivery bar elsewhere. The `rank` field drives the Status sort:
+        // lower number = "more complete and actionable" so the user sees
+        // ready-to-visit things first.
+        //
+        // Order checks matter: "open" matches both "now open" and "opening
+        // soon", so we check "opening" before "open".
         function stageMeta(delivery) {
           const d = (delivery || '').toLowerCase();
-          if (d.includes('construction')) return { label: 'Construction', color: '#FF9500' };
-          if (d.includes('breaking ground') || d.includes('ground breaking')) return { label: 'Breaking ground', color: '#FFD300' };
-          if (d.includes('approved') || d.includes('permitting')) return { label: 'Approved', color: '#8E8E93' };
-          if (d.includes('proposed') || d.includes('design')) return { label: 'Proposed', color: '#8E8E93' };
-          if (d.includes('complete') || d.includes('completed') || d.includes('open')) return { label: 'Complete', color: '#1FDF67' };
-          if (d.includes('canceled') || d.includes('cancelled') || d.includes('on hold')) return { label: 'On hold', color: '#FF3B6B' };
-          return { label: (delivery || 'Status').slice(0, 24), color: '#8E8E93' };
+          if (d.includes('canceled') || d.includes('cancelled') || d.includes('on hold'))
+            return { label: 'On hold',            color: '#FF3B6B', rank: 6 };
+          if (d.includes('opening'))
+            return { label: 'Opening Soon',       color: '#1FDF67', rank: 2 };
+          if (d.includes('open') || d.includes('complete') || d.includes('completed'))
+            return { label: 'Now Open',           color: '#1FDF67', rank: 1 };
+          if (d.includes('construction'))
+            return { label: 'Under Construction', color: '#FF9500', rank: 3 };
+          if (d.includes('breaking ground') || d.includes('ground breaking'))
+            return { label: 'Breaking Ground',    color: '#FFD300', rank: 4 };
+          if (d.includes('announced') || d.includes('approved') || d.includes('permitting') ||
+              d.includes('proposed')  || d.includes('design'))
+            return { label: 'Announced',          color: '#8E8E93', rank: 5 };
+          return { label: (delivery || 'Status').slice(0, 24), color: '#8E8E93', rank: 7 };
         }
 
         function pickDeliveryYear(delivery) {
@@ -9970,7 +10024,10 @@
               city: props.city || '',
               image: props.image || '',
               delivery: props.delivery || '',
-              type: (Array.isArray(f._projectTypes) && f._projectTypes[0]) || props.type || '',
+              // Specific delivery date (e.g. "Q4 2026", "Spring 2027") for
+              // the meta line. Falls back to delivery year derived from
+              // pickDeliveryYear() in rowHtml when this isn't set.
+              deliveryDate: props.deliveryDate || '',
               unreadCount: unreadInfo.count || 0,
               lastEvent: lastEv,
               lastEventTs: lastEv ? (lastEv.timestamp || '') : '',
@@ -10001,10 +10058,13 @@
               return a.title.localeCompare(b.title);
             });
           } else if (mode === 'status') {
+            // Sort by stage rank: 1=Now Open, 2=Opening Soon, 3=Under
+            // Construction, 4=Breaking Ground, 5=Announced. Most-actionable
+            // first. Ties broken alphabetically by title.
             sorted.sort((a, b) => {
-              const al = stageMeta(a.delivery).label;
-              const bl = stageMeta(b.delivery).label;
-              if (al !== bl) return al.localeCompare(bl);
+              const ar = stageMeta(a.delivery).rank;
+              const br = stageMeta(b.delivery).rank;
+              if (ar !== br) return ar - br;
               return a.title.localeCompare(b.title);
             });
           } else if (mode === 'alpha') {
@@ -10055,9 +10115,12 @@
           const stage = stageMeta(row.delivery);
           const hasUnread = row.unreadCount > 0;
           const year = pickDeliveryYear(row.delivery);
-          const yearLabel = year ? ('Delivery ' + year)
-                          : row.lastViewedTs ? ('Viewed ' + timeAgo(row.lastViewedTs))
-                          : '';
+          // The meta line under the title now shows City + Delivery date so
+          // users sorting by delivery can see what they're sorting on. If we
+          // have a more specific date (e.g. "Q4 2026") prefer that; else fall
+          // back to just the year; else show the raw delivery string.
+          const deliveryDisplay = row.deliveryDate || (year ? String(year) : (row.delivery || ''));
+
           // Most-recent update line
           let updateHtml = '';
           if (row.lastEvent) {
@@ -10079,9 +10142,19 @@
           const thumbStyle = row.image
             ? `background-image:url('${escapeHtml(row.image)}');`
             : '';
-          const unreadFooter = hasUnread
-            ? `<span class="wl-row-unread has-unread">${row.unreadCount} new update${row.unreadCount === 1 ? '' : 's'}</span>`
-            : `<span class="wl-row-unread">No new updates</span>`;
+          // Footer used to contradict itself: the row's update line shows the
+          // most recent activity, while the footer claimed "No new updates"
+          // (meaning "nothing unread since last view"). Two different ideas,
+          // identical-looking conflict. New behavior: only show the unread
+          // pill when count > 0; otherwise just show the delivery context.
+          const unreadBadge = hasUnread
+            ? `<span class="wl-row-unread has-unread">${row.unreadCount} new</span>`
+            : '';
+          // Right side of the footer: prefer "Delivery 2026"; fall back to
+          // last-viewed timestamp; otherwise nothing.
+          const rightFooter = year
+            ? `Delivery ${year}`
+            : (row.lastViewedTs ? `Viewed ${timeAgo(row.lastViewedTs)}` : '');
           return `
             <div class="wl-row${hasUnread ? ' has-unread' : ''}" data-slug="${escapeHtml(row.slug)}">
               <div class="wl-row-thumb" style="${thumbStyle}">
@@ -10091,15 +10164,15 @@
                 <div class="wl-row-title">${escapeHtml(row.title)}</div>
                 <div class="wl-row-meta">
                   <span>${escapeHtml(row.city)}</span>
-                  ${row.type ? `<span>·</span><span>${escapeHtml(row.type)}</span>` : ''}
+                  ${deliveryDisplay ? `<span>·</span><span>${escapeHtml(deliveryDisplay)}</span>` : ''}
                 </div>
                 <div class="wl-row-meta">
                   <span class="wl-row-status-pill" style="color:${stage.color};background:${stage.color}26;">${escapeHtml(stage.label)}</span>
                 </div>
                 ${updateHtml}
                 <div class="wl-row-footer">
-                  ${unreadFooter}
-                  ${yearLabel ? `<span>${escapeHtml(yearLabel)}</span>` : ''}
+                  ${unreadBadge}
+                  ${rightFooter ? `<span>${escapeHtml(rightFooter)}</span>` : ''}
                 </div>
               </div>
               <button type="button" class="wl-row-remove" aria-label="Stop watching ${escapeHtml(row.title)}" data-remove-slug="${escapeHtml(row.slug)}">
@@ -10231,6 +10304,62 @@
         btn.addEventListener('click', togglePanel);
         if (closeBtn) closeBtn.addEventListener('click', closePanel);
 
+        // Mobile: drag the handle DOWN to dismiss the sheet. Matches the
+        // Pulse drawer's interaction. Threshold-based: if the user drags
+        // past ~80px or releases with downward velocity, close; otherwise
+        // snap back to fully open. No-op on desktop where the handle is
+        // hidden via CSS.
+        if (handle) {
+          let dragging = false;
+          let startY = 0;
+          let lastY = 0;
+          let lastT = 0;
+          let velocity = 0;
+
+          function onStart(e) {
+            if (!window.matchMedia('(max-width: 800px)').matches) return;
+            dragging = true;
+            const y = (e.touches ? e.touches[0].clientY : e.clientY);
+            startY = lastY = y;
+            lastT = Date.now();
+            velocity = 0;
+            panel.style.transition = 'none';
+            try { e.preventDefault(); } catch (_) {}
+          }
+          function onMove(e) {
+            if (!dragging) return;
+            const y = (e.touches ? e.touches[0].clientY : e.clientY);
+            const dy = Math.max(0, y - startY);
+            // Track velocity for fling-to-close
+            const now = Date.now();
+            const dt = Math.max(1, now - lastT);
+            velocity = (y - lastY) / dt;
+            lastY = y; lastT = now;
+            panel.style.transform = 'translateY(' + dy + 'px)';
+            try { e.preventDefault(); } catch (_) {}
+          }
+          function onEnd() {
+            if (!dragging) return;
+            dragging = false;
+            const dy = lastY - startY;
+            panel.style.transition = '';
+            panel.style.transform = '';
+            // Close if dragged far OR flicked downward
+            if (dy > 80 || velocity > 0.6) {
+              closePanel();
+            }
+          }
+          handle.addEventListener('touchstart', onStart, { passive: false });
+          handle.addEventListener('touchmove',  onMove,  { passive: false });
+          handle.addEventListener('touchend',   onEnd);
+          handle.addEventListener('touchcancel', onEnd);
+          // Mouse fallback for desktop testing (the handle is hidden on
+          // desktop anyway so this rarely fires, but it's nice to have)
+          handle.addEventListener('mousedown', onStart);
+          window.addEventListener('mousemove', onMove);
+          window.addEventListener('mouseup',   onEnd);
+        }
+
         // Sort pills
         sortPills.forEach(pill => {
           pill.addEventListener('click', () => {
@@ -10265,10 +10394,44 @@
               const features = window.allProjectFeatures || [];
               const slugify = window.projectSlugify;
               const match = features.find(f => f.properties && f.properties.title && slugify(f.properties.title) === slug);
-              if (match && window.openProjectModal) {
-                // On mobile, close the watchlist panel so the modal is on top
-                if (window.matchMedia('(max-width: 800px)').matches) closePanel();
-                window.openProjectModal(match, 'watchlist');
+              if (!match) return;
+              if (window.matchMedia('(max-width: 800px)').matches) {
+                // Mobile: open the modal (and close the watchlist drawer so
+                // the modal is on top of everything else).
+                closePanel();
+                if (window.openProjectModal) window.openProjectModal(match, 'watchlist');
+              } else {
+                // Desktop: close the panel and fly the map to the pin. Then
+                // show the standard hover-popup so the user lands with full
+                // context (pin selected, popup visible). They can click the
+                // popup CTA to drill into the full modal if they want.
+                closePanel();
+                try {
+                  const co = match.geometry && match.geometry.coordinates;
+                  if (co && typeof window.map !== 'undefined') {
+                    // (window.map is exported lower in the file; if not yet
+                    // available, just open the modal as a fallback)
+                  }
+                  // Use the in-scope map var via window if needed.
+                  const m = (typeof map !== 'undefined') ? map : null;
+                  if (m && co) {
+                    const targetZoom = Math.max(m.getZoom(), 13);
+                    m.flyTo({ center: co, zoom: targetZoom, duration: 1400, essential: true });
+                    // After the camera settles, surface the small popup so the
+                    // user sees what they navigated to without losing the map.
+                    m.once('moveend', function () {
+                      if (typeof showPopup === 'function') {
+                        try { showPopup(match); } catch (_) { /* non-fatal */ }
+                      }
+                    });
+                    if (window.gtag) gtag('event', 'watchlist_row_click', { 'project_slug': slug, 'device_type': 'desktop' });
+                  } else if (window.openProjectModal) {
+                    // Map not ready (unlikely on desktop): fall back to modal
+                    window.openProjectModal(match, 'watchlist');
+                  }
+                } catch (err) {
+                  if (window.openProjectModal) window.openProjectModal(match, 'watchlist');
+                }
               }
             }
           });
