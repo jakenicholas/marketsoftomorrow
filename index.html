@@ -49,35 +49,40 @@
 
   <!-- ── Memberstack modal dark theme ─────────────────────────────────────
        Memberstack's pre-built sign-in / sign-up / profile modals render
-       with a light theme out of the box, which clashes with the rest of
-       the app's dark UI. These overrides give them the same look as the
-       paywall modal (dark glass card, white text, TMW green primary button).
-       Memberstack renders into #ms-modal-overlay / #ms-overlay (the v2
-       container) -- the broad descendant selectors below catch the inner
-       elements without us needing to enumerate every internal class name
-       Memberstack picks at random. !important throughout to win over the
-       framework's inline styles. -->
+       with a light theme out of the box. The Memberstack DOM doesn't expose
+       a stable class-name API, so we target via several strategies:
+         1. Any container Memberstack might attach to body (#ms-overlay,
+            #ms-modal-overlay, [data-ms-*], dialogs at body root)
+         2. Direct-child-of-body fixed/absolute elements (catches the v2
+            modal which uses body > div pattern)
+         3. Generic descendant selectors on any input/button inside any of
+            the above, using :is() to flatten the cascade
+       !important throughout. Specificity is high enough to win over
+       Memberstack's framework styles. -->
   <style>
-    /* Backdrop & container */
+    /* === Memberstack modal containers ===
+       Hit all known v2 attach points + body-level positioned modals. */
+    body > div[id^="ms-"],
+    body > div[class*="ms-"],
+    body > div[data-ms-modal],
+    body > [role="dialog"],
     #ms-overlay,
     #ms-modal-overlay,
-    [id^="ms-modal"],
-    .ms-modal,
-    .ms-overlay {
+    [id^="ms-modal"] {
       background: rgba(0, 0, 0, 0.78) !important;
       backdrop-filter: blur(8px) !important;
       -webkit-backdrop-filter: blur(8px) !important;
     }
 
-    /* Inner modal card */
-    #ms-overlay > div,
-    #ms-modal-overlay > div,
-    #ms-overlay [role="dialog"],
-    #ms-modal-overlay [role="dialog"],
-    .ms-modal-card,
-    .ms-modal__content,
-    [class*="ms-modal"][class*="card"],
-    [class*="ms-modal"][class*="content"] {
+    /* Inner modal card. Memberstack v2 usually has the card as a direct
+       child of the overlay container. The :where() reset and broad child
+       selectors catch it without depending on a specific class name. */
+    body > div[id^="ms-"] > div,
+    body > div[class*="ms-"] > div,
+    body > div[data-ms-modal] > div,
+    body > div[id^="ms-"] [role="dialog"],
+    body > div[class*="ms-"] [role="dialog"],
+    body > [role="dialog"] {
       background: #0f0f0f !important;
       color: #fff !important;
       border: 1px solid rgba(255, 255, 255, 0.08) !important;
@@ -85,60 +90,135 @@
       box-shadow: 0 30px 90px rgba(0, 0, 0, 0.55) !important;
     }
 
-    /* All text inside the modal — neutral white. Inputs handled separately. */
-    #ms-overlay, #ms-overlay *,
-    #ms-modal-overlay, #ms-modal-overlay * {
+    /* TMW logo inside the modal. The asset is dark-on-transparent so it
+       disappears against our dark card. Invert it to white using a CSS
+       filter -- works on SVG and PNG alike without needing a new asset. */
+    body > div[id^="ms-"] img,
+    body > div[class*="ms-"] img,
+    body > div[data-ms-modal] img,
+    body > [role="dialog"] img {
+      filter: brightness(0) invert(1) !important;
+      opacity: 0.95 !important;
+    }
+
+    /* === Text === */
+    body > div[id^="ms-"] *,
+    body > div[class*="ms-"] *,
+    body > div[data-ms-modal] *,
+    body > [role="dialog"] * {
       color: #fff !important;
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
     }
-    #ms-overlay h1, #ms-overlay h2, #ms-overlay h3,
-    #ms-modal-overlay h1, #ms-modal-overlay h2, #ms-modal-overlay h3 {
+    body > div[id^="ms-"] h1,
+    body > div[id^="ms-"] h2,
+    body > div[id^="ms-"] h3,
+    body > div[class*="ms-"] h1,
+    body > div[class*="ms-"] h2,
+    body > div[class*="ms-"] h3,
+    body > [role="dialog"] h1,
+    body > [role="dialog"] h2 {
       color: #fff !important;
       letter-spacing: -0.01em !important;
     }
-    #ms-overlay p, #ms-modal-overlay p,
-    #ms-overlay label, #ms-modal-overlay label,
-    #ms-overlay small, #ms-modal-overlay small,
-    #ms-overlay span, #ms-modal-overlay span {
+    /* Secondary text (labels, paragraphs, links not in buttons) -- gentle
+       muted white. Note labels above inputs stay full white via the more
+       specific rule below. */
+    body > div[id^="ms-"] p,
+    body > div[id^="ms-"] small,
+    body > div[class*="ms-"] p,
+    body > div[class*="ms-"] small,
+    body > [role="dialog"] p,
+    body > [role="dialog"] small {
       color: rgba(255, 255, 255, 0.7) !important;
     }
+    /* Input labels stay full white for legibility */
+    body > div[id^="ms-"] label,
+    body > div[class*="ms-"] label,
+    body > [role="dialog"] label {
+      color: #fff !important;
+      font-weight: 600 !important;
+      font-size: 13px !important;
+    }
 
-    /* Input fields — dark with green focus ring */
-    #ms-overlay input,
-    #ms-modal-overlay input,
-    #ms-overlay textarea,
-    #ms-modal-overlay textarea,
-    #ms-overlay select,
-    #ms-modal-overlay select {
-      background: rgba(255, 255, 255, 0.04) !important;
-      border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    /* === Inputs ===
+       Multiple strategies to win the specificity battle: target by attr
+       (type), tagname, plus the generic input selector. */
+    body > div[id^="ms-"] input,
+    body > div[id^="ms-"] textarea,
+    body > div[id^="ms-"] select,
+    body > div[class*="ms-"] input,
+    body > div[class*="ms-"] textarea,
+    body > div[class*="ms-"] select,
+    body > div[data-ms-modal] input,
+    body > [role="dialog"] input,
+    body > [role="dialog"] textarea,
+    body > [role="dialog"] select,
+    body > div[id^="ms-"] input[type="text"],
+    body > div[id^="ms-"] input[type="email"],
+    body > div[id^="ms-"] input[type="password"],
+    body > [role="dialog"] input[type="text"],
+    body > [role="dialog"] input[type="email"],
+    body > [role="dialog"] input[type="password"] {
+      background: rgba(255, 255, 255, 0.05) !important;
+      border: 1px solid rgba(255, 255, 255, 0.14) !important;
       color: #fff !important;
       border-radius: 10px !important;
       padding: 12px 14px !important;
       font-size: 14px !important;
-      transition: border-color 0.15s, background 0.15s !important;
+      box-shadow: none !important;
+      transition: border-color 0.15s, background 0.15s, box-shadow 0.15s !important;
     }
-    #ms-overlay input:focus,
-    #ms-modal-overlay input:focus,
-    #ms-overlay textarea:focus,
-    #ms-modal-overlay textarea:focus {
+    body > div[id^="ms-"] input:focus,
+    body > div[id^="ms-"] textarea:focus,
+    body > div[class*="ms-"] input:focus,
+    body > div[class*="ms-"] textarea:focus,
+    body > [role="dialog"] input:focus,
+    body > [role="dialog"] textarea:focus {
       outline: none !important;
       border-color: #1FDF67 !important;
-      background: rgba(255, 255, 255, 0.06) !important;
-      box-shadow: 0 0 0 3px rgba(31, 223, 103, 0.18) !important;
+      background: rgba(255, 255, 255, 0.07) !important;
+      box-shadow: 0 0 0 3px rgba(31, 223, 103, 0.20) !important;
     }
-    #ms-overlay input::placeholder,
-    #ms-modal-overlay input::placeholder {
+    body > div[id^="ms-"] input::placeholder,
+    body > div[class*="ms-"] input::placeholder,
+    body > [role="dialog"] input::placeholder {
       color: rgba(255, 255, 255, 0.35) !important;
+      opacity: 1 !important;
+    }
+    /* Password show/hide eye icon -- keep it white-ish and remove the
+       default browser focus outline that shows up as a blue square. */
+    body > div[id^="ms-"] button[aria-label*="assword"],
+    body > div[id^="ms-"] button[aria-label*="show"],
+    body > div[id^="ms-"] button[aria-label*="hide"],
+    body > div[class*="ms-"] button[aria-label*="assword"],
+    body > [role="dialog"] button[aria-label*="assword"],
+    body > div[id^="ms-"] [class*="eye"],
+    body > div[class*="ms-"] [class*="eye"] {
+      background: transparent !important;
+      border: none !important;
+      color: rgba(255, 255, 255, 0.55) !important;
+      box-shadow: none !important;
+      outline: none !important;
+    }
+    body > div[id^="ms-"] button[aria-label*="assword"]:focus,
+    body > div[class*="ms-"] button[aria-label*="assword"]:focus,
+    body > [role="dialog"] button[aria-label*="assword"]:focus {
+      outline: none !important;
+      box-shadow: 0 0 0 2px rgba(31, 223, 103, 0.5) !important;
+      border-radius: 6px !important;
     }
 
-    /* Primary buttons (sign in, sign up, save) — TMW green */
-    #ms-overlay button[type="submit"],
-    #ms-modal-overlay button[type="submit"],
-    #ms-overlay button.ms-primary,
-    #ms-modal-overlay button.ms-primary,
-    #ms-overlay button[class*="primary"],
-    #ms-modal-overlay button[class*="primary"] {
+    /* === Buttons ===
+       Primary = green pill. Identification heuristics: submit-type, or
+       primary-classed, or full-width buttons that aren't clearly the
+       close ×. */
+    body > div[id^="ms-"] button[type="submit"],
+    body > div[class*="ms-"] button[type="submit"],
+    body > div[data-ms-modal] button[type="submit"],
+    body > [role="dialog"] button[type="submit"],
+    body > div[id^="ms-"] button[class*="primary"],
+    body > div[class*="ms-"] button[class*="primary"],
+    body > [role="dialog"] button[class*="primary"] {
       background: #1FDF67 !important;
       color: #000 !important;
       border: none !important;
@@ -148,64 +228,94 @@
       cursor: pointer !important;
       transition: background 0.15s !important;
     }
-    #ms-overlay button[type="submit"]:hover,
-    #ms-modal-overlay button[type="submit"]:hover,
-    #ms-overlay button[class*="primary"]:hover,
-    #ms-modal-overlay button[class*="primary"]:hover {
+    body > div[id^="ms-"] button[type="submit"]:hover,
+    body > div[class*="ms-"] button[type="submit"]:hover,
+    body > [role="dialog"] button[type="submit"]:hover {
       background: #18c75a !important;
     }
-    /* Secondary / social / link buttons stay neutral */
-    #ms-overlay button:not([type="submit"]):not([class*="primary"]),
-    #ms-modal-overlay button:not([type="submit"]):not([class*="primary"]) {
+    /* Secondary buttons: dark neutral with white text. */
+    body > div[id^="ms-"] button:not([type="submit"]):not([class*="primary"]):not([aria-label*="lose"]):not([aria-label*="assword"]):not([aria-label*="show"]):not([aria-label*="hide"]),
+    body > div[class*="ms-"] button:not([type="submit"]):not([class*="primary"]):not([aria-label*="lose"]):not([aria-label*="assword"]),
+    body > [role="dialog"] button:not([type="submit"]):not([class*="primary"]):not([aria-label*="lose"]):not([aria-label*="assword"]) {
       background: rgba(255, 255, 255, 0.06) !important;
       color: #fff !important;
       border: 1px solid rgba(255, 255, 255, 0.10) !important;
       border-radius: 10px !important;
       cursor: pointer !important;
     }
-    #ms-overlay button:not([type="submit"]):not([class*="primary"]):hover,
-    #ms-modal-overlay button:not([type="submit"]):not([class*="primary"]):hover {
-      background: rgba(255, 255, 255, 0.10) !important;
-    }
 
-    /* Inline links — green */
-    #ms-overlay a,
-    #ms-modal-overlay a {
+    /* === Links ===
+       "Already have an account? Sign in" -- the parent text should stay
+       readable white; only the link itself goes green. */
+    body > div[id^="ms-"] a,
+    body > div[class*="ms-"] a,
+    body > [role="dialog"] a {
       color: #1FDF67 !important;
       text-decoration: none !important;
+      font-weight: 600 !important;
     }
-    #ms-overlay a:hover,
-    #ms-modal-overlay a:hover {
+    body > div[id^="ms-"] a:hover,
+    body > div[class*="ms-"] a:hover,
+    body > [role="dialog"] a:hover {
       text-decoration: underline !important;
     }
 
-    /* Close button (×) in the corner */
-    #ms-overlay button[aria-label*="lose"],
-    #ms-modal-overlay button[aria-label*="lose"],
-    #ms-overlay [class*="close"],
-    #ms-modal-overlay [class*="close"] {
+    /* Close button (×) -- subtle muted icon, no fill. */
+    body > div[id^="ms-"] button[aria-label*="lose"],
+    body > div[class*="ms-"] button[aria-label*="lose"],
+    body > [role="dialog"] button[aria-label*="lose"],
+    body > div[id^="ms-"] [class*="close"]:not(button[class*="primary"]),
+    body > div[class*="ms-"] [class*="close"]:not(button[class*="primary"]) {
       color: rgba(255, 255, 255, 0.5) !important;
       background: transparent !important;
       border: none !important;
+      box-shadow: none !important;
     }
-    #ms-overlay button[aria-label*="lose"]:hover,
-    #ms-modal-overlay button[aria-label*="lose"]:hover {
+    body > div[id^="ms-"] button[aria-label*="lose"]:hover,
+    body > div[class*="ms-"] button[aria-label*="lose"]:hover,
+    body > [role="dialog"] button[aria-label*="lose"]:hover {
       color: #fff !important;
     }
 
+    /* Profile/Account modal: sidebar tabs (Profile/Security/Plans/Logout).
+       These are usually buttons or links inside a left rail. Make them
+       legible against dark background. */
+    body > div[id^="ms-"] nav button,
+    body > div[id^="ms-"] [class*="sidebar"] button,
+    body > div[id^="ms-"] [class*="tabs"] button,
+    body > div[class*="ms-"] nav button,
+    body > div[class*="ms-"] [class*="sidebar"] button,
+    body > [role="dialog"] nav button {
+      color: #fff !important;
+      background: transparent !important;
+      border: none !important;
+      text-align: left !important;
+    }
+    body > div[id^="ms-"] nav button[aria-current="true"],
+    body > div[id^="ms-"] nav button.active,
+    body > div[id^="ms-"] [class*="active"],
+    body > div[class*="ms-"] nav button[aria-current="true"] {
+      background: rgba(31, 223, 103, 0.10) !important;
+      color: #1FDF67 !important;
+      border-radius: 8px !important;
+    }
+
     /* Dividers / horizontal rules */
-    #ms-overlay hr,
-    #ms-modal-overlay hr {
+    body > div[id^="ms-"] hr,
+    body > div[class*="ms-"] hr,
+    body > [role="dialog"] hr {
       border: none !important;
       border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
       margin: 16px 0 !important;
     }
 
-    /* Error messages — keep red but tinted for dark bg */
-    #ms-overlay [class*="error"],
-    #ms-modal-overlay [class*="error"],
-    #ms-overlay [role="alert"],
-    #ms-modal-overlay [role="alert"] {
+    /* Error messages */
+    body > div[id^="ms-"] [class*="error"],
+    body > div[class*="ms-"] [class*="error"],
+    body > [role="dialog"] [class*="error"],
+    body > div[id^="ms-"] [role="alert"],
+    body > div[class*="ms-"] [role="alert"],
+    body > [role="dialog"] [role="alert"] {
       color: #FF6B6B !important;
       background: rgba(255, 107, 107, 0.10) !important;
       border: 1px solid rgba(255, 107, 107, 0.25) !important;
@@ -1408,6 +1518,8 @@
       box-shadow: 0 0 0 2px rgba(15,15,15,0.85);
     }
     .pulse-notif-badge.update { background: #FF9500; }
+    /* Blue dot for new-on-map events (vs orange update / green news). */
+    .pulse-notif-badge.map    { background: #6FA8FF; }
 
     .pulse-notif-body {
       flex: 1 1 auto;
@@ -1923,7 +2035,11 @@
     }
     .wl-row-update-tag.article { background: rgba(31,223,103,0.15); color: #1FDF67; }
     .wl-row-update-tag.status  { background: rgba(255,149,0,0.18); color: #FF9500; }
-    .wl-row-update-tag.new     { background: rgba(255,149,0,0.18); color: #FF9500; }
+    /* "Map" = a new project added to the map. Distinct from a status change
+       on an existing project, so we give it its own color (a cool blue) to
+       differentiate it from the orange status pill. */
+    .wl-row-update-tag.map     { background: rgba(80,160,255,0.18); color: #6FA8FF; }
+    .wl-row-update-tag.new     { background: rgba(80,160,255,0.18); color: #6FA8FF; }
     .wl-row-update-text {
       overflow: hidden;
       text-overflow: ellipsis;
@@ -3196,6 +3312,68 @@
     -webkit-backdrop-filter: blur(6px);
     border-radius: 20px; padding: 3px 10px;
     font-size: 10px; color: rgba(255,255,255,0.6);
+  }
+
+  /* ─── Project Updates (status changes + new-on-map events) ─────────────
+     Lives above Coverage in the modal. Each row is a single-line timeline
+     entry: dot + descriptive text + relative time. Subtler than Coverage
+     since these are TMW-tracked, not third-party news. */
+  #projectModal .pm-updates[hidden] { display: none; }
+  #projectModal .pm-updates {
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 0.5px solid rgba(255,255,255,0.07);
+  }
+  #projectModal .pm-updates-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  #projectModal .pm-updates-title {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-weight: 700;
+    color: #fff;
+    display: flex; align-items: center; gap: 8px;
+  }
+  #projectModal .pm-updates-count {
+    font-size: 10px;
+    background: rgba(31,223,103,0.12);
+    color: #1FDF67;
+    padding: 2px 7px;
+    border-radius: 10px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+  }
+  #projectModal .pm-update-row {
+    display: flex;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 0.5px solid rgba(255,255,255,0.04);
+  }
+  #projectModal .pm-update-row:last-child { border-bottom: none; }
+  #projectModal .pm-update-dot {
+    flex-shrink: 0;
+    width: 8px; height: 8px;
+    margin-top: 6px;
+    border-radius: 50%;
+    background: #FF9500;
+  }
+  #projectModal .pm-update-dot.map { background: #6FA8FF; }
+  #projectModal .pm-update-body {
+    flex: 1; min-width: 0;
+  }
+  #projectModal .pm-update-text {
+    font-size: 13px;
+    color: #fff;
+    line-height: 1.4;
+  }
+  #projectModal .pm-update-meta {
+    font-size: 10px;
+    color: rgba(255,255,255,0.45);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-top: 2px;
   }
 
   /* ─── Coverage on TMW (article history for the current project) ───────── */
@@ -5382,6 +5560,19 @@
               <span class="pm-watch-btn-dot" aria-hidden="true"></span>
             </button>
           </div>
+          <!-- Project Updates: status changes + new-on-map events for this
+               project, derived from pulse.json. Surfaces the TMW-tracked
+               activity timeline (separate from third-party Coverage below).
+               Hidden when there's no activity for this slug. -->
+          <div class="pm-updates" id="pmUpdates" hidden>
+            <div class="pm-updates-header">
+              <div class="pm-updates-title">
+                Project Updates
+                <span class="pm-updates-count" id="pmUpdatesCount"></span>
+              </div>
+            </div>
+            <div id="pmUpdatesBody"></div>
+          </div>
           <!-- Coverage on TMW: list of articles from oftmw.com that mention
                this project. Hidden by default; populated by JS when articles.json
                is fetched and the project has at least one matching article. -->
@@ -6315,6 +6506,73 @@
         });
       }
 
+      // ─── Project Updates (status_change + new_project events) ───────────
+      // Pulls all events from window._pulseEvents matching this project's
+      // slug and types in {status_change, new_project}, then renders them
+      // as a compact timeline. Hidden if no such events exist.
+      //
+      // Pulse only retains the last ~50 site-wide events so this is
+      // recent-history only -- a project with year-old status changes
+      // won't see them here once they've aged out of pulse.json. That's
+      // an acceptable MVP limitation; durable history would need a
+      // separate per-project store.
+      function renderUpdatesSection(projectTitle) {
+        const wrap = document.getElementById('pmUpdates');
+        const body = document.getElementById('pmUpdatesBody');
+        const countEl = document.getElementById('pmUpdatesCount');
+        if (!wrap || !body) return;
+        // Hide while loading so a stale section from the previous project
+        // doesn't flash on screen.
+        wrap.setAttribute('hidden', '');
+        body.innerHTML = '';
+        const slug = pyStyleSlug(projectTitle);
+        if (!slug) return;
+        // pulse.json may not have loaded yet if the modal opens early.
+        // The pulse drawer always fetches it on first open, but if the
+        // user goes straight to a project we kick off a fetch here too.
+        const ensure = (window._pulseEvents && window._pulseEvents.length)
+          ? Promise.resolve(window._pulseEvents)
+          : fetch('/pulse.json', { cache: 'no-store' })
+              .then(r => r.ok ? r.json() : { events: [] })
+              .then(d => {
+                const events = (d && Array.isArray(d.events)) ? d.events : [];
+                window._pulseEvents = events;
+                return events;
+              })
+              .catch(() => []);
+        ensure.then(events => {
+          const matches = (events || []).filter(ev =>
+            ev.project_slug === slug &&
+            (ev.type === 'status_change' || ev.type === 'new_project')
+          );
+          if (!matches.length) {
+            wrap.setAttribute('hidden', '');
+            return;
+          }
+          let html = '';
+          matches.forEach(ev => {
+            const dotCls = (ev.type === 'new_project') ? 'map' : '';
+            // Title for status_change events is built upstream as the new
+            // status label (e.g. "Now Under Construction"). For new_project
+            // it's "Added to the map" or similar. Just print as-is.
+            const text = ev.title_full || ev.title || 'Project update';
+            html += `
+              <div class="pm-update-row">
+                <div class="pm-update-dot ${dotCls}"></div>
+                <div class="pm-update-body">
+                  <div class="pm-update-text">${escapeArticleHtml(text)}</div>
+                  <div class="pm-update-meta">${formatArticleDate(ev.timestamp)}</div>
+                </div>
+              </div>
+            `;
+          });
+          body.innerHTML = html;
+          if (countEl) countEl.textContent = matches.length;
+          wrap.removeAttribute('hidden');
+        });
+      }
+      window.renderUpdatesSection = renderUpdatesSection;
+
       window.openProjectModal = function(f, source) {
         // Paywall gate — only count fresh project interactions.
         // 'tile' = direct desktop tile click (skips showPopup).
@@ -6486,6 +6744,11 @@
         // section stays hidden if no articles match this project, so the
         // modal doesn't show an empty section for projects without press.
         renderCoverageSection(p.title, p.image || '');
+        // Project Updates section: TMW-tracked status changes + new-on-map
+        // events for this project, pulled from pulse.json. Hidden when
+        // there's no activity. Sits above Coverage so users see status
+        // history before press.
+        renderUpdatesSection(p.title);
       };
 
       function closeModal() {
@@ -10360,10 +10623,12 @@
             const ev = row.lastEvent;
             const tagClass = (ev.type === 'article') ? 'article'
                           : (ev.type === 'status_change') ? 'status'
-                          : (ev.type === 'new_project') ? 'new' : 'article';
+                          : (ev.type === 'new_project') ? 'map' : 'article';
+            // "Map" reads as "added to the map" -- clearer than "New" which
+            // could be confused for a new article or general novelty marker.
             const tagText  = (ev.type === 'article') ? 'Article'
                           : (ev.type === 'status_change') ? 'Status'
-                          : (ev.type === 'new_project') ? 'New' : 'Update';
+                          : (ev.type === 'new_project') ? 'Map' : 'Update';
             const evTitle = ev.title_full || ev.title || '';
             updateHtml = `
               <div class="wl-row-update">
@@ -10390,9 +10655,7 @@
             : (row.lastViewedTs ? `Viewed ${timeAgo(row.lastViewedTs)}` : '');
           return `
             <div class="wl-row${hasUnread ? ' has-unread' : ''}" data-slug="${escapeHtml(row.slug)}">
-              <div class="wl-row-thumb" style="${thumbStyle}">
-                <span class="wl-row-status-pin" style="background:${stage.color}"></span>
-              </div>
+              <div class="wl-row-thumb" style="${thumbStyle}"></div>
               <div class="wl-row-body">
                 <div class="wl-row-title">${escapeHtml(row.title)}</div>
                 <div class="wl-row-meta">
@@ -10983,16 +11246,17 @@
     // Map an event to a CSS class that controls the tag pill color.
     // article       -> green pill   "News"
     // status_change -> orange pill  "Update"
-    // new_project   -> orange pill  "Update"   (combined with status changes)
+    // new_project   -> blue pill    "Map"   (newly added to the map)
     function tagClassFor(ev) {
-      if (ev.type === 'article') return 'news';
-      // Both status changes and new additions render as Update pills now
+      if (ev.type === 'article')     return 'news';
+      if (ev.type === 'new_project') return 'map';
       return 'update';
     }
 
     // Human-readable label for the tag bubble
     function tagLabelFor(ev) {
-      if (ev.type === 'article') return 'News';
+      if (ev.type === 'article')     return 'News';
+      if (ev.type === 'new_project') return 'Map';
       return 'Update';
     }
 
