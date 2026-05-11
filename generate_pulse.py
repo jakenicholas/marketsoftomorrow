@@ -318,6 +318,45 @@ STATUS_LABELS = {
 }
 
 # --- ARTICLE  PROJECT MATCHING ---------------------------------------------
+def _project_name_variants(name: str) -> list:
+    """Return the project name + likely common variants for matching.
+
+    Articles routinely drop the leading article ('The Nora District' becomes
+    'Nora District' in body copy), and sometimes use the abbreviated proper
+    noun alone ('The Nora District' becomes 'Nora' on second reference). We
+    return:
+      - the full name (always)
+      - the name with leading 'the ' stripped (if applicable, and 4+ chars
+        remaining)
+    All variants are lowercased and filtered to 4+ chars to keep the false
+    positive floor in line with the rest of the matcher.
+    """
+    variants = []
+    if not name:
+        return variants
+    lower = name.lower().strip()
+    if len(lower) >= 4:
+        variants.append(lower)
+    # Strip leading definite article
+    if lower.startswith('the '):
+        stripped = lower[4:].strip()
+        if len(stripped) >= 4 and stripped not in variants:
+            variants.append(stripped)
+    return variants
+
+
+def _project_matches_text(name: str, text_lower: str) -> bool:
+    """Word-boundary match of `name` (and its variants) against `text_lower`.
+    Both inputs are already lowercased by the caller."""
+    if not text_lower:
+        return False
+    for variant in _project_name_variants(name):
+        pattern = r'(?:^|\W)' + re.escape(variant) + r'(?:\W|$)'
+        if re.search(pattern, text_lower):
+            return True
+    return False
+
+
 def match_article_to_project(article: dict, projects: dict) -> str | None:
     """Try to find a matching project slug for an article. Returns slug or None.
 
@@ -328,6 +367,10 @@ def match_article_to_project(article: dict, projects: dict) -> str | None:
     still surface as pulse events. Without the fallback, an article like
     "West Palm Beach's newest development takes shape" wouldn't link to
     The Nora District even when the body talks about nothing else.
+
+    Matches against both the full project name AND the article-stripped
+    variant so 'Nora District' in an article body links back to a project
+    titled 'The Nora District' in the sheet. See _project_name_variants.
 
     Picks the longest-named matching project first to reduce false
     positives from short names showing up inside longer names (e.g.
@@ -342,25 +385,15 @@ def match_article_to_project(article: dict, projects: dict) -> str | None:
     sorted_projects = sorted(projects.values(), key=lambda p: -len(p['title']))
 
     # Pass 1: title match (high confidence)
-    if title_lower:
-        for p in sorted_projects:
-            name = p['title']
-            if len(name) < 4:
-                continue
-            pattern = r'(?:^|\W)' + re.escape(name.lower()) + r'(?:\W|$)'
-            if re.search(pattern, title_lower):
-                return p['slug']
+    for p in sorted_projects:
+        if _project_matches_text(p['title'], title_lower):
+            return p['slug']
 
     # Pass 2: body match (lower confidence, but better than dropping the
-    # event). Same min-4-char filter and longest-first ordering.
-    if body_lower:
-        for p in sorted_projects:
-            name = p['title']
-            if len(name) < 4:
-                continue
-            pattern = r'(?:^|\W)' + re.escape(name.lower()) + r'(?:\W|$)'
-            if re.search(pattern, body_lower):
-                return p['slug']
+    # event).
+    for p in sorted_projects:
+        if _project_matches_text(p['title'], body_lower):
+            return p['slug']
 
     return None
 
@@ -372,11 +405,11 @@ def match_article_to_all_projects(article: dict, projects: dict) -> list:
     each project's modal should list every article that mentions it -- even
     when the project name only appears in the body, not the headline.
 
-    Matching is word-boundary regex (case insensitive) so 'Antara' won't
-    match 'Antarayo'. Project titles shorter than 4 characters are skipped
-    to avoid noise from very generic short names (e.g. 'Met', 'Hub'); 4-char
-    names like 'Biba' or 'Aman' are common enough in hospitality that we
-    accept the small false-positive risk in exchange for catching them.
+    Uses the same variant-aware matcher as match_article_to_project so
+    "Nora District" in an article body resolves to a project titled "The
+    Nora District" in the sheet. Project titles shorter than 4 characters
+    are filtered out inside _project_name_variants to keep the noise floor
+    low.
     """
     title_lower = (article.get('title_full') or '').lower()
     body_lower = (article.get('body') or '').lower()
@@ -386,14 +419,8 @@ def match_article_to_all_projects(article: dict, projects: dict) -> list:
     matches = []
     sorted_projects = sorted(projects.values(), key=lambda p: -len(p['title']))
     for p in sorted_projects:
-        name = p['title']
-        if len(name) < 4:
-            continue
-        # Word-boundary regex around the escaped name. \b alone doesn't
-        # work cleanly when the name contains punctuation (& - .) so we
-        # use lookarounds for non-word chars / start / end.
-        pattern = r'(?:^|\W)' + re.escape(name.lower()) + r'(?:\W|$)'
-        if re.search(pattern, title_lower) or re.search(pattern, body_lower):
+        if (_project_matches_text(p['title'], title_lower) or
+            _project_matches_text(p['title'], body_lower)):
             matches.append(p['slug'])
     return matches
 
