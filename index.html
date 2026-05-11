@@ -6562,6 +6562,27 @@
 
     // ─── POPUP ────────────────────────────────────────────────────────────────
     // ── Zoom to pin without popup (desktop tile click) ──────────────────
+    /* ── Mobile popup camera offset ──────────────────────────────────────
+       Computes where on the screen we want a pin to land when we fly to it
+       on mobile. Goal: pin sits in the lower-middle of the viewport so the
+       popup (which extends UPWARD from the pin) has room to breathe AND so
+       the pin isn't hidden behind the floating "Tiles" pill button at the
+       bottom of the screen.
+       Returns a Mapbox [x, y] offset where positive Y pushes the target
+       point DOWN in the viewport relative to the geometric center.
+       The target ratio (0.22 of viewport height below center) was tuned by
+       splitting the difference between the previous offset (0.15, pin too
+       high) and a just-above-pill target (~0.30, pin too low and behind
+       the search bar). At 0.22 the pin lands ~70% of the way down the
+       viewport with the popup extending upward into the visible map area. */
+    function computeMobilePinOffset() {
+      // Use a fixed ratio of viewport height. Doesn't depend on the layout
+      // state of any DOM element, so it works during drawer transitions
+      // (when getBoundingClientRect would return 0s for a display:none
+      // tiles button) and across all viewport sizes consistently.
+      return [0, Math.round(window.innerHeight * 0.22)];
+    }
+
     function zoomToPinOnly(f) {
       const co = f.geometry.coordinates;
       const selectedTitle = f.properties.title;
@@ -6573,10 +6594,14 @@
         map.setPaintProperty('unclustered-point', 'circle-radius', pinkRadiusExpr);
       }
       window._selectedPinTitle = selectedTitle;
-      // Fly to pin
+      // Fly to pin -- apply the same popup-aware offset on mobile so we
+      // land directly at the final camera position. Without this, the
+      // showPopup() call that follows would do a SECOND flyTo to re-shift
+      // the camera, producing a visible two-stage "fly then nudge" motion.
       const currentZoom = map.getZoom();
       const targetZoom = Math.max(currentZoom, 13);
-      map.flyTo({ center: co, zoom: targetZoom, duration: 1400, essential: true });
+      const off = isMobile ? computeMobilePinOffset() : [0, 0];
+      map.flyTo({ center: co, zoom: targetZoom, offset: off, duration: 1400, essential: true });
     }
 
     // ── Deep-link: open project from ?project= URL param ─────────────────
@@ -7308,35 +7333,12 @@
       });
 
       // Camera offset: shifts where the target pin lands relative to the
-      // viewport center. Positive Y in Mapbox screen pixels pushes the pin
-      // DOWN in the viewport (camera centers above the pin).
-      //
-      // Mobile: we want the pin to land just above the floating search pill
-      // button (#mobileTilesButton, ~80px from bottom + 48px tall = top edge
-      // ~128px from bottom). Measure the actual button position so the
-      // calculation adapts to different viewports / safe-area insets.
-      // Fall back to 0.22 * innerHeight if the button isn't laid out yet.
-      let mobileOffsetY = Math.round(window.innerHeight * 0.22);
-      if (isMobile) {
-        try {
-          const tilesBtn = document.getElementById('mobileTilesButton');
-          if (tilesBtn) {
-            const r = tilesBtn.getBoundingClientRect();
-            // r.top is the y-coord of the top edge of the pill, measured
-            // from the viewport top. The viewport center is innerHeight/2.
-            // We want the pin to land ~24px above the pill's top edge.
-            const vhCenter = window.innerHeight / 2;
-            const targetY = Math.max(0, r.top - 24);
-            // The offset is the delta between viewport center and target.
-            // If targetY < vhCenter, the pin sits ABOVE center (negative
-            // offset). If targetY > vhCenter (pill near bottom, target near
-            // pill = lower-mid screen), positive offset pushes pin down.
-            mobileOffsetY = Math.round(targetY - vhCenter);
-          }
-        } catch (e) { /* fall back to default */ }
-      }
+      // viewport center. On mobile we use the shared helper so the offset
+      // exactly matches what zoomToPinOnly() used -- avoiding the visible
+      // two-stage "fly then nudge" motion you'd otherwise see if the two
+      // calls disagreed by even a few pixels.
       const off = isMobile
-        ? [0, mobileOffsetY]
+        ? computeMobilePinOffset()
         : [0, Math.round(window.innerHeight * 0.18)];
       const distMiles = calculateDistance(map.getCenter().lat, map.getCenter().lng, co[1], co[0]);
       const flyDuration = distMiles < 50 ? 1200 : distMiles < 300 ? 1600 : 2400;
@@ -7347,7 +7349,27 @@
       // If already zoomed in past comfortable level, stay there; otherwise use comfortable zoom
       let targetZoom = Math.max(currentZoom, COMFORTABLE_ZOOM);
 
+      // Skip the flyTo entirely if we're already at the target. zoomToPinOnly
+      // (called just before this from mobile tile click) flies with the same
+      // offset, so by the time showPopup runs the camera is already at the
+      // final position. Re-flying would produce a visible jitter even when
+      // the destination is identical. Tolerance accounts for floating-point
+      // drift in lng/lat and small zoom rounding.
+      const mapCenter = map.getCenter();
+      const lngDelta = Math.abs(mapCenter.lng - co[0]);
+      const latDelta = Math.abs(mapCenter.lat - co[1]);
+      const zoomDelta = Math.abs(map.getZoom() - targetZoom);
+      // ~0.0005 degrees lat is ~55m; well below visible movement at zoom 13
+      const alreadyThere = lngDelta < 0.0005 && latDelta < 0.0005 && zoomDelta < 0.3 && !map.isMoving();
+
       const checkClusterAndFly = () => {
+        if (alreadyThere) {
+          // Camera already at the right spot -- skip the fly. Still apply
+          // the offset shift in case it changed (e.g. button layout shifted)
+          // via easeTo with a very short duration so it's effectively static.
+          window._mapFlyingTo = false;
+          return;
+        }
         map.flyTo({ center: co, zoom: targetZoom, offset: off, duration: flyDuration, essential: true });
       };
 
