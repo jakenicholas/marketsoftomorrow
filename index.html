@@ -47,41 +47,93 @@
           src="https://static.memberstack.com/scripts/v2/memberstack.js"
           type="text/javascript"></script>
 
-  <!-- ── Memberstack modal dark theme ─────────────────────────────────────
-       Memberstack's pre-built sign-in / sign-up / profile modals render
-       with a light theme out of the box. The Memberstack DOM doesn't expose
-       a stable class-name API, so we target via several strategies:
-         1. Any container Memberstack might attach to body (#ms-overlay,
-            #ms-modal-overlay, [data-ms-*], dialogs at body root)
-         2. Direct-child-of-body fixed/absolute elements (catches the v2
-            modal which uses body > div pattern)
-         3. Generic descendant selectors on any input/button inside any of
-            the above, using :is() to flatten the cascade
-       !important throughout. Specificity is high enough to win over
-       Memberstack's framework styles. -->
+  <!-- ── Memberstack modal dark theme ──────────────────────────────────────
+       Memberstack v2's modal DOM uses container names that aren't documented
+       and may change between versions. Instead of guessing CSS selectors, we
+       run a MutationObserver that watches for new direct children of <body>
+       and tags any element that looks like a Memberstack modal (fixed-position
+       overlay containing form inputs or known data-ms-* / data-cy markers).
+       That gives us a stable hook -- `.tmw-ms-modal` -- the CSS below targets.
+
+       Belt-and-suspenders: CSS also targets the documented #msOverlay and a
+       few likely fallbacks, so we still catch the modal even if the observer
+       hasn't fired yet by the time first paint hits. -->
+  <script>
+    (function tagMemberstackModals() {
+      // Heuristic: a Memberstack modal is a body-attached element that:
+      //   (a) is positioned fixed, AND
+      //   (b) contains a [data-ms-*], [data-cy], or auth-shaped form
+      function looksLikeMSModal(el) {
+        if (!el || el.nodeType !== 1) return false;
+        try {
+          var cs = window.getComputedStyle(el);
+          if (cs.position !== 'fixed' && cs.position !== 'absolute') return false;
+        } catch (_) { return false; }
+        // Quick wins: known attribute markers
+        if (el.querySelector && (
+            el.querySelector('[data-ms-modal]') ||
+            el.querySelector('[data-cy]') ||
+            el.querySelector('[data-ms-form]') ||
+            el.id && el.id.toLowerCase().indexOf('ms') === 0
+        )) return true;
+        // Form-shape fallback: a fixed body-attached element with email +
+        // password inputs is almost certainly an auth modal.
+        var hasEmail = el.querySelector && el.querySelector('input[type="email"]');
+        var hasPwd   = el.querySelector && el.querySelector('input[type="password"]');
+        if (hasEmail || hasPwd) return true;
+        return false;
+      }
+      function tag(el) {
+        if (el && el.classList && !el.classList.contains('tmw-ms-modal')) {
+          el.classList.add('tmw-ms-modal');
+        }
+      }
+      function scan() {
+        var nodes = document.body ? document.body.children : [];
+        for (var i = 0; i < nodes.length; i++) {
+          if (looksLikeMSModal(nodes[i])) tag(nodes[i]);
+        }
+      }
+      // Initial pass (in case modal mounted before script ran)
+      if (document.body) scan();
+      else document.addEventListener('DOMContentLoaded', scan);
+
+      // Live observer: tag any newly-appended modal as it mounts.
+      var obs = new MutationObserver(function(muts) {
+        for (var i = 0; i < muts.length; i++) {
+          var added = muts[i].addedNodes;
+          for (var j = 0; j < added.length; j++) {
+            if (looksLikeMSModal(added[j])) tag(added[j]);
+          }
+        }
+      });
+      function startObserver() {
+        if (document.body) obs.observe(document.body, { childList: true, subtree: false });
+        else document.addEventListener('DOMContentLoaded', startObserver);
+      }
+      startObserver();
+    })();
+  </script>
+
   <style>
-    /* === Memberstack modal containers ===
-       Hit all known v2 attach points + body-level positioned modals. */
+    /* === Memberstack modal: dark theme via .tmw-ms-modal hook ============
+       The class is added at runtime by the tagger script above. Targets
+       cover three cases: (1) the runtime-tagged element, (2) the documented
+       #msOverlay selector for older surfaces, (3) a generic [role="dialog"]
+       direct child of body as a last resort. */
+    .tmw-ms-modal,
+    #msOverlay,
     body > div[id^="ms-"],
-    body > div[class*="ms-"],
-    body > div[data-ms-modal],
-    body > [role="dialog"],
-    #ms-overlay,
-    #ms-modal-overlay,
-    [id^="ms-modal"] {
+    body > [role="dialog"] {
       background: rgba(0, 0, 0, 0.78) !important;
       backdrop-filter: blur(8px) !important;
       -webkit-backdrop-filter: blur(8px) !important;
     }
 
-    /* Inner modal card. Memberstack v2 usually has the card as a direct
-       child of the overlay container. The :where() reset and broad child
-       selectors catch it without depending on a specific class name. */
-    body > div[id^="ms-"] > div,
-    body > div[class*="ms-"] > div,
-    body > div[data-ms-modal] > div,
-    body > div[id^="ms-"] [role="dialog"],
-    body > div[class*="ms-"] [role="dialog"],
+    /* Inner card -- the modal's first significant block-level child. */
+    .tmw-ms-modal > div,
+    .tmw-ms-modal [role="dialog"],
+    #msOverlay > div,
     body > [role="dialog"] {
       background: #0f0f0f !important;
       color: #fff !important;
@@ -90,75 +142,46 @@
       box-shadow: 0 30px 90px rgba(0, 0, 0, 0.55) !important;
     }
 
-    /* TMW logo inside the modal. The asset is dark-on-transparent so it
-       disappears against our dark card. Invert it to white using a CSS
-       filter -- works on SVG and PNG alike without needing a new asset. */
-    body > div[id^="ms-"] img,
-    body > div[class*="ms-"] img,
-    body > div[data-ms-modal] img,
+    /* TMW logo -- the asset is dark; invert it to white. */
+    .tmw-ms-modal img,
+    #msOverlay img,
     body > [role="dialog"] img {
       filter: brightness(0) invert(1) !important;
       opacity: 0.95 !important;
     }
 
-    /* === Text === */
-    body > div[id^="ms-"] *,
-    body > div[class*="ms-"] *,
-    body > div[data-ms-modal] *,
-    body > [role="dialog"] * {
+    /* Text -- white by default; secondary text gets the gentle muted treatment. */
+    .tmw-ms-modal,
+    .tmw-ms-modal *,
+    #msOverlay,
+    #msOverlay * {
       color: #fff !important;
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
     }
-    body > div[id^="ms-"] h1,
-    body > div[id^="ms-"] h2,
-    body > div[id^="ms-"] h3,
-    body > div[class*="ms-"] h1,
-    body > div[class*="ms-"] h2,
-    body > div[class*="ms-"] h3,
-    body > [role="dialog"] h1,
-    body > [role="dialog"] h2 {
+    .tmw-ms-modal h1,
+    .tmw-ms-modal h2,
+    .tmw-ms-modal h3,
+    #msOverlay h1, #msOverlay h2, #msOverlay h3 {
       color: #fff !important;
       letter-spacing: -0.01em !important;
     }
-    /* Secondary text (labels, paragraphs, links not in buttons) -- gentle
-       muted white. Note labels above inputs stay full white via the more
-       specific rule below. */
-    body > div[id^="ms-"] p,
-    body > div[id^="ms-"] small,
-    body > div[class*="ms-"] p,
-    body > div[class*="ms-"] small,
-    body > [role="dialog"] p,
-    body > [role="dialog"] small {
+    .tmw-ms-modal p,
+    .tmw-ms-modal small,
+    #msOverlay p, #msOverlay small {
       color: rgba(255, 255, 255, 0.7) !important;
     }
-    /* Input labels stay full white for legibility */
-    body > div[id^="ms-"] label,
-    body > div[class*="ms-"] label,
-    body > [role="dialog"] label {
+    .tmw-ms-modal label,
+    #msOverlay label {
       color: #fff !important;
       font-weight: 600 !important;
       font-size: 13px !important;
     }
 
-    /* === Inputs ===
-       Multiple strategies to win the specificity battle: target by attr
-       (type), tagname, plus the generic input selector. */
-    body > div[id^="ms-"] input,
-    body > div[id^="ms-"] textarea,
-    body > div[id^="ms-"] select,
-    body > div[class*="ms-"] input,
-    body > div[class*="ms-"] textarea,
-    body > div[class*="ms-"] select,
-    body > div[data-ms-modal] input,
-    body > [role="dialog"] input,
-    body > [role="dialog"] textarea,
-    body > [role="dialog"] select,
-    body > div[id^="ms-"] input[type="text"],
-    body > div[id^="ms-"] input[type="email"],
-    body > div[id^="ms-"] input[type="password"],
-    body > [role="dialog"] input[type="text"],
-    body > [role="dialog"] input[type="email"],
-    body > [role="dialog"] input[type="password"] {
+    /* Inputs */
+    .tmw-ms-modal input,
+    .tmw-ms-modal textarea,
+    .tmw-ms-modal select,
+    #msOverlay input, #msOverlay textarea, #msOverlay select {
       background: rgba(255, 255, 255, 0.05) !important;
       border: 1px solid rgba(255, 255, 255, 0.14) !important;
       color: #fff !important;
@@ -168,57 +191,50 @@
       box-shadow: none !important;
       transition: border-color 0.15s, background 0.15s, box-shadow 0.15s !important;
     }
-    body > div[id^="ms-"] input:focus,
-    body > div[id^="ms-"] textarea:focus,
-    body > div[class*="ms-"] input:focus,
-    body > div[class*="ms-"] textarea:focus,
-    body > [role="dialog"] input:focus,
-    body > [role="dialog"] textarea:focus {
+    .tmw-ms-modal input:focus,
+    .tmw-ms-modal textarea:focus,
+    #msOverlay input:focus, #msOverlay textarea:focus {
       outline: none !important;
       border-color: #1FDF67 !important;
       background: rgba(255, 255, 255, 0.07) !important;
       box-shadow: 0 0 0 3px rgba(31, 223, 103, 0.20) !important;
     }
-    body > div[id^="ms-"] input::placeholder,
-    body > div[class*="ms-"] input::placeholder,
-    body > [role="dialog"] input::placeholder {
+    .tmw-ms-modal input::placeholder,
+    #msOverlay input::placeholder {
       color: rgba(255, 255, 255, 0.35) !important;
       opacity: 1 !important;
     }
-    /* Password show/hide eye icon -- keep it white-ish and remove the
-       default browser focus outline that shows up as a blue square. */
-    body > div[id^="ms-"] button[aria-label*="assword"],
-    body > div[id^="ms-"] button[aria-label*="show"],
-    body > div[id^="ms-"] button[aria-label*="hide"],
-    body > div[class*="ms-"] button[aria-label*="assword"],
-    body > [role="dialog"] button[aria-label*="assword"],
-    body > div[id^="ms-"] [class*="eye"],
-    body > div[class*="ms-"] [class*="eye"] {
+    /* Disabled inputs (read-only email field on the profile screen) -- keep
+       legible but slightly muted so they read as non-editable. */
+    .tmw-ms-modal input[disabled],
+    .tmw-ms-modal input[readonly] {
+      color: rgba(255, 255, 255, 0.6) !important;
+      background: rgba(255, 255, 255, 0.03) !important;
+    }
+
+    /* Password eye-icon toggle: kill blue browser outline, add green focus. */
+    .tmw-ms-modal button[aria-label*="assword"],
+    .tmw-ms-modal button[aria-label*="show" i],
+    .tmw-ms-modal button[aria-label*="hide" i],
+    .tmw-ms-modal [class*="eye" i] {
       background: transparent !important;
       border: none !important;
       color: rgba(255, 255, 255, 0.55) !important;
       box-shadow: none !important;
       outline: none !important;
     }
-    body > div[id^="ms-"] button[aria-label*="assword"]:focus,
-    body > div[class*="ms-"] button[aria-label*="assword"]:focus,
-    body > [role="dialog"] button[aria-label*="assword"]:focus {
+    .tmw-ms-modal button[aria-label*="assword"]:focus {
       outline: none !important;
       box-shadow: 0 0 0 2px rgba(31, 223, 103, 0.5) !important;
       border-radius: 6px !important;
     }
 
-    /* === Buttons ===
-       Primary = green pill. Identification heuristics: submit-type, or
-       primary-classed, or full-width buttons that aren't clearly the
-       close ×. */
-    body > div[id^="ms-"] button[type="submit"],
-    body > div[class*="ms-"] button[type="submit"],
-    body > div[data-ms-modal] button[type="submit"],
-    body > [role="dialog"] button[type="submit"],
-    body > div[id^="ms-"] button[class*="primary"],
-    body > div[class*="ms-"] button[class*="primary"],
-    body > [role="dialog"] button[class*="primary"] {
+    /* Primary buttons (sign in, sign up, save) -- TMW green. */
+    .tmw-ms-modal button[type="submit"],
+    .tmw-ms-modal button[class*="primary" i],
+    .tmw-ms-modal [data-cy*="save"],
+    .tmw-ms-modal [data-cy*="submit"],
+    #msOverlay button[type="submit"] {
       background: #1FDF67 !important;
       color: #000 !important;
       border: none !important;
@@ -228,15 +244,21 @@
       cursor: pointer !important;
       transition: background 0.15s !important;
     }
-    body > div[id^="ms-"] button[type="submit"]:hover,
-    body > div[class*="ms-"] button[type="submit"]:hover,
-    body > [role="dialog"] button[type="submit"]:hover {
+    .tmw-ms-modal button[type="submit"]:hover,
+    .tmw-ms-modal button[class*="primary" i]:hover,
+    #msOverlay button[type="submit"]:hover {
       background: #18c75a !important;
     }
-    /* Secondary buttons: dark neutral with white text. */
-    body > div[id^="ms-"] button:not([type="submit"]):not([class*="primary"]):not([aria-label*="lose"]):not([aria-label*="assword"]):not([aria-label*="show"]):not([aria-label*="hide"]),
-    body > div[class*="ms-"] button:not([type="submit"]):not([class*="primary"]):not([aria-label*="lose"]):not([aria-label*="assword"]),
-    body > [role="dialog"] button:not([type="submit"]):not([class*="primary"]):not([aria-label*="lose"]):not([aria-label*="assword"]) {
+    /* Save button (account modal) -- green even when not technically a
+       submit. Look for data-cy="save" or text content "Save". */
+    .tmw-ms-modal [data-cy="save-btn"],
+    .tmw-ms-modal [data-cy="save"] {
+      background: #1FDF67 !important;
+      color: #000 !important;
+    }
+
+    /* Secondary buttons (Upload Profile Image, Manage Subscription, etc.) */
+    .tmw-ms-modal button:not([type="submit"]):not([class*="primary" i]):not([aria-label*="lose" i]):not([aria-label*="assword" i]):not([aria-label*="show" i]):not([aria-label*="hide" i]):not([data-cy*="save"]) {
       background: rgba(255, 255, 255, 0.06) !important;
       color: #fff !important;
       border: 1px solid rgba(255, 255, 255, 0.10) !important;
@@ -244,78 +266,62 @@
       cursor: pointer !important;
     }
 
-    /* === Links ===
-       "Already have an account? Sign in" -- the parent text should stay
-       readable white; only the link itself goes green. */
-    body > div[id^="ms-"] a,
-    body > div[class*="ms-"] a,
-    body > [role="dialog"] a {
+    /* Links */
+    .tmw-ms-modal a,
+    #msOverlay a {
       color: #1FDF67 !important;
       text-decoration: none !important;
       font-weight: 600 !important;
     }
-    body > div[id^="ms-"] a:hover,
-    body > div[class*="ms-"] a:hover,
-    body > [role="dialog"] a:hover {
-      text-decoration: underline !important;
-    }
+    .tmw-ms-modal a:hover { text-decoration: underline !important; }
 
-    /* Close button (×) -- subtle muted icon, no fill. */
-    body > div[id^="ms-"] button[aria-label*="lose"],
-    body > div[class*="ms-"] button[aria-label*="lose"],
-    body > [role="dialog"] button[aria-label*="lose"],
-    body > div[id^="ms-"] [class*="close"]:not(button[class*="primary"]),
-    body > div[class*="ms-"] [class*="close"]:not(button[class*="primary"]) {
+    /* Close button (×) */
+    .tmw-ms-modal button[aria-label*="lose" i],
+    .tmw-ms-modal [class*="close" i]:not(button[class*="primary" i]),
+    .tmw-ms-modal [data-cy*="close"] {
       color: rgba(255, 255, 255, 0.5) !important;
       background: transparent !important;
       border: none !important;
       box-shadow: none !important;
     }
-    body > div[id^="ms-"] button[aria-label*="lose"]:hover,
-    body > div[class*="ms-"] button[aria-label*="lose"]:hover,
-    body > [role="dialog"] button[aria-label*="lose"]:hover {
-      color: #fff !important;
-    }
+    .tmw-ms-modal button[aria-label*="lose" i]:hover { color: #fff !important; }
 
-    /* Profile/Account modal: sidebar tabs (Profile/Security/Plans/Logout).
-       These are usually buttons or links inside a left rail. Make them
-       legible against dark background. */
-    body > div[id^="ms-"] nav button,
-    body > div[id^="ms-"] [class*="sidebar"] button,
-    body > div[id^="ms-"] [class*="tabs"] button,
-    body > div[class*="ms-"] nav button,
-    body > div[class*="ms-"] [class*="sidebar"] button,
-    body > [role="dialog"] nav button {
+    /* Profile/Account modal: left sidebar tabs (Profile / Security / Plans) */
+    .tmw-ms-modal nav button,
+    .tmw-ms-modal [class*="sidebar" i] button,
+    .tmw-ms-modal [class*="tabs" i] button,
+    .tmw-ms-modal [data-cy*="tab"] {
       color: #fff !important;
       background: transparent !important;
       border: none !important;
       text-align: left !important;
     }
-    body > div[id^="ms-"] nav button[aria-current="true"],
-    body > div[id^="ms-"] nav button.active,
-    body > div[id^="ms-"] [class*="active"],
-    body > div[class*="ms-"] nav button[aria-current="true"] {
+    .tmw-ms-modal nav button[aria-current="true"],
+    .tmw-ms-modal nav button.active,
+    .tmw-ms-modal [aria-current="page"],
+    .tmw-ms-modal [data-cy*="tab"][aria-current="true"] {
       background: rgba(31, 223, 103, 0.10) !important;
       color: #1FDF67 !important;
       border-radius: 8px !important;
     }
+    /* Logout button at the bottom of the account sidebar */
+    .tmw-ms-modal [data-cy*="logout"],
+    .tmw-ms-modal button[aria-label*="ogout" i] {
+      color: rgba(255, 255, 255, 0.7) !important;
+      background: transparent !important;
+      border: none !important;
+    }
 
-    /* Dividers / horizontal rules */
-    body > div[id^="ms-"] hr,
-    body > div[class*="ms-"] hr,
-    body > [role="dialog"] hr {
+    /* Dividers */
+    .tmw-ms-modal hr {
       border: none !important;
       border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
       margin: 16px 0 !important;
     }
 
     /* Error messages */
-    body > div[id^="ms-"] [class*="error"],
-    body > div[class*="ms-"] [class*="error"],
-    body > [role="dialog"] [class*="error"],
-    body > div[id^="ms-"] [role="alert"],
-    body > div[class*="ms-"] [role="alert"],
-    body > [role="dialog"] [role="alert"] {
+    .tmw-ms-modal [class*="error" i],
+    .tmw-ms-modal [role="alert"] {
       color: #FF6B6B !important;
       background: rgba(255, 107, 107, 0.10) !important;
       border: 1px solid rgba(255, 107, 107, 0.25) !important;
@@ -1449,11 +1455,14 @@
       color: var(--accent);
     }
     /* Color-coordinate the per-filter active states with their tag bubbles.
-       All + News use green. Updates uses orange to match the Update tag. */
+       All + News use green; Updates now uses blue to match the "Map" event
+       color (new_project events). Status changes still render orange in the
+       tile list, but the filter pill leads with blue since the watchlist
+       activity is dominated by new-on-map events. */
     .pulse-filter-pill.active[data-filter="updates"] {
-      background: rgba(255,149,0,0.13);
-      border-color: rgba(255,149,0,0.35);
-      color: #FF9500;
+      background: rgba(80,160,255,0.14);
+      border-color: rgba(80,160,255,0.35);
+      color: #6FA8FF;
     }
 
     /* ─── Notification list (scrolling region, compact rows) ────────────── */
@@ -2467,21 +2476,40 @@
       transition: background var(--transition-med), color var(--transition-med);
     }
     .popup-buttons a:hover { background: #fff; color: #000; }
+    /* Map popup watch button -- eye icon (matches the watchlist visual
+       language). Hover spins gently; clicking triggers a brief "blink"
+       animation acknowledging the add/remove, and the .favorited class
+       flips the button to TMW green to indicate the project is now on
+       the user's watchlist. */
     .favorite {
-      position: absolute; top: -5px; right: -5px; width: 26px; height: 26px;
+      position: absolute; top: -5px; right: -5px; width: 28px; height: 28px;
       border-radius: 50%; background: #fff; display: flex; align-items: center;
       justify-content: center;
       transition: background var(--transition-med), transform var(--transition-slow);
       z-index: 5;
     }
-    .favorite svg { width: 12px; height: 12px; stroke: #000; stroke-width: 4; fill: none; }
-    .favorite:hover { background: var(--accent); transform: scale(1.15) rotate(90deg); }
+    .favorite svg {
+      width: 16px; height: 16px;
+      stroke: #000; stroke-width: 1.8; fill: none;
+      stroke-linecap: round; stroke-linejoin: round;
+    }
+    .favorite:hover { background: var(--accent); transform: scale(1.12); }
     .favorite:hover svg { stroke: #fff; }
-    /* Favorited state — green background, white + */
+    /* Watching state -- green pill, white eye. */
     .favorite.favorited { background: var(--accent); }
     .favorite.favorited svg { stroke: #fff; }
-    .favorite.favorited:hover { transform: scale(1.15) rotate(45deg); }
-    /* Popup favorite is now a button, not an anchor */
+    .favorite.favorited:hover { transform: scale(1.12); }
+    /* Blink animation -- runs once when the .blink class is added on click,
+       then auto-removed in JS so the next click re-triggers. The eye briefly
+       "closes" (scaleY 0.1) then snaps back, like a wink ack. */
+    @keyframes watchBlink {
+      0%   { transform: scaleY(1); }
+      30%  { transform: scaleY(0.1); }
+      60%  { transform: scaleY(1.2); }
+      100% { transform: scaleY(1); }
+    }
+    .favorite.blink svg { animation: watchBlink 0.45s ease-out; }
+    /* Popup favorite is a button, not an anchor */
     button.favorite { cursor: pointer; padding: 0; font: inherit; border: none; }
     button.favorite:focus { outline: none; }
 
@@ -6796,6 +6824,9 @@
 
       // Close button
       document.getElementById('pmCloseBtn').addEventListener('click', closeModal);
+      // Expose globally so other surfaces (watchlist drawer, mutual-exclusivity
+      // logic) can dismiss the modal cleanly without faking a click on the X.
+      window.closeProjectModal = closeModal;
 
       // Project modal slider — arrow + keyboard + swipe navigation
       (function() {
@@ -6960,8 +6991,11 @@
             <p class="city">${f.properties.city}</p>
             <p class="description">${f.properties.description}</p>
             ${deliveryBarHTML(f.properties.delivery)}
-            <button class="favorite${window.isFavorited && window.isFavorited(f.properties.title) ? ' favorited' : ''}" data-fav-slug="${window.projectSlugify(f.properties.title)}" type="button" aria-label="Add to favorites" onclick="event.stopPropagation();window.toggleFavorite&&window.toggleFavorite('${(f.properties.title || '').replace(/'/g, "\\'")}', this);">
-              <svg viewBox="0 0 18 18"><path d="M9 1v16M1 9h16"/></svg>
+            <button class="favorite${window.isFavorited && window.isFavorited(f.properties.title) ? ' favorited' : ''}" data-fav-slug="${window.projectSlugify(f.properties.title)}" type="button" aria-label="Watch this project" onclick="event.stopPropagation();this.classList.remove('blink');void this.offsetWidth;this.classList.add('blink');window.toggleFavorite&&window.toggleFavorite('${(f.properties.title || '').replace(/'/g, "\\'")}', this);">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
             </button>
             <div class="popup-buttons">
               <a href="#" class="popup-learn-more" data-project-city="${(f.properties.city || '').replace(/"/g, '&quot;')}">Learn More</a>
@@ -7271,9 +7305,6 @@
               <img src="${f.properties.image}" loading="lazy" alt="${f.properties.title}"  />
             </div>
             ${f.properties.featured ? `<div class="featured-badge"><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>Featured</div>` : ''}
-            <button class="tile-favorite${window.isFavorited && window.isFavorited(f.properties.title) ? ' favorited' : ''}" data-fav-slug="${window.projectSlugify(f.properties.title)}" type="button" aria-label="Add to favorites" onclick="event.stopPropagation();window.toggleFavorite&&window.toggleFavorite('${(f.properties.title || '').replace(/'/g, "\\'")}', this);">
-              <svg viewBox="0 0 18 18"><path d="M9 1v16M1 9h16"/></svg>
-            </button>
             <div class="grid-item-content">
               <h3 style="color:#fff!important;margin:0 0 4px;font-size:16px;">${f.properties.title}</h3>
               <p class="city" style="color:#ccc!important;margin:0 0 auto;font-size:12px;padding-bottom:8px;">${f.properties.city}</p>
@@ -7475,9 +7506,6 @@
                    data-src="${f.properties.image}"  alt="${f.properties.title}" class="lazy-loading" />
             </div>
             ${f.properties.featured ? `<div class="featured-badge"><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>Featured</div>` : ''}
-            <button class="tile-favorite${window.isFavorited && window.isFavorited(f.properties.title) ? ' favorited' : ''}" data-fav-slug="${window.projectSlugify(f.properties.title)}" type="button" aria-label="Add to favorites" onclick="event.stopPropagation();window.toggleFavorite&&window.toggleFavorite('${(f.properties.title || '').replace(/'/g, "\\'")}', this);">
-              <svg viewBox="0 0 18 18"><path d="M9 1v16M1 9h16"/></svg>
-            </button>
             <div class="grid-item-content">
               <h3 style="color:#fff!important;margin:0 0 4px;font-size:16px;">${f.properties.title}</h3>
               <p class="city" style="color:#ccc!important;margin:0 0 auto;font-size:12px;padding-bottom:8px;">${f.properties.city}</p>
@@ -10750,7 +10778,18 @@
           // Mutual exclusivity: close any other primary surface that would
           // overlap or look stacked. The desktop sidebar (project tiles) lives
           // in the same left-drawer slot, and the mobile drawer covers the
-          // same bottom-sheet slot, so opening Watchlist closes them.
+          // same bottom-sheet slot, so opening Watchlist closes them. The
+          // project modal also closes -- clicking the Watchlist button
+          // signals "show me my list" which is a different intent than
+          // "keep this project view open behind a drawer".
+          const pm = document.getElementById('projectModal');
+          if (pm && pm.classList.contains('open')) {
+            if (typeof window.closeProjectModal === 'function') {
+              window.closeProjectModal();
+            } else {
+              pm.classList.remove('open');
+            }
+          }
           const ds = document.getElementById('desktopSidebar');
           if (ds && ds.classList.contains('open')) {
             ds.classList.remove('open');
