@@ -3,6 +3,11 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Cache hint: project pages should always reflect the latest sheet data.
+       GitHub Pages still has an edge cache (~10min) so changes can lag, but
+       this at least keeps browsers + intermediate proxies honest. -->
+  <meta http-equiv="Cache-Control" content="no-cache, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
   <!-- Disable iOS Safari Data Detectors so phone numbers, addresses, dates, etc.
        in body copy aren't auto-linked into tappable blue text -->
   <meta name="format-detection" content="telephone=no, address=no, email=no, date=no">
@@ -41,15 +46,45 @@
         if (hasEmail || hasPwd) return true;
         return false;
       }
-      function tag(el) {
-        if (el && el.classList && !el.classList.contains('tmw-ms-modal')) {
+      function tagContainerAndChildren(el) {
+        if (!el || !el.classList) return;
+        if (!el.classList.contains('tmw-ms-modal')) {
           el.classList.add('tmw-ms-modal');
         }
+        try {
+          el.querySelectorAll('input, textarea, select').forEach(function(node) {
+            node.classList.add('tmw-ms-input');
+          });
+          el.querySelectorAll('button').forEach(function(node) {
+            var isSubmit = node.getAttribute('type') === 'submit';
+            var dataCy   = (node.getAttribute('data-cy') || '').toLowerCase();
+            var ariaLbl  = (node.getAttribute('aria-label') || '').toLowerCase();
+            var txt      = (node.textContent || '').trim().toLowerCase();
+            if (isSubmit
+                || dataCy.indexOf('save') !== -1
+                || dataCy.indexOf('submit') !== -1
+                || /^(save|sign in|sign up|log in|create account|continue)$/i.test(txt)) {
+              node.classList.add('tmw-ms-btn-primary');
+            } else if (ariaLbl.indexOf('close') !== -1 || dataCy.indexOf('close') !== -1) {
+              node.classList.add('tmw-ms-btn-close');
+            } else if (ariaLbl.indexOf('password') !== -1) {
+              node.classList.add('tmw-ms-btn-eye');
+            } else {
+              node.classList.add('tmw-ms-btn-secondary');
+            }
+          });
+          el.querySelectorAll('label').forEach(function(node) {
+            node.classList.add('tmw-ms-label');
+          });
+          el.querySelectorAll('img').forEach(function(node) {
+            node.classList.add('tmw-ms-img');
+          });
+        } catch (_) { /* defensive */ }
       }
       function scan() {
         var nodes = document.body ? document.body.children : [];
         for (var i = 0; i < nodes.length; i++) {
-          if (looksLikeMSModal(nodes[i])) tag(nodes[i]);
+          if (looksLikeMSModal(nodes[i])) tagContainerAndChildren(nodes[i]);
         }
       }
       if (document.body) scan();
@@ -58,12 +93,21 @@
         for (var i = 0; i < muts.length; i++) {
           var added = muts[i].addedNodes;
           for (var j = 0; j < added.length; j++) {
-            if (looksLikeMSModal(added[j])) tag(added[j]);
+            var node = added[j];
+            if (node.nodeType !== 1) continue;
+            if (node.parentNode === document.body && looksLikeMSModal(node)) {
+              tagContainerAndChildren(node);
+              continue;
+            }
+            var modalAncestor = node.closest && node.closest('.tmw-ms-modal');
+            if (modalAncestor) {
+              tagContainerAndChildren(modalAncestor);
+            }
           }
         }
       });
       function startObserver() {
-        if (document.body) obs.observe(document.body, { childList: true, subtree: false });
+        if (document.body) obs.observe(document.body, { childList: true, subtree: true });
         else document.addEventListener('DOMContentLoaded', startObserver);
       }
       startObserver();
@@ -220,6 +264,107 @@
       border: 1px solid rgba(255,107,107,0.25) !important;
       border-radius: 8px !important;
       padding: 10px 12px !important;
+    }
+
+    /* === Direct per-element classes ====================================
+       The tagger script tags inputs/buttons/labels inside any Memberstack
+       modal so styling reaches them regardless of how deeply they're nested. */
+    .tmw-ms-input {
+      background: #1a1a1a !important;
+      border: 1px solid rgba(255,255,255,0.14) !important;
+      color: #fff !important;
+      border-radius: 10px !important;
+      padding: 12px 14px !important;
+      font-size: 14px !important;
+      box-shadow: none !important;
+      caret-color: #1FDF67 !important;
+    }
+    .tmw-ms-input:focus {
+      outline: none !important;
+      border-color: #1FDF67 !important;
+      background: #1f1f1f !important;
+      box-shadow: 0 0 0 3px rgba(31,223,103,0.22) !important;
+    }
+    .tmw-ms-input::placeholder {
+      color: rgba(255,255,255,0.35) !important;
+      opacity: 1 !important;
+    }
+    .tmw-ms-input[disabled], .tmw-ms-input[readonly] {
+      color: rgba(255,255,255,0.55) !important;
+      background: #141414 !important;
+    }
+    .tmw-ms-input:-webkit-autofill,
+    .tmw-ms-input:-webkit-autofill:hover,
+    .tmw-ms-input:-webkit-autofill:focus {
+      -webkit-text-fill-color: #fff !important;
+      -webkit-box-shadow: 0 0 0 1000px #1a1a1a inset !important;
+    }
+
+    .tmw-ms-btn-primary {
+      background: #1FDF67 !important;
+      color: #000 !important;
+      border: none !important;
+      border-radius: 10px !important;
+      font-weight: 700 !important;
+      padding: 13px 18px !important;
+      cursor: pointer !important;
+    }
+    .tmw-ms-btn-primary:hover { background: #18c75a !important; }
+    .tmw-ms-btn-primary:disabled, .tmw-ms-btn-primary[disabled] {
+      background: rgba(31,223,103,0.35) !important;
+      color: rgba(0,0,0,0.55) !important;
+      cursor: default !important;
+    }
+
+    .tmw-ms-btn-secondary {
+      background: #1a1a1a !important;
+      color: #fff !important;
+      border: 1px solid rgba(255,255,255,0.15) !important;
+      border-radius: 10px !important;
+      padding: 10px 14px !important;
+      font-weight: 600 !important;
+      font-size: 13px !important;
+      cursor: pointer !important;
+    }
+    .tmw-ms-btn-secondary:hover {
+      background: #222 !important;
+      border-color: rgba(255,255,255,0.25) !important;
+    }
+
+    .tmw-ms-btn-close {
+      color: rgba(255,255,255,0.55) !important;
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+      padding: 6px !important;
+      cursor: pointer !important;
+    }
+    .tmw-ms-btn-close:hover { color: #fff !important; }
+
+    .tmw-ms-btn-eye {
+      background: transparent !important;
+      border: none !important;
+      color: rgba(255,255,255,0.55) !important;
+      box-shadow: none !important;
+      outline: none !important;
+      padding: 4px !important;
+      cursor: pointer !important;
+    }
+    .tmw-ms-btn-eye:focus {
+      outline: none !important;
+      box-shadow: 0 0 0 2px rgba(31,223,103,0.5) !important;
+      border-radius: 6px !important;
+    }
+
+    .tmw-ms-label {
+      color: #fff !important;
+      font-weight: 600 !important;
+      font-size: 13px !important;
+    }
+
+    .tmw-ms-img {
+      filter: brightness(0) invert(1) !important;
+      opacity: 0.95 !important;
     }
   </style>
 
@@ -761,6 +906,23 @@
       <div id="updatesBody"></div>
     </div>
     
+  <section class="coverage-section">
+    <div class="cv-header">
+      <h2 class="cv-title">Coverage on TMW <span class="cv-count">1</span></h2>
+    </div>
+    <a class="cv-featured" href="https://www.oftmw.com/post/kawonu-golf-club-is-taking-shape-in-south-carolina" target="_blank" rel="noopener">
+      <div class="cv-featured-img" style="background-image:url('https://static.wixstatic.com/media/ca3b83_5178df7e3ba645c58621057701ca66bf~mv2.jpeg/v1/fit/w_1000,h_1000,al_c,q_80/file.png')">
+        <div class="cv-featured-tag">Latest</div>
+      </div>
+      <div class="cv-featured-body">
+        <div class="cv-featured-title">Kawonu Golf Club is taking shape in South Carolina</div>
+        <div class="cv-meta">May 11, 2026</div>
+      </div>
+    </a>
+    
+    
+  </section>
+
   </div>
 
   <!-- Footer logo — centered Markets of Tomorrow wordmark, shown on all viewports -->
