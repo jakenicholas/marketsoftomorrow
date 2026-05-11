@@ -24,59 +24,103 @@
        signed-up/profile flows are consistent across surfaces. Same broad
        overrides as the main app; see index.html for the rationale. -->
   <style>
-    #ms-overlay, #ms-modal-overlay, [id^="ms-modal"], .ms-modal, .ms-overlay {
+    body > div[id^="ms-"],
+    body > div[class*="ms-"],
+    body > div[data-ms-modal],
+    body > [role="dialog"],
+    #ms-overlay, #ms-modal-overlay, [id^="ms-modal"] {
       background: rgba(0,0,0,0.78) !important;
       backdrop-filter: blur(8px) !important;
       -webkit-backdrop-filter: blur(8px) !important;
     }
-    #ms-overlay > div, #ms-modal-overlay > div,
-    #ms-overlay [role="dialog"], #ms-modal-overlay [role="dialog"],
-    .ms-modal-card, .ms-modal__content,
-    [class*="ms-modal"][class*="card"], [class*="ms-modal"][class*="content"] {
+    body > div[id^="ms-"] > div,
+    body > div[class*="ms-"] > div,
+    body > div[data-ms-modal] > div,
+    body > div[id^="ms-"] [role="dialog"],
+    body > [role="dialog"] {
       background: #0f0f0f !important;
       color: #fff !important;
       border: 1px solid rgba(255,255,255,0.08) !important;
       border-radius: 16px !important;
       box-shadow: 0 30px 90px rgba(0,0,0,0.55) !important;
     }
-    #ms-overlay, #ms-overlay *, #ms-modal-overlay, #ms-modal-overlay * {
+    body > div[id^="ms-"] img,
+    body > div[class*="ms-"] img,
+    body > [role="dialog"] img {
+      filter: brightness(0) invert(1) !important;
+      opacity: 0.95 !important;
+    }
+    body > div[id^="ms-"] *,
+    body > div[class*="ms-"] *,
+    body > [role="dialog"] * {
       color: #fff !important;
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
     }
-    #ms-overlay h1, #ms-overlay h2, #ms-overlay h3,
-    #ms-modal-overlay h1, #ms-modal-overlay h2, #ms-modal-overlay h3 {
+    body > div[id^="ms-"] h1, body > div[id^="ms-"] h2, body > div[id^="ms-"] h3,
+    body > div[class*="ms-"] h1, body > div[class*="ms-"] h2,
+    body > [role="dialog"] h1, body > [role="dialog"] h2 {
       color: #fff !important;
-      letter-spacing: -0.01em !important;
     }
-    #ms-overlay p, #ms-modal-overlay p,
-    #ms-overlay label, #ms-modal-overlay label,
-    #ms-overlay small, #ms-modal-overlay small,
-    #ms-overlay span, #ms-modal-overlay span {
+    body > div[id^="ms-"] p, body > div[id^="ms-"] small,
+    body > div[class*="ms-"] p, body > [role="dialog"] p {
       color: rgba(255,255,255,0.7) !important;
     }
-    #ms-overlay input, #ms-modal-overlay input,
-    #ms-overlay textarea, #ms-modal-overlay textarea,
-    #ms-overlay select, #ms-modal-overlay select {
-      background: rgba(255,255,255,0.04) !important;
-      border: 1px solid rgba(255,255,255,0.12) !important;
+    body > div[id^="ms-"] label,
+    body > div[class*="ms-"] label,
+    body > [role="dialog"] label {
+      color: #fff !important;
+      font-weight: 600 !important;
+      font-size: 13px !important;
+    }
+    body > div[id^="ms-"] input,
+    body > div[id^="ms-"] textarea,
+    body > div[id^="ms-"] select,
+    body > div[class*="ms-"] input,
+    body > div[class*="ms-"] textarea,
+    body > [role="dialog"] input,
+    body > [role="dialog"] textarea {
+      background: rgba(255,255,255,0.05) !important;
+      border: 1px solid rgba(255,255,255,0.14) !important;
       color: #fff !important;
       border-radius: 10px !important;
       padding: 12px 14px !important;
       font-size: 14px !important;
+      box-shadow: none !important;
     }
-    #ms-overlay input:focus, #ms-modal-overlay input:focus,
-    #ms-overlay textarea:focus, #ms-modal-overlay textarea:focus {
+    body > div[id^="ms-"] input:focus,
+    body > div[id^="ms-"] textarea:focus,
+    body > div[class*="ms-"] input:focus,
+    body > [role="dialog"] input:focus {
       outline: none !important;
       border-color: #1FDF67 !important;
-      background: rgba(255,255,255,0.06) !important;
-      box-shadow: 0 0 0 3px rgba(31,223,103,0.18) !important;
+      background: rgba(255,255,255,0.07) !important;
+      box-shadow: 0 0 0 3px rgba(31,223,103,0.20) !important;
     }
-    #ms-overlay input::placeholder, #ms-modal-overlay input::placeholder {
+    body > div[id^="ms-"] input::placeholder,
+    body > div[class*="ms-"] input::placeholder,
+    body > [role="dialog"] input::placeholder {
       color: rgba(255,255,255,0.35) !important;
+      opacity: 1 !important;
     }
-    #ms-overlay button[type="submit"], #ms-modal-overlay button[type="submit"],
-    #ms-overlay button.ms-primary, #ms-modal-overlay button.ms-primary,
-    #ms-overlay button[class*="primary"], #ms-modal-overlay button[class*="primary"] {
+    body > div[id^="ms-"] button[aria-label*="assword"],
+    body > div[class*="ms-"] button[aria-label*="assword"] {
+      background: transparent !important;
+      border: none !important;
+      color: rgba(255,255,255,0.55) !important;
+      box-shadow: none !important;
+      outline: none !important;
+    }
+    body > div[id^="ms-"] button[aria-label*="assword"]:focus,
+    body > div[class*="ms-"] button[aria-label*="assword"]:focus {
+      outline: none !important;
+      box-shadow: 0 0 0 2px rgba(31,223,103,0.5) !important;
+      border-radius: 6px !important;
+    }
+    body > div[id^="ms-"] button[type="submit"],
+    body > div[class*="ms-"] button[type="submit"],
+    body > [role="dialog"] button[type="submit"],
+    body > div[id^="ms-"] button[class*="primary"],
+    body > [role="dialog"] button[class*="primary"] {
       background: #1FDF67 !important;
       color: #000 !important;
       border: none !important;
@@ -85,33 +129,48 @@
       padding: 13px 18px !important;
       cursor: pointer !important;
     }
-    #ms-overlay button[type="submit"]:hover, #ms-modal-overlay button[type="submit"]:hover {
+    body > div[id^="ms-"] button[type="submit"]:hover,
+    body > [role="dialog"] button[type="submit"]:hover {
       background: #18c75a !important;
     }
-    #ms-overlay button:not([type="submit"]):not([class*="primary"]),
-    #ms-modal-overlay button:not([type="submit"]):not([class*="primary"]) {
+    body > div[id^="ms-"] button:not([type="submit"]):not([class*="primary"]):not([aria-label*="lose"]):not([aria-label*="assword"]),
+    body > [role="dialog"] button:not([type="submit"]):not([class*="primary"]):not([aria-label*="lose"]):not([aria-label*="assword"]) {
       background: rgba(255,255,255,0.06) !important;
       color: #fff !important;
       border: 1px solid rgba(255,255,255,0.10) !important;
       border-radius: 10px !important;
       cursor: pointer !important;
     }
-    #ms-overlay a, #ms-modal-overlay a {
+    body > div[id^="ms-"] a,
+    body > div[class*="ms-"] a,
+    body > [role="dialog"] a {
       color: #1FDF67 !important;
       text-decoration: none !important;
+      font-weight: 600 !important;
     }
-    #ms-overlay button[aria-label*="lose"], #ms-modal-overlay button[aria-label*="lose"],
-    #ms-overlay [class*="close"], #ms-modal-overlay [class*="close"] {
+    body > div[id^="ms-"] button[aria-label*="lose"],
+    body > [role="dialog"] button[aria-label*="lose"] {
       color: rgba(255,255,255,0.5) !important;
       background: transparent !important;
       border: none !important;
+      box-shadow: none !important;
     }
-    #ms-overlay hr, #ms-modal-overlay hr {
+    body > div[id^="ms-"] nav button,
+    body > div[id^="ms-"] [class*="sidebar"] button {
+      color: #fff !important;
+      background: transparent !important;
       border: none !important;
-      border-top: 1px solid rgba(255,255,255,0.08) !important;
+      text-align: left !important;
     }
-    #ms-overlay [class*="error"], #ms-modal-overlay [class*="error"],
-    #ms-overlay [role="alert"], #ms-modal-overlay [role="alert"] {
+    body > div[id^="ms-"] nav button[aria-current="true"],
+    body > div[id^="ms-"] nav button.active {
+      background: rgba(31,223,103,0.10) !important;
+      color: #1FDF67 !important;
+      border-radius: 8px !important;
+    }
+    body > div[id^="ms-"] [class*="error"],
+    body > div[class*="ms-"] [class*="error"],
+    body > [role="dialog"] [role="alert"] {
       color: #FF6B6B !important;
       background: rgba(255,107,107,0.10) !important;
       border: 1px solid rgba(255,107,107,0.25) !important;
@@ -524,6 +583,20 @@
       .map-preview { height: 180px; }
     }
 
+    /* ── Project Updates: timeline of status_change + new_project events ── */
+    .updates-section[hidden] { display: none; }
+    .updates-section { margin-top: 28px; padding-top: 22px; border-top: 1px solid rgba(255,255,255,0.08); }
+    .updates-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+    .updates-title { font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; color: #fff; margin: 0; display: flex; align-items: center; gap: 8px; }
+    .updates-count { font-size: 10px; background: rgba(31,223,103,0.12); color: #1FDF67; padding: 2px 7px; border-radius: 10px; font-weight: 700; letter-spacing: 0.04em; }
+    .update-row { display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .update-row:last-child { border-bottom: none; }
+    .update-dot { flex-shrink: 0; width: 8px; height: 8px; margin-top: 6px; border-radius: 50%; background: #FF9500; }
+    .update-dot.map { background: #6FA8FF; }
+    .update-body { flex: 1; min-width: 0; }
+    .update-text { font-size: 13px; color: #fff; line-height: 1.4; }
+    .update-meta { font-size: 10px; color: rgba(255,255,255,0.45); text-transform: uppercase; letter-spacing: 0.06em; margin-top: 2px; }
+
     /* ── Coverage on TMW: list of articles mentioning this project ── */
     .coverage-section { margin-top: 28px; padding-top: 22px; border-top: 1px solid rgba(255,255,255,0.08); }
     .cv-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
@@ -625,6 +698,19 @@
         </div>
       </div>
     </a>
+    <!-- Project Updates (Phase X): client-side hydrated from pulse.json on
+         page load. Lists status_change + new_project events tied to this
+         slug. Hidden by default; the hydration script reveals it if any
+         pulse events match. -->
+    <div class="updates-section" id="updatesSection" hidden>
+      <div class="updates-header">
+        <div class="updates-title">
+          Project Updates
+          <span class="updates-count" id="updatesCount"></span>
+        </div>
+      </div>
+      <div id="updatesBody"></div>
+    </div>
     
   <section class="coverage-section">
     <div class="cv-header">
@@ -1020,6 +1106,63 @@
           await saveMemberJson({ favorites: favs });
         });
       });
+    })();
+
+    /* ─── Project Updates hydration ─────────────────────────────────────
+       Fetches /pulse.json on page load and surfaces any status_change or
+       new_project events for THIS project as a compact timeline. Section
+       stays hidden if no matching events exist. Mirrors the modal's
+       Project Updates section. */
+    (function updatesHydrate() {
+      var section = document.getElementById('updatesSection');
+      var body    = document.getElementById('updatesBody');
+      var countEl = document.getElementById('updatesCount');
+      if (!section || !body) return;
+      var pageSlug = 'glass-house-boca-raton';
+      if (!pageSlug) return;
+
+      function escapeHtml(s) {
+        return String(s || '').replace(/[&<>"']/g, function(ch) {
+          return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[ch];
+        });
+      }
+      function formatDate(iso) {
+        if (!iso) return '';
+        try {
+          var d = new Date(iso);
+          return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+        } catch (e) { return ''; }
+      }
+
+      fetch('/pulse.json', { cache: 'no-store' })
+        .then(function(r) { return r.ok ? r.json() : { events: [] }; })
+        .then(function(data) {
+          var events = (data && Array.isArray(data.events)) ? data.events : [];
+          var matches = events.filter(function(ev) {
+            return ev.project_slug === pageSlug &&
+                   (ev.type === 'status_change' || ev.type === 'new_project');
+          });
+          if (!matches.length) {
+            section.setAttribute('hidden', '');
+            return;
+          }
+          var html = '';
+          matches.forEach(function(ev) {
+            var dotCls = (ev.type === 'new_project') ? 'map' : '';
+            var text = ev.title_full || ev.title || 'Project update';
+            html += '<div class="update-row">' +
+                      '<div class="update-dot ' + dotCls + '"></div>' +
+                      '<div class="update-body">' +
+                        '<div class="update-text">' + escapeHtml(text) + '</div>' +
+                        '<div class="update-meta">' + escapeHtml(formatDate(ev.timestamp)) + '</div>' +
+                      '</div>' +
+                    '</div>';
+          });
+          body.innerHTML = html;
+          if (countEl) countEl.textContent = matches.length;
+          section.removeAttribute('hidden');
+        })
+        .catch(function() { /* non-fatal */ });
     })();
   </script>
 </body>
