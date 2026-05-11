@@ -5258,11 +5258,16 @@
         filtered = window.filterByFavoritesIfActive(filtered);
       }
 
-      const geoFeatures = filtered.map(f => ({
-        type: 'Feature',
-        geometry: f.geometry,
-        properties: Object.assign({}, f.properties, { projectTypes: undefined })
-      }));
+      const geoFeatures = filtered.map(f => {
+        const slug = (window.projectSlugify && f.properties && f.properties.title)
+          ? window.projectSlugify(f.properties.title) : '';
+        const watched = !!(slug && window._favorites && window._favorites.has(slug));
+        return {
+          type: 'Feature',
+          geometry: f.geometry,
+          properties: Object.assign({}, f.properties, { projectTypes: undefined, watched })
+        };
+      });
       source.setData({ type: 'FeatureCollection', features: geoFeatures });
     }
 
@@ -8088,10 +8093,15 @@
       // Load project data — if already loaded, just restore from master list
       if (window.allProjectFeatures) {
         // Style switched — re-add projects source from cached data
-        const geoFeatures = window.allProjectFeatures.map(f => ({
-          type: 'Feature', geometry: f.geometry,
-          properties: Object.assign({}, f.properties, { projectTypes: undefined })
-        }));
+        const geoFeatures = window.allProjectFeatures.map(f => {
+          const slug = (window.projectSlugify && f.properties && f.properties.title)
+            ? window.projectSlugify(f.properties.title) : '';
+          const watched = !!(slug && window._favorites && window._favorites.has(slug));
+          return {
+            type: 'Feature', geometry: f.geometry,
+            properties: Object.assign({}, f.properties, { projectTypes: undefined, watched })
+          };
+        });
         if (!map.getSource('projects')) {
           map.addSource('projects', { type:'geojson', data:{ type:'FeatureCollection', features:geoFeatures }, cluster:true, clusterMaxZoom:16, clusterRadius:35 });
         }
@@ -8107,6 +8117,19 @@
             filter:['all',['!',['has','point_count']],['==',['get','featured'],true]],
             paint:{'circle-color':'transparent','circle-radius':16,'circle-blur':0.8,
                    'circle-stroke-width':3,'circle-stroke-color':'#FFD300','circle-stroke-opacity':0.6}
+          }, 'unclustered-point');
+        }
+        // Watchlist ring (Phase 2) — green outer ring on watched pins. Sits
+        // ABOVE the featured-glow but BELOW unclustered-point so the inner
+        // status-colored pin stays visible. Filter is data-driven via the
+        // `watched` feature property, which is injected at runtime based on
+        // the user's _favorites set.
+        if (!map.getLayer('watched-ring')) {
+          map.addLayer({ id:'watched-ring', type:'circle', source:'projects',
+            filter:['all',['!',['has','point_count']],['==',['get','watched'],true]],
+            paint:{'circle-color':'transparent','circle-radius':14,
+                   'circle-stroke-width':2.5,'circle-stroke-color':'#1FDF67',
+                   'circle-stroke-opacity':0.9}
           }, 'unclustered-point');
         }
           // Re-apply any active filters
@@ -8170,11 +8193,16 @@
           features.forEach(f => { f.properties.projectTypes = f._projectTypes; });
 
           // Build clean GeoJSON for Mapbox — strip the JS-only array from properties
-          const geoFeatures = features.map(f => ({
-            type: 'Feature',
-            geometry: f.geometry,
-            properties: Object.assign({}, f.properties, { projectTypes: undefined })
-          }));
+          const geoFeatures = features.map(f => {
+            const slug = (window.projectSlugify && f.properties && f.properties.title)
+              ? window.projectSlugify(f.properties.title) : '';
+            const watched = !!(slug && window._favorites && window._favorites.has(slug));
+            return {
+              type: 'Feature',
+              geometry: f.geometry,
+              properties: Object.assign({}, f.properties, { projectTypes: undefined, watched })
+            };
+          });
 
           const projectGeo = { type: 'FeatureCollection', features: geoFeatures };
           map.addSource('projects', { type:'geojson', data:projectGeo, cluster:true, clusterMaxZoom:16, clusterRadius:35 });
@@ -8182,6 +8210,8 @@
           map.addLayer({ id:'cluster-count', type:'symbol', source:'projects', filter:['has','point_count'], layout:{'text-field':'{point_count_abbreviated}','text-size':12}, paint:{'text-color':'#ffffff'} });
           map.addLayer({ id:'unclustered-point', type:'circle', source:'projects', filter:['!',['has','point_count']], paint:{'circle-color':'#1FDF67','circle-radius':8,'circle-stroke-width':2,'circle-stroke-color':'#fff'} });
           map.addLayer({ id:'featured-glow', type:'circle', source:'projects', filter:['all',['!',['has','point_count']],['==',['get','featured'],true]], paint:{'circle-color':'transparent','circle-radius':16,'circle-blur':0.8,'circle-stroke-width':3,'circle-stroke-color':'#FFD300','circle-stroke-opacity':0.6} }, 'unclustered-point');
+          // Watchlist ring (Phase 2): green ring around watched pins.
+          map.addLayer({ id:'watched-ring', type:'circle', source:'projects', filter:['all',['!',['has','point_count']],['==',['get','watched'],true]], paint:{'circle-color':'transparent','circle-radius':14,'circle-stroke-width':2.5,'circle-stroke-color':'#1FDF67','circle-stroke-opacity':0.9} }, 'unclustered-point');
     
           map.on('click','clusters',e=>{if(stationPopup){stationPopup.remove();stationPopup=null;}const f=e.features[0];map.getSource('projects').getClusterExpansionZoom(f.properties.cluster_id,(err,z)=>map.flyTo({center:f.geometry.coordinates,zoom:z}));});
           map.on('click','unclustered-point',e=>{
@@ -9042,8 +9072,38 @@
           const arr = Array.isArray(json.favorites) ? json.favorites : [];
           window._favorites = new Set(arr.filter(s => typeof s === 'string'));
           syncFavoritesUI();
+          // Belt-and-suspenders: if the user hard-refreshed with a project
+          // deep-link in the URL, the modal may already be open with the
+          // Watch button stuck on "Watch" because _favorites was empty when
+          // openProjectModal ran. Explicitly re-render the button + card
+          // here against the currently-open project so the state catches
+          // up after auth completes.
+          refreshOpenModalWatchUI();
         } catch (e) { console.warn('[Favorites] load error:', e); }
       }
+
+      // Called whenever favorites or last_viewed data changes asynchronously.
+      // If a project modal is currently open, refreshes its Watch button +
+      // summary card so late-loading auth data still lands correctly.
+      function refreshOpenModalWatchUI() {
+        const modal = document.getElementById('projectModal');
+        if (!modal || !modal.classList.contains('open')) return;
+        const titleEl = document.getElementById('pmTitle');
+        const title = (titleEl && titleEl.textContent) || '';
+        if (!title) return;
+        const btn = document.getElementById('pmLikeBtn');
+        if (!btn) return;
+        const watched = !!(window.isFavorited && window.isFavorited(title));
+        btn.classList.toggle('favorited', watched);
+        btn.classList.toggle('watching', watched);
+        const labelEl = document.getElementById('pmWatchBtnLabel');
+        if (labelEl) labelEl.textContent = watched ? 'Watching' : 'Watch';
+        btn.setAttribute('aria-label', watched ? 'Stop watching this project' : 'Watch this project');
+        if (typeof window.renderWatchingSummary === 'function') {
+          window.renderWatchingSummary(title, watched, btn);
+        }
+      }
+      window.refreshOpenModalWatchUI = refreshOpenModalWatchUI;
 
       async function saveFavoritesToMember() {
         if (!window.$memberstackDom) return;
@@ -9074,6 +9134,11 @@
           const lv = (json && typeof json.last_viewed_at === 'object' && !Array.isArray(json.last_viewed_at))
             ? json.last_viewed_at : {};
           window._lastViewed = lv || {};
+          // If a modal is open, refresh the summary card now that we know
+          // the user's per-project view timestamps.
+          if (typeof refreshOpenModalWatchUI === 'function') {
+            refreshOpenModalWatchUI();
+          }
         } catch (e) { console.warn('[Watchlist] last_viewed load error:', e); }
       }
       window.loadLastViewedFromMember = loadLastViewedFromMember;
@@ -9245,6 +9310,14 @@
           }
         });
         updateFavoritesCountUI();
+        // Phase 2: refresh map pin data so the green watchlist ring appears
+        // or disappears immediately when the user toggles Watch. The setData
+        // call inside updateMapPinFilters re-injects the `watched` property
+        // for every feature based on the current _favorites set, which then
+        // drives the data-driven watched-ring layer's filter expression.
+        if (typeof updateMapPinFilters === 'function') {
+          try { updateMapPinFilters(); } catch (e) { /* map not ready yet */ }
+        }
       }
       window.syncFavoritesUI = syncFavoritesUI;
 
@@ -9907,6 +9980,11 @@
           // this IIFE) can compute "unread since last_viewed_at" counters
           // without needing to refetch pulse.json itself.
           window._pulseEvents = allEvents;
+          // If a project modal is open, recompute its unread badge + card
+          // now that we know what's happened recently.
+          if (typeof window.refreshOpenModalWatchUI === 'function') {
+            window.refreshOpenModalWatchUI();
+          }
           updateHeader();
           updateBadge();
           renderEvents();
