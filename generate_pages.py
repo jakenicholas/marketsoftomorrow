@@ -459,7 +459,6 @@ def build_page(row, articles=None):
     .tmw-ms-modal,
     #msOverlay,
     body > div[id^="ms-"],
-    body > [role="dialog"] {{
       background: rgba(0,0,0,0.78) !important;
       backdrop-filter: blur(8px) !important;
       -webkit-backdrop-filter: blur(8px) !important;
@@ -467,7 +466,6 @@ def build_page(row, articles=None):
     .tmw-ms-modal > div,
     .tmw-ms-modal [role="dialog"],
     #msOverlay > div,
-    body > [role="dialog"] {{
       background: #0f0f0f !important;
       color: #fff !important;
       border: 1px solid rgba(255,255,255,0.08) !important;
@@ -476,7 +474,6 @@ def build_page(row, articles=None):
     }}
     .tmw-ms-modal img,
     #msOverlay img,
-    body > [role="dialog"] img {{
       filter: brightness(0) invert(1) !important;
       opacity: 0.95 !important;
     }}
