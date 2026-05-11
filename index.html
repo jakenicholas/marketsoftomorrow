@@ -11034,10 +11034,26 @@
           const count = rows.length;
           let unread = 0;
           let nextYear = null;
+          // "Next delivery" should mean the soonest UPCOMING delivery -- not
+          // the earliest year in the list. Projects already delivered (Now
+          // Open) don't count: they're done. Past years also don't count.
+          //
+          // Note: row.delivery is the STATUS string ("Now Open", "Under
+          // Construction", "Announced", etc.) and row.deliveryDate is the
+          // specific year/quarter ("2026", "Q4 2027", etc.). Year regex on
+          // either field handles cases where one or the other is missing.
+          const currentYear = new Date().getFullYear();
           rows.forEach(r => {
             unread += r.unreadCount;
-            const y = pickDeliveryYear(r.delivery);
-            if (y && (!nextYear || y < nextYear)) nextYear = y;
+            // Already-open projects skip the next-delivery calculation:
+            // they've delivered, so by definition they're not "next".
+            const stage = String(r.delivery || '').toLowerCase();
+            if (stage.indexOf('now open') !== -1) return;
+            // Year comes from deliveryDate ideally (e.g. "2026", "Q1 2027");
+            // fall back to the delivery field if needed.
+            const y = pickDeliveryYear(r.deliveryDate) || pickDeliveryYear(r.delivery);
+            if (!y || y < currentYear) return;
+            if (!nextYear || y < nextYear) nextYear = y;
           });
           return { count, unread, nextYear };
         }
