@@ -1462,7 +1462,10 @@
       #watchlistPanel.open { transform: translateX(0); }
     }
 
-    /* Mobile: bottom sheet mirroring the existing mobile drawer pattern. */
+    /* Mobile: bottom sheet mirroring the existing mobile drawer pattern.
+       Higher z-index than search bar (25) and Mapbox map controls so the
+       drawer overlays everything on small screens. On desktop the standard
+       z-index: 4 is fine since the left drawer doesn't overlap controls. */
     @media(max-width:800px) {
       #watchlistPanel {
         left: 0; right: 0; bottom: 0;
@@ -1474,6 +1477,7 @@
         padding-bottom: var(--safe-area-bottom);
         transform: translateY(100%);
         transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+        z-index: 2050;
       }
       #watchlistPanel.open { transform: translateY(0); }
     }
@@ -5829,6 +5833,9 @@
       if (sidebar.classList.contains('open')) {
         sidebar.classList.remove('open');
       } else {
+        // Mutual exclusivity: close the Watchlist panel if it's open so the
+        // two left-drawer surfaces never stack.
+        if (window.closeWatchlist) window.closeWatchlist();
         sidebar.classList.add('open');
         renderGrid('gridDesktop');
       }
@@ -8018,6 +8025,9 @@
 
       function expandDrawer() {
         isExpanded = true;
+        // Mutual exclusivity: close the Watchlist bottom sheet if it's open.
+        // Both share the bottom-of-screen slot on mobile and can't coexist.
+        if (window.closeWatchlist) window.closeWatchlist();
         // Clear any leftover closing class from a previous close that may
         // not have completed before the user reopened
         drawer.classList.remove('closing');
@@ -9624,10 +9634,16 @@
       async function saveFavoritesToMember() {
         if (!window.$memberstackDom) return;
         try {
-          // updateMemberJSON merges with existing JSON
-          await window.$memberstackDom.updateMemberJSON({
-            json: { favorites: Array.from(window._favorites) }
-          });
+          // CRITICAL: updateMemberJSON REPLACES the entire JSON blob -- it
+          // does NOT merge. So before writing favorites, we must fetch the
+          // current JSON (which contains last_viewed_at and any future
+          // sibling keys) and merge our changes into it. Without this, two
+          // sibling save paths overwrite each other and the next device to
+          // sync sees only the last-written key.
+          const cur = await window.$memberstackDom.getMemberJSON();
+          const json = (cur && cur.data && typeof cur.data === 'object') ? cur.data : {};
+          json.favorites = Array.from(window._favorites);
+          await window.$memberstackDom.updateMemberJSON({ json });
         } catch (e) { console.warn('[Favorites] save error:', e); }
       }
 
@@ -9667,9 +9683,14 @@
         if (_lastViewedSaveTimer) clearTimeout(_lastViewedSaveTimer);
         _lastViewedSaveTimer = setTimeout(async () => {
           try {
-            await window.$memberstackDom.updateMemberJSON({
-              json: { last_viewed_at: window._lastViewed }
-            });
+            // Same trap as saveFavoritesToMember: updateMemberJSON REPLACES
+            // the entire blob. Fetch current, merge our change, write back.
+            // Otherwise this save wipes the favorites array (or whatever else
+            // lives in the JSON blob).
+            const cur = await window.$memberstackDom.getMemberJSON();
+            const json = (cur && cur.data && typeof cur.data === 'object') ? cur.data : {};
+            json.last_viewed_at = window._lastViewed;
+            await window.$memberstackDom.updateMemberJSON({ json });
           } catch (e) { console.warn('[Watchlist] last_viewed save error:', e); }
         }, 800);
       }
@@ -10157,6 +10178,27 @@
 
         function openPanel() {
           if (!panel) return;
+          // Mutual exclusivity: close any other primary surface that would
+          // overlap or look stacked. The desktop sidebar (project tiles) lives
+          // in the same left-drawer slot, and the mobile drawer covers the
+          // same bottom-sheet slot, so opening Watchlist closes them.
+          const ds = document.getElementById('desktopSidebar');
+          if (ds && ds.classList.contains('open')) {
+            ds.classList.remove('open');
+          }
+          const md = document.getElementById('mobileDrawer');
+          if (md && md.classList.contains('expanded')) {
+            // Mobile drawer has its own close machinery (animates, restores
+            // map button, resets overflow). Trigger a click on its handle
+            // would conflict with our own handle, so we just collapse it
+            // directly here and let the existing CSS handle the transition.
+            md.classList.remove('expanded');
+            md.classList.add('closing');
+            md.style.transform = '';
+            const mapBtn = document.getElementById('mobileMapButton');
+            if (mapBtn) mapBtn.classList.remove('visible');
+            setTimeout(() => md.classList.remove('closing'), 400);
+          }
           panel.removeAttribute('hidden');
           // Force reflow before adding .open so the transition fires
           // eslint-disable-next-line no-unused-expressions
