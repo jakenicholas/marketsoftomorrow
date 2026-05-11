@@ -8,6 +8,14 @@
   <link rel="icon" href="https://static.wixstatic.com/media/ca3b83_71f3cd2ef61049028b2daf4e2ff71d52~mv2.png" type="image/png">
   <link rel="apple-touch-icon" href="https://static.wixstatic.com/media/ca3b83_71f3cd2ef61049028b2daf4e2ff71d52~mv2.png">
 
+  <!-- Editorial typography for the comparison view:
+       Fraunces  display serif (titles, project names)
+       JetBrains Mono  monospace eyebrow + meta labels
+       Inter already loads via the Mapbox token script's CSS; not duplicated here. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
   <title>Map of Tomorrow | Interactive Future Development Map | Markets of Tomorrow</title>
   <meta name="description" content="Explore the world's most exciting developments in an interactive map by Markets of Tomorrow — from luxury projects to future neighborhoods.">
   <meta name="keywords" content="Florida real estate map, development map, development pipeline, new developments coming to Florida, new developments coming to Bahamas, new developments around the United States, Markets of Tomorrow, Florida of Tomorrow, new projects Florida, interactive map, future developments">
@@ -3190,21 +3198,10 @@
     overflow: hidden;
     font-family: var(--font-sans, sans-serif);
   }
-  /* When a project modal is opened from inside the comparison view, bump
-     it well above the compare drawer's stacking context. The compare view
-     creates a stacking context via z-index:8500 (or 50 with compare-view-bg),
-     and the drawer inside uses z:5 within it. Without an explicit boost the
-     project modal at z:2100 outside that context renders correctly, but the
-     comparison drawer's backdrop-blur + glass can visually swallow it on
-     some devices. body.compare-modal-open is set when this path is active. */
-  body.compare-modal-open #projectModal {
-    z-index: 10000 !important;
-  }
-  body.compare-modal-open #projectModal.closing {
-    z-index: 9999 !important;
-  }
   /* Closing state: while the modal is sliding away, drop it below the pulse
-     drawer so the exit animation plays behind pulse rather than over it. */
+     drawer so the exit animation plays behind pulse rather than over it.
+     (The body.compare-modal-open boost lives with the compare-view CSS
+     below, in case a project modal is opened from inside a comparison.) */
   #projectModal.closing {
     z-index: 1900;
   }
@@ -4766,659 +4763,635 @@
   }
 
   /* ─── Comparison view: full-screen overlay with map + drawer ────────────── */
-  /* Architecture: map fills the entire viewport; drawer floats over it on the
-     left (desktop) or bottom (mobile). When user toggles "Side-by-side",
-     the drawer hides and a horizontal cards strip appears at the bottom. */
+  /* ═══════════════════════════════════════════════════════════════════════════
+     COMPARISON VIEW — redesigned May 2026
+     ─────────────────────────────────────────────────────────────────────────
+     Two modes, one container. Sheet (default) is an editorial spec-grid
+     optimized for agents sending to clients. Map mode is a full-pane Mapbox
+     view with numbered pins + a legend. All class names use the cv- prefix
+     so they don't collide with the older compare-modal builder UI (which
+     still uses .compare-* classes).
+     ═══════════════════════════════════════════════════════════════════════ */
+
+  /* Container -- fullscreen overlay above everything except the project modal */
   .compare-view {
     position: fixed; inset: 0;
     z-index: 8500;
-    background: #0d0d0d;
-    color: #fff;
-    display: none;
-  }
-  .compare-view.open { display: block; }
-  /* Drop below the project modal (z-index 100) when a project is opened from
-     within the comparison view, so the project modal renders on top. */
-  .compare-view.compare-view-bg { z-index: 50; }
-  /* Comparison view takes over the screen. Hide the Pulse drawer + bell
-     entirely while it's active so they don't render between the comparison
-     background (z 50) and the project modal (z 2100) when a project is
-     opened from within compare view. */
-  body.compare-view-active #pulseStack,
-  body.compare-view-active #pulseBellBtn {
-    display: none !important;
-  }
-  body.compare-view-active { overflow: hidden; }
-
-  /* Map fills the entire viewport */
-  .compare-view-map {
-    position: absolute; inset: 0;
-    width: 100%;
-    height: 100%;
     background: #0a0a0a;
-    /* Establish a stacking context so Mapbox markers (pins) are confined
-       to this layer and never bleed above the drawer (z 5) or side-by-side
-       cards (z 4). Without this, marker DOM elements can render above the
-       drawer due to how Mapbox positions them inside a sibling container. */
-    z-index: 1;
+    color: #fafafa;
+    display: none;
+    flex-direction: column;
+    font-family: 'Inter', -apple-system, sans-serif;
+    overflow: hidden;
+  }
+  .compare-view.open { display: flex; }
+  /* When a project modal opens from inside the comparison view, drop our
+     z-index so the modal renders on top */
+  .compare-view.compare-view-bg { z-index: 50; }
+  /* While compare is active, hide the pulse drawer + bell entirely so they
+     don't render between compare (z 50 when bg) and project modal (z 2100) */
+  body.compare-view-active #pulseStack,
+  body.compare-view-active #pulseBellBtn { display: none !important; }
+  body.compare-view-active { overflow: hidden; }
+  /* When a project modal is opened from inside compare, force it above
+     compare's stacking context */
+  body.compare-modal-open #projectModal { z-index: 10000 !important; }
+  body.compare-modal-open #projectModal.closing { z-index: 9999 !important; }
+
+  /* ─── HEADER ─────────────────────────────────────────────────────────────
+     Editorial bar with agent attribution. Sticky inside the view container.
+     The "Curated by" line + share button are the primary agent-as-author
+     surface -- when shared, this is what makes the page feel curated. */
+  .cv-header {
+    padding: 22px 28px 18px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 20px;
+    align-items: center;
+    background: #0a0a0a;
+    flex: 0 0 auto;
+  }
+  .cv-back {
+    width: 36px; height: 36px;
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.10);
+    border-radius: 8px;
+    color: rgba(255,255,255,0.55);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .cv-back:hover { border-color: rgba(255,255,255,0.20); color: #fff; }
+
+  .cv-titles { min-width: 0; }
+  .cv-eyebrow {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    color: #1FDF67;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .cv-eyebrow-dot {
+    width: 6px; height: 6px;
+    background: #1FDF67;
+    border-radius: 50%;
+    box-shadow: 0 0 0 3px rgba(31,223,103,0.18);
+  }
+  .cv-title {
+    /* Fraunces is loaded by the project-modal section above; reuse it here
+       to give comparison the same editorial-publication feel */
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 400;
+    font-size: 30px;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    color: #fff;
+    margin: 0;
+  }
+  .cv-byline {
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.55);
+  }
+  .cv-byline strong { color: #fff; font-weight: 600; }
+  .cv-byline-avatar {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #1FDF67, #0a9b3f);
+    color: #000;
+    font-size: 10px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    letter-spacing: 0.02em;
+    flex: 0 0 auto;
+  }
+  .cv-byline-sep {
+    width: 3px; height: 3px;
+    background: rgba(255,255,255,0.32);
+    border-radius: 50%;
   }
 
-  /* ─── Drawer (left side on desktop, bottom on mobile) ───────────────────── */
-  .compare-drawer {
+  .cv-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    position: relative;
+  }
+  .cv-action-btn {
+    height: 36px;
+    padding: 0 14px;
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.10);
+    border-radius: 8px;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+    font-family: inherit;
+  }
+  .cv-action-btn:hover { border-color: rgba(255,255,255,0.20); background: rgba(255,255,255,0.03); }
+  .cv-action-icon { width: 36px; padding: 0; justify-content: center; }
+  .cv-action-primary {
+    background: #1FDF67;
+    color: #000;
+    border-color: #1FDF67;
+    font-weight: 600;
+  }
+  .cv-action-primary:hover { background: #18c75b; border-color: #18c75b; color: #000; }
+
+  /* Mode toggle icon swap: show MAP icon while in sheet mode, SHEET icon
+     while in map mode. (Icon shown = where pressing the button takes you.) */
+  .cv-action-btn .cv-icon-map,
+  .cv-action-btn .cv-icon-sheet { display: none; }
+  .compare-view[data-mode="sheet"] .cv-action-btn .cv-icon-map { display: block; }
+  .compare-view[data-mode="map"]   .cv-action-btn .cv-icon-sheet { display: block; }
+
+  /* Share dropdown menu */
+  .cv-share-wrap { position: relative; }
+  .cv-share-menu {
     position: absolute;
-    /* Sit below the page header so the title eyebrow ("Comparing N projects")
-       isn't hidden behind the TMW logo bar at the top of the viewport. */
-    top: calc(var(--header-height) + var(--safe-area-top) + 16px);
-    left: 16px;
-    bottom: 16px;
-    width: 420px;
-    z-index: 5;
-    background: rgba(11,11,11,0.92);
-    backdrop-filter: blur(24px) saturate(1.4);
-    -webkit-backdrop-filter: blur(24px) saturate(1.4);
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 16px;
+    top: calc(100% + 6px);
+    right: 0;
+    background: #131313;
+    border: 1px solid rgba(255,255,255,0.10);
+    border-radius: 10px;
     box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+    padding: 6px;
+    min-width: 200px;
+    z-index: 100;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    gap: 2px;
   }
-  .compare-drawer[hidden] { display: none; }
-
-  .compare-drawer-header {
-    padding: 16px 18px 14px;
-    border-bottom: 1px solid rgba(255,255,255,0.08);
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 12px;
-  }
-  .compare-drawer-titles { flex: 1 1 auto; min-width: 0; }
-  .compare-drawer-eyebrow {
-    font-size: 10px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: rgba(255,255,255,0.5);
-    margin-bottom: 4px;
-  }
-  .compare-drawer-count { color: #1FDF67; }
-  .compare-drawer-title {
-    font-size: 18px;
-    font-weight: 700;
-    margin: 0;
-    line-height: 1.2;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  }
-  .compare-drawer-author {
-    font-size: 11px;
-    color: rgba(255,255,255,0.45);
-    margin-top: 3px;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  }
-  .compare-drawer-author:empty { display: none; }
-  /* Card deck stage */
-  .compare-deck-stage {
-    flex: 1 1 auto;
-    position: relative;
-    padding: 22px 18px 8px;
-    overflow: hidden;
-    min-height: 0;
-  }
-  .compare-nav-arrows {
-    position: absolute;
-    top: 50%;
-    left: 4px; right: 4px;
-    transform: translateY(-50%);
-    display: flex;
-    justify-content: space-between;
-    pointer-events: none;
-    z-index: 5;
-  }
-  .compare-nav-arrow {
-    width: 34px; height: 34px;
-    background: rgba(15,15,15,0.85);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    border: 1px solid rgba(255,255,255,0.12);
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
+  .cv-share-menu[hidden] { display: none; }
+  .cv-share-item {
+    background: transparent;
+    border: 0;
     color: #fff;
+    font-family: inherit;
+    font-size: 13px;
+    text-align: left;
+    padding: 9px 12px;
+    border-radius: 6px;
     cursor: pointer;
-    pointer-events: auto;
-    transition: background 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: background 0.12s;
   }
-  .compare-nav-arrow:hover { background: rgba(31,31,31,0.95); }
+  .cv-share-item:hover { background: rgba(255,255,255,0.06); }
+  .cv-share-item svg { color: rgba(255,255,255,0.55); flex: 0 0 auto; }
 
-  .compare-deck {
+  /* ─── BODY (sheet OR map pane) ──────────────────────────────────────────── */
+  .cv-body {
+    flex: 1 1 auto;
+    min-height: 0;
     position: relative;
-    height: 100%;
-    min-height: 360px;
   }
-  .compare-deck-card {
+  .cv-sheet-scroll,
+  .cv-map-pane {
     position: absolute;
     inset: 0;
-    background: #161616;
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 14px;
     overflow: hidden;
-    transform-origin: top center;
-    transition: transform 0.3s ease, opacity 0.3s ease;
-    display: flex; flex-direction: column;
   }
-  .compare-deck-card.back-2 {
-    transform: scale(0.92) translateY(-10px);
-    opacity: 0.5;
-    cursor: pointer;
+  .cv-sheet-scroll[hidden],
+  .cv-map-pane[hidden] { display: none; }
+  .cv-sheet-scroll {
+    overflow-x: auto;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
-  .compare-deck-card.back-1 {
-    transform: scale(0.96) translateY(-5px);
-    opacity: 0.75;
-    cursor: pointer;
-    z-index: 2;
-  }
-  .compare-deck-card.front {
-    z-index: 3;
+  /* Scrollbar -- subtle on the dark theme */
+  .cv-sheet-scroll::-webkit-scrollbar { height: 10px; width: 10px; }
+  .cv-sheet-scroll::-webkit-scrollbar-track { background: #0a0a0a; }
+  .cv-sheet-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 99px; }
+  .cv-sheet-scroll::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+  /* ─── SHEET GRID ────────────────────────────────────────────────────────
+     CSS grid. Left column (140px) is the sticky attribute label column.
+     Right columns are 260px each, one per project. */
+  .cv-sheet-grid {
+    display: grid;
+    grid-template-columns: 140px repeat(var(--cv-col-count, 1), minmax(260px, 1fr));
+    min-width: 100%;
   }
 
-  .compare-deck-card-img {
-    height: 170px;
-    flex: 0 0 auto;
+  /* Sticky label cells */
+  .cv-label-cell {
+    position: sticky;
+    left: 0;
+    background: #0a0a0a;
+    z-index: 2;
+    padding: 14px 18px;
+    border-right: 1px solid rgba(255,255,255,0.08);
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.55);
+    display: flex;
+    align-items: center;
+  }
+  /* Project (data) cells */
+  .cv-cell {
+    padding: 14px 20px;
+    border-right: 1px solid rgba(255,255,255,0.08);
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    background: #0a0a0a;
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+    min-height: 56px;
+  }
+  .cv-cell-last { border-right: 0; }
+  .cv-cell-val {
+    color: #fff;
+    font-weight: 500;
+    line-height: 1.4;
+    white-space: normal;
+  }
+  .cv-cell-empty { color: rgba(255,255,255,0.32); font-style: italic; font-weight: 400; }
+
+  /* HERO ROW: 200px-tall image cells. Always the first row. */
+  .cv-row-hero.cv-label-cell {
+    padding: 0;
+    height: 200px;
+    align-items: flex-end;
+    padding-left: 18px;
+    padding-bottom: 14px;
+  }
+  .cv-row-hero.cv-cell {
+    padding: 0;
+    height: 200px;
+    overflow: hidden;
+    position: relative;
+  }
+  .cv-hero {
+    position: absolute; inset: 0;
+  }
+  .cv-hero-img {
+    width: 100%; height: 100%;
     background-size: cover;
     background-position: center;
-    background-color: #0a0a0a;
-    position: relative;
+    background-color: #1a1a1a;
   }
-  .compare-deck-card-img-overlay {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 60%);
+  .cv-hero-img-empty {
+    background: linear-gradient(135deg, #1a1a1a, #0d0d0d);
   }
-  .compare-deck-card-status {
+  .cv-hero-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(to bottom, transparent 45%, rgba(0,0,0,0.65));
+    pointer-events: none;
+  }
+  .cv-hero-num {
     position: absolute;
     top: 12px; left: 12px;
-    padding: 4px 9px;
-    border-radius: 4px;
-    font-size: 10px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-  }
-  .compare-deck-card-counter {
-    position: absolute;
-    top: 12px; right: 12px;
-    padding: 4px 9px;
-    border-radius: 12px;
-    font-size: 10px;
-    font-weight: 600;
-    background: rgba(0,0,0,0.55);
-    color: #fff;
-  }
-  .compare-deck-card-body {
-    padding: 14px 16px 16px;
-    flex: 1 1 auto;
-    display: flex; flex-direction: column;
-    min-height: 0;
-  }
-  .compare-deck-card-city {
-    font-size: 11px;
-    color: rgba(255,255,255,0.45);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    margin-bottom: 4px;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  }
-  .compare-deck-card-title {
-    font-size: 18px;
-    font-weight: 700;
-    line-height: 1.2;
-    margin: 0 0 12px;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-  .compare-deck-stats {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1px;
-    background: rgba(255,255,255,0.08);
-    border-radius: 10px;
-    overflow: hidden;
-    margin-bottom: 12px;
-  }
-  .compare-deck-stat {
-    background: #161616;
-    padding: 9px 11px;
-    min-width: 0;
-  }
-  .compare-deck-stat-k {
-    font-size: 9px;
-    color: rgba(255,255,255,0.42);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    margin-bottom: 2px;
-  }
-  .compare-deck-stat-v {
-    font-size: 12px;
-    font-weight: 600;
-    color: #fff;
-    /* Two-line clamp so long developer/architect lists don't overflow */
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-  }
-  .compare-deck-cta {
-    margin-top: auto;
-    background: rgba(255,255,255,0.06);
-    border: 0.5px solid rgba(255,255,255,0.1);
-    color: #fff;
-    border-radius: 8px;
-    padding: 9px 12px;
-    font-size: 12px;
-    font-weight: 600;
-    cursor: pointer;
-    text-align: center;
-    transition: background 0.15s, color 0.15s;
-  }
-  .compare-deck-cta:hover {
+    width: 26px; height: 26px;
     background: #1FDF67;
     color: #000;
-    border-color: transparent;
-  }
-  .compare-deck-card-missing {
-    display: flex; align-items: center; justify-content: center;
-    padding: 24px;
-    text-align: center;
-  }
-  .compare-deck-card-missing strong { display: block; margin-bottom: 4px; color: rgba(255,255,255,0.85); font-size: 13px; }
-  .compare-deck-card-missing span { color: rgba(255,255,255,0.5); font-size: 12px; }
-
-  /* Pagination dots */
-  .compare-deck-dots {
-    display: flex;
-    justify-content: center;
-    gap: 6px;
-    padding: 10px 0 6px;
-    flex: 0 0 auto;
-  }
-  .compare-deck-dot {
-    width: 6px; height: 6px;
+    font-weight: 700;
+    font-size: 12px;
     border-radius: 50%;
-    background: rgba(255,255,255,0.2);
-    border: 0;
-    padding: 0;
-    cursor: pointer;
-    transition: width 0.2s, border-radius 0.2s, background 0.2s;
-  }
-  .compare-deck-dot.active {
-    width: 18px;
-    border-radius: 3px;
-    background: #1FDF67;
-  }
-
-
-  /* ─── Floating controls overlaid on the comparison map ────────────────────
-     Three buttons stacked top-right (mode toggle, edit, share) match the
-     visual style of the right-side cluster on the main map. A close X sits
-     top-left. Both are visible in BOTH stack and side-by-side modes so the
-     interaction model is the same throughout. */
-  .compare-floating-close {
-    position: absolute;
-    /* Clear the page header so the close button isn't hidden behind the
-       TMW logo bar. Same offset as .compare-drawer and .compare-floating-actions. */
-    top: calc(var(--header-height) + var(--safe-area-top) + 16px);
-    /* Sit just to the right of the 420px-wide drawer on desktop so it
-       floats over the map area, not over the drawer. On mobile the drawer
-       becomes a bottom sheet so this position naturally falls on the map. */
-    left: calc(16px + 420px + 16px);
-    width: 36px; height: 36px;
-    border-radius: 8px;
-    /* Match the .glass-btn look used by the right-side cluster on the main
-       map: lighter translucent fill, 16px blur with saturation, faint inset
-       highlight, and shadow for separation. */
-    background: rgba(15,15,15,0.55);
-    backdrop-filter: blur(16px) saturate(1.4);
-    -webkit-backdrop-filter: blur(16px) saturate(1.4);
-    border: 1px solid rgba(255,255,255,0.10);
-    color: #fff;
-    cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    z-index: 20;
-    box-shadow: 0 4px 24px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.06);
-    transition: background 0.15s, border-color 0.15s;
-  }
-  .compare-floating-close:hover {
-    background: rgba(30,30,30,0.7);
-    border-color: rgba(255,255,255,0.18);
-  }
-
-  .compare-floating-actions {
-    position: absolute;
-    /* Sit below the page header so the action buttons (toggle mode, edit,
-       share) aren't hidden behind the TMW logo bar at the top of the
-       viewport. Mirrors the same offset used by .compare-drawer above. */
-    top: calc(var(--header-height) + var(--safe-area-top) + 16px);
-    right: calc(16px + var(--safe-area-right));
     display: flex;
-    flex-direction: column;
-    gap: 10px;
-    z-index: 20;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #0a0a0a;
   }
-  .compare-floating-btn {
-    width: 36px; height: 36px;
-    border-radius: 8px;
-    /* Same glass treatment as the main map buttons */
-    background: rgba(15,15,15,0.55);
-    backdrop-filter: blur(16px) saturate(1.4);
-    -webkit-backdrop-filter: blur(16px) saturate(1.4);
-    border: 1px solid rgba(255,255,255,0.10);
-    color: #fff;
-    cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 4px 24px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.06);
-    transition: background 0.15s, border-color 0.15s;
-    padding: 0;
-  }
-  .compare-floating-btn:hover {
-    background: rgba(30,30,30,0.7);
-    border-color: rgba(255,255,255,0.18);
-  }
-  /* Mode-toggle icon swap: show the side-by-side icon while in stack mode,
-     show the stack/cards icon while in side-by-side mode. */
-  .compare-floating-btn .icon-side-by-side,
-  .compare-floating-btn .icon-stack { display: none; }
-  .compare-view[data-mode="stack"] .compare-floating-btn .icon-side-by-side { display: block; }
-  .compare-view[data-mode="side"]  .compare-floating-btn .icon-stack        { display: block; }
-
-  /* ─── Side-by-side mode: full-width strip of cards beneath the map ──────
-     Hidden by default; shown when user toggles the mode button. The strip
-     scrolls horizontally with snap-to-card. */
-  .compare-view-cards-wrap {
+  .cv-hero-label {
     position: absolute;
-    left: 0; right: 0; bottom: 0;
-    height: 460px;
-    z-index: 4;
-    background: rgba(13,13,13,0.92);
-    backdrop-filter: blur(20px) saturate(1.4);
-    -webkit-backdrop-filter: blur(20px) saturate(1.4);
-    border-top: 0.5px solid rgba(255,255,255,0.08);
-    overflow-x: auto;
-    overflow-y: hidden;
-    padding: 18px 20px;
-    /* Reserve space for the home indicator on iPhones */
-    padding-bottom: calc(18px + var(--safe-area-bottom));
-  }
-  .compare-view-cards-wrap[hidden] { display: none; }
-  .compare-view-cards-wrap::-webkit-scrollbar { height: 8px; }
-  .compare-view-cards-wrap::-webkit-scrollbar-thumb {
-    background: rgba(255,255,255,0.1);
-    border-radius: 4px;
-  }
-  .compare-view-cards-wrap::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
-  .compare-view-cards {
-    display: flex;
-    gap: 14px;
-    height: 100%;
-    scroll-snap-type: x mandatory;
-    -webkit-overflow-scrolling: touch;
-    /* Allow card shadows / borders to render fully */
-    padding: 0 4px;
-  }
-
-  /* Card */
-  .compare-card {
-    flex: 0 0 290px;
-    scroll-snap-align: start;
-    background: #1a1a1a;
-    border: 0.5px solid rgba(255,255,255,0.08);
-    border-radius: 12px;
+    bottom: 12px; left: 12px; right: 12px;
+    color: #fff;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    opacity: 0.9;
+    white-space: nowrap;
     overflow: hidden;
-    display: flex; flex-direction: column;
+    text-overflow: ellipsis;
+  }
+
+  /* TITLE row: magazine-y serif project name */
+  .cv-row-title.cv-cell {
+    padding-top: 18px;
+    padding-bottom: 6px;
+    align-items: flex-start;
+    min-height: 0;
+  }
+  .cv-project-title {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 22px;
+    font-weight: 500;
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+    color: #fff;
+  }
+  /* CITY row sits right below TITLE with no border between them visually */
+  .cv-row-city.cv-cell {
+    padding-top: 0;
+    padding-bottom: 18px;
+    align-items: flex-start;
+    color: rgba(255,255,255,0.55);
+    font-size: 13px;
+    min-height: 0;
+  }
+  .cv-row-title.cv-cell,
+  .cv-row-city.cv-cell {
+    border-bottom: 0;
+  }
+  /* The CITY row gets the actual bottom border that visually separates this
+     stacked title+city pair from the next row */
+  .cv-row-city.cv-cell { border-bottom: 1px solid rgba(255,255,255,0.08); }
+  .cv-row-title.cv-label-cell,
+  .cv-row-city.cv-label-cell { border-bottom: 0; }
+  .cv-row-city.cv-label-cell { border-bottom: 1px solid rgba(255,255,255,0.08); }
+
+  /* STATUS pill */
+  .cv-status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 99px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+  .cv-status-pill::before {
+    content: '';
+    width: 6px; height: 6px;
+    background: currentColor;
+    border-radius: 50%;
+  }
+  .cv-status-open {
+    background: rgba(31,223,103,0.12);
+    color: #1FDF67;
+    border: 1px solid rgba(31,223,103,0.25);
+  }
+  .cv-status-construction {
+    background: rgba(255,149,0,0.12);
+    color: #FF9500;
+    border: 1px solid rgba(255,149,0,0.25);
+  }
+  .cv-status-announced {
+    background: rgba(255,255,255,0.06);
+    color: rgba(255,255,255,0.55);
+    border: 1px solid rgba(255,255,255,0.10);
+  }
+
+  /* TIMELINE progress bar */
+  .cv-row-timeline.cv-cell {
+    padding-top: 16px;
+    padding-bottom: 16px;
+    align-items: flex-start;
+  }
+  .cv-progress { width: 100%; display: flex; flex-direction: column; gap: 8px; }
+  .cv-progress-bar {
+    height: 4px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+  .cv-progress-fill {
+    height: 100%;
+    background: #FF9500;
+    border-radius: 99px;
+    transition: width 0.4s ease;
+  }
+  .cv-progress-fill-done { background: #1FDF67; }
+  .cv-progress-meta {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    color: rgba(255,255,255,0.32);
+    text-transform: uppercase;
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .cv-progress-meta strong { color: rgba(255,255,255,0.55); font-weight: 500; }
+
+  /* CTA row */
+  .cv-row-cta.cv-cell,
+  .cv-row-cta.cv-label-cell { border-bottom: 0; padding: 16px 20px; }
+  .cv-row-cta.cv-label-cell { padding: 16px 18px; }
+  .cv-view-btn {
+    width: 100%;
+    height: 40px;
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.16);
+    border-radius: 8px;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
     cursor: pointer;
-    transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+    font-family: inherit;
   }
-  .compare-card:hover {
-    transform: translateY(-2px);
-    border-color: rgba(31,223,103,0.35);
-    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
-  }
-  .compare-card.is-flashed {
+  .cv-view-btn:hover {
+    background: #1FDF67;
+    color: #000;
     border-color: #1FDF67;
-    box-shadow: 0 0 0 2px rgba(31,223,103,0.4);
   }
-  .compare-card-img-wrap {
-    position: relative;
-    height: 150px;
-    flex: 0 0 auto;
+  .cv-view-btn svg { transition: transform 0.15s; }
+  .cv-view-btn:hover svg { transform: translateX(2px); }
+
+  /* Empty state */
+  .cv-empty {
+    grid-column: 1 / -1;
+    padding: 60px 20px;
+    text-align: center;
+    color: rgba(255,255,255,0.45);
+    font-size: 14px;
+  }
+
+  /* ─── MAP MODE ──────────────────────────────────────────────────────────
+     Full-pane Mapbox with numbered pins. Legend at the bottom-left lets the
+     user scan project names without leaving the map. */
+  .cv-map-container {
+    position: absolute; inset: 0;
     background: #0a0a0a;
   }
-  .compare-card-img {
-    width: 100%; height: 100%;
-    object-fit: cover;
-    display: block;
-  }
-  .compare-card-img-empty { background: rgba(255,255,255,0.04); }
-  .compare-card-num {
+  .cv-map-legend {
     position: absolute;
-    top: 10px; left: 10px;
-    width: 26px; height: 26px;
-    border-radius: 50%;
-    background: rgba(0,0,0,0.7);
-    color: #1FDF67;
-    border: 1px solid rgba(31,223,103,0.45);
-    font-size: 12px; font-weight: 700;
-    display: flex; align-items: center; justify-content: center;
+    left: 20px; bottom: 20px;
+    width: 280px;
+    max-height: calc(100% - 40px);
+    background: rgba(11,11,11,0.92);
+    backdrop-filter: blur(16px) saturate(1.4);
+    -webkit-backdrop-filter: blur(16px) saturate(1.4);
+    border: 1px solid rgba(255,255,255,0.10);
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
   }
-  .compare-card-body {
-    padding: 12px 14px 14px;
-    display: flex; flex-direction: column;
+  .cv-map-legend-title {
+    padding: 14px 16px 8px;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.5);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .cv-map-legend-list {
+    list-style: none;
+    margin: 0; padding: 4px 0;
+    overflow-y: auto;
     flex: 1 1 auto;
-    min-height: 0;
   }
-  .compare-card-title-row { display: flex; align-items: flex-start; gap: 6px; margin-bottom: 2px; }
-  .compare-card-title {
-    font-size: 15px; font-weight: 600;
-    margin: 0;
-    line-height: 1.2;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-  .compare-card-city {
-    font-size: 11px; color: rgba(255,255,255,0.55);
-    margin-bottom: 8px;
-  }
-  .compare-card-type { color: rgba(255,255,255,0.4); }
-  .compare-card-status-row {
-    display: flex; align-items: center; gap: 8px;
-    margin-bottom: 12px;
-  }
-  .compare-card-status {
-    font-size: 9px; font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    padding: 3px 9px;
-    border-radius: 20px;
-  }
-  .compare-card-spec {
-    font-size: 11px;
-    margin-bottom: 6px;
-  }
-  .compare-card-spec-label {
-    color: rgba(255,255,255,0.35);
-    font-size: 9px;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    margin-bottom: 1px;
-  }
-  .compare-card-spec-val {
-    color: rgba(255,255,255,0.85);
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-  }
-  .compare-card-cta {
-    margin-top: auto;
-    background: rgba(255,255,255,0.06);
-    border: 0.5px solid rgba(255,255,255,0.1);
-    color: rgba(255,255,255,0.9);
-    border-radius: 8px;
-    padding: 9px 12px;
-    font-size: 12px; font-weight: 600;
+  .cv-map-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
     cursor: pointer;
-    text-align: center;
-    transition: background 0.15s;
+    transition: background 0.12s;
+  }
+  .cv-map-legend-item:hover,
+  .cv-map-legend-item:focus-visible { background: rgba(255,255,255,0.04); outline: none; }
+  .cv-map-legend-num {
+    width: 22px; height: 22px;
+    background: #1FDF67;
+    color: #000;
+    font-weight: 700;
+    font-size: 11px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     flex: 0 0 auto;
   }
-  .compare-card-cta:hover {
-    background: #1FDF67;
-    color: #000;
-    border-color: transparent;
+  .cv-map-legend-text {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
   }
-  .compare-card-missing {
-    flex: 0 0 290px;
-    display: flex; align-items: center; gap: 12px;
-    padding: 16px;
-    background: rgba(255,255,255,0.03);
-    border: 1px dashed rgba(255,255,255,0.1);
-    border-radius: 12px;
-  }
-  .compare-card-missing .compare-card-num { position: static; flex: 0 0 auto; }
-  .compare-card-missing-meta { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: rgba(255,255,255,0.5); }
-  .compare-card-missing-meta strong { color: rgba(255,255,255,0.85); font-size: 13px; }
-
-  /* Construction timeline (shared by deck + side-by-side cards).
-     Mirrors the project modal's pm-progress component. Stage label on left,
-     percentage on right, 5-segment bar, tiny step labels under each segment. */
-  .compare-progress { margin-bottom: 12px; }
-  .compare-progress-top {
-    display: flex; justify-content: space-between; align-items: center;
-    margin-bottom: 6px;
-  }
-  .compare-progress-stage {
-    font-size: 10px; font-weight: 700;
-    letter-spacing: 0.04em; text-transform: uppercase;
-  }
-  .compare-progress-pct {
-    font-size: 10px; color: rgba(255,255,255,0.25);
-  }
-  .compare-progress-steps {
-    display: flex; gap: 3px; margin-bottom: 5px;
-  }
-  .compare-progress-step {
-    flex: 1; height: 3px; border-radius: 2px;
-    background: rgba(255,255,255,0.08);
-  }
-  .compare-progress-step.done   { background: var(--stage-color, #FF9500); }
-  .compare-progress-step.active { opacity: 0.5; background: var(--stage-color, #FF9500); }
-  .compare-progress-step-labels {
-    display: flex; justify-content: space-between; gap: 2px;
-  }
-  .compare-progress-step-label {
-    font-size: 7px; color: rgba(255,255,255,0.2);
-    letter-spacing: 0.02em;
-    flex: 1; text-align: center;
+  .cv-map-legend-text strong {
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
-  .compare-progress-step-label:first-child { text-align: left; }
-  .compare-progress-step-label:last-child { text-align: right; }
-  .compare-progress-step-label.cur { color: var(--stage-color, #FF9500); }
-
-  /* Card flip animations (subtle scale + slide on the new front card). */
-  @keyframes compare-flip-next {
-    0%   { transform: scale(0.94) translateX(12px); opacity: 0.5; }
-    60%  { opacity: 1; }
-    100% { transform: scale(1) translateX(0); opacity: 1; }
-  }
-  @keyframes compare-flip-prev {
-    0%   { transform: scale(0.94) translateX(-12px); opacity: 0.5; }
-    60%  { opacity: 1; }
-    100% { transform: scale(1) translateX(0); opacity: 1; }
-  }
-  .compare-deck-card.anim-flip-next { animation: compare-flip-next 0.32s cubic-bezier(0.2, 0.8, 0.3, 1) both; }
-  .compare-deck-card.anim-flip-prev { animation: compare-flip-prev 0.32s cubic-bezier(0.2, 0.8, 0.3, 1) both; }
-  @media (prefers-reduced-motion: reduce) {
-    .compare-deck-card.anim-flip-next,
-    .compare-deck-card.anim-flip-prev { animation: none; }
+  .cv-map-legend-text span {
+    color: rgba(255,255,255,0.45);
+    font-size: 11px;
   }
 
-  /* Side-by-side card number: small neutral gray bubble. */
-  .compare-card-num {
-    background: rgba(20,20,20,0.78);
-    color: rgba(255,255,255,0.85);
-    border: 1px solid rgba(255,255,255,0.1);
-    -webkit-backdrop-filter: blur(6px);
-    backdrop-filter: blur(6px);
-  }
-  /* The old yellow status pill row is no longer rendered. */
-  .compare-card-status-row { display: none; }
-
-  /* Numbered map pins — IMPORTANT: do NOT transition `transform`. Mapbox uses
-     transform translate() to position the marker on every animation frame;
-     putting a CSS transition on it makes the pin lag behind the map. */
-  .compare-pin {
+  /* Map pin -- numbered marker */
+  .cv-map-pin {
     width: 32px; height: 32px;
-    border-radius: 50%;
     background: #1FDF67;
-    border: 2px solid #fff;
     color: #000;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 13px; font-weight: 800;
+    border-radius: 50%;
+    font-weight: 700;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #0a0a0a;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.5);
     cursor: pointer;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.45);
-    transition: box-shadow 0.15s, background 0.15s;
+    transition: transform 0.18s;
   }
-  .compare-pin:hover,
-  .compare-pin.highlighted {
-    background: #FFD300;
-    box-shadow: 0 4px 14px rgba(255,211,0,0.55), 0 0 0 4px rgba(255,211,0,0.18);
-    z-index: 10;
+  .cv-map-pin:hover { transform: scale(1.1); }
+  .cv-map-pin.cv-map-pin-pulse {
+    animation: cvPinPulse 1.4s ease-out;
   }
-  /* Active pin = the project currently in front of the stacked card deck.
-     White fill + green glow so it stands out from the other green pins. */
-  .compare-pin.active {
-    background: #fff;
-    color: #000;
-    box-shadow: 0 0 0 4px rgba(31,223,103,0.35), 0 0 16px rgba(31,223,103,0.6);
-    z-index: 11;
+  @keyframes cvPinPulse {
+    0%   { box-shadow: 0 4px 14px rgba(0,0,0,0.5), 0 0 0 0 rgba(31,223,103,0.6); transform: scale(1.15); }
+    100% { box-shadow: 0 4px 14px rgba(0,0,0,0.5), 0 0 0 18px rgba(31,223,103,0); transform: scale(1); }
   }
 
+  /* ─── FOOTER ─────────────────────────────────────────────────────────────
+     TMW brand mark + link back to oftmw. Shows up when the agent's link is
+     opened by a client -- makes the destination feel branded. */
+  .cv-footer {
+    padding: 16px 28px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    background: #0d0d0d;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex: 0 0 auto;
+  }
+  .cv-footer-brand {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.32);
+  }
+  .cv-footer-brand strong { color: rgba(255,255,255,0.55); }
+  .cv-footer-link {
+    font-size: 12px;
+    color: #1FDF67;
+    text-decoration: none;
+    font-weight: 500;
+  }
+  .cv-footer-link:hover { text-decoration: underline; }
+
+  /* ─── MOBILE ─────────────────────────────────────────────────────────────
+     Header collapses to a denser grid. Action labels hide. Sheet column
+     width shrinks. Map legend becomes a top-aligned strip instead of a
+     bottom-left card so the map below is fully visible. */
   @media (max-width: 768px) {
-    /* Drawer becomes a bottom sheet on mobile (instead of left panel) */
-    .compare-drawer {
-      top: auto;
-      left: 0; right: 0; bottom: 0;
-      width: 100%;
-      max-height: 75vh;
-      border-radius: 16px 16px 0 0;
-      border-left: 0; border-right: 0; border-bottom: 0;
+    .cv-header {
+      padding: 14px 16px 12px;
+      grid-template-columns: auto 1fr;
+      grid-template-areas: "back actions" "title title";
+      gap: 10px 10px;
     }
-    /* On mobile the drawer is a bottom sheet, so the close X returns to
-       the top-left of the map (no drawer in the way). */
-    .compare-floating-close {
-      left: calc(16px + var(--safe-area-left));
-    }
-    .compare-drawer-header { padding: 14px 16px 12px; }
-    .compare-drawer-title { font-size: 16px; }
-    .compare-deck-stage { padding: 16px 16px 6px; }
-    .compare-deck { min-height: 320px; }
-    .compare-deck-card-img { height: 150px; }
+    .cv-back { grid-area: back; }
+    .cv-titles { grid-area: title; }
+    .cv-actions { grid-area: actions; }
+    .cv-title { font-size: 22px; }
+    .cv-byline { font-size: 12px; margin-top: 6px; flex-wrap: wrap; }
+    .cv-action-label { display: none; }
+    .cv-action-btn,
+    .cv-action-primary { width: 36px; padding: 0; justify-content: center; }
 
-    /* Side-by-side mode: smaller cards, smaller cards-wrap */
-    .compare-view-cards-wrap {
-      height: 420px;
-      padding: 14px 14px;
-      padding-bottom: calc(14px + var(--safe-area-bottom));
+    .cv-sheet-grid {
+      grid-template-columns: 100px repeat(var(--cv-col-count, 1), 240px);
     }
-    .compare-card { flex: 0 0 84vw; max-width: 320px; }
+    .cv-label-cell { padding: 12px 12px; font-size: 9px; letter-spacing: 0.12em; }
+    .cv-cell { padding: 12px 14px; font-size: 13px; }
+    .cv-row-hero.cv-cell,
+    .cv-row-hero.cv-label-cell { height: 160px; }
+    .cv-row-hero.cv-label-cell { padding-left: 12px; }
+    .cv-project-title { font-size: 18px; }
+
+    .cv-map-legend {
+      left: 12px; right: 12px; bottom: 12px;
+      width: auto;
+      max-height: 40vh;
+    }
+
+    .cv-footer { padding: 12px 16px; }
+    .cv-footer-link { font-size: 11px; }
   }
 
   </style>
@@ -12295,6 +12268,6 @@
        Self-contained module; relies on window.projectSlugify, window.allProjectFeatures,
        window.$memberstackDom, and the auth hint cache that the paywall code maintains.
        The ?v=2 query string busts any stale cached version after recent revisions. -->
-  <script src="compare.js?v=10"></script>
+  <script src="compare.js?v=11"></script>
 </body>
 </html>
