@@ -1354,18 +1354,460 @@
 
     @media(min-width:801px) {
       #layersButton {
-        top: calc(60px + var(--safe-area-top) + 36px + 10px);
+        /* Pulse (60) + Bell(36) + gap(10) + Watch(36) + gap(10) = 152 */
+        top: calc(60px + var(--safe-area-top) + 36px + 10px + 36px + 10px);
         right: calc(15px + var(--safe-area-right));
       }
     }
     @media(max-width:800px) {
       #layersButton {
-        /* Below home button + bell button */
+        /* Below home button + bell + watchlist */
+        top: calc(var(--safe-area-top) + 10px + 36px + 10px + 36px + 10px + 36px + 10px);
+        right: calc(var(--safe-area-right) + 15px);
+        left: auto;
+      }
+    }
+
+    /* ─── WATCHLIST BUTTON + PANEL (Phase 3) ──────────────────────────────
+       Eye button sits in the right cluster between Pulse and Layers.
+       Tapping toggles the Watchlist panel which slides in from the left on
+       desktop (matching #desktopSidebar) and from the bottom on mobile
+       (matching the mobile project drawer). Internal structure mirrors
+       Pulse so the two feel like a matched pair. */
+    #watchlistBtn {
+      position: fixed;
+      z-index: 3;
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      color: #fff;
+      border: none;
+      padding: 0;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background var(--transition-med), border-color var(--transition-med);
+    }
+    #watchlistBtn svg { width: 18px; height: 18px; color: #fff; }
+    #watchlistBtn.active { border-color: var(--accent) !important; }
+    #watchlistBtn.active svg { color: var(--accent); }
+    @media(min-width:801px) {
+      #watchlistBtn {
+        /* Bell sits at top (60) + 36 + 10 = 106 */
+        top: calc(60px + var(--safe-area-top) + 36px + 10px);
+        right: calc(15px + var(--safe-area-right));
+      }
+    }
+    @media(max-width:800px) {
+      #watchlistBtn {
+        /* Mobile stack: home + bell sit above; watch is the next slot down */
         top: calc(var(--safe-area-top) + 10px + 36px + 10px + 36px + 10px);
         right: calc(var(--safe-area-right) + 15px);
         left: auto;
       }
     }
+
+    /* Green count badge on the watchlist button (parallel to pulse's pink
+       badge). Uses TMW green to read as "your stuff" rather than "general
+       activity"; same shape and positioning otherwise. */
+    .watchlist-btn-badge {
+      position: absolute;
+      top: -7px;
+      right: -7px;
+      min-width: 18px;
+      height: 18px;
+      padding: 0 5px;
+      border-radius: 9px;
+      background: #1FDF67;
+      color: #000;
+      font-size: 10px;
+      font-weight: 800;
+      line-height: 18px;
+      text-align: center;
+      box-shadow: 0 0 10px rgba(31,223,103,0.6);
+      box-sizing: border-box;
+      pointer-events: none;
+    }
+    .watchlist-btn-badge[hidden] { display: none; }
+
+    /* ─── Panel container ────────────────────────────────────────────── */
+    #watchlistPanel {
+      position: fixed;
+      z-index: 4;
+      background: linear-gradient(to bottom, rgba(11,11,11,0.92) 0px, rgba(11,11,11,0.88) 100%);
+      backdrop-filter: blur(40px) brightness(0.7);
+      -webkit-backdrop-filter: blur(40px) brightness(0.7);
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    #watchlistPanel[hidden] { display: none; }
+
+    /* Desktop: left drawer mirroring #desktopSidebar's width + entry. */
+    @media(min-width:801px) {
+      #watchlistPanel {
+        left: 0;
+        top: calc(var(--header-height) + var(--safe-area-top));
+        width: 35%;
+        min-width: 380px;
+        max-width: 480px;
+        height: calc(100% - var(--header-height) - var(--safe-area-top));
+        padding-left: var(--safe-area-left);
+        border-right: 1px solid rgba(255,255,255,0.06);
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+      }
+      #watchlistPanel.open { transform: translateX(0); }
+    }
+
+    /* Mobile: bottom sheet mirroring the existing mobile drawer pattern. */
+    @media(max-width:800px) {
+      #watchlistPanel {
+        left: 0; right: 0; bottom: 0;
+        width: 100%;
+        height: 75vh;
+        max-height: calc(100vh - var(--header-height) - var(--safe-area-top) - 20px);
+        border-radius: 18px 18px 0 0;
+        border-top: 1px solid rgba(255,255,255,0.08);
+        padding-bottom: var(--safe-area-bottom);
+        transform: translateY(100%);
+        transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+      }
+      #watchlistPanel.open { transform: translateY(0); }
+    }
+
+    /* Mobile drag handle */
+    .wl-handle {
+      display: none;
+      width: 44px; height: 5px;
+      background: rgba(255,255,255,0.28);
+      border-radius: 3px;
+      margin: 10px auto 4px;
+      flex-shrink: 0;
+    }
+    @media(max-width:800px) {
+      .wl-handle { display: block; }
+    }
+
+    /* ─── Sticky header ──────────────────────────────────────────────── */
+    .wl-header {
+      flex-shrink: 0;
+      padding: 16px 16px 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .wl-header-row {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .wl-title {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 17px; font-weight: 700;
+      color: #fff;
+      line-height: 1.2;
+    }
+    .wl-title svg { width: 18px; height: 18px; color: #1FDF67; }
+    .wl-subtitle {
+      font-size: 12px;
+      color: rgba(255,255,255,0.55);
+      margin-top: 3px;
+    }
+    .wl-close-btn {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 8px;
+      width: 32px; height: 32px;
+      display: flex; align-items: center; justify-content: center;
+      color: rgba(255,255,255,0.7);
+      cursor: pointer;
+      flex-shrink: 0;
+      padding: 0;
+      transition: background 0.15s, color 0.15s;
+    }
+    .wl-close-btn:hover { background: rgba(255,255,255,0.12); color: #fff; }
+    .wl-close-btn svg { width: 14px; height: 14px; }
+
+    /* 3-stat row */
+    .wl-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .wl-stat {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 8px;
+      padding: 10px 8px;
+      text-align: center;
+    }
+    .wl-stat-num {
+      font-size: 18px;
+      font-weight: 700;
+      line-height: 1.1;
+      color: #fff;
+    }
+    .wl-stat-num-accent { color: #1FDF67; }
+    .wl-stat-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: rgba(255,255,255,0.5);
+      margin-top: 3px;
+    }
+
+    /* Sort pills */
+    .wl-sort-pills {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .wl-sort-pill {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      color: rgba(255,255,255,0.6);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 6px 10px;
+      border-radius: 14px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+    }
+    .wl-sort-pill:hover {
+      background: rgba(255,255,255,0.08);
+      color: rgba(255,255,255,0.85);
+    }
+    .wl-sort-pill.active {
+      background: rgba(31,223,103,0.12);
+      border-color: rgba(31,223,103,0.35);
+      color: #1FDF67;
+    }
+
+    /* ─── Body / list ────────────────────────────────────────────────── */
+    .wl-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px 12px 16px;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* Empty state when user is signed out, has zero watched, or is anon */
+    .wl-empty {
+      padding: 40px 24px;
+      text-align: center;
+      color: rgba(255,255,255,0.55);
+    }
+    .wl-empty-icon {
+      width: 48px; height: 48px;
+      margin: 0 auto 14px;
+      opacity: 0.4;
+    }
+    .wl-empty-icon svg { width: 100%; height: 100%; stroke: #fff; fill: none; stroke-width: 1.5; }
+    .wl-empty-title {
+      color: #fff;
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    .wl-empty-body {
+      font-size: 13px;
+      line-height: 1.45;
+    }
+    .wl-empty-cta {
+      display: inline-block;
+      margin-top: 14px;
+      background: #1FDF67;
+      color: #000;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 16px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      text-decoration: none;
+    }
+    .wl-empty-cta:hover { background: #18c75a; }
+
+    /* Project row */
+    .wl-row {
+      position: relative;
+      display: flex;
+      gap: 12px;
+      padding: 12px;
+      margin-bottom: 8px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .wl-row:hover {
+      background: rgba(255,255,255,0.06);
+      border-color: rgba(255,255,255,0.1);
+    }
+    /* Left-edge green accent bar when the row has unread activity */
+    .wl-row.has-unread::before {
+      content: '';
+      position: absolute;
+      top: 12px; bottom: 12px; left: 0;
+      width: 3px;
+      background: #1FDF67;
+      border-radius: 0 2px 2px 0;
+      box-shadow: 0 0 8px rgba(31,223,103,0.4);
+    }
+    .wl-row-thumb {
+      position: relative;
+      width: 88px; height: 88px;
+      background: #000;
+      background-size: cover;
+      background-position: center;
+      border-radius: 8px;
+      flex-shrink: 0;
+    }
+    /* Status pin overlaid bottom-right of the thumbnail */
+    .wl-row-status-pin {
+      position: absolute;
+      bottom: 6px; right: 6px;
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: #FF9500;
+      box-shadow: 0 0 0 2px rgba(0,0,0,0.65);
+    }
+    .wl-row-body {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .wl-row-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #fff;
+      line-height: 1.25;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      padding-right: 26px; /* leave room for × button */
+    }
+    .wl-row-meta {
+      font-size: 11px;
+      color: rgba(255,255,255,0.55);
+      display: flex; align-items: center; gap: 6px;
+      flex-wrap: wrap;
+    }
+    .wl-row-status-pill {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 3px;
+      background: rgba(255,149,0,0.15);
+      color: #FF9500;
+    }
+    .wl-row-update {
+      font-size: 11px;
+      color: rgba(255,255,255,0.75);
+      display: flex; align-items: center; gap: 6px;
+      line-height: 1.35;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      margin-top: 2px;
+    }
+    .wl-row-update-tag {
+      display: inline-block;
+      font-size: 8px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 2px 5px;
+      border-radius: 3px;
+      flex-shrink: 0;
+    }
+    .wl-row-update-tag.article { background: rgba(31,223,103,0.15); color: #1FDF67; }
+    .wl-row-update-tag.status  { background: rgba(255,149,0,0.18); color: #FF9500; }
+    .wl-row-update-tag.new     { background: rgba(255,149,0,0.18); color: #FF9500; }
+    .wl-row-update-text {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .wl-row-footer {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 8px;
+      font-size: 10px;
+      color: rgba(255,255,255,0.45);
+      margin-top: 2px;
+    }
+    .wl-row-unread {
+      color: rgba(255,255,255,0.45);
+      font-weight: 600;
+    }
+    .wl-row-unread.has-unread {
+      color: #1FDF67;
+    }
+    .wl-row-remove {
+      position: absolute;
+      top: 8px; right: 8px;
+      width: 22px; height: 22px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 50%;
+      color: rgba(255,255,255,0.5);
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      padding: 0;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+    }
+    .wl-row-remove:hover {
+      background: rgba(255,59,107,0.15);
+      border-color: rgba(255,59,107,0.3);
+      color: #FF3B6B;
+    }
+    .wl-row-remove svg { width: 10px; height: 10px; }
+
+    /* Free-tier upgrade callout pinned to the bottom of the panel */
+    .wl-upgrade-card {
+      flex-shrink: 0;
+      margin: 0 12px 12px;
+      padding: 14px;
+      background: linear-gradient(135deg, rgba(255,211,0,0.10), rgba(255,211,0,0.04));
+      border: 1px solid rgba(255,211,0,0.35);
+      border-radius: 12px;
+    }
+    .wl-upgrade-card[hidden] { display: none; }
+    .wl-upgrade-card-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+    .wl-upgrade-card-body {
+      font-size: 12px;
+      color: rgba(255,255,255,0.7);
+      line-height: 1.4;
+      margin-bottom: 10px;
+    }
+    .wl-upgrade-card-btn {
+      background: #FFD300;
+      color: #000;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .wl-upgrade-card-btn:hover { background: #ffdc33; }
 
     /* ─── LOCATION BUTTON ─────────────────────────────────────────────────── */
     #locationButton {
@@ -4338,6 +4780,76 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
       <span id="pulseBellBadge" class="pulse-bell-badge" hidden></span>
     </button>
+
+    <!-- Watchlist button (Phase 3): sits between Pulse and Layers in the
+         right-side button cluster. Tap to open the Watchlist sidebar; the
+         pink badge shows the total unread updates across all watched
+         projects, mirroring the Pulse bell's visual treatment so the two
+         feeds feel like a matched pair. -->
+    <button id="watchlistBtn" class="glass-btn" title="Watchlist" aria-label="Open Watchlist" aria-expanded="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+        <circle cx="12" cy="12" r="3"/>
+      </svg>
+      <span id="watchlistBtnBadge" class="watchlist-btn-badge" hidden></span>
+    </button>
+
+    <!-- Watchlist panel. Mirrors the existing #desktopSidebar layout (left
+         drawer on desktop) and the mobile bottom-sheet pattern. Internal
+         structure: sticky header (title + stats + sort pills), scrollable
+         list of project rows, optional free-tier upgrade nudge pinned at
+         the bottom when the user is at the watch limit. -->
+    <aside id="watchlistPanel" aria-label="Your watchlist" hidden>
+      <!-- Mobile drag handle (hidden on desktop via CSS) -->
+      <div class="wl-handle" id="watchlistHandle" aria-hidden="true"></div>
+      <header class="wl-header">
+        <div class="wl-header-row">
+          <div class="wl-title-block">
+            <div class="wl-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+              Your Watchlist
+            </div>
+            <div class="wl-subtitle" id="watchlistSubtitle">No projects yet</div>
+          </div>
+          <button type="button" id="watchlistCloseBtn" class="wl-close-btn" aria-label="Close watchlist">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <div class="wl-stats">
+          <div class="wl-stat">
+            <div class="wl-stat-num" id="watchlistStatCount">0</div>
+            <div class="wl-stat-label">Watching</div>
+          </div>
+          <div class="wl-stat">
+            <div class="wl-stat-num wl-stat-num-accent" id="watchlistStatUnread">0</div>
+            <div class="wl-stat-label">New updates</div>
+          </div>
+          <div class="wl-stat">
+            <div class="wl-stat-num" id="watchlistStatNext">—</div>
+            <div class="wl-stat-label">Next delivery</div>
+          </div>
+        </div>
+        <div class="wl-sort-pills" role="tablist" aria-label="Sort watchlist">
+          <button type="button" class="wl-sort-pill active" data-sort="activity" role="tab">Recent activity</button>
+          <button type="button" class="wl-sort-pill" data-sort="delivery" role="tab">Delivery date</button>
+          <button type="button" class="wl-sort-pill" data-sort="status" role="tab">Status</button>
+          <button type="button" class="wl-sort-pill" data-sort="alpha" role="tab">A–Z</button>
+        </div>
+      </header>
+      <div class="wl-body" id="watchlistBody">
+        <!-- Empty / loading / list states all render in here. Filled by JS. -->
+      </div>
+      <!-- Free-tier upgrade nudge. Hidden by default; shown when isPaidMember
+           is false AND the user is at their watchlist limit. -->
+      <div class="wl-upgrade-card" id="watchlistUpgradeCard" hidden>
+        <div class="wl-upgrade-card-title">You're at your watchlist limit</div>
+        <div class="wl-upgrade-card-body">Upgrade to TMW Plus for unlimited tracking + push notifications.</div>
+        <button type="button" class="wl-upgrade-card-btn" id="watchlistUpgradeBtn">Upgrade <span aria-hidden="true">→</span></button>
+      </div>
+    </aside>
 
     <!-- Pulse stack drawer (hidden by default; toggles open/closed via bell click) -->
     <div id="pulseStack" role="dialog" aria-label="Pulse activity feed">
@@ -8402,9 +8914,11 @@
         if (hint === 'paid') {
           isSignedIn = true;
           isPaidMember = true;
+          window._memberstackSignedIn = true;
         } else if (hint === 'free') {
           isSignedIn = true;
           isPaidMember = false;
+          window._memberstackSignedIn = true;
           memberClickCount = getCachedMemberCount();
         }
       })();
@@ -8468,6 +8982,7 @@
             clearMemberCache();
             setAuthHint('anon');
             window._isPaidMember = false;
+            window._memberstackSignedIn = false;
             if (window.comparisons && typeof window.comparisons.clear === 'function') {
               window.comparisons.clear();
             }
@@ -8477,6 +8992,7 @@
           }
 
           isSignedIn = true;
+          window._memberstackSignedIn = true;
           const plans = member.planConnections || [];
           isPaidMember = plans.some(p => p.active === true || p.status === 'ACTIVE');
 
@@ -9320,6 +9836,433 @@
         }
       }
       window.syncFavoritesUI = syncFavoritesUI;
+
+      /* ─── WATCHLIST PANEL (Phase 3) ───────────────────────────────────
+         Self-contained IIFE that wires the eye-icon button to the sidebar
+         panel, renders the user's watched projects, computes per-row unread
+         counts, handles sort/remove/upgrade-nudge, and keeps the button
+         badge in sync with the total unread count.
+
+         Data inputs (all already populated by Phase 1/2):
+           window._favorites      — Set of watched project slugs
+           window._lastViewed     — { slug: ISO timestamp }
+           window._pulseEvents    — recent events from pulse.json
+           window.allProjectFeatures — full feature list, keyed by title
+
+         Public API:
+           window.openWatchlist() / window.closeWatchlist() / window.toggleWatchlist()
+           window.renderWatchlist() — call this whenever underlying data changes */
+      (function watchlistInit() {
+        const btn       = document.getElementById('watchlistBtn');
+        const panel     = document.getElementById('watchlistPanel');
+        const badge     = document.getElementById('watchlistBtnBadge');
+        const bodyEl    = document.getElementById('watchlistBody');
+        const subtitle  = document.getElementById('watchlistSubtitle');
+        const statCount = document.getElementById('watchlistStatCount');
+        const statNew   = document.getElementById('watchlistStatUnread');
+        const statNext  = document.getElementById('watchlistStatNext');
+        const closeBtn  = document.getElementById('watchlistCloseBtn');
+        const upgrade   = document.getElementById('watchlistUpgradeCard');
+        const upgradeBtn= document.getElementById('watchlistUpgradeBtn');
+        const sortPills = document.querySelectorAll('.wl-sort-pill');
+        const handle    = document.getElementById('watchlistHandle');
+        if (!btn || !panel) return;
+
+        let currentSort = 'activity'; // activity | delivery | status | alpha
+        const FREE_TIER_LIMIT = 3;
+
+        // Map of delivery-string to color + display label. Pulled from the
+        // existing modal's stage colors so the pills here match the modal.
+        function stageMeta(delivery) {
+          const d = (delivery || '').toLowerCase();
+          if (d.includes('construction')) return { label: 'Construction', color: '#FF9500' };
+          if (d.includes('breaking ground') || d.includes('ground breaking')) return { label: 'Breaking ground', color: '#FFD300' };
+          if (d.includes('approved') || d.includes('permitting')) return { label: 'Approved', color: '#8E8E93' };
+          if (d.includes('proposed') || d.includes('design')) return { label: 'Proposed', color: '#8E8E93' };
+          if (d.includes('complete') || d.includes('completed') || d.includes('open')) return { label: 'Complete', color: '#1FDF67' };
+          if (d.includes('canceled') || d.includes('cancelled') || d.includes('on hold')) return { label: 'On hold', color: '#FF3B6B' };
+          return { label: (delivery || 'Status').slice(0, 24), color: '#8E8E93' };
+        }
+
+        function pickDeliveryYear(delivery) {
+          if (!delivery) return null;
+          const m = String(delivery).match(/\b(20\d{2})\b/);
+          return m ? parseInt(m[1], 10) : null;
+        }
+
+        function timeAgo(iso) {
+          if (!iso) return '';
+          const t = new Date(iso).getTime();
+          if (!t) return '';
+          const s = Math.max(1, Math.floor((Date.now() - t) / 1000));
+          if (s < 60)     return Math.floor(s) + 's ago';
+          if (s < 3600)   return Math.floor(s/60) + 'm ago';
+          if (s < 86400)  return Math.floor(s/3600) + 'h ago';
+          if (s < 604800) return Math.floor(s/86400) + 'd ago';
+          if (s < 2592000) return Math.floor(s/604800) + 'w ago';
+          return new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+        }
+
+        function escapeHtml(s) {
+          return String(s || '').replace(/[&<>"']/g, ch => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+          }[ch]));
+        }
+
+        // Find the most recent pulse event for a slug. Used per-row.
+        function lastEventFor(slug) {
+          const events = (window._pulseEvents && Array.isArray(window._pulseEvents))
+            ? window._pulseEvents : [];
+          let best = null;
+          for (let i = 0; i < events.length; i++) {
+            const ev = events[i];
+            if (ev.project_slug !== slug) continue;
+            if (!best || (ev.timestamp || '') > (best.timestamp || '')) best = ev;
+          }
+          return best;
+        }
+
+        // Build a structured object for each watched project. Stable shape
+        // makes sorting + rendering straightforward.
+        function buildRows() {
+          const features = window.allProjectFeatures || [];
+          const watched = window._favorites ? Array.from(window._favorites) : [];
+          if (!features.length || !watched.length) return [];
+          // Index features by slug for quick lookup
+          const slugify = window.projectSlugify;
+          const featureBySlug = {};
+          features.forEach(f => {
+            const t = f.properties && f.properties.title;
+            if (t && slugify) featureBySlug[slugify(t)] = f;
+          });
+          const rows = [];
+          watched.forEach(slug => {
+            const f = featureBySlug[slug];
+            if (!f) return; // Watched a project that no longer exists in the sheet
+            const props = f.properties || {};
+            const unreadInfo = (window.getUnreadForProject && typeof window.getUnreadForProject === 'function')
+              ? window.getUnreadForProject(props.title) : { count: 0, lastEvent: null };
+            const lastEv = unreadInfo.lastEvent || lastEventFor(slug);
+            rows.push({
+              slug,
+              title: props.title || '',
+              city: props.city || '',
+              image: props.image || '',
+              delivery: props.delivery || '',
+              type: (Array.isArray(f._projectTypes) && f._projectTypes[0]) || props.type || '',
+              unreadCount: unreadInfo.count || 0,
+              lastEvent: lastEv,
+              lastEventTs: lastEv ? (lastEv.timestamp || '') : '',
+              lastViewedTs: (window._lastViewed && window._lastViewed[slug]) || '',
+            });
+          });
+          return rows;
+        }
+
+        function sortRows(rows, mode) {
+          const sorted = rows.slice();
+          if (mode === 'activity') {
+            // Most recent unread event first; fall back to last_viewed; then alpha
+            sorted.sort((a, b) => {
+              if (a.unreadCount !== b.unreadCount) return b.unreadCount - a.unreadCount;
+              const at = a.lastEventTs || a.lastViewedTs || '';
+              const bt = b.lastEventTs || b.lastViewedTs || '';
+              if (at !== bt) return bt.localeCompare(at);
+              return a.title.localeCompare(b.title);
+            });
+          } else if (mode === 'delivery') {
+            sorted.sort((a, b) => {
+              const ay = pickDeliveryYear(a.delivery);
+              const by = pickDeliveryYear(b.delivery);
+              if (ay && by) return ay - by;
+              if (ay && !by) return -1;
+              if (!ay && by) return 1;
+              return a.title.localeCompare(b.title);
+            });
+          } else if (mode === 'status') {
+            sorted.sort((a, b) => {
+              const al = stageMeta(a.delivery).label;
+              const bl = stageMeta(b.delivery).label;
+              if (al !== bl) return al.localeCompare(bl);
+              return a.title.localeCompare(b.title);
+            });
+          } else if (mode === 'alpha') {
+            sorted.sort((a, b) => a.title.localeCompare(b.title));
+          }
+          return sorted;
+        }
+
+        function renderEmptyState() {
+          // Differentiate the empty UX based on auth state. For anon users we
+          // hint at the paywall; for signed-in users with zero watched we
+          // explain how to get started. _isPaidMember is true for paid;
+          // a signed-out user has neither _favorites populated nor a member.
+          const isAnon = !window._isPaidMember && (!window._favorites || window._favorites.size === 0);
+          // More precise: check Memberstack directly for sign-in state.
+          // Fall back gracefully if it's not loaded yet.
+          let signedIn = false;
+          try {
+            if (window.$memberstackDom && window.$memberstackDom.getCurrentMember) {
+              // getCurrentMember is async; we use a sync flag instead
+              signedIn = !!(window._memberstackSignedIn);
+            }
+          } catch (e) { signedIn = false; }
+          if (!signedIn) {
+            return `
+              <div class="wl-empty">
+                <div class="wl-empty-icon">
+                  <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                </div>
+                <div class="wl-empty-title">Track projects you care about</div>
+                <div class="wl-empty-body">Sign in to build your watchlist and get notified when projects move forward.</div>
+                <button type="button" class="wl-empty-cta" id="wlEmptySignupBtn">Sign up free</button>
+              </div>
+            `;
+          }
+          return `
+            <div class="wl-empty">
+              <div class="wl-empty-icon">
+                <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </div>
+              <div class="wl-empty-title">Nothing on watch yet</div>
+              <div class="wl-empty-body">Open any project and tap <strong>Watch</strong> to start tracking updates here.</div>
+            </div>
+          `;
+        }
+
+        function rowHtml(row) {
+          const stage = stageMeta(row.delivery);
+          const hasUnread = row.unreadCount > 0;
+          const year = pickDeliveryYear(row.delivery);
+          const yearLabel = year ? ('Delivery ' + year)
+                          : row.lastViewedTs ? ('Viewed ' + timeAgo(row.lastViewedTs))
+                          : '';
+          // Most-recent update line
+          let updateHtml = '';
+          if (row.lastEvent) {
+            const ev = row.lastEvent;
+            const tagClass = (ev.type === 'article') ? 'article'
+                          : (ev.type === 'status_change') ? 'status'
+                          : (ev.type === 'new_project') ? 'new' : 'article';
+            const tagText  = (ev.type === 'article') ? 'Article'
+                          : (ev.type === 'status_change') ? 'Status'
+                          : (ev.type === 'new_project') ? 'New' : 'Update';
+            const evTitle = ev.title_full || ev.title || '';
+            updateHtml = `
+              <div class="wl-row-update">
+                <span class="wl-row-update-tag ${tagClass}">${tagText}</span>
+                <span class="wl-row-update-text">${escapeHtml(evTitle)}</span>
+              </div>
+            `;
+          }
+          const thumbStyle = row.image
+            ? `background-image:url('${escapeHtml(row.image)}');`
+            : '';
+          const unreadFooter = hasUnread
+            ? `<span class="wl-row-unread has-unread">${row.unreadCount} new update${row.unreadCount === 1 ? '' : 's'}</span>`
+            : `<span class="wl-row-unread">No new updates</span>`;
+          return `
+            <div class="wl-row${hasUnread ? ' has-unread' : ''}" data-slug="${escapeHtml(row.slug)}">
+              <div class="wl-row-thumb" style="${thumbStyle}">
+                <span class="wl-row-status-pin" style="background:${stage.color}"></span>
+              </div>
+              <div class="wl-row-body">
+                <div class="wl-row-title">${escapeHtml(row.title)}</div>
+                <div class="wl-row-meta">
+                  <span>${escapeHtml(row.city)}</span>
+                  ${row.type ? `<span>·</span><span>${escapeHtml(row.type)}</span>` : ''}
+                </div>
+                <div class="wl-row-meta">
+                  <span class="wl-row-status-pill" style="color:${stage.color};background:${stage.color}26;">${escapeHtml(stage.label)}</span>
+                </div>
+                ${updateHtml}
+                <div class="wl-row-footer">
+                  ${unreadFooter}
+                  ${yearLabel ? `<span>${escapeHtml(yearLabel)}</span>` : ''}
+                </div>
+              </div>
+              <button type="button" class="wl-row-remove" aria-label="Stop watching ${escapeHtml(row.title)}" data-remove-slug="${escapeHtml(row.slug)}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+              </button>
+            </div>
+          `;
+        }
+
+        // Compute stats for the sticky header (count, total unread, next delivery).
+        function computeStats(rows) {
+          const count = rows.length;
+          let unread = 0;
+          let nextYear = null;
+          rows.forEach(r => {
+            unread += r.unreadCount;
+            const y = pickDeliveryYear(r.delivery);
+            if (y && (!nextYear || y < nextYear)) nextYear = y;
+          });
+          return { count, unread, nextYear };
+        }
+
+        function updateBadge(totalUnread) {
+          if (!badge) return;
+          if (totalUnread > 0) {
+            badge.textContent = totalUnread > 99 ? '99+' : String(totalUnread);
+            badge.removeAttribute('hidden');
+          } else {
+            badge.setAttribute('hidden', '');
+          }
+        }
+
+        // Main render. Idempotent; safe to call as often as needed.
+        function render() {
+          const rows = buildRows();
+          const stats = computeStats(rows);
+          // Header stats + badge
+          if (statCount) statCount.textContent = stats.count;
+          if (statNew)   statNew.textContent   = stats.unread;
+          if (statNext)  statNext.textContent  = stats.nextYear || '—';
+          if (subtitle) {
+            if (stats.count === 0) {
+              subtitle.textContent = 'No projects yet';
+            } else {
+              const n = stats.unread === 0 ? 'No new updates'
+                      : stats.unread === 1 ? '1 new update'
+                      : stats.unread + ' new updates';
+              subtitle.textContent = stats.count + ' project' + (stats.count === 1 ? '' : 's') + ' · ' + n;
+            }
+          }
+          updateBadge(stats.unread);
+          // Free-tier nudge: only show if signed in, not paid, AND at limit
+          const isPaid = !!window._isPaidMember;
+          const signedIn = !!window._memberstackSignedIn;
+          if (upgrade) {
+            if (signedIn && !isPaid && stats.count >= FREE_TIER_LIMIT) {
+              upgrade.removeAttribute('hidden');
+            } else {
+              upgrade.setAttribute('hidden', '');
+            }
+          }
+          // List
+          if (!bodyEl) return;
+          if (rows.length === 0) {
+            bodyEl.innerHTML = renderEmptyState();
+            const signupBtn = document.getElementById('wlEmptySignupBtn');
+            if (signupBtn && window.openSignup) {
+              signupBtn.addEventListener('click', () => { window.openSignup(); });
+            }
+            return;
+          }
+          const sorted = sortRows(rows, currentSort);
+          bodyEl.innerHTML = sorted.map(rowHtml).join('');
+        }
+        window.renderWatchlist = render;
+
+        function openPanel() {
+          if (!panel) return;
+          panel.removeAttribute('hidden');
+          // Force reflow before adding .open so the transition fires
+          // eslint-disable-next-line no-unused-expressions
+          panel.offsetHeight;
+          panel.classList.add('open');
+          btn.classList.add('active');
+          btn.setAttribute('aria-expanded', 'true');
+          render();
+          if (window.gtag) gtag('event', 'watchlist_opened');
+        }
+        function closePanel() {
+          if (!panel) return;
+          panel.classList.remove('open');
+          btn.classList.remove('active');
+          btn.setAttribute('aria-expanded', 'false');
+          // Wait for transition before hiding so screen readers don't see it
+          setTimeout(() => {
+            if (!panel.classList.contains('open')) panel.setAttribute('hidden', '');
+          }, 400);
+        }
+        function togglePanel() {
+          if (panel.classList.contains('open')) closePanel();
+          else openPanel();
+        }
+        window.openWatchlist = openPanel;
+        window.closeWatchlist = closePanel;
+        window.toggleWatchlist = togglePanel;
+
+        // ─── Wire events ─────────────────────────────────────────────
+        btn.addEventListener('click', togglePanel);
+        if (closeBtn) closeBtn.addEventListener('click', closePanel);
+
+        // Sort pills
+        sortPills.forEach(pill => {
+          pill.addEventListener('click', () => {
+            const mode = pill.getAttribute('data-sort');
+            if (!mode || mode === currentSort) return;
+            currentSort = mode;
+            sortPills.forEach(p => p.classList.toggle('active', p === pill));
+            render();
+          });
+        });
+
+        // Delegated clicks on the body: row → open modal, × → unwatch
+        if (bodyEl) {
+          bodyEl.addEventListener('click', (e) => {
+            const removeEl = e.target.closest('.wl-row-remove');
+            if (removeEl) {
+              e.stopPropagation();
+              const slug = removeEl.getAttribute('data-remove-slug');
+              // Find feature, pass to toggleFavorite which handles state + persist
+              const features = window.allProjectFeatures || [];
+              const slugify = window.projectSlugify;
+              const match = features.find(f => f.properties && f.properties.title && slugify(f.properties.title) === slug);
+              if (match && window.toggleFavorite) {
+                window.toggleFavorite(match.properties.title, null);
+                render();
+              }
+              return;
+            }
+            const row = e.target.closest('.wl-row');
+            if (row) {
+              const slug = row.getAttribute('data-slug');
+              const features = window.allProjectFeatures || [];
+              const slugify = window.projectSlugify;
+              const match = features.find(f => f.properties && f.properties.title && slugify(f.properties.title) === slug);
+              if (match && window.openProjectModal) {
+                // On mobile, close the watchlist panel so the modal is on top
+                if (window.matchMedia('(max-width: 800px)').matches) closePanel();
+                window.openProjectModal(match, 'watchlist');
+              }
+            }
+          });
+        }
+
+        // Upgrade button → reuse existing subscription paywall
+        if (upgradeBtn) {
+          upgradeBtn.addEventListener('click', () => {
+            if (window.gtag) gtag('event', 'go_pro_clicked', { 'source': 'watchlist_nudge' });
+            if (window.showSubscriptionPaywall) {
+              closePanel();
+              window.showSubscriptionPaywall();
+            }
+          });
+        }
+
+        // ESC closes the panel
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape' && panel.classList.contains('open')) closePanel();
+        });
+
+        // Initial badge render (zero state) so the eye button is correct on load.
+        // Full render runs on open + whenever syncFavoritesUI fires.
+        render();
+
+        // Re-render whenever the favorites set changes (called from toggle,
+        // load, logout). syncFavoritesUI already touches the modal, tiles,
+        // and now also the watchlist.
+        const origSync = window.syncFavoritesUI;
+        if (typeof origSync === 'function') {
+          window.syncFavoritesUI = function() {
+            origSync.apply(this, arguments);
+            try { render(); } catch (e) { /* render is defensive */ }
+          };
+        }
+      })();
 
       // ─── Favorites view (filter map + tiles to only favorited projects) ─────
       window._favoritesViewActive = false;
