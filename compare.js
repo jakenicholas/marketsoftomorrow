@@ -725,127 +725,173 @@
   }
   function escapeAttr(s) { return escapeHtml(s); }
 
-  // --- Comparison view (map + cards) -------------------------------------
-  // Full-screen overlay with a Mapbox map on top and horizontally scrolling
-  // project cards below. Mounted on demand at /?compare=<id>, torn down when
-  // the user closes -- only one Mapbox instance is ever live at a time.
+  // --- Comparison view: Sheet (default) + Map (full-map) modes ----------------
+  //
+  // Two modes, sharing one container:
+  //   SHEET mode — editorial spec-grid layout: sticky attribute labels on the
+  //     left, project columns scrolling horizontally to the right. Reads like a
+  //     market table from a magazine. Optimized for an agent sending it to a
+  //     client (curator attribution, branded footer, print-friendly).
+  //   MAP mode  — full-screen Mapbox map with numbered pins for each project.
+  //     Geographic context only. Click a pin to scroll back to Sheet at that
+  //     project's column.
+  //
+  // The redesign replaces the previous stack/deck + side-by-side modes. The
+  // back-card click conflict, mode toggle icon race, two parallel render
+  // functions, and most pagination plumbing are gone.
   let viewEl = null;
-  let viewMap = null;       // mapboxgl.Map instance for the comparison view
-  let viewMapMarkers = [];  // array of mapboxgl.Marker objects (parallel to slugs)
+  let viewMap = null;       // mapboxgl.Map instance for MAP mode
+  let viewMapMarkers = [];  // mapboxgl.Marker objects, parallel to slugs
   let activeComparisonId = null;
-
-  // Active card index within the comparison (which card is on top of the stack)
-  let activeCardIdx = 0;
-  // 'stack' = stacked card drawer view, 'side' = horizontal scrolling cards
-  let viewMode = 'stack';
+  // 'sheet' | 'map' -- sheet is the default; users toggle via the top-right
+  // button. Mode persists in sessionStorage so a hard-refresh on the same
+  // comparison restores it, but defaults to sheet on a NEW comparison open.
+  let viewMode = 'sheet';
 
   function ensureViewEl() {
     if (viewEl) return viewEl;
     viewEl = document.createElement('div');
     viewEl.id = 'compareView';
     viewEl.className = 'compare-view';
-    // Set data-mode upfront so the CSS rules that swap toggle icons based on
-    // data-mode (.compare-view[data-mode="stack"] / [data-mode="side"]) match
-    // from first paint. Without this, both icons stay display:none and the
-    // toggle button renders as an empty 36px square.
     viewEl.dataset.mode = viewMode;
     viewEl.innerHTML = `
-      <!-- Map (right of drawer on desktop, behind drawer on mobile) -->
-      <div class="compare-view-map" id="compareViewMap"></div>
-
-      <!-- Floating controls visible on top of the map in BOTH stack and
-           side-by-side modes. Top-left = close X. Top-right = vertical
-           column of three buttons: mode toggle, edit, share. The mode toggle
-           icon swaps between "side-by-side" and "cards" depending on the
-           active view mode (data-mode on .compare-drawer). -->
-      <button type="button" class="compare-floating-close compare-drawer-close" aria-label="Close comparison">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      </button>
-      <div class="compare-floating-actions">
-        <button type="button" class="compare-floating-btn" data-view-action="toggle-mode" aria-label="Toggle view mode" title="Toggle view mode">
-          <!-- Stack-mode icon (shown when in stack view): 2 vertical bars = side-by-side -->
-          <svg class="icon-side-by-side" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="7" height="16" rx="1"/><rect x="14" y="4" width="7" height="16" rx="1"/></svg>
-          <!-- Side-mode icon (shown when in side-by-side view): cards stack -->
-          <svg class="icon-stack" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="3" width="14" height="14" rx="2"/><path d="M4 7v12a2 2 0 0 0 2 2h12"/></svg>
+      <!-- HEADER: agent attribution + actions. Same on both modes. -->
+      <header class="cv-header">
+        <button type="button" class="cv-back" aria-label="Close comparison" data-cv-action="close">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
         </button>
-        <button type="button" class="compare-floating-btn" data-view-action="edit" aria-label="Edit comparison" title="Edit">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-        </button>
-        <button type="button" class="compare-floating-btn" data-view-action="share" aria-label="Share comparison" title="Share">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
-        </button>
-      </div>
-
-      <!-- Drawer: stacked-card UI on the left (desktop) or bottom (mobile) -->
-      <aside class="compare-drawer" data-mode="stack">
-        <header class="compare-drawer-header">
-          <div class="compare-drawer-titles">
-            <div class="compare-drawer-eyebrow">Comparing <span class="compare-drawer-count"></span></div>
-            <h1 class="compare-drawer-title"></h1>
-            <div class="compare-drawer-author"></div>
+        <div class="cv-titles">
+          <div class="cv-eyebrow"><span class="cv-eyebrow-dot"></span><span class="cv-eyebrow-text">Comparison</span></div>
+          <h1 class="cv-title"></h1>
+          <div class="cv-byline">
+            <span class="cv-byline-avatar"></span>
+            <span class="cv-byline-text">Curated by <strong class="cv-byline-name"></strong></span>
+            <span class="cv-byline-sep"></span>
+            <span class="cv-byline-updated"></span>
           </div>
-        </header>
-
-        <!-- Stacked card stage -->
-        <div class="compare-deck-stage">
-          <div class="compare-nav-arrows">
-            <button type="button" class="compare-nav-arrow" data-nav="prev" aria-label="Previous project">
-              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-            </button>
-            <button type="button" class="compare-nav-arrow" data-nav="next" aria-label="Next project">
-              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-            </button>
-          </div>
-          <div class="compare-deck"></div>
-          <div class="compare-deck-dots"></div>
         </div>
-      </aside>
+        <div class="cv-actions">
+          <!-- Mode toggle: icon swaps between sheet (rows) and map (pin) -->
+          <button type="button" class="cv-action-btn cv-action-icon" data-cv-action="toggle-mode" aria-label="Toggle view mode" title="Toggle view mode">
+            <svg class="cv-icon-map" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21 3 6"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>
+            <svg class="cv-icon-sheet" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+          </button>
+          <button type="button" class="cv-action-btn cv-action-icon" data-cv-action="edit" aria-label="Edit comparison" title="Edit">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </button>
+          <!-- Share is the primary CTA -- bright accent, agent-focused -->
+          <div class="cv-share-wrap">
+            <button type="button" class="cv-action-btn cv-action-primary" data-cv-action="share" aria-haspopup="menu" aria-expanded="false">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+              <span class="cv-action-label">Share with client</span>
+            </button>
+            <!-- Share menu: placeholder targets that we'll wire up after design lock -->
+            <div class="cv-share-menu" role="menu" hidden>
+              <button type="button" class="cv-share-item" data-cv-share="link" role="menuitem">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                <span>Copy link</span>
+              </button>
+              <button type="button" class="cv-share-item" data-cv-share="email" role="menuitem">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                <span>Send via email</span>
+              </button>
+              <button type="button" class="cv-share-item" data-cv-share="pdf" role="menuitem">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                <span>Download as PDF</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
 
-      <!-- Side-by-side mode: full-width strip of cards beneath the map.
-           Hidden by default; shown when user toggles mode. -->
-      <div class="compare-view-cards-wrap" hidden>
-        <div class="compare-view-cards" role="list"></div>
+      <!-- BODY: holds either the sheet OR the map, depending on viewMode. -->
+      <div class="cv-body">
+        <!-- SHEET MODE -->
+        <div class="cv-sheet-scroll" data-cv-pane="sheet">
+          <div class="cv-sheet-grid"></div>
+        </div>
+        <!-- MAP MODE -->
+        <div class="cv-map-pane" data-cv-pane="map" hidden>
+          <div class="cv-map-container" id="compareViewMap"></div>
+          <!-- Map-mode legend: numbered list of pins so users can match
+               pin number  to project name without leaving the map. -->
+          <div class="cv-map-legend"></div>
+        </div>
       </div>
+
+      <!-- FOOTER: brand mark + link back to main site -->
+      <footer class="cv-footer">
+        <div class="cv-footer-brand">Markets <strong>of Tomorrow</strong></div>
+        <a class="cv-footer-link" href="/" target="_blank" rel="noopener">View full map at oftmw.com →</a>
+      </footer>
     `;
     document.body.appendChild(viewEl);
 
-    // Wire close (single floating X button at top-left works in both modes)
-    const closeAll = () => closeComparisonView({ updateUrl: true });
-    viewEl.querySelector('.compare-drawer-close').addEventListener('click', closeAll);
-
-    // Wire floating-action buttons (delegated so we don't re-wire after re-render)
+    // Delegated click handler for everything inside the view. Single attach
+    // means re-rendering content doesn't lose handlers.
     viewEl.addEventListener('click', (e) => {
-      const target = e.target.closest('[data-view-action]');
-      if (!target) return;
-      const action = target.dataset.viewAction;
-      if (action === 'edit') {
-        if (activeComparisonId) openBuilderModal({ editId: activeComparisonId });
-      } else if (action === 'share') {
-        handleShare();
-      } else if (action === 'toggle-mode') {
-        toggleViewMode();
+      const target = e.target;
+      if (!(target instanceof Element)) return;
+
+      // Close share menu when clicking outside it
+      const shareMenu = viewEl.querySelector('.cv-share-menu');
+      const shareWrap = viewEl.querySelector('.cv-share-wrap');
+      if (shareMenu && !shareWrap.contains(target)) {
+        shareMenu.setAttribute('hidden', '');
+        const shareBtn = viewEl.querySelector('[data-cv-action="share"]');
+        if (shareBtn) shareBtn.setAttribute('aria-expanded', 'false');
+      }
+
+      // Action buttons (close, toggle-mode, edit, share)
+      const actionEl = target.closest('[data-cv-action]');
+      if (actionEl) {
+        const action = actionEl.dataset.cvAction;
+        if (action === 'close') {
+          closeComparisonView({ updateUrl: true });
+        } else if (action === 'toggle-mode') {
+          toggleViewMode();
+        } else if (action === 'edit') {
+          if (activeComparisonId) openBuilderModal({ editId: activeComparisonId });
+        } else if (action === 'share') {
+          toggleShareMenu();
+        }
+        return;
+      }
+
+      // Share menu items (placeholder wiring -- Copy works, others toast)
+      const shareItem = target.closest('[data-cv-share]');
+      if (shareItem) {
+        handleShareAction(shareItem.dataset.cvShare);
+        return;
+      }
+
+      // View project button on a column
+      const viewBtn = target.closest('[data-cv-open-project]');
+      if (viewBtn) {
+        openProjectFromCompare(viewBtn.dataset.cvOpenProject);
+        return;
+      }
+
+      // Map legend item: clicking jumps map to that pin
+      const legendItem = target.closest('[data-cv-pin]');
+      if (legendItem) {
+        const i = parseInt(legendItem.dataset.cvPin, 10);
+        if (!Number.isNaN(i)) flyToMarker(i);
+        return;
       }
     });
 
-    // Wire stack arrows (delegated)
-    viewEl.addEventListener('click', (e) => {
-      const arrow = e.target.closest('[data-nav]');
-      if (!arrow) return;
-      if (arrow.dataset.nav === 'prev') stepActiveCard(-1);
-      if (arrow.dataset.nav === 'next') stepActiveCard(1);
-    });
-
-    // Keyboard navigation when comparison is open
+    // Keyboard: Escape closes
     document.addEventListener('keydown', (e) => {
       if (!viewEl || !viewEl.classList.contains('open')) return;
       if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
-      if (e.key === 'ArrowLeft')  stepActiveCard(-1);
-      if (e.key === 'ArrowRight') stepActiveCard(1);
-      if (e.key === 'Escape')     closeComparisonView({ updateUrl: true });
+      if (e.key === 'Escape') closeComparisonView({ updateUrl: true });
     });
 
     return viewEl;
   }
+
+  // --- Shared helpers (used by both Sheet and Map modes) ----------------------
 
   function getFeatureForSlug(slug) {
     const features = window.allProjectFeatures || [];
@@ -858,252 +904,394 @@
 
   function statusFromDelivery(delivery) {
     const s = (delivery || '').toLowerCase();
-    if (!s) return { label: 'Announced', color: '#888' };
-    if (s.includes('open') || s.includes('now open')) return { label: 'Now Open', color: '#1FDF67' };
-    if (s.includes('opening') || s.includes('opening soon')) return { label: 'Opening Soon', color: '#1FDF67' };
-    if (s.includes('construction') || s.includes('topping')) return { label: 'Construction', color: '#FFD300' };
-    if (s.includes('breaking ground') || s.includes('groundbreak')) return { label: 'Breaking Ground', color: '#FFD300' };
-    return { label: 'Announced', color: '#888' };
+    if (!s) return { label: 'Announced', cls: 'announced' };
+    if (s.includes('open') || s.includes('now open')) return { label: 'Now Open', cls: 'open' };
+    if (s.includes('opening') || s.includes('opening soon')) return { label: 'Opening Soon', cls: 'open' };
+    if (s.includes('construction') || s.includes('topping')) return { label: 'Construction', cls: 'construction' };
+    if (s.includes('breaking ground') || s.includes('groundbreak')) return { label: 'Breaking Ground', cls: 'construction' };
+    return { label: 'Announced', cls: 'announced' };
   }
 
-  // Construction timeline matching the project modal's pm-progress component.
-  // Stages and colors are intentionally identical so the visual reads the same
-  // across the comparison view and the full project modal.
-  const COMPARE_PROGRESS_STAGES = [
-    { key: 'announced',         label: 'Announced',       pct: 10,  color: 'rgba(255,255,255,0.4)' },
-    { key: 'breaking ground',   label: 'Breaking Ground', pct: 30,  color: '#FFD300' },
-    { key: 'under construction', label: 'Construction',    pct: 60,  color: '#FF9500' },
-    { key: 'opening soon',      label: 'Opening Soon',    pct: 85,  color: '#1FDF67' },
-    { key: 'now open',          label: 'Now Open',        pct: 100, color: '#1FDF67' },
-  ];
-
-  function buildCompareProgress(delivery) {
-    const d = (delivery || '').toLowerCase().trim();
-    const si = COMPARE_PROGRESS_STAGES.find(s => d.includes(s.key)) || COMPARE_PROGRESS_STAGES[0];
-    const idx = COMPARE_PROGRESS_STAGES.indexOf(si);
-    const color = si.color;
-    const steps = COMPARE_PROGRESS_STAGES.map((s, i) => {
-      let cls = 'compare-progress-step';
-      if (i < idx) cls += ' done';
-      else if (i === idx) cls += ' active';
-      return `<div class="${cls}" style="--stage-color:${color}"></div>`;
-    }).join('');
-    const labels = COMPARE_PROGRESS_STAGES.map((s, i) =>
-      `<span class="compare-progress-step-label${i === idx ? ' cur' : ''}" style="${i === idx ? '--stage-color:' + color : ''}">${s.label}</span>`
-    ).join('');
-    return `
-      <div class="compare-progress">
-        <div class="compare-progress-top">
-          <span class="compare-progress-stage" style="color:${color}">${si.label}</span>
-          <span class="compare-progress-pct">${si.pct}%</span>
-        </div>
-        <div class="compare-progress-steps">${steps}</div>
-        <div class="compare-progress-step-labels">${labels}</div>
-      </div>
-    `;
+  // Construction completion %. Mirrors the values used by the project modal's
+  // pm-progress so the same status reads the same number everywhere.
+  function progressFromDelivery(delivery) {
+    const s = (delivery || '').toLowerCase();
+    if (s.includes('now open') || s.includes('open')) return 100;
+    if (s.includes('opening')) return 90;
+    if (s.includes('topping')) return 80;
+    if (s.includes('construction')) return 60;
+    if (s.includes('breaking ground') || s.includes('groundbreak')) return 30;
+    return 10;
   }
 
+  // Pull the curator's display name from Memberstack, falling back gracefully
+  // through customFields -> email -> "Anonymous Curator". Initials drive the
+  // avatar circle. This is the key piece of agent attribution -- when an
+  // agent shares the comparison, the client sees a real person's name on it.
+  function getCuratorAttribution() {
+    const m = (window._memberstackMember && window._memberstackMember.data) || null;
+    let name = '';
+    if (m && m.customFields) {
+      const f = (m.customFields['first-name'] || m.customFields.firstName || '').trim();
+      const l = (m.customFields['last-name'] || m.customFields.lastName || '').trim();
+      if (f || l) name = (f + ' ' + l).trim();
+    }
+    if (!name && m && m.auth && m.auth.email) {
+      // Fall back to the email username (before the @). Better than blank.
+      name = m.auth.email.split('@')[0];
+    }
+    if (!name) name = (window._memberDisplayName || '').trim();
+    if (!name) name = 'Anonymous Curator';
+    const parts = name.split(/\s+/).slice(0, 2);
+    const initials = parts.map(p => (p[0] || '').toUpperCase()).join('') || '?';
+    return { name, initials };
+  }
 
-  // Render the stacked-card deck (drawer mode). Shows the active card in front
-  // with up to 2 cards behind it as a peek stack. Re-renders on activeCardIdx change.
-  // `direction` (optional 'next'|'prev') controls the flip-in animation.
-  function renderDeck(comparison, direction) {
+  // Format a timestamp like "May 11, 2026". Used for the "Updated" line.
+  function formatUpdated(iso) {
+    if (!iso) return '';
+    try {
+      const d = new Date(iso);
+      return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+    } catch (_) { return ''; }
+  }
+
+  // --- SHEET MODE -------------------------------------------------------------
+  // Build the editorial spec-grid. Each row is an attribute (Name, Location,
+  // Status, Timeline, Developer, etc); each column is a project. Sticky left
+  // label column. Rows where every project's value is empty are hidden.
+
+  // Attribute rows. Each entry has a key for the data, a label for the row
+  // header, and a renderer that returns HTML for one cell. Renderers receive
+  // the feature properties (p) for the project in that column.
+  function getSheetRows() {
+    return [
+      // Hero image is special -- rendered as a 200px-tall image cell
+      {
+        key: 'hero', label: 'Project', kind: 'hero',
+        render: (p, i) => {
+          const img = (p.image || '').trim();
+          return `
+            <div class="cv-hero">
+              ${img
+                ? `<div class="cv-hero-img" style="background-image:url('${escapeAttr(img)}')"></div>`
+                : `<div class="cv-hero-img cv-hero-img-empty"></div>`}
+              <div class="cv-hero-overlay"></div>
+              <div class="cv-hero-num">${i + 1}</div>
+              <div class="cv-hero-label">${escapeHtml(p.title || '')}</div>
+            </div>
+          `;
+        },
+        // Hero row is always shown
+        hasValue: () => true,
+      },
+      {
+        key: 'title', label: 'Name',
+        render: (p) => `<div class="cv-project-title">${escapeHtml(p.title || '')}</div>`,
+        hasValue: (p) => !!(p.title && p.title.trim()),
+      },
+      {
+        key: 'city', label: 'Location',
+        render: (p) => {
+          const city = (p.city || '').trim();
+          return city ? `<span class="cv-cell-val">${escapeHtml(city)}</span>` : '<span class="cv-cell-val cv-cell-empty">--</span>';
+        },
+        hasValue: (p) => !!(p.city && p.city.trim()),
+      },
+      {
+        key: 'status', label: 'Status',
+        render: (p) => {
+          const s = statusFromDelivery(p.delivery);
+          return `<span class="cv-status-pill cv-status-${s.cls}">${escapeHtml(s.label)}</span>`;
+        },
+        hasValue: () => true,
+      },
+      {
+        key: 'timeline', label: 'Timeline',
+        render: (p) => {
+          const pct = progressFromDelivery(p.delivery);
+          const completion = (p.deliveryDate || '').trim() || (p.delivery || '').trim() || '--';
+          const fillCls = pct >= 100 ? 'cv-progress-fill cv-progress-fill-done' : 'cv-progress-fill';
+          const statusLabel = statusFromDelivery(p.delivery).label;
+          return `
+            <div class="cv-progress">
+              <div class="cv-progress-bar"><div class="${fillCls}" style="width:${pct}%"></div></div>
+              <div class="cv-progress-meta">
+                <strong>${escapeHtml(statusLabel)}</strong>
+                <span>${escapeHtml(completion)}</span>
+              </div>
+            </div>
+          `;
+        },
+        hasValue: () => true,
+      },
+      {
+        key: 'developer', label: 'Developer',
+        render: (p) => {
+          const v = (p.developer || '').trim();
+          return v ? `<span class="cv-cell-val" title="${escapeAttr(v)}">${escapeHtml(v)}</span>` : '<span class="cv-cell-val cv-cell-empty">--</span>';
+        },
+        hasValue: (p) => !!(p.developer && p.developer.trim()),
+      },
+      {
+        key: 'architect', label: 'Architect',
+        render: (p) => {
+          const v = (p.architect || '').trim();
+          return v ? `<span class="cv-cell-val" title="${escapeAttr(v)}">${escapeHtml(v)}</span>` : '<span class="cv-cell-val cv-cell-empty">--</span>';
+        },
+        hasValue: (p) => !!(p.architect && p.architect.trim()),
+      },
+      {
+        key: 'type', label: 'Type',
+        render: (p) => {
+          const t = (p.preferredType && p.preferredType.trim())
+            ? p.preferredType.trim()
+            : (p.projectType ? p.projectType.split(',')[0].trim() : '');
+          return t ? `<span class="cv-cell-val">${escapeHtml(t)}</span>` : '<span class="cv-cell-val cv-cell-empty">--</span>';
+        },
+        hasValue: (p) => {
+          const t = (p.preferredType && p.preferredType.trim()) || (p.projectType ? p.projectType.split(',')[0].trim() : '');
+          return !!t;
+        },
+      },
+      {
+        key: 'units', label: 'Units',
+        render: (p) => {
+          const v = (p.units || '').trim();
+          return v ? `<span class="cv-cell-val">${escapeHtml(v)}</span>` : '<span class="cv-cell-val cv-cell-empty">--</span>';
+        },
+        hasValue: (p) => !!(p.units && p.units.trim()),
+      },
+      {
+        key: 'height', label: 'Height',
+        render: (p) => {
+          const v = (p.height || '').trim();
+          return v ? `<span class="cv-cell-val">${escapeHtml(v)}</span>` : '<span class="cv-cell-val cv-cell-empty">--</span>';
+        },
+        hasValue: (p) => !!(p.height && p.height.trim()),
+      },
+      {
+        key: 'pricing', label: 'Pricing',
+        render: (p) => {
+          const v = (p.pricing || p.priceRange || '').trim();
+          return v ? `<span class="cv-cell-val">${escapeHtml(v)}</span>` : '<span class="cv-cell-val cv-cell-empty">Pricing TBA</span>';
+        },
+        hasValue: (p) => !!((p.pricing || p.priceRange || '').trim()),
+      },
+      // CTA row -- always shown
+      {
+        key: 'cta', label: '', kind: 'cta',
+        render: (p) => {
+          const slug = window.projectSlugify(p.title || '');
+          return `
+            <button type="button" class="cv-view-btn" data-cv-open-project="${escapeAttr(slug)}">
+              View project
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </button>
+          `;
+        },
+        hasValue: () => true,
+      },
+    ];
+  }
+
+  function renderSheet(comparison) {
     if (!viewEl) return;
-    const deck = viewEl.querySelector('.compare-deck');
-    const dotsEl = viewEl.querySelector('.compare-deck-dots');
+    const grid = viewEl.querySelector('.cv-sheet-grid');
     const features = comparison.slugs.map(getFeatureForSlug);
     const total = features.length;
     if (!total) {
-      deck.innerHTML = '';
-      dotsEl.innerHTML = '';
+      grid.innerHTML = '<div class="cv-empty">No projects in this comparison yet.</div>';
+      grid.style.setProperty('--cv-col-count', '0');
+      return;
+    }
+    grid.style.setProperty('--cv-col-count', String(total));
+
+    // Build only the rows that have at least one non-empty value across projects.
+    // Hero, status, timeline, and CTA always render. Optional rows (units,
+    // height, pricing, etc.) auto-hide when every project is blank -- so the
+    // sheet looks intentional rather than cluttered with placeholders.
+    const rows = getSheetRows().filter(row => {
+      // Always-show rows
+      if (row.kind === 'hero' || row.kind === 'cta' || row.key === 'status' || row.key === 'timeline' || row.key === 'title' || row.key === 'city') return true;
+      // Otherwise: at least one feature must have data for the row
+      return features.some(f => f && row.hasValue(f.properties));
+    });
+
+    grid.innerHTML = rows.map((row, rowIdx) => {
+      const rowCls = `cv-row cv-row-${row.key}` + (row.kind ? ` cv-row-${row.kind}` : '');
+      // Label cell (sticky left column)
+      const labelCell = `<div class="cv-label-cell ${rowCls}" data-row="${row.key}">${escapeHtml(row.label)}</div>`;
+      // Project cells
+      const projectCells = features.map((f, i) => {
+        const isLast = i === total - 1;
+        const cls = `cv-cell ${rowCls}${isLast ? ' cv-cell-last' : ''}`;
+        if (!f) {
+          // Missing project: render a sad placeholder cell
+          return `<div class="${cls}"><span class="cv-cell-val cv-cell-empty">Project removed</span></div>`;
+        }
+        return `<div class="${cls}" data-col="${i}">${row.render(f.properties, i)}</div>`;
+      }).join('');
+      return labelCell + projectCells;
+    }).join('');
+  }
+
+  // --- MAP MODE ---------------------------------------------------------------
+  // Full-pane Mapbox map. Numbered pins. Legend at the bottom-left lets the
+  // user click a project name to fly to that pin. Replaces the old drawer +
+  // map split, which was the source of most stacking/sizing bugs.
+
+  function buildMarkerEl(num) {
+    const el = document.createElement('div');
+    el.className = 'cv-map-pin';
+    el.innerHTML = `<span>${num}</span>`;
+    return el;
+  }
+
+  function mountComparisonMap(comparison) {
+    if (!window.mapboxgl) return;
+    if (viewMap) {
+      viewMapMarkers.forEach(m => m.remove());
+      viewMapMarkers = [];
+      try { viewMap.remove(); } catch (_) {}
+      viewMap = null;
+    }
+    const features = comparison.slugs.map(getFeatureForSlug).filter(Boolean);
+    if (!features.length) return;
+
+    const container = document.getElementById('compareViewMap');
+    if (!container) return;
+    const rect = container.getBoundingClientRect();
+    if (rect.width < 10 || rect.height < 10) {
+      // Container not laid out yet -- try next frame
+      requestAnimationFrame(() => mountComparisonMap(comparison));
       return;
     }
 
-    // Determine which 1-3 indices to show. Always front + up to 2 behind.
-    // We render the back-most first so DOM order matches z-stacking via CSS classes.
-    const order = [];
-    if (total >= 3) order.push((activeCardIdx + 2) % total); // back-2
-    if (total >= 2) order.push((activeCardIdx + 1) % total); // back-1
-    order.push(activeCardIdx); // front
-
-    deck.innerHTML = order.map((idx, position) => {
-      const f = features[idx];
-      const isFront = position === order.length - 1;
-      let stackClass = isFront ? 'front'
-                     : position === order.length - 2 ? 'back-1'
-                     : 'back-2';
-      // Add a one-shot animation class to the front card so it flips in
-      if (isFront && direction === 'next')      stackClass += ' anim-flip-next';
-      else if (isFront && direction === 'prev') stackClass += ' anim-flip-prev';
-      if (!f) {
-        return `
-          <div class="compare-deck-card ${stackClass} compare-deck-card-missing" data-card-idx="${idx}">
-            <div class="compare-deck-card-inner">
-              <strong>Project not found</strong>
-              <span>This project may have been removed.</span>
-            </div>
-          </div>
-        `;
-      }
-      const p = f.properties;
-      const status = statusFromDelivery(p.delivery);
-      const completion = (p.deliveryDate || '').trim() || (p.delivery || '').trim();
-      const dev = (p.developer || '').trim();
-      const arc = (p.architect || '').trim();
-      const type = (p.preferredType && p.preferredType.trim())
-        ? p.preferredType.trim()
-        : (p.projectType ? p.projectType.split(',')[0].trim() : '');
-      const slug = window.projectSlugify(p.title || '');
-      const counter = `${idx + 1} / ${total}`;
-
-      return `
-        <article class="compare-deck-card ${stackClass}" data-slug="${escapeAttr(slug)}" data-card-idx="${idx}">
-          <div class="compare-deck-card-img"${p.image ? ` style="background-image:url('${escapeAttr(p.image)}')"` : ''}>
-            <div class="compare-deck-card-img-overlay"></div>
-            <div class="compare-deck-card-counter">${counter}</div>
-          </div>
-          <div class="compare-deck-card-body">
-            <div class="compare-deck-card-city">${escapeHtml(p.city || '')}${type ? ` &middot; ${escapeHtml(type)}` : ''}</div>
-            <h3 class="compare-deck-card-title">${escapeHtml(p.title || '')}</h3>
-
-            ${buildCompareProgress(p.delivery)}
-
-            <div class="compare-deck-stats">
-              <div class="compare-deck-stat">
-                <div class="compare-deck-stat-k">Delivery</div>
-                <div class="compare-deck-stat-v">${escapeHtml(completion || '--')}</div>
-              </div>
-              <div class="compare-deck-stat">
-                <div class="compare-deck-stat-k">Status</div>
-                <div class="compare-deck-stat-v">${escapeHtml(status.label)}</div>
-              </div>
-              <div class="compare-deck-stat">
-                <div class="compare-deck-stat-k">Developer</div>
-                <div class="compare-deck-stat-v" title="${escapeAttr(dev)}">${escapeHtml(dev || '--')}</div>
-              </div>
-              <div class="compare-deck-stat">
-                <div class="compare-deck-stat-k">Architect</div>
-                <div class="compare-deck-stat-v" title="${escapeAttr(arc)}">${escapeHtml(arc || '--')}</div>
-              </div>
-            </div>
-
-            <button type="button" class="compare-deck-cta" data-open-project="${escapeAttr(slug)}">View project</button>
-          </div>
-        </article>
-      `;
-    }).join('');
-
-    // Pagination dots
-    dotsEl.innerHTML = features.map((_, i) =>
-      `<button type="button" class="compare-deck-dot${i === activeCardIdx ? ' active' : ''}" data-dot="${i}" aria-label="Go to project ${i + 1}"></button>`
-    ).join('');
-
-    // Wire deck card clicks: front card "View project" opens modal;
-    // back cards bring themselves to front when clicked
-    deck.querySelectorAll('[data-open-project]').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const slug = btn.dataset.openProject;
-        openProjectFromCompare(slug);
-      });
+    viewMap = new mapboxgl.Map({
+      container: 'compareViewMap',
+      style: 'mapbox://styles/floridaoftomorrow/clkbk4qlw000a01qw94rj0xa7',
+      center: features[0].geometry.coordinates,
+      zoom: 11,
+      attributionControl: false,
     });
-    deck.querySelectorAll('.compare-deck-card').forEach(card => {
-      const idx = parseInt(card.dataset.cardIdx, 10);
-      if (Number.isNaN(idx)) return;
-      // Back cards: clicking brings them to front
-      if (!card.classList.contains('front')) {
-        card.addEventListener('click', () => setActiveCard(idx));
+    viewMap.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'top-right');
+
+    viewMap.on('load', () => {
+      try { viewMap.resize(); } catch (_) {}
+      comparison.slugs.forEach((slug, i) => {
+        const f = getFeatureForSlug(slug);
+        if (!f) return;
+        const el = buildMarkerEl(i + 1);
+        el.addEventListener('click', () => {
+          // Open the project modal directly when a pin is tapped in map mode.
+          // (In sheet mode the user would scroll to that column; in map mode,
+          // tapping a pin is a strong intent to view the project.)
+          openProjectFromCompare(slug);
+        });
+        const marker = new mapboxgl.Marker({ element: el, anchor: 'center' })
+          .setLngLat(f.geometry.coordinates)
+          .addTo(viewMap);
+        viewMapMarkers.push(marker);
+      });
+
+      // Fit bounds to show every pin. Simple symmetric padding -- no drawer
+      // to dodge anymore, so the math is uncomplicated.
+      if (features.length === 1) {
+        viewMap.flyTo({ center: features[0].geometry.coordinates, zoom: 13, duration: 0 });
+      } else {
+        const bounds = new mapboxgl.LngLatBounds();
+        features.forEach(f => bounds.extend(f.geometry.coordinates));
+        viewMap.fitBounds(bounds, { padding: 80, duration: 0, maxZoom: 12 });
       }
     });
 
-    // Wire pagination dots
-    dotsEl.querySelectorAll('[data-dot]').forEach(dot => {
-      dot.addEventListener('click', () => {
-        const i = parseInt(dot.dataset.dot, 10);
-        if (!Number.isNaN(i)) setActiveCard(i);
+    // Resize on container size changes
+    if (window.ResizeObserver && !container._cvResize) {
+      const ro = new ResizeObserver(() => {
+        if (viewMap) { try { viewMap.resize(); } catch (_) {} }
       });
+      ro.observe(container);
+      container._cvResize = ro;
+    }
+  }
+
+  function renderMapLegend(comparison) {
+    if (!viewEl) return;
+    const legend = viewEl.querySelector('.cv-map-legend');
+    if (!legend) return;
+    const features = comparison.slugs.map(getFeatureForSlug);
+    legend.innerHTML = `
+      <div class="cv-map-legend-title">Projects</div>
+      <ul class="cv-map-legend-list">
+        ${features.map((f, i) => {
+          const title = f ? (f.properties.title || '') : 'Project removed';
+          const city = f ? (f.properties.city || '') : '';
+          return `
+            <li class="cv-map-legend-item" data-cv-pin="${i}" tabindex="0">
+              <span class="cv-map-legend-num">${i + 1}</span>
+              <span class="cv-map-legend-text">
+                <strong>${escapeHtml(title)}</strong>
+                ${city ? `<span>${escapeHtml(city)}</span>` : ''}
+              </span>
+            </li>
+          `;
+        }).join('')}
+      </ul>
+    `;
+  }
+
+  function flyToMarker(idx) {
+    const marker = viewMapMarkers[idx];
+    if (!marker || !viewMap) return;
+    viewMap.flyTo({
+      center: marker.getLngLat(),
+      zoom: 14,
+      duration: 800,
+      essential: true,
     });
+    // Brief highlight pulse
+    const el = marker.getElement();
+    el.classList.add('cv-map-pin-pulse');
+    setTimeout(() => el.classList.remove('cv-map-pin-pulse'), 1500);
   }
 
-  // Thumbs row was removed in favor of the floating top-right button column.
-  // Kept as a no-op so existing call sites don't need to change.
-  function renderThumbs(comparison) {
-    return;
-  }
+  // --- Mode switching ---------------------------------------------------------
 
-  // Active-card helpers: changing the active card re-renders the deck, re-renders
-  // thumbs, updates pin highlight, and flies the map to the new project.
-  function setActiveCard(idx) {
-    if (!activeComparisonId) return;
-    const comparison = savedComparisons.find(c => c.id === activeComparisonId);
-    if (!comparison || !comparison.slugs.length) return;
-    const total = comparison.slugs.length;
-    const next = ((idx % total) + total) % total;
-    if (next === activeCardIdx) return;
-    // Determine animation direction: shortest path around the carousel
-    const forwardDist = (next - activeCardIdx + total) % total;
-    const backwardDist = (activeCardIdx - next + total) % total;
-    const direction = forwardDist <= backwardDist ? 'next' : 'prev';
-    activeCardIdx = next;
-    renderDeck(comparison, direction);
-    renderThumbs(comparison);
-    syncActivePin();
-    flyToMarker(activeCardIdx);
-  }
-
-  function stepActiveCard(delta) {
-    if (!activeComparisonId) return;
-    const comparison = savedComparisons.find(c => c.id === activeComparisonId);
-    if (!comparison || !comparison.slugs.length) return;
-    setActiveCard(activeCardIdx + delta);
-  }
-
-  // Update which pin renders in the "active" highlighted state
-  function syncActivePin() {
-    viewMapMarkers.forEach((marker, i) => {
-      const el = marker.getElement();
-      el.classList.toggle('active', i === activeCardIdx);
-    });
-  }
-
-  // Toggle between stacked-card drawer mode and side-by-side horizontal cards.
   function toggleViewMode() {
     if (!viewEl) return;
     const comparison = savedComparisons.find(c => c.id === activeComparisonId);
     if (!comparison) return;
-    viewMode = viewMode === 'stack' ? 'side' : 'stack';
+    viewMode = viewMode === 'sheet' ? 'map' : 'sheet';
     viewEl.dataset.mode = viewMode;
-    const drawer = viewEl.querySelector('.compare-drawer');
-    const cardsWrap = viewEl.querySelector('.compare-view-cards-wrap');
-    if (viewMode === 'stack') {
-      drawer.removeAttribute('hidden');
-      cardsWrap.setAttribute('hidden', '');
+    try { sessionStorage.setItem('cv:mode', viewMode); } catch (_) {}
+
+    const sheetPane = viewEl.querySelector('[data-cv-pane="sheet"]');
+    const mapPane = viewEl.querySelector('[data-cv-pane="map"]');
+    if (viewMode === 'sheet') {
+      sheetPane.removeAttribute('hidden');
+      mapPane.setAttribute('hidden', '');
     } else {
-      drawer.setAttribute('hidden', '');
-      cardsWrap.removeAttribute('hidden');
-      renderComparisonCards(comparison);
-    }
-    if (viewMap) {
+      sheetPane.setAttribute('hidden', '');
+      mapPane.removeAttribute('hidden');
+      // Mount map after pane is visible (so the container has dimensions)
+      renderMapLegend(comparison);
       requestAnimationFrame(() => {
-        try { viewMap.resize(); } catch (e) { /* ignore */ }
+        requestAnimationFrame(() => mountComparisonMap(comparison));
       });
     }
   }
 
-  // Open a project from a comparison card. Drops our z-index below the project
-  // modal so the modal renders on top, then restores it when the modal closes.
+  // --- Project modal interop --------------------------------------------------
+
   function openProjectFromCompare(slug) {
     const f = getFeatureForSlug(slug);
     if (!f || typeof window.openProjectModal !== 'function') {
-      // Defensive: surface failure as a console log so we notice silent
-      // misses in production rather than just "click does nothing".
-      console.warn('[compare] openProjectFromCompare: no feature or modal handler', { slug, hasFeature: !!f });
+      console.warn('[compare] openProjectFromCompare miss', { slug });
+      showToast("Couldn't open that project.");
       return;
     }
     viewEl.classList.add('compare-view-bg');
-    // Body class drives a CSS rule that bumps #projectModal z-index above
-    // the compare drawer's stacking context. Belt-and-suspenders against
-    // edge cases where compare-view-bg alone doesn't get the modal on top.
     document.body.classList.add('compare-modal-open');
     window.openProjectModal(f, 'compare-view');
     const pm = document.getElementById('projectModal');
@@ -1118,228 +1306,90 @@
     observer.observe(pm, { attributes: true, attributeFilter: ['class'] });
   }
 
-  function renderComparisonCards(comparison) {
-    const wrap = viewEl.querySelector('.compare-view-cards');
-    const features = comparison.slugs.map(getFeatureForSlug);
+  // --- Share menu -------------------------------------------------------------
+  // Three actions, only the first is wired up. The other two surface a toast
+  // ("Coming soon") so the affordance is in place for design lock-in before
+  // we build the real email + PDF pipelines.
 
-    wrap.innerHTML = features.map((f, i) => {
-      if (!f) {
-        return `
-          <div class="compare-card compare-card-missing" role="listitem">
-            <div class="compare-card-num">${i + 1}</div>
-            <div class="compare-card-missing-meta">
-              <strong>Project not found</strong>
-              <span>This project may have been removed.</span>
-            </div>
-          </div>
-        `;
+  function toggleShareMenu() {
+    if (!viewEl) return;
+    const menu = viewEl.querySelector('.cv-share-menu');
+    const btn = viewEl.querySelector('[data-cv-action="share"]');
+    if (!menu || !btn) return;
+    const isOpen = !menu.hasAttribute('hidden');
+    if (isOpen) {
+      menu.setAttribute('hidden', '');
+      btn.setAttribute('aria-expanded', 'false');
+    } else {
+      menu.removeAttribute('hidden');
+      btn.setAttribute('aria-expanded', 'true');
+    }
+  }
+
+  async function handleShareAction(kind) {
+    if (!activeComparisonId) return;
+    const menu = viewEl.querySelector('.cv-share-menu');
+    if (menu) menu.setAttribute('hidden', '');
+    const btn = viewEl.querySelector('[data-cv-action="share"]');
+    if (btn) btn.setAttribute('aria-expanded', 'false');
+
+    const url = new URL(window.location.origin + window.location.pathname);
+    url.searchParams.set('compare', activeComparisonId);
+    const shareUrl = url.toString();
+
+    if (kind === 'link') {
+      // Native share sheet first (mobile), clipboard fallback
+      if (navigator.share) {
+        try { await navigator.share({ url: shareUrl }); return; } catch (_) {}
       }
-      const p = f.properties;
-      const status = statusFromDelivery(p.delivery);
-      // Expected completion: prefer DeliveryDate, fall back to Delivery, then to a year extract
-      const completion = (p.deliveryDate || '').trim() || (p.delivery || '').trim();
-      const dev = (p.developer || '').trim();
-      const arc = (p.architect || '').trim();
-      const type = (p.preferredType && p.preferredType.trim())
-        ? p.preferredType.trim()
-        : (p.projectType ? p.projectType.split(',')[0].trim() : '');
-      const slug = window.projectSlugify(p.title || '');
-      return `
-        <article class="compare-card" role="listitem" data-slug="${escapeAttr(slug)}" data-card-idx="${i}">
-          <div class="compare-card-img-wrap">
-            ${p.image
-              ? `<img class="compare-card-img" src="${escapeAttr(p.image)}" alt="" loading="lazy" />`
-              : `<div class="compare-card-img compare-card-img-empty"></div>`}
-            <div class="compare-card-num">${i + 1}</div>
-          </div>
-          <div class="compare-card-body">
-            <div class="compare-card-title-row">
-              <h3 class="compare-card-title">${escapeHtml(p.title || '')}</h3>
-            </div>
-            <div class="compare-card-city">${escapeHtml(p.city || '')}${type ? ` <span class="compare-card-type">  ${escapeHtml(type)}</span>` : ''}</div>
-
-            ${buildCompareProgress(p.delivery)}
-
-            ${dev ? `
-              <div class="compare-card-spec">
-                <div class="compare-card-spec-label">Developer</div>
-                <div class="compare-card-spec-val" title="${escapeAttr(dev)}">${escapeHtml(dev)}</div>
-              </div>` : ''}
-            ${arc ? `
-              <div class="compare-card-spec">
-                <div class="compare-card-spec-label">Architect</div>
-                <div class="compare-card-spec-val" title="${escapeAttr(arc)}">${escapeHtml(arc)}</div>
-              </div>` : ''}
-            ${completion ? `
-              <div class="compare-card-spec">
-                <div class="compare-card-spec-label">Expected Completion</div>
-                <div class="compare-card-spec-val" title="${escapeAttr(completion)}">${escapeHtml(completion)}</div>
-              </div>` : ''}
-            <button type="button" class="compare-card-cta" data-open-project="${escapeAttr(slug)}">View project</button>
-          </div>
-        </article>
-      `;
-    }).join('');
-
-    wrap.querySelectorAll('[data-open-project]').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const slug = btn.dataset.openProject;
-        // Use the shared helper so the body class + z-index handling lives
-        // in one place (no DRY drift between cards view and deck view).
-        openProjectFromCompare(slug);
-      });
-    });
-
-    wrap.querySelectorAll('.compare-card[data-card-idx]').forEach(card => {
-      const idx = parseInt(card.dataset.cardIdx, 10);
-      card.addEventListener('mouseenter', () => highlightMarker(idx, true));
-      card.addEventListener('mouseleave', () => highlightMarker(idx, false));
-      card.addEventListener('click', (e) => {
-        if (e.target.closest('[data-open-project]')) return;
-        flyToMarker(idx);
-      });
-    });
-  }
-
-  function buildMarkerEl(num, isHighlighted) {
-    const el = document.createElement('div');
-    el.className = 'compare-pin' + (isHighlighted ? ' highlighted' : '');
-    el.innerHTML = `<span class="compare-pin-num">${num}</span>`;
-    return el;
-  }
-
-  function mountComparisonMap(comparison) {
-    if (!window.mapboxgl) {
-      console.warn('[Compare] mapboxgl not available');
-      return;
-    }
-    if (viewMap) {
-      viewMapMarkers.forEach(m => m.remove());
-      viewMapMarkers = [];
-      try { viewMap.remove(); } catch (e) { /* ignore */ }
-      viewMap = null;
-    }
-
-    const features = comparison.slugs.map(getFeatureForSlug).filter(Boolean);
-    if (!features.length) return;
-
-    // Sanity check: if the container has 0 dimensions, retry on the next
-    // animation frame. Mapbox renders nothing if its container is 0x0.
-    const container = document.getElementById('compareViewMap');
-    if (!container) {
-      console.warn('[Compare] map container missing');
-      return;
-    }
-    const rect = container.getBoundingClientRect();
-    if (rect.width < 10 || rect.height < 10) {
-      console.warn('[Compare] container not yet sized (' + rect.width + 'x' + rect.height + '), retrying');
-      requestAnimationFrame(() => mountComparisonMap(comparison));
-      return;
-    }
-
-    viewMap = new mapboxgl.Map({
-      container: 'compareViewMap',
-      style: 'mapbox://styles/floridaoftomorrow/clkbk4qlw000a01qw94rj0xa7',
-      center: [features[0].geometry.coordinates[0], features[0].geometry.coordinates[1]],
-      zoom: 9,
-      attributionControl: false,
-      cooperativeGestures: false
-    });
-    viewMap.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'top-right');
-
-    // Observe size changes on the container -- if the user resizes the window
-    // or the layout shifts after mount, tell Mapbox to recompute its viewport.
-    if (window.ResizeObserver && !container._compareResizeObserver) {
-      const ro = new ResizeObserver(() => {
-        if (viewMap) {
-          try { viewMap.resize(); } catch (e) { /* ignore */ }
-        }
-      });
-      ro.observe(container);
-      container._compareResizeObserver = ro;
-    }
-
-    viewMap.on('load', () => {
-      // Defensive: in case the container measured at 0 during construction,
-      // force a resize once the layout has settled. Mapbox renders nothing
-      // when its container has 0 height/width at init time.
-      try { viewMap.resize(); } catch (e) { /* ignore */ }
-
-      comparison.slugs.forEach((slug, i) => {
-        const f = getFeatureForSlug(slug);
-        if (!f) return;
-        const el = buildMarkerEl(i + 1, false);
-        el.addEventListener('click', () => {
-          const card = viewEl.querySelector(`.compare-card[data-card-idx="${i}"]`);
-          if (card) {
-            card.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
-            card.classList.add('is-flashed');
-            setTimeout(() => card.classList.remove('is-flashed'), 800);
-          }
-        });
-        const marker = new mapboxgl.Marker({ element: el, anchor: 'center' })
-          .setLngLat(f.geometry.coordinates)
-          .addTo(viewMap);
-        viewMapMarkers.push(marker);
-      });
-
-      if (features.length === 1) {
-        viewMap.flyTo({ center: features[0].geometry.coordinates, zoom: 11, duration: 0 });
-      } else {
-        const bounds = new mapboxgl.LngLatBounds();
-        features.forEach(f => bounds.extend(f.geometry.coordinates));
-        // Asymmetric padding: leave room for the drawer (left/bottom on
-        // mobile, left on desktop) and the side-by-side cards strip
-        // (bottom). maxZoom is held lower to keep all pins in view from
-        // the start rather than zooming in too tightly on close clusters.
-        const isMobileVP = window.innerWidth <= 768;
-        const padding = isMobileVP
-          ? { top: 80, right: 60, bottom: 320, left: 60 }
-          : { top: 100, right: 80, bottom: 100, left: 460 };
-        viewMap.fitBounds(bounds, { padding, duration: 0, maxZoom: 11 });
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        try { await navigator.clipboard.writeText(shareUrl); showToast('Link copied to clipboard.'); return; }
+        catch (_) {}
       }
-    });
-  }
-
-  function highlightMarker(idx, isOn) {
-    const marker = viewMapMarkers[idx];
-    if (!marker) return;
-    const el = marker.getElement();
-    el.classList.toggle('highlighted', !!isOn);
-  }
-
-  function flyToMarker(idx) {
-    const marker = viewMapMarkers[idx];
-    if (!marker || !viewMap) return;
-    // On mobile the stack drawer (and side-by-side cards strip) take up
-    // ~2/3 of the screen; with no offset the pin would land beneath them.
-    // Use the bottom padding option so Mapbox computes a center that puts
-    // the pin in the upper portion of the visible map area.
-    const isMobileVP = window.innerWidth <= 768;
-    const opts = {
-      center: marker.getLngLat(),
-      zoom: 14,
-      duration: 800,
-      essential: true,
-    };
-    if (isMobileVP) {
-      // Reserve roughly 2/3 of viewport height as "occupied" so the pin
-      // ends up in the top ~1/3 of the screen.
-      opts.padding = { top: 0, right: 0, bottom: Math.round(window.innerHeight * 0.55), left: 0 };
+      // Last-resort textarea copy
+      try {
+        const ta = document.createElement('textarea');
+        ta.value = shareUrl; ta.setAttribute('readonly', '');
+        ta.style.position = 'absolute'; ta.style.left = '-9999px';
+        document.body.appendChild(ta);
+        ta.select(); document.execCommand('copy');
+        document.body.removeChild(ta);
+        showToast('Link copied to clipboard.');
+      } catch (_) { showToast('Could not copy link.'); }
+      return;
     }
-    viewMap.flyTo(opts);
-    highlightMarker(idx, true);
-    setTimeout(() => highlightMarker(idx, false), 1600);
+
+    if (kind === 'email') {
+      // Placeholder: real version will open a templated email composer.
+      // For now we mailto: with a basic message so something useful happens.
+      const comparison = savedComparisons.find(c => c.id === activeComparisonId);
+      const name = comparison ? comparison.name : 'Comparison';
+      const subject = encodeURIComponent(`${name} — Markets of Tomorrow`);
+      const body = encodeURIComponent(
+        `Hi,\n\nI put together a comparison of projects I thought you'd find interesting. You can view it here:\n\n${shareUrl}\n\nBest,\n`
+      );
+      window.location.href = `mailto:?subject=${subject}&body=${body}`;
+      return;
+    }
+
+    if (kind === 'pdf') {
+      // Placeholder: real version will server-render a PDF. For now we
+      // trigger the browser print dialog -- the sheet view is print-styled,
+      // so an agent can already "Save as PDF" through that flow.
+      showToast('Opening print dialog. Choose "Save as PDF" to download.');
+      setTimeout(() => window.print(), 300);
+      return;
+    }
   }
+
+  // --- Map nav + URL routing --------------------------------------------------
 
   function navigateToComparison(id) {
     const url = new URL(window.location.href);
     url.searchParams.set('compare', id);
     url.searchParams.delete('project');
     url.searchParams.delete('view');
-    url.searchParams.delete('city');
-    history.pushState({ compare: id }, '', url.toString());
+    history.pushState({}, '', url.toString());
     openComparisonView(id);
   }
 
@@ -1358,45 +1408,45 @@
     }
 
     activeComparisonId = id;
-    activeCardIdx = 0;       // start with the first card on top
-    viewMode = 'stack';       // start in stacked drawer mode
+    // Always default to sheet mode when opening a comparison. Map mode is
+    // one tap away via the toggle. This is the "Sheet first" decision -- it
+    // optimizes for agents who want to read/share spec data, not browse a map.
+    viewMode = 'sheet';
 
     const el = ensureViewEl();
     el.dataset.mode = viewMode;
 
-    // Header titles inside the drawer
-    const projectCount = comparison.slugs.length;
-    el.querySelector('.compare-drawer-title').textContent = comparison.name;
-    el.querySelector('.compare-drawer-count').textContent =
-      `${projectCount} project${projectCount === 1 ? '' : 's'}`;
-    const authorName = (window._memberDisplayName || '').trim();
-    el.querySelector('.compare-drawer-author').textContent = authorName ? `By ${authorName}` : '';
+    // Header content -- title, eyebrow count, curator attribution
+    const count = comparison.slugs.length;
+    el.querySelector('.cv-title').textContent = comparison.name || 'Untitled comparison';
+    el.querySelector('.cv-eyebrow-text').textContent =
+      `Comparison · ${count} project${count === 1 ? '' : 's'}`;
 
-    // Make sure drawer is shown and side-by-side strip is hidden by default
-    el.querySelector('.compare-drawer').removeAttribute('hidden');
-    el.querySelector('.compare-view-cards-wrap').setAttribute('hidden', '');
-    el.dataset.mode = 'stack';
+    const curator = getCuratorAttribution();
+    el.querySelector('.cv-byline-name').textContent = curator.name;
+    el.querySelector('.cv-byline-avatar').textContent = curator.initials;
+
+    const updatedIso = comparison.updated_at || comparison.created_at || '';
+    const updatedStr = formatUpdated(updatedIso);
+    const updatedEl = el.querySelector('.cv-byline-updated');
+    const sepEl = el.querySelector('.cv-byline-sep');
+    if (updatedStr) {
+      updatedEl.textContent = `Updated ${updatedStr}`;
+      sepEl.style.display = '';
+    } else {
+      updatedEl.textContent = '';
+      sepEl.style.display = 'none';
+    }
+
+    // Show sheet pane, hide map pane
+    el.querySelector('[data-cv-pane="sheet"]').removeAttribute('hidden');
+    el.querySelector('[data-cv-pane="map"]').setAttribute('hidden', '');
+
+    // Render the sheet
+    renderSheet(comparison);
 
     el.classList.add('open');
     document.body.classList.add('compare-view-active');
-
-    // Render the drawer-mode UI: deck + thumbs
-    renderDeck(comparison);
-    renderThumbs(comparison);
-    // Also pre-render the side-by-side strip for instant toggle response
-    renderComparisonCards(comparison);
-
-    // Mount the map after layout has settled. Double rAF + setTimeout(0) is the
-    // tested pattern that survives display:none -> display:grid transitions.
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        setTimeout(() => {
-          mountComparisonMap(comparison);
-          // Highlight the active card's pin once markers exist
-          setTimeout(syncActivePin, 100);
-        }, 0);
-      });
-    });
   }
 
   function closeComparisonView(opts) {
@@ -1404,12 +1454,14 @@
     if (!viewEl) return;
     viewEl.classList.remove('open');
     document.body.classList.remove('compare-view-active');
+    document.body.classList.remove('compare-modal-open');
     activeComparisonId = null;
+    viewMode = 'sheet'; // reset for next open
 
     if (viewMap) {
       viewMapMarkers.forEach(m => m.remove());
       viewMapMarkers = [];
-      try { viewMap.remove(); } catch (e) { /* already removed */ }
+      try { viewMap.remove(); } catch (_) {}
       viewMap = null;
     }
 
@@ -1420,35 +1472,28 @@
     }
   }
 
-  async function handleShare() {
-    if (!activeComparisonId) return;
-    const url = new URL(window.location.origin + window.location.pathname);
-    url.searchParams.set('compare', activeComparisonId);
-    const shareUrl = url.toString();
+  // Refresh the active view when a comparison is edited from inside it.
+  // The builder modal dispatches 'comparisons:updated' on save -- listen
+  // for it and re-render so the new project set appears immediately.
+  document.addEventListener('comparisons:updated', () => {
+    if (!activeComparisonId || !viewEl || !viewEl.classList.contains('open')) return;
     const comparison = savedComparisons.find(c => c.id === activeComparisonId);
-    const shareName = comparison ? comparison.name : 'Comparison';
-
-    if (navigator.share) {
-      try { await navigator.share({ title: shareName, url: shareUrl }); return; }
-      catch (e) { /* user dismissed */ }
+    if (!comparison) {
+      closeComparisonView({ updateUrl: true });
+      return;
     }
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      try { await navigator.clipboard.writeText(shareUrl); showToast('Link copied to clipboard.'); return; }
-      catch (e) { /* fall through */ }
+    // Update header titles in case the name changed
+    const count = comparison.slugs.length;
+    viewEl.querySelector('.cv-title').textContent = comparison.name || 'Untitled comparison';
+    viewEl.querySelector('.cv-eyebrow-text').textContent =
+      `Comparison · ${count} project${count === 1 ? '' : 's'}`;
+    if (viewMode === 'sheet') {
+      renderSheet(comparison);
+    } else {
+      renderMapLegend(comparison);
+      mountComparisonMap(comparison);
     }
-    try {
-      const ta = document.createElement('textarea');
-      ta.value = shareUrl; ta.setAttribute('readonly', '');
-      ta.style.position = 'absolute'; ta.style.left = '-9999px';
-      document.body.appendChild(ta);
-      ta.select();
-      document.execCommand('copy');
-      document.body.removeChild(ta);
-      showToast('Link copied to clipboard.');
-    } catch (e) {
-      showToast('Could not copy link.');
-    }
-  }
+  });
 
   // Public API additions
   window.comparisons.open = navigateToComparison;
