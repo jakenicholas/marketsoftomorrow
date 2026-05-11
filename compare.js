@@ -613,6 +613,7 @@
     resultsEl.innerHTML = matches.map(f => {
       const title = f.properties.title || '';
       const city  = f.properties.city  || '';
+      const img   = f.properties.image || '';
       const slug  = window.projectSlugify(title);
       const isSelected = workingDraft.slugs.includes(slug);
       const disabled = isSelected || atCap;
@@ -620,6 +621,9 @@
       return `
         <button type="button" class="compare-search-row${isSelected ? ' is-selected' : ''}"
                 role="option" data-slug="${escapeAttr(slug)}" ${disabled ? 'disabled' : ''}>
+          ${img
+            ? `<img class="compare-search-row-thumb" src="${escapeAttr(img)}" alt="" loading="lazy" />`
+            : `<div class="compare-search-row-thumb compare-search-row-thumb-empty"></div>`}
           <div class="compare-search-row-meta">
             <div class="compare-search-row-title">${escapeHtml(title)}</div>
             <div class="compare-search-row-sub">${escapeHtml(city)}</div>
@@ -740,6 +744,11 @@
     viewEl = document.createElement('div');
     viewEl.id = 'compareView';
     viewEl.className = 'compare-view';
+    // Set data-mode upfront so the CSS rules that swap toggle icons based on
+    // data-mode (.compare-view[data-mode="stack"] / [data-mode="side"]) match
+    // from first paint. Without this, both icons stay display:none and the
+    // toggle button renders as an empty 36px square.
+    viewEl.dataset.mode = viewMode;
     viewEl.innerHTML = `
       <!-- Map (right of drawer on desktop, behind drawer on mobile) -->
       <div class="compare-view-map" id="compareViewMap"></div>
@@ -1085,14 +1094,24 @@
   // modal so the modal renders on top, then restores it when the modal closes.
   function openProjectFromCompare(slug) {
     const f = getFeatureForSlug(slug);
-    if (!f || typeof window.openProjectModal !== 'function') return;
+    if (!f || typeof window.openProjectModal !== 'function') {
+      // Defensive: surface failure as a console log so we notice silent
+      // misses in production rather than just "click does nothing".
+      console.warn('[compare] openProjectFromCompare: no feature or modal handler', { slug, hasFeature: !!f });
+      return;
+    }
     viewEl.classList.add('compare-view-bg');
+    // Body class drives a CSS rule that bumps #projectModal z-index above
+    // the compare drawer's stacking context. Belt-and-suspenders against
+    // edge cases where compare-view-bg alone doesn't get the modal on top.
+    document.body.classList.add('compare-modal-open');
     window.openProjectModal(f, 'compare-view');
     const pm = document.getElementById('projectModal');
     if (!pm) return;
     const observer = new MutationObserver(() => {
       if (!pm.classList.contains('open')) {
         viewEl.classList.remove('compare-view-bg');
+        document.body.classList.remove('compare-modal-open');
         observer.disconnect();
       }
     });
@@ -1166,26 +1185,9 @@
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
         const slug = btn.dataset.openProject;
-        const f = getFeatureForSlug(slug);
-        if (!f || typeof window.openProjectModal !== 'function') return;
-        // Keep the comparison overlay open and show the project modal on top.
-        // The comparison view sits at z-index 8500; #projectModal is z-index 100.
-        // Add a class that drops our z-index below the project modal so it renders
-        // on top, then restore it when the project modal closes (best-effort --
-        // we observe the project modal's class for "open").
-        viewEl.classList.add('compare-view-bg');
-        window.openProjectModal(f, 'compare-view');
-        // Watch for the project modal closing so we can restore z-index
-        const pm = document.getElementById('projectModal');
-        if (pm) {
-          const observer = new MutationObserver(() => {
-            if (!pm.classList.contains('open')) {
-              viewEl.classList.remove('compare-view-bg');
-              observer.disconnect();
-            }
-          });
-          observer.observe(pm, { attributes: true, attributeFilter: ['class'] });
-        }
+        // Use the shared helper so the body class + z-index handling lives
+        // in one place (no DRY drift between cards view and deck view).
+        openProjectFromCompare(slug);
       });
     });
 
