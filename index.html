@@ -1093,6 +1093,13 @@
       70%  { box-shadow: 0 0 0 6px rgba(31,223,103,0); }
       100% { box-shadow: 0 0 0 0 rgba(31,223,103,0); }
     }
+    /* Subtle scale+opacity pulse used by the Watch button's unread dot.
+       Distinct from pulseDotRing (which animates a ring shadow) -- this one
+       animates the dot itself so it reads as "live activity" not "ripple". */
+    @keyframes pulseDot {
+      0%, 100% { transform: scale(1);    opacity: 1;   }
+      50%      { transform: scale(1.25); opacity: 0.7; }
+    }
     .pulse-stack-title {
       font-size: 11px;
       text-transform: uppercase;
@@ -2441,6 +2448,114 @@
     color: #000;
   }
   #projectModal .pm-btn-icon.favorited svg { stroke: #fff; }
+
+  /* ─── Watch button (Phase 1: replaces the old +/heart favorite icon) ───
+     Three visual states map to two underlying classes:
+       (default)              -> "Watch"     dark fill, white text + eye
+       .watching              -> "Watching"  green-tinted fill + border
+       .watching .has-unread  -> same as watching, plus a pulsing green dot
+     Desktop shows icon + label. On narrow viewports (<480px) the button
+     collapses back to icon-only so the CTA row fits the existing layout. */
+  #projectModal .pm-watch-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    gap: 6px;
+    height: 40px;
+    padding: 0 12px;
+    background: rgba(255,255,255,0.06);
+    border: 0.5px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    color: rgba(255,255,255,0.85);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    flex-shrink: 0;
+    font-family: inherit;
+    line-height: 1;
+    position: relative;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+  }
+  #projectModal .pm-watch-btn:hover {
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+  }
+  #projectModal .pm-watch-btn svg {
+    width: 16px; height: 16px;
+    stroke: currentColor; fill: none; stroke-width: 1.8;
+    flex-shrink: 0;
+  }
+  #projectModal .pm-watch-btn.watching {
+    background: rgba(31,223,103,0.12);
+    border-color: rgba(31,223,103,0.4);
+    color: #1FDF67;
+  }
+  #projectModal .pm-watch-btn.watching:hover {
+    background: rgba(31,223,103,0.18);
+  }
+  /* Pulsing green dot on the right when there are unread updates. The dot
+     animation is shared with the Pulse drawer header so the visual reads
+     consistently. */
+  #projectModal .pm-watch-btn-dot {
+    display: none;
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: #1FDF67;
+    margin-left: 2px;
+    box-shadow: 0 0 8px rgba(31,223,103,0.8);
+    animation: pulseDot 1.6s ease-in-out infinite;
+  }
+  #projectModal .pm-watch-btn.watching.has-unread .pm-watch-btn-dot {
+    display: inline-block;
+  }
+  /* Mobile: collapse to icon-only square (~40px) to match prior layout */
+  @media (max-width: 480px) {
+    #projectModal .pm-watch-btn {
+      width: 40px;
+      padding: 0;
+      gap: 0;
+    }
+    #projectModal .pm-watch-btn .pm-watch-btn-label { display: none; }
+    /* On mobile, when there's unread activity, dock the dot inside the
+       button as a small corner pip rather than a horizontal sibling. */
+    #projectModal .pm-watch-btn-dot {
+      position: absolute;
+      top: 6px; right: 6px;
+      margin: 0;
+    }
+  }
+
+  /* "You're watching" summary card — appears at the top of the modal body
+     when the user is watching the project AND has unread updates. */
+  #projectModal .pm-watching-card[hidden] { display: none; }
+  #projectModal .pm-watching-card {
+    margin: 0 0 16px;
+    padding: 12px 14px;
+    background: rgba(31,223,103,0.08);
+    border: 1px solid rgba(31,223,103,0.25);
+    border-radius: 10px;
+  }
+  #projectModal .pm-watching-card-eyebrow {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #1FDF67;
+    margin-bottom: 4px;
+  }
+  #projectModal .pm-watching-card-eyebrow svg {
+    width: 12px; height: 12px;
+    stroke: currentColor; fill: none; stroke-width: 2;
+  }
+  #projectModal .pm-watching-card-body {
+    font-size: 13px;
+    line-height: 1.4;
+    color: rgba(255,255,255,0.85);
+  }
+  #projectModal .pm-watching-card-body strong {
+    color: #fff;
+    font-weight: 700;
+  }
+
   /* Page counter badge on hero */
   #projectModal .pm-counter {
     position: absolute; bottom: 10px; right: 12px;
@@ -4527,6 +4642,17 @@
           <div class="pm-pills" id="pmPills"></div>
           <h2 class="pm-title" id="pmTitle"></h2>
           <p class="pm-city" id="pmCity"></p>
+          <!-- "You're watching" summary card. Shows only when the project
+               is in the user's watchlist AND there are unread events since
+               their last_viewed_at timestamp for this slug. Populated by
+               renderWatchingCard() in the modal-open flow. -->
+          <div class="pm-watching-card" id="pmWatchingCard" hidden>
+            <div class="pm-watching-card-eyebrow">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              You're watching
+            </div>
+            <div class="pm-watching-card-body" id="pmWatchingCardBody"></div>
+          </div>
           <div class="pm-progress" id="pmProgress"></div>
           <div class="pm-div"></div>
           <p class="pm-desc" id="pmDesc"></p>
@@ -4539,9 +4665,20 @@
             <div class="pm-btn-icon" id="pmShareIconBtn">
               <svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
             </div>
-            <div class="pm-btn-icon" id="pmLikeBtn" role="button" aria-label="Add to favorites">
-              <svg id="pmHeartSvg" viewBox="0 0 18 18" width="18" height="18" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="2.4" stroke-linecap="round"><path d="M9 1v16M1 9h16"/></svg>
-            </div>
+            <!-- Watch button (Phase 1). Replaces the old icon-only favorite
+                 button. The underlying isFavorited()/toggleFavorite() data
+                 layer is unchanged -- only the UI is rebranded to "Watch".
+                 The .watching class is toggled by the modal-open hook, and
+                 .has-unread is toggled when the unread-counter computation
+                 reports > 0 events since the user last viewed this project. -->
+            <button class="pm-watch-btn" id="pmLikeBtn" type="button" aria-label="Watch this project">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+              <span class="pm-watch-btn-label" id="pmWatchBtnLabel">Watch</span>
+              <span class="pm-watch-btn-dot" aria-hidden="true"></span>
+            </button>
           </div>
           <!-- Coverage on TMW: list of articles from oftmw.com that mention
                this project. Hidden by default; populated by JS when articles.json
@@ -5580,13 +5717,29 @@
           learnBtn.style.pointerEvents = 'none';
         }
 
-        // Favorite button — sync to current favorite state for this project
+        // Watch button — sync to current state for this project. The
+        // underlying data is still the existing favorites system (we kept
+        // the field name internally), but the UI is rebranded to "Watch".
         const likeBtn = document.getElementById('pmLikeBtn');
         if (likeBtn) {
           const favSlug = (p.title || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
           likeBtn.setAttribute('data-fav-slug', favSlug);
-          likeBtn.classList.toggle('favorited', !!(window.isFavorited && window.isFavorited(p.title)));
+          const isWatching = !!(window.isFavorited && window.isFavorited(p.title));
+          // Keep the legacy .favorited class so any code that still queries
+          // it (e.g. tile buttons) stays in sync. Add .watching for the new
+          // visual treatment.
+          likeBtn.classList.toggle('favorited', isWatching);
+          likeBtn.classList.toggle('watching', isWatching);
+          const labelEl = document.getElementById('pmWatchBtnLabel');
+          if (labelEl) labelEl.textContent = isWatching ? 'Watching' : 'Watch';
+          likeBtn.setAttribute('aria-label', isWatching ? 'Stop watching this project' : 'Watch this project');
+          // Render "You're watching" summary card + has-unread dot. This is
+          // a no-op when the user isn't watching or has no unread events.
+          renderWatchingSummary(p.title, isWatching, likeBtn);
         }
+        // Update last_viewed_at for this project to "now" -- resets the
+        // unread counter the next time the user opens their watchlist.
+        markProjectViewed(p.title);
 
         // Show modal — push URL + update SEO meta for sharing
         const slug = projectSlug(p.title);
@@ -8340,10 +8493,16 @@
           // Load favorites whenever we have an authenticated member
           if (isSignedIn) {
             await loadFavoritesFromMember();
+            // Watchlist Phase 1: also hydrate last_viewed_at so the unread
+            // counter works on the very first project view of a session.
+            if (typeof loadLastViewedFromMember === 'function') {
+              await loadLastViewedFromMember();
+            }
             // Honor ?view=favorites if user landed on the URL — paid only
             if (window._maybeActivateFavoritesViewFromUrl) window._maybeActivateFavoritesViewFromUrl();
           } else {
             window._favorites = new Set();
+            window._lastViewed = {};
             // Exit favorites view if user logs out
             if (window._favoritesViewActive) window.setFavoritesView(false);
             syncFavoritesUI();
@@ -8896,6 +9055,121 @@
         } catch (e) { console.warn('[Favorites] save error:', e); }
       }
 
+      // ─── Watchlist additions (Phase 1) ────────────────────────────────────
+      // The watchlist reuses the favorites Set as its source of truth (same
+      // UI rebranded "Watch"). What's NEW in Phase 1: a map of when the user
+      // last viewed each watched project. Comparing each project's last_viewed
+      // to the timestamps in pulse.json gives us the "N new updates" counter
+      // for the upcoming sidebar + summary card.
+      //
+      // Stored in the same Memberstack JSON blob:
+      //   member.metaData.last_viewed_at = { "marina-village": "2026-05-09T...", ... }
+      window._lastViewed = {};
+
+      async function loadLastViewedFromMember() {
+        if (!window.$memberstackDom) return;
+        try {
+          const result = await window.$memberstackDom.getMemberJSON();
+          const json = result?.data || {};
+          const lv = (json && typeof json.last_viewed_at === 'object' && !Array.isArray(json.last_viewed_at))
+            ? json.last_viewed_at : {};
+          window._lastViewed = lv || {};
+        } catch (e) { console.warn('[Watchlist] last_viewed load error:', e); }
+      }
+      window.loadLastViewedFromMember = loadLastViewedFromMember;
+
+      // Debounce saves so opening a flurry of project modals doesn't hammer
+      // the Memberstack API. Coalesces into a single write after 800ms idle.
+      let _lastViewedSaveTimer = null;
+      function saveLastViewedToMember() {
+        if (!window.$memberstackDom) return;
+        if (_lastViewedSaveTimer) clearTimeout(_lastViewedSaveTimer);
+        _lastViewedSaveTimer = setTimeout(async () => {
+          try {
+            await window.$memberstackDom.updateMemberJSON({
+              json: { last_viewed_at: window._lastViewed }
+            });
+          } catch (e) { console.warn('[Watchlist] last_viewed save error:', e); }
+        }, 800);
+      }
+
+      // Mark a project as just-viewed. Only persists when the user is
+      // actually watching it -- no point tracking views for non-watched
+      // projects (and it would bloat the JSON blob).
+      window.markProjectViewed = function(projectTitle) {
+        const slug = projectSlugify(projectTitle);
+        if (!slug) return;
+        if (!window._favorites || !window._favorites.has(slug)) return;
+        window._lastViewed[slug] = new Date().toISOString();
+        saveLastViewedToMember();
+      };
+
+      // Compute the number of pulse events for a project that postdate the
+      // user's last_viewed_at timestamp for that project. Used by the
+      // summary card + the Watch button's unread dot.
+      //
+      // Returns an object: { count, lastEvent } so callers can describe
+      // what's new ("3 new updates incl. a new article and a status change").
+      window.getUnreadForProject = function(projectTitle) {
+        const slug = projectSlugify(projectTitle);
+        const lastViewedIso = (window._lastViewed && window._lastViewed[slug]) || '';
+        const events = (window._pulseEvents && Array.isArray(window._pulseEvents))
+          ? window._pulseEvents : [];
+        let count = 0;
+        let lastEvent = null;
+        for (let i = 0; i < events.length; i++) {
+          const ev = events[i];
+          if (ev.project_slug !== slug) continue;
+          const ts = ev.timestamp || '';
+          // No last_viewed yet => everything counts as unread; cap is the
+          // first time the user opens the project anyway, after which the
+          // counter resets.
+          if (!lastViewedIso || ts > lastViewedIso) {
+            count++;
+            if (!lastEvent || ts > (lastEvent.timestamp || '')) lastEvent = ev;
+          }
+        }
+        return { count, lastEvent };
+      };
+
+      // Render the "You're watching" summary card for a project. Pulls the
+      // unread count, builds a human sentence, toggles the card + the dot
+      // on the Watch button itself.
+      window.renderWatchingSummary = function(projectTitle, isWatching, watchBtnEl) {
+        const card = document.getElementById('pmWatchingCard');
+        const body = document.getElementById('pmWatchingCardBody');
+        if (!card || !body) return;
+        if (!isWatching) {
+          card.setAttribute('hidden', '');
+          if (watchBtnEl) watchBtnEl.classList.remove('has-unread');
+          return;
+        }
+        const { count, lastEvent } = window.getUnreadForProject(projectTitle);
+        if (count <= 0) {
+          card.setAttribute('hidden', '');
+          if (watchBtnEl) watchBtnEl.classList.remove('has-unread');
+          return;
+        }
+        if (watchBtnEl) watchBtnEl.classList.add('has-unread');
+        // Build a one-liner. If we can describe the most recent event, do.
+        let detail = '';
+        if (lastEvent) {
+          const t = lastEvent.type || '';
+          if (t === 'article') detail = ' — incl. a new article';
+          else if (t === 'status_change') detail = ' — incl. a status change';
+          else if (t === 'new_project') detail = '';
+        }
+        const noun = count === 1 ? 'update' : 'updates';
+        body.innerHTML = '<strong>' + count + ' new ' + noun + '</strong> since you last viewed' + detail;
+        card.removeAttribute('hidden');
+      };
+
+      // Cache for pulse events so the watchlist code can read them sync.
+      // We piggyback on whatever fetched pulse.json for the Pulse drawer --
+      // if it hasn't loaded yet, the unread counter just reads 0 until
+      // events arrive (the summary card simply stays hidden in that case).
+      window._pulseEvents = window._pulseEvents || [];
+
       // Public API: toggles a project favorite. Returns new state or false if blocked.
       // - Anonymous → opens signup wall
       // - Free signed-in → opens subscription paywall
@@ -8950,7 +9224,25 @@
       function syncFavoritesUI() {
         document.querySelectorAll('[data-fav-slug]').forEach(el => {
           const slug = el.getAttribute('data-fav-slug');
-          el.classList.toggle('favorited', window._favorites.has(slug));
+          const watched = window._favorites.has(slug);
+          el.classList.toggle('favorited', watched);
+          // For the modal Watch button only: also toggle the new .watching
+          // class + swap the label between "Watch" and "Watching". Other
+          // tile buttons keep behaving exactly as before.
+          if (el.id === 'pmLikeBtn') {
+            el.classList.toggle('watching', watched);
+            const labelEl = document.getElementById('pmWatchBtnLabel');
+            if (labelEl) labelEl.textContent = watched ? 'Watching' : 'Watch';
+            el.setAttribute('aria-label', watched ? 'Stop watching this project' : 'Watch this project');
+            // Card visibility depends on whether they're watching AND have
+            // unread events. Recompute on every toggle so unwatching hides
+            // the card immediately even if unread > 0.
+            const titleEl = document.getElementById('pmTitle');
+            const title = (titleEl && titleEl.textContent) || '';
+            if (title && typeof window.renderWatchingSummary === 'function') {
+              window.renderWatchingSummary(title, watched, el);
+            }
+          }
         });
         updateFavoritesCountUI();
       }
@@ -9611,6 +9903,10 @@
           allEvents = (data && Array.isArray(data.events)) ? data.events : [];
           generatedAt = data && data.generated_at ? data.generated_at : null;
           hasLoaded = true;
+          // Mirror to a global so the watchlist code (which lives outside
+          // this IIFE) can compute "unread since last_viewed_at" counters
+          // without needing to refetch pulse.json itself.
+          window._pulseEvents = allEvents;
           updateHeader();
           updateBadge();
           renderEvents();
