@@ -321,22 +321,47 @@ STATUS_LABELS = {
 def match_article_to_project(article: dict, projects: dict) -> str | None:
     """Try to find a matching project slug for an article. Returns slug or None.
 
-    Used to attach a single project to a pulse event (the news feed). Title-
-    only match (we don't search the body here -- the pulse event is meant to
-    be the article *about* a project, not every article that mentions one).
+    Used to attach a single project to a pulse event (the news feed).
+    Strategy: try title-only first (highest confidence -- the article is
+    *about* the project). If no title match, fall back to body match so
+    articles that mention the project in the lede but not the headline
+    still surface as pulse events. Without the fallback, an article like
+    "West Palm Beach's newest development takes shape" wouldn't link to
+    The Nora District even when the body talks about nothing else.
+
+    Picks the longest-named matching project first to reduce false
+    positives from short names showing up inside longer names (e.g.
+    'Aman' inside 'Aman Miami Beach').
     """
     title_lower = (article.get('title_full') or '').lower()
-    if not title_lower:
+    body_lower = (article.get('body') or '').lower()
+    if not title_lower and not body_lower:
         return None
-    # Try longest-first to avoid 'Aman' matching before 'Aman Miami Beach'
+
+    # Longest first so 'Aman Miami Beach' wins over 'Aman'
     sorted_projects = sorted(projects.values(), key=lambda p: -len(p['title']))
-    for p in sorted_projects:
-        name = p['title']
-        if len(name) < 4:
-            continue
-        pattern = r'(?:^|\W)' + re.escape(name.lower()) + r'(?:\W|$)'
-        if re.search(pattern, title_lower):
-            return p['slug']
+
+    # Pass 1: title match (high confidence)
+    if title_lower:
+        for p in sorted_projects:
+            name = p['title']
+            if len(name) < 4:
+                continue
+            pattern = r'(?:^|\W)' + re.escape(name.lower()) + r'(?:\W|$)'
+            if re.search(pattern, title_lower):
+                return p['slug']
+
+    # Pass 2: body match (lower confidence, but better than dropping the
+    # event). Same min-4-char filter and longest-first ordering.
+    if body_lower:
+        for p in sorted_projects:
+            name = p['title']
+            if len(name) < 4:
+                continue
+            pattern = r'(?:^|\W)' + re.escape(name.lower()) + r'(?:\W|$)'
+            if re.search(pattern, body_lower):
+                return p['slug']
+
     return None
 
 def match_article_to_all_projects(article: dict, projects: dict) -> list:
