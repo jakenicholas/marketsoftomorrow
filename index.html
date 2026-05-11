@@ -9830,6 +9830,9 @@
             setAuthHint('anon');
             window._isPaidMember = false;
             window._memberstackSignedIn = false;
+            // No member = no favorites can have loaded. Make sure subsequent
+            // sign-ins go through a fresh load before any save fires.
+            window._favoritesLoaded = false;
             if (window.comparisons && typeof window.comparisons.clear === 'function') {
               window.comparisons.clear();
             }
@@ -9896,6 +9899,12 @@
           } else {
             window._favorites = new Set();
             window._lastViewed = {};
+            // Reset the loaded flag so a subsequent sign-in goes through a
+            // proper load-then-save sequence again. Without this, after a
+            // sign-out the flag would still be true from the previous
+            // session, and an early click on sign-back-in could persist
+            // the empty Set before the new account's favorites are loaded.
+            window._favoritesLoaded = false;
             // Exit favorites view if user logs out
             if (window._favoritesViewActive) window.setFavoritesView(false);
             // Also close the Watchlist drawer if it was open -- a signed-out
@@ -10494,6 +10503,13 @@
           const json = result?.data || {};
           const arr = Array.isArray(json.favorites) ? json.favorites : [];
           window._favorites = new Set(arr.filter(s => typeof s === 'string'));
+          // Mark as loaded ONLY after we successfully read the server state.
+          // toggleFavorite uses this flag to guard against the race where a
+          // user clicks Watch in the window between auth-resolved and
+          // favorites-loaded -- without the guard, we'd mutate an empty Set
+          // and persist a wiped-favorites blob to Memberstack, destroying
+          // the user's previously-saved watchlist.
+          window._favoritesLoaded = true;
           syncFavoritesUI();
           // Belt-and-suspenders: if the user hard-refreshed with a project
           // deep-link in the URL, the modal may already be open with the
@@ -10530,6 +10546,15 @@
 
       async function saveFavoritesToMember() {
         if (!window.$memberstackDom) return;
+        // Hard guard: never write favorites until we've successfully READ
+        // them from the server. Without this, any code path that mutates
+        // _favorites (Set defaults to empty) before load completes could
+        // persist the empty Set to Memberstack and wipe the user's data.
+        // Belt-and-suspenders alongside the gate in toggleFavorite.
+        if (!window._favoritesLoaded) {
+          console.warn('[Favorites] save blocked: favorites not loaded yet');
+          return;
+        }
         try {
           // CRITICAL: updateMemberJSON REPLACES the entire JSON blob -- it
           // does NOT merge. So before writing favorites, we must fetch the
@@ -10711,6 +10736,25 @@
             showSubscriptionPaywall('feature:watch');
           }
           if (window.gtag) gtag('event', 'favorite_blocked', { 'project_slug': slug, 'reason': isSignedIn ? 'free_member' : 'anonymous' });
+          return false;
+        }
+
+        // Race guard: if favorites haven't been loaded from Memberstack yet,
+        // refuse the toggle. Without this, an early click would mutate the
+        // empty default Set and persist it to Memberstack, wiping whatever
+        // the user previously had saved. The auth flow loads favorites
+        // immediately after marking the user paid, so this window is short
+        // (typically < 1s) -- a brief reject is preferable to silent data
+        // loss. Surface a console hint so dev tools show why nothing
+        // happened on an unusually-early click.
+        if (!window._favoritesLoaded) {
+          console.warn('[Watchlist] toggle blocked: favorites not loaded yet');
+          if (btnEl && btnEl.classList) {
+            // Quick visual nudge: tiny shake so the user knows the click
+            // registered but is being held.
+            btnEl.classList.add('wl-toggle-pending');
+            setTimeout(() => btnEl.classList.remove('wl-toggle-pending'), 600);
+          }
           return false;
         }
 
