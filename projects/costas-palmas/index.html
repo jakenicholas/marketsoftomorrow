@@ -20,23 +20,68 @@
           src="https://static.memberstack.com/scripts/v2/memberstack.js"
           type="text/javascript"></script>
 
-  <!-- Memberstack modal dark theme — mirrors the map app so signed-in/
-       signed-up/profile flows are consistent across surfaces. Same broad
-       overrides as the main app; see index.html for the rationale. -->
+  <!-- Memberstack modal dark theme: tagger script + targeted CSS.
+       See index.html for the full rationale. Identical strategy here. -->
+  <script>
+    (function tagMemberstackModals() {
+      function looksLikeMSModal(el) {
+        if (!el || el.nodeType !== 1) return false;
+        try {
+          var cs = window.getComputedStyle(el);
+          if (cs.position !== 'fixed' && cs.position !== 'absolute') return false;
+        } catch (_) { return false; }
+        if (el.querySelector && (
+            el.querySelector('[data-ms-modal]') ||
+            el.querySelector('[data-cy]') ||
+            el.querySelector('[data-ms-form]') ||
+            el.id && el.id.toLowerCase().indexOf('ms') === 0
+        )) return true;
+        var hasEmail = el.querySelector && el.querySelector('input[type="email"]');
+        var hasPwd   = el.querySelector && el.querySelector('input[type="password"]');
+        if (hasEmail || hasPwd) return true;
+        return false;
+      }
+      function tag(el) {
+        if (el && el.classList && !el.classList.contains('tmw-ms-modal')) {
+          el.classList.add('tmw-ms-modal');
+        }
+      }
+      function scan() {
+        var nodes = document.body ? document.body.children : [];
+        for (var i = 0; i < nodes.length; i++) {
+          if (looksLikeMSModal(nodes[i])) tag(nodes[i]);
+        }
+      }
+      if (document.body) scan();
+      else document.addEventListener('DOMContentLoaded', scan);
+      var obs = new MutationObserver(function(muts) {
+        for (var i = 0; i < muts.length; i++) {
+          var added = muts[i].addedNodes;
+          for (var j = 0; j < added.length; j++) {
+            if (looksLikeMSModal(added[j])) tag(added[j]);
+          }
+        }
+      });
+      function startObserver() {
+        if (document.body) obs.observe(document.body, { childList: true, subtree: false });
+        else document.addEventListener('DOMContentLoaded', startObserver);
+      }
+      startObserver();
+    })();
+  </script>
+
   <style>
+    .tmw-ms-modal,
+    #msOverlay,
     body > div[id^="ms-"],
-    body > div[class*="ms-"],
-    body > div[data-ms-modal],
-    body > [role="dialog"],
-    #ms-overlay, #ms-modal-overlay, [id^="ms-modal"] {
+    body > [role="dialog"] {
       background: rgba(0,0,0,0.78) !important;
       backdrop-filter: blur(8px) !important;
       -webkit-backdrop-filter: blur(8px) !important;
     }
-    body > div[id^="ms-"] > div,
-    body > div[class*="ms-"] > div,
-    body > div[data-ms-modal] > div,
-    body > div[id^="ms-"] [role="dialog"],
+    .tmw-ms-modal > div,
+    .tmw-ms-modal [role="dialog"],
+    #msOverlay > div,
     body > [role="dialog"] {
       background: #0f0f0f !important;
       color: #fff !important;
@@ -44,41 +89,34 @@
       border-radius: 16px !important;
       box-shadow: 0 30px 90px rgba(0,0,0,0.55) !important;
     }
-    body > div[id^="ms-"] img,
-    body > div[class*="ms-"] img,
+    .tmw-ms-modal img,
+    #msOverlay img,
     body > [role="dialog"] img {
       filter: brightness(0) invert(1) !important;
       opacity: 0.95 !important;
     }
-    body > div[id^="ms-"] *,
-    body > div[class*="ms-"] *,
-    body > [role="dialog"] * {
+    .tmw-ms-modal, .tmw-ms-modal *,
+    #msOverlay, #msOverlay * {
       color: #fff !important;
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
     }
-    body > div[id^="ms-"] h1, body > div[id^="ms-"] h2, body > div[id^="ms-"] h3,
-    body > div[class*="ms-"] h1, body > div[class*="ms-"] h2,
-    body > [role="dialog"] h1, body > [role="dialog"] h2 {
+    .tmw-ms-modal h1, .tmw-ms-modal h2, .tmw-ms-modal h3,
+    #msOverlay h1, #msOverlay h2, #msOverlay h3 {
       color: #fff !important;
     }
-    body > div[id^="ms-"] p, body > div[id^="ms-"] small,
-    body > div[class*="ms-"] p, body > [role="dialog"] p {
+    .tmw-ms-modal p, .tmw-ms-modal small,
+    #msOverlay p, #msOverlay small {
       color: rgba(255,255,255,0.7) !important;
     }
-    body > div[id^="ms-"] label,
-    body > div[class*="ms-"] label,
-    body > [role="dialog"] label {
+    .tmw-ms-modal label, #msOverlay label {
       color: #fff !important;
       font-weight: 600 !important;
       font-size: 13px !important;
     }
-    body > div[id^="ms-"] input,
-    body > div[id^="ms-"] textarea,
-    body > div[id^="ms-"] select,
-    body > div[class*="ms-"] input,
-    body > div[class*="ms-"] textarea,
-    body > [role="dialog"] input,
-    body > [role="dialog"] textarea {
+    .tmw-ms-modal input,
+    .tmw-ms-modal textarea,
+    .tmw-ms-modal select,
+    #msOverlay input, #msOverlay textarea {
       background: rgba(255,255,255,0.05) !important;
       border: 1px solid rgba(255,255,255,0.14) !important;
       color: #fff !important;
@@ -87,40 +125,38 @@
       font-size: 14px !important;
       box-shadow: none !important;
     }
-    body > div[id^="ms-"] input:focus,
-    body > div[id^="ms-"] textarea:focus,
-    body > div[class*="ms-"] input:focus,
-    body > [role="dialog"] input:focus {
+    .tmw-ms-modal input:focus,
+    #msOverlay input:focus {
       outline: none !important;
       border-color: #1FDF67 !important;
       background: rgba(255,255,255,0.07) !important;
       box-shadow: 0 0 0 3px rgba(31,223,103,0.20) !important;
     }
-    body > div[id^="ms-"] input::placeholder,
-    body > div[class*="ms-"] input::placeholder,
-    body > [role="dialog"] input::placeholder {
+    .tmw-ms-modal input::placeholder,
+    #msOverlay input::placeholder {
       color: rgba(255,255,255,0.35) !important;
       opacity: 1 !important;
     }
-    body > div[id^="ms-"] button[aria-label*="assword"],
-    body > div[class*="ms-"] button[aria-label*="assword"] {
+    .tmw-ms-modal input[disabled],
+    .tmw-ms-modal input[readonly] {
+      color: rgba(255,255,255,0.6) !important;
+      background: rgba(255,255,255,0.03) !important;
+    }
+    .tmw-ms-modal button[aria-label*="assword"] {
       background: transparent !important;
       border: none !important;
       color: rgba(255,255,255,0.55) !important;
       box-shadow: none !important;
       outline: none !important;
     }
-    body > div[id^="ms-"] button[aria-label*="assword"]:focus,
-    body > div[class*="ms-"] button[aria-label*="assword"]:focus {
-      outline: none !important;
+    .tmw-ms-modal button[aria-label*="assword"]:focus {
       box-shadow: 0 0 0 2px rgba(31,223,103,0.5) !important;
       border-radius: 6px !important;
     }
-    body > div[id^="ms-"] button[type="submit"],
-    body > div[class*="ms-"] button[type="submit"],
-    body > [role="dialog"] button[type="submit"],
-    body > div[id^="ms-"] button[class*="primary"],
-    body > [role="dialog"] button[class*="primary"] {
+    .tmw-ms-modal button[type="submit"],
+    .tmw-ms-modal button[class*="primary" i],
+    .tmw-ms-modal [data-cy*="save"],
+    .tmw-ms-modal [data-cy*="submit"] {
       background: #1FDF67 !important;
       color: #000 !important;
       border: none !important;
@@ -129,48 +165,56 @@
       padding: 13px 18px !important;
       cursor: pointer !important;
     }
-    body > div[id^="ms-"] button[type="submit"]:hover,
-    body > [role="dialog"] button[type="submit"]:hover {
+    .tmw-ms-modal button[type="submit"]:hover {
       background: #18c75a !important;
     }
-    body > div[id^="ms-"] button:not([type="submit"]):not([class*="primary"]):not([aria-label*="lose"]):not([aria-label*="assword"]),
-    body > [role="dialog"] button:not([type="submit"]):not([class*="primary"]):not([aria-label*="lose"]):not([aria-label*="assword"]) {
+    .tmw-ms-modal [data-cy="save-btn"],
+    .tmw-ms-modal [data-cy="save"] {
+      background: #1FDF67 !important;
+      color: #000 !important;
+    }
+    .tmw-ms-modal button:not([type="submit"]):not([class*="primary" i]):not([aria-label*="lose" i]):not([aria-label*="assword" i]):not([data-cy*="save"]) {
       background: rgba(255,255,255,0.06) !important;
       color: #fff !important;
       border: 1px solid rgba(255,255,255,0.10) !important;
       border-radius: 10px !important;
       cursor: pointer !important;
     }
-    body > div[id^="ms-"] a,
-    body > div[class*="ms-"] a,
-    body > [role="dialog"] a {
+    .tmw-ms-modal a, #msOverlay a {
       color: #1FDF67 !important;
       text-decoration: none !important;
       font-weight: 600 !important;
     }
-    body > div[id^="ms-"] button[aria-label*="lose"],
-    body > [role="dialog"] button[aria-label*="lose"] {
+    .tmw-ms-modal button[aria-label*="lose" i],
+    .tmw-ms-modal [data-cy*="close"] {
       color: rgba(255,255,255,0.5) !important;
       background: transparent !important;
       border: none !important;
       box-shadow: none !important;
     }
-    body > div[id^="ms-"] nav button,
-    body > div[id^="ms-"] [class*="sidebar"] button {
+    .tmw-ms-modal nav button,
+    .tmw-ms-modal [class*="sidebar" i] button,
+    .tmw-ms-modal [data-cy*="tab"] {
       color: #fff !important;
       background: transparent !important;
       border: none !important;
       text-align: left !important;
     }
-    body > div[id^="ms-"] nav button[aria-current="true"],
-    body > div[id^="ms-"] nav button.active {
+    .tmw-ms-modal nav button[aria-current="true"],
+    .tmw-ms-modal nav button.active,
+    .tmw-ms-modal [data-cy*="tab"][aria-current="true"] {
       background: rgba(31,223,103,0.10) !important;
       color: #1FDF67 !important;
       border-radius: 8px !important;
     }
-    body > div[id^="ms-"] [class*="error"],
-    body > div[class*="ms-"] [class*="error"],
-    body > [role="dialog"] [role="alert"] {
+    .tmw-ms-modal [data-cy*="logout"],
+    .tmw-ms-modal button[aria-label*="ogout" i] {
+      color: rgba(255,255,255,0.7) !important;
+      background: transparent !important;
+      border: none !important;
+    }
+    .tmw-ms-modal [class*="error" i],
+    .tmw-ms-modal [role="alert"] {
       color: #FF6B6B !important;
       background: rgba(255,107,107,0.10) !important;
       border: 1px solid rgba(255,107,107,0.25) !important;
