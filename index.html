@@ -176,7 +176,6 @@
     .tmw-ms-modal,
     #msOverlay,
     body > div[id^="ms-"],
-    body > [role="dialog"] {
       background: rgba(0, 0, 0, 0.78) !important;
       backdrop-filter: blur(8px) !important;
       -webkit-backdrop-filter: blur(8px) !important;
@@ -186,7 +185,6 @@
     .tmw-ms-modal > div,
     .tmw-ms-modal [role="dialog"],
     #msOverlay > div,
-    body > [role="dialog"] {
       background: #0f0f0f !important;
       color: #fff !important;
       border: 1px solid rgba(255, 255, 255, 0.08) !important;
@@ -197,7 +195,6 @@
     /* TMW logo -- the asset is dark; invert it to white. */
     .tmw-ms-modal img,
     #msOverlay img,
-    body > [role="dialog"] img {
       filter: brightness(0) invert(1) !important;
       opacity: 0.95 !important;
     }
@@ -3193,6 +3190,19 @@
     overflow: hidden;
     font-family: var(--font-sans, sans-serif);
   }
+  /* When a project modal is opened from inside the comparison view, bump
+     it well above the compare drawer's stacking context. The compare view
+     creates a stacking context via z-index:8500 (or 50 with compare-view-bg),
+     and the drawer inside uses z:5 within it. Without an explicit boost the
+     project modal at z:2100 outside that context renders correctly, but the
+     comparison drawer's backdrop-blur + glass can visually swallow it on
+     some devices. body.compare-modal-open is set when this path is active. */
+  body.compare-modal-open #projectModal {
+    z-index: 10000 !important;
+  }
+  body.compare-modal-open #projectModal.closing {
+    z-index: 9999 !important;
+  }
   /* Closing state: while the modal is sliding away, drop it below the pulse
      drawer so the exit animation plays behind pulse rather than over it. */
   #projectModal.closing {
@@ -4660,7 +4670,7 @@
     background: rgba(0,0,0,0.2);
   }
   .compare-search-row {
-    display: flex; align-items: center; justify-content: space-between;
+    display: flex; align-items: center; gap: 10px;
     width: 100%;
     background: transparent; border: 0;
     border-bottom: 0.5px solid rgba(255,255,255,0.05);
@@ -4671,6 +4681,17 @@
   .compare-search-row:last-child { border-bottom: 0; }
   .compare-search-row:hover:not([disabled]) { background: rgba(255,255,255,0.04); }
   .compare-search-row[disabled] { cursor: default; opacity: 0.5; }
+  /* Search-results thumbnail mirrors the selected-slot thumb (40px square)
+     so the two lists read as visually consistent and users can identify a
+     project by image instead of scanning text. */
+  .compare-search-row-thumb {
+    width: 40px; height: 40px;
+    border-radius: 6px;
+    object-fit: cover;
+    flex: 0 0 auto;
+    background: #0a0a0a;
+  }
+  .compare-search-row-thumb-empty { background: rgba(255,255,255,0.06); }
   .compare-search-row-meta { min-width: 0; flex: 1; }
   .compare-search-row-title {
     font-size: 13px; font-weight: 500;
@@ -4785,7 +4806,11 @@
   /* ─── Drawer (left side on desktop, bottom on mobile) ───────────────────── */
   .compare-drawer {
     position: absolute;
-    top: 16px; left: 16px; bottom: 16px;
+    /* Sit below the page header so the title eyebrow ("Comparing N projects")
+       isn't hidden behind the TMW logo bar at the top of the viewport. */
+    top: calc(var(--header-height) + var(--safe-area-top) + 16px);
+    left: 16px;
+    bottom: 16px;
     width: 420px;
     z-index: 5;
     background: rgba(11,11,11,0.92);
@@ -5043,8 +5068,13 @@
      interaction model is the same throughout. */
   .compare-floating-close {
     position: absolute;
-    top: calc(16px + var(--safe-area-top));
-    left: calc(16px + var(--safe-area-left));
+    /* Clear the page header so the close button isn't hidden behind the
+       TMW logo bar. Same offset as .compare-drawer and .compare-floating-actions. */
+    top: calc(var(--header-height) + var(--safe-area-top) + 16px);
+    /* Sit just to the right of the 420px-wide drawer on desktop so it
+       floats over the map area, not over the drawer. On mobile the drawer
+       becomes a bottom sheet so this position naturally falls on the map. */
+    left: calc(16px + 420px + 16px);
     width: 36px; height: 36px;
     border-radius: 8px;
     /* Match the .glass-btn look used by the right-side cluster on the main
@@ -5068,7 +5098,10 @@
 
   .compare-floating-actions {
     position: absolute;
-    top: calc(16px + var(--safe-area-top));
+    /* Sit below the page header so the action buttons (toggle mode, edit,
+       share) aren't hidden behind the TMW logo bar at the top of the
+       viewport. Mirrors the same offset used by .compare-drawer above. */
+    top: calc(var(--header-height) + var(--safe-area-top) + 16px);
     right: calc(16px + var(--safe-area-right));
     display: flex;
     flex-direction: column;
@@ -5367,6 +5400,11 @@
       max-height: 75vh;
       border-radius: 16px 16px 0 0;
       border-left: 0; border-right: 0; border-bottom: 0;
+    }
+    /* On mobile the drawer is a bottom sheet, so the close X returns to
+       the top-left of the map (no drawer in the way). */
+    .compare-floating-close {
+      left: calc(16px + var(--safe-area-left));
     }
     .compare-drawer-header { padding: 14px 16px 12px; }
     .compare-drawer-title { font-size: 16px; }
@@ -12213,6 +12251,6 @@
        Self-contained module; relies on window.projectSlugify, window.allProjectFeatures,
        window.$memberstackDom, and the auth hint cache that the paywall code maintains.
        The ?v=2 query string busts any stale cached version after recent revisions. -->
-  <script src="compare.js?v=9"></script>
+  <script src="compare.js?v=10"></script>
 </body>
 </html>
