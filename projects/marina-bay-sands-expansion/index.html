@@ -785,22 +785,41 @@
           .catch(function() { cb(0, null); });
       }
 
-      function renderWatchingCard(count, lastEvent) {
+      function renderWatchingCard(count, lastEvent, lastViewedIso) {
         if (!card || !cardBody) return;
-        if (count <= 0) {
-          card.setAttribute('hidden', '');
+        // Show the card on EVERY watched project. Copy adapts: highlight new
+        // activity when there is some, or quietly reinforce that we're
+        // tracking when there isn't.
+        if (count > 0) {
+          btn.classList.add('has-unread');
+          var detail = '';
+          if (lastEvent) {
+            var t = lastEvent.type || '';
+            if (t === 'article')           detail = ' — incl. a new article';
+            else if (t === 'status_change') detail = ' — incl. a status change';
+          }
+          var noun = count === 1 ? 'update' : 'updates';
+          cardBody.innerHTML = '<strong>' + count + ' new ' + noun + '</strong> since you last viewed' + detail;
+        } else {
           btn.classList.remove('has-unread');
-          return;
+          var when = '';
+          if (lastViewedIso) {
+            var ms = new Date(lastViewedIso).getTime();
+            if (ms) {
+              var s = Math.max(1, Math.floor((Date.now() - ms) / 1000));
+              if (s < 60)        when = 'just now';
+              else if (s < 3600) when = Math.floor(s / 60)   + 'm ago';
+              else if (s < 86400) when = Math.floor(s / 3600) + 'h ago';
+              else if (s < 604800) when = Math.floor(s / 86400) + 'd ago';
+              else                when = Math.floor(s / 604800) + 'w ago';
+            }
+          }
+          if (when) {
+            cardBody.innerHTML = '<strong>You’re up to date</strong> — last viewed ' + when;
+          } else {
+            cardBody.innerHTML = '<strong>Tracking this project</strong> — we’ll surface news and status changes here.';
+          }
         }
-        btn.classList.add('has-unread');
-        var detail = '';
-        if (lastEvent) {
-          var t = lastEvent.type || '';
-          if (t === 'article')       detail = ' — incl. a new article';
-          else if (t === 'status_change') detail = ' — incl. a status change';
-        }
-        var noun = count === 1 ? 'update' : 'updates';
-        cardBody.innerHTML = '<strong>' + count + ' new ' + noun + '</strong> since you last viewed' + detail;
         card.removeAttribute('hidden');
       }
 
@@ -852,9 +871,10 @@
           // Pull unread count then render summary card. Then mark this view
           // as "just viewed" so the counter resets for next time.
           fetchUnread(lastViewed[slug] || '', function(count, lastEvent) {
-            renderWatchingCard(count, lastEvent);
-            // Stamp last_viewed_at = now AFTER reading the previous timestamp
-            // so the counter accurately reflects pre-view state.
+            // Pass the prior last_viewed so the "0 unread" path can show
+            // relative time. Then stamp = now so next visit's counter is
+            // accurate.
+            renderWatchingCard(count, lastEvent, lastViewed[slug] || '');
             lastViewed[slug] = new Date().toISOString();
             saveMemberJson({ last_viewed_at: lastViewed });
           });
