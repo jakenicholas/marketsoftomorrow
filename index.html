@@ -1589,6 +1589,85 @@
       to   { transform: rotate(360deg); }
     }
 
+    /* ─── Pulse close button (mobile only) ────────────────────────────────
+       Desktop dismisses Pulse by clicking the bell again -- always reachable.
+       On mobile the bell sits behind the bottom sheet, so we add an explicit
+       × in the header. Visually compact to match the refresh button, but the
+       ::before pseudo extends an invisible 14px hit cushion on each side so
+       it lands at ~56x56pt -- well above Apple's 44pt minimum touch target. */
+    .pulse-close-btn {
+      width: 28px; height: 28px;
+      padding: 0;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 50%;
+      color: rgba(255,255,255,0.7);
+      cursor: pointer;
+      display: none; /* default: hidden; shown only on mobile */
+      align-items: center; justify-content: center;
+      flex-shrink: 0;
+      position: relative;
+      transition: background 0.15s, color 0.15s;
+    }
+    .pulse-close-btn::before {
+      content: '';
+      position: absolute;
+      inset: -14px;
+      /* Invisible hit area for fat-finger forgiveness */
+    }
+    .pulse-close-btn:hover,
+    .pulse-close-btn:active {
+      background: rgba(255,255,255,0.12);
+      color: #fff;
+    }
+    /* Show on touch/mobile only */
+    @media (max-width: 768px) {
+      .pulse-close-btn { display: flex; }
+    }
+
+    /* ─── Pulse clear-all button (desktop AND mobile) ────────────────────
+       Sits between refresh and close. Dismisses every visible event from the
+       user's local view (pulse.json itself stays intact). Mirrors the
+       refresh button's visual treatment for consistency in the header row.
+       Mobile gets the same generous invisible hit area as the close button. */
+    .pulse-clear-btn {
+      width: 28px; height: 28px;
+      padding: 0;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 50%;
+      color: rgba(255,255,255,0.7);
+      cursor: pointer;
+      display: flex;
+      align-items: center; justify-content: center;
+      flex-shrink: 0;
+      position: relative;
+      transition: background 0.15s, color 0.15s, opacity 0.2s;
+    }
+    .pulse-clear-btn::before {
+      content: '';
+      position: absolute;
+      inset: -10px;
+    }
+    @media (max-width: 768px) {
+      .pulse-clear-btn::before { inset: -14px; }
+    }
+    .pulse-clear-btn:hover,
+    .pulse-clear-btn:active {
+      background: rgba(255,255,255,0.12);
+      color: #fff;
+    }
+    /* When there's nothing left to clear, fade the button so it reads as
+       inactive without disappearing (avoids layout jump). */
+    .pulse-clear-btn[disabled] {
+      opacity: 0.35;
+      cursor: default;
+    }
+    .pulse-clear-btn[disabled]:hover {
+      background: rgba(255,255,255,0.05);
+      color: rgba(255,255,255,0.7);
+    }
+
     /* ─── Filter pills row ──────────────────────────────────────────────── */
     .pulse-filter-row {
       display: flex;
@@ -5434,6 +5513,30 @@
             <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
           </svg>
         </button>
+        <!-- Clear all: dismisses every currently-visible event from the user's
+             local view. Pulse.json is unaffected (other users still see them);
+             we just add every event id to the dismissedIds set so they hide.
+             Refresh button un-dismisses everything so they can come back. -->
+        <button type="button" id="pulseClearBtn" class="pulse-clear-btn" aria-label="Clear all notifications" title="Clear all">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <!-- Trash can icon: clearly conveys "remove all" without ambiguity. -->
+            <polyline points="3 6 5 6 21 6"/>
+            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+            <path d="M10 11v6M14 11v6"/>
+            <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+          </svg>
+        </button>
+        <!-- Mobile-only close button. Desktop dismisses via the bell toggle,
+             which is right there in the controls strip. On mobile that bell
+             sits behind the bottom sheet, so we surface an explicit × in
+             the header with a generously-padded hit area (the ::before
+             absolute zone extends 14px on each side, well above Apple HIG's
+             44pt minimum target). -->
+        <button type="button" id="pulseCloseBtn" class="pulse-close-btn" aria-label="Close Pulse" title="Close">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M6 6l12 12M18 6L6 18"/>
+          </svg>
+        </button>
       </div>
       <div class="pulse-filter-row" id="pulseFilterRow">
         <div class="pulse-filter-pill active" data-filter="all">All</div>
@@ -7204,7 +7307,37 @@
         window._selectedPinTitle = null;
       });
 
-      const off = isMobile ? [0, Math.round(window.innerHeight * 0.15)] : [0, Math.round(window.innerHeight * 0.18)];
+      // Camera offset: shifts where the target pin lands relative to the
+      // viewport center. Positive Y in Mapbox screen pixels pushes the pin
+      // DOWN in the viewport (camera centers above the pin).
+      //
+      // Mobile: we want the pin to land just above the floating search pill
+      // button (#mobileTilesButton, ~80px from bottom + 48px tall = top edge
+      // ~128px from bottom). Measure the actual button position so the
+      // calculation adapts to different viewports / safe-area insets.
+      // Fall back to 0.22 * innerHeight if the button isn't laid out yet.
+      let mobileOffsetY = Math.round(window.innerHeight * 0.22);
+      if (isMobile) {
+        try {
+          const tilesBtn = document.getElementById('mobileTilesButton');
+          if (tilesBtn) {
+            const r = tilesBtn.getBoundingClientRect();
+            // r.top is the y-coord of the top edge of the pill, measured
+            // from the viewport top. The viewport center is innerHeight/2.
+            // We want the pin to land ~24px above the pill's top edge.
+            const vhCenter = window.innerHeight / 2;
+            const targetY = Math.max(0, r.top - 24);
+            // The offset is the delta between viewport center and target.
+            // If targetY < vhCenter, the pin sits ABOVE center (negative
+            // offset). If targetY > vhCenter (pill near bottom, target near
+            // pill = lower-mid screen), positive offset pushes pin down.
+            mobileOffsetY = Math.round(targetY - vhCenter);
+          }
+        } catch (e) { /* fall back to default */ }
+      }
+      const off = isMobile
+        ? [0, mobileOffsetY]
+        : [0, Math.round(window.innerHeight * 0.18)];
       const distMiles = calculateDistance(map.getCenter().lat, map.getCenter().lng, co[1], co[0]);
       const flyDuration = distMiles < 50 ? 1200 : distMiles < 300 ? 1600 : 2400;
       window._mapFlyingTo = true;
@@ -11471,23 +11604,26 @@
       return '<svg class="pulse-pin-icon" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>';
     }
 
+    /* Filter the event list by the currently-active filter pill. Extracted
+       so Clear-All can target the same visible subset (e.g. clear only News
+       when News filter is active, rather than nuking all events). */
+    function applyActiveFilter(events) {
+      if (activeFilter === 'all') return events.slice();
+      return events.filter(function (e) {
+        if (activeFilter === 'updates') {
+          return e.type === 'status_change' || e.type === 'new_project';
+        }
+        return e.type === activeFilter;
+      });
+    }
+
     function renderEvents() {
       if (!listEl) return;
       var events = allEvents.filter(function (e) {
         // Hide events the user has dismissed
         return !dismissedIds.has(e.id);
       });
-      if (activeFilter !== 'all') {
-        events = events.filter(function (e) {
-          // 'updates' is a virtual filter that matches both status changes
-          // (a project moving to a new construction stage) and new project
-          // additions to the map. Both render as orange "Update" tags.
-          if (activeFilter === 'updates') {
-            return e.type === 'status_change' || e.type === 'new_project';
-          }
-          return e.type === activeFilter;
-        });
-      }
+      events = applyActiveFilter(events);
       // Cap to the most recent N tiles so the stack fits on screen without
       // scrolling. pulse.json is already sorted newest-first so .slice(0, N)
       // preserves the recency order.
@@ -11602,6 +11738,9 @@
           pill.classList.add('active');
           activeFilter = pill.getAttribute('data-filter') || 'all';
           renderEvents();
+          // The clear button respects the active filter (clears only what
+          // matches), so its enabled state can flip when filter changes.
+          syncClearBtnEnabled();
         });
       }
     }
@@ -11696,6 +11835,15 @@
         e.stopPropagation();
         if (isStackOpen()) closeStack(); else openStack();
       });
+      // Mobile × close button in the header. Closes (collapses to peek) the
+      // same way the bell does on desktop.
+      var closeBtn = document.getElementById('pulseCloseBtn');
+      if (closeBtn) {
+        closeBtn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          closeStack();
+        });
+      }
       // Close on outside click (desktop). On mobile, the sheet is anchored
       // to the bottom and lives in peek state, so outside taps don't dismiss.
       document.addEventListener('click', function (e) {
@@ -11741,9 +11889,13 @@
 
       function onPointerDown(e) {
         if (!isMobile()) return;
-        // Don't start a drag if the user is interacting with the refresh
-        // button inside the header
-        if (e.target && e.target.closest && e.target.closest('.pulse-refresh-btn')) return;
+        // Don't start a drag if the user is interacting with header buttons
+        // (refresh, close, future clear-all, etc.).
+        if (e.target && e.target.closest && (
+          e.target.closest('.pulse-refresh-btn') ||
+          e.target.closest('.pulse-close-btn') ||
+          e.target.closest('.pulse-clear-btn')
+        )) return;
         startY = getY(e);
         startWasPeek = stackEl.classList.contains('peek');
         sheetHeight = stackEl.offsetHeight;
@@ -11873,6 +12025,7 @@
           updateHeader();
           updateBadge();
           renderEvents();
+          syncClearBtnEnabled();
           done();
           // After first successful load, auto-open the stack with intro
           // animation. Subsequent loads (from refresh button) skip this.
@@ -11906,6 +12059,7 @@
       setupBellToggle();
       setupFilters();
       setupRefresh();
+      setupClearAll();
       setupDragHandle();
       // On mobile, the sheet always lives as a peeking strip at the bottom of
       // the viewport. Start in peek state so the header is visible from page
@@ -11961,8 +12115,52 @@
         }
         loadPulse(function () {
           refreshBtn.classList.remove('spinning');
+          syncClearBtnEnabled();
         });
       });
+    }
+
+    /* Clear-all: add every loaded event id to dismissedIds, persist, re-render.
+       Pulse.json itself is untouched -- other users still see those events.
+       Inverse of the refresh button (which calls clearDismissed). */
+    function setupClearAll() {
+      var clearBtn = document.getElementById('pulseClearBtn');
+      if (!clearBtn) return;
+      clearBtn.addEventListener('click', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (clearBtn.hasAttribute('disabled')) return;
+        // Add every currently-loaded event id to the dismissed set so they
+        // hide from the user's view. Apply filter-respecting behavior: only
+        // events matching the active filter get dismissed -- so "All" wipes
+        // everything, but if the user is viewing "News" we only clear news.
+        if (!allEvents || !allEvents.length) return;
+        var visibleEvents = applyActiveFilter(allEvents);
+        visibleEvents.forEach(function (ev) {
+          if (ev && ev.id) dismissedIds.add(ev.id);
+        });
+        persistDismissed();
+        renderEvents();
+        updateBadge();
+        syncClearBtnEnabled();
+      });
+    }
+
+    /* Disable the clear button when nothing visible would be cleared. Keeps
+       the affordance honest -- you don't see an active-looking button that
+       does nothing on click. */
+    function syncClearBtnEnabled() {
+      var clearBtn = document.getElementById('pulseClearBtn');
+      if (!clearBtn) return;
+      var hasVisible = false;
+      if (allEvents && allEvents.length) {
+        var visible = applyActiveFilter(allEvents).filter(function (ev) {
+          return ev && ev.id && !dismissedIds.has(ev.id);
+        });
+        hasVisible = visible.length > 0;
+      }
+      if (hasVisible) clearBtn.removeAttribute('disabled');
+      else clearBtn.setAttribute('disabled', '');
     }
 
     if (document.readyState === 'loading') {
