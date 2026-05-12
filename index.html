@@ -6728,22 +6728,81 @@
       };
       const MS_PER_YEAR = 365.25 * 24 * 60 * 60 * 1000;
 
-      // Best-effort parse of an ISO-like date string. Returns Date or null.
-      // Handles "2027-06-15", "2027-06", "2027". Falls back to Date constructor.
+      // Best-effort parse of a delivery-date string. Returns Date or null.
+      //
+      // Format priority (most specific wins):
+      //   1. "2027-06-15"  full ISO date (exact day)
+      //   2. "June 2027" / "Jun 2027"  month name + year (uses day 15)
+      //   3. "Summer 2027" / "Fall 2027" / etc  season + year, where the
+      //      DATE represents END OF SEASON (developer convention):
+      //         winter → March 1
+      //         spring → June 1
+      //         summer → September 1
+      //         fall / autumn → December 1
+      //   4. "2027-06"  year-month ISO  (day 15)
+      //   5. "2027"  year only (mid-year)
+      //   6. Native Date constructor as last resort.
+      //
+      // Why this ladder: developers describe delivery in wildly inconsistent
+      // ways. "May 2026" vs "Spring 2026" vs "2026-05-15" all need to land
+      // on a single Date so the progress math has something to subtract.
       function parseDate(str) {
         if (!str) return null;
         const s = String(str).trim();
         if (!s) return null;
-        // "2027-06-15" — full ISO
+
+        // 1. Full ISO date: "2027-06-15"
         let m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
         if (m) return new Date(+m[1], +m[2] - 1, +m[3]);
-        // "2027-06" — year + month, default to mid-month
+
+        // 2. Month name + year: "June 2027" or "Jun 2027"
+        // Both full and 3-letter abbreviations. Case-insensitive.
+        const MONTHS = {
+          january:0,jan:0, february:1,feb:1, march:2,mar:2,
+          april:3,apr:3, may:4, june:5,jun:5, july:6,jul:6,
+          august:7,aug:7, september:8,sep:8,sept:8,
+          october:9,oct:9, november:10,nov:10, december:11,dec:11,
+        };
+        m = s.match(/^([A-Za-z]+)\.?\s+(\d{4})$/);
+        if (m) {
+          const monthIdx = MONTHS[m[1].toLowerCase()];
+          if (monthIdx !== undefined) return new Date(+m[2], monthIdx, 15);
+        }
+
+        // 3. Season + year: "Summer 2027", "Fall 2027", "Q3 2027", etc.
+        // End-of-season convention (per agent-input spec): winter ends Mar 1,
+        // spring ends Jun 1, summer ends Sep 1, fall/autumn ends Dec 1.
+        const SEASONS = {
+          winter: { m: 2, d: 1 },  // March 1
+          spring: { m: 5, d: 1 },  // June 1
+          summer: { m: 8, d: 1 },  // September 1
+          fall:   { m: 11, d: 1 }, // December 1
+          autumn: { m: 11, d: 1 }, // December 1
+        };
+        m = s.match(/^([A-Za-z]+)\s+(\d{4})$/);
+        if (m) {
+          const season = SEASONS[m[1].toLowerCase()];
+          if (season) return new Date(+m[2], season.m, season.d);
+        }
+        // "Q1 2027" / "Q2 2027" — quarter conventions, treat as end of quarter
+        m = s.match(/^Q([1-4])\s+(\d{4})$/i);
+        if (m) {
+          // Q1 ends Mar 31, Q2 ends Jun 30, Q3 ends Sep 30, Q4 ends Dec 31
+          const q = +m[1];
+          const endMonth = q * 3 - 1; // Q1 -> 2 (Mar), Q2 -> 5 (Jun), etc.
+          // Last day of the end month
+          return new Date(+m[2], endMonth + 1, 0);
+        }
+
+        // 4. Year-month ISO: "2027-06"
         m = s.match(/^(\d{4})-(\d{2})$/);
         if (m) return new Date(+m[1], +m[2] - 1, 15);
-        // "2027" — year only, default to mid-year
+
+        // 5. Year only: "2027"
         m = s.match(/^(\d{4})$/);
         if (m) return new Date(+m[1], 6, 1);
-        // Last resort: trust the Date constructor
+
+        // 6. Last resort: Date constructor (handles "2027/06/15", etc.)
         const d = new Date(s);
         return isNaN(d.getTime()) ? null : d;
       }
@@ -6753,7 +6812,7 @@
       // short-circuit to 100%.
       function assumedSpanFor(status) {
         const s = (status || '').toLowerCase().trim();
-        if (s.includes('now open') || s.includes('open')) return 'OPEN';
+        if (s.includes('now open')) return 'OPEN';
         for (const key in ASSUMED_YEARS_BEFORE_DELIVERY) {
           if (s.includes(key)) return ASSUMED_YEARS_BEFORE_DELIVERY[key] * MS_PER_YEAR;
         }
@@ -6769,10 +6828,12 @@
         const now = new Date();
         const diffMs = d.getTime() - now.getTime();
         const s = (status || '').toLowerCase();
-        if (s.includes('now open') || s.includes('open')) {
-          // Delivered. Show "delivered Mon 'YY" if date is in the past.
+        if (s.includes('now open')) {
+          // Delivered. Show "Delivered Mon 'YY" if date is in the past.
           if (diffMs < 0) {
-            return 'Delivered ' + d.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+            const mon = d.toLocaleDateString('en-US', { month: 'short' });
+            const yr  = d.toLocaleDateString('en-US', { year: '2-digit' });
+            return `Delivered ${mon} '${yr}`;
           }
           return 'Now open';
         }
@@ -6805,7 +6866,7 @@
         // runs before the modal IIFE.
         let label = 'Announced';
         let color = 'rgba(255,255,255,0.55)';
-        if (s.includes('now open') || s.includes('open')) {
+        if (s.includes('now open')) {
           label = 'Now Open'; color = '#1FDF67';
         } else if (s.includes('opening')) {
           label = 'Opening Soon'; color = '#1FDF67';
@@ -12506,6 +12567,6 @@
        Self-contained module; relies on window.projectSlugify, window.allProjectFeatures,
        window.$memberstackDom, and the auth hint cache that the paywall code maintains.
        The ?v=2 query string busts any stale cached version after recent revisions. -->
-  <script src="compare.js?v=14"></script>
+  <script src="compare.js?v=15"></script>
 </body>
 </html>
