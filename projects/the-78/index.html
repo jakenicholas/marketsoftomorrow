@@ -544,13 +544,29 @@
     .ps-top { display: flex; justify-content: space-between; margin-bottom: 6px; }
     .ps-stage { font-size: 10px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; }
     .ps-pct { font-size: 10px; color: rgba(255,255,255,0.25); }
-    .ps-steps { display: flex; gap: 3px; margin-bottom: 5px; }
-    .ps-step { flex: 1; height: 3px; border-radius: 2px; background: rgba(255,255,255,0.08); }
-    .ps-done { background: var(--sc); }
-    .ps-active { background: var(--sc); opacity: 0.5; }
-    .ps-labels { display: flex; justify-content: space-between; }
-    .ps-label { font-size: 7px; color: rgba(255,255,255,0.2); }
-    .ps-cur { color: var(--sc, #FF9500); }
+    /* Segmented bar: 5 stages with proportional widths (10/10/60/10/10).
+       Each segment fills independently -- done = 100%, active varies by
+       date math, future = 0%. Matches the modal's pm-segments. */
+    .ps-segments { display: flex; gap: 3px; height: 4px; margin-bottom: 5px; }
+    .ps-seg {
+      /* width set inline via flex: <width_pct> 0 0 */
+      height: 100%;
+      background: rgba(255,255,255,0.08);
+      border-radius: 2px;
+      overflow: hidden;
+      position: relative;
+    }
+    .ps-seg-fill {
+      height: 100%;
+      background: var(--seg-c, #FF9500);
+      border-radius: 2px;
+      transition: width 0.4s ease;
+    }
+    .ps-seg-done .ps-seg-fill   { width: 100% !important; }
+    .ps-seg-future .ps-seg-fill { width: 0 !important; }
+    .ps-labels { display: flex; gap: 3px; }
+    .ps-label { font-size: 7px; color: rgba(255,255,255,0.2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 2px; }
+    .ps-cur { color: var(--sc, #FF9500); font-weight: 600; }
     /* Date-driven subtitle: "18 months to delivery" / "Delivered Sep '23".
        Matches the modal's pm-progress-sub treatment so all three surfaces
        (modal, comparison sheet, static page) read like one system. */
@@ -855,8 +871,8 @@
         <span class="ps-stage" style="color:#FF9500">Construction</span>
         <span class="ps-pct">4%</span>
       </div>
-      <div class="ps-steps"><div class="ps-step ps-done" style="--sc:#FF9500"></div><div class="ps-step ps-done" style="--sc:#FF9500"></div><div class="ps-step ps-active" style="--sc:#FF9500"></div><div class="ps-step ps-future" style="--sc:#FF9500"></div><div class="ps-step ps-future" style="--sc:#FF9500"></div></div>
-      <div class="ps-labels"><span class="ps-label" >Announced</span><span class="ps-label" >Breaking Ground</span><span class="ps-label ps-cur" style="color:#FF9500">Construction</span><span class="ps-label" >Opening Soon</span><span class="ps-label" >Now Open</span></div>
+      <div class="ps-segments"><div class="ps-seg ps-seg-done" style="flex:10 0 0;--seg-c:rgba(255,255,255,0.55);"><div class="ps-seg-fill" style="width:100%"></div></div><div class="ps-seg ps-seg-done" style="flex:10 0 0;--seg-c:#FFD300;"><div class="ps-seg-fill" style="width:100%"></div></div><div class="ps-seg ps-seg-active" style="flex:60 0 0;--seg-c:#FF9500;"><div class="ps-seg-fill" style="width:15%"></div></div><div class="ps-seg ps-seg-future" style="flex:10 0 0;--seg-c:rgba(255,255,255,0.08);"><div class="ps-seg-fill" style="width:0%"></div></div><div class="ps-seg ps-seg-future" style="flex:10 0 0;--seg-c:rgba(255,255,255,0.08);"><div class="ps-seg-fill" style="width:0%"></div></div></div>
+      <div class="ps-labels"><span class="ps-label" style="flex:10 0 0;">Announced</span><span class="ps-label" style="flex:10 0 0;">Breaking Ground</span><span class="ps-label ps-cur" style="flex:60 0 0;color:#FF9500;">Construction</span><span class="ps-label" style="flex:10 0 0;">Opening Soon</span><span class="ps-label" style="flex:10 0 0;">Now Open</span></div>
       <div class="ps-sub">4.1 yrs to delivery</div>
     </div>
     <div class="divider"></div>
