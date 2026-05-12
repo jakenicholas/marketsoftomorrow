@@ -3391,24 +3391,54 @@
   #projectModal .pm-pct {
     font-size: 10px; color: rgba(255,255,255,0.25);
   }
-  #projectModal .pm-steps {
+  /* ── Segmented progress bar ─────────────────────────────────────────
+     Five proportionally-sized segments (10/10/60/10/10) that fill
+     independently. The active segment's fill grows automatically each
+     day as elapsed time advances within its time budget. Replaces the
+     previous evenly-spaced step dots, which made all Construction-stage
+     projects look identical regardless of how close to delivery they
+     actually were. */
+  #projectModal .pm-segments {
     display: flex; gap: 3px; margin-bottom: 5px;
+    height: 5px;
   }
-  #projectModal .pm-step {
-    flex: 1; height: 3px; border-radius: 2px;
+  #projectModal .pm-seg {
+    /* width is set inline via flex: <widthPct> 0 0 */
+    height: 100%;
+    border-radius: 2px;
     background: rgba(255,255,255,0.08);
+    overflow: hidden;
+    position: relative;
   }
-  #projectModal .pm-step.done { background: var(--stage-color, #FF9500); }
-  #projectModal .pm-step.active { background: var(--stage-color, rgba(255,149,0,0.4)); }
-  #projectModal .pm-step.active { opacity: 0.5; background: var(--stage-color, #FF9500); }
+  #projectModal .pm-seg-fill {
+    height: 100%;
+    background: var(--seg-c, #FF9500);
+    border-radius: 2px;
+    transition: width 0.4s ease;
+  }
+  /* Done segments: fully filled with their stage color */
+  #projectModal .pm-seg-done .pm-seg-fill { width: 100% !important; }
+  /* Active segment: width comes from inline style, slight glow */
+  #projectModal .pm-seg-active {
+    box-shadow: 0 0 0 1px rgba(255,255,255,0.04);
+  }
+  /* Future segments: fill stays at 0% so only the ghost background shows */
+  #projectModal .pm-seg-future .pm-seg-fill { width: 0 !important; }
+
   #projectModal .pm-step-labels {
-    display: flex; justify-content: space-between;
+    display: flex; gap: 3px;
   }
   #projectModal .pm-step-label {
     font-size: 7px; color: rgba(255,255,255,0.2);
     letter-spacing: 0.02em;
+    /* width matches segment via inline flex; align to the start of each
+       segment so labels sit under their own block, not centered between */
+    padding-right: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
-  #projectModal .pm-step-label.cur { color: var(--stage-color, #FF9500); }
+  #projectModal .pm-step-label.cur { color: var(--stage-color, #FF9500); font-weight: 600; }
   /* Date-driven subtitle: "18 months to delivery", "Delivered Sep '23".
      Reads like a tiny mono-spaced timestamp under the step labels.
      Pulled from window.computeProgress(deliveryDate, status, startDate). */
@@ -5194,6 +5224,32 @@
     transition: width 0.4s ease;
   }
   .cv-progress-fill-done { background: #1FDF67; }
+  /* Segmented progress: 5 stages with proportional widths (10/10/60/10/10).
+     Each segment fills independently -- done segments paint solid, active
+     fills based on date math, future stays at 0%. The Construction block
+     (60%) gives a lot of granularity for projects mid-construction. */
+  .cv-segments {
+    display: flex;
+    gap: 2px;
+    height: 4px;
+    width: 100%;
+  }
+  .cv-seg {
+    /* width set inline via flex: <widthPct> 0 0 */
+    height: 100%;
+    background: rgba(255,255,255,0.08);
+    border-radius: 2px;
+    overflow: hidden;
+    position: relative;
+  }
+  .cv-seg-fill {
+    height: 100%;
+    background: var(--seg-c, #FF9500);
+    border-radius: 2px;
+    transition: width 0.4s ease;
+  }
+  .cv-seg-done .cv-seg-fill   { width: 100% !important; }
+  .cv-seg-future .cv-seg-fill { width: 0 !important; }
   .cv-progress-meta {
     font-family: 'JetBrains Mono', ui-monospace, monospace;
     font-size: 10px;
@@ -6878,27 +6934,32 @@
           label = 'Breaking Ground'; color = '#FFD300';
         }
 
-        // Short-circuit: Now Open is always 100%.
+        // Short-circuit: Now Open is always 100% across the board.
         const span = assumedSpanFor(status);
         if (span === 'OPEN') {
           return {
             pct: 100, label, color,
             subtitle: formatTimeToDelivery(deliveryDate, status),
+            segments: buildSegments(/* active */ 4, /* activeFill */ 100),
           };
         }
 
         const delivery = parseDate(deliveryDate);
         if (!delivery) {
-          // No parseable delivery date. Fall back to a sensible default
-          // based on status alone (legacy behavior).
-          const fallback = {
-            'Announced': 5,
-            'Breaking Ground': 25,
-            'Construction': 55,
-            'Topping Out': 80,
-            'Opening Soon': 92,
-          }[label] || 5;
-          return { pct: fallback, label, color, subtitle: '' };
+          // No parseable delivery date. Fall back to status-based default
+          // for the overall pct AND identify the active segment from status
+          // alone so the segmented bar still renders something sensible.
+          const fallbackByLabel = {
+            'Announced':       { pct: 5,  segIdx: 0, segFill: 50 },
+            'Breaking Ground': { pct: 25, segIdx: 1, segFill: 50 },
+            'Construction':    { pct: 55, segIdx: 2, segFill: 50 },
+            'Topping Out':     { pct: 80, segIdx: 2, segFill: 95 },
+            'Opening Soon':    { pct: 92, segIdx: 3, segFill: 50 },
+          }[label] || { pct: 5, segIdx: 0, segFill: 50 };
+          return {
+            pct: fallbackByLabel.pct, label, color, subtitle: '',
+            segments: buildSegments(fallbackByLabel.segIdx, fallbackByLabel.segFill),
+          };
         }
 
         // Pick start date: explicit StartDate column wins; else status-based
@@ -6920,12 +6981,109 @@
         // so the bar visually distinguishes "should be done but status not
         // updated" from "actually delivered".
         pct = Math.max(0, Math.min(99, pct));
+
+        // ── Per-segment fill math ───────────────────────────────────────
+        // Visual layout: 10/10/60/10/10. We split the StartDate→DeliveryDate
+        // window into per-stage TIME budgets proportional to those widths,
+        // so a project's natural timeline (whether 8 months or 5 years)
+        // expands or compresses each segment's duration. Then locate where
+        // "today" falls.
+        //
+        // Cumulative time thresholds (as fraction of total):
+        //   Announced ends at        10% of timeline
+        //   Breaking Ground ends at  20%
+        //   Construction ends at     80%
+        //   Opening Soon ends at     90%
+        //   Now Open ends at        100% (delivery)
+        const segWidths = [10, 10, 60, 10, 10];
+        // Where the project currently is, as fraction of total (0..1)
+        const elapsedFrac = total > 0 ? elapsed / total : 0.5;
+        const elapsedPct  = Math.max(0, Math.min(100, elapsedFrac * 100));
+
+        // Walk cumulative widths to find which segment contains elapsedPct
+        let activeIdx = 0;
+        let segStartPct = 0;
+        let activeFill = 0;
+        for (let i = 0; i < segWidths.length; i++) {
+          const segEndPct = segStartPct + segWidths[i];
+          if (elapsedPct <= segEndPct || i === segWidths.length - 1) {
+            activeIdx = i;
+            // How far into THIS segment (0..100)
+            const into = elapsedPct - segStartPct;
+            activeFill = Math.max(0, Math.min(100, (into / segWidths[i]) * 100));
+            break;
+          }
+          segStartPct = segEndPct;
+        }
+
+        // Status word takes priority for WHICH segment is active. The
+        // developer hand-sets the status; we trust it. Date math then
+        // determines HOW FULL the active segment is.
+        //
+        // Why: a developer setting "Under Construction" expects to see
+        // the Construction segment lit up, regardless of whether elapsed
+        // time math puts us in Breaking Ground or earlier. Conversely, a
+        // delayed project still in "Announced" shouldn't show Construction
+        // active just because the calendar moved past expected milestones.
+        const statusIdx = labelToSegIdx(label);
+        if (statusIdx >= 0 && statusIdx !== activeIdx) {
+          if (statusIdx > activeIdx) {
+            // Status ahead of time -- dev marked us further along. Jump to
+            // the status's segment, start its fill at a small value so it
+            // looks "just entered" rather than already deep into it.
+            activeIdx = statusIdx;
+            activeFill = 15;
+          } else {
+            // Status behind time -- project is delayed. Stay on the
+            // earlier segment, cap fill at 95% so it doesn't look done.
+            activeIdx = statusIdx;
+            activeFill = Math.min(95, activeFill);
+          }
+        }
+
         return {
           pct: Math.round(pct),
           label,
           color,
           subtitle: formatTimeToDelivery(deliveryDate, status),
+          segments: buildSegments(activeIdx, activeFill),
         };
+      }
+
+      // Map a status label to its index in the segment array.
+      function labelToSegIdx(label) {
+        switch (label) {
+          case 'Announced':       return 0;
+          case 'Breaking Ground': return 1;
+          case 'Construction':    return 2;
+          case 'Topping Out':     return 2; // visualizes as late-Construction
+          case 'Opening Soon':    return 3;
+          case 'Now Open':        return 4;
+          default:                return -1;
+        }
+      }
+
+      // Build the segment array given which one is active and how full it is.
+      // Earlier segments paint as done (100% fill), later as future (0% fill).
+      function buildSegments(activeIdx, activeFillPct) {
+        const stages = [
+          { label: 'Announced',       color: 'rgba(255,255,255,0.55)', widthPct: 10 },
+          { label: 'Breaking Ground', color: '#FFD300', widthPct: 10 },
+          { label: 'Construction',    color: '#FF9500', widthPct: 60 },
+          { label: 'Opening Soon',    color: '#1FDF67', widthPct: 10 },
+          { label: 'Now Open',        color: '#1FDF67', widthPct: 10 },
+        ];
+        return stages.map((s, i) => {
+          let state, fillPct;
+          if (i < activeIdx) {
+            state = 'done'; fillPct = 100;
+          } else if (i === activeIdx) {
+            state = 'active'; fillPct = Math.round(activeFillPct);
+          } else {
+            state = 'future'; fillPct = 0;
+          }
+          return { ...s, state, fillPct };
+        });
       }
 
       window.computeProgress = computeProgress;
@@ -6955,33 +7113,60 @@
 
       function buildProgress(delivery, deliveryDate, startDate) {
         const si = getStageInfo(delivery);
-        const idx = stages.indexOf(si);
         const color = si.color;
-        // Step dots stay keyed to the named stage (so the journey reads
-        // left-to-right as a clear progression). The percent + subtitle
-        // are date-driven via the shared helper so they reflect real
-        // elapsed time, not just the status word.
+        // window.computeProgress returns the date-driven percent + an array
+        // of segment objects ({label, color, widthPct, fillPct, state}).
+        // The active segment's fill grows automatically each day as elapsed
+        // time advances within its time budget. Done segments paint solid,
+        // future segments paint empty.
         const cp = (window.computeProgress
           ? window.computeProgress(deliveryDate || '', delivery || '', startDate || '')
-          : { pct: si.pct, subtitle: '' });
-        const steps = stages.map((s, i) => {
-          let cls = 'pm-step';
-          if (i < idx) cls += ' done';
-          else if (i === idx) cls += ' active';
-          return `<div class="${cls}" style="--stage-color:${color}"></div>`;
+          : null);
+        const segments = (cp && cp.segments) ? cp.segments : buildFallbackSegments(stages.indexOf(si));
+        const pct = cp ? cp.pct : si.pct;
+        const subtitle = cp ? cp.subtitle : '';
+
+        // Each segment is a flex item whose width matches widthPct, with an
+        // inner fill div whose width matches fillPct (within that segment).
+        // Thin gaps between segments make the structure legible without
+        // overwhelming the bar.
+        const segHtml = segments.map(seg => {
+          const c = seg.state === 'future' ? 'rgba(255,255,255,0.08)' : seg.color;
+          return `
+            <div class="pm-seg pm-seg-${seg.state}" style="flex: ${seg.widthPct} 0 0; --seg-c:${c};">
+              <div class="pm-seg-fill" style="width:${seg.fillPct}%"></div>
+            </div>
+          `;
         }).join('');
-        const labels = stages.map((s, i) =>
-          `<span class="pm-step-label${i === idx ? ' cur' : ''}" style="${i === idx ? '--stage-color:'+color : ''}">${s.label}</span>`
+        const labels = segments.map(seg =>
+          `<span class="pm-step-label${seg.state === 'active' ? ' cur' : ''}" style="flex: ${seg.widthPct} 0 0;${seg.state === 'active' ? '--stage-color:'+seg.color : ''}">${seg.label}</span>`
         ).join('');
-        const sub = cp.subtitle ? `<div class="pm-progress-sub">${cp.subtitle}</div>` : '';
+        const sub = subtitle ? `<div class="pm-progress-sub">${subtitle}</div>` : '';
         return `
           <div class="pm-progress-top">
             <span class="pm-stage" style="color:${color}">${si.label}</span>
-            <span class="pm-pct">${cp.pct}%</span>
+            <span class="pm-pct">${pct}%</span>
           </div>
-          <div class="pm-steps">${steps}</div>
+          <div class="pm-segments">${segHtml}</div>
           <div class="pm-step-labels">${labels}</div>
           ${sub}`;
+      }
+
+      // Last-resort segment builder if computeProgress isn't loaded (defensive).
+      // Active segment is halfway filled; earlier done, later future.
+      function buildFallbackSegments(activeIdx) {
+        const data = [
+          { label: 'Announced',       color: 'rgba(255,255,255,0.55)', widthPct: 10 },
+          { label: 'Breaking Ground', color: '#FFD300', widthPct: 10 },
+          { label: 'Construction',    color: '#FF9500', widthPct: 60 },
+          { label: 'Opening Soon',    color: '#1FDF67', widthPct: 10 },
+          { label: 'Now Open',        color: '#1FDF67', widthPct: 10 },
+        ];
+        return data.map((s, i) => ({
+          ...s,
+          state: i < activeIdx ? 'done' : i === activeIdx ? 'active' : 'future',
+          fillPct: i < activeIdx ? 100 : i === activeIdx ? 50 : 0,
+        }));
       }
 
       function truncateDeveloper(str) {
@@ -12567,6 +12752,6 @@
        Self-contained module; relies on window.projectSlugify, window.allProjectFeatures,
        window.$memberstackDom, and the auth hint cache that the paywall code maintains.
        The ?v=2 query string busts any stale cached version after recent revisions. -->
-  <script src="compare.js?v=15"></script>
+  <script src="compare.js?v=16"></script>
 </body>
 </html>
