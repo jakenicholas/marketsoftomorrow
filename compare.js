@@ -785,7 +785,10 @@
               <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
               <span class="cv-action-label">Share with client</span>
             </button>
-            <!-- Share menu: placeholder targets that we'll wire up after design lock -->
+            <!-- Share menu: two items live (Copy link + Send via email).
+                 PDF was previously a third item that triggered window.print(),
+                 but the resulting print was unusable -- removed pending a real
+                 server-side Puppeteer render. -->
             <div class="cv-share-menu" role="menu" hidden>
               <button type="button" class="cv-share-item" data-cv-share="link" role="menuitem">
                 <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
@@ -794,10 +797,6 @@
               <button type="button" class="cv-share-item" data-cv-share="email" role="menuitem">
                 <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
                 <span>Send via email</span>
-              </button>
-              <button type="button" class="cv-share-item" data-cv-share="pdf" role="menuitem">
-                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                <span>Download as PDF</span>
               </button>
             </div>
           </div>
@@ -821,7 +820,9 @@
 
       <!-- FOOTER: brand mark + link back to main site -->
       <footer class="cv-footer">
-        <div class="cv-footer-brand">Markets <strong>of Tomorrow</strong></div>
+        <div class="cv-footer-brand">
+          <img class="cv-footer-logo" src="https://static.wixstatic.com/shapes/ca3b83_a647b53cad4c49c5b012af991d286a86.svg" alt="Markets of Tomorrow" />
+        </div>
         <a class="cv-footer-link" href="/" target="_blank" rel="noopener">View full map at oftmw.com →</a>
       </footer>
     `;
@@ -865,12 +866,8 @@
         return;
       }
 
-      // View project button on a column
-      const viewBtn = target.closest('[data-cv-open-project]');
-      if (viewBtn) {
-        openProjectFromCompare(viewBtn.dataset.cvOpenProject);
-        return;
-      }
+      // (View project buttons are now real <a target="_blank"> anchors --
+      // no JS handler needed; the browser handles them natively.)
 
       // Map legend item: clicking jumps map to that pin
       const legendItem = target.closest('[data-cv-pin]');
@@ -1009,16 +1006,25 @@
       {
         key: 'timeline', label: 'Timeline',
         render: (p) => {
-          const pct = progressFromDelivery(p.delivery);
-          const completion = (p.deliveryDate || '').trim() || (p.delivery || '').trim() || '--';
-          const fillCls = pct >= 100 ? 'cv-progress-fill cv-progress-fill-done' : 'cv-progress-fill';
-          const statusLabel = statusFromDelivery(p.delivery).label;
+          // Date-driven progress: window.computeProgress lives in index.html
+          // and reads (deliveryDate, status, startDate). Returns the pct,
+          // label, color, AND a "time-to-delivery" subtitle. Means two
+          // projects in the same status with different delivery dates
+          // show different bars -- which is the whole point of timelines.
+          const cp = (typeof window.computeProgress === 'function')
+            ? window.computeProgress(p.deliveryDate, p.delivery, p.startDate)
+            : { pct: progressFromDelivery(p.delivery), label: statusFromDelivery(p.delivery).label, subtitle: '' };
+          const fillCls = cp.pct >= 100 ? 'cv-progress-fill cv-progress-fill-done' : 'cv-progress-fill';
+          // Subtitle below the bar -- "18 months to delivery" / "Delivered
+          // Sep '23". Falls back to the raw deliveryDate if computeProgress
+          // couldn't format anything sensible.
+          const subtitle = cp.subtitle || (p.deliveryDate || '').trim() || (p.delivery || '').trim() || '--';
           return `
             <div class="cv-progress">
-              <div class="cv-progress-bar"><div class="${fillCls}" style="width:${pct}%"></div></div>
+              <div class="cv-progress-bar"><div class="${fillCls}" style="width:${cp.pct}%"></div></div>
               <div class="cv-progress-meta">
-                <strong>${escapeHtml(statusLabel)}</strong>
-                <span>${escapeHtml(completion)}</span>
+                <strong>${escapeHtml(cp.label)}</strong>
+                <span>${escapeHtml(subtitle)}</span>
               </div>
             </div>
           `;
@@ -1078,16 +1084,20 @@
         },
         hasValue: (p) => !!((p.pricing || p.priceRange || '').trim()),
       },
-      // CTA row -- always shown
+      // CTA row -- always shown. Renders as an <a> opening the project's
+      // static landing page in a new tab. Simpler than opening the project
+      // modal on top of comparison view (cleaner share UX too -- the client
+      // who opens a shared comparison can click into any project as its
+      // own page).
       {
         key: 'cta', label: '', kind: 'cta',
         render: (p) => {
           const slug = window.projectSlugify(p.title || '');
           return `
-            <button type="button" class="cv-view-btn" data-cv-open-project="${escapeAttr(slug)}">
+            <a class="cv-view-btn" href="/projects/${escapeAttr(slug)}/" target="_blank" rel="noopener">
               View project
-              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-            </button>
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/><polyline points="17 5 19 5 19 7" style="display:none"/></svg>
+            </a>
           `;
         },
         hasValue: () => true,
@@ -1144,7 +1154,10 @@
   function buildMarkerEl(num) {
     const el = document.createElement('div');
     el.className = 'cv-map-pin';
-    el.innerHTML = `<span>${num}</span>`;
+    // The inner element carries the visual styling + any transform-based
+    // animations. The outer element is owned exclusively by Mapbox for
+    // positioning (it sets translate(...) every frame).
+    el.innerHTML = `<div class="cv-map-pin-inner"><span>${num}</span></div>`;
     return el;
   }
 
@@ -1184,10 +1197,10 @@
         if (!f) return;
         const el = buildMarkerEl(i + 1);
         el.addEventListener('click', () => {
-          // Open the project modal directly when a pin is tapped in map mode.
-          // (In sheet mode the user would scroll to that column; in map mode,
-          // tapping a pin is a strong intent to view the project.)
-          openProjectFromCompare(slug);
+          // Open the project's static landing page in a new tab. Matches
+          // the View project CTA in sheet mode -- a client browsing a
+          // shared comparison gets a clean per-project page either way.
+          window.open(`/projects/${encodeURIComponent(slug)}/`, '_blank', 'noopener');
         });
         const marker = new mapboxgl.Marker({ element: el, anchor: 'center' })
           .setLngLat(f.geometry.coordinates)
@@ -1282,30 +1295,6 @@
     }
   }
 
-  // --- Project modal interop --------------------------------------------------
-
-  function openProjectFromCompare(slug) {
-    const f = getFeatureForSlug(slug);
-    if (!f || typeof window.openProjectModal !== 'function') {
-      console.warn('[compare] openProjectFromCompare miss', { slug });
-      showToast("Couldn't open that project.");
-      return;
-    }
-    viewEl.classList.add('compare-view-bg');
-    document.body.classList.add('compare-modal-open');
-    window.openProjectModal(f, 'compare-view');
-    const pm = document.getElementById('projectModal');
-    if (!pm) return;
-    const observer = new MutationObserver(() => {
-      if (!pm.classList.contains('open')) {
-        viewEl.classList.remove('compare-view-bg');
-        document.body.classList.remove('compare-modal-open');
-        observer.disconnect();
-      }
-    });
-    observer.observe(pm, { attributes: true, attributeFilter: ['class'] });
-  }
-
   // --- Share menu -------------------------------------------------------------
   // Three actions, only the first is wired up. The other two surface a toast
   // ("Coming soon") so the affordance is in place for design lock-in before
@@ -1333,9 +1322,20 @@
     const btn = viewEl.querySelector('[data-cv-action="share"]');
     if (btn) btn.setAttribute('aria-expanded', 'false');
 
-    const url = new URL(window.location.origin + window.location.pathname);
-    url.searchParams.set('compare', activeComparisonId);
-    const shareUrl = url.toString();
+    // Build a self-contained share URL: the slug list + title + curator
+    // name are all encoded in the URL itself. The recipient doesn't need
+    // a Memberstack account or backend lookup -- their browser loads the
+    // map app, sees ?compare=share, and renders the comparison sheet
+    // against the live CSV. Recipient sees exactly the same project data
+    // the curator does.
+    const comparison = savedComparisons.find(c => c.id === activeComparisonId);
+    if (!comparison) {
+      // Defensive: if active id doesn't resolve (e.g. user opened a shared
+      // link themselves and clicked Share), bail with a toast.
+      showToast("Couldn't build a share link.");
+      return;
+    }
+    const shareUrl = buildSharedUrlForComparison(comparison);
 
     if (kind === 'link') {
       // Native share sheet first (mobile), clipboard fallback
@@ -1360,10 +1360,10 @@
     }
 
     if (kind === 'email') {
-      // Placeholder: real version will open a templated email composer.
-      // For now we mailto: with a basic message so something useful happens.
-      const comparison = savedComparisons.find(c => c.id === activeComparisonId);
-      const name = comparison ? comparison.name : 'Comparison';
+      // Open the user's email client with a templated message + the
+      // shareable URL. Real "send via email" will use a templated email
+      // service later; this gives agents a workable surface now.
+      const name = comparison.name || 'Comparison';
       const subject = encodeURIComponent(`${name} — Markets of Tomorrow`);
       const body = encodeURIComponent(
         `Hi,\n\nI put together a comparison of projects I thought you'd find interesting. You can view it here:\n\n${shareUrl}\n\nBest,\n`
@@ -1372,14 +1372,7 @@
       return;
     }
 
-    if (kind === 'pdf') {
-      // Placeholder: real version will server-render a PDF. For now we
-      // trigger the browser print dialog -- the sheet view is print-styled,
-      // so an agent can already "Save as PDF" through that flow.
-      showToast('Opening print dialog. Choose "Save as PDF" to download.');
-      setTimeout(() => window.print(), 300);
-      return;
-    }
+    // (PDF removed -- will be re-added when server-side Puppeteer render exists)
   }
 
   // --- Map nav + URL routing --------------------------------------------------
@@ -1406,15 +1399,38 @@
       history.replaceState({}, '', url.toString());
       return;
     }
-
     activeComparisonId = id;
+    renderComparisonView(comparison);
+  }
+
+  // Open a comparison passed by value (as opposed to looked up by ID).
+  // Used by the shared-link path -- the recipient doesn't have to be
+  // signed in, and the comparison object is built from URL params, not
+  // from Memberstack. Hides the Edit button (recipient isn't the curator).
+  function openSharedComparisonView(comparison) {
+    activeComparisonId = comparison.id; // 'shared'
+    renderComparisonView(comparison, { isShared: true });
+  }
+
+  // Render the comparison view. Source-agnostic -- works for both personal
+  // (savedComparisons lookup) and shared (URL-derived ephemeral object).
+  function renderComparisonView(comparison, opts) {
+    opts = opts || {};
+    const isShared = !!opts.isShared || !!comparison.isShared;
+
     // Always default to sheet mode when opening a comparison. Map mode is
-    // one tap away via the toggle. This is the "Sheet first" decision -- it
-    // optimizes for agents who want to read/share spec data, not browse a map.
+    // one tap away via the toggle. "Sheet first" optimizes for agents who
+    // want to read/share spec data, not browse a map.
     viewMode = 'sheet';
 
     const el = ensureViewEl();
     el.dataset.mode = viewMode;
+    // Surface "this is a shared view" as a body-level state so CSS can hide
+    // the Edit button (only the curator should be able to edit). The Share
+    // button is also hidden because re-sharing a shared URL would duplicate
+    // the link rather than build a fresh one from the underlying
+    // comparison record.
+    el.classList.toggle('cv-shared', isShared);
 
     // Header content -- title, eyebrow count, curator attribution
     const count = comparison.slugs.length;
@@ -1422,9 +1438,21 @@
     el.querySelector('.cv-eyebrow-text').textContent =
       `Comparison · ${count} project${count === 1 ? '' : 's'}`;
 
-    const curator = getCuratorAttribution();
-    el.querySelector('.cv-byline-name').textContent = curator.name;
-    el.querySelector('.cv-byline-avatar').textContent = curator.initials;
+    // Curator name: for shared views, comes from the URL "by" param. For
+    // personal views, comes from the viewer's own Memberstack profile (the
+    // viewer IS the curator). Fall back gracefully if neither is available.
+    let curatorName, curatorInitials;
+    if (isShared && comparison.curator) {
+      curatorName = comparison.curator;
+      const parts = curatorName.split(/\s+/).slice(0, 2);
+      curatorInitials = parts.map(p => (p[0] || '').toUpperCase()).join('') || '?';
+    } else {
+      const c = getCuratorAttribution();
+      curatorName = c.name;
+      curatorInitials = c.initials;
+    }
+    el.querySelector('.cv-byline-name').textContent = curatorName;
+    el.querySelector('.cv-byline-avatar').textContent = curatorInitials;
 
     const updatedIso = comparison.updated_at || comparison.created_at || '';
     const updatedStr = formatUpdated(updatedIso);
@@ -1442,7 +1470,6 @@
     el.querySelector('[data-cv-pane="sheet"]').removeAttribute('hidden');
     el.querySelector('[data-cv-pane="map"]').setAttribute('hidden', '');
 
-    // Render the sheet
     renderSheet(comparison);
 
     el.classList.add('open');
@@ -1468,6 +1495,11 @@
     if (opts.updateUrl) {
       const url = new URL(window.location.href);
       url.searchParams.delete('compare');
+      // Also strip the shared-link params so a recipient closing their
+      // view lands on a clean map URL, not ?slugs=...&title=...
+      url.searchParams.delete('slugs');
+      url.searchParams.delete('title');
+      url.searchParams.delete('by');
       history.pushState({}, '', url.toString());
     }
   }
@@ -1475,8 +1507,12 @@
   // Refresh the active view when a comparison is edited from inside it.
   // The builder modal dispatches 'comparisons:updated' on save -- listen
   // for it and re-render so the new project set appears immediately.
+  // Skips entirely when viewing a SHARED comparison (the activeComparisonId
+  // is 'shared'; there's nothing in savedComparisons to look up, and the
+  // viewer is the recipient anyway, not the curator).
   document.addEventListener('comparisons:updated', () => {
     if (!activeComparisonId || !viewEl || !viewEl.classList.contains('open')) return;
+    if (activeComparisonId === 'shared') return;
     const comparison = savedComparisons.find(c => c.id === activeComparisonId);
     if (!comparison) {
       closeComparisonView({ updateUrl: true });
@@ -1500,24 +1536,112 @@
   window.comparisons.close = (opts) => closeComparisonView(opts || {});
 
   // --- URL routing -----------------------------------------------------------
-  // On load, check for ?compare=<id>. We can't open it until comparisons have
-  // hydrated from Memberstack -- so we wrap hydrate() to chain into the routing.
+  // Two routing modes:
+  //   ?compare=<id>          - personal: looks up the comparison in the
+  //                            viewer's own savedComparisons. Used when the
+  //                            creator opens their own comparison or returns
+  //                            to one they previously navigated to.
+  //   ?compare=share         - shared: parses slug list + title + curator
+  //     &slugs=a,b,c           from the URL itself. Recipient does NOT need
+  //     &title=...             to be signed in. This is the agent-shares-
+  //     &by=...                with-client flow. No backend needed -- the
+  //                            URL carries the whole payload. Long URLs but
+  //                            functional. Can be replaced with a real
+  //                            server-side store later without breaking the
+  //                            ?compare=share contract.
   let hydrationDone = false;
   const originalHydrate = window.comparisons.hydrate;
   window.comparisons.hydrate = async function () {
     await originalHydrate();
     hydrationDone = true;
     document.dispatchEvent(new CustomEvent('comparisons:hydrated'));
-    maybeRouteToComparisonFromUrl();
+    // For private comparisons (?compare=<id>), routing must wait for
+    // Memberstack data so we can look up the comparison. Shared comparisons
+    // don't need this -- they're handled by the bootstrap below which runs
+    // immediately on script load.
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('compare') && params.get('compare') !== 'share') {
+      maybeRouteToComparisonFromUrl();
+    }
   };
 
+  // Bootstrap: if the page loads with a SHARED link, kick off routing
+  // immediately. Doesn't wait for hydrate (which requires auth -- the
+  // recipient might not be signed in, and shouldn't have to be).
+  // Routing itself defers further until window.allProjectFeatures is
+  // populated, via the projects:loaded event listener inside.
+  (function bootstrapSharedRoute() {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('compare') === 'share') {
+      maybeRouteToComparisonFromUrl();
+    }
+  })();
+
+  // Build an ephemeral comparison object from URL params. Returns null if
+  // the params don't describe a valid shared comparison.
+  function parseSharedComparisonFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('compare') !== 'share') return null;
+    const rawSlugs = params.get('slugs') || '';
+    const slugs = rawSlugs.split(',').map(s => s.trim()).filter(Boolean);
+    if (!slugs.length) return null;
+    return {
+      id: 'shared',
+      name: params.get('title') || 'Shared comparison',
+      slugs,
+      // curator name from URL takes priority over the viewer's own identity
+      // (because the recipient isn't the curator); this is what powers the
+      // "Curated by [agent name]" byline on the recipient's view.
+      curator: params.get('by') || '',
+      // No timestamps in the URL -- treat as undated. The byline simply
+      // hides the "Updated" segment when there's no date.
+      created_at: '',
+      updated_at: '',
+      isShared: true,
+    };
+  }
+
+  // Build a shareable URL from a saved comparison. URL-encodes everything
+  // so it survives email clients and messengers without breaking.
+  function buildSharedUrlForComparison(comparison) {
+    const url = new URL(window.location.origin + window.location.pathname);
+    url.searchParams.set('compare', 'share');
+    url.searchParams.set('slugs', comparison.slugs.join(','));
+    if (comparison.name) url.searchParams.set('title', comparison.name);
+    const curator = getCuratorAttribution();
+    if (curator.name && curator.name !== 'Anonymous Curator') {
+      url.searchParams.set('by', curator.name);
+    }
+    return url.toString();
+  }
+
   function maybeRouteToComparisonFromUrl() {
+    // Shared link path -- check FIRST, before signup-wall logic, because
+    // shared comparisons are public and shouldn't trigger a paywall on the
+    // recipient. The creator's account is the only one that needs Pro;
+    // viewing a shared link doesn't.
+    const shared = parseSharedComparisonFromUrl();
+    if (shared) {
+      // Features may not be loaded yet (CSV is async). Defer if so.
+      if (!window.allProjectFeatures || !window.allProjectFeatures.length) {
+        const onReady = () => {
+          document.removeEventListener('projects:loaded', onReady);
+          openSharedComparisonView(shared);
+        };
+        document.addEventListener('projects:loaded', onReady);
+      } else {
+        openSharedComparisonView(shared);
+      }
+      return;
+    }
+
     const params = new URLSearchParams(window.location.search);
     const id = params.get('compare');
     if (!id) return;
     if (!isSignedIn()) {
-      // Anonymous viewer -- fire signup wall. After signup, refreshMemberStatus
-      // will run hydrate again, which routes them in.
+      // Anonymous viewer trying to open a private comparison ID -- fire
+      // signup wall. After signup, refreshMemberStatus will run hydrate
+      // again, which routes them in.
       if (typeof window.showSignupWall === 'function') window.showSignupWall();
       return;
     }
@@ -1526,6 +1650,13 @@
 
   // Browser back/forward navigation
   window.addEventListener('popstate', () => {
+    // Shared-link path takes priority -- doesn't require hydration since
+    // the comparison data lives in the URL itself.
+    const shared = parseSharedComparisonFromUrl();
+    if (shared) {
+      openSharedComparisonView(shared);
+      return;
+    }
     const params = new URLSearchParams(window.location.search);
     const id = params.get('compare');
     if (id && hydrationDone) {
