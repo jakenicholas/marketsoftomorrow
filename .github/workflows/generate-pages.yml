@@ -62,11 +62,21 @@ jobs:
       - name: Check for changes
         id: changes
         run: |
-          # Stage all outputs so we can detect any change. articles.json and
-          # pulse.json need to be tracked too -- without them, manual sheet
-          # edits would update static pages but pulse/coverage would stay
-          # stale until the next nightly run.
-          git add projects/ sitemap.xml robots.txt pulse.json articles.json 2>/dev/null || true
+          # Stage all outputs so we can detect any change. articles.json
+          # and pulse.json need to be tracked too -- without them, manual
+          # sheet edits would update static pages but pulse/coverage would
+          # stay stale until the next nightly run.
+          #
+          # .pulse-snapshot.json is the internal state file the pulse
+          # generator diffs against on each run. It MUST be committed
+          # so the next run knows what was already known -- otherwise
+          # every run starts from a fresh empty snapshot, and renamed
+          # projects (slug changed in the sheet) emit spurious "new
+          # project added" events every hour. The orphan-rename detector
+          # in generate_pulse.py handles single-run renames, but only
+          # if it can see the previous state, which means the snapshot
+          # has to live in the repo.
+          git add projects/ sitemap.xml robots.txt pulse.json articles.json .pulse-snapshot.json 2>/dev/null || true
           if git diff --staged --quiet; then
             echo "changed=false" >> $GITHUB_OUTPUT
             echo "No changes detected."
