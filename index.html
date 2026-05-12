@@ -178,12 +178,15 @@
   <style>
     /* === Memberstack modal: dark theme via .tmw-ms-modal hook ============
        The class is added at runtime by the tagger script above. Targets
-       cover three cases: (1) the runtime-tagged element, (2) the documented
-       #msOverlay selector for older surfaces, (3) a generic [role="dialog"]
-       direct child of body as a last resort. */
+       cover two cases: (1) the runtime-tagged element, (2) the documented
+       #msOverlay selector for older surfaces. We deliberately do NOT include
+       a generic [role="dialog"] fallback -- it over-reaches into our own
+       compare modal + comparison view (which both use role="dialog"),
+       inverting their images and forcing dark backgrounds inappropriately. */
+    /* Outer overlay -- the dim/blur layer behind the modal card. */
     .tmw-ms-modal,
     #msOverlay,
-    body > div[id^="ms-"],
+    body > div[id^="ms-"] {
       background: rgba(0, 0, 0, 0.78) !important;
       backdrop-filter: blur(8px) !important;
       -webkit-backdrop-filter: blur(8px) !important;
@@ -192,7 +195,7 @@
     /* Inner card -- the modal's first significant block-level child. */
     .tmw-ms-modal > div,
     .tmw-ms-modal [role="dialog"],
-    #msOverlay > div,
+    #msOverlay > div {
       background: #0f0f0f !important;
       color: #fff !important;
       border: 1px solid rgba(255, 255, 255, 0.08) !important;
@@ -202,7 +205,7 @@
 
     /* TMW logo -- the asset is dark; invert it to white. */
     .tmw-ms-modal img,
-    #msOverlay img,
+    #msOverlay img {
       filter: brightness(0) invert(1) !important;
       opacity: 0.95 !important;
     }
@@ -3406,6 +3409,17 @@
     letter-spacing: 0.02em;
   }
   #projectModal .pm-step-label.cur { color: var(--stage-color, #FF9500); }
+  /* Date-driven subtitle: "18 months to delivery", "Delivered Sep '23".
+     Reads like a tiny mono-spaced timestamp under the step labels.
+     Pulled from window.computeProgress(deliveryDate, status, startDate). */
+  #projectModal .pm-progress-sub {
+    margin-top: 6px;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 9px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.4);
+  }
   /* Divider */
   #projectModal .pm-div {
     height: 0.5px;
@@ -4918,6 +4932,13 @@
   .compare-view[data-mode="sheet"] .cv-action-btn .cv-icon-map { display: block; }
   .compare-view[data-mode="map"]   .cv-action-btn .cv-icon-sheet { display: block; }
 
+  /* Shared-link viewer mode: hide Edit + Share. The recipient isn't the
+     curator (so editing is wrong), and re-sharing a shared URL would
+     duplicate the link rather than build a fresh one. Toggle = still
+     visible because seeing the data on a map is useful for any viewer. */
+  .compare-view.cv-shared [data-cv-action="edit"],
+  .compare-view.cv-shared .cv-share-wrap { display: none; }
+
   /* Share dropdown menu */
   .cv-share-wrap { position: relative; }
   .cv-share-menu {
@@ -5189,6 +5210,9 @@
   .cv-row-cta.cv-cell,
   .cv-row-cta.cv-label-cell { border-bottom: 0; padding: 16px 20px; }
   .cv-row-cta.cv-label-cell { padding: 16px 18px; }
+  /* cv-view-btn can render as <button> OR as <a> (real anchors open the
+     static project page in a new tab; we route the comparison click that
+     way for share-friendliness). Cover both with the same styling. */
   .cv-view-btn {
     width: 100%;
     height: 40px;
@@ -5205,6 +5229,8 @@
     gap: 8px;
     transition: background 0.15s, color 0.15s, border-color 0.15s;
     font-family: inherit;
+    text-decoration: none;
+    box-sizing: border-box;
   }
   .cv-view-btn:hover {
     background: #1FDF67;
@@ -5302,8 +5328,19 @@
   }
 
   /* Map pin -- numbered marker */
+  /* Map pin -- numbered marker.
+     CRITICAL: Mapbox writes transform: translate(...) on the marker element
+     every frame. NEVER add `transition: transform`, NEVER set `transform`,
+     NEVER set `position`, on .cv-map-pin itself or the pin will drift when
+     the user pans/zooms. Hover scaling + pulse animation live on the inner
+     `.cv-map-pin-inner` element instead. */
   .cv-map-pin {
     width: 32px; height: 32px;
+    cursor: pointer;
+    /* No transform, no transition, no position -- Mapbox owns those. */
+  }
+  .cv-map-pin-inner {
+    width: 100%; height: 100%;
     background: #1FDF67;
     color: #000;
     border-radius: 50%;
@@ -5314,11 +5351,11 @@
     justify-content: center;
     border: 2px solid #0a0a0a;
     box-shadow: 0 4px 14px rgba(0,0,0,0.5);
-    cursor: pointer;
     transition: transform 0.18s;
+    transform-origin: center;
   }
-  .cv-map-pin:hover { transform: scale(1.1); }
-  .cv-map-pin.cv-map-pin-pulse {
+  .cv-map-pin:hover .cv-map-pin-inner { transform: scale(1.1); }
+  .cv-map-pin.cv-map-pin-pulse .cv-map-pin-inner {
     animation: cvPinPulse 1.4s ease-out;
   }
   @keyframes cvPinPulse {
@@ -5339,13 +5376,17 @@
     flex: 0 0 auto;
   }
   .cv-footer-brand {
-    font-family: 'JetBrains Mono', ui-monospace, monospace;
-    font-size: 10px;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: rgba(255,255,255,0.32);
+    display: flex;
+    align-items: center;
   }
-  .cv-footer-brand strong { color: rgba(255,255,255,0.55); }
+  .cv-footer-logo {
+    height: 18px;
+    width: auto;
+    /* Source SVG is dark; invert to white so it reads on the black footer.
+       Matches the technique used by #header-logo at the top of the app. */
+    filter: brightness(0) invert(1);
+    opacity: 0.85;
+  }
   .cv-footer-link {
     font-size: 12px;
     color: #1FDF67;
@@ -6651,6 +6692,185 @@
     // page navigation that shows the loading splash.
     window.handleDeepLink = handleDeepLink;
 
+    // ── Shared progress helper ─────────────────────────────────────────
+    // Computes a project's construction progress as a number 0–100 from
+    // its delivery date + status. The previous implementation just mapped
+    // status -> fixed percent ("Construction" = 60, regardless of when
+    // the project actually completes). The result: two projects both
+    // "Under Construction" showed identical 60% bars even when one
+    // delivered in 2027 and the other in 2030.
+    //
+    // New math: linear interpolation from an assumed (or explicit) start
+    // date to delivery. Today's position on that line is the percent.
+    //
+    //   progress = clamp(0, 100, (today - start) / (delivery - start) * 100)
+    //
+    // If a project has a StartDate column populated, that wins. Otherwise
+    // we fall back to a status-based assumed start: e.g. "Announced" =
+    // delivery − 4 years, "Construction" = delivery − 2.5 years, etc.
+    // Industry-typical timelines for luxury condo + mixed-use development.
+    //
+    // "Now Open" always returns 100, regardless of date. "Announced" with
+    // no parseable delivery date returns 5 (just enough fill to be visible).
+    //
+    // Exposed on window so compare.js, static project pages, and the
+    // modal all share one implementation.
+    (function() {
+      // Number of years before delivery to assume construction began,
+      // keyed by lowercase status fragment from the Delivery column.
+      // Roughly modeled on real-world luxury-condo timelines.
+      const ASSUMED_YEARS_BEFORE_DELIVERY = {
+        'announced':         4.0,
+        'breaking ground':   3.0,
+        'under construction':2.5,
+        'topping out':       1.5,
+        'opening soon':      0.5,
+      };
+      const MS_PER_YEAR = 365.25 * 24 * 60 * 60 * 1000;
+
+      // Best-effort parse of an ISO-like date string. Returns Date or null.
+      // Handles "2027-06-15", "2027-06", "2027". Falls back to Date constructor.
+      function parseDate(str) {
+        if (!str) return null;
+        const s = String(str).trim();
+        if (!s) return null;
+        // "2027-06-15" — full ISO
+        let m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+        if (m) return new Date(+m[1], +m[2] - 1, +m[3]);
+        // "2027-06" — year + month, default to mid-month
+        m = s.match(/^(\d{4})-(\d{2})$/);
+        if (m) return new Date(+m[1], +m[2] - 1, 15);
+        // "2027" — year only, default to mid-year
+        m = s.match(/^(\d{4})$/);
+        if (m) return new Date(+m[1], 6, 1);
+        // Last resort: trust the Date constructor
+        const d = new Date(s);
+        return isNaN(d.getTime()) ? null : d;
+      }
+
+      // Get the assumed time-before-delivery in milliseconds, keyed off
+      // the status string. Returns null for "now open" so the caller can
+      // short-circuit to 100%.
+      function assumedSpanFor(status) {
+        const s = (status || '').toLowerCase().trim();
+        if (s.includes('now open') || s.includes('open')) return 'OPEN';
+        for (const key in ASSUMED_YEARS_BEFORE_DELIVERY) {
+          if (s.includes(key)) return ASSUMED_YEARS_BEFORE_DELIVERY[key] * MS_PER_YEAR;
+        }
+        return ASSUMED_YEARS_BEFORE_DELIVERY['announced'] * MS_PER_YEAR;
+      }
+
+      // Format a human-readable "time to delivery" subtitle for the meta
+      // line. "delivered Q2 '24", "18 months to delivery", "3 weeks to
+      // delivery". Returns '' if delivery date can't be parsed.
+      function formatTimeToDelivery(deliveryDate, status) {
+        const d = parseDate(deliveryDate);
+        if (!d) return '';
+        const now = new Date();
+        const diffMs = d.getTime() - now.getTime();
+        const s = (status || '').toLowerCase();
+        if (s.includes('now open') || s.includes('open')) {
+          // Delivered. Show "delivered Mon 'YY" if date is in the past.
+          if (diffMs < 0) {
+            return 'Delivered ' + d.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+          }
+          return 'Now open';
+        }
+        if (diffMs <= 0) {
+          // Past delivery but status isn't "Now Open" -- could be a delayed
+          // project. Show the delivery date as-is rather than a negative time.
+          return 'Delivery ' + d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+        }
+        const days = Math.round(diffMs / (24 * 60 * 60 * 1000));
+        if (days < 14)   return days + (days === 1 ? ' day' : ' days') + ' to delivery';
+        if (days < 60)   return Math.round(days / 7) + ' weeks to delivery';
+        const months = Math.round(days / 30.44);
+        if (months < 24) return months + (months === 1 ? ' month' : ' months') + ' to delivery';
+        const years = (diffMs / MS_PER_YEAR);
+        return years.toFixed(1).replace(/\.0$/, '') + ' yrs to delivery';
+      }
+
+      // Returns { pct, label, color, subtitle } for the project.
+      //   pct      : 0-100, the fill percent
+      //   label    : the status label ("Construction", "Now Open", etc.)
+      //   color    : CSS color for the fill + label
+      //   subtitle : the meta line below the bar ("18 months to delivery")
+      //
+      // Callers can use any subset of the four fields; the goal is to
+      // make every surface read like a single design system.
+      function computeProgress(deliveryDate, status, startDate) {
+        const s = (status || '').toLowerCase().trim();
+        // Resolve label + color from status word. Mirrors the stages map
+        // in the project modal but doesn't share state, since this helper
+        // runs before the modal IIFE.
+        let label = 'Announced';
+        let color = 'rgba(255,255,255,0.55)';
+        if (s.includes('now open') || s.includes('open')) {
+          label = 'Now Open'; color = '#1FDF67';
+        } else if (s.includes('opening')) {
+          label = 'Opening Soon'; color = '#1FDF67';
+        } else if (s.includes('topping')) {
+          label = 'Topping Out'; color = '#FF9500';
+        } else if (s.includes('construction')) {
+          label = 'Construction'; color = '#FF9500';
+        } else if (s.includes('breaking ground') || s.includes('groundbreak')) {
+          label = 'Breaking Ground'; color = '#FFD300';
+        }
+
+        // Short-circuit: Now Open is always 100%.
+        const span = assumedSpanFor(status);
+        if (span === 'OPEN') {
+          return {
+            pct: 100, label, color,
+            subtitle: formatTimeToDelivery(deliveryDate, status),
+          };
+        }
+
+        const delivery = parseDate(deliveryDate);
+        if (!delivery) {
+          // No parseable delivery date. Fall back to a sensible default
+          // based on status alone (legacy behavior).
+          const fallback = {
+            'Announced': 5,
+            'Breaking Ground': 25,
+            'Construction': 55,
+            'Topping Out': 80,
+            'Opening Soon': 92,
+          }[label] || 5;
+          return { pct: fallback, label, color, subtitle: '' };
+        }
+
+        // Pick start date: explicit StartDate column wins; else status-based
+        // assumption (delivery − N years).
+        const explicitStart = parseDate(startDate);
+        const start = explicitStart || new Date(delivery.getTime() - span);
+
+        const now = new Date();
+        const total   = delivery.getTime() - start.getTime();
+        const elapsed = now.getTime() - start.getTime();
+        let pct;
+        if (total <= 0) {
+          // Defensive: start >= delivery (malformed data). Show midpoint.
+          pct = 50;
+        } else {
+          pct = (elapsed / total) * 100;
+        }
+        // Clamp 0..100. Past delivery without "Now Open" status caps at 99
+        // so the bar visually distinguishes "should be done but status not
+        // updated" from "actually delivered".
+        pct = Math.max(0, Math.min(99, pct));
+        return {
+          pct: Math.round(pct),
+          label,
+          color,
+          subtitle: formatTimeToDelivery(deliveryDate, status),
+        };
+      }
+
+      window.computeProgress = computeProgress;
+      window.computeProgressFormatTime = formatTimeToDelivery;
+    })();
+
     // ── Project Detail Modal ────────────────────────────────────────────
     (function() {
       const modal   = document.getElementById('projectModal');
@@ -6672,10 +6892,17 @@
         return stages.find(s => d.includes(s.key)) || stages[0];
       }
 
-      function buildProgress(delivery) {
+      function buildProgress(delivery, deliveryDate, startDate) {
         const si = getStageInfo(delivery);
         const idx = stages.indexOf(si);
         const color = si.color;
+        // Step dots stay keyed to the named stage (so the journey reads
+        // left-to-right as a clear progression). The percent + subtitle
+        // are date-driven via the shared helper so they reflect real
+        // elapsed time, not just the status word.
+        const cp = (window.computeProgress
+          ? window.computeProgress(deliveryDate || '', delivery || '', startDate || '')
+          : { pct: si.pct, subtitle: '' });
         const steps = stages.map((s, i) => {
           let cls = 'pm-step';
           if (i < idx) cls += ' done';
@@ -6685,13 +6912,15 @@
         const labels = stages.map((s, i) =>
           `<span class="pm-step-label${i === idx ? ' cur' : ''}" style="${i === idx ? '--stage-color:'+color : ''}">${s.label}</span>`
         ).join('');
+        const sub = cp.subtitle ? `<div class="pm-progress-sub">${cp.subtitle}</div>` : '';
         return `
           <div class="pm-progress-top">
             <span class="pm-stage" style="color:${color}">${si.label}</span>
-            <span class="pm-pct">${si.pct}%</span>
+            <span class="pm-pct">${cp.pct}%</span>
           </div>
           <div class="pm-steps">${steps}</div>
-          <div class="pm-step-labels">${labels}</div>`;
+          <div class="pm-step-labels">${labels}</div>
+          ${sub}`;
       }
 
       function truncateDeveloper(str) {
@@ -6973,8 +7202,8 @@
           ? `${p.city || ''} • ${typeLabel}`
           : (p.city || '');
 
-        // Progress
-        document.getElementById('pmProgress').innerHTML = buildProgress(p.delivery);
+        // Progress (date-driven via shared computeProgress helper)
+        document.getElementById('pmProgress').innerHTML = buildProgress(p.delivery, p.deliveryDate, p.startDate);
 
         // Description — prefer long, fall back to short
         const desc = p.descriptionLong || p.description || '';
@@ -9503,6 +9732,10 @@
                 developer: p.Developer || '',
                 architect: p.Architect || '',
                 deliveryDate: p.DeliveryDate || '',
+                // Optional: when present, overrides the status-based start-date
+                // assumption used by computeProgress(). Empty/missing rows
+                // fall back to: status -> assumed years-before-delivery.
+                startDate: p.StartDate || '',
                 descriptionLong: p.DescriptionLong || '',
                 image2: p.Image2 || '',
                 image3: p.Image3 || '',
@@ -9518,6 +9751,10 @@
 
           // Master list — never mutated, used to restore pins on clear
           window.allProjectFeatures = features;
+          // Signal to any subscriber that needs the feature list (e.g. the
+          // shared-comparison-link route in compare.js, which loads before
+          // CSV resolves and needs to defer its initial render until now).
+          document.dispatchEvent(new CustomEvent('projects:loaded'));
 
     
           // projectTypes lives only on _projectTypes (JS array, not in GeoJSON properties)
@@ -10930,6 +11167,7 @@
               // the meta line. Falls back to delivery year derived from
               // pickDeliveryYear() in rowHtml when this isn't set.
               deliveryDate: props.deliveryDate || '',
+              startDate: props.startDate || '',
               unreadCount: unreadInfo.count || 0,
               lastEvent: lastEv,
               lastEventTs: lastEv ? (lastEv.timestamp || '') : '',
@@ -12268,6 +12506,6 @@
        Self-contained module; relies on window.projectSlugify, window.allProjectFeatures,
        window.$memberstackDom, and the auth hint cache that the paywall code maintains.
        The ?v=2 query string busts any stale cached version after recent revisions. -->
-  <script src="compare.js?v=11"></script>
+  <script src="compare.js?v=14"></script>
 </body>
 </html>
