@@ -290,6 +290,36 @@ def compute_progress(delivery_date_str, status, start_date_str=''):
         _build_segments(active_idx, active_fill),
     )
 
+_MONTH_NAMES = ['January','February','March','April','May','June',
+                'July','August','September','October','November','December']
+
+def format_delivery_display(raw):
+    """Display-formatter for delivery values shown on static project pages.
+    Server-side mirror of window.formatDeliveryDisplay in index.html.
+    Keep these two implementations in sync.
+
+    Rules (priority order):
+      'YYYY-MM-DD' -> 'Month Day, Year'   e.g. '2027-06-15' -> 'June 15, 2027'
+      'YYYY-MM'    -> 'Month Year'        e.g. '2027-06'    -> 'June 2027'
+      'YYYY'       -> 'YYYY'              (unchanged)
+      anything else passes through untouched (e.g. 'Spring 2027', 'Q2 2028')
+    """
+    if not raw: return ''
+    import re as _re
+    s = str(raw).strip()
+    if not s: return ''
+    m = _re.match(r'^(\d{4})-(\d{2})-(\d{2})$', s)
+    if m:
+        mi = int(m.group(2)) - 1
+        if 0 <= mi < 12:
+            return f"{_MONTH_NAMES[mi]} {int(m.group(3))}, {m.group(1)}"
+    m = _re.match(r'^(\d{4})-(\d{2})$', s)
+    if m:
+        mi = int(m.group(2)) - 1
+        if 0 <= mi < 12:
+            return f"{_MONTH_NAMES[mi]} {m.group(1)}"
+    return s
+
 def progress_bar_html(delivery, delivery_date='', start_date=''):
     """Render the segmented progress bar (5 stages with proportional widths
     10/10/60/10/10). Each segment fills independently based on date math.
@@ -553,7 +583,7 @@ def build_page(row, articles=None):
     stats = ''
     stats += stat_card('Developer', developer)
     stats += stat_card('Architect', architect)
-    stats += stat_card('Delivery', delivery_date or delivery)
+    stats += stat_card('Delivery', format_delivery_display(delivery_date or delivery))
     stats += stat_card('Market', city)
     stats_section = f'<div class="stats-grid">{stats}</div>' if stats.strip() else ''
 
