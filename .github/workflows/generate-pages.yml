@@ -31,11 +31,19 @@ jobs:
         with:
           python-version: '3.11'
 
-      # Static project pages: regenerate every /projects/<slug>/index.html
-      # plus sitemap.xml + robots.txt from the Google Sheet.
-      - name: Generate project pages
-        run: python3 generate_pages.py
-
+      # Step order matters here:
+      #
+      # 1. Pulse FIRST. generate_pulse.py refreshes articles.json (pulls
+      #    new RSS articles, runs orphan-slug reassignment for renamed
+      #    projects, writes the final per-project article archive).
+      #
+      # 2. Pages SECOND. generate_pages.py reads articles.json from disk
+      #    and embeds the Coverage section into each static project
+      #    page. If pages ran first, every page would freeze with the
+      #    PREVIOUS run's articles.json -- making the runtime project
+      #    modal (which fetches articles.json fresh) and the static page
+      #    show different article counts.
+      #
       # Pulse pipeline: rebuild pulse.json (recent site activity feed) and
       # articles.json (per-project article archive used by Coverage section).
       # Reads RSS + the sheet, diffs against prior state, writes both JSONs.
@@ -44,6 +52,12 @@ jobs:
           WIX_API_KEY: ${{ secrets.WIX_API_KEY }}
           WIX_SITE_ID: ${{ secrets.WIX_SITE_ID }}
         run: python3 generate_pulse.py
+
+      # Static project pages: regenerate every /projects/<slug>/index.html
+      # plus sitemap.xml + robots.txt from the Google Sheet AND the
+      # just-updated articles.json.
+      - name: Generate project pages
+        run: python3 generate_pages.py
 
       - name: Check for changes
         id: changes
