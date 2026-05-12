@@ -10478,11 +10478,11 @@
             </div>
             <div class="paywall-features">
               <div class="paywall-feature"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#1FDF67" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Unlimited project exploration</div>
-              <div class="paywall-feature"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#1FDF67" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Full developer + architect details</div>
-              <div class="paywall-feature"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#1FDF67" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Save your favorites</div>
-              <div class="paywall-feature"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#1FDF67" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Build project comparison views</div>
-              <div class="paywall-feature"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#1FDF67" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Share projects with friends</div>
+              <div class="paywall-feature"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#1FDF67" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Full developer, architect and timeline details</div>
+              <div class="paywall-feature"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#1FDF67" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Create your project watchlist</div>
+              <div class="paywall-feature"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#1FDF67" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Build and share project comparison sheets</div>
               <div class="paywall-feature"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#1FDF67" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Project update notifications</div>
+              <div class="paywall-feature"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#1FDF67" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Daily in-app pulse</div>
             </div>
             <div class="paywall-signin" id="subPaywallSigninWrap">
               Already a subscriber? <a href="#" id="subPaywallSigninLink">Sign in</a>
@@ -10515,11 +10515,11 @@
         // readable.
         const proFeatures = [
           'Unlimited project exploration',
-          'Full developer + architect details',
-          'Save your favorites',
-          'Build project comparison views',
-          'Share projects with friends',
+          'Full developer, architect and timeline details',
+          'Create your project watchlist',
+          'Build and share project comparison sheets',
           'Project update notifications',
+          'Daily in-app pulse',
         ];
         const proFeatureRows = proFeatures.map(label =>
           `<div class="paywall-feature">
@@ -12809,6 +12809,6 @@
        Self-contained module; relies on window.projectSlugify, window.allProjectFeatures,
        window.$memberstackDom, and the auth hint cache that the paywall code maintains.
        The ?v=2 query string busts any stale cached version after recent revisions. -->
-  <script src="compare.js?v=18"></script>
+  <script src="compare.js?v=19"></script>
 </body>
 </html>
