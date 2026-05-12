@@ -167,19 +167,66 @@ def _format_time_to_delivery(delivery_date_str, status):
     yrs = f'{years:.1f}'.rstrip('0').rstrip('.')
     return f'{yrs} yrs to delivery'
 
+def _label_to_seg_idx(label):
+    """Map a status label to its segment index in the 5-stage bar."""
+    return {
+        'Announced':       0,
+        'Breaking Ground': 1,
+        'Construction':    2,
+        'Topping Out':     2,  # visualizes as late-Construction
+        'Opening Soon':    3,
+        'Now Open':        4,
+    }.get(label, -1)
+
+# Visual segment widths (must sum to 100). Matches the JS twin.
+_SEG_WIDTHS = [10, 10, 60, 10, 10]
+_SEG_STAGES = [
+    ('Announced',       'rgba(255,255,255,0.55)'),
+    ('Breaking Ground', '#FFD300'),
+    ('Construction',    '#FF9500'),
+    ('Opening Soon',    '#1FDF67'),
+    ('Now Open',        '#1FDF67'),
+]
+
+def _build_segments(active_idx, active_fill_pct):
+    """Build the 5-segment list. Each entry: dict with label, color,
+    width_pct, fill_pct, state (done/active/future)."""
+    segs = []
+    for i, (lbl, c) in enumerate(_SEG_STAGES):
+        if i < active_idx:
+            state, fill = 'done', 100
+        elif i == active_idx:
+            state, fill = 'active', round(active_fill_pct)
+        else:
+            state, fill = 'future', 0
+        segs.append({
+            'label': lbl, 'color': c, 'width_pct': _SEG_WIDTHS[i],
+            'state': state, 'fill_pct': fill,
+        })
+    return segs
+
 def compute_progress(delivery_date_str, status, start_date_str=''):
     """Server-side mirror of window.computeProgress in index.html.
-    Returns (pct, label, color, subtitle). See JS twin for math docs."""
+    Returns (pct, label, color, subtitle, segments). See JS twin for
+    math docs."""
     from datetime import date
     label, fallback_pct, color = delivery_info(status or '')
     s = (status or '').lower().strip()
     # Short-circuit: Now Open is always 100%
     if 'now open' in s:
-        return 100, label, color, _format_time_to_delivery(delivery_date_str, status)
+        return 100, label, color, _format_time_to_delivery(delivery_date_str, status), _build_segments(4, 100)
     delivery = _parse_iso_date(delivery_date_str)
     if not delivery:
         # No parseable delivery date -- fall back to status-based default
-        return fallback_pct, label, color, ''
+        fallback_seg = {
+            'Announced':       (0, 50),
+            'Breaking Ground': (1, 50),
+            'Construction':    (2, 50),
+            'Topping Out':     (2, 95),
+            'Opening Soon':    (3, 50),
+        }.get(label, (0, 50))
+        segs = _build_segments(*fallback_seg)
+        return fallback_pct, label, color, '', segs
     # Resolve start: explicit StartDate column wins; else status-based assumption
     start = _parse_iso_date(start_date_str)
     if not start:
@@ -191,58 +238,80 @@ def compute_progress(delivery_date_str, status, start_date_str=''):
         # delivery − N years
         try:
             start = date(delivery.year - int(years), delivery.month, delivery.day)
-            # Adjust for fractional years (0.5 = 6 months back)
             frac = years - int(years)
             if frac:
-                # Subtract roughly frac*12 months by going back days
                 from datetime import timedelta
                 start = start - timedelta(days=int(frac * 365.25))
         except ValueError:
-            # Feb 29 / leap year edge -- shrug, use Jan 1
             start = date(delivery.year - int(years), 1, 1)
     today = date.today()
     total = (delivery - start).days
     elapsed = (today - start).days
     if total <= 0:
         pct = 50
+        elapsed_pct = 50.0
     else:
         pct = (elapsed / total) * 100
+        elapsed_pct = max(0.0, min(100.0, pct))
     pct = max(0, min(99, pct))
-    return round(pct), label, color, _format_time_to_delivery(delivery_date_str, status)
+
+    # Locate active segment + fill within it (matches JS twin)
+    seg_start = 0
+    active_idx = 0
+    active_fill = 0
+    for i, w in enumerate(_SEG_WIDTHS):
+        seg_end = seg_start + w
+        if elapsed_pct <= seg_end or i == len(_SEG_WIDTHS) - 1:
+            active_idx = i
+            into = elapsed_pct - seg_start
+            active_fill = max(0.0, min(100.0, (into / w) * 100))
+            break
+        seg_start = seg_end
+
+    # Status word takes priority for WHICH segment is active. Date math
+    # determines HOW FULL the active segment is. See JS twin for rationale.
+    status_idx = _label_to_seg_idx(label)
+    if status_idx >= 0 and status_idx != active_idx:
+        if status_idx > active_idx:
+            # Status ahead of time -- jump forward, low fill
+            active_idx = status_idx
+            active_fill = 15
+        else:
+            # Status behind time -- project delayed; stay earlier, cap fill
+            active_idx = status_idx
+            active_fill = min(95, active_fill)
+
+    return (
+        round(pct), label, color,
+        _format_time_to_delivery(delivery_date_str, status),
+        _build_segments(active_idx, active_fill),
+    )
 
 def progress_bar_html(delivery, delivery_date='', start_date=''):
-    # Step dots stay status-driven (clear left-to-right journey). The
-    # numeric percent + bar fill + subtitle are date-driven via the
-    # shared compute_progress helper so two projects in the same status
-    # with different delivery dates show different numbers.
+    """Render the segmented progress bar (5 stages with proportional widths
+    10/10/60/10/10). Each segment fills independently based on date math.
+    Same look as window.computeProgress + buildProgress in index.html."""
     stage_label, _, color = delivery_info(delivery)
-    pct, _, _, subtitle = compute_progress(delivery_date, delivery, start_date)
-    stage_labels = ['Announced', 'Breaking Ground', 'Construction', 'Opening Soon', 'Now Open']
-    stage_keys   = ['announced', 'breaking ground', 'under construction', 'opening soon', 'now open']
-    d = delivery.lower()
-    active_idx = 0
-    for i, key in enumerate(stage_keys):
-        if key in d:
-            active_idx = i
-            break
+    pct, _, _, subtitle, segments = compute_progress(delivery_date, delivery, start_date)
 
-    steps_html = ''
-    for i, lbl in enumerate(stage_labels):
-        if i < active_idx:
-            cls = 'done'
-        elif i == active_idx:
-            cls = 'active'
-        else:
-            cls = 'future'
-        steps_html += f'<div class="ps-step ps-{cls}" style="--sc:{color}"></div>'
+    segs_html = ''
+    for seg in segments:
+        seg_color = 'rgba(255,255,255,0.08)' if seg['state'] == 'future' else seg['color']
+        segs_html += (
+            f'<div class="ps-seg ps-seg-{seg["state"]}" '
+            f'style="flex:{seg["width_pct"]} 0 0;--seg-c:{seg_color};">'
+            f'<div class="ps-seg-fill" style="width:{seg["fill_pct"]}%"></div>'
+            f'</div>'
+        )
 
     labels_html = ''
-    for i, lbl in enumerate(stage_labels):
-        cur = ' ps-cur' if i == active_idx else ''
-        style = f'style="color:{color}"' if i == active_idx else ''
-        labels_html += f'<span class="ps-label{cur}" {style}>{lbl}</span>'
+    for seg in segments:
+        cur = ' ps-cur' if seg['state'] == 'active' else ''
+        style = f'flex:{seg["width_pct"]} 0 0;'
+        if seg['state'] == 'active':
+            style += f'color:{seg["color"]};'
+        labels_html += f'<span class="ps-label{cur}" style="{style}">{seg["label"]}</span>'
 
-    # Date-driven subtitle ("18 months to delivery" / "Delivered Sep '23")
     sub_html = f'<div class="ps-sub">{subtitle}</div>' if subtitle else ''
 
     return f'''
@@ -251,7 +320,7 @@ def progress_bar_html(delivery, delivery_date='', start_date=''):
         <span class="ps-stage" style="color:{color}">{stage_label}</span>
         <span class="ps-pct">{pct}%</span>
       </div>
-      <div class="ps-steps">{steps_html}</div>
+      <div class="ps-segments">{segs_html}</div>
       <div class="ps-labels">{labels_html}</div>
       {sub_html}
     </div>'''
@@ -1039,13 +1108,29 @@ def build_page(row, articles=None):
     .ps-top {{ display: flex; justify-content: space-between; margin-bottom: 6px; }}
     .ps-stage {{ font-size: 10px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; }}
     .ps-pct {{ font-size: 10px; color: rgba(255,255,255,0.25); }}
-    .ps-steps {{ display: flex; gap: 3px; margin-bottom: 5px; }}
-    .ps-step {{ flex: 1; height: 3px; border-radius: 2px; background: rgba(255,255,255,0.08); }}
-    .ps-done {{ background: var(--sc); }}
-    .ps-active {{ background: var(--sc); opacity: 0.5; }}
-    .ps-labels {{ display: flex; justify-content: space-between; }}
-    .ps-label {{ font-size: 7px; color: rgba(255,255,255,0.2); }}
-    .ps-cur {{ color: var(--sc, #FF9500); }}
+    /* Segmented bar: 5 stages with proportional widths (10/10/60/10/10).
+       Each segment fills independently -- done = 100%, active varies by
+       date math, future = 0%. Matches the modal's pm-segments. */
+    .ps-segments {{ display: flex; gap: 3px; height: 4px; margin-bottom: 5px; }}
+    .ps-seg {{
+      /* width set inline via flex: <width_pct> 0 0 */
+      height: 100%;
+      background: rgba(255,255,255,0.08);
+      border-radius: 2px;
+      overflow: hidden;
+      position: relative;
+    }}
+    .ps-seg-fill {{
+      height: 100%;
+      background: var(--seg-c, #FF9500);
+      border-radius: 2px;
+      transition: width 0.4s ease;
+    }}
+    .ps-seg-done .ps-seg-fill   {{ width: 100% !important; }}
+    .ps-seg-future .ps-seg-fill {{ width: 0 !important; }}
+    .ps-labels {{ display: flex; gap: 3px; }}
+    .ps-label {{ font-size: 7px; color: rgba(255,255,255,0.2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 2px; }}
+    .ps-cur {{ color: var(--sc, #FF9500); font-weight: 600; }}
     /* Date-driven subtitle: "18 months to delivery" / "Delivered Sep '23".
        Matches the modal's pm-progress-sub treatment so all three surfaces
        (modal, comparison sheet, static page) read like one system. */
