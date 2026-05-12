@@ -1006,24 +1006,41 @@
       {
         key: 'timeline', label: 'Timeline',
         render: (p) => {
-          // Date-driven progress: window.computeProgress lives in index.html
-          // and reads (deliveryDate, status, startDate). Returns the pct,
-          // label, color, AND a "time-to-delivery" subtitle. Means two
-          // projects in the same status with different delivery dates
-          // show different bars -- which is the whole point of timelines.
+          // Date-driven progress: window.computeProgress returns the overall
+          // pct, label, AND a per-segment array. Each of the 5 stages has
+          // a proportional width (10/10/60/10/10) and fills independently
+          // -- so the Construction block (60% wide) shows finer granularity
+          // for projects mid-construction than the old single-bar layout.
           const cp = (typeof window.computeProgress === 'function')
             ? window.computeProgress(p.deliveryDate, p.delivery, p.startDate)
-            : { pct: progressFromDelivery(p.delivery), label: statusFromDelivery(p.delivery).label, subtitle: '' };
-          const fillCls = cp.pct >= 100 ? 'cv-progress-fill cv-progress-fill-done' : 'cv-progress-fill';
-          // Subtitle below the bar -- "18 months to delivery" / "Delivered
-          // Sep '23". Falls back to the raw deliveryDate if computeProgress
-          // couldn't format anything sensible.
-          const subtitle = cp.subtitle || (p.deliveryDate || '').trim() || (p.delivery || '').trim() || '--';
+            : null;
+          const segments = (cp && cp.segments) ? cp.segments : null;
+          const label = cp ? cp.label : statusFromDelivery(p.delivery).label;
+          const subtitle = (cp && cp.subtitle) || (p.deliveryDate || '').trim() || (p.delivery || '').trim() || '--';
+
+          // Render either the segmented bar (date-driven) or a fallback
+          // single bar (legacy path -- only if computeProgress missing).
+          let barHtml;
+          if (segments) {
+            barHtml = `
+              <div class="cv-segments">
+                ${segments.map(seg => {
+                  const c = seg.state === 'future' ? 'rgba(255,255,255,0.08)' : seg.color;
+                  return `<div class="cv-seg cv-seg-${seg.state}" style="flex:${seg.widthPct} 0 0;--seg-c:${c};"><div class="cv-seg-fill" style="width:${seg.fillPct}%"></div></div>`;
+                }).join('')}
+              </div>`;
+          } else {
+            // Legacy bar (kept for the no-computeProgress fallback)
+            const pct = (cp && cp.pct) || progressFromDelivery(p.delivery);
+            const fillCls = pct >= 100 ? 'cv-progress-fill cv-progress-fill-done' : 'cv-progress-fill';
+            barHtml = `<div class="cv-progress-bar"><div class="${fillCls}" style="width:${pct}%"></div></div>`;
+          }
+
           return `
             <div class="cv-progress">
-              <div class="cv-progress-bar"><div class="${fillCls}" style="width:${cp.pct}%"></div></div>
+              ${barHtml}
               <div class="cv-progress-meta">
-                <strong>${escapeHtml(cp.label)}</strong>
+                <strong>${escapeHtml(label)}</strong>
                 <span>${escapeHtml(subtitle)}</span>
               </div>
             </div>
