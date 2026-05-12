@@ -902,8 +902,8 @@
   function statusFromDelivery(delivery) {
     const s = (delivery || '').toLowerCase();
     if (!s) return { label: 'Announced', cls: 'announced' };
-    if (s.includes('open') || s.includes('now open')) return { label: 'Now Open', cls: 'open' };
-    if (s.includes('opening') || s.includes('opening soon')) return { label: 'Opening Soon', cls: 'open' };
+    if (s.includes('now open')) return { label: 'Now Open', cls: 'open' };
+    if (s.includes('opening')) return { label: 'Opening Soon', cls: 'open' };
     if (s.includes('construction') || s.includes('topping')) return { label: 'Construction', cls: 'construction' };
     if (s.includes('breaking ground') || s.includes('groundbreak')) return { label: 'Breaking Ground', cls: 'construction' };
     return { label: 'Announced', cls: 'announced' };
@@ -913,7 +913,7 @@
   // pm-progress so the same status reads the same number everywhere.
   function progressFromDelivery(delivery) {
     const s = (delivery || '').toLowerCase();
-    if (s.includes('now open') || s.includes('open')) return 100;
+    if (s.includes('now open')) return 100;
     if (s.includes('opening')) return 90;
     if (s.includes('topping')) return 80;
     if (s.includes('construction')) return 60;
