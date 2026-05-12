@@ -178,8 +178,11 @@ def _label_to_seg_idx(label):
         'Now Open':        4,
     }.get(label, -1)
 
-# Visual segment widths (must sum to 100). Matches the JS twin.
-_SEG_WIDTHS = [10, 10, 60, 10, 10]
+# Visual segment widths (must sum to 100). Matches the JS twin in index.html.
+# Construction = 40 (was 60); other stages = 15 each (were 10). Trade-off:
+# the 40% Construction block has less internal resolution but the bookend
+# stages are easier to see at the same overall bar width.
+_SEG_WIDTHS = [15, 15, 40, 15, 15]
 _SEG_STAGES = [
     ('Announced',       'rgba(255,255,255,0.55)'),
     ('Breaking Ground', '#FFD300'),
