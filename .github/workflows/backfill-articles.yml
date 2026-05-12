@@ -12,6 +12,12 @@ name: Backfill Articles Archive
 on:
   workflow_dispatch: {}
 
+# Same concurrency group as the hourly job. Prevents the scheduled run
+# from racing with a manual backfill -- whichever started first wins.
+concurrency:
+  group: generate-pages-pulse
+  cancel-in-progress: true
+
 jobs:
   backfill:
     runs-on: ubuntu-latest
@@ -32,14 +38,24 @@ jobs:
           WIX_SITE_ID: ${{ secrets.WIX_SITE_ID }}
         run: python3 backfill_articles.py
 
+      # Regenerate static project pages so each /projects/<slug>/index.html
+      # picks up the freshly-rebuilt articles.json in its Coverage section.
+      # Without this step the Coverage section on static pages would stay
+      # stale until the next hourly Generate Project Pages run.
+      - name: Regenerate static project pages
+        run: python3 generate_pages.py
+
       - name: Commit and push
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add articles.json
+          # Stage everything that might have changed: articles.json plus
+          # every regenerated project page + sitemap.
+          git add articles.json projects/ sitemap.xml robots.txt 2>/dev/null || true
           if git diff --cached --quiet; then
             echo "No changes to commit"
           else
-            git commit -m "Backfill articles archive from Wix Blog API"
+            PAGE_COUNT=$(git diff --cached --name-only | grep "projects/.*index.html" | wc -l || echo 0)
+            git commit -m "Backfill articles archive + regen ${PAGE_COUNT} pages"
             git push
           fi
