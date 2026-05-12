@@ -91,6 +91,7 @@ def main():
         "audience_id": AUDIENCE_ID_CLEAN,
         "from":        FROM_ADDR,
         "subject":     final_subject,
+        "name":        final_subject,
         "html":        html,
     }
 
