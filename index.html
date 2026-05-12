@@ -7088,6 +7088,43 @@
 
       window.computeProgress = computeProgress;
       window.computeProgressFormatTime = formatTimeToDelivery;
+
+      // Display-formatter for delivery values shown in the modal stat box,
+      // static project pages, and other read-only surfaces. Distinct from
+      // parseDate above: parseDate returns Date objects for math; this
+      // returns human-readable strings for the UI.
+      //
+      // Rules (priority order, most specific wins):
+      //   "2027-06-15" -> "June 15, 2027"   (full ISO, day-precise)
+      //   "2027-06"    -> "June 2027"       (year-month)
+      //   "2027"       -> "2027"            (year-only, unchanged)
+      //   anything else passes through untouched, so already-pretty strings
+      //   like "Spring 2027" or "Q2 2028" stay exactly as the sheet has them
+      const MONTH_NAMES = ['January','February','March','April','May','June',
+                           'July','August','September','October','November','December'];
+      function formatDeliveryDisplay(raw) {
+        if (!raw) return '';
+        const s = String(raw).trim();
+        if (!s) return '';
+
+        let m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+        if (m) {
+          const monthIdx = +m[2] - 1;
+          if (monthIdx >= 0 && monthIdx < 12) {
+            return `${MONTH_NAMES[monthIdx]} ${+m[3]}, ${m[1]}`;
+          }
+        }
+        m = s.match(/^(\d{4})-(\d{2})$/);
+        if (m) {
+          const monthIdx = +m[2] - 1;
+          if (monthIdx >= 0 && monthIdx < 12) {
+            return `${MONTH_NAMES[monthIdx]} ${m[1]}`;
+          }
+        }
+        // YYYY alone, or any other format the sheet uses, passes through
+        return s;
+      }
+      window.formatDeliveryDisplay = formatDeliveryDisplay;
     })();
 
     // ── Project Detail Modal ────────────────────────────────────────────
@@ -7460,7 +7497,11 @@
         const statItems = [];
         if (p.developer) statItems.push({ label: 'Developer', val: truncateDeveloper(p.developer) });
         if (p.architect) statItems.push({ label: 'Architect', val: p.architect.split('/')[0].trim() });
-        const deliveryDisplay = p.deliveryDate || p.delivery || '';
+        const deliveryRaw = p.deliveryDate || p.delivery || '';
+        // Formatter handles ISO-like inputs; passes through pretty strings.
+        const deliveryDisplay = (typeof window.formatDeliveryDisplay === 'function')
+          ? window.formatDeliveryDisplay(deliveryRaw)
+          : deliveryRaw;
         if (deliveryDisplay) statItems.push({ label: 'Delivery', val: deliveryDisplay });
         if (p.city) statItems.push({ label: 'Market', val: p.city });
 
@@ -8581,7 +8622,18 @@
       container.classList.remove('hidden');
 
       // Helper: render TMW cities as Place items
+      // When this is the SECOND section (Projects already rendered first),
+      // it inserts a divider + Places header before the cities. When it's
+      // the first section (no projects matched), the divider is omitted.
       const renderTMWCities = () => {
+        if (twmCities.length === 0) return;
+        if (container.children.length > 0) {
+          const d = document.createElement('div'); d.className = 'autocomplete-divider'; container.appendChild(d);
+        }
+        const label = document.createElement('div');
+        label.className = 'autocomplete-section-label';
+        label.textContent = 'Places';
+        container.appendChild(label);
         twmCities.forEach(([city], i) => {
           const cityLabel = getCityLabel(city);
           const filteredCount = cityFilteredMap[city] || 0;
@@ -8597,12 +8649,11 @@
         });
       };
 
-      // Helper: render project items
+      // Helper: render project items. Projects render FIRST now -- they're
+      // the primary search target. Places (TMW cities + geo) come after.
+      // This helper handles its own Projects header at the top of the list.
       const renderProjects = () => {
         if (!projects.length) return;
-        if (container.children.length > 0) {
-          const d = document.createElement('div'); d.className = 'autocomplete-divider'; container.appendChild(d);
-        }
         const label = document.createElement('div');
         label.className = 'autocomplete-section-label';
         label.textContent = 'Projects';
@@ -8617,20 +8668,16 @@
         });
       };
 
-      // Always show Places header, TMW cities first
-      if (twmCities.length > 0 || query.length >= 3) {
-        const label = document.createElement('div');
-        label.className = 'autocomplete-section-label';
-        label.textContent = 'Places';
-        container.appendChild(label);
-      }
-      renderTMWCities();
-
-      // Show local results (no geocoding yet)
+      // Order: Projects FIRST (most direct match for what users type),
+      // then Places SECOND. Previously Places led; users sorting by city
+      // name still get those results -- they're just below the project
+      // hits where the primary user intent lives.
       renderProjects();
+      renderTMWCities();
       if (!hasLocal) container.classList.add('hidden');
 
-      // Fire geocoding in parallel — append geo places after TMW cities
+      // Fire geocoding in parallel -- broader place results get appended
+      // to the Places section below TMW cities.
       if (query.length >= 3) {
         geocodeSuggest(query).then(geoFeatures => {
           const broadTypes = ['country', 'region', 'district', 'place', 'locality'];
@@ -8647,15 +8694,23 @@
 
           if (!broadResults.length && hasLocal) return; // no change needed
 
-          // Rebuild: Places header -> TMW cities -> geo places -> divider -> Projects
+          // Rebuild: Projects FIRST -> divider/Places header -> TMW cities -> geo places
           container.innerHTML = '';
-          if (twmCities.length > 0 || broadResults.length > 0) {
+          renderProjects();
+          // renderTMWCities owns its own Places header + divider logic.
+          // If twmCities is empty but we have broadResults, we still need
+          // the Places header here -- handle that case explicitly.
+          if (twmCities.length > 0) {
+            renderTMWCities();
+          } else if (broadResults.length > 0) {
+            if (container.children.length > 0) {
+              const d = document.createElement('div'); d.className = 'autocomplete-divider'; container.appendChild(d);
+            }
             const label = document.createElement('div');
             label.className = 'autocomplete-section-label';
             label.textContent = 'Places';
             container.appendChild(label);
           }
-          renderTMWCities();
           broadResults.forEach((gf, i) => {
             const item = document.createElement('div');
             item.className = 'autocomplete-item';
@@ -8666,7 +8721,6 @@
             item.addEventListener('mousedown', () => onSelect({ _geoFeature: gf, _geoLabel: gf.place_name || gf.text }, 'geo'));
             container.appendChild(item);
           });
-          renderProjects();
           if (!twmCities.length && !broadResults.length && !projects.length) {
             container.classList.add('hidden');
           } else {
@@ -11505,7 +11559,10 @@
           // users sorting by delivery can see what they're sorting on. If we
           // have a more specific date (e.g. "Q4 2026") prefer that; else fall
           // back to just the year; else show the raw delivery string.
-          const deliveryDisplay = row.deliveryDate || (year ? String(year) : (row.delivery || ''));
+          const deliveryRaw = row.deliveryDate || (year ? String(year) : (row.delivery || ''));
+          const deliveryDisplay = (typeof window.formatDeliveryDisplay === 'function')
+            ? window.formatDeliveryDisplay(deliveryRaw)
+            : deliveryRaw;
 
           // Most-recent update line
           let updateHtml = '';
@@ -12752,6 +12809,6 @@
        Self-contained module; relies on window.projectSlugify, window.allProjectFeatures,
        window.$memberstackDom, and the auth hint cache that the paywall code maintains.
        The ?v=2 query string busts any stale cached version after recent revisions. -->
-  <script src="compare.js?v=17"></script>
+  <script src="compare.js?v=18"></script>
 </body>
 </html>
