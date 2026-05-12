@@ -6734,11 +6734,36 @@
        the search bar). At 0.22 the pin lands ~70% of the way down the
        viewport with the popup extending upward into the visible map area. */
     function computeMobilePinOffset() {
-      // Use a fixed ratio of viewport height. Doesn't depend on the layout
-      // state of any DOM element, so it works during drawer transitions
-      // (when getBoundingClientRect would return 0s for a display:none
-      // tiles button) and across all viewport sizes consistently.
-      return [0, Math.round(window.innerHeight * 0.22)];
+      // Goal: pin should land just above the mobile search bar (visible at
+      // the bottom of the screen) so the popup -- which is anchor='bottom'
+      // and grows upward from the pin -- has the maximum vertical room
+      // before its top edge clips off-screen.
+      //
+      // Mapbox flyTo offset is [x, y] pixels relative to viewport center;
+      // a POSITIVE y value shifts the target DOWN within the viewport
+      // (camera center moves up). So we compute how many pixels below
+      // center the pin should land.
+      //
+      // Try to measure the search pill's actual position first -- it
+      // accounts for notch-equipped phones, drawer state, viewport size.
+      // Fall back to a fixed ratio if the pill isn't measurable.
+      try {
+        const pill = document.querySelector('.mobile-search-pill');
+        if (pill) {
+          const rect = pill.getBoundingClientRect();
+          // Element zero-bounded during transitions -- don't trust it
+          if (rect.height > 0 && rect.top > 0) {
+            // Pin sits 24px above the search pill's top edge
+            const targetPinY = rect.top - 24;
+            const viewportCenter = window.innerHeight / 2;
+            const offsetY = targetPinY - viewportCenter;
+            return [0, offsetY];
+          }
+        }
+      } catch (_) { /* fall through */ }
+      // Fallback when DOM probe fails. 32% of viewport puts the pin near
+      // the bottom third of the screen, leaving room for the popup above.
+      return [0, Math.round(window.innerHeight * 0.32)];
     }
 
     function zoomToPinOnly(f) {
