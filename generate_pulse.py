@@ -440,6 +440,58 @@ def load_articles_archive() -> dict:
     except (FileNotFoundError, json.JSONDecodeError):
         return {}
 
+def _reassign_orphan_slugs(archive: dict, projects: dict) -> dict:
+    """Walk archive entries under slugs that aren't in the current projects
+    dict (i.e. orphaned -- usually because a project was renamed in the
+    sheet, changing its slug). Re-run the matcher against each orphan
+    article's title + body and move it to the matching current slug.
+
+    This makes renames self-healing: rename 'Ponce Park Residences' to
+    'Ponce Park' in the sheet, and the next pulse run automatically
+    relocates all the old Ponce-Park articles from the dead
+    ponce-park-residences slug to the new ponce-park slug.
+
+    Articles that don't match any current project after re-evaluation
+    are dropped (the slug truly orphaned -- project was deleted or
+    renamed to something no longer detectable).
+    """
+    current_slugs = set(projects.keys())
+    orphan_slugs = [s for s in list(archive.keys()) if s not in current_slugs]
+    if not orphan_slugs:
+        return archive
+
+    print(f"   Reassigning orphan slugs: found {len(orphan_slugs)} -> {orphan_slugs[:5]}{'...' if len(orphan_slugs) > 5 else ''}")
+    reassigned = 0
+    dropped = 0
+    for orphan in orphan_slugs:
+        for entry in archive[orphan]:
+            # Synthesize an article-shaped dict so we can re-use the
+            # word-boundary variant matcher exactly as RSS articles use it.
+            pseudo_article = {
+                'title':      entry.get('title') or '',
+                'title_full': entry.get('title') or '',
+                'body':       '',  # we don't have body in archive entries
+            }
+            matches = match_article_to_all_projects(pseudo_article, projects)
+            if not matches:
+                dropped += 1
+                continue
+            for new_slug in matches:
+                existing = archive.setdefault(new_slug, [])
+                # Skip if this entry already lives under the new slug
+                if any(e.get('guid') == entry.get('guid') or
+                       (e.get('link') and e.get('link') == entry.get('link'))
+                       for e in existing):
+                    continue
+                existing.append(entry)
+                reassigned += 1
+        # Drop the orphan slug entirely after we've redistributed its entries
+        del archive[orphan]
+
+    print(f"   Reassigned: {reassigned} entries moved, {dropped} dropped (no match)")
+    return archive
+
+
 def update_articles_archive(articles: list, projects: dict) -> dict:
     """Merge current RSS articles into the archive, preserving existing entries.
 
@@ -448,6 +500,14 @@ def update_articles_archive(articles: list, projects: dict) -> dict:
     re-run doesn't create duplicates. Sort each project's list newest first.
     """
     archive = load_articles_archive()
+
+    # Self-heal renamed projects: any archive entries under a slug that
+    # no longer exists in the current sheet get re-evaluated against the
+    # current project list and moved to the matching slug. Without this,
+    # renaming "Ponce Park Residences" to "Ponce Park" leaves all the
+    # old articles stranded under the dead ponce-park-residences slug
+    # forever.
+    archive = _reassign_orphan_slugs(archive, projects)
 
     # Diagnostics: track how many of this run's articles matched at least
     # one project. Logs help debug "why is articles.json so small?" issues.
