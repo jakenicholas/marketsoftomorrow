@@ -690,15 +690,83 @@ def main():
     # 4. Diff projects to detect status changes + new additions
     new_events = []
 
+    # Identify previous slugs that are no longer in current projects --
+    # candidates for being renames rather than deletions. Used below to
+    # match against current-slug "new" entries by title variant. Without
+    # this, renaming "Ponce Park Residences" -> "Ponce Park" makes every
+    # pulse run emit a spurious "Ponce Park added to the map" event,
+    # because the slug genuinely is new even though the project isn't.
+    current_slug_set = set(current_projects.keys())
+    orphan_prev_slugs = {
+        slug: prev for slug, prev in prev_projects.items()
+        if slug not in current_slug_set
+    }
+
+    def _norm_title(t):
+        # Lowercase + collapse whitespace + strip leading "the "; same
+        # spirit as _project_name_variants used by article matching.
+        t = (t or '').lower().strip()
+        t = re.sub(r'\s+', ' ', t)
+        if t.startswith('the '):
+            t = t[4:]
+        return t
+
+    # Build a lookup of "current title (normalized) -> orphan prev entry"
+    # so we can check whether a "new" slug is actually a rename of an
+    # orphan. We match on title because slug is exactly what changed.
+    orphan_by_title = {}
+    for orphan_slug, orphan_prev in orphan_prev_slugs.items():
+        norm = _norm_title(orphan_prev.get('title', ''))
+        if norm:
+            orphan_by_title.setdefault(norm, []).append((orphan_slug, orphan_prev))
+
     # Skip diff events on first run -- would generate noise (every project would be "new")
     if not is_first_run:
         for slug, project in current_projects.items():
             new_status = normalize_status(project['delivery'])
             prev = prev_projects.get(slug)
+
             if prev is None:
-                # New project added since last run
-                new_events.append(build_new_project_event(slug, project))
-                print(f"  + NEW: {project['title']}")
+                # Slug is not in previous snapshot. Could be: (a) genuinely
+                # new project, or (b) the same project under a renamed slug.
+                # Detect rename by matching current title against orphan
+                # prev titles (variant-aware: "Ponce Park" matches a prior
+                # "Ponce Park Residences" because both normalize to share
+                # the leading words; we use loose containment to catch
+                # shortening renames in either direction).
+                curr_norm = _norm_title(project['title'])
+                rename_match = None
+                # Exact normalized hit
+                if curr_norm in orphan_by_title:
+                    rename_match = orphan_by_title[curr_norm][0]
+                else:
+                    # Loose containment: current title contained in an
+                    # orphan title (e.g. "Ponce Park" inside "Ponce Park
+                    # Residences"), or vice versa. Match the orphan whose
+                    # title shares the most words with current.
+                    for orphan_norm, candidates in orphan_by_title.items():
+                        if curr_norm and orphan_norm and (
+                            curr_norm in orphan_norm or orphan_norm in curr_norm
+                        ):
+                            rename_match = candidates[0]
+                            break
+
+                if rename_match is not None:
+                    # Rename detected. Treat as if the slug existed all
+                    # along, with the orphan's previous status. Emit a
+                    # status-change event ONLY if the status actually
+                    # changed; otherwise emit nothing (silent rename).
+                    _, orphan_prev = rename_match
+                    prev_status = orphan_prev.get('status', 'announced')
+                    if new_status != prev_status:
+                        new_events.append(build_status_change_event(slug, project, prev_status, new_status))
+                        print(f"   STATUS (via rename): {project['title']}: {prev_status} {new_status}")
+                    else:
+                        print(f"   RENAME (silent): {orphan_prev.get('title','?')} -> {project['title']}")
+                else:
+                    # Truly new project
+                    new_events.append(build_new_project_event(slug, project))
+                    print(f"  + NEW: {project['title']}")
             else:
                 prev_status = prev.get('status', 'announced')
                 if new_status != prev_status:
