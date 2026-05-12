@@ -16,6 +16,12 @@
   <meta name="description" content="A 19-acre, $2B+ mixed-use development transforming downtown Nashville into a premier live-work-play district.">
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://map.oftmw.com/projects/nashville-yards/">
+  <!-- Mono face used by the date-driven progress subtitle. Single weight
+       loads quickly. Inter (the body family) is loaded later via the
+       general <style> block. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
   <!-- Memberstack 2.0 - for Watch button + watching card hydration. Loads
        async so it doesn't block page render; the hydration script at the
@@ -117,14 +123,14 @@
   <style>
     .tmw-ms-modal,
     #msOverlay,
-    body > div[id^="ms-"],
+    body > div[id^="ms-"] {
       background: rgba(0,0,0,0.78) !important;
       backdrop-filter: blur(8px) !important;
       -webkit-backdrop-filter: blur(8px) !important;
     }
     .tmw-ms-modal > div,
     .tmw-ms-modal [role="dialog"],
-    #msOverlay > div,
+    #msOverlay > div {
       background: #0f0f0f !important;
       color: #fff !important;
       border: 1px solid rgba(255,255,255,0.08) !important;
@@ -132,7 +138,7 @@
       box-shadow: 0 30px 90px rgba(0,0,0,0.55) !important;
     }
     .tmw-ms-modal img,
-    #msOverlay img,
+    #msOverlay img {
       filter: brightness(0) invert(1) !important;
       opacity: 0.95 !important;
     }
@@ -545,6 +551,17 @@
     .ps-labels { display: flex; justify-content: space-between; }
     .ps-label { font-size: 7px; color: rgba(255,255,255,0.2); }
     .ps-cur { color: var(--sc, #FF9500); }
+    /* Date-driven subtitle: "18 months to delivery" / "Delivered Sep '23".
+       Matches the modal's pm-progress-sub treatment so all three surfaces
+       (modal, comparison sheet, static page) read like one system. */
+    .ps-sub {
+      margin-top: 6px;
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 9px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.4);
+    }
 
     /* Divider */
     .divider { height: 0.5px; background: rgba(255,255,255,0.07); margin: 16px 0; }
@@ -840,6 +857,7 @@
       </div>
       <div class="ps-steps"><div class="ps-step ps-done" style="--sc:#1FDF67"></div><div class="ps-step ps-done" style="--sc:#1FDF67"></div><div class="ps-step ps-done" style="--sc:#1FDF67"></div><div class="ps-step ps-done" style="--sc:#1FDF67"></div><div class="ps-step ps-active" style="--sc:#1FDF67"></div></div>
       <div class="ps-labels"><span class="ps-label" >Announced</span><span class="ps-label" >Breaking Ground</span><span class="ps-label" >Construction</span><span class="ps-label" >Opening Soon</span><span class="ps-label ps-cur" style="color:#1FDF67">Now Open</span></div>
+      <div class="ps-sub">Delivered Jul 24</div>
     </div>
     <div class="divider"></div>
     <p class="description">A 19-acre, $2B+ mixed-use development transforming downtown Nashville into a premier live-work-play district.</p>

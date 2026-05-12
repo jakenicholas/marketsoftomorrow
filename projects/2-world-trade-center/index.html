@@ -16,6 +16,12 @@
   <meta name="description" content="Rising 373 meters at 200 Greenwich Street in Lower Manhattan, Two World Trade Center is the final commercial tower of the World Trade Center master plan and the future global headquarters of American…">
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://map.oftmw.com/projects/2-world-trade-center/">
+  <!-- Mono face used by the date-driven progress subtitle. Single weight
+       loads quickly. Inter (the body family) is loaded later via the
+       general <style> block. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
   <!-- Memberstack 2.0 - for Watch button + watching card hydration. Loads
        async so it doesn't block page render; the hydration script at the
@@ -117,14 +123,14 @@
   <style>
     .tmw-ms-modal,
     #msOverlay,
-    body > div[id^="ms-"],
+    body > div[id^="ms-"] {
       background: rgba(0,0,0,0.78) !important;
       backdrop-filter: blur(8px) !important;
       -webkit-backdrop-filter: blur(8px) !important;
     }
     .tmw-ms-modal > div,
     .tmw-ms-modal [role="dialog"],
-    #msOverlay > div,
+    #msOverlay > div {
       background: #0f0f0f !important;
       color: #fff !important;
       border: 1px solid rgba(255,255,255,0.08) !important;
@@ -132,7 +138,7 @@
       box-shadow: 0 30px 90px rgba(0,0,0,0.55) !important;
     }
     .tmw-ms-modal img,
-    #msOverlay img,
+    #msOverlay img {
       filter: brightness(0) invert(1) !important;
       opacity: 0.95 !important;
     }
@@ -545,6 +551,17 @@
     .ps-labels { display: flex; justify-content: space-between; }
     .ps-label { font-size: 7px; color: rgba(255,255,255,0.2); }
     .ps-cur { color: var(--sc, #FF9500); }
+    /* Date-driven subtitle: "18 months to delivery" / "Delivered Sep '23".
+       Matches the modal's pm-progress-sub treatment so all three surfaces
+       (modal, comparison sheet, static page) read like one system. */
+    .ps-sub {
+      margin-top: 6px;
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 9px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.4);
+    }
 
     /* Divider */
     .divider { height: 0.5px; background: rgba(255,255,255,0.07); margin: 16px 0; }
@@ -836,10 +853,11 @@
     <div class="ps-wrap">
       <div class="ps-top">
         <span class="ps-stage" style="color:#FFD300">Breaking Ground</span>
-        <span class="ps-pct">30%</span>
+        <span class="ps-pct">0%</span>
       </div>
       <div class="ps-steps"><div class="ps-step ps-done" style="--sc:#FFD300"></div><div class="ps-step ps-active" style="--sc:#FFD300"></div><div class="ps-step ps-future" style="--sc:#FFD300"></div><div class="ps-step ps-future" style="--sc:#FFD300"></div><div class="ps-step ps-future" style="--sc:#FFD300"></div></div>
       <div class="ps-labels"><span class="ps-label" >Announced</span><span class="ps-label ps-cur" style="color:#FFD300">Breaking Ground</span><span class="ps-label" >Construction</span><span class="ps-label" >Opening Soon</span><span class="ps-label" >Now Open</span></div>
+      <div class="ps-sub">5.1 yrs to delivery</div>
     </div>
     <div class="divider"></div>
     <p class="description">Rising 373 meters at 200 Greenwich Street in Lower Manhattan, Two World Trade Center is the final commercial tower of the World Trade Center master plan and the future global headquarters of American Express. Foster + Partners' updated design — released in February 2026 — presents a stepped composition of slender volumes rising from a rectilinear base, articulated by a sequence of landscaped terraces and green roofs that distribute more than an acre of outdoor space throughout the building. The 55-story, ~186,000-square-meter tower will accommodate up to 10,000 employees and is positioned directly across from Calatrava's Oculus and the Perelman Performing Arts Center. Planned as a fully electric building with advanced smart-building systems pursuing LEED certification, the project draws on BIG's stacked-block concept and Foster's earlier crown studies, merging into a hybrid composition. Construction is scheduled to begin in spring 2026, with completion targeted for 2031.</p>
