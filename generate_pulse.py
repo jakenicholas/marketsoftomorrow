@@ -607,6 +607,19 @@ def build_new_project_event(slug, project):
     }
 
 def build_article_event(article, matched_slug):
+    # The Pulse drawer renders e.city as the gray location text on every
+    # row. Articles don't have a city; instead, surface the article's
+    # primary Wix category (e.g. "Hospitality", "Residential") so the row
+    # has a meaningful secondary label that visually matches the city
+    # text on map-update rows. First non-empty category wins; fallback
+    # is empty (drawer hides the line gracefully).
+    primary_category = ''
+    cats = article.get('categories') or []
+    for c in cats:
+        if c and c.strip():
+            primary_category = c.strip()
+            break
+
     return {
         'id': f"article-{article['guid']}",
         'type': 'article',
@@ -614,7 +627,13 @@ def build_article_event(article, matched_slug):
         'title': article['title'],
         'title_full': article['title_full'],
         'project_slug': matched_slug,
-        'city': '',
+        # Re-using the 'city' field for category text is a small abuse of
+        # the schema but keeps the frontend renderer dead simple -- the
+        # template just reads e.city and the drawer doesn't need to know
+        # whether the value came from a CSV city or a Wix category. If a
+        # future renderer needs to differentiate, e.type='article' is the
+        # signal.
+        'city': primary_category,
         'image': article.get('image') or '',
         'link': article['link'],
         'timestamp': article.get('published_at') or datetime.now(timezone.utc).isoformat(),
@@ -805,6 +824,27 @@ def main():
             project_image = current_projects[slug].get('image') or ''
             if project_image:
                 ev['image'] = project_image
+
+    # Backfill: any existing ARTICLE event without a 'city' value gets one
+    # filled in from the article's first Wix category. Articles emitted
+    # before the build_article_event change had city='' which made the
+    # Pulse drawer omit the gray location line. By matching on link
+    # (canonical URL = stable across runs), we can retroactively populate
+    # the category for events still sitting in pulse.json. Articles that
+    # are no longer in the current RSS window (older than ~25 most recent)
+    # can't be backfilled this way, but new events will be correct from
+    # build_article_event onwards so the feed self-heals over time.
+    articles_by_link = {a.get('link'): a for a in articles if a.get('link')}
+    for ev in by_id.values():
+        if ev.get('type') != 'article': continue
+        if ev.get('city'): continue
+        match = articles_by_link.get(ev.get('link') or '')
+        if not match: continue
+        cats = match.get('categories') or []
+        for c in cats:
+            if c and c.strip():
+                ev['city'] = c.strip()
+                break
 
     # Secondary dedupe pass for article events: collapse duplicates that share
     # the same link but have different ids. This happens when the guid format
