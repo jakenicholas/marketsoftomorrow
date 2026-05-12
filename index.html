@@ -1733,120 +1733,156 @@
 
     /* List row: tag pill, two lines of text, X button. No card chrome --
        rows divide via subtle bottom border instead. */
-    .pulse-notif-wrap {
+    /* ─── V3 Timeline-spine pulse ────────────────────────────────────────
+       Replaces the old card-with-thumbnail look. A continuous vertical
+       line runs down the left of the event list; each event hangs off it
+       with a colored dot marking its position on the timeline. Type
+       drives the dot color (article=green, status_change=orange,
+       new_project=blue). Title leads in white sans-serif; mono uppercase
+       meta rows wrap above (time + location) and below (status tag).
+       Reads top-to-bottom like a changelog. */
+    .pulse-spine {
+      position: relative;
+      padding-left: 28px;
+      padding-top: 4px;
+      padding-bottom: 4px;
+    }
+    .pulse-spine::before {
+      /* The spine itself: a soft fading line that doesn't extend past
+         the first or last event's vertical position, so it never feels
+         cropped. Animated subtly to draw the eye downward. */
+      content: '';
+      position: absolute;
+      left: 23px;
+      top: 16px;
+      bottom: 16px;
+      width: 1px;
+      background: linear-gradient(to bottom,
+        rgba(31,223,103,0)   0%,
+        rgba(31,223,103,0.3) 8%,
+        rgba(31,223,103,0.3) 92%,
+        rgba(31,223,103,0)   100%);
+    }
+    .pulse-ev-wrap {
       position: relative;
     }
-    /* List row: 52px project thumbnail on the left, body on the right.
-       The thumbnail carries a small colored dot badge in its top-right
-       corner that signals event type (green = News, orange = Update). */
-    .pulse-notif {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 12px 36px 12px 14px;
-      border-bottom: 1px solid rgba(255,255,255,0.04);
+    /* The dot on the spine. Sits at left:-10px which translates to the
+       spine's x position (the spine is at left:23px relative to
+       .pulse-spine, and .pulse-ev-wrap children inherit that offset).
+       Padding inside .pulse-ev (8px top) means top:19px aligns to
+       roughly the top of the time row. */
+    .pulse-ev-wrap::before {
+      content: '';
+      position: absolute;
+      left: -10px;
+      top: 19px;
+      width: 9px; height: 9px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 3px #0f0f0f;
+      z-index: 1;
+    }
+    .pulse-ev-wrap[data-event-type="status_change"]::before { background: #FF9500; }
+    .pulse-ev-wrap[data-event-type="new_project"]::before   { background: #6FA8FF; }
+
+    .pulse-ev {
+      display: block;
+      padding: 14px 36px 14px 8px;
       color: #fff;
       text-decoration: none;
       transition: background 0.15s;
+      border-radius: 6px;
     }
-    .pulse-notif:hover { background: rgba(255,255,255,0.03); }
-    .pulse-notif:last-child { border-bottom: 0; }
+    .pulse-ev:hover { background: rgba(255,255,255,0.02); }
 
-    /* Thumbnail wrapper allows the corner badge to overhang */
-    .pulse-notif-thumb {
-      position: relative;
-      flex-shrink: 0;
-      width: 52px; height: 52px;
-      border-radius: 8px;
-      overflow: visible;
-      background: #1a1a1a;
-      border: 1px solid rgba(255,255,255,0.08);
+    /* Top meta row: time + location, mono uppercase. Time color matches
+       the event-type dot so the row reads visually grouped. */
+    .pulse-ev-tsrow {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 6px;
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 9px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
     }
-    /* Inner image. We use background-image so we can letterbox/cover and
-       gracefully handle missing/broken sources. */
-    .pulse-notif-thumb-img {
-      position: absolute; inset: 0;
-      border-radius: inherit;
-      background-size: cover;
-      background-position: center;
-      background-color: #1a1a1a;
-    }
-    /* Tiny colored dot badge overhanging the thumb's top-right corner.
-       Center sits on the corner so it overhangs evenly. */
-    .pulse-notif-badge {
-      position: absolute;
-      top: -4px; right: -4px;
-      width: 12px; height: 12px;
-      border-radius: 50%;
-      background: var(--accent);
-      box-shadow: 0 0 0 2px rgba(15,15,15,0.85);
-    }
-    .pulse-notif-badge.update { background: #FF9500; }
-    /* Blue dot for new-on-map events (vs orange update / green news). */
-    .pulse-notif-badge.map    { background: #6FA8FF; }
+    .pulse-ev-ts { color: var(--accent); }
+    .pulse-ev-wrap[data-event-type="status_change"] .pulse-ev-ts { color: #FF9500; }
+    .pulse-ev-wrap[data-event-type="new_project"]   .pulse-ev-ts { color: #6FA8FF; }
+    .pulse-ev-sep { color: rgba(255,255,255,0.3); }
+    .pulse-ev-loc { color: rgba(255,255,255,0.55); }
 
-    .pulse-notif-body {
-      flex: 1 1 auto;
-      min-width: 0;
-    }
-    /* Meta row: date only, sits above the title */
-    .pulse-notif-meta {
-      font-size: 10px;
-      color: rgba(255,255,255,0.4);
-      line-height: 1;
-      margin-bottom: 5px;
-    }
-    .pulse-notif-title {
+    .pulse-ev-title {
       font-size: 14px;
-      font-weight: 600;
-      line-height: 1.3;
+      font-weight: 500;
+      line-height: 1.4;
       color: #fff;
+      /* Clamp to two lines so feed rhythm stays consistent regardless of
+         how long the title is. Long article titles get an ellipsis. */
       display: -webkit-box;
       -webkit-line-clamp: 2;
       -webkit-box-orient: vertical;
       overflow: hidden;
-      /* Reserve exactly 2 lines of height so every tile is the same height
-         regardless of whether the title is one or two lines long.
-         Computed as font-size * line-height * 2: 14 * 1.3 * 2 = 36.4. */
-      min-height: 37px;
     }
 
-    .pulse-notif-close {
+    /* Bottom meta: the event's own tag word ("Opening Soon", "Topped Out",
+       "On TMW", "New on Map"). Same mono treatment as the top row but
+       dimmer color since it's secondary detail. */
+    .pulse-ev-bottom {
+      margin-top: 6px;
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 9px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.35);
+    }
+
+    /* Per-event dismiss button. Top-right of each row, visible only on
+       hover so the rows look clean at rest. */
+    .pulse-ev-close {
       position: absolute;
-      top: 10px;
-      right: 10px;
+      top: 12px;
+      right: 8px;
       width: 22px; height: 22px;
       padding: 0;
       background: transparent;
       border: 0;
-      color: rgba(255,255,255,0.4);
+      color: rgba(255,255,255,0.35);
       cursor: pointer;
       display: flex; align-items: center; justify-content: center;
       border-radius: 50%;
-      transition: background 0.15s, color 0.15s;
+      transition: background 0.15s, color 0.15s, opacity 0.15s;
       z-index: 2;
+      opacity: 0;
     }
-    .pulse-notif-close:hover {
+    .pulse-ev-wrap:hover .pulse-ev-close { opacity: 1; }
+    .pulse-ev-close:hover {
       background: rgba(255,255,255,0.08);
       color: #fff;
     }
+    /* On touch devices hover doesn't reliably trigger -- always show the
+       close button so it's reachable. */
+    @media (hover: none) {
+      .pulse-ev-close { opacity: 1; }
+    }
 
-    /* Intro animation: list items fade-in with stagger. Only when the stack
+    /* Intro animation: events fade in with stagger. Only when the stack
        has the .intro-anim class (set on first auto-open). */
     @keyframes pulseRowFadeIn {
       from { transform: translateY(-4px); opacity: 0; }
       to   { transform: translateY(0); opacity: 1; }
     }
-    #pulseStack.intro-anim .pulse-notif-wrap {
+    #pulseStack.intro-anim .pulse-spine .pulse-ev-wrap {
       animation: pulseRowFadeIn 0.3s ease-out backwards;
     }
-    #pulseStack.intro-anim .pulse-notif-wrap:nth-child(1) { animation-delay: 0.05s; }
-    #pulseStack.intro-anim .pulse-notif-wrap:nth-child(2) { animation-delay: 0.13s; }
-    #pulseStack.intro-anim .pulse-notif-wrap:nth-child(3) { animation-delay: 0.21s; }
-    #pulseStack.intro-anim .pulse-notif-wrap:nth-child(4) { animation-delay: 0.29s; }
-    #pulseStack.intro-anim .pulse-notif-wrap:nth-child(5) { animation-delay: 0.37s; }
+    #pulseStack.intro-anim .pulse-spine .pulse-ev-wrap:nth-child(1) { animation-delay: 0.05s; }
+    #pulseStack.intro-anim .pulse-spine .pulse-ev-wrap:nth-child(2) { animation-delay: 0.13s; }
+    #pulseStack.intro-anim .pulse-spine .pulse-ev-wrap:nth-child(3) { animation-delay: 0.21s; }
+    #pulseStack.intro-anim .pulse-spine .pulse-ev-wrap:nth-child(4) { animation-delay: 0.29s; }
+    #pulseStack.intro-anim .pulse-spine .pulse-ev-wrap:nth-child(5) { animation-delay: 0.37s; }
     @media (prefers-reduced-motion: reduce) {
-      #pulseStack.intro-anim .pulse-notif-wrap { animation: none; }
+      #pulseStack.intro-anim .pulse-spine .pulse-ev-wrap { animation: none; }
     }
 
     /* Empty + skeleton states */
@@ -12313,11 +12349,19 @@
         return;
       }
       var html = '';
+      // V3 timeline-spine layout: each event is a row hanging off a
+      // continuous vertical green line. A colored dot on the spine marks
+      // the event's position. Type drives the dot color and the secondary
+      // meta line; the title leads in white. Dismiss button stays per-row
+      // (top-right) for granular control.
+      //
+      // listEl gets a single .pulse-spine wrapper; events are direct
+      // children of that wrapper so the ::before pseudo-element can paint
+      // the line that runs through them.
+      html += '<div class="pulse-spine">';
       for (var i = 0; i < events.length; i++) {
         var e = events[i];
         var tagCls = tagClassFor(e);
-        // Date-only meta row above the title
-        var metaHtml = '<span>' + timeAgo(e.timestamp) + '</span>';
         // Article links open in a new tab. Add/Update events carry a
         // ?project=slug deep-link; we intercept those clicks to fly the
         // map in-place rather than letting the browser navigate (which
@@ -12325,34 +12369,39 @@
         var target = e.type === 'article' ? ' target="_blank" rel="noopener"' : '';
         var safeId = escapeHtml(e.id || '');
         var eventTypeAttr = ' data-event-type="' + escapeHtml(e.type || '') + '"';
-        // Project image. Articles get the article's image; project events
-        // pull from the CSV ImageURL. Fall back to a neutral dark square if
-        // no image is available, so layout never collapses.
-        var imgUrl = (e.image || '').replace(/"/g, '&quot;');
-        var thumbStyle = imgUrl ? ' style="background-image:url(\'' + imgUrl + '\')"' : '';
-        html += '<div class="pulse-notif-wrap">'
-              +   '<a class="pulse-notif" href="' + escapeHtml(e.link || '#') + '"' + target + eventTypeAttr + '>'
-              +     '<div class="pulse-notif-thumb">'
-              +       '<div class="pulse-notif-thumb-img"' + thumbStyle + '></div>'
-              +       '<div class="pulse-notif-badge ' + tagCls + '" aria-hidden="true"></div>'
+        // Secondary meta line: time + city + category, all uppercase mono.
+        // Empty fields fold out naturally.
+        var locPart = e.city ? '<span class="pulse-ev-loc">' + escapeHtml(e.city) + '</span>' : '';
+        var ts = timeAgo(e.timestamp);
+        var tsPart = ts ? '<span class="pulse-ev-ts">' + escapeHtml(ts) + '</span>' : '';
+        var sep = (locPart && tsPart) ? '<span class="pulse-ev-sep">&middot;</span>' : '';
+        // Bottom meta: the event's own tag is more specific (e.g.
+        // "Opening Soon", "Topped Out", "New on Map", "On TMW") than the
+        // generic news/update/map fallback. Fall back if tag is missing.
+        var tagLabel = e.tag || tagLabelFor(e);
+        var bottomMeta = tagLabel ? '<div class="pulse-ev-bottom">' + escapeHtml(tagLabel) + '</div>' : '';
+
+        html += '<div class="pulse-ev-wrap pulse-ev-type-' + tagCls + '" data-event-type="' + escapeHtml(e.type || '') + '">'
+              +   '<a class="pulse-ev" href="' + escapeHtml(e.link || '#') + '"' + target + eventTypeAttr + '>'
+              +     '<div class="pulse-ev-tsrow">'
+              +       tsPart + sep + locPart
               +     '</div>'
-              +     '<div class="pulse-notif-body">'
-              +       '<div class="pulse-notif-meta">' + metaHtml + '</div>'
-              +       '<div class="pulse-notif-title">' + escapeHtml(e.title || '') + '</div>'
-              +     '</div>'
+              +     '<div class="pulse-ev-title">' + escapeHtml(e.title || '') + '</div>'
+              +     bottomMeta
               +   '</a>'
-              +   '<button type="button" class="pulse-notif-close" data-dismiss="' + safeId + '" aria-label="Dismiss">'
+              +   '<button type="button" class="pulse-ev-close" data-dismiss="' + safeId + '" aria-label="Dismiss">'
               +     '<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>'
               +   '</button>'
               + '</div>';
       }
+      html += '</div>';
       listEl.innerHTML = html;
 
       // Intercept clicks on map-deep-link tiles (Add / Update events).
       // Without this the anchor's href causes a full-page reload and the
       // user sees the loading splash before the deep-link resolves.
       // Articles still navigate naturally (target="_blank" -> new tab).
-      var anchors = listEl.querySelectorAll('a.pulse-notif[data-event-type]');
+      var anchors = listEl.querySelectorAll('a.pulse-ev[data-event-type]');
       for (var k = 0; k < anchors.length; k++) {
         anchors[k].addEventListener('click', function (ev) {
           var t = ev.currentTarget.getAttribute('data-event-type');
