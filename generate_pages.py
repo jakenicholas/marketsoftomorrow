@@ -55,24 +55,87 @@ _ASSUMED_YEARS = {
 }
 
 def _parse_iso_date(s):
-    """Best-effort parse of '2027-06-15', '2027-06', '2027' -> datetime.date. Returns None on failure."""
+    """Best-effort parse of a delivery-date string. Returns datetime.date or None.
+
+    Format priority (most specific wins):
+      1. '2027-06-15'  full ISO date  (exact day)
+      2. 'June 2027' / 'Jun 2027'  month name + year  (uses day 15)
+      3. 'Summer 2027' / 'Fall 2027' / etc  season + year, where the
+         DATE represents END OF SEASON (developer convention):
+            winter  -> March 1
+            spring  -> June 1
+            summer  -> September 1
+            fall / autumn -> December 1
+      4. 'Q1 2027' / 'Q2 2027'  quarter + year (end of quarter)
+      5. '2027-06'  year-month ISO  (day 15)
+      6. '2027'  year only (mid-year)
+
+    Keep this in sync with parseDate() in index.html. If you add a format
+    here, add it there too (and vice versa).
+    """
     if not s: return None
     from datetime import date
     s = str(s).strip()
     if not s: return None
     import re as _re
+
+    # 1. Full ISO: "2027-06-15"
     m = _re.match(r'^(\d{4})-(\d{2})-(\d{2})$', s)
     if m:
         try: return date(int(m.group(1)), int(m.group(2)), int(m.group(3)))
         except ValueError: return None
+
+    # 2. Month name + year: "June 2027" or "Jun 2027"
+    MONTHS = {
+        'january':1,'jan':1, 'february':2,'feb':2, 'march':3,'mar':3,
+        'april':4,'apr':4, 'may':5, 'june':6,'jun':6, 'july':7,'jul':7,
+        'august':8,'aug':8, 'september':9,'sep':9,'sept':9,
+        'october':10,'oct':10, 'november':11,'nov':11, 'december':12,'dec':12,
+    }
+    m = _re.match(r'^([A-Za-z]+)\.?\s+(\d{4})$', s)
+    if m:
+        mi = MONTHS.get(m.group(1).lower())
+        if mi is not None:
+            try: return date(int(m.group(2)), mi, 15)
+            except ValueError: return None
+
+    # 3. Season + year: end-of-season convention
+    SEASONS = {
+        'winter': (3, 1),
+        'spring': (6, 1),
+        'summer': (9, 1),
+        'fall':   (12, 1),
+        'autumn': (12, 1),
+    }
+    m = _re.match(r'^([A-Za-z]+)\s+(\d{4})$', s)
+    if m:
+        seas = SEASONS.get(m.group(1).lower())
+        if seas:
+            try: return date(int(m.group(2)), seas[0], seas[1])
+            except ValueError: return None
+
+    # 4. Quarter: "Q1 2027" -> end of Q1 (Mar 31), Q2 -> Jun 30, etc.
+    m = _re.match(r'^Q([1-4])\s+(\d{4})$', s, _re.IGNORECASE)
+    if m:
+        q = int(m.group(1))
+        # End of quarter month + day. Q1 = Mar 31, Q2 = Jun 30, Q3 = Sep 30, Q4 = Dec 31.
+        end_months = {1: (3,31), 2: (6,30), 3: (9,30), 4: (12,31)}
+        em, ed = end_months[q]
+        try: return date(int(m.group(2)), em, ed)
+        except ValueError: return None
+
+    # 5. Year-month ISO: "2027-06"
     m = _re.match(r'^(\d{4})-(\d{2})$', s)
     if m:
         try: return date(int(m.group(1)), int(m.group(2)), 15)
         except ValueError: return None
+
+    # 6. Year only: "2027"
     m = _re.match(r'^(\d{4})$', s)
     if m:
         try: return date(int(m.group(1)), 7, 1)
         except ValueError: return None
+
     return None
 
 def _format_time_to_delivery(delivery_date_str, status):
@@ -84,9 +147,9 @@ def _format_time_to_delivery(delivery_date_str, status):
     today = date.today()
     diff_days = (d - today).days
     s = (status or '').lower()
-    if 'now open' in s or 'open' in s:
+    if 'now open' in s:
         if diff_days < 0:
-            return 'Delivered ' + d.strftime('%b ') + d.strftime('%y').lstrip("'")  # "Sep 23"
+            return "Delivered " + d.strftime("%b '%y")
         return 'Now open'
     if diff_days <= 0:
         # Delivery date has passed but status hasn't flipped to Now Open
@@ -111,7 +174,7 @@ def compute_progress(delivery_date_str, status, start_date_str=''):
     label, fallback_pct, color = delivery_info(status or '')
     s = (status or '').lower().strip()
     # Short-circuit: Now Open is always 100%
-    if 'now open' in s or 'open' in s:
+    if 'now open' in s:
         return 100, label, color, _format_time_to_delivery(delivery_date_str, status)
     delivery = _parse_iso_date(delivery_date_str)
     if not delivery:
