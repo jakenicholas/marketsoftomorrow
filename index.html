@@ -6702,14 +6702,53 @@
         map.setPaintProperty('unclustered-point', 'circle-radius', pinkRadiusExpr);
       }
       window._selectedPinTitle = selectedTitle;
-      // Fly to pin -- apply the same popup-aware offset on mobile so we
-      // land directly at the final camera position. Without this, the
-      // showPopup() call that follows would do a SECOND flyTo to re-shift
-      // the camera, producing a visible two-stage "fly then nudge" motion.
+
+      // Clear any previously-open popup before flying. Without this, the
+      // last-clicked pin's popup lingers on screen while the camera moves
+      // to a new pin -- looks like a ghost. Same goes for the pink pulse
+      // ring marker. Either gets restored by the new selection if needed.
+      if (typeof activePopup !== 'undefined' && activePopup) {
+        activePopup.remove();
+        activePopup = null;
+      }
+      if (window._selectedPinMarker) {
+        window._selectedPinMarker.remove();
+        window._selectedPinMarker = null;
+      }
+
       const currentZoom = map.getZoom();
-      const targetZoom = Math.max(currentZoom, 13);
+      // Baseline target zoom -- enough to make the unclustered pin render
+      // in low-density areas. In high-density areas the cluster check
+      // below bumps this up.
+      let targetZoom = Math.max(currentZoom, 13);
       const off = isMobile ? computeMobilePinOffset() : [0, 0];
-      map.flyTo({ center: co, zoom: targetZoom, offset: off, duration: 1400, essential: true });
+
+      // Cluster-expansion safety check: in dense areas (NYC, Miami) the
+      // pin can still be inside a cluster at zoom 13. queryRenderedFeatures
+      // looks at the CURRENT view, so this only catches the case where the
+      // user is already zoomed near the pin and a cluster is in view --
+      // but that's the case where the bug shows up (clicking a tile while
+      // already viewing a clustered region failed to zoom past the cluster).
+      const doFly = () => {
+        map.flyTo({ center: co, zoom: targetZoom, offset: off, duration: 1400, essential: true });
+      };
+
+      try {
+        const nearbyPixel = map.project(co);
+        const clustersAtPin = map.queryRenderedFeatures(nearbyPixel, { layers: ['clusters'] });
+        if (clustersAtPin.length > 0 && map.getSource('projects')) {
+          map.getSource('projects').getClusterExpansionZoom(
+            clustersAtPin[0].properties.cluster_id,
+            (err, expansionZoom) => {
+              if (!err && expansionZoom > targetZoom) targetZoom = expansionZoom + 1;
+              doFly();
+            }
+          );
+          return;
+        }
+      } catch (_) { /* fall through to plain fly */ }
+
+      doFly();
     }
 
     // ── Deep-link: open project from ?project= URL param ─────────────────
@@ -10091,7 +10130,37 @@
               ? (window.allProjectFeatures.find(p => p.properties.title === raw.properties.title) || raw)
               : raw;
             gtag('event','project_click',{'project_name':f.properties.title,'project_city':f.properties.city,'project_featured':f.properties.featured||false,'click_source':'map_pin','device_type':isMobile?'mobile':'desktop'});
-            showPopup(f);
+
+            // Center the popup vertically: shift the camera so the pin
+            // lands ~150px BELOW viewport center. Popup anchor='bottom'
+            // means the body extends upward from the pin, so a downward
+            // pin offset puts the popup body around the screen's vertical
+            // middle.
+            //
+            // Without this step, clicking a pin that happens to already
+            // be centered (e.g. user just clicked a sidebar tile, which
+            // flew the camera centered on the pin) made the popup pop up
+            // toward the top of the screen -- not great. Pin-to-pin
+            // clicks already worked because each fly() recenters the
+            // camera around the next pin.
+            //
+            // Skip the fly when the pin already sits below center (within
+            // tolerance) -- otherwise every pin click would re-trigger a
+            // short animation even when nothing needs to move.
+            const co = f.geometry.coordinates;
+            const screenPt = map.project(co);
+            const targetY  = window.innerHeight * 0.5 + (isMobile ? 60 : 150);
+            const tolerance = 30; // px
+            const popupYDelta = Math.abs(screenPt.y - targetY);
+            if (popupYDelta > tolerance) {
+              // Offset is in pixels; positive Y shifts the target point
+              // DOWN within the viewport (camera center moves up).
+              const yOffset = targetY - (window.innerHeight * 0.5);
+              map.easeTo({ center: co, offset: [0, yOffset], duration: 350, essential: true });
+              map.once('moveend', () => { showPopup(f); });
+            } else {
+              showPopup(f);
+            }
           });
 
           renderGrid('gridDesktop');
@@ -11884,40 +11953,17 @@
                 // restores the drawer state right where the user left it.
                 if (window.openProjectModal) window.openProjectModal(match, 'watchlist');
               } else {
-                // Desktop: fly to the project pin and surface the small
-                // popup over it. The watchlist drawer stays open as a
-                // persistent navigation rail -- the user can hop between
-                // projects without re-toggling the panel each time. If they
-                // want the full modal they click the popup's CTA.
-                //
-                // Because the drawer occupies the left side of the screen
-                // (~35% width, capped 380-480px), we tell Mapbox to treat
-                // that strip as out-of-view via flyTo padding. Otherwise
-                // the pin would land centered on the full viewport and end
-                // up hidden behind the drawer.
+                // Desktop: match the regular tile-click behavior. Fly to
+                // the pin AND open the full project modal. The drawer
+                // stays open at z-index 2050; modal covers it at 2100.
+                // (Previously we showed only the small map popup over the
+                // pin, which made watchlist tiles behave differently from
+                // every other tile -- and didn't surface developer,
+                // architect, timeline, or coverage info on tap.)
                 try {
-                  const co = match.geometry && match.geometry.coordinates;
-                  const m = (typeof map !== 'undefined') ? map : null;
-                  if (m && co) {
-                    const panelRect = panel.getBoundingClientRect();
-                    const leftPad = Math.max(0, panelRect.right) + 24;
-                    const targetZoom = Math.max(m.getZoom(), 13);
-                    m.flyTo({
-                      center: co,
-                      zoom: targetZoom,
-                      duration: 1400,
-                      essential: true,
-                      padding: { top: 0, bottom: 0, left: leftPad, right: 0 }
-                    });
-                    m.once('moveend', function () {
-                      if (typeof showPopup === 'function') {
-                        try { showPopup(match); } catch (_) { /* non-fatal */ }
-                      }
-                    });
-                    if (window.gtag) gtag('event', 'watchlist_row_click', { 'project_slug': slug, 'device_type': 'desktop' });
-                  } else if (window.openProjectModal) {
-                    window.openProjectModal(match, 'watchlist');
-                  }
+                  if (typeof zoomToPinOnly === 'function') zoomToPinOnly(match);
+                  if (window.openProjectModal) window.openProjectModal(match, 'watchlist');
+                  if (window.gtag) gtag('event', 'watchlist_row_click', { 'project_slug': slug, 'device_type': 'desktop' });
                 } catch (err) {
                   if (window.openProjectModal) window.openProjectModal(match, 'watchlist');
                 }
