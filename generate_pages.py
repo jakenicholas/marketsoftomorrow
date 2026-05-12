@@ -41,8 +41,119 @@ def delivery_info(delivery):
             return label, pct, color
     return 'Announced', 10, '#999999'
 
-def progress_bar_html(delivery):
-    stage_label, pct, color = delivery_info(delivery)
+# Date-driven progress math. Server-side Python twin of window.computeProgress
+# in index.html. Keep these two implementations in sync.
+#
+# Pick the start date: explicit StartDate column wins; else assume N years
+# before delivery based on status.
+_ASSUMED_YEARS = {
+    'announced':         4.0,
+    'breaking ground':   3.0,
+    'under construction':2.5,
+    'topping out':       1.5,
+    'opening soon':      0.5,
+}
+
+def _parse_iso_date(s):
+    """Best-effort parse of '2027-06-15', '2027-06', '2027' -> datetime.date. Returns None on failure."""
+    if not s: return None
+    from datetime import date
+    s = str(s).strip()
+    if not s: return None
+    import re as _re
+    m = _re.match(r'^(\d{4})-(\d{2})-(\d{2})$', s)
+    if m:
+        try: return date(int(m.group(1)), int(m.group(2)), int(m.group(3)))
+        except ValueError: return None
+    m = _re.match(r'^(\d{4})-(\d{2})$', s)
+    if m:
+        try: return date(int(m.group(1)), int(m.group(2)), 15)
+        except ValueError: return None
+    m = _re.match(r'^(\d{4})$', s)
+    if m:
+        try: return date(int(m.group(1)), 7, 1)
+        except ValueError: return None
+    return None
+
+def _format_time_to_delivery(delivery_date_str, status):
+    """Return a short subtitle string like '18 months to delivery' or
+    'Delivered Sep '23'. Returns '' if the date can't be parsed."""
+    from datetime import date
+    d = _parse_iso_date(delivery_date_str)
+    if not d: return ''
+    today = date.today()
+    diff_days = (d - today).days
+    s = (status or '').lower()
+    if 'now open' in s or 'open' in s:
+        if diff_days < 0:
+            return 'Delivered ' + d.strftime('%b ') + d.strftime('%y').lstrip("'")  # "Sep 23"
+        return 'Now open'
+    if diff_days <= 0:
+        # Delivery date has passed but status hasn't flipped to Now Open
+        # (probably a delayed project). Show the date as-is rather than
+        # a negative time-to-delivery, which would read weirdly.
+        return 'Delivery ' + d.strftime('%b %Y')
+    if diff_days < 14:
+        return f'{diff_days} day{"" if diff_days == 1 else "s"} to delivery'
+    if diff_days < 60:
+        return f'{round(diff_days / 7)} weeks to delivery'
+    months = round(diff_days / 30.44)
+    if months < 24:
+        return f'{months} month{"" if months == 1 else "s"} to delivery'
+    years = diff_days / 365.25
+    yrs = f'{years:.1f}'.rstrip('0').rstrip('.')
+    return f'{yrs} yrs to delivery'
+
+def compute_progress(delivery_date_str, status, start_date_str=''):
+    """Server-side mirror of window.computeProgress in index.html.
+    Returns (pct, label, color, subtitle). See JS twin for math docs."""
+    from datetime import date
+    label, fallback_pct, color = delivery_info(status or '')
+    s = (status or '').lower().strip()
+    # Short-circuit: Now Open is always 100%
+    if 'now open' in s or 'open' in s:
+        return 100, label, color, _format_time_to_delivery(delivery_date_str, status)
+    delivery = _parse_iso_date(delivery_date_str)
+    if not delivery:
+        # No parseable delivery date -- fall back to status-based default
+        return fallback_pct, label, color, ''
+    # Resolve start: explicit StartDate column wins; else status-based assumption
+    start = _parse_iso_date(start_date_str)
+    if not start:
+        years = _ASSUMED_YEARS.get('announced', 4.0)
+        for key, yrs in _ASSUMED_YEARS.items():
+            if key in s:
+                years = yrs
+                break
+        # delivery − N years
+        try:
+            start = date(delivery.year - int(years), delivery.month, delivery.day)
+            # Adjust for fractional years (0.5 = 6 months back)
+            frac = years - int(years)
+            if frac:
+                # Subtract roughly frac*12 months by going back days
+                from datetime import timedelta
+                start = start - timedelta(days=int(frac * 365.25))
+        except ValueError:
+            # Feb 29 / leap year edge -- shrug, use Jan 1
+            start = date(delivery.year - int(years), 1, 1)
+    today = date.today()
+    total = (delivery - start).days
+    elapsed = (today - start).days
+    if total <= 0:
+        pct = 50
+    else:
+        pct = (elapsed / total) * 100
+    pct = max(0, min(99, pct))
+    return round(pct), label, color, _format_time_to_delivery(delivery_date_str, status)
+
+def progress_bar_html(delivery, delivery_date='', start_date=''):
+    # Step dots stay status-driven (clear left-to-right journey). The
+    # numeric percent + bar fill + subtitle are date-driven via the
+    # shared compute_progress helper so two projects in the same status
+    # with different delivery dates show different numbers.
+    stage_label, _, color = delivery_info(delivery)
+    pct, _, _, subtitle = compute_progress(delivery_date, delivery, start_date)
     stage_labels = ['Announced', 'Breaking Ground', 'Construction', 'Opening Soon', 'Now Open']
     stage_keys   = ['announced', 'breaking ground', 'under construction', 'opening soon', 'now open']
     d = delivery.lower()
@@ -68,6 +179,9 @@ def progress_bar_html(delivery):
         style = f'style="color:{color}"' if i == active_idx else ''
         labels_html += f'<span class="ps-label{cur}" {style}>{lbl}</span>'
 
+    # Date-driven subtitle ("18 months to delivery" / "Delivered Sep '23")
+    sub_html = f'<div class="ps-sub">{subtitle}</div>' if subtitle else ''
+
     return f'''
     <div class="ps-wrap">
       <div class="ps-top">
@@ -76,6 +190,7 @@ def progress_bar_html(delivery):
       </div>
       <div class="ps-steps">{steps_html}</div>
       <div class="ps-labels">{labels_html}</div>
+      {sub_html}
     </div>'''
 
 def gallery_html(row):
@@ -267,6 +382,10 @@ def build_page(row, articles=None):
     proj_type = preferred_type if preferred_type else first_project_type
     delivery  = row.get('Delivery','').strip()
     delivery_date = row.get('DeliveryDate','').strip()
+    # Optional explicit start date. When present, compute_progress uses it
+    # directly. When blank (column doesn't exist yet, or row not backfilled),
+    # falls back to: delivery_date − N years, with N keyed off status.
+    start_date = row.get('StartDate','').strip()
     developer = truncate_developer(row.get('Developer','').strip())
     architect = row.get('Architect','').strip().split('/')[0].strip()
     description = row.get('DescriptionLong','').strip() or row.get('Description','').strip()
@@ -357,6 +476,12 @@ def build_page(row, articles=None):
   <meta name="description" content="{seo_desc}">
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="{page_url}">
+  <!-- Mono face used by the date-driven progress subtitle. Single weight
+       loads quickly. Inter (the body family) is loaded later via the
+       general <style> block. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
   <!-- Memberstack 2.0 - for Watch button + watching card hydration. Loads
        async so it doesn't block page render; the hydration script at the
@@ -458,14 +583,14 @@ def build_page(row, articles=None):
   <style>
     .tmw-ms-modal,
     #msOverlay,
-    body > div[id^="ms-"],
+    body > div[id^="ms-"] {{
       background: rgba(0,0,0,0.78) !important;
       backdrop-filter: blur(8px) !important;
       -webkit-backdrop-filter: blur(8px) !important;
     }}
     .tmw-ms-modal > div,
     .tmw-ms-modal [role="dialog"],
-    #msOverlay > div,
+    #msOverlay > div {{
       background: #0f0f0f !important;
       color: #fff !important;
       border: 1px solid rgba(255,255,255,0.08) !important;
@@ -473,7 +598,7 @@ def build_page(row, articles=None):
       box-shadow: 0 30px 90px rgba(0,0,0,0.55) !important;
     }}
     .tmw-ms-modal img,
-    #msOverlay img,
+    #msOverlay img {{
       filter: brightness(0) invert(1) !important;
       opacity: 0.95 !important;
     }}
@@ -858,6 +983,17 @@ def build_page(row, articles=None):
     .ps-labels {{ display: flex; justify-content: space-between; }}
     .ps-label {{ font-size: 7px; color: rgba(255,255,255,0.2); }}
     .ps-cur {{ color: var(--sc, #FF9500); }}
+    /* Date-driven subtitle: "18 months to delivery" / "Delivered Sep '23".
+       Matches the modal's pm-progress-sub treatment so all three surfaces
+       (modal, comparison sheet, static page) read like one system. */
+    .ps-sub {{
+      margin-top: 6px;
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 9px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.4);
+    }}
 
     /* Divider */
     .divider {{ height: 0.5px; background: rgba(255,255,255,0.07); margin: 16px 0; }}
@@ -1140,7 +1276,7 @@ def build_page(row, articles=None):
       </div>
       <div class="watching-card-body" id="watchingCardBody"></div>
     </div>
-    {progress_bar_html(delivery)}
+    {progress_bar_html(delivery, delivery_date, start_date)}
     <div class="divider"></div>
     <p class="description">{description}</p>
     <div class="divider"></div>
