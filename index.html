@@ -2052,6 +2052,9 @@
     #watchlistPanel {
       position: fixed;
       z-index: 4;
+      /* Desktop default: more opaque since the left drawer doesn't share
+         space with the map directly. Mobile gets the glass treatment
+         below to match the Pulse drawer. */
       background: linear-gradient(to bottom, rgba(11,11,11,0.92) 0px, rgba(11,11,11,0.88) 100%);
       backdrop-filter: blur(40px) brightness(0.7);
       -webkit-backdrop-filter: blur(40px) brightness(0.7);
@@ -2090,13 +2093,40 @@
         height: 75vh;
         max-height: calc(100vh - var(--header-height) - var(--safe-area-top) - 20px);
         border-radius: 18px 18px 0 0;
+        /* Glass: rgba + blur + saturation, matching the Pulse drawer.
+           Pulse uses rgba(15,15,15,0.6) + blur(28px) + saturate(1.8). */
+        background: rgba(15,15,15,0.6);
+        backdrop-filter: blur(28px) saturate(1.8);
+        -webkit-backdrop-filter: blur(28px) saturate(1.8);
         border-top: 1px solid rgba(255,255,255,0.08);
+        box-shadow: 0 -8px 30px rgba(0,0,0,0.4);
         padding-bottom: var(--safe-area-bottom);
         transform: translateY(100%);
         transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
         z-index: 2050;
       }
       #watchlistPanel.open { transform: translateY(0); }
+      /* PEEK state: panel collapsed to a 64px peek bar at the bottom so
+         the user can interact with the filtered map below. The .open
+         class STAYS applied (filter stays active, button stays green) --
+         peek is purely a layout shift. Tap the peek bar or drag the
+         handle to re-expand. The 64px matches the Pulse drawer's peek. */
+      #watchlistPanel.open.peek {
+        transform: translateY(calc(100% - 64px - var(--safe-area-bottom)));
+      }
+      /* In peek state, hide the stats grid, sort pills, and close button --
+         only the title + drag handle remain visible. Same pattern as the
+         Pulse drawer hides its action buttons in peek mode. */
+      #watchlistPanel.peek .wl-stats,
+      #watchlistPanel.peek .wl-sort-pills,
+      #watchlistPanel.peek .wl-close-btn,
+      #watchlistPanel.peek #watchlistBody,
+      #watchlistPanel.peek #watchlistUpgradeCard {
+        display: none !important;
+      }
+      /* Disable transitions during active drag so the panel tracks the
+         finger 1:1 instead of catching up. */
+      #watchlistPanel.dragging { transition: none; }
     }
 
     /* Mobile drag handle */
@@ -12055,6 +12085,7 @@
           // eslint-disable-next-line no-unused-expressions
           panel.offsetHeight;
           panel.classList.add('open');
+          panel.classList.remove('peek');
           btn.classList.add('active');
           btn.setAttribute('aria-expanded', 'true');
           // Filter the map to only watched projects while the drawer is
@@ -12070,6 +12101,7 @@
         function closePanel() {
           if (!panel) return;
           panel.classList.remove('open');
+          panel.classList.remove('peek');
           btn.classList.remove('active');
           btn.setAttribute('aria-expanded', 'false');
           // Restore the full map (clear the watched-only filter). Silent
@@ -12094,49 +12126,89 @@
         btn.addEventListener('click', togglePanel);
         if (closeBtn) closeBtn.addEventListener('click', closePanel);
 
-        // Mobile: drag the handle DOWN to dismiss the sheet. Matches the
-        // Pulse drawer's interaction. Threshold-based: if the user drags
-        // past ~80px or releases with downward velocity, close; otherwise
-        // snap back to fully open. No-op on desktop where the handle is
-        // hidden via CSS.
+        // Mobile: drag the handle DOWN to enter PEEK state (panel collapses
+        // to a 64px bar at the bottom but filter stays active), or further
+        // down to fully dismiss. Drag UP from peek to re-expand. Matches
+        // the Pulse drawer's interaction. Thresholds:
+        //   dy <  80   -> snap back to full
+        //   dy 80-200  -> enter peek state (or stay there if already peeking)
+        //   dy >= 200  -> fully close
+        //   velocity > 1.5 down -> fully close (fling)
+        //   velocity > 0.6 down -> enter peek
+        //   velocity < -0.4 up from peek -> back to full
         if (handle) {
           let dragging = false;
           let startY = 0;
           let lastY = 0;
           let lastT = 0;
           let velocity = 0;
+          let startedFromPeek = false;
 
           function onStart(e) {
             if (!window.matchMedia('(max-width: 800px)').matches) return;
             dragging = true;
+            startedFromPeek = panel.classList.contains('peek');
             const y = (e.touches ? e.touches[0].clientY : e.clientY);
             startY = lastY = y;
             lastT = Date.now();
             velocity = 0;
+            panel.classList.add('dragging');
             panel.style.transition = 'none';
             try { e.preventDefault(); } catch (_) {}
           }
           function onMove(e) {
             if (!dragging) return;
             const y = (e.touches ? e.touches[0].clientY : e.clientY);
-            const dy = Math.max(0, y - startY);
-            // Track velocity for fling-to-close
+            // Allow drag UP from peek (negative dy) so users can pull the
+            // panel back to full height by dragging the handle upward.
+            const dyRaw = y - startY;
+            const dy = startedFromPeek ? dyRaw : Math.max(0, dyRaw);
+            // Track velocity for fling-to-state-change
             const now = Date.now();
             const dt = Math.max(1, now - lastT);
             velocity = (y - lastY) / dt;
             lastY = y; lastT = now;
-            panel.style.transform = 'translateY(' + dy + 'px)';
+            // Apply transform relative to the state we started from. From
+            // full (translateY 0), a positive dy slides down. From peek
+            // (translateY ~85%), we add the dy on top of that offset.
+            if (startedFromPeek) {
+              const baseOffset = panel.offsetHeight - 64 - (parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--safe-area-bottom')) || 0);
+              panel.style.transform = 'translateY(' + (baseOffset + dy) + 'px)';
+            } else {
+              panel.style.transform = 'translateY(' + dy + 'px)';
+            }
             try { e.preventDefault(); } catch (_) {}
           }
           function onEnd() {
             if (!dragging) return;
             dragging = false;
             const dy = lastY - startY;
+            panel.classList.remove('dragging');
             panel.style.transition = '';
             panel.style.transform = '';
-            // Close if dragged far OR flicked downward
-            if (dy > 80 || velocity > 0.6) {
-              closePanel();
+
+            if (startedFromPeek) {
+              // Started in peek state. Strong upward drag -> expand.
+              // Strong downward drag/fling -> close. Otherwise stay peeked.
+              if (dy < -50 || velocity < -0.4) {
+                // Expand back to full
+                panel.classList.remove('peek');
+              } else if (dy > 80 || velocity > 0.6) {
+                // Close fully
+                closePanel();
+              }
+              // else: stay in peek state (no class change)
+            } else {
+              // Started from full. Tier the result by drag distance/velocity:
+              // - strong downward fling -> close
+              // - medium drag -> peek
+              // - small drag -> snap back to full
+              if (dy >= 200 || velocity > 1.5) {
+                closePanel();
+              } else if (dy >= 80 || velocity > 0.6) {
+                panel.classList.add('peek');
+              }
+              // else: snap back to full (no class change, transform reset above)
             }
           }
           handle.addEventListener('touchstart', onStart, { passive: false });
@@ -12148,6 +12220,22 @@
           handle.addEventListener('mousedown', onStart);
           window.addEventListener('mousemove', onMove);
           window.addEventListener('mouseup',   onEnd);
+        }
+
+        // Tap the peek-state header to re-expand the panel. Without this,
+        // the only way out of peek is dragging the handle up -- the
+        // visible header text invites a tap, so wire it up. Only fires
+        // when .peek class is present.
+        const headerEl = panel.querySelector('.wl-header');
+        if (headerEl) {
+          headerEl.addEventListener('click', function (e) {
+            if (!panel.classList.contains('peek')) return;
+            // Don't fire if the click target is the close button or a
+            // sort pill (both shouldn't be reachable in peek anyway, but
+            // defensive).
+            if (e.target.closest('.wl-close-btn')) return;
+            panel.classList.remove('peek');
+          });
         }
 
         // Sort pills
