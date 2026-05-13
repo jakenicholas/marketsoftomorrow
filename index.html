@@ -6734,36 +6734,59 @@
        the search bar). At 0.22 the pin lands ~70% of the way down the
        viewport with the popup extending upward into the visible map area. */
     function computeMobilePinOffset() {
-      // Goal: pin should land just above the mobile search bar (visible at
-      // the bottom of the screen) so the popup -- which is anchor='bottom'
-      // and grows upward from the pin -- has the maximum vertical room
-      // before its top edge clips off-screen.
+      // Goal: pin should land just above the mobile search bar so the
+      // popup -- which anchors at the pin and grows upward -- has the
+      // maximum vertical room before its top edge clips off-screen.
       //
-      // Mapbox flyTo offset is [x, y] pixels relative to viewport center;
-      // a POSITIVE y value shifts the target DOWN within the viewport
-      // (camera center moves up). So we compute how many pixels below
-      // center the pin should land.
+      // Mapbox flyTo `offset` is in pixels. POSITIVE Y means the target
+      // point ends up BELOW viewport center (verified by the pin-click
+      // handler in showPopup which uses +60 to push the pin below center).
+      // So to push the pin DOWN toward the search bar, we want a positive
+      // y offset.
       //
-      // Try to measure the search pill's actual position first -- it
-      // accounts for notch-equipped phones, drawer state, viewport size.
-      // Fall back to a fixed ratio if the pill isn't measurable.
+      // CRITICAL: when the mobile drawer is EXPANDED, the search pill
+      // lives at the TOP of the screen (inside the expanded drawer),
+      // NOT the bottom. Measuring it in that state gives a near-zero
+      // top, computing a NEGATIVE offset, putting the pin at the top of
+      // the screen and clipping the popup. The tile-click flow collapses
+      // the drawer asynchronously, so by the time zoomToPinOnly fires
+      // the drawer still has .expanded class for a moment.
+      //
+      // We detect the expanded state and skip the measurement, using
+      // the hard-coded "where the pill SETTLES after collapse" target.
+      const viewportH = window.innerHeight;
+      const viewportCenter = viewportH / 2;
+
+      // Default target: 80% down the viewport. Search bar normally lives
+      // around 88-92% down on most phones when the drawer is collapsed;
+      // 80% leaves ~24px above the bar.
+      let targetPinY = viewportH * 0.80;
+
       try {
-        const pill = document.querySelector('.mobile-search-pill');
-        if (pill) {
-          const rect = pill.getBoundingClientRect();
-          // Element zero-bounded during transitions -- don't trust it
-          if (rect.height > 0 && rect.top > 0) {
-            // Pin sits 24px above the search pill's top edge
-            const targetPinY = rect.top - 24;
-            const viewportCenter = window.innerHeight / 2;
-            const offsetY = targetPinY - viewportCenter;
-            return [0, offsetY];
+        const drawer = document.getElementById('mobileDrawer');
+        const drawerExpanded = drawer && drawer.classList.contains('expanded');
+
+        // Only trust the measurement when the drawer is NOT expanded --
+        // otherwise the pill is at the top of the screen, not bottom.
+        if (!drawerExpanded) {
+          const pill = document.querySelector('.mobile-search-pill');
+          if (pill) {
+            const rect = pill.getBoundingClientRect();
+            // Also clamp: rect.top must be in the bottom half of the
+            // viewport. If it's above center, that's still a bad reading
+            // (could happen during a transition we missed).
+            if (rect.height > 0
+                && rect.top > viewportCenter
+                && rect.top < viewportH) {
+              targetPinY = rect.top - 24;
+            }
           }
         }
-      } catch (_) { /* fall through */ }
-      // Fallback when DOM probe fails. 32% of viewport puts the pin near
-      // the bottom third of the screen, leaving room for the popup above.
-      return [0, Math.round(window.innerHeight * 0.32)];
+      } catch (_) { /* keep default */ }
+
+      // Positive offset = target ends up below center = pin lower in viewport.
+      const offsetY = targetPinY - viewportCenter;
+      return [0, offsetY];
     }
 
     function zoomToPinOnly(f) {
@@ -6840,12 +6863,35 @@
       });
       if (!match) return;
       if (fullscreen) {
-        // Legacy behavior: open full project modal
+        // Legacy behavior: open full project modal AND center the pin.
+        // Without zoomToPinOnly the pin doesn't turn pink and the camera
+        // doesn't move. We call it first so the pink-pin paint takes
+        // effect, then issue a sidebar-aware flyTo to push the pin into
+        // the visible right strip (modal covers the left 35% on desktop).
+        if (typeof zoomToPinOnly === 'function') zoomToPinOnly(match);
         if (!isMobile) {
           const sidebar = document.getElementById('desktopSidebar');
           if (sidebar && !sidebar.classList.contains('open')) {
             sidebar.classList.add('open');
           }
+          // Re-fly with modal-aware padding. The project modal covers
+          // the left 35% of the viewport; with padding={left: 35%vw} we
+          // tell Mapbox to center the pin in the remaining right strip.
+          // padding overrides offset, so we don't need to pass offset.
+          try {
+            const co = match.geometry && match.geometry.coordinates;
+            if (co) {
+              const leftPad = Math.round(window.innerWidth * 0.35);
+              const targetZoom = Math.max(map.getZoom(), 13);
+              map.flyTo({
+                center: co,
+                zoom: targetZoom,
+                padding: { top: 0, bottom: 0, left: leftPad, right: 0 },
+                duration: 1400,
+                essential: true
+              });
+            }
+          } catch (_) { /* zoomToPinOnly already flew, this is just refinement */ }
         }
         setTimeout(() => { window.openProjectModal(match, 'deeplink'); }, 600);
       } else {
@@ -10207,10 +10253,11 @@
             gtag('event','project_click',{'project_name':f.properties.title,'project_city':f.properties.city,'project_featured':f.properties.featured||false,'click_source':'map_pin','device_type':isMobile?'mobile':'desktop'});
 
             // Center the popup vertically: shift the camera so the pin
-            // lands ~150px BELOW viewport center. Popup anchor='bottom'
-            // means the body extends upward from the pin, so a downward
-            // pin offset puts the popup body around the screen's vertical
-            // middle.
+            // lands near the bottom of the screen on mobile (just above
+            // the search bar) or ~150px below center on desktop. Popup
+            // anchor='bottom' means the body extends upward from the pin,
+            // so a downward pin offset puts the popup body around the
+            // screen's vertical middle.
             //
             // Without this step, clicking a pin that happens to already
             // be centered (e.g. user just clicked a sidebar tile, which
@@ -10219,12 +10266,22 @@
             // clicks already worked because each fly() recenters the
             // camera around the next pin.
             //
-            // Skip the fly when the pin already sits below center (within
-            // tolerance) -- otherwise every pin click would re-trigger a
-            // short animation even when nothing needs to move.
+            // Skip the fly when the pin already sits at the target Y
+            // (within tolerance) -- otherwise every pin click would
+            // re-trigger a short animation even when nothing needs to
+            // move.
             const co = f.geometry.coordinates;
             const screenPt = map.project(co);
-            const targetY  = window.innerHeight * 0.5 + (isMobile ? 60 : 150);
+            // Mobile: use the shared helper that targets just above the
+            // search bar. Desktop: 150px below center -- popup is much
+            // smaller and that's plenty of room.
+            let targetY;
+            if (isMobile) {
+              const off = computeMobilePinOffset();
+              targetY = (window.innerHeight * 0.5) + off[1];
+            } else {
+              targetY = window.innerHeight * 0.5 + 150;
+            }
             const tolerance = 30; // px
             const popupYDelta = Math.abs(screenPt.y - targetY);
             if (popupYDelta > tolerance) {
