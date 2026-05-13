@@ -6815,59 +6815,26 @@
        the search bar). At 0.22 the pin lands ~70% of the way down the
        viewport with the popup extending upward into the visible map area. */
     function computeMobilePinOffset() {
-      // Goal: pin should land just above the mobile search bar so the
-      // popup -- which anchors at the pin and grows upward -- has the
-      // maximum vertical room before its top edge clips off-screen.
+      // Universal mobile target: pin sits at 70% of viewport height.
+      // This is intentionally NOT measured from any DOM element because
+      // the entry points have inconsistent layout state at the moment
+      // they call this:
+      //   - Tile drawer click: drawer still EXPANDED (search pill at top)
+      //   - Pulse notification: pulse stack covers search pill
+      //   - Pin click: drawer collapsed, but measurement adds jitter
       //
-      // Mapbox flyTo `offset` is in pixels. POSITIVE Y means the target
-      // point ends up BELOW viewport center (verified by the pin-click
-      // handler in showPopup which uses +60 to push the pin below center).
-      // So to push the pin DOWN toward the search bar, we want a positive
-      // y offset.
+      // A flat 70% gives a consistent, predictable position across all
+      // three paths. Below center enough that the popup has full room
+      // above the pin; above the search bar / safe area so the pin
+      // itself stays visible.
       //
-      // CRITICAL: when the mobile drawer is EXPANDED, the search pill
-      // lives at the TOP of the screen (inside the expanded drawer),
-      // NOT the bottom. Measuring it in that state gives a near-zero
-      // top, computing a NEGATIVE offset, putting the pin at the top of
-      // the screen and clipping the popup. The tile-click flow collapses
-      // the drawer asynchronously, so by the time zoomToPinOnly fires
-      // the drawer still has .expanded class for a moment.
-      //
-      // We detect the expanded state and skip the measurement, using
-      // the hard-coded "where the pill SETTLES after collapse" target.
+      // Mapbox offset semantics: positive Y means the target ends up
+      // BELOW viewport center on screen. Confirmed by the pin-click
+      // handler at line ~10381 which uses positive offsets.
       const viewportH = window.innerHeight;
       const viewportCenter = viewportH / 2;
-
-      // Default target: 80% down the viewport. Search bar normally lives
-      // around 88-92% down on most phones when the drawer is collapsed;
-      // 80% leaves ~24px above the bar.
-      let targetPinY = viewportH * 0.80;
-
-      try {
-        const drawer = document.getElementById('mobileDrawer');
-        const drawerExpanded = drawer && drawer.classList.contains('expanded');
-
-        // Only trust the measurement when the drawer is NOT expanded --
-        // otherwise the pill is at the top of the screen, not bottom.
-        if (!drawerExpanded) {
-          const pill = document.querySelector('.mobile-search-pill');
-          if (pill) {
-            const rect = pill.getBoundingClientRect();
-            // Also clamp: rect.top must be in the bottom half of the
-            // viewport. If it's above center, that's still a bad reading
-            // (could happen during a transition we missed).
-            if (rect.height > 0
-                && rect.top > viewportCenter
-                && rect.top < viewportH) {
-              targetPinY = rect.top - 24;
-            }
-          }
-        }
-      } catch (_) { /* keep default */ }
-
-      // Positive offset = target ends up below center = pin lower in viewport.
-      const offsetY = targetPinY - viewportCenter;
-      return [0, offsetY];
+      const targetPinY = viewportH * 0.70;
+      return [0, targetPinY - viewportCenter];
     }
 
     function zoomToPinOnly(f) {
