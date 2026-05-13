@@ -7055,7 +7055,7 @@
           const targetZoom = Math.max(map.getZoom(), 13);
           map.flyTo({ center: co, zoom: targetZoom, duration: 1400, essential: true });
         }
-        setTimeout(() => { showPopup(match); }, 1500);
+        setTimeout(() => { showPopup(match, { skipPaywall: true }); }, 1500);
       }
     }
     // Expose so the Pulse drawer's click interceptor can call this directly
@@ -7256,6 +7256,20 @@
             pct: 100, label, color,
             subtitle: formatTimeToDelivery(deliveryDate, status),
             segments: buildSegments(/* active */ 4, /* activeFill */ 100),
+          };
+        }
+
+        // Short-circuit: Announced is a completed milestone, not a duration.
+        // Once a project IS announced, the announcement step is fully done --
+        // the bar should show that segment 100% full regardless of when the
+        // announcement happened. Same logic as Now Open above. Intermediate
+        // stages (Breaking Ground, Construction, etc.) keep time-based fills
+        // since they represent ongoing work with meaningful partial progress.
+        if (label === 'Announced') {
+          return {
+            pct: 5, label, color,
+            subtitle: formatTimeToDelivery(deliveryDate, status),
+            segments: buildSegments(/* active */ 0, /* activeFill */ 100),
           };
         }
 
@@ -8075,9 +8089,15 @@
     })();
     // ── End Project Detail Modal ────────────────────────────────────────
 
-    function showPopup(f) {
-      // Paywall gate — counts as a project interaction
-      if (window.paywallCheck && !window.paywallCheck()) return;
+    function showPopup(f, opts) {
+      opts = opts || {};
+      // Paywall gate -- counts as a project interaction. Skip when the
+      // popup is being auto-opened by URL state (deep-link from embedded
+      // blog article), since the popup appearing isn't a user action.
+      // Out-of-clicks users should be able to SEE the embedded preview;
+      // the paywall triggers only when they start interacting (clicking
+      // another pin, opening the full modal, etc.).
+      if (!opts.skipPaywall && window.paywallCheck && !window.paywallCheck()) return;
       window._popupFeatureRef = f; // used by Learn More button in popup
       if (isMobile && 'vibrate' in navigator) navigator.vibrate(10);
       if (activePopup) activePopup.remove();
