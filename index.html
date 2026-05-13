@@ -1527,14 +1527,16 @@
       #pulseStack.peek .pulse-close-btn {
         display: none !important;
       }
-      /* Drag handle (mobile only). Wider hit area via ::before so finger
-         can grab anywhere in a 60px tall band around the handle bar. */
+      /* Drag handle (mobile only). Matches the watchlist handle (.wl-handle)
+         dimensions and margin exactly for visual parity. Wider hit area
+         via ::before so finger can grab anywhere in a 60px tall band
+         around the handle bar. */
       .pulse-sheet-handle {
         display: block;
         width: 44px; height: 5px;
         background: rgba(255,255,255,0.28);
         border-radius: 3px;
-        margin: 10px auto 6px;
+        margin: 10px auto 4px;
         cursor: grab;
         position: relative;
         touch-action: none;
@@ -12127,15 +12129,16 @@
         if (closeBtn) closeBtn.addEventListener('click', closePanel);
 
         // Mobile: drag the handle DOWN to enter PEEK state (panel collapses
-        // to a 64px bar at the bottom but filter stays active), or further
-        // down to fully dismiss. Drag UP from peek to re-expand. Matches
-        // the Pulse drawer's interaction. Thresholds:
-        //   dy <  80   -> snap back to full
-        //   dy 80-200  -> enter peek state (or stay there if already peeking)
-        //   dy >= 200  -> fully close
-        //   velocity > 1.5 down -> fully close (fling)
-        //   velocity > 0.6 down -> enter peek
-        //   velocity < -0.4 up from peek -> back to full
+        // to a 64px bar at the bottom but filter stays active). Drag UP
+        // from peek to re-expand. Closing the drawer (clearing the filter,
+        // deselecting the green watchlist button) is reserved for tapping
+        // the watchlist square button -- the user explicitly wants drag
+        // gestures to never close, only resize.
+        //
+        // Thresholds:
+        //   From full: dy >= 50 or downward velocity > 0.4 -> peek
+        //   From peek: dy <= -40 or upward velocity < -0.3 -> back to full
+        //   Else: snap back to whichever state we started in
         if (handle) {
           let dragging = false;
           let startY = 0;
@@ -12187,28 +12190,27 @@
             panel.style.transition = '';
             panel.style.transform = '';
 
+            // Simplified state machine:
+            //   - drag down ANY meaningful amount -> PEEK (never close)
+            //   - drag up from peek with intent -> back to FULL
+            //   - small drags snap back to where they started
+            // Closing is reserved for tapping the watchlist square button.
+            // This keeps the filter + green-button state active whenever
+            // the drawer is on-screen in any form -- which is the user's
+            // mental model: "watchlist is on" vs "watchlist is off".
             if (startedFromPeek) {
-              // Started in peek state. Strong upward drag -> expand.
-              // Strong downward drag/fling -> close. Otherwise stay peeked.
-              if (dy < -50 || velocity < -0.4) {
-                // Expand back to full
+              // Up swipe (negative dy) with enough distance/velocity -> full
+              if (dy < -40 || velocity < -0.3) {
                 panel.classList.remove('peek');
-              } else if (dy > 80 || velocity > 0.6) {
-                // Close fully
-                closePanel();
               }
-              // else: stay in peek state (no class change)
+              // else: stay peeked
             } else {
-              // Started from full. Tier the result by drag distance/velocity:
-              // - strong downward fling -> close
-              // - medium drag -> peek
-              // - small drag -> snap back to full
-              if (dy >= 200 || velocity > 1.5) {
-                closePanel();
-              } else if (dy >= 80 || velocity > 0.6) {
+              // Started from full. Any downward drag with meaningful
+              // distance OR a downward fling -> peek. Otherwise snap back.
+              if (dy >= 50 || velocity > 0.4) {
                 panel.classList.add('peek');
               }
-              // else: snap back to full (no class change, transform reset above)
+              // else: stay at full (no class change, transform reset above)
             }
           }
           handle.addEventListener('touchstart', onStart, { passive: false });
