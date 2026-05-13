@@ -1516,6 +1516,17 @@
       #pulseStack.peek {
         transform: translateY(calc(100% - 64px - var(--safe-area-bottom)));
       }
+      /* In peek state on mobile, the only visible strip is the 64px
+         header. Hide the action buttons (refresh / trash / close) so
+         the peek bar reads as just "PULSE · 49 updates" with the drag
+         handle. The buttons re-appear when the user expands the sheet
+         (no .peek class -> sheet at translateY(0) -> these selectors
+         no longer match). */
+      #pulseStack.peek .pulse-refresh-btn,
+      #pulseStack.peek .pulse-clear-btn,
+      #pulseStack.peek .pulse-close-btn {
+        display: none !important;
+      }
       /* Drag handle (mobile only). Wider hit area via ::before so finger
          can grab anywhere in a 60px tall band around the handle bar. */
       .pulse-sheet-handle {
