@@ -5541,9 +5541,90 @@
     .cv-footer-link { font-size: 11px; }
   }
 
+  /* ─── EMBED MODE ─────────────────────────────────────────────────────
+     Applied to <body> when the page is loaded with ?embed=true. Strips
+     all the chrome that doesn't belong inside a host-site iframe: header,
+     auth UI, pulse, map controls, search, mobile drawer, modal close X,
+     modal share button. Leaves the project modal + map visible as a
+     self-contained widget. */
+  body.embed-mode #header,
+  body.embed-mode #pulseBellBtn,
+  body.embed-mode .pulse-bell-badge,
+  body.embed-mode #pulseStack,
+  body.embed-mode .glass-btn,
+  body.embed-mode .map-zoom-controls,
+  body.embed-mode .map-control-btn,
+  body.embed-mode #toggleView,
+  body.embed-mode #openSearch,
+  body.embed-mode #searchContainer,
+  body.embed-mode #mobileTilesButton,
+  body.embed-mode #mobileMapButton,
+  body.embed-mode #mobileDrawer,
+  body.embed-mode .desktop-sign-up,
+  body.embed-mode .sign-up-btn,
+  body.embed-mode #signUpBtn,
+  body.embed-mode #desktopSidebar,
+  body.embed-mode #watchlistDrawer,
+  body.embed-mode .watchlist-bell,
+  body.embed-mode .watchlist-btn,
+  body.embed-mode .compare-bar,
+  body.embed-mode #pmCloseBtn,
+  body.embed-mode .pm-share-btn,
+  body.embed-mode .pm-share-wrap,
+  body.embed-mode .favorite,
+  body.embed-mode .popup-content .favorite {
+    display: none !important;
+  }
+
+  /* Reclaim the header strip for the map */
+  body.embed-mode { --header-height: 0px; }
+  body.embed-mode #app-container { top: 0 !important; height: 100vh !important; height: 100dvh !important; }
+  body.embed-mode #map { top: 0 !important; height: 100% !important; }
+
+  /* Project modal: in embed mode, render it as a pinned panel that
+     never slides away. Remove the slide-out transform so it sits
+     flush against the left edge from the start. */
+  body.embed-mode #projectModal {
+    top: 0 !important;
+    height: 100dvh !important;
+    transform: translateX(0) !important;
+    display: flex !important;
+    flex-direction: column;
+    z-index: 100;
+  }
+  @media (min-width: 768px) {
+    body.embed-mode #projectModal { width: 38%; }
+  }
+  @media (max-width: 767px) {
+    /* Mobile embed: split top/bottom -- modal on top half, map on bottom */
+    body.embed-mode #projectModal {
+      top: auto !important; bottom: 0;
+      width: 100%;
+      height: 60dvh !important;
+      transform: translateY(0) !important;
+      border-top: 1px solid rgba(255,255,255,0.08);
+    }
+    body.embed-mode #map { height: 40dvh !important; }
+  }
+
   </style>
 </head>
 <body>
+  <script>
+    // Embed mode: ?embed=true strips all chrome and locks the layout as a
+    // self-contained widget for iframe embedding on Wix blog posts etc.
+    // Applied here, before any other JS runs, so there's no flash of the
+    // full-app chrome before it hides. CSS rules under body.embed-mode in
+    // the main stylesheet do the actual hiding.
+    (function () {
+      try {
+        var p = new URLSearchParams(window.location.search);
+        if (p.get('embed') === 'true') {
+          document.body.classList.add('embed-mode');
+        }
+      } catch (_) { /* non-fatal */ }
+    })();
+  </script>
   <!-- Header Bar -->
   <div id="header">
     <a id="header-logo-link" href="https://www.oftmw.com" target="_blank">
@@ -6856,32 +6937,35 @@
       const params = new URLSearchParams(window.location.search);
       const slug = params.get('project');
       const fullscreen = params.get('fullscreen') === 'true';
+      const embed = params.get('embed') === 'true';
       if (!slug || !window.allProjectFeatures) return;
       const match = window.allProjectFeatures.find(f => {
         const s = (f.properties.title || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
         return s === slug;
       });
       if (!match) return;
-      if (fullscreen) {
-        // Legacy behavior: open full project modal AND center the pin.
+      // Embed mode behaves like fullscreen (open the modal + center the
+      // pin) but with the embed-specific modal width and mobile layout.
+      if (fullscreen || embed) {
         // Without zoomToPinOnly the pin doesn't turn pink and the camera
         // doesn't move. We call it first so the pink-pin paint takes
-        // effect, then issue a sidebar-aware flyTo to push the pin into
-        // the visible right strip (modal covers the left 35% on desktop).
+        // effect, then issue a layout-aware flyTo to push the pin into
+        // the visible map strip.
         if (typeof zoomToPinOnly === 'function') zoomToPinOnly(match);
         if (!isMobile) {
           const sidebar = document.getElementById('desktopSidebar');
           if (sidebar && !sidebar.classList.contains('open')) {
             sidebar.classList.add('open');
           }
-          // Re-fly with modal-aware padding. The project modal covers
-          // the left 35% of the viewport; with padding={left: 35%vw} we
-          // tell Mapbox to center the pin in the remaining right strip.
-          // padding overrides offset, so we don't need to pass offset.
+          // Re-fly with modal-aware padding. The modal covers the left
+          // portion of the viewport; padding tells Mapbox to center the
+          // pin in the remaining right strip. Embed mode uses 38%; the
+          // regular fullscreen path uses 35%.
           try {
             const co = match.geometry && match.geometry.coordinates;
             if (co) {
-              const leftPad = Math.round(window.innerWidth * 0.35);
+              const leftPct = embed ? 0.38 : 0.35;
+              const leftPad = Math.round(window.innerWidth * leftPct);
               const targetZoom = Math.max(map.getZoom(), 13);
               map.flyTo({
                 center: co,
@@ -6892,8 +6976,25 @@
               });
             }
           } catch (_) { /* zoomToPinOnly already flew, this is just refinement */ }
+        } else if (embed) {
+          // Mobile embed: modal is on top half (60dvh), map is bottom
+          // 40dvh. Pad from the TOP so the pin centers in the bottom strip.
+          try {
+            const co = match.geometry && match.geometry.coordinates;
+            if (co) {
+              const topPad = Math.round(window.innerHeight * 0.60);
+              const targetZoom = Math.max(map.getZoom(), 13);
+              map.flyTo({
+                center: co,
+                zoom: targetZoom,
+                padding: { top: topPad, bottom: 0, left: 0, right: 0 },
+                duration: 1400,
+                essential: true
+              });
+            }
+          } catch (_) { /* fall through */ }
         }
-        setTimeout(() => { window.openProjectModal(match, 'deeplink'); }, 600);
+        setTimeout(() => { window.openProjectModal(match, embed ? 'embed' : 'deeplink'); }, 600);
       } else {
         // Default: zoom to pin + show small popup preview
         const co = match.geometry.coordinates;
