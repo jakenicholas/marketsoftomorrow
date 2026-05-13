@@ -1540,8 +1540,10 @@
          children by flex-basis + flex-shrink/grow, not by height. */
       flex-shrink: 0;
       /* Solid color (was rgba). Backdrop-filter blur made the rgba edges
-         blend with backdrop colors, varying apparent thickness by filter. */
-      background: #b0b0b0;
+         blend with backdrop colors, varying apparent thickness by filter.
+         #5a5a5a reads as a muted handle indicator without being too
+         bright against the dark glass background. */
+      background: #5a5a5a;
       border-radius: 3px;
       margin: 10px auto 4px;
       cursor: grab;
@@ -1555,7 +1557,7 @@
       top: -22px; bottom: -22px;
       left: -80px; right: -80px;
     }
-    #pulseStack .pulse-sheet-handle:active { cursor: grabbing; background: #d8d8d8; }
+    #pulseStack .pulse-sheet-handle:active { cursor: grabbing; background: #7a7a7a; }
     #pulseStack.dragging { transition: none; }
     @media(min-width:801px) {
       #pulseStack .pulse-sheet-handle { display: none; }
@@ -2154,7 +2156,7 @@
       /* Solid color matches the pulse handle. See comments on
          #pulseStack .pulse-sheet-handle for why rgba doesn't work
          consistently over a backdrop-filter blurred parent. */
-      background: #b0b0b0;
+      background: #5a5a5a;
       border-radius: 3px;
       margin: 10px auto 4px;
       flex-shrink: 0;
@@ -2172,7 +2174,7 @@
       top: -22px; bottom: -22px;
       left: -80px; right: -80px;
     }
-    .wl-handle:active { cursor: grabbing; background: #d8d8d8; }
+    .wl-handle:active { cursor: grabbing; background: #7a7a7a; }
     @media(max-width:800px) {
       .wl-handle { display: block; }
       /* On mobile the drag handle replaces the × close button entirely --
