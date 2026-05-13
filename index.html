@@ -1527,33 +1527,36 @@
       #pulseStack.peek .pulse-close-btn {
         display: none !important;
       }
-      /* Drag handle (mobile only). Matches the watchlist handle (.wl-handle)
-         dimensions and margin exactly for visual parity. Wider hit area
-         via ::before so finger can grab anywhere in a 60px tall band
-         around the handle bar. */
-      .pulse-sheet-handle {
-        display: block;
-        width: 48px; height: 6px;
-        background: rgba(255,255,255,0.28);
-        border-radius: 3px;
-        margin: 10px auto 4px;
-        cursor: grab;
-        position: relative;
-        touch-action: none;
-        z-index: 5;
-      }
-      .pulse-sheet-handle::before {
-        content: '';
-        position: absolute;
-        top: -22px; bottom: -22px;
-        left: -80px; right: -80px;
-      }
-      .pulse-sheet-handle:active { cursor: grabbing; background: rgba(255,255,255,0.45); }
-      #pulseStack.dragging { transition: none; }
     }
-    /* Hide the drag handle on desktop -- not relevant there */
+    /* Drag handle base styling (filter-state independent, viewport-independent).
+       The display: block/none toggle is in media queries below. !important
+       on dimensions guards against any inline style or browser cache state
+       overriding -- user reported different thicknesses across filter tabs
+       which shouldn't happen but defensive coding fixes it absolutely. */
+    #pulseStack .pulse-sheet-handle {
+      width: 48px !important;
+      height: 6px !important;
+      background: rgba(255,255,255,0.28);
+      border-radius: 3px;
+      margin: 10px auto 4px;
+      cursor: grab;
+      position: relative;
+      touch-action: none;
+      z-index: 5;
+    }
+    #pulseStack .pulse-sheet-handle::before {
+      content: '';
+      position: absolute;
+      top: -22px; bottom: -22px;
+      left: -80px; right: -80px;
+    }
+    #pulseStack .pulse-sheet-handle:active { cursor: grabbing; background: rgba(255,255,255,0.45); }
+    #pulseStack.dragging { transition: none; }
     @media(min-width:801px) {
-      .pulse-sheet-handle { display: none; }
+      #pulseStack .pulse-sheet-handle { display: none; }
+    }
+    @media(max-width:800px) {
+      #pulseStack .pulse-sheet-handle { display: block; }
     }
 
     /* ─── Header (Pulse title + count + refresh button) ─────────────────── */
@@ -1779,16 +1782,24 @@
       padding-bottom: 4px;
     }
     .pulse-spine::before {
-      /* The spine itself: a soft fading line that doesn't extend past
-         the first or last event's vertical position, so it never feels
-         cropped. */
+      /* The spine itself: a soft fading line. top must equal or exceed
+         where the first dot's vertical center sits so the line never
+         extends ABOVE the first event (which would read as a thin
+         vertical extension of the drag handle area, making the handle
+         appear different across filter tabs). Math:
+           .pulse-spine padding-top = 4px
+           first .pulse-ev-wrap top edge = 4px
+           dot top within wrap = 14px
+           dot center = 4 + 14 + 5 = 23px
+         Set top: 25px so the spine starts 2px BELOW the first dot's
+         center, hidden behind it. */
       content: '';
       position: absolute;
       /* Was 23px; with .pulse-spine padding-left now 32px, the spine
          centerline shifts to 27.5px (left:27px, width:1px). The dot's
          center math below tracks this so they stay aligned. */
       left: 27px;
-      top: 16px;
+      top: 25px;
       bottom: 16px;
       width: 1px;
       background: linear-gradient(to bottom,
