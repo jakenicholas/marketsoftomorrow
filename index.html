@@ -511,7 +511,29 @@
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
+    // user_id gets attached later by setGAIdentity() once Memberstack resolves.
+    // send_page_view stays default (true) so the initial pageview still fires anonymously
+    // for visitors who never sign in.
     gtag('config', 'G-6NPTWCVFCG');
+
+    // ─── Member-aware event tagging ─────────────────────────────────────────
+    // Every gtag('event', name, params) call in this file gets these fields
+    // auto-merged in, so GA4 always shows WHO did WHAT without us having to
+    // remember to attach identity at each call site.
+    window._gaMemberContext = {
+      member_id: null,
+      member_email: null,
+      member_name: null,
+      member_plan: 'anonymous'  // 'anonymous' | 'free' | 'paid'
+    };
+    const _rawGtag = window.gtag;
+    window.gtag = function() {
+      const args = Array.from(arguments);
+      if (args[0] === 'event' && args[2] && typeof args[2] === 'object') {
+        args[2] = Object.assign({}, window._gaMemberContext, args[2]);
+      }
+      return _rawGtag.apply(this, args);
+    };
   </script>
 
   <script type="application/ld+json">
@@ -7920,6 +7942,20 @@
           device_type: isMobile ? 'mobile' : 'desktop'
         });
 
+        // ─── Project view duration tracking ────────────────────────────
+        // If a previous project view is still open (user jumped from one
+        // project modal directly to another without closing), fire the
+        // duration event for THAT view first before starting this one.
+        if (window._currentProjectView) {
+          _fireProjectViewDuration('replaced');
+        }
+        window._currentProjectView = {
+          project_name: p.title,
+          project_city: p.city,
+          source: fromSource,
+          start_ts: Date.now()
+        };
+
         // Coverage section: render asynchronously from articles.json. The
         // section stays hidden if no articles match this project, so the
         // modal doesn't show an empty section for projects without press.
@@ -7931,7 +7967,54 @@
         renderUpdatesSection(p.title);
       };
 
+      // ─── Project view duration helper ────────────────────────────────
+      // Fires a project_view_duration event for the currently-open project
+      // and clears the tracking state. Called from closeModal (normal close),
+      // from openProjectModal (when a new project replaces the open one),
+      // and from pagehide (when the user navigates away or closes the tab).
+      // close_reason tells GA4 how the view ended: 'closed' | 'replaced' | 'unload'
+      function _fireProjectViewDuration(close_reason) {
+        const v = window._currentProjectView;
+        if (!v) return;
+        const durationMs = Date.now() - v.start_ts;
+        const durationSec = Math.round(durationMs / 1000);
+        // Clear ref BEFORE firing to defend against re-entry / double-fire.
+        window._currentProjectView = null;
+        if (!window.gtag) return;
+        gtag('event', 'project_view_duration', {
+          project_name: v.project_name,
+          project_city: v.project_city,
+          source: v.source,
+          duration_seconds: durationSec,
+          duration_bucket: durationSec < 3 ? '0-3s'
+                         : durationSec < 10 ? '3-10s'
+                         : durationSec < 30 ? '10-30s'
+                         : durationSec < 60 ? '30-60s'
+                         : durationSec < 180 ? '1-3min'
+                         : '3min+',
+          close_reason: close_reason,
+          device_type: isMobile ? 'mobile' : 'desktop'
+        });
+      }
+      window._fireProjectViewDuration = _fireProjectViewDuration;
+
+      // Fire the duration event if the user navigates away / closes the
+      // tab / refreshes while a project view is open. pagehide is more
+      // reliable than beforeunload on mobile (iOS Safari) where
+      // beforeunload often doesn't fire. We don't gate on whether the
+      // request actually reaches GA -- it's best-effort.
+      window.addEventListener('pagehide', function () {
+        if (window._currentProjectView) {
+          _fireProjectViewDuration('unload');
+        }
+      });
+
       function closeModal() {
+        // Fire the view-duration event before tearing down the modal,
+        // so any state read by the helper is still intact.
+        if (window._currentProjectView) {
+          _fireProjectViewDuration('closed');
+        }
         modal.classList.remove('open');
         // Drop the modal below the Pulse drawer for the duration of the
         // slide-away animation, so on exit it visually disappears behind
@@ -8065,7 +8148,15 @@
 
       document.getElementById('pmShareIconBtn').addEventListener('click', () => {
         const p = currentFeature?.properties;
-        if (p) doShare(p.title);
+        if (p) {
+          if (window.gtag) gtag('event', 'project_share', {
+            project_name: p.title,
+            project_city: p.city,
+            share_method: navigator.share ? 'native_share' : 'clipboard',
+            device_type: isMobile ? 'mobile' : 'desktop'
+          });
+          doShare(p.title);
+        }
       });
 
       // Favorite button — toggles the project as a favorite (paid only)
@@ -10684,6 +10775,65 @@
         }
       }
 
+      // ─── GA4 identity wiring ──────────────────────────────────────────────
+      // Tells GA4 who the current user is, and stamps every subsequent gtag
+      // event with readable member fields (id, email, name, plan tier).
+      // Call with `null` to clear (logout / anonymous).
+      //
+      // NOTE on PII: Google's GA4 ToS technically prohibits sending email
+      // addresses as user-scoped data. For internal-only dashboards on small
+      // accounts this is rarely enforced, but if you want strict compliance,
+      // comment out the member_email lines and rely on member_id + member_name.
+      function setGAIdentity(member) {
+        if (!window.gtag) return;
+        if (!member) {
+          window._gaMemberContext = {
+            member_id: null,
+            member_email: null,
+            member_name: null,
+            member_plan: 'anonymous'
+          };
+          // Tell GA4 there's no longer an identified user on this session.
+          gtag('config', 'G-6NPTWCVFCG', { user_id: null });
+          return;
+        }
+        const cf = member.customFields || {};
+        const email = member.auth?.email || member.email || '';
+        const first = cf['first-name'] || cf.firstName || '';
+        const last  = cf['last-name']  || cf.lastName  || '';
+        const fullName = (first + ' ' + last).trim() || email.split('@')[0] || 'Member';
+        const plans = member.planConnections || [];
+        const isPaid = plans.some(p => p.active === true || p.status === 'ACTIVE');
+
+        window._gaMemberContext = {
+          member_id: member.id,
+          member_email: email,        // remove this line for strict GA4 PII compliance
+          member_name: fullName,
+          member_plan: isPaid ? 'paid' : 'free'
+        };
+
+        // Re-config GA4 with the user_id. This is what stitches sessions
+        // across devices to a single person in Explorations.
+        gtag('config', 'G-6NPTWCVFCG', {
+          user_id: member.id,
+          // Send a user_properties payload so name/email/plan are queryable
+          // as USER-scoped custom dimensions (not just event-scoped).
+          user_properties: {
+            member_email: email,
+            member_name: fullName,
+            member_plan: isPaid ? 'paid' : 'free'
+          }
+        });
+
+        // Fire a one-off event so it shows up in the realtime
+        // event stream with the identity attached -- useful for verifying
+        // identity wiring is working without waiting 24h.
+        gtag('event', 'identified', {
+          identified_at: new Date().toISOString()
+        });
+      }
+      window.setGAIdentity = setGAIdentity;
+
       // ─── Wait for Memberstack DOM package to load ─────────────────────────
       function waitForMemberstack(callback) {
         if (window.$memberstackDom) { callback(window.$memberstackDom); return; }
@@ -10724,6 +10874,7 @@
             }
             authResolved = true;
             updateAuthHeaderUI(null);
+            setGAIdentity(null);
             return;
           }
 
@@ -10731,6 +10882,10 @@
           window._memberstackSignedIn = true;
           const plans = member.planConnections || [];
           isPaidMember = plans.some(p => p.active === true || p.status === 'ACTIVE');
+
+          // Wire GA4 identity AS SOON AS we have the member object, before any
+          // downstream events fire (loadFavoritesFromMember, paywall checks, etc.)
+          setGAIdentity(member);
 
           // Load member's persisted click count from custom fields
           const cf = member.customFields || {};
@@ -11095,6 +11250,7 @@
             window.comparisons.clear();
           }
           updateAuthHeaderUI(null);
+          setGAIdentity(null);
         } catch (e) {
           console.error('[Paywall] Logout error:', e);
         }
