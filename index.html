@@ -1529,14 +1529,18 @@
     #pulseStack .pulse-sheet-handle {
       width: 48px !important;
       height: 6px !important;
-      /* Solid color, not rgba. With a semi-transparent handle on top of
-         a backdrop-filter blurred parent, sub-pixel antialiasing makes
-         the handle's edges blend into whatever colors are rendered just
-         below it inside the drawer. That made the handle appear thicker
-         on the News filter (green-saturated content) vs thinner on All
-         filter (mixed colors). Solid #b0b0b0 (matches what rgba(255,
-         255,255,0.28) renders as over the typical dark backdrop) gives
-         the same visual weight across all filter states. */
+      /* flex-shrink: 0 is THE fix. #pulseStack is display:flex
+         flex-direction:column, and without this the handle (a flex
+         child) gets shrunk by flexbox when content below overflows the
+         container. The shrinking varies by filter tab because different
+         filters render different event types with different total
+         heights. flex-shrink: 0 keeps the handle at its declared 6px
+         regardless of what flexbox would otherwise do.
+         height: 6px !important alone doesn't help -- flexbox sizes
+         children by flex-basis + flex-shrink/grow, not by height. */
+      flex-shrink: 0;
+      /* Solid color (was rgba). Backdrop-filter blur made the rgba edges
+         blend with backdrop colors, varying apparent thickness by filter. */
       background: #b0b0b0;
       border-radius: 3px;
       margin: 10px auto 4px;
