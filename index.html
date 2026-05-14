@@ -6077,6 +6077,152 @@
     font-weight: 500;
   }
 
+  /* Most-covered projects -- ranked list like the leaderboards */
+  .atlas-coverage-row {
+    display: grid;
+    grid-template-columns: 24px 1fr auto;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    cursor: pointer;
+    transition: padding-left 0.15s, background 0.1s;
+    text-decoration: none;
+    color: inherit;
+  }
+  .atlas-coverage-row:last-child { border-bottom: none; }
+  .atlas-coverage-row:hover {
+    background: rgba(255,255,255,0.02);
+    padding-left: 4px;
+  }
+  .atlas-coverage-rank {
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+    color: rgba(255,255,255,0.35);
+    font-weight: 500;
+    text-align: center;
+  }
+  .atlas-coverage-rank.top { color: #1FDF67; }
+  .atlas-coverage-info { min-width: 0; }
+  .atlas-coverage-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: #fff;
+    margin-bottom: 2px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .atlas-coverage-meta {
+    font-size: 11px;
+    color: rgba(255,255,255,0.45);
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
+  .atlas-coverage-count {
+    text-align: right;
+  }
+  .atlas-coverage-count-num {
+    font-size: 18px;
+    font-weight: 600;
+    color: #fff;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+  .atlas-coverage-count-label {
+    font-size: 10px;
+    color: rgba(255,255,255,0.4);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+
+  /* Coming soon -- bucketed list of upcoming deliveries */
+  .atlas-coming-bucket { margin-bottom: 24px; }
+  .atlas-coming-bucket:last-child { margin-bottom: 0; }
+  .atlas-coming-bucket-head {
+    font-size: 11px;
+    color: rgba(255,255,255,0.5);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 600;
+    padding: 0 0 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .atlas-coming-bucket-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: #1FDF67;
+  }
+  .atlas-coming-bucket[data-bucket="30d"] .atlas-coming-bucket-dot  { background: #1FDF67; }
+  .atlas-coming-bucket[data-bucket="90d"] .atlas-coming-bucket-dot  { background: #FF9500; }
+  .atlas-coming-bucket[data-bucket="120d"] .atlas-coming-bucket-dot { background: #6FA8FF; }
+  .atlas-coming-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 16px;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    cursor: pointer;
+    transition: padding-left 0.15s, background 0.1s;
+    text-decoration: none;
+    color: inherit;
+  }
+  .atlas-coming-row:last-child { border-bottom: none; }
+  .atlas-coming-row:hover {
+    background: rgba(255,255,255,0.02);
+    padding-left: 4px;
+  }
+  .atlas-coming-info { min-width: 0; }
+  .atlas-coming-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: #fff;
+    margin-bottom: 2px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .atlas-coming-meta {
+    font-size: 11px;
+    color: rgba(255,255,255,0.45);
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
+  .atlas-coming-days {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+  .atlas-coming-days-num {
+    font-size: 16px;
+    font-weight: 600;
+    color: #fff;
+    line-height: 1;
+  }
+  .atlas-coming-days-label {
+    font-size: 10px;
+    color: rgba(255,255,255,0.4);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+
+  /* Side-by-side desktop layout for these two sections */
+  .atlas-coverage-coming-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    padding-bottom: 36px;
+  }
+  .atlas-coverage-coming-grid .atlas-section-half { padding-bottom: 0; }
+  @media(max-width:800px) {
+    .atlas-coverage-coming-grid { grid-template-columns: 1fr; gap: 28px; padding-bottom: 20px; }
+  }
+
   .atlas-footer {
     padding: 32px 0 0;
     text-align: center;
@@ -14038,6 +14184,92 @@
         </section>`;
     }
 
+    function renderMostCovered() {
+      const data = atlasData.most_covered || [];
+      if (!data.length) return '';
+      const rows = data.slice(0, 10).map((p, i) => {
+        const rankClass = i < 3 ? 'top' : '';
+        const href = p.slug ? `/projects/${encodeURIComponent(p.slug)}/` : '#';
+        return `
+          <a class="atlas-coverage-row" href="${escapeHtml(href)}">
+            <div class="atlas-coverage-rank ${rankClass}">${i + 1}</div>
+            <div class="atlas-coverage-info">
+              <div class="atlas-coverage-title">${escapeHtml(p.title || '')}</div>
+              <div class="atlas-coverage-meta">${escapeHtml(p.city || '')}</div>
+            </div>
+            <div class="atlas-coverage-count">
+              <div class="atlas-coverage-count-num">${p.count}</div>
+              <div class="atlas-coverage-count-label">article${p.count === 1 ? '' : 's'}</div>
+            </div>
+          </a>`;
+      }).join('');
+      return `
+        <section class="atlas-section atlas-section-half">
+          <div class="atlas-section-head">
+            <div>
+              <h2 class="atlas-section-title">Most covered on TMW</h2>
+              <p class="atlas-section-sub">Projects making the most headlines.</p>
+            </div>
+          </div>
+          <div class="atlas-panel">${rows}</div>
+        </section>`;
+    }
+
+    function renderComingSoon() {
+      const data = atlasData.coming_soon || [];
+      if (!data.length) return '';
+      // Group by bucket so we can render labeled sub-sections
+      const buckets = { '30d': [], '90d': [], '120d': [] };
+      data.forEach(p => { if (buckets[p.bucket]) buckets[p.bucket].push(p); });
+      const bucketLabels = {
+        '30d':  'Next 30 days',
+        '90d':  'Next 90 days',
+        '120d': 'Next 120 days',
+      };
+      const sections = ['30d', '90d', '120d'].map(key => {
+        if (!buckets[key].length) return '';
+        const rows = buckets[key].map(p => {
+          const href = p.slug ? `/projects/${encodeURIComponent(p.slug)}/` : '#';
+          return `
+            <a class="atlas-coming-row" href="${escapeHtml(href)}">
+              <div class="atlas-coming-info">
+                <div class="atlas-coming-title">${escapeHtml(p.title || '')}</div>
+                <div class="atlas-coming-meta">${escapeHtml(p.city || '')}${p.status ? ' · ' + escapeHtml(p.status) : ''}</div>
+              </div>
+              <div class="atlas-coming-days">
+                <div class="atlas-coming-days-num">${p.days_out}d</div>
+                <div class="atlas-coming-days-label">out</div>
+              </div>
+            </a>`;
+        }).join('');
+        return `
+          <div class="atlas-coming-bucket" data-bucket="${key}">
+            <div class="atlas-coming-bucket-head">
+              <span class="atlas-coming-bucket-dot"></span>
+              ${escapeHtml(bucketLabels[key])} <span style="color:rgba(255,255,255,0.4);font-weight:500;margin-left:auto;">${buckets[key].length}</span>
+            </div>
+            ${rows}
+          </div>`;
+      }).join('');
+      return `
+        <section class="atlas-section atlas-section-half">
+          <div class="atlas-section-head">
+            <div>
+              <h2 class="atlas-section-title">Coming soon</h2>
+              <p class="atlas-section-sub">Projects delivering in the next four months.</p>
+            </div>
+          </div>
+          <div class="atlas-panel">${sections}</div>
+        </section>`;
+    }
+
+    function renderCoverageAndComing() {
+      const left = renderMostCovered();
+      const right = renderComingSoon();
+      if (!left && !right) return '';
+      return `<div class="atlas-coverage-coming-grid">${left}${right}</div>`;
+    }
+
     function renderFooter() {
       const ts = atlasData.generated_at ? new Date(atlasData.generated_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : '';
       return `<div class="atlas-footer">Atlas · part of <a href="https://oftmw.com" style="color:rgba(255,255,255,0.6);">Markets of Tomorrow</a>${ts ? ' · data updated ' + escapeHtml(ts) : ''}</div>`;
@@ -14052,6 +14284,7 @@
         renderLeaderboardSection(),
         renderOpeningsByYear(),
         renderDistributionAndMomentum(),
+        renderCoverageAndComing(),
         renderRecentActivity(),
         renderFooter()
       ].join('');
