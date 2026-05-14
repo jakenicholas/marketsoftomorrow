@@ -6217,8 +6217,18 @@
     grid-template-columns: 1fr 1fr;
     gap: 20px;
     padding-bottom: 36px;
+    align-items: stretch;
   }
-  .atlas-coverage-coming-grid .atlas-section-half { padding-bottom: 0; }
+  .atlas-coverage-coming-grid .atlas-section-half {
+    padding-bottom: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .atlas-coverage-coming-grid .atlas-section-half .atlas-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
   @media(max-width:800px) {
     .atlas-coverage-coming-grid { grid-template-columns: 1fr; gap: 28px; padding-bottom: 20px; }
   }
@@ -14187,7 +14197,7 @@
     function renderMostCovered() {
       const data = atlasData.most_covered || [];
       if (!data.length) return '';
-      const rows = data.slice(0, 10).map((p, i) => {
+      const rows = data.slice(0, 15).map((p, i) => {
         const rankClass = i < 3 ? 'top' : '';
         const href = p.slug ? `/projects/${encodeURIComponent(p.slug)}/` : '#';
         return `
@@ -14207,7 +14217,7 @@
         <section class="atlas-section atlas-section-half">
           <div class="atlas-section-head">
             <div>
-              <h2 class="atlas-section-title">Most covered on TMW</h2>
+              <h2 class="atlas-section-title">Most covered on Tomorrow</h2>
               <p class="atlas-section-sub">Projects making the most headlines.</p>
             </div>
           </div>
@@ -14230,6 +14240,11 @@
         if (!buckets[key].length) return '';
         const rows = buckets[key].map(p => {
           const href = p.slug ? `/projects/${encodeURIComponent(p.slug)}/` : '#';
+          // Day-precision shows "20d" with an "out" trailer. Month/year
+          // precision (e.g. "May", "Winter") drops the "out" label so the
+          // imprecise date isn't misread as a precise countdown.
+          const label = p.display_label || (p.days_out != null ? `${p.days_out}d` : '');
+          const showOut = (p.display_precision === 'day');
           return `
             <a class="atlas-coming-row" href="${escapeHtml(href)}">
               <div class="atlas-coming-info">
@@ -14237,8 +14252,8 @@
                 <div class="atlas-coming-meta">${escapeHtml(p.city || '')}${p.status ? ' · ' + escapeHtml(p.status) : ''}</div>
               </div>
               <div class="atlas-coming-days">
-                <div class="atlas-coming-days-num">${p.days_out}d</div>
-                <div class="atlas-coming-days-label">out</div>
+                <div class="atlas-coming-days-num">${escapeHtml(label)}</div>
+                ${showOut ? '<div class="atlas-coming-days-label">out</div>' : ''}
               </div>
             </a>`;
         }).join('');
