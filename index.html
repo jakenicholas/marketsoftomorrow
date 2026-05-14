@@ -8737,9 +8737,13 @@
               <div class="pm-intel-pattern">${escapeArticleHtml(entry.pattern_summary || '')}</div>
             `;
           } else if (source === 'known_date') {
-            // Developer-committed near-term date. Skip the comparables /
-            // pattern / disclaimer block and show a tighter, more confident
-            // version.
+            // Date-derived estimate. Whether we show the "Developer
+            // announced" confidence tag + disclaimer depends on the
+            // precision of the source date:
+            //   - 'day' precision (YYYY-MM-DD): full confidence framing
+            //   - month/quarter/season/year: drop the developer-attribution
+            //     since we're inferring vagueness into a specific number
+            const isDayPrecise = (entry.precision === 'day');
             wrap.innerHTML = `
               <div class="pm-intel-head">
                 <span class="pm-intel-badge">
@@ -8747,11 +8751,14 @@
                   TMW Intelligence
                 </span>
                 <div class="pm-intel-title">Estimated Time to Completion</div>
-                <span class="pm-intel-confidence" data-conf="high">Developer announced</span>
+                ${isDayPrecise ? `<span class="pm-intel-confidence" data-conf="high">Developer announced</span>` : ''}
               </div>
               <div class="pm-intel-estimate">${escapeArticleHtml(estimateLabel)} <span class="unit">to completion</span></div>
               <div class="pm-intel-pattern">${escapeArticleHtml(entry.pattern_summary || '')}</div>
-              <div class="pm-intel-disclaimer">Based on the developer's announced opening date. Schedules can shift; we update this daily.</div>
+              <div class="pm-intel-disclaimer">${isDayPrecise
+                ? "Based on the developer's announced opening date. Schedules can shift; we update this daily."
+                : "Estimate based on the project's targeted opening window. Schedules can shift; we update this daily."
+              }</div>
             `;
           } else {
             wrap.innerHTML = `
@@ -9364,7 +9371,11 @@
             // Build the value, tail, and sub strings based on the entry's
             // source. Three modes:
             //   completed   -> past tense, reported fact
-            //   known_date  -> developer-announced near-term date
+            //   known_date  -> date-derived estimate. Sub text depends on
+            //                  date precision: day-precise dates get the
+            //                  full "Developer announced" framing, vaguer
+            //                  precisions get "Targeted opening" to avoid
+            //                  overclaiming certainty.
             //   comparables -> statistical estimate from similar projects
             const valueText = entry.estimate_label || ('~' + entry.estimate_years + ' yrs');
             let tailText = ' to completion';
@@ -9375,7 +9386,9 @@
                 ? `From ${entry.start_year} groundbreaking`
                 : 'Completed project';
             } else if (entry.source === 'known_date') {
-              subText = 'Developer announced';
+              subText = (entry.precision === 'day')
+                ? 'Developer announced'
+                : 'Targeted opening';
             } else {
               subText = `Based on ${entry.comparable_count} similar project${entry.comparable_count === 1 ? '' : 's'}`;
             }
