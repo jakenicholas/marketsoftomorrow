@@ -3352,9 +3352,8 @@
       /* Repurpose: this element masks the UNCOMPLETED portion of the track
          with a dim overlay. The --fill-pct CSS variable (set inline) is the
          project's completion percentage, and the overlay covers from that
-         position to the right edge. The overlay uses a gradient so the
-         leading edge fades from transparent to dim, eliminating the hard
-         transition line that would otherwise appear. */
+         position to the right edge. Near-hard cut with 3px of feathering on
+         the leading edge so the transition isn't visually jarring. */
       position: absolute;
       top: 0;
       right: 0;
@@ -3363,9 +3362,8 @@
       width: auto !important; /* override JS-set width */
       left: var(--fill-pct, 60%);
       background: linear-gradient(90deg,
-        rgba(0,0,0,0) 0%,
-        rgba(0,0,0,0.6) 30%,
-        rgba(0,0,0,0.65) 100%);
+        rgba(0,0,0,0) 0,
+        rgba(0,0,0,0.7) 3px);
       border-radius: 0 2px 2px 0;
     }
     .popup-content .delivery-bar.open .delivery-bar-fill {
@@ -4097,14 +4095,14 @@
 
   /* Map popup intel chip -- 3-row stacked layout per mock:
      Row 1: "⬡ TMW INTELLIGENCE" eyebrow (icon + text, no pill)
-     Row 2: "~7 months to completion" (big purple value + gray tail)
+     Row 2: "~7 months to completion" (big purple value + white tail)
      Row 3: "Based on N similar projects" sub */
   .popup-content .popup-intel {
     margin-top: 12px;
     margin-bottom: 14px;
-    padding: 10px 12px 11px;
-    background: rgba(167,139,250,0.08);
-    border: 1px solid rgba(167,139,250,0.24);
+    padding: 9px 12px;
+    background: rgba(167,139,250,0.14);
+    border: 1px solid rgba(167,139,250,0.35);
     border-radius: 10px;
   }
   .popup-content .popup-intel-eyebrow {
@@ -4116,7 +4114,7 @@
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    margin-bottom: 4px;
+    margin-bottom: 3px;
   }
   .popup-content .popup-intel-eyebrow svg {
     width: 10px; height: 10px; fill: currentColor;
@@ -4127,15 +4125,15 @@
     font-weight: 700;
     line-height: 1.2;
     letter-spacing: -0.01em;
-    margin-bottom: 4px;
+    margin-bottom: 2px;
   }
   .popup-content .popup-intel-value-tail {
-    color: rgba(255,255,255,0.6);
+    color: #fff;
     font-weight: 500;
   }
   .popup-content .popup-intel-sub {
     font-size: 10px;
-    color: rgba(255,255,255,0.45);
+    color: rgba(255,255,255,0.5);
     font-weight: 500;
   }
 
