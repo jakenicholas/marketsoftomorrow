@@ -47,9 +47,13 @@ SHEET_URL = (
 OUTPUT_PATH = "intel.json"
 
 # Minimum comparables to compute an estimate at each confidence level.
-THRESH_HIGH_EXACT = 8     # type + metro
+# Tuned permissively for v1 -- once we see real coverage on the live site
+# we can tighten these. The intel block stays hidden if a project doesn't
+# qualify at any tier so over-permissive only hurts confidence labeling,
+# not data integrity.
+THRESH_HIGH_EXACT = 5      # type + metro
 THRESH_MEDIUM_EXACT = 3
-THRESH_MEDIUM_RELAXED = 8  # type only (any metro)
+THRESH_MEDIUM_RELAXED = 5  # type only (any metro)
 THRESH_LOW_EXACT = 1
 THRESH_LOW_RELAXED = 3
 
@@ -376,12 +380,16 @@ def parse_date(s):
 # ---------------------------------------------------------------------------
 
 def slugify(text):
+    """Match the canonical slugify in generate_pages.py exactly, which is
+    in turn matched by pyStyleSlug() in index.html. This is critical: the
+    slug is the only key the frontend uses to look up intel data, so any
+    drift between this function and the others means the intel block
+    silently fails for affected projects."""
     if not text:
         return ''
-    s = text.lower().strip()
-    s = re.sub(r"['\u2019]", '', s)
-    s = re.sub(r'[^a-z0-9]+', '-', s)
-    s = re.sub(r'-+', '-', s).strip('-')
+    s = str(text).lower()
+    s = re.sub(r'[^a-z0-9\s-]', '', s)
+    s = re.sub(r'[\s-]+', '-', s).strip('-')
     return s
 
 
