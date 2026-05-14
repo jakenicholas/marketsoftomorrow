@@ -314,6 +314,67 @@ def metro_for_city(city):
 
 
 # ---------------------------------------------------------------------------
+# Type synonyms -- groups of project types that should be treated as
+# comparable for intel matching. A "Hotel" project draws on Resort and
+# Hospitality projects too. A "Residences" project draws on Condo and
+# Residential. This widens the comparable pool significantly without
+# sacrificing relevance.
+#
+# Each group is a list of lowercase strings. When matching, we expand the
+# target's type to its full synonym set and consider any complete project
+# whose type is in that set.
+# ---------------------------------------------------------------------------
+
+TYPE_SYNONYM_GROUPS = [
+    # Hospitality: hotels, resorts, branded hotels share construction patterns
+    ['hotel', 'hotels', 'resort', 'resorts', 'hospitality', 'inn', 'lodge'],
+    # Residential: condos, apartments, residences, branded residences
+    ['residences', 'residence', 'residential', 'condo', 'condos', 'condominium',
+     'apartments', 'apartment', 'multifamily', 'multi-family', 'rental', 'rentals'],
+    # Mixed-use / development: broader campus-scale projects
+    ['mixed-use', 'mixed use', 'development', 'master plan', 'masterplan'],
+    # Retail / commercial
+    ['retail', 'shopping', 'mall', 'commercial', 'lifestyle center'],
+    # Office / workplace
+    ['office', 'offices', 'workplace', 'corporate'],
+    # Cultural / institutional
+    ['museum', 'museums', 'cultural', 'arts center', 'performing arts', 'gallery'],
+    # Entertainment / venue
+    ['entertainment', 'venue', 'theater', 'theatre', 'arena', 'stadium', 'amphitheater'],
+    # Education
+    ['education', 'school', 'university', 'campus', 'academic'],
+    # Recreation / sports
+    ['golf', 'golf club', 'country club', 'club', 'recreation'],
+    # Travel / aviation / transit
+    ['travel', 'aviation', 'airport', 'transit', 'transportation'],
+    # Healthcare
+    ['healthcare', 'health care', 'hospital', 'medical'],
+    # Industrial / logistics
+    ['industrial', 'logistics', 'warehouse', 'distribution'],
+]
+
+# Build a flat lookup: type-string -> set of synonyms (including self)
+_TYPE_TO_SYNONYMS = {}
+for group in TYPE_SYNONYM_GROUPS:
+    group_set = set(group)
+    for t in group:
+        _TYPE_TO_SYNONYMS[t] = group_set
+
+
+def expand_type_synonyms(target_type):
+    """Return the set of lowercase type strings considered synonymous with
+    target_type for comparable matching. If target_type is in a known
+    synonym group, return that group. Otherwise return {target_type} only.
+    Always includes the target itself."""
+    if not target_type:
+        return set()
+    t = target_type.lower().strip()
+    if t in _TYPE_TO_SYNONYMS:
+        return _TYPE_TO_SYNONYMS[t]
+    return {t}
+
+
+# ---------------------------------------------------------------------------
 # Date parsing (kept compatible with generate_pages.py's parser semantics)
 # ---------------------------------------------------------------------------
 
@@ -466,19 +527,29 @@ def known_date_estimate(delivery_raw, today):
     Returns a dict with the same shape as the comparable estimate, OR
     None if the date isn't precise/timely enough.
 
-    Threshold is 18 months because: developer commitments within 18 months
-    are usually firm enough that pattern-based statistics would be LESS
-    accurate than just trusting the announced date. Beyond 18 months,
-    schedule slippage is common enough that the median of comparables is
-    likely better signal."""
+    Threshold is 36 months because: developer commitments are generally
+    better signal than a comparable median, even for projects 2-3 years
+    out. Slippage exists but the median can be off by similar amounts.
+
+    Accepted precisions:
+      'day'   ("2026-06-15")     -- most confident
+      'month' ("2026-06" / "June 2026")
+      'other' ("Q1 2026" / "Winter 2026") -- still trustworthy near-term
+
+    Rejected:
+      'year' ("2026")           -- too vague, fall through to comparables
+      None / unparseable
+      past dates
+      dates > 1095 days out     -- 3+ years, developer commitment less reliable
+    """
     precision = detect_date_precision(delivery_raw)
-    if precision not in ('day', 'month'):
+    if precision not in ('day', 'month', 'other'):
         return None
     d = parse_date(delivery_raw)
     if not d:
         return None
     days_out = (d - today).days
-    if days_out <= 0 or days_out > 540:  # ~18 months
+    if days_out <= 0 or days_out > 1095:  # ~36 months
         return None
 
     # Format the estimate. Tiers chosen to match how a reader would say it.
@@ -546,18 +617,27 @@ def build_complete_index(rows):
 def find_comparables(target, complete_index):
     """Given an in-flight target project, find comparables in the index.
     Returns (exact_matches, relaxed_matches) -- both lists of complete entries.
-    Exact = same type AND same metro.
-    Relaxed = same type, any metro (excluding the exact matches).
+    Exact = same type-family (target type + synonyms) AND same metro.
+    Relaxed = same type-family, any other metro.
+
+    Type-family matching means a 'Hotel' project draws on Resort and
+    Hospitality projects too, since they share construction patterns. See
+    TYPE_SYNONYM_GROUPS above for the full list.
     """
     target_type = target['type'].lower()
     target_metro = target['metro']
     if not target_type:
         return [], []
 
+    # Expand to the full synonym family. If the type isn't in any group,
+    # the family is just {target_type} -- behaves like the old exact-string
+    # match.
+    type_family = expand_type_synonyms(target_type)
+
     exact = []
     relaxed = []
     for c in complete_index:
-        if c['type'].lower() != target_type:
+        if c['type'].lower() not in type_family:
             continue
         if c['metro'] == target_metro and target_metro != 'Other':
             exact.append(c)
@@ -659,23 +739,58 @@ def main():
     for m, n in sorted(metro_counts.items(), key=lambda x: -x[1])[:10]:
         print(f"    {n:3d}  {m}")
 
-    print("Computing intel for in-flight projects...")
+    print("Computing intel for all projects...")
     intel = {}
     stats = {'high': 0, 'medium': 0, 'low': 0, 'known_date': 0,
-             'skipped': 0, 'no_type': 0}
+             'completed': 0, 'skipped': 0, 'no_type': 0}
     today = date.today()
     for row in rows:
         delivery_raw = (row.get('Delivery','') or '').strip()
-        # Only generate intel for in-flight projects (we already KNOW
-        # how long the complete ones took -- no estimate needed)
-        if is_complete(delivery_raw):
-            continue
         title = (row.get('Title','') or '').strip()
         if not title:
             continue
         target_slug = slugify(title)
         city = (row.get('City','') or '').strip()
         ptype = normalize_type(row.get('ProjectType',''))
+
+        # --- Path 0: COMPLETED project ---
+        # Past-tense report showing actual time taken. Drawn directly from
+        # StartDate -> DeliveryDate in the sheet. No estimate, no
+        # comparables -- this is reported fact.
+        if is_complete(delivery_raw):
+            start = parse_date((row.get('StartDate', '') or '').strip())
+            end = parse_date((row.get('DeliveryDate', '') or '').strip())
+            if start and end:
+                duration_days = (end - start).days
+                if 90 < duration_days < 365.25 * 15:  # sanity: 3 months - 15 years
+                    duration_years = duration_days / 365.25
+                    # Past-tense formatter -- same buckets as known_date but
+                    # phrased as "Took X" instead of "~X to completion"
+                    if duration_days <= 365:
+                        months = round(duration_days / 30.44)
+                        estimate_label = f"{months} months"
+                    else:
+                        years_rounded = round(duration_years * 2) / 2
+                        estimate_label = f"{format_years(years_rounded)} years"
+                    intel[target_slug] = {
+                        'estimate_years':   round(duration_years, 1),
+                        'estimate_label':   estimate_label,
+                        'start_date':       start.isoformat(),
+                        'end_date':         end.isoformat(),
+                        'start_year':       start.year,
+                        'end_year':         end.year,
+                        'source':           'completed',
+                        'confidence':       'high',  # reported fact, no inference
+                        'project_type':     ptype,
+                        'metro':            metro_for_city(city),
+                        'comparables':      [],
+                        'comparable_count': 0,
+                        'pattern_summary':  f"Completed in {estimate_label}, from {start.year} groundbreaking to {end.year} opening.",
+                    }
+                    stats['completed'] += 1
+            # If StartDate or DeliveryDate missing, the project IS open --
+            # we just can't report how long it took. No chip in that case.
+            continue
 
         # --- Path 1: KNOWN DATE override ---
         # If the developer has committed to a specific date in the near
@@ -776,10 +891,11 @@ def main():
         stats[tier] += 1
 
     print("Intel generation summary:")
-    print(f"  known-date entries: {stats['known_date']}")
-    print(f"  high   confidence (comparables): {stats['high']}")
-    print(f"  medium confidence (comparables): {stats['medium']}")
-    print(f"  low    confidence (comparables): {stats['low']}")
+    print(f"  completed (reported):  {stats['completed']}")
+    print(f"  known-date entries:    {stats['known_date']}")
+    print(f"  high   confidence:     {stats['high']}")
+    print(f"  medium confidence:     {stats['medium']}")
+    print(f"  low    confidence:     {stats['low']}")
     print(f"  skipped (insufficient data): {stats['skipped']}")
     print(f"  skipped (no project type):   {stats['no_type']}")
     print(f"  total intel entries written: {len(intel)}")
