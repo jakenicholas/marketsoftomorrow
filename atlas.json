@@ -279,16 +279,6 @@
         ]
       },
       {
-        "name": "Skidmore",
-        "sub": "New York City",
-        "count": 9,
-        "states": [
-          "Other",
-          "NY",
-          "AE"
-        ]
-      },
-      {
         "name": "REG Architects",
         "sub": "West Palm Beach",
         "count": 8,
@@ -367,16 +357,6 @@
         ]
       },
       {
-        "name": "Owings & Merrill (SOM)",
-        "sub": "New York City",
-        "count": 5,
-        "states": [
-          "NY",
-          "Other",
-          "AE"
-        ]
-      },
-      {
         "name": "Populous",
         "sub": "Tampa",
         "count": 5,
@@ -421,6 +401,16 @@
         "states": [
           "FL",
           "NY"
+        ]
+      },
+      {
+        "name": "Skidmore Owings & Merrill (SOM)",
+        "sub": "New York City",
+        "count": 4,
+        "states": [
+          "NY",
+          "AE",
+          "Other"
         ]
       },
       {
@@ -476,7 +466,7 @@
         ]
       },
       {
-        "name": "Owings & Merrill (SOM) (master plan)",
+        "name": "Skidmore Owings & Merrill (SOM) (master plan)",
         "sub": "Chicago",
         "count": 3,
         "states": [
@@ -522,6 +512,15 @@
         "count": 2,
         "states": [
           "FL"
+        ]
+      },
+      {
+        "name": "Roger Ferris + Partners",
+        "sub": "West Palm Beach",
+        "count": 2,
+        "states": [
+          "FL",
+          "NY"
         ]
       }
     ],
@@ -2407,23 +2406,13 @@
       ],
       "architects": [
         {
-          "name": "Skidmore",
-          "sub": "New York City",
-          "count": 3,
-          "states": [
-            "Other",
-            "NY",
-            "AE"
-          ]
-        },
-        {
-          "name": "Owings & Merrill (SOM)",
+          "name": "Skidmore Owings & Merrill (SOM)",
           "sub": "New York City",
           "count": 2,
           "states": [
             "NY",
-            "Other",
-            "AE"
+            "AE",
+            "Other"
           ]
         },
         {
@@ -2510,7 +2499,7 @@
           ]
         },
         {
-          "name": "Owings & Merrill (SOM) \u2014 master plan; Stern Architects",
+          "name": "Skidmore Owings & Merrill (SOM) \u2014 master plan; Stern Architects",
           "sub": "New York City",
           "count": 1,
           "states": [
@@ -2819,23 +2808,13 @@
           ]
         },
         {
-          "name": "Skidmore",
-          "sub": "New York City",
-          "count": 1,
-          "states": [
-            "Other",
-            "NY",
-            "AE"
-          ]
-        },
-        {
-          "name": "Owings & Merrill (SOM)",
+          "name": "Skidmore Owings & Merrill (SOM)",
           "sub": "New York City",
           "count": 1,
           "states": [
             "NY",
-            "Other",
-            "AE"
+            "AE",
+            "Other"
           ]
         },
         {
@@ -3770,6 +3749,41 @@
       "city": "West Palm Beach",
       "count": 12,
       "latest_date": "2026-05-09T10:28:27.734Z"
+    },
+    {
+      "slug": "10-15-cityplace",
+      "title": "10 & 15 CityPlace",
+      "city": "West Palm Beach",
+      "count": 11,
+      "latest_date": "2026-04-03T18:40:34.497Z"
+    },
+    {
+      "slug": "nashville-yards",
+      "title": "Nashville Yards",
+      "city": "Nashville",
+      "count": 11,
+      "latest_date": "2025-07-03T18:35:23.038Z"
+    },
+    {
+      "slug": "marina-village",
+      "title": "Marina Village",
+      "city": "Riviera Beach",
+      "count": 10,
+      "latest_date": "2026-04-15T00:15:14.702Z"
+    },
+    {
+      "slug": "the-berkeley",
+      "title": "The Berkeley",
+      "city": "West Palm Beach",
+      "count": 10,
+      "latest_date": "2026-04-03T18:40:34.497Z"
+    },
+    {
+      "slug": "cabot-citrus-farms",
+      "title": "Cabot Citrus Farms",
+      "city": "Brooksville",
+      "count": 9,
+      "latest_date": "2026-05-08T13:51:50.881Z"
     }
   ],
   "coming_soon": [
@@ -3780,7 +3794,9 @@
       "delivery_date": "2026-06-11",
       "days_out": 28,
       "bucket": "30d",
-      "status": "Opening Soon"
+      "status": "Opening Soon",
+      "display_label": "28d",
+      "display_precision": "day"
     },
     {
       "slug": "lofty-brickell",
@@ -3789,7 +3805,9 @@
       "delivery_date": "2026-07-01",
       "days_out": 48,
       "bucket": "90d",
-      "status": "Construction"
+      "status": "Construction",
+      "display_label": "Winter",
+      "display_precision": "year"
     },
     {
       "slug": "2200-brickell",
@@ -3798,7 +3816,9 @@
       "delivery_date": "2026-07-01",
       "days_out": 48,
       "bucket": "90d",
-      "status": "Construction"
+      "status": "Construction",
+      "display_label": "Winter",
+      "display_precision": "year"
     },
     {
       "slug": "the-st-regis-residences-miami",
@@ -3807,7 +3827,9 @@
       "delivery_date": "2026-07-01",
       "days_out": 48,
       "bucket": "90d",
-      "status": "Construction"
+      "status": "Construction",
+      "display_label": "Winter",
+      "display_precision": "year"
     },
     {
       "slug": "one-twenty-brickell-residences",
@@ -3816,7 +3838,9 @@
       "delivery_date": "2026-07-01",
       "days_out": 48,
       "bucket": "90d",
-      "status": "Construction"
+      "status": "Construction",
+      "display_label": "Winter",
+      "display_precision": "year"
     },
     {
       "slug": "fort-on-flagler",
@@ -3825,7 +3849,9 @@
       "delivery_date": "2026-07-01",
       "days_out": 48,
       "bucket": "90d",
-      "status": "Opening Soon"
+      "status": "Opening Soon",
+      "display_label": "Winter",
+      "display_precision": "year"
     },
     {
       "slug": "glass-house-boca-raton",
@@ -3834,7 +3860,9 @@
       "delivery_date": "2026-07-01",
       "days_out": 48,
       "bucket": "90d",
-      "status": "Construction"
+      "status": "Construction",
+      "display_label": "Winter",
+      "display_precision": "year"
     },
     {
       "slug": "boca-raton-innovation-campus",
@@ -3843,7 +3871,9 @@
       "delivery_date": "2026-07-01",
       "days_out": 48,
       "bucket": "90d",
-      "status": "Announced"
+      "status": "Announced",
+      "display_label": "Winter",
+      "display_precision": "year"
     },
     {
       "slug": "the-well-coconut-grove",
@@ -3852,7 +3882,9 @@
       "delivery_date": "2026-07-01",
       "days_out": 48,
       "bucket": "90d",
-      "status": "Construction"
+      "status": "Construction",
+      "display_label": "Winter",
+      "display_precision": "year"
     },
     {
       "slug": "casa-bella-residences-miami",
@@ -3861,7 +3893,9 @@
       "delivery_date": "2026-07-01",
       "days_out": 48,
       "bucket": "90d",
-      "status": "Construction"
+      "status": "Construction",
+      "display_label": "Winter",
+      "display_precision": "year"
     },
     {
       "slug": "the-village-at-coral-gables",
@@ -3870,7 +3904,9 @@
       "delivery_date": "2026-07-01",
       "days_out": 48,
       "bucket": "90d",
-      "status": "Construction"
+      "status": "Construction",
+      "display_label": "Winter",
+      "display_precision": "year"
     },
     {
       "slug": "caretta",
@@ -3879,7 +3915,9 @@
       "delivery_date": "2026-07-01",
       "days_out": 48,
       "bucket": "90d",
-      "status": "Construction"
+      "status": "Construction",
+      "display_label": "Winter",
+      "display_precision": "year"
     },
     {
       "slug": "currie-park",
@@ -3888,7 +3926,9 @@
       "delivery_date": "2026-07-01",
       "days_out": 48,
       "bucket": "90d",
-      "status": "Construction"
+      "status": "Construction",
+      "display_label": "Winter",
+      "display_precision": "year"
     },
     {
       "slug": "bath-and-racquet-residences",
@@ -3897,7 +3937,9 @@
       "delivery_date": "2026-07-01",
       "days_out": 48,
       "bucket": "90d",
-      "status": "Construction"
+      "status": "Construction",
+      "display_label": "Winter",
+      "display_precision": "year"
     },
     {
       "slug": "ritz-carlton-residences-south-beach",
@@ -3906,52 +3948,9 @@
       "delivery_date": "2026-07-01",
       "days_out": 48,
       "bucket": "90d",
-      "status": "Construction"
-    },
-    {
-      "slug": "the-raleigh-rosewood-residences",
-      "title": "The Raleigh Rosewood Residences",
-      "city": "Miami Beach",
-      "delivery_date": "2026-07-01",
-      "days_out": 48,
-      "bucket": "90d",
-      "status": "Construction"
-    },
-    {
-      "slug": "aman-miami-beach",
-      "title": "Aman Miami Beach",
-      "city": "Miami Beach",
-      "delivery_date": "2026-07-01",
-      "days_out": 48,
-      "bucket": "90d",
-      "status": "Construction"
-    },
-    {
-      "slug": "ella-miami-beach",
-      "title": "Ella Miami Beach",
-      "city": "Miami Beach",
-      "delivery_date": "2026-07-01",
-      "days_out": 48,
-      "bucket": "90d",
-      "status": "Construction"
-    },
-    {
-      "slug": "the-perigon-miami-beach",
-      "title": "The Perigon Miami Beach",
-      "city": "Miami Beach",
-      "delivery_date": "2026-07-01",
-      "days_out": 48,
-      "bucket": "90d",
-      "status": "Construction"
-    },
-    {
-      "slug": "the-dynasty",
-      "title": "The Dynasty",
-      "city": "Orlando",
-      "delivery_date": "2026-07-01",
-      "days_out": 48,
-      "bucket": "90d",
-      "status": "Construction"
+      "status": "Construction",
+      "display_label": "Winter",
+      "display_precision": "year"
     }
   ]
 }
