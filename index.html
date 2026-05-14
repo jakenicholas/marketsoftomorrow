@@ -3337,22 +3337,24 @@
       height: 4px;
       border-radius: 2px;
       /* Full lifecycle gradient is on the TRACK so colors anchor to their
-         actual stage position (gray=announced, yellow=breaking ground,
-         orange=construction, green=open). The fill element is repurposed
-         to dim the not-yet-reached portion. */
+         actual stage position. Stops tuned to match the lifecycle stage
+         percentages (Announced 10%, Breaking 30%, Construction 60%,
+         Opening Soon 85%, Open 100%) so each color sits over its stage zone. */
       background: linear-gradient(90deg,
         rgba(255,255,255,0.3) 0%,
-        #FFD300 33%,
-        #FF9500 66%,
-        #1FDF67 100%);
+        #FFD300 30%,
+        #FF9500 60%,
+        #1FDF67 95%);
       position: relative;
       overflow: hidden;
     }
     .popup-content .delivery-bar-fill {
-      /* Repurpose: this element now masks the UNCOMPLETED portion of the
-         track with a dim overlay. Inline width set by JS represents the
-         project's completion percentage. We translate that into a right-
-         anchored dim overlay covering (100% - that-width). */
+      /* Repurpose: this element masks the UNCOMPLETED portion of the track
+         with a dim overlay. The --fill-pct CSS variable (set inline) is the
+         project's completion percentage, and the overlay covers from that
+         position to the right edge. The overlay uses a gradient so the
+         leading edge fades from transparent to dim, eliminating the hard
+         transition line that would otherwise appear. */
       position: absolute;
       top: 0;
       right: 0;
@@ -3360,7 +3362,10 @@
       height: 100%;
       width: auto !important; /* override JS-set width */
       left: var(--fill-pct, 60%);
-      background: rgba(0,0,0,0.55);
+      background: linear-gradient(90deg,
+        rgba(0,0,0,0) 0%,
+        rgba(0,0,0,0.6) 30%,
+        rgba(0,0,0,0.65) 100%);
       border-radius: 0 2px 2px 0;
     }
     .popup-content .delivery-bar.open .delivery-bar-fill {
@@ -4090,70 +4095,48 @@
     line-height: 1.5;
   }
 
-  /* Map popup intel chip -- compact 2-line layout per mock:
-     Line 1: TMW Intelligence badge + value ("~7 months to completion")
-     Line 2: "Based on N similar projects" sub
-     Total height ~62px */
+  /* Map popup intel chip -- 3-row stacked layout per mock:
+     Row 1: "⬡ TMW INTELLIGENCE" eyebrow (icon + text, no pill)
+     Row 2: "~7 months to completion" (big purple value + gray tail)
+     Row 3: "Based on N similar projects" sub */
   .popup-content .popup-intel {
     margin-top: 12px;
     margin-bottom: 14px;
-    padding: 10px 12px;
+    padding: 10px 12px 11px;
     background: rgba(167,139,250,0.08);
     border: 1px solid rgba(167,139,250,0.24);
     border-radius: 10px;
   }
-  .popup-content .popup-intel-line {
+  .popup-content .popup-intel-eyebrow {
     display: flex;
     align-items: center;
-    gap: 8px;
-    flex-wrap: nowrap;
-    min-width: 0;
-  }
-  .popup-content .popup-intel-badge {
-    display: inline-flex;
-    align-items: center;
     gap: 5px;
-    background: rgba(167,139,250,0.14);
-    border: 1px solid rgba(167,139,250,0.32);
     color: #A78BFA;
-    padding: 3px 8px;
-    border-radius: 10px;
     font-size: 9px;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.06em;
-    white-space: nowrap;
-    flex-shrink: 0;
+    letter-spacing: 0.08em;
+    margin-bottom: 4px;
   }
-  .popup-content .popup-intel-badge svg {
-    width: 9px; height: 9px; fill: currentColor;
+  .popup-content .popup-intel-eyebrow svg {
+    width: 10px; height: 10px; fill: currentColor;
   }
   .popup-content .popup-intel-value {
-    font-size: 14px;
+    font-size: 17px;
     color: #A78BFA;
     font-weight: 700;
     line-height: 1.2;
     letter-spacing: -0.01em;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    min-width: 0;
-    flex: 1;
+    margin-bottom: 4px;
   }
   .popup-content .popup-intel-value-tail {
-    color: rgba(255,255,255,0.55);
+    color: rgba(255,255,255,0.6);
     font-weight: 500;
   }
   .popup-content .popup-intel-sub {
     font-size: 10px;
-    color: rgba(255,255,255,0.5);
-    margin-top: 4px;
+    color: rgba(255,255,255,0.45);
     font-weight: 500;
-  }
-  /* Hide the "to completion" tail on narrow popups (mobile) to keep the
-     value on one line with the badge */
-  @media (max-width: 320px) {
-    .popup-content .popup-intel-value-tail { display: none; }
   }
 
   #projectModal .pm-coverage-header {
@@ -7800,8 +7783,9 @@
     function zoomToPinOnly(f) {
       const co = f.geometry.coordinates;
       const selectedTitle = f.properties.title;
-      // Pink pin
-      const pinkPinExpr = ['case', ['==', ['get', 'title'], selectedTitle], '#FF6B9D', '#1FDF67'];
+      // Selected pin gets the TMW intel purple (#A78BFA) -- visually
+      // consistent with the intel block on the modal/popup.
+      const pinkPinExpr = ['case', ['==', ['get', 'title'], selectedTitle], '#A78BFA', '#1FDF67'];
       const pinkRadiusExpr = ['case', ['==', ['get', 'title'], selectedTitle], 11, 8];
       if (map.getLayer('unclustered-point')) {
         map.setPaintProperty('unclustered-point', 'circle-color', pinkPinExpr);
@@ -8803,9 +8787,27 @@
                 }
               } catch (err) { /* analytics shouldn't block navigation */ }
               if (matched && window.openProjectModal) {
+                // Fly the map to the comparable's location, mirroring what
+                // clicking the pin manually does. Then open the project modal.
+                try {
+                  if (matched.geometry && matched.geometry.coordinates) {
+                    const co = matched.geometry.coordinates;
+                    const off = isMobile
+                      ? [0, Math.round(window.innerHeight * 0.10)]
+                      : [0, Math.round(window.innerHeight * 0.18)];
+                    const currentZoom = map.getZoom();
+                    const targetZoom = Math.max(currentZoom, 13);
+                    map.flyTo({
+                      center: co,
+                      zoom: targetZoom,
+                      offset: off,
+                      duration: 1400,
+                      essential: true,
+                    });
+                  }
+                } catch (err) { /* flyTo failure shouldn't block the modal */ }
                 // openProjectModal handles replacing the currently-open modal:
-                // sets currentFeature, scrolls to top, re-renders content,
-                // and flies the map to the new project.
+                // sets currentFeature, scrolls to top, re-renders content.
                 window.openProjectModal(matched, 'intel-similar');
               } else {
                 // Fallback: feature not in current map data, navigate to its
@@ -9276,8 +9278,8 @@
       const co = f.geometry.coordinates;
       const selectedTitle = f.properties.title;
 
-      // Change selected pin to pink using Mapbox paint expression
-      const pinkPinExpr = ['case', ['==', ['get', 'title'], selectedTitle], '#FF6B9D', '#1FDF67'];
+      // Change selected pin to TMW intel purple using Mapbox paint expression
+      const pinkPinExpr = ['case', ['==', ['get', 'title'], selectedTitle], '#A78BFA', '#1FDF67'];
       const pinkRadiusExpr = ['case', ['==', ['get', 'title'], selectedTitle], 11, 8];
       if (map.getLayer('unclustered-point')) {
         map.setPaintProperty('unclustered-point', 'circle-color', pinkPinExpr);
@@ -9285,7 +9287,7 @@
       }
       window._selectedPinTitle = selectedTitle;
 
-      // Pink pulse ring around selected pin — delayed so pin color sets first
+      // Purple pulse ring around selected pin — delayed so pin color sets first
       setTimeout(() => {
         if (window._selectedPinTitle !== selectedTitle) return;
         const pulseEl = document.createElement('div');
@@ -9295,7 +9297,7 @@
           position:absolute;
           width:28px;height:28px;
           border-radius:50%;
-          background:rgba(255,107,157,0.4);
+          background:rgba(167,139,250,0.4);
           top:0;left:0;
           animation:locationPulse 1.8s ease-out infinite;
         `;
@@ -9353,13 +9355,11 @@
             const valueText = entry.estimate_label || ('~' + entry.estimate_years + ' yrs');
             intelMount.innerHTML = `
               <div class="popup-intel">
-                <div class="popup-intel-line">
-                  <span class="popup-intel-badge">
-                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2L4 7v10l8 5 8-5V7l-8-5zm0 2.5L18 8v8l-6 3.75L6 16V8l6-3.5z"/></svg>
-                    TMW Intelligence
-                  </span>
-                  <span class="popup-intel-value">${valueText}<span class="popup-intel-value-tail"> to completion</span></span>
+                <div class="popup-intel-eyebrow">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2L4 7v10l8 5 8-5V7l-8-5zm0 2.5L18 8v8l-6 3.75L6 16V8l6-3.5z"/></svg>
+                  TMW Intelligence
                 </div>
+                <div class="popup-intel-value">${valueText}<span class="popup-intel-value-tail"> to completion</span></div>
                 <div class="popup-intel-sub">${subText}</div>
               </div>
             `;
