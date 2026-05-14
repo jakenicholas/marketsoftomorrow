@@ -433,6 +433,80 @@ def format_years(years):
 # Build comparables index from all complete projects
 # ---------------------------------------------------------------------------
 
+def detect_date_precision(raw):
+    """Return one of 'day', 'month', 'year', 'other', or None based on
+    the format of the original DeliveryDate string."""
+    if not raw:
+        return None
+    s = raw.strip()
+    if re.match(r'^\d{4}-\d{2}-\d{2}$', s): return 'day'
+    if re.match(r'^\d{4}-\d{2}$', s): return 'month'
+    # "March 2026" / "Mar 2026"
+    if re.match(r'^[A-Za-z]+\.?\s+\d{4}$', s):
+        # Distinguish month name from season name. Months count as 'month',
+        # seasons count as 'other' (quarter-ish precision is fuzzier than a
+        # specific month).
+        first = s.split()[0].lower().rstrip('.')
+        if first in ('winter','spring','summer','fall','autumn'):
+            return 'other'
+        return 'month'
+    # Quarter
+    if re.match(r'^Q[1-4]\s+\d{4}$', s, re.IGNORECASE):
+        return 'other'
+    if re.match(r'^\d{4}$', s):
+        return 'year'
+    return 'other'
+
+
+def known_date_estimate(delivery_raw, today):
+    """If the project's DeliveryDate is precise enough to trust (day or
+    month precision, in the future, within 18 months), compute a 'known
+    date' intel entry directly from the date.
+
+    Returns a dict with the same shape as the comparable estimate, OR
+    None if the date isn't precise/timely enough.
+
+    Threshold is 18 months because: developer commitments within 18 months
+    are usually firm enough that pattern-based statistics would be LESS
+    accurate than just trusting the announced date. Beyond 18 months,
+    schedule slippage is common enough that the median of comparables is
+    likely better signal."""
+    precision = detect_date_precision(delivery_raw)
+    if precision not in ('day', 'month'):
+        return None
+    d = parse_date(delivery_raw)
+    if not d:
+        return None
+    days_out = (d - today).days
+    if days_out <= 0 or days_out > 540:  # ~18 months
+        return None
+
+    # Format the estimate. Tiers chosen to match how a reader would say it.
+    if days_out <= 60:
+        # "28 days" for projects this close. The frontend will animate this
+        # down day-by-day via the daily workflow rebuild.
+        estimate_label = f"{days_out} days"
+        # For UI sorting purposes we also need a numeric years value
+        estimate_years = round(days_out / 365.25, 2)
+    elif days_out <= 365:
+        months = round(days_out / 30.44)
+        estimate_label = f"~{months} months"
+        estimate_years = round(days_out / 365.25, 1)
+    else:
+        years_rounded = round(days_out / 365.25 * 2) / 2  # nearest 0.5
+        estimate_label = f"~{format_years(years_rounded)} years"
+        estimate_years = years_rounded
+
+    return {
+        'estimate_years': estimate_years,
+        'estimate_label': estimate_label,
+        'days_out': days_out,
+        'source': 'known_date',  # vs 'comparables' for the inferred path
+        'precision': precision,
+        'delivery_date': d.isoformat(),
+    }
+
+
 def build_complete_index(rows):
     """Return a list of complete projects with computed years_to_complete.
     Each entry: { title, slug, city, metro, type, start, end, years }
@@ -587,7 +661,9 @@ def main():
 
     print("Computing intel for in-flight projects...")
     intel = {}
-    stats = {'high': 0, 'medium': 0, 'low': 0, 'skipped': 0, 'no_type': 0}
+    stats = {'high': 0, 'medium': 0, 'low': 0, 'known_date': 0,
+             'skipped': 0, 'no_type': 0}
+    today = date.today()
     for row in rows:
         delivery_raw = (row.get('Delivery','') or '').strip()
         # Only generate intel for in-flight projects (we already KNOW
@@ -597,14 +673,45 @@ def main():
         title = (row.get('Title','') or '').strip()
         if not title:
             continue
+        target_slug = slugify(title)
+        city = (row.get('City','') or '').strip()
         ptype = normalize_type(row.get('ProjectType',''))
+
+        # --- Path 1: KNOWN DATE override ---
+        # If the developer has committed to a specific date in the near
+        # future (within 18 months, month+ precision), use THAT as the
+        # estimate. The comparable algorithm exists for projects without
+        # firm dates -- if we have a firm date we should trust it.
+        delivery_date_raw = (row.get('DeliveryDate','') or '').strip()
+        known = known_date_estimate(delivery_date_raw, today)
+        if known:
+            intel[target_slug] = {
+                'estimate_years':   known['estimate_years'],
+                'estimate_label':   known['estimate_label'],
+                'days_out':         known['days_out'],
+                'delivery_date':    known['delivery_date'],
+                'source':           'known_date',
+                'precision':        known['precision'],
+                'confidence':       'high',  # developer-committed = high
+                'project_type':     ptype,
+                'metro':            metro_for_city(city),
+                # Empty comparables payload -- the UI will conditionally
+                # render different content for source=known_date.
+                'comparables':      [],
+                'comparable_count': 0,
+                'pattern_summary':  f"Developer-announced opening in {known['estimate_label']}.",
+            }
+            stats['known_date'] += 1
+            continue
+
+        # --- Path 2: COMPARABLE INFERENCE ---
+        # No firm near-term date -- fall back to median-of-comparables.
         if not ptype:
             stats['no_type'] += 1
             continue
-        city = (row.get('City','') or '').strip()
         target = {
             'title': title,
-            'slug': slugify(title),
+            'slug': target_slug,
             'city': city,
             'metro': metro_for_city(city),
             'type': ptype,
@@ -651,12 +758,14 @@ def main():
 
         intel[target['slug']] = {
             'estimate_years':    round(estimate, 1),
+            'estimate_label':    f"~{format_years(round(estimate, 1))} years",
             'range_low':         round(low, 1),
             'range_high':        round(high, 1),
             'confidence':        tier,
             'comparable_count':  len(pool),
             'exact_count':       len(exact),
             'used_relaxed':      used_relaxed,
+            'source':            'comparables',
             'project_type':      ptype,
             'metro':             target['metro'],
             'comparables':       comparables_payload,
@@ -667,9 +776,10 @@ def main():
         stats[tier] += 1
 
     print("Intel generation summary:")
-    print(f"  high   confidence: {stats['high']}")
-    print(f"  medium confidence: {stats['medium']}")
-    print(f"  low    confidence: {stats['low']}")
+    print(f"  known-date entries: {stats['known_date']}")
+    print(f"  high   confidence (comparables): {stats['high']}")
+    print(f"  medium confidence (comparables): {stats['medium']}")
+    print(f"  low    confidence (comparables): {stats['low']}")
     print(f"  skipped (insufficient data): {stats['skipped']}")
     print(f"  skipped (no project type):   {stats['no_type']}")
     print(f"  total intel entries written: {len(intel)}")
