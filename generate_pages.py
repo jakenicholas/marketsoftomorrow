@@ -54,6 +54,58 @@ _ASSUMED_YEARS = {
     'opening soon':      0.5,
 }
 
+def _coming_soon_display(raw_date_str, parsed_date, today):
+    """Decide how to display an upcoming delivery date based on the precision
+    of the original input string. Returns dict:
+      { 'label': str, 'precision': 'day'|'month'|'year' }
+
+    Day-precise inputs ('2027-06-15') return a day countdown like '20d'.
+    Month-precise inputs ('2027-06' or 'June 2027') return the month name.
+    Year-only inputs ('2027') return a season placeholder ('Winter').
+    Quarter inputs return their canonical month name.
+    Season inputs return the season word.
+    """
+    import re as _re
+    s = (raw_date_str or '').strip()
+    if not s or parsed_date is None:
+        return {'label': '', 'precision': 'unknown'}
+
+    # 1. Full ISO date -> day countdown
+    if _re.match(r'^\d{4}-\d{2}-\d{2}$', s):
+        days = (parsed_date - today).days
+        return {'label': f'{days}d', 'precision': 'day'}
+
+    # 2. Year-month ISO -> month name
+    if _re.match(r'^\d{4}-\d{2}$', s):
+        return {'label': parsed_date.strftime('%b'), 'precision': 'month'}
+
+    # 3. Month + year (e.g. "June 2027")
+    if _re.match(r'^[A-Za-z]+\.?\s+\d{4}$', s):
+        # Could be month-name OR season-name. Disambiguate by parsed month.
+        first = s.split()[0].lower().rstrip('.')
+        SEASON_LABELS = {
+            'winter': 'Winter', 'spring': 'Spring',
+            'summer': 'Summer', 'fall':   'Fall',
+            'autumn': 'Fall',
+        }
+        if first in SEASON_LABELS:
+            return {'label': SEASON_LABELS[first], 'precision': 'month'}
+        return {'label': parsed_date.strftime('%b'), 'precision': 'month'}
+
+    # 4. Quarter: "Q1 2027"
+    m = _re.match(r'^Q([1-4])\s+\d{4}$', s, _re.IGNORECASE)
+    if m:
+        # Quarter precision -> use the end-of-quarter month name
+        return {'label': parsed_date.strftime('%b'), 'precision': 'month'}
+
+    # 5. Year only -> "Winter" (end of year placeholder per user spec)
+    if _re.match(r'^\d{4}$', s):
+        return {'label': 'Winter', 'precision': 'year'}
+
+    # Unrecognized format -> just fall back to day countdown if we have a date
+    days = (parsed_date - today).days
+    return {'label': f'{days}d', 'precision': 'day'}
+
 def _parse_iso_date(s):
     """Best-effort parse of a delivery-date string. Returns datetime.date or None.
 
@@ -2009,14 +2061,43 @@ def _normalize_project_type(s):
     first = s.split(',')[0].strip()
     return first
 
+# Whitelist of well-known firm names that legitimately contain commas. These
+# would otherwise get incorrectly split on the comma by _split_entities. The
+# pre-splitter pass below replaces matches with comma-free canonical forms.
+# Keys are lowercase substrings to match; values are the canonical replacement.
+_KNOWN_FIRM_NORMALIZATIONS = [
+    ('skidmore, owings & merrill', 'Skidmore Owings & Merrill'),
+    ('skidmore, owings and merrill', 'Skidmore Owings & Merrill'),
+    ('skidmore, owings', 'Skidmore Owings'),  # truncated variant
+]
+
+def _protect_known_firms(raw):
+    """Replace known multi-word firm names that legitimately contain commas
+    with comma-free canonical versions BEFORE splitting. Returns the cleaned
+    string. Case-insensitive matching."""
+    if not raw:
+        return raw
+    lower = raw.lower()
+    out = raw
+    for needle, replacement in _KNOWN_FIRM_NORMALIZATIONS:
+        idx = lower.find(needle)
+        while idx >= 0:
+            out = out[:idx] + replacement + out[idx + len(needle):]
+            lower = out.lower()
+            idx = lower.find(needle, idx + len(replacement))
+    return out
+
 def _split_entities(raw):
     """Split a developer/architect field that may list multiple entities.
     Per data-entry convention, multiple entities are separated ONLY by commas.
     This preserves entity names that legitimately contain `&`, `/`, '+', or the
     word 'and' (e.g. "H&H Group", "Foster + Partners", "Smith and Sons").
+    Known firm names containing commas (e.g. "Skidmore, Owings & Merrill") are
+    protected via _protect_known_firms before the split.
     Placeholders like 'TBD' / 'Various' are filtered out."""
     if not raw:
         return []
+    raw = _protect_known_firms(raw)
     parts = raw.split(',')
     seen = set()
     out = []
@@ -2392,7 +2473,7 @@ def build_atlas_json(rows, pulse_path='pulse.json', articles_archive=None):
                     latest = d
             coverage_items.append((slug, len(articles), latest, row))
         coverage_items.sort(key=lambda x: (-x[1], -ord(x[2][0]) if x[2] else 0))
-        for slug, count, latest, row in coverage_items[:10]:
+        for slug, count, latest, row in coverage_items[:15]:
             most_covered.append({
                 'slug': slug,
                 'title': (row.get('Title','') or '').strip(),
@@ -2429,6 +2510,7 @@ def build_atlas_json(rows, pulse_path='pulse.json', articles_archive=None):
             slug = slugify(title)
         except Exception:
             slug = ''
+        display = _coming_soon_display(delivery_date_str, d, today)
         coming_soon.append({
             'slug': slug,
             'title': title,
@@ -2437,9 +2519,11 @@ def build_atlas_json(rows, pulse_path='pulse.json', articles_archive=None):
             'days_out': days_out,
             'bucket': bucket,
             'status': status_label,
+            'display_label': display['label'],
+            'display_precision': display['precision'],
         })
     coming_soon.sort(key=lambda x: x['days_out'])
-    coming_soon = coming_soon[:20]
+    coming_soon = coming_soon[:15]
 
     # --- Per-state leaderboards. Pre-compute for every state that has projects ---
     leaderboards_by_state = {}
