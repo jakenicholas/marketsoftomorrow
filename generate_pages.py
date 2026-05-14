@@ -2011,15 +2011,13 @@ def _normalize_project_type(s):
 
 def _split_entities(raw):
     """Split a developer/architect field that may list multiple entities.
-    Handles separators: comma, slash, ampersand, ' and '. Returns a list of
-    normalized entity names with placeholder values ('TBD', 'Various', etc.)
-    filtered out."""
+    Per data-entry convention, multiple entities are separated ONLY by commas.
+    This preserves entity names that legitimately contain `&`, `/`, '+', or the
+    word 'and' (e.g. "H&H Group", "Foster + Partners", "Smith and Sons").
+    Placeholders like 'TBD' / 'Various' are filtered out."""
     if not raw:
         return []
-    import re as _re
-    # Split on common multi-entity separators. Order matters: ' and ' before
-    # 'and' word-character matching, ampersand alone is fine.
-    parts = _re.split(r'\s*(?:,|/|&|\s+and\s+)\s*', raw, flags=_re.IGNORECASE)
+    parts = raw.split(',')
     seen = set()
     out = []
     for p in parts:
@@ -2037,45 +2035,86 @@ def _split_entities(raw):
 
 _CITY_TO_STATE = {
     # Florida -- core coverage area
-    'miami': 'FL', 'miami beach': 'FL', 'coral gables': 'FL', 'coconut grove': 'FL',
+    'miami': 'FL', 'miami beach': 'FL', 'south beach': 'FL',
+    'coral gables': 'FL', 'coconut grove': 'FL', 'pinecrest': 'FL',
     'doral': 'FL', 'aventura': 'FL', 'sunny isles': 'FL', 'sunny isles beach': 'FL',
-    'bal harbour': 'FL', 'brickell': 'FL', 'edgewater': 'FL', 'wynwood': 'FL',
+    'north miami': 'FL', 'north miami beach': 'FL', 'surfside': 'FL',
+    'bay harbor islands': 'FL', 'bay harbour islands': 'FL', 'indian creek': 'FL',
+    'fisher island': 'FL', 'key biscayne': 'FL', 'virginia key': 'FL',
+    'bal harbour': 'FL', 'bal harbor': 'FL',
+    'brickell': 'FL', 'edgewater': 'FL', 'wynwood': 'FL',
+    'allapattah': 'FL', 'overtown': 'FL',
     'little havana': 'FL', 'little river': 'FL', 'design district': 'FL',
-    'fort lauderdale': 'FL', 'pompano beach': 'FL', 'hollywood': 'FL', 'dania beach': 'FL',
-    'hallandale beach': 'FL',
+    'midtown miami': 'FL', 'downtown miami': 'FL',
+    'fort lauderdale': 'FL', 'ft lauderdale': 'FL', 'ft. lauderdale': 'FL',
+    'pompano beach': 'FL', 'oakland park': 'FL', 'wilton manors': 'FL',
+    'hollywood': 'FL', 'dania beach': 'FL', 'dania': 'FL',
+    'hallandale beach': 'FL', 'hallandale': 'FL',
+    'plantation': 'FL', 'sunrise': 'FL', 'davie': 'FL', 'cooper city': 'FL',
+    'pembroke pines': 'FL', 'miramar': 'FL', 'weston': 'FL',
+    'deerfield beach': 'FL', 'parkland': 'FL', 'coconut creek': 'FL',
+    'coral springs': 'FL',
     'west palm beach': 'FL', 'palm beach': 'FL', 'palm beach gardens': 'FL',
-    'north palm beach': 'FL', 'jupiter': 'FL', 'tequesta': 'FL',
+    'the palm beaches': 'FL',
+    'north palm beach': 'FL', 'jupiter': 'FL', 'jupiter island': 'FL', 'tequesta': 'FL',
+    'hobe sound': 'FL', 'stuart': 'FL', 'jensen beach': 'FL',
+    'palm city': 'FL', 'port st. lucie': 'FL', 'port saint lucie': 'FL',
+    'vero beach': 'FL', 'sebastian': 'FL',
     'lake worth': 'FL', 'lake worth beach': 'FL', 'lantana': 'FL',
     'delray beach': 'FL', 'boca raton': 'FL', 'boynton beach': 'FL',
     'riviera beach': 'FL', 'wellington': 'FL', 'royal palm beach': 'FL',
+    'loxahatchee': 'FL', 'westlake': 'FL',
     'singer island': 'FL', 'palm beach shores': 'FL',
-    'tampa': 'FL', 'st. petersburg': 'FL', 'st petersburg': 'FL', 'clearwater': 'FL',
-    'sarasota': 'FL', 'bradenton': 'FL', 'naples': 'FL', 'bonita springs': 'FL',
-    'orlando': 'FL', 'winter park': 'FL', 'kissimmee': 'FL',
-    'jacksonville': 'FL', 'st. augustine': 'FL', 'st augustine': 'FL',
-    'fort myers': 'FL', 'cape coral': 'FL', 'punta gorda': 'FL',
-    'key west': 'FL', 'key largo': 'FL', 'marathon': 'FL',
+    'manalapan': 'FL', 'south palm beach': 'FL', 'gulf stream': 'FL',
+    'highland beach': 'FL', 'briny breezes': 'FL', 'ocean ridge': 'FL',
+    'tampa': 'FL', 'st. petersburg': 'FL', 'st petersburg': 'FL', 'saint petersburg': 'FL',
+    'clearwater': 'FL', 'tampa bay': 'FL',
+    'sarasota': 'FL', 'siesta key': 'FL', 'longboat key': 'FL',
+    'bradenton': 'FL', 'anna maria island': 'FL',
+    'naples': 'FL', 'bonita springs': 'FL', 'marco island': 'FL', 'estero': 'FL',
+    'orlando': 'FL', 'winter park': 'FL', 'kissimmee': 'FL', 'celebration': 'FL',
+    'lake nona': 'FL', 'lake mary': 'FL',
+    'jacksonville': 'FL', 'st. augustine': 'FL', 'st augustine': 'FL', 'saint augustine': 'FL',
+    'amelia island': 'FL', 'fernandina beach': 'FL', 'ponte vedra': 'FL', 'ponte vedra beach': 'FL',
+    'fort myers': 'FL', 'ft myers': 'FL', 'cape coral': 'FL', 'punta gorda': 'FL',
+    'sanibel': 'FL', 'sanibel island': 'FL', 'captiva': 'FL',
+    'key west': 'FL', 'key largo': 'FL', 'marathon': 'FL', 'islamorada': 'FL',
+    'panama city beach': 'FL', 'panama city': 'FL', 'destin': 'FL', 'rosemary beach': 'FL',
+    'seaside': 'FL', 'watercolor': 'FL', 'alys beach': 'FL', '30a': 'FL',
     # Tennessee
-    'nashville': 'TN', 'memphis': 'TN', 'knoxville': 'TN', 'chattanooga': 'TN',
+    'nashville': 'TN', 'east nashville': 'TN', 'germantown': 'TN',
+    'memphis': 'TN', 'knoxville': 'TN', 'chattanooga': 'TN',
+    'franklin': 'TN', 'brentwood': 'TN', 'murfreesboro': 'TN', 'gallatin': 'TN',
+    'hendersonville': 'TN', 'cookeville': 'TN', 'spring hill': 'TN',
     # Carolinas
-    'charleston': 'SC', 'mount pleasant': 'SC', 'kiawah island': 'SC',
-    'hilton head': 'SC', 'myrtle beach': 'SC', 'greenville': 'SC',
-    'columbia': 'SC',
+    'charleston': 'SC', 'mount pleasant': 'SC', 'mt pleasant': 'SC',
+    'kiawah island': 'SC', 'isle of palms': 'SC', 'sullivans island': 'SC',
+    'hilton head': 'SC', 'hilton head island': 'SC', 'bluffton': 'SC',
+    'myrtle beach': 'SC', 'greenville': 'SC', 'columbia': 'SC',
     'asheville': 'NC', 'charlotte': 'NC', 'raleigh': 'NC', 'durham': 'NC',
-    'wilmington': 'NC', 'chapel hill': 'NC',
+    'wilmington': 'NC', 'chapel hill': 'NC', 'cary': 'NC',
+    'kiawah river': 'SC',
+    # Georgia
+    'atlanta': 'GA', 'savannah': 'GA', 'tybee island': 'GA', 'sea island': 'GA',
+    'st. simons': 'GA', 'jekyll island': 'GA',
     # New York
-    'new york': 'NY', 'manhattan': 'NY', 'brooklyn': 'NY', 'queens': 'NY',
+    'new york': 'NY', 'new york city': 'NY', 'nyc': 'NY', 'manhattan': 'NY',
+    'brooklyn': 'NY', 'queens': 'NY', 'bronx': 'NY',
     'long island': 'NY', 'hamptons': 'NY', 'east hampton': 'NY', 'southampton': 'NY',
+    'sag harbor': 'NY', 'montauk': 'NY', 'westhampton': 'NY', 'bridgehampton': 'NY',
     # Texas
     'austin': 'TX', 'houston': 'TX', 'dallas': 'TX', 'san antonio': 'TX',
+    'fort worth': 'TX', 'ft worth': 'TX',
     # International
-    'london': 'UK', 'paris': 'FR', 'tokyo': 'JP', 'dubai': 'AE',
+    'london': 'UK', 'paris': 'FR', 'tokyo': 'JP',
+    'dubai': 'AE', 'abu dhabi': 'AE',
+    'france': 'FR',  # appears as "France" alone in some rows
 }
 
 # Friendly region names for filter UI (state code -> label)
 _STATE_LABELS = {
     'FL': 'Florida', 'TN': 'Tennessee', 'SC': 'South Carolina', 'NC': 'North Carolina',
-    'NY': 'New York',  'TX': 'Texas',
+    'GA': 'Georgia',  'NY': 'New York',  'TX': 'Texas',
     'UK': 'UK', 'FR': 'France', 'JP': 'Japan', 'AE': 'UAE',
 }
 
@@ -2084,7 +2123,7 @@ def _state_for_city(city):
         return 'Other'
     return _CITY_TO_STATE.get(city.lower().strip(), 'Other')
 
-def build_atlas_json(rows, pulse_path='pulse.json'):
+def build_atlas_json(rows, pulse_path='pulse.json', articles_archive=None):
     """Compute Atlas page aggregates from CSV rows. Returns dict ready to json.dump.
 
     Each leaderboard entry includes a 'states' array of state codes where that
@@ -2190,10 +2229,19 @@ def build_atlas_json(rows, pulse_path='pulse.json'):
 
     # --- Available states for filter (only those with >0 projects) ---
     state_project_counts = Counter()
+    unmapped_cities = Counter()
     for row in rows:
         city = (row.get('City','') or '').strip()
         st = _state_for_city(city)
         state_project_counts[st] += 1
+        if st == 'Other' and city:
+            unmapped_cities[city] += 1
+    # Diagnostic: print any cities that fell to "Other" so we know what's missing
+    # from _CITY_TO_STATE. Visible in the GitHub Actions workflow log.
+    if unmapped_cities:
+        print(f"[atlas] {sum(unmapped_cities.values())} projects in {len(unmapped_cities)} unmapped cities:")
+        for city, count in unmapped_cities.most_common():
+            print(f"  {count:3d}  {city}")
     # Build filter list: all states sorted by project count desc
     available_states = []
     for st_code, count in state_project_counts.most_common():
