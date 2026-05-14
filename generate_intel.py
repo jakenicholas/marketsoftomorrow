@@ -542,21 +542,31 @@ def known_date_estimate(delivery_raw, today):
       'day'   ("2026-06-15")     -- most confident
       'month' ("2026-06" / "June 2026")
       'other' ("Q1 2026" / "Winter 2026") -- still trustworthy near-term
+      'year'  ("2026")           -- accepted ONLY when within 18 months
+                                    (matches the frontend's "by end of year"
+                                    convention so intel agrees with the
+                                    existing progress bar countdown)
 
     Rejected:
-      'year' ("2026")           -- too vague, fall through to comparables
       None / unparseable
       past dates
-      dates > 1095 days out     -- 3+ years, developer commitment less reliable
+      day/month/other dates > 1095 days out (3+ years)
+      year-only dates > 540 days out (18+ months)
     """
     precision = detect_date_precision(delivery_raw)
-    if precision not in ('day', 'month', 'other'):
+    if precision not in ('day', 'month', 'other', 'year'):
         return None
     d = parse_date(delivery_raw)
     if not d:
         return None
     days_out = (d - today).days
-    if days_out <= 0 or days_out > 1095:  # ~36 months
+    if days_out <= 0:
+        return None
+    # Year-only has a stricter cap because it's a vague signal beyond
+    # ~24 months; for closer dates it matches what the frontend already
+    # shows on the progress bar.
+    max_days = 720 if precision == 'year' else 1095
+    if days_out > max_days:
         return None
 
     # Format the estimate. Tiers chosen to match how a reader would say it.
