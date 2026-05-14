@@ -6169,7 +6169,7 @@
   }
   .atlas-coming-bucket[data-bucket="30d"] .atlas-coming-bucket-dot  { background: #1FDF67; }
   .atlas-coming-bucket[data-bucket="90d"] .atlas-coming-bucket-dot  { background: #FF9500; }
-  .atlas-coming-bucket[data-bucket="120d"] .atlas-coming-bucket-dot { background: #6FA8FF; }
+  .atlas-coming-bucket[data-bucket="rest"] .atlas-coming-bucket-dot { background: #6FA8FF; }
   .atlas-coming-row {
     display: grid;
     grid-template-columns: 1fr auto;
@@ -7761,9 +7761,11 @@
         m = s.match(/^(\d{4})-(\d{2})$/);
         if (m) return new Date(+m[1], +m[2] - 1, 15);
 
-        // 5. Year only: "2027"
+        // 5. Year only: "2027" -> end of year (Dec 31). Convention: undated
+        // YYYY means "by the end of YYYY". Keep this in sync with
+        // _parse_iso_date() in generate_pages.py.
         m = s.match(/^(\d{4})$/);
-        if (m) return new Date(+m[1], 6, 1);
+        if (m) return new Date(+m[1], 11, 31);
 
         // 6. Last resort: Date constructor (handles "2027/06/15", etc.)
         const d = new Date(s);
@@ -14239,14 +14241,15 @@
       const data = atlasData.coming_soon || [];
       if (!data.length) return '';
       // Group by bucket so we can render labeled sub-sections
-      const buckets = { '30d': [], '90d': [], '120d': [] };
+      const buckets = { '30d': [], '90d': [], 'rest': [] };
       data.forEach(p => { if (buckets[p.bucket]) buckets[p.bucket].push(p); });
+      const yearLabel = new Date().getFullYear();
       const bucketLabels = {
         '30d':  'Next 30 days',
         '90d':  'Next 90 days',
-        '120d': 'Next 120 days',
+        'rest': `Later in ${yearLabel}`,
       };
-      const sections = ['30d', '90d', '120d'].map(key => {
+      const sections = ['30d', '90d', 'rest'].map(key => {
         if (!buckets[key].length) return '';
         const rows = buckets[key].map(p => {
           const href = p.slug ? `/projects/${encodeURIComponent(p.slug)}/` : '#';
@@ -14281,7 +14284,7 @@
           <div class="atlas-section-head">
             <div>
               <h2 class="atlas-section-title">Coming soon</h2>
-              <p class="atlas-section-sub">Projects delivering in the next four months.</p>
+              <p class="atlas-section-sub">Projects delivering through year-end.</p>
             </div>
           </div>
           <div class="atlas-panel">${sections}</div>
