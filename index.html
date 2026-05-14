@@ -4032,9 +4032,11 @@
     color: inherit;
     display: block;
   }
-  #projectModal .pm-intel-similar:hover {
+  #projectModal .pm-intel-similar:hover,
+  #projectModal .pm-intel-similar:focus-visible {
     border-color: rgba(167,139,250,0.4);
     background: rgba(0,0,0,0.5);
+    outline: none;
   }
   #projectModal .pm-intel-similar-name {
     font-size: 12px;
@@ -8703,18 +8705,23 @@
             ? ` <span style="font-size:13px;color:rgba(255,255,255,0.5);font-weight:500;">(${entry.range_low}\u2013${entry.range_high} yrs)</span>`
             : '';
 
-          // Comparables (up to 3)
+          // Comparables (up to 3). Tiles are clickable -- they navigate to
+          // the comparable project's modal on the map (closing the current
+          // modal first, flying the map there). If a comparable isn't in
+          // the current map data (rare -- could be a project pruned since
+          // intel.json was generated), the tile falls back to the static
+          // landing page on click.
           let similarsHtml = '';
           (entry.comparables || []).forEach(c => {
-            const href = c.slug ? `/projects/${encodeURIComponent(c.slug)}/` : '#';
+            const safeSlug = escapeArticleHtml(c.slug || '');
             similarsHtml += `
-              <a class="pm-intel-similar" href="${escapeArticleHtml(href)}">
+              <div class="pm-intel-similar" data-similar-slug="${safeSlug}" role="link" tabindex="0">
                 <div class="pm-intel-similar-name">${escapeArticleHtml(c.name || '')}</div>
                 <div class="pm-intel-similar-loc">${escapeArticleHtml(c.location || '')}</div>
                 <div class="pm-intel-similar-row">
                   <span><b>${c.years}</b> yrs</span>
                 </div>
-              </a>`;
+              </div>`;
           });
 
           // Pattern summary -- highlight the comparable count
@@ -8768,6 +8775,52 @@
             `;
           }
           wrap.removeAttribute('hidden');
+
+          // Wire up similar-project tile clicks. Each tile has data-similar-slug;
+          // we look up the corresponding feature in the map's master features
+          // list and call openProjectModal on it (which handles the modal swap
+          // and map flyTo). If the feature isn't found, fall back to the
+          // static landing page so the click isn't dropped.
+          const similarTiles = wrap.querySelectorAll('.pm-intel-similar');
+          similarTiles.forEach(tile => {
+            const handleClick = () => {
+              const targetSlug = tile.getAttribute('data-similar-slug');
+              if (!targetSlug) return;
+              const features = window.allProjectFeatures || [];
+              const slugFn = window.projectSlugify || pyStyleSlug;
+              let matched = null;
+              for (const f of features) {
+                const t = f.properties && f.properties.title;
+                if (t && slugFn(t) === targetSlug) { matched = f; break; }
+              }
+              try {
+                if (window.gtag) {
+                  gtag('event', 'intel_similar_click', {
+                    project_name: projectTitle,
+                    target_slug: targetSlug,
+                    target_found: !!matched,
+                  });
+                }
+              } catch (err) { /* analytics shouldn't block navigation */ }
+              if (matched && window.openProjectModal) {
+                // openProjectModal handles replacing the currently-open modal:
+                // sets currentFeature, scrolls to top, re-renders content,
+                // and flies the map to the new project.
+                window.openProjectModal(matched, 'intel-similar');
+              } else {
+                // Fallback: feature not in current map data, navigate to its
+                // static landing page so the click leads somewhere meaningful.
+                window.location.href = `/projects/${encodeURIComponent(targetSlug)}/`;
+              }
+            };
+            tile.addEventListener('click', handleClick);
+            tile.addEventListener('keydown', (e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                handleClick();
+              }
+            });
+          });
 
           // Fire a GA4 event so we can see whether users care about this
           // block. event name: 'intel_view'. parameters: confidence + slug.
