@@ -5724,8 +5724,6 @@
      ──────────────────────────────────────────────────────────────────────── */
   .atlas-mode-toggle {
     display: inline-flex;
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.1);
     border-radius: 999px;
     padding: 3px;
     position: fixed;
@@ -5733,11 +5731,12 @@
     top: calc(var(--header-height) / 2 + var(--safe-area-top, 0px));
     transform: translate(-50%, -50%);
     z-index: 1001;
-    /* Stronger glass: deeper blur + saturation, double background fallback */
-    backdrop-filter: blur(40px) saturate(1.8);
-    -webkit-backdrop-filter: blur(40px) saturate(1.8);
-    background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
-    box-shadow: 0 4px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08);
+    /* Match the glass-btn style used by Pulse/Watchlist/etc */
+    background: rgba(15,15,15,0.55);
+    backdrop-filter: blur(16px) saturate(1.4);
+    -webkit-backdrop-filter: blur(16px) saturate(1.4);
+    border: 1px solid rgba(255,255,255,0.10);
+    box-shadow: 0 4px 24px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.06);
   }
   .atlas-mode-toggle-btn {
     padding: 7px 18px;
@@ -5753,7 +5752,10 @@
     font-family: inherit;
   }
   .atlas-mode-toggle-btn:hover { color: #fff; }
-  .atlas-mode-toggle-btn.active { background: #1FDF67; color: #0a0a0a; }
+  .atlas-mode-toggle-btn.active {
+    background: #1FDF67;
+    color: #0a0a0a;
+  }
   @media(max-width:800px) {
     .atlas-mode-toggle {
       position: fixed;
@@ -5761,10 +5763,11 @@
       left: 50%;
       transform: translateX(-50%);
       z-index: 1001;
-      backdrop-filter: blur(40px) saturate(1.8);
-      -webkit-backdrop-filter: blur(40px) saturate(1.8);
-      background: linear-gradient(180deg, rgba(255,255,255,0.1), rgba(255,255,255,0.04));
-      box-shadow: 0 4px 24px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1);
+      background: rgba(15,15,15,0.55);
+      backdrop-filter: blur(16px) saturate(1.4);
+      -webkit-backdrop-filter: blur(16px) saturate(1.4);
+      border: 1px solid rgba(255,255,255,0.10);
+      box-shadow: 0 4px 24px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.06);
     }
     .atlas-mode-toggle-btn { padding: 6px 14px; font-size: 12px; }
   }
@@ -5796,6 +5799,10 @@
       display: flex !important;
       top: 0;
       padding-top: var(--safe-area-top, 0px);
+      background: transparent !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+      box-shadow: none !important;
     }
   }
   body.atlas-mode #pulseStack,
@@ -5864,6 +5871,7 @@
   }
 
   .atlas-section { padding-bottom: 56px; }
+  @media(max-width:800px) { .atlas-section { padding-bottom: 28px; } }
   .atlas-section-head {
     display: flex; justify-content: space-between; align-items: end;
     margin-bottom: 22px; gap: 16px; flex-wrap: wrap;
@@ -5884,7 +5892,11 @@
     border-bottom: 1px solid rgba(255,255,255,0.06);
     padding: 0 6px;
     overflow-x: auto;
+    overflow-y: hidden;
     scrollbar-width: none;
+    touch-action: pan-x;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
   }
   .atlas-lb-tabs::-webkit-scrollbar { display: none; }
   .atlas-lb-tab {
@@ -5983,59 +5995,35 @@
     padding: 0 6px; font-size: 11px; color: rgba(255,255,255,0.4);
   }
 
-  /* Pulse rows -- vertical timeline mirroring the Pulse drawer design */
+  /* Pulse rows -- clean vertical list, left-aligned, no spine dots */
   .atlas-pulse-spine {
-    position: relative;
-    padding: 8px 0 8px 32px;
-  }
-  .atlas-pulse-spine::before {
-    content: '';
-    position: absolute;
-    left: 19px;
-    top: 22px;
-    bottom: 22px;
-    width: 1px;
-    background: rgba(255,255,255,0.1);
+    padding: 0;
   }
   .atlas-pulse-row {
-    position: relative;
     display: flex;
     align-items: flex-start;
     gap: 16px;
-    padding: 14px 0 14px 16px;
+    padding: 14px 8px;
     cursor: pointer;
     border-radius: 8px;
     transition: background 0.1s;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
   }
+  .atlas-pulse-row:last-child { border-bottom: none; }
   .atlas-pulse-row:hover { background: rgba(255,255,255,0.025); }
-  .atlas-pulse-row-dot {
-    position: absolute;
-    left: -13px;
-    top: 22px;
-    width: 10px; height: 10px;
-    border-radius: 50%;
-    background: #1FDF67;
-    box-shadow: 0 0 0 4px #0a0a0a;
-    flex-shrink: 0;
-  }
-  .atlas-pulse-row-dot[data-type="status_change"] { background: #FF9500; }
-  .atlas-pulse-row-dot[data-type="new_project"] { background: #6FA8FF; }
-  .atlas-pulse-row-dot[data-type="article"] { background: #1FDF67; }
   .atlas-pulse-row-content { flex: 1; min-width: 0; }
   .atlas-pulse-row-meta {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 10px;
     margin-bottom: 4px;
     font-size: 11px;
-    color: rgba(255,255,255,0.5);
     letter-spacing: 0.05em;
     font-weight: 500;
     text-transform: uppercase;
     font-variant-numeric: tabular-nums;
   }
   .atlas-pulse-row-time { color: rgba(255,255,255,0.5); }
-  .atlas-pulse-row-sep { color: rgba(255,255,255,0.3); }
   .atlas-pulse-row-city { color: rgba(255,255,255,0.6); }
   .atlas-pulse-row-title {
     font-size: 15px;
@@ -13854,14 +13842,20 @@
 
     let currentStateFilter = 'ALL';
 
-    function filterByState(rows) {
-      if (currentStateFilter === 'ALL') return rows;
-      return rows.filter(r => Array.isArray(r.states) && r.states.includes(currentStateFilter));
+    function leaderboardSource(key) {
+      // Pick the right LB based on current state filter:
+      // - 'ALL'  -> global top-30 from atlasData.leaderboards
+      // - state  -> per-state top-30 from atlasData.leaderboards_by_state[state]
+      if (currentStateFilter === 'ALL') {
+        return (atlasData.leaderboards && atlasData.leaderboards[key]) || [];
+      }
+      const byState = atlasData.leaderboards_by_state || {};
+      const stateLb = byState[currentStateFilter] || {};
+      return stateLb[key] || [];
     }
 
     function renderLeaderboardRows(key) {
-      const raw = (atlasData.leaderboards && atlasData.leaderboards[key]) || [];
-      const data = filterByState(raw);
+      const data = leaderboardSource(key);
       if (!data.length) {
         return '<div style="padding:32px;text-align:center;color:rgba(255,255,255,0.4);font-size:13px;">No entries match this filter</div>';
       }
@@ -13909,12 +13903,17 @@
     function updateLoadMoreBtn(key) {
       const btn = document.getElementById('atlasLoadMore');
       if (!btn) return;
-      const raw = (atlasData.leaderboards && atlasData.leaderboards[key]) || [];
-      const data = filterByState(raw);
+      const data = leaderboardSource(key);
       const topN = isMobileNow() ? TOP_N_MOBILE : TOP_N_DESKTOP;
-      const canShowMore = data.length > topN && !lbState[key].showAll;
-      btn.hidden = !canShowMore;
-      btn.textContent = canShowMore ? `Load more (${data.length - topN}) ↓` : '';
+      const hasOverflow = data.length > topN;
+      // Button is hidden ONLY when there's nothing to expand. Otherwise it
+      // toggles between "Show all" and "Show less" depending on showAll state.
+      btn.hidden = !hasOverflow;
+      if (lbState[key].showAll) {
+        btn.textContent = 'Show less ↑';
+      } else {
+        btn.textContent = `Show all (${data.length - topN} more) ↓`;
+      }
     }
 
     function renderDistribution() {
@@ -13968,18 +13967,16 @@
     function renderRecentActivity() {
       const events = atlasData.recent_activity || [];
       if (!events.length) return '';
-      // Render up to 10 events as a vertical list mirroring the Pulse drawer
       const cards = events.slice(0, 10).map(ev => {
         const type = ev.type || 'article';
         const tagLabel = (ev.tag || (type === 'article' ? 'On TMW' : type === 'new_project' ? 'New on Map' : 'Update')).toUpperCase();
         const city = (ev.city || '').toUpperCase();
         return `
           <div class="atlas-pulse-row" data-pulse-slug="${escapeHtml(ev.slug || '')}" data-pulse-link="${escapeHtml(ev.link || '')}">
-            <div class="atlas-pulse-row-dot" data-type="${escapeHtml(type)}"></div>
             <div class="atlas-pulse-row-content">
               <div class="atlas-pulse-row-meta">
                 <span class="atlas-pulse-row-time">${escapeHtml(ev.ago || '')}</span>
-                ${city ? `<span class="atlas-pulse-row-sep">·</span><span class="atlas-pulse-row-city">${escapeHtml(city)}</span>` : ''}
+                ${city ? `<span class="atlas-pulse-row-city">${escapeHtml(city)}</span>` : ''}
               </div>
               <div class="atlas-pulse-row-title">${escapeHtml(ev.title || '')}</div>
               <div class="atlas-pulse-row-tag">${escapeHtml(tagLabel)}</div>
@@ -14051,16 +14048,22 @@
           updateLoadMoreBtn(key);
         });
       });
-      // Load more
+      // Load more / Show less toggle
       const loadMore = document.getElementById('atlasLoadMore');
       if (loadMore) {
         loadMore.addEventListener('click', function() {
           const activeTab = document.querySelector('.atlas-lb-tab.active');
           const key = activeTab ? activeTab.dataset.lbTab : 'developers';
-          lbState[key].showAll = true;
+          lbState[key].showAll = !lbState[key].showAll;
           const content = document.getElementById('atlasLbContent');
           if (content) content.innerHTML = renderLeaderboardRows(key);
           updateLoadMoreBtn(key);
+          // If we just collapsed, scroll back up to the tabs so the user
+          // doesn't end up stranded in the middle of empty space.
+          if (!lbState[key].showAll) {
+            const tabs = document.querySelector('.atlas-lb-tabs');
+            if (tabs) tabs.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
         });
       }
       // Pulse rows: clicking opens the actual Pulse drawer (NOT deep-link or new tab)
