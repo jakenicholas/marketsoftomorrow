@@ -2362,6 +2362,85 @@ def build_atlas_json(rows, pulse_path='pulse.json', articles_archive=None):
     except (FileNotFoundError, json.JSONDecodeError, Exception):
         pass
 
+    # --- Most-covered projects ---
+    # Articles archive shape: { slug: [ {title, link, image, published_at}, ... ] }
+    # Build a slug -> row lookup so we can resolve title/city from the slug key.
+    most_covered = []
+    if articles_archive:
+        slug_to_row = {}
+        for row in rows:
+            t = (row.get('Title','') or '').strip()
+            if not t:
+                continue
+            try:
+                slug_to_row[slugify(t)] = row
+            except Exception:
+                continue
+        # Build a sortable list of (slug, count, latest_date, row)
+        coverage_items = []
+        for slug, articles in articles_archive.items():
+            if not isinstance(articles, list) or len(articles) < 2:
+                continue  # Skip 0 or 1 article -- not "coverage" worth ranking
+            row = slug_to_row.get(slug)
+            if not row:
+                continue  # Orphaned coverage (project removed from sheet)
+            # Latest article date for sub-label
+            latest = ''
+            for a in articles:
+                d = (a.get('published_at','') or '').strip()
+                if d > latest:
+                    latest = d
+            coverage_items.append((slug, len(articles), latest, row))
+        coverage_items.sort(key=lambda x: (-x[1], -ord(x[2][0]) if x[2] else 0))
+        for slug, count, latest, row in coverage_items[:10]:
+            most_covered.append({
+                'slug': slug,
+                'title': (row.get('Title','') or '').strip(),
+                'city': (row.get('City','') or '').strip(),
+                'count': count,
+                'latest_date': latest,
+            })
+
+    # --- Coming soon: projects delivering in the next ~120 days ---
+    # Skip Now Open. Bucket into 30d / 90d / 120d windows. Sort earliest-first.
+    coming_soon = []
+    today = now
+    for row in rows:
+        delivery_date_str = (row.get('DeliveryDate','') or '').strip()
+        d = _parse_iso_date(delivery_date_str)
+        if not d:
+            continue
+        days_out = (d - today).days
+        if days_out < 0 or days_out > 120:
+            continue
+        status_label, _, _ = delivery_info((row.get('Delivery','') or '').strip())
+        if status_label == 'Now Open':
+            continue
+        title = (row.get('Title','') or '').strip()
+        if not title:
+            continue
+        if days_out <= 30:
+            bucket = '30d'
+        elif days_out <= 90:
+            bucket = '90d'
+        else:
+            bucket = '120d'
+        try:
+            slug = slugify(title)
+        except Exception:
+            slug = ''
+        coming_soon.append({
+            'slug': slug,
+            'title': title,
+            'city': (row.get('City','') or '').strip(),
+            'delivery_date': d.isoformat(),
+            'days_out': days_out,
+            'bucket': bucket,
+            'status': status_label,
+        })
+    coming_soon.sort(key=lambda x: x['days_out'])
+    coming_soon = coming_soon[:20]
+
     # --- Per-state leaderboards. Pre-compute for every state that has projects ---
     leaderboards_by_state = {}
     for st in available_states:
@@ -2394,6 +2473,8 @@ def build_atlas_json(rows, pulse_path='pulse.json', articles_archive=None):
         'openings_by_year': openings_by_year,
         'available_states': available_states,
         'recent_activity': recent_activity,
+        'most_covered': most_covered,
+        'coming_soon': coming_soon,
     }
 
 def main():
@@ -2480,7 +2561,7 @@ def main():
     # static JSON and renders. Same pattern as pulse.json.
     print("Building atlas.json...")
     try:
-        atlas = build_atlas_json(rows)
+        atlas = build_atlas_json(rows, articles_archive=articles_archive)
         with open('atlas.json', 'w', encoding='utf-8') as f:
             json.dump(atlas, f, indent=2)
         n_devs = len(atlas['leaderboards']['developers'])
