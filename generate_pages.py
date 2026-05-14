@@ -2111,11 +2111,21 @@ def build_atlas_json(rows, pulse_path='pulse.json'):
     monthly_announcements = Counter()
     openings_by_year_counts = Counter()  # int year -> count
 
-    # Per-entity state tracking (entity -> Counter(state))
+    # Per-entity state tracking (entity -> Counter(state)) for the global LB
+    # variants (showing which states an entity operates in).
     dev_states = defaultdict(Counter)
     arch_states = defaultdict(Counter)
     city_states = {}  # city -> single state (cities only live in one state)
     type_states = defaultdict(Counter)
+
+    # Per-state leaderboard counts. Keyed by state code -> Counter(entity).
+    # When a state filter is active, we draw the leaderboard from these counters
+    # instead of the global one so small markets aren't dropped out by the top-30
+    # cap on the global view.
+    dev_by_state = defaultdict(Counter)
+    arch_by_state = defaultdict(Counter)
+    city_by_state = defaultdict(Counter)
+    type_by_state = defaultdict(Counter)
 
     # Sublabel data (entity -> Counter(city))
     dev_cities = defaultdict(Counter)
@@ -2151,6 +2161,7 @@ def build_atlas_json(rows, pulse_path='pulse.json'):
         if city:
             city_counts[city] += 1
             city_states[city] = state
+            city_by_state[state][city] += 1
 
         # Multi-developer split. "Related, BH3 / PMG" -> ['Related', 'BH3', 'PMG'].
         # Each gets +1 in the count for this row (a co-developed project credits
@@ -2160,6 +2171,7 @@ def build_atlas_json(rows, pulse_path='pulse.json'):
             dev_counts[dev] += 1
             dev_cities[dev][city] += 1
             dev_states[dev][state] += 1
+            dev_by_state[state][dev] += 1
 
         # Multi-architect split. Same logic as developers.
         arch_raw = (row.get('Architect','') or '').strip()
@@ -2167,12 +2179,14 @@ def build_atlas_json(rows, pulse_path='pulse.json'):
             arch_counts[arch] += 1
             arch_cities[arch][city] += 1
             arch_states[arch][state] += 1
+            arch_by_state[state][arch] += 1
 
         # Product type (still first listed; type taxonomy is single-value)
         t = _normalize_project_type(row.get('ProjectType',''))
         if t:
             type_counts[t] += 1
             type_states[t][state] += 1
+            type_by_state[state][t] += 1
 
     # --- Available states for filter (only those with >0 projects) ---
     state_project_counts = Counter()
@@ -2191,14 +2205,23 @@ def build_atlas_json(rows, pulse_path='pulse.json'):
             'count': count,
         })
 
-    # --- Build leaderboards (top 30 each so the UI can show top 8 + load more) ---
+    # --- Build leaderboards (top 30 each, both global and per-state) ---
     def _states_for(state_counter):
         """Return sorted list of state codes for an entity, most-projects-first."""
         return [s for s, _ in state_counter.most_common()]
 
-    def _lb_developers():
+    # Build city_devs once and reuse across global + per-state city LB calls
+    _city_devs = defaultdict(set)
+    for row in rows:
+        c = (row.get('City','') or '').strip()
+        for d in _split_entities(row.get('Developer','')):
+            if c:
+                _city_devs[c].add(d)
+
+    def _lb_developers(state_filter=None):
+        src = dev_by_state[state_filter] if state_filter else dev_counts
         out = []
-        for name, count in dev_counts.most_common(30):
+        for name, count in src.most_common(30):
             top_city = dev_cities[name].most_common(1)[0][0] if dev_cities[name] else ''
             sub = top_city if top_city else f'{count} project{"s" if count != 1 else ""}'
             out.append({
@@ -2207,9 +2230,10 @@ def build_atlas_json(rows, pulse_path='pulse.json'):
             })
         return out
 
-    def _lb_architects():
+    def _lb_architects(state_filter=None):
+        src = arch_by_state[state_filter] if state_filter else arch_counts
         out = []
-        for name, count in arch_counts.most_common(30):
+        for name, count in src.most_common(30):
             top_city = arch_cities[name].most_common(1)[0][0] if arch_cities[name] else ''
             sub = top_city if top_city else f'{count} project{"s" if count != 1 else ""}'
             out.append({
@@ -2218,29 +2242,29 @@ def build_atlas_json(rows, pulse_path='pulse.json'):
             })
         return out
 
-    def _lb_cities():
-        # Sub-label: count of unique developers active in that city.
-        # Now using the split-developer values for accurate per-city dev counts.
-        city_devs = defaultdict(set)
-        for row in rows:
-            c = (row.get('City','') or '').strip()
-            for d in _split_entities(row.get('Developer','')):
-                if c:
-                    city_devs[c].add(d)
+    def _lb_cities(state_filter=None):
+        src = city_by_state[state_filter] if state_filter else city_counts
         out = []
-        for name, count in city_counts.most_common(30):
-            n_devs = len(city_devs[name])
-            sub = f'{n_devs} active developer{"s" if n_devs != 1 else ""}' if n_devs else f'{count} projects'
+        for name, count in src.most_common(30):
+            n_devs = len(_city_devs[name])
+            dev_part = f'{count} development{"s" if count != 1 else ""}'
+            if n_devs:
+                sub = f'{dev_part} \u00b7 {n_devs} developer{"s" if n_devs != 1 else ""}'
+            else:
+                sub = dev_part
             out.append({
                 'name': name, 'sub': sub, 'count': count,
                 'states': [city_states.get(name, 'Other')],
             })
         return out
 
-    def _lb_types():
+    def _lb_types(state_filter=None):
+        src = type_by_state[state_filter] if state_filter else type_counts
+        # Use total projects for denominator when global, total filtered count when per-state
+        denom = (state_project_counts.get(state_filter, 0) if state_filter else total_projects) or 1
         out = []
-        for name, count in type_counts.most_common(30):
-            pct = (count / total_projects * 100) if total_projects else 0
+        for name, count in src.most_common(30):
+            pct = (count / denom * 100)
             sub = f'{pct:.0f}% of pipeline'
             out.append({
                 'name': name, 'sub': sub, 'count': count,
@@ -2290,6 +2314,17 @@ def build_atlas_json(rows, pulse_path='pulse.json'):
     except (FileNotFoundError, json.JSONDecodeError, Exception):
         pass
 
+    # --- Per-state leaderboards. Pre-compute for every state that has projects ---
+    leaderboards_by_state = {}
+    for st in available_states:
+        code = st['code']
+        leaderboards_by_state[code] = {
+            'developers': _lb_developers(code),
+            'architects': _lb_architects(code),
+            'cities':     _lb_cities(code),
+            'types':      _lb_types(code),
+        }
+
     return {
         'generated_at': now.isoformat(),
         'hero_stats': {
@@ -2305,6 +2340,7 @@ def build_atlas_json(rows, pulse_path='pulse.json'):
             'cities': _lb_cities(),
             'types': _lb_types(),
         },
+        'leaderboards_by_state': leaderboards_by_state,
         'status_distribution': status_distribution,
         'momentum': momentum,
         'openings_by_year': openings_by_year,
