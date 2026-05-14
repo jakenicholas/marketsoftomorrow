@@ -459,7 +459,14 @@ def slugify(text):
 # take first comma-separated value as the canonical type.
 # ---------------------------------------------------------------------------
 
-def normalize_type(raw):
+def normalize_type(row):
+    """Determine the canonical project type for intel matching. Mirrors the
+    precedence used in generate_pages.py: PreferredType wins if set,
+    otherwise the first comma-separated value of ProjectType."""
+    preferred = (row.get('PreferredType', '') or '').strip()
+    if preferred:
+        return preferred
+    raw = (row.get('ProjectType', '') or '').strip()
     if not raw:
         return ''
     return raw.split(',')[0].strip()
@@ -606,7 +613,7 @@ def build_complete_index(rows):
             'slug': slugify(title),
             'city': city,
             'metro': metro_for_city(city),
-            'type': normalize_type(row.get('ProjectType', '')),
+            'type': normalize_type(row),
             'start': start,
             'end': end,
             'years': years,
@@ -743,6 +750,11 @@ def main():
     intel = {}
     stats = {'high': 0, 'medium': 0, 'low': 0, 'known_date': 0,
              'completed': 0, 'skipped': 0, 'no_type': 0}
+    # Track projects that had a DeliveryDate but still fell through to the
+    # comparable path. The workflow log prints these so we can see why each
+    # project ended up where it did (e.g. year-only date, unparseable format,
+    # date too far out).
+    comparable_fallthroughs = []
     today = date.today()
     for row in rows:
         delivery_raw = (row.get('Delivery','') or '').strip()
@@ -751,7 +763,7 @@ def main():
             continue
         target_slug = slugify(title)
         city = (row.get('City','') or '').strip()
-        ptype = normalize_type(row.get('ProjectType',''))
+        ptype = normalize_type(row)
 
         # --- Path 0: COMPLETED project ---
         # Past-tense report showing actual time taken. Drawn directly from
@@ -821,6 +833,21 @@ def main():
 
         # --- Path 2: COMPARABLE INFERENCE ---
         # No firm near-term date -- fall back to median-of-comparables.
+        # Capture WHY we fell through here, so the workflow log shows it
+        # for any project with a DeliveryDate that didn't trigger known_date.
+        # This is the debug surface for "why is X showing 2.6yrs when it
+        # opens in 8 months".
+        if delivery_date_raw:
+            fallthrough_diag = {
+                'title': title,
+                'raw_date': delivery_date_raw,
+                'precision': detect_date_precision(delivery_date_raw),
+                'parsed': str(parse_date(delivery_date_raw)) if parse_date(delivery_date_raw) else None,
+            }
+            if fallthrough_diag['parsed']:
+                d = parse_date(delivery_date_raw)
+                fallthrough_diag['days_out'] = (d - today).days
+            comparable_fallthroughs.append(fallthrough_diag)
         if not ptype:
             stats['no_type'] += 1
             continue
@@ -899,6 +926,24 @@ def main():
     print(f"  skipped (insufficient data): {stats['skipped']}")
     print(f"  skipped (no project type):   {stats['no_type']}")
     print(f"  total intel entries written: {len(intel)}")
+
+    # Debug surface: projects that had a DeliveryDate but ended up on the
+    # comparable path. Each row shows the raw date, detected precision,
+    # parsed value, and days_out. If you see a project here with a clearly
+    # parseable date that should trigger known_date, that's a bug.
+    if comparable_fallthroughs:
+        print(f"\nProjects with DeliveryDate that fell through to comparables ({len(comparable_fallthroughs)}):")
+        # Sort by days_out ascending so the most-puzzling cases (close-in
+        # dates that should obviously be known_date) appear first.
+        sorted_ft = sorted(
+            comparable_fallthroughs,
+            key=lambda x: (x.get('days_out') is None, x.get('days_out', 99999))
+        )
+        for ft in sorted_ft[:20]:
+            print(f"    {ft['title']:<40s} raw={ft['raw_date']!r:18s} "
+                  f"precision={ft['precision']!r:8s} days_out={ft.get('days_out', '-')!s:5s}")
+        if len(sorted_ft) > 20:
+            print(f"    ... and {len(sorted_ft) - 20} more")
 
     # Wrap in a top-level object so we can add metadata later without
     # breaking backward compat. Frontend reads `data.projects[slug]`.
