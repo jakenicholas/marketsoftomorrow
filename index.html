@@ -5724,18 +5724,20 @@
      ──────────────────────────────────────────────────────────────────────── */
   .atlas-mode-toggle {
     display: inline-flex;
-    background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1);
     border-radius: 999px;
     padding: 3px;
     position: fixed;
     left: 50%;
     top: calc(var(--header-height) / 2 + var(--safe-area-top, 0px));
     transform: translate(-50%, -50%);
-    z-index: 1001;  /* above #header (99), above modal-closing animation (~1000) */
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    background: rgba(15,15,15,0.7);
+    z-index: 1001;
+    /* Stronger glass: deeper blur + saturation, double background fallback */
+    backdrop-filter: blur(40px) saturate(1.8);
+    -webkit-backdrop-filter: blur(40px) saturate(1.8);
+    background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
+    box-shadow: 0 4px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08);
   }
   .atlas-mode-toggle-btn {
     padding: 7px 18px;
@@ -5755,13 +5757,14 @@
   @media(max-width:800px) {
     .atlas-mode-toggle {
       position: fixed;
-      top: calc(env(safe-area-inset-top, 0px) + 12px);
+      top: calc(env(safe-area-inset-top, 0px) + 14px);
       left: 50%;
       transform: translateX(-50%);
       z-index: 1001;
-      background: rgba(15,15,15,0.85);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
+      backdrop-filter: blur(40px) saturate(1.8);
+      -webkit-backdrop-filter: blur(40px) saturate(1.8);
+      background: linear-gradient(180deg, rgba(255,255,255,0.1), rgba(255,255,255,0.04));
+      box-shadow: 0 4px 24px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1);
     }
     .atlas-mode-toggle-btn { padding: 6px 14px; font-size: 12px; }
   }
@@ -5777,15 +5780,24 @@
     inset: 0;
     background: #0a0a0a;
     color: #fff;
-    z-index: 998;
+    z-index: 90;  /* below #header (99) so header floats above */
     overflow-y: auto;
     overflow-x: hidden;
     display: none;
     -webkit-font-smoothing: antialiased;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    /* Account for the fixed header sitting above */
+    padding-top: calc(var(--header-height) + var(--safe-area-top, 0px));
   }
   body.atlas-mode .atlas-overlay { display: block; }
-  body.atlas-mode #header { z-index: 1002; }
+  /* Show header on mobile in atlas mode (it's normally display:none on mobile) */
+  @media(max-width:800px) {
+    body.atlas-mode #header {
+      display: flex !important;
+      top: 0;
+      padding-top: var(--safe-area-top, 0px);
+    }
+  }
   body.atlas-mode #pulseStack,
   body.atlas-mode #watchlistPanel,
   body.atlas-mode #pulseBellBtn,
@@ -5798,23 +5810,58 @@
   @media(max-width:800px) { .atlas-container { padding: 0 18px; } }
 
   .atlas-body { padding: 32px 0 80px; }
-  @media(max-width:800px) { .atlas-body { padding: 76px 0 80px; } }
+  @media(max-width:800px) { .atlas-body { padding: 28px 0 80px; } }
 
-  .atlas-hero-stats {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 1px;
-    background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(255,255,255,0.06);
-    border-radius: 14px;
-    overflow: hidden;
-    margin-bottom: 48px;
+  /* State filter bar */
+  .atlas-filter-bar {
+    margin-bottom: 32px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
   }
-  @media(max-width:800px) { .atlas-hero-stats { grid-template-columns: repeat(2, 1fr); } }
-  .atlas-stat-cell { background: #0a0a0a; padding: 22px 20px; }
-  .atlas-stat-num { font-size: 28px; font-weight: 700; letter-spacing: -0.015em; line-height: 1.1; margin-bottom: 2px; color: #fff; }
-  .atlas-stat-label { color: rgba(255,255,255,0.55); font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; font-weight: 500; }
-  .atlas-stat-change { color: #1FDF67; font-size: 11px; margin-top: 8px; }
+  .atlas-filter-pills {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    flex-wrap: wrap;
+  }
+  .atlas-filter-pills::-webkit-scrollbar { display: none; }
+  .atlas-filter-pill {
+    padding: 8px 14px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: rgba(255,255,255,0.7);
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+    font-family: inherit;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .atlas-filter-pill:hover {
+    background: rgba(255,255,255,0.07);
+    color: #fff;
+  }
+  .atlas-filter-pill.active {
+    background: rgba(31,223,103,0.15);
+    border-color: rgba(31,223,103,0.4);
+    color: #1FDF67;
+  }
+  .atlas-filter-count {
+    font-size: 11px;
+    color: rgba(255,255,255,0.4);
+    font-variant-numeric: tabular-nums;
+  }
+  .atlas-filter-pill.active .atlas-filter-count { color: rgba(31,223,103,0.7); }
+  @media(max-width:800px) {
+    .atlas-filter-pills { flex-wrap: nowrap; padding-bottom: 4px; }
+    .atlas-filter-pill { padding: 6px 12px; font-size: 11px; }
+  }
 
   .atlas-section { padding-bottom: 56px; }
   .atlas-section-head {
@@ -5936,33 +5983,74 @@
     padding: 0 6px; font-size: 11px; color: rgba(255,255,255,0.4);
   }
 
-  .atlas-pulse-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-  @media(max-width:800px) { .atlas-pulse-grid { grid-template-columns: 1fr; } }
-  .atlas-pulse-card {
-    background: rgba(255,255,255,0.03);
-    border: 1px solid rgba(255,255,255,0.06);
-    border-radius: 14px;
-    padding: 20px;
+  /* Pulse rows -- vertical timeline mirroring the Pulse drawer design */
+  .atlas-pulse-spine {
+    position: relative;
+    padding: 8px 0 8px 32px;
+  }
+  .atlas-pulse-spine::before {
+    content: '';
+    position: absolute;
+    left: 19px;
+    top: 22px;
+    bottom: 22px;
+    width: 1px;
+    background: rgba(255,255,255,0.1);
+  }
+  .atlas-pulse-row {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 14px 0 14px 16px;
     cursor: pointer;
-    transition: border-color 0.15s;
+    border-radius: 8px;
+    transition: background 0.1s;
   }
-  .atlas-pulse-card:hover { border-color: rgba(31,223,103,0.4); }
-  .atlas-pulse-badge {
-    display: inline-flex; align-items: center; gap: 6px;
-    padding: 3px 10px;
-    background: rgba(31,223,103,0.12);
-    border: 1px solid rgba(31,223,103,0.2);
-    color: #1FDF67;
-    font-size: 10px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase;
-    border-radius: 999px;
-    margin-bottom: 12px;
+  .atlas-pulse-row:hover { background: rgba(255,255,255,0.025); }
+  .atlas-pulse-row-dot {
+    position: absolute;
+    left: -13px;
+    top: 22px;
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: #1FDF67;
+    box-shadow: 0 0 0 4px #0a0a0a;
+    flex-shrink: 0;
   }
-  .atlas-pulse-badge[data-type="status_change"]    { background: rgba(255,149,0,0.12); border-color: rgba(255,149,0,0.2); color: #FF9500; }
-  .atlas-pulse-badge[data-type="article"]          { background: rgba(31,223,103,0.12); border-color: rgba(31,223,103,0.2); color: #1FDF67; }
-  .atlas-pulse-badge[data-type="new_project"]      { background: rgba(111,168,255,0.12); border-color: rgba(111,168,255,0.25); color: #6FA8FF; }
-  .atlas-pulse-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
-  .atlas-pulse-title { font-size: 15px; font-weight: 600; margin-bottom: 6px; color: #fff; }
-  .atlas-pulse-meta { color: rgba(255,255,255,0.5); font-size: 12px; }
+  .atlas-pulse-row-dot[data-type="status_change"] { background: #FF9500; }
+  .atlas-pulse-row-dot[data-type="new_project"] { background: #6FA8FF; }
+  .atlas-pulse-row-dot[data-type="article"] { background: #1FDF67; }
+  .atlas-pulse-row-content { flex: 1; min-width: 0; }
+  .atlas-pulse-row-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 4px;
+    font-size: 11px;
+    color: rgba(255,255,255,0.5);
+    letter-spacing: 0.05em;
+    font-weight: 500;
+    text-transform: uppercase;
+    font-variant-numeric: tabular-nums;
+  }
+  .atlas-pulse-row-time { color: rgba(255,255,255,0.5); }
+  .atlas-pulse-row-sep { color: rgba(255,255,255,0.3); }
+  .atlas-pulse-row-city { color: rgba(255,255,255,0.6); }
+  .atlas-pulse-row-title {
+    font-size: 15px;
+    font-weight: 500;
+    color: #fff;
+    margin-bottom: 6px;
+    line-height: 1.3;
+  }
+  .atlas-pulse-row-tag {
+    font-size: 11px;
+    color: rgba(255,255,255,0.45);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
 
   .atlas-footer {
     padding: 32px 0 0;
@@ -13719,38 +13807,63 @@
     }
 
     // ── Render functions ─────────────────────────────────────────────────
-    function renderHeroStats(stats) {
-      // Reasonable fallback strings if any field is missing
-      const total      = stats.total_projects ?? '—';
-      const dollars    = stats.total_dollars_short || '—';
-      const construction = stats.under_construction ?? '—';
-      const opening    = stats.opening_this_year ?? '—';
-      const currentYear = new Date().getFullYear();
+    function renderOpeningsByYear() {
+      const data = atlasData.openings_by_year || [];
+      if (!data.length) return '';
+      const max = Math.max(...data.map(d => d.count), 1);
+      const rows = data.map(d => {
+        const pct = (d.count / max) * 100;
+        return `
+          <div class="atlas-status-row">
+            <div class="atlas-status-label">${d.year}</div>
+            <div class="atlas-status-bar-wrap"><div class="atlas-status-bar" data-status="Opening Soon" style="width: ${pct}%;"></div></div>
+            <div class="atlas-status-count">${d.count}</div>
+          </div>`;
+      }).join('');
       return `
-        <div class="atlas-hero-stats">
-          <div class="atlas-stat-cell">
-            <div class="atlas-stat-num">${escapeHtml(total)}</div>
-            <div class="atlas-stat-label">Projects tracked</div>
+        <section class="atlas-section">
+          <div class="atlas-section-head">
+            <div>
+              <h2 class="atlas-section-title">Openings outlook</h2>
+              <p class="atlas-section-sub">Projects delivering each year, ${new Date().getFullYear()} onward.</p>
+            </div>
           </div>
-          <div class="atlas-stat-cell">
-            <div class="atlas-stat-num">${escapeHtml(dollars)}</div>
-            <div class="atlas-stat-label">In development</div>
+          <div class="atlas-panel">
+            ${rows}
           </div>
-          <div class="atlas-stat-cell">
-            <div class="atlas-stat-num">${escapeHtml(construction)}</div>
-            <div class="atlas-stat-label">Under construction</div>
-          </div>
-          <div class="atlas-stat-cell">
-            <div class="atlas-stat-num">${escapeHtml(opening)}</div>
-            <div class="atlas-stat-label">Opening ${currentYear}</div>
+        </section>`;
+    }
+
+    function renderStateFilter() {
+      const states = atlasData.available_states || [];
+      if (!states.length) return '';
+      const total = states.reduce((s, x) => s + x.count, 0);
+      const pills = states.map(s => `
+        <button class="atlas-filter-pill" data-state="${escapeHtml(s.code)}" type="button">
+          ${escapeHtml(s.label)} <span class="atlas-filter-count">${s.count}</span>
+        </button>
+      `).join('');
+      return `
+        <div class="atlas-filter-bar">
+          <div class="atlas-filter-pills">
+            <button class="atlas-filter-pill active" data-state="ALL" type="button">All <span class="atlas-filter-count">${total}</span></button>
+            ${pills}
           </div>
         </div>`;
     }
 
+    let currentStateFilter = 'ALL';
+
+    function filterByState(rows) {
+      if (currentStateFilter === 'ALL') return rows;
+      return rows.filter(r => Array.isArray(r.states) && r.states.includes(currentStateFilter));
+    }
+
     function renderLeaderboardRows(key) {
-      const data = (atlasData.leaderboards && atlasData.leaderboards[key]) || [];
+      const raw = (atlasData.leaderboards && atlasData.leaderboards[key]) || [];
+      const data = filterByState(raw);
       if (!data.length) {
-        return '<div style="padding:32px;text-align:center;color:rgba(255,255,255,0.4);font-size:13px;">No data yet</div>';
+        return '<div style="padding:32px;text-align:center;color:rgba(255,255,255,0.4);font-size:13px;">No entries match this filter</div>';
       }
       const max = data[0].count || 1;
       const limit = lbState[key].showAll ? data.length : (isMobileNow() ? TOP_N_MOBILE : TOP_N_DESKTOP);
@@ -13796,7 +13909,8 @@
     function updateLoadMoreBtn(key) {
       const btn = document.getElementById('atlasLoadMore');
       if (!btn) return;
-      const data = (atlasData.leaderboards && atlasData.leaderboards[key]) || [];
+      const raw = (atlasData.leaderboards && atlasData.leaderboards[key]) || [];
+      const data = filterByState(raw);
       const topN = isMobileNow() ? TOP_N_MOBILE : TOP_N_DESKTOP;
       const canShowMore = data.length > topN && !lbState[key].showAll;
       btn.hidden = !canShowMore;
@@ -13853,19 +13967,23 @@
 
     function renderRecentActivity() {
       const events = atlasData.recent_activity || [];
-      if (!events.length) {
-        return '';  // section disappears if no pulse data
-      }
-      // pulse event shape: { id, type, slug, title, city, tag, ts, ago, link }
-      const cards = events.slice(0, 3).map(ev => {
+      if (!events.length) return '';
+      // Render up to 10 events as a vertical list mirroring the Pulse drawer
+      const cards = events.slice(0, 10).map(ev => {
         const type = ev.type || 'article';
-        const badgeLabel = (ev.tag || (type === 'article' ? 'ON TMW' : type === 'new_project' ? 'NEW ON MAP' : 'UPDATE')).toUpperCase();
-        const meta = [ev.city, ev.ago].filter(Boolean).join(' · ');
+        const tagLabel = (ev.tag || (type === 'article' ? 'On TMW' : type === 'new_project' ? 'New on Map' : 'Update')).toUpperCase();
+        const city = (ev.city || '').toUpperCase();
         return `
-          <div class="atlas-pulse-card" data-pulse-slug="${escapeHtml(ev.slug || '')}" data-pulse-link="${escapeHtml(ev.link || '')}">
-            <div class="atlas-pulse-badge" data-type="${escapeHtml(type)}"><span class="atlas-pulse-dot"></span>${escapeHtml(badgeLabel)}</div>
-            <div class="atlas-pulse-title">${escapeHtml(ev.title || '')}</div>
-            <div class="atlas-pulse-meta">${escapeHtml(meta)}</div>
+          <div class="atlas-pulse-row" data-pulse-slug="${escapeHtml(ev.slug || '')}" data-pulse-link="${escapeHtml(ev.link || '')}">
+            <div class="atlas-pulse-row-dot" data-type="${escapeHtml(type)}"></div>
+            <div class="atlas-pulse-row-content">
+              <div class="atlas-pulse-row-meta">
+                <span class="atlas-pulse-row-time">${escapeHtml(ev.ago || '')}</span>
+                ${city ? `<span class="atlas-pulse-row-sep">·</span><span class="atlas-pulse-row-city">${escapeHtml(city)}</span>` : ''}
+              </div>
+              <div class="atlas-pulse-row-title">${escapeHtml(ev.title || '')}</div>
+              <div class="atlas-pulse-row-tag">${escapeHtml(tagLabel)}</div>
+            </div>
           </div>`;
       }).join('');
       return `
@@ -13873,11 +13991,13 @@
           <div class="atlas-section-head">
             <div>
               <h2 class="atlas-section-title">This week on the map</h2>
-              <p class="atlas-section-sub">Latest additions and status changes.</p>
+              <p class="atlas-section-sub">Latest additions, status changes, and TMW coverage.</p>
             </div>
-            <a href="#" class="atlas-section-link" id="atlasViewPulseLink">View full Pulse →</a>
+            <a href="#" class="atlas-section-link" id="atlasViewPulseLink">Open Pulse →</a>
           </div>
-          <div class="atlas-pulse-grid">${cards}</div>
+          <div class="atlas-pulse-spine">
+            ${cards}
+          </div>
         </section>`;
     }
 
@@ -13891,8 +14011,9 @@
       const root = document.getElementById('atlasRoot');
       if (!root) return;
       root.innerHTML = [
-        renderHeroStats(atlasData.hero_stats || {}),
+        renderStateFilter(),
         renderLeaderboardSection(),
+        renderOpeningsByYear(),
         renderDistributionAndMomentum(),
         renderRecentActivity(),
         renderFooter()
@@ -13902,6 +14023,23 @@
     }
 
     function wireInteractions() {
+      // State filter pills
+      document.querySelectorAll('.atlas-filter-pill').forEach(pill => {
+        pill.addEventListener('click', function() {
+          document.querySelectorAll('.atlas-filter-pill').forEach(p => p.classList.remove('active'));
+          this.classList.add('active');
+          currentStateFilter = this.dataset.state;
+          // Reset showAll states so a state change doesn't accidentally show
+          // a huge filtered-down list expanded
+          Object.keys(lbState).forEach(k => { lbState[k].showAll = false; });
+          // Re-render the currently active leaderboard tab
+          const activeTab = document.querySelector('.atlas-lb-tab.active');
+          const key = activeTab ? activeTab.dataset.lbTab : 'developers';
+          const content = document.getElementById('atlasLbContent');
+          if (content) content.innerHTML = renderLeaderboardRows(key);
+          updateLoadMoreBtn(key);
+        });
+      });
       // Leaderboard tab switching
       document.querySelectorAll('.atlas-lb-tab').forEach(btn => {
         btn.addEventListener('click', function() {
@@ -13925,27 +14063,16 @@
           updateLoadMoreBtn(key);
         });
       }
-      // Pulse cards: clicking deep-links to the map (closes atlas + navigates)
-      document.querySelectorAll('.atlas-pulse-card').forEach(card => {
-        card.addEventListener('click', function() {
-          const slug = this.dataset.pulseSlug;
-          const link = this.dataset.pulseLink;
-          if (slug) {
-            setAtlasMode(false);
-            // Navigate within the map app -- use the existing handleDeepLink flow
-            // if available, else fall back to URL change
-            if (typeof window.handleDeepLink === 'function') {
-              history.pushState({}, '', `?project=${encodeURIComponent(slug)}`);
-              window.handleDeepLink();
-            } else {
-              window.location.search = `?project=${encodeURIComponent(slug)}`;
-            }
-          } else if (link) {
-            window.open(link, '_blank', 'noopener');
-          }
+      // Pulse rows: clicking opens the actual Pulse drawer (NOT deep-link or new tab)
+      document.querySelectorAll('.atlas-pulse-row').forEach(row => {
+        row.addEventListener('click', function() {
+          setAtlasMode(false);
+          // Open the Pulse drawer after a tick (lets atlas-mode class clear first)
+          const bell = document.getElementById('pulseBellBtn');
+          if (bell) setTimeout(() => bell.click(), 100);
         });
       });
-      // "View full Pulse" link: closes Atlas, opens Pulse drawer
+      // "Open Pulse" link: same behavior -- close atlas, open pulse drawer
       const viewPulse = document.getElementById('atlasViewPulseLink');
       if (viewPulse) {
         viewPulse.addEventListener('click', function(e) {
