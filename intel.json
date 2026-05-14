@@ -3,12 +3,14 @@
   "projects": {
     "south-flagler-house": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "medium",
       "comparable_count": 5,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Palm Beach",
       "comparables": [
@@ -35,12 +37,14 @@
     },
     "1428-brickell": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -66,45 +70,29 @@
       "pattern_summary": "Among 5 comparable residences projects in TMW's data, the median time to completion is 3 years, with a range of 2–4.8 years."
     },
     "alba": {
-      "estimate_years": 3.0,
-      "range_low": 2.0,
-      "range_high": 4.8,
-      "confidence": "medium",
-      "comparable_count": 5,
-      "exact_count": 0,
-      "used_relaxed": true,
+      "estimate_years": 0.08,
+      "estimate_label": "28 days",
+      "days_out": 28,
+      "delivery_date": "2026-06-11",
+      "source": "known_date",
+      "precision": "day",
+      "confidence": "high",
       "project_type": "Residences",
       "metro": "Palm Beach",
-      "comparables": [
-        {
-          "name": "Pier Sixty-Six",
-          "slug": "pier-sixty-six",
-          "location": "Fort Lauderdale",
-          "years": 3.0
-        },
-        {
-          "name": "The Residence at 400 Central",
-          "slug": "the-residence-at-400-central",
-          "location": "St. Petersburg",
-          "years": 2.2
-        },
-        {
-          "name": "The Brooklyn Tower",
-          "slug": "the-brooklyn-tower",
-          "location": "Brooklyn",
-          "years": 4.0
-        }
-      ],
-      "pattern_summary": "Among 5 comparable residences projects in TMW's data, the median time to completion is 3 years, with a range of 2–4.8 years."
+      "comparables": [],
+      "comparable_count": 0,
+      "pattern_summary": "Developer-announced opening in 28 days."
     },
     "olara": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "medium",
       "comparable_count": 5,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Palm Beach",
       "comparables": [
@@ -131,12 +119,14 @@
     },
     "the-berkeley": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "medium",
       "comparable_count": 5,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Palm Beach",
       "comparables": [
@@ -163,12 +153,14 @@
     },
     "1040-s-miami": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -195,12 +187,14 @@
     },
     "mercedes-benz-places": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -227,12 +221,14 @@
     },
     "lofty-brickell": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -259,12 +255,14 @@
     },
     "2200-brickell": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -291,12 +289,14 @@
     },
     "the-st-regis-residences-miami": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -323,12 +323,14 @@
     },
     "the-standard-residences-brickell": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -355,12 +357,14 @@
     },
     "viceroy-brickell-residences": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -387,12 +391,14 @@
     },
     "cipriani-residences-brickell": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -419,12 +425,14 @@
     },
     "ora-by-casa-tua": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -451,12 +459,14 @@
     },
     "one-twenty-brickell-residences": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -483,12 +493,14 @@
     },
     "marina-pointe": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Tampa Bay",
       "comparables": [
@@ -515,12 +527,14 @@
     },
     "seven-broadway": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -547,12 +561,14 @@
     },
     "shorecrest-flagler-drive": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "medium",
       "comparable_count": 5,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Palm Beach",
       "comparables": [
@@ -579,12 +595,14 @@
     },
     "fort-on-flagler": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "medium",
       "comparable_count": 5,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Palm Beach",
       "comparables": [
@@ -611,12 +629,14 @@
     },
     "the-ritz-carlton-residences-west-palm-beach": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "medium",
       "comparable_count": 5,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Palm Beach",
       "comparables": [
@@ -643,12 +663,14 @@
     },
     "mr-c-residences-west-palm-beach": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "medium",
       "comparable_count": 5,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Palm Beach",
       "comparables": [
@@ -675,12 +697,14 @@
     },
     "mandarin-oriental-residences-west-palm-beach": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "medium",
       "comparable_count": 5,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Palm Beach",
       "comparables": [
@@ -707,12 +731,14 @@
     },
     "apogee-residences": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "medium",
       "comparable_count": 5,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Palm Beach",
       "comparables": [
@@ -739,12 +765,14 @@
     },
     "viceroy-aventura": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -770,45 +798,29 @@
       "pattern_summary": "Among 5 comparable residences projects in TMW's data, the median time to completion is 3 years, with a range of 2–4.8 years."
     },
     "glass-house-boca-raton": {
-      "estimate_years": 3.0,
-      "range_low": 2.0,
-      "range_high": 4.8,
-      "confidence": "medium",
-      "comparable_count": 5,
-      "exact_count": 0,
-      "used_relaxed": true,
+      "estimate_years": 1.0,
+      "estimate_label": "~1 years",
+      "days_out": 366,
+      "delivery_date": "2027-05-15",
+      "source": "known_date",
+      "precision": "month",
+      "confidence": "high",
       "project_type": "Residences",
       "metro": "Palm Beach",
-      "comparables": [
-        {
-          "name": "Pier Sixty-Six",
-          "slug": "pier-sixty-six",
-          "location": "Fort Lauderdale",
-          "years": 3.0
-        },
-        {
-          "name": "The Residence at 400 Central",
-          "slug": "the-residence-at-400-central",
-          "location": "St. Petersburg",
-          "years": 2.2
-        },
-        {
-          "name": "The Brooklyn Tower",
-          "slug": "the-brooklyn-tower",
-          "location": "Brooklyn",
-          "years": 4.0
-        }
-      ],
-      "pattern_summary": "Among 5 comparable residences projects in TMW's data, the median time to completion is 3 years, with a range of 2–4.8 years."
+      "comparables": [],
+      "comparable_count": 0,
+      "pattern_summary": "Developer-announced opening in ~1 years."
     },
     "boca-raton-city-hall": {
       "estimate_years": 2.6,
+      "estimate_label": "~2.6 years",
       "range_low": 2.0,
       "range_high": 6.0,
       "confidence": "low",
       "comparable_count": 3,
       "exact_count": 2,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Entertainment",
       "metro": "Palm Beach",
       "comparables": [
@@ -835,12 +847,14 @@
     },
     "boca-raton-innovation-campus": {
       "estimate_years": 2.6,
+      "estimate_label": "~2.6 years",
       "range_low": 2.0,
       "range_high": 6.0,
       "confidence": "low",
       "comparable_count": 3,
       "exact_count": 2,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Entertainment",
       "metro": "Palm Beach",
       "comparables": [
@@ -867,12 +881,14 @@
     },
     "the-residences-at-mandarin-oriental-miami": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -899,12 +915,14 @@
     },
     "the-well-coconut-grove": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -931,12 +949,14 @@
     },
     "ziggurat-coconut-grove": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -963,12 +983,14 @@
     },
     "waldorf-astoria-residences-miami": {
       "estimate_years": 5.0,
+      "estimate_label": "~5 years",
       "range_low": 2.0,
       "range_high": 8.0,
       "confidence": "medium",
       "comparable_count": 7,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Hotel",
       "metro": "South Florida",
       "comparables": [
@@ -995,12 +1017,14 @@
     },
     "casa-bella-residences-miami": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -1027,12 +1051,14 @@
     },
     "888-brickell-miami-by-dolce-gabana": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -1059,12 +1085,14 @@
     },
     "jem-private-residences": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -1091,12 +1119,14 @@
     },
     "okan-tower": {
       "estimate_years": 5.0,
+      "estimate_label": "~5 years",
       "range_low": 2.0,
       "range_high": 8.0,
       "confidence": "medium",
       "comparable_count": 7,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Hotel",
       "metro": "South Florida",
       "comparables": [
@@ -1123,12 +1153,14 @@
     },
     "14-roc": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -1155,12 +1187,14 @@
     },
     "ponce-park": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -1187,12 +1221,14 @@
     },
     "the-village-at-coral-gables": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -1219,12 +1255,14 @@
     },
     "the-pendry-tampa-and-residences": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Tampa Bay",
       "comparables": [
@@ -1251,12 +1289,14 @@
     },
     "one-tampa": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Tampa Bay",
       "comparables": [
@@ -1283,12 +1323,14 @@
     },
     "water-street-phase-two": {
       "estimate_years": 2.6,
+      "estimate_label": "~2.6 years",
       "range_low": 2.0,
       "range_high": 6.0,
       "confidence": "low",
       "comparable_count": 3,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Entertainment",
       "metro": "Tampa Bay",
       "comparables": [
@@ -1315,12 +1357,14 @@
     },
     "gasworx": {
       "estimate_years": 2.6,
+      "estimate_label": "~2.6 years",
       "range_low": 2.0,
       "range_high": 6.0,
       "confidence": "low",
       "comparable_count": 3,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Entertainment",
       "metro": "Tampa Bay",
       "comparables": [
@@ -1347,12 +1391,14 @@
     },
     "ybor-harbor": {
       "estimate_years": 2.6,
+      "estimate_label": "~2.6 years",
       "range_low": 2.0,
       "range_high": 6.0,
       "confidence": "low",
       "comparable_count": 3,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Entertainment",
       "metro": "Tampa Bay",
       "comparables": [
@@ -1379,12 +1425,14 @@
     },
     "lake-eola-expansion": {
       "estimate_years": 2.6,
+      "estimate_label": "~2.6 years",
       "range_low": 2.0,
       "range_high": 6.0,
       "confidence": "low",
       "comparable_count": 3,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Entertainment",
       "metro": "Orlando",
       "comparables": [
@@ -1411,12 +1459,14 @@
     },
     "westcourt-orlando": {
       "estimate_years": 2.6,
+      "estimate_label": "~2.6 years",
       "range_low": 2.0,
       "range_high": 6.0,
       "confidence": "low",
       "comparable_count": 3,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Entertainment",
       "metro": "Orlando",
       "comparables": [
@@ -1443,12 +1493,14 @@
     },
     "hotel-ora-private-residences": {
       "estimate_years": 5.0,
+      "estimate_label": "~5 years",
       "range_low": 2.0,
       "range_high": 8.0,
       "confidence": "medium",
       "comparable_count": 7,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Hotel",
       "metro": "Tampa Bay",
       "comparables": [
@@ -1475,12 +1527,14 @@
     },
     "caretta": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "medium",
       "comparable_count": 5,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Palm Beach",
       "comparables": [
@@ -1507,12 +1561,14 @@
     },
     "the-marketplace-of-wellington": {
       "estimate_years": 2.6,
+      "estimate_label": "~2.6 years",
       "range_low": 2.0,
       "range_high": 6.0,
       "confidence": "low",
       "comparable_count": 3,
       "exact_count": 2,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Entertainment",
       "metro": "Palm Beach",
       "comparables": [
@@ -1539,12 +1595,14 @@
     },
     "currie-park": {
       "estimate_years": 2.6,
+      "estimate_label": "~2.6 years",
       "range_low": 2.0,
       "range_high": 6.0,
       "confidence": "low",
       "comparable_count": 3,
       "exact_count": 2,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Entertainment",
       "metro": "Palm Beach",
       "comparables": [
@@ -1571,12 +1629,14 @@
     },
     "palm-beach-residences": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "medium",
       "comparable_count": 5,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Palm Beach",
       "comparables": [
@@ -1603,12 +1663,14 @@
     },
     "safe-harbor-rybovich-district": {
       "estimate_years": 2.6,
+      "estimate_label": "~2.6 years",
       "range_low": 2.0,
       "range_high": 6.0,
       "confidence": "low",
       "comparable_count": 3,
       "exact_count": 2,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Entertainment",
       "metro": "Palm Beach",
       "comparables": [
@@ -1635,12 +1697,14 @@
     },
     "bath-and-racquet-residences": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Tampa Bay",
       "comparables": [
@@ -1667,12 +1731,14 @@
     },
     "ritz-carlton-residences-south-beach": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -1699,12 +1765,14 @@
     },
     "the-raleigh-rosewood-residences": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -1731,12 +1799,14 @@
     },
     "aman-miami-beach": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -1763,12 +1833,14 @@
     },
     "ella-miami-beach": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -1795,12 +1867,14 @@
     },
     "the-perigon-miami-beach": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -1827,12 +1901,14 @@
     },
     "grand-hyatt-convention-center-hotel": {
       "estimate_years": 5.0,
+      "estimate_label": "~5 years",
       "range_low": 2.0,
       "range_high": 8.0,
       "confidence": "medium",
       "comparable_count": 7,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Hotel",
       "metro": "South Florida",
       "comparables": [
@@ -1859,12 +1935,14 @@
     },
     "the-shore-club-resort-residences": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -1891,12 +1969,14 @@
     },
     "the-dynasty": {
       "estimate_years": 2.6,
+      "estimate_label": "~2.6 years",
       "range_low": 2.0,
       "range_high": 6.0,
       "confidence": "low",
       "comparable_count": 3,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Entertainment",
       "metro": "Orlando",
       "comparables": [
@@ -1923,12 +2003,14 @@
     },
     "cove-miami": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -1955,12 +2037,14 @@
     },
     "sereno": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -1987,12 +2071,14 @@
     },
     "livwrk-towers": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -2019,12 +2105,14 @@
     },
     "faena-residences-miami": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -2051,12 +2139,14 @@
     },
     "jungle-island": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -2083,12 +2173,14 @@
     },
     "fat-village": {
       "estimate_years": 2.6,
+      "estimate_label": "~2.6 years",
       "range_low": 2.0,
       "range_high": 6.0,
       "confidence": "low",
       "comparable_count": 3,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Entertainment",
       "metro": "South Florida",
       "comparables": [
@@ -2115,12 +2207,14 @@
     },
     "ombelle": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -2147,12 +2241,14 @@
     },
     "viceroy-residences-fort-lauderdale": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -2179,12 +2275,14 @@
     },
     "icon-beach": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -2211,12 +2309,14 @@
     },
     "w-pompano-beach": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -2243,12 +2343,14 @@
     },
     "st-regis-bahia-mar": {
       "estimate_years": 2.6,
+      "estimate_label": "~2.6 years",
       "range_low": 2.0,
       "range_high": 6.0,
       "confidence": "low",
       "comparable_count": 3,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Entertainment",
       "metro": "South Florida",
       "comparables": [
@@ -2275,12 +2377,14 @@
     },
     "rosewood-hillsboro-beach": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "medium",
       "comparable_count": 5,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Other",
       "comparables": [
@@ -2307,12 +2411,14 @@
     },
     "aileron-residences": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -2339,12 +2445,14 @@
     },
     "armanicasa-residences": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -2371,12 +2479,14 @@
     },
     "riva-residences": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -2403,12 +2513,14 @@
     },
     "shell-bay-residences": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -2435,12 +2547,14 @@
     },
     "sage-intracoastal-residences": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -2467,12 +2581,14 @@
     },
     "natiivo-fort-lauderdale": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -2499,12 +2615,14 @@
     },
     "633-se-third-avenue": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -2531,12 +2649,14 @@
     },
     "waldorf-astoria-residences-st-petersburg": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Tampa Bay",
       "comparables": [
@@ -2563,12 +2683,14 @@
     },
     "1117-broadway": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "medium",
       "comparable_count": 5,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Palm Beach",
       "comparables": [
@@ -2595,12 +2717,14 @@
     },
     "viceroy-residences-clearwater-beach": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Tampa Bay",
       "comparables": [
@@ -2627,12 +2751,14 @@
     },
     "fort-luxe": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "medium",
       "comparable_count": 5,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Palm Beach",
       "comparables": [
@@ -2659,12 +2785,14 @@
     },
     "banyan-tree-bimini": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "medium",
       "comparable_count": 5,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Other",
       "comparables": [
@@ -2691,12 +2819,14 @@
     },
     "jacks-bay-club-resort": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "medium",
       "comparable_count": 5,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Other",
       "comparables": [
@@ -2723,12 +2853,14 @@
     },
     "ritz-carlton-reserve-at-cotton-bay": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "medium",
       "comparable_count": 5,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Other",
       "comparables": [
@@ -2755,12 +2887,14 @@
     },
     "the-ocean-club": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "medium",
       "comparable_count": 5,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Other",
       "comparables": [
@@ -2787,12 +2921,14 @@
     },
     "aqua-at-westshore-yacht-club": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Tampa Bay",
       "comparables": [
@@ -2819,12 +2955,14 @@
     },
     "oasis-hallandale": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -2851,12 +2989,14 @@
     },
     "alhambra-parc": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -2883,12 +3023,14 @@
     },
     "the-delmore": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -2915,12 +3057,14 @@
     },
     "the-residences-at-boca-raton": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "medium",
       "comparable_count": 5,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Palm Beach",
       "comparables": [
@@ -2947,12 +3091,14 @@
     },
     "fiori": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "medium",
       "comparable_count": 5,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Southwest Florida",
       "comparables": [
@@ -2979,12 +3125,14 @@
     },
     "the-green-at-abaco-club": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "medium",
       "comparable_count": 5,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Other",
       "comparables": [
@@ -3011,12 +3159,14 @@
     },
     "edge-house": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -3043,12 +3193,14 @@
     },
     "oculina": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "medium",
       "comparable_count": 5,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Palm Beach",
       "comparables": [
@@ -3075,12 +3227,14 @@
     },
     "21-hollywood": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -3107,12 +3261,14 @@
     },
     "the-huehub": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -3139,12 +3295,14 @@
     },
     "vita-at-grove-isle": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -3171,12 +3329,14 @@
     },
     "elle-residences": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -3203,12 +3363,14 @@
     },
     "ponce-8": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -3235,12 +3397,14 @@
     },
     "midtown-park": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -3267,12 +3431,14 @@
     },
     "the-dunes": {
       "estimate_years": 5.0,
+      "estimate_label": "~5 years",
       "range_low": 2.0,
       "range_high": 8.0,
       "confidence": "medium",
       "comparable_count": 7,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Hotel",
       "metro": "South Florida",
       "comparables": [
@@ -3299,12 +3465,14 @@
     },
     "summit-brickell": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -3331,12 +3499,14 @@
     },
     "edition-residences-miami-edgewater": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -3363,12 +3533,14 @@
     },
     "miami-worldcenter": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -3395,12 +3567,14 @@
     },
     "hamilton-house": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -3427,12 +3601,14 @@
     },
     "la-baia-north": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -3459,12 +3635,14 @@
     },
     "domus-brickell-center": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -3491,12 +3669,14 @@
     },
     "the-william": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -3523,12 +3703,14 @@
     },
     "costas-palmas": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "medium",
       "comparable_count": 5,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Other",
       "comparables": [
@@ -3555,12 +3737,14 @@
     },
     "colette-residences-by-meta-development": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -3587,12 +3771,14 @@
     },
     "opus-coconut-grove": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -3619,12 +3805,14 @@
     },
     "edgeworth": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "medium",
       "comparable_count": 5,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Palm Beach",
       "comparables": [
@@ -3651,12 +3839,14 @@
     },
     "banyan-tree-residences": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "medium",
       "comparable_count": 5,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Palm Beach",
       "comparables": [
@@ -3683,12 +3873,14 @@
     },
     "the-wellington": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "medium",
       "comparable_count": 5,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Palm Beach",
       "comparables": [
@@ -3715,12 +3907,14 @@
     },
     "good-samaritan-medical-district": {
       "estimate_years": 5.0,
+      "estimate_label": "~5 years",
       "range_low": 2.0,
       "range_high": 8.0,
       "confidence": "medium",
       "comparable_count": 7,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Hotel",
       "metro": "Palm Beach",
       "comparables": [
@@ -3747,12 +3941,14 @@
     },
     "the-ritz-carlton-residences-fort-lauderdale-beach": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -3779,12 +3975,14 @@
     },
     "nora-house": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "medium",
       "comparable_count": 5,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Palm Beach",
       "comparables": [
@@ -3811,12 +4009,14 @@
     },
     "frida-kahlo-wynwood-residences": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -3843,12 +4043,14 @@
     },
     "delano-residences-miami": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -3875,12 +4077,14 @@
     },
     "biba": {
       "estimate_years": 5.0,
+      "estimate_label": "~5 years",
       "range_low": 2.0,
       "range_high": 8.0,
       "confidence": "medium",
       "comparable_count": 7,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Hotel",
       "metro": "Palm Beach",
       "comparables": [
@@ -3907,12 +4111,14 @@
     },
     "maison-dor": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "medium",
       "comparable_count": 5,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Palm Beach",
       "comparables": [
@@ -3939,12 +4145,14 @@
     },
     "1830-n-dixie": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "medium",
       "comparable_count": 5,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Palm Beach",
       "comparables": [
@@ -3971,12 +4179,14 @@
     },
     "singer-island-gateway": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "medium",
       "comparable_count": 5,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Palm Beach",
       "comparables": [
@@ -4003,12 +4213,14 @@
     },
     "curio-by-hilton": {
       "estimate_years": 5.0,
+      "estimate_label": "~5 years",
       "range_low": 2.0,
       "range_high": 8.0,
       "confidence": "medium",
       "comparable_count": 7,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Hotel",
       "metro": "Palm Beach",
       "comparables": [
@@ -4035,12 +4247,14 @@
     },
     "metro-parc-south": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -4067,12 +4281,14 @@
     },
     "riverside-wharf": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -4099,12 +4315,14 @@
     },
     "the-lincoln": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -4131,12 +4349,14 @@
     },
     "parkside-residences": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -4163,12 +4383,14 @@
     },
     "surf-row": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -4195,12 +4417,14 @@
     },
     "villa-17": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -4227,12 +4451,14 @@
     },
     "9900-west": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -4259,12 +4485,14 @@
     },
     "the-standard-residences-midtown-miami": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -4291,12 +4519,14 @@
     },
     "waldorf-astoria-residences-sarasota": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Tampa Bay",
       "comparables": [
@@ -4323,12 +4553,14 @@
     },
     "the-george": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -4355,12 +4587,14 @@
     },
     "live-nation-gasworx": {
       "estimate_years": 2.6,
+      "estimate_label": "~2.6 years",
       "range_low": 2.0,
       "range_high": 6.0,
       "confidence": "low",
       "comparable_count": 3,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Entertainment",
       "metro": "Tampa Bay",
       "comparables": [
@@ -4387,12 +4621,14 @@
     },
     "the-ritz-carlton-residences-estero-bay": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "medium",
       "comparable_count": 5,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Southwest Florida",
       "comparables": [
@@ -4419,12 +4655,14 @@
     },
     "cora-merrick-park": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -4451,12 +4689,14 @@
     },
     "seventeen-gables": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -4483,12 +4723,14 @@
     },
     "pagani-residences": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -4515,12 +4757,14 @@
     },
     "123-ocean": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "medium",
       "comparable_count": 5,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Palm Beach",
       "comparables": [
@@ -4547,12 +4791,14 @@
     },
     "mr-c-residences-boca-raton": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "medium",
       "comparable_count": 5,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Palm Beach",
       "comparables": [
@@ -4579,12 +4825,14 @@
     },
     "continuum-12000": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -4611,12 +4859,14 @@
     },
     "house-of-wellness-brickell": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -4643,12 +4893,14 @@
     },
     "kempinksi-residences": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -4675,12 +4927,14 @@
     },
     "hq-residences-miami": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -4707,12 +4961,14 @@
     },
     "the-rider-residences": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -4739,12 +4995,14 @@
     },
     "ocean-house": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -4771,12 +5029,14 @@
     },
     "st-regis-residences-sunny-isles-beach": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -4803,12 +5063,14 @@
     },
     "villa-miami": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -4835,12 +5097,14 @@
     },
     "nobu-hotel-nashville": {
       "estimate_years": 5.0,
+      "estimate_label": "~5 years",
       "range_low": 2.0,
       "range_high": 8.0,
       "confidence": "medium",
       "comparable_count": 7,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Hotel",
       "metro": "Nashville",
       "comparables": [
@@ -4867,12 +5131,14 @@
     },
     "pendry-nashville": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "medium",
       "comparable_count": 5,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Nashville",
       "comparables": [
@@ -4899,12 +5165,14 @@
     },
     "park-place": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "medium",
       "comparable_count": 5,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Nashville",
       "comparables": [
@@ -4931,12 +5199,14 @@
     },
     "the-nashville-edition": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "medium",
       "comparable_count": 5,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Nashville",
       "comparables": [
@@ -4963,12 +5233,14 @@
     },
     "east-bank-campus": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "medium",
       "comparable_count": 5,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Nashville",
       "comparables": [
@@ -4995,12 +5267,14 @@
     },
     "tennessee-titans-stadium": {
       "estimate_years": 2.6,
+      "estimate_label": "~2.6 years",
       "range_low": 2.0,
       "range_high": 6.0,
       "confidence": "low",
       "comparable_count": 3,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Entertainment",
       "metro": "Nashville",
       "comparables": [
@@ -5027,12 +5301,14 @@
     },
     "wedgewood-village": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "medium",
       "comparable_count": 5,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Nashville",
       "comparables": [
@@ -5059,12 +5335,14 @@
     },
     "baccarat-residences-miami": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -5091,12 +5369,14 @@
     },
     "coral-cay-waterpark": {
       "estimate_years": 2.6,
+      "estimate_label": "~2.6 years",
       "range_low": 2.0,
       "range_high": 6.0,
       "confidence": "low",
       "comparable_count": 3,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Entertainment",
       "metro": "Other",
       "comparables": [
@@ -5123,12 +5403,14 @@
     },
     "rosewood-residences-west-palm-beach": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "medium",
       "comparable_count": 5,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Palm Beach",
       "comparables": [
@@ -5155,12 +5437,14 @@
     },
     "currie-park-towers": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "medium",
       "comparable_count": 5,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Palm Beach",
       "comparables": [
@@ -5187,12 +5471,14 @@
     },
     "the-sound": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "medium",
       "comparable_count": 5,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Palm Beach",
       "comparables": [
@@ -5219,12 +5505,14 @@
     },
     "pbkc-redevelopment": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "medium",
       "comparable_count": 5,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Palm Beach",
       "comparables": [
@@ -5251,12 +5539,14 @@
     },
     "breakers-employee-housing-campus": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "medium",
       "comparable_count": 5,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Palm Beach",
       "comparables": [
@@ -5283,12 +5573,14 @@
     },
     "gardens-vista": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "medium",
       "comparable_count": 5,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Palm Beach",
       "comparables": [
@@ -5315,12 +5607,14 @@
     },
     "nora-apartments": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "medium",
       "comparable_count": 5,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Palm Beach",
       "comparables": [
@@ -5346,45 +5640,29 @@
       "pattern_summary": "Among 5 comparable residences projects in TMW's data, the median time to completion is 3 years, with a range of 2–4.8 years."
     },
     "the-nora-hotel": {
-      "estimate_years": 5.0,
-      "range_low": 2.0,
-      "range_high": 8.0,
-      "confidence": "medium",
-      "comparable_count": 7,
-      "exact_count": 1,
-      "used_relaxed": true,
+      "estimate_years": 0.5,
+      "estimate_label": "~6 months",
+      "days_out": 185,
+      "delivery_date": "2026-11-15",
+      "source": "known_date",
+      "precision": "month",
+      "confidence": "high",
       "project_type": "Hotel",
       "metro": "Palm Beach",
-      "comparables": [
-        {
-          "name": "Aman Nai Lert Bangkok",
-          "slug": "aman-nai-lert-bangkok",
-          "location": "Bangkok",
-          "years": 5.0
-        },
-        {
-          "name": "Ciel Dubai Marina",
-          "slug": "ciel-dubai-marina",
-          "location": "Dubai",
-          "years": 5.0
-        },
-        {
-          "name": "Nashville Yards",
-          "slug": "nashville-yards",
-          "location": "Nashville",
-          "years": 6.0
-        }
-      ],
-      "pattern_summary": "Among 7 comparable hotel projects in TMW's data, the median time to completion is 5 years, with a range of 2–8 years."
+      "comparables": [],
+      "comparable_count": 0,
+      "pattern_summary": "Developer-announced opening in ~6 months."
     },
     "the-estates-at-nomar": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "medium",
       "comparable_count": 5,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Palm Beach",
       "comparables": [
@@ -5411,12 +5689,14 @@
     },
     "3rd-3rd": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Tampa Bay",
       "comparables": [
@@ -5443,12 +5723,14 @@
     },
     "415-s-dixie-hwy": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "medium",
       "comparable_count": 5,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Palm Beach",
       "comparables": [
@@ -5475,12 +5757,14 @@
     },
     "tampa-bay-rays-stadium": {
       "estimate_years": 2.6,
+      "estimate_label": "~2.6 years",
       "range_low": 2.0,
       "range_high": 6.0,
       "confidence": "low",
       "comparable_count": 3,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Entertainment",
       "metro": "Tampa Bay",
       "comparables": [
@@ -5507,12 +5791,14 @@
     },
     "roche-bobois-st-pete-tower": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Tampa Bay",
       "comparables": [
@@ -5539,12 +5825,14 @@
     },
     "mira-mar-residences": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Tampa Bay",
       "comparables": [
@@ -5571,12 +5859,14 @@
     },
     "e11even-club-hotel-residences": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -5603,12 +5893,14 @@
     },
     "nokosi-golf-club": {
       "estimate_years": 2.0,
+      "estimate_label": "~2 years",
       "range_low": 2.0,
       "range_high": 2.0,
       "confidence": "low",
       "comparable_count": 1,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Golf",
       "metro": "Palm Beach",
       "comparables": [
@@ -5623,12 +5915,14 @@
     },
     "malabar-residences": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "New York",
       "comparables": [
@@ -5655,12 +5949,14 @@
     },
     "175-third-street": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "New York",
       "comparables": [
@@ -5687,12 +5983,14 @@
     },
     "24-19-jackson-avenue": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "New York",
       "comparables": [
@@ -5719,12 +6017,14 @@
     },
     "deer-valley-resort-expansion": {
       "estimate_years": 5.0,
+      "estimate_label": "~5 years",
       "range_low": 2.0,
       "range_high": 8.0,
       "confidence": "medium",
       "comparable_count": 7,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Hotel",
       "metro": "Other",
       "comparables": [
@@ -5751,12 +6051,14 @@
     },
     "the-ritz-carlton-residences-sarasota-bay": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Tampa Bay",
       "comparables": [
@@ -5783,12 +6085,14 @@
     },
     "gallery-at-marina-village": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "medium",
       "comparable_count": 5,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Palm Beach",
       "comparables": [
@@ -5815,12 +6119,14 @@
     },
     "hb-capital-group-tower": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "medium",
       "comparable_count": 5,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Orlando",
       "comparables": [
@@ -5847,12 +6153,14 @@
     },
     "2823-broadway": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "medium",
       "comparable_count": 5,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Palm Beach",
       "comparables": [
@@ -5878,45 +6186,29 @@
       "pattern_summary": "Among 5 comparable residences projects in TMW's data, the median time to completion is 3 years, with a range of 2–4.8 years."
     },
     "district-at-northwood": {
-      "estimate_years": 3.0,
-      "range_low": 2.0,
-      "range_high": 4.8,
-      "confidence": "medium",
-      "comparable_count": 5,
-      "exact_count": 0,
-      "used_relaxed": true,
+      "estimate_years": 0.6,
+      "estimate_label": "~7 months",
+      "days_out": 215,
+      "delivery_date": "2026-12-15",
+      "source": "known_date",
+      "precision": "month",
+      "confidence": "high",
       "project_type": "Residences",
       "metro": "Palm Beach",
-      "comparables": [
-        {
-          "name": "Pier Sixty-Six",
-          "slug": "pier-sixty-six",
-          "location": "Fort Lauderdale",
-          "years": 3.0
-        },
-        {
-          "name": "The Residence at 400 Central",
-          "slug": "the-residence-at-400-central",
-          "location": "St. Petersburg",
-          "years": 2.2
-        },
-        {
-          "name": "The Brooklyn Tower",
-          "slug": "the-brooklyn-tower",
-          "location": "Brooklyn",
-          "years": 4.0
-        }
-      ],
-      "pattern_summary": "Among 5 comparable residences projects in TMW's data, the median time to completion is 3 years, with a range of 2–4.8 years."
+      "comparables": [],
+      "comparable_count": 0,
+      "pattern_summary": "Developer-announced opening in ~7 months."
     },
     "ymca-of-the-palm-beaches": {
       "estimate_years": 2.6,
+      "estimate_label": "~2.6 years",
       "range_low": 2.0,
       "range_high": 6.0,
       "confidence": "low",
       "comparable_count": 3,
       "exact_count": 2,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Entertainment",
       "metro": "Palm Beach",
       "comparables": [
@@ -5943,12 +6235,14 @@
     },
     "gaia-residences": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -5975,12 +6269,14 @@
     },
     "cassia-residences": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -6007,12 +6303,14 @@
     },
     "tennessee-performing-arts-center": {
       "estimate_years": 2.6,
+      "estimate_label": "~2.6 years",
       "range_low": 2.0,
       "range_high": 6.0,
       "confidence": "low",
       "comparable_count": 3,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Entertainment",
       "metro": "Nashville",
       "comparables": [
@@ -6039,12 +6337,14 @@
     },
     "four-seasons-hotel-and-residences-jacksonville": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "medium",
       "comparable_count": 5,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Northeast Florida",
       "comparables": [
@@ -6071,12 +6371,14 @@
     },
     "jacksonville-jaguars-stadium": {
       "estimate_years": 2.6,
+      "estimate_label": "~2.6 years",
       "range_low": 2.0,
       "range_high": 6.0,
       "confidence": "low",
       "comparable_count": 3,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Entertainment",
       "metro": "Northeast Florida",
       "comparables": [
@@ -6103,12 +6405,14 @@
     },
     "anantara-miami-resort-residences": {
       "estimate_years": 5.0,
+      "estimate_label": "~5 years",
       "range_low": 2.0,
       "range_high": 8.0,
       "confidence": "medium",
       "comparable_count": 7,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Hotel",
       "metro": "South Florida",
       "comparables": [
@@ -6135,12 +6439,14 @@
     },
     "black-desert-resort-expansion": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "medium",
       "comparable_count": 5,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Other",
       "comparables": [
@@ -6167,12 +6473,14 @@
     },
     "the-waterfront-daniel-island": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "medium",
       "comparable_count": 5,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Charleston",
       "comparables": [
@@ -6199,12 +6507,14 @@
     },
     "panther-national": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "medium",
       "comparable_count": 5,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Palm Beach",
       "comparables": [
@@ -6231,12 +6541,14 @@
     },
     "finale": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "medium",
       "comparable_count": 5,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Other",
       "comparables": [
@@ -6263,12 +6575,14 @@
     },
     "the-ritz-carlton-residences-houston": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "medium",
       "comparable_count": 5,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Houston",
       "comparables": [
@@ -6295,12 +6609,14 @@
     },
     "waldorf-astoria-texas-hill-country": {
       "estimate_years": 5.0,
+      "estimate_label": "~5 years",
       "range_low": 2.0,
       "range_high": 8.0,
       "confidence": "medium",
       "comparable_count": 7,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Hotel",
       "metro": "Other",
       "comparables": [
@@ -6327,12 +6643,14 @@
     },
     "amansanu": {
       "estimate_years": 5.0,
+      "estimate_label": "~5 years",
       "range_low": 2.0,
       "range_high": 8.0,
       "confidence": "medium",
       "comparable_count": 7,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Hotel",
       "metro": "Other",
       "comparables": [
@@ -6359,12 +6677,14 @@
     },
     "3031-s-ocean": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "medium",
       "comparable_count": 5,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Palm Beach",
       "comparables": [
@@ -6391,12 +6711,14 @@
     },
     "oracle-campus": {
       "estimate_years": 5.0,
+      "estimate_label": "~5 years",
       "range_low": 2.0,
       "range_high": 8.0,
       "confidence": "medium",
       "comparable_count": 7,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Hotel",
       "metro": "Nashville",
       "comparables": [
@@ -6423,12 +6745,14 @@
     },
     "one-twenty-brickell-signature-residences": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -6455,12 +6779,14 @@
     },
     "marina-village": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "medium",
       "comparable_count": 5,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Palm Beach",
       "comparables": [
@@ -6487,12 +6813,14 @@
     },
     "diriyah-gate": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "medium",
       "comparable_count": 5,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Other",
       "comparables": [
@@ -6519,12 +6847,14 @@
     },
     "jeddah-tower": {
       "estimate_years": 5.0,
+      "estimate_label": "~5 years",
       "range_low": 2.0,
       "range_high": 8.0,
       "confidence": "medium",
       "comparable_count": 7,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Hotel",
       "metro": "Other",
       "comparables": [
@@ -6551,12 +6881,14 @@
     },
     "dubai-creek-tower": {
       "estimate_years": 5.0,
+      "estimate_label": "~5 years",
       "range_low": 2.0,
       "range_high": 8.0,
       "confidence": "medium",
       "comparable_count": 7,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Hotel",
       "metro": "Other",
       "comparables": [
@@ -6583,12 +6915,14 @@
     },
     "the-avenues": {
       "estimate_years": 5.0,
+      "estimate_label": "~5 years",
       "range_low": 2.0,
       "range_high": 8.0,
       "confidence": "medium",
       "comparable_count": 7,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Hotel",
       "metro": "Other",
       "comparables": [
@@ -6615,12 +6949,14 @@
     },
     "qiddiya": {
       "estimate_years": 5.0,
+      "estimate_label": "~5 years",
       "range_low": 2.0,
       "range_high": 8.0,
       "confidence": "medium",
       "comparable_count": 7,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Hotel",
       "metro": "Other",
       "comparables": [
@@ -6647,12 +6983,14 @@
     },
     "hudson-yards-phase-2": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "New York",
       "comparables": [
@@ -6679,12 +7017,14 @@
     },
     "new-murabba": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "medium",
       "comparable_count": 5,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Other",
       "comparables": [
@@ -6711,12 +7051,14 @@
     },
     "brent-cross-town": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "medium",
       "comparable_count": 5,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "London",
       "comparables": [
@@ -6743,12 +7085,14 @@
     },
     "sofi-stadium-district": {
       "estimate_years": 2.6,
+      "estimate_label": "~2.6 years",
       "range_low": 2.0,
       "range_high": 6.0,
       "confidence": "low",
       "comparable_count": 3,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Entertainment",
       "metro": "Other",
       "comparables": [
@@ -6775,12 +7119,14 @@
     },
     "the-78": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "medium",
       "comparable_count": 5,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Other",
       "comparables": [
@@ -6807,12 +7153,14 @@
     },
     "lincoln-yards": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "medium",
       "comparable_count": 5,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Other",
       "comparables": [
@@ -6839,12 +7187,14 @@
     },
     "osaka-ir-casino-entertainment-resort": {
       "estimate_years": 2.6,
+      "estimate_label": "~2.6 years",
       "range_low": 2.0,
       "range_high": 6.0,
       "confidence": "low",
       "comparable_count": 3,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Entertainment",
       "metro": "Other",
       "comparables": [
@@ -6871,12 +7221,14 @@
     },
     "shibuya-upper-west-project": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "medium",
       "comparable_count": 5,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Tokyo",
       "comparables": [
@@ -6903,12 +7255,14 @@
     },
     "toranomon-hills-station-tower": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "medium",
       "comparable_count": 5,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Tokyo",
       "comparables": [
@@ -6935,12 +7289,14 @@
     },
     "madrid-nuevo-norte-bbva-tower-towers": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "medium",
       "comparable_count": 5,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Other",
       "comparables": [
@@ -6967,12 +7323,14 @@
     },
     "amaala": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "medium",
       "comparable_count": 5,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Other",
       "comparables": [
@@ -6999,12 +7357,14 @@
     },
     "aloha-stadium": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "medium",
       "comparable_count": 5,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Other",
       "comparables": [
@@ -7031,12 +7391,14 @@
     },
     "hale-hkala": {
       "estimate_years": 5.0,
+      "estimate_label": "~5 years",
       "range_low": 2.0,
       "range_high": 8.0,
       "confidence": "medium",
       "comparable_count": 7,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Hotel",
       "metro": "Other",
       "comparables": [
@@ -7063,12 +7425,14 @@
     },
     "kauanoe-o-kloa-resort-condominiums": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "medium",
       "comparable_count": 5,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Other",
       "comparables": [
@@ -7095,12 +7459,14 @@
     },
     "kimpton-coco-palms": {
       "estimate_years": 5.0,
+      "estimate_label": "~5 years",
       "range_low": 2.0,
       "range_high": 8.0,
       "confidence": "medium",
       "comparable_count": 7,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Hotel",
       "metro": "Other",
       "comparables": [
@@ -7127,12 +7493,14 @@
     },
     "aman-dubai": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "medium",
       "comparable_count": 5,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Dubai",
       "comparables": [
@@ -7159,12 +7527,14 @@
     },
     "litib-bay-club": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "medium",
       "comparable_count": 5,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Other",
       "comparables": [
@@ -7191,12 +7561,14 @@
     },
     "bentley-residences-miami": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -7223,12 +7595,14 @@
     },
     "marina-towers-by-tatweer-misr": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "medium",
       "comparable_count": 5,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Other",
       "comparables": [
@@ -7255,12 +7629,14 @@
     },
     "nobu-residences-miami": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -7287,12 +7663,14 @@
     },
     "the-power-district": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "medium",
       "comparable_count": 5,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Other",
       "comparables": [
@@ -7319,12 +7697,14 @@
     },
     "twenty-sixth-2nd-wynwood-residences": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -7351,12 +7731,14 @@
     },
     "bridgestone-arena": {
       "estimate_years": 2.6,
+      "estimate_label": "~2.6 years",
       "range_low": 2.0,
       "range_high": 6.0,
       "confidence": "low",
       "comparable_count": 3,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Entertainment",
       "metro": "Nashville",
       "comparables": [
@@ -7383,12 +7765,14 @@
     },
     "the-setai-st-maarten": {
       "estimate_years": 5.0,
+      "estimate_label": "~5 years",
       "range_low": 2.0,
       "range_high": 8.0,
       "confidence": "medium",
       "comparable_count": 7,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Hotel",
       "metro": "Other",
       "comparables": [
@@ -7415,12 +7799,14 @@
     },
     "rb-sports-center": {
       "estimate_years": 2.6,
+      "estimate_label": "~2.6 years",
       "range_low": 2.0,
       "range_high": 6.0,
       "confidence": "low",
       "comparable_count": 3,
       "exact_count": 2,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Entertainment",
       "metro": "Palm Beach",
       "comparables": [
@@ -7447,12 +7833,14 @@
     },
     "arbor-coconut-grove": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -7479,12 +7867,14 @@
     },
     "delux-weho": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "medium",
       "comparable_count": 5,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Nashville",
       "comparables": [
@@ -7511,12 +7901,14 @@
     },
     "duos-wynwood": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -7543,12 +7935,14 @@
     },
     "affirmation-tower": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "New York",
       "comparables": [
@@ -7575,12 +7969,14 @@
     },
     "one-beverly-hills": {
       "estimate_years": 5.0,
+      "estimate_label": "~5 years",
       "range_low": 2.0,
       "range_high": 8.0,
       "confidence": "medium",
       "comparable_count": 7,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Hotel",
       "metro": "Other",
       "comparables": [
@@ -7607,12 +8003,14 @@
     },
     "sharaan-resort-by-jean-nouvel": {
       "estimate_years": 5.0,
+      "estimate_label": "~5 years",
       "range_low": 2.0,
       "range_high": 8.0,
       "confidence": "medium",
       "comparable_count": 7,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Hotel",
       "metro": "Other",
       "comparables": [
@@ -7639,12 +8037,14 @@
     },
     "wynn-al-marjan-island": {
       "estimate_years": 5.0,
+      "estimate_label": "~5 years",
       "range_low": 2.0,
       "range_high": 8.0,
       "confidence": "medium",
       "comparable_count": 7,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Hotel",
       "metro": "Other",
       "comparables": [
@@ -7671,12 +8071,14 @@
     },
     "burj-binghatti-jacob-co-residences": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "medium",
       "comparable_count": 5,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Dubai",
       "comparables": [
@@ -7703,12 +8105,14 @@
     },
     "bear-lakes-country-club-expansion": {
       "estimate_years": 2.0,
+      "estimate_label": "~2 years",
       "range_low": 2.0,
       "range_high": 2.0,
       "confidence": "low",
       "comparable_count": 1,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Golf",
       "metro": "Palm Beach",
       "comparables": [
@@ -7723,12 +8127,14 @@
     },
     "skywaters-residences": {
       "estimate_years": 5.0,
+      "estimate_label": "~5 years",
       "range_low": 2.0,
       "range_high": 8.0,
       "confidence": "medium",
       "comparable_count": 7,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Hotel",
       "metro": "Other",
       "comparables": [
@@ -7755,12 +8161,14 @@
     },
     "aman-niseko": {
       "estimate_years": 5.0,
+      "estimate_label": "~5 years",
       "range_low": 2.0,
       "range_high": 8.0,
       "confidence": "medium",
       "comparable_count": 7,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Hotel",
       "metro": "Other",
       "comparables": [
@@ -7787,12 +8195,14 @@
     },
     "rosewood-seoul": {
       "estimate_years": 5.0,
+      "estimate_label": "~5 years",
       "range_low": 2.0,
       "range_high": 8.0,
       "confidence": "medium",
       "comparable_count": 7,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Hotel",
       "metro": "Other",
       "comparables": [
@@ -7819,12 +8229,14 @@
     },
     "amancaya": {
       "estimate_years": 5.0,
+      "estimate_label": "~5 years",
       "range_low": 2.0,
       "range_high": 8.0,
       "confidence": "medium",
       "comparable_count": 7,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Hotel",
       "metro": "Other",
       "comparables": [
@@ -7851,12 +8263,14 @@
     },
     "six-senses-residences-belize": {
       "estimate_years": 5.0,
+      "estimate_label": "~5 years",
       "range_low": 2.0,
       "range_high": 8.0,
       "confidence": "medium",
       "comparable_count": 7,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Hotel",
       "metro": "Other",
       "comparables": [
@@ -7883,12 +8297,14 @@
     },
     "fouquets-hotel-and-residences-miami-design-district": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -7915,12 +8331,14 @@
     },
     "waldorf-astoria-deer-valley-resort-and-residences": {
       "estimate_years": 5.0,
+      "estimate_label": "~5 years",
       "range_low": 2.0,
       "range_high": 8.0,
       "confidence": "medium",
       "comparable_count": 7,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Hotel",
       "metro": "Other",
       "comparables": [
@@ -7947,12 +8365,14 @@
     },
     "1-hotel-austin": {
       "estimate_years": 5.0,
+      "estimate_label": "~5 years",
       "range_low": 2.0,
       "range_high": 8.0,
       "confidence": "medium",
       "comparable_count": 7,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Hotel",
       "metro": "Austin",
       "comparables": [
@@ -7979,12 +8399,14 @@
     },
     "one-bloor-west": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "medium",
       "comparable_count": 5,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Other",
       "comparables": [
@@ -8011,12 +8433,14 @@
     },
     "burj-azizi": {
       "estimate_years": 5.0,
+      "estimate_label": "~5 years",
       "range_low": 2.0,
       "range_high": 8.0,
       "confidence": "medium",
       "comparable_count": 7,
       "exact_count": 2,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Hotel",
       "metro": "Dubai",
       "comparables": [
@@ -8043,12 +8467,14 @@
     },
     "the-standard-lisbon": {
       "estimate_years": 5.0,
+      "estimate_label": "~5 years",
       "range_low": 2.0,
       "range_high": 8.0,
       "confidence": "medium",
       "comparable_count": 7,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Hotel",
       "metro": "Other",
       "comparables": [
@@ -8075,12 +8501,14 @@
     },
     "guggenheim-abu-dhabi": {
       "estimate_years": 6.5,
+      "estimate_label": "~6.5 years",
       "range_low": 6.0,
       "range_high": 7.0,
       "confidence": "low",
       "comparable_count": 2,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Museum",
       "metro": "Abu Dhabi",
       "comparables": [
@@ -8101,12 +8529,14 @@
     },
     "new-san-siro-stadium": {
       "estimate_years": 2.6,
+      "estimate_label": "~2.6 years",
       "range_low": 2.0,
       "range_high": 6.0,
       "confidence": "low",
       "comparable_count": 3,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Entertainment",
       "metro": "Other",
       "comparables": [
@@ -8133,12 +8563,14 @@
     },
     "brisbane-olympic-stadium": {
       "estimate_years": 2.6,
+      "estimate_label": "~2.6 years",
       "range_low": 2.0,
       "range_high": 6.0,
       "confidence": "low",
       "comparable_count": 3,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Entertainment",
       "metro": "Other",
       "comparables": [
@@ -8165,12 +8597,14 @@
     },
     "marina-bay-sands-expansion": {
       "estimate_years": 5.0,
+      "estimate_label": "~5 years",
       "range_low": 2.0,
       "range_high": 8.0,
       "confidence": "medium",
       "comparable_count": 7,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Hotel",
       "metro": "Other",
       "comparables": [
@@ -8197,12 +8631,14 @@
     },
     "cleveland-browns-stadium-brook-park": {
       "estimate_years": 2.6,
+      "estimate_label": "~2.6 years",
       "range_low": 2.0,
       "range_high": 6.0,
       "confidence": "low",
       "comparable_count": 3,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Entertainment",
       "metro": "Other",
       "comparables": [
@@ -8227,14 +8663,30 @@
       ],
       "pattern_summary": "Among 3 comparable entertainment projects in TMW's data, the median time to completion is 2.6 years, with a range of 2–6 years."
     },
+    "cabot-revelstoke": {
+      "estimate_years": 0.9,
+      "estimate_label": "~11 months",
+      "days_out": 336,
+      "delivery_date": "2027-04-15",
+      "source": "known_date",
+      "precision": "month",
+      "confidence": "high",
+      "project_type": "Resort",
+      "metro": "Other",
+      "comparables": [],
+      "comparable_count": 0,
+      "pattern_summary": "Developer-announced opening in ~11 months."
+    },
     "eastpoint": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "medium",
       "comparable_count": 5,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Nashville",
       "comparables": [
@@ -8261,12 +8713,14 @@
     },
     "520-fifth-avenue": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "New York",
       "comparables": [
@@ -8293,12 +8747,14 @@
     },
     "six-senses-napa-valley": {
       "estimate_years": 5.0,
+      "estimate_label": "~5 years",
       "range_low": 2.0,
       "range_high": 8.0,
       "confidence": "medium",
       "comparable_count": 7,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Hotel",
       "metro": "Other",
       "comparables": [
@@ -8325,12 +8781,14 @@
     },
     "rosewood-half-moon-bay-antigua": {
       "estimate_years": 5.0,
+      "estimate_label": "~5 years",
       "range_low": 2.0,
       "range_high": 8.0,
       "confidence": "medium",
       "comparable_count": 7,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Hotel",
       "metro": "Other",
       "comparables": [
@@ -8357,12 +8815,14 @@
     },
     "hudsons-detroit": {
       "estimate_years": 5.0,
+      "estimate_label": "~5 years",
       "range_low": 2.0,
       "range_high": 8.0,
       "confidence": "medium",
       "comparable_count": 7,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Hotel",
       "metro": "Other",
       "comparables": [
@@ -8389,12 +8849,14 @@
     },
     "new-kansas-city-royals-stadium": {
       "estimate_years": 2.6,
+      "estimate_label": "~2.6 years",
       "range_low": 2.0,
       "range_high": 6.0,
       "confidence": "low",
       "comparable_count": 3,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Entertainment",
       "metro": "Other",
       "comparables": [
@@ -8421,12 +8883,14 @@
     },
     "burj-jumeira": {
       "estimate_years": 2.6,
+      "estimate_label": "~2.6 years",
       "range_low": 2.0,
       "range_high": 6.0,
       "confidence": "low",
       "comparable_count": 3,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Entertainment",
       "metro": "Dubai",
       "comparables": [
@@ -8453,12 +8917,14 @@
     },
     "kawonu-golf-club": {
       "estimate_years": 2.6,
+      "estimate_label": "~2.6 years",
       "range_low": 2.0,
       "range_high": 6.0,
       "confidence": "low",
       "comparable_count": 3,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Entertainment",
       "metro": "Greenville",
       "comparables": [
@@ -8485,12 +8951,14 @@
     },
     "navy-seal-museum-san-diego": {
       "estimate_years": 2.6,
+      "estimate_label": "~2.6 years",
       "range_low": 2.0,
       "range_high": 6.0,
       "confidence": "low",
       "comparable_count": 3,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Entertainment",
       "metro": "Other",
       "comparables": [
@@ -8517,12 +8985,14 @@
     },
     "the-whale": {
       "estimate_years": 2.6,
+      "estimate_label": "~2.6 years",
       "range_low": 2.0,
       "range_high": 6.0,
       "confidence": "low",
       "comparable_count": 3,
       "exact_count": 0,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Entertainment",
       "metro": "Other",
       "comparables": [
@@ -8549,12 +9019,14 @@
     },
     "village-landing": {
       "estimate_years": 2.6,
+      "estimate_label": "~2.6 years",
       "range_low": 2.0,
       "range_high": 6.0,
       "confidence": "low",
       "comparable_count": 3,
       "exact_count": 2,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Entertainment",
       "metro": "Palm Beach",
       "comparables": [
@@ -8581,12 +9053,14 @@
     },
     "lilli": {
       "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 4.8,
       "confidence": "low",
       "comparable_count": 5,
       "exact_count": 1,
       "used_relaxed": true,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [
@@ -8614,9 +9088,10 @@
   },
   "stats": {
     "high": 0,
-    "medium": 118,
+    "medium": 114,
     "low": 152,
-    "skipped": 77,
+    "known_date": 5,
+    "skipped": 76,
     "no_type": 0
   }
 }
