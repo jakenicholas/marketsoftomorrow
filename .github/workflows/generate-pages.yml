@@ -76,7 +76,7 @@ jobs:
           # in generate_pulse.py handles single-run renames, but only
           # if it can see the previous state, which means the snapshot
           # has to live in the repo.
-          git add projects/ sitemap.xml robots.txt pulse.json articles.json .pulse-snapshot.json 2>/dev/null || true
+          git add projects/ sitemap.xml robots.txt pulse.json articles.json atlas.json .pulse-snapshot.json 2>/dev/null || true
           if git diff --staged --quiet; then
             echo "changed=false" >> $GITHUB_OUTPUT
             echo "No changes detected."
