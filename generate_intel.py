@@ -822,6 +822,14 @@ def main():
         delivery_date_raw = (row.get('DeliveryDate','') or '').strip()
         known = known_date_estimate(delivery_date_raw, today)
         if known:
+            # Pattern summary reflects the precision: only call it a
+            # "developer-announced opening" when we have a day-precise date.
+            # For vaguer precision (month/quarter/season/year), the wording
+            # softens to "targeted" so we don't overclaim certainty.
+            if known['precision'] == 'day':
+                pattern_summary = f"Developer-announced opening in {known['estimate_label']}."
+            else:
+                pattern_summary = f"Targeted for opening in {known['estimate_label']}."
             intel[target_slug] = {
                 'estimate_years':   known['estimate_years'],
                 'estimate_label':   known['estimate_label'],
@@ -836,7 +844,7 @@ def main():
                 # render different content for source=known_date.
                 'comparables':      [],
                 'comparable_count': 0,
-                'pattern_summary':  f"Developer-announced opening in {known['estimate_label']}.",
+                'pattern_summary':  pattern_summary,
             }
             stats['known_date'] += 1
             continue
