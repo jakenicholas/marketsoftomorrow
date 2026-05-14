@@ -3336,19 +3336,36 @@
       width: 100%;
       height: 4px;
       border-radius: 2px;
-      background: rgba(255,255,255,0.08);
-    }
-    .popup-content .delivery-bar-fill {
-      height: 100%;
+      /* Full lifecycle gradient is on the TRACK so colors anchor to their
+         actual stage position (gray=announced, yellow=breaking ground,
+         orange=construction, green=open). The fill element is repurposed
+         to dim the not-yet-reached portion. */
       background: linear-gradient(90deg,
         rgba(255,255,255,0.3) 0%,
         #FFD300 33%,
         #FF9500 66%,
-        #1FDF67 100%) !important;
-      border-radius: 2px;
+        #1FDF67 100%);
+      position: relative;
+      overflow: hidden;
+    }
+    .popup-content .delivery-bar-fill {
+      /* Repurpose: this element now masks the UNCOMPLETED portion of the
+         track with a dim overlay. Inline width set by JS represents the
+         project's completion percentage. We translate that into a right-
+         anchored dim overlay covering (100% - that-width). */
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      height: 100%;
+      width: auto !important; /* override JS-set width */
+      left: var(--fill-pct, 60%);
+      background: rgba(0,0,0,0.55);
+      border-radius: 0 2px 2px 0;
     }
     .popup-content .delivery-bar.open .delivery-bar-fill {
-      background: #1FDF67 !important;
+      /* When fully open, dim overlay shouldn't be visible at all */
+      display: none;
     }
     .popup-content .delivery-bar-stages {
       display: flex;
@@ -4071,22 +4088,24 @@
     line-height: 1.5;
   }
 
-  /* Map popup intel chip -- mirrors the project modal block (badge +
-     eyebrow + big purple value + smaller "to completion" sub) */
+  /* Map popup intel chip -- compact 2-line layout per mock:
+     Line 1: TMW Intelligence badge + value ("~7 months to completion")
+     Line 2: "Based on N similar projects" sub
+     Total height ~62px */
   .popup-content .popup-intel {
     margin-top: 12px;
     margin-bottom: 14px;
-    padding: 12px;
+    padding: 10px 12px;
     background: rgba(167,139,250,0.08);
     border: 1px solid rgba(167,139,250,0.24);
     border-radius: 10px;
   }
-  .popup-content .popup-intel-head {
+  .popup-content .popup-intel-line {
     display: flex;
     align-items: center;
-    justify-content: space-between;
     gap: 8px;
-    margin-bottom: 8px;
+    flex-wrap: nowrap;
+    min-width: 0;
   }
   .popup-content .popup-intel-badge {
     display: inline-flex;
@@ -4107,30 +4126,32 @@
   .popup-content .popup-intel-badge svg {
     width: 9px; height: 9px; fill: currentColor;
   }
-  .popup-content .popup-intel-eyebrow {
-    font-size: 9px;
-    color: rgba(255,255,255,0.5);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    font-weight: 600;
-    text-align: right;
+  .popup-content .popup-intel-value {
+    font-size: 14px;
+    color: #A78BFA;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
     min-width: 0;
+    flex: 1;
   }
-  .popup-content .popup-intel-value {
-    font-size: 22px;
-    color: #A78BFA;
-    font-weight: 700;
-    letter-spacing: -0.02em;
-    line-height: 1.05;
+  .popup-content .popup-intel-value-tail {
+    color: rgba(255,255,255,0.55);
+    font-weight: 500;
   }
   .popup-content .popup-intel-sub {
-    font-size: 11px;
-    color: rgba(255,255,255,0.55);
-    margin-top: 3px;
+    font-size: 10px;
+    color: rgba(255,255,255,0.5);
+    margin-top: 4px;
     font-weight: 500;
+  }
+  /* Hide the "to completion" tail on narrow popups (mobile) to keep the
+     value on one line with the badge */
+  @media (max-width: 320px) {
+    .popup-content .popup-intel-value-tail { display: none; }
   }
 
   #projectModal .pm-coverage-header {
@@ -9271,17 +9292,22 @@
             // Verify the popup is still mounted (user may have closed it
             // before intel resolved)
             if (!document.body.contains(intelMount)) return;
+            // Sub line: "Based on N similar projects" for comparable-based
+            // entries, "Developer announced" for known-date entries.
+            const subText = (entry.source === 'known_date')
+              ? 'Developer announced'
+              : `Based on ${entry.comparable_count} similar project${entry.comparable_count === 1 ? '' : 's'}`;
+            const valueText = entry.estimate_label || ('~' + entry.estimate_years + ' yrs');
             intelMount.innerHTML = `
               <div class="popup-intel">
-                <div class="popup-intel-head">
+                <div class="popup-intel-line">
                   <span class="popup-intel-badge">
                     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2L4 7v10l8 5 8-5V7l-8-5zm0 2.5L18 8v8l-6 3.75L6 16V8l6-3.5z"/></svg>
                     TMW Intelligence
                   </span>
-                  <span class="popup-intel-eyebrow">Est. time to completion</span>
+                  <span class="popup-intel-value">${valueText}<span class="popup-intel-value-tail"> to completion</span></span>
                 </div>
-                <div class="popup-intel-value">${entry.estimate_label || ('~' + entry.estimate_years + ' yrs')}</div>
-                <div class="popup-intel-sub">to completion</div>
+                <div class="popup-intel-sub">${subText}</div>
               </div>
             `;
           });
@@ -9395,10 +9421,13 @@
       else if (d.includes('opening'))      { cls='opening';      label='Opening Soon';      pct=85;  }
       else if (d.includes('open'))         { cls='open';         label='Now Open';          pct=100; }
       else                                 { cls='announced';    label=delivery;            pct=10;  }
+      // Set BOTH width (used by tile bars in their original behavior) AND
+      // --fill-pct (used by popup bar to position the dim overlay so the
+      // gradient colors anchor to actual lifecycle position).
       // Stages markup is included unconditionally; CSS hides it outside .popup-content
       return `<div class="delivery-bar ${cls}">
         <span class="delivery-bar-label">${label}</span>
-        <div class="delivery-bar-track"><div class="delivery-bar-fill" style="width:${pct}%"></div></div>
+        <div class="delivery-bar-track"><div class="delivery-bar-fill" style="width:${pct}%;--fill-pct:${pct}%"></div></div>
         <div class="delivery-bar-stages"><span>Announced</span><span>Building</span><span>Open</span></div>
       </div>`;
     }
