@@ -8717,10 +8717,26 @@
             `<span class="pm-intel-highlight">${countStr}</span>`
           );
 
-          const isKnownDate = (entry.source === 'known_date');
+          const source = entry.source || 'comparables';
           const estimateLabel = entry.estimate_label || `~${entry.estimate_years} years`;
 
-          if (isKnownDate) {
+          if (source === 'completed') {
+            // Past-tense reported fact. This project IS complete and we
+            // know exactly how long it took, so we report rather than
+            // estimate. No comparables or disclaimer needed.
+            wrap.innerHTML = `
+              <div class="pm-intel-head">
+                <span class="pm-intel-badge">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2L4 7v10l8 5 8-5V7l-8-5zm0 2.5L18 8v8l-6 3.75L6 16V8l6-3.5z"/></svg>
+                  TMW Intelligence
+                </span>
+                <div class="pm-intel-title">Actual Time to Complete</div>
+                <span class="pm-intel-confidence" data-conf="high">Completed</span>
+              </div>
+              <div class="pm-intel-estimate">${escapeArticleHtml(estimateLabel)} <span class="unit">to complete</span></div>
+              <div class="pm-intel-pattern">${escapeArticleHtml(entry.pattern_summary || '')}</div>
+            `;
+          } else if (source === 'known_date') {
             // Developer-committed near-term date. Skip the comparables /
             // pattern / disclaimer block and show a tighter, more confident
             // version.
@@ -9345,19 +9361,31 @@
             // Verify the popup is still mounted (user may have closed it
             // before intel resolved)
             if (!document.body.contains(intelMount)) return;
-            // Sub line: "Based on N similar projects" for comparable-based
-            // entries, "Developer announced" for known-date entries.
-            const subText = (entry.source === 'known_date')
-              ? 'Developer announced'
-              : `Based on ${entry.comparable_count} similar project${entry.comparable_count === 1 ? '' : 's'}`;
+            // Build the value, tail, and sub strings based on the entry's
+            // source. Three modes:
+            //   completed   -> past tense, reported fact
+            //   known_date  -> developer-announced near-term date
+            //   comparables -> statistical estimate from similar projects
             const valueText = entry.estimate_label || ('~' + entry.estimate_years + ' yrs');
+            let tailText = ' to completion';
+            let subText;
+            if (entry.source === 'completed') {
+              tailText = ' to complete';
+              subText = entry.start_year
+                ? `From ${entry.start_year} groundbreaking`
+                : 'Completed project';
+            } else if (entry.source === 'known_date') {
+              subText = 'Developer announced';
+            } else {
+              subText = `Based on ${entry.comparable_count} similar project${entry.comparable_count === 1 ? '' : 's'}`;
+            }
             intelMount.innerHTML = `
               <div class="popup-intel">
                 <div class="popup-intel-eyebrow">
                   <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2L4 7v10l8 5 8-5V7l-8-5zm0 2.5L18 8v8l-6 3.75L6 16V8l6-3.5z"/></svg>
                   TMW Intelligence
                 </div>
-                <div class="popup-intel-value">${valueText}<span class="popup-intel-value-tail"> to completion</span></div>
+                <div class="popup-intel-value">${valueText}<span class="popup-intel-value-tail">${tailText}</span></div>
                 <div class="popup-intel-sub">${subText}</div>
               </div>
             `;
