@@ -3281,6 +3281,9 @@
     }
 
     /* ─── DELIVERY STATUS BAR ─────────────────────────────────────────────── */
+    .delivery-bar-stages { display: none; }
+    .popup-content .delivery-bar-stages { display: flex; }
+
     .delivery-bar {
       display: flex; align-items: center; gap: 6px;
       padding: 5px 8px 6px;
@@ -3310,6 +3313,46 @@
     /* Desktop sidebar smaller */
     #desktopSidebar .delivery-bar { padding: 4px 6px 5px; gap: 5px; }
     #desktopSidebar .delivery-bar-label { font-size: 8px; }
+
+    /* Inside the map popup, override the inline bar with a fuller gradient
+       timeline that matches the spec mock. The popup gets more visual
+       weight than the tile bars since it's a focused detail view. */
+    .popup-content .delivery-bar {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 5px;
+      padding: 10px 0 4px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      margin-top: 10px;
+    }
+    .popup-content .delivery-bar-label {
+      font-size: 9px;
+      color: rgba(255,255,255,0.5) !important;
+      letter-spacing: 0.08em;
+      margin-bottom: 2px;
+    }
+    .popup-content .delivery-bar-track {
+      height: 4px;
+      border-radius: 2px;
+      background: rgba(255,255,255,0.08);
+    }
+    .popup-content .delivery-bar-fill {
+      background: linear-gradient(90deg, #1FDF67 0%, #FF9500 100%) !important;
+      border-radius: 2px;
+    }
+    .popup-content .delivery-bar.open .delivery-bar-fill {
+      background: #1FDF67 !important;
+    }
+    .popup-content .delivery-bar-stages {
+      display: flex;
+      justify-content: space-between;
+      font-size: 8px;
+      color: rgba(255,255,255,0.4);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-weight: 600;
+      margin-top: 1px;
+    }
       grid-column: 1 / -1;
       text-align: center;
       padding: 40px 20px;
@@ -4020,38 +4063,66 @@
     line-height: 1.5;
   }
 
-  /* Map popup intel chip -- compact version of the same data */
+  /* Map popup intel chip -- mirrors the project modal block (badge +
+     eyebrow + big purple value + smaller "to completion" sub) */
   .popup-content .popup-intel {
-    margin-top: 10px;
-    padding: 9px 11px;
+    margin-top: 12px;
+    margin-bottom: 14px;
+    padding: 12px;
     background: rgba(167,139,250,0.08);
-    border: 1px solid rgba(167,139,250,0.22);
-    border-radius: 6px;
+    border: 1px solid rgba(167,139,250,0.24);
+    border-radius: 10px;
   }
-  .popup-content .popup-intel-label {
+  .popup-content .popup-intel-head {
     display: flex;
     align-items: center;
-    gap: 5px;
-    font-size: 9px;
-    color: #A78BFA;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    font-weight: 700;
-    margin-bottom: 3px;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 8px;
   }
-  .popup-content .popup-intel-label svg {
+  .popup-content .popup-intel-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(167,139,250,0.14);
+    border: 1px solid rgba(167,139,250,0.32);
+    color: #A78BFA;
+    padding: 3px 8px;
+    border-radius: 10px;
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .popup-content .popup-intel-badge svg {
     width: 9px; height: 9px; fill: currentColor;
   }
-  .popup-content .popup-intel-value {
-    font-size: 13px;
-    color: #fff;
+  .popup-content .popup-intel-eyebrow {
+    font-size: 9px;
+    color: rgba(255,255,255,0.5);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
     font-weight: 600;
-    line-height: 1.2;
+    text-align: right;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+  }
+  .popup-content .popup-intel-value {
+    font-size: 22px;
+    color: #A78BFA;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.05;
   }
   .popup-content .popup-intel-sub {
-    font-size: 10px;
-    color: rgba(255,255,255,0.6);
-    margin-top: 2px;
+    font-size: 11px;
+    color: rgba(255,255,255,0.55);
+    margin-top: 3px;
+    font-weight: 500;
   }
 
   #projectModal .pm-coverage-header {
@@ -8628,23 +8699,45 @@
             `<span class="pm-intel-highlight">${countStr}</span>`
           );
 
-          wrap.innerHTML = `
-            <div class="pm-intel-head">
-              <span class="pm-intel-badge">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2L4 7v10l8 5 8-5V7l-8-5zm0 2.5L18 8v8l-6 3.75L6 16V8l6-3.5z"/></svg>
-                TMW Intelligence
-              </span>
-              <div class="pm-intel-title">Estimated Time to Completion</div>
-              ${confLabel ? `<span class="pm-intel-confidence" data-conf="${conf}">${confLabel}</span>` : ''}
-            </div>
-            <div class="pm-intel-estimate">~${entry.estimate_years} years <span class="unit">to completion</span>${range}</div>
-            ${similarsHtml ? `
-              <div class="pm-intel-similar-label">Similar Projects in TMW's Data</div>
-              <div class="pm-intel-similars">${similarsHtml}</div>
-            ` : ''}
-            <div class="pm-intel-pattern">${pattern}</div>
-            <div class="pm-intel-disclaimer">Pattern-based estimate, not a developer commitment. Actual timelines can vary by 6\u201318 months.</div>
-          `;
+          const isKnownDate = (entry.source === 'known_date');
+          const estimateLabel = entry.estimate_label || `~${entry.estimate_years} years`;
+
+          if (isKnownDate) {
+            // Developer-committed near-term date. Skip the comparables /
+            // pattern / disclaimer block and show a tighter, more confident
+            // version.
+            wrap.innerHTML = `
+              <div class="pm-intel-head">
+                <span class="pm-intel-badge">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2L4 7v10l8 5 8-5V7l-8-5zm0 2.5L18 8v8l-6 3.75L6 16V8l6-3.5z"/></svg>
+                  TMW Intelligence
+                </span>
+                <div class="pm-intel-title">Estimated Time to Completion</div>
+                <span class="pm-intel-confidence" data-conf="high">Developer announced</span>
+              </div>
+              <div class="pm-intel-estimate">${escapeArticleHtml(estimateLabel)} <span class="unit">to completion</span></div>
+              <div class="pm-intel-pattern">${escapeArticleHtml(entry.pattern_summary || '')}</div>
+              <div class="pm-intel-disclaimer">Based on the developer's announced opening date. Schedules can shift; we update this daily.</div>
+            `;
+          } else {
+            wrap.innerHTML = `
+              <div class="pm-intel-head">
+                <span class="pm-intel-badge">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2L4 7v10l8 5 8-5V7l-8-5zm0 2.5L18 8v8l-6 3.75L6 16V8l6-3.5z"/></svg>
+                  TMW Intelligence
+                </span>
+                <div class="pm-intel-title">Estimated Time to Completion</div>
+                ${confLabel ? `<span class="pm-intel-confidence" data-conf="${conf}">${confLabel}</span>` : ''}
+              </div>
+              <div class="pm-intel-estimate">${escapeArticleHtml(estimateLabel)} <span class="unit">to completion</span>${range}</div>
+              ${similarsHtml ? `
+                <div class="pm-intel-similar-label">Similar Projects in TMW's Data</div>
+                <div class="pm-intel-similars">${similarsHtml}</div>
+              ` : ''}
+              <div class="pm-intel-pattern">${pattern}</div>
+              <div class="pm-intel-disclaimer">Pattern-based estimate, not a developer commitment. Actual timelines can vary by 6\u201318 months.</div>
+            `;
+          }
           wrap.removeAttribute('hidden');
 
           // Fire a GA4 event so we can see whether users care about this
@@ -9172,12 +9265,15 @@
             if (!document.body.contains(intelMount)) return;
             intelMount.innerHTML = `
               <div class="popup-intel">
-                <div class="popup-intel-label">
-                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2L4 7v10l8 5 8-5V7l-8-5zm0 2.5L18 8v8l-6 3.75L6 16V8l6-3.5z"/></svg>
-                  TMW Intelligence
+                <div class="popup-intel-head">
+                  <span class="popup-intel-badge">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2L4 7v10l8 5 8-5V7l-8-5zm0 2.5L18 8v8l-6 3.75L6 16V8l6-3.5z"/></svg>
+                    TMW Intelligence
+                  </span>
+                  <span class="popup-intel-eyebrow">Est. time to completion</span>
                 </div>
-                <div class="popup-intel-value">~${entry.estimate_years} yrs to completion</div>
-                <div class="popup-intel-sub">Based on ${entry.comparable_count} similar project${entry.comparable_count === 1 ? '' : 's'}</div>
+                <div class="popup-intel-value">${escapeArticleHtml(entry.estimate_label || ('~' + entry.estimate_years + ' yrs'))}</div>
+                <div class="popup-intel-sub">to completion</div>
               </div>
             `;
           });
@@ -9291,9 +9387,11 @@
       else if (d.includes('opening'))      { cls='opening';      label='Opening Soon';      pct=85;  }
       else if (d.includes('open'))         { cls='open';         label='Now Open';          pct=100; }
       else                                 { cls='announced';    label=delivery;            pct=10;  }
+      // Stages markup is included unconditionally; CSS hides it outside .popup-content
       return `<div class="delivery-bar ${cls}">
         <span class="delivery-bar-label">${label}</span>
         <div class="delivery-bar-track"><div class="delivery-bar-fill" style="width:${pct}%"></div></div>
+        <div class="delivery-bar-stages"><span>Announced</span><span>Building</span><span>Open</span></div>
       </div>`;
     }
 
