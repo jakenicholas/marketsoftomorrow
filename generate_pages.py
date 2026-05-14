@@ -218,6 +218,11 @@ def compute_progress(delivery_date_str, status, start_date_str=''):
     # Short-circuit: Now Open is always 100%
     if 'now open' in s:
         return 100, label, color, _format_time_to_delivery(delivery_date_str, status), _build_segments(4, 100)
+    # Short-circuit: Announced is a completed milestone, not a duration.
+    # Bar shows segment 0 at 100% regardless of when the announcement
+    # happened. Mirrors the JS twin in index.html.
+    if label == 'Announced':
+        return 5, label, color, _format_time_to_delivery(delivery_date_str, status), _build_segments(0, 100)
     delivery = _parse_iso_date(delivery_date_str)
     if not delivery:
         # No parseable delivery date -- fall back to status-based default
@@ -1934,6 +1939,248 @@ def build_page(row, articles=None):
 </html>'''
     return html, slug
 
+def _parse_price(s):
+    """Best-effort parse of Price column. Returns dollar value as int, or 0 if unparseable.
+    Handles: $50M, $1.2B, $500K, "starting from $400K", "$2M-$5M" (uses low end),
+    "Available upon request", blank, etc. Returns 0 for missing/range/unparseable."""
+    if not s:
+        return 0
+    s = s.lower().strip()
+    if 'request' in s or 'tbd' in s or 'undisclosed' in s:
+        return 0
+    # Take first number-ish chunk
+    import re as _re
+    m = _re.search(r'\$?\s*([\d,]+(?:\.\d+)?)\s*([kmb])?', s)
+    if not m:
+        return 0
+    try:
+        n = float(m.group(1).replace(',', ''))
+    except ValueError:
+        return 0
+    suffix = (m.group(2) or '').lower()
+    if suffix == 'k':
+        n *= 1_000
+    elif suffix == 'm':
+        n *= 1_000_000
+    elif suffix == 'b':
+        n *= 1_000_000_000
+    elif n > 1_000_000:
+        # No suffix but already a big number; assume it's literal dollars
+        pass
+    elif n > 1000:
+        # No suffix, 4-digit+ number = likely already in thousands or square feet,
+        # not safe to guess. Skip.
+        return 0
+    else:
+        # Tiny number with no suffix; meaningless
+        return 0
+    return int(n)
+
+def _format_dollars_short(n):
+    """4,200,000,000 -> '$4.2B', 84_000_000_000 -> '$84B', 500_000 -> '$500K'."""
+    if n <= 0:
+        return '$0'
+    if n >= 1_000_000_000:
+        v = n / 1_000_000_000
+        return f'${v:.1f}B' if v < 10 else f'${int(v)}B'
+    if n >= 1_000_000:
+        v = n / 1_000_000
+        return f'${v:.1f}M' if v < 10 else f'${int(v)}M'
+    if n >= 1_000:
+        return f'${int(n/1_000)}K'
+    return f'${n}'
+
+def _normalize_entity_name(s):
+    """Drop blank/placeholder developer/architect names that aren't real entities."""
+    if not s:
+        return ''
+    s = s.strip()
+    if not s:
+        return ''
+    bad = s.lower()
+    if bad in ('multiple', 'various', 'tbd', 'tba', 'unknown', 'n/a', 'na', '-', 'undisclosed'):
+        return ''
+    return s
+
+def _normalize_project_type(s):
+    """Single canonical type per project. Takes first comma-separated value."""
+    if not s:
+        return ''
+    first = s.split(',')[0].strip()
+    return first
+
+def build_atlas_json(rows, pulse_path='pulse.json'):
+    """Compute Atlas page aggregates from CSV rows. Returns dict ready to json.dump."""
+    from collections import Counter
+    from datetime import date
+
+    now = date.today()
+    current_year = now.year
+
+    # Hero stats
+    total_projects = len(rows)
+    total_dollars = 0
+    under_construction = 0
+    opening_this_year = 0
+    opened_last_30d = 0  # Used for "+X this month" growth deltas could be wired later
+
+    status_counts = Counter()
+    dev_counts = Counter()
+    arch_counts = Counter()
+    city_counts = Counter()
+    type_counts = Counter()
+    monthly_announcements = Counter()  # key: 'YYYY-MM'
+
+    # Subcounts for leaderboard sublabels
+    dev_cities = {}  # developer -> Counter(cities)
+    arch_cities = {}  # architect -> Counter(cities)
+
+    for row in rows:
+        status_raw = (row.get('Delivery','') or '').strip()
+        status_label, _, _ = delivery_info(status_raw)
+        status_counts[status_label] += 1
+
+        if status_label == 'Construction' or 'construction' in status_raw.lower() or 'topping' in status_raw.lower():
+            under_construction += 1
+
+        # Total $ in development
+        total_dollars += _parse_price(row.get('Price', ''))
+
+        # Opening this year (delivery date parses to current calendar year, and not already open)
+        delivery_date_str = (row.get('DeliveryDate','') or '').strip()
+        d = _parse_iso_date(delivery_date_str)
+        if d and d.year == current_year and status_label != 'Now Open':
+            opening_this_year += 1
+
+        # Monthly announcement bucket. Use StartDate if present (when the project
+        # first hit the map / was announced), otherwise skip from momentum chart.
+        sd = _parse_iso_date((row.get('StartDate','') or '').strip())
+        if sd:
+            monthly_announcements[f'{sd.year:04d}-{sd.month:02d}'] += 1
+
+        # Developer leaderboard
+        dev = _normalize_entity_name(truncate_developer(row.get('Developer','')))
+        city = (row.get('City','') or '').strip()
+        if dev:
+            dev_counts[dev] += 1
+            dev_cities.setdefault(dev, Counter())[city] += 1
+
+        # Architect leaderboard. The raw value can be "Foster + Partners / SOM";
+        # we take the first listed (the lead architect convention used elsewhere).
+        arch_raw = (row.get('Architect','') or '').strip()
+        if arch_raw:
+            arch = _normalize_entity_name(arch_raw.split('/')[0].strip())
+            if arch:
+                arch_counts[arch] += 1
+                arch_cities.setdefault(arch, Counter())[city] += 1
+
+        # City leaderboard
+        if city:
+            city_counts[city] += 1
+
+        # Product type leaderboard
+        t = _normalize_project_type(row.get('ProjectType',''))
+        if t:
+            type_counts[t] += 1
+
+    # --- Build leaderboards (top 30 each so the UI can show top 8 + "load more") ---
+    def _lb_developers():
+        out = []
+        for name, count in dev_counts.most_common(30):
+            cities = dev_cities.get(name, Counter())
+            top_city = cities.most_common(1)[0][0] if cities else ''
+            sub = top_city if top_city else f'{count} project{"s" if count != 1 else ""}'
+            out.append({'name': name, 'sub': sub, 'count': count})
+        return out
+
+    def _lb_architects():
+        out = []
+        for name, count in arch_counts.most_common(30):
+            cities = arch_cities.get(name, Counter())
+            top_city = cities.most_common(1)[0][0] if cities else ''
+            sub = top_city if top_city else f'{count} project{"s" if count != 1 else ""}'
+            out.append({'name': name, 'sub': sub, 'count': count})
+        return out
+
+    def _lb_cities():
+        # Sub-label: count of unique developers active in that city
+        out = []
+        city_devs = {}  # city -> set(devs)
+        for row in rows:
+            c = (row.get('City','') or '').strip()
+            d = _normalize_entity_name(truncate_developer(row.get('Developer','')))
+            if c and d:
+                city_devs.setdefault(c, set()).add(d)
+        for name, count in city_counts.most_common(30):
+            n_devs = len(city_devs.get(name, set()))
+            sub = f'{n_devs} active developer{"s" if n_devs != 1 else ""}' if n_devs else f'{count} projects'
+            out.append({'name': name, 'sub': sub, 'count': count})
+        return out
+
+    def _lb_types():
+        # Sub-label: % of total
+        out = []
+        for name, count in type_counts.most_common(30):
+            pct = (count / total_projects * 100) if total_projects else 0
+            sub = f'{pct:.0f}% of pipeline'
+            out.append({'name': name, 'sub': sub, 'count': count})
+        return out
+
+    # --- Status distribution ordered by canonical sequence ---
+    canonical_status_order = ['Announced', 'Breaking Ground', 'Construction', 'Topping Out', 'Opening Soon', 'Now Open']
+    status_distribution = []
+    for label in canonical_status_order:
+        c = status_counts.get(label, 0)
+        if c > 0 or label in ('Announced', 'Construction', 'Now Open'):  # always show key milestones
+            status_distribution.append({'label': label, 'count': c})
+
+    # --- Momentum: 12 months ending current month ---
+    momentum = []
+    y, m = now.year, now.month
+    for _ in range(12):
+        key = f'{y:04d}-{m:02d}'
+        momentum.append({
+            'month': f'{date(y, m, 1).strftime("%b")}',
+            'year': y,
+            'count': monthly_announcements.get(key, 0)
+        })
+        m -= 1
+        if m == 0:
+            m = 12
+            y -= 1
+    momentum.reverse()  # oldest first for chart
+
+    # --- Recent activity: read from pulse.json if available, take top 6 ---
+    recent_activity = []
+    try:
+        with open(pulse_path, 'r', encoding='utf-8') as f:
+            pulse_data = json.load(f)
+        events = pulse_data.get('events', []) if isinstance(pulse_data, dict) else pulse_data
+        # Already pre-sorted newest-first by pulse generator
+        recent_activity = events[:6] if isinstance(events, list) else []
+    except (FileNotFoundError, json.JSONDecodeError, Exception):
+        pass
+
+    return {
+        'generated_at': now.isoformat(),
+        'hero_stats': {
+            'total_projects': total_projects,
+            'total_dollars_short': _format_dollars_short(total_dollars),
+            'total_dollars_raw': total_dollars,
+            'under_construction': under_construction,
+            'opening_this_year': opening_this_year,
+        },
+        'leaderboards': {
+            'developers': _lb_developers(),
+            'architects': _lb_architects(),
+            'cities': _lb_cities(),
+            'types': _lb_types(),
+        },
+        'status_distribution': status_distribution,
+        'momentum': momentum,
+        'recent_activity': recent_activity,
+    }
+
 def main():
     print("Fetching sheet data...")
     # Append a timestamp so Google can't serve a stale cached CSV. The CSV
@@ -2012,6 +2259,22 @@ def main():
             skipped += 1
 
     print(f"  Coverage diagnostic: {pages_with_coverage}/{generated} pages have a Coverage section")
+
+    # --- Atlas aggregates: developers/architects/cities leaderboards + hero stats ---
+    # Pre-computed at build time so the Atlas view in index.html just fetches a
+    # static JSON and renders. Same pattern as pulse.json.
+    print("Building atlas.json...")
+    try:
+        atlas = build_atlas_json(rows)
+        with open('atlas.json', 'w', encoding='utf-8') as f:
+            json.dump(atlas, f, indent=2)
+        n_devs = len(atlas['leaderboards']['developers'])
+        n_arch = len(atlas['leaderboards']['architects'])
+        n_cities = len(atlas['leaderboards']['cities'])
+        n_types = len(atlas['leaderboards']['types'])
+        print(f"  ✓ atlas.json (devs:{n_devs} arch:{n_arch} cities:{n_cities} types:{n_types})")
+    except Exception as e:
+        print(f"  ✗ Could not build atlas.json: {e}")
 
     # Generate /projects/index.html
     build_index(index_items)
