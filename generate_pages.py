@@ -98,8 +98,9 @@ def _coming_soon_display(raw_date_str, parsed_date, today):
         # Quarter precision -> use the end-of-quarter month name
         return {'label': parsed_date.strftime('%b'), 'precision': 'month'}
 
-    # 5. Year only -> "Winter" (end of year placeholder per user spec)
-    if _re.match(r'^\d{4}$', s):
+    # 5. Year only -> "Winter" since YYYY resolves to Dec 31 (end of year).
+    m = _re.match(r'^(\d{4})$', s)
+    if m:
         return {'label': 'Winter', 'precision': 'year'}
 
     # Unrecognized format -> just fall back to day countdown if we have a date
@@ -182,10 +183,11 @@ def _parse_iso_date(s):
         try: return date(int(m.group(1)), int(m.group(2)), 15)
         except ValueError: return None
 
-    # 6. Year only: "2027"
+    # 6. Year only: "2027" -> end of year (Dec 31). An undated YYYY means
+    # "by the end of YYYY" by convention.
     m = _re.match(r'^(\d{4})$', s)
     if m:
-        try: return date(int(m.group(1)), 7, 1)
+        try: return date(int(m.group(1)), 12, 31)
         except ValueError: return None
 
     return None
@@ -2482,17 +2484,21 @@ def build_atlas_json(rows, pulse_path='pulse.json', articles_archive=None):
                 'latest_date': latest,
             })
 
-    # --- Coming soon: projects delivering in the next ~120 days ---
-    # Skip Now Open. Bucket into 30d / 90d / 120d windows. Sort earliest-first.
+    # --- Coming soon: projects delivering in the rest of THIS calendar year. ---
+    # Three buckets: next 30 days, 31-90 days, rest-of-year. This captures
+    # late-year deliveries (e.g. a November project from May) that wouldn't
+    # fit in a 120-day window.
     coming_soon = []
     today = now
+    year_end = date(current_year, 12, 31)
     for row in rows:
         delivery_date_str = (row.get('DeliveryDate','') or '').strip()
         d = _parse_iso_date(delivery_date_str)
         if not d:
             continue
         days_out = (d - today).days
-        if days_out < 0 or days_out > 120:
+        # Must be in the future AND deliver before year-end
+        if days_out < 0 or d > year_end:
             continue
         status_label, _, _ = delivery_info((row.get('Delivery','') or '').strip())
         if status_label == 'Now Open':
@@ -2505,7 +2511,7 @@ def build_atlas_json(rows, pulse_path='pulse.json', articles_archive=None):
         elif days_out <= 90:
             bucket = '90d'
         else:
-            bucket = '120d'
+            bucket = 'rest'
         try:
             slug = slugify(title)
         except Exception:
