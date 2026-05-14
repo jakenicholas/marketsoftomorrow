@@ -3340,7 +3340,11 @@
     }
     .popup-content .delivery-bar-fill {
       height: 100%;
-      background: linear-gradient(90deg, #1FDF67 0%, #FF9500 100%) !important;
+      background: linear-gradient(90deg,
+        rgba(255,255,255,0.3) 0%,
+        #FFD300 33%,
+        #FF9500 66%,
+        #1FDF67 100%) !important;
       border-radius: 2px;
     }
     .popup-content .delivery-bar.open .delivery-bar-fill {
@@ -9276,7 +9280,7 @@
                   </span>
                   <span class="popup-intel-eyebrow">Est. time to completion</span>
                 </div>
-                <div class="popup-intel-value">${escapeArticleHtml(entry.estimate_label || ('~' + entry.estimate_years + ' yrs'))}</div>
+                <div class="popup-intel-value">${entry.estimate_label || ('~' + entry.estimate_years + ' yrs')}</div>
                 <div class="popup-intel-sub">to completion</div>
               </div>
             `;
