@@ -2009,31 +2009,117 @@ def _normalize_project_type(s):
     first = s.split(',')[0].strip()
     return first
 
+def _split_entities(raw):
+    """Split a developer/architect field that may list multiple entities.
+    Handles separators: comma, slash, ampersand, ' and '. Returns a list of
+    normalized entity names with placeholder values ('TBD', 'Various', etc.)
+    filtered out."""
+    if not raw:
+        return []
+    import re as _re
+    # Split on common multi-entity separators. Order matters: ' and ' before
+    # 'and' word-character matching, ampersand alone is fine.
+    parts = _re.split(r'\s*(?:,|/|&|\s+and\s+)\s*', raw, flags=_re.IGNORECASE)
+    seen = set()
+    out = []
+    for p in parts:
+        norm = _normalize_entity_name(p)
+        if not norm:
+            continue
+        # Dedupe within the same row (same dev listed twice with different
+        # punctuation shouldn't count twice).
+        key = norm.lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append(norm)
+    return out
+
+_CITY_TO_STATE = {
+    # Florida -- core coverage area
+    'miami': 'FL', 'miami beach': 'FL', 'coral gables': 'FL', 'coconut grove': 'FL',
+    'doral': 'FL', 'aventura': 'FL', 'sunny isles': 'FL', 'sunny isles beach': 'FL',
+    'bal harbour': 'FL', 'brickell': 'FL', 'edgewater': 'FL', 'wynwood': 'FL',
+    'little havana': 'FL', 'little river': 'FL', 'design district': 'FL',
+    'fort lauderdale': 'FL', 'pompano beach': 'FL', 'hollywood': 'FL', 'dania beach': 'FL',
+    'hallandale beach': 'FL',
+    'west palm beach': 'FL', 'palm beach': 'FL', 'palm beach gardens': 'FL',
+    'north palm beach': 'FL', 'jupiter': 'FL', 'tequesta': 'FL',
+    'lake worth': 'FL', 'lake worth beach': 'FL', 'lantana': 'FL',
+    'delray beach': 'FL', 'boca raton': 'FL', 'boynton beach': 'FL',
+    'riviera beach': 'FL', 'wellington': 'FL', 'royal palm beach': 'FL',
+    'singer island': 'FL', 'palm beach shores': 'FL',
+    'tampa': 'FL', 'st. petersburg': 'FL', 'st petersburg': 'FL', 'clearwater': 'FL',
+    'sarasota': 'FL', 'bradenton': 'FL', 'naples': 'FL', 'bonita springs': 'FL',
+    'orlando': 'FL', 'winter park': 'FL', 'kissimmee': 'FL',
+    'jacksonville': 'FL', 'st. augustine': 'FL', 'st augustine': 'FL',
+    'fort myers': 'FL', 'cape coral': 'FL', 'punta gorda': 'FL',
+    'key west': 'FL', 'key largo': 'FL', 'marathon': 'FL',
+    # Tennessee
+    'nashville': 'TN', 'memphis': 'TN', 'knoxville': 'TN', 'chattanooga': 'TN',
+    # Carolinas
+    'charleston': 'SC', 'mount pleasant': 'SC', 'kiawah island': 'SC',
+    'hilton head': 'SC', 'myrtle beach': 'SC', 'greenville': 'SC',
+    'columbia': 'SC',
+    'asheville': 'NC', 'charlotte': 'NC', 'raleigh': 'NC', 'durham': 'NC',
+    'wilmington': 'NC', 'chapel hill': 'NC',
+    # New York
+    'new york': 'NY', 'manhattan': 'NY', 'brooklyn': 'NY', 'queens': 'NY',
+    'long island': 'NY', 'hamptons': 'NY', 'east hampton': 'NY', 'southampton': 'NY',
+    # Texas
+    'austin': 'TX', 'houston': 'TX', 'dallas': 'TX', 'san antonio': 'TX',
+    # International
+    'london': 'UK', 'paris': 'FR', 'tokyo': 'JP', 'dubai': 'AE',
+}
+
+# Friendly region names for filter UI (state code -> label)
+_STATE_LABELS = {
+    'FL': 'Florida', 'TN': 'Tennessee', 'SC': 'South Carolina', 'NC': 'North Carolina',
+    'NY': 'New York',  'TX': 'Texas',
+    'UK': 'UK', 'FR': 'France', 'JP': 'Japan', 'AE': 'UAE',
+}
+
+def _state_for_city(city):
+    if not city:
+        return 'Other'
+    return _CITY_TO_STATE.get(city.lower().strip(), 'Other')
+
 def build_atlas_json(rows, pulse_path='pulse.json'):
-    """Compute Atlas page aggregates from CSV rows. Returns dict ready to json.dump."""
-    from collections import Counter
+    """Compute Atlas page aggregates from CSV rows. Returns dict ready to json.dump.
+
+    Each leaderboard entry includes a 'states' array of state codes where that
+    entity has projects, so the client-side filter can hide/show entries
+    without needing to refetch. Developer + architect fields are split into
+    multiple entities when the row lists "Dev A, Dev B" or "Arch A / Arch B"
+    -- each gets a separate +1 count."""
+    from collections import Counter, defaultdict
     from datetime import date
 
     now = date.today()
     current_year = now.year
 
-    # Hero stats
     total_projects = len(rows)
     total_dollars = 0
     under_construction = 0
     opening_this_year = 0
-    opened_last_30d = 0  # Used for "+X this month" growth deltas could be wired later
 
     status_counts = Counter()
     dev_counts = Counter()
     arch_counts = Counter()
     city_counts = Counter()
     type_counts = Counter()
-    monthly_announcements = Counter()  # key: 'YYYY-MM'
+    monthly_announcements = Counter()
+    openings_by_year_counts = Counter()  # int year -> count
 
-    # Subcounts for leaderboard sublabels
-    dev_cities = {}  # developer -> Counter(cities)
-    arch_cities = {}  # architect -> Counter(cities)
+    # Per-entity state tracking (entity -> Counter(state))
+    dev_states = defaultdict(Counter)
+    arch_states = defaultdict(Counter)
+    city_states = {}  # city -> single state (cities only live in one state)
+    type_states = defaultdict(Counter)
+
+    # Sublabel data (entity -> Counter(city))
+    dev_cities = defaultdict(Counter)
+    arch_cities = defaultdict(Counter)
 
     for row in rows:
         status_raw = (row.get('Delivery','') or '').strip()
@@ -2043,87 +2129,123 @@ def build_atlas_json(rows, pulse_path='pulse.json'):
         if status_label == 'Construction' or 'construction' in status_raw.lower() or 'topping' in status_raw.lower():
             under_construction += 1
 
-        # Total $ in development
         total_dollars += _parse_price(row.get('Price', ''))
 
-        # Opening this year (delivery date parses to current calendar year, and not already open)
+        # Delivery year tracking. Opening this year (current cal year) + openings_by_year
         delivery_date_str = (row.get('DeliveryDate','') or '').strip()
         d = _parse_iso_date(delivery_date_str)
-        if d and d.year == current_year and status_label != 'Now Open':
-            opening_this_year += 1
+        if d and status_label != 'Now Open':
+            if d.year == current_year:
+                opening_this_year += 1
+            # Bucket into openings_by_year for the next 5 calendar years
+            if current_year <= d.year <= current_year + 4:
+                openings_by_year_counts[d.year] += 1
 
-        # Monthly announcement bucket. Use StartDate if present (when the project
-        # first hit the map / was announced), otherwise skip from momentum chart.
         sd = _parse_iso_date((row.get('StartDate','') or '').strip())
         if sd:
             monthly_announcements[f'{sd.year:04d}-{sd.month:02d}'] += 1
 
-        # Developer leaderboard
-        dev = _normalize_entity_name(truncate_developer(row.get('Developer','')))
         city = (row.get('City','') or '').strip()
-        if dev:
-            dev_counts[dev] += 1
-            dev_cities.setdefault(dev, Counter())[city] += 1
+        state = _state_for_city(city)
 
-        # Architect leaderboard. The raw value can be "Foster + Partners / SOM";
-        # we take the first listed (the lead architect convention used elsewhere).
-        arch_raw = (row.get('Architect','') or '').strip()
-        if arch_raw:
-            arch = _normalize_entity_name(arch_raw.split('/')[0].strip())
-            if arch:
-                arch_counts[arch] += 1
-                arch_cities.setdefault(arch, Counter())[city] += 1
-
-        # City leaderboard
         if city:
             city_counts[city] += 1
+            city_states[city] = state
 
-        # Product type leaderboard
+        # Multi-developer split. "Related, BH3 / PMG" -> ['Related', 'BH3', 'PMG'].
+        # Each gets +1 in the count for this row (a co-developed project credits
+        # every participant, matching user's stated requirement).
+        dev_raw = (row.get('Developer','') or '').strip()
+        for dev in _split_entities(dev_raw):
+            dev_counts[dev] += 1
+            dev_cities[dev][city] += 1
+            dev_states[dev][state] += 1
+
+        # Multi-architect split. Same logic as developers.
+        arch_raw = (row.get('Architect','') or '').strip()
+        for arch in _split_entities(arch_raw):
+            arch_counts[arch] += 1
+            arch_cities[arch][city] += 1
+            arch_states[arch][state] += 1
+
+        # Product type (still first listed; type taxonomy is single-value)
         t = _normalize_project_type(row.get('ProjectType',''))
         if t:
             type_counts[t] += 1
+            type_states[t][state] += 1
 
-    # --- Build leaderboards (top 30 each so the UI can show top 8 + "load more") ---
+    # --- Available states for filter (only those with >0 projects) ---
+    state_project_counts = Counter()
+    for row in rows:
+        city = (row.get('City','') or '').strip()
+        st = _state_for_city(city)
+        state_project_counts[st] += 1
+    # Build filter list: all states sorted by project count desc
+    available_states = []
+    for st_code, count in state_project_counts.most_common():
+        if st_code == 'Other':
+            continue  # don't list "Other" as a filter option (catches edge cases only)
+        available_states.append({
+            'code': st_code,
+            'label': _STATE_LABELS.get(st_code, st_code),
+            'count': count,
+        })
+
+    # --- Build leaderboards (top 30 each so the UI can show top 8 + load more) ---
+    def _states_for(state_counter):
+        """Return sorted list of state codes for an entity, most-projects-first."""
+        return [s for s, _ in state_counter.most_common()]
+
     def _lb_developers():
         out = []
         for name, count in dev_counts.most_common(30):
-            cities = dev_cities.get(name, Counter())
-            top_city = cities.most_common(1)[0][0] if cities else ''
+            top_city = dev_cities[name].most_common(1)[0][0] if dev_cities[name] else ''
             sub = top_city if top_city else f'{count} project{"s" if count != 1 else ""}'
-            out.append({'name': name, 'sub': sub, 'count': count})
+            out.append({
+                'name': name, 'sub': sub, 'count': count,
+                'states': _states_for(dev_states[name]),
+            })
         return out
 
     def _lb_architects():
         out = []
         for name, count in arch_counts.most_common(30):
-            cities = arch_cities.get(name, Counter())
-            top_city = cities.most_common(1)[0][0] if cities else ''
+            top_city = arch_cities[name].most_common(1)[0][0] if arch_cities[name] else ''
             sub = top_city if top_city else f'{count} project{"s" if count != 1 else ""}'
-            out.append({'name': name, 'sub': sub, 'count': count})
+            out.append({
+                'name': name, 'sub': sub, 'count': count,
+                'states': _states_for(arch_states[name]),
+            })
         return out
 
     def _lb_cities():
-        # Sub-label: count of unique developers active in that city
-        out = []
-        city_devs = {}  # city -> set(devs)
+        # Sub-label: count of unique developers active in that city.
+        # Now using the split-developer values for accurate per-city dev counts.
+        city_devs = defaultdict(set)
         for row in rows:
             c = (row.get('City','') or '').strip()
-            d = _normalize_entity_name(truncate_developer(row.get('Developer','')))
-            if c and d:
-                city_devs.setdefault(c, set()).add(d)
+            for d in _split_entities(row.get('Developer','')):
+                if c:
+                    city_devs[c].add(d)
+        out = []
         for name, count in city_counts.most_common(30):
-            n_devs = len(city_devs.get(name, set()))
+            n_devs = len(city_devs[name])
             sub = f'{n_devs} active developer{"s" if n_devs != 1 else ""}' if n_devs else f'{count} projects'
-            out.append({'name': name, 'sub': sub, 'count': count})
+            out.append({
+                'name': name, 'sub': sub, 'count': count,
+                'states': [city_states.get(name, 'Other')],
+            })
         return out
 
     def _lb_types():
-        # Sub-label: % of total
         out = []
         for name, count in type_counts.most_common(30):
             pct = (count / total_projects * 100) if total_projects else 0
             sub = f'{pct:.0f}% of pipeline'
-            out.append({'name': name, 'sub': sub, 'count': count})
+            out.append({
+                'name': name, 'sub': sub, 'count': count,
+                'states': _states_for(type_states[name]),
+            })
         return out
 
     # --- Status distribution ordered by canonical sequence ---
@@ -2131,7 +2253,7 @@ def build_atlas_json(rows, pulse_path='pulse.json'):
     status_distribution = []
     for label in canonical_status_order:
         c = status_counts.get(label, 0)
-        if c > 0 or label in ('Announced', 'Construction', 'Now Open'):  # always show key milestones
+        if c > 0 or label in ('Announced', 'Construction', 'Now Open'):
             status_distribution.append({'label': label, 'count': c})
 
     # --- Momentum: 12 months ending current month ---
@@ -2148,15 +2270,22 @@ def build_atlas_json(rows, pulse_path='pulse.json'):
         if m == 0:
             m = 12
             y -= 1
-    momentum.reverse()  # oldest first for chart
+    momentum.reverse()
 
-    # --- Recent activity: read from pulse.json if available, take top 6 ---
+    # --- Openings by year: current year + 4 ahead ---
+    openings_by_year = []
+    for yr in range(current_year, current_year + 5):
+        openings_by_year.append({
+            'year': yr,
+            'count': openings_by_year_counts.get(yr, 0),
+        })
+
+    # --- Recent activity from pulse.json ---
     recent_activity = []
     try:
         with open(pulse_path, 'r', encoding='utf-8') as f:
             pulse_data = json.load(f)
         events = pulse_data.get('events', []) if isinstance(pulse_data, dict) else pulse_data
-        # Already pre-sorted newest-first by pulse generator
         recent_activity = events[:6] if isinstance(events, list) else []
     except (FileNotFoundError, json.JSONDecodeError, Exception):
         pass
@@ -2178,6 +2307,8 @@ def build_atlas_json(rows, pulse_path='pulse.json'):
         },
         'status_distribution': status_distribution,
         'momentum': momentum,
+        'openings_by_year': openings_by_year,
+        'available_states': available_states,
         'recent_activity': recent_activity,
     }
 
