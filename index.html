@@ -3870,6 +3870,190 @@
     padding-top: 20px;
     border-top: 0.5px solid rgba(255,255,255,0.07);
   }
+  /* ─── TMW Intelligence — project modal block + map popup chip ───── */
+  /* Lives between description and stats inside the project modal. Loaded
+     from intel.json. Section is hidden via [hidden] when the slug isn't
+     present in the intel data (graceful degradation -- no placeholder). */
+  #projectModal .pm-intel {
+    margin-top: 20px;
+    padding: 18px;
+    background: rgba(167,139,250,0.06);
+    border: 1px solid rgba(167,139,250,0.18);
+    border-radius: 12px;
+  }
+  #projectModal .pm-intel-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+  }
+  #projectModal .pm-intel-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(167,139,250,0.14);
+    border: 1px solid rgba(167,139,250,0.32);
+    color: #A78BFA;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  #projectModal .pm-intel-badge svg { width: 11px; height: 11px; fill: currentColor; }
+  #projectModal .pm-intel-confidence {
+    font-size: 10px;
+    color: rgba(255,255,255,0.5);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 600;
+  }
+  #projectModal .pm-intel-confidence[data-conf="high"]   { color: #1FDF67; }
+  #projectModal .pm-intel-confidence[data-conf="medium"] { color: #A78BFA; }
+  #projectModal .pm-intel-confidence[data-conf="low"]    { color: rgba(255,255,255,0.45); }
+  #projectModal .pm-intel-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+  }
+  #projectModal .pm-intel-estimate {
+    font-size: 30px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: #A78BFA;
+    margin-bottom: 14px;
+    line-height: 1.05;
+  }
+  #projectModal .pm-intel-estimate .unit {
+    font-size: 14px;
+    color: rgba(255,255,255,0.62);
+    font-weight: 500;
+    margin-left: 6px;
+  }
+  #projectModal .pm-intel-similar-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #A78BFA;
+    font-weight: 700;
+    margin-bottom: 10px;
+    padding-top: 14px;
+    border-top: 1px solid rgba(167,139,250,0.18);
+  }
+  #projectModal .pm-intel-similars {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  @media (max-width: 600px) {
+    #projectModal .pm-intel-similars {
+      grid-template-columns: 1fr;
+    }
+  }
+  #projectModal .pm-intel-similar {
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(167,139,250,0.16);
+    border-radius: 8px;
+    padding: 11px 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+  }
+  #projectModal .pm-intel-similar:hover {
+    border-color: rgba(167,139,250,0.4);
+    background: rgba(0,0,0,0.5);
+  }
+  #projectModal .pm-intel-similar-name {
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 2px;
+    color: #fff;
+    line-height: 1.25;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  #projectModal .pm-intel-similar-loc {
+    font-size: 10px;
+    color: rgba(255,255,255,0.55);
+    margin-bottom: 9px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  #projectModal .pm-intel-similar-row {
+    display: flex;
+    justify-content: flex-end;
+    font-size: 11px;
+    color: rgba(255,255,255,0.55);
+    padding-top: 7px;
+    border-top: 1px solid rgba(167,139,250,0.1);
+  }
+  #projectModal .pm-intel-similar-row b {
+    color: #fff;
+    font-weight: 700;
+  }
+  #projectModal .pm-intel-pattern {
+    background: rgba(167,139,250,0.08);
+    border: 1px solid rgba(167,139,250,0.22);
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-size: 12px;
+    line-height: 1.55;
+    color: rgba(255,255,255,0.7);
+  }
+  #projectModal .pm-intel-pattern b { color: #fff; font-weight: 600; }
+  #projectModal .pm-intel-pattern .pm-intel-highlight {
+    color: #A78BFA;
+    font-weight: 700;
+  }
+  #projectModal .pm-intel-disclaimer {
+    font-size: 10px;
+    color: rgba(255,255,255,0.4);
+    margin-top: 12px;
+    font-style: italic;
+    line-height: 1.5;
+  }
+
+  /* Map popup intel chip -- compact version of the same data */
+  .popup-content .popup-intel {
+    margin-top: 10px;
+    padding: 9px 11px;
+    background: rgba(167,139,250,0.08);
+    border: 1px solid rgba(167,139,250,0.22);
+    border-radius: 6px;
+  }
+  .popup-content .popup-intel-label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 9px;
+    color: #A78BFA;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 700;
+    margin-bottom: 3px;
+  }
+  .popup-content .popup-intel-label svg {
+    width: 9px; height: 9px; fill: currentColor;
+  }
+  .popup-content .popup-intel-value {
+    font-size: 13px;
+    color: #fff;
+    font-weight: 600;
+    line-height: 1.2;
+  }
+  .popup-content .popup-intel-sub {
+    font-size: 10px;
+    color: rgba(255,255,255,0.6);
+    margin-top: 2px;
+  }
+
   #projectModal .pm-coverage-header {
     display: flex; align-items: center; justify-content: space-between;
     margin-bottom: 14px;
@@ -6743,6 +6927,11 @@
           <div class="pm-progress" id="pmProgress"></div>
           <div class="pm-div"></div>
           <p class="pm-desc" id="pmDesc"></p>
+          <!-- TMW Intelligence block: time-to-completion estimate based on
+               comparable completed projects (same type + same metro).
+               Hidden by default; renderIntelBlock() populates and reveals
+               this when intel.json has an entry for the open project's slug. -->
+          <div class="pm-intel" id="pmIntel" hidden></div>
           <div class="pm-div"></div>
           <div class="pm-stats" id="pmStats" style="margin-top:12px;"></div>
           <div class="pm-cta">
@@ -8159,6 +8348,38 @@
         return articlesArchivePromise;
       }
 
+      // ─── TMW Intelligence: intel.json loader ───────────────────────────
+      // intel.json shape: { generated_at, projects: { slug: {...} }, stats }
+      // Lazily loaded once per session, cached. Exposed via window.tmwIntel
+      // so the map popup builder (which runs in a different scope) can use it.
+      let intelData = null;
+      let intelPromise = null;
+
+      function loadIntelData() {
+        if (intelData) return Promise.resolve(intelData);
+        if (intelPromise) return intelPromise;
+        intelPromise = fetch('/intel.json', { cache: 'no-store' })
+          .then(r => r.ok ? r.json() : null)
+          .then(data => {
+            intelData = (data && data.projects && typeof data.projects === 'object')
+              ? data.projects
+              : {};
+            window.tmwIntel = intelData;
+            return intelData;
+          })
+          .catch(() => {
+            intelData = {};
+            window.tmwIntel = intelData;
+            return intelData;
+          });
+        return intelPromise;
+      }
+
+      // Kick off intel preload immediately on page boot so by the time
+      // the user opens their first popup/modal, it's typically warm.
+      loadIntelData();
+      window.loadIntelData = loadIntelData;
+
       // Project title -> hyphenated slug. Mirrors the Python slugify in
       // generate_pulse.py so the keys line up.
       function pyStyleSlug(title) {
@@ -8168,6 +8389,7 @@
           .replace(/[\s-]+/g, '-')
           .replace(/^-|-$/g, '');
       }
+      window.pyStyleSlug = pyStyleSlug;
 
       // Format an ISO timestamp as "Mar 12, 2026"
       function formatArticleDate(iso) {
@@ -8342,6 +8564,103 @@
         });
       }
       window.renderUpdatesSection = renderUpdatesSection;
+
+      // ─── TMW Intelligence block (project modal) ────────────────────────
+      // Looks up the project slug in intel.json data. If found, renders
+      // the full estimate block (badge / number / 3 comparables / pattern
+      // summary / disclaimer). If not found OR data hasn't loaded yet,
+      // the block stays hidden (graceful degradation).
+      function renderIntelBlock(projectTitle) {
+        const wrap = document.getElementById('pmIntel');
+        if (!wrap) return;
+        // Reset to hidden until we know we have data
+        wrap.setAttribute('hidden', '');
+        wrap.innerHTML = '';
+        if (!projectTitle) return;
+        const slug = pyStyleSlug(projectTitle);
+
+        loadIntelData().then(data => {
+          // The currently open project may have changed by the time intel
+          // resolves -- verify we're still rendering for the same slug.
+          // We use the data-attr on the modal to compare.
+          const modal = document.getElementById('projectModal');
+          const currentSlug = modal && modal.dataset.openSlug;
+          if (currentSlug && currentSlug !== slug) return;
+
+          const entry = data && data[slug];
+          if (!entry) return;  // no comparables -> graceful no-show
+
+          const estimate = entry.estimate_years;
+          if (estimate == null || isNaN(estimate)) return;
+          const conf = entry.confidence || 'medium';
+          const confLabel = {
+            high:   'High confidence',
+            medium: 'Medium confidence',
+            low:    'Low confidence',
+          }[conf] || '';
+          const range = (entry.range_low != null && entry.range_high != null
+                         && entry.range_low !== entry.range_high)
+            ? ` <span style="font-size:13px;color:rgba(255,255,255,0.5);font-weight:500;">(${entry.range_low}\u2013${entry.range_high} yrs)</span>`
+            : '';
+
+          // Comparables (up to 3)
+          let similarsHtml = '';
+          (entry.comparables || []).forEach(c => {
+            const href = c.slug ? `/projects/${encodeURIComponent(c.slug)}/` : '#';
+            similarsHtml += `
+              <a class="pm-intel-similar" href="${escapeArticleHtml(href)}">
+                <div class="pm-intel-similar-name">${escapeArticleHtml(c.name || '')}</div>
+                <div class="pm-intel-similar-loc">${escapeArticleHtml(c.location || '')}</div>
+                <div class="pm-intel-similar-row">
+                  <span><b>${c.years}</b> yrs</span>
+                </div>
+              </a>`;
+          });
+
+          // Pattern summary -- highlight the comparable count
+          const countStr = String(entry.comparable_count);
+          let pattern = escapeArticleHtml(entry.pattern_summary || '');
+          // Wrap the comparable count in a highlight span. Defensive: only
+          // replace the first occurrence so we don't accidentally re-wrap
+          // years numbers that happen to match.
+          pattern = pattern.replace(
+            new RegExp(`\\b${countStr}\\b`),
+            `<span class="pm-intel-highlight">${countStr}</span>`
+          );
+
+          wrap.innerHTML = `
+            <div class="pm-intel-head">
+              <span class="pm-intel-badge">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2L4 7v10l8 5 8-5V7l-8-5zm0 2.5L18 8v8l-6 3.75L6 16V8l6-3.5z"/></svg>
+                TMW Intelligence
+              </span>
+              <div class="pm-intel-title">Estimated Time to Completion</div>
+              ${confLabel ? `<span class="pm-intel-confidence" data-conf="${conf}">${confLabel}</span>` : ''}
+            </div>
+            <div class="pm-intel-estimate">~${entry.estimate_years} years <span class="unit">to completion</span>${range}</div>
+            ${similarsHtml ? `
+              <div class="pm-intel-similar-label">Similar Projects in TMW's Data</div>
+              <div class="pm-intel-similars">${similarsHtml}</div>
+            ` : ''}
+            <div class="pm-intel-pattern">${pattern}</div>
+            <div class="pm-intel-disclaimer">Pattern-based estimate, not a developer commitment. Actual timelines can vary by 6\u201318 months.</div>
+          `;
+          wrap.removeAttribute('hidden');
+
+          // Fire a GA4 event so we can see whether users care about this
+          // block. event name: 'intel_view'. parameters: confidence + slug.
+          try {
+            if (window.gtag) {
+              gtag('event', 'intel_view', {
+                project_name: projectTitle,
+                confidence: conf,
+                comparable_count: entry.comparable_count,
+              });
+            }
+          } catch (err) { /* analytics failures shouldn't break UX */ }
+        });
+      }
+      window.renderIntelBlock = renderIntelBlock;
 
       window.openProjectModal = function(f, source) {
         // Paywall gate — only count fresh project interactions.
@@ -8537,6 +8856,16 @@
         // there's no activity. Sits above Coverage so users see status
         // history before press.
         renderUpdatesSection(p.title);
+        // TMW Intelligence block: time-to-completion estimate from comparable
+        // completed projects. Hidden when intel.json has no entry for this slug.
+        // Stamp the modal with the open slug so the async intel render can
+        // verify the user hasn't navigated to a different project before
+        // its data resolves.
+        try {
+          const modal = document.getElementById('projectModal');
+          if (modal) modal.dataset.openSlug = pyStyleSlug(p.title);
+        } catch (e) { /* ignore */ }
+        renderIntelBlock(p.title);
       };
 
       // ─── Project view duration helper ────────────────────────────────
@@ -8812,6 +9141,7 @@
             <p class="city">${f.properties.city}</p>
             <p class="description">${f.properties.description}</p>
             ${deliveryBarHTML(f.properties.delivery)}
+            <div class="popup-intel-mount"></div>
             <button class="favorite${window.isFavorited && window.isFavorited(f.properties.title) ? ' favorited' : ''}" data-fav-slug="${window.projectSlugify(f.properties.title)}" type="button" aria-label="Watch this project" onclick="event.stopPropagation();this.classList.remove('blink');void this.offsetWidth;this.classList.add('blink');window.toggleFavorite&&window.toggleFavorite('${(f.properties.title || '').replace(/'/g, "\\'")}', this);">
               <svg viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
@@ -8823,6 +9153,36 @@
             </div>
           </div>
         `).addTo(map);
+
+      // TMW Intelligence chip: inject after popup is mounted so we can
+      // use the cached/lazy-loaded intel data without blocking the popup
+      // render. Mount point is `.popup-intel-mount` (empty div above).
+      // If no intel entry exists for this project, the mount stays empty.
+      try {
+        const intelMount = activePopup.getElement().querySelector('.popup-intel-mount');
+        if (intelMount && window.loadIntelData) {
+          window.loadIntelData().then(intelMap => {
+            const slug = window.pyStyleSlug
+              ? window.pyStyleSlug(f.properties.title)
+              : (f.properties.title || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+            const entry = intelMap && intelMap[slug];
+            if (!entry || entry.estimate_years == null) return;
+            // Verify the popup is still mounted (user may have closed it
+            // before intel resolved)
+            if (!document.body.contains(intelMount)) return;
+            intelMount.innerHTML = `
+              <div class="popup-intel">
+                <div class="popup-intel-label">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2L4 7v10l8 5 8-5V7l-8-5zm0 2.5L18 8v8l-6 3.75L6 16V8l6-3.5z"/></svg>
+                  TMW Intelligence
+                </div>
+                <div class="popup-intel-value">~${entry.estimate_years} yrs to completion</div>
+                <div class="popup-intel-sub">Based on ${entry.comparable_count} similar project${entry.comparable_count === 1 ? '' : 's'}</div>
+              </div>
+            `;
+          });
+        }
+      } catch (err) { /* never let intel break the popup */ }
 
       // Wire up Learn More via addEventListener (avoids inline-onclick apostrophe
       // bugs for project titles/cities containing single quotes, e.g. "Maison d'Or")
