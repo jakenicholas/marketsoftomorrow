@@ -5798,7 +5798,10 @@
     body.atlas-mode #header {
       display: flex !important;
       top: 0;
-      padding-top: var(--safe-area-top, 0px);
+      /* Align logo + profile vertically with the toggle pill which sits at
+         safe-area + 14px from top. Adding extra top padding shifts the
+         entire header band down to match. */
+      padding-top: calc(var(--safe-area-top, 0px) + 8px);
       background: transparent !important;
       backdrop-filter: none !important;
       -webkit-backdrop-filter: none !important;
@@ -5870,8 +5873,11 @@
     .atlas-filter-pill { padding: 6px 12px; font-size: 11px; }
   }
 
-  .atlas-section { padding-bottom: 56px; }
-  @media(max-width:800px) { .atlas-section { padding-bottom: 28px; } }
+  .atlas-section { padding-bottom: 36px; }
+  @media(max-width:800px) {
+    .atlas-section { padding-bottom: 20px; }
+    .atlas-section-head { margin-bottom: 14px; }
+  }
   .atlas-section-head {
     display: flex; justify-content: space-between; align-items: end;
     margin-bottom: 22px; gap: 16px; flex-wrap: wrap;
@@ -5995,11 +6001,26 @@
     padding: 0 6px; font-size: 11px; color: rgba(255,255,255,0.4);
   }
 
-  /* Pulse rows -- clean vertical list, left-aligned, no spine dots */
+  /* Pulse rows -- mirrors the Pulse drawer spine + dot design */
   .atlas-pulse-spine {
-    padding: 0;
+    position: relative;
+    padding: 4px 0 4px 32px;
+  }
+  .atlas-pulse-spine::before {
+    content: '';
+    position: absolute;
+    left: 27px;
+    top: 30px;
+    bottom: 30px;
+    width: 1px;
+    background: linear-gradient(to bottom,
+      rgba(31,223,103,0)   0%,
+      rgba(31,223,103,0.3) 8%,
+      rgba(31,223,103,0.3) 92%,
+      rgba(31,223,103,0)   100%);
   }
   .atlas-pulse-row {
+    position: relative;
     display: flex;
     align-items: flex-start;
     gap: 16px;
@@ -6011,6 +6032,22 @@
   }
   .atlas-pulse-row:last-child { border-bottom: none; }
   .atlas-pulse-row:hover { background: rgba(255,255,255,0.025); }
+  /* The colored dot on the spine. Sits vertically aligned with the TITLE
+     row (~38px from row top), NOT the meta row above it -- this prevents
+     the dot from visually attaching to the city label. */
+  .atlas-pulse-row::before {
+    content: '';
+    position: absolute;
+    left: -10px;
+    top: 38px;
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: #1FDF67;
+    box-shadow: 0 0 0 4px #0a0a0a;
+  }
+  .atlas-pulse-row[data-pulse-type="status_change"]::before { background: #FF9500; }
+  .atlas-pulse-row[data-pulse-type="new_project"]::before  { background: #6FA8FF; }
+  .atlas-pulse-row[data-pulse-type="article"]::before      { background: #1FDF67; }
   .atlas-pulse-row-content { flex: 1; min-width: 0; }
   .atlas-pulse-row-meta {
     display: flex;
@@ -13825,7 +13862,10 @@
     function renderStateFilter() {
       const states = atlasData.available_states || [];
       if (!states.length) return '';
-      const total = states.reduce((s, x) => s + x.count, 0);
+      // Use the authoritative total from hero_stats, not the sum of mapped
+      // states (which excludes the "Other" bucket for cities not yet in the
+      // city -> state map).
+      const total = (atlasData.hero_stats && atlasData.hero_stats.total_projects) || states.reduce((s, x) => s + x.count, 0);
       const pills = states.map(s => `
         <button class="atlas-filter-pill" data-state="${escapeHtml(s.code)}" type="button">
           ${escapeHtml(s.label)} <span class="atlas-filter-count">${s.count}</span>
@@ -13972,7 +14012,7 @@
         const tagLabel = (ev.tag || (type === 'article' ? 'On TMW' : type === 'new_project' ? 'New on Map' : 'Update')).toUpperCase();
         const city = (ev.city || '').toUpperCase();
         return `
-          <div class="atlas-pulse-row" data-pulse-slug="${escapeHtml(ev.slug || '')}" data-pulse-link="${escapeHtml(ev.link || '')}">
+          <div class="atlas-pulse-row" data-pulse-type="${escapeHtml(type)}" data-pulse-slug="${escapeHtml(ev.slug || '')}" data-pulse-link="${escapeHtml(ev.link || '')}">
             <div class="atlas-pulse-row-content">
               <div class="atlas-pulse-row-meta">
                 <span class="atlas-pulse-row-time">${escapeHtml(ev.ago || '')}</span>
