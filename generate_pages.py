@@ -2568,36 +2568,52 @@ def build_atlas_json(rows, pulse_path='pulse.json', articles_archive=None):
     }
 
 def main():
-    print("Fetching sheet data...")
-    # Append a timestamp so Google can't serve a stale cached CSV. The CSV
-    # export endpoint sometimes returns 5-10 minute old data without this,
-    # which means a freshly-saved sheet edit can take a full workflow cycle
-    # to actually land in the static pages.
-    cache_buster = f"&t={int(time.time())}"
-    sheet_url = SHEET_CSV_URL + cache_buster
+    # Read projects from projects-flat.json (written by fetch_projects.py,
+    # which runs first in the workflow and converts tmw-data's rich JSON
+    # to the CSV-shape dicts the rest of this script expects).
+    #
+    # The legacy Google Sheet code path below remains commented-out for
+    # rollback purposes -- if anything goes wrong with the new pipeline,
+    # un-comment and remove the JSON block to fall back instantly.
+    print("Loading projects-flat.json...")
     try:
-        req = urllib.request.Request(sheet_url, headers={
-            'User-Agent': 'Mozilla/5.0',
-            'Cache-Control': 'no-cache',
-            'Pragma': 'no-cache',
-        })
-        with urllib.request.urlopen(req, timeout=30) as resp:
-            content = resp.read().decode('utf-8')
-        print("  ✓ Fetched from Google Sheets")
-    except Exception as e:
-        print(f"  ✗ Could not fetch sheet: {e}")
-        print("  Trying local cache...")
-        try:
-            with open('projects_latest.csv') as f:
-                content = f.read()
-            print("  ✓ Using local cache")
-        except:
-            print("  ✗ No local cache found. Exiting.")
-            sys.exit(1)
+        with open('projects-flat.json', 'r', encoding='utf-8') as f:
+            rows = json.load(f)
+        rows = [r for r in rows if r.get('Title','').strip()]
+        print(f"  ✓ Loaded {len(rows)} projects from projects-flat.json")
+    except FileNotFoundError:
+        print("  ✗ projects-flat.json not found.")
+        print("     Did fetch_projects.py run first? See generate-pages.yml step order.")
+        sys.exit(1)
+    except json.JSONDecodeError as e:
+        print(f"  ✗ projects-flat.json wasn't valid JSON: {e}")
+        sys.exit(1)
 
-    rows = list(csv.DictReader(io.StringIO(content)))
-    rows = [r for r in rows if r.get('Title','').strip()]
-    print(f"  {len(rows)} projects found")
+    # --- LEGACY CSV PATH (kept for rollback) ---
+    # cache_buster = f"&t={int(time.time())}"
+    # sheet_url = SHEET_CSV_URL + cache_buster
+    # try:
+    #     req = urllib.request.Request(sheet_url, headers={
+    #         'User-Agent': 'Mozilla/5.0',
+    #         'Cache-Control': 'no-cache',
+    #         'Pragma': 'no-cache',
+    #     })
+    #     with urllib.request.urlopen(req, timeout=30) as resp:
+    #         content = resp.read().decode('utf-8')
+    #     print("  ✓ Fetched from Google Sheets")
+    # except Exception as e:
+    #     print(f"  ✗ Could not fetch sheet: {e}")
+    #     print("  Trying local cache...")
+    #     try:
+    #         with open('projects_latest.csv') as f:
+    #             content = f.read()
+    #         print("  ✓ Using local cache")
+    #     except:
+    #         print("  ✗ No local cache found. Exiting.")
+    #         sys.exit(1)
+    # rows = list(csv.DictReader(io.StringIO(content)))
+    # rows = [r for r in rows if r.get('Title','').strip()]
+    # print(f"  {len(rows)} projects found")
 
     # Load articles.json so we can render the "Coverage on TMW" section on
     # individual project pages. Lookup keys are the same hyphenated slugs the
