@@ -31,6 +31,17 @@ jobs:
         with:
           python-version: '3.11'
 
+      # Step 0 (NEW): Fetch projects.json from the private tmw-data repo
+      # and flatten it into projects-flat.json. This is the new source of
+      # truth for every downstream consumer (pulse, pages, intel, and
+      # index.html via the live site). Used to be a Google Sheet CSV; the
+      # CSV path is preserved as commented fallback in generate_pages.py
+      # for rollback.
+      - name: Fetch + flatten projects.json from tmw-data
+        env:
+          TMW_DATA_TOKEN: ${{ secrets.TMW_DATA_TOKEN }}
+        run: python3 fetch_projects.py
+
       # Step order matters here:
       #
       # 1. Pulse FIRST. generate_pulse.py refreshes articles.json (pulls
@@ -80,6 +91,13 @@ jobs:
           # without them, manual sheet edits would update static pages but
           # other data would stay stale until the next nightly run.
           #
+          # projects-flat.json is the flattened tmw-data snapshot (written
+          # by fetch_projects.py at the top of this workflow). Committing
+          # it means the live frontend always has a fresh public copy at
+          # /projects-flat.json. Also serves as a useful audit trail: a
+          # `git log projects-flat.json` shows exactly when each project
+          # change rolled to the live map.
+          #
           # .pulse-snapshot.json is the internal state file the pulse
           # generator diffs against on each run. It MUST be committed
           # so the next run knows what was already known -- otherwise
@@ -89,7 +107,7 @@ jobs:
           # in generate_pulse.py handles single-run renames, but only
           # if it can see the previous state, which means the snapshot
           # has to live in the repo.
-          git add projects/ sitemap.xml robots.txt pulse.json articles.json atlas.json intel.json .pulse-snapshot.json 2>/dev/null || true
+          git add projects/ sitemap.xml robots.txt pulse.json articles.json atlas.json intel.json projects-flat.json .pulse-snapshot.json 2>/dev/null || true
           if git diff --staged --quiet; then
             echo "changed=false" >> $GITHUB_OUTPUT
             echo "No changes detected."
