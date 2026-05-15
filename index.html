@@ -8047,12 +8047,14 @@
         'Now Open':           'pin-arc-open',
       };
 
-      // Draw a single stage's arc icon onto a canvas at 2x for retina crispness.
-      // The arc starts at 12 o'clock and sweeps clockwise. Empty portion of the
-      // ring is rendered as a faint full-circle track so the arc reads as "X out
-      // of full" rather than just a stray slice.
+      // Draw a single stage's arc icon onto a canvas at 2x for retina crispness,
+      // then return ImageData (Mapbox's addImage doesn't accept HTMLCanvasElement
+      // directly per docs — it accepts HTMLImageElement, ImageBitmap, ImageData,
+      // or raw pixel objects). The arc starts at 12 o'clock and sweeps clockwise.
+      // Empty portion of the ring is rendered as a faint full-circle track so
+      // the arc reads as "X out of full" rather than a stray slice.
       function createArcIcon(percent, color, sizePx) {
-        const px = sizePx || 32;
+        const px = sizePx || 40;
         const dpr = 2;
         const W = px * dpr;
         const canvas = document.createElement('canvas');
@@ -8061,12 +8063,12 @@
         const ctx = canvas.getContext('2d');
         const cx = W / 2;
         const cy = W / 2;
-        const r = W * 0.40;
-        // Background track — full ring, very faint
+        const r = W * 0.42;
+        // Background track — full ring, faint white
         ctx.beginPath();
         ctx.arc(cx, cy, r, 0, Math.PI * 2);
-        ctx.strokeStyle = 'rgba(255,255,255,0.18)';
-        ctx.lineWidth = 2.5 * dpr;
+        ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+        ctx.lineWidth = 3 * dpr;
         ctx.stroke();
         // Progress arc — start at top (-π/2), sweep clockwise for `percent`
         const p = Math.max(0, Math.min(100, percent));
@@ -8074,24 +8076,25 @@
           ctx.beginPath();
           ctx.arc(cx, cy, r, -Math.PI / 2, -Math.PI / 2 + (Math.PI * 2 * p / 100));
           ctx.strokeStyle = color;
-          ctx.lineWidth = 3 * dpr;
+          ctx.lineWidth = 3.5 * dpr;
           ctx.lineCap = 'round';
           ctx.stroke();
         }
-        return canvas;
+        // Hand back raw pixel data — Mapbox's documented signature wants ImageData.
+        return ctx.getImageData(0, 0, W, W);
       }
 
       // Register all 5 stage arc icons with Mapbox. Idempotent — call on
       // initial load AND after any style switch (style switches clear the
-      // image registry). pixelRatio: 2 so the 64px canvas renders crisp at 32px.
+      // image registry). pixelRatio: 2 so the 80px ImageData renders crisp at 40px logical.
       function registerStageArcIcons(mapInstance) {
         for (const stage of Object.keys(STAGE_ARC)) {
           const id = STAGE_ICON_ID[stage];
           if (mapInstance.hasImage && mapInstance.hasImage(id)) continue;
           const { pct, color } = STAGE_ARC[stage];
-          const canvas = createArcIcon(pct, color, 32);
+          const imageData = createArcIcon(pct, color, 40);
           try {
-            mapInstance.addImage(id, canvas, { pixelRatio: 2 });
+            mapInstance.addImage(id, imageData, { pixelRatio: 2 });
           } catch (e) {
             // Image may already exist from a race condition on style switch — ignore
           }
