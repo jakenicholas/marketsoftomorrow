@@ -8026,98 +8026,6 @@
       // Why this ladder: developers describe delivery in wildly inconsistent
       // ways. "May 2026" vs "Spring 2026" vs "2026-05-15" all need to land
       // on a single Date so the progress math has something to subtract.
-      // ─── Pin progress arcs by development stage ────────────────────────
-      // Inner pin stays TMW green. A colored arc wraps the pin to communicate
-      // construction stage at a glance — like a percentage ring around a dot.
-      // 5 stage-based arc icons get pre-rendered on a canvas and registered
-      // with Mapbox via map.addImage, then a symbol layer (unclustered-point-arc)
-      // selects the right icon per feature via a `match` on the `delivery` field.
-      const STAGE_ARC = {
-        'Announced':          { pct: 25,  color: '#9CA3AF' },  // gray
-        'Breaking Ground':    { pct: 45,  color: '#FFD300' },  // yellow
-        'Under Construction': { pct: 65,  color: '#FF9500' },  // orange
-        'Opening Soon':       { pct: 90,  color: '#1FDF67' },  // green
-        'Now Open':           { pct: 100, color: '#1FDF67' },  // green (full ring)
-      };
-      const STAGE_ICON_ID = {
-        'Announced':          'pin-arc-announced',
-        'Breaking Ground':    'pin-arc-breaking',
-        'Under Construction': 'pin-arc-construction',
-        'Opening Soon':       'pin-arc-opening',
-        'Now Open':           'pin-arc-open',
-      };
-
-      // Draw a single stage's arc icon onto a canvas at 2x for retina crispness,
-      // then return ImageData (Mapbox's addImage doesn't accept HTMLCanvasElement
-      // directly per docs — it accepts HTMLImageElement, ImageBitmap, ImageData,
-      // or raw pixel objects).
-      //
-      // Geometry: the green pin (`unclustered-point`) has circle-radius 8 with
-      // a 2px white stroke — visible white border lives at radius 8→10 (CSS px).
-      // The arc icon sits ON TOP of the green pin and draws a colored stroke at
-      // the same band, so the filled portion of the arc replaces the white border
-      // with color and the unfilled portion lets the original white show through.
-      // No separate track ring needed — the pin's own stroke is the track.
-      function createArcIcon(percent, color, sizePx) {
-        const px = sizePx || 40;
-        const dpr = 2;
-        const W = px * dpr;
-        const canvas = document.createElement('canvas');
-        canvas.width = W;
-        canvas.height = W;
-        const ctx = canvas.getContext('2d');
-        const cx = W / 2;
-        const cy = W / 2;
-        // Place the arc on the pin's existing white border (radius 9 CSS px,
-        // halfway through the 8→10 stroke band, on a 40-CSS-px canvas).
-        const r = W * (9 / 40);
-        // Progress arc only — start at top (-π/2), sweep clockwise. Slightly
-        // thicker than the 2px white border (2.4 CSS px) so anti-aliased edges
-        // fully cover the underlying white at the arc's angle.
-        const p = Math.max(0, Math.min(100, percent));
-        if (p > 0) {
-          ctx.beginPath();
-          ctx.arc(cx, cy, r, -Math.PI / 2, -Math.PI / 2 + (Math.PI * 2 * p / 100));
-          ctx.strokeStyle = color;
-          ctx.lineWidth = 2.4 * dpr;
-          ctx.lineCap = 'round';
-          ctx.stroke();
-        }
-        // Hand back raw pixel data — Mapbox's documented signature wants ImageData.
-        return ctx.getImageData(0, 0, W, W);
-      }
-
-      // Register all 5 stage arc icons with Mapbox. Idempotent — call on
-      // initial load AND after any style switch (style switches clear the
-      // image registry). pixelRatio: 2 so the 80px ImageData renders crisp at 40px logical.
-      function registerStageArcIcons(mapInstance) {
-        for (const stage of Object.keys(STAGE_ARC)) {
-          const id = STAGE_ICON_ID[stage];
-          if (mapInstance.hasImage && mapInstance.hasImage(id)) continue;
-          const { pct, color } = STAGE_ARC[stage];
-          const imageData = createArcIcon(pct, color, 40);
-          try {
-            mapInstance.addImage(id, imageData, { pixelRatio: 2 });
-          } catch (e) {
-            // Image may already exist from a race condition on style switch — ignore
-          }
-        }
-      }
-      window.registerStageArcIcons = registerStageArcIcons;
-
-      // Mapbox expression: pick the right arc icon per feature based on its stage.
-      // Used as the icon-image of the unclustered-point-arc symbol layer.
-      const STAGE_ARC_ICON_EXPR = [
-        'match', ['get', 'delivery'],
-        'Announced',          STAGE_ICON_ID['Announced'],
-        'Breaking Ground',    STAGE_ICON_ID['Breaking Ground'],
-        'Under Construction', STAGE_ICON_ID['Under Construction'],
-        'Opening Soon',       STAGE_ICON_ID['Opening Soon'],
-        'Now Open',           STAGE_ICON_ID['Now Open'],
-        STAGE_ICON_ID['Announced'],  // fallback for any unknown status
-      ];
-      window.STAGE_ARC_ICON_EXPR = STAGE_ARC_ICON_EXPR;
-
       // ─── Completed Projects layer ──────────────────────────────────────
       // A project graduates to the "Completed" layer 6 months after its
       // delivery date IF its status is still "Now Open". Computed at data
@@ -10885,7 +10793,7 @@
         window._developmentsVisible = !window._developmentsVisible;
         developmentsCb.classList.toggle('checked', window._developmentsVisible);
         const vis = window._developmentsVisible ? 'visible' : 'none';
-        ['clusters', 'cluster-count', 'unclustered-point', 'unclustered-point-arc', 'featured-glow', 'watched-ring'].forEach(id => {
+        ['clusters', 'cluster-count', 'unclustered-point', 'featured-glow', 'watched-ring'].forEach(id => {
           if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', vis);
         });
       });
@@ -11750,7 +11658,7 @@
         if (!map.getLayer('clusters'))          map.addLayer({ id:'clusters',          type:'circle', source:'projects', filter:['has','point_count'], paint:{'circle-color':'#1FDF67','circle-radius':['step',['get','point_count'],20,100,30,750,40],'circle-stroke-width':2,'circle-stroke-color':'#fff'} });
         if (!map.getLayer('cluster-count'))     map.addLayer({ id:'cluster-count',     type:'symbol', source:'projects', filter:['has','point_count'], layout:{'text-field':'{point_count_abbreviated}','text-size':12}, paint:{'text-color':'#ffffff'} });
         // Main pipeline layer excludes completed projects (they live in the dedicated layer below).
-        // Inner dot is TMW green; the colored stage arc renders behind it via unclustered-point-arc.
+        // Flat TMW green with white border.
         if (!map.getLayer('unclustered-point')) map.addLayer({ id:'unclustered-point', type:'circle', source:'projects', filter:['all',['!',['has','point_count']],['!=',['get','completed'],true]], paint:{'circle-color':'#1FDF67','circle-radius':8,'circle-stroke-width':2,'circle-stroke-color':'#fff'} });
         // Completed Projects layer: dark pine green, hidden by default. Show/hide via layers panel toggle.
         if (!map.getLayer('unclustered-point-completed')) {
@@ -11758,22 +11666,6 @@
             filter:['all',['!',['has','point_count']],['==',['get','completed'],true]],
             layout:{visibility:(window._completedVisible ? 'visible' : 'none')},
             paint:{'circle-color':'#01796F','circle-radius':7,'circle-stroke-width':1.5,'circle-stroke-color':'rgba(255,255,255,0.6)'}
-          });
-        }
-        // Stage arc symbol layer (re-add after style switch — icons get cleared
-        // by Mapbox when the style swaps, so re-register before adding). No
-        // beforeId — the arc sits ON TOP of the green pin so the colored stroke
-        // overpaints the white border at the arc's angle.
-        if (!map.getLayer('unclustered-point-arc')) {
-          if (window.registerStageArcIcons) window.registerStageArcIcons(map);
-          map.addLayer({ id:'unclustered-point-arc', type:'symbol', source:'projects',
-            filter:['all',['!',['has','point_count']],['!=',['get','completed'],true]],
-            layout:{
-              'icon-image': window.STAGE_ARC_ICON_EXPR,
-              'icon-allow-overlap': true,
-              'icon-ignore-placement': true,
-              'icon-size': 1,
-            }
           });
         }
 
@@ -11899,25 +11791,11 @@
           map.addSource('projects', { type:'geojson', data:projectGeo, cluster:true, clusterMaxZoom:16, clusterRadius:35 });
           map.addLayer({ id:'clusters', type:'circle', source:'projects', filter:['has','point_count'], paint:{'circle-color':'#1FDF67','circle-radius':['step',['get','point_count'],20,100,30,750,40],'circle-stroke-width':2,'circle-stroke-color':'#fff'} });
           map.addLayer({ id:'cluster-count', type:'symbol', source:'projects', filter:['has','point_count'], layout:{'text-field':'{point_count_abbreviated}','text-size':12}, paint:{'text-color':'#ffffff'} });
-          // Main pipeline pin layer: excludes completed projects. Inner dot is
-          // TMW green; stage information lives in the arc icon underneath.
+          // Main pipeline pin layer: excludes completed projects (they live in
+          // unclustered-point-completed below). Flat TMW green with white border.
           map.addLayer({ id:'unclustered-point', type:'circle', source:'projects', filter:['all',['!',['has','point_count']],['!=',['get','completed'],true]], paint:{'circle-color':'#1FDF67','circle-radius':8,'circle-stroke-width':2,'circle-stroke-color':'#fff'} });
           // Completed projects layer: dark pine green, hidden by default. Toggle in layers panel.
           map.addLayer({ id:'unclustered-point-completed', type:'circle', source:'projects', filter:['all',['!',['has','point_count']],['==',['get','completed'],true]], layout:{visibility:(window._completedVisible ? 'visible' : 'none')}, paint:{'circle-color':'#01796F','circle-radius':7,'circle-stroke-width':1.5,'circle-stroke-color':'rgba(255,255,255,0.6)'} });
-          // Register stage arc icons + add the arc symbol layer ON TOP of the
-          // green pin. The arc sits at radius 9 CSS px (on the green pin's
-          // existing 2px white stroke band), painting over the white at the
-          // arc's angle so the colored progress lives directly on the border.
-          registerStageArcIcons(map);
-          map.addLayer({ id:'unclustered-point-arc', type:'symbol', source:'projects',
-            filter:['all',['!',['has','point_count']],['!=',['get','completed'],true]],
-            layout:{
-              'icon-image': STAGE_ARC_ICON_EXPR,
-              'icon-allow-overlap': true,
-              'icon-ignore-placement': true,
-              'icon-size': 1,
-            }
-          });
           map.addLayer({ id:'featured-glow', type:'circle', source:'projects', filter:['all',['!',['has','point_count']],['==',['get','featured'],true],['!=',['get','completed'],true]], paint:{'circle-color':'transparent','circle-radius':16,'circle-blur':0.8,'circle-stroke-width':3,'circle-stroke-color':'#FFD300','circle-stroke-opacity':0.6} }, 'unclustered-point');
           // Watchlist ring (Phase 2): green ring around watched pins (pipeline only).
           map.addLayer({ id:'watched-ring', type:'circle', source:'projects', filter:['all',['!',['has','point_count']],['==',['get','watched'],true],['!=',['get','completed'],true]], paint:{'circle-color':'transparent','circle-radius':14,'circle-stroke-width':2.5,'circle-stroke-color':'#1FDF67','circle-stroke-opacity':0.9} }, 'unclustered-point');
