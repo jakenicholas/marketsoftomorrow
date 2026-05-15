@@ -9367,7 +9367,18 @@
             <img src="${f.properties.image}" loading="lazy" alt="${f.properties.title}" />
             ${f.properties.featured ? `<div class="featured-badge" style="top:-5px;left:-5px;"><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>Featured</div>` : ''}
             <h3>${f.properties.title}</h3>
-            <p class="city">${f.properties.city}</p>
+            <p class="city">${(() => {
+              // Match modal subtitle format: "City • Type". Prefer the
+              // PreferredType column when curated; otherwise use the first
+              // value from comma-separated ProjectType. Mirrors the logic
+              // at line ~8952 (pmCity). When no type is available, just
+              // show city alone — no dangling bullet.
+              const city = f.properties.city || '';
+              const typeLabel = (f.properties.preferredType && f.properties.preferredType.trim())
+                ? f.properties.preferredType.trim()
+                : (f.properties.projectType ? f.properties.projectType.split(',')[0].trim() : '');
+              return typeLabel ? `${city} • ${typeLabel}` : city;
+            })()}</p>
             ${deliveryBarHTML(f.properties.delivery)}
             <div class="popup-intel-mount"></div>
             <button class="favorite${window.isFavorited && window.isFavorited(f.properties.title) ? ' favorited' : ''}" data-fav-slug="${window.projectSlugify(f.properties.title)}" type="button" aria-label="Watch this project" onclick="event.stopPropagation();this.classList.remove('blink');void this.offsetWidth;this.classList.add('blink');window.toggleFavorite&&window.toggleFavorite('${(f.properties.title || '').replace(/'/g, "\\'")}', this);">
