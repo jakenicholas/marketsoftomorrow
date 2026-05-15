@@ -1,11 +1,11 @@
 {
   "generated_at": "2026-05-15",
   "hero_stats": {
-    "total_projects": 372,
+    "total_projects": 371,
     "total_dollars_short": "$0",
     "total_dollars_raw": 0,
     "under_construction": 237,
-    "opening_this_year": 121
+    "opening_this_year": 124
   },
   "leaderboards": {
     "developers": [
@@ -398,17 +398,6 @@
         ]
       },
       {
-        "name": "HKS",
-        "sub": "Brook Park",
-        "count": 5,
-        "states": [
-          "Other",
-          "FL",
-          "TX",
-          "TN"
-        ]
-      },
-      {
         "name": "Robert A.M. Stern Architects",
         "sub": "West Palm Beach",
         "count": 4,
@@ -450,6 +439,17 @@
         "states": [
           "FL",
           "NY"
+        ]
+      },
+      {
+        "name": "HKS",
+        "sub": "Jacksonville",
+        "count": 4,
+        "states": [
+          "FL",
+          "Other",
+          "TX",
+          "TN"
         ]
       },
       {
@@ -804,8 +804,8 @@
       },
       {
         "name": "Entertainment",
-        "sub": "10% of pipeline",
-        "count": 36,
+        "sub": "9% of pipeline",
+        "count": 35,
         "states": [
           "FL",
           "Other",
@@ -829,7 +829,7 @@
       },
       {
         "name": "Golf",
-        "sub": "3% of pipeline",
+        "sub": "4% of pipeline",
         "count": 13,
         "states": [
           "Other",
@@ -1437,21 +1437,19 @@
           ]
         },
         {
-          "name": "10 Design",
-          "sub": "West Palm Beach",
+          "name": "Studio Mc+G",
+          "sub": "Miami",
           "count": 2,
           "states": [
             "FL"
           ]
         },
         {
-          "name": "Hart Howerton",
-          "sub": "Bahamas",
+          "name": "10 Design",
+          "sub": "West Palm Beach",
           "count": 2,
           "states": [
-            "Other",
-            "FL",
-            "SC"
+            "FL"
           ]
         }
       ],
@@ -2095,11 +2093,11 @@
         },
         {
           "name": "HKS",
-          "sub": "Brook Park",
+          "sub": "Jacksonville",
           "count": 1,
           "states": [
-            "Other",
             "FL",
+            "Other",
             "TX",
             "TN"
           ]
@@ -3343,11 +3341,11 @@
         },
         {
           "name": "HKS",
-          "sub": "Brook Park",
+          "sub": "Jacksonville",
           "count": 1,
           "states": [
-            "Other",
             "FL",
+            "Other",
             "TX",
             "TN"
           ]
@@ -3489,7 +3487,7 @@
     },
     {
       "label": "Breaking Ground",
-      "count": 13
+      "count": 12
     },
     {
       "label": "Construction",
@@ -3528,7 +3526,7 @@
     {
       "month": "Oct",
       "year": 2025,
-      "count": 2
+      "count": 3
     },
     {
       "month": "Nov",
@@ -3558,7 +3556,7 @@
     {
       "month": "Apr",
       "year": 2026,
-      "count": 10
+      "count": 9
     },
     {
       "month": "May",
@@ -3569,11 +3567,11 @@
   "openings_by_year": [
     {
       "year": 2026,
-      "count": 121
+      "count": 124
     },
     {
       "year": 2027,
-      "count": 67
+      "count": 68
     },
     {
       "year": 2028,
@@ -3581,7 +3579,7 @@
     },
     {
       "year": 2029,
-      "count": 9
+      "count": 8
     },
     {
       "year": 2030,
@@ -3818,6 +3816,28 @@
   ],
   "coming_soon": [
     {
+      "slug": "garden-butcher",
+      "title": "Garden Butcher",
+      "city": "West Palm Beach",
+      "delivery_date": "2026-05-31",
+      "days_out": 16,
+      "bucket": "30d",
+      "status": "Opening Soon",
+      "display_label": "16d",
+      "display_precision": "day"
+    },
+    {
+      "slug": "the-commons",
+      "title": "The Commons",
+      "city": "Nekooska",
+      "delivery_date": "2026-06-01",
+      "days_out": 17,
+      "bucket": "30d",
+      "status": "Opening Soon",
+      "display_label": "17d",
+      "display_precision": "day"
+    },
+    {
       "slug": "alba",
       "title": "Alba",
       "city": "West Palm Beach",
@@ -3826,6 +3846,17 @@
       "bucket": "30d",
       "status": "Opening Soon",
       "display_label": "27d",
+      "display_precision": "day"
+    },
+    {
+      "slug": "1-hotel-austin",
+      "title": "1 Hotel Austin",
+      "city": "Austin",
+      "delivery_date": "2026-08-31",
+      "days_out": 108,
+      "bucket": "rest",
+      "status": "Opening Soon",
+      "display_label": "108d",
       "display_precision": "day"
     },
     {
@@ -3942,39 +3973,6 @@
       "slug": "bath-and-racquet-residences",
       "title": "Bath and Racquet Residences",
       "city": "Sarasota",
-      "delivery_date": "2026-12-31",
-      "days_out": 230,
-      "bucket": "rest",
-      "status": "Construction",
-      "display_label": "Winter",
-      "display_precision": "year"
-    },
-    {
-      "slug": "ritz-carlton-residences-south-beach",
-      "title": "Ritz-Carlton Residences, South Beach",
-      "city": "Miami Beach",
-      "delivery_date": "2026-12-31",
-      "days_out": 230,
-      "bucket": "rest",
-      "status": "Construction",
-      "display_label": "Winter",
-      "display_precision": "year"
-    },
-    {
-      "slug": "the-raleigh-rosewood-residences",
-      "title": "The Raleigh Rosewood Residences",
-      "city": "Miami Beach",
-      "delivery_date": "2026-12-31",
-      "days_out": 230,
-      "bucket": "rest",
-      "status": "Construction",
-      "display_label": "Winter",
-      "display_precision": "year"
-    },
-    {
-      "slug": "aman-miami-beach",
-      "title": "Aman Miami Beach",
-      "city": "Miami Beach",
       "delivery_date": "2026-12-31",
       "days_out": 230,
       "bucket": "rest",
