@@ -8435,8 +8435,10 @@
 
       function truncateDeveloper(str) {
         if (!str) return '';
-        // If multiple developers separated by / or &, show first + "& More"
-        const parts = str.split(/\s*[\/&]\s*/);
+        // Multiple developers are comma-separated in projects-flat.json.
+        // (Names like "Foster + Partners" or "Owings & Merrill" contain
+        // & and + but never commas, so splitting on comma is safe.)
+        const parts = str.split(/\s*,\s*/);
         if (parts.length > 2) return parts[0].trim() + ' & More';
         return str;
       }
@@ -8967,7 +8969,7 @@
         const stats = document.getElementById('pmStats');
         const statItems = [];
         if (p.developer) statItems.push({ label: 'Developer', val: truncateDeveloper(p.developer) });
-        if (p.architect) statItems.push({ label: 'Architect', val: p.architect.split('/')[0].trim() });
+        if (p.architect) statItems.push({ label: 'Architect', val: p.architect.split(',')[0].trim() });
         const deliveryRaw = p.deliveryDate || p.delivery || '';
         // Formatter handles ISO-like inputs; passes through pretty strings.
         const deliveryDisplay = (typeof window.formatDeliveryDisplay === 'function')
