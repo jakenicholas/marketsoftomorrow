@@ -2558,16 +2558,17 @@
     #locationButton svg { width: 20px; height: 20px; fill: #fff; }
     #locationButton.locating svg { fill: var(--accent); }
 
-    /* Desktop: below layers button (now bell + layers above, so +46 +36 +10 = below layers) */
+    /* Desktop stack (top to bottom): Bell → Watchlist → Layers → Location.
+       Layers is at slot 3 (60 + 36+10 + 36+10 = 152); Location at slot 4. */
     @media(min-width:801px) {
       #locationButton {
-        top: calc(60px + var(--safe-area-top) + 36px + 10px + 36px + 10px);
+        top: calc(60px + var(--safe-area-top) + 36px + 10px + 36px + 10px + 36px + 10px);
       }
     }
-    /* Mobile: below layers button */
+    /* Mobile stack adds a Home button above Bell, so Location is slot 5. */
     @media(max-width:800px) {
       #locationButton {
-        top: calc(var(--safe-area-top) + 10px + 36px + 10px + 36px + 10px + 36px + 10px);
+        top: calc(var(--safe-area-top) + 10px + 36px + 10px + 36px + 10px + 36px + 10px + 36px + 10px);
       }
     }
 
@@ -6792,6 +6793,18 @@
         </span>
       </div>
 
+      <!-- Completed Projects: openings > 6 months ago graduate here. Off by default.
+           Data stays in the source so TMW Intelligence can still query it. -->
+      <div class="layers-checkbox-row" id="completedToggleRow">
+        <div class="layers-checkbox" id="completedCheckbox">
+          <svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg>
+        </div>
+        <span class="layers-checkbox-label" style="display:flex;align-items:center;gap:6px;">
+          Completed Projects
+          <span style="display:inline-block;width:10px;height:10px;background:#6B7280;border-radius:50%;border:1.5px solid #fff;flex-shrink:0;"></span>
+        </span>
+      </div>
+
       <div class="layers-divider"></div>
 
       <div class="layers-section-title">Map Style</div>
@@ -8013,6 +8026,24 @@
       // Why this ladder: developers describe delivery in wildly inconsistent
       // ways. "May 2026" vs "Spring 2026" vs "2026-05-15" all need to land
       // on a single Date so the progress math has something to subtract.
+      // ─── Completed Projects layer ──────────────────────────────────────
+      // A project graduates to the "Completed" layer 6 months after its
+      // delivery date IF its status is still "Now Open". Computed at data
+      // load time so Mapbox layer filters can use the `completed` property.
+      // Keeps the pipeline view focused on what's actually in motion while
+      // retaining the data for TMW Intelligence comps + historical queries.
+      const COMPLETED_AGE_MS = 180 * 24 * 60 * 60 * 1000;  // 6 months
+      function isProjectCompleted(props) {
+        const delivery = String(props && props.delivery || '').toLowerCase();
+        if (delivery !== 'now open') return false;
+        const dt = parseDate(props.deliveryDate);
+        if (!dt) return false;
+        return (Date.now() - dt.getTime()) > COMPLETED_AGE_MS;
+      }
+      // Expose for callers that build features before parseDate is defined
+      // in scope (cached-restore path falls back to the property already set).
+      window.isProjectCompleted = isProjectCompleted;
+
       function parseDate(str) {
         if (!str) return null;
         const s = String(str).trim();
@@ -10737,6 +10768,21 @@
         setTransitVisibility(transitVisible);
       });
 
+      // Completed Projects toggle — flips visibility of the dedicated completed
+      // layer. Off by default. window._completedVisible persists across style
+      // switches so re-adding the layer remembers the user's choice.
+      window._completedVisible = false;
+      const completedRow = document.getElementById('completedToggleRow');
+      const completedCb  = document.getElementById('completedCheckbox');
+      completedRow?.addEventListener('click', () => {
+        window._completedVisible = !window._completedVisible;
+        completedCb.classList.toggle('checked', window._completedVisible);
+        if (map.getLayer('unclustered-point-completed')) {
+          map.setLayoutProperty('unclustered-point-completed', 'visibility',
+            window._completedVisible ? 'visible' : 'none');
+        }
+      });
+
       // Map style switchers
       const styleDefault   = document.getElementById('styleDefault');
       const styleSatellite = document.getElementById('styleSatellite');
@@ -11596,14 +11642,21 @@
         }
         if (!map.getLayer('clusters'))          map.addLayer({ id:'clusters',          type:'circle', source:'projects', filter:['has','point_count'], paint:{'circle-color':'#1FDF67','circle-radius':['step',['get','point_count'],20,100,30,750,40],'circle-stroke-width':2,'circle-stroke-color':'#fff'} });
         if (!map.getLayer('cluster-count'))     map.addLayer({ id:'cluster-count',     type:'symbol', source:'projects', filter:['has','point_count'], layout:{'text-field':'{point_count_abbreviated}','text-size':12}, paint:{'text-color':'#ffffff'} });
-        if (!map.getLayer('unclustered-point')) map.addLayer({ id:'unclustered-point', type:'circle', source:'projects', filter:['!',['has','point_count']], paint:{'circle-color':'#1FDF67','circle-radius':8,'circle-stroke-width':2,'circle-stroke-color':'#fff'} });
+        // Main pipeline layer excludes completed projects (they live in the dedicated layer below)
+        if (!map.getLayer('unclustered-point')) map.addLayer({ id:'unclustered-point', type:'circle', source:'projects', filter:['all',['!',['has','point_count']],['!=',['get','completed'],true]], paint:{'circle-color':'#1FDF67','circle-radius':8,'circle-stroke-width':2,'circle-stroke-color':'#fff'} });
+        // Completed Projects layer: muted slate-gray, hidden by default. Show/hide via layers panel toggle.
+        if (!map.getLayer('unclustered-point-completed')) {
+          map.addLayer({ id:'unclustered-point-completed', type:'circle', source:'projects',
+            filter:['all',['!',['has','point_count']],['==',['get','completed'],true]],
+            layout:{visibility:(window._completedVisible ? 'visible' : 'none')},
+            paint:{'circle-color':'#6B7280','circle-radius':7,'circle-stroke-width':1.5,'circle-stroke-color':'rgba(255,255,255,0.6)'}
+          });
+        }
 
-
-
-        // Featured glow — static, behind unclustered pins
+        // Featured glow — static, behind unclustered pins. Pipeline projects only.
         if (!map.getLayer('featured-glow')) {
           map.addLayer({ id:'featured-glow', type:'circle', source:'projects',
-            filter:['all',['!',['has','point_count']],['==',['get','featured'],true]],
+            filter:['all',['!',['has','point_count']],['==',['get','featured'],true],['!=',['get','completed'],true]],
             paint:{'circle-color':'transparent','circle-radius':16,'circle-blur':0.8,
                    'circle-stroke-width':3,'circle-stroke-color':'#FFD300','circle-stroke-opacity':0.6}
           }, 'unclustered-point');
@@ -11612,10 +11665,10 @@
         // ABOVE the featured-glow but BELOW unclustered-point so the inner
         // status-colored pin stays visible. Filter is data-driven via the
         // `watched` feature property, which is injected at runtime based on
-        // the user's _favorites set.
+        // the user's _favorites set. Pipeline projects only.
         if (!map.getLayer('watched-ring')) {
           map.addLayer({ id:'watched-ring', type:'circle', source:'projects',
-            filter:['all',['!',['has','point_count']],['==',['get','watched'],true]],
+            filter:['all',['!',['has','point_count']],['==',['get','watched'],true],['!=',['get','completed'],true]],
             paint:{'circle-color':'transparent','circle-radius':14,
                    'circle-stroke-width':2.5,'circle-stroke-color':'#1FDF67',
                    'circle-stroke-opacity':0.9}
@@ -11689,6 +11742,11 @@
             };
           });
 
+          // Stamp `completed` on each feature so Mapbox layer filters can sort
+          // pipeline pins vs. archived completions. Computed once here; the
+          // cached-restore path reuses these values from window.allProjectFeatures.
+          features.forEach(f => { f.properties.completed = isProjectCompleted(f.properties); });
+
           // Master list — never mutated, used to restore pins on clear
           window.allProjectFeatures = features;
           // Signal to any subscriber that needs the feature list (e.g. the
@@ -11717,10 +11775,14 @@
           map.addSource('projects', { type:'geojson', data:projectGeo, cluster:true, clusterMaxZoom:16, clusterRadius:35 });
           map.addLayer({ id:'clusters', type:'circle', source:'projects', filter:['has','point_count'], paint:{'circle-color':'#1FDF67','circle-radius':['step',['get','point_count'],20,100,30,750,40],'circle-stroke-width':2,'circle-stroke-color':'#fff'} });
           map.addLayer({ id:'cluster-count', type:'symbol', source:'projects', filter:['has','point_count'], layout:{'text-field':'{point_count_abbreviated}','text-size':12}, paint:{'text-color':'#ffffff'} });
-          map.addLayer({ id:'unclustered-point', type:'circle', source:'projects', filter:['!',['has','point_count']], paint:{'circle-color':'#1FDF67','circle-radius':8,'circle-stroke-width':2,'circle-stroke-color':'#fff'} });
-          map.addLayer({ id:'featured-glow', type:'circle', source:'projects', filter:['all',['!',['has','point_count']],['==',['get','featured'],true]], paint:{'circle-color':'transparent','circle-radius':16,'circle-blur':0.8,'circle-stroke-width':3,'circle-stroke-color':'#FFD300','circle-stroke-opacity':0.6} }, 'unclustered-point');
-          // Watchlist ring (Phase 2): green ring around watched pins.
-          map.addLayer({ id:'watched-ring', type:'circle', source:'projects', filter:['all',['!',['has','point_count']],['==',['get','watched'],true]], paint:{'circle-color':'transparent','circle-radius':14,'circle-stroke-width':2.5,'circle-stroke-color':'#1FDF67','circle-stroke-opacity':0.9} }, 'unclustered-point');
+          // Main pipeline pin layer: excludes completed projects so they don't
+          // clutter the pipeline view. Completed pins live in unclustered-point-completed below.
+          map.addLayer({ id:'unclustered-point', type:'circle', source:'projects', filter:['all',['!',['has','point_count']],['!=',['get','completed'],true]], paint:{'circle-color':'#1FDF67','circle-radius':8,'circle-stroke-width':2,'circle-stroke-color':'#fff'} });
+          // Completed projects layer: muted slate-gray, hidden by default. Toggle in layers panel.
+          map.addLayer({ id:'unclustered-point-completed', type:'circle', source:'projects', filter:['all',['!',['has','point_count']],['==',['get','completed'],true]], layout:{visibility:'none'}, paint:{'circle-color':'#6B7280','circle-radius':7,'circle-stroke-width':1.5,'circle-stroke-color':'rgba(255,255,255,0.6)'} });
+          map.addLayer({ id:'featured-glow', type:'circle', source:'projects', filter:['all',['!',['has','point_count']],['==',['get','featured'],true],['!=',['get','completed'],true]], paint:{'circle-color':'transparent','circle-radius':16,'circle-blur':0.8,'circle-stroke-width':3,'circle-stroke-color':'#FFD300','circle-stroke-opacity':0.6} }, 'unclustered-point');
+          // Watchlist ring (Phase 2): green ring around watched pins (pipeline only).
+          map.addLayer({ id:'watched-ring', type:'circle', source:'projects', filter:['all',['!',['has','point_count']],['==',['get','watched'],true],['!=',['get','completed'],true]], paint:{'circle-color':'transparent','circle-radius':14,'circle-stroke-width':2.5,'circle-stroke-color':'#1FDF67','circle-stroke-opacity':0.9} }, 'unclustered-point');
     
           map.on('click','clusters',e=>{if(stationPopup){stationPopup.remove();stationPopup=null;}const f=e.features[0];map.getSource('projects').getClusterExpansionZoom(f.properties.cluster_id,(err,z)=>map.flyTo({center:f.geometry.coordinates,zoom:z}));});
           map.on('click','unclustered-point',e=>{
