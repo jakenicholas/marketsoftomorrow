@@ -727,15 +727,21 @@ def fetch_csv(url):
 
 
 def main():
-    print("Fetching sheet CSV...")
+    # Read projects from projects-flat.json (written by fetch_projects.py
+    # earlier in the workflow). The flat file's CSV-shape keys match what
+    # build_complete_index() and the rest of this module already read via
+    # row.get('Title') / row.get('Delivery') / etc.
+    print("Loading projects-flat.json...")
     try:
-        raw = fetch_csv(SHEET_URL)
-    except Exception as e:
-        print(f"  ERROR fetching CSV: {e}", file=sys.stderr)
+        with open('projects-flat.json', 'r', encoding='utf-8') as f:
+            rows = json.load(f)
+    except FileNotFoundError:
+        print("  ERROR: projects-flat.json not found. Run fetch_projects.py first.", file=sys.stderr)
+        sys.exit(1)
+    except json.JSONDecodeError as e:
+        print(f"  ERROR: projects-flat.json wasn't valid JSON: {e}", file=sys.stderr)
         sys.exit(1)
 
-    reader = csv.DictReader(io.StringIO(raw))
-    rows = list(reader)
     print(f"  ✓ Loaded {len(rows)} rows")
 
     print("Building completed-projects index...")
