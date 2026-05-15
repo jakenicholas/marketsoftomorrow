@@ -3310,6 +3310,33 @@
     .delivery-bar.opening      .delivery-bar-fill  { background: #1FDF67; }
     .delivery-bar.open         .delivery-bar-label { color: #1FDF67; }
     .delivery-bar.open         .delivery-bar-fill  { background: #1FDF67; }
+
+    /* POPUP-SCOPED GRADIENT OVERRIDES
+       The grid/sidebar tiles use the solid color rules above (.delivery-bar.X
+       .delivery-bar-fill, specificity 0,3,0). Without these overrides, those
+       solid colors leak into the popup and override the popup's gradient
+       (defined below at .popup-content .delivery-bar-fill, specificity 0,2,0 —
+       lower specificity, so the gradient loses).
+       The shorthand `background: <color>` on the .STATUS rules ALSO resets
+       background-image to `none`, so a simple `background-color: transparent`
+       override isn't enough — we have to redeclare the gradient at the
+       higher 0,3,1 specificity. Tile/sidebar context is untouched (no
+       .popup-content ancestor). */
+    .popup-content .delivery-bar.announced    .delivery-bar-fill,
+    .popup-content .delivery-bar.breaking     .delivery-bar-fill,
+    .popup-content .delivery-bar.construction .delivery-bar-fill,
+    .popup-content .delivery-bar.opening      .delivery-bar-fill,
+    .popup-content .delivery-bar.open         .delivery-bar-fill {
+      background-color: transparent;
+      background-image: linear-gradient(90deg,
+        rgba(255,255,255,0.5) 0%,
+        #FFD300 30%,
+        #FF9500 60%,
+        #1FDF67 95%);
+      background-size: calc(10000% / var(--fill-pct, 60)) 100%;
+      background-position: left center;
+      background-repeat: no-repeat;
+    }
     /* Desktop sidebar smaller */
     #desktopSidebar .delivery-bar { padding: 4px 6px 5px; gap: 5px; }
     #desktopSidebar .delivery-bar-label { font-size: 8px; }
@@ -3365,8 +3392,14 @@
       background-repeat: no-repeat;
     }
     .popup-content .delivery-bar.open .delivery-bar-fill {
-      /* When fully open, dim overlay shouldn't be visible at all */
-      display: none;
+      /* "Now Open" shows the FULL gradient at 100% fill so the bar reads
+         as a complete lifecycle. Width and --fill-pct are already set by
+         JS (deliveryBarHTML sets pct=100 for open status), but we re-anchor
+         here defensively so the gradient stretches across the full track.
+         Previously this rule used display:none, which left "Now Open"
+         projects with no bar at all. */
+      display: block;
+      width: 100% !important;
     }
     .popup-content .delivery-bar-stages {
       display: flex;
@@ -9335,7 +9368,6 @@
             ${f.properties.featured ? `<div class="featured-badge" style="top:-5px;left:-5px;"><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>Featured</div>` : ''}
             <h3>${f.properties.title}</h3>
             <p class="city">${f.properties.city}</p>
-            <p class="description">${f.properties.description}</p>
             ${deliveryBarHTML(f.properties.delivery)}
             <div class="popup-intel-mount"></div>
             <button class="favorite${window.isFavorited && window.isFavorited(f.properties.title) ? ' favorited' : ''}" data-fav-slug="${window.projectSlugify(f.properties.title)}" type="button" aria-label="Watch this project" onclick="event.stopPropagation();this.classList.remove('blink');void this.offsetWidth;this.classList.add('blink');window.toggleFavorite&&window.toggleFavorite('${(f.properties.title || '').replace(/'/g, "\\'")}', this);">
