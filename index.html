@@ -6766,11 +6766,11 @@
     <div id="layersPanel">
       <div class="layers-section-title">Layers</div>
 
-      <div class="layers-checkbox-row disabled" title="Developments cannot be hidden">
-        <div class="layers-checkbox checked grayed">
+      <div class="layers-checkbox-row" id="developmentsToggleRow" title="Toggle in-development pins">
+        <div class="layers-checkbox checked" id="developmentsCheckbox">
           <svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg>
         </div>
-        <span class="layers-checkbox-label">Developments</span>
+        <span class="layers-checkbox-label">In-Development</span>
       </div>
 
       <div class="layers-checkbox-row" id="transitToggleRow">
@@ -6801,7 +6801,7 @@
         </div>
         <span class="layers-checkbox-label" style="display:flex;align-items:center;gap:6px;">
           Completed Projects
-          <span style="display:inline-block;width:10px;height:10px;background:#6B7280;border-radius:50%;border:1.5px solid #fff;flex-shrink:0;"></span>
+          <span style="display:inline-block;width:10px;height:10px;background:#01796F;border-radius:50%;border:1.5px solid #fff;flex-shrink:0;"></span>
         </span>
       </div>
 
@@ -8026,6 +8026,22 @@
       // Why this ladder: developers describe delivery in wildly inconsistent
       // ways. "May 2026" vs "Spring 2026" vs "2026-05-15" all need to land
       // on a single Date so the progress math has something to subtract.
+      // ─── Pin color by development stage ────────────────────────────────
+      // Mapbox `match` expression keys off the `delivery` feature property
+      // (which is the canonical status string from STATUS_MAP in fetch_projects.py).
+      // Per-status colors keep the pipeline visually scannable at a glance.
+      // Used both at layer creation and after any filter-reset paint update.
+      const STATUS_PIN_COLOR_EXPR = [
+        'match', ['get', 'delivery'],
+        'Announced',         '#9CA3AF',  // gray
+        'Breaking Ground',   '#FFD300',  // yellow
+        'Under Construction','#FF9500',  // orange
+        'Opening Soon',      '#1FDF67',  // green
+        'Now Open',          '#1FDF67',  // green
+        '#1FDF67'  // fallback for any unknown status
+      ];
+      window.STATUS_PIN_COLOR_EXPR = STATUS_PIN_COLOR_EXPR;
+
       // ─── Completed Projects layer ──────────────────────────────────────
       // A project graduates to the "Completed" layer 6 months after its
       // delivery date IF its status is still "Now Open". Computed at data
@@ -9197,10 +9213,10 @@
         document.querySelector('meta[property="og:image"]')?.setAttribute('content', 'https://static.wixstatic.com/media/ca3b83_93ffb2f000f94a12aa874fe44153be18~mv2.jpg');
         document.querySelector('meta[name="twitter:title"]')?.setAttribute('content', 'Map of Tomorrow | Interactive Future Development Map | Markets of Tomorrow');
         document.querySelector('meta[name="twitter:image"]')?.setAttribute('content', 'https://static.wixstatic.com/media/ca3b83_93ffb2f000f94a12aa874fe44153be18~mv2.jpg');
-        // Restore green pin if opened from tile or deeplink (no popup to handle cleanup)
+        // Restore per-stage pin colors if opened from tile or deeplink (no popup to handle cleanup)
         if (fromSource === 'tile' || fromSource === 'deeplink') {
           if (map.getLayer('unclustered-point')) {
-            map.setPaintProperty('unclustered-point', 'circle-color', '#1FDF67');
+            map.setPaintProperty('unclustered-point', 'circle-color', window.STATUS_PIN_COLOR_EXPR);
             map.setPaintProperty('unclustered-point', 'circle-radius', 8);
           }
           if (window._selectedPinMarker) { window._selectedPinMarker.remove(); window._selectedPinMarker = null; }
@@ -9503,10 +9519,10 @@
         });
       }
 
-      // Restore green pin and remove pulse when popup closes
+      // Restore per-stage pin colors and remove pulse when popup closes
       activePopup.on('close', () => {
         if (map.getLayer('unclustered-point')) {
-          map.setPaintProperty('unclustered-point', 'circle-color', '#1FDF67');
+          map.setPaintProperty('unclustered-point', 'circle-color', window.STATUS_PIN_COLOR_EXPR);
           map.setPaintProperty('unclustered-point', 'circle-radius', 8);
         }
         if (window._selectedPinMarker) { window._selectedPinMarker.remove(); window._selectedPinMarker = null; }
@@ -10783,6 +10799,21 @@
         }
       });
 
+      // In-Development toggle — hides the entire pipeline pin stack (clusters +
+      // unclustered pins + featured glow + watched ring). On by default. Same
+      // window._developmentsVisible persistence pattern as completed.
+      window._developmentsVisible = true;
+      const developmentsRow = document.getElementById('developmentsToggleRow');
+      const developmentsCb  = document.getElementById('developmentsCheckbox');
+      developmentsRow?.addEventListener('click', () => {
+        window._developmentsVisible = !window._developmentsVisible;
+        developmentsCb.classList.toggle('checked', window._developmentsVisible);
+        const vis = window._developmentsVisible ? 'visible' : 'none';
+        ['clusters', 'cluster-count', 'unclustered-point', 'featured-glow', 'watched-ring'].forEach(id => {
+          if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', vis);
+        });
+      });
+
       // Map style switchers
       const styleDefault   = document.getElementById('styleDefault');
       const styleSatellite = document.getElementById('styleSatellite');
@@ -10826,9 +10857,9 @@
       // Close any open popup or selected pin
       if (activePopup) { activePopup.remove(); activePopup = null; }
       if (window._selectedPinMarker) { window._selectedPinMarker.remove(); window._selectedPinMarker = null; }
-      // Reset selected-pin paint expression so all pins go back to green
+      // Reset selected-pin paint expression so all pins go back to per-stage colors
       if (map.getLayer('unclustered-point')) {
-        map.setPaintProperty('unclustered-point', 'circle-color', '#1FDF67');
+        map.setPaintProperty('unclustered-point', 'circle-color', window.STATUS_PIN_COLOR_EXPR);
         map.setPaintProperty('unclustered-point', 'circle-radius', 8);
       }
       window._selectedPinTitle = null;
@@ -11642,14 +11673,15 @@
         }
         if (!map.getLayer('clusters'))          map.addLayer({ id:'clusters',          type:'circle', source:'projects', filter:['has','point_count'], paint:{'circle-color':'#1FDF67','circle-radius':['step',['get','point_count'],20,100,30,750,40],'circle-stroke-width':2,'circle-stroke-color':'#fff'} });
         if (!map.getLayer('cluster-count'))     map.addLayer({ id:'cluster-count',     type:'symbol', source:'projects', filter:['has','point_count'], layout:{'text-field':'{point_count_abbreviated}','text-size':12}, paint:{'text-color':'#ffffff'} });
-        // Main pipeline layer excludes completed projects (they live in the dedicated layer below)
-        if (!map.getLayer('unclustered-point')) map.addLayer({ id:'unclustered-point', type:'circle', source:'projects', filter:['all',['!',['has','point_count']],['!=',['get','completed'],true]], paint:{'circle-color':'#1FDF67','circle-radius':8,'circle-stroke-width':2,'circle-stroke-color':'#fff'} });
-        // Completed Projects layer: muted slate-gray, hidden by default. Show/hide via layers panel toggle.
+        // Main pipeline layer excludes completed projects (they live in the dedicated layer below).
+        // Pin color comes from STATUS_PIN_COLOR_EXPR — per-stage palette.
+        if (!map.getLayer('unclustered-point')) map.addLayer({ id:'unclustered-point', type:'circle', source:'projects', filter:['all',['!',['has','point_count']],['!=',['get','completed'],true]], paint:{'circle-color':window.STATUS_PIN_COLOR_EXPR,'circle-radius':8,'circle-stroke-width':2,'circle-stroke-color':'#fff'} });
+        // Completed Projects layer: dark pine green, hidden by default. Show/hide via layers panel toggle.
         if (!map.getLayer('unclustered-point-completed')) {
           map.addLayer({ id:'unclustered-point-completed', type:'circle', source:'projects',
             filter:['all',['!',['has','point_count']],['==',['get','completed'],true]],
             layout:{visibility:(window._completedVisible ? 'visible' : 'none')},
-            paint:{'circle-color':'#6B7280','circle-radius':7,'circle-stroke-width':1.5,'circle-stroke-color':'rgba(255,255,255,0.6)'}
+            paint:{'circle-color':'#01796F','circle-radius':7,'circle-stroke-width':1.5,'circle-stroke-color':'rgba(255,255,255,0.6)'}
           });
         }
 
@@ -11776,10 +11808,11 @@
           map.addLayer({ id:'clusters', type:'circle', source:'projects', filter:['has','point_count'], paint:{'circle-color':'#1FDF67','circle-radius':['step',['get','point_count'],20,100,30,750,40],'circle-stroke-width':2,'circle-stroke-color':'#fff'} });
           map.addLayer({ id:'cluster-count', type:'symbol', source:'projects', filter:['has','point_count'], layout:{'text-field':'{point_count_abbreviated}','text-size':12}, paint:{'text-color':'#ffffff'} });
           // Main pipeline pin layer: excludes completed projects so they don't
-          // clutter the pipeline view. Completed pins live in unclustered-point-completed below.
-          map.addLayer({ id:'unclustered-point', type:'circle', source:'projects', filter:['all',['!',['has','point_count']],['!=',['get','completed'],true]], paint:{'circle-color':'#1FDF67','circle-radius':8,'circle-stroke-width':2,'circle-stroke-color':'#fff'} });
-          // Completed projects layer: muted slate-gray, hidden by default. Toggle in layers panel.
-          map.addLayer({ id:'unclustered-point-completed', type:'circle', source:'projects', filter:['all',['!',['has','point_count']],['==',['get','completed'],true]], layout:{visibility:'none'}, paint:{'circle-color':'#6B7280','circle-radius':7,'circle-stroke-width':1.5,'circle-stroke-color':'rgba(255,255,255,0.6)'} });
+          // clutter the pipeline view. Pin color comes from STATUS_PIN_COLOR_EXPR
+          // (per-status palette). Completed pins live in unclustered-point-completed.
+          map.addLayer({ id:'unclustered-point', type:'circle', source:'projects', filter:['all',['!',['has','point_count']],['!=',['get','completed'],true]], paint:{'circle-color':STATUS_PIN_COLOR_EXPR,'circle-radius':8,'circle-stroke-width':2,'circle-stroke-color':'#fff'} });
+          // Completed projects layer: dark pine green, hidden by default. Toggle in layers panel.
+          map.addLayer({ id:'unclustered-point-completed', type:'circle', source:'projects', filter:['all',['!',['has','point_count']],['==',['get','completed'],true]], layout:{visibility:(window._completedVisible ? 'visible' : 'none')}, paint:{'circle-color':'#01796F','circle-radius':7,'circle-stroke-width':1.5,'circle-stroke-color':'rgba(255,255,255,0.6)'} });
           map.addLayer({ id:'featured-glow', type:'circle', source:'projects', filter:['all',['!',['has','point_count']],['==',['get','featured'],true],['!=',['get','completed'],true]], paint:{'circle-color':'transparent','circle-radius':16,'circle-blur':0.8,'circle-stroke-width':3,'circle-stroke-color':'#FFD300','circle-stroke-opacity':0.6} }, 'unclustered-point');
           // Watchlist ring (Phase 2): green ring around watched pins (pipeline only).
           map.addLayer({ id:'watched-ring', type:'circle', source:'projects', filter:['all',['!',['has','point_count']],['==',['get','watched'],true],['!=',['get','completed'],true]], paint:{'circle-color':'transparent','circle-radius':14,'circle-stroke-width':2.5,'circle-stroke-color':'#1FDF67','circle-stroke-opacity':0.9} }, 'unclustered-point');
