@@ -36,13 +36,11 @@ import urllib.error
 # directly without a base64 decode step.
 TMW_DATA_OWNER = 'jakenicholas'
 TMW_DATA_REPO = 'tmw-data'
-TMW_DATA_PATH = 'data/projects.json'
 TMW_DATA_REF = 'main'  # branch
 
-GITHUB_API_URL = (
-    f"https://api.github.com/repos/{TMW_DATA_OWNER}/{TMW_DATA_REPO}/"
-    f"contents/{TMW_DATA_PATH}?ref={TMW_DATA_REF}"
-)
+PROJECTS_PATH = 'data/projects.json'
+ARCHITECTS_PATH = 'data/architects.json'
+DEVELOPERS_PATH = 'data/developers.json'
 
 OUTPUT_PATH = 'projects-flat.json'
 
@@ -78,21 +76,18 @@ def map_status(raw: str) -> str:
 
 
 # --- SLUG -> DISPLAY NAME ---------------------------------------------------
-# tmw-data stores architects and developers as kebab-case slug arrays
-# (e.g. 'robert-am-stern-architects'). The existing pipeline expects
-# free-form display strings ('Robert A.M. Stern Architects'). We don't
-# have a slug->name lookup table, so reverse the slugify by replacing
-# hyphens with spaces and title-casing -- imperfect but good enough for
-# display. Acronyms like RAMSA come out as 'Ramsa' which is ugly, but
-# the source-of-truth is the slug, and downstream code mostly uses these
-# for credit lines and search rather than rendering them as authoritative.
+# Architect/developer display names come from tmw-data's architects.json and
+# developers.json (which carry the canonical names like 'Robert A.M. Stern
+# Architects' or 'Foster + Partners' with proper punctuation). We build a
+# slug->name dict at startup and pass it to flatten().
+#
+# Only fall back to unslug() if a slug isn't in the lookup (defensive — would
+# indicate stale project data referencing a deleted firm). Acronyms then come
+# out as 'Ramsa' which is ugly, hence the lookup.
 def unslug(slug: str) -> str:
-    """Best-effort kebab-case slug -> display name conversion."""
+    """Best-effort kebab-case slug -> display name conversion (fallback only)."""
     if not slug:
         return ''
-    # Replace hyphens with spaces, title-case each word.
-    # Preserve common short connectors lowercase (and, of, the) -- but
-    # title-case at sentence start. Cheap and cheerful.
     parts = slug.replace('-', ' ').split()
     out = []
     small = {'and', 'of', 'the', 'a', 'an', 'in', 'on', 'at', 'for'}
@@ -104,8 +99,15 @@ def unslug(slug: str) -> str:
     return ' '.join(out)
 
 
+def lookup_name(slug: str, name_map: dict) -> str:
+    """slug -> canonical display name, with unslug() fallback if not found."""
+    if not slug:
+        return ''
+    return name_map.get(slug) or unslug(slug)
+
+
 # --- TRANSFORMATION ---------------------------------------------------------
-def flatten(record: dict) -> dict:
+def flatten(record: dict, architect_names: dict, developer_names: dict) -> dict:
     """
     Convert a single tmw-data JSON record into the CSV-shape dict the
     existing pipeline expects. Keys mirror the Google Sheet column headers
@@ -124,8 +126,8 @@ def flatten(record: dict) -> dict:
       start_date          -> StartDate
       types[]             -> ProjectType (comma-joined)
       preferred_type      -> PreferredType
-      architect_slugs[]   -> Architect (unslugged, slash-joined)
-      developer_slugs[]   -> Developer (unslugged, slash-joined)
+      architect_slugs[]   -> Architect (canonical name from architects.json, comma-joined)
+      developer_slugs[]   -> Developer (canonical name from developers.json, comma-joined)
       featured            -> Featured ("Featured" or "")
       official_website    -> OfficialWebsite
       images[0..4]        -> ImageURL, Image2..Image5
@@ -156,8 +158,8 @@ def flatten(record: dict) -> dict:
         'StartDate':       record.get('start_date', '') or '',
         'ProjectType':     ', '.join(types),
         'PreferredType':   record.get('preferred_type', '') or '',
-        'Architect':       ' / '.join(unslug(s) for s in arch_slugs),
-        'Developer':       ' / '.join(unslug(s) for s in dev_slugs),
+        'Architect':       ', '.join(lookup_name(s, architect_names) for s in arch_slugs),
+        'Developer':       ', '.join(lookup_name(s, developer_names) for s in dev_slugs),
         'Featured':        'Featured' if record.get('featured') else '',
         'OfficialWebsite': record.get('official_website', '') or '',
         'ImageURL':        images[0] if len(images) >= 1 else '',
@@ -173,9 +175,17 @@ def flatten(record: dict) -> dict:
 
 
 # --- FETCH ------------------------------------------------------------------
-def fetch_projects_json() -> list:
-    """GET tmw-data/data/projects.json via GitHub API. Returns parsed list."""
-    req = urllib.request.Request(GITHUB_API_URL, headers={
+def fetch_data_file(path: str) -> list:
+    """GET a file from tmw-data via GitHub API. Returns parsed JSON.
+
+    Used for projects.json, architects.json, developers.json. All three are
+    JSON arrays of records, so the return type is uniformly `list`.
+    """
+    url = (
+        f"https://api.github.com/repos/{TMW_DATA_OWNER}/{TMW_DATA_REPO}/"
+        f"contents/{path}?ref={TMW_DATA_REF}"
+    )
+    req = urllib.request.Request(url, headers={
         # `application/vnd.github.raw` gives us the file body directly --
         # no base64 wrapper to decode. This works for files up to 100MB.
         'Accept': 'application/vnd.github.raw',
@@ -192,37 +202,56 @@ def fetch_projects_json() -> list:
             body = e.read().decode('utf-8', errors='replace')
         except Exception:
             pass
-        print(f"ERROR: GitHub API returned {e.code}: {e.reason}", file=sys.stderr)
+        print(f"ERROR: GitHub API returned {e.code} for {path}: {e.reason}", file=sys.stderr)
         if body:
             print(f"Response body: {body[:500]}", file=sys.stderr)
         if e.code == 401:
             print("Token is invalid or expired. Regenerate the PAT.", file=sys.stderr)
         elif e.code == 404:
-            print("File not found. Check owner/repo/path constants in this script.", file=sys.stderr)
+            print(f"File not found: {path}. Check owner/repo/path constants.", file=sys.stderr)
         sys.exit(1)
     except Exception as e:
-        print(f"ERROR: fetch failed: {e}", file=sys.stderr)
+        print(f"ERROR: fetch failed for {path}: {e}", file=sys.stderr)
         sys.exit(1)
 
     try:
         parsed = json.loads(data)
     except json.JSONDecodeError as e:
-        print(f"ERROR: response wasn't valid JSON: {e}", file=sys.stderr)
+        print(f"ERROR: {path} wasn't valid JSON: {e}", file=sys.stderr)
         print(f"First 200 chars: {data[:200]}", file=sys.stderr)
         sys.exit(1)
 
     if not isinstance(parsed, list):
-        print(f"ERROR: expected a JSON array, got {type(parsed).__name__}", file=sys.stderr)
+        print(f"ERROR: expected a JSON array in {path}, got {type(parsed).__name__}", file=sys.stderr)
         sys.exit(1)
 
     return parsed
 
 
+def build_name_map(records: list, label: str) -> dict:
+    """Build slug -> display name lookup from a tmw-data records list."""
+    out = {}
+    for r in records:
+        if not isinstance(r, dict):
+            continue
+        slug = (r.get('slug') or '').strip()
+        name = (r.get('name') or '').strip()
+        if slug and name:
+            out[slug] = name
+    print(f"  ✓ Loaded {len(out)} {label} name(s)")
+    return out
+
+
 # --- MAIN -------------------------------------------------------------------
 def main():
-    print("Fetching projects.json from tmw-data...")
-    records = fetch_projects_json()
-    print(f"  ✓ Fetched {len(records)} records")
+    print("Fetching from tmw-data...")
+    records = fetch_data_file(PROJECTS_PATH)
+    print(f"  ✓ Fetched {len(records)} projects")
+    architect_records = fetch_data_file(ARCHITECTS_PATH)
+    developer_records = fetch_data_file(DEVELOPERS_PATH)
+
+    architect_names = build_name_map(architect_records, 'architect')
+    developer_names = build_name_map(developer_records, 'developer')
 
     print("Flattening to CSV-shape schema...")
     flat = []
@@ -236,7 +265,7 @@ def main():
             # `if r.get('Title','').strip()` filter in generate_pages.py.
             skipped += 1
             continue
-        flat.append(flatten(r))
+        flat.append(flatten(r, architect_names, developer_names))
     print(f"  ✓ Flattened {len(flat)} records ({skipped} skipped)")
 
     print(f"Writing {OUTPUT_PATH}...")
