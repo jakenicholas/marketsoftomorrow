@@ -1,0 +1,260 @@
+#!/usr/bin/env python3
+"""
+TMW Projects Fetcher + Flattener
+---------------------------------
+Step 0 of the nightly/hourly map pipeline.
+
+Fetches data/projects.json from the private tmw-data repo (via GitHub API
+authenticated with TMW_DATA_TOKEN) and writes projects-flat.json to the
+local repo root. The flat file matches the CSV column shape the rest of
+the pipeline (generate_pages.py, generate_pulse.py, generate_intel.py,
+index.html) already expects -- so each downstream consumer changes only
+the fetch step, not the parsing step.
+
+This file is the single source of truth for the rich-JSON -> CSV-shape
+schema translation. Update it here if the tmw-data JSON schema ever
+changes.
+
+Required environment variables (set in GitHub Actions secrets):
+  TMW_DATA_TOKEN  - GitHub PAT with repo:read scope on tmw-data
+
+Output: projects-flat.json (JSON array of CSV-shaped dicts)
+
+Run: python3 fetch_projects.py
+"""
+
+import json
+import os
+import sys
+import urllib.request
+import urllib.error
+
+# --- CONFIG -----------------------------------------------------------------
+# Private repo location. The Contents API returns the file content (base64-
+# encoded for binary, raw for text-ish responses when Accept header is set
+# to application/vnd.github.raw). We use raw so we get the file bytes
+# directly without a base64 decode step.
+TMW_DATA_OWNER = 'jakenicholas'
+TMW_DATA_REPO = 'tmw-data'
+TMW_DATA_PATH = 'data/projects.json'
+TMW_DATA_REF = 'main'  # branch
+
+GITHUB_API_URL = (
+    f"https://api.github.com/repos/{TMW_DATA_OWNER}/{TMW_DATA_REPO}/"
+    f"contents/{TMW_DATA_PATH}?ref={TMW_DATA_REF}"
+)
+
+OUTPUT_PATH = 'projects-flat.json'
+
+TOKEN = os.environ.get('TMW_DATA_TOKEN', '').strip()
+if not TOKEN:
+    print("ERROR: TMW_DATA_TOKEN environment variable is required.", file=sys.stderr)
+    print("Generate a PAT at github.com/settings/tokens with `repo` read scope", file=sys.stderr)
+    print("on the private tmw-data repo, then add it as a workflow secret.", file=sys.stderr)
+    sys.exit(1)
+
+
+# --- STATUS MAPPING ---------------------------------------------------------
+# tmw-data uses lowercase slug-like status values. Map them to the
+# human-readable strings the rest of the pipeline already recognizes
+# (see normalize_status() in generate_pulse.py for the canonical buckets).
+STATUS_MAP = {
+    'open':             'Now Open',
+    'coming-soon':      'Opening Soon',
+    'construction':     'Under Construction',
+    'breaking-ground':  'Breaking Ground',
+    'announced':        'Announced',
+}
+
+def map_status(raw: str) -> str:
+    """tmw-data status -> CSV-shape Delivery string."""
+    key = (raw or '').strip().lower()
+    if key in STATUS_MAP:
+        return STATUS_MAP[key]
+    # Fallback: title-case the raw value so unknown statuses are still
+    # human-readable. The downstream normalize_status() will bucket them
+    # to 'announced' if it can't recognize them.
+    return (raw or '').replace('-', ' ').title()
+
+
+# --- SLUG -> DISPLAY NAME ---------------------------------------------------
+# tmw-data stores architects and developers as kebab-case slug arrays
+# (e.g. 'robert-am-stern-architects'). The existing pipeline expects
+# free-form display strings ('Robert A.M. Stern Architects'). We don't
+# have a slug->name lookup table, so reverse the slugify by replacing
+# hyphens with spaces and title-casing -- imperfect but good enough for
+# display. Acronyms like RAMSA come out as 'Ramsa' which is ugly, but
+# the source-of-truth is the slug, and downstream code mostly uses these
+# for credit lines and search rather than rendering them as authoritative.
+def unslug(slug: str) -> str:
+    """Best-effort kebab-case slug -> display name conversion."""
+    if not slug:
+        return ''
+    # Replace hyphens with spaces, title-case each word.
+    # Preserve common short connectors lowercase (and, of, the) -- but
+    # title-case at sentence start. Cheap and cheerful.
+    parts = slug.replace('-', ' ').split()
+    out = []
+    small = {'and', 'of', 'the', 'a', 'an', 'in', 'on', 'at', 'for'}
+    for i, w in enumerate(parts):
+        if i > 0 and w.lower() in small:
+            out.append(w.lower())
+        else:
+            out.append(w.capitalize())
+    return ' '.join(out)
+
+
+# --- TRANSFORMATION ---------------------------------------------------------
+def flatten(record: dict) -> dict:
+    """
+    Convert a single tmw-data JSON record into the CSV-shape dict the
+    existing pipeline expects. Keys mirror the Google Sheet column headers
+    that generate_pages.py / generate_pulse.py / generate_intel.py read
+    from row.get().
+
+    Schema mapping (JSON key -> CSV-shape key):
+      name                -> Title
+      city                -> City
+      lat                 -> Latitude
+      lng                 -> Longitude
+      description         -> Description
+      description_long    -> DescriptionLong
+      status              -> Delivery (via STATUS_MAP)
+      delivery_date       -> DeliveryDate
+      start_date          -> StartDate
+      types[]             -> ProjectType (comma-joined)
+      preferred_type      -> PreferredType
+      architect_slugs[]   -> Architect (unslugged, slash-joined)
+      developer_slugs[]   -> Developer (unslugged, slash-joined)
+      featured            -> Featured ("Featured" or "")
+      official_website    -> OfficialWebsite
+      images[0..4]        -> ImageURL, Image2..Image5
+      (no source)         -> Price (empty; existing code handles blanks)
+    """
+    images = record.get('images') or []
+    types = record.get('types') or []
+    arch_slugs = record.get('architect_slugs') or []
+    dev_slugs = record.get('developer_slugs') or []
+
+    # Coordinate fields: existing code reads them as strings and coerces
+    # with `+p.Longitude` in JS / similar in Python. Stringify defensively
+    # so a missing lat/lng comes through as '' rather than 'None'.
+    lat = record.get('lat')
+    lng = record.get('lng')
+    lat_str = '' if lat is None else str(lat)
+    lng_str = '' if lng is None else str(lng)
+
+    return {
+        'Title':           record.get('name', '') or '',
+        'City':            record.get('city', '') or '',
+        'Latitude':        lat_str,
+        'Longitude':       lng_str,
+        'Description':     record.get('description', '') or '',
+        'DescriptionLong': record.get('description_long', '') or '',
+        'Delivery':        map_status(record.get('status', '')),
+        'DeliveryDate':    record.get('delivery_date', '') or '',
+        'StartDate':       record.get('start_date', '') or '',
+        'ProjectType':     ', '.join(types),
+        'PreferredType':   record.get('preferred_type', '') or '',
+        'Architect':       ' / '.join(unslug(s) for s in arch_slugs),
+        'Developer':       ' / '.join(unslug(s) for s in dev_slugs),
+        'Featured':        'Featured' if record.get('featured') else '',
+        'OfficialWebsite': record.get('official_website', '') or '',
+        'ImageURL':        images[0] if len(images) >= 1 else '',
+        'Image2':          images[1] if len(images) >= 2 else '',
+        'Image3':          images[2] if len(images) >= 3 else '',
+        'Image4':          images[3] if len(images) >= 4 else '',
+        'Image5':          images[4] if len(images) >= 5 else '',
+        # Price isn't in the tmw-data schema yet. Existing _parse_price()
+        # handles blank values gracefully (returns 0), so emitting '' is
+        # safe. When tmw-data adds a price field, map it here.
+        'Price':           '',
+    }
+
+
+# --- FETCH ------------------------------------------------------------------
+def fetch_projects_json() -> list:
+    """GET tmw-data/data/projects.json via GitHub API. Returns parsed list."""
+    req = urllib.request.Request(GITHUB_API_URL, headers={
+        # `application/vnd.github.raw` gives us the file body directly --
+        # no base64 wrapper to decode. This works for files up to 100MB.
+        'Accept': 'application/vnd.github.raw',
+        'Authorization': f'Bearer {TOKEN}',
+        'User-Agent': 'TMW-Map-Pipeline/1.0',
+        'X-GitHub-Api-Version': '2022-11-28',
+    })
+    try:
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            data = resp.read().decode('utf-8', errors='replace')
+    except urllib.error.HTTPError as e:
+        body = ''
+        try:
+            body = e.read().decode('utf-8', errors='replace')
+        except Exception:
+            pass
+        print(f"ERROR: GitHub API returned {e.code}: {e.reason}", file=sys.stderr)
+        if body:
+            print(f"Response body: {body[:500]}", file=sys.stderr)
+        if e.code == 401:
+            print("Token is invalid or expired. Regenerate the PAT.", file=sys.stderr)
+        elif e.code == 404:
+            print("File not found. Check owner/repo/path constants in this script.", file=sys.stderr)
+        sys.exit(1)
+    except Exception as e:
+        print(f"ERROR: fetch failed: {e}", file=sys.stderr)
+        sys.exit(1)
+
+    try:
+        parsed = json.loads(data)
+    except json.JSONDecodeError as e:
+        print(f"ERROR: response wasn't valid JSON: {e}", file=sys.stderr)
+        print(f"First 200 chars: {data[:200]}", file=sys.stderr)
+        sys.exit(1)
+
+    if not isinstance(parsed, list):
+        print(f"ERROR: expected a JSON array, got {type(parsed).__name__}", file=sys.stderr)
+        sys.exit(1)
+
+    return parsed
+
+
+# --- MAIN -------------------------------------------------------------------
+def main():
+    print("Fetching projects.json from tmw-data...")
+    records = fetch_projects_json()
+    print(f"  ✓ Fetched {len(records)} records")
+
+    print("Flattening to CSV-shape schema...")
+    flat = []
+    skipped = 0
+    for r in records:
+        if not isinstance(r, dict):
+            skipped += 1
+            continue
+        if not (r.get('name') or '').strip():
+            # Skip records without a title -- mirrors the existing
+            # `if r.get('Title','').strip()` filter in generate_pages.py.
+            skipped += 1
+            continue
+        flat.append(flatten(r))
+    print(f"  ✓ Flattened {len(flat)} records ({skipped} skipped)")
+
+    print(f"Writing {OUTPUT_PATH}...")
+    with open(OUTPUT_PATH, 'w', encoding='utf-8') as f:
+        json.dump(flat, f, indent=2, ensure_ascii=False)
+    print(f"  ✓ Wrote {OUTPUT_PATH}")
+
+    # Diagnostics: distribution of mapped statuses so a status-mapping
+    # regression is visible in workflow logs without having to diff the
+    # output file by hand.
+    status_counts = {}
+    for r in flat:
+        status_counts[r['Delivery']] = status_counts.get(r['Delivery'], 0) + 1
+    print("Status distribution:")
+    for st, n in sorted(status_counts.items(), key=lambda x: -x[1]):
+        print(f"  {n:4d}  {st}")
+
+    print(" Done.")
+
+if __name__ == '__main__':
+    main()
