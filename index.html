@@ -2879,10 +2879,10 @@
       font-size: 13px !important;
     }
     .popup-content { position: relative; overflow: visible; }
-    .popup-content img { width: 100%; height: 160px; object-fit: cover; border-radius: 6px; }
-    .popup-content h3 { margin: 10px 0 5px; font-size: 18px; text-decoration: none !important; }
-    .popup-content p { font-size: 14px; margin: 6px 0; color: #CCC; }
-    .popup-content p.delivery { margin-top: 8px; color: #CCC; }
+    .popup-content img { width: 100%; height: 130px; object-fit: cover; border-radius: 6px; }
+    .popup-content h3 { margin: 8px 0 3px; font-size: 18px; text-decoration: none !important; }
+    .popup-content p { font-size: 14px; margin: 4px 0; color: #CCC; }
+    .popup-content p.delivery { margin-top: 6px; color: #CCC; }
     .popup-buttons a {
       display: block; width: 100%; background: #222; color: #fff;
       text-align: center; text-decoration: none; border-radius: 4px;
@@ -3320,51 +3320,49 @@
     .popup-content .delivery-bar {
       flex-direction: column;
       align-items: stretch;
-      gap: 5px;
-      padding: 10px 0 4px;
+      gap: 3px;
+      padding: 7px 0 3px;
       border-top: 1px solid rgba(255,255,255,0.08);
-      margin-top: 10px;
+      margin-top: 7px;
     }
     .popup-content .delivery-bar-label {
       font-size: 9px;
       color: rgba(255,255,255,0.5) !important;
       letter-spacing: 0.08em;
-      margin-bottom: 2px;
+      margin-bottom: 1px;
     }
     .popup-content .delivery-bar-track {
       flex: 0 0 4px;
       width: 100%;
       height: 4px;
       border-radius: 2px;
-      /* Full lifecycle gradient is on the TRACK so colors anchor to their
-         actual stage position. Stops tuned to match the lifecycle stage
-         percentages (Announced 10%, Breaking 30%, Construction 60%,
-         Opening Soon 85%, Open 100%) so each color sits over its stage zone. */
-      background: linear-gradient(90deg,
-        rgba(255,255,255,0.3) 0%,
-        #FFD300 30%,
-        #FF9500 60%,
-        #1FDF67 95%);
+      /* Empty/unfilled background -- the dim portion of the bar */
+      background: rgba(255,255,255,0.08);
       position: relative;
       overflow: hidden;
     }
     .popup-content .delivery-bar-fill {
-      /* Repurpose: this element masks the UNCOMPLETED portion of the track
-         with a dim overlay. The --fill-pct CSS variable (set inline) is the
-         project's completion percentage, and the overlay covers from that
-         position to the right edge. Near-hard cut with 3px of feathering on
-         the leading edge so the transition isn't visually jarring. */
-      position: absolute;
-      top: 0;
-      right: 0;
-      bottom: 0;
+      /* Width is set by JS (via inline style:width:X%). The fill shows the
+         project's progress through the lifecycle. The gradient lives here
+         but uses background-size to anchor colors to ABSOLUTE lifecycle
+         positions (not normalized to fill width). At 60% fill, the visible
+         portion sweeps gray->yellow->orange; green is past the fill edge
+         and not visible.
+
+         Math: if fill is X% wide, gradient needs to be sized at 100/X * 100%
+         so its full 0-100% range corresponds to the TRACK's 0-100%. The
+         --fill-pct variable carries the X value.
+         */
       height: 100%;
-      width: auto !important; /* override JS-set width */
-      left: var(--fill-pct, 60%);
-      background: linear-gradient(90deg,
-        rgba(0,0,0,0) 0,
-        rgba(0,0,0,0.7) 3px);
-      border-radius: 0 2px 2px 0;
+      border-radius: 2px;
+      background-image: linear-gradient(90deg,
+        rgba(255,255,255,0.5) 0%,
+        #FFD300 30%,
+        #FF9500 60%,
+        #1FDF67 95%);
+      background-size: calc(10000% / var(--fill-pct, 60)) 100%;
+      background-position: left center;
+      background-repeat: no-repeat;
     }
     .popup-content .delivery-bar.open .delivery-bar-fill {
       /* When fully open, dim overlay shouldn't be visible at all */
@@ -4098,12 +4096,12 @@
      Row 2: "~7 months to completion" (big purple value + white tail)
      Row 3: "Based on N similar projects" sub */
   .popup-content .popup-intel {
-    margin-top: 12px;
-    margin-bottom: 14px;
-    padding: 9px 12px;
+    margin-top: 8px;
+    margin-bottom: 10px;
+    padding: 7px 10px 8px;
     background: rgba(167,139,250,0.14);
     border: 1px solid rgba(167,139,250,0.35);
-    border-radius: 10px;
+    border-radius: 9px;
   }
   .popup-content .popup-intel-eyebrow {
     display: flex;
@@ -4114,18 +4112,18 @@
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    margin-bottom: 3px;
+    margin-bottom: 2px;
   }
   .popup-content .popup-intel-eyebrow svg {
     width: 10px; height: 10px; fill: currentColor;
   }
   .popup-content .popup-intel-value {
-    font-size: 17px;
+    font-size: 16px;
     color: #A78BFA;
     font-weight: 700;
     line-height: 1.2;
     letter-spacing: -0.01em;
-    margin-bottom: 2px;
+    margin-bottom: 1px;
   }
   .popup-content .popup-intel-value-tail {
     color: #fff;
@@ -9513,13 +9511,13 @@
       else if (d.includes('opening'))      { cls='opening';      label='Opening Soon';      pct=85;  }
       else if (d.includes('open'))         { cls='open';         label='Now Open';          pct=100; }
       else                                 { cls='announced';    label=delivery;            pct=10;  }
-      // Set BOTH width (used by tile bars in their original behavior) AND
-      // --fill-pct (used by popup bar to position the dim overlay so the
-      // gradient colors anchor to actual lifecycle position).
+      // Set BOTH width (for the colored fill bar) AND --fill-pct as a raw
+      // number (used by the popup CSS to scale the gradient so colors
+      // anchor to absolute lifecycle position regardless of fill width).
       // Stages markup is included unconditionally; CSS hides it outside .popup-content
       return `<div class="delivery-bar ${cls}">
         <span class="delivery-bar-label">${label}</span>
-        <div class="delivery-bar-track"><div class="delivery-bar-fill" style="width:${pct}%;--fill-pct:${pct}%"></div></div>
+        <div class="delivery-bar-track"><div class="delivery-bar-fill" style="width:${pct}%;--fill-pct:${pct}"></div></div>
         <div class="delivery-bar-stages"><span>Announced</span><span>Building</span><span>Open</span></div>
       </div>`;
     }
