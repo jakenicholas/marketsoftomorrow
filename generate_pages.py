@@ -489,7 +489,7 @@ def stat_card(label, value):
 def truncate_developer(dev):
     if not dev:
         return ''
-    parts = re.split(r'\s*/\s*', dev)
+    parts = re.split(r'\s*,\s*', dev)
     if len(parts) > 2:
         return parts[0].strip() + ' & More'
     return dev
@@ -611,7 +611,7 @@ def build_page(row, articles=None):
     # falls back to: delivery_date − N years, with N keyed off status.
     start_date = row.get('StartDate','').strip()
     developer = truncate_developer(row.get('Developer','').strip())
-    architect = row.get('Architect','').strip().split('/')[0].strip()
+    architect = row.get('Architect','').strip().split(',')[0].strip()
     description = row.get('DescriptionLong','').strip() or row.get('Description','').strip()
     image = row.get('ImageURL','').strip() or DEFAULT_IMAGE
     website = row.get('OfficialWebsite','').strip()
