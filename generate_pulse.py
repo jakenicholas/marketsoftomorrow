@@ -265,20 +265,26 @@ def fetch_rss():
 
     return articles
 
-# --- MAP DATA (CSV) + STATUS DIFF -------------------------------------------
+# --- MAP DATA (JSON) + STATUS DIFF ------------------------------------------
 def fetch_csv_projects():
-    """Fetch the Google Sheet CSV and return a dict keyed by slug."""
+    """Read projects-flat.json (written by fetch_projects.py) and return
+    a dict keyed by slug, mirroring the shape this function returned when
+    it read CSV from Google Sheets directly. Function name kept for
+    minimal blast radius -- everywhere downstream that calls this is
+    unchanged.
+    """
     try:
-        req = urllib.request.Request(SHEET_CSV_URL, headers={'User-Agent': 'TMW-Pulse/1.0'})
-        with urllib.request.urlopen(req, timeout=20) as resp:
-            data = resp.read().decode('utf-8', errors='replace')
-    except Exception as e:
-        print(f"   CSV fetch failed: {e}", file=sys.stderr)
+        with open('projects-flat.json', 'r', encoding='utf-8') as f:
+            rows = json.load(f)
+    except FileNotFoundError:
+        print(f"   projects-flat.json not found. Run fetch_projects.py first.", file=sys.stderr)
+        return {}
+    except json.JSONDecodeError as e:
+        print(f"   projects-flat.json wasn't valid JSON: {e}", file=sys.stderr)
         return {}
 
-    reader = csv.DictReader(io.StringIO(data))
     projects = {}
-    for row in reader:
+    for row in rows:
         title = (row.get('Project Name') or row.get('Title') or row.get('title') or '').strip()
         if not title:
             continue
@@ -288,8 +294,8 @@ def fetch_csv_projects():
             'title': title,
             'city': (row.get('City') or row.get('city') or '').strip(),
             'delivery': (row.get('Delivery') or row.get('delivery') or '').strip(),
-            # The sheet's image column is "ImageURL" (matching generate_pages.py).
-            # Fall back to lowercase variants for safety.
+            # The flat schema's image column is "ImageURL" (matching
+            # generate_pages.py). Fall back to lowercase variants for safety.
             'image': (row.get('ImageURL') or row.get('Image') or row.get('image') or '').strip(),
         }
     return projects
@@ -686,7 +692,7 @@ def main():
     is_first_run = len(prev_projects) == 0
 
     # 2. Fetch current map data
-    print(" Fetching map CSV...")
+    print(" Loading map data from projects-flat.json...")
     current_projects = fetch_csv_projects()
     print(f"   {len(current_projects)} projects loaded")
 
