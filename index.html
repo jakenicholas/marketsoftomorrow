@@ -6795,11 +6795,218 @@
     .atlas-view-tab { flex: 1; justify-content: center; padding: 9px 12px; }
   }
 
-  /* ── Pipeline timeline section (atlas) ──────────────────────────────
-     Vertical scroll through every in-pipeline project, grouped by delivery
-     quarter. Each card opens the project modal on the map when clicked.
-     Empty state appears when the state filter excludes all projects. */
-  .atlas-timeline { display: flex; flex-direction: column; gap: 28px; }
+  /* ── Pipeline timeline section (atlas) — mockup-style layout ────────
+     Hero (title + description + 4-stat row), filter chips (status + featured),
+     then a single-column vertical timeline with a thin connector line down
+     the left. Each project row: date column · connector · full-width card
+     with image + body + scale stats. Clicking a card closes atlas and opens
+     the project modal on the map. */
+
+  /* Hero */
+  .atlas-tl-hero { padding: 12px 0 28px; max-width: 720px; }
+  .atlas-tl-hero h2 {
+    font-size: 38px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.05;
+    background: linear-gradient(180deg, #fff 0%, rgba(255,255,255,0.7) 100%);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin: 0;
+  }
+  .atlas-tl-hero p {
+    font-size: 15px; color: rgba(255,255,255,0.62);
+    margin-top: 12px; line-height: 1.55;
+  }
+  .atlas-tl-hero-stats { margin-top: 24px; display: flex; gap: 22px; flex-wrap: wrap; }
+  .atlas-tl-hero-stat { display: flex; flex-direction: column; gap: 2px; }
+  .atlas-tl-hero-stat .val {
+    font-size: 24px; font-weight: 700; font-variant-numeric: tabular-nums;
+    line-height: 1; color: #fff;
+  }
+  .atlas-tl-hero-stat .val.accent { color: #1FDF67; }
+  .atlas-tl-hero-stat .lbl {
+    font-size: 10.5px; color: rgba(255,255,255,0.4);
+    font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em;
+    margin-top: 4px;
+  }
+  @media (max-width: 700px) {
+    .atlas-tl-hero h2 { font-size: 28px; }
+    .atlas-tl-hero p { font-size: 14px; }
+    .atlas-tl-hero-stats { gap: 14px; }
+    .atlas-tl-hero-stat .val { font-size: 20px; }
+  }
+
+  /* Filter chip row: status pills + featured toggle + count, side by side */
+  .atlas-tl-filters {
+    display: flex; gap: 8px; flex-wrap: wrap;
+    align-items: center; margin-bottom: 28px;
+  }
+  .atlas-tl-filter-group {
+    display: flex; gap: 4px;
+    background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 10px; padding: 3px;
+  }
+  .atlas-tl-chip {
+    padding: 7px 12px; background: transparent; border: none;
+    color: rgba(255,255,255,0.55); border-radius: 7px;
+    font-size: 12px; font-weight: 600; cursor: pointer;
+    font-family: inherit; display: flex; align-items: center; gap: 6px;
+    transition: background 0.12s, color 0.12s; white-space: nowrap;
+  }
+  .atlas-tl-chip:hover { color: #fff; }
+  .atlas-tl-chip.active { background: rgba(255,255,255,0.08); color: #fff; }
+  .atlas-tl-chip .swatch { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .atlas-tl-meta-count {
+    color: rgba(255,255,255,0.4); font-size: 11px;
+    font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em;
+    margin-left: auto;
+  }
+  @media (max-width: 700px) {
+    .atlas-tl-meta-count { margin-left: 0; width: 100%; padding-top: 4px; }
+  }
+
+  /* Timeline list + vertical connector line. Line at left:122px desktop,
+     8px mobile (date column collapses). Faded ends via mask gradient. */
+  .atlas-tl-list { position: relative; margin-bottom: 40px; }
+  .atlas-tl-list::before {
+    content: ""; position: absolute;
+    left: 122px; top: 24px; bottom: 24px;
+    width: 1px;
+    background: linear-gradient(180deg, transparent 0%, rgba(255,255,255,0.10) 6%, rgba(255,255,255,0.10) 94%, transparent 100%);
+  }
+  @media (max-width: 700px) {
+    .atlas-tl-list::before { left: 9px; }
+  }
+
+  /* Sticky quarter header — single green dot on the line marks each quarter.
+     Per-project rows below have no dots (kept the timeline clean per feedback). */
+  .atlas-tl-qhead {
+    position: sticky; top: 0; z-index: 5;
+    display: grid; grid-template-columns: 110px 24px 1fr; gap: 12px;
+    padding: 18px 0 10px;
+    background: linear-gradient(180deg, rgba(10,10,10,0.96) 70%, transparent 100%);
+    margin-bottom: 4px;
+  }
+  .atlas-tl-qhead-date {
+    text-align: right;
+    font-size: 18px; font-weight: 800;
+    color: #fff; letter-spacing: -0.01em; line-height: 1;
+  }
+  .atlas-tl-qhead-date .yr {
+    display: block;
+    font-size: 10px; font-weight: 700;
+    color: rgba(255,255,255,0.45);
+    text-transform: uppercase; letter-spacing: 0.07em;
+    margin-top: 4px;
+  }
+  .atlas-tl-qhead-dot {
+    align-self: center; justify-self: center;
+    width: 12px; height: 12px;
+    border-radius: 50%; background: #1FDF67;
+    box-shadow: 0 0 0 4px rgba(31,223,103,0.18);
+  }
+  .atlas-tl-qhead-count {
+    align-self: center;
+    font-size: 11px; color: rgba(255,255,255,0.55);
+    font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;
+  }
+  .atlas-tl-qhead-count b { color: #fff; font-weight: 800; }
+  @media (max-width: 700px) {
+    .atlas-tl-qhead {
+      grid-template-columns: 24px 1fr;
+      gap: 10px; padding: 18px 0 10px;
+    }
+    .atlas-tl-qhead-date { display: none; }
+  }
+
+  /* Project row: date column · connector slot · card */
+  .atlas-tl-row {
+    display: grid; grid-template-columns: 110px 24px 1fr;
+    gap: 12px; padding: 8px 0;
+    cursor: pointer;
+    transition: transform 0.12s;
+  }
+  .atlas-tl-row:hover { transform: translateX(2px); }
+  .atlas-tl-row-date {
+    text-align: right; padding-top: 14px;
+    font-size: 11px; color: rgba(255,255,255,0.4); font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+  .atlas-tl-row-dot-slot { /* connector line passes through */ }
+  .atlas-tl-row-card {
+    display: grid; grid-template-columns: 180px 1fr;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px;
+    overflow: hidden;
+    transition: border-color 0.12s, box-shadow 0.12s;
+    min-width: 0;
+  }
+  .atlas-tl-row:hover .atlas-tl-row-card {
+    border-color: rgba(255,255,255,0.18);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+  }
+  .atlas-tl-row-img {
+    width: 180px; height: 130px;
+    background: linear-gradient(135deg, #1a1a1a, #222);
+    background-size: cover; background-position: center;
+    position: relative; flex-shrink: 0;
+  }
+  .atlas-tl-row-status {
+    position: absolute; bottom: 8px; left: 8px;
+    background: rgba(0,0,0,0.78);
+    border: 1px solid rgba(255,255,255,0.14);
+    padding: 3px 9px; border-radius: 100px;
+    font-size: 9.5px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    color: #fff;
+    display: flex; align-items: center; gap: 5px;
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  }
+  .atlas-tl-row-status .dot { width: 6px; height: 6px; border-radius: 50%; }
+  .atlas-tl-row-featured {
+    position: absolute; top: 8px; right: 8px;
+    width: 22px; height: 22px; border-radius: 6px;
+    background: rgba(255,211,0,0.18);
+    border: 1px solid rgba(255,211,0,0.4);
+    display: flex; align-items: center; justify-content: center;
+    color: #FFD300; font-size: 11px;
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  }
+  .atlas-tl-row-body {
+    padding: 14px 18px;
+    display: flex; flex-direction: column; gap: 6px;
+    min-width: 0;
+  }
+  .atlas-tl-row-title {
+    font-size: 16px; font-weight: 700; color: #fff;
+    line-height: 1.25; letter-spacing: -0.005em;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .atlas-tl-row-meta {
+    font-size: 12px; color: rgba(255,255,255,0.55);
+    display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
+  }
+  .atlas-tl-row-meta .sep { color: rgba(255,255,255,0.18); }
+  .atlas-tl-row-scale {
+    margin-top: auto;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    display: flex; gap: 14px;
+  }
+  .atlas-tl-row-scale .stat { font-size: 11px; color: rgba(255,255,255,0.45); }
+  .atlas-tl-row-scale .stat b {
+    color: #fff; font-weight: 700; font-variant-numeric: tabular-nums;
+    margin-right: 4px;
+  }
+  @media (max-width: 700px) {
+    .atlas-tl-row { grid-template-columns: 24px 1fr; gap: 10px; }
+    .atlas-tl-row-date { display: none; }
+    .atlas-tl-row-card { grid-template-columns: 1fr; }
+    .atlas-tl-row-img { width: 100%; height: 160px; }
+    .atlas-tl-row-body { padding: 12px 14px 14px; }
+    .atlas-tl-row-title { font-size: 15px; }
+  }
+
   .atlas-tl-empty {
     padding: 60px 24px;
     text-align: center;
@@ -6809,57 +7016,6 @@
     border: 1px solid rgba(255,255,255,0.06);
     border-radius: 14px;
   }
-  .atlas-tl-group { display: flex; flex-direction: column; gap: 12px; }
-  .atlas-tl-header { display: flex; align-items: baseline; gap: 14px;
-    padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.08); }
-  .atlas-tl-quarter { font-size: 28px; font-weight: 800; letter-spacing: -0.02em;
-    background: linear-gradient(180deg, #fff, rgba(255,255,255,0.65));
-    -webkit-background-clip: text; background-clip: text;
-    -webkit-text-fill-color: transparent; line-height: 1; }
-  .atlas-tl-year { font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.5);
-    text-transform: uppercase; letter-spacing: 0.08em; }
-  .atlas-tl-count { margin-left: auto; font-size: 11px; color: rgba(255,255,255,0.5);
-    font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
-  .atlas-tl-count b { color: #fff; font-weight: 700; }
-  .atlas-tl-items { display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px; }
-  @media (max-width: 700px) {
-    .atlas-tl-items { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-    .atlas-tl-quarter { font-size: 22px; }
-  }
-  @media (max-width: 460px) {
-    .atlas-tl-items { grid-template-columns: 1fr; }
-  }
-  .atlas-tl-item { display: grid; grid-template-columns: 92px 1fr; gap: 12px;
-    padding: 8px; background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.06); border-radius: 10px;
-    cursor: pointer; transition: border-color 0.12s, transform 0.12s;
-    min-width: 0; }
-  .atlas-tl-item:hover { border-color: rgba(255,255,255,0.18);
-    transform: translateY(-1px); }
-  .atlas-tl-hero { width: 92px; height: 64px;
-    background: linear-gradient(135deg, #1a1a1a, #222);
-    background-size: cover; background-position: center;
-    border-radius: 7px; position: relative; flex-shrink: 0; }
-  .atlas-tl-status { position: absolute; bottom: 4px; left: 4px;
-    background: rgba(0,0,0,0.78); border: 1px solid rgba(255,255,255,0.12);
-    padding: 2px 6px; border-radius: 100px;
-    font-size: 8.5px; font-weight: 700; color: #fff;
-    text-transform: uppercase; letter-spacing: 0.04em;
-    display: flex; align-items: center; gap: 4px;
-    backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
-  .atlas-tl-status .dot { width: 5px; height: 5px; border-radius: 50%; }
-  .atlas-tl-body { display: flex; flex-direction: column; gap: 3px;
-    min-width: 0; padding: 4px 4px 4px 0; justify-content: center; }
-  .atlas-tl-title { font-size: 13px; font-weight: 700; color: #fff;
-    line-height: 1.25;
-    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
-    overflow: hidden; word-break: break-word; }
-  .atlas-tl-meta { font-size: 10.5px; color: rgba(255,255,255,0.5);
-    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .atlas-tl-more { text-align: center; font-size: 11px;
-    color: rgba(255,255,255,0.5); padding: 8px; font-weight: 600;
-    background: rgba(255,255,255,0.02); border-radius: 8px; }
 
   .atlas-coverage-coming-grid .atlas-section-half {
     padding-bottom: 0;
@@ -15161,15 +15317,19 @@
       // states (which excludes the "Other" bucket for cities not yet in the
       // city -> state map).
       const total = (atlasData.hero_stats && atlasData.hero_stats.total_projects) || states.reduce((s, x) => s + x.count, 0);
+      // Mark the active pill based on currentStateFilter — when renderAll() runs
+      // (e.g. after a tab switch or a state-filter click in timeline view),
+      // the previous DOM is discarded so we need to embed `active` here rather
+      // than relying on classList toggles on stale elements.
       const pills = states.map(s => `
-        <button class="atlas-filter-pill" data-state="${escapeHtml(s.code)}" type="button">
+        <button class="atlas-filter-pill ${currentStateFilter === s.code ? 'active' : ''}" data-state="${escapeHtml(s.code)}" type="button">
           ${escapeHtml(s.label)} <span class="atlas-filter-count">${s.count}</span>
         </button>
       `).join('');
       return `
         <div class="atlas-filter-bar">
           <div class="atlas-filter-pills">
-            <button class="atlas-filter-pill active" data-state="ALL" type="button">All <span class="atlas-filter-count">${total}</span></button>
+            <button class="atlas-filter-pill ${currentStateFilter === 'ALL' ? 'active' : ''}" data-state="ALL" type="button">All <span class="atlas-filter-count">${total}</span></button>
             ${pills}
           </div>
         </div>`;
@@ -15180,6 +15340,10 @@
     // 'timeline' replaces all of that with the full quarter-by-quarter pipeline.
     // State filter applies to both views.
     let currentAtlasView = 'stats';
+    // Timeline-only filters: status (announced/breaking/construction/coming/open/all)
+    // and featured-only toggle. Independent of the state filter which spans both views.
+    let currentTimelineStatus = 'all';
+    let currentTimelineFeatured = false;
 
     function leaderboardSource(key) {
       // Pick the right LB based on current state filter:
@@ -15475,16 +15639,23 @@
         </div>`;
     }
 
-    // ── Pipeline timeline section — every in-pipeline project, grouped by
-    //    delivery quarter. Sourced from window.allProjectFeatures (live map
-    //    data, already in memory by the time atlas opens). Respects the
-    //    state filter via the city → state lookup built from atlas data.
-    //    Clicking an item closes atlas and routes through openProjectFromSheet,
-    //    which flies the camera + opens the existing project modal. ─────
+    // ── Pipeline timeline section — mockup-style layout. Hero (title +
+    //    description + 4 stats), filter chips (status + featured-only),
+    //    then single-column timeline with vertical connector line. Each
+    //    project row: date column · connector · image card with body and
+    //    scale stats. Clicking a card closes atlas and routes through
+    //    openProjectFromSheet to fly the camera + open the project modal. ─
     function renderTimelineSection() {
       const features = window.allProjectFeatures || [];
       if (!features.length) {
-        return `<div class="atlas-tl-empty">Pipeline still loading…</div>`;
+        return `
+          <section class="atlas-section">
+            <div class="atlas-tl-hero">
+              <h2>What's opening next.</h2>
+              <p>Every project in the TMW pipeline, ordered by delivery date.</p>
+            </div>
+            <div class="atlas-tl-empty">Pipeline still loading…</div>
+          </section>`;
       }
 
       const cityToState = buildCityStateMap();
@@ -15497,6 +15668,13 @@
         'coming-soon':     { label: 'Coming Soon',     color: '#4DABFF' },
         'open':            { label: 'Now Open',        color: '#1FDF67' },
       };
+      const STATUS_FILTERS = [
+        { id: 'all',              label: 'All' },
+        { id: 'breaking-ground',  label: 'Breaking ground', color: '#FFD300' },
+        { id: 'construction',     label: 'Construction',    color: '#FF9500' },
+        { id: 'coming-soon',      label: 'Coming soon',     color: '#4DABFF' },
+        { id: 'open',             label: 'Now open',        color: '#1FDF67' },
+      ];
       function normStatus(raw) {
         const s = (raw || '').toString().toLowerCase();
         if (s.includes('now open') || s === 'open' || s.includes('complete')) return 'open';
@@ -15514,29 +15692,95 @@
           .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
           .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
       }
+      function fmtMonthYear(s) {
+        if (!s) return '—';
+        const m = String(s).match(/^(\d{4})(?:-(\d{2}))?/);
+        if (!m) return s;
+        const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        return m[2] ? `${MONTHS[+m[2]-1] || m[2]} ${m[1]}` : m[1];
+      }
+      function fmtNum(n) {
+        if (n == null || n === '') return null;
+        const v = parseInt(n, 10);
+        return isNaN(v) ? null : v.toLocaleString();
+      }
 
-      // Future-facing: skip Now-Open / completed projects. The Coming Soon
-      // section already covers the next 90 days; this is the full multi-year view.
-      // State filter applied here when active.
-      const inPipeline = features.map(f => f.properties).filter(p => {
+      // First pass: pre-filter by state (defines the "available pool" for stats).
+      // Status + featured filters apply on top of this for the rendered list.
+      const inPipelineBase = features.map(f => f.properties).filter(p => {
         if (!p.deliveryDate) return false;
-        if (normStatus(p.delivery) === 'open') return false;
+        if (normStatus(p.delivery) === 'open' && currentTimelineStatus !== 'open') {
+          // Now-Open allowed only when explicitly selected in the timeline status filter
+          return false;
+        }
         if (stateFilter) {
           const projectState = cityToState[p.city] || 'Other';
           if (projectState !== stateFilter) return false;
         }
         return true;
       });
-      if (!inPipeline.length) {
+
+      // Apply timeline-specific filters (status + featured-only) to derive the
+      // displayed list. Stats above the timeline reflect the displayed set.
+      const filtered = inPipelineBase.filter(p => {
+        if (currentTimelineStatus !== 'all' && normStatus(p.delivery) !== currentTimelineStatus) return false;
+        if (currentTimelineFeatured && !p.featured) return false;
+        return true;
+      });
+
+      // Hero stats — computed from the filtered list so they update with filter changes
+      const totalCount = filtered.length;
+      const totalUnits = filtered.reduce((s, p) => s + (parseInt(p.units, 10) || 0), 0);
+      const totalKeys  = filtered.reduce((s, p) => s + (parseInt(p.keys, 10)  || 0), 0);
+      // "Open in next 12 months" — based on delivery date
+      const now = new Date();
+      const cutoff = new Date(now.getFullYear(), now.getMonth() + 12, 1);
+      let next12 = 0;
+      for (const p of filtered) {
+        const m = (p.deliveryDate || '').match(/^(\d{4})(?:-(\d{2}))?/);
+        if (!m) continue;
+        const d = new Date(+m[1], (m[2] ? +m[2] - 1 : 11), 1);
+        if (d <= cutoff) next12++;
+      }
+
+      const heroHtml = `
+        <div class="atlas-tl-hero">
+          <h2>What's opening next.</h2>
+          <p>Every project in the TMW pipeline, ordered by delivery date. Scroll forward through the calendar — see what's about to land in your market.</p>
+          <div class="atlas-tl-hero-stats">
+            <div class="atlas-tl-hero-stat"><span class="val accent">${totalCount}</span><span class="lbl">In pipeline</span></div>
+            <div class="atlas-tl-hero-stat"><span class="val">${fmtNum(totalUnits) || '—'}</span><span class="lbl">Residential units</span></div>
+            <div class="atlas-tl-hero-stat"><span class="val">${fmtNum(totalKeys) || '—'}</span><span class="lbl">Hotel keys</span></div>
+            <div class="atlas-tl-hero-stat"><span class="val">${next12}</span><span class="lbl">Open in next 12 mo</span></div>
+          </div>
+        </div>`;
+
+      // Filter chips: status palette + featured toggle + count meta
+      const statusChipsHtml = STATUS_FILTERS.map(s => `
+        <button class="atlas-tl-chip ${currentTimelineStatus === s.id ? 'active' : ''}" data-tl-status="${s.id}" type="button">
+          ${s.color ? `<span class="swatch" style="background:${s.color}"></span>` : ''}${s.label}
+        </button>
+      `).join('');
+      const featuredChipsHtml = `
+        <button class="atlas-tl-chip ${!currentTimelineFeatured ? 'active' : ''}" data-tl-featured="all" type="button">All projects</button>
+        <button class="atlas-tl-chip ${currentTimelineFeatured  ? 'active' : ''}" data-tl-featured="featured" type="button">★ Featured only</button>
+      `;
+      const totalAvailable = inPipelineBase.length;
+      const filtersHtml = `
+        <div class="atlas-tl-filters">
+          <div class="atlas-tl-filter-group">${statusChipsHtml}</div>
+          <div class="atlas-tl-filter-group">${featuredChipsHtml}</div>
+          <span class="atlas-tl-meta-count">${totalCount} of ${totalAvailable}</span>
+        </div>`;
+
+      if (!filtered.length) {
         const stateNote = stateFilter
-          ? `No in-pipeline projects in <b>${stateFilter}</b>. Try a different state or switch to Overview.`
-          : `No in-pipeline projects with delivery dates yet.`;
+          ? `No matching projects in <b>${escapeAttr(stateFilter)}</b>. Try a different state or filter.`
+          : `No projects match the current filters.`;
         return `
           <section class="atlas-section">
-            <div class="atlas-section-head"><div>
-              <h2 class="atlas-section-title">Pipeline timeline</h2>
-              <p class="atlas-section-sub">What's opening next, ordered by delivery date.</p>
-            </div></div>
+            ${heroHtml}
+            ${filtersHtml}
             <div class="atlas-tl-empty">${stateNote}</div>
           </section>`;
       }
@@ -15544,7 +15788,7 @@
       // Group by (year, quarter) from DeliveryDate. Year-only ("2027")
       // defaults to Q4 (Dec) so it sorts to the end of its year.
       const groups = new Map();
-      for (const p of inPipeline) {
+      for (const p of filtered) {
         const m = (p.deliveryDate || '').match(/^(\d{4})(?:-(\d{2}))?/);
         if (!m) continue;
         const year = +m[1];
@@ -15554,60 +15798,69 @@
         if (!groups.has(key)) groups.set(key, { year, quarter, items: [] });
         groups.get(key).items.push(p);
       }
-      if (!groups.size) return '';
       const orderedKeys = [...groups.keys()].sort();
 
-      const PER_GROUP = 9;
       const groupsHtml = orderedKeys.map(k => {
         const g = groups.get(k);
-        // Featured first inside each quarter, then by date
+        // Featured first inside each quarter, then by exact delivery date
         const sorted = g.items.slice().sort((a, b) => {
           const fa = (a.featured ? 1 : 0) - (b.featured ? 1 : 0);
           if (fa !== 0) return -fa;
           return (a.deliveryDate || '').localeCompare(b.deliveryDate || '');
         });
-        const visible = sorted.slice(0, PER_GROUP);
-        const remaining = sorted.length - visible.length;
-        const itemsHtml = visible.map(p => {
+
+        const rowsHtml = sorted.map(p => {
           const status = normStatus(p.delivery);
           const info = STATUS_INFO[status] || STATUS_INFO.announced;
           const img = p.image ? `background-image:url('${escapeAttr(p.image)}')` : '';
           const type = p.preferredType || ((p.projectType || '').split(',')[0] || '').trim();
-          const meta = [p.city || ''].filter(Boolean);
-          if (type) meta.push(type);
+          const metaParts = [];
+          if (p.city) metaParts.push(`<span>${escapeAttr(p.city)}</span>`);
+          if (type)  metaParts.push(`<span class="sep">·</span><span>${escapeAttr(type)}</span>`);
+          // First architect / developer as a third meta segment when available
+          const firstFirm = (p.architects && p.architects[0] && p.architects[0].name)
+            || (p.developers && p.developers[0] && p.developers[0].name)
+            || '';
+          if (firstFirm) {
+            metaParts.push(`<span class="sep">·</span><span>${escapeAttr(firstFirm)}</span>`);
+          }
+          const scaleParts = [];
+          if (p.keys)   scaleParts.push(`<div class="stat"><b>${fmtNum(p.keys)}</b>keys</div>`);
+          if (p.units)  scaleParts.push(`<div class="stat"><b>${fmtNum(p.units)}</b>units</div>`);
+          if (p.floors) scaleParts.push(`<div class="stat"><b>${escapeAttr(p.floors)}</b>floors</div>`);
           const slug = pyStyleSlugLocal(p.title || '');
           return `
-            <div class="atlas-tl-item" data-project-slug="${escapeAttr(slug)}" role="button" tabindex="0">
-              <div class="atlas-tl-hero" style="${img}">
-                <div class="atlas-tl-status"><span class="dot" style="background:${info.color}"></span>${escapeAttr(info.label)}</div>
-              </div>
-              <div class="atlas-tl-body">
-                <div class="atlas-tl-title">${escapeAttr(p.title || '')}</div>
-                <div class="atlas-tl-meta">${escapeAttr(meta.join(' · '))}</div>
+            <div class="atlas-tl-row atlas-tl-item" data-project-slug="${escapeAttr(slug)}" role="button" tabindex="0">
+              <div class="atlas-tl-row-date">${escapeAttr(fmtMonthYear(p.deliveryDate))}</div>
+              <div class="atlas-tl-row-dot-slot"></div>
+              <div class="atlas-tl-row-card">
+                <div class="atlas-tl-row-img" style="${img}">
+                  ${p.featured ? '<div class="atlas-tl-row-featured" title="Featured">★</div>' : ''}
+                  <div class="atlas-tl-row-status"><span class="dot" style="background:${info.color}"></span>${escapeAttr(info.label)}</div>
+                </div>
+                <div class="atlas-tl-row-body">
+                  <div class="atlas-tl-row-title">${escapeAttr(p.title || '')}</div>
+                  <div class="atlas-tl-row-meta">${metaParts.join('')}</div>
+                  ${scaleParts.length ? `<div class="atlas-tl-row-scale">${scaleParts.join('')}</div>` : ''}
+                </div>
               </div>
             </div>`;
         }).join('');
+
         return `
-          <div class="atlas-tl-group">
-            <div class="atlas-tl-header">
-              <span class="atlas-tl-quarter">Q${g.quarter}</span>
-              <span class="atlas-tl-year">${g.year}</span>
-              <span class="atlas-tl-count"><b>${g.items.length}</b> opening</span>
-            </div>
-            <div class="atlas-tl-items">${itemsHtml}</div>
-            ${remaining > 0 ? `<div class="atlas-tl-more">+ ${remaining} more this quarter</div>` : ''}
-          </div>`;
+          <div class="atlas-tl-qhead">
+            <div class="atlas-tl-qhead-date">Q${g.quarter}<span class="yr">${g.year}</span></div>
+            <div class="atlas-tl-qhead-dot"></div>
+            <div class="atlas-tl-qhead-count"><b>${g.items.length}</b> project${g.items.length === 1 ? '' : 's'} opening</div>
+          </div>
+          ${rowsHtml}`;
       }).join('');
 
       return `
         <section class="atlas-section">
-          <div class="atlas-section-head">
-            <div>
-              <h2 class="atlas-section-title">Pipeline timeline</h2>
-              <p class="atlas-section-sub">What's opening next, ordered by delivery date. Click any project to view it on the map.</p>
-            </div>
-          </div>
-          <div class="atlas-timeline">${groupsHtml}</div>
+          ${heroHtml}
+          ${filtersHtml}
+          <div class="atlas-tl-list">${groupsHtml}</div>
         </section>`;
     }
 
@@ -15650,6 +15903,25 @@
           // Reset scroll so the new view starts at the top
           const overlay = document.getElementById('atlasOverlay');
           if (overlay) overlay.scrollTop = 0;
+        });
+      });
+
+      // Timeline status filter chips
+      document.querySelectorAll('.atlas-tl-chip[data-tl-status]').forEach(chip => {
+        chip.addEventListener('click', function() {
+          const next = this.dataset.tlStatus;
+          if (next === currentTimelineStatus) return;
+          currentTimelineStatus = next;
+          renderAll();
+        });
+      });
+      // Timeline featured-only toggle
+      document.querySelectorAll('.atlas-tl-chip[data-tl-featured]').forEach(chip => {
+        chip.addEventListener('click', function() {
+          const next = this.dataset.tlFeatured === 'featured';
+          if (next === currentTimelineFeatured) return;
+          currentTimelineFeatured = next;
+          renderAll();
         });
       });
 
