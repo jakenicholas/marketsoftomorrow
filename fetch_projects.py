@@ -131,6 +131,9 @@ def flatten(record: dict, architect_names: dict, developer_names: dict) -> dict:
       featured            -> Featured ("Featured" or "")
       official_website    -> OfficialWebsite
       images[0..4]        -> ImageURL, Image2..Image5
+      keys                -> Keys (hotel-room count, blank if absent) — TMW Intelligence scale signal
+      units               -> Units (residential unit count, blank if absent) — TMW Intelligence scale signal
+      floors              -> Floors (tower height proxy, blank if absent)
       (no source)         -> Price (empty; existing code handles blanks)
     """
     images = record.get('images') or []
@@ -145,6 +148,17 @@ def flatten(record: dict, architect_names: dict, developer_names: dict) -> dict:
     lng = record.get('lng')
     lat_str = '' if lat is None else str(lat)
     lng_str = '' if lng is None else str(lng)
+
+    # Scale fields — stringify integers, leave blank if missing. TMW Intelligence
+    # uses these to score comparables by scale similarity (keys for hotels, units
+    # for residential, floors as a tower-height proxy).
+    def _num_str(v):
+        if v is None or v == '':
+            return ''
+        try:
+            return str(int(v))
+        except (TypeError, ValueError):
+            return ''
 
     return {
         'Title':           record.get('name', '') or '',
@@ -167,6 +181,9 @@ def flatten(record: dict, architect_names: dict, developer_names: dict) -> dict:
         'Image3':          images[2] if len(images) >= 3 else '',
         'Image4':          images[3] if len(images) >= 4 else '',
         'Image5':          images[4] if len(images) >= 5 else '',
+        'Keys':            _num_str(record.get('keys')),
+        'Units':           _num_str(record.get('units')),
+        'Floors':          _num_str(record.get('floors')),
         # Price isn't in the tmw-data schema yet. Existing _parse_price()
         # handles blank values gracefully (returns 0), so emitting '' is
         # safe. When tmw-data adds a price field, map it here.
