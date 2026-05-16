@@ -4211,8 +4211,8 @@
      from intel.json. Section is hidden via [hidden] when the slug isn't
      present in the intel data (graceful degradation -- no placeholder). */
   #projectModal .pm-intel {
-    margin-top: 20px;
-    padding: 18px;
+    margin-top: 16px;
+    padding: 14px 16px;
     background: rgba(167,139,250,0.06);
     border: 1px solid rgba(167,139,250,0.18);
     border-radius: 12px;
@@ -4221,7 +4221,7 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    margin-bottom: 14px;
+    margin-bottom: 10px;
     flex-wrap: wrap;
   }
   #projectModal .pm-intel-badge {
@@ -4259,7 +4259,7 @@
     font-weight: 700;
     letter-spacing: -0.02em;
     color: #A78BFA;
-    margin-bottom: 14px;
+    margin-bottom: 10px;
     line-height: 1.05;
   }
   #projectModal .pm-intel-estimate .unit {
@@ -4274,15 +4274,15 @@
     letter-spacing: 0.1em;
     color: #A78BFA;
     font-weight: 700;
-    margin-bottom: 10px;
-    padding-top: 14px;
+    margin-bottom: 8px;
+    padding-top: 10px;
     border-top: 1px solid rgba(167,139,250,0.18);
   }
   #projectModal .pm-intel-similars {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 8px;
-    margin-bottom: 14px;
+    margin-bottom: 10px;
   }
   @media (max-width: 600px) {
     #projectModal .pm-intel-similars {
@@ -4353,7 +4353,7 @@
   #projectModal .pm-intel-disclaimer {
     font-size: 10px;
     color: rgba(255,255,255,0.4);
-    margin-top: 12px;
+    margin-top: 8px;
     font-style: italic;
     line-height: 1.5;
   }
@@ -6349,6 +6349,20 @@
       -webkit-backdrop-filter: none !important;
       box-shadow: none !important;
     }
+    /* Solid black strip behind the transparent header so atlas content
+       scrolling through the padding-top zone doesn't show through behind
+       the TMW logo + Map/Atlas toggle. Sits above the atlas-overlay
+       (z=90) but below the header (z=99) and toggle pill (z=2200), so
+       the logo + toggle still render on top. */
+    body.atlas-mode::before {
+      content: "";
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: calc(var(--header-height) + var(--safe-area-top, 0px));
+      background: #0a0a0a;
+      z-index: 95;
+      pointer-events: none;
+    }
   }
   body.atlas-mode #pulseStack,
   body.atlas-mode #watchlistPanel,
@@ -6830,7 +6844,15 @@
   @media (max-width: 700px) {
     .atlas-tl-hero h2 { font-size: 28px; }
     .atlas-tl-hero p { font-size: 14px; }
-    .atlas-tl-hero-stats { gap: 14px; }
+    /* 2x2 grid on mobile with comfortable horizontal breathing room.
+       Was a wrapping flex which collapsed to 1-up at narrow widths and
+       left ugly orphan stats on the second row. */
+    .atlas-tl-hero-stats {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 18px 24px;
+      margin-top: 20px;
+    }
     .atlas-tl-hero-stat .val { font-size: 20px; }
   }
 
@@ -6860,7 +6882,26 @@
     margin-left: auto;
   }
   @media (max-width: 700px) {
-    .atlas-tl-meta-count { margin-left: 0; width: 100%; padding-top: 4px; }
+    /* Horizontal scroll like the state pills — was wrapping and the
+       second group fell off the right side of the page. Extend edge-to-edge
+       via negative margins so the last chip can scroll past the container
+       padding without getting clipped. */
+    .atlas-tl-filters {
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      overflow-y: hidden;
+      scrollbar-width: none;
+      margin-left: -18px;
+      margin-right: -18px;
+      padding-left: 18px;
+      padding-right: 18px;
+    }
+    .atlas-tl-filters::-webkit-scrollbar { display: none; }
+    .atlas-tl-filter-group { flex-shrink: 0; }
+    /* Hide "X of Y" on mobile — the per-quarter count in each sticky
+       header already conveys this and the count was making the scroll
+       row even more cramped. */
+    .atlas-tl-meta-count { display: none; }
   }
 
   /* Timeline list + vertical connector line. Line at left:122px desktop,
@@ -6877,12 +6918,14 @@
   }
 
   /* Sticky quarter header — single green dot on the line marks each quarter.
-     Per-project rows below have no dots (kept the timeline clean per feedback). */
+     Per-project rows below have no dots (kept the timeline clean per feedback).
+     Solid bg (no transparent fade) so rows scrolling below don't peek through
+     the bottom of the header. */
   .atlas-tl-qhead {
     position: sticky; top: 0; z-index: 5;
     display: grid; grid-template-columns: 110px 24px 1fr; gap: 12px;
     padding: 18px 0 10px;
-    background: linear-gradient(180deg, rgba(10,10,10,0.96) 70%, transparent 100%);
+    background: #0a0a0a;
     margin-bottom: 4px;
   }
   .atlas-tl-qhead-date {
@@ -6909,12 +6952,20 @@
     font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;
   }
   .atlas-tl-qhead-count b { color: #fff; font-weight: 800; }
+  /* Inline Q# YYYY label — hidden on desktop (date sits in its own
+     left column) and shown on mobile where the date column collapses. */
+  .atlas-tl-qhead-date-inline { display: none; }
   @media (max-width: 700px) {
     .atlas-tl-qhead {
       grid-template-columns: 24px 1fr;
       gap: 10px; padding: 18px 0 10px;
     }
     .atlas-tl-qhead-date { display: none; }
+    .atlas-tl-qhead-date-inline {
+      display: inline;
+      color: #fff; font-weight: 800;
+      margin-right: 6px;
+    }
   }
 
   /* Project row: date column · connector slot · card */
@@ -15851,7 +15902,7 @@
           <div class="atlas-tl-qhead">
             <div class="atlas-tl-qhead-date">Q${g.quarter}<span class="yr">${g.year}</span></div>
             <div class="atlas-tl-qhead-dot"></div>
-            <div class="atlas-tl-qhead-count"><b>${g.items.length}</b> project${g.items.length === 1 ? '' : 's'} opening</div>
+            <div class="atlas-tl-qhead-count"><span class="atlas-tl-qhead-date-inline">Q${g.quarter} ${g.year} ·</span> <b>${g.items.length}</b> project${g.items.length === 1 ? '' : 's'} opening</div>
           </div>
           ${rowsHtml}`;
       }).join('');
