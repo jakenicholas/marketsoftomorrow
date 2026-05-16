@@ -2581,6 +2581,11 @@ def build_atlas_json(rows, pulse_path='pulse.json', articles_archive=None):
             'types': _lb_types(),
         },
         'leaderboards_by_state': leaderboards_by_state,
+        # Full city → state map so the atlas pipeline-timeline view can filter
+        # by state without being limited to the top-30-per-state leaderboard
+        # subset. Each city maps to exactly one state code (cities live in
+        # one state). Small payload addition (~hundreds of entries).
+        'city_state_map': dict(city_states),
         'status_distribution': status_distribution,
         'momentum': momentum,
         'openings_by_year': openings_by_year,
