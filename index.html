@@ -3743,16 +3743,15 @@
   }
   /* Linked firm chip — Developer/Architect values become clickable on the
      popup. Click opens the firm sheet (SPA modal); cmd/ctrl-click opens the
-     static /architects/<slug>/ or /developers/<slug>/ page in a new tab. */
+     static /architects/<slug>/ or /developers/<slug>/ page in a new tab.
+     Hover is a subtle color shift (no underline) to match atlas leaderboard. */
   #projectModal .pm-stat-val .firm-link {
     color: inherit;
     text-decoration: none;
-    border-bottom: 1px dotted rgba(31,223,103,0.45);
-    transition: color 0.12s, border-color 0.12s;
+    transition: color 0.15s;
   }
   #projectModal .pm-stat-val .firm-link:hover {
     color: #1FDF67;
-    border-bottom-color: #1FDF67;
   }
 
   /* Atlas leaderboard rows — make developers/architects clickable to the
@@ -3789,7 +3788,7 @@
 
   .firm-sheet {
     position: fixed;
-    left: 24px; right: 24px; top: 48px; bottom: 0;
+    left: 24px; right: 24px; top: 88px; bottom: 0;
     background: #0a0a0a;
     border: 1px solid rgba(255,255,255,0.10);
     border-bottom: none;
@@ -3805,7 +3804,7 @@
   }
   .firm-sheet.open { transform: translateY(0); }
   @media (max-width: 700px) {
-    .firm-sheet { left: 0; right: 0; top: 60px; border-radius: 18px 18px 0 0; }
+    .firm-sheet { left: 0; right: 0; top: 72px; border-radius: 18px 18px 0 0; }
   }
 
   .firm-sheet-handle {
@@ -3882,14 +3881,20 @@
     padding: 1px 7px; border-radius: 100px; font-weight: 700; }
   .fs-tab.active .count { color: #1FDF67; background: rgba(31,223,103,0.12); }
 
-  /* Project grid */
+  /* Project grid — auto-fit on desktop, locked to 2 columns on mobile so the
+     portfolio stays scannable without horizontal overflow. minmax(0, 1fr)
+     prevents inner content from forcing the column wider than its share. */
   .fs-section-title { font-size: 11px; font-weight: 700; text-transform: uppercase;
     letter-spacing: 0.07em; color: rgba(255,255,255,0.4); margin-bottom: 12px; }
   .fs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
     gap: 12px; margin-bottom: 36px; }
+  @media (max-width: 700px) {
+    .fs-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  }
   .fs-proj { background: #141414; border: 1px solid rgba(255,255,255,0.08);
     border-radius: 12px; overflow: hidden; cursor: pointer;
-    transition: all 0.15s; display: block; text-decoration: none; color: inherit; }
+    transition: all 0.15s; display: block; text-decoration: none; color: inherit;
+    min-width: 0; }
   .fs-proj:hover { border-color: rgba(255,255,255,0.14); transform: translateY(-2px);
     box-shadow: 0 10px 30px rgba(0,0,0,0.4); }
   .fs-proj-hero { aspect-ratio: 16/10;
@@ -3913,21 +3918,32 @@
     display: flex; justify-content: space-between; }
   .fs-proj-foot .date { color: #fff; font-weight: 600; }
 
-  /* Coverage */
+  /* Coverage — title wraps to 2 lines (was 1, broke on mobile causing horizontal
+     scroll). Items have min-height so the list reads as a uniform rhythm even
+     when titles are short. */
   .fs-coverage-list { display: flex; flex-direction: column; gap: 8px; }
-  .fs-cov-item { display: grid; grid-template-columns: auto 1fr auto;
-    gap: 14px; padding: 13px 16px; background: #141414;
+  .fs-cov-item { display: grid; grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 14px; padding: 14px 16px; background: #141414;
     border: 1px solid rgba(255,255,255,0.08); border-radius: 10px;
-    align-items: center; cursor: pointer; transition: border-color 0.12s;
-    text-decoration: none; color: inherit; }
+    align-items: flex-start; cursor: pointer; transition: border-color 0.12s;
+    text-decoration: none; color: inherit;
+    min-height: 72px; }
   .fs-cov-item:hover { border-color: rgba(255,255,255,0.14); }
-  .fs-cov-dot { width: 8px; height: 8px; border-radius: 50%; background: #1FDF67; }
-  .fs-cov-title { font-size: 13px; font-weight: 600; overflow: hidden;
-    text-overflow: ellipsis; white-space: nowrap; }
-  .fs-cov-meta { font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 3px; }
+  .fs-cov-dot { width: 8px; height: 8px; border-radius: 50%; background: #1FDF67;
+    margin-top: 7px; flex-shrink: 0; }
+  .fs-cov-info { min-width: 0; }
+  .fs-cov-title { font-size: 13px; font-weight: 600; line-height: 1.35;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+    overflow: hidden; word-break: break-word; }
+  .fs-cov-meta { font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 4px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .fs-cov-meta b { color: #1FDF67; font-weight: 700; }
   .fs-cov-date { font-size: 11px; color: rgba(255,255,255,0.4);
-    font-variant-numeric: tabular-nums; white-space: nowrap; }
+    font-variant-numeric: tabular-nums; white-space: nowrap; margin-top: 1px; }
+  @media (max-width: 700px) {
+    .fs-cov-item { gap: 10px; padding: 12px 14px; }
+    .fs-cov-date { font-size: 10.5px; }
+  }
 
   .fs-empty { padding: 32px 20px; text-align: center;
     color: rgba(255,255,255,0.4); font-size: 12.5px;
@@ -15658,8 +15674,10 @@
         const type = p.preferredType || ((p.projectType || '').split(',')[0] || '').trim();
         const metaParts = [esc(p.city || '—')];
         if (type) metaParts.push(esc(type));
+        // data-project-slug lets the sheet click handler open the project modal
+        // over the map instead of navigating to the static project page.
         return `
-            <a class="fs-proj" data-status="${esc(status)}" href="/projects/${esc(slug)}/">
+            <a class="fs-proj" data-status="${esc(status)}" data-project-slug="${esc(slug)}" href="/projects/${esc(slug)}/">
               <div class="fs-proj-hero" style="${img}">
                 <div class="fs-proj-status"><span class="dot" style="background:${sInfo.color}"></span>${esc(sInfo.label)}</div>
               </div>
@@ -15674,6 +15692,44 @@
             </a>`;
       }
 
+      // Close the sheet UI without touching history. Used when transitioning
+      // from firm sheet → project modal: openProjectModal pushes its own state
+      // so back from the project pops cleanly back to the firm sheet state,
+      // which our popstate handler then re-opens.
+      function hideFirmSheetUI() {
+        const sheet = document.getElementById('firmSheet');
+        const backdrop = document.getElementById('firmSheetBackdrop');
+        sheet.classList.remove('open');
+        sheet.setAttribute('aria-hidden', 'true');
+        backdrop.classList.remove('open');
+        backdrop.setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('firm-sheet-open');
+      }
+
+      // Hand a project click off to the map: zoom to its pin, then open the
+      // existing project modal. Matches what clicking the pin or a tile does.
+      function openProjectFromSheet(projectSlug) {
+        if (!projectSlug || !window.allProjectFeatures) return;
+        const feat = window.allProjectFeatures.find(f => {
+          const s = (f.properties.title || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
+          return s === projectSlug.toLowerCase().replace(/[^a-z0-9]+/g, '');
+        });
+        if (!feat) return;
+        hideFirmSheetUI();
+        // Sequence: brief delay so the sheet starts collapsing, then fly to
+        // the pin (pink-pin paint + camera) before the modal opens.
+        setTimeout(() => {
+          if (typeof window.zoomToPinOnly === 'function') {
+            try { window.zoomToPinOnly(feat); } catch (_) {}
+          }
+          setTimeout(() => {
+            if (typeof window.openProjectModal === 'function') {
+              window.openProjectModal(feat, 'firm-sheet');
+            }
+          }, 260);
+        }, 50);
+      }
+
       function renderCoverage(coverage) {
         if (!coverage.length) {
           return `<div class="fs-empty">No articles linked to this firm's projects yet.</div>`;
@@ -15681,7 +15737,7 @@
         return `<div class="fs-coverage-list">${coverage.map(a => `
             <a class="fs-cov-item" href="${esc(a.url)}" target="_blank" rel="noopener">
               <div class="fs-cov-dot"></div>
-              <div>
+              <div class="fs-cov-info">
                 <div class="fs-cov-title">${esc(a.title)}</div>
                 <div class="fs-cov-meta">Mentions <b>${esc(a.project_name)}</b></div>
               </div>
@@ -15802,18 +15858,33 @@
         if (e.key === 'Escape' && _firmOpen) closeFirmSheet();
       });
 
-      // Click delegation: any .firm-link or .atlas-lb-link with role+slug data
-      // attrs opens the sheet. Cmd/Ctrl/Shift/Middle-click pass through so the
-      // user can open the static page in a new tab if they want.
+      // Click delegation:
+      //  - .firm-link / .atlas-lb-link  → open firm sheet
+      //  - .fs-proj inside #firmSheet   → close sheet + open project modal on map
+      // Cmd/Ctrl/Shift/Middle-click always passes through to the link's default
+      // (static page in new tab) so users keep that escape hatch.
       document.addEventListener('click', (e) => {
-        const link = e.target.closest('a.firm-link, a.atlas-lb-link');
-        if (!link) return;
         if (e.metaKey || e.ctrlKey || e.shiftKey || e.button === 1) return;
-        const role = link.dataset.firmRole;
-        const slug = link.dataset.firmSlug;
-        if (!role || !slug) return;
-        e.preventDefault();
-        openFirmSheet(role, slug);
+
+        const firmLink = e.target.closest('a.firm-link, a.atlas-lb-link');
+        if (firmLink) {
+          const role = firmLink.dataset.firmRole;
+          const slug = firmLink.dataset.firmSlug;
+          if (role && slug) {
+            e.preventDefault();
+            openFirmSheet(role, slug);
+          }
+          return;
+        }
+
+        const projLink = e.target.closest('#firmSheet a.fs-proj');
+        if (projLink) {
+          const slug = projLink.dataset.projectSlug;
+          if (slug) {
+            e.preventDefault();
+            openProjectFromSheet(slug);
+          }
+        }
       });
 
       // popstate: handle back/forward across firm sheet state changes
