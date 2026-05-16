@@ -3741,6 +3741,18 @@
     text-transform: uppercase; letter-spacing: 0.04em;
     margin-bottom: 3px;
   }
+  /* Linked firm chip — Developer/Architect values become clickable on the
+     popup, routing to /architects/<slug>/ and /developers/<slug>/ pages. */
+  #projectModal .pm-stat-val .firm-link {
+    color: inherit;
+    text-decoration: none;
+    border-bottom: 1px dotted rgba(31,223,103,0.45);
+    transition: color 0.12s, border-color 0.12s;
+  }
+  #projectModal .pm-stat-val .firm-link:hover {
+    color: #1FDF67;
+    border-bottom-color: #1FDF67;
+  }
   #projectModal .pm-stat-val {
     font-size: 12px; color: #fff; font-weight: 500;
     line-height: 1.3;
@@ -8999,8 +9011,35 @@
         // Stats
         const stats = document.getElementById('pmStats');
         const statItems = [];
-        if (p.developer) statItems.push({ label: 'Developer', val: truncateDeveloper(p.developer) });
-        if (p.architect) statItems.push({ label: 'Architect', val: p.architect.split(',')[0].trim() });
+
+        // Linked-firm renderer: show the first firm as a clickable link to its
+        // /architects/<slug>/ or /developers/<slug>/ page. If more than one,
+        // append " & N more" so users know there's depth without cluttering.
+        // Skips the link when the slug is missing (legacy data with names only).
+        function escapeHtmlAttr(s) {
+          return (s || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+        function renderFirmLink(firms, role) {
+          if (!firms || !firms.length) return null;
+          const first = firms[0];
+          const rest = firms.length - 1;
+          const display = escapeHtmlAttr(first.name);
+          const suffix = rest > 0 ? ` & ${rest} more` : '';
+          const html = first.slug
+            ? `<a class="firm-link" href="/${role}/${encodeURIComponent(first.slug)}/" title="View ${escapeHtmlAttr(first.name)}'s TMW profile">${display}</a>${suffix}`
+            : `${display}${suffix}`;
+          // Plain-text fallback for title attr
+          const plain = first.name + (rest > 0 ? ` & ${rest} more` : '');
+          return { label: role === 'architects' ? 'Architect' : 'Developer', val: plain, htmlVal: html };
+        }
+
+        const devItem = renderFirmLink(p.developers, 'developers');
+        if (devItem) statItems.push(devItem);
+        else if (p.developer) statItems.push({ label: 'Developer', val: truncateDeveloper(p.developer) });
+
+        const archItem = renderFirmLink(p.architects, 'architects');
+        if (archItem) statItems.push(archItem);
+        else if (p.architect) statItems.push({ label: 'Architect', val: p.architect.split(',')[0].trim() });
         const deliveryRaw = p.deliveryDate || p.delivery || '';
         // Formatter handles ISO-like inputs; passes through pretty strings.
         const deliveryDisplay = (typeof window.formatDeliveryDisplay === 'function')
@@ -9017,12 +9056,16 @@
         if (unitsVal)  statItems.push({ label: 'Units',  val: unitsVal });
         if (floorsVal) statItems.push({ label: 'Floors', val: floorsVal });
 
-        stats.innerHTML = statItems.map(s =>
-          `<div class="pm-stat">
+        stats.innerHTML = statItems.map(s => {
+          // htmlVal renders trusted HTML (used by firm-link items); plain val
+          // gets shown verbatim and is also the tooltip text for both paths.
+          const display = (s.htmlVal !== undefined) ? s.htmlVal : s.val;
+          const title = (s.val || '').toString().replace(/"/g, '&quot;');
+          return `<div class="pm-stat">
             <div class="pm-stat-label">${s.label}</div>
-            <div class="pm-stat-val" title="${s.val}">${s.val}</div>
-          </div>`
-        ).join('');
+            <div class="pm-stat-val" title="${title}">${display}</div>
+          </div>`;
+        }).join('');
 
         // Adjust stats grid — 1 col if only 1-2 items, 2 col otherwise
         stats.style.gridTemplateColumns = statItems.length <= 2 ? '1fr' : '1fr 1fr';
@@ -11748,6 +11791,20 @@
                 // New fields
                 developer: p.Developer || '',
                 architect: p.Architect || '',
+                // Paired name/slug arrays so the popup can link each firm chip
+                // to its /architects/<slug>/ or /developers/<slug>/ page.
+                // Names and slugs come from fetch_projects.py's parallel
+                // ', '-joined strings; we zip them by index here.
+                architects: (function () {
+                  const names = (p.Architect || '').split(',').map(s => s.trim()).filter(Boolean);
+                  const slugs = (p.ArchitectSlugs || '').split(',').map(s => s.trim()).filter(Boolean);
+                  return names.map((name, i) => ({ name, slug: slugs[i] || '' }));
+                })(),
+                developers: (function () {
+                  const names = (p.Developer || '').split(',').map(s => s.trim()).filter(Boolean);
+                  const slugs = (p.DeveloperSlugs || '').split(',').map(s => s.trim()).filter(Boolean);
+                  return names.map((name, i) => ({ name, slug: slugs[i] || '' }));
+                })(),
                 deliveryDate: p.DeliveryDate || '',
                 // Scale signals for TMW Intelligence comp matching + popup display
                 keys: p.Keys || '',
