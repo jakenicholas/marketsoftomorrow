@@ -6761,10 +6761,54 @@
     padding-bottom: 36px;
     align-items: stretch;
   }
+  /* ── Atlas view tabs (Overview / Pipeline) ──────────────────────────
+     Top-level switcher sitting above the state filter. Toggling re-renders
+     the atlas content into either the Overview (leaderboards + outlook +
+     distribution + coverage + recent) or the Pipeline (timeline only). */
+  .atlas-view-tabs {
+    display: inline-flex;
+    gap: 4px;
+    margin: 0 0 22px;
+    padding: 4px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 12px;
+  }
+  .atlas-view-tab {
+    padding: 9px 18px;
+    background: transparent; border: none;
+    color: rgba(255,255,255,0.55);
+    font-size: 13px; font-weight: 600;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.12s, color 0.12s;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .atlas-view-tab:hover { color: #fff; }
+  .atlas-view-tab.active {
+    background: rgba(31,223,103,0.14);
+    color: #1FDF67;
+  }
+  @media (max-width: 700px) {
+    .atlas-view-tabs { width: 100%; display: flex; }
+    .atlas-view-tab { flex: 1; justify-content: center; padding: 9px 12px; }
+  }
+
   /* ── Pipeline timeline section (atlas) ──────────────────────────────
      Vertical scroll through every in-pipeline project, grouped by delivery
-     quarter. Each card opens the project modal on the map when clicked. */
+     quarter. Each card opens the project modal on the map when clicked.
+     Empty state appears when the state filter excludes all projects. */
   .atlas-timeline { display: flex; flex-direction: column; gap: 28px; }
+  .atlas-tl-empty {
+    padding: 60px 24px;
+    text-align: center;
+    color: rgba(255,255,255,0.5);
+    font-size: 13px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 14px;
+  }
   .atlas-tl-group { display: flex; flex-direction: column; gap: 12px; }
   .atlas-tl-header { display: flex; align-items: baseline; gap: 14px;
     padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.08); }
@@ -15132,6 +15176,10 @@
     }
 
     let currentStateFilter = 'ALL';
+    // Atlas view mode: 'stats' shows leaderboards/outlook/distribution/coverage/recent;
+    // 'timeline' replaces all of that with the full quarter-by-quarter pipeline.
+    // State filter applies to both views.
+    let currentAtlasView = 'stats';
 
     function leaderboardSource(key) {
       // Pick the right LB based on current state filter:
@@ -15393,14 +15441,54 @@
       return `<div class="atlas-footer">Atlas · part of <a href="https://oftmw.com" style="color:rgba(255,255,255,0.6);">Markets of Tomorrow</a>${ts ? ' · data updated ' + escapeHtml(ts) : ''}</div>`;
     }
 
+    // Build a city → state lookup from atlas data. Prefers the full map
+    // emitted in city_state_map (added in a recent generate_pages.py update);
+    // falls back to walking the per-state leaderboards.cities lists so the
+    // filter still works on older atlas.json snapshots until the workflow
+    // regenerates them. Cached per renderAll() pass via a closure variable.
+    function buildCityStateMap() {
+      if (!atlasData) return {};
+      if (atlasData.city_state_map && typeof atlasData.city_state_map === 'object') {
+        return atlasData.city_state_map;
+      }
+      const out = {};
+      const byState = atlasData.leaderboards_by_state || {};
+      Object.entries(byState).forEach(([state, lb]) => {
+        (lb && lb.cities || []).forEach(c => {
+          if (c && c.name && !(c.name in out)) out[c.name] = state;
+        });
+      });
+      (atlasData.leaderboards && atlasData.leaderboards.cities || []).forEach(c => {
+        if (c && c.name && !(c.name in out) && c.states && c.states.length) {
+          out[c.name] = c.states[0];
+        }
+      });
+      return out;
+    }
+
+    // ── View tabs renderer — Overview vs Pipeline switcher
+    function renderViewTabs() {
+      return `
+        <div class="atlas-view-tabs" role="tablist" aria-label="Atlas view">
+          <button class="atlas-view-tab ${currentAtlasView === 'stats' ? 'active' : ''}" data-atlas-view="stats" role="tab" type="button">Overview</button>
+          <button class="atlas-view-tab ${currentAtlasView === 'timeline' ? 'active' : ''}" data-atlas-view="timeline" role="tab" type="button">Pipeline timeline</button>
+        </div>`;
+    }
+
     // ── Pipeline timeline section — every in-pipeline project, grouped by
     //    delivery quarter. Sourced from window.allProjectFeatures (live map
-    //    data, already in memory by the time atlas opens). Clicking an item
-    //    closes atlas and routes through openProjectFromSheet, which flies
-    //    the camera + opens the existing project modal. ─────────────────
+    //    data, already in memory by the time atlas opens). Respects the
+    //    state filter via the city → state lookup built from atlas data.
+    //    Clicking an item closes atlas and routes through openProjectFromSheet,
+    //    which flies the camera + opens the existing project modal. ─────
     function renderTimelineSection() {
       const features = window.allProjectFeatures || [];
-      if (!features.length) return '';
+      if (!features.length) {
+        return `<div class="atlas-tl-empty">Pipeline still loading…</div>`;
+      }
+
+      const cityToState = buildCityStateMap();
+      const stateFilter = (currentStateFilter && currentStateFilter !== 'ALL') ? currentStateFilter : null;
 
       const STATUS_INFO = {
         'announced':       { label: 'Announced',       color: '#9CA3AF' },
@@ -15429,11 +15517,29 @@
 
       // Future-facing: skip Now-Open / completed projects. The Coming Soon
       // section already covers the next 90 days; this is the full multi-year view.
+      // State filter applied here when active.
       const inPipeline = features.map(f => f.properties).filter(p => {
         if (!p.deliveryDate) return false;
-        return normStatus(p.delivery) !== 'open';
+        if (normStatus(p.delivery) === 'open') return false;
+        if (stateFilter) {
+          const projectState = cityToState[p.city] || 'Other';
+          if (projectState !== stateFilter) return false;
+        }
+        return true;
       });
-      if (!inPipeline.length) return '';
+      if (!inPipeline.length) {
+        const stateNote = stateFilter
+          ? `No in-pipeline projects in <b>${stateFilter}</b>. Try a different state or switch to Overview.`
+          : `No in-pipeline projects with delivery dates yet.`;
+        return `
+          <section class="atlas-section">
+            <div class="atlas-section-head"><div>
+              <h2 class="atlas-section-title">Pipeline timeline</h2>
+              <p class="atlas-section-sub">What's opening next, ordered by delivery date.</p>
+            </div></div>
+            <div class="atlas-tl-empty">${stateNote}</div>
+          </section>`;
+      }
 
       // Group by (year, quarter) from DeliveryDate. Year-only ("2027")
       // defaults to Q4 (Dec) so it sorts to the end of its year.
@@ -15509,27 +15615,57 @@
       if (!atlasData) return;
       const root = document.getElementById('atlasRoot');
       if (!root) return;
-      root.innerHTML = [
+      // View-tabs split: 'timeline' replaces all overview sections with the
+      // pipeline timeline; 'stats' shows the original leaderboard-led layout.
+      // State filter + view tabs always render at the top regardless of view.
+      const sections = [
+        renderViewTabs(),
         renderStateFilter(),
-        renderLeaderboardSection(),
-        renderTimelineSection(),
-        renderOpeningsByYear(),
-        renderDistributionAndMomentum(),
-        renderCoverageAndComing(),
-        renderRecentActivity(),
-        renderFooter()
-      ].join('');
+      ];
+      if (currentAtlasView === 'timeline') {
+        sections.push(renderTimelineSection());
+      } else {
+        sections.push(
+          renderLeaderboardSection(),
+          renderOpeningsByYear(),
+          renderDistributionAndMomentum(),
+          renderCoverageAndComing(),
+          renderRecentActivity()
+        );
+      }
+      sections.push(renderFooter());
+      root.innerHTML = sections.join('');
       wireInteractions();
       updateLoadMoreBtn('developers');
     }
 
     function wireInteractions() {
+      // Atlas view tabs (Overview / Pipeline timeline)
+      document.querySelectorAll('.atlas-view-tab').forEach(t => {
+        t.addEventListener('click', function() {
+          const view = this.dataset.atlasView;
+          if (!view || view === currentAtlasView) return;
+          currentAtlasView = view;
+          renderAll();
+          // Reset scroll so the new view starts at the top
+          const overlay = document.getElementById('atlasOverlay');
+          if (overlay) overlay.scrollTop = 0;
+        });
+      });
+
       // State filter pills
       document.querySelectorAll('.atlas-filter-pill').forEach(pill => {
         pill.addEventListener('click', function() {
           document.querySelectorAll('.atlas-filter-pill').forEach(p => p.classList.remove('active'));
           this.classList.add('active');
           currentStateFilter = this.dataset.state;
+          // State filter affects timeline too — re-render the whole view when
+          // we're on the timeline tab. For Overview, the existing per-section
+          // re-render handles it without a full atlas reflow.
+          if (currentAtlasView === 'timeline') {
+            renderAll();
+            return;
+          }
           // Reset showAll states so a state change doesn't accidentally show
           // a huge filtered-down list expanded
           Object.keys(lbState).forEach(k => { lbState[k].showAll = false; });
