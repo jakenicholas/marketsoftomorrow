@@ -34,29 +34,37 @@
   button, input, select { font-family: inherit; }
   a { color: inherit; text-decoration: none; }
 
-  .topbar { padding: 18px 28px; border-bottom: 1px solid var(--line);
-    display: flex; align-items: center; gap: 16px; background: rgba(10,10,10,0.85);
-    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-    position: sticky; top: 0; z-index: 10; }
-  .topbar-logo { width: 32px; height: 32px;
-    background: linear-gradient(135deg, var(--accent), #15B354);
-    border-radius: 9px; display: flex; align-items: center; justify-content: center;
-    font-weight: 800; color: #000; font-size: 15px; letter-spacing: -0.04em; }
-  .breadcrumbs { font-size: 13px; color: var(--text-mute); flex: 1; min-width: 0;
-    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .breadcrumbs a { color: var(--text-mute); }
-  .breadcrumbs a:hover { color: var(--text); }
-  .breadcrumbs .sep { margin: 0 8px; color: var(--text-faint); }
-  .breadcrumbs .current { color: var(--text); font-weight: 600; }
-  .topbar-actions { display: flex; gap: 8px; }
-  .pill-btn { padding: 7px 13px; background: var(--surface); border: 1px solid var(--line);
-    border-radius: 8px; font-size: 12px; font-weight: 600; color: var(--text-mute);
-    display: inline-flex; align-items: center; gap: 6px; }
-  .pill-btn:hover { color: var(--text); border-color: var(--line-strong); }
+  /* Sheet aesthetic: padded from viewport edges (left/right/top), rounded
+     corners on top, full-height bottom — feels like a modal pinned to the
+     bottom of the viewport. On the live site this same look appears as an
+     SPA modal over the map; here on the standalone static page we use a
+     deep dark gradient as a stand-in for "map behind". */
+  body { background: radial-gradient(ellipse at top, #0e1a14 0%, #050505 60%); }
+  .sheet { background: var(--bg); border: 1px solid var(--line); border-bottom: none;
+    border-radius: 18px 18px 0 0; max-width: 1200px;
+    margin: 40px 24px 0; min-height: calc(100vh - 40px);
+    box-shadow: 0 -20px 60px rgba(0,0,0,0.5);
+    position: relative; overflow: hidden; }
+  @media (min-width: 1248px) { .sheet { margin-left: auto; margin-right: auto; } }
+  @media (max-width: 700px) { .sheet { margin: 60px 0 0; border-radius: 18px 18px 0 0; } }
 
-  .page { max-width: 1200px; margin: 0 auto; padding: 0 28px; }
+  .sheet-handle { width: 36px; height: 4px; background: rgba(255,255,255,0.2);
+    border-radius: 2px; margin: 10px auto 0; }
 
-  .firm-head { padding: 56px 0 36px; }
+  .sheet-close { position: fixed; top: 56px; right: 36px; z-index: 50;
+    width: 36px; height: 36px; background: rgba(20,20,20,0.92);
+    border: 1px solid rgba(255,255,255,0.14); border-radius: 11px; color: #fff;
+    font-size: 20px; line-height: 1; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    transition: background 0.12s, border-color 0.12s; }
+  .sheet-close:hover { background: rgba(40,40,40,0.95); border-color: rgba(255,255,255,0.25); }
+  @media (max-width: 700px) { .sheet-close { top: 76px; right: 16px; } }
+
+  .page { padding: 32px 40px 80px; }
+  @media (max-width: 700px) { .page { padding: 24px 20px 60px; } }
+
+  .firm-head { padding: 28px 0 28px; }
   .firm-role { font-size: 11px; color: var(--text-faint); font-weight: 700;
     text-transform: uppercase; letter-spacing: 0.1em; }
   .firm-name { font-size: 56px; font-weight: 800; letter-spacing: -0.025em;
@@ -90,29 +98,19 @@
     padding: 1px 7px; border-radius: 100px; font-weight: 700; }
   .tab.active .count { color: var(--accent); background: rgba(31,223,103,0.12); }
 
-  .map-snippet { background: var(--surface); border: 1px solid var(--line);
-    border-radius: 14px; padding: 20px; margin-bottom: 28px;
-    display: grid; grid-template-columns: 1fr 220px; gap: 20px; align-items: center; }
-  .map-snippet-canvas { aspect-ratio: 16/9;
-    background: radial-gradient(circle at 30% 40%, #1a2820 0%, #0a0a0a 70%);
-    border-radius: 10px; position: relative; overflow: hidden;
-    background-image:
-      linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
-    background-size: 30px 30px; }
-  .map-pin { position: absolute; width: 11px; height: 11px; border-radius: 50%;
-    background: var(--accent); border: 2px solid #fff;
-    box-shadow: 0 0 0 4px rgba(31,223,103,0.15); transform: translate(-50%, -50%); }
-  .map-pin.glow { animation: glow 2.4s ease-in-out infinite; }
-  @keyframes glow {
-    0%, 100% { box-shadow: 0 0 0 4px rgba(31,223,103,0.15); }
-    50%      { box-shadow: 0 0 0 9px rgba(31,223,103,0.06); }
-  }
-  .map-info h3 { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
-  .map-info p { font-size: 12px; color: var(--text-mute); line-height: 1.6; }
-  .map-info .btn { display: inline-flex; margin-top: 12px; padding: 8px 14px;
-    background: var(--accent); color: #000; font-size: 12px; font-weight: 700;
-    border-radius: 8px; align-items: center; gap: 6px; }
+  /* "Open on Map" CTA — replaces the faux-map snippet (the real map is the
+     background on the live site; on the standalone page we just link out). */
+  .map-cta { background: var(--surface); border: 1px solid var(--line);
+    border-radius: 12px; padding: 16px 20px; margin-bottom: 28px;
+    display: flex; align-items: center; gap: 14px; }
+  .map-cta-icon { width: 36px; height: 36px; border-radius: 10px;
+    background: rgba(31,223,103,0.1); border: 1px solid rgba(31,223,103,0.25);
+    color: var(--accent); display: flex; align-items: center; justify-content: center;
+    font-size: 18px; flex-shrink: 0; }
+  .map-cta-body { flex: 1; font-size: 12.5px; color: var(--text-mute); line-height: 1.5; }
+  .map-cta .btn { padding: 8px 14px; background: var(--accent); color: #000;
+    font-size: 12px; font-weight: 700; border-radius: 8px; flex-shrink: 0; }
+  .map-cta .btn:hover { background: #2BE875; }
 
   .section-head { display: flex; align-items: baseline; justify-content: space-between;
     margin-bottom: 14px; }
@@ -186,19 +184,14 @@
 </head>
 <body>
 
-<div class="topbar">
-  <a href="/" class="topbar-logo">T</a>
-  <div class="breadcrumbs">
-    <a href="/">Map of Tomorrow</a><span class="sep">/</span>
-    <a href="/developers/">Developers</a><span class="sep">/</span>
-    <span class="current">Lore Development Group</span>
-  </div>
-  <div class="topbar-actions">
-    <a href="/" class="pill-btn">← Back to map</a>
-  </div>
-</div>
+<!-- Close button — sits over the sheet's rounded top-right corner. On the live
+     site this same UI appears as an SPA modal where this button triggers
+     history.back(); here on the standalone page it returns to the map. -->
+<a href="/" class="sheet-close" aria-label="Close">×</a>
 
-<div class="page">
+<div class="sheet">
+  <div class="sheet-handle"></div>
+  <div class="page">
 
   <div class="firm-head">
     <div class="firm-role">Development firm</div>
@@ -234,13 +227,13 @@
     </div>
 
   
-    <div class="map-snippet">
-      <div class="map-snippet-canvas"><div class="map-pin glow" style="left:95.0%; top:10.0%"></div><div class="map-pin glow" style="left:5.0%; top:90.0%"></div></div>
-      <div class="map-info">
-        <h3>Where they're building</h3>
-        <p>1 market: Miami</p>
-        <a href="/" class="btn">Open on Map ↗</a>
+    <div class="map-cta">
+      <div class="map-cta-icon">◉</div>
+      <div class="map-cta-body">
+        <strong>2 pins across 1 market</strong>
+        · Miami
       </div>
+      <a href="/developers/lore-development-group/" class="btn">Open on Map ↗</a>
     </div>
 
   <div class="tabs">
@@ -300,11 +293,12 @@
         </a></div>
     </section>
 
+  </div>
 </div>
 
-<footer>
+<footer style="text-align:center; padding: 32px 28px 80px; color: var(--text-faint); font-size: 11px;">
   Map of Tomorrow · Independent index of the construction pipeline ·
-  <a href="https://oftmw.com">oftmw.com</a>
+  <a href="https://oftmw.com" style="color: var(--text-mute);">oftmw.com</a>
 </footer>
 
 <script>
