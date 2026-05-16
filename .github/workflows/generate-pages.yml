@@ -83,6 +83,14 @@ jobs:
         run: python3 generate_intel.py
         continue-on-error: true
 
+      # Firm profile pages: /architects/<slug>/ and /developers/<slug>/
+      # Reads firms-flat.json (written by fetch_projects.py) + projects-flat.json +
+      # articles.json. Skips firms with zero referenced projects. Non-blocking —
+      # if this fails, the rest of the site still ships.
+      - name: Generate architect + developer pages
+        run: python3 generate_firm_pages.py
+        continue-on-error: true
+
       - name: Check for changes
         id: changes
         run: |
@@ -107,7 +115,7 @@ jobs:
           # in generate_pulse.py handles single-run renames, but only
           # if it can see the previous state, which means the snapshot
           # has to live in the repo.
-          git add projects/ sitemap.xml robots.txt pulse.json articles.json atlas.json intel.json projects-flat.json .pulse-snapshot.json 2>/dev/null || true
+          git add projects/ architects/ developers/ sitemap.xml robots.txt pulse.json articles.json atlas.json intel.json projects-flat.json firms-flat.json .pulse-snapshot.json 2>/dev/null || true
           if git diff --staged --quiet; then
             echo "changed=false" >> $GITHUB_OUTPUT
             echo "No changes detected."
