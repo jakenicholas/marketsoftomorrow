@@ -43,6 +43,7 @@ ARCHITECTS_PATH = 'data/architects.json'
 DEVELOPERS_PATH = 'data/developers.json'
 
 OUTPUT_PATH = 'projects-flat.json'
+OUTPUT_FIRMS_PATH = 'firms-flat.json'  # raw architect + developer records for firm pages
 
 TOKEN = os.environ.get('TMW_DATA_TOKEN', '').strip()
 if not TOKEN:
@@ -127,7 +128,9 @@ def flatten(record: dict, architect_names: dict, developer_names: dict) -> dict:
       types[]             -> ProjectType (comma-joined)
       preferred_type      -> PreferredType
       architect_slugs[]   -> Architect (canonical name from architects.json, comma-joined)
+                          -> ArchitectSlugs (slug list, comma-joined) — used by firm-page generator
       developer_slugs[]   -> Developer (canonical name from developers.json, comma-joined)
+                          -> DeveloperSlugs (slug list, comma-joined) — used by firm-page generator
       featured            -> Featured ("Featured" or "")
       official_website    -> OfficialWebsite
       images[0..4]        -> ImageURL, Image2..Image5
@@ -173,7 +176,9 @@ def flatten(record: dict, architect_names: dict, developer_names: dict) -> dict:
         'ProjectType':     ', '.join(types),
         'PreferredType':   record.get('preferred_type', '') or '',
         'Architect':       ', '.join(lookup_name(s, architect_names) for s in arch_slugs),
+        'ArchitectSlugs':  ', '.join(arch_slugs),
         'Developer':       ', '.join(lookup_name(s, developer_names) for s in dev_slugs),
+        'DeveloperSlugs':  ', '.join(dev_slugs),
         'Featured':        'Featured' if record.get('featured') else '',
         'OfficialWebsite': record.get('official_website', '') or '',
         'ImageURL':        images[0] if len(images) >= 1 else '',
@@ -289,6 +294,18 @@ def main():
     with open(OUTPUT_PATH, 'w', encoding='utf-8') as f:
         json.dump(flat, f, indent=2, ensure_ascii=False)
     print(f"  ✓ Wrote {OUTPUT_PATH}")
+
+    # Also write the raw architect + developer records so the firm-page
+    # generator (generate_firm_pages.py) doesn't have to re-fetch them.
+    firms_payload = {
+        'architects': architect_records,
+        'developers': developer_records,
+    }
+    print(f"Writing {OUTPUT_FIRMS_PATH}...")
+    with open(OUTPUT_FIRMS_PATH, 'w', encoding='utf-8') as f:
+        json.dump(firms_payload, f, indent=2, ensure_ascii=False)
+    print(f"  ✓ Wrote {OUTPUT_FIRMS_PATH} "
+          f"({len(architect_records)} architects, {len(developer_records)} developers)")
 
     # Diagnostics: distribution of mapped statuses so a status-mapping
     # regression is visible in workflow logs without having to diff the
