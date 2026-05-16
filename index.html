@@ -15339,7 +15339,7 @@
     // Atlas view mode: 'stats' shows leaderboards/outlook/distribution/coverage/recent;
     // 'timeline' replaces all of that with the full quarter-by-quarter pipeline.
     // State filter applies to both views.
-    let currentAtlasView = 'stats';
+    let currentAtlasView = 'timeline';
     // Timeline-only filters: status (announced/breaking/construction/coming/open/all)
     // and featured-only toggle. Independent of the state filter which spans both views.
     let currentTimelineStatus = 'all';
@@ -15634,8 +15634,8 @@
     function renderViewTabs() {
       return `
         <div class="atlas-view-tabs" role="tablist" aria-label="Atlas view">
-          <button class="atlas-view-tab ${currentAtlasView === 'stats' ? 'active' : ''}" data-atlas-view="stats" role="tab" type="button">Overview</button>
           <button class="atlas-view-tab ${currentAtlasView === 'timeline' ? 'active' : ''}" data-atlas-view="timeline" role="tab" type="button">Pipeline timeline</button>
+          <button class="atlas-view-tab ${currentAtlasView === 'stats' ? 'active' : ''}" data-atlas-view="stats" role="tab" type="button">Overview</button>
         </div>`;
     }
 
@@ -15763,7 +15763,7 @@
       `).join('');
       const featuredChipsHtml = `
         <button class="atlas-tl-chip ${!currentTimelineFeatured ? 'active' : ''}" data-tl-featured="all" type="button">All projects</button>
-        <button class="atlas-tl-chip ${currentTimelineFeatured  ? 'active' : ''}" data-tl-featured="featured" type="button">★ Featured only</button>
+        <button class="atlas-tl-chip ${currentTimelineFeatured  ? 'active' : ''}" data-tl-featured="featured" type="button"><span style="color:#FFD300">★</span> Featured only</button>
       `;
       const totalAvailable = inPipelineBase.length;
       const filtersHtml = `
