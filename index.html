@@ -7152,6 +7152,28 @@
     display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
   }
   .atlas-tl-row-meta .sep { color: rgba(255,255,255,0.18); }
+  /* Mini-chips for configuration / phasing on the meta line.
+     Default tier reads cool (white on subtle bg); .warn tier uses
+     TMW's yellow palette for the phased indicator — same color the
+     popup + project modal use, so the visual rhyme carries across
+     surfaces. */
+  .atlas-tl-row-meta .atlas-tl-row-chip {
+    display: inline-flex; align-items: center;
+    padding: 2px 7px;
+    border-radius: 100px;
+    font-size: 10px; font-weight: 700;
+    letter-spacing: 0.04em; text-transform: uppercase;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.14);
+    color: rgba(255,255,255,0.78);
+    line-height: 1.4;
+    white-space: nowrap;
+  }
+  .atlas-tl-row-meta .atlas-tl-row-chip.warn {
+    background: rgba(255,211,0,0.12);
+    border-color: rgba(255,211,0,0.32);
+    color: #FFD300;
+  }
   .atlas-tl-row-scale {
     margin-top: auto;
     padding-top: 10px;
@@ -16060,6 +16082,52 @@
           if (firstFirm) {
             metaParts.push(`<span class="sep">·</span><span>${escapeAttr(firstFirm)}</span>`);
           }
+          // Configuration & phasing chips — parse counts out of the prose
+          // fields and surface as mini-pills on the meta line. Falls back
+          // to generic "Multi-tower" / "Phased" when a number can't be
+          // extracted, so the chip still conveys "this is structurally
+          // more complex than the headline number suggests."
+          const cfgChip = (() => {
+            const s = (p.configSummary || '').trim();
+            if (!s) return '';
+            const SPELL = { two:2, three:3, four:4, five:5, six:6, seven:7, eight:8 };
+            // Digit form: "3 towers", "2-tower"
+            let m = s.match(/\b(\d+)[\s-]?(tower|building)s?\b/i);
+            // Spell-out form: "three towers", "two-tower"
+            if (!m) {
+              m = s.match(/\b(two|three|four|five|six|seven|eight)[\s-]?(tower|building)s?\b/i);
+              if (m) m = [m[0], String(SPELL[m[1].toLowerCase()]), m[2]];
+            }
+            if (m) {
+              const n = parseInt(m[1], 10);
+              const noun = m[2].toLowerCase() === 'building' ? 'buildings' : 'towers';
+              return `<span class="sep">·</span><span class="atlas-tl-row-chip">${n} ${noun}</span>`;
+            }
+            // No count parsed but the word "tower"/"building" appears — generic chip
+            if (/\b(tower|building)s?\b/i.test(s)) {
+              return `<span class="sep">·</span><span class="atlas-tl-row-chip">Multi-tower</span>`;
+            }
+            return '';
+          })();
+          if (cfgChip) metaParts.push(cfgChip);
+          const phsChip = (() => {
+            const s = (p.deliveryPhases || '').trim();
+            if (!s) return '';
+            // Count "Phase X" mentions first (most explicit)
+            const phaseMatches = s.match(/\bphase\s+\d+\b/gi);
+            if (phaseMatches && phaseMatches.length >= 2) {
+              return `<span class="sep">·</span><span class="atlas-tl-row-chip warn">${phaseMatches.length} phases</span>`;
+            }
+            // Fall back to counting " · " separators (Jake's convention
+            // for "Tower A 2026 · Tower B 2027 · Tower C 2029")
+            const dotParts = s.split(/\s+·\s+/).filter(Boolean);
+            if (dotParts.length >= 2) {
+              return `<span class="sep">·</span><span class="atlas-tl-row-chip warn">${dotParts.length} phases</span>`;
+            }
+            // Anything else with content gets a generic phased pill
+            return `<span class="sep">·</span><span class="atlas-tl-row-chip warn">Phased</span>`;
+          })();
+          if (phsChip) metaParts.push(phsChip);
           const scaleParts = [];
           if (p.keys)   scaleParts.push(`<div class="stat"><b>${fmtNum(p.keys)}</b>keys</div>`);
           if (p.units)  scaleParts.push(`<div class="stat"><b>${fmtNum(p.units)}</b>units</div>`);
