@@ -2336,6 +2336,25 @@ def build_atlas_json(rows, pulse_path='pulse.json', articles_archive=None):
             'count': count,
         })
 
+    # --- Build firm name -> slug maps so leaderboards can carry slugs ---
+    # Names and slugs live as parallel ', '-joined strings on each project row
+    # (Architect/ArchitectSlugs, Developer/DeveloperSlugs). We zip them by index.
+    # First-name-wins on collisions (a single name shouldn't map to two slugs in
+    # practice, but be defensive about it).
+    arch_name_to_slug = {}
+    dev_name_to_slug = {}
+    for row in rows:
+        a_names = [n.strip() for n in (row.get('Architect','') or '').split(',')]
+        a_slugs = [s.strip() for s in (row.get('ArchitectSlugs','') or '').split(',')]
+        for n, s in zip(a_names, a_slugs):
+            if n and s and n not in arch_name_to_slug:
+                arch_name_to_slug[n] = s
+        d_names = [n.strip() for n in (row.get('Developer','') or '').split(',')]
+        d_slugs = [s.strip() for s in (row.get('DeveloperSlugs','') or '').split(',')]
+        for n, s in zip(d_names, d_slugs):
+            if n and s and n not in dev_name_to_slug:
+                dev_name_to_slug[n] = s
+
     # --- Build leaderboards (top 30 each, both global and per-state) ---
     def _states_for(state_counter):
         """Return sorted list of state codes for an entity, most-projects-first."""
@@ -2356,7 +2375,9 @@ def build_atlas_json(rows, pulse_path='pulse.json', articles_archive=None):
             top_city = dev_cities[name].most_common(1)[0][0] if dev_cities[name] else ''
             sub = top_city if top_city else f'{count} project{"s" if count != 1 else ""}'
             out.append({
-                'name': name, 'sub': sub, 'count': count,
+                'name': name,
+                'slug': dev_name_to_slug.get(name, ''),
+                'sub': sub, 'count': count,
                 'states': _states_for(dev_states[name]),
             })
         return out
@@ -2368,7 +2389,9 @@ def build_atlas_json(rows, pulse_path='pulse.json', articles_archive=None):
             top_city = arch_cities[name].most_common(1)[0][0] if arch_cities[name] else ''
             sub = top_city if top_city else f'{count} project{"s" if count != 1 else ""}'
             out.append({
-                'name': name, 'sub': sub, 'count': count,
+                'name': name,
+                'slug': arch_name_to_slug.get(name, ''),
+                'sub': sub, 'count': count,
                 'states': _states_for(arch_states[name]),
             })
         return out
