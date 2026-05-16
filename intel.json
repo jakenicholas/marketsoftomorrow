@@ -1811,53 +1811,18 @@
       "pattern_summary": "Targeted for opening in ~8 months."
     },
     "armanicasa-residences": {
-      "estimate_years": 3.0,
-      "estimate_label": "~3 years",
-      "range_low": 2.0,
-      "range_high": 4.8,
-      "confidence": "medium",
-      "comparable_count": 3,
-      "good_count": 2,
-      "exact_count": 2,
-      "used_relaxed": false,
-      "avg_match_score": 0.8,
-      "avg_distance_km": 42.7,
-      "avg_distance_mi": 26.5,
-      "scale_used": false,
-      "firm_signal": null,
-      "source": "comparables",
+      "estimate_years": 2.5,
+      "estimate_label": "~2.5 years",
+      "days_out": 944,
+      "delivery_date": "2028-12-15",
+      "source": "known_date",
+      "precision": "month",
+      "confidence": "high",
       "project_type": "Residences",
       "metro": "South Florida",
-      "comparables": [
-        {
-          "name": "Pier Sixty-Six",
-          "slug": "pier-sixty-six",
-          "location": "Fort Lauderdale",
-          "years": 4.8,
-          "score": 1.0,
-          "distance_km": 16.5,
-          "distance_mi": 10.2
-        },
-        {
-          "name": "The Standard Residences, Midtown Miami",
-          "slug": "the-standard-residences-midtown-miami",
-          "location": "Miami",
-          "years": 3.0,
-          "score": 1.0,
-          "distance_km": 17.7,
-          "distance_mi": 11.0
-        },
-        {
-          "name": "Nautilus 220",
-          "slug": "nautilus-220",
-          "location": "Lake Park",
-          "years": 2.0,
-          "score": 0.4,
-          "distance_km": 93.9,
-          "distance_mi": 58.4
-        }
-      ],
-      "pattern_summary": "Among 3 same-metro residences projects in TMW's data, the median time to completion is 3 years, with a range of 2–4.8 years."
+      "comparables": [],
+      "comparable_count": 0,
+      "pattern_summary": "Targeted for opening in ~2.5 years."
     },
     "riva-residences": {
       "estimate_years": 3.0,
@@ -6170,6 +6135,21 @@
       "comparable_count": 0,
       "pattern_summary": "Targeted for opening in ~8 months."
     },
+    "lusail-plaza-towers": {
+      "estimate_years": 4.0,
+      "estimate_label": "4 years",
+      "start_date": "2020-12-31",
+      "end_date": "2024-12-31",
+      "start_year": 2020,
+      "end_year": 2024,
+      "source": "completed",
+      "confidence": "high",
+      "project_type": "Office",
+      "metro": "Other",
+      "comparables": [],
+      "comparable_count": 0,
+      "pattern_summary": "Completed in 4 years, from 2020 groundbreaking to 2024 opening."
+    },
     "shanghai-grand-opera-house": {
       "estimate_years": 0.6,
       "estimate_label": "~8 months",
@@ -6295,11 +6275,11 @@
   },
   "stats": {
     "high": 0,
-    "medium": 49,
+    "medium": 48,
     "low": 24,
-    "known_date": 196,
-    "completed": 25,
-    "skipped": 76,
+    "known_date": 197,
+    "completed": 26,
+    "skipped": 75,
     "no_type": 0,
     "firm_boosted": 0
   }
