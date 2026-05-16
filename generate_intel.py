@@ -1,26 +1,35 @@
 #!/usr/bin/env python3
 """
-generate_intel.py -- TMW Intelligence data pipeline.
+generate_intel.py -- TMW Intelligence data pipeline (v2: proximity + scale).
 
-Reads the TMW Google Sheet CSV. For every project that's still in flight
-(status != "Now Open"), tries to find historical comparables from the
-"Now Open" set in the same project type and metro. If enough comparables
-are found, computes a median time-to-completion estimate and writes it
-to intel.json alongside pulse.json.
+For every in-flight project, picks comparable completions and computes a
+time-to-completion estimate written to intel.json alongside pulse.json.
+The frontend reads intel.json and renders an intel block per project.
 
-The frontend reads intel.json and renders an intel block on the project
-modal + a small intel chip in the map pin popup. Projects without enough
-comparables get no block (graceful degradation).
+v2 paths (matters in this order — first match wins):
+  Path 0  COMPLETED        -- reported fact from StartDate -> DeliveryDate
+  Path 1  KNOWN_DATE       -- developer date within ~3 yrs at month+ precision
+  Path 2  COMPARABLES      -- scored ranking across type / proximity / scale
 
-Run after generate_pages.py and generate_pulse.py in the workflow. Uses
-only existing CSV columns: Title, City, ProjectType, Delivery, StartDate,
-DeliveryDate. No new sheet columns required.
+Path 2 changes from v1:
+  - Replaced city->metro bucket matching with Haversine distance on lat/lng.
+    Same metro is still a soft signal, but distance is now the primary axis.
+  - Added scale similarity using new schema fields (keys / units / floors).
+    Comps within +/-1.5x score 1.0, +/-3x score 0.5, outside drops to 0.
+  - Each candidate gets a 0-1 score combining distance + scale; the pool
+    is the top N scored matches (not a binary exact/relaxed bucket).
+  - Architect/developer track record: firms with >=3 completed projects and
+    low schedule variance bump the in-flight confidence one tier AND blend
+    their median into the estimate.
 
-Confidence tiers:
-  high   - 8+ exact matches (same type AND same metro)
-  medium - 3-7 exact OR 8+ relaxed (same type, any metro)
-  low    - 1-2 exact OR 3-7 relaxed
+Confidence tiers (v2, based on COUNT OF GOOD-quality matches):
+  high   - >= 5 comps with score >= 0.65
+  medium - >= 2 comps with score >= 0.65
+  low    - >= 1 comp with any score above the threshold
   none   - skip the project
+
+Run after fetch_projects.py (which now emits Keys/Units/Floors + Architect/
+Developer name lookups). Reads projects-flat.json from the same directory.
 
 Usage:
     python generate_intel.py
@@ -29,6 +38,7 @@ Usage:
 import csv
 import io
 import json
+import math
 import re
 import sys
 import urllib.request
@@ -46,19 +56,42 @@ SHEET_URL = (
 )
 OUTPUT_PATH = "intel.json"
 
-# Minimum comparables to compute an estimate at each confidence level.
-# Tuned permissively for v1 -- once we see real coverage on the live site
-# we can tighten these. The intel block stays hidden if a project doesn't
-# qualify at any tier so over-permissive only hurts confidence labeling,
-# not data integrity.
-THRESH_HIGH_EXACT = 5      # type + metro
-THRESH_MEDIUM_EXACT = 3
-THRESH_MEDIUM_RELAXED = 5  # type only (any metro)
-THRESH_LOW_EXACT = 1
-THRESH_LOW_RELAXED = 3
-
 # How many comparables to surface in the UI block (closest by similarity).
 TOP_COMPARABLES = 3
+
+# How many comps to include in the median pool. Beyond this, additional
+# comps add little signal and dilute the median with weaker matches.
+COMP_POOL_MAX = 25
+
+# v2 scoring thresholds — see comp_score() below.
+SCORE_MIN = 0.20          # score below this → not a comparable at all
+SCORE_GOOD = 0.65         # score at/above this counts as a "good" match
+                          # (used for confidence tier counting)
+
+# Distance tiers (km). Haversine distance from in-flight target to candidate.
+DIST_NEAR_KM = 25         # within → score 1.0 (true neighbors / same submarket)
+DIST_METRO_KM = 80        # within → score 0.7 (same metro)
+DIST_REGION_KM = 200      # within → score 0.4 (same region)
+                          # beyond → score 0.1 (national fallback)
+
+# Scale ratio tiers (max(a,b) / min(a,b)). Applied per scale field
+# (keys / units / floors) where BOTH projects have data, then averaged.
+SCALE_SIMILAR = 1.5       # within → 1.0 (e.g. 100 vs 150 units)
+SCALE_ACCEPTABLE = 3.0    # within → 0.5 (e.g. 100 vs 300 units)
+                          # outside → 0.0
+
+# Score weighting: 60% scale + 40% distance when scale data is available.
+# When scale data isn't present, distance carries the full signal.
+W_DISTANCE_ONLY = 1.0     # used when no scale data
+W_DISTANCE_WHEN_SCALED = 0.4
+W_SCALE_WHEN_SCALED = 0.6
+
+# Firm track record: at least N completed projects from the same firm to
+# qualify as a signal. Standard deviation cap (years) for "consistent" firms.
+FIRM_MIN_COMPLETIONS = 3
+FIRM_TIGHT_STDDEV = 0.75
+# Blend factor — firm median weighted against overall comp median when boosting.
+FIRM_BLEND_FACTOR = 0.30
 
 
 # ---------------------------------------------------------------------------
@@ -311,6 +344,59 @@ def metro_for_city(city):
     if not city:
         return 'Unknown'
     return CITY_TO_METRO.get(city.lower().strip(), 'Other')
+
+
+# ---------------------------------------------------------------------------
+# Geographic distance (Haversine). Primary proximity signal in v2 — replaces
+# the binary "same metro" bucket with continuous km distance, then snaps to
+# tiered scores (near/metro/region/national).
+# ---------------------------------------------------------------------------
+
+EARTH_RADIUS_KM = 6371.0
+KM_TO_MI = 0.621371
+
+def haversine_km(lat1, lng1, lat2, lng2):
+    """Great-circle distance between two points in kilometers.
+    Returns None if any coordinate is missing or invalid."""
+    if None in (lat1, lng1, lat2, lng2):
+        return None
+    try:
+        rlat1 = math.radians(float(lat1))
+        rlat2 = math.radians(float(lat2))
+        dlat = math.radians(float(lat2) - float(lat1))
+        dlng = math.radians(float(lng2) - float(lng1))
+        a = (math.sin(dlat / 2) ** 2 +
+             math.cos(rlat1) * math.cos(rlat2) * math.sin(dlng / 2) ** 2)
+        c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+        return EARTH_RADIUS_KM * c
+    except (ValueError, TypeError):
+        return None
+
+
+# ---------------------------------------------------------------------------
+# Tiny coercion helpers — projects-flat.json values are all strings.
+# ---------------------------------------------------------------------------
+
+def _to_float_or_none(v):
+    if v is None or v == '':
+        return None
+    try:
+        return float(str(v).strip())
+    except (ValueError, TypeError):
+        return None
+
+def _to_int_or_none(v):
+    if v is None or v == '':
+        return None
+    try:
+        return int(float(str(v).strip()))  # via float so "120.0" works
+    except (ValueError, TypeError):
+        return None
+
+def _split_names(s):
+    """Split a comma-separated firm string (e.g. 'Foster + Partners, Pelli')
+    into ['Foster + Partners', 'Pelli']. Empty entries dropped."""
+    return [n.strip() for n in (s or '').split(',') if n.strip()]
 
 
 # ---------------------------------------------------------------------------
@@ -597,7 +683,9 @@ def known_date_estimate(delivery_raw, today):
 
 def build_complete_index(rows):
     """Return a list of complete projects with computed years_to_complete.
-    Each entry: { title, slug, city, metro, type, start, end, years }
+    Each entry carries everything Path 2 needs to score comparables:
+      title, slug, city, metro, type, start, end, years,
+      lat, lng, keys, units, floors, architects[], developers[]
     Only includes rows that have BOTH a parseable StartDate and DeliveryDate
     and a positive duration."""
     index = []
@@ -619,96 +707,212 @@ def build_complete_index(rows):
             continue
         city = (row.get('City','') or '').strip()
         index.append({
-            'title': title,
-            'slug': slugify(title),
-            'city': city,
-            'metro': metro_for_city(city),
-            'type': normalize_type(row),
-            'start': start,
-            'end': end,
-            'years': years,
+            'title':      title,
+            'slug':       slugify(title),
+            'city':       city,
+            'metro':      metro_for_city(city),
+            'type':       normalize_type(row),
+            'start':      start,
+            'end':        end,
+            'years':      years,
+            'lat':        _to_float_or_none(row.get('Latitude')),
+            'lng':        _to_float_or_none(row.get('Longitude')),
+            'keys':       _to_int_or_none(row.get('Keys')),
+            'units':      _to_int_or_none(row.get('Units')),
+            'floors':     _to_int_or_none(row.get('Floors')),
+            'architects': _split_names(row.get('Architect')),
+            'developers': _split_names(row.get('Developer')),
         })
     return index
 
 
-def find_comparables(target, complete_index):
-    """Given an in-flight target project, find comparables in the index.
-    Returns (exact_matches, relaxed_matches) -- both lists of complete entries.
-    Exact = same type-family (target type + synonyms) AND same metro.
-    Relaxed = same type-family, any other metro.
+# ---------------------------------------------------------------------------
+# Firm track record. Aggregates duration stats across each firm's completed
+# projects. Firms with enough history AND tight variance get used as a
+# confidence-tightening signal on their in-flight projects (Path 2).
+# ---------------------------------------------------------------------------
 
-    Type-family matching means a 'Hotel' project draws on Resort and
-    Hospitality projects too, since they share construction patterns. See
-    TYPE_SYNONYM_GROUPS above for the full list.
-    """
-    target_type = target['type'].lower()
-    target_metro = target['metro']
-    if not target_type:
-        return [], []
-
-    # Expand to the full synonym family. If the type isn't in any group,
-    # the family is just {target_type} -- behaves like the old exact-string
-    # match.
-    type_family = expand_type_synonyms(target_type)
-
-    exact = []
-    relaxed = []
+def build_firm_track_records(complete_index):
+    """Return { firm_lowercase: { count, median_years, mean_years, stddev_years } }
+    for every firm with at least FIRM_MIN_COMPLETIONS completed projects.
+    Firms appear in both architects and developers — we aggregate by role-agnostic
+    name since the construction-timeline signal is similar from either side."""
+    by_firm = {}  # lowercase firm name -> list of duration-years floats
     for c in complete_index:
-        if c['type'].lower() not in type_family:
+        for firm in (c.get('architects') or []) + (c.get('developers') or []):
+            key = (firm or '').strip().lower()
+            if not key:
+                continue
+            by_firm.setdefault(key, []).append(c['years'])
+
+    result = {}
+    for firm, durations in by_firm.items():
+        if len(durations) < FIRM_MIN_COMPLETIONS:
             continue
-        if c['metro'] == target_metro and target_metro != 'Other':
-            exact.append(c)
-        else:
-            relaxed.append(c)
-    return exact, relaxed
+        med = median(durations)
+        mean = sum(durations) / len(durations)
+        variance = sum((x - mean) ** 2 for x in durations) / len(durations)
+        result[firm] = {
+            'count':        len(durations),
+            'median_years': round(med, 2),
+            'mean_years':   round(mean, 2),
+            'stddev_years': round(math.sqrt(variance), 2),
+        }
+    return result
 
 
-def confidence_tier(exact_count, relaxed_count):
-    """Map match counts to a confidence label. Returns one of:
-    'high', 'medium', 'low', or None (insufficient)."""
-    if exact_count >= THRESH_HIGH_EXACT:
-        return 'high'
-    if exact_count >= THRESH_MEDIUM_EXACT or relaxed_count >= THRESH_MEDIUM_RELAXED:
-        return 'medium'
-    if exact_count >= THRESH_LOW_EXACT or relaxed_count >= THRESH_LOW_RELAXED:
-        return 'low'
-    return None
+# ---------------------------------------------------------------------------
+# Comparable scoring — the core of v2.
+#
+# Type-family is a hard gate (return None if not in same family). Among
+# same-family candidates, score combines distance (km) and scale similarity
+# (per-field ratios). Scale carries more weight than distance when present,
+# because a similarly-sized project on the other side of the country still
+# tells us more about construction timeline than a wildly-different-sized
+# project next door.
+# ---------------------------------------------------------------------------
+
+def _distance_score(target, comp):
+    """Tiered score 0.1-1.0 based on km distance. 0.5 if either side lacks coords."""
+    if target.get('lat') is None or target.get('lng') is None or \
+       comp.get('lat') is None or comp.get('lng') is None:
+        return 0.5
+    d = haversine_km(target['lat'], target['lng'], comp['lat'], comp['lng'])
+    if d is None:
+        return 0.5
+    if d <= DIST_NEAR_KM:    return 1.0
+    if d <= DIST_METRO_KM:   return 0.7
+    if d <= DIST_REGION_KM:  return 0.4
+    return 0.1
 
 
-def closest_comparables(target, comparables, n=TOP_COMPARABLES):
-    """Pick the n comparables closest in duration to the median of the set.
-    These are surfaced in the UI as "Similar Projects". Closest-to-median
-    is a reasonable similarity proxy when we don't have size/cost data."""
-    if not comparables:
-        return []
-    durations = [c['years'] for c in comparables]
-    med = median(durations)
-    # Sort by distance from median, then alphabetically as a stable tiebreaker
-    sorted_by_sim = sorted(
-        comparables,
-        key=lambda c: (abs(c['years'] - med), c['title'])
-    )
-    return sorted_by_sim[:n]
+def _scale_score(target, comp):
+    """Average per-field scale-ratio score across the scale fields where
+    BOTH the target and comp have data. Returns None if no overlapping fields."""
+    ratios = []
+    for field in ('keys', 'units', 'floors'):
+        tv = target.get(field)
+        cv = comp.get(field)
+        if tv and cv:
+            try:
+                hi = max(int(tv), int(cv))
+                lo = min(int(tv), int(cv))
+                if lo <= 0:
+                    continue
+                r = hi / lo
+                if r <= SCALE_SIMILAR:      ratios.append(1.0)
+                elif r <= SCALE_ACCEPTABLE: ratios.append(0.5)
+                else:                       ratios.append(0.0)
+            except (ValueError, TypeError, ZeroDivisionError):
+                continue
+    if not ratios:
+        return None
+    return sum(ratios) / len(ratios)
 
 
-def build_pattern_summary(target, comparables, estimate, low, high, used_relaxed):
-    """One-sentence editorial summary of what the data shows.
-    Matches the tone of the design mock."""
-    count = len(comparables)
-    type_label = target['type'].lower() or 'comparable'
-    metro_phrase = f"in {target['metro']}" if not used_relaxed and target['metro'] not in ('Other', 'Unknown') else ''
+def comp_score(target, comp):
+    """Return float 0-1 score, or None if comp isn't in target's type family.
+
+    Weighting:
+      - If both have scale data: 60% scale + 40% distance.
+      - Otherwise: distance is the only differentiator (within the type-family gate).
+    """
+    target_type_family = expand_type_synonyms((target.get('type','') or '').lower())
+    if not target_type_family:
+        return None
+    if (comp.get('type','') or '').lower() not in target_type_family:
+        return None  # hard gate: must share a type family
+
+    d_score = _distance_score(target, comp)
+    s_score = _scale_score(target, comp)
+    if s_score is None:
+        return W_DISTANCE_ONLY * d_score
+    return W_DISTANCE_WHEN_SCALED * d_score + W_SCALE_WHEN_SCALED * s_score
+
+
+def score_and_rank(target, complete_index):
+    """For an in-flight target, score every completed project and return
+    a list of (score, comp) tuples in descending score order. Comps below
+    SCORE_MIN are dropped. Comps not in the type family are dropped (score=None).
+    """
+    scored = []
+    for c in complete_index:
+        s = comp_score(target, c)
+        if s is None or s < SCORE_MIN:
+            continue
+        scored.append((s, c))
+    scored.sort(key=lambda x: -x[0])
+    return scored
+
+
+def confidence_from_scores(scored):
+    """Tier based on count of GOOD-quality (>=SCORE_GOOD) matches in the pool."""
+    good_count = sum(1 for s, _ in scored if s >= SCORE_GOOD)
+    if good_count >= 5:
+        return 'high', good_count
+    if good_count >= 2:
+        return 'medium', good_count
+    if scored:
+        return 'low', good_count
+    return None, 0
+
+
+def matching_firm_signal(target, firm_track_record):
+    """If any of the target's firms have a tight track record (>=FIRM_MIN_COMPLETIONS
+    completions and stddev <= FIRM_TIGHT_STDDEV years), return the most-credentialed
+    one. Returns None otherwise."""
+    candidates = []
+    for firm in (target.get('architects') or []) + (target.get('developers') or []):
+        key = (firm or '').strip().lower()
+        tr = firm_track_record.get(key)
+        if tr and tr['count'] >= FIRM_MIN_COMPLETIONS and tr['stddev_years'] <= FIRM_TIGHT_STDDEV:
+            candidates.append({
+                'firm':         firm,
+                'count':        tr['count'],
+                'median_years': tr['median_years'],
+                'stddev_years': tr['stddev_years'],
+            })
+    if not candidates:
+        return None
+    # Prefer the firm with the largest sample size (more reliable signal)
+    candidates.sort(key=lambda c: (-c['count'], c['stddev_years']))
+    return candidates[0]
+
+
+def build_pattern_summary(target, pool_count, estimate, low, high, avg_distance_km, firm_signal):
+    """One-sentence editorial summary reflecting v2 axes (proximity, scale, firm)."""
+    type_label = (target.get('type','') or '').lower() or 'comparable'
     estimate_str = format_years(estimate)
     low_str = format_years(low)
     high_str = format_years(high)
+
+    # Proximity adjective \u2014 derived from avg distance of the comp pool
+    if avg_distance_km is None:
+        prox_adj = ''
+    elif avg_distance_km <= DIST_NEAR_KM:
+        prox_adj = 'nearby '
+    elif avg_distance_km <= DIST_METRO_KM:
+        prox_adj = 'same-metro '
+    elif avg_distance_km <= DIST_REGION_KM:
+        prox_adj = 'regional '
+    else:
+        prox_adj = ''
+
     base = (
-        f"Among {count} comparable {type_label} project{'s' if count != 1 else ''}"
-        f"{(' ' + metro_phrase) if metro_phrase else ''} in TMW's data, "
-        f"the median time to completion is {estimate_str} years"
+        f"Among {pool_count} {prox_adj}{type_label} project{'s' if pool_count != 1 else ''}"
+        f" in TMW's data, the median time to completion is {estimate_str} years"
     )
     if low_str != high_str:
         base += f", with a range of {low_str}\u2013{high_str} years."
     else:
         base += "."
+
+    if firm_signal:
+        base += (
+            f" {firm_signal['firm']} has {firm_signal['count']} prior projects "
+            f"delivered with low schedule variance \u2014 confidence tightened toward "
+            f"their typical {format_years(firm_signal['median_years'])}-year pace."
+        )
     return base
 
 
@@ -752,20 +956,37 @@ def main():
     # actually have to work with
     type_counts = {}
     metro_counts = {}
+    scale_counts = {'keys': 0, 'units': 0, 'floors': 0, 'lat_lng': 0}
     for c in complete_index:
         type_counts[c['type']] = type_counts.get(c['type'], 0) + 1
         metro_counts[c['metro']] = metro_counts.get(c['metro'], 0) + 1
+        if c.get('keys'):   scale_counts['keys'] += 1
+        if c.get('units'):  scale_counts['units'] += 1
+        if c.get('floors'): scale_counts['floors'] += 1
+        if c.get('lat') is not None and c.get('lng') is not None:
+            scale_counts['lat_lng'] += 1
     print("  Complete projects by type:")
     for t, n in sorted(type_counts.items(), key=lambda x: -x[1]):
         print(f"    {n:3d}  {t or '(no type)'}")
     print("  Complete projects by metro (top 10):")
     for m, n in sorted(metro_counts.items(), key=lambda x: -x[1])[:10]:
         print(f"    {n:3d}  {m}")
+    print(f"  Scale data coverage: {scale_counts['keys']} have keys, "
+          f"{scale_counts['units']} have units, {scale_counts['floors']} have floors, "
+          f"{scale_counts['lat_lng']} have coords")
+
+    print("Building firm track records...")
+    firm_track_record = build_firm_track_records(complete_index)
+    tight_firms = [k for k, v in firm_track_record.items()
+                   if v['stddev_years'] <= FIRM_TIGHT_STDDEV]
+    print(f"  ✓ {len(firm_track_record)} firms with >={FIRM_MIN_COMPLETIONS} completions "
+          f"({len(tight_firms)} with tight schedule variance)")
 
     print("Computing intel for all projects...")
     intel = {}
     stats = {'high': 0, 'medium': 0, 'low': 0, 'known_date': 0,
-             'completed': 0, 'skipped': 0, 'no_type': 0}
+             'completed': 0, 'skipped': 0, 'no_type': 0,
+             'firm_boosted': 0}
     # Track projects that had a DeliveryDate but still fell through to the
     # comparable path. The workflow log prints these so we can see why each
     # project ended up where it did (e.g. year-only date, unparseable format,
@@ -875,34 +1096,41 @@ def main():
         if not ptype:
             stats['no_type'] += 1
             continue
+
+        # Build the target with everything comp_score() looks at
         target = {
-            'title': title,
-            'slug': target_slug,
-            'city': city,
-            'metro': metro_for_city(city),
-            'type': ptype,
+            'title':      title,
+            'slug':       target_slug,
+            'city':       city,
+            'metro':      metro_for_city(city),
+            'type':       ptype,
+            'lat':        _to_float_or_none(row.get('Latitude')),
+            'lng':        _to_float_or_none(row.get('Longitude')),
+            'keys':       _to_int_or_none(row.get('Keys')),
+            'units':      _to_int_or_none(row.get('Units')),
+            'floors':     _to_int_or_none(row.get('Floors')),
+            'architects': _split_names(row.get('Architect')),
+            'developers': _split_names(row.get('Developer')),
         }
-        exact, relaxed = find_comparables(target, complete_index)
-        tier = confidence_tier(len(exact), len(relaxed))
+
+        # Score & rank all comparables across the entire complete index.
+        # Top N (by score) form the median pool — no metro-bucket gate.
+        scored = score_and_rank(target, complete_index)
+        if not scored:
+            stats['skipped'] += 1
+            continue
+
+        pool_scored = scored[:COMP_POOL_MAX]
+        pool = [c for _, c in pool_scored]
+        tier, good_count = confidence_from_scores(pool_scored)
         if not tier:
             stats['skipped'] += 1
             continue
 
-        # For tier-up logic: if we have >= MEDIUM exact, use those alone
-        # (purer signal). Otherwise pool exact + relaxed.
-        if len(exact) >= THRESH_MEDIUM_EXACT:
-            pool = exact
-            used_relaxed = False
-        else:
-            pool = exact + relaxed
-            used_relaxed = True
-
         durations = sorted(c['years'] for c in pool)
         estimate = median(durations)
-        # Use 10th/90th percentile as range so single outliers don't
-        # dominate. statistics.quantiles requires Python 3.8+.
+        # 10/90 percentile range (avoids single-outlier domination)
         if len(durations) >= 10:
-            # rough 10/90 via slicing the sorted list
             low_idx = max(0, int(len(durations) * 0.1) - 1)
             high_idx = min(len(durations) - 1, int(len(durations) * 0.9))
             low = durations[low_idx]
@@ -911,16 +1139,51 @@ def main():
             low = durations[0]
             high = durations[-1]
 
-        top_comps = closest_comparables(target, pool, n=TOP_COMPARABLES)
-        comparables_payload = [
-            {
-                'name': c['title'],
-                'slug': c['slug'],
+        # Firm track record adjustment: if a known-consistent firm is on this
+        # project, blend their median into the estimate AND bump the tier up.
+        firm_signal = matching_firm_signal(target, firm_track_record)
+        if firm_signal:
+            estimate = (1.0 - FIRM_BLEND_FACTOR) * estimate + FIRM_BLEND_FACTOR * firm_signal['median_years']
+            if tier == 'medium':
+                tier = 'high'
+            elif tier == 'low':
+                tier = 'medium'
+            stats['firm_boosted'] += 1
+
+        # Top-N comparables for UI surfacing — also stamp distance for each
+        top_comps_payload = []
+        avg_distance_km_values = []
+        for s, c in pool_scored[:TOP_COMPARABLES]:
+            d = haversine_km(target.get('lat'), target.get('lng'), c.get('lat'), c.get('lng'))
+            entry = {
+                'name':     c['title'],
+                'slug':     c['slug'],
                 'location': c['city'],
-                'years': round(c['years'], 1),
+                'years':    round(c['years'], 1),
+                'score':    round(s, 2),
             }
-            for c in top_comps
-        ]
+            if d is not None:
+                entry['distance_km'] = round(d, 1)
+                entry['distance_mi'] = round(d * KM_TO_MI, 1)
+                avg_distance_km_values.append(d)
+            top_comps_payload.append(entry)
+
+        # Distance across ALL pool members (not just top 3) — better signal
+        # for the pattern-summary's "nearby / same-metro / regional" label.
+        all_pool_distances = []
+        for _, c in pool_scored:
+            d = haversine_km(target.get('lat'), target.get('lng'), c.get('lat'), c.get('lng'))
+            if d is not None:
+                all_pool_distances.append(d)
+        avg_distance_km = (sum(all_pool_distances) / len(all_pool_distances)) if all_pool_distances else None
+
+        # Did scale data actually contribute to the score? Yes iff target has
+        # any scale field AND at least one pool member shares that field.
+        target_has_scale = any(target.get(f) for f in ('keys', 'units', 'floors'))
+        scale_used = target_has_scale and any(
+            any(target.get(f) and c.get(f) for f in ('keys', 'units', 'floors'))
+            for c in pool
+        )
 
         intel[target['slug']] = {
             'estimate_years':    round(estimate, 1),
@@ -929,24 +1192,33 @@ def main():
             'range_high':        round(high, 1),
             'confidence':        tier,
             'comparable_count':  len(pool),
-            'exact_count':       len(exact),
-            'used_relaxed':      used_relaxed,
+            'good_count':        good_count,
+            # Back-compat field used by the existing frontend — maps to good_count
+            'exact_count':       good_count,
+            # Back-compat: "used relaxed" is true when we leaned on weak (sub-good) matches
+            'used_relaxed':      good_count < 2,
+            'avg_match_score':   round(sum(s for s, _ in pool_scored) / len(pool_scored), 2),
+            'avg_distance_km':   round(avg_distance_km, 1) if avg_distance_km is not None else None,
+            'avg_distance_mi':   round(avg_distance_km * KM_TO_MI, 1) if avg_distance_km is not None else None,
+            'scale_used':        scale_used,
+            'firm_signal':       firm_signal,
             'source':            'comparables',
             'project_type':      ptype,
             'metro':             target['metro'],
-            'comparables':       comparables_payload,
+            'comparables':       top_comps_payload,
             'pattern_summary':   build_pattern_summary(
-                target, pool, estimate, low, high, used_relaxed
+                target, len(pool), estimate, low, high, avg_distance_km, firm_signal
             ),
         }
         stats[tier] += 1
 
     print("Intel generation summary:")
-    print(f"  completed (reported):  {stats['completed']}")
-    print(f"  known-date entries:    {stats['known_date']}")
-    print(f"  high   confidence:     {stats['high']}")
-    print(f"  medium confidence:     {stats['medium']}")
-    print(f"  low    confidence:     {stats['low']}")
+    print(f"  completed (reported):        {stats['completed']}")
+    print(f"  known-date entries:          {stats['known_date']}")
+    print(f"  high   confidence:           {stats['high']}")
+    print(f"  medium confidence:           {stats['medium']}")
+    print(f"  low    confidence:           {stats['low']}")
+    print(f"  firm-track-record boosts:    {stats['firm_boosted']}")
     print(f"  skipped (insufficient data): {stats['skipped']}")
     print(f"  skipped (no project type):   {stats['no_type']}")
     print(f"  total intel entries written: {len(intel)}")
