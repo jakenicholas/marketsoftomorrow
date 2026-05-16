@@ -189,6 +189,14 @@ def flatten(record: dict, architect_names: dict, developer_names: dict) -> dict:
         'Keys':            _num_str(record.get('keys')),
         'Units':           _num_str(record.get('units')),
         'Floors':          _num_str(record.get('floors')),
+        # Optional one-line nuance fields — render when present, hidden otherwise.
+        # `config_summary`  describes physical layout (multi-tower / multi-building)
+        # `delivery_phases` describes staggered openings (phase 1 / phase 2 / etc)
+        # Floors/DeliveryDate stay the canonical sortable numbers — these strings
+        # add prose context the structured fields can't capture without ballooning
+        # the schema.
+        'ConfigSummary':   (record.get('config_summary') or '').strip(),
+        'DeliveryPhases':  (record.get('delivery_phases') or '').strip(),
         # Price isn't in the tmw-data schema yet. Existing _parse_price()
         # handles blank values gracefully (returns 0), so emitting '' is
         # safe. When tmw-data adds a price field, map it here.
