@@ -3807,13 +3807,32 @@
     .firm-sheet { left: 0; right: 0; top: 72px; border-radius: 18px 18px 0 0; }
   }
 
-  .firm-sheet-handle {
-    width: 36px; height: 4px;
-    background: rgba(255,255,255,0.18);
-    border-radius: 2px;
-    margin: 10px auto 0;
+  /* Draggable handle zone — bigger than the visible bar so mobile users have
+     room to grab it. JS captures touchstart on this element and translates
+     the sheet down with the finger; release past 120px closes the sheet. */
+  .firm-sheet-drag {
     flex-shrink: 0;
+    padding: 10px 0 6px;
+    touch-action: none;
+    cursor: grab;
   }
+  .firm-sheet-drag:active { cursor: grabbing; }
+  .firm-sheet-handle {
+    width: 38px; height: 4px;
+    background: rgba(255,255,255,0.22);
+    border-radius: 2px;
+    margin: 0 auto;
+    transition: background 0.15s, width 0.15s;
+  }
+  .firm-sheet-drag:hover .firm-sheet-handle,
+  .firm-sheet.is-dragging .firm-sheet-handle { background: rgba(255,255,255,0.4); }
+  @media (max-width: 700px) {
+    .firm-sheet-drag { padding: 14px 0 10px; }
+    .firm-sheet-handle { width: 46px; height: 5px; }
+  }
+  /* Suspend the slide-in transition while dragging so the sheet tracks the
+     finger 1:1, then restore on release for the snap-back / snap-down animation. */
+  .firm-sheet.is-dragging { transition: none; }
 
   .firm-sheet-close {
     position: absolute; top: 14px; right: 16px; z-index: 5;
@@ -3829,6 +3848,10 @@
   .firm-sheet-close:hover {
     background: rgba(255,255,255,0.12);
     border-color: rgba(255,255,255,0.2);
+  }
+  /* Mobile: drag handle replaces the X button as the dismiss affordance. */
+  @media (max-width: 700px) {
+    .firm-sheet-close { display: none; }
   }
 
   .firm-sheet-content {
@@ -6738,6 +6761,62 @@
     padding-bottom: 36px;
     align-items: stretch;
   }
+  /* ── Pipeline timeline section (atlas) ──────────────────────────────
+     Vertical scroll through every in-pipeline project, grouped by delivery
+     quarter. Each card opens the project modal on the map when clicked. */
+  .atlas-timeline { display: flex; flex-direction: column; gap: 28px; }
+  .atlas-tl-group { display: flex; flex-direction: column; gap: 12px; }
+  .atlas-tl-header { display: flex; align-items: baseline; gap: 14px;
+    padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+  .atlas-tl-quarter { font-size: 28px; font-weight: 800; letter-spacing: -0.02em;
+    background: linear-gradient(180deg, #fff, rgba(255,255,255,0.65));
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent; line-height: 1; }
+  .atlas-tl-year { font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.5);
+    text-transform: uppercase; letter-spacing: 0.08em; }
+  .atlas-tl-count { margin-left: auto; font-size: 11px; color: rgba(255,255,255,0.5);
+    font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
+  .atlas-tl-count b { color: #fff; font-weight: 700; }
+  .atlas-tl-items { display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px; }
+  @media (max-width: 700px) {
+    .atlas-tl-items { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    .atlas-tl-quarter { font-size: 22px; }
+  }
+  @media (max-width: 460px) {
+    .atlas-tl-items { grid-template-columns: 1fr; }
+  }
+  .atlas-tl-item { display: grid; grid-template-columns: 92px 1fr; gap: 12px;
+    padding: 8px; background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.06); border-radius: 10px;
+    cursor: pointer; transition: border-color 0.12s, transform 0.12s;
+    min-width: 0; }
+  .atlas-tl-item:hover { border-color: rgba(255,255,255,0.18);
+    transform: translateY(-1px); }
+  .atlas-tl-hero { width: 92px; height: 64px;
+    background: linear-gradient(135deg, #1a1a1a, #222);
+    background-size: cover; background-position: center;
+    border-radius: 7px; position: relative; flex-shrink: 0; }
+  .atlas-tl-status { position: absolute; bottom: 4px; left: 4px;
+    background: rgba(0,0,0,0.78); border: 1px solid rgba(255,255,255,0.12);
+    padding: 2px 6px; border-radius: 100px;
+    font-size: 8.5px; font-weight: 700; color: #fff;
+    text-transform: uppercase; letter-spacing: 0.04em;
+    display: flex; align-items: center; gap: 4px;
+    backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+  .atlas-tl-status .dot { width: 5px; height: 5px; border-radius: 50%; }
+  .atlas-tl-body { display: flex; flex-direction: column; gap: 3px;
+    min-width: 0; padding: 4px 4px 4px 0; justify-content: center; }
+  .atlas-tl-title { font-size: 13px; font-weight: 700; color: #fff;
+    line-height: 1.25;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+    overflow: hidden; word-break: break-word; }
+  .atlas-tl-meta { font-size: 10.5px; color: rgba(255,255,255,0.5);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .atlas-tl-more { text-align: center; font-size: 11px;
+    color: rgba(255,255,255,0.5); padding: 8px; font-weight: 600;
+    background: rgba(255,255,255,0.02); border-radius: 8px; }
+
   .atlas-coverage-coming-grid .atlas-section-half {
     padding-bottom: 0;
     display: flex;
@@ -6810,7 +6889,9 @@
        reload the map, preserving whatever zoom/state/popup the user had. -->
   <div class="firm-sheet-backdrop" id="firmSheetBackdrop" aria-hidden="true"></div>
   <div class="firm-sheet" id="firmSheet" role="dialog" aria-hidden="true" aria-labelledby="firmSheetTitle">
-    <div class="firm-sheet-handle"></div>
+    <div class="firm-sheet-drag" id="firmSheetDrag" role="button" aria-label="Drag to dismiss">
+      <div class="firm-sheet-handle"></div>
+    </div>
     <button class="firm-sheet-close" id="firmSheetClose" aria-label="Close firm profile" type="button">×</button>
     <div class="firm-sheet-content" id="firmSheetContent">
       <div class="fs-loading">Loading…</div>
@@ -15312,6 +15393,118 @@
       return `<div class="atlas-footer">Atlas · part of <a href="https://oftmw.com" style="color:rgba(255,255,255,0.6);">Markets of Tomorrow</a>${ts ? ' · data updated ' + escapeHtml(ts) : ''}</div>`;
     }
 
+    // ── Pipeline timeline section — every in-pipeline project, grouped by
+    //    delivery quarter. Sourced from window.allProjectFeatures (live map
+    //    data, already in memory by the time atlas opens). Clicking an item
+    //    closes atlas and routes through openProjectFromSheet, which flies
+    //    the camera + opens the existing project modal. ─────────────────
+    function renderTimelineSection() {
+      const features = window.allProjectFeatures || [];
+      if (!features.length) return '';
+
+      const STATUS_INFO = {
+        'announced':       { label: 'Announced',       color: '#9CA3AF' },
+        'breaking-ground': { label: 'Breaking Ground', color: '#FFD300' },
+        'construction':    { label: 'Construction',    color: '#FF9500' },
+        'coming-soon':     { label: 'Coming Soon',     color: '#4DABFF' },
+        'open':            { label: 'Now Open',        color: '#1FDF67' },
+      };
+      function normStatus(raw) {
+        const s = (raw || '').toString().toLowerCase();
+        if (s.includes('now open') || s === 'open' || s.includes('complete')) return 'open';
+        if (s.includes('opening') || s.includes('coming')) return 'coming-soon';
+        if (s.includes('construction')) return 'construction';
+        if (s.includes('breaking')) return 'breaking-ground';
+        return 'announced';
+      }
+      function pyStyleSlugLocal(text) {
+        return (text || '').toLowerCase()
+          .replace(/[^a-z0-9\s-]/g, '').replace(/[\s-]+/g, '-').replace(/^-|-$/g, '');
+      }
+      function escapeAttr(s) {
+        return (s == null ? '' : String(s))
+          .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+          .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+      }
+
+      // Future-facing: skip Now-Open / completed projects. The Coming Soon
+      // section already covers the next 90 days; this is the full multi-year view.
+      const inPipeline = features.map(f => f.properties).filter(p => {
+        if (!p.deliveryDate) return false;
+        return normStatus(p.delivery) !== 'open';
+      });
+      if (!inPipeline.length) return '';
+
+      // Group by (year, quarter) from DeliveryDate. Year-only ("2027")
+      // defaults to Q4 (Dec) so it sorts to the end of its year.
+      const groups = new Map();
+      for (const p of inPipeline) {
+        const m = (p.deliveryDate || '').match(/^(\d{4})(?:-(\d{2}))?/);
+        if (!m) continue;
+        const year = +m[1];
+        const month = m[2] ? +m[2] : 12;
+        const quarter = Math.ceil(month / 3);
+        const key = `${year}-${quarter}`;
+        if (!groups.has(key)) groups.set(key, { year, quarter, items: [] });
+        groups.get(key).items.push(p);
+      }
+      if (!groups.size) return '';
+      const orderedKeys = [...groups.keys()].sort();
+
+      const PER_GROUP = 9;
+      const groupsHtml = orderedKeys.map(k => {
+        const g = groups.get(k);
+        // Featured first inside each quarter, then by date
+        const sorted = g.items.slice().sort((a, b) => {
+          const fa = (a.featured ? 1 : 0) - (b.featured ? 1 : 0);
+          if (fa !== 0) return -fa;
+          return (a.deliveryDate || '').localeCompare(b.deliveryDate || '');
+        });
+        const visible = sorted.slice(0, PER_GROUP);
+        const remaining = sorted.length - visible.length;
+        const itemsHtml = visible.map(p => {
+          const status = normStatus(p.delivery);
+          const info = STATUS_INFO[status] || STATUS_INFO.announced;
+          const img = p.image ? `background-image:url('${escapeAttr(p.image)}')` : '';
+          const type = p.preferredType || ((p.projectType || '').split(',')[0] || '').trim();
+          const meta = [p.city || ''].filter(Boolean);
+          if (type) meta.push(type);
+          const slug = pyStyleSlugLocal(p.title || '');
+          return `
+            <div class="atlas-tl-item" data-project-slug="${escapeAttr(slug)}" role="button" tabindex="0">
+              <div class="atlas-tl-hero" style="${img}">
+                <div class="atlas-tl-status"><span class="dot" style="background:${info.color}"></span>${escapeAttr(info.label)}</div>
+              </div>
+              <div class="atlas-tl-body">
+                <div class="atlas-tl-title">${escapeAttr(p.title || '')}</div>
+                <div class="atlas-tl-meta">${escapeAttr(meta.join(' · '))}</div>
+              </div>
+            </div>`;
+        }).join('');
+        return `
+          <div class="atlas-tl-group">
+            <div class="atlas-tl-header">
+              <span class="atlas-tl-quarter">Q${g.quarter}</span>
+              <span class="atlas-tl-year">${g.year}</span>
+              <span class="atlas-tl-count"><b>${g.items.length}</b> opening</span>
+            </div>
+            <div class="atlas-tl-items">${itemsHtml}</div>
+            ${remaining > 0 ? `<div class="atlas-tl-more">+ ${remaining} more this quarter</div>` : ''}
+          </div>`;
+      }).join('');
+
+      return `
+        <section class="atlas-section">
+          <div class="atlas-section-head">
+            <div>
+              <h2 class="atlas-section-title">Pipeline timeline</h2>
+              <p class="atlas-section-sub">What's opening next, ordered by delivery date. Click any project to view it on the map.</p>
+            </div>
+          </div>
+          <div class="atlas-timeline">${groupsHtml}</div>
+        </section>`;
+    }
+
     function renderAll() {
       if (!atlasData) return;
       const root = document.getElementById('atlasRoot');
@@ -15319,6 +15512,7 @@
       root.innerHTML = [
         renderStateFilter(),
         renderLeaderboardSection(),
+        renderTimelineSection(),
         renderOpeningsByYear(),
         renderDistributionAndMomentum(),
         renderCoverageAndComing(),
@@ -15858,11 +16052,68 @@
         if (e.key === 'Escape' && _firmOpen) closeFirmSheet();
       });
 
+      // ── Touch drag-to-dismiss on the handle (mobile primary, works on
+      //    desktop touch screens too). Tracks delta from touchstart, applies
+      //    inline translateY for direct 1:1 follow, closes if released past
+      //    the threshold or snaps back otherwise. ─────────────────────────
+      const DRAG_DISMISS_PX = 120;
+      const dragEl = document.getElementById('firmSheetDrag');
+      let dragState = null;
+      function dragStart(clientY) {
+        if (!_firmOpen) return;
+        const sheet = document.getElementById('firmSheet');
+        dragState = { startY: clientY, delta: 0, sheet };
+        sheet.classList.add('is-dragging');
+      }
+      function dragMove(clientY) {
+        if (!dragState) return;
+        let delta = clientY - dragState.startY;
+        if (delta < 0) delta = 0;  // drag down only
+        dragState.delta = delta;
+        dragState.sheet.style.transform = `translateY(${delta}px)`;
+      }
+      function dragEnd() {
+        if (!dragState) return;
+        const { sheet, delta } = dragState;
+        sheet.classList.remove('is-dragging');
+        sheet.style.transform = '';  // restore to CSS-controlled position
+        if (delta > DRAG_DISMISS_PX) {
+          closeFirmSheet();
+        }
+        dragState = null;
+      }
+      // Touch
+      dragEl.addEventListener('touchstart', e => {
+        if (e.touches.length !== 1) return;
+        dragStart(e.touches[0].clientY);
+      }, { passive: true });
+      dragEl.addEventListener('touchmove', e => {
+        if (!dragState || e.touches.length !== 1) return;
+        dragMove(e.touches[0].clientY);
+      }, { passive: true });
+      dragEl.addEventListener('touchend', dragEnd);
+      dragEl.addEventListener('touchcancel', () => {
+        if (dragState) { dragState.sheet.style.transform = ''; dragState.sheet.classList.remove('is-dragging'); dragState = null; }
+      });
+      // Mouse (desktop, for parity / testing)
+      dragEl.addEventListener('mousedown', e => {
+        if (e.button !== 0) return;
+        dragStart(e.clientY);
+        const onMove = ev => dragMove(ev.clientY);
+        const onUp = () => {
+          dragEnd();
+          window.removeEventListener('mousemove', onMove);
+          window.removeEventListener('mouseup', onUp);
+        };
+        window.addEventListener('mousemove', onMove);
+        window.addEventListener('mouseup', onUp);
+      });
+
       // Click delegation:
-      //  - .firm-link / .atlas-lb-link  → open firm sheet
-      //  - .fs-proj inside #firmSheet   → close sheet + open project modal on map
-      // Cmd/Ctrl/Shift/Middle-click always passes through to the link's default
-      // (static page in new tab) so users keep that escape hatch.
+      //  - .firm-link / .atlas-lb-link    → open firm sheet
+      //  - .fs-proj inside #firmSheet     → close sheet + open project modal
+      //  - .atlas-tl-item (atlas timeline)→ close atlas + open project modal
+      // Cmd/Ctrl/Shift/Middle-click always passes through (static page in new tab).
       document.addEventListener('click', (e) => {
         if (e.metaKey || e.ctrlKey || e.shiftKey || e.button === 1) return;
 
@@ -15884,6 +16135,19 @@
             e.preventDefault();
             openProjectFromSheet(slug);
           }
+          return;
+        }
+
+        const tlItem = e.target.closest('.atlas-tl-item');
+        if (tlItem) {
+          const slug = tlItem.dataset.projectSlug;
+          if (!slug) return;
+          e.preventDefault();
+          if (typeof window.setAtlasMode === 'function') {
+            window.setAtlasMode(false);
+          }
+          // Wait for atlas to close + map to be visible before flying + opening.
+          setTimeout(() => openProjectFromSheet(slug), 220);
         }
       });
 
@@ -15915,6 +16179,7 @@
       // Expose for debugging / external callers
       window.openFirmSheet = openFirmSheet;
       window.closeFirmSheet = closeFirmSheet;
+      window.openProjectFromSheet = openProjectFromSheet;
     })();
 
     // Re-render leaderboard if viewport crosses the mobile/desktop boundary
