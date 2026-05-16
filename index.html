@@ -9008,6 +9008,14 @@
           : deliveryRaw;
         if (deliveryDisplay) statItems.push({ label: 'Delivery', val: deliveryDisplay });
         if (p.city) statItems.push({ label: 'Market', val: p.city });
+        // Scale stats — only render when present. Formatted with thousands separator.
+        const fmtNum = (v) => { const n = parseInt(v, 10); return isNaN(n) ? null : n.toLocaleString(); };
+        const keysVal = fmtNum(p.keys);
+        const unitsVal = fmtNum(p.units);
+        const floorsVal = fmtNum(p.floors);
+        if (keysVal)   statItems.push({ label: 'Keys',   val: keysVal });
+        if (unitsVal)  statItems.push({ label: 'Units',  val: unitsVal });
+        if (floorsVal) statItems.push({ label: 'Floors', val: floorsVal });
 
         stats.innerHTML = statItems.map(s =>
           `<div class="pm-stat">
@@ -11741,6 +11749,10 @@
                 developer: p.Developer || '',
                 architect: p.Architect || '',
                 deliveryDate: p.DeliveryDate || '',
+                // Scale signals for TMW Intelligence comp matching + popup display
+                keys: p.Keys || '',
+                units: p.Units || '',
+                floors: p.Floors || '',
                 // Optional: when present, overrides the status-based start-date
                 // assumption used by computeProgress(). Empty/missing rows
                 // fall back to: status -> assumed years-before-delivery.
