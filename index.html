@@ -4361,11 +4361,12 @@
   /* Map popup intel chip -- 3-row stacked layout per mock:
      Row 1: "⬡ TMW INTELLIGENCE" eyebrow (icon + text, no pill)
      Row 2: "~7 months to completion" (big purple value + white tail)
-     Row 3: "Based on N similar projects" sub */
+     Row 3: pattern bubble (nested card with the comparable-stats summary
+            from intel.json — same text the project modal shows) */
   .popup-content .popup-intel {
     margin-top: 6px;
     margin-bottom: 8px;
-    padding: 5px 10px 6px;
+    padding: 8px 10px 9px;
     background: rgba(167,139,250,0.14);
     border: 1px solid rgba(167,139,250,0.35);
     border-radius: 9px;
@@ -4379,28 +4380,49 @@
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    margin-bottom: 1px;
+    margin-bottom: 6px;
   }
   .popup-content .popup-intel-eyebrow svg {
     width: 10px; height: 10px; fill: currentColor;
   }
   .popup-content .popup-intel-value {
-    font-size: 16px;
+    font-size: 17px;
     color: #A78BFA;
     font-weight: 700;
     line-height: 1.15;
     letter-spacing: -0.01em;
-    margin-bottom: 0;
+    margin-bottom: 8px;
+    text-align: center;
   }
   .popup-content .popup-intel-value-tail {
     color: #fff;
     font-weight: 500;
   }
+  /* Pattern bubble — mirrors the project-modal .pm-intel-pattern look so
+     the popup feels like a compact preview of the same insight. Darker
+     inset bg gives contrast against the outer purple wrapper. */
+  .popup-content .popup-intel-pattern {
+    background: rgba(0,0,0,0.28);
+    border: 1px solid rgba(167,139,250,0.22);
+    border-radius: 7px;
+    padding: 7px 9px;
+    font-size: 10.5px;
+    line-height: 1.4;
+    color: rgba(255,255,255,0.72);
+    font-weight: 500;
+  }
+  .popup-content .popup-intel-pattern b { color: #fff; font-weight: 600; }
+  .popup-content .popup-intel-pattern .pm-intel-highlight {
+    color: #A78BFA;
+    font-weight: 700;
+  }
+  /* Legacy single-line sub kept for the no-pattern fallback (rare). */
   .popup-content .popup-intel-sub {
     font-size: 10px;
     color: rgba(255,255,255,0.5);
     font-weight: 500;
     line-height: 1.25;
+    text-align: center;
   }
   /* Mobile popup (260px wide) — squeeze the intel chip a bit harder.
      Each px counts in the smaller popup window. */
@@ -4408,10 +4430,11 @@
     .popup-content .popup-intel {
       margin-top: 5px;
       margin-bottom: 6px;
-      padding: 4px 9px 5px;
+      padding: 7px 9px 8px;
     }
-    .popup-content .popup-intel-eyebrow { margin-bottom: 0; }
-    .popup-content .popup-intel-value { font-size: 14px; line-height: 1.1; }
+    .popup-content .popup-intel-eyebrow { margin-bottom: 5px; }
+    .popup-content .popup-intel-value { font-size: 15px; line-height: 1.1; margin-bottom: 6px; }
+    .popup-content .popup-intel-pattern { font-size: 10px; padding: 6px 8px; line-height: 1.35; }
     .popup-content .popup-intel-sub { font-size: 9.5px; line-height: 1.2; }
   }
 
@@ -10059,18 +10082,41 @@
             //   comparables -> statistical estimate from similar projects
             const valueText = entry.estimate_label || ('~' + entry.estimate_years + ' yrs');
             let tailText = ' to completion';
-            let subText;
+            // Same logic as project modal: completed uses past tense.
             if (entry.source === 'completed') {
               tailText = ' to complete';
-              subText = entry.start_year
-                ? `From ${entry.start_year} groundbreaking`
-                : 'Completed project';
-            } else if (entry.source === 'known_date') {
-              subText = (entry.precision === 'day')
-                ? 'Developer announced'
-                : 'Targeted opening';
+            }
+            // Build the pattern bubble — prefer the rich pattern_summary
+            // that intel.json carries (same text the project modal shows).
+            // Fall back to a short eyebrow-style line for older intel
+            // entries / known_date rows that don't have a pattern_summary.
+            // Bold the comparable count (matches modal .pm-intel-highlight).
+            let bottomHtml;
+            if (entry.pattern_summary && entry.pattern_summary.trim()) {
+              const countStr = String(entry.comparable_count || '');
+              const patterned = countStr
+                ? entry.pattern_summary.replace(
+                    new RegExp('\\b' + countStr + '\\b'),
+                    `<span class="pm-intel-highlight">${countStr}</span>`
+                  )
+                : entry.pattern_summary;
+              bottomHtml = `<div class="popup-intel-pattern">${patterned}</div>`;
             } else {
-              subText = `Based on ${entry.comparable_count} similar project${entry.comparable_count === 1 ? '' : 's'}`;
+              // Fallback: keep the old one-line label so the popup still
+              // shows context even if pattern_summary is missing.
+              let fallbackSub;
+              if (entry.source === 'completed') {
+                fallbackSub = entry.start_year
+                  ? `From ${entry.start_year} groundbreaking`
+                  : 'Completed project';
+              } else if (entry.source === 'known_date') {
+                fallbackSub = (entry.precision === 'day')
+                  ? 'Developer announced'
+                  : 'Targeted opening';
+              } else {
+                fallbackSub = `Based on ${entry.comparable_count} similar project${entry.comparable_count === 1 ? '' : 's'}`;
+              }
+              bottomHtml = `<div class="popup-intel-sub">${fallbackSub}</div>`;
             }
             intelMount.innerHTML = `
               <div class="popup-intel">
@@ -10079,7 +10125,7 @@
                   TMW Intelligence
                 </div>
                 <div class="popup-intel-value">${valueText}<span class="popup-intel-value-tail">${tailText}</span></div>
-                <div class="popup-intel-sub">${subText}</div>
+                ${bottomHtml}
               </div>
             `;
           });
