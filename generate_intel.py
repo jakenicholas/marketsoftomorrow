@@ -711,11 +711,25 @@ def build_complete_index(rows):
       title, slug, city, metro, type, start, end, years,
       lat, lng, keys, units, floors, architects[], developers[]
     Only includes rows that have BOTH a parseable StartDate and DeliveryDate
-    and a positive duration."""
+    and a positive duration.
+
+    EXCLUDES projects flagged `IsDistrict` (umbrella developments like Miami
+    Worldcenter, Wynwood Plaza, etc) — those represent district-level
+    infrastructure (retail, streetscapes), not buildable comparables. They
+    have wildly different scale character than individual towers and would
+    bias intel estimates. Districts still get their own intel computed in
+    the main loop; they just don't pollute other projects' comp pools.
+    """
     index = []
+    excluded_districts = 0
     for row in rows:
         delivery = (row.get('Delivery','') or '').strip()
         if not is_complete(delivery):
+            continue
+        # District exclusion (Fix 2): never let a district umbrella project
+        # become a comparable for a normal building.
+        if str(row.get('IsDistrict', '') or '').strip() in ('1', 'true', 'True'):
+            excluded_districts += 1
             continue
         start = parse_date(row.get('StartDate', ''))
         end = parse_date(row.get('DeliveryDate', ''))
@@ -747,6 +761,8 @@ def build_complete_index(rows):
             'architects': _split_names(row.get('Architect')),
             'developers': _split_names(row.get('Developer')),
         })
+    if excluded_districts:
+        print(f"  ✓ Excluded {excluded_districts} district umbrella project(s) from comparables pool")
     return index
 
 
@@ -835,7 +851,8 @@ def _scale_score(target, comp):
 
 
 def comp_score(target, comp):
-    """Return float 0-1 score, or None if comp isn't in target's type family.
+    """Return float 0-1 score, or None if comp isn't in target's type family
+    OR is wildly out of scale.
 
     Weighting:
       - If both have scale data: 60% scale + 40% distance.
@@ -846,6 +863,36 @@ def comp_score(target, comp):
         return None
     if (comp.get('type','') or '').lower() not in target_type_family:
         return None  # hard gate: must share a type family
+
+    # Hard scale gate: when the target HAS scale data (keys/units/floors),
+    # we refuse to compare it against a comp that either:
+    #   (a) has no scale data at all — we'd have to take it on distance alone,
+    #       which is how Miami Worldcenter (a district umbrella with no per-unit
+    #       data) was sneaking into The Avenue Naples' (50 units) comp pool
+    #       and dragging the median toward Worldcenter's 9.2-year build.
+    #   (b) has scale data but every overlapping field is more than 5× off
+    #       (e.g. 50-unit tower vs 1000-unit megaproject — different beast).
+    # When the target has no scale data, we don't apply this gate — comps
+    # without scale info are still useful for early-stage targets.
+    target_has_scale = any(target.get(f) for f in ('keys', 'units', 'floors'))
+    if target_has_scale:
+        overlapping_ratios = []
+        for field in ('keys', 'units', 'floors'):
+            tv = target.get(field)
+            cv = comp.get(field)
+            if tv and cv:
+                try:
+                    hi = max(int(tv), int(cv))
+                    lo = min(int(tv), int(cv))
+                    if lo > 0:
+                        overlapping_ratios.append(hi / lo)
+                except (ValueError, TypeError):
+                    continue
+        if not overlapping_ratios:
+            return None  # case (a) — no overlap to verify scale similarity
+        SCALE_HARD_CAP = 5.0
+        if all(r > SCALE_HARD_CAP for r in overlapping_ratios):
+            return None  # case (b) — every overlap is wildly off
 
     d_score = _distance_score(target, comp)
     s_score = _scale_score(target, comp)
