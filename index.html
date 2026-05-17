@@ -9733,16 +9733,28 @@
           if (!cfgEl) return;
           const cfg = (p.configSummary || '').trim();
           const phs = (p.deliveryPhases || '').trim();
-          const est = !!p.datesSpeculative;
+          const startEst = !!p.startSpeculative;
+          const deliveryEst = !!p.deliverySpeculative;
+          const est = startEst || deliveryEst;
           if (!cfg && !phs && !est) {
             cfgEl.hidden = true;
             cfgEl.innerHTML = '';
             return;
           }
           const escA = (s) => (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+          // Pill text + tooltip both adapt to which date(s) are estimated.
+          // Modal has more horizontal room than the popup, so we use a
+          // slightly more descriptive label when only one date is estimated.
+          const estLabel = (startEst && deliveryEst) ? 'EST DATES'
+                         : (startEst ? 'EST START' : 'EST DELIVERY');
+          const estTooltip = (startEst && deliveryEst)
+            ? 'Both start and delivery dates are TMW estimates — not developer-confirmed.'
+            : (startEst
+                ? 'Start date is a TMW estimate — not developer-confirmed.'
+                : 'Delivery date is a TMW estimate — not developer-confirmed.');
           const phasedRowHtml = (phs || est)
             ? `<div class="pm-phases">
-                 ${est ? `<span class="pm-phases-pill est" title="Dates are TMW estimates — not developer-confirmed">EST DATE</span>` : ''}
+                 ${est ? `<span class="pm-phases-pill est" title="${estTooltip}">${estLabel}</span>` : ''}
                  ${phs ? `<span class="pm-phases-pill">PHASED</span><span class="pm-phases-text">${escA(phs)}</span>` : ''}
                </div>`
             : '';
@@ -10223,12 +10235,22 @@
               // not developer-confirmed).
               const cfg = (f.properties.configSummary || '').trim();
               const phs = (f.properties.deliveryPhases || '').trim();
-              const est = !!f.properties.datesSpeculative;
+              const startEst = !!f.properties.startSpeculative;
+              const deliveryEst = !!f.properties.deliverySpeculative;
+              const est = startEst || deliveryEst;
               if (!cfg && !phs && !est) return '';
               const escA = (s) => (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+              // Tooltip names which specific date(s) are estimated, so a
+              // reader hovering can immediately tell if it's the groundbreaking,
+              // the completion, or both that's TMW's guess.
+              const estTooltip = (startEst && deliveryEst)
+                ? 'Both start and delivery dates are TMW estimates — not developer-confirmed.'
+                : (startEst
+                    ? 'Start date is a TMW estimate — not developer-confirmed.'
+                    : 'Delivery date is a TMW estimate — not developer-confirmed.');
               const phasedPillsHtml = (phs || est)
                 ? `<div class="popup-phases">
-                     ${est ? `<span class="popup-phases-pill est" title="Dates are TMW estimates — not developer-confirmed">EST DATE</span>` : ''}
+                     ${est ? `<span class="popup-phases-pill est" title="${estTooltip}">EST DATE</span>` : ''}
                      ${phs ? `<span class="popup-phases-pill">PHASED</span><span class="popup-phases-text">${escA(phs)}</span>` : ''}
                    </div>`
                 : '';
@@ -12614,10 +12636,16 @@
                 // deliveryDate undersells the timeline.
                 configSummary: p.ConfigSummary || '',
                 deliveryPhases: p.DeliveryPhases || '',
-                // "1" when StartDate / DeliveryDate are TMW estimates rather
-                // than developer-confirmed. Drives the "EST" badge on popup +
-                // modal so readers know not to take the dates as a commitment.
-                datesSpeculative: (p.DatesSpeculative === '1' || p.DatesSpeculative === true),
+                // Per-date "TMW estimate" flags. Either can be true
+                // independently — common when Jake has confirmed groundbreaking
+                // but only a guess on completion (or vice-versa). The
+                // aggregate `datesSpeculative` drives the popup/modal EST pill;
+                // the granular flags let downstream UI surface which date(s)
+                // are estimated when needed.
+                startSpeculative:    (p.StartSpeculative === '1' || p.StartSpeculative === true),
+                deliverySpeculative: (p.DeliverySpeculative === '1' || p.DeliverySpeculative === true),
+                datesSpeculative:    (p.DatesSpeculative === '1' || p.DatesSpeculative === true
+                                     || p.StartSpeculative === '1' || p.DeliverySpeculative === '1'),
                 // Optional: when present, overrides the status-based start-date
                 // assumption used by computeProgress(). Empty/missing rows
                 // fall back to: status -> assumed years-before-delivery.
