@@ -2920,6 +2920,14 @@
       letter-spacing: 0.06em;
       text-transform: uppercase;
     }
+    /* EST DATE variant — uses TMW Intelligence purple (#A78BFA) so it reads
+       as "TMW estimate" vs the yellow PHASED pill which reads as a project
+       structural fact. Side-by-side they're visually distinct at a glance. */
+    .popup-content .popup-phases-pill.est {
+      background: rgba(167,139,250,0.14);
+      border-color: rgba(167,139,250,0.4);
+      color: #A78BFA;
+    }
     .popup-content .popup-phases-text { font-weight: 500; }
     @media(max-width:800px) {
       .popup-content .popup-config { font-size: 11px; }
@@ -3718,6 +3726,13 @@
     font-weight: 800;
     letter-spacing: 0.06em;
     text-transform: uppercase;
+  }
+  /* EST DATE variant — TMW Intelligence purple. Reads as "TMW estimate"
+     while the yellow PHASED pill reads as "structural fact" (phased build). */
+  #projectModal .pm-phases-pill.est {
+    background: rgba(167,139,250,0.14);
+    border-color: rgba(167,139,250,0.4);
+    color: #A78BFA;
   }
   #projectModal .pm-phases-text { font-weight: 500; }
   /* Progress tracker */
@@ -7174,6 +7189,14 @@
     border-color: rgba(255,211,0,0.32);
     color: #FFD300;
   }
+  /* EST variant — TMW Intelligence purple. Used for the speculative-dates
+     chip so it reads as "TMW estimate" vs the yellow .warn chip which
+     reads as a structural fact about the project. */
+  .atlas-tl-row-meta .atlas-tl-row-chip.est {
+    background: rgba(167,139,250,0.12);
+    border-color: rgba(167,139,250,0.32);
+    color: #A78BFA;
+  }
   .atlas-tl-row-scale {
     margin-top: auto;
     padding-top: 10px;
@@ -9687,23 +9710,32 @@
           : (p.city || '');
 
         // Configuration & phasing block — render between subtitle and
-        // progress bar. Both fields are optional; we hide the wrapper
-        // entirely when neither is set so the existing layout stays
+        // progress bar. All three signals are optional; we hide the wrapper
+        // entirely when none is set so the existing layout stays
         // pixel-identical for the majority of projects.
+        // EST DATE pill (purple, TMW Intelligence palette) appears when
+        // the dates are flagged speculative in tmw-data.
         (() => {
           const cfgEl = document.getElementById('pmConfigBlock');
           if (!cfgEl) return;
           const cfg = (p.configSummary || '').trim();
           const phs = (p.deliveryPhases || '').trim();
-          if (!cfg && !phs) {
+          const est = !!p.datesSpeculative;
+          if (!cfg && !phs && !est) {
             cfgEl.hidden = true;
             cfgEl.innerHTML = '';
             return;
           }
           const escA = (s) => (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+          const phasedRowHtml = (phs || est)
+            ? `<div class="pm-phases">
+                 ${est ? `<span class="pm-phases-pill est" title="Dates are TMW estimates — not developer-confirmed">EST DATE</span>` : ''}
+                 ${phs ? `<span class="pm-phases-pill">PHASED</span><span class="pm-phases-text">${escA(phs)}</span>` : ''}
+               </div>`
+            : '';
           cfgEl.innerHTML = `
             ${cfg ? `<div class="pm-config">${escA(cfg)}</div>` : ''}
-            ${phs ? `<div class="pm-phases"><span class="pm-phases-pill">PHASED</span><span class="pm-phases-text">${escA(phs)}</span></div>` : ''}
+            ${phasedRowHtml}
           `;
           cfgEl.hidden = false;
         })();
@@ -10172,15 +10204,25 @@
               // Optional "configuration & phasing" block. Lives right below
               // the subtitle so it reads like an extension of the project's
               // identity. Either field can be blank — render only what's set,
-              // hide the wrapper when both are empty.
+              // hide the wrapper when all three are empty.
+              // The third element is the EST DATE pill, shown when the project's
+              // dates are flagged speculative in tmw-data (means: TMW best guess,
+              // not developer-confirmed).
               const cfg = (f.properties.configSummary || '').trim();
               const phs = (f.properties.deliveryPhases || '').trim();
-              if (!cfg && !phs) return '';
+              const est = !!f.properties.datesSpeculative;
+              if (!cfg && !phs && !est) return '';
               const escA = (s) => (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+              const phasedPillsHtml = (phs || est)
+                ? `<div class="popup-phases">
+                     ${est ? `<span class="popup-phases-pill est" title="Dates are TMW estimates — not developer-confirmed">EST DATE</span>` : ''}
+                     ${phs ? `<span class="popup-phases-pill">PHASED</span><span class="popup-phases-text">${escA(phs)}</span>` : ''}
+                   </div>`
+                : '';
               return `
                 <div class="popup-config-block">
                   ${cfg ? `<div class="popup-config">${escA(cfg)}</div>` : ''}
-                  ${phs ? `<div class="popup-phases"><span class="popup-phases-pill">PHASED</span><span class="popup-phases-text">${escA(phs)}</span></div>` : ''}
+                  ${phasedPillsHtml}
                 </div>`;
             })()}
             ${deliveryBarHTML(f.properties.delivery)}
@@ -12559,6 +12601,10 @@
                 // deliveryDate undersells the timeline.
                 configSummary: p.ConfigSummary || '',
                 deliveryPhases: p.DeliveryPhases || '',
+                // "1" when StartDate / DeliveryDate are TMW estimates rather
+                // than developer-confirmed. Drives the "EST" badge on popup +
+                // modal so readers know not to take the dates as a commitment.
+                datesSpeculative: (p.DatesSpeculative === '1' || p.DatesSpeculative === true),
                 // Optional: when present, overrides the status-based start-date
                 // assumption used by computeProgress(). Empty/missing rows
                 // fall back to: status -> assumed years-before-delivery.
@@ -16128,6 +16174,13 @@
             return `<span class="sep">·</span><span class="atlas-tl-row-chip warn">Phased</span>`;
           })();
           if (phsChip) metaParts.push(phsChip);
+          // EST DATE chip — purple (TMW Intelligence palette) when the
+          // project's dates are flagged speculative in tmw-data. Sits
+          // alongside the tower/phase chips so all "things readers should
+          // know about this row" cluster in the same visual space.
+          if (p.datesSpeculative) {
+            metaParts.push(`<span class="sep">·</span><span class="atlas-tl-row-chip est">EST date</span>`);
+          }
           const scaleParts = [];
           if (p.keys)   scaleParts.push(`<div class="stat"><b>${fmtNum(p.keys)}</b>keys</div>`);
           if (p.units)  scaleParts.push(`<div class="stat"><b>${fmtNum(p.units)}</b>units</div>`);
