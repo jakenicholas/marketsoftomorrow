@@ -1025,12 +1025,21 @@ def main():
         target_slug = slugify(title)
         city = (row.get('City','') or '').strip()
         ptype = normalize_type(row)
-        # `DatesSpeculative` flag (from tmw-data's `dates_speculative` boolean)
-        # marks projects where StartDate/DeliveryDate are TMW best-guesses
-        # rather than developer-confirmed. We still use the dates as the
-        # estimate driver, but downgrade confidence + change the pattern
-        # wording so readers know it's our inference, not a commitment.
-        dates_speculative = str(row.get('DatesSpeculative','') or '').strip() in ('1', 'true', 'True')
+        # Per-date "TMW estimate" flags. Each can be true independently —
+        # common pattern: Jake knows the groundbreaking date (publicly
+        # announced) but has to guess at the completion (no firm date in
+        # press). Each code path uses these differently:
+        #   - completed path: needs BOTH dates accurate. Speculative if EITHER is.
+        #   - known_date  path: uses delivery_date only. Speculative if delivery is.
+        #   - comparables path: estimate doesn't depend on these. Pass through
+        #     both so the UI EST pill still renders correctly.
+        #
+        # `DatesSpeculative` (aggregate) is also emitted for back-compat /
+        # convenience, but we prefer the granular flags here.
+        def _truthy(v): return str(v or '').strip() in ('1', 'true', 'True')
+        start_speculative    = _truthy(row.get('StartSpeculative'))    or _truthy(row.get('DatesSpeculative'))
+        delivery_speculative = _truthy(row.get('DeliverySpeculative')) or _truthy(row.get('DatesSpeculative'))
+        dates_speculative    = start_speculative or delivery_speculative
 
         # --- Path 0: COMPLETED project ---
         # Past-tense report showing actual time taken. Drawn directly from
@@ -1051,10 +1060,12 @@ def main():
                     else:
                         years_rounded = round(duration_years * 2) / 2
                         estimate_label = f"{format_years(years_rounded)} years"
-                    # Speculative-dates softening: when Jake flagged these
-                    # dates as TMW best-guesses (rare for completed projects
-                    # but possible), drop confidence to 'medium' and rephrase
-                    # so readers don't think we're reporting a hard fact.
+                    # Completed-path needs both dates to compute the duration,
+                    # so if EITHER is speculative the result is uncertain.
+                    # Drop confidence to 'medium' and rephrase. We don't
+                    # currently surface which leg was estimated since the
+                    # duration is one number — but the granular flags still
+                    # flow through to the frontend for UI fidelity.
                     if dates_speculative:
                         completed_confidence = 'medium'
                         completed_pattern = (
@@ -1082,7 +1093,9 @@ def main():
                         'comparables':      [],
                         'comparable_count': 0,
                         'pattern_summary':  completed_pattern,
-                        'dates_speculative': dates_speculative,
+                        'dates_speculative':    dates_speculative,
+                        'start_speculative':    start_speculative,
+                        'delivery_speculative': delivery_speculative,
                     }
                     stats['completed'] += 1
             # If StartDate or DeliveryDate missing, the project IS open --
@@ -1097,23 +1110,23 @@ def main():
         delivery_date_raw = (row.get('DeliveryDate','') or '').strip()
         known = known_date_estimate(delivery_date_raw, today)
         if known:
+            # known_date path only consumes the DELIVERY date — so the
+            # speculative check here is delivery_speculative specifically,
+            # not the aggregate. A project with a confirmed groundbreaking
+            # and a guessed completion will still be flagged as speculative
+            # here, because the value we're showing IS the completion.
+            #
             # Pattern summary + confidence depend on TWO axes:
             #   (a) Date precision — day-precise dates earn "Developer-announced"
             #       phrasing; vaguer precisions (month/quarter/season/year) soften
             #       to "Targeted for opening" so we don't overclaim certainty.
-            #   (b) Speculative flag — when the project's dates are flagged as
-            #       TMW best-guesses (not developer-confirmed), we override the
-            #       phrasing to "TMW estimate" and drop confidence one notch.
-            #       Readers see the same number but framed honestly.
-            if dates_speculative:
+            #   (b) delivery_speculative flag — when Jake marked the delivery
+            #       as a TMW guess, swap to "TMW estimate" + drop confidence.
+            if delivery_speculative:
                 pattern_summary = (
                     f"TMW estimates an opening in {known['estimate_label']} "
                     f"based on project type and current stage."
                 )
-                # Day precision + speculative is contradictory in spirit
-                # (Jake wouldn't usually flag a day-precise date as a guess),
-                # but if it happens we still treat it as medium so the UI
-                # frames it consistently.
                 confidence = 'medium'
                 stats['speculative_softened'] += 1
             elif known['precision'] == 'day':
@@ -1137,7 +1150,11 @@ def main():
                 'comparables':      [],
                 'comparable_count': 0,
                 'pattern_summary':  pattern_summary,
-                'dates_speculative': dates_speculative,
+                # Aggregate + granular flags. The frontend EST pill uses the
+                # aggregate; the intel block can drill into specifics later.
+                'dates_speculative':    dates_speculative,
+                'start_speculative':    start_speculative,
+                'delivery_speculative': delivery_speculative,
             }
             stats['known_date'] += 1
             continue
@@ -1313,11 +1330,13 @@ def main():
                     target, len(pool), estimate, low, high, avg_distance_km, firm_signal
                 )
             ),
-            # Pass the speculative flag through even on the comparables path —
+            # Pass the speculative flags through even on the comparables path —
             # the estimate doesn't depend on Jake's dates here, but the map
             # still wants to surface the "EST" badge on the popup/modal so
             # readers know the project's underlying dates aren't confirmed.
-            'dates_speculative': dates_speculative,
+            'dates_speculative':    dates_speculative,
+            'start_speculative':    start_speculative,
+            'delivery_speculative': delivery_speculative,
             # Set when the mixed-use complexity surcharge was applied to this
             # entry. The frontend can use this to surface a small "mixed-use"
             # tag on the intel block so readers know the timeline reflects
