@@ -197,11 +197,23 @@ def flatten(record: dict, architect_names: dict, developer_names: dict) -> dict:
         # the schema.
         'ConfigSummary':   (record.get('config_summary') or '').strip(),
         'DeliveryPhases':  (record.get('delivery_phases') or '').strip(),
-        # Flag: dates above (StartDate, DeliveryDate) are TMW estimates rather
-        # than developer-confirmed. Drives the "EST" badge on the map popup +
-        # project modal, and downgrades TMW Intelligence's confidence tag from
-        # "Developer announced" → "TMW estimate" in generate_intel.py.
-        'DatesSpeculative': '1' if record.get('dates_speculative') else '',
+        # Per-date "TMW estimate" flags. Set independently in admin so a
+        # project can have a developer-confirmed groundbreaking but a TMW-
+        # guessed completion (or vice-versa). Drives the EST badge + softens
+        # TMW Intelligence confidence in generate_intel.py.
+        #
+        # Back-compat: an older single `dates_speculative` flag flipped BOTH.
+        # If a project still has only that legacy field set, treat it as
+        # "both estimated" so the prior intent isn't silently dropped.
+        'StartSpeculative':    '1' if (record.get('start_speculative')    or record.get('dates_speculative')) else '',
+        'DeliverySpeculative': '1' if (record.get('delivery_speculative') or record.get('dates_speculative')) else '',
+        # Aggregate flag (true when either date is speculative). Convenience
+        # for the popup/modal "EST" badge — saves the frontend from OR-ing
+        # the two granular fields. Granular ones still emitted above for
+        # finer-grained handling in TMW Intelligence.
+        'DatesSpeculative':    '1' if (record.get('start_speculative')
+                                       or record.get('delivery_speculative')
+                                       or record.get('dates_speculative')) else '',
         # Price isn't in the tmw-data schema yet. Existing _parse_price()
         # handles blank values gracefully (returns 0), so emitting '' is
         # safe. When tmw-data adds a price field, map it here.
