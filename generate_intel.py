@@ -637,31 +637,32 @@ def detect_date_precision(raw):
 
 
 def known_date_estimate(delivery_raw, today):
-    """If the project's DeliveryDate is precise enough to trust (day or
-    month precision, in the future, within 18 months), compute a 'known
-    date' intel entry directly from the date.
+    """If the project's DeliveryDate is parseable + in the future, compute
+    a 'known date' intel entry directly from the date.
 
     Returns a dict with the same shape as the comparable estimate, OR
     None if the date isn't precise/timely enough.
 
-    Threshold is 36 months because: developer commitments are generally
-    better signal than a comparable median, even for projects 2-3 years
-    out. Slippage exists but the median can be off by similar amounts.
+    Curation note: TMW dates are hand-curated by Jake — he wouldn't enter
+    a 2030 delivery he doesn't believe. Date-distance caps used to be
+    tight (720 days for year, 1095 for others) to gate out unreliable
+    forecasts, but speculative dates now have their own flag
+    (start_speculative / delivery_speculative) which downgrades confidence
+    explicitly. So we extended the caps to cover the full curated horizon:
+    when Jake's data has a 2028 date on a project that's 2.5 years out,
+    the known_date path should use it.
 
     Accepted precisions:
       'day'   ("2026-06-15")     -- most confident
       'month' ("2026-06" / "June 2026")
-      'other' ("Q1 2026" / "Winter 2026") -- still trustworthy near-term
-      'year'  ("2026")           -- accepted ONLY when within 18 months
-                                    (matches the frontend's "by end of year"
-                                    convention so intel agrees with the
-                                    existing progress bar countdown)
+      'other' ("Q1 2026" / "Winter 2026")
+      'year'  ("2028")           -- accepted out to 4 years
 
     Rejected:
       None / unparseable
       past dates
-      day/month/other dates > 1095 days out (3+ years)
-      year-only dates > 540 days out (18+ months)
+      day/month/other dates > 1825 days out (5+ years)
+      year-only dates    > 1460 days out (4+ years)
     """
     precision = detect_date_precision(delivery_raw)
     if precision not in ('day', 'month', 'other', 'year'):
@@ -672,10 +673,11 @@ def known_date_estimate(delivery_raw, today):
     days_out = (d - today).days
     if days_out <= 0:
         return None
-    # Year-only has a stricter cap because it's a vague signal beyond
-    # ~24 months; for closer dates it matches what the frontend already
-    # shows on the progress bar.
-    max_days = 720 if precision == 'year' else 1095
+    # Year-only stays slightly stricter (4yr vs 5yr) because it's the
+    # vaguest precision — beyond ~4 years a year-only signal is more wish
+    # than commitment. day/month/other can carry further since their
+    # precision implies stronger conviction.
+    max_days = 1460 if precision == 'year' else 1825
     if days_out > max_days:
         return None
 
