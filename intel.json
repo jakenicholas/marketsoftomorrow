@@ -1,6 +1,50 @@
 {
   "generated_at": "2026-05-17",
   "projects": {
+    "the-avenue-naples": {
+      "estimate_years": 7.2,
+      "estimate_label": "~7.2 years",
+      "range_low": 2.8,
+      "range_high": 11.5,
+      "confidence": "low",
+      "comparable_count": 2,
+      "good_count": 0,
+      "exact_count": 0,
+      "used_relaxed": true,
+      "avg_match_score": 0.4,
+      "avg_distance_km": 175.0,
+      "avg_distance_mi": 108.8,
+      "scale_used": false,
+      "firm_signal": null,
+      "source": "comparables",
+      "project_type": "Mixed-Use",
+      "metro": "Southwest Florida",
+      "comparables": [
+        {
+          "name": "The Nora District",
+          "slug": "the-nora-district",
+          "location": "West Palm Beach",
+          "years": 2.2,
+          "score": 0.4,
+          "distance_km": 184.8,
+          "distance_mi": 114.8
+        },
+        {
+          "name": "Miami Worldcenter",
+          "slug": "miami-worldcenter",
+          "location": "Miami",
+          "years": 9.2,
+          "score": 0.4,
+          "distance_km": 165.3,
+          "distance_mi": 102.7
+        }
+      ],
+      "pattern_summary": "Mixed-use developments of this scale routinely span 2.8–11.5 years with phased delivery. Based on 2 completed mixed-use comparables, with an added complexity factor since cross-component coordination typically extends timelines.",
+      "dates_speculative": true,
+      "start_speculative": true,
+      "delivery_speculative": true,
+      "is_mixed_use": true
+    },
     "15-cityplace": {
       "estimate_years": 1.5,
       "estimate_label": "~1.5 years",
@@ -7324,13 +7368,13 @@
   "stats": {
     "high": 0,
     "medium": 48,
-    "low": 27,
+    "low": 28,
     "known_date": 193,
     "completed": 27,
     "skipped": 75,
     "no_type": 0,
     "firm_boosted": 0,
     "speculative_softened": 0,
-    "mixed_use_adjusted": 4
+    "mixed_use_adjusted": 5
   }
 }
