@@ -986,7 +986,7 @@ def main():
     intel = {}
     stats = {'high': 0, 'medium': 0, 'low': 0, 'known_date': 0,
              'completed': 0, 'skipped': 0, 'no_type': 0,
-             'firm_boosted': 0}
+             'firm_boosted': 0, 'speculative_softened': 0}
     # Track projects that had a DeliveryDate but still fell through to the
     # comparable path. The workflow log prints these so we can see why each
     # project ended up where it did (e.g. year-only date, unparseable format,
@@ -1001,6 +1001,12 @@ def main():
         target_slug = slugify(title)
         city = (row.get('City','') or '').strip()
         ptype = normalize_type(row)
+        # `DatesSpeculative` flag (from tmw-data's `dates_speculative` boolean)
+        # marks projects where StartDate/DeliveryDate are TMW best-guesses
+        # rather than developer-confirmed. We still use the dates as the
+        # estimate driver, but downgrade confidence + change the pattern
+        # wording so readers know it's our inference, not a commitment.
+        dates_speculative = str(row.get('DatesSpeculative','') or '').strip() in ('1', 'true', 'True')
 
         # --- Path 0: COMPLETED project ---
         # Past-tense report showing actual time taken. Drawn directly from
@@ -1021,6 +1027,23 @@ def main():
                     else:
                         years_rounded = round(duration_years * 2) / 2
                         estimate_label = f"{format_years(years_rounded)} years"
+                    # Speculative-dates softening: when Jake flagged these
+                    # dates as TMW best-guesses (rare for completed projects
+                    # but possible), drop confidence to 'medium' and rephrase
+                    # so readers don't think we're reporting a hard fact.
+                    if dates_speculative:
+                        completed_confidence = 'medium'
+                        completed_pattern = (
+                            f"TMW estimates this took ~{estimate_label} based on "
+                            f"observed activity from {start.year}–{end.year}."
+                        )
+                        stats['speculative_softened'] += 1
+                    else:
+                        completed_confidence = 'high'
+                        completed_pattern = (
+                            f"Completed in {estimate_label}, from {start.year} "
+                            f"groundbreaking to {end.year} opening."
+                        )
                     intel[target_slug] = {
                         'estimate_years':   round(duration_years, 1),
                         'estimate_label':   estimate_label,
@@ -1029,12 +1052,13 @@ def main():
                         'start_year':       start.year,
                         'end_year':         end.year,
                         'source':           'completed',
-                        'confidence':       'high',  # reported fact, no inference
+                        'confidence':       completed_confidence,
                         'project_type':     ptype,
                         'metro':            metro_for_city(city),
                         'comparables':      [],
                         'comparable_count': 0,
-                        'pattern_summary':  f"Completed in {estimate_label}, from {start.year} groundbreaking to {end.year} opening.",
+                        'pattern_summary':  completed_pattern,
+                        'dates_speculative': dates_speculative,
                     }
                     stats['completed'] += 1
             # If StartDate or DeliveryDate missing, the project IS open --
@@ -1049,14 +1073,31 @@ def main():
         delivery_date_raw = (row.get('DeliveryDate','') or '').strip()
         known = known_date_estimate(delivery_date_raw, today)
         if known:
-            # Pattern summary reflects the precision: only call it a
-            # "developer-announced opening" when we have a day-precise date.
-            # For vaguer precision (month/quarter/season/year), the wording
-            # softens to "targeted" so we don't overclaim certainty.
-            if known['precision'] == 'day':
+            # Pattern summary + confidence depend on TWO axes:
+            #   (a) Date precision — day-precise dates earn "Developer-announced"
+            #       phrasing; vaguer precisions (month/quarter/season/year) soften
+            #       to "Targeted for opening" so we don't overclaim certainty.
+            #   (b) Speculative flag — when the project's dates are flagged as
+            #       TMW best-guesses (not developer-confirmed), we override the
+            #       phrasing to "TMW estimate" and drop confidence one notch.
+            #       Readers see the same number but framed honestly.
+            if dates_speculative:
+                pattern_summary = (
+                    f"TMW estimates an opening in {known['estimate_label']} "
+                    f"based on project type and current stage."
+                )
+                # Day precision + speculative is contradictory in spirit
+                # (Jake wouldn't usually flag a day-precise date as a guess),
+                # but if it happens we still treat it as medium so the UI
+                # frames it consistently.
+                confidence = 'medium'
+                stats['speculative_softened'] += 1
+            elif known['precision'] == 'day':
                 pattern_summary = f"Developer-announced opening in {known['estimate_label']}."
+                confidence = 'high'
             else:
                 pattern_summary = f"Targeted for opening in {known['estimate_label']}."
+                confidence = 'high'
             intel[target_slug] = {
                 'estimate_years':   known['estimate_years'],
                 'estimate_label':   known['estimate_label'],
@@ -1064,7 +1105,7 @@ def main():
                 'delivery_date':    known['delivery_date'],
                 'source':           'known_date',
                 'precision':        known['precision'],
-                'confidence':       'high',  # developer-committed = high
+                'confidence':       confidence,
                 'project_type':     ptype,
                 'metro':            metro_for_city(city),
                 # Empty comparables payload -- the UI will conditionally
@@ -1072,6 +1113,7 @@ def main():
                 'comparables':      [],
                 'comparable_count': 0,
                 'pattern_summary':  pattern_summary,
+                'dates_speculative': dates_speculative,
             }
             stats['known_date'] += 1
             continue
@@ -1209,6 +1251,11 @@ def main():
             'pattern_summary':   build_pattern_summary(
                 target, len(pool), estimate, low, high, avg_distance_km, firm_signal
             ),
+            # Pass the speculative flag through even on the comparables path —
+            # the estimate doesn't depend on Jake's dates here, but the map
+            # still wants to surface the "EST" badge on the popup/modal so
+            # readers know the project's underlying dates aren't confirmed.
+            'dates_speculative': dates_speculative,
         }
         stats[tier] += 1
 
@@ -1219,6 +1266,7 @@ def main():
     print(f"  medium confidence:           {stats['medium']}")
     print(f"  low    confidence:           {stats['low']}")
     print(f"  firm-track-record boosts:    {stats['firm_boosted']}")
+    print(f"  speculative-dates softened:  {stats['speculative_softened']}")
     print(f"  skipped (insufficient data): {stats['skipped']}")
     print(f"  skipped (no project type):   {stats['no_type']}")
     print(f"  total intel entries written: {len(intel)}")
