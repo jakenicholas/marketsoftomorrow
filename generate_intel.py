@@ -93,6 +93,30 @@ FIRM_TIGHT_STDDEV = 0.75
 # Blend factor — firm median weighted against overall comp median when boosting.
 FIRM_BLEND_FACTOR = 0.30
 
+# Mixed-use projects: PreferredType = "Mixed-Use" signals a massive, phased,
+# multi-component build (hotel + residential + retail + office stacked).
+# These take meaningfully longer than the equivalent single-use project, but
+# our completed-mixed-use comp pool is small (~2-3 entries). Two adjustments:
+#   1. Apply a complexity multiplier to the comparables-path estimate so we
+#      don't underclock based on the limited pool.
+#   2. Cap confidence at "medium" — we can't claim "high" confidence with
+#      so few completed mixed-use comparables.
+# Multiplier tuned to roughly reflect TMW's observation that mixed-use
+# projects routinely phase delivery over 5-8 years vs. 3-5 for single-use.
+MIXED_USE_TYPES = {'mixed-use', 'mixed use', 'development', 'master plan', 'masterplan'}
+MIXED_USE_COMPLEXITY_MULTIPLIER = 1.25
+# Allow even 1-comp pools to pass through (default is to require enough comps
+# for at least 'low' tier). Mixed-use is so rare in the completed index that
+# strict gating drops the few projects that have any signal at all.
+MIXED_USE_MIN_POOL = 1
+
+
+def is_mixed_use_target(target):
+    """True when the target's normalized type is in the mixed-use family.
+    Used to trigger the longer-timeline + capped-confidence treatment."""
+    t = (target.get('type','') or '').lower().strip()
+    return t in MIXED_USE_TYPES
+
 
 # ---------------------------------------------------------------------------
 # Metro map: cities are grouped into metros so Miami + Miami Beach + Bal
@@ -1165,6 +1189,13 @@ def main():
         pool_scored = scored[:COMP_POOL_MAX]
         pool = [c for _, c in pool_scored]
         tier, good_count = confidence_from_scores(pool_scored)
+        is_mu = is_mixed_use_target(target)
+        # Mixed-use rescue: comp pool may be too small for the standard
+        # confidence_from_scores to grant any tier (needs >=2 good or any pool).
+        # We accept even single-comp pools for mixed-use targets since the
+        # completed-mixed-use universe is so small. Force the floor tier.
+        if not tier and is_mu and len(pool_scored) >= MIXED_USE_MIN_POOL:
+            tier, good_count = 'low', sum(1 for s, _ in pool_scored if s >= SCORE_GOOD)
         if not tier:
             stats['skipped'] += 1
             continue
@@ -1191,6 +1222,23 @@ def main():
             elif tier == 'low':
                 tier = 'medium'
             stats['firm_boosted'] += 1
+
+        # Mixed-use complexity surcharge — applied AFTER firm-blend so the
+        # surcharge reflects the project's full inherent complexity.
+        # Multiplier acknowledges that phased delivery, regulatory load, and
+        # cross-component coordination routinely add ~20-30% to mixed-use
+        # timelines vs. the equivalent single-use comp suggests.
+        # Confidence capped at "medium" — even with firm boost, we can't claim
+        # high confidence with so few completed mixed-use comparables.
+        mu_applied = False
+        if is_mu:
+            estimate = estimate * MIXED_USE_COMPLEXITY_MULTIPLIER
+            low = low * MIXED_USE_COMPLEXITY_MULTIPLIER
+            high = high * MIXED_USE_COMPLEXITY_MULTIPLIER
+            if tier == 'high':
+                tier = 'medium'
+            mu_applied = True
+            stats['mixed_use_adjusted'] = stats.get('mixed_use_adjusted', 0) + 1
 
         # Top-N comparables for UI surfacing — also stamp distance for each
         top_comps_payload = []
@@ -1248,14 +1296,33 @@ def main():
             'project_type':      ptype,
             'metro':             target['metro'],
             'comparables':       top_comps_payload,
-            'pattern_summary':   build_pattern_summary(
-                target, len(pool), estimate, low, high, avg_distance_km, firm_signal
+            'pattern_summary':   (
+                # Mixed-use override — the standard pattern summary talks about
+                # "same-type" comparables which is misleading when the comp pool
+                # is tiny AND we've applied a complexity surcharge. Substitute
+                # a mixed-use-aware sentence that names the dynamics readers
+                # need to understand: small completed pool, complexity uplift,
+                # phased delivery.
+                f"Mixed-use developments of this scale routinely span "
+                f"{format_years(round(low, 1))}–{format_years(round(high, 1))} years "
+                f"with phased delivery. Based on {len(pool)} completed mixed-use "
+                f"comparable{'s' if len(pool) != 1 else ''}, with an added complexity "
+                f"factor since cross-component coordination typically extends timelines."
+                if mu_applied
+                else build_pattern_summary(
+                    target, len(pool), estimate, low, high, avg_distance_km, firm_signal
+                )
             ),
             # Pass the speculative flag through even on the comparables path —
             # the estimate doesn't depend on Jake's dates here, but the map
             # still wants to surface the "EST" badge on the popup/modal so
             # readers know the project's underlying dates aren't confirmed.
             'dates_speculative': dates_speculative,
+            # Set when the mixed-use complexity surcharge was applied to this
+            # entry. The frontend can use this to surface a small "mixed-use"
+            # tag on the intel block so readers know the timeline reflects
+            # phased / multi-component reality, not a simple single-use build.
+            'is_mixed_use':      mu_applied,
         }
         stats[tier] += 1
 
@@ -1267,6 +1334,7 @@ def main():
     print(f"  low    confidence:           {stats['low']}")
     print(f"  firm-track-record boosts:    {stats['firm_boosted']}")
     print(f"  speculative-dates softened:  {stats['speculative_softened']}")
+    print(f"  mixed-use complexity uplift: {stats.get('mixed_use_adjusted', 0)}")
     print(f"  skipped (insufficient data): {stats['skipped']}")
     print(f"  skipped (no project type):   {stats['no_type']}")
     print(f"  total intel entries written: {len(intel)}")
