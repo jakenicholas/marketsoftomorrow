@@ -9508,26 +9508,42 @@
             // Past-tense reported fact. This project IS complete and we
             // know exactly how long it took, so we report rather than
             // estimate. No comparables or disclaimer needed.
+            // Speculative flag override: when the dates were TMW estimates
+            // rather than developer-confirmed (rare for completed projects
+            // but possible), swap "Completed" → "TMW estimate" pill and
+            // soften the past-tense framing.
+            const isSpec = !!entry.dates_speculative;
             wrap.innerHTML = `
               <div class="pm-intel-head">
                 <span class="pm-intel-badge">
                   <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2L4 7v10l8 5 8-5V7l-8-5zm0 2.5L18 8v8l-6 3.75L6 16V8l6-3.5z"/></svg>
                   TMW Intelligence
                 </span>
-                <div class="pm-intel-title">Actual Time to Complete</div>
-                <span class="pm-intel-confidence" data-conf="high">Completed</span>
+                <div class="pm-intel-title">${isSpec ? 'Estimated Time to Complete' : 'Actual Time to Complete'}</div>
+                <span class="pm-intel-confidence" data-conf="${isSpec ? 'medium' : 'high'}">${isSpec ? 'TMW estimate' : 'Completed'}</span>
               </div>
               <div class="pm-intel-estimate">${escapeArticleHtml(estimateLabel)} <span class="unit">to complete</span></div>
               <div class="pm-intel-pattern">${escapeArticleHtml(entry.pattern_summary || '')}</div>
+              ${isSpec ? '<div class="pm-intel-disclaimer">Dates not developer-confirmed. TMW estimated the timeline based on observed activity; actuals can vary.</div>' : ''}
             `;
           } else if (source === 'known_date') {
             // Date-derived estimate. Whether we show the "Developer
-            // announced" confidence tag + disclaimer depends on the
-            // precision of the source date:
-            //   - 'day' precision (YYYY-MM-DD): full confidence framing
-            //   - month/quarter/season/year: drop the developer-attribution
-            //     since we're inferring vagueness into a specific number
+            // announced" confidence tag + disclaimer depends on TWO things:
+            //   1. Date precision — only 'day' (YYYY-MM-DD) gets the full
+            //      developer-attribution framing; vaguer precisions drop it.
+            //   2. Speculative flag — when Jake marked the dates as TMW
+            //      best-guesses, "Developer announced" is wrong on its face;
+            //      swap to purple "TMW estimate" pill + estimated framing.
             const isDayPrecise = (entry.precision === 'day');
+            const isSpec = !!entry.dates_speculative;
+            const confidencePill = isSpec
+              ? '<span class="pm-intel-confidence" data-conf="medium">TMW estimate</span>'
+              : (isDayPrecise ? '<span class="pm-intel-confidence" data-conf="high">Developer announced</span>' : '');
+            const disclaimerText = isSpec
+              ? "TMW-estimated dates based on project type and stage — not a developer commitment. Confidence drops accordingly."
+              : (isDayPrecise
+                  ? "Based on the developer's announced opening date. Schedules can shift; we update this daily."
+                  : "Estimate based on the project's targeted opening window. Schedules can shift; we update this daily.");
             wrap.innerHTML = `
               <div class="pm-intel-head">
                 <span class="pm-intel-badge">
@@ -9535,14 +9551,11 @@
                   TMW Intelligence
                 </span>
                 <div class="pm-intel-title">Estimated Time to Completion</div>
-                ${isDayPrecise ? `<span class="pm-intel-confidence" data-conf="high">Developer announced</span>` : ''}
+                ${confidencePill}
               </div>
               <div class="pm-intel-estimate">${escapeArticleHtml(estimateLabel)} <span class="unit">to completion</span></div>
               <div class="pm-intel-pattern">${escapeArticleHtml(entry.pattern_summary || '')}</div>
-              <div class="pm-intel-disclaimer">${isDayPrecise
-                ? "Based on the developer's announced opening date. Schedules can shift; we update this daily."
-                : "Estimate based on the project's targeted opening window. Schedules can shift; we update this daily."
-              }</div>
+              <div class="pm-intel-disclaimer">${disclaimerText}</div>
             `;
           } else {
             wrap.innerHTML = `
