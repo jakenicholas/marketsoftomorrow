@@ -197,6 +197,11 @@ def flatten(record: dict, architect_names: dict, developer_names: dict) -> dict:
         # the schema.
         'ConfigSummary':   (record.get('config_summary') or '').strip(),
         'DeliveryPhases':  (record.get('delivery_phases') or '').strip(),
+        # Flag: dates above (StartDate, DeliveryDate) are TMW estimates rather
+        # than developer-confirmed. Drives the "EST" badge on the map popup +
+        # project modal, and downgrades TMW Intelligence's confidence tag from
+        # "Developer announced" → "TMW estimate" in generate_intel.py.
+        'DatesSpeculative': '1' if record.get('dates_speculative') else '',
         # Price isn't in the tmw-data schema yet. Existing _parse_price()
         # handles blank values gracefully (returns 0), so emitting '' is
         # safe. When tmw-data adds a price field, map it here.
