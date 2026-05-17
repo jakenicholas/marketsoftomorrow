@@ -2893,6 +2893,8 @@
       display: flex;
       flex-direction: column;
       gap: 4px;
+      align-items: flex-start;
+      text-align: left;
     }
     .popup-content .popup-config {
       font-size: 11.5px;
@@ -3699,6 +3701,8 @@
     display: flex;
     flex-direction: column;
     gap: 6px;
+    align-items: flex-start;
+    text-align: left;
   }
   #projectModal .pm-config {
     font-size: 13px;
@@ -8573,7 +8577,15 @@
       // in low-density areas. In high-density areas the cluster check
       // below bumps this up.
       let targetZoom = Math.max(currentZoom, 13);
-      const off = isMobile ? computeMobilePinOffset() : [0, 0];
+      // Position the pin so the popup (anchored at pin bottom, growing
+      // UPWARD) has room above it within the viewport:
+      //   - Mobile: 70% of viewport height (via computeMobilePinOffset)
+      //   - Desktop: 150px below center — matches the offset the pin-click
+      //     handler uses (line ~12713). Previously this was [0, 0], which
+      //     left the pin viewport-centered and the popup overflowed off
+      //     the top — visible when opening a project from a pulse
+      //     notification on desktop.
+      const off = isMobile ? computeMobilePinOffset() : [0, 150];
 
       // Cluster-expansion safety check: in dense areas (NYC, Miami) the
       // pin can still be inside a cluster at zoom 13. queryRenderedFeatures
@@ -9723,44 +9735,25 @@
           : (p.city || '');
 
         // Configuration & phasing block — render between subtitle and
-        // progress bar. All three signals are optional; we hide the wrapper
-        // entirely when none is set so the existing layout stays
-        // pixel-identical for the majority of projects.
-        // EST DATE pill (purple, TMW Intelligence palette) appears when
-        // the dates are flagged speculative in tmw-data.
+        // progress bar. The EST DATE pill was removed per Jake's feedback;
+        // speculative status surfaces inside the TMW Intelligence chip and
+        // doesn't need a second indicator at the top of the modal. The
+        // PHASED pill stays — it conveys a structural fact about the
+        // project (multi-phase delivery) that the dates field can't.
         (() => {
           const cfgEl = document.getElementById('pmConfigBlock');
           if (!cfgEl) return;
           const cfg = (p.configSummary || '').trim();
           const phs = (p.deliveryPhases || '').trim();
-          const startEst = !!p.startSpeculative;
-          const deliveryEst = !!p.deliverySpeculative;
-          const est = startEst || deliveryEst;
-          if (!cfg && !phs && !est) {
+          if (!cfg && !phs) {
             cfgEl.hidden = true;
             cfgEl.innerHTML = '';
             return;
           }
           const escA = (s) => (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-          // Pill text + tooltip both adapt to which date(s) are estimated.
-          // Modal has more horizontal room than the popup, so we use a
-          // slightly more descriptive label when only one date is estimated.
-          const estLabel = (startEst && deliveryEst) ? 'EST DATES'
-                         : (startEst ? 'EST START' : 'EST DELIVERY');
-          const estTooltip = (startEst && deliveryEst)
-            ? 'Both start and delivery dates are TMW estimates — not developer-confirmed.'
-            : (startEst
-                ? 'Start date is a TMW estimate — not developer-confirmed.'
-                : 'Delivery date is a TMW estimate — not developer-confirmed.');
-          const phasedRowHtml = (phs || est)
-            ? `<div class="pm-phases">
-                 ${est ? `<span class="pm-phases-pill est" title="${estTooltip}">${estLabel}</span>` : ''}
-                 ${phs ? `<span class="pm-phases-pill">PHASED</span><span class="pm-phases-text">${escA(phs)}</span>` : ''}
-               </div>`
-            : '';
           cfgEl.innerHTML = `
             ${cfg ? `<div class="pm-config">${escA(cfg)}</div>` : ''}
-            ${phasedRowHtml}
+            ${phs ? `<div class="pm-phases"><span class="pm-phases-pill">PHASED</span><span class="pm-phases-text">${escA(phs)}</span></div>` : ''}
           `;
           cfgEl.hidden = false;
         })();
@@ -10226,38 +10219,20 @@
               return typeLabel ? `${city} • ${typeLabel}` : city;
             })()}</p>
             ${(() => {
-              // Optional "configuration & phasing" block. Lives right below
-              // the subtitle so it reads like an extension of the project's
-              // identity. Either field can be blank — render only what's set,
-              // hide the wrapper when all three are empty.
-              // The third element is the EST DATE pill, shown when the project's
-              // dates are flagged speculative in tmw-data (means: TMW best guess,
-              // not developer-confirmed).
+              // Configuration + phasing block. Per Jake's feedback the popup
+              // is space-constrained so we only surface:
+              //   - configSummary (italic line, when set)
+              //   - a single PHASED pill (no descriptive text, when set)
+              // The EST DATE pill was removed — speculative status reads
+              // inside the TMW Intelligence chip instead.
               const cfg = (f.properties.configSummary || '').trim();
               const phs = (f.properties.deliveryPhases || '').trim();
-              const startEst = !!f.properties.startSpeculative;
-              const deliveryEst = !!f.properties.deliverySpeculative;
-              const est = startEst || deliveryEst;
-              if (!cfg && !phs && !est) return '';
+              if (!cfg && !phs) return '';
               const escA = (s) => (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-              // Tooltip names which specific date(s) are estimated, so a
-              // reader hovering can immediately tell if it's the groundbreaking,
-              // the completion, or both that's TMW's guess.
-              const estTooltip = (startEst && deliveryEst)
-                ? 'Both start and delivery dates are TMW estimates — not developer-confirmed.'
-                : (startEst
-                    ? 'Start date is a TMW estimate — not developer-confirmed.'
-                    : 'Delivery date is a TMW estimate — not developer-confirmed.');
-              const phasedPillsHtml = (phs || est)
-                ? `<div class="popup-phases">
-                     ${est ? `<span class="popup-phases-pill est" title="${estTooltip}">EST DATE</span>` : ''}
-                     ${phs ? `<span class="popup-phases-pill">PHASED</span><span class="popup-phases-text">${escA(phs)}</span>` : ''}
-                   </div>`
-                : '';
               return `
                 <div class="popup-config-block">
                   ${cfg ? `<div class="popup-config">${escA(cfg)}</div>` : ''}
-                  ${phasedPillsHtml}
+                  ${phs ? `<div class="popup-phases"><span class="popup-phases-pill" title="${escA(phs)}">PHASED</span></div>` : ''}
                 </div>`;
             })()}
             ${deliveryBarHTML(f.properties.delivery)}
