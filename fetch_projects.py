@@ -197,6 +197,15 @@ def flatten(record: dict, architect_names: dict, developer_names: dict) -> dict:
         # the schema.
         'ConfigSummary':   (record.get('config_summary') or '').strip(),
         'DeliveryPhases':  (record.get('delivery_phases') or '').strip(),
+        # Flag: this project represents a district umbrella (Miami Worldcenter,
+        # Wynwood Plaza, etc) — multiple buildings under one branded
+        # development with shared retail/streetscapes. Districts have their
+        # own delivery (when the public realm completes) but excluding them
+        # from intel comparable pools prevents them from biasing other
+        # projects' time-to-completion estimates. Read in generate_intel.py
+        # by build_complete_index() which filters districts out of the
+        # comparables index.
+        'IsDistrict':       '1' if record.get('is_district') else '',
         # Per-date "TMW estimate" flags. Set independently in admin so a
         # project can have a developer-confirmed groundbreaking but a TMW-
         # guessed completion (or vice-versa). Drives the EST badge + softens
