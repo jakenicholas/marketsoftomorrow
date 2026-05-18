@@ -8017,9 +8017,13 @@
       margin-top: 1px;
     }
     body.ui-v2 .v2-search-arrow {
-      color: rgba(255,255,255,0.3);
-      font-size: 18px;
-      line-height: 1;
+      color: rgba(255,255,255,0.4);
+      display: inline-flex;
+      align-items: center;
+      flex-shrink: 0;
+    }
+    body.ui-v2 .v2-search-arrow svg {
+      width: 14px; height: 14px;
     }
     /* X button on recent search rows */
     body.ui-v2 .v2-search-row-del {
@@ -8326,8 +8330,11 @@
       flex-shrink: 0;
     }
 
-    /* ‚îÄ‚îÄ Tile image gallery (prev/next arrows) ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ */
-    body.ui-v2 #gridMobile .grid-item .v2-gallery-arrow {
+    /* ‚îÄ‚îÄ Tile image gallery (prev/next arrows + dots) ‚Äî shared by both
+       gridMobile + gridDesktop. The decorateTiles() function injects
+       the elements into either grid; the CSS below styles them
+       identically so desktop and mobile slideshows look the same. */
+    body.ui-v2 :is(#gridMobile, #gridDesktop) .grid-item .v2-gallery-arrow {
       position: absolute;
       top: 50%; transform: translateY(-50%);
       width: 32px; height: 32px;
@@ -8339,34 +8346,28 @@
       display: flex; align-items: center; justify-content: center;
       color: #fff;
       cursor: pointer;
-      opacity: 0;
+      opacity: 1;
       transition: opacity 0.15s;
       z-index: 3;
     }
-    body.ui-v2 #gridMobile .grid-item:hover .v2-gallery-arrow,
-    body.ui-v2 #gridMobile .grid-item .v2-gallery-arrow.always-visible {
-      opacity: 1;
-    }
-    body.ui-v2 #gridMobile .grid-item .v2-gallery-arrow.prev { left: 8px; }
-    body.ui-v2 #gridMobile .grid-item .v2-gallery-arrow.next { right: 8px; }
-    body.ui-v2 #gridMobile .grid-item .v2-gallery-arrow svg {
+    body.ui-v2 :is(#gridMobile, #gridDesktop) .grid-item .v2-gallery-arrow.prev { left: 8px; }
+    body.ui-v2 :is(#gridMobile, #gridDesktop) .grid-item .v2-gallery-arrow.next { right: 8px; }
+    body.ui-v2 :is(#gridMobile, #gridDesktop) .grid-item .v2-gallery-arrow svg {
       width: 16px; height: 16px;
       stroke: currentColor; fill: none; stroke-width: 2.4; stroke-linecap: round;
     }
-    /* Mobile ‚Äî always show arrows since hover doesn't apply */
-    body.ui-v2 #gridMobile .grid-item .v2-gallery-arrow { opacity: 1; }
-    body.ui-v2 #gridMobile .grid-item .v2-gallery-dots {
+    body.ui-v2 :is(#gridMobile, #gridDesktop) .grid-item .v2-gallery-dots {
       position: absolute;
       bottom: 10px; right: 10px;
       display: flex; gap: 4px;
       z-index: 2;
     }
-    body.ui-v2 #gridMobile .grid-item .v2-gallery-dot {
+    body.ui-v2 :is(#gridMobile, #gridDesktop) .grid-item .v2-gallery-dot {
       width: 6px; height: 6px;
       border-radius: 50%;
       background: rgba(255,255,255,0.4);
     }
-    body.ui-v2 #gridMobile .grid-item .v2-gallery-dot.active {
+    body.ui-v2 :is(#gridMobile, #gridDesktop) .grid-item .v2-gallery-dot.active {
       background: #fff;
       width: 16px;
       border-radius: 100px;
@@ -8939,7 +8940,20 @@
 
     /* ‚îÄ‚îÄ DESKTOP SIDEBAR ‚Äî 540px, dark, flush ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ */
     body.ui-v2 #app-container { padding-top: 60px !important; }
-    body.ui-v2 #map { left: 540px !important; }
+    body.ui-v2 #map { left: 540px !important; transition: left 0.3s ease; }
+    /* Collapsed state ‚Äî user clicked the X on the search bar. Sidebar
+       slides out left, map expands to full viewport width. The floating
+       #desktopSearchPill at top-left reopens the sidebar. */
+    body.ui-v2.v2-sidebar-collapsed #desktopSidebar {
+      transform: translateX(-100%) !important;
+      pointer-events: none !important;
+    }
+    body.ui-v2.v2-sidebar-collapsed #map { left: 0 !important; }
+    /* Hide the floating #desktopSearchPill while the v2 sidebar is open
+       (its search bar is the canonical input). Only show it when the
+       sidebar is collapsed, as the reopen affordance. */
+    body.ui-v2 #desktopSearchPill { display: none !important; }
+    body.ui-v2.v2-sidebar-collapsed #desktopSearchPill { display: flex !important; }
     body.ui-v2 #desktopSidebar {
       width: 540px !important;
       top: 60px !important;
@@ -9256,9 +9270,11 @@
     body.ui-v2 #desktopSidebar #closeSidebar {
       display: none !important;
     }
-    /* Filter button ‚Äî circle with icon + small count badge */
+    /* Filter button ‚Äî only visible when filters are applied
+       (.has-filters class is set when sidebarPillFilterCount > 0). The
+       button is otherwise hidden so the search bar reads cleaner. */
     body.ui-v2 #desktopSidebar .sidebar-pill-filter-btn {
-      display: inline-flex !important;
+      display: none !important;
       align-items: center !important;
       justify-content: center !important;
       gap: 5px !important;
@@ -9270,6 +9286,9 @@
       flex-shrink: 0 !important;
       cursor: pointer !important;
       color: rgba(255,255,255,0.7) !important;
+    }
+    body.ui-v2 #desktopSidebar .sidebar-pill-filter-btn.has-filters {
+      display: inline-flex !important;
     }
     body.ui-v2 #desktopSidebar .sidebar-pill-filter-btn svg {
       width: 14px !important; height: 14px !important;
@@ -9304,6 +9323,27 @@
       font-weight: 600 !important;
       white-space: nowrap !important;
       flex-shrink: 0 !important;
+    }
+    body.ui-v2 #desktopSidebar .sidebar-pill-close {
+      width: 28px !important; height: 28px !important;
+      background: rgba(255,255,255,0.08) !important;
+      border: 1px solid rgba(255,255,255,0.12) !important;
+      border-radius: 50% !important;
+      color: rgba(255,255,255,0.6) !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      padding: 0 !important;
+      flex-shrink: 0 !important;
+      margin-left: 4px !important;
+      cursor: pointer !important;
+    }
+    body.ui-v2 #desktopSidebar .sidebar-pill-close:hover {
+      color: #fff !important;
+      background: rgba(255,255,255,0.14) !important;
+    }
+    body.ui-v2 #desktopSidebar .sidebar-pill-close svg {
+      width: 12px !important; height: 12px !important;
     }
 
     /* Hide the 3-dropdown filter pill ‚Äî replaced by injected v2 tabs */
@@ -9411,20 +9451,17 @@
       grid-gap: 10px !important;
       padding: 0 16px 16px !important;
     }
-    /* Nested section sub-grids (In View / More Nearby) ‚Äî 2-column grid
-       to match mobile. Each tile is vertical (image on top, body below). */
+    /* Nested section sub-grids ‚Äî 1-column stack on desktop. Tiles are
+       vertical (image on top, body below) to match mobile exactly. */
     body.ui-v2 #desktopSidebar #gridDesktop .inview-section,
     body.ui-v2 #desktopSidebar #gridDesktop .nearby-section,
     body.ui-v2 #desktopSidebar .leaf-grid .inview-section,
     body.ui-v2 #desktopSidebar .leaf-grid .nearby-section {
-      display: grid !important;
-      grid-template-columns: 1fr 1fr !important;
+      display: flex !important;
+      flex-direction: column !important;
+      grid-template-columns: none !important;
       gap: 10px !important;
       padding: 0 !important;
-    }
-    /* Section header spans both columns */
-    body.ui-v2 #desktopSidebar #gridDesktop .section-header-wrap {
-      grid-column: 1 / -1 !important;
     }
     /* Section header (the IN VIEW / NEARBY pill row) ‚Äî needs space */
     body.ui-v2 #desktopSidebar .section-header-wrap {
@@ -9541,8 +9578,8 @@
       width: 100% !important;
       min-width: 0 !important;
       max-width: none !important;
-      height: 140px !important;
-      min-height: 140px !important;
+      height: 240px !important;
+      min-height: 240px !important;
       flex-shrink: 0 !important;
       border-radius: 0 !important;
       position: relative !important;
@@ -9550,7 +9587,7 @@
     body.ui-v2 #desktopSidebar .grid-item img {
       width: 100% !important;
       height: 100% !important;
-      min-height: 140px !important;
+      min-height: 240px !important;
       object-fit: cover !important;
       border-radius: 0 !important;
     }
@@ -9759,6 +9796,7 @@
     }
     body.ui-v2 .v2-dso-icon.project { background: rgba(31,223,103,0.14); color: var(--accent, #1FDF67); }
     body.ui-v2 .v2-dso-icon.city    { background: rgba(111,168,255,0.14); color: #6FA8FF; }
+    body.ui-v2 .v2-dso-icon.firm    { background: rgba(167,139,250,0.14); color: #A78BFA; }
     body.ui-v2 .v2-dso-icon svg { width: 16px; height: 16px; }
     body.ui-v2 .v2-dso-body-text { flex: 1; min-width: 0; }
     body.ui-v2 .v2-dso-label {
@@ -11184,6 +11222,8 @@
       const desktopPill = document.getElementById('desktopSearchPill');
       if (desktopPill) {
         desktopPill.addEventListener('click', () => {
+          // v2: drop the collapsed body class to slide the sidebar back in.
+          document.body.classList.remove('v2-sidebar-collapsed');
           if (sidebar && !sidebar.classList.contains('open')) {
             sidebar.classList.add('open');
             renderGrid('gridDesktop');
@@ -19996,6 +20036,7 @@
         const features = window.allProjectFeatures || [];
         const q = query.toLowerCase().trim();
         if (!q) { bodyEl.innerHTML = '<div style="padding:20px;color:rgba(255,255,255,0.45);font-size:13px">Start typing to search projects, cities, firms‚Ä¶</div>'; return; }
+        const arrowSvg = '<span class="v2-dso-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg></span>';
         // Project matches
         const projMatches = features.filter(f => (f.properties.title || '').toLowerCase().includes(q)).slice(0, 12);
         // City matches
@@ -20007,6 +20048,15 @@
           }
         });
         const cities = [...citySet.entries()].slice(0, 5);
+        // Firm matches ‚Äî unique architects + developers whose names
+        // contain the query (same source as mobile's search firm list).
+        const firmSet = new Set();
+        for (const f of features) {
+          const a = (f.properties.architect || '').split(',').map(s => s.trim()).filter(Boolean);
+          const d = (f.properties.developer || '').split(',').map(s => s.trim()).filter(Boolean);
+          [...a, ...d].forEach(n => { if (n.toLowerCase().includes(q)) firmSet.add(n); });
+        }
+        const firmMatches = Array.from(firmSet).slice(0, 6);
 
         let html = '';
         if (projMatches.length) {
@@ -20017,7 +20067,7 @@
                   + '<div class="v2-dso-icon project"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/></svg></div>'
                   + '<div class="v2-dso-body-text"><div class="v2-dso-label">' + highlight(p.title, q) + '</div>'
                   + '<div class="v2-dso-sub">' + escapeHtml(p.city || '') + ' &middot; ' + escapeHtml(p.delivery || '') + '</div></div>'
-                  + '<span class="v2-dso-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg></span>'
+                  + arrowSvg
                   + '</div>';
           });
           html += '</div>';
@@ -20029,17 +20079,29 @@
                   + '<div class="v2-dso-icon city"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 10c0 6-8 13-8 13s-8-7-8-13a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg></div>'
                   + '<div class="v2-dso-body-text"><div class="v2-dso-label">' + highlight(city, q) + '</div>'
                   + '<div class="v2-dso-sub">' + count + ' project' + (count===1?'':'s') + '</div></div>'
-                  + '<span class="v2-dso-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg></span>'
+                  + arrowSvg
                   + '</div>';
           });
           html += '</div>';
         }
-        if (!projMatches.length && !cities.length) {
+        if (firmMatches.length) {
+          html += '<div class="v2-dso-group"><div class="v2-dso-group-head">Firms &middot; ' + firmMatches.length + ' matches</div>';
+          firmMatches.forEach(name => {
+            html += '<div class="v2-dso-row" data-firm="' + escapeHtml(name) + '">'
+                  + '<div class="v2-dso-icon firm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 8v8M15 8v8"/></svg></div>'
+                  + '<div class="v2-dso-body-text"><div class="v2-dso-label">' + highlight(name, q) + '</div>'
+                  + '<div class="v2-dso-sub">Firm</div></div>'
+                  + arrowSvg
+                  + '</div>';
+          });
+          html += '</div>';
+        }
+        if (!projMatches.length && !cities.length && !firmMatches.length) {
           html = '<div style="padding:30px 20px;text-align:center;color:rgba(255,255,255,0.45);font-size:13px">No results for "' + escapeHtml(query) + '"</div>';
         }
         bodyEl.innerHTML = html;
 
-        // Wire row clicks ‚Üí open project modal or search-by-city
+        // Wire row clicks ‚Üí open project modal or search-by-city/firm
         bodyEl.querySelectorAll('[data-proj-title]').forEach(row => {
           row.addEventListener('click', () => {
             const title = row.dataset.projTitle;
@@ -20055,6 +20117,20 @@
             searchInput.value = row.dataset.city;
             searchInput.dispatchEvent(new Event('input', { bubbles: true }));
             close();
+          });
+        });
+        bodyEl.querySelectorAll('[data-firm]').forEach(row => {
+          row.addEventListener('click', () => {
+            // Reuse the same firm sheet that the project modal links to.
+            const name = row.dataset.firm;
+            if (window.openFirmSheet) {
+              window.openFirmSheet(name);
+              close();
+            } else {
+              // Fallback ‚Äî search by firm name in the input
+              searchInput.value = name;
+              searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+            }
           });
         });
       }
@@ -20251,10 +20327,27 @@
         count.className = 'sidebar-pill-count';
         count.id = 'sidebarPillCount';
         count.textContent = '‚Äî results';
+        // X close button at the far right of the search pill ‚Äî closes
+        // the desktop sidebar drawer. Sized small so it shaves a bit of
+        // width off the search input area.
+        const closeBtn = document.createElement('button');
+        closeBtn.type = 'button';
+        closeBtn.className = 'sidebar-pill-close';
+        closeBtn.id = 'sidebarPillCloseBtn';
+        closeBtn.setAttribute('aria-label', 'Close sidebar');
+        closeBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>';
+        closeBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          // Collapse the desktop sidebar ‚Äî body class flips the CSS that
+          // slides it out and gives the map full width. Tap the floating
+          // search pill at top-left of the map to reopen.
+          document.body.classList.add('v2-sidebar-collapsed');
+        });
         const autoEl = pill.querySelector('#sidebarAutocomplete');
         pill.appendChild(filterBtn);
         pill.appendChild(divider);
         pill.appendChild(count);
+        pill.appendChild(closeBtn);
         // Re-append autocomplete last so it stays absolutely positioned
         // beneath the pill content
         if (autoEl) pill.appendChild(autoEl);
@@ -20289,8 +20382,8 @@
 
         // Hide the standalone #closeSidebar X ‚Äî the search pill is the
         // primary control; close is handled elsewhere.
-        const closeBtn = document.getElementById('closeSidebar');
-        if (closeBtn) closeBtn.style.display = 'none';
+        const legacyCloseBtn = document.getElementById('closeSidebar');
+        if (legacyCloseBtn) legacyCloseBtn.style.display = 'none';
       })();
 
       const DESKTOP_PILLS = {
@@ -21181,41 +21274,71 @@
           handler();
         });
       };
+      // Helper ‚Äî figure out whether we're on mobile (sheet open) or
+      // desktop (sidebar always open) and route tab opens correctly.
+      const v2MenuIsDesktop = () => window.matchMedia('(min-width: 801px)').matches;
+      const v2MenuSwitchTab = (tabId) => {
+        if (v2MenuIsDesktop()) {
+          // Make sure the sidebar is open
+          const sb = document.getElementById('desktopSidebar');
+          if (sb && !sb.classList.contains('open')) sb.classList.add('open');
+          const tab = document.querySelector(`.v2-desktop-tabs button[data-v2d-tab="${tabId}"]`);
+          if (tab) tab.click();
+        } else {
+          if (typeof openSheet === 'function') openSheet();
+          const tab = document.querySelector(`.v2-tab[data-v2-tab="${tabId}"]`);
+          if (tab) tab.click();
+        }
+      };
+
       wireMenu('v2MenuAccount', () => {
-        // Open Memberstack profile modal ‚Äî click whatever's inside #paywallAuthHeader
+        // Open the Memberstack profile modal. v2 hides #paywallAuthHeader
+        // visually (display:none), but Memberstack v2 exposes a
+        // programmatic API we can call directly.
+        try {
+          if (window.$memberstackDom && window.$memberstackDom.openModal) {
+            window.$memberstackDom.openModal('PROFILE');
+            return;
+          }
+        } catch(_) {}
+        // Fallback: temporarily make the hidden legacy auth button
+        // clickable, click it, then re-hide.
         const legacyAuth = document.getElementById('paywallAuthHeader');
         if (!legacyAuth) return;
-        const target = legacyAuth.querySelector('button, a, [role="button"]') || legacyAuth;
-        target.click();
+        const target = legacyAuth.querySelector('[data-ms-content="member-profile"], [data-ms-modal="PROFILE"], button, a, [role="button"]');
+        if (target) target.click();
       });
       wireMenu('v2MenuWatchlist', () => {
-        // Open Watchlist tab in the drawer
-        openSheet();
-        const tab = document.querySelector('.v2-tab[data-v2-tab="watchlist"]');
-        if (tab) tab.click();
+        v2MenuSwitchTab('watchlist');
       });
       wireMenu('v2MenuCompare', () => {
         // Open the comparison view. The legacy app uses ?view=compare
         // OR the body.compare-view-active class, both managed by compare.js.
-        // Simplest: navigate to /?view=compare which compare.js intercepts.
         try {
           const url = new URL(window.location.href);
           url.searchParams.set('view', 'compare');
           window.location.href = url.toString();
         } catch (e) {
-          // Fallback: try clicking any compare bar
           const cmp = document.getElementById('compareBar') ||
                       document.querySelector('[data-compare-toggle], .compare-btn');
           if (cmp) cmp.click();
         }
       });
       wireMenu('v2MenuSignOut', () => {
-        // Memberstack handles sign out ‚Äî try common selectors
-        const signOut = document.querySelector('[data-ms-action="logout"], [data-ms-content="logout"], .ms-logout');
+        // Try Memberstack v2 API first, then fall back to clicking any
+        // legacy logout button.
+        try {
+          if (window.$memberstackDom && window.$memberstackDom.logout) {
+            window.$memberstackDom.logout().then(() => {
+              window.location.reload();
+            }).catch(() => { window.location.reload(); });
+            return;
+          }
+        } catch(_) {}
+        const signOut = document.querySelector('[data-ms-action="logout"], [data-ms-content="logout"], .ms-logout, [data-ms-action="log-out"]');
         if (signOut) {
           signOut.click();
-        } else if (window.$memberstackDom && window.$memberstackDom.logout) {
-          window.$memberstackDom.logout();
+          setTimeout(() => window.location.reload(), 500);
         }
       });
 
@@ -21710,7 +21833,7 @@
                 <span class="v2-search-label">${highlight(f.properties.title, q)}</span>
                 <span class="v2-search-sub">${escapeText(f.properties.city || '')}${f.properties.preferredType ? ' &middot; ' + escapeText(f.properties.preferredType) : ''}</span>
               </span>
-              <span class="v2-search-arrow">‚Ä∫</span>
+              <span class="v2-search-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></span>
             </button>
           `;
         };
@@ -21723,7 +21846,7 @@
               <span class="v2-search-label">${highlight(city, q)}</span>
               <span class="v2-search-sub">City</span>
             </span>
-            <span class="v2-search-arrow">‚Ä∫</span>
+            <span class="v2-search-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></span>
           </button>
         `;
         const renderFirmRow = (name) => `
@@ -21735,7 +21858,7 @@
               <span class="v2-search-label">${highlight(name, q)}</span>
               <span class="v2-search-sub">Firm</span>
             </span>
-            <span class="v2-search-arrow">‚Ä∫</span>
+            <span class="v2-search-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></span>
           </button>
         `;
         let html = '';
