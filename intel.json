@@ -1,6 +1,41 @@
 {
   "generated_at": "2026-05-18",
   "projects": {
+    "1250-west-avenue": {
+      "estimate_years": 8.4,
+      "estimate_label": "~8.4 years",
+      "range_low": 8.4,
+      "range_high": 8.4,
+      "confidence": "low",
+      "comparable_count": 1,
+      "good_count": 1,
+      "exact_count": 1,
+      "used_relaxed": true,
+      "avg_match_score": 0.7,
+      "avg_distance_km": 11.6,
+      "avg_distance_mi": 7.2,
+      "scale_used": true,
+      "firm_signal": null,
+      "source": "comparables",
+      "project_type": "Residences",
+      "metro": "South Florida",
+      "comparables": [
+        {
+          "name": "Arbor Coconut Grove",
+          "slug": "arbor-coconut-grove",
+          "location": "Miami",
+          "years": 8.4,
+          "score": 0.7,
+          "distance_km": 11.6,
+          "distance_mi": 7.2
+        }
+      ],
+      "pattern_summary": "Among 1 nearby residences project in TMW's data, the median time to completion is 8.4 years.",
+      "dates_speculative": true,
+      "start_speculative": true,
+      "delivery_speculative": true,
+      "is_mixed_use": false
+    },
     "fulton-bond": {
       "estimate_years": 3.2,
       "estimate_label": "~3.2 years",
@@ -4178,10 +4213,10 @@
     "3rd-3rd": {
       "estimate_years": 0.6,
       "estimate_label": "~7 months",
-      "days_out": 227,
-      "delivery_date": "2026-12-31",
+      "days_out": 211,
+      "delivery_date": "2026-12-15",
       "source": "known_date",
-      "precision": "year",
+      "precision": "month",
       "confidence": "high",
       "project_type": "Residences",
       "metro": "Tampa Bay",
@@ -6747,7 +6782,7 @@
   "stats": {
     "high": 0,
     "medium": 25,
-    "low": 23,
+    "low": 24,
     "known_date": 239,
     "completed": 28,
     "skipped": 59,
