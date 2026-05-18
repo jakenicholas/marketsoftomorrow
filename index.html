@@ -7294,10 +7294,12 @@
     body.ui-v2 #zoomOutButton,
     body.ui-v2 #resetViewButton,
     body.ui-v2 #layersButton,
-    body.ui-v2 #locationButton,
-    body.ui-v2 #layersPanel { display: none !important; }
-    /* Re-show layers panel when the v2 layers button is tapped */
-    body.ui-v2.v2-layers-open #layersPanel { display: flex !important; }
+    body.ui-v2 #locationButton { display: none !important; }
+    /* Keep #layersPanel hidden by default (legacy CSS does this already)
+       but allow `.open` (added by legacy click handler) to reveal it.
+       Without this, our v2 hide-rule was overriding the open-state. */
+    body.ui-v2 #layersPanel:not(.open) { display: none !important; }
+    body.ui-v2 #layersPanel.open { display: flex !important; }
     /* Hide the legacy .mobile-filter-pill — we don't want the
        Nearest/Type/Status segmented slider in v2; replaced by contextual
        horizontal-scroll filter pills per tab. */
@@ -7316,14 +7318,12 @@
     body.ui-v2 .atlas-mode-toggle { display: none !important; }
 
     /* ── TOP CHROME ──────────────────────────────────────────────────
-       Layout: Map/Atlas toggle sits at the LEFT, combined TMW+Profile
-       widget on the RIGHT. The combined widget is a horizontal capsule
-       with TMW logo + divider + profile circle (with optional gold star
-       for premium users). */
+       Layout: TMW logo on the LEFT (no background, raw white SVG) ·
+       Map/Atlas toggle CENTERED · right side empty. Three-column flex
+       layout with the toggle absolutely centered. */
     body.ui-v2 .v2-top-chrome {
       display: flex;
       align-items: center;
-      justify-content: space-between;
       position: fixed;
       top: calc(env(safe-area-inset-top, 0px) + 8px);
       left: 0; right: 0;
@@ -7332,7 +7332,22 @@
       pointer-events: none;
     }
     body.ui-v2 .v2-top-chrome > * { pointer-events: auto; }
+    /* TMW logo on the left — no glass bg, just the white SVG */
+    body.ui-v2 .v2-tmw-logo {
+      width: 42px; height: 42px;
+      display: flex; align-items: center; justify-content: center;
+      padding: 0;
+      flex-shrink: 0;
+    }
+    body.ui-v2 .v2-tmw-logo img {
+      width: 100%; height: 100%;
+      object-fit: contain;
+      filter: brightness(0) invert(1);
+    }
+    /* Map/Atlas toggle absolutely centered in the screen */
     body.ui-v2 .v2-mode-toggle {
+      position: absolute;
+      left: 50%; transform: translateX(-50%);
       background: rgba(15,15,15,0.7);
       backdrop-filter: blur(16px) saturate(1.4);
       -webkit-backdrop-filter: blur(16px) saturate(1.4);
@@ -7355,62 +7370,6 @@
     body.ui-v2 .v2-mode-toggle button.active {
       background: var(--accent, #1FDF67);
       color: #0a0a0a;
-    }
-
-    /* Combined widget: [TMW logo] [divider] [profile w/ star] */
-    body.ui-v2 .v2-tmw-profile-widget {
-      display: inline-flex; align-items: center;
-      background: rgba(15,15,15,0.7);
-      backdrop-filter: blur(16px) saturate(1.4);
-      -webkit-backdrop-filter: blur(16px) saturate(1.4);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 999px;
-      padding: 4px;
-      gap: 0;
-    }
-    body.ui-v2 .v2-tmw-logo {
-      width: 32px; height: 32px;
-      display: flex; align-items: center; justify-content: center;
-      padding: 4px;
-    }
-    body.ui-v2 .v2-tmw-logo img {
-      width: 100%; height: 100%;
-      object-fit: contain;
-      filter: brightness(0) invert(1);
-    }
-    body.ui-v2 .v2-widget-divider {
-      width: 1px; height: 22px;
-      background: rgba(255,255,255,0.18);
-      flex-shrink: 0;
-    }
-    body.ui-v2 .v2-profile-btn {
-      width: 32px; height: 32px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, #4a4a4a, #2a2a2a);
-      border: 1px solid rgba(255,255,255,0.12);
-      position: relative;
-      display: flex; align-items: center; justify-content: center;
-      cursor: pointer;
-      flex-shrink: 0;
-      color: #fff;
-    }
-    body.ui-v2 .v2-profile-btn svg.profile-icon {
-      width: 16px; height: 16px;
-      stroke: currentColor; fill: none;
-      stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
-    }
-    body.ui-v2 .v2-profile-btn .v2-premium-star {
-      position: absolute;
-      bottom: -2px; right: -2px;
-      width: 14px; height: 14px;
-      background: var(--warn, #FFD300);
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      border: 2px solid #0a0a0a;
-    }
-    body.ui-v2 .v2-profile-btn .v2-premium-star svg {
-      width: 8px; height: 8px;
-      fill: #0a0a0a;
     }
 
     /* ── RIGHT-RAIL ACTIONS ───────────────────────────────────────── */
@@ -7764,32 +7723,68 @@
       fill: currentColor;
     }
 
-    /* ── In View / More Nearby sticky header ────────────────────── */
-    body.ui-v2 .v2-sheet-body #mobileSectionBar {
-      position: sticky;
-      top: 0;
-      z-index: 3;
-      background: rgba(20,20,20,0.96);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      margin: 0 -14px 8px;
-      padding: 8px 14px;
-    }
+    /* ── In View / More Nearby — hide sticky bar, mirror into title ─
+       The legacy #mobileSectionBar still mounts in the discover pane so
+       its render pipeline keeps running, but it's visually hidden. We
+       mirror its label + count into the title row's right side via JS
+       MutationObserver. */
+    body.ui-v2 .v2-sheet-body #mobileSectionBar { display: none !important; }
     body.ui-v2 .v2-sheet-body #mobilePillsRow {
       margin: 0 0 8px;
     }
+    /* Title-row section indicator (right side, mirrors mobileSectionBar) */
+    body.ui-v2 .v2-section-indicator {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 11px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    body.ui-v2 .v2-section-indicator.in-view { color: var(--accent, #1FDF67); }
+    body.ui-v2 .v2-section-indicator.nearby { color: rgba(255,255,255,0.45); }
+    body.ui-v2 .v2-section-indicator .v2-section-count {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-width: 22px; height: 22px;
+      padding: 0 7px;
+      border-radius: 100px;
+      font-size: 11.5px; font-weight: 800;
+      background: rgba(31,223,103,0.16);
+      color: var(--accent, #1FDF67);
+    }
+    body.ui-v2 .v2-section-indicator.nearby .v2-section-count {
+      background: rgba(255,255,255,0.08);
+      color: rgba(255,255,255,0.6);
+    }
 
     /* ── Force 1-column tile grid ────────────────────────────────
-       Higher specificity via ID so legacy 2-col rule loses. */
-    body.ui-v2 #gridMobile.leaf-grid,
-    body.ui-v2 #v2DiscoverPane #gridMobile {
+       Multi-selector stacking + !important guarantees we beat the
+       `#mobileDrawerContent .leaf-grid` and `.leaf-grid` rules
+       elsewhere in the stylesheet. Also enlarge images + meta. */
+    html body.ui-v2 #v2Drawer #gridMobile,
+    html body.ui-v2 #v2DiscoverPane #gridMobile,
+    body.ui-v2 .v2-sheet-body #gridMobile.leaf-grid {
+      display: grid !important;
       grid-template-columns: 1fr !important;
       gap: 12px !important;
       row-gap: 12px !important;
+      padding: 0 !important;
     }
-    body.ui-v2 #gridMobile .leaf-tile {
+    body.ui-v2 #gridMobile .grid-item {
       width: 100% !important;
       max-width: 100% !important;
+      padding: 0 !important;
+      background: rgba(255,255,255,0.04) !important;
+      border: 1px solid rgba(255,255,255,0.08) !important;
+      border-radius: 14px !important;
+      overflow: hidden !important;
+    }
+    body.ui-v2 #gridMobile .grid-item img,
+    body.ui-v2 #gridMobile .grid-item .image-wrapper {
+      width: 100% !important;
+      height: 180px !important;
+      min-height: 180px !important;
+      border-radius: 0 !important;
+    }
+    body.ui-v2 #gridMobile .grid-item img {
+      object-fit: cover !important;
     }
 
     /* ── Watchlist + Pulse panes ──────────────────────────────────
@@ -7820,6 +7815,26 @@
     body.ui-v2 .v2-watchlist-content .wl-handle,
     body.ui-v2 .v2-watchlist-content .wl-header,
     body.ui-v2 .v2-pulse-content .pulse-stack-header { display: none !important; }
+
+    /* ── C3: Project modal lives "inside" the drawer area ─────────
+       Reposition #projectModal in v2 mobile so it slides up only over
+       the drawer bounds (not the whole screen) — top chrome stays
+       visible. Drawer hides behind the modal while it's open. The
+       internal modal markup + animation are untouched; we just bound
+       its container differently. */
+    body.ui-v2 #projectModal {
+      top: calc(env(safe-area-inset-top, 0px) + 60px) !important;
+      bottom: 0 !important;
+      height: auto !important;
+      border-top-left-radius: 24px !important;
+      border-top-right-radius: 24px !important;
+      box-shadow: 0 -8px 32px rgba(0,0,0,0.4) !important;
+    }
+    /* While the modal is open, dismiss the drawer behind it so the two
+       don't fight for the same space. */
+    body.ui-v2.v2-modal-open .v2-drawer,
+    body.ui-v2.v2-modal-open .v2-right-rail { opacity: 0; pointer-events: none; }
+    body.ui-v2.v2-modal-open .v2-capsule    { display: none; }
   }
 
   </style>
@@ -8288,23 +8303,14 @@
          the legacy mobile drawer / pulse / watchlist.
          ════════════════════════════════════════════════════════════════ -->
 
-    <!-- Top chrome: Map/Atlas toggle (left) · combined TMW+Profile widget (right) -->
+    <!-- Top chrome: TMW logo (left, no bg) · Map/Atlas toggle (center) -->
     <div class="v2-top-chrome" id="v2TopChrome" aria-hidden="true">
+      <a href="https://www.oftmw.com" target="_blank" class="v2-tmw-logo" aria-label="Markets of Tomorrow">
+        <img src="https://static.wixstatic.com/shapes/ca3b83_a647b53cad4c49c5b012af991d286a86.svg" alt="" />
+      </a>
       <div class="v2-mode-toggle" role="tablist" aria-label="Switch between map and atlas view">
         <button id="v2MapBtn" class="active" data-mode="map" role="tab" aria-selected="true">Map</button>
         <button id="v2AtlasBtn" data-mode="atlas" role="tab" aria-selected="false">Atlas</button>
-      </div>
-      <div class="v2-tmw-profile-widget">
-        <a href="https://www.oftmw.com" target="_blank" class="v2-tmw-logo" aria-label="Markets of Tomorrow">
-          <img src="https://static.wixstatic.com/shapes/ca3b83_a647b53cad4c49c5b012af991d286a86.svg" alt="" />
-        </a>
-        <div class="v2-widget-divider"></div>
-        <button class="v2-profile-btn" id="v2ProfileBtn" aria-label="Profile">
-          <svg class="profile-icon" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-7 8-7s8 3 8 7"/></svg>
-          <span class="v2-premium-star" id="v2PremiumStar">
-            <svg viewBox="0 0 24 24"><path d="M12 2l3 6.3 6.9 1-5 4.9 1.2 7L12 17.8 5.9 21.2l1.2-7-5-4.9L9 8.3z"/></svg>
-          </span>
-        </button>
       </div>
     </div>
 
@@ -8377,10 +8383,19 @@
           </button>
         </div>
 
-        <!-- Per-tab title row (big bold title + small subtitle) -->
+        <!-- Per-tab title row (big bold title + dynamic right-side info)
+             On Discover, the right side shows the In View / More Nearby
+             indicator (mirrored from #mobileSectionBar). On Watchlist +
+             Pulse, it shows the subtitle ("3 projects · 2 unread"). -->
         <div class="v2-sheet-title-row">
           <div class="v2-sheet-ttl" id="v2SheetTtl">Discover</div>
-          <div class="v2-sheet-sub" id="v2SheetSub">All projects</div>
+          <div class="v2-sheet-right" id="v2SheetRight">
+            <span class="v2-sheet-sub" id="v2SheetSub" hidden></span>
+            <span class="v2-section-indicator in-view" id="v2SectionIndicator">
+              <span class="v2-section-label" id="v2SectionLabel">In View</span>
+              <span class="v2-section-count" id="v2SectionCount">0</span>
+            </span>
+          </div>
         </div>
 
         <!-- Contextual filter pills (horizontal scroll). Content swaps
@@ -17949,10 +17964,19 @@
         const meta = (TITLES[id] || (() => ({ ttl: '', sub: '' })))();
         if (ttlEl) ttlEl.textContent = meta.ttl;
         if (subEl) subEl.textContent = meta.sub;
+        // Right-side slot: Discover shows the section indicator,
+        // Watchlist/Pulse show the subtitle.
+        const indicator = document.getElementById('v2SectionIndicator');
+        if (id === 'discover') {
+          if (indicator) indicator.hidden = false;
+          if (subEl) subEl.hidden = true;
+        } else {
+          if (indicator) indicator.hidden = true;
+          if (subEl) subEl.hidden = false;
+        }
         renderFilterPills(id);
       }
       tabs.forEach(t => t.addEventListener('click', () => switchTab(t.dataset.v2Tab)));
-      // Initialize Discover as the default active tab
       switchTab('discover');
 
       // ── Search input → existing search pipeline ──────────────────
@@ -18043,13 +18067,17 @@
       });
 
       // ── Sync the pulse badge count from the legacy pulse bell ─────
-      const legacyPulseBadge = document.querySelector('#pulseBellBtn .badge, #pulseBellBtn [data-pulse-badge]');
+      // The correct element is `#pulseBellBadge` (was looking for wrong
+      // selector before). It has `hidden` attribute when count is 0 +
+      // text content when there's a count.
+      const legacyPulseBadge = document.getElementById('pulseBellBadge');
       const v2PulseBadge = document.getElementById('v2PulseQuickBadge');
       const v2PulseTabNum = document.getElementById('v2PulseCount');
       const syncPulseCount = () => {
         if (!legacyPulseBadge) return;
+        const isHidden = legacyPulseBadge.hasAttribute('hidden');
         const txt = (legacyPulseBadge.textContent || '').trim();
-        const n = parseInt(txt, 10);
+        const n = isHidden ? 0 : (parseInt(txt, 10) || 0);
         if (v2PulseBadge) {
           if (n > 0) { v2PulseBadge.hidden = false; v2PulseBadge.textContent = String(n); }
           else { v2PulseBadge.hidden = true; }
@@ -18062,7 +18090,54 @@
       syncPulseCount();
       if (legacyPulseBadge) {
         new MutationObserver(syncPulseCount).observe(legacyPulseBadge, {
-          childList: true, characterData: true, subtree: true, attributes: true,
+          attributes: true, attributeFilter: ['hidden'],
+          childList: true, characterData: true, subtree: true,
+        });
+      }
+
+      // ── C3: Watch projectModal open/close → body.v2-modal-open ──
+      // CSS positions the modal inside the drawer area when this body
+      // class is set, and dismisses the drawer chrome behind it.
+      const projectModal = document.getElementById('projectModal');
+      if (projectModal) {
+        const syncModalOpen = () => {
+          const open = projectModal.classList.contains('open');
+          document.body.classList.toggle('v2-modal-open', open);
+        };
+        syncModalOpen();
+        new MutationObserver(syncModalOpen).observe(projectModal, {
+          attributes: true, attributeFilter: ['class'],
+        });
+      }
+
+      // ── Mirror In View / More Nearby into title-row right side ──
+      // Legacy #mobileSectionBar flips between "In View" (green) and
+      // "More Nearby" (gray) based on scroll. We watch its title element
+      // for class changes + content updates, and mirror into v2-section-*.
+      const legacySsbTitle = document.getElementById('mobileSsbTitle');
+      const legacySsbCount = document.getElementById('mobileSsbCount');
+      const v2Indicator    = document.getElementById('v2SectionIndicator');
+      const v2SectLabel    = document.getElementById('v2SectionLabel');
+      const v2SectCount    = document.getElementById('v2SectionCount');
+      const syncSectionBar = () => {
+        if (!legacySsbTitle || !v2Indicator) return;
+        const inView = legacySsbTitle.classList.contains('in-view');
+        const label  = (legacySsbTitle.textContent || '').trim() || 'In View';
+        const count  = (legacySsbCount && legacySsbCount.textContent || '').trim();
+        v2Indicator.classList.toggle('in-view', inView);
+        v2Indicator.classList.toggle('nearby',  !inView);
+        if (v2SectLabel) v2SectLabel.textContent = label;
+        if (v2SectCount) v2SectCount.textContent = count || '0';
+      };
+      syncSectionBar();
+      if (legacySsbTitle) {
+        new MutationObserver(syncSectionBar).observe(legacySsbTitle, {
+          attributes: true, attributeFilter: ['class'], childList: true, characterData: true, subtree: true,
+        });
+      }
+      if (legacySsbCount) {
+        new MutationObserver(syncSectionBar).observe(legacySsbCount, {
+          attributes: true, attributeFilter: ['class'], childList: true, characterData: true, subtree: true,
         });
       }
 
