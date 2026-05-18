@@ -8562,19 +8562,89 @@
       font-weight: 600 !important;
     }
 
-    /* ‚îÄ‚îÄ Watchlist tiles: taller + more spacious in v2 drawer ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ */
+    /* ‚îÄ‚îÄ Watchlist tiles: match desktop-redesign-4-blend.html watch-card.
+       Compact 64√ó64 thumb, name + sub line + meta line, gold "N NEW"
+       pill on the right when unread. No remove X, no status pill, no
+       per-update tag row. Shared between mobile drawer + desktop pane. */
     body.ui-v2 .v2-watchlist-content .wl-row {
-      padding: 14px !important;
+      padding: 12px !important;
+      gap: 12px !important;
+      align-items: center !important;
+      background: rgba(255,255,255,0.04) !important;
+      border: 1px solid rgba(255,255,255,0.08) !important;
+      border-radius: 14px !important;
+      margin-bottom: 8px !important;
+    }
+    body.ui-v2 .v2-watchlist-content .wl-row:hover {
+      border-color: rgba(255,255,255,0.18) !important;
+      background: rgba(255,255,255,0.06) !important;
     }
     body.ui-v2 .v2-watchlist-content .wl-row-thumb {
-      width: 80px !important; height: 80px !important;
+      width: 64px !important; height: 64px !important;
+      border-radius: 10px !important;
     }
-    /* Fix middle-dot separator ‚Äî displayed as invisible/odd char in some
-       fonts. Already using &middot; in the JS but enforce a safe fallback
-       with explicit character styling. */
-    body.ui-v2 .v2-watchlist-content .wl-row-meta > span:only-child,
-    body.ui-v2 .v2-watchlist-content .wl-row-meta > span {
-      display: inline-flex; align-items: center;
+    body.ui-v2 .v2-watchlist-content .wl-row-body {
+      gap: 0 !important;
+    }
+    body.ui-v2 .v2-watchlist-content .wl-row-title {
+      font-size: 14px !important;
+      font-weight: 600 !important;
+      color: #fff !important;
+      letter-spacing: -0.01em !important;
+      padding-right: 60px !important;
+      line-height: 1.25 !important;
+    }
+    /* First meta line ("City ¬∑ Delivery") ‚Äî match mockup's .sub */
+    body.ui-v2 .v2-watchlist-content .wl-row-meta {
+      font-size: 11.5px !important;
+      color: rgba(255,255,255,0.72) !important;
+      margin-top: 2px !important;
+    }
+    /* The legacy status pill row sits in a second .wl-row-meta. Hide
+       the status pill itself ‚Äî the parent div collapses to nothing. */
+    body.ui-v2 .v2-watchlist-content .wl-row-status-pill {
+      display: none !important;
+    }
+    body.ui-v2 .v2-watchlist-content .wl-row-meta:has(.wl-row-status-pill) {
+      display: none !important;
+    }
+    /* Hide the per-update tag row ‚Äî keep the watch card clean per mockup. */
+    body.ui-v2 .v2-watchlist-content .wl-row-update {
+      display: none !important;
+    }
+    /* Footer ("Delivery 2026" / "Viewed Xd ago") ‚Äî restyle as the mockup's
+       .meta line: 10.5px faint, no inline unread badge (the gold "N NEW"
+       pill is repositioned to the right edge of the card). */
+    body.ui-v2 .v2-watchlist-content .wl-row-footer {
+      margin-top: 5px !important;
+      font-size: 10.5px !important;
+      color: rgba(255,255,255,0.45) !important;
+      justify-content: flex-start !important;
+    }
+    body.ui-v2 .v2-watchlist-content .wl-row-footer .wl-row-unread {
+      display: none !important;
+    }
+    /* Gold "N NEW" pill ‚Äî promote the unread count out of the footer
+       and absolutely position it at the right edge of the card. */
+    body.ui-v2 .v2-watchlist-content .wl-row.has-unread::after {
+      content: attr(data-wl-unread-count) ' NEW';
+      position: absolute;
+      top: 50%; right: 12px;
+      transform: translateY(-50%);
+      background: var(--warn, #FFD300);
+      color: #0a0a0a;
+      font-size: 9.5px;
+      font-weight: 800;
+      padding: 4px 8px;
+      border-radius: 100px;
+      line-height: 1;
+      letter-spacing: 0.04em;
+      flex-shrink: 0;
+    }
+    /* Hide the remove-X button ‚Äî mockup has no per-row close affordance.
+       Stop-watching is handled from the project detail modal instead. */
+    body.ui-v2 .v2-watchlist-content .wl-row-remove {
+      display: none !important;
     }
 
     /* Right-rail pulse bell badge in GOLD (was green/accent) */
@@ -8981,11 +9051,95 @@
       background: rgba(255,255,255,0.06);
       color: rgba(255,255,255,0.55);
     }
-    /* Desktop panes hosting #watchlistPanel and #pulseStack */
+    /* Desktop panes hosting #watchlistPanel and #pulseStack ‚Äî fully
+       transparent so the sidebar background flows behind without any
+       darker inset rectangle. Padding matches the gridDesktop tile
+       padding (16px horizontal) so cards line up. */
     body.ui-v2 #desktopSidebar .v2-desktop-pane {
-      padding: 0 8px 16px !important;
+      padding: 0 16px 16px !important;
+      background: transparent !important;
     }
     body.ui-v2 #desktopSidebar .v2-desktop-pane[hidden] { display: none !important; }
+    /* Inner watchlist body has its own scrollable padding ‚Äî strip it on
+       desktop so the wl-row cards span the same width as the gridDesktop
+       tiles, with no nested padding inset. */
+    body.ui-v2 #desktopSidebar .v2-watchlist-content .wl-body,
+    body.ui-v2 #desktopSidebar .v2-watchlist-content #watchlistBody {
+      padding: 0 !important;
+      background: transparent !important;
+    }
+
+    /* Desktop mirror of the mobile watch-card restyle ‚Äî the mobile rules
+       (line ~8566) live inside @media(max-width: 800px) and don't apply
+       on desktop, so duplicate them here for full-width cards on the
+       desktop watchlist pane. */
+    body.ui-v2 #desktopSidebar .v2-watchlist-content .wl-row {
+      padding: 12px !important;
+      gap: 12px !important;
+      align-items: center !important;
+      background: rgba(255,255,255,0.04) !important;
+      border: 1px solid rgba(255,255,255,0.08) !important;
+      border-radius: 14px !important;
+      margin-bottom: 8px !important;
+      position: relative !important;
+    }
+    body.ui-v2 #desktopSidebar .v2-watchlist-content .wl-row:hover {
+      border-color: rgba(255,255,255,0.18) !important;
+      background: rgba(255,255,255,0.06) !important;
+    }
+    body.ui-v2 #desktopSidebar .v2-watchlist-content .wl-row-thumb {
+      width: 64px !important; height: 64px !important;
+      border-radius: 10px !important;
+    }
+    body.ui-v2 #desktopSidebar .v2-watchlist-content .wl-row-body { gap: 0 !important; }
+    body.ui-v2 #desktopSidebar .v2-watchlist-content .wl-row-title {
+      font-size: 14px !important;
+      font-weight: 600 !important;
+      color: #fff !important;
+      letter-spacing: -0.01em !important;
+      padding-right: 60px !important;
+      line-height: 1.25 !important;
+    }
+    body.ui-v2 #desktopSidebar .v2-watchlist-content .wl-row-meta {
+      font-size: 11.5px !important;
+      color: rgba(255,255,255,0.72) !important;
+      margin-top: 2px !important;
+    }
+    body.ui-v2 #desktopSidebar .v2-watchlist-content .wl-row-status-pill {
+      display: none !important;
+    }
+    body.ui-v2 #desktopSidebar .v2-watchlist-content .wl-row-meta:has(.wl-row-status-pill) {
+      display: none !important;
+    }
+    body.ui-v2 #desktopSidebar .v2-watchlist-content .wl-row-update {
+      display: none !important;
+    }
+    body.ui-v2 #desktopSidebar .v2-watchlist-content .wl-row-footer {
+      margin-top: 5px !important;
+      font-size: 10.5px !important;
+      color: rgba(255,255,255,0.45) !important;
+      justify-content: flex-start !important;
+    }
+    body.ui-v2 #desktopSidebar .v2-watchlist-content .wl-row-footer .wl-row-unread {
+      display: none !important;
+    }
+    body.ui-v2 #desktopSidebar .v2-watchlist-content .wl-row.has-unread::after {
+      content: attr(data-wl-unread-count) ' NEW';
+      position: absolute;
+      top: 50%; right: 12px;
+      transform: translateY(-50%);
+      background: var(--warn, #FFD300);
+      color: #0a0a0a;
+      font-size: 9.5px;
+      font-weight: 800;
+      padding: 4px 8px;
+      border-radius: 100px;
+      line-height: 1;
+      letter-spacing: 0.04em;
+    }
+    body.ui-v2 #desktopSidebar .v2-watchlist-content .wl-row-remove {
+      display: none !important;
+    }
 
     /* The "naturalize legacy panel" rules at line ~8420 live inside the
        max-width:800px mobile block ‚Äî they don't apply on desktop. Mirror
@@ -16974,7 +17128,7 @@
             ? `Delivery ${year}`
             : (row.lastViewedTs ? `Viewed ${timeAgo(row.lastViewedTs)}` : '');
           return `
-            <div class="wl-row${hasUnread ? ' has-unread' : ''}" data-slug="${escapeHtml(row.slug)}" data-wl-delivery="${escapeHtml((row.delivery || '').toLowerCase())}" data-wl-unread="${hasUnread ? 'true' : 'false'}">
+            <div class="wl-row${hasUnread ? ' has-unread' : ''}" data-slug="${escapeHtml(row.slug)}" data-wl-delivery="${escapeHtml((row.delivery || '').toLowerCase())}" data-wl-unread="${hasUnread ? 'true' : 'false'}" data-wl-unread-count="${row.unreadCount || 0}">
               <div class="wl-row-thumb" style="${thumbStyle}"></div>
               <div class="wl-row-body">
                 <div class="wl-row-title">${escapeHtml(row.title)}</div>
