@@ -11495,60 +11495,26 @@
       // so the map is fully visible.
       const pmViewMapBtn = document.getElementById('pmViewMapBtn');
       if (pmViewMapBtn) {
-        // Capture the feature on pointerdown (before any close machinery runs)
-        // so the flyTo always gets coords. ULTRA aggressive: nuke the modal
-        // via setAttribute('style', '... !important') AND remove all body
-        // overlay state classes synchronously. Then fly + popup.
-        const doViewOnMap = (e) => {
+        pmViewMapBtn.addEventListener('click', (e) => {
           e.stopPropagation();
-          if (e.cancelable) e.preventDefault();
-
-          // Snapshot feature ref NOW ‚Äî closeModal() can clear it later.
+          // Snapshot the feature before closeModal() runs (which may reset state)
           const f = currentFeature;
-          let co = null;
-          if (f && f.geometry && f.geometry.coordinates) {
-            co = f.geometry.coordinates.slice(); // defensive copy
-          }
-
-          // Analytics ping (best-effort; failure is non-fatal).
-          try {
-            if (window._currentProjectView) _fireProjectViewDuration('view_on_map');
-          } catch(_) {}
-
-          // ‚îÄ‚îÄ Nuke the modal: classes + inline style with !important ‚îÄ‚îÄ
-          modal.classList.remove('open', 'closing');
-          // setAttribute with !important inline beats every CSS rule including
-          // the .open !important display:flex rule that was sticking around.
-          modal.setAttribute(
-            'style',
-            'display:none !important; transform:translateY(100%) !important; visibility:hidden !important;'
+          const co = (f && f.geometry && f.geometry.coordinates)
+            ? f.geometry.coordinates.slice()
+            : null;
+          // Use the canonical closeModal() path so all cleanup happens.
+          try { closeModal(); } catch(_) {}
+          // Synchronously also clear the v2 sheet/overlay flags so the
+          // drawer collapses NOW rather than waiting for an event.
+          document.body.classList.remove(
+            'v2-sheet-open', 'v2-sheet-mid', 'v2-sheet-full', 'v2-modal-open'
           );
-          // Restore URL state
-          try { history.pushState({}, '', '?fullscreen=true'); } catch(_) {}
-
-          // ‚îÄ‚îÄ Collapse the v2 sheet + drawer synchronously ‚îÄ‚îÄ
-          const b = document.body;
-          b.classList.remove('v2-sheet-open');
-          b.classList.remove('v2-sheet-mid');
-          b.classList.remove('v2-sheet-full');
-          b.classList.remove('v2-modal-open');
-          b.classList.remove('modal-open');
           if (typeof window.v2CloseSheet === 'function') {
             try { window.v2CloseSheet(); } catch(_) {}
           }
-
-          // Restore the modal's CSS-driven display rules so it can re-open
-          // properly next time. Done on next macrotask so the synchronous
-          // hide has time to "stick" first.
-          setTimeout(() => {
-            // Strip our inline overrides; CSS takes over for next .open
-            modal.removeAttribute('style');
-          }, 400);
-
           if (!co) return;
-
-          // Fly + popup after a rAF so the sheet has visually started to close.
           const targetZoom = Math.max(map.getZoom(), 13);
+          // Wait one rAF so the modal close animation begins before flyTo.
           requestAnimationFrame(() => {
             try {
               map.flyTo({ center: co, zoom: targetZoom, duration: 1200, essential: true });
@@ -11562,18 +11528,7 @@
             try { map.once('moveend', firePopup); } catch(_) {}
             setTimeout(firePopup, 1500);
           });
-        };
-        // Use pointerdown for instant response on iOS; click as fallback.
-        // Debounce so both don't fire in sequence.
-        let _vmLock = 0;
-        const guarded = (e) => {
-          const now = Date.now();
-          if (now - _vmLock < 600) return;
-          _vmLock = now;
-          doViewOnMap(e);
-        };
-        pmViewMapBtn.addEventListener('pointerdown', guarded, { passive: false });
-        pmViewMapBtn.addEventListener('click',       guarded);
+        });
       }
 
       // Project modal slider ‚Äî arrow + keyboard + swipe navigation
@@ -12083,13 +12038,6 @@
     }
 
     function renderGrid(targetId = 'grid') {
-      // Expose so v2 boot can call directly when select.dispatchEvent('change')
-      // fails to propagate (e.g. select is in a hidden subtree).
-      window.renderGrid = renderGrid;
-      window.updateMapPinFilters = updateMapPinFilters;
-      window.updateResultCount = updateResultCount;
-      window.renderPills = renderPills;
-      window.updateFilterBadge = updateFilterBadge;
       const grid = document.getElementById(targetId);
       if (!grid) return;
       grid.style.pointerEvents = 'none';
@@ -12355,6 +12303,18 @@
         }
       }, 100);
     }
+
+    // Expose render functions so v2 boot can call directly when select
+    // .dispatchEvent('change') fails to propagate (e.g. select is in a
+    // hidden subtree). Wrapped in a check since renderGrid is declared
+    // above via `function` (hoisted) ‚Äî safe at script-eval time.
+    try {
+      window.renderGrid         = renderGrid;
+      window.updateMapPinFilters = updateMapPinFilters;
+      window.updateResultCount  = updateResultCount;
+      window.renderPills        = renderPills;
+      window.updateFilterBadge  = updateFilterBadge;
+    } catch(_) { /* non-fatal */ }
 
     // ‚îÄ‚îÄ‚îÄ RENDER FILTERED GRID (for search) ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
     function renderFilteredGrid(targetId, features) {
@@ -18703,12 +18663,16 @@
       const capsule = document.getElementById('v2Capsule');
       const sheet   = document.getElementById('v2Sheet');
       const search  = document.getElementById('v2SearchInput');
-      const openSheet = () => {
+      // NB: declared with `function` so they're hoisted to the top of the
+      // surrounding function scope ‚Äî the MutationObserver above this block
+      // references closeSheet in its callback, and we don't want a TDZ
+      // ReferenceError if the body class mutates before this line.
+      function openSheet() {
         document.body.classList.add('v2-sheet-open');
-      };
-      const closeSheet = () => {
+      }
+      function closeSheet() {
         document.body.classList.remove('v2-sheet-open');
-      };
+      }
       // Expose globally so other contexts (View on Map, Map return btn) can
       // close the sheet without needing to duplicate class-removal logic.
       window.v2CloseSheet = closeSheet;
