@@ -7518,7 +7518,8 @@
     body.ui-v2 .v2-profile-menu .v2-menu-item.v2-menu-signout:hover {
       background: rgba(255,80,80,0.08);
     }
-    /* Map/Atlas toggle absolutely centered */
+    /* Map/Atlas toggle ‚Äî matches Login button style (translucent white pill
+       with white border) so the chrome reads as a consistent design system. */
     body.ui-v2 .v2-mode-toggle {
       position: absolute;
       left: 50%; transform: translateX(-50%);
@@ -7533,17 +7534,19 @@
     body.ui-v2 .v2-mode-toggle button {
       background: transparent;
       color: rgba(255,255,255,0.6);
-      border: none;
-      padding: 7px 18px;
+      border: 1px solid transparent;
+      padding: 6px 16px;
       font-size: 12px;
-      font-weight: 600;
+      font-weight: 700;
       border-radius: 999px;
       font-family: inherit;
       cursor: pointer;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
     }
     body.ui-v2 .v2-mode-toggle button.active {
-      background: var(--accent, #1FDF67);
-      color: #0a0a0a;
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+      border-color: rgba(255,255,255,0.18);
     }
 
     /* ‚îÄ‚îÄ RIGHT-RAIL ACTIONS ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ */
@@ -7565,28 +7568,8 @@
       bottom: auto;
       top: calc(env(safe-area-inset-top, 0px) + 2px);
     }
-    body.v2-sheet-open .v2-right-rail > *:not(#v2GeolocateBtn):not(#v2MapReturnBtn) {
+    body.v2-sheet-open .v2-right-rail > *:not(#v2GeolocateBtn) {
       display: none !important;
-    }
-    /* Map-return pill: hidden at rest, becomes a pill at top of rail when
-       sheet is open so the user can tap it to return to the map. */
-    body.ui-v2 #v2MapReturnBtn {
-      display: none;
-    }
-    body.v2-sheet-open #v2MapReturnBtn {
-      display: inline-flex !important;
-      width: auto !important;
-      padding: 0 13px !important;
-      gap: 6px !important;
-      border-radius: 20px !important;
-      font-size: 13px !important;
-      font-weight: 600 !important;
-      color: #fff !important;
-    }
-    body.v2-sheet-open #v2MapReturnBtn svg {
-      width: 15px; height: 15px;
-      stroke: currentColor; fill: none;
-      stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
     }
     body.ui-v2 .v2-action-btn {
       width: 44px; height: 44px;
@@ -8189,10 +8172,12 @@
       background: var(--warn, #FFD300) !important;
       border: none !important;
       border-radius: 6px !important;
-      color: #000 !important;
+      color: #111 !important;
       padding: 0 !important;
       font-size: 0 !important;  /* hide "Featured" text */
       letter-spacing: 0 !important;
+      gap: 0 !important;
+      line-height: 0 !important;
       display: inline-flex !important; align-items: center !important; justify-content: center !important;
       box-shadow: none !important;
       backdrop-filter: none !important;
@@ -8201,10 +8186,13 @@
       width: 22px !important; height: 22px !important;
     }
     body.ui-v2 #gridMobile .grid-item .featured-badge svg {
-      width: 11px !important; height: 11px !important;
-      fill: #fff !important;
+      width: 12px !important; height: 12px !important;
+      fill: #111 !important;
       stroke: none !important;
       filter: none !important;
+      display: block !important;
+      margin: 0 !important;
+      flex-shrink: 0 !important;
     }
     /* Tile body: title + city ‚Äî clean padding */
     body.ui-v2 #gridMobile .grid-item .grid-item-content {
@@ -8468,14 +8456,14 @@
       letter-spacing: 0.06em !important;
       margin-bottom: 0 !important;
     }
-    /* Project title (the headline) ‚Äî matches mockup: 13.5px / regular */
+    /* Project title ‚Äî match watchlist project name: 14px / 600 / -0.01em */
     body.ui-v2 .v2-pulse-content .pulse-ev-title {
-      font-size: 13.5px !important;
+      font-size: 14px !important;
       color: #fff !important;
-      font-weight: 400 !important;
-      line-height: 1.4 !important;
+      font-weight: 600 !important;
+      line-height: 1.3 !important;
       text-transform: none !important;
-      letter-spacing: 0 !important;
+      letter-spacing: -0.01em !important;
       margin: 4px 0 0 !important;
       padding: 0 !important;
     }
@@ -9060,11 +9048,6 @@
 
     <!-- Right-rail action buttons (slide up with sheet) -->
     <div class="v2-right-rail" id="v2RightRail" aria-hidden="true">
-      <!-- Map-return pill ‚Äî only visible when sheet is open -->
-      <button class="v2-action-btn" id="v2MapReturnBtn" aria-label="Return to map">
-        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-        Map
-      </button>
       <button class="v2-action-btn" id="v2PulseQuickBtn" aria-label="Pulse">
         <span class="v2-num-badge" id="v2PulseQuickBadge" hidden>0</span>
         <svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
@@ -9616,6 +9599,10 @@
       desktop: { sort: 'default', type: 'all', status: 'all' },
       mobile:  { sort: 'default', type: 'all', status: 'all' }
     };
+    // Expose globally so v2 boot can read/write filter state directly when
+    // dispatched change events fail to propagate (e.g. select is in a
+    // hidden subtree).
+    window.activeFilters = activeFilters;
 
     const FILTER_LABELS = {
       sort: { az: 'A ‚Üí Z', za: 'Z ‚Üí A', default: null },
@@ -11202,7 +11189,7 @@
           ? p.preferredType.trim()
           : (p.projectType ? p.projectType.split(',')[0].trim() : '');
         document.getElementById('pmCity').textContent = typeLabel
-          ? `${p.city || ''} ‚Ä¢ ${typeLabel}`
+          ? `${p.city || ''} \u2022 ${typeLabel}`
           : (p.city || '');
 
         // Configuration & phasing block ‚Äî render between subtitle and
@@ -11508,60 +11495,85 @@
       // so the map is fully visible.
       const pmViewMapBtn = document.getElementById('pmViewMapBtn');
       if (pmViewMapBtn) {
-        // Use pointerdown + preventDefault for instant response on iOS
-        // (click events can fire with a 300ms delay on some devices/browsers).
-        let _vmFired = false;
+        // Capture the feature on pointerdown (before any close machinery runs)
+        // so the flyTo always gets coords. ULTRA aggressive: nuke the modal
+        // via setAttribute('style', '... !important') AND remove all body
+        // overlay state classes synchronously. Then fly + popup.
         const doViewOnMap = (e) => {
           e.stopPropagation();
-          if (e.type === 'pointerdown') e.preventDefault();
-          if (_vmFired) return;
-          _vmFired = true;
-          setTimeout(() => { _vmFired = false; }, 800); // reset after debounce window
+          if (e.cancelable) e.preventDefault();
 
+          // Snapshot feature ref NOW ‚Äî closeModal() can clear it later.
           const f = currentFeature;
+          let co = null;
+          if (f && f.geometry && f.geometry.coordinates) {
+            co = f.geometry.coordinates.slice(); // defensive copy
+          }
 
-          // Force-hide modal IMMEDIATELY (no 350ms animation wait).
-          // The normal closeModal() animation is bypassed so the map is
-          // revealed right away. We still call the analytics helper inline.
+          // Analytics ping (best-effort; failure is non-fatal).
           try {
             if (window._currentProjectView) _fireProjectViewDuration('view_on_map');
           } catch(_) {}
-          modal.classList.remove('open', 'closing');
-          modal.style.display = 'none';
-          history.pushState({}, '', '?fullscreen=true');
 
-          // Collapse the v2 sheet and clear all body state flags.
-          document.body.classList.remove(
-            'v2-sheet-open', 'v2-sheet-mid', 'v2-sheet-full', 'v2-modal-open'
+          // ‚îÄ‚îÄ Nuke the modal: classes + inline style with !important ‚îÄ‚îÄ
+          modal.classList.remove('open', 'closing');
+          // setAttribute with !important inline beats every CSS rule including
+          // the .open !important display:flex rule that was sticking around.
+          modal.setAttribute(
+            'style',
+            'display:none !important; transform:translateY(100%) !important; visibility:hidden !important;'
           );
-          // Also call global close-sheet if it's exposed (set in v2 boot).
+          // Restore URL state
+          try { history.pushState({}, '', '?fullscreen=true'); } catch(_) {}
+
+          // ‚îÄ‚îÄ Collapse the v2 sheet + drawer synchronously ‚îÄ‚îÄ
+          const b = document.body;
+          b.classList.remove('v2-sheet-open');
+          b.classList.remove('v2-sheet-mid');
+          b.classList.remove('v2-sheet-full');
+          b.classList.remove('v2-modal-open');
+          b.classList.remove('modal-open');
           if (typeof window.v2CloseSheet === 'function') {
             try { window.v2CloseSheet(); } catch(_) {}
           }
 
-          if (!f || !f.geometry || !f.geometry.coordinates) return;
-          const co = f.geometry.coordinates;
-          const isMobile = window.innerWidth <= 800;
-          const targetZoom = Math.max(map.getZoom(), isMobile ? 13 : 14);
+          // Restore the modal's CSS-driven display rules so it can re-open
+          // properly next time. Done on next macrotask so the synchronous
+          // hide has time to "stick" first.
+          setTimeout(() => {
+            // Strip our inline overrides; CSS takes over for next .open
+            modal.removeAttribute('style');
+          }, 400);
 
-          // Brief rAF delay so the sheet CSS transition starts before flyTo,
-          // ensuring the map is visually uncovered before the camera moves.
+          if (!co) return;
+
+          // Fly + popup after a rAF so the sheet has visually started to close.
+          const targetZoom = Math.max(map.getZoom(), 13);
           requestAnimationFrame(() => {
-            map.flyTo({ center: co, zoom: targetZoom, duration: 1200, essential: true });
-            // Open popup when fly settles. Use moveend for precise timing;
-            // fallback timeout in case moveend never fires.
+            try {
+              map.flyTo({ center: co, zoom: targetZoom, duration: 1200, essential: true });
+            } catch(_) {}
             let popupFired = false;
             const firePopup = () => {
               if (popupFired) return;
               popupFired = true;
               try { showPopup(f, { skipPaywall: true }); } catch(_) {}
             };
-            map.once('moveend', firePopup);
+            try { map.once('moveend', firePopup); } catch(_) {}
             setTimeout(firePopup, 1500);
           });
         };
-        pmViewMapBtn.addEventListener('pointerdown', doViewOnMap, { passive: false });
-        pmViewMapBtn.addEventListener('click', doViewOnMap);
+        // Use pointerdown for instant response on iOS; click as fallback.
+        // Debounce so both don't fire in sequence.
+        let _vmLock = 0;
+        const guarded = (e) => {
+          const now = Date.now();
+          if (now - _vmLock < 600) return;
+          _vmLock = now;
+          doViewOnMap(e);
+        };
+        pmViewMapBtn.addEventListener('pointerdown', guarded, { passive: false });
+        pmViewMapBtn.addEventListener('click',       guarded);
       }
 
       // Project modal slider ‚Äî arrow + keyboard + swipe navigation
@@ -11748,7 +11760,7 @@
               const typeLabel = (f.properties.preferredType && f.properties.preferredType.trim())
                 ? f.properties.preferredType.trim()
                 : (f.properties.projectType ? f.properties.projectType.split(',')[0].trim() : '');
-              return typeLabel ? `${city} ‚Ä¢ ${typeLabel}` : city;
+              return typeLabel ? `${city} \u2022 ${typeLabel}` : city;
             })()}</p>
             ${(() => {
               // Configuration + phasing block. Per Jake's feedback the popup
@@ -12071,6 +12083,13 @@
     }
 
     function renderGrid(targetId = 'grid') {
+      // Expose so v2 boot can call directly when select.dispatchEvent('change')
+      // fails to propagate (e.g. select is in a hidden subtree).
+      window.renderGrid = renderGrid;
+      window.updateMapPinFilters = updateMapPinFilters;
+      window.updateResultCount = updateResultCount;
+      window.renderPills = renderPills;
+      window.updateFilterBadge = updateFilterBadge;
       const grid = document.getElementById(targetId);
       if (!grid) return;
       grid.style.pointerEvents = 'none';
@@ -12683,7 +12702,7 @@
           const cityLabel = getCityLabel(city);
           const filteredCount = cityFilteredMap[city] || 0;
           const countText = hasFilters
-            ? `${filteredCount} matching ¬∑ ${cityTotalMap[city]} total`
+            ? `${filteredCount} matching \u00b7 ${cityTotalMap[city]} total`
             : `${cityTotalMap[city]} project${cityTotalMap[city] !== 1 ? 's' : ''}`;
           const item = document.createElement('div');
           item.className = 'autocomplete-item';
@@ -15942,7 +15961,7 @@
               const n = stats.unread === 0 ? 'No new updates'
                       : stats.unread === 1 ? '1 new update'
                       : stats.unread + ' new updates';
-              subtitle.textContent = stats.count + ' project' + (stats.count === 1 ? '' : 's') + ' ¬∑ ' + n;
+              subtitle.textContent = stats.count + ' project' + (stats.count === 1 ? '' : 's') + ' \u00b7 ' + n;
             }
           }
           updateBadge(stats.unread);
@@ -17449,7 +17468,7 @@
             <a class="atlas-coming-row" href="${escapeHtml(href)}">
               <div class="atlas-coming-info">
                 <div class="atlas-coming-title">${escapeHtml(p.title || '')}</div>
-                <div class="atlas-coming-meta">${escapeHtml(p.city || '')}${p.status ? ' ¬∑ ' + escapeHtml(p.status) : ''}</div>
+                <div class="atlas-coming-meta">${escapeHtml(p.city || '')}${p.status ? ' \u00b7 ' + escapeHtml(p.status) : ''}</div>
               </div>
               <div class="atlas-coming-days">
                 <div class="atlas-coming-days-num">${escapeHtml(label)}</div>
@@ -17487,7 +17506,7 @@
 
     function renderFooter() {
       const ts = atlasData.generated_at ? new Date(atlasData.generated_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : '';
-      return `<div class="atlas-footer">Atlas ¬∑ part of <a href="https://oftmw.com" style="color:rgba(255,255,255,0.6);">Markets of Tomorrow</a>${ts ? ' ¬∑ data updated ' + escapeHtml(ts) : ''}</div>`;
+      return `<div class="atlas-footer">Atlas \u00b7 part of <a href="https://oftmw.com" style="color:rgba(255,255,255,0.6);">Markets of Tomorrow</a>${ts ? ' \u00b7 data updated ' + escapeHtml(ts) : ''}</div>`;
     }
 
     // Build a city ‚Üí state lookup from atlas data. Prefers the full map
@@ -17701,7 +17720,7 @@
           const type = p.preferredType || ((p.projectType || '').split(',')[0] || '').trim();
           const metaParts = [];
           if (p.city) metaParts.push(`<span>${escapeAttr(p.city)}</span>`);
-          if (type)  metaParts.push(`<span class="sep">¬∑</span><span>${escapeAttr(type)}</span>`);
+          if (type)  metaParts.push(`<span class="sep">\u00b7</span><span>${escapeAttr(type)}</span>`);
           // First architect / developer as a third meta segment when available
           const firstFirm = (p.architects && p.architects[0] && p.architects[0].name)
             || (p.developers && p.developers[0] && p.developers[0].name)
@@ -18700,15 +18719,6 @@
         });
       }
 
-      // Map-return pill: closes the sheet and returns to the map view.
-      const mapReturnBtn = document.getElementById('v2MapReturnBtn');
-      if (mapReturnBtn) {
-        mapReturnBtn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          closeSheet();
-        });
-      }
-
       // Tap the handle (or top drag-zone) to close.
       const handle = document.getElementById('v2SheetHandle');
       const dragZone = document.getElementById('v2DragZone');
@@ -18880,22 +18890,39 @@
       }
       function handlePillClick(tabId, value) {
         if (tabId === 'discover') {
-          // Route to existing type filter dropdown
+          // Three-pronged approach to ensure filter actually applies:
+          // 1) Update activeFilters state directly (most reliable)
+          // 2) Sync the select element value (for consistency)
+          // 3) Call render functions directly (bypasses any event propagation issues)
+          let newType = 'all';
+          if (value !== 'all' && value !== 'featured') {
+            newType = value;
+          }
+          // (1) Direct state mutation
+          if (window.activeFilters) {
+            window.activeFilters.mobile.type = newType;
+            window.activeFilters.desktop.type = newType;
+          }
+          // (2) Sync the dropdowns
           const typeSel = document.getElementById('projectTypeFilterMobile');
           if (typeSel) {
-            if (value === 'all' || value === 'featured') {
-              typeSel.value = 'all';
-              typeSel.dispatchEvent(new Event('change', { bubbles: true }));
-            } else {
-              // Find option matching value (case-insensitive)
-              const opt = Array.from(typeSel.options).find(o =>
-                o.value.toLowerCase() === value.toLowerCase()
-              );
-              if (opt) {
-                typeSel.value = opt.value;
-                typeSel.dispatchEvent(new Event('change', { bubbles: true }));
-              }
-            }
+            const target = newType;
+            const opt = Array.from(typeSel.options).find(o =>
+              o.value.toLowerCase() === target.toLowerCase()
+            );
+            if (opt) typeSel.value = opt.value;
+            else typeSel.value = 'all';
+          }
+          // (3) Re-render the grid + map pins + counts
+          try { if (typeof window.updateMapPinFilters === 'function') window.updateMapPinFilters(); } catch(_) {}
+          try { if (typeof window.renderPills === 'function') window.renderPills('mobile'); } catch(_) {}
+          try { if (typeof window.updateFilterBadge === 'function') window.updateFilterBadge('mobile'); } catch(_) {}
+          try { if (typeof window.renderGrid === 'function') window.renderGrid('gridMobile'); } catch(_) {}
+          try { if (typeof window.updateResultCount === 'function') window.updateResultCount('gridMobile'); } catch(_) {}
+          // (Belt-and-suspenders) also dispatch the change event for any
+          // legacy listeners we haven't accounted for.
+          if (typeSel) {
+            try { typeSel.dispatchEvent(new Event('change', { bubbles: true })); } catch(_) {}
           }
         }
         if (tabId === 'watchlist') {
