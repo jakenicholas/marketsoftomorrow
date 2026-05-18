@@ -7331,6 +7331,59 @@
      body.ui-v2 is present. */
   .v2-drawer, .v2-top-chrome, .v2-right-rail { display: none; }
 
+  /* ‚îÄ‚îÄ Tile image gallery (cross-surface) ‚Äî prev/next arrows + dots.
+     The decorateTiles() function injects these into both #gridMobile and
+     #gridDesktop tiles when a project has multiple images. Rules live
+     outside any media query so they apply on both surfaces. */
+  body.ui-v2 #gridMobile .grid-item .v2-gallery-arrow,
+  body.ui-v2 #gridDesktop .grid-item .v2-gallery-arrow {
+    position: absolute !important;
+    top: 50% !important; transform: translateY(-50%) !important;
+    width: 32px !important; height: 32px !important;
+    background: rgba(0,0,0,0.5) !important;
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+    border: none !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: #fff !important;
+    cursor: pointer !important;
+    opacity: 1 !important;
+    z-index: 3 !important;
+    padding: 0 !important;
+  }
+  body.ui-v2 #gridMobile .grid-item .v2-gallery-arrow.prev,
+  body.ui-v2 #gridDesktop .grid-item .v2-gallery-arrow.prev { left: 8px !important; right: auto !important; }
+  body.ui-v2 #gridMobile .grid-item .v2-gallery-arrow.next,
+  body.ui-v2 #gridDesktop .grid-item .v2-gallery-arrow.next { right: 8px !important; left: auto !important; }
+  body.ui-v2 #gridMobile .grid-item .v2-gallery-arrow svg,
+  body.ui-v2 #gridDesktop .grid-item .v2-gallery-arrow svg {
+    width: 16px !important; height: 16px !important;
+    stroke: currentColor !important; fill: none !important;
+    stroke-width: 2.4 !important; stroke-linecap: round !important;
+  }
+  body.ui-v2 #gridMobile .grid-item .v2-gallery-dots,
+  body.ui-v2 #gridDesktop .grid-item .v2-gallery-dots {
+    position: absolute !important;
+    bottom: 10px !important; right: 10px !important;
+    display: flex !important; gap: 4px !important;
+    z-index: 2 !important;
+  }
+  body.ui-v2 #gridMobile .grid-item .v2-gallery-dot,
+  body.ui-v2 #gridDesktop .grid-item .v2-gallery-dot {
+    width: 6px !important; height: 6px !important;
+    border-radius: 50% !important;
+    background: rgba(255,255,255,0.4) !important;
+  }
+  body.ui-v2 #gridMobile .grid-item .v2-gallery-dot.active,
+  body.ui-v2 #gridDesktop .grid-item .v2-gallery-dot.active {
+    background: #fff !important;
+    width: 16px !important;
+    border-radius: 100px !important;
+  }
+
   @media(max-width: 800px) {
     /* When v2 is active, hide every legacy mobile surface and show the
        new unified drawer instead. Old DOM stays in the document so the
@@ -8092,6 +8145,10 @@
     body.v2-searching .v2-desktop-filter-pills {
       display: none !important;
     }
+
+    /* Tile gallery rules moved OUT of the mobile media query ‚Äî see
+       "Tile image gallery (cross-surface)" above ~line 7333 outside
+       any @media. */
     /* Hide the legacy active-filter chip row ("Type: Spa") + the "Clear all"
        button on BOTH surfaces ‚Äî Jake's contextual filter pills replace
        them. The mobilePillsRow rule above is mobile-only; this catches
@@ -8330,48 +8387,9 @@
       flex-shrink: 0;
     }
 
-    /* ‚îÄ‚îÄ Tile image gallery (prev/next arrows + dots) ‚Äî shared by both
-       gridMobile + gridDesktop. The decorateTiles() function injects
-       the elements into either grid; the CSS below styles them
-       identically so desktop and mobile slideshows look the same. */
-    body.ui-v2 :is(#gridMobile, #gridDesktop) .grid-item .v2-gallery-arrow {
-      position: absolute;
-      top: 50%; transform: translateY(-50%);
-      width: 32px; height: 32px;
-      background: rgba(0,0,0,0.5);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      border: none;
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      color: #fff;
-      cursor: pointer;
-      opacity: 1;
-      transition: opacity 0.15s;
-      z-index: 3;
-    }
-    body.ui-v2 :is(#gridMobile, #gridDesktop) .grid-item .v2-gallery-arrow.prev { left: 8px; }
-    body.ui-v2 :is(#gridMobile, #gridDesktop) .grid-item .v2-gallery-arrow.next { right: 8px; }
-    body.ui-v2 :is(#gridMobile, #gridDesktop) .grid-item .v2-gallery-arrow svg {
-      width: 16px; height: 16px;
-      stroke: currentColor; fill: none; stroke-width: 2.4; stroke-linecap: round;
-    }
-    body.ui-v2 :is(#gridMobile, #gridDesktop) .grid-item .v2-gallery-dots {
-      position: absolute;
-      bottom: 10px; right: 10px;
-      display: flex; gap: 4px;
-      z-index: 2;
-    }
-    body.ui-v2 :is(#gridMobile, #gridDesktop) .grid-item .v2-gallery-dot {
-      width: 6px; height: 6px;
-      border-radius: 50%;
-      background: rgba(255,255,255,0.4);
-    }
-    body.ui-v2 :is(#gridMobile, #gridDesktop) .grid-item .v2-gallery-dot.active {
-      background: #fff;
-      width: 16px;
-      border-radius: 100px;
-    }
+    /* Gallery arrow + dot rules now live OUTSIDE the mobile media query
+       (search for "Tile image gallery (cross-surface)" below) so they
+       apply to both #gridMobile and #gridDesktop. */
 
     /* ‚îÄ‚îÄ Watchlist + Pulse panes ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
        Hosts for content moved from #watchlistPanel + #pulseStack. */
@@ -8940,15 +8958,15 @@
 
     /* ‚îÄ‚îÄ DESKTOP SIDEBAR ‚Äî 540px, dark, flush ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ */
     body.ui-v2 #app-container { padding-top: 60px !important; }
-    body.ui-v2 #map { left: 540px !important; transition: left 0.3s ease; }
+    body.ui-v2 #map { left: 540px !important; }
     /* Collapsed state ‚Äî user clicked the X on the search bar. Sidebar
-       slides out left, map expands to full viewport width. The floating
-       #desktopSearchPill at top-left reopens the sidebar. */
+       slides out left; the map stays put (it already starts at the 540px
+       offset). Tap the floating #desktopSearchPill at top-left to slide
+       the sidebar back in. */
     body.ui-v2.v2-sidebar-collapsed #desktopSidebar {
       transform: translateX(-100%) !important;
       pointer-events: none !important;
     }
-    body.ui-v2.v2-sidebar-collapsed #map { left: 0 !important; }
     /* Hide the floating #desktopSearchPill while the v2 sidebar is open
        (its search bar is the canonical input). Only show it when the
        sidebar is collapsed, as the reopen affordance. */
@@ -16155,6 +16173,13 @@
         document.getElementById('signupWall')?.classList.remove('active');
       }
 
+      // Expose for compare.js + any other module that needs to gate a
+      // feature behind the paid plan. compare.js calls these by name
+      // when the user tries to open the builder without a paid plan.
+      window.showSignupWall = showSignupWall;
+      window.showSubscriptionPaywall = showSubscriptionPaywall;
+      window.hideAllPaywalls = hideAllPaywalls;
+
       // ‚îÄ‚îÄ‚îÄ Memberstack actions ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
       async function openSignup() {
         if (!window.$memberstackDom) return;
@@ -20645,6 +20670,10 @@
       `;
       compare.addEventListener('click', (e) => {
         e.stopPropagation();
+        if (window.comparisons && typeof window.comparisons.openBuilder === 'function') {
+          window.comparisons.openBuilder();
+          return;
+        }
         try {
           const url = new URL(window.location.href);
           url.searchParams.set('view', 'compare');
@@ -21312,17 +21341,19 @@
         v2MenuSwitchTab('watchlist');
       });
       wireMenu('v2MenuCompare', () => {
-        // Open the comparison view. The legacy app uses ?view=compare
-        // OR the body.compare-view-active class, both managed by compare.js.
+        // compare.js exposes a public API on window.comparisons. Open
+        // the builder modal so the user can pick projects to compare /
+        // resume a saved comparison. Falls back to the share-link
+        // route only if the API isn't loaded yet.
+        if (window.comparisons && typeof window.comparisons.openBuilder === 'function') {
+          window.comparisons.openBuilder();
+          return;
+        }
         try {
           const url = new URL(window.location.href);
           url.searchParams.set('view', 'compare');
           window.location.href = url.toString();
-        } catch (e) {
-          const cmp = document.getElementById('compareBar') ||
-                      document.querySelector('[data-compare-toggle], .compare-btn');
-          if (cmp) cmp.click();
-        }
+        } catch (_) {}
       });
       wireMenu('v2MenuSignOut', () => {
         // Try Memberstack v2 API first, then fall back to clicking any
