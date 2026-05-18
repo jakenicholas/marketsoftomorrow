@@ -7293,9 +7293,15 @@
     body.ui-v2 #zoomInButton,
     body.ui-v2 #zoomOutButton,
     body.ui-v2 #resetViewButton,
+    body.ui-v2 #layersButton,
+    body.ui-v2 #locationButton,
     body.ui-v2 #layersPanel { display: none !important; }
     /* Re-show layers panel when the v2 layers button is tapped */
     body.ui-v2.v2-layers-open #layersPanel { display: flex !important; }
+    /* Hide the legacy .mobile-filter-pill — we don't want the
+       Nearest/Type/Status segmented slider in v2; replaced by contextual
+       horizontal-scroll filter pills per tab. */
+    body.ui-v2 .mobile-filter-pill { display: none !important; }
     /* The legacy mobile drawer hosts the search/filter pipeline. We need
        its DOM nodes alive (renderGrid('gridMobile') writes into one of
        them) but we don't want it visible — collapse it to nothing. */
@@ -7309,7 +7315,11 @@
     /* Hide the v1 mode toggle — we add our own glassy one in the top chrome */
     body.ui-v2 .atlas-mode-toggle { display: none !important; }
 
-    /* ── TOP CHROME ──────────────────────────────────────────────── */
+    /* ── TOP CHROME ──────────────────────────────────────────────────
+       Layout: Map/Atlas toggle sits at the LEFT, combined TMW+Profile
+       widget on the RIGHT. The combined widget is a horizontal capsule
+       with TMW logo + divider + profile circle (with optional gold star
+       for premium users). */
     body.ui-v2 .v2-top-chrome {
       display: flex;
       align-items: center;
@@ -7319,24 +7329,9 @@
       left: 0; right: 0;
       padding: 0 14px;
       z-index: 90;
-      pointer-events: none; /* children re-enable */
+      pointer-events: none;
     }
     body.ui-v2 .v2-top-chrome > * { pointer-events: auto; }
-    body.ui-v2 .v2-tmw-logo {
-      width: 40px; height: 40px;
-      background: rgba(15,15,15,0.7);
-      backdrop-filter: blur(16px) saturate(1.4);
-      -webkit-backdrop-filter: blur(16px) saturate(1.4);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 12px;
-      display: flex; align-items: center; justify-content: center;
-      padding: 6px;
-    }
-    body.ui-v2 .v2-tmw-logo img {
-      width: 100%; height: 100%;
-      object-fit: contain;
-      filter: brightness(0) invert(1);
-    }
     body.ui-v2 .v2-mode-toggle {
       background: rgba(15,15,15,0.7);
       backdrop-filter: blur(16px) saturate(1.4);
@@ -7361,16 +7356,61 @@
       background: var(--accent, #1FDF67);
       color: #0a0a0a;
     }
-    body.ui-v2 .v2-profile-btn {
-      width: 40px; height: 40px;
+
+    /* Combined widget: [TMW logo] [divider] [profile w/ star] */
+    body.ui-v2 .v2-tmw-profile-widget {
+      display: inline-flex; align-items: center;
       background: rgba(15,15,15,0.7);
       backdrop-filter: blur(16px) saturate(1.4);
       -webkit-backdrop-filter: blur(16px) saturate(1.4);
       border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 999px;
+      padding: 4px;
+      gap: 0;
+    }
+    body.ui-v2 .v2-tmw-logo {
+      width: 32px; height: 32px;
+      display: flex; align-items: center; justify-content: center;
+      padding: 4px;
+    }
+    body.ui-v2 .v2-tmw-logo img {
+      width: 100%; height: 100%;
+      object-fit: contain;
+      filter: brightness(0) invert(1);
+    }
+    body.ui-v2 .v2-widget-divider {
+      width: 1px; height: 22px;
+      background: rgba(255,255,255,0.18);
+      flex-shrink: 0;
+    }
+    body.ui-v2 .v2-profile-btn {
+      width: 32px; height: 32px;
       border-radius: 50%;
+      background: linear-gradient(135deg, #4a4a4a, #2a2a2a);
+      border: 1px solid rgba(255,255,255,0.12);
+      position: relative;
+      display: flex; align-items: center; justify-content: center;
       cursor: pointer;
-      background-image: linear-gradient(135deg, #FFD300, #FF9500);
-      background-clip: padding-box;
+      flex-shrink: 0;
+      color: #fff;
+    }
+    body.ui-v2 .v2-profile-btn svg.profile-icon {
+      width: 16px; height: 16px;
+      stroke: currentColor; fill: none;
+      stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+    }
+    body.ui-v2 .v2-profile-btn .v2-premium-star {
+      position: absolute;
+      bottom: -2px; right: -2px;
+      width: 14px; height: 14px;
+      background: var(--warn, #FFD300);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      border: 2px solid #0a0a0a;
+    }
+    body.ui-v2 .v2-profile-btn .v2-premium-star svg {
+      width: 8px; height: 8px;
+      fill: #0a0a0a;
     }
 
     /* ── RIGHT-RAIL ACTIONS ───────────────────────────────────────── */
@@ -7674,19 +7714,57 @@
     body.ui-v2 .v2-tab-content { display: none; }
     body.ui-v2 .v2-tab-content.active { display: block; }
 
-    /* ── Relocated legacy elements inside v2 panes ──────────────── */
-    /* The Nearest / Type / Status segmented slider — moved out of the
-       legacy mobile header and styled to sit naturally in the new pane. */
-    body.ui-v2 .v2-discover-filters {
-      padding: 0 14px 10px;
+    /* ── Sheet title row (per-tab, big bold) ────────────────────── */
+    body.ui-v2 .v2-sheet-title-row {
+      padding: 0 18px 8px;
+      display: flex; justify-content: space-between; align-items: baseline;
       flex-shrink: 0;
     }
-    body.ui-v2 .v2-discover-filters .mobile-filter-pill {
-      margin: 0;
+    body.ui-v2 .v2-sheet-title-row .v2-sheet-ttl {
+      font-size: 22px; font-weight: 800;
+      color: #fff;
+      letter-spacing: -0.012em;
     }
-    /* In View / More Nearby sticky title — stays inside the scroll body
-       so it actually sticks to the top of the scrolled tile list, not
-       to the sheet's outer chrome. */
+    body.ui-v2 .v2-sheet-title-row .v2-sheet-sub {
+      font-size: 11px; color: rgba(255,255,255,0.45);
+      font-weight: 600;
+    }
+
+    /* ── Contextual filter pills (horizontal scroll) ────────────── */
+    body.ui-v2 .v2-filter-pills {
+      display: flex; gap: 6px;
+      padding: 0 14px 12px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      flex-shrink: 0;
+    }
+    body.ui-v2 .v2-filter-pills::-webkit-scrollbar { display: none; }
+    body.ui-v2 .v2-filter-pill {
+      flex-shrink: 0;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      color: rgba(255,255,255,0.72);
+      padding: 6px 13px;
+      border-radius: 100px;
+      font-size: 12px;
+      font-weight: 600;
+      white-space: nowrap;
+      cursor: pointer;
+      display: inline-flex; align-items: center; gap: 5px;
+      font-family: inherit;
+    }
+    body.ui-v2 .v2-filter-pill.active {
+      background: rgba(31,223,103,0.14);
+      border-color: rgba(31,223,103,0.4);
+      color: var(--accent, #1FDF67);
+    }
+    body.ui-v2 .v2-filter-pill svg.star-icon {
+      width: 10px; height: 10px;
+      fill: currentColor;
+    }
+
+    /* ── In View / More Nearby sticky header ────────────────────── */
     body.ui-v2 .v2-sheet-body #mobileSectionBar {
       position: sticky;
       top: 0;
@@ -7700,37 +7778,28 @@
     body.ui-v2 .v2-sheet-body #mobilePillsRow {
       margin: 0 0 8px;
     }
-    /* Wider 1-column tile grid for v2 (mockup style) instead of the
-       legacy 2-column dense grid. Easier to scan on phone. */
-    body.ui-v2 .v2-sheet-body .leaf-grid {
+
+    /* ── Force 1-column tile grid ────────────────────────────────
+       Higher specificity via ID so legacy 2-col rule loses. */
+    body.ui-v2 #gridMobile.leaf-grid,
+    body.ui-v2 #v2DiscoverPane #gridMobile {
       grid-template-columns: 1fr !important;
       gap: 12px !important;
       row-gap: 12px !important;
     }
+    body.ui-v2 #gridMobile .leaf-tile {
+      width: 100% !important;
+      max-width: 100% !important;
+    }
 
     /* ── Watchlist + Pulse panes ──────────────────────────────────
-       Hosts for content moved from #watchlistPanel + #pulseStack in C2. */
+       Hosts for content moved from #watchlistPanel + #pulseStack. */
     body.ui-v2 .v2-watchlist-content,
     body.ui-v2 .v2-pulse-content {
       padding: 0;
     }
-    /* When watchlist DOM is relocated into our pane, override its
-       absolute positioning so it lays out naturally. */
-    body.ui-v2 .v2-watchlist-content #watchlistPanel {
-      position: static !important;
-      display: block !important;
-      visibility: visible !important;
-      width: auto !important;
-      height: auto !important;
-      max-height: none !important;
-      transform: none !important;
-      box-shadow: none !important;
-      border: none !important;
-      background: transparent !important;
-      padding: 0 !important;
-      margin: 0 !important;
-    }
-    /* Pulse stack relocated — same overrides */
+    /* Naturalize the absolute-positioned legacy panels */
+    body.ui-v2 .v2-watchlist-content #watchlistPanel,
     body.ui-v2 .v2-pulse-content #pulseStack {
       position: static !important;
       display: block !important;
@@ -7746,6 +7815,11 @@
       margin: 0 !important;
       opacity: 1 !important;
     }
+    /* Hide the legacy watchlist + pulse internal chrome — we provide
+       our own title row + filter pills in the drawer. */
+    body.ui-v2 .v2-watchlist-content .wl-handle,
+    body.ui-v2 .v2-watchlist-content .wl-header,
+    body.ui-v2 .v2-pulse-content .pulse-stack-header { display: none !important; }
   }
 
   </style>
@@ -8214,16 +8288,24 @@
          the legacy mobile drawer / pulse / watchlist.
          ════════════════════════════════════════════════════════════════ -->
 
-    <!-- Top chrome (logo · mode toggle · profile) -->
+    <!-- Top chrome: Map/Atlas toggle (left) · combined TMW+Profile widget (right) -->
     <div class="v2-top-chrome" id="v2TopChrome" aria-hidden="true">
-      <a href="https://www.oftmw.com" target="_blank" class="v2-tmw-logo" aria-label="Markets of Tomorrow">
-        <img src="https://static.wixstatic.com/shapes/ca3b83_a647b53cad4c49c5b012af991d286a86.svg" alt="" />
-      </a>
       <div class="v2-mode-toggle" role="tablist" aria-label="Switch between map and atlas view">
         <button id="v2MapBtn" class="active" data-mode="map" role="tab" aria-selected="true">Map</button>
         <button id="v2AtlasBtn" data-mode="atlas" role="tab" aria-selected="false">Atlas</button>
       </div>
-      <button class="v2-profile-btn" id="v2ProfileBtn" aria-label="Profile"></button>
+      <div class="v2-tmw-profile-widget">
+        <a href="https://www.oftmw.com" target="_blank" class="v2-tmw-logo" aria-label="Markets of Tomorrow">
+          <img src="https://static.wixstatic.com/shapes/ca3b83_a647b53cad4c49c5b012af991d286a86.svg" alt="" />
+        </a>
+        <div class="v2-widget-divider"></div>
+        <button class="v2-profile-btn" id="v2ProfileBtn" aria-label="Profile">
+          <svg class="profile-icon" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-7 8-7s8 3 8 7"/></svg>
+          <span class="v2-premium-star" id="v2PremiumStar">
+            <svg viewBox="0 0 24 24"><path d="M12 2l3 6.3 6.9 1-5 4.9 1.2 7L12 17.8 5.9 21.2l1.2-7-5-4.9L9 8.3z"/></svg>
+          </span>
+        </button>
+      </div>
     </div>
 
     <!-- Right-rail action buttons (slide up with sheet) -->
@@ -8295,11 +8377,15 @@
           </button>
         </div>
 
-        <!-- Filter slider host (Nearest / Type / Status) — visible
-             only on Discover tab; relocated from legacy mobile drawer. -->
-        <div class="v2-discover-filters" id="v2DiscoverFilters">
-          <!-- #mobile-filter-pill gets moved here by boot JS -->
+        <!-- Per-tab title row (big bold title + small subtitle) -->
+        <div class="v2-sheet-title-row">
+          <div class="v2-sheet-ttl" id="v2SheetTtl">Discover</div>
+          <div class="v2-sheet-sub" id="v2SheetSub">All projects</div>
         </div>
+
+        <!-- Contextual filter pills (horizontal scroll). Content swaps
+             based on active tab — populated by JS. -->
+        <div class="v2-filter-pills" id="v2FilterPills"></div>
 
         <!-- Tab content area -->
         <div class="v2-sheet-body">
@@ -17617,17 +17703,14 @@
       // the same elements — they just live in new parents now.
       try {
         const pane = document.getElementById('v2DiscoverPane');
-        const filtersHost = document.getElementById('v2DiscoverFilters');
         const watchPane = document.getElementById('v2WatchlistPane');
         const pulsePane = document.getElementById('v2PulsePane');
 
-        // The Nearest / Type / Status segmented slider (legacy class
-        // .mobile-filter-pill) → above the tab content
-        const filterPill = document.querySelector('#mobileDrawer .mobile-filter-pill');
-        if (filterPill && filtersHost) filtersHost.appendChild(filterPill);
+        // NOTE: we no longer relocate .mobile-filter-pill — it's hidden via
+        // CSS. The contextual v2-filter-pills row (per-tab) replaces it.
 
         // Active filter chips row → top of Discover pane
-        const pillsRow   = document.getElementById('mobilePillsRow');
+        const pillsRow = document.getElementById('mobilePillsRow');
         if (pillsRow && pane) pane.appendChild(pillsRow);
 
         // In View / More Nearby sticky section bar → top of Discover scroll
@@ -17761,27 +17844,116 @@
       attachDrag(handle);
       attachDrag(dragZone);
 
-      // ── Tab switching (gold-active) ──────────────────────────────
+      // ── Tab switching with title + contextual filter pills ───────
       const tabs = document.querySelectorAll('.v2-tab[data-v2-tab]');
       const panes = document.querySelectorAll('.v2-tab-content[data-v2-tab-content]');
-      tabs.forEach(t => {
-        t.addEventListener('click', () => {
-          const id = t.dataset.v2Tab;
-          tabs.forEach(x => {
-            x.classList.toggle('active', x === t);
-            x.setAttribute('aria-selected', String(x === t));
+      const ttlEl = document.getElementById('v2SheetTtl');
+      const subEl = document.getElementById('v2SheetSub');
+      const pillsEl = document.getElementById('v2FilterPills');
+
+      // Contextual filter pills per tab. Discover hooks the existing
+      // type-filter dropdown via .value + change event. Watchlist + Pulse
+      // pills are visual-only for now (deeper wiring lands in C3).
+      const FILTER_PILLS = {
+        discover: [
+          { label: 'All',         value: 'all',     active: true },
+          { label: '★ Featured',  value: 'featured' },
+          { label: 'Mixed-Use',   value: 'Mixed-Use' },
+          { label: 'Hotel',       value: 'Hotel' },
+          { label: 'Residences',  value: 'Residences' },
+          { label: 'Office',      value: 'Office' },
+          { label: 'Retail',      value: 'Retail' },
+        ],
+        watchlist: [
+          { label: 'All',           value: 'all', active: true },
+          { label: 'With updates',  value: 'unread' },
+          { label: 'Construction',  value: 'construction' },
+          { label: 'Coming Soon',   value: 'coming-soon' },
+        ],
+        pulse: [
+          { label: 'All',         value: 'all', active: true },
+          { label: 'Updates',     value: 'status_change' },
+          { label: 'News',        value: 'article' },
+          { label: 'New on Map',  value: 'new_project' },
+        ],
+      };
+
+      const TITLES = {
+        discover:  () => ({ ttl: 'Discover',  sub: 'All projects · sorted by status' }),
+        watchlist: () => ({ ttl: 'Watchlist', sub: getWatchlistSubtitle() }),
+        pulse:     () => ({ ttl: 'Pulse',     sub: getPulseSubtitle() }),
+      };
+      function getWatchlistSubtitle() {
+        const n = document.getElementById('watchlistStatCount');
+        const u = document.getElementById('watchlistStatUnread');
+        const c = n ? parseInt(n.textContent || '0', 10) : 0;
+        const ur = u ? parseInt(u.textContent || '0', 10) : 0;
+        if (!c) return 'No projects yet';
+        return `${c} project${c === 1 ? '' : 's'}${ur ? ' · ' + ur + ' unread' : ''}`;
+      }
+      function getPulseSubtitle() {
+        const sub = document.getElementById('pulseStackSub');
+        return sub ? sub.textContent.trim() : '—';
+      }
+
+      function renderFilterPills(tabId) {
+        if (!pillsEl) return;
+        const pills = FILTER_PILLS[tabId] || [];
+        pillsEl.innerHTML = pills.map(p => `
+          <button class="v2-filter-pill ${p.active ? 'active' : ''}" data-pill-value="${p.value}">
+            ${p.label === '★ Featured'
+              ? '<svg class="star-icon" viewBox="0 0 24 24"><path d="M12 2l3 6.3 6.9 1-5 4.9 1.2 7L12 17.8 5.9 21.2l1.2-7-5-4.9L9 8.3z"/></svg>Featured'
+              : p.label}
+          </button>
+        `).join('');
+        // Wire clicks
+        pillsEl.querySelectorAll('.v2-filter-pill').forEach(btn => {
+          btn.addEventListener('click', () => {
+            pillsEl.querySelectorAll('.v2-filter-pill').forEach(x => x.classList.remove('active'));
+            btn.classList.add('active');
+            handlePillClick(tabId, btn.dataset.pillValue);
           });
-          panes.forEach(p => p.classList.toggle('active', p.dataset.v2TabContent === id));
-          // Update sheet title row
-          const titles = {
-            discover:  { ttl: 'Discover',  sub: 'All projects' },
-            watchlist: { ttl: 'Watchlist', sub: 'Coming in C2' },
-            pulse:     { ttl: 'Pulse',     sub: 'Coming in C2' },
-          };
-          // (Title row not yet wired in this commit — placeholder hook
-          //  in case we want to surface tab title later.)
         });
-      });
+      }
+      function handlePillClick(tabId, value) {
+        if (tabId === 'discover') {
+          // Route to existing type filter dropdown
+          const typeSel = document.getElementById('projectTypeFilterMobile');
+          if (typeSel) {
+            if (value === 'all' || value === 'featured') {
+              typeSel.value = 'all';
+              typeSel.dispatchEvent(new Event('change', { bubbles: true }));
+            } else {
+              // Find option matching value (case-insensitive)
+              const opt = Array.from(typeSel.options).find(o =>
+                o.value.toLowerCase() === value.toLowerCase()
+              );
+              if (opt) {
+                typeSel.value = opt.value;
+                typeSel.dispatchEvent(new Event('change', { bubbles: true }));
+              }
+            }
+          }
+          // TODO C3: wire featured filter through to renderGrid
+        }
+        // Watchlist + Pulse pill behavior wired in C3
+      }
+
+      function switchTab(id) {
+        tabs.forEach(x => {
+          const on = x.dataset.v2Tab === id;
+          x.classList.toggle('active', on);
+          x.setAttribute('aria-selected', String(on));
+        });
+        panes.forEach(p => p.classList.toggle('active', p.dataset.v2TabContent === id));
+        const meta = (TITLES[id] || (() => ({ ttl: '', sub: '' })))();
+        if (ttlEl) ttlEl.textContent = meta.ttl;
+        if (subEl) subEl.textContent = meta.sub;
+        renderFilterPills(id);
+      }
+      tabs.forEach(t => t.addEventListener('click', () => switchTab(t.dataset.v2Tab)));
+      // Initialize Discover as the default active tab
+      switchTab('discover');
 
       // ── Search input → existing search pipeline ──────────────────
       // The live mobile search uses #mobileSearchBar internally. Mirror
@@ -17843,36 +18015,29 @@
         });
       }
 
-      // ── Right-rail map controls → Mapbox via existing globals ─────
+      // ── Right-rail map controls — delegate to legacy buttons ──────
+      // The legacy buttons own the Mapbox `map` instance via closure;
+      // calling .click() on them re-uses the exact same handlers that
+      // work in v1. Cleanest path to "actually working" with no risk
+      // of map-instance scope errors.
       const v2ZoomIn  = document.getElementById('v2ZoomInBtn');
       const v2ZoomOut = document.getElementById('v2ZoomOutBtn');
       const v2Geo     = document.getElementById('v2GeolocateBtn');
       const v2Layers  = document.getElementById('v2LayersBtn');
       const v2Pulse   = document.getElementById('v2PulseQuickBtn');
-      if (v2ZoomIn) v2ZoomIn.addEventListener('click', () => {
-        if (window.map && typeof window.map.zoomIn === 'function') window.map.zoomIn();
-      });
-      if (v2ZoomOut) v2ZoomOut.addEventListener('click', () => {
-        if (window.map && typeof window.map.zoomOut === 'function') window.map.zoomOut();
-      });
-      if (v2Geo) v2Geo.addEventListener('click', () => {
-        // Reuse the existing geolocate control if present
-        const legacyGeo = document.querySelector('.mapboxgl-ctrl-geolocate');
-        if (legacyGeo) legacyGeo.click();
-      });
-      if (v2Layers) v2Layers.addEventListener('click', () => {
-        // Toggle the legacy layers panel directly (.open class drives it).
-        // The panel is hidden by our v2 CSS when ?ui=v2 is set, BUT we
-        // can still render it inline next to the rail temporarily by
-        // adding a v2-specific override class on body.
-        const panel = document.getElementById('layersPanel');
-        if (!panel) return;
-        document.body.classList.toggle('v2-layers-open');
-        panel.classList.toggle('open');
-      });
+      const delegateClick = (v2Btn, legacyId) => {
+        if (!v2Btn) return;
+        v2Btn.addEventListener('click', () => {
+          const legacy = document.getElementById(legacyId);
+          if (legacy) legacy.click();
+        });
+      };
+      delegateClick(v2ZoomIn,  'zoomInButton');
+      delegateClick(v2ZoomOut, 'zoomOutButton');
+      delegateClick(v2Geo,     'locationButton');
+      delegateClick(v2Layers,  'layersButton');
       if (v2Pulse) v2Pulse.addEventListener('click', () => {
-        // Open the Pulse tab in the v2 drawer
-        openSheet('mid');
+        openSheet();
         const pulseTab = document.querySelector('.v2-tab[data-v2-tab="pulse"]');
         if (pulseTab) pulseTab.click();
       });
