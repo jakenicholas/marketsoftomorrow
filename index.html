@@ -7518,8 +7518,7 @@
     body.ui-v2 .v2-profile-menu .v2-menu-item.v2-menu-signout:hover {
       background: rgba(255,80,80,0.08);
     }
-    /* Map/Atlas toggle ‚Äî matches Login button style (translucent white pill
-       with white border) so the chrome reads as a consistent design system. */
+    /* Map/Atlas toggle absolutely centered */
     body.ui-v2 .v2-mode-toggle {
       position: absolute;
       left: 50%; transform: translateX(-50%);
@@ -7534,19 +7533,17 @@
     body.ui-v2 .v2-mode-toggle button {
       background: transparent;
       color: rgba(255,255,255,0.6);
-      border: 1px solid transparent;
-      padding: 6px 16px;
+      border: none;
+      padding: 7px 18px;
       font-size: 12px;
-      font-weight: 700;
+      font-weight: 600;
       border-radius: 999px;
       font-family: inherit;
       cursor: pointer;
-      transition: background 0.15s, color 0.15s, border-color 0.15s;
     }
     body.ui-v2 .v2-mode-toggle button.active {
-      background: rgba(255,255,255,0.1);
-      color: #fff;
-      border-color: rgba(255,255,255,0.18);
+      background: var(--accent, #1FDF67);
+      color: #0a0a0a;
     }
 
     /* ‚îÄ‚îÄ RIGHT-RAIL ACTIONS ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ */
@@ -18642,15 +18639,22 @@
           v2Atl.setAttribute('aria-selected', String(atlasOn));
         };
         mirror();
-        // Watch body class changes (cheap MutationObserver): mirror toggle
-        // state AND close the sheet whenever atlas mode activates.
+        // Watch body class changes to mirror Map/Atlas active state. Track
+        // last atlas-mode value to avoid running closeSheet on every class
+        // mutation (which would re-fire whenever ANY class toggles on body).
+        let _lastAtlas = document.body.classList.contains('atlas-mode');
         new MutationObserver(() => {
           mirror();
-          // If atlas mode just turned on, close the drawer so it doesn't
-          // float over the atlas overlay content.
-          if (document.body.classList.contains('atlas-mode')) {
-            closeSheet();
+          const nowAtlas = document.body.classList.contains('atlas-mode');
+          if (nowAtlas && !_lastAtlas) {
+            // Just entered atlas mode ‚Üí collapse the drawer.
+            // Defer to next tick so we don't mutate body inside an observer
+            // callback (which would re-trigger this observer immediately).
+            setTimeout(() => {
+              if (typeof window.v2CloseSheet === 'function') window.v2CloseSheet();
+            }, 0);
           }
+          _lastAtlas = nowAtlas;
         }).observe(document.body, {
           attributes: true, attributeFilter: ['class'],
         });
