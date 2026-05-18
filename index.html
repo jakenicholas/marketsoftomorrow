@@ -757,8 +757,8 @@
       width: 35%;
       height: calc(100% - var(--header-height) - var(--safe-area-top));
       background: linear-gradient(to bottom, rgba(11,11,11,0) 0px, rgba(11,11,11,0) 140px, rgba(11,11,11,0.80) 220px, rgba(11,11,11,0.80) 100%);
-      backdrop-filter: blur(80px) brightness(0.65);
-      -webkit-backdrop-filter: blur(80px) brightness(0.65);
+      backdrop-filter: blur(20px) brightness(0.65);
+      -webkit-backdrop-filter: blur(20px) brightness(0.65);
       overflow-y: auto; z-index: 4; padding: 0;
       padding-left: var(--safe-area-left);
       transform: translateX(-100%);
@@ -873,8 +873,8 @@
       height: calc(100dvh - var(--header-height));
       max-height: calc(100dvh - var(--header-height));
       background: linear-gradient(to bottom, rgba(11,11,11,0) 0px, rgba(11,11,11,0) 140px, rgba(11,11,11,0.80) 220px, rgba(11,11,11,0.80) 100%);
-      backdrop-filter: blur(80px) brightness(0.65);
-      -webkit-backdrop-filter: blur(80px) brightness(0.65);
+      backdrop-filter: blur(20px) brightness(0.65);
+      -webkit-backdrop-filter: blur(20px) brightness(0.65);
       z-index: 10; display: none;
       transform: translateY(100%);
       transition: transform 0.35s cubic-bezier(0.34, 1.2, 0.64, 1);
@@ -1094,8 +1094,8 @@
     #mobileDrawerContent .mobile-header {
       position: sticky; top: 0; z-index: 10;
       background: rgba(11,11,11,0);
-      backdrop-filter: blur(80px) brightness(0.7);
-      -webkit-backdrop-filter: blur(80px) brightness(0.7);
+      backdrop-filter: blur(20px) brightness(0.7);
+      -webkit-backdrop-filter: blur(20px) brightness(0.7);
       transition: background 0.3s ease;
       padding: 12px calc(14px + var(--safe-area-right)) 10px calc(14px + var(--safe-area-left));
       display: flex; flex-direction: column; gap: 7px;
@@ -1220,8 +1220,8 @@
     #desktopSidebar .sidebar-header {
       position: sticky; top: 0; z-index: 10;
       background: rgba(11,11,11,0);
-      backdrop-filter: blur(80px) brightness(0.7);
-      -webkit-backdrop-filter: blur(80px) brightness(0.7);
+      backdrop-filter: blur(20px) brightness(0.7);
+      -webkit-backdrop-filter: blur(20px) brightness(0.7);
       transition: background 0.3s ease;
       padding: 12px 14px 10px;
       display: flex; flex-direction: column; gap: 7px;
@@ -8533,6 +8533,195 @@
     body.ui-v2.v2-modal-open .v2-drawer,
     body.ui-v2.v2-modal-open .v2-right-rail { opacity: 0; pointer-events: none; }
     body.ui-v2.v2-modal-open .v2-capsule    { display: none; }
+  }
+
+  /* ‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê
+     DESKTOP v2 ‚Äî matches mockups/desktop-redesign-4-blend.html
+     Restyles the legacy #header + #desktopSidebar + tiles so desktop
+     reads with the same design language as the mobile v2 redesign.
+     Active for body.ui-v2 at min-width 801px. Project popup (Mapbox)
+     is intentionally untouched per spec.
+     ‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê */
+  @media(min-width: 801px) {
+    /* ‚îÄ‚îÄ HEADER ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ */
+    body.ui-v2 #header {
+      background: rgba(10,10,10,0.85) !important;
+      backdrop-filter: blur(20px) saturate(1.4) !important;
+      -webkit-backdrop-filter: blur(20px) saturate(1.4) !important;
+      border-bottom: 1px solid rgba(255,255,255,0.08) !important;
+      box-shadow: none !important;
+      height: 60px !important;
+      padding: 0 24px !important;
+      gap: 14px;
+    }
+    body.ui-v2 #header-logo { height: 32px; filter: brightness(0) invert(1); }
+    /* Atlas/Map toggle in the header center (the existing .atlas-mode-toggle
+       gets restyled to look like the mockup pill ‚Äî accent green active). */
+    body.ui-v2 .atlas-mode-toggle {
+      display: inline-flex !important;
+      background: rgba(255,255,255,0.05) !important;
+      border: 1px solid rgba(255,255,255,0.08) !important;
+      border-radius: 999px !important;
+      padding: 3px !important;
+      top: auto !important;
+      left: auto !important;
+      transform: none !important;
+      position: relative !important;
+    }
+    body.ui-v2 .atlas-mode-toggle-btn {
+      background: transparent !important;
+      color: rgba(255,255,255,0.6) !important;
+      border: none !important;
+      padding: 7px 18px !important;
+      font-size: 12.5px !important;
+      font-weight: 600 !important;
+      border-radius: 999px !important;
+    }
+    body.ui-v2 .atlas-mode-toggle-btn.active {
+      background: var(--accent, #1FDF67) !important;
+      color: #0a0a0a !important;
+      font-weight: 700 !important;
+    }
+
+    /* ‚îÄ‚îÄ DESKTOP SIDEBAR ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ */
+    body.ui-v2 #desktopSidebar {
+      width: 420px !important;
+      background: rgba(15,15,15,0.96) !important;
+      backdrop-filter: blur(20px) !important;
+      -webkit-backdrop-filter: blur(20px) !important;
+      border-right: 1px solid rgba(255,255,255,0.08) !important;
+      box-shadow: none;
+    }
+    /* Search row ‚Üí match v2 pinned-search pill style */
+    body.ui-v2 #desktopSidebar .desktop-search-row {
+      margin: 0 16px 12px !important;
+      padding: 14px 0 0 !important;
+    }
+    body.ui-v2 #desktopSidebar .desktop-search-pill {
+      background: #1f1f1f !important;
+      border: 1px solid rgba(255,255,255,0.08) !important;
+      border-radius: 22px !important;
+      padding: 9px 14px !important;
+    }
+    body.ui-v2 #desktopSidebar .desktop-search-pill input {
+      font-size: 14px !important;
+      font-weight: 500 !important;
+    }
+    body.ui-v2 #desktopSidebar #closeSidebar {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 50%;
+    }
+    /* Filter pill row ‚Äî three glass segments */
+    body.ui-v2 #desktopSidebar .desktop-filter-pill {
+      background: #1f1f1f !important;
+      border: 1px solid rgba(255,255,255,0.08) !important;
+      border-radius: 12px !important;
+      margin: 0 16px 12px !important;
+    }
+    /* Section status bar ‚Äî accent green pill */
+    body.ui-v2 #desktopSidebar .section-status-bar {
+      padding: 4px 20px 10px !important;
+    }
+    body.ui-v2 #desktopSidebar .ssb-title.in-view {
+      color: var(--accent, #1FDF67) !important;
+      background: rgba(31,223,103,0.14) !important;
+      padding: 3px 10px !important;
+      border-radius: 100px !important;
+      font-size: 10px !important;
+      text-transform: uppercase !important;
+      letter-spacing: 0.06em !important;
+      font-weight: 700 !important;
+    }
+
+    /* ‚îÄ‚îÄ DESKTOP TILES (horizontal: image left, body right) ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ */
+    body.ui-v2 #gridDesktop {
+      padding: 0 16px 16px !important;
+      gap: 10px !important;
+      display: flex !important;
+      flex-direction: column !important;
+    }
+    body.ui-v2 #gridDesktop .grid-item {
+      display: flex !important;
+      flex-direction: row !important;
+      background: #1f1f1f !important;
+      border: 1px solid rgba(255,255,255,0.08) !important;
+      border-radius: 14px !important;
+      overflow: hidden !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      transition: border-color 0.15s !important;
+      cursor: pointer;
+    }
+    body.ui-v2 #gridDesktop .grid-item:hover {
+      border-color: rgba(255,255,255,0.18) !important;
+      transform: none !important;
+    }
+    body.ui-v2 #gridDesktop .grid-item .image-wrapper {
+      width: 140px !important;
+      min-height: 100% !important;
+      flex-shrink: 0 !important;
+      border-radius: 0 !important;
+      overflow: hidden;
+      position: relative;
+    }
+    body.ui-v2 #gridDesktop .grid-item img {
+      width: 100% !important;
+      height: 100% !important;
+      min-height: 130px !important;
+      object-fit: cover !important;
+      border-radius: 0 !important;
+    }
+    body.ui-v2 #gridDesktop .grid-item-content {
+      flex: 1 !important;
+      min-width: 0 !important;
+      padding: 12px 16px !important;
+      display: flex !important;
+      flex-direction: column !important;
+      justify-content: space-between !important;
+      gap: 4px !important;
+    }
+    body.ui-v2 #gridDesktop .grid-item-content h3 {
+      font-size: 15.5px !important;
+      font-weight: 700 !important;
+      color: #fff !important;
+      letter-spacing: -0.01em !important;
+      line-height: 1.25 !important;
+      margin: 0 !important;
+    }
+    body.ui-v2 #gridDesktop .grid-item-content p.city {
+      font-size: 12px !important;
+      color: rgba(255,255,255,0.72) !important;
+      padding: 0 !important;
+      margin: 3px 0 0 !important;
+    }
+    /* Featured badge ‚Äî gold bg, #111 star, no shadow (matches mobile v2) */
+    body.ui-v2 #gridDesktop .grid-item .featured-badge {
+      position: absolute !important;
+      top: 10px !important; right: 10px !important;
+      left: auto !important;
+      background: var(--warn, #FFD300) !important;
+      border: none !important;
+      border-radius: 6px !important;
+      color: #111 !important;
+      padding: 0 !important;
+      font-size: 0 !important;
+      gap: 0 !important; line-height: 0 !important;
+      display: inline-flex !important;
+      align-items: center !important; justify-content: center !important;
+      box-shadow: none !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+      width: 22px !important; height: 22px !important;
+      z-index: 2;
+    }
+    body.ui-v2 #gridDesktop .grid-item .featured-badge svg {
+      width: 12px !important; height: 12px !important;
+      fill: #111 !important; stroke: none !important;
+      filter: none !important;
+      display: block !important;
+      margin: 0 !important;
+    }
   }
 
   </style>
