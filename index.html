@@ -8612,15 +8612,29 @@
   }
 
   /* ‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê
-     DESKTOP v2 ‚Äî matches mockups/desktop-redesign-4-blend.html
-     Comprehensive restyle of the desktop layout (header + sidebar + tiles
-     + map controls) so desktop reads with the same design language as
-     the mobile v2 redesign. Project popup (Mapbox click popup) is
-     intentionally untouched per spec.
+     DESKTOP v2 ‚Äî repurposes the mobile v2 drawer as a fixed left sidebar
+     We use the EXACT same DOM as mobile (#v2Drawer, #v2Sheet with its
+     pinned-search + tabs + filter-pills + tab content). Hide the legacy
+     #desktopSidebar entirely. Mobile v2 boot already relocates
+     #gridMobile / #watchlistPanel / #pulseStack into the v2 panes ‚Äî that
+     same content now renders inside the desktop sidebar.
+     Project popup (Mapbox click popup) intentionally untouched.
      ‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê */
   @media(min-width: 801px) {
 
-    /* ‚îÄ‚îÄ 1. TOP HEADER BAR ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ */
+    /* ‚îÄ‚îÄ 1. KILL the legacy desktop UI ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ */
+    body.ui-v2 #desktopSidebar { display: none !important; }
+    body.ui-v2 #gridDesktop    { display: none !important; }
+    /* Legacy desktop chrome buttons */
+    body.ui-v2 #zoomInButton,
+    body.ui-v2 #zoomOutButton,
+    body.ui-v2 #locationButton,
+    body.ui-v2 #resetViewButton,
+    body.ui-v2 #layersButton,
+    body.ui-v2 #pulseBellBtn,
+    body.ui-v2 #watchlistBtn { display: none !important; }
+
+    /* ‚îÄ‚îÄ 2. HEADER ‚Äî glass bar ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ */
     body.ui-v2 #header {
       background: rgba(10,10,10,0.92) !important;
       backdrop-filter: blur(20px) saturate(1.4) !important;
@@ -8632,13 +8646,8 @@
       justify-content: flex-start !important;
       gap: 16px !important;
     }
-    body.ui-v2 #header-logo-link { flex-shrink: 0; }
     body.ui-v2 #header-logo { height: 28px !important; filter: brightness(0) invert(1); }
-
-    /* ‚îÄ‚îÄ 2. MAP/ATLAS TOGGLE ‚Äî repositioned to header center ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ */
-    /* Reposition the existing .atlas-mode-toggle into the visual center
-       of the new header bar. Keeps it position:fixed but at top:30px so
-       it sits inside the header (which is 60px tall). */
+    /* Map/Atlas toggle ‚Äî centered in header */
     body.ui-v2 .atlas-mode-toggle {
       top: 30px !important;
       left: 50% !important;
@@ -8661,181 +8670,102 @@
       font-weight: 700 !important;
     }
 
-    /* ‚îÄ‚îÄ 3. APP CONTAINER + MAP ‚Äî match new 60px header / 420px side ‚îÄ‚îÄ */
-    body.ui-v2 #app-container {
-      padding-top: 60px !important;
-    }
-    body.ui-v2 #map {
-      left: 420px !important;
-    }
+    /* ‚îÄ‚îÄ 3. APP CONTAINER + MAP ‚Äî account for header + sidebar ‚îÄ‚îÄ‚îÄ‚îÄ */
+    body.ui-v2 #app-container { padding-top: 60px !important; }
+    body.ui-v2 #map           { left: 480px !important; }
 
-    /* ‚îÄ‚îÄ 4. DESKTOP SIDEBAR ‚Äî 420px, dark, flush layout ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ */
-    body.ui-v2 #desktopSidebar {
-      width: 420px !important;
+    /* ‚îÄ‚îÄ 4. v2 DRAWER ‚Üí FIXED LEFT SIDEBAR ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ */
+    /* Show the existing .v2-drawer (mobile bottom sheet) as a fixed
+       480px left sidebar instead. All inner elements (search pill,
+       tabs, filter pills, tile content) are the SAME mobile components. */
+    body.ui-v2 .v2-drawer {
+      display: block !important;
+      position: fixed !important;
       top: 60px !important;
-      height: calc(100% - 60px) !important;
+      left: 0 !important;
+      right: auto !important;
+      bottom: 0 !important;
+      width: 480px !important;
+      height: auto !important;
       background: rgba(15,15,15,0.98) !important;
-      backdrop-filter: blur(20px) !important;
-      -webkit-backdrop-filter: blur(20px) !important;
       border-right: 1px solid rgba(255,255,255,0.08) !important;
-      box-shadow: none !important;
-      padding-left: 0 !important;
-      transform: translateX(0) !important;
+      z-index: 5 !important;
     }
-    body.ui-v2 #desktopSidebar .sidebar-header {
+    /* Capsule + drag handles are mobile-only ‚Äî hide on desktop */
+    body.ui-v2 .v2-capsule,
+    body.ui-v2 .v2-drag-zone,
+    body.ui-v2 .v2-sheet-handle { display: none !important; }
+
+    /* v2-sheet fills the drawer entirely (no animation) */
+    body.ui-v2 .v2-sheet {
+      position: relative !important;
+      height: 100% !important;
+      width: 100% !important;
+      bottom: auto !important;
+      left: auto !important;
+      right: auto !important;
+      border-radius: 0 !important;
       background: transparent !important;
       backdrop-filter: none !important;
       -webkit-backdrop-filter: none !important;
-      padding: 14px 16px 8px !important;
-      gap: 10px !important;
-    }
-    body.ui-v2 #desktopSidebar .sidebar-header.scrolled {
-      background: rgba(11,11,11,0.4) !important;
-    }
-    body.ui-v2 #desktopSidebar .sidebar-content {
-      padding: 0 !important;
-    }
-
-    /* Search pill ‚Äî rounded, dark surface, no harsh shadow */
-    body.ui-v2 #desktopSidebar .desktop-search-pill {
-      background: #1f1f1f !important;
-      border: 1px solid rgba(255,255,255,0.08) !important;
-      border-radius: 22px !important;
-      height: 44px !important;
       box-shadow: none !important;
-    }
-    body.ui-v2 #desktopSidebar .desktop-search-pill input {
-      font-size: 14px !important;
-      font-weight: 500 !important;
-      color: #fff !important;
-    }
-    body.ui-v2 #desktopSidebar #closeSidebar {
-      background: rgba(255,255,255,0.05) !important;
-      border: 1px solid rgba(255,255,255,0.08) !important;
-      border-radius: 50% !important;
-    }
-
-    /* ‚îÄ‚îÄ 5. HIDE LEGACY 3-DROPDOWN FILTER PILL ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ */
-    /* The legacy 3-segment dropdown (Sort/Type/Status) is replaced by
-       segmented tabs (Discover/Watchlist/Pulse) injected via JS into
-       #v2DesktopTabs, plus the existing .filter-pills-row for active
-       filter chips. Keep the selects functional but hidden offscreen. */
-    body.ui-v2 #desktopSidebar .desktop-filter-pill {
-      display: none !important;
-    }
-
-    /* ‚îÄ‚îÄ 6. v2 SEGMENTED TABS (injected by JS) ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ */
-    body.ui-v2 .v2-desktop-tabs {
+      border-top: none !important;
+      transform: none !important;
+      transition: none !important;
+      padding-bottom: 0 !important;
       display: flex !important;
-      margin: 0 16px 10px;
-      background: #1f1f1f;
-      border-radius: 12px;
-      padding: 3px;
-      gap: 2px;
-    }
-    body.ui-v2 .v2-desktop-tabs button {
-      flex: 1;
-      background: transparent;
-      color: rgba(255,255,255,0.45);
-      border: none;
-      padding: 10px 6px;
-      font-size: 13px;
-      font-weight: 600;
-      border-radius: 9px;
-      font-family: inherit;
-      cursor: pointer;
-      display: flex; align-items: center; justify-content: center; gap: 6px;
-      transition: background 0.15s, color 0.15s;
-    }
-    body.ui-v2 .v2-desktop-tabs button.active {
-      background: var(--warn, #FFD300);
-      color: #0a0a0a;
-      font-weight: 700;
-    }
-    body.ui-v2 .v2-desktop-tabs button .num {
-      background: rgba(0,0,0,0.18);
-      color: inherit;
-      font-size: 10px; font-weight: 800;
-      padding: 1px 6px; border-radius: 100px; line-height: 1.2;
-    }
-    body.ui-v2 .v2-desktop-tabs button.active .num {
-      background: #0a0a0a; color: var(--warn, #FFD300);
+      flex-direction: column !important;
     }
 
-    /* Desktop filter pills row ‚Äî matches mobile v2 .v2-filter-pills */
-    body.ui-v2 .v2-desktop-filter-pills {
-      display: flex !important;
-      gap: 6px !important;
+    /* ‚îÄ‚îÄ 5. PINNED SEARCH at top of sidebar ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ */
+    body.ui-v2 .v2-pinned-search {
+      margin: 14px 16px 12px !important;
+      padding: 9px 9px 9px 16px !important;
+      flex-shrink: 0 !important;
+    }
+
+    /* ‚îÄ‚îÄ 6. SEGMENTED TABS ‚Äî same gold-active design as mobile ‚îÄ‚îÄ‚îÄ‚îÄ */
+    body.ui-v2 .v2-segmented {
+      margin: 0 16px 12px !important;
+      flex-shrink: 0 !important;
+    }
+
+    /* ‚îÄ‚îÄ 7. SHEET TITLE ROW ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ */
+    body.ui-v2 .v2-sheet-title-row {
+      padding: 0 18px 8px !important;
+      flex-shrink: 0 !important;
+    }
+    body.ui-v2 .v2-sheet-ttl { font-size: 22px !important; }
+
+    /* ‚îÄ‚îÄ 8. FILTER PILLS ROW ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ */
+    body.ui-v2 .v2-filter-pills {
       padding: 0 16px 12px !important;
-      overflow-x: auto !important;
-      flex-wrap: nowrap !important;
-      -ms-overflow-style: none;
-      scrollbar-width: none;
-    }
-    body.ui-v2 .v2-desktop-filter-pills::-webkit-scrollbar { display: none; }
-    body.ui-v2 .v2-desktop-filter-pills .v2-filter-pill {
-      flex-shrink: 0;
-      background: #1f1f1f;
-      border: 1px solid rgba(255,255,255,0.08);
-      color: rgba(255,255,255,0.72);
-      padding: 7px 14px;
-      border-radius: 100px;
-      font-size: 12px;
-      font-weight: 600;
-      white-space: nowrap;
-      cursor: pointer;
-      font-family: inherit;
-    }
-    body.ui-v2 .v2-desktop-filter-pills .v2-filter-pill.active {
-      background: rgba(31,223,103,0.14);
-      border-color: rgba(31,223,103,0.4);
-      color: var(--accent, #1FDF67);
+      flex-shrink: 0 !important;
     }
 
-    /* ‚îÄ‚îÄ 7. SECTION INDICATOR ‚Äî accent green pill chip ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ */
-    body.ui-v2 #desktopSidebar .section-status-bar {
-      padding: 0 20px 8px !important;
-      background: transparent !important;
-      border: none !important;
+    /* ‚îÄ‚îÄ 9. SHEET BODY (scrollable content) ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ */
+    body.ui-v2 .v2-sheet-body {
+      flex: 1 1 auto !important;
+      overflow-y: auto !important;
+      padding: 0 16px 16px !important;
+      min-height: 0 !important;
     }
-    body.ui-v2 #desktopSidebar .ssb-inner {
-      display: inline-flex !important;
-      align-items: center !important;
-      gap: 6px;
-    }
-    body.ui-v2 #desktopSidebar .ssb-title.in-view {
-      color: var(--accent, #1FDF67) !important;
-      background: rgba(31,223,103,0.14) !important;
-      padding: 3px 10px !important;
-      border-radius: 100px !important;
-      font-size: 10px !important;
-      text-transform: uppercase !important;
-      letter-spacing: 0.06em !important;
-      font-weight: 700 !important;
-    }
-    body.ui-v2 #desktopSidebar .ssb-count {
-      color: rgba(255,255,255,0.45) !important;
-      font-size: 11px !important;
-      font-weight: 600 !important;
+    body.ui-v2 .v2-sheet-body::-webkit-scrollbar { width: 6px; }
+    body.ui-v2 .v2-sheet-body::-webkit-scrollbar-thumb {
+      background: rgba(255,255,255,0.08); border-radius: 3px;
     }
 
-    /* Active filter chips row ‚Äî tighter spacing */
-    body.ui-v2 #desktopSidebar .filter-pills-row {
-      padding: 0 16px;
-      margin: 0;
-    }
-
-    /* ‚îÄ‚îÄ 8. GRID TILES ‚Äî single column, horizontal layout ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ */
-    /* Override .leaf-grid grid template ‚Äî single column flex */
-    body.ui-v2 #desktopSidebar #gridDesktop {
+    /* ‚îÄ‚îÄ 10. PROJECT TILES ‚Äî single column horizontal layout ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ */
+    /* The mobile v2 sheet shows #gridMobile inside #v2DiscoverPane.
+       On desktop we want each tile horizontal (image left, body right). */
+    body.ui-v2 .v2-sheet-body #gridMobile {
       display: flex !important;
       flex-direction: column !important;
       gap: 10px !important;
       grid-template-columns: none !important;
-      padding: 0 16px 16px !important;
+      padding: 0 !important;
     }
-    /* Horizontal tile: image 140px left, body flex right */
-    body.ui-v2 #desktopSidebar .grid-item {
+    body.ui-v2 .v2-sheet-body #gridMobile .grid-item {
       display: flex !important;
       flex-direction: row !important;
       background: #1f1f1f !important;
@@ -8843,46 +8773,40 @@
       border-radius: 14px !important;
       overflow: hidden !important;
       padding: 0 !important;
+      margin: 0 !important;
       height: auto !important;
-      min-height: 132px;
-      transition: border-color 0.15s, background 0.15s !important;
+      min-height: 132px !important;
+      width: 100% !important;
       cursor: pointer;
     }
-    body.ui-v2 #desktopSidebar .grid-item:hover {
+    body.ui-v2 .v2-sheet-body #gridMobile .grid-item:hover {
       border-color: rgba(255,255,255,0.2) !important;
       background: #232323 !important;
-      transform: none !important;
-      box-shadow: none !important;
     }
-    body.ui-v2 #desktopSidebar .grid-item .image-wrapper {
+    body.ui-v2 .v2-sheet-body #gridMobile .grid-item .image-wrapper {
       width: 140px !important;
       min-width: 140px !important;
       height: auto !important;
       min-height: 132px !important;
       flex-shrink: 0 !important;
       border-radius: 0 !important;
-      overflow: hidden;
-      position: relative;
-      background: #1a1a1a;
     }
-    body.ui-v2 #desktopSidebar .grid-item img {
+    body.ui-v2 .v2-sheet-body #gridMobile .grid-item img {
       width: 100% !important;
       height: 100% !important;
       min-height: 132px !important;
       object-fit: cover !important;
       border-radius: 0 !important;
-      display: block;
     }
-    body.ui-v2 #desktopSidebar .grid-item-content {
+    body.ui-v2 .v2-sheet-body #gridMobile .grid-item-content {
       flex: 1 !important;
       min-width: 0 !important;
       padding: 14px 16px !important;
       display: flex !important;
       flex-direction: column !important;
       justify-content: space-between !important;
-      gap: 4px !important;
     }
-    body.ui-v2 #desktopSidebar .grid-item-content h3 {
+    body.ui-v2 .v2-sheet-body #gridMobile .grid-item-content h3 {
       font-size: 15.5px !important;
       font-weight: 700 !important;
       color: #fff !important;
@@ -8895,7 +8819,7 @@
       -webkit-line-clamp: 2;
       -webkit-box-orient: vertical;
     }
-    body.ui-v2 #desktopSidebar .grid-item-content p.city {
+    body.ui-v2 .v2-sheet-body #gridMobile .grid-item-content p.city {
       font-size: 12px !important;
       color: rgba(255,255,255,0.72) !important;
       padding: 0 !important;
@@ -8903,7 +8827,7 @@
       font-style: normal !important;
     }
     /* Featured badge ‚Äî gold bg, #111 star, no shadow */
-    body.ui-v2 #desktopSidebar .grid-item .featured-badge {
+    body.ui-v2 .v2-sheet-body #gridMobile .grid-item .featured-badge {
       position: absolute !important;
       top: 10px !important; right: 10px !important;
       left: auto !important;
@@ -8922,16 +8846,15 @@
       width: 22px !important; height: 22px !important;
       z-index: 2;
     }
-    body.ui-v2 #desktopSidebar .grid-item .featured-badge svg {
+    body.ui-v2 .v2-sheet-body #gridMobile .grid-item .featured-badge svg {
       width: 12px !important; height: 12px !important;
       fill: #111 !important; stroke: none !important;
       filter: none !important;
       display: block !important;
       margin: 0 !important;
     }
-
     /* Status pill bottom-left of image */
-    body.ui-v2 #desktopSidebar .grid-item .image-wrapper .delivery-bar {
+    body.ui-v2 .v2-sheet-body #gridMobile .grid-item .delivery-bar {
       position: absolute !important;
       bottom: 8px !important; left: 8px !important;
       right: auto !important;
@@ -8943,7 +8866,7 @@
       padding: 3px 9px !important;
       border: none !important;
     }
-    body.ui-v2 #desktopSidebar .grid-item .delivery-bar-label {
+    body.ui-v2 .v2-sheet-body #gridMobile .grid-item .delivery-bar-label {
       font-size: 9px !important;
       font-weight: 700 !important;
       letter-spacing: 0.05em !important;
@@ -8951,37 +8874,34 @@
       color: #fff !important;
     }
 
-    /* ‚îÄ‚îÄ 9. MAP CONTROLS ‚Äî bottom-right stack ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ */
-    /* Reposition existing zoom/location buttons to bottom-right corner
-       of the map area (matches mockup). Stack them tightly. */
-    body.ui-v2 #locationButton,
-    body.ui-v2 #zoomInButton,
-    body.ui-v2 #zoomOutButton,
-    body.ui-v2 #resetViewButton {
+    /* ‚îÄ‚îÄ 11. v2-RIGHT-RAIL ‚Äî show map controls bottom-right ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ */
+    body.ui-v2 .v2-right-rail {
+      display: flex !important;
+      position: fixed !important;
       right: 18px !important;
+      bottom: 18px !important;
       top: auto !important;
-      width: 44px !important;
-      height: 44px !important;
-      border-radius: 22px !important;
-      background: rgba(15,15,15,0.85) !important;
-      backdrop-filter: blur(20px) saturate(1.4) !important;
-      -webkit-backdrop-filter: blur(20px) saturate(1.4) !important;
+      flex-direction: column !important;
+      gap: 8px !important;
+      z-index: 10 !important;
     }
-    body.ui-v2 #zoomInButton  { bottom: 158px !important; }
-    body.ui-v2 #zoomOutButton { bottom: 114px !important; border-top-left-radius: 6px !important; border-top-right-radius: 6px !important; }
-    body.ui-v2 #locationButton { bottom: 70px !important; }
-    body.ui-v2 #resetViewButton { bottom: 18px !important; }
-    /* Pulse bell on desktop ‚Äî move to top-right inside header */
-    body.ui-v2 #pulseBellBtn {
-      top: 12px !important;
-      bottom: auto !important;
-      right: 20px !important;
+
+    /* ‚îÄ‚îÄ 12. PROJECT MODAL ‚Äî slides over left sidebar ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ */
+    body.ui-v2 #projectModal {
+      top: 60px !important;
+      left: 0 !important;
+      right: auto !important;
+      width: 540px !important;
+      height: calc(100% - 60px) !important;
+      border-right: 1px solid rgba(255,255,255,0.08);
+      box-shadow: 8px 0 32px rgba(0,0,0,0.4);
+      border-top-left-radius: 0 !important;
+      border-top-right-radius: 0 !important;
     }
-    /* Layers panel button ‚Äî also top-right but offset */
-    body.ui-v2 #layersButton {
-      top: 12px !important;
-      bottom: auto !important;
-      right: 72px !important;
+    /* When modal is open, hide the v2-drawer behind it */
+    body.ui-v2.v2-modal-open .v2-drawer {
+      opacity: 0;
+      pointer-events: none;
     }
   }
 
@@ -12485,6 +12405,14 @@
     }
 
     function renderGrid(targetId = 'grid') {
+      // v2 unification: when ui-v2 is active on desktop, the sidebar uses
+      // the SAME #gridMobile element as mobile (it's been relocated into
+      // #v2DiscoverPane). Redirect 'gridDesktop' renders ‚Üí 'gridMobile' so
+      // the visible sidebar content actually updates. Mobile vs desktop
+      // platform filter state stays unified (both use 'mobile' bucket).
+      if (targetId === 'gridDesktop' && document.body.classList.contains('ui-v2')) {
+        targetId = 'gridMobile';
+      }
       const grid = document.getElementById(targetId);
       if (!grid) return;
       grid.style.pointerEvents = 'none';
@@ -18996,174 +18924,9 @@
     if (params.get('ui') === 'v1') return;
     document.body.classList.add('ui-v2');
 
-    // ‚îÄ‚îÄ Desktop v2 segmented tabs injection ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
-    // Insert Discover/Watchlist/Pulse tabs into the desktop sidebar
-    // (right above the filter dropdowns, which CSS now hides). Each tab
-    // click opens the corresponding legacy panel (watchlist drawer or
-    // pulse drawer) over the discover grid ‚Äî minimal logic since the
-    // legacy machinery already exists. On desktop only.
-    function injectDesktopTabs() {
-      if (!window.matchMedia('(min-width: 801px)').matches) return;
-      const sidebar = document.getElementById('desktopSidebar');
-      if (!sidebar) return;
-      const sidebarHeader = sidebar.querySelector('.sidebar-header');
-      if (!sidebarHeader) return;
-      if (sidebar.querySelector('.v2-desktop-tabs')) return; // already injected
-      const tabs = document.createElement('div');
-      tabs.className = 'v2-desktop-tabs';
-      tabs.setAttribute('role', 'tablist');
-      tabs.innerHTML = `
-        <button class="active" data-v2d-tab="discover">Discover</button>
-        <button data-v2d-tab="watchlist">Watchlist <span class="num" id="v2DTabWatchNum" hidden>0</span></button>
-        <button data-v2d-tab="pulse">Pulse <span class="num" id="v2DTabPulseNum" hidden>0</span></button>
-      `;
-      // Insert AFTER the search row so search stays at top
-      const searchRow = sidebarHeader.querySelector('.desktop-search-row');
-      if (searchRow && searchRow.nextSibling) {
-        sidebarHeader.insertBefore(tabs, searchRow.nextSibling);
-      } else {
-        sidebarHeader.appendChild(tabs);
-      }
+    // (legacy injectDesktopTabs removed ‚Äî desktop now uses the v2 drawer]
+    //  directly; the mobile v2 boot wires search/tabs/pills for us.)
 
-      // ‚îÄ‚îÄ Filter pills row (matches mobile v2 design) ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
-      // Inject below the tabs. Dynamic per tab ‚Äî built from project types
-      // for Discover, hardcoded for Watchlist + Pulse.
-      const pillsWrap = document.createElement('div');
-      pillsWrap.className = 'v2-desktop-filter-pills';
-      pillsWrap.id = 'v2DesktopFilterPills';
-      tabs.parentNode.insertBefore(pillsWrap, tabs.nextSibling);
-
-      const DESKTOP_PILLS = {
-        watchlist: [
-          { label: 'All',          value: 'all', active: true },
-          { label: 'With updates', value: 'unread' },
-          { label: 'Construction', value: 'construction' },
-          { label: 'Coming Soon',  value: 'coming-soon' },
-        ],
-        pulse: [
-          { label: 'All',         value: 'all', active: true },
-          { label: 'Updates',     value: 'status_change' },
-          { label: 'News',        value: 'article' },
-          { label: 'New on Map',  value: 'new_project' },
-        ],
-      };
-      function getDesktopDiscoverPills() {
-        const base = [
-          { label: 'All',        value: 'all', active: true },
-          { label: '‚òÖ Featured', value: 'featured' },
-        ];
-        const features = window.allProjectFeatures || [];
-        const seen = new Set();
-        features.forEach(f => (f._projectTypes || []).forEach(t => seen.add(t)));
-        const typeLabels = {
-          'mixed-use': 'Mixed-Use', 'hotel': 'Hotel', 'residential': 'Residential',
-          'office': 'Office', 'retail': 'Retail', 'hospitality': 'Hospitality',
-          'entertainment': 'Entertainment', 'arena': 'Arena', 'marina': 'Marina',
-          'casino': 'Casino', 'stadium': 'Stadium',
-        };
-        const types = [...seen].sort().map(t => ({
-          label: typeLabels[t] || (t.charAt(0).toUpperCase() + t.slice(1)),
-          value: t,
-        }));
-        return [...base, ...types];
-      }
-      function renderDesktopPills(tabId) {
-        if (!pillsWrap) return;
-        const pills = tabId === 'discover'
-          ? getDesktopDiscoverPills()
-          : (DESKTOP_PILLS[tabId] || []);
-        pillsWrap.innerHTML = pills.map(p => `
-          <button class="v2-filter-pill ${p.active ? 'active' : ''}" data-pill-value="${p.value}">
-            ${p.label}
-          </button>
-        `).join('');
-        pillsWrap.querySelectorAll('.v2-filter-pill').forEach(btn => {
-          btn.addEventListener('click', () => {
-            pillsWrap.querySelectorAll('.v2-filter-pill').forEach(x => x.classList.remove('active'));
-            btn.classList.add('active');
-            const value = btn.dataset.pillValue;
-            // Reuse the mobile handlePillClick logic via direct activeFilters /
-            // grid re-render. Same approach as the v2 mobile pill handler.
-            if (tabId === 'discover') {
-              let newType = (value !== 'all' && value !== 'featured') ? value : 'all';
-              if (window.activeFilters) {
-                window.activeFilters.mobile.type = newType;
-                window.activeFilters.desktop.type = newType;
-              }
-              const typeSel = document.getElementById('projectTypeFilterDesktop');
-              if (typeSel) {
-                const opt = Array.from(typeSel.options).find(o => o.value.toLowerCase() === newType.toLowerCase());
-                if (opt) typeSel.value = opt.value;
-                else typeSel.value = 'all';
-                try { typeSel.dispatchEvent(new Event('change', { bubbles: true })); } catch(_) {}
-              }
-              try { if (window.renderGrid) window.renderGrid('gridDesktop'); } catch(_) {}
-              try { if (window.updateMapPinFilters) window.updateMapPinFilters(); } catch(_) {}
-            }
-            // Watchlist + Pulse filtering reuses the mobile renderers (their
-            // data lives in the same DOM elements that the desktop tabs route to).
-          });
-        });
-      }
-      // Initial render: discover
-      renderDesktopPills('discover');
-      // Expose so the data loader can refresh once types are known
-      window._v2RefreshDesktopPills = () => renderDesktopPills('discover');
-      // Wire clicks ‚Üí toggle existing watchlist/pulse panels + re-render pills
-      tabs.querySelectorAll('button').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const target = btn.dataset.v2dTab;
-          tabs.querySelectorAll('button').forEach(b => b.classList.remove('active'));
-          btn.classList.add('active');
-          // Refresh the filter pills row to match the new tab
-          try { renderDesktopPills(target); } catch(_) {}
-          // Open the corresponding panel by clicking the legacy trigger.
-          if (target === 'watchlist') {
-            const wlBtn = document.getElementById('watchlistBtn');
-            if (wlBtn) wlBtn.click();
-          } else if (target === 'pulse') {
-            const plBtn = document.getElementById('pulseBellBtn');
-            if (plBtn) plBtn.click();
-          } else {
-            // Discover ‚Äî close any open watchlist/pulse panels
-            const wlPanel = document.getElementById('watchlistPanel');
-            const plPanel = document.getElementById('pulseStack');
-            if (wlPanel && wlPanel.classList.contains('open') && typeof window.closeWatchlist === 'function') {
-              window.closeWatchlist();
-            }
-            if (plPanel && plPanel.classList.contains('open')) {
-              plPanel.classList.remove('open');
-            }
-          }
-        });
-      });
-      // Sync counts from the legacy badges
-      const syncCounts = () => {
-        const wlBadge = document.getElementById('watchlistBtnBadge');
-        const wlNum = document.getElementById('v2DTabWatchNum');
-        if (wlBadge && wlNum) {
-          const n = parseInt(wlBadge.textContent || '0', 10) || 0;
-          if (n > 0) { wlNum.hidden = false; wlNum.textContent = String(n); }
-          else { wlNum.hidden = true; }
-        }
-        const plBadge = document.getElementById('pulseBellBadge');
-        const plNum = document.getElementById('v2DTabPulseNum');
-        if (plBadge && plNum) {
-          const isHidden = plBadge.hasAttribute('hidden');
-          const n = isHidden ? 0 : (parseInt(plBadge.textContent || '0', 10) || 0);
-          if (n > 0) { plNum.hidden = false; plNum.textContent = String(n); }
-          else { plNum.hidden = true; }
-        }
-      };
-      syncCounts();
-      setInterval(syncCounts, 3000);
-    }
-    // Run on next tick so the DOM is fully ready
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', injectDesktopTabs);
-    } else {
-      injectDesktopTabs();
-    }
 
     function setup() {
       // ‚îÄ‚îÄ Move existing mobile DOM into v2 panes ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
