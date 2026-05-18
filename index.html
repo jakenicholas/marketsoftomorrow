@@ -8724,11 +8724,11 @@
       font-size: 12px !important;
     }
 
-    /* ‚îÄ‚îÄ DESKTOP SIDEBAR ‚Äî 420px, dark, flush ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ */
+    /* ‚îÄ‚îÄ DESKTOP SIDEBAR ‚Äî 520px, dark, flush ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ */
     body.ui-v2 #app-container { padding-top: 60px !important; }
-    body.ui-v2 #map { left: 420px !important; }
+    body.ui-v2 #map { left: 520px !important; }
     body.ui-v2 #desktopSidebar {
-      width: 420px !important;
+      width: 520px !important;
       top: 60px !important;
       height: calc(100% - 60px) !important;
       background: rgba(15,15,15,0.96) !important;
@@ -8750,23 +8750,75 @@
       padding: 0 !important;
     }
 
-    /* Search pill */
+    /* Search pill ‚Äî match mobile pinned search: icon | input | clear |
+       filter btn (with count) | divider | result count. */
     body.ui-v2 #desktopSidebar .desktop-search-pill {
       background: #1f1f1f !important;
       border: 1px solid rgba(255,255,255,0.08) !important;
       border-radius: 22px !important;
       height: 44px !important;
       box-shadow: none !important;
+      gap: 8px !important;
+      padding: 0 12px 0 0 !important;
     }
     body.ui-v2 #desktopSidebar .desktop-search-pill input {
       font-size: 14px !important;
       font-weight: 500 !important;
       color: #fff !important;
+      flex: 1 1 0 !important;
+      min-width: 0 !important;
     }
     body.ui-v2 #desktopSidebar #closeSidebar {
-      background: rgba(255,255,255,0.05) !important;
-      border: 1px solid rgba(255,255,255,0.08) !important;
+      display: none !important;
+    }
+    /* Filter button ‚Äî circle with icon + small count badge */
+    body.ui-v2 #desktopSidebar .sidebar-pill-filter-btn {
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      gap: 5px !important;
+      background: rgba(255,255,255,0.08) !important;
+      border: 1px solid rgba(255,255,255,0.15) !important;
+      border-radius: 20px !important;
+      padding: 0 8px !important;
+      height: 28px !important;
+      flex-shrink: 0 !important;
+      cursor: pointer !important;
+      color: rgba(255,255,255,0.7) !important;
+    }
+    body.ui-v2 #desktopSidebar .sidebar-pill-filter-btn svg {
+      width: 14px !important; height: 14px !important;
+      stroke: currentColor !important;
+      fill: none !important;
+      stroke-width: 1.8 !important;
+    }
+    body.ui-v2 #desktopSidebar .sidebar-pill-filter-btn .badge-count {
+      font-size: 11px !important;
+      font-weight: 700 !important;
+      color: #fff !important;
+      background: var(--accent, #1FDF67) !important;
       border-radius: 50% !important;
+      width: 16px !important;
+      height: 16px !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+    body.ui-v2 #desktopSidebar .sidebar-pill-filter-btn:not(.has-filters) .badge-count {
+      display: none !important;
+    }
+    body.ui-v2 #desktopSidebar .sidebar-pill-divider {
+      width: 1px !important;
+      height: 18px !important;
+      background: rgba(255,255,255,0.12) !important;
+      flex-shrink: 0 !important;
+    }
+    body.ui-v2 #desktopSidebar .sidebar-pill-count {
+      color: var(--accent, #1FDF67) !important;
+      font-size: 13px !important;
+      font-weight: 600 !important;
+      white-space: nowrap !important;
+      flex-shrink: 0 !important;
     }
 
     /* Hide the 3-dropdown filter pill ‚Äî replaced by injected v2 tabs */
@@ -8937,31 +8989,41 @@
     body.ui-v2 #desktopSidebar .inview-section .grid-item .image-wrapper {
       outline: none !important;
     }
-    /* Status pill includes the colored dot ‚Äî match mockup pill */
+    /* Hide the legacy delivery-bar entirely ‚Äî the v2 decorator adds a
+       proper .v2-status-pill over the image and a .v2-tile-info foot row
+       (Delivery + TMW Intel). Mobile already hides .delivery-bar; we do
+       the same on desktop for parity. */
     body.ui-v2 #desktopSidebar .grid-item .delivery-bar {
-      gap: 5px !important;
-      display: inline-flex !important;
-      align-items: center !important;
+      display: none !important;
     }
-    body.ui-v2 #desktopSidebar .grid-item .delivery-bar::before {
-      content: '';
-      width: 6px; height: 6px;
-      border-radius: 50%;
-      background: var(--accent, #1FDF67);
+    /* Mirror the mobile status pill: dark glass pill at bottom-LEFT of
+       the image with a colored dot per status. */
+    body.ui-v2 #desktopSidebar .grid-item .v2-status-pill {
+      position: absolute !important;
+      bottom: 8px; left: 8px; right: auto;
+      background: rgba(0,0,0,0.78);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.14);
+      color: #fff;
+      padding: 4px 10px;
+      border-radius: 100px;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      display: inline-flex; align-items: center; gap: 6px;
+      z-index: 2;
+    }
+    body.ui-v2 #desktopSidebar .grid-item .v2-status-pill .v2-status-dot {
+      width: 7px; height: 7px; border-radius: 50%;
       flex-shrink: 0;
     }
-    body.ui-v2 #desktopSidebar .grid-item.status-construction .delivery-bar::before,
-    body.ui-v2 #desktopSidebar .grid-item[data-status*="construction" i] .delivery-bar::before {
-      background: #FF9500;
-    }
-    body.ui-v2 #desktopSidebar .grid-item.status-coming-soon .delivery-bar::before,
-    body.ui-v2 #desktopSidebar .grid-item[data-status*="coming" i] .delivery-bar::before {
-      background: #FFD300;
-    }
-    body.ui-v2 #desktopSidebar .grid-item.status-announced .delivery-bar::before,
-    body.ui-v2 #desktopSidebar .grid-item[data-status*="announc" i] .delivery-bar::before {
-      background: rgba(255,255,255,0.45);
-    }
+    body.ui-v2 #desktopSidebar .grid-item .v2-status-pill.announced    .v2-status-dot { background: #999; }
+    body.ui-v2 #desktopSidebar .grid-item .v2-status-pill.breaking     .v2-status-dot { background: #FFD300; }
+    body.ui-v2 #desktopSidebar .grid-item .v2-status-pill.construction .v2-status-dot { background: #FF9500; }
+    body.ui-v2 #desktopSidebar .grid-item .v2-status-pill.opening      .v2-status-dot { background: #1FDF67; }
+    body.ui-v2 #desktopSidebar .grid-item .v2-status-pill.open         .v2-status-dot { background: #1FDF67; }
     body.ui-v2 #desktopSidebar .grid-item {
       display: flex !important;
       flex-direction: row !important;
@@ -9024,11 +9086,13 @@
       margin: 3px 0 0 !important;
       font-style: normal !important;
     }
-    /* Featured badge ‚Äî gold + #111 star, no shadow */
+    /* Featured badge ‚Äî gold + #111 star, positioned at the right edge of
+       the 140px image (not on the body side). */
     body.ui-v2 #desktopSidebar .grid-item .featured-badge {
       position: absolute !important;
-      top: 10px !important; right: 10px !important;
-      left: auto !important;
+      top: 10px !important;
+      left: calc(140px - 22px - 10px) !important;
+      right: auto !important;
       background: var(--warn, #FFD300) !important;
       border: none !important;
       border-radius: 6px !important;
@@ -9050,25 +9114,94 @@
       filter: none !important;
       display: block !important;
     }
-    /* Status pill bottom-left of image */
-    body.ui-v2 #desktopSidebar .grid-item .delivery-bar {
-      position: absolute !important;
-      bottom: 8px !important; left: 8px !important;
-      right: auto !important;
-      width: auto !important;
-      background: rgba(0,0,0,0.72) !important;
-      backdrop-filter: blur(8px) !important;
-      -webkit-backdrop-filter: blur(8px) !important;
-      border-radius: 100px !important;
-      padding: 3px 9px !important;
-      border: none !important;
+    /* Tile body: name on top, city below, then a divider + foot row
+       with Delivery and TMW Intel (both left-aligned). Mirrors mobile's
+       v2-tile-info layout but with a row gap rather than space-between. */
+    body.ui-v2 #desktopSidebar .grid-item-content {
+      padding: 14px 16px 0 !important;
+      justify-content: flex-start !important;
+      gap: 4px !important;
     }
-    body.ui-v2 #desktopSidebar .grid-item .delivery-bar-label {
-      font-size: 9px !important;
-      font-weight: 700 !important;
-      letter-spacing: 0.05em !important;
-      text-transform: uppercase !important;
-      color: #fff !important;
+    body.ui-v2 #desktopSidebar .grid-item-content p.city {
+      font-size: 12px !important;
+      color: rgba(255,255,255,0.72) !important;
+      margin: 0 !important;
+      padding: 0 0 12px !important;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    /* Delivery + Intel foot row ‚Äî both left-aligned, gap between them */
+    body.ui-v2 #desktopSidebar .grid-item .v2-tile-info {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: flex-start !important;
+      gap: 14px !important;
+      padding: 10px 16px 14px !important;
+      font-size: 12px !important;
+      border-top: none !important;
+      margin-top: 0 !important;
+    }
+    body.ui-v2 #desktopSidebar .grid-item .v2-tile-info .v2-tile-delivery {
+      color: rgba(255,255,255,0.55);
+      font-weight: 500;
+    }
+    body.ui-v2 #desktopSidebar .grid-item .v2-tile-info .v2-tile-delivery b {
+      color: #fff; font-weight: 700;
+      margin-left: 6px;
+    }
+    body.ui-v2 #desktopSidebar .grid-item .v2-tile-info .v2-tile-intel {
+      color: #A78BFA;
+      font-weight: 600;
+      display: inline-flex; align-items: center; gap: 5px;
+    }
+    body.ui-v2 #desktopSidebar .grid-item .v2-tile-info .v2-tile-intel svg {
+      width: 11px; height: 11px; fill: currentColor;
+      flex-shrink: 0;
+    }
+    /* Re-jig the tile so the body content can host both grid-item-content
+       (name + city + divider) and the appended v2-tile-info below it. */
+    body.ui-v2 #desktopSidebar .grid-item .image-wrapper {
+      position: relative;
+    }
+    /* Wrap tile body in a flex column so info row sits below the divider */
+    body.ui-v2 #desktopSidebar .grid-item {
+      align-items: stretch !important;
+    }
+    body.ui-v2 #desktopSidebar .grid-item .grid-item-content,
+    body.ui-v2 #desktopSidebar .grid-item .v2-tile-info {
+      /* These are siblings of image-wrapper; we need them in a column
+         on the right side. Use a wrapping selector via order. */
+    }
+    /* The flex row contains: image-wrapper (left) | content + info (right).
+       Group content + info on the right by setting them both flex-grow:0
+       and using a CSS hack: image-wrapper takes 140px, then content + info
+       each get full remaining width ‚Äî they naturally stack because the
+       parent's flex-direction is row but children before the image are
+       not present. Simpler approach: change parent to grid. */
+    body.ui-v2 #desktopSidebar .grid-item {
+      display: grid !important;
+      grid-template-columns: 140px 1fr !important;
+      grid-template-rows: auto auto auto !important;
+    }
+    body.ui-v2 #desktopSidebar .grid-item > .image-wrapper {
+      grid-column: 1 / 2 !important;
+      grid-row: 1 / -1 !important;
+    }
+    body.ui-v2 #desktopSidebar .grid-item > .featured-badge {
+      grid-column: 1 / 2 !important;
+      grid-row: 1 / 2 !important;
+      align-self: start;
+      justify-self: end;
+      margin: 10px !important;
+      position: static !important;
+      left: auto !important;
+    }
+    body.ui-v2 #desktopSidebar .grid-item > .grid-item-content {
+      grid-column: 2 / 3 !important;
+      grid-row: 1 / 2 !important;
+    }
+    body.ui-v2 #desktopSidebar .grid-item > .v2-tile-info {
+      grid-column: 2 / 3 !important;
+      grid-row: 2 / 3 !important;
     }
 
     /* ‚îÄ‚îÄ DESKTOP SEARCH OVERLAY (mobile-style) ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ */
@@ -19323,6 +19456,8 @@
     // ‚îÄ‚îÄ Desktop v2: brute-force 1-column tile layout via inline styles.
     // CSS specificity battles with the legacy .leaf-grid rules keep failing,
     // so we set the style attributes directly. Inline always wins.
+    // Each tile is a 2-column grid (140px image | 1fr body) with two body
+    // rows so the v2-tile-info foot row can sit below the name/city.
     function forceDesktopTileLayout() {
       if (!window.matchMedia('(min-width: 801px)').matches) return;
       if (!document.body.classList.contains('ui-v2')) return;
@@ -19333,10 +19468,13 @@
       grid.style.setProperty('flex-direction', 'column', 'important');
       grid.style.setProperty('grid-template-columns', 'none', 'important');
       grid.style.setProperty('gap', '10px', 'important');
-      // Force row layout on every tile inside
+      // Force CSS grid layout on every tile inside (image left, body right
+      // split into two rows: content + foot info)
       grid.querySelectorAll('.grid-item').forEach(tile => {
-        tile.style.setProperty('display', 'flex', 'important');
-        tile.style.setProperty('flex-direction', 'row', 'important');
+        tile.style.setProperty('display', 'grid', 'important');
+        tile.style.setProperty('grid-template-columns', '140px 1fr', 'important');
+        tile.style.setProperty('grid-template-rows', 'auto auto', 'important');
+        tile.style.removeProperty('flex-direction');
         tile.style.setProperty('height', 'auto', 'important');
         tile.style.setProperty('min-height', '132px', 'important');
         tile.style.setProperty('width', '100%', 'important');
@@ -19346,17 +19484,46 @@
           img.style.setProperty('min-width', '140px', 'important');
           img.style.setProperty('min-height', '132px', 'important');
           img.style.setProperty('flex-shrink', '0', 'important');
+          img.style.setProperty('grid-column', '1 / 2', 'important');
+          img.style.setProperty('grid-row', '1 / -1', 'important');
+          img.style.setProperty('position', 'relative', 'important');
+        }
+        const content = tile.querySelector('.grid-item-content');
+        if (content) {
+          content.style.setProperty('grid-column', '2 / 3', 'important');
+          content.style.setProperty('grid-row', '1 / 2', 'important');
+        }
+        const info = tile.querySelector('.v2-tile-info');
+        if (info) {
+          info.style.setProperty('grid-column', '2 / 3', 'important');
+          info.style.setProperty('grid-row', '2 / 3', 'important');
+        }
+        const fb = tile.querySelector('.featured-badge');
+        if (fb) {
+          // Pin to top-right of image cell (grid column 1, row 1)
+          fb.style.setProperty('grid-column', '1 / 2', 'important');
+          fb.style.setProperty('grid-row', '1 / 2', 'important');
+          fb.style.setProperty('align-self', 'start', 'important');
+          fb.style.setProperty('justify-self', 'end', 'important');
+          fb.style.setProperty('margin', '10px', 'important');
+          fb.style.setProperty('position', 'relative', 'important');
+          fb.style.setProperty('left', 'auto', 'important');
+          fb.style.setProperty('top', 'auto', 'important');
+          fb.style.setProperty('z-index', '3', 'important');
         }
       });
     }
-    // Watch the grid for re-renders so we apply layout to fresh tiles
+    // Watch the grid for re-renders so we apply layout to fresh tiles.
+    // subtree:true so .v2-tile-info appends (added by decorateTiles
+    // after a tile already exists) also trigger a re-layout ‚Äî without
+    // this, the info row would not get its grid-column/row inline style.
     function installGridLayoutObserver() {
       if (!window.matchMedia('(min-width: 801px)').matches) return;
       const grid = document.getElementById('gridDesktop');
       if (!grid) return;
       forceDesktopTileLayout();
       const mo = new MutationObserver(() => forceDesktopTileLayout());
-      mo.observe(grid, { childList: true, subtree: false });
+      mo.observe(grid, { childList: true, subtree: true });
     }
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', installGridLayoutObserver);
@@ -19522,6 +19689,70 @@
       const pillsWrap = document.createElement('div');
       pillsWrap.className = 'v2-desktop-filter-pills';
       tabs.parentNode.insertBefore(pillsWrap, tabs.nextSibling);
+
+      // ‚îÄ‚îÄ Augment the .desktop-search-pill to mirror mobile pinned search:
+      //   icon | input | clear | filter btn (with count) | divider | result count
+      // The legacy pill has icon + input + clear only. We append the
+      // filter button + divider + count after the clear button. The count
+      // text is synced in lockstep with #desktopPillCount and
+      // #mobilePillCount via a MutationObserver below.
+      (function augmentSearchPill() {
+        const pill = sidebarHeader.querySelector('.desktop-search-pill');
+        if (!pill || pill.querySelector('.sidebar-pill-count')) return;
+        const filterBtn = document.createElement('div');
+        filterBtn.className = 'sidebar-pill-filter-btn';
+        filterBtn.id = 'sidebarPillFilterBtn';
+        filterBtn.innerHTML = `
+          <span class="badge-icon"><svg viewBox="0 0 24 24"><circle cx="6" cy="5" r="2"/><line x1="2" y1="5" x2="4" y2="5"/><line x1="8" y1="5" x2="22" y2="5"/><circle cx="16" cy="12" r="2"/><line x1="2" y1="12" x2="14" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><circle cx="9" cy="19" r="2"/><line x1="2" y1="19" x2="7" y2="19"/><line x1="11" y1="19" x2="22" y2="19"/></svg></span>
+          <span class="badge-count" id="sidebarPillFilterCount">0</span>
+        `;
+        const divider = document.createElement('span');
+        divider.className = 'sidebar-pill-divider';
+        const count = document.createElement('span');
+        count.className = 'sidebar-pill-count';
+        count.id = 'sidebarPillCount';
+        count.textContent = '‚Äî results';
+        const autoEl = pill.querySelector('#sidebarAutocomplete');
+        pill.appendChild(filterBtn);
+        pill.appendChild(divider);
+        pill.appendChild(count);
+        // Re-append autocomplete last so it stays absolutely positioned
+        // beneath the pill content
+        if (autoEl) pill.appendChild(autoEl);
+
+        // Wire the filter button to open the existing layers/filter UI
+        // (re-uses the floating pill's filter behavior on desktop). We
+        // simulate a click on #desktopPillFilterBadge if present.
+        filterBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const existing = document.getElementById('desktopPillFilterBadge');
+          if (existing) existing.click();
+        });
+
+        // Sync count + filter count from the floating pill (which is
+        // updated by the main render pipeline) into our sidebar pill.
+        function sync() {
+          const src = document.getElementById('desktopPillCount');
+          if (src) count.textContent = src.textContent;
+          const srcF = document.getElementById('desktopPillFilterCount');
+          const myF = document.getElementById('sidebarPillFilterCount');
+          if (src && srcF && myF) {
+            myF.textContent = srcF.textContent;
+            const n = parseInt(srcF.textContent || '0', 10) || 0;
+            filterBtn.classList.toggle('has-filters', n > 0);
+          }
+        }
+        sync();
+        ['desktopPillCount', 'desktopPillFilterCount'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) new MutationObserver(sync).observe(el, { childList: true, characterData: true, subtree: true });
+        });
+
+        // Hide the standalone #closeSidebar X ‚Äî the search pill is the
+        // primary control; close is handled elsewhere.
+        const closeBtn = document.getElementById('closeSidebar');
+        if (closeBtn) closeBtn.style.display = 'none';
+      })();
 
       const DESKTOP_PILLS = {
         watchlist: [
@@ -20323,11 +20554,19 @@
         return 'announced';
       }
       function decorateTiles() {
-        const grid = document.getElementById('gridMobile');
-        if (!grid) return;
+        // Decorate BOTH the mobile grid and the desktop grid so the
+        // status pill / gallery / Delivery + Intel row appear in both
+        // surfaces. The mobile v2 CSS was scoped to #gridMobile; we
+        // extended it below to also cover #desktopSidebar tiles.
+        const grids = [
+          document.getElementById('gridMobile'),
+          document.getElementById('gridDesktop'),
+        ].filter(Boolean);
+        if (!grids.length) return;
         const features = window.allProjectFeatures || [];
         const intel = window.tmwIntel || {};
-        grid.querySelectorAll('.grid-item').forEach(tile => {
+        const tiles = grids.flatMap(g => Array.from(g.querySelectorAll('.grid-item')));
+        tiles.forEach(tile => {
           if (tile.dataset.v2Decorated === '1') return;
           const titleEl = tile.querySelector('h3');
           if (!titleEl) return;
@@ -20441,14 +20680,15 @@
         return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
       }
       // Run once now (in case tiles already rendered) and re-run via
-      // MutationObserver any time #gridMobile gets new children.
+      // MutationObserver any time gridMobile OR gridDesktop gets new children.
       decorateTiles();
-      const gridEl = document.getElementById('gridMobile');
-      if (gridEl) {
-        new MutationObserver(() => decorateTiles()).observe(gridEl, {
+      ['gridMobile', 'gridDesktop'].forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        new MutationObserver(() => decorateTiles()).observe(el, {
           childList: true, subtree: true,
         });
-      }
+      });
       // Re-run after intel loads (async fetch)
       if (window.loadIntelData) {
         window.loadIntelData().then(() => decorateTiles());
