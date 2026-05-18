@@ -7294,7 +7294,11 @@
     body.ui-v2 #zoomOutButton,
     body.ui-v2 #resetViewButton,
     body.ui-v2 #layersButton,
-    body.ui-v2 #locationButton { display: none !important; }
+    body.ui-v2 #locationButton,
+    /* Memberstack auth widget — the "JN" green circle that floats
+       top-left on mobile. v2 absorbs this functionality into the new
+       profile button inside the TMW widget. */
+    body.ui-v2 #paywallAuthHeader { display: none !important; }
     /* Keep #layersPanel hidden by default (legacy CSS does this already)
        but allow `.open` (added by legacy click handler) to reveal it.
        Without this, our v2 hide-rule was overriding the open-state. */
@@ -7428,7 +7432,7 @@
       color: #fff;
       transition: bottom 0.32s cubic-bezier(0.2, 0.8, 0.2, 1);
     }
-    body.v2-sheet-open .v2-right-rail { bottom: calc(75vh + 16px); }
+    body.v2-sheet-open .v2-right-rail { bottom: calc(85vh + 16px); }
     body.ui-v2 .v2-action-btn {
       width: 44px; height: 44px;
       background: rgba(15,15,15,0.72);
@@ -7448,15 +7452,16 @@
     }
     body.ui-v2 .v2-action-btn .v2-num-badge {
       position: absolute;
-      top: -3px; right: -3px;
-      background: var(--accent, #1FDF67);
+      top: -4px; right: -4px;
+      background: var(--warn, #FFD300);
       color: #0a0a0a;
       font-size: 10px; font-weight: 800;
-      padding: 2px 5px;
-      border-radius: 100px;
       line-height: 1;
-      min-width: 17px;
-      text-align: center;
+      width: 20px; height: 20px;
+      padding: 0;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      box-sizing: border-box;
       border: 2px solid #0a0a0a;
     }
     body.ui-v2 .v2-zoom-stack {
@@ -7597,7 +7602,8 @@
       transition: height 0.32s cubic-bezier(0.2, 0.8, 0.2, 1);
       display: flex; flex-direction: column;
     }
-    body.v2-sheet-open .v2-sheet { height: 75vh; }
+    /* Drawer opens to 85vh (10% taller than the prior 75vh) */
+    body.v2-sheet-open .v2-sheet { height: 85vh; }
     /* Bigger handle target. The full top strip of the sheet (down to the
        search bar) is also draggable via JS, so users can grab anywhere
        in that zone to dismiss. */
@@ -7779,21 +7785,28 @@
     body.ui-v2 .v2-sheet-body #mobilePillsRow {
       margin: 0 0 8px;
     }
-    /* Title-row section indicator — matches the rest of the typography,
-       not all-caps. Number rendered as inline text with accent color,
-       no background bubble. */
+    /* Title-row section indicator — "in view 7" lowercase label, plus
+       a green bubble around the count. Flips to "more nearby 12" with
+       a gray bubble when user scrolls past the in-view section. */
     body.ui-v2 .v2-section-indicator {
-      display: inline-flex; align-items: baseline; gap: 6px;
-      font-size: 13px; font-weight: 600;
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 13px; font-weight: 500;
+      text-transform: lowercase;
     }
-    body.ui-v2 .v2-section-indicator.in-view { color: rgba(255,255,255,0.45); }
+    body.ui-v2 .v2-section-indicator.in-view { color: rgba(255,255,255,0.55); }
     body.ui-v2 .v2-section-indicator.nearby  { color: rgba(255,255,255,0.45); }
     body.ui-v2 .v2-section-indicator .v2-section-count {
-      font-size: 14px; font-weight: 700;
-      color: var(--accent, #1FDF67);
+      display: inline-flex; align-items: center; justify-content: center;
+      min-width: 22px; height: 22px;
+      padding: 0 7px;
+      border-radius: 100px;
+      font-size: 12px; font-weight: 700;
       font-variant-numeric: tabular-nums;
+      background: rgba(31,223,103,0.16);
+      color: var(--accent, #1FDF67);
     }
     body.ui-v2 .v2-section-indicator.nearby .v2-section-count {
+      background: rgba(255,255,255,0.08);
       color: rgba(255,255,255,0.6);
     }
 
@@ -7881,6 +7894,60 @@
     body.ui-v2 #gridMobile .inview-section .grid-item {
       border-color: rgba(31,223,103,0.4) !important;
       box-shadow: 0 0 0 1px rgba(31,223,103,0.2);
+    }
+    /* Hide inline section headers ("In View" / "More Nearby" labels
+       that render inline between sections) — the title-row indicator
+       handles this signaling now. */
+    body.ui-v2 #gridMobile .section-header-wrap { display: none !important; }
+    /* Hide the delivery progress bar (track/fill/stages). We replace
+       it with a status pill + delivery date + intel chip via JS. The
+       legacy .delivery-bar-label gets restyled as our status pill. */
+    body.ui-v2 #gridMobile .delivery-bar {
+      padding: 10px 14px 14px !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      gap: 8px !important;
+    }
+    body.ui-v2 #gridMobile .delivery-bar-track,
+    body.ui-v2 #gridMobile .delivery-bar-stages {
+      display: none !important;
+    }
+    body.ui-v2 #gridMobile .delivery-bar-label {
+      font-size: 10px !important;
+      font-weight: 700 !important;
+      text-transform: uppercase !important;
+      letter-spacing: 0.06em !important;
+      padding: 3px 9px !important;
+      border-radius: 100px !important;
+      background: rgba(255,255,255,0.06) !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 5px !important;
+    }
+    body.ui-v2 #gridMobile .delivery-bar.announced .delivery-bar-label    { color: rgba(255,255,255,0.6) !important; }
+    body.ui-v2 #gridMobile .delivery-bar.breaking .delivery-bar-label     { color: #FFD300 !important; background: rgba(255,211,0,0.12) !important; }
+    body.ui-v2 #gridMobile .delivery-bar.construction .delivery-bar-label { color: #FF9500 !important; background: rgba(255,149,0,0.12) !important; }
+    body.ui-v2 #gridMobile .delivery-bar.opening .delivery-bar-label      { color: #1FDF67 !important; background: rgba(31,223,103,0.12) !important; }
+    body.ui-v2 #gridMobile .delivery-bar.open .delivery-bar-label         { color: #1FDF67 !important; background: rgba(31,223,103,0.12) !important; }
+    /* Custom tile-foot injected by JS — sits inline with status pill */
+    body.ui-v2 #gridMobile .v2-tile-info {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: 11px;
+      color: rgba(255,255,255,0.55);
+      font-weight: 500;
+    }
+    body.ui-v2 #gridMobile .v2-tile-info .v2-tile-delivery b {
+      color: #fff; font-weight: 700;
+      margin-left: 4px;
+    }
+    body.ui-v2 #gridMobile .v2-tile-info .v2-tile-intel {
+      color: #A78BFA;
+      font-weight: 600;
+      display: inline-flex; align-items: center; gap: 4px;
+    }
+    body.ui-v2 #gridMobile .v2-tile-info .v2-tile-intel svg {
+      width: 10px; height: 10px; fill: currentColor;
     }
 
     /* ── Watchlist + Pulse panes ──────────────────────────────────
@@ -18204,6 +18271,24 @@
         if (pulseTab) pulseTab.click();
       });
 
+      // Profile button — delegate to legacy auth widget. Memberstack
+      // injects a clickable element into #paywallAuthHeader (usually a
+      // profile image button when logged in, or a sign-in button when
+      // signed out). We hide the legacy widget visually but still click
+      // through to it for the menu/auth modal.
+      const v2Profile = document.getElementById('v2ProfileBtn');
+      if (v2Profile) {
+        v2Profile.addEventListener('click', () => {
+          const legacyAuth = document.getElementById('paywallAuthHeader');
+          if (!legacyAuth) return;
+          // Click the first interactive child (button, anchor, or any
+          // element with role=button). Falls back to clicking the
+          // container if no descendants found.
+          const target = legacyAuth.querySelector('button, a, [role="button"]') || legacyAuth;
+          target.click();
+        });
+      }
+
       // ── Sync the pulse badge count from the legacy pulse bell ─────
       // The correct element is `#pulseBellBadge` (was looking for wrong
       // selector before). It has `hidden` attribute when count is 0 +
@@ -18231,6 +18316,79 @@
           attributes: true, attributeFilter: ['hidden'],
           childList: true, characterData: true, subtree: true,
         });
+      }
+
+      // ── Inject delivery date + TMW intel into each tile ──────────
+      // After renderGrid writes tiles into #gridMobile, walk each .grid-item,
+      // match it to a feature by title, look up intel from window.tmwIntel,
+      // and append a `.v2-tile-info` row next to the existing delivery-bar
+      // label. The progress bar visuals are hidden via CSS — this is what
+      // replaces them.
+      function decorateTiles() {
+        const grid = document.getElementById('gridMobile');
+        if (!grid) return;
+        const features = window.allProjectFeatures || [];
+        const intel = window.tmwIntel || {};
+        grid.querySelectorAll('.grid-item').forEach(tile => {
+          // Skip if we already decorated this tile
+          if (tile.querySelector('.v2-tile-info')) return;
+          const titleEl = tile.querySelector('h3');
+          if (!titleEl) return;
+          const title = (titleEl.textContent || '').trim();
+          const feature = features.find(f => f.properties && f.properties.title === title);
+          if (!feature) return;
+          const props = feature.properties;
+          const slug = (title || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+          const intelEntry = intel[slug];
+          const deliveryDate = props.deliveryDate || props.delivery || '';
+          // Pretty-print delivery: pass-through year or YYYY-MM
+          const deliveryDisplay = formatDeliveryLabel(deliveryDate);
+          // TMW intel chip
+          let intelHtml = '';
+          if (intelEntry && intelEntry.estimate_label) {
+            const tail = intelEntry.source === 'completed' ? 'to complete' : 'to completion';
+            intelHtml = `<span class="v2-tile-intel">
+              <svg viewBox="0 0 24 24"><path d="M12 2L4 7v10l8 5 8-5V7l-8-5zm0 2.5L18 8v8l-6 3.75L6 16V8l6-3.5z"/></svg>
+              ${escapeText(intelEntry.estimate_label)} ${tail}
+            </span>`;
+          }
+          // Insert into the delivery-bar (which now sits as a flex row)
+          const bar = tile.querySelector('.delivery-bar');
+          if (!bar) return;
+          const info = document.createElement('span');
+          info.className = 'v2-tile-info';
+          info.innerHTML = `
+            ${deliveryDisplay ? `<span class="v2-tile-delivery">Delivery<b>${escapeText(deliveryDisplay)}</b></span>` : ''}
+            ${intelHtml}
+          `.trim();
+          bar.appendChild(info);
+        });
+      }
+      function formatDeliveryLabel(raw) {
+        if (!raw) return '';
+        // YYYY-MM → "Mon YYYY", YYYY → "YYYY"
+        const m = raw.match(/^(\d{4})(?:-(\d{2}))?/);
+        if (!m) return raw;
+        if (!m[2]) return m[1];
+        const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        const idx = parseInt(m[2], 10) - 1;
+        return `${months[idx] || ''} ${m[1]}`.trim();
+      }
+      function escapeText(s) {
+        return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      }
+      // Run once now (in case tiles already rendered) and re-run via
+      // MutationObserver any time #gridMobile gets new children.
+      decorateTiles();
+      const gridEl = document.getElementById('gridMobile');
+      if (gridEl) {
+        new MutationObserver(() => decorateTiles()).observe(gridEl, {
+          childList: true, subtree: true,
+        });
+      }
+      // Re-run after intel loads (async fetch)
+      if (window.loadIntelData) {
+        window.loadIntelData().then(() => decorateTiles());
       }
 
       // ── Tile click → open project modal directly ──────────────────
