@@ -7260,6 +7260,390 @@
   }
   .atlas-error { color: rgba(255,90,90,0.8); }
 
+  /* ════════════════════════════════════════════════════════════════════
+     UI V2 — UNIFIED MOBILE DRAWER (opt-in via ?ui=v2)
+     ════════════════════════════════════════════════════════════════════
+     Mobile-only redesign that collapses Discover + Watchlist + Pulse + the
+     project modal into one unified bottom sheet. Triggered by setting
+     `?ui=v2` on the URL (boot JS adds `body.ui-v2`). Without that flag,
+     none of these styles match and the existing mobile UI is unchanged.
+
+     Commit 1: drawer shell + Discover tab (this commit)
+     Commit 2: Watchlist + Pulse content move (next)
+     Commit 3: Project modal relocation (last)
+     ──────────────────────────────────────────────────────────────────── */
+
+  /* Default: hide the v2 drawer entirely (so non-mobile users / non-v2
+     users never see it). Only revealed inside the mobile media query when
+     body.ui-v2 is present. */
+  .v2-drawer, .v2-top-chrome, .v2-right-rail { display: none; }
+
+  @media(max-width: 800px) {
+    /* When v2 is active, hide every legacy mobile surface and show the
+       new unified drawer instead. Old DOM stays in the document so the
+       grid render pipeline (and any other code referencing those IDs)
+       keeps working — we just hide the legacy containers. */
+    body.ui-v2 #mobileDrawer,
+    body.ui-v2 #mobileTilesButton,
+    body.ui-v2 #mobileHomeButton,
+    body.ui-v2 #mapReturnButton,
+    body.ui-v2 #pulseStack,
+    body.ui-v2 #pulseBellBtn,
+    body.ui-v2 #watchlistBtn,
+    body.ui-v2 #watchlistPanel { display: none !important; }
+    /* Hide the v1 mode toggle — we add our own glassy one in the top chrome */
+    body.ui-v2 .atlas-mode-toggle { display: none !important; }
+
+    /* ── TOP CHROME ──────────────────────────────────────────────── */
+    body.ui-v2 .v2-top-chrome {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: fixed;
+      top: calc(env(safe-area-inset-top, 0px) + 8px);
+      left: 0; right: 0;
+      padding: 0 14px;
+      z-index: 90;
+      pointer-events: none; /* children re-enable */
+    }
+    body.ui-v2 .v2-top-chrome > * { pointer-events: auto; }
+    body.ui-v2 .v2-tmw-logo {
+      width: 40px; height: 40px;
+      background: rgba(15,15,15,0.7);
+      backdrop-filter: blur(16px) saturate(1.4);
+      -webkit-backdrop-filter: blur(16px) saturate(1.4);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      padding: 6px;
+    }
+    body.ui-v2 .v2-tmw-logo img {
+      width: 100%; height: 100%;
+      object-fit: contain;
+      filter: brightness(0) invert(1);
+    }
+    body.ui-v2 .v2-mode-toggle {
+      background: rgba(15,15,15,0.7);
+      backdrop-filter: blur(16px) saturate(1.4);
+      -webkit-backdrop-filter: blur(16px) saturate(1.4);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 999px;
+      padding: 3px;
+      display: inline-flex;
+    }
+    body.ui-v2 .v2-mode-toggle button {
+      background: transparent;
+      color: rgba(255,255,255,0.6);
+      border: none;
+      padding: 7px 18px;
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: 999px;
+      font-family: inherit;
+      cursor: pointer;
+    }
+    body.ui-v2 .v2-mode-toggle button.active {
+      background: var(--accent, #1FDF67);
+      color: #0a0a0a;
+    }
+    body.ui-v2 .v2-profile-btn {
+      width: 40px; height: 40px;
+      background: rgba(15,15,15,0.7);
+      backdrop-filter: blur(16px) saturate(1.4);
+      -webkit-backdrop-filter: blur(16px) saturate(1.4);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 50%;
+      cursor: pointer;
+      background-image: linear-gradient(135deg, #FFD300, #FF9500);
+      background-clip: padding-box;
+    }
+
+    /* ── RIGHT-RAIL ACTIONS ───────────────────────────────────────── */
+    body.ui-v2 .v2-right-rail {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      position: fixed;
+      right: 14px;
+      bottom: 130px;
+      z-index: 85;
+      color: #fff;
+      transition: bottom 0.32s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+    body.v2-sheet-mid .v2-right-rail   { bottom: 480px; }
+    body.v2-sheet-full .v2-right-rail  { bottom: 740px; }
+    body.ui-v2 .v2-action-btn {
+      width: 44px; height: 44px;
+      background: rgba(15,15,15,0.72);
+      backdrop-filter: blur(16px) saturate(1.4);
+      -webkit-backdrop-filter: blur(16px) saturate(1.4);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      color: #fff;
+      position: relative;
+      cursor: pointer;
+    }
+    body.ui-v2 .v2-action-btn svg {
+      width: 18px; height: 18px;
+      stroke: currentColor; fill: none;
+      stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+    }
+    body.ui-v2 .v2-action-btn .v2-num-badge {
+      position: absolute;
+      top: -3px; right: -3px;
+      background: var(--accent, #1FDF67);
+      color: #0a0a0a;
+      font-size: 10px; font-weight: 800;
+      padding: 2px 5px;
+      border-radius: 100px;
+      line-height: 1;
+      min-width: 17px;
+      text-align: center;
+      border: 2px solid #0a0a0a;
+    }
+    body.ui-v2 .v2-zoom-stack {
+      background: rgba(15,15,15,0.72);
+      backdrop-filter: blur(16px) saturate(1.4);
+      -webkit-backdrop-filter: blur(16px) saturate(1.4);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 22px;
+      overflow: hidden;
+      width: 44px;
+    }
+    body.ui-v2 .v2-zoom-stack button {
+      width: 44px; height: 44px;
+      background: transparent; border: none;
+      color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    body.ui-v2 .v2-zoom-stack button svg {
+      width: 16px; height: 16px;
+      stroke: currentColor; fill: none;
+      stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round;
+    }
+    body.ui-v2 .v2-zoom-stack button + button {
+      border-top: 1px solid rgba(255,255,255,0.08);
+    }
+
+    /* ── DRAWER CONTAINER ────────────────────────────────────────── */
+    body.ui-v2 .v2-drawer {
+      display: block;
+      position: fixed;
+      left: 0; right: 0; bottom: 0;
+      z-index: 95;
+    }
+    /* Floating capsule visible at rest state */
+    body.ui-v2 .v2-capsule {
+      position: absolute;
+      left: 14px; right: 14px;
+      bottom: calc(env(safe-area-inset-bottom, 0px) + 14px);
+      background: rgba(22,22,22,0.88);
+      backdrop-filter: blur(28px) saturate(1.4);
+      -webkit-backdrop-filter: blur(28px) saturate(1.4);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 28px;
+      padding: 8px 8px 8px 16px;
+      display: flex; align-items: center; gap: 8px;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.45);
+      cursor: pointer;
+      color: rgba(255,255,255,0.72);
+      transition: opacity 0.2s, transform 0.32s cubic-bezier(0.2,0.8,0.2,1);
+    }
+    body.v2-sheet-open .v2-capsule {
+      opacity: 0; pointer-events: none;
+      transform: translateY(20px);
+    }
+    body.ui-v2 .v2-search-icon {
+      display: flex; align-items: center; justify-content: center;
+      color: rgba(255,255,255,0.45);
+      flex-shrink: 0;
+    }
+    body.ui-v2 .v2-search-icon svg {
+      width: 16px; height: 16px;
+      stroke: currentColor; fill: none; stroke-width: 2.4;
+      stroke-linecap: round; stroke-linejoin: round;
+    }
+    body.ui-v2 .v2-search-text {
+      flex: 1;
+      color: rgba(255,255,255,0.45);
+      font-size: 14px;
+      font-weight: 500;
+      background: transparent; border: none; outline: none;
+      font-family: inherit;
+      min-width: 0;
+    }
+    body.ui-v2 .v2-search-text.has-value { color: #fff; }
+    body.ui-v2 .v2-search-text::placeholder { color: rgba(255,255,255,0.45); }
+
+    /* Filter pill badge — same exact pattern as #mobilePillFilterBadge */
+    body.ui-v2 .v2-filter-btn {
+      display: none;
+      align-items: center; justify-content: center;
+      gap: 5px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 20px;
+      padding: 0 10px;
+      height: 28px;
+      flex-shrink: 0;
+      cursor: pointer;
+    }
+    body.ui-v2 .v2-filter-btn.visible { display: inline-flex; }
+    body.ui-v2 .v2-filter-btn .badge-icon svg {
+      width: 15px; height: 15px;
+      stroke: rgba(255,255,255,0.7); fill: none; stroke-width: 1.8;
+    }
+    body.ui-v2 .v2-filter-btn .badge-count {
+      font-size: 11px; font-weight: 700;
+      color: #fff;
+      background: var(--accent, #1FDF67);
+      border-radius: 50%;
+      width: 16px; height: 16px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    body.ui-v2 .v2-results-divider {
+      width: 1px; height: 18px;
+      background: rgba(255,255,255,0.12);
+      flex-shrink: 0;
+    }
+    body.ui-v2 .v2-results-count {
+      color: var(--accent, #1FDF67);
+      font-size: 13px;
+      font-weight: 600;
+      white-space: nowrap;
+      padding-right: 6px;
+      flex-shrink: 0;
+    }
+
+    /* Expanded sheet */
+    body.ui-v2 .v2-sheet {
+      position: absolute;
+      left: 0; right: 0; bottom: 0;
+      background: rgba(20,20,20,0.96);
+      backdrop-filter: blur(40px);
+      -webkit-backdrop-filter: blur(40px);
+      border-top-left-radius: 24px;
+      border-top-right-radius: 24px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      box-shadow: 0 -8px 32px rgba(0,0,0,0.4);
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+      height: 0;
+      overflow: hidden;
+      transition: height 0.32s cubic-bezier(0.2, 0.8, 0.2, 1);
+      display: flex; flex-direction: column;
+    }
+    body.v2-sheet-mid .v2-sheet  { height: 60vh; }
+    body.v2-sheet-full .v2-sheet { height: 88vh; }
+    body.ui-v2 .v2-sheet-handle {
+      width: 36px; height: 4px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 2px;
+      margin: 8px auto 4px;
+      flex-shrink: 0;
+      cursor: grab;
+    }
+    body.ui-v2 .v2-pinned-search {
+      margin: 4px 14px 12px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 22px;
+      padding: 8px 8px 8px 16px;
+      display: flex; align-items: center; gap: 8px;
+      flex-shrink: 0;
+      color: rgba(255,255,255,0.72);
+    }
+
+    /* Segmented tabs — gold-active per Jake's pick */
+    body.ui-v2 .v2-segmented {
+      display: flex;
+      margin: 0 14px 12px;
+      background: rgba(255,255,255,0.04);
+      border-radius: 12px;
+      padding: 3px;
+      gap: 2px;
+      flex-shrink: 0;
+    }
+    body.ui-v2 .v2-tab {
+      flex: 1;
+      background: transparent;
+      color: rgba(255,255,255,0.45);
+      border: none;
+      padding: 9px 6px;
+      font-size: 12.5px;
+      font-weight: 600;
+      border-radius: 9px;
+      font-family: inherit;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      position: relative;
+    }
+    body.ui-v2 .v2-tab.active {
+      background: var(--warn, #FFD300);
+      color: #0a0a0a;
+      font-weight: 700;
+    }
+    body.ui-v2 .v2-tab .v2-tab-num {
+      background: rgba(0,0,0,0.18);
+      color: inherit;
+      font-size: 10px; font-weight: 800;
+      padding: 1px 6px; border-radius: 100px; line-height: 1.2;
+    }
+    body.ui-v2 .v2-tab.active .v2-tab-num {
+      background: #0a0a0a; color: var(--warn, #FFD300);
+    }
+
+    /* Bold title row */
+    body.ui-v2 .v2-sheet-title-row {
+      padding: 0 18px 8px;
+      display: flex; justify-content: space-between; align-items: baseline;
+      flex-shrink: 0;
+    }
+    body.ui-v2 .v2-sheet-title-row .ttl {
+      font-size: 22px; font-weight: 800;
+      color: #fff;
+      letter-spacing: -0.012em;
+    }
+    body.ui-v2 .v2-sheet-title-row .sub {
+      font-size: 11px; color: rgba(255,255,255,0.45);
+      font-weight: 600;
+    }
+
+    /* Sheet body — host for moved #gridMobile (or tab-specific content) */
+    body.ui-v2 .v2-sheet-body {
+      flex: 1 1 auto;
+      overflow-y: auto;
+      padding: 0 14px 14px;
+      -webkit-overflow-scrolling: touch;
+    }
+    body.ui-v2 .v2-sheet-body::-webkit-scrollbar { display: none; }
+    /* When existing grid moves into the sheet body, drop its outer padding
+       so it lays out naturally inside our padded container. */
+    body.ui-v2 .v2-sheet-body #gridMobile {
+      padding: 0;
+      margin: 0;
+    }
+    /* Placeholder content for Watchlist + Pulse (until C2 + C3 ship) */
+    body.ui-v2 .v2-placeholder {
+      padding: 60px 24px;
+      text-align: center;
+      color: rgba(255,255,255,0.5);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    body.ui-v2 .v2-placeholder .lbl {
+      font-size: 11px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.06em; color: var(--warn, #FFD300);
+      margin-bottom: 8px;
+    }
+    /* Tab content visibility */
+    body.ui-v2 .v2-tab-content { display: none; }
+    body.ui-v2 .v2-tab-content.active { display: block; }
+  }
+
   </style>
 </head>
 <body>
@@ -7718,6 +8102,118 @@
       <img src="https://static.wixstatic.com/shapes/ca3b83_a647b53cad4c49c5b012af991d286a86.svg" alt="Markets of Tomorrow" style="width:95%;height:95%;filter:brightness(0) invert(1);object-fit:contain;" />
     </a>
     <button id="mapReturnButton">Map</button>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         UI V2 — UNIFIED MOBILE DRAWER (opt-in via ?ui=v2)
+         Hidden by default (display:none). Boot JS adds body.ui-v2 when
+         the URL has ?ui=v2 which reveals these surfaces and suppresses
+         the legacy mobile drawer / pulse / watchlist.
+         ════════════════════════════════════════════════════════════════ -->
+
+    <!-- Top chrome (logo · mode toggle · profile) -->
+    <div class="v2-top-chrome" id="v2TopChrome" aria-hidden="true">
+      <a href="https://www.oftmw.com" target="_blank" class="v2-tmw-logo" aria-label="Markets of Tomorrow">
+        <img src="https://static.wixstatic.com/shapes/ca3b83_a647b53cad4c49c5b012af991d286a86.svg" alt="" />
+      </a>
+      <div class="v2-mode-toggle" role="tablist" aria-label="Switch between map and atlas view">
+        <button id="v2MapBtn" class="active" data-mode="map" role="tab" aria-selected="true">Map</button>
+        <button id="v2AtlasBtn" data-mode="atlas" role="tab" aria-selected="false">Atlas</button>
+      </div>
+      <button class="v2-profile-btn" id="v2ProfileBtn" aria-label="Profile"></button>
+    </div>
+
+    <!-- Right-rail action buttons (slide up with sheet) -->
+    <div class="v2-right-rail" id="v2RightRail" aria-hidden="true">
+      <button class="v2-action-btn" id="v2PulseQuickBtn" aria-label="Pulse">
+        <span class="v2-num-badge" id="v2PulseQuickBadge" hidden>0</span>
+        <svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+      </button>
+      <button class="v2-action-btn" id="v2LayersBtn" aria-label="Map layers">
+        <svg viewBox="0 0 24 24"><path d="M12 2 2 7l10 5 10-5-10-5z"/><path d="m2 17 10 5 10-5"/><path d="m2 12 10 5 10-5"/></svg>
+      </button>
+      <div class="v2-zoom-stack">
+        <button id="v2ZoomInBtn" aria-label="Zoom in">
+          <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+        </button>
+        <button id="v2ZoomOutBtn" aria-label="Zoom out">
+          <svg viewBox="0 0 24 24"><path d="M5 12h14"/></svg>
+        </button>
+      </div>
+      <button class="v2-action-btn" id="v2GeolocateBtn" aria-label="Locate me">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+      </button>
+    </div>
+
+    <!-- Drawer: floating capsule (rest) → expandable sheet -->
+    <div class="v2-drawer" id="v2Drawer" aria-hidden="true">
+      <!-- Floating capsule (visible when sheet closed) -->
+      <button class="v2-capsule" id="v2Capsule" aria-label="Open search and discovery sheet">
+        <span class="v2-search-icon">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        </span>
+        <span class="v2-search-text" id="v2CapsuleText">Search projects or city...</span>
+        <div class="v2-filter-btn" id="v2CapsuleFilterBtn">
+          <span class="badge-icon"><svg viewBox="0 0 24 24"><circle cx="6" cy="5" r="2"/><line x1="2" y1="5" x2="4" y2="5"/><line x1="8" y1="5" x2="22" y2="5"/><circle cx="16" cy="12" r="2"/><line x1="2" y1="12" x2="14" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><circle cx="9" cy="19" r="2"/><line x1="2" y1="19" x2="7" y2="19"/><line x1="11" y1="19" x2="22" y2="19"/></svg></span>
+          <span class="badge-count" id="v2CapsuleFilterCount">0</span>
+        </div>
+        <span class="v2-results-divider"></span>
+        <span class="v2-results-count" id="v2CapsuleResults">— results</span>
+      </button>
+
+      <!-- Expanded sheet -->
+      <div class="v2-sheet" id="v2Sheet">
+        <div class="v2-sheet-handle" id="v2SheetHandle"></div>
+
+        <!-- Pinned search bar (mirrors capsule pattern) -->
+        <div class="v2-pinned-search">
+          <span class="v2-search-icon">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          </span>
+          <input class="v2-search-text" id="v2SearchInput" type="text" placeholder="Search projects or city..." />
+          <div class="v2-filter-btn" id="v2SearchFilterBtn">
+            <span class="badge-icon"><svg viewBox="0 0 24 24"><circle cx="6" cy="5" r="2"/><line x1="2" y1="5" x2="4" y2="5"/><line x1="8" y1="5" x2="22" y2="5"/><circle cx="16" cy="12" r="2"/><line x1="2" y1="12" x2="14" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><circle cx="9" cy="19" r="2"/><line x1="2" y1="19" x2="7" y2="19"/><line x1="11" y1="19" x2="22" y2="19"/></svg></span>
+            <span class="badge-count" id="v2SearchFilterCount">0</span>
+          </div>
+          <span class="v2-results-divider"></span>
+          <span class="v2-results-count" id="v2SearchResults">— results</span>
+        </div>
+
+        <!-- Segmented tabs -->
+        <div class="v2-segmented" role="tablist">
+          <button class="v2-tab active" data-v2-tab="discover" role="tab" aria-selected="true">Discover</button>
+          <button class="v2-tab" data-v2-tab="watchlist" role="tab" aria-selected="false">
+            Watchlist <span class="v2-tab-num" id="v2WatchlistCount" hidden>0</span>
+          </button>
+          <button class="v2-tab" data-v2-tab="pulse" role="tab" aria-selected="false">
+            Pulse <span class="v2-tab-num" id="v2PulseCount" hidden>0</span>
+          </button>
+        </div>
+
+        <!-- Tab content area -->
+        <div class="v2-sheet-body">
+          <!-- DISCOVER (active by default) — existing #gridMobile gets moved here on boot -->
+          <div class="v2-tab-content active" data-v2-tab-content="discover" id="v2DiscoverPane">
+            <!-- #gridMobile will be appended here by boot JS -->
+          </div>
+
+          <!-- WATCHLIST (placeholder until C2) -->
+          <div class="v2-tab-content" data-v2-tab-content="watchlist">
+            <div class="v2-placeholder">
+              <div class="lbl">Coming in C2</div>
+              Your watchlist will live here in the next update.
+            </div>
+          </div>
+
+          <!-- PULSE (placeholder until C2) -->
+          <div class="v2-tab-content" data-v2-tab-content="pulse">
+            <div class="v2-placeholder">
+              <div class="lbl">Coming in C2</div>
+              Recent project updates + news will appear here.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- ── Favorites view banner — visible when ?view=favorites is active ── -->
     <div id="favViewBanner" role="status" aria-live="polite">
@@ -16978,6 +17474,267 @@
         }
       }
     });
+  })();
+
+  // ════════════════════════════════════════════════════════════════════
+  // UI V2 — Unified Mobile Drawer (opt-in via ?ui=v2)
+  // ════════════════════════════════════════════════════════════════════
+  // Commit 1: drawer shell + Discover tab. Old mobile UI fully suppressed
+  // when ?ui=v2 is in the URL. Without that flag, this whole block is
+  // inert — body.ui-v2 class is never added and no styles match.
+  //
+  // Architecture:
+  //   - body.ui-v2          — flag class added when ?ui=v2 is present
+  //   - body.v2-sheet-mid   — sheet at medium height (60vh)
+  //   - body.v2-sheet-full  — sheet at full height (88vh)
+  //   - body.v2-sheet-open  — either mid or full (capsule hides)
+  //
+  // Discover content reuses the existing #gridMobile element — we MOVE
+  // it from #mobileDrawer into #v2DiscoverPane on boot. This keeps the
+  // existing renderGrid('gridMobile') pipeline working unchanged.
+  (function v2DrawerBoot() {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('ui') !== 'v2') return;
+    document.body.classList.add('ui-v2');
+
+    function setup() {
+      // ── Move #gridMobile into v2 Discover pane ────────────────────
+      // The legacy grid container is still populated by renderGrid('gridMobile').
+      // By relocating the DOM node, the existing pipeline writes into the
+      // new drawer without any pipeline changes.
+      try {
+        const grid = document.getElementById('gridMobile');
+        const pane = document.getElementById('v2DiscoverPane');
+        if (grid && pane) pane.appendChild(grid);
+        // Also relocate the section status bar + active filter pills row
+        // so the existing filter-pill rendering keeps working in the new
+        // drawer.
+        const sectionBar = document.getElementById('mobileSectionBar');
+        const pillsRow   = document.getElementById('mobilePillsRow');
+        if (sectionBar && pane) pane.insertBefore(sectionBar, pane.firstChild);
+        if (pillsRow && pane)   pane.insertBefore(pillsRow, pane.firstChild);
+      } catch (err) {
+        console.error('[v2] DOM relocation failed', err);
+      }
+
+      // ── Mode toggle: hook to existing setMapMode/setAtlasMode ──────
+      // Reuse the existing atlas-mode-toggle's onclick handlers if present;
+      // otherwise just toggle body.atlas-mode (which the existing code keys off).
+      const legacyToggle = document.querySelector('.atlas-mode-toggle');
+      const v2Map = document.getElementById('v2MapBtn');
+      const v2Atl = document.getElementById('v2AtlasBtn');
+      if (v2Map && v2Atl && legacyToggle) {
+        const legacyMap = legacyToggle.querySelector('[data-mode="map"]');
+        const legacyAtl = legacyToggle.querySelector('[data-mode="atlas"]');
+        v2Map.addEventListener('click', () => legacyMap && legacyMap.click());
+        v2Atl.addEventListener('click', () => legacyAtl && legacyAtl.click());
+        // Mirror active state when the legacy toggle changes (e.g. via
+        // popstate or programmatic switch).
+        const mirror = () => {
+          const atlasOn = document.body.classList.contains('atlas-mode');
+          v2Map.classList.toggle('active', !atlasOn);
+          v2Atl.classList.toggle('active',  atlasOn);
+          v2Map.setAttribute('aria-selected', String(!atlasOn));
+          v2Atl.setAttribute('aria-selected', String(atlasOn));
+        };
+        mirror();
+        // Watch body class changes (cheap MutationObserver)
+        new MutationObserver(mirror).observe(document.body, {
+          attributes: true, attributeFilter: ['class'],
+        });
+      }
+
+      // ── Capsule tap → expand sheet ───────────────────────────────
+      const capsule = document.getElementById('v2Capsule');
+      const sheet   = document.getElementById('v2Sheet');
+      const search  = document.getElementById('v2SearchInput');
+      const openSheet = (height) => {
+        document.body.classList.add('v2-sheet-open');
+        document.body.classList.toggle('v2-sheet-mid',  height === 'mid');
+        document.body.classList.toggle('v2-sheet-full', height === 'full');
+      };
+      const closeSheet = () => {
+        document.body.classList.remove('v2-sheet-open', 'v2-sheet-mid', 'v2-sheet-full');
+      };
+      if (capsule) {
+        capsule.addEventListener('click', () => {
+          openSheet('mid');
+          // Focus the search field after the animation kicks off
+          setTimeout(() => { if (search) search.focus(); }, 220);
+        });
+      }
+      // Tap the drag handle to toggle mid/full
+      const handle = document.getElementById('v2SheetHandle');
+      if (handle) {
+        handle.addEventListener('click', () => {
+          if (document.body.classList.contains('v2-sheet-full')) {
+            openSheet('mid');
+          } else {
+            openSheet('full');
+          }
+        });
+      }
+      // Clicking outside the sheet area while collapsed via Esc — skip for now,
+      // capsule will return when search empties + user blurs in C2.
+
+      // ── Tab switching (gold-active) ──────────────────────────────
+      const tabs = document.querySelectorAll('.v2-tab[data-v2-tab]');
+      const panes = document.querySelectorAll('.v2-tab-content[data-v2-tab-content]');
+      tabs.forEach(t => {
+        t.addEventListener('click', () => {
+          const id = t.dataset.v2Tab;
+          tabs.forEach(x => {
+            x.classList.toggle('active', x === t);
+            x.setAttribute('aria-selected', String(x === t));
+          });
+          panes.forEach(p => p.classList.toggle('active', p.dataset.v2TabContent === id));
+          // Update sheet title row
+          const titles = {
+            discover:  { ttl: 'Discover',  sub: 'All projects' },
+            watchlist: { ttl: 'Watchlist', sub: 'Coming in C2' },
+            pulse:     { ttl: 'Pulse',     sub: 'Coming in C2' },
+          };
+          // (Title row not yet wired in this commit — placeholder hook
+          //  in case we want to surface tab title later.)
+        });
+      });
+
+      // ── Search input → existing search pipeline ──────────────────
+      // The live mobile search uses #mobileSearchBar internally. Mirror
+      // input from v2 → legacy so the existing pipeline drives results.
+      const legacyInput = document.getElementById('mobileSearchBar');
+      if (search && legacyInput) {
+        search.addEventListener('input', () => {
+          legacyInput.value = search.value;
+          legacyInput.dispatchEvent(new Event('input', { bubbles: true }));
+        });
+      }
+
+      // ── Mirror legacy filter badge state into v2 capsule + sheet ──
+      const legacyBadge = document.getElementById('mobilePillFilterBadge');
+      const legacyCount = document.getElementById('mobilePillFilterCount');
+      const legacyResults = document.getElementById('mobilePillCount');
+      const v2CapBtn    = document.getElementById('v2CapsuleFilterBtn');
+      const v2CapCount  = document.getElementById('v2CapsuleFilterCount');
+      const v2CapResults= document.getElementById('v2CapsuleResults');
+      const v2SrchBtn   = document.getElementById('v2SearchFilterBtn');
+      const v2SrchCount = document.getElementById('v2SearchFilterCount');
+      const v2SrchResults = document.getElementById('v2SearchResults');
+      const mirrorFilters = () => {
+        if (!legacyBadge) return;
+        const visible = legacyBadge.classList.contains('visible');
+        const n = (legacyCount && legacyCount.textContent) || '0';
+        const r = (legacyResults && legacyResults.textContent) || '— results';
+        if (v2CapBtn) v2CapBtn.classList.toggle('visible', visible);
+        if (v2SrchBtn) v2SrchBtn.classList.toggle('visible', visible);
+        if (v2CapCount) v2CapCount.textContent = n;
+        if (v2SrchCount) v2SrchCount.textContent = n;
+        if (v2CapResults) v2CapResults.textContent = r;
+        if (v2SrchResults) v2SrchResults.textContent = r;
+      };
+      mirrorFilters();
+      // Watch legacy badge for changes
+      if (legacyBadge) {
+        new MutationObserver(mirrorFilters).observe(legacyBadge, {
+          attributes: true, attributeFilter: ['class'], childList: true, subtree: true,
+        });
+      }
+      if (legacyResults) {
+        new MutationObserver(mirrorFilters).observe(legacyResults, {
+          childList: true, characterData: true, subtree: true,
+        });
+      }
+      // Capsule filter button click → trigger the legacy filter toggle
+      // (preserves existing filter modal/dropdown behavior).
+      if (v2CapBtn && legacyBadge) {
+        v2CapBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          legacyBadge.click();
+        });
+      }
+      if (v2SrchBtn && legacyBadge) {
+        v2SrchBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          legacyBadge.click();
+        });
+      }
+
+      // ── Right-rail map controls → Mapbox via existing globals ─────
+      const v2ZoomIn  = document.getElementById('v2ZoomInBtn');
+      const v2ZoomOut = document.getElementById('v2ZoomOutBtn');
+      const v2Geo     = document.getElementById('v2GeolocateBtn');
+      const v2Layers  = document.getElementById('v2LayersBtn');
+      const v2Pulse   = document.getElementById('v2PulseQuickBtn');
+      if (v2ZoomIn) v2ZoomIn.addEventListener('click', () => {
+        if (window.map && typeof window.map.zoomIn === 'function') window.map.zoomIn();
+      });
+      if (v2ZoomOut) v2ZoomOut.addEventListener('click', () => {
+        if (window.map && typeof window.map.zoomOut === 'function') window.map.zoomOut();
+      });
+      if (v2Geo) v2Geo.addEventListener('click', () => {
+        // Reuse the existing geolocate control if present
+        const legacyGeo = document.querySelector('.mapboxgl-ctrl-geolocate');
+        if (legacyGeo) legacyGeo.click();
+      });
+      if (v2Layers) v2Layers.addEventListener('click', () => {
+        // Reuse the existing layers panel toggle if present (otherwise no-op)
+        const legacyLayers = document.querySelector('#layersBtn, .layers-toggle, [data-layers-toggle]');
+        if (legacyLayers) legacyLayers.click();
+      });
+      if (v2Pulse) v2Pulse.addEventListener('click', () => {
+        // Open the Pulse tab in the v2 drawer
+        openSheet('mid');
+        const pulseTab = document.querySelector('.v2-tab[data-v2-tab="pulse"]');
+        if (pulseTab) pulseTab.click();
+      });
+
+      // ── Sync the pulse badge count from the legacy pulse bell ─────
+      const legacyPulseBadge = document.querySelector('#pulseBellBtn .badge, #pulseBellBtn [data-pulse-badge]');
+      const v2PulseBadge = document.getElementById('v2PulseQuickBadge');
+      const v2PulseTabNum = document.getElementById('v2PulseCount');
+      const syncPulseCount = () => {
+        if (!legacyPulseBadge) return;
+        const txt = (legacyPulseBadge.textContent || '').trim();
+        const n = parseInt(txt, 10);
+        if (v2PulseBadge) {
+          if (n > 0) { v2PulseBadge.hidden = false; v2PulseBadge.textContent = String(n); }
+          else { v2PulseBadge.hidden = true; }
+        }
+        if (v2PulseTabNum) {
+          if (n > 0) { v2PulseTabNum.hidden = false; v2PulseTabNum.textContent = String(n); }
+          else { v2PulseTabNum.hidden = true; }
+        }
+      };
+      syncPulseCount();
+      if (legacyPulseBadge) {
+        new MutationObserver(syncPulseCount).observe(legacyPulseBadge, {
+          childList: true, characterData: true, subtree: true, attributes: true,
+        });
+      }
+
+      // ── Sync watchlist count ──────────────────────────────────────
+      const legacyWatchBadge = document.getElementById('watchlistBtnBadge');
+      const v2WatchNum = document.getElementById('v2WatchlistCount');
+      const syncWatchCount = () => {
+        if (!legacyWatchBadge || !v2WatchNum) return;
+        const visible = !legacyWatchBadge.hidden && legacyWatchBadge.textContent.trim() !== '';
+        if (visible) { v2WatchNum.hidden = false; v2WatchNum.textContent = legacyWatchBadge.textContent.trim(); }
+        else { v2WatchNum.hidden = true; }
+      };
+      syncWatchCount();
+      if (legacyWatchBadge) {
+        new MutationObserver(syncWatchCount).observe(legacyWatchBadge, {
+          attributes: true, attributeFilter: ['hidden'], childList: true, characterData: true, subtree: true,
+        });
+      }
+    } // end setup()
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', setup);
+    } else {
+      // Run on next tick to ensure all the legacy DOM has been initialized
+      setTimeout(setup, 0);
+    }
   })();
   </script>
 </body>
