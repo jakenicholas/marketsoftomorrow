@@ -3604,6 +3604,39 @@
     pointer-events: none;
     z-index: 1;
   }
+  /* "View on Map" floating button — top-right of hero. Closes the modal
+     and flies the map to the project pin. */
+  #projectModal .pm-viewmap-btn {
+    position: absolute;
+    top: 14px; right: 14px;
+    z-index: 5;
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 12px;
+    background: rgba(10,10,10,0.72);
+    border: 1px solid rgba(255,255,255,0.18);
+    border-radius: 100px;
+    backdrop-filter: blur(14px) saturate(1.4);
+    -webkit-backdrop-filter: blur(14px) saturate(1.4);
+    color: #fff;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.35);
+    transition: background 0.15s, transform 0.1s;
+  }
+  #projectModal .pm-viewmap-btn:hover,
+  #projectModal .pm-viewmap-btn:active {
+    background: rgba(31,223,103,0.16);
+    border-color: rgba(31,223,103,0.5);
+    color: var(--accent, #1FDF67);
+  }
+  #projectModal .pm-viewmap-btn svg {
+    width: 13px; height: 13px;
+    stroke: currentColor; fill: none;
+    stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round;
+  }
   /* Slider arrows — circular white buttons */
   #projectModal .pm-slide-arrow {
     position: absolute;
@@ -7261,16 +7294,11 @@
   .atlas-error { color: rgba(255,90,90,0.8); }
 
   /* ════════════════════════════════════════════════════════════════════
-     UI V2 — UNIFIED MOBILE DRAWER (opt-in via ?ui=v2)
+     UI V2 — UNIFIED MOBILE DRAWER (default; ?ui=v1 falls back to legacy)
      ════════════════════════════════════════════════════════════════════
      Mobile-only redesign that collapses Discover + Watchlist + Pulse + the
-     project modal into one unified bottom sheet. Triggered by setting
-     `?ui=v2` on the URL (boot JS adds `body.ui-v2`). Without that flag,
-     none of these styles match and the existing mobile UI is unchanged.
-
-     Commit 1: drawer shell + Discover tab (this commit)
-     Commit 2: Watchlist + Pulse content move (next)
-     Commit 3: Project modal relocation (last)
+     project modal into one unified bottom sheet. Default behavior — boot
+     JS adds `body.ui-v2` unless `?ui=v1` is on the URL.
      ──────────────────────────────────────────────────────────────────── */
 
   /* Default: hide the v2 drawer entirely (so non-mobile users / non-v2
@@ -7568,19 +7596,18 @@
       left: 0; right: 0; bottom: 0;
       z-index: 95;
     }
-    /* Floating capsule visible at rest state. Taller (14px vertical
-       padding) so it reads more like a chunky search field, and raised
-       higher off the bottom so it sits in a comfortable reach zone. */
+    /* Floating capsule visible at rest state. Slim — reads like a pill,
+       not a chunky bar. */
     body.ui-v2 .v2-capsule {
       position: absolute;
       left: 14px; right: 14px;
-      bottom: calc(env(safe-area-inset-bottom, 0px) + 32px);
+      bottom: calc(env(safe-area-inset-bottom, 0px) + 14px);
       background: rgba(22,22,22,0.88);
       backdrop-filter: blur(28px) saturate(1.4);
       -webkit-backdrop-filter: blur(28px) saturate(1.4);
       border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 32px;
-      padding: 14px 12px 14px 18px;
+      border-radius: 28px;
+      padding: 8px 8px 8px 16px;
       display: flex; align-items: center; gap: 10px;
       box-shadow: 0 16px 40px rgba(0,0,0,0.45);
       cursor: pointer;
@@ -7880,8 +7907,13 @@
       letter-spacing: -0.012em;
     }
     body.ui-v2 .v2-sheet-title-row .v2-sheet-sub {
-      font-size: 11px; color: rgba(255,255,255,0.45);
-      font-weight: 600;
+      /* Match the v2-section-indicator font on Discover so the right-side
+         slot reads identically across all tabs (size/weight/case). */
+      font-size: 13px;
+      font-weight: 700;
+      color: rgba(255,255,255,0.5);
+      text-transform: lowercase;
+      letter-spacing: 0;
     }
 
     /* ── Contextual filter pills (horizontal scroll) ────────────── */
@@ -7990,27 +8022,32 @@
       height: 100% !important;
       object-fit: cover !important;
     }
-    /* Featured = just a yellow star icon at top-right of image. No
-       pill background, no "Featured" text. */
+    /* Featured = gold-bordered square box with star icon, top-right of
+       image. Matches mockup: 22×22 box, 6px radius, transparent gold fill,
+       gold border, blurred backdrop. */
     body.ui-v2 #gridMobile .grid-item .featured-badge {
       position: absolute !important;
       top: 10px !important;
       right: 10px !important;
       left: auto !important;
-      background: transparent !important;
+      background: rgba(255,211,0,0.16) !important;
+      border: 1px solid rgba(255,211,0,0.4) !important;
+      border-radius: 6px !important;
       color: var(--warn, #FFD300) !important;
       padding: 0 !important;
       font-size: 0 !important;  /* hide "Featured" text */
       letter-spacing: 0 !important;
       display: inline-flex; align-items: center; justify-content: center;
       box-shadow: none !important;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
       z-index: 2;
-      width: 24px; height: 24px;
+      width: 22px !important; height: 22px !important;
     }
     body.ui-v2 #gridMobile .grid-item .featured-badge svg {
-      width: 22px !important; height: 22px !important;
+      width: 11px !important; height: 11px !important;
       fill: var(--warn, #FFD300) !important;
-      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.6));
+      stroke: none !important;
     }
     /* Tile body: title + city — clean padding */
     body.ui-v2 #gridMobile .grid-item .grid-item-content {
@@ -8189,29 +8226,33 @@
     body.ui-v2 .v2-pulse-content [class*="handle"] { display: none !important; }
 
     /* ── Pulse rows redesigned mockup-style ──────────────────────
-       Flat list, no card bg, colored dot on the left, small caps
-       top label (UPDATE · Place · 2h ago), title below. */
+       Match mockup blend v2 exactly:
+       - 11px 0 11px 14px padding
+       - 4px colored dot at left:0 top:19px with 3px halo
+       - top label 10px/700/uppercase/0.06em colored by type
+       - place + ago in mute color, sep at faint
+       - title 13.5px/regular #fff/1.4 line-height, 4px above */
     body.ui-v2 .v2-pulse-content .pulse-ev-wrap {
       background: transparent !important;
       border: none !important;
       border-radius: 0 !important;
       box-shadow: none !important;
-      padding: 12px 0 12px 16px !important;
+      padding: 11px 0 11px 14px !important;
       margin: 0 !important;
       position: relative !important;
-      border-bottom: 1px solid rgba(255,255,255,0.06) !important;
+      border-bottom: 1px solid rgba(255,255,255,0.08) !important;
     }
     body.ui-v2 .v2-pulse-content .pulse-ev-wrap::before {
       content: '';
       position: absolute;
-      left: 0; top: 18px;
-      width: 8px; height: 8px;
+      left: 0; top: 19px;
+      width: 4px; height: 4px;
       border-radius: 50%;
       background: rgba(255,255,255,0.3);
     }
-    body.ui-v2 .v2-pulse-content .pulse-ev-wrap[data-event-type="status_change"]::before { background: var(--orange, #FF9500); box-shadow: 0 0 0 4px rgba(255,149,0,0.18); }
-    body.ui-v2 .v2-pulse-content .pulse-ev-wrap[data-event-type="article"]::before      { background: var(--accent, #1FDF67); box-shadow: 0 0 0 4px rgba(31,223,103,0.18); }
-    body.ui-v2 .v2-pulse-content .pulse-ev-wrap[data-event-type="new_project"]::before  { background: var(--blue, #6FA8FF); box-shadow: 0 0 0 4px rgba(111,168,255,0.18); }
+    body.ui-v2 .v2-pulse-content .pulse-ev-wrap[data-event-type="status_change"]::before { background: var(--orange, #FF9500); box-shadow: 0 0 0 3px rgba(255,149,0,0.18); }
+    body.ui-v2 .v2-pulse-content .pulse-ev-wrap[data-event-type="article"]::before      { background: var(--accent, #1FDF67); box-shadow: 0 0 0 3px rgba(31,223,103,0.18); }
+    body.ui-v2 .v2-pulse-content .pulse-ev-wrap[data-event-type="new_project"]::before  { background: var(--blue, #6FA8FF); box-shadow: 0 0 0 3px rgba(111,168,255,0.18); }
     body.ui-v2 .v2-pulse-content .pulse-ev {
       background: transparent !important;
       border: none !important;
@@ -8220,50 +8261,55 @@
       text-decoration: none !important;
       display: block !important;
     }
+    /* Top meta row: TYPE · place · time */
     body.ui-v2 .v2-pulse-content .pulse-ev-tsrow {
       display: flex !important;
       align-items: center !important;
-      gap: 6px !important;
-      font-size: 10.5px !important;
+      gap: 8px !important;
+      font-size: 10px !important;
       font-weight: 700 !important;
       text-transform: uppercase !important;
       letter-spacing: 0.06em !important;
-      margin-bottom: 4px !important;
+      margin-bottom: 0 !important;
     }
+    /* Project title (the headline) */
     body.ui-v2 .v2-pulse-content .pulse-ev-title {
-      font-size: 14px !important;
+      font-size: 13.5px !important;
       color: #fff !important;
       font-weight: 500 !important;
       line-height: 1.4 !important;
       text-transform: none !important;
       letter-spacing: 0 !important;
-      margin: 0 !important;
+      margin: 4px 0 0 !important;
       padding: 0 !important;
     }
+    /* Hide the bottom row entirely — meta lives in the top row */
     body.ui-v2 .v2-pulse-content .pulse-ev-bottom {
-      font-size: 9.5px !important;
-      color: rgba(255,255,255,0.4) !important;
-      font-weight: 700 !important;
-      text-transform: uppercase !important;
-      letter-spacing: 0.06em !important;
-      margin-top: 6px !important;
-      padding: 0 !important;
-      background: none !important;
+      display: none !important;
     }
     /* Close button on each event row */
     body.ui-v2 .v2-pulse-content .pulse-ev-close {
-      top: 12px !important;
+      top: 10px !important;
       right: 0 !important;
       width: 22px !important;
       height: 22px !important;
       opacity: 0.4 !important;
     }
     body.ui-v2 .v2-pulse-content .pulse-ev-close:hover { opacity: 1 !important; }
-    /* Pulse separator dot/sep dots */
-    body.ui-v2 .v2-pulse-content .pulse-ev-sep { color: rgba(255,255,255,0.25) !important; }
-    body.ui-v2 .v2-pulse-content .pulse-ev-ts { color: var(--orange, #FF9500); font-weight: 700; }
-    body.ui-v2 .v2-pulse-content .pulse-ev-wrap[data-event-type="article"] .pulse-ev-ts { color: var(--accent, #1FDF67); }
-    body.ui-v2 .v2-pulse-content .pulse-ev-wrap[data-event-type="new_project"] .pulse-ev-ts { color: var(--blue, #6FA8FF); }
+    /* Pulse separator dots — faint white */
+    body.ui-v2 .v2-pulse-content .pulse-ev-sep { color: rgba(255,255,255,0.45) !important; font-weight: 400 !important; }
+    /* Type label color — matches the dot color */
+    body.ui-v2 .v2-pulse-content .pulse-ev-ts { color: var(--orange, #FF9500); font-weight: 700 !important; }
+    body.ui-v2 .v2-pulse-content .pulse-ev-wrap[data-event-type="article"] .pulse-ev-ts { color: var(--accent, #1FDF67) !important; }
+    body.ui-v2 .v2-pulse-content .pulse-ev-wrap[data-event-type="new_project"] .pulse-ev-ts { color: var(--blue, #6FA8FF) !important; }
+    /* Place / time tokens within tsrow: muted, non-uppercase, regular */
+    body.ui-v2 .v2-pulse-content .pulse-ev-tsrow > *:not(.pulse-ev-ts):not(.pulse-ev-sep) {
+      color: rgba(255,255,255,0.72) !important;
+      font-weight: 500 !important;
+      text-transform: none !important;
+      letter-spacing: 0 !important;
+      font-size: 11px !important;
+    }
 
     /* Right-rail pulse bell badge in GOLD (was green/accent) */
     body.ui-v2 .v2-action-btn .v2-num-badge {
@@ -8753,10 +8799,10 @@
     <button id="mapReturnButton">Map</button>
 
     <!-- ════════════════════════════════════════════════════════════════
-         UI V2 — UNIFIED MOBILE DRAWER (opt-in via ?ui=v2)
-         Hidden by default (display:none). Boot JS adds body.ui-v2 when
-         the URL has ?ui=v2 which reveals these surfaces and suppresses
-         the legacy mobile drawer / pulse / watchlist.
+         UI V2 — UNIFIED MOBILE DRAWER (default; ?ui=v1 falls back)
+         Boot JS adds body.ui-v2 unless ?ui=v1 is on the URL. This reveals
+         these surfaces and suppresses the legacy mobile drawer / pulse /
+         watchlist.
          ════════════════════════════════════════════════════════════════ -->
 
     <!-- Top chrome: Combined widget [TMW logo | divider | profile] (left),
@@ -8829,7 +8875,7 @@
         <span class="v2-search-icon">
           <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
         </span>
-        <span class="v2-search-text" id="v2CapsuleText">Search projects or city...</span>
+        <span class="v2-search-text" id="v2CapsuleText">Search projects, cities..</span>
         <div class="v2-filter-btn" id="v2CapsuleFilterBtn">
           <span class="badge-icon"><svg viewBox="0 0 24 24"><circle cx="6" cy="5" r="2"/><line x1="2" y1="5" x2="4" y2="5"/><line x1="8" y1="5" x2="22" y2="5"/><circle cx="16" cy="12" r="2"/><line x1="2" y1="12" x2="14" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><circle cx="9" cy="19" r="2"/><line x1="2" y1="19" x2="7" y2="19"/><line x1="11" y1="19" x2="22" y2="19"/></svg></span>
           <span class="badge-count" id="v2CapsuleFilterCount">0</span>
@@ -8849,7 +8895,7 @@
           <span class="v2-search-icon">
             <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
           </span>
-          <input class="v2-search-text" id="v2SearchInput" type="text" placeholder="Search projects or city..." />
+          <input class="v2-search-text" id="v2SearchInput" type="text" placeholder="Search projects, cities.." />
           <div class="v2-filter-btn" id="v2SearchFilterBtn">
             <span class="badge-icon"><svg viewBox="0 0 24 24"><circle cx="6" cy="5" r="2"/><line x1="2" y1="5" x2="4" y2="5"/><line x1="8" y1="5" x2="22" y2="5"/><circle cx="16" cy="12" r="2"/><line x1="2" y1="12" x2="14" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><circle cx="9" cy="19" r="2"/><line x1="2" y1="19" x2="7" y2="19"/><line x1="11" y1="19" x2="22" y2="19"/></svg></span>
             <span class="badge-count" id="v2SearchFilterCount">0</span>
@@ -8944,6 +8990,10 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
           </button>
           <div class="pm-slide-counter" id="pmSlideCounter"><span id="pmSlideCur">1</span> / <span id="pmSlideTotal">1</span></div>
+          <button class="pm-viewmap-btn" id="pmViewMapBtn" aria-label="View on map">
+            <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            <span>View on Map</span>
+          </button>
           <div class="pm-topbar">
             <button class="pm-icon-btn" id="pmCloseBtn" aria-label="Close">
               <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -11227,6 +11277,33 @@
       // Expose globally so other surfaces (watchlist drawer, mutual-exclusivity
       // logic) can dismiss the modal cleanly without faking a click on the X.
       window.closeProjectModal = closeModal;
+
+      // "View on Map" button: closes the modal and flies the map to the
+      // current project's coordinates. On mobile, also collapses the v2 sheet
+      // so the map is fully visible.
+      const pmViewMapBtn = document.getElementById('pmViewMapBtn');
+      if (pmViewMapBtn) {
+        pmViewMapBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const f = currentFeature;
+          closeModal();
+          // Collapse v2 sheet if open (mobile)
+          try {
+            document.body.classList.remove('v2-sheet-open', 'v2-sheet-mid', 'v2-sheet-full');
+          } catch(_) {}
+          if (!f || !f.geometry || !f.geometry.coordinates) return;
+          const co = f.geometry.coordinates;
+          const isMobile = window.innerWidth <= 800;
+          try {
+            map.flyTo({
+              center: co,
+              zoom: Math.max(map.getZoom(), isMobile ? 12 : 13),
+              duration: 1400,
+              essential: true,
+            });
+          } catch(_) {}
+        });
+      }
 
       // Project modal slider — arrow + keyboard + swipe navigation
       (function() {
@@ -18177,14 +18254,14 @@
   })();
 
   // ════════════════════════════════════════════════════════════════════
-  // UI V2 — Unified Mobile Drawer (opt-in via ?ui=v2)
+  // UI V2 — Unified Mobile Drawer (default; ?ui=v1 falls back to legacy)
   // ════════════════════════════════════════════════════════════════════
-  // Commit 1: drawer shell + Discover tab. Old mobile UI fully suppressed
-  // when ?ui=v2 is in the URL. Without that flag, this whole block is
-  // inert — body.ui-v2 class is never added and no styles match.
+  // V2 is now the default mobile UI. The whole legacy mobile chrome is
+  // suppressed by body.ui-v2 + the v2 CSS block. To preview the legacy
+  // mobile UI, append ?ui=v1 to the URL (escape hatch).
   //
   // Architecture:
-  //   - body.ui-v2          — flag class added when ?ui=v2 is present
+  //   - body.ui-v2          — flag class added unless ?ui=v1
   //   - body.v2-sheet-mid   — sheet at medium height (60vh)
   //   - body.v2-sheet-full  — sheet at full height (88vh)
   //   - body.v2-sheet-open  — either mid or full (capsule hides)
@@ -18194,7 +18271,8 @@
   // existing renderGrid('gridMobile') pipeline working unchanged.
   (function v2DrawerBoot() {
     const params = new URLSearchParams(window.location.search);
-    if (params.get('ui') !== 'v2') return;
+    // Legacy escape hatch: ?ui=v1 keeps the old mobile UI.
+    if (params.get('ui') === 'v1') return;
     document.body.classList.add('ui-v2');
 
     function setup() {
@@ -18416,8 +18494,13 @@
         return `${c} project${c === 1 ? '' : 's'}${ur ? ' · ' + ur + ' unread' : ''}`;
       }
       function getPulseSubtitle() {
-        const sub = document.getElementById('pulseStackSub');
-        return sub ? sub.textContent.trim() : '—';
+        // Count the rendered events in the spine — this is the same set
+        // user sees in the pane right now. Phrased as "# updates this week"
+        // to match the in-view/more-nearby right-slot pattern.
+        const events = document.querySelectorAll('#pulseStack .pulse-ev-wrap');
+        const n = events.length;
+        if (!n) return 'no updates this week';
+        return `${n} update${n === 1 ? '' : 's'} this week`;
       }
 
       function renderFilterPills(tabId) {
@@ -18682,6 +18765,21 @@
         });
       }
 
+      // ── Refresh pulse subtitle ("# updates this week") on spine change ─
+      // Re-runs the active tab's title meta if pulse is the active tab.
+      const pulseSpine = document.getElementById('pulseStack');
+      if (pulseSpine) {
+        const refreshPulseSub = () => {
+          const activeTab = document.querySelector('.v2-tab.active');
+          if (!activeTab || activeTab.dataset.v2Tab !== 'pulse') return;
+          const subEl2 = document.getElementById('v2SheetSub');
+          if (subEl2) subEl2.textContent = getPulseSubtitle();
+        };
+        new MutationObserver(refreshPulseSub).observe(pulseSpine, {
+          childList: true, subtree: true,
+        });
+      }
+
       // ── Decorate tiles with status pill overlay, gallery arrows,
       //    and delivery + intel foot row. Runs after renderGrid populates
       //    #gridMobile and re-runs via MutationObserver for new tiles.
@@ -18918,7 +19016,7 @@
       // shows recent searches.
       const searchInput = document.getElementById('v2SearchInput');
       const SEARCH_PLACEHOLDERS = {
-        discover:  'Search projects, cities, or firms',
+        discover:  'Search projects, cities..',
         watchlist: 'Search watchlist',
         pulse:     'Search pulse',
       };
