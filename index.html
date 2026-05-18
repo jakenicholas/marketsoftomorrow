@@ -8135,6 +8135,13 @@
       scrollbar-width: none;
       flex-shrink: 0;
     }
+    /* Hide the contextual filter pills while a search query is active ‚Äî
+       applies to BOTH mobile and desktop (rule lives outside any media
+       query so the same body.v2-searching state suppresses both). */
+    body.v2-searching .v2-filter-pills,
+    body.v2-searching .v2-desktop-filter-pills {
+      display: none !important;
+    }
     body.ui-v2 .v2-filter-pills::-webkit-scrollbar { display: none; }
     body.ui-v2 .v2-filter-pill {
       flex-shrink: 0;
@@ -8476,13 +8483,15 @@
     }
     body.ui-v2 .v2-pulse-content .pulse-ev-wrap[data-event-type="article"]     .pulse-ev-type-lbl { color: var(--accent, #1FDF67) !important; }
     body.ui-v2 .v2-pulse-content .pulse-ev-wrap[data-event-type="new_project"] .pulse-ev-type-lbl { color: var(--blue, #6FA8FF) !important; }
-    /* Location + time ‚Äî same font + case as the type label, just muted */
+    /* Location + time ‚Äî muted, mixed-case (not all caps), lighter
+       weight so only the colored TYPE label carries the eyebrow look. */
     body.ui-v2 .v2-pulse-content .pulse-ev-loc,
     body.ui-v2 .v2-pulse-content .pulse-ev-ts {
       color: rgba(255,255,255,0.55) !important;
-      font-weight: 600 !important;
-      text-transform: uppercase !important;
-      letter-spacing: 0.06em !important;
+      font-weight: 500 !important;
+      text-transform: none !important;
+      letter-spacing: 0 !important;
+      font-size: 11px !important;
     }
 
     /* ‚îÄ‚îÄ Pulse rows redesigned mockup-style ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
@@ -9248,9 +9257,10 @@
     body.ui-v2 #desktopSidebar .v2-pulse-content .pulse-ev-loc,
     body.ui-v2 #desktopSidebar .v2-pulse-content .pulse-ev-ts {
       color: rgba(255,255,255,0.55) !important;
-      font-weight: 600 !important;
-      text-transform: uppercase !important;
-      letter-spacing: 0.06em !important;
+      font-weight: 500 !important;
+      text-transform: none !important;
+      letter-spacing: 0 !important;
+      font-size: 11px !important;
     }
     body.ui-v2 #desktopSidebar .v2-pulse-content .pulse-ev-sep {
       color: rgba(255,255,255,0.35) !important;
@@ -9641,19 +9651,22 @@
       font-size: 12px !important;
       color: rgba(255,255,255,0.72) !important;
       margin: 0 !important;
-      padding: 0 0 8px !important;
-      border-bottom: 1px solid rgba(255,255,255,0.08);
+      padding: 0 !important;
+      border-bottom: none !important;
     }
-    /* Delivery + Intel foot row ‚Äî left-aligned, tight against the divider */
+    /* Divider sits ABOVE the Delivery + Intel foot row (border-top on
+       v2-tile-info). Larger top padding pushes the divider away from the
+       title/city block; smaller bottom padding keeps the delivery row
+       hugged tight under the divider. */
     body.ui-v2 #desktopSidebar .grid-item .v2-tile-info {
       display: flex !important;
       align-items: center !important;
       justify-content: flex-start !important;
       gap: 12px !important;
-      padding: 6px 14px 10px !important;
+      padding: 4px 14px 8px !important;
       font-size: 11px !important;
-      border-top: none !important;
-      margin-top: 0 !important;
+      border-top: 1px solid rgba(255,255,255,0.08) !important;
+      margin: 14px 0 0 !important;
     }
     body.ui-v2 #desktopSidebar .grid-item .v2-tile-info .v2-tile-delivery {
       color: rgba(255,255,255,0.55);
@@ -9735,50 +9748,61 @@
       grid-row: 2 / 3 !important;
     }
 
-    /* ‚îÄ‚îÄ DESKTOP SEARCH OVERLAY (mobile-style) ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ */
+    /* ‚îÄ‚îÄ DESKTOP SEARCH OVERLAY (mobile-style) ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
+       Renders INLINE below the sticky sidebar-header (tabs + search +
+       filter pills stay visible). The dso-header was removed ‚Äî the
+       sidebar's pinned search bar already shows the query. */
     body.ui-v2 .v2-desktop-search-overlay {
-      position: absolute;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(15,15,15,0.99);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      z-index: 100;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
+      display: block;
+      background: transparent;
+      padding: 0;
     }
     body.ui-v2 .v2-desktop-search-overlay[hidden] { display: none !important; }
-    body.ui-v2 .v2-dso-header {
-      flex-shrink: 0;
-      display: flex; align-items: center; gap: 12px;
-      padding: 14px 16px;
-      border-bottom: 1px solid rgba(255,255,255,0.06);
-    }
-    body.ui-v2 .v2-dso-back {
-      width: 36px; height: 36px;
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 50%;
-      color: #fff;
-      cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-    }
-    body.ui-v2 .v2-dso-back svg {
-      width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2.4; stroke-linecap: round;
-    }
-    body.ui-v2 .v2-dso-query {
-      color: rgba(255,255,255,0.6);
-      font-size: 13px;
-      font-weight: 500;
-    }
-    body.ui-v2 .v2-dso-query span {
-      color: var(--accent, #1FDF67);
-      font-weight: 700;
-    }
     body.ui-v2 .v2-dso-body {
-      flex: 1 1 auto;
       overflow-y: auto;
       padding: 4px 16px 16px;
+    }
+    /* Gold search-tab button ‚Äî replaces the regular search input area
+       with a tappable circle inside the desktop tabs row. Hidden by
+       default; .visible (toggled by setSearchMode) reveals it. */
+    body.ui-v2 .v2-desktop-tabs .v2-desktop-search-tab {
+      flex: 0 0 36px;
+      width: 36px;
+      height: 36px;
+      padding: 0;
+      border-radius: 9px;
+      background: var(--warn, #FFD300);
+      color: #0a0a0a;
+      border: none;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    body.ui-v2 .v2-desktop-tabs .v2-desktop-search-tab.visible {
+      display: flex;
+    }
+    body.ui-v2 .v2-desktop-tabs .v2-desktop-search-tab svg {
+      width: 16px; height: 16px;
+      stroke: currentColor; fill: none;
+    }
+    /* While searching, the active Discover/Watchlist/Pulse tab loses
+       its yellow highlight (search is the implicit active mode). */
+    body.ui-v2 .v2-desktop-tabs.v2-searching button.active:not(.v2-desktop-search-tab) {
+      background: transparent !important;
+      color: rgba(255,255,255,0.45) !important;
+      font-weight: 600 !important;
+    }
+    /* Hide the legacy desktop autocomplete dropdown ‚Äî our v2-dso overlay
+       is the canonical search results surface now. */
+    body.ui-v2 #sidebarAutocomplete {
+      display: none !important;
+    }
+    /* Hide the title-row right-side slot while searching (Discover's in-view
+       pill / watchlist count) since the title now reads just "Search". */
+    body.v2-searching #desktopSidebar .v2-desktop-sheet-title-row .right {
+      display: none !important;
     }
     body.ui-v2 .v2-dso-group { margin-top: 8px; }
     body.ui-v2 .v2-dso-group-head {
@@ -19994,6 +20018,14 @@
       if (!document.body.classList.contains('ui-v2')) return;
       const grid = document.getElementById('gridDesktop');
       if (!grid) return;
+      // While search mode is active, keep the grid hidden ‚Äî the search
+      // results overlay renders in its place. Otherwise the MutationObserver
+      // that re-runs this layout would clobber our display:none and the
+      // grid would reappear underneath the overlay.
+      if (document.body.classList.contains('v2-searching')) {
+        grid.style.setProperty('display', 'none', 'important');
+        return;
+      }
       // Force flex column on grid container
       grid.style.setProperty('display', 'flex', 'important');
       grid.style.setProperty('flex-direction', 'column', 'important');
@@ -20058,6 +20090,8 @@
       forceDesktopTileLayout();
       const mo = new MutationObserver(() => forceDesktopTileLayout());
       mo.observe(grid, { childList: true, subtree: true });
+      // Expose so other code (search mode toggle) can re-run the layout.
+      window._v2RefreshDesktopLayout = forceDesktopTileLayout;
     }
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', installGridLayoutObserver);
@@ -20072,28 +20106,22 @@
     function installDesktopSearchOverlay() {
       if (!window.matchMedia('(min-width: 801px)').matches) return;
       const sidebar = document.getElementById('desktopSidebar');
+      const sidebarContent = sidebar && sidebar.querySelector('.sidebar-content');
       const searchInput = document.getElementById('sidebarSearchBar');
-      if (!sidebar || !searchInput) return;
+      if (!sidebar || !sidebarContent || !searchInput) return;
       if (document.getElementById('v2DesktopSearchOverlay')) return;
 
+      // Render inline below the sticky header (instead of covering the
+      // whole sidebar) so the search pill + tabs + gold search-tab icon
+      // stay visible while results render.
       const overlay = document.createElement('div');
       overlay.id = 'v2DesktopSearchOverlay';
       overlay.className = 'v2-desktop-search-overlay';
       overlay.hidden = true;
-      overlay.innerHTML = `
-        <div class="v2-dso-header">
-          <button class="v2-dso-back" id="v2DsoBack" aria-label="Back to results">
-            <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
-          </button>
-          <div class="v2-dso-query"><span id="v2DsoQuery"></span></div>
-        </div>
-        <div class="v2-dso-body" id="v2DsoBody"></div>
-      `;
-      sidebar.appendChild(overlay);
+      overlay.innerHTML = `<div class="v2-dso-body" id="v2DsoBody"></div>`;
+      sidebarContent.appendChild(overlay);
 
-      const queryEl = overlay.querySelector('#v2DsoQuery');
       const bodyEl  = overlay.querySelector('#v2DsoBody');
-      const backBtn = overlay.querySelector('#v2DsoBack');
 
       function escapeHtml(s) { return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]); }
       function highlight(text, query) {
@@ -20107,7 +20135,6 @@
              + escapeHtml(t.slice(i+q.length));
       }
       function render(query) {
-        queryEl.textContent = query;
         const features = window.allProjectFeatures || [];
         const q = query.toLowerCase().trim();
         if (!q) { bodyEl.innerHTML = '<div style="padding:20px;color:rgba(255,255,255,0.45);font-size:13px">Start typing to search projects, cities, firms‚Ä¶</div>'; return; }
@@ -20173,12 +20200,61 @@
           });
         });
       }
+      function setSearchMode(on) {
+        document.body.classList.toggle('v2-searching', !!on);
+        const tab = document.getElementById('v2DesktopSearchTab');
+        if (tab) tab.classList.toggle('visible', !!on);
+        const tabsBar = document.querySelector('.v2-desktop-tabs');
+        if (tabsBar) tabsBar.classList.toggle('v2-searching', !!on);
+        // Force the title-row to re-render now that v2-searching toggled.
+        try {
+          const active = document.querySelector('.v2-desktop-tabs button.active');
+          if (typeof window._v2RefreshDesktopTitle === 'function') {
+            window._v2RefreshDesktopTitle(active ? active.dataset.v2dTab : 'discover');
+          }
+        } catch (_) {}
+        // Force-rerun the grid layout enforcer so its display-none branch
+        // fires (or the layout restores on dismiss).
+        try {
+          if (typeof window._v2RefreshDesktopLayout === 'function') {
+            window._v2RefreshDesktopLayout();
+          }
+        } catch (_) {}
+        // Hide #gridDesktop and the active watchlist/pulse pane while
+        // search results are showing; restore on dismiss.
+        const grid = document.getElementById('gridDesktop');
+        const wlPane = document.getElementById('v2DesktopWatchlistPane');
+        const plPane = document.getElementById('v2DesktopPulsePane');
+        [grid].forEach(el => {
+          if (!el) return;
+          if (on) el.style.setProperty('display', 'none', 'important');
+          else el.style.setProperty('display', 'flex', 'important');
+        });
+        [wlPane, plPane].forEach(el => {
+          if (!el) return;
+          if (on) el.dataset._v2HiddenBySearch = '1', el.hidden = true;
+          else if (el.dataset._v2HiddenBySearch) { delete el.dataset._v2HiddenBySearch; }
+        });
+        // Swap the sheet title text to "Search" while a query is active.
+        const ttl = document.getElementById('v2DTitleText');
+        if (ttl) {
+          if (on) {
+            if (!ttl.dataset.savedText) ttl.dataset.savedText = ttl.textContent;
+            ttl.textContent = 'Search';
+          } else if (ttl.dataset.savedText) {
+            ttl.textContent = ttl.dataset.savedText;
+            delete ttl.dataset.savedText;
+          }
+        }
+      }
       function open(query) {
         render(query || '');
         overlay.hidden = false;
+        setSearchMode(true);
       }
       function close() {
         overlay.hidden = true;
+        setSearchMode(false);
       }
 
       searchInput.addEventListener('focus', () => { if (searchInput.value.trim()) open(searchInput.value); });
@@ -20187,10 +20263,16 @@
         if (v) open(v);
         else close();
       });
-      backBtn.addEventListener('click', () => {
-        searchInput.value = '';
-        searchInput.dispatchEvent(new Event('input', { bubbles: true }));
-        close();
+      // Dismissal handler attaches to whatever search-tab button gets
+      // injected into the desktop tabs (id="v2DesktopSearchTab"). Resolves
+      // lazily so the tab can be added later by injectDesktopTabs.
+      document.addEventListener('click', (e) => {
+        if (e.target && e.target.closest && e.target.closest('#v2DesktopSearchTab')) {
+          e.stopPropagation();
+          searchInput.value = '';
+          searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+          close();
+        }
       });
     }
     if (document.readyState === 'loading') {
@@ -20210,6 +20292,9 @@
       const tabs = document.createElement('div');
       tabs.className = 'v2-desktop-tabs';
       tabs.innerHTML = `
+        <button class="v2-desktop-search-tab" id="v2DesktopSearchTab" aria-label="Back to results" title="Dismiss search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        </button>
         <button class="active" data-v2d-tab="discover">Discover</button>
         <button data-v2d-tab="watchlist">Watchlist <span class="num" id="v2DTabWatchNum" hidden>0</span></button>
         <button data-v2d-tab="pulse">Pulse <span class="num" id="v2DTabPulseNum" hidden>0</span></button>
@@ -20262,6 +20347,13 @@
       function updateDesktopTitle(target) {
         const ttl = document.getElementById('v2DTitleText');
         const right = document.getElementById('v2DTitleRight');
+        // While search is active, "Search" wins and we keep the right
+        // slot empty ‚Äî don't let MutationObservers reset it.
+        if (document.body.classList.contains('v2-searching')) {
+          if (ttl) ttl.textContent = 'Search';
+          if (right) right.innerHTML = '';
+          return;
+        }
         if (ttl) ttl.textContent = DESKTOP_TITLES[target] || 'Discover';
         if (!right) return;
         if (target === 'discover') {
@@ -20479,8 +20571,17 @@
           // we open it. Without this, .open gets removed milliseconds after
           // we add it because the tab is "outside" the pulseStack element.
           e.stopPropagation();
+          // Gold search-tab ‚Üí dismiss search, then route to Discover.
+          if (btn.id === 'v2DesktopSearchTab') {
+            const input = document.getElementById('sidebarSearchBar');
+            if (input) {
+              input.value = '';
+              input.dispatchEvent(new Event('input', { bubbles: true }));
+            }
+            return;
+          }
           const target = btn.dataset.v2dTab;
-          tabs.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+          tabs.querySelectorAll('button:not(#v2DesktopSearchTab)').forEach(b => b.classList.remove('active'));
           btn.classList.add('active');
           try { renderDesktopPills(target); } catch(_) {}
           try { updateDesktopTitle(target); } catch(_) {}
@@ -21605,11 +21706,28 @@
       }
       // Show/hide the gold search tab in the segmented bar.
       // Also toggles .v2-searching on the bar so regular active tab loses gold.
+      // body.v2-searching is the global hook ‚Äî desktop CSS uses it to hide
+      // filter pills + swap the active tab title to "Search" so the same
+      // search mode renders consistently on both surfaces.
       function setSearchTabVisible(on) {
         const tab = document.getElementById('v2SearchTab');
         if (tab) tab.classList.toggle('visible', !!on);
         const seg = document.querySelector('.v2-segmented');
         if (seg) seg.classList.toggle('v2-searching', !!on);
+        document.body.classList.toggle('v2-searching', !!on);
+        // Swap the sheet title text on mobile so "Discover/Watchlist/Pulse"
+        // becomes "Search" while a query is active. Stash the prior text so
+        // we can restore it on dismiss.
+        const ttl = document.getElementById('v2SheetTtl');
+        if (ttl) {
+          if (on) {
+            if (!ttl.dataset.savedText) ttl.dataset.savedText = ttl.textContent;
+            ttl.textContent = 'Search';
+          } else if (ttl.dataset.savedText) {
+            ttl.textContent = ttl.dataset.savedText;
+            delete ttl.dataset.savedText;
+          }
+        }
       }
       function dismissSearch() {
         if (searchInput) { searchInput.value = ''; searchInput.blur(); }
