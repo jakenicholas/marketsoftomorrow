@@ -8648,50 +8648,92 @@
     /* Never show the Map return pill on desktop (mobile only) */
     body.ui-v2 #v2MapReturnBtn { display: none !important; }
 
-    /* ‚îÄ‚îÄ HEADER ‚Äî glass bar ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ */
+    /* ‚îÄ‚îÄ HEADER ‚Äî glass bar (mockup: full-width 60px top chrome) ‚îÄ‚îÄ‚îÄ‚îÄ */
     body.ui-v2 #header {
-      background: rgba(10,10,10,0.92) !important;
+      background: rgba(10,10,10,0.85) !important;
       backdrop-filter: blur(20px) saturate(1.4) !important;
       -webkit-backdrop-filter: blur(20px) saturate(1.4) !important;
       border-bottom: 1px solid rgba(255,255,255,0.08) !important;
       box-shadow: none !important;
       height: 60px !important;
-      padding: 0 20px !important;
+      padding: 0 24px !important;
       justify-content: flex-start !important;
       gap: 16px !important;
+      z-index: 99 !important;
     }
     body.ui-v2 #header-logo { height: 28px !important; filter: brightness(0) invert(1); }
-    /* Map/Atlas toggle ‚Äî centered in header */
+    /* Divider after the logo, before Map/Atlas toggle */
+    body.ui-v2 #header::after {
+      content: '';
+      position: absolute;
+      left: calc(24px + 70px + 8px);
+      top: 50%; transform: translateY(-50%);
+      width: 1px; height: 28px;
+      background: rgba(255,255,255,0.08);
+    }
+    /* Map/Atlas toggle ‚Äî sits left-of-center, next to TMW logo divider */
     body.ui-v2 .atlas-mode-toggle {
-      top: 30px !important;
-      left: 50% !important;
-      transform: translate(-50%, -50%) !important;
+      top: 12px !important;
+      left: calc(24px + 70px + 8px + 16px) !important;
+      transform: none !important;
       background: rgba(255,255,255,0.05) !important;
       border: 1px solid rgba(255,255,255,0.08) !important;
       box-shadow: none !important;
       z-index: 100 !important;
+      border-radius: 999px !important;
+      padding: 3px !important;
     }
     body.ui-v2 .atlas-mode-toggle-btn {
-      padding: 7px 20px !important;
+      padding: 7px 18px !important;
       font-size: 12.5px !important;
       font-weight: 600 !important;
+      color: rgba(255,255,255,0.72) !important;
+      border-radius: 999px !important;
     }
     body.ui-v2 .atlas-mode-toggle-btn.active {
       background: var(--accent, #1FDF67) !important;
       color: #0a0a0a !important;
       font-weight: 700 !important;
     }
+    /* Push the auth/profile UI to the far right of the chrome */
+    body.ui-v2 #paywallAuthHeader {
+      margin-left: auto !important;
+    }
+    /* Sign up / Login button ‚Äî pill, glassy */
+    body.ui-v2 #paywallAuthHeader #authSignUpBtn,
+    body.ui-v2 #paywallAuthHeader button[id*="Sign"],
+    body.ui-v2 #paywallAuthHeader button[id*="Login"] {
+      background: #fff !important;
+      color: #0a0a0a !important;
+      border: none !important;
+      border-radius: 999px !important;
+      padding: 8px 18px !important;
+      font-size: 13px !important;
+      font-weight: 700 !important;
+      cursor: pointer !important;
+    }
+    /* Avatar/profile button (signed in) ‚Äî circular, gold gradient */
+    body.ui-v2 #paywallAuthHeader .tmw-avatar,
+    body.ui-v2 #paywallAuthHeader [class*="avatar"i] {
+      width: 36px !important; height: 36px !important;
+      border-radius: 50% !important;
+      background-image: linear-gradient(135deg, #FFD300, #FF9500) !important;
+      border: 1px solid rgba(255,211,0,0.4) !important;
+      color: #0a0a0a !important;
+      font-weight: 800 !important;
+      font-size: 12px !important;
+    }
 
     /* ‚îÄ‚îÄ DESKTOP SIDEBAR ‚Äî 420px, dark, flush ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ */
     body.ui-v2 #app-container { padding-top: 60px !important; }
-    body.ui-v2 #map { left: 520px !important; }
+    body.ui-v2 #map { left: 420px !important; }
     body.ui-v2 #desktopSidebar {
-      width: 520px !important;
+      width: 420px !important;
       top: 60px !important;
       height: calc(100% - 60px) !important;
-      background: rgba(15,15,15,0.98) !important;
-      backdrop-filter: blur(20px) !important;
-      -webkit-backdrop-filter: blur(20px) !important;
+      background: rgba(15,15,15,0.96) !important;
+      backdrop-filter: blur(40px) !important;
+      -webkit-backdrop-filter: blur(40px) !important;
       border-right: 1px solid rgba(255,255,255,0.08) !important;
       box-shadow: none !important;
       padding-left: 0 !important;
@@ -8828,6 +8870,97 @@
       grid-template-columns: none !important;
       grid-gap: 10px !important;
       padding: 0 16px 16px !important;
+    }
+    /* Nested section sub-grids (In View / More Nearby) ‚Äî flatten to 1 col.
+       Without this override the renderGrid pipeline wraps tiles in a 2-col
+       .inview-section grid, defeating the parent flex column. */
+    body.ui-v2 #desktopSidebar #gridDesktop .inview-section,
+    body.ui-v2 #desktopSidebar #gridDesktop .nearby-section,
+    body.ui-v2 #desktopSidebar .leaf-grid .inview-section,
+    body.ui-v2 #desktopSidebar .leaf-grid .nearby-section {
+      display: flex !important;
+      flex-direction: column !important;
+      grid-template-columns: none !important;
+      gap: 10px !important;
+      padding: 0 !important;
+    }
+    /* Section header (the IN VIEW / NEARBY pill row) ‚Äî needs space */
+    body.ui-v2 #desktopSidebar .section-header-wrap {
+      padding: 4px 0 6px !important;
+      margin: 0 !important;
+      position: static !important;
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      gap: 10px !important;
+    }
+    body.ui-v2 #desktopSidebar .section-header-wrap.in-view-hdr {
+      border: none !important;
+      box-shadow: none !important;
+      padding: 4px 0 6px !important;
+    }
+    body.ui-v2 #desktopSidebar .section-title {
+      font-size: 24px !important;
+      font-weight: 800 !important;
+      letter-spacing: -0.012em !important;
+      text-transform: none !important;
+      color: #fff !important;
+    }
+    body.ui-v2 #desktopSidebar .section-title.in-view {
+      color: #fff !important;
+    }
+    body.ui-v2 #desktopSidebar .section-count {
+      font-size: 11px !important;
+      font-weight: 700 !important;
+      color: var(--accent, #1FDF67) !important;
+      background: rgba(31,223,103,0.14) !important;
+      padding: 4px 10px !important;
+      border-radius: 100px !important;
+      text-transform: uppercase !important;
+      letter-spacing: 0.06em !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 5px !important;
+    }
+    body.ui-v2 #desktopSidebar .section-count::before {
+      content: '';
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: var(--accent, #1FDF67);
+      display: inline-block;
+    }
+    /* Remove the green outline glow on in-view image-wrappers ‚Äî mockup
+       uses a flat tile with no outline, status dot conveys state. */
+    body.ui-v2 #desktopSidebar .inview-section .grid-item .image-wrapper {
+      outline: none !important;
+    }
+    /* Status pill includes the colored dot ‚Äî match mockup pill */
+    body.ui-v2 #desktopSidebar .grid-item .delivery-bar {
+      gap: 5px !important;
+      display: inline-flex !important;
+      align-items: center !important;
+    }
+    body.ui-v2 #desktopSidebar .grid-item .delivery-bar::before {
+      content: '';
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--accent, #1FDF67);
+      flex-shrink: 0;
+    }
+    body.ui-v2 #desktopSidebar .grid-item.status-construction .delivery-bar::before,
+    body.ui-v2 #desktopSidebar .grid-item[data-status*="construction" i] .delivery-bar::before {
+      background: #FF9500;
+    }
+    body.ui-v2 #desktopSidebar .grid-item.status-coming-soon .delivery-bar::before,
+    body.ui-v2 #desktopSidebar .grid-item[data-status*="coming" i] .delivery-bar::before {
+      background: #FFD300;
+    }
+    body.ui-v2 #desktopSidebar .grid-item.status-announced .delivery-bar::before,
+    body.ui-v2 #desktopSidebar .grid-item[data-status*="announc" i] .delivery-bar::before {
+      background: rgba(255,255,255,0.45);
     }
     body.ui-v2 #desktopSidebar .grid-item {
       display: flex !important;
