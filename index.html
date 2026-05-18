@@ -7336,7 +7336,10 @@
       pointer-events: none;
     }
     body.ui-v2 .v2-top-chrome > * { pointer-events: auto; }
-    /* Combined widget — TMW logo + divider + profile icon */
+    /* Combined widget — TMW logo + divider + profile icon. Sized to
+       match the Map/Atlas pill height (~38px) so both top-bar elements
+       align at the same baseline. Logo is generously sized inside its
+       slot for readability. */
     body.ui-v2 .v2-tmw-profile-widget {
       display: inline-flex; align-items: center;
       background: rgba(15,15,15,0.7);
@@ -7344,26 +7347,29 @@
       -webkit-backdrop-filter: blur(16px) saturate(1.4);
       border: 1px solid rgba(255,255,255,0.1);
       border-radius: 999px;
-      padding: 4px;
-      gap: 0;
+      padding: 3px 6px;
+      height: 38px;
+      gap: 6px;
+      position: relative;
+      box-sizing: border-box;
     }
     body.ui-v2 .v2-tmw-logo {
       width: 32px; height: 32px;
       display: flex; align-items: center; justify-content: center;
-      padding: 4px;
+      padding: 0;
     }
     body.ui-v2 .v2-tmw-logo img {
-      width: 100%; height: 100%;
+      width: 30px; height: 30px;
       object-fit: contain;
       filter: brightness(0) invert(1);
     }
     body.ui-v2 .v2-widget-divider {
-      width: 1px; height: 22px;
+      width: 1px; height: 20px;
       background: rgba(255,255,255,0.18);
       flex-shrink: 0;
     }
     body.ui-v2 .v2-profile-btn {
-      width: 32px; height: 32px;
+      width: 30px; height: 30px;
       border-radius: 50%;
       background: transparent;
       border: none;
@@ -7374,6 +7380,9 @@
       color: #fff;
       padding: 0;
     }
+    /* Map/Atlas pill — explicit 38px height to match widget */
+    body.ui-v2 .v2-mode-toggle { height: 38px; box-sizing: border-box; }
+    body.ui-v2 .v2-mode-toggle button { height: 100%; padding: 0 18px; }
     body.ui-v2 .v2-profile-btn svg.profile-icon {
       width: 18px; height: 18px;
       stroke: currentColor; fill: none;
@@ -7391,6 +7400,58 @@
     body.ui-v2 .v2-profile-btn .v2-premium-star svg {
       width: 8px; height: 8px;
       fill: #0a0a0a;
+    }
+    /* Profile dropdown menu (opens below the widget when profile tapped) */
+    body.ui-v2 .v2-profile-menu {
+      position: absolute;
+      top: calc(100% + 8px);
+      left: 0;
+      min-width: 220px;
+      background: rgba(20,20,20,0.96);
+      backdrop-filter: blur(28px) saturate(1.4);
+      -webkit-backdrop-filter: blur(28px) saturate(1.4);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 14px;
+      padding: 6px;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.5);
+      display: none;
+      z-index: 100;
+    }
+    body.ui-v2 .v2-profile-menu.open { display: block; }
+    body.ui-v2 .v2-profile-menu .v2-menu-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 12px;
+      color: rgba(255,255,255,0.85);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      border-radius: 8px;
+      background: transparent;
+      border: none;
+      font-family: inherit;
+      width: 100%;
+      text-align: left;
+    }
+    body.ui-v2 .v2-profile-menu .v2-menu-item:hover {
+      background: rgba(255,255,255,0.06);
+      color: #fff;
+    }
+    body.ui-v2 .v2-profile-menu .v2-menu-item svg {
+      width: 16px; height: 16px;
+      stroke: currentColor; fill: none;
+      stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+      flex-shrink: 0;
+    }
+    body.ui-v2 .v2-profile-menu .v2-menu-divider {
+      height: 1px;
+      background: rgba(255,255,255,0.08);
+      margin: 4px 6px;
+    }
+    body.ui-v2 .v2-profile-menu .v2-menu-item.v2-menu-signout {
+      color: #ff6464;
+    }
+    body.ui-v2 .v2-profile-menu .v2-menu-item.v2-menu-signout:hover {
+      background: rgba(255,80,80,0.08);
     }
     /* Map/Atlas toggle absolutely centered */
     body.ui-v2 .v2-mode-toggle {
@@ -7785,16 +7846,17 @@
     body.ui-v2 .v2-sheet-body #mobilePillsRow {
       margin: 0 0 8px;
     }
-    /* Title-row section indicator — "in view 7" lowercase label, plus
-       a green bubble around the count. Flips to "more nearby 12" with
-       a gray bubble when user scrolls past the in-view section. */
+    /* Title-row section indicator — "in view" green bold label + green
+       count bubble. Flips to "more nearby" gray with gray bubble when
+       user scrolls past the in-view section. Matches the mockup's
+       weight/color for the active label. */
     body.ui-v2 .v2-section-indicator {
       display: inline-flex; align-items: center; gap: 6px;
-      font-size: 13px; font-weight: 500;
+      font-size: 13px; font-weight: 700;
       text-transform: lowercase;
     }
-    body.ui-v2 .v2-section-indicator.in-view { color: rgba(255,255,255,0.55); }
-    body.ui-v2 .v2-section-indicator.nearby  { color: rgba(255,255,255,0.45); }
+    body.ui-v2 .v2-section-indicator.in-view { color: var(--accent, #1FDF67); }
+    body.ui-v2 .v2-section-indicator.nearby  { color: rgba(255,255,255,0.5); font-weight: 600; }
     body.ui-v2 .v2-section-indicator .v2-section-count {
       display: inline-flex; align-items: center; justify-content: center;
       min-width: 22px; height: 22px;
@@ -7846,25 +7908,27 @@
       height: 100% !important;
       object-fit: cover !important;
     }
-    /* Featured badge — top-left overlay on the hero */
+    /* Featured = just a yellow star icon at top-right of image. No
+       pill background, no "Featured" text. */
     body.ui-v2 #gridMobile .grid-item .featured-badge {
       position: absolute !important;
       top: 10px !important;
-      left: 10px !important;
-      right: auto !important;
-      background: var(--warn, #FFD300) !important;
-      color: #0a0a0a !important;
-      padding: 5px 10px !important;
-      border-radius: 100px !important;
-      font-size: 11px !important;
-      font-weight: 700 !important;
-      letter-spacing: 0.02em !important;
-      display: inline-flex; align-items: center; gap: 5px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      right: 10px !important;
+      left: auto !important;
+      background: transparent !important;
+      color: var(--warn, #FFD300) !important;
+      padding: 0 !important;
+      font-size: 0 !important;  /* hide "Featured" text */
+      letter-spacing: 0 !important;
+      display: inline-flex; align-items: center; justify-content: center;
+      box-shadow: none !important;
       z-index: 2;
+      width: 24px; height: 24px;
     }
     body.ui-v2 #gridMobile .grid-item .featured-badge svg {
-      width: 11px; height: 11px; fill: #0a0a0a;
+      width: 22px !important; height: 22px !important;
+      fill: var(--warn, #FFD300) !important;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.6));
     }
     /* Tile body: title + city — clean padding */
     body.ui-v2 #gridMobile .grid-item .grid-item-content {
@@ -7899,55 +7963,114 @@
        that render inline between sections) — the title-row indicator
        handles this signaling now. */
     body.ui-v2 #gridMobile .section-header-wrap { display: none !important; }
-    /* Hide the delivery progress bar (track/fill/stages). We replace
-       it with a status pill + delivery date + intel chip via JS. The
-       legacy .delivery-bar-label gets restyled as our status pill. */
+    /* Status pill — gets relocated by JS into the image-wrapper as an
+       overlay at bottom-right. While inside .delivery-bar (before JS
+       move), hide it; after move it becomes a styled overlay. */
     body.ui-v2 #gridMobile .delivery-bar {
-      padding: 10px 14px 14px !important;
-      display: flex !important;
-      align-items: center !important;
-      justify-content: space-between !important;
-      gap: 8px !important;
+      display: none !important;  /* Hide entire bar — we relocate the label out */
     }
-    body.ui-v2 #gridMobile .delivery-bar-track,
-    body.ui-v2 #gridMobile .delivery-bar-stages {
-      display: none !important;
+    /* Status pill — colored dot + dark pill + white all-caps text. Lives
+       absolutely positioned at bottom-right of the image wrapper. */
+    body.ui-v2 #gridMobile .grid-item .v2-status-pill {
+      position: absolute;
+      bottom: 10px; right: 10px;
+      background: rgba(0,0,0,0.78);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.14);
+      color: #fff;
+      padding: 4px 10px;
+      border-radius: 100px;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      display: inline-flex; align-items: center; gap: 6px;
+      z-index: 2;
     }
-    body.ui-v2 #gridMobile .delivery-bar-label {
-      font-size: 10px !important;
-      font-weight: 700 !important;
-      text-transform: uppercase !important;
-      letter-spacing: 0.06em !important;
-      padding: 3px 9px !important;
-      border-radius: 100px !important;
-      background: rgba(255,255,255,0.06) !important;
-      display: inline-flex !important;
-      align-items: center !important;
-      gap: 5px !important;
+    body.ui-v2 #gridMobile .grid-item .v2-status-pill .v2-status-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      flex-shrink: 0;
     }
-    body.ui-v2 #gridMobile .delivery-bar.announced .delivery-bar-label    { color: rgba(255,255,255,0.6) !important; }
-    body.ui-v2 #gridMobile .delivery-bar.breaking .delivery-bar-label     { color: #FFD300 !important; background: rgba(255,211,0,0.12) !important; }
-    body.ui-v2 #gridMobile .delivery-bar.construction .delivery-bar-label { color: #FF9500 !important; background: rgba(255,149,0,0.12) !important; }
-    body.ui-v2 #gridMobile .delivery-bar.opening .delivery-bar-label      { color: #1FDF67 !important; background: rgba(31,223,103,0.12) !important; }
-    body.ui-v2 #gridMobile .delivery-bar.open .delivery-bar-label         { color: #1FDF67 !important; background: rgba(31,223,103,0.12) !important; }
-    /* Custom tile-foot injected by JS — sits inline with status pill */
-    body.ui-v2 #gridMobile .v2-tile-info {
-      display: inline-flex; align-items: center; gap: 8px;
-      font-size: 11px;
+    body.ui-v2 #gridMobile .grid-item .v2-status-pill.announced    .v2-status-dot { background: #999; }
+    body.ui-v2 #gridMobile .grid-item .v2-status-pill.breaking     .v2-status-dot { background: #FFD300; }
+    body.ui-v2 #gridMobile .grid-item .v2-status-pill.construction .v2-status-dot { background: #FF9500; }
+    body.ui-v2 #gridMobile .grid-item .v2-status-pill.opening      .v2-status-dot { background: #1FDF67; }
+    body.ui-v2 #gridMobile .grid-item .v2-status-pill.open         .v2-status-dot { background: #1FDF67; }
+
+    /* Tile foot row — Delivery left, TMW Intel right */
+    body.ui-v2 #gridMobile .grid-item .v2-tile-info {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 14px 14px;
+      font-size: 12px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      margin-top: 4px;
+    }
+    body.ui-v2 #gridMobile .grid-item .v2-tile-info .v2-tile-delivery {
       color: rgba(255,255,255,0.55);
       font-weight: 500;
     }
-    body.ui-v2 #gridMobile .v2-tile-info .v2-tile-delivery b {
+    body.ui-v2 #gridMobile .grid-item .v2-tile-info .v2-tile-delivery b {
       color: #fff; font-weight: 700;
-      margin-left: 4px;
+      margin-left: 6px;
     }
-    body.ui-v2 #gridMobile .v2-tile-info .v2-tile-intel {
+    body.ui-v2 #gridMobile .grid-item .v2-tile-info .v2-tile-intel {
       color: #A78BFA;
       font-weight: 600;
-      display: inline-flex; align-items: center; gap: 4px;
+      display: inline-flex; align-items: center; gap: 5px;
     }
-    body.ui-v2 #gridMobile .v2-tile-info .v2-tile-intel svg {
-      width: 10px; height: 10px; fill: currentColor;
+    body.ui-v2 #gridMobile .grid-item .v2-tile-info .v2-tile-intel svg {
+      width: 11px; height: 11px; fill: currentColor;
+      flex-shrink: 0;
+    }
+
+    /* ── Tile image gallery (prev/next arrows) ──────────────────── */
+    body.ui-v2 #gridMobile .grid-item .v2-gallery-arrow {
+      position: absolute;
+      top: 50%; transform: translateY(-50%);
+      width: 32px; height: 32px;
+      background: rgba(0,0,0,0.5);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: none;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      color: #fff;
+      cursor: pointer;
+      opacity: 0;
+      transition: opacity 0.15s;
+      z-index: 3;
+    }
+    body.ui-v2 #gridMobile .grid-item:hover .v2-gallery-arrow,
+    body.ui-v2 #gridMobile .grid-item .v2-gallery-arrow.always-visible {
+      opacity: 1;
+    }
+    body.ui-v2 #gridMobile .grid-item .v2-gallery-arrow.prev { left: 8px; }
+    body.ui-v2 #gridMobile .grid-item .v2-gallery-arrow.next { right: 8px; }
+    body.ui-v2 #gridMobile .grid-item .v2-gallery-arrow svg {
+      width: 16px; height: 16px;
+      stroke: currentColor; fill: none; stroke-width: 2.4; stroke-linecap: round;
+    }
+    /* Mobile — always show arrows since hover doesn't apply */
+    body.ui-v2 #gridMobile .grid-item .v2-gallery-arrow { opacity: 1; }
+    body.ui-v2 #gridMobile .grid-item .v2-gallery-dots {
+      position: absolute;
+      bottom: 10px; left: 10px;
+      display: flex; gap: 4px;
+      z-index: 2;
+    }
+    body.ui-v2 #gridMobile .grid-item .v2-gallery-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.4);
+    }
+    body.ui-v2 #gridMobile .grid-item .v2-gallery-dot.active {
+      background: #fff;
+      width: 16px;
+      border-radius: 100px;
     }
 
     /* ── Watchlist + Pulse panes ──────────────────────────────────
@@ -8490,6 +8613,26 @@
             <svg viewBox="0 0 24 24"><path d="M12 2l3 6.3 6.9 1-5 4.9 1.2 7L12 17.8 5.9 21.2l1.2-7-5-4.9L9 8.3z"/></svg>
           </span>
         </button>
+        <!-- Profile dropdown menu (opens on profile click) -->
+        <div class="v2-profile-menu" id="v2ProfileMenu" role="menu" aria-hidden="true">
+          <button class="v2-menu-item" id="v2MenuAccount" role="menuitem">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-7 8-7s8 3 8 7"/></svg>
+            Account
+          </button>
+          <button class="v2-menu-item" id="v2MenuWatchlist" role="menuitem">
+            <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            Watchlist
+          </button>
+          <button class="v2-menu-item" id="v2MenuCompare" role="menuitem">
+            <svg viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h12"/></svg>
+            Comparisons
+          </button>
+          <div class="v2-menu-divider"></div>
+          <button class="v2-menu-item v2-menu-signout" id="v2MenuSignOut" role="menuitem">
+            <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+            Sign out
+          </button>
+        </div>
       </div>
       <div class="v2-mode-toggle" role="tablist" aria-label="Switch between map and atlas view">
         <button id="v2MapBtn" class="active" data-mode="map" role="tab" aria-selected="true">Map</button>
@@ -17919,6 +18062,19 @@
         const grid = document.getElementById('gridMobile');
         if (grid && pane) pane.appendChild(grid);
 
+        // Re-wire the section bar's scroll watcher to point at the v2
+        // sheet body (the actual scrolling element) instead of the
+        // legacy #mobileDrawerContent. Without this, the "in view ↔
+        // more nearby" flip never fires because the scroll handler is
+        // attached to a container that no longer scrolls.
+        const v2SheetBody = document.querySelector('.v2-sheet-body');
+        const ssbTitle = document.getElementById('mobileSsbTitle');
+        const ssbCount = document.getElementById('mobileSsbCount');
+        if (v2SheetBody && ssbTitle && ssbCount && typeof setupSectionBar === 'function') {
+          // Wait a tick so the legacy renderGrid finishes any in-flight setup
+          setTimeout(() => setupSectionBar(v2SheetBody, ssbTitle, ssbCount), 200);
+        }
+
         // Watchlist content → Watchlist pane
         // Force `.open` so the panel's render pipeline thinks it's
         // visible (otherwise transforms/visibility keep it dormant).
@@ -18271,23 +18427,61 @@
         if (pulseTab) pulseTab.click();
       });
 
-      // Profile button — delegate to legacy auth widget. Memberstack
-      // injects a clickable element into #paywallAuthHeader (usually a
-      // profile image button when logged in, or a sign-in button when
-      // signed out). We hide the legacy widget visually but still click
-      // through to it for the menu/auth modal.
+      // Profile button — opens dropdown menu with Account / Watchlist /
+       // Comparisons / Sign out. Each item delegates to the appropriate
+      // legacy handler (Memberstack auth widget for Account / Sign out,
+      // legacy buttons for Watchlist / Comparisons).
       const v2Profile = document.getElementById('v2ProfileBtn');
-      if (v2Profile) {
-        v2Profile.addEventListener('click', () => {
-          const legacyAuth = document.getElementById('paywallAuthHeader');
-          if (!legacyAuth) return;
-          // Click the first interactive child (button, anchor, or any
-          // element with role=button). Falls back to clicking the
-          // container if no descendants found.
-          const target = legacyAuth.querySelector('button, a, [role="button"]') || legacyAuth;
-          target.click();
+      const v2ProfileMenu = document.getElementById('v2ProfileMenu');
+      if (v2Profile && v2ProfileMenu) {
+        v2Profile.addEventListener('click', (e) => {
+          e.stopPropagation();
+          v2ProfileMenu.classList.toggle('open');
+        });
+        // Close menu when clicking outside
+        document.addEventListener('click', (e) => {
+          if (!v2ProfileMenu.contains(e.target) && e.target !== v2Profile) {
+            v2ProfileMenu.classList.remove('open');
+          }
         });
       }
+      // Wire each menu item to its destination
+      const wireMenu = (id, handler) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.addEventListener('click', (e) => {
+          e.stopPropagation();
+          v2ProfileMenu && v2ProfileMenu.classList.remove('open');
+          handler();
+        });
+      };
+      wireMenu('v2MenuAccount', () => {
+        // Open Memberstack profile modal — click whatever's inside #paywallAuthHeader
+        const legacyAuth = document.getElementById('paywallAuthHeader');
+        if (!legacyAuth) return;
+        const target = legacyAuth.querySelector('button, a, [role="button"]') || legacyAuth;
+        target.click();
+      });
+      wireMenu('v2MenuWatchlist', () => {
+        // Open Watchlist tab in the drawer
+        openSheet();
+        const tab = document.querySelector('.v2-tab[data-v2-tab="watchlist"]');
+        if (tab) tab.click();
+      });
+      wireMenu('v2MenuCompare', () => {
+        // Trigger the legacy compare button if present
+        const cmp = document.getElementById('compareBar') || document.querySelector('[data-compare-toggle], .compare-btn');
+        if (cmp) cmp.click();
+      });
+      wireMenu('v2MenuSignOut', () => {
+        // Memberstack handles sign out — try common selectors
+        const signOut = document.querySelector('[data-ms-action="logout"], [data-ms-content="logout"], .ms-logout');
+        if (signOut) {
+          signOut.click();
+        } else if (window.$memberstackDom && window.$memberstackDom.logout) {
+          window.$memberstackDom.logout();
+        }
+      });
 
       // ── Sync the pulse badge count from the legacy pulse bell ─────
       // The correct element is `#pulseBellBadge` (was looking for wrong
@@ -18318,20 +18512,28 @@
         });
       }
 
-      // ── Inject delivery date + TMW intel into each tile ──────────
-      // After renderGrid writes tiles into #gridMobile, walk each .grid-item,
-      // match it to a feature by title, look up intel from window.tmwIntel,
-      // and append a `.v2-tile-info` row next to the existing delivery-bar
-      // label. The progress bar visuals are hidden via CSS — this is what
-      // replaces them.
+      // ── Decorate tiles with status pill overlay, gallery arrows,
+      //    and delivery + intel foot row. Runs after renderGrid populates
+      //    #gridMobile and re-runs via MutationObserver for new tiles.
+      const STATUS_CLASS_MAP = {
+        announced: 'announced', breaking: 'breaking',
+        construction: 'construction', opening: 'opening',
+        open: 'open', complete: 'open',
+      };
+      function statusClassFor(delivery) {
+        const d = (delivery || '').toLowerCase();
+        for (const k of Object.keys(STATUS_CLASS_MAP)) {
+          if (d.includes(k)) return STATUS_CLASS_MAP[k];
+        }
+        return 'announced';
+      }
       function decorateTiles() {
         const grid = document.getElementById('gridMobile');
         if (!grid) return;
         const features = window.allProjectFeatures || [];
         const intel = window.tmwIntel || {};
         grid.querySelectorAll('.grid-item').forEach(tile => {
-          // Skip if we already decorated this tile
-          if (tile.querySelector('.v2-tile-info')) return;
+          if (tile.dataset.v2Decorated === '1') return;
           const titleEl = tile.querySelector('h3');
           if (!titleEl) return;
           const title = (titleEl.textContent || '').trim();
@@ -18340,28 +18542,94 @@
           const props = feature.properties;
           const slug = (title || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
           const intelEntry = intel[slug];
-          const deliveryDate = props.deliveryDate || props.delivery || '';
-          // Pretty-print delivery: pass-through year or YYYY-MM
-          const deliveryDisplay = formatDeliveryLabel(deliveryDate);
-          // TMW intel chip
-          let intelHtml = '';
-          if (intelEntry && intelEntry.estimate_label) {
-            const tail = intelEntry.source === 'completed' ? 'to complete' : 'to completion';
-            intelHtml = `<span class="v2-tile-intel">
-              <svg viewBox="0 0 24 24"><path d="M12 2L4 7v10l8 5 8-5V7l-8-5zm0 2.5L18 8v8l-6 3.75L6 16V8l6-3.5z"/></svg>
-              ${escapeText(intelEntry.estimate_label)} ${tail}
-            </span>`;
+          tile.dataset.v2Decorated = '1';
+
+          // ── Status pill (overlay on image bottom-right) ─────────
+          const imageWrap = tile.querySelector('.image-wrapper');
+          if (imageWrap && !tile.querySelector('.v2-status-pill')) {
+            const cls = statusClassFor(props.delivery);
+            const labelMap = {
+              announced: 'Announced', breaking: 'Breaking Ground',
+              construction: 'Construction', opening: 'Coming Soon',
+              open: 'Now Open',
+            };
+            const label = labelMap[cls] || 'Announced';
+            const pill = document.createElement('div');
+            pill.className = `v2-status-pill ${cls}`;
+            pill.innerHTML = `<span class="v2-status-dot"></span>${label}`;
+            imageWrap.appendChild(pill);
           }
-          // Insert into the delivery-bar (which now sits as a flex row)
-          const bar = tile.querySelector('.delivery-bar');
-          if (!bar) return;
-          const info = document.createElement('span');
-          info.className = 'v2-tile-info';
-          info.innerHTML = `
-            ${deliveryDisplay ? `<span class="v2-tile-delivery">Delivery<b>${escapeText(deliveryDisplay)}</b></span>` : ''}
-            ${intelHtml}
-          `.trim();
-          bar.appendChild(info);
+
+          // ── Image gallery (prev/next arrows + dots) ─────────────
+          if (imageWrap && !tile.querySelector('.v2-gallery-arrow')) {
+            const images = [props.image, props.image2, props.image3, props.image4, props.image5]
+              .filter(Boolean);
+            if (images.length > 1) {
+              let idx = 0;
+              const imgEl = imageWrap.querySelector('img');
+              if (imgEl) {
+                imgEl.dataset.v2GalleryIdx = '0';
+                // Clear lazy-loading state to swap src immediately
+                imgEl.classList.remove('lazy-loading');
+                imgEl.src = images[0];
+              }
+              // Arrows
+              const prev = document.createElement('button');
+              prev.className = 'v2-gallery-arrow prev';
+              prev.setAttribute('aria-label', 'Previous image');
+              prev.innerHTML = '<svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>';
+              const next = document.createElement('button');
+              next.className = 'v2-gallery-arrow next';
+              next.setAttribute('aria-label', 'Next image');
+              next.innerHTML = '<svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>';
+              // Dot indicators
+              const dots = document.createElement('div');
+              dots.className = 'v2-gallery-dots';
+              images.forEach((_, i) => {
+                const dot = document.createElement('div');
+                dot.className = 'v2-gallery-dot' + (i === 0 ? ' active' : '');
+                dots.appendChild(dot);
+              });
+              const swap = (newIdx) => {
+                idx = (newIdx + images.length) % images.length;
+                if (imgEl) imgEl.src = images[idx];
+                Array.from(dots.children).forEach((d, i) => d.classList.toggle('active', i === idx));
+              };
+              prev.addEventListener('click', (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                swap(idx - 1);
+              });
+              next.addEventListener('click', (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                swap(idx + 1);
+              });
+              imageWrap.appendChild(prev);
+              imageWrap.appendChild(next);
+              imageWrap.appendChild(dots);
+            }
+          }
+
+          // ── Tile foot: Delivery (left) + Intel (right) ─────────
+          if (!tile.querySelector('.v2-tile-info')) {
+            const deliveryDisplay = formatDeliveryLabel(props.deliveryDate || props.delivery || '');
+            let intelHtml = '';
+            if (intelEntry && intelEntry.estimate_label) {
+              const tail = intelEntry.source === 'completed' ? 'to complete' : 'to completion';
+              intelHtml = `<span class="v2-tile-intel">
+                <svg viewBox="0 0 24 24"><path d="M12 2L4 7v10l8 5 8-5V7l-8-5zm0 2.5L18 8v8l-6 3.75L6 16V8l6-3.5z"/></svg>
+                ${escapeText(intelEntry.estimate_label)} ${tail}
+              </span>`;
+            }
+            const info = document.createElement('div');
+            info.className = 'v2-tile-info';
+            info.innerHTML = `
+              ${deliveryDisplay ? `<span class="v2-tile-delivery">Delivery<b>${escapeText(deliveryDisplay)}</b></span>` : '<span></span>'}
+              ${intelHtml}
+            `.trim();
+            tile.appendChild(info);
+          }
         });
       }
       function formatDeliveryLabel(raw) {
