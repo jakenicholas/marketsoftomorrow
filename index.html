@@ -8537,45 +8537,47 @@
 
   /* ‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê
      DESKTOP v2 ‚Äî matches mockups/desktop-redesign-4-blend.html
-     Restyles the legacy #header + #desktopSidebar + tiles so desktop
-     reads with the same design language as the mobile v2 redesign.
-     Active for body.ui-v2 at min-width 801px. Project popup (Mapbox)
-     is intentionally untouched per spec.
+     Comprehensive restyle of the desktop layout (header + sidebar + tiles
+     + map controls) so desktop reads with the same design language as
+     the mobile v2 redesign. Project popup (Mapbox click popup) is
+     intentionally untouched per spec.
      ‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê */
   @media(min-width: 801px) {
-    /* ‚îÄ‚îÄ HEADER ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ */
+
+    /* ‚îÄ‚îÄ 1. TOP HEADER BAR ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ */
     body.ui-v2 #header {
-      background: rgba(10,10,10,0.85) !important;
+      background: rgba(10,10,10,0.92) !important;
       backdrop-filter: blur(20px) saturate(1.4) !important;
       -webkit-backdrop-filter: blur(20px) saturate(1.4) !important;
       border-bottom: 1px solid rgba(255,255,255,0.08) !important;
       box-shadow: none !important;
       height: 60px !important;
-      padding: 0 24px !important;
-      gap: 14px;
+      padding: 0 20px !important;
+      justify-content: flex-start !important;
+      gap: 16px !important;
     }
-    body.ui-v2 #header-logo { height: 32px; filter: brightness(0) invert(1); }
-    /* Atlas/Map toggle in the header center (the existing .atlas-mode-toggle
-       gets restyled to look like the mockup pill ‚Äî accent green active). */
+    body.ui-v2 #header-logo-link { flex-shrink: 0; }
+    body.ui-v2 #header-logo { height: 28px !important; filter: brightness(0) invert(1); }
+
+    /* ‚îÄ‚îÄ 2. MAP/ATLAS TOGGLE ‚Äî repositioned to header center ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ */
+    /* Reposition the existing .atlas-mode-toggle into the visual center
+       of the new header bar. Keeps it position:fixed but at top:30px so
+       it sits inside the header (which is 60px tall). */
     body.ui-v2 .atlas-mode-toggle {
-      display: inline-flex !important;
+      top: 30px !important;
+      left: 50% !important;
+      transform: translate(-50%, -50%) !important;
       background: rgba(255,255,255,0.05) !important;
       border: 1px solid rgba(255,255,255,0.08) !important;
-      border-radius: 999px !important;
-      padding: 3px !important;
-      top: auto !important;
-      left: auto !important;
-      transform: none !important;
-      position: relative !important;
+      box-shadow: none !important;
+      backdrop-filter: blur(10px) saturate(1.4) !important;
+      -webkit-backdrop-filter: blur(10px) saturate(1.4) !important;
+      z-index: 100 !important;
     }
     body.ui-v2 .atlas-mode-toggle-btn {
-      background: transparent !important;
-      color: rgba(255,255,255,0.6) !important;
-      border: none !important;
-      padding: 7px 18px !important;
+      padding: 7px 20px !important;
       font-size: 12.5px !important;
       font-weight: 600 !important;
-      border-radius: 999px !important;
     }
     body.ui-v2 .atlas-mode-toggle-btn.active {
       background: var(--accent, #1FDF67) !important;
@@ -8583,45 +8585,117 @@
       font-weight: 700 !important;
     }
 
-    /* ‚îÄ‚îÄ DESKTOP SIDEBAR ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ */
+    /* ‚îÄ‚îÄ 3. APP CONTAINER + MAP ‚Äî match new 60px header / 420px side ‚îÄ‚îÄ */
+    body.ui-v2 #app-container {
+      padding-top: 60px !important;
+    }
+    body.ui-v2 #map {
+      left: 420px !important;
+    }
+
+    /* ‚îÄ‚îÄ 4. DESKTOP SIDEBAR ‚Äî 420px, dark, flush layout ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ */
     body.ui-v2 #desktopSidebar {
       width: 420px !important;
-      background: rgba(15,15,15,0.96) !important;
+      top: 60px !important;
+      height: calc(100% - 60px) !important;
+      background: rgba(15,15,15,0.98) !important;
       backdrop-filter: blur(20px) !important;
       -webkit-backdrop-filter: blur(20px) !important;
       border-right: 1px solid rgba(255,255,255,0.08) !important;
-      box-shadow: none;
+      box-shadow: none !important;
+      padding-left: 0 !important;
+      transform: translateX(0) !important;
     }
-    /* Search row ‚Üí match v2 pinned-search pill style */
-    body.ui-v2 #desktopSidebar .desktop-search-row {
-      margin: 0 16px 12px !important;
-      padding: 14px 0 0 !important;
+    body.ui-v2 #desktopSidebar .sidebar-header {
+      background: transparent !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+      padding: 14px 16px 8px !important;
+      gap: 10px !important;
     }
+    body.ui-v2 #desktopSidebar .sidebar-header.scrolled {
+      background: rgba(11,11,11,0.4) !important;
+    }
+    body.ui-v2 #desktopSidebar .sidebar-content {
+      padding: 0 !important;
+    }
+
+    /* Search pill ‚Äî rounded, dark surface, no harsh shadow */
     body.ui-v2 #desktopSidebar .desktop-search-pill {
       background: #1f1f1f !important;
       border: 1px solid rgba(255,255,255,0.08) !important;
       border-radius: 22px !important;
-      padding: 9px 14px !important;
+      height: 44px !important;
+      box-shadow: none !important;
     }
     body.ui-v2 #desktopSidebar .desktop-search-pill input {
       font-size: 14px !important;
       font-weight: 500 !important;
+      color: #fff !important;
     }
     body.ui-v2 #desktopSidebar #closeSidebar {
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 50%;
-    }
-    /* Filter pill row ‚Äî three glass segments */
-    body.ui-v2 #desktopSidebar .desktop-filter-pill {
-      background: #1f1f1f !important;
+      background: rgba(255,255,255,0.05) !important;
       border: 1px solid rgba(255,255,255,0.08) !important;
-      border-radius: 12px !important;
-      margin: 0 16px 12px !important;
+      border-radius: 50% !important;
     }
-    /* Section status bar ‚Äî accent green pill */
+
+    /* ‚îÄ‚îÄ 5. HIDE LEGACY 3-DROPDOWN FILTER PILL ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ */
+    /* The legacy 3-segment dropdown (Sort/Type/Status) is replaced by
+       segmented tabs (Discover/Watchlist/Pulse) injected via JS into
+       #v2DesktopTabs, plus the existing .filter-pills-row for active
+       filter chips. Keep the selects functional but hidden offscreen. */
+    body.ui-v2 #desktopSidebar .desktop-filter-pill {
+      display: none !important;
+    }
+
+    /* ‚îÄ‚îÄ 6. v2 SEGMENTED TABS (injected by JS) ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ */
+    body.ui-v2 .v2-desktop-tabs {
+      display: flex !important;
+      margin: 0 16px 10px;
+      background: #1f1f1f;
+      border-radius: 12px;
+      padding: 3px;
+      gap: 2px;
+    }
+    body.ui-v2 .v2-desktop-tabs button {
+      flex: 1;
+      background: transparent;
+      color: rgba(255,255,255,0.45);
+      border: none;
+      padding: 10px 6px;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 9px;
+      font-family: inherit;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      transition: background 0.15s, color 0.15s;
+    }
+    body.ui-v2 .v2-desktop-tabs button.active {
+      background: var(--warn, #FFD300);
+      color: #0a0a0a;
+      font-weight: 700;
+    }
+    body.ui-v2 .v2-desktop-tabs button .num {
+      background: rgba(0,0,0,0.18);
+      color: inherit;
+      font-size: 10px; font-weight: 800;
+      padding: 1px 6px; border-radius: 100px; line-height: 1.2;
+    }
+    body.ui-v2 .v2-desktop-tabs button.active .num {
+      background: #0a0a0a; color: var(--warn, #FFD300);
+    }
+
+    /* ‚îÄ‚îÄ 7. SECTION INDICATOR ‚Äî accent green pill chip ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ */
     body.ui-v2 #desktopSidebar .section-status-bar {
-      padding: 4px 20px 10px !important;
+      padding: 0 20px 8px !important;
+      background: transparent !important;
+      border: none !important;
+    }
+    body.ui-v2 #desktopSidebar .ssb-inner {
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 6px;
     }
     body.ui-v2 #desktopSidebar .ssb-title.in-view {
       color: var(--accent, #1FDF67) !important;
@@ -8633,15 +8707,29 @@
       letter-spacing: 0.06em !important;
       font-weight: 700 !important;
     }
+    body.ui-v2 #desktopSidebar .ssb-count {
+      color: rgba(255,255,255,0.45) !important;
+      font-size: 11px !important;
+      font-weight: 600 !important;
+    }
 
-    /* ‚îÄ‚îÄ DESKTOP TILES (horizontal: image left, body right) ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ */
-    body.ui-v2 #gridDesktop {
-      padding: 0 16px 16px !important;
-      gap: 10px !important;
+    /* Active filter chips row ‚Äî tighter spacing */
+    body.ui-v2 #desktopSidebar .filter-pills-row {
+      padding: 0 16px;
+      margin: 0;
+    }
+
+    /* ‚îÄ‚îÄ 8. GRID TILES ‚Äî single column, horizontal layout ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ */
+    /* Override .leaf-grid grid template ‚Äî single column flex */
+    body.ui-v2 #desktopSidebar #gridDesktop {
       display: flex !important;
       flex-direction: column !important;
+      gap: 10px !important;
+      grid-template-columns: none !important;
+      padding: 0 16px 16px !important;
     }
-    body.ui-v2 #gridDesktop .grid-item {
+    /* Horizontal tile: image 140px left, body flex right */
+    body.ui-v2 #desktopSidebar .grid-item {
       display: flex !important;
       flex-direction: row !important;
       background: #1f1f1f !important;
@@ -8649,54 +8737,67 @@
       border-radius: 14px !important;
       overflow: hidden !important;
       padding: 0 !important;
-      margin: 0 !important;
-      transition: border-color 0.15s !important;
+      height: auto !important;
+      min-height: 132px;
+      transition: border-color 0.15s, background 0.15s !important;
       cursor: pointer;
     }
-    body.ui-v2 #gridDesktop .grid-item:hover {
-      border-color: rgba(255,255,255,0.18) !important;
+    body.ui-v2 #desktopSidebar .grid-item:hover {
+      border-color: rgba(255,255,255,0.2) !important;
+      background: #232323 !important;
       transform: none !important;
+      box-shadow: none !important;
     }
-    body.ui-v2 #gridDesktop .grid-item .image-wrapper {
+    body.ui-v2 #desktopSidebar .grid-item .image-wrapper {
       width: 140px !important;
-      min-height: 100% !important;
+      min-width: 140px !important;
+      height: auto !important;
+      min-height: 132px !important;
       flex-shrink: 0 !important;
       border-radius: 0 !important;
       overflow: hidden;
       position: relative;
+      background: #1a1a1a;
     }
-    body.ui-v2 #gridDesktop .grid-item img {
+    body.ui-v2 #desktopSidebar .grid-item img {
       width: 100% !important;
       height: 100% !important;
-      min-height: 130px !important;
+      min-height: 132px !important;
       object-fit: cover !important;
       border-radius: 0 !important;
+      display: block;
     }
-    body.ui-v2 #gridDesktop .grid-item-content {
+    body.ui-v2 #desktopSidebar .grid-item-content {
       flex: 1 !important;
       min-width: 0 !important;
-      padding: 12px 16px !important;
+      padding: 14px 16px !important;
       display: flex !important;
       flex-direction: column !important;
       justify-content: space-between !important;
       gap: 4px !important;
     }
-    body.ui-v2 #gridDesktop .grid-item-content h3 {
+    body.ui-v2 #desktopSidebar .grid-item-content h3 {
       font-size: 15.5px !important;
       font-weight: 700 !important;
       color: #fff !important;
       letter-spacing: -0.01em !important;
       line-height: 1.25 !important;
       margin: 0 !important;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
     }
-    body.ui-v2 #gridDesktop .grid-item-content p.city {
+    body.ui-v2 #desktopSidebar .grid-item-content p.city {
       font-size: 12px !important;
       color: rgba(255,255,255,0.72) !important;
       padding: 0 !important;
       margin: 3px 0 0 !important;
+      font-style: normal !important;
     }
-    /* Featured badge ‚Äî gold bg, #111 star, no shadow (matches mobile v2) */
-    body.ui-v2 #gridDesktop .grid-item .featured-badge {
+    /* Featured badge ‚Äî gold bg, #111 star, no shadow */
+    body.ui-v2 #desktopSidebar .grid-item .featured-badge {
       position: absolute !important;
       top: 10px !important; right: 10px !important;
       left: auto !important;
@@ -8715,12 +8816,66 @@
       width: 22px !important; height: 22px !important;
       z-index: 2;
     }
-    body.ui-v2 #gridDesktop .grid-item .featured-badge svg {
+    body.ui-v2 #desktopSidebar .grid-item .featured-badge svg {
       width: 12px !important; height: 12px !important;
       fill: #111 !important; stroke: none !important;
       filter: none !important;
       display: block !important;
       margin: 0 !important;
+    }
+
+    /* Status pill bottom-left of image */
+    body.ui-v2 #desktopSidebar .grid-item .image-wrapper .delivery-bar {
+      position: absolute !important;
+      bottom: 8px !important; left: 8px !important;
+      right: auto !important;
+      width: auto !important;
+      background: rgba(0,0,0,0.72) !important;
+      backdrop-filter: blur(8px) !important;
+      -webkit-backdrop-filter: blur(8px) !important;
+      border-radius: 100px !important;
+      padding: 3px 9px !important;
+      border: none !important;
+    }
+    body.ui-v2 #desktopSidebar .grid-item .delivery-bar-label {
+      font-size: 9px !important;
+      font-weight: 700 !important;
+      letter-spacing: 0.05em !important;
+      text-transform: uppercase !important;
+      color: #fff !important;
+    }
+
+    /* ‚îÄ‚îÄ 9. MAP CONTROLS ‚Äî bottom-right stack ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ */
+    /* Reposition existing zoom/location buttons to bottom-right corner
+       of the map area (matches mockup). Stack them tightly. */
+    body.ui-v2 #locationButton,
+    body.ui-v2 #zoomInButton,
+    body.ui-v2 #zoomOutButton,
+    body.ui-v2 #resetViewButton {
+      right: 18px !important;
+      top: auto !important;
+      width: 44px !important;
+      height: 44px !important;
+      border-radius: 22px !important;
+      background: rgba(15,15,15,0.85) !important;
+      backdrop-filter: blur(20px) saturate(1.4) !important;
+      -webkit-backdrop-filter: blur(20px) saturate(1.4) !important;
+    }
+    body.ui-v2 #zoomInButton  { bottom: 158px !important; }
+    body.ui-v2 #zoomOutButton { bottom: 114px !important; border-top-left-radius: 6px !important; border-top-right-radius: 6px !important; }
+    body.ui-v2 #locationButton { bottom: 70px !important; }
+    body.ui-v2 #resetViewButton { bottom: 18px !important; }
+    /* Pulse bell on desktop ‚Äî move to top-right inside header */
+    body.ui-v2 #pulseBellBtn {
+      top: 12px !important;
+      bottom: auto !important;
+      right: 20px !important;
+    }
+    /* Layers panel button ‚Äî also top-right but offset */
+    body.ui-v2 #layersButton {
+      top: 12px !important;
+      bottom: auto !important;
+      right: 72px !important;
     }
   }
 
@@ -18734,6 +18889,88 @@
     // Legacy escape hatch: ?ui=v1 keeps the old mobile UI.
     if (params.get('ui') === 'v1') return;
     document.body.classList.add('ui-v2');
+
+    // ‚îÄ‚îÄ Desktop v2 segmented tabs injection ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
+    // Insert Discover/Watchlist/Pulse tabs into the desktop sidebar
+    // (right above the filter dropdowns, which CSS now hides). Each tab
+    // click opens the corresponding legacy panel (watchlist drawer or
+    // pulse drawer) over the discover grid ‚Äî minimal logic since the
+    // legacy machinery already exists. On desktop only.
+    function injectDesktopTabs() {
+      if (!window.matchMedia('(min-width: 801px)').matches) return;
+      const sidebar = document.getElementById('desktopSidebar');
+      if (!sidebar) return;
+      const sidebarHeader = sidebar.querySelector('.sidebar-header');
+      if (!sidebarHeader) return;
+      if (sidebar.querySelector('.v2-desktop-tabs')) return; // already injected
+      const tabs = document.createElement('div');
+      tabs.className = 'v2-desktop-tabs';
+      tabs.setAttribute('role', 'tablist');
+      tabs.innerHTML = `
+        <button class="active" data-v2d-tab="discover">Discover</button>
+        <button data-v2d-tab="watchlist">Watchlist <span class="num" id="v2DTabWatchNum" hidden>0</span></button>
+        <button data-v2d-tab="pulse">Pulse <span class="num" id="v2DTabPulseNum" hidden>0</span></button>
+      `;
+      // Insert AFTER the search row so search stays at top
+      const searchRow = sidebarHeader.querySelector('.desktop-search-row');
+      if (searchRow && searchRow.nextSibling) {
+        sidebarHeader.insertBefore(tabs, searchRow.nextSibling);
+      } else {
+        sidebarHeader.appendChild(tabs);
+      }
+      // Wire clicks ‚Üí toggle existing watchlist/pulse panels
+      tabs.querySelectorAll('button').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const target = btn.dataset.v2dTab;
+          tabs.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          // Open the corresponding panel by clicking the legacy trigger.
+          if (target === 'watchlist') {
+            const wlBtn = document.getElementById('watchlistBtn');
+            if (wlBtn) wlBtn.click();
+          } else if (target === 'pulse') {
+            const plBtn = document.getElementById('pulseBellBtn');
+            if (plBtn) plBtn.click();
+          } else {
+            // Discover ‚Äî close any open watchlist/pulse panels
+            const wlPanel = document.getElementById('watchlistPanel');
+            const plPanel = document.getElementById('pulseStack');
+            if (wlPanel && wlPanel.classList.contains('open') && typeof window.closeWatchlist === 'function') {
+              window.closeWatchlist();
+            }
+            if (plPanel && plPanel.classList.contains('open')) {
+              plPanel.classList.remove('open');
+            }
+          }
+        });
+      });
+      // Sync counts from the legacy badges
+      const syncCounts = () => {
+        const wlBadge = document.getElementById('watchlistBtnBadge');
+        const wlNum = document.getElementById('v2DTabWatchNum');
+        if (wlBadge && wlNum) {
+          const n = parseInt(wlBadge.textContent || '0', 10) || 0;
+          if (n > 0) { wlNum.hidden = false; wlNum.textContent = String(n); }
+          else { wlNum.hidden = true; }
+        }
+        const plBadge = document.getElementById('pulseBellBadge');
+        const plNum = document.getElementById('v2DTabPulseNum');
+        if (plBadge && plNum) {
+          const isHidden = plBadge.hasAttribute('hidden');
+          const n = isHidden ? 0 : (parseInt(plBadge.textContent || '0', 10) || 0);
+          if (n > 0) { plNum.hidden = false; plNum.textContent = String(n); }
+          else { plNum.hidden = true; }
+        }
+      };
+      syncCounts();
+      setInterval(syncCounts, 3000);
+    }
+    // Run on next tick so the DOM is fully ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', injectDesktopTabs);
+    } else {
+      injectDesktopTabs();
+    }
 
     function setup() {
       // ‚îÄ‚îÄ Move existing mobile DOM into v2 panes ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
