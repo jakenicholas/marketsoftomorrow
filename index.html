@@ -8660,9 +8660,9 @@
 
     /* ‚îÄ‚îÄ DESKTOP SIDEBAR ‚Äî 420px, dark, flush ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ */
     body.ui-v2 #app-container { padding-top: 60px !important; }
-    body.ui-v2 #map { left: 420px !important; }
+    body.ui-v2 #map { left: 480px !important; }
     body.ui-v2 #desktopSidebar {
-      width: 420px !important;
+      width: 480px !important;
       top: 60px !important;
       height: calc(100% - 60px) !important;
       background: rgba(15,15,15,0.98) !important;
@@ -8913,6 +8913,90 @@
       text-transform: uppercase !important;
       color: #fff !important;
     }
+
+    /* ‚îÄ‚îÄ DESKTOP SEARCH OVERLAY (mobile-style) ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ */
+    body.ui-v2 .v2-desktop-search-overlay {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(15,15,15,0.99);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    body.ui-v2 .v2-desktop-search-overlay[hidden] { display: none !important; }
+    body.ui-v2 .v2-dso-header {
+      flex-shrink: 0;
+      display: flex; align-items: center; gap: 12px;
+      padding: 14px 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    body.ui-v2 .v2-dso-back {
+      width: 36px; height: 36px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 50%;
+      color: #fff;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+    }
+    body.ui-v2 .v2-dso-back svg {
+      width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2.4; stroke-linecap: round;
+    }
+    body.ui-v2 .v2-dso-query {
+      color: rgba(255,255,255,0.6);
+      font-size: 13px;
+      font-weight: 500;
+    }
+    body.ui-v2 .v2-dso-query span {
+      color: var(--accent, #1FDF67);
+      font-weight: 700;
+    }
+    body.ui-v2 .v2-dso-body {
+      flex: 1 1 auto;
+      overflow-y: auto;
+      padding: 4px 16px 16px;
+    }
+    body.ui-v2 .v2-dso-group { margin-top: 8px; }
+    body.ui-v2 .v2-dso-group-head {
+      font-size: 10px; font-weight: 700;
+      color: rgba(255,255,255,0.45);
+      text-transform: uppercase; letter-spacing: 0.07em;
+      padding: 14px 0 6px;
+    }
+    body.ui-v2 .v2-dso-row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      cursor: pointer;
+    }
+    body.ui-v2 .v2-dso-row:hover { background: rgba(255,255,255,0.03); }
+    body.ui-v2 .v2-dso-icon {
+      width: 36px; height: 36px;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    body.ui-v2 .v2-dso-icon.project { background: rgba(31,223,103,0.14); color: var(--accent, #1FDF67); }
+    body.ui-v2 .v2-dso-icon.city    { background: rgba(111,168,255,0.14); color: #6FA8FF; }
+    body.ui-v2 .v2-dso-icon svg { width: 16px; height: 16px; }
+    body.ui-v2 .v2-dso-body-text { flex: 1; min-width: 0; }
+    body.ui-v2 .v2-dso-label {
+      font-size: 13.5px; font-weight: 600; color: #fff;
+      letter-spacing: -0.01em;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    body.ui-v2 .v2-dso-sub {
+      font-size: 11.5px; color: rgba(255,255,255,0.6);
+      margin-top: 1px;
+    }
+    body.ui-v2 .v2-dso-arrow {
+      color: rgba(255,255,255,0.4);
+      display: flex; flex-shrink: 0;
+    }
+    body.ui-v2 .v2-dso-arrow svg { width: 14px; height: 14px; }
   }
 
   </style>
@@ -18925,6 +19009,184 @@
     // Legacy escape hatch: ?ui=v1 keeps the old mobile UI.
     if (params.get('ui') === 'v1') return;
     document.body.classList.add('ui-v2');
+
+    // ‚îÄ‚îÄ Desktop v2: brute-force 1-column tile layout via inline styles.
+    // CSS specificity battles with the legacy .leaf-grid rules keep failing,
+    // so we set the style attributes directly. Inline always wins.
+    function forceDesktopTileLayout() {
+      if (!window.matchMedia('(min-width: 801px)').matches) return;
+      if (!document.body.classList.contains('ui-v2')) return;
+      const grid = document.getElementById('gridDesktop');
+      if (!grid) return;
+      // Force flex column on grid container
+      grid.style.setProperty('display', 'flex', 'important');
+      grid.style.setProperty('flex-direction', 'column', 'important');
+      grid.style.setProperty('grid-template-columns', 'none', 'important');
+      grid.style.setProperty('gap', '10px', 'important');
+      // Force row layout on every tile inside
+      grid.querySelectorAll('.grid-item').forEach(tile => {
+        tile.style.setProperty('display', 'flex', 'important');
+        tile.style.setProperty('flex-direction', 'row', 'important');
+        tile.style.setProperty('height', 'auto', 'important');
+        tile.style.setProperty('min-height', '132px', 'important');
+        tile.style.setProperty('width', '100%', 'important');
+        const img = tile.querySelector('.image-wrapper');
+        if (img) {
+          img.style.setProperty('width', '140px', 'important');
+          img.style.setProperty('min-width', '140px', 'important');
+          img.style.setProperty('min-height', '132px', 'important');
+          img.style.setProperty('flex-shrink', '0', 'important');
+        }
+      });
+    }
+    // Watch the grid for re-renders so we apply layout to fresh tiles
+    function installGridLayoutObserver() {
+      if (!window.matchMedia('(min-width: 801px)').matches) return;
+      const grid = document.getElementById('gridDesktop');
+      if (!grid) return;
+      forceDesktopTileLayout();
+      const mo = new MutationObserver(() => forceDesktopTileLayout());
+      mo.observe(grid, { childList: true, subtree: false });
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', installGridLayoutObserver);
+    } else {
+      installGridLayoutObserver();
+    }
+
+    // ‚îÄ‚îÄ Desktop v2: dedicated SEARCH OVERLAY (mobile-style) ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
+    // When the sidebar search input is focused with any query, show a
+    // full-sidebar overlay with grouped results (Watchlist matches,
+    // Projects, Cities, Recent). Same UX as the mobile v2 search tab.
+    function installDesktopSearchOverlay() {
+      if (!window.matchMedia('(min-width: 801px)').matches) return;
+      const sidebar = document.getElementById('desktopSidebar');
+      const searchInput = document.getElementById('sidebarSearchBar');
+      if (!sidebar || !searchInput) return;
+      if (document.getElementById('v2DesktopSearchOverlay')) return;
+
+      const overlay = document.createElement('div');
+      overlay.id = 'v2DesktopSearchOverlay';
+      overlay.className = 'v2-desktop-search-overlay';
+      overlay.hidden = true;
+      overlay.innerHTML = `
+        <div class="v2-dso-header">
+          <button class="v2-dso-back" id="v2DsoBack" aria-label="Back to results">
+            <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+          <div class="v2-dso-query"><span id="v2DsoQuery"></span></div>
+        </div>
+        <div class="v2-dso-body" id="v2DsoBody"></div>
+      `;
+      sidebar.appendChild(overlay);
+
+      const queryEl = overlay.querySelector('#v2DsoQuery');
+      const bodyEl  = overlay.querySelector('#v2DsoBody');
+      const backBtn = overlay.querySelector('#v2DsoBack');
+
+      function escapeHtml(s) { return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]); }
+      function highlight(text, query) {
+        if (!query) return escapeHtml(text);
+        const q = query.toLowerCase();
+        const t = text || '';
+        const i = t.toLowerCase().indexOf(q);
+        if (i === -1) return escapeHtml(t);
+        return escapeHtml(t.slice(0, i))
+             + '<b style="color:#1FDF67">' + escapeHtml(t.slice(i, i+q.length)) + '</b>'
+             + escapeHtml(t.slice(i+q.length));
+      }
+      function render(query) {
+        queryEl.textContent = query;
+        const features = window.allProjectFeatures || [];
+        const q = query.toLowerCase().trim();
+        if (!q) { bodyEl.innerHTML = '<div style="padding:20px;color:rgba(255,255,255,0.45);font-size:13px">Start typing to search projects, cities, firms‚Ä¶</div>'; return; }
+        // Project matches
+        const projMatches = features.filter(f => (f.properties.title || '').toLowerCase().includes(q)).slice(0, 12);
+        // City matches
+        const citySet = new Map();
+        features.forEach(f => {
+          const c = (f.properties.city || '').trim();
+          if (c && c.toLowerCase().includes(q)) {
+            citySet.set(c, (citySet.get(c) || 0) + 1);
+          }
+        });
+        const cities = [...citySet.entries()].slice(0, 5);
+
+        let html = '';
+        if (projMatches.length) {
+          html += '<div class="v2-dso-group"><div class="v2-dso-group-head">Projects ¬∑ ' + projMatches.length + ' matches</div>';
+          projMatches.forEach(f => {
+            const p = f.properties;
+            html += '<div class="v2-dso-row" data-proj-title="' + escapeHtml(p.title) + '">'
+                  + '<div class="v2-dso-icon project"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/></svg></div>'
+                  + '<div class="v2-dso-body-text"><div class="v2-dso-label">' + highlight(p.title, q) + '</div>'
+                  + '<div class="v2-dso-sub">' + escapeHtml(p.city || '') + ' ¬∑ ' + escapeHtml(p.delivery || '') + '</div></div>'
+                  + '<span class="v2-dso-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg></span>'
+                  + '</div>';
+          });
+          html += '</div>';
+        }
+        if (cities.length) {
+          html += '<div class="v2-dso-group"><div class="v2-dso-group-head">Cities ¬∑ ' + cities.length + ' matches</div>';
+          cities.forEach(([city, count]) => {
+            html += '<div class="v2-dso-row" data-city="' + escapeHtml(city) + '">'
+                  + '<div class="v2-dso-icon city"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 10c0 6-8 13-8 13s-8-7-8-13a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg></div>'
+                  + '<div class="v2-dso-body-text"><div class="v2-dso-label">' + highlight(city, q) + '</div>'
+                  + '<div class="v2-dso-sub">' + count + ' project' + (count===1?'':'s') + '</div></div>'
+                  + '<span class="v2-dso-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg></span>'
+                  + '</div>';
+          });
+          html += '</div>';
+        }
+        if (!projMatches.length && !cities.length) {
+          html = '<div style="padding:30px 20px;text-align:center;color:rgba(255,255,255,0.45);font-size:13px">No results for "' + escapeHtml(query) + '"</div>';
+        }
+        bodyEl.innerHTML = html;
+
+        // Wire row clicks ‚Üí open project modal or search-by-city
+        bodyEl.querySelectorAll('[data-proj-title]').forEach(row => {
+          row.addEventListener('click', () => {
+            const title = row.dataset.projTitle;
+            const feat = (window.allProjectFeatures || []).find(f => (f.properties.title || '') === title);
+            if (feat && window.openProjectModal) {
+              window.openProjectModal(feat, 'search');
+              close();
+            }
+          });
+        });
+        bodyEl.querySelectorAll('[data-city]').forEach(row => {
+          row.addEventListener('click', () => {
+            searchInput.value = row.dataset.city;
+            searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+            close();
+          });
+        });
+      }
+      function open(query) {
+        render(query || '');
+        overlay.hidden = false;
+      }
+      function close() {
+        overlay.hidden = true;
+      }
+
+      searchInput.addEventListener('focus', () => { if (searchInput.value.trim()) open(searchInput.value); });
+      searchInput.addEventListener('input', () => {
+        const v = searchInput.value.trim();
+        if (v) open(v);
+        else close();
+      });
+      backBtn.addEventListener('click', () => {
+        searchInput.value = '';
+        searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+        close();
+      });
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', installDesktopSearchOverlay);
+    } else {
+      installDesktopSearchOverlay();
+    }
 
     // ‚îÄ‚îÄ Desktop v2: inject segmented tabs + filter pills into #desktopSidebar
     function injectDesktopTabs() {
