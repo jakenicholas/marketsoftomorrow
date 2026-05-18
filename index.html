@@ -7318,9 +7318,9 @@
     body.ui-v2 .atlas-mode-toggle { display: none !important; }
 
     /* ── TOP CHROME ──────────────────────────────────────────────────
-       Layout: TMW logo on the LEFT (no background, raw white SVG) ·
-       Map/Atlas toggle CENTERED · right side empty. Three-column flex
-       layout with the toggle absolutely centered. */
+       Layout: combined widget on the LEFT [TMW logo | divider | profile],
+       Map/Atlas toggle absolutely CENTERED, right side empty. Profile
+       icon inside the widget is a functional button (account/menu). */
     body.ui-v2 .v2-top-chrome {
       display: flex;
       align-items: center;
@@ -7332,19 +7332,63 @@
       pointer-events: none;
     }
     body.ui-v2 .v2-top-chrome > * { pointer-events: auto; }
-    /* TMW logo on the left — no glass bg, just the white SVG */
+    /* Combined widget — TMW logo + divider + profile icon */
+    body.ui-v2 .v2-tmw-profile-widget {
+      display: inline-flex; align-items: center;
+      background: rgba(15,15,15,0.7);
+      backdrop-filter: blur(16px) saturate(1.4);
+      -webkit-backdrop-filter: blur(16px) saturate(1.4);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 999px;
+      padding: 4px;
+      gap: 0;
+    }
     body.ui-v2 .v2-tmw-logo {
-      width: 42px; height: 42px;
+      width: 32px; height: 32px;
       display: flex; align-items: center; justify-content: center;
-      padding: 0;
-      flex-shrink: 0;
+      padding: 4px;
     }
     body.ui-v2 .v2-tmw-logo img {
       width: 100%; height: 100%;
       object-fit: contain;
       filter: brightness(0) invert(1);
     }
-    /* Map/Atlas toggle absolutely centered in the screen */
+    body.ui-v2 .v2-widget-divider {
+      width: 1px; height: 22px;
+      background: rgba(255,255,255,0.18);
+      flex-shrink: 0;
+    }
+    body.ui-v2 .v2-profile-btn {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: transparent;
+      border: none;
+      position: relative;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+      color: #fff;
+      padding: 0;
+    }
+    body.ui-v2 .v2-profile-btn svg.profile-icon {
+      width: 18px; height: 18px;
+      stroke: currentColor; fill: none;
+      stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+    }
+    body.ui-v2 .v2-profile-btn .v2-premium-star {
+      position: absolute;
+      bottom: -3px; right: -3px;
+      width: 14px; height: 14px;
+      background: var(--warn, #FFD300);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      border: 2px solid rgba(15,15,15,0.85);
+    }
+    body.ui-v2 .v2-profile-btn .v2-premium-star svg {
+      width: 8px; height: 8px;
+      fill: #0a0a0a;
+    }
+    /* Map/Atlas toggle absolutely centered */
     body.ui-v2 .v2-mode-toggle {
       position: absolute;
       left: 50%; transform: translateX(-50%);
@@ -7616,14 +7660,17 @@
       color: #0a0a0a;
       font-weight: 700;
     }
+    /* Tab num bubble: GOLD by default (notification feel), BLACK when active */
     body.ui-v2 .v2-tab .v2-tab-num {
-      background: rgba(0,0,0,0.18);
-      color: inherit;
+      background: var(--warn, #FFD300);
+      color: #0a0a0a;
       font-size: 10px; font-weight: 800;
-      padding: 1px 6px; border-radius: 100px; line-height: 1.2;
+      padding: 1px 7px; border-radius: 100px; line-height: 1.3;
+      min-width: 18px; text-align: center;
     }
     body.ui-v2 .v2-tab.active .v2-tab-num {
-      background: #0a0a0a; color: var(--warn, #FFD300);
+      background: #0a0a0a;
+      color: var(--warn, #FFD300);
     }
 
     /* Bold title row */
@@ -7732,36 +7779,31 @@
     body.ui-v2 .v2-sheet-body #mobilePillsRow {
       margin: 0 0 8px;
     }
-    /* Title-row section indicator (right side, mirrors mobileSectionBar) */
+    /* Title-row section indicator — matches the rest of the typography,
+       not all-caps. Number rendered as inline text with accent color,
+       no background bubble. */
     body.ui-v2 .v2-section-indicator {
-      display: inline-flex; align-items: center; gap: 6px;
-      font-size: 11px; font-weight: 700;
-      text-transform: uppercase; letter-spacing: 0.05em;
+      display: inline-flex; align-items: baseline; gap: 6px;
+      font-size: 13px; font-weight: 600;
     }
-    body.ui-v2 .v2-section-indicator.in-view { color: var(--accent, #1FDF67); }
-    body.ui-v2 .v2-section-indicator.nearby { color: rgba(255,255,255,0.45); }
+    body.ui-v2 .v2-section-indicator.in-view { color: rgba(255,255,255,0.45); }
+    body.ui-v2 .v2-section-indicator.nearby  { color: rgba(255,255,255,0.45); }
     body.ui-v2 .v2-section-indicator .v2-section-count {
-      display: inline-flex; align-items: center; justify-content: center;
-      min-width: 22px; height: 22px;
-      padding: 0 7px;
-      border-radius: 100px;
-      font-size: 11.5px; font-weight: 800;
-      background: rgba(31,223,103,0.16);
+      font-size: 14px; font-weight: 700;
       color: var(--accent, #1FDF67);
+      font-variant-numeric: tabular-nums;
     }
     body.ui-v2 .v2-section-indicator.nearby .v2-section-count {
-      background: rgba(255,255,255,0.08);
       color: rgba(255,255,255,0.6);
     }
 
     /* ── Force 1-column tile grid ────────────────────────────────
-       Multi-selector stacking + !important guarantees we beat the
-       `#mobileDrawerContent .leaf-grid` and `.leaf-grid` rules
-       elsewhere in the stylesheet. Also enlarge images + meta. */
-    html body.ui-v2 #v2Drawer #gridMobile,
-    html body.ui-v2 #v2DiscoverPane #gridMobile,
-    body.ui-v2 .v2-sheet-body #gridMobile.leaf-grid {
-      display: grid !important;
+       The REAL culprit was .inview-section and .nearby-section, both
+       of which set grid-template-columns: 1fr 1fr internally. Override
+       BOTH to 1fr so the tiles stack full-width. */
+    body.ui-v2 #gridMobile,
+    body.ui-v2 #gridMobile .inview-section,
+    body.ui-v2 #gridMobile .nearby-section {
       grid-template-columns: 1fr !important;
       gap: 12px !important;
       row-gap: 12px !important;
@@ -7775,16 +7817,70 @@
       border: 1px solid rgba(255,255,255,0.08) !important;
       border-radius: 14px !important;
       overflow: hidden !important;
+      position: relative;
     }
-    body.ui-v2 #gridMobile .grid-item img,
     body.ui-v2 #gridMobile .grid-item .image-wrapper {
       width: 100% !important;
       height: 180px !important;
       min-height: 180px !important;
       border-radius: 0 !important;
+      outline: none !important;
+      position: relative;
+      overflow: hidden;
     }
     body.ui-v2 #gridMobile .grid-item img {
+      width: 100% !important;
+      height: 100% !important;
       object-fit: cover !important;
+    }
+    /* Featured badge — top-left overlay on the hero */
+    body.ui-v2 #gridMobile .grid-item .featured-badge {
+      position: absolute !important;
+      top: 10px !important;
+      left: 10px !important;
+      right: auto !important;
+      background: var(--warn, #FFD300) !important;
+      color: #0a0a0a !important;
+      padding: 5px 10px !important;
+      border-radius: 100px !important;
+      font-size: 11px !important;
+      font-weight: 700 !important;
+      letter-spacing: 0.02em !important;
+      display: inline-flex; align-items: center; gap: 5px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      z-index: 2;
+    }
+    body.ui-v2 #gridMobile .grid-item .featured-badge svg {
+      width: 11px; height: 11px; fill: #0a0a0a;
+    }
+    /* Tile body: title + city — clean padding */
+    body.ui-v2 #gridMobile .grid-item .grid-item-content {
+      padding: 12px 14px 8px !important;
+    }
+    body.ui-v2 #gridMobile .grid-item .grid-item-content h3 {
+      font-size: 17px !important;
+      font-weight: 700 !important;
+      margin: 0 0 4px !important;
+      line-height: 1.25 !important;
+      letter-spacing: -0.01em;
+    }
+    body.ui-v2 #gridMobile .grid-item .grid-item-content .city {
+      font-size: 13px !important;
+      color: rgba(255,255,255,0.6) !important;
+      margin: 0 !important;
+      padding-bottom: 0 !important;
+    }
+    /* Delivery bar sits at bottom of tile */
+    body.ui-v2 #gridMobile .grid-item .delivery-bar {
+      padding: 8px 14px 14px !important;
+    }
+    /* In-view green outline — keep but move to whole tile not just image */
+    body.ui-v2 #gridMobile .inview-section .grid-item .image-wrapper {
+      outline: none !important;
+    }
+    body.ui-v2 #gridMobile .inview-section .grid-item {
+      border-color: rgba(31,223,103,0.4) !important;
+      box-shadow: 0 0 0 1px rgba(31,223,103,0.2);
     }
 
     /* ── Watchlist + Pulse panes ──────────────────────────────────
@@ -7814,7 +7910,17 @@
        our own title row + filter pills in the drawer. */
     body.ui-v2 .v2-watchlist-content .wl-handle,
     body.ui-v2 .v2-watchlist-content .wl-header,
-    body.ui-v2 .v2-pulse-content .pulse-stack-header { display: none !important; }
+    body.ui-v2 .v2-pulse-content .pulse-stack-header,
+    body.ui-v2 .v2-pulse-content .pulse-filter-row,
+    body.ui-v2 .v2-pulse-content .pulse-stack-handle,
+    body.ui-v2 .v2-pulse-content [class*="handle"] { display: none !important; }
+
+    /* Right-rail pulse bell badge in GOLD (was green/accent) */
+    body.ui-v2 .v2-action-btn .v2-num-badge {
+      background: var(--warn, #FFD300) !important;
+      color: #0a0a0a !important;
+      border-color: #0a0a0a !important;
+    }
 
     /* ── C3: Project modal lives "inside" the drawer area ─────────
        Reposition #projectModal in v2 mobile so it slides up only over
@@ -8303,11 +8409,21 @@
          the legacy mobile drawer / pulse / watchlist.
          ════════════════════════════════════════════════════════════════ -->
 
-    <!-- Top chrome: TMW logo (left, no bg) · Map/Atlas toggle (center) -->
+    <!-- Top chrome: Combined widget [TMW logo | divider | profile] (left),
+         Map/Atlas toggle (center). Profile icon is functional (click → menu). -->
     <div class="v2-top-chrome" id="v2TopChrome" aria-hidden="true">
-      <a href="https://www.oftmw.com" target="_blank" class="v2-tmw-logo" aria-label="Markets of Tomorrow">
-        <img src="https://static.wixstatic.com/shapes/ca3b83_a647b53cad4c49c5b012af991d286a86.svg" alt="" />
-      </a>
+      <div class="v2-tmw-profile-widget">
+        <a href="https://www.oftmw.com" target="_blank" class="v2-tmw-logo" aria-label="Markets of Tomorrow">
+          <img src="https://static.wixstatic.com/shapes/ca3b83_a647b53cad4c49c5b012af991d286a86.svg" alt="" />
+        </a>
+        <div class="v2-widget-divider"></div>
+        <button class="v2-profile-btn" id="v2ProfileBtn" aria-label="Profile menu">
+          <svg class="profile-icon" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-7 8-7s8 3 8 7"/></svg>
+          <span class="v2-premium-star" id="v2PremiumStar">
+            <svg viewBox="0 0 24 24"><path d="M12 2l3 6.3 6.9 1-5 4.9 1.2 7L12 17.8 5.9 21.2l1.2-7-5-4.9L9 8.3z"/></svg>
+          </span>
+        </button>
+      </div>
       <div class="v2-mode-toggle" role="tablist" aria-label="Switch between map and atlas view">
         <button id="v2MapBtn" class="active" data-mode="map" role="tab" aria-selected="true">Map</button>
         <button id="v2AtlasBtn" data-mode="atlas" role="tab" aria-selected="false">Atlas</button>
@@ -17737,15 +17853,25 @@
         if (grid && pane) pane.appendChild(grid);
 
         // Watchlist content → Watchlist pane
+        // Force `.open` so the panel's render pipeline thinks it's
+        // visible (otherwise transforms/visibility keep it dormant).
         const watchlistPanel = document.getElementById('watchlistPanel');
         if (watchlistPanel && watchPane) {
           watchlistPanel.removeAttribute('hidden');
+          watchlistPanel.classList.add('open');
           watchPane.appendChild(watchlistPanel);
+          // Trigger watchlist render (will populate items)
+          if (typeof window.renderWatchlist === 'function') {
+            try { window.renderWatchlist(); } catch (e) {}
+          }
         }
 
-        // Pulse content → Pulse pane
+        // Pulse content → Pulse pane (also force open)
         const pulseStack = document.getElementById('pulseStack');
-        if (pulseStack && pulsePane) pulsePane.appendChild(pulseStack);
+        if (pulseStack && pulsePane) {
+          pulseStack.classList.add('open');
+          pulsePane.appendChild(pulseStack);
+        }
       } catch (err) {
         console.error('[v2] DOM relocation failed', err);
       }
@@ -18059,7 +18185,19 @@
       delegateClick(v2ZoomIn,  'zoomInButton');
       delegateClick(v2ZoomOut, 'zoomOutButton');
       delegateClick(v2Geo,     'locationButton');
-      delegateClick(v2Layers,  'layersButton');
+      // Layers: bypass the hidden legacy button — toggle the panel
+      // class directly. The legacy click-outside-to-close logic still
+      // works because it watches the panel itself.
+      if (v2Layers) v2Layers.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const panel = document.getElementById('layersPanel');
+        const legacyBtn = document.getElementById('layersButton');
+        if (panel) {
+          const willOpen = !panel.classList.contains('open');
+          panel.classList.toggle('open', willOpen);
+          if (legacyBtn) legacyBtn.classList.toggle('active', willOpen);
+        }
+      });
       if (v2Pulse) v2Pulse.addEventListener('click', () => {
         openSheet();
         const pulseTab = document.querySelector('.v2-tab[data-v2-tab="pulse"]');
@@ -18095,6 +18233,35 @@
         });
       }
 
+      // ── Tile click → open project modal directly ──────────────────
+      // Existing makeTile in renderGrid attaches onclick that on mobile
+      // shows the small popup. In v2 we want tile taps to go straight
+      // to the full modal. Capture-phase listener on the discover pane
+      // intercepts the click before the legacy onclick fires.
+      const discoverPane = document.getElementById('v2DiscoverPane');
+      if (discoverPane) {
+        discoverPane.addEventListener('click', (e) => {
+          const tile = e.target.closest('.grid-item');
+          if (!tile) return;
+          // Find the feature for this tile by matching the rendered title
+          const titleEl = tile.querySelector('h3');
+          if (!titleEl) return;
+          const title = (titleEl.textContent || '').trim();
+          const features = window.allProjectFeatures || [];
+          const feature = features.find(f => (f.properties && f.properties.title) === title);
+          if (!feature) return;
+          // Stop the legacy onclick handler from running
+          e.stopPropagation();
+          e.preventDefault();
+          // Stop further bubbling within capture phase
+          if (typeof e.stopImmediatePropagation === 'function') e.stopImmediatePropagation();
+          // Open the full project modal
+          if (window.openProjectModal) {
+            window.openProjectModal(feature, 'v2-tile');
+          }
+        }, true /* capture: run before bubble-phase legacy onclick */);
+      }
+
       // ── C3: Watch projectModal open/close → body.v2-modal-open ──
       // CSS positions the modal inside the drawer area when this body
       // class is set, and dismisses the drawer chrome behind it.
@@ -18122,12 +18289,23 @@
       const syncSectionBar = () => {
         if (!legacySsbTitle || !v2Indicator) return;
         const inView = legacySsbTitle.classList.contains('in-view');
-        const label  = (legacySsbTitle.textContent || '').trim() || 'In View';
-        const count  = (legacySsbCount && legacySsbCount.textContent || '').trim();
+        // Normalize the label: drop trailing " projects" / count text + force
+        // mixed case (not all caps). Existing element renders "In View" or
+        // "More Nearby" in title case via JS; the v1 CSS uppercased it.
+        let label  = (legacySsbTitle.textContent || '').trim() || 'In View';
+        label = label.replace(/\s*projects?\s*$/i, '').replace(/\s+\d+$/, '').trim();
+        // Title case the result if it came up all-caps from CSS upstream
+        if (label === label.toUpperCase()) {
+          label = label.toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+        }
+        // Pull a clean count number — strip non-digits.
+        let count = (legacySsbCount && legacySsbCount.textContent || '').trim();
+        const m = count.match(/\d+/);
+        count = m ? m[0] : '0';
         v2Indicator.classList.toggle('in-view', inView);
         v2Indicator.classList.toggle('nearby',  !inView);
         if (v2SectLabel) v2SectLabel.textContent = label;
-        if (v2SectCount) v2SectCount.textContent = count || '0';
+        if (v2SectCount) v2SectCount.textContent = count;
       };
       syncSectionBar();
       if (legacySsbTitle) {
