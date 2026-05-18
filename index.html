@@ -1289,11 +1289,29 @@
        column 1 wider than column 2. minmax(0, ...) forces equal-width
        columns and lets content wrap within. */
     .leaf-grid { display: grid; grid-gap: 16px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    /* ui-v2 desktop: force 1-column flex layout. Higher specificity than any
+       legacy .leaf-grid rule, applied at the base level (no media query).
+       The actual horizontal tile styling is set further down in the v2 desktop
+       block ‚Äî this rule just makes sure the grid container stops being a 2-col grid. */
+    body.ui-v2 #desktopSidebar #gridDesktop.leaf-grid {
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 10px !important;
+      grid-template-columns: none !important;
+      grid-gap: 10px !important;
+      padding-right: 0 !important;
+    }
 
     #desktopSidebar { overflow-x: hidden; overflow-y: auto; }
     @media(min-width:801px) {
       #desktopSidebar .leaf-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr)); grid-gap: 10px; padding-right: 5px;
+      }
+      /* v2 desktop override ‚Äî wins over the rule above */
+      body.ui-v2 #desktopSidebar .leaf-grid {
+        grid-template-columns: none !important;
+        grid-gap: 10px !important;
+        padding-right: 0 !important;
       }
     }
     @media(max-width:800px) {
@@ -1309,6 +1327,64 @@
       position: relative; padding: 6px;
       display: flex; flex-direction: column; height: 100%;
       overflow: visible;
+    }
+    /* ui-v2 desktop: horizontal tile layout (image left, body right). Defined
+       at base level (no media query) so specificity always wins over the
+       legacy mobile grid rules. */
+    body.ui-v2 #desktopSidebar .grid-item {
+      display: flex !important;
+      flex-direction: row !important;
+      background: #1f1f1f !important;
+      border: 1px solid rgba(255,255,255,0.08) !important;
+      border-radius: 14px !important;
+      overflow: hidden !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      height: auto !important;
+      min-height: 132px !important;
+      cursor: pointer;
+    }
+    body.ui-v2 #desktopSidebar .grid-item .image-wrapper {
+      width: 140px !important;
+      min-width: 140px !important;
+      height: auto !important;
+      min-height: 132px !important;
+      flex-shrink: 0 !important;
+      border-radius: 0 !important;
+    }
+    body.ui-v2 #desktopSidebar .grid-item img {
+      width: 100% !important;
+      height: 100% !important;
+      min-height: 132px !important;
+      object-fit: cover !important;
+      border-radius: 0 !important;
+    }
+    body.ui-v2 #desktopSidebar .grid-item-content {
+      flex: 1 !important;
+      min-width: 0 !important;
+      padding: 14px 16px !important;
+      display: flex !important;
+      flex-direction: column !important;
+      justify-content: space-between !important;
+    }
+    body.ui-v2 #desktopSidebar .grid-item-content h3 {
+      font-size: 15.5px !important;
+      font-weight: 700 !important;
+      color: #fff !important;
+      letter-spacing: -0.01em !important;
+      line-height: 1.25 !important;
+      margin: 0 !important;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+    }
+    body.ui-v2 #desktopSidebar .grid-item-content p.city {
+      font-size: 12px !important;
+      color: rgba(255,255,255,0.72) !important;
+      padding: 0 !important;
+      margin: 3px 0 0 !important;
     }
     .grid-item.visible {
       opacity: 1;
@@ -8684,6 +8760,36 @@
     }
     body.ui-v2 .v2-desktop-tabs button.active .num {
       background: #0a0a0a; color: var(--warn, #FFD300);
+    }
+
+    /* Desktop filter pills row ‚Äî matches mobile v2 .v2-filter-pills */
+    body.ui-v2 .v2-desktop-filter-pills {
+      display: flex !important;
+      gap: 6px !important;
+      padding: 0 16px 12px !important;
+      overflow-x: auto !important;
+      flex-wrap: nowrap !important;
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    body.ui-v2 .v2-desktop-filter-pills::-webkit-scrollbar { display: none; }
+    body.ui-v2 .v2-desktop-filter-pills .v2-filter-pill {
+      flex-shrink: 0;
+      background: #1f1f1f;
+      border: 1px solid rgba(255,255,255,0.08);
+      color: rgba(255,255,255,0.72);
+      padding: 7px 14px;
+      border-radius: 100px;
+      font-size: 12px;
+      font-weight: 600;
+      white-space: nowrap;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    body.ui-v2 .v2-desktop-filter-pills .v2-filter-pill.active {
+      background: rgba(31,223,103,0.14);
+      border-color: rgba(31,223,103,0.4);
+      color: var(--accent, #1FDF67);
     }
 
     /* ‚îÄ‚îÄ 7. SECTION INDICATOR ‚Äî accent green pill chip ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ */
@@ -18918,12 +19024,99 @@
       } else {
         sidebarHeader.appendChild(tabs);
       }
-      // Wire clicks ‚Üí toggle existing watchlist/pulse panels
+
+      // ‚îÄ‚îÄ Filter pills row (matches mobile v2 design) ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
+      // Inject below the tabs. Dynamic per tab ‚Äî built from project types
+      // for Discover, hardcoded for Watchlist + Pulse.
+      const pillsWrap = document.createElement('div');
+      pillsWrap.className = 'v2-desktop-filter-pills';
+      pillsWrap.id = 'v2DesktopFilterPills';
+      tabs.parentNode.insertBefore(pillsWrap, tabs.nextSibling);
+
+      const DESKTOP_PILLS = {
+        watchlist: [
+          { label: 'All',          value: 'all', active: true },
+          { label: 'With updates', value: 'unread' },
+          { label: 'Construction', value: 'construction' },
+          { label: 'Coming Soon',  value: 'coming-soon' },
+        ],
+        pulse: [
+          { label: 'All',         value: 'all', active: true },
+          { label: 'Updates',     value: 'status_change' },
+          { label: 'News',        value: 'article' },
+          { label: 'New on Map',  value: 'new_project' },
+        ],
+      };
+      function getDesktopDiscoverPills() {
+        const base = [
+          { label: 'All',        value: 'all', active: true },
+          { label: '‚òÖ Featured', value: 'featured' },
+        ];
+        const features = window.allProjectFeatures || [];
+        const seen = new Set();
+        features.forEach(f => (f._projectTypes || []).forEach(t => seen.add(t)));
+        const typeLabels = {
+          'mixed-use': 'Mixed-Use', 'hotel': 'Hotel', 'residential': 'Residential',
+          'office': 'Office', 'retail': 'Retail', 'hospitality': 'Hospitality',
+          'entertainment': 'Entertainment', 'arena': 'Arena', 'marina': 'Marina',
+          'casino': 'Casino', 'stadium': 'Stadium',
+        };
+        const types = [...seen].sort().map(t => ({
+          label: typeLabels[t] || (t.charAt(0).toUpperCase() + t.slice(1)),
+          value: t,
+        }));
+        return [...base, ...types];
+      }
+      function renderDesktopPills(tabId) {
+        if (!pillsWrap) return;
+        const pills = tabId === 'discover'
+          ? getDesktopDiscoverPills()
+          : (DESKTOP_PILLS[tabId] || []);
+        pillsWrap.innerHTML = pills.map(p => `
+          <button class="v2-filter-pill ${p.active ? 'active' : ''}" data-pill-value="${p.value}">
+            ${p.label}
+          </button>
+        `).join('');
+        pillsWrap.querySelectorAll('.v2-filter-pill').forEach(btn => {
+          btn.addEventListener('click', () => {
+            pillsWrap.querySelectorAll('.v2-filter-pill').forEach(x => x.classList.remove('active'));
+            btn.classList.add('active');
+            const value = btn.dataset.pillValue;
+            // Reuse the mobile handlePillClick logic via direct activeFilters /
+            // grid re-render. Same approach as the v2 mobile pill handler.
+            if (tabId === 'discover') {
+              let newType = (value !== 'all' && value !== 'featured') ? value : 'all';
+              if (window.activeFilters) {
+                window.activeFilters.mobile.type = newType;
+                window.activeFilters.desktop.type = newType;
+              }
+              const typeSel = document.getElementById('projectTypeFilterDesktop');
+              if (typeSel) {
+                const opt = Array.from(typeSel.options).find(o => o.value.toLowerCase() === newType.toLowerCase());
+                if (opt) typeSel.value = opt.value;
+                else typeSel.value = 'all';
+                try { typeSel.dispatchEvent(new Event('change', { bubbles: true })); } catch(_) {}
+              }
+              try { if (window.renderGrid) window.renderGrid('gridDesktop'); } catch(_) {}
+              try { if (window.updateMapPinFilters) window.updateMapPinFilters(); } catch(_) {}
+            }
+            // Watchlist + Pulse filtering reuses the mobile renderers (their
+            // data lives in the same DOM elements that the desktop tabs route to).
+          });
+        });
+      }
+      // Initial render: discover
+      renderDesktopPills('discover');
+      // Expose so the data loader can refresh once types are known
+      window._v2RefreshDesktopPills = () => renderDesktopPills('discover');
+      // Wire clicks ‚Üí toggle existing watchlist/pulse panels + re-render pills
       tabs.querySelectorAll('button').forEach(btn => {
         btn.addEventListener('click', () => {
           const target = btn.dataset.v2dTab;
           tabs.querySelectorAll('button').forEach(b => b.classList.remove('active'));
           btn.classList.add('active');
+          // Refresh the filter pills row to match the new tab
+          try { renderDesktopPills(target); } catch(_) {}
           // Open the corresponding panel by clicking the legacy trigger.
           if (target === 'watchlist') {
             const wlBtn = document.getElementById('watchlistBtn');
