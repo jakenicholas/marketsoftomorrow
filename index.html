@@ -7354,6 +7354,12 @@
     /* Atlas overlay is z=90; top chrome is also z=90. Bump chrome above overlay
        in atlas mode so TMW logo + Map/Atlas toggle remain visible and tappable. */
     body.ui-v2.atlas-mode .v2-top-chrome { z-index: 96 !important; }
+    /* In atlas mode the legacy #header re-shows itself (body.atlas-mode rule)
+       at z=99, covering the v2-top-chrome (z=96). Suppress it in v2 so only
+       the v2 top chrome is visible. Also collapse the v2 drawer so atlas
+       content isn't obscured by the search sheet. */
+    body.ui-v2.atlas-mode #header { display: none !important; }
+    body.ui-v2.atlas-mode .v2-drawer { display: none !important; }
 
     /* ‚îÄ‚îÄ TOP CHROME ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
        Layout: combined widget on the LEFT [TMW logo | divider | profile],
@@ -7534,8 +7540,28 @@
       bottom: auto;
       top: calc(env(safe-area-inset-top, 0px) + 2px);
     }
-    body.v2-sheet-open .v2-right-rail > *:not(#v2GeolocateBtn) {
+    body.v2-sheet-open .v2-right-rail > *:not(#v2GeolocateBtn):not(#v2MapReturnBtn) {
       display: none !important;
+    }
+    /* Map-return pill: hidden at rest, becomes a pill at top of rail when
+       sheet is open so the user can tap it to return to the map. */
+    body.ui-v2 #v2MapReturnBtn {
+      display: none;
+    }
+    body.v2-sheet-open #v2MapReturnBtn {
+      display: inline-flex !important;
+      width: auto !important;
+      padding: 0 13px !important;
+      gap: 6px !important;
+      border-radius: 20px !important;
+      font-size: 13px !important;
+      font-weight: 600 !important;
+      color: #fff !important;
+    }
+    body.v2-sheet-open #v2MapReturnBtn svg {
+      width: 15px; height: 15px;
+      stroke: currentColor; fill: none;
+      stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
     }
     body.ui-v2 .v2-action-btn {
       width: 44px; height: 44px;
@@ -8135,26 +8161,25 @@
       top: 10px !important;
       right: 10px !important;
       left: auto !important;
-      background: rgba(255,211,0,0.16) !important;
-      border: 1px solid rgba(255,211,0,0.4) !important;
+      background: var(--warn, #FFD300) !important;
+      border: none !important;
       border-radius: 6px !important;
-      color: var(--warn, #FFD300) !important;
+      color: #000 !important;
       padding: 0 !important;
       font-size: 0 !important;  /* hide "Featured" text */
       letter-spacing: 0 !important;
       display: inline-flex !important; align-items: center !important; justify-content: center !important;
       box-shadow: none !important;
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
       z-index: 2;
       width: 22px !important; height: 22px !important;
     }
     body.ui-v2 #gridMobile .grid-item .featured-badge svg {
       width: 11px !important; height: 11px !important;
-      fill: var(--warn, #FFD300) !important;
+      fill: #fff !important;
       stroke: none !important;
-      /* shadow so star reads on light-background images */
-      filter: drop-shadow(0 1px 3px rgba(0,0,0,0.45)) !important;
+      filter: none !important;
     }
     /* Tile body: title + city ‚Äî clean padding */
     body.ui-v2 #gridMobile .grid-item .grid-item-content {
@@ -8383,7 +8408,7 @@
       border: none !important;
       border-radius: 0 !important;
       box-shadow: none !important;
-      padding: 14px 0 14px 14px !important;
+      padding: 11px 0 11px 14px !important;
       margin: 0 !important;
       position: relative !important;
       border-bottom: 1px solid rgba(255,255,255,0.08) !important;
@@ -8412,21 +8437,21 @@
       display: flex !important;
       align-items: center !important;
       gap: 8px !important;
-      font-size: 11px !important;
+      font-size: 10px !important;
       font-weight: 700 !important;
       text-transform: uppercase !important;
-      letter-spacing: 0.07em !important;
+      letter-spacing: 0.06em !important;
       margin-bottom: 0 !important;
     }
-    /* Project title (the headline) ‚Äî matches mockup: 15.5px / semibold */
+    /* Project title (the headline) ‚Äî matches mockup: 13.5px / regular */
     body.ui-v2 .v2-pulse-content .pulse-ev-title {
-      font-size: 15.5px !important;
+      font-size: 13.5px !important;
       color: #fff !important;
-      font-weight: 600 !important;
-      line-height: 1.38 !important;
+      font-weight: 400 !important;
+      line-height: 1.4 !important;
       text-transform: none !important;
-      letter-spacing: -0.01em !important;
-      margin: 5px 0 0 !important;
+      letter-spacing: 0 !important;
+      margin: 4px 0 0 !important;
       padding: 0 !important;
     }
     /* Hide the bottom row entirely ‚Äî meta lives in the top row */
@@ -8455,6 +8480,21 @@
       text-transform: none !important;
       letter-spacing: 0 !important;
       font-size: 11px !important;
+    }
+
+    /* ‚îÄ‚îÄ Watchlist tiles: taller + more spacious in v2 drawer ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ */
+    body.ui-v2 .v2-watchlist-content .wl-row {
+      padding: 14px !important;
+    }
+    body.ui-v2 .v2-watchlist-content .wl-row-thumb {
+      width: 80px !important; height: 80px !important;
+    }
+    /* Fix middle-dot separator ‚Äî displayed as invisible/odd char in some
+       fonts. Already using &middot; in the JS but enforce a safe fallback
+       with explicit character styling. */
+    body.ui-v2 .v2-watchlist-content .wl-row-meta > span:only-child,
+    body.ui-v2 .v2-watchlist-content .wl-row-meta > span {
+      display: inline-flex; align-items: center;
     }
 
     /* Right-rail pulse bell badge in GOLD (was green/accent) */
@@ -8994,6 +9034,11 @@
 
     <!-- Right-rail action buttons (slide up with sheet) -->
     <div class="v2-right-rail" id="v2RightRail" aria-hidden="true">
+      <!-- Map-return pill ‚Äî only visible when sheet is open -->
+      <button class="v2-action-btn" id="v2MapReturnBtn" aria-label="Return to map">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        Map
+      </button>
       <button class="v2-action-btn" id="v2PulseQuickBtn" aria-label="Pulse">
         <span class="v2-num-badge" id="v2PulseQuickBadge" hidden>0</span>
         <svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
@@ -11437,31 +11482,60 @@
       // so the map is fully visible.
       const pmViewMapBtn = document.getElementById('pmViewMapBtn');
       if (pmViewMapBtn) {
-        pmViewMapBtn.addEventListener('click', (e) => {
+        // Use pointerdown + preventDefault for instant response on iOS
+        // (click events can fire with a 300ms delay on some devices/browsers).
+        let _vmFired = false;
+        const doViewOnMap = (e) => {
           e.stopPropagation();
+          if (e.type === 'pointerdown') e.preventDefault();
+          if (_vmFired) return;
+          _vmFired = true;
+          setTimeout(() => { _vmFired = false; }, 800); // reset after debounce window
+
           const f = currentFeature;
-          closeModal();
-          // Immediately remove both modal AND sheet state so the drawer
-          // collapses synchronously before the fly starts. (The async
-          // MutationObserver that normally removes v2-modal-open would race
-          // with the flyTo, sometimes leaving the sheet visible.)
-          document.body.classList.remove('v2-sheet-open', 'v2-sheet-mid', 'v2-sheet-full', 'v2-modal-open');
+
+          // Force-hide modal IMMEDIATELY (no 350ms animation wait).
+          // The normal closeModal() animation is bypassed so the map is
+          // revealed right away. We still call the analytics helper inline.
+          try {
+            if (window._currentProjectView) _fireProjectViewDuration('view_on_map');
+          } catch(_) {}
+          modal.classList.remove('open', 'closing');
+          modal.style.display = 'none';
+          history.pushState({}, '', '?fullscreen=true');
+
+          // Collapse the v2 sheet and clear all body state flags.
+          document.body.classList.remove(
+            'v2-sheet-open', 'v2-sheet-mid', 'v2-sheet-full', 'v2-modal-open'
+          );
+          // Also call global close-sheet if it's exposed (set in v2 boot).
+          if (typeof window.v2CloseSheet === 'function') {
+            try { window.v2CloseSheet(); } catch(_) {}
+          }
+
           if (!f || !f.geometry || !f.geometry.coordinates) return;
           const co = f.geometry.coordinates;
           const isMobile = window.innerWidth <= 800;
           const targetZoom = Math.max(map.getZoom(), isMobile ? 13 : 14);
-          map.flyTo({ center: co, zoom: targetZoom, duration: 1200, essential: true });
-          // Open popup when fly settles. Use moveend for precise timing;
-          // fallback timeout in case moveend never fires (e.g. map not moving).
-          let popupFired = false;
-          const firePopup = () => {
-            if (popupFired) return;
-            popupFired = true;
-            try { showPopup(f, { skipPaywall: true }); } catch(_) {}
-          };
-          map.once('moveend', firePopup);
-          setTimeout(firePopup, 1500);
-        });
+
+          // Brief rAF delay so the sheet CSS transition starts before flyTo,
+          // ensuring the map is visually uncovered before the camera moves.
+          requestAnimationFrame(() => {
+            map.flyTo({ center: co, zoom: targetZoom, duration: 1200, essential: true });
+            // Open popup when fly settles. Use moveend for precise timing;
+            // fallback timeout in case moveend never fires.
+            let popupFired = false;
+            const firePopup = () => {
+              if (popupFired) return;
+              popupFired = true;
+              try { showPopup(f, { skipPaywall: true }); } catch(_) {}
+            };
+            map.once('moveend', firePopup);
+            setTimeout(firePopup, 1500);
+          });
+        };
+        pmViewMapBtn.addEventListener('pointerdown', doViewOnMap, { passive: false });
+        pmViewMapBtn.addEventListener('click', doViewOnMap);
       }
 
       // Project modal slider ‚Äî arrow + keyboard + swipe navigation
@@ -15760,13 +15834,13 @@
             ? `Delivery ${year}`
             : (row.lastViewedTs ? `Viewed ${timeAgo(row.lastViewedTs)}` : '');
           return `
-            <div class="wl-row${hasUnread ? ' has-unread' : ''}" data-slug="${escapeHtml(row.slug)}">
+            <div class="wl-row${hasUnread ? ' has-unread' : ''}" data-slug="${escapeHtml(row.slug)}" data-wl-delivery="${escapeHtml((row.delivery || '').toLowerCase())}" data-wl-unread="${hasUnread ? 'true' : 'false'}">
               <div class="wl-row-thumb" style="${thumbStyle}"></div>
               <div class="wl-row-body">
                 <div class="wl-row-title">${escapeHtml(row.title)}</div>
                 <div class="wl-row-meta">
                   <span>${escapeHtml(row.city)}</span>
-                  ${deliveryDisplay ? `<span>¬∑</span><span>${escapeHtml(deliveryDisplay)}</span>` : ''}
+                  ${deliveryDisplay ? `<span>&middot;</span><span>${escapeHtml(deliveryDisplay)}</span>` : ''}
                 </div>
                 <div class="wl-row-meta">
                   <span class="wl-row-status-pill" style="color:${stage.color};background:${stage.color}26;">${escapeHtml(stage.label)}</span>
@@ -18559,8 +18633,16 @@
           v2Atl.setAttribute('aria-selected', String(atlasOn));
         };
         mirror();
-        // Watch body class changes (cheap MutationObserver)
-        new MutationObserver(mirror).observe(document.body, {
+        // Watch body class changes (cheap MutationObserver): mirror toggle
+        // state AND close the sheet whenever atlas mode activates.
+        new MutationObserver(() => {
+          mirror();
+          // If atlas mode just turned on, close the drawer so it doesn't
+          // float over the atlas overlay content.
+          if (document.body.classList.contains('atlas-mode')) {
+            closeSheet();
+          }
+        }).observe(document.body, {
           attributes: true, attributeFilter: ['class'],
         });
       }
@@ -18578,10 +18660,22 @@
       const closeSheet = () => {
         document.body.classList.remove('v2-sheet-open');
       };
+      // Expose globally so other contexts (View on Map, Map return btn) can
+      // close the sheet without needing to duplicate class-removal logic.
+      window.v2CloseSheet = closeSheet;
       if (capsule) {
         capsule.addEventListener('click', () => {
           openSheet();
           setTimeout(() => { if (search) search.focus(); }, 220);
+        });
+      }
+
+      // Map-return pill: closes the sheet and returns to the map view.
+      const mapReturnBtn = document.getElementById('v2MapReturnBtn');
+      if (mapReturnBtn) {
+        mapReturnBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          closeSheet();
         });
       }
 
@@ -18773,9 +18867,44 @@
               }
             }
           }
-          // TODO C3: wire featured filter through to renderGrid
         }
-        // Watchlist + Pulse pill behavior wired in C3
+        if (tabId === 'watchlist') {
+          // Filter the rendered watchlist rows by delivery stage / unread state.
+          // Rows have data-wl-delivery and data-wl-unread attributes set in rowHtml().
+          const bodyEl = document.getElementById('watchlistBody');
+          if (!bodyEl) return;
+          const rows = bodyEl.querySelectorAll('.wl-row[data-wl-delivery]');
+          rows.forEach(row => {
+            const delivery = (row.dataset.wlDelivery || '').toLowerCase();
+            const isUnread  = row.dataset.wlUnread === 'true';
+            let show = false;
+            if (value === 'all') {
+              show = true;
+            } else if (value === 'unread') {
+              show = isUnread;
+            } else if (value === 'construction') {
+              show = delivery.includes('construction');
+            } else if (value === 'coming-soon') {
+              // Announced / Breaking Ground / Coming Soon = pre-delivery stages
+              show = delivery.includes('announced') ||
+                     delivery.includes('breaking') ||
+                     delivery.includes('coming');
+            }
+            row.style.display = show ? '' : 'none';
+          });
+        }
+        if (tabId === 'pulse') {
+          // Filter pulse event rows by their data-event-type attribute.
+          // Rows already have [data-event-type] set by the pulse renderer.
+          const spine = document.querySelector('.v2-pulse-content .pulse-spine');
+          if (!spine) return;
+          const events = spine.querySelectorAll('.pulse-ev-wrap[data-event-type]');
+          events.forEach(ev => {
+            const type = (ev.dataset.eventType || '');
+            const show = value === 'all' || type === value;
+            ev.style.display = show ? '' : 'none';
+          });
+        }
       }
 
       function switchTab(id) {
@@ -18799,6 +18928,13 @@
           if (subEl) subEl.hidden = false;
         }
         renderFilterPills(id);
+        // Reset any pill-filtered rows so switching tabs never leaves hidden rows.
+        if (id === 'watchlist') {
+          document.querySelectorAll('#watchlistBody .wl-row').forEach(r => (r.style.display = ''));
+        } else if (id === 'pulse') {
+          const spine = document.querySelector('.v2-pulse-content .pulse-spine');
+          if (spine) spine.querySelectorAll('.pulse-ev-wrap').forEach(r => (r.style.display = ''));
+        }
       }
       tabs.forEach(t => t.addEventListener('click', () => switchTab(t.dataset.v2Tab)));
       switchTab('discover');
