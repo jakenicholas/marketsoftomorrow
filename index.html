@@ -9363,7 +9363,10 @@
       </div>
 
       <div class="sidebar-content">
-        <div class="leaf-grid" id="gridDesktop"></div>
+        <!-- Inline style FORCES 1-column flex layout on desktop. CSS specificity
+             wars with legacy .leaf-grid rules keep failing, so we set it here
+             as the most reliable override. Mobile (gridMobile) is unaffected. -->
+        <div class="leaf-grid" id="gridDesktop" style="display: flex !important; flex-direction: column !important; grid-template-columns: none !important; gap: 10px !important; padding: 0 16px 16px !important;"></div>
       </div>
     </div>
     
