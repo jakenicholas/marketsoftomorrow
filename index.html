@@ -1328,64 +1328,10 @@
       display: flex; flex-direction: column; height: 100%;
       overflow: visible;
     }
-    /* ui-v2 desktop: horizontal tile layout (image left, body right). Defined
-       at base level (no media query) so specificity always wins over the
-       legacy mobile grid rules. */
-    body.ui-v2 #desktopSidebar .grid-item {
-      display: flex !important;
-      flex-direction: row !important;
-      background: #1f1f1f !important;
-      border: 1px solid rgba(255,255,255,0.08) !important;
-      border-radius: 14px !important;
-      overflow: hidden !important;
-      padding: 0 !important;
-      margin: 0 !important;
-      height: auto !important;
-      min-height: 130px !important;
-      cursor: pointer;
-    }
-    body.ui-v2 #desktopSidebar .grid-item .image-wrapper {
-      width: 200px !important;
-      min-width: 200px !important;
-      height: auto !important;
-      min-height: 130px !important;
-      flex-shrink: 0 !important;
-      border-radius: 0 !important;
-    }
-    body.ui-v2 #desktopSidebar .grid-item img {
-      width: 100% !important;
-      height: 100% !important;
-      min-height: 130px !important;
-      object-fit: cover !important;
-      border-radius: 0 !important;
-    }
-    body.ui-v2 #desktopSidebar .grid-item-content {
-      flex: 1 !important;
-      min-width: 0 !important;
-      padding: 14px 16px !important;
-      display: flex !important;
-      flex-direction: column !important;
-      justify-content: space-between !important;
-    }
-    body.ui-v2 #desktopSidebar .grid-item-content h3 {
-      font-size: 15.5px !important;
-      font-weight: 700 !important;
-      color: #fff !important;
-      letter-spacing: -0.01em !important;
-      line-height: 1.25 !important;
-      margin: 0 !important;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-    }
-    body.ui-v2 #desktopSidebar .grid-item-content p.city {
-      font-size: 12px !important;
-      color: rgba(255,255,255,0.72) !important;
-      padding: 0 !important;
-      margin: 3px 0 0 !important;
-    }
+    /* ui-v2 desktop tile layout (.grid-item / .image-wrapper / h3 /
+       p.city / featured-badge / etc.) is fully defined in the
+       @media(min-width: 801px) block lower in the cascade. The earlier
+       duplicate at this location was removed during cleanup. */
     .grid-item.visible {
       opacity: 1;
       transform: none;
@@ -8142,6 +8088,15 @@
     body.v2-searching .v2-desktop-filter-pills {
       display: none !important;
     }
+    /* Hide the legacy active-filter chip row ("Type: Spa") + the "Clear all"
+       button on BOTH surfaces ‚Äî Jake's contextual filter pills replace
+       them. The mobilePillsRow rule above is mobile-only; this catches
+       the desktop pill row (#desktopPillsRow) and the floating clear-all
+       button anywhere. */
+    body.ui-v2 #desktopPillsRow,
+    body.ui-v2 .clear-all-btn {
+      display: none !important;
+    }
     body.ui-v2 .v2-filter-pills::-webkit-scrollbar { display: none; }
     body.ui-v2 .v2-filter-pill {
       flex-shrink: 0;
@@ -8173,10 +8128,10 @@
        mirror its label + count into the title row's right side via JS
        MutationObserver. */
     body.ui-v2 .v2-sheet-body #mobileSectionBar { display: none !important; }
-    /* Hide the legacy active-filter chips row + "clear all" button.
-       Jake's contextual filter pills replace this entirely. */
+    /* Hide the legacy active-filter chips row + "clear all" button on
+       BOTH surfaces ‚Äî desktop's #desktopPillsRow gets the same hide via
+       the global rule below since it shares .filter-pills-row. */
     body.ui-v2 #mobilePillsRow { display: none !important; }
-    body.ui-v2 .clear-all-btn { display: none !important; }
     /* Title-row section indicator ‚Äî "in view" green bold label + green
        count bubble. Flips to "more nearby" gray with gray bubble when
        user scrolls past the in-view section. Matches the mockup's
@@ -8786,6 +8741,19 @@
       display: none !important;
     }
 
+    /* Right-aligned group inside the actual #header bar that hosts the
+       bell + comparison icons + TMW profile widget. Anchored via
+       margin-left:auto so the group floats to the right edge while the
+       left side keeps the TMW logo + Map/Atlas toggle. */
+    body.ui-v2 #header .v2-desktop-header-group {
+      margin-left: auto !important;
+      display: flex !important;
+      align-items: center !important;
+      gap: 10px !important;
+      position: relative !important;
+      z-index: 101 !important;
+    }
+
     /* ‚îÄ‚îÄ Reveal the mobile .v2-top-chrome on desktop, but only the TMW
        profile widget piece, anchored to the right side of the chrome.
        Hides the duplicate Map/Atlas toggle inside it since the legacy
@@ -8809,7 +8777,7 @@
     }
     /* Hide the Map/Atlas toggle that lives inside .v2-top-chrome ‚Äî we
        already have one outside in .atlas-mode-toggle. */
-    body.ui-v2 .v2-top-chrome .v2-mode-toggle {
+    body.ui-v2 :is(.v2-top-chrome, .v2-desktop-header-group) .v2-mode-toggle {
       display: none !important;
     }
     /* Notification + comparison icon buttons on the top-right */
@@ -8855,7 +8823,7 @@
     /* Now style the widget itself on desktop. Reuse the same mobile
        look ‚Äî pill with TMW logo + divider + profile icon ‚Äî so behavior
        and look match across breakpoints. */
-    body.ui-v2 .v2-top-chrome .v2-tmw-profile-widget {
+    body.ui-v2 :is(.v2-top-chrome, .v2-desktop-header-group) .v2-tmw-profile-widget {
       display: inline-flex !important;
       align-items: center !important;
       background: rgba(15,15,15,0.7) !important;
@@ -8869,22 +8837,22 @@
       position: relative !important;
       box-sizing: border-box !important;
     }
-    body.ui-v2 .v2-top-chrome .v2-tmw-logo {
+    body.ui-v2 :is(.v2-top-chrome, .v2-desktop-header-group) .v2-tmw-logo {
       width: 32px; height: 32px;
       display: flex; align-items: center; justify-content: center;
       padding: 0;
     }
-    body.ui-v2 .v2-top-chrome .v2-tmw-logo img {
+    body.ui-v2 :is(.v2-top-chrome, .v2-desktop-header-group) .v2-tmw-logo img {
       width: 30px; height: 30px;
       object-fit: contain;
       filter: brightness(0) invert(1);
     }
-    body.ui-v2 .v2-top-chrome .v2-widget-divider {
+    body.ui-v2 :is(.v2-top-chrome, .v2-desktop-header-group) .v2-widget-divider {
       width: 1px; height: 20px;
       background: rgba(255,255,255,0.18);
       flex-shrink: 0;
     }
-    body.ui-v2 .v2-top-chrome .v2-profile-btn {
+    body.ui-v2 :is(.v2-top-chrome, .v2-desktop-header-group) .v2-profile-btn {
       width: 30px; height: 30px;
       border-radius: 50%;
       background: transparent;
@@ -8896,30 +8864,30 @@
       color: #fff;
       padding: 0;
     }
-    body.ui-v2 .v2-top-chrome .v2-profile-btn svg.profile-icon {
+    body.ui-v2 :is(.v2-top-chrome, .v2-desktop-header-group) .v2-profile-btn svg.profile-icon {
       width: 18px; height: 18px;
       stroke: currentColor; fill: none;
       stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
     }
-    body.ui-v2 .v2-top-chrome .v2-profile-btn:not(.signed-in) .v2-login-text {
+    body.ui-v2 :is(.v2-top-chrome, .v2-desktop-header-group) .v2-profile-btn:not(.signed-in) .v2-login-text {
       display: inline;
       font-size: 12px; font-weight: 700;
       white-space: nowrap;
       letter-spacing: 0.01em;
     }
-    body.ui-v2 .v2-top-chrome .v2-profile-btn:not(.signed-in) {
+    body.ui-v2 :is(.v2-top-chrome, .v2-desktop-header-group) .v2-profile-btn:not(.signed-in) {
       width: auto;
       padding: 0 11px;
       border-radius: 20px;
       background: rgba(255,255,255,0.1);
       border: 1px solid rgba(255,255,255,0.18);
     }
-    body.ui-v2 .v2-top-chrome .v2-profile-btn:not(.signed-in) svg.profile-icon { display: none; }
-    body.ui-v2 .v2-top-chrome .v2-profile-btn:not(.signed-in) .v2-premium-star { display: none !important; }
-    body.ui-v2 .v2-top-chrome .v2-profile-btn.signed-in .v2-login-text { display: none; }
-    body.ui-v2 .v2-top-chrome .v2-profile-btn:not(.is-pro) .v2-premium-star { display: none !important; }
+    body.ui-v2 :is(.v2-top-chrome, .v2-desktop-header-group) .v2-profile-btn:not(.signed-in) svg.profile-icon { display: none; }
+    body.ui-v2 :is(.v2-top-chrome, .v2-desktop-header-group) .v2-profile-btn:not(.signed-in) .v2-premium-star { display: none !important; }
+    body.ui-v2 :is(.v2-top-chrome, .v2-desktop-header-group) .v2-profile-btn.signed-in .v2-login-text { display: none; }
+    body.ui-v2 :is(.v2-top-chrome, .v2-desktop-header-group) .v2-profile-btn:not(.is-pro) .v2-premium-star { display: none !important; }
     /* Drop-down menu opens below the widget */
-    body.ui-v2 .v2-top-chrome .v2-profile-menu {
+    body.ui-v2 :is(.v2-top-chrome, .v2-desktop-header-group) .v2-profile-menu {
       position: absolute;
       top: calc(100% + 8px);
       right: 0;
@@ -8935,8 +8903,8 @@
       display: none;
       z-index: 100;
     }
-    body.ui-v2 .v2-top-chrome .v2-profile-menu.open { display: block; }
-    body.ui-v2 .v2-top-chrome .v2-profile-menu .v2-menu-item {
+    body.ui-v2 :is(.v2-top-chrome, .v2-desktop-header-group) .v2-profile-menu.open { display: block; }
+    body.ui-v2 :is(.v2-top-chrome, .v2-desktop-header-group) .v2-profile-menu .v2-menu-item {
       display: flex; align-items: center; gap: 12px;
       padding: 10px 12px;
       color: rgba(255,255,255,0.85);
@@ -8950,22 +8918,22 @@
       text-align: left;
       font-family: inherit;
     }
-    body.ui-v2 .v2-top-chrome .v2-profile-menu .v2-menu-item:hover {
+    body.ui-v2 :is(.v2-top-chrome, .v2-desktop-header-group) .v2-profile-menu .v2-menu-item:hover {
       background: rgba(255,255,255,0.06);
     }
-    body.ui-v2 .v2-top-chrome .v2-profile-menu .v2-menu-item svg {
+    body.ui-v2 :is(.v2-top-chrome, .v2-desktop-header-group) .v2-profile-menu .v2-menu-item svg {
       width: 16px; height: 16px;
       stroke: currentColor; fill: none;
       stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
       flex-shrink: 0;
       opacity: 0.7;
     }
-    body.ui-v2 .v2-top-chrome .v2-profile-menu .v2-menu-divider {
+    body.ui-v2 :is(.v2-top-chrome, .v2-desktop-header-group) .v2-profile-menu .v2-menu-divider {
       height: 1px;
       background: rgba(255,255,255,0.08);
       margin: 6px 4px;
     }
-    body.ui-v2 .v2-top-chrome .v2-profile-menu .v2-menu-signout {
+    body.ui-v2 :is(.v2-top-chrome, .v2-desktop-header-group) .v2-profile-menu .v2-menu-signout {
       color: rgba(255, 120, 120, 0.9);
     }
 
@@ -9443,18 +9411,20 @@
       grid-gap: 10px !important;
       padding: 0 16px 16px !important;
     }
-    /* Nested section sub-grids (In View / More Nearby) ‚Äî flatten to 1 col.
-       Without this override the renderGrid pipeline wraps tiles in a 2-col
-       .inview-section grid, defeating the parent flex column. */
+    /* Nested section sub-grids (In View / More Nearby) ‚Äî 2-column grid
+       to match mobile. Each tile is vertical (image on top, body below). */
     body.ui-v2 #desktopSidebar #gridDesktop .inview-section,
     body.ui-v2 #desktopSidebar #gridDesktop .nearby-section,
     body.ui-v2 #desktopSidebar .leaf-grid .inview-section,
     body.ui-v2 #desktopSidebar .leaf-grid .nearby-section {
-      display: flex !important;
-      flex-direction: column !important;
-      grid-template-columns: none !important;
+      display: grid !important;
+      grid-template-columns: 1fr 1fr !important;
       gap: 10px !important;
       padding: 0 !important;
+    }
+    /* Section header spans both columns */
+    body.ui-v2 #desktopSidebar #gridDesktop .section-header-wrap {
+      grid-column: 1 / -1 !important;
     }
     /* Section header (the IN VIEW / NEARBY pill row) ‚Äî needs space */
     body.ui-v2 #desktopSidebar .section-header-wrap {
@@ -9544,23 +9514,22 @@
     body.ui-v2 #desktopSidebar .grid-item .v2-status-pill.construction .v2-status-dot { background: #FF9500; }
     body.ui-v2 #desktopSidebar .grid-item .v2-status-pill.opening      .v2-status-dot { background: #1FDF67; }
     body.ui-v2 #desktopSidebar .grid-item .v2-status-pill.open         .v2-status-dot { background: #1FDF67; }
+    /* Vertical tile ‚Äî image on top, body below (mobile-style). The
+       parent .inview-section / .nearby-section is a 2-column grid so
+       these tiles live side-by-side. */
     body.ui-v2 #desktopSidebar .grid-item {
       display: flex !important;
-      flex-direction: row !important;
+      flex-direction: column !important;
       background: #1f1f1f !important;
       border: 1px solid rgba(255,255,255,0.08) !important;
       border-radius: 14px !important;
       overflow: hidden !important;
       padding: 0 !important;
       margin: 0 !important;
-      /* Uniform fixed height ‚Äî every tile is the same height regardless
-         of whether the title wraps to 2 lines. Tall enough for: 2-line
-         title (38px) + city (16px) + divider gap + Delivery/Intel foot
-         row (42px) with comfortable padding. Image fills full tile height
-         via grid-row: 1 / -1, so a taller tile = a longer image. */
-      height: 130px !important;
-      min-height: 130px !important;
+      height: auto !important;
+      min-height: 0 !important;
       cursor: pointer;
+      position: relative !important;
     }
     body.ui-v2 #desktopSidebar .grid-item:hover {
       border-color: rgba(255,255,255,0.2) !important;
@@ -9569,27 +9538,29 @@
       box-shadow: none !important;
     }
     body.ui-v2 #desktopSidebar .grid-item .image-wrapper {
-      width: 200px !important;
-      min-width: 200px !important;
-      height: auto !important;
-      min-height: 130px !important;
+      width: 100% !important;
+      min-width: 0 !important;
+      max-width: none !important;
+      height: 140px !important;
+      min-height: 140px !important;
       flex-shrink: 0 !important;
       border-radius: 0 !important;
+      position: relative !important;
     }
     body.ui-v2 #desktopSidebar .grid-item img {
       width: 100% !important;
       height: 100% !important;
-      min-height: 130px !important;
+      min-height: 140px !important;
       object-fit: cover !important;
       border-radius: 0 !important;
     }
     body.ui-v2 #desktopSidebar .grid-item-content {
-      flex: 1 !important;
+      flex: 1 0 auto !important;
       min-width: 0 !important;
-      padding: 14px 16px !important;
+      padding: 10px 12px 0 !important;
       display: flex !important;
       flex-direction: column !important;
-      justify-content: space-between !important;
+      gap: 0 !important;
     }
     body.ui-v2 #desktopSidebar .grid-item-content h3 {
       font-size: 15.5px !important;
@@ -9611,13 +9582,13 @@
       margin: 3px 0 0 !important;
       font-style: normal !important;
     }
-    /* Featured badge ‚Äî gold + #111 star, positioned at the right edge of
-       the 140px image (not on the body side). */
+    /* Featured badge ‚Äî gold + #111 star, top-right of the image (image
+       is full tile width on the vertical layout, so simple right:10px). */
     body.ui-v2 #desktopSidebar .grid-item .featured-badge {
       position: absolute !important;
       top: 10px !important;
-      left: calc(140px - 22px - 10px) !important;
-      right: auto !important;
+      right: 10px !important;
+      left: auto !important;
       background: var(--warn, #FFD300) !important;
       border: none !important;
       border-radius: 6px !important;
@@ -9706,47 +9677,9 @@
     body.ui-v2 #desktopSidebar .grid-item .image-wrapper {
       position: relative;
     }
-    /* Wrap tile body in a flex column so info row sits below the divider */
-    body.ui-v2 #desktopSidebar .grid-item {
-      align-items: stretch !important;
-    }
-    body.ui-v2 #desktopSidebar .grid-item .grid-item-content,
-    body.ui-v2 #desktopSidebar .grid-item .v2-tile-info {
-      /* These are siblings of image-wrapper; we need them in a column
-         on the right side. Use a wrapping selector via order. */
-    }
-    /* The flex row contains: image-wrapper (left) | content + info (right).
-       Group content + info on the right by setting them both flex-grow:0
-       and using a CSS hack: image-wrapper takes 140px, then content + info
-       each get full remaining width ‚Äî they naturally stack because the
-       parent's flex-direction is row but children before the image are
-       not present. Simpler approach: change parent to grid. */
-    body.ui-v2 #desktopSidebar .grid-item {
-      display: grid !important;
-      grid-template-columns: 200px 1fr !important;
-      grid-template-rows: 1fr auto !important;
-    }
-    body.ui-v2 #desktopSidebar .grid-item > .image-wrapper {
-      grid-column: 1 / 2 !important;
-      grid-row: 1 / -1 !important;
-    }
-    body.ui-v2 #desktopSidebar .grid-item > .featured-badge {
-      grid-column: 1 / 2 !important;
-      grid-row: 1 / 2 !important;
-      align-self: start;
-      justify-self: end;
-      margin: 10px !important;
-      position: static !important;
-      left: auto !important;
-    }
-    body.ui-v2 #desktopSidebar .grid-item > .grid-item-content {
-      grid-column: 2 / 3 !important;
-      grid-row: 1 / 2 !important;
-    }
-    body.ui-v2 #desktopSidebar .grid-item > .v2-tile-info {
-      grid-column: 2 / 3 !important;
-      grid-row: 2 / 3 !important;
-    }
+    /* Removed: legacy "image-left, body-right" grid layout. The current
+       v2 desktop tile is a flex column (image on top, body below) defined
+       in the .grid-item block above. */
 
     /* ‚îÄ‚îÄ DESKTOP SEARCH OVERLAY (mobile-style) ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
        Renders INLINE below the sticky sidebar-header (tabs + search +
@@ -10198,13 +10131,8 @@
         <!-- Active filter pills (desktop) -->
         <div class="filter-pills-row" id="desktopPillsRow"></div>
 
-        <!-- Section status bar (desktop) -->
-        <div id="desktopSectionBar" class="section-status-bar">
-          <div class="ssb-inner" id="desktopSsbInner">
-            <span class="ssb-title in-view" id="desktopSsbTitle">In View</span>
-            <span class="ssb-count green" id="desktopSsbCount"></span>
-          </div>
-        </div>
+        <!-- Section status bar removed ‚Äî the v2 sheet-title-row in the
+             sidebar header now carries the In View / count indicator. -->
       </div>
 
       <div class="sidebar-content">
@@ -15481,6 +15409,14 @@
           if (typeof window._v2RefreshDiscoverPills === 'function') {
             try { window._v2RefreshDiscoverPills(); } catch(_) {}
           }
+          // Desktop has its own filter-pills row injected by
+          // injectDesktopTabs(). It builds pills from
+          // window.allProjectFeatures which may not be populated on its
+          // first call (boot order race). Re-render now so all type
+          // pills show without the user having to switch tabs.
+          if (typeof window._v2RefreshDesktopPills === 'function') {
+            try { window._v2RefreshDesktopPills(); } catch(_) {}
+          }
 
     
           // projectTypes lives only on _projectTypes (JS array, not in GeoJSON properties)
@@ -19863,68 +19799,17 @@
     // every child (otherwise section headers + skeletons get the 132px box
     // treatment and break the layout).
     (function injectNuclearGridCss() {
+      // Right-rail buttons need their styling on desktop too (the original
+      // .v2-right-rail .v2-action-btn rules live inside the
+      // @media(max-width:800px) mobile block). Injecting them here also
+      // keeps them outside the legacy stylesheet so cleanup is local to
+      // the v2 boot path. Tile/grid geometry is fully covered by the
+      // static CSS + forceDesktopTileLayout ‚Äî no need to duplicate here.
       if (document.getElementById('v2DesktopNuclearCss')) return;
       const style = document.createElement('style');
       style.id = 'v2DesktopNuclearCss';
       style.textContent = `
         @media(min-width: 801px) {
-          /* Grid container ‚Üí 1 column flex */
-          html body.ui-v2 #desktopSidebar #gridDesktop,
-          html body.ui-v2 #desktopSidebar #gridDesktop.leaf-grid {
-            display: flex !important;
-            flex-direction: column !important;
-            flex-wrap: nowrap !important;
-            grid-template-columns: none !important;
-            grid-template-rows: none !important;
-            gap: 10px !important;
-            grid-gap: 10px !important;
-            padding: 0 16px 16px !important;
-            width: auto !important;
-          }
-          /* Tile ‚Üí horizontal row, full width */
-          html body.ui-v2 #desktopSidebar #gridDesktop .grid-item {
-            display: flex !important;
-            flex-direction: row !important;
-            width: 100% !important;
-            max-width: 100% !important;
-            min-width: 0 !important;
-            height: auto !important;
-            min-height: 130px !important;
-            grid-column: auto !important;
-            grid-row: auto !important;
-            flex-basis: auto !important;
-            background: #1f1f1f !important;
-            border: 1px solid rgba(255,255,255,0.08) !important;
-            border-radius: 14px !important;
-            overflow: hidden !important;
-            padding: 0 !important;
-            margin: 0 !important;
-          }
-          /* Image-wrapper 140px on left */
-          html body.ui-v2 #desktopSidebar #gridDesktop .grid-item .image-wrapper {
-            width: 200px !important;
-            min-width: 200px !important;
-            max-width: 200px !important;
-            height: auto !important;
-            min-height: 130px !important;
-            flex-shrink: 0 !important;
-            border-radius: 0 !important;
-          }
-          html body.ui-v2 #desktopSidebar #gridDesktop .grid-item img {
-            width: 100% !important;
-            height: 100% !important;
-            min-height: 130px !important;
-            object-fit: cover !important;
-          }
-          /* Body fills the rest */
-          html body.ui-v2 #desktopSidebar #gridDesktop .grid-item-content {
-            flex: 1 !important;
-            min-width: 0 !important;
-            padding: 14px 16px !important;
-          }
-
-          /* ‚îÄ‚îÄ v2 right-rail buttons styled on desktop (CSS for these
-                buttons was previously inside @media max-width 800px only) */
           html body.ui-v2 .v2-right-rail .v2-action-btn {
             width: 44px !important;
             height: 44px !important;
@@ -20026,57 +19911,30 @@
         grid.style.setProperty('display', 'none', 'important');
         return;
       }
-      // Force flex column on grid container
+      // gridDesktop is a flex column that stacks .inview-section /
+      // .nearby-section (each is its own 2-col grid of tiles). The CSS
+      // covers everything; we just clear any stale inline grid-template
+      // rules the legacy renderer may have left behind.
       grid.style.setProperty('display', 'flex', 'important');
       grid.style.setProperty('flex-direction', 'column', 'important');
       grid.style.setProperty('grid-template-columns', 'none', 'important');
       grid.style.setProperty('gap', '10px', 'important');
-      // Force CSS grid layout on every tile inside (image left, body right
-      // split into two rows: content + foot info)
+      // Strip any inline styles the legacy renderer set on tiles or
+      // their children ‚Äî the CSS handles the vertical (image-top, body-
+      // below) layout now.
       grid.querySelectorAll('.grid-item').forEach(tile => {
-        tile.style.setProperty('display', 'grid', 'important');
-        tile.style.setProperty('grid-template-columns', '200px 1fr', 'important');
-        tile.style.setProperty('grid-template-rows', '1fr auto', 'important');
+        tile.style.removeProperty('display');
+        tile.style.removeProperty('grid-template-columns');
+        tile.style.removeProperty('grid-template-rows');
         tile.style.removeProperty('flex-direction');
-        // Fixed (not auto) height so 1-line and 2-line titles produce
-        // identical tile heights. Image fills full height (grid-row 1/-1).
-        tile.style.setProperty('height', '130px', 'important');
-        tile.style.setProperty('min-height', '130px', 'important');
-        tile.style.setProperty('width', '100%', 'important');
-        const img = tile.querySelector('.image-wrapper');
-        if (img) {
-          img.style.setProperty('width', '200px', 'important');
-          img.style.setProperty('min-width', '200px', 'important');
-          img.style.setProperty('height', '100%', 'important');
-          img.style.setProperty('min-height', '130px', 'important');
-          img.style.setProperty('flex-shrink', '0', 'important');
-          img.style.setProperty('grid-column', '1 / 2', 'important');
-          img.style.setProperty('grid-row', '1 / -1', 'important');
-          img.style.setProperty('position', 'relative', 'important');
-        }
-        const content = tile.querySelector('.grid-item-content');
-        if (content) {
-          content.style.setProperty('grid-column', '2 / 3', 'important');
-          content.style.setProperty('grid-row', '1 / 2', 'important');
-        }
-        const info = tile.querySelector('.v2-tile-info');
-        if (info) {
-          info.style.setProperty('grid-column', '2 / 3', 'important');
-          info.style.setProperty('grid-row', '2 / 3', 'important');
-        }
-        const fb = tile.querySelector('.featured-badge');
-        if (fb) {
-          // Pin to top-right of image cell (grid column 1, row 1)
-          fb.style.setProperty('grid-column', '1 / 2', 'important');
-          fb.style.setProperty('grid-row', '1 / 2', 'important');
-          fb.style.setProperty('align-self', 'start', 'important');
-          fb.style.setProperty('justify-self', 'end', 'important');
-          fb.style.setProperty('margin', '10px', 'important');
-          fb.style.setProperty('position', 'relative', 'important');
-          fb.style.setProperty('left', 'auto', 'important');
-          fb.style.setProperty('top', 'auto', 'important');
-          fb.style.setProperty('z-index', '3', 'important');
-        }
+        tile.style.removeProperty('height');
+        tile.style.removeProperty('min-height');
+        tile.style.removeProperty('width');
+        ['image-wrapper', 'grid-item-content', 'v2-tile-info', 'featured-badge'].forEach(cls => {
+          const el = tile.querySelector('.' + cls);
+          if (!el) return;
+          ['width','min-width','max-width','height','min-height','grid-column','grid-row','align-self','justify-self','margin','position','left','top','flex-shrink','z-index'].forEach(p => el.style.removeProperty(p));
+        });
       });
     }
     // Watch the grid for re-renders so we apply layout to fresh tiles.
@@ -20667,8 +20525,9 @@
       if (!window.matchMedia('(min-width: 801px)').matches) return;
       const chrome = document.getElementById('v2TopChrome');
       const widget = chrome && chrome.querySelector('.v2-tmw-profile-widget');
-      if (!chrome || !widget) return;
-      if (chrome.querySelector('#v2HeaderBell')) return;
+      const header = document.getElementById('header');
+      if (!chrome || !widget || !header) return;
+      if (header.querySelector('#v2HeaderBell')) return;
 
       const bell = document.createElement('button');
       bell.id = 'v2HeaderBell';
@@ -20700,8 +20559,20 @@
         } catch (_) {}
       });
 
-      chrome.insertBefore(compare, widget);
-      chrome.insertBefore(bell, compare);
+      // Reparent the TMW profile widget INTO the actual #header bar so
+      // it's part of the chrome's DOM (not a position:fixed overlay).
+      // Then append bell + compare alongside it in a right-aligned group.
+      // This guarantees the icons render inside the black header strip
+      // regardless of any z-index / pointer-events drift elsewhere.
+      const group = document.createElement('div');
+      group.className = 'v2-desktop-header-group';
+      group.appendChild(bell);
+      group.appendChild(compare);
+      group.appendChild(widget);
+      header.appendChild(group);
+      // The now-empty .v2-top-chrome can be hidden ‚Äî its contents are in
+      // the header group now.
+      chrome.style.display = 'none';
 
       // Sync badge count from the existing pulse badge
       function syncBellBadge() {
