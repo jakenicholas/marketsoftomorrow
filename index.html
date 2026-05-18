@@ -1341,21 +1341,21 @@
       padding: 0 !important;
       margin: 0 !important;
       height: auto !important;
-      min-height: 150px !important;
+      min-height: 130px !important;
       cursor: pointer;
     }
     body.ui-v2 #desktopSidebar .grid-item .image-wrapper {
-      width: 140px !important;
-      min-width: 140px !important;
+      width: 200px !important;
+      min-width: 200px !important;
       height: auto !important;
-      min-height: 150px !important;
+      min-height: 130px !important;
       flex-shrink: 0 !important;
       border-radius: 0 !important;
     }
     body.ui-v2 #desktopSidebar .grid-item img {
       width: 100% !important;
       height: 100% !important;
-      min-height: 150px !important;
+      min-height: 130px !important;
       object-fit: cover !important;
       border-radius: 0 !important;
     }
@@ -8222,8 +8222,8 @@
     }
     body.ui-v2 #gridMobile .grid-item .image-wrapper {
       width: 100% !important;
-      height: 150px !important;
-      min-height: 150px !important;
+      height: 130px !important;
+      min-height: 130px !important;
       border-radius: 0 !important;
       outline: none !important;
       position: relative;
@@ -8656,10 +8656,8 @@
       z-index: 99 !important;
     }
     body.ui-v2 #header-logo { height: 28px !important; filter: brightness(0) invert(1); }
-    /* Hide the legacy LEFT-side TMW logo on desktop ‚Äî the new top-right
-       v2-tmw-profile-widget (markets SVG + login/profile) is the only
-       brand mark we want shown. */
-    body.ui-v2 #header-logo-link { display: none !important; }
+    /* TMW logo lives on the LEFT, followed by the Map/Atlas toggle. */
+    body.ui-v2 #header-logo-link { display: flex !important; }
     /* Divider after the logo, before Map/Atlas toggle */
     body.ui-v2 #header::after {
       content: '';
@@ -8669,11 +8667,10 @@
       width: 1px; height: 28px;
       background: rgba(255,255,255,0.08);
     }
-    /* Map/Atlas toggle ‚Äî sits at the far LEFT of the chrome now that the
-       header logo has been removed; the TMW widget moved to the right. */
+    /* Map/Atlas toggle ‚Äî sits just to the right of the TMW logo + divider */
     body.ui-v2 .atlas-mode-toggle {
       top: 12px !important;
-      left: 24px !important;
+      left: calc(24px + 100px + 8px + 16px) !important;
       transform: none !important;
       background: rgba(255,255,255,0.05) !important;
       border: 1px solid rgba(255,255,255,0.08) !important;
@@ -8682,8 +8679,15 @@
       border-radius: 999px !important;
       padding: 3px !important;
     }
-    /* Drop the header-after divider we used to draw next to the logo. */
-    body.ui-v2 #header::after { display: none !important; }
+    /* Vertical divider between TMW logo and Map/Atlas toggle */
+    body.ui-v2 #header::after {
+      content: '';
+      position: absolute;
+      left: calc(24px + 100px + 8px);
+      top: 50%; transform: translateY(-50%);
+      width: 1px; height: 28px;
+      background: rgba(255,255,255,0.12);
+    }
     body.ui-v2 .atlas-mode-toggle-btn {
       padding: 7px 18px !important;
       font-size: 12.5px !important;
@@ -8720,11 +8724,55 @@
       background: transparent !important;
     }
     body.ui-v2 .v2-top-chrome > * { pointer-events: auto; }
+    /* Lay out the chrome icons + widget on the right side */
+    body.ui-v2 .v2-top-chrome {
+      gap: 10px;
+    }
     /* Hide the Map/Atlas toggle that lives inside .v2-top-chrome ‚Äî we
        already have one outside in .atlas-mode-toggle. */
     body.ui-v2 .v2-top-chrome .v2-mode-toggle {
       display: none !important;
     }
+    /* Notification + comparison icon buttons on the top-right */
+    body.ui-v2 .v2-desktop-header-icon {
+      width: 38px; height: 38px;
+      background: rgba(15,15,15,0.7);
+      backdrop-filter: blur(16px) saturate(1.4);
+      -webkit-backdrop-filter: blur(16px) saturate(1.4);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 50%;
+      color: rgba(255,255,255,0.85);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      padding: 0;
+      position: relative;
+      flex-shrink: 0;
+    }
+    body.ui-v2 .v2-desktop-header-icon:hover {
+      background: rgba(25,25,25,0.85);
+      color: #fff;
+    }
+    body.ui-v2 .v2-desktop-header-icon svg {
+      width: 16px; height: 16px;
+      stroke: currentColor; fill: none;
+    }
+    body.ui-v2 .v2-desktop-header-icon .v2-header-icon-badge {
+      position: absolute;
+      top: -3px; right: -3px;
+      background: #FFD300;
+      color: #0a0a0a;
+      font-size: 10px;
+      font-weight: 800;
+      padding: 1px 5px;
+      border-radius: 100px;
+      line-height: 1.2;
+      border: 2px solid #0a0a0a;
+      min-width: 17px;
+      text-align: center;
+    }
+    /* Remove the bell button from the right-side rail on desktop ‚Äî it
+       now lives in the header chrome. */
+    body.ui-v2 .v2-right-rail #v2PulseQuickBtn { display: none !important; }
     /* Now style the widget itself on desktop. Reuse the same mobile
        look ‚Äî pill with TMW logo + divider + profile icon ‚Äî so behavior
        and look match across breakpoints. */
@@ -8863,8 +8911,8 @@
       background: rgba(15,15,15,0.98) !important;
       backdrop-filter: blur(24px) saturate(1.4) !important;
       -webkit-backdrop-filter: blur(24px) saturate(1.4) !important;
-      padding: 14px 16px 8px !important;
-      gap: 10px !important;
+      padding: 14px 16px 0 !important;
+      gap: 8px !important;
       position: sticky !important;
       top: 0 !important;
       z-index: 10 !important;
@@ -8887,7 +8935,7 @@
       display: flex !important;
       align-items: baseline !important;
       justify-content: space-between !important;
-      padding: 4px 4px 10px !important;
+      padding: 4px 0 8px !important;
       gap: 12px !important;
     }
     body.ui-v2 #desktopSidebar .v2-desktop-sheet-title-row .ttl {
@@ -9170,11 +9218,12 @@
       background: #0a0a0a; color: var(--warn, #FFD300);
     }
 
-    /* Filter pills row (injected by JS) */
+    /* Filter pills row (injected by JS) ‚Äî tight padding so tiles start
+       just below the pills with no dead space. */
     body.ui-v2 .v2-desktop-filter-pills {
       display: flex !important;
       gap: 6px !important;
-      padding: 0 16px 12px !important;
+      padding: 0 0 6px !important;
       overflow-x: auto !important;
       scrollbar-width: none;
     }
@@ -9345,8 +9394,8 @@
          title (38px) + city (16px) + divider gap + Delivery/Intel foot
          row (42px) with comfortable padding. Image fills full tile height
          via grid-row: 1 / -1, so a taller tile = a longer image. */
-      height: 150px !important;
-      min-height: 150px !important;
+      height: 130px !important;
+      min-height: 130px !important;
       cursor: pointer;
     }
     body.ui-v2 #desktopSidebar .grid-item:hover {
@@ -9356,17 +9405,17 @@
       box-shadow: none !important;
     }
     body.ui-v2 #desktopSidebar .grid-item .image-wrapper {
-      width: 140px !important;
-      min-width: 140px !important;
+      width: 200px !important;
+      min-width: 200px !important;
       height: auto !important;
-      min-height: 150px !important;
+      min-height: 130px !important;
       flex-shrink: 0 !important;
       border-radius: 0 !important;
     }
     body.ui-v2 #desktopSidebar .grid-item img {
       width: 100% !important;
       height: 100% !important;
-      min-height: 150px !important;
+      min-height: 130px !important;
       object-fit: cover !important;
       border-radius: 0 !important;
     }
@@ -9430,25 +9479,25 @@
        with Delivery and TMW Intel (both left-aligned). Mirrors mobile's
        v2-tile-info layout but with a row gap rather than space-between. */
     body.ui-v2 #desktopSidebar .grid-item-content {
-      padding: 14px 16px 0 !important;
+      padding: 12px 14px 0 !important;
       justify-content: flex-start !important;
-      gap: 4px !important;
+      gap: 2px !important;
     }
     body.ui-v2 #desktopSidebar .grid-item-content p.city {
       font-size: 12px !important;
       color: rgba(255,255,255,0.72) !important;
       margin: 0 !important;
-      padding: 0 0 12px !important;
+      padding: 0 0 8px !important;
       border-bottom: 1px solid rgba(255,255,255,0.08);
     }
-    /* Delivery + Intel foot row ‚Äî both left-aligned, gap between them */
+    /* Delivery + Intel foot row ‚Äî left-aligned, tight against the divider */
     body.ui-v2 #desktopSidebar .grid-item .v2-tile-info {
       display: flex !important;
       align-items: center !important;
       justify-content: flex-start !important;
-      gap: 14px !important;
-      padding: 10px 16px 14px !important;
-      font-size: 12px !important;
+      gap: 12px !important;
+      padding: 6px 14px 10px !important;
+      font-size: 11px !important;
       border-top: none !important;
       margin-top: 0 !important;
     }
@@ -9464,10 +9513,26 @@
       color: #A78BFA;
       font-weight: 600;
       display: inline-flex; align-items: center; gap: 5px;
+      min-width: 0;
+      flex: 0 1 auto;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
     }
     body.ui-v2 #desktopSidebar .grid-item .v2-tile-info .v2-tile-intel svg {
       width: 11px; height: 11px; fill: currentColor;
       flex-shrink: 0;
+    }
+    /* Hide the "to completion" / "to complete" tail on desktop ‚Äî the
+       label becomes the compact form ("~2.5 years", "~6 months") just
+       like the mockup's right-side chip. Tail still shows on mobile. */
+    body.ui-v2 #desktopSidebar .grid-item .v2-tile-info .v2-tile-intel-tail {
+      display: none !important;
+    }
+    body.ui-v2 #desktopSidebar .grid-item .v2-tile-info .v2-tile-intel-val {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
     /* Re-jig the tile so the body content can host both grid-item-content
        (name + city + divider) and the appended v2-tile-info below it. */
@@ -9491,7 +9556,7 @@
        not present. Simpler approach: change parent to grid. */
     body.ui-v2 #desktopSidebar .grid-item {
       display: grid !important;
-      grid-template-columns: 140px 1fr !important;
+      grid-template-columns: 200px 1fr !important;
       grid-template-rows: 1fr auto !important;
     }
     body.ui-v2 #desktopSidebar .grid-item > .image-wrapper {
@@ -19646,7 +19711,7 @@
             max-width: 100% !important;
             min-width: 0 !important;
             height: auto !important;
-            min-height: 150px !important;
+            min-height: 130px !important;
             grid-column: auto !important;
             grid-row: auto !important;
             flex-basis: auto !important;
@@ -19659,18 +19724,18 @@
           }
           /* Image-wrapper 140px on left */
           html body.ui-v2 #desktopSidebar #gridDesktop .grid-item .image-wrapper {
-            width: 140px !important;
-            min-width: 140px !important;
-            max-width: 140px !important;
+            width: 200px !important;
+            min-width: 200px !important;
+            max-width: 200px !important;
             height: auto !important;
-            min-height: 150px !important;
+            min-height: 130px !important;
             flex-shrink: 0 !important;
             border-radius: 0 !important;
           }
           html body.ui-v2 #desktopSidebar #gridDesktop .grid-item img {
             width: 100% !important;
             height: 100% !important;
-            min-height: 150px !important;
+            min-height: 130px !important;
             object-fit: cover !important;
           }
           /* Body fills the rest */
@@ -19784,20 +19849,20 @@
       // split into two rows: content + foot info)
       grid.querySelectorAll('.grid-item').forEach(tile => {
         tile.style.setProperty('display', 'grid', 'important');
-        tile.style.setProperty('grid-template-columns', '140px 1fr', 'important');
+        tile.style.setProperty('grid-template-columns', '200px 1fr', 'important');
         tile.style.setProperty('grid-template-rows', '1fr auto', 'important');
         tile.style.removeProperty('flex-direction');
         // Fixed (not auto) height so 1-line and 2-line titles produce
         // identical tile heights. Image fills full height (grid-row 1/-1).
-        tile.style.setProperty('height', '150px', 'important');
-        tile.style.setProperty('min-height', '150px', 'important');
+        tile.style.setProperty('height', '130px', 'important');
+        tile.style.setProperty('min-height', '130px', 'important');
         tile.style.setProperty('width', '100%', 'important');
         const img = tile.querySelector('.image-wrapper');
         if (img) {
-          img.style.setProperty('width', '140px', 'important');
-          img.style.setProperty('min-width', '140px', 'important');
+          img.style.setProperty('width', '200px', 'important');
+          img.style.setProperty('min-width', '200px', 'important');
           img.style.setProperty('height', '100%', 'important');
-          img.style.setProperty('min-height', '150px', 'important');
+          img.style.setProperty('min-height', '130px', 'important');
           img.style.setProperty('flex-shrink', '0', 'important');
           img.style.setProperty('grid-column', '1 / 2', 'important');
           img.style.setProperty('grid-row', '1 / -1', 'important');
@@ -20340,6 +20405,68 @@
       injectDesktopTabs();
     }
 
+    // ‚îÄ‚îÄ Desktop top-right action icons (bell + comparison) ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
+    // Injected BEFORE the v2-tmw-profile-widget inside .v2-top-chrome so
+    // the right-side flow reads: [bell] [comparison] [TMW + Login pill].
+    function injectDesktopHeaderIcons() {
+      if (!window.matchMedia('(min-width: 801px)').matches) return;
+      const chrome = document.getElementById('v2TopChrome');
+      const widget = chrome && chrome.querySelector('.v2-tmw-profile-widget');
+      if (!chrome || !widget) return;
+      if (chrome.querySelector('#v2HeaderBell')) return;
+
+      const bell = document.createElement('button');
+      bell.id = 'v2HeaderBell';
+      bell.className = 'v2-desktop-header-icon';
+      bell.setAttribute('aria-label', 'Open pulse');
+      bell.innerHTML = `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+        <span class="v2-header-icon-badge" id="v2HeaderBellBadge" hidden>0</span>
+      `;
+      bell.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const pulseTab = document.querySelector('.v2-desktop-tabs button[data-v2d-tab="pulse"]');
+        if (pulseTab) pulseTab.click();
+      });
+
+      const compare = document.createElement('button');
+      compare.id = 'v2HeaderCompare';
+      compare.className = 'v2-desktop-header-icon';
+      compare.setAttribute('aria-label', 'Open comparison view');
+      compare.innerHTML = `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="7" height="16" rx="1"/><rect x="14" y="4" width="7" height="16" rx="1"/></svg>
+      `;
+      compare.addEventListener('click', (e) => {
+        e.stopPropagation();
+        try {
+          const url = new URL(window.location.href);
+          url.searchParams.set('view', 'compare');
+          window.location.href = url.toString();
+        } catch (_) {}
+      });
+
+      chrome.insertBefore(compare, widget);
+      chrome.insertBefore(bell, compare);
+
+      // Sync badge count from the existing pulse badge
+      function syncBellBadge() {
+        const src = document.getElementById('pulseBellBadge');
+        const myBadge = document.getElementById('v2HeaderBellBadge');
+        if (!src || !myBadge) return;
+        const isHidden = src.hasAttribute('hidden');
+        const n = isHidden ? 0 : (parseInt(src.textContent || '0', 10) || 0);
+        if (n > 0) { myBadge.hidden = false; myBadge.textContent = String(n); }
+        else { myBadge.hidden = true; }
+      }
+      syncBellBadge();
+      const src = document.getElementById('pulseBellBadge');
+      if (src) new MutationObserver(syncBellBadge).observe(src, { childList: true, attributes: true, characterData: true });
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', injectDesktopHeaderIcons);
+    } else {
+      injectDesktopHeaderIcons();
+    }
 
     function setup() {
       // ‚îÄ‚îÄ Move existing mobile DOM into v2 panes ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
@@ -21123,9 +21250,12 @@
             let intelHtml = '';
             if (intelEntry && intelEntry.estimate_label) {
               const tail = intelEntry.source === 'completed' ? 'to complete' : 'to completion';
+              // Wrap the short estimate (e.g. "~2.5 years") and the tail
+              // ("to completion") in separate spans so we can hide just
+              // the tail on desktop where horizontal space is tight.
               intelHtml = `<span class="v2-tile-intel">
                 <svg viewBox="0 0 24 24"><path d="M12 2L4 7v10l8 5 8-5V7l-8-5zm0 2.5L18 8v8l-6 3.75L6 16V8l6-3.5z"/></svg>
-                ${escapeText(intelEntry.estimate_label)} ${tail}
+                <span class="v2-tile-intel-val">${escapeText(intelEntry.estimate_label)}</span><span class="v2-tile-intel-tail"> ${tail}</span>
               </span>`;
             }
             const info = document.createElement('div');
