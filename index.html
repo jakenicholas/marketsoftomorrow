@@ -1341,21 +1341,21 @@
       padding: 0 !important;
       margin: 0 !important;
       height: auto !important;
-      min-height: 180px !important;
+      min-height: 150px !important;
       cursor: pointer;
     }
     body.ui-v2 #desktopSidebar .grid-item .image-wrapper {
       width: 140px !important;
       min-width: 140px !important;
       height: auto !important;
-      min-height: 180px !important;
+      min-height: 150px !important;
       flex-shrink: 0 !important;
       border-radius: 0 !important;
     }
     body.ui-v2 #desktopSidebar .grid-item img {
       width: 100% !important;
       height: 100% !important;
-      min-height: 180px !important;
+      min-height: 150px !important;
       object-fit: cover !important;
       border-radius: 0 !important;
     }
@@ -8222,8 +8222,8 @@
     }
     body.ui-v2 #gridMobile .grid-item .image-wrapper {
       width: 100% !important;
-      height: 180px !important;
-      min-height: 180px !important;
+      height: 150px !important;
+      min-height: 150px !important;
       border-radius: 0 !important;
       outline: none !important;
       position: relative;
@@ -8460,26 +8460,29 @@
     }
     /* Hide skeleton loaders in v2 pane (not needed in drawer) */
     body.ui-v2 .v2-pulse-content .pulse-skel { display: none !important; }
-    /* Type label in tsrow (v2-specific element, absent in legacy) */
+    /* Pulse meta row ‚Äî override the legacy JetBrains Mono. Use the same
+       system font as the title, so the TYPE / location / time row reads
+       as a single uppercase eyebrow group. */
+    body.ui-v2 .v2-pulse-content .pulse-ev-tsrow,
+    body.ui-v2 .v2-pulse-content .pulse-ev-tsrow * {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif !important;
+    }
+    /* Type label colored per event type. Default = status_change orange. */
     body.ui-v2 .v2-pulse-content .pulse-ev-type-lbl {
-      font-weight: 700 !important;
+      font-weight: 800 !important;
       text-transform: uppercase !important;
       letter-spacing: 0.06em !important;
       color: var(--orange, #FF9500);
     }
     body.ui-v2 .v2-pulse-content .pulse-ev-wrap[data-event-type="article"]     .pulse-ev-type-lbl { color: var(--accent, #1FDF67) !important; }
     body.ui-v2 .v2-pulse-content .pulse-ev-wrap[data-event-type="new_project"] .pulse-ev-type-lbl { color: var(--blue, #6FA8FF) !important; }
-    /* Time stamp in v2 tsrow is secondary info ‚Äî mute it */
+    /* Location + time ‚Äî same font + case as the type label, just muted */
+    body.ui-v2 .v2-pulse-content .pulse-ev-loc,
     body.ui-v2 .v2-pulse-content .pulse-ev-ts {
       color: rgba(255,255,255,0.55) !important;
-      font-weight: 500 !important;
-    }
-    /* Location token in v2 tsrow */
-    body.ui-v2 .v2-pulse-content .pulse-ev-loc {
-      color: rgba(255,255,255,0.72) !important;
-      font-weight: 500 !important;
-      text-transform: none !important;
-      letter-spacing: 0 !important;
+      font-weight: 600 !important;
+      text-transform: uppercase !important;
+      letter-spacing: 0.06em !important;
     }
 
     /* ‚îÄ‚îÄ Pulse rows redesigned mockup-style ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
@@ -8553,19 +8556,10 @@
       opacity: 0.4 !important;
     }
     body.ui-v2 .v2-pulse-content .pulse-ev-close:hover { opacity: 1 !important; }
-    /* Pulse separator dots ‚Äî faint white */
-    body.ui-v2 .v2-pulse-content .pulse-ev-sep { color: rgba(255,255,255,0.45) !important; font-weight: 400 !important; }
-    /* Type label color ‚Äî matches the dot color */
-    body.ui-v2 .v2-pulse-content .pulse-ev-ts { color: var(--orange, #FF9500); font-weight: 700 !important; }
-    body.ui-v2 .v2-pulse-content .pulse-ev-wrap[data-event-type="article"] .pulse-ev-ts { color: var(--accent, #1FDF67) !important; }
-    body.ui-v2 .v2-pulse-content .pulse-ev-wrap[data-event-type="new_project"] .pulse-ev-ts { color: var(--blue, #6FA8FF) !important; }
-    /* Place / time tokens within tsrow: muted, non-uppercase, regular */
-    body.ui-v2 .v2-pulse-content .pulse-ev-tsrow > *:not(.pulse-ev-ts):not(.pulse-ev-sep) {
-      color: rgba(255,255,255,0.72) !important;
-      font-weight: 500 !important;
-      text-transform: none !important;
-      letter-spacing: 0 !important;
-      font-size: 11px !important;
+    /* Pulse separator dots ‚Äî faint white, same size as labels */
+    body.ui-v2 .v2-pulse-content .pulse-ev-sep {
+      color: rgba(255,255,255,0.35) !important;
+      font-weight: 600 !important;
     }
 
     /* ‚îÄ‚îÄ Watchlist tiles: taller + more spacious in v2 drawer ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ */
@@ -8662,6 +8656,10 @@
       z-index: 99 !important;
     }
     body.ui-v2 #header-logo { height: 28px !important; filter: brightness(0) invert(1); }
+    /* Hide the legacy LEFT-side TMW logo on desktop ‚Äî the new top-right
+       v2-tmw-profile-widget (markets SVG + login/profile) is the only
+       brand mark we want shown. */
+    body.ui-v2 #header-logo-link { display: none !important; }
     /* Divider after the logo, before Map/Atlas toggle */
     body.ui-v2 #header::after {
       content: '';
@@ -8671,10 +8669,11 @@
       width: 1px; height: 28px;
       background: rgba(255,255,255,0.08);
     }
-    /* Map/Atlas toggle ‚Äî sits left-of-center, next to TMW logo divider */
+    /* Map/Atlas toggle ‚Äî sits at the far LEFT of the chrome now that the
+       header logo has been removed; the TMW widget moved to the right. */
     body.ui-v2 .atlas-mode-toggle {
       top: 12px !important;
-      left: calc(24px + 70px + 8px + 16px) !important;
+      left: 24px !important;
       transform: none !important;
       background: rgba(255,255,255,0.05) !important;
       border: 1px solid rgba(255,255,255,0.08) !important;
@@ -8683,6 +8682,8 @@
       border-radius: 999px !important;
       padding: 3px !important;
     }
+    /* Drop the header-after divider we used to draw next to the logo. */
+    body.ui-v2 #header::after { display: none !important; }
     body.ui-v2 .atlas-mode-toggle-btn {
       padding: 7px 18px !important;
       font-size: 12.5px !important;
@@ -8841,11 +8842,11 @@
       color: rgba(255, 120, 120, 0.9);
     }
 
-    /* ‚îÄ‚îÄ DESKTOP SIDEBAR ‚Äî 520px, dark, flush ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ */
+    /* ‚îÄ‚îÄ DESKTOP SIDEBAR ‚Äî 540px, dark, flush ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ */
     body.ui-v2 #app-container { padding-top: 60px !important; }
-    body.ui-v2 #map { left: 520px !important; }
+    body.ui-v2 #map { left: 540px !important; }
     body.ui-v2 #desktopSidebar {
-      width: 520px !important;
+      width: 540px !important;
       top: 60px !important;
       height: calc(100% - 60px) !important;
       background: rgba(15,15,15,0.96) !important;
@@ -9021,6 +9022,10 @@
       padding: 0 !important;
     }
     body.ui-v2 #desktopSidebar .v2-pulse-content .pulse-ev-bottom { display: none !important; }
+    body.ui-v2 #desktopSidebar .v2-pulse-content .pulse-ev-tsrow,
+    body.ui-v2 #desktopSidebar .v2-pulse-content .pulse-ev-tsrow * {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif !important;
+    }
     body.ui-v2 #desktopSidebar .v2-pulse-content .pulse-ev-tsrow {
       display: flex !important;
       align-items: center !important;
@@ -9029,6 +9034,25 @@
       font-weight: 700 !important;
       text-transform: uppercase !important;
       letter-spacing: 0.06em !important;
+    }
+    body.ui-v2 #desktopSidebar .v2-pulse-content .pulse-ev-type-lbl {
+      font-weight: 800 !important;
+      text-transform: uppercase !important;
+      letter-spacing: 0.06em !important;
+      color: var(--orange, #FF9500);
+    }
+    body.ui-v2 #desktopSidebar .v2-pulse-content .pulse-ev-wrap[data-event-type="article"]     .pulse-ev-type-lbl { color: var(--accent, #1FDF67) !important; }
+    body.ui-v2 #desktopSidebar .v2-pulse-content .pulse-ev-wrap[data-event-type="new_project"] .pulse-ev-type-lbl { color: var(--blue, #6FA8FF) !important; }
+    body.ui-v2 #desktopSidebar .v2-pulse-content .pulse-ev-loc,
+    body.ui-v2 #desktopSidebar .v2-pulse-content .pulse-ev-ts {
+      color: rgba(255,255,255,0.55) !important;
+      font-weight: 600 !important;
+      text-transform: uppercase !important;
+      letter-spacing: 0.06em !important;
+    }
+    body.ui-v2 #desktopSidebar .v2-pulse-content .pulse-ev-sep {
+      color: rgba(255,255,255,0.35) !important;
+      font-weight: 600 !important;
     }
 
     /* Search pill ‚Äî match mobile pinned search: icon | input | clear |
@@ -9107,10 +9131,12 @@
       display: none !important;
     }
 
-    /* Segmented tabs (injected by JS) */
+    /* Segmented tabs (injected by JS) ‚Äî span full width of sidebar-header
+       so they line up edge-to-edge with the search pill. */
     body.ui-v2 .v2-desktop-tabs {
       display: flex !important;
-      margin: 0 16px 10px;
+      margin: 0 0 10px !important;
+      width: 100% !important;
       background: #1f1f1f;
       border-radius: 12px;
       padding: 3px;
@@ -9319,8 +9345,8 @@
          title (38px) + city (16px) + divider gap + Delivery/Intel foot
          row (42px) with comfortable padding. Image fills full tile height
          via grid-row: 1 / -1, so a taller tile = a longer image. */
-      height: 180px !important;
-      min-height: 180px !important;
+      height: 150px !important;
+      min-height: 150px !important;
       cursor: pointer;
     }
     body.ui-v2 #desktopSidebar .grid-item:hover {
@@ -9333,14 +9359,14 @@
       width: 140px !important;
       min-width: 140px !important;
       height: auto !important;
-      min-height: 180px !important;
+      min-height: 150px !important;
       flex-shrink: 0 !important;
       border-radius: 0 !important;
     }
     body.ui-v2 #desktopSidebar .grid-item img {
       width: 100% !important;
       height: 100% !important;
-      min-height: 180px !important;
+      min-height: 150px !important;
       object-fit: cover !important;
       border-radius: 0 !important;
     }
@@ -9870,7 +9896,7 @@
       <div class="pill-search-icon">
         <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
       </div>
-      <span class="pill-text">Search projects, cities, firms‚Ä¶</span>
+      <span class="pill-text">Search projects, cities, firms...</span>
       <div class="pill-filter-badge" id="desktopPillFilterBadge">
         <span class="badge-icon"><svg viewBox="0 0 24 24"><circle cx="6" cy="5" r="2"/><line x1="2" y1="5" x2="4" y2="5"/><line x1="8" y1="5" x2="22" y2="5"/><circle cx="16" cy="12" r="2"/><line x1="2" y1="12" x2="14" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><circle cx="9" cy="19" r="2"/><line x1="2" y1="19" x2="7" y2="19"/><line x1="11" y1="19" x2="22" y2="19"/></svg></span>
         <span class="badge-count" id="desktopPillFilterCount">0</span>
@@ -9889,7 +9915,7 @@
             <div class="search-pill-icon">
               <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
             </div>
-            <input id="sidebarSearchBar" type="text" placeholder="Search projects, cities, firms‚Ä¶" />
+            <input id="sidebarSearchBar" type="text" placeholder="Search projects, cities, firms..." />
             <button id="sidebarSearchClear" title="Clear search">&times;</button>
             <div id="sidebarAutocomplete" class="autocomplete-dropdown hidden"></div>
           </div>
@@ -9957,7 +9983,7 @@
               <div class="search-pill-icon">
                 <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
               </div>
-              <input id="mobileSearchBar" type="text" placeholder="Search projects, cities, firms‚Ä¶" />
+              <input id="mobileSearchBar" type="text" placeholder="Search projects, cities, firms..." />
               <button id="mobileSearchClear" title="Clear search">&times;</button>
             </div>
             <div id="mobileAutocomplete" class="autocomplete-dropdown hidden"></div>
@@ -10024,7 +10050,7 @@
       <div class="pill-search-icon">
         <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
       </div>
-      <span class="pill-text">Search projects, cities, firms‚Ä¶</span>
+      <span class="pill-text">Search projects, cities, firms...</span>
       <div class="pill-filter-badge" id="mobilePillFilterBadge">
         <span class="badge-icon"><svg viewBox="0 0 24 24"><circle cx="6" cy="5" r="2"/><line x1="2" y1="5" x2="4" y2="5"/><line x1="8" y1="5" x2="22" y2="5"/><circle cx="16" cy="12" r="2"/><line x1="2" y1="12" x2="14" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><circle cx="9" cy="19" r="2"/><line x1="2" y1="19" x2="7" y2="19"/><line x1="11" y1="19" x2="22" y2="19"/></svg></span>
         <span class="badge-count" id="mobilePillFilterCount">0</span>
@@ -10115,7 +10141,7 @@
         <span class="v2-search-icon">
           <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
         </span>
-        <span class="v2-search-text" id="v2CapsuleText">Search projects, cities, firms‚Ä¶</span>
+        <span class="v2-search-text" id="v2CapsuleText">Search projects, cities, firms...</span>
         <div class="v2-filter-btn" id="v2CapsuleFilterBtn">
           <span class="badge-icon"><svg viewBox="0 0 24 24"><circle cx="6" cy="5" r="2"/><line x1="2" y1="5" x2="4" y2="5"/><line x1="8" y1="5" x2="22" y2="5"/><circle cx="16" cy="12" r="2"/><line x1="2" y1="12" x2="14" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><circle cx="9" cy="19" r="2"/><line x1="2" y1="19" x2="7" y2="19"/><line x1="11" y1="19" x2="22" y2="19"/></svg></span>
           <span class="badge-count" id="v2CapsuleFilterCount">0</span>
@@ -10135,7 +10161,7 @@
           <span class="v2-search-icon">
             <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
           </span>
-          <input class="v2-search-text" id="v2SearchInput" type="text" placeholder="Search projects, cities, firms‚Ä¶" />
+          <input class="v2-search-text" id="v2SearchInput" type="text" placeholder="Search projects, cities, firms..." />
           <button class="v2-search-clear" id="v2SearchClear" aria-label="Clear search">
             <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
@@ -19620,7 +19646,7 @@
             max-width: 100% !important;
             min-width: 0 !important;
             height: auto !important;
-            min-height: 180px !important;
+            min-height: 150px !important;
             grid-column: auto !important;
             grid-row: auto !important;
             flex-basis: auto !important;
@@ -19637,14 +19663,14 @@
             min-width: 140px !important;
             max-width: 140px !important;
             height: auto !important;
-            min-height: 180px !important;
+            min-height: 150px !important;
             flex-shrink: 0 !important;
             border-radius: 0 !important;
           }
           html body.ui-v2 #desktopSidebar #gridDesktop .grid-item img {
             width: 100% !important;
             height: 100% !important;
-            min-height: 180px !important;
+            min-height: 150px !important;
             object-fit: cover !important;
           }
           /* Body fills the rest */
@@ -19763,15 +19789,15 @@
         tile.style.removeProperty('flex-direction');
         // Fixed (not auto) height so 1-line and 2-line titles produce
         // identical tile heights. Image fills full height (grid-row 1/-1).
-        tile.style.setProperty('height', '180px', 'important');
-        tile.style.setProperty('min-height', '180px', 'important');
+        tile.style.setProperty('height', '150px', 'important');
+        tile.style.setProperty('min-height', '150px', 'important');
         tile.style.setProperty('width', '100%', 'important');
         const img = tile.querySelector('.image-wrapper');
         if (img) {
           img.style.setProperty('width', '140px', 'important');
           img.style.setProperty('min-width', '140px', 'important');
           img.style.setProperty('height', '100%', 'important');
-          img.style.setProperty('min-height', '180px', 'important');
+          img.style.setProperty('min-height', '150px', 'important');
           img.style.setProperty('flex-shrink', '0', 'important');
           img.style.setProperty('grid-column', '1 / 2', 'important');
           img.style.setProperty('grid-row', '1 / -1', 'important');
@@ -21231,7 +21257,7 @@
       // Search is a single global lookup across projects/cities/firms,
       // not a per-tab filter. Keep one placeholder regardless of which
       // tab is active.
-      const UNIFIED_SEARCH_PLACEHOLDER = 'Search projects, cities, firms‚Ä¶';
+      const UNIFIED_SEARCH_PLACEHOLDER = 'Search projects, cities, firms...';
       function updateSearchPlaceholder() {
         if (searchInput) searchInput.placeholder = UNIFIED_SEARCH_PLACEHOLDER;
       }
