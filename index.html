@@ -7419,6 +7419,7 @@
       flex-shrink: 0;
       color: #fff;
       padding: 0;
+      transition: width 0.15s, border-radius 0.15s, background 0.15s, padding 0.15s;
     }
     /* Map/Atlas pill ‚Äî explicit 38px height to match widget */
     body.ui-v2 .v2-mode-toggle { height: 38px; box-sizing: border-box; }
@@ -7441,6 +7442,30 @@
       width: 8px; height: 8px;
       fill: #0a0a0a;
     }
+    /* ‚îÄ‚îÄ Auth-state variants for v2 profile button ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
+       Default (not signed in): pill shape showing "Login" text, no icon,
+       no star, no dropdown. Signed-in: circular icon ¬± star badge. */
+    body.ui-v2 .v2-profile-btn .v2-login-text {
+      display: none; /* hidden by default; shown when not signed in */
+      font-size: 12px; font-weight: 700;
+      white-space: nowrap;
+      letter-spacing: 0.01em;
+    }
+    /* Not signed in: pill, show Login text, hide icon + star */
+    body.ui-v2 .v2-profile-btn:not(.signed-in) {
+      width: auto;
+      padding: 0 11px;
+      border-radius: 20px;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.18);
+    }
+    body.ui-v2 .v2-profile-btn:not(.signed-in) .v2-login-text  { display: inline; }
+    body.ui-v2 .v2-profile-btn:not(.signed-in) svg.profile-icon { display: none; }
+    body.ui-v2 .v2-profile-btn:not(.signed-in) .v2-premium-star { display: none !important; }
+    /* Signed in: circular, icon visible */
+    body.ui-v2 .v2-profile-btn.signed-in .v2-login-text { display: none; }
+    /* Pro: show star (it's already in DOM; hidden unless .is-pro) */
+    body.ui-v2 .v2-profile-btn:not(.is-pro) .v2-premium-star { display: none !important; }
     /* Profile dropdown menu (opens below the widget when profile tapped) */
     body.ui-v2 .v2-profile-menu {
       position: absolute;
@@ -8999,7 +9024,8 @@
           <img src="https://static.wixstatic.com/shapes/ca3b83_a647b53cad4c49c5b012af991d286a86.svg" alt="" />
         </a>
         <div class="v2-widget-divider"></div>
-        <button class="v2-profile-btn" id="v2ProfileBtn" aria-label="Profile menu">
+        <button class="v2-profile-btn" id="v2ProfileBtn" aria-label="Login">
+          <span class="v2-login-text">Login</span>
           <svg class="profile-icon" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-7 8-7s8 3 8 7"/></svg>
           <span class="v2-premium-star" id="v2PremiumStar">
             <svg viewBox="0 0 24 24"><path d="M12 2l3 6.3 6.9 1-5 4.9 1.2 7L12 17.8 5.9 21.2l1.2-7-5-4.9L9 8.3z"/></svg>
@@ -15085,6 +15111,10 @@
       window.interceptProfileRemoveBtn = interceptProfileRemoveBtn;
 
       function updateAuthHeaderUI(member) {
+        // Keep v2 profile button in sync with every auth state change
+        if (typeof window.syncV2ProfileBtn === 'function') {
+          window.syncV2ProfileBtn(member, isPaidMember);
+        }
         let el = document.getElementById('paywallAuthHeader');
         const justCreated = !el;
         if (!el) {
@@ -19055,6 +19085,18 @@
       if (v2Profile && v2ProfileMenu) {
         v2Profile.addEventListener('click', (e) => {
           e.stopPropagation();
+          const signedIn = v2Profile.classList.contains('signed-in');
+          if (!signedIn) {
+            // Open the Memberstack login UI via the legacy auth header button
+            const legacyAuth = document.getElementById('paywallAuthHeader');
+            if (legacyAuth) {
+              const target = legacyAuth.querySelector('button, a, [role="button"]') || legacyAuth;
+              target.click();
+            } else if (typeof window.openSignup === 'function') {
+              window.openSignup();
+            }
+            return;
+          }
           v2ProfileMenu.classList.toggle('open');
         });
         // Close menu when clicking outside
@@ -19064,6 +19106,28 @@
           }
         });
       }
+
+      // Sync v2 profile button to current auth state.
+      // Called by updateAuthHeaderUI() whenever auth changes.
+      // member = Memberstack member object (or null when signed out).
+      // isPaid = boolean (only meaningful when member != null).
+      window.syncV2ProfileBtn = function(member, isPaid) {
+        const btn  = document.getElementById('v2ProfileBtn');
+        const menu = document.getElementById('v2ProfileMenu');
+        if (!btn) return;
+        const signedIn = !!member;
+        btn.classList.toggle('signed-in', signedIn);
+        btn.classList.toggle('is-pro',    signedIn && !!isPaid);
+        btn.setAttribute('aria-label', signedIn ? 'Profile menu' : 'Login');
+        // Dropdown is only meaningful when signed in
+        if (menu) {
+          menu.style.pointerEvents = signedIn ? '' : 'none';
+          if (!signedIn) menu.classList.remove('open');
+        }
+      };
+      // Initialise to logged-out state ‚Äî auth will call syncV2ProfileBtn
+      // once Memberstack resolves (may be a few hundred ms after boot).
+      window.syncV2ProfileBtn(null, false);
       // Wire each menu item to its destination
       const wireMenu = (id, handler) => {
         const el = document.getElementById(id);
