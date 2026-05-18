@@ -682,14 +682,17 @@
       --transition-slow: 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
 
-    html { 
-      margin: 0; padding: 0; width: 100%; height: 100%; 
+    html {
+      margin: 0; padding: 0; width: 100%; height: 100%;
       height: -webkit-fill-available; overflow: hidden;
+      /* Suppress double-tap zoom across the whole page on iOS/Android */
+      touch-action: manipulation;
     }
-    body { 
-      margin: 0; padding: 0; width: 100%; height: 100%; 
-      background: var(--bg); font-family: sans-serif; 
+    body {
+      margin: 0; padding: 0; width: 100%; height: 100%;
+      background: var(--bg); font-family: sans-serif;
       overflow: hidden; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      touch-action: manipulation;
     }
 
     @media(max-width:800px) {
@@ -3604,38 +3607,38 @@
     pointer-events: none;
     z-index: 1;
   }
-  /* "View on Map" floating button — top-right of hero. Closes the modal
-     and flies the map to the project pin. */
+  /* "View on Map" pill button — top-right of hero.
+     Styled to match the X close button: same bg, same blur, no shadow,
+     no border. Pill shape since it has text. */
   #projectModal .pm-viewmap-btn {
     position: absolute;
-    top: 14px; right: 14px;
+    top: 12px; right: 14px;
     z-index: 5;
-    display: inline-flex; align-items: center; gap: 6px;
-    padding: 8px 12px;
-    background: rgba(10,10,10,0.72);
-    border: 1px solid rgba(255,255,255,0.18);
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 0 12px;
+    height: 32px;
+    background: rgba(0,0,0,0.5);
+    border: none;
     border-radius: 100px;
-    backdrop-filter: blur(14px) saturate(1.4);
-    -webkit-backdrop-filter: blur(14px) saturate(1.4);
-    color: #fff;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    color: rgba(255,255,255,0.85);
     font-family: inherit;
     font-size: 12px;
     font-weight: 600;
     letter-spacing: 0;
     cursor: pointer;
-    box-shadow: 0 4px 14px rgba(0,0,0,0.35);
-    transition: background 0.15s, transform 0.1s;
+    transition: background 0.15s;
   }
   #projectModal .pm-viewmap-btn:hover,
   #projectModal .pm-viewmap-btn:active {
-    background: rgba(31,223,103,0.16);
-    border-color: rgba(31,223,103,0.5);
-    color: var(--accent, #1FDF67);
+    background: rgba(0,0,0,0.65);
   }
   #projectModal .pm-viewmap-btn svg {
     width: 13px; height: 13px;
     stroke: currentColor; fill: none;
     stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round;
+    flex-shrink: 0;
   }
   /* Slider arrows — circular white buttons */
   #projectModal .pm-slide-arrow {
@@ -7550,12 +7553,12 @@
     }
     body.ui-v2 .v2-action-btn .v2-num-badge {
       position: absolute;
-      top: -6px; right: -6px;
+      top: -9px; right: -5px;
       background: var(--warn, #FFD300);
       color: #0a0a0a;
-      font-size: 11px; font-weight: 800;
+      font-size: 10px; font-weight: 800;
       line-height: 1;
-      width: 24px; height: 24px;
+      width: 20px; height: 20px;
       padding: 0;
       border-radius: 50%;
       display: flex; align-items: center; justify-content: center;
@@ -7595,6 +7598,7 @@
       position: fixed;
       left: 0; right: 0; bottom: 0;
       z-index: 95;
+      touch-action: manipulation;
     }
     /* Floating capsule visible at rest state. Slim — reads like a pill,
        not a chunky bar. */
@@ -7775,6 +7779,42 @@
     body.ui-v2 .v2-tab.active .v2-tab-num {
       background: #0a0a0a;
       color: var(--warn, #FFD300);
+    }
+
+    /* ── Search state: gold search tab appears left of the 3 main tabs ──
+       When #v2SearchOverlay is visible the segmented bar gains a compact
+       gold search-icon tab on the far left. The three main tabs resize to
+       fill remaining space (flex:1 unchanged; the new tab is narrower).
+       Transition: slide in from left (clip), slide back out on dismiss. */
+    body.ui-v2 .v2-search-tab {
+      /* hidden by default */
+      display: none;
+      align-items: center; justify-content: center;
+      width: 0; overflow: hidden;
+      padding: 9px 0;
+      background: var(--warn, #FFD300);
+      color: #0a0a0a;
+      border: none;
+      border-radius: 9px;
+      font-family: inherit;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: width 0.22s cubic-bezier(0.4,0,0.2,1),
+                  padding 0.22s cubic-bezier(0.4,0,0.2,1),
+                  opacity 0.18s;
+      opacity: 0;
+    }
+    body.ui-v2 .v2-search-tab.visible {
+      display: flex;
+      width: 36px;
+      padding: 9px 0;
+      opacity: 1;
+    }
+    body.ui-v2 .v2-search-tab svg {
+      width: 14px; height: 14px;
+      stroke: currentColor; fill: none;
+      stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round;
+      flex-shrink: 0;
     }
 
     /* Bold title row */
@@ -8906,6 +8946,11 @@
 
         <!-- Segmented tabs -->
         <div class="v2-segmented" role="tablist">
+          <!-- Search tab: gold icon, visible only while overlay is active.
+               Clicking it dismisses the search overlay and returns to tiles. -->
+          <button class="v2-search-tab" id="v2SearchTab" aria-label="Back to results" title="Dismiss search">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          </button>
           <button class="v2-tab active" data-v2-tab="discover" role="tab" aria-selected="true">Discover</button>
           <button class="v2-tab" data-v2-tab="watchlist" role="tab" aria-selected="false">
             Watchlist <span class="v2-tab-num" id="v2WatchlistCount" hidden>0</span>
@@ -19029,10 +19074,13 @@
       document.querySelectorAll('.v2-tab[data-v2-tab]').forEach(t => {
         t.addEventListener('click', () => {
           setTimeout(updateSearchPlaceholder, 50);
-          // Clear search results overlay when switching tabs
+          // Clear search results overlay when switching tabs, and hide gold
+          // search tab since we're now on a fresh tab context.
           const so = document.getElementById('v2SearchOverlay');
           if (so) so.hidden = true;
           if (searchInput) searchInput.value = '';
+          const st = document.getElementById('v2SearchTab');
+          if (st) st.classList.remove('visible');
         });
       });
       updateSearchPlaceholder();
@@ -19080,6 +19128,23 @@
           return Array.from(rows).map(r => r.dataset.slug);
         } catch { return []; }
       }
+      // Show/hide the gold search tab in the segmented bar.
+      function setSearchTabVisible(on) {
+        const tab = document.getElementById('v2SearchTab');
+        if (tab) tab.classList.toggle('visible', !!on);
+      }
+      function dismissSearch() {
+        if (searchInput) { searchInput.value = ''; searchInput.blur(); }
+        const so = document.getElementById('v2SearchOverlay');
+        if (so) so.hidden = true;
+        setSearchTabVisible(false);
+      }
+      // Wire the search-tab click to dismiss search
+      const v2SearchTab = document.getElementById('v2SearchTab');
+      if (v2SearchTab) {
+        v2SearchTab.addEventListener('click', dismissSearch);
+      }
+
       function runDiscoverSearch(q) {
         const so = ensureSearchOverlay();
         if (!q) {
@@ -19087,6 +19152,7 @@
           const recent = loadRecent();
           if (!recent.length) {
             so.hidden = true;
+            setSearchTabVisible(false);
             return;
           }
           so.innerHTML = `
@@ -19103,6 +19169,7 @@
             </div>
           `;
           so.hidden = false;
+          setSearchTabVisible(true);
           so.querySelectorAll('[data-recent]').forEach(b => {
             b.addEventListener('click', () => {
               searchInput.value = b.dataset.recent;
@@ -19198,6 +19265,7 @@
         }
         so.innerHTML = html;
         so.hidden = false;
+        setSearchTabVisible(true);
         // Wire row clicks
         so.querySelectorAll('[data-feature-title]').forEach(btn => {
           btn.addEventListener('click', () => {
@@ -19237,14 +19305,18 @@
             // pipeline filter the content
             const so = document.getElementById('v2SearchOverlay');
             if (so) so.hidden = true;
+            setSearchTabVisible(false);
           }
         });
+        // Focus: open overlay only if there's already a query typed.
+        // Empty focus leaves tiles visible — avoids jumping straight to
+        // recent-searches when user just taps the search bar.
         searchInput.addEventListener('focus', () => {
           const q = (searchInput.value || '').trim();
-          const activeTabEl = document.querySelector('.v2-tab.active');
-          const id = activeTabEl ? activeTabEl.dataset.v2Tab : 'discover';
-          if (id === 'discover' && !q) {
-            runDiscoverSearch(''); // shows recent searches
+          if (q) {
+            const activeTabEl = document.querySelector('.v2-tab.active');
+            const id = activeTabEl ? activeTabEl.dataset.v2Tab : 'discover';
+            if (id === 'discover') runDiscoverSearch(q);
           }
         });
       }
