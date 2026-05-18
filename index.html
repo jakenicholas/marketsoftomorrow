@@ -8739,15 +8739,179 @@
       padding-left: 0 !important;
       transform: translateX(0) !important;
     }
+    /* Solid dark header so tiles can't show through behind the search /
+       tabs / filter pills while the sidebar body scrolls underneath. */
     body.ui-v2 #desktopSidebar .sidebar-header {
-      background: transparent !important;
-      backdrop-filter: none !important;
-      -webkit-backdrop-filter: none !important;
+      background: rgba(15,15,15,0.98) !important;
+      backdrop-filter: blur(24px) saturate(1.4) !important;
+      -webkit-backdrop-filter: blur(24px) saturate(1.4) !important;
       padding: 14px 16px 8px !important;
       gap: 10px !important;
+      position: sticky !important;
+      top: 0 !important;
+      z-index: 10 !important;
+      border-bottom: 1px solid rgba(255,255,255,0.06) !important;
     }
     body.ui-v2 #desktopSidebar .sidebar-content {
       padding: 0 !important;
+    }
+    /* Hide the in-grid section header (was "In view") AND the standalone
+       #desktopSectionBar ‚Äî the new sheet title row in the sidebar header
+       replaces both. */
+    body.ui-v2 #desktopSidebar #gridDesktop .section-header-wrap,
+    body.ui-v2 #desktopSidebar #gridDesktop .section-status-bar,
+    body.ui-v2 #desktopSidebar .sidebar-header .section-status-bar,
+    body.ui-v2 #desktopSidebar #desktopSectionBar {
+      display: none !important;
+    }
+    /* Big sheet-title row (Discover / Watchlist / Pulse) */
+    body.ui-v2 #desktopSidebar .v2-desktop-sheet-title-row {
+      display: flex !important;
+      align-items: baseline !important;
+      justify-content: space-between !important;
+      padding: 4px 4px 10px !important;
+      gap: 12px !important;
+    }
+    body.ui-v2 #desktopSidebar .v2-desktop-sheet-title-row .ttl {
+      font-size: 24px !important;
+      font-weight: 800 !important;
+      color: #fff !important;
+      letter-spacing: -0.012em !important;
+      line-height: 1 !important;
+    }
+    body.ui-v2 #desktopSidebar .v2-desktop-sheet-title-row .right {
+      font-size: 11px !important;
+      color: rgba(255,255,255,0.55);
+      font-weight: 600 !important;
+    }
+    body.ui-v2 #desktopSidebar .v2-d-section-indicator {
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 6px !important;
+      color: var(--accent, #1FDF67) !important;
+      background: rgba(31,223,103,0.14);
+      padding: 4px 10px !important;
+      border-radius: 100px !important;
+      font-size: 11px !important;
+      font-weight: 700 !important;
+    }
+    body.ui-v2 #desktopSidebar .v2-d-section-indicator .dot {
+      width: 5px; height: 5px; border-radius: 50%;
+      background: var(--accent, #1FDF67);
+    }
+    body.ui-v2 #desktopSidebar .v2-d-sub-pill {
+      background: rgba(255,211,0,0.14);
+      color: #FFD300;
+      padding: 4px 10px;
+      border-radius: 100px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    body.ui-v2 #desktopSidebar .v2-d-sub-pill.pulse-style {
+      background: rgba(255,149,0,0.14);
+      color: #FF9500;
+    }
+    body.ui-v2 #desktopSidebar .v2-d-sub-pill.muted {
+      background: rgba(255,255,255,0.06);
+      color: rgba(255,255,255,0.55);
+    }
+    /* Desktop panes hosting #watchlistPanel and #pulseStack */
+    body.ui-v2 #desktopSidebar .v2-desktop-pane {
+      padding: 0 8px 16px !important;
+    }
+    body.ui-v2 #desktopSidebar .v2-desktop-pane[hidden] { display: none !important; }
+
+    /* The "naturalize legacy panel" rules at line ~8420 live inside the
+       max-width:800px mobile block ‚Äî they don't apply on desktop. Mirror
+       them here so #pulseStack / #watchlistPanel render in-flow inside our
+       sidebar panes (otherwise the legacy desktop CSS keeps them as fixed
+       340x500 floating drawers). */
+    body.ui-v2 #desktopSidebar .v2-watchlist-content #watchlistPanel,
+    body.ui-v2 #desktopSidebar .v2-pulse-content #pulseStack {
+      position: static !important;
+      display: block !important;
+      visibility: visible !important;
+      width: auto !important;
+      height: auto !important;
+      max-height: none !important;
+      transform: none !important;
+      box-shadow: none !important;
+      border: none !important;
+      background: transparent !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      opacity: 1 !important;
+      top: auto !important;
+      left: auto !important;
+      right: auto !important;
+      bottom: auto !important;
+      z-index: auto !important;
+      overflow: visible !important;
+      border-radius: 0 !important;
+    }
+    body.ui-v2 #desktopSidebar .v2-pulse-content #pulseStack.open { display: flex !important; flex-direction: column !important; }
+    /* Hide the legacy internal chrome (header, drag handle, filter row) ‚Äî
+       the new sidebar header replaces it. */
+    body.ui-v2 #desktopSidebar .v2-watchlist-content .wl-handle,
+    body.ui-v2 #desktopSidebar .v2-watchlist-content .wl-header,
+    body.ui-v2 #desktopSidebar .v2-pulse-content .pulse-stack-header,
+    body.ui-v2 #desktopSidebar .v2-pulse-content .pulse-filter-row,
+    body.ui-v2 #desktopSidebar .v2-pulse-content .pulse-sheet-handle,
+    body.ui-v2 #desktopSidebar .v2-pulse-content .pulse-stack-handle,
+    body.ui-v2 #desktopSidebar .v2-pulse-content .pulse-stack-spine {
+      display: none !important;
+    }
+    body.ui-v2 #desktopSidebar .v2-watchlist-content #watchlistBody {
+      display: block !important;
+    }
+    /* Pulse rows on desktop ‚Äî flat list, no left padding */
+    body.ui-v2 #desktopSidebar .v2-pulse-content .pulse-spine {
+      padding: 0 !important;
+    }
+    body.ui-v2 #desktopSidebar .v2-pulse-content .pulse-spine::before {
+      display: none !important;
+    }
+    body.ui-v2 #desktopSidebar .v2-pulse-content .pulse-skel { display: none !important; }
+    body.ui-v2 #desktopSidebar .v2-pulse-content .pulse-ev-wrap {
+      background: transparent !important;
+      border: none !important;
+      border-radius: 0 !important;
+      box-shadow: none !important;
+      padding: 11px 0 11px 14px !important;
+      margin: 0 !important;
+      position: relative !important;
+      border-bottom: 1px solid rgba(255,255,255,0.08) !important;
+    }
+    body.ui-v2 #desktopSidebar .v2-pulse-content .pulse-ev-wrap::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 19px;
+      width: 4px; height: 4px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.3);
+    }
+    body.ui-v2 #desktopSidebar .v2-pulse-content .pulse-ev-wrap[data-event-type="status_change"]::before { background: #FF9500; box-shadow: 0 0 0 3px rgba(255,149,0,0.18); }
+    body.ui-v2 #desktopSidebar .v2-pulse-content .pulse-ev-wrap[data-event-type="article"]::before      { background: var(--accent, #1FDF67); box-shadow: 0 0 0 3px rgba(31,223,103,0.18); }
+    body.ui-v2 #desktopSidebar .v2-pulse-content .pulse-ev-wrap[data-event-type="new_project"]::before  { background: #6FA8FF; box-shadow: 0 0 0 3px rgba(111,168,255,0.18); }
+    body.ui-v2 #desktopSidebar .v2-pulse-content .pulse-ev-title {
+      font-size: 14px !important;
+      color: #fff !important;
+      font-weight: 600 !important;
+      line-height: 1.3 !important;
+      text-transform: none !important;
+      letter-spacing: -0.01em !important;
+      margin: 4px 0 0 !important;
+      padding: 0 !important;
+    }
+    body.ui-v2 #desktopSidebar .v2-pulse-content .pulse-ev-bottom { display: none !important; }
+    body.ui-v2 #desktopSidebar .v2-pulse-content .pulse-ev-tsrow {
+      display: flex !important;
+      align-items: center !important;
+      gap: 8px !important;
+      font-size: 10px !important;
+      font-weight: 700 !important;
+      text-transform: uppercase !important;
+      letter-spacing: 0.06em !important;
     }
 
     /* Search pill ‚Äî match mobile pinned search: icon | input | clear |
@@ -18440,7 +18604,7 @@
             || (p.developers && p.developers[0] && p.developers[0].name)
             || '';
           if (firstFirm) {
-            metaParts.push(`<span class="sep">¬∑</span><span>${escapeAttr(firstFirm)}</span>`);
+            metaParts.push(`<span class="sep">&middot;</span><span>${escapeAttr(firstFirm)}</span>`);
           }
           // Configuration & phasing chips ‚Äî parse counts out of the prose
           // fields and surface as mini-pills on the meta line. Falls back
@@ -18461,11 +18625,11 @@
             if (m) {
               const n = parseInt(m[1], 10);
               const noun = m[2].toLowerCase() === 'building' ? 'buildings' : 'towers';
-              return `<span class="sep">¬∑</span><span class="atlas-tl-row-chip">${n} ${noun}</span>`;
+              return `<span class="sep">&middot;</span><span class="atlas-tl-row-chip">${n} ${noun}</span>`;
             }
             // No count parsed but the word "tower"/"building" appears ‚Äî generic chip
             if (/\b(tower|building)s?\b/i.test(s)) {
-              return `<span class="sep">¬∑</span><span class="atlas-tl-row-chip">Multi-tower</span>`;
+              return `<span class="sep">&middot;</span><span class="atlas-tl-row-chip">Multi-tower</span>`;
             }
             return '';
           })();
@@ -18476,16 +18640,16 @@
             // Count "Phase X" mentions first (most explicit)
             const phaseMatches = s.match(/\bphase\s+\d+\b/gi);
             if (phaseMatches && phaseMatches.length >= 2) {
-              return `<span class="sep">¬∑</span><span class="atlas-tl-row-chip warn">${phaseMatches.length} phases</span>`;
+              return `<span class="sep">&middot;</span><span class="atlas-tl-row-chip warn">${phaseMatches.length} phases</span>`;
             }
             // Fall back to counting " ¬∑ " separators (Jake's convention
             // for "Tower A 2026 ¬∑ Tower B 2027 ¬∑ Tower C 2029")
             const dotParts = s.split(/\s+¬∑\s+/).filter(Boolean);
             if (dotParts.length >= 2) {
-              return `<span class="sep">¬∑</span><span class="atlas-tl-row-chip warn">${dotParts.length} phases</span>`;
+              return `<span class="sep">&middot;</span><span class="atlas-tl-row-chip warn">${dotParts.length} phases</span>`;
             }
             // Anything else with content gets a generic phased pill
-            return `<span class="sep">¬∑</span><span class="atlas-tl-row-chip warn">Phased</span>`;
+            return `<span class="sep">&middot;</span><span class="atlas-tl-row-chip warn">Phased</span>`;
           })();
           if (phsChip) metaParts.push(phsChip);
           // EST DATE chip ‚Äî purple (TMW Intelligence palette) when the
@@ -18493,7 +18657,7 @@
           // alongside the tower/phase chips so all "things readers should
           // know about this row" cluster in the same visual space.
           if (p.datesSpeculative) {
-            metaParts.push(`<span class="sep">¬∑</span><span class="atlas-tl-row-chip est">EST date</span>`);
+            metaParts.push(`<span class="sep">&middot;</span><span class="atlas-tl-row-chip est">EST date</span>`);
           }
           const scaleParts = [];
           if (p.keys)   scaleParts.push(`<div class="stat"><b>${fmtNum(p.keys)}</b>keys</div>`);
@@ -18522,7 +18686,7 @@
           <div class="atlas-tl-qhead">
             <div class="atlas-tl-qhead-date">Q${g.quarter}<span class="yr">${g.year}</span></div>
             <div class="atlas-tl-qhead-dot"></div>
-            <div class="atlas-tl-qhead-count"><span class="atlas-tl-qhead-date-inline">Q${g.quarter} ${g.year} ¬∑</span> <b>${g.items.length}</b> project${g.items.length === 1 ? '' : 's'} opening</div>
+            <div class="atlas-tl-qhead-count"><span class="atlas-tl-qhead-date-inline">Q${g.quarter} ${g.year} &middot;</span> <b>${g.items.length}</b> project${g.items.length === 1 ? '' : 's'} opening</div>
           </div>
           ${rowsHtml}`;
       }).join('');
@@ -18917,7 +19081,7 @@
           <div class="fs-stat-card">
             <div class="fs-stat-val accent">${s.total}</div>
             <div class="fs-stat-lbl">Projects on TMW</div>
-            <div class="fs-stat-sub">${s.inProgress} in progress ¬∑ ${s.completed} completed</div>
+            <div class="fs-stat-sub">${s.inProgress} in progress &middot; ${s.completed} completed</div>
           </div>
           <div class="fs-stat-card">
             <div class="fs-stat-val">${fmtThousands(s.units)}</div>
@@ -18956,7 +19120,7 @@
               </div>
               <div class="fs-proj-body">
                 <div class="fs-proj-title">${esc(p.title || '')}</div>
-                <div class="fs-proj-meta">${metaParts.join(' ¬∑ ')}</div>
+                <div class="fs-proj-meta">${metaParts.join(' &middot; ')}</div>
                 <div class="fs-proj-foot">
                   <span>Delivery</span>
                   <span class="date">${esc(fmtMonthYear(p.deliveryDate))}</span>
@@ -19591,20 +19755,20 @@
 
         let html = '';
         if (projMatches.length) {
-          html += '<div class="v2-dso-group"><div class="v2-dso-group-head">Projects ¬∑ ' + projMatches.length + ' matches</div>';
+          html += '<div class="v2-dso-group"><div class="v2-dso-group-head">Projects &middot; ' + projMatches.length + ' matches</div>';
           projMatches.forEach(f => {
             const p = f.properties;
             html += '<div class="v2-dso-row" data-proj-title="' + escapeHtml(p.title) + '">'
                   + '<div class="v2-dso-icon project"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/></svg></div>'
                   + '<div class="v2-dso-body-text"><div class="v2-dso-label">' + highlight(p.title, q) + '</div>'
-                  + '<div class="v2-dso-sub">' + escapeHtml(p.city || '') + ' ¬∑ ' + escapeHtml(p.delivery || '') + '</div></div>'
+                  + '<div class="v2-dso-sub">' + escapeHtml(p.city || '') + ' &middot; ' + escapeHtml(p.delivery || '') + '</div></div>'
                   + '<span class="v2-dso-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg></span>'
                   + '</div>';
           });
           html += '</div>';
         }
         if (cities.length) {
-          html += '<div class="v2-dso-group"><div class="v2-dso-group-head">Cities ¬∑ ' + cities.length + ' matches</div>';
+          html += '<div class="v2-dso-group"><div class="v2-dso-group-head">Cities &middot; ' + cities.length + ' matches</div>';
           cities.forEach(([city, count]) => {
             html += '<div class="v2-dso-row" data-city="' + escapeHtml(city) + '">'
                   + '<div class="v2-dso-icon city"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 10c0 6-8 13-8 13s-8-7-8-13a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg></div>'
@@ -19686,9 +19850,52 @@
       } else {
         sidebarHeader.appendChild(tabs);
       }
+      // Big sheet-title row above the filter pills ‚Äî same pattern as mobile.
+      // Title swaps per tab (Discover / Watchlist / Pulse), and the right
+      // side shows a context-sensitive indicator (In View pill on Discover,
+      // subtitle on Watchlist / Pulse).
+      const titleRow = document.createElement('div');
+      titleRow.className = 'v2-desktop-sheet-title-row';
+      titleRow.innerHTML = `
+        <div class="ttl" id="v2DTitleText">Discover</div>
+        <div class="right" id="v2DTitleRight"></div>
+      `;
+      tabs.parentNode.insertBefore(titleRow, tabs.nextSibling);
+
       const pillsWrap = document.createElement('div');
       pillsWrap.className = 'v2-desktop-filter-pills';
-      tabs.parentNode.insertBefore(pillsWrap, tabs.nextSibling);
+      titleRow.parentNode.insertBefore(pillsWrap, titleRow.nextSibling);
+
+      const DESKTOP_TITLES = {
+        discover: 'Discover',
+        watchlist: 'Watchlist',
+        pulse: 'Pulse',
+      };
+      function updateDesktopTitle(target) {
+        const ttl = document.getElementById('v2DTitleText');
+        const right = document.getElementById('v2DTitleRight');
+        if (ttl) ttl.textContent = DESKTOP_TITLES[target] || 'Discover';
+        if (!right) return;
+        if (target === 'discover') {
+          // Pull current in-view count from the source-of-truth pill
+          const src = document.getElementById('desktopPillCount');
+          const txt = (src && src.textContent) ? src.textContent.replace(/\s*results?\s*$/i, ' projects') : '‚Äî projects';
+          right.innerHTML = `<span class="v2-d-section-indicator"><span class="dot"></span>In View <span class="num">${txt}</span></span>`;
+        } else if (target === 'watchlist') {
+          const wlBadge = document.getElementById('watchlistBtnBadge');
+          const n = wlBadge && !wlBadge.hasAttribute('hidden') ? parseInt(wlBadge.textContent || '0', 10) : 0;
+          right.innerHTML = n > 0
+            ? `<span class="v2-d-sub-pill">${n} new update${n === 1 ? '' : 's'}</span>`
+            : `<span class="v2-d-sub-pill muted">No new updates</span>`;
+        } else if (target === 'pulse') {
+          const plBadge = document.getElementById('pulseBellBadge');
+          const n = plBadge && !plBadge.hasAttribute('hidden') ? parseInt(plBadge.textContent || '0', 10) : 0;
+          right.innerHTML = n > 0
+            ? `<span class="v2-d-sub-pill pulse-style">${n} updates</span>`
+            : `<span class="v2-d-sub-pill muted">All caught up</span>`;
+        }
+      }
+      window._v2RefreshDesktopTitle = updateDesktopTitle;
 
       // ‚îÄ‚îÄ Augment the .desktop-search-pill to mirror mobile pinned search:
       //   icon | input | clear | filter btn (with count) | divider | result count
@@ -19817,29 +20024,116 @@
       renderDesktopPills('discover');
       window._v2RefreshDesktopPills = () => renderDesktopPills('discover');
 
+      // ‚îÄ‚îÄ Desktop tab panes ‚Äî host #watchlistPanel and #pulseStack inside
+      //    the sidebar body so they render IN the sidebar (just like mobile),
+      //    not as floating overlays. We reuse the v2-watchlist-content and
+      //    v2-pulse-content class hooks so the existing v2 styling applies.
+      const sidebarContent = sidebar.querySelector('.sidebar-content');
+      const gridDesktop = document.getElementById('gridDesktop');
+      let dtWatchPane = sidebar.querySelector('#v2DesktopWatchlistPane');
+      let dtPulsePane = sidebar.querySelector('#v2DesktopPulsePane');
+      if (!dtWatchPane && sidebarContent) {
+        dtWatchPane = document.createElement('div');
+        dtWatchPane.id = 'v2DesktopWatchlistPane';
+        dtWatchPane.className = 'v2-watchlist-content v2-desktop-pane';
+        dtWatchPane.hidden = true;
+        sidebarContent.appendChild(dtWatchPane);
+      }
+      if (!dtPulsePane && sidebarContent) {
+        dtPulsePane = document.createElement('div');
+        dtPulsePane.id = 'v2DesktopPulsePane';
+        dtPulsePane.className = 'v2-pulse-content v2-desktop-pane';
+        dtPulsePane.hidden = true;
+        sidebarContent.appendChild(dtPulsePane);
+      }
+
+      function showDesktopTab(target) {
+        const wlPanel = document.getElementById('watchlistPanel');
+        const plPanel = document.getElementById('pulseStack');
+        const mobileWlPane = document.getElementById('v2WatchlistPane');
+        const mobilePlPane = document.getElementById('v2PulsePane');
+        // Default: hide both desktop panes
+        if (dtWatchPane) dtWatchPane.hidden = true;
+        if (dtPulsePane) dtPulsePane.hidden = true;
+        // gridDesktop's inline style carries display:flex !important from
+        // forceDesktopTileLayout, so we must also use !important here.
+        if (gridDesktop) gridDesktop.style.setProperty('display', 'flex', 'important');
+
+        if (target === 'watchlist' && wlPanel) {
+          // Move into desktop pane; force-open so its render pipeline runs
+          if (wlPanel.parentElement !== dtWatchPane) dtWatchPane.appendChild(wlPanel);
+          wlPanel.hidden = false;
+          wlPanel.classList.add('open');
+          dtWatchPane.hidden = false;
+          if (gridDesktop) gridDesktop.style.setProperty('display', 'none', 'important');
+          // Kick the watchlist render pipeline if exposed
+          if (typeof window.refreshWatchlist === 'function') {
+            try { window.refreshWatchlist(); } catch(_) {}
+          }
+        } else if (target === 'pulse' && plPanel) {
+          if (plPanel.parentElement !== dtPulsePane) dtPulsePane.appendChild(plPanel);
+          plPanel.classList.add('open');
+          dtPulsePane.hidden = false;
+          if (gridDesktop) gridDesktop.style.setProperty('display', 'none', 'important');
+          if (typeof window.refreshPulse === 'function') {
+            try { window.refreshPulse(); } catch(_) {}
+          }
+        } else {
+          // discover ‚Äî make sure the panels are back in their mobile
+          // panes so mobile keeps working if the viewport flips back
+          if (wlPanel && mobileWlPane && wlPanel.parentElement !== mobileWlPane) {
+            mobileWlPane.appendChild(wlPanel);
+          }
+          if (plPanel && mobilePlPane && plPanel.parentElement !== mobilePlPane) {
+            mobilePlPane.appendChild(plPanel);
+          }
+        }
+      }
+
       tabs.querySelectorAll('button').forEach(btn => {
-        btn.addEventListener('click', () => {
+        btn.addEventListener('click', (e) => {
+          // Stop bubble so the legacy "outside-click closes pulse" handler
+          // (added by setupBellToggle on document) doesn't fire right after
+          // we open it. Without this, .open gets removed milliseconds after
+          // we add it because the tab is "outside" the pulseStack element.
+          e.stopPropagation();
           const target = btn.dataset.v2dTab;
           tabs.querySelectorAll('button').forEach(b => b.classList.remove('active'));
           btn.classList.add('active');
           try { renderDesktopPills(target); } catch(_) {}
-          if (target === 'watchlist') {
-            const wlBtn = document.getElementById('watchlistBtn');
-            if (wlBtn) wlBtn.click();
-          } else if (target === 'pulse') {
-            const plBtn = document.getElementById('pulseBellBtn');
-            if (plBtn) plBtn.click();
-          } else {
-            const wlPanel = document.getElementById('watchlistPanel');
-            const plPanel = document.getElementById('pulseStack');
-            if (wlPanel && wlPanel.classList.contains('open') && typeof window.closeWatchlist === 'function') {
-              window.closeWatchlist();
-            }
-            if (plPanel && plPanel.classList.contains('open')) {
-              plPanel.classList.remove('open');
-            }
-          }
+          try { updateDesktopTitle(target); } catch(_) {}
+          showDesktopTab(target);
         });
+      });
+
+      // Belt-and-suspenders: the legacy setupBellToggle attaches a bubble-phase
+      // document click that runs closeStack() whenever the click is outside
+      // pulseStack. Clicks elsewhere inside our sidebar (search input, pills,
+      // header) would silently close the pulse pane. Re-add `.open` if a click
+      // inside the sidebar caused it to be removed and pulse is the active tab.
+      sidebar.addEventListener('click', () => {
+        setTimeout(() => {
+          const active = tabs.querySelector('button.active');
+          if (!active) return;
+          const t = active.dataset.v2dTab;
+          if (t === 'pulse') {
+            const ps = document.getElementById('pulseStack');
+            if (ps && !ps.classList.contains('open')) ps.classList.add('open');
+          }
+          if (t === 'watchlist') {
+            const wl = document.getElementById('watchlistPanel');
+            if (wl && !wl.classList.contains('open')) wl.classList.add('open');
+          }
+        }, 0);
+      });
+      // Initialize title on first paint + re-sync when result count changes
+      updateDesktopTitle('discover');
+      ['desktopPillCount'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) new MutationObserver(() => {
+          const active = tabs.querySelector('button.active');
+          updateDesktopTitle(active ? active.dataset.v2dTab : 'discover');
+        }).observe(el, { childList: true, characterData: true, subtree: true });
       });
 
       const syncCounts = () => {
@@ -20107,7 +20401,7 @@
       };
 
       const TITLES = {
-        discover:  () => ({ ttl: 'Discover',  sub: 'All projects ¬∑ sorted by status' }),
+        discover:  () => ({ ttl: 'Discover',  sub: 'All projects &middot; sorted by status' }),
         watchlist: () => ({ ttl: 'Watchlist', sub: getWatchlistSubtitle() }),
         pulse:     () => ({ ttl: 'Pulse',     sub: getPulseSubtitle() }),
       };
@@ -20117,7 +20411,7 @@
         const c = n ? parseInt(n.textContent || '0', 10) : 0;
         const ur = u ? parseInt(u.textContent || '0', 10) : 0;
         if (!c) return 'No projects yet';
-        return `${c} project${c === 1 ? '' : 's'}${ur ? ' ¬∑ ' + ur + ' unread' : ''}`;
+        return `${c} project${c === 1 ? '' : 's'}${ur ? ' &middot; ' + ur + ' unread' : ''}`;
       }
       function getPulseSubtitle() {
         // Count the rendered events in the spine ‚Äî this is the same set
@@ -20966,7 +21260,7 @@
               </span>
               <span class="v2-search-body">
                 <span class="v2-search-label">${highlight(f.properties.title, q)}</span>
-                <span class="v2-search-sub">${escapeText(f.properties.city || '')}${f.properties.preferredType ? ' ¬∑ ' + escapeText(f.properties.preferredType) : ''}</span>
+                <span class="v2-search-sub">${escapeText(f.properties.city || '')}${f.properties.preferredType ? ' &middot; ' + escapeText(f.properties.preferredType) : ''}</span>
               </span>
               <span class="v2-search-arrow">‚Ä∫</span>
             </button>
@@ -20998,16 +21292,16 @@
         `;
         let html = '';
         if (watchMatches.length) {
-          html += `<div class="v2-search-group"><div class="v2-search-grouphead">From your Watchlist ¬∑ ${watchMatches.length} match${watchMatches.length === 1 ? '' : 'es'}</div>${watchMatches.map(renderProjectRow).join('')}</div>`;
+          html += `<div class="v2-search-group"><div class="v2-search-grouphead">From your Watchlist &middot; ${watchMatches.length} match${watchMatches.length === 1 ? '' : 'es'}</div>${watchMatches.map(renderProjectRow).join('')}</div>`;
         }
         if (matchedProjects.length) {
-          html += `<div class="v2-search-group"><div class="v2-search-grouphead">Projects ¬∑ ${matchedProjects.length} match${matchedProjects.length === 1 ? '' : 'es'}</div>${matchedProjects.slice(0, 6).map(renderProjectRow).join('')}</div>`;
+          html += `<div class="v2-search-group"><div class="v2-search-grouphead">Projects &middot; ${matchedProjects.length} match${matchedProjects.length === 1 ? '' : 'es'}</div>${matchedProjects.slice(0, 6).map(renderProjectRow).join('')}</div>`;
         }
         if (cityMatches.length) {
-          html += `<div class="v2-search-group"><div class="v2-search-grouphead">Cities ¬∑ ${cityMatches.length} match${cityMatches.length === 1 ? '' : 'es'}</div>${cityMatches.map(renderCityRow).join('')}</div>`;
+          html += `<div class="v2-search-group"><div class="v2-search-grouphead">Cities &middot; ${cityMatches.length} match${cityMatches.length === 1 ? '' : 'es'}</div>${cityMatches.map(renderCityRow).join('')}</div>`;
         }
         if (firmMatches.length) {
-          html += `<div class="v2-search-group"><div class="v2-search-grouphead">Firms ¬∑ ${firmMatches.length} match${firmMatches.length === 1 ? '' : 'es'}</div>${firmMatches.map(renderFirmRow).join('')}</div>`;
+          html += `<div class="v2-search-group"><div class="v2-search-grouphead">Firms &middot; ${firmMatches.length} match${firmMatches.length === 1 ? '' : 'es'}</div>${firmMatches.map(renderFirmRow).join('')}</div>`;
         }
         if (!html) {
           html = '<div class="v2-search-empty">No matches for "' + escapeText(q) + '"</div>';
