@@ -7738,6 +7738,28 @@
       flex-shrink: 0;
       color: rgba(255,255,255,0.72);
     }
+    /* Clear (×) button — visible only when input has text */
+    body.ui-v2 .v2-search-clear {
+      display: none;
+      align-items: center; justify-content: center;
+      width: 20px; height: 20px;
+      background: rgba(255,255,255,0.12);
+      border: none;
+      border-radius: 50%;
+      color: rgba(255,255,255,0.7);
+      cursor: pointer;
+      flex-shrink: 0;
+      padding: 0;
+      font-family: inherit;
+      transition: background 0.15s;
+    }
+    body.ui-v2 .v2-search-clear.visible { display: flex; }
+    body.ui-v2 .v2-search-clear:hover { background: rgba(255,255,255,0.2); }
+    body.ui-v2 .v2-search-clear svg {
+      width: 10px; height: 10px;
+      stroke: currentColor; fill: none;
+      stroke-width: 2.5; stroke-linecap: round;
+    }
 
     /* Segmented tabs — gold-active per Jake's pick */
     body.ui-v2 .v2-segmented {
@@ -7781,14 +7803,23 @@
       color: var(--warn, #FFD300);
     }
 
-    /* ── Search state: gold search tab appears left of the 3 main tabs ──
-       When #v2SearchOverlay is visible the segmented bar gains a compact
-       gold search-icon tab on the far left. The three main tabs resize to
-       fill remaining space (flex:1 unchanged; the new tab is narrower).
-       Transition: slide in from left (clip), slide back out on dismiss. */
+    /* ── Search state: gold search tab + tab deactivation ──────────
+       When search overlay is active:
+       1. A gold search-icon tab slides in at the far left of the bar.
+       2. The segmented bar gains .v2-searching so the regular active tab
+          is no longer highlighted (Discover loses gold while user types).
+       3. Zero gap between search-tab and Discover so they read as one bar.
+    ─────────────────────────────────────────────────────────────────── */
+    body.ui-v2 .v2-segmented {
+      gap: 0;  /* handled by tab margin below */
+    }
+    body.ui-v2 .v2-tab + .v2-tab,
+    body.ui-v2 .v2-search-tab + .v2-tab {
+      margin-left: 2px;
+    }
+    /* Search tab: hidden by default, slides in on search */
     body.ui-v2 .v2-search-tab {
-      /* hidden by default */
-      display: none;
+      display: flex;
       align-items: center; justify-content: center;
       width: 0; overflow: hidden;
       padding: 9px 0;
@@ -7800,21 +7831,31 @@
       cursor: pointer;
       flex-shrink: 0;
       transition: width 0.22s cubic-bezier(0.4,0,0.2,1),
-                  padding 0.22s cubic-bezier(0.4,0,0.2,1),
                   opacity 0.18s;
       opacity: 0;
+      pointer-events: none;
     }
     body.ui-v2 .v2-search-tab.visible {
-      display: flex;
       width: 36px;
-      padding: 9px 0;
       opacity: 1;
+      pointer-events: auto;
     }
     body.ui-v2 .v2-search-tab svg {
       width: 14px; height: 14px;
       stroke: currentColor; fill: none;
       stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round;
       flex-shrink: 0;
+    }
+    /* While searching: regular active tab loses gold highlight so the
+       search icon tab is the only gold element in the bar. */
+    body.ui-v2 .v2-segmented.v2-searching .v2-tab.active {
+      background: transparent !important;
+      color: rgba(255,255,255,0.5) !important;
+      font-weight: 600 !important;
+    }
+    body.ui-v2 .v2-segmented.v2-searching .v2-tab.active .v2-tab-num {
+      background: var(--warn, #FFD300) !important;
+      color: #0a0a0a !important;
     }
 
     /* Bold title row */
@@ -7924,6 +7965,25 @@
       font-size: 18px;
       line-height: 1;
     }
+    /* X button on recent search rows */
+    body.ui-v2 .v2-search-row-del {
+      margin-left: auto;
+      background: none; border: none;
+      color: rgba(255,255,255,0.3);
+      cursor: pointer;
+      width: 24px; height: 24px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      border-radius: 50%;
+      padding: 0;
+    }
+    body.ui-v2 .v2-search-row-del:hover { color: rgba(255,255,255,0.8); background: rgba(255,255,255,0.06); }
+    body.ui-v2 .v2-search-row-del svg {
+      width: 10px; height: 10px;
+      stroke: currentColor; fill: none;
+      stroke-width: 2.5; stroke-linecap: round;
+    }
+
     body.ui-v2 .v2-search-empty {
       padding: 40px 14px;
       text-align: center;
@@ -8264,6 +8324,39 @@
     body.ui-v2 .v2-pulse-content .pulse-stack-handle,
     body.ui-v2 .v2-pulse-content .pulse-stack-spine,
     body.ui-v2 .v2-pulse-content [class*="handle"] { display: none !important; }
+
+    /* ── Pulse spine: remove legacy vertical line + left indent ──
+       The legacy .pulse-spine has padding-left:32px and a ::before
+       vertical green line. In v2 we use a simpler flat list style. */
+    body.ui-v2 .v2-pulse-content .pulse-spine {
+      padding: 0 !important;
+    }
+    body.ui-v2 .v2-pulse-content .pulse-spine::before {
+      display: none !important;
+    }
+    /* Hide skeleton loaders in v2 pane (not needed in drawer) */
+    body.ui-v2 .v2-pulse-content .pulse-skel { display: none !important; }
+    /* Type label in tsrow (v2-specific element, absent in legacy) */
+    body.ui-v2 .v2-pulse-content .pulse-ev-type-lbl {
+      font-weight: 700 !important;
+      text-transform: uppercase !important;
+      letter-spacing: 0.06em !important;
+      color: var(--orange, #FF9500);
+    }
+    body.ui-v2 .v2-pulse-content .pulse-ev-wrap[data-event-type="article"]     .pulse-ev-type-lbl { color: var(--accent, #1FDF67) !important; }
+    body.ui-v2 .v2-pulse-content .pulse-ev-wrap[data-event-type="new_project"] .pulse-ev-type-lbl { color: var(--blue, #6FA8FF) !important; }
+    /* Time stamp in v2 tsrow is secondary info — mute it */
+    body.ui-v2 .v2-pulse-content .pulse-ev-ts {
+      color: rgba(255,255,255,0.55) !important;
+      font-weight: 500 !important;
+    }
+    /* Location token in v2 tsrow */
+    body.ui-v2 .v2-pulse-content .pulse-ev-loc {
+      color: rgba(255,255,255,0.72) !important;
+      font-weight: 500 !important;
+      text-transform: none !important;
+      letter-spacing: 0 !important;
+    }
 
     /* ── Pulse rows redesigned mockup-style ──────────────────────
        Match mockup blend v2 exactly:
@@ -8936,6 +9029,9 @@
             <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
           </span>
           <input class="v2-search-text" id="v2SearchInput" type="text" placeholder="Search projects, cities.." />
+          <button class="v2-search-clear" id="v2SearchClear" aria-label="Clear search">
+            <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
           <div class="v2-filter-btn" id="v2SearchFilterBtn">
             <span class="badge-icon"><svg viewBox="0 0 24 24"><circle cx="6" cy="5" r="2"/><line x1="2" y1="5" x2="4" y2="5"/><line x1="8" y1="5" x2="22" y2="5"/><circle cx="16" cy="12" r="2"/><line x1="2" y1="12" x2="14" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><circle cx="9" cy="19" r="2"/><line x1="2" y1="19" x2="7" y2="19"/><line x1="11" y1="19" x2="22" y2="19"/></svg></span>
             <span class="badge-count" id="v2SearchFilterCount">0</span>
@@ -11332,21 +11428,18 @@
           e.stopPropagation();
           const f = currentFeature;
           closeModal();
-          // Collapse v2 sheet if open (mobile)
-          try {
-            document.body.classList.remove('v2-sheet-open', 'v2-sheet-mid', 'v2-sheet-full');
-          } catch(_) {}
+          // Collapse v2 sheet so map is fully visible
+          document.body.classList.remove('v2-sheet-open', 'v2-sheet-mid', 'v2-sheet-full');
           if (!f || !f.geometry || !f.geometry.coordinates) return;
           const co = f.geometry.coordinates;
           const isMobile = window.innerWidth <= 800;
-          try {
-            map.flyTo({
-              center: co,
-              zoom: Math.max(map.getZoom(), isMobile ? 12 : 13),
-              duration: 1400,
-              essential: true,
-            });
-          } catch(_) {}
+          const targetZoom = Math.max(map.getZoom(), isMobile ? 13 : 14);
+          map.flyTo({ center: co, zoom: targetZoom, duration: 1200, essential: true });
+          // After fly settles, open the tile popup so the user sees the pin
+          // highlighted and can tap "Learn more" to reopen the modal.
+          setTimeout(() => {
+            try { showPopup(f, { skipPaywall: true }); } catch(_) {}
+          }, 1300);
         });
       }
 
@@ -16339,6 +16432,7 @@
       // listEl gets a single .pulse-spine wrapper; events are direct
       // children of that wrapper so the ::before pseudo-element can paint
       // the line that runs through them.
+      var isV2 = document.body.classList.contains('ui-v2');
       html += '<div class="pulse-spine">';
       for (var i = 0; i < events.length; i++) {
         var e = events[i];
@@ -16350,25 +16444,33 @@
         var target = e.type === 'article' ? ' target="_blank" rel="noopener"' : '';
         var safeId = escapeHtml(e.id || '');
         var eventTypeAttr = ' data-event-type="' + escapeHtml(e.type || '') + '"';
-        // Secondary meta line: time + city + category, all uppercase mono.
-        // Empty fields fold out naturally.
         var locPart = e.city ? '<span class="pulse-ev-loc">' + escapeHtml(e.city) + '</span>' : '';
         var ts = timeAgo(e.timestamp);
         var tsPart = ts ? '<span class="pulse-ev-ts">' + escapeHtml(ts) + '</span>' : '';
         var sep = (locPart && tsPart) ? '<span class="pulse-ev-sep">&middot;</span>' : '';
-        // Bottom meta: the event's own tag is more specific (e.g.
-        // "Opening Soon", "Topped Out", "New on Map", "On TMW") than the
-        // generic news/update/map fallback. Fall back if tag is missing.
         var tagLabel = e.tag || tagLabelFor(e);
         var bottomMeta = tagLabel ? '<div class="pulse-ev-bottom">' + escapeHtml(tagLabel) + '</div>' : '';
 
+        // V2: tsrow = TYPE · city · time  (type label colored, rest muted)
+        // Legacy: tsrow = time · city  (time colored, bottom = tag label)
+        var tsrowHtml;
+        if (isV2) {
+          var typeLbl = escapeHtml((e.tag || tagLabelFor(e)).toUpperCase());
+          var sepDot = '<span class="pulse-ev-sep">&middot;</span>';
+          tsrowHtml = '<div class="pulse-ev-tsrow">'
+            + '<span class="pulse-ev-type-lbl">' + typeLbl + '</span>'
+            + (e.city ? sepDot + '<span class="pulse-ev-loc">' + escapeHtml(e.city) + '</span>' : '')
+            + (ts ? sepDot + '<span class="pulse-ev-ts">' + escapeHtml(ts) + '</span>' : '')
+            + '</div>';
+        } else {
+          tsrowHtml = '<div class="pulse-ev-tsrow">' + tsPart + sep + locPart + '</div>';
+        }
+
         html += '<div class="pulse-ev-wrap pulse-ev-type-' + tagCls + '" data-event-type="' + escapeHtml(e.type || '') + '">'
               +   '<a class="pulse-ev" href="' + escapeHtml(e.link || '#') + '"' + target + eventTypeAttr + '>'
-              +     '<div class="pulse-ev-tsrow">'
-              +       tsPart + sep + locPart
-              +     '</div>'
+              +     tsrowHtml
               +     '<div class="pulse-ev-title">' + escapeHtml(e.title || '') + '</div>'
-              +     bottomMeta
+              +     (isV2 ? '' : bottomMeta)
               +   '</a>'
               +   '<button type="button" class="pulse-ev-close" data-dismiss="' + safeId + '" aria-label="Dismiss">'
               +     '<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>'
@@ -18277,6 +18379,9 @@
 
       // Expose for debugging / external callers
       window.openFirmSheet = openFirmSheet;
+      // Expose a sync getter for cached firm data so search results can
+      // resolve name → {role, slug} without an async round-trip.
+      window._firmDataCache = () => _firmData;
       window.closeFirmSheet = closeFirmSheet;
       window.openProjectFromSheet = openProjectFromSheet;
     })();
@@ -19129,15 +19234,20 @@
         } catch { return []; }
       }
       // Show/hide the gold search tab in the segmented bar.
+      // Also toggles .v2-searching on the bar so regular active tab loses gold.
       function setSearchTabVisible(on) {
         const tab = document.getElementById('v2SearchTab');
         if (tab) tab.classList.toggle('visible', !!on);
+        const seg = document.querySelector('.v2-segmented');
+        if (seg) seg.classList.toggle('v2-searching', !!on);
       }
       function dismissSearch() {
         if (searchInput) { searchInput.value = ''; searchInput.blur(); }
         const so = document.getElementById('v2SearchOverlay');
         if (so) so.hidden = true;
         setSearchTabVisible(false);
+        const clearBtn = document.getElementById('v2SearchClear');
+        if (clearBtn) clearBtn.classList.remove('visible');
       }
       // Wire the search-tab click to dismiss search
       const v2SearchTab = document.getElementById('v2SearchTab');
@@ -19155,27 +19265,49 @@
             setSearchTabVisible(false);
             return;
           }
-          so.innerHTML = `
-            <div class="v2-search-group">
-              <div class="v2-search-grouphead">Recent searches</div>
-              ${recent.map(r => `
-                <button class="v2-search-row" data-recent="${escapeAttr(r.label)}">
-                  <span class="v2-search-icon recent">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-                  </span>
-                  <span class="v2-search-label">${escapeText(r.label)}</span>
-                </button>
-              `).join('')}
-            </div>
-          `;
-          so.hidden = false;
-          setSearchTabVisible(true);
-          so.querySelectorAll('[data-recent]').forEach(b => {
-            b.addEventListener('click', () => {
-              searchInput.value = b.dataset.recent;
-              searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+          function renderRecentList() {
+            const items = loadRecent();
+            if (!items.length) {
+              so.hidden = true;
+              setSearchTabVisible(false);
+              return;
+            }
+            so.innerHTML = `
+              <div class="v2-search-group">
+                <div class="v2-search-grouphead">Recent searches</div>
+                ${items.map((r, idx) => `
+                  <div class="v2-search-row" style="display:flex;align-items:center;" data-recent-idx="${idx}">
+                    <span class="v2-search-icon recent" style="pointer-events:none">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                    </span>
+                    <span class="v2-search-label" style="flex:1;text-align:left;cursor:pointer" data-recent="${escapeAttr(r.label)}">${escapeText(r.label)}</span>
+                    <button class="v2-search-row-del" data-del-idx="${idx}" aria-label="Remove">
+                      <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </button>
+                  </div>
+                `).join('')}
+              </div>
+            `;
+            so.hidden = false;
+            setSearchTabVisible(true);
+            so.querySelectorAll('[data-recent]').forEach(lbl => {
+              lbl.addEventListener('click', () => {
+                searchInput.value = lbl.dataset.recent;
+                searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+              });
             });
-          });
+            so.querySelectorAll('[data-del-idx]').forEach(delBtn => {
+              delBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const idx = parseInt(delBtn.dataset.delIdx, 10);
+                let list = loadRecent();
+                list.splice(idx, 1);
+                try { localStorage.setItem(RECENT_KEY, JSON.stringify(list)); } catch {}
+                renderRecentList();
+              });
+            });
+          }
+          renderRecentList();
           return;
         }
         const features = window.allProjectFeatures || [];
@@ -19278,23 +19410,74 @@
         });
         so.querySelectorAll('[data-city]').forEach(btn => {
           btn.addEventListener('click', () => {
-            saveRecent({ label: btn.dataset.city, type: 'city' });
-            // Push search to legacy bar to filter by city
-            const legacy = document.getElementById('mobileSearchBar');
-            if (legacy) { legacy.value = btn.dataset.city; legacy.dispatchEvent(new Event('input', { bubbles: true })); }
+            const city = btn.dataset.city;
+            saveRecent({ label: city, type: 'city' });
+            // Find center of all projects in this city, then fly there
+            const features = window.allProjectFeatures || [];
+            const cityFeats = features.filter(f =>
+              (f.properties.city || '').toLowerCase() === city.toLowerCase()
+            );
+            dismissSearch();
+            // Collapse the sheet so the map is fully visible
+            document.body.classList.remove('v2-sheet-open', 'v2-sheet-mid', 'v2-sheet-full');
+            if (cityFeats.length) {
+              const lngs = cityFeats.map(f => f.geometry.coordinates[0]);
+              const lats = cityFeats.map(f => f.geometry.coordinates[1]);
+              const lng = lngs.reduce((a, b) => a + b, 0) / lngs.length;
+              const lat = lats.reduce((a, b) => a + b, 0) / lats.length;
+              try {
+                map.flyTo({ center: [lng, lat], zoom: 12, duration: 1400, essential: true });
+              } catch(_) {}
+            }
           });
         });
         so.querySelectorAll('[data-firm]').forEach(btn => {
           btn.addEventListener('click', () => {
-            saveRecent({ label: btn.dataset.firm, type: 'firm' });
-            const legacy = document.getElementById('mobileSearchBar');
-            if (legacy) { legacy.value = btn.dataset.firm; legacy.dispatchEvent(new Event('input', { bubbles: true })); }
+            const firmName = btn.dataset.firm;
+            saveRecent({ label: firmName, type: 'firm' });
+            dismissSearch();
+            // Look up role + slug in cached firms data, then open firm sheet
+            const firmData = window._firmDataCache && window._firmDataCache();
+            if (firmData) {
+              for (const role of ['architects', 'developers']) {
+                const firm = (firmData[role] || []).find(f => f.name === firmName);
+                if (firm && window.openFirmSheet) {
+                  window.openFirmSheet(role, firm.slug);
+                  return;
+                }
+              }
+            }
+            // Fallback: derive slug from name (matches typical slugify pattern)
+            const slug = firmName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+            // Try to determine role from project data
+            let role = 'architects';
+            const features = window.allProjectFeatures || [];
+            for (const f of features) {
+              const devNames = (f.properties.developer || '').split(',').map(s => s.trim());
+              if (devNames.includes(firmName)) { role = 'developers'; break; }
+            }
+            if (window.openFirmSheet) window.openFirmSheet(role, slug);
           });
         });
       }
 
       if (searchInput) {
+        const clearBtn = document.getElementById('v2SearchClear');
+        function updateClearBtn() {
+          const q = (searchInput.value || '').trim();
+          if (clearBtn) clearBtn.classList.toggle('visible', q.length > 0);
+        }
+        if (clearBtn) {
+          clearBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            dismissSearch();
+            updateClearBtn();
+            searchInput.focus();
+          });
+        }
+
         searchInput.addEventListener('input', (e) => {
+          updateClearBtn();
           const q = (e.target.value || '').trim();
           const activeTabEl = document.querySelector('.v2-tab.active');
           const id = activeTabEl ? activeTabEl.dataset.v2Tab : 'discover';
@@ -19312,6 +19495,7 @@
         // Empty focus leaves tiles visible — avoids jumping straight to
         // recent-searches when user just taps the search bar.
         searchInput.addEventListener('focus', () => {
+          updateClearBtn();
           const q = (searchInput.value || '').trim();
           if (q) {
             const activeTabEl = document.querySelector('.v2-tab.active');
