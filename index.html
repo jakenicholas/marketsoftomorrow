@@ -8622,7 +8622,31 @@
 
     /* v2-drawer stays MOBILE-only ‚Äî never show on desktop */
     body.ui-v2 .v2-drawer { display: none !important; }
-    body.ui-v2 .v2-right-rail { display: none !important; }
+
+    /* ‚îÄ‚îÄ KILL legacy desktop right-rail buttons ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ */
+    body.ui-v2 #zoomInButton,
+    body.ui-v2 #zoomOutButton,
+    body.ui-v2 #locationButton,
+    body.ui-v2 #resetViewButton,
+    body.ui-v2 #layersButton,
+    body.ui-v2 #pulseBellBtn,
+    body.ui-v2 #watchlistBtn,
+    body.ui-v2 #mobileMapButton,
+    body.ui-v2 #mobileTilesButton { display: none !important; }
+
+    /* ‚îÄ‚îÄ SHOW v2-right-rail on desktop (mobile-style buttons) ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ */
+    body.ui-v2 .v2-right-rail {
+      display: flex !important;
+      flex-direction: column !important;
+      position: fixed !important;
+      right: 18px !important;
+      bottom: 18px !important;
+      top: auto !important;
+      gap: 8px !important;
+      z-index: 50 !important;
+    }
+    /* Never show the Map return pill on desktop (mobile only) */
+    body.ui-v2 #v2MapReturnBtn { display: none !important; }
 
     /* ‚îÄ‚îÄ HEADER ‚Äî glass bar ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ */
     body.ui-v2 #header {
@@ -8660,9 +8684,9 @@
 
     /* ‚îÄ‚îÄ DESKTOP SIDEBAR ‚Äî 420px, dark, flush ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ */
     body.ui-v2 #app-container { padding-top: 60px !important; }
-    body.ui-v2 #map { left: 480px !important; }
+    body.ui-v2 #map { left: 520px !important; }
     body.ui-v2 #desktopSidebar {
-      width: 480px !important;
+      width: 520px !important;
       top: 60px !important;
       height: calc(100% - 60px) !important;
       background: rgba(15,15,15,0.98) !important;
@@ -9285,7 +9309,7 @@
 
     <!-- Zoom buttons -->
     <button id="zoomInButton" class="zoom-btn" title="Zoom in">+</button>
-    <button id="zoomOutButton" class="zoom-btn" title="Zoom out">‚àí</button>
+    <button id="zoomOutButton" class="zoom-btn" title="Zoom out">&minus;</button>
     <!-- Reset map view -->
     <button id="resetViewButton" class="zoom-btn" title="Reset map view (north-up)" aria-label="Reset map view">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polygon points="12 5 14 12 12 19 10 12" fill="currentColor" stroke="none"/></svg>
@@ -9314,10 +9338,10 @@
               <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
             </div>
             <input id="sidebarSearchBar" type="text" placeholder="Search projects or city..." />
-            <button id="sidebarSearchClear" title="Clear search">‚úï</button>
+            <button id="sidebarSearchClear" title="Clear search">&times;</button>
             <div id="sidebarAutocomplete" class="autocomplete-dropdown hidden"></div>
           </div>
-          <button id="closeSidebar" title="Close">‚úï</button>
+          <button id="closeSidebar" title="Close">&times;</button>
           <div id="sidebarResults" class="hidden"></div>
         </div>
 
@@ -9382,7 +9406,7 @@
                 <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
               </div>
               <input id="mobileSearchBar" type="text" placeholder="Search projects or city..." />
-              <button id="mobileSearchClear" title="Clear search">‚úï</button>
+              <button id="mobileSearchClear" title="Clear search">&times;</button>
             </div>
             <div id="mobileAutocomplete" class="autocomplete-dropdown hidden"></div>
           </div>
@@ -11642,7 +11666,7 @@
 
         // Pills ‚Äî featured only, no type pill
         const pills = document.getElementById('pmPills');
-        pills.innerHTML = p.featured ? `<span class="pm-featured-pill">‚òÖ Featured</span>` : '';
+        pills.innerHTML = p.featured ? `<span class="pm-featured-pill">&#9733; Featured</span>` : '';
 
         // Title + city ¬∑ project type
         // Subtitle prefers the sheet's "PreferredType" column when set
@@ -15232,7 +15256,7 @@
               Sign up free
             </button>
             <button class="paywall-cta-pro" id="signupWallGoProBtn">
-              <span class="paywall-cta-pro-star">‚òÖ</span>
+              <span class="paywall-cta-pro-star">&#9733;</span>
               Go Pro
             </button>
             <div class="paywall-features">
@@ -15592,7 +15616,7 @@
             <div class="auth-avatar-wrap">
               <button class="auth-avatar" id="authAvatarBtn" aria-label="Account menu" aria-haspopup="true" aria-expanded="false">
                 <span class="auth-avatar-initials">${initials}</span>
-                ${isPaidMember ? '<span class="auth-avatar-pro" title="Pro member">‚òÖ</span>' : ''}
+                ${isPaidMember ? '<span class="auth-avatar-pro" title="Pro member">&#9733;</span>' : ''}
               </button>
               <div class="auth-dropdown" id="authDropdown" role="menu">
                 <button class="auth-dropdown-item" id="authMenuAccount" role="menuitem">
@@ -18091,7 +18115,7 @@
       `).join('');
       const featuredChipsHtml = `
         <button class="atlas-tl-chip ${!currentTimelineFeatured ? 'active' : ''}" data-tl-featured="all" type="button">All projects</button>
-        <button class="atlas-tl-chip ${currentTimelineFeatured  ? 'active' : ''}" data-tl-featured="featured" type="button"><span style="color:#FFD300">‚òÖ</span> Featured only</button>
+        <button class="atlas-tl-chip ${currentTimelineFeatured  ? 'active' : ''}" data-tl-featured="featured" type="button"><span style="color:#FFD300">&#9733;</span> Featured only</button>
       `;
       const totalAvailable = inPipelineBase.length;
       const filtersHtml = `
@@ -18216,7 +18240,7 @@
               <div class="atlas-tl-row-dot-slot"></div>
               <div class="atlas-tl-row-card">
                 <div class="atlas-tl-row-img" style="${img}">
-                  ${p.featured ? '<div class="atlas-tl-row-featured" title="Featured">‚òÖ</div>' : ''}
+                  ${p.featured ? '<div class="atlas-tl-row-featured" title="Featured">&#9733;</div>' : ''}
                   <div class="atlas-tl-row-status"><span class="dot" style="background:${info.color}"></span>${escapeAttr(info.label)}</div>
                 </div>
                 <div class="atlas-tl-row-body">
@@ -19013,6 +19037,47 @@
     if (params.get('ui') === 'v1') return;
     document.body.classList.add('ui-v2');
 
+    // ‚îÄ‚îÄ Desktop v2: NUCLEAR CSS ‚Äî inject a <style> at the END of body so
+    // it's the very last rule in the cascade. Combined with the inline
+    // attribute on #gridDesktop, this makes the 1-column tile layout
+    // impossible to override by any other rule.
+    (function injectNuclearGridCss() {
+      if (document.getElementById('v2DesktopNuclearCss')) return;
+      const style = document.createElement('style');
+      style.id = 'v2DesktopNuclearCss';
+      style.textContent = `
+        @media(min-width: 801px) {
+          html body.ui-v2 #desktopSidebar #gridDesktop,
+          html body.ui-v2 #desktopSidebar #gridDesktop.leaf-grid {
+            display: flex !important;
+            flex-direction: column !important;
+            flex-wrap: nowrap !important;
+            grid-template-columns: none !important;
+            grid-template-rows: none !important;
+            grid-auto-flow: row !important;
+            gap: 10px !important;
+            grid-gap: 10px !important;
+            padding: 0 16px 16px !important;
+            width: auto !important;
+          }
+          html body.ui-v2 #desktopSidebar #gridDesktop > .grid-item,
+          html body.ui-v2 #desktopSidebar #gridDesktop > * {
+            display: flex !important;
+            flex-direction: row !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            min-width: 0 !important;
+            height: auto !important;
+            min-height: 132px !important;
+            grid-column: auto !important;
+            grid-row: auto !important;
+            flex-basis: auto !important;
+          }
+        }
+      `;
+      (document.body || document.documentElement).appendChild(style);
+    })();
+
     // ‚îÄ‚îÄ Desktop v2: brute-force 1-column tile layout via inline styles.
     // CSS specificity battles with the legacy .leaf-grid rules keep failing,
     // so we set the style attributes directly. Inline always wins.
@@ -19547,7 +19612,7 @@
       const FILTER_PILLS = {
         discover: [
           { label: 'All',         value: 'all',     active: true },
-          { label: '‚òÖ Featured',  value: 'featured' },
+          { label: '&#9733; Featured',  value: 'featured' },
           { label: 'Mixed-Use',   value: 'Mixed-Use' },
           { label: 'Hotel',       value: 'Hotel' },
           { label: 'Residences',  value: 'Residences' },
@@ -19596,7 +19661,7 @@
         // data appear, not just the hardcoded subset.
         const base = [
           { label: 'All',        value: 'all',      active: true },
-          { label: '‚òÖ Featured', value: 'featured' },
+          { label: '&#9733; Featured', value: 'featured' },
         ];
         const features = window.allProjectFeatures || [];
         const seen = new Set();
@@ -19627,7 +19692,7 @@
         const pills = tabId === 'discover' ? getDiscoverPills() : (FILTER_PILLS[tabId] || []);
         pillsEl.innerHTML = pills.map(p => `
           <button class="v2-filter-pill ${p.active ? 'active' : ''}" data-pill-value="${p.value}">
-            ${p.label === '‚òÖ Featured'
+            ${p.label === '&#9733; Featured'
               ? '<svg class="star-icon" viewBox="0 0 24 24"><path d="M12 2l3 6.3 6.9 1-5 4.9 1.2 7L12 17.8 5.9 21.2l1.2-7-5-4.9L9 8.3z"/></svg>Featured'
               : p.label}
           </button>
