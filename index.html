@@ -7351,6 +7351,9 @@
     }
     /* Hide the v1 mode toggle ‚Äî we add our own glassy one in the top chrome */
     body.ui-v2 .atlas-mode-toggle { display: none !important; }
+    /* Atlas overlay is z=90; top chrome is also z=90. Bump chrome above overlay
+       in atlas mode so TMW logo + Map/Atlas toggle remain visible and tappable. */
+    body.ui-v2.atlas-mode .v2-top-chrome { z-index: 96 !important; }
 
     /* ‚îÄ‚îÄ TOP CHROME ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
        Layout: combined widget on the LEFT [TMW logo | divider | profile],
@@ -8069,6 +8072,8 @@
       font-size: 13px; font-weight: 700;
       text-transform: lowercase;
     }
+    /* [hidden] attribute is overridden by display:inline-flex above ‚Äî force none */
+    body.ui-v2 .v2-section-indicator[hidden] { display: none !important; }
     body.ui-v2 .v2-section-indicator.in-view { color: var(--accent, #1FDF67); }
     body.ui-v2 .v2-section-indicator.nearby  { color: rgba(255,255,255,0.5); font-weight: 600; }
     body.ui-v2 .v2-section-indicator .v2-section-count {
@@ -8137,7 +8142,7 @@
       padding: 0 !important;
       font-size: 0 !important;  /* hide "Featured" text */
       letter-spacing: 0 !important;
-      display: inline-flex; align-items: center; justify-content: center;
+      display: inline-flex !important; align-items: center !important; justify-content: center !important;
       box-shadow: none !important;
       backdrop-filter: blur(8px);
       -webkit-backdrop-filter: blur(8px);
@@ -8148,6 +8153,8 @@
       width: 11px !important; height: 11px !important;
       fill: var(--warn, #FFD300) !important;
       stroke: none !important;
+      /* shadow so star reads on light-background images */
+      filter: drop-shadow(0 1px 3px rgba(0,0,0,0.45)) !important;
     }
     /* Tile body: title + city ‚Äî clean padding */
     body.ui-v2 #gridMobile .grid-item .grid-item-content {
@@ -8376,7 +8383,7 @@
       border: none !important;
       border-radius: 0 !important;
       box-shadow: none !important;
-      padding: 11px 0 11px 14px !important;
+      padding: 14px 0 14px 14px !important;
       margin: 0 !important;
       position: relative !important;
       border-bottom: 1px solid rgba(255,255,255,0.08) !important;
@@ -8405,21 +8412,21 @@
       display: flex !important;
       align-items: center !important;
       gap: 8px !important;
-      font-size: 10px !important;
+      font-size: 11px !important;
       font-weight: 700 !important;
       text-transform: uppercase !important;
-      letter-spacing: 0.06em !important;
+      letter-spacing: 0.07em !important;
       margin-bottom: 0 !important;
     }
-    /* Project title (the headline) */
+    /* Project title (the headline) ‚Äî matches mockup: 15.5px / semibold */
     body.ui-v2 .v2-pulse-content .pulse-ev-title {
-      font-size: 13.5px !important;
+      font-size: 15.5px !important;
       color: #fff !important;
-      font-weight: 500 !important;
-      line-height: 1.4 !important;
+      font-weight: 600 !important;
+      line-height: 1.38 !important;
       text-transform: none !important;
-      letter-spacing: 0 !important;
-      margin: 4px 0 0 !important;
+      letter-spacing: -0.01em !important;
+      margin: 5px 0 0 !important;
       padding: 0 !important;
     }
     /* Hide the bottom row entirely ‚Äî meta lives in the top row */
@@ -11434,18 +11441,26 @@
           e.stopPropagation();
           const f = currentFeature;
           closeModal();
-          // Collapse v2 sheet so map is fully visible
-          document.body.classList.remove('v2-sheet-open', 'v2-sheet-mid', 'v2-sheet-full');
+          // Immediately remove both modal AND sheet state so the drawer
+          // collapses synchronously before the fly starts. (The async
+          // MutationObserver that normally removes v2-modal-open would race
+          // with the flyTo, sometimes leaving the sheet visible.)
+          document.body.classList.remove('v2-sheet-open', 'v2-sheet-mid', 'v2-sheet-full', 'v2-modal-open');
           if (!f || !f.geometry || !f.geometry.coordinates) return;
           const co = f.geometry.coordinates;
           const isMobile = window.innerWidth <= 800;
           const targetZoom = Math.max(map.getZoom(), isMobile ? 13 : 14);
           map.flyTo({ center: co, zoom: targetZoom, duration: 1200, essential: true });
-          // After fly settles, open the tile popup so the user sees the pin
-          // highlighted and can tap "Learn more" to reopen the modal.
-          setTimeout(() => {
+          // Open popup when fly settles. Use moveend for precise timing;
+          // fallback timeout in case moveend never fires (e.g. map not moving).
+          let popupFired = false;
+          const firePopup = () => {
+            if (popupFired) return;
+            popupFired = true;
             try { showPopup(f, { skipPaywall: true }); } catch(_) {}
-          }, 1300);
+          };
+          map.once('moveend', firePopup);
+          setTimeout(firePopup, 1500);
         });
       }
 
@@ -12202,8 +12217,13 @@
             mobileSsbCount.textContent = `${inViewCount} project${inViewCount !== 1 ? 's' : ''}`;
             mobileSsbCount.className = 'ssb-count green';
           }
+          // In v2 mode, gridMobile is relocated inside .v2-sheet-body ‚Äî
+          // use that as the scroll container so section bar updates correctly.
+          const mobileScrollContainer = document.body.classList.contains('ui-v2')
+            ? document.querySelector('.v2-sheet-body')
+            : document.getElementById('mobileDrawerContent');
           setupSectionBar(
-            document.getElementById('mobileDrawerContent'),
+            mobileScrollContainer,
             document.getElementById('mobileSsbTitle'),
             document.getElementById('mobileSsbCount')
           );
@@ -12392,8 +12412,11 @@
             mobileSsbCount.textContent = `${inViewCount} project${inViewCount !== 1 ? 's' : ''}`;
             mobileSsbCount.className = 'ssb-count green';
           }
+          const mobileScrollContainerB = document.body.classList.contains('ui-v2')
+            ? document.querySelector('.v2-sheet-body')
+            : document.getElementById('mobileDrawerContent');
           setupSectionBar(
-            document.getElementById('mobileDrawerContent'),
+            mobileScrollContainerB,
             document.getElementById('mobileSsbTitle'),
             document.getElementById('mobileSsbCount')
           );
@@ -14066,6 +14089,10 @@
           // shared-comparison-link route in compare.js, which loads before
           // CSV resolves and needs to defer its initial render until now).
           document.dispatchEvent(new CustomEvent('projects:loaded'));
+          // Refresh v2 discover pills now that project types are known.
+          if (typeof window._v2RefreshDiscoverPills === 'function') {
+            try { window._v2RefreshDiscoverPills(); } catch(_) {}
+          }
 
     
           // projectTypes lives only on _projectTypes (JS array, not in GeoJSON properties)
@@ -18677,9 +18704,40 @@
         return `${n} update${n === 1 ? '' : 's'} this week`;
       }
 
+      function getDiscoverPills() {
+        // Build dynamically from loaded project types so all types in the
+        // data appear, not just the hardcoded subset.
+        const base = [
+          { label: 'All',        value: 'all',      active: true },
+          { label: '‚òÖ Featured', value: 'featured' },
+        ];
+        const features = window.allProjectFeatures || [];
+        const seen = new Set();
+        features.forEach(f => (f._projectTypes || []).forEach(t => seen.add(t)));
+        // Sort alphabetically; capitalise first letter
+        const typeLabels = {
+          'mixed-use': 'Mixed-Use',
+          'hotel': 'Hotel',
+          'residential': 'Residential',
+          'office': 'Office',
+          'retail': 'Retail',
+          'hospitality': 'Hospitality',
+          'entertainment': 'Entertainment',
+          'arena': 'Arena',
+          'marina': 'Marina',
+          'casino': 'Casino',
+          'stadium': 'Stadium',
+        };
+        const types = [...seen].sort().map(t => ({
+          label: typeLabels[t] || (t.charAt(0).toUpperCase() + t.slice(1)),
+          value: t,
+        }));
+        return [...base, ...types];
+      }
       function renderFilterPills(tabId) {
         if (!pillsEl) return;
-        const pills = FILTER_PILLS[tabId] || [];
+        // For discover, build pills dynamically from project type data.
+        const pills = tabId === 'discover' ? getDiscoverPills() : (FILTER_PILLS[tabId] || []);
         pillsEl.innerHTML = pills.map(p => `
           <button class="v2-filter-pill ${p.active ? 'active' : ''}" data-pill-value="${p.value}">
             ${p.label === '‚òÖ Featured'
@@ -18744,6 +18802,14 @@
       }
       tabs.forEach(t => t.addEventListener('click', () => switchTab(t.dataset.v2Tab)));
       switchTab('discover');
+      // Expose pill re-render so the data loader can refresh types once
+      // allProjectFeatures is populated (types unknown at boot time).
+      window._v2RefreshDiscoverPills = () => {
+        const activeTabEl = document.querySelector('.v2-tab.active');
+        if (activeTabEl && activeTabEl.dataset.v2Tab === 'discover') {
+          renderFilterPills('discover');
+        }
+      };
 
       // ‚îÄ‚îÄ Search input ‚Üí existing search pipeline ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
       // The live mobile search uses #mobileSearchBar internally. Mirror
@@ -19423,8 +19489,23 @@
         so.hidden = false;
         setSearchTabVisible(true);
         // Wire row clicks
-        so.querySelectorAll('[data-feature-title]').forEach(btn => {
+        // Use pointerdown (fires on first touch, no 300ms iOS scroll-debounce)
+        // for all result rows so a single tap always registers immediately.
+        const addResultTap = (btn, handler) => {
+          let fired = false;
+          btn.addEventListener('pointerdown', (e) => {
+            e.preventDefault(); // prevent subsequent click double-fire
+            if (fired) return; fired = true;
+            handler();
+          }, { passive: false });
+          // Click fallback for pointer-less environments (keyboard, desktop)
           btn.addEventListener('click', () => {
+            if (fired) { fired = false; return; }
+            handler();
+          });
+        };
+        so.querySelectorAll('[data-feature-title]').forEach(btn => {
+          addResultTap(btn, () => {
             const title = btn.dataset.featureTitle;
             saveRecent({ label: title, type: 'project' });
             const features = window.allProjectFeatures || [];
@@ -19433,7 +19514,7 @@
           });
         });
         so.querySelectorAll('[data-city]').forEach(btn => {
-          btn.addEventListener('click', () => {
+          addResultTap(btn, () => {
             const city = btn.dataset.city;
             saveRecent({ label: city, type: 'city' });
             // Find center of all projects in this city, then fly there
@@ -19456,7 +19537,7 @@
           });
         });
         so.querySelectorAll('[data-firm]').forEach(btn => {
-          btn.addEventListener('click', () => {
+          addResultTap(btn, () => {
             const firmName = btn.dataset.firm;
             saveRecent({ label: firmName, type: 'firm' });
             dismissSearch();
