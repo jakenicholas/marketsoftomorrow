@@ -19038,15 +19038,16 @@
     document.body.classList.add('ui-v2');
 
     // ‚îÄ‚îÄ Desktop v2: NUCLEAR CSS ‚Äî inject a <style> at the END of body so
-    // it's the very last rule in the cascade. Combined with the inline
-    // attribute on #gridDesktop, this makes the 1-column tile layout
-    // impossible to override by any other rule.
+    // it's the very last rule in the cascade. ONLY targets .grid-item ‚Äî NOT
+    // every child (otherwise section headers + skeletons get the 132px box
+    // treatment and break the layout).
     (function injectNuclearGridCss() {
       if (document.getElementById('v2DesktopNuclearCss')) return;
       const style = document.createElement('style');
       style.id = 'v2DesktopNuclearCss';
       style.textContent = `
         @media(min-width: 801px) {
+          /* Grid container ‚Üí 1 column flex */
           html body.ui-v2 #desktopSidebar #gridDesktop,
           html body.ui-v2 #desktopSidebar #gridDesktop.leaf-grid {
             display: flex !important;
@@ -19054,14 +19055,13 @@
             flex-wrap: nowrap !important;
             grid-template-columns: none !important;
             grid-template-rows: none !important;
-            grid-auto-flow: row !important;
             gap: 10px !important;
             grid-gap: 10px !important;
             padding: 0 16px 16px !important;
             width: auto !important;
           }
-          html body.ui-v2 #desktopSidebar #gridDesktop > .grid-item,
-          html body.ui-v2 #desktopSidebar #gridDesktop > * {
+          /* Tile ‚Üí horizontal row, full width */
+          html body.ui-v2 #desktopSidebar #gridDesktop .grid-item {
             display: flex !important;
             flex-direction: row !important;
             width: 100% !important;
@@ -19072,6 +19072,115 @@
             grid-column: auto !important;
             grid-row: auto !important;
             flex-basis: auto !important;
+            background: #1f1f1f !important;
+            border: 1px solid rgba(255,255,255,0.08) !important;
+            border-radius: 14px !important;
+            overflow: hidden !important;
+            padding: 0 !important;
+            margin: 0 !important;
+          }
+          /* Image-wrapper 140px on left */
+          html body.ui-v2 #desktopSidebar #gridDesktop .grid-item .image-wrapper {
+            width: 140px !important;
+            min-width: 140px !important;
+            max-width: 140px !important;
+            height: auto !important;
+            min-height: 132px !important;
+            flex-shrink: 0 !important;
+            border-radius: 0 !important;
+          }
+          html body.ui-v2 #desktopSidebar #gridDesktop .grid-item img {
+            width: 100% !important;
+            height: 100% !important;
+            min-height: 132px !important;
+            object-fit: cover !important;
+          }
+          /* Body fills the rest */
+          html body.ui-v2 #desktopSidebar #gridDesktop .grid-item-content {
+            flex: 1 !important;
+            min-width: 0 !important;
+            padding: 14px 16px !important;
+          }
+
+          /* ‚îÄ‚îÄ v2 right-rail buttons styled on desktop (CSS for these
+                buttons was previously inside @media max-width 800px only) */
+          html body.ui-v2 .v2-right-rail .v2-action-btn {
+            width: 44px !important;
+            height: 44px !important;
+            background: rgba(15,15,15,0.85) !important;
+            backdrop-filter: blur(20px) saturate(1.4) !important;
+            -webkit-backdrop-filter: blur(20px) saturate(1.4) !important;
+            border: 1px solid rgba(255,255,255,0.1) !important;
+            border-radius: 50% !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            color: #fff !important;
+            position: relative !important;
+            cursor: pointer !important;
+            padding: 0 !important;
+          }
+          html body.ui-v2 .v2-right-rail .v2-action-btn svg {
+            width: 18px !important;
+            height: 18px !important;
+            stroke: currentColor !important;
+            fill: none !important;
+            stroke-width: 2 !important;
+            stroke-linecap: round !important;
+            stroke-linejoin: round !important;
+          }
+          /* Pulse bell numeric badge */
+          html body.ui-v2 .v2-right-rail .v2-num-badge {
+            position: absolute !important;
+            top: -6px !important;
+            right: -4px !important;
+            background: #FFD300 !important;
+            color: #0a0a0a !important;
+            font-size: 10px !important;
+            font-weight: 800 !important;
+            line-height: 1 !important;
+            width: 20px !important;
+            height: 20px !important;
+            border-radius: 50% !important;
+            border: 2px solid #0a0a0a !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+          }
+          /* Zoom-stack: paired buttons in a vertical capsule */
+          html body.ui-v2 .v2-right-rail .v2-zoom-stack {
+            background: rgba(15,15,15,0.85) !important;
+            backdrop-filter: blur(20px) saturate(1.4) !important;
+            -webkit-backdrop-filter: blur(20px) saturate(1.4) !important;
+            border: 1px solid rgba(255,255,255,0.1) !important;
+            border-radius: 22px !important;
+            overflow: hidden !important;
+            width: 44px !important;
+            display: flex !important;
+            flex-direction: column !important;
+          }
+          html body.ui-v2 .v2-right-rail .v2-zoom-stack button {
+            width: 44px !important;
+            height: 44px !important;
+            background: transparent !important;
+            border: none !important;
+            color: #fff !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            cursor: pointer !important;
+            padding: 0 !important;
+          }
+          html body.ui-v2 .v2-right-rail .v2-zoom-stack button svg {
+            width: 16px !important;
+            height: 16px !important;
+            stroke: currentColor !important;
+            fill: none !important;
+            stroke-width: 2.5 !important;
+            stroke-linecap: round !important;
+          }
+          html body.ui-v2 .v2-right-rail .v2-zoom-stack button + button {
+            border-top: 1px solid rgba(255,255,255,0.08) !important;
           }
         }
       `;
