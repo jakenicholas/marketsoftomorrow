@@ -7493,7 +7493,16 @@
       color: #fff;
       transition: bottom 0.32s cubic-bezier(0.2, 0.8, 0.2, 1);
     }
-    body.v2-sheet-open .v2-right-rail { bottom: calc(85vh + 16px); }
+    /* When sheet is fully expanded, the right-rail is too tall to fit
+       above the sheet — collapse to just the geolocate button, top-
+       anchored so its BOTTOM aligns with the Map/Atlas pill bottom. */
+    body.v2-sheet-open .v2-right-rail {
+      bottom: auto;
+      top: calc(env(safe-area-inset-top, 0px) + 2px);
+    }
+    body.v2-sheet-open .v2-right-rail > *:not(#v2GeolocateBtn) {
+      display: none !important;
+    }
     body.ui-v2 .v2-action-btn {
       width: 44px; height: 44px;
       background: rgba(15,15,15,0.72);
@@ -7513,17 +7522,18 @@
     }
     body.ui-v2 .v2-action-btn .v2-num-badge {
       position: absolute;
-      top: -4px; right: -4px;
+      top: -6px; right: -6px;
       background: var(--warn, #FFD300);
       color: #0a0a0a;
-      font-size: 10px; font-weight: 800;
+      font-size: 11px; font-weight: 800;
       line-height: 1;
-      width: 20px; height: 20px;
+      width: 24px; height: 24px;
       padding: 0;
       border-radius: 50%;
       display: flex; align-items: center; justify-content: center;
       box-sizing: border-box;
-      border: 2px solid #0a0a0a;
+      border: none;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.35);
     }
     body.ui-v2 .v2-zoom-stack {
       background: rgba(15,15,15,0.72);
@@ -7787,6 +7797,77 @@
     body.ui-v2 .v2-tab-content { display: none; }
     body.ui-v2 .v2-tab-content.active { display: block; }
 
+    /* ── Search overlay (Discover smart search results) ─────────── */
+    body.ui-v2 .v2-search-overlay {
+      background: rgba(20,20,20,0.96);
+      padding: 0 0 8px;
+    }
+    body.ui-v2 .v2-search-group {
+      margin-bottom: 12px;
+    }
+    body.ui-v2 .v2-search-grouphead {
+      font-size: 10px;
+      font-weight: 700;
+      color: rgba(255,255,255,0.4);
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      padding: 10px 4px 6px;
+    }
+    body.ui-v2 .v2-search-row {
+      display: flex; align-items: center; gap: 12px;
+      width: 100%;
+      padding: 10px 4px;
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      font-family: inherit;
+      color: #fff;
+      cursor: pointer;
+      text-align: left;
+    }
+    body.ui-v2 .v2-search-row:hover { background: rgba(255,255,255,0.03); }
+    body.ui-v2 .v2-search-icon {
+      width: 34px; height: 34px;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    body.ui-v2 .v2-search-icon.project { background: rgba(31,223,103,0.14); color: var(--accent, #1FDF67); }
+    body.ui-v2 .v2-search-icon.city    { background: rgba(111,168,255,0.14); color: var(--blue, #6FA8FF); }
+    body.ui-v2 .v2-search-icon.firm    { background: rgba(167,139,250,0.14); color: var(--intel, #A78BFA); }
+    body.ui-v2 .v2-search-icon.recent  { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.5); }
+    body.ui-v2 .v2-search-icon svg { width: 16px; height: 16px; stroke: currentColor; fill: none; }
+    body.ui-v2 .v2-search-body {
+      flex: 1;
+      min-width: 0;
+      display: flex; flex-direction: column;
+    }
+    body.ui-v2 .v2-search-label {
+      font-size: 13.5px; font-weight: 600;
+      color: #fff;
+      line-height: 1.3;
+    }
+    body.ui-v2 .v2-search-sub {
+      font-size: 11px;
+      color: rgba(255,255,255,0.5);
+      margin-top: 1px;
+    }
+    body.ui-v2 .v2-search-arrow {
+      color: rgba(255,255,255,0.3);
+      font-size: 18px;
+      line-height: 1;
+    }
+    body.ui-v2 .v2-search-empty {
+      padding: 40px 14px;
+      text-align: center;
+      color: rgba(255,255,255,0.5);
+      font-size: 13px;
+    }
+    /* When search overlay is visible, hide the tab content below */
+    body.ui-v2 .v2-sheet-body:has(#v2SearchOverlay:not([hidden])) #v2DiscoverPane {
+      display: none;
+    }
+
     /* ── Sheet title row (per-tab, big bold) ────────────────────── */
     body.ui-v2 .v2-sheet-title-row {
       padding: 0 18px 8px;
@@ -7843,9 +7924,10 @@
        mirror its label + count into the title row's right side via JS
        MutationObserver. */
     body.ui-v2 .v2-sheet-body #mobileSectionBar { display: none !important; }
-    body.ui-v2 .v2-sheet-body #mobilePillsRow {
-      margin: 0 0 8px;
-    }
+    /* Hide the legacy active-filter chips row + "clear all" button.
+       Jake's contextual filter pills replace this entirely. */
+    body.ui-v2 #mobilePillsRow { display: none !important; }
+    body.ui-v2 .clear-all-btn { display: none !important; }
     /* Title-row section indicator — "in view" green bold label + green
        count bubble. Flips to "more nearby" gray with gray bubble when
        user scrolls past the in-view section. Matches the mockup's
@@ -7970,10 +8052,10 @@
       display: none !important;  /* Hide entire bar — we relocate the label out */
     }
     /* Status pill — colored dot + dark pill + white all-caps text. Lives
-       absolutely positioned at bottom-right of the image wrapper. */
+       absolutely positioned at bottom-LEFT of the image wrapper. */
     body.ui-v2 #gridMobile .grid-item .v2-status-pill {
       position: absolute;
-      bottom: 10px; right: 10px;
+      bottom: 10px; left: 10px; right: auto;
       background: rgba(0,0,0,0.78);
       backdrop-filter: blur(8px);
       -webkit-backdrop-filter: blur(8px);
@@ -8058,7 +8140,7 @@
     body.ui-v2 #gridMobile .grid-item .v2-gallery-arrow { opacity: 1; }
     body.ui-v2 #gridMobile .grid-item .v2-gallery-dots {
       position: absolute;
-      bottom: 10px; left: 10px;
+      bottom: 10px; right: 10px;
       display: flex; gap: 4px;
       z-index: 2;
     }
@@ -8103,7 +8185,85 @@
     body.ui-v2 .v2-pulse-content .pulse-stack-header,
     body.ui-v2 .v2-pulse-content .pulse-filter-row,
     body.ui-v2 .v2-pulse-content .pulse-stack-handle,
+    body.ui-v2 .v2-pulse-content .pulse-stack-spine,
     body.ui-v2 .v2-pulse-content [class*="handle"] { display: none !important; }
+
+    /* ── Pulse rows redesigned mockup-style ──────────────────────
+       Flat list, no card bg, colored dot on the left, small caps
+       top label (UPDATE · Place · 2h ago), title below. */
+    body.ui-v2 .v2-pulse-content .pulse-ev-wrap {
+      background: transparent !important;
+      border: none !important;
+      border-radius: 0 !important;
+      box-shadow: none !important;
+      padding: 12px 0 12px 16px !important;
+      margin: 0 !important;
+      position: relative !important;
+      border-bottom: 1px solid rgba(255,255,255,0.06) !important;
+    }
+    body.ui-v2 .v2-pulse-content .pulse-ev-wrap::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 18px;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.3);
+    }
+    body.ui-v2 .v2-pulse-content .pulse-ev-wrap[data-event-type="status_change"]::before { background: var(--orange, #FF9500); box-shadow: 0 0 0 4px rgba(255,149,0,0.18); }
+    body.ui-v2 .v2-pulse-content .pulse-ev-wrap[data-event-type="article"]::before      { background: var(--accent, #1FDF67); box-shadow: 0 0 0 4px rgba(31,223,103,0.18); }
+    body.ui-v2 .v2-pulse-content .pulse-ev-wrap[data-event-type="new_project"]::before  { background: var(--blue, #6FA8FF); box-shadow: 0 0 0 4px rgba(111,168,255,0.18); }
+    body.ui-v2 .v2-pulse-content .pulse-ev {
+      background: transparent !important;
+      border: none !important;
+      padding: 0 !important;
+      box-shadow: none !important;
+      text-decoration: none !important;
+      display: block !important;
+    }
+    body.ui-v2 .v2-pulse-content .pulse-ev-tsrow {
+      display: flex !important;
+      align-items: center !important;
+      gap: 6px !important;
+      font-size: 10.5px !important;
+      font-weight: 700 !important;
+      text-transform: uppercase !important;
+      letter-spacing: 0.06em !important;
+      margin-bottom: 4px !important;
+    }
+    body.ui-v2 .v2-pulse-content .pulse-ev-title {
+      font-size: 14px !important;
+      color: #fff !important;
+      font-weight: 500 !important;
+      line-height: 1.4 !important;
+      text-transform: none !important;
+      letter-spacing: 0 !important;
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+    body.ui-v2 .v2-pulse-content .pulse-ev-bottom {
+      font-size: 9.5px !important;
+      color: rgba(255,255,255,0.4) !important;
+      font-weight: 700 !important;
+      text-transform: uppercase !important;
+      letter-spacing: 0.06em !important;
+      margin-top: 6px !important;
+      padding: 0 !important;
+      background: none !important;
+    }
+    /* Close button on each event row */
+    body.ui-v2 .v2-pulse-content .pulse-ev-close {
+      top: 12px !important;
+      right: 0 !important;
+      width: 22px !important;
+      height: 22px !important;
+      opacity: 0.4 !important;
+    }
+    body.ui-v2 .v2-pulse-content .pulse-ev-close:hover { opacity: 1 !important; }
+    /* Pulse separator dot/sep dots */
+    body.ui-v2 .v2-pulse-content .pulse-ev-sep { color: rgba(255,255,255,0.25) !important; }
+    body.ui-v2 .v2-pulse-content .pulse-ev-ts { color: var(--orange, #FF9500); font-weight: 700; }
+    body.ui-v2 .v2-pulse-content .pulse-ev-wrap[data-event-type="article"] .pulse-ev-ts { color: var(--accent, #1FDF67); }
+    body.ui-v2 .v2-pulse-content .pulse-ev-wrap[data-event-type="new_project"] .pulse-ev-ts { color: var(--blue, #6FA8FF); }
 
     /* Right-rail pulse bell badge in GOLD (was green/accent) */
     body.ui-v2 .v2-action-btn .v2-num-badge {
@@ -18469,9 +18629,19 @@
         if (tab) tab.click();
       });
       wireMenu('v2MenuCompare', () => {
-        // Trigger the legacy compare button if present
-        const cmp = document.getElementById('compareBar') || document.querySelector('[data-compare-toggle], .compare-btn');
-        if (cmp) cmp.click();
+        // Open the comparison view. The legacy app uses ?view=compare
+        // OR the body.compare-view-active class, both managed by compare.js.
+        // Simplest: navigate to /?view=compare which compare.js intercepts.
+        try {
+          const url = new URL(window.location.href);
+          url.searchParams.set('view', 'compare');
+          window.location.href = url.toString();
+        } catch (e) {
+          // Fallback: try clicking any compare bar
+          const cmp = document.getElementById('compareBar') ||
+                      document.querySelector('[data-compare-toggle], .compare-btn');
+          if (cmp) cmp.click();
+        }
       });
       wireMenu('v2MenuSignOut', () => {
         // Memberstack handles sign out — try common selectors
@@ -18660,32 +18830,325 @@
       }
 
       // ── Tile click → open project modal directly ──────────────────
-      // Existing makeTile in renderGrid attaches onclick that on mobile
-      // shows the small popup. In v2 we want tile taps to go straight
-      // to the full modal. Capture-phase listener on the discover pane
-      // intercepts the click before the legacy onclick fires.
+      // Capture-phase listener intercepts tile taps so we route to the
+      // full modal instead of the legacy mobile-popup flow. Skips
+      // clicks on gallery arrows/dots and the favorite button so those
+      // can do their own thing.
       const discoverPane = document.getElementById('v2DiscoverPane');
       if (discoverPane) {
         discoverPane.addEventListener('click', (e) => {
+          // Bail if click landed on a gallery arrow/dot or favorite
+          if (e.target.closest('.v2-gallery-arrow') ||
+              e.target.closest('.v2-gallery-dots') ||
+              e.target.closest('.favorite')) {
+            return;
+          }
           const tile = e.target.closest('.grid-item');
           if (!tile) return;
-          // Find the feature for this tile by matching the rendered title
           const titleEl = tile.querySelector('h3');
           if (!titleEl) return;
           const title = (titleEl.textContent || '').trim();
           const features = window.allProjectFeatures || [];
           const feature = features.find(f => (f.properties && f.properties.title) === title);
           if (!feature) return;
-          // Stop the legacy onclick handler from running
           e.stopPropagation();
           e.preventDefault();
-          // Stop further bubbling within capture phase
           if (typeof e.stopImmediatePropagation === 'function') e.stopImmediatePropagation();
-          // Open the full project modal
           if (window.openProjectModal) {
             window.openProjectModal(feature, 'v2-tile');
           }
-        }, true /* capture: run before bubble-phase legacy onclick */);
+        }, true);
+      }
+
+      // ── Section bar flip (in view ↔ more nearby) ─────────────────
+      // Legacy setupSectionBar is bound to #mobileDrawerContent which
+      // doesn't scroll in v2. We watch our actual scroll container and
+      // update the legacy ssb-title/count elements ourselves so the
+      // mirror-into-title-row Observer still works.
+      function v2SetupSectionBar() {
+        const scrollEl = document.querySelector('.v2-sheet-body');
+        const ssbTitle = document.getElementById('mobileSsbTitle');
+        const ssbCount = document.getElementById('mobileSsbCount');
+        if (!scrollEl || !ssbTitle || !ssbCount) return;
+
+        const update = () => {
+          const sticky = scrollEl.querySelectorAll('.section-sticky');
+          if (!sticky.length) return;
+          const containerRect = scrollEl.getBoundingClientRect();
+          const scrollTop = scrollEl.scrollTop;
+          // At top → always "in view"
+          if (scrollTop < 10) {
+            const inviewSent = scrollEl.querySelector('.sentinel-inview');
+            if (inviewSent) {
+              ssbTitle.textContent = inviewSent.dataset.label || 'In View';
+              ssbTitle.className = 'ssb-title in-view';
+              ssbCount.textContent = inviewSent.dataset.count || '';
+              ssbCount.className = 'ssb-count green';
+              return;
+            }
+          }
+          // Find the most-recent header above the container top
+          let active = sticky[0];
+          for (const h of sticky) {
+            if (h.getBoundingClientRect().top < containerRect.top + 10) active = h;
+          }
+          const isInView = active.dataset.section === 'inview';
+          ssbTitle.textContent = active.dataset.label || (isInView ? 'In View' : 'More Nearby');
+          ssbTitle.className = 'ssb-title' + (isInView ? ' in-view' : '');
+          ssbCount.textContent = active.dataset.count || '';
+          ssbCount.className = 'ssb-count' + (isInView ? ' green' : ' gray');
+        };
+
+        scrollEl.addEventListener('scroll', update, { passive: true });
+        // Also watch for DOM mutations (re-render) and re-evaluate
+        const grid = document.getElementById('gridMobile');
+        if (grid) {
+          new MutationObserver(update).observe(grid, { childList: true, subtree: true });
+        }
+        // Initial run after a short delay so legacy setup has finished
+        setTimeout(update, 300);
+        // Periodic safety re-run in case scroll handler missed
+        setInterval(update, 1500);
+      }
+      v2SetupSectionBar();
+
+      // ── Smart search per tab ──────────────────────────────────────
+      // Placeholder + behavior changes when tab switches. On Discover,
+      // typing reveals grouped search results below the tab bar; empty
+      // shows recent searches.
+      const searchInput = document.getElementById('v2SearchInput');
+      const SEARCH_PLACEHOLDERS = {
+        discover:  'Search projects, cities, or firms',
+        watchlist: 'Search watchlist',
+        pulse:     'Search pulse',
+      };
+      function updateSearchPlaceholder() {
+        const activeTabEl = document.querySelector('.v2-tab.active');
+        const id = activeTabEl ? activeTabEl.dataset.v2Tab : 'discover';
+        if (searchInput) searchInput.placeholder = SEARCH_PLACEHOLDERS[id] || 'Search';
+      }
+      // Re-run placeholder update when tab changes (hook tabs)
+      document.querySelectorAll('.v2-tab[data-v2-tab]').forEach(t => {
+        t.addEventListener('click', () => {
+          setTimeout(updateSearchPlaceholder, 50);
+          // Clear search results overlay when switching tabs
+          const so = document.getElementById('v2SearchOverlay');
+          if (so) so.hidden = true;
+          if (searchInput) searchInput.value = '';
+        });
+      });
+      updateSearchPlaceholder();
+
+      // Discover search results overlay — show when search input has
+      // content AND active tab is Discover.
+      function ensureSearchOverlay() {
+        let so = document.getElementById('v2SearchOverlay');
+        if (so) return so;
+        so = document.createElement('div');
+        so.id = 'v2SearchOverlay';
+        so.className = 'v2-search-overlay';
+        so.hidden = true;
+        const body = document.querySelector('.v2-sheet-body');
+        if (body) body.prepend(so);
+        return so;
+      }
+      const RECENT_KEY = 'tmw-v2-recent-searches';
+      function loadRecent() {
+        try { return JSON.parse(localStorage.getItem(RECENT_KEY) || '[]'); } catch { return []; }
+      }
+      function saveRecent(item) {
+        if (!item) return;
+        let list = loadRecent();
+        list = [item, ...list.filter(x => x.label !== item.label)].slice(0, 8);
+        try { localStorage.setItem(RECENT_KEY, JSON.stringify(list)); } catch {}
+      }
+      function escapeAttr(s) { return String(s||'').replace(/"/g,'&quot;'); }
+      function highlight(text, q) {
+        if (!q || !text) return escapeText(text || '');
+        const idx = text.toLowerCase().indexOf(q.toLowerCase());
+        if (idx < 0) return escapeText(text);
+        return escapeText(text.slice(0, idx)) +
+          '<b style="color:var(--accent, #1FDF67)">' +
+          escapeText(text.slice(idx, idx + q.length)) +
+          '</b>' +
+          escapeText(text.slice(idx + q.length));
+      }
+      function getWatchlistSlugs() {
+        try {
+          const ms = window.$memberstackDom;
+          // The watchlist component stores in member JSON — we cheat and
+          // look at the rendered watchlist DOM rows for slug-like data
+          const rows = document.querySelectorAll('#watchlistPanel .wl-row[data-slug]');
+          return Array.from(rows).map(r => r.dataset.slug);
+        } catch { return []; }
+      }
+      function runDiscoverSearch(q) {
+        const so = ensureSearchOverlay();
+        if (!q) {
+          // Empty — show recent searches if any
+          const recent = loadRecent();
+          if (!recent.length) {
+            so.hidden = true;
+            return;
+          }
+          so.innerHTML = `
+            <div class="v2-search-group">
+              <div class="v2-search-grouphead">Recent searches</div>
+              ${recent.map(r => `
+                <button class="v2-search-row" data-recent="${escapeAttr(r.label)}">
+                  <span class="v2-search-icon recent">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                  </span>
+                  <span class="v2-search-label">${escapeText(r.label)}</span>
+                </button>
+              `).join('')}
+            </div>
+          `;
+          so.hidden = false;
+          so.querySelectorAll('[data-recent]').forEach(b => {
+            b.addEventListener('click', () => {
+              searchInput.value = b.dataset.recent;
+              searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+            });
+          });
+          return;
+        }
+        const features = window.allProjectFeatures || [];
+        const lc = q.toLowerCase();
+        const matchedProjects = features.filter(f => {
+          const t = (f.properties.title || '').toLowerCase();
+          const c = (f.properties.city  || '').toLowerCase();
+          return t.includes(lc) || c.includes(lc);
+        }).slice(0, 12);
+        // Cities — unique distinct list of city values that match
+        const cityMatches = Array.from(new Set(features
+          .filter(f => (f.properties.city || '').toLowerCase().includes(lc))
+          .map(f => f.properties.city)
+        )).slice(0, 6);
+        // Firms — unique architects + developers names that match
+        const firmSet = new Set();
+        for (const f of features) {
+          const a = (f.properties.architect || '').split(',').map(s => s.trim()).filter(Boolean);
+          const d = (f.properties.developer || '').split(',').map(s => s.trim()).filter(Boolean);
+          [...a, ...d].forEach(n => {
+            if (n.toLowerCase().includes(lc)) firmSet.add(n);
+          });
+        }
+        const firmMatches = Array.from(firmSet).slice(0, 6);
+
+        // Watchlist matches — projects that are in watchlist + match
+        const watchSlugs = new Set(getWatchlistSlugs());
+        const watchMatches = matchedProjects.filter(f => {
+          const slug = (f.properties.title || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+          return watchSlugs.has(slug);
+        });
+
+        const renderProjectRow = (f) => {
+          const slug = (f.properties.title || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+          return `
+            <button class="v2-search-row" data-feature-title="${escapeAttr(f.properties.title)}">
+              <span class="v2-search-icon project">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-4"/></svg>
+              </span>
+              <span class="v2-search-body">
+                <span class="v2-search-label">${highlight(f.properties.title, q)}</span>
+                <span class="v2-search-sub">${escapeText(f.properties.city || '')}${f.properties.preferredType ? ' · ' + escapeText(f.properties.preferredType) : ''}</span>
+              </span>
+              <span class="v2-search-arrow">›</span>
+            </button>
+          `;
+        };
+        const renderCityRow = (city) => `
+          <button class="v2-search-row" data-city="${escapeAttr(city)}">
+            <span class="v2-search-icon city">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 13-8 13s-8-7-8-13a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            </span>
+            <span class="v2-search-body">
+              <span class="v2-search-label">${highlight(city, q)}</span>
+              <span class="v2-search-sub">City</span>
+            </span>
+            <span class="v2-search-arrow">›</span>
+          </button>
+        `;
+        const renderFirmRow = (name) => `
+          <button class="v2-search-row" data-firm="${escapeAttr(name)}">
+            <span class="v2-search-icon firm">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 8v8M15 8v8"/></svg>
+            </span>
+            <span class="v2-search-body">
+              <span class="v2-search-label">${highlight(name, q)}</span>
+              <span class="v2-search-sub">Firm</span>
+            </span>
+            <span class="v2-search-arrow">›</span>
+          </button>
+        `;
+        let html = '';
+        if (watchMatches.length) {
+          html += `<div class="v2-search-group"><div class="v2-search-grouphead">From your Watchlist · ${watchMatches.length} match${watchMatches.length === 1 ? '' : 'es'}</div>${watchMatches.map(renderProjectRow).join('')}</div>`;
+        }
+        if (matchedProjects.length) {
+          html += `<div class="v2-search-group"><div class="v2-search-grouphead">Projects · ${matchedProjects.length} match${matchedProjects.length === 1 ? '' : 'es'}</div>${matchedProjects.slice(0, 6).map(renderProjectRow).join('')}</div>`;
+        }
+        if (cityMatches.length) {
+          html += `<div class="v2-search-group"><div class="v2-search-grouphead">Cities · ${cityMatches.length} match${cityMatches.length === 1 ? '' : 'es'}</div>${cityMatches.map(renderCityRow).join('')}</div>`;
+        }
+        if (firmMatches.length) {
+          html += `<div class="v2-search-group"><div class="v2-search-grouphead">Firms · ${firmMatches.length} match${firmMatches.length === 1 ? '' : 'es'}</div>${firmMatches.map(renderFirmRow).join('')}</div>`;
+        }
+        if (!html) {
+          html = '<div class="v2-search-empty">No matches for "' + escapeText(q) + '"</div>';
+        }
+        so.innerHTML = html;
+        so.hidden = false;
+        // Wire row clicks
+        so.querySelectorAll('[data-feature-title]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const title = btn.dataset.featureTitle;
+            saveRecent({ label: title, type: 'project' });
+            const features = window.allProjectFeatures || [];
+            const f = features.find(x => x.properties && x.properties.title === title);
+            if (f && window.openProjectModal) window.openProjectModal(f, 'v2-search');
+          });
+        });
+        so.querySelectorAll('[data-city]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            saveRecent({ label: btn.dataset.city, type: 'city' });
+            // Push search to legacy bar to filter by city
+            const legacy = document.getElementById('mobileSearchBar');
+            if (legacy) { legacy.value = btn.dataset.city; legacy.dispatchEvent(new Event('input', { bubbles: true })); }
+          });
+        });
+        so.querySelectorAll('[data-firm]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            saveRecent({ label: btn.dataset.firm, type: 'firm' });
+            const legacy = document.getElementById('mobileSearchBar');
+            if (legacy) { legacy.value = btn.dataset.firm; legacy.dispatchEvent(new Event('input', { bubbles: true })); }
+          });
+        });
+      }
+
+      if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+          const q = (e.target.value || '').trim();
+          const activeTabEl = document.querySelector('.v2-tab.active');
+          const id = activeTabEl ? activeTabEl.dataset.v2Tab : 'discover';
+          if (id === 'discover') {
+            runDiscoverSearch(q);
+          } else {
+            // Hide overlay on watchlist/pulse — let the legacy mobileSearchBar
+            // pipeline filter the content
+            const so = document.getElementById('v2SearchOverlay');
+            if (so) so.hidden = true;
+          }
+        });
+        searchInput.addEventListener('focus', () => {
+          const q = (searchInput.value || '').trim();
+          const activeTabEl = document.querySelector('.v2-tab.active');
+          const id = activeTabEl ? activeTabEl.dataset.v2Tab : 'discover';
+          if (id === 'discover' && !q) {
+            runDiscoverSearch(''); // shows recent searches
+          }
+        });
       }
 
       // ── C3: Watch projectModal open/close → body.v2-modal-open ──
