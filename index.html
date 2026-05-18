@@ -7283,14 +7283,29 @@
        new unified drawer instead. Old DOM stays in the document so the
        grid render pipeline (and any other code referencing those IDs)
        keeps working — we just hide the legacy containers. */
-    body.ui-v2 #mobileDrawer,
     body.ui-v2 #mobileTilesButton,
     body.ui-v2 #mobileHomeButton,
     body.ui-v2 #mapReturnButton,
     body.ui-v2 #pulseStack,
     body.ui-v2 #pulseBellBtn,
     body.ui-v2 #watchlistBtn,
-    body.ui-v2 #watchlistPanel { display: none !important; }
+    body.ui-v2 #watchlistPanel,
+    body.ui-v2 #zoomInButton,
+    body.ui-v2 #zoomOutButton,
+    body.ui-v2 #resetViewButton,
+    body.ui-v2 #layersPanel { display: none !important; }
+    /* Re-show layers panel when the v2 layers button is tapped */
+    body.ui-v2.v2-layers-open #layersPanel { display: flex !important; }
+    /* The legacy mobile drawer hosts the search/filter pipeline. We need
+       its DOM nodes alive (renderGrid('gridMobile') writes into one of
+       them) but we don't want it visible — collapse it to nothing. */
+    body.ui-v2 #mobileDrawer {
+      position: fixed !important;
+      width: 0 !important;
+      height: 0 !important;
+      visibility: hidden !important;
+      pointer-events: none !important;
+    }
     /* Hide the v1 mode toggle — we add our own glassy one in the top chrome */
     body.ui-v2 .atlas-mode-toggle { display: none !important; }
 
@@ -7365,13 +7380,12 @@
       gap: 8px;
       position: fixed;
       right: 14px;
-      bottom: 130px;
+      bottom: calc(env(safe-area-inset-bottom, 0px) + 130px);
       z-index: 85;
       color: #fff;
       transition: bottom 0.32s cubic-bezier(0.2, 0.8, 0.2, 1);
     }
-    body.v2-sheet-mid .v2-right-rail   { bottom: 480px; }
-    body.v2-sheet-full .v2-right-rail  { bottom: 740px; }
+    body.v2-sheet-open .v2-right-rail { bottom: calc(75vh + 16px); }
     body.ui-v2 .v2-action-btn {
       width: 44px; height: 44px;
       background: rgba(15,15,15,0.72);
@@ -7435,18 +7449,20 @@
       left: 0; right: 0; bottom: 0;
       z-index: 95;
     }
-    /* Floating capsule visible at rest state */
+    /* Floating capsule visible at rest state. Taller (14px vertical
+       padding) so it reads more like a chunky search field, and raised
+       higher off the bottom so it sits in a comfortable reach zone. */
     body.ui-v2 .v2-capsule {
       position: absolute;
       left: 14px; right: 14px;
-      bottom: calc(env(safe-area-inset-bottom, 0px) + 14px);
+      bottom: calc(env(safe-area-inset-bottom, 0px) + 32px);
       background: rgba(22,22,22,0.88);
       backdrop-filter: blur(28px) saturate(1.4);
       -webkit-backdrop-filter: blur(28px) saturate(1.4);
       border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 28px;
-      padding: 8px 8px 8px 16px;
-      display: flex; align-items: center; gap: 8px;
+      border-radius: 32px;
+      padding: 14px 12px 14px 18px;
+      display: flex; align-items: center; gap: 10px;
       box-shadow: 0 16px 40px rgba(0,0,0,0.45);
       cursor: pointer;
       color: rgba(255,255,255,0.72);
@@ -7519,7 +7535,9 @@
       flex-shrink: 0;
     }
 
-    /* Expanded sheet */
+    /* Expanded sheet — single open state at 75% of viewport height.
+       Drops out via height: 0 when closed so the capsule rest state
+       has full map underneath. Drag-down-to-close gesture wired in JS. */
     body.ui-v2 .v2-sheet {
       position: absolute;
       left: 0; right: 0; bottom: 0;
@@ -7536,15 +7554,28 @@
       transition: height 0.32s cubic-bezier(0.2, 0.8, 0.2, 1);
       display: flex; flex-direction: column;
     }
-    body.v2-sheet-mid .v2-sheet  { height: 60vh; }
-    body.v2-sheet-full .v2-sheet { height: 88vh; }
+    body.v2-sheet-open .v2-sheet { height: 75vh; }
+    /* Bigger handle target. The full top strip of the sheet (down to the
+       search bar) is also draggable via JS, so users can grab anywhere
+       in that zone to dismiss. */
     body.ui-v2 .v2-sheet-handle {
-      width: 36px; height: 4px;
-      background: rgba(255,255,255,0.2);
-      border-radius: 2px;
-      margin: 8px auto 4px;
+      width: 50px; height: 5px;
+      background: rgba(255,255,255,0.28);
+      border-radius: 3px;
+      margin: 10px auto 6px;
       flex-shrink: 0;
       cursor: grab;
+      touch-action: none;
+    }
+    body.ui-v2 .v2-sheet-handle:active { cursor: grabbing; background: rgba(255,255,255,0.5); }
+    /* Drag-zone overlay covers the handle area to make grabbing easier */
+    body.ui-v2 .v2-drag-zone {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 30px;
+      cursor: grab;
+      touch-action: none;
+      z-index: 2;
     }
     body.ui-v2 .v2-pinned-search {
       margin: 4px 14px 12px;
@@ -7642,6 +7673,79 @@
     /* Tab content visibility */
     body.ui-v2 .v2-tab-content { display: none; }
     body.ui-v2 .v2-tab-content.active { display: block; }
+
+    /* ── Relocated legacy elements inside v2 panes ──────────────── */
+    /* The Nearest / Type / Status segmented slider — moved out of the
+       legacy mobile header and styled to sit naturally in the new pane. */
+    body.ui-v2 .v2-discover-filters {
+      padding: 0 14px 10px;
+      flex-shrink: 0;
+    }
+    body.ui-v2 .v2-discover-filters .mobile-filter-pill {
+      margin: 0;
+    }
+    /* In View / More Nearby sticky title — stays inside the scroll body
+       so it actually sticks to the top of the scrolled tile list, not
+       to the sheet's outer chrome. */
+    body.ui-v2 .v2-sheet-body #mobileSectionBar {
+      position: sticky;
+      top: 0;
+      z-index: 3;
+      background: rgba(20,20,20,0.96);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      margin: 0 -14px 8px;
+      padding: 8px 14px;
+    }
+    body.ui-v2 .v2-sheet-body #mobilePillsRow {
+      margin: 0 0 8px;
+    }
+    /* Wider 1-column tile grid for v2 (mockup style) instead of the
+       legacy 2-column dense grid. Easier to scan on phone. */
+    body.ui-v2 .v2-sheet-body .leaf-grid {
+      grid-template-columns: 1fr !important;
+      gap: 12px !important;
+      row-gap: 12px !important;
+    }
+
+    /* ── Watchlist + Pulse panes ──────────────────────────────────
+       Hosts for content moved from #watchlistPanel + #pulseStack in C2. */
+    body.ui-v2 .v2-watchlist-content,
+    body.ui-v2 .v2-pulse-content {
+      padding: 0;
+    }
+    /* When watchlist DOM is relocated into our pane, override its
+       absolute positioning so it lays out naturally. */
+    body.ui-v2 .v2-watchlist-content #watchlistPanel {
+      position: static !important;
+      display: block !important;
+      visibility: visible !important;
+      width: auto !important;
+      height: auto !important;
+      max-height: none !important;
+      transform: none !important;
+      box-shadow: none !important;
+      border: none !important;
+      background: transparent !important;
+      padding: 0 !important;
+      margin: 0 !important;
+    }
+    /* Pulse stack relocated — same overrides */
+    body.ui-v2 .v2-pulse-content #pulseStack {
+      position: static !important;
+      display: block !important;
+      visibility: visible !important;
+      width: auto !important;
+      height: auto !important;
+      max-height: none !important;
+      transform: none !important;
+      box-shadow: none !important;
+      border: none !important;
+      background: transparent !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      opacity: 1 !important;
+    }
   }
 
   </style>
@@ -8162,6 +8266,8 @@
 
       <!-- Expanded sheet -->
       <div class="v2-sheet" id="v2Sheet">
+        <!-- Drag zone covers the top strip so users can grab anywhere there -->
+        <div class="v2-drag-zone" id="v2DragZone"></div>
         <div class="v2-sheet-handle" id="v2SheetHandle"></div>
 
         <!-- Pinned search bar (mirrors capsule pattern) -->
@@ -8189,26 +8295,33 @@
           </button>
         </div>
 
+        <!-- Filter slider host (Nearest / Type / Status) — visible
+             only on Discover tab; relocated from legacy mobile drawer. -->
+        <div class="v2-discover-filters" id="v2DiscoverFilters">
+          <!-- #mobile-filter-pill gets moved here by boot JS -->
+        </div>
+
         <!-- Tab content area -->
         <div class="v2-sheet-body">
-          <!-- DISCOVER (active by default) — existing #gridMobile gets moved here on boot -->
+          <!-- DISCOVER -->
           <div class="v2-tab-content active" data-v2-tab-content="discover" id="v2DiscoverPane">
-            <!-- #gridMobile will be appended here by boot JS -->
+            <!-- Relocated by boot JS:
+                   #mobilePillsRow   (active filter chips)
+                   #mobileSectionBar (In View / More Nearby sticky title)
+                   #gridMobile       (tile grid) -->
           </div>
 
-          <!-- WATCHLIST (placeholder until C2) -->
+          <!-- WATCHLIST — #watchlistPanel content moved here on boot -->
           <div class="v2-tab-content" data-v2-tab-content="watchlist">
-            <div class="v2-placeholder">
-              <div class="lbl">Coming in C2</div>
-              Your watchlist will live here in the next update.
+            <div class="v2-watchlist-content" id="v2WatchlistPane">
+              <!-- #watchlistPanel will be appended here by boot JS -->
             </div>
           </div>
 
-          <!-- PULSE (placeholder until C2) -->
+          <!-- PULSE — #pulseStack content moved here on boot -->
           <div class="v2-tab-content" data-v2-tab-content="pulse">
-            <div class="v2-placeholder">
-              <div class="lbl">Coming in C2</div>
-              Recent project updates + news will appear here.
+            <div class="v2-pulse-content" id="v2PulsePane">
+              <!-- #pulseStack will be appended here by boot JS -->
             </div>
           </div>
         </div>
@@ -17498,21 +17611,43 @@
     document.body.classList.add('ui-v2');
 
     function setup() {
-      // ── Move #gridMobile into v2 Discover pane ────────────────────
-      // The legacy grid container is still populated by renderGrid('gridMobile').
-      // By relocating the DOM node, the existing pipeline writes into the
-      // new drawer without any pipeline changes.
+      // ── Move existing mobile DOM into v2 panes ─────────────────────
+      // We RELOCATE rather than rebuild so the existing render pipelines
+      // (renderGrid, watchlist render, pulse render) keep writing into
+      // the same elements — they just live in new parents now.
       try {
-        const grid = document.getElementById('gridMobile');
         const pane = document.getElementById('v2DiscoverPane');
-        if (grid && pane) pane.appendChild(grid);
-        // Also relocate the section status bar + active filter pills row
-        // so the existing filter-pill rendering keeps working in the new
-        // drawer.
-        const sectionBar = document.getElementById('mobileSectionBar');
+        const filtersHost = document.getElementById('v2DiscoverFilters');
+        const watchPane = document.getElementById('v2WatchlistPane');
+        const pulsePane = document.getElementById('v2PulsePane');
+
+        // The Nearest / Type / Status segmented slider (legacy class
+        // .mobile-filter-pill) → above the tab content
+        const filterPill = document.querySelector('#mobileDrawer .mobile-filter-pill');
+        if (filterPill && filtersHost) filtersHost.appendChild(filterPill);
+
+        // Active filter chips row → top of Discover pane
         const pillsRow   = document.getElementById('mobilePillsRow');
-        if (sectionBar && pane) pane.insertBefore(sectionBar, pane.firstChild);
-        if (pillsRow && pane)   pane.insertBefore(pillsRow, pane.firstChild);
+        if (pillsRow && pane) pane.appendChild(pillsRow);
+
+        // In View / More Nearby sticky section bar → top of Discover scroll
+        const sectionBar = document.getElementById('mobileSectionBar');
+        if (sectionBar && pane) pane.appendChild(sectionBar);
+
+        // The tile grid itself
+        const grid = document.getElementById('gridMobile');
+        if (grid && pane) pane.appendChild(grid);
+
+        // Watchlist content → Watchlist pane
+        const watchlistPanel = document.getElementById('watchlistPanel');
+        if (watchlistPanel && watchPane) {
+          watchlistPanel.removeAttribute('hidden');
+          watchPane.appendChild(watchlistPanel);
+        }
+
+        // Pulse content → Pulse pane
+        const pulseStack = document.getElementById('pulseStack');
+        if (pulseStack && pulsePane) pulsePane.appendChild(pulseStack);
       } catch (err) {
         console.error('[v2] DOM relocation failed', err);
       }
@@ -17544,38 +17679,87 @@
         });
       }
 
-      // ── Capsule tap → expand sheet ───────────────────────────────
+      // ── Sheet open / close + drag-to-close ──────────────────────
+      // Single open state at 75vh. Tap the capsule to open; tap the
+      // handle OR drag the handle/top-strip down to close. Drag up is
+      // a no-op (sheet stays open).
       const capsule = document.getElementById('v2Capsule');
       const sheet   = document.getElementById('v2Sheet');
       const search  = document.getElementById('v2SearchInput');
-      const openSheet = (height) => {
+      const openSheet = () => {
         document.body.classList.add('v2-sheet-open');
-        document.body.classList.toggle('v2-sheet-mid',  height === 'mid');
-        document.body.classList.toggle('v2-sheet-full', height === 'full');
       };
       const closeSheet = () => {
-        document.body.classList.remove('v2-sheet-open', 'v2-sheet-mid', 'v2-sheet-full');
+        document.body.classList.remove('v2-sheet-open');
       };
       if (capsule) {
         capsule.addEventListener('click', () => {
-          openSheet('mid');
-          // Focus the search field after the animation kicks off
+          openSheet();
           setTimeout(() => { if (search) search.focus(); }, 220);
         });
       }
-      // Tap the drag handle to toggle mid/full
+
+      // Tap the handle (or top drag-zone) to close.
       const handle = document.getElementById('v2SheetHandle');
-      if (handle) {
-        handle.addEventListener('click', () => {
-          if (document.body.classList.contains('v2-sheet-full')) {
-            openSheet('mid');
-          } else {
-            openSheet('full');
+      const dragZone = document.getElementById('v2DragZone');
+      const tapToClose = (e) => {
+        // Only react to taps, not drags — drag handler below tracks
+        // movement and calls closeSheet() if the user drags down enough.
+        if (e.detail && e.detail._isDrag) return;
+        closeSheet();
+      };
+      if (handle) handle.addEventListener('click', tapToClose);
+      if (dragZone) dragZone.addEventListener('click', tapToClose);
+
+      // Touch + mouse drag handler. Listens on both the handle and the
+      // drag zone. Tracks downward delta; sheet visually follows the
+      // finger via transform, and on release: if delta > 80px → close,
+      // else snap back open.
+      const attachDrag = (el) => {
+        if (!el) return;
+        let startY = null;
+        let lastY  = null;
+        let dragging = false;
+
+        const getY = (e) => (e.touches ? e.touches[0].clientY : e.clientY);
+
+        const onStart = (e) => {
+          if (!document.body.classList.contains('v2-sheet-open')) return;
+          startY = lastY = getY(e);
+          dragging = true;
+          sheet.style.transition = 'none';
+        };
+        const onMove = (e) => {
+          if (!dragging) return;
+          const y = getY(e);
+          const dy = Math.max(0, y - startY);  // ignore upward drag
+          lastY = y;
+          if (sheet) sheet.style.transform = `translateY(${dy}px)`;
+          if (dy > 4) e.preventDefault();
+        };
+        const onEnd = () => {
+          if (!dragging) return;
+          const dy = (lastY || 0) - (startY || 0);
+          dragging = false;
+          if (sheet) {
+            sheet.style.transition = '';
+            sheet.style.transform = '';
           }
-        });
-      }
-      // Clicking outside the sheet area while collapsed via Esc — skip for now,
-      // capsule will return when search empties + user blurs in C2.
+          // Threshold: 80px down → close
+          if (dy > 80) closeSheet();
+        };
+
+        el.addEventListener('touchstart', onStart, { passive: true });
+        el.addEventListener('touchmove',  onMove,  { passive: false });
+        el.addEventListener('touchend',   onEnd,   { passive: true });
+        el.addEventListener('touchcancel',onEnd,   { passive: true });
+        // Desktop fallback (rare on mobile-only feature, but cheap)
+        el.addEventListener('mousedown',  onStart);
+        document.addEventListener('mousemove', onMove);
+        document.addEventListener('mouseup',   onEnd);
+      };
+      attachDrag(handle);
+      attachDrag(dragZone);
 
       // ── Tab switching (gold-active) ──────────────────────────────
       const tabs = document.querySelectorAll('.v2-tab[data-v2-tab]');
@@ -17677,9 +17861,14 @@
         if (legacyGeo) legacyGeo.click();
       });
       if (v2Layers) v2Layers.addEventListener('click', () => {
-        // Reuse the existing layers panel toggle if present (otherwise no-op)
-        const legacyLayers = document.querySelector('#layersBtn, .layers-toggle, [data-layers-toggle]');
-        if (legacyLayers) legacyLayers.click();
+        // Toggle the legacy layers panel directly (.open class drives it).
+        // The panel is hidden by our v2 CSS when ?ui=v2 is set, BUT we
+        // can still render it inline next to the rail temporarily by
+        // adding a v2-specific override class on body.
+        const panel = document.getElementById('layersPanel');
+        if (!panel) return;
+        document.body.classList.toggle('v2-layers-open');
+        panel.classList.toggle('open');
       });
       if (v2Pulse) v2Pulse.addEventListener('click', () => {
         // Open the Pulse tab in the v2 drawer
