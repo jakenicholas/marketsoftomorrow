@@ -1341,21 +1341,21 @@
       padding: 0 !important;
       margin: 0 !important;
       height: auto !important;
-      min-height: 132px !important;
+      min-height: 180px !important;
       cursor: pointer;
     }
     body.ui-v2 #desktopSidebar .grid-item .image-wrapper {
       width: 140px !important;
       min-width: 140px !important;
       height: auto !important;
-      min-height: 132px !important;
+      min-height: 180px !important;
       flex-shrink: 0 !important;
       border-radius: 0 !important;
     }
     body.ui-v2 #desktopSidebar .grid-item img {
       width: 100% !important;
       height: 100% !important;
-      min-height: 132px !important;
+      min-height: 180px !important;
       object-fit: cover !important;
       border-radius: 0 !important;
     }
@@ -8695,33 +8695,150 @@
       color: #0a0a0a !important;
       font-weight: 700 !important;
     }
-    /* Push the auth/profile UI to the far right of the chrome */
+    /* Hide the legacy desktop auth header entirely ‚Äî the mobile-style
+       TMW + Login widget below replaces it (the yellow-gradient circle
+       avatar in particular is removed). */
     body.ui-v2 #paywallAuthHeader {
-      margin-left: auto !important;
+      display: none !important;
     }
-    /* Sign up / Login button ‚Äî pill, glassy */
-    body.ui-v2 #paywallAuthHeader #authSignUpBtn,
-    body.ui-v2 #paywallAuthHeader button[id*="Sign"],
-    body.ui-v2 #paywallAuthHeader button[id*="Login"] {
-      background: #fff !important;
-      color: #0a0a0a !important;
-      border: none !important;
+
+    /* ‚îÄ‚îÄ Reveal the mobile .v2-top-chrome on desktop, but only the TMW
+       profile widget piece, anchored to the right side of the chrome.
+       Hides the duplicate Map/Atlas toggle inside it since the legacy
+       .atlas-mode-toggle covers that role on desktop. */
+    body.ui-v2 .v2-top-chrome {
+      display: flex !important;
+      position: fixed !important;
+      top: 12px !important;
+      left: auto !important;
+      right: 24px !important;
+      width: auto !important;
+      padding: 0 !important;
+      z-index: 100 !important;
+      pointer-events: none !important;
+      background: transparent !important;
+    }
+    body.ui-v2 .v2-top-chrome > * { pointer-events: auto; }
+    /* Hide the Map/Atlas toggle that lives inside .v2-top-chrome ‚Äî we
+       already have one outside in .atlas-mode-toggle. */
+    body.ui-v2 .v2-top-chrome .v2-mode-toggle {
+      display: none !important;
+    }
+    /* Now style the widget itself on desktop. Reuse the same mobile
+       look ‚Äî pill with TMW logo + divider + profile icon ‚Äî so behavior
+       and look match across breakpoints. */
+    body.ui-v2 .v2-top-chrome .v2-tmw-profile-widget {
+      display: inline-flex !important;
+      align-items: center !important;
+      background: rgba(15,15,15,0.7) !important;
+      backdrop-filter: blur(16px) saturate(1.4) !important;
+      -webkit-backdrop-filter: blur(16px) saturate(1.4) !important;
+      border: 1px solid rgba(255,255,255,0.1) !important;
       border-radius: 999px !important;
-      padding: 8px 18px !important;
-      font-size: 13px !important;
-      font-weight: 700 !important;
-      cursor: pointer !important;
+      padding: 3px 6px !important;
+      height: 38px !important;
+      gap: 6px !important;
+      position: relative !important;
+      box-sizing: border-box !important;
     }
-    /* Avatar/profile button (signed in) ‚Äî circular, gold gradient */
-    body.ui-v2 #paywallAuthHeader .tmw-avatar,
-    body.ui-v2 #paywallAuthHeader [class*="avatar"i] {
-      width: 36px !important; height: 36px !important;
-      border-radius: 50% !important;
-      background-image: linear-gradient(135deg, #FFD300, #FF9500) !important;
-      border: 1px solid rgba(255,211,0,0.4) !important;
-      color: #0a0a0a !important;
-      font-weight: 800 !important;
-      font-size: 12px !important;
+    body.ui-v2 .v2-top-chrome .v2-tmw-logo {
+      width: 32px; height: 32px;
+      display: flex; align-items: center; justify-content: center;
+      padding: 0;
+    }
+    body.ui-v2 .v2-top-chrome .v2-tmw-logo img {
+      width: 30px; height: 30px;
+      object-fit: contain;
+      filter: brightness(0) invert(1);
+    }
+    body.ui-v2 .v2-top-chrome .v2-widget-divider {
+      width: 1px; height: 20px;
+      background: rgba(255,255,255,0.18);
+      flex-shrink: 0;
+    }
+    body.ui-v2 .v2-top-chrome .v2-profile-btn {
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      background: transparent;
+      border: none;
+      position: relative;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+      color: #fff;
+      padding: 0;
+    }
+    body.ui-v2 .v2-top-chrome .v2-profile-btn svg.profile-icon {
+      width: 18px; height: 18px;
+      stroke: currentColor; fill: none;
+      stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+    }
+    body.ui-v2 .v2-top-chrome .v2-profile-btn:not(.signed-in) .v2-login-text {
+      display: inline;
+      font-size: 12px; font-weight: 700;
+      white-space: nowrap;
+      letter-spacing: 0.01em;
+    }
+    body.ui-v2 .v2-top-chrome .v2-profile-btn:not(.signed-in) {
+      width: auto;
+      padding: 0 11px;
+      border-radius: 20px;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.18);
+    }
+    body.ui-v2 .v2-top-chrome .v2-profile-btn:not(.signed-in) svg.profile-icon { display: none; }
+    body.ui-v2 .v2-top-chrome .v2-profile-btn:not(.signed-in) .v2-premium-star { display: none !important; }
+    body.ui-v2 .v2-top-chrome .v2-profile-btn.signed-in .v2-login-text { display: none; }
+    body.ui-v2 .v2-top-chrome .v2-profile-btn:not(.is-pro) .v2-premium-star { display: none !important; }
+    /* Drop-down menu opens below the widget */
+    body.ui-v2 .v2-top-chrome .v2-profile-menu {
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      left: auto;
+      min-width: 220px;
+      background: rgba(20,20,20,0.96);
+      backdrop-filter: blur(28px) saturate(1.4);
+      -webkit-backdrop-filter: blur(28px) saturate(1.4);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 14px;
+      padding: 6px;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.5);
+      display: none;
+      z-index: 100;
+    }
+    body.ui-v2 .v2-top-chrome .v2-profile-menu.open { display: block; }
+    body.ui-v2 .v2-top-chrome .v2-profile-menu .v2-menu-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 12px;
+      color: rgba(255,255,255,0.85);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      border-radius: 8px;
+      background: transparent;
+      border: none;
+      width: 100%;
+      text-align: left;
+      font-family: inherit;
+    }
+    body.ui-v2 .v2-top-chrome .v2-profile-menu .v2-menu-item:hover {
+      background: rgba(255,255,255,0.06);
+    }
+    body.ui-v2 .v2-top-chrome .v2-profile-menu .v2-menu-item svg {
+      width: 16px; height: 16px;
+      stroke: currentColor; fill: none;
+      stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+      flex-shrink: 0;
+      opacity: 0.7;
+    }
+    body.ui-v2 .v2-top-chrome .v2-profile-menu .v2-menu-divider {
+      height: 1px;
+      background: rgba(255,255,255,0.08);
+      margin: 6px 4px;
+    }
+    body.ui-v2 .v2-top-chrome .v2-profile-menu .v2-menu-signout {
+      color: rgba(255, 120, 120, 0.9);
     }
 
     /* ‚îÄ‚îÄ DESKTOP SIDEBAR ‚Äî 520px, dark, flush ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ */
@@ -9197,8 +9314,13 @@
       overflow: hidden !important;
       padding: 0 !important;
       margin: 0 !important;
-      height: auto !important;
-      min-height: 132px !important;
+      /* Uniform fixed height ‚Äî every tile is the same height regardless
+         of whether the title wraps to 2 lines. Tall enough for: 2-line
+         title (38px) + city (16px) + divider gap + Delivery/Intel foot
+         row (42px) with comfortable padding. Image fills full tile height
+         via grid-row: 1 / -1, so a taller tile = a longer image. */
+      height: 180px !important;
+      min-height: 180px !important;
       cursor: pointer;
     }
     body.ui-v2 #desktopSidebar .grid-item:hover {
@@ -9211,14 +9333,14 @@
       width: 140px !important;
       min-width: 140px !important;
       height: auto !important;
-      min-height: 132px !important;
+      min-height: 180px !important;
       flex-shrink: 0 !important;
       border-radius: 0 !important;
     }
     body.ui-v2 #desktopSidebar .grid-item img {
       width: 100% !important;
       height: 100% !important;
-      min-height: 132px !important;
+      min-height: 180px !important;
       object-fit: cover !important;
       border-radius: 0 !important;
     }
@@ -9344,7 +9466,7 @@
     body.ui-v2 #desktopSidebar .grid-item {
       display: grid !important;
       grid-template-columns: 140px 1fr !important;
-      grid-template-rows: auto auto auto !important;
+      grid-template-rows: 1fr auto !important;
     }
     body.ui-v2 #desktopSidebar .grid-item > .image-wrapper {
       grid-column: 1 / 2 !important;
@@ -9748,7 +9870,7 @@
       <div class="pill-search-icon">
         <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
       </div>
-      <span class="pill-text">Search projects or city...</span>
+      <span class="pill-text">Search projects, cities, firms‚Ä¶</span>
       <div class="pill-filter-badge" id="desktopPillFilterBadge">
         <span class="badge-icon"><svg viewBox="0 0 24 24"><circle cx="6" cy="5" r="2"/><line x1="2" y1="5" x2="4" y2="5"/><line x1="8" y1="5" x2="22" y2="5"/><circle cx="16" cy="12" r="2"/><line x1="2" y1="12" x2="14" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><circle cx="9" cy="19" r="2"/><line x1="2" y1="19" x2="7" y2="19"/><line x1="11" y1="19" x2="22" y2="19"/></svg></span>
         <span class="badge-count" id="desktopPillFilterCount">0</span>
@@ -9767,7 +9889,7 @@
             <div class="search-pill-icon">
               <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
             </div>
-            <input id="sidebarSearchBar" type="text" placeholder="Search projects or city..." />
+            <input id="sidebarSearchBar" type="text" placeholder="Search projects, cities, firms‚Ä¶" />
             <button id="sidebarSearchClear" title="Clear search">&times;</button>
             <div id="sidebarAutocomplete" class="autocomplete-dropdown hidden"></div>
           </div>
@@ -9835,7 +9957,7 @@
               <div class="search-pill-icon">
                 <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
               </div>
-              <input id="mobileSearchBar" type="text" placeholder="Search projects or city..." />
+              <input id="mobileSearchBar" type="text" placeholder="Search projects, cities, firms‚Ä¶" />
               <button id="mobileSearchClear" title="Clear search">&times;</button>
             </div>
             <div id="mobileAutocomplete" class="autocomplete-dropdown hidden"></div>
@@ -9902,7 +10024,7 @@
       <div class="pill-search-icon">
         <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
       </div>
-      <span class="pill-text">Search projects or city...</span>
+      <span class="pill-text">Search projects, cities, firms‚Ä¶</span>
       <div class="pill-filter-badge" id="mobilePillFilterBadge">
         <span class="badge-icon"><svg viewBox="0 0 24 24"><circle cx="6" cy="5" r="2"/><line x1="2" y1="5" x2="4" y2="5"/><line x1="8" y1="5" x2="22" y2="5"/><circle cx="16" cy="12" r="2"/><line x1="2" y1="12" x2="14" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><circle cx="9" cy="19" r="2"/><line x1="2" y1="19" x2="7" y2="19"/><line x1="11" y1="19" x2="22" y2="19"/></svg></span>
         <span class="badge-count" id="mobilePillFilterCount">0</span>
@@ -9993,7 +10115,7 @@
         <span class="v2-search-icon">
           <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
         </span>
-        <span class="v2-search-text" id="v2CapsuleText">Search projects, cities..</span>
+        <span class="v2-search-text" id="v2CapsuleText">Search projects, cities, firms‚Ä¶</span>
         <div class="v2-filter-btn" id="v2CapsuleFilterBtn">
           <span class="badge-icon"><svg viewBox="0 0 24 24"><circle cx="6" cy="5" r="2"/><line x1="2" y1="5" x2="4" y2="5"/><line x1="8" y1="5" x2="22" y2="5"/><circle cx="16" cy="12" r="2"/><line x1="2" y1="12" x2="14" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><circle cx="9" cy="19" r="2"/><line x1="2" y1="19" x2="7" y2="19"/><line x1="11" y1="19" x2="22" y2="19"/></svg></span>
           <span class="badge-count" id="v2CapsuleFilterCount">0</span>
@@ -10013,7 +10135,7 @@
           <span class="v2-search-icon">
             <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
           </span>
-          <input class="v2-search-text" id="v2SearchInput" type="text" placeholder="Search projects, cities.." />
+          <input class="v2-search-text" id="v2SearchInput" type="text" placeholder="Search projects, cities, firms‚Ä¶" />
           <button class="v2-search-clear" id="v2SearchClear" aria-label="Clear search">
             <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
@@ -19498,7 +19620,7 @@
             max-width: 100% !important;
             min-width: 0 !important;
             height: auto !important;
-            min-height: 132px !important;
+            min-height: 180px !important;
             grid-column: auto !important;
             grid-row: auto !important;
             flex-basis: auto !important;
@@ -19515,14 +19637,14 @@
             min-width: 140px !important;
             max-width: 140px !important;
             height: auto !important;
-            min-height: 132px !important;
+            min-height: 180px !important;
             flex-shrink: 0 !important;
             border-radius: 0 !important;
           }
           html body.ui-v2 #desktopSidebar #gridDesktop .grid-item img {
             width: 100% !important;
             height: 100% !important;
-            min-height: 132px !important;
+            min-height: 180px !important;
             object-fit: cover !important;
           }
           /* Body fills the rest */
@@ -19637,16 +19759,19 @@
       grid.querySelectorAll('.grid-item').forEach(tile => {
         tile.style.setProperty('display', 'grid', 'important');
         tile.style.setProperty('grid-template-columns', '140px 1fr', 'important');
-        tile.style.setProperty('grid-template-rows', 'auto auto', 'important');
+        tile.style.setProperty('grid-template-rows', '1fr auto', 'important');
         tile.style.removeProperty('flex-direction');
-        tile.style.setProperty('height', 'auto', 'important');
-        tile.style.setProperty('min-height', '132px', 'important');
+        // Fixed (not auto) height so 1-line and 2-line titles produce
+        // identical tile heights. Image fills full height (grid-row 1/-1).
+        tile.style.setProperty('height', '180px', 'important');
+        tile.style.setProperty('min-height', '180px', 'important');
         tile.style.setProperty('width', '100%', 'important');
         const img = tile.querySelector('.image-wrapper');
         if (img) {
           img.style.setProperty('width', '140px', 'important');
           img.style.setProperty('min-width', '140px', 'important');
-          img.style.setProperty('min-height', '132px', 'important');
+          img.style.setProperty('height', '100%', 'important');
+          img.style.setProperty('min-height', '180px', 'important');
           img.style.setProperty('flex-shrink', '0', 'important');
           img.style.setProperty('grid-column', '1 / 2', 'important');
           img.style.setProperty('grid-row', '1 / -1', 'important');
@@ -19871,6 +19996,24 @@
         watchlist: 'Watchlist',
         pulse: 'Pulse',
       };
+      // Mirror the mobile sheet-title indicators on desktop:
+      //   - Discover  ‚Üí green "in view" pill with count bubble (.v2-section-indicator.in-view)
+      //   - Watchlist ‚Üí gray subtitle text (e.g. "3 projects ¬∑ 1 unread")
+      //   - Pulse     ‚Üí gray subtitle text (e.g. "50 updates this week")
+      function getDesktopWatchlistSubtitle() {
+        const n = document.getElementById('watchlistStatCount');
+        const u = document.getElementById('watchlistStatUnread');
+        const c = n ? parseInt(n.textContent || '0', 10) : 0;
+        const ur = u ? parseInt(u.textContent || '0', 10) : 0;
+        if (!c) return 'no projects yet';
+        return `${c} project${c === 1 ? '' : 's'}${ur ? ' &middot; ' + ur + ' unread' : ''}`;
+      }
+      function getDesktopPulseSubtitle() {
+        const events = document.querySelectorAll('#pulseStack .pulse-ev-wrap');
+        const n = events.length;
+        if (!n) return 'no updates this week';
+        return `${n} update${n === 1 ? '' : 's'} this week`;
+      }
       function updateDesktopTitle(target) {
         const ttl = document.getElementById('v2DTitleText');
         const right = document.getElementById('v2DTitleRight');
@@ -19879,20 +20022,14 @@
         if (target === 'discover') {
           // Pull current in-view count from the source-of-truth pill
           const src = document.getElementById('desktopPillCount');
-          const txt = (src && src.textContent) ? src.textContent.replace(/\s*results?\s*$/i, ' projects') : '‚Äî projects';
-          right.innerHTML = `<span class="v2-d-section-indicator"><span class="dot"></span>In View <span class="num">${txt}</span></span>`;
+          const raw = src && src.textContent ? src.textContent.trim() : '';
+          const m = raw.match(/(\d+)/);
+          const count = m ? m[1] : '‚Äî';
+          right.innerHTML = `<span class="v2-section-indicator in-view">in view <span class="v2-section-count">${count}</span></span>`;
         } else if (target === 'watchlist') {
-          const wlBadge = document.getElementById('watchlistBtnBadge');
-          const n = wlBadge && !wlBadge.hasAttribute('hidden') ? parseInt(wlBadge.textContent || '0', 10) : 0;
-          right.innerHTML = n > 0
-            ? `<span class="v2-d-sub-pill">${n} new update${n === 1 ? '' : 's'}</span>`
-            : `<span class="v2-d-sub-pill muted">No new updates</span>`;
+          right.innerHTML = `<span class="v2-sheet-sub">${getDesktopWatchlistSubtitle()}</span>`;
         } else if (target === 'pulse') {
-          const plBadge = document.getElementById('pulseBellBadge');
-          const n = plBadge && !plBadge.hasAttribute('hidden') ? parseInt(plBadge.textContent || '0', 10) : 0;
-          right.innerHTML = n > 0
-            ? `<span class="v2-d-sub-pill pulse-style">${n} updates</span>`
-            : `<span class="v2-d-sub-pill muted">All caught up</span>`;
+          right.innerHTML = `<span class="v2-sheet-sub">${getDesktopPulseSubtitle()}</span>`;
         }
       }
       window._v2RefreshDesktopTitle = updateDesktopTitle;
@@ -20126,15 +20263,30 @@
           }
         }, 0);
       });
-      // Initialize title on first paint + re-sync when result count changes
+      // Initialize title on first paint + re-sync when source values change.
+      // We observe the floating desktop pill count for Discover counts, the
+      // watchlist stat counters for Watchlist subtitle, and the pulse spine
+      // for Pulse subtitle. Each fires a re-render of the active title.
       updateDesktopTitle('discover');
-      ['desktopPillCount'].forEach(id => {
+      function reSyncActive() {
+        const active = tabs.querySelector('button.active');
+        updateDesktopTitle(active ? active.dataset.v2dTab : 'discover');
+      }
+      ['desktopPillCount', 'watchlistStatCount', 'watchlistStatUnread'].forEach(id => {
         const el = document.getElementById(id);
-        if (el) new MutationObserver(() => {
-          const active = tabs.querySelector('button.active');
-          updateDesktopTitle(active ? active.dataset.v2dTab : 'discover');
-        }).observe(el, { childList: true, characterData: true, subtree: true });
+        if (el) new MutationObserver(reSyncActive).observe(el, { childList: true, characterData: true, subtree: true });
       });
+      // Pulse spine (#pulseStack contents) changes when events load/refresh.
+      const pulseSpineEl = document.querySelector('#pulseStack .pulse-spine');
+      if (pulseSpineEl) {
+        new MutationObserver(reSyncActive).observe(pulseSpineEl, { childList: true, subtree: false });
+      } else {
+        // Retry once after a tick if pulse hasn't initialised yet
+        setTimeout(() => {
+          const ps = document.querySelector('#pulseStack .pulse-spine');
+          if (ps) new MutationObserver(reSyncActive).observe(ps, { childList: true, subtree: false });
+        }, 1500);
+      }
 
       const syncCounts = () => {
         const wlBadge = document.getElementById('watchlistBtnBadge');
@@ -21076,15 +21228,12 @@
       // typing reveals grouped search results below the tab bar; empty
       // shows recent searches.
       const searchInput = document.getElementById('v2SearchInput');
-      const SEARCH_PLACEHOLDERS = {
-        discover:  'Search projects, cities..',
-        watchlist: 'Search watchlist',
-        pulse:     'Search pulse',
-      };
+      // Search is a single global lookup across projects/cities/firms,
+      // not a per-tab filter. Keep one placeholder regardless of which
+      // tab is active.
+      const UNIFIED_SEARCH_PLACEHOLDER = 'Search projects, cities, firms‚Ä¶';
       function updateSearchPlaceholder() {
-        const activeTabEl = document.querySelector('.v2-tab.active');
-        const id = activeTabEl ? activeTabEl.dataset.v2Tab : 'discover';
-        if (searchInput) searchInput.placeholder = SEARCH_PLACEHOLDERS[id] || 'Search';
+        if (searchInput) searchInput.placeholder = UNIFIED_SEARCH_PLACEHOLDER;
       }
       // Re-run placeholder update when tab changes (hook tabs)
       document.querySelectorAll('.v2-tab[data-v2-tab]').forEach(t => {
