@@ -13522,7 +13522,24 @@
         }
         return map.getBounds();
       } else {
-        const sidebarWidth = document.getElementById('desktopSidebar')?.classList.contains('open') ? 480 : 0;
+        // Desktop in-view bounds: subtract the sidebar from the left
+        // edge so "in view" only counts pins the user can actually see.
+        // In v1 the sidebar gets .open when expanded (legacy 480px). In
+        // v2 the sidebar is permanently visible at 540px via CSS but
+        // never receives the .open class, so the legacy check would
+        // report sidebarWidth=0 and the in-view list would include
+        // pins hidden behind the drawer. The v2 carve-out below uses
+        // the actual rendered width when available.
+        const sidebarEl = document.getElementById('desktopSidebar');
+        const v2Active = document.body.classList.contains('ui-v2');
+        let sidebarWidth = 0;
+        if (sidebarEl?.classList.contains('open')) {
+          sidebarWidth = 480;
+        } else if (v2Active && sidebarEl) {
+          // Use the live measurement so this stays correct if v2's
+          // sidebar width ever changes via CSS.
+          sidebarWidth = sidebarEl.getBoundingClientRect().width || 540;
+        }
         const topOffset = 60;
         const topLeft     = map.unproject([sidebarWidth, topOffset]);
         const bottomRight = map.unproject([W, H]);
@@ -15832,7 +15849,14 @@
                 const sidebar = document.getElementById('desktopSidebar');
                 const desktopSearch = document.getElementById('sidebarSearchBar');
                 const hasActiveSearch = desktopSearch && desktopSearch.value.trim().length > 0;
-                if (sidebar?.classList.contains('open') && dsort === 'default') {
+                // v2 keeps the desktop sidebar always visible via CSS
+                // (transform: translateX(0)) but never adds .open to the
+                // classList, so the legacy `.open` check would skip the
+                // refresh forever. Treat "ui-v2 active on desktop" as
+                // equivalent to .open here so the in-view list actually
+                // repopulates when the user pans the map.
+                const v2Desktop = document.body.classList.contains('ui-v2');
+                if ((sidebar?.classList.contains('open') || v2Desktop) && dsort === 'default') {
                   if (hasActiveSearch && window.allProjectFeatures) {
                     renderFilteredGrid('gridDesktop', window.allProjectFeatures);
                   } else {
@@ -15858,7 +15882,11 @@
             updateTimeout = setTimeout(() => {
               updateResultCount('gridDesktop');
               updateResultCount('gridMobile');
-              if (!isMobile && document.getElementById('desktopSidebar')?.classList.contains('open')) renderGrid('gridDesktop');
+              // Same v2-desktop carve-out as moveend above.
+              const v2Desktop = !isMobile && document.body.classList.contains('ui-v2');
+              if (!isMobile && (document.getElementById('desktopSidebar')?.classList.contains('open') || v2Desktop)) {
+                renderGrid('gridDesktop');
+              }
             }, 300);
           });
         }
@@ -22565,40 +22593,61 @@
       // Discover tab is shown.
       (function v2FlyToPinInit() {
         const STORE_KEY = 'tmw-fly-to-pin';
+        let lastFlownTitle = null;
         function isOn() {
           try { return localStorage.getItem(STORE_KEY) !== 'false'; } catch(_) { return true; }
         }
-        function setOn(on) {
-          try { localStorage.setItem(STORE_KEY, on ? 'true' : 'false'); } catch(_) {}
+        function syncVisualState() {
+          const on = isOn();
           document.querySelectorAll('.v2-flyto-toggle').forEach(b => {
             b.setAttribute('aria-pressed', on ? 'true' : 'false');
           });
         }
-        function bindButtons() {
-          document.querySelectorAll('.v2-flyto-toggle').forEach(b => {
-            // Sync visual state on every pass (handles dynamic re-injection
-            // when the desktop tab swaps innerHTML).
-            b.setAttribute('aria-pressed', isOn() ? 'true' : 'false');
-            if (b.dataset.flytoBound) return;
-            b.dataset.flytoBound = '1';
-            b.addEventListener('click', (e) => {
-              e.stopPropagation();
-              e.preventDefault();
-              setOn(!isOn());
-            });
-          });
+        function setOn(on) {
+          try { localStorage.setItem(STORE_KEY, on ? 'true' : 'false'); } catch(_) {}
+          // Reset dedupe so flipping the switch off‚Üíon can re-fire on
+          // the same project the user is still parked on.
+          lastFlownTitle = null;
+          syncVisualState();
+          // Turning ON: immediately fly to the topmost visible tile in
+          // the currently-active discover scroll container, so the user
+          // gets instant feedback ("I turned this on and the map flew").
+          if (on) {
+            const onMobile = window.matchMedia('(max-width: 800px)').matches;
+            const scrollEl = onMobile
+              ? document.querySelector('.v2-sheet-body')
+              : document.querySelector('#desktopSidebar .sidebar-content');
+            if (scrollEl) flyToFocusedTile(scrollEl);
+          }
         }
-        bindButtons();
-        // Re-bind on DOM changes (desktop toggle gets recreated on tab
-        // swap; this catches that without us having to plumb a callback
-        // into every render path).
-        new MutationObserver(bindButtons).observe(document.body, {
+        // ‚îÄ‚îÄ Click handling via event delegation ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
+        // The desktop toggle is destroyed and recreated whenever the
+        // user swaps tabs (innerHTML rewrite), so addEventListener on
+        // the button instance is fragile. Delegating on body avoids
+        // having to chase re-binds. Capture phase + stopPropagation
+        // prevents any parent (sheet body, title row) from also
+        // reacting to the same click.
+        document.addEventListener('click', (e) => {
+          const t = e.target;
+          if (!t || !t.closest) return;
+          const btn = t.closest('.v2-flyto-toggle');
+          if (!btn) return;
+          e.stopPropagation();
+          e.preventDefault();
+          if (typeof e.stopImmediatePropagation === 'function') {
+            e.stopImmediatePropagation();
+          }
+          setOn(!isOn());
+        }, true);
+        // Initial visual state + re-sync whenever the DOM swaps (e.g.
+        // desktop tab change creates a fresh toggle).
+        syncVisualState();
+        new MutationObserver(syncVisualState).observe(document.body, {
           childList: true, subtree: true,
         });
 
         // ‚îÄ‚îÄ Scroll-driven auto-fly ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
         let flyTimer = null;
-        let lastFlownTitle = null;
         function findTopVisibleTile(scrollEl) {
           const cr = scrollEl.getBoundingClientRect();
           // .grid-item lives inside .inview-section / .nearby-section
@@ -22638,6 +22687,12 @@
             }
           }
           const targetZoom = Math.max(window._tmwMap.getZoom() || 4, 13);
+          // Flag this as a programmatic flyTo so the global moveend
+          // handler doesn't re-render the discover grid mid-scroll
+          // (the legacy contract is: set _mapFlyingTo=true ‚Üí moveend
+          // skips its renderGrid call). The user's manual pans still
+          // refresh the list because they leave _mapFlyingTo=false.
+          window._mapFlyingTo = true;
           try {
             window._tmwMap.flyTo({ center: co, zoom: targetZoom, duration: 1200, essential: true });
           } catch(_) {}
@@ -22674,6 +22729,18 @@
             lastFlownTitle = null;
           }
         }, true);
+        // Also reset whenever the map is moved by the user (drag/pan)
+        // -- a fresh viewport means a fresh list of in-view tiles, so
+        // the previously-flown title may no longer be relevant.
+        if (window._tmwMap && typeof window._tmwMap.on === 'function') {
+          window._tmwMap.on('movestart', (e) => {
+            // originalEvent present = user gesture. Programmatic flyTo
+            // calls don't carry a DOM event, and we don't want to clear
+            // the dedupe in that case (it would re-fire instantly on
+            // the moveend ‚Üí renderGrid path).
+            if (e && e.originalEvent) lastFlownTitle = null;
+          });
+        }
       })();
     } // end setup()
 
