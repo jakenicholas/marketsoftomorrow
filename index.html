@@ -4003,10 +4003,15 @@
     background: rgba(255,255,255,0.06);
     border: 1px solid rgba(255,255,255,0.12);
     border-radius: 10px;
-    color: #fff; font-size: 20px; line-height: 1;
+    color: #fff; line-height: 1;
+    padding: 0;
     cursor: pointer;
     display: flex; align-items: center; justify-content: center;
     transition: background 0.12s, border-color 0.12s;
+  }
+  .firm-sheet-close svg {
+    width: 16px; height: 16px;
+    stroke: currentColor; fill: none;
   }
   .firm-sheet-close:hover {
     background: rgba(255,255,255,0.12);
@@ -7412,8 +7417,8 @@
   }
   body.ui-v2 .v2-watchlist-content .wl-row-thumb {
     width: 100% !important;
-    height: 240px !important;
-    min-height: 240px !important;
+    height: 200px !important;
+    min-height: 200px !important;
     border-radius: 0 !important;
     flex-shrink: 0 !important;
     background-color: #2a2a2a !important;
@@ -7525,12 +7530,22 @@
     }
     /* Hide the v1 mode toggle ‚Äî we add our own glassy one in the top chrome */
     body.ui-v2 .atlas-mode-toggle { display: none !important; }
-    /* Atlas overlay is z=90; top chrome is also z=90. Bump chrome above overlay
-       in atlas mode so TMW logo + Map/Atlas toggle remain visible and tappable. */
-    body.ui-v2.atlas-mode .v2-top-chrome { z-index: 96 !important; }
+    /* Atlas overlay is z=90; force the v2 top chrome above it (and
+       force-display, since the default `.v2-top-chrome { display: none }`
+       rule could otherwise win on cascade order). TMW widget + Map/Atlas
+       toggle stay in the exact same spot whether the user is on Map or
+       Atlas mode. */
+    body.ui-v2.atlas-mode .v2-top-chrome {
+      display: flex !important;
+      z-index: 100 !important;
+    }
+    body.ui-v2.atlas-mode .v2-top-chrome .v2-tmw-profile-widget,
+    body.ui-v2.atlas-mode .v2-top-chrome .v2-mode-toggle {
+      display: inline-flex !important;
+    }
     /* In atlas mode the legacy #header re-shows itself (body.atlas-mode rule)
-       at z=99, covering the v2-top-chrome (z=96). Suppress it in v2 so only
-       the v2 top chrome is visible. Also collapse the v2 drawer so atlas
+       at z=99, covering the v2-top-chrome. Suppress it in v2 so only the
+       v2 top chrome is visible. Also collapse the v2 drawer so atlas
        content isn't obscured by the search sheet. */
     body.ui-v2.atlas-mode #header { display: none !important; }
     body.ui-v2.atlas-mode .v2-drawer { display: none !important; }
@@ -8339,8 +8354,8 @@
     }
     body.ui-v2 #gridMobile .grid-item .image-wrapper {
       width: 100% !important;
-      height: 130px !important;
-      min-height: 130px !important;
+      height: 200px !important;
+      min-height: 200px !important;
       border-radius: 0 !important;
       outline: none !important;
       position: relative;
@@ -8574,15 +8589,17 @@
       border: none !important;
       border-radius: 0 !important;
       box-shadow: none !important;
-      padding: 11px 0 11px 14px !important;
+      padding: 14px 16px 14px 30px !important;
       margin: 0 !important;
       position: relative !important;
       border-bottom: 1px solid rgba(255,255,255,0.08) !important;
+      width: 100% !important;
+      box-sizing: border-box !important;
     }
     body.ui-v2 .v2-pulse-content .pulse-ev-wrap::before {
       content: '';
       position: absolute;
-      left: 0; top: 19px;
+      left: 16px; top: 22px;
       width: 4px; height: 4px;
       border-radius: 50%;
       background: rgba(255,255,255,0.3);
@@ -8619,6 +8636,15 @@
       letter-spacing: -0.01em !important;
       margin: 4px 0 0 !important;
       padding: 0 !important;
+    }
+    /* External-link icon next to "on tmw" coverage titles (article
+       events open in a new tab). Faint dark gray inline glyph. */
+    body.ui-v2 .v2-pulse-content .pulse-ev-ext-icon {
+      display: inline-block;
+      vertical-align: -1px;
+      margin-left: 6px;
+      color: rgba(255,255,255,0.35);
+      stroke: currentColor;
     }
     /* Hide the bottom row entirely ‚Äî meta lives in the top row */
     body.ui-v2 .v2-pulse-content .pulse-ev-bottom {
@@ -9082,6 +9108,11 @@
       padding: 0 16px 16px !important;
       background: transparent !important;
     }
+    /* Pulse pane runs flush ‚Äî items get their own internal padding so
+     they span full width with a left dot and right margin. */
+    body.ui-v2 #desktopSidebar #v2DesktopPulsePane {
+      padding: 0 !important;
+    }
     body.ui-v2 #desktopSidebar .v2-desktop-pane[hidden] { display: none !important; }
     /* Inner watchlist body has its own scrollable padding ‚Äî strip it on
        desktop so the wl-row cards span the same width as the gridDesktop
@@ -9160,15 +9191,17 @@
       border: none !important;
       border-radius: 0 !important;
       box-shadow: none !important;
-      padding: 11px 0 11px 14px !important;
+      padding: 14px 16px 14px 30px !important;
       margin: 0 !important;
       position: relative !important;
       border-bottom: 1px solid rgba(255,255,255,0.08) !important;
+      width: 100% !important;
+      box-sizing: border-box !important;
     }
     body.ui-v2 #desktopSidebar .v2-pulse-content .pulse-ev-wrap::before {
       content: '';
       position: absolute;
-      left: 0; top: 19px;
+      left: 16px; top: 22px;
       width: 4px; height: 4px;
       border-radius: 50%;
       background: rgba(255,255,255,0.3);
@@ -9352,14 +9385,21 @@
       color: #0a0a0a;
       font-weight: 700;
     }
+    /* Tab num bubble ‚Äî GOLD by default (notification cue), flip to
+       DARK on the active tab so it reads as inverse. Matches the
+       mobile .v2-tab-num color flip. */
     body.ui-v2 .v2-desktop-tabs button .num {
-      background: rgba(0,0,0,0.18);
-      color: inherit;
+      background: var(--warn, #FFD300);
+      color: #0a0a0a;
       font-size: 10px; font-weight: 800;
-      padding: 1px 6px; border-radius: 100px; line-height: 1.2;
+      padding: 1px 7px; border-radius: 100px; line-height: 1.3;
+      min-width: 18px; text-align: center;
+      display: inline-flex; align-items: center; justify-content: center;
     }
+    body.ui-v2 .v2-desktop-tabs button .num[hidden] { display: none !important; }
     body.ui-v2 .v2-desktop-tabs button.active .num {
-      background: #0a0a0a; color: var(--warn, #FFD300);
+      background: #0a0a0a;
+      color: var(--warn, #FFD300);
     }
 
     /* Filter pills row (injected by JS) ‚Äî escape the .sidebar-header's
@@ -9369,7 +9409,7 @@
     body.ui-v2 .v2-desktop-filter-pills {
       display: flex !important;
       gap: 6px !important;
-      padding: 0 16px 6px 0 !important;
+      padding: 0 16px 14px 16px !important;
       margin: 0 -16px 0 -16px !important;
       overflow-x: auto !important;
       scrollbar-width: none;
@@ -9840,7 +9880,7 @@
     <div class="firm-sheet-drag" id="firmSheetDrag" role="button" aria-label="Drag to dismiss">
       <div class="firm-sheet-handle"></div>
     </div>
-    <button class="firm-sheet-close" id="firmSheetClose" aria-label="Close firm profile" type="button">√ó</button>
+    <button class="firm-sheet-close" id="firmSheetClose" aria-label="Close firm profile" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
     <div class="firm-sheet-content" id="firmSheetContent">
       <div class="fs-loading">Loading‚Ä¶</div>
     </div>
@@ -12746,31 +12786,44 @@
       // logic) can dismiss the modal cleanly without faking a click on the X.
       window.closeProjectModal = closeModal;
 
-      // "View on Map" button: closes the modal and flies the map to the
-      // current project's coordinates. On mobile, also collapses the v2 sheet
-      // so the map is fully visible.
+      // "View on Map" button ‚Äî closes the project modal and flies the
+      // map to the project's pin, then shows the inline popup.
+      //   ‚Ä¢ Mobile  ‚Üí also collapse the v2 sheet so the map is fully
+      //               visible (user lands on the pin with nothing in
+      //               the way).
+      //   ‚Ä¢ Desktop ‚Üí KEEP the sidebar open (don't run v2CloseSheet).
+      //               The modal is what closes; the sidebar continues
+      //               to show the tile grid behind the fly-to.
       const pmViewMapBtn = document.getElementById('pmViewMapBtn');
       if (pmViewMapBtn) {
         pmViewMapBtn.addEventListener('click', (e) => {
           e.stopPropagation();
-          // Snapshot the feature before closeModal() runs (which may reset state)
+          e.preventDefault();
+          // Snapshot the feature BEFORE closeModal() runs (closeModal
+          // may reset currentFeature as part of its cleanup).
           const f = currentFeature;
           const co = (f && f.geometry && f.geometry.coordinates)
             ? f.geometry.coordinates.slice()
             : null;
-          // Use the canonical closeModal() path so all cleanup happens.
+          // Always close the modal itself.
           try { closeModal(); } catch(_) {}
-          // Synchronously also clear the v2 sheet/overlay flags so the
-          // drawer collapses NOW rather than waiting for an event.
-          document.body.classList.remove(
-            'v2-sheet-open', 'v2-sheet-mid', 'v2-sheet-full', 'v2-modal-open'
-          );
-          if (typeof window.v2CloseSheet === 'function') {
-            try { window.v2CloseSheet(); } catch(_) {}
+          // Mobile-only: also collapse the bottom sheet so the map is
+          // unobstructed. Desktop sidebar stays put.
+          const onMobile = window.matchMedia('(max-width: 800px)').matches;
+          if (onMobile) {
+            document.body.classList.remove(
+              'v2-sheet-open', 'v2-sheet-mid', 'v2-sheet-full', 'v2-modal-open'
+            );
+            if (typeof window.v2CloseSheet === 'function') {
+              try { window.v2CloseSheet(); } catch(_) {}
+            }
+          } else {
+            // Desktop: drop only the modal-open body class so the modal
+            // animation finishes cleanly.
+            document.body.classList.remove('v2-modal-open');
           }
           if (!co) return;
           const targetZoom = Math.max(map.getZoom(), 13);
-          // Wait one rAF so the modal close animation begins before flyTo.
           requestAnimationFrame(() => {
             try {
               map.flyTo({ center: co, zoom: targetZoom, duration: 1200, essential: true });
@@ -17861,10 +17914,16 @@
           tsrowHtml = '<div class="pulse-ev-tsrow">' + tsPart + sep + locPart + '</div>';
         }
 
+        // Article events ("on tmw" coverage) open in a new tab ‚Äî append
+        // a faint external-link icon to the title so the user knows the
+        // tap leaves the map.
+        var extIcon = (e.type === 'article')
+          ? '<svg class="pulse-ev-ext-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="11" height="11" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>'
+          : '';
         html += '<div class="pulse-ev-wrap pulse-ev-type-' + tagCls + '" data-event-type="' + escapeHtml(e.type || '') + '">'
               +   '<a class="pulse-ev" href="' + escapeHtml(e.link || '#') + '"' + target + eventTypeAttr + '>'
               +     tsrowHtml
-              +     '<div class="pulse-ev-title">' + escapeHtml(e.title || '') + '</div>'
+              +     '<div class="pulse-ev-title">' + escapeHtml(e.title || '') + extIcon + '</div>'
               +     (isV2 ? '' : bottomMeta)
               +   '</a>'
               +   '<button type="button" class="pulse-ev-close" data-dismiss="' + safeId + '" aria-label="Dismiss">'
@@ -20115,16 +20174,32 @@
         });
         bodyEl.querySelectorAll('[data-firm]').forEach(row => {
           row.addEventListener('click', () => {
-            // Reuse the same firm sheet that the project modal links to.
+            // openFirmSheet expects (role, slug). Derive both from the
+            // firm name by walking project features ‚Äî same lookup the
+            // mobile search uses below.
             const name = row.dataset.firm;
-            if (window.openFirmSheet) {
-              window.openFirmSheet(name);
-              close();
-            } else {
-              // Fallback ‚Äî search by firm name in the input
-              searchInput.value = name;
-              searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+            if (!window.openFirmSheet) return;
+            const features = window.allProjectFeatures || [];
+            // Decide role first ‚Äî if a developer matches this name, route
+            // to /developers/<slug>/; otherwise default to /architects/.
+            let role = 'architects';
+            for (const f of features) {
+              const devs = (f.properties.developer || '').split(',').map(s => s.trim());
+              if (devs.includes(name)) { role = 'developers'; break; }
             }
+            // Try the cached firm directory for the canonical slug first.
+            let slug = null;
+            const firmData = window._firmDataCache && window._firmDataCache();
+            if (firmData) {
+              const firm = (firmData[role] || []).find(f => f.name === name);
+              if (firm) slug = firm.slug;
+            }
+            // Fallback: derive a slug from the name.
+            if (!slug) {
+              slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+            }
+            close();
+            window.openFirmSheet(role, slug);
           });
         });
       }
@@ -22181,20 +22256,33 @@
       }
 
       // ‚îÄ‚îÄ Sync watchlist count ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
-      const legacyWatchBadge = document.getElementById('watchlistBtnBadge');
+      // Source = total watchlisted projects (window._favorites.size), not
+      // unread count. The legacy #watchlistStatCount inside watchlistPanel
+      // is rendered by the watchlist render pipeline whenever favorites
+      // change, so we mirror it into the v2 tab number.
       const v2WatchNum = document.getElementById('v2WatchlistCount');
+      const v2DTabWatchNum = document.getElementById('v2DTabWatchNum');
       const syncWatchCount = () => {
-        if (!legacyWatchBadge || !v2WatchNum) return;
-        const visible = !legacyWatchBadge.hidden && legacyWatchBadge.textContent.trim() !== '';
-        if (visible) { v2WatchNum.hidden = false; v2WatchNum.textContent = legacyWatchBadge.textContent.trim(); }
-        else { v2WatchNum.hidden = true; }
+        const total = window._favorites ? window._favorites.size : 0;
+        [v2WatchNum, v2DTabWatchNum].forEach(el => {
+          if (!el) return;
+          if (total > 0) { el.hidden = false; el.textContent = String(total); }
+          else { el.hidden = true; }
+        });
       };
       syncWatchCount();
-      if (legacyWatchBadge) {
-        new MutationObserver(syncWatchCount).observe(legacyWatchBadge, {
-          attributes: true, attributeFilter: ['hidden'], childList: true, characterData: true, subtree: true,
+      // Re-sync when favorites change. The legacy watchlistStatCount el
+      // is updated by the watchlist render pipeline; observe it as a
+      // proxy signal that _favorites changed.
+      const statCount = document.getElementById('watchlistStatCount');
+      if (statCount) {
+        new MutationObserver(syncWatchCount).observe(statCount, {
+          childList: true, characterData: true, subtree: true,
         });
       }
+      // Also re-sync periodically as a safety net (cheap, no-op when
+      // _favorites hasn't changed).
+      setInterval(syncWatchCount, 5000);
     } // end setup()
 
     if (document.readyState === 'loading') {
