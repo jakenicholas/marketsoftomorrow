@@ -8966,13 +8966,15 @@
       color: rgba(255, 120, 120, 0.9);
     }
 
-    /* ‚îÄ‚îÄ DESKTOP SIDEBAR ‚Äî 540px, dark, flush ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ */
+    /* ‚îÄ‚îÄ DESKTOP SIDEBAR ‚Äî 540px, overlays the map ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
+       Map fills the entire viewport (left:0). The sidebar floats over
+       the left edge of the map as a fixed-position overlay; when the
+       user closes it, the map fully reveals beneath without any blank
+       gutter. */
     body.ui-v2 #app-container { padding-top: 60px !important; }
-    body.ui-v2 #map { left: 540px !important; }
+    body.ui-v2 #map { left: 0 !important; }
     /* Collapsed state ‚Äî user clicked the X on the search bar. Sidebar
-       slides out left; the map stays put (it already starts at the 540px
-       offset). Tap the floating #desktopSearchPill at top-left to slide
-       the sidebar back in. */
+       slides out left, exposing the full map. */
     body.ui-v2.v2-sidebar-collapsed #desktopSidebar {
       transform: translateX(-100%) !important;
       pointer-events: none !important;
