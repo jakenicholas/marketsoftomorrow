@@ -3869,22 +3869,28 @@
     text-transform: uppercase;
     color: rgba(255,255,255,0.4);
   }
-  /* Divider */
+  /* Divider ‚Äî removed for the firm stat row (the thin line above
+     architect/developer/etc tiles is suppressed; the cards stand on
+     their own). Other .pm-div uses keep the line. */
   #projectModal .pm-div {
     height: 0.5px;
     background: rgba(255,255,255,0.07);
     margin: 0 -16px;
   }
+  #projectModal .pm-div.pm-div-pre-stats { display: none; }
   /* Description */
   #projectModal .pm-desc {
     font-size: 13px; color: rgba(255,255,255,0.55);
-    line-height: 1.65; padding: 12px 0;
+    line-height: 1.65; padding: 8px 0 4px;
   }
-  /* Stat cards */
+  /* Stat cards ‚Äî sit immediately under the description / TMW
+     Intelligence block. Less top margin so the gap reads as tight. */
   #projectModal .pm-stats {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    gap: 6px; margin-bottom: 14px;
+    gap: 6px;
+    margin-top: 4px;
+    margin-bottom: 14px;
     align-items: stretch;
   }
   #projectModal .pm-stat {
@@ -4368,7 +4374,7 @@
      from intel.json. Section is hidden via [hidden] when the slug isn't
      present in the intel data (graceful degradation -- no placeholder). */
   #projectModal .pm-intel {
-    margin-top: 20px;
+    margin-top: 6px;
     padding: 18px;
     background: rgba(167,139,250,0.06);
     border: 1px solid rgba(167,139,250,0.18);
@@ -7384,6 +7390,99 @@
     border-radius: 100px !important;
   }
 
+  /* ‚îÄ‚îÄ Watchlist tile (cross-surface) ‚Äî matches the Discover .grid-item
+     vertical layout (image on top, body below, divider, footer). Lives
+     outside any media query so mobile + desktop share styling. */
+  body.ui-v2 .v2-watchlist-content .wl-row {
+    padding: 0 !important;
+    gap: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    background: #1f1f1f !important;
+    border: 1px solid rgba(255,255,255,0.08) !important;
+    border-radius: 14px !important;
+    margin-bottom: 10px !important;
+    overflow: hidden !important;
+    position: relative !important;
+  }
+  body.ui-v2 .v2-watchlist-content .wl-row:hover {
+    border-color: rgba(255,255,255,0.2) !important;
+    background: #232323 !important;
+  }
+  body.ui-v2 .v2-watchlist-content .wl-row-thumb {
+    width: 100% !important;
+    height: 240px !important;
+    min-height: 240px !important;
+    border-radius: 0 !important;
+    flex-shrink: 0 !important;
+    background-color: #2a2a2a !important;
+  }
+  body.ui-v2 .v2-watchlist-content .wl-row-body {
+    flex: 1 0 auto !important;
+    gap: 0 !important;
+    padding: 12px 14px 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    min-width: 0 !important;
+  }
+  body.ui-v2 .v2-watchlist-content .wl-row-title {
+    font-size: 15.5px !important;
+    font-weight: 700 !important;
+    color: #fff !important;
+    letter-spacing: -0.01em !important;
+    padding-right: 0 !important;
+    line-height: 1.25 !important;
+    white-space: normal !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    display: -webkit-box !important;
+    -webkit-line-clamp: 2 !important;
+    -webkit-box-orient: vertical !important;
+  }
+  body.ui-v2 .v2-watchlist-content .wl-row-meta {
+    font-size: 12px !important;
+    color: rgba(255,255,255,0.72) !important;
+    margin-top: 3px !important;
+  }
+  body.ui-v2 .v2-watchlist-content .wl-row-status-pill { display: none !important; }
+  body.ui-v2 .v2-watchlist-content .wl-row-meta:has(.wl-row-status-pill) { display: none !important; }
+  body.ui-v2 .v2-watchlist-content .wl-row-update { display: none !important; }
+  body.ui-v2 .v2-watchlist-content .wl-row-footer {
+    margin: 14px 0 0 !important;
+    padding: 8px 14px 12px 0 !important;
+    font-size: 11px !important;
+    color: rgba(255,255,255,0.55) !important;
+    justify-content: flex-start !important;
+    border-top: 1px solid rgba(255,255,255,0.08) !important;
+    gap: 12px !important;
+  }
+  body.ui-v2 .v2-watchlist-content .wl-row-footer .wl-row-unread { display: none !important; }
+  body.ui-v2 .v2-watchlist-content .wl-row::before { content: none !important; }
+  body.ui-v2 .v2-watchlist-content .wl-row.has-unread::after {
+    content: attr(data-wl-unread-count) ' NEW';
+    position: absolute;
+    top: 10px; right: 10px;
+    background: var(--warn, #FFD300);
+    color: #0a0a0a;
+    font-size: 9.5px;
+    font-weight: 800;
+    padding: 4px 8px;
+    border-radius: 100px;
+    line-height: 1;
+    letter-spacing: 0.04em;
+    z-index: 2;
+  }
+  body.ui-v2 .v2-watchlist-content .wl-row-remove { display: none !important; }
+
+  /* ‚îÄ‚îÄ Active-filter chip row + "Clear all" button ‚Äî hidden on BOTH
+     surfaces. The contextual filter pills replace them entirely. */
+  body.ui-v2 #desktopPillsRow,
+  body.ui-v2 #mobilePillsRow,
+  body.ui-v2 .clear-all-btn {
+    display: none !important;
+  }
+
   @media(max-width: 800px) {
     /* When v2 is active, hide every legacy mobile surface and show the
        new unified drawer instead. Old DOM stays in the document so the
@@ -8149,15 +8248,8 @@
     /* Tile gallery rules moved OUT of the mobile media query ‚Äî see
        "Tile image gallery (cross-surface)" above ~line 7333 outside
        any @media. */
-    /* Hide the legacy active-filter chip row ("Type: Spa") + the "Clear all"
-       button on BOTH surfaces ‚Äî Jake's contextual filter pills replace
-       them. The mobilePillsRow rule above is mobile-only; this catches
-       the desktop pill row (#desktopPillsRow) and the floating clear-all
-       button anywhere. */
-    body.ui-v2 #desktopPillsRow,
-    body.ui-v2 .clear-all-btn {
-      display: none !important;
-    }
+    /* Rule moved outside the mobile media query ‚Äî see the
+       "Active-filter chip row" block above ~line 7333. */
     body.ui-v2 .v2-filter-pills::-webkit-scrollbar { display: none; }
     body.ui-v2 .v2-filter-pill {
       flex-shrink: 0;
@@ -8545,90 +8637,8 @@
       font-weight: 600 !important;
     }
 
-    /* ‚îÄ‚îÄ Watchlist tiles: match desktop-redesign-4-blend.html watch-card.
-       Compact 64√ó64 thumb, name + sub line + meta line, gold "N NEW"
-       pill on the right when unread. No remove X, no status pill, no
-       per-update tag row. Shared between mobile drawer + desktop pane. */
-    body.ui-v2 .v2-watchlist-content .wl-row {
-      padding: 12px !important;
-      gap: 12px !important;
-      align-items: center !important;
-      background: rgba(255,255,255,0.04) !important;
-      border: 1px solid rgba(255,255,255,0.08) !important;
-      border-radius: 14px !important;
-      margin-bottom: 8px !important;
-    }
-    body.ui-v2 .v2-watchlist-content .wl-row:hover {
-      border-color: rgba(255,255,255,0.18) !important;
-      background: rgba(255,255,255,0.06) !important;
-    }
-    body.ui-v2 .v2-watchlist-content .wl-row-thumb {
-      width: 64px !important; height: 64px !important;
-      border-radius: 10px !important;
-    }
-    body.ui-v2 .v2-watchlist-content .wl-row-body {
-      gap: 0 !important;
-    }
-    body.ui-v2 .v2-watchlist-content .wl-row-title {
-      font-size: 14px !important;
-      font-weight: 600 !important;
-      color: #fff !important;
-      letter-spacing: -0.01em !important;
-      padding-right: 60px !important;
-      line-height: 1.25 !important;
-    }
-    /* First meta line ("City ¬∑ Delivery") ‚Äî match mockup's .sub */
-    body.ui-v2 .v2-watchlist-content .wl-row-meta {
-      font-size: 11.5px !important;
-      color: rgba(255,255,255,0.72) !important;
-      margin-top: 2px !important;
-    }
-    /* The legacy status pill row sits in a second .wl-row-meta. Hide
-       the status pill itself ‚Äî the parent div collapses to nothing. */
-    body.ui-v2 .v2-watchlist-content .wl-row-status-pill {
-      display: none !important;
-    }
-    body.ui-v2 .v2-watchlist-content .wl-row-meta:has(.wl-row-status-pill) {
-      display: none !important;
-    }
-    /* Hide the per-update tag row ‚Äî keep the watch card clean per mockup. */
-    body.ui-v2 .v2-watchlist-content .wl-row-update {
-      display: none !important;
-    }
-    /* Footer ("Delivery 2026" / "Viewed Xd ago") ‚Äî restyle as the mockup's
-       .meta line: 10.5px faint, no inline unread badge (the gold "N NEW"
-       pill is repositioned to the right edge of the card). */
-    body.ui-v2 .v2-watchlist-content .wl-row-footer {
-      margin-top: 5px !important;
-      font-size: 10.5px !important;
-      color: rgba(255,255,255,0.45) !important;
-      justify-content: flex-start !important;
-    }
-    body.ui-v2 .v2-watchlist-content .wl-row-footer .wl-row-unread {
-      display: none !important;
-    }
-    /* Gold "N NEW" pill ‚Äî promote the unread count out of the footer
-       and absolutely position it at the right edge of the card. */
-    body.ui-v2 .v2-watchlist-content .wl-row.has-unread::after {
-      content: attr(data-wl-unread-count) ' NEW';
-      position: absolute;
-      top: 50%; right: 12px;
-      transform: translateY(-50%);
-      background: var(--warn, #FFD300);
-      color: #0a0a0a;
-      font-size: 9.5px;
-      font-weight: 800;
-      padding: 4px 8px;
-      border-radius: 100px;
-      line-height: 1;
-      letter-spacing: 0.04em;
-      flex-shrink: 0;
-    }
-    /* Hide the remove-X button ‚Äî mockup has no per-row close affordance.
-       Stop-watching is handled from the project detail modal instead. */
-    body.ui-v2 .v2-watchlist-content .wl-row-remove {
-      display: none !important;
-    }
+    /* Watchlist tile rules moved OUT of the mobile media query ‚Äî see
+       the "Watchlist tile (cross-surface)" block above ~line 7333. */
 
     /* Right-rail pulse bell badge in GOLD (was green/accent) */
     body.ui-v2 .v2-action-btn .v2-num-badge {
@@ -9078,76 +9088,16 @@
       background: transparent !important;
     }
 
-    /* Desktop mirror of the mobile watch-card restyle ‚Äî the mobile rules
-       (line ~8566) live inside @media(max-width: 800px) and don't apply
-       on desktop, so duplicate them here for full-width cards on the
-       desktop watchlist pane. */
-    body.ui-v2 #desktopSidebar .v2-watchlist-content .wl-row {
-      padding: 12px !important;
-      gap: 12px !important;
-      align-items: center !important;
-      background: rgba(255,255,255,0.04) !important;
-      border: 1px solid rgba(255,255,255,0.08) !important;
-      border-radius: 14px !important;
-      margin-bottom: 8px !important;
-      position: relative !important;
-    }
-    body.ui-v2 #desktopSidebar .v2-watchlist-content .wl-row:hover {
-      border-color: rgba(255,255,255,0.18) !important;
-      background: rgba(255,255,255,0.06) !important;
-    }
+    /* Desktop watchlist tiles match the Discover .grid-item layout ‚Äî
+       vertical (image on top, body below, divider, footer). The mobile
+       rules above already apply to BOTH surfaces since .v2-watchlist-
+       content is scoped to body.ui-v2 without a media gate; we keep
+       this block as a no-op for backward-compat but rely on the global
+       rules to do the actual styling. */
+    body.ui-v2 #desktopSidebar .v2-watchlist-content .wl-row { position: relative !important; }
     body.ui-v2 #desktopSidebar .v2-watchlist-content .wl-row-thumb {
-      width: 64px !important; height: 64px !important;
-      border-radius: 10px !important;
-    }
-    body.ui-v2 #desktopSidebar .v2-watchlist-content .wl-row-body { gap: 0 !important; }
-    body.ui-v2 #desktopSidebar .v2-watchlist-content .wl-row-title {
-      font-size: 14px !important;
-      font-weight: 600 !important;
-      color: #fff !important;
-      letter-spacing: -0.01em !important;
-      padding-right: 60px !important;
-      line-height: 1.25 !important;
-    }
-    body.ui-v2 #desktopSidebar .v2-watchlist-content .wl-row-meta {
-      font-size: 11.5px !important;
-      color: rgba(255,255,255,0.72) !important;
-      margin-top: 2px !important;
-    }
-    body.ui-v2 #desktopSidebar .v2-watchlist-content .wl-row-status-pill {
-      display: none !important;
-    }
-    body.ui-v2 #desktopSidebar .v2-watchlist-content .wl-row-meta:has(.wl-row-status-pill) {
-      display: none !important;
-    }
-    body.ui-v2 #desktopSidebar .v2-watchlist-content .wl-row-update {
-      display: none !important;
-    }
-    body.ui-v2 #desktopSidebar .v2-watchlist-content .wl-row-footer {
-      margin-top: 5px !important;
-      font-size: 10.5px !important;
-      color: rgba(255,255,255,0.45) !important;
-      justify-content: flex-start !important;
-    }
-    body.ui-v2 #desktopSidebar .v2-watchlist-content .wl-row-footer .wl-row-unread {
-      display: none !important;
-    }
-    body.ui-v2 #desktopSidebar .v2-watchlist-content .wl-row.has-unread::after {
-      content: attr(data-wl-unread-count) ' NEW';
-      position: absolute;
-      top: 50%; right: 12px;
-      transform: translateY(-50%);
-      background: var(--warn, #FFD300);
-      color: #0a0a0a;
-      font-size: 9.5px;
-      font-weight: 800;
-      padding: 4px 8px;
-      border-radius: 100px;
-      line-height: 1;
-      letter-spacing: 0.04em;
-    }
-    body.ui-v2 #desktopSidebar .v2-watchlist-content .wl-row-remove {
-      display: none !important;
+      height: 220px !important;
+      min-height: 220px !important;
     }
 
     /* The "naturalize legacy panel" rules at line ~8420 live inside the
@@ -9408,12 +9358,15 @@
       background: #0a0a0a; color: var(--warn, #FFD300);
     }
 
-    /* Filter pills row (injected by JS) ‚Äî tight padding so tiles start
-       just below the pills with no dead space. */
+    /* Filter pills row (injected by JS) ‚Äî escape the .sidebar-header's
+       16px left padding via a negative left margin so the first pill
+       starts at the sidebar's true left edge. Right margin extends so
+       pills can scroll horizontally without being clipped. */
     body.ui-v2 .v2-desktop-filter-pills {
       display: flex !important;
       gap: 6px !important;
-      padding: 0 0 6px !important;
+      padding: 0 16px 6px 0 !important;
+      margin: 0 -16px 0 -16px !important;
       overflow-x: auto !important;
       scrollbar-width: none;
     }
@@ -9688,11 +9641,15 @@
       display: flex !important;
       align-items: center !important;
       justify-content: flex-start !important;
+      text-align: left !important;
       gap: 12px !important;
-      padding: 4px 14px 8px !important;
+      padding: 10px 14px 10px !important;
       font-size: 11px !important;
       border-top: 1px solid rgba(255,255,255,0.08) !important;
-      margin: 14px 0 0 !important;
+      margin: 22px 0 0 !important;
+    }
+    body.ui-v2 #desktopSidebar .grid-item .v2-tile-info .v2-tile-intel {
+      margin-left: 0 !important;
     }
     body.ui-v2 #desktopSidebar .grid-item .v2-tile-info .v2-tile-delivery {
       color: rgba(255,255,255,0.55);
@@ -10530,8 +10487,8 @@
                Hidden by default; renderIntelBlock() populates and reveals
                this when intel.json has an entry for the open project's slug. -->
           <div class="pm-intel" id="pmIntel" hidden></div>
-          <div class="pm-div"></div>
-          <div class="pm-stats" id="pmStats" style="margin-top:12px;"></div>
+          <div class="pm-div pm-div-pre-stats"></div>
+          <div class="pm-stats" id="pmStats"></div>
           <div class="pm-cta">
             <a class="pm-btn-learn" id="pmLearnBtn" href="#" target="_blank">
                 Official Website&nbsp;<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;flex-shrink:0;"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
@@ -17938,9 +17895,17 @@
           try {
             history.pushState({ project: slug }, '', '?project=' + encodeURIComponent(slug));
           } catch (err) {}
-          // Collapse to peek on mobile so the map is unobstructed once we land
-          if (typeof isMobile === 'function' && isMobile() && stackEl) {
-            stackEl.classList.add('peek');
+          // Collapse the surface so the map is unobstructed once we land.
+          // On v2 mobile the legacy pulseStack lives inside #v2PulsePane ‚Äî
+          // collapsing pulseStack alone wouldn't hide the whole bottom
+          // sheet, so close the entire v2 drawer instead. (Articles never
+          // reach this branch ‚Äî they exit early above and let the new
+          // tab open with the master drawer unchanged.)
+          if (typeof isMobile === 'function' && isMobile()) {
+            if (typeof window.v2CloseSheet === 'function') {
+              window.v2CloseSheet();
+            }
+            if (stackEl) stackEl.classList.add('peek');
             if (bellBtn) {
               bellBtn.classList.remove('active');
               bellBtn.setAttribute('aria-expanded', 'false');
@@ -21482,10 +21447,18 @@
               const imgEl = imageWrap.querySelector('img');
               if (imgEl) {
                 imgEl.dataset.v2GalleryIdx = '0';
-                // Clear lazy-loading state to swap src immediately
                 imgEl.classList.remove('lazy-loading');
                 imgEl.src = images[0];
               }
+              // Pre-load every gallery image once so arrow clicks swap
+              // instantly instead of waiting for the network. Browser
+              // caches the bytes, then setting .src on the visible img
+              // resolves from cache with no decode/network delay.
+              const preloaders = images.map(src => {
+                const p = new Image();
+                p.src = src;
+                return p;
+              });
               // Arrows
               const prev = document.createElement('button');
               prev.className = 'v2-gallery-arrow prev';
@@ -21508,16 +21481,23 @@
                 if (imgEl) imgEl.src = images[idx];
                 Array.from(dots.children).forEach((d, i) => d.classList.toggle('active', i === idx));
               };
-              prev.addEventListener('click', (e) => {
-                e.stopPropagation();
-                e.preventDefault();
-                swap(idx - 1);
-              });
-              next.addEventListener('click', (e) => {
-                e.stopPropagation();
-                e.preventDefault();
-                swap(idx + 1);
-              });
+              // Use pointerdown for snappier feel ‚Äî fires immediately on
+              // touch/click without the 300ms click-debounce iOS adds.
+              // stopPropagation on both pointer + click so the tile's
+              // own click handler (open project modal) doesn't fire too.
+              const wireArrow = (btn, dir) => {
+                btn.addEventListener('pointerdown', (e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  swap(idx + dir);
+                });
+                btn.addEventListener('click', (e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                });
+              };
+              wireArrow(prev, -1);
+              wireArrow(next, 1);
               imageWrap.appendChild(prev);
               imageWrap.appendChild(next);
               imageWrap.appendChild(dots);
@@ -21671,17 +21651,59 @@
       function updateSearchPlaceholder() {
         if (searchInput) searchInput.placeholder = UNIFIED_SEARCH_PLACEHOLDER;
       }
-      // Re-run placeholder update when tab changes (hook tabs)
+      // Auto-blur the search input on mobile when the user taps anywhere
+      // outside the input ‚Äî collapses the soft keyboard so the user can
+      // scroll the sheet without dismissing it manually first.
+      if (window.matchMedia('(max-width: 800px)').matches && searchInput) {
+        document.addEventListener('pointerdown', (e) => {
+          const t = e.target;
+          if (!t) return;
+          // Don't blur if the tap is on the input itself, a button that
+          // needs focus, or a control inside the pinned-search row.
+          if (t === searchInput) return;
+          if (t.closest && t.closest('.v2-pinned-search')) return;
+          if (t.closest && t.closest('.v2-capsule')) return;
+          if (t.closest && t.closest('input, textarea, [contenteditable="true"]')) return;
+          if (document.activeElement === searchInput) {
+            searchInput.blur();
+          }
+        }, true);
+      }
+      // Re-run placeholder update when tab changes (hook tabs).
+      // Clicking any tab also fully dismisses search mode ‚Äî clears the
+      // input, hides the overlay, drops body.v2-searching, restores
+      // the sheet title, and re-shows the filter pills. Without this
+      // the body class lingered (title stayed "Search", pills stayed
+      // hidden) even after the user picked Discover/Watchlist/Pulse.
       document.querySelectorAll('.v2-tab[data-v2-tab]').forEach(t => {
         t.addEventListener('click', () => {
           setTimeout(updateSearchPlaceholder, 50);
-          // Clear search results overlay when switching tabs, and hide gold
-          // search tab since we're now on a fresh tab context.
           const so = document.getElementById('v2SearchOverlay');
           if (so) so.hidden = true;
           if (searchInput) searchInput.value = '';
-          const st = document.getElementById('v2SearchTab');
-          if (st) st.classList.remove('visible');
+          // Fire the legacy input event so the search pipeline clears
+          // its filtered features and the tile grid re-populates.
+          const legacyInput = document.getElementById('mobileSearchBar');
+          if (legacyInput) {
+            legacyInput.value = '';
+            legacyInput.dispatchEvent(new Event('input', { bubbles: true }));
+          }
+          // Reset search mode flags so the title/pills come back.
+          if (typeof setSearchTabVisible === 'function') {
+            setSearchTabVisible(false);
+          } else {
+            // Inline fallback if the helper isn't in scope yet.
+            const st = document.getElementById('v2SearchTab');
+            if (st) st.classList.remove('visible');
+            const seg = document.querySelector('.v2-segmented');
+            if (seg) seg.classList.remove('v2-searching');
+            document.body.classList.remove('v2-searching');
+            const ttl = document.getElementById('v2SheetTtl');
+            if (ttl && ttl.dataset.savedText) {
+              ttl.textContent = ttl.dataset.savedText;
+              delete ttl.dataset.savedText;
+            }
+          }
         });
       });
       updateSearchPlaceholder();
@@ -21911,21 +21933,36 @@
         so.innerHTML = html;
         so.hidden = false;
         setSearchTabVisible(true);
-        // Wire row clicks
-        // Use pointerdown (fires on first touch, no 300ms iOS scroll-debounce)
-        // for all result rows so a single tap always registers immediately.
+        // Wire row clicks ‚Äî track pointer movement so that a SCROLL drag
+        // doesn't fire the row tap. Previous implementation called the
+        // handler on pointerdown which made the list catch scroll touches
+        // and open the wrong result. Now we record the start coordinate
+        // on pointerdown and only fire on pointerup IF the pointer moved
+        // less than the 10px scroll threshold (matches iOS click cancel).
+        const SCROLL_THRESHOLD = 10;
         const addResultTap = (btn, handler) => {
-          let fired = false;
+          let startX = 0, startY = 0, tracking = false;
           btn.addEventListener('pointerdown', (e) => {
-            e.preventDefault(); // prevent subsequent click double-fire
-            if (fired) return; fired = true;
-            handler();
+            tracking = true;
+            startX = e.clientX; startY = e.clientY;
+          }, { passive: true });
+          btn.addEventListener('pointermove', (e) => {
+            if (!tracking) return;
+            const dx = Math.abs(e.clientX - startX);
+            const dy = Math.abs(e.clientY - startY);
+            if (dx > SCROLL_THRESHOLD || dy > SCROLL_THRESHOLD) tracking = false;
+          }, { passive: true });
+          btn.addEventListener('pointerup', (e) => {
+            if (!tracking) return;
+            tracking = false;
+            const dx = Math.abs(e.clientX - startX);
+            const dy = Math.abs(e.clientY - startY);
+            if (dx <= SCROLL_THRESHOLD && dy <= SCROLL_THRESHOLD) {
+              e.preventDefault();
+              handler();
+            }
           }, { passive: false });
-          // Click fallback for pointer-less environments (keyboard, desktop)
-          btn.addEventListener('click', () => {
-            if (fired) { fired = false; return; }
-            handler();
-          });
+          btn.addEventListener('pointercancel', () => { tracking = false; });
         };
         so.querySelectorAll('[data-feature-title]').forEach(btn => {
           addResultTap(btn, () => {
