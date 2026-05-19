@@ -12794,49 +12794,80 @@
       //   ‚Ä¢ Desktop ‚Üí KEEP the sidebar open (don't run v2CloseSheet).
       //               The modal is what closes; the sidebar continues
       //               to show the tile grid behind the fly-to.
+      //
+      // Defensive: resolve the feature from `currentFeature` first, but
+      // fall back to `window._popupFeatureRef` (set by showPopup) or a
+      // title-based lookup in `window.allProjectFeatures`. This way the
+      // button still works if the modal was opened via a code path that
+      // didn't update the closure variable (deep-link, intel-similar
+      // jump, etc.).
+      function v2ResolveProjectFeature() {
+        if (currentFeature && currentFeature.geometry) return currentFeature;
+        if (window._popupFeatureRef && window._popupFeatureRef.geometry) {
+          return window._popupFeatureRef;
+        }
+        const titleEl = document.getElementById('pmTitle');
+        const title = titleEl ? (titleEl.textContent || '').trim() : '';
+        if (!title) return null;
+        const feats = window.allProjectFeatures || [];
+        return feats.find(f => f && f.properties && f.properties.title === title) || null;
+      }
+      function v2RunViewOnMap() {
+        const f = v2ResolveProjectFeature();
+        const co = (f && f.geometry && f.geometry.coordinates)
+          ? f.geometry.coordinates.slice()
+          : null;
+        // Always close the modal itself.
+        try { closeModal(); } catch(_) {}
+        // Mobile-only: also collapse the bottom sheet so the map is
+        // unobstructed. Desktop sidebar stays put.
+        const onMobile = window.matchMedia('(max-width: 800px)').matches;
+        if (onMobile) {
+          document.body.classList.remove(
+            'v2-sheet-open', 'v2-sheet-mid', 'v2-sheet-full', 'v2-modal-open'
+          );
+          if (typeof window.v2CloseSheet === 'function') {
+            try { window.v2CloseSheet(); } catch(_) {}
+          }
+        } else {
+          // Desktop: drop only the modal-open body class so the modal
+          // animation finishes cleanly.
+          document.body.classList.remove('v2-modal-open');
+        }
+        if (!co) return;
+        const targetZoom = Math.max(map.getZoom(), 13);
+        // Kick the flyTo + popup off on the next frame so the modal
+        // close transition can start first.
+        requestAnimationFrame(() => {
+          try {
+            map.flyTo({ center: co, zoom: targetZoom, duration: 1200, essential: true });
+          } catch(_) {}
+          let popupFired = false;
+          const firePopup = () => {
+            if (popupFired) return;
+            popupFired = true;
+            try { showPopup(f, { skipPaywall: true }); } catch(_) {}
+          };
+          // Fire popup on moveend (when fly-to settles) OR after 800ms,
+          // whichever comes first. The shorter fallback ensures the
+          // popup still appears if the map was already centered on the
+          // pin (in which case flyTo is a no-op and no moveend fires).
+          try { map.once('moveend', firePopup); } catch(_) {}
+          setTimeout(firePopup, 800);
+        });
+      }
+      // Expose so other surfaces (firm sheet "view on map", deep-link
+      // jumps) can drive the same flow without re-implementing it.
+      window._v2ViewOnMap = v2RunViewOnMap;
       const pmViewMapBtn = document.getElementById('pmViewMapBtn');
       if (pmViewMapBtn) {
         pmViewMapBtn.addEventListener('click', (e) => {
           e.stopPropagation();
           e.preventDefault();
-          // Snapshot the feature BEFORE closeModal() runs (closeModal
-          // may reset currentFeature as part of its cleanup).
-          const f = currentFeature;
-          const co = (f && f.geometry && f.geometry.coordinates)
-            ? f.geometry.coordinates.slice()
-            : null;
-          // Always close the modal itself.
-          try { closeModal(); } catch(_) {}
-          // Mobile-only: also collapse the bottom sheet so the map is
-          // unobstructed. Desktop sidebar stays put.
-          const onMobile = window.matchMedia('(max-width: 800px)').matches;
-          if (onMobile) {
-            document.body.classList.remove(
-              'v2-sheet-open', 'v2-sheet-mid', 'v2-sheet-full', 'v2-modal-open'
-            );
-            if (typeof window.v2CloseSheet === 'function') {
-              try { window.v2CloseSheet(); } catch(_) {}
-            }
-          } else {
-            // Desktop: drop only the modal-open body class so the modal
-            // animation finishes cleanly.
-            document.body.classList.remove('v2-modal-open');
+          if (typeof e.stopImmediatePropagation === 'function') {
+            e.stopImmediatePropagation();
           }
-          if (!co) return;
-          const targetZoom = Math.max(map.getZoom(), 13);
-          requestAnimationFrame(() => {
-            try {
-              map.flyTo({ center: co, zoom: targetZoom, duration: 1200, essential: true });
-            } catch(_) {}
-            let popupFired = false;
-            const firePopup = () => {
-              if (popupFired) return;
-              popupFired = true;
-              try { showPopup(f, { skipPaywall: true }); } catch(_) {}
-            };
-            try { map.once('moveend', firePopup); } catch(_) {}
-            setTimeout(firePopup, 1500);
-          });
+          v2RunViewOnMap();
         });
       }
 
@@ -16842,6 +16873,12 @@
         }
         // Update all UI representations of this project
         syncFavoritesUI();
+        // Force-sync the v2 watchlist tab bubble immediately so it
+        // reflects the new count without waiting for the periodic
+        // safety-net interval. No-op on v1 (the helper isn't defined).
+        if (typeof window._v2SyncWatchCount === 'function') {
+          try { window._v2SyncWatchCount(); } catch(_) {}
+        }
         // If currently in favorites view, re-apply filters so unfavorited projects disappear
         if (window._favoritesViewActive) {
           if (typeof updateMapPinFilters === 'function') updateMapPinFilters();
@@ -20159,7 +20196,21 @@
           row.addEventListener('click', () => {
             const title = row.dataset.projTitle;
             const feat = (window.allProjectFeatures || []).find(f => (f.properties.title || '') === title);
-            if (feat && window.openProjectModal) {
+            if (!feat) return;
+            // Fly the map to the project's pin while the sidebar
+            // transitions from search results to the project page.
+            // Sidebar stays open behind the modal ‚Äî same behavior as
+            // the project-modal "View on Map" button on desktop.
+            const co = (feat.geometry && feat.geometry.coordinates)
+              ? feat.geometry.coordinates.slice()
+              : null;
+            if (co) {
+              const targetZoom = Math.max((typeof map !== 'undefined' && map && typeof map.getZoom === 'function' ? map.getZoom() : 4), 13);
+              try {
+                map.flyTo({ center: co, zoom: targetZoom, duration: 1200, essential: true });
+              } catch(_) {}
+            }
+            if (window.openProjectModal) {
               window.openProjectModal(feat, 'search');
               close();
             }
@@ -20696,14 +20747,12 @@
         }, 1500);
       }
 
+      // NB: watchlist count is NOT synced here -- it's owned by
+      // syncWatchCount() further down, which reads window._favorites.size
+      // (total watchlisted). Using watchlistBtnBadge.textContent here
+      // would pull the *unread* count (mostly 0) and clobber the right
+      // value, making the bubble flicker as the two handlers fight.
       const syncCounts = () => {
-        const wlBadge = document.getElementById('watchlistBtnBadge');
-        const wlNum = document.getElementById('v2DTabWatchNum');
-        if (wlBadge && wlNum) {
-          const n = parseInt(wlBadge.textContent || '0', 10) || 0;
-          if (n > 0) { wlNum.hidden = false; wlNum.textContent = String(n); }
-          else { wlNum.hidden = true; }
-        }
         const plBadge = document.getElementById('pulseBellBadge');
         const plNum = document.getElementById('v2DTabPulseNum');
         if (plBadge && plNum) {
@@ -20721,6 +20770,31 @@
     } else {
       injectDesktopTabs();
     }
+
+    // ‚îÄ‚îÄ Lift v2-top-chrome out of #app-container to body ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
+    // The chrome is declared inside #app-container in the HTML, but
+    // #app-container is `position: fixed` which creates a stacking
+    // context. That traps the chrome's z-index 100 inside the container
+    // -- so when atlas-overlay (z=90, body-level sibling of app-container)
+    // appears, the entire app-container subtree (chrome included) ends
+    // up underneath it, even though chrome's own z-index is higher.
+    //
+    // Reparenting the chrome to <body> at init makes its z=100 a true
+    // body-level stacking value, so it wins against atlas-overlay (90)
+    // and stays visible on the Atlas page in the same spot as Map view.
+    (function liftV2TopChromeToBody() {
+      function lift() {
+        const chrome = document.getElementById('v2TopChrome');
+        if (!chrome) return;
+        if (chrome.parentElement === document.body) return; // already lifted
+        document.body.appendChild(chrome);
+      }
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', lift);
+      } else {
+        lift();
+      }
+    })();
 
     // ‚îÄ‚îÄ Desktop top-right action icons (bell + comparison) ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
     // Injected BEFORE the v2-tmw-profile-widget inside .v2-top-chrome so
@@ -22097,7 +22171,25 @@
             saveRecent({ label: title, type: 'project' });
             const features = window.allProjectFeatures || [];
             const f = features.find(x => x.properties && x.properties.title === title);
-            if (f && window.openProjectModal) window.openProjectModal(f, 'v2-search');
+            if (!f) return;
+            // Dismiss the search dropdown so it doesn't sit on top of
+            // the project modal.
+            try { dismissSearch(); } catch(_) {}
+            // Fly the map to the project's pin so the user can see
+            // where it lives ‚Äî desktop keeps its sidebar open during
+            // the fly, so the project page slides in alongside the
+            // moving map. Mobile follows the same behavior; the
+            // project modal covers the map while the fly completes.
+            const co = (f.geometry && f.geometry.coordinates)
+              ? f.geometry.coordinates.slice()
+              : null;
+            if (co) {
+              const targetZoom = Math.max((map && typeof map.getZoom === 'function' ? map.getZoom() : 4), 13);
+              try {
+                map.flyTo({ center: co, zoom: targetZoom, duration: 1200, essential: true });
+              } catch(_) {}
+            }
+            if (window.openProjectModal) window.openProjectModal(f, 'v2-search');
           });
         });
         so.querySelectorAll('[data-city]').forEach(btn => {
@@ -22257,32 +22349,44 @@
 
       // ‚îÄ‚îÄ Sync watchlist count ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
       // Source = total watchlisted projects (window._favorites.size), not
-      // unread count. The legacy #watchlistStatCount inside watchlistPanel
-      // is rendered by the watchlist render pipeline whenever favorites
-      // change, so we mirror it into the v2 tab number.
+      // unread count. The bubble only changes when the user adds or
+      // removes a watchlisted project ‚Äî filtering/scrolling/tab switches
+      // do not affect it.
+      //
+      // We cache the last-written total so a no-op re-sync skips the
+      // DOM write entirely. This keeps the bubble visually rock-steady
+      // during render churn (the legacy watchlistStatCount mutation
+      // observer below can fire many times during filter/sort flows).
       const v2WatchNum = document.getElementById('v2WatchlistCount');
       const v2DTabWatchNum = document.getElementById('v2DTabWatchNum');
-      const syncWatchCount = () => {
+      let lastWatchTotal = -1;
+      const syncWatchCount = (force) => {
         const total = window._favorites ? window._favorites.size : 0;
+        if (!force && total === lastWatchTotal) return;
+        lastWatchTotal = total;
         [v2WatchNum, v2DTabWatchNum].forEach(el => {
           if (!el) return;
           if (total > 0) { el.hidden = false; el.textContent = String(total); }
           else { el.hidden = true; }
         });
       };
-      syncWatchCount();
+      syncWatchCount(true);
       // Re-sync when favorites change. The legacy watchlistStatCount el
       // is updated by the watchlist render pipeline; observe it as a
-      // proxy signal that _favorites changed.
+      // proxy signal that _favorites *may* have changed -- the size
+      // check above means re-renders with the same total are no-ops.
       const statCount = document.getElementById('watchlistStatCount');
       if (statCount) {
-        new MutationObserver(syncWatchCount).observe(statCount, {
+        new MutationObserver(() => syncWatchCount(false)).observe(statCount, {
           childList: true, characterData: true, subtree: true,
         });
       }
-      // Also re-sync periodically as a safety net (cheap, no-op when
-      // _favorites hasn't changed).
-      setInterval(syncWatchCount, 5000);
+      // Periodic safety net (cheap, no-op when total unchanged).
+      setInterval(() => syncWatchCount(false), 5000);
+      // Expose so the favorite-toggle handler can fire an immediate
+      // sync the moment a project is added/removed (instead of waiting
+      // up to 5s for the safety-net interval).
+      window._v2SyncWatchCount = () => syncWatchCount(true);
     } // end setup()
 
     if (document.readyState === 'loading') {
