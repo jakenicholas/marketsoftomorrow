@@ -3294,9 +3294,12 @@
       gap: 8px;
       isolation: isolate;
     }
-    /* Green glow on in-view tile image wrappers */
+    /* (Legacy) The in-view image wrapper used to get a green outline
+       glow. Removed per design ‚Äî status pill conveys state. v2 also
+       has explicit overrides further down the file to keep this off
+       across surfaces. */
     .inview-section .grid-item .image-wrapper {
-      outline: 1.5px solid rgba(31,223,103,0.55);
+      outline: none;
     }
     /* Remove padding so image fills tile edge-to-edge, outline appears at tile border */
     .inview-section .grid-item {
@@ -8428,13 +8431,15 @@
     body.ui-v2 #gridMobile .grid-item .delivery-bar {
       padding: 8px 14px 14px !important;
     }
-    /* In-view green outline ‚Äî keep but move to whole tile not just image */
+    /* In-view tiles: no green border/glow on either the image wrapper
+       or the tile itself. The status pill (e.g. "CONSTRUCTION") on the
+       image conveys state; the green outline was removed per design. */
     body.ui-v2 #gridMobile .inview-section .grid-item .image-wrapper {
       outline: none !important;
     }
     body.ui-v2 #gridMobile .inview-section .grid-item {
-      border-color: rgba(31,223,103,0.4) !important;
-      box-shadow: 0 0 0 1px rgba(31,223,103,0.2);
+      border-color: transparent !important;
+      box-shadow: none !important;
     }
     /* Hide inline section headers ("In View" / "More Nearby" labels
        that render inline between sections) ‚Äî the title-row indicator
@@ -9784,7 +9789,7 @@
     body.ui-v2 #desktopSidebar .grid-item .v2-tile-info {
       display: flex !important;
       align-items: center !important;
-      justify-content: flex-start !important;
+      justify-content: space-between !important;
       text-align: left !important;
       gap: 12px !important;
       padding: 10px 14px 10px !important;
@@ -9792,8 +9797,10 @@
       border-top: 1px solid rgba(255,255,255,0.08) !important;
       margin: 22px 0 0 !important;
     }
+    /* Pin the TMW intel chip to the right edge of the tile-info row so
+       it visually mirrors the mobile layout (Delivery left, Intel right). */
     body.ui-v2 #desktopSidebar .grid-item .v2-tile-info .v2-tile-intel {
-      margin-left: 0 !important;
+      margin-left: auto !important;
     }
     body.ui-v2 #desktopSidebar .grid-item .v2-tile-info .v2-tile-delivery {
       color: rgba(255,255,255,0.55);
@@ -12542,6 +12549,23 @@
         fromSource = source || 'tile';
         const p = f.properties;
 
+        // Always paint the matching pin TMW-intel purple to show which
+        // project is open. showPopup() does this when the modal is
+        // opened FROM a pin click, but tile / search / deep-link /
+        // similar-project flows skip showPopup -- so the pin would stay
+        // green and the user wouldn't know which dot corresponds to the
+        // open project. Painting here covers every entry path.
+        try {
+          if (p && p.title && map && map.getLayer && map.getLayer('unclustered-point')) {
+            const _selTitle = p.title;
+            const _pinkPin = ['case', ['==', ['get', 'title'], _selTitle], '#A78BFA', '#1FDF67'];
+            const _pinkRad = ['case', ['==', ['get', 'title'], _selTitle], 11, 8];
+            map.setPaintProperty('unclustered-point', 'circle-color', _pinkPin);
+            map.setPaintProperty('unclustered-point', 'circle-radius', _pinkRad);
+            window._selectedPinTitle = _selTitle;
+          }
+        } catch(_) {}
+
         // Reset scroll
         scrollEl.scrollTop = 0;
 
@@ -12927,12 +12951,12 @@
         const co = (f && f.geometry && f.geometry.coordinates)
           ? f.geometry.coordinates.slice()
           : null;
-        // Always close the modal itself.
-        try { closeModal(); } catch(_) {}
-        // Mobile-only: also collapse the bottom sheet so the map is
-        // unobstructed. Desktop sidebar stays put.
         const onMobile = window.matchMedia('(max-width: 800px)').matches;
         if (onMobile) {
+          // Mobile: close BOTH the project modal and the bottom sheet so
+          // the user lands on a fully-visible map with just the popup +
+          // pin showing.
+          try { closeModal(); } catch(_) {}
           document.body.classList.remove(
             'v2-sheet-open', 'v2-sheet-mid', 'v2-sheet-full', 'v2-modal-open'
           );
@@ -12940,30 +12964,52 @@
             try { window.v2CloseSheet(); } catch(_) {}
           }
         } else {
-          // Desktop: drop only the modal-open body class so the modal
-          // animation finishes cleanly.
-          document.body.classList.remove('v2-modal-open');
+          // Desktop: KEEP the project modal AND the drawer open. The
+          // sidebar covers the left half of the screen; the map fills
+          // the right half. Flying to the pin gives the user a "where
+          // is this on the map" visual without dismissing the page
+          // they're reading. We don't close the modal, don't strip
+          // v2-modal-open, and don't fire the inline popup (the modal
+          // already shows the full project ‚Äî a second popup would be
+          // redundant). We DO highlight the pin so the user can spot
+          // it on the right-hand map.
         }
         if (!co) return;
         const targetZoom = Math.max(map.getZoom(), 13);
-        // Kick the flyTo + popup off on the next frame so the modal
-        // close transition can start first.
+        // Kick the flyTo off on the next frame so any modal close
+        // transition (mobile) starts first.
         requestAnimationFrame(() => {
           try {
             map.flyTo({ center: co, zoom: targetZoom, duration: 1200, essential: true });
           } catch(_) {}
-          let popupFired = false;
-          const firePopup = () => {
-            if (popupFired) return;
-            popupFired = true;
-            try { showPopup(f, { skipPaywall: true }); } catch(_) {}
-          };
-          // Fire popup on moveend (when fly-to settles) OR after 800ms,
-          // whichever comes first. The shorter fallback ensures the
-          // popup still appears if the map was already centered on the
-          // pin (in which case flyTo is a no-op and no moveend fires).
-          try { map.once('moveend', firePopup); } catch(_) {}
-          setTimeout(firePopup, 800);
+          if (onMobile) {
+            // Mobile: fire the inline popup once the map settles, so
+            // the user lands on a centered popup over the pin.
+            let popupFired = false;
+            const firePopup = () => {
+              if (popupFired) return;
+              popupFired = true;
+              try { showPopup(f, { skipPaywall: true }); } catch(_) {}
+            };
+            try { map.once('moveend', firePopup); } catch(_) {}
+            setTimeout(firePopup, 800);
+          } else {
+            // Desktop: just paint the matching pin purple so the user
+            // can see which pin corresponds to the open project. Uses
+            // the same Mapbox paint expression that showPopup uses, so
+            // closing the modal later clears the override via the
+            // normal closeModal pin-reset path.
+            try {
+              const title = f && f.properties && f.properties.title;
+              if (title && map.getLayer('unclustered-point')) {
+                const pinkPin = ['case', ['==', ['get', 'title'], title], '#A78BFA', '#1FDF67'];
+                const pinkRadius = ['case', ['==', ['get', 'title'], title], 11, 8];
+                map.setPaintProperty('unclustered-point', 'circle-color', pinkPin);
+                map.setPaintProperty('unclustered-point', 'circle-radius', pinkRadius);
+                window._selectedPinTitle = title;
+              }
+            } catch(_) {}
+          }
         });
       }
       // Expose so other surfaces (firm sheet "view on map", deep-link
