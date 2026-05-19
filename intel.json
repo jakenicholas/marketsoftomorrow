@@ -1,6 +1,58 @@
 {
   "generated_at": "2026-05-19",
   "projects": {
+    "palm-tree-residences-miami": {
+      "estimate_years": 3.2,
+      "estimate_label": "~3.2 years",
+      "range_low": 3.2,
+      "range_high": 3.2,
+      "confidence": "low",
+      "comparable_count": 1,
+      "good_count": 1,
+      "exact_count": 1,
+      "used_relaxed": true,
+      "avg_match_score": 0.76,
+      "avg_distance_km": 113.3,
+      "avg_distance_mi": 70.4,
+      "scale_used": true,
+      "firm_signal": null,
+      "source": "comparables",
+      "project_type": "Residences",
+      "metro": "South Florida",
+      "comparables": [
+        {
+          "name": "Nautilus 220",
+          "slug": "nautilus-220",
+          "location": "Lake Park",
+          "years": 3.2,
+          "score": 0.76,
+          "distance_km": 113.3,
+          "distance_mi": 70.4
+        }
+      ],
+      "pattern_summary": "Among 1 regional residences project in TMW's data, the median time to completion is 3.2 years.",
+      "dates_speculative": true,
+      "start_speculative": true,
+      "delivery_speculative": true,
+      "is_mixed_use": false
+    },
+    "jean-georges-miami-tropic-residences": {
+      "estimate_years": 2.5,
+      "estimate_label": "~2.5 years",
+      "days_out": 941,
+      "delivery_date": "2028-12-15",
+      "source": "known_date",
+      "precision": "month",
+      "confidence": "medium",
+      "project_type": "Residences",
+      "metro": "South Florida",
+      "comparables": [],
+      "comparable_count": 0,
+      "pattern_summary": "TMW estimates an opening in ~2.5 years based on project type and current stage.",
+      "dates_speculative": true,
+      "start_speculative": true,
+      "delivery_speculative": true
+    },
     "1250-west-avenue": {
       "estimate_years": 8.4,
       "estimate_label": "~8.4 years",
@@ -6782,13 +6834,13 @@
   "stats": {
     "high": 0,
     "medium": 25,
-    "low": 24,
-    "known_date": 239,
+    "low": 25,
+    "known_date": 240,
     "completed": 28,
     "skipped": 59,
     "no_type": 0,
     "firm_boosted": 0,
-    "speculative_softened": 2,
+    "speculative_softened": 3,
     "mixed_use_adjusted": 1
   }
 }
