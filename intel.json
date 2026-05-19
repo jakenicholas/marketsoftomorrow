@@ -864,18 +864,18 @@
       "delivery_speculative": false
     },
     "waldorf-astoria-residences-miami": {
-      "estimate_years": 2.5,
-      "estimate_label": "~2.5 years",
-      "days_out": 957,
-      "delivery_date": "2028-12-31",
+      "estimate_years": 2.0,
+      "estimate_label": "~2 years",
+      "days_out": 758,
+      "delivery_date": "2028-06-15",
       "source": "known_date",
-      "precision": "year",
+      "precision": "month",
       "confidence": "high",
       "project_type": "Hotel",
       "metro": "South Florida",
       "comparables": [],
       "comparable_count": 0,
-      "pattern_summary": "Targeted for opening in ~2.5 years.",
+      "pattern_summary": "Targeted for opening in ~2 years.",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false
@@ -2578,19 +2578,19 @@
     "midtown-park": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 957,
-      "delivery_date": "2028-12-31",
+      "days_out": 941,
+      "delivery_date": "2028-12-15",
       "source": "known_date",
-      "precision": "year",
-      "confidence": "high",
-      "project_type": "Residences",
+      "precision": "month",
+      "confidence": "medium",
+      "project_type": "Mixed-Use",
       "metro": "South Florida",
       "comparables": [],
       "comparable_count": 0,
-      "pattern_summary": "Targeted for opening in ~2.5 years.",
-      "dates_speculative": false,
-      "start_speculative": false,
-      "delivery_speculative": false
+      "pattern_summary": "TMW estimates an opening in ~2.5 years based on project type and current stage.",
+      "dates_speculative": true,
+      "start_speculative": true,
+      "delivery_speculative": true
     },
     "the-dunes": {
       "estimate_years": 0.6,
@@ -3053,21 +3053,21 @@
       "delivery_speculative": false
     },
     "frida-kahlo-wynwood-residences": {
-      "estimate_years": 0.6,
-      "estimate_label": "~7 months",
-      "days_out": 226,
-      "delivery_date": "2026-12-31",
+      "estimate_years": 2.5,
+      "estimate_label": "~2.5 years",
+      "days_out": 941,
+      "delivery_date": "2028-12-15",
       "source": "known_date",
-      "precision": "year",
-      "confidence": "high",
+      "precision": "month",
+      "confidence": "medium",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [],
       "comparable_count": 0,
-      "pattern_summary": "Targeted for opening in ~7 months.",
-      "dates_speculative": false,
-      "start_speculative": false,
-      "delivery_speculative": false
+      "pattern_summary": "TMW estimates an opening in ~2.5 years based on project type and current stage.",
+      "dates_speculative": true,
+      "start_speculative": true,
+      "delivery_speculative": true
     },
     "delano-residences-miami": {
       "estimate_years": 1.5,
@@ -6840,7 +6840,7 @@
     "skipped": 59,
     "no_type": 0,
     "firm_boosted": 0,
-    "speculative_softened": 3,
+    "speculative_softened": 5,
     "mixed_use_adjusted": 1
   }
 }
