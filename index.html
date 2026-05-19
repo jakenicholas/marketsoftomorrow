@@ -8710,12 +8710,13 @@
   }
 
   /* "Fly to pin" switch ‚Äî cross-surface (mobile + desktop). Label sits
-     to the left of an iOS-style track/thumb toggle. Green when ON
-     (default), gray when OFF. Lives in the Discover title-row right slot
-     in place of the old "In View / More Nearby" indicator. Defined
-     OUTSIDE any media query so the same rules apply on both surfaces
-     -- the previous version was trapped in @media(max-width:800px) and
-     rendered as unstyled inline text on desktop. */
+     to the left of an iOS-style track/thumb toggle. GOLD when ON
+     (default), gray when OFF. Lives in the Discover title-row right
+     slot in place of the old "In View / More Nearby" indicator.
+     Defined OUTSIDE any media query so the same rules apply on both
+     surfaces (the previous version was trapped in
+     @media(max-width:800px) and rendered as unstyled inline text on
+     desktop). */
   body.ui-v2 .v2-flyto-toggle {
     display: inline-flex !important;
     flex-direction: row !important;
@@ -8743,7 +8744,7 @@
     line-height: 1;
   }
   body.ui-v2 .v2-flyto-toggle[aria-pressed="true"] .v2-flyto-label {
-    color: var(--accent, #1FDF67);
+    color: var(--warn, #FFD300);
   }
   body.ui-v2 .v2-flyto-toggle .v2-flyto-switch {
     position: relative;
@@ -8765,7 +8766,7 @@
     box-shadow: 0 1px 2px rgba(0,0,0,0.25);
   }
   body.ui-v2 .v2-flyto-toggle[aria-pressed="true"] .v2-flyto-switch {
-    background: var(--accent, #1FDF67);
+    background: var(--warn, #FFD300);
   }
   body.ui-v2 .v2-flyto-toggle[aria-pressed="true"] .v2-flyto-switch::after {
     transform: translateX(14px);
@@ -8775,11 +8776,11 @@
     background: rgba(255,255,255,0.28);
   }
   body.ui-v2 .v2-flyto-toggle[aria-pressed="true"]:hover .v2-flyto-switch {
-    background: #1FDF67;
+    background: #FFD300;
     filter: brightness(1.08);
   }
   body.ui-v2 .v2-flyto-toggle:focus-visible {
-    outline: 2px solid var(--accent, #1FDF67);
+    outline: 2px solid var(--warn, #FFD300);
     outline-offset: 2px;
     border-radius: 100px;
   }
