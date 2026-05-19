@@ -13680,14 +13680,28 @@
             if (window.gridRendering[targetId]) return;
             if (!map.getSource('projects')?._data) return;
             gtag('event', 'project_click', { 'project_name': f.properties.title, 'project_city': f.properties.city, 'project_featured': f.properties.featured||false, 'click_source': 'tile', 'device_type': isMobile?'mobile':'desktop', 'grid_position': index+1 });
+            // "Fly to pin" toggle gate (v2). When OFF, skip the camera
+            // fly so the user can read the project page without the
+            // map jumping. When ON (default) keep the legacy behavior:
+            // mobile ‚Üí collapse drawer + fly + popup; desktop ‚Üí fly +
+            // open full modal. We treat undefined as ON so v1 users
+            // (no toggle UI) keep the legacy behavior too.
+            let flyOn = true;
+            try { flyOn = localStorage.getItem('tmw-fly-to-pin') !== 'false'; } catch(_) {}
             if (isMobile) {
               // Mobile: close drawer, fly to pin, show small popup preview.
               // User can tap "Learn More" inside the popup for the full modal.
               window.mobileDrawerCollapse?.();
-              zoomToPinOnly(f);
-              setTimeout(() => { showPopup(f); }, 1500);
+              if (flyOn) {
+                zoomToPinOnly(f);
+                setTimeout(() => { showPopup(f); }, 1500);
+              } else {
+                // Toggle OFF on mobile: skip the fly, but still open the
+                // full project modal so the click isn't a no-op.
+                window.openProjectModal(f, 'tile');
+              }
             } else {
-              zoomToPinOnly(f);
+              if (flyOn) zoomToPinOnly(f);
               window.openProjectModal(f, 'tile');
             }
           };
@@ -13896,13 +13910,22 @@
             </div>${deliveryBarHTML(f.properties.delivery)}`;
         d.onclick = () => {
           if (window.gridRendering[targetId] || !map.getSource('projects')?._data) return;
+          // Same "Fly to pin" toggle gate as renderGrid's tile click
+          // handler. ON (default) = fly + open; OFF = open without
+          // moving the map.
+          let flyOn = true;
+          try { flyOn = localStorage.getItem('tmw-fly-to-pin') !== 'false'; } catch(_) {}
           if (isMobile) {
             // Mobile: close drawer, fly to pin, show small popup preview
             window.mobileDrawerCollapse?.();
-            zoomToPinOnly(f);
-            setTimeout(() => { showPopup(f); }, 1500);
+            if (flyOn) {
+              zoomToPinOnly(f);
+              setTimeout(() => { showPopup(f); }, 1500);
+            } else {
+              window.openProjectModal(f, 'tile');
+            }
           } else {
-            zoomToPinOnly(f);
+            if (flyOn) zoomToPinOnly(f);
             window.openProjectModal(f, 'tile');
           }
         };
@@ -22592,8 +22615,17 @@
       // (#v2DFlyToToggle), which is injected dynamically when the
       // Discover tab is shown.
       (function v2FlyToPinInit() {
+        // The toggle is purely a *preference* ‚Äî flipping it does NOT
+        // move the map. It only changes what happens when the user
+        // clicks a discover project tile afterwards:
+        //   ‚Ä¢ ON  ‚Üí click flies to the pin (legacy renderGrid behavior)
+        //   ‚Ä¢ OFF ‚Üí click opens the project modal without flying
+        //
+        // The actual gate lives in renderGrid's tile click handler
+        // (search for "tmw-fly-to-pin" in that block). This module is
+        // just responsible for storing the preference and syncing the
+        // visual state of every .v2-flyto-toggle on the page.
         const STORE_KEY = 'tmw-fly-to-pin';
-        let lastFlownTitle = null;
         function isOn() {
           try { return localStorage.getItem(STORE_KEY) !== 'false'; } catch(_) { return true; }
         }
@@ -22605,28 +22637,15 @@
         }
         function setOn(on) {
           try { localStorage.setItem(STORE_KEY, on ? 'true' : 'false'); } catch(_) {}
-          // Reset dedupe so flipping the switch off‚Üíon can re-fire on
-          // the same project the user is still parked on.
-          lastFlownTitle = null;
           syncVisualState();
-          // Turning ON: immediately fly to the topmost visible tile in
-          // the currently-active discover scroll container, so the user
-          // gets instant feedback ("I turned this on and the map flew").
-          if (on) {
-            const onMobile = window.matchMedia('(max-width: 800px)').matches;
-            const scrollEl = onMobile
-              ? document.querySelector('.v2-sheet-body')
-              : document.querySelector('#desktopSidebar .sidebar-content');
-            if (scrollEl) flyToFocusedTile(scrollEl);
-          }
         }
-        // ‚îÄ‚îÄ Click handling via event delegation ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
-        // The desktop toggle is destroyed and recreated whenever the
-        // user swaps tabs (innerHTML rewrite), so addEventListener on
-        // the button instance is fragile. Delegating on body avoids
-        // having to chase re-binds. Capture phase + stopPropagation
-        // prevents any parent (sheet body, title row) from also
-        // reacting to the same click.
+        // Click handling via event delegation. The desktop toggle is
+        // destroyed and recreated whenever the user swaps tabs (the
+        // title-row right slot gets innerHTML-rewritten), so binding
+        // addEventListener on the specific button instance is fragile.
+        // Delegating on body avoids having to chase re-binds. Capture
+        // phase + stopPropagation prevents any parent (sheet body,
+        // title row) from also reacting to the same click.
         document.addEventListener('click', (e) => {
           const t = e.target;
           if (!t || !t.closest) return;
@@ -22645,102 +22664,6 @@
         new MutationObserver(syncVisualState).observe(document.body, {
           childList: true, subtree: true,
         });
-
-        // ‚îÄ‚îÄ Scroll-driven auto-fly ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
-        let flyTimer = null;
-        function findTopVisibleTile(scrollEl) {
-          const cr = scrollEl.getBoundingClientRect();
-          // .grid-item lives inside .inview-section / .nearby-section
-          // sub-containers under the scroll element. Querying by class
-          // directly catches all of them.
-          const tiles = scrollEl.querySelectorAll('.grid-item');
-          for (const t of tiles) {
-            const r = t.getBoundingClientRect();
-            // First tile whose vertical center is below the scroll
-            // container's top edge ‚Äî i.e. the project the user has
-            // scrolled INTO view.
-            if (r.top + r.height / 2 > cr.top + 20) return t;
-          }
-          return null;
-        }
-        function flyToFocusedTile(scrollEl) {
-          if (!isOn()) return;
-          if (!window._tmwMap || typeof window._tmwMap.flyTo !== 'function') return;
-          const tile = findTopVisibleTile(scrollEl);
-          if (!tile) return;
-          const titleEl = tile.querySelector('h3');
-          if (!titleEl) return;
-          const title = (titleEl.textContent || '').trim();
-          if (!title || title === lastFlownTitle) return;
-          const feat = (window.allProjectFeatures || []).find(f => f && f.properties && f.properties.title === title);
-          if (!feat || !feat.geometry || !feat.geometry.coordinates) return;
-          lastFlownTitle = title;
-          const co = feat.geometry.coordinates.slice();
-          const onMobile = window.matchMedia('(max-width: 800px)').matches;
-          // Mobile: collapse the bottom sheet so the map is visible
-          // behind the fly. User can drag/click the capsule to reopen
-          // the discover list and continue browsing.
-          if (onMobile) {
-            document.body.classList.remove('v2-sheet-open', 'v2-sheet-mid', 'v2-sheet-full');
-            if (typeof window.v2CloseSheet === 'function') {
-              try { window.v2CloseSheet(); } catch(_) {}
-            }
-          }
-          const targetZoom = Math.max(window._tmwMap.getZoom() || 4, 13);
-          // Flag this as a programmatic flyTo so the global moveend
-          // handler doesn't re-render the discover grid mid-scroll
-          // (the legacy contract is: set _mapFlyingTo=true ‚Üí moveend
-          // skips its renderGrid call). The user's manual pans still
-          // refresh the list because they leave _mapFlyingTo=false.
-          window._mapFlyingTo = true;
-          try {
-            window._tmwMap.flyTo({ center: co, zoom: targetZoom, duration: 1200, essential: true });
-          } catch(_) {}
-        }
-        function scheduleFly(scrollEl) {
-          clearTimeout(flyTimer);
-          // Long enough that scrolling itself doesn't trigger the fly
-          // mid-scroll. User has to stop on a tile before the map
-          // engages. 450ms ‚âà "settled on this project."
-          flyTimer = setTimeout(() => flyToFocusedTile(scrollEl), 450);
-        }
-        function bindScrollContainer(el) {
-          if (!el || el.dataset.flytoScrollBound) return;
-          el.dataset.flytoScrollBound = '1';
-          el.addEventListener('scroll', () => scheduleFly(el), { passive: true });
-        }
-        function bindAllScrollContainers() {
-          // Mobile: the v2 sheet body that hosts the discover tile grid.
-          const mobileSheet = document.querySelector('.v2-sheet-body');
-          if (mobileSheet) bindScrollContainer(mobileSheet);
-          // Desktop: the sidebar content scroll container.
-          const desktopContent = document.querySelector('#desktopSidebar .sidebar-content');
-          if (desktopContent) bindScrollContainer(desktopContent);
-        }
-        bindAllScrollContainers();
-        // Re-bind in case containers are recreated.
-        new MutationObserver(bindAllScrollContainers).observe(document.body, {
-          childList: true, subtree: true,
-        });
-        // Reset the dedupe guard whenever the user switches tabs so a
-        // re-entry to Discover can re-fire fly on the same project.
-        document.body.addEventListener('click', (e) => {
-          if (e.target && e.target.closest && e.target.closest('.v2-tab, .v2-desktop-tabs button')) {
-            lastFlownTitle = null;
-          }
-        }, true);
-        // Also reset whenever the map is moved by the user (drag/pan)
-        // -- a fresh viewport means a fresh list of in-view tiles, so
-        // the previously-flown title may no longer be relevant.
-        if (window._tmwMap && typeof window._tmwMap.on === 'function') {
-          window._tmwMap.on('movestart', (e) => {
-            // originalEvent present = user gesture. Programmatic flyTo
-            // calls don't carry a DOM event, and we don't want to clear
-            // the dedupe in that case (it would re-fire instantly on
-            // the moveend ‚Üí renderGrid path).
-            if (e && e.originalEvent) lastFlownTitle = null;
-          });
-        }
       })();
     } // end setup()
 
