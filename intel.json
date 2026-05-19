@@ -4134,48 +4134,21 @@
       "is_mixed_use": false
     },
     "breakers-employee-housing-campus": {
-      "estimate_years": 5.8,
-      "estimate_label": "~5.8 years",
-      "range_low": 3.2,
-      "range_high": 8.4,
-      "confidence": "low",
-      "comparable_count": 2,
-      "good_count": 1,
-      "exact_count": 1,
-      "used_relaxed": true,
-      "avg_match_score": 0.51,
-      "avg_distance_km": 60.0,
-      "avg_distance_mi": 37.3,
-      "scale_used": true,
-      "firm_signal": null,
-      "source": "comparables",
+      "estimate_years": 2.5,
+      "estimate_label": "~2.5 years",
+      "days_out": 957,
+      "delivery_date": "2028-12-31",
+      "source": "known_date",
+      "precision": "year",
+      "confidence": "medium",
       "project_type": "Residences",
       "metro": "Palm Beach",
-      "comparables": [
-        {
-          "name": "Nautilus 220",
-          "slug": "nautilus-220",
-          "location": "Lake Park",
-          "years": 3.2,
-          "score": 0.7,
-          "distance_km": 6.8,
-          "distance_mi": 4.2
-        },
-        {
-          "name": "Arbor Coconut Grove",
-          "slug": "arbor-coconut-grove",
-          "location": "Miami",
-          "years": 8.4,
-          "score": 0.31,
-          "distance_km": 113.2,
-          "distance_mi": 70.3
-        }
-      ],
-      "pattern_summary": "Among 2 same-metro residences projects in TMW's data, the median time to completion is 5.8 years, with a range of 3.2–8.4 years.",
-      "dates_speculative": false,
-      "start_speculative": false,
-      "delivery_speculative": false,
-      "is_mixed_use": false
+      "comparables": [],
+      "comparable_count": 0,
+      "pattern_summary": "TMW estimates an opening in ~2.5 years based on project type and current stage.",
+      "dates_speculative": true,
+      "start_speculative": true,
+      "delivery_speculative": true
     },
     "gardens-vista": {
       "estimate_years": 0.6,
@@ -6834,13 +6807,13 @@
   "stats": {
     "high": 0,
     "medium": 25,
-    "low": 25,
-    "known_date": 240,
+    "low": 24,
+    "known_date": 241,
     "completed": 28,
     "skipped": 59,
     "no_type": 0,
     "firm_boosted": 0,
-    "speculative_softened": 5,
+    "speculative_softened": 6,
     "mixed_use_adjusted": 1
   }
 }
