@@ -8202,9 +8202,11 @@
       color: rgba(255,255,255,0.5);
       font-size: 13px;
     }
-    /* When search overlay is visible, hide the tab content below */
-    body.ui-v2 .v2-sheet-body:has(#v2SearchOverlay:not([hidden])) #v2DiscoverPane {
-      display: none;
+    /* When search overlay is visible, hide ALL tab content below
+       (Discover, Watchlist, Pulse panes) so the search results take
+       over regardless of which tab the user was on when they typed. */
+    body.ui-v2 .v2-sheet-body:has(#v2SearchOverlay:not([hidden])) .v2-tab-content {
+      display: none !important;
     }
 
     /* ‚îÄ‚îÄ Sheet title row (per-tab, big bold) ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ */
@@ -20132,20 +20134,11 @@
         if (tab) tab.classList.toggle('visible', !!on);
         const tabsBar = document.querySelector('.v2-desktop-tabs');
         if (tabsBar) tabsBar.classList.toggle('v2-searching', !!on);
-        // Force the title-row to re-render now that v2-searching toggled.
-        try {
-          const active = document.querySelector('.v2-desktop-tabs button.active');
-          if (typeof window._v2RefreshDesktopTitle === 'function') {
-            window._v2RefreshDesktopTitle(active ? active.dataset.v2dTab : 'discover');
-          }
-        } catch (_) {}
-        // Force-rerun the grid layout enforcer so its display-none branch
-        // fires (or the layout restores on dismiss).
-        try {
-          if (typeof window._v2RefreshDesktopLayout === 'function') {
-            window._v2RefreshDesktopLayout();
-          }
-        } catch (_) {}
+        // Track the last non-search tab so we can return to it on clear.
+        if (on) {
+          const active = document.querySelector('.v2-desktop-tabs button.active:not(#v2DesktopSearchTab)');
+          if (active) window._v2DesktopLastTab = active.dataset.v2dTab;
+        }
         // Hide #gridDesktop and the active watchlist/pulse pane while
         // search results are showing; restore on dismiss.
         const grid = document.getElementById('gridDesktop');
@@ -20172,6 +20165,26 @@
             delete ttl.dataset.savedText;
           }
         }
+        // On dismiss, ALSO re-route to the last tab the user was on so
+        // the grid/watchlist/pulse re-shows in the correct mode.
+        if (!on && typeof window._v2DesktopRouteTab === 'function') {
+          const last = window._v2DesktopLastTab || 'discover';
+          try { window._v2DesktopRouteTab(last); } catch (_) {}
+        }
+        // Force-rerun the grid layout enforcer so its display-none branch
+        // fires (or the layout restores on dismiss).
+        try {
+          if (typeof window._v2RefreshDesktopLayout === 'function') {
+            window._v2RefreshDesktopLayout();
+          }
+        } catch (_) {}
+        // Force the title-row to re-render now that v2-searching toggled.
+        try {
+          const active = document.querySelector('.v2-desktop-tabs button.active');
+          if (typeof window._v2RefreshDesktopTitle === 'function') {
+            window._v2RefreshDesktopTitle(active ? active.dataset.v2dTab : 'discover');
+          }
+        } catch (_) {}
       }
       function open(query) {
         render(query || '');
@@ -20182,6 +20195,10 @@
         overlay.hidden = true;
         setSearchMode(false);
       }
+      // Expose so tab-click handlers (defined elsewhere) can dismiss
+      // search mode without dispatching synthetic input events.
+      window._v2DesktopSetSearchMode = setSearchMode;
+      window._v2DesktopCloseSearch = close;
 
       searchInput.addEventListener('focus', () => { if (searchInput.value.trim()) open(searchInput.value); });
       searchInput.addEventListener('input', () => {
@@ -20507,6 +20524,20 @@
         }
       }
 
+      // Shared router so setSearchMode(false) can re-apply a tab after
+      // search clears. Walks the same path the click handler does so
+      // the gold highlight + pane swap + pills update stay in sync.
+      function routeToTab(target) {
+        if (!target) target = 'discover';
+        tabs.querySelectorAll('button:not(#v2DesktopSearchTab)').forEach(b => b.classList.remove('active'));
+        const btn = tabs.querySelector(`button[data-v2d-tab="${target}"]`);
+        if (btn) btn.classList.add('active');
+        try { renderDesktopPills(target); } catch(_) {}
+        try { updateDesktopTitle(target); } catch(_) {}
+        try { showDesktopTab(target); } catch(_) {}
+      }
+      window._v2DesktopRouteTab = routeToTab;
+
       tabs.querySelectorAll('button').forEach(btn => {
         btn.addEventListener('click', (e) => {
           // Stop bubble so the legacy "outside-click closes pulse" handler
@@ -20514,21 +20545,34 @@
           // we open it. Without this, .open gets removed milliseconds after
           // we add it because the tab is "outside" the pulseStack element.
           e.stopPropagation();
-          // Gold search-tab ‚Üí dismiss search, then route to Discover.
+          // Gold search-tab ‚Üí dismiss search, then route to last tab.
           if (btn.id === 'v2DesktopSearchTab') {
             const input = document.getElementById('sidebarSearchBar');
             if (input) {
               input.value = '';
+              // Clearing the input fires the `input` listener which calls
+              // close() ‚Üí setSearchMode(false) ‚Üí routeToTab(last). One
+              // event, full restore.
               input.dispatchEvent(new Event('input', { bubbles: true }));
             }
             return;
           }
           const target = btn.dataset.v2dTab;
-          tabs.querySelectorAll('button:not(#v2DesktopSearchTab)').forEach(b => b.classList.remove('active'));
-          btn.classList.add('active');
-          try { renderDesktopPills(target); } catch(_) {}
-          try { updateDesktopTitle(target); } catch(_) {}
-          showDesktopTab(target);
+          // If user clicked a non-search tab while search is active,
+          // explicitly dismiss search first so the gold search tab
+          // disappears, the input + overlay clear, and the new tab gets
+          // the gold active highlight + content swap.
+          if (document.body.classList.contains('v2-searching')) {
+            const input = document.getElementById('sidebarSearchBar');
+            if (input) input.value = '';
+            // Record this tab as the "last tab" so the search-restore
+            // path doesn't bounce back to a stale value.
+            window._v2DesktopLastTab = target;
+            if (typeof window._v2DesktopCloseSearch === 'function') {
+              window._v2DesktopCloseSearch();
+            }
+          }
+          routeToTab(target);
         });
       });
 
@@ -21785,6 +21829,12 @@
         setSearchTabVisible(false);
         const clearBtn = document.getElementById('v2SearchClear');
         if (clearBtn) clearBtn.classList.remove('visible');
+        // Restore the tab the user was on before they started searching
+        // (mobile parallel of the desktop _v2DesktopLastTab restore).
+        const last = window._v2MobileLastTab || 'discover';
+        window._v2MobileLastTab = null;
+        const lastTab = document.querySelector(`.v2-tab[data-v2-tab="${last}"]`);
+        if (lastTab) lastTab.click();
       }
       // Wire the search-tab click to dismiss search
       const v2SearchTab = document.getElementById('v2SearchTab');
@@ -22046,29 +22096,30 @@
         searchInput.addEventListener('input', (e) => {
           updateClearBtn();
           const q = (e.target.value || '').trim();
-          const activeTabEl = document.querySelector('.v2-tab.active');
-          const id = activeTabEl ? activeTabEl.dataset.v2Tab : 'discover';
-          if (id === 'discover') {
+          if (q) {
+            // Track the tab the user was on before typing so clearing
+            // returns them there (instead of dumping them on Discover).
+            const activeTabEl = document.querySelector('.v2-tab.active');
+            if (activeTabEl && !window._v2MobileLastTab) {
+              window._v2MobileLastTab = activeTabEl.dataset.v2Tab;
+            }
             runDiscoverSearch(q);
           } else {
-            // Hide overlay on watchlist/pulse ‚Äî let the legacy mobileSearchBar
-            // pipeline filter the content
+            // Empty input ‚Äî dismiss search and restore the previous tab.
             const so = document.getElementById('v2SearchOverlay');
             if (so) so.hidden = true;
             setSearchTabVisible(false);
+            const last = window._v2MobileLastTab || 'discover';
+            window._v2MobileLastTab = null;
+            const lastTab = document.querySelector(`.v2-tab[data-v2-tab="${last}"]`);
+            if (lastTab) lastTab.click();
           }
         });
         // Focus: open overlay only if there's already a query typed.
-        // Empty focus leaves tiles visible ‚Äî avoids jumping straight to
-        // recent-searches when user just taps the search bar.
         searchInput.addEventListener('focus', () => {
           updateClearBtn();
           const q = (searchInput.value || '').trim();
-          if (q) {
-            const activeTabEl = document.querySelector('.v2-tab.active');
-            const id = activeTabEl ? activeTabEl.dataset.v2Tab : 'discover';
-            if (id === 'discover') runDiscoverSearch(q);
-          }
+          if (q) runDiscoverSearch(q);
         });
       }
 
