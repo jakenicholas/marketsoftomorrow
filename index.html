@@ -3701,11 +3701,15 @@
     #projectModal .pm-slide-prev { left: 10px; }
     #projectModal .pm-slide-next { right: 10px; }
   }
-  /* Top bar with X and share */
+  /* Top bar with X and share ‚Äî wrapper is pointer-events:none so its
+     full-width strip doesn't swallow clicks meant for the View on Map
+     button (which sits behind it on the right). The icon buttons inside
+     re-enable pointer-events so they remain clickable. */
   #projectModal .pm-topbar {
     position: absolute; top: 0; left: 0; right: 0;
     display: flex; align-items: center; justify-content: space-between;
     padding: 12px 14px; z-index: 5;
+    pointer-events: none;
   }
   #projectModal .pm-icon-btn {
     width: 32px; height: 32px; border-radius: 50%;
@@ -3715,6 +3719,7 @@
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     flex-shrink: 0;
+    pointer-events: auto;
   }
   #projectModal .pm-icon-btn svg {
     width: 14px; height: 14px;
@@ -8330,6 +8335,43 @@
       color: rgba(255,255,255,0.6);
     }
 
+    /* "Fly to pin" toggle ‚Äî replaces the In View / More Nearby indicator
+       on the Discover tab title row. Default state is ON (green pill).
+       Toggling off goes to a muted gray. Identical on mobile and desktop. */
+    body.ui-v2 .v2-flyto-toggle {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 4px 11px 4px 9px;
+      height: 26px;
+      border-radius: 100px;
+      border: 1px solid transparent;
+      background: rgba(31,223,103,0.16);
+      color: var(--accent, #1FDF67);
+      font-family: inherit;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      text-transform: lowercase;
+      cursor: pointer;
+      transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+      white-space: nowrap;
+    }
+    body.ui-v2 .v2-flyto-toggle:hover {
+      background: rgba(31,223,103,0.22);
+    }
+    body.ui-v2 .v2-flyto-toggle[aria-pressed="false"] {
+      background: rgba(255,255,255,0.06);
+      color: rgba(255,255,255,0.55);
+      border-color: rgba(255,255,255,0.08);
+    }
+    body.ui-v2 .v2-flyto-toggle[aria-pressed="false"]:hover {
+      background: rgba(255,255,255,0.10);
+      color: rgba(255,255,255,0.75);
+    }
+    body.ui-v2 .v2-flyto-toggle .v2-flyto-icon {
+      width: 12px; height: 12px;
+      flex-shrink: 0;
+    }
+
     /* ‚îÄ‚îÄ Force 1-column tile grid ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
        The REAL culprit was .inview-section and .nearby-section, both
        of which set grid-template-columns: 1fr 1fr internally. Override
@@ -8943,6 +8985,23 @@
     body.ui-v2 :is(.v2-top-chrome, .v2-desktop-header-group) .v2-profile-btn:not(.signed-in) .v2-premium-star { display: none !important; }
     body.ui-v2 :is(.v2-top-chrome, .v2-desktop-header-group) .v2-profile-btn.signed-in .v2-login-text { display: none; }
     body.ui-v2 :is(.v2-top-chrome, .v2-desktop-header-group) .v2-profile-btn:not(.is-pro) .v2-premium-star { display: none !important; }
+    /* Desktop pro-star ‚Äî matches the mobile gold badge at line ~7626.
+       Lives inside its @media(max-width:800px) block, so without this
+       desktop-scoped copy the star renders as an unstyled inline span
+       and is effectively invisible. */
+    body.ui-v2 :is(.v2-top-chrome, .v2-desktop-header-group) .v2-profile-btn .v2-premium-star {
+      position: absolute;
+      bottom: -3px; right: -3px;
+      width: 14px; height: 14px;
+      background: var(--warn, #FFD300);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      border: 2px solid rgba(15,15,15,0.85);
+    }
+    body.ui-v2 :is(.v2-top-chrome, .v2-desktop-header-group) .v2-profile-btn .v2-premium-star svg {
+      width: 8px; height: 8px;
+      fill: #0a0a0a;
+    }
     /* Drop-down menu opens below the widget */
     body.ui-v2 :is(.v2-top-chrome, .v2-desktop-header-group) .v2-profile-menu {
       position: absolute;
@@ -10425,10 +10484,19 @@
           <div class="v2-sheet-ttl" id="v2SheetTtl">Discover</div>
           <div class="v2-sheet-right" id="v2SheetRight">
             <span class="v2-sheet-sub" id="v2SheetSub" hidden></span>
-            <span class="v2-section-indicator in-view" id="v2SectionIndicator">
-              <span class="v2-section-label" id="v2SectionLabel">In View</span>
-              <span class="v2-section-count" id="v2SectionCount">0</span>
-            </span>
+            <!-- "Fly to pin" toggle replaces the old "In View / More Nearby"
+                 indicator. When on, scrolling discover/search tiles auto-flies
+                 the map to the focused project's pin (debounced). State is
+                 persisted in localStorage and shared with the desktop toggle. -->
+            <button class="v2-flyto-toggle" id="v2FlyToToggle" type="button"
+                    aria-pressed="true" aria-label="Toggle fly to pin">
+              <svg class="v2-flyto-icon" viewBox="0 0 24 24" fill="none"
+                   stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                <circle cx="12" cy="10" r="3"/>
+              </svg>
+              <span>Fly to pin</span>
+            </button>
           </div>
         </div>
 
@@ -10779,6 +10847,11 @@
       center: isMobile ? [-90.0, 35.0] : [-95.0, 38.5],
       zoom: isMobile ? 3.0 : 4
     });
+    // Expose the map instance for v2 helpers (e.g. the Fly-to-Pin scroll
+    // handler) that live outside this closure. Use a namespaced key so we
+    // don't collide with `window.map`, which the browser sets to the
+    // <div id="map"> element via id-named-globals.
+    window._tmwMap = map;
     let activePopup, stationPopup, fullscreenMap;
 
     const stations = [
@@ -20426,12 +20499,21 @@
         if (ttl) ttl.textContent = DESKTOP_TITLES[target] || 'Discover';
         if (!right) return;
         if (target === 'discover') {
-          // Pull current in-view count from the source-of-truth pill
-          const src = document.getElementById('desktopPillCount');
-          const raw = src && src.textContent ? src.textContent.trim() : '';
-          const m = raw.match(/(\d+)/);
-          const count = m ? m[1] : '‚Äî';
-          right.innerHTML = `<span class="v2-section-indicator in-view">in view <span class="v2-section-count">${count}</span></span>`;
+          // "Fly to pin" toggle replaces the old in-view indicator. Same
+          // markup as the mobile button (id="v2DFlyToToggle" so we can
+          // distinguish from the mobile one); JS init wires both surfaces
+          // to the shared localStorage flag.
+          right.innerHTML = `
+            <button class="v2-flyto-toggle" id="v2DFlyToToggle" type="button"
+                    aria-pressed="true" aria-label="Toggle fly to pin">
+              <svg class="v2-flyto-icon" viewBox="0 0 24 24" fill="none"
+                   stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                <circle cx="12" cy="10" r="3"/>
+              </svg>
+              <span>Fly to pin</span>
+            </button>
+          `;
         } else if (target === 'watchlist') {
           right.innerHTML = `<span class="v2-sheet-sub">${getDesktopWatchlistSubtitle()}</span>`;
         } else if (target === 'pulse') {
@@ -22387,6 +22469,133 @@
       // sync the moment a project is added/removed (instead of waiting
       // up to 5s for the safety-net interval).
       window._v2SyncWatchCount = () => syncWatchCount(true);
+      // ‚îÄ‚îÄ "Fly to pin" toggle ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
+      // Replaces the old "In view / More nearby" indicator on the
+      // Discover tab title row (mobile + desktop). When ON (default),
+      // scrolling the discover tile list auto-flies the map to the
+      // topmost visible tile's project pin (debounced).
+      //
+      // Behavior on fly:
+      //   ‚Ä¢ Desktop ‚Üí sidebar stays open behind the moving map.
+      //   ‚Ä¢ Mobile  ‚Üí bottom sheet collapses so the user can see the
+      //               map and the newly-flown-to pin.
+      //
+      // State is persisted in localStorage and applied to both the
+      // mobile button (#v2FlyToToggle) and the desktop one
+      // (#v2DFlyToToggle), which is injected dynamically when the
+      // Discover tab is shown.
+      (function v2FlyToPinInit() {
+        const STORE_KEY = 'tmw-fly-to-pin';
+        function isOn() {
+          try { return localStorage.getItem(STORE_KEY) !== 'false'; } catch(_) { return true; }
+        }
+        function setOn(on) {
+          try { localStorage.setItem(STORE_KEY, on ? 'true' : 'false'); } catch(_) {}
+          document.querySelectorAll('.v2-flyto-toggle').forEach(b => {
+            b.setAttribute('aria-pressed', on ? 'true' : 'false');
+          });
+        }
+        function bindButtons() {
+          document.querySelectorAll('.v2-flyto-toggle').forEach(b => {
+            // Sync visual state on every pass (handles dynamic re-injection
+            // when the desktop tab swaps innerHTML).
+            b.setAttribute('aria-pressed', isOn() ? 'true' : 'false');
+            if (b.dataset.flytoBound) return;
+            b.dataset.flytoBound = '1';
+            b.addEventListener('click', (e) => {
+              e.stopPropagation();
+              e.preventDefault();
+              setOn(!isOn());
+            });
+          });
+        }
+        bindButtons();
+        // Re-bind on DOM changes (desktop toggle gets recreated on tab
+        // swap; this catches that without us having to plumb a callback
+        // into every render path).
+        new MutationObserver(bindButtons).observe(document.body, {
+          childList: true, subtree: true,
+        });
+
+        // ‚îÄ‚îÄ Scroll-driven auto-fly ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
+        let flyTimer = null;
+        let lastFlownTitle = null;
+        function findTopVisibleTile(scrollEl) {
+          const cr = scrollEl.getBoundingClientRect();
+          // .grid-item lives inside .inview-section / .nearby-section
+          // sub-containers under the scroll element. Querying by class
+          // directly catches all of them.
+          const tiles = scrollEl.querySelectorAll('.grid-item');
+          for (const t of tiles) {
+            const r = t.getBoundingClientRect();
+            // First tile whose vertical center is below the scroll
+            // container's top edge ‚Äî i.e. the project the user has
+            // scrolled INTO view.
+            if (r.top + r.height / 2 > cr.top + 20) return t;
+          }
+          return null;
+        }
+        function flyToFocusedTile(scrollEl) {
+          if (!isOn()) return;
+          if (!window._tmwMap || typeof window._tmwMap.flyTo !== 'function') return;
+          const tile = findTopVisibleTile(scrollEl);
+          if (!tile) return;
+          const titleEl = tile.querySelector('h3');
+          if (!titleEl) return;
+          const title = (titleEl.textContent || '').trim();
+          if (!title || title === lastFlownTitle) return;
+          const feat = (window.allProjectFeatures || []).find(f => f && f.properties && f.properties.title === title);
+          if (!feat || !feat.geometry || !feat.geometry.coordinates) return;
+          lastFlownTitle = title;
+          const co = feat.geometry.coordinates.slice();
+          const onMobile = window.matchMedia('(max-width: 800px)').matches;
+          // Mobile: collapse the bottom sheet so the map is visible
+          // behind the fly. User can drag/click the capsule to reopen
+          // the discover list and continue browsing.
+          if (onMobile) {
+            document.body.classList.remove('v2-sheet-open', 'v2-sheet-mid', 'v2-sheet-full');
+            if (typeof window.v2CloseSheet === 'function') {
+              try { window.v2CloseSheet(); } catch(_) {}
+            }
+          }
+          const targetZoom = Math.max(window._tmwMap.getZoom() || 4, 13);
+          try {
+            window._tmwMap.flyTo({ center: co, zoom: targetZoom, duration: 1200, essential: true });
+          } catch(_) {}
+        }
+        function scheduleFly(scrollEl) {
+          clearTimeout(flyTimer);
+          // Long enough that scrolling itself doesn't trigger the fly
+          // mid-scroll. User has to stop on a tile before the map
+          // engages. 450ms ‚âà "settled on this project."
+          flyTimer = setTimeout(() => flyToFocusedTile(scrollEl), 450);
+        }
+        function bindScrollContainer(el) {
+          if (!el || el.dataset.flytoScrollBound) return;
+          el.dataset.flytoScrollBound = '1';
+          el.addEventListener('scroll', () => scheduleFly(el), { passive: true });
+        }
+        function bindAllScrollContainers() {
+          // Mobile: the v2 sheet body that hosts the discover tile grid.
+          const mobileSheet = document.querySelector('.v2-sheet-body');
+          if (mobileSheet) bindScrollContainer(mobileSheet);
+          // Desktop: the sidebar content scroll container.
+          const desktopContent = document.querySelector('#desktopSidebar .sidebar-content');
+          if (desktopContent) bindScrollContainer(desktopContent);
+        }
+        bindAllScrollContainers();
+        // Re-bind in case containers are recreated.
+        new MutationObserver(bindAllScrollContainers).observe(document.body, {
+          childList: true, subtree: true,
+        });
+        // Reset the dedupe guard whenever the user switches tabs so a
+        // re-entry to Discover can re-fire fly on the same project.
+        document.body.addEventListener('click', (e) => {
+          if (e.target && e.target.closest && e.target.closest('.v2-tab, .v2-desktop-tabs button')) {
+            lastFlownTitle = null;
+          }
+        }, true);
+      })();
     } // end setup()
 
     if (document.readyState === 'loading') {
