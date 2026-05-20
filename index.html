@@ -6534,8 +6534,11 @@
   }
   .atlas-mode-toggle-btn:hover { color: #fff; }
   .atlas-mode-toggle-btn.active {
-    background: #1FDF67;
+    background: #FFD300;
     color: #0a0a0a;
+    box-shadow:
+      0 0 0 1px rgba(255,211,0,0.45) inset,
+      0 0 14px rgba(255,211,0,0.4);
   }
   @media(max-width:800px) {
     .atlas-mode-toggle {
@@ -7748,8 +7751,14 @@
       cursor: pointer;
     }
     body.ui-v2 .v2-mode-toggle button.active {
-      background: var(--accent, #1FDF67);
+      /* Matches the Fly to Pin switch ‚Äî gold pill with a soft outer
+         halo so the active mode reads as a "glowing" selection. */
+      background: var(--warn, #FFD300);
       color: #0a0a0a;
+      box-shadow:
+        0 0 0 1px rgba(255,211,0,0.45) inset,
+        0 0 14px rgba(255,211,0,0.4);
+      font-weight: 700;
     }
 
     /* ‚îÄ‚îÄ RIGHT-RAIL ACTIONS ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ */
@@ -8921,9 +8930,14 @@
       border-radius: 999px !important;
     }
     body.ui-v2 .atlas-mode-toggle-btn.active {
-      background: var(--accent, #1FDF67) !important;
+      /* Matches the Fly to Pin switch ‚Äî gold pill with a soft outer
+         halo so the active mode reads as a "glowing" selection. */
+      background: var(--warn, #FFD300) !important;
       color: #0a0a0a !important;
       font-weight: 700 !important;
+      box-shadow:
+        0 0 0 1px rgba(255,211,0,0.45) inset,
+        0 0 14px rgba(255,211,0,0.4) !important;
     }
     /* Hide the legacy desktop auth header entirely ‚Äî the mobile-style
        TMW + Login widget below replaces it (the yellow-gradient circle
