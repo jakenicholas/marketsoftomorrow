@@ -3040,6 +3040,24 @@
     #desktopSidebar .featured-badge { top: -2px; left: 0; font-size: 10px; padding: 3px 8px; }
     #desktopSidebar .featured-badge svg { width: 10px; height: 10px; }
     .featured-badge svg { width: 12px; height: 12px; fill: #000; }
+    /* Map popup featured badge ‚Äî shrink it down to match the
+       .pm-featured-pill on the project page (same typography, padding,
+       and border-radius). The popup keeps the original top-left
+       positioning (inline `top:-5px;left:-5px` on the element) and the
+       drop shadow so the chip still floats cleanly off the image. */
+    .popup-content .featured-badge {
+      padding: 3px 8px !important;
+      border-radius: 20px !important;
+      font-size: 9px !important;
+      font-weight: 700 !important;
+      letter-spacing: 0.06em !important;
+      text-transform: uppercase !important;
+      gap: 4px !important;
+      line-height: 1 !important;
+    }
+    .popup-content .featured-badge svg {
+      width: 10px !important; height: 10px !important;
+    }
 
     /* ‚îÄ‚îÄ‚îÄ MISC CONTROLS ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ */
     #desktopSidebar select:focus { outline: none !important; border-color: var(--accent) !important; box-shadow: 0 0 0 3px rgba(31,223,103,0.1) !important; }
@@ -3889,17 +3907,26 @@
   /* Description */
   #projectModal .pm-desc {
     font-size: 13px; color: rgba(255,255,255,0.55);
-    line-height: 1.65; padding: 8px 0 4px;
+    line-height: 1.65; padding: 8px 0 0;
   }
-  /* Stat cards ‚Äî sit immediately under the description / TMW
-     Intelligence block. Less top margin so the gap reads as tight. */
+  /* Stat cards ‚Äî gap above is owned by the TMW Intelligence block's
+     symmetric margin below it (see .pm-intel) so we keep this at 0
+     to avoid double-spacing. When intel is hidden the rule below
+     restores a sensible gap between desc and stats. */
   #projectModal .pm-stats {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: 6px;
-    margin-top: 4px;
+    margin-top: 0;
     margin-bottom: 14px;
     align-items: stretch;
+  }
+  /* When the intel block is hidden, pm-stats follows pm-desc directly --
+     give it the same gap the intel block would have provided so the
+     layout doesn't look cramped on projects without intel data. */
+  #projectModal .pm-intel[hidden] + .pm-div.pm-div-pre-stats + .pm-stats,
+  #projectModal .pm-intel[hidden] + .pm-stats {
+    margin-top: 18px;
   }
   #projectModal .pm-stat {
     background: rgba(255,255,255,0.04);
@@ -4387,7 +4414,9 @@
      from intel.json. Section is hidden via [hidden] when the slug isn't
      present in the intel data (graceful degradation -- no placeholder). */
   #projectModal .pm-intel {
-    margin-top: 6px;
+    /* Symmetric vertical breathing room: equal gap between description
+       above and stat cards below. */
+    margin: 18px 0;
     padding: 18px;
     background: rgba(167,139,250,0.06);
     border: 1px solid rgba(167,139,250,0.18);
@@ -6767,81 +6796,10 @@
     padding: 0 6px; font-size: 11px; color: rgba(255,255,255,0.4);
   }
 
-  /* Pulse rows -- mirrors the Pulse drawer spine + dot design */
-  .atlas-pulse-spine {
-    position: relative;
-    padding: 4px 0 4px 32px;
-  }
-  .atlas-pulse-spine::before {
-    content: '';
-    position: absolute;
-    left: 27px;
-    top: 30px;
-    bottom: 30px;
-    width: 1px;
-    background: linear-gradient(to bottom,
-      rgba(31,223,103,0)   0%,
-      rgba(31,223,103,0.3) 8%,
-      rgba(31,223,103,0.3) 92%,
-      rgba(31,223,103,0)   100%);
-  }
-  .atlas-pulse-row {
-    position: relative;
-    display: flex;
-    align-items: flex-start;
-    gap: 16px;
-    padding: 14px 8px;
-    cursor: pointer;
-    border-radius: 8px;
-    transition: background 0.1s;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
-  }
-  .atlas-pulse-row:last-child { border-bottom: none; }
-  .atlas-pulse-row:hover { background: rgba(255,255,255,0.025); }
-  /* The colored dot on the spine. Sits vertically aligned with the TITLE
-     row (~38px from row top), NOT the meta row above it -- this prevents
-     the dot from visually attaching to the city label. */
-  .atlas-pulse-row::before {
-    content: '';
-    position: absolute;
-    left: -10px;
-    top: 38px;
-    width: 10px; height: 10px;
-    border-radius: 50%;
-    background: #1FDF67;
-    box-shadow: 0 0 0 4px #0a0a0a;
-  }
-  .atlas-pulse-row[data-pulse-type="status_change"]::before { background: #FF9500; }
-  .atlas-pulse-row[data-pulse-type="new_project"]::before  { background: #6FA8FF; }
-  .atlas-pulse-row[data-pulse-type="article"]::before      { background: #1FDF67; }
-  .atlas-pulse-row-content { flex: 1; min-width: 0; }
-  .atlas-pulse-row-meta {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 4px;
-    font-size: 11px;
-    letter-spacing: 0.05em;
-    font-weight: 500;
-    text-transform: uppercase;
-    font-variant-numeric: tabular-nums;
-  }
-  .atlas-pulse-row-time { color: rgba(255,255,255,0.5); }
-  .atlas-pulse-row-city { color: rgba(255,255,255,0.6); }
-  .atlas-pulse-row-title {
-    font-size: 15px;
-    font-weight: 500;
-    color: #fff;
-    margin-bottom: 6px;
-    line-height: 1.3;
-  }
-  .atlas-pulse-row-tag {
-    font-size: 11px;
-    color: rgba(255,255,255,0.45);
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    font-weight: 500;
-  }
+  /* Legacy .atlas-pulse-* styles removed ‚Äî Atlas Overview now reuses
+     the v2 drawer pulse markup (.pulse-ev-wrap inside .v2-pulse-content),
+     so all the existing body.ui-v2 .v2-pulse-content rules style it
+     identically to the drawer. No dedicated atlas pulse CSS needed. */
 
   /* Most-covered projects -- ranked list like the leaderboards */
   .atlas-coverage-row {
@@ -9133,7 +9091,10 @@
     body.ui-v2 #desktopSearchPill { display: none !important; }
     body.ui-v2.v2-sidebar-collapsed #desktopSearchPill { display: flex !important; }
     body.ui-v2 #desktopSidebar {
-      width: 540px !important;
+      /* Match the project modal's width (35% of viewport) so opening a
+         project page sits flush over the sidebar -- no peek-through on
+         smaller laptops, no overhang on big monitors. */
+      width: 35% !important;
       top: 60px !important;
       height: calc(100% - 60px) !important;
       background: rgba(15,15,15,0.96) !important;
@@ -13542,20 +13503,20 @@
         // Desktop in-view bounds: subtract the sidebar from the left
         // edge so "in view" only counts pins the user can actually see.
         // In v1 the sidebar gets .open when expanded (legacy 480px). In
-        // v2 the sidebar is permanently visible at 540px via CSS but
-        // never receives the .open class, so the legacy check would
-        // report sidebarWidth=0 and the in-view list would include
-        // pins hidden behind the drawer. The v2 carve-out below uses
-        // the actual rendered width when available.
+        // v2 the sidebar is permanently visible at 35% of viewport via
+        // CSS but never receives the .open class, so the legacy check
+        // would report sidebarWidth=0 and the in-view list would
+        // include pins hidden behind the drawer. The v2 carve-out
+        // below measures the actual rendered width so it follows any
+        // future width changes automatically.
         const sidebarEl = document.getElementById('desktopSidebar');
         const v2Active = document.body.classList.contains('ui-v2');
         let sidebarWidth = 0;
         if (sidebarEl?.classList.contains('open')) {
           sidebarWidth = 480;
         } else if (v2Active && sidebarEl) {
-          // Use the live measurement so this stays correct if v2's
-          // sidebar width ever changes via CSS.
-          sidebarWidth = sidebarEl.getBoundingClientRect().width || 540;
+          // Live measurement ‚Äî handles the 35vw sizing on any monitor.
+          sidebarWidth = sidebarEl.getBoundingClientRect().width || (window.innerWidth * 0.35);
         }
         const topOffset = 60;
         const topLeft     = map.unproject([sidebarWidth, topOffset]);
@@ -18940,20 +18901,48 @@
     function renderRecentActivity() {
       const events = atlasData.recent_activity || [];
       if (!events.length) return '';
+      // Identical markup + CSS hooks as the v2 drawer pulse so the
+      // existing body.ui-v2 .v2-pulse-content styling applies here.
+      // (Wrapping in .v2-pulse-content > .pulse-spine is what activates
+      // the redesigned dot + spine + colored TYPE label look.)
+      const atlasTagClass = (ev) => {
+        if (ev.type === 'article')     return 'news';
+        if (ev.type === 'new_project') return 'map';
+        return 'update';
+      };
+      const atlasTagLabel = (ev) => {
+        if (ev.type === 'article')     return 'News';
+        if (ev.type === 'new_project') return 'Map';
+        return 'Update';
+      };
+      const sepDot = '<span class="pulse-ev-sep">&middot;</span>';
       const cards = events.slice(0, 10).map(ev => {
         const type = ev.type || 'article';
-        const tagLabel = (ev.tag || (type === 'article' ? 'On TMW' : type === 'new_project' ? 'New on Map' : 'Update')).toUpperCase();
-        const city = (ev.city || '').toUpperCase();
+        const tagCls = atlasTagClass(ev);
+        const tag = ev.tag || atlasTagLabel(ev);
+        const typeLbl = escapeHtml(tag.toUpperCase());
+        const target = type === 'article' ? ' target="_blank" rel="noopener"' : '';
+        const locPart = ev.city
+          ? sepDot + '<span class="pulse-ev-loc">' + escapeHtml(ev.city) + '</span>'
+          : '';
+        const tsPart = ev.ago
+          ? sepDot + '<span class="pulse-ev-ts">' + escapeHtml(ev.ago) + '</span>'
+          : '';
+        // Article rows get the faint external-link icon so the user
+        // knows the tap leaves the map (matches v2 drawer behavior).
+        const extIcon = type === 'article'
+          ? '<svg class="pulse-ev-ext-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="11" height="11" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>'
+          : '';
         return `
-          <div class="atlas-pulse-row" data-pulse-type="${escapeHtml(type)}" data-pulse-slug="${escapeHtml(ev.slug || '')}" data-pulse-link="${escapeHtml(ev.link || '')}">
-            <div class="atlas-pulse-row-content">
-              <div class="atlas-pulse-row-meta">
-                <span class="atlas-pulse-row-time">${escapeHtml(ev.ago || '')}</span>
-                ${city ? `<span class="atlas-pulse-row-city">${escapeHtml(city)}</span>` : ''}
+          <div class="pulse-ev-wrap pulse-ev-type-${tagCls}" data-event-type="${escapeHtml(type)}">
+            <a class="pulse-ev" href="${escapeHtml(ev.link || '#')}"${target} data-event-type="${escapeHtml(type)}">
+              <div class="pulse-ev-tsrow">
+                <span class="pulse-ev-type-lbl">${typeLbl}</span>
+                ${locPart}
+                ${tsPart}
               </div>
-              <div class="atlas-pulse-row-title">${escapeHtml(ev.title || '')}</div>
-              <div class="atlas-pulse-row-tag">${escapeHtml(tagLabel)}</div>
-            </div>
+              <div class="pulse-ev-title">${escapeHtml(ev.title || '')}${extIcon}</div>
+            </a>
           </div>`;
       }).join('');
       return `
@@ -18965,8 +18954,8 @@
             </div>
             <a href="#" class="atlas-section-link" id="atlasViewPulseLink">Open Pulse ‚Üí</a>
           </div>
-          <div class="atlas-pulse-spine">
-            ${cards}
+          <div class="v2-pulse-content">
+            <div class="pulse-spine">${cards}</div>
           </div>
         </section>`;
     }
@@ -19494,13 +19483,31 @@
           }
         });
       }
-      // Pulse rows: clicking opens the actual Pulse drawer (NOT deep-link or new tab)
-      document.querySelectorAll('.atlas-pulse-row').forEach(row => {
-        row.addEventListener('click', function() {
+      // Pulse rows: behave like the v2 drawer pulse ‚Äî News (articles)
+      // open in a new tab; Add / Update events close atlas mode and
+      // deep-link to the project so the user lands on the new pin.
+      document.querySelectorAll('.atlas-overlay a.pulse-ev').forEach(row => {
+        row.addEventListener('click', function(ev) {
+          const t = this.getAttribute('data-event-type');
+          if (t === 'article') return; // let the browser open the new tab
+          ev.preventDefault();
+          const href = this.getAttribute('href') || '';
+          let slug = '';
+          try {
+            const u = new URL(href, window.location.href);
+            slug = u.searchParams.get('project') || '';
+          } catch (err) {}
+          if (!slug) return;
+          try {
+            history.pushState({ project: slug }, '', '?project=' + encodeURIComponent(slug));
+          } catch (err) {}
           setAtlasMode(false);
-          // Open the Pulse drawer after a tick (lets atlas-mode class clear first)
-          const bell = document.getElementById('pulseBellBtn');
-          if (bell) setTimeout(() => bell.click(), 100);
+          // handleDeepLink reads the URL ?project= param and flies +
+          // opens the project modal. Defer one frame so atlas-mode
+          // class has cleared first.
+          if (typeof window.handleDeepLink === 'function') {
+            setTimeout(() => window.handleDeepLink(), 100);
+          }
         });
       });
       // "Open Pulse" link: same behavior -- close atlas, open pulse drawer
