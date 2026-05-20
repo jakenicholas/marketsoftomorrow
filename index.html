@@ -7413,12 +7413,15 @@
     border-color: rgba(255,255,255,0.2) !important;
     background: rgba(255,255,255,0.06) !important;
   }
-  /* Container padding mirrors #gridMobile / #gridDesktop's 0 16px 16px
-     so tiles span the same width on both surfaces. The legacy .wl-body
-     used 8px 12px 16px which made watchlist tiles 8px wider on each
-     side than Discover. */
+  /* Drop the legacy .wl-body padding (was 8px 12px 16px) so the tiles
+     inherit the gutter from the surrounding container, exactly the
+     way #gridMobile lives inside .v2-sheet-body's 14px gutter and
+     #gridDesktop carries its own 16px gutter. The desktop scope
+     re-adds 16px horizontal via a more-specific selector below so
+     desktop tiles still line up with #gridDesktop. Mobile relies on
+     .v2-sheet-body's 14px outer padding. */
   body.ui-v2 .v2-watchlist-content .wl-body {
-    padding: 0 16px 16px !important;
+    padding: 0 0 16px !important;
   }
   body.ui-v2 .v2-watchlist-content .wl-row-thumb {
     width: 100% !important;
@@ -9265,13 +9268,27 @@
       padding: 0 !important;
     }
     body.ui-v2 #desktopSidebar .v2-desktop-pane[hidden] { display: none !important; }
-    /* Inner watchlist body has its own scrollable padding ‚Äî strip it on
-       desktop so the wl-row cards span the same width as the gridDesktop
-       tiles, with no nested padding inset. */
+    /* Inner watchlist containers ‚Äî strip ALL padding from every
+       intermediate layer so the .wl-body padding (set in the cross-
+       surface block above) is the only source of horizontal inset.
+       Otherwise multiple containers stack their own gutters and the
+       tiles end up much narrower than #gridDesktop's tiles. */
+    body.ui-v2 #desktopSidebar .v2-watchlist-content #watchlistPanel {
+      padding: 0 !important;
+      margin: 0 !important;
+    }
+    /* The .wl-body owns the 16px horizontal padding so it matches the
+       #gridDesktop inline padding pixel-for-pixel. */
     body.ui-v2 #desktopSidebar .v2-watchlist-content .wl-body,
     body.ui-v2 #desktopSidebar .v2-watchlist-content #watchlistBody {
-      padding: 0 !important;
+      padding: 0 16px 16px !important;
       background: transparent !important;
+    }
+    /* The outer .v2-desktop-pane wrapper already adds its own 16px
+       horizontal padding (line ~9249) ‚Äî null it for watchlist so the
+       .wl-body inset isn't compounded. */
+    body.ui-v2 #desktopSidebar .v2-desktop-pane.v2-watchlist-content {
+      padding: 0 !important;
     }
 
     /* Desktop watchlist tiles match the Discover .grid-item layout ‚Äî
