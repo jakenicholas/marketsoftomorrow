@@ -28,7 +28,7 @@
     border: 1px solid var(--line);
     border-radius: 16px;
     overflow: hidden;
-    max-width: 640px;
+    width: 100%;
     margin: 0 auto;
   }
   .lb-head {
@@ -69,11 +69,10 @@
   }
   .lb-list {
     list-style: none; margin: 0; padding: 0;
-    min-height: 360px;
   }
   .lb-list li {
     display: grid;
-    grid-template-columns: 32px 1fr auto;
+    grid-template-columns: 32px 1fr auto auto;
     gap: 14px;
     align-items: center;
     padding: 12px 22px;
@@ -99,6 +98,16 @@
     text-overflow: ellipsis;
     white-space: nowrap;
   }
+  .lb-list .delta {
+    font-size: 11px; font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    min-width: 44px;
+    color: var(--text-dim);
+    letter-spacing: 0.02em;
+  }
+  .lb-list .delta.up { color: var(--accent); }
+  .lb-list .delta.flat { color: var(--text-dim); }
   .lb-list .count {
     font-size: 14px; font-weight: 800;
     color: var(--text);
@@ -174,7 +183,7 @@
 (function () {
   var DATA_URL = 'https://map.oftmw.com/projects-flat.json';
   var MAP_URL  = 'https://map.oftmw.com';
-  var TOP_N = 10;
+  var TOP_N = 5;
 
   var listEl  = document.getElementById('lbList');
   var countEl = document.getElementById('lbCount');
@@ -212,27 +221,44 @@
       .filter(Boolean);
   }
 
+  // "Pipeline" status ‚Äî future-leaning projects that signal momentum.
+  var PIPELINE_STATUSES = ['announced', 'breaking ground'];
+  function isPipeline(p) {
+    return PIPELINE_STATUSES.indexOf(String(p.Delivery || '').trim().toLowerCase()) !== -1;
+  }
+
   function tally(projects, type) {
     var counts = {};
+    var pipeline = {};
+    function bump(bucket, key) { bucket[key] = (bucket[key] || 0) + 1; }
+
     projects.forEach(function (p) {
+      var inPipe = isPipeline(p);
       if (type === 'cities') {
         var city = (p.City || '').trim();
         if (!city) return;
-        counts[city] = (counts[city] || 0) + 1;
+        bump(counts, city);
+        if (inPipe) bump(pipeline, city);
       } else if (type === 'developers') {
         splitFirms(p.Developer).forEach(function (name) {
           if (name.toLowerCase() === 'various') return;
-          counts[name] = (counts[name] || 0) + 1;
+          bump(counts, name);
+          if (inPipe) bump(pipeline, name);
         });
       } else if (type === 'architects') {
         splitFirms(p.Architect).forEach(function (name) {
-          counts[name] = (counts[name] || 0) + 1;
+          bump(counts, name);
+          if (inPipe) bump(pipeline, name);
         });
       }
     });
     return Object.keys(counts)
-      .map(function (k) { return { name: k, count: counts[k] }; })
-      .sort(function (a, b) { return b.count - a.count || a.name.localeCompare(b.name); })
+      .map(function (k) { return { name: k, count: counts[k], delta: pipeline[k] || 0 }; })
+      .sort(function (a, b) {
+        return b.count - a.count
+          || b.delta - a.delta
+          || a.name.localeCompare(b.name);
+      })
       .slice(0, TOP_N);
   }
 
@@ -245,9 +271,9 @@
     var rows = tally(state.projects, state.tab);
     var clickable = state.tab === 'cities';
     var labelMap = {
-      cities: 'Total projects tracked',
-      developers: 'Active project count',
-      architects: 'Active project count'
+      cities: 'Total tracked ¬∑ ‚Üë = announced / breaking ground',
+      developers: 'Total tracked ¬∑ ‚Üë = announced / breaking ground',
+      architects: 'Total tracked ¬∑ ‚Üë = announced / breaking ground'
     };
     footEl.textContent = labelMap[state.tab];
 
@@ -259,9 +285,12 @@
     listEl.innerHTML = rows.map(function (row, i) {
       var rank = String(i + 1).padStart(2, '0');
       var topClass = i < 3 ? ' top' : '';
+      var deltaClass = row.delta > 0 ? 'up' : 'flat';
+      var deltaText = row.delta > 0 ? ('+' + row.delta + ' ‚Üë') : '‚Äî';
       var inner =
         '<span class="rank">' + rank + '</span>' +
         '<span class="name">' + escapeHtml(row.name) + '</span>' +
+        '<span class="delta ' + deltaClass + '">' + deltaText + '</span>' +
         '<span class="count">' + row.count + '<small>projects</small></span>';
       if (clickable) {
         return '<li class="lb-list-item' + topClass + '">' +
@@ -288,16 +317,30 @@
     });
   });
 
+  // Post height to parent so Wix (or any iframe host) can auto-size.
+  function postHeight() {
+    try {
+      var h = Math.ceil(document.documentElement.getBoundingClientRect().height);
+      window.parent.postMessage({ type: 'tmw-widget-height', id: 'leaderboard', height: h }, '*');
+    } catch (e) {}
+  }
+  var resizeObs = (typeof ResizeObserver !== 'undefined') ? new ResizeObserver(postHeight) : null;
+  if (resizeObs) resizeObs.observe(document.documentElement);
+  window.addEventListener('load', postHeight);
+  window.addEventListener('resize', postHeight);
+
   fetch(DATA_URL, { cache: 'no-store' })
     .then(function (r) { return r.json(); })
     .then(function (data) {
       state.projects = Array.isArray(data) ? data : [];
       countEl.textContent = state.projects.length + ' projects tracked';
       render();
+      postHeight();
     })
     .catch(function () {
       listEl.innerHTML = '<li class="lb-loading">Could not load data. Try again later.</li>';
       countEl.textContent = '';
+      postHeight();
     });
 })();
 </script>
