@@ -9272,10 +9272,40 @@
        intermediate layer so the .wl-body padding (set in the cross-
        surface block above) is the only source of horizontal inset.
        Otherwise multiple containers stack their own gutters and the
-       tiles end up much narrower than #gridDesktop's tiles. */
+       tiles end up much narrower than #gridDesktop's tiles.
+
+       The legacy #watchlistPanel CSS (line ~2129) sets max-width:480px,
+       a dark gradient background, and position:fixed because it was
+       designed as a standalone left drawer. Those rules win on
+       desktop because the v2 "naturalize" override at line ~8532 is
+       trapped inside @media(max-width:800px). Re-applying every one
+       of those overrides here so the panel becomes a transparent,
+       in-flow, full-width container inside the v2 sidebar. */
     body.ui-v2 #desktopSidebar .v2-watchlist-content #watchlistPanel {
+      position: static !important;
+      display: block !important;
+      visibility: visible !important;
+      width: 100% !important;
+      min-width: 0 !important;
+      max-width: none !important;
+      height: auto !important;
+      max-height: none !important;
+      top: auto !important;
+      left: auto !important;
+      right: auto !important;
+      bottom: auto !important;
+      transform: none !important;
+      background: transparent !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+      border: none !important;
+      border-right: none !important;
+      border-radius: 0 !important;
+      box-shadow: none !important;
       padding: 0 !important;
       margin: 0 !important;
+      overflow: visible !important;
+      z-index: auto !important;
     }
     /* The .wl-body owns the 16px horizontal padding so it matches the
        #gridDesktop inline padding pixel-for-pixel. */
