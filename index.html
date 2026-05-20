@@ -4106,18 +4106,21 @@
   @media (max-width: 700px) {
     .firm-sheet { left: 0; right: 0; top: 72px; border-radius: 18px 18px 0 0; }
   }
-  /* v2 mobile: match the project modal exactly ‚Äî top: 60px + safe area,
-     bottom: 0, rounded top corners, soft top shadow, and the same
-     glassy background as the v2 drawer behind it so the two visually
-     read as a single surface. Lives "inside" the mobile drawer
-     position so the TMW chrome stays visible above. */
+  /* v2 mobile: match the project modal + the v2 drawer exactly so the
+     firm sheet reads as embedded inside the drawer, not as a separate
+     overlay. Same top:60px+safe, same 24px rounded top corners, same
+     thin gray top border, same -8px top shadow, same glassy background. */
   @media (max-width: 800px) {
     body.ui-v2 #firmSheet {
       top: calc(env(safe-area-inset-top, 0px) + 60px) !important;
       left: 0 !important;
       right: 0 !important;
       bottom: 0 !important;
+      /* Thin 1px gray border across the top (matches .v2-sheet) plus
+         no border on the sides/bottom so it reads as a sheet, not a
+         floating card. */
       border: none !important;
+      border-top: 1px solid rgba(255,255,255,0.08) !important;
       border-radius: 24px 24px 0 0 !important;
       box-shadow: 0 -8px 32px rgba(0,0,0,0.4) !important;
       background: rgba(20,20,20,0.96) !important;
@@ -8343,7 +8346,10 @@
 
     /* ‚îÄ‚îÄ Search overlay (Discover smart search results) ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ */
     body.ui-v2 .v2-search-overlay {
-      background: rgba(20,20,20,0.96);
+      /* Transparent so the drawer's own glassy bg shows through ‚Äî
+         previously this had its own rgba(20,20,20,0.96) which painted
+         a visibly darker rectangle inside the lighter drawer. */
+      background: transparent;
       padding: 0 0 8px;
     }
     body.ui-v2 .v2-search-group {
@@ -19379,10 +19385,14 @@
       // Button is hidden ONLY when there's nothing to expand. Otherwise it
       // toggles between "Show all" and "Show less" depending on showAll state.
       btn.hidden = !hasOverflow;
+      // Unicode escapes for the arrows (‚Üë up, ‚Üì down) so
+      // Cloudflare's encoding pipeline doesn't mangle them to mojibake
+      // ("√ú√¨", "√É√¨", etc.) ‚Äî the literal ‚Üë / ‚Üì characters round-trip
+      // poorly through the CDN.
       if (lbState[key].showAll) {
-        btn.textContent = 'Show less ‚Üë';
+        btn.textContent = 'Show less \u2191';
       } else {
-        btn.textContent = `Show all (${data.length - topN} more) ‚Üì`;
+        btn.textContent = `Show all (${data.length - topN} more) \u2193`;
       }
     }
 
@@ -19642,7 +19652,7 @@
               <h2>What's opening next.</h2>
               <p>Every project in the TMW pipeline, ordered by delivery date.</p>
             </div>
-            <div class="atlas-tl-empty">Pipeline still loading‚Ä¶</div>
+            <div class="atlas-tl-empty">Pipeline still loading&hellip;</div>
           </section>`;
       }
 
@@ -20191,9 +20201,9 @@
         return m[2] ? `${months[+m[2]-1] || m[2]} ${m[1]}` : m[1];
       }
       function fmtThousands(n) {
-        if (n == null || n === '' || n === 0) return '‚Äî';
+        if (n == null || n === '' || n === 0) return '\u2014';
         const num = parseInt(n, 10);
-        return isNaN(num) ? '‚Äî' : num.toLocaleString();
+        return isNaN(num) ? '\u2014' : num.toLocaleString();
       }
       function esc(s) { return (s == null ? '' : String(s))
         .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
@@ -20296,7 +20306,7 @@
       }
 
       function renderStats(s) {
-        const avgStr = s.avg !== null ? s.avg.toFixed(1) + ' yr' : '‚Äî';
+        const avgStr = s.avg !== null ? s.avg.toFixed(1) + ' yr' : '\u2014';
         const avgSub = s.durationSample > 0
           ? `from ${s.durationSample} project${s.durationSample === 1 ? '' : 's'} with start + delivery dates`
           : 'Need more start-date data';
