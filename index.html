@@ -3732,6 +3732,14 @@
     padding: 12px 14px; z-index: 5;
     pointer-events: none;
   }
+  /* Desktop: drop the X close + View on Map a little lower from the
+     top of the hero image so they don't crowd the rounded modal
+     corner. Mobile keeps the tighter 12px because vertical space
+     matters more on the small viewport. */
+  @media (min-width: 801px) {
+    #projectModal .pm-topbar { padding: 22px 18px; }
+    #projectModal .pm-viewmap-btn { top: 22px; right: 18px; }
+  }
   #projectModal .pm-icon-btn {
     width: 32px; height: 32px; border-radius: 50%;
     background: rgba(0,0,0,0.5);
@@ -7380,16 +7388,28 @@
     display: flex !important;
     flex-direction: column !important;
     align-items: stretch !important;
-    background: #1f1f1f !important;
+    /* Match Discover tile background + border so the two surfaces
+       look pixel-identical (was solid #1f1f1f which read darker
+       than Discover's translucent rgba). */
+    background: rgba(255,255,255,0.04) !important;
     border: 1px solid rgba(255,255,255,0.08) !important;
     border-radius: 14px !important;
     margin-bottom: 10px !important;
     overflow: hidden !important;
     position: relative !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
   }
   body.ui-v2 .v2-watchlist-content .wl-row:hover {
     border-color: rgba(255,255,255,0.2) !important;
-    background: #232323 !important;
+    background: rgba(255,255,255,0.06) !important;
+  }
+  /* Container padding mirrors #gridMobile / #gridDesktop's 0 16px 16px
+     so tiles span the same width on both surfaces. The legacy .wl-body
+     used 8px 12px 16px which made watchlist tiles 8px wider on each
+     side than Discover. */
+  body.ui-v2 .v2-watchlist-content .wl-body {
+    padding: 0 16px 16px !important;
   }
   body.ui-v2 .v2-watchlist-content .wl-row-thumb {
     width: 100% !important;
@@ -8725,6 +8745,10 @@
     white-space: nowrap;
     line-height: 1;
   }
+  /* Honor the [hidden] attribute set by switchTab() when Watchlist
+     or Pulse tabs are active ‚Äî the inline-flex above would otherwise
+     beat the default [hidden] { display: none } rule. */
+  body.ui-v2 .v2-flyto-toggle[hidden] { display: none !important; }
   body.ui-v2 .v2-flyto-toggle .v2-flyto-label {
     font-size: 11px;
     font-weight: 700;
@@ -21736,14 +21760,20 @@
         const meta = (TITLES[id] || (() => ({ ttl: '', sub: '' })))();
         if (ttlEl) ttlEl.textContent = meta.ttl;
         if (subEl) subEl.textContent = meta.sub;
-        // Right-side slot: Discover shows the section indicator,
-        // Watchlist/Pulse show the subtitle.
+        // Right-side slot: Discover shows the Fly-to-Pin switch,
+        // Watchlist/Pulse show the subtitle ("8 projects ¬∑ 2 unread"
+        // / "50 updates this week"). The legacy #v2SectionIndicator
+        // is no longer in the markup, but the lookup is kept for
+        // backward-compat with any cached page that still has it.
         const indicator = document.getElementById('v2SectionIndicator');
+        const flytoToggle = document.getElementById('v2FlyToToggle');
         if (id === 'discover') {
           if (indicator) indicator.hidden = false;
+          if (flytoToggle) flytoToggle.hidden = false;
           if (subEl) subEl.hidden = true;
         } else {
           if (indicator) indicator.hidden = true;
+          if (flytoToggle) flytoToggle.hidden = true;
           if (subEl) subEl.hidden = false;
         }
         renderFilterPills(id);
