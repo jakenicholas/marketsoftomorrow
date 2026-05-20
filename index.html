@@ -6679,8 +6679,18 @@
   }
   .atlas-section-title { font-size: 22px; font-weight: 600; letter-spacing: -0.015em; color: #fff; margin: 0; }
   .atlas-section-sub { color: rgba(255,255,255,0.55); font-size: 13px; margin-top: 4px; }
-  .atlas-section-link { color: #1FDF67; text-decoration: none; font-size: 13px; font-weight: 500; }
+  .atlas-section-link {
+    color: #1FDF67; text-decoration: none;
+    font-size: 13px; font-weight: 500;
+    display: inline-flex; align-items: center; gap: 4px;
+  }
   .atlas-section-link:hover { text-decoration: underline; }
+  .atlas-section-link-arrow,
+  .wl-upgrade-arrow {
+    width: 13px; height: 13px;
+    flex-shrink: 0;
+    vertical-align: middle;
+  }
 
   .atlas-lb-wrap {
     background: rgba(255,255,255,0.03);
@@ -7388,6 +7398,15 @@
     border-radius: 0 !important;
     flex-shrink: 0 !important;
     background-color: #2a2a2a !important;
+    position: relative !important;
+    overflow: hidden !important;
+  }
+  body.ui-v2 .v2-watchlist-content .wl-row-thumb img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    display: block !important;
+    border-radius: 0 !important;
   }
   body.ui-v2 .v2-watchlist-content .wl-row-body {
     flex: 1 0 auto !important;
@@ -8570,10 +8589,25 @@
     body.ui-v2 .v2-pulse-content .pulse-ev-wrap::before {
       content: '';
       position: absolute;
-      left: 16px; top: 22px;
-      width: 4px; height: 4px;
+      /* Vertical-center the dot in the row instead of a fixed top
+         offset, so it stays aligned regardless of title wrapping
+         (1-line vs 2-line titles both look balanced). */
+      left: 16px; top: 50%;
+      transform: translateY(-50%);
+      width: 6px; height: 6px;
       border-radius: 50%;
       background: rgba(255,255,255,0.3);
+    }
+    /* Hover fills the entire row (including the padding strip) instead
+       of just the inner anchor area ‚Äî the legacy .pulse-ev:hover only
+       covered the content box, leaving the left/right padding strips
+       unhighlighted. Override that here so the hover affordance reads
+       as a full-bleed strip. */
+    body.ui-v2 .v2-pulse-content .pulse-ev-wrap:hover {
+      background: rgba(255,255,255,0.04) !important;
+    }
+    body.ui-v2 .v2-pulse-content .pulse-ev:hover {
+      background: transparent !important;
     }
     body.ui-v2 .v2-pulse-content .pulse-ev-wrap[data-event-type="status_change"]::before { background: var(--orange, #FF9500); box-shadow: 0 0 0 3px rgba(255,149,0,0.18); }
     body.ui-v2 .v2-pulse-content .pulse-ev-wrap[data-event-type="article"]::before      { background: var(--accent, #1FDF67); box-shadow: 0 0 0 3px rgba(31,223,103,0.18); }
@@ -8613,7 +8647,10 @@
     body.ui-v2 .v2-pulse-content .pulse-ev-ext-icon {
       display: inline-block;
       vertical-align: -1px;
-      margin-left: 6px;
+      /* More breathing room between the title text and the external-
+         link glyph so it reads as a separate affordance, not as part
+         of the title word. */
+      margin-left: 10px;
       color: rgba(255,255,255,0.35);
       stroke: currentColor;
     }
@@ -9211,9 +9248,12 @@
        this block as a no-op for backward-compat but rely on the global
        rules to do the actual styling. */
     body.ui-v2 #desktopSidebar .v2-watchlist-content .wl-row { position: relative !important; }
+    /* Match the Discover tile's 240px image-wrapper height on desktop
+       so watchlist + discover tiles look identical now that the
+       sidebar is 35vw (was 540px). */
     body.ui-v2 #desktopSidebar .v2-watchlist-content .wl-row-thumb {
-      height: 220px !important;
-      min-height: 220px !important;
+      height: 240px !important;
+      min-height: 240px !important;
     }
 
     /* The "naturalize legacy panel" rules at line ~8420 live inside the
@@ -10073,7 +10113,7 @@
       <div class="wl-upgrade-card" id="watchlistUpgradeCard" hidden>
         <div class="wl-upgrade-card-title">You're at your watchlist limit</div>
         <div class="wl-upgrade-card-body">Upgrade to TMW Plus for unlimited tracking + push notifications.</div>
-        <button type="button" class="wl-upgrade-card-btn" id="watchlistUpgradeBtn">Upgrade <span aria-hidden="true">‚Üí</span></button>
+        <button type="button" class="wl-upgrade-card-btn" id="watchlistUpgradeBtn">Upgrade <svg class="wl-upgrade-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button>
       </div>
     </aside>
 
@@ -10786,6 +10826,30 @@
     } else {
       syncDrawerStateToBody();
     }
+
+    // ‚îÄ‚îÄ HTML entity decode helper (mojibake one-time fix) ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
+    // The admin's CSV ‚Üí JSON export bakes some characters in as their
+    // numeric HTML entities ("&" ‚Üí "&#38;", "‚Äî" ‚Üí "&#8212;", etc.). When
+    // those strings hit our escapeHtml() the leading `&` gets re-escaped,
+    // producing visible mojibake like "R&#38;B" in titles. Decoding
+    // first restores the intended characters; escapeHtml then re-escapes
+    // anything that needs escaping for safe HTML insertion. Used by
+    // every escapeHtml() variant in the file (search "decodeEntitiesOnce").
+    window.decodeEntitiesOnce = function decodeEntitiesOnce(s) {
+      if (s == null) return '';
+      return String(s)
+        .replace(/&#(\d+);/g, function (m, c) {
+          return String.fromCharCode(parseInt(c, 10));
+        })
+        .replace(/&#x([0-9a-fA-F]+);/g, function (m, c) {
+          return String.fromCharCode(parseInt(c, 16));
+        })
+        .replace(/&apos;/g, "'")
+        .replace(/&quot;/g, '"')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&amp;/g, '&');
+    };
 
     window.addEventListener('load', () => {
       setAppHeight(); detectMobileToolbar();
@@ -17206,7 +17270,11 @@
         }
 
         function escapeHtml(s) {
-          return String(s || '').replace(/[&<>"']/g, ch => ({
+          // Decode pre-escaped entities from source data first (see
+          // window.decodeEntitiesOnce comment) so "&#38;" ‚Üí "&" ‚Üí "&amp;"
+          // instead of the visible mojibake "&amp;#38;".
+          const decoded = window.decodeEntitiesOnce ? window.decodeEntitiesOnce(s) : String(s || '');
+          return decoded.replace(/[&<>"']/g, ch => ({
             '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
           }[ch]));
         }
@@ -17250,6 +17318,11 @@
               title: props.title || '',
               city: props.city || '',
               image: props.image || '',
+              // Full image set so the tile can run the same prev/next
+              // gallery the Discover tiles do (decorateWatchlistTiles
+              // reads this array and injects arrows + dots).
+              images: [props.image, props.image2, props.image3, props.image4, props.image5]
+                .filter(Boolean),
               delivery: props.delivery || '',
               // Specific delivery date (e.g. "Q4 2026", "Spring 2027") for
               // the meta line. Falls back to delivery year derived from
@@ -17372,8 +17445,16 @@
               </div>
             `;
           }
-          const thumbStyle = row.image
-            ? `background-image:url('${escapeHtml(row.image)}');`
+          // Build the thumb as an <img> (not background-image) so the
+          // shared gallery code can swap the src on prev/next clicks.
+          // Data-* attributes carry the full image set so the
+          // decorator can read them without holding a JS closure.
+          const galleryImages = Array.isArray(row.images) && row.images.length
+            ? row.images
+            : (row.image ? [row.image] : []);
+          const firstImg = galleryImages[0] || '';
+          const imagesAttr = galleryImages.length > 1
+            ? ` data-wl-images="${escapeHtml(galleryImages.join('|'))}"`
             : '';
           // Footer used to contradict itself: the row's update line shows the
           // most recent activity, while the footer claimed "No new updates"
@@ -17389,8 +17470,8 @@
             ? `Delivery ${year}`
             : (row.lastViewedTs ? `Viewed ${timeAgo(row.lastViewedTs)}` : '');
           return `
-            <div class="wl-row${hasUnread ? ' has-unread' : ''}" data-slug="${escapeHtml(row.slug)}" data-wl-delivery="${escapeHtml((row.delivery || '').toLowerCase())}" data-wl-unread="${hasUnread ? 'true' : 'false'}" data-wl-unread-count="${row.unreadCount || 0}">
-              <div class="wl-row-thumb" style="${thumbStyle}"></div>
+            <div class="wl-row${hasUnread ? ' has-unread' : ''}" data-slug="${escapeHtml(row.slug)}" data-wl-delivery="${escapeHtml((row.delivery || '').toLowerCase())}" data-wl-unread="${hasUnread ? 'true' : 'false'}" data-wl-unread-count="${row.unreadCount || 0}"${imagesAttr}>
+              <div class="wl-row-thumb">${firstImg ? `<img src="${escapeHtml(firstImg)}" alt="" loading="lazy" />` : ''}</div>
               <div class="wl-row-body">
                 <div class="wl-row-title">${escapeHtml(row.title)}</div>
                 <div class="wl-row-meta">
@@ -17493,8 +17574,73 @@
           }
           const sorted = sortRows(rows, currentSort);
           bodyEl.innerHTML = sorted.map(rowHtml).join('');
+          // Wire up the multi-image gallery on rows that carry more
+          // than one image ‚Äî matches the Discover tile behavior.
+          decorateWatchlistTiles(bodyEl);
         }
         window.renderWatchlist = render;
+
+        // ‚îÄ‚îÄ Watchlist gallery (mirrors decorateTiles for Discover) ‚îÄ‚îÄ
+        // Each .wl-row with data-wl-images="a|b|c" gets prev/next
+        // arrow buttons + a row of dots overlaid on its thumb. Clicks
+        // swap the visible <img> src and bump the active dot. Skipped
+        // for rows with only one image (the data-wl-images attr is
+        // omitted in rowHtml in that case).
+        function decorateWatchlistTiles(root) {
+          if (!root) return;
+          const rows = root.querySelectorAll('.wl-row[data-wl-images]');
+          rows.forEach(row => {
+            if (row.querySelector('.v2-gallery-arrow')) return; // already decorated
+            const thumb = row.querySelector('.wl-row-thumb');
+            const imgEl = thumb && thumb.querySelector('img');
+            const raw = row.getAttribute('data-wl-images') || '';
+            const images = raw.split('|').filter(Boolean);
+            if (!thumb || !imgEl || images.length <= 1) return;
+            let idx = 0;
+            // Preload all images so swaps are instantaneous.
+            const preloaders = images.map(src => {
+              const p = new Image();
+              p.src = src;
+              return p;
+            });
+            const prev = document.createElement('button');
+            prev.className = 'v2-gallery-arrow prev';
+            prev.setAttribute('aria-label', 'Previous image');
+            prev.innerHTML = '<svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>';
+            const next = document.createElement('button');
+            next.className = 'v2-gallery-arrow next';
+            next.setAttribute('aria-label', 'Next image');
+            next.innerHTML = '<svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>';
+            const dots = document.createElement('div');
+            dots.className = 'v2-gallery-dots';
+            images.forEach((_, i) => {
+              const dot = document.createElement('div');
+              dot.className = 'v2-gallery-dot' + (i === 0 ? ' active' : '');
+              dots.appendChild(dot);
+            });
+            const swap = (newIdx) => {
+              idx = (newIdx + images.length) % images.length;
+              imgEl.src = images[idx];
+              Array.from(dots.children).forEach((d, i) => d.classList.toggle('active', i === idx));
+            };
+            const wireArrow = (btn, dir) => {
+              btn.addEventListener('pointerdown', (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                swap(idx + dir);
+              });
+              btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+              });
+            };
+            wireArrow(prev, -1);
+            wireArrow(next, 1);
+            thumb.appendChild(prev);
+            thumb.appendChild(next);
+            thumb.appendChild(dots);
+          });
+        }
 
         function openPanel() {
           if (!panel) return;
@@ -18019,7 +18165,11 @@
     }
 
     function escapeHtml(s) {
-      return (s == null ? '' : String(s)).replace(/[&<>"']/g, function (c) {
+      // Decode pre-escaped entities from source data first (see
+      // window.decodeEntitiesOnce comment) so "&#38;" ‚Üí "&" ‚Üí "&amp;"
+      // instead of the visible mojibake "&amp;#38;".
+      var decoded = window.decodeEntitiesOnce ? window.decodeEntitiesOnce(s) : (s == null ? '' : String(s));
+      return decoded.replace(/[&<>"']/g, function (c) {
         return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
       });
     }
@@ -18697,8 +18847,11 @@
     function isMobileNow() { return window.matchMedia('(max-width: 800px)').matches; }
 
     function escapeHtml(s) {
-      if (s == null) return '';
-      return String(s)
+      // Decode pre-escaped entities from source data first (see
+      // window.decodeEntitiesOnce comment) so "&#38;" ‚Üí "&" ‚Üí "&amp;"
+      // instead of the visible mojibake "&amp;#38;".
+      const decoded = window.decodeEntitiesOnce ? window.decodeEntitiesOnce(s) : (s == null ? '' : String(s));
+      return decoded
         .replace(/&/g, '&amp;')
         .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;')
@@ -18952,7 +19105,7 @@
               <h2 class="atlas-section-title">This week on the map</h2>
               <p class="atlas-section-sub">Latest additions, status changes, and TMW coverage.</p>
             </div>
-            <a href="#" class="atlas-section-link" id="atlasViewPulseLink">Open Pulse ‚Üí</a>
+            <a href="#" class="atlas-section-link" id="atlasViewPulseLink">Open Pulse <svg class="atlas-section-link-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
           </div>
           <div class="v2-pulse-content">
             <div class="pulse-spine">${cards}</div>
@@ -20272,6 +20425,18 @@
         grid.style.setProperty('display', 'none', 'important');
         return;
       }
+      // Tab gate: if Watchlist or Pulse is the active tab, the grid
+      // must stay hidden (showDesktopTab sets it to display:none).
+      // Without this gate, the MutationObserver that re-runs this
+      // function on every grid mutation (e.g. map pan ‚Üí renderGrid
+      // rebuilds tiles) would snap gridDesktop back to display:flex
+      // and the active pulse/watchlist pane would visually disappear.
+      const activeTab = document.querySelector('.v2-desktop-tabs button.active:not(#v2DesktopSearchTab)');
+      const activeTabName = activeTab && activeTab.dataset.v2dTab;
+      if (activeTabName === 'pulse' || activeTabName === 'watchlist') {
+        grid.style.setProperty('display', 'none', 'important');
+        return;
+      }
       // gridDesktop is a flex column that stacks .inview-section /
       // .nearby-section (each is its own 2-col grid of tiles). The CSS
       // covers everything; we just clear any stale inline grid-template
@@ -20342,7 +20507,11 @@
 
       const bodyEl  = overlay.querySelector('#v2DsoBody');
 
-      function escapeHtml(s) { return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]); }
+      function escapeHtml(s) {
+        // Decode pre-escaped source entities first (see window.decodeEntitiesOnce)
+        const decoded = window.decodeEntitiesOnce ? window.decodeEntitiesOnce(s) : (s || '');
+        return decoded.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+      }
       function highlight(text, query) {
         if (!query) return escapeHtml(text);
         const q = query.toLowerCase();
