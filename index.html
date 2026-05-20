@@ -7328,10 +7328,13 @@
 
   /* ‚îÄ‚îÄ Tile image gallery (cross-surface) ‚Äî prev/next arrows + dots.
      The decorateTiles() function injects these into both #gridMobile and
-     #gridDesktop tiles when a project has multiple images. Rules live
-     outside any media query so they apply on both surfaces. */
+     #gridDesktop tiles when a project has multiple images. The watchlist
+     uses the same arrows/dots inside .wl-row-thumb via
+     decorateWatchlistTiles(). Rules live outside any media query so
+     they apply on both surfaces. */
   body.ui-v2 #gridMobile .grid-item .v2-gallery-arrow,
-  body.ui-v2 #gridDesktop .grid-item .v2-gallery-arrow {
+  body.ui-v2 #gridDesktop .grid-item .v2-gallery-arrow,
+  body.ui-v2 .v2-watchlist-content .wl-row-thumb .v2-gallery-arrow {
     position: absolute !important;
     top: 50% !important; transform: translateY(-50%) !important;
     width: 32px !important; height: 32px !important;
@@ -7350,30 +7353,36 @@
     padding: 0 !important;
   }
   body.ui-v2 #gridMobile .grid-item .v2-gallery-arrow.prev,
-  body.ui-v2 #gridDesktop .grid-item .v2-gallery-arrow.prev { left: 8px !important; right: auto !important; }
+  body.ui-v2 #gridDesktop .grid-item .v2-gallery-arrow.prev,
+  body.ui-v2 .v2-watchlist-content .wl-row-thumb .v2-gallery-arrow.prev { left: 8px !important; right: auto !important; }
   body.ui-v2 #gridMobile .grid-item .v2-gallery-arrow.next,
-  body.ui-v2 #gridDesktop .grid-item .v2-gallery-arrow.next { right: 8px !important; left: auto !important; }
+  body.ui-v2 #gridDesktop .grid-item .v2-gallery-arrow.next,
+  body.ui-v2 .v2-watchlist-content .wl-row-thumb .v2-gallery-arrow.next { right: 8px !important; left: auto !important; }
   body.ui-v2 #gridMobile .grid-item .v2-gallery-arrow svg,
-  body.ui-v2 #gridDesktop .grid-item .v2-gallery-arrow svg {
+  body.ui-v2 #gridDesktop .grid-item .v2-gallery-arrow svg,
+  body.ui-v2 .v2-watchlist-content .wl-row-thumb .v2-gallery-arrow svg {
     width: 16px !important; height: 16px !important;
     stroke: currentColor !important; fill: none !important;
     stroke-width: 2.4 !important; stroke-linecap: round !important;
   }
   body.ui-v2 #gridMobile .grid-item .v2-gallery-dots,
-  body.ui-v2 #gridDesktop .grid-item .v2-gallery-dots {
+  body.ui-v2 #gridDesktop .grid-item .v2-gallery-dots,
+  body.ui-v2 .v2-watchlist-content .wl-row-thumb .v2-gallery-dots {
     position: absolute !important;
     bottom: 10px !important; right: 10px !important;
     display: flex !important; gap: 4px !important;
     z-index: 2 !important;
   }
   body.ui-v2 #gridMobile .grid-item .v2-gallery-dot,
-  body.ui-v2 #gridDesktop .grid-item .v2-gallery-dot {
+  body.ui-v2 #gridDesktop .grid-item .v2-gallery-dot,
+  body.ui-v2 .v2-watchlist-content .wl-row-thumb .v2-gallery-dot {
     width: 6px !important; height: 6px !important;
     border-radius: 50% !important;
     background: rgba(255,255,255,0.4) !important;
   }
   body.ui-v2 #gridMobile .grid-item .v2-gallery-dot.active,
-  body.ui-v2 #gridDesktop .grid-item .v2-gallery-dot.active {
+  body.ui-v2 #gridDesktop .grid-item .v2-gallery-dot.active,
+  body.ui-v2 .v2-watchlist-content .wl-row-thumb .v2-gallery-dot.active {
     background: #fff !important;
     width: 16px !important;
     border-radius: 100px !important;
