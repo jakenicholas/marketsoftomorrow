@@ -732,16 +732,16 @@
 
     #header-logo-link {
       display: flex; align-items: center;
-      gap: 10px;
+      gap: 6px;
       text-decoration: none;
     }
     #header-logo { height: 30px; width: auto; filter: brightness(0) invert(1); }
-    /* Animated TMW logo lockup. Sized to fit inside the 50px header
-       with breathing room. Hex spins on a 4.2s loop; the wordmark is
-       white so it reads on the dark header. */
+    /* Animated TMW logo lockup. Compact enough to sit lightly inside
+       the 50px header ‚Äî hex 20px, wordmark ~70px wide. Hex spins on a
+       4.2s loop; wordmark is white so it reads on the dark header. */
     #header-logo-link .tmw-hex-badge {
       flex: 0 0 auto;
-      width: 34px; height: 34px;
+      width: 20px; height: 20px;
       display: inline-flex; align-items: center; justify-content: center;
     }
     #header-logo-link .tmw-hex-badge svg {
@@ -759,7 +759,7 @@
     }
     #header-logo-link .tmw-wordmark {
       flex: 0 0 auto;
-      width: 132px;
+      width: 78px;
       display: inline-flex; align-items: center;
     }
     #header-logo-link .tmw-wordmark svg {
