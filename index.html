@@ -2763,6 +2763,34 @@
     @media(min-width:801px) { #layersPanel { top: calc(60px + var(--safe-area-top) + 36px + 10px); } }
     @media(max-width:800px) { #layersPanel { top: calc(var(--safe-area-top) + 10px + 36px + 10px + 36px + 10px); } }
 
+    /* v2 layers panel ‚Äî bottom-anchored to the right-rail's bottom
+       (which is where the geolocate button sits), positioned just to
+       the LEFT of the 44px action buttons with an 8px gap. Glassier
+       background (#1E1E1E base with extra blur + saturation) so it
+       reads more like a floating glass card than a solid dark box. */
+    body.ui-v2 #layersPanel {
+      top: auto !important;
+      background: rgba(30,30,30,0.72) !important;
+      backdrop-filter: blur(36px) saturate(1.8) !important;
+      -webkit-backdrop-filter: blur(36px) saturate(1.8) !important;
+      border: 1px solid rgba(255,255,255,0.12) !important;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.55) !important;
+    }
+    @media (max-width: 800px) {
+      body.ui-v2 #layersPanel {
+        /* Mobile rail: right: 14px + 44px btn + 8px gap = 66px */
+        right: calc(env(safe-area-inset-right, 0px) + 66px) !important;
+        bottom: calc(env(safe-area-inset-bottom, 0px) + 130px) !important;
+      }
+    }
+    @media (min-width: 801px) {
+      body.ui-v2 #layersPanel {
+        /* Desktop rail: right: 18px + 44px btn + 8px gap = 70px */
+        right: calc(env(safe-area-inset-right, 0px) + 70px) !important;
+        bottom: 18px !important;
+      }
+    }
+
     .layers-section-title {
       font-size: 10px; font-weight: 600; letter-spacing: 0.08em;
       color: rgba(255,255,255,0.4); text-transform: uppercase; margin-bottom: 10px;
