@@ -9322,14 +9322,36 @@
     body.ui-v2 #desktopSidebar .v2-pulse-content .pulse-ev-wrap::before {
       content: '';
       position: absolute;
-      left: 16px; top: 22px;
-      width: 4px; height: 4px;
+      /* Vertical-center the dot inside the row so 1-line and 2-line
+         titles both look balanced. Previous top:22px hard-coded an
+         alignment that worked for the meta row but drifted on
+         longer titles. */
+      left: 16px; top: 50%;
+      transform: translateY(-50%);
+      width: 6px; height: 6px;
       border-radius: 50%;
       background: rgba(255,255,255,0.3);
     }
     body.ui-v2 #desktopSidebar .v2-pulse-content .pulse-ev-wrap[data-event-type="status_change"]::before { background: #FF9500; box-shadow: 0 0 0 3px rgba(255,149,0,0.18); }
     body.ui-v2 #desktopSidebar .v2-pulse-content .pulse-ev-wrap[data-event-type="article"]::before      { background: var(--accent, #1FDF67); box-shadow: 0 0 0 3px rgba(31,223,103,0.18); }
     body.ui-v2 #desktopSidebar .v2-pulse-content .pulse-ev-wrap[data-event-type="new_project"]::before  { background: #6FA8FF; box-shadow: 0 0 0 3px rgba(111,168,255,0.18); }
+    /* Full-width hover affordance on desktop. The base desktop rule
+       has padding 14px/16px/14px/30px and an ID selector
+       (#desktopSidebar) that beats the cross-surface :hover rule on
+       specificity, so without this :hover-scoped override the hover
+       bg only fills the inner anchor content, not the whole row. */
+    body.ui-v2 #desktopSidebar .v2-pulse-content .pulse-ev-wrap:hover {
+      background: rgba(255,255,255,0.04) !important;
+    }
+    body.ui-v2 #desktopSidebar .v2-pulse-content .pulse-ev:hover {
+      background: transparent !important;
+    }
+    /* Match the cross-surface ext-icon spacing ‚Äî desktop needs an
+       explicit override because of the #desktopSidebar ID specificity
+       on neighboring rules. */
+    body.ui-v2 #desktopSidebar .v2-pulse-content .pulse-ev-ext-icon {
+      margin-left: 10px !important;
+    }
     body.ui-v2 #desktopSidebar .v2-pulse-content .pulse-ev-title {
       font-size: 14px !important;
       color: #fff !important;
@@ -20984,6 +21006,41 @@
                 typeSel.value = opt ? opt.value : 'all';
                 try { typeSel.dispatchEvent(new Event('change', { bubbles: true })); } catch(_) {}
               }
+            } else if (tabId === 'watchlist') {
+              // Mirror the mobile-pill behavior (handlePillClick > 'watchlist')
+              // so the desktop pills actually filter rows. Rows already
+              // carry data-wl-delivery + data-wl-unread from rowHtml().
+              const bodyEl = document.getElementById('watchlistBody');
+              if (!bodyEl) return;
+              const rows = bodyEl.querySelectorAll('.wl-row[data-wl-delivery]');
+              rows.forEach(row => {
+                const delivery = (row.dataset.wlDelivery || '').toLowerCase();
+                const isUnread = row.dataset.wlUnread === 'true';
+                let show = false;
+                if (value === 'all') {
+                  show = true;
+                } else if (value === 'unread') {
+                  show = isUnread;
+                } else if (value === 'construction') {
+                  show = delivery.includes('construction');
+                } else if (value === 'coming-soon') {
+                  show = delivery.includes('announced') ||
+                         delivery.includes('breaking') ||
+                         delivery.includes('coming');
+                }
+                row.style.display = show ? '' : 'none';
+              });
+            } else if (tabId === 'pulse') {
+              // Filter the pulse spine by event-type. The spine lives
+              // inside .v2-pulse-content (same selector mobile uses).
+              const spine = document.querySelector('.v2-pulse-content .pulse-spine');
+              if (!spine) return;
+              const events = spine.querySelectorAll('.pulse-ev-wrap[data-event-type]');
+              events.forEach(ev => {
+                const type = (ev.dataset.eventType || '');
+                const show = value === 'all' || type === value;
+                ev.style.display = show ? '' : 'none';
+              });
             }
           });
         });
