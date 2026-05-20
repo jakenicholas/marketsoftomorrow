@@ -739,13 +739,14 @@
     /* Animated TMW logo lockup (sourced from
        /Volumes/TMW/TMW/TMW/Logos/tmw_animated_logo_new.html ‚Äî paths +
        animation match the source character-for-character; only the
-       sizing is tuned for the 50px header). Hex 22px (with a tight
-       viewBox so the polygon fills the container, not floating in
-       whitespace like the source SVG would render it). Wordmark 60px.
-       Light footprint so the header reads as nav, not logo. */
+       sizing is tuned for the 50px header). Hex container is 36px
+       (the source's 0 0 100 100 viewBox has ~36% empty padding around
+       the polygon, so a 36px container renders the visible hex at
+       ~22-23px ‚Äî about the same scale as a tight viewBox would, but
+       without breaking the spinner's rotation origin). Wordmark 60px. */
     #header-logo-link .tmw-hex-badge {
       flex: 0 0 auto;
-      width: 22px; height: 22px;
+      width: 36px; height: 36px;
       display: inline-flex; align-items: center; justify-content: center;
     }
     #header-logo-link .tmw-hex-badge svg {
@@ -10150,13 +10151,13 @@
          lockup only renders on desktop. -->
     <a id="header-logo-link" href="https://www.oftmw.com" target="_blank" aria-label="Markets of Tomorrow">
       <span class="tmw-hex-badge" aria-hidden="true">
-        <!-- viewBox tightened from the source's "0 0 100 100" to crop
-             the empty padding around the polygon ‚Äî the hex itself only
-             spans y=18..82 / x=22.3..77.7, so the original viewBox
-             rendered the visible hex at ~55-64% of the SVG's display
-             size. Tight viewBox = hex fills the box = looks bigger
-             without bumping the container. -->
-        <svg viewBox="18 14 64 72" xmlns="http://www.w3.org/2000/svg">
+        <!-- ViewBox kept symmetric at 0 0 100 100 (matching the source
+             HTML exactly) so the spinner rotates around the polygon's
+             true geometric center (50, 50). The polygon only occupies
+             the inner ~55-64% of the box, so we compensate by bumping
+             the CSS container size instead ‚Äî that way the hex looks
+             bigger without breaking the rotation origin. -->
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
           <g class="tmw-hex-spinner">
             <polygon points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34"
                      fill="none" stroke="#A78BFA" stroke-width="7"
