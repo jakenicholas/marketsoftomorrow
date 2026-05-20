@@ -4107,8 +4107,10 @@
     .firm-sheet { left: 0; right: 0; top: 72px; border-radius: 18px 18px 0 0; }
   }
   /* v2 mobile: match the project modal exactly ‚Äî top: 60px + safe area,
-     bottom: 0, rounded top corners, soft top shadow. Lives "inside" the
-     mobile drawer position so the TMW chrome stays visible above. */
+     bottom: 0, rounded top corners, soft top shadow, and the same
+     glassy background as the v2 drawer behind it so the two visually
+     read as a single surface. Lives "inside" the mobile drawer
+     position so the TMW chrome stays visible above. */
   @media (max-width: 800px) {
     body.ui-v2 #firmSheet {
       top: calc(env(safe-area-inset-top, 0px) + 60px) !important;
@@ -4118,6 +4120,24 @@
       border: none !important;
       border-radius: 24px 24px 0 0 !important;
       box-shadow: 0 -8px 32px rgba(0,0,0,0.4) !important;
+      background: rgba(20,20,20,0.96) !important;
+      backdrop-filter: blur(40px) !important;
+      -webkit-backdrop-filter: blur(40px) !important;
+    }
+    /* Hide the underlying drawer + capsule + right rail while the firm
+       sheet is open, same pattern as the project modal's
+       body.v2-modal-open rule. Without this the user sees a sliver of
+       the discover/watchlist drawer peek through above the firm sheet's
+       60px top offset. :has() matches the rule the project modal
+       already uses elsewhere in the file (see the atlas-mode-toggle
+       rules) so browser support parity is fine. */
+    body.ui-v2:has(#firmSheet.open) .v2-drawer,
+    body.ui-v2:has(#firmSheet.open) .v2-right-rail {
+      opacity: 0;
+      pointer-events: none;
+    }
+    body.ui-v2:has(#firmSheet.open) .v2-capsule {
+      display: none;
     }
   }
 
