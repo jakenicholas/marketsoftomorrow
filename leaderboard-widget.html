@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>TMW ¬∑ Leaderboard</title>
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --surface: #131313;
+    --line: rgba(255,255,255,0.08);
+    --text: #fff;
+    --text-mute: rgba(255,255,255,0.55);
+    --text-dim: rgba(255,255,255,0.4);
+    --accent: #1FDF67;
+    --warn: #FFD300;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: transparent;
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .leaderboard {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    overflow: hidden;
+    max-width: 640px;
+    margin: 0 auto;
+  }
+  .lb-head {
+    display: flex; align-items: baseline; justify-content: space-between;
+    padding: 18px 22px 14px;
+  }
+  .lb-head .ttl {
+    font-size: 17px; font-weight: 800;
+    letter-spacing: -0.01em;
+  }
+  .lb-head .sub {
+    font-size: 11px; font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+  .lb-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--line);
+    padding: 0 22px;
+  }
+  .lb-tab {
+    padding: 12px 0;
+    margin-right: 22px;
+    font-size: 13px; font-weight: 700;
+    color: var(--text-mute);
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    font-family: inherit;
+    transition: color 0.15s ease, border-color 0.15s ease;
+  }
+  .lb-tab:hover { color: var(--text); }
+  .lb-tab.active {
+    color: var(--text);
+    border-bottom-color: var(--accent);
+  }
+  .lb-list {
+    list-style: none; margin: 0; padding: 0;
+    min-height: 360px;
+  }
+  .lb-list li {
+    display: grid;
+    grid-template-columns: 32px 1fr auto;
+    gap: 14px;
+    align-items: center;
+    padding: 12px 22px;
+    border-bottom: 1px solid var(--line);
+    text-decoration: none;
+    color: inherit;
+    transition: background 0.12s ease;
+  }
+  .lb-list li:last-child { border-bottom: none; }
+  a.lb-list-item { cursor: pointer; }
+  a.lb-list-item:hover { background: rgba(255,255,255,0.025); }
+  .lb-list .rank {
+    font-size: 13px; font-weight: 700;
+    color: var(--text-dim);
+    font-variant-numeric: tabular-nums;
+  }
+  .lb-list li.top .rank { color: var(--warn); }
+  .lb-list .name {
+    font-size: 14px; font-weight: 600;
+    color: var(--text);
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .lb-list .count {
+    font-size: 14px; font-weight: 800;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    min-width: 30px;
+  }
+  .lb-list .count small {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    display: block;
+    margin-top: 1px;
+  }
+  .lb-foot {
+    padding: 14px 22px;
+    border-top: 1px solid var(--line);
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 11px;
+    color: var(--text-mute);
+  }
+  .lb-foot a {
+    display: inline-flex; align-items: center; gap: 6px;
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 12px;
+  }
+  .lb-foot a:hover { text-decoration: underline; }
+  .lb-foot svg { width: 11px; height: 11px; stroke: currentColor; fill: none; stroke-width: 2.4; }
+  .lb-loading {
+    padding: 60px 22px;
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  @media (max-width: 500px) {
+    .lb-head { padding: 16px 18px 12px; }
+    .lb-tabs { padding: 0 18px; }
+    .lb-list li { padding: 11px 18px; }
+    .lb-foot { padding: 13px 18px; }
+  }
+</style>
+</head>
+<body>
+  <div class="leaderboard">
+    <div class="lb-head">
+      <div class="ttl">Markets of Tomorrow leaderboard</div>
+      <div class="sub" id="lbCount">Loading‚Ä¶</div>
+    </div>
+    <div class="lb-tabs" role="tablist">
+      <button class="lb-tab active" data-tab="cities" role="tab" aria-selected="true">Cities</button>
+      <button class="lb-tab" data-tab="developers" role="tab" aria-selected="false">Developers</button>
+      <button class="lb-tab" data-tab="architects" role="tab" aria-selected="false">Architects</button>
+    </div>
+    <ul class="lb-list" id="lbList">
+      <li class="lb-loading">Loading projects‚Ä¶</li>
+    </ul>
+    <div class="lb-foot">
+      <span id="lbFootLabel">Total projects tracked</span>
+      <a href="https://map.oftmw.com" target="_top" rel="noopener">
+        Open the map
+        <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </a>
+    </div>
+  </div>
+
+<script>
+(function () {
+  var DATA_URL = 'https://map.oftmw.com/projects-flat.json';
+  var MAP_URL  = 'https://map.oftmw.com';
+  var TOP_N = 10;
+
+  var listEl  = document.getElementById('lbList');
+  var countEl = document.getElementById('lbCount');
+  var footEl  = document.getElementById('lbFootLabel');
+  var tabs    = document.querySelectorAll('.lb-tab');
+
+  var state = { tab: 'cities', projects: null };
+
+  // Firm names that legitimately contain a comma ‚Äî preserve as a single entity.
+  var FIRM_PRESERVE = [
+    'Skidmore, Owings & Merrill',
+    'Robert A.M. Stern Architects'
+  ];
+
+  function splitFirms(value) {
+    if (!value) return [];
+    var v = String(value);
+    var placeholders = [];
+    FIRM_PRESERVE.forEach(function (name, i) {
+      var token = 'PRESERVE' + i + '';
+      var re = new RegExp(name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+      if (re.test(v)) {
+        placeholders.push({ token: token, name: name });
+        v = v.replace(re, token);
+      }
+    });
+    return v.split(/\s*[,/]\s*/)
+      .map(function (s) {
+        var out = s.trim();
+        placeholders.forEach(function (p) {
+          if (out === p.token) out = p.name;
+        });
+        return out;
+      })
+      .filter(Boolean);
+  }
+
+  function tally(projects, type) {
+    var counts = {};
+    projects.forEach(function (p) {
+      if (type === 'cities') {
+        var city = (p.City || '').trim();
+        if (!city) return;
+        counts[city] = (counts[city] || 0) + 1;
+      } else if (type === 'developers') {
+        splitFirms(p.Developer).forEach(function (name) {
+          if (name.toLowerCase() === 'various') return;
+          counts[name] = (counts[name] || 0) + 1;
+        });
+      } else if (type === 'architects') {
+        splitFirms(p.Architect).forEach(function (name) {
+          counts[name] = (counts[name] || 0) + 1;
+        });
+      }
+    });
+    return Object.keys(counts)
+      .map(function (k) { return { name: k, count: counts[k] }; })
+      .sort(function (a, b) { return b.count - a.count || a.name.localeCompare(b.name); })
+      .slice(0, TOP_N);
+  }
+
+  function cityHref(city) {
+    return MAP_URL + '/?city=' + encodeURIComponent(city);
+  }
+
+  function render() {
+    if (!state.projects) return;
+    var rows = tally(state.projects, state.tab);
+    var clickable = state.tab === 'cities';
+    var labelMap = {
+      cities: 'Total projects tracked',
+      developers: 'Active project count',
+      architects: 'Active project count'
+    };
+    footEl.textContent = labelMap[state.tab];
+
+    if (!rows.length) {
+      listEl.innerHTML = '<li class="lb-loading">No data yet</li>';
+      return;
+    }
+
+    listEl.innerHTML = rows.map(function (row, i) {
+      var rank = String(i + 1).padStart(2, '0');
+      var topClass = i < 3 ? ' top' : '';
+      var inner =
+        '<span class="rank">' + rank + '</span>' +
+        '<span class="name">' + escapeHtml(row.name) + '</span>' +
+        '<span class="count">' + row.count + '<small>projects</small></span>';
+      if (clickable) {
+        return '<li class="lb-list-item' + topClass + '">' +
+          '<a href="' + cityHref(row.name) + '" target="_top" rel="noopener" style="display:contents">' + inner + '</a>' +
+          '</li>';
+      }
+      return '<li class="' + topClass.trim() + '">' + inner + '</li>';
+    }).join('');
+  }
+
+  function escapeHtml(s) {
+    return String(s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
+  tabs.forEach(function (t) {
+    t.addEventListener('click', function () {
+      tabs.forEach(function (x) { x.classList.remove('active'); x.setAttribute('aria-selected','false'); });
+      t.classList.add('active');
+      t.setAttribute('aria-selected','true');
+      state.tab = t.getAttribute('data-tab');
+      render();
+    });
+  });
+
+  fetch(DATA_URL, { cache: 'no-store' })
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+      state.projects = Array.isArray(data) ? data : [];
+      countEl.textContent = state.projects.length + ' projects tracked';
+      render();
+    })
+    .catch(function () {
+      listEl.innerHTML = '<li class="lb-loading">Could not load data. Try again later.</li>';
+      countEl.textContent = '';
+    });
+})();
+</script>
+</body>
+</html>
