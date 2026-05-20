@@ -12972,10 +12972,22 @@
       window.renderIntelBlock = renderIntelBlock;
 
       window.openProjectModal = function(f, source) {
-        // Paywall gate ‚Äî only count fresh project interactions.
-        // 'tile' = direct desktop tile click (skips showPopup).
-        // 'popup' / 'deeplink' = continuation of an interaction already counted by showPopup.
-        if (source === 'tile' && window.paywallCheck && !window.paywallCheck()) return;
+        // Paywall gate ‚Äî count every FRESH project interaction.
+        // Sources that DON'T count as fresh (because the click was
+        // already gated upstream by showPopup or handleDeepLink):
+        //   - 'popup'   : user already clicked a pin ‚Üí showPopup gated it
+        //   - 'deeplink': URL ?project= deep-link ‚Üí upstream gated it
+        //   - 'embed'   : embedded preview widget on another site
+        // EVERY other entry path is a fresh tile-like click that
+        // should count against the paywall. This list previously only
+        // matched 'tile', which meant the v2 capture handler (which
+        // passes 'v2-tile'), the v2 search row (passes 'v2-search'),
+        // watchlist + firm-sheet + intel-similar tile clicks all
+        // bypassed the gate entirely ‚Äî so on mobile Safari incognito
+        // a user could click drawer tiles forever without ever
+        // hitting the paywall. Inverted check fixes that.
+        const skipGate = source === 'popup' || source === 'deeplink' || source === 'embed';
+        if (!skipGate && window.paywallCheck && !window.paywallCheck()) return;
         currentFeature = f;
         fromSource = source || 'tile';
         const p = f.properties;
