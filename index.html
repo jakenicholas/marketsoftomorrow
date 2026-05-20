@@ -8709,14 +8709,10 @@
     body.ui-v2.v2-modal-open .v2-capsule    { display: none; }
   }
 
-  /* "Fly to pin" switch ‚Äî cross-surface (mobile + desktop). Label sits
-     to the left of an iOS-style track/thumb toggle. GOLD when ON
-     (default), gray when OFF. Lives in the Discover title-row right
-     slot in place of the old "In View / More Nearby" indicator.
-     Defined OUTSIDE any media query so the same rules apply on both
-     surfaces (the previous version was trapped in
-     @media(max-width:800px) and rendered as unstyled inline text on
-     desktop). */
+  /* "Fly to pin" switch ‚Äî Variant 5 (glow track). Cross-surface
+     (mobile + desktop). Track lights up with a gold halo when ON; the
+     thumb becomes a luminous gold dot. Defined OUTSIDE any media
+     query so the same rules apply on both surfaces. */
   body.ui-v2 .v2-flyto-toggle {
     display: inline-flex !important;
     flex-direction: row !important;
@@ -8740,48 +8736,66 @@
     letter-spacing: 0.02em;
     text-transform: lowercase;
     color: rgba(255,255,255,0.55);
-    transition: color 0.15s ease;
+    transition: color 0.2s ease;
     line-height: 1;
   }
   body.ui-v2 .v2-flyto-toggle[aria-pressed="true"] .v2-flyto-label {
     color: var(--warn, #FFD300);
   }
+  /* Track */
   body.ui-v2 .v2-flyto-toggle .v2-flyto-switch {
     position: relative;
-    width: 32px;
-    height: 18px;
+    width: 40px;
+    height: 20px;
     flex-shrink: 0;
     border-radius: 100px;
-    background: rgba(255,255,255,0.18);
-    transition: background 0.18s ease;
+    background: rgba(255,255,255,0.12);
+    transition: background 0.2s ease, box-shadow 0.2s ease;
   }
-  body.ui-v2 .v2-flyto-toggle .v2-flyto-switch::after {
-    content: '';
+  /* Thumb (real element so we can animate position + glow together) */
+  body.ui-v2 .v2-flyto-toggle .v2-flyto-thumb {
     position: absolute;
     top: 2px; left: 2px;
-    width: 14px; height: 14px;
+    width: 16px; height: 16px;
     border-radius: 50%;
-    background: #fff;
-    transition: transform 0.18s ease, background 0.18s ease;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.25);
+    background: rgba(255,255,255,0.85);
+    transition:
+      transform 0.25s cubic-bezier(.5, 0, .25, 1),
+      background 0.25s ease,
+      box-shadow 0.25s ease;
   }
+  /* ON state: gold halo on track, luminous gold thumb */
   body.ui-v2 .v2-flyto-toggle[aria-pressed="true"] .v2-flyto-switch {
+    background: rgba(255,211,0,0.22);
+    box-shadow:
+      0 0 0 1px rgba(255,211,0,0.45) inset,
+      0 0 14px rgba(255,211,0,0.32);
+  }
+  body.ui-v2 .v2-flyto-toggle[aria-pressed="true"] .v2-flyto-thumb {
+    transform: translateX(20px);
     background: var(--warn, #FFD300);
+    box-shadow:
+      0 0 8px rgba(255,211,0,0.65),
+      0 1px 2px rgba(0,0,0,0.35);
   }
-  body.ui-v2 .v2-flyto-toggle[aria-pressed="true"] .v2-flyto-switch::after {
-    transform: translateX(14px);
-    background: #0a0a0a;
-  }
+  /* Hover polish */
   body.ui-v2 .v2-flyto-toggle:hover .v2-flyto-switch {
-    background: rgba(255,255,255,0.28);
+    background: rgba(255,255,255,0.18);
   }
   body.ui-v2 .v2-flyto-toggle[aria-pressed="true"]:hover .v2-flyto-switch {
-    background: #FFD300;
-    filter: brightness(1.08);
+    background: rgba(255,211,0,0.28);
+    box-shadow:
+      0 0 0 1px rgba(255,211,0,0.55) inset,
+      0 0 18px rgba(255,211,0,0.42);
+  }
+  body.ui-v2 .v2-flyto-toggle[aria-pressed="true"]:hover .v2-flyto-thumb {
+    box-shadow:
+      0 0 12px rgba(255,211,0,0.85),
+      0 1px 2px rgba(0,0,0,0.35);
   }
   body.ui-v2 .v2-flyto-toggle:focus-visible {
     outline: 2px solid var(--warn, #FFD300);
-    outline-offset: 2px;
+    outline-offset: 3px;
     border-radius: 100px;
   }
 
@@ -10533,14 +10547,16 @@
           <div class="v2-sheet-ttl" id="v2SheetTtl">Discover</div>
           <div class="v2-sheet-right" id="v2SheetRight">
             <span class="v2-sheet-sub" id="v2SheetSub" hidden></span>
-            <!-- "Fly to pin" switch replaces the old "In View / More Nearby"
-                 indicator. When on, scrolling discover/search tiles auto-flies
-                 the map to the focused project's pin (debounced). State is
-                 persisted in localStorage and shared with the desktop switch. -->
+            <!-- "Fly to pin" glow switch replaces the old "In View / More
+                 Nearby" indicator. Lights up gold + glows when ON; gates
+                 the click-tile-fly behavior. State is persisted in
+                 localStorage and shared with the desktop switch. -->
             <button class="v2-flyto-toggle" id="v2FlyToToggle" type="button"
                     aria-pressed="true" aria-label="Toggle fly to pin">
               <span class="v2-flyto-label">Fly to pin</span>
-              <span class="v2-flyto-switch" aria-hidden="true"></span>
+              <span class="v2-flyto-switch" aria-hidden="true">
+                <span class="v2-flyto-thumb"></span>
+              </span>
             </button>
           </div>
         </div>
@@ -20634,15 +20650,17 @@
         if (ttl) ttl.textContent = DESKTOP_TITLES[target] || 'Discover';
         if (!right) return;
         if (target === 'discover') {
-          // "Fly to pin" switch replaces the old in-view indicator. Same
-          // markup as the mobile button (id="v2DFlyToToggle" so we can
-          // distinguish from the mobile one); JS init wires both surfaces
-          // to the shared localStorage flag.
+          // "Fly to pin" glow switch replaces the old in-view indicator.
+          // Same markup as the mobile button (id="v2DFlyToToggle" so we
+          // can distinguish from the mobile one); JS init wires both
+          // surfaces to the shared localStorage flag.
           right.innerHTML = `
             <button class="v2-flyto-toggle" id="v2DFlyToToggle" type="button"
                     aria-pressed="true" aria-label="Toggle fly to pin">
               <span class="v2-flyto-label">Fly to pin</span>
-              <span class="v2-flyto-switch" aria-hidden="true"></span>
+              <span class="v2-flyto-switch" aria-hidden="true">
+                <span class="v2-flyto-thumb"></span>
+              </span>
             </button>
           `;
         } else if (target === 'watchlist') {
