@@ -4106,6 +4106,20 @@
   @media (max-width: 700px) {
     .firm-sheet { left: 0; right: 0; top: 72px; border-radius: 18px 18px 0 0; }
   }
+  /* v2 mobile: match the project modal exactly ‚Äî top: 60px + safe area,
+     bottom: 0, rounded top corners, soft top shadow. Lives "inside" the
+     mobile drawer position so the TMW chrome stays visible above. */
+  @media (max-width: 800px) {
+    body.ui-v2 #firmSheet {
+      top: calc(env(safe-area-inset-top, 0px) + 60px) !important;
+      left: 0 !important;
+      right: 0 !important;
+      bottom: 0 !important;
+      border: none !important;
+      border-radius: 24px 24px 0 0 !important;
+      box-shadow: 0 -8px 32px rgba(0,0,0,0.4) !important;
+    }
+  }
 
   /* Draggable handle zone ‚Äî bigger than the visible bar so mobile users have
      room to grab it. JS captures touchstart on this element and translates
@@ -4158,6 +4172,37 @@
   @media (max-width: 700px) {
     .firm-sheet-close { display: none; }
   }
+  /* v2 mobile: bring the X back, move it to the TOP-LEFT, and style it
+     to match the project modal's .pm-icon-btn (circular, glass bg).
+     The drag handle is hidden in v2 mobile ‚Äî the X is the canonical
+     dismiss affordance, matching the project modal's pattern. */
+  @media (max-width: 800px) {
+    body.ui-v2 .firm-sheet-close {
+      display: flex !important;
+      position: absolute !important;
+      top: 12px !important;
+      left: 14px !important;
+      right: auto !important;
+      width: 32px !important; height: 32px !important;
+      border-radius: 50% !important;
+      background: rgba(0,0,0,0.5) !important;
+      border: none !important;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      z-index: 6 !important;
+    }
+    body.ui-v2 .firm-sheet-close svg {
+      width: 14px !important; height: 14px !important;
+      stroke: rgba(255,255,255,0.85) !important;
+      stroke-width: 2 !important;
+    }
+    body.ui-v2 .firm-sheet-close:hover {
+      background: rgba(0,0,0,0.65) !important;
+    }
+    /* Drag handle hidden ‚Äî X owns the dismiss affordance in v2 (same
+       pattern as the project modal). */
+    body.ui-v2 .firm-sheet-drag { display: none !important; }
+  }
 
   .firm-sheet-content {
     flex: 1; min-height: 0;
@@ -4167,6 +4212,13 @@
   }
   @media (max-width: 700px) {
     .firm-sheet-content { padding: 28px 20px 60px; }
+  }
+  /* v2 mobile: extra top padding so the floating X close button at
+     top: 12px doesn't overlap the hero role label / firm name. */
+  @media (max-width: 800px) {
+    body.ui-v2 .firm-sheet-content {
+      padding-top: 60px !important;
+    }
   }
 
   /* Hero */
@@ -4196,13 +4248,34 @@
     text-transform: uppercase; letter-spacing: 0.06em; margin-top: 6px; }
   .fs-stat-sub { font-size: 11px; color: rgba(255,255,255,0.55); margin-top: 2px; }
 
-  /* Tabs */
-  .fs-tabs { display: flex; gap: 0; border-bottom: 1px solid rgba(255,255,255,0.08);
-    margin-bottom: 22px; }
-  .fs-tab { padding: 11px 16px; background: transparent; border: none;
-    color: rgba(255,255,255,0.55); font-size: 13px; font-weight: 600; cursor: pointer;
-    border-bottom: 2px solid transparent; display: flex; align-items: center; gap: 8px;
-    font-family: inherit; }
+  /* Tabs ‚Äî horizontal slider so the labels stay on one line and don't
+     wrap to two rows on narrow screens. Less horizontal padding per tab
+     so all three (All projects / In progress / Completed) fit
+     comfortably without scrolling on most viewports. */
+  .fs-tabs {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    margin-bottom: 22px;
+    /* Hide scrollbar but keep wheel/swipe scrolling. */
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .fs-tabs::-webkit-scrollbar { display: none; }
+  .fs-tab {
+    padding: 11px 11px;
+    background: transparent; border: none;
+    color: rgba(255,255,255,0.55);
+    font-size: 13px; font-weight: 600; cursor: pointer;
+    border-bottom: 2px solid transparent;
+    display: inline-flex; align-items: center; gap: 6px;
+    font-family: inherit;
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
   .fs-tab:hover { color: #fff; }
   .fs-tab.active { color: #fff; border-bottom-color: #1FDF67; }
   .fs-tab .count { font-size: 10px; color: rgba(255,255,255,0.4); background: rgba(255,255,255,0.06);
