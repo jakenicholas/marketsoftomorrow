@@ -7893,67 +7893,9 @@
     body.ui-v2 .v2-profile-btn.signed-in .v2-login-text { display: none; }
     /* Pro: show star (it's already in DOM; hidden unless .is-pro) */
     body.ui-v2 .v2-profile-btn:not(.is-pro) .v2-premium-star { display: none !important; }
-
-    /* ‚îÄ‚îÄ GO PRO upgrade pill ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
-       Yellow chip that sits to the right of the profile icon when the
-       user is signed in but on a free plan. Hidden when anonymous (no
-       account yet ‚Äî they see "Login") and hidden when Pro (.is-pro on
-       the profile btn). Click opens the subscription paywall. */
-    body.ui-v2 .v2-go-pro-badge {
-      display: none;
-      align-items: center;
-      height: 26px;
-      padding: 0 10px;
-      margin-left: 6px;
-      background: var(--warn, #FFD300);
-      color: #0a0a0a;
-      border: none;
-      border-radius: 999px;
-      font-family: inherit;
-      font-size: 10.5px;
-      font-weight: 800;
-      letter-spacing: 0.06em;
-      cursor: pointer;
-      flex-shrink: 0;
-      transition: filter 0.15s ease, box-shadow 0.15s ease;
-      box-shadow: 0 0 0 1px rgba(255,211,0,0.4) inset, 0 0 10px rgba(255,211,0,0.3);
-    }
-    body.ui-v2 .v2-go-pro-badge:hover {
-      filter: brightness(1.08);
-      box-shadow: 0 0 0 1px rgba(255,211,0,0.6) inset, 0 0 14px rgba(255,211,0,0.4);
-    }
-    /* Show only when the profile button immediately before it is
-       SIGNED IN but NOT pro. Sibling-selector style so we don't
-       need a separate body class. */
-    body.ui-v2 .v2-profile-btn.signed-in:not(.is-pro) + .v2-go-pro-badge {
-      display: inline-flex;
-    }
-
-    /* Small PRO marker that appears at the right edge of Watchlist +
-       Comparisons menu items, visible only for free signed-in users
-       (same hide-when-pro logic, scoped via :has() on the widget). */
-    body.ui-v2 .v2-menu-pro-pill {
-      display: none;
-      margin-left: auto;
-      padding: 1px 6px;
-      background: var(--warn, #FFD300);
-      color: #0a0a0a;
-      border-radius: 999px;
-      font-size: 8.5px;
-      font-weight: 800;
-      letter-spacing: 0.08em;
-      line-height: 1.3;
-    }
-    /* Show PRO pill on menu items only when the profile widget contains
-       a signed-in-but-not-pro profile button. */
-    body.ui-v2 .v2-tmw-profile-widget:has(.v2-profile-btn.signed-in:not(.is-pro)) .v2-menu-pro-pill {
-      display: inline-flex;
-    }
-    /* Menu item layout: label sits between the SVG icon and the optional
-       PRO pill, pushed right via margin-left:auto on the pill. */
-    body.ui-v2 .v2-profile-menu .v2-menu-item .v2-menu-label {
-      flex: 0 1 auto;
-    }
+    /* GO PRO badge styles live OUTSIDE the mobile media query ‚Äî see the
+       block further down that starts "GO PRO upgrade pill" so they
+       apply on desktop too. */
     /* Profile dropdown menu (opens below the widget when profile tapped) */
     body.ui-v2 .v2-profile-menu {
       position: absolute;
@@ -9025,6 +8967,76 @@
     body.ui-v2.v2-modal-open .v2-drawer,
     body.ui-v2.v2-modal-open .v2-right-rail { opacity: 0; pointer-events: none; }
     body.ui-v2.v2-modal-open .v2-capsule    { display: none; }
+  }
+
+  /* ‚îÄ‚îÄ GO PRO upgrade pill (cross-surface) ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
+     Yellow chip shown when the user is signed in on a free plan.
+     Hidden for anonymous (they see Login) and Pro (gold star instead).
+     Click opens the subscription paywall. On desktop it sits inline
+     to the right of the profile icon. On mobile (override further
+     below) it's pinned to the top-right of the map so it doesn't
+     fight the centered Map/Atlas toggle for space. */
+  body.ui-v2 .v2-go-pro-badge {
+    display: none;
+    align-items: center;
+    height: 26px;
+    padding: 0 10px;
+    margin-left: 6px;
+    background: var(--warn, #FFD300);
+    color: #0a0a0a;
+    border: none;
+    border-radius: 999px;
+    font-family: inherit;
+    font-size: 10.5px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: filter 0.15s ease, box-shadow 0.15s ease;
+    box-shadow: 0 0 0 1px rgba(255,211,0,0.4) inset, 0 0 10px rgba(255,211,0,0.3);
+  }
+  body.ui-v2 .v2-go-pro-badge:hover {
+    filter: brightness(1.08);
+    box-shadow: 0 0 0 1px rgba(255,211,0,0.6) inset, 0 0 14px rgba(255,211,0,0.4);
+  }
+  /* Visible only when the profile button immediately before it is
+     SIGNED IN but NOT pro. Sibling selector so no body class needed. */
+  body.ui-v2 .v2-profile-btn.signed-in:not(.is-pro) + .v2-go-pro-badge {
+    display: inline-flex;
+  }
+  /* MOBILE: detach from the profile widget and pin to the top-right
+     of the viewport so it doesn't overlap the centered Map/Atlas
+     toggle. Stays in the same DOM position so the sibling selector
+     above keeps controlling visibility. */
+  @media (max-width: 800px) {
+    body.ui-v2 .v2-profile-btn.signed-in:not(.is-pro) + .v2-go-pro-badge {
+      position: fixed;
+      top: calc(env(safe-area-inset-top, 0px) + 14px);
+      right: calc(env(safe-area-inset-right, 0px) + 14px);
+      margin: 0;
+      z-index: 110;
+    }
+  }
+  /* Small PRO marker that appears at the right edge of Watchlist +
+     Comparisons menu items, visible only for free signed-in users
+     (same hide-when-pro logic, scoped via :has() on the widget). */
+  body.ui-v2 .v2-menu-pro-pill {
+    display: none;
+    margin-left: auto;
+    padding: 1px 6px;
+    background: var(--warn, #FFD300);
+    color: #0a0a0a;
+    border-radius: 999px;
+    font-size: 8.5px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    line-height: 1.3;
+  }
+  body.ui-v2 .v2-tmw-profile-widget:has(.v2-profile-btn.signed-in:not(.is-pro)) .v2-menu-pro-pill {
+    display: inline-flex;
+  }
+  body.ui-v2 .v2-profile-menu .v2-menu-item .v2-menu-label {
+    flex: 0 1 auto;
   }
 
   /* "Fly to pin" switch ‚Äî Variant 5 (glow track). Cross-surface
