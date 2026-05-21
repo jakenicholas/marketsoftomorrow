@@ -8981,7 +8981,9 @@
     align-items: center;
     height: 26px;
     padding: 0 10px;
-    margin-left: 6px;
+    /* Tight gap from the profile icon ‚Äî was 6px, dropped to 3px so
+       the chip reads as attached to the pill, not floating off it. */
+    margin-left: 3px;
     background: var(--warn, #FFD300);
     color: #0a0a0a;
     border: none;
@@ -9005,14 +9007,21 @@
     display: inline-flex;
   }
   /* MOBILE: detach from the profile widget and pin to the top-right
-     of the viewport so it doesn't overlap the centered Map/Atlas
-     toggle. Stays in the same DOM position so the sibling selector
-     above keeps controlling visibility. */
+     of the viewport, vertically aligned with the Map/Atlas pill (same
+     top + same 38px height) so it reads as a peer of that toggle, not
+     part of the profile widget. Stays in the same DOM position so the
+     sibling selector above keeps controlling visibility. */
   @media (max-width: 800px) {
     body.ui-v2 .v2-profile-btn.signed-in:not(.is-pro) + .v2-go-pro-badge {
       position: fixed;
-      top: calc(env(safe-area-inset-top, 0px) + 14px);
+      /* 8px from the top safe area = same baseline as the v2 top chrome
+         (which uses top: calc(safe + 8px)), so the badge's top lines up
+         with the chrome row. */
+      top: calc(env(safe-area-inset-top, 0px) + 8px);
       right: calc(env(safe-area-inset-right, 0px) + 14px);
+      height: 38px;
+      padding: 0 14px;
+      font-size: 11px;
       margin: 0;
       z-index: 110;
     }
@@ -10919,8 +10928,8 @@
           <img src="https://static.wixstatic.com/shapes/ca3b83_a647b53cad4c49c5b012af991d286a86.svg" alt="" />
         </a>
         <div class="v2-widget-divider"></div>
-        <button class="v2-profile-btn" id="v2ProfileBtn" aria-label="Login">
-          <span class="v2-login-text">Login</span>
+        <button class="v2-profile-btn" id="v2ProfileBtn" aria-label="Join">
+          <span class="v2-login-text">Join</span>
           <svg class="profile-icon" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-7 8-7s8 3 8 7"/></svg>
           <span class="v2-premium-star" id="v2PremiumStar">
             <svg viewBox="0 0 24 24"><path d="M12 2l3 6.3 6.9 1-5 4.9 1.2 7L12 17.8 5.9 21.2l1.2-7-5-4.9L9 8.3z"/></svg>
@@ -22421,7 +22430,7 @@
         const signedIn = !!member;
         btn.classList.toggle('signed-in', signedIn);
         btn.classList.toggle('is-pro',    signedIn && !!isPaid);
-        btn.setAttribute('aria-label', signedIn ? 'Profile menu' : 'Login');
+        btn.setAttribute('aria-label', signedIn ? 'Profile menu' : 'Join');
         // Dropdown is only meaningful when signed in
         if (menu) {
           menu.style.pointerEvents = signedIn ? '' : 'none';
