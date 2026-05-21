@@ -7893,6 +7893,67 @@
     body.ui-v2 .v2-profile-btn.signed-in .v2-login-text { display: none; }
     /* Pro: show star (it's already in DOM; hidden unless .is-pro) */
     body.ui-v2 .v2-profile-btn:not(.is-pro) .v2-premium-star { display: none !important; }
+
+    /* ‚îÄ‚îÄ GO PRO upgrade pill ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
+       Yellow chip that sits to the right of the profile icon when the
+       user is signed in but on a free plan. Hidden when anonymous (no
+       account yet ‚Äî they see "Login") and hidden when Pro (.is-pro on
+       the profile btn). Click opens the subscription paywall. */
+    body.ui-v2 .v2-go-pro-badge {
+      display: none;
+      align-items: center;
+      height: 26px;
+      padding: 0 10px;
+      margin-left: 6px;
+      background: var(--warn, #FFD300);
+      color: #0a0a0a;
+      border: none;
+      border-radius: 999px;
+      font-family: inherit;
+      font-size: 10.5px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: filter 0.15s ease, box-shadow 0.15s ease;
+      box-shadow: 0 0 0 1px rgba(255,211,0,0.4) inset, 0 0 10px rgba(255,211,0,0.3);
+    }
+    body.ui-v2 .v2-go-pro-badge:hover {
+      filter: brightness(1.08);
+      box-shadow: 0 0 0 1px rgba(255,211,0,0.6) inset, 0 0 14px rgba(255,211,0,0.4);
+    }
+    /* Show only when the profile button immediately before it is
+       SIGNED IN but NOT pro. Sibling-selector style so we don't
+       need a separate body class. */
+    body.ui-v2 .v2-profile-btn.signed-in:not(.is-pro) + .v2-go-pro-badge {
+      display: inline-flex;
+    }
+
+    /* Small PRO marker that appears at the right edge of Watchlist +
+       Comparisons menu items, visible only for free signed-in users
+       (same hide-when-pro logic, scoped via :has() on the widget). */
+    body.ui-v2 .v2-menu-pro-pill {
+      display: none;
+      margin-left: auto;
+      padding: 1px 6px;
+      background: var(--warn, #FFD300);
+      color: #0a0a0a;
+      border-radius: 999px;
+      font-size: 8.5px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      line-height: 1.3;
+    }
+    /* Show PRO pill on menu items only when the profile widget contains
+       a signed-in-but-not-pro profile button. */
+    body.ui-v2 .v2-tmw-profile-widget:has(.v2-profile-btn.signed-in:not(.is-pro)) .v2-menu-pro-pill {
+      display: inline-flex;
+    }
+    /* Menu item layout: label sits between the SVG icon and the optional
+       PRO pill, pushed right via margin-left:auto on the pill. */
+    body.ui-v2 .v2-profile-menu .v2-menu-item .v2-menu-label {
+      flex: 0 1 auto;
+    }
     /* Profile dropdown menu (opens below the widget when profile tapped) */
     body.ui-v2 .v2-profile-menu {
       position: absolute;
@@ -10853,6 +10914,12 @@
             <svg viewBox="0 0 24 24"><path d="M12 2l3 6.3 6.9 1-5 4.9 1.2 7L12 17.8 5.9 21.2l1.2-7-5-4.9L9 8.3z"/></svg>
           </span>
         </button>
+        <!-- GO PRO upgrade pill: sits to the right of the profile icon
+             when the user is signed in on a FREE plan. Visibility is
+             controlled by sibling-selector CSS that reads .signed-in
+             and .is-pro from the profile button. Click opens the
+             subscription paywall directly. -->
+        <button class="v2-go-pro-badge" id="v2GoProBtn" type="button" aria-label="Upgrade to TMW Pro">GO PRO</button>
         <!-- Profile dropdown menu (opens on profile click) -->
         <div class="v2-profile-menu" id="v2ProfileMenu" role="menu" aria-hidden="true">
           <button class="v2-menu-item" id="v2MenuAccount" role="menuitem">
@@ -10861,11 +10928,15 @@
           </button>
           <button class="v2-menu-item" id="v2MenuWatchlist" role="menuitem">
             <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-            Watchlist
+            <span class="v2-menu-label">Watchlist</span>
+            <!-- Free-tier-only PRO marker; hidden via CSS when the
+                 profile button carries .is-pro. -->
+            <span class="v2-menu-pro-pill">PRO</span>
           </button>
           <button class="v2-menu-item" id="v2MenuCompare" role="menuitem">
             <svg viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h12"/></svg>
-            Comparisons
+            <span class="v2-menu-label">Comparisons</span>
+            <span class="v2-menu-pro-pill">PRO</span>
           </button>
           <div class="v2-menu-divider"></div>
           <button class="v2-menu-item v2-menu-signout" id="v2MenuSignOut" role="menuitem">
@@ -16723,7 +16794,7 @@
                 <div class="paywall-plan-tag">BEST VALUE</div>
                 <div class="paywall-plan-name">Annual</div>
                 <div class="paywall-plan-price">$90<span class="paywall-plan-per">/year</span></div>
-                <div class="paywall-plan-note">Just $7.50/month ‚Äî save 17%</div>
+                <div class="paywall-plan-note">Just $7.50/month &middot; save 17%</div>
               </button>
               <button class="paywall-plan paywall-plan-monthly" data-price-id="${PRICE_ID_MONTHLY}">
                 <div class="paywall-plan-name">Monthly</div>
@@ -16789,7 +16860,7 @@
               <img src="https://static.wixstatic.com/shapes/ca3b83_a647b53cad4c49c5b012af991d286a86.svg" alt="Markets of Tomorrow" />
             </div>
             <h2 class="paywall-title">Keep exploring</h2>
-            <p class="paywall-subtitle">You've previewed ${ANON_CLICK_LIMIT} projects. Sign up free to unlock ${FREE_MEMBER_CLICK_LIMIT - ANON_CLICK_LIMIT} more ‚Äî no credit card required.</p>
+            <p class="paywall-subtitle">You've previewed ${ANON_CLICK_LIMIT} projects. Sign up free to unlock ${FREE_MEMBER_CLICK_LIMIT - ANON_CLICK_LIMIT} more &mdash; no credit card required.</p>
             <button class="paywall-cta-primary" id="signupWallSignupBtn">
               Sign up free
             </button>
@@ -22309,6 +22380,20 @@
         document.addEventListener('click', (e) => {
           if (!v2ProfileMenu.contains(e.target) && e.target !== v2Profile) {
             v2ProfileMenu.classList.remove('open');
+          }
+        });
+      }
+      // GO PRO badge ‚Üí open the subscription paywall directly. The
+      // badge is only visible when the user is signed in on a free
+      // plan (CSS handles visibility via sibling selector), so a
+      // single click handler covers every case.
+      const v2GoPro = document.getElementById('v2GoProBtn');
+      if (v2GoPro) {
+        v2GoPro.addEventListener('click', (e) => {
+          e.stopPropagation();
+          e.preventDefault();
+          if (typeof window.showSubscriptionPaywall === 'function') {
+            window.showSubscriptionPaywall('upgrade:badge');
           }
         });
       }
