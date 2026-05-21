@@ -5557,22 +5557,25 @@
     text-transform: uppercase;
     line-height: 1.2;
   }
-  /* Founding-member callout ‚Äî gold pill with eyebrow + body line. Sits
+  /* Founding-member callout ‚Äî gold card with eyebrow + body line. Sits
      between the feature list and the sign-in link, drawing the eye
-     before the user scrolls to the close. */
+     before the user scrolls to the close. Spans the same width as
+     the .paywall-plan buttons above (full width of the paywall card)
+     so the visual rhythm continues without a width discontinuity. */
   .paywall-founding {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 4px;
-    margin: 0 auto 14px;
-    padding: 10px 14px;
+    margin: 0 0 14px;
+    padding: 12px 18px;
     border-radius: 12px;
     background: rgba(255,211,0,0.10);
     border: 1px solid rgba(255,211,0,0.32);
     text-align: center;
-    max-width: 320px;
     box-shadow: 0 0 14px rgba(255,211,0,0.18);
+    width: 100%;
+    box-sizing: border-box;
   }
   .paywall-founding-eyebrow {
     font-size: 11px;
@@ -9039,12 +9042,15 @@
   body.ui-v2:has(#v2ProfileBtn.signed-in:not(.is-pro)) #v2GoProBtn {
     display: inline-flex;
   }
-  /* MOBILE: pin to top-right of viewport, same baseline + height as
-     the Map/Atlas pill. Single-line ("white-space: nowrap" + min-width)
-     so "GO PRO" never wraps. The JS init reparents this element to
-     body on mobile so the widget's backdrop-filter doesn't trap our
-     position: fixed inside the widget's coordinate space (which was
-     pinning the badge to top-LEFT instead of top-right). */
+  /* MOBILE: pin to top-right of viewport, exactly the same height +
+     border + vertical position as the Map/Atlas pill so the two
+     surfaces read as siblings on the same row. Drop the gold halo
+     shadow (it was making the badge visually taller than the dark
+     Map/Atlas pill) and swap to the same 1px light-gray border the
+     Map/Atlas container uses. Single-line via white-space: nowrap.
+     The JS init reparents this element to body on mobile so the
+     widget's backdrop-filter doesn't trap our position: fixed inside
+     the widget's coordinate space. */
   @media (max-width: 800px) {
     body.ui-v2 #v2GoProBtn {
       position: fixed;
@@ -9052,9 +9058,12 @@
       right: calc(env(safe-area-inset-right, 0px) + 14px);
       left: auto !important;
       height: 38px;
+      box-sizing: border-box;
       padding: 0 14px;
       font-size: 11px;
       margin: 0;
+      border: 1px solid rgba(255,255,255,0.1);
+      box-shadow: none;
       white-space: nowrap;
       z-index: 110;
     }
