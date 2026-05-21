@@ -891,21 +891,21 @@
       "delivery_speculative": false
     },
     "the-well-coconut-grove": {
-      "estimate_years": 0.6,
-      "estimate_label": "~7 months",
-      "days_out": 224,
-      "delivery_date": "2026-12-31",
+      "estimate_years": 3.0,
+      "estimate_label": "~3 years",
+      "days_out": 1029,
+      "delivery_date": "2029-03-15",
       "source": "known_date",
-      "precision": "year",
-      "confidence": "high",
+      "precision": "month",
+      "confidence": "medium",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [],
       "comparable_count": 0,
-      "pattern_summary": "Targeted for opening in ~7 months.",
-      "dates_speculative": false,
-      "start_speculative": false,
-      "delivery_speculative": false
+      "pattern_summary": "TMW estimates an opening in ~3 years based on project type and current stage.",
+      "dates_speculative": true,
+      "start_speculative": true,
+      "delivery_speculative": true
     },
     "ziggurat-coconut-grove": {
       "estimate_years": 1.5,
@@ -6875,7 +6875,7 @@
     "skipped": 60,
     "no_type": 0,
     "firm_boosted": 0,
-    "speculative_softened": 8,
+    "speculative_softened": 9,
     "mixed_use_adjusted": 1
   }
 }
