@@ -9042,24 +9042,27 @@
   body.ui-v2:has(#v2ProfileBtn.signed-in:not(.is-pro)) #v2GoProBtn {
     display: inline-flex;
   }
-  /* MOBILE: pin to top-right of viewport, exactly the same height +
-     border + vertical position as the Map/Atlas pill so the two
-     surfaces read as siblings on the same row. Drop the gold halo
-     shadow (it was making the badge visually taller than the dark
-     Map/Atlas pill) and swap to the same 1px light-gray border the
-     Map/Atlas container uses. Single-line via white-space: nowrap.
+  /* MOBILE: pin to top-right of viewport at the SAME vertical center
+     as the active gold pill INSIDE the Map/Atlas toggle. The toggle's
+     outer container is 38px but it has 3px padding + 1px border, so
+     the inner active pill is only ~30px tall. Matching the inner pill
+     keeps the GO PRO chip visually balanced with the gold "Map" or
+     "Atlas" button next to it. Single-line via white-space: nowrap.
      The JS init reparents this element to body on mobile so the
      widget's backdrop-filter doesn't trap our position: fixed inside
      the widget's coordinate space. */
   @media (max-width: 800px) {
     body.ui-v2 #v2GoProBtn {
       position: fixed;
-      top: calc(env(safe-area-inset-top, 0px) + 8px);
+      /* Vertical center: chrome top (safe + 8px) + 3px container pad
+         + 1px container border + half the 30px inner pill = 12px+safe
+         to top of the chip. */
+      top: calc(env(safe-area-inset-top, 0px) + 12px);
       right: calc(env(safe-area-inset-right, 0px) + 14px);
       left: auto !important;
-      height: 38px;
+      height: 30px;
       box-sizing: border-box;
-      padding: 0 14px;
+      padding: 0 12px;
       font-size: 11px;
       margin: 0;
       border: 1px solid rgba(255,255,255,0.1);
@@ -16910,13 +16913,17 @@
         // checkmark to communicate that these are paid features unlocked
         // by upgrading. Build the rows with a helper to keep the markup
         // readable.
+        // Same 8 Pro features as the subscription paywall ‚Äî keeps the
+        // value prop consistent across both walls.
         const proFeatures = [
           'Unlimited project exploration',
-          'Full developer, architect and timeline details',
-          'Create your project watchlist',
+          'Access to TMW intelligence',
+          'Full project details',
+          'Create and follow your project watchlist',
           'Build and share project comparison sheets',
-          'Project update notifications',
-          'Daily in-app pulse',
+          'Daily project update notifications',
+          'Architect &amp; Developer pages',
+          'Read journal articles attached to every project',
         ];
         const proFeatureRows = proFeatures.map(label =>
           `<div class="paywall-feature">
@@ -16941,6 +16948,13 @@
             </button>
             <div class="paywall-features">
               ${proFeatureRows}
+            </div>
+            <!-- Same founding-member callout as the subscription paywall.
+                 Reinforces the time-limited rate-lock pitch even at the
+                 anon-signup stage. -->
+            <div class="paywall-founding">
+              <span class="paywall-founding-eyebrow">Become a Founding Member</span>
+              <span class="paywall-founding-body">Rate locked for life, before July 2026.</span>
             </div>
             <div class="paywall-signin">
               Already have an account? <a href="#" id="signupWallSigninLink">Sign in</a>
