@@ -5557,6 +5557,36 @@
     text-transform: uppercase;
     line-height: 1.2;
   }
+  /* Founding-member callout ‚Äî gold pill with eyebrow + body line. Sits
+     between the feature list and the sign-in link, drawing the eye
+     before the user scrolls to the close. */
+  .paywall-founding {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    margin: 0 auto 14px;
+    padding: 10px 14px;
+    border-radius: 12px;
+    background: rgba(255,211,0,0.10);
+    border: 1px solid rgba(255,211,0,0.32);
+    text-align: center;
+    max-width: 320px;
+    box-shadow: 0 0 14px rgba(255,211,0,0.18);
+  }
+  .paywall-founding-eyebrow {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #FFD300;
+  }
+  .paywall-founding-body {
+    font-size: 12px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.78);
+    line-height: 1.4;
+  }
   .paywall-signin {
     font-size: 12px;
     color: rgba(255,255,255,0.45);
@@ -9001,28 +9031,31 @@
     filter: brightness(1.08);
     box-shadow: 0 0 0 1px rgba(255,211,0,0.6) inset, 0 0 14px rgba(255,211,0,0.4);
   }
-  /* Visible only when the profile button immediately before it is
-     SIGNED IN but NOT pro. Sibling selector so no body class needed. */
-  body.ui-v2 .v2-profile-btn.signed-in:not(.is-pro) + .v2-go-pro-badge {
+  /* Visible only when the user is SIGNED IN but NOT pro. Uses :has()
+     on body so visibility works regardless of the badge's DOM
+     position ‚Äî needed because mobile lifts it to body to escape the
+     widget's backdrop-filter containing block (see v2GoProRelocate
+     in the JS init). */
+  body.ui-v2:has(#v2ProfileBtn.signed-in:not(.is-pro)) #v2GoProBtn {
     display: inline-flex;
   }
-  /* MOBILE: detach from the profile widget and pin to the top-right
-     of the viewport, vertically aligned with the Map/Atlas pill (same
-     top + same 38px height) so it reads as a peer of that toggle, not
-     part of the profile widget. Stays in the same DOM position so the
-     sibling selector above keeps controlling visibility. */
+  /* MOBILE: pin to top-right of viewport, same baseline + height as
+     the Map/Atlas pill. Single-line ("white-space: nowrap" + min-width)
+     so "GO PRO" never wraps. The JS init reparents this element to
+     body on mobile so the widget's backdrop-filter doesn't trap our
+     position: fixed inside the widget's coordinate space (which was
+     pinning the badge to top-LEFT instead of top-right). */
   @media (max-width: 800px) {
-    body.ui-v2 .v2-profile-btn.signed-in:not(.is-pro) + .v2-go-pro-badge {
+    body.ui-v2 #v2GoProBtn {
       position: fixed;
-      /* 8px from the top safe area = same baseline as the v2 top chrome
-         (which uses top: calc(safe + 8px)), so the badge's top lines up
-         with the chrome row. */
       top: calc(env(safe-area-inset-top, 0px) + 8px);
       right: calc(env(safe-area-inset-right, 0px) + 14px);
+      left: auto !important;
       height: 38px;
       padding: 0 14px;
       font-size: 11px;
       margin: 0;
+      white-space: nowrap;
       z-index: 110;
     }
   }
@@ -16825,11 +16858,19 @@
             </div>
             <div class="paywall-features">
               <div class="paywall-feature"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#1FDF67" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Unlimited project exploration</div>
-              <div class="paywall-feature"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#1FDF67" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Full developer, architect and timeline details</div>
-              <div class="paywall-feature"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#1FDF67" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Create your project watchlist</div>
+              <div class="paywall-feature"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#1FDF67" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Access to TMW intelligence</div>
+              <div class="paywall-feature"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#1FDF67" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Full project details</div>
+              <div class="paywall-feature"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#1FDF67" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Create and follow your project watchlist</div>
               <div class="paywall-feature"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#1FDF67" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Build and share project comparison sheets</div>
-              <div class="paywall-feature"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#1FDF67" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Project update notifications</div>
-              <div class="paywall-feature"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#1FDF67" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Daily in-app pulse</div>
+              <div class="paywall-feature"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#1FDF67" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Daily project update notifications</div>
+              <div class="paywall-feature"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#1FDF67" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Architect &amp; Developer pages</div>
+              <div class="paywall-feature"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#1FDF67" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Read journal articles attached to every project</div>
+            </div>
+            <!-- Founding-member callout: rate-lock pitch, time-limited.
+                 Sits between the feature list and the sign-in link. -->
+            <div class="paywall-founding">
+              <span class="paywall-founding-eyebrow">Become a Founding Member</span>
+              <span class="paywall-founding-body">Rate locked for life, before July 2026.</span>
             </div>
             <div class="paywall-signin" id="subPaywallSigninWrap">
               Already a subscriber? <a href="#" id="subPaywallSigninLink">Sign in</a>
@@ -21761,6 +21802,48 @@
       } else {
         lift();
       }
+    })();
+
+    // ‚îÄ‚îÄ GO PRO badge: relocate per viewport ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
+    // On mobile, the .v2-tmw-profile-widget has a backdrop-filter
+    // which creates a containing block for fixed-position descendants
+    // (CSS spec) ‚Äî so `position: fixed; right: 14px` on the badge
+    // anchors to the WIDGET's right edge (top-left of screen) instead
+    // of the viewport's right edge. We work around that by lifting
+    // the badge to be a direct child of <body> on mobile.
+    // On desktop we move it back inside the widget so it sits inline
+    // next to the profile icon (no fixed positioning needed there).
+    // Runs once on boot and again on resize so flipping orientation
+    // re-positions correctly.
+    (function v2GoProRelocate() {
+      function place() {
+        const badge = document.getElementById('v2GoProBtn');
+        if (!badge) return;
+        const widget = document.querySelector('.v2-tmw-profile-widget');
+        const onMobile = window.matchMedia('(max-width: 800px)').matches;
+        if (onMobile) {
+          if (badge.parentElement !== document.body) {
+            document.body.appendChild(badge);
+          }
+        } else if (widget) {
+          // Insert just after the profile button so the inline order
+          // matches the original markup (profile-btn ‚Üí badge ‚Üí menu).
+          if (badge.parentElement !== widget) {
+            const profileBtn = widget.querySelector('#v2ProfileBtn');
+            if (profileBtn && profileBtn.nextSibling) {
+              widget.insertBefore(badge, profileBtn.nextSibling);
+            } else {
+              widget.appendChild(badge);
+            }
+          }
+        }
+      }
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', place);
+      } else {
+        place();
+      }
+      window.addEventListener('resize', place);
     })();
 
     // ‚îÄ‚îÄ Desktop top-right action icons (bell + comparison) ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
