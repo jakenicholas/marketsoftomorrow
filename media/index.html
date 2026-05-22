@@ -334,9 +334,9 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
 .pgrid.filtering .p{animation:fadeIn .4s ease}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 /* segmented toggle */
-.seg{display:inline-flex; border:1px solid rgba(230,197,116,.32); border-radius:999px; overflow:hidden; height:44px; background:rgba(230,197,116,.04); box-shadow:0 0 18px -6px rgba(230,197,116,.25)}
-.seg-btn{background:transparent; border:none; color:var(--mute2); font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; padding:0 18px; cursor:pointer; transition:background .2s, color .2s, box-shadow .2s; border-radius:999px}
-.seg-btn+.seg-btn{}
+.seg{display:inline-flex; gap:4px; padding:3px; border:1px solid rgba(230,197,116,.32); border-radius:999px; height:38px; background:rgba(230,197,116,.04); box-shadow:0 0 18px -6px rgba(230,197,116,.25)}
+.seg-btn{background:transparent; border:none; color:var(--mute2); font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; padding:0 10px; cursor:pointer; transition:background .2s, color .2s, box-shadow .2s; border-radius:999px; display:inline-flex; align-items:center; justify-content:center; min-width:42px}
+.seg-btn svg{width:15px; height:15px; display:block}
 .seg-btn.active{background:var(--gold); color:var(--ink); font-weight:700; box-shadow:0 0 0 1px rgba(230,197,116,.55), 0 0 22px rgba(230,197,116,.55), 0 0 4px rgba(230,197,116,.4)}
 .seg-btn:not(.active):hover{color:var(--gold-soft)}
 /* client filters */
@@ -443,11 +443,12 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
   .hero .eyebrow .eb-sep{display:none}
   .hero .eyebrow .eb-line2{display:block}
   /* mobile: client filters in 2-on-a-row layout (Industry + Market on row 1, View + Sort on row 2) */
-  .cfilters{display:grid; grid-template-columns:1fr 1fr; gap:14px 12px}
+  .cfilters{display:grid; grid-template-columns:1fr 1fr; gap:22px 14px; margin-bottom:28px}
   .cfilter{min-width:0}
-  .cfilter-meta{grid-column:1 / -1; margin-left:0; padding-bottom:0; justify-content:flex-start}
-  .seg{width:100%; justify-content:stretch}
-  .seg-btn{flex:1; padding:0 8px}
+  .cfilter select{min-width:0; width:100%; padding:9px 32px 9px 12px; font-size:13px}
+  .cfilter-meta{grid-column:1 / -1; margin-left:0; padding-bottom:0; justify-content:flex-start; margin-top:6px}
+  .seg{width:100%; height:36px; justify-content:stretch}
+  .seg-btn{flex:1; padding:0 6px; min-width:0}
   .mot-cc-frame{height:560px} .tmw-wordmark{width:80px}
 }
 </style>
@@ -555,11 +556,11 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
     <div class="audmeta reveal">
       <div class="am">
         <div class="am-k">Job titles</div>
-        <div class="am-v">Real estate, architecture, agents, affluent buyers,<br class="m-br"> wellness, tech, and social media content.</div>
+        <div class="am-v">Real estate, architecture, agents, affluent buyers,<br class="m-br"> wellness, tech, and social media content</div>
       </div>
       <div class="am">
         <div class="am-k">Careers</div>
-        <div class="am-v">Founders, brokers, agents, developers, designers,<br class="m-br"> hospitality leaders, and creators.</div>
+        <div class="am-v">Founders, brokers, agents, developers, designers,<br class="m-br"> hospitality leaders, and creators</div>
       </div>
     </div>
   </div>
@@ -570,7 +571,7 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
     <div class="shead">
       <div class="eyebrow reveal">Reach Without Borders</div>
       <h2 class="reveal d1">A global footprint</h2>
-      <p class="lede reveal d2">With hyper-focus markets in <span class="hl-gold">Florida, New York, Tennessee, the Caribbean,</span> and <span class="hl-gold">the Rockies,</span><br class="m-br"> we also showcase global travel through our <span class="hl-gold">Hotels of Tomorrow</span> outlet,<br class="m-br"> and standout experiences through our <span class="hl-gold">Iconic Lists.</span></p>
+      <p class="lede reveal d2">With hyper-focus markets in <span class="hl-gold">Florida, New York, Tennessee, the Caribbean,</span> and <span class="hl-gold">the Rockies,</span> we also showcase global travel through our<br class="m-br"> <span class="hl-gold">Hotels of Tomorrow</span> outlet, and standout experiences<br class="m-br"> through our <span class="hl-gold">Iconic Lists.</span></p>
     </div>
     <div class="globe-stats">
       <div class="metric glass reveal d1"><div class="num">40+</div><div class="lab">Markets tracked worldwide</div></div>
@@ -630,7 +631,7 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
     <div class="shead">
       <div class="eyebrow reveal">Where Our Audience Lives</div>
       <h2 class="reveal d1">Concentrated where it counts</h2>
-      <p class="lede reveal d2">More than a quarter of our audience sits in The Palm Beaches &mdash; the exact buyer pool for a West Palm Beach residential launch.</p>
+      <p class="lede reveal d2" style="max-width:80%">More than a quarter of our audience sits in The Palm Beaches &mdash; the exact buyer pool for a West Palm Beach residential launch.</p>
     </div>
     <div class="bars reveal">
       <div class="bar-row hi"><div class="city">The Palm Beaches</div><div class="bar-track"><div class="bar-fill" data-w="100.0"></div></div><div class="val">27%</div></div>
@@ -774,7 +775,7 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
     <div class="shead">
       <div class="eyebrow reveal">Partners of Tomorrow</div>
       <h2 class="reveal d1">In good company</h2>
-      <p class="lede reveal d2" style="max-width:70%">We're grateful to work with some <span class="hl-gold">incredible brands</span> across real estate, hospitality, and lifestyle. Filter by industry or market to explore the full roster.</p>
+      <p class="lede reveal d2" style="max-width:70%">We're grateful to work with some <span class="hl-gold">incredible brands</span> across real estate, hospitality, and lifestyle.</p>
     </div>
     <div class="cfilters reveal">
       <div class="cfilter">
@@ -788,15 +789,23 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
       <div class="cfilter">
         <label>View</label>
         <div class="seg" id="segView">
-          <button type="button" class="seg-btn active" data-view="logo">Logos</button>
-          <button type="button" class="seg-btn" data-view="text">Text</button>
+          <button type="button" class="seg-btn active" data-view="logo" aria-label="Logos view" title="Logos view">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><rect x="3.5" y="3.5" width="17" height="17" rx="2.4"/><circle cx="9" cy="9.5" r="1.4" fill="currentColor" stroke="none"/><path d="M20.5 16.5l-4.5-4.5-9 8.5" stroke-linecap="round"/></svg>
+          </button>
+          <button type="button" class="seg-btn" data-view="text" aria-label="Text view" title="Text view">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="5" y1="6" x2="19" y2="6"/><line x1="12" y1="6.4" x2="12" y2="19"/></svg>
+          </button>
         </div>
       </div>
       <div class="cfilter">
         <label>Sort</label>
         <div class="seg" id="segSort">
-          <button type="button" class="seg-btn active" data-sort="default">Default</button>
-          <button type="button" class="seg-btn" data-sort="alpha">A&ndash;Z</button>
+          <button type="button" class="seg-btn active" data-sort="default" aria-label="Default sort" title="Default sort">
+            <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="7" cy="7" r="1.9"/><circle cx="17" cy="7" r="1.9"/><circle cx="7" cy="17" r="1.9"/><circle cx="17" cy="17" r="1.9"/></svg>
+          </button>
+          <button type="button" class="seg-btn" data-sort="alpha" aria-label="Alphabetical sort A to Z" title="Sort A&ndash;Z">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="7" x2="14" y2="7"/><line x1="4" y1="12" x2="11" y2="12"/><line x1="4" y1="17" x2="8" y2="17"/><polyline points="16,9 19,6 22,9"/><line x1="19" y1="6" x2="19" y2="18"/></svg>
+          </button>
         </div>
       </div>
       <div class="cfilter-meta"><span id="ccount">250+</span> clients <button class="cclear" id="cclear" type="button" hidden>Clear</button></div>
