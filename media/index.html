@@ -168,7 +168,7 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
 .metric .nl-btn:hover{background:rgba(31,223,103,.14); border-color:var(--green); transform:translateY(-1px)}
 .metric .nl-btn svg{width:13px; height:13px; transition:transform .2s}
 .metric .nl-btn:hover svg{transform:translateX(2px)}
-.trust{margin-top:40px; font-size:clamp(15px,1.4vw,18px); color:var(--mute2); max-width:78ch; line-height:1.6; font-weight:300}
+.trust{margin-top:40px; font-size:clamp(15px,1.4vw,18px); color:var(--mute2); max-width:min(80%,78ch); line-height:1.6; font-weight:300}
 .trust b{color:var(--cream); font-weight:500}
 
 .bars{display:flex; flex-direction:column; gap:13px; margin-top:10px}
@@ -191,12 +191,12 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
 .otable tr.flag td:first-child::before{content:""; position:absolute; left:0; top:50%; transform:translateY(-50%); width:4px; height:22px; background:var(--green); border-radius:2px}
 .otable tr.flag td:first-child .umb{font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--green); font-weight:500; margin-left:8px; vertical-align:middle}
 
-/* umbrella summary strip */
-.umbrella{padding:24px 30px; margin-bottom:18px; display:flex; align-items:center; justify-content:space-between; gap:24px; flex-wrap:wrap; border-color:rgba(31,223,103,.28)}
-.umb-lab{font-family:var(--mono); font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--green)}
+/* umbrella summary strip - gold glow treatment */
+.umbrella{padding:24px 30px; margin-bottom:18px; display:flex; align-items:center; justify-content:space-between; gap:24px; flex-wrap:wrap; border-color:rgba(230,197,116,.38); background:linear-gradient(180deg,rgba(230,197,116,.06),rgba(230,197,116,.02)); box-shadow:0 0 0 1px rgba(230,197,116,.10) inset, 0 18px 60px -28px rgba(230,197,116,.35)}
+.umb-lab{font-family:var(--mono); font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--gold-soft); text-shadow:0 0 18px rgba(230,197,116,.35)}
 .umb-stats{display:flex; gap:38px; flex-wrap:wrap}
 .umb-stats .us{display:flex; flex-direction:column; gap:3px}
-.umb-stats .uv{font-family:var(--serif); font-weight:600; font-size:26px; color:var(--green-soft); letter-spacing:-.02em; line-height:1}
+.umb-stats .uv{font-family:var(--serif); font-weight:600; font-size:26px; color:var(--gold-soft); letter-spacing:-.02em; line-height:1; text-shadow:0 0 22px rgba(230,197,116,.45)}
 .umb-stats .uk{font-family:var(--mono); font-size:9.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--mute)}
 /* per-outlet cards */
 .ocards{display:grid; grid-template-columns:repeat(3,1fr); gap:18px}
@@ -334,11 +334,11 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
 .pgrid.filtering .p{animation:fadeIn .4s ease}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 /* segmented toggle */
-.seg{display:inline-flex; border:1px solid var(--hair2); border-radius:10px; overflow:hidden; height:44px}
-.seg-btn{background:transparent; border:none; color:var(--mute2); font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; padding:0 16px; cursor:pointer; transition:background .2s, color .2s}
-.seg-btn+.seg-btn{border-left:1px solid var(--hair2)}
-.seg-btn.active{background:var(--green); color:var(--ink); font-weight:700}
-.seg-btn:not(.active):hover{color:var(--cream)}
+.seg{display:inline-flex; border:1px solid rgba(230,197,116,.32); border-radius:999px; overflow:hidden; height:44px; background:rgba(230,197,116,.04); box-shadow:0 0 18px -6px rgba(230,197,116,.25)}
+.seg-btn{background:transparent; border:none; color:var(--mute2); font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; padding:0 18px; cursor:pointer; transition:background .2s, color .2s, box-shadow .2s; border-radius:999px}
+.seg-btn+.seg-btn{}
+.seg-btn.active{background:var(--gold); color:var(--ink); font-weight:700; box-shadow:0 0 0 1px rgba(230,197,116,.55), 0 0 22px rgba(230,197,116,.55), 0 0 4px rgba(230,197,116,.4)}
+.seg-btn:not(.active):hover{color:var(--gold-soft)}
 /* client filters */
 .cfilters{display:flex; align-items:flex-end; gap:18px; flex-wrap:wrap; margin-bottom:24px}
 .cfilter{display:flex; flex-direction:column; gap:8px}
@@ -439,6 +439,15 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
   /* mobile: hero meta line breaks after Tennessee, hide the joiner middot */
   .meta-sep{display:none}
   .meta-grp{display:block}
+  /* mobile: hero eyebrow stacks on 2 lines (drop "Media Kit & Audience Reach" to its own line) */
+  .hero .eyebrow .eb-sep{display:none}
+  .hero .eyebrow .eb-line2{display:block}
+  /* mobile: client filters in 2-on-a-row layout (Industry + Market on row 1, View + Sort on row 2) */
+  .cfilters{display:grid; grid-template-columns:1fr 1fr; gap:14px 12px}
+  .cfilter{min-width:0}
+  .cfilter-meta{grid-column:1 / -1; margin-left:0; padding-bottom:0; justify-content:flex-start}
+  .seg{width:100%; justify-content:stretch}
+  .seg-btn{flex:1; padding:0 8px}
   .mot-cc-frame{height:560px} .tmw-wordmark{width:80px}
 }
 </style>
@@ -515,7 +524,7 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
 
   </div>
   <div class="wrap hero-wrap">
-    <div class="eyebrow reveal">Markets of Tomorrow &middot; Media Kit &amp; Audience Reach</div>
+    <div class="eyebrow reveal"><span class="eb-line1">Markets of Tomorrow</span><span class="eb-sep"> &middot; </span><span class="eb-line2">Media Kit &amp; Audience Reach</span></div>
     <h1 class="hero-h1 reveal d1">The Future<br>Is Here<span class="caret" aria-hidden="true">_</span></h1>
     <p class="hero-tag reveal d2">We're a powerhouse news network, sharing the brands shaping the future across the globe.</p>
     <div class="meta reveal d3"><span class="meta-grp">Florida &middot; New York &middot; Tennessee</span><span class="meta-sep"> &middot; </span><span class="meta-grp">Caribbean &middot; Rockies &middot; Hotels</span></div>
@@ -528,7 +537,7 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
     <div class="shead">
       <div class="eyebrow reveal">The Network</div>
       <h2 class="reveal d1">A powerhouse<br class="m-br"> <span class="nowrap">news network</span><br>for what's next</h2>
-      <p class="lede reveal d2">A reach snapshot across <span class="hl-gold">every outlet</span> &mdash; the audience, the engagement, and the markets where it all lands.</p>
+      <p class="lede reveal d2">A reach snapshot across <span class="hl-gold">every outlet</span> &mdash;<br class="m-br"> the audience, the engagement, and<br class="m-br"> the markets where it all lands.</p>
     </div>
     <div class="headstats">
       <div class="statcard glass reveal d1"><div class="num">8.1M</div><div class="lab">Monthly social views</div></div>
@@ -546,11 +555,11 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
     <div class="audmeta reveal">
       <div class="am">
         <div class="am-k">Job titles</div>
-        <div class="am-v">Real estate, architecture, affluent buyers, wellness, tech, and social media content.</div>
+        <div class="am-v">Real estate, architecture, agents, affluent buyers,<br class="m-br"> wellness, tech, and social media content.</div>
       </div>
       <div class="am">
         <div class="am-k">Careers</div>
-        <div class="am-v">Founders, brokers, developers, designers, hospitality leaders, and creators.</div>
+        <div class="am-v">Founders, brokers, agents, developers, designers,<br class="m-br"> hospitality leaders, and creators.</div>
       </div>
     </div>
   </div>
@@ -561,7 +570,7 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
     <div class="shead">
       <div class="eyebrow reveal">Reach Without Borders</div>
       <h2 class="reveal d1">A global footprint</h2>
-      <p class="lede reveal d2">With hyper-focus markets in <span class="hl-gold">Florida, New York, Tennessee, the Caribbean,</span> and <span class="hl-gold">the Rockies,</span> we also showcase global travel through our <span class="hl-gold">Hotels of Tomorrow</span> outlet, and standout experiences through our <span class="hl-gold">Iconic Lists.</span></p>
+      <p class="lede reveal d2">With hyper-focus markets in <span class="hl-gold">Florida, New York, Tennessee, the Caribbean,</span> and <span class="hl-gold">the Rockies,</span><br class="m-br"> we also showcase global travel through our <span class="hl-gold">Hotels of Tomorrow</span> outlet,<br class="m-br"> and standout experiences through our <span class="hl-gold">Iconic Lists.</span></p>
     </div>
     <div class="globe-stats">
       <div class="metric glass reveal d1"><div class="num">40+</div><div class="lab">Markets tracked worldwide</div></div>
@@ -646,7 +655,7 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
     <div class="shead">
       <div class="eyebrow reveal">Outlet Reach</div>
       <h2 class="reveal d1">Seven outlets, one network</h2>
-      <p class="lede reveal d2"><span class="hl-gold">Florida of Tomorrow</span> leads as our <span class="hl-gold">flagship</span>, with co-posting across the network where relevant. Together they roll up under the Markets of Tomorrow umbrella.</p>
+      <p class="lede reveal d2" style="max-width:80%"><span class="hl-gold">Florida of Tomorrow</span> leads as our <span class="hl-gold">flagship</span>, with co-posting across the network where relevant. Together they roll up under the Markets of Tomorrow umbrella.</p>
     </div>
     <div class="umbrella glass reveal">
       <div class="umb-lab">Markets of Tomorrow &middot; Umbrella Total</div>
@@ -765,7 +774,7 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
     <div class="shead">
       <div class="eyebrow reveal">Partners of Tomorrow</div>
       <h2 class="reveal d1">In good company</h2>
-      <p class="lede reveal d2">We're grateful to work with some <span class="hl-gold">incredible brands</span> across real estate, hospitality, and lifestyle. Filter by industry or market to explore the full roster.</p>
+      <p class="lede reveal d2" style="max-width:70%">We're grateful to work with some <span class="hl-gold">incredible brands</span> across real estate, hospitality, and lifestyle. Filter by industry or market to explore the full roster.</p>
     </div>
     <div class="cfilters reveal">
       <div class="cfilter">
@@ -855,8 +864,8 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
   <div class="wrap">
     <div class="shead">
       <div class="eyebrow reveal">Map of Tomorrow</div>
-      <h2 class="reveal d1">Every project, on one live map</h2>
-      <p class="lede reveal d2">Our interactive Map of Tomorrow tracks development across 40+ markets &mdash; by city, by firm, by pin. It's where real estate professionals, investors, and buyers go to see what's coming next.</p>
+      <h2 class="reveal d1">Every project,<br class="m-br"> one live map</h2>
+      <p class="lede reveal d2" style="max-width:80%">Our interactive Map of Tomorrow tracks development across 40+ markets &mdash; by city, by firm, by pin. It's where real estate professionals, investors, and buyers go to see what's coming next.</p>
     </div>
     <div class="mapwrap reveal">
       
@@ -905,7 +914,7 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
     <div class="shead">
       <div class="eyebrow reveal">By The Numbers</div>
       <h2 class="reveal d1">We track a lot of data</h2>
-      <p class="lede reveal d2">Hundreds of projects across <span class="hl-gold">40+ markets</span> &mdash; ranked by momentum. Here's where development is moving the most right now.</p>
+      <p class="lede reveal d2" style="max-width:80%">Hundreds of projects across <span class="hl-gold">40+ markets</span> &mdash; ranked by momentum. Here's where development is moving the most right now.</p>
     </div>
     <!-- TMW LIVE LEADERBOARD EMBED (command-center look) -->
     <style>
@@ -1182,7 +1191,7 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
   .ti-card-num{font-family:var(--mono); font-size:12px; letter-spacing:.1em; color:var(--purple-glow); margin-bottom:18px; position:relative; z-index:1}
   .ti-card-h{font-family:var(--serif); font-weight:600; font-size:22px; color:var(--white); letter-spacing:-.01em; margin-bottom:10px; position:relative; z-index:1}
   .ti-card-p{font-size:14px; color:var(--mute2); line-height:1.55; font-weight:300; position:relative; z-index:1}
-  .ti-strip{display:flex; flex-wrap:wrap; gap:24px 38px; margin-top:32px; padding:22px 28px; border:1px solid rgba(167,139,250,.22); border-radius:16px; background:rgba(167,139,250,.05); align-items:center}
+  .ti-strip{display:flex; flex-wrap:wrap; gap:24px 38px; margin-top:18px; padding:22px 28px; border:1px solid rgba(167,139,250,.22); border-radius:16px; background:rgba(167,139,250,.05); align-items:center}
   .ti-strip-lab{font-family:var(--mono); font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--purple-glow)}
   .ti-strip-stats{flex:1; display:grid; grid-template-columns:repeat(4,1fr); gap:24px; align-items:start}
   .ti-strip-stat{display:flex; flex-direction:column; gap:3px}
@@ -1287,7 +1296,7 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
   <div class="cta-bg cta-pattern" aria-hidden="true"></div>
   <div class="wrap">
     <div class="eyebrow reveal">Let's build the future together</div>
-    <h2 class="reveal d1" style="margin-top:14px">Put your brand in front of buyers and millions of readers</h2>
+    <h2 class="reveal d1" style="margin-top:14px">Put your brand in front<br class="m-br"> of buyers and millions<br class="m-br"> of readers</h2>
     <div class="contacts">
       <div class="c reveal d2">
         <div class="role">Media Inquiries</div>
@@ -1300,7 +1309,7 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
         <div class="det"><a href="mailto:jake@oftmw.com">jake@oftmw.com</a></div>
       </div>
       <div class="c reveal d3">
-        <div class="role">Hotels of Tomorrow, Lead</div>
+        <div class="role">Hotels of Tomorrow</div>
         <div class="name">Kaitlyn Nicholas</div>
         <div class="det"><a href="mailto:kait@oftmw.com">kait@oftmw.com</a></div>
       </div>
@@ -1387,7 +1396,7 @@ addEventListener('scroll',()=>{const y=scrollY; nav.style.transform=(y>last&&y>3
     const lp=document.createElementNS(ns,'path');lp.setAttribute('d',d);lp.setAttribute('fill','none');lp.setAttribute('stroke','#1FDF67');lp.setAttribute('stroke-width','3.5');lp.setAttribute('stroke-linecap','round');lp.setAttribute('stroke-linejoin','round');svg.appendChild(lp);
     const len=lp.getTotalLength();
     if(revealed){lp.style.strokeDashoffset=0;} else {lp.style.strokeDasharray=len;lp.style.strokeDashoffset=len;lp.style.transition='stroke-dashoffset 1.6s cubic-bezier(.22,1,.36,1)';}
-    data.forEach((p,i)=>{const c=document.createElementNS(ns,'circle');c.setAttribute('cx',px(i));c.setAttribute('cy',py(p.y));c.setAttribute('r',5.5);c.setAttribute('fill','#070807');c.setAttribute('stroke','#1FDF67');c.setAttribute('stroke-width','3');c.setAttribute('opacity',revealed?'1':'0');if(!revealed)c.style.transition='opacity .4s '+(0.6+i*.22)+'s';svg.appendChild(c);c._show=()=>c.setAttribute('opacity','1');const t=document.createElementNS(ns,'text');t.setAttribute('x',px(i));t.setAttribute('y',py(p.y)-16);t.setAttribute('text-anchor','middle');t.setAttribute('class','pointlab');t.setAttribute('font-size',ptFont);t.setAttribute('opacity',revealed?'1':'0');if(!revealed)t.style.transition='opacity .4s '+(0.7+i*.22)+'s';t.textContent=p.y+'M';svg.appendChild(t);t._show=()=>t.setAttribute('opacity','1');const xl=document.createElementNS(ns,'text');xl.setAttribute('x',px(i));xl.setAttribute('y',H-12);xl.setAttribute('text-anchor','middle');xl.setAttribute('class','axislab');xl.setAttribute('font-size',axFont);xl.textContent=p.x;svg.appendChild(xl);});
+    data.forEach((p,i)=>{const c=document.createElementNS(ns,'circle');c.setAttribute('cx',px(i));c.setAttribute('cy',py(p.y));c.setAttribute('r',5.5);c.setAttribute('fill','#070807');c.setAttribute('stroke','#1FDF67');c.setAttribute('stroke-width','3');c.setAttribute('opacity',revealed?'1':'0');if(!revealed)c.style.transition='opacity .4s '+(0.6+i*.22)+'s';svg.appendChild(c);c._show=()=>c.setAttribute('opacity','1');const t=document.createElementNS(ns,'text');const labOff=(i===2?(isM?-14:-10):0);t.setAttribute('x',px(i)+labOff);t.setAttribute('y',py(p.y)-16);t.setAttribute('text-anchor','middle');t.setAttribute('class','pointlab');t.setAttribute('font-size',ptFont);t.setAttribute('opacity',revealed?'1':'0');if(!revealed)t.style.transition='opacity .4s '+(0.7+i*.22)+'s';t.textContent=p.y+'M';svg.appendChild(t);t._show=()=>t.setAttribute('opacity','1');const xl=document.createElementNS(ns,'text');xl.setAttribute('x',px(i));xl.setAttribute('y',H-12);xl.setAttribute('text-anchor','middle');xl.setAttribute('class','axislab');xl.setAttribute('font-size',axFont);xl.textContent=p.x;svg.appendChild(xl);});
     svg._lp=lp;svg._ap=ap;
   }
   draw();
