@@ -21207,8 +21207,23 @@
         });
         bodyEl.querySelectorAll('[data-city]').forEach(row => {
           row.addEventListener('click', () => {
-            searchInput.value = row.dataset.city;
-            searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+            const city = row.dataset.city;
+            // Fly the map to the centroid of all projects in this city,
+            // mirroring the mobile city-result behavior. Then dismiss
+            // search so the user lands on Discover (handled by close()).
+            const features = window.allProjectFeatures || [];
+            const cityFeats = features.filter(f =>
+              (f.properties.city || '').toLowerCase() === city.toLowerCase()
+            );
+            if (cityFeats.length && typeof map !== 'undefined' && map) {
+              const lngs = cityFeats.map(f => f.geometry.coordinates[0]);
+              const lats = cityFeats.map(f => f.geometry.coordinates[1]);
+              const lng = lngs.reduce((a, b) => a + b, 0) / lngs.length;
+              const lat = lats.reduce((a, b) => a + b, 0) / lats.length;
+              try {
+                map.flyTo({ center: [lng, lat], zoom: 12, duration: 1400, essential: true });
+              } catch (_) {}
+            }
             close();
           });
         });
@@ -21280,11 +21295,12 @@
             delete ttl.dataset.savedText;
           }
         }
-        // On dismiss, ALSO re-route to the last tab the user was on so
-        // the grid/watchlist/pulse re-shows in the correct mode.
+        // On dismiss, always route to Discover so the user lands on the
+        // map. Clicking a result while on Watchlist/Pulse would otherwise
+        // restore that pane and obscure the map (defeating the search).
         if (!on && typeof window._v2DesktopRouteTab === 'function') {
-          const last = window._v2DesktopLastTab || 'discover';
-          try { window._v2DesktopRouteTab(last); } catch (_) {}
+          window._v2DesktopLastTab = null;
+          try { window._v2DesktopRouteTab('discover'); } catch (_) {}
         }
         // Force-rerun the grid layout enforcer so its display-none branch
         // fires (or the layout restores on dismiss).
@@ -23071,11 +23087,11 @@
         setSearchTabVisible(false);
         const clearBtn = document.getElementById('v2SearchClear');
         if (clearBtn) clearBtn.classList.remove('visible');
-        // Restore the tab the user was on before they started searching
-        // (mobile parallel of the desktop _v2DesktopLastTab restore).
-        const last = window._v2MobileLastTab || 'discover';
+        // Always route to Discover after a search dismiss so the user
+        // lands on the map. Otherwise clicking a result while on
+        // Watchlist/Pulse bounces them back to a list that hides the map.
         window._v2MobileLastTab = null;
-        const lastTab = document.querySelector(`.v2-tab[data-v2-tab="${last}"]`);
+        const lastTab = document.querySelector(`.v2-tab[data-v2-tab="discover"]`);
         if (lastTab) lastTab.click();
       }
       // Wire the search-tab click to dismiss search
