@@ -334,9 +334,9 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
 .pgrid.filtering .p{animation:fadeIn .4s ease}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 /* segmented toggle */
-.seg{display:inline-flex; align-items:center; gap:4px; padding:3px; border:1px solid rgba(230,197,116,.32); border-radius:999px; height:38px; background:rgba(230,197,116,.04); box-shadow:0 0 18px -6px rgba(230,197,116,.25)}
-.seg-group{display:inline-flex; gap:4px; align-items:center}
-.seg-divider{width:1px; align-self:stretch; background:rgba(230,197,116,.32); margin:5px 4px; flex-shrink:0}
+.seg{display:inline-flex; align-items:stretch; gap:4px; padding:3px; border:1px solid rgba(230,197,116,.32); border-radius:999px; height:38px; background:rgba(230,197,116,.04); box-shadow:0 0 18px -6px rgba(230,197,116,.25)}
+.seg-group{display:inline-flex; gap:4px; align-items:stretch}
+.seg-divider{width:1px; align-self:stretch; background:rgba(230,197,116,.32); margin:2px 4px; flex-shrink:0}
 .seg-btn{background:transparent; border:none; color:var(--mute2); font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; padding:0 10px; cursor:pointer; transition:background .2s, color .2s, box-shadow .2s; border-radius:999px; display:inline-flex; align-items:center; justify-content:center; min-width:42px}
 .seg-btn svg{width:15px; height:15px; display:block}
 .seg-btn.active{background:var(--gold); color:var(--ink); font-weight:700; box-shadow:0 0 0 1px rgba(230,197,116,.55), 0 0 22px rgba(230,197,116,.55), 0 0 4px rgba(230,197,116,.4)}
@@ -454,7 +454,7 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
   .seg{width:100%; height:38px}
   .seg-group{flex:1}
   .seg-btn{flex:1; padding:0 6px; min-width:0}
-  .seg-divider{margin:5px 2px}
+  .seg-divider{margin:2px 2px}
   .mot-cc-frame{height:560px} .tmw-wordmark{width:80px}
 }
 </style>
