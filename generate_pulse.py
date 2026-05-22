@@ -12,7 +12,7 @@ Output: ./pulse.json + ./.pulse-snapshot.json (state file for diffing)
 Designed to run AFTER generate_pages.py in the same GitHub Actions run.
 """
 
-import csv, io, json, os, re, sys, urllib.request
+import csv, html, io, json, os, re, sys, urllib.request
 from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
 from xml.etree import ElementTree as ET
@@ -235,15 +235,24 @@ def fetch_rss():
             pub_iso = None
 
         # Body extraction: prefer the full article from <content:encoded>,
-        # fall back to <description>. Strip HTML tags + collapse whitespace
-        # so a project name living inside an <h2> or <a> still matches.
+        # fall back to <description>. Strip HTML tags, decode HTML
+        # entities (so "R&amp;B" ‚Üí "R&B" before matching), then collapse
+        # whitespace. Without the entity decode, project names with
+        # special chars like "R&B Sports Center" or "Spina O'Rourke"
+        # never match articles that mention them in the body ‚Äî Wix
+        # serves CDATA-wrapped HTML where "&" is literally "&amp;".
         raw_body = ''
         if content_el is not None and content_el.text:
             raw_body = content_el.text
         elif desc_el is not None and desc_el.text:
             raw_body = desc_el.text
         body_text = re.sub(r'<[^>]+>', ' ', raw_body)
+        body_text = html.unescape(body_text)
         body_text = re.sub(r'\s+', ' ', body_text).strip()
+        # Decode the title too ‚Äî XML parsers usually decode &amp; in
+        # plain elements, but CDATA-wrapped titles (some Wix feeds use
+        # them) survive as &amp;. Belt-and-suspenders.
+        title = html.unescape(title)
 
         # Use the article's public URL as the canonical guid. The backfill
         # script (which hits the Wix REST API) does the same, so the same
@@ -353,9 +362,18 @@ def _project_name_variants(name: str) -> list:
 
 def _project_matches_text(name: str, text_lower: str) -> bool:
     """Word-boundary match of `name` (and its variants) against `text_lower`.
-    Both inputs are already lowercased by the caller."""
+    Both inputs are already lowercased by the caller.
+
+    Defensive: re-runs html.unescape() on the text so any HTML entity
+    that slipped past the body extractor (e.g. "&amp;" ‚Üí "&", "&#39;"
+    ‚Üí "'") still matches project names containing those characters.
+    Without this, "R&B Sports Center" never matches an article whose
+    HTML body has "R&amp;B Sports Center"."""
     if not text_lower:
         return False
+    # Cheap defensive entity decode; idempotent on already-decoded text.
+    if '&' in text_lower:
+        text_lower = html.unescape(text_lower)
     for variant in _project_name_variants(name):
         pattern = r'(?:^|\W)' + re.escape(variant) + r'(?:\W|$)'
         if re.search(pattern, text_lower):
