@@ -418,13 +418,15 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
   .umbrella{flex-direction:column; align-items:stretch; gap:18px}
   .umb-stats{display:grid; grid-template-columns:1fr 1fr; gap:18px 20px; width:100%; justify-items:start}
   .hero-bg img{opacity:.22}
-  /* mobile: show all 6 bubbles spread around the title without blocking text */
+  /* mobile: show all 6 bubbles spread around the title without blocking text.
+     all positioning uses top: so iOS Safari's URL bar doesn't clip bottom: values. */
+  .msphere{display:flex !important}
   .msphere.b0{width:78px; height:78px; top:3%; left:4%; right:auto; bottom:auto; font-size:12px}
   .msphere.b1{width:94px; height:94px; top:2%; right:4%; left:auto; bottom:auto; font-size:14px}
-  .msphere.b2{display:flex; width:60px; height:60px; top:22%; left:3%; right:auto; bottom:auto; font-size:10px}
-  .msphere.b3{width:72px; height:72px; top:14%; right:3%; left:auto; bottom:auto; font-size:11px}
-  .msphere.b4{display:flex; width:72px; height:72px; bottom:13%; left:4%; top:auto; right:auto; font-size:11px}
-  .msphere.b5{display:flex; width:80px; height:80px; bottom:11%; right:4%; top:auto; left:auto; font-size:12px}
+  .msphere.b2{width:64px; height:64px; top:6%; left:calc(50% - 32px); right:auto; bottom:auto; font-size:10px}
+  .msphere.b3{width:72px; height:72px; top:22%; right:3%; left:auto; bottom:auto; font-size:11px}
+  .msphere.b4{width:78px; height:78px; top:74%; left:4%; right:auto; bottom:auto; font-size:11px}
+  .msphere.b5{width:86px; height:86px; top:76%; right:4%; left:auto; bottom:auto; font-size:12px}
   /* mobile: hero meta line breaks after Tennessee, hide the joiner middot */
   .meta-sep{display:none}
   .meta-grp{display:block}
