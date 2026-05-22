@@ -18,6 +18,7 @@ new articles on top.
 """
 
 import csv
+import html
 import io
 import json
 import os
@@ -242,9 +243,15 @@ def article_dict_from_post(post):
 
 
 def match_article_to_all_projects(article, projects):
-    """Same matcher as generate_pulse.py: word-boundary match in title or body."""
-    title_lower = (article.get('title_full') or '').lower()
-    body_lower = (article.get('body') or '').lower()
+    """Same matcher as generate_pulse.py: word-boundary match in title or body.
+
+    Decodes HTML entities on both inputs so project names with special
+    chars (e.g. "R&B Sports Center", "Spina O'Rourke") match articles
+    that came through Wix's HTML pipeline with "&amp;" / "&#39;" still
+    encoded. Without the decode, "r&b sports center" never matches
+    article text containing "r&amp;b sports center"."""
+    title_lower = html.unescape(article.get('title_full') or '').lower()
+    body_lower = html.unescape(article.get('body') or '').lower()
     matches = []
     sorted_projects = sorted(projects.values(), key=lambda p: -len(p['title']))
     for p in sorted_projects:
