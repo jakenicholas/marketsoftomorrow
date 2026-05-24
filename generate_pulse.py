@@ -236,10 +236,10 @@ def fetch_rss():
 
         # Body extraction: prefer the full article from <content:encoded>,
         # fall back to <description>. Strip HTML tags, decode HTML
-        # entities (so "R&amp;B" ‚Üí "R&B" before matching), then collapse
+        # entities (so "R&amp;B" -> "R&B" before matching), then collapse
         # whitespace. Without the entity decode, project names with
         # special chars like "R&B Sports Center" or "Spina O'Rourke"
-        # never match articles that mention them in the body ‚Äî Wix
+        # never match articles that mention them in the body -- Wix
         # serves CDATA-wrapped HTML where "&" is literally "&amp;".
         raw_body = ''
         if content_el is not None and content_el.text:
@@ -249,7 +249,7 @@ def fetch_rss():
         body_text = re.sub(r'<[^>]+>', ' ', raw_body)
         body_text = html.unescape(body_text)
         body_text = re.sub(r'\s+', ' ', body_text).strip()
-        # Decode the title too ‚Äî XML parsers usually decode &amp; in
+        # Decode the title too -- XML parsers usually decode &amp; in
         # plain elements, but CDATA-wrapped titles (some Wix feeds use
         # them) survive as &amp;. Belt-and-suspenders.
         title = html.unescape(title)
@@ -365,8 +365,8 @@ def _project_matches_text(name: str, text_lower: str) -> bool:
     Both inputs are already lowercased by the caller.
 
     Defensive: re-runs html.unescape() on the text so any HTML entity
-    that slipped past the body extractor (e.g. "&amp;" ‚Üí "&", "&#39;"
-    ‚Üí "'") still matches project names containing those characters.
+    that slipped past the body extractor (e.g. "&amp;" -> "&", "&#39;"
+    -> "'") still matches project names containing those characters.
     Without this, "R&B Sports Center" never matches an article whose
     HTML body has "R&amp;B Sports Center"."""
     if not text_lower:
