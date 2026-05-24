@@ -2276,9 +2276,11 @@
     const newLoc = buildLocOptions();
     const newCount = buildCountSuggestion();
 
-    // 1) Replace inner content of #pgrid (preserve the wrapping div + its empty-state sibling)
-    //    Anchor on the opening tag with id="pgrid" and stop at the next sibling marker `<div class="pgrid-empty"`.
-    const pgridRe = /(<div[^>]*\bid="pgrid"[^>]*>)[\s\S]*?(<div[^>]*\bclass="pgrid-empty")/;
+    // 1) Replace inner content of #pgrid (preserve the wrapping div + its empty-state sibling).
+    //    IMPORTANT: include #pgrid's closing </div> in BOTH the captured group
+    //    and the replacement, otherwise the regex eats it and the .loadmore
+    //    button ends up inside #pgrid's mask-image clip (becomes invisible).
+    const pgridRe = /(<div[^>]*\bid="pgrid"[^>]*>)[\s\S]*?(<\/div>\s*<div[^>]*\bclass="pgrid-empty")/;
     if (pgridRe.test(text)) {
       text = text.replace(pgridRe, `$1\n      ${newTiles}\n    $2`);
     } else { issues.push('Could not locate #pgrid block'); }
