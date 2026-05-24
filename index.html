@@ -7414,6 +7414,13 @@
     gap: 12px; padding: 8px 0;
     cursor: pointer;
     transition: transform 0.12s;
+    /* Native virtualization: browser skips layout/paint for rows that
+       are off-screen, dropping initial Atlas render from "paint every
+       row + queue every image" to "paint ~viewport's worth and defer
+       the rest until scroll." Intrinsic-size hint avoids scrollbar
+       jitter as rows hydrate. */
+    content-visibility: auto;
+    contain-intrinsic-size: auto 146px;
   }
   .atlas-tl-row:hover { transform: translateX(2px); }
   .atlas-tl-row-date {
@@ -7437,10 +7444,22 @@
   }
   .atlas-tl-row-img {
     width: 180px; height: 130px;
-    background: linear-gradient(135deg, #1a1a1a, #222);
-    background-size: cover; background-position: center;
+    /* Skeleton shimmer: subtle moving gradient so empty image slots
+       read as "loading" rather than "broken" while lazy <img> resolves.
+       Photo absolutely-positioned on top covers this when it loads. */
+    background:
+      linear-gradient(110deg,
+        rgba(255,255,255,0.04) 0%,
+        rgba(255,255,255,0.08) 45%,
+        rgba(255,255,255,0.04) 90%) 0 0 / 200% 100%,
+      linear-gradient(135deg, #1a1a1a, #222);
+    animation: atlasTlImgShimmer 1.6s linear infinite;
     position: relative; flex-shrink: 0;
     overflow: hidden;
+  }
+  @keyframes atlasTlImgShimmer {
+    from { background-position: 200% 0, 0 0; }
+    to   { background-position: -200% 0, 0 0; }
   }
   /* Lazy-loaded photo lives inside .atlas-tl-row-img so the browser
      defers the fetch until each row scrolls near the viewport. Was
@@ -7590,7 +7609,13 @@
     margin-right: 4px;
   }
   @media (max-width: 700px) {
-    .atlas-tl-row { grid-template-columns: 24px 1fr; gap: 10px; }
+    .atlas-tl-row {
+      grid-template-columns: 24px 1fr; gap: 10px;
+      /* Mobile rows are taller (stacked card w/ 160px hero) ‚Äî bump
+         intrinsic-size hint so scrollbar height stays accurate when
+         offscreen rows are skipped. */
+      contain-intrinsic-size: auto 340px;
+    }
     .atlas-tl-row-date { display: none; }
     .atlas-tl-row-card { grid-template-columns: 1fr; }
     .atlas-tl-row-img { width: 100%; height: 160px; }
@@ -19973,9 +19998,9 @@
       // for stats). Apply state + featured-only filters here so both the
       // "what's opening" pipeline AND the "recently opened" archive
       // respect the same filters. The split between completed and
-      // pipeline happens below ‚Äî anything with status "open" goes into
-      // the completed archive that the user can scroll UP to see; the
-      // rest is the forward-looking pipeline.
+      // pipeline happens below ‚Äî based on DELIVERY DATE vs today, not
+      // status (a Q4 2025 project still tagged "Under Construction" is
+      // still in the past as of today, and belongs in the archive).
       const allBase = features.map(f => f.properties).filter(p => {
         if (!p.deliveryDate) return false;
         if (stateFilter) {
@@ -19986,22 +20011,44 @@
         return true;
       });
 
-      // Split into pipeline (forward-looking) + completed (recently
-      // opened, scroll-up archive).
-      const pipelineBase = allBase.filter(p => normStatus(p.delivery) !== 'open');
-      const completedBase = allBase.filter(p => normStatus(p.delivery) === 'open');
+      // Today pivot ‚Äî computed at render time so the boundary
+      // automatically marches forward as months pass. Anchored to the
+      // 1st of the current month so it's stable within a month (no
+      // jitter as the user opens the app on different days).
+      const _now = new Date();
+      const todayPivot = new Date(_now.getFullYear(), _now.getMonth(), 1);
+      function deliveryAsDate(p) {
+        const m = (p.deliveryDate || '').match(/^(\d{4})(?:-(\d{2}))?/);
+        if (!m) return null;
+        const year = +m[1];
+        // Year-only entries treated as Dec ‚Äî pushes ambiguous
+        // "sometime in 2026" projects to the END of their year so they
+        // don't accidentally read as "January 2026 already".
+        const month = m[2] ? +m[2] - 1 : 11;
+        return new Date(year, month, 1);
+      }
+
+      // Split by date, not status. Past delivery ‚Üí archive (scroll up).
+      // Future delivery ‚Üí pipeline (scroll down).
+      const pipelineBase  = allBase.filter(p => { const d = deliveryAsDate(p); return d && d >= todayPivot; });
+      const completedBase = allBase.filter(p => { const d = deliveryAsDate(p); return d && d <  todayPivot; });
 
       // Decide which lists actually render based on the status filter:
       //   all          ‚Üí both completed (above) + pipeline (below)
       //   open         ‚Üí completed only (the archive)
       //   anything else ‚Üí pipeline filtered to that status, no completed
+      // Status filter applies to BOTH sections ‚Äî past-dated projects
+      // that still have a stale "Construction" tag don't pollute the
+      // "Now open" archive view.
       const statusFilter = currentTimelineStatus;
       const showCompleted = (statusFilter === 'all' || statusFilter === 'open');
       const showPipeline  = (statusFilter !== 'open');
       const pipelineShown = showPipeline
         ? pipelineBase.filter(p => statusFilter === 'all' || normStatus(p.delivery) === statusFilter)
         : [];
-      const completedShown = showCompleted ? completedBase : [];
+      const completedShown = showCompleted
+        ? completedBase.filter(p => statusFilter === 'all' || normStatus(p.delivery) === statusFilter)
+        : [];
 
       // Hero stats reflect the currently-rendered set (pipeline only ‚Äî
       // the hero is about "what's opening next", not "what just opened").
@@ -20216,16 +20263,20 @@
             ${rowsHtml}`;
         }).join('');
       }
-      // Completed archive lives ABOVE the pipeline. Render oldest at the
-      // top so as the user scrolls UP through time they walk further
-      // back into history. The "now" boundary marker separates the two.
-      const completedGroupsHtml = buildGroupsHtml(completedShown, { isCompleted: true, descending: true });
+      // Completed archive lives ABOVE the pipeline in DOM order.
+      // Ascending: oldest at the top, most-recently-completed right
+      // above the "now" boundary. User parked at boundary scrolls UP
+      // a sliver to see "just opened", scrolls further to walk back
+      // through time. Pipeline below the boundary is also ascending
+      // (soonest-future first) so the whole page reads as one
+      // continuous timeline going forward as you scroll down.
+      const completedGroupsHtml = buildGroupsHtml(completedShown, { isCompleted: true, descending: false });
       const pipelineGroupsHtml  = buildGroupsHtml(pipelineShown,  { isCompleted: false });
       const archiveHeaderHtml = completedShown.length ? `
         <div class="atlas-tl-archive-head">
-          <div class="atlas-tl-archive-eyebrow">Scroll up &uarr;</div>
+          <div class="atlas-tl-archive-eyebrow">Scroll down for today &darr;</div>
           <div class="atlas-tl-archive-title">Recently opened</div>
-          <div class="atlas-tl-archive-sub">${completedShown.length} project${completedShown.length === 1 ? '' : 's'} delivered &mdash; oldest first, working forward to today.</div>
+          <div class="atlas-tl-archive-sub">${completedShown.length} project${completedShown.length === 1 ? '' : 's'} already delivered &mdash; oldest first, working forward to today.</div>
         </div>` : '';
       // "Now" boundary divider ‚Äî separates the recently-opened archive
       // above from the forward-looking pipeline below. Only renders
