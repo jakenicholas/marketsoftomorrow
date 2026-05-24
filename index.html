@@ -7440,6 +7440,76 @@
     background: linear-gradient(135deg, #1a1a1a, #222);
     background-size: cover; background-position: center;
     position: relative; flex-shrink: 0;
+    overflow: hidden;
+  }
+  /* Lazy-loaded photo lives inside .atlas-tl-row-img so the browser
+     defers the fetch until each row scrolls near the viewport. Was
+     previously a CSS background-image, which forced eager loading of
+     every photo at render time ‚Äî main cause of slow Atlas open. */
+  .atlas-tl-row-img-photo {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  /* "Recently opened" archive ‚Äî completed rows above the Today
+     boundary. Dimmed to read as past/archive without being unusable. */
+  .atlas-tl-row--completed { opacity: 0.62; }
+  .atlas-tl-row--completed:hover { opacity: 0.92; }
+  .atlas-tl-qhead--completed { opacity: 0.7; }
+  .atlas-tl-archive-head {
+    padding: 28px 0 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    margin-bottom: 14px;
+    text-align: left;
+  }
+  .atlas-tl-archive-eyebrow {
+    font-size: 10px; font-weight: 800; letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.4);
+    margin-bottom: 6px;
+  }
+  .atlas-tl-archive-title {
+    font-size: 18px; font-weight: 700;
+    color: rgba(255,255,255,0.7);
+    margin-bottom: 4px;
+  }
+  .atlas-tl-archive-sub {
+    font-size: 12.5px;
+    color: rgba(255,255,255,0.45);
+    line-height: 1.45;
+  }
+  /* Today boundary ‚Äî pill between archive and pipeline so the eye
+     immediately catches "this is now." Sticks loosely to the spine. */
+  .atlas-tl-now-boundary {
+    position: relative;
+    display: flex; align-items: center; justify-content: center;
+    padding: 36px 0 28px;
+    margin: 18px 0 8px;
+  }
+  .atlas-tl-now-boundary::before {
+    content: '';
+    position: absolute;
+    left: 0; right: 0;
+    top: 50%;
+    height: 1px;
+    background: linear-gradient(to right,
+      rgba(255,211,0,0) 0%,
+      rgba(255,211,0,0.35) 20%,
+      rgba(255,211,0,0.35) 80%,
+      rgba(255,211,0,0) 100%);
+  }
+  .atlas-tl-now-pill {
+    position: relative;
+    background: var(--warn, #FFD300);
+    color: #0a0a0a;
+    font-size: 11px; font-weight: 800;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    padding: 6px 14px;
+    border-radius: 999px;
+    box-shadow: 0 0 0 1px rgba(255,211,0,0.45) inset,
+                0 0 16px rgba(255,211,0,0.35);
+    z-index: 1;
   }
   .atlas-tl-row-status {
     position: absolute; bottom: 8px; left: 8px;
@@ -19899,28 +19969,45 @@
         return isNaN(v) ? null : v.toLocaleString();
       }
 
-      // First pass: pre-filter by state (defines the "available pool" for stats).
-      // Status + featured filters apply on top of this for the rendered list.
-      const inPipelineBase = features.map(f => f.properties).filter(p => {
+      // First pass: pre-filter by state (defines the "available pool"
+      // for stats). Apply state + featured-only filters here so both the
+      // "what's opening" pipeline AND the "recently opened" archive
+      // respect the same filters. The split between completed and
+      // pipeline happens below ‚Äî anything with status "open" goes into
+      // the completed archive that the user can scroll UP to see; the
+      // rest is the forward-looking pipeline.
+      const allBase = features.map(f => f.properties).filter(p => {
         if (!p.deliveryDate) return false;
-        if (normStatus(p.delivery) === 'open' && currentTimelineStatus !== 'open') {
-          // Now-Open allowed only when explicitly selected in the timeline status filter
-          return false;
-        }
         if (stateFilter) {
           const projectState = cityToState[p.city] || 'Other';
           if (projectState !== stateFilter) return false;
         }
-        return true;
-      });
-
-      // Apply timeline-specific filters (status + featured-only) to derive the
-      // displayed list. Stats above the timeline reflect the displayed set.
-      const filtered = inPipelineBase.filter(p => {
-        if (currentTimelineStatus !== 'all' && normStatus(p.delivery) !== currentTimelineStatus) return false;
         if (currentTimelineFeatured && !p.featured) return false;
         return true;
       });
+
+      // Split into pipeline (forward-looking) + completed (recently
+      // opened, scroll-up archive).
+      const pipelineBase = allBase.filter(p => normStatus(p.delivery) !== 'open');
+      const completedBase = allBase.filter(p => normStatus(p.delivery) === 'open');
+
+      // Decide which lists actually render based on the status filter:
+      //   all          ‚Üí both completed (above) + pipeline (below)
+      //   open         ‚Üí completed only (the archive)
+      //   anything else ‚Üí pipeline filtered to that status, no completed
+      const statusFilter = currentTimelineStatus;
+      const showCompleted = (statusFilter === 'all' || statusFilter === 'open');
+      const showPipeline  = (statusFilter !== 'open');
+      const pipelineShown = showPipeline
+        ? pipelineBase.filter(p => statusFilter === 'all' || normStatus(p.delivery) === statusFilter)
+        : [];
+      const completedShown = showCompleted ? completedBase : [];
+
+      // Hero stats reflect the currently-rendered set (pipeline only ‚Äî
+      // the hero is about "what's opening next", not "what just opened").
+      // When the user filters to 'open', the stats reflect the
+      // completed archive instead.
+      const filtered = (statusFilter === 'open') ? completedShown : pipelineShown;
 
       // Hero stats ‚Äî computed from the filtered list so they update with filter changes
       const totalCount = filtered.length;
@@ -19959,7 +20046,7 @@
         <button class="atlas-tl-chip ${!currentTimelineFeatured ? 'active' : ''}" data-tl-featured="all" type="button">All projects</button>
         <button class="atlas-tl-chip ${currentTimelineFeatured  ? 'active' : ''}" data-tl-featured="featured" type="button"><span style="color:#FFD300">&#9733;</span> Featured only</button>
       `;
-      const totalAvailable = inPipelineBase.length;
+      const totalAvailable = allBase.length;
       const filtersHtml = `
         <div class="atlas-tl-filters">
           <div class="atlas-tl-filter-group">${statusChipsHtml}</div>
@@ -19967,7 +20054,7 @@
           <span class="atlas-tl-meta-count">${totalCount} of ${totalAvailable}</span>
         </div>`;
 
-      if (!filtered.length) {
+      if (!pipelineShown.length && !completedShown.length) {
         const stateNote = stateFilter
           ? `No matching projects in <b>${escapeAttr(stateFilter)}</b>. Try a different state or filter.`
           : `No projects match the current filters.`;
@@ -19979,35 +20066,39 @@
           </section>`;
       }
 
-      // Group by (year, quarter) from DeliveryDate. Year-only ("2027")
-      // defaults to Q4 (Dec) so it sorts to the end of its year.
-      const groups = new Map();
-      for (const p of filtered) {
-        const m = (p.deliveryDate || '').match(/^(\d{4})(?:-(\d{2}))?/);
-        if (!m) continue;
-        const year = +m[1];
-        const month = m[2] ? +m[2] : 12;
-        const quarter = Math.ceil(month / 3);
-        const key = `${year}-${quarter}`;
-        if (!groups.has(key)) groups.set(key, { year, quarter, items: [] });
-        groups.get(key).items.push(p);
+      // Build year/quarter groups for a list of project properties. Used
+      // for BOTH the forward-looking pipeline and the scroll-up
+      // "recently opened" archive ‚Äî keeps row markup identical between
+      // the two so styling differences are purely CSS-driven via the
+      // `isCompleted` flag (which adds a class to dim the row).
+      function buildGroups(items) {
+        const groups = new Map();
+        for (const p of items) {
+          const m = (p.deliveryDate || '').match(/^(\d{4})(?:-(\d{2}))?/);
+          if (!m) continue;
+          const year = +m[1];
+          const month = m[2] ? +m[2] : 12;
+          const quarter = Math.ceil(month / 3);
+          const key = `${year}-${quarter}`;
+          if (!groups.has(key)) groups.set(key, { year, quarter, items: [] });
+          groups.get(key).items.push(p);
+        }
+        return groups;
       }
-      const orderedKeys = [...groups.keys()].sort();
-
-      const groupsHtml = orderedKeys.map(k => {
-        const g = groups.get(k);
-        // Featured first inside each quarter, then by exact delivery date
-        const sorted = g.items.slice().sort((a, b) => {
-          const fa = (a.featured ? 1 : 0) - (b.featured ? 1 : 0);
-          if (fa !== 0) return -fa;
-          return (a.deliveryDate || '').localeCompare(b.deliveryDate || '');
-        });
-
-        const rowsHtml = sorted.map(p => {
-          const status = normStatus(p.delivery);
-          const info = STATUS_INFO[status] || STATUS_INFO.announced;
-          const img = p.image ? `background-image:url('${escapeAttr(p.image)}')` : '';
-          const type = p.preferredType || ((p.projectType || '').split(',')[0] || '').trim();
+      // Render a single project row. `isCompleted=true` adds the dim
+      // styling class and swaps the quarter-header verb from "opening"
+      // to "opened".
+      function rowHtml(p, isCompleted) {
+        const status = normStatus(p.delivery);
+        const info = STATUS_INFO[status] || STATUS_INFO.announced;
+        // Image: lazy-loaded <img> instead of background-image so the
+        // browser only fetches images as the user scrolls them into
+        // view. Big perf win when the timeline lists hundreds of
+        // projects ‚Äî was the main reason Atlas felt slow.
+        const imgHtml = p.image
+          ? `<img class="atlas-tl-row-img-photo" src="${escapeAttr(p.image)}" alt="" loading="lazy" decoding="async" />`
+          : '';
+        const type = p.preferredType || ((p.projectType || '').split(',')[0] || '').trim();
           const metaParts = [];
           if (p.city) metaParts.push(`<span>${escapeAttr(p.city)}</span>`);
           if (type)  metaParts.push(`<span class="sep">\u00b7</span><span>${escapeAttr(type)}</span>`);
@@ -20071,43 +20162,89 @@
           if (p.datesSpeculative) {
             metaParts.push(`<span class="sep">&middot;</span><span class="atlas-tl-row-chip est">EST date</span>`);
           }
-          const scaleParts = [];
-          if (p.keys)   scaleParts.push(`<div class="stat"><b>${fmtNum(p.keys)}</b>keys</div>`);
-          if (p.units)  scaleParts.push(`<div class="stat"><b>${fmtNum(p.units)}</b>units</div>`);
-          if (p.floors) scaleParts.push(`<div class="stat"><b>${escapeAttr(p.floors)}</b>floors</div>`);
-          const slug = pyStyleSlugLocal(p.title || '');
-          return `
-            <div class="atlas-tl-row atlas-tl-item" data-project-slug="${escapeAttr(slug)}" role="button" tabindex="0">
-              <div class="atlas-tl-row-date">${escapeAttr(fmtMonthYear(p.deliveryDate))}</div>
-              <div class="atlas-tl-row-dot-slot"></div>
-              <div class="atlas-tl-row-card">
-                <div class="atlas-tl-row-img" style="${img}">
-                  ${p.featured ? '<div class="atlas-tl-row-featured" title="Featured">&#9733;</div>' : ''}
-                  <div class="atlas-tl-row-status"><span class="dot" style="background:${info.color}"></span>${escapeAttr(info.label)}</div>
-                </div>
-                <div class="atlas-tl-row-body">
-                  <div class="atlas-tl-row-title">${escapeAttr(p.title || '')}</div>
-                  <div class="atlas-tl-row-meta">${metaParts.join('')}</div>
-                  ${scaleParts.length ? `<div class="atlas-tl-row-scale">${scaleParts.join('')}</div>` : ''}
-                </div>
-              </div>
-            </div>`;
-        }).join('');
-
+        const scaleParts = [];
+        if (p.keys)   scaleParts.push(`<div class="stat"><b>${fmtNum(p.keys)}</b>keys</div>`);
+        if (p.units)  scaleParts.push(`<div class="stat"><b>${fmtNum(p.units)}</b>units</div>`);
+        if (p.floors) scaleParts.push(`<div class="stat"><b>${escapeAttr(p.floors)}</b>floors</div>`);
+        const slug = pyStyleSlugLocal(p.title || '');
+        const rowClass = 'atlas-tl-row atlas-tl-item' + (isCompleted ? ' atlas-tl-row--completed' : '');
         return `
-          <div class="atlas-tl-qhead">
-            <div class="atlas-tl-qhead-date">Q${g.quarter}<span class="yr">${g.year}</span></div>
-            <div class="atlas-tl-qhead-dot"></div>
-            <div class="atlas-tl-qhead-count"><span class="atlas-tl-qhead-date-inline">Q${g.quarter} ${g.year} &middot;</span> <b>${g.items.length}</b> project${g.items.length === 1 ? '' : 's'} opening</div>
-          </div>
-          ${rowsHtml}`;
-      }).join('');
+          <div class="${rowClass}" data-project-slug="${escapeAttr(slug)}" role="button" tabindex="0">
+            <div class="atlas-tl-row-date">${escapeAttr(fmtMonthYear(p.deliveryDate))}</div>
+            <div class="atlas-tl-row-dot-slot"></div>
+            <div class="atlas-tl-row-card">
+              <div class="atlas-tl-row-img">
+                ${imgHtml}
+                ${p.featured ? '<div class="atlas-tl-row-featured" title="Featured">&#9733;</div>' : ''}
+                <div class="atlas-tl-row-status"><span class="dot" style="background:${info.color}"></span>${escapeAttr(info.label)}</div>
+              </div>
+              <div class="atlas-tl-row-body">
+                <div class="atlas-tl-row-title">${escapeAttr(p.title || '')}</div>
+                <div class="atlas-tl-row-meta">${metaParts.join('')}</div>
+                ${scaleParts.length ? `<div class="atlas-tl-row-scale">${scaleParts.join('')}</div>` : ''}
+              </div>
+            </div>
+          </div>`;
+      }
+      // Build the full HTML for a list of groups. `descending=true` flips
+      // the quarter ordering for the "recently opened" archive so the
+      // OLDEST completed projects sit at the top of the scroll-up
+      // archive and the MOST recently completed are nearest the "now"
+      // boundary below.
+      function buildGroupsHtml(items, { isCompleted = false, descending = false } = {}) {
+        if (!items.length) return '';
+        const groups = buildGroups(items);
+        const keys = [...groups.keys()].sort();
+        if (descending) keys.reverse();
+        const verb = isCompleted ? 'opened' : 'opening';
+        return keys.map(k => {
+          const g = groups.get(k);
+          const sortedItems = g.items.slice().sort((a, b) => {
+            const fa = (a.featured ? 1 : 0) - (b.featured ? 1 : 0);
+            if (fa !== 0) return -fa;
+            const cmp = (a.deliveryDate || '').localeCompare(b.deliveryDate || '');
+            return descending ? -cmp : cmp;
+          });
+          const rowsHtml = sortedItems.map(p => rowHtml(p, isCompleted)).join('');
+          const qheadClass = 'atlas-tl-qhead' + (isCompleted ? ' atlas-tl-qhead--completed' : '');
+          return `
+            <div class="${qheadClass}">
+              <div class="atlas-tl-qhead-date">Q${g.quarter}<span class="yr">${g.year}</span></div>
+              <div class="atlas-tl-qhead-dot"></div>
+              <div class="atlas-tl-qhead-count"><span class="atlas-tl-qhead-date-inline">Q${g.quarter} ${g.year} &middot;</span> <b>${g.items.length}</b> project${g.items.length === 1 ? '' : 's'} ${verb}</div>
+            </div>
+            ${rowsHtml}`;
+        }).join('');
+      }
+      // Completed archive lives ABOVE the pipeline. Render oldest at the
+      // top so as the user scrolls UP through time they walk further
+      // back into history. The "now" boundary marker separates the two.
+      const completedGroupsHtml = buildGroupsHtml(completedShown, { isCompleted: true, descending: true });
+      const pipelineGroupsHtml  = buildGroupsHtml(pipelineShown,  { isCompleted: false });
+      const archiveHeaderHtml = completedShown.length ? `
+        <div class="atlas-tl-archive-head">
+          <div class="atlas-tl-archive-eyebrow">Scroll up &uarr;</div>
+          <div class="atlas-tl-archive-title">Recently opened</div>
+          <div class="atlas-tl-archive-sub">${completedShown.length} project${completedShown.length === 1 ? '' : 's'} delivered &mdash; oldest first, working forward to today.</div>
+        </div>` : '';
+      // "Now" boundary divider ‚Äî separates the recently-opened archive
+      // above from the forward-looking pipeline below. Only renders
+      // when both sections exist.
+      const nowBoundaryHtml = (completedShown.length && pipelineShown.length) ? `
+        <div class="atlas-tl-now-boundary" id="atlasTlNowBoundary">
+          <span class="atlas-tl-now-pill">Today</span>
+        </div>` : '';
 
       return `
         <section class="atlas-section">
           ${heroHtml}
           ${filtersHtml}
-          <div class="atlas-tl-list">${groupsHtml}</div>
+          <div class="atlas-tl-list">
+            ${archiveHeaderHtml}
+            ${completedGroupsHtml}
+            ${nowBoundaryHtml}
+            ${pipelineGroupsHtml}
+          </div>
         </section>`;
     }
 
@@ -20137,7 +20274,33 @@
       root.innerHTML = sections.join('');
       wireInteractions();
       updateLoadMoreBtn('developers');
+      // Land the user at the "Today" boundary in timeline view so they
+      // start on "What's opening next" with the recently-opened archive
+      // available above via scroll-up. Without this they'd land at the
+      // very top of the archive (oldest completed project) which is
+      // disorienting. Only scrolls when the boundary actually rendered
+      // (skipped on filtered views where one section is empty).
+      if (currentAtlasView === 'timeline' && !_atlasTlScrolledOnce) {
+        const overlay = document.getElementById('atlasOverlay');
+        const boundary = document.getElementById('atlasTlNowBoundary');
+        if (overlay && boundary) {
+          // Run on next frame so layout is settled before measuring.
+          requestAnimationFrame(() => {
+            const rect = boundary.getBoundingClientRect();
+            const overlayRect = overlay.getBoundingClientRect();
+            // Park the boundary ~80px from the top so the user can see
+            // a hint of the archive above it without needing to scroll.
+            overlay.scrollTop = overlay.scrollTop + (rect.top - overlayRect.top) - 80;
+            _atlasTlScrolledOnce = true;
+          });
+        }
+      }
     }
+    // Tracks whether we've done the initial "scroll to Today" on the
+    // timeline view. Reset to false whenever the user explicitly clicks
+    // the Pipeline-timeline view tab so re-entering the view scrolls
+    // back to Today.
+    let _atlasTlScrolledOnce = false;
 
     function wireInteractions() {
       // Atlas view tabs (Overview / Pipeline timeline)
@@ -20146,10 +20309,16 @@
           const view = this.dataset.atlasView;
           if (!view || view === currentAtlasView) return;
           currentAtlasView = view;
+          // Re-arm the auto-scroll to Today so switching back to
+          // timeline lands on Today again instead of staying at top.
+          _atlasTlScrolledOnce = false;
           renderAll();
-          // Reset scroll so the new view starts at the top
-          const overlay = document.getElementById('atlasOverlay');
-          if (overlay) overlay.scrollTop = 0;
+          // Reset scroll for the Overview view (timeline handles its
+          // own scroll-to-Today inside renderAll).
+          if (view !== 'timeline') {
+            const overlay = document.getElementById('atlasOverlay');
+            if (overlay) overlay.scrollTop = 0;
+          }
         });
       });
 
