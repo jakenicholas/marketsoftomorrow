@@ -11928,8 +11928,15 @@
     // setFilter() ‚Äî Mapbox ignores property filters on cluster layers.
     // The only reliable approach is source.setData() with just the matching
     // features, which forces Mapbox to re-cluster only those points.
+    //
+    // Two sources: `projects` holds pipeline features only, `projects-completed`
+    // holds the completed archive. Splitting at the source level (rather than
+    // a property filter on layers) is the only way to keep completed projects
+    // out of the cluster *counts* when the Completed layer is toggled off ‚Äî
+    // Mapbox clusters every point in a source regardless of layer filters.
     function updateMapPinFilters() {
-      const source = map.getSource('projects');
+      const source           = map.getSource('projects');
+      const sourceCompleted  = map.getSource('projects-completed');
       if (!source || !window.allProjectFeatures) return;
 
       const typeFilter = activeFilters.desktop.type !== 'all'
@@ -11958,7 +11965,7 @@
         filtered = window.filterByFavoritesIfActive(filtered);
       }
 
-      const geoFeatures = filtered.map(f => {
+      const toGeo = (f) => {
         const slug = (window.projectSlugify && f.properties && f.properties.title)
           ? window.projectSlugify(f.properties.title) : '';
         const watched = !!(slug && window._favorites && window._favorites.has(slug));
@@ -11967,8 +11974,13 @@
           geometry: f.geometry,
           properties: Object.assign({}, f.properties, { projectTypes: undefined, watched })
         };
-      });
-      source.setData({ type: 'FeatureCollection', features: geoFeatures });
+      };
+      const pipelineFeatures  = filtered.filter(f => !f.properties.completed).map(toGeo);
+      const completedFeatures = filtered.filter(f =>  f.properties.completed).map(toGeo);
+      source.setData({ type: 'FeatureCollection', features: pipelineFeatures });
+      if (sourceCompleted) {
+        sourceCompleted.setData({ type: 'FeatureCollection', features: completedFeatures });
+      }
     }
 
     function updateResultCount(targetId) {
@@ -15372,19 +15384,23 @@
         setTransitVisibility(transitVisible);
       });
 
-      // Completed Projects toggle ‚Äî flips visibility of the dedicated completed
-      // layer. Off by default. window._completedVisible persists across style
-      // switches so re-adding the layer remembers the user's choice.
+      // Completed Projects toggle ‚Äî flips visibility of the ENTIRE completed
+      // cluster stack (cluster bubble + count + unclustered pin). Off by
+      // default. window._completedVisible persists across style switches so
+      // re-adding the layer remembers the user's choice. Because completed
+      // features live in their own source, hiding these layers also makes
+      // the cluster counts on `clusters` (pipeline) ignore them ‚Äî which is
+      // what users expect when the layer is "off".
       window._completedVisible = false;
       const completedRow = document.getElementById('completedToggleRow');
       const completedCb  = document.getElementById('completedCheckbox');
       completedRow?.addEventListener('click', () => {
         window._completedVisible = !window._completedVisible;
         completedCb.classList.toggle('checked', window._completedVisible);
-        if (map.getLayer('unclustered-point-completed')) {
-          map.setLayoutProperty('unclustered-point-completed', 'visibility',
-            window._completedVisible ? 'visible' : 'none');
-        }
+        const vis = window._completedVisible ? 'visible' : 'none';
+        ['clusters-completed', 'cluster-count-completed', 'unclustered-point-completed'].forEach(id => {
+          if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', vis);
+        });
       });
 
       // In-Development toggle ‚Äî hides the entire pipeline pin stack (clusters +
@@ -16256,19 +16272,35 @@
             properties: Object.assign({}, f.properties, { projectTypes: undefined, watched })
           };
         });
+        // Two sources: pipeline + completed (see initializeData for why ‚Äî
+        // splits at source so completed pins don't pollute pipeline cluster
+        // counts when the Completed layer is toggled off).
+        const pipelineRestoreFeatures  = geoFeatures.filter(f => !f.properties.completed);
+        const completedRestoreFeatures = geoFeatures.filter(f =>  f.properties.completed);
         if (!map.getSource('projects')) {
-          map.addSource('projects', { type:'geojson', data:{ type:'FeatureCollection', features:geoFeatures }, cluster:true, clusterMaxZoom:16, clusterRadius:35 });
+          map.addSource('projects', { type:'geojson', data:{ type:'FeatureCollection', features:pipelineRestoreFeatures }, cluster:true, clusterMaxZoom:16, clusterRadius:35 });
+        }
+        if (!map.getSource('projects-completed')) {
+          map.addSource('projects-completed', { type:'geojson', data:{ type:'FeatureCollection', features:completedRestoreFeatures }, cluster:true, clusterMaxZoom:16, clusterRadius:35 });
         }
         if (!map.getLayer('clusters'))          map.addLayer({ id:'clusters',          type:'circle', source:'projects', filter:['has','point_count'], paint:{'circle-color':'#1FDF67','circle-radius':['step',['get','point_count'],20,100,30,750,40],'circle-stroke-width':2,'circle-stroke-color':'#fff'} });
         if (!map.getLayer('cluster-count'))     map.addLayer({ id:'cluster-count',     type:'symbol', source:'projects', filter:['has','point_count'], layout:{'text-field':'{point_count_abbreviated}','text-size':12}, paint:{'text-color':'#ffffff'} });
-        // Main pipeline layer excludes completed projects (they live in the dedicated layer below).
-        // Flat TMW green with white border.
-        if (!map.getLayer('unclustered-point')) map.addLayer({ id:'unclustered-point', type:'circle', source:'projects', filter:['all',['!',['has','point_count']],['!=',['get','completed'],true]], paint:{'circle-color':'#1FDF67','circle-radius':8,'circle-stroke-width':2,'circle-stroke-color':'#fff'} });
-        // Completed Projects layer: dark pine green, hidden by default. Show/hide via layers panel toggle.
+        if (!map.getLayer('unclustered-point')) map.addLayer({ id:'unclustered-point', type:'circle', source:'projects', filter:['!',['has','point_count']], paint:{'circle-color':'#1FDF67','circle-radius':8,'circle-stroke-width':2,'circle-stroke-color':'#fff'} });
+
+        // Completed cluster stack ‚Äî pine-green palette. Visibility tracks
+        // window._completedVisible (set by the Completed Projects toggle in
+        // the layers panel) so style switches don't reset the user's choice.
+        const completedRestoreVis = (window._completedVisible ? 'visible' : 'none');
+        if (!map.getLayer('clusters-completed')) {
+          map.addLayer({ id:'clusters-completed', type:'circle', source:'projects-completed', filter:['has','point_count'], layout:{visibility:completedRestoreVis}, paint:{'circle-color':'#01796F','circle-radius':['step',['get','point_count'],18,100,28,750,38],'circle-stroke-width':2,'circle-stroke-color':'rgba(255,255,255,0.7)'} });
+        }
+        if (!map.getLayer('cluster-count-completed')) {
+          map.addLayer({ id:'cluster-count-completed', type:'symbol', source:'projects-completed', filter:['has','point_count'], layout:{visibility:completedRestoreVis,'text-field':'{point_count_abbreviated}','text-size':12}, paint:{'text-color':'#ffffff'} });
+        }
         if (!map.getLayer('unclustered-point-completed')) {
-          map.addLayer({ id:'unclustered-point-completed', type:'circle', source:'projects',
-            filter:['all',['!',['has','point_count']],['==',['get','completed'],true]],
-            layout:{visibility:(window._completedVisible ? 'visible' : 'none')},
+          map.addLayer({ id:'unclustered-point-completed', type:'circle', source:'projects-completed',
+            filter:['!',['has','point_count']],
+            layout:{visibility:completedRestoreVis},
             paint:{'circle-color':'#01796F','circle-radius':7,'circle-stroke-width':1.5,'circle-stroke-color':'rgba(255,255,255,0.6)'}
           });
         }
@@ -16276,19 +16308,17 @@
         // Featured glow ‚Äî static, behind unclustered pins. Pipeline projects only.
         if (!map.getLayer('featured-glow')) {
           map.addLayer({ id:'featured-glow', type:'circle', source:'projects',
-            filter:['all',['!',['has','point_count']],['==',['get','featured'],true],['!=',['get','completed'],true]],
+            filter:['all',['!',['has','point_count']],['==',['get','featured'],true]],
             paint:{'circle-color':'transparent','circle-radius':16,'circle-blur':0.8,
                    'circle-stroke-width':3,'circle-stroke-color':'#FFD300','circle-stroke-opacity':0.6}
           }, 'unclustered-point');
         }
         // Watchlist ring (Phase 2) ‚Äî green outer ring on watched pins. Sits
         // ABOVE the featured-glow but BELOW unclustered-point so the inner
-        // status-colored pin stays visible. Filter is data-driven via the
-        // `watched` feature property, which is injected at runtime based on
-        // the user's _favorites set. Pipeline projects only.
+        // status-colored pin stays visible. Pipeline projects only.
         if (!map.getLayer('watched-ring')) {
           map.addLayer({ id:'watched-ring', type:'circle', source:'projects',
-            filter:['all',['!',['has','point_count']],['==',['get','watched'],true],['!=',['get','completed'],true]],
+            filter:['all',['!',['has','point_count']],['==',['get','watched'],true]],
             paint:{'circle-color':'transparent','circle-radius':14,
                    'circle-stroke-width':2.5,'circle-stroke-color':'#1FDF67',
                    'circle-stroke-opacity':0.9}
@@ -16437,21 +16467,44 @@
             };
           });
 
-          const projectGeo = { type: 'FeatureCollection', features: geoFeatures };
-          map.addSource('projects', { type:'geojson', data:projectGeo, cluster:true, clusterMaxZoom:16, clusterRadius:35 });
+          // ‚îÄ‚îÄ Two sources: pipeline (active) + completed (archive). Splitting
+          //    at the source level ‚Äî not via layer filters ‚Äî is the only way
+          //    to keep completed projects out of the cluster *counts* when the
+          //    Completed layer is hidden. Mapbox clusters every point in a
+          //    source regardless of which layers reference it.
+          const pipelineFeatures  = geoFeatures.filter(f => !f.properties.completed);
+          const completedFeatures = geoFeatures.filter(f =>  f.properties.completed);
+          map.addSource('projects',          { type:'geojson', data:{ type:'FeatureCollection', features:pipelineFeatures  }, cluster:true, clusterMaxZoom:16, clusterRadius:35 });
+          map.addSource('projects-completed',{ type:'geojson', data:{ type:'FeatureCollection', features:completedFeatures }, cluster:true, clusterMaxZoom:16, clusterRadius:35 });
+
+          // Pipeline (active) cluster stack ‚Äî visible by default, the headline
+          // green pins users see.
           map.addLayer({ id:'clusters', type:'circle', source:'projects', filter:['has','point_count'], paint:{'circle-color':'#1FDF67','circle-radius':['step',['get','point_count'],20,100,30,750,40],'circle-stroke-width':2,'circle-stroke-color':'#fff'} });
           map.addLayer({ id:'cluster-count', type:'symbol', source:'projects', filter:['has','point_count'], layout:{'text-field':'{point_count_abbreviated}','text-size':12}, paint:{'text-color':'#ffffff'} });
-          // Main pipeline pin layer: excludes completed projects (they live in
-          // unclustered-point-completed below). Flat TMW green with white border.
-          map.addLayer({ id:'unclustered-point', type:'circle', source:'projects', filter:['all',['!',['has','point_count']],['!=',['get','completed'],true]], paint:{'circle-color':'#1FDF67','circle-radius':8,'circle-stroke-width':2,'circle-stroke-color':'#fff'} });
-          // Completed projects layer: dark pine green, hidden by default. Toggle in layers panel.
-          map.addLayer({ id:'unclustered-point-completed', type:'circle', source:'projects', filter:['all',['!',['has','point_count']],['==',['get','completed'],true]], layout:{visibility:(window._completedVisible ? 'visible' : 'none')}, paint:{'circle-color':'#01796F','circle-radius':7,'circle-stroke-width':1.5,'circle-stroke-color':'rgba(255,255,255,0.6)'} });
-          map.addLayer({ id:'featured-glow', type:'circle', source:'projects', filter:['all',['!',['has','point_count']],['==',['get','featured'],true],['!=',['get','completed'],true]], paint:{'circle-color':'transparent','circle-radius':16,'circle-blur':0.8,'circle-stroke-width':3,'circle-stroke-color':'#FFD300','circle-stroke-opacity':0.6} }, 'unclustered-point');
-          // Watchlist ring (Phase 2): green ring around watched pins (pipeline only).
-          map.addLayer({ id:'watched-ring', type:'circle', source:'projects', filter:['all',['!',['has','point_count']],['==',['get','watched'],true],['!=',['get','completed'],true]], paint:{'circle-color':'transparent','circle-radius':14,'circle-stroke-width':2.5,'circle-stroke-color':'#1FDF67','circle-stroke-opacity':0.9} }, 'unclustered-point');
-    
+          map.addLayer({ id:'unclustered-point', type:'circle', source:'projects', filter:['!',['has','point_count']], paint:{'circle-color':'#1FDF67','circle-radius':8,'circle-stroke-width':2,'circle-stroke-color':'#fff'} });
+
+          // Completed cluster stack ‚Äî pine-green palette, hidden by default.
+          // Toggle in layers panel flips visibility on ALL THREE completed
+          // layers together (cluster, count, unclustered point).
+          const completedVis = (window._completedVisible ? 'visible' : 'none');
+          map.addLayer({ id:'clusters-completed', type:'circle', source:'projects-completed', filter:['has','point_count'], layout:{visibility:completedVis}, paint:{'circle-color':'#01796F','circle-radius':['step',['get','point_count'],18,100,28,750,38],'circle-stroke-width':2,'circle-stroke-color':'rgba(255,255,255,0.7)'} });
+          map.addLayer({ id:'cluster-count-completed', type:'symbol', source:'projects-completed', filter:['has','point_count'], layout:{visibility:completedVis,'text-field':'{point_count_abbreviated}','text-size':12}, paint:{'text-color':'#ffffff'} });
+          map.addLayer({ id:'unclustered-point-completed', type:'circle', source:'projects-completed', filter:['!',['has','point_count']], layout:{visibility:completedVis}, paint:{'circle-color':'#01796F','circle-radius':7,'circle-stroke-width':1.5,'circle-stroke-color':'rgba(255,255,255,0.6)'} });
+
+          // Featured/watched accents ‚Äî pipeline only (completed don't get
+          // featured glow or watch ring; they're archive state).
+          map.addLayer({ id:'featured-glow', type:'circle', source:'projects', filter:['all',['!',['has','point_count']],['==',['get','featured'],true]], paint:{'circle-color':'transparent','circle-radius':16,'circle-blur':0.8,'circle-stroke-width':3,'circle-stroke-color':'#FFD300','circle-stroke-opacity':0.6} }, 'unclustered-point');
+          map.addLayer({ id:'watched-ring', type:'circle', source:'projects', filter:['all',['!',['has','point_count']],['==',['get','watched'],true]], paint:{'circle-color':'transparent','circle-radius':14,'circle-stroke-width':2.5,'circle-stroke-color':'#1FDF67','circle-stroke-opacity':0.9} }, 'unclustered-point');
+
+          // Cluster zoom-expand handlers ‚Äî same pattern for both stacks, just
+          // different source names.
           map.on('click','clusters',e=>{if(stationPopup){stationPopup.remove();stationPopup=null;}const f=e.features[0];map.getSource('projects').getClusterExpansionZoom(f.properties.cluster_id,(err,z)=>map.flyTo({center:f.geometry.coordinates,zoom:z}));});
-          map.on('click','unclustered-point',e=>{
+          map.on('click','clusters-completed',e=>{if(stationPopup){stationPopup.remove();stationPopup=null;}const f=e.features[0];map.getSource('projects-completed').getClusterExpansionZoom(f.properties.cluster_id,(err,z)=>map.flyTo({center:f.geometry.coordinates,zoom:z}));});
+
+          // Unclustered-point click ‚Üí popup + camera offset. Shared between
+          // pipeline + completed pins so completed pins behave like normal
+          // pins: click ‚Üí popup ‚Üí "View on Map" / project modal flow.
+          function handlePinClick(e) {
             if(stationPopup){stationPopup.remove();stationPopup=null;}
             const raw = e.features[0];
             // Look up the full feature from master list (Mapbox serializes away JS arrays)
@@ -16466,23 +16519,8 @@
             // anchor='bottom' means the body extends upward from the pin,
             // so a downward pin offset puts the popup body around the
             // screen's vertical middle.
-            //
-            // Without this step, clicking a pin that happens to already
-            // be centered (e.g. user just clicked a sidebar tile, which
-            // flew the camera centered on the pin) made the popup pop up
-            // toward the top of the screen -- not great. Pin-to-pin
-            // clicks already worked because each fly() recenters the
-            // camera around the next pin.
-            //
-            // Skip the fly when the pin already sits at the target Y
-            // (within tolerance) -- otherwise every pin click would
-            // re-trigger a short animation even when nothing needs to
-            // move.
             const co = f.geometry.coordinates;
             const screenPt = map.project(co);
-            // Mobile: use the shared helper that targets just above the
-            // search bar. Desktop: 150px below center -- popup is much
-            // smaller and that's plenty of room.
             let targetY;
             if (isMobile) {
               const off = computeMobilePinOffset();
@@ -16493,14 +16531,19 @@
             const tolerance = 30; // px
             const popupYDelta = Math.abs(screenPt.y - targetY);
             if (popupYDelta > tolerance) {
-              // Offset is in pixels; positive Y shifts the target point
-              // DOWN within the viewport (camera center moves up).
               const yOffset = targetY - (window.innerHeight * 0.5);
               map.easeTo({ center: co, offset: [0, yOffset], duration: 350, essential: true });
               map.once('moveend', () => { showPopup(f); });
             } else {
               showPopup(f);
             }
+          }
+          map.on('click','unclustered-point',           handlePinClick);
+          map.on('click','unclustered-point-completed', handlePinClick);
+          // Pointer cursor on hover for both pin layers + both cluster layers.
+          ['unclustered-point','unclustered-point-completed','clusters','clusters-completed'].forEach(id => {
+            map.on('mouseenter', id, () => { map.getCanvas().style.cursor = 'pointer'; });
+            map.on('mouseleave', id, () => { map.getCanvas().style.cursor = ''; });
           });
 
           renderGrid('gridDesktop');
