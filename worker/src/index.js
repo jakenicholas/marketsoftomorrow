@@ -700,7 +700,12 @@ async function handleBlog(env, origin, url) {
 // Tiny dependency-free RSS 2.0 parser. We only need a handful of fields, so
 // regex against the (well-formed) Wix output is fine — no XML parser in
 // Workers without adding a dep, and the feed shape is stable.
-function parseRssItems(xml) {
+//
+// opts.includeBody = true adds `content_html` (full post body HTML, as Wix
+// renders it). This is heavy (~10–40KB per post), so it's opt-in — list
+// endpoints leave it off, the /post/:slug endpoint turns it on.
+function parseRssItems(xml, opts = {}) {
+  const includeBody = !!opts.includeBody;
   const out = [];
   const itemRe = /<item\b[\s\S]*?<\/item>/g;
   const matches = xml.match(itemRe) || [];
@@ -737,7 +742,7 @@ function parseRssItems(xml) {
     let slug = '';
     try { slug = new URL(link).pathname.replace(/^\/post\//, '').replace(/^\/+|\/+$/g, ''); } catch {}
 
-    out.push({
+    const item = {
       title,
       link,
       slug,
@@ -748,7 +753,13 @@ function parseRssItems(xml) {
       categories: cats,
       summary,
       image,
-    });
+    };
+    // contentRaw is already CDATA-stripped by pickTag and contains the
+    // literal HTML body — we do NOT decode XML entities here because
+    // inside CDATA the body is unencoded. The client sanitizes before
+    // rendering.
+    if (includeBody) item.content_html = contentRaw;
+    out.push(item);
   }
   return out;
 }
@@ -792,6 +803,52 @@ function decodeXml(s) {
     .replace(/&apos;/g, "'")
     .replace(/&#(\d+);/g, (_, d) => String.fromCharCode(parseInt(d, 10)))
     .replace(/&amp;/g, '&');
+}
+
+// ---------------------------------------------------------------------------
+// /post/:slug — return ONE full blog post (title, metadata, AND the full
+// `content:encoded` body HTML) so the journal can render Wix articles
+// without bouncing back to Wix. Limited to whatever's in the current RSS
+// window (Wix exposes the most-recent 20 posts).
+// ---------------------------------------------------------------------------
+
+async function handlePost(env, origin, slug) {
+  if (!slug || !/^[a-z0-9][a-z0-9-]{0,200}$/i.test(slug)) {
+    return json({ error: 'invalid slug' }, { status: 400 }, env, origin);
+  }
+  const feedUrl = env.BLOG_FEED_URL || 'https://www.oftmw.com/blog-feed.xml';
+  const upstream = await fetch(feedUrl, {
+    cf: { cacheTtl: 60, cacheEverything: true },
+    headers: { 'User-Agent': 'tmw-journal/1.0' },
+  });
+  if (!upstream.ok) {
+    return json({ error: 'feed fetch failed', status: upstream.status }, { status: 502 }, env, origin);
+  }
+  const xml = await upstream.text();
+  const items = parseRssItems(xml, { includeBody: true });
+  // Match either by exact slug field or by the post's URL ending in /<slug>
+  const slugLc = slug.toLowerCase();
+  const item = items.find(it =>
+    (it.slug && it.slug.toLowerCase() === slugLc) ||
+    (it.link && it.link.toLowerCase().endsWith('/' + slugLc))
+  );
+  if (!item) {
+    return json(
+      {
+        error: 'post not found in current RSS window',
+        slug,
+        hint: 'Wix only exposes the 20 most-recent posts via RSS. For older articles, use the Wix Headless API or keep the legacy URL alive.',
+        candidates: items.map(it => it.slug).slice(0, 8),
+      },
+      { status: 404 },
+      env, origin,
+    );
+  }
+  return json(
+    { post: item, fetchedAt: new Date().toISOString() },
+    { headers: { 'Cache-Control': 'public, max-age=60, s-maxage=60' } },
+    env, origin,
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -948,6 +1005,14 @@ export default {
       }
       if (request.method === 'GET' && url.pathname === '/blog') {
         return await handleBlog(env, origin, url);
+      }
+      // /post/:slug — full single article, including body HTML for the
+      // article-page template at /journal/post/?slug=:slug.
+      {
+        const m = url.pathname.match(/^\/post\/([^/]+)\/?$/);
+        if (m && request.method === 'GET') {
+          return await handlePost(env, origin, m[1]);
+        }
       }
       // /list/:slug — public read, admin-token write. Used by the iconic
       // ranking pages (golf, restaurants, hotels…) for edit-in-page mode.
