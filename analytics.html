@@ -555,11 +555,16 @@ async function loadData() {
   document.getElementById('refreshBtn').disabled = true;
 
   try {
-    // Realtime active users on map
+    // Realtime active users.
+    //
+    // NOTE: The GA4 Realtime API does NOT support `hostName` as a dimension
+    // OR as a dimensionFilter — only regular runReport does. So we can't
+    // filter to map.oftmw.com here; this count is property-wide (all
+    // subdomains pointed at GA4 property 467692471). For the Map of
+    // Tomorrow setup that's effectively the same number since map.oftmw.com
+    // is the dominant traffic source on this property.
     var rt = await gaRealtime({
-      dimensions: [{ name: 'hostName' }],
-      metrics: [{ name: 'activeUsers' }],
-      dimensionFilter: hostnameFilter()
+      metrics: [{ name: 'activeUsers' }]
     });
 
     var activeUsers = 0;
@@ -567,7 +572,7 @@ async function loadData() {
       rt.rows.forEach(function(r) { activeUsers += parseInt(r.metricValues[0].value) || 0; });
     }
     document.getElementById('statActive').textContent = activeUsers;
-    document.getElementById('statActiveSub').textContent = activeUsers === 1 ? '1 person on map right now' : activeUsers + ' people on map right now';
+    document.getElementById('statActiveSub').textContent = activeUsers === 1 ? '1 person right now' : activeUsers + ' people right now';
 
     // 7-day views
     var r7 = await gaReport({
