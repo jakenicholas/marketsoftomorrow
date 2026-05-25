@@ -1009,6 +1009,18 @@ function initials(name, email) {
   return src.split(/[\s@.]+/).filter(Boolean).slice(0, 2).map(s => s[0]).join('').toUpperCase();
 }
 
+// Convert snake_case event names → Title Case. e.g. page_view → Page View,
+// favorite_added → Favorite Added, intel_view → Intel View. Falls back to
+// the raw string if it's not snake-cased.
+function humanizeEvent(name) {
+  if (!name) return '';
+  return String(name)
+    .split('_')
+    .filter(Boolean)
+    .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(' ');
+}
+
 /* ──────────────────────────────────────────────────────────────────────
    Network helpers
    ─────────────────────────────────────────────────────────────────── */
@@ -1238,7 +1250,7 @@ async function loadGA4() {
       limit: 10,
     });
     renderBarList('ga4Events', (r.rows || []).map(x => ({
-      label: x.dimensionValues[0].value,
+      label: humanizeEvent(x.dimensionValues[0].value),
       val: parseInt(x.metricValues[0].value),
     })), 'gold');
   } catch (e) {
@@ -1325,7 +1337,7 @@ async function loadFeed() {
       try { if (r.props_json) props = JSON.parse(r.props_json); } catch {}
       const detail = props.project_name || props.project_slug || props.title || props.search_term || props.filter_value || '';
       const isPaid = r.plan === 'paid';
-      const verb = (r.event_name || '').replace(/_/g, ' ');
+      const verb = humanizeEvent(r.event_name);
       return `
         <div class="feed-item ${isNewer(r.ts) ? 'new' : ''}">
           <div class="avatar ${isPaid ? 'paid' : ''}">${escapeHTML(initials(r.member_name, r.email))}</div>
@@ -1408,7 +1420,7 @@ async function openMember(memberId) {
       return `
         <div class="timeline-row">
           <div class="when">${escapeHTML(relTime(t.ts))}</div>
-          <div class="what">${escapeHTML(t.event_name)}</div>
+          <div class="what">${escapeHTML(humanizeEvent(t.event_name))}</div>
           <div class="detail">${escapeHTML(detail)}</div>
         </div>`;
     }).join('');

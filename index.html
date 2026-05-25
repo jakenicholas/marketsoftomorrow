@@ -17626,6 +17626,26 @@
           // and persist a wiped-favorites blob to Memberstack, destroying
           // the user's previously-saved watchlist.
           window._favoritesLoaded = true;
+          // ─── Watchlist snapshot ───────────────────────────────────────
+          // Fire a one-time-per-session snapshot of the member's full
+          // current watchlist (as it lives in Memberstack). This is what
+          // backfills the analytics dashboard for projects the user
+          // watchlisted BEFORE we instrumented favorite_added events.
+          // The dashboard treats the most recent snapshot per member as
+          // the source of truth for "current state," then layers any
+          // favorite_added/_removed events on top.
+          try {
+            if (!window._watchlistSnapshotSent && window._gaMemberContext && window._gaMemberContext.member_id) {
+              const slugs = Array.from(window._favorites || []);
+              if (window.gtag) {
+                gtag('event', 'watchlist_snapshot', {
+                  watchlist_count: slugs.length,
+                  watchlist_slugs: slugs.join(','),
+                });
+              }
+              window._watchlistSnapshotSent = true;
+            }
+          } catch (_) { /* analytics never blocks UX */ }
           syncFavoritesUI();
           // Re-render the watchlist now that real favorites are loaded.
           // syncFavoritesUI() above calls the raw local function reference

@@ -339,32 +339,13 @@ async function handleStats(env, origin) {
     else freeMembers++;
   }
 
-  // Watchlist netting: replay favorite_added/removed per (member, project)
-  // to count what's CURRENTLY on someone's watchlist (not just historical adds).
-  const watchState = new Map(); // `${project}::${member}` → 0/1
-  const sorted = rows.filter(r =>
-    r.event_name === 'favorite_added' || r.event_name === 'favorite_removed'
-  ).sort((a, b) => a.ts - b.ts);
-  // We don't have props in this query (kept light); we need them. Re-query
-  // briefly for just the watchlist events to extract project slugs.
-  const wrs = await env.DB.prepare(
-    `SELECT member_id, event_name, props_json, ts
-     FROM events
-     WHERE event_name IN ('favorite_added','favorite_removed')
-     ORDER BY ts ASC`
-  ).all();
-  for (const e of (wrs.results || [])) {
-    let props = {};
-    try { if (e.props_json) props = JSON.parse(e.props_json); } catch {}
-    const project = props.project_slug || props.project_name || props.title;
-    if (!project) continue;
-    const key = project + '::' + e.member_id;
-    watchState.set(key, e.event_name === 'favorite_added' ? 1 : 0);
-  }
-  const activeWatchlistProjects = new Set();
-  for (const [key, on] of watchState.entries()) {
-    if (!on) continue;
-    activeWatchlistProjects.add(key.slice(0, key.lastIndexOf('::')));
+  // Use snapshot-aware computation (covers backlogged watchlists too).
+  const perMember = await computeWatchlists(env);
+  const activeProjects = new Set();
+  let totalActive = 0;
+  for (const m of perMember.values()) {
+    totalActive += m.current.size;
+    for (const p of m.current) activeProjects.add(p);
   }
 
   return json({
@@ -376,8 +357,8 @@ async function handleStats(env, origin) {
     events_last_7d: eventsLast7d,
     events_prev_7d: eventsPrev7d,
     events_total: rows.length,
-    watchlist_unique_projects: activeWatchlistProjects.size,
-    watchlist_total_active: Array.from(watchState.values()).filter(v => v === 1).length,
+    watchlist_unique_projects: activeProjects.size,
+    watchlist_total_active: totalActive,
   }, {}, env, origin);
 }
 
@@ -436,17 +417,28 @@ async function handleMember(env, origin, url) {
     if (offset >= 0 && offset < 30) daily[29 - offset]++;
   }
 
-  // Current watchlist for this member (replay add/remove events).
-  // events are DESC; iterate ASC so the latest state wins.
-  const watchState = new Map();
+  // Current watchlist for this member: snapshot baseline + subsequent
+  // add/remove events. We walk this member's events ASC; a watchlist_snapshot
+  // resets the baseline, favorite_added/_removed mutate it.
+  const watchState = new Map(); // project -> last touch ts (or null if removed)
   for (let i = events.length - 1; i >= 0; i--) {
     const e = events[i];
-    if (e.event_name !== 'favorite_added' && e.event_name !== 'favorite_removed') continue;
     let props = {};
     try { if (e.props_json) props = JSON.parse(e.props_json); } catch {}
-    const project = props.project_slug || props.project_name || props.title || '(unknown)';
-    if (e.event_name === 'favorite_added') watchState.set(project, e.ts);
-    else watchState.delete(project);
+    if (e.event_name === 'watchlist_snapshot') {
+      // Reset to baseline from Memberstack at the time of snapshot.
+      const slugs = (props.watchlist_slugs || '').split(',').map(s => s.trim()).filter(Boolean);
+      watchState.clear();
+      for (const s of slugs) watchState.set(s, e.ts);
+      continue;
+    }
+    if (e.event_name === 'favorite_added') {
+      const project = props.project_slug || props.project_name || props.title;
+      if (project) watchState.set(project, e.ts);
+    } else if (e.event_name === 'favorite_removed') {
+      const project = props.project_slug || props.project_name || props.title;
+      if (project) watchState.delete(project);
+    }
   }
   const watchlist = Array.from(watchState.entries())
     .map(([project, added_ts]) => ({ project, added_ts }))
@@ -464,12 +456,18 @@ async function handleMember(env, origin, url) {
     top_projects: topProjects,
     watchlist,
     daily_counts: daily,
-    timeline: events.slice(0, 200).map(e => ({
-      ts: e.ts,
-      event_name: e.event_name,
-      path: e.path,
-      props_json: e.props_json,
-    })),
+    // Hide watchlist_snapshot from the user-facing timeline — it's a
+    // state-sync event, not a user action. The watchlist itself is rendered
+    // separately above.
+    timeline: events
+      .filter(e => e.event_name !== 'watchlist_snapshot')
+      .slice(0, 200)
+      .map(e => ({
+        ts: e.ts,
+        event_name: e.event_name,
+        path: e.path,
+        props_json: e.props_json,
+      })),
   }, {}, env, origin);
 }
 
@@ -488,64 +486,91 @@ async function handleTimeline(env, origin, url) {
   return json({ rows: rs.results || [] }, {}, env, origin);
 }
 
-// GET /watchlist — how many times each project was added to the watchlist.
-// The map fires this as event_name = 'favorite_added' with a 'project_slug'
-// property (see index.html toggleFavorite). We net out adds vs removes per
-// (member, project) so a user who toggles a project off doesn't keep counting.
-// Done in JS rather than SQL because D1's SQLite json_extract behavior isn't
-// portable enough to rely on for production queries.
-async function handleWatchlist(env, origin, url) {
-  const days = clampInt(url.searchParams.get('days'), 28, 1, 365);
-  const sinceTs = Math.floor(Date.now() / 1000) - (days * 86400);
+// Compute current watchlist state per member, using snapshot events as the
+// baseline plus any favorite_added/_removed events after the snapshot.
+//
+// This is what fixes the "I have watchlists from before tracking started
+// and they're not showing up" problem — the map.oftmw.com side now emits
+// a `watchlist_snapshot` event on every page load with the full current
+// Memberstack list, so we can rebuild authoritative state from any point.
+//
+// Returns:
+//   Map<member_id, { current: Set<project>, addEventsByProject: Map<project,count>,
+//                    lastTouchByProject: Map<project, ts> }>
+async function computeWatchlists(env) {
   const rs = await env.DB.prepare(
-    `SELECT event_name, props_json, member_id, email, ts
+    `SELECT event_name, props_json, member_id, ts
      FROM events
-     WHERE event_name IN ('favorite_added','favorite_removed') AND ts >= ?
-     ORDER BY ts ASC`
-  ).bind(sinceTs).all();
+     WHERE event_name IN ('watchlist_snapshot','favorite_added','favorite_removed')
+     ORDER BY member_id ASC, ts ASC`
+  ).all();
 
-  // (project, member) → current state (1 = on watchlist, 0 = off). Replay the
-  // event stream so the final tally reflects what's actually watchlisted now.
-  const state    = new Map(); // key `${project}::${member}` → 0/1
-  const lastSeen = new Map(); // project → most recent add ts
-  const adders   = new Map(); // project → Set(member_id) currently watching
-  const addCount = new Map(); // project → total add events (raw popularity)
-
+  const perMember = new Map(); // member_id -> { current, addEventsByProject, lastTouchByProject, snapshotSeen }
   for (const row of (rs.results || [])) {
+    let m = perMember.get(row.member_id);
+    if (!m) {
+      m = { current: new Set(), addEventsByProject: new Map(), lastTouchByProject: new Map(), snapshotSeen: false };
+      perMember.set(row.member_id, m);
+    }
     let props = {};
     try { if (row.props_json) props = JSON.parse(row.props_json); } catch {}
-    const project = props.project_slug || props.project_name || props.title || '(unknown)';
-    const key = project + '::' + (row.member_id || 'anon');
+
+    if (row.event_name === 'watchlist_snapshot') {
+      // Snapshot replaces baseline. Newer snapshots win because rows are ASC.
+      const slugs = (props.watchlist_slugs || '').split(',').map(s => s.trim()).filter(Boolean);
+      m.current = new Set(slugs);
+      for (const s of slugs) {
+        if (!m.lastTouchByProject.has(s)) m.lastTouchByProject.set(s, row.ts);
+      }
+      m.snapshotSeen = true;
+      continue;
+    }
+
+    const project = props.project_slug || props.project_name || props.title;
+    if (!project) continue;
 
     if (row.event_name === 'favorite_added') {
-      state.set(key, 1);
-      addCount.set(project, (addCount.get(project) || 0) + 1);
-      if (!adders.has(project)) adders.set(project, new Set());
-      adders.get(project).add(row.member_id || 'anon');
-      if (!lastSeen.has(project) || lastSeen.get(project) < row.ts) lastSeen.set(project, row.ts);
+      m.current.add(project);
+      m.addEventsByProject.set(project, (m.addEventsByProject.get(project) || 0) + 1);
+      m.lastTouchByProject.set(project, row.ts);
     } else { // favorite_removed
-      state.set(key, 0);
+      m.current.delete(project);
+      m.lastTouchByProject.set(project, row.ts);
+    }
+  }
+  return perMember;
+}
+
+// GET /watchlist — currently-watched projects ranked by # of members watching.
+// Now includes backlogged watchlists thanks to watchlist_snapshot events.
+async function handleWatchlist(env, origin, url) {
+  const perMember = await computeWatchlists(env);
+
+  const watchers   = new Map(); // project -> Set(member_id) currently watching
+  const totalAdds  = new Map(); // project -> total favorite_added events tracked
+  const lastTouch  = new Map(); // project -> most recent add/snapshot ts
+
+  for (const [memberId, m] of perMember.entries()) {
+    for (const project of m.current) {
+      if (!watchers.has(project)) watchers.set(project, new Set());
+      watchers.get(project).add(memberId);
+    }
+    for (const [project, count] of m.addEventsByProject.entries()) {
+      totalAdds.set(project, (totalAdds.get(project) || 0) + count);
+    }
+    for (const [project, ts] of m.lastTouchByProject.entries()) {
+      if (!lastTouch.has(project) || lastTouch.get(project) < ts) lastTouch.set(project, ts);
     }
   }
 
-  // Now count members whose final state is 1 for each project.
-  const currentWatchers = new Map(); // project → Set(member_id)
-  for (const [key, on] of state.entries()) {
-    if (!on) continue;
-    const sep = key.lastIndexOf('::');
-    const project = key.slice(0, sep);
-    const member  = key.slice(sep + 2);
-    if (!currentWatchers.has(project)) currentWatchers.set(project, new Set());
-    currentWatchers.get(project).add(member);
-  }
-
-  const allProjects = new Set([...addCount.keys(), ...currentWatchers.keys()]);
+  const allProjects = new Set([...watchers.keys(), ...totalAdds.keys()]);
   const out = Array.from(allProjects).map(p => ({
     project: p,
-    total_adds: addCount.get(p) || 0,
-    current_watchers: (currentWatchers.get(p) || new Set()).size,
-    last_add_ts: lastSeen.get(p) || 0,
+    current_watchers: (watchers.get(p) || new Set()).size,
+    total_adds: totalAdds.get(p) || 0,
+    last_touch_ts: lastTouch.get(p) || 0,
   }))
+  .filter(r => r.current_watchers > 0 || r.total_adds > 0)
   .sort((a, b) => b.current_watchers - a.current_watchers || b.total_adds - a.total_adds)
   .slice(0, 50);
 
@@ -553,11 +578,14 @@ async function handleWatchlist(env, origin, url) {
 }
 
 // GET /activity — live feed: most recent N events across all members.
+// Excludes 'watchlist_snapshot' (fires every page load, would flood the feed)
+// since it's a state-sync mechanism, not a user-visible action.
 async function handleActivity(env, origin, url) {
   const limit = clampInt(url.searchParams.get('limit'), 50, 1, 500);
   const rs = await env.DB.prepare(
     `SELECT ts, member_id, email, member_name, plan, event_name, path, props_json
      FROM events
+     WHERE event_name != 'watchlist_snapshot'
      ORDER BY ts DESC
      LIMIT ?`
   ).bind(limit).all();
