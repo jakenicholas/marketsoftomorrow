@@ -1,0 +1,46 @@
+# Cloudflare Worker config for the Map of Tomorrow analytics backend.
+#
+# This worker has two jobs:
+#   1. Proxy authenticated requests to the GA4 Data API (using a service-account
+#      JWT, NOT an API key — the GA4 Data API does not accept API keys).
+#   2. Receive identified-user events from map.oftmw.com and persist them to a
+#      Cloudflare D1 database, then serve them back to analytics.html for
+#      per-member views (watchlist, activity feed, individual timelines).
+#
+# Deploying:
+#   cd worker
+#   npm install -g wrangler                # one time
+#   wrangler login                          # one time
+#   wrangler d1 create tmw_events          # one time — note the database_id
+#   # paste the database_id below into [[d1_databases]].database_id
+#   wrangler d1 execute tmw_events --remote --file=./schema.sql
+#   wrangler secret put GA_SERVICE_ACCOUNT_JSON
+#   # paste the entire contents of the service-account JSON file when prompted
+#   wrangler deploy
+#
+# See README.md for the full runbook including the Google Cloud + GA4 steps.
+
+name = "tmw"
+main = "src/index.js"
+compatibility_date = "2025-01-01"
+
+# Custom route — the existing worker is already published at this subdomain.
+# Wrangler will keep using it on deploy. If you want a different name, change
+# `name` above and the WORKER_URL in analytics.html / index.html will need to
+# match the new <name>.<your-subdomain>.workers.dev URL.
+
+[vars]
+# Non-secret config. Edit if your GA4 property changes.
+GA4_PROPERTY_ID = "467692471"
+ALLOWED_ORIGINS = "https://map.oftmw.com,https://oftmw.com,http://localhost:8000,http://127.0.0.1:8000"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "tmw_events"
+# Fill this in after running `wrangler d1 create tmw_events`:
+database_id = "81c16100-a129-47d8-902e-3b6b50d35089"
+
+# Secrets (set via `wrangler secret put NAME`, not in this file):
+#   GA_SERVICE_ACCOUNT_JSON   — full JSON contents of the GCP service-account key
+#   EVENT_INGEST_TOKEN        — shared secret the map sends with every event
+#                               POST so randoms can't forge events into your DB

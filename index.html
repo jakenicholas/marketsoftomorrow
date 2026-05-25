@@ -541,9 +541,54 @@
         args[2] = Object.assign({}, window._gaMemberContext, args[2]);
         // Stamp debug_mode on every event when the URL param is set
         if (_gaDebug) args[2].debug_mode = true;
+        // ─── Map of Tomorrow event ingest ────────────────────────────────
+        // Fan every identified event out to our own Cloudflare Worker so we
+        // can answer per-member questions that GA4 refuses to answer at low
+        // traffic. Anonymous events still go to GA4 only (no point storing
+        // them twice — they'd just bloat D1 and tell us nothing new).
+        try {
+          if (window._gaMemberContext && window._gaMemberContext.member_id) {
+            // Best-effort fire-and-forget — never block the UX on a network
+            // failure, never throw, never log a stacktrace into prod consoles.
+            const ctx = window._gaMemberContext;
+            const ingestBody = {
+              event_name: args[1],
+              client_ts: Math.floor(Date.now() / 1000),
+              member_id: ctx.member_id,
+              email: ctx.member_email,
+              member_name: ctx.member_name,
+              plan: ctx.member_plan,
+              path: window.location.pathname,
+              referrer: document.referrer || '',
+              session_id: window._tmwSessionId || (window._tmwSessionId = (Math.random().toString(36).slice(2) + Date.now().toString(36))),
+              props: args[2],
+            };
+            // Use sendBeacon when available so events fired during page-unload
+            // (e.g. last project_click before tab close) still make it through.
+            const url   = window._TMW_WORKER_URL + '/event';
+            const token = window._TMW_INGEST_TOKEN;
+            // sendBeacon can't send custom headers, so use it only when we
+            // don't need to set X-Ingest-Token. For now we always use fetch
+            // with keepalive: true, which is the modern equivalent and DOES
+            // support headers.
+            fetch(url, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'X-Ingest-Token': token },
+              body: JSON.stringify(ingestBody),
+              keepalive: true,
+              mode: 'cors',
+            }).catch(() => { /* swallow — analytics should never break the app */ });
+          }
+        } catch (_) { /* swallow — analytics should never break the app */ }
       }
       return _rawGtag.apply(this, args);
     };
+
+    // ─── Worker config (edit if you change the worker URL or rotate the token) ──
+    // The ingest token is a low-stakes shared secret: it filters drive-by spam
+    // POSTs but isn't a strong auth. Rotate via `wrangler secret put` if needed.
+    window._TMW_WORKER_URL   = 'https://tmw.jake-ab7.workers.dev';
+    window._TMW_INGEST_TOKEN = 'fbc4dfffefdcf5c02c76b965b4c4a42b63d207a96fc12b63bc66ce257a2ee96f';
   </script>
 
   <script type="application/ld+json">

@@ -1,0 +1,10 @@
+# Wrangler internals
+.wrangler/
+node_modules/
+
+# Never commit the service-account JSON
+*service-account*.json
+*-credentials.json
+
+# Local secrets file (we use `wrangler secret put`, but just in case)
+.dev.vars

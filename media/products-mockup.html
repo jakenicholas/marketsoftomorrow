@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Products section &mdash; mockup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,600;9..144,900&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --green:#1FDF67; --green-deep:#18c75a; --green-soft:#42EB81;
+  --purple:#A78BFA; --purple-glow:#B9A6FF;
+  --gold:#e6c574; --gold-soft:#f0d68a; --gold-deep:#c9a558;
+  --ink:#070807; --ink2:#0d0f0e; --panel:#141714; --panel2:#1a1d1a;
+  --hair:rgba(255,255,255,.08); --hair2:rgba(255,255,255,.14);
+  --white:#ffffff; --cream:#ECEAE5; --mute:#9AA39C; --mute2:#C2C9C3;
+  --sans:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+  --serif:'Fraunces',Georgia,serif;
+  --mono:'JetBrains Mono',ui-monospace,monospace;
+  --glass:blur(16px) saturate(1.4);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--ink); color:var(--cream); font-family:var(--sans); -webkit-font-smoothing:antialiased; line-height:1.5; overflow-x:hidden}
+body::before{content:""; position:fixed; inset:0; z-index:0; pointer-events:none;
+  background:radial-gradient(900px 600px at 78% -8%, rgba(31,223,103,.10), transparent 60%),
+            radial-gradient(800px 700px at -10% 30%, rgba(111,168,255,.05), transparent 55%),
+            radial-gradient(700px 600px at 110% 95%, rgba(167,139,250,.06), transparent 55%),
+            radial-gradient(720px 520px at 6% 62%, rgba(230,197,116,.06), transparent 60%);}
+.wrap{position:relative; z-index:1; max-width:1180px; margin:0 auto; padding:0 32px}
+section{padding:130px 0; position:relative}
+.eyebrow{font-family:var(--mono); font-size:12px; letter-spacing:.22em; text-transform:uppercase; color:var(--green); font-weight:500; margin-bottom:22px}
+h2{font-family:var(--serif); font-weight:600; letter-spacing:-.01em; line-height:1.04; color:var(--white); font-size:clamp(34px,4.6vw,60px)}
+.lede{font-size:clamp(16px,1.5vw,20px); color:var(--mute2); max-width:64ch; line-height:1.55; font-weight:300}
+.shead{margin-bottom:54px}
+.shead h2{margin:4px 0 18px}
+.glass{background:rgba(255,255,255,.045); backdrop-filter:var(--glass); -webkit-backdrop-filter:var(--glass);
+  border:1px solid var(--hair); border-radius:20px; box-shadow:0 18px 50px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.06);}
+
+/* === products section === */
+.pgrid{display:grid; grid-template-columns:repeat(3,1fr); gap:18px}
+.pcard{display:flex; flex-direction:column; padding:28px 28px 26px; min-height:520px; position:relative; overflow:hidden; transition:transform .3s ease, border-color .3s ease}
+.pcard:hover{transform:translateY(-4px); border-color:var(--hair2)}
+.pcard .ptop{display:flex; align-items:center; justify-content:space-between; margin-bottom:22px}
+.pcard .pnum{font-family:var(--mono); font-size:12px; letter-spacing:.14em; color:var(--green); font-weight:500}
+.pcard .purl{font-family:var(--mono); font-size:10.5px; letter-spacing:.06em; color:var(--mute); text-decoration:none; padding:5px 10px; border:1px solid var(--hair); border-radius:999px; transition:color .2s, border-color .2s}
+.pcard .purl:hover{color:var(--cream); border-color:var(--hair2)}
+
+.pcard .pviz{position:relative; height:200px; margin:0 -28px 24px; border-bottom:1px solid var(--hair); overflow:hidden}
+
+.pcard .plens{font-family:var(--mono); font-size:10.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--mute2); margin-bottom:10px}
+.pcard h3{font-family:var(--serif); font-weight:600; font-size:30px; color:var(--white); letter-spacing:-.015em; line-height:1.04; margin-bottom:14px}
+.pcard .pdesc{font-size:14.5px; color:var(--mute2); line-height:1.55; font-weight:300; margin-bottom:auto}
+.pcard .pproof{display:flex; flex-wrap:wrap; gap:6px 14px; padding-top:18px; margin-top:22px; border-top:1px solid var(--hair); font-family:var(--mono); font-size:10.5px; letter-spacing:.04em; color:var(--mute2)}
+.pcard .pproof b{color:var(--cream); font-weight:600}
+.pcard .pcta{display:inline-flex; align-items:center; gap:8px; margin-top:18px; padding:10px 16px; border:1px solid rgba(31,223,103,.4); border-radius:999px; background:rgba(31,223,103,.06); color:var(--green-soft); font-family:var(--mono); font-size:11px; letter-spacing:.06em; text-transform:uppercase; font-weight:500; text-decoration:none; align-self:flex-start; transition:background .2s, border-color .2s, transform .2s}
+.pcard .pcta:hover{background:rgba(31,223,103,.14); border-color:var(--green); transform:translateY(-1px)}
+.pcard .pcta svg{width:13px; height:13px; transition:transform .2s}
+.pcard .pcta:hover svg{transform:translateX(2px)}
+
+/* card 01: journal — faux article preview */
+.viz-journal{background:linear-gradient(180deg, rgba(230,197,116,.04), transparent 60%)}
+.viz-journal .article{position:absolute; left:28px; right:28px; top:24px; bottom:18px; display:flex; flex-direction:column}
+.viz-journal .a-meta{display:flex; gap:14px; align-items:center; font-family:var(--mono); font-size:9.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--mute); margin-bottom:14px}
+.viz-journal .a-meta .dot{width:4px; height:4px; border-radius:50%; background:var(--gold-soft); box-shadow:0 0 8px rgba(230,197,116,.6)}
+.viz-journal .a-head{font-family:var(--serif); font-weight:600; font-size:22px; color:var(--white); letter-spacing:-.015em; line-height:1.12; margin-bottom:12px}
+.viz-journal .a-head em{color:var(--gold-soft); font-style:normal}
+.viz-journal .a-body{font-size:11.5px; color:var(--mute2); line-height:1.55; font-weight:300; opacity:.85}
+.viz-journal .a-body span{display:block; height:7px; background:linear-gradient(90deg, var(--mute2) 0%, var(--mute2) var(--w,90%), transparent var(--w,90%)); opacity:.18; border-radius:2px; margin-bottom:6px}
+.viz-journal .a-rule{height:1px; background:var(--hair); margin:10px 0 8px}
+.viz-journal .a-by{font-family:var(--mono); font-size:9.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--mute)}
+
+/* card 02: socials — 3-up post grid */
+.viz-socials{background:linear-gradient(180deg, rgba(167,139,250,.05), transparent 60%)}
+.viz-socials .sgrid{position:absolute; inset:24px 0 0 28px; display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; padding-right:0}
+.viz-socials .stile{aspect-ratio:1/1; border-radius:8px; position:relative; overflow:hidden; border:1px solid var(--hair2)}
+.viz-socials .stile.t1{background:linear-gradient(135deg, #2a3530 0%, #1a2422 60%, #0e1614 100%)}
+.viz-socials .stile.t2{background:linear-gradient(160deg, #3a2e22 0%, #241c14 70%, #14100b 100%)}
+.viz-socials .stile.t3{background:linear-gradient(150deg, #1f2530 0%, #14181f 70%, #0c0f14 100%)}
+.viz-socials .stile.t4{background:linear-gradient(135deg, #243030 0%, #161e1e 70%, #0d1313 100%)}
+.viz-socials .stile.t5{background:linear-gradient(155deg, #2e2638 0%, #1c1825 70%, #110e17 100%)}
+.viz-socials .stile.t6{background:linear-gradient(145deg, #2a302a 0%, #1a1e1a 70%, #101410 100%)}
+.viz-socials .stile::before{content:""; position:absolute; inset:0; background:radial-gradient(60% 50% at 30% 30%, rgba(255,255,255,.08), transparent 70%)}
+.viz-socials .stile.flag{outline:1px solid rgba(31,223,103,.45); outline-offset:-2px}
+.viz-socials .stile.flag::after{content:"♥ 4.2k"; position:absolute; left:8px; bottom:6px; font-family:var(--mono); font-size:9px; color:var(--green-soft); letter-spacing:.04em; text-shadow:0 0 8px rgba(31,223,103,.4)}
+.viz-socials .shandle{position:absolute; top:0; right:24px; font-family:var(--mono); font-size:10px; letter-spacing:.08em; color:var(--purple-glow); padding:4px 10px; border:1px solid rgba(167,139,250,.35); border-radius:999px; background:rgba(167,139,250,.08); transform:translateY(-50%); z-index:2}
+
+/* card 03: map — coordinate grid + pulse dots */
+.viz-map{background:radial-gradient(70% 70% at 50% 55%, rgba(31,223,103,.06), transparent 75%)}
+.viz-map .mgrid{position:absolute; inset:0;
+  background-image:
+    linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px);
+  background-size:32px 32px; mask-image:radial-gradient(80% 75% at 50% 55%, #000 30%, transparent 90%); -webkit-mask-image:radial-gradient(80% 75% at 50% 55%, #000 30%, transparent 90%);}
+.viz-map .marc{position:absolute; left:8%; right:8%; top:55%; height:120px; border:1px solid rgba(255,255,255,.05); border-radius:50% / 100% 100% 0 0; border-bottom:none}
+.viz-map .marc.outer{left:-4%; right:-4%; top:62%; height:170px; opacity:.5}
+.viz-map .mcoord{position:absolute; font-family:var(--mono); font-size:8.5px; letter-spacing:.06em; color:var(--mute); opacity:.5}
+.viz-map .mcoord.c1{top:14px; left:28px}
+.viz-map .mcoord.c2{top:14px; right:16px}
+.viz-map .mcoord.c3{bottom:12px; left:28px}
+.viz-map .mdot{position:absolute; width:9px; height:9px; border-radius:50%; background:var(--green); box-shadow:0 0 0 4px rgba(31,223,103,.16), 0 0 16px rgba(31,223,103,.6)}
+.viz-map .mdot::after{content:""; position:absolute; inset:-6px; border-radius:50%; border:1.5px solid var(--green); animation:mpulse 2.4s ease-out infinite}
+.viz-map .mdot.d1{top:38%; left:24%; animation-delay:0s}
+.viz-map .mdot.d2{top:30%; left:54%}.viz-map .mdot.d2::after{animation-delay:.7s}
+.viz-map .mdot.d3{top:58%; left:72%; width:7px; height:7px}.viz-map .mdot.d3::after{animation-delay:1.3s}
+.viz-map .mdot.d4{top:48%; left:38%; width:6px; height:6px; background:var(--gold-soft); box-shadow:0 0 0 4px rgba(230,197,116,.14), 0 0 12px rgba(230,197,116,.55)}
+.viz-map .mdot.d4::after{border-color:var(--gold-soft); animation-delay:.4s}
+@keyframes mpulse{0%{transform:scale(.6); opacity:.9}100%{transform:scale(2.2); opacity:0}}
+.viz-map .mlabel{position:absolute; top:42%; left:34%; font-family:var(--mono); font-size:9px; letter-spacing:.1em; color:var(--green-soft); text-transform:uppercase}
+
+/* unified bottom rail */
+.prail{margin-top:34px; display:flex; align-items:center; justify-content:center; gap:14px; font-family:var(--mono); font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:var(--mute)}
+.prail .sep{width:24px; height:1px; background:var(--hair2)}
+.prail b{color:var(--cream); font-weight:500}
+
+@media(max-width:880px){
+  .pgrid{grid-template-columns:1fr}
+  .pcard{min-height:auto}
+}
+</style>
+</head>
+<body>
+
+<section id="products">
+  <div class="wrap">
+    <div class="shead">
+      <div class="eyebrow">Our Products</div>
+      <h2>Three lenses on tomorrow's markets</h2>
+      <p class="lede">Every market deserves more than a headline. Our products surface the same global story through three distinct vantage points &mdash; read it, scroll it, or explore it.</p>
+    </div>
+
+    <div class="pgrid">
+
+      <!-- 01 JOURNAL -->
+      <article class="pcard glass">
+        <div class="ptop">
+          <span class="pnum">01 &nbsp;/&nbsp; The Journal</span>
+          <a class="purl" href="https://oftmw.com">oftmw.com &nearr;</a>
+        </div>
+        <div class="pviz viz-journal" aria-hidden="true">
+          <div class="article">
+            <div class="a-meta"><span>Feature</span><span class="dot"></span><span>5 min read</span></div>
+            <div class="a-head">The quiet rewriting of <em>Brickell&rsquo;s</em> next decade</div>
+            <div class="a-body">
+              <span style="--w:96%"></span>
+              <span style="--w:88%"></span>
+              <span style="--w:92%"></span>
+            </div>
+            <div class="a-rule"></div>
+            <div class="a-by">Markets of Tomorrow &middot; Daily</div>
+          </div>
+        </div>
+        <div class="plens">The narrative lens</div>
+        <h3>Long-form features on the markets, founders, and developments shaping what&rsquo;s next.</h3>
+        <p class="pdesc">Editorial dispatches with context that headlines can&rsquo;t carry &mdash; published daily across seven outlets.</p>
+        <div class="pproof"><span><b>593K</b> mo. web</span><span><b>250+</b> projects</span><span><b>Daily</b> cadence</span></div>
+        <a class="pcta" href="https://oftmw.com">Read the latest <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+      </article>
+
+      <!-- 02 SOCIALS -->
+      <article class="pcard glass">
+        <div class="ptop">
+          <span class="pnum">02 &nbsp;/&nbsp; The Socials</span>
+          <a class="purl" href="https://instagram.com/marketsoftomorrow">@marketsoftomorrow &nearr;</a>
+        </div>
+        <div class="pviz viz-socials" aria-hidden="true">
+          <span class="shandle">+ 6 outlets</span>
+          <div class="sgrid">
+            <div class="stile t1"></div>
+            <div class="stile t2 flag"></div>
+            <div class="stile t3"></div>
+            <div class="stile t4"></div>
+            <div class="stile t5"></div>
+            <div class="stile t6"></div>
+          </div>
+        </div>
+        <div class="plens">The pulse lens</div>
+        <h3>What&rsquo;s moving in markets right now &mdash; surfaced visually across the network.</h3>
+        <p class="pdesc">Instagram, LinkedIn, TikTok, and beyond. A daily feed of renderings, openings, and dispatches from the field.</p>
+        <div class="pproof"><span><b>192.9K</b> followers</span><span><b>8.1M</b> mo. views</span><span><b>260K</b> interactions</span></div>
+        <a class="pcta" href="https://instagram.com/marketsoftomorrow">Follow the network <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+      </article>
+
+      <!-- 03 MAP -->
+      <article class="pcard glass">
+        <div class="ptop">
+          <span class="pnum">03 &nbsp;/&nbsp; The Map</span>
+          <a class="purl" href="https://map.oftmw.com">map.oftmw.com &nearr;</a>
+        </div>
+        <div class="pviz viz-map" aria-hidden="true">
+          <div class="mgrid"></div>
+          <div class="marc outer"></div>
+          <div class="marc"></div>
+          <span class="mcoord c1">25.77&deg; N</span>
+          <span class="mcoord c2">LIVE</span>
+          <span class="mcoord c3">80.19&deg; W</span>
+          <span class="mdot d1"></span>
+          <span class="mdot d2"></span>
+          <span class="mdot d3"></span>
+          <span class="mdot d4"></span>
+          <span class="mlabel">+ 250 markets</span>
+        </div>
+        <div class="plens">The spatial lens</div>
+        <h3>Every market we cover, plotted &mdash; drill from continent down to corner lot.</h3>
+        <p class="pdesc">An interactive atlas of the projects, firms, and neighborhoods reshaping the world &mdash; updated live.</p>
+        <div class="pproof"><span><b>250+</b> mapped</span><span><b>40+</b> markets</span><span><b>Live</b> updates</span></div>
+        <a class="pcta" href="https://map.oftmw.com">Open the map <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+      </article>
+
+    </div>
+
+    <div class="prail">
+      <span class="sep"></span>
+      <span>One network &middot; <b>Three formats</b> &middot; Every market</span>
+      <span class="sep"></span>
+    </div>
+
+  </div>
+</section>
+
+</body>
+</html>
