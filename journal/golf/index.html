@@ -1551,16 +1551,18 @@ function renderNews(items) {
   wrap.innerHTML = items.map(it => {
     const loc = (it.categories || [])[0] || '';
     const date = it.pubDate ? formatDate(new Date(it.pubDate)) : '';
+    // In-repo article page rather than bouncing back to Wix.
+    const href = it.slug ? ('/journal/post/?slug=' + encodeURIComponent(it.slug)) : it.link;
     return `<article class="card">
-      <a href="${escapeAttr(it.link)}"><div class="card-img">
+      <a href="${escapeAttr(href)}"><div class="card-img">
         ${loc ? `<span class="card-loc">${escapeHtml(loc)}</span>` : ''}
         ${it.image ? `<img src="${escapeAttr(it.image)}" alt="" loading="lazy">` : ''}
       </div></a>
       <div class="card-body">
         ${date ? `<div class="card-date">${escapeHtml(date)}</div>` : ''}
-        <h3 class="card-title"><a href="${escapeAttr(it.link)}">${escapeHtml(it.title)}</a></h3>
+        <h3 class="card-title"><a href="${escapeAttr(href)}">${escapeHtml(it.title)}</a></h3>
         ${it.summary ? `<p class="card-summary">${escapeHtml(trunc(it.summary, 130))}</p>` : ''}
-        <a class="card-readmore" href="${escapeAttr(it.link)}">Read story →</a>
+        <a class="card-readmore" href="${escapeAttr(href)}">Read story →</a>
       </div>
     </article>`;
   }).join('');

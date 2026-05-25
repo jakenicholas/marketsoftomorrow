@@ -806,10 +806,20 @@ function decodeXml(s) {
 }
 
 // ---------------------------------------------------------------------------
-// /post/:slug — return ONE full blog post (title, metadata, AND the full
-// `content:encoded` body HTML) so the journal can render Wix articles
-// without bouncing back to Wix. Limited to whatever's in the current RSS
-// window (Wix exposes the most-recent 20 posts).
+// /post/:slug — return ONE full blog post including the body HTML.
+//
+// IMPORTANT: Wix's default RSS feed does NOT include <content:encoded>
+// (verified against the live feed) — only title/summary/image. So we get
+// the body by fetching the live Wix post page and extracting the content
+// from Wix's Ricos viewer container (<div data-id="content-viewer">).
+//
+// This is "server-side scrape" — fragile because Wix can rename their
+// internal markers. If they do, this handler returns body_html = null
+// and the article page degrades to the RSS summary + "View on Wix" link.
+//
+// We still hit RSS first for the metadata (title, categories, image,
+// author, pubDate) because that's cheap and gives us a 404 path for
+// slugs not in the current 20-post window.
 // ---------------------------------------------------------------------------
 
 async function handlePost(env, origin, slug) {
@@ -817,38 +827,160 @@ async function handlePost(env, origin, slug) {
     return json({ error: 'invalid slug' }, { status: 400 }, env, origin);
   }
   const feedUrl = env.BLOG_FEED_URL || 'https://www.oftmw.com/blog-feed.xml';
-  const upstream = await fetch(feedUrl, {
-    cf: { cacheTtl: 60, cacheEverything: true },
-    headers: { 'User-Agent': 'tmw-journal/1.0' },
-  });
-  if (!upstream.ok) {
-    return json({ error: 'feed fetch failed', status: upstream.status }, { status: 502 }, env, origin);
-  }
-  const xml = await upstream.text();
-  const items = parseRssItems(xml, { includeBody: true });
-  // Match either by exact slug field or by the post's URL ending in /<slug>
-  const slugLc = slug.toLowerCase();
-  const item = items.find(it =>
-    (it.slug && it.slug.toLowerCase() === slugLc) ||
-    (it.link && it.link.toLowerCase().endsWith('/' + slugLc))
-  );
-  if (!item) {
+  const postBase = env.POST_BASE_URL || 'https://www.oftmw.com/post/';
+
+  // 1. Pull metadata from RSS
+  let item = null;
+  try {
+    const rssRes = await fetch(feedUrl, {
+      cf: { cacheTtl: 60, cacheEverything: true },
+      headers: { 'User-Agent': 'tmw-journal/1.0' },
+    });
+    if (rssRes.ok) {
+      const xml = await rssRes.text();
+      const items = parseRssItems(xml);
+      const slugLc = slug.toLowerCase();
+      item = items.find(it =>
+        (it.slug && it.slug.toLowerCase() === slugLc) ||
+        (it.link && it.link.toLowerCase().endsWith('/' + slugLc))
+      ) || null;
+    }
+  } catch { /* fall through */ }
+
+  // 2. Scrape the live Wix post page for the body
+  const postUrl = postBase + slug;
+  let bodyHtml = null;
+  let scrapeError = null;
+  try {
+    const pageRes = await fetch(postUrl, {
+      cf: { cacheTtl: 300, cacheEverything: true },
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; tmw-journal/1.0; +https://www.oftmw.com/)' },
+    });
+    if (pageRes.ok) {
+      const html = await pageRes.text();
+      bodyHtml = extractWixPostBody(html);
+      if (!bodyHtml) scrapeError = 'content-viewer container not found in page';
+    } else if (pageRes.status === 404) {
+      // No fallback — post genuinely doesn't exist
+      return json(
+        { error: 'post not found', slug, postUrl },
+        { status: 404 }, env, origin,
+      );
+    } else {
+      scrapeError = 'page fetch ' + pageRes.status;
+    }
+  } catch (e) { scrapeError = e.message || String(e); }
+
+  // 3. If we have neither RSS metadata nor a scraped body, 404
+  if (!item && !bodyHtml) {
     return json(
       {
-        error: 'post not found in current RSS window',
-        slug,
-        hint: 'Wix only exposes the 20 most-recent posts via RSS. For older articles, use the Wix Headless API or keep the legacy URL alive.',
-        candidates: items.map(it => it.slug).slice(0, 8),
+        error: 'post not in current RSS window and page scrape failed',
+        slug, postUrl, scrapeError,
+        hint: 'Wix only exposes the 20 most-recent posts via RSS, and we couldn\'t pull the page itself.',
       },
-      { status: 404 },
-      env, origin,
+      { status: 404 }, env, origin,
     );
   }
+
+  // 4. Synthesize a post object: RSS metadata + scraped body
+  const post = item || { slug, link: postUrl, title: '', categories: [], author: '', pubDate: '', summary: '', image: '' };
+  post.content_html = bodyHtml;
+  post.source_url  = postUrl;
+  post.body_source = bodyHtml ? 'wix-scrape' : 'none';
+  if (scrapeError) post.scrape_error = scrapeError;
+
   return json(
-    { post: item, fetchedAt: new Date().toISOString() },
-    { headers: { 'Cache-Control': 'public, max-age=60, s-maxage=60' } },
+    { post, fetchedAt: new Date().toISOString() },
+    { headers: { 'Cache-Control': 'public, max-age=60, s-maxage=300' } },
     env, origin,
   );
+}
+
+// Extract Wix Ricos viewer body from a server-rendered Wix post page.
+// Wix wraps the article body in a <div data-id="content-viewer"> with
+// rcv-block-first/last markers inside. We grab the inner HTML of that
+// container, then strip Wix-specific class/style/data attributes so our
+// own CSS owns the typography.
+function extractWixPostBody(html) {
+  if (!html) return null;
+  // Locate the content-viewer opening tag
+  const startMarker = 'data-id="content-viewer"';
+  const idx = html.indexOf(startMarker);
+  if (idx < 0) return null;
+  // Walk back to the start of THAT <div>
+  const tagStart = html.lastIndexOf('<div', idx);
+  if (tagStart < 0) return null;
+  // Find the end of the opening tag
+  const openEnd = html.indexOf('>', idx);
+  if (openEnd < 0) return null;
+
+  // Now find the matching closing </div> by scanning forward and
+  // tracking nesting depth (Wix bodies have nested divs everywhere).
+  let depth = 1;
+  let i = openEnd + 1;
+  const re = /<\/?div\b[^>]*>/g;
+  re.lastIndex = i;
+  let m, closeAt = -1;
+  while ((m = re.exec(html)) !== null) {
+    if (m[0].startsWith('</')) {
+      depth--;
+      if (depth === 0) { closeAt = m.index; break; }
+    } else {
+      depth++;
+    }
+  }
+  if (closeAt < 0) return null;
+
+  const inner = html.slice(openEnd + 1, closeAt);
+  return cleanWixBodyHtml(inner);
+}
+
+function cleanWixBodyHtml(html) {
+  if (!html) return '';
+  let out = html;
+
+  // --- 1. Strip Wix UI chrome that doesn't belong in the body ---
+  // Image-expand buttons, icon SVGs, and Wix's "wow-image" wrapper
+  // around <img> tags.
+  out = out.replace(/<button\b[\s\S]*?<\/button>/gi, '');
+  out = out.replace(/<svg\b[\s\S]*?<\/svg>/gi, '');
+  // Unwrap <wow-image> ... </wow-image> — keep the inner <img>
+  out = out.replace(/<wow-image\b[^>]*>([\s\S]*?)<\/wow-image>/gi, '$1');
+  // Generic safety net for any other wow-* custom elements Wix uses
+  out = out.replace(/<wow-[a-z-]+\b[^>]*>([\s\S]*?)<\/wow-[a-z-]+>/gi, '$1');
+
+  // --- 2. Rewrite Wix image URLs from blur thumbnails to full size ---
+  // Pattern: https://static.wixstatic.com/media/<hash>~mv2.<ext>/v1/.../<hash>~mv2.<ext>
+  // The transform path serves a small blurred placeholder for lazy-load;
+  // dropping it returns the full original (verified 200 + ~460KB).
+  out = out.replace(
+    /(https?:\/\/static\.wixstatic\.com\/media\/[^/"'\s]+\.(?:jpe?g|png|webp|gif|avif))\/v1\/[^"'\s)]*/gi,
+    '$1',
+  );
+
+  // --- 3. Strip Wix-specific attributes that pollute our typography ---
+  out = out.replace(/\s+class="[^"]*"/g, '');
+  out = out.replace(/\s+style="[^"]*"/g, '');
+  out = out.replace(/\s+data-[a-z0-9-]+="[^"]*"/g, '');
+  out = out.replace(/\s+id="viewer-[^"]*"/g, '');
+  out = out.replace(/\s+id="[a-z0-9]{9,}"/gi, ''); // strip Wix hashed component ids
+  out = out.replace(/\s+draggable="[^"]*"/g, '');
+  out = out.replace(/\s+role="presentation"/g, '');
+
+  // --- 4. Collapse Wix's deep div nesting wherever possible ---
+  for (let pass = 0; pass < 6; pass++) {
+    const before = out;
+    out = out.replace(/<div>\s*<\/div>/g, '');
+    out = out.replace(/<div\s+type="empty-line"><\/div>/g, '');
+    out = out.replace(/<div\s+type="paragraph"><\/div>/g, '');
+    out = out.replace(/<div\s+type="first"><\/div>/g, '');
+    out = out.replace(/<div\s+type="last"><\/div>/g, '');
+    // div > div (single child) → div
+    out = out.replace(/<div>\s*(<div\b[^>]*>[\s\S]*?<\/div>)\s*<\/div>/g, '$1');
+    if (out === before) break;
+  }
+  return out.trim();
 }
 
 // ---------------------------------------------------------------------------
