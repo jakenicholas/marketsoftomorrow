@@ -498,6 +498,7 @@ function showErr(msg) {
 }
 function hideErr() { document.getElementById('errMsg').classList.remove('on'); }
 
+// Worker proxy for GA4 Data API + D1-backed identified-user sections.
 const WORKER_URL = 'https://tmw.jake-ab7.workers.dev';
 
 async function gaFetch(endpoint, body) {
