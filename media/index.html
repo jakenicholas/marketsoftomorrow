@@ -313,6 +313,74 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
 .invest .term .v{font-family:var(--serif); font-weight:600; font-size:19px; color:var(--white); margin-top:6px}
 .invest .term .x{font-size:12.5px; color:var(--mute); margin-top:14px}
 
+/* products / three lenses */
+.lens-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:18px}
+.lens-card{display:flex; flex-direction:column; padding:28px 28px 26px; min-height:460px; position:relative; overflow:hidden; transition:transform .3s ease, border-color .3s ease}
+.lens-card:hover{transform:translateY(-4px); border-color:var(--hair2)}
+.lens-top{display:flex; align-items:center; justify-content:space-between; margin-bottom:22px; gap:10px}
+.lens-num{font-family:var(--mono); font-size:12px; letter-spacing:.14em; color:var(--green); font-weight:500}
+.lens-url{font-family:var(--mono); font-size:10.5px; letter-spacing:.06em; color:var(--mute); text-decoration:none; padding:5px 10px; border:1px solid var(--hair); border-radius:999px; transition:color .2s, border-color .2s; white-space:nowrap}
+.lens-url:hover{color:var(--cream); border-color:var(--hair2)}
+.lens-viz{position:relative; height:200px; margin:0 -28px 24px; border-bottom:1px solid var(--hair); overflow:hidden}
+.lens-tag{font-family:var(--mono); font-size:10.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--mute2); margin-bottom:8px}
+.lens-card h3{font-family:var(--serif); font-weight:600; font-size:clamp(34px,3vw,42px); color:var(--white); letter-spacing:-.02em; line-height:1; margin-bottom:auto}
+.lens-card h3 .dot{color:var(--green)}
+.lens-proof{display:flex; flex-wrap:wrap; gap:6px 14px; padding-top:16px; margin-top:22px; border-top:1px solid var(--hair); font-family:var(--mono); font-size:10.5px; letter-spacing:.04em; color:var(--mute2)}
+.lens-proof b{color:var(--cream); font-weight:600}
+.lens-cta{display:inline-flex; align-items:center; gap:8px; margin-top:18px; padding:10px 16px; border:1px solid rgba(31,223,103,.4); border-radius:999px; background:rgba(31,223,103,.06); color:var(--green-soft); font-family:var(--mono); font-size:11px; letter-spacing:.06em; text-transform:uppercase; font-weight:500; text-decoration:none; align-self:flex-start; transition:background .2s, border-color .2s, transform .2s}
+.lens-cta:hover{background:rgba(31,223,103,.14); border-color:var(--green); transform:translateY(-1px)}
+.lens-cta svg{width:13px; height:13px; transition:transform .2s}
+.lens-cta:hover svg{transform:translateX(2px)}
+/* viz: journal */
+.viz-journal{background:linear-gradient(180deg, rgba(230,197,116,.04), transparent 60%)}
+.viz-journal .article{position:absolute; left:28px; right:28px; top:24px; bottom:18px; display:flex; flex-direction:column}
+.viz-journal .a-meta{display:flex; gap:14px; align-items:center; font-family:var(--mono); font-size:9.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--mute); margin-bottom:14px}
+.viz-journal .a-meta .dot{width:4px; height:4px; border-radius:50%; background:var(--gold-soft); box-shadow:0 0 8px rgba(230,197,116,.6)}
+.viz-journal .a-head{font-family:var(--serif); font-weight:600; font-size:22px; color:var(--white); letter-spacing:-.015em; line-height:1.12; margin-bottom:12px}
+.viz-journal .a-head em{color:var(--gold-soft); font-style:normal}
+.viz-journal .a-body span{display:block; height:7px; background:linear-gradient(90deg, var(--mute2) 0%, var(--mute2) var(--w,90%), transparent var(--w,90%)); opacity:.18; border-radius:2px; margin-bottom:6px}
+.viz-journal .a-rule{height:1px; background:var(--hair); margin:10px 0 8px}
+.viz-journal .a-by{font-family:var(--mono); font-size:9.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--mute)}
+/* viz: socials */
+.viz-socials{background:linear-gradient(180deg, rgba(167,139,250,.05), transparent 60%)}
+.viz-socials .sgrid{position:absolute; inset:24px 0 0 28px; display:grid; grid-template-columns:repeat(3,1fr); gap:8px; padding-right:0}
+.viz-socials .stile{aspect-ratio:1/1; border-radius:8px; position:relative; overflow:hidden; border:1px solid var(--hair2)}
+.viz-socials .stile.t1{background:linear-gradient(135deg, #2a3530 0%, #1a2422 60%, #0e1614 100%)}
+.viz-socials .stile.t2{background:linear-gradient(160deg, #3a2e22 0%, #241c14 70%, #14100b 100%)}
+.viz-socials .stile.t3{background:linear-gradient(150deg, #1f2530 0%, #14181f 70%, #0c0f14 100%)}
+.viz-socials .stile.t4{background:linear-gradient(135deg, #243030 0%, #161e1e 70%, #0d1313 100%)}
+.viz-socials .stile.t5{background:linear-gradient(155deg, #2e2638 0%, #1c1825 70%, #110e17 100%)}
+.viz-socials .stile.t6{background:linear-gradient(145deg, #2a302a 0%, #1a1e1a 70%, #101410 100%)}
+.viz-socials .stile::before{content:""; position:absolute; inset:0; background:radial-gradient(60% 50% at 30% 30%, rgba(255,255,255,.08), transparent 70%)}
+.viz-socials .stile.flag{outline:1px solid rgba(31,223,103,.45); outline-offset:-2px}
+.viz-socials .stile.flag::after{content:"\2665 4.2k"; position:absolute; left:8px; bottom:6px; font-family:var(--mono); font-size:9px; color:var(--green-soft); letter-spacing:.04em; text-shadow:0 0 8px rgba(31,223,103,.4)}
+.viz-socials .shandle{position:absolute; top:0; right:24px; font-family:var(--mono); font-size:10px; letter-spacing:.08em; color:var(--purple-glow); padding:4px 10px; border:1px solid rgba(167,139,250,.35); border-radius:999px; background:rgba(167,139,250,.08); transform:translateY(-50%); z-index:2}
+/* viz: map */
+.viz-map{background:radial-gradient(70% 70% at 50% 55%, rgba(31,223,103,.06), transparent 75%)}
+.viz-map .lmg{position:absolute; inset:0;
+  background-image:
+    linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px);
+  background-size:32px 32px; mask-image:radial-gradient(80% 75% at 50% 55%, #000 30%, transparent 90%); -webkit-mask-image:radial-gradient(80% 75% at 50% 55%, #000 30%, transparent 90%);}
+.viz-map .marc{position:absolute; left:8%; right:8%; top:55%; height:120px; border:1px solid rgba(255,255,255,.05); border-radius:50% / 100% 100% 0 0; border-bottom:none}
+.viz-map .marc.outer{left:-4%; right:-4%; top:62%; height:170px; opacity:.5}
+.viz-map .mcoord{position:absolute; font-family:var(--mono); font-size:8.5px; letter-spacing:.06em; color:var(--mute); opacity:.5}
+.viz-map .mcoord.c1{top:14px; left:28px}
+.viz-map .mcoord.c2{top:14px; right:16px}
+.viz-map .mcoord.c3{bottom:12px; left:28px}
+.viz-map .mdot{position:absolute; width:9px; height:9px; border-radius:50%; background:var(--green); box-shadow:0 0 0 4px rgba(31,223,103,.16), 0 0 16px rgba(31,223,103,.6)}
+.viz-map .mdot::after{content:""; position:absolute; inset:-6px; border-radius:50%; border:1.5px solid var(--green); animation:mpulse 2.4s ease-out infinite}
+.viz-map .mdot.d1{top:38%; left:24%; animation-delay:0s}
+.viz-map .mdot.d2{top:30%; left:54%}.viz-map .mdot.d2::after{animation-delay:.7s}
+.viz-map .mdot.d3{top:58%; left:72%; width:7px; height:7px}.viz-map .mdot.d3::after{animation-delay:1.3s}
+.viz-map .mdot.d4{top:48%; left:38%; width:6px; height:6px; background:var(--gold-soft); box-shadow:0 0 0 4px rgba(230,197,116,.14), 0 0 12px rgba(230,197,116,.55)}
+.viz-map .mdot.d4::after{border-color:var(--gold-soft); animation-delay:.4s}
+@keyframes mpulse{0%{transform:scale(.6); opacity:.9}100%{transform:scale(2.2); opacity:0}}
+.viz-map .mlabel{position:absolute; top:42%; left:34%; font-family:var(--mono); font-size:9px; letter-spacing:.1em; color:var(--green-soft); text-transform:uppercase}
+.lens-rail{margin-top:34px; display:flex; align-items:center; justify-content:center; gap:14px; font-family:var(--mono); font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:var(--mute)}
+.lens-rail .sep{width:24px; height:1px; background:var(--hair2)}
+.lens-rail b{color:var(--cream); font-weight:500}
+
 /* partners */
 /* -- client grid: two views (logo default, text) -- */
 .pgrid{display:grid; gap:0}
@@ -407,6 +475,7 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
   .m-br{display:inline}
   .headstats{grid-template-columns:repeat(2,1fr)} .grid3{grid-template-columns:1fr}
   .globe-stats{grid-template-columns:1fr} .deliver{grid-template-columns:1fr} .dgrid{grid-template-columns:1fr} .offer-grid{grid-template-columns:1fr} .audmeta{grid-template-columns:1fr; gap:22px} .nerd{grid-template-columns:repeat(2,1fr)}
+  .lens-grid{grid-template-columns:1fr} .lens-card{min-height:auto}
   /* client tiles: 4 columns on mobile with tighter padding so logos fill more */
   .pgrid.view-logo{grid-template-columns:repeat(4,1fr); gap:8px}
   .pgrid.view-logo .p{padding:6px; border-radius:10px}
@@ -759,6 +828,94 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
       </div>
     </div>
 
+    </div>
+  </div>
+</section>
+
+<section id="products">
+  <div class="wrap">
+    <div class="shead">
+      <div class="eyebrow reveal">Our Products</div>
+      <h2 class="reveal d1">Three lenses on tomorrow&rsquo;s markets.</h2>
+      <p class="lede reveal d2">Same global story. Three vantage points.</p>
+    </div>
+    <div class="lens-grid">
+
+      <article class="lens-card glass reveal d1">
+        <div class="lens-top">
+          <span class="lens-num">01 &nbsp;/&nbsp; The Journal</span>
+          <a class="lens-url" href="https://oftmw.com" target="_blank" rel="noopener">oftmw.com &nearr;</a>
+        </div>
+        <div class="lens-viz viz-journal" aria-hidden="true">
+          <div class="article">
+            <div class="a-meta"><span>Feature</span><span class="dot"></span><span>5 min read</span></div>
+            <div class="a-head">The quiet rewriting of <em>Brickell&rsquo;s</em> next decade</div>
+            <div class="a-body">
+              <span style="--w:96%"></span>
+              <span style="--w:88%"></span>
+              <span style="--w:92%"></span>
+            </div>
+            <div class="a-rule"></div>
+            <div class="a-by">Markets of Tomorrow &middot; Daily</div>
+          </div>
+        </div>
+        <div class="lens-tag">The narrative lens</div>
+        <h3>Read it<span class="dot">.</span></h3>
+        <div class="lens-proof"><span><b>593K</b> mo. web</span><span><b>250+</b> projects</span></div>
+        <a class="lens-cta" href="https://oftmw.com" target="_blank" rel="noopener">Read the latest <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+      </article>
+
+      <article class="lens-card glass reveal d2">
+        <div class="lens-top">
+          <span class="lens-num">02 &nbsp;/&nbsp; The Socials</span>
+          <a class="lens-url" href="https://instagram.com/marketsoftomorrow" target="_blank" rel="noopener">@marketsoftomorrow &nearr;</a>
+        </div>
+        <div class="lens-viz viz-socials" aria-hidden="true">
+          <span class="shandle">+ 6 outlets</span>
+          <div class="sgrid">
+            <div class="stile t1"></div>
+            <div class="stile t2 flag"></div>
+            <div class="stile t3"></div>
+            <div class="stile t4"></div>
+            <div class="stile t5"></div>
+            <div class="stile t6"></div>
+          </div>
+        </div>
+        <div class="lens-tag">The pulse lens</div>
+        <h3>Scroll it<span class="dot">.</span></h3>
+        <div class="lens-proof"><span><b>192.9K</b> followers</span><span><b>8.1M</b> mo. views</span></div>
+        <a class="lens-cta" href="https://instagram.com/marketsoftomorrow" target="_blank" rel="noopener">Follow the network <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+      </article>
+
+      <article class="lens-card glass reveal d3">
+        <div class="lens-top">
+          <span class="lens-num">03 &nbsp;/&nbsp; The Map</span>
+          <a class="lens-url" href="https://map.oftmw.com" target="_blank" rel="noopener">map.oftmw.com &nearr;</a>
+        </div>
+        <div class="lens-viz viz-map" aria-hidden="true">
+          <div class="lmg"></div>
+          <div class="marc outer"></div>
+          <div class="marc"></div>
+          <span class="mcoord c1">25.77&deg; N</span>
+          <span class="mcoord c2">LIVE</span>
+          <span class="mcoord c3">80.19&deg; W</span>
+          <span class="mdot d1"></span>
+          <span class="mdot d2"></span>
+          <span class="mdot d3"></span>
+          <span class="mdot d4"></span>
+          <span class="mlabel">+ 250 markets</span>
+        </div>
+        <div class="lens-tag">The spatial lens</div>
+        <h3>Explore it<span class="dot">.</span></h3>
+        <div class="lens-proof"><span><b>250+</b> mapped</span><span><b>40+</b> markets</span></div>
+        <a class="lens-cta" href="https://map.oftmw.com" target="_blank" rel="noopener">Open the map <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+      </article>
+
+    </div>
+    <div class="lens-rail reveal">
+      <span class="sep"></span>
+      <span>One network &middot; <b>Three formats</b> &middot; Every market</span>
+      <span class="sep"></span>
     </div>
   </div>
 </section>
