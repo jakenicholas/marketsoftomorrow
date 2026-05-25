@@ -26,6 +26,19 @@ CREATE INDEX IF NOT EXISTS idx_events_ts        ON events(ts DESC);
 CREATE INDEX IF NOT EXISTS idx_events_member_ts ON events(member_id, ts DESC);
 CREATE INDEX IF NOT EXISTS idx_events_name_ts   ON events(event_name, ts DESC);
 
+-- ---------------------------------------------------------------------------
+-- iconic_lists: server-side storage for the curated ranking pages
+-- (Iconic Golf, Iconic Restaurants, Iconic Hotels…). One row per list,
+-- editable from the page itself when the editor presents a valid bearer
+-- token. The 'data' column is the full JSON document the page renders.
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS iconic_lists (
+  slug         TEXT    PRIMARY KEY,           -- e.g. 'golf', 'restaurants'
+  data         TEXT    NOT NULL,              -- JSON document, see /list handler
+  updated_at   INTEGER NOT NULL,              -- unix seconds
+  updated_by   TEXT                           -- optional admin label
+);
+
 -- A view of the most recent event per member, for the People list.
 -- We define it as a view (not a materialized table) so it's always fresh
 -- and we never have to write a backfill job.

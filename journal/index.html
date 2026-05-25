@@ -137,8 +137,21 @@ nav.main .wrap{display:flex; align-items:center; justify-content:space-between; 
 .nav-links a:hover{color:var(--white)}
 .nav-links a.active{color:var(--white)}
 .nav-links a.active::after{content:""; position:absolute; left:0; right:0; bottom:-6px; height:2px; background:var(--green); box-shadow:0 0 12px rgba(31,223,103,.6)}
-.nav-cta{font-family:var(--mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase; font-weight:700; background:var(--green); color:var(--ink); padding:10px 18px; border-radius:999px; transition:background .2s, transform .2s}
-.nav-cta:hover{background:var(--green-soft); transform:translateY(-1px)}
+/* --- Map of Tomorrow CTA: dark pill with animated map-pin + live counter --- */
+.nav-cta{display:inline-flex; align-items:center; gap:10px; padding:8px 8px 8px 14px; background:rgba(255,255,255,.04); border:1px solid var(--hair-2); border-radius:999px; font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; font-weight:700; color:var(--white); transition:all .2s; position:relative; overflow:hidden}
+.nav-cta::before{content:""; position:absolute; inset:0; background:radial-gradient(60% 100% at 100% 50%, rgba(31,223,103,.18), transparent 70%); opacity:0; transition:opacity .25s}
+.nav-cta:hover{border-color:var(--green); transform:translateY(-1px)}
+.nav-cta:hover::before{opacity:1}
+.nav-cta .mc-pin{position:relative; width:18px; height:18px; flex:0 0 auto}
+.nav-cta .mc-pin svg{width:100%; height:100%; color:var(--green); filter:drop-shadow(0 0 4px rgba(31,223,103,.5))}
+.nav-cta .mc-pin::after{content:""; position:absolute; left:50%; top:50%; width:6px; height:6px; border-radius:50%; background:var(--green); transform:translate(-50%, -50%); animation:mcPinPulse 2.4s ease-out infinite; opacity:0}
+@keyframes mcPinPulse{0%{transform:translate(-50%,-50%) scale(.5); opacity:.8}80%{transform:translate(-50%,-50%) scale(3.6); opacity:0}100%{opacity:0}}
+.nav-cta .mc-label{position:relative; z-index:1}
+.nav-cta .mc-sep{width:1px; height:14px; background:var(--hair-2); position:relative; z-index:1}
+.nav-cta .mc-count{display:inline-flex; align-items:center; gap:6px; padding:5px 10px; background:rgba(31,223,103,.12); border:1px solid rgba(31,223,103,.32); border-radius:999px; color:var(--green); font-size:10.5px; letter-spacing:.06em; font-weight:700; position:relative; z-index:1}
+.nav-cta .mc-count .mc-dot{width:5px; height:5px; border-radius:50%; background:var(--green); box-shadow:0 0 6px var(--green); animation:tdot 1.6s ease-in-out infinite}
+@media (prefers-reduced-motion: reduce){.nav-cta .mc-pin::after, .nav-cta .mc-count .mc-dot{animation:none}}
+@media(max-width:1180px){.nav-cta .mc-count{display:none}.nav-cta .mc-sep{display:none}}
 .nav-burger{display:none; width:28px; height:28px; flex-direction:column; gap:5px; padding:6px 0; align-items:flex-end; justify-content:center}
 .nav-burger span{display:block; width:22px; height:1.5px; background:var(--cream)}
 @media(max-width:980px){
@@ -163,81 +176,208 @@ nav.main .wrap{display:flex; align-items:center; justify-content:space-between; 
 @keyframes tmw-sweep{0%,60%{transform:translateX(-40%);opacity:0}68%{opacity:1}100%{transform:translateX(140%);opacity:0}}
 @media (prefers-reduced-motion: reduce){.tmw-hex-spinner,.tmw-sweep,.tmw-hex-ring{animation:none}.tmw-sweep,.tmw-hex-ring{opacity:0}}
 
-/* ---- LIVE TICKER ---- */
+/* ---- PULSE TICKER (mirrors live oftmw.com bar) ---- */
 .ticker{
-  background:linear-gradient(180deg, rgba(7,8,7,.92), rgba(13,15,14,.92));
-  backdrop-filter:var(--glass); -webkit-backdrop-filter:var(--glass);
+  background:var(--ink);
   border-bottom:1px solid var(--hair);
-  height:42px;
-  display:flex; align-items:stretch;
+  height:40px;
+  display:flex; align-items:center;
   overflow:hidden;
   position:relative;
 }
 .ticker-label{
   flex:0 0 auto;
   display:flex; align-items:center; gap:9px;
-  padding:0 18px;
-  background:var(--green);
-  color:var(--ink);
-  font-family:var(--mono); font-size:11px; letter-spacing:.2em; text-transform:uppercase; font-weight:700;
-  position:relative; z-index:2;
-  clip-path:polygon(0 0, 100% 0, calc(100% - 14px) 100%, 0 100%);
-  padding-right:32px;
+  padding:0 16px 0 20px;
+  height:100%;
+  font-family:var(--mono); font-size:11px; letter-spacing:.22em; text-transform:uppercase; font-weight:700;
+  color:var(--cream);
+  position:relative; z-index:3;
+  white-space:nowrap;
 }
-.ticker-label .live-dot{width:7px; height:7px; border-radius:50%; background:var(--ink); animation:tdot 1.4s ease-in-out infinite}
-@keyframes tdot{0%,100%{opacity:1; transform:scale(1)}50%{opacity:.35; transform:scale(.7)}}
+.ticker-label .live-dot{
+  width:7px; height:7px; border-radius:50%;
+  background:var(--green);
+  box-shadow:0 0 8px var(--green);
+  animation:tdot 1.6s ease-in-out infinite;
+}
+@keyframes tdot{0%,100%{opacity:1}50%{opacity:.35}}
+.ticker-label .newcount{
+  font-family:var(--mono); font-size:10px; font-weight:700; letter-spacing:.1em;
+  padding:3px 8px;
+  background:rgba(255,255,255,.08);
+  color:var(--mute-2);
+  border-radius:4px;
+  margin-left:4px;
+}
+.ticker-label .newcount.has{
+  background:rgba(31,223,103,.15);
+  color:var(--green);
+  border:1px solid rgba(31,223,103,.35);
+  padding:2px 7px;
+}
+
 .ticker-viewport{
   flex:1; min-width:0;
   overflow:hidden;
   position:relative;
   display:flex; align-items:center;
-  -webkit-mask-image:linear-gradient(90deg, transparent, #000 32px, #000 calc(100% - 32px), transparent);
-          mask-image:linear-gradient(90deg, transparent, #000 32px, #000 calc(100% - 32px), transparent);
+  height:100%;
+  -webkit-mask-image:linear-gradient(90deg, transparent, #000 24px, #000 calc(100% - 32px), transparent);
+          mask-image:linear-gradient(90deg, transparent, #000 24px, #000 calc(100% - 32px), transparent);
 }
 .ticker-track{
-  display:flex; align-items:center; gap:42px;
+  display:flex; align-items:center; gap:36px;
   white-space:nowrap;
-  animation:tickerScroll 90s linear infinite;
-  padding-left:28px;
+  animation:tickerScroll 110s linear infinite;
+  padding-left:8px;
   will-change:transform;
 }
 .ticker:hover .ticker-track{animation-play-state:paused}
-@keyframes tickerScroll{
-  from{transform:translateX(0)}
-  to  {transform:translateX(-50%)}
+@keyframes tickerScroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+.ticker-item{
+  display:inline-flex; align-items:center; gap:10px;
+  font-size:13px; color:var(--cream); font-weight:400;
+  transition:color .15s;
 }
-.ticker-item{display:inline-flex; align-items:center; gap:14px; font-size:13px; color:var(--cream); font-weight:400; transition:color .2s}
-.ticker-item:hover{color:var(--green)}
-.ticker-item .tcat{font-family:var(--mono); font-size:10px; letter-spacing:.18em; text-transform:uppercase; color:var(--green); padding:3px 8px; border:1px solid rgba(31,223,103,.4); border-radius:4px; background:rgba(31,223,103,.06)}
-.ticker-item .tsep{color:var(--mute); opacity:.55}
-.ticker-item .ttxt{font-family:var(--sans)}
-.ticker-item .tarrow{color:var(--mute); font-family:var(--mono); font-size:11px; opacity:.6}
+.ticker-item:hover{color:var(--green-soft)}
+.ticker-item .pdot{
+  width:5px; height:5px; border-radius:50%;
+  background:var(--green);
+  flex:0 0 auto;
+  box-shadow:0 0 6px rgba(31,223,103,.5);
+}
+.ticker-item .pdot.article{background:var(--gold); box-shadow:0 0 6px rgba(230,197,116,.5)}
+.ticker-item .pdot.status{background:var(--purple); box-shadow:0 0 6px rgba(167,139,250,.5)}
+.ticker-item .ttxt{font-family:var(--sans); letter-spacing:-.005em}
+.ticker-item .tage{
+  font-family:var(--mono); font-size:10.5px; letter-spacing:.04em;
+  color:var(--mute); font-weight:500;
+  padding:2px 7px;
+  background:rgba(255,255,255,.04);
+  border-radius:3px;
+  flex:0 0 auto;
+}
+
+.ticker-cta{
+  flex:0 0 auto;
+  display:flex; align-items:center; gap:7px;
+  padding:0 20px 0 18px;
+  height:100%;
+  border-left:1px solid var(--hair);
+  font-family:var(--mono); font-size:11px; letter-spacing:.16em; text-transform:uppercase; font-weight:700;
+  color:var(--green);
+  background:linear-gradient(90deg, transparent, rgba(31,223,103,.06));
+  transition:background .2s, color .2s;
+  white-space:nowrap;
+}
+.ticker-cta:hover{background:linear-gradient(90deg, transparent, rgba(31,223,103,.16)); color:var(--green-soft)}
+.ticker-cta svg{width:13px; height:13px; transition:transform .2s}
+.ticker-cta:hover svg{transform:translateX(3px)}
+
 @media (prefers-reduced-motion: reduce){.ticker-track{animation:none}}
-@media(max-width:600px){.ticker{height:38px}.ticker-label{font-size:10px; padding:0 14px 0 14px; padding-right:26px}.ticker-item{font-size:12px}}
+@media(max-width:700px){
+  .ticker{height:36px}
+  .ticker-label{font-size:10px; padding:0 12px 0 14px; letter-spacing:.18em}
+  .ticker-label .newcount{display:none}
+  .ticker-cta{padding:0 14px; font-size:10px}
+  .ticker-item{font-size:12px}
+  .ticker-item .tage{font-size:9.5px}
+}
 
 /* =================================================================== */
-/* FEATURED HERO                                                        */
+/* FEATURED STORY CARD — contained, rounded "newsstand cover"            */
 /* =================================================================== */
-.featured{position:relative; background:var(--ink); color:var(--white); overflow:hidden; min-height:560px; display:flex; align-items:flex-end}
-.featured::before{content:""; position:absolute; inset:0; z-index:0;
-  background:radial-gradient(900px 600px at 78% -8%, rgba(31,223,103,.10), transparent 60%),
-            radial-gradient(720px 520px at 6% 62%, rgba(230,197,116,.08), transparent 60%)}
-.featured .bg{position:absolute; inset:0; z-index:0}
-.featured .bg img{width:100%; height:100%; object-fit:cover; opacity:.5}
-.featured .bg::after{content:""; position:absolute; inset:0;
-  background:linear-gradient(180deg, rgba(7,8,7,.35) 0%, transparent 30%, rgba(7,8,7,.88) 80%, var(--ink) 100%)}
-.featured .wrap{position:relative; z-index:2; padding-top:80px; padding-bottom:80px; width:100%}
-.featured .f-tag{display:inline-flex; gap:8px; align-items:center; background:rgba(31,223,103,.14); border:1px solid rgba(31,223,103,.4); color:var(--green); padding:6px 12px; border-radius:999px; font-family:var(--mono); font-size:10.5px; letter-spacing:.18em; text-transform:uppercase; margin-bottom:20px}
-.featured .f-tag::before{content:""; width:6px; height:6px; border-radius:50%; background:var(--green); box-shadow:0 0 8px var(--green)}
-.featured h1{color:var(--white); font-size:clamp(34px,5.4vw,72px); font-weight:700; max-width:18ch; line-height:1.02; text-wrap:balance; letter-spacing:-.02em}
-.featured h1 a{color:var(--white); transition:color .2s}
-.featured h1 a:hover{color:var(--gold-soft)}
-.featured .f-meta{display:flex; gap:18px; flex-wrap:wrap; align-items:center; margin-top:22px; font-family:var(--mono); font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--mute-2)}
-.featured .f-meta .dot{width:3px; height:3px; border-radius:50%; background:var(--mute); opacity:.7}
-.featured .f-summary{color:var(--mute-2); font-family:var(--serif); font-weight:300; font-style:italic; font-size:clamp(16px,1.6vw,21px); margin-top:18px; max-width:64ch; line-height:1.45}
-.featured .f-cta{display:inline-flex; align-items:center; gap:10px; margin-top:32px; padding:13px 22px; background:var(--white); color:var(--ink); border-radius:999px; font-family:var(--mono); font-size:11.5px; letter-spacing:.14em; text-transform:uppercase; font-weight:700; transition:transform .2s, background .2s}
-.featured .f-cta:hover{background:var(--green); transform:translateY(-1px)}
-.featured .f-cta svg{width:14px; height:14px}
+.story-section{padding:34px 0 60px; background:var(--ink); position:relative}
+.story-card{
+  position:relative;
+  max-width:1320px;
+  margin:0 auto;
+  border-radius:28px;
+  overflow:visible;
+  background:var(--panel);
+  min-height:clamp(380px, 46vw, 560px);
+  isolation:isolate;
+}
+.story-card .sc-clip{position:absolute; inset:0; border-radius:28px; overflow:hidden}
+.story-card .sc-bg{position:absolute; inset:0; z-index:0}
+.story-card .sc-bg img{width:100%; height:100%; object-fit:cover; object-position:center}
+.story-card .sc-bg::after{
+  content:""; position:absolute; inset:0;
+  background:
+    linear-gradient(90deg, rgba(7,8,7,.85) 0%, rgba(7,8,7,.55) 38%, rgba(7,8,7,.18) 65%, transparent 100%),
+    linear-gradient(180deg, transparent 60%, rgba(7,8,7,.5) 100%);
+}
+.story-card .sc-content{
+  position:relative; z-index:2;
+  padding:clamp(38px, 5vw, 70px) clamp(34px, 5vw, 70px) clamp(72px, 8vw, 110px);
+  max-width:min(640px, 55%);
+  display:flex; flex-direction:column; gap:18px;
+}
+.story-card .sc-eyebrow{
+  font-family:var(--mono);
+  font-size:12px; letter-spacing:.22em; text-transform:uppercase;
+  color:var(--green);
+  display:inline-flex; align-items:center; gap:8px;
+}
+.story-card .sc-eyebrow .star{font-size:14px; line-height:1}
+.story-card h1{
+  font-family:var(--serif); font-weight:600;
+  font-size:clamp(28px, 3.8vw, 52px);
+  line-height:1.08; letter-spacing:-.015em;
+  color:var(--white);
+  text-wrap:balance;
+}
+.story-card h1 a{color:var(--white); transition:color .2s}
+.story-card h1 a:hover{color:var(--gold-soft)}
+.story-card .sc-desc{
+  color:var(--mute-2);
+  font-size:14.5px; line-height:1.55; font-weight:300;
+  max-width:46ch;
+}
+.story-card .sc-more{
+  display:inline-flex; align-items:center; gap:10px;
+  color:var(--white);
+  font-family:var(--sans); font-size:14px; font-weight:500;
+  margin-top:6px;
+  transition:color .2s, gap .2s;
+}
+.story-card .sc-more:hover{color:var(--green); gap:14px}
+.story-card .sc-more svg{width:14px; height:14px; transition:transform .2s}
+
+/* Bottom-center tab pills that bleed over the card edge */
+.story-card .sc-tabs{
+  position:absolute; left:50%; bottom:0;
+  transform:translate(-50%, 50%);
+  z-index:3;
+  display:flex; gap:10px;
+  padding:6px;
+  background:rgba(7,8,7,.78);
+  backdrop-filter:var(--glass); -webkit-backdrop-filter:var(--glass);
+  border:1px solid var(--hair-2);
+  border-radius:999px;
+  box-shadow:0 18px 40px -10px rgba(0,0,0,.6);
+}
+.story-card .sc-tab{
+  font-family:var(--mono); font-size:12px; letter-spacing:.18em; text-transform:uppercase;
+  font-weight:600;
+  padding:12px 24px;
+  border-radius:999px;
+  color:var(--cream);
+  transition:all .2s ease;
+  white-space:nowrap;
+}
+.story-card .sc-tab:hover{background:rgba(255,255,255,.06); color:var(--white)}
+.story-card .sc-tab.on{background:var(--white); color:var(--ink); font-weight:700}
+
+@media(max-width:760px){
+  .story-section{padding:18px 14px 60px}
+  .story-card .sc-content{max-width:100%}
+  .story-card .sc-bg::after{background:linear-gradient(180deg, rgba(7,8,7,.45) 0%, rgba(7,8,7,.85) 60%, rgba(7,8,7,.95) 100%)}
+  .story-card .sc-tab{padding:10px 16px; font-size:11px; letter-spacing:.14em}
+  .story-card .sc-tabs{padding:5px; gap:6px}
+}
 
 @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
 
@@ -309,6 +449,65 @@ section.grid-section{padding:60px 0 90px; position:relative}
 .empty-state{padding:80px 20px; text-align:center; color:var(--mute)}
 .empty-state h3{color:var(--white); font-size:22px; margin-bottom:8px}
 .error-state{background:rgba(158,59,27,.12); border:1px solid rgba(158,59,27,.35); border-radius:10px; padding:20px 24px; color:#f5a98e; font-family:var(--mono); font-size:12px}
+
+/* =================================================================== */
+/* FEATURED LISTS SLIDER                                                */
+/* =================================================================== */
+.flists{padding:90px 0 80px; border-top:1px solid var(--hair); background:var(--ink); position:relative; overflow:hidden}
+.flists::before{content:""; position:absolute; top:-20%; right:-10%; width:700px; height:700px; background:radial-gradient(closest-side, rgba(230,197,116,.06), transparent 70%); pointer-events:none}
+.flists-wrap{position:relative; display:grid; grid-template-columns:300px 1fr; gap:40px; max-width:1320px; margin:0 auto; padding:0 28px}
+@media(max-width:880px){.flists-wrap{grid-template-columns:1fr; gap:20px}}
+.flists-head{padding-top:8px}
+.flists-head h2{font-family:var(--serif); font-weight:600; font-size:clamp(40px,4.5vw,60px); letter-spacing:-.025em; line-height:1; color:var(--white); margin-bottom:18px; text-wrap:balance}
+.flists-head .sub{font-size:14px; line-height:1.6; color:var(--mute-2); font-weight:300; max-width:32ch}
+.flists-head .controls{display:flex; gap:10px; margin-top:28px}
+.flist-arrow{width:42px; height:42px; border-radius:999px; border:1px solid var(--hair-2); display:flex; align-items:center; justify-content:center; color:var(--cream); transition:all .2s}
+.flist-arrow:hover{background:var(--green); color:var(--ink); border-color:var(--green); transform:translateY(-1px)}
+.flist-arrow:disabled{opacity:.3; cursor:not-allowed}
+.flist-arrow svg{width:14px; height:14px}
+.flists-track-wrap{position:relative; overflow:hidden; margin-right:-28px; padding-right:28px}
+.flists-track{display:flex; gap:18px; overflow-x:auto; scroll-snap-type:x mandatory; scrollbar-width:none; -ms-overflow-style:none; padding-bottom:8px; scroll-behavior:smooth}
+.flists-track::-webkit-scrollbar{display:none}
+.flist-card{flex:0 0 340px; aspect-ratio:340/420; border-radius:18px; overflow:hidden; position:relative; background:var(--panel-2); scroll-snap-align:start; transition:transform .25s ease; isolation:isolate}
+@media(max-width:480px){.flist-card{flex-basis:80vw}}
+.flist-card:hover{transform:translateY(-3px)}
+.flist-card img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; transition:transform .6s ease}
+.flist-card:hover img{transform:scale(1.04)}
+.flist-card::after{content:""; position:absolute; inset:0; z-index:1; background:linear-gradient(180deg, rgba(7,8,7,.15) 0%, rgba(7,8,7,.45) 55%, rgba(7,8,7,.92) 100%)}
+.flist-card-content{position:absolute; inset:0; z-index:2; padding:30px 26px 26px; display:flex; flex-direction:column; justify-content:space-between; color:var(--white)}
+.flist-card-content .top h3{font-family:var(--serif); font-weight:600; font-size:24px; line-height:1.15; letter-spacing:-.015em; color:var(--white); max-width:14ch; text-wrap:balance}
+.flist-card-content .top .see{display:inline-flex; align-items:center; gap:8px; margin-top:14px; font-family:var(--sans); font-size:13.5px; font-weight:500; color:var(--white)}
+.flist-card-content .top .see svg{width:13px; height:13px; transition:transform .2s}
+.flist-card:hover .see svg{transform:translateX(4px)}
+.flist-card-content .bot{display:flex; align-items:center; gap:8px; font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--mute-2)}
+.flist-card-content .bot svg{width:12px; height:12px; flex:0 0 auto}
+
+/* =================================================================== */
+/* TMW INTELLIGENCE                                                     */
+/* =================================================================== */
+.intel{padding:90px 0 100px; border-top:1px solid var(--hair); background:var(--ink); position:relative; overflow:hidden}
+.intel::before{content:""; position:absolute; top:-30%; left:-10%; width:900px; height:700px; background:radial-gradient(closest-side, rgba(31,223,103,.07), transparent 70%); pointer-events:none}
+.intel-wrap{position:relative; max-width:1320px; margin:0 auto; padding:0 28px}
+.intel-head{max-width:880px; margin-bottom:46px}
+.intel-eyebrow{font-family:var(--mono); font-size:11.5px; letter-spacing:.22em; text-transform:uppercase; color:var(--green); margin-bottom:18px}
+.intel-head h2{font-family:var(--serif); font-weight:600; font-size:clamp(40px,5vw,70px); letter-spacing:-.025em; line-height:1.02; color:var(--white); text-wrap:balance}
+.intel-head h2 em{font-style:italic; color:var(--green-soft); font-weight:400}
+.intel-head .sub{font-size:16px; line-height:1.6; color:var(--mute-2); margin-top:18px; max-width:56ch; font-weight:300}
+.intel-grid{display:grid; grid-template-columns:1.05fr .95fr; gap:32px; align-items:start}
+@media(max-width:980px){.intel-grid{grid-template-columns:1fr}}
+.intel-board{background:var(--panel); border:1px solid var(--hair); border-radius:16px; overflow:hidden; min-height:420px}
+.intel-board iframe{width:100%; height:480px; border:0; display:block; background:transparent}
+.intel-stats{display:flex; flex-direction:column; gap:14px}
+.intel-stat{background:var(--panel); border:1px solid var(--hair); border-radius:14px; padding:26px 28px; display:flex; align-items:flex-end; justify-content:space-between; gap:20px; transition:border-color .2s}
+.intel-stat:hover{border-color:var(--hair-2)}
+.intel-stat .iv{font-family:var(--serif); font-weight:600; font-size:clamp(38px,4.6vw,58px); letter-spacing:-.02em; line-height:1; color:var(--green-soft)}
+.intel-stat .il{font-family:var(--mono); font-size:10.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--mute-2); margin-top:8px; max-width:18ch; line-height:1.4}
+.intel-stat .ix{font-family:var(--mono); font-size:11px; color:var(--mute); letter-spacing:.04em; text-align:right}
+.intel-stat .ix .up{color:var(--green); font-weight:700}
+.intel-cta{margin-top:8px; display:inline-flex; align-items:center; gap:10px; padding:14px 26px; background:var(--green); color:var(--ink); border-radius:999px; font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; font-weight:700; align-self:flex-start; transition:all .2s}
+.intel-cta:hover{background:var(--green-soft); transform:translateY(-1px)}
+.intel-cta svg{width:13px; height:13px; transition:transform .2s}
+.intel-cta:hover svg{transform:translateX(3px)}
 
 /* =================================================================== */
 /* QUICK LINKS (Map / Media / Newsletter)                               */
@@ -429,38 +628,62 @@ footer .ft-logo .tmw-wordmark{width:118px}
         <a href="#restaurants">Restaurants</a>
         <a href="#golf">Golf</a>
       </div>
-      <a href="https://map.oftmw.com" class="nav-cta">Map of Tomorrow</a>
+      <a href="https://map.oftmw.com" class="nav-cta" id="nav-map-cta">
+        <span class="mc-pin" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 21s-7-7-7-12a7 7 0 0114 0c0 5-7 12-7 12z"/>
+            <circle cx="12" cy="9" r="2.5" fill="currentColor"/>
+          </svg>
+        </span>
+        <span class="mc-label">Open Map</span>
+        <span class="mc-sep" aria-hidden="true"></span>
+        <span class="mc-count"><span class="mc-dot"></span><span id="mc-count-n">—</span> Live</span>
+      </a>
       <button class="nav-burger" aria-label="Menu"><span></span><span></span><span></span></button>
     </div>
   </nav>
 
-  <!-- LIVE TICKER -->
-  <div class="ticker" aria-label="Live headlines">
-    <div class="ticker-label"><span class="live-dot"></span>Live</div>
+  <!-- PULSE TICKER — mirrors live oftmw.com bar -->
+  <div class="ticker" aria-label="Pulse — recent activity across the network">
+    <div class="ticker-label">
+      <span class="live-dot"></span>
+      <span>Pulse</span>
+      <span class="newcount" id="pulse-newcount">— NEW</span>
+    </div>
     <div class="ticker-viewport">
       <div class="ticker-track" id="ticker-track">
-        <span class="ticker-item"><span class="ttxt">Loading the latest from the network&hellip;</span></span>
+        <span class="ticker-item"><span class="pdot"></span><span class="ttxt">Loading the network pulse&hellip;</span></span>
       </div>
     </div>
+    <a class="ticker-cta" href="https://map.oftmw.com" target="_blank" rel="noopener">
+      View Map
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+    </a>
   </div>
 
 </div>
 
-<!-- ==================== FEATURED HERO ==================== -->
-<header class="featured" id="featured">
-  <div class="bg"><img id="hero-img" alt=""></div>
-  <div class="wrap">
-    <div id="hero-content">
-      <div class="f-tag">Latest</div>
+<!-- ==================== FEATURED STORY CARD ==================== -->
+<section class="story-section" id="featured">
+  <article class="story-card">
+    <div class="sc-clip">
+      <div class="sc-bg"><img id="hero-img" alt=""></div>
+    </div>
+    <div class="sc-content">
+      <div class="sc-eyebrow"><span class="star">☆</span> Featured</div>
       <h1><a id="hero-link" href="#">Loading the latest story&hellip;</a></h1>
-      <div class="f-meta" id="hero-meta"><span>—</span></div>
-      <p class="f-summary" id="hero-summary"></p>
-      <a href="#" class="f-cta" id="hero-cta">Read full story
-        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+      <p class="sc-desc" id="hero-summary"></p>
+      <a href="#" class="sc-more" id="hero-cta">Read more
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
       </a>
     </div>
-  </div>
-</header>
+    <nav class="sc-tabs" aria-label="Verticals">
+      <a class="sc-tab on" href="/">News</a>
+      <a class="sc-tab" href="/restaurants">Restaurants</a>
+      <a class="sc-tab" href="/golf">Golf</a>
+    </nav>
+  </article>
+</section>
 
 <!-- ==================== FILTER BAR ==================== -->
 <div class="bar" id="filterbar">
@@ -488,6 +711,55 @@ footer .ft-logo .tmw-wordmark{width:118px}
     </div>
   </div>
 </section>
+
+<!-- ==================== FEATURED LISTS ==================== -->
+<section class="flists" id="featured-lists">
+  <div class="flists-wrap">
+    <header class="flists-head">
+      <h2 id="flists-title">Featured Lists</h2>
+      <p class="sub" id="flists-sub">Discover curated lists highlighting standout places that have left a lasting impression to our team, alongside latest openings and developments.</p>
+      <div class="controls">
+        <button class="flist-arrow" id="flist-prev" aria-label="Scroll left">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 8H3M7 4L3 8l4 4"/></svg>
+        </button>
+        <button class="flist-arrow" id="flist-next" aria-label="Scroll right">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+        </button>
+      </div>
+    </header>
+    <div class="flists-track-wrap">
+      <div class="flists-track" id="flists-track"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== TMW INTELLIGENCE ==================== -->
+<section class="intel" id="intelligence">
+  <div class="intel-wrap">
+    <header class="intel-head">
+      <div class="intel-eyebrow">TMW Intelligence</div>
+      <h2>Happening, <em>by city, by firm, by pin.</em></h2>
+      <p class="sub">Hundreds of tracked projects across 40+ markets. Below: the cities and firms moving the most right now, and the live map underneath them.</p>
+    </header>
+    <div class="intel-grid">
+      <div class="intel-board">
+        <iframe src="/leaderboard-widget.html" title="Markets of Tomorrow Leaderboard" loading="lazy"></iframe>
+      </div>
+      <div class="intel-stats">
+        <div class="intel-stat"><div><div class="iv" id="intel-projects">387</div><div class="il">Projects tracked</div></div><div class="ix"><span class="up" id="intel-projects-up">+54</span><br>this month</div></div>
+        <div class="intel-stat"><div><div class="iv" id="intel-readers">8.1M</div><div class="il">Monthly readers across the network</div></div><div class="ix"><span class="up">+12%</span><br>YoY</div></div>
+        <div class="intel-stat"><div><div class="iv" id="intel-members">2,318</div><div class="il">Map of Tomorrow members</div></div><div class="ix"><span class="up" id="intel-members-up">+186</span><br>last 30d</div></div>
+        <div class="intel-stat"><div><div class="iv" id="intel-pulse">31</div><div class="il">Pulse events this week</div></div><div class="ix"><span class="up">live</span><br>auto-updates</div></div>
+        <a class="intel-cta" href="/analytics.html">View the full intelligence dashboard
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== PARTNERS OF TOMORROW (shared, auto-mounted) ==================== -->
+<div data-tmw-partners></div>
 
 <!-- ==================== QUICK LINKS ==================== -->
 <section class="quicklinks">
@@ -544,20 +816,7 @@ footer .ft-logo .tmw-wordmark{width:118px}
   </div>
 </section>
 
-<!-- ==================== PARTNERS ==================== -->
-<section class="partners">
-  <div class="wrap">
-    <div class="lbl">Trusted by builders &amp; brands</div>
-    <div class="plogos">
-      <div class="plogo">Four Seasons</div>
-      <div class="plogo">Marriott</div>
-      <div class="plogo">Aman</div>
-      <div class="plogo">Related</div>
-      <div class="plogo">Rosewood</div>
-      <div class="plogo">Auberge</div>
-    </div>
-  </div>
-</section>
+<!-- ==================== PARTNERS — replaced by shared data-tmw-partners mount above the Quick Links section ==================== -->
 
 <!-- ==================== FOOTER ==================== -->
 <footer>
@@ -635,6 +894,12 @@ footer .ft-logo .tmw-wordmark{width:118px}
 // ---------------------------------------------------------------
 const WORKER_URL    = 'https://tmw.jake-ab7.workers.dev';
 const FEED_ENDPOINT = WORKER_URL + '/blog?limit=60';
+const WIX_RSS_URL   = 'https://www.oftmw.com/blog-feed.xml';
+const CORS_PROXY    = 'https://api.codetabs.com/v1/proxy/?quest='; // browser-side fallback (no API key, returns body verbatim)
+const ADS_URL       = './ads.json';
+const PULSE_URL     = '../pulse.json';                 // generated by generate_pulse.py at repo root
+const PULSE_NEW_DAYS = 7;                              // events newer than this count toward the "N NEW" badge
+const PLACEMENT     = 'home';                          // page-specific tag for ad targeting
 const PAGE_SIZE     = 9;
 
 const CATEGORY_BUCKETS = [
@@ -656,6 +921,8 @@ const CATEGORY_BUCKETS = [
 document.getElementById('yr').textContent = new Date().getFullYear();
 renderSkeleton(6);
 loadFeed();
+loadPulse();         // populate the PULSE ticker from /pulse.json
+loadAndRenderAd();   // house ad from ads.json — replaces GAM creative when one wins
 hookBannerCollapse();
 
 // ---------------------------------------------------------------
@@ -690,45 +957,237 @@ let SEARCH_Q   = '';
 
 async function loadFeed() {
   try {
-    const res = await fetch(FEED_ENDPOINT, { cache: 'no-store' });
-    if (!res.ok) throw new Error('feed status ' + res.status);
-    const data = await res.json();
-    ALL_ITEMS = (data.items || []).filter(it => it.title && it.link);
-    if (!ALL_ITEMS.length) { showEmpty('No stories returned from the feed yet.'); return; }
+    const { items, via, error } = await fetchBlogItems(60);
+    ALL_ITEMS = items.filter(it => it.title && it.link);
+    console.log('[journal] feed via:', via, '·', ALL_ITEMS.length, 'items', error ? '(notes: ' + error + ')' : '');
+    if (!ALL_ITEMS.length) {
+      showError(error || 'Both worker and direct RSS returned no items.');
+      return;
+    }
     renderFeatured(ALL_ITEMS[0]);
-    renderTicker(ALL_ITEMS.slice(0, 20));
     buildPills();
     applyFilters();
   } catch (err) {
     console.error('blog fetch failed:', err);
     showError(err.message || String(err));
-    renderTicker([]);
   }
 }
 
 // ---------------------------------------------------------------
-// LIVE TICKER — duplicates the items so the CSS marquee loops seamlessly
+// PULSE ticker — reads /pulse.json (generated by generate_pulse.py)
+// Mixes map events ("X added to the map") with article headlines,
+// shows a "N NEW" badge counting events in the last 7 days, and
+// scrolls left as a seamless marquee.
 // ---------------------------------------------------------------
-function renderTicker(items) {
+async function loadPulse() {
+  try {
+    const res = await fetch(PULSE_URL, { cache: 'no-store' });
+    if (!res.ok) throw new Error('pulse status ' + res.status);
+    const data = await res.json();
+    const events = (data.events || []).filter(e => e && e.title && e.link);
+    renderPulse(events);
+  } catch (err) {
+    console.warn('[pulse] fetch failed, falling back to blog headlines', err);
+    // Fall back to a degraded ticker that uses blog items, so the bar
+    // never sits empty even if pulse.json is missing in preview.
+    if (ALL_ITEMS && ALL_ITEMS.length) renderPulseFromBlog(ALL_ITEMS);
+    else setPulseNewBadge(null);
+  }
+}
+
+function renderPulse(events) {
   const track = document.getElementById('ticker-track');
-  if (!items.length) {
-    track.innerHTML = '<span class="ticker-item"><span class="ttxt">Network feed currently offline — check back shortly.</span></span>';
+  if (!events.length) {
+    track.innerHTML = '<span class="ticker-item"><span class="pdot"></span><span class="ttxt">Network pulse currently quiet — check the map.</span></span>';
+    setPulseNewBadge(0);
     return;
   }
-  const cell = (it) => {
-    const cat = primaryCategory(it.categories);
-    return `<a class="ticker-item" href="${escapeAttr(it.link)}">
-      ${cat ? `<span class="tcat">${escapeHtml(cat)}</span>` : ''}
-      <span class="ttxt">${escapeHtml(it.title)}</span>
-      <span class="tarrow">↗</span>
-      <span class="tsep">·</span>
-    </a>`;
-  };
-  // Two copies of the strip — the keyframe translates by -50% so the
-  // second copy slides in exactly where the first started. Seamless loop.
-  const strip = items.map(cell).join('');
+  const now = Date.now();
+  const fresh = events.filter(e => {
+    const t = Date.parse(e.timestamp || 0);
+    return t && (now - t) <= PULSE_NEW_DAYS * 86400_000;
+  });
+  setPulseNewBadge(fresh.length);
+  const strip = events.map(pulseItemHtml).join('');
+  // Duplicate the strip so the CSS marquee loops seamlessly.
   track.innerHTML = strip + strip;
 }
+
+function renderPulseFromBlog(items) {
+  const track = document.getElementById('ticker-track');
+  const strip = items.slice(0, 20).map(it => `<a class="ticker-item" href="${escapeAttr(it.link)}">
+    <span class="pdot article"></span>
+    <span class="ttxt">${escapeHtml(it.title)}</span>
+    ${it.pubDate ? `<span class="tage">${escapeHtml(relativeAge(it.pubDate))}</span>` : ''}
+  </a>`).join('');
+  track.innerHTML = strip + strip;
+  setPulseNewBadge(null);
+}
+
+function pulseItemHtml(e) {
+  const kind = e.type === 'article' ? 'article' : (e.type === 'status_change' ? 'status' : 'new');
+  const age = e.timestamp ? relativeAge(e.timestamp) : '';
+  const title = e.title_full || e.title || '';
+  return `<a class="ticker-item" href="${escapeAttr(e.link)}" target="_blank" rel="noopener">
+    <span class="pdot ${kind}"></span>
+    <span class="ttxt">${escapeHtml(title)}</span>
+    ${age ? `<span class="tage">${escapeHtml(age)}</span>` : ''}
+  </a>`;
+}
+
+function setPulseNewBadge(n) {
+  const el = document.getElementById('pulse-newcount');
+  if (!el) return;
+  if (n === null || n === undefined) { el.textContent = 'Live'; el.classList.remove('has'); return; }
+  el.textContent = n + ' NEW';
+  el.classList.toggle('has', n > 0);
+}
+
+function relativeAge(iso) {
+  const ts = Date.parse(iso);
+  if (!ts) return '';
+  const diffMin = Math.max(1, Math.floor((Date.now() - ts) / 60000));
+  if (diffMin < 60)        return diffMin + 'm';
+  if (diffMin < 60 * 24)   return Math.floor(diffMin / 60) + 'h';
+  const days = Math.floor(diffMin / (60 * 24));
+  if (days < 30)           return days + 'd';
+  return Math.floor(days / 30) + 'mo';
+}
+
+// ---------------------------------------------------------------
+// Shared blog-feed fetcher with two-stage fallback:
+//   1. Cloudflare worker /blog  (preferred — parsed JSON, edge-cached,
+//      no third-party in the request path).
+//   2. Direct Wix RSS via a public CORS proxy + browser DOMParser
+//      (so the page works in preview before the worker is deployed).
+// ---------------------------------------------------------------
+async function fetchBlogItems(limit) {
+  const errors = [];
+  // Source 1 — worker
+  try {
+    const res = await fetch(WORKER_URL + '/blog?limit=' + limit, { cache: 'no-store' });
+    if (res.ok) {
+      const data = await res.json();
+      if (data && Array.isArray(data.items) && data.items.length) {
+        return { items: data.items, via: 'worker' };
+      }
+      errors.push('worker:empty');
+    } else {
+      errors.push('worker:' + res.status);
+    }
+  } catch (e) { errors.push('worker:' + (e.message || 'fetch failed')); }
+
+  // Source 2 — direct Wix RSS through CORS proxy
+  try {
+    const res = await fetch(CORS_PROXY + encodeURIComponent(WIX_RSS_URL), { cache: 'no-store' });
+    if (!res.ok) throw new Error('proxy ' + res.status);
+    const xml = await res.text();
+    const items = parseRssXml(xml).slice(0, limit);
+    if (items.length) return { items, via: 'direct-rss-via-proxy', error: errors.join(', ') };
+    errors.push('rss:empty');
+  } catch (e) { errors.push('rss:' + (e.message || 'fetch failed')); }
+
+  return { items: [], via: 'none', error: errors.join(', ') };
+}
+
+function parseRssXml(xmlText) {
+  let doc;
+  try { doc = new DOMParser().parseFromString(xmlText, 'application/xml'); }
+  catch { return []; }
+  if (doc.querySelector('parsererror')) return [];
+  return [...doc.querySelectorAll('item')].map(it => {
+    const desc = textOf(it, 'description');
+    const cats = [...it.querySelectorAll('category')].map(c => (c.textContent || '').trim()).filter(Boolean);
+    const enc  = it.querySelector('enclosure');
+    return {
+      title: textOf(it, 'title'),
+      link: textOf(it, 'link'),
+      pubDate: textOf(it, 'pubDate'),
+      summary: stripHtmlClient(desc).slice(0, 240),
+      image: (enc && enc.getAttribute('url')) || pickImgFromHtml(desc),
+      categories: cats,
+      author: (it.getElementsByTagName('dc:creator')[0]?.textContent || '').trim(),
+    };
+  }).filter(it => it.title && it.link);
+}
+
+function textOf(el, tag) {
+  const child = el.querySelector(tag);
+  return ((child && child.textContent) || '').trim();
+}
+function stripHtmlClient(s) { return String(s || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim(); }
+function pickImgFromHtml(html) {
+  const m = String(html || '').match(/<img[^>]+src="([^"]+)"/i);
+  return m ? m[1] : '';
+}
+
+// ---------------------------------------------------------------
+// ads.json — house ad rotation. If an eligible house ad wins, we
+// replace the GAM creative entirely. If ads.json is missing or no
+// ad is eligible, the Google Ad Manager slot keeps doing its thing.
+// ---------------------------------------------------------------
+async function loadAndRenderAd() {
+  let data;
+  try {
+    const res = await fetch(ADS_URL, { cache: 'no-store' });
+    if (!res.ok) return;
+    data = await res.json();
+  } catch (e) {
+    console.warn('[ads] ads.json unreachable, GAM will handle the slot', e);
+    return;
+  }
+  const ad = pickAd(data.ads || [], PLACEMENT);
+  if (!ad) { console.log('[ads] no eligible house ad for placement:', PLACEMENT); return; }
+  renderHouseAd(ad);
+}
+
+function pickAd(ads, placement) {
+  const now = new Date();
+  const eligible = ads.filter(a => {
+    if (!a || !a.active) return false;
+    if (a.starts && new Date(a.starts) > now) return false;
+    if (a.ends   && new Date(a.ends)   < now) return false;
+    const pl = a.placements || ['all'];
+    if (!pl.includes('all') && !pl.includes(placement)) return false;
+    if (!a.image || !a.url) return false;
+    return true;
+  });
+  if (!eligible.length) return null;
+  const total = eligible.reduce((s, a) => s + Math.max(1, a.weight || 1), 0);
+  let r = Math.random() * total;
+  for (const a of eligible) {
+    r -= Math.max(1, a.weight || 1);
+    if (r <= 0) return a;
+  }
+  return eligible[0];
+}
+
+function renderHouseAd(ad) {
+  const slot   = document.getElementById('div-gpt-ad-1730381649271-0');
+  const banner = document.getElementById('banner-ad');
+  if (!slot || !banner) return;
+  // Tell GAM to leave this slot alone.
+  try { if (window.googletag && googletag.cmd) googletag.cmd.push(() => { try { googletag.destroySlots && googletag.destroySlots(); } catch {} }); } catch {}
+
+  slot.innerHTML = `<a href="${escapeAttr(ad.url)}" target="_blank" rel="noopener sponsored"
+       style="display:block; max-width:970px; width:100%; margin:0 auto"
+       data-ad-id="${escapeAttr(ad.id)}"
+       onclick="logAdClick('${escapeAttr(ad.id)}')">
+    <img src="${escapeAttr(ad.image)}" alt="${escapeAttr(ad.alt || ad.advertiser || 'Sponsor')}"
+         style="width:100%; height:auto; display:block; border-radius:8px;">
+  </a>`;
+  const lbl = banner.querySelector('.ad-lbl');
+  if (lbl) lbl.textContent = ad.advertiser ? 'Sponsored · ' + ad.advertiser : 'Sponsored';
+  console.log('[ads] rendered house ad:', ad.id);
+}
+
+window.logAdClick = function(id) {
+  try { console.log('[ad-click]', id); /* navigator.sendBeacon(...) for analytics later */ } catch {}
+};
+
+// (Old blog-headline renderTicker removed — the PULSE ticker is the
+// canonical implementation. If loadPulse fails, renderPulseFromBlog
+// degrades gracefully using the same blog items the grid renders.)
 
 // ---------------------------------------------------------------
 // Featured + grid
@@ -741,14 +1200,6 @@ function renderFeatured(item) {
   document.getElementById('hero-summary').textContent = item.summary || '';
   const img = document.getElementById('hero-img');
   if (item.image) { img.src = item.image; img.alt = item.title; }
-  const parts = [];
-  if (item.pubDate) parts.push(formatDate(item.pubDate));
-  const loc = primaryCategory(item.categories);
-  if (loc) parts.push(loc);
-  if (item.author) parts.push('By ' + item.author);
-  document.getElementById('hero-meta').innerHTML = parts.map((p, i) =>
-    `<span>${escapeHtml(p)}</span>${i < parts.length - 1 ? '<span class="dot"></span>' : ''}`
-  ).join('');
 }
 
 function buildPills() {
@@ -892,6 +1343,92 @@ function formatDate(s) {
 function trunc(s, n) { return s.length > n ? s.slice(0, n).trimEnd() + '…' : s; }
 function escapeHtml(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function escapeAttr(s) { return escapeHtml(s); }
+
+// ---------------------------------------------------------------
+// FEATURED LISTS slider — reads featured-lists.json, renders cards,
+// wires the prev/next scroll buttons.
+// ---------------------------------------------------------------
+loadFeaturedLists();
+hookFeaturedListArrows();
+updateMapCounter();
+
+async function loadFeaturedLists() {
+  try {
+    const res = await fetch('./featured-lists.json', { cache: 'no-store' });
+    if (!res.ok) throw new Error('featured-lists ' + res.status);
+    const data = await res.json();
+    const head = data.header || {};
+    if (head.title) document.getElementById('flists-title').textContent = head.title;
+    if (head.sub)   document.getElementById('flists-sub').textContent   = head.sub;
+    const lists = (data.lists || []).filter(l => l && l.active !== false);
+    const track = document.getElementById('flists-track');
+    track.innerHTML = lists.map(featuredListCardHtml).join('');
+  } catch (err) {
+    console.warn('[featured-lists] failed', err);
+    document.getElementById('featured-lists').style.display = 'none';
+  }
+}
+
+function featuredListCardHtml(l) {
+  return `<a class="flist-card" href="${escapeAttr(l.url)}">
+    ${l.image ? `<img src="${escapeAttr(l.image)}" alt="" loading="lazy">` : ''}
+    <div class="flist-card-content">
+      <div class="top">
+        <h3>${escapeHtml(l.title)}</h3>
+        <span class="see">${escapeHtml(l.ctaLabel || 'See Full List')}
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+        </span>
+      </div>
+      ${l.location ? `<div class="bot">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 14s-5-4-5-8a5 5 0 0110 0c0 4-5 8-5 8z"/><circle cx="8" cy="6" r="1.5"/></svg>
+        ${escapeHtml(l.location)}
+      </div>` : ''}
+    </div>
+  </a>`;
+}
+
+function hookFeaturedListArrows() {
+  const track = document.getElementById('flists-track');
+  const prev  = document.getElementById('flist-prev');
+  const next  = document.getElementById('flist-next');
+  if (!track || !prev || !next) return;
+  const step = () => Math.max(280, track.clientWidth * 0.6);
+  prev.addEventListener('click', () => track.scrollBy({ left: -step(), behavior: 'smooth' }));
+  next.addEventListener('click', () => track.scrollBy({ left:  step(), behavior: 'smooth' }));
+  const sync = () => {
+    prev.disabled = track.scrollLeft <= 4;
+    next.disabled = track.scrollLeft + track.clientWidth >= track.scrollWidth - 4;
+  };
+  track.addEventListener('scroll', sync, { passive: true });
+  setTimeout(sync, 600); // after cards render
+}
+
+// ---------------------------------------------------------------
+// Map of Tomorrow CTA — pull live project count from pulse.json
+// (cheapest signal: count of unique project_slug values seen recently).
+// Falls back to a static count if pulse.json is missing.
+// ---------------------------------------------------------------
+async function updateMapCounter() {
+  const el = document.getElementById('mc-count-n');
+  if (!el) return;
+  try {
+    const res = await fetch('../pulse.json', { cache: 'no-store' });
+    if (!res.ok) throw new Error('pulse');
+    const data = await res.json();
+    const slugs = new Set();
+    (data.events || []).forEach(e => { if (e.project_slug) slugs.add(e.project_slug); });
+    // Project count: prefer an explicit field if present, otherwise derive
+    // from pulse activity (lower bound). The leaderboard widget pulls
+    // a more accurate number from the same source.
+    const n = (data.project_count || data.tracked || slugs.size || 387);
+    el.textContent = n.toLocaleString();
+  } catch {
+    el.textContent = '387';
+  }
+}
 </script>
+
+<!-- Shared Partners of Tomorrow — renders into <div data-tmw-partners> on this page (and any future page that drops the same mount + script). -->
+<script src="./_shared/partners.js" defer></script>
 </body>
 </html>

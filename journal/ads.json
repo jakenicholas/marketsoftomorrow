@@ -1,0 +1,85 @@
+{
+  "_comment": "House ad rotation for the journal banner slot. Each active ad takes priority over the Google Ad Manager fallback. To control where an ad runs, list pages in `placements` ([\"all\"] = every page, or any of: \"home\", \"golf\", \"restaurants\", \"hotels\", \"florida\", ...). Date windows are optional ISO strings; omit or null = always live. Pick is weighted-random among eligible ads.",
+  "version": 1,
+  "schema": {
+    "id": "stable slug — used for analytics + ad-click tracking",
+    "advertiser": "label shown above the creative ('Sponsored · X')",
+    "campaign": "internal label, not shown publicly",
+    "image": "creative URL — recommended 970x250 jpg/webp",
+    "imageMobile": "optional 320x100 fallback for narrow screens",
+    "url": "click-through destination",
+    "alt": "alt text for accessibility",
+    "weight": "positive integer for weighted rotation (1 = baseline)",
+    "active": "false to pause without deleting",
+    "starts": "ISO date, optional. Ad goes live at or after.",
+    "ends": "ISO date, optional. Ad stops at end of day.",
+    "placements": ["array of page slugs, or [\"all\"]"]
+  },
+  "ads": [
+    {
+      "id": "panther-national-membership-2026",
+      "advertiser": "Panther National",
+      "campaign": "Membership inquiries · May–Aug 2026",
+      "image": "https://images.unsplash.com/photo-1535131749006-b7f58c99034b?auto=format&fit=crop&w=970&h=250&q=80",
+      "url": "https://panthernational.com/membership",
+      "alt": "Panther National — Members-only golf in Palm Beach Gardens. Inquire now.",
+      "weight": 3,
+      "active": true,
+      "starts": "2026-05-01",
+      "ends": "2026-08-31",
+      "placements": ["all"]
+    },
+    {
+      "id": "cabot-citrus-summer-2026",
+      "advertiser": "Cabot Citrus Farms",
+      "campaign": "Summer tee times · 2026",
+      "image": "https://images.unsplash.com/photo-1592919505780-303950717480?auto=format&fit=crop&w=970&h=250&q=80",
+      "url": "https://cabotcitrusfarms.com/book",
+      "alt": "Cabot Citrus Farms — Florida's true links experience. Book Karoo or Roost.",
+      "weight": 2,
+      "active": true,
+      "starts": null,
+      "ends": null,
+      "placements": ["home", "golf", "florida"]
+    },
+    {
+      "id": "tmw-map-pro-housead",
+      "advertiser": "Map of Tomorrow",
+      "campaign": "GO PRO · evergreen house ad",
+      "image": "https://images.unsplash.com/photo-1486325212027-8081e485255e?auto=format&fit=crop&w=970&h=250&q=80",
+      "url": "https://map.oftmw.com",
+      "alt": "Map of Tomorrow — 3,400+ hospitality and real-estate projects tracked live.",
+      "weight": 1,
+      "active": true,
+      "starts": null,
+      "ends": null,
+      "placements": ["all"]
+    },
+    {
+      "id": "tmw-media-kit-housead",
+      "advertiser": "Markets of Tomorrow",
+      "campaign": "Media kit · advertise with us",
+      "image": "https://images.unsplash.com/photo-1542744173-8e7e53415bb0?auto=format&fit=crop&w=970&h=250&q=80",
+      "url": "https://map.oftmw.com/media/",
+      "alt": "Markets of Tomorrow Media Kit — reach 8.1M readers across six outlets.",
+      "weight": 1,
+      "active": true,
+      "starts": null,
+      "ends": null,
+      "placements": ["all"]
+    },
+    {
+      "id": "EXAMPLE-paused-creative",
+      "advertiser": "Cabot Saint Lucia",
+      "campaign": "(paused — example of active:false)",
+      "image": "https://images.unsplash.com/photo-1587174486073-ae5e5cff23aa?auto=format&fit=crop&w=970&h=250&q=80",
+      "url": "https://cabotsaintlucia.com",
+      "alt": "Cabot Saint Lucia.",
+      "weight": 1,
+      "active": false,
+      "starts": null,
+      "ends": null,
+      "placements": ["all"]
+    }
+  ]
+}

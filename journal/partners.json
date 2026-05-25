@@ -1,0 +1,88 @@
+{
+  "_comment": "Partners of Tomorrow — Signature Partners showcase. Each card has a featured project image, the partner's wordmark/logo, a category label, and a CTA button. To add a partner: append an entry. To pause: set active:false. Mount on any page with <div data-tmw-partners></div> + the partners.js shim.",
+  "version": 1,
+  "header": {
+    "eyebrow": "SIGNATURE PARTNERS",
+    "title": "Our Partners of Tomorrow",
+    "sub": "The brands and operators we're building this network with."
+  },
+  "schema": {
+    "id": "stable slug — analytics",
+    "name": "display name shown under the wordmark",
+    "logo": "wordmark/logo image URL — recommended white-on-transparent PNG/SVG, ~300x80",
+    "image": "feature photo URL — recommended 16:10, ~660x400",
+    "category": "label shown between logo and CTA (e.g. 'RESIDENCES OF TOMORROW')",
+    "ctaLabel": "button label",
+    "ctaUrl": "click-through destination",
+    "active": "false to pause",
+    "tier": "signature | featured | supporting (controls visual treatment)"
+  },
+  "partners": [
+    {
+      "id": "south-flagler-house",
+      "name": "South Flagler House",
+      "logo": "https://static.wixstatic.com/media/ca3b83_southflaglerhouse-wordmark~mv2.png",
+      "image": "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=660&h=400&q=80",
+      "category": "RESIDENCES OF TOMORROW",
+      "ctaLabel": "Learn More",
+      "ctaUrl": "https://southflaglerhouse.com",
+      "active": true,
+      "tier": "signature"
+    },
+    {
+      "id": "spina-orourke",
+      "name": "Spina O'Rourke + Partners",
+      "logo": "https://static.wixstatic.com/media/ca3b83_spinaorourke-wordmark~mv2.png",
+      "image": "https://images.unsplash.com/photo-1486325212027-8081e485255e?auto=format&fit=crop&w=660&h=400&q=80",
+      "category": "ARCHITECT OF TOMORROW",
+      "ctaLabel": "Visit Spina O'Rourke + Partners",
+      "ctaUrl": "https://spinaorourke.com",
+      "active": true,
+      "tier": "signature"
+    },
+    {
+      "id": "tremble",
+      "name": "TREMBLE",
+      "logo": "https://static.wixstatic.com/media/ca3b83_tremble-wordmark~mv2.png",
+      "image": "https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=660&h=400&q=80",
+      "category": "SWEAT OF TOMORROW",
+      "ctaLabel": "Join TREMBLE",
+      "ctaUrl": "https://trembleworkout.com",
+      "active": true,
+      "tier": "signature"
+    },
+    {
+      "id": "medhouse",
+      "name": "MedHouse",
+      "logo": "https://static.wixstatic.com/media/ca3b83_medhouse-wordmark~mv2.png",
+      "image": "https://images.unsplash.com/photo-1559070169-a3077159ee16?auto=format&fit=crop&w=660&h=400&q=80",
+      "category": "BIOHACK OF TOMORROW",
+      "ctaLabel": "Become a member",
+      "ctaUrl": "https://medhouse.co",
+      "active": true,
+      "tier": "signature"
+    },
+    {
+      "id": "private-club-tomorrow",
+      "name": "The Private Club",
+      "logo": "https://static.wixstatic.com/media/ca3b83_privateclub-wordmark~mv2.png",
+      "image": "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=660&h=400&q=80",
+      "category": "PRIVATE CLUB OF TOMORROW",
+      "ctaLabel": "Request Invitation",
+      "ctaUrl": "https://map.oftmw.com",
+      "active": true,
+      "tier": "signature"
+    },
+    {
+      "id": "huhanaut-health",
+      "name": "Huhanaut Health",
+      "logo": "https://static.wixstatic.com/media/ca3b83_huhanaut-wordmark~mv2.png",
+      "image": "https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=660&h=400&q=80",
+      "category": "MEDICINE OF TOMORROW",
+      "ctaLabel": "Schedule a consult",
+      "ctaUrl": "https://huhanaut.com",
+      "active": true,
+      "tier": "signature"
+    }
+  ]
+}

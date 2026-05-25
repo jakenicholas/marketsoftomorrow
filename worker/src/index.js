@@ -795,6 +795,116 @@ function decodeXml(s) {
 }
 
 // ---------------------------------------------------------------------------
+// /list/:slug — server-side storage for the iconic-list pages (golf,
+// restaurants, hotels…). GET is public + edge-cached briefly; POST requires
+// the ADMIN_TOKEN secret in an Authorization: Bearer header.
+//
+// The full JSON document is stored as-is in `iconic_lists.data` so the page
+// is the source of truth for its own schema — we don't need to migrate the
+// table every time we add a field to a list.
+// ---------------------------------------------------------------------------
+
+const LIST_SLUG_RE = /^[a-z0-9][a-z0-9-]{0,40}$/;
+
+async function handleListGet(env, origin, slug) {
+  if (!LIST_SLUG_RE.test(slug)) {
+    return json({ error: 'invalid slug' }, { status: 400 }, env, origin);
+  }
+  if (!env.DB) {
+    return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  }
+
+  const row = await env.DB
+    .prepare('SELECT data, updated_at, updated_by FROM iconic_lists WHERE slug = ?')
+    .bind(slug)
+    .first();
+
+  if (!row) {
+    // No row yet — return an empty scaffold so the page can render its
+    // seed-data fallback. The first save creates the row.
+    return json(
+      { slug, exists: false, data: null },
+      { headers: { 'Cache-Control': 'public, max-age=15, s-maxage=30' } },
+      env,
+      origin,
+    );
+  }
+
+  let data;
+  try { data = JSON.parse(row.data); }
+  catch { return json({ error: 'stored JSON is corrupt' }, { status: 500 }, env, origin); }
+
+  return json(
+    { slug, exists: true, data, updatedAt: row.updated_at, updatedBy: row.updated_by },
+    { headers: { 'Cache-Control': 'public, max-age=15, s-maxage=30' } },
+    env,
+    origin,
+  );
+}
+
+async function handleListPost(req, env, origin, slug) {
+  if (!LIST_SLUG_RE.test(slug)) {
+    return json({ error: 'invalid slug' }, { status: 400 }, env, origin);
+  }
+  if (!env.DB) {
+    return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  }
+  if (!env.ADMIN_TOKEN) {
+    return json({ error: 'ADMIN_TOKEN secret not set on worker' }, { status: 500 }, env, origin);
+  }
+
+  const auth = req.headers.get('Authorization') || '';
+  const token = auth.startsWith('Bearer ') ? auth.slice(7).trim() : '';
+  if (!token || !constantTimeEqual(token, env.ADMIN_TOKEN)) {
+    return json({ error: 'unauthorized' }, { status: 401 }, env, origin);
+  }
+
+  let body;
+  try { body = await req.json(); }
+  catch { return json({ error: 'invalid JSON body' }, { status: 400 }, env, origin); }
+
+  // Light shape check so we don't store garbage. Caller can extend.
+  if (!body || typeof body !== 'object' || !Array.isArray(body.items)) {
+    return json({ error: 'body must be {title, items: [...]}' }, { status: 400 }, env, origin);
+  }
+  // Size guardrail — Workers + D1 can handle plenty, but a 1MB cap keeps
+  // anyone from accidentally pasting a 50MB blob.
+  const serialized = JSON.stringify(body);
+  if (serialized.length > 1_000_000) {
+    return json({ error: 'payload too large (1MB max)' }, { status: 413 }, env, origin);
+  }
+
+  const now = Math.floor(Date.now() / 1000);
+  const updatedBy = (body.__updatedBy || '').toString().slice(0, 80) || null;
+  // Strip the bookkeeping field before persisting so it doesn't pollute the doc.
+  if ('__updatedBy' in body) delete body.__updatedBy;
+  const cleanSerialized = JSON.stringify(body);
+
+  await env.DB
+    .prepare(`
+      INSERT INTO iconic_lists (slug, data, updated_at, updated_by)
+      VALUES (?1, ?2, ?3, ?4)
+      ON CONFLICT(slug) DO UPDATE SET
+        data       = excluded.data,
+        updated_at = excluded.updated_at,
+        updated_by = excluded.updated_by
+    `)
+    .bind(slug, cleanSerialized, now, updatedBy)
+    .run();
+
+  return json({ ok: true, slug, updatedAt: now, updatedBy }, {}, env, origin);
+}
+
+// Length-safe compare so timing differences don't leak the token byte-by-byte.
+function constantTimeEqual(a, b) {
+  if (typeof a !== 'string' || typeof b !== 'string') return false;
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
+
+// ---------------------------------------------------------------------------
 // Main fetch handler
 // ---------------------------------------------------------------------------
 
@@ -838,6 +948,16 @@ export default {
       }
       if (request.method === 'GET' && url.pathname === '/blog') {
         return await handleBlog(env, origin, url);
+      }
+      // /list/:slug — public read, admin-token write. Used by the iconic
+      // ranking pages (golf, restaurants, hotels…) for edit-in-page mode.
+      {
+        const m = url.pathname.match(/^\/list\/([^/]+)\/?$/);
+        if (m) {
+          const slug = m[1];
+          if (request.method === 'GET')  return await handleListGet(env, origin, slug);
+          if (request.method === 'POST') return await handleListPost(request, env, origin, slug);
+        }
       }
       if (request.method === 'GET' && url.pathname === '/health') {
         return json({ ok: true, ts: Date.now() }, {}, env, origin);

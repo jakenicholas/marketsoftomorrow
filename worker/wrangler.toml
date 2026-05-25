@@ -48,3 +48,7 @@ database_id = "81c16100-a129-47d8-902e-3b6b50d35089"
 #   GA_SERVICE_ACCOUNT_JSON   — full JSON contents of the GCP service-account key
 #   EVENT_INGEST_TOKEN        — shared secret the map sends with every event
 #                               POST so randoms can't forge events into your DB
+#   ADMIN_TOKEN               — bearer token required to write to /list/:slug
+#                               (iconic-list edit mode). Generate with:
+#                                   openssl rand -hex 32
+#                               then `wrangler secret put ADMIN_TOKEN`.
