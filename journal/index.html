@@ -89,55 +89,18 @@ h1,h2,h3,h4{font-family:var(--serif); font-weight:600; letter-spacing:-.015em; c
   height:clamp(180px, 22vw, 280px);
   overflow:hidden;
 }
-.fc-track{position:absolute; inset:0}
+.fc-track{position:absolute; inset:0; background:#000}
 .fc-slide{
   position:absolute; inset:0;
-  display:flex; align-items:center;
+  display:block;
   text-decoration:none;
   opacity:0; visibility:hidden;
   transition:opacity .55s cubic-bezier(.22,1,.36,1), visibility 0s linear .55s;
+  background:#000;
 }
 .fc-slide.on{opacity:1; visibility:visible; transition:opacity .55s cubic-bezier(.22,1,.36,1), visibility 0s linear 0s}
-.fc-slide .fc-bg{position:absolute; inset:0; z-index:0; background-position:center; background-size:cover}
-.fc-slide .fc-overlay{position:absolute; inset:0; z-index:1; pointer-events:none}
-.fc-slide.align-left  .fc-overlay{background:linear-gradient(90deg, rgba(7,8,7,.85) 0%, rgba(7,8,7,.55) 38%, rgba(7,8,7,.18) 60%, transparent 78%)}
-.fc-slide.align-right .fc-overlay{background:linear-gradient(270deg, rgba(7,8,7,.85) 0%, rgba(7,8,7,.55) 38%, rgba(7,8,7,.18) 60%, transparent 78%)}
-.fc-slide .fc-content{
-  position:relative; z-index:2;
-  max-width:1320px; width:100%;
-  margin:0 auto;
-  padding:0 clamp(60px, 6vw, 90px);
-  display:flex; flex-direction:column; gap:8px;
-  color:var(--white);
-}
-.fc-slide.align-right .fc-content{align-items:flex-end; text-align:right}
-.fc-eyebrow{
-  font-family:var(--mono); font-size:11px; letter-spacing:.22em; text-transform:uppercase;
-  color:var(--gold-soft); margin-bottom:4px;
-}
-.fc-title{
-  font-family:var(--serif); font-weight:600; font-size:clamp(22px, 2.8vw, 38px);
-  line-height:1.05; letter-spacing:-.015em; color:var(--white);
-  max-width:22ch; text-wrap:balance;
-}
-.fc-subtitle{
-  font-size:14px; color:var(--mute-2); line-height:1.5; font-weight:300;
-  max-width:48ch; margin-top:4px;
-}
-.fc-cta{
-  display:inline-flex; align-items:center; gap:8px;
-  margin-top:14px;
-  padding:11px 20px;
-  background:var(--white); color:var(--ink);
-  border-radius:999px;
-  font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; font-weight:700;
-  transition:background .2s, transform .2s;
-}
-.fc-cta:hover{background:var(--green); transform:translateY(-1px)}
-.fc-cta svg{width:12px; height:12px}
-/* Image-only slide (no overlay text) — slide is still a click target */
-.fc-slide.bare .fc-overlay{display:none}
-.fc-slide.bare .fc-content{display:none}
+.fc-slide video{width:100%; height:100%; object-fit:cover; display:block; background:#000}
+.fc-slide img{width:100%; height:100%; object-fit:cover; display:block; background:#000}
 
 /* Prev/Next arrows */
 .fc-arrow{
@@ -1238,7 +1201,7 @@ function filterEligibleSlides(ads, placement) {
     if (a.ends   && new Date(a.ends)   < now) return false;
     const pl = a.placements || ['all'];
     if (!pl.includes('all') && !pl.includes(placement)) return false;
-    if (!a.image) return false;
+    if (!a.video && !a.image) return false;   // need at least one creative
     return true;
   });
 }
@@ -1255,23 +1218,17 @@ function renderCarousel() {
 }
 
 function slideHtml(s, i) {
-  const bare = !(s.title || s.subtitle || s.eyebrow);
-  const align = s.textAlign === 'right' ? 'align-right' : 'align-left';
-  const cls = ['fc-slide', align, bare ? 'bare' : '', i === 0 ? 'on' : ''].filter(Boolean).join(' ');
-  const ctaLabel = s.ctaLabel || (s.url ? 'Learn More' : '');
-  const ctaUrl   = s.ctaUrl || s.url || '#';
-  return `<a class="${cls}" href="${escapeAttr(s.url || ctaUrl)}" target="_blank" rel="noopener sponsored"
+  // Video-only banner — no overlay text. The creative IS the ad.
+  // First slide is `on` so its video starts playing immediately;
+  // other slides preload metadata but don't play until activated.
+  const onCls = i === 0 ? ' on' : '';
+  const media = s.video
+    ? `<video src="${escapeAttr(s.video)}" ${s.poster ? `poster="${escapeAttr(s.poster)}"` : ''}
+         muted playsinline preload="metadata" ${i === 0 ? 'autoplay' : ''}></video>`
+    : `<img src="${escapeAttr(s.image)}" alt="${escapeAttr(s.advertiser || '')}">`;
+  return `<a class="fc-slide${onCls}" href="${escapeAttr(s.url || '#')}" target="_blank" rel="noopener sponsored"
        data-slide-id="${escapeAttr(s.id)}" onclick="logAdClick('${escapeAttr(s.id)}')">
-    <div class="fc-bg" style="background-image:url('${escapeAttr(s.image)}')"></div>
-    <div class="fc-overlay"></div>
-    ${bare ? '' : `<div class="fc-content">
-      ${s.eyebrow  ? `<div class="fc-eyebrow">${escapeHtml(s.eyebrow)}</div>`   : ''}
-      ${s.title    ? `<div class="fc-title">${escapeHtml(s.title)}</div>`       : ''}
-      ${s.subtitle ? `<div class="fc-subtitle">${escapeHtml(s.subtitle)}</div>` : ''}
-      ${ctaLabel   ? `<span class="fc-cta">${escapeHtml(ctaLabel)}
-        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
-      </span>` : ''}
-    </div>`}
+    ${media}
   </a>`;
 }
 
@@ -1281,8 +1238,19 @@ function setSlide(idx) {
   const sponsor= document.getElementById('fc-sponsor');
   if (!slides.length) return;
   CAROUSEL.idx = (idx + slides.length) % slides.length;
-  slides.forEach((s, i) => s.classList.toggle('on', i === CAROUSEL.idx));
-  dots.forEach((d, i)   => d.classList.toggle('on', i === CAROUSEL.idx));
+  slides.forEach((s, i) => {
+    const active = i === CAROUSEL.idx;
+    s.classList.toggle('on', active);
+    const v = s.querySelector('video');
+    if (v) {
+      if (active) {
+        try { v.currentTime = 0; v.play().catch(() => {}); } catch {}
+      } else {
+        try { v.pause(); v.currentTime = 0; } catch {}
+      }
+    }
+  });
+  dots.forEach((d, i) => d.classList.toggle('on', i === CAROUSEL.idx));
   const cur = CAROUSEL.slides[CAROUSEL.idx];
   if (sponsor) sponsor.textContent = cur && cur.advertiser ? 'Sponsored · ' + cur.advertiser : 'Sponsored';
 }
@@ -1303,6 +1271,21 @@ function hookCarousel() {
   });
   root.addEventListener('mouseenter', () => { CAROUSEL.hover = true;  stopCarouselTimer(); });
   root.addEventListener('mouseleave', () => { CAROUSEL.hover = false; startCarouselTimer(); });
+
+  // When a video finishes playing, advance immediately. The fixed
+  // rotateSeconds timer acts as a *maximum* dwell — whichever fires
+  // first wins. This way long videos play in full and short videos
+  // don't sit on a black frame.
+  root.querySelectorAll('video').forEach(v => {
+    v.addEventListener('ended', () => {
+      // Only advance if this video is the currently-active one
+      const slide = v.closest('.fc-slide');
+      if (slide && slide.classList.contains('on') && !CAROUSEL.hover) {
+        setSlide(CAROUSEL.idx + 1);
+        restartTimer();
+      }
+    });
+  });
 }
 
 function startCarouselTimer() {
