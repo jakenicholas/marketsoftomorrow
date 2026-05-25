@@ -20,6 +20,26 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,600;9..144,900&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+<!-- ─── GA4 (shared property with the map) ────────────────────────────────
+     Same G-NPTWCVFCG measurement ID as map.oftmw.com so events from this
+     page land in the same GA4 property. The analytics dashboard filters
+     them apart via `pagePath BEGINS_WITH /media`. Anonymous-only —
+     no Memberstack hooks, no worker /event fan-out here.
+─────────────────────────────────────────────────────────────────────── -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-NPTWCVFCG"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){ dataLayer.push(arguments); }
+  gtag('js', new Date());
+  gtag('config', 'G-NPTWCVFCG', { page_location: window.location.href });
+
+  // Surface tag stamped on every event from this page. Lets us query
+  // `surface == 'media'` from GA4 as an extra belt-and-suspenders filter
+  // alongside pagePath, in case routing changes.
+  gtag('set', { surface: 'media' });
+</script>
+
 <style>
 :root{
   --green:#1FDF67; --green-deep:#18c75a; --green-soft:#42EB81;
@@ -1620,5 +1640,107 @@ addEventListener('scroll',()=>{const y=scrollY; nav.style.transform=(y>last&&y>3
   co.observe(svg);
 })();
 </script>
+
+<!-- ─── Media page analytics instrumentation ─────────────────────────────
+     Sends to GA4 only (anonymous-only page). Captured events:
+       • media_cta_click          — any .nav-cta / .cta button / link
+       • media_offer_view         — one of the 6 offer cards in #cta section
+       • media_outlet_click       — Instagram link on an outlet card
+       • media_lens_click         — top-of-page "Read latest", "Open the map" etc.
+       • media_outbound_click     — any external link (not map.oftmw.com)
+       • media_map_referral       — link that goes to map.oftmw.com (conversion)
+       • media_newsletter_click   — newsletter CTA
+       • media_email_click        — mailto: links
+       • media_scroll_25 / 50 / 75 / 100 — scroll-depth milestones (per session)
+     All events stamped with the current section id (when clicking inside one)
+     and the link text as a property.
+─────────────────────────────────────────────────────────────────────── -->
+<script>
+(function() {
+  if (!window.gtag) return;
+
+  // Classify a click into an event_name + extra props from the element.
+  function classify(el) {
+    var cls = (el.className && el.className.baseVal !== undefined ? el.className.baseVal : el.className) || '';
+    var href = el.getAttribute('href') || '';
+    var text = (el.textContent || '').trim().replace(/\s+/g, ' ').slice(0, 80);
+    var isAnchor = href.startsWith('#');
+    var isMailto = href.startsWith('mailto:');
+    var isExternal = /^https?:\/\//.test(href) && href.indexOf(location.host) === -1;
+    var goesToMap = /map\.oftmw\.com/.test(href);
+
+    // Section context (which <section id="..."> the click happened in).
+    var section = '';
+    var p = el;
+    while (p && p !== document.body) {
+      if (p.tagName === 'SECTION' && p.id) { section = p.id; break; }
+      p = p.parentElement;
+    }
+
+    var event_name = 'media_link_click';
+    if (cls.indexOf('offer') !== -1) event_name = 'media_offer_view';
+    else if (cls.indexOf('oig') !== -1) event_name = 'media_outlet_click';
+    else if (cls.indexOf('lens-cta') !== -1 || cls.indexOf('lens-url') !== -1) event_name = 'media_lens_click';
+    else if (cls.indexOf('nl-btn') !== -1) event_name = 'media_newsletter_click';
+    else if (cls.indexOf('nav-cta') !== -1 || cls.indexOf('cta-btn') !== -1 || cls.indexOf('cta-link') !== -1) event_name = 'media_cta_click';
+    else if (isMailto) event_name = 'media_email_click';
+    else if (goesToMap) event_name = 'media_map_referral';
+    else if (isExternal) event_name = 'media_outbound_click';
+
+    return {
+      event_name: event_name,
+      link_text: text,
+      link_url: href.slice(0, 200),
+      link_section: section || '(top)',
+      is_external: !!isExternal,
+      goes_to_map: !!goesToMap,
+      surface: 'media',
+    };
+  }
+
+  // Event delegation: any click on any link / button on the page.
+  // Use capture-phase so we run even if the element has its own click handler
+  // that stops propagation.
+  document.addEventListener('click', function(e) {
+    var el = e.target.closest('a, button');
+    if (!el) return;
+    // Ignore in-page anchor clicks (#cta etc.) — too noisy for analytics.
+    var href = el.getAttribute('href') || '';
+    if (href.startsWith('#') && href.length > 1) return;
+    try {
+      var props = classify(el);
+      gtag('event', props.event_name, props);
+    } catch (_) { /* never block UX on analytics */ }
+  }, true);
+
+  // Scroll-depth milestones, fired at most once per page load. Uses 4
+  // discrete event names (rather than one event with a depth param) so the
+  // GA4 dashboard can query each milestone by name without needing the
+  // custom-dimension setup that param-querying requires.
+  var fired = {};
+  var milestones = [25, 50, 75, 100];
+  function onScroll() {
+    var doc = document.documentElement;
+    var body = document.body;
+    var scrolled = (window.scrollY || doc.scrollTop || 0) + window.innerHeight;
+    var total = Math.max(doc.scrollHeight, body.scrollHeight);
+    if (total <= 0) return;
+    var pct = Math.round((scrolled / total) * 100);
+    for (var i = 0; i < milestones.length; i++) {
+      var m = milestones[i];
+      if (pct >= m && !fired[m]) {
+        fired[m] = true;
+        try { gtag('event', 'media_scroll_' + m, { surface: 'media', depth: m }); }
+        catch (_) {}
+      }
+    }
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  // Fire once on load in case the page is already short enough that the
+  // initial paint shows 100% without any scrolling.
+  window.addEventListener('load', onScroll);
+})();
+</script>
+
 </body>
 </html>

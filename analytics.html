@@ -959,6 +959,93 @@ body::after {
 .dashboard { display: none; }
 .dashboard.on { display: block; }
 .gate.off { display: none; }
+
+/* ───────────────────────────────────────────────────────────────────────
+   Tab bar — Map / Media Kit / (future Journal)
+   ─────────────────────────────────────────────────────────────────── */
+.tabs {
+  display: inline-flex;
+  gap: 4px;
+  margin-bottom: var(--space-6);
+  padding: 5px;
+  background: rgba(255,255,255,.04);
+  backdrop-filter: var(--glass);
+  -webkit-backdrop-filter: var(--glass);
+  border: 1px solid var(--hair);
+  border-radius: 999px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+}
+.tab-btn {
+  background: transparent;
+  border: none;
+  color: var(--mute);
+  padding: 9px 22px;
+  border-radius: 999px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all .18s;
+  white-space: nowrap;
+}
+.tab-btn:hover { color: var(--cream); }
+.tab-btn.active {
+  color: var(--ink);
+  background: var(--green);
+  font-weight: 700;
+  box-shadow: 0 6px 20px -8px rgba(31,223,103,.6);
+}
+.tab-content { display: none; }
+.tab-content.on { display: block; }
+
+/* Funnel — used by media kit scroll depth */
+.funnel { padding: 0 var(--space-5); }
+.funnel-row {
+  display: grid;
+  grid-template-columns: 56px 1fr 80px;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--hair);
+}
+.funnel-row:last-child { border-bottom: none; }
+.funnel-row .step {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: .14em;
+  color: var(--mute);
+  text-transform: uppercase;
+}
+.funnel-row .bar-track {
+  height: 18px;
+  background: rgba(255,255,255,.04);
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+.funnel-row .bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--green-deep), var(--green));
+  transition: width 1s cubic-bezier(.22,1,.36,1);
+}
+.funnel-row .pct {
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--white);
+  text-align: right;
+  letter-spacing: -.01em;
+}
+.funnel-row .pct .of {
+  color: var(--mute);
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 400;
+  margin-left: 6px;
+  letter-spacing: .04em;
+}
 </style>
 </head>
 <body>
@@ -1044,6 +1131,15 @@ body::after {
 
   <!-- Dashboard -->
   <div class="dashboard" id="dashboard">
+
+    <!-- Tab bar -->
+    <div class="tabs" role="tablist">
+      <button class="tab-btn active" role="tab" data-tab="map">Map</button>
+      <button class="tab-btn" role="tab" data-tab="media">Media Kit</button>
+    </div>
+
+    <!-- ════════ MAP TAB ════════ -->
+    <div class="tab-content on" data-tab="map">
 
     <!-- Hero stats -->
     <div class="hero">
@@ -1193,6 +1289,120 @@ body::after {
 
     </div>
 
+    </div><!-- /tab-content [map] -->
+
+    <!-- ════════ MEDIA KIT TAB ════════ -->
+    <div class="tab-content" data-tab="media">
+
+      <!-- Hero stats for media -->
+      <div class="hero">
+        <div class="stat accent">
+          <div class="stat-label">Page Views · 7d</div>
+          <div class="stat-value accent" id="mediaViews7d">—</div>
+          <div class="stat-meta" id="mediaViews7dSub">map.oftmw.com/media</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Page Views · 28d</div>
+          <div class="stat-value" id="mediaViews28d">—</div>
+          <div class="stat-meta" id="mediaViews28dSub">—</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Unique Visitors · 28d</div>
+          <div class="stat-value" id="mediaUsers28d">—</div>
+          <div class="stat-meta" id="mediaUsers28dSub">—</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Map Conversion</div>
+          <div class="stat-value" id="mediaConv">—</div>
+          <div class="stat-meta" id="mediaConvSub">sessions → map clicks</div>
+        </div>
+      </div>
+
+      <div class="main">
+        <div class="col-main">
+
+          <!-- Top CTAs / Links -->
+          <div class="section">
+            <div class="section-head">
+              <div>
+                <div class="section-title">Top Clicks on Media Kit</div>
+                <div style="font-size:11px;color:var(--mute);margin-top:2px;font-family:var(--mono);letter-spacing:.04em">Every CTA, outlet card, offer card, and external link · 28d</div>
+              </div>
+              <div class="section-meta" id="mediaClicksMeta">—</div>
+            </div>
+            <div class="section-body">
+              <div id="mediaClicks"></div>
+            </div>
+          </div>
+
+          <!-- Scroll Depth Funnel -->
+          <div class="section">
+            <div class="section-head">
+              <div>
+                <div class="section-title">Scroll Depth Funnel</div>
+                <div style="font-size:11px;color:var(--mute);margin-top:2px;font-family:var(--mono);letter-spacing:.04em">How far visitors read down the media kit · 28d</div>
+              </div>
+              <div class="section-meta">% of visitors</div>
+            </div>
+            <div class="section-body">
+              <div id="mediaFunnel"></div>
+            </div>
+          </div>
+
+          <!-- Traffic Sources + Countries -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-5)">
+            <div class="section" style="margin-bottom:0">
+              <div class="section-head">
+                <div class="section-title">Traffic Sources</div>
+                <div class="section-meta">28d</div>
+              </div>
+              <div class="section-body">
+                <div id="mediaSources"></div>
+              </div>
+            </div>
+            <div class="section" style="margin-bottom:0">
+              <div class="section-head">
+                <div class="section-title">Visitor Countries</div>
+                <div class="section-meta">28d</div>
+              </div>
+              <div class="section-body">
+                <div id="mediaCountries"></div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Right column: Daily pageview sparkline + breakdown by category -->
+        <div class="col-feed" style="position:relative;max-height:none">
+          <div class="section">
+            <div class="section-head">
+              <div class="feed-title" style="color:var(--gold-soft)"><span class="dot" style="background:var(--gold)"></span>Daily Pageviews</div>
+              <div class="feed-meta" id="mediaTrendMeta">28 days</div>
+            </div>
+            <div class="section-body">
+              <div id="mediaTrend" style="padding:var(--space-4) var(--space-5)">
+                <div class="skeleton"></div>
+                <div class="skeleton" style="width:80%"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="section" style="margin-top:var(--space-5)">
+            <div class="section-head">
+              <div class="section-title" style="font-size:16px">Click Categories</div>
+              <div class="section-meta">28d</div>
+            </div>
+            <div class="section-body">
+              <div id="mediaCategories"></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div><!-- /tab-content [media] -->
+
   </div>
 
 </div>
@@ -1275,16 +1485,64 @@ function hostnameFilter() {
   return { filter: { fieldName: 'hostName', stringFilter: { matchType: 'EXACT', value: HOSTNAME } } };
 }
 
+// Map-tab GA4 filter: same hostname, but EXCLUDE pagePath starting with
+// /media/ so media-page traffic doesn't bleed into the map dashboard.
+function mapFilter() {
+  return {
+    andGroup: { expressions: [
+      hostnameFilter(),
+      { notExpression: { filter: { fieldName: 'pagePath', stringFilter: { matchType: 'BEGINS_WITH', value: '/media' } } } },
+    ]}
+  };
+}
+
+// Media-tab GA4 filter: same hostname AND pagePath starting with /media/.
+function mediaFilter() {
+  return {
+    andGroup: { expressions: [
+      hostnameFilter(),
+      { filter: { fieldName: 'pagePath', stringFilter: { matchType: 'BEGINS_WITH', value: '/media' } } },
+    ]}
+  };
+}
+
 /* ──────────────────────────────────────────────────────────────────────
    Boot + refresh loops
    ─────────────────────────────────────────────────────────────────── */
-let _state = { people: [], planFilter: 'all', lastFeedTs: 0 };
+let _state = {
+  people: [],
+  planFilter: 'all',
+  lastFeedTs: 0,
+  activeTab: (typeof localStorage !== 'undefined' && localStorage.getItem('tmwAnalyticsTab')) || 'map',
+  mediaLoadedOnce: false,
+};
+
+function setTab(name) {
+  _state.activeTab = name;
+  try { localStorage.setItem('tmwAnalyticsTab', name); } catch (_) {}
+  document.querySelectorAll('.tab-btn').forEach(b =>
+    b.classList.toggle('active', b.dataset.tab === name));
+  document.querySelectorAll('.tab-content').forEach(c =>
+    c.classList.toggle('on', c.dataset.tab === name));
+  // Lazy-load media tab on first view, then on every refresh thereafter.
+  if (name === 'media' && !_state.mediaLoadedOnce) {
+    _state.mediaLoadedOnce = true;
+    loadMediaTab();
+  }
+}
+
+document.addEventListener('click', (e) => {
+  const tab = e.target.closest('.tab-btn[data-tab]');
+  if (tab) { setTab(tab.dataset.tab); }
+});
 
 function boot() {
   document.getElementById('loadBtn').disabled = true;
   document.getElementById('loadBtn').textContent = 'Loading…';
   document.getElementById('gate').classList.add('off');
   document.getElementById('dashboard').classList.add('on');
+  // Restore last-viewed tab before first data load.
+  setTab(_state.activeTab);
   refreshAll(true);
   setInterval(loadFeed, 5000);
   setInterval(() => refreshAll(false), 60000);
@@ -1297,14 +1555,17 @@ async function refreshAll(showRefreshSpinner) {
   }
   document.getElementById('lastUpdated').textContent = 'Updating…';
 
-  await Promise.allSettled([
+  const tasks = [
     loadStatsAndHero(),
     loadPeople(),
     loadProjects(),
     loadWatchlist(),
     loadGA4(),
     loadFeed(),
-  ]);
+  ];
+  // Refresh media tab data too if the user has visited it this session.
+  if (_state.mediaLoadedOnce) tasks.push(loadMediaTab());
+  await Promise.allSettled(tasks);
 
   document.getElementById('lastUpdated').textContent = 'Updated ' + new Date().toLocaleTimeString();
   const b = document.getElementById('refreshBtn');
@@ -1491,7 +1752,7 @@ async function loadGA4() {
       dateRanges: [{ startDate: '28daysAgo', endDate: 'today' }],
       dimensions: [{ name: 'eventName' }],
       metrics: [{ name: 'eventCount' }],
-      dimensionFilter: hostnameFilter(),
+      dimensionFilter: mapFilter(),
       orderBys: [{ metric: { metricName: 'eventCount' }, desc: true }],
       limit: 10,
     });
@@ -1507,7 +1768,7 @@ async function loadGA4() {
       dateRanges: [{ startDate: '28daysAgo', endDate: 'today' }],
       dimensions: [{ name: 'sessionDefaultChannelGroup' }],
       metrics: [{ name: 'sessions' }],
-      dimensionFilter: hostnameFilter(),
+      dimensionFilter: mapFilter(),
       orderBys: [{ metric: { metricName: 'sessions' }, desc: true }],
       limit: 8,
     });
@@ -1523,7 +1784,7 @@ async function loadGA4() {
       dateRanges: [{ startDate: '28daysAgo', endDate: 'today' }],
       dimensions: [{ name: 'country' }],
       metrics: [{ name: 'activeUsers' }],
-      dimensionFilter: hostnameFilter(),
+      dimensionFilter: mapFilter(),
       orderBys: [{ metric: { metricName: 'activeUsers' }, desc: true }],
       limit: 8,
     });
@@ -1713,6 +1974,290 @@ function closeOverlay() {
   document.body.style.overflow = '';
 }
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeOverlay(); });
+
+/* ──────────────────────────────────────────────────────────────────────
+   Media Kit tab — GA4-only (the media page is anonymous; no D1 events)
+   All filters scope to map.oftmw.com + pagePath BEGINS_WITH /media.
+   ─────────────────────────────────────────────────────────────────── */
+async function loadMediaTab() {
+  await Promise.allSettled([
+    loadMediaHero(),
+    loadMediaClicks(),
+    loadMediaFunnel(),
+    loadMediaSources(),
+    loadMediaCountries(),
+    loadMediaTrend(),
+    loadMediaCategories(),
+  ]);
+}
+
+async function loadMediaHero() {
+  // Hero stat cards: 7d views, 28d views, 28d unique visitors, map conversion.
+  try {
+    const r7 = await gaFetch(':runReport', {
+      dateRanges: [{ startDate: '7daysAgo', endDate: 'today' }],
+      metrics: [{ name: 'screenPageViews' }, { name: 'totalUsers' }],
+      dimensionFilter: mediaFilter(),
+    });
+    const v7 = r7.rows ? parseInt(r7.rows[0]?.metricValues[0]?.value || 0) : 0;
+    const u7 = r7.rows ? parseInt(r7.rows[0]?.metricValues[1]?.value || 0) : 0;
+    document.getElementById('mediaViews7d').textContent = fmt(v7);
+    document.getElementById('mediaViews7dSub').innerHTML =
+      `<span class="chip green">${u7} unique</span>`;
+  } catch (e) {
+    document.getElementById('mediaViews7d').textContent = '—';
+  }
+
+  try {
+    const r28 = await gaFetch(':runReport', {
+      dateRanges: [{ startDate: '28daysAgo', endDate: 'today' }],
+      metrics: [{ name: 'screenPageViews' }, { name: 'totalUsers' }, { name: 'userEngagementDuration' }],
+      dimensionFilter: mediaFilter(),
+    });
+    const v28 = r28.rows ? parseInt(r28.rows[0]?.metricValues[0]?.value || 0) : 0;
+    const u28 = r28.rows ? parseInt(r28.rows[0]?.metricValues[1]?.value || 0) : 0;
+    const eng = r28.rows ? parseInt(r28.rows[0]?.metricValues[2]?.value || 0) : 0;
+    document.getElementById('mediaViews28d').textContent = fmt(v28);
+    const avgSec = u28 > 0 ? Math.round(eng / u28) : 0;
+    const mm = Math.floor(avgSec / 60);
+    const ss = avgSec % 60;
+    document.getElementById('mediaViews28dSub').innerHTML =
+      `<span class="chip">avg ${mm}m ${ss}s engaged</span>`;
+    document.getElementById('mediaUsers28d').textContent = fmt(u28);
+    document.getElementById('mediaUsers28dSub').innerHTML =
+      v28 > 0 ? `<span class="chip">${(v28/Math.max(u28,1)).toFixed(1)} views / visitor</span>` : '';
+  } catch (e) {
+    document.getElementById('mediaViews28d').textContent = '—';
+    document.getElementById('mediaUsers28d').textContent = '—';
+  }
+
+  // Conversion: events tagged media_map_referral or any click that goes
+  // to map.oftmw.com, divided by unique media-page visitors.
+  try {
+    const conv = await gaFetch(':runReport', {
+      dateRanges: [{ startDate: '28daysAgo', endDate: 'today' }],
+      dimensions: [{ name: 'eventName' }],
+      metrics: [{ name: 'eventCount' }],
+      dimensionFilter: {
+        andGroup: { expressions: [
+          mediaFilter(),
+          { filter: { fieldName: 'eventName', stringFilter: { matchType: 'EXACT', value: 'media_map_referral' } } },
+        ]}
+      },
+    });
+    const referrals = conv.rows ? parseInt(conv.rows[0]?.metricValues[0]?.value || 0) : 0;
+    // Re-use the 28d user count from the previous block. Compute the rate.
+    const u28 = parseInt((document.getElementById('mediaUsers28d').textContent || '0').replace(/[^0-9]/g, '')) || 0;
+    const pct = u28 > 0 ? Math.round((referrals / u28) * 100) : 0;
+    document.getElementById('mediaConv').textContent = pct + '%';
+    document.getElementById('mediaConvSub').innerHTML =
+      `<span class="chip green">${referrals} → map</span>`;
+  } catch (e) {
+    document.getElementById('mediaConv').textContent = '—';
+  }
+}
+
+async function loadMediaClicks() {
+  // All media_* events ranked by count.
+  try {
+    const r = await gaFetch(':runReport', {
+      dateRanges: [{ startDate: '28daysAgo', endDate: 'today' }],
+      dimensions: [{ name: 'eventName' }],
+      metrics: [{ name: 'eventCount' }],
+      dimensionFilter: {
+        andGroup: { expressions: [
+          mediaFilter(),
+          { filter: { fieldName: 'eventName', stringFilter: { matchType: 'BEGINS_WITH', value: 'media_' } } },
+          // Strip scroll milestones — they get their own funnel section.
+          { notExpression: { filter: { fieldName: 'eventName', stringFilter: { matchType: 'BEGINS_WITH', value: 'media_scroll_' } } } },
+        ]}
+      },
+      orderBys: [{ metric: { metricName: 'eventCount' }, desc: true }],
+      limit: 15,
+    });
+    const rows = (r.rows || []).map(x => ({
+      label: humanizeEvent(x.dimensionValues[0].value.replace(/^media_/, '')),
+      val: parseInt(x.metricValues[0].value),
+    }));
+    const total = rows.reduce((s, r) => s + r.val, 0);
+    document.getElementById('mediaClicksMeta').textContent = fmt(total) + ' total';
+    renderBarList('mediaClicks', rows, 'green');
+  } catch (e) {
+    document.getElementById('mediaClicks').innerHTML = `<div class="empty-state" style="color:var(--red)">${escapeHTML(e.message)}</div>`;
+  }
+}
+
+async function loadMediaFunnel() {
+  // Scroll-depth funnel: pageviews → 25 → 50 → 75 → 100.
+  // We anchor on totalUsers for the base (visitors), then use eventCount for
+  // each scroll milestone (one event fires per session per milestone, so
+  // eventCount approximates "sessions that reached this depth").
+  try {
+    const base = await gaFetch(':runReport', {
+      dateRanges: [{ startDate: '28daysAgo', endDate: 'today' }],
+      metrics: [{ name: 'totalUsers' }],
+      dimensionFilter: mediaFilter(),
+    });
+    const total = base.rows ? parseInt(base.rows[0]?.metricValues[0]?.value || 0) : 0;
+
+    const milestones = [25, 50, 75, 100];
+    const counts = await Promise.all(milestones.map(async m => {
+      const r = await gaFetch(':runReport', {
+        dateRanges: [{ startDate: '28daysAgo', endDate: 'today' }],
+        metrics: [{ name: 'eventCount' }],
+        dimensionFilter: {
+          andGroup: { expressions: [
+            mediaFilter(),
+            { filter: { fieldName: 'eventName', stringFilter: { matchType: 'EXACT', value: 'media_scroll_' + m } } },
+          ]}
+        },
+      });
+      return r.rows ? parseInt(r.rows[0]?.metricValues[0]?.value || 0) : 0;
+    }));
+
+    const el = document.getElementById('mediaFunnel');
+    if (!total) {
+      el.innerHTML = '<div class="empty-state">No visitor data yet for /media/. Refresh after the page sees its first traffic post-deploy.</div>';
+      return;
+    }
+    const steps = [
+      { label: 'Visited', val: total },
+      { label: 'Scrolled 25%', val: counts[0] },
+      { label: 'Scrolled 50%', val: counts[1] },
+      { label: 'Scrolled 75%', val: counts[2] },
+      { label: 'Scrolled 100%', val: counts[3] },
+    ];
+    el.innerHTML = '<div class="funnel">' + steps.map(s => {
+      const pct = total > 0 ? Math.round((s.val / total) * 100) : 0;
+      return `
+        <div class="funnel-row">
+          <div class="step">${escapeHTML(s.label)}</div>
+          <div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>
+          <div class="pct">${pct}%<span class="of">${s.val}</span></div>
+        </div>`;
+    }).join('') + '</div>';
+  } catch (e) {
+    document.getElementById('mediaFunnel').innerHTML = `<div class="empty-state" style="color:var(--red)">${escapeHTML(e.message)}</div>`;
+  }
+}
+
+async function loadMediaSources() {
+  try {
+    const r = await gaFetch(':runReport', {
+      dateRanges: [{ startDate: '28daysAgo', endDate: 'today' }],
+      dimensions: [{ name: 'sessionDefaultChannelGroup' }],
+      metrics: [{ name: 'sessions' }],
+      dimensionFilter: mediaFilter(),
+      orderBys: [{ metric: { metricName: 'sessions' }, desc: true }],
+      limit: 8,
+    });
+    renderBarList('mediaSources', (r.rows || []).map(x => ({
+      label: x.dimensionValues[0].value || '(none)',
+      val: parseInt(x.metricValues[0].value),
+    })), null);
+  } catch (e) {
+    document.getElementById('mediaSources').innerHTML = `<div class="empty-state">—</div>`;
+  }
+}
+
+async function loadMediaCountries() {
+  try {
+    const r = await gaFetch(':runReport', {
+      dateRanges: [{ startDate: '28daysAgo', endDate: 'today' }],
+      dimensions: [{ name: 'country' }],
+      metrics: [{ name: 'activeUsers' }],
+      dimensionFilter: mediaFilter(),
+      orderBys: [{ metric: { metricName: 'activeUsers' }, desc: true }],
+      limit: 8,
+    });
+    renderBarList('mediaCountries', (r.rows || []).map(x => ({
+      label: x.dimensionValues[0].value || '(unknown)',
+      val: parseInt(x.metricValues[0].value),
+    })), null);
+  } catch (e) {
+    document.getElementById('mediaCountries').innerHTML = `<div class="empty-state">—</div>`;
+  }
+}
+
+async function loadMediaTrend() {
+  // Daily pageview sparkline — last 28 days, rendered inline as bars.
+  try {
+    const r = await gaFetch(':runReport', {
+      dateRanges: [{ startDate: '28daysAgo', endDate: 'today' }],
+      dimensions: [{ name: 'date' }],
+      metrics: [{ name: 'screenPageViews' }],
+      dimensionFilter: mediaFilter(),
+      orderBys: [{ dimension: { dimensionName: 'date' } }],
+    });
+    const rows = r.rows || [];
+    if (!rows.length) {
+      document.getElementById('mediaTrend').innerHTML = '<div class="empty-state">No pageviews yet.</div>';
+      document.getElementById('mediaTrendMeta').textContent = '—';
+      return;
+    }
+    const counts = rows.map(x => parseInt(x.metricValues[0].value) || 0);
+    const total = counts.reduce((s, n) => s + n, 0);
+    const max = Math.max(...counts, 1);
+    const today = counts.length - 1;
+    const bars = counts.map((c, i) => {
+      const h = Math.round((c / max) * 70);
+      const cls = c > 0 ? (i === today ? 'has-data today' : 'has-data') : '';
+      return `<div class="bar ${cls}" style="height:${Math.max(h, 2)}px" title="${c}"></div>`;
+    }).join('');
+    document.getElementById('mediaTrend').innerHTML =
+      `<div class="spark" style="height:74px">${bars}</div>` +
+      `<div class="spark-labels"><div>28d ago</div><div>today</div></div>`;
+    document.getElementById('mediaTrendMeta').textContent = fmt(total) + ' views · 28d';
+  } catch (e) {
+    document.getElementById('mediaTrend').innerHTML = `<div class="empty-state" style="color:var(--red)">${escapeHTML(e.message)}</div>`;
+  }
+}
+
+async function loadMediaCategories() {
+  // Group all media_* events by category prefix (offer / outlet / lens / cta /
+  // outbound / referral / etc.) for an at-a-glance "what gets clicked here?"
+  // breakdown without the noise of individual link counts.
+  try {
+    const r = await gaFetch(':runReport', {
+      dateRanges: [{ startDate: '28daysAgo', endDate: 'today' }],
+      dimensions: [{ name: 'eventName' }],
+      metrics: [{ name: 'eventCount' }],
+      dimensionFilter: {
+        andGroup: { expressions: [
+          mediaFilter(),
+          { filter: { fieldName: 'eventName', stringFilter: { matchType: 'BEGINS_WITH', value: 'media_' } } },
+          { notExpression: { filter: { fieldName: 'eventName', stringFilter: { matchType: 'BEGINS_WITH', value: 'media_scroll_' } } } },
+        ]}
+      },
+    });
+    // Aggregate by category: strip the `media_` prefix and any `_click` /
+    // `_view` suffix to get a short label. e.g. media_offer_view → Offers.
+    const labels = {
+      offer:     'Offer Cards',
+      outlet:    'Outlet Cards',
+      lens:      'Lens Section',
+      cta:       'CTAs',
+      newsletter:'Newsletter',
+      map:       'Map Referrals',
+      email:     'Email Links',
+      outbound:  'Outbound',
+      link:      'Other Links',
+    };
+    const cats = new Map();
+    for (const row of (r.rows || [])) {
+      const name = row.dimensionValues[0].value || '';
+      const m = name.replace(/^media_/, '').split('_')[0];
+      const label = labels[m] || (m.charAt(0).toUpperCase() + m.slice(1));
+      cats.set(label, (cats.get(label) || 0) + parseInt(row.metricValues[0].value || 0));
+    }
+    const sorted = Array.from(cats.entries())
+      .map(([label, val]) => ({ label, val }))
+      .sort((a, b) => b.val - a.val);
+    renderBarList('mediaCategories', sorted, 'green');
+  } catch (e) {
+    document.getElementById('mediaCategories').innerHTML = `<div class="empty-state">—</div>`;
+  }
+}
 
 </script>
 </body>
