@@ -681,8 +681,15 @@ function escapeHTML(s) {
 
 // Plain GET against the worker (no auth — these are read endpoints).
 // The GA4 proxy still uses the POST-with-endpoint convention.
+//
+// Cache-busting matters here: the first time the dashboard loaded, /people
+// returned {"rows":[]} because no events had been ingested yet. Without
+// no-store + a unique query param, the browser keeps serving that empty
+// response forever even after events accumulate in D1.
 async function workerGet(path) {
-  var r = await fetch(WORKER_URL + path);
+  var sep = path.indexOf('?') >= 0 ? '&' : '?';
+  var url = WORKER_URL + path + sep + '_=' + Date.now();
+  var r = await fetch(url, { cache: 'no-store' });
   if (!r.ok) throw new Error('Worker ' + path + ' → ' + r.status);
   return r.json();
 }
