@@ -116,6 +116,9 @@ h2{font-family:var(--serif); font-weight:600; letter-spacing:-.01em; line-height
 @media(max-width:880px){
   .pgrid{grid-template-columns:1fr}
   .pcard{min-height:auto}
+  .prail .sep{display:none}
+  .prail .rail-sep{display:none}
+  .prail .rail-em{display:block; margin-top:6px}
 }
 </style>
 </head>
@@ -208,7 +211,7 @@ h2{font-family:var(--serif); font-weight:600; letter-spacing:-.01em; line-height
 
     <div class="prail">
       <span class="sep"></span>
-      <span>One network &middot; <b>Three formats</b> &middot; Every market</span>
+      <span class="prail-text">One network &middot; <b>Three formats</b><span class="rail-sep"> &middot; </span><span class="rail-em">Every market</span></span>
       <span class="sep"></span>
     </div>
 

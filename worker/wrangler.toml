@@ -32,7 +32,11 @@ compatibility_date = "2025-01-01"
 [vars]
 # Non-secret config. Edit if your GA4 property changes.
 GA4_PROPERTY_ID = "467692471"
-ALLOWED_ORIGINS = "https://map.oftmw.com,https://oftmw.com,http://localhost:8000,http://127.0.0.1:8000"
+ALLOWED_ORIGINS = "https://map.oftmw.com,https://oftmw.com,https://www.oftmw.com,https://studio.oftmw.com,http://localhost:8000,http://127.0.0.1:8000"
+
+# Wix RSS feed for the journal. After cutover, point this at whatever subdomain
+# you publish the Wix site to (e.g. https://studio.oftmw.com/blog-feed.xml).
+BLOG_FEED_URL = "https://www.oftmw.com/blog-feed.xml"
 
 [[d1_databases]]
 binding = "DB"

@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Markets of Tomorrow &mdash; The Journal of What's Next</title>
+<meta name="description" content="A powerhouse news network sharing the brands shaping the future. Hospitality, real estate, food, golf, and the markets defining tomorrow.">
+<link rel="canonical" href="https://www.oftmw.com/">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="Markets of Tomorrow">
+<meta property="og:description" content="The journal of what's next in hospitality, real estate, and the markets defining tomorrow.">
+<meta property="og:image" content="https://static.wixstatic.com/media/ca3b83_93ffb2f000f94a12aa874fe44153be18~mv2.jpg">
+<meta name="twitter:card" content="summary_large_image">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600;9..144,700;9..144,900&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  /* Light editorial — mirrors current oftmw.com look */
+  --paper:#FDFCF8;          /* warm cream page bg */
+  --paper-2:#F4F1E8;        /* secondary cream */
+  --card:#FFFFFF;
+  --ink:#111111;
+  --ink-2:#383838;
+  --ink-3:#757575;
+  --rule:#EAE7DE;
+  --rule-2:#D9D4C6;
+
+  /* Brand accents — from media kit / map */
+  --green:#1FDF67;
+  --green-deep:#18c75a;
+  --green-soft:#E4FBEC;
+  --gold:#C9A558;
+  --gold-soft:#E6C574;
+  --brick:#9E3B1B;          /* legacy oftmw accent — keep for continuity */
+  --purple:#A78BFA;
+  --purple-glow:#B9A6FF;
+
+  /* Dark surfaces for nav, footer, featured strip */
+  --ink-bg:#070807;
+  --ink-bg-2:#111411;
+  --hair:rgba(255,255,255,.08);
+
+  --sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --serif:'Fraunces',Georgia,serif;
+  --mono:'JetBrains Mono',ui-monospace,monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--paper); color:var(--ink-2); font-family:var(--sans); -webkit-font-smoothing:antialiased; line-height:1.55; overflow-x:hidden;}
+img{max-width:100%; display:block}
+a{color:inherit; text-decoration:none}
+button{font:inherit; cursor:pointer; border:0; background:none; color:inherit}
+
+.wrap{max-width:1240px; margin:0 auto; padding:0 28px}
+
+h1,h2,h3,h4{font-family:var(--serif); font-weight:600; letter-spacing:-.015em; color:var(--ink); line-height:1.08}
+.eyebrow{font-family:var(--mono); font-size:11.5px; letter-spacing:.22em; text-transform:uppercase; color:var(--ink-3)}
+.eyebrow.green{color:var(--green-deep)}
+
+/* -------------------------------------------------------- */
+/* Top utility ribbon — dark, mono, sets the magazine tone */
+/* -------------------------------------------------------- */
+.ribbon{background:var(--ink-bg); color:#D8D6CE; font-family:var(--mono); font-size:10.5px; letter-spacing:.2em; text-transform:uppercase; padding:9px 0; border-bottom:1px solid var(--hair)}
+.ribbon .wrap{display:flex; align-items:center; justify-content:space-between; gap:20px}
+.ribbon .r-left{display:flex; gap:22px; align-items:center}
+.ribbon .r-dot{width:6px; height:6px; border-radius:50%; background:var(--green); box-shadow:0 0 10px var(--green); display:inline-block}
+.ribbon .r-right{display:flex; gap:18px}
+.ribbon a:hover{color:var(--green)}
+@media(max-width:780px){.ribbon .r-right{display:none}.ribbon{font-size:9.5px; letter-spacing:.16em}}
+
+/* ---------------------- */
+/* Main nav (sticky, glass) */
+/* ---------------------- */
+nav.main{position:sticky; top:0; z-index:50; background:rgba(253,252,248,.85); backdrop-filter:blur(14px) saturate(1.2); -webkit-backdrop-filter:blur(14px) saturate(1.2); border-bottom:1px solid var(--rule)}
+nav.main .wrap{display:flex; align-items:center; justify-content:space-between; padding-top:14px; padding-bottom:14px; gap:24px}
+.nav-links{display:flex; gap:22px; align-items:center}
+.nav-links a{font-family:var(--mono); font-size:11.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--ink-2); transition:color .2s; position:relative}
+.nav-links a:hover{color:var(--green-deep)}
+.nav-links a.active::after{content:""; position:absolute; left:0; right:0; bottom:-6px; height:2px; background:var(--green)}
+.nav-cta{font-family:var(--mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase; font-weight:600; background:var(--ink); color:#fff; padding:10px 16px; border-radius:999px; transition:background .2s, transform .2s}
+.nav-cta:hover{background:var(--green-deep); transform:translateY(-1px)}
+.nav-burger{display:none; width:28px; height:28px; flex-direction:column; gap:5px; padding:6px 0; align-items:flex-end; justify-content:center}
+.nav-burger span{display:block; width:22px; height:1.5px; background:var(--ink)}
+@media(max-width:980px){
+  .nav-links{display:none}
+  .nav-burger{display:flex}
+}
+
+/* TMW logo lockup — borrowed from media kit, retuned for light bg */
+.tmw-logo-lockup{display:flex; align-items:center; gap:10px}
+.tmw-hex-badge{flex:0 0 auto; width:22px; height:22px}
+.tmw-hex-badge svg{width:100%; height:100%; display:block; overflow:visible}
+.tmw-hex-spinner{transform-origin:50% 50%; animation:tmw-hardspin 4.2s cubic-bezier(.16,1,.3,1) infinite}
+@keyframes tmw-hardspin{0%{transform:rotate(0)}55%{transform:rotate(810deg)}70%{transform:rotate(900deg)}100%{transform:rotate(1080deg)}}
+.tmw-hex-core{animation:tmw-hexpulse 4.2s ease-in-out infinite; transform-origin:50% 50%}
+@keyframes tmw-hexpulse{0%,45%{stroke:#6b3df0}70%{stroke:var(--purple-glow); filter:drop-shadow(0 0 5px rgba(167,139,250,.6))}100%{stroke:#6b3df0}}
+.tmw-hex-ring{transform-origin:50% 50%; animation:tmw-ring 4.2s ease-out infinite}
+@keyframes tmw-ring{0%,60%{transform:scale(1);opacity:0}72%{opacity:.5}100%{transform:scale(1.7);opacity:0}}
+.tmw-wordmark{flex:0 1 auto; width:108px}
+.tmw-wordmark svg{width:100%; height:auto; display:block}
+.tmw-wordmark .wm-fill{fill:var(--ink)}
+.tmw-sweep{animation:tmw-sweep 4.2s ease-in-out infinite}
+@keyframes tmw-sweep{0%,60%{transform:translateX(-40%);opacity:0}68%{opacity:1}100%{transform:translateX(140%);opacity:0}}
+@media (prefers-reduced-motion: reduce){.tmw-hex-spinner,.tmw-sweep,.tmw-hex-ring{animation:none}.tmw-sweep,.tmw-hex-ring{opacity:0}}
+
+/* ------------------- */
+/* Featured hero strip */
+/* ------------------- */
+.featured{position:relative; background:var(--ink-bg); color:#fff; overflow:hidden; min-height:560px; display:flex; align-items:flex-end}
+.featured::before{content:""; position:absolute; inset:0; z-index:0;
+  background:radial-gradient(900px 600px at 78% -8%, rgba(31,223,103,.10), transparent 60%),
+            radial-gradient(720px 520px at 6% 62%, rgba(230,197,116,.08), transparent 60%)}
+.featured .bg{position:absolute; inset:0; z-index:0}
+.featured .bg img{width:100%; height:100%; object-fit:cover; opacity:.55}
+.featured .bg::after{content:""; position:absolute; inset:0;
+  background:linear-gradient(180deg, rgba(7,8,7,.35) 0%, transparent 30%, rgba(7,8,7,.85) 80%, var(--ink-bg) 100%)}
+.featured .wrap{position:relative; z-index:2; padding-top:60px; padding-bottom:60px; width:100%}
+.featured .f-tag{display:inline-flex; gap:8px; align-items:center; background:rgba(31,223,103,.14); border:1px solid rgba(31,223,103,.4); color:var(--green); padding:6px 12px; border-radius:999px; font-family:var(--mono); font-size:10.5px; letter-spacing:.18em; text-transform:uppercase; margin-bottom:18px}
+.featured .f-tag::before{content:""; width:6px; height:6px; border-radius:50%; background:var(--green); box-shadow:0 0 8px var(--green)}
+.featured h1{color:#fff; font-size:clamp(34px,5vw,68px); font-weight:700; max-width:18ch; line-height:1.02; text-wrap:balance; letter-spacing:-.02em}
+.featured h1 a{color:#fff; transition:color .2s}
+.featured h1 a:hover{color:var(--gold-soft)}
+.featured .f-meta{display:flex; gap:18px; flex-wrap:wrap; align-items:center; margin-top:22px; font-family:var(--mono); font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:#cfc9b9}
+.featured .f-meta .dot{width:3px; height:3px; border-radius:50%; background:#7d7969}
+.featured .f-summary{color:#D8D6CE; font-family:var(--serif); font-weight:300; font-style:italic; font-size:clamp(16px,1.6vw,20px); margin-top:18px; max-width:62ch; line-height:1.45}
+.featured .f-cta{display:inline-flex; align-items:center; gap:10px; margin-top:30px; padding:13px 22px; background:#fff; color:var(--ink); border-radius:999px; font-family:var(--mono); font-size:11.5px; letter-spacing:.14em; text-transform:uppercase; font-weight:600; transition:transform .2s, background .2s}
+.featured .f-cta:hover{background:var(--green); transform:translateY(-1px)}
+.featured .f-cta svg{width:14px; height:14px}
+.featured .f-skel{height:80px; max-width:600px; border-radius:8px; background:linear-gradient(90deg,rgba(255,255,255,.06),rgba(255,255,255,.14),rgba(255,255,255,.06)); background-size:200% 100%; animation:shimmer 1.8s linear infinite}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+/* ------------------- */
+/* Section: filter strip */
+/* ------------------- */
+.bar{position:sticky; top:64px; z-index:40; background:rgba(253,252,248,.95); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); border-bottom:1px solid var(--rule); padding:14px 0}
+.bar .wrap{display:flex; align-items:center; gap:18px; justify-content:space-between}
+.pills{display:flex; gap:8px; overflow-x:auto; flex:1; scrollbar-width:none; -ms-overflow-style:none}
+.pills::-webkit-scrollbar{display:none}
+.pill{flex:0 0 auto; font-family:var(--mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase; padding:8px 14px; border-radius:999px; border:1px solid var(--rule); color:var(--ink-2); background:#fff; transition:all .2s; white-space:nowrap}
+.pill:hover{border-color:var(--ink); color:var(--ink)}
+.pill.on{background:var(--ink); color:#fff; border-color:var(--ink)}
+.pill .count{opacity:.5; margin-left:6px; font-size:9.5px}
+.search{display:flex; align-items:center; gap:8px; border:1px solid var(--rule); border-radius:999px; padding:7px 14px; background:#fff; min-width:200px}
+.search input{border:0; outline:0; background:transparent; font:inherit; font-size:13px; width:100%; color:var(--ink)}
+.search svg{width:14px; height:14px; color:var(--ink-3); flex:0 0 auto}
+@media(max-width:780px){.search{display:none}.bar{top:62px}}
+
+/* ------------ */
+/* Card grid    */
+/* ------------ */
+section.grid-section{padding:54px 0 80px}
+.section-head{display:flex; align-items:flex-end; justify-content:space-between; gap:24px; margin-bottom:30px}
+.section-head h2{font-size:clamp(24px,3vw,36px)}
+.section-head .meta{font-family:var(--mono); font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--ink-3)}
+.cards{display:grid; grid-template-columns:repeat(3,1fr); gap:28px 24px}
+@media(max-width:980px){.cards{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:620px){.cards{grid-template-columns:1fr; gap:24px}}
+.card{background:var(--card); border:1px solid var(--rule); border-radius:14px; overflow:hidden; display:flex; flex-direction:column; transition:transform .25s ease, box-shadow .25s ease, border-color .25s ease}
+.card:hover{transform:translateY(-3px); box-shadow:0 18px 40px -20px rgba(0,0,0,.15); border-color:var(--rule-2)}
+.card-img{aspect-ratio:16/10; background:var(--paper-2); position:relative; overflow:hidden}
+.card-img img{width:100%; height:100%; object-fit:cover; transition:transform .6s ease}
+.card:hover .card-img img{transform:scale(1.04)}
+.card-img.empty{display:flex; align-items:center; justify-content:center; color:var(--ink-3); font-family:var(--mono); font-size:10px; letter-spacing:.2em; text-transform:uppercase}
+.card-loc{position:absolute; top:12px; left:12px; background:rgba(255,255,255,.94); backdrop-filter:blur(6px); color:var(--ink); padding:5px 10px; border-radius:999px; font-family:var(--mono); font-size:9.5px; letter-spacing:.16em; text-transform:uppercase; font-weight:600}
+.card-loc.green{background:var(--green); color:var(--ink)}
+.card-body{padding:20px 22px 22px; display:flex; flex-direction:column; flex:1; gap:10px}
+.card-date{font-family:var(--mono); font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3)}
+.card-title{font-family:var(--serif); font-weight:600; font-size:19px; line-height:1.22; color:var(--ink); letter-spacing:-.01em}
+.card-title a{transition:color .2s}
+.card-title a:hover{color:var(--brick)}
+.card-summary{font-size:13.5px; color:var(--ink-3); line-height:1.5; flex:1}
+.card-readmore{font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--green-deep); font-weight:600; display:inline-flex; align-items:center; gap:6px; margin-top:4px}
+.card-readmore svg{width:11px; height:11px; transition:transform .2s}
+.card-readmore:hover svg{transform:translateX(3px)}
+
+/* Skeleton cards while loading */
+.skel-card{background:var(--card); border:1px solid var(--rule); border-radius:14px; overflow:hidden; display:flex; flex-direction:column}
+.skel-img{aspect-ratio:16/10; background:linear-gradient(90deg,#f1ede2,#f8f4ea,#f1ede2); background-size:200% 100%; animation:shimmer 1.8s linear infinite}
+.skel-line{height:12px; border-radius:4px; background:linear-gradient(90deg,#f1ede2,#f8f4ea,#f1ede2); background-size:200% 100%; animation:shimmer 1.8s linear infinite}
+.skel-body{padding:20px 22px 22px; display:flex; flex-direction:column; gap:10px}
+
+.load-more{display:flex; justify-content:center; margin-top:48px}
+.load-btn{font-family:var(--mono); font-size:11.5px; letter-spacing:.16em; text-transform:uppercase; font-weight:600; padding:14px 28px; border:1px solid var(--ink); border-radius:999px; background:transparent; color:var(--ink); transition:all .2s}
+.load-btn:hover{background:var(--ink); color:#fff}
+
+.empty-state{padding:80px 20px; text-align:center; color:var(--ink-3)}
+.empty-state h3{color:var(--ink); font-size:22px; margin-bottom:8px}
+.error-state{background:rgba(158,59,27,.06); border:1px solid rgba(158,59,27,.2); border-radius:10px; padding:20px 24px; color:var(--brick); font-family:var(--mono); font-size:12px}
+
+/* ------------ */
+/* Newsletter / CTA strip */
+/* ------------ */
+.nlstrip{background:var(--paper-2); border-top:1px solid var(--rule); border-bottom:1px solid var(--rule); padding:60px 0; position:relative; overflow:hidden}
+.nlstrip::before{content:""; position:absolute; top:-50%; right:-10%; width:600px; height:600px; background:radial-gradient(closest-side, rgba(31,223,103,.18), transparent 70%)}
+.nlstrip .wrap{position:relative; display:grid; grid-template-columns:1.2fr 1fr; gap:60px; align-items:center}
+.nlstrip h2{font-size:clamp(26px,3vw,40px); max-width:18ch; line-height:1.05}
+.nlstrip p{font-size:15px; color:var(--ink-2); max-width:50ch; margin-top:14px; line-height:1.55}
+.nlform{display:flex; gap:10px; background:#fff; border:1px solid var(--rule); border-radius:999px; padding:7px 7px 7px 22px; box-shadow:0 12px 30px -16px rgba(0,0,0,.18)}
+.nlform input{flex:1; border:0; outline:0; font:inherit; font-size:14px; color:var(--ink); background:transparent; min-width:0}
+.nlform button{background:var(--ink); color:#fff; padding:12px 22px; border-radius:999px; font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; font-weight:600; flex:0 0 auto; transition:background .2s}
+.nlform button:hover{background:var(--green-deep)}
+.nl-trust{font-family:var(--mono); font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3); margin-top:14px}
+@media(max-width:820px){.nlstrip .wrap{grid-template-columns:1fr}}
+
+/* ------------ */
+/* Quick links cards (Map, Media, Shop) */
+/* ------------ */
+.quicklinks{padding:70px 0}
+.quicklinks h2{font-size:clamp(24px,3vw,36px); margin-bottom:8px}
+.quicklinks .sub{color:var(--ink-3); margin-bottom:30px; max-width:60ch}
+.qgrid{display:grid; grid-template-columns:repeat(3,1fr); gap:18px}
+@media(max-width:880px){.qgrid{grid-template-columns:1fr}}
+.qcard{background:var(--ink-bg); color:#fff; padding:30px 28px 28px; border-radius:18px; position:relative; overflow:hidden; min-height:240px; display:flex; flex-direction:column; justify-content:space-between; transition:transform .25s ease}
+.qcard:hover{transform:translateY(-4px)}
+.qcard::after{content:""; position:absolute; inset:0; opacity:.4; pointer-events:none;
+  background:radial-gradient(120% 100% at 100% 0%, rgba(31,223,103,.25), transparent 60%)}
+.qcard.b::after{background:radial-gradient(120% 100% at 100% 0%, rgba(167,139,250,.30), transparent 60%)}
+.qcard.c::after{background:radial-gradient(120% 100% at 100% 0%, rgba(230,197,116,.30), transparent 60%)}
+.qcard .qe{font-family:var(--mono); font-size:10.5px; letter-spacing:.22em; text-transform:uppercase; color:var(--green); position:relative; z-index:1}
+.qcard.b .qe{color:var(--purple-glow)}
+.qcard.c .qe{color:var(--gold-soft)}
+.qcard h3{color:#fff; font-size:26px; margin:14px 0 10px; position:relative; z-index:1; max-width:18ch}
+.qcard p{color:#bfbcb0; font-size:13.5px; line-height:1.5; position:relative; z-index:1; max-width:32ch}
+.qcard .qarr{display:inline-flex; align-items:center; gap:8px; margin-top:auto; font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:#fff; position:relative; z-index:1; font-weight:600}
+.qcard .qarr svg{width:13px; height:13px; transition:transform .2s}
+.qcard:hover .qarr svg{transform:translateX(4px)}
+
+/* ------------ */
+/* Partner logo strip */
+/* ------------ */
+.partners{padding:60px 0; border-top:1px solid var(--rule); background:var(--paper)}
+.partners .lbl{text-align:center; font-family:var(--mono); font-size:10.5px; letter-spacing:.24em; text-transform:uppercase; color:var(--ink-3); margin-bottom:26px}
+.plogos{display:grid; grid-template-columns:repeat(6,1fr); gap:18px; align-items:center; justify-items:center}
+@media(max-width:780px){.plogos{grid-template-columns:repeat(3,1fr)}}
+.plogo{height:38px; opacity:.55; filter:grayscale(1); transition:opacity .2s, filter .2s; font-family:var(--serif); font-weight:600; font-size:14px; color:var(--ink-2); display:flex; align-items:center; justify-content:center; padding:0 14px; letter-spacing:.02em}
+.plogo:hover{opacity:1; filter:grayscale(0)}
+
+/* ------------ */
+/* Footer       */
+/* ------------ */
+footer{background:var(--ink-bg); color:#cfc9b9; padding:70px 0 40px; margin-top:0}
+footer .top{display:grid; grid-template-columns:1.4fr 1fr 1fr 1fr; gap:40px; padding-bottom:40px; border-bottom:1px solid var(--hair)}
+@media(max-width:880px){footer .top{grid-template-columns:1fr 1fr}}
+footer h4{font-family:var(--mono); font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:#fff; margin-bottom:18px; font-weight:600}
+footer ul{list-style:none; display:flex; flex-direction:column; gap:10px}
+footer ul a{font-size:14px; color:#A8A398; transition:color .2s}
+footer ul a:hover{color:var(--green)}
+footer .blurb{color:#A8A398; font-size:13px; line-height:1.55; margin-top:14px; max-width:34ch}
+footer .bottom{display:flex; justify-content:space-between; align-items:center; padding-top:24px; font-family:var(--mono); font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:#7d7969; gap:18px; flex-wrap:wrap}
+footer .bottom a:hover{color:var(--green)}
+footer .ft-logo .tmw-wordmark .wm-fill{fill:#fff}
+footer .ft-logo .tmw-wordmark{width:118px}
+</style>
+</head>
+<body>
+
+<!-- ==================== TOP RIBBON ==================== -->
+<div class="ribbon">
+  <div class="wrap">
+    <div class="r-left">
+      <span><span class="r-dot"></span>&nbsp;&nbsp;Live · <span id="ribbon-clock">—</span></span>
+      <span class="hide-sm">Established 2018 · Global Edition</span>
+    </div>
+    <div class="r-right">
+      <a href="https://map.oftmw.com">Map of Tomorrow ↗</a>
+      <a href="/media/">Media Kit ↗</a>
+      <a href="#newsletter">Subscribe</a>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== NAV ==================== -->
+<nav class="main">
+  <div class="wrap">
+    <a href="/" class="tmw-logo-lockup" aria-label="Markets of Tomorrow">
+      <div class="tmw-hex-badge" aria-hidden="true"><svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <polygon class="tmw-hex-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/>
+        <g class="tmw-hex-spinner">
+          <polygon class="tmw-hex-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#6b3df0" stroke-width="7" stroke-linejoin="round"/>
+        </g>
+      </svg></div>
+      <div class="tmw-wordmark" aria-hidden="true"><svg viewBox="100 60 900 410" xmlns="http://www.w3.org/2000/svg">
+        <g class="wm-fill">
+          <path d="M233.5,220.4l1.1-105.9-.4-.4-30.2,106.3h-23.9l-30.6-107.2,1.1,107.2h-33.3V79h46.4l28.1,93.1h.4l27.7-93.1h46.6v141.4h-33.3Z"/>
+          <path d="M383.6,220.4l-6.9-20.5h-49.1l-7.5,20.5h-38.8l56.8-141.4h28.5l56.2,141.4h-39.2ZM352.6,123.1l-.6-.2-14.5,48.4h29.6l-14.5-48.2Z"/>
+          <path d="M504.9,220.4l-32.7-45.7h-.4v45.7h-34.6V79h46.3c14.7,0,26,1.9,33.4,5.2,15.3,6.9,26,23.5,26,43.6s-13.4,40.7-35.2,44.5l38.4,48.2h-41.3ZM485.3,150.1c14.3,0,23.1-6.7,23.1-20.3s-9.2-19.1-22.7-19.1h-13.8v39.4h13.4Z"/>
+          <path d="M641,220.4l-38.6-61.2h-.4v61.2h-36.1V79h36.1v63.6h.4l39.9-63.6h37.8l-46.8,70.5,49.9,70.9h-42.2Z"/>
+          <path d="M697.2,220.4V79h78.6v31.7h-44v22h42.6v31.7h-42.6v24.3h44v31.7h-78.6Z"/>
+          <path d="M815.1,220.4v-109.7h-27.9v-31.7h91.7v31.7h-27.7v109.7h-36.1Z"/>
+          <path d="M948.9,120.3c-1.5-10.1-5.7-13.8-12.8-13.8s-12.4,4.8-12.4,11.1,7.6,12.2,23.1,18.9c31.2,13.4,39,24.7,39,43.2,0,27.3-18.7,43.4-49.3,43.4s-51-16.1-51-46.4v-3.1h35.9c.2,11.7,5.9,19.3,14.9,19.3s13.6-5.9,13.6-13.6c0-11.3-15.7-16.2-28.5-21.4-23.1-9.4-33.6-21.6-33.6-39.9s23.3-41.7,49.3-41.7,17.6,2.1,25,5.9c15.1,7.8,22.4,19.1,22.6,38h-35.7Z"/>
+          <path d="M333.7,452.5v-169.1h-43v-48.9h141.4v48.9h-42.7v169.1h-55.7Z"/>
+          <path d="M633.3,452.5l1.8-163.2-.6-.6-46.5,163.8h-36.8l-47.1-165.3,1.8,165.3h-51.3v-218h71.6l43.3,143.5h.6l42.7-143.5h71.9v218h-51.3Z"/>
+          <path d="M881.6,452.5l-32.7-141.1h-.6l-32.7,141.1h-50.4l-56.3-218h56.6l29.2,141.7h.6l32.1-141.7h42.7l31.5,142.3h.6l29.8-142.3h56.3l-57.7,218h-48.9Z"/>
+          <path d="M111.8,281.1c0-27.9,20.1-48.8,47.4-48.8s47.6,20.3,47.6,46.1-20.7,47.3-46.5,47.3-48.5-18-48.5-44.6ZM183.8,279.2c0-14.1-10.1-26.6-24.6-26.6s-24.4,12-24.4,26.3,10.1,26.8,24.8,26.8,24.2-12,24.2-26.4Z"/>
+          <path d="M219.2,324.1v-90h49.1v20.2h-27.1v15.3h26.2v20.2h-26.2v34.3h-22Z"/>
+        </g>
+      </svg></div>
+    </a>
+    <div class="nav-links">
+      <a href="#global" class="active">Global</a>
+      <a href="#florida">Florida</a>
+      <a href="#new-york">New York</a>
+      <a href="#tennessee">Tennessee</a>
+      <a href="#caribbean">Caribbean</a>
+      <a href="#rockies">Rockies</a>
+      <a href="#hotels">Hotels</a>
+      <a href="#restaurants">Restaurants</a>
+      <a href="#golf">Golf</a>
+    </div>
+    <a href="https://map.oftmw.com" class="nav-cta">Map of Tomorrow</a>
+    <button class="nav-burger" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- ==================== FEATURED HERO ==================== -->
+<header class="featured" id="featured">
+  <div class="bg"><img id="hero-img" alt=""></div>
+  <div class="wrap">
+    <div id="hero-content">
+      <div class="f-tag">Latest</div>
+      <h1><a id="hero-link" href="#">Loading the latest story&hellip;</a></h1>
+      <div class="f-meta" id="hero-meta"><span>—</span></div>
+      <p class="f-summary" id="hero-summary"></p>
+      <a href="#" class="f-cta" id="hero-cta">Read full story
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+      </a>
+    </div>
+  </div>
+</header>
+
+<!-- ==================== FILTER BAR ==================== -->
+<div class="bar" id="filterbar">
+  <div class="wrap">
+    <div class="pills" id="pills">
+      <button class="pill on" data-cat="*">All</button>
+    </div>
+    <label class="search">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="7" cy="7" r="5"/><path d="M11 11l3 3"/></svg>
+      <input id="search" type="search" placeholder="Search stories…" aria-label="Search">
+    </label>
+  </div>
+</div>
+
+<!-- ==================== CARD GRID ==================== -->
+<section class="grid-section">
+  <div class="wrap">
+    <div class="section-head">
+      <h2 id="grid-title">The Latest</h2>
+      <span class="meta" id="grid-meta">—</span>
+    </div>
+    <div class="cards" id="cards">
+      <!-- skeletons injected here on load -->
+    </div>
+    <div class="load-more" id="loadmore-wrap" style="display:none">
+      <button class="load-btn" id="loadmore">Load more stories</button>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== QUICK LINKS ==================== -->
+<section class="quicklinks">
+  <div class="wrap">
+    <h2>The network beyond the headlines</h2>
+    <p class="sub">Markets of Tomorrow is more than a journal — it's an audience network, an intelligence engine, and a live map of what's being built next.</p>
+    <div class="qgrid">
+      <a href="https://map.oftmw.com" class="qcard a">
+        <span class="qe">Map of Tomorrow</span>
+        <div>
+          <h3>See every project on a live map</h3>
+          <p>3,400+ hotel, residential, and mixed-use developments tracked across the US &amp; Caribbean.</p>
+        </div>
+        <span class="qarr">Open the map
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+        </span>
+      </a>
+      <a href="/media/" class="qcard b">
+        <span class="qe">Media Kit</span>
+        <div>
+          <h3>Reach 8.1M readers every month</h3>
+          <p>Hospitality, real estate, food, and luxury — six outlets, one network, decision-maker audience.</p>
+        </div>
+        <span class="qarr">View audience reach
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+        </span>
+      </a>
+      <a href="#newsletter" class="qcard c">
+        <span class="qe">The Newsletter</span>
+        <div>
+          <h3>Get the weekly pulse, free</h3>
+          <p>One curated email every Sunday — the seven stories shaping next week's markets.</p>
+        </div>
+        <span class="qarr">Subscribe
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+        </span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== NEWSLETTER ==================== -->
+<section class="nlstrip" id="newsletter">
+  <div class="wrap">
+    <div>
+      <div class="eyebrow green">The Sunday Brief</div>
+      <h2 style="margin-top:12px">Seven stories. One Sunday. Zero fluff.</h2>
+      <p>The week ahead in hospitality, real estate, food, and the markets defining tomorrow — delivered free every Sunday morning to 84,000+ operators, developers, and investors.</p>
+    </div>
+    <form class="nlform" onsubmit="event.preventDefault(); alert('Wired up to your ESP next — but this is the look.')">
+      <input type="email" placeholder="you@yourcompany.com" required>
+      <button type="submit">Subscribe</button>
+    </form>
+  </div>
+</section>
+
+<!-- ==================== PARTNERS ==================== -->
+<section class="partners">
+  <div class="wrap">
+    <div class="lbl">Trusted by builders &amp; brands</div>
+    <div class="plogos">
+      <div class="plogo">Four Seasons</div>
+      <div class="plogo">Marriott</div>
+      <div class="plogo">Aman</div>
+      <div class="plogo">Related</div>
+      <div class="plogo">Rosewood</div>
+      <div class="plogo">Auberge</div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== FOOTER ==================== -->
+<footer>
+  <div class="wrap">
+    <div class="top">
+      <div>
+        <div class="ft-logo">
+          <a href="/" class="tmw-logo-lockup" aria-label="Markets of Tomorrow">
+            <div class="tmw-hex-badge"><svg viewBox="0 0 100 100">
+              <polygon class="tmw-hex-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/>
+              <g class="tmw-hex-spinner"><polygon class="tmw-hex-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g>
+            </svg></div>
+            <div class="tmw-wordmark"><svg viewBox="100 60 900 410">
+              <g class="wm-fill">
+                <path d="M233.5,220.4l1.1-105.9-.4-.4-30.2,106.3h-23.9l-30.6-107.2,1.1,107.2h-33.3V79h46.4l28.1,93.1h.4l27.7-93.1h46.6v141.4h-33.3Z"/>
+                <path d="M383.6,220.4l-6.9-20.5h-49.1l-7.5,20.5h-38.8l56.8-141.4h28.5l56.2,141.4h-39.2ZM352.6,123.1l-.6-.2-14.5,48.4h29.6l-14.5-48.2Z"/>
+                <path d="M504.9,220.4l-32.7-45.7h-.4v45.7h-34.6V79h46.3c14.7,0,26,1.9,33.4,5.2,15.3,6.9,26,23.5,26,43.6s-13.4,40.7-35.2,44.5l38.4,48.2h-41.3ZM485.3,150.1c14.3,0,23.1-6.7,23.1-20.3s-9.2-19.1-22.7-19.1h-13.8v39.4h13.4Z"/>
+                <path d="M641,220.4l-38.6-61.2h-.4v61.2h-36.1V79h36.1v63.6h.4l39.9-63.6h37.8l-46.8,70.5,49.9,70.9h-42.2Z"/>
+                <path d="M697.2,220.4V79h78.6v31.7h-44v22h42.6v31.7h-42.6v24.3h44v31.7h-78.6Z"/>
+                <path d="M815.1,220.4v-109.7h-27.9v-31.7h91.7v31.7h-27.7v109.7h-36.1Z"/>
+                <path d="M948.9,120.3c-1.5-10.1-5.7-13.8-12.8-13.8s-12.4,4.8-12.4,11.1,7.6,12.2,23.1,18.9c31.2,13.4,39,24.7,39,43.2,0,27.3-18.7,43.4-49.3,43.4s-51-16.1-51-46.4v-3.1h35.9c.2,11.7,5.9,19.3,14.9,19.3s13.6-5.9,13.6-13.6c0-11.3-15.7-16.2-28.5-21.4-23.1-9.4-33.6-21.6-33.6-39.9s23.3-41.7,49.3-41.7,17.6,2.1,25,5.9c15.1,7.8,22.4,19.1,22.6,38h-35.7Z"/>
+                <path d="M333.7,452.5v-169.1h-43v-48.9h141.4v48.9h-42.7v169.1h-55.7Z"/>
+                <path d="M633.3,452.5l1.8-163.2-.6-.6-46.5,163.8h-36.8l-47.1-165.3,1.8,165.3h-51.3v-218h71.6l43.3,143.5h.6l42.7-143.5h71.9v218h-51.3Z"/>
+                <path d="M881.6,452.5l-32.7-141.1h-.6l-32.7,141.1h-50.4l-56.3-218h56.6l29.2,141.7h.6l32.1-141.7h42.7l31.5,142.3h.6l29.8-142.3h56.3l-57.7,218h-48.9Z"/>
+                <path d="M111.8,281.1c0-27.9,20.1-48.8,47.4-48.8s47.6,20.3,47.6,46.1-20.7,47.3-46.5,47.3-48.5-18-48.5-44.6ZM183.8,279.2c0-14.1-10.1-26.6-24.6-26.6s-24.4,12-24.4,26.3,10.1,26.8,24.8,26.8,24.2-12,24.2-26.4Z"/>
+                <path d="M219.2,324.1v-90h49.1v20.2h-27.1v15.3h26.2v20.2h-26.2v34.3h-22Z"/>
+              </g>
+            </svg></div>
+          </a>
+        </div>
+        <p class="blurb">A powerhouse news network covering the brands shaping the future of hospitality, real estate, and lifestyle.</p>
+      </div>
+      <div>
+        <h4>Editions</h4>
+        <ul>
+          <li><a href="#global">Global</a></li>
+          <li><a href="#florida">Florida</a></li>
+          <li><a href="#new-york">New York</a></li>
+          <li><a href="#tennessee">Tennessee</a></li>
+          <li><a href="#caribbean">Caribbean</a></li>
+          <li><a href="#rockies">Rockies</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Verticals</h4>
+        <ul>
+          <li><a href="#hotels">Hotels</a></li>
+          <li><a href="#restaurants">Restaurants</a></li>
+          <li><a href="#golf">Golf</a></li>
+          <li><a href="https://map.oftmw.com">Map of Tomorrow</a></li>
+          <li><a href="/media/">Media Kit</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Company</h4>
+        <ul>
+          <li><a href="#newsletter">Subscribe</a></li>
+          <li><a href="/media/">Advertise</a></li>
+          <li><a href="mailto:hello@oftmw.com">Contact</a></li>
+          <li><a href="#">Privacy</a></li>
+          <li><a href="#">Terms</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="bottom">
+      <div>© <span id="yr">2026</span> Markets of Tomorrow · All rights reserved</div>
+      <div>Built on cream and caffeine in Florida</div>
+    </div>
+  </div>
+</footer>
+
+<script>
+// ---------------------------------------------------------------
+// Config — point at the existing Cloudflare Worker.
+// Swap WORKER_URL if you ever rename the worker subdomain.
+// ---------------------------------------------------------------
+const WORKER_URL = 'https://tmw.jake-ab7.workers.dev';
+const FEED_ENDPOINT = WORKER_URL + '/blog?limit=60';
+const PAGE_SIZE = 9;
+
+// Pre-defined category buckets that mirror the live oftmw.com nav.
+// Cards are matched against item.categories using case-insensitive substring.
+const CATEGORY_BUCKETS = [
+  { key: '*',           label: 'All',           match: () => true },
+  { key: 'global',      label: 'Global',        match: c => /global|world|international/i.test(c) },
+  { key: 'florida',     label: 'Florida',       match: c => /florida|orlando|tampa|miami|palm|jacksonville|sarasota|naples/i.test(c) },
+  { key: 'new-york',    label: 'New York',      match: c => /new york|nyc|manhattan|brooklyn|hudson|hamptons/i.test(c) },
+  { key: 'tennessee',   label: 'Tennessee',     match: c => /tennessee|nashville|memphis|knoxville/i.test(c) },
+  { key: 'caribbean',   label: 'Caribbean',     match: c => /caribbean|bahamas|turks|caicos|jamaica|cayman|bvi|antigua|barbados|aruba|saint|st\./i.test(c) },
+  { key: 'rockies',     label: 'Rockies',       match: c => /rockies|rocky|aspen|vail|jackson|telluride|park city|colorado|utah|wyoming|montana/i.test(c) },
+  { key: 'hotels',      label: 'Hotels',        match: c => /hotel|hospitality|resort|inn|lodge/i.test(c) },
+  { key: 'restaurants', label: 'Restaurants',   match: c => /restaurant|dining|chef|food|cuisine|cocktail/i.test(c) },
+  { key: 'golf',        label: 'Golf',          match: c => /golf|course|country club/i.test(c) },
+];
+
+// ---------------------------------------------------------------
+// Bootstrap
+// ---------------------------------------------------------------
+document.getElementById('yr').textContent = new Date().getFullYear();
+tickClock();
+setInterval(tickClock, 60_000);
+renderSkeleton(6);
+loadFeed();
+
+function tickClock() {
+  const d = new Date();
+  const opts = { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+  document.getElementById('ribbon-clock').textContent = d.toLocaleString('en-US', opts);
+}
+
+// ---------------------------------------------------------------
+// State
+// ---------------------------------------------------------------
+let ALL_ITEMS  = [];
+let FILTERED   = [];
+let VISIBLE_N  = PAGE_SIZE;
+let ACTIVE_CAT = '*';
+let SEARCH_Q   = '';
+
+// ---------------------------------------------------------------
+// Fetch + render
+// ---------------------------------------------------------------
+async function loadFeed() {
+  try {
+    const res = await fetch(FEED_ENDPOINT, { cache: 'no-store' });
+    if (!res.ok) throw new Error('feed status ' + res.status);
+    const data = await res.json();
+    ALL_ITEMS = (data.items || []).filter(it => it.title && it.link);
+    if (!ALL_ITEMS.length) {
+      showEmpty('No stories returned from the feed yet.');
+      return;
+    }
+    renderFeatured(ALL_ITEMS[0]);
+    buildPills();
+    applyFilters();
+  } catch (err) {
+    console.error('blog fetch failed:', err);
+    showError(err.message || String(err));
+  }
+}
+
+function renderFeatured(item) {
+  const link = item.link || '#';
+  const meta = document.getElementById('hero-meta');
+  document.getElementById('hero-link').href = link;
+  document.getElementById('hero-link').textContent = item.title;
+  document.getElementById('hero-cta').href = link;
+  document.getElementById('hero-summary').textContent = item.summary || '';
+  const img = document.getElementById('hero-img');
+  if (item.image) {
+    img.src = item.image;
+    img.alt = item.title;
+  }
+  const parts = [];
+  if (item.pubDate) parts.push(formatDate(item.pubDate));
+  const loc = primaryCategory(item.categories);
+  if (loc) parts.push(loc);
+  if (item.author) parts.push('By ' + item.author);
+  meta.innerHTML = parts.map((p, i) => `<span>${escapeHtml(p)}</span>${i < parts.length - 1 ? '<span class="dot"></span>' : ''}`).join('');
+}
+
+function buildPills() {
+  const pillEl = document.getElementById('pills');
+  pillEl.innerHTML = '';
+  CATEGORY_BUCKETS.forEach(bucket => {
+    const count = bucket.key === '*' ? ALL_ITEMS.length : ALL_ITEMS.filter(it => (it.categories || []).some(bucket.match)).length;
+    if (bucket.key !== '*' && count === 0) return;
+    const btn = document.createElement('button');
+    btn.className = 'pill' + (bucket.key === ACTIVE_CAT ? ' on' : '');
+    btn.dataset.cat = bucket.key;
+    btn.innerHTML = `${bucket.label}<span class="count">${count}</span>`;
+    btn.addEventListener('click', () => {
+      ACTIVE_CAT = bucket.key;
+      VISIBLE_N = PAGE_SIZE;
+      document.querySelectorAll('.pill').forEach(p => p.classList.toggle('on', p.dataset.cat === ACTIVE_CAT));
+      applyFilters();
+    });
+    pillEl.appendChild(btn);
+  });
+}
+
+document.getElementById('search').addEventListener('input', (e) => {
+  SEARCH_Q = e.target.value.trim().toLowerCase();
+  VISIBLE_N = PAGE_SIZE;
+  applyFilters();
+});
+
+document.getElementById('loadmore').addEventListener('click', () => {
+  VISIBLE_N += PAGE_SIZE;
+  renderGrid();
+});
+
+function applyFilters() {
+  const bucket = CATEGORY_BUCKETS.find(b => b.key === ACTIVE_CAT);
+  FILTERED = ALL_ITEMS.filter(it => {
+    if (bucket && bucket.key !== '*') {
+      const cats = it.categories || [];
+      if (!cats.some(bucket.match)) return false;
+    }
+    if (SEARCH_Q) {
+      const hay = (it.title + ' ' + (it.summary || '') + ' ' + (it.categories || []).join(' ')).toLowerCase();
+      if (!hay.includes(SEARCH_Q)) return false;
+    }
+    return true;
+  });
+  // Skip the featured article from the grid so it's not duplicated.
+  if (FILTERED[0] && FILTERED[0].link === ALL_ITEMS[0].link && !SEARCH_Q && ACTIVE_CAT === '*') {
+    FILTERED = FILTERED.slice(1);
+  }
+  renderGrid();
+}
+
+function renderGrid() {
+  const wrap = document.getElementById('cards');
+  const meta = document.getElementById('grid-meta');
+  const lbl  = bucketLabel(ACTIVE_CAT);
+  document.getElementById('grid-title').textContent =
+    ACTIVE_CAT === '*' ? 'The Latest' : `${lbl} stories`;
+  meta.textContent = `${FILTERED.length} ${FILTERED.length === 1 ? 'story' : 'stories'} · auto-synced from Wix`;
+
+  if (!FILTERED.length) {
+    wrap.innerHTML = `<div class="empty-state" style="grid-column:1 / -1">
+      <h3>No stories in this view yet</h3>
+      <p>Try another edition or clear your search.</p>
+    </div>`;
+    document.getElementById('loadmore-wrap').style.display = 'none';
+    return;
+  }
+
+  const slice = FILTERED.slice(0, VISIBLE_N);
+  wrap.innerHTML = slice.map(cardHtml).join('');
+  document.getElementById('loadmore-wrap').style.display = VISIBLE_N < FILTERED.length ? 'flex' : 'none';
+}
+
+function cardHtml(item) {
+  const loc = primaryCategory(item.categories);
+  const date = item.pubDate ? formatDate(item.pubDate) : '';
+  const imgBlock = item.image
+    ? `<div class="card-img">${loc ? `<span class="card-loc">${escapeHtml(loc)}</span>` : ''}<img src="${escapeAttr(item.image)}" alt="" loading="lazy"></div>`
+    : `<div class="card-img empty">${loc ? `<span class="card-loc">${escapeHtml(loc)}</span>` : ''}Markets of Tomorrow</div>`;
+  return `<article class="card">
+    <a href="${escapeAttr(item.link)}" aria-label="${escapeAttr(item.title)}">${imgBlock}</a>
+    <div class="card-body">
+      ${date ? `<div class="card-date">${escapeHtml(date)}</div>` : ''}
+      <h3 class="card-title"><a href="${escapeAttr(item.link)}">${escapeHtml(item.title)}</a></h3>
+      ${item.summary ? `<p class="card-summary">${escapeHtml(trunc(item.summary, 140))}</p>` : ''}
+      <a class="card-readmore" href="${escapeAttr(item.link)}">Read story
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+      </a>
+    </div>
+  </article>`;
+}
+
+function renderSkeleton(n) {
+  const wrap = document.getElementById('cards');
+  const cell = `<div class="skel-card">
+    <div class="skel-img"></div>
+    <div class="skel-body">
+      <div class="skel-line" style="width:30%"></div>
+      <div class="skel-line" style="width:88%; height:18px"></div>
+      <div class="skel-line" style="width:72%; height:18px"></div>
+      <div class="skel-line" style="width:50%; margin-top:6px"></div>
+    </div>
+  </div>`;
+  wrap.innerHTML = Array(n).fill(cell).join('');
+}
+
+function showEmpty(msg) {
+  document.getElementById('cards').innerHTML =
+    `<div class="empty-state" style="grid-column:1 / -1"><h3>Nothing here yet</h3><p>${escapeHtml(msg)}</p></div>`;
+}
+function showError(msg) {
+  document.getElementById('cards').innerHTML =
+    `<div class="empty-state" style="grid-column:1 / -1">
+       <h3>Couldn't load the journal feed</h3>
+       <p style="margin-bottom:14px">The Wix RSS proxy didn't respond.</p>
+       <div class="error-state" style="display:inline-block; text-align:left">${escapeHtml(msg)}</div>
+     </div>`;
+}
+
+// ---------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------
+function primaryCategory(cats) {
+  if (!cats || !cats.length) return '';
+  // Prefer a place name over generic ones if both present.
+  const placey = cats.find(c => /florida|new york|tennessee|caribbean|rockies|orlando|tampa|miami|nashville|aspen|bahamas/i.test(c));
+  return placey || cats[0];
+}
+function bucketLabel(key) {
+  const b = CATEGORY_BUCKETS.find(x => x.key === key);
+  return b ? b.label : key;
+}
+function formatDate(s) {
+  const d = new Date(s);
+  if (isNaN(d)) return s;
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+function trunc(s, n) { return s.length > n ? s.slice(0, n).trimEnd() + '…' : s; }
+function escapeHtml(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function escapeAttr(s) { return escapeHtml(s); }
+</script>
+</body>
+</html>

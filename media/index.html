@@ -476,6 +476,9 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
   .headstats{grid-template-columns:repeat(2,1fr)} .grid3{grid-template-columns:1fr}
   .globe-stats{grid-template-columns:1fr} .deliver{grid-template-columns:1fr} .dgrid{grid-template-columns:1fr} .offer-grid{grid-template-columns:1fr} .audmeta{grid-template-columns:1fr; gap:22px} .nerd{grid-template-columns:repeat(2,1fr)}
   .lens-grid{grid-template-columns:1fr} .lens-card{min-height:auto}
+  .lens-rail .sep{display:none}
+  .lens-rail .rail-sep{display:none}
+  .lens-rail .rail-em{display:block; margin-top:6px}
   /* client tiles: 4 columns on mobile with tighter padding so logos fill more */
   .pgrid.view-logo{grid-template-columns:repeat(4,1fr); gap:8px}
   .pgrid.view-logo .p{padding:6px; border-radius:10px}
@@ -914,7 +917,7 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
     </div>
     <div class="lens-rail reveal">
       <span class="sep"></span>
-      <span>One network &middot; <b>Three formats</b> &middot; Every market</span>
+      <span class="lens-rail-text">One network &middot; <b>Three formats</b><span class="rail-sep"> &middot; </span><span class="rail-em">Every market</span></span>
       <span class="sep"></span>
     </div>
   </div>

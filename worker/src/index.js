@@ -671,6 +671,130 @@ function clampInt(v, fallback, min, max) {
 }
 
 // ---------------------------------------------------------------------------
+// /blog — proxy the Wix blog RSS feed and reshape it into clean JSON.
+// Cached at the edge for 30s so publishing → live takes ~30 sec, not minutes.
+// ---------------------------------------------------------------------------
+
+async function handleBlog(env, origin, url) {
+  const feedUrl = env.BLOG_FEED_URL || 'https://www.oftmw.com/blog-feed.xml';
+  const limit   = clampInt(url.searchParams.get('limit'), 50, 1, 100);
+
+  const upstream = await fetch(feedUrl, {
+    cf: { cacheTtl: 30, cacheEverything: true },
+    headers: { 'User-Agent': 'tmw-journal/1.0' },
+  });
+  if (!upstream.ok) {
+    return json({ error: 'feed fetch failed', status: upstream.status }, { status: 502 }, env, origin);
+  }
+  const xml = await upstream.text();
+  const items = parseRssItems(xml).slice(0, limit);
+
+  return json(
+    { feedUrl, count: items.length, items, fetchedAt: new Date().toISOString() },
+    { headers: { 'Cache-Control': 'public, max-age=30, s-maxage=30' } },
+    env,
+    origin,
+  );
+}
+
+// Tiny dependency-free RSS 2.0 parser. We only need a handful of fields, so
+// regex against the (well-formed) Wix output is fine — no XML parser in
+// Workers without adding a dep, and the feed shape is stable.
+function parseRssItems(xml) {
+  const out = [];
+  const itemRe = /<item\b[\s\S]*?<\/item>/g;
+  const matches = xml.match(itemRe) || [];
+  for (const block of matches) {
+    const title       = decodeXml(pickTag(block, 'title'));
+    const link        = decodeXml(pickTag(block, 'link'));
+    const guid        = decodeXml(pickTag(block, 'guid'));
+    const pubDate     = pickTag(block, 'pubDate');
+    const author      = decodeXml(pickTag(block, 'dc:creator'));
+    const descriptionRaw = pickTag(block, 'description');
+    const contentRaw  = pickTag(block, 'content:encoded');
+    const enclosure   = pickAttr(block, 'enclosure', 'url');
+
+    // Categories — RSS allows many <category> tags per item. Wix wraps each
+    // value in CDATA, so unwrap before decoding entities.
+    const cats = [];
+    const catRe = /<category\b[^>]*>([\s\S]*?)<\/category>/g;
+    let m;
+    while ((m = catRe.exec(block)) !== null) {
+      const raw = m[1].replace(/^<!\[CDATA\[([\s\S]*?)\]\]>$/, '$1');
+      const c = decodeXml(raw).trim();
+      if (c) cats.push(c);
+    }
+
+    // Strip HTML out of description to get a clean summary card body.
+    const description = decodeXml(descriptionRaw);
+    const summary = htmlToText(description).slice(0, 240);
+
+    // Wix RSS sometimes only puts the image in <description> as <img src>.
+    // Fall back to that if no <enclosure>.
+    const image = enclosure || pickImgSrc(description) || pickImgSrc(contentRaw);
+
+    // Slug derived from the /post/<slug> URL pattern Wix uses.
+    let slug = '';
+    try { slug = new URL(link).pathname.replace(/^\/post\//, '').replace(/^\/+|\/+$/g, ''); } catch {}
+
+    out.push({
+      title,
+      link,
+      slug,
+      guid,
+      pubDate,
+      isoDate: pubDate ? new Date(pubDate).toISOString() : null,
+      author,
+      categories: cats,
+      summary,
+      image,
+    });
+  }
+  return out;
+}
+
+function pickTag(block, tag) {
+  const re = new RegExp('<' + tag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b[^>]*>([\\s\\S]*?)</' + tag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '>');
+  const m = block.match(re);
+  if (!m) return '';
+  // Unwrap CDATA if present.
+  return m[1].replace(/^<!\[CDATA\[([\s\S]*?)\]\]>$/, '$1').trim();
+}
+
+function pickAttr(block, tag, attr) {
+  const re = new RegExp('<' + tag + '\\b[^>]*\\b' + attr + '="([^"]+)"', 'i');
+  const m = block.match(re);
+  return m ? m[1] : '';
+}
+
+function pickImgSrc(html) {
+  if (!html) return '';
+  const m = html.match(/<img[^>]+src="([^"]+)"/i);
+  return m ? m[1] : '';
+}
+
+function htmlToText(html) {
+  if (!html) return '';
+  return html
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function decodeXml(s) {
+  if (!s) return '';
+  return s
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&apos;/g, "'")
+    .replace(/&#(\d+);/g, (_, d) => String.fromCharCode(parseInt(d, 10)))
+    .replace(/&amp;/g, '&');
+}
+
+// ---------------------------------------------------------------------------
 // Main fetch handler
 // ---------------------------------------------------------------------------
 
@@ -711,6 +835,9 @@ export default {
       }
       if (request.method === 'GET' && url.pathname === '/activity') {
         return await handleActivity(env, origin, url);
+      }
+      if (request.method === 'GET' && url.pathname === '/blog') {
+        return await handleBlog(env, origin, url);
       }
       if (request.method === 'GET' && url.pathname === '/health') {
         return json({ ok: true, ts: Date.now() }, {}, env, origin);
