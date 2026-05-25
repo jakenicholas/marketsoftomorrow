@@ -639,12 +639,28 @@ async function loadData() {
     setTimeout(function() { loadData(); }, 60000);
 
   } catch(e) {
-    showErr('GA4 API error: ' + e.message + '. Check that the service account is granted Viewer access on GA4 property ' + PROPERTY_ID + ' and that GA_SERVICE_ACCOUNT_JSON is set as a worker secret.');
+    // If GA4 is still 403'ing because of permission-cache propagation lag
+    // (a known issue that can take 30+ min after granting the SA Viewer
+    // role), auto-retry every 60s instead of making the user manually
+    // reload. We hide the error after the first attempt to keep the
+    // dashboard quiet; the GA4 cards will self-fill the moment Google
+    // honors the grant.
+    var msg = e && e.message ? e.message : String(e);
+    var is403 = /403|PERMISSION_DENIED|sufficient permissions/i.test(msg);
+    if (is403) {
+      showErr('GA4 cards still propagating (Google access-cache lag). Auto-retrying every 60s — identified-user sections below are unaffected.');
+    } else {
+      showErr('GA4 API error: ' + msg + '. Check that the service account is granted Viewer access on GA4 property ' + PROPERTY_ID + ' and that GA_SERVICE_ACCOUNT_JSON is set as a worker secret.');
+    }
     console.error(e);
     // Still reveal the dashboard so the identified-user (D1-backed) sections
     // below can render — they don't need the GA4 service-account secret.
     document.getElementById('authCard').style.display = 'none';
     document.getElementById('dash').classList.add('on');
+    // Auto-retry: schedule another full reload in 60s. This keeps the page
+    // alive and silently re-fetches GA4 — first successful call clears the
+    // error banner and populates the cards.
+    setTimeout(function() { loadData(); }, 60000);
   }
 
   // ─── Identified-user sections (from D1, not GA4) ─────────────────────
