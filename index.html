@@ -19194,12 +19194,30 @@
       return n;
     }
 
+    // Count of non-dismissed events whose timestamp falls within the last
+    // 7 days. Drives the bell badge AND the "X updates this week" subtitle
+    // — pulse.json can hold up to 50 events stretching ~2 weeks back, so an
+    // unfiltered count makes the badge stick at 50 even after a quiet week.
+    function recentVisibleCount() {
+      var cutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
+      var n = 0;
+      for (var i = 0; i < allEvents.length; i++) {
+        var ev = allEvents[i];
+        if (dismissedIds.has(ev.id)) continue;
+        var t = new Date(ev.timestamp).getTime();
+        if (isNaN(t) || t < cutoff) continue;
+        n++;
+      }
+      return n;
+    }
+    // Exposed so the v2 desktop/mobile sheet subtitles can read the same
+    // number instead of counting rendered DOM rows (which include older
+    // events still in the drawer).
+    window._pulseRecentVisibleCount = recentVisibleCount;
+
     function updateHeader() {
       if (!subEl) return;
-      var visibleCount = 0;
-      for (var i = 0; i < allEvents.length; i++) {
-        if (!dismissedIds.has(allEvents[i].id)) visibleCount++;
-      }
+      var visibleCount = recentVisibleCount();
       subEl.textContent = visibleCount
         ? visibleCount + ' update' + (visibleCount === 1 ? '' : 's') + ' this week'
         : 'No updates';
@@ -19207,13 +19225,10 @@
 
     function updateBadge() {
       if (!badgeEl) return;
-      // Count non-dismissed events. The badge disappears once user clears
-      // (dismisses) all of them. Reappears after the refresh button or a new
-      // pulse.json load brings events back.
-      var visible = 0;
-      for (var i = 0; i < allEvents.length; i++) {
-        if (!dismissedIds.has(allEvents[i].id)) visible++;
-      }
+      // Count non-dismissed events within the last 7 days. The badge
+      // disappears once user clears (dismisses) all of them, or once they
+      // all age out of the week window.
+      var visible = recentVisibleCount();
       if (visible > 0) {
         badgeEl.textContent = visible > 99 ? '99+' : String(visible);
         badgeEl.removeAttribute('hidden');
@@ -21741,8 +21756,12 @@
         return `${c} project${c === 1 ? '' : 's'}${ur ? ' &middot; ' + ur + ' unread' : ''}`;
       }
       function getDesktopPulseSubtitle() {
-        const events = document.querySelectorAll('#pulseStack .pulse-ev-wrap');
-        const n = events.length;
+        // Use the shared last-7-days count (same source the bell badge
+        // uses) instead of counting rendered tiles — the drawer can hold
+        // events older than 7 days, so a tile count overstates the week.
+        const n = typeof window._pulseRecentVisibleCount === 'function'
+          ? window._pulseRecentVisibleCount()
+          : document.querySelectorAll('#pulseStack .pulse-ev-wrap').length;
         if (!n) return 'no updates this week';
         return `${n} update${n === 1 ? '' : 's'} this week`;
       }
@@ -22544,11 +22563,13 @@
         return `${c} project${c === 1 ? '' : 's'}${ur ? ' &middot; ' + ur + ' unread' : ''}`;
       }
       function getPulseSubtitle() {
-        // Count the rendered events in the spine ‚Äî this is the same set
-        // user sees in the pane right now. Phrased as "# updates this week"
-        // to match the in-view/more-nearby right-slot pattern.
-        const events = document.querySelectorAll('#pulseStack .pulse-ev-wrap');
-        const n = events.length;
+        // Use the shared last-7-days count (same source the bell badge
+        // uses) so the subtitle and the badge agree. Counting rendered
+        // tiles included events older than 7 days that still live in the
+        // drawer, inflating the "this week" number.
+        const n = typeof window._pulseRecentVisibleCount === 'function'
+          ? window._pulseRecentVisibleCount()
+          : document.querySelectorAll('#pulseStack .pulse-ev-wrap').length;
         if (!n) return 'no updates this week';
         return `${n} update${n === 1 ? '' : 's'} this week`;
       }
