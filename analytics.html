@@ -6,845 +6,1480 @@
 <title>TMW Map — Live Analytics</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
+/* ───────────────────────────────────────────────────────────────────────
+   Design tokens. All colors / sizing / radii / shadows live here so the
+   dashboard can be rethemed by changing variables in one spot.
+   ─────────────────────────────────────────────────────────────────── */
 :root {
-  --black: #080808;
-  --white: #f0ede6;
+  --bg: #080808;
+  --surface: #0d0d0d;
+  --surface2: #141414;
+  --surface3: #1c1c1c;
+  --border: #1c1c1c;
+  --border2: #2a2a2a;
   --gold: #c9a84c;
   --gold-dim: #7a6030;
   --green: #3ddc84;
+  --green-dim: #2a8d54;
   --red: #ff5f5f;
-  --surface: #0f0f0f;
-  --surface2: #161616;
-  --border: #1f1f1f;
-  --dim: #555;
-  --mid: #888;
+  --blue: #6aa6ff;
+  --white: #f0ede6;
+  --text: #f0ede6;
+  --text-mid: #aaa;
+  --text-dim: #777;
+  --text-faint: #444;
+
+  --r-sm: 4px;
+  --r-md: 6px;
+  --r-lg: 10px;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+
+  --serif: 'Playfair Display', serif;
+  --sans: 'DM Sans', sans-serif;
+  --mono: 'DM Mono', monospace;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
+html, body { min-height: 100%; }
+
 body {
-  background: var(--black);
-  color: var(--white);
-  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
   font-weight: 300;
-  min-height: 100vh;
-  padding: 40px 24px;
-  background-image: radial-gradient(ellipse at 20% 0%, rgba(201,168,76,0.04) 0%, transparent 60%),
-                    radial-gradient(ellipse at 80% 100%, rgba(61,220,132,0.03) 0%, transparent 60%);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  background-image:
+    radial-gradient(ellipse 1200px 600px at 15% -10%, rgba(201,168,76,0.045) 0%, transparent 60%),
+    radial-gradient(ellipse 1200px 600px at 100% 110%, rgba(61,220,132,0.035) 0%, transparent 60%);
+  background-attachment: fixed;
 }
 
-.wrap { max-width: 900px; margin: 0 auto; }
-
-/* Header */
-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  border-bottom: 1px solid var(--border);
-  padding-bottom: 24px;
-  margin-bottom: 36px;
+/* ───────────────────────────────────────────────────────────────────────
+   Layout shell
+   ─────────────────────────────────────────────────────────────────── */
+.app {
+  max-width: 1480px;
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-5) var(--space-8);
 }
 
-.brand-block {}
-.brand {
-  font-family: 'DM Mono', monospace;
-  font-size: 10px;
-  letter-spacing: .22em;
-  color: var(--gold);
-  text-transform: uppercase;
-  margin-bottom: 6px;
+@media (max-width: 900px) {
+  .app { padding: var(--space-4); }
 }
-h1 {
-  font-family: 'Playfair Display', serif;
-  font-size: clamp(22px, 4vw, 34px);
-  font-weight: 400;
-  line-height: 1.1;
-  letter-spacing: -.01em;
-}
-h1 em { font-style: italic; color: var(--gold); }
 
-.live-badge {
+/* ───────────────────────────────────────────────────────────────────────
+   Header
+   ─────────────────────────────────────────────────────────────────── */
+.top {
   display: flex;
   align-items: center;
-  gap: 7px;
+  justify-content: space-between;
+  padding-bottom: var(--space-5);
+  border-bottom: 1px solid var(--border);
+  margin-bottom: var(--space-6);
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+.brand .eyebrow {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: .25em;
+  color: var(--gold);
+  text-transform: uppercase;
+}
+.brand h1 {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: clamp(26px, 3vw, 38px);
+  letter-spacing: -.01em;
+  margin-top: 4px;
+  line-height: 1.05;
+}
+.brand h1 em { font-style: italic; color: var(--gold); }
+
+.top-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+.live-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   background: rgba(61,220,132,0.08);
-  border: 1px solid rgba(61,220,132,0.2);
+  border: 1px solid rgba(61,220,132,0.22);
   border-radius: 20px;
   padding: 6px 14px;
-  font-family: 'DM Mono', monospace;
+  font-family: var(--mono);
   font-size: 10px;
-  letter-spacing: .12em;
+  letter-spacing: .15em;
   color: var(--green);
   text-transform: uppercase;
 }
-
-.pulse {
+.live-pill .dot {
   width: 7px; height: 7px;
   background: var(--green);
   border-radius: 50%;
   animation: pulse 2s ease-in-out infinite;
 }
-
 @keyframes pulse {
-  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(61,220,132,0.4); }
-  50% { opacity: 0.8; box-shadow: 0 0 0 5px rgba(61,220,132,0); }
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(61,220,132,0.45); }
+  50%      { opacity: 0.7; box-shadow: 0 0 0 6px rgba(61,220,132,0); }
 }
-
-/* Auth section */
-.auth-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 32px;
-  margin-bottom: 28px;
-}
-
-.auth-title {
-  font-family: 'DM Mono', monospace;
+.refresh-btn {
+  background: transparent;
+  border: 1px solid var(--border2);
+  color: var(--text-mid);
+  padding: 7px 14px;
+  border-radius: var(--r-sm);
+  font-family: var(--mono);
   font-size: 10px;
   letter-spacing: .15em;
   text-transform: uppercase;
-  color: var(--gold);
-  margin-bottom: 16px;
-}
-
-.input-row { display: flex; gap: 10px; }
-.input-row input {
-  flex: 1;
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  color: var(--white);
-  font-family: 'DM Mono', monospace;
-  font-size: 13px;
-  padding: 11px 14px;
-  outline: none;
-  transition: border-color .2s;
-}
-.input-row input:focus { border-color: var(--gold-dim); }
-.input-row input::placeholder { color: var(--dim); }
-
-.go-btn {
-  background: var(--gold);
-  border: none;
-  border-radius: 4px;
-  color: var(--black);
   cursor: pointer;
-  font-family: 'DM Mono', monospace;
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: .1em;
-  padding: 0 22px;
+  transition: all .15s;
+}
+.refresh-btn:hover { border-color: var(--gold-dim); color: var(--gold); }
+.refresh-btn:disabled { opacity: .4; cursor: not-allowed; }
+.last-updated {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: .12em;
+  color: var(--text-dim);
   text-transform: uppercase;
-  transition: background .2s;
-  white-space: nowrap;
-}
-.go-btn:hover { background: #d4b060; }
-.go-btn:disabled { background: var(--gold-dim); cursor: not-allowed; opacity: .6; }
-
-.auth-note {
-  font-size: 11px;
-  color: var(--dim);
-  margin-top: 10px;
-  line-height: 1.6;
-}
-.auth-note a { color: var(--gold); text-decoration: none; }
-.auth-note a:hover { text-decoration: underline; }
-
-/* Dashboard */
-.dashboard { display: none; }
-.dashboard.on { display: block; animation: fadeUp .5s ease; }
-
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
 }
 
-/* Stat grid */
-.stat-grid {
+/* Banner for soft errors (e.g. GA4 propagation) */
+.banner {
+  background: rgba(255,95,95,0.08);
+  border: 1px solid rgba(255,95,95,0.2);
+  border-radius: var(--r-md);
+  color: var(--red);
+  font-size: 13px;
+  padding: 12px 18px;
+  margin-bottom: var(--space-5);
+  display: none;
+}
+.banner.on { display: block; }
+.banner.soft {
+  background: rgba(201,168,76,0.06);
+  border-color: rgba(201,168,76,0.22);
+  color: var(--gold);
+}
+
+/* ───────────────────────────────────────────────────────────────────────
+   Hero stat grid (4 cards)
+   ─────────────────────────────────────────────────────────────────── */
+.hero {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 14px;
-  margin-bottom: 20px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
 }
+@media (max-width: 1100px) { .hero { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 600px)  { .hero { grid-template-columns: 1fr; } }
 
-.stat-card {
-  background: var(--surface);
+.stat {
+  background: linear-gradient(180deg, var(--surface) 0%, var(--bg) 100%);
   border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 22px 24px;
+  border-radius: var(--r-md);
+  padding: var(--space-5);
   position: relative;
   overflow: hidden;
-  transition: border-color .2s;
+  min-height: 142px;
 }
-
-.stat-card::before {
+.stat::before {
   content: '';
   position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 2px;
-  background: var(--gold);
-  opacity: 0.4;
+  inset: 0 0 auto 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold-dim), transparent);
+  opacity: .5;
 }
-
-.stat-card.green::before { background: var(--green); }
-.stat-card.red::before { background: var(--red); }
-
+.stat.accent::before {
+  background: linear-gradient(90deg, transparent, var(--green-dim), transparent);
+}
 .stat-label {
-  font-family: 'DM Mono', monospace;
-  font-size: 9px;
-  letter-spacing: .18em;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: .2em;
   text-transform: uppercase;
-  color: var(--mid);
-  margin-bottom: 12px;
+  color: var(--text-dim);
+  margin-bottom: var(--space-4);
 }
-
 .stat-value {
-  font-family: 'Playfair Display', serif;
-  font-size: 42px;
-  font-weight: 600;
+  font-family: var(--serif);
+  font-size: 44px;
+  font-weight: 400;
+  letter-spacing: -.02em;
+  color: var(--text);
   line-height: 1;
-  color: var(--white);
-  margin-bottom: 4px;
 }
-
-.stat-value.green { color: var(--green); }
-
-.stat-sub {
+.stat-value.accent { color: var(--green); }
+.stat-meta {
+  margin-top: var(--space-3);
+  font-size: 12px;
+  color: var(--text-dim);
+  font-family: var(--mono);
+}
+.stat-meta .chip {
+  display: inline-block;
+  padding: 2px 8px;
+  margin-right: 6px;
+  border-radius: 10px;
+  background: var(--surface3);
+  font-size: 10px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.stat-meta .chip.gold { color: var(--gold); background: rgba(201,168,76,0.1); }
+.stat-meta .chip.green { color: var(--green); background: rgba(61,220,132,0.1); }
+.stat-meta .delta {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-family: var(--mono);
   font-size: 11px;
-  color: var(--dim);
-  font-family: 'DM Mono', monospace;
+}
+.stat-meta .delta.up { color: var(--green); }
+.stat-meta .delta.down { color: var(--red); }
+
+/* ───────────────────────────────────────────────────────────────────────
+   Main 2-column layout
+   ─────────────────────────────────────────────────────────────────── */
+.main {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: var(--space-5);
+  align-items: flex-start;
+}
+@media (max-width: 1100px) {
+  .main { grid-template-columns: 1fr; }
 }
 
-/* Sections */
+.col-main { min-width: 0; }     /* allow shrink inside grid */
+.col-feed {
+  position: sticky;
+  top: var(--space-4);
+  max-height: calc(100vh - var(--space-7));
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+@media (max-width: 1100px) {
+  .col-feed { position: static; max-height: none; }
+}
+
+/* ───────────────────────────────────────────────────────────────────────
+   Generic section
+   ─────────────────────────────────────────────────────────────────── */
 .section {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 6px;
-  margin-bottom: 14px;
+  border-radius: var(--r-md);
+  margin-bottom: var(--space-5);
   overflow: hidden;
 }
-
-.section-header {
+.section-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 20px;
+  padding: var(--space-4) var(--space-5);
   border-bottom: 1px solid var(--border);
-  background: var(--surface2);
+  gap: var(--space-3);
+  flex-wrap: wrap;
 }
-
 .section-title {
-  font-family: 'DM Mono', monospace;
-  font-size: 9px;
-  letter-spacing: .18em;
-  text-transform: uppercase;
-  color: var(--mid);
+  font-family: var(--serif);
+  font-size: 18px;
+  font-weight: 500;
+  letter-spacing: -.005em;
 }
-
 .section-meta {
-  font-family: 'DM Mono', monospace;
-  font-size: 9px;
-  color: var(--dim);
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  color: var(--text-dim);
 }
+.section-body { padding: var(--space-3) 0; }
 
-/* Table */
-.data-table { width: 100%; }
+/* Filter chips (used for People plan filter, etc.) */
+.chips { display: flex; gap: 6px; }
+.chip-btn {
+  background: transparent;
+  border: 1px solid var(--border2);
+  color: var(--text-mid);
+  padding: 4px 12px;
+  border-radius: 14px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all .15s;
+}
+.chip-btn:hover { color: var(--gold); border-color: var(--gold-dim); }
+.chip-btn.active { color: var(--bg); background: var(--gold); border-color: var(--gold); }
 
-.data-row {
+/* ───────────────────────────────────────────────────────────────────────
+   People table
+   ─────────────────────────────────────────────────────────────────── */
+.people-table {
+  display: grid;
+  grid-template-columns: 1fr 64px 70px 70px 70px 90px;
+  font-size: 13px;
+}
+.people-table .row {
+  display: contents;
+}
+.people-table .row > * {
+  padding: 12px 12px;
+  border-top: 1px solid var(--border);
+  background: transparent;
   display: flex;
   align-items: center;
-  padding: 12px 20px;
-  border-bottom: 1px solid var(--border);
-  transition: background .15s;
-  gap: 12px;
+  transition: background .12s;
 }
+.people-table .row.head > * {
+  border-top: none;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  padding-top: 4px;
+  padding-bottom: 14px;
+}
+.people-table .row.body { cursor: pointer; }
+.people-table .row.body:hover > * { background: rgba(201,168,76,0.04); }
+.people-table .row > *:first-child { padding-left: var(--space-5); }
+.people-table .row > *:last-child  { padding-right: var(--space-5); }
+.people-table .num { font-family: var(--mono); font-size: 12px; }
+.people-table .right { justify-content: flex-end; text-align: right; }
 
-.data-row:last-child { border-bottom: none; }
-.data-row:hover { background: rgba(255,255,255,0.02); }
-
-.row-rank {
-  font-family: 'DM Mono', monospace;
-  font-size: 10px;
-  color: var(--dim);
-  width: 20px;
+.avatar {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: var(--surface3);
+  color: var(--gold);
+  font-family: var(--mono);
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 500;
   flex-shrink: 0;
+  margin-right: 10px;
+}
+.avatar.paid { background: rgba(201,168,76,0.18); color: var(--gold); }
+
+.identity .name { color: var(--text); font-weight: 400; }
+.identity .email { color: var(--text-dim); font-size: 11px; margin-top: 1px; }
+.identity { display: flex; align-items: center; min-width: 0; }
+.identity .who { min-width: 0; overflow: hidden; }
+.identity .who .name,
+.identity .who .email {
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 
-.row-label {
-  flex: 1;
+.plan-pill {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+.plan-pill.paid { color: var(--gold); background: rgba(201,168,76,0.12); }
+.plan-pill.free { color: var(--text-dim); background: rgba(255,255,255,0.04); }
+
+.empty-state {
+  padding: var(--space-5);
   font-size: 13px;
-  color: var(--white);
-  font-weight: 300;
-  min-width: 0;
+  color: var(--text-dim);
+  text-align: center;
+}
+
+.skeleton {
+  background: linear-gradient(90deg, var(--surface2) 25%, var(--border2) 50%, var(--surface2) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 3px;
+  height: 12px;
+  margin: 14px var(--space-5);
+}
+@keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+
+/* ───────────────────────────────────────────────────────────────────────
+   Bar list (used for Watchlist, top events, sources, countries)
+   ─────────────────────────────────────────────────────────────────── */
+.bar-list { padding: 0 var(--space-5); }
+.bar-row {
+  display: grid;
+  grid-template-columns: 22px 1fr 50px;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--border);
+}
+.bar-row:last-child { border-bottom: none; }
+.bar-row .rank {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text-faint);
+  text-align: right;
+}
+.bar-row .body { min-width: 0; }
+.bar-row .label {
+  font-size: 13px;
+  color: var(--text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-
-.row-bar-wrap {
-  width: 100px;
-  height: 3px;
-  background: var(--border);
+.bar-row .bar-track {
+  height: 4px;
+  background: var(--surface3);
   border-radius: 2px;
-  flex-shrink: 0;
+  margin-top: 6px;
+  overflow: hidden;
 }
-
-.row-bar {
+.bar-row .bar-fill {
   height: 100%;
   background: var(--gold);
   border-radius: 2px;
-  transition: width .6s ease;
+  transition: width .6s cubic-bezier(.2,.8,.2,1);
 }
-
-.row-bar.green { background: var(--green); }
-
-.row-value {
-  font-family: 'DM Mono', monospace;
+.bar-row .bar-fill.green { background: var(--green); }
+.bar-row .val {
+  font-family: var(--mono);
   font-size: 12px;
-  color: var(--gold);
-  width: 50px;
+  color: var(--text-mid);
   text-align: right;
-  flex-shrink: 0;
 }
+.bar-row .val.accent { color: var(--green); font-weight: 500; }
 
-.row-value.green { color: var(--green); }
-
-/* Refresh bar */
-.refresh-bar {
+/* ───────────────────────────────────────────────────────────────────────
+   Live activity feed
+   ─────────────────────────────────────────────────────────────────── */
+.feed-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 0 0;
+  padding: var(--space-4) var(--space-4);
+  border-bottom: 1px solid var(--border);
 }
-
-.last-updated {
-  font-family: 'DM Mono', monospace;
+.feed-title {
+  font-family: var(--mono);
   font-size: 10px;
-  color: var(--dim);
-}
-
-.refresh-btn {
-  background: transparent;
-  border: 1px solid var(--border);
-  border-radius: 3px;
-  color: var(--mid);
-  cursor: pointer;
-  font-family: 'DM Mono', monospace;
-  font-size: 9px;
-  letter-spacing: .1em;
-  padding: 6px 14px;
+  letter-spacing: .25em;
+  color: var(--green);
   text-transform: uppercase;
-  transition: all .2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
-.refresh-btn:hover { border-color: var(--gold-dim); color: var(--gold); }
-.refresh-btn:disabled { opacity: .4; cursor: not-allowed; }
+.feed-title .dot {
+  width: 6px; height: 6px;
+  background: var(--green);
+  border-radius: 50%;
+  animation: pulse 2s ease-in-out infinite;
+}
+.feed-meta {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  color: var(--text-dim);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
 
-/* Error */
-.err {
-  background: rgba(255,95,95,0.08);
-  border: 1px solid rgba(255,95,95,0.2);
-  border-radius: 4px;
-  color: var(--red);
-  font-size: 13px;
-  padding: 12px 16px;
-  margin-bottom: 16px;
+.col-feed .section {
+  margin-bottom: 0;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+.feed-body {
+  overflow-y: auto;
+  padding: 4px 0;
+  flex: 1;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border2) transparent;
+}
+.feed-body::-webkit-scrollbar { width: 6px; }
+.feed-body::-webkit-scrollbar-track { background: transparent; }
+.feed-body::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+.feed-item {
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  gap: 10px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  align-items: flex-start;
+  transition: background 1.2s;
+}
+.feed-item.new {
+  background: rgba(61,220,132,0.06);
+}
+.feed-item .avatar {
+  margin-right: 0;
+  margin-top: 1px;
+  width: 24px; height: 24px;
+  font-size: 10px;
+}
+.feed-item .who {
+  font-size: 12px;
+  color: var(--text);
+  font-weight: 400;
+  line-height: 1.4;
+}
+.feed-item .who .name { color: var(--text); }
+.feed-item .who .verb {
+  color: var(--gold);
+  font-family: var(--mono);
+  font-size: 11px;
+  margin: 0 4px;
+}
+.feed-item .who .obj { color: var(--text-mid); }
+.feed-item .ago {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text-faint);
+  letter-spacing: .08em;
+  margin-top: 2px;
+}
+
+/* ───────────────────────────────────────────────────────────────────────
+   Member detail modal
+   ─────────────────────────────────────────────────────────────────── */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.78);
+  z-index: 9999;
   display: none;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 40px 20px;
+  overflow-y: auto;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }
-.err.on { display: block; }
-
-/* Loading skeleton */
-.skeleton {
-  background: linear-gradient(90deg, var(--surface2) 25%, var(--border) 50%, var(--surface2) 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
-  border-radius: 3px;
-  height: 14px;
+.overlay.on { display: flex; }
+.modal {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: var(--r-lg);
+  max-width: 820px;
+  width: 100%;
+  position: relative;
+  box-shadow: 0 30px 80px -20px rgba(0,0,0,0.8);
 }
-@keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+.modal-close {
+  position: absolute;
+  top: 16px; right: 16px;
+  background: transparent;
+  border: 1px solid var(--border2);
+  color: var(--text-mid);
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all .15s;
+}
+.modal-close:hover { color: var(--gold); border-color: var(--gold-dim); }
+.modal-head {
+  padding: var(--space-5) var(--space-6);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  gap: var(--space-4);
+  align-items: center;
+}
+.modal-head .avatar { width: 54px; height: 54px; font-size: 19px; margin-right: 0; }
+.modal-head .identity { flex: 1; min-width: 0; }
+.modal-head h2 {
+  font-family: var(--serif);
+  font-size: 26px;
+  font-weight: 400;
+  line-height: 1.1;
+}
+.modal-head .email { color: var(--text-dim); font-size: 13px; margin-top: 4px; font-family: var(--mono); }
 
-.spinning { animation: spin 1s linear infinite; display: inline-block; }
-@keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+.modal-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: var(--border);
+}
+.modal-stats > div {
+  padding: var(--space-4) var(--space-5);
+  background: var(--surface);
+}
+.modal-stats .label {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+}
+.modal-stats .value {
+  font-family: var(--serif);
+  font-size: 24px;
+  color: var(--text);
+}
+.modal-stats .value.gold { color: var(--gold); }
+.modal-stats .sub {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text-faint);
+  margin-top: 3px;
+  letter-spacing: .08em;
+}
+
+.modal-section {
+  padding: var(--space-5) var(--space-6);
+  border-top: 1px solid var(--border);
+}
+.modal-section h3 {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: var(--space-3);
+}
+
+/* Sparkline: 30 day activity (as inline bars) */
+.spark {
+  display: flex;
+  gap: 3px;
+  align-items: flex-end;
+  height: 64px;
+  margin: var(--space-3) 0 var(--space-2);
+}
+.spark .bar {
+  flex: 1;
+  background: var(--surface3);
+  border-radius: 2px 2px 0 0;
+  min-height: 2px;
+  position: relative;
+}
+.spark .bar.has-data { background: var(--gold); }
+.spark .bar.today {
+  background: var(--green);
+}
+.spark-labels {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--text-faint);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.timeline {
+  max-height: 360px;
+  overflow-y: auto;
+  margin: 0 calc(-1 * var(--space-6));
+  padding: 0 var(--space-6);
+  scrollbar-width: thin;
+  scrollbar-color: var(--border2) transparent;
+}
+.timeline-row {
+  display: grid;
+  grid-template-columns: 80px 140px 1fr;
+  gap: 14px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+  align-items: baseline;
+}
+.timeline-row:last-child { border-bottom: none; }
+.timeline-row .when {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text-faint);
+  letter-spacing: .06em;
+}
+.timeline-row .what {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--gold);
+}
+.timeline-row .detail {
+  color: var(--text-mid);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tag-list {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  margin-top: var(--space-2);
+}
+.tag {
+  background: var(--surface3);
+  color: var(--text-mid);
+  font-family: var(--mono);
+  font-size: 10px;
+  padding: 4px 10px;
+  border-radius: 12px;
+  letter-spacing: .04em;
+}
+.tag .ct {
+  color: var(--gold);
+  margin-left: 6px;
+  font-weight: 500;
+}
+
+/* ───────────────────────────────────────────────────────────────────────
+   Auth gate (initial Load Dashboard)
+   ─────────────────────────────────────────────────────────────────── */
+.gate {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: var(--space-7);
+  text-align: center;
+  margin: 0 auto;
+  max-width: 480px;
+  margin-top: var(--space-7);
+}
+.gate h3 {
+  font-family: var(--serif);
+  font-size: 22px;
+  font-weight: 400;
+  margin-bottom: var(--space-3);
+}
+.gate p { color: var(--text-mid); font-size: 13px; margin-bottom: var(--space-5); }
+.gate button {
+  background: var(--gold);
+  color: var(--bg);
+  border: none;
+  padding: 12px 28px;
+  border-radius: var(--r-sm);
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all .15s;
+}
+.gate button:hover { background: var(--white); }
+.gate button:disabled { opacity: .5; cursor: not-allowed; }
+
+.dashboard { display: none; }
+.dashboard.on { display: block; }
+.gate.off { display: none; }
 </style>
 </head>
 <body>
-<div class="wrap">
 
-<header>
-  <div class="brand-block">
-    <div class="brand">Markets of Tomorrow</div>
-    <h1>Map <em>Analytics</em></h1>
+<div class="app">
+
+  <!-- Top bar -->
+  <header class="top">
+    <div class="brand">
+      <div class="eyebrow">Markets of Tomorrow</div>
+      <h1>Map <em>Analytics</em></h1>
+    </div>
+    <div class="top-meta">
+      <div class="live-pill"><span class="dot"></span>Live</div>
+      <div class="last-updated" id="lastUpdated">—</div>
+      <button class="refresh-btn" id="refreshBtn" onclick="refreshAll(true)">↻ Refresh</button>
+    </div>
+  </header>
+
+  <!-- Soft error / status banner -->
+  <div class="banner" id="banner"></div>
+
+  <!-- ───────────────────────── INITIAL LOAD GATE ───────────────────────── -->
+  <div class="gate" id="gate">
+    <h3>Map of Tomorrow — Live Analytics</h3>
+    <p>Identified-user behavior, watchlist activity, GA4 aggregates — all in one place.</p>
+    <button id="loadBtn" onclick="boot()">Load Dashboard →</button>
   </div>
-  <div class="live-badge"><div class="pulse"></div>Live Data</div>
-</header>
 
-<!-- Load -->
-<div class="auth-card" id="authCard">
-  <div class="auth-title">Map of Tomorrow — Live Analytics</div>
-  <button class="go-btn" id="goBtn" onclick="loadData()" style="width:100%;padding:14px">Load Dashboard →</button>
-  <p class="auth-note" style="margin-top:10px">Pulls live data from map.oftmw.com via your analytics pipeline.</p>
+  <!-- ─────────────────────────── DASHBOARD ─────────────────────────── -->
+  <div class="dashboard" id="dashboard">
+
+    <!-- Hero stats -->
+    <div class="hero">
+      <div class="stat accent">
+        <div class="stat-label">Active Right Now</div>
+        <div class="stat-value accent" id="heroActive">—</div>
+        <div class="stat-meta" id="heroActiveSub">people on site</div>
+      </div>
+
+      <div class="stat">
+        <div class="stat-label">Identified Members</div>
+        <div class="stat-value" id="heroMembers">—</div>
+        <div class="stat-meta" id="heroMembersSub">—</div>
+      </div>
+
+      <div class="stat">
+        <div class="stat-label">On Watchlists</div>
+        <div class="stat-value" id="heroWatch">—</div>
+        <div class="stat-meta" id="heroWatchSub">—</div>
+      </div>
+
+      <div class="stat">
+        <div class="stat-label">Events · Last 7 Days</div>
+        <div class="stat-value" id="hero7d">—</div>
+        <div class="stat-meta" id="hero7dSub">—</div>
+      </div>
+    </div>
+
+    <!-- Two-column main -->
+    <div class="main">
+
+      <!-- ─────────── LEFT COLUMN ─────────── -->
+      <div class="col-main">
+
+        <!-- People -->
+        <div class="section">
+          <div class="section-head">
+            <div>
+              <div class="section-title">People</div>
+              <div style="font-size:11px;color:var(--text-dim);margin-top:2px">Identified members. Click any row for a full profile.</div>
+            </div>
+            <div class="chips" id="planChips">
+              <button class="chip-btn active" data-plan="all">All</button>
+              <button class="chip-btn" data-plan="paid">Paid</button>
+              <button class="chip-btn" data-plan="free">Free</button>
+            </div>
+          </div>
+          <div class="section-body">
+            <div class="people-table" id="peopleTable">
+              <div class="row head">
+                <div>Member</div>
+                <div class="right">Plan</div>
+                <div class="right">Events</div>
+                <div class="right">Sessions</div>
+                <div class="right">Days</div>
+                <div class="right">Last seen</div>
+              </div>
+            </div>
+            <div id="peopleEmpty"></div>
+          </div>
+        </div>
+
+        <!-- Watchlist -->
+        <div class="section">
+          <div class="section-head">
+            <div class="section-title">Watchlist Activity</div>
+            <div class="section-meta">Currently watched · last 28d</div>
+          </div>
+          <div class="section-body">
+            <div id="watchlistList"></div>
+          </div>
+        </div>
+
+        <!-- Top events on map -->
+        <div class="section">
+          <div class="section-head">
+            <div class="section-title">Top Events on Map</div>
+            <div class="section-meta">Last 28 days · GA4</div>
+          </div>
+          <div class="section-body">
+            <div id="ga4Events"></div>
+          </div>
+        </div>
+
+        <!-- Sources + Countries side-by-side on wide -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-5)">
+          <div class="section" style="margin-bottom:0">
+            <div class="section-head">
+              <div class="section-title">Traffic Sources</div>
+              <div class="section-meta">28d</div>
+            </div>
+            <div class="section-body">
+              <div id="ga4Sources"></div>
+            </div>
+          </div>
+          <div class="section" style="margin-bottom:0">
+            <div class="section-head">
+              <div class="section-title">Users by Country</div>
+              <div class="section-meta">28d</div>
+            </div>
+            <div class="section-body">
+              <div id="ga4Countries"></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ─────────── RIGHT COLUMN (live feed) ─────────── -->
+      <div class="col-feed">
+        <div class="section">
+          <div class="feed-head">
+            <div class="feed-title"><span class="dot"></span>Live Activity</div>
+            <div class="feed-meta" id="feedMeta">—</div>
+          </div>
+          <div class="feed-body" id="feedBody">
+            <div class="skeleton"></div>
+            <div class="skeleton" style="width:80%"></div>
+            <div class="skeleton" style="width:65%"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
 </div>
 
-<div class="err" id="errMsg"></div>
-
-<!-- Dashboard -->
-<div class="dashboard" id="dash">
-
-  <div class="stat-grid">
-    <div class="stat-card green">
-      <div class="stat-label">Active Right Now</div>
-      <div class="stat-value green" id="statActive">—</div>
-      <div class="stat-sub" id="statActiveSub">map.oftmw.com</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">Views — Last 7 Days</div>
-      <div class="stat-value" id="stat7d">—</div>
-      <div class="stat-sub" id="stat7dSub">map sessions</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">Views — Last 28 Days</div>
-      <div class="stat-value" id="stat28d">—</div>
-      <div class="stat-sub" id="stat28dSub">map sessions</div>
-    </div>
+<!-- Member detail modal -->
+<div class="overlay" id="overlay" onclick="if(event.target===this)closeOverlay()">
+  <div class="modal" id="modal">
+    <!-- filled by openMember() -->
   </div>
-
-  <!-- Top events -->
-  <div class="section">
-    <div class="section-header">
-      <span class="section-title">Top Events on Map</span>
-      <span class="section-meta">Last 28 days</span>
-    </div>
-    <div id="eventsTable"><div style="padding:20px 20px"><div class="skeleton" style="margin-bottom:10px"></div><div class="skeleton" style="width:70%;margin-bottom:10px"></div><div class="skeleton" style="width:50%"></div></div></div>
-  </div>
-
-  <!-- Top traffic sources -->
-  <div class="section">
-    <div class="section-header">
-      <span class="section-title">Traffic Sources</span>
-      <span class="section-meta">Last 28 days</span>
-    </div>
-    <div id="sourcesTable"><div style="padding:20px 20px"><div class="skeleton" style="margin-bottom:10px"></div><div class="skeleton" style="width:60%;margin-bottom:10px"></div><div class="skeleton" style="width:40%"></div></div></div>
-  </div>
-
-  <!-- Top countries -->
-  <div class="section">
-    <div class="section-header">
-      <span class="section-title">Users by Country</span>
-      <span class="section-meta">Last 28 days</span>
-    </div>
-    <div id="countriesTable"><div style="padding:20px 20px"><div class="skeleton" style="margin-bottom:10px"></div><div class="skeleton" style="width:60%;margin-bottom:10px"></div><div class="skeleton" style="width:40%"></div></div></div>
-  </div>
-
-  <!-- ───────────────────────────────────────────────────────────────────
-       Identified-user sections (powered by D1, not GA4).
-       These answer "WHO did WHAT" — questions GA4 won't answer at low
-       volume because of its data-thresholding privacy floor.
-       ─────────────────────────────────────────────────────────────── -->
-
-  <!-- People: identified members, most recently active first -->
-  <div class="section">
-    <div class="section-header">
-      <span class="section-title">People <span style="color:var(--gold);font-size:10px;letter-spacing:.15em;margin-left:8px">IDENTIFIED</span></span>
-      <span class="section-meta">Click a row for full timeline</span>
-    </div>
-    <div id="peopleTable"><div style="padding:20px 20px"><div class="skeleton" style="margin-bottom:10px"></div><div class="skeleton" style="width:65%;margin-bottom:10px"></div><div class="skeleton" style="width:45%"></div></div></div>
-  </div>
-
-  <!-- Watchlist popularity by project -->
-  <div class="section">
-    <div class="section-header">
-      <span class="section-title">Watchlist Activity</span>
-      <span class="section-meta">Last 28 days</span>
-    </div>
-    <div id="watchlistTable"><div style="padding:20px 20px"><div class="skeleton" style="margin-bottom:10px"></div><div class="skeleton" style="width:55%;margin-bottom:10px"></div><div class="skeleton" style="width:35%"></div></div></div>
-  </div>
-
-  <!-- Live activity feed -->
-  <div class="section">
-    <div class="section-header">
-      <span class="section-title">Activity Feed</span>
-      <span class="section-meta">Most recent 50 identified actions</span>
-    </div>
-    <div id="activityFeed"><div style="padding:20px 20px"><div class="skeleton" style="margin-bottom:10px"></div><div class="skeleton" style="width:70%;margin-bottom:10px"></div><div class="skeleton" style="width:50%"></div></div></div>
-  </div>
-
-  <div class="refresh-bar">
-    <div class="last-updated" id="lastUpdated">—</div>
-    <button class="refresh-btn" id="refreshBtn" onclick="loadData()">↻ Refresh</button>
-  </div>
-
-</div>
-
 </div>
 
 <script>
+/* ──────────────────────────────────────────────────────────────────────
+   Config
+   ─────────────────────────────────────────────────────────────────── */
+const WORKER_URL = 'https://tmw.jake-ab7.workers.dev';
 const PROPERTY_ID = '467692471';
 const HOSTNAME = 'map.oftmw.com';
 
-
+/* ──────────────────────────────────────────────────────────────────────
+   Utilities
+   ─────────────────────────────────────────────────────────────────── */
 function fmt(n) {
-  if (!n && n !== 0) return '—';
-  n = parseInt(n);
-  if (n >= 1000) return (n/1000).toFixed(1) + 'k';
+  n = parseInt(n, 10);
+  if (isNaN(n)) return '—';
+  if (n >= 1e6) return (n/1e6).toFixed(1).replace(/\.0$/, '') + 'M';
+  if (n >= 1e3) return (n/1e3).toFixed(1).replace(/\.0$/, '') + 'k';
   return n.toString();
 }
-
-function showErr(msg) {
-  var e = document.getElementById('errMsg');
-  e.textContent = msg;
-  e.classList.add('on');
+function relTime(ts) {
+  if (!ts) return '—';
+  const sec = Math.floor(Date.now()/1000) - parseInt(ts, 10);
+  if (sec < 0) return 'now';
+  if (sec < 60)     return sec + 's ago';
+  if (sec < 3600)   return Math.floor(sec/60) + 'm ago';
+  if (sec < 86400)  return Math.floor(sec/3600) + 'h ago';
+  if (sec < 604800) return Math.floor(sec/86400) + 'd ago';
+  return new Date(parseInt(ts,10)*1000).toLocaleDateString();
 }
-function hideErr() { document.getElementById('errMsg').classList.remove('on'); }
+function absTime(ts) {
+  if (!ts) return '—';
+  return new Date(parseInt(ts,10)*1000).toLocaleString();
+}
+function escapeHTML(s) {
+  if (s == null) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+                  .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function showBanner(msg, soft) {
+  const el = document.getElementById('banner');
+  el.textContent = msg;
+  el.className = 'banner on' + (soft ? ' soft' : '');
+}
+function hideBanner() {
+  document.getElementById('banner').className = 'banner';
+}
+function initials(name, email) {
+  const src = name || email || '?';
+  return src.split(/[\s@.]+/).filter(Boolean).slice(0, 2).map(s => s[0]).join('').toUpperCase();
+}
 
-// Worker proxy for GA4 Data API + D1-backed identified-user sections.
-// Auto-retries GA4 cards on 403 (Google permission-cache propagation lag).
-const WORKER_URL = 'https://tmw.jake-ab7.workers.dev';
-
+/* ──────────────────────────────────────────────────────────────────────
+   Network helpers
+   ─────────────────────────────────────────────────────────────────── */
+async function workerGet(path) {
+  const sep = path.includes('?') ? '&' : '?';
+  const r = await fetch(WORKER_URL + path + sep + '_=' + Date.now(), { cache: 'no-store' });
+  if (!r.ok) throw new Error('Worker ' + path + ' → ' + r.status);
+  return r.json();
+}
 async function gaFetch(endpoint, body) {
-  var payload = JSON.stringify({ endpoint: endpoint, body: body });
-  var r = await fetch(WORKER_URL, {
+  const r = await fetch(WORKER_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: payload
+    body: JSON.stringify({ endpoint, body }),
   });
-  if (!r.ok) throw new Error('Worker returned ' + r.status);
-  var d = await r.json();
-  if (d.error) throw new Error(typeof d.error === 'string' ? d.error : JSON.stringify(d.error));
+  if (!r.ok) throw new Error('GA ' + endpoint + ' → ' + r.status);
+  const d = await r.json();
+  if (d.error) throw new Error(typeof d.error === 'string' ? d.error : (d.error.message || JSON.stringify(d.error)));
   return d;
 }
-
-async function gaReport(body) { return gaFetch(':runReport', body); }
-async function gaRealtime(body) { return gaFetch(':runRealtimeReport', body); }
-
 function hostnameFilter() {
-  return {
-    filter: {
-      fieldName: 'hostName',
-      stringFilter: { matchType: 'EXACT', value: HOSTNAME }
-    }
-  };
+  return { filter: { fieldName: 'hostName', stringFilter: { matchType: 'EXACT', value: HOSTNAME } } };
 }
 
-function renderTable(containerId, rows, labelKey, valueKey, color) {
-  if (!rows || rows.length === 0) {
-    document.getElementById(containerId).innerHTML = '<div style="padding:16px 20px;font-size:12px;color:var(--dim)">No data yet</div>';
+/* ──────────────────────────────────────────────────────────────────────
+   Boot + refresh loops
+   ─────────────────────────────────────────────────────────────────── */
+let _state = {
+  people: [],
+  planFilter: 'all',
+  lastFeedTs: 0,
+};
+
+function boot() {
+  document.getElementById('loadBtn').disabled = true;
+  document.getElementById('loadBtn').textContent = 'Loading...';
+  document.getElementById('gate').classList.add('off');
+  document.getElementById('dashboard').classList.add('on');
+  refreshAll(true);
+
+  // Refresh cadence:
+  //  - Live activity feed every 5s (the always-fresh thing)
+  //  - Full dashboard every 60s
+  setInterval(loadFeed, 5000);
+  setInterval(() => refreshAll(false), 60000);
+}
+
+async function refreshAll(showRefreshSpinner) {
+  if (showRefreshSpinner) {
+    const b = document.getElementById('refreshBtn');
+    b.disabled = true; b.textContent = '↻ Refreshing…';
+  }
+  document.getElementById('lastUpdated').textContent = 'Updating…';
+
+  await Promise.allSettled([
+    loadStatsAndHero(),
+    loadPeople(),
+    loadWatchlist(),
+    loadGA4(),
+    loadFeed(),
+  ]);
+
+  document.getElementById('lastUpdated').textContent = 'Updated ' + new Date().toLocaleTimeString();
+  const b = document.getElementById('refreshBtn');
+  b.disabled = false; b.textContent = '↻ Refresh';
+}
+
+/* ──────────────────────────────────────────────────────────────────────
+   Hero stats (combines GA4 realtime + D1 /stats)
+   ─────────────────────────────────────────────────────────────────── */
+async function loadStatsAndHero() {
+  // D1 stats (members, paid count, watchlist) — fast, always works.
+  try {
+    const s = await workerGet('/stats');
+    document.getElementById('heroMembers').textContent = fmt(s.members_total);
+    document.getElementById('heroMembersSub').innerHTML =
+      `<span class="chip gold">${s.members_paid} paid</span><span class="chip">${s.members_free} free</span>`;
+    document.getElementById('heroWatch').textContent = fmt(s.watchlist_unique_projects);
+    document.getElementById('heroWatchSub').innerHTML =
+      `<span class="chip">${s.watchlist_total_active} total active</span>`;
+
+    document.getElementById('hero7d').textContent = fmt(s.events_last_7d);
+    let deltaHTML = '';
+    if (s.events_prev_7d > 0) {
+      const pct = Math.round(((s.events_last_7d - s.events_prev_7d) / s.events_prev_7d) * 100);
+      const cls = pct >= 0 ? 'up' : 'down';
+      const arrow = pct >= 0 ? '↑' : '↓';
+      deltaHTML = `<span class="delta ${cls}">${arrow} ${Math.abs(pct)}% vs prior 7d</span>`;
+    } else {
+      deltaHTML = `<span class="delta">${fmt(s.active_members_7d)} members active</span>`;
+    }
+    document.getElementById('hero7dSub').innerHTML = deltaHTML;
+  } catch (e) {
+    document.getElementById('heroMembers').textContent = '—';
+    document.getElementById('heroMembersSub').textContent = 'stats unavailable';
+  }
+
+  // GA4 realtime active users (separate failure path so it can be down
+  // without the rest of the dashboard breaking).
+  try {
+    const rt = await gaFetch(':runRealtimeReport', { metrics: [{ name: 'activeUsers' }] });
+    let active = 0;
+    if (rt.rows) rt.rows.forEach(r => { active += parseInt(r.metricValues[0].value) || 0; });
+    document.getElementById('heroActive').textContent = active;
+    document.getElementById('heroActiveSub').textContent = active === 1 ? '1 person on site' : active + ' people on site';
+    hideBanner();
+  } catch (e) {
+    document.getElementById('heroActive').textContent = '—';
+    document.getElementById('heroActiveSub').textContent = 'GA4 unavailable';
+    const m = e.message || String(e);
+    if (/403|PERMISSION_DENIED/i.test(m)) {
+      showBanner('GA4 still propagating Google\'s access cache — auto-retrying every 60s. Identified-user data is unaffected.', true);
+    } else {
+      showBanner('GA4 error: ' + m, false);
+    }
+  }
+}
+
+/* ──────────────────────────────────────────────────────────────────────
+   People
+   ─────────────────────────────────────────────────────────────────── */
+async function loadPeople() {
+  try {
+    const d = await workerGet('/people');
+    _state.people = d.rows || [];
+    renderPeople();
+  } catch (e) {
+    document.getElementById('peopleEmpty').innerHTML =
+      `<div class="empty-state" style="color:var(--red)">People: ${escapeHTML(e.message)}</div>`;
+  }
+}
+
+function renderPeople() {
+  const t = document.getElementById('peopleTable');
+  // Wipe everything except the header row (first child).
+  while (t.children.length > 1) t.removeChild(t.lastChild);
+
+  const filtered = _state.people.filter(p => {
+    if (_state.planFilter === 'all') return true;
+    return (p.plan || 'free') === _state.planFilter;
+  });
+
+  document.getElementById('peopleEmpty').innerHTML = '';
+  if (!filtered.length) {
+    document.getElementById('peopleEmpty').innerHTML =
+      `<div class="empty-state">No identified members${_state.planFilter !== 'all' ? ' in this segment' : ' yet — log into map.oftmw.com to seed data'}.</div>`;
     return;
   }
-  var maxVal = Math.max.apply(null, rows.map(function(r){ return parseInt(r[valueKey]) || 0; }));
-  var html = rows.map(function(r, i) {
-    var val = parseInt(r[valueKey]) || 0;
-    var pct = maxVal > 0 ? Math.round((val / maxVal) * 100) : 0;
-    var label = r[labelKey] || '(none)';
-    if (label.length > 55) label = label.slice(0, 55) + '…';
-    return '<div class="data-row">'
-      + '<span class="row-rank">' + (i+1) + '</span>'
-      + '<span class="row-label" title="' + r[labelKey] + '">' + label + '</span>'
-      + '<div class="row-bar-wrap"><div class="row-bar' + (color === 'green' ? ' green' : '') + '" style="width:' + pct + '%"></div></div>'
-      + '<span class="row-value' + (color === 'green' ? ' green' : '') + '">' + fmt(val) + '</span>'
-      + '</div>';
-  }).join('');
-  document.getElementById(containerId).innerHTML = html;
+
+  for (const p of filtered) {
+    const row = document.createElement('div');
+    row.className = 'row body';
+    row.onclick = () => openMember(p.member_id);
+    const name = p.member_name || (p.email ? p.email.split('@')[0] : p.member_id);
+    const isPaid = (p.plan === 'paid');
+
+    row.innerHTML = `
+      <div class="identity">
+        <div class="avatar ${isPaid ? 'paid' : ''}">${escapeHTML(initials(p.member_name, p.email))}</div>
+        <div class="who">
+          <div class="name">${escapeHTML(name)}</div>
+          <div class="email">${escapeHTML(p.email || p.member_id)}</div>
+        </div>
+      </div>
+      <div class="right"><span class="plan-pill ${isPaid ? 'paid' : 'free'}">${escapeHTML((p.plan || 'free').toUpperCase())}</span></div>
+      <div class="num right">${fmt(p.event_count)}</div>
+      <div class="num right">${fmt(p.sessions)}</div>
+      <div class="num right">${fmt(p.active_days)}</div>
+      <div class="num right" style="color:var(--text-mid)">${escapeHTML(relTime(p.last_seen_ts))}</div>
+    `;
+    t.appendChild(row);
+  }
 }
 
-async function loadData() {
-  hideErr();
-  document.getElementById('goBtn').disabled = true;
-  document.getElementById('goBtn').textContent = 'Loading...';
-  document.getElementById('refreshBtn').disabled = true;
+document.addEventListener('click', (e) => {
+  const chip = e.target.closest('.chip-btn[data-plan]');
+  if (!chip) return;
+  document.querySelectorAll('#planChips .chip-btn').forEach(c => c.classList.remove('active'));
+  chip.classList.add('active');
+  _state.planFilter = chip.dataset.plan;
+  renderPeople();
+});
 
+/* ──────────────────────────────────────────────────────────────────────
+   Watchlist (bar list)
+   ─────────────────────────────────────────────────────────────────── */
+async function loadWatchlist() {
+  const el = document.getElementById('watchlistList');
   try {
-    // Realtime active users.
-    //
-    // NOTE: The GA4 Realtime API does NOT support `hostName` as a dimension
-    // OR as a dimensionFilter — only regular runReport does. So we can't
-    // filter to map.oftmw.com here; this count is property-wide (all
-    // subdomains pointed at GA4 property 467692471). For the Map of
-    // Tomorrow setup that's effectively the same number since map.oftmw.com
-    // is the dominant traffic source on this property.
-    var rt = await gaRealtime({
-      metrics: [{ name: 'activeUsers' }]
-    });
-
-    var activeUsers = 0;
-    if (rt.rows) {
-      rt.rows.forEach(function(r) { activeUsers += parseInt(r.metricValues[0].value) || 0; });
+    const d = await workerGet('/watchlist?days=28');
+    const rows = d.rows || [];
+    if (!rows.length) {
+      el.innerHTML = '<div class="empty-state">No watchlist activity yet. Favorite a project on the map to seed.</div>';
+      return;
     }
-    document.getElementById('statActive').textContent = activeUsers;
-    document.getElementById('statActiveSub').textContent = activeUsers === 1 ? '1 person right now' : activeUsers + ' people right now';
+    const maxW = Math.max(...rows.map(r => r.current_watchers || 0), 1);
+    el.innerHTML = '<div class="bar-list">' + rows.map((r, i) => {
+      const pct = Math.round(((r.current_watchers || 0) / maxW) * 100);
+      const label = r.project || '(unknown)';
+      return `
+        <div class="bar-row">
+          <div class="rank">${i+1}</div>
+          <div class="body">
+            <div class="label" title="${escapeHTML(r.project)}">${escapeHTML(label)}</div>
+            <div class="bar-track"><div class="bar-fill green" style="width:${pct}%"></div></div>
+          </div>
+          <div class="val accent">${r.current_watchers} <span style="color:var(--text-faint);font-weight:300">· ${r.total_adds}</span></div>
+        </div>`;
+    }).join('') + '</div>';
+  } catch (e) {
+    el.innerHTML = `<div class="empty-state" style="color:var(--red)">${escapeHTML(e.message)}</div>`;
+  }
+}
 
-    // 7-day views
-    var r7 = await gaReport({
-      dateRanges: [{ startDate: '7daysAgo', endDate: 'today' }],
-      metrics: [{ name: 'screenPageViews' }],
-      dimensionFilter: hostnameFilter()
-    });
-    var views7 = r7.rows ? parseInt(r7.rows[0]?.metricValues[0]?.value || 0) : 0;
-    document.getElementById('stat7d').textContent = fmt(views7);
-    document.getElementById('stat7dSub').textContent = 'page views';
-
-    // 28-day views
-    var r28 = await gaReport({
-      dateRanges: [{ startDate: '28daysAgo', endDate: 'today' }],
-      metrics: [{ name: 'screenPageViews' }],
-      dimensionFilter: hostnameFilter()
-    });
-    var views28 = r28.rows ? parseInt(r28.rows[0]?.metricValues[0]?.value || 0) : 0;
-    document.getElementById('stat28d').textContent = fmt(views28);
-    document.getElementById('stat28dSub').textContent = 'page views';
-
-    // Top events
-    var evts = await gaReport({
+/* ──────────────────────────────────────────────────────────────────────
+   GA4 aggregate sections
+   ─────────────────────────────────────────────────────────────────── */
+async function loadGA4() {
+  // Top events
+  try {
+    const r = await gaFetch(':runReport', {
       dateRanges: [{ startDate: '28daysAgo', endDate: 'today' }],
       dimensions: [{ name: 'eventName' }],
       metrics: [{ name: 'eventCount' }],
       dimensionFilter: hostnameFilter(),
       orderBys: [{ metric: { metricName: 'eventCount' }, desc: true }],
-      limit: 8
+      limit: 10,
     });
-    var evtRows = (evts.rows || []).map(function(r) {
-      return { name: r.dimensionValues[0].value, count: r.metricValues[0].value };
-    });
-    renderTable('eventsTable', evtRows, 'name', 'count', 'green');
+    renderBarList('ga4Events', (r.rows || []).map(x => ({
+      label: x.dimensionValues[0].value,
+      val: parseInt(x.metricValues[0].value),
+    })), 'gold');
+  } catch (e) {
+    document.getElementById('ga4Events').innerHTML = `<div class="empty-state" style="color:var(--text-dim)">—</div>`;
+  }
 
-    // Traffic sources
-    var srcs = await gaReport({
+  // Sources
+  try {
+    const r = await gaFetch(':runReport', {
       dateRanges: [{ startDate: '28daysAgo', endDate: 'today' }],
       dimensions: [{ name: 'sessionDefaultChannelGroup' }],
       metrics: [{ name: 'sessions' }],
       dimensionFilter: hostnameFilter(),
       orderBys: [{ metric: { metricName: 'sessions' }, desc: true }],
-      limit: 6
+      limit: 8,
     });
-    var srcRows = (srcs.rows || []).map(function(r) {
-      return { name: r.dimensionValues[0].value, count: r.metricValues[0].value };
-    });
-    renderTable('sourcesTable', srcRows, 'name', 'count', '');
+    renderBarList('ga4Sources', (r.rows || []).map(x => ({
+      label: x.dimensionValues[0].value || '(none)',
+      val: parseInt(x.metricValues[0].value),
+    })), 'gold');
+  } catch (e) {
+    document.getElementById('ga4Sources').innerHTML = `<div class="empty-state" style="color:var(--text-dim)">—</div>`;
+  }
 
-    // Countries
-    var ctrs = await gaReport({
+  // Countries
+  try {
+    const r = await gaFetch(':runReport', {
       dateRanges: [{ startDate: '28daysAgo', endDate: 'today' }],
       dimensions: [{ name: 'country' }],
       metrics: [{ name: 'activeUsers' }],
       dimensionFilter: hostnameFilter(),
       orderBys: [{ metric: { metricName: 'activeUsers' }, desc: true }],
-      limit: 6
+      limit: 8,
     });
-    var ctrRows = (ctrs.rows || []).map(function(r) {
-      return { name: r.dimensionValues[0].value, count: r.metricValues[0].value };
-    });
-    renderTable('countriesTable', ctrRows, 'name', 'count', '');
-
-    // Show dashboard
-    document.getElementById('authCard').style.display = 'none';
-    document.getElementById('dash').classList.add('on');
-    document.getElementById('lastUpdated').textContent = 'Updated ' + new Date().toLocaleTimeString();
-
-    // Auto-refresh every 60s
-    setTimeout(function() { loadData(); }, 60000);
-
-  } catch(e) {
-    // If GA4 is still 403'ing because of permission-cache propagation lag
-    // (a known issue that can take 30+ min after granting the SA Viewer
-    // role), auto-retry every 60s instead of making the user manually
-    // reload. We hide the error after the first attempt to keep the
-    // dashboard quiet; the GA4 cards will self-fill the moment Google
-    // honors the grant.
-    var msg = e && e.message ? e.message : String(e);
-    var is403 = /403|PERMISSION_DENIED|sufficient permissions/i.test(msg);
-    if (is403) {
-      showErr('GA4 cards still propagating (Google access-cache lag). Auto-retrying every 60s — identified-user sections below are unaffected.');
-    } else {
-      showErr('GA4 API error: ' + msg + '. Check that the service account is granted Viewer access on GA4 property ' + PROPERTY_ID + ' and that GA_SERVICE_ACCOUNT_JSON is set as a worker secret.');
-    }
-    console.error(e);
-    // Still reveal the dashboard so the identified-user (D1-backed) sections
-    // below can render — they don't need the GA4 service-account secret.
-    document.getElementById('authCard').style.display = 'none';
-    document.getElementById('dash').classList.add('on');
-    // Auto-retry: schedule another full reload in 60s. This keeps the page
-    // alive and silently re-fetches GA4 — first successful call clears the
-    // error banner and populates the cards.
-    setTimeout(function() { loadData(); }, 60000);
+    renderBarList('ga4Countries', (r.rows || []).map(x => ({
+      label: x.dimensionValues[0].value || '(unknown)',
+      val: parseInt(x.metricValues[0].value),
+    })), 'gold');
+  } catch (e) {
+    document.getElementById('ga4Countries').innerHTML = `<div class="empty-state" style="color:var(--text-dim)">—</div>`;
   }
-
-  // ─── Identified-user sections (from D1, not GA4) ─────────────────────
-  // Run independently of the GA4 block above. Each one shows its own error
-  // inline rather than killing the whole dashboard.
-  Promise.allSettled([loadPeople(), loadWatchlist(), loadActivity()]);
-
-  document.getElementById('goBtn').disabled = false;
-  document.getElementById('goBtn').textContent = 'Connect →';
-  document.getElementById('refreshBtn').disabled = false;
 }
 
-// ─── D1-backed sections ───────────────────────────────────────────────
-// These call the new Cloudflare Worker endpoints (/people, /watchlist,
-// /activity, /timeline) that read from the events table populated by
-// identified-user POSTs from index.html.
-
-function relTime(ts) {
-  if (!ts) return '—';
-  var sec = Math.floor(Date.now()/1000) - parseInt(ts, 10);
-  if (sec < 60)   return sec + 's ago';
-  if (sec < 3600) return Math.floor(sec/60) + 'm ago';
-  if (sec < 86400) return Math.floor(sec/3600) + 'h ago';
-  if (sec < 604800) return Math.floor(sec/86400) + 'd ago';
-  return new Date(parseInt(ts,10)*1000).toLocaleDateString();
+function renderBarList(containerId, rows, color) {
+  const el = document.getElementById(containerId);
+  if (!rows.length) {
+    el.innerHTML = '<div class="empty-state">No data</div>';
+    return;
+  }
+  const max = Math.max(...rows.map(r => r.val), 1);
+  el.innerHTML = '<div class="bar-list">' + rows.map((r, i) => {
+    const pct = Math.round((r.val / max) * 100);
+    return `
+      <div class="bar-row">
+        <div class="rank">${i+1}</div>
+        <div class="body">
+          <div class="label" title="${escapeHTML(r.label)}">${escapeHTML(r.label)}</div>
+          <div class="bar-track"><div class="bar-fill ${color === 'green' ? 'green' : ''}" style="width:${pct}%"></div></div>
+        </div>
+        <div class="val">${fmt(r.val)}</div>
+      </div>`;
+  }).join('') + '</div>';
 }
 
-function escapeHTML(s) {
-  if (s == null) return '';
-  return String(s)
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
-}
-
-// Plain GET against the worker (no auth — these are read endpoints).
-// The GA4 proxy still uses the POST-with-endpoint convention.
-//
-// Cache-busting matters here: the first time the dashboard loaded, /people
-// returned {"rows":[]} because no events had been ingested yet. Without
-// no-store + a unique query param, the browser keeps serving that empty
-// response forever even after events accumulate in D1.
-async function workerGet(path) {
-  var sep = path.indexOf('?') >= 0 ? '&' : '?';
-  var url = WORKER_URL + path + sep + '_=' + Date.now();
-  var r = await fetch(url, { cache: 'no-store' });
-  if (!r.ok) throw new Error('Worker ' + path + ' → ' + r.status);
-  return r.json();
-}
-
-async function loadPeople() {
-  var el = document.getElementById('peopleTable');
+/* ──────────────────────────────────────────────────────────────────────
+   Live activity feed
+   ─────────────────────────────────────────────────────────────────── */
+async function loadFeed() {
+  const el = document.getElementById('feedBody');
   try {
-    var d = await workerGet('/people?limit=50');
-    var rows = d.rows || [];
+    const d = await workerGet('/activity?limit=50');
+    const rows = d.rows || [];
     if (!rows.length) {
-      el.innerHTML = '<div style="padding:16px 20px;font-size:12px;color:var(--dim)">No identified members yet. Log into map.oftmw.com and click around to seed data.</div>';
+      el.innerHTML = '<div class="empty-state">No events yet.</div>';
       return;
     }
-    el.innerHTML = rows.map(function(r) {
-      var name  = r.member_name || (r.email ? r.email.split('@')[0] : r.member_id);
-      var email = r.email ? ' <span style="color:var(--dim);font-size:11px">' + escapeHTML(r.email) + '</span>' : '';
-      var plan  = r.plan === 'paid'
-        ? '<span style="color:var(--gold);font-family:DM Mono,monospace;font-size:10px;letter-spacing:.15em">PAID</span>'
-        : '<span style="color:var(--dim);font-family:DM Mono,monospace;font-size:10px;letter-spacing:.15em">' + escapeHTML((r.plan || 'free').toUpperCase()) + '</span>';
-      return '<div class="data-row" style="cursor:pointer" onclick="showTimeline(\'' + escapeHTML(r.member_id) + '\', \'' + escapeHTML(name).replace(/'/g, "\\\\'") + '\')">'
-        + '<span class="row-label" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + escapeHTML(name) + email + '</span>'
-        + '<span style="margin:0 12px;min-width:48px;text-align:right">' + plan + '</span>'
-        + '<span class="row-value" style="min-width:64px;text-align:right">' + (r.event_count || 0) + ' evts</span>'
-        + '<span style="margin-left:12px;color:var(--mid);font-size:11px;font-family:DM Mono,monospace;min-width:72px;text-align:right">' + relTime(r.last_seen_ts) + '</span>'
-        + '</div>';
+    const newestTs = rows[0].ts;
+    const wasFreshBoot = _state.lastFeedTs === 0;
+    const isNewer = (ts) => !wasFreshBoot && ts > _state.lastFeedTs;
+
+    el.innerHTML = rows.map(r => {
+      const who = r.member_name || (r.email ? r.email.split('@')[0] : r.member_id);
+      let props = {};
+      try { if (r.props_json) props = JSON.parse(r.props_json); } catch {}
+      const detail = props.project_name || props.project_slug || props.title || props.search_term || props.filter_value || '';
+      const isPaid = r.plan === 'paid';
+      const verb = (r.event_name || '').replace(/_/g, ' ');
+      return `
+        <div class="feed-item ${isNewer(r.ts) ? 'new' : ''}">
+          <div class="avatar ${isPaid ? 'paid' : ''}">${escapeHTML(initials(r.member_name, r.email))}</div>
+          <div>
+            <div class="who">
+              <span class="name" onclick="openMember('${escapeHTML(r.member_id)}')" style="cursor:pointer;text-decoration:underline;text-decoration-color:var(--border2);text-underline-offset:3px">${escapeHTML(who)}</span>
+              <span class="verb">${escapeHTML(verb)}</span>
+              ${detail ? `<span class="obj">· ${escapeHTML(detail)}</span>` : ''}
+            </div>
+            <div class="ago">${escapeHTML(relTime(r.ts))}</div>
+          </div>
+        </div>`;
     }).join('');
+    _state.lastFeedTs = newestTs;
+    document.getElementById('feedMeta').textContent = rows.length + ' events';
   } catch (e) {
-    el.innerHTML = '<div style="padding:16px 20px;font-size:12px;color:var(--red)">People: ' + escapeHTML(e.message) + '</div>';
+    el.innerHTML = `<div class="empty-state" style="color:var(--red)">${escapeHTML(e.message)}</div>`;
   }
 }
 
-async function loadWatchlist() {
-  var el = document.getElementById('watchlistTable');
+/* ──────────────────────────────────────────────────────────────────────
+   Member detail modal
+   ─────────────────────────────────────────────────────────────────── */
+async function openMember(memberId) {
+  const overlay = document.getElementById('overlay');
+  const modal = document.getElementById('modal');
+  overlay.classList.add('on');
+  document.body.style.overflow = 'hidden';
+
+  modal.innerHTML = `
+    <button class="modal-close" onclick="closeOverlay()">×</button>
+    <div class="modal-head">
+      <div class="avatar">?</div>
+      <div class="identity"><h2>Loading…</h2><div class="email">${escapeHTML(memberId)}</div></div>
+    </div>
+    <div style="padding:var(--space-6)">
+      <div class="skeleton"></div>
+      <div class="skeleton" style="width:60%"></div>
+      <div class="skeleton" style="width:80%"></div>
+    </div>
+  `;
+
   try {
-    var d = await workerGet('/watchlist?days=28');
-    var rows = d.rows || [];
-    if (!rows.length) {
-      el.innerHTML = '<div style="padding:16px 20px;font-size:12px;color:var(--dim)">No watchlist activity yet.</div>';
+    const d = await workerGet('/member?id=' + encodeURIComponent(memberId));
+    if (!d.profile) {
+      modal.innerHTML = `
+        <button class="modal-close" onclick="closeOverlay()">×</button>
+        <div style="padding:var(--space-6);text-align:center;color:var(--text-dim)">No events captured for this member yet.</div>`;
       return;
     }
-    var maxWatchers = Math.max.apply(null, rows.map(function(r){ return r.current_watchers || 0; })) || 1;
-    el.innerHTML = rows.map(function(r, i) {
-      var pct = Math.round(((r.current_watchers || 0) / maxWatchers) * 100);
-      var label = r.project || '(unknown)';
-      if (label.length > 50) label = label.slice(0, 50) + '…';
-      return '<div class="data-row">'
-        + '<span class="row-rank">' + (i+1) + '</span>'
-        + '<span class="row-label" title="' + escapeHTML(r.project) + '">' + escapeHTML(label) + '</span>'
-        + '<div class="row-bar-wrap"><div class="row-bar green" style="width:' + pct + '%"></div></div>'
-        + '<span class="row-value green">' + (r.current_watchers || 0) + '</span>'
-        + '<span style="margin-left:12px;color:var(--mid);font-size:11px;font-family:DM Mono,monospace;min-width:64px;text-align:right" title="Total add events including ones later removed">' + (r.total_adds || 0) + ' adds</span>'
-        + '</div>';
+
+    const p = d.profile, s = d.stats || {};
+    const isPaid = p.plan === 'paid';
+    const name = p.member_name || (p.email ? p.email.split('@')[0] : p.member_id);
+
+    // Sparkline
+    const maxDaily = Math.max(...d.daily_counts, 1);
+    const today = d.daily_counts.length - 1;
+    const sparkHTML = d.daily_counts.map((c, i) => {
+      const h = Math.round((c / maxDaily) * 56);
+      const cls = c > 0 ? (i === today ? 'has-data today' : 'has-data') : '';
+      return `<div class="bar ${cls}" style="height:${Math.max(h, 2)}px" title="${c} events"></div>`;
     }).join('');
+
+    // Top projects as tags
+    const projectsHTML = d.top_projects.length
+      ? d.top_projects.map(p => `<span class="tag">${escapeHTML(p.project)}<span class="ct">${p.count}</span></span>`).join('')
+      : '<div style="color:var(--text-faint);font-size:12px">No project-level events yet.</div>';
+
+    // Current watchlist as tags
+    const watchHTML = d.watchlist.length
+      ? d.watchlist.map(w => `<span class="tag" style="color:var(--green)">${escapeHTML(w.project)}</span>`).join('')
+      : '<div style="color:var(--text-faint);font-size:12px">No projects currently watchlisted.</div>';
+
+    // Timeline rows
+    const tlHTML = d.timeline.map(t => {
+      let props = {};
+      try { if (t.props_json) props = JSON.parse(t.props_json); } catch {}
+      const detail = props.project_name || props.project_slug || props.title || props.search_term || props.filter_value || '';
+      return `
+        <div class="timeline-row">
+          <div class="when">${escapeHTML(relTime(t.ts))}</div>
+          <div class="what">${escapeHTML(t.event_name)}</div>
+          <div class="detail">${escapeHTML(detail)}</div>
+        </div>`;
+    }).join('');
+
+    modal.innerHTML = `
+      <button class="modal-close" onclick="closeOverlay()">×</button>
+      <div class="modal-head">
+        <div class="avatar ${isPaid ? 'paid' : ''}" style="width:54px;height:54px;font-size:19px;margin-right:0">${escapeHTML(initials(p.member_name, p.email))}</div>
+        <div class="identity" style="flex:1">
+          <h2>${escapeHTML(name)}</h2>
+          <div class="email">${escapeHTML(p.email || '')}</div>
+        </div>
+        <span class="plan-pill ${isPaid ? 'paid' : 'free'}" style="font-size:11px;padding:6px 12px">${escapeHTML((p.plan || 'free').toUpperCase())}</span>
+      </div>
+
+      <div class="modal-stats">
+        <div>
+          <div class="label">Total events</div>
+          <div class="value gold">${fmt(s.event_count)}</div>
+          <div class="sub">all-time</div>
+        </div>
+        <div>
+          <div class="label">Sessions</div>
+          <div class="value">${fmt(s.sessions)}</div>
+          <div class="sub">30-min gap = new</div>
+        </div>
+        <div>
+          <div class="label">Active days</div>
+          <div class="value">${fmt(s.active_days)}</div>
+          <div class="sub">distinct days</div>
+        </div>
+        <div>
+          <div class="label">First seen</div>
+          <div class="value" style="font-size:14px;line-height:1.4">${escapeHTML(relTime(s.first_seen_ts))}</div>
+          <div class="sub">${escapeHTML(new Date(s.first_seen_ts*1000).toLocaleDateString())}</div>
+        </div>
+      </div>
+
+      <div class="modal-section">
+        <h3>Activity · Last 30 Days</h3>
+        <div class="spark">${sparkHTML}</div>
+        <div class="spark-labels"><div>30d ago</div><div>today</div></div>
+      </div>
+
+      <div class="modal-section">
+        <h3>Top Projects</h3>
+        <div class="tag-list">${projectsHTML}</div>
+      </div>
+
+      <div class="modal-section">
+        <h3>Current Watchlist · ${d.watchlist.length}</h3>
+        <div class="tag-list">${watchHTML}</div>
+      </div>
+
+      <div class="modal-section">
+        <h3>Timeline · ${d.timeline.length} most recent</h3>
+        <div class="timeline">${tlHTML || '<div style="color:var(--text-faint);font-size:12px;padding:12px 0">No timeline.</div>'}</div>
+      </div>
+    `;
   } catch (e) {
-    el.innerHTML = '<div style="padding:16px 20px;font-size:12px;color:var(--red)">Watchlist: ' + escapeHTML(e.message) + '</div>';
+    modal.innerHTML = `
+      <button class="modal-close" onclick="closeOverlay()">×</button>
+      <div style="padding:var(--space-6);color:var(--red);text-align:center">${escapeHTML(e.message)}</div>`;
   }
 }
 
-async function loadActivity() {
-  var el = document.getElementById('activityFeed');
-  try {
-    var d = await workerGet('/activity?limit=50');
-    var rows = d.rows || [];
-    if (!rows.length) {
-      el.innerHTML = '<div style="padding:16px 20px;font-size:12px;color:var(--dim)">No events yet.</div>';
-      return;
-    }
-    el.innerHTML = rows.map(function(r) {
-      var who   = r.member_name || (r.email ? r.email.split('@')[0] : r.member_id);
-      var props = {};
-      try { if (r.props_json) props = JSON.parse(r.props_json); } catch(_) {}
-      var detail = props.project_slug || props.project_name || props.title || props.search_term || props.filter_value || '';
-      if (detail) detail = ' · ' + escapeHTML(String(detail));
-      return '<div class="data-row" style="gap:10px">'
-        + '<span style="font-family:DM Mono,monospace;font-size:10px;color:var(--mid);min-width:64px">' + relTime(r.ts) + '</span>'
-        + '<span class="row-label" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'
-        +   '<strong style="color:var(--white)">' + escapeHTML(who) + '</strong> '
-        +   '<span style="color:var(--gold);font-family:DM Mono,monospace;font-size:11px">' + escapeHTML(r.event_name) + '</span>'
-        +   '<span style="color:var(--dim);font-size:11px">' + detail + '</span>'
-        + '</span>'
-        + '</div>';
-    }).join('');
-  } catch (e) {
-    el.innerHTML = '<div style="padding:16px 20px;font-size:12px;color:var(--red)">Activity: ' + escapeHTML(e.message) + '</div>';
-  }
+function closeOverlay() {
+  document.getElementById('overlay').classList.remove('on');
+  document.body.style.overflow = '';
 }
-
-// Modal overlay showing a single member's full event timeline. Built
-// inline rather than as a styled component because there's exactly one of
-// these and styling it to match the dashboard is a 30-line job.
-async function showTimeline(memberId, displayName) {
-  var overlay = document.getElementById('timelineOverlay');
-  if (!overlay) {
-    overlay = document.createElement('div');
-    overlay.id = 'timelineOverlay';
-    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.82);z-index:9999;overflow:auto;padding:40px 20px;backdrop-filter:blur(6px);';
-    overlay.addEventListener('click', function(e) {
-      if (e.target === overlay) overlay.remove();
-    });
-    document.body.appendChild(overlay);
-  }
-  overlay.innerHTML = '<div style="max-width:760px;margin:0 auto;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:24px">'
-    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--border)">'
-    +   '<div><div class="brand">Timeline</div><div style="font-family:Playfair Display,serif;font-size:22px;margin-top:2px">' + escapeHTML(displayName) + '</div></div>'
-    +   '<button onclick="document.getElementById(\'timelineOverlay\').remove()" style="background:transparent;border:1px solid var(--border);color:var(--mid);padding:6px 14px;border-radius:4px;cursor:pointer;font-family:DM Mono,monospace;font-size:11px;letter-spacing:.1em">CLOSE</button>'
-    + '</div>'
-    + '<div id="timelineBody" style="font-size:13px"><div class="skeleton" style="margin-bottom:10px"></div><div class="skeleton" style="width:80%;margin-bottom:10px"></div><div class="skeleton" style="width:60%"></div></div>'
-    + '</div>';
-  try {
-    var d = await workerGet('/timeline?member_id=' + encodeURIComponent(memberId) + '&limit=300');
-    var rows = d.rows || [];
-    var body = document.getElementById('timelineBody');
-    if (!rows.length) {
-      body.innerHTML = '<div style="padding:20px 0;color:var(--dim)">No events captured for this member yet.</div>';
-      return;
-    }
-    body.innerHTML = rows.map(function(r) {
-      var props = {};
-      try { if (r.props_json) props = JSON.parse(r.props_json); } catch(_) {}
-      var detail = props.project_slug || props.project_name || props.title || props.search_term || props.filter_value || '';
-      return '<div style="display:flex;gap:14px;padding:8px 0;border-bottom:1px solid var(--border);align-items:baseline">'
-        + '<span style="font-family:DM Mono,monospace;font-size:10px;color:var(--mid);min-width:80px">' + relTime(r.ts) + '</span>'
-        + '<span style="font-family:DM Mono,monospace;font-size:11px;color:var(--gold);min-width:140px">' + escapeHTML(r.event_name) + '</span>'
-        + '<span style="color:var(--dim);font-size:12px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + escapeHTML(detail) + '</span>'
-        + '</div>';
-    }).join('');
-  } catch (e) {
-    document.getElementById('timelineBody').innerHTML = '<div style="color:var(--red);padding:20px 0">Timeline error: ' + escapeHTML(e.message) + '</div>';
-  }
-}
-window.showTimeline = showTimeline;
-
-// Load on button click only
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeOverlay(); });
 
 </script>
 </body>

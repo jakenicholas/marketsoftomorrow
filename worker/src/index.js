@@ -235,15 +235,242 @@ async function handleEventIngest(req, env, origin) {
 }
 
 // GET /people — list of identified members, most recently active first.
+// Returns rich per-member stats (sessions, active_days) computed from the
+// raw events table. Cheap at low volume; if rows ever exceed ~10k we'd
+// move sessions/active_days to a precomputed table.
 async function handlePeople(env, origin, url) {
-  const limit = clampInt(url.searchParams.get('limit'), 50, 1, 500);
   const rs = await env.DB.prepare(
-    `SELECT member_id, email, member_name, plan, last_seen_ts, first_seen_ts, event_count
-     FROM member_summary
-     ORDER BY last_seen_ts DESC
-     LIMIT ?`
-  ).bind(limit).all();
-  return json({ rows: rs.results || [] }, {}, env, origin);
+    `SELECT member_id, email, member_name, plan, ts
+     FROM events
+     ORDER BY member_id ASC, ts DESC`
+  ).all();
+
+  // Walk rows, group by member, compute stats in one pass.
+  const members = new Map();
+  for (const row of (rs.results || [])) {
+    let m = members.get(row.member_id);
+    if (!m) {
+      m = {
+        member_id: row.member_id,
+        email: row.email,
+        member_name: row.member_name,
+        plan: row.plan,
+        timestamps: [],
+      };
+      members.set(row.member_id, m);
+    }
+    // Latest values for email/name/plan win (the newest event for the
+    // member, since the SELECT is member ASC + ts DESC, so the first
+    // row for each member is its most recent event).
+    if (m.timestamps.length === 0) {
+      m.email = row.email;
+      m.member_name = row.member_name;
+      m.plan = row.plan;
+    }
+    m.timestamps.push(row.ts);
+  }
+
+  const out = Array.from(members.values()).map(m => {
+    const ts = m.timestamps; // already in DESC order
+    const stats = computeMemberStats(ts);
+    return {
+      member_id: m.member_id,
+      email: m.email,
+      member_name: m.member_name,
+      plan: m.plan,
+      event_count: ts.length,
+      last_seen_ts: ts[0],
+      first_seen_ts: ts[ts.length - 1],
+      sessions: stats.sessions,
+      active_days: stats.activeDays,
+    };
+  }).sort((a, b) => b.last_seen_ts - a.last_seen_ts);
+
+  return json({ rows: out }, {}, env, origin);
+}
+
+// Session boundary: 30 minutes of inactivity ends a session.
+// Active day: distinct UTC day with at least one event.
+// Both metrics expect timestamps in DESC order (newest first).
+function computeMemberStats(timestampsDesc) {
+  if (!timestampsDesc.length) return { sessions: 0, activeDays: 0 };
+  const days = new Set();
+  let sessions = 1;
+  for (let i = 0; i < timestampsDesc.length; i++) {
+    days.add(Math.floor(timestampsDesc[i] / 86400));
+    if (i > 0 && (timestampsDesc[i - 1] - timestampsDesc[i]) > 1800) sessions++;
+  }
+  return { sessions, activeDays: days.size };
+}
+
+// GET /stats — high-level dashboard counters in one round trip.
+// Powers the four hero cards at the top of the dashboard.
+async function handleStats(env, origin) {
+  const rs = await env.DB.prepare(
+    `SELECT member_id, plan, ts, event_name FROM events`
+  ).all();
+  const rows = rs.results || [];
+
+  const memberPlans = new Map(); // member_id -> latest known plan
+  const nowSec = Math.floor(Date.now() / 1000);
+  const day = 86400;
+  let eventsToday = 0;
+  let eventsLast7d = 0;
+  let eventsPrev7d = 0;
+  const activeMembers7d = new Set();
+
+  // First pass: pick most-recent plan per member. Rows aren't sorted, so
+  // we need to track timestamps to know which plan value is "latest."
+  const planTs = new Map(); // member_id -> latest ts seen
+  for (const r of rows) {
+    if (!planTs.has(r.member_id) || planTs.get(r.member_id) < r.ts) {
+      planTs.set(r.member_id, r.ts);
+      memberPlans.set(r.member_id, r.plan);
+    }
+    const age = nowSec - r.ts;
+    if (age < day) eventsToday++;
+    if (age < 7 * day) { eventsLast7d++; activeMembers7d.add(r.member_id); }
+    else if (age < 14 * day) eventsPrev7d++;
+  }
+
+  let paidMembers = 0, freeMembers = 0;
+  for (const plan of memberPlans.values()) {
+    if (plan === 'paid') paidMembers++;
+    else freeMembers++;
+  }
+
+  // Watchlist netting: replay favorite_added/removed per (member, project)
+  // to count what's CURRENTLY on someone's watchlist (not just historical adds).
+  const watchState = new Map(); // `${project}::${member}` → 0/1
+  const sorted = rows.filter(r =>
+    r.event_name === 'favorite_added' || r.event_name === 'favorite_removed'
+  ).sort((a, b) => a.ts - b.ts);
+  // We don't have props in this query (kept light); we need them. Re-query
+  // briefly for just the watchlist events to extract project slugs.
+  const wrs = await env.DB.prepare(
+    `SELECT member_id, event_name, props_json, ts
+     FROM events
+     WHERE event_name IN ('favorite_added','favorite_removed')
+     ORDER BY ts ASC`
+  ).all();
+  for (const e of (wrs.results || [])) {
+    let props = {};
+    try { if (e.props_json) props = JSON.parse(e.props_json); } catch {}
+    const project = props.project_slug || props.project_name || props.title;
+    if (!project) continue;
+    const key = project + '::' + e.member_id;
+    watchState.set(key, e.event_name === 'favorite_added' ? 1 : 0);
+  }
+  const activeWatchlistProjects = new Set();
+  for (const [key, on] of watchState.entries()) {
+    if (!on) continue;
+    activeWatchlistProjects.add(key.slice(0, key.lastIndexOf('::')));
+  }
+
+  return json({
+    members_total: memberPlans.size,
+    members_paid: paidMembers,
+    members_free: freeMembers,
+    active_members_7d: activeMembers7d.size,
+    events_today: eventsToday,
+    events_last_7d: eventsLast7d,
+    events_prev_7d: eventsPrev7d,
+    events_total: rows.length,
+    watchlist_unique_projects: activeWatchlistProjects.size,
+    watchlist_total_active: Array.from(watchState.values()).filter(v => v === 1).length,
+  }, {}, env, origin);
+}
+
+// GET /member?id=... — full profile + timeline + computed analytics for a
+// single member. Powers the click-to-drill-in modal in the dashboard.
+async function handleMember(env, origin, url) {
+  const memberId = url.searchParams.get('id');
+  if (!memberId) return json({ error: 'id required' }, { status: 400 }, env, origin);
+
+  const rs = await env.DB.prepare(
+    `SELECT ts, event_name, path, props_json, email, member_name, plan
+     FROM events
+     WHERE member_id = ?
+     ORDER BY ts DESC`
+  ).bind(memberId).all();
+  const events = rs.results || [];
+
+  if (!events.length) {
+    return json({ profile: null, stats: null, timeline: [] }, {}, env, origin);
+  }
+
+  // Profile = most recent values (events are DESC, so events[0] is newest)
+  const profile = {
+    member_id: memberId,
+    email: events[0].email,
+    member_name: events[0].member_name,
+    plan: events[0].plan,
+  };
+
+  const timestamps = events.map(e => e.ts);
+  const stats = computeMemberStats(timestamps);
+
+  // Top projects: rank by project-touching event count (clicks + views +
+  // detail opens + favorites). Use project_slug if present, else project_name.
+  const projectEvents = ['project_click', 'project_view', 'project_detail_open', 'favorite_added', 'intel_view'];
+  const projectCounts = new Map();
+  for (const e of events) {
+    if (!projectEvents.includes(e.event_name)) continue;
+    let props = {};
+    try { if (e.props_json) props = JSON.parse(e.props_json); } catch {}
+    const name = props.project_name || props.project_slug || props.title;
+    if (!name) continue;
+    projectCounts.set(name, (projectCounts.get(name) || 0) + 1);
+  }
+  const topProjects = Array.from(projectCounts.entries())
+    .map(([project, count]) => ({ project, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 10);
+
+  // Daily activity, last 30 days (oldest → newest for chart left-to-right)
+  const nowDay = Math.floor(Date.now() / 1000 / 86400);
+  const daily = Array(30).fill(0);
+  for (const e of events) {
+    const d = Math.floor(e.ts / 86400);
+    const offset = nowDay - d;
+    if (offset >= 0 && offset < 30) daily[29 - offset]++;
+  }
+
+  // Current watchlist for this member (replay add/remove events).
+  // events are DESC; iterate ASC so the latest state wins.
+  const watchState = new Map();
+  for (let i = events.length - 1; i >= 0; i--) {
+    const e = events[i];
+    if (e.event_name !== 'favorite_added' && e.event_name !== 'favorite_removed') continue;
+    let props = {};
+    try { if (e.props_json) props = JSON.parse(e.props_json); } catch {}
+    const project = props.project_slug || props.project_name || props.title || '(unknown)';
+    if (e.event_name === 'favorite_added') watchState.set(project, e.ts);
+    else watchState.delete(project);
+  }
+  const watchlist = Array.from(watchState.entries())
+    .map(([project, added_ts]) => ({ project, added_ts }))
+    .sort((a, b) => b.added_ts - a.added_ts);
+
+  return json({
+    profile,
+    stats: {
+      event_count: events.length,
+      sessions: stats.sessions,
+      active_days: stats.activeDays,
+      first_seen_ts: events[events.length - 1].ts,
+      last_seen_ts: events[0].ts,
+    },
+    top_projects: topProjects,
+    watchlist,
+    daily_counts: daily,
+    timeline: events.slice(0, 200).map(e => ({
+      ts: e.ts,
+      event_name: e.event_name,
+      path: e.path,
+      props_json: e.props_json,
+    })),
+  }, {}, env, origin);
 }
 
 // GET /timeline?member_id=... — every event for one member, newest first.
@@ -366,6 +593,12 @@ export default {
       }
       if (request.method === 'GET' && url.pathname === '/people') {
         return await handlePeople(env, origin, url);
+      }
+      if (request.method === 'GET' && url.pathname === '/stats') {
+        return await handleStats(env, origin);
+      }
+      if (request.method === 'GET' && url.pathname === '/member') {
+        return await handleMember(env, origin, url);
       }
       if (request.method === 'GET' && url.pathname === '/timeline') {
         return await handleTimeline(env, origin, url);
