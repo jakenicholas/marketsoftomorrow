@@ -339,6 +339,16 @@ async function handleStats(env, origin) {
     else freeMembers++;
   }
 
+  // Active members in the last 5 minutes (replaces the GA4 realtime card,
+  // which can't be filtered by hostname). This is identified-member only —
+  // exactly what we want for a "who's on map.oftmw.com right now" signal
+  // in a dashboard focused on logged-in users.
+  const fiveMinAgo = nowSec - 300;
+  const activeNow = new Set();
+  for (const r of rows) {
+    if (r.ts >= fiveMinAgo) activeNow.add(r.member_id);
+  }
+
   // Use snapshot-aware computation (covers backlogged watchlists too).
   const perMember = await computeWatchlists(env);
   const activeProjects = new Set();
@@ -352,6 +362,7 @@ async function handleStats(env, origin) {
     members_total: memberPlans.size,
     members_paid: paidMembers,
     members_free: freeMembers,
+    active_now: activeNow.size,
     active_members_7d: activeMembers7d.size,
     events_today: eventsToday,
     events_last_7d: eventsLast7d,
