@@ -592,6 +592,67 @@ async function handleActivity(env, origin, url) {
   return json({ rows: rs.results || [] }, {}, env, origin);
 }
 
+// GET /projects — most-clicked projects across multiple time windows.
+// Aggregates `project_click` events from identified members (the only ones
+// stored in D1). For each project we return click counts for today, 7d,
+// 30d, 90d, and all-time, plus the last-click timestamp.
+//
+// "Today" is rolling 24 hours, not calendar day — matches how the rest of
+// the dashboard does time bucketing ("5d ago" not "Tuesday").
+async function handleProjects(env, origin, url) {
+  const limit  = clampInt(url.searchParams.get('limit'), 50, 1, 500);
+  const events = (url.searchParams.get('events') || 'project_click')
+    .split(',').map(s => s.trim()).filter(Boolean);
+
+  // Build a parameterized IN clause safely.
+  const placeholders = events.map(() => '?').join(',');
+  const rs = await env.DB.prepare(
+    `SELECT ts, props_json
+     FROM events
+     WHERE event_name IN (${placeholders})
+     ORDER BY ts DESC`
+  ).bind(...events).all();
+
+  const nowSec = Math.floor(Date.now() / 1000);
+  const day    = 86400;
+  const cToday = nowSec - day;
+  const c7d    = nowSec - 7 * day;
+  const c30d   = nowSec - 30 * day;
+  const c90d   = nowSec - 90 * day;
+
+  const projects = new Map(); // project_name -> aggregate row
+  for (const row of (rs.results || [])) {
+    let props = {};
+    try { if (row.props_json) props = JSON.parse(row.props_json); } catch {}
+    const name = props.project_name || props.title || props.project_slug;
+    if (!name) continue;
+
+    let p = projects.get(name);
+    if (!p) {
+      p = {
+        project: name,
+        city: props.project_city || null,
+        featured: !!props.project_featured,
+        total: 0, today: 0, last_7d: 0, last_30d: 0, last_90d: 0,
+        last_click_ts: 0,
+      };
+      projects.set(name, p);
+    }
+    p.total++;
+    if (row.ts >= cToday) p.today++;
+    if (row.ts >= c7d)    p.last_7d++;
+    if (row.ts >= c30d)   p.last_30d++;
+    if (row.ts >= c90d)   p.last_90d++;
+    if (row.ts > p.last_click_ts) p.last_click_ts = row.ts;
+  }
+
+  const out = Array.from(projects.values())
+    .sort((a, b) => b.total - a.total)
+    .slice(0, limit);
+
+  return json({ rows: out }, {}, env, origin);
+}
+
 function clampInt(v, fallback, min, max) {
   const n = parseInt(v, 10);
   if (isNaN(n)) return fallback;
@@ -633,6 +694,9 @@ export default {
       }
       if (request.method === 'GET' && url.pathname === '/watchlist') {
         return await handleWatchlist(env, origin, url);
+      }
+      if (request.method === 'GET' && url.pathname === '/projects') {
+        return await handleProjects(env, origin, url);
       }
       if (request.method === 'GET' && url.pathname === '/activity') {
         return await handleActivity(env, origin, url);

@@ -370,6 +370,46 @@ body {
 .people-table .num { font-family: var(--mono); font-size: 12px; }
 .people-table .right { justify-content: flex-end; text-align: right; }
 
+/* Projects table — multi-time-window click counts */
+.projects-table {
+  display: grid;
+  grid-template-columns: 1fr 56px 56px 56px 56px 72px;
+  font-size: 13px;
+}
+.projects-table .row { display: contents; }
+.projects-table .row > * {
+  padding: 11px 10px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+}
+.projects-table .row > *:first-child { padding-left: var(--space-5); }
+.projects-table .row > *:last-child  { padding-right: var(--space-5); }
+.projects-table .row.head > * {
+  border-top: none;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  padding-top: 4px;
+  padding-bottom: 14px;
+}
+.projects-table .right { justify-content: flex-end; text-align: right; }
+.projects-table .num { font-family: var(--mono); font-size: 12px; color: var(--text-mid); }
+.projects-table .num.zero { color: var(--text-faint); }
+.projects-table .num.today { color: var(--green); font-weight: 500; }
+.projects-table .num.total { color: var(--gold); font-weight: 500; font-size: 13px; }
+.projects-table .pname {
+  display: flex; flex-direction: column; gap: 2px; min-width: 0; line-height: 1.25;
+}
+.projects-table .pname .title {
+  color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.projects-table .pname .city {
+  font-family: var(--mono); font-size: 10px; color: var(--text-faint); letter-spacing: .04em;
+}
+
 .avatar {
   width: 28px; height: 28px;
   border-radius: 50%;
@@ -885,6 +925,30 @@ body {
           </div>
         </div>
 
+        <!-- Top Projects -->
+        <div class="section">
+          <div class="section-head">
+            <div>
+              <div class="section-title">Top Projects · Most Clicked</div>
+              <div style="font-size:11px;color:var(--text-dim);margin-top:2px">Project clicks by identified members across time windows.</div>
+            </div>
+            <div class="section-meta" id="projectsMeta">—</div>
+          </div>
+          <div class="section-body">
+            <div class="projects-table" id="projectsTable">
+              <div class="row head">
+                <div>Project</div>
+                <div class="right">Today</div>
+                <div class="right">7d</div>
+                <div class="right">30d</div>
+                <div class="right">90d</div>
+                <div class="right">All-time</div>
+              </div>
+            </div>
+            <div id="projectsEmpty"></div>
+          </div>
+        </div>
+
         <!-- Watchlist -->
         <div class="section">
           <div class="section-head">
@@ -1078,6 +1142,7 @@ async function refreshAll(showRefreshSpinner) {
   await Promise.allSettled([
     loadStatsAndHero(),
     loadPeople(),
+    loadProjects(),
     loadWatchlist(),
     loadGA4(),
     loadFeed(),
@@ -1203,6 +1268,49 @@ document.addEventListener('click', (e) => {
   _state.planFilter = chip.dataset.plan;
   renderPeople();
 });
+
+/* ──────────────────────────────────────────────────────────────────────
+   Top Projects — multi-time-window click counts
+   ─────────────────────────────────────────────────────────────────── */
+async function loadProjects() {
+  const t = document.getElementById('projectsTable');
+  const empty = document.getElementById('projectsEmpty');
+  // Wipe everything except the header row.
+  while (t.children.length > 1) t.removeChild(t.lastChild);
+  empty.innerHTML = '';
+
+  try {
+    const d = await workerGet('/projects?limit=15');
+    const rows = d.rows || [];
+    if (!rows.length) {
+      empty.innerHTML = '<div class="empty-state">No project clicks tracked yet.</div>';
+      document.getElementById('projectsMeta').textContent = '—';
+      return;
+    }
+    const totalClicks = rows.reduce((s, r) => s + r.total, 0);
+    document.getElementById('projectsMeta').textContent = fmt(totalClicks) + ' total clicks';
+
+    for (const r of rows) {
+      const row = document.createElement('div');
+      row.className = 'row body';
+      const cls = v => 'num right' + (v === 0 ? ' zero' : '');
+      row.innerHTML = `
+        <div class="pname">
+          <div class="title" title="${escapeHTML(r.project)}">${escapeHTML(r.project)}</div>
+          ${r.city ? `<div class="city">${escapeHTML(r.city)}</div>` : ''}
+        </div>
+        <div class="${cls(r.today)} ${r.today > 0 ? 'today' : ''}">${r.today}</div>
+        <div class="${cls(r.last_7d)}">${r.last_7d}</div>
+        <div class="${cls(r.last_30d)}">${r.last_30d}</div>
+        <div class="${cls(r.last_90d)}">${r.last_90d}</div>
+        <div class="num right total">${fmt(r.total)}</div>
+      `;
+      t.appendChild(row);
+    }
+  } catch (e) {
+    empty.innerHTML = `<div class="empty-state" style="color:var(--red)">Projects: ${escapeHTML(e.message)}</div>`;
+  }
+}
 
 /* ──────────────────────────────────────────────────────────────────────
    Watchlist (bar list)
