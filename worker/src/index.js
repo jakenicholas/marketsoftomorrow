@@ -1193,6 +1193,12 @@ function wixMediaToPublicUrl(image) {
   if (image.src && typeof image.src === 'object' && typeof image.src.url === 'string') {
     return image.src.url;
   }
+  // 2b. Ricos (most common shape in production): image.src.id — bare
+  // media id that we wrap with the static CDN host. This is the path
+  // most Wix posts hit; takes priority over the wix-URI string case.
+  if (image.src && typeof image.src === 'object' && typeof image.src.id === 'string') {
+    return `https://static.wixstatic.com/media/${image.src.id}`;
+  }
   // 3. image.src as a string (wix-URI or http URL)
   if (typeof image.src === 'string' && image.src) {
     if (image.src.startsWith('http')) return image.src;
