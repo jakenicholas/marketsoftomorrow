@@ -993,7 +993,9 @@ let SEARCH_Q   = '';
 
 async function loadFeed() {
   try {
-    const { items, via, error } = await fetchBlogItems(60);
+    // Bumped from 60 → 300 since we now read from D1 (1,377 posts available)
+    // rather than the 20-post Wix RSS window.
+    const { items, via, error } = await fetchBlogItems(300);
     ALL_ITEMS = items.filter(it => it.title && it.link);
     console.log('[journal] feed via:', via, '·', ALL_ITEMS.length, 'items', error ? '(notes: ' + error + ')' : '');
     if (!ALL_ITEMS.length) {
@@ -1094,29 +1096,44 @@ function relativeAge(iso) {
 }
 
 // ---------------------------------------------------------------
-// Shared blog-feed fetcher with two-stage fallback:
-//   1. Cloudflare worker /blog  (preferred — parsed JSON, edge-cached,
-//      no third-party in the request path).
-//   2. Direct Wix RSS via a public CORS proxy + browser DOMParser
-//      (so the page works in preview before the worker is deployed).
+// Shared blog-feed fetcher with three-stage fallback:
+//   1. D1 /posts (preferred — canonical, all 1,377 imported posts).
+//   2. Worker /blog (RSS-backed, capped at 20 — legacy fallback).
+//   3. Direct Wix RSS via CORS proxy + browser DOMParser
+//      (final fallback for preview without the worker).
 // ---------------------------------------------------------------
 async function fetchBlogItems(limit) {
   const errors = [];
-  // Source 1 — worker
+
+  // Source 1 — D1 canonical posts
   try {
-    const res = await fetch(WORKER_URL + '/blog?limit=' + limit, { cache: 'no-store' });
+    const res = await fetch(WORKER_URL + '/posts?limit=' + limit + '&status=published', { cache: 'no-store' });
     if (res.ok) {
       const data = await res.json();
       if (data && Array.isArray(data.items) && data.items.length) {
-        return { items: data.items, via: 'worker' };
+        return { items: data.items.map(d1PostToFeedShape), via: 'd1', total: data.total };
       }
-      errors.push('worker:empty');
+      errors.push('d1:empty');
     } else {
-      errors.push('worker:' + res.status);
+      errors.push('d1:' + res.status);
     }
-  } catch (e) { errors.push('worker:' + (e.message || 'fetch failed')); }
+  } catch (e) { errors.push('d1:' + (e.message || 'fetch failed')); }
 
-  // Source 2 — direct Wix RSS through CORS proxy
+  // Source 2 — RSS-backed worker /blog (legacy, 20-post cap)
+  try {
+    const res = await fetch(WORKER_URL + '/blog?limit=' + Math.min(limit, 60), { cache: 'no-store' });
+    if (res.ok) {
+      const data = await res.json();
+      if (data && Array.isArray(data.items) && data.items.length) {
+        return { items: data.items, via: 'rss-worker', error: errors.join(', ') };
+      }
+      errors.push('rss-worker:empty');
+    } else {
+      errors.push('rss-worker:' + res.status);
+    }
+  } catch (e) { errors.push('rss-worker:' + (e.message || 'fetch failed')); }
+
+  // Source 3 — direct Wix RSS through CORS proxy
   try {
     const res = await fetch(CORS_PROXY + encodeURIComponent(WIX_RSS_URL), { cache: 'no-store' });
     if (!res.ok) throw new Error('proxy ' + res.status);
@@ -1127,6 +1144,21 @@ async function fetchBlogItems(limit) {
   } catch (e) { errors.push('rss:' + (e.message || 'fetch failed')); }
 
   return { items: [], via: 'none', error: errors.join(', ') };
+}
+
+// Adapt D1 row (snake_case) → the older RSS-style shape the page rendering
+// expects (title, slug, link, summary, image, pubDate, author, categories).
+function d1PostToFeedShape(p) {
+  return {
+    title:      p.title,
+    slug:       p.slug,
+    link:       '/journal/post/?slug=' + encodeURIComponent(p.slug),
+    summary:    p.excerpt || '',
+    image:      p.cover_image || '',
+    pubDate:    p.published_iso || (p.published_at ? new Date(p.published_at * 1000).toUTCString() : ''),
+    author:     p.author_name || '',
+    categories: p.categories || [],
+  };
 }
 
 function parseRssXml(xmlText) {

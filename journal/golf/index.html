@@ -1258,15 +1258,23 @@ function hookAddRow() {
 // ===================================================================
 async function loadNewsAndTicker() {
   try {
-    const { items, via, error } = await fetchBlogItems(60);
+    // Bumped from 60 → 300 so we can find golf-tagged posts across the
+    // full archive, not just the 20-post RSS window.
+    const { items, via, error } = await fetchBlogItems(300);
     console.log('[golf] feed via:', via, '·', items.length, 'items', error ? '(notes: ' + error + ')' : '');
     if (!items.length) throw new Error(error || 'no items from any source');
-    // News tab: items tagged Golf-y
-    const golfy = items.filter(it => (it.categories || []).some(c => /golf|course|country club/i.test(c)));
+
+    // Match golf-related posts by category (proper) OR title/excerpt
+    // fallback (in case categories are empty in D1 until next sync).
+    const golfRe = /golf|course|country club|tee time|fairway|caddie|nicklaus|hanse/i;
+    const golfy = items.filter(it => {
+      const inCats = (it.categories || []).some(c => golfRe.test(c));
+      const inText = golfRe.test((it.title || '') + ' ' + (it.summary || ''));
+      return inCats || inText;
+    });
     const newsList = golfy.length ? golfy : items.slice(0, 9);
     document.getElementById('newsCount').textContent = '· ' + newsList.length;
     renderNews(newsList);
-    // Featured-card hero: most recent golf-tagged story, fall back to first item
     renderFeaturedCard((golfy[0]) || items[0]);
   } catch (e) {
     console.warn('news/ticker failed', e);
@@ -1275,23 +1283,38 @@ async function loadNewsAndTicker() {
 }
 
 // ---------------------------------------------------------------
-// Shared blog-feed fetcher — worker first, direct Wix RSS via CORS
-// proxy as a fallback. Same shape as /journal/index.html.
+// Blog-feed fetcher — D1 /posts first (1,377 canonical), then RSS
+// worker (legacy), then direct Wix RSS via CORS proxy (fallback).
+// Same shape as /journal/index.html.
 // ---------------------------------------------------------------
 async function fetchBlogItems(limit) {
   const errors = [];
+
   try {
-    const res = await fetch(WORKER_URL + '/blog?limit=' + limit, { cache: 'no-store' });
+    const res = await fetch(WORKER_URL + '/posts?limit=' + limit + '&status=published', { cache: 'no-store' });
     if (res.ok) {
       const data = await res.json();
       if (data && Array.isArray(data.items) && data.items.length) {
-        return { items: data.items, via: 'worker' };
+        return { items: data.items.map(d1PostToFeedShape), via: 'd1', total: data.total };
       }
-      errors.push('worker:empty');
+      errors.push('d1:empty');
     } else {
-      errors.push('worker:' + res.status);
+      errors.push('d1:' + res.status);
     }
-  } catch (e) { errors.push('worker:' + (e.message || 'fetch failed')); }
+  } catch (e) { errors.push('d1:' + (e.message || 'fetch failed')); }
+
+  try {
+    const res = await fetch(WORKER_URL + '/blog?limit=' + Math.min(limit, 60), { cache: 'no-store' });
+    if (res.ok) {
+      const data = await res.json();
+      if (data && Array.isArray(data.items) && data.items.length) {
+        return { items: data.items, via: 'rss-worker', error: errors.join(', ') };
+      }
+      errors.push('rss-worker:empty');
+    } else {
+      errors.push('rss-worker:' + res.status);
+    }
+  } catch (e) { errors.push('rss-worker:' + (e.message || 'fetch failed')); }
 
   try {
     const res = await fetch(CORS_PROXY + encodeURIComponent(WIX_RSS_URL), { cache: 'no-store' });
@@ -1303,6 +1326,20 @@ async function fetchBlogItems(limit) {
   } catch (e) { errors.push('rss:' + (e.message || 'fetch failed')); }
 
   return { items: [], via: 'none', error: errors.join(', ') };
+}
+
+// Adapt D1 row → feed shape the page rendering expects.
+function d1PostToFeedShape(p) {
+  return {
+    title:      p.title,
+    slug:       p.slug,
+    link:       '/journal/post/?slug=' + encodeURIComponent(p.slug),
+    summary:    p.excerpt || '',
+    image:      p.cover_image || '',
+    pubDate:    p.published_iso || (p.published_at ? new Date(p.published_at * 1000).toUTCString() : ''),
+    author:     p.author_name || '',
+    categories: p.categories || [],
+  };
 }
 
 function parseRssXml(xmlText) {
