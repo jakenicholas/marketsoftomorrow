@@ -1195,31 +1195,44 @@ async function handleWixDebug(req, env, origin, slug) {
 //
 // This handles all of them defensively so missing images don't drop
 // silently.
+// Resolve a raw Wix URL-ish value: if it's a real http(s) URL pass through,
+// if it's a wix:image:// URI extract the media id, otherwise assume it's a
+// bare media id and prepend the CDN host. Wix is inconsistent — they
+// sometimes use the field name `url` for what is actually just a media id
+// (see GALLERY items in production).
+function resolveWixMediaValue(v) {
+  if (typeof v !== 'string' || !v) return '';
+  if (v.startsWith('http://') || v.startsWith('https://')) return v;
+  const m = v.match(/wix:image:\/\/v1\/([^/]+)\//);
+  if (m) return `https://static.wixstatic.com/media/${m[1]}`;
+  // Bare media id like 5e6308_xxx~mv2.jpeg or ca3b83_yyy~mv2.png
+  if (/^[a-f0-9]+_[a-f0-9]+~mv2\.[a-z0-9]+$/i.test(v)) {
+    return `https://static.wixstatic.com/media/${v}`;
+  }
+  // Fallback: assume bare id even without the ~mv2 suffix
+  if (!v.includes('/') && !v.includes(' ')) {
+    return `https://static.wixstatic.com/media/${v}`;
+  }
+  return '';
+}
+
 function wixMediaToPublicUrl(image) {
   if (!image) return '';
-  if (typeof image === 'string') image = { id: image };
+  if (typeof image === 'string') return resolveWixMediaValue(image);
   // 1. Flat URL
-  if (typeof image.url === 'string' && image.url) return image.url;
-  // 2. Ricos: image.src is an object with url
+  if (typeof image.url === 'string' && image.url) return resolveWixMediaValue(image.url);
+  // 2. Ricos: image.src is an object with `url` (which may actually be a bare id, hence resolveWixMediaValue)
   if (image.src && typeof image.src === 'object' && typeof image.src.url === 'string') {
-    return image.src.url;
+    return resolveWixMediaValue(image.src.url);
   }
-  // 2b. Ricos (most common shape in production): image.src.id — bare
-  // media id that we wrap with the static CDN host. This is the path
-  // most Wix posts hit; takes priority over the wix-URI string case.
+  // 2b. Ricos: image.src.id — bare media id
   if (image.src && typeof image.src === 'object' && typeof image.src.id === 'string') {
-    return `https://static.wixstatic.com/media/${image.src.id}`;
+    return resolveWixMediaValue(image.src.id);
   }
   // 3. image.src as a string (wix-URI or http URL)
-  if (typeof image.src === 'string' && image.src) {
-    if (image.src.startsWith('http')) return image.src;
-    const m = image.src.match(/wix:image:\/\/v1\/([^/]+)\//);
-    if (m) return `https://static.wixstatic.com/media/${m[1]}`;
-  }
-  // 4. Bare media id
-  if (typeof image.id === 'string' && image.id) {
-    return `https://static.wixstatic.com/media/${image.id}`;
-  }
+  if (typeof image.src === 'string' && image.src) return resolveWixMediaValue(image.src);
+  // 4. Bare media id at top level
+  if (typeof image.id === 'string' && image.id) return resolveWixMediaValue(image.id);
   return '';
 }
 
@@ -1260,7 +1273,16 @@ function ricosToHtml(doc) {
 function ricosNodeToHtml(node) {
   if (!node || !node.type) return '';
   switch (node.type) {
-    case 'PARAGRAPH':      return `<p>${ricosChildren(node)}</p>`;
+    case 'PARAGRAPH': {
+      // Wix uses empty PARAGRAPHs as block-spacing between figures/etc.
+      // Our CSS already spaces sibling blocks, so emit nothing if a
+      // paragraph has no meaningful content. This kills the cosmetic
+      // <p></p> gaps that otherwise stack between every image.
+      const inner = ricosChildren(node);
+      const meaningful = inner.replace(/<br\s*\/?>/gi, '').replace(/&nbsp;/gi, '').trim();
+      if (!meaningful) return '';
+      return `<p>${inner}</p>`;
+    }
     case 'HEADING': {
       const lvl = Math.min(6, Math.max(1, (node.headingData && node.headingData.level) || 2));
       return `<h${lvl}>${ricosChildren(node)}</h${lvl}>`;
