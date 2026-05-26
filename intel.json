@@ -1,6 +1,41 @@
 {
   "generated_at": "2026-05-26",
   "projects": {
+    "400-lake-shore-drive": {
+      "estimate_years": 3.2,
+      "estimate_label": "~3.2 years",
+      "range_low": 3.2,
+      "range_high": 3.2,
+      "confidence": "low",
+      "comparable_count": 1,
+      "good_count": 0,
+      "exact_count": 0,
+      "used_relaxed": true,
+      "avg_match_score": 0.34,
+      "avg_distance_km": 1814.2,
+      "avg_distance_mi": 1127.3,
+      "scale_used": true,
+      "firm_signal": null,
+      "source": "comparables",
+      "project_type": "Residences",
+      "metro": "Other",
+      "comparables": [
+        {
+          "name": "Nautilus 220",
+          "slug": "nautilus-220",
+          "location": "Lake Park",
+          "years": 3.2,
+          "score": 0.34,
+          "distance_km": 1814.2,
+          "distance_mi": 1127.3
+        }
+      ],
+      "pattern_summary": "Among 1 residences project in TMW's data, the median time to completion is 3.2 years.",
+      "dates_speculative": false,
+      "start_speculative": false,
+      "delivery_speculative": false,
+      "is_mixed_use": false
+    },
     "nude-miami": {
       "estimate_years": 0.8,
       "estimate_label": "10 months",
@@ -7143,7 +7178,7 @@
   "stats": {
     "high": 2,
     "medium": 26,
-    "low": 24,
+    "low": 25,
     "known_date": 245,
     "completed": 32,
     "skipped": 61,
