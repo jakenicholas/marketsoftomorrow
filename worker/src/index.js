@@ -25,7 +25,7 @@ function corsHeaders(env, origin) {
   const allow = allowList.includes(origin) ? origin : (allowList[0] || '*');
   return {
     'Access-Control-Allow-Origin': allow,
-    'Access-Control-Allow-Methods': 'GET,POST,OPTIONS',
+    'Access-Control-Allow-Methods': 'GET,POST,PATCH,DELETE,OPTIONS',
     'Access-Control-Allow-Headers': 'Authorization,Content-Type,X-Ingest-Token',
     'Access-Control-Max-Age': '86400',
     'Vary': 'Origin',
@@ -1634,6 +1634,325 @@ function cleanWixBodyHtml(html) {
 }
 
 // ---------------------------------------------------------------------------
+// Post write endpoints — Studio creates/edits/publishes posts here. All
+// admin-gated. Native posts get id like 'tmw-<random>'; Wix imports
+// keep their 'wix-<id>' so re-syncs don't collide.
+// ---------------------------------------------------------------------------
+
+async function handlePostsCreate(req, env, origin) {
+  const authCheck = requireAdminToken(req, env, origin);
+  if (authCheck) return authCheck;
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+
+  let body;
+  try { body = await req.json(); } catch { return json({ error: 'invalid JSON' }, { status: 400 }, env, origin); }
+
+  const title = (body.title || '').toString().trim() || 'Untitled draft';
+  const slug  = ensureUniqueSlug(env, body.slug || slugify(title), null);
+  const now   = Math.floor(Date.now() / 1000);
+  const id    = body.id || ('tmw-' + cryptoRandomId(12));
+
+  const row = normalizePost({
+    id, slug: await slug, title,
+    excerpt: (body.excerpt || '').toString(),
+    body_html: (body.body_html || '').toString(),
+    cover_image: (body.cover_image || '').toString(),
+    cover_image_alt: (body.cover_image_alt || '').toString(),
+    categories: jsonArrayOrEmpty(body.categories),
+    tags:       jsonArrayOrEmpty(body.tags),
+    author_name: (body.author_name || 'Markets of Tomorrow').toString(),
+    author_id:   body.author_id || null,
+    status: (body.status === 'published' ? 'published' : 'draft'),
+    published_at: body.status === 'published' ? now : null,
+    seo_title: body.seo_title || null,
+    seo_description: body.seo_description || null,
+    wix_id: null, wix_url: null,
+    body_source: 'studio',
+    created_at: now, updated_at: now,
+    reading_time_min: estimateReadingMinutes((body.body_html || '').toString()),
+  });
+
+  try {
+    await env.DB.prepare(`
+      INSERT INTO posts (
+        id, slug, title, excerpt, body_html, cover_image, cover_image_alt,
+        categories, tags, author_name, author_id, status, published_at,
+        reading_time_min, seo_title, seo_description, wix_id, wix_url,
+        body_source, created_at, updated_at
+      ) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?16,?17,?18,?19,?20,?21)
+    `).bind(
+      row.id, row.slug, row.title, row.excerpt, row.body_html, row.cover_image, row.cover_image_alt,
+      row.categories, row.tags, row.author_name, row.author_id, row.status, row.published_at,
+      row.reading_time_min, row.seo_title, row.seo_description, row.wix_id, row.wix_url,
+      row.body_source, row.created_at, row.updated_at,
+    ).run();
+  } catch (e) {
+    return json({ error: 'insert failed', detail: e.message || String(e) }, { status: 500 }, env, origin);
+  }
+  return json({ ok: true, post: rowToPostFull(row) }, {}, env, origin);
+}
+
+async function handlePostsUpdate(req, env, origin, id) {
+  const authCheck = requireAdminToken(req, env, origin);
+  if (authCheck) return authCheck;
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+
+  let body;
+  try { body = await req.json(); } catch { return json({ error: 'invalid JSON' }, { status: 400 }, env, origin); }
+
+  const existing = await env.DB.prepare(`SELECT * FROM posts WHERE id = ?1`).bind(id).first();
+  if (!existing) return json({ error: 'post not found', id }, { status: 404 }, env, origin);
+
+  // Field-by-field merge: only update keys present in the request body.
+  const patch = {};
+  for (const k of ['title','excerpt','body_html','cover_image','cover_image_alt',
+                   'author_name','author_id','status','seo_title','seo_description']) {
+    if (k in body) patch[k] = body[k];
+  }
+  if ('categories' in body) patch.categories = JSON.stringify(asStringArray(body.categories));
+  if ('tags'       in body) patch.tags       = JSON.stringify(asStringArray(body.tags));
+  if ('slug'       in body && body.slug && body.slug !== existing.slug) {
+    patch.slug = await ensureUniqueSlug(env, slugify(body.slug), id);
+  }
+  // Publishing now? Set published_at if going draft→published.
+  if (patch.status === 'published' && existing.status !== 'published' && !existing.published_at) {
+    patch.published_at = Math.floor(Date.now() / 1000);
+  }
+  if ('body_html' in patch) {
+    patch.reading_time_min = estimateReadingMinutes(patch.body_html || '');
+  }
+  patch.updated_at = Math.floor(Date.now() / 1000);
+
+  // Build UPDATE statement
+  const keys = Object.keys(patch);
+  if (!keys.length) return json({ ok: true, post: rowToPostFull(existing), note: 'no changes' }, {}, env, origin);
+  const setSql = keys.map((k, i) => `${k} = ?${i+1}`).join(', ');
+  const args   = keys.map(k => patch[k]);
+  args.push(id);
+  try {
+    await env.DB.prepare(`UPDATE posts SET ${setSql} WHERE id = ?${keys.length+1}`).bind(...args).run();
+  } catch (e) {
+    return json({ error: 'update failed', detail: e.message || String(e) }, { status: 500 }, env, origin);
+  }
+  const updated = await env.DB.prepare(`SELECT * FROM posts WHERE id = ?1`).bind(id).first();
+  return json({ ok: true, post: rowToPostFull(updated) }, {}, env, origin);
+}
+
+async function handlePostsDelete(req, env, origin, id) {
+  const authCheck = requireAdminToken(req, env, origin);
+  if (authCheck) return authCheck;
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  const r = await env.DB.prepare(`DELETE FROM posts WHERE id = ?1`).bind(id).run();
+  return json({ ok: true, id, deleted: r.meta && r.meta.changes ? r.meta.changes : 0 }, {}, env, origin);
+}
+
+async function handlePostsPublish(req, env, origin, id) {
+  const authCheck = requireAdminToken(req, env, origin);
+  if (authCheck) return authCheck;
+  const now = Math.floor(Date.now() / 1000);
+  await env.DB.prepare(`UPDATE posts SET status='published', published_at=COALESCE(published_at, ?1), updated_at=?1 WHERE id=?2`).bind(now, id).run();
+  const updated = await env.DB.prepare(`SELECT * FROM posts WHERE id = ?1`).bind(id).first();
+  if (!updated) return json({ error: 'post not found' }, { status: 404 }, env, origin);
+  return json({ ok: true, post: rowToPostFull(updated) }, {}, env, origin);
+}
+
+// --- helpers for posts CRUD ---
+
+function slugify(s) {
+  return String(s || '')
+    .toLowerCase()
+    .normalize('NFKD').replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 200) || ('post-' + cryptoRandomId(6));
+}
+
+async function ensureUniqueSlug(env, base, excludingId) {
+  let candidate = base;
+  let suffix = 2;
+  while (true) {
+    const hit = await env.DB.prepare(`SELECT id FROM posts WHERE slug = ?1 AND (?2 IS NULL OR id != ?2) LIMIT 1`).bind(candidate, excludingId).first();
+    if (!hit) return candidate;
+    candidate = `${base}-${suffix++}`;
+    if (suffix > 50) return `${base}-${cryptoRandomId(4)}`;
+  }
+}
+
+function cryptoRandomId(len) {
+  const bytes = crypto.getRandomValues(new Uint8Array(len));
+  return [...bytes].map(b => b.toString(16).padStart(2, '0')).join('').slice(0, len);
+}
+
+function jsonArrayOrEmpty(v) { return JSON.stringify(asStringArray(v)); }
+function asStringArray(v) {
+  if (!v) return [];
+  if (Array.isArray(v)) return v.filter(x => typeof x === 'string' && x.trim()).map(x => x.trim());
+  if (typeof v === 'string') return v.split(',').map(s => s.trim()).filter(Boolean);
+  return [];
+}
+
+function normalizePost(r) {
+  // Ensures the JSON-text columns are strings and required fields have defaults
+  r.categories = typeof r.categories === 'string' ? r.categories : JSON.stringify(r.categories || []);
+  r.tags       = typeof r.tags       === 'string' ? r.tags       : JSON.stringify(r.tags       || []);
+  return r;
+}
+
+// ---------------------------------------------------------------------------
+// /admin/upload — accept an image upload via multipart/form-data, store
+// the object in R2, register a row in the media table, return the public
+// CDN URL the editor pastes into a post.
+//
+// Request:
+//   POST /admin/upload
+//   Authorization: Bearer <ADMIN_TOKEN>
+//   Content-Type: multipart/form-data
+//   form fields: file (required), alt (optional), caption (optional)
+//
+// Response:
+//   { ok: true, key, url, filename, size_bytes, mime_type }
+// ---------------------------------------------------------------------------
+
+async function handleUpload(req, env, origin) {
+  const authCheck = requireAdminToken(req, env, origin);
+  if (authCheck) return authCheck;
+  if (!env.MEDIA) {
+    return json({ error: 'R2 bucket not configured — add the MEDIA binding in wrangler.toml' }, { status: 500 }, env, origin);
+  }
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+
+  let form;
+  try { form = await req.formData(); }
+  catch (e) { return json({ error: 'expected multipart/form-data', detail: e.message }, { status: 400 }, env, origin); }
+
+  const file = form.get('file');
+  if (!file || typeof file === 'string' || !file.arrayBuffer) {
+    return json({ error: 'file field is required and must be a File' }, { status: 400 }, env, origin);
+  }
+  const alt     = (form.get('alt')     || '').toString().slice(0, 500);
+  const caption = (form.get('caption') || '').toString().slice(0, 1000);
+
+  // Build a clean R2 key: YYYY/MM/<short-hash>-<safe-filename>
+  const now = new Date();
+  const yyyy = now.getUTCFullYear();
+  const mm   = String(now.getUTCMonth() + 1).padStart(2, '0');
+  const rand = crypto.getRandomValues(new Uint8Array(6));
+  const slugHash = [...rand].map(b => b.toString(16).padStart(2, '0')).join('');
+  const safeName = (file.name || 'upload')
+    .replace(/[^a-zA-Z0-9._-]+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
+    .slice(0, 80) || 'upload';
+  const key = `${yyyy}/${mm}/${slugHash}-${safeName}`;
+
+  // Hard limit on file size — R2 itself accepts up to 5GB but Workers
+  // have a request-body cap and we don't want runaway uploads.
+  const MAX_BYTES = 25 * 1024 * 1024; // 25 MB
+  const buf = await file.arrayBuffer();
+  if (buf.byteLength > MAX_BYTES) {
+    return json({ error: 'file too large', maxBytes: MAX_BYTES, gotBytes: buf.byteLength }, { status: 413 }, env, origin);
+  }
+
+  const mimeType = file.type || guessMimeFromName(file.name) || 'application/octet-stream';
+
+  // Push to R2
+  try {
+    await env.MEDIA.put(key, buf, {
+      httpMetadata: { contentType: mimeType, cacheControl: 'public, max-age=31536000, immutable' },
+      customMetadata: { filename: file.name || '', alt, caption },
+    });
+  } catch (e) {
+    return json({ error: 'R2 upload failed', detail: e.message || String(e) }, { status: 500 }, env, origin);
+  }
+
+  const publicBase = (env.MEDIA_PUBLIC_BASE || '').replace(/\/+$/, '');
+  const url = publicBase ? `${publicBase}/${key}` : '';
+
+  // Register in D1
+  const ts = Math.floor(Date.now() / 1000);
+  try {
+    await env.DB.prepare(`
+      INSERT INTO media (key, filename, mime_type, size_bytes, alt_text, caption, uploaded_by, uploaded_at, url)
+      VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9)
+      ON CONFLICT(key) DO UPDATE SET
+        filename=excluded.filename, mime_type=excluded.mime_type, size_bytes=excluded.size_bytes,
+        alt_text=excluded.alt_text, caption=excluded.caption, url=excluded.url
+    `).bind(
+      key, file.name || '', mimeType, buf.byteLength,
+      alt || null, caption || null, 'studio', ts, url,
+    ).run();
+  } catch (e) {
+    // R2 upload succeeded but DB index failed — log but still return the URL
+    console.warn('[upload] R2 ok, D1 index failed:', e.message);
+  }
+
+  return json({
+    ok: true, key, url, filename: file.name, size_bytes: buf.byteLength, mime_type: mimeType, uploaded_at: ts,
+  }, {}, env, origin);
+}
+
+async function handleMediaList(req, env, origin, url) {
+  const authCheck = requireAdminToken(req, env, origin);
+  if (authCheck) return authCheck;
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+
+  const limit  = clampInt(url.searchParams.get('limit'), 60, 1, 200);
+  const offset = clampInt(url.searchParams.get('offset'), 0, 0, 100000);
+  const q      = (url.searchParams.get('q') || '').trim();
+
+  const where = []; const params = [];
+  if (q) { where.push(`(filename LIKE ?${params.length+1} OR alt_text LIKE ?${params.length+1})`); params.push('%' + q + '%'); }
+  const whereSql = where.length ? 'WHERE ' + where.join(' AND ') : '';
+
+  const total = await env.DB.prepare(`SELECT COUNT(*) c FROM media ${whereSql}`).bind(...params).first();
+  const rows  = await env.DB.prepare(`
+    SELECT key, filename, mime_type, size_bytes, width, height, alt_text, caption, uploaded_at, url
+    FROM media ${whereSql}
+    ORDER BY uploaded_at DESC
+    LIMIT ${limit} OFFSET ${offset}
+  `).bind(...params).all();
+
+  return json({
+    items: rows.results || [],
+    total: total ? total.c : 0,
+    limit, offset,
+    hasMore: offset + (rows.results || []).length < (total ? total.c : 0),
+  }, {}, env, origin);
+}
+
+async function handleMediaDelete(req, env, origin, key) {
+  const authCheck = requireAdminToken(req, env, origin);
+  if (authCheck) return authCheck;
+  if (!env.MEDIA || !env.DB) return json({ error: 'storage not configured' }, { status: 500 }, env, origin);
+  try { await env.MEDIA.delete(key); } catch (e) { console.warn('R2 delete failed', e); }
+  try { await env.DB.prepare('DELETE FROM media WHERE key = ?1').bind(key).run(); }
+  catch (e) { return json({ error: 'DB delete failed', detail: e.message }, { status: 500 }, env, origin); }
+  return json({ ok: true, key }, {}, env, origin);
+}
+
+// Reusable admin-token guard. Returns null if authorized, or a Response
+// (401) if not. Use as: `const r = requireAdminToken(req, env, origin); if (r) return r;`
+function requireAdminToken(req, env, origin) {
+  if (!env.ADMIN_TOKEN) return json({ error: 'ADMIN_TOKEN secret not set' }, { status: 500 }, env, origin);
+  const auth = req.headers.get('Authorization') || '';
+  const token = auth.startsWith('Bearer ') ? auth.slice(7).trim() : '';
+  if (!token || !constantTimeEqual(token, env.ADMIN_TOKEN)) {
+    return json({ error: 'unauthorized' }, { status: 401 }, env, origin);
+  }
+  return null;
+}
+
+function guessMimeFromName(name) {
+  const ext = (name || '').toLowerCase().split('.').pop();
+  return ({
+    jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', gif: 'image/gif',
+    webp: 'image/webp', avif: 'image/avif', svg: 'image/svg+xml',
+    mp4: 'video/mp4', webm: 'video/webm', mov: 'video/quicktime',
+    pdf: 'application/pdf',
+  })[ext] || '';
+}
+
+// ---------------------------------------------------------------------------
 // /list/:slug — server-side storage for the iconic-list pages (golf,
 // restaurants, hotels…). GET is public + edge-cached briefly; POST requires
 // the ADMIN_TOKEN secret in an Authorization: Bearer header.
@@ -1799,6 +2118,35 @@ export default {
       // /admin/sync-wix — batched migration importer (admin-only)
       if (request.method === 'POST' && url.pathname === '/admin/sync-wix') {
         return await handleWixSync(request, env, origin, url);
+      }
+      // /admin/upload — image upload to R2 (admin-only)
+      if (request.method === 'POST' && url.pathname === '/admin/upload') {
+        return await handleUpload(request, env, origin);
+      }
+      // /admin/media — list/delete uploaded media (admin-only)
+      if (request.method === 'GET' && url.pathname === '/admin/media') {
+        return await handleMediaList(request, env, origin, url);
+      }
+      {
+        const m = url.pathname.match(/^\/admin\/media\/(.+)$/);
+        if (m && request.method === 'DELETE') {
+          return await handleMediaDelete(request, env, origin, decodeURIComponent(m[1]));
+        }
+      }
+      // Post CRUD — admin write side
+      if (request.method === 'POST' && url.pathname === '/posts') {
+        return await handlePostsCreate(request, env, origin);
+      }
+      {
+        const m = url.pathname.match(/^\/posts\/([^/]+)\/publish\/?$/);
+        if (m && request.method === 'POST') return await handlePostsPublish(request, env, origin, m[1]);
+      }
+      {
+        const m = url.pathname.match(/^\/posts\/([^/]+)\/?$/);
+        if (m) {
+          if (request.method === 'PATCH')  return await handlePostsUpdate(request, env, origin, m[1]);
+          if (request.method === 'DELETE') return await handlePostsDelete(request, env, origin, m[1]);
+        }
       }
       // /admin/wix-debug/:slug — dump raw Wix response for one post so we
       // can see the actual richContent shape. Admin-only.

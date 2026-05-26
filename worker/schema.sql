@@ -87,6 +87,28 @@ CREATE TABLE IF NOT EXISTS sync_state (
   updated_at INTEGER NOT NULL
 );
 
+-- ---------------------------------------------------------------------------
+-- media: every image (or future video/file) uploaded through Studio gets a
+-- row here. The object itself lives in R2; this table is just the index
+-- (for the media library UI, search, and reverse-lookup from a URL).
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS media (
+  key          TEXT    PRIMARY KEY,    -- R2 object key, e.g. "2026/05/abc-photo.jpg"
+  filename     TEXT    NOT NULL,        -- original upload filename
+  mime_type    TEXT    NOT NULL,
+  size_bytes   INTEGER NOT NULL,
+  width        INTEGER,
+  height       INTEGER,
+  alt_text     TEXT,
+  caption      TEXT,
+  uploaded_by  TEXT,
+  uploaded_at  INTEGER NOT NULL,
+  url          TEXT    NOT NULL         -- public CDN URL (r2.dev or custom)
+);
+
+CREATE INDEX IF NOT EXISTS idx_media_uploaded ON media(uploaded_at DESC);
+CREATE INDEX IF NOT EXISTS idx_media_filename ON media(filename);
+
 -- A view of the most recent event per member, for the People list.
 -- We define it as a view (not a materialized table) so it's always fresh
 -- and we never have to write a backfill job.

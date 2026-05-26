@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TMW Studio · Posts</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --ink:#070807; --panel:#131613; --panel-2:#1a1d1a;
+  --hair:rgba(255,255,255,.08); --hair-2:rgba(255,255,255,.14);
+  --text:#ECEAE5; --mute:#9AA39C; --mute-2:#C2C9C3; --white:#fff;
+  --green:#1FDF67; --green-soft:#42EB81;
+  --gold:#e6c574; --gold-soft:#f0d68a;
+  --purple:#A78BFA;
+  --danger:#ff5d5d;
+  --sans:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+  --serif:'Fraunces',Georgia,serif;
+  --mono:'JetBrains Mono',ui-monospace,monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{background:var(--ink); color:var(--text); font-family:var(--sans); line-height:1.5; -webkit-font-smoothing:antialiased}
+
+.topbar{position:sticky; top:0; z-index:10; background:rgba(7,8,7,.94); backdrop-filter:blur(20px); border-bottom:1px solid var(--hair)}
+.topbar-inner{display:flex; align-items:center; gap:18px; padding:16px 22px; max-width:1400px; margin:0 auto; flex-wrap:wrap}
+.brand{display:flex; flex-direction:column; gap:2px}
+.brand-eyebrow{font-family:var(--mono); font-size:10px; letter-spacing:.18em; text-transform:uppercase; color:var(--green)}
+.brand-title{font-family:var(--serif); font-weight:600; font-size:22px; color:var(--white)}
+.brand-sub{font-family:var(--mono); font-size:11px; color:var(--mute); margin-top:2px; letter-spacing:.04em}
+
+.tablinks{display:flex; gap:4px; padding:5px; background:rgba(255,255,255,.04); border:1px solid var(--hair); border-radius:99px}
+.tablinks a{font-family:var(--mono); font-size:11px; letter-spacing:.16em; text-transform:uppercase; padding:9px 16px; border-radius:99px; color:var(--mute-2); text-decoration:none; font-weight:600; transition:all .15s}
+.tablinks a:hover{color:var(--white)}
+.tablinks a.on{background:var(--white); color:var(--ink)}
+
+.btn-row{display:flex; gap:8px; flex-wrap:wrap; margin-left:auto}
+.btn{font-family:var(--mono); font-size:11.5px; letter-spacing:.1em; text-transform:uppercase; font-weight:700; padding:10px 16px; border-radius:8px; border:1px solid var(--hair-2); background:rgba(255,255,255,.04); color:var(--text); cursor:pointer; transition:all .15s; text-decoration:none; display:inline-flex; align-items:center; gap:7px}
+.btn:hover{border-color:rgba(255,255,255,.32); color:var(--white)}
+.btn-primary{background:var(--green); color:#0a0a0a; border-color:var(--green)}
+.btn-primary:hover{background:var(--green-soft); border-color:var(--green-soft); color:#0a0a0a}
+.btn-danger:hover{border-color:var(--danger); color:var(--danger)}
+.btn svg{width:13px; height:13px}
+
+.container{max-width:1400px; margin:24px auto 80px; padding:0 22px}
+
+.toolbar{display:flex; gap:14px; flex-wrap:wrap; align-items:center; padding:16px 18px; background:var(--panel); border:1px solid var(--hair); border-radius:12px; margin-bottom:16px}
+.status-pills{display:flex; gap:4px; padding:4px; background:rgba(255,255,255,.03); border:1px solid var(--hair); border-radius:99px}
+.status-pills button{font-family:var(--mono); font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; padding:7px 14px; border-radius:99px; border:0; background:transparent; color:var(--mute-2); cursor:pointer; font-weight:600}
+.status-pills button.on{background:var(--white); color:var(--ink)}
+.search{flex:1; min-width:240px; max-width:520px; display:flex; align-items:center; gap:8px; padding:8px 14px; background:rgba(255,255,255,.04); border:1px solid var(--hair-2); border-radius:8px}
+.search input{flex:1; background:transparent; border:0; outline:0; color:var(--white); font:inherit; font-size:13px}
+.search svg{width:14px; height:14px; color:var(--mute)}
+.results-meta{font-family:var(--mono); font-size:10.5px; letter-spacing:.1em; color:var(--mute); text-transform:uppercase; margin-left:auto}
+
+.table-head{display:grid; grid-template-columns:60px 1fr 140px 110px 130px 130px; gap:14px; padding:10px 18px; font-family:var(--mono); font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--mute); border-bottom:1px solid var(--hair); margin-bottom:4px}
+.row{display:grid; grid-template-columns:60px 1fr 140px 110px 130px 130px; gap:14px; align-items:center; padding:14px 18px; background:var(--panel); border:1px solid var(--hair); border-radius:10px; margin-bottom:5px; text-decoration:none; color:inherit; transition:border-color .15s, background .15s}
+.row:hover{border-color:rgba(255,255,255,.18); background:var(--panel-2)}
+.row .thumb{width:48px; height:36px; background:#0a0a0a; border:1px solid var(--hair); border-radius:6px; overflow:hidden; flex-shrink:0; display:flex; align-items:center; justify-content:center; color:var(--mute); font-family:var(--mono); font-size:9.5px}
+.row .thumb img{width:100%; height:100%; object-fit:cover; display:block}
+.row .title{font-size:14.5px; color:var(--white); font-weight:500; line-height:1.3}
+.row .title small{display:block; font-family:var(--mono); font-size:11px; color:var(--mute); font-weight:400; margin-top:3px}
+.row .author{font-size:13px; color:var(--mute-2)}
+.row .status{font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase; font-weight:700; padding:5px 10px; border-radius:4px; text-align:center; white-space:nowrap; display:inline-block; justify-self:start}
+.row .status.published{background:rgba(31,223,103,.12); color:var(--green); border:1px solid rgba(31,223,103,.3)}
+.row .status.draft{background:rgba(230,197,116,.10); color:var(--gold-soft); border:1px solid rgba(230,197,116,.28)}
+.row .status.scheduled{background:rgba(167,139,250,.10); color:var(--purple); border:1px solid rgba(167,139,250,.28)}
+.row .date{font-family:var(--mono); font-size:11.5px; color:var(--mute-2)}
+.row .actions{display:flex; gap:6px; justify-content:flex-end}
+.row .icon-btn{width:30px; height:30px; border-radius:6px; border:1px solid var(--hair-2); background:transparent; color:var(--mute-2); display:flex; align-items:center; justify-content:center; cursor:pointer}
+.row .icon-btn:hover{color:var(--white); border-color:rgba(255,255,255,.3)}
+.row .icon-btn.danger:hover{color:var(--danger); border-color:var(--danger)}
+.row .icon-btn svg{width:13px; height:13px}
+
+.empty{padding:60px 22px; text-align:center; color:var(--mute); background:var(--panel); border:1px solid var(--hair); border-radius:12px}
+.empty h3{color:var(--white); font-size:18px; margin-bottom:8px; font-family:var(--serif)}
+.load-more-wrap{display:flex; justify-content:center; margin-top:20px}
+
+.auth-needed{padding:50px 30px; text-align:center; background:var(--panel); border:1px solid var(--gold); border-radius:12px; max-width:600px; margin:50px auto}
+.auth-needed h3{color:var(--gold-soft); font-family:var(--serif); font-size:22px; margin-bottom:10px}
+.auth-needed p{color:var(--mute-2); margin-bottom:20px; font-size:14px}
+.auth-needed input{background:rgba(255,255,255,.04); border:1px solid var(--hair-2); color:var(--white); font-family:var(--mono); font-size:13px; padding:11px 14px; border-radius:8px; min-width:340px}
+
+#toast{position:fixed; top:80px; right:24px; z-index:100; background:rgba(7,8,7,.94); backdrop-filter:blur(14px); border:1px solid var(--hair-2); color:var(--cream); padding:14px 20px; border-radius:10px; font-family:var(--mono); font-size:12px; opacity:0; transform:translateY(-10px); transition:opacity .25s, transform .25s; pointer-events:none; max-width:340px}
+#toast.visible{opacity:1; transform:none}
+#toast.success{border-color:var(--green); color:var(--green-soft)}
+#toast.error{border-color:var(--danger); color:#ffb3b3}
+
+@media(max-width:880px){
+  .table-head{display:none}
+  .row{grid-template-columns:60px 1fr; gap:10px; padding:10px 14px}
+  .row > .author, .row > .status, .row > .date{display:none}
+  .row .actions{justify-self:end; grid-column:2}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <div class="brand-eyebrow">TMW Studio</div>
+      <div class="brand-title">Posts</div>
+      <div class="brand-sub">Edit + publish journal articles</div>
+    </div>
+    <div class="tablinks" style="margin-left:20px">
+      <a href="/journal/studio/" class="on">Posts</a>
+      <a href="/journal/studio/media.html">Media</a>
+      <a href="/journal/studio/sync.html">Wix sync</a>
+    </div>
+    <div class="btn-row">
+      <a href="/journal/studio/post.html?id=NEW" class="btn btn-primary">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M8 3v10M3 8h10"/></svg>
+        New post
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="container" id="container">
+  <!-- Auth gate OR post list, injected by JS -->
+</div>
+
+<div id="toast"></div>
+
+<script>
+const WORKER_URL = 'https://tmw.jake-ab7.workers.dev';
+const TOKEN_KEY  = 'tmw-admin-token-v1';
+const PAGE_SIZE  = 50;
+
+const STATE = { status: 'all', q: '', offset: 0, items: [], total: 0, hasMore: false };
+
+function getToken() { return (localStorage.getItem(TOKEN_KEY) || '').trim(); }
+function setToken(v) { localStorage.setItem(TOKEN_KEY, v.trim()); }
+function toast(msg, kind) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.remove('success','error');
+  if (kind) el.classList.add(kind);
+  el.classList.add('visible');
+  clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('visible'), 2800);
+}
+
+// ─── Init: token gate, then load list ──────────────────────────────
+(async function init() {
+  if (!getToken()) return renderAuthGate();
+  await loadPosts(true);
+})();
+
+function renderAuthGate() {
+  document.getElementById('container').innerHTML = `
+    <div class="auth-needed">
+      <h3>Admin token required</h3>
+      <p>Paste the worker's ADMIN_TOKEN (same value from the Wix-sync page).</p>
+      <input type="password" id="tokenInput" placeholder="Bearer token..."><br><br>
+      <button class="btn btn-primary" id="saveTokenBtn">Save + continue</button>
+    </div>
+  `;
+  document.getElementById('saveTokenBtn').addEventListener('click', () => {
+    const v = document.getElementById('tokenInput').value.trim();
+    if (!v) return toast('Paste a token first', 'error');
+    setToken(v);
+    location.reload();
+  });
+}
+
+// ─── List loading ──────────────────────────────────────────────────
+async function loadPosts(replace) {
+  if (replace) { STATE.offset = 0; STATE.items = []; }
+  const params = new URLSearchParams();
+  params.set('limit',  PAGE_SIZE);
+  params.set('offset', STATE.offset);
+  if (STATE.status !== 'all') params.set('status', STATE.status);
+  if (STATE.q) params.set('q', STATE.q);
+
+  const headers = {};
+  if (STATE.status !== 'published') headers['Authorization'] = 'Bearer ' + getToken();
+
+  try {
+    const res = await fetch(WORKER_URL + '/posts?' + params, { headers, cache: 'no-store' });
+    if (res.status === 401) { localStorage.removeItem(TOKEN_KEY); return renderAuthGate(); }
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    STATE.items = STATE.items.concat(data.items || []);
+    STATE.total = data.total || 0;
+    STATE.hasMore = !!data.hasMore;
+    STATE.offset += (data.items || []).length;
+    renderList();
+  } catch (e) {
+    console.error(e);
+    toast('Load failed: ' + e.message, 'error');
+  }
+}
+
+function renderList() {
+  const html = `
+    <div class="toolbar">
+      <div class="status-pills" id="statusPills">
+        <button data-status="all"       class="${STATE.status==='all'      ?'on':''}">All</button>
+        <button data-status="published" class="${STATE.status==='published'?'on':''}">Published</button>
+        <button data-status="draft"     class="${STATE.status==='draft'    ?'on':''}">Drafts</button>
+        <button data-status="scheduled" class="${STATE.status==='scheduled'?'on':''}">Scheduled</button>
+      </div>
+      <label class="search">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="7" cy="7" r="5"/><path d="M11 11l3 3"/></svg>
+        <input id="searchInput" type="search" placeholder="Search titles + excerpts..." value="${escHtml(STATE.q)}">
+      </label>
+      <div class="results-meta">${STATE.total.toLocaleString()} posts</div>
+    </div>
+    ${STATE.items.length ? `
+      <div class="table-head">
+        <div></div>
+        <div>Title</div>
+        <div>Author</div>
+        <div>Status</div>
+        <div>Published</div>
+        <div style="text-align:right">Actions</div>
+      </div>
+      ${STATE.items.map(rowHtml).join('')}
+      ${STATE.hasMore ? `<div class="load-more-wrap"><button class="btn" id="loadMoreBtn">Load more</button></div>` : ''}
+    ` : `<div class="empty"><h3>No posts yet</h3><p>Click "New post" to start writing — or run the Wix sync to import existing posts.</p></div>`}
+  `;
+  document.getElementById('container').innerHTML = html;
+
+  // Wire interactions
+  document.querySelectorAll('#statusPills button').forEach(b => b.addEventListener('click', () => {
+    STATE.status = b.dataset.status;
+    loadPosts(true);
+  }));
+  let searchTimer;
+  document.getElementById('searchInput')?.addEventListener('input', (e) => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => { STATE.q = e.target.value.trim(); loadPosts(true); }, 280);
+  });
+  document.getElementById('loadMoreBtn')?.addEventListener('click', () => loadPosts(false));
+  document.querySelectorAll('[data-delete-id]').forEach(b => b.addEventListener('click', async e => {
+    e.preventDefault(); e.stopPropagation();
+    const id = b.dataset.deleteId;
+    const title = b.dataset.deleteTitle || id;
+    if (!confirm(`Delete "${title}"? This cannot be undone.`)) return;
+    try {
+      const res = await fetch(WORKER_URL + '/posts/' + encodeURIComponent(id), {
+        method: 'DELETE',
+        headers: { 'Authorization': 'Bearer ' + getToken() },
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      toast('Deleted', 'success');
+      loadPosts(true);
+    } catch (e) { toast('Delete failed: ' + e.message, 'error'); }
+  }));
+}
+
+function rowHtml(p) {
+  const url  = '/journal/studio/post.html?id=' + encodeURIComponent(p.id);
+  const view = '/journal/post/?slug=' + encodeURIComponent(p.slug);
+  const date = p.published_at
+    ? new Date(p.published_at * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+    : '—';
+  return `<a class="row" href="${escAttr(url)}">
+    <div class="thumb">${p.cover_image ? `<img src="${escAttr(p.cover_image)}" alt="" loading="lazy">` : 'no img'}</div>
+    <div class="title">${escHtml(p.title)}<small>${escHtml(p.slug || '')}</small></div>
+    <div class="author">${escHtml(p.author_name || '—')}</div>
+    <div><span class="status ${p.status}">${escHtml(p.status)}</span></div>
+    <div class="date">${escHtml(date)}</div>
+    <div class="actions" onclick="event.stopPropagation()">
+      <a class="icon-btn" href="${escAttr(view)}" target="_blank" rel="noopener" title="View on site" onclick="event.stopPropagation()">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M1.5 8s2.5-4.5 6.5-4.5S14.5 8 14.5 8s-2.5 4.5-6.5 4.5S1.5 8 1.5 8z"/><circle cx="8" cy="8" r="2"/></svg>
+      </a>
+      <button class="icon-btn danger" data-delete-id="${escAttr(p.id)}" data-delete-title="${escAttr(p.title)}" title="Delete">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 4h10M6 4V2.5h4V4M5 4l.5 9.5h5L11 4"/></svg>
+      </button>
+    </div>
+  </a>`;
+}
+
+function escHtml(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function escAttr(s) { return escHtml(s); }
+</script>
+
+</body>
+</html>
