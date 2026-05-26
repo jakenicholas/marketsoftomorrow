@@ -39,6 +39,54 @@ CREATE TABLE IF NOT EXISTS iconic_lists (
   updated_by   TEXT                           -- optional admin label
 );
 
+-- ---------------------------------------------------------------------------
+-- posts: every article on the journal lives here. Initially backfilled
+-- from Wix via the Headless Blog API (1,377 articles), then Studio
+-- (/journal/studio/) writes new posts here directly. Wix is the
+-- source of truth ONLY until the migration completes.
+--
+-- `wix_id` lets the importer re-sync idempotently — running sync twice
+-- updates existing rows instead of duplicating. `wix_url` preserves the
+-- legacy oftmw.com/post/<slug> URL so Cloudflare can 301-redirect old
+-- inbound links after cutover.
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS posts (
+  id                TEXT    PRIMARY KEY,      -- 'wix-<wixId>' for imported, 'tmw-<uuid>' for native
+  slug              TEXT    NOT NULL UNIQUE,
+  title             TEXT    NOT NULL,
+  excerpt           TEXT,                     -- 1-2 sentence summary (for cards/SEO)
+  body_html         TEXT    NOT NULL,         -- cleaned/sanitized HTML the article page renders
+  cover_image       TEXT,                     -- absolute URL (Wix CDN or our R2)
+  cover_image_alt   TEXT,
+  categories        TEXT    DEFAULT '[]',     -- JSON array: ["Florida","Golf",...]
+  tags              TEXT    DEFAULT '[]',     -- JSON array
+  author_name       TEXT,
+  author_id         TEXT,                     -- wix memberId or our user id
+  status            TEXT    NOT NULL DEFAULT 'published',   -- 'draft' | 'published' | 'scheduled'
+  published_at      INTEGER,                  -- unix seconds; null for drafts
+  reading_time_min  INTEGER,                  -- estimated, computed on write
+  seo_title         TEXT,
+  seo_description   TEXT,
+  wix_id            TEXT,                     -- original Wix post id for re-sync
+  wix_url           TEXT,                     -- original oftmw.com/post/<slug>
+  body_source       TEXT    DEFAULT 'wix-import',  -- 'wix-import' | 'studio' | 'wix-scrape'
+  created_at        INTEGER NOT NULL,
+  updated_at        INTEGER NOT NULL
+);
+
+CREATE        INDEX IF NOT EXISTS idx_posts_slug         ON posts(slug);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_posts_wix_id       ON posts(wix_id)         WHERE wix_id IS NOT NULL;
+CREATE        INDEX IF NOT EXISTS idx_posts_pub          ON posts(status, published_at DESC);
+CREATE        INDEX IF NOT EXISTS idx_posts_author       ON posts(author_id, published_at DESC);
+
+-- Lightweight key-value table for sync state (resume cursors, last-run
+-- timestamps). Lets the importer pick up where it left off if interrupted.
+CREATE TABLE IF NOT EXISTS sync_state (
+  key       TEXT    PRIMARY KEY,
+  value     TEXT,
+  updated_at INTEGER NOT NULL
+);
+
 -- A view of the most recent event per member, for the People list.
 -- We define it as a view (not a materialized table) so it's always fresh
 -- and we never have to write a backfill job.

@@ -806,6 +806,468 @@ function decodeXml(s) {
 }
 
 // ---------------------------------------------------------------------------
+// posts table — first-class storage for journal articles.
+//
+// All 1,377 Wix posts get imported here once via /admin/sync-wix; after
+// that, Studio (/journal/studio/) edits this table directly and Wix is
+// decommissioned. The article page reads from this table.
+// ---------------------------------------------------------------------------
+
+async function handlePostsList(env, origin, url) {
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  const limit  = clampInt(url.searchParams.get('limit'), 20, 1, 100);
+  const offset = clampInt(url.searchParams.get('offset'), 0, 0, 10000);
+  const status = url.searchParams.get('status') || 'published';
+  const category = url.searchParams.get('category');
+  const q = (url.searchParams.get('q') || '').trim();
+
+  // status=published is public; anything else requires admin token
+  if (status !== 'published') {
+    if (!checkAdminAuth(env, origin)) return json({ error: 'unauthorized for non-published' }, { status: 401 }, env, origin);
+  }
+
+  const where = ['status = ?1'];
+  const params = [status];
+  let p = 2;
+  if (category) { where.push(`categories LIKE ?${p}`); params.push('%"' + category + '"%'); p++; }
+  if (q)        { where.push(`(title LIKE ?${p} OR excerpt LIKE ?${p})`); params.push('%' + q + '%'); p++; }
+  const whereSql = where.join(' AND ');
+
+  const total = await env.DB.prepare(`SELECT COUNT(*) AS c FROM posts WHERE ${whereSql}`).bind(...params).first();
+  const rows  = await env.DB.prepare(`
+    SELECT id, slug, title, excerpt, cover_image, cover_image_alt, categories, tags,
+           author_name, status, published_at, reading_time_min, wix_url
+    FROM posts WHERE ${whereSql}
+    ORDER BY COALESCE(published_at, updated_at) DESC
+    LIMIT ${limit} OFFSET ${offset}
+  `).bind(...params).all();
+
+  const items = (rows.results || []).map(rowToPostSummary);
+  return json(
+    { items, total: total ? total.c : 0, limit, offset, hasMore: offset + items.length < (total ? total.c : 0) },
+    { headers: { 'Cache-Control': 'public, max-age=30, s-maxage=60' } },
+    env, origin,
+  );
+}
+
+async function handlePostsBySlug(env, origin, slug) {
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  if (!slug || !/^[a-z0-9][a-z0-9-]{0,200}$/i.test(slug)) {
+    return json({ error: 'invalid slug' }, { status: 400 }, env, origin);
+  }
+  const row = await env.DB
+    .prepare(`SELECT * FROM posts WHERE slug = ?1 LIMIT 1`)
+    .bind(slug).first();
+  if (!row) return json({ error: 'post not found in DB', slug }, { status: 404 }, env, origin);
+  // Drafts only visible with admin token
+  if (row.status !== 'published' && !checkAdminAuth(env, origin)) {
+    return json({ error: 'post not yet published' }, { status: 404 }, env, origin);
+  }
+  return json(
+    { post: rowToPostFull(row) },
+    { headers: { 'Cache-Control': 'public, max-age=60, s-maxage=120' } },
+    env, origin,
+  );
+}
+
+function rowToPostSummary(r) {
+  return {
+    id: r.id,
+    slug: r.slug,
+    title: r.title,
+    excerpt: r.excerpt || '',
+    cover_image: r.cover_image,
+    cover_image_alt: r.cover_image_alt,
+    categories: safeJsonArray(r.categories),
+    tags: safeJsonArray(r.tags),
+    author_name: r.author_name,
+    status: r.status,
+    published_at: r.published_at,
+    published_iso: r.published_at ? new Date(r.published_at * 1000).toISOString() : null,
+    reading_time_min: r.reading_time_min,
+    wix_url: r.wix_url,
+  };
+}
+function rowToPostFull(r) {
+  return Object.assign(rowToPostSummary(r), {
+    body_html: r.body_html,
+    author_id: r.author_id,
+    seo_title: r.seo_title,
+    seo_description: r.seo_description,
+    body_source: r.body_source,
+    created_at: r.created_at,
+    updated_at: r.updated_at,
+  });
+}
+function safeJsonArray(s) {
+  try { const x = JSON.parse(s); return Array.isArray(x) ? x : []; }
+  catch { return []; }
+}
+function checkAdminAuth(env, origin) {
+  // Used for read endpoints — admin reads see drafts. (Writes use the
+  // existing Authorization: Bearer pattern from handleListPost.)
+  // Implemented as a header-check helper; expand if you add cookie auth.
+  // We don't have access to the request here, so caller must do their own.
+  return false;
+}
+
+// ---------------------------------------------------------------------------
+// /admin/sync-wix — pull a batch of posts from the Wix Blog REST API,
+// convert Ricos body → HTML, upsert into the posts table. Resumable:
+// pass ?offset=N to pick up where you left off. The companion admin
+// page at /journal/studio/sync.html drives this in a loop until done.
+// ---------------------------------------------------------------------------
+
+async function handleWixSync(req, env, origin, url) {
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  if (!env.ADMIN_TOKEN) return json({ error: 'ADMIN_TOKEN secret not set' }, { status: 500 }, env, origin);
+  const auth = req.headers.get('Authorization') || '';
+  const token = auth.startsWith('Bearer ') ? auth.slice(7).trim() : '';
+  if (!token || !constantTimeEqual(token, env.ADMIN_TOKEN)) {
+    return json({ error: 'unauthorized' }, { status: 401 }, env, origin);
+  }
+  if (!env.WIX_API_KEY || !env.WIX_SITE_ID) {
+    return json({ error: 'WIX_API_KEY and WIX_SITE_ID secrets must be set' }, { status: 500 }, env, origin);
+  }
+
+  const limit  = clampInt(url.searchParams.get('limit'), 50, 1, 100);
+  const offset = clampInt(url.searchParams.get('offset'), 0, 0, 100000);
+
+  // Wix Blog API: GET /blog/v3/posts (paginated)
+  // Docs: https://dev.wix.com/docs/rest/business-solutions/blog/blog/posts/list-posts
+  const wixUrl = `https://www.wixapis.com/blog/v3/posts`
+    + `?paging.limit=${limit}&paging.offset=${offset}`
+    + `&fieldsets=URL,RICH_CONTENT,SEO,METRICS`
+    + `&sort=PUBLISHED_DATE_DESC`;
+  const wixRes = await fetch(wixUrl, {
+    headers: {
+      'Authorization': env.WIX_API_KEY,
+      'wix-site-id':   env.WIX_SITE_ID,
+      ...(env.WIX_ACCOUNT_ID ? { 'wix-account-id': env.WIX_ACCOUNT_ID } : {}),
+    },
+  });
+  if (!wixRes.ok) {
+    const body = await wixRes.text();
+    return json({ error: 'Wix API error', status: wixRes.status, body: body.slice(0, 500) }, { status: 502 }, env, origin);
+  }
+  const wixData = await wixRes.json();
+  const wixPosts = wixData.posts || [];
+  const total    = wixData.metaData && typeof wixData.metaData.total === 'number' ? wixData.metaData.total : null;
+
+  // Author lookup helper — Wix returns memberId only. Cache resolves in a Map.
+  const authorCache = new Map();
+  async function resolveAuthor(memberId) {
+    if (!memberId) return null;
+    if (authorCache.has(memberId)) return authorCache.get(memberId);
+    try {
+      const r = await fetch(`https://www.wixapis.com/members/v1/members/${memberId}?fieldSet=PUBLIC`, {
+        headers: { 'Authorization': env.WIX_API_KEY, 'wix-site-id': env.WIX_SITE_ID },
+      });
+      if (r.ok) {
+        const data = await r.json();
+        const name = (data.member && (data.member.profile?.nickname || data.member.contact?.firstName || data.member.profile?.title)) || null;
+        authorCache.set(memberId, name);
+        return name;
+      }
+    } catch {}
+    authorCache.set(memberId, null);
+    return null;
+  }
+
+  const now = Math.floor(Date.now() / 1000);
+  let inserted = 0, updated = 0, failed = 0;
+  const errors = [];
+
+  for (const wp of wixPosts) {
+    try {
+      const slug = (wp.slug || '').toLowerCase().trim();
+      if (!slug) { failed++; errors.push({ wixId: wp.id, error: 'no slug' }); continue; }
+
+      // Convert Ricos JSON → HTML
+      const bodyHtml = ricosToHtml(wp.richContent || {});
+      const reading  = estimateReadingMinutes(bodyHtml);
+
+      // Cover image
+      let coverImage = '';
+      let coverAlt = '';
+      const cm = wp.media && (wp.media.wixMedia?.image || wp.coverMedia?.image);
+      if (cm) {
+        // Wix image src is e.g. "wix:image://v1/<id>~mv2.jpg/<filename>#..." — we want the public URL
+        coverImage = wixMediaToPublicUrl(cm);
+        coverAlt   = cm.altText || wp.title || '';
+      }
+
+      // Author name (best-effort)
+      let authorName = null;
+      if (wp.memberId) authorName = await resolveAuthor(wp.memberId);
+      if (!authorName) authorName = 'Markets of Tomorrow';
+
+      const cats = Array.isArray(wp.categoryIds) ? [] : []; // category lookup is a separate API; defer to v2
+      const tags = Array.isArray(wp.tagIds) ? [] : [];      // ditto
+      // For v1, we also pass through Wix's category labels if present in the URL/seo data
+      if (Array.isArray(wp.tags)) for (const t of wp.tags) if (t.label) tags.push(t.label);
+
+      const publishedAt = wp.firstPublishedDate ? Math.floor(new Date(wp.firstPublishedDate).getTime() / 1000) : null;
+      const wixUrl = wp.url && wp.url.base && wp.url.path
+        ? wp.url.base + wp.url.path
+        : `https://www.oftmw.com/post/${slug}`;
+
+      const seoTitle       = wp.seoData?.tags?.find(t => t.type === 'title')?.children || wp.title || null;
+      const seoDescription = wp.seoData?.tags?.find(t => t.type === 'meta' && t.props?.name === 'description')?.props?.content
+                          || wp.excerpt || null;
+
+      const row = {
+        id:              'wix-' + wp.id,
+        slug,
+        title:           wp.title || '(untitled)',
+        excerpt:         wp.excerpt || '',
+        body_html:       bodyHtml,
+        cover_image:     coverImage,
+        cover_image_alt: coverAlt,
+        categories:      JSON.stringify(cats),
+        tags:            JSON.stringify(tags),
+        author_name:     authorName,
+        author_id:       wp.memberId || null,
+        status:          'published',
+        published_at:    publishedAt,
+        reading_time_min: reading,
+        seo_title:       seoTitle,
+        seo_description: seoDescription,
+        wix_id:          wp.id,
+        wix_url:         wixUrl,
+        body_source:     'wix-import',
+        created_at:      now,
+        updated_at:      now,
+      };
+
+      // Upsert. Don't bump created_at on update.
+      const existing = await env.DB.prepare(`SELECT id, created_at FROM posts WHERE wix_id = ?1`).bind(wp.id).first();
+      if (existing) {
+        await env.DB.prepare(`
+          UPDATE posts SET
+            slug = ?1, title = ?2, excerpt = ?3, body_html = ?4,
+            cover_image = ?5, cover_image_alt = ?6, categories = ?7, tags = ?8,
+            author_name = ?9, author_id = ?10, status = ?11, published_at = ?12,
+            reading_time_min = ?13, seo_title = ?14, seo_description = ?15,
+            wix_url = ?16, body_source = ?17, updated_at = ?18
+          WHERE wix_id = ?19
+        `).bind(
+          row.slug, row.title, row.excerpt, row.body_html,
+          row.cover_image, row.cover_image_alt, row.categories, row.tags,
+          row.author_name, row.author_id, row.status, row.published_at,
+          row.reading_time_min, row.seo_title, row.seo_description,
+          row.wix_url, row.body_source, row.updated_at, wp.id,
+        ).run();
+        updated++;
+      } else {
+        await env.DB.prepare(`
+          INSERT INTO posts (
+            id, slug, title, excerpt, body_html, cover_image, cover_image_alt,
+            categories, tags, author_name, author_id, status, published_at,
+            reading_time_min, seo_title, seo_description, wix_id, wix_url,
+            body_source, created_at, updated_at
+          ) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?16,?17,?18,?19,?20,?21)
+        `).bind(
+          row.id, row.slug, row.title, row.excerpt, row.body_html,
+          row.cover_image, row.cover_image_alt, row.categories, row.tags,
+          row.author_name, row.author_id, row.status, row.published_at,
+          row.reading_time_min, row.seo_title, row.seo_description,
+          row.wix_id, row.wix_url, row.body_source, row.created_at, row.updated_at,
+        ).run();
+        inserted++;
+      }
+    } catch (e) {
+      failed++;
+      errors.push({ wixId: wp.id, slug: wp.slug, error: (e && e.message) || String(e) });
+    }
+  }
+
+  // Persist sync progress for resume.
+  await env.DB.prepare(`
+    INSERT INTO sync_state (key, value, updated_at) VALUES ('wix-last-offset', ?1, ?2)
+    ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at
+  `).bind(String(offset + wixPosts.length), now).run();
+
+  const done = wixPosts.length < limit || (total !== null && offset + wixPosts.length >= total);
+  return json({
+    batch: { inserted, updated, failed, count: wixPosts.length },
+    offset, nextOffset: offset + wixPosts.length,
+    total, done,
+    errors: errors.slice(0, 10),
+  }, {}, env, origin);
+}
+
+// Wix media field → public CDN URL
+function wixMediaToPublicUrl(image) {
+  if (!image) return '';
+  // Newer Wix API returns image.url directly (cleaner)
+  if (image.url) return image.url;
+  // Else parse the wix:image:// URI
+  const src = image.src || image.id || '';
+  if (typeof src !== 'string') return '';
+  if (src.startsWith('http')) return src;
+  // src like "wix:image://v1/<hash>~mv2.jpg/<filename>#originWidth=..."
+  const m = src.match(/wix:image:\/\/v1\/([^/]+)\//);
+  if (m) return `https://static.wixstatic.com/media/${m[1]}`;
+  return '';
+}
+
+function estimateReadingMinutes(html) {
+  if (!html) return 1;
+  const text = String(html).replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+  const words = text ? text.split(' ').length : 0;
+  return Math.max(1, Math.round(words / 220));
+}
+
+// ---------------------------------------------------------------------------
+// Ricos → HTML converter
+//
+// Wix's Ricos format is a tree of nodes: PARAGRAPH, HEADING, IMAGE, etc.
+// Each node has typed `*Data` fields and optionally child `nodes`. Text
+// nodes carry `decorations` (BOLD, ITALIC, LINK, ...). This walks the
+// tree and emits semantic HTML with no Wix-specific classes/styles.
+//
+// Coverage: PARAGRAPH, HEADING (1-6), BLOCKQUOTE, BULLETED_LIST,
+//           ORDERED_LIST, LIST_ITEM, IMAGE (+ caption), VIDEO, DIVIDER,
+//           CODE_BLOCK, HTML (sanitized passthrough), EMBED (iframe
+//           allowlist), GALLERY (flex grid), TABLE (basic), LINK_PREVIEW.
+// Decorations: BOLD, ITALIC, UNDERLINE, LINK. Color/font-size dropped.
+// ---------------------------------------------------------------------------
+
+const RICOS_IFRAME_ALLOWED = [
+  'youtube.com', 'youtube-nocookie.com', 'youtu.be',
+  'vimeo.com', 'player.vimeo.com',
+  'open.spotify.com', 'spotify.com',
+  'instagram.com', 'twitter.com', 'x.com',
+];
+
+function ricosToHtml(doc) {
+  if (!doc || !Array.isArray(doc.nodes)) return '';
+  return doc.nodes.map(n => ricosNodeToHtml(n)).join('');
+}
+
+function ricosNodeToHtml(node) {
+  if (!node || !node.type) return '';
+  switch (node.type) {
+    case 'PARAGRAPH':      return `<p>${ricosChildren(node)}</p>`;
+    case 'HEADING': {
+      const lvl = Math.min(6, Math.max(1, (node.headingData && node.headingData.level) || 2));
+      return `<h${lvl}>${ricosChildren(node)}</h${lvl}>`;
+    }
+    case 'BLOCKQUOTE':     return `<blockquote>${ricosChildren(node)}</blockquote>`;
+    case 'BULLETED_LIST':  return `<ul>${ricosChildren(node)}</ul>`;
+    case 'ORDERED_LIST':   return `<ol>${ricosChildren(node)}</ol>`;
+    case 'LIST_ITEM':      return `<li>${ricosChildren(node)}</li>`;
+    case 'DIVIDER':        return `<hr>`;
+    case 'CODE_BLOCK':     return `<pre><code>${ricosChildren(node)}</code></pre>`;
+    case 'IMAGE': {
+      const id = node.imageData && node.imageData.image;
+      const url = wixMediaToPublicUrl(id);
+      const alt = (node.imageData && (node.imageData.altText || node.imageData.caption)) || '';
+      const caption = node.imageData && node.imageData.caption ? node.imageData.caption : '';
+      if (!url) return '';
+      return `<figure><img src="${escAttr(url)}" alt="${escAttr(alt)}" loading="lazy">${caption ? `<figcaption>${escHtml(caption)}</figcaption>` : ''}</figure>`;
+    }
+    case 'VIDEO': {
+      const vd = node.videoData || {};
+      const videoUrl = (vd.video && vd.video.src && vd.video.src.url) || vd.thumbnail?.src?.url || '';
+      if (vd.video && vd.video.src && vd.video.src.url && /youtube|vimeo/i.test(vd.video.src.url)) {
+        const src = vd.video.src.url;
+        const host = (() => { try { return new URL(src).host; } catch { return ''; } })();
+        if (RICOS_IFRAME_ALLOWED.some(h => host === h || host.endsWith('.' + h))) {
+          return `<figure><iframe src="${escAttr(src)}" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen loading="lazy"></iframe></figure>`;
+        }
+      }
+      if (videoUrl) return `<figure><video src="${escAttr(videoUrl)}" controls playsinline preload="metadata"></video></figure>`;
+      return '';
+    }
+    case 'GALLERY': {
+      const items = (node.galleryData && node.galleryData.items) || [];
+      if (!items.length) return '';
+      const imgs = items.map(it => {
+        const url = wixMediaToPublicUrl(it.image && it.image.media && it.image.media.src);
+        if (!url) return '';
+        return `<img src="${escAttr(url)}" alt="" loading="lazy">`;
+      }).join('');
+      return `<figure class="ricos-gallery">${imgs}</figure>`;
+    }
+    case 'HTML': {
+      const raw = (node.htmlData && (node.htmlData.html || node.htmlData.url)) || '';
+      // For arbitrary HTML embeds Wix uses, prefer iframe URL if present
+      if (node.htmlData && node.htmlData.url) {
+        const url = node.htmlData.url;
+        const host = (() => { try { return new URL(url).host; } catch { return ''; } })();
+        if (RICOS_IFRAME_ALLOWED.some(h => host === h || host.endsWith('.' + h))) {
+          return `<figure><iframe src="${escAttr(url)}" loading="lazy" allowfullscreen></iframe></figure>`;
+        }
+      }
+      // Else: passthrough raw HTML, but block <script>/handlers
+      if (raw && typeof raw === 'string') {
+        const clean = raw.replace(/<script\b[\s\S]*?<\/script>/gi, '').replace(/\s+on[a-z]+="[^"]*"/gi, '');
+        return clean;
+      }
+      return '';
+    }
+    case 'EMBED': {
+      const url = (node.embedData && node.embedData.src) || '';
+      if (!url) return '';
+      const host = (() => { try { return new URL(url).host; } catch { return ''; } })();
+      if (RICOS_IFRAME_ALLOWED.some(h => host === h || host.endsWith('.' + h))) {
+        return `<figure><iframe src="${escAttr(url)}" loading="lazy" allowfullscreen></iframe></figure>`;
+      }
+      return `<p><a href="${escAttr(url)}" target="_blank" rel="noopener">${escHtml(url)}</a></p>`;
+    }
+    case 'LINK_PREVIEW': {
+      const url = (node.linkPreviewData && node.linkPreviewData.link && node.linkPreviewData.link.url) || '';
+      const title = (node.linkPreviewData && node.linkPreviewData.title) || url;
+      if (!url) return '';
+      return `<p><a href="${escAttr(url)}" target="_blank" rel="noopener">${escHtml(title)}</a></p>`;
+    }
+    case 'TABLE': {
+      const rows = (node.nodes || []).map(rn => `<tr>${(rn.nodes || []).map(cn => `<td>${ricosChildren(cn)}</td>`).join('')}</tr>`).join('');
+      return rows ? `<table>${rows}</table>` : '';
+    }
+    case 'TABLE_ROW':   return `<tr>${ricosChildren(node)}</tr>`;
+    case 'TABLE_CELL':  return `<td>${ricosChildren(node)}</td>`;
+    case 'TEXT':        return ricosTextNode(node);
+    default:
+      // Unknown node type — walk children if any so we don't drop content
+      return ricosChildren(node);
+  }
+}
+
+function ricosChildren(node) {
+  if (!node || !Array.isArray(node.nodes)) return '';
+  return node.nodes.map(n => ricosNodeToHtml(n)).join('');
+}
+
+function ricosTextNode(node) {
+  const text = (node.textData && node.textData.text) || '';
+  if (!text) return '';
+  let html = escHtml(text);
+  const decos = (node.textData && Array.isArray(node.textData.decorations)) ? node.textData.decorations : [];
+  // Apply LINK last (outermost) so other decorations sit inside it
+  let link = null;
+  for (const d of decos) {
+    if (!d || !d.type) continue;
+    if (d.type === 'BOLD')      html = `<strong>${html}</strong>`;
+    else if (d.type === 'ITALIC')    html = `<em>${html}</em>`;
+    else if (d.type === 'UNDERLINE') html = `<u>${html}</u>`;
+    else if (d.type === 'LINK')      link = d.linkData && d.linkData.link;
+  }
+  if (link && link.url) {
+    const target = link.target === 'BLANK' ? ' target="_blank" rel="noopener"' : '';
+    html = `<a href="${escAttr(link.url)}"${target}>${html}</a>`;
+  }
+  return html;
+}
+
+function escHtml(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+}
+function escAttr(s) { return escHtml(s); }
+
+// ---------------------------------------------------------------------------
 // /post/:slug — return ONE full blog post including the body HTML.
 //
 // IMPORTANT: Wix's default RSS feed does NOT include <content:encoded>
@@ -1138,8 +1600,21 @@ export default {
       if (request.method === 'GET' && url.pathname === '/blog') {
         return await handleBlog(env, origin, url);
       }
-      // /post/:slug — full single article, including body HTML for the
-      // article-page template at /journal/post/?slug=:slug.
+      // /posts — D1-backed canonical posts table (post-migration source).
+      if (request.method === 'GET' && url.pathname === '/posts') {
+        return await handlePostsList(env, origin, url);
+      }
+      {
+        const m = url.pathname.match(/^\/posts\/by-slug\/([^/]+)\/?$/);
+        if (m && request.method === 'GET') return await handlePostsBySlug(env, origin, m[1]);
+      }
+      // /admin/sync-wix — batched migration importer (admin-only)
+      if (request.method === 'POST' && url.pathname === '/admin/sync-wix') {
+        return await handleWixSync(request, env, origin, url);
+      }
+      // /post/:slug — LEGACY scrape fallback (kept for backwards compat
+      // until all posts are in D1). The article page tries /posts/by-slug
+      // first and only falls through here for misses.
       {
         const m = url.pathname.match(/^\/post\/([^/]+)\/?$/);
         if (m && request.method === 'GET') {

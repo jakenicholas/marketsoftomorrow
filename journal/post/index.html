@@ -428,25 +428,43 @@ async function loadArticle(slug) {
 }
 
 async function fetchPost(slug) {
-  // 1. Try worker /post/:slug (returns full content_html)
+  // 1. Primary source: D1-backed /posts/by-slug/:slug (1,377 posts migrated
+  //    from Wix). Returns a clean canonical record.
+  try {
+    const res = await fetch(WORKER_URL + '/posts/by-slug/' + encodeURIComponent(slug), { cache: 'no-store' });
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.post) {
+        // Normalize to the shape renderArticle expects (it was written for
+        // the older RSS shape — adapt field names).
+        return adaptD1PostShape(data.post);
+      }
+    }
+  } catch (e) {
+    console.warn('[article] /posts/by-slug failed, trying scrape fallback', e);
+  }
+
+  // 2. Fallback (only for posts not yet migrated): the older /post/:slug
+  //    endpoint that scrapes Wix on demand.
   try {
     const res = await fetch(WORKER_URL + '/post/' + encodeURIComponent(slug), { cache: 'no-store' });
     if (res.ok) {
       const data = await res.json();
       if (data && data.post) return data.post;
     } else if (res.status === 404) {
-      const err = new Error('Post not in current RSS window');
+      const err = new Error('Post not found in DB or Wix');
       err.legacy = true;
-      err.legacyUrl = 'https://studio.oftmw.com/post/' + slug;
+      err.legacyUrl = 'https://www.oftmw.com/post/' + slug;
       throw err;
     }
   } catch (e) {
     if (e.legacy) throw e;
-    console.warn('[article] worker /post failed, falling back to direct RSS', e);
+    console.warn('[article] scrape fallback failed', e);
   }
-  // 2. Fall back to direct Wix RSS via CORS proxy and parse client-side
+
+  // 3. Last-ditch: direct Wix RSS via CORS proxy (metadata only, no body)
   const res = await fetch(CORS_PROXY + encodeURIComponent(WIX_RSS_URL), { cache: 'no-store' });
-  if (!res.ok) throw new Error('RSS proxy ' + res.status);
+  if (!res.ok) throw new Error('All sources failed (last: RSS proxy ' + res.status + ')');
   const xml = await res.text();
   const items = parseRssXmlFull(xml);
   const slugLc = slug.toLowerCase();
@@ -455,12 +473,31 @@ async function fetchPost(slug) {
     (it.link && it.link.toLowerCase().endsWith('/' + slugLc))
   );
   if (!post) {
-    const err = new Error('Post not in current RSS window');
+    const err = new Error('Post not found in any source');
     err.legacy = true;
-    err.legacyUrl = 'https://studio.oftmw.com/post/' + slug;
+    err.legacyUrl = 'https://www.oftmw.com/post/' + slug;
     throw err;
   }
   return post;
+}
+
+// Normalize D1 post shape (snake_case fields) to the RSS-style shape the
+// rest of the page expects. Cheap to do client-side so we don't have to
+// touch the renderer.
+function adaptD1PostShape(p) {
+  return {
+    title:        p.title,
+    slug:         p.slug,
+    link:         p.wix_url || ('/journal/post/?slug=' + p.slug),
+    summary:      p.excerpt || '',
+    image:        p.cover_image || '',
+    pubDate:      p.published_iso || (p.published_at ? new Date(p.published_at * 1000).toUTCString() : ''),
+    author:       p.author_name || '',
+    categories:   p.categories || [],
+    content_html: p.body_html || '',
+    source_url:   p.wix_url || '',
+    body_source:  p.body_source || 'd1',
+  };
 }
 
 // ===================================================================
@@ -654,12 +691,29 @@ function upgradeBodyImages(root) {
 // ===================================================================
 async function loadReadNext(currentPost, currentSlug) {
   try {
-    const res = await fetch(WORKER_URL + '/blog?limit=20', { cache: 'no-store' });
     let items = [];
-    if (res.ok) {
-      const data = await res.json();
-      items = data.items || [];
+    // 1. Prefer D1 posts table (migrated articles)
+    try {
+      const r = await fetch(WORKER_URL + '/posts?limit=10&status=published', { cache: 'no-store' });
+      if (r.ok) {
+        const d = await r.json();
+        items = (d.items || []).map(it => ({
+          slug: it.slug,
+          title: it.title,
+          image: it.cover_image,
+          pubDate: it.published_iso || (it.published_at ? new Date(it.published_at * 1000).toUTCString() : ''),
+        }));
+      }
+    } catch {}
+    // 2. Fall back to RSS-backed /blog if D1 empty (pre-migration)
+    if (!items.length) {
+      const r = await fetch(WORKER_URL + '/blog?limit=20', { cache: 'no-store' });
+      if (r.ok) {
+        const d = await r.json();
+        items = d.items || [];
+      }
     }
+    // 3. Fall back to direct RSS
     if (!items.length) {
       const px = await fetch(CORS_PROXY + encodeURIComponent(WIX_RSS_URL), { cache: 'no-store' });
       if (px.ok) items = parseRssXmlFull(await px.text());

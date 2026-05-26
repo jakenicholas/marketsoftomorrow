@@ -49,6 +49,17 @@ database_id = "81c16100-a129-47d8-902e-3b6b50d35089"
 #   EVENT_INGEST_TOKEN        — shared secret the map sends with every event
 #                               POST so randoms can't forge events into your DB
 #   ADMIN_TOKEN               — bearer token required to write to /list/:slug
-#                               (iconic-list edit mode). Generate with:
+#                               and /admin/* endpoints. Generate with:
 #                                   openssl rand -hex 32
 #                               then `wrangler secret put ADMIN_TOKEN`.
+#   WIX_API_KEY               — Wix Headless API key for /admin/sync-wix.
+#                               Generate in Wix Studio: Settings → Headless →
+#                               API Keys → New key with Blog.READ-POSTS scope.
+#                               Format: a long JWT-like string. Run:
+#                                   wrangler secret put WIX_API_KEY
+#   WIX_SITE_ID               — Your Wix site ID (UUID). Find in Wix Studio
+#                               Settings → General → Site ID. Run:
+#                                   wrangler secret put WIX_SITE_ID
+#   WIX_ACCOUNT_ID            — Optional. Some endpoints need it. Find in
+#                               Wix Studio account settings. Run:
+#                                   wrangler secret put WIX_ACCOUNT_ID
