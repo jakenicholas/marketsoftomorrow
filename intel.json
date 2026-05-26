@@ -1,6 +1,24 @@
 {
   "generated_at": "2026-05-26",
   "projects": {
+    "nude-miami": {
+      "estimate_years": 0.8,
+      "estimate_label": "10 months",
+      "start_date": "2025-07-15",
+      "end_date": "2026-05-20",
+      "start_year": 2025,
+      "end_year": 2026,
+      "source": "completed",
+      "confidence": "medium",
+      "project_type": "Eateries",
+      "metro": "South Florida",
+      "comparables": [],
+      "comparable_count": 0,
+      "pattern_summary": "TMW estimates this took ~10 months based on observed activity from 2025–2026.",
+      "dates_speculative": true,
+      "start_speculative": true,
+      "delivery_speculative": true
+    },
     "the-carnelian": {
       "estimate_years": 1.5,
       "estimate_label": "~1.5 years",
@@ -3340,18 +3358,18 @@
       "delivery_speculative": false
     },
     "ross-private-club": {
-      "estimate_years": 0.6,
-      "estimate_label": "~0.6 years",
+      "estimate_years": 0.7,
+      "estimate_label": "~0.7 years",
       "range_low": 0.6,
-      "range_high": 0.6,
+      "range_high": 0.8,
       "confidence": "low",
-      "comparable_count": 1,
+      "comparable_count": 2,
       "good_count": 1,
       "exact_count": 1,
       "used_relaxed": true,
-      "avg_match_score": 1.0,
-      "avg_distance_km": 1.1,
-      "avg_distance_mi": 0.7,
+      "avg_match_score": 0.7,
+      "avg_distance_km": 54.0,
+      "avg_distance_mi": 33.5,
       "scale_used": false,
       "firm_signal": null,
       "source": "comparables",
@@ -3366,9 +3384,18 @@
           "score": 1.0,
           "distance_km": 1.1,
           "distance_mi": 0.7
+        },
+        {
+          "name": "Nude Miami",
+          "slug": "nude-miami",
+          "location": "Miami",
+          "years": 0.8,
+          "score": 0.4,
+          "distance_km": 106.8,
+          "distance_mi": 66.4
         }
       ],
-      "pattern_summary": "Among 1 nearby eateries project in TMW's data, the median time to completion is 0.6 years.",
+      "pattern_summary": "Among 2 same-metro eateries projects in TMW's data, the median time to completion is 0.7 years, with a range of 0.6–0.8 years.",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false,
@@ -7118,11 +7145,11 @@
     "medium": 26,
     "low": 24,
     "known_date": 245,
-    "completed": 31,
+    "completed": 32,
     "skipped": 61,
     "no_type": 0,
     "firm_boosted": 0,
-    "speculative_softened": 11,
+    "speculative_softened": 12,
     "mixed_use_adjusted": 1
   }
 }
