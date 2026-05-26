@@ -172,6 +172,22 @@ nav.main .wrap{display:flex; align-items:center; justify-content:space-between; 
 .article-body-content iframe{max-width:100%; aspect-ratio:16/9; height:auto; border-radius:12px; border:0; background:#000}
 .article-body-content hr{border:0; height:1px; background:var(--hair); margin:2.4em 0}
 .article-body-content strong{color:var(--white); font-weight:600}
+
+/* ---- Gallery slideshow (rendered from Wix GALLERY nodes) ---- */
+.tmw-gallery{position:relative; margin:2em 0 !important; aspect-ratio:16/10; overflow:hidden; border-radius:12px; background:#0a0a0a; padding:0}
+.tmw-gallery-track{display:flex; overflow-x:auto; scroll-snap-type:x mandatory; scrollbar-width:none; -ms-overflow-style:none; height:100%; scroll-behavior:smooth}
+.tmw-gallery-track::-webkit-scrollbar{display:none}
+.tmw-gallery-slide{flex:0 0 100%; width:100%; height:100%; position:relative; scroll-snap-align:start}
+.tmw-gallery-slide img{width:100%; height:100%; object-fit:cover; border-radius:0; display:block; margin:0}
+.tmw-gallery-caption{position:absolute; left:0; right:0; bottom:0; padding:30px 22px 18px; background:linear-gradient(transparent, rgba(7,8,7,.78) 60%, rgba(7,8,7,.92)); color:var(--white); font-family:var(--mono); font-size:11.5px; letter-spacing:.08em; line-height:1.5; pointer-events:none}
+.tmw-gallery-arrow{position:absolute; top:50%; transform:translateY(-50%); width:44px; height:44px; border-radius:999px; background:rgba(7,8,7,.65); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); border:1px solid var(--hair-2); color:var(--white); display:flex; align-items:center; justify-content:center; cursor:pointer; opacity:0; transition:opacity .2s, background .2s, border-color .2s, transform .2s; z-index:3; padding:0}
+.tmw-gallery:hover .tmw-gallery-arrow{opacity:1}
+.tmw-gallery-arrow.prev{left:14px} .tmw-gallery-arrow.next{right:14px}
+.tmw-gallery-arrow:hover{background:var(--green); color:var(--ink); border-color:var(--green); transform:translateY(-50%) scale(1.05)}
+.tmw-gallery-arrow:disabled{opacity:0 !important; cursor:default}
+.tmw-gallery-arrow svg{width:16px; height:16px}
+.tmw-gallery-counter{position:absolute; top:14px; right:14px; font-family:var(--mono); font-size:10.5px; letter-spacing:.1em; color:var(--white); background:rgba(7,8,7,.65); backdrop-filter:blur(10px); padding:5px 10px; border-radius:999px; z-index:3; font-weight:700}
+@media (hover: none){.tmw-gallery-arrow{opacity:.65}}
 .article-body-content code{background:rgba(255,255,255,.06); padding:2px 6px; border-radius:4px; font-family:var(--mono); font-size:.9em}
 .article-body-content pre{background:var(--panel); border:1px solid var(--hair); border-radius:10px; padding:18px; overflow-x:auto; font-family:var(--mono); font-size:13.5px; line-height:1.6}
 
@@ -581,6 +597,7 @@ function renderArticle(post) {
   } else {
     bodyEl.innerHTML = sanitizeHtml(bodyHtml);
     upgradeBodyImages(bodyEl);
+    hookGalleries(bodyEl);
   }
 }
 
@@ -604,12 +621,20 @@ const ALLOWED_TAGS = new Set([
   'a','img','video','iframe','source','picture',
   'ul','ol','li','strong','em','b','i','u','span','br','hr',
   'pre','code','small','sub','sup','table','thead','tbody','tr','td','th',
-  'div','section','article'
+  'div','section','article',
+  // gallery controls (prev/next arrows render as button>svg>path)
+  'button','svg','path'
 ]);
+// Tags that get DELETED outright (including all their text/children).
+// Distinct from "not allowed" which just unwraps — these would otherwise
+// leak their text contents into the article body when unwrapped.
+const DROP_TAGS = new Set(['script','style','noscript','meta','link','head','title']);
 const ALLOWED_ATTRS = new Set([
   'href','src','srcset','sizes','alt','title','width','height','target','rel','colspan','rowspan',
   'controls','autoplay','muted','playsinline','loop','preload','poster','allow','allowfullscreen',
-  'frameborder','loading','data-*'
+  'frameborder','loading',
+  // svg + button accessibility
+  'viewBox','fill','stroke','stroke-width','stroke-linecap','stroke-linejoin','d','aria-label','aria-hidden','type'
 ]);
 const ALLOWED_IFRAME_HOSTS = [
   'youtube.com', 'youtube-nocookie.com', 'youtu.be',
@@ -635,7 +660,13 @@ function walk(node) {
   if (node.nodeType !== 1) return;
   const tag = node.tagName.toLowerCase();
 
-  // Drop disallowed tags entirely (unwrap their children)
+  // Hard-DELETE script/style/etc — including their text contents — so
+  // Wix's pro-gallery init code doesn't leak into the visible article.
+  if (DROP_TAGS.has(tag)) {
+    node.parentNode.removeChild(node);
+    return;
+  }
+  // Drop other unknown tags but keep their text (unwrap children)
   if (!ALLOWED_TAGS.has(tag)) {
     while (node.firstChild) node.parentNode.insertBefore(node.firstChild, node);
     node.parentNode.removeChild(node);
@@ -683,6 +714,34 @@ function upgradeBodyImages(root) {
     img.setAttribute('decoding', 'async');
     img.removeAttribute('width');
     img.removeAttribute('height');
+  });
+}
+
+// Wire up scroll-snap gallery slideshows after the article body renders.
+// Each .tmw-gallery has a horizontal scroll track + prev/next arrows +
+// "1 / N" counter. CSS handles snapping; this just adds button clicks
+// and keeps the counter in sync as the user scrolls.
+function hookGalleries(root) {
+  root.querySelectorAll('.tmw-gallery').forEach(g => {
+    const track   = g.querySelector('.tmw-gallery-track');
+    const prev    = g.querySelector('.tmw-gallery-arrow.prev');
+    const next    = g.querySelector('.tmw-gallery-arrow.next');
+    const counter = g.querySelector('.tmw-gallery-counter');
+    if (!track) return;
+    const slides = [...track.children];
+    if (!slides.length) return;
+    const sync = () => {
+      const i = Math.min(slides.length - 1, Math.max(0, Math.round(track.scrollLeft / track.clientWidth)));
+      if (counter) counter.textContent = (i + 1) + ' / ' + slides.length;
+      if (prev) prev.disabled = i <= 0;
+      if (next) next.disabled = i >= slides.length - 1;
+    };
+    prev?.addEventListener('click', () => track.scrollBy({ left: -track.clientWidth, behavior: 'smooth' }));
+    next?.addEventListener('click', () => track.scrollBy({ left:  track.clientWidth, behavior: 'smooth' }));
+    track.addEventListener('scroll', sync, { passive: true });
+    // Initial sync after layout settles
+    requestAnimationFrame(sync);
+    setTimeout(sync, 200);
   });
 }
 

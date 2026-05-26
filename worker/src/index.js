@@ -1328,20 +1328,28 @@ function ricosNodeToHtml(node) {
     case 'GALLERY': {
       const items = (node.galleryData && node.galleryData.items) || [];
       if (!items.length) return '';
-      const imgs = items.map(it => {
-        // Gallery items can carry the image in a few places depending on
-        // Wix's schema rev: it.image, it.image.media, or it itself.
+      const slides = items.map(it => {
         const candidate = (it.image && it.image.media) || it.image || it;
         const url = wixMediaToPublicUrl(candidate);
         if (!url) return '';
-        return `<img src="${escAttr(url)}" alt="" loading="lazy">`;
-      }).filter(Boolean).join('');
-      if (!imgs) return '';
-      return `<figure class="ricos-gallery">${imgs}</figure>`;
+        const alt = it.altText || it.title || '';
+        const caption = it.title && it.title.trim() ? `<div class="tmw-gallery-caption">${escHtml(it.title)}</div>` : '';
+        return `<div class="tmw-gallery-slide"><img src="${escAttr(url)}" alt="${escAttr(alt)}" loading="lazy">${caption}</div>`;
+      }).filter(Boolean);
+      if (!slides.length) return '';
+      const nav = slides.length > 1 ? `
+        <button class="tmw-gallery-arrow prev" aria-label="Previous image">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 8H3M7 4L3 8l4 4"/></svg>
+        </button>
+        <button class="tmw-gallery-arrow next" aria-label="Next image">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+        </button>
+        <div class="tmw-gallery-counter">1 / ${slides.length}</div>
+      ` : '';
+      return `<figure class="tmw-gallery" data-gallery><div class="tmw-gallery-track">${slides.join('')}</div>${nav}</figure>`;
     }
     case 'HTML': {
-      const raw = (node.htmlData && (node.htmlData.html || node.htmlData.url)) || '';
-      // For arbitrary HTML embeds Wix uses, prefer iframe URL if present
+      // Prefer the iframe URL form when present (YouTube/Vimeo/etc.)
       if (node.htmlData && node.htmlData.url) {
         const url = node.htmlData.url;
         const host = (() => { try { return new URL(url).host; } catch { return ''; } })();
@@ -1349,9 +1357,21 @@ function ricosNodeToHtml(node) {
           return `<figure><iframe src="${escAttr(url)}" loading="lazy" allowfullscreen></iframe></figure>`;
         }
       }
-      // Else: passthrough raw HTML, but block <script>/handlers
+      // Raw HTML embeds: aggressively strip Wix-pro-gallery init blobs.
+      // These are <style>...</style> + <script>...</script> blocks that
+      // configure the Wix-side gallery widget — useless on our site and
+      // their contents leak as visible text once the sanitizer runs.
+      const raw = (node.htmlData && node.htmlData.html) || '';
       if (raw && typeof raw === 'string') {
-        const clean = raw.replace(/<script\b[\s\S]*?<\/script>/gi, '').replace(/\s+on[a-z]+="[^"]*"/gi, '');
+        let clean = raw
+          .replace(/<script\b[\s\S]*?<\/script>/gi, '')
+          .replace(/<style\b[\s\S]*?<\/style>/gi, '')
+          .replace(/<noscript\b[\s\S]*?<\/noscript>/gi, '')
+          .replace(/\s+on[a-z]+="[^"]*"/gi, '');
+        // After stripping: if there's no visible content AND no media tags
+        // left, drop the whole node so it doesn't leave an empty block.
+        const visible = clean.replace(/<[^>]+>/g, '').trim();
+        if (!visible && !/<(img|iframe|video|audio|picture)\b/i.test(clean)) return '';
         return clean;
       }
       return '';
