@@ -1107,18 +1107,36 @@ async function handleWixSync(req, env, origin, url) {
   }, {}, env, origin);
 }
 
-// Wix media field → public CDN URL
+// Wix media field → public CDN URL.
+//
+// Wix returns image data in several shapes across endpoints:
+//   { url: "https://static.wix..." }                                  // flat
+//   { src: { url: "https://static.wix...", width, height } }          // Ricos
+//   { src: "wix:image://v1/<hash>~mv2.jpeg/file" }                    // wix-URI string
+//   { id:  "ca3b83_<hash>~mv2.jpeg" }                                 // bare media id
+//   "ca3b83_<hash>~mv2.jpeg"                                          // raw string
+//
+// This handles all of them defensively so missing images don't drop
+// silently.
 function wixMediaToPublicUrl(image) {
   if (!image) return '';
-  // Newer Wix API returns image.url directly (cleaner)
-  if (image.url) return image.url;
-  // Else parse the wix:image:// URI
-  const src = image.src || image.id || '';
-  if (typeof src !== 'string') return '';
-  if (src.startsWith('http')) return src;
-  // src like "wix:image://v1/<hash>~mv2.jpg/<filename>#originWidth=..."
-  const m = src.match(/wix:image:\/\/v1\/([^/]+)\//);
-  if (m) return `https://static.wixstatic.com/media/${m[1]}`;
+  if (typeof image === 'string') image = { id: image };
+  // 1. Flat URL
+  if (typeof image.url === 'string' && image.url) return image.url;
+  // 2. Ricos: image.src is an object with url
+  if (image.src && typeof image.src === 'object' && typeof image.src.url === 'string') {
+    return image.src.url;
+  }
+  // 3. image.src as a string (wix-URI or http URL)
+  if (typeof image.src === 'string' && image.src) {
+    if (image.src.startsWith('http')) return image.src;
+    const m = image.src.match(/wix:image:\/\/v1\/([^/]+)\//);
+    if (m) return `https://static.wixstatic.com/media/${m[1]}`;
+  }
+  // 4. Bare media id
+  if (typeof image.id === 'string' && image.id) {
+    return `https://static.wixstatic.com/media/${image.id}`;
+  }
   return '';
 }
 
@@ -1173,10 +1191,21 @@ function ricosNodeToHtml(node) {
     case 'IMAGE': {
       const id = node.imageData && node.imageData.image;
       const url = wixMediaToPublicUrl(id);
-      const alt = (node.imageData && (node.imageData.altText || node.imageData.caption)) || '';
-      const caption = node.imageData && node.imageData.caption ? node.imageData.caption : '';
       if (!url) return '';
-      return `<figure><img src="${escAttr(url)}" alt="${escAttr(alt)}" loading="lazy">${caption ? `<figcaption>${escHtml(caption)}</figcaption>` : ''}</figure>`;
+      const captionRaw = node.imageData && node.imageData.caption;
+      const alt = (node.imageData && (node.imageData.altText
+        || (typeof captionRaw === 'string' ? captionRaw : ''))) || '';
+      // Caption may be a plain string OR a Ricos node tree (newer schema).
+      // Also support child nodes attached to the IMAGE itself.
+      let captionHtml = '';
+      if (typeof captionRaw === 'string' && captionRaw.trim()) {
+        captionHtml = escHtml(captionRaw);
+      } else if (captionRaw && Array.isArray(captionRaw.nodes)) {
+        captionHtml = captionRaw.nodes.map(n => ricosNodeToHtml(n)).join('');
+      } else if (node.nodes && Array.isArray(node.nodes) && node.nodes.length) {
+        captionHtml = ricosChildren(node);
+      }
+      return `<figure><img src="${escAttr(url)}" alt="${escAttr(alt)}" loading="lazy">${captionHtml ? `<figcaption>${captionHtml}</figcaption>` : ''}</figure>`;
     }
     case 'VIDEO': {
       const vd = node.videoData || {};
@@ -1195,10 +1224,14 @@ function ricosNodeToHtml(node) {
       const items = (node.galleryData && node.galleryData.items) || [];
       if (!items.length) return '';
       const imgs = items.map(it => {
-        const url = wixMediaToPublicUrl(it.image && it.image.media && it.image.media.src);
+        // Gallery items can carry the image in a few places depending on
+        // Wix's schema rev: it.image, it.image.media, or it itself.
+        const candidate = (it.image && it.image.media) || it.image || it;
+        const url = wixMediaToPublicUrl(candidate);
         if (!url) return '';
         return `<img src="${escAttr(url)}" alt="" loading="lazy">`;
-      }).join('');
+      }).filter(Boolean).join('');
+      if (!imgs) return '';
       return `<figure class="ricos-gallery">${imgs}</figure>`;
     }
     case 'HTML': {
@@ -1621,6 +1654,14 @@ export default {
       // /admin/sync-wix — batched migration importer (admin-only)
       if (request.method === 'POST' && url.pathname === '/admin/sync-wix') {
         return await handleWixSync(request, env, origin, url);
+      }
+      // /admin/wix-debug/:slug — dump raw Wix response for one post so we
+      // can see the actual richContent shape. Admin-only.
+      {
+        const m = url.pathname.match(/^\/admin\/wix-debug\/([^/]+)\/?$/);
+        if (m && request.method === 'GET') {
+          return await handleWixDebug(request, env, origin, m[1]);
+        }
       }
       // /post/:slug — LEGACY scrape fallback (kept for backwards compat
       // until all posts are in D1). The article page tries /posts/by-slug
