@@ -670,6 +670,22 @@ function clampInt(v, fallback, min, max) {
   return Math.max(min, Math.min(max, n));
 }
 
+// Idempotently decodeURIComponent — handles single-, double-, even triple-
+// encoded URL params. Stops when one more pass would be a no-op or throws.
+// Safety capped at 5 passes so a malformed input can't loop forever.
+function fullyDecodeSlug(s) {
+  if (typeof s !== 'string') return '';
+  let cur = s;
+  for (let i = 0; i < 5; i++) {
+    if (!/\%[0-9A-Fa-f]{2}/.test(cur)) break;
+    let next;
+    try { next = decodeURIComponent(cur); } catch { break; }
+    if (next === cur) break;
+    cur = next;
+  }
+  return cur;
+}
+
 // ---------------------------------------------------------------------------
 // /blog — proxy the Wix blog RSS feed and reshape it into clean JSON.
 // Cached at the edge for 30s so publishing → live takes ~30 sec, not minutes.
@@ -852,11 +868,11 @@ async function handlePostsList(env, origin, url) {
 
 async function handlePostsBySlug(env, origin, slug) {
   if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
-  // Decode URL-encoded chars so Unicode slugs (é, à, í, etc.) match what
-  // Wix stored in the DB during sync. URLSearchParams in the client
-  // gives us the decoded value, but encodeURIComponent re-encodes for
-  // transit, so we have to decode here on the worker side.
-  try { slug = decodeURIComponent(slug); } catch {}
+  // Idempotently decode URL-encoded chars. Some inbound URLs are
+  // double-encoded (e.g. %25C3%25A9 = encoded %C3%A9 = encoded é) and
+  // a single decode leaves them still in encoded form, causing the DB
+  // lookup to miss. Loop until the value stops changing.
+  slug = fullyDecodeSlug(slug);
   // Permit non-ASCII Unicode letters in slugs (Wix allows them).
   if (!slug || slug.length > 250 || /[<>"'`\s]/.test(slug)) {
     return json({ error: 'invalid slug' }, { status: 400 }, env, origin);
@@ -1116,10 +1132,10 @@ async function handleWixSync(req, env, origin, url) {
 // /admin/wix-debug/:slug — fetch one post fresh from Wix and dump the raw
 // richContent so we can see the actual node + image shape. Admin-gated.
 async function handleWixDebug(req, env, origin, slug) {
-  // Decode URL-encoded chars (e.g. %C3%A9 → é) so the Wix slug filter
-  // matches what's actually stored. Without this, any post with a
-  // non-ASCII slug character returns zero matches.
-  try { slug = decodeURIComponent(slug); } catch {}
+  // Idempotently decode URL-encoded chars (e.g. %C3%A9 → é, and the
+  // double-encoded %25C3%25A9 → %C3%A9 → é) so the Wix slug filter
+  // matches what's actually stored.
+  slug = fullyDecodeSlug(slug);
 
   const auth = req.headers.get('Authorization') || '';
   const token = auth.startsWith('Bearer ') ? auth.slice(7).trim() : '';
@@ -1453,7 +1469,7 @@ function escAttr(s) { return escHtml(s); }
 // ---------------------------------------------------------------------------
 
 async function handlePost(env, origin, slug) {
-  try { slug = decodeURIComponent(slug); } catch {}
+  slug = fullyDecodeSlug(slug);
   if (!slug || slug.length > 250 || /[<>"'`\s]/.test(slug)) {
     return json({ error: 'invalid slug' }, { status: 400 }, env, origin);
   }

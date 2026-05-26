@@ -417,7 +417,14 @@ document.getElementById('yr').textContent = new Date().getFullYear();
   loadPulse();
   updateMapCounter();
   hookCopyLink();
-  const slug = new URLSearchParams(location.search).get('slug');
+  // URLSearchParams decodes ONCE, but some inbound URLs are double-
+  // encoded (e.g. shared with %25C3%25A9 = encoded %C3%A9 = encoded é).
+  // Decode until it stops changing so the worker call hits the DB row
+  // cleanly instead of falling back to the legacy scrape.
+  let slug = new URLSearchParams(location.search).get('slug') || '';
+  for (let i = 0; i < 5 && /\%[0-9A-Fa-f]{2}/.test(slug); i++) {
+    try { const d = decodeURIComponent(slug); if (d === slug) break; slug = d; } catch { break; }
+  }
   if (!slug) return renderArticleEmpty('No article specified', 'Add ?slug=&lt;post-slug&gt; to the URL.', null);
   await loadArticle(slug);
 })();
@@ -451,11 +458,13 @@ async function fetchPost(slug) {
     if (res.ok) {
       const data = await res.json();
       if (data && data.post) {
+        console.log('[article] source: D1 /posts/by-slug ·', data.post.body_source);
         // Normalize to the shape renderArticle expects (it was written for
         // the older RSS shape — adapt field names).
         return adaptD1PostShape(data.post);
       }
     }
+    console.warn('[article] /posts/by-slug returned non-ok status:', res.status);
   } catch (e) {
     console.warn('[article] /posts/by-slug failed, trying scrape fallback', e);
   }
