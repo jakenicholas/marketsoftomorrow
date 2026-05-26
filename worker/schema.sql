@@ -1,4 +1,5 @@
 -- D1 schema for identified-user events from map.oftmw.com.
+-- build-stamp: studio-v1 (+ posts, + media, + sync_state)
 --
 -- Philosophy: anonymous traffic stays in GA4 (it's good at that). This table
 -- only stores events from logged-in Memberstack members, so volume is tiny,

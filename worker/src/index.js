@@ -1,4 +1,5 @@
 // Map of Tomorrow analytics worker.
+// build-stamp: studio-v1 (posts + media + sync)
 //
 // Two responsibilities:
 //   1. Authenticate to the Google Analytics Data API using a service-account
