@@ -26,7 +26,7 @@ function corsHeaders(env, origin) {
   return {
     'Access-Control-Allow-Origin': allow,
     'Access-Control-Allow-Methods': 'GET,POST,OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type,X-Ingest-Token',
+    'Access-Control-Allow-Headers': 'Authorization,Content-Type,X-Ingest-Token',
     'Access-Control-Max-Age': '86400',
     'Vary': 'Origin',
   };
@@ -933,22 +933,32 @@ async function handleWixSync(req, env, origin, url) {
   const limit  = clampInt(url.searchParams.get('limit'), 50, 1, 100);
   const offset = clampInt(url.searchParams.get('offset'), 0, 0, 100000);
 
-  // Wix Blog API: GET /blog/v3/posts (paginated)
-  // Docs: https://dev.wix.com/docs/rest/business-solutions/blog/blog/posts/list-posts
-  const wixUrl = `https://www.wixapis.com/blog/v3/posts`
-    + `?paging.limit=${limit}&paging.offset=${offset}`
-    + `&fieldsets=URL,RICH_CONTENT,SEO,METRICS`
-    + `&sort=PUBLISHED_DATE_DESC`;
+  // Wix Blog API — POST /blog/v3/posts/query with a JSON body. The plain
+  // GET /posts endpoint is protobuf-backed and doesn't accept comma-separated
+  // `fieldsets`; the /query endpoint takes a structured JSON body that
+  // serializes cleanly.
+  // Docs: https://dev.wix.com/docs/rest/business-solutions/blog/blog/posts/query-posts
+  const wixUrl = 'https://www.wixapis.com/blog/v3/posts/query';
+  const queryBody = {
+    query: {
+      paging: { limit, offset },
+      sort: [{ fieldName: 'firstPublishedDate', order: 'DESC' }],
+    },
+    fieldsets: ['URL', 'RICH_CONTENT', 'SEO', 'METRICS'],
+  };
   const wixRes = await fetch(wixUrl, {
+    method: 'POST',
     headers: {
       'Authorization': env.WIX_API_KEY,
       'wix-site-id':   env.WIX_SITE_ID,
+      'Content-Type':  'application/json',
       ...(env.WIX_ACCOUNT_ID ? { 'wix-account-id': env.WIX_ACCOUNT_ID } : {}),
     },
+    body: JSON.stringify(queryBody),
   });
   if (!wixRes.ok) {
     const body = await wixRes.text();
-    return json({ error: 'Wix API error', status: wixRes.status, body: body.slice(0, 500) }, { status: 502 }, env, origin);
+    return json({ error: 'Wix API error', status: wixRes.status, body: body.slice(0, 500), endpoint: wixUrl }, { status: 502 }, env, origin);
   }
   const wixData = await wixRes.json();
   const wixPosts = wixData.posts || [];
