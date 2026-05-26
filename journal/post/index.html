@@ -697,7 +697,16 @@ function walk(node) {
   [...node.attributes].forEach(attr => {
     const name = attr.name.toLowerCase();
     if (name.startsWith('on')) { node.removeAttribute(attr.name); return; }
-    if (name === 'style' || name === 'class') { node.removeAttribute(attr.name); return; }
+    if (name === 'style') { node.removeAttribute(attr.name); return; }
+    if (name === 'class') {
+      // Keep only OUR own component classes (tmw-*) — drop Wix's hashed
+      // class names. Without this, the slideshow gallery's `tmw-gallery-*`
+      // classes get nuked along with the noise, killing its styling.
+      const keep = attr.value.split(/\s+/).filter(c => /^tmw-/.test(c)).join(' ');
+      if (keep) node.setAttribute('class', keep);
+      else node.removeAttribute('class');
+      return;
+    }
     if (!ALLOWED_ATTRS.has(name) && !name.startsWith('data-')) {
       node.removeAttribute(attr.name);
       return;
