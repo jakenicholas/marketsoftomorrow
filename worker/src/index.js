@@ -1107,6 +1107,72 @@ async function handleWixSync(req, env, origin, url) {
   }, {}, env, origin);
 }
 
+// /admin/wix-debug/:slug — fetch one post fresh from Wix and dump the raw
+// richContent so we can see the actual node + image shape. Admin-gated.
+async function handleWixDebug(req, env, origin, slug) {
+  const auth = req.headers.get('Authorization') || '';
+  const token = auth.startsWith('Bearer ') ? auth.slice(7).trim() : '';
+  if (!token || !constantTimeEqual(token, env.ADMIN_TOKEN || '')) {
+    return json({ error: 'unauthorized' }, { status: 401 }, env, origin);
+  }
+  if (!env.WIX_API_KEY || !env.WIX_SITE_ID) {
+    return json({ error: 'WIX_API_KEY/WIX_SITE_ID not set' }, { status: 500 }, env, origin);
+  }
+
+  // Use the same /query endpoint that works for sync, filtered to one slug.
+  const wixRes = await fetch('https://www.wixapis.com/blog/v3/posts/query', {
+    method: 'POST',
+    headers: {
+      'Authorization': env.WIX_API_KEY,
+      'wix-site-id':   env.WIX_SITE_ID,
+      'Content-Type':  'application/json',
+      ...(env.WIX_ACCOUNT_ID ? { 'wix-account-id': env.WIX_ACCOUNT_ID } : {}),
+    },
+    body: JSON.stringify({
+      query: {
+        filter: { slug: { $eq: slug } },
+        paging: { limit: 1 },
+      },
+      fieldsets: ['URL', 'RICH_CONTENT', 'CONTENT', 'SEO', 'METRICS'],
+    }),
+  });
+  if (!wixRes.ok) {
+    return json({ error: 'Wix API error', status: wixRes.status, body: (await wixRes.text()).slice(0, 1000) }, { status: 502 }, env, origin);
+  }
+  const data = await wixRes.json();
+  const post = (data && Array.isArray(data.posts) && data.posts[0]) || {};
+  const rc = post.richContent || (post.content && JSON.parse(post.content || '{}')) || null;
+
+  // Summarize node types + spotlight any IMAGE node so we can see its shape
+  let nodeTypeCounts = {};
+  let firstImageNode = null;
+  let firstGalleryNode = null;
+  if (rc && Array.isArray(rc.nodes)) {
+    const walk = nodes => {
+      for (const n of nodes) {
+        if (!n || !n.type) continue;
+        nodeTypeCounts[n.type] = (nodeTypeCounts[n.type] || 0) + 1;
+        if (n.type === 'IMAGE'   && !firstImageNode)   firstImageNode   = n;
+        if (n.type === 'GALLERY' && !firstGalleryNode) firstGalleryNode = n;
+        if (Array.isArray(n.nodes)) walk(n.nodes);
+      }
+    };
+    walk(rc.nodes);
+  }
+
+  return json({
+    slug,
+    hasRichContent: !!rc,
+    nodeTypeCounts,
+    firstImageNode,
+    firstGalleryNode,
+    converterOutput: rc ? ricosToHtml(rc).slice(0, 3000) : null,
+    convertedHasImages: rc ? /<img/i.test(ricosToHtml(rc)) : false,
+    // First 800 chars of the raw RC as a sanity probe
+    richContentSample: rc ? JSON.stringify(rc).slice(0, 800) : null,
+  }, {}, env, origin);
+}
+
 // Wix media field → public CDN URL.
 //
 // Wix returns image data in several shapes across endpoints:
