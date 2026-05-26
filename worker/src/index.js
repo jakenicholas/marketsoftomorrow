@@ -852,7 +852,13 @@ async function handlePostsList(env, origin, url) {
 
 async function handlePostsBySlug(env, origin, slug) {
   if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
-  if (!slug || !/^[a-z0-9][a-z0-9-]{0,200}$/i.test(slug)) {
+  // Decode URL-encoded chars so Unicode slugs (é, à, í, etc.) match what
+  // Wix stored in the DB during sync. URLSearchParams in the client
+  // gives us the decoded value, but encodeURIComponent re-encodes for
+  // transit, so we have to decode here on the worker side.
+  try { slug = decodeURIComponent(slug); } catch {}
+  // Permit non-ASCII Unicode letters in slugs (Wix allows them).
+  if (!slug || slug.length > 250 || /[<>"'`\s]/.test(slug)) {
     return json({ error: 'invalid slug' }, { status: 400 }, env, origin);
   }
   const row = await env.DB
@@ -1110,6 +1116,11 @@ async function handleWixSync(req, env, origin, url) {
 // /admin/wix-debug/:slug — fetch one post fresh from Wix and dump the raw
 // richContent so we can see the actual node + image shape. Admin-gated.
 async function handleWixDebug(req, env, origin, slug) {
+  // Decode URL-encoded chars (e.g. %C3%A9 → é) so the Wix slug filter
+  // matches what's actually stored. Without this, any post with a
+  // non-ASCII slug character returns zero matches.
+  try { slug = decodeURIComponent(slug); } catch {}
+
   const auth = req.headers.get('Authorization') || '';
   const token = auth.startsWith('Bearer ') ? auth.slice(7).trim() : '';
   if (!token || !constantTimeEqual(token, env.ADMIN_TOKEN || '')) {
@@ -1400,7 +1411,8 @@ function escAttr(s) { return escHtml(s); }
 // ---------------------------------------------------------------------------
 
 async function handlePost(env, origin, slug) {
-  if (!slug || !/^[a-z0-9][a-z0-9-]{0,200}$/i.test(slug)) {
+  try { slug = decodeURIComponent(slug); } catch {}
+  if (!slug || slug.length > 250 || /[<>"'`\s]/.test(slug)) {
     return json({ error: 'invalid slug' }, { status: 400 }, env, origin);
   }
   const feedUrl = env.BLOG_FEED_URL || 'https://www.oftmw.com/blog-feed.xml';
