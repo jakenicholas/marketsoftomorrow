@@ -699,10 +699,13 @@ function walk(node) {
     if (name.startsWith('on')) { node.removeAttribute(attr.name); return; }
     if (name === 'style') { node.removeAttribute(attr.name); return; }
     if (name === 'class') {
-      // Keep only OUR own component classes (tmw-*) — drop Wix's hashed
-      // class names. Without this, the slideshow gallery's `tmw-gallery-*`
-      // classes get nuked along with the noise, killing its styling.
-      const keep = attr.value.split(/\s+/).filter(c => /^tmw-/.test(c)).join(' ');
+      // Keep only OUR own component classes (tmw-*) plus a small set of
+      // direction/state modifiers (prev/next/on/off/active) — drop Wix's
+      // hashed class names. Without `prev` and `next`, the gallery's
+      // left/right arrow positioning + JS click bindings break.
+      const keep = attr.value.split(/\s+/)
+        .filter(c => /^tmw-/.test(c) || /^(prev|next|on|off|active)$/.test(c))
+        .join(' ');
       if (keep) node.setAttribute('class', keep);
       else node.removeAttribute('class');
       return;
