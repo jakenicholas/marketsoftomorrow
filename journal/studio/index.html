@@ -58,7 +58,7 @@ html,body{background:var(--ink); color:var(--text); font-family:var(--sans); lin
 .results-meta{font-family:var(--mono); font-size:10.5px; letter-spacing:.1em; color:var(--mute); text-transform:uppercase; margin-left:auto}
 
 .table-head{display:grid; grid-template-columns:60px 1fr 140px 110px 130px 130px; gap:14px; padding:10px 18px; font-family:var(--mono); font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--mute); border-bottom:1px solid var(--hair); margin-bottom:4px}
-.row{display:grid; grid-template-columns:60px 1fr 140px 110px 130px 130px; gap:14px; align-items:center; padding:14px 18px; background:var(--panel); border:1px solid var(--hair); border-radius:10px; margin-bottom:5px; text-decoration:none; color:inherit; transition:border-color .15s, background .15s}
+.row{display:grid; grid-template-columns:60px 1fr 140px 110px 130px 130px; gap:14px; align-items:center; padding:14px 18px; background:var(--panel); border:1px solid var(--hair); border-radius:10px; margin-bottom:5px; text-decoration:none; color:inherit; transition:border-color .15s, background .15s; cursor:pointer}
 .row:hover{border-color:rgba(255,255,255,.18); background:var(--panel-2)}
 .row .thumb{width:48px; height:36px; background:#0a0a0a; border:1px solid var(--hair); border-radius:6px; overflow:hidden; flex-shrink:0; display:flex; align-items:center; justify-content:center; color:var(--mute); font-family:var(--mono); font-size:9.5px}
 .row .thumb img{width:100%; height:100%; object-fit:cover; display:block}
@@ -236,6 +236,12 @@ function renderList() {
     searchTimer = setTimeout(() => { STATE.q = e.target.value.trim(); loadPosts(true); }, 280);
   });
   document.getElementById('loadMoreBtn')?.addEventListener('click', () => loadPosts(false));
+  // Whole row click → edit. Inner .actions stops propagation so the
+  // view-link and delete-button don't also trigger row navigation.
+  document.querySelectorAll('.row[data-edit-href]').forEach(row => {
+    row.addEventListener('click', () => { location.href = row.dataset.editHref; });
+  });
+  document.querySelectorAll('.row .actions').forEach(a => a.addEventListener('click', e => e.stopPropagation()));
   document.querySelectorAll('[data-delete-id]').forEach(b => b.addEventListener('click', async e => {
     e.preventDefault(); e.stopPropagation();
     const id = b.dataset.deleteId;
@@ -259,21 +265,24 @@ function rowHtml(p) {
   const date = p.published_at
     ? new Date(p.published_at * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
     : '—';
-  return `<a class="row" href="${escAttr(url)}">
+  // Row is a <div>, not an <a>, so the inner View-on-site link can stay an
+  // <a> without nesting (which the browser would reject + eject + break CSS).
+  // JS click handler below opens the edit page.
+  return `<div class="row" data-edit-href="${escAttr(url)}">
     <div class="thumb">${p.cover_image ? `<img src="${escAttr(p.cover_image)}" alt="" loading="lazy">` : 'no img'}</div>
     <div class="title">${escHtml(p.title)}<small>${escHtml(p.slug || '')}</small></div>
     <div class="author">${escHtml(p.author_name || '—')}</div>
     <div><span class="status ${p.status}">${escHtml(p.status)}</span></div>
     <div class="date">${escHtml(date)}</div>
-    <div class="actions" onclick="event.stopPropagation()">
-      <a class="icon-btn" href="${escAttr(view)}" target="_blank" rel="noopener" title="View on site" onclick="event.stopPropagation()">
+    <div class="actions">
+      <a class="icon-btn" href="${escAttr(view)}" target="_blank" rel="noopener" title="View on site">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M1.5 8s2.5-4.5 6.5-4.5S14.5 8 14.5 8s-2.5 4.5-6.5 4.5S1.5 8 1.5 8z"/><circle cx="8" cy="8" r="2"/></svg>
       </a>
       <button class="icon-btn danger" data-delete-id="${escAttr(p.id)}" data-delete-title="${escAttr(p.title)}" title="Delete">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 4h10M6 4V2.5h4V4M5 4l.5 9.5h5L11 4"/></svg>
       </button>
     </div>
-  </a>`;
+  </div>`;
 }
 
 function escHtml(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
