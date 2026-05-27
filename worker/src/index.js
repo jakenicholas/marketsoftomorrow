@@ -1800,6 +1800,156 @@ function normalizePost(r) {
 }
 
 // ---------------------------------------------------------------------------
+// /admin/migrate-images — pull a batch of posts, find every external image
+// URL in body_html + cover_image, fetch each one, upload to R2, rewrite all
+// references. Skips URLs already in media_map so we never upload the same
+// Wix image twice across the archive.
+//
+// Request:
+//   POST /admin/migrate-images?limit=10&offset=0
+//   Authorization: Bearer <ADMIN_TOKEN>
+//
+// Response:
+//   { batch: {postsProcessed, imagesUploaded, imagesReused, rewritesApplied, errors[]},
+//     offset, nextOffset, total, done }
+// ---------------------------------------------------------------------------
+
+async function handleMigrateImages(req, env, origin, url) {
+  const authCheck = requireAdminToken(req, env, origin);
+  if (authCheck) return authCheck;
+  if (!env.MEDIA) return json({ error: 'R2 not configured' }, { status: 500 }, env, origin);
+  if (!env.DB)    return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  if (!env.MEDIA_PUBLIC_BASE) return json({ error: 'MEDIA_PUBLIC_BASE not set' }, { status: 500 }, env, origin);
+
+  // Process fewer posts per batch since each one might do multiple R2 uploads.
+  const limit  = clampInt(url.searchParams.get('limit'), 10, 1, 30);
+  const offset = clampInt(url.searchParams.get('offset'), 0, 0, 100000);
+
+  const totalRow = await env.DB.prepare(`SELECT COUNT(*) c FROM posts`).first();
+  const total    = totalRow ? totalRow.c : 0;
+
+  const posts = await env.DB.prepare(`
+    SELECT id, slug, body_html, cover_image FROM posts
+    ORDER BY id LIMIT ${limit} OFFSET ${offset}
+  `).all();
+
+  const stats = { postsProcessed: 0, imagesUploaded: 0, imagesReused: 0, rewritesApplied: 0, errors: [] };
+  const publicBase = env.MEDIA_PUBLIC_BASE.replace(/\/+$/, '');
+
+  for (const p of (posts.results || [])) {
+    try {
+      const urlsInPost = collectExternalImageUrls(p.body_html || '', p.cover_image || '');
+      if (!urlsInPost.size) { stats.postsProcessed++; continue; }
+
+      // For each unique URL in this post, look up or create an R2 copy
+      const urlMap = new Map(); // sourceUrl -> r2Url
+      for (const srcUrl of urlsInPost) {
+        // Check if we've already migrated it
+        const existing = await env.DB.prepare(`SELECT r2_url FROM media_map WHERE source_url = ?1`).bind(srcUrl).first();
+        if (existing && existing.r2_url) {
+          urlMap.set(srcUrl, existing.r2_url);
+          stats.imagesReused++;
+          continue;
+        }
+        // Fetch from Wix CDN
+        let res;
+        try { res = await fetch(srcUrl, { cf: { cacheTtl: 86400 } }); }
+        catch (e) { stats.errors.push({ post: p.slug, url: srcUrl, error: 'fetch ' + (e.message || '') }); continue; }
+        if (!res.ok) { stats.errors.push({ post: p.slug, url: srcUrl, error: 'fetch ' + res.status }); continue; }
+        const buf = await res.arrayBuffer();
+        const mimeType = res.headers.get('content-type') || guessMimeFromName(srcUrl) || 'image/jpeg';
+        if (buf.byteLength > 25 * 1024 * 1024) {
+          stats.errors.push({ post: p.slug, url: srcUrl, error: 'too large ' + buf.byteLength }); continue;
+        }
+        // Derive a clean key from the original URL (preserve the Wix media id)
+        const key = deriveKeyFromWixUrl(srcUrl, mimeType);
+        try {
+          await env.MEDIA.put(key, buf, {
+            httpMetadata: { contentType: mimeType, cacheControl: 'public, max-age=31536000, immutable' },
+            customMetadata: { source: srcUrl, migrated_at: String(Date.now()) },
+          });
+        } catch (e) {
+          stats.errors.push({ post: p.slug, url: srcUrl, error: 'R2 put ' + (e.message || '') }); continue;
+        }
+        const newUrl = publicBase + '/' + key;
+        // Record in media_map for future posts
+        try {
+          await env.DB.prepare(`
+            INSERT INTO media_map (source_url, r2_url, r2_key, size_bytes, mime_type, migrated_at)
+            VALUES (?1, ?2, ?3, ?4, ?5, ?6)
+            ON CONFLICT(source_url) DO UPDATE SET r2_url=excluded.r2_url, r2_key=excluded.r2_key, migrated_at=excluded.migrated_at
+          `).bind(srcUrl, newUrl, key, buf.byteLength, mimeType, Math.floor(Date.now()/1000)).run();
+        } catch (e) { /* non-fatal; URL still in urlMap */ }
+        // Also register in the regular media table so it shows up in the library
+        try {
+          await env.DB.prepare(`
+            INSERT INTO media (key, filename, mime_type, size_bytes, uploaded_by, uploaded_at, url)
+            VALUES (?1, ?2, ?3, ?4, 'wix-migration', ?5, ?6)
+            ON CONFLICT(key) DO NOTHING
+          `).bind(key, key.split('/').pop(), mimeType, buf.byteLength, Math.floor(Date.now()/1000), newUrl).run();
+        } catch {}
+        urlMap.set(srcUrl, newUrl);
+        stats.imagesUploaded++;
+      }
+
+      // Now rewrite body_html + cover_image with the new URLs
+      let newBody  = p.body_html || '';
+      let newCover = p.cover_image || '';
+      let rewrites = 0;
+      for (const [src, r2] of urlMap.entries()) {
+        if (src === r2) continue;
+        const before = newBody;
+        newBody = newBody.split(src).join(r2);
+        if (newBody !== before) rewrites += (before.match(new RegExp(escapeRegex(src), 'g')) || []).length;
+        if (newCover === src) { newCover = r2; rewrites++; }
+      }
+      if (rewrites > 0) {
+        await env.DB.prepare(`UPDATE posts SET body_html = ?1, cover_image = ?2, updated_at = ?3 WHERE id = ?4`)
+          .bind(newBody, newCover, Math.floor(Date.now() / 1000), p.id).run();
+        stats.rewritesApplied += rewrites;
+      }
+      stats.postsProcessed++;
+    } catch (e) {
+      stats.errors.push({ post: p.slug, error: e.message || String(e) });
+    }
+  }
+
+  const nextOffset = offset + (posts.results || []).length;
+  return json({ batch: stats, offset, nextOffset, total, done: nextOffset >= total }, {}, env, origin);
+}
+
+// Find every external image URL in a post's body + cover.
+function collectExternalImageUrls(bodyHtml, coverUrl) {
+  const set = new Set();
+  if (coverUrl && /^https?:\/\/(static|video)\.wixstatic\.com\//i.test(coverUrl)) set.add(coverUrl);
+  // Match <img src="..."> tags inside body_html
+  const re = /<img[^>]+src=["']([^"']+)["']/gi;
+  let m;
+  while ((m = re.exec(bodyHtml || '')) !== null) {
+    const u = m[1];
+    if (/^https?:\/\/(static|video)\.wixstatic\.com\//i.test(u)) set.add(u);
+  }
+  return set;
+}
+
+// Build a stable R2 key from a Wix URL. Preserve the Wix media id so we can
+// reverse-lookup later if needed; suffix with proper extension.
+function deriveKeyFromWixUrl(srcUrl, mimeType) {
+  const idMatch = srcUrl.match(/static\.wixstatic\.com\/media\/([^/?#]+)/i);
+  const wixId = idMatch ? idMatch[1] : ('legacy-' + cryptoRandomId(8));
+  // Wix IDs like "ca3b83_abc~mv2.jpeg" already contain the extension; use it.
+  // If not, derive from mime.
+  const hasExt = /\.[a-z]{2,5}$/i.test(wixId);
+  const ext = hasExt ? '' : ('.' + (({
+    'image/jpeg':'jpg','image/png':'png','image/webp':'webp','image/avif':'avif','image/gif':'gif',
+    'video/mp4':'mp4','video/webm':'webm',
+  })[mimeType] || 'bin'));
+  return 'wix-migrate/' + wixId + ext;
+}
+
+function escapeRegex(s) { return String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+
+// ---------------------------------------------------------------------------
 // /admin/upload — accept an image upload via multipart/form-data, store
 // the object in R2, register a row in the media table, return the public
 // CDN URL the editor pastes into a post.
@@ -2123,6 +2273,10 @@ export default {
       // /admin/upload — image upload to R2 (admin-only)
       if (request.method === 'POST' && url.pathname === '/admin/upload') {
         return await handleUpload(request, env, origin);
+      }
+      // /admin/migrate-images — bulk pull Wix CDN URLs into R2 (admin-only)
+      if (request.method === 'POST' && url.pathname === '/admin/migrate-images') {
+        return await handleMigrateImages(request, env, origin, url);
       }
       // /admin/media — list/delete uploaded media (admin-only)
       if (request.method === 'GET' && url.pathname === '/admin/media') {

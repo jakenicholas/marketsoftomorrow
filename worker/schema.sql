@@ -110,6 +110,22 @@ CREATE TABLE IF NOT EXISTS media (
 CREATE INDEX IF NOT EXISTS idx_media_uploaded ON media(uploaded_at DESC);
 CREATE INDEX IF NOT EXISTS idx_media_filename ON media(filename);
 
+-- ---------------------------------------------------------------------------
+-- media_map: lookup for "I already migrated this external URL to R2".
+-- Used by /admin/migrate-images to deduplicate — the same Wix image often
+-- appears across many posts and we only want to upload + store it once.
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS media_map (
+  source_url   TEXT    PRIMARY KEY,    -- the original https://static.wixstatic.com/... URL
+  r2_url       TEXT    NOT NULL,        -- the new R2 public URL
+  r2_key       TEXT    NOT NULL,        -- the R2 object key
+  size_bytes   INTEGER,
+  mime_type    TEXT,
+  migrated_at  INTEGER NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_media_map_migrated ON media_map(migrated_at DESC);
+
 -- A view of the most recent event per member, for the People list.
 -- We define it as a view (not a materialized table) so it's always fresh
 -- and we never have to write a backfill job.

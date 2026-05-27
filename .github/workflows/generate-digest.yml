@@ -39,6 +39,10 @@ jobs:
           if git diff --staged --quiet; then
             echo "No changes."
           else
-            git commit -m "digest: nightly refresh [skip ci]"
+            # No [skip ci]: pages.yml deploys on push to main, and the tag
+            # would block the deploy so the refreshed digest never goes
+            # live. Same fix as generate-pages.yml. No infinite-loop risk —
+            # this workflow only triggers on schedule + workflow_dispatch.
+            git commit -m "digest: nightly refresh"
             git push
           fi

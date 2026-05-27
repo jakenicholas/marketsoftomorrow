@@ -131,6 +131,14 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           PAGE_COUNT=$(git diff --staged --name-only | grep "projects/.*index.html" | wc -l)
-          MSG="Auto-update: ${PAGE_COUNT} pages + pulse [skip ci]"
+          # No [skip ci] tag on purpose: pages.yml (which deploys the static
+          # site to GitHub Pages) triggers on `push` to main, and [skip ci]
+          # would block it. That was the bug behind new project pages
+          # (nude-miami, 400-lake-shore-drive, etc.) being generated and
+          # committed but never reaching the live site after we swapped the
+          # built-in Jekyll deploy for an Actions workflow on 2026-05-26.
+          # No infinite-loop risk: this workflow triggers on schedule +
+          # workflow_dispatch only, never on push.
+          MSG="Auto-update: ${PAGE_COUNT} pages + pulse"
           git commit -m "$MSG"
           git push
