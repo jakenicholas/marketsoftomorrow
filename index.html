@@ -12165,6 +12165,85 @@
       return [0, targetPinY - viewportCenter];
     }
 
+    // ── Iterative decluster fly ──────────────────────────────────────────
+    // Flies to a project's pin and keeps zooming in until the pin breaks out
+    // of any surrounding cluster and renders as an individual ("unclustered")
+    // point. The zoom level needed to reveal a given pin is NOT fixed — it
+    // depends on how densely other pins are packed around it — so instead of
+    // guessing one zoom we repeatedly ask Mapbox for the zoom that expands the
+    // cluster currently covering the pin, hop to it, and re-check. Expanding
+    // one cluster can drop the pin into a smaller sub-cluster, which is why a
+    // single pass (the old behavior) often left the pin hidden in dense metros.
+    //
+    //   co            : [lng, lat] of the target pin
+    //   opts.offset   : Mapbox screen offset (keeps the pin where the popup wants it)
+    //   opts.duration : duration of the FIRST flight (corrective hops are quick)
+    //   opts.baseZoom : minimum zoom for the first flight
+    //   opts.onArrive : called once after the pin is declustered + camera settled
+    //
+    // Termination is guaranteed: we stop once no cluster covers the pin, once
+    // we pass the source's clusterMaxZoom (beyond which Mapbox never clusters),
+    // or after a hard step cap — so this can never loop forever.
+    function flyToDeclustered(co, opts) {
+      opts = opts || {};
+      const offset = opts.offset || [0, 0];
+      const CLUSTER_MAX_ZOOM = 16;   // must match the 'projects' source config
+      const HARD_ZOOM_CAP = 17.5;    // > clusterMaxZoom ⇒ guaranteed unclustered
+      const MAX_STEPS = 8;           // safety net against pathological loops
+      let step = 0, done = false;
+
+      const finish = () => {
+        if (done) return;
+        done = true;
+        if (typeof opts.onArrive === 'function') { try { opts.onArrive(); } catch (_) {} }
+      };
+
+      // Is a cluster bubble currently covering the pin's screen position?
+      // Query a small box (not a single pixel) around the projected point so
+      // we reliably catch the cluster circle the pin sits inside.
+      const clusterAtPin = () => {
+        try {
+          if (!map.getLayer('clusters')) return null;
+          const p = map.project(co);
+          const hits = map.queryRenderedFeatures(
+            [[p.x - 20, p.y - 20], [p.x + 20, p.y + 20]],
+            { layers: ['clusters'] }
+          );
+          return (hits && hits.length) ? hits[0] : null;
+        } catch (_) { return null; }
+      };
+
+      const settle = () => {
+        // Wait one frame so the just-finished move is fully rendered before
+        // we query cluster features at the pin.
+        requestAnimationFrame(() => {
+          step++;
+          const z = map.getZoom();
+          if (z >= CLUSTER_MAX_ZOOM + 0.5 || step >= MAX_STEPS) { finish(); return; }
+          const cluster = clusterAtPin();
+          if (!cluster) { finish(); return; }            // pin stands alone now
+          const src = map.getSource('projects');
+          if (!src || typeof src.getClusterExpansionZoom !== 'function') { finish(); return; }
+          src.getClusterExpansionZoom(cluster.properties.cluster_id, (err, expZoom) => {
+            if (err) { finish(); return; }
+            // Go a hair past the expansion zoom; always advance by at least a
+            // full level, never above the hard cap.
+            const next = Math.min(HARD_ZOOM_CAP, Math.max((expZoom || z) + 0.4, z + 1.0));
+            if (next <= z + 0.05) { finish(); return; }  // can't progress → stop
+            map.once('moveend', settle);
+            map.easeTo({ center: co, zoom: next, offset: offset, duration: 450, essential: true });
+          });
+        });
+      };
+
+      const baseZoom = Math.max(map.getZoom(), opts.baseZoom || 13);
+      map.once('moveend', settle);
+      map.flyTo({
+        center: co, zoom: baseZoom, offset: offset,
+        duration: (opts.duration || 1200), essential: true
+      });
+    }
+
     function zoomToPinOnly(f) {
       const co = f.geometry.coordinates;
       const selectedTitle = f.properties.title;
@@ -12212,26 +12291,10 @@
       // user is already zoomed near the pin and a cluster is in view --
       // but that's the case where the bug shows up (clicking a tile while
       // already viewing a clustered region failed to zoom past the cluster).
-      const doFly = () => {
-        map.flyTo({ center: co, zoom: targetZoom, offset: off, duration: 1400, essential: true });
-      };
-
-      try {
-        const nearbyPixel = map.project(co);
-        const clustersAtPin = map.queryRenderedFeatures(nearbyPixel, { layers: ['clusters'] });
-        if (clustersAtPin.length > 0 && map.getSource('projects')) {
-          map.getSource('projects').getClusterExpansionZoom(
-            clustersAtPin[0].properties.cluster_id,
-            (err, expansionZoom) => {
-              if (!err && expansionZoom > targetZoom) targetZoom = expansionZoom + 1;
-              doFly();
-            }
-          );
-          return;
-        }
-      } catch (_) { /* fall through to plain fly */ }
-
-      doFly();
+      // Continually zoom toward the pin until it leaves every cluster and
+      // renders on its own. baseZoom is the comfortable floor; flyToDeclustered
+      // bumps past it as far as the local clustering requires.
+      flyToDeclustered(co, { offset: off, duration: 1400, baseZoom: targetZoom });
     }
 
     // ‚îÄ‚îÄ Deep-link: open project from ?project= URL param ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
@@ -13681,13 +13744,20 @@
       window.closeProjectModal = closeModal;
 
       // "View on Map" button ‚Äî closes the project modal and flies the
-      // map to the project's pin, then shows the inline popup.
+      // map to the project's pin, then shows the inline popup tile.
+      //   ‚Ä¢ All devices ‚Üí close the modal, then hand off to showPopup,
+      //               which mounts the popup tile, paints the pin purple,
+      //               and routes the camera through flyToDeclustered ‚Äî
+      //               zooming in step-by-step until the cluster splits and
+      //               the purple pin is exposed (each project needs a
+      //               different final zoom depending on local clustering).
       //   ‚Ä¢ Mobile  ‚Üí also collapse the v2 sheet so the map is fully
       //               visible (user lands on the pin with nothing in
       //               the way).
-      //   ‚Ä¢ Desktop ‚Üí KEEP the sidebar open (don't run v2CloseSheet).
-      //               The modal is what closes; the sidebar continues
-      //               to show the tile grid behind the fly-to.
+      //
+      // (Previously desktop kept the modal open and only painted the pin
+      // with NO popup, so "View on Map" behaved inconsistently across
+      // breakpoints. Now every device shows the popup tile.)
       //
       // Defensive: resolve the feature from `currentFeature` first, but
       // fall back to `window._popupFeatureRef` (set by showPopup) or a
@@ -13712,64 +13782,27 @@
           ? f.geometry.coordinates.slice()
           : null;
         const onMobile = window.matchMedia('(max-width: 800px)').matches;
+        // Close the project modal on EVERY device, then hand the whole
+        // fly + popup + pin-paint flow to showPopup. showPopup mounts the
+        // popup tile BEFORE flying (so it stays visible during the
+        // multi-hop flight), paints the matching pin purple, and routes the
+        // camera through flyToDeclustered ‚Äî which zooms in step-by-step
+        // until the cluster splits and the purple pin is exposed.
+        try { closeModal(); } catch(_) {}
         if (onMobile) {
-          // Mobile: close BOTH the project modal and the bottom sheet so
-          // the user lands on a fully-visible map with just the popup +
-          // pin showing.
-          try { closeModal(); } catch(_) {}
+          // Mobile: also collapse the bottom sheet so the user lands on a
+          // fully-visible map with just the popup + pin showing.
           document.body.classList.remove(
             'v2-sheet-open', 'v2-sheet-mid', 'v2-sheet-full', 'v2-modal-open'
           );
           if (typeof window.v2CloseSheet === 'function') {
             try { window.v2CloseSheet(); } catch(_) {}
           }
-        } else {
-          // Desktop: KEEP the project modal AND the drawer open. The
-          // sidebar covers the left half of the screen; the map fills
-          // the right half. Flying to the pin gives the user a "where
-          // is this on the map" visual without dismissing the page
-          // they're reading. We don't close the modal, don't strip
-          // v2-modal-open, and don't fire the inline popup (the modal
-          // already shows the full project ‚Äî a second popup would be
-          // redundant). We DO highlight the pin so the user can spot
-          // it on the right-hand map.
         }
-        if (!co) return;
-        const targetZoom = Math.max(map.getZoom(), 13);
-        // Kick the flyTo off on the next frame so any modal close
-        // transition (mobile) starts first.
+        if (!co || !f) return;
+        // Defer one frame so the modal-close transition starts first.
         requestAnimationFrame(() => {
-          try {
-            map.flyTo({ center: co, zoom: targetZoom, duration: 1200, essential: true });
-          } catch(_) {}
-          if (onMobile) {
-            // Mobile: fire the inline popup once the map settles, so
-            // the user lands on a centered popup over the pin.
-            let popupFired = false;
-            const firePopup = () => {
-              if (popupFired) return;
-              popupFired = true;
-              try { showPopup(f, { skipPaywall: true }); } catch(_) {}
-            };
-            try { map.once('moveend', firePopup); } catch(_) {}
-            setTimeout(firePopup, 800);
-          } else {
-            // Desktop: just paint the matching pin purple so the user
-            // can see which pin corresponds to the open project. Uses
-            // the same Mapbox paint expression that showPopup uses, so
-            // closing the modal later clears the override via the
-            // normal closeModal pin-reset path.
-            try {
-              const title = f && f.properties && f.properties.title;
-              if (title && map.getLayer('unclustered-point')) {
-                const pinkPin = ['case', ['==', ['get', 'title'], title], '#A78BFA', '#1FDF67'];
-                const pinkRadius = ['case', ['==', ['get', 'title'], title], 11, 8];
-                map.setPaintProperty('unclustered-point', 'circle-color', pinkPin);
-                map.setPaintProperty('unclustered-point', 'circle-radius', pinkRadius);
-                window._selectedPinTitle = title;
-              }
-            } catch(_) {}
-          }
+          try { showPopup(f, { skipPaywall: true }); } catch(_) {}
         });
       }
       // Expose so other surfaces (firm sheet "view on map", deep-link
@@ -14144,29 +14177,23 @@
       // ~0.0005 degrees lat is ~55m; well below visible movement at zoom 13
       const alreadyThere = lngDelta < 0.0005 && latDelta < 0.0005 && zoomDelta < 0.3 && !map.isMoving();
 
-      const checkClusterAndFly = () => {
-        if (alreadyThere) {
-          // Camera already at the right spot -- skip the fly. Still apply
-          // the offset shift in case it changed (e.g. button layout shifted)
-          // via easeTo with a very short duration so it's effectively static.
-          window._mapFlyingTo = false;
-          return;
-        }
-        map.flyTo({ center: co, zoom: targetZoom, offset: off, duration: flyDuration, essential: true });
-      };
-
-      // Check if the pin is inside a cluster at the TARGET zoom by querying clusters at current view
-      // We use getClusterExpansionZoom on any nearby cluster to know if we need to go deeper
-      const nearbyPixel = map.project(co);
-      const clustersAtPin = map.queryRenderedFeatures(nearbyPixel, { layers: ['clusters'] });
-      if (clustersAtPin.length > 0) {
-        const source = map.getSource('projects');
-        source.getClusterExpansionZoom(clustersAtPin[0].properties.cluster_id, (err, expansionZoom) => {
-          if (!err && expansionZoom > targetZoom) targetZoom = expansionZoom + 1;
-          checkClusterAndFly();
-        });
+      if (alreadyThere) {
+        // Camera already sitting on the pin (e.g. zoomToPinOnly just flew
+        // here on mobile) -- don't re-fly, just clear the flight flag.
+        window._mapFlyingTo = false;
       } else {
-        checkClusterAndFly();
+        // Continually zoom toward the pin until it breaks out of any
+        // surrounding cluster and renders as an individual purple pin. The
+        // exact zoom needed depends on local pin density, so we expand the
+        // covering cluster step-by-step (flyToDeclustered) rather than
+        // guessing a single fixed level. The popup is already mounted above
+        // (anchored at the pin), so it stays visible throughout the flight.
+        flyToDeclustered(co, {
+          offset: off,
+          duration: flyDuration,
+          baseZoom: targetZoom,
+          onArrive: () => { window._mapFlyingTo = false; }
+        });
       }
       gtag('event', 'project_view', {
         'project_name': f.properties.title, 'project_city': f.properties.city,
