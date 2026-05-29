@@ -8496,10 +8496,17 @@
       color: rgba(255,255,255,0.5) !important;
       font-weight: 600 !important;
     }
-    body.ui-v2 .v2-segmented.v2-searching .v2-tab.active .v2-tab-num {
-      background: var(--warn, #FFD300) !important;
-      color: #0a0a0a !important;
-    }
+    /* NOTE: we intentionally do NOT restyle the active tab's count bubble
+       (.v2-tab-num) while searching. It keeps its normal active look
+       (dark pill / gold number from the rule above), so the bubble is
+       pixel-identical before and during search -- only the surrounding
+       tab fades to transparent. A previous rule flipped the bubble to a
+       solid gold fill here, which made the Pulse count look like a fresh
+       notification firing the instant you started typing. This also
+       matches desktop (.v2-desktop-tabs has no searching-state override
+       on its .num bubble) and the stated intent above: with the bubble
+       no longer gold-filled, the search-icon tab is the only gold
+       element in the bar. */
 
     /* Bold title row */
     body.ui-v2 .v2-sheet-title-row {
