@@ -1,6 +1,50 @@
 {
   "generated_at": "2026-05-29",
   "projects": {
+    "120-s-dixie-highway": {
+      "estimate_years": 2.6,
+      "estimate_label": "~2.6 years",
+      "range_low": 2.0,
+      "range_high": 3.2,
+      "confidence": "low",
+      "comparable_count": 2,
+      "good_count": 1,
+      "exact_count": 1,
+      "used_relaxed": true,
+      "avg_match_score": 0.78,
+      "avg_distance_km": 6.6,
+      "avg_distance_mi": 4.1,
+      "scale_used": true,
+      "firm_signal": null,
+      "source": "comparables",
+      "project_type": "Residences",
+      "metro": "Palm Beach",
+      "comparables": [
+        {
+          "name": "Nautilus 220",
+          "slug": "nautilus-220",
+          "location": "Lake Park",
+          "years": 3.2,
+          "score": 1.0,
+          "distance_km": 9.3,
+          "distance_mi": 5.8
+        },
+        {
+          "name": "Inscription",
+          "slug": "inscription",
+          "location": "West Palm Beach",
+          "years": 2.0,
+          "score": 0.55,
+          "distance_km": 3.9,
+          "distance_mi": 2.4
+        }
+      ],
+      "pattern_summary": "Among 2 nearby residences projects in TMW's data, the median time to completion is 2.6 years, with a range of 2–3.2 years.",
+      "dates_speculative": true,
+      "start_speculative": true,
+      "delivery_speculative": true,
+      "is_mixed_use": false
+    },
     "400-lake-shore-drive": {
       "estimate_years": 3.2,
       "estimate_label": "~3.2 years",
@@ -6214,21 +6258,57 @@
       "delivery_speculative": false
     },
     "delux-weho": {
-      "estimate_years": 0.6,
-      "estimate_label": "~7 months",
-      "days_out": 216,
-      "delivery_date": "2026-12-31",
-      "source": "known_date",
-      "precision": "year",
-      "confidence": "high",
+      "estimate_years": 3.2,
+      "estimate_label": "~3.2 years",
+      "range_low": 2.0,
+      "range_high": 8.4,
+      "confidence": "low",
+      "comparable_count": 3,
+      "good_count": 0,
+      "exact_count": 0,
+      "used_relaxed": true,
+      "avg_match_score": 0.44,
+      "avg_distance_km": 1251.1,
+      "avg_distance_mi": 777.4,
+      "scale_used": true,
+      "firm_signal": null,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Nashville",
-      "comparables": [],
-      "comparable_count": 0,
-      "pattern_summary": "Targeted for opening in ~7 months.",
+      "comparables": [
+        {
+          "name": "Inscription",
+          "slug": "inscription",
+          "location": "West Palm Beach",
+          "years": 2.0,
+          "score": 0.64,
+          "distance_km": 1222.2,
+          "distance_mi": 759.5
+        },
+        {
+          "name": "Nautilus 220",
+          "slug": "nautilus-220",
+          "location": "Lake Park",
+          "years": 3.2,
+          "score": 0.34,
+          "distance_km": 1217.8,
+          "distance_mi": 756.7
+        },
+        {
+          "name": "Arbor Coconut Grove",
+          "slug": "arbor-coconut-grove",
+          "location": "Miami",
+          "years": 8.4,
+          "score": 0.34,
+          "distance_km": 1313.3,
+          "distance_mi": 816.1
+        }
+      ],
+      "pattern_summary": "Among 3 residences projects in TMW's data, the median time to completion is 3.2 years, with a range of 2–8.4 years.",
       "dates_speculative": false,
       "start_speculative": false,
-      "delivery_speculative": false
+      "delivery_speculative": false,
+      "is_mixed_use": false
     },
     "duos-wynwood": {
       "estimate_years": 2.5,
@@ -7239,8 +7319,8 @@
   "stats": {
     "high": 10,
     "medium": 21,
-    "low": 22,
-    "known_date": 244,
+    "low": 24,
+    "known_date": 243,
     "completed": 33,
     "skipped": 61,
     "no_type": 0,
