@@ -18,9 +18,16 @@ Path 2 changes from v1:
     Comps within +/-1.5x score 1.0, +/-3x score 0.5, outside drops to 0.
   - Each candidate gets a 0-1 score combining distance + scale; the pool
     is the top N scored matches (not a binary exact/relaxed bucket).
-  - Architect/developer track record: firms with >=3 completed projects and
-    low schedule variance bump the in-flight confidence one tier AND blend
-    their median into the estimate.
+  - Architect/developer track record (v3): a developer's OWN demonstrated
+    build pace blends into the comparable estimate — BIDIRECTIONALLY. A
+    historically slow developer (e.g. Jeff Greene, whose ONE West Palm ran
+    ~7 years) lengthens the estimate; a fast one shortens it. Pace evidence
+    now includes near-complete ("Opening Soon") projects with a real start
+    date, not just formally-opened ones, so a slow developer's signature
+    build counts BEFORE its status flips to "Now Open". Blend weight scales
+    with sample size and is guard-railed so one odd data point can't run
+    away with the number. Firms with >=3 completions and tight variance
+    still earn a confidence-tier bump on top of the blend.
 
 Confidence tiers (v2, based on COUNT OF GOOD-quality matches):
   high   - >= 5 comps with score >= 0.65
@@ -86,12 +93,25 @@ W_DISTANCE_ONLY = 1.0     # used when no scale data
 W_DISTANCE_WHEN_SCALED = 0.4
 W_SCALE_WHEN_SCALED = 0.6
 
-# Firm track record: at least N completed projects from the same firm to
-# qualify as a signal. Standard deviation cap (years) for "consistent" firms.
+# Firm track record: at least N projects from the same firm to qualify as a
+# "consistent" signal that earns a confidence-tier bump. Standard deviation
+# cap (years) for "consistent" firms.
 FIRM_MIN_COMPLETIONS = 3
 FIRM_TIGHT_STDDEV = 0.75
-# Blend factor — firm median weighted against overall comp median when boosting.
-FIRM_BLEND_FACTOR = 0.30
+
+# Developer-pace blend (v3). A developer's OWN demonstrated build pace pulls
+# the comparable median toward their track record. Unlike the old consistency
+# tightener this fires from a small sample (>=1 observation) and is
+# BIDIRECTIONAL — slow developers lengthen the estimate, fast ones shorten it.
+PACE_MIN_OBS = 1
+# Blend weight by observation count (how hard we pull toward the dev's pace).
+# More observations -> trust the dev's own pace more. n>=3 uses PACE_BLEND_MAX.
+PACE_BLEND_BY_N = {1: 0.40, 2: 0.55}
+PACE_BLEND_MAX = 0.65
+# Guardrails: the blend can move the estimate at most this far from the pure
+# comparable median, so a single weird data point can't run away with it.
+PACE_RATIO_CAP = 2.5      # never push above 2.5x the comparable median
+PACE_RATIO_FLOOR = 0.5    # ...or below 0.5x
 
 # Mixed-use projects: PreferredType = "Mixed-Use" signals a massive, phased,
 # multi-component build (hotel + residential + retail + office stacked).
@@ -774,23 +794,63 @@ def build_complete_index(rows):
 # confidence-tightening signal on their in-flight projects (Path 2).
 # ---------------------------------------------------------------------------
 
-def build_firm_track_records(complete_index):
-    """Return { firm_lowercase: { count, median_years, mean_years, stddev_years } }
-    for every firm with at least FIRM_MIN_COMPLETIONS completed projects.
-    Firms appear in both architects and developers — we aggregate by role-agnostic
-    name since the construction-timeline signal is similar from either side."""
+def _is_pace_evidence(delivery_status):
+    """A project counts as developer-pace evidence if it's complete OR
+    'Opening Soon' (effectively delivered). We include 'Opening Soon' so a
+    developer's signature build (e.g. ONE West Palm: 2019 start, ~7-year
+    build, now 'Opening Soon') informs their pace BEFORE the status flips to
+    'Now Open' — otherwise slow developers look fast simply because their
+    longest projects haven't formally opened yet."""
+    if not delivery_status:
+        return False
+    s = delivery_status.strip().lower()
+    return is_complete(delivery_status) or 'opening soon' in s
+
+
+def build_firm_track_records(rows):
+    """Return { firm_lowercase: { count, median_years, mean_years, stddev_years,
+    durations } } for every firm with >=1 pace observation.
+
+    A pace observation is a project (by either architect or developer) that:
+      - is complete OR 'Opening Soon' (see _is_pace_evidence), AND
+      - has a REAL, non-speculative, parseable StartDate, AND
+      - has a parseable DeliveryDate, AND
+      - has a sane duration (0.25–15 years).
+
+    Speculative starts are excluded so Jake's FORWARD guesses (e.g. the
+    target's own 2028 start) never feed back into the model as if they were
+    observed pace. Firms appear in both architects and developers — we
+    aggregate by role-agnostic name since the timeline signal is similar from
+    either side; matching_pace_signal() later prefers developer matches.
+
+    Built from raw `rows` (not complete_index) precisely so 'Opening Soon'
+    projects — which build_complete_index() excludes — can still count."""
+    def _truthy(v):
+        return str(v or '').strip() in ('1', 'true', 'True')
+
     by_firm = {}  # lowercase firm name -> list of duration-years floats
-    for c in complete_index:
-        for firm in (c.get('architects') or []) + (c.get('developers') or []):
+    for row in rows:
+        if not _is_pace_evidence((row.get('Delivery', '') or '').strip()):
+            continue
+        # Demonstrated pace only: the start must be a real, observed date —
+        # not a TMW estimate.
+        if _truthy(row.get('StartSpeculative')) or _truthy(row.get('DatesSpeculative')):
+            continue
+        start = parse_date((row.get('StartDate', '') or '').strip())
+        end = parse_date((row.get('DeliveryDate', '') or '').strip())
+        if not start or not end:
+            continue
+        years = (end - start).days / 365.25
+        if years < 0.25 or years > 15:
+            continue
+        for firm in _split_names(row.get('Developer')) + _split_names(row.get('Architect')):
             key = (firm or '').strip().lower()
             if not key:
                 continue
-            by_firm.setdefault(key, []).append(c['years'])
+            by_firm.setdefault(key, []).append(years)
 
     result = {}
     for firm, durations in by_firm.items():
-        if len(durations) < FIRM_MIN_COMPLETIONS:
-            continue
         med = median(durations)
         mean = sum(durations) / len(durations)
         variance = sum((x - mean) ** 2 for x in durations) / len(durations)
@@ -799,6 +859,7 @@ def build_firm_track_records(complete_index):
             'median_years': round(med, 2),
             'mean_years':   round(mean, 2),
             'stddev_years': round(math.sqrt(variance), 2),
+            'durations':    [round(x, 2) for x in durations],
         }
     return result
 
@@ -930,32 +991,58 @@ def confidence_from_scores(scored):
     return None, 0
 
 
-def matching_firm_signal(target, firm_track_record):
-    """If any of the target's firms have a tight track record (>=FIRM_MIN_COMPLETIONS
-    completions and stddev <= FIRM_TIGHT_STDDEV years), return the most-credentialed
-    one. Returns None otherwise."""
-    candidates = []
-    for firm in (target.get('architects') or []) + (target.get('developers') or []):
-        key = (firm or '').strip().lower()
-        tr = firm_track_record.get(key)
-        if tr and tr['count'] >= FIRM_MIN_COMPLETIONS and tr['stddev_years'] <= FIRM_TIGHT_STDDEV:
-            candidates.append({
-                'firm':         firm,
-                'count':        tr['count'],
-                'median_years': tr['median_years'],
-                'stddev_years': tr['stddev_years'],
-            })
-    if not candidates:
+def matching_pace_signal(target, firm_track_record):
+    """Best developer/firm pace signal for this target, or None.
+
+    Prefers DEVELOPER matches (the user's mental model is "this developer is
+    slow/fast"), falling back to architects only if no developer has a track
+    record. Among the preferred role, returns the firm with the most
+    observations (more reliable). Fires from as few as PACE_MIN_OBS
+    observations — the blend weight downstream scales with the sample size.
+
+    The `consistent` flag marks firms that ALSO clear the stricter
+    confidence-bump bar (>=FIRM_MIN_COMPLETIONS observations AND tight
+    variance); only those earn a confidence-tier bump, while any qualifying
+    firm contributes to the estimate blend."""
+    def _lookup(names):
+        out = []
+        for firm in names:
+            key = (firm or '').strip().lower()
+            tr = firm_track_record.get(key)
+            if tr and tr['count'] >= PACE_MIN_OBS:
+                out.append((firm, tr))
+        return out
+
+    devs = _lookup(target.get('developers') or [])
+    arts = _lookup(target.get('architects') or [])
+    pool = devs if devs else arts  # developer track record wins when present
+    if not pool:
         return None
-    # Prefer the firm with the largest sample size (more reliable signal)
-    candidates.sort(key=lambda c: (-c['count'], c['stddev_years']))
-    return candidates[0]
+    # Most observations first; break ties toward lower variance.
+    pool.sort(key=lambda ft: (-ft[1]['count'], ft[1]['stddev_years']))
+    firm, tr = pool[0]
+    consistent = (tr['count'] >= FIRM_MIN_COMPLETIONS and
+                  tr['stddev_years'] <= FIRM_TIGHT_STDDEV)
+    return {
+        'firm':         firm,
+        'count':        tr['count'],
+        'median_years': tr['median_years'],
+        'stddev_years': tr['stddev_years'],
+        'role':         'developer' if devs else 'architect',
+        'consistent':   consistent,
+    }
 
 
-def build_pattern_summary(target, pool_count, estimate, low, high, avg_distance_km, firm_signal):
-    """One-sentence editorial summary reflecting v2 axes (proximity, scale, firm)."""
+def build_pattern_summary(target, pool_count, comp_median, estimate, low, high,
+                          avg_distance_km, firm_signal):
+    """One-sentence editorial summary reflecting v2 axes (proximity, scale)
+    plus the v3 developer-pace blend. `comp_median` is the pure
+    comparable-pool median (before any pace blend); `estimate` is the final,
+    blended figure. When a developer-pace signal is present we report the
+    comparable baseline first, then how the developer's own track record
+    moved it."""
     type_label = (target.get('type','') or '').lower() or 'comparable'
-    estimate_str = format_years(estimate)
+    comp_str = format_years(comp_median)
     low_str = format_years(low)
     high_str = format_years(high)
 
@@ -973,19 +1060,30 @@ def build_pattern_summary(target, pool_count, estimate, low, high, avg_distance_
 
     base = (
         f"Among {pool_count} {prox_adj}{type_label} project{'s' if pool_count != 1 else ''}"
-        f" in TMW's data, the median time to completion is {estimate_str} years"
+        f" in TMW's data, the median build time is {comp_str} years"
     )
     if low_str != high_str:
-        base += f", with a range of {low_str}\u2013{high_str} years."
+        base += f" (range {low_str}\u2013{high_str})."
     else:
         base += "."
 
     if firm_signal:
-        base += (
-            f" {firm_signal['firm']} has {firm_signal['count']} prior projects "
-            f"delivered with low schedule variance \u2014 confidence tightened toward "
-            f"their typical {format_years(firm_signal['median_years'])}-year pace."
-        )
+        fm = format_years(firm_signal['median_years'])
+        est_str = format_years(estimate)
+        n = firm_signal['count']
+        plural = 's' if n != 1 else ''
+        if firm_signal.get('consistent'):
+            base += (
+                f" {firm_signal['firm']} delivers a consistent ~{fm}-year pace "
+                f"across {n} project{plural}, adjusting this estimate to "
+                f"~{est_str} years."
+            )
+        else:
+            base += (
+                f" Adjusted to ~{est_str} years for {firm_signal['firm']}'s own "
+                f"track record (~{fm}-year typical pace across {n} prior "
+                f"project{plural})."
+            )
     return base
 
 
@@ -1048,12 +1146,16 @@ def main():
           f"{scale_counts['units']} have units, {scale_counts['floors']} have floors, "
           f"{scale_counts['lat_lng']} have coords")
 
-    print("Building firm track records...")
-    firm_track_record = build_firm_track_records(complete_index)
-    tight_firms = [k for k, v in firm_track_record.items()
-                   if v['stddev_years'] <= FIRM_TIGHT_STDDEV]
-    print(f"  ✓ {len(firm_track_record)} firms with >={FIRM_MIN_COMPLETIONS} completions "
-          f"({len(tight_firms)} with tight schedule variance)")
+    print("Building developer/firm pace records...")
+    # Built from raw rows (not complete_index) so near-complete
+    # ("Opening Soon") projects with a real start date count toward pace.
+    firm_track_record = build_firm_track_records(rows)
+    multi = [k for k, v in firm_track_record.items()
+             if v['count'] >= FIRM_MIN_COMPLETIONS]
+    tight = [k for k in multi
+             if firm_track_record[k]['stddev_years'] <= FIRM_TIGHT_STDDEV]
+    print(f"  ✓ {len(firm_track_record)} firms with >=1 pace observation "
+          f"({len(multi)} with >={FIRM_MIN_COMPLETIONS} obs, {len(tight)} of those consistent)")
 
     print("Computing intel for all projects...")
     intel = {}
@@ -1268,6 +1370,7 @@ def main():
 
         durations = sorted(c['years'] for c in pool)
         estimate = median(durations)
+        comp_median = estimate  # pure comparable median, before dev-pace blend
         # 10/90 percentile range (avoids single-outlier domination)
         if len(durations) >= 10:
             low_idx = max(0, int(len(durations) * 0.1) - 1)
@@ -1278,15 +1381,38 @@ def main():
             low = durations[0]
             high = durations[-1]
 
-        # Firm track record adjustment: if a known-consistent firm is on this
-        # project, blend their median into the estimate AND bump the tier up.
-        firm_signal = matching_firm_signal(target, firm_track_record)
+        # Developer-pace adjustment (v3). Blend the developer's OWN demonstrated
+        # build pace into the comparable median. The pull is BIDIRECTIONAL: a
+        # historically slow developer (e.g. Jeff Greene, whose ONE West Palm
+        # ran ~7 years) lengthens the estimate; a fast one shortens it. Weight
+        # scales with how many pace observations the developer has, and a
+        # guardrail caps how far a thin/odd sample can move the number.
+        firm_signal = matching_pace_signal(target, firm_track_record)
         if firm_signal:
-            estimate = (1.0 - FIRM_BLEND_FACTOR) * estimate + FIRM_BLEND_FACTOR * firm_signal['median_years']
-            if tier == 'medium':
-                tier = 'high'
-            elif tier == 'low':
-                tier = 'medium'
+            n = firm_signal['count']
+            w = PACE_BLEND_BY_N.get(n, PACE_BLEND_MAX)
+            blended = (1.0 - w) * estimate + w * firm_signal['median_years']
+            # Clamp the blended value to a sane band around the comparable
+            # median so one weird data point can't run away with the estimate.
+            lo_bound = comp_median * PACE_RATIO_FLOOR
+            hi_bound = comp_median * PACE_RATIO_CAP
+            estimate = max(lo_bound, min(hi_bound, blended))
+            # Keep the displayed range consistent with the blended headline,
+            # and widen it toward the developer's demonstrated pace (clamped to
+            # the same guardrail band) so the point estimate sits INSIDE the
+            # range rather than pinned to its edge.
+            dev_tail = max(lo_bound, min(hi_bound, firm_signal['median_years']))
+            low = min(low, estimate, dev_tail)
+            high = max(high, estimate, dev_tail)
+            # Only a consistent, well-sampled firm earns a confidence bump;
+            # a thin (1-2 obs) pace signal moves the number but not the tier,
+            # so we don't over-claim certainty from a small sample.
+            if firm_signal['consistent']:
+                if tier == 'medium':
+                    tier = 'high'
+                elif tier == 'low':
+                    tier = 'medium'
+            firm_signal['blend_weight'] = round(w, 2)
             stats['firm_boosted'] += 1
 
         # Mixed-use complexity surcharge — applied AFTER firm-blend so the
@@ -1376,7 +1502,8 @@ def main():
                 f"factor since cross-component coordination typically extends timelines."
                 if mu_applied
                 else build_pattern_summary(
-                    target, len(pool), estimate, low, high, avg_distance_km, firm_signal
+                    target, len(pool), comp_median, estimate, low, high,
+                    avg_distance_km, firm_signal
                 )
             ),
             # Pass the speculative flags through even on the comparables path —

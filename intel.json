@@ -2,10 +2,10 @@
   "generated_at": "2026-05-29",
   "projects": {
     "120-s-dixie-highway": {
-      "estimate_years": 2.6,
-      "estimate_label": "~2.6 years",
+      "estimate_years": 4.6,
+      "estimate_label": "~4.6 years",
       "range_low": 2.0,
-      "range_high": 3.2,
+      "range_high": 6.5,
       "confidence": "low",
       "comparable_count": 2,
       "good_count": 1,
@@ -15,7 +15,15 @@
       "avg_distance_km": 6.6,
       "avg_distance_mi": 4.1,
       "scale_used": true,
-      "firm_signal": null,
+      "firm_signal": {
+        "firm": "Jeff Greene",
+        "count": 1,
+        "median_years": 7.7,
+        "stddev_years": 0.0,
+        "role": "developer",
+        "consistent": false,
+        "blend_weight": 0.4
+      },
       "source": "comparables",
       "project_type": "Residences",
       "metro": "Palm Beach",
@@ -39,7 +47,7 @@
           "distance_mi": 2.4
         }
       ],
-      "pattern_summary": "Among 2 nearby residences projects in TMW's data, the median time to completion is 2.6 years, with a range of 2–3.2 years.",
+      "pattern_summary": "Among 2 nearby residences projects in TMW's data, the median build time is 2.6 years (range 2–6.5). Adjusted to ~4.6 years for Jeff Greene's own track record (~7.7-year typical pace across 1 prior project).",
       "dates_speculative": true,
       "start_speculative": true,
       "delivery_speculative": true,
@@ -74,7 +82,7 @@
           "distance_mi": 1127.3
         }
       ],
-      "pattern_summary": "Among 1 residences project in TMW's data, the median time to completion is 3.2 years.",
+      "pattern_summary": "Among 1 residences project in TMW's data, the median build time is 3.2 years.",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false,
@@ -274,7 +282,7 @@
           "distance_mi": 65.9
         }
       ],
-      "pattern_summary": "Among 2 regional residences projects in TMW's data, the median time to completion is 2.6 years, with a range of 2–3.2 years.",
+      "pattern_summary": "Among 2 regional residences projects in TMW's data, the median build time is 2.6 years (range 2–3.2).",
       "dates_speculative": true,
       "start_speculative": true,
       "delivery_speculative": true,
@@ -335,17 +343,17 @@
           "distance_mi": 65.7
         }
       ],
-      "pattern_summary": "Among 2 same-metro residences projects in TMW's data, the median time to completion is 5.2 years, with a range of 2–8.4 years.",
+      "pattern_summary": "Among 2 same-metro residences projects in TMW's data, the median build time is 5.2 years (range 2–8.4).",
       "dates_speculative": true,
       "start_speculative": true,
       "delivery_speculative": true,
       "is_mixed_use": false
     },
     "fulton-bond": {
-      "estimate_years": 2.6,
-      "estimate_label": "~2.6 years",
+      "estimate_years": 4.0,
+      "estimate_label": "~4 years",
       "range_low": 2.0,
-      "range_high": 3.2,
+      "range_high": 5.2,
       "confidence": "low",
       "comparable_count": 2,
       "good_count": 0,
@@ -355,7 +363,15 @@
       "avg_distance_km": 1818.4,
       "avg_distance_mi": 1129.9,
       "scale_used": true,
-      "firm_signal": null,
+      "firm_signal": {
+        "firm": "Kohn Pedersen Fox",
+        "count": 2,
+        "median_years": 5.17,
+        "stddev_years": 0.96,
+        "role": "architect",
+        "consistent": false,
+        "blend_weight": 0.55
+      },
       "source": "comparables",
       "project_type": "Residences",
       "metro": "Other",
@@ -379,7 +395,7 @@
           "distance_mi": 1131.6
         }
       ],
-      "pattern_summary": "Among 2 residences projects in TMW's data, the median time to completion is 2.6 years, with a range of 2–3.2 years.",
+      "pattern_summary": "Among 2 residences projects in TMW's data, the median build time is 2.6 years (range 2–5.2). Adjusted to ~4 years for Kohn Pedersen Fox's own track record (~5.2-year typical pace across 2 prior projects).",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false,
@@ -423,7 +439,7 @@
           "distance_mi": 64.2
         }
       ],
-      "pattern_summary": "Among 2 same-metro entertainment projects in TMW's data, the median time to completion is 2.8 years, with a range of 2.6–3 years.",
+      "pattern_summary": "Among 2 same-metro entertainment projects in TMW's data, the median build time is 2.8 years (range 2.6–3).",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false,
@@ -630,7 +646,7 @@
           "distance_mi": 3.8
         }
       ],
-      "pattern_summary": "Among 6 same-metro residences projects in TMW's data, the median time to completion is 3.1 years, with a range of 2–8.4 years.",
+      "pattern_summary": "Among 6 same-metro residences projects in TMW's data, the median build time is 3.1 years (range 2–8.4).",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false,
@@ -705,11 +721,11 @@
       "delivery_speculative": false
     },
     "the-standard-residences-brickell": {
-      "estimate_years": 3.1,
-      "estimate_label": "~3.1 years",
+      "estimate_years": 3.8,
+      "estimate_label": "~3.8 years",
       "range_low": 2.0,
       "range_high": 8.4,
-      "confidence": "high",
+      "confidence": "medium",
       "comparable_count": 6,
       "good_count": 4,
       "exact_count": 4,
@@ -719,10 +735,13 @@
       "avg_distance_mi": 28.2,
       "scale_used": false,
       "firm_signal": {
-        "firm": "Arquitectonica",
-        "count": 5,
-        "median_years": 3.0,
-        "stddev_years": 0.72
+        "firm": "Two Roads Development",
+        "count": 1,
+        "median_years": 4.82,
+        "stddev_years": 0.0,
+        "role": "developer",
+        "consistent": false,
+        "blend_weight": 0.4
       },
       "source": "comparables",
       "project_type": "Residences",
@@ -756,7 +775,7 @@
           "distance_mi": 3.9
         }
       ],
-      "pattern_summary": "Among 6 same-metro residences projects in TMW's data, the median time to completion is 3.1 years, with a range of 2–8.4 years. Arquitectonica has 5 prior projects delivered with low schedule variance — confidence tightened toward their typical 3-year pace.",
+      "pattern_summary": "Among 6 same-metro residences projects in TMW's data, the median build time is 3.1 years (range 2–8.4). Adjusted to ~3.8 years for Two Roads Development's own track record (~4.8-year typical pace across 1 prior project).",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false,
@@ -952,8 +971,8 @@
       "delivery_speculative": false
     },
     "mandarin-oriental-residences-west-palm-beach": {
-      "estimate_years": 3.2,
-      "estimate_label": "~3.2 years",
+      "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 2.0,
       "range_high": 8.4,
       "confidence": "low",
@@ -965,7 +984,15 @@
       "avg_distance_km": 41.5,
       "avg_distance_mi": 25.8,
       "scale_used": true,
-      "firm_signal": null,
+      "firm_signal": {
+        "firm": "Spina O'Rourke + Partners",
+        "count": 2,
+        "median_years": 2.83,
+        "stddev_years": 0.0,
+        "role": "architect",
+        "consistent": false,
+        "blend_weight": 0.55
+      },
       "source": "comparables",
       "project_type": "Residences",
       "metro": "Palm Beach",
@@ -998,7 +1025,7 @@
           "distance_mi": 72.1
         }
       ],
-      "pattern_summary": "Among 3 same-metro residences projects in TMW's data, the median time to completion is 3.2 years, with a range of 2–8.4 years.",
+      "pattern_summary": "Among 3 same-metro residences projects in TMW's data, the median build time is 3.2 years (range 2–8.4). Adjusted to ~3 years for Spina O'Rourke + Partners's own track record (~2.8-year typical pace across 2 prior projects).",
       "dates_speculative": true,
       "start_speculative": true,
       "delivery_speculative": true,
@@ -1056,10 +1083,10 @@
       "delivery_speculative": false
     },
     "boca-raton-city-hall": {
-      "estimate_years": 2.8,
-      "estimate_label": "~2.8 years",
+      "estimate_years": 4.1,
+      "estimate_label": "~4.1 years",
       "range_low": 2.6,
-      "range_high": 3.0,
+      "range_high": 5.2,
       "confidence": "medium",
       "comparable_count": 2,
       "good_count": 2,
@@ -1069,7 +1096,15 @@
       "avg_distance_km": 52.7,
       "avg_distance_mi": 32.8,
       "scale_used": false,
-      "firm_signal": null,
+      "firm_signal": {
+        "firm": "Kohn Pedersen Fox",
+        "count": 2,
+        "median_years": 5.17,
+        "stddev_years": 0.96,
+        "role": "architect",
+        "consistent": false,
+        "blend_weight": 0.55
+      },
       "source": "comparables",
       "project_type": "Entertainment",
       "metro": "Palm Beach",
@@ -1093,7 +1128,7 @@
           "distance_mi": 40.1
         }
       ],
-      "pattern_summary": "Among 2 same-metro entertainment projects in TMW's data, the median time to completion is 2.8 years, with a range of 2.6–3 years.",
+      "pattern_summary": "Among 2 same-metro entertainment projects in TMW's data, the median build time is 2.8 years (range 2.6–5.2). Adjusted to ~4.1 years for Kohn Pedersen Fox's own track record (~5.2-year typical pace across 2 prior projects).",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false,
@@ -1322,11 +1357,11 @@
       "delivery_speculative": false
     },
     "the-pendry-tampa-and-residences": {
-      "estimate_years": 3.1,
-      "estimate_label": "~3.1 years",
+      "estimate_years": 3.8,
+      "estimate_label": "~3.8 years",
       "range_low": 3.1,
-      "range_high": 3.1,
-      "confidence": "medium",
+      "range_high": 4.8,
+      "confidence": "low",
       "comparable_count": 1,
       "good_count": 1,
       "exact_count": 1,
@@ -1336,10 +1371,13 @@
       "avg_distance_mi": 16.3,
       "scale_used": false,
       "firm_signal": {
-        "firm": "Arquitectonica",
-        "count": 5,
-        "median_years": 3.0,
-        "stddev_years": 0.72
+        "firm": "Two Roads Development",
+        "count": 1,
+        "median_years": 4.82,
+        "stddev_years": 0.0,
+        "role": "developer",
+        "consistent": false,
+        "blend_weight": 0.4
       },
       "source": "comparables",
       "project_type": "Residences",
@@ -1355,7 +1393,7 @@
           "distance_mi": 16.3
         }
       ],
-      "pattern_summary": "Among 1 same-metro residences project in TMW's data, the median time to completion is 3.1 years. Arquitectonica has 5 prior projects delivered with low schedule variance — confidence tightened toward their typical 3-year pace.",
+      "pattern_summary": "Among 1 same-metro residences project in TMW's data, the median build time is 3.1 years (range 3.1–4.8). Adjusted to ~3.8 years for Two Roads Development's own track record (~4.8-year typical pace across 1 prior project).",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false,
@@ -1390,7 +1428,7 @@
           "distance_mi": 16.5
         }
       ],
-      "pattern_summary": "Among 1 same-metro residences project in TMW's data, the median time to completion is 3.1 years.",
+      "pattern_summary": "Among 1 same-metro residences project in TMW's data, the median build time is 3.1 years.",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false,
@@ -1476,7 +1514,7 @@
           "distance_mi": 8.1
         }
       ],
-      "pattern_summary": "Among 1 nearby entertainment project in TMW's data, the median time to completion is 6 years.",
+      "pattern_summary": "Among 1 nearby entertainment project in TMW's data, the median build time is 6 years.",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false,
@@ -1511,7 +1549,7 @@
           "distance_mi": 7.5
         }
       ],
-      "pattern_summary": "Among 1 nearby entertainment project in TMW's data, the median time to completion is 6 years.",
+      "pattern_summary": "Among 1 nearby entertainment project in TMW's data, the median build time is 6 years.",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false,
@@ -1641,7 +1679,7 @@
           "distance_mi": 58.4
         }
       ],
-      "pattern_summary": "Among 2 same-metro entertainment projects in TMW's data, the median time to completion is 2.8 years, with a range of 2.6–3 years.",
+      "pattern_summary": "Among 2 same-metro entertainment projects in TMW's data, the median build time is 2.8 years (range 2.6–3).",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false,
@@ -1665,8 +1703,8 @@
       "delivery_speculative": false
     },
     "palm-beach-residences": {
-      "estimate_years": 3.1,
-      "estimate_label": "~3.1 years",
+      "estimate_years": 2.9,
+      "estimate_label": "~2.9 years",
       "range_low": 2.0,
       "range_high": 8.4,
       "confidence": "medium",
@@ -1678,7 +1716,15 @@
       "avg_distance_km": 63.5,
       "avg_distance_mi": 39.5,
       "scale_used": false,
-      "firm_signal": null,
+      "firm_signal": {
+        "firm": "Spina O'Rourke + Partners",
+        "count": 2,
+        "median_years": 2.83,
+        "stddev_years": 0.0,
+        "role": "architect",
+        "consistent": false,
+        "blend_weight": 0.55
+      },
       "source": "comparables",
       "project_type": "Residences",
       "metro": "Palm Beach",
@@ -1711,7 +1757,7 @@
           "distance_mi": 36.6
         }
       ],
-      "pattern_summary": "Among 6 same-metro residences projects in TMW's data, the median time to completion is 3.1 years, with a range of 2–8.4 years.",
+      "pattern_summary": "Among 6 same-metro residences projects in TMW's data, the median build time is 3.1 years (range 2–8.4). Adjusted to ~2.9 years for Spina O'Rourke + Partners's own track record (~2.8-year typical pace across 2 prior projects).",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false,
@@ -1940,8 +1986,8 @@
       "delivery_speculative": false
     },
     "the-shore-club-resort-residences": {
-      "estimate_years": 3.1,
-      "estimate_label": "~3.1 years",
+      "estimate_years": 5.1,
+      "estimate_label": "~5.1 years",
       "range_low": 2.0,
       "range_high": 8.4,
       "confidence": "medium",
@@ -1953,7 +1999,15 @@
       "avg_distance_km": 46.1,
       "avg_distance_mi": 28.7,
       "scale_used": false,
-      "firm_signal": null,
+      "firm_signal": {
+        "firm": "Witkoff",
+        "count": 1,
+        "median_years": 8.05,
+        "stddev_years": 0.0,
+        "role": "developer",
+        "consistent": false,
+        "blend_weight": 0.4
+      },
       "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
@@ -1986,7 +2040,7 @@
           "distance_mi": 8.4
         }
       ],
-      "pattern_summary": "Among 6 same-metro residences projects in TMW's data, the median time to completion is 3.1 years, with a range of 2–8.4 years.",
+      "pattern_summary": "Among 6 same-metro residences projects in TMW's data, the median build time is 3.1 years (range 2–8.4). Adjusted to ~5.1 years for Witkoff's own track record (~8.1-year typical pace across 1 prior project).",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false,
@@ -2072,7 +2126,7 @@
           "distance_mi": 69.2
         }
       ],
-      "pattern_summary": "Among 1 regional residences project in TMW's data, the median time to completion is 3.2 years.",
+      "pattern_summary": "Among 1 regional residences project in TMW's data, the median build time is 3.2 years.",
       "dates_speculative": true,
       "start_speculative": true,
       "delivery_speculative": true,
@@ -2142,7 +2196,7 @@
           "distance_mi": 5.7
         }
       ],
-      "pattern_summary": "Among 6 same-metro residences projects in TMW's data, the median time to completion is 3.1 years, with a range of 2–8.4 years.",
+      "pattern_summary": "Among 6 same-metro residences projects in TMW's data, the median build time is 3.1 years (range 2–8.4).",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false,
@@ -2317,9 +2371,12 @@
       "scale_used": false,
       "firm_signal": {
         "firm": "Arquitectonica",
-        "count": 5,
-        "median_years": 3.0,
-        "stddev_years": 0.72
+        "count": 8,
+        "median_years": 3.07,
+        "stddev_years": 1.65,
+        "role": "architect",
+        "consistent": false,
+        "blend_weight": 0.65
       },
       "source": "comparables",
       "project_type": "Residences",
@@ -2353,7 +2410,7 @@
           "distance_mi": 24.1
         }
       ],
-      "pattern_summary": "Among 6 same-metro residences projects in TMW's data, the median time to completion is 3.1 years, with a range of 2–8.4 years. Arquitectonica has 5 prior projects delivered with low schedule variance — confidence tightened toward their typical 3-year pace.",
+      "pattern_summary": "Among 6 same-metro residences projects in TMW's data, the median build time is 3.1 years (range 2–8.4). Adjusted to ~3.1 years for Arquitectonica's own track record (~3.1-year typical pace across 8 prior projects).",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false,
@@ -2713,7 +2770,7 @@
           "distance_mi": 31.0
         }
       ],
-      "pattern_summary": "Among 6 same-metro residences projects in TMW's data, the median time to completion is 3.1 years, with a range of 2–8.4 years.",
+      "pattern_summary": "Among 6 same-metro residences projects in TMW's data, the median build time is 3.1 years (range 2–8.4).",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false,
@@ -3039,7 +3096,7 @@
           "distance_mi": 6.8
         }
       ],
-      "pattern_summary": "Among 6 same-metro residences projects in TMW's data, the median time to completion is 3.1 years, with a range of 2–8.4 years.",
+      "pattern_summary": "Among 6 same-metro residences projects in TMW's data, the median build time is 3.1 years (range 2–8.4).",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false,
@@ -3143,7 +3200,7 @@
           "distance_mi": 3.3
         }
       ],
-      "pattern_summary": "Among 6 same-metro residences projects in TMW's data, the median time to completion is 3.1 years, with a range of 2–8.4 years.",
+      "pattern_summary": "Among 6 same-metro residences projects in TMW's data, the median build time is 3.1 years (range 2–8.4).",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false,
@@ -3167,9 +3224,9 @@
       "delivery_speculative": false
     },
     "edgeworth": {
-      "estimate_years": 2.6,
-      "estimate_label": "~2.6 years",
-      "range_low": 2.0,
+      "estimate_years": 1.6,
+      "estimate_label": "~1.6 years",
+      "range_low": 1.3,
       "range_high": 3.2,
       "confidence": "medium",
       "comparable_count": 2,
@@ -3180,7 +3237,15 @@
       "avg_distance_km": 7.5,
       "avg_distance_mi": 4.7,
       "scale_used": true,
-      "firm_signal": null,
+      "firm_signal": {
+        "firm": "Related Ross",
+        "count": 2,
+        "median_years": 0.88,
+        "stddev_years": 0.28,
+        "role": "developer",
+        "consistent": false,
+        "blend_weight": 0.55
+      },
       "source": "comparables",
       "project_type": "Residences",
       "metro": "Palm Beach",
@@ -3204,7 +3269,7 @@
           "distance_mi": 6.4
         }
       ],
-      "pattern_summary": "Among 2 nearby residences projects in TMW's data, the median time to completion is 2.6 years, with a range of 2–3.2 years.",
+      "pattern_summary": "Among 2 nearby residences projects in TMW's data, the median build time is 2.6 years (range 1.3–3.2). Adjusted to ~1.6 years for Related Ross's own track record (~0.9-year typical pace across 2 prior projects).",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false,
@@ -3274,7 +3339,7 @@
           "distance_mi": 38.5
         }
       ],
-      "pattern_summary": "Among 6 same-metro residences projects in TMW's data, the median time to completion is 3.1 years, with a range of 2–8.4 years.",
+      "pattern_summary": "Among 6 same-metro residences projects in TMW's data, the median build time is 3.1 years (range 2–8.4).",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false,
@@ -3285,7 +3350,7 @@
       "estimate_label": "~3 years",
       "range_low": 2.8,
       "range_high": 8.1,
-      "confidence": "high",
+      "confidence": "medium",
       "comparable_count": 3,
       "good_count": 2,
       "exact_count": 2,
@@ -3296,9 +3361,12 @@
       "scale_used": false,
       "firm_signal": {
         "firm": "Arquitectonica",
-        "count": 5,
-        "median_years": 3.0,
-        "stddev_years": 0.72
+        "count": 8,
+        "median_years": 3.07,
+        "stddev_years": 1.65,
+        "role": "architect",
+        "consistent": false,
+        "blend_weight": 0.65
       },
       "source": "comparables",
       "project_type": "Hotel",
@@ -3332,7 +3400,7 @@
           "distance_mi": 115.9
         }
       ],
-      "pattern_summary": "Among 3 same-metro hotel projects in TMW's data, the median time to completion is 3 years, with a range of 2.8–8.1 years. Arquitectonica has 5 prior projects delivered with low schedule variance — confidence tightened toward their typical 3-year pace.",
+      "pattern_summary": "Among 3 same-metro hotel projects in TMW's data, the median build time is 3 years (range 2.8–8.1). Adjusted to ~3 years for Arquitectonica's own track record (~3.1-year typical pace across 8 prior projects).",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false,
@@ -3458,10 +3526,10 @@
       "delivery_speculative": false
     },
     "ross-private-club": {
-      "estimate_years": 0.7,
-      "estimate_label": "~0.7 years",
+      "estimate_years": 0.8,
+      "estimate_label": "~0.8 years",
       "range_low": 0.6,
-      "range_high": 0.8,
+      "range_high": 0.9,
       "confidence": "low",
       "comparable_count": 2,
       "good_count": 1,
@@ -3471,7 +3539,15 @@
       "avg_distance_km": 54.0,
       "avg_distance_mi": 33.5,
       "scale_used": false,
-      "firm_signal": null,
+      "firm_signal": {
+        "firm": "Related Ross",
+        "count": 2,
+        "median_years": 0.88,
+        "stddev_years": 0.28,
+        "role": "developer",
+        "consistent": false,
+        "blend_weight": 0.55
+      },
       "source": "comparables",
       "project_type": "Eateries",
       "metro": "Palm Beach",
@@ -3495,7 +3571,7 @@
           "distance_mi": 66.4
         }
       ],
-      "pattern_summary": "Among 2 same-metro eateries projects in TMW's data, the median time to completion is 0.7 years, with a range of 0.6–0.8 years.",
+      "pattern_summary": "Among 2 same-metro eateries projects in TMW's data, the median build time is 0.7 years (range 0.6–0.9). Adjusted to ~0.8 years for Related Ross's own track record (~0.9-year typical pace across 2 prior projects).",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false,
@@ -3506,7 +3582,7 @@
       "estimate_label": "~3.1 years",
       "range_low": 2.0,
       "range_high": 8.4,
-      "confidence": "high",
+      "confidence": "medium",
       "comparable_count": 6,
       "good_count": 3,
       "exact_count": 3,
@@ -3517,9 +3593,12 @@
       "scale_used": false,
       "firm_signal": {
         "firm": "Arquitectonica",
-        "count": 5,
-        "median_years": 3.0,
-        "stddev_years": 0.72
+        "count": 8,
+        "median_years": 3.07,
+        "stddev_years": 1.65,
+        "role": "architect",
+        "consistent": false,
+        "blend_weight": 0.65
       },
       "source": "comparables",
       "project_type": "Residences",
@@ -3553,7 +3632,7 @@
           "distance_mi": 47.4
         }
       ],
-      "pattern_summary": "Among 6 same-metro residences projects in TMW's data, the median time to completion is 3.1 years, with a range of 2–8.4 years. Arquitectonica has 5 prior projects delivered with low schedule variance — confidence tightened toward their typical 3-year pace.",
+      "pattern_summary": "Among 6 same-metro residences projects in TMW's data, the median build time is 3.1 years (range 2–8.4). Adjusted to ~3.1 years for Arquitectonica's own track record (~3.1-year typical pace across 8 prior projects).",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false,
@@ -3577,11 +3656,11 @@
       "delivery_speculative": false
     },
     "curio-by-hilton": {
-      "estimate_years": 6.5,
-      "estimate_label": "~6.5 years",
-      "range_low": 8.1,
+      "estimate_years": 4.1,
+      "estimate_label": "~4.1 years",
+      "range_low": 4.0,
       "range_high": 8.1,
-      "confidence": "medium",
+      "confidence": "low",
       "comparable_count": 1,
       "good_count": 1,
       "exact_count": 1,
@@ -3591,10 +3670,13 @@
       "avg_distance_mi": 2.8,
       "scale_used": true,
       "firm_signal": {
-        "firm": "Arquitectonica",
-        "count": 5,
-        "median_years": 3.0,
-        "stddev_years": 0.72
+        "firm": "Related Ross",
+        "count": 2,
+        "median_years": 0.88,
+        "stddev_years": 0.28,
+        "role": "developer",
+        "consistent": false,
+        "blend_weight": 0.55
       },
       "source": "comparables",
       "project_type": "Hotel",
@@ -3610,7 +3692,7 @@
           "distance_mi": 2.8
         }
       ],
-      "pattern_summary": "Among 1 nearby hotel project in TMW's data, the median time to completion is 6.5 years. Arquitectonica has 5 prior projects delivered with low schedule variance — confidence tightened toward their typical 3-year pace.",
+      "pattern_summary": "Among 1 nearby hotel project in TMW's data, the median build time is 8.1 years (range 4–8.1). Adjusted to ~4.1 years for Related Ross's own track record (~0.9-year typical pace across 2 prior projects).",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false,
@@ -3912,7 +3994,7 @@
       "estimate_label": "~3.1 years",
       "range_low": 2.0,
       "range_high": 8.4,
-      "confidence": "high",
+      "confidence": "medium",
       "comparable_count": 6,
       "good_count": 3,
       "exact_count": 3,
@@ -3923,9 +4005,12 @@
       "scale_used": false,
       "firm_signal": {
         "firm": "Arquitectonica",
-        "count": 5,
-        "median_years": 3.0,
-        "stddev_years": 0.72
+        "count": 8,
+        "median_years": 3.07,
+        "stddev_years": 1.65,
+        "role": "architect",
+        "consistent": false,
+        "blend_weight": 0.65
       },
       "source": "comparables",
       "project_type": "Residences",
@@ -3959,7 +4044,7 @@
           "distance_mi": 47.1
         }
       ],
-      "pattern_summary": "Among 6 same-metro residences projects in TMW's data, the median time to completion is 3.1 years, with a range of 2–8.4 years. Arquitectonica has 5 prior projects delivered with low schedule variance — confidence tightened toward their typical 3-year pace.",
+      "pattern_summary": "Among 6 same-metro residences projects in TMW's data, the median build time is 3.1 years (range 2–8.4). Adjusted to ~3.1 years for Arquitectonica's own track record (~3.1-year typical pace across 8 prior projects).",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false,
@@ -3987,7 +4072,7 @@
       "estimate_label": "~3.1 years",
       "range_low": 2.0,
       "range_high": 8.4,
-      "confidence": "high",
+      "confidence": "medium",
       "comparable_count": 6,
       "good_count": 4,
       "exact_count": 4,
@@ -3998,9 +4083,12 @@
       "scale_used": false,
       "firm_signal": {
         "firm": "Arquitectonica",
-        "count": 5,
-        "median_years": 3.0,
-        "stddev_years": 0.72
+        "count": 8,
+        "median_years": 3.07,
+        "stddev_years": 1.65,
+        "role": "architect",
+        "consistent": false,
+        "blend_weight": 0.65
       },
       "source": "comparables",
       "project_type": "Residences",
@@ -4034,7 +4122,7 @@
           "distance_mi": 6.1
         }
       ],
-      "pattern_summary": "Among 6 same-metro residences projects in TMW's data, the median time to completion is 3.1 years, with a range of 2–8.4 years. Arquitectonica has 5 prior projects delivered with low schedule variance — confidence tightened toward their typical 3-year pace.",
+      "pattern_summary": "Among 6 same-metro residences projects in TMW's data, the median build time is 3.1 years (range 2–8.4). Adjusted to ~3.1 years for Arquitectonica's own track record (~3.1-year typical pace across 8 prior projects).",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false,
@@ -4062,7 +4150,7 @@
       "estimate_label": "~3.1 years",
       "range_low": 2.0,
       "range_high": 8.4,
-      "confidence": "high",
+      "confidence": "medium",
       "comparable_count": 6,
       "good_count": 4,
       "exact_count": 4,
@@ -4073,9 +4161,12 @@
       "scale_used": false,
       "firm_signal": {
         "firm": "Arquitectonica",
-        "count": 5,
-        "median_years": 3.0,
-        "stddev_years": 0.72
+        "count": 8,
+        "median_years": 3.07,
+        "stddev_years": 1.65,
+        "role": "architect",
+        "consistent": false,
+        "blend_weight": 0.65
       },
       "source": "comparables",
       "project_type": "Residences",
@@ -4109,7 +4200,7 @@
           "distance_mi": 6.6
         }
       ],
-      "pattern_summary": "Among 6 same-metro residences projects in TMW's data, the median time to completion is 3.1 years, with a range of 2–8.4 years. Arquitectonica has 5 prior projects delivered with low schedule variance — confidence tightened toward their typical 3-year pace.",
+      "pattern_summary": "Among 6 same-metro residences projects in TMW's data, the median build time is 3.1 years (range 2–8.4). Adjusted to ~3.1 years for Arquitectonica's own track record (~3.1-year typical pace across 8 prior projects).",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false,
@@ -4120,7 +4211,7 @@
       "estimate_label": "~3.1 years",
       "range_low": 2.0,
       "range_high": 8.4,
-      "confidence": "high",
+      "confidence": "medium",
       "comparable_count": 6,
       "good_count": 4,
       "exact_count": 4,
@@ -4131,9 +4222,12 @@
       "scale_used": false,
       "firm_signal": {
         "firm": "Arquitectonica",
-        "count": 5,
-        "median_years": 3.0,
-        "stddev_years": 0.72
+        "count": 8,
+        "median_years": 3.07,
+        "stddev_years": 1.65,
+        "role": "architect",
+        "consistent": false,
+        "blend_weight": 0.65
       },
       "source": "comparables",
       "project_type": "Residences",
@@ -4167,7 +4261,7 @@
           "distance_mi": 6.2
         }
       ],
-      "pattern_summary": "Among 6 same-metro residences projects in TMW's data, the median time to completion is 3.1 years, with a range of 2–8.4 years. Arquitectonica has 5 prior projects delivered with low schedule variance — confidence tightened toward their typical 3-year pace.",
+      "pattern_summary": "Among 6 same-metro residences projects in TMW's data, the median build time is 3.1 years (range 2–8.4). Adjusted to ~3.1 years for Arquitectonica's own track record (~3.1-year typical pace across 8 prior projects).",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false,
@@ -4259,10 +4353,10 @@
       "delivery_speculative": false
     },
     "park-place": {
-      "estimate_years": 3.2,
-      "estimate_label": "~3.2 years",
+      "estimate_years": 4.3,
+      "estimate_label": "~4.3 years",
       "range_low": 3.2,
-      "range_high": 3.2,
+      "range_high": 6.0,
       "confidence": "low",
       "comparable_count": 1,
       "good_count": 0,
@@ -4272,7 +4366,15 @@
       "avg_distance_km": 1219.7,
       "avg_distance_mi": 757.9,
       "scale_used": true,
-      "firm_signal": null,
+      "firm_signal": {
+        "firm": "Southwest Value Partners",
+        "count": 1,
+        "median_years": 6.0,
+        "stddev_years": 0.0,
+        "role": "developer",
+        "consistent": false,
+        "blend_weight": 0.4
+      },
       "source": "comparables",
       "project_type": "Residences",
       "metro": "Nashville",
@@ -4287,7 +4389,7 @@
           "distance_mi": 757.9
         }
       ],
-      "pattern_summary": "Among 1 residences project in TMW's data, the median time to completion is 3.2 years.",
+      "pattern_summary": "Among 1 residences project in TMW's data, the median build time is 3.2 years (range 3.2–6). Adjusted to ~4.3 years for Southwest Value Partners's own track record (~6-year typical pace across 1 prior project).",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false,
@@ -4383,7 +4485,7 @@
       "estimate_label": "~3.1 years",
       "range_low": 2.0,
       "range_high": 8.4,
-      "confidence": "medium",
+      "confidence": "low",
       "comparable_count": 3,
       "good_count": 1,
       "exact_count": 1,
@@ -4393,10 +4495,13 @@
       "avg_distance_mi": 25.6,
       "scale_used": true,
       "firm_signal": {
-        "firm": "Arquitectonica",
-        "count": 5,
+        "firm": "Related Group",
+        "count": 1,
         "median_years": 3.0,
-        "stddev_years": 0.72
+        "stddev_years": 0.0,
+        "role": "developer",
+        "consistent": false,
+        "blend_weight": 0.4
       },
       "source": "comparables",
       "project_type": "Residences",
@@ -4430,17 +4535,17 @@
           "distance_mi": 4.4
         }
       ],
-      "pattern_summary": "Among 3 same-metro residences projects in TMW's data, the median time to completion is 3.1 years, with a range of 2–8.4 years. Arquitectonica has 5 prior projects delivered with low schedule variance — confidence tightened toward their typical 3-year pace.",
+      "pattern_summary": "Among 3 same-metro residences projects in TMW's data, the median build time is 3.2 years (range 2–8.4). Adjusted to ~3.1 years for Related Group's own track record (~3-year typical pace across 1 prior project).",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false,
       "is_mixed_use": false
     },
     "currie-park-towers": {
-      "estimate_years": 2.6,
-      "estimate_label": "~2.6 years",
+      "estimate_years": 4.6,
+      "estimate_label": "~4.6 years",
       "range_low": 2.0,
-      "range_high": 3.2,
+      "range_high": 6.5,
       "confidence": "low",
       "comparable_count": 2,
       "good_count": 1,
@@ -4450,7 +4555,15 @@
       "avg_distance_km": 5.0,
       "avg_distance_mi": 3.1,
       "scale_used": true,
-      "firm_signal": null,
+      "firm_signal": {
+        "firm": "Jeff Greene",
+        "count": 1,
+        "median_years": 7.7,
+        "stddev_years": 0.0,
+        "role": "developer",
+        "consistent": false,
+        "blend_weight": 0.4
+      },
       "source": "comparables",
       "project_type": "Residences",
       "metro": "Palm Beach",
@@ -4474,7 +4587,7 @@
           "distance_mi": 2.0
         }
       ],
-      "pattern_summary": "Among 2 nearby residences projects in TMW's data, the median time to completion is 2.6 years, with a range of 2–3.2 years.",
+      "pattern_summary": "Among 2 nearby residences projects in TMW's data, the median build time is 2.6 years (range 2–6.5). Adjusted to ~4.6 years for Jeff Greene's own track record (~7.7-year typical pace across 1 prior project).",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false,
@@ -4502,7 +4615,7 @@
       "estimate_label": "~3.1 years",
       "range_low": 2.0,
       "range_high": 8.4,
-      "confidence": "high",
+      "confidence": "medium",
       "comparable_count": 6,
       "good_count": 3,
       "exact_count": 3,
@@ -4513,9 +4626,12 @@
       "scale_used": false,
       "firm_signal": {
         "firm": "Arquitectonica",
-        "count": 5,
-        "median_years": 3.0,
-        "stddev_years": 0.72
+        "count": 8,
+        "median_years": 3.07,
+        "stddev_years": 1.65,
+        "role": "architect",
+        "consistent": false,
+        "blend_weight": 0.65
       },
       "source": "comparables",
       "project_type": "Residences",
@@ -4549,7 +4665,7 @@
           "distance_mi": 41.0
         }
       ],
-      "pattern_summary": "Among 6 same-metro residences projects in TMW's data, the median time to completion is 3.1 years, with a range of 2–8.4 years. Arquitectonica has 5 prior projects delivered with low schedule variance — confidence tightened toward their typical 3-year pace.",
+      "pattern_summary": "Among 6 same-metro residences projects in TMW's data, the median build time is 3.1 years (range 2–8.4). Adjusted to ~3.1 years for Arquitectonica's own track record (~3.1-year typical pace across 8 prior projects).",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false,
@@ -4675,9 +4791,9 @@
       "delivery_speculative": false
     },
     "415-s-dixie-hwy": {
-      "estimate_years": 3.2,
-      "estimate_label": "~3.2 years",
-      "range_low": 2.0,
+      "estimate_years": 2.1,
+      "estimate_label": "~2.1 years",
+      "range_low": 1.6,
       "range_high": 8.4,
       "confidence": "medium",
       "comparable_count": 3,
@@ -4688,7 +4804,15 @@
       "avg_distance_km": 41.4,
       "avg_distance_mi": 25.7,
       "scale_used": true,
-      "firm_signal": null,
+      "firm_signal": {
+        "firm": "REG Architects",
+        "count": 1,
+        "median_years": 0.58,
+        "stddev_years": 0.0,
+        "role": "architect",
+        "consistent": false,
+        "blend_weight": 0.4
+      },
       "source": "comparables",
       "project_type": "Residences",
       "metro": "Palm Beach",
@@ -4721,7 +4845,7 @@
           "distance_mi": 68.7
         }
       ],
-      "pattern_summary": "Among 3 same-metro residences projects in TMW's data, the median time to completion is 3.2 years, with a range of 2–8.4 years.",
+      "pattern_summary": "Among 3 same-metro residences projects in TMW's data, the median build time is 3.2 years (range 1.6–8.4). Adjusted to ~2.1 years for REG Architects's own track record (~0.6-year typical pace across 1 prior project).",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false,
@@ -4841,7 +4965,7 @@
           "distance_mi": 0.3
         }
       ],
-      "pattern_summary": "Among 1 nearby residences project in TMW's data, the median time to completion is 3.1 years.",
+      "pattern_summary": "Among 1 nearby residences project in TMW's data, the median build time is 3.1 years.",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false,
@@ -4950,9 +5074,9 @@
       "delivery_speculative": false
     },
     "high-grove-golf-club": {
-      "estimate_years": 1.2,
-      "estimate_label": "~1.2 years",
-      "range_low": 1.2,
+      "estimate_years": 1.1,
+      "estimate_label": "~1.1 years",
+      "range_low": 1.0,
       "range_high": 1.2,
       "confidence": "low",
       "comparable_count": 1,
@@ -4963,7 +5087,15 @@
       "avg_distance_km": 101.0,
       "avg_distance_mi": 62.8,
       "scale_used": false,
-      "firm_signal": null,
+      "firm_signal": {
+        "firm": "Ryan Hanks",
+        "count": 1,
+        "median_years": 1.0,
+        "stddev_years": 0.0,
+        "role": "developer",
+        "consistent": false,
+        "blend_weight": 0.4
+      },
       "source": "comparables",
       "project_type": "Golf",
       "metro": "Other",
@@ -4978,7 +5110,7 @@
           "distance_mi": 62.8
         }
       ],
-      "pattern_summary": "Among 1 regional golf project in TMW's data, the median time to completion is 1.2 years.",
+      "pattern_summary": "Among 1 regional golf project in TMW's data, the median build time is 1.2 years (range 1–1.2). Adjusted to ~1.1 years for Ryan Hanks's own track record (~1-year typical pace across 1 prior project).",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false,
@@ -5048,7 +5180,7 @@
           "distance_mi": 4.9
         }
       ],
-      "pattern_summary": "Among 1 nearby residences project in TMW's data, the median time to completion is 4.9 years.",
+      "pattern_summary": "Among 1 nearby residences project in TMW's data, the median build time is 4.9 years.",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false,
@@ -5157,9 +5289,9 @@
       "delivery_speculative": false
     },
     "gallery-at-marina-village": {
-      "estimate_years": 3.1,
-      "estimate_label": "~3.1 years",
-      "range_low": 2.0,
+      "estimate_years": 2.1,
+      "estimate_label": "~2.1 years",
+      "range_low": 1.5,
       "range_high": 8.4,
       "confidence": "medium",
       "comparable_count": 6,
@@ -5170,7 +5302,15 @@
       "avg_distance_km": 70.2,
       "avg_distance_mi": 43.6,
       "scale_used": false,
-      "firm_signal": null,
+      "firm_signal": {
+        "firm": "REG Architects",
+        "count": 1,
+        "median_years": 0.58,
+        "stddev_years": 0.0,
+        "role": "architect",
+        "consistent": false,
+        "blend_weight": 0.4
+      },
       "source": "comparables",
       "project_type": "Residences",
       "metro": "Palm Beach",
@@ -5203,7 +5343,7 @@
           "distance_mi": 46.7
         }
       ],
-      "pattern_summary": "Among 6 same-metro residences projects in TMW's data, the median time to completion is 3.1 years, with a range of 2–8.4 years.",
+      "pattern_summary": "Among 6 same-metro residences projects in TMW's data, the median build time is 3.1 years (range 1.5–8.4). Adjusted to ~2.1 years for REG Architects's own track record (~0.6-year typical pace across 1 prior project).",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false,
@@ -5238,16 +5378,16 @@
           "distance_mi": 93.6
         }
       ],
-      "pattern_summary": "Among 1 regional residences project in TMW's data, the median time to completion is 3.1 years.",
+      "pattern_summary": "Among 1 regional residences project in TMW's data, the median build time is 3.1 years.",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false,
       "is_mixed_use": false
     },
     "2823-broadway": {
-      "estimate_years": 3.2,
-      "estimate_label": "~3.2 years",
-      "range_low": 2.0,
+      "estimate_years": 2.1,
+      "estimate_label": "~2.1 years",
+      "range_low": 1.6,
       "range_high": 8.4,
       "confidence": "low",
       "comparable_count": 3,
@@ -5258,7 +5398,15 @@
       "avg_distance_km": 40.9,
       "avg_distance_mi": 25.4,
       "scale_used": true,
-      "firm_signal": null,
+      "firm_signal": {
+        "firm": "REG Architects",
+        "count": 1,
+        "median_years": 0.58,
+        "stddev_years": 0.0,
+        "role": "architect",
+        "consistent": false,
+        "blend_weight": 0.4
+      },
       "source": "comparables",
       "project_type": "Residences",
       "metro": "Palm Beach",
@@ -5291,7 +5439,7 @@
           "distance_mi": 70.7
         }
       ],
-      "pattern_summary": "Among 3 same-metro residences projects in TMW's data, the median time to completion is 3.2 years, with a range of 2–8.4 years.",
+      "pattern_summary": "Among 3 same-metro residences projects in TMW's data, the median build time is 3.2 years (range 1.6–8.4). Adjusted to ~2.1 years for REG Architects's own track record (~0.6-year typical pace across 1 prior project).",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false,
@@ -5332,9 +5480,9 @@
       "delivery_speculative": false
     },
     "cassia-residences": {
-      "estimate_years": 3.1,
-      "estimate_label": "~3.1 years",
-      "range_low": 2.0,
+      "estimate_years": 2.2,
+      "estimate_label": "~2.2 years",
+      "range_low": 1.5,
       "range_high": 8.4,
       "confidence": "medium",
       "comparable_count": 6,
@@ -5345,7 +5493,15 @@
       "avg_distance_km": 49.3,
       "avg_distance_mi": 30.6,
       "scale_used": false,
-      "firm_signal": null,
+      "firm_signal": {
+        "firm": "Alta Developers",
+        "count": 1,
+        "median_years": 0.84,
+        "stddev_years": 0.0,
+        "role": "developer",
+        "consistent": false,
+        "blend_weight": 0.4
+      },
       "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
@@ -5378,7 +5534,7 @@
           "distance_mi": 1.2
         }
       ],
-      "pattern_summary": "Among 6 same-metro residences projects in TMW's data, the median time to completion is 3.1 years, with a range of 2–8.4 years.",
+      "pattern_summary": "Among 6 same-metro residences projects in TMW's data, the median build time is 3.1 years (range 1.5–8.4). Adjusted to ~2.2 years for Alta Developers's own track record (~0.8-year typical pace across 1 prior project).",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false,
@@ -5420,9 +5576,9 @@
       "delivery_speculative": false
     },
     "anantara-miami-resort-residences": {
-      "estimate_years": 8.1,
-      "estimate_label": "~8.1 years",
-      "range_low": 8.1,
+      "estimate_years": 6.5,
+      "estimate_label": "~6.5 years",
+      "range_low": 5.2,
       "range_high": 8.1,
       "confidence": "low",
       "comparable_count": 1,
@@ -5433,7 +5589,15 @@
       "avg_distance_km": 103.4,
       "avg_distance_mi": 64.3,
       "scale_used": true,
-      "firm_signal": null,
+      "firm_signal": {
+        "firm": "Kohn Pedersen Fox",
+        "count": 2,
+        "median_years": 5.17,
+        "stddev_years": 0.96,
+        "role": "architect",
+        "consistent": false,
+        "blend_weight": 0.55
+      },
       "source": "comparables",
       "project_type": "Hotel",
       "metro": "South Florida",
@@ -5448,7 +5612,7 @@
           "distance_mi": 64.3
         }
       ],
-      "pattern_summary": "Among 1 regional hotel project in TMW's data, the median time to completion is 8.1 years.",
+      "pattern_summary": "Among 1 regional hotel project in TMW's data, the median build time is 8.1 years (range 5.2–8.1). Adjusted to ~6.5 years for Kohn Pedersen Fox's own track record (~5.2-year typical pace across 2 prior projects).",
       "dates_speculative": true,
       "start_speculative": true,
       "delivery_speculative": true,
@@ -5638,7 +5802,7 @@
           "distance_mi": 35.6
         }
       ],
-      "pattern_summary": "Among 6 same-metro residences projects in TMW's data, the median time to completion is 3.1 years, with a range of 2–8.4 years.",
+      "pattern_summary": "Among 6 same-metro residences projects in TMW's data, the median build time is 3.1 years (range 2–8.4).",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false,
@@ -5731,9 +5895,9 @@
       "delivery_speculative": false
     },
     "marina-village": {
-      "estimate_years": 3.1,
-      "estimate_label": "~3.1 years",
-      "range_low": 2.0,
+      "estimate_years": 2.1,
+      "estimate_label": "~2.1 years",
+      "range_low": 1.5,
       "range_high": 8.4,
       "confidence": "medium",
       "comparable_count": 6,
@@ -5744,7 +5908,15 @@
       "avg_distance_km": 70.3,
       "avg_distance_mi": 43.7,
       "scale_used": false,
-      "firm_signal": null,
+      "firm_signal": {
+        "firm": "REG Architects",
+        "count": 1,
+        "median_years": 0.58,
+        "stddev_years": 0.0,
+        "role": "architect",
+        "consistent": false,
+        "blend_weight": 0.4
+      },
       "source": "comparables",
       "project_type": "Residences",
       "metro": "Palm Beach",
@@ -5777,7 +5949,7 @@
           "distance_mi": 46.7
         }
       ],
-      "pattern_summary": "Among 6 same-metro residences projects in TMW's data, the median time to completion is 3.1 years, with a range of 2–8.4 years.",
+      "pattern_summary": "Among 6 same-metro residences projects in TMW's data, the median build time is 3.1 years (range 1.5–8.4). Adjusted to ~2.1 years for REG Architects's own track record (~0.6-year typical pace across 1 prior project).",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false,
@@ -5872,7 +6044,7 @@
           "distance_mi": 14.4
         }
       ],
-      "pattern_summary": "Among 2 nearby hotel projects in TMW's data, the median time to completion is 5.6 years, with a range of 5–6.1 years.",
+      "pattern_summary": "Among 2 nearby hotel projects in TMW's data, the median build time is 5.6 years (range 5–6.1).",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false,
@@ -5913,10 +6085,10 @@
       "delivery_speculative": false
     },
     "hudson-yards-phase-2": {
-      "estimate_years": 4.9,
-      "estimate_label": "~4.9 years",
+      "estimate_years": 5.6,
+      "estimate_label": "~5.6 years",
       "range_low": 4.9,
-      "range_high": 4.9,
+      "range_high": 6.7,
       "confidence": "low",
       "comparable_count": 1,
       "good_count": 1,
@@ -5926,7 +6098,15 @@
       "avg_distance_km": 6.7,
       "avg_distance_mi": 4.2,
       "scale_used": false,
-      "firm_signal": null,
+      "firm_signal": {
+        "firm": "Owings & Merrill",
+        "count": 1,
+        "median_years": 6.74,
+        "stddev_years": 0.0,
+        "role": "architect",
+        "consistent": false,
+        "blend_weight": 0.4
+      },
       "source": "comparables",
       "project_type": "Residences",
       "metro": "New York",
@@ -5941,7 +6121,7 @@
           "distance_mi": 4.2
         }
       ],
-      "pattern_summary": "Among 1 nearby residences project in TMW's data, the median time to completion is 4.9 years.",
+      "pattern_summary": "Among 1 nearby residences project in TMW's data, the median build time is 4.9 years (range 4.9–6.7). Adjusted to ~5.6 years for Owings & Merrill's own track record (~6.7-year typical pace across 1 prior project).",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false,
@@ -6136,8 +6316,8 @@
       "delivery_speculative": false
     },
     "nobu-residences-miami": {
-      "estimate_years": 3.1,
-      "estimate_label": "~3.1 years",
+      "estimate_years": 5.0,
+      "estimate_label": "~5 years",
       "range_low": 2.0,
       "range_high": 8.4,
       "confidence": "medium",
@@ -6149,7 +6329,15 @@
       "avg_distance_km": 45.4,
       "avg_distance_mi": 28.2,
       "scale_used": false,
-      "firm_signal": null,
+      "firm_signal": {
+        "firm": "Foster + Partners",
+        "count": 3,
+        "median_years": 6.0,
+        "stddev_years": 1.63,
+        "role": "architect",
+        "consistent": false,
+        "blend_weight": 0.65
+      },
       "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
@@ -6182,7 +6370,7 @@
           "distance_mi": 4.2
         }
       ],
-      "pattern_summary": "Among 6 same-metro residences projects in TMW's data, the median time to completion is 3.1 years, with a range of 2–8.4 years.",
+      "pattern_summary": "Among 6 same-metro residences projects in TMW's data, the median build time is 3.1 years (range 2–8.4). Adjusted to ~5 years for Foster + Partners's own track record (~6-year typical pace across 3 prior projects).",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false,
@@ -6258,9 +6446,9 @@
       "delivery_speculative": false
     },
     "delux-weho": {
-      "estimate_years": 3.2,
-      "estimate_label": "~3.2 years",
-      "range_low": 2.0,
+      "estimate_years": 2.4,
+      "estimate_label": "~2.4 years",
+      "range_low": 1.8,
       "range_high": 8.4,
       "confidence": "low",
       "comparable_count": 3,
@@ -6271,7 +6459,15 @@
       "avg_distance_km": 1251.1,
       "avg_distance_mi": 777.4,
       "scale_used": true,
-      "firm_signal": null,
+      "firm_signal": {
+        "firm": "The Bradley Projects",
+        "count": 2,
+        "median_years": 1.75,
+        "stddev_years": 0.0,
+        "role": "developer",
+        "consistent": false,
+        "blend_weight": 0.55
+      },
       "source": "comparables",
       "project_type": "Residences",
       "metro": "Nashville",
@@ -6304,7 +6500,7 @@
           "distance_mi": 816.1
         }
       ],
-      "pattern_summary": "Among 3 residences projects in TMW's data, the median time to completion is 3.2 years, with a range of 2–8.4 years.",
+      "pattern_summary": "Among 3 residences projects in TMW's data, the median build time is 3.2 years (range 1.8–8.4). Adjusted to ~2.4 years for The Bradley Projects's own track record (~1.8-year typical pace across 2 prior projects).",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false,
@@ -6653,8 +6849,8 @@
       "delivery_speculative": false
     },
     "fouquets-hotel-and-residences-miami-design-district": {
-      "estimate_years": 3.1,
-      "estimate_label": "~3.1 years",
+      "estimate_years": 3.3,
+      "estimate_label": "~3.3 years",
       "range_low": 2.0,
       "range_high": 8.4,
       "confidence": "medium",
@@ -6666,7 +6862,15 @@
       "avg_distance_km": 43.6,
       "avg_distance_mi": 27.1,
       "scale_used": false,
-      "firm_signal": null,
+      "firm_signal": {
+        "firm": "David Chipperfield Architects",
+        "count": 1,
+        "median_years": 3.67,
+        "stddev_years": 0.0,
+        "role": "architect",
+        "consistent": false,
+        "blend_weight": 0.4
+      },
       "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
@@ -6699,7 +6903,7 @@
           "distance_mi": 6.5
         }
       ],
-      "pattern_summary": "Among 6 same-metro residences projects in TMW's data, the median time to completion is 3.1 years, with a range of 2–8.4 years.",
+      "pattern_summary": "Among 6 same-metro residences projects in TMW's data, the median build time is 3.1 years (range 2–8.4). Adjusted to ~3.3 years for David Chipperfield Architects's own track record (~3.7-year typical pace across 1 prior project).",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false,
@@ -7019,9 +7223,9 @@
       "delivery_speculative": false
     },
     "burj-jumeira": {
-      "estimate_years": 11.2,
-      "estimate_label": "~11.2 years",
-      "range_low": 11.2,
+      "estimate_years": 10.1,
+      "estimate_label": "~10.1 years",
+      "range_low": 8.4,
       "range_high": 11.2,
       "confidence": "low",
       "comparable_count": 1,
@@ -7032,7 +7236,15 @@
       "avg_distance_km": 0.3,
       "avg_distance_mi": 0.2,
       "scale_used": false,
-      "firm_signal": null,
+      "firm_signal": {
+        "firm": "Owings & Merrill",
+        "count": 1,
+        "median_years": 6.74,
+        "stddev_years": 0.0,
+        "role": "architect",
+        "consistent": false,
+        "blend_weight": 0.4
+      },
       "source": "comparables",
       "project_type": "Mixed-Use",
       "metro": "Dubai",
@@ -7047,7 +7259,7 @@
           "distance_mi": 0.2
         }
       ],
-      "pattern_summary": "Mixed-use developments of this scale routinely span 11.2–11.2 years with phased delivery. Based on 1 completed mixed-use comparable, with an added complexity factor since cross-component coordination typically extends timelines.",
+      "pattern_summary": "Mixed-use developments of this scale routinely span 8.4–11.2 years with phased delivery. Based on 1 completed mixed-use comparable, with an added complexity factor since cross-component coordination typically extends timelines.",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false,
@@ -7309,7 +7521,7 @@
           "distance_mi": 6.2
         }
       ],
-      "pattern_summary": "Among 6 same-metro residences projects in TMW's data, the median time to completion is 3.1 years, with a range of 2–8.4 years.",
+      "pattern_summary": "Among 6 same-metro residences projects in TMW's data, the median build time is 3.1 years (range 2–8.4).",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false,
@@ -7317,14 +7529,14 @@
     }
   },
   "stats": {
-    "high": 10,
-    "medium": 21,
-    "low": 24,
+    "high": 2,
+    "medium": 26,
+    "low": 27,
     "known_date": 243,
     "completed": 33,
     "skipped": 61,
     "no_type": 0,
-    "firm_boosted": 12,
+    "firm_boosted": 34,
     "speculative_softened": 12,
     "mixed_use_adjusted": 1
   }
