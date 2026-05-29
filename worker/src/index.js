@@ -20,10 +20,14 @@
 // ---------------------------------------------------------------------------
 
 function corsHeaders(env, origin) {
-  const allowList = (env.ALLOWED_ORIGINS || '').split(',').map(s => s.trim());
-  // Echo the origin back if it's allowed, otherwise pick the first allowed
-  // entry (so requests from curl / Postman that don't send Origin still work).
-  const allow = allowList.includes(origin) ? origin : (allowList[0] || '*');
+  const allowList = (env.ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean);
+  // Echo the origin back if it's allowed, otherwise fall back to the canonical
+  // primary origin (so requests from curl / Postman that don't send Origin
+  // still work). We deliberately never emit '*' here: a disallowed browser
+  // origin will see an ACAO that doesn't match its own origin and the browser
+  // will block the response, which is the behavior we want. (Auth, not CORS,
+  // is the real access control — see requireAdminToken on the read endpoints.)
+  const allow = allowList.includes(origin) ? origin : (allowList[0] || 'https://map.oftmw.com');
   return {
     'Access-Control-Allow-Origin': allow,
     'Access-Control-Allow-Methods': 'GET,POST,PATCH,DELETE,OPTIONS',
@@ -158,6 +162,13 @@ function b64ToBytes(b64) {
 // either ':runReport' or ':runRealtimeReport' — anything else is rejected so
 // the worker can't be used to call arbitrary Google APIs.
 async function handleGAProxy(req, env, origin) {
+  // Admin-gated: this forwards arbitrary report queries to the GA4 Data API
+  // using our service-account token. Unauthenticated, it was a public read
+  // proxy for ALL of the property's analytics. Only analytics.html calls it,
+  // and it now sends Authorization: Bearer <ADMIN_TOKEN>.
+  const denied = requireAdminToken(req, env, origin);
+  if (denied) return denied;
+
   let body;
   try { body = await req.json(); } catch { return json({ error: 'Invalid JSON body' }, { status: 400 }, env, origin); }
 
@@ -192,12 +203,32 @@ async function handleGAProxy(req, env, origin) {
 }
 
 // POST /event — write one identified-user event row to D1.
-// Requires X-Ingest-Token header matching EVENT_INGEST_TOKEN secret (so
-// random people can't write spam rows into your DB).
+//
+// SECURITY NOTE: the X-Ingest-Token is sent by every visitor's browser
+// (it ships in public index.html source), so it is NOT a real secret — treat
+// it as a soft speed-bump against trivial scripted spam, not as auth. Two
+// things make this acceptable:
+//   1. Blast radius is tiny. A forged request can only INSERT an analytics
+//      row; it cannot read any member data — every read endpoint now requires
+//      ADMIN_TOKEN (see requireAdminToken / ADMIN_READ_PATHS).
+//   2. Defense-in-depth Origin check below rejects browser-based cross-site
+//      forgery (it is best-effort: non-browser clients can omit/spoof Origin).
+// If event spam ever becomes a real problem, add a Turnstile token or a
+// per-IP/member rate limit (KV or Durable Object) rather than leaning on the
+// shared token.
 async function handleEventIngest(req, env, origin) {
   const headerToken = req.headers.get('X-Ingest-Token') || '';
   if (!env.EVENT_INGEST_TOKEN || headerToken !== env.EVENT_INGEST_TOKEN) {
     return json({ error: 'unauthorized' }, { status: 401 }, env, origin);
+  }
+
+  // Reject requests from a browser Origin that isn't in our allowlist. Empty
+  // Origin (curl / server-to-server) is allowed through — the token still
+  // gates those. This blocks the easy "fetch from any other website" forgery.
+  const reqOrigin = req.headers.get('Origin') || '';
+  const allowList = (env.ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean);
+  if (reqOrigin && allowList.length && !allowList.includes(reqOrigin)) {
+    return json({ error: 'forbidden origin' }, { status: 403 }, env, origin);
   }
 
   let body;
@@ -2227,6 +2258,24 @@ export default {
     }
 
     try {
+      // ── Admin-gated analytics reads ──────────────────────────────────
+      // These endpoints expose member PII (email, name, plan) and per-person
+      // behavioral history, plus aggregate click/watchlist analytics. They are
+      // consumed ONLY by analytics.html, which sends Authorization: Bearer
+      // <ADMIN_TOKEN>. Before this gate they were world-readable from any
+      // origin. Public content endpoints (/blog, /posts, /post/:slug,
+      // /list/:slug GET, /health) are intentionally NOT in this set, and the
+      // admin WRITE endpoints (/admin/*, POST/PATCH/DELETE on /posts, /list)
+      // already enforce the token inside their own handlers.
+      const ADMIN_READ_PATHS = new Set([
+        '/people', '/stats', '/member', '/timeline',
+        '/watchlist', '/projects', '/activity',
+      ]);
+      if (request.method === 'GET' && ADMIN_READ_PATHS.has(url.pathname)) {
+        const denied = requireAdminToken(request, env, origin);
+        if (denied) return denied;
+      }
+
       // Back-compat: POST / with { endpoint, body } → GA4 proxy.
       if (request.method === 'POST' && (url.pathname === '/' || url.pathname === '')) {
         return await handleGAProxy(request, env, origin);
