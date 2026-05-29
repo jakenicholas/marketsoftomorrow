@@ -10,11 +10,19 @@ on:
     - cron: '0 6 * * *'
   workflow_dispatch:
 
+# contents: write -> push the refreshed digest back to main
+# pages/id-token  -> deploy job publishes it to GitHub Pages (a GITHUB_TOKEN
+#                    push does NOT trigger pages.yml, so we deploy in-workflow)
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
+    outputs:
+      changed: ${{ steps.commit.outputs.changed }}
 
     steps:
       - name: Checkout
@@ -32,17 +40,47 @@ jobs:
         run: python3 newsletter/generate_digest.py
 
       - name: Commit if changed
+        id: commit
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add newsletter/digest-latest.html newsletter/digest-subject.txt newsletter/digest-archive/
           if git diff --staged --quiet; then
+            echo "changed=false" >> $GITHUB_OUTPUT
             echo "No changes."
           else
-            # No [skip ci]: pages.yml deploys on push to main, and the tag
-            # would block the deploy so the refreshed digest never goes
-            # live. Same fix as generate-pages.yml. No infinite-loop risk —
-            # this workflow only triggers on schedule + workflow_dispatch.
+            echo "changed=true" >> $GITHUB_OUTPUT
+            # A GITHUB_TOKEN push does NOT trigger pages.yml (GitHub's
+            # recursion guard), so this workflow deploys the result itself
+            # in the deploy job below rather than relying on pages.yml.
             git commit -m "digest: nightly refresh"
             git push
           fi
+
+      - name: Configure Pages
+        if: steps.commit.outputs.changed == 'true'
+        uses: actions/configure-pages@v5
+      - name: Upload Pages artifact
+        if: steps.commit.outputs.changed == 'true'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+
+  # Publish the refreshed digest (and whatever else is on main) to Pages,
+  # in-workflow. Skipped when nothing changed. Shares the `pages`
+  # concurrency group so it never deploys simultaneously with
+  # generate-pages.yml or pages.yml.
+  deploy:
+    needs: build
+    if: needs.build.outputs.changed == 'true'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

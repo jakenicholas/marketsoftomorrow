@@ -16,11 +16,22 @@ concurrency:
   group: generate-pages-pulse
   cancel-in-progress: true
 
+# Workflow-level permissions:
+#   contents: write  -> build job pushes the regenerated files back to main
+#   pages:    write  -> deploy job publishes to GitHub Pages
+#   id-token: write  -> OIDC auth required by actions/deploy-pages
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
+    # Expose whether anything actually changed so the deploy job can skip
+    # re-publishing an identical site on the hourly no-op runs.
+    outputs:
+      changed: ${{ steps.changes.outputs.changed }}
 
     steps:
       - name: Checkout repository
@@ -131,14 +142,51 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           PAGE_COUNT=$(git diff --staged --name-only | grep "projects/.*index.html" | wc -l)
-          # No [skip ci] tag on purpose: pages.yml (which deploys the static
-          # site to GitHub Pages) triggers on `push` to main, and [skip ci]
-          # would block it. That was the bug behind new project pages
-          # (nude-miami, 400-lake-shore-drive, etc.) being generated and
-          # committed but never reaching the live site after we swapped the
+          # NOTE: this push uses the default GITHUB_TOKEN, and commits pushed
+          # with GITHUB_TOKEN do NOT trigger other workflows (GitHub's
+          # recursion guard). So the push-triggered pages.yml never fires on
+          # these auto-commits -- which is exactly why new project pages were
+          # generated/committed but never went live after we swapped the
           # built-in Jekyll deploy for an Actions workflow on 2026-05-26.
-          # No infinite-loop risk: this workflow triggers on schedule +
-          # workflow_dispatch only, never on push.
+          # The fix: this workflow now deploys to Pages itself (see the
+          # `deploy` job below), instead of relying on pages.yml. [skip ci]
+          # is therefore both unnecessary and moot here.
           MSG="Auto-update: ${PAGE_COUNT} pages + pulse"
           git commit -m "$MSG"
           git push
+
+      # Package the freshly generated + committed site for GitHub Pages,
+      # but only when something actually changed -- no point re-deploying an
+      # identical site on the hourly no-op runs. Uploaded from the build
+      # job's working tree (which already holds every generated file), so
+      # the deploy job needs no second checkout.
+      - name: Configure Pages
+        if: steps.changes.outputs.changed == 'true'
+        uses: actions/configure-pages@v5
+      - name: Upload Pages artifact
+        if: steps.changes.outputs.changed == 'true'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+
+  # ── Deploy ────────────────────────────────────────────────────────────
+  # Publishes the artifact built above to GitHub Pages, in the SAME run
+  # right after build. No cross-workflow handoff latency, and no dependence
+  # on a push event (which GITHUB_TOKEN commits don't fire). Skipped
+  # entirely when build reported no changes. Shares the `pages` concurrency
+  # group with pages.yml so a manual-edit deploy and an auto-update deploy
+  # never publish at the same time.
+  deploy:
+    needs: build
+    if: needs.build.outputs.changed == 'true'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
