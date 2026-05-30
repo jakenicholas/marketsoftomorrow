@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build-stamp: studio-v1 · iconic-list editor -->
+<!-- build-stamp: studio-v2 · iconic-list sheet editor -->
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -20,409 +20,297 @@
   --serif:'Fraunces',Georgia,serif; --mono:'JetBrains Mono',ui-monospace,monospace;
 }
 *{margin:0;padding:0;box-sizing:border-box}
-html,body{background:var(--ink); color:var(--text); font-family:var(--sans); line-height:1.5; -webkit-font-smoothing:antialiased}
-.topbar{position:sticky; top:0; z-index:20; background:rgba(7,8,7,.94); backdrop-filter:blur(20px); border-bottom:1px solid var(--hair)}
-.topbar-inner{display:flex; align-items:center; gap:18px; padding:16px 22px; max-width:1400px; margin:0 auto; flex-wrap:wrap}
+html,body{background:var(--ink); color:var(--text); font-family:var(--sans); -webkit-font-smoothing:antialiased}
+.topbar{position:sticky; top:0; z-index:30; background:rgba(7,8,7,.94); backdrop-filter:blur(20px); border-bottom:1px solid var(--hair)}
+.topbar-inner{display:flex; align-items:center; gap:16px; padding:14px 20px; flex-wrap:wrap}
 .brand{display:flex; flex-direction:column; gap:2px}
 .brand-eyebrow{font-family:var(--mono); font-size:10px; letter-spacing:.18em; text-transform:uppercase; color:var(--green)}
-.brand-title{font-family:var(--serif); font-weight:600; font-size:22px; color:var(--white)}
+.brand-title{font-family:var(--serif); font-weight:600; font-size:20px; color:var(--white)}
 .tablinks{display:flex; gap:4px; padding:5px; background:rgba(255,255,255,.04); border:1px solid var(--hair); border-radius:99px; flex-wrap:wrap}
 .tablinks a{font-family:var(--mono); font-size:11px; letter-spacing:.16em; text-transform:uppercase; padding:9px 16px; border-radius:99px; color:var(--mute-2); text-decoration:none; font-weight:600}
-.tablinks a:hover{color:var(--white)}
-.tablinks a.on{background:var(--white); color:var(--ink)}
+.tablinks a:hover{color:var(--white)} .tablinks a.on{background:var(--white); color:var(--ink)}
 
-.wrap{max-width:1080px; margin:26px auto 120px; padding:0 22px}
-.listtabs{display:flex; gap:8px; margin-bottom:22px; flex-wrap:wrap}
-.lt{font-family:var(--mono); font-size:12px; letter-spacing:.08em; text-transform:uppercase; font-weight:700; padding:11px 20px; border-radius:10px; border:1px solid var(--hair-2); background:rgba(255,255,255,.04); color:var(--mute-2); cursor:pointer}
+.bar{display:flex; align-items:center; gap:10px; padding:12px 20px; border-bottom:1px solid var(--hair); flex-wrap:wrap; background:var(--panel)}
+.listtabs{display:flex; gap:6px}
+.lt{font-family:var(--mono); font-size:11.5px; letter-spacing:.08em; text-transform:uppercase; font-weight:700; padding:9px 16px; border-radius:8px; border:1px solid var(--hair-2); background:rgba(255,255,255,.04); color:var(--mute-2); cursor:pointer}
 .lt.on{background:var(--green); color:#0a0a0a; border-color:var(--green)}
-
-.toolbar{display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:20px; padding:14px 16px; background:var(--panel); border:1px solid var(--hair); border-radius:12px}
-.toolbar .grow{flex:1; min-width:140px}
-.toolbar input.token{width:100%; background:rgba(255,255,255,.04); border:1px solid var(--hair-2); color:var(--white); font-family:var(--mono); font-size:12px; padding:10px 12px; border-radius:8px; outline:0}
-.toolbar input.token:focus{border-color:var(--green)}
-.status{font-family:var(--mono); font-size:11.5px; color:var(--mute)}
-.status.ok{color:var(--green-soft)} .status.err{color:var(--danger)} .status.warn{color:var(--gold-soft)}
-
-.btn{font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; font-weight:700; padding:10px 16px; border-radius:8px; border:1px solid var(--hair-2); background:rgba(255,255,255,.04); color:var(--text); cursor:pointer; white-space:nowrap}
+.bar .grow{flex:1; min-width:120px}
+.token{width:100%; background:rgba(255,255,255,.04); border:1px solid var(--hair-2); color:var(--white); font-family:var(--mono); font-size:12px; padding:9px 12px; border-radius:8px; outline:0}
+.token:focus{border-color:var(--green)}
+.btn{font-family:var(--mono); font-size:11px; letter-spacing:.06em; text-transform:uppercase; font-weight:700; padding:9px 14px; border-radius:8px; border:1px solid var(--hair-2); background:rgba(255,255,255,.04); color:var(--text); cursor:pointer; white-space:nowrap}
 .btn:hover{border-color:rgba(255,255,255,.32); color:var(--white)}
 .btn-primary{background:var(--green); color:#0a0a0a; border-color:var(--green)}
-.btn-primary:hover{background:var(--green-soft); border-color:var(--green-soft)}
+.btn-primary:hover{background:var(--green-soft)}
 .btn-ghost{background:transparent}
-.btn-danger{color:var(--danger); border-color:rgba(255,93,93,.3)}
-.btn-danger:hover{background:rgba(255,93,93,.12); border-color:var(--danger); color:var(--danger)}
 .btn:disabled{opacity:.45; cursor:not-allowed}
+.status{font-family:var(--mono); font-size:11px; color:var(--mute)}
+.status.ok{color:var(--green-soft)} .status.err{color:var(--danger)} .status.warn{color:var(--gold-soft)}
 
-.card{background:var(--panel); border:1px solid var(--hair); border-radius:14px; padding:22px; margin-bottom:18px}
-.card h3{font-family:var(--serif); font-size:16px; color:var(--white); margin-bottom:14px; display:flex; align-items:center; gap:10px}
-.card h3 .badge{font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--mute); background:rgba(255,255,255,.05); padding:3px 8px; border-radius:6px; font-weight:600}
-
-.fl{display:flex; flex-direction:column; gap:6px; margin-bottom:14px}
-.fl label{font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--mute-2)}
-.fl input, .fl textarea{background:rgba(255,255,255,.04); border:1px solid var(--hair-2); color:var(--white); font-family:var(--sans); font-size:13.5px; padding:10px 12px; border-radius:8px; outline:0; width:100%; resize:vertical}
+/* details (meta) */
+.meta{padding:14px 20px; border-bottom:1px solid var(--hair); display:none; grid-template-columns:repeat(2,1fr); gap:0 16px}
+.meta.show{display:grid}
+.fl{display:flex; flex-direction:column; gap:5px; margin-bottom:12px}
+.fl.full{grid-column:1/-1}
+.fl label{font-family:var(--mono); font-size:9.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--mute-2)}
+.fl input, .fl textarea{background:rgba(255,255,255,.04); border:1px solid var(--hair-2); color:var(--white); font-family:var(--sans); font-size:13px; padding:8px 11px; border-radius:7px; outline:0; width:100%; resize:vertical}
 .fl input:focus, .fl textarea:focus{border-color:var(--green)}
-.fl textarea{min-height:70px; line-height:1.5}
-.grid2{display:grid; grid-template-columns:1fr 1fr; gap:0 14px}
-.grid3{display:grid; grid-template-columns:1fr 1fr 1fr; gap:0 14px}
-@media(max-width:720px){.grid2,.grid3{grid-template-columns:1fr}}
+.meta-toggle{font-family:var(--mono); font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--mute-2); cursor:pointer; padding:8px 20px; border-bottom:1px solid var(--hair); background:var(--panel-2)}
+.meta-toggle:hover{color:var(--white)}
 
-.item{background:var(--panel-2); border:1px solid var(--hair); border-radius:12px; padding:18px; margin-bottom:14px; position:relative}
-.item .row-top{display:flex; align-items:center; gap:12px; margin-bottom:14px}
-.item .rank{font-family:var(--serif); font-size:22px; font-weight:600; color:var(--green-soft); min-width:34px}
-.item .row-top .nm{flex:1}
-.item .ctrls{display:flex; gap:6px}
-.iconbtn{width:32px; height:32px; display:grid; place-items:center; border-radius:7px; border:1px solid var(--hair-2); background:rgba(255,255,255,.04); color:var(--mute-2); cursor:pointer; font-size:14px; line-height:1}
-.iconbtn:hover{color:var(--white); border-color:rgba(255,255,255,.32)}
-.iconbtn.del:hover{color:var(--danger); border-color:var(--danger)}
-.imgrow{display:flex; gap:12px; align-items:flex-start}
-.imgrow .thumb{width:88px; height:64px; border-radius:8px; border:1px solid var(--hair-2); object-fit:cover; background:#0a0a0a; flex-shrink:0}
-.imgrow .imgfields{flex:1}
-
-.addbtn{width:100%; padding:14px; border:1px dashed var(--hair-2); border-radius:12px; background:transparent; color:var(--mute-2); font-family:var(--mono); font-size:12px; letter-spacing:.08em; text-transform:uppercase; font-weight:700; cursor:pointer}
+/* sheet */
+.sheet-wrap{overflow:auto; max-height:calc(100vh - 230px)}
+table.sheet{border-collapse:separate; border-spacing:0; width:max-content; min-width:100%; font-size:12.5px}
+.sheet thead th{position:sticky; top:0; z-index:5; background:#0f120f; border-bottom:1px solid var(--hair-2); border-right:1px solid var(--hair); font-family:var(--mono); font-size:9.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--mute-2); font-weight:600; text-align:left; padding:10px 8px; white-space:nowrap}
+.sheet td{border-bottom:1px solid var(--hair); border-right:1px solid var(--hair); padding:0; vertical-align:top; background:var(--ink)}
+.sheet tr:nth-child(even) td{background:rgba(255,255,255,.014)}
+.sheet tr:hover td{background:rgba(31,223,103,.04)}
+.sheet td.rank{text-align:center; font-family:var(--serif); font-size:18px; font-weight:600; color:var(--green-soft); width:42px; padding:6px 4px}
+.sheet td input, .sheet td textarea{width:100%; background:transparent; border:0; color:var(--text); font-family:var(--sans); font-size:12.5px; padding:8px 9px; outline:0; resize:none}
+.sheet td textarea{min-height:54px; line-height:1.45; font-size:12px}
+.sheet td input:focus, .sheet td textarea:focus{background:rgba(31,223,103,.08); box-shadow:inset 0 0 0 1px var(--green)}
+.sheet td.col-name input{font-weight:600; color:var(--white)}
+.col-img{width:230px}
+.imgcell{display:flex; gap:7px; align-items:flex-start; padding:6px 8px}
+.imgcell img{width:46px; height:34px; object-fit:cover; border-radius:5px; border:1px solid var(--hair-2); background:#0a0a0a; flex-shrink:0; cursor:pointer}
+.imgcell .imgr{flex:1; display:flex; flex-direction:column; gap:4px}
+.imgcell input{background:rgba(255,255,255,.04)!important; border:1px solid var(--hair-2)!important; border-radius:5px; font-family:var(--mono); font-size:10.5px!important; padding:5px 7px!important}
+.imgcell .browse{font-family:var(--mono); font-size:9px; letter-spacing:.08em; text-transform:uppercase; color:var(--green-soft); cursor:pointer; text-align:left; background:none; border:0; padding:0}
+.rowtools{display:flex; gap:3px; padding:6px 6px; white-space:nowrap}
+.rtbtn{width:24px; height:24px; display:grid; place-items:center; border-radius:5px; border:1px solid var(--hair-2); background:rgba(255,255,255,.04); color:var(--mute-2); cursor:pointer; font-size:12px; line-height:1}
+.rtbtn:hover{color:var(--white); border-color:rgba(255,255,255,.3)}
+.rtbtn.del:hover{color:var(--danger); border-color:var(--danger)}
+.col-region input{min-width:90px}
+.addrow{padding:12px 20px}
+.addbtn{padding:10px 18px; border:1px dashed var(--hair-2); border-radius:9px; background:transparent; color:var(--mute-2); font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; font-weight:700; cursor:pointer}
 .addbtn:hover{border-color:var(--green); color:var(--green-soft)}
+.empty{padding:60px 20px; text-align:center; color:var(--mute); font-family:var(--mono); font-size:13px}
 
-.savebar{position:fixed; left:0; right:0; bottom:0; z-index:30; background:rgba(7,8,7,.96); backdrop-filter:blur(20px); border-top:1px solid var(--hair); transform:translateY(110%); transition:transform .25s}
+.savebar{position:fixed; left:0; right:0; bottom:0; z-index:40; background:rgba(7,8,7,.96); backdrop-filter:blur(20px); border-top:1px solid var(--hair); transform:translateY(120%); transition:transform .25s}
 .savebar.show{transform:none}
-.savebar-inner{max-width:1080px; margin:0 auto; padding:14px 22px; display:flex; align-items:center; justify-content:space-between; gap:16px}
+.savebar-inner{padding:12px 22px; display:flex; align-items:center; justify-content:space-between; gap:16px}
 .savebar .msg{font-family:var(--mono); font-size:12px; color:var(--gold-soft)}
 
-.empty{padding:60px 0; text-align:center; color:var(--mute); font-family:var(--mono); font-size:13px}
-
-/* media picker modal */
-.modal{position:fixed; inset:0; z-index:50; background:rgba(0,0,0,.7); display:none; align-items:center; justify-content:center; padding:20px}
+.modal{position:fixed; inset:0; z-index:60; background:rgba(0,0,0,.72); display:none; align-items:center; justify-content:center; padding:20px}
 .modal.show{display:flex}
-.modal-box{background:var(--panel); border:1px solid var(--hair-2); border-radius:16px; width:min(920px,96vw); max-height:86vh; display:flex; flex-direction:column; overflow:hidden}
-.modal-head{padding:16px 20px; border-bottom:1px solid var(--hair); display:flex; gap:12px; align-items:center}
-.modal-head input{flex:1; background:rgba(255,255,255,.04); border:1px solid var(--hair-2); color:var(--white); font-family:var(--mono); font-size:12.5px; padding:10px 12px; border-radius:8px; outline:0}
-.modal-grid{padding:16px 20px; overflow-y:auto; display:grid; grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); gap:10px}
+.modal-box{background:var(--panel); border:1px solid var(--hair-2); border-radius:16px; width:min(960px,96vw); max-height:86vh; display:flex; flex-direction:column; overflow:hidden}
+.modal-head{padding:14px 18px; border-bottom:1px solid var(--hair); display:flex; gap:12px; align-items:center}
+.modal-head input{flex:1; background:rgba(255,255,255,.04); border:1px solid var(--hair-2); color:var(--white); font-family:var(--mono); font-size:12.5px; padding:9px 12px; border-radius:8px; outline:0}
+.modal-grid{padding:14px 18px; overflow-y:auto; display:grid; grid-template-columns:repeat(auto-fill,minmax(110px,1fr)); gap:9px}
 .mtile{border:1px solid var(--hair); border-radius:8px; overflow:hidden; cursor:pointer; background:#0a0a0a; aspect-ratio:4/3}
-.mtile img{width:100%; height:100%; object-fit:cover; display:block}
-.mtile:hover{border-color:var(--green)}
+.mtile img{width:100%; height:100%; object-fit:cover; display:block} .mtile:hover{border-color:var(--green)}
 </style>
 </head>
 <body>
 
-<div class="topbar">
-  <div class="topbar-inner">
-    <div class="brand">
-      <div class="brand-eyebrow">TMW Studio</div>
-      <div class="brand-title">Iconic Lists</div>
-    </div>
-    <div class="tablinks">
-      <a href="/journal/studio/">Posts</a>
-      <a href="/journal/studio/media.html">Media</a>
-      <a href="/journal/studio/migrate-wix.html">Wix library</a>
-      <a href="/journal/studio/lists.html" class="on">Lists</a>
-      <a href="/journal/studio/sync.html">Wix sync</a>
-    </div>
+<div class="topbar"><div class="topbar-inner">
+  <div class="brand"><div class="brand-eyebrow">TMW Studio</div><div class="brand-title">Iconic Lists</div></div>
+  <div class="tablinks">
+    <a href="/journal/studio/">Posts</a>
+    <a href="/journal/studio/media.html">Media</a>
+    <a href="/journal/studio/migrate-wix.html">Wix library</a>
+    <a href="/journal/studio/lists.html" class="on">Lists</a>
+    <a href="/journal/studio/sync.html">Wix sync</a>
   </div>
-</div>
+</div></div>
 
-<div class="wrap">
+<div class="bar">
   <div class="listtabs" id="listTabs"></div>
-
-  <div class="toolbar">
-    <div class="grow">
-      <input class="token" type="password" id="token" placeholder="Admin token (needed to save)">
-    </div>
-    <button class="btn btn-ghost" id="reloadBtn">Reload</button>
-    <button class="btn btn-ghost" id="importBtn" title="Pull the items embedded in the public page">Import page seed</button>
-    <span class="status" id="status">—</span>
-  </div>
-
-  <div id="editor"><div class="empty">Pick a list above to start editing.</div></div>
+  <div class="grow"><input class="token" type="password" id="token" placeholder="Admin token (needed to save)"></div>
+  <button class="btn btn-ghost" id="reloadBtn">Reload</button>
+  <button class="btn btn-ghost" id="importBtn" title="Pull items embedded in the public page">Import seed</button>
+  <button class="btn btn-ghost" id="addTopBtn">+ Row</button>
+  <button class="btn btn-primary" id="saveTopBtn">Save</button>
+  <span class="status" id="status">—</span>
 </div>
 
-<div class="savebar" id="savebar">
-  <div class="savebar-inner">
-    <span class="msg" id="saveMsg">Unsaved changes</span>
-    <div style="display:flex; gap:10px">
-      <button class="btn btn-ghost" id="discardBtn">Discard</button>
-      <button class="btn btn-primary" id="saveBtn">Save to live site</button>
-    </div>
-  </div>
-</div>
+<div class="meta-toggle" id="metaToggle">▸ List details (title · subtitle · about · regions)</div>
+<div class="meta" id="meta"></div>
 
-<!-- media picker -->
-<div class="modal" id="mediaModal">
-  <div class="modal-box">
-    <div class="modal-head">
-      <input id="mediaSearch" placeholder="Search media library…">
-      <button class="btn btn-ghost" id="mediaClose">Close</button>
-    </div>
-    <div class="modal-grid" id="mediaGrid"></div>
+<div class="sheet-wrap"><div id="sheet"><div class="empty">Pick a list above to start editing.</div></div></div>
+<div class="addrow"><button class="addbtn" id="addBtn">+ Add row</button></div>
+
+<div class="savebar" id="savebar"><div class="savebar-inner">
+  <span class="msg" id="saveMsg">Unsaved changes</span>
+  <div style="display:flex; gap:10px">
+    <button class="btn btn-ghost" id="discardBtn">Discard</button>
+    <button class="btn btn-primary" id="saveBtn">Save to live site</button>
   </div>
-</div>
+</div></div>
+
+<div class="modal" id="mediaModal"><div class="modal-box">
+  <div class="modal-head"><input id="mediaSearch" placeholder="Search media library…"><button class="btn btn-ghost" id="mediaClose">Close</button></div>
+  <div class="modal-grid" id="mediaGrid"></div>
+</div></div>
+
+<datalist id="regionOpts"></datalist>
 
 <script>
-const WORKER_URL = 'https://tmw.jake-ab7.workers.dev';
-const TOKEN_KEY  = 'tmw-admin-token-v1';
-const LISTS = [
-  { slug:'golf',        label:'Golf',        meta1:'Level',   meta2:'Availability', noun:'course' },
-  { slug:'restaurants', label:'Restaurants', meta1:'Cuisine', meta2:'Price',        noun:'restaurant' },
-  { slug:'hotels',      label:'Hotels',      meta1:'Detail',  meta2:'Year',         noun:'hotel' },
+const WORKER_URL='https://tmw.jake-ab7.workers.dev';
+const TOKEN_KEY='tmw-admin-token-v1';
+const LISTS=[
+  {slug:'golf',label:'Golf',meta1:'Level',meta2:'Availability',noun:'course'},
+  {slug:'restaurants',label:'Restaurants',meta1:'Cuisine',meta2:'Price',noun:'restaurant'},
+  {slug:'hotels',label:'Hotels',meta1:'Detail',meta2:'Year',noun:'hotel'},
 ];
-let CUR = null;        // current list config
-let DOC = null;        // current document being edited
-let DIRTY = false;
-let pickTargetIdx = -1; // which item's image the media modal sets
+let CUR=null, DOC=null, DIRTY=false, pickIdx=-1;
+const $=s=>document.querySelector(s);
+const tokenInput=$('#token'); tokenInput.value=localStorage.getItem(TOKEN_KEY)||'';
+tokenInput.addEventListener('input',()=>localStorage.setItem(TOKEN_KEY,tokenInput.value));
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+function status(m,c){const e=$('#status');e.textContent=m;e.className='status '+(c||'')}
+function setDirty(d){DIRTY=d;$('#savebar').classList.toggle('show',d)}
 
-const $ = s => document.querySelector(s);
-const tokenInput = $('#token');
-tokenInput.value = localStorage.getItem(TOKEN_KEY) || '';
-tokenInput.addEventListener('input', () => localStorage.setItem(TOKEN_KEY, tokenInput.value));
-
-function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
-function status(msg, cls){ const el=$('#status'); el.textContent=msg; el.className='status '+(cls||''); }
-function setDirty(d){ DIRTY=d; $('#savebar').classList.toggle('show', d); }
-
-// ---- list tabs ----
-const tabsEl = $('#listTabs');
-LISTS.forEach(l => {
-  const b = document.createElement('button');
-  b.className='lt'; b.textContent=l.label; b.dataset.slug=l.slug;
-  b.addEventListener('click', () => selectList(l.slug));
-  tabsEl.appendChild(b);
-});
+const tabsEl=$('#listTabs');
+LISTS.forEach(l=>{const b=document.createElement('button');b.className='lt';b.textContent=l.label;b.dataset.slug=l.slug;b.onclick=()=>selectList(l.slug);tabsEl.appendChild(b)});
 
 async function selectList(slug){
-  if (DIRTY && !confirm('Discard unsaved changes?')) return;
-  CUR = LISTS.find(l => l.slug===slug);
-  document.querySelectorAll('.lt').forEach(b => b.classList.toggle('on', b.dataset.slug===slug));
-  setDirty(false);
-  await loadList();
+  if(DIRTY && !confirm('Discard unsaved changes?'))return;
+  CUR=LISTS.find(l=>l.slug===slug);
+  document.querySelectorAll('.lt').forEach(b=>b.classList.toggle('on',b.dataset.slug===slug));
+  setDirty(false); await loadList();
 }
-
 async function loadList(){
   status('Loading…');
   try{
-    const res = await fetch(`${WORKER_URL}/list/${CUR.slug}`, { cache:'no-store' });
-    const wrap = await res.json();
-    if (wrap.exists && wrap.data){
-      DOC = normalize(wrap.data);
-      status('Loaded ' + (DOC.items.length) + ' items' + (wrap.updatedAt ? ' · saved '+new Date(wrap.updatedAt*1000).toLocaleString() : ''), 'ok');
-    } else {
-      DOC = null;
-      status('No saved data on server yet — click “Import page seed” or start adding items.', 'warn');
-      DOC = normalize({ slug:CUR.slug, title:'The Iconic '+CUR.label.replace(/s$/,'')+' List', items:[] });
-    }
-  } catch(e){
-    status('Load failed: '+(e.message||e), 'err');
-    DOC = normalize({ slug:CUR.slug, items:[] });
-  }
-  render();
+    const r=await fetch(`${WORKER_URL}/list/${CUR.slug}`,{cache:'no-store'});
+    const w=await r.json();
+    if(w.exists && w.data){DOC=normalize(w.data);status(`Loaded ${DOC.items.length} items`+(w.updatedAt?' · saved '+new Date(w.updatedAt*1000).toLocaleString():''),'ok');}
+    else{DOC=normalize({slug:CUR.slug,items:[]});status('No saved data on server — Import seed or add rows.','warn');}
+  }catch(e){DOC=normalize({slug:CUR.slug,items:[]});status('Load failed: '+(e.message||e),'err');}
+  renderAll();
 }
-
 function normalize(d){
-  d = d || {};
-  d.slug = d.slug || CUR.slug;
-  d.title = d.title || '';
-  d.subtitle = d.subtitle || '';
-  d.about = d.about || {};
-  d.regions = Array.isArray(d.regions) ? d.regions : [];
-  d.items = Array.isArray(d.items) ? d.items.map(it => ({
-    id: it.id || ('item-'+Math.random().toString(36).slice(2,8)),
-    name: it.name||'', location: it.location||'', region: it.region||'',
-    architect: it.architect||'', year: it.year||'', image: it.image||'', credit: it.credit||'',
-    description: it.description||'', officialUrl: it.officialUrl||'', ctaLabel: it.ctaLabel||'', ctaUrl: it.ctaUrl||'',
-  })) : [];
+  d=d||{}; d.slug=d.slug||CUR.slug; d.title=d.title||''; d.subtitle=d.subtitle||''; d.about=d.about||{};
+  d.regions=Array.isArray(d.regions)?d.regions:[];
+  d.items=Array.isArray(d.items)?d.items.map(it=>({
+    id:it.id||('item-'+Math.random().toString(36).slice(2,8)),
+    name:it.name||'',location:it.location||'',region:it.region||'',architect:it.architect||'',year:it.year||'',
+    image:it.image||'',credit:it.credit||'',description:it.description||'',officialUrl:it.officialUrl||'',
+    ctaLabel:it.ctaLabel||'',ctaUrl:it.ctaUrl||'',
+  })):[];
   return d;
 }
-
 async function importSeed(){
   status('Fetching page seed…');
   try{
-    const res = await fetch(`/journal/${CUR.slug}/`, { cache:'no-store' });
-    const html = await res.text();
-    const m = html.match(/id="seed-data"[^>]*>([\s\S]*?)<\/script>/);
-    if (!m) throw new Error('no seed-data in page');
-    const seed = JSON.parse(m[1]);
-    DOC = normalize(seed);
-    setDirty(true);
-    status('Imported '+DOC.items.length+' items from page seed — review and Save.', 'ok');
-    render();
-  } catch(e){ status('Import failed: '+(e.message||e), 'err'); }
+    const r=await fetch(`/journal/${CUR.slug}/`,{cache:'no-store'}); const html=await r.text();
+    const m=html.match(/id="seed-data"[^>]*>([\s\S]*?)<\/script>/); if(!m)throw new Error('no seed in page');
+    DOC=normalize(JSON.parse(m[1])); setDirty(true); status('Imported '+DOC.items.length+' items — review and Save.','ok'); renderAll();
+  }catch(e){status('Import failed: '+(e.message||e),'err')}
 }
 
-// ---- render ----
-function render(){
-  const ed = $('#editor');
-  if (!DOC){ ed.innerHTML='<div class="empty">Pick a list above.</div>'; return; }
-  ed.innerHTML = `
-    <div class="card">
-      <h3>List details <span class="badge">/list/${esc(DOC.slug)}</span></h3>
-      <div class="fl"><label>Title</label><input id="m_title" value="${esc(DOC.title)}"></div>
-      <div class="fl"><label>Subtitle</label><textarea id="m_subtitle">${esc(DOC.subtitle)}</textarea></div>
-      <div class="grid2">
-        <div class="fl"><label>About — paragraph 1</label><textarea id="m_p1">${esc(DOC.about.p1||'')}</textarea></div>
-        <div class="fl"><label>About — pull quote</label><textarea id="m_pull">${esc(DOC.about.pull||'')}</textarea></div>
-        <div class="fl"><label>About — paragraph 2</label><textarea id="m_p2">${esc(DOC.about.p2||'')}</textarea></div>
-        <div class="fl"><label>About — paragraph 3</label><textarea id="m_p3">${esc(DOC.about.p3||'')}</textarea></div>
-      </div>
-      <div class="fl"><label>Regions (comma-separated — used for the filter pills)</label><input id="m_regions" value="${esc(DOC.regions.join(', '))}"></div>
-    </div>
-    <div class="card">
-      <h3>Ranked items <span class="badge" id="itemCount">${DOC.items.length}</span></h3>
-      <div id="items"></div>
-      <button class="addbtn" id="addItem">+ Add ${esc(CUR.noun)}</button>
-    </div>`;
+function refreshRegions(){$('#regionOpts').innerHTML=(DOC&&DOC.regions||[]).map(r=>`<option value="${esc(r)}">`).join('')}
 
-  // meta bindings
-  bind('#m_title', v => DOC.title=v);
-  bind('#m_subtitle', v => DOC.subtitle=v);
-  bind('#m_p1', v => DOC.about.p1=v);
-  bind('#m_pull', v => DOC.about.pull=v);
-  bind('#m_p2', v => DOC.about.p2=v);
-  bind('#m_p3', v => DOC.about.p3=v);
-  bind('#m_regions', v => DOC.regions = v.split(',').map(s=>s.trim()).filter(Boolean));
-
-  renderItems();
-  $('#addItem').addEventListener('click', () => {
-    DOC.items.push(normalize({ items:[{ name:'New '+CUR.noun+' name', ctaLabel:'Book Now',
-      description:'Describe what makes this '+CUR.noun+' iconic.' }] }).items[0]);
-    setDirty(true); renderItems();
-  });
+function renderAll(){
+  if(!DOC){$('#sheet').innerHTML='<div class="empty">Pick a list.</div>';$('#meta').innerHTML='';return}
+  refreshRegions();
+  // meta
+  $('#meta').innerHTML=`
+    <div class="fl full"><label>Title</label><input id="m_title" value="${esc(DOC.title)}"></div>
+    <div class="fl full"><label>Subtitle</label><textarea id="m_subtitle" rows="2">${esc(DOC.subtitle)}</textarea></div>
+    <div class="fl"><label>About — paragraph 1</label><textarea id="m_p1" rows="2">${esc(DOC.about.p1||'')}</textarea></div>
+    <div class="fl"><label>About — pull quote</label><textarea id="m_pull" rows="2">${esc(DOC.about.pull||'')}</textarea></div>
+    <div class="fl"><label>About — paragraph 2</label><textarea id="m_p2" rows="2">${esc(DOC.about.p2||'')}</textarea></div>
+    <div class="fl"><label>About — paragraph 3</label><textarea id="m_p3" rows="2">${esc(DOC.about.p3||'')}</textarea></div>
+    <div class="fl full"><label>Regions (comma-separated — filter pills)</label><input id="m_regions" value="${esc(DOC.regions.join(', '))}"></div>`;
+  bindMeta('#m_title',v=>DOC.title=v); bindMeta('#m_subtitle',v=>DOC.subtitle=v);
+  bindMeta('#m_p1',v=>DOC.about.p1=v); bindMeta('#m_pull',v=>DOC.about.pull=v);
+  bindMeta('#m_p2',v=>DOC.about.p2=v); bindMeta('#m_p3',v=>DOC.about.p3=v);
+  bindMeta('#m_regions',v=>{DOC.regions=v.split(',').map(s=>s.trim()).filter(Boolean);refreshRegions()});
+  renderSheet();
 }
+function bindMeta(sel,fn){const el=$(sel);el.addEventListener('input',()=>{fn(el.value);setDirty(true)})}
 
-function renderItems(){
-  const host = $('#items'); host.innerHTML='';
-  $('#itemCount').textContent = DOC.items.length;
-  DOC.items.forEach((it, i) => host.appendChild(itemCard(it, i)));
-}
-
-function itemCard(it, i){
-  const el = document.createElement('div'); el.className='item';
-  el.innerHTML = `
-    <div class="row-top">
-      <div class="rank">${i+1}</div>
-      <div class="nm fl" style="margin:0"><input data-f="name" value="${esc(it.name)}" placeholder="Name"></div>
-      <div class="ctrls">
-        <button class="iconbtn up" title="Move up">↑</button>
-        <button class="iconbtn down" title="Move down">↓</button>
-        <button class="iconbtn del" title="Delete">✕</button>
-      </div>
-    </div>
-    <div class="grid3">
-      <div class="fl"><label>Location</label><input data-f="location" value="${esc(it.location)}"></div>
-      <div class="fl"><label>Region</label><input data-f="region" value="${esc(it.region)}" list="regionOpts"></div>
-      <div class="fl"><label>${esc(CUR.meta2||'Year')}</label><input data-f="year" value="${esc(it.year)}"></div>
-    </div>
-    <div class="grid2">
-      <div class="fl"><label>${esc(CUR.meta1)}</label><input data-f="architect" value="${esc(it.architect)}"></div>
-      <div class="fl"><label>Image credit</label><input data-f="credit" value="${esc(it.credit)}"></div>
-    </div>
-    <div class="fl"><label>Image</label>
-      <div class="imgrow">
-        <img class="thumb" src="${esc(it.image)}" alt="" onerror="this.style.opacity=.2">
-        <div class="imgfields">
-          <input data-f="image" value="${esc(it.image)}" placeholder="https://…  (or pick from library)">
-          <div style="margin-top:8px"><button class="btn btn-ghost browse" type="button">Browse media library</button></div>
-        </div>
-      </div>
-    </div>
-    <div class="fl"><label>Description</label><textarea data-f="description">${esc(it.description)}</textarea></div>
-    <div class="grid3">
-      <div class="fl"><label>Official URL</label><input data-f="officialUrl" value="${esc(it.officialUrl)}"></div>
-      <div class="fl"><label>CTA label</label><input data-f="ctaLabel" value="${esc(it.ctaLabel)}"></div>
-      <div class="fl"><label>CTA URL</label><input data-f="ctaUrl" value="${esc(it.ctaUrl)}"></div>
-    </div>`;
-  el.querySelectorAll('[data-f]').forEach(inp => {
-    inp.addEventListener('input', () => {
-      it[inp.dataset.f] = inp.value;
-      if (inp.dataset.f==='image') { const t=el.querySelector('.thumb'); t.src=inp.value; t.style.opacity=1; }
+function renderSheet(){
+  const cols=[
+    ['#','rank'],['Name','name'],['Location','location'],['Region','region'],
+    [CUR.meta1,'architect'],[CUR.meta2,'year'],['Image','image'],['Description','description'],
+    ['CTA Label','ctaLabel'],['CTA URL','ctaUrl'],['Official URL','officialUrl'],['',' tools']
+  ];
+  if(!DOC.items.length){$('#sheet').innerHTML='<div class="empty">No rows yet — click “+ Add row” or “Import seed”.</div>';return}
+  const thead='<thead><tr>'+cols.map(c=>`<th>${esc(c[0])}</th>`).join('')+'</tr></thead>';
+  const rows=DOC.items.map((it,i)=>{
+    const cell=(f)=>`<td class="col-${f}"><input data-i="${i}" data-f="${f}" value="${esc(it[f])}"></td>`;
+    return `<tr>
+      <td class="rank">${i+1}</td>
+      ${cell('name')}${cell('location')}
+      <td class="col-region"><input data-i="${i}" data-f="region" list="regionOpts" value="${esc(it.region)}"></td>
+      ${cell('architect')}${cell('year')}
+      <td class="col-img"><div class="imgcell">
+        <img src="${esc(it.image)}" alt="" onerror="this.style.opacity=.15" data-thumb="${i}">
+        <div class="imgr"><input data-i="${i}" data-f="image" placeholder="https://…" value="${esc(it.image)}">
+        <button class="browse" data-browse="${i}">⊞ Browse library</button></div>
+      </div></td>
+      <td class="col-desc"><textarea data-i="${i}" data-f="description">${esc(it.description)}</textarea></td>
+      ${cell('ctaLabel')}${cell('ctaUrl')}${cell('officialUrl')}
+      <td><div class="rowtools">
+        <button class="rtbtn" data-up="${i}" title="Move up">↑</button>
+        <button class="rtbtn" data-down="${i}" title="Move down">↓</button>
+        <button class="rtbtn del" data-del="${i}" title="Delete">✕</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+  $('#sheet').innerHTML=`<table class="sheet">${thead}<tbody>${rows}</tbody></table>`;
+  // bind cell inputs
+  $('#sheet').querySelectorAll('[data-f]').forEach(inp=>{
+    inp.addEventListener('input',()=>{
+      const it=DOC.items[+inp.dataset.i]; it[inp.dataset.f]=inp.value;
+      if(inp.dataset.f==='image'){const t=$('#sheet').querySelector(`[data-thumb="${inp.dataset.i}"]`);if(t){t.src=inp.value;t.style.opacity=1}}
       setDirty(true);
     });
   });
-  el.querySelector('.up').addEventListener('click', () => move(i,-1));
-  el.querySelector('.down').addEventListener('click', () => move(i,1));
-  el.querySelector('.del').addEventListener('click', () => {
-    if (confirm('Delete “'+(it.name||'this item')+'”?')) { DOC.items.splice(i,1); setDirty(true); renderItems(); }
-  });
-  el.querySelector('.browse').addEventListener('click', () => openMedia(i));
-  return el;
+  $('#sheet').querySelectorAll('[data-up]').forEach(b=>b.onclick=()=>move(+b.dataset.up,-1));
+  $('#sheet').querySelectorAll('[data-down]').forEach(b=>b.onclick=()=>move(+b.dataset.down,1));
+  $('#sheet').querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{const i=+b.dataset.del;if(confirm('Delete “'+(DOC.items[i].name||'this row')+'”?')){DOC.items.splice(i,1);setDirty(true);renderSheet()}});
+  $('#sheet').querySelectorAll('[data-browse]').forEach(b=>b.onclick=()=>openMedia(+b.dataset.browse));
+  $('#sheet').querySelectorAll('[data-thumb]').forEach(t=>t.onclick=()=>openMedia(+t.dataset.thumb));
 }
+function move(i,d){const j=i+d;if(j<0||j>=DOC.items.length)return;const t=DOC.items[i];DOC.items[i]=DOC.items[j];DOC.items[j]=t;setDirty(true);renderSheet()}
+function addRow(){DOC.items.push(normalize({items:[{name:'New '+CUR.noun,ctaLabel:'Book Now',description:''}]}).items[0]);setDirty(true);renderSheet();
+  const w=$('.sheet-wrap');if(w)w.scrollTop=w.scrollHeight}
 
-function move(i, dir){
-  const j=i+dir; if (j<0||j>=DOC.items.length) return;
-  const t=DOC.items[i]; DOC.items[i]=DOC.items[j]; DOC.items[j]=t;
-  setDirty(true); renderItems();
-}
-
-function bind(sel, fn){ const el=$(sel); el.addEventListener('input', () => { fn(el.value); setDirty(true); }); }
-
-// region datalist (added once)
-const dl = document.createElement('datalist'); dl.id='regionOpts'; document.body.appendChild(dl);
-function refreshRegionOpts(){ dl.innerHTML = (DOC&&DOC.regions||[]).map(r=>`<option value="${esc(r)}">`).join(''); }
-
-// ---- media picker ----
-async function openMedia(idx){
-  pickTargetIdx = idx;
-  $('#mediaModal').classList.add('show');
-  $('#mediaSearch').value=''; $('#mediaSearch').focus();
-  loadMedia('');
-}
-let mediaTimer=null;
-$('#mediaSearch').addEventListener('input', e => { clearTimeout(mediaTimer); mediaTimer=setTimeout(()=>loadMedia(e.target.value.trim()), 250); });
-$('#mediaClose').addEventListener('click', ()=> $('#mediaModal').classList.remove('show'));
-$('#mediaModal').addEventListener('click', e => { if (e.target.id==='mediaModal') $('#mediaModal').classList.remove('show'); });
-
+// media picker
+async function openMedia(i){pickIdx=i;$('#mediaModal').classList.add('show');$('#mediaSearch').value='';$('#mediaSearch').focus();loadMedia('')}
+let mt=null;
+$('#mediaSearch').addEventListener('input',e=>{clearTimeout(mt);mt=setTimeout(()=>loadMedia(e.target.value.trim()),250)});
+$('#mediaClose').onclick=()=>$('#mediaModal').classList.remove('show');
+$('#mediaModal').addEventListener('click',e=>{if(e.target.id==='mediaModal')$('#mediaModal').classList.remove('show')});
 async function loadMedia(q){
-  const grid=$('#mediaGrid'); grid.innerHTML='<div style="grid-column:1/-1;color:var(--mute);font-family:var(--mono);font-size:12px">Loading…</div>';
-  const token=tokenInput.value.trim();
-  if (!token){ grid.innerHTML='<div style="grid-column:1/-1;color:var(--danger);font-family:var(--mono);font-size:12px">Enter your admin token first.</div>'; return; }
+  const g=$('#mediaGrid');g.innerHTML='<div style="grid-column:1/-1;color:var(--mute);font-family:var(--mono);font-size:12px">Loading…</div>';
+  const tok=tokenInput.value.trim(); if(!tok){g.innerHTML='<div style="grid-column:1/-1;color:var(--danger);font-family:var(--mono);font-size:12px">Enter your admin token first.</div>';return}
   try{
-    const params=new URLSearchParams({ limit:'48' }); if (q) params.set('q', q);
-    const res=await fetch(`${WORKER_URL}/admin/media?`+params, { headers:{ 'Authorization':'Bearer '+token } });
-    if (!res.ok) throw new Error('HTTP '+res.status);
-    const data=await res.json();
-    const imgs=(data.items||[]).filter(m => !m.mime_type || m.mime_type.startsWith('image/'));
-    if (!imgs.length){ grid.innerHTML='<div style="grid-column:1/-1;color:var(--mute);font-family:var(--mono);font-size:12px">No media found.</div>'; return; }
-    grid.innerHTML='';
-    imgs.forEach(m => {
-      const t=document.createElement('div'); t.className='mtile';
-      t.innerHTML=`<img src="${esc(m.url)}" alt="${esc(m.alt_text||m.filename)}" loading="lazy">`;
-      t.title=m.filename||'';
-      t.addEventListener('click', () => {
-        if (pickTargetIdx>-1 && DOC.items[pickTargetIdx]){ DOC.items[pickTargetIdx].image=m.url; setDirty(true); renderItems(); }
-        $('#mediaModal').classList.remove('show');
-      });
-      grid.appendChild(t);
-    });
-  } catch(e){ grid.innerHTML='<div style="grid-column:1/-1;color:var(--danger);font-family:var(--mono);font-size:12px">'+esc(e.message||e)+'</div>'; }
+    const p=new URLSearchParams({limit:'48'});if(q)p.set('q',q);
+    const r=await fetch(`${WORKER_URL}/admin/media?`+p,{headers:{'Authorization':'Bearer '+tok}});
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const d=await r.json(); const imgs=(d.items||[]).filter(m=>!m.mime_type||m.mime_type.startsWith('image/'));
+    if(!imgs.length){g.innerHTML='<div style="grid-column:1/-1;color:var(--mute);font-family:var(--mono);font-size:12px">No media found.</div>';return}
+    g.innerHTML='';
+    imgs.forEach(m=>{const t=document.createElement('div');t.className='mtile';t.title=m.filename||'';
+      t.innerHTML=`<img src="${esc(m.url)}" alt="" loading="lazy">`;
+      t.onclick=()=>{if(pickIdx>-1&&DOC.items[pickIdx]){DOC.items[pickIdx].image=m.url;setDirty(true);renderSheet()}$('#mediaModal').classList.remove('show')};
+      g.appendChild(t)});
+  }catch(e){g.innerHTML='<div style="grid-column:1/-1;color:var(--danger);font-family:var(--mono);font-size:12px">'+esc(e.message||e)+'</div>'}
 }
 
-// ---- save ----
 async function save(){
-  const token=tokenInput.value.trim();
-  if (!token){ status('Enter your admin token to save.', 'err'); return; }
-  refreshRegionOpts();
-  const body = { slug:DOC.slug, title:DOC.title, subtitle:DOC.subtitle, about:DOC.about,
-                 regions:DOC.regions, items:DOC.items, __updatedBy:'studio' };
-  $('#saveBtn').disabled=true; $('#saveMsg').textContent='Saving…';
+  const tok=tokenInput.value.trim(); if(!tok){status('Enter your admin token to save.','err');return}
+  const body={slug:DOC.slug,title:DOC.title,subtitle:DOC.subtitle,about:DOC.about,regions:DOC.regions,items:DOC.items,__updatedBy:'studio'};
+  $('#saveBtn').disabled=true;$('#saveTopBtn').disabled=true;$('#saveMsg').textContent='Saving…';
   try{
-    const res=await fetch(`${WORKER_URL}/list/${DOC.slug}`, {
-      method:'POST', headers:{ 'Authorization':'Bearer '+token, 'Content-Type':'application/json' },
-      body: JSON.stringify(body),
-    });
-    const data=await res.json().catch(()=>({}));
-    if (!res.ok) throw new Error(data.error||('HTTP '+res.status));
-    setDirty(false);
-    status('Saved ✓ live at /'+DOC.slug+' — '+DOC.items.length+' items.', 'ok');
-    $('#saveMsg').textContent='Saved';
-  } catch(e){ status('Save failed: '+(e.message||e), 'err'); $('#saveMsg').textContent='Save failed'; }
-  finally{ $('#saveBtn').disabled=false; }
+    const r=await fetch(`${WORKER_URL}/list/${DOC.slug}`,{method:'POST',headers:{'Authorization':'Bearer '+tok,'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const d=await r.json().catch(()=>({})); if(!r.ok)throw new Error(d.error||('HTTP '+r.status));
+    setDirty(false);status('Saved ✓ live at /'+DOC.slug+' — '+DOC.items.length+' items.','ok');$('#saveMsg').textContent='Saved';
+  }catch(e){status('Save failed: '+(e.message||e),'err');$('#saveMsg').textContent='Save failed'}
+  finally{$('#saveBtn').disabled=false;$('#saveTopBtn').disabled=false}
 }
 
-$('#saveBtn').addEventListener('click', save);
-$('#discardBtn').addEventListener('click', () => { if (confirm('Discard unsaved changes and reload?')){ setDirty(false); loadList(); } });
-$('#reloadBtn').addEventListener('click', () => { if (!DIRTY || confirm('Discard unsaved changes?')){ setDirty(false); loadList(); } });
-$('#importBtn').addEventListener('click', importSeed);
-window.addEventListener('beforeunload', e => { if (DIRTY){ e.preventDefault(); e.returnValue=''; } });
-
-// keep region datalist fresh whenever items render
-const _renderItems = renderItems;
-renderItems = function(){ refreshRegionOpts(); _renderItems(); };
-
-// auto-select first list
+$('#metaToggle').onclick=()=>{const m=$('#meta');m.classList.toggle('show');$('#metaToggle').textContent=(m.classList.contains('show')?'▾':'▸')+' List details (title · subtitle · about · regions)'};
+$('#saveBtn').onclick=save; $('#saveTopBtn').onclick=save;
+$('#addBtn').onclick=addRow; $('#addTopBtn').onclick=addRow;
+$('#discardBtn').onclick=()=>{if(confirm('Discard unsaved changes and reload?')){setDirty(false);loadList()}};
+$('#reloadBtn').onclick=()=>{if(!DIRTY||confirm('Discard unsaved changes?')){setDirty(false);loadList()}};
+$('#importBtn').onclick=importSeed;
+window.addEventListener('beforeunload',e=>{if(DIRTY){e.preventDefault();e.returnValue=''}});
 selectList('golf');
 </script>
 </body>
