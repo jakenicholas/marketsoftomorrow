@@ -166,7 +166,7 @@ async function handleGAProxy(req, env, origin) {
   // using our service-account token. Unauthenticated, it was a public read
   // proxy for ALL of the property's analytics. Only analytics.html calls it,
   // and it now sends Authorization: Bearer <ADMIN_TOKEN>.
-  const denied = requireAdminToken(req, env, origin);
+  const denied = await requireAdminToken(req, env, origin);
   if (denied) return denied;
 
   let body;
@@ -1672,7 +1672,7 @@ function cleanWixBodyHtml(html) {
 // ---------------------------------------------------------------------------
 
 async function handlePostsCreate(req, env, origin) {
-  const authCheck = requireAdminToken(req, env, origin);
+  const authCheck = await requireAdminToken(req, env, origin);
   if (authCheck) return authCheck;
   if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
 
@@ -1725,7 +1725,7 @@ async function handlePostsCreate(req, env, origin) {
 }
 
 async function handlePostsUpdate(req, env, origin, id) {
-  const authCheck = requireAdminToken(req, env, origin);
+  const authCheck = await requireAdminToken(req, env, origin);
   if (authCheck) return authCheck;
   if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
 
@@ -1771,7 +1771,7 @@ async function handlePostsUpdate(req, env, origin, id) {
 }
 
 async function handlePostsDelete(req, env, origin, id) {
-  const authCheck = requireAdminToken(req, env, origin);
+  const authCheck = await requireAdminToken(req, env, origin);
   if (authCheck) return authCheck;
   if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
   const r = await env.DB.prepare(`DELETE FROM posts WHERE id = ?1`).bind(id).run();
@@ -1779,7 +1779,7 @@ async function handlePostsDelete(req, env, origin, id) {
 }
 
 async function handlePostsPublish(req, env, origin, id) {
-  const authCheck = requireAdminToken(req, env, origin);
+  const authCheck = await requireAdminToken(req, env, origin);
   if (authCheck) return authCheck;
   const now = Math.floor(Date.now() / 1000);
   await env.DB.prepare(`UPDATE posts SET status='published', published_at=COALESCE(published_at, ?1), updated_at=?1 WHERE id=?2`).bind(now, id).run();
@@ -1846,7 +1846,7 @@ function normalizePost(r) {
 // ---------------------------------------------------------------------------
 
 async function handleMigrateImages(req, env, origin, url) {
-  const authCheck = requireAdminToken(req, env, origin);
+  const authCheck = await requireAdminToken(req, env, origin);
   if (authCheck) return authCheck;
   if (!env.MEDIA) return json({ error: 'R2 not configured' }, { status: 500 }, env, origin);
   if (!env.DB)    return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
@@ -2115,7 +2115,7 @@ function deriveKeyFromWixMediaUrl(srcUrl, displayName, mimeType) {
 }
 
 async function handleMigrateWixMedia(req, env, origin, url) {
-  const authCheck = requireAdminToken(req, env, origin);
+  const authCheck = await requireAdminToken(req, env, origin);
   if (authCheck) return authCheck;
   if (!env.WIX_API_KEY || !env.WIX_SITE_ID) {
     return json({ error: 'WIX_API_KEY and WIX_SITE_ID secrets must be set' }, { status: 500 }, env, origin);
@@ -2282,7 +2282,7 @@ async function handleMigrateWixMedia(req, env, origin, url) {
 // ---------------------------------------------------------------------------
 
 async function handleUpload(req, env, origin) {
-  const authCheck = requireAdminToken(req, env, origin);
+  const authCheck = await requireAdminToken(req, env, origin);
   if (authCheck) return authCheck;
   if (!env.MEDIA) {
     return json({ error: 'R2 bucket not configured — add the MEDIA binding in wrangler.toml' }, { status: 500 }, env, origin);
@@ -2360,7 +2360,7 @@ async function handleUpload(req, env, origin) {
 }
 
 async function handleMediaList(req, env, origin, url) {
-  const authCheck = requireAdminToken(req, env, origin);
+  const authCheck = await requireAdminToken(req, env, origin);
   if (authCheck) return authCheck;
   if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
 
@@ -2400,7 +2400,7 @@ async function handleMediaList(req, env, origin, url) {
 }
 
 async function handleMediaDelete(req, env, origin, key) {
-  const authCheck = requireAdminToken(req, env, origin);
+  const authCheck = await requireAdminToken(req, env, origin);
   if (authCheck) return authCheck;
   if (!env.MEDIA || !env.DB) return json({ error: 'storage not configured' }, { status: 500 }, env, origin);
   try { await env.MEDIA.delete(key); } catch (e) { console.warn('R2 delete failed', e); }
@@ -2461,16 +2461,112 @@ async function handleMediaServe(req, env, key) {
   return new Response(object.body, { headers });
 }
 
-// Reusable admin-token guard. Returns null if authorized, or a Response
-// (401) if not. Use as: `const r = requireAdminToken(req, env, origin); if (r) return r;`
-function requireAdminToken(req, env, origin) {
-  if (!env.ADMIN_TOKEN) return json({ error: 'ADMIN_TOKEN secret not set' }, { status: 500 }, env, origin);
+// ── Auth: GitHub-OAuth session tokens (HMAC-signed) + ADMIN_TOKEN fallback ───
+// A studio user logs in with GitHub (handleAuthLogin/Callback); the worker mints
+// a signed session token the pages send as `Authorization: Bearer <session>`.
+// The raw ADMIN_TOKEN secret still works too, for scripts/migrations.
+function b64url(bytes) {
+  const a = bytes instanceof ArrayBuffer ? new Uint8Array(bytes) : bytes;
+  let s = ''; for (let i = 0; i < a.length; i++) s += String.fromCharCode(a[i]);
+  return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+function b64urlBytes(s) {
+  s = s.replace(/-/g, '+').replace(/_/g, '/'); while (s.length % 4) s += '=';
+  const bin = atob(s); const a = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) a[i] = bin.charCodeAt(i); return a;
+}
+async function hmacKey(secret) {
+  return crypto.subtle.importKey('raw', new TextEncoder().encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign', 'verify']);
+}
+async function signPayload(obj, secret) {
+  const payload = b64url(new TextEncoder().encode(JSON.stringify(obj)));
+  const sig = await crypto.subtle.sign('HMAC', await hmacKey(secret), new TextEncoder().encode(payload));
+  return payload + '.' + b64url(sig);
+}
+async function verifyPayload(token, secret) {
+  if (!token || token.indexOf('.') < 0 || !secret) return null;
+  const [payload, sig] = token.split('.');
+  let ok = false;
+  try { ok = await crypto.subtle.verify('HMAC', await hmacKey(secret), b64urlBytes(sig), new TextEncoder().encode(payload)); } catch { return null; }
+  if (!ok) return null;
+  try {
+    const obj = JSON.parse(new TextDecoder().decode(b64urlBytes(payload)));
+    if (obj.exp && obj.exp < Math.floor(Date.now() / 1000)) return null;
+    return obj;
+  } catch { return null; }
+}
+function ghAllowed(env, login) {
+  const allow = (env.GITHUB_ALLOWED_USERS || '').split(',').map(x => x.trim().toLowerCase()).filter(Boolean);
+  return allow.length === 0 || allow.includes((login || '').toLowerCase());
+}
+
+// Reusable admin guard — accepts a valid GitHub session OR the ADMIN_TOKEN.
+// Returns null if authorized, or a 401 Response. ASYNC: `await requireAdminToken(...)`.
+async function requireAdminToken(req, env, origin) {
   const auth = req.headers.get('Authorization') || '';
   const token = auth.startsWith('Bearer ') ? auth.slice(7).trim() : '';
-  if (!token || !constantTimeEqual(token, env.ADMIN_TOKEN)) {
-    return json({ error: 'unauthorized' }, { status: 401 }, env, origin);
+  if (token) {
+    if (env.SESSION_SECRET) {
+      const s = await verifyPayload(token, env.SESSION_SECRET);
+      if (s && s.u && ghAllowed(env, s.u)) return null;
+    }
+    if (env.ADMIN_TOKEN && constantTimeEqual(token, env.ADMIN_TOKEN)) return null;
   }
-  return null;
+  return json({ error: 'unauthorized' }, { status: 401 }, env, origin);
+}
+
+// GET /admin/auth/login?redirect=<page> — kick off GitHub OAuth.
+async function handleAuthLogin(env, url) {
+  if (!env.GITHUB_CLIENT_ID || !env.SESSION_SECRET) return new Response('GitHub OAuth not configured on the worker.', { status: 500 });
+  const redirect = url.searchParams.get('redirect') || 'https://map.oftmw.com/journal/studio/';
+  const state = await signPayload({ r: redirect, exp: Math.floor(Date.now() / 1000) + 600 }, env.SESSION_SECRET);
+  const gh = new URL('https://github.com/login/oauth/authorize');
+  gh.searchParams.set('client_id', env.GITHUB_CLIENT_ID);
+  gh.searchParams.set('redirect_uri', url.origin + '/admin/auth/callback');
+  gh.searchParams.set('scope', 'read:user');
+  gh.searchParams.set('state', state);
+  gh.searchParams.set('allow_signup', 'false');
+  return Response.redirect(gh.toString(), 302);
+}
+
+// GET /admin/auth/callback — exchange code, verify the GitHub user, mint a
+// session, and bounce back to the originating page with #tmw_session=<token>.
+async function handleAuthCallback(env, url) {
+  const code = url.searchParams.get('code');
+  const st = await verifyPayload(url.searchParams.get('state'), env.SESSION_SECRET);
+  if (!code || !st || !st.r) return new Response('Invalid OAuth state.', { status: 400 });
+  let accessToken;
+  try {
+    const r = await fetch('https://github.com/login/oauth/access_token', {
+      method: 'POST', headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ client_id: env.GITHUB_CLIENT_ID, client_secret: env.GITHUB_CLIENT_SECRET, code, redirect_uri: url.origin + '/admin/auth/callback' }),
+    });
+    accessToken = (await r.json()).access_token;
+  } catch { return new Response('OAuth exchange failed.', { status: 502 }); }
+  if (!accessToken) return new Response('OAuth exchange failed (no token).', { status: 401 });
+  let login = '';
+  try {
+    const u = await (await fetch('https://api.github.com/user', { headers: { 'Authorization': 'Bearer ' + accessToken, 'User-Agent': 'tmw-studio', 'Accept': 'application/json' } })).json();
+    login = u.login || '';
+  } catch { return new Response('Could not read GitHub user.', { status: 502 }); }
+  if (!login || !ghAllowed(env, login)) {
+    return new Response('Not authorized: ' + (login || 'unknown GitHub account') + ' is not on the allow-list.', { status: 403 });
+  }
+  const session = await signPayload({ u: login, exp: Math.floor(Date.now() / 1000) + 30 * 86400 }, env.SESSION_SECRET);
+  const dest = st.r + (st.r.includes('#') ? '&' : '#') + 'tmw_session=' + encodeURIComponent(session);
+  return Response.redirect(dest, 302);
+}
+
+// GET /admin/auth/me — who is the bearer? (for the page to show login state)
+async function handleAuthMe(req, env, origin) {
+  const auth = req.headers.get('Authorization') || '';
+  const token = auth.startsWith('Bearer ') ? auth.slice(7).trim() : '';
+  if (token && env.SESSION_SECRET) {
+    const s = await verifyPayload(token, env.SESSION_SECRET);
+    if (s && s.u && ghAllowed(env, s.u)) return json({ user: s.u, via: 'github' }, {}, env, origin);
+  }
+  if (token && env.ADMIN_TOKEN && constantTimeEqual(token, env.ADMIN_TOKEN)) return json({ user: 'admin token', via: 'token' }, {}, env, origin);
+  return json({ error: 'unauthenticated' }, { status: 401 }, env, origin);
 }
 
 function guessMimeFromName(name) {
@@ -2607,6 +2703,11 @@ export default {
     }
 
     try {
+      // ── GitHub-OAuth login (public — these mint/verify the session) ──────
+      if (request.method === 'GET' && url.pathname === '/admin/auth/login')    return await handleAuthLogin(env, url);
+      if (request.method === 'GET' && url.pathname === '/admin/auth/callback') return await handleAuthCallback(env, url);
+      if (request.method === 'GET' && url.pathname === '/admin/auth/me')       return await handleAuthMe(request, env, origin);
+
       // ── Admin-gated analytics reads ──────────────────────────────────
       // These endpoints expose member PII (email, name, plan) and per-person
       // behavioral history, plus aggregate click/watchlist analytics. They are
@@ -2621,7 +2722,7 @@ export default {
         '/watchlist', '/projects', '/activity',
       ]);
       if (request.method === 'GET' && ADMIN_READ_PATHS.has(url.pathname)) {
-        const denied = requireAdminToken(request, env, origin);
+        const denied = await requireAdminToken(request, env, origin);
         if (denied) return denied;
       }
 
