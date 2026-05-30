@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Search · Markets of Tomorrow</title>
+<meta name="description" content="Search Markets of Tomorrow — projects, firms, cities and journal stories.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#070807; --ink-2:#0d0f0e;
+  --panel:#141714; --panel-2:#1a1d1a; --panel-3:#222622;
+  --hair:rgba(255,255,255,.08); --hair-2:rgba(255,255,255,.14); --hair-3:rgba(255,255,255,.22);
+  --white:#fff; --cream:#ECEAE5; --mute:#9AA39C; --mute-2:#C2C9C3;
+  --green:#1FDF67; --green-soft:#42EB81; --green-deep:#18c75a;
+  --gold:#e6c574; --gold-soft:#f0d68a; --gold-deep:#c9a558;
+  --danger:#ff5d5d;
+  --sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --serif:'Fraunces',Georgia,serif;
+  --mono:'JetBrains Mono',ui-monospace,monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--ink);color:var(--cream);font-family:var(--sans);-webkit-font-smoothing:antialiased;line-height:1.55;overflow-x:hidden;min-height:100vh}
+img{max-width:100%;display:block}
+a{color:inherit;text-decoration:none}
+h1,h2,h3{font-family:var(--serif);font-weight:600;letter-spacing:-.015em;color:var(--white);line-height:1.08}
+.wrap{max-width:1080px;margin:0 auto;padding:0 22px}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--green)}
+
+/* ── Header / search ── */
+.hdr{padding:30px 0 22px;border-bottom:1px solid var(--hair);background:linear-gradient(180deg,var(--ink-2),var(--ink))}
+.hdr-top{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:24px}
+.brand{display:flex;align-items:center;gap:12px;font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--mute-2)}
+.brand b{color:var(--white);font-weight:700}
+.brand-dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 10px rgba(31,223,103,.6)}
+.hdr-links{display:flex;align-items:center;gap:18px;font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--mute-2)}
+.hdr-links a{transition:color .2s}.hdr-links a:hover{color:var(--white)}
+.searchbox{position:relative;display:flex;align-items:center}
+.searchbox .mag{position:absolute;left:22px;width:22px;height:22px;color:var(--mute);pointer-events:none}
+.searchbox input{width:100%;height:68px;padding:0 24px 0 58px;background:var(--panel);border:1px solid var(--hair-2);border-radius:16px;
+  color:var(--white);font-family:var(--serif);font-size:24px;outline:none;transition:border-color .2s,background .2s}
+.searchbox input::placeholder{color:var(--mute);font-family:var(--serif)}
+.searchbox input:focus{border-color:rgba(31,223,103,.5);background:var(--panel-2)}
+.searchbox .go{position:absolute;right:10px;height:48px;padding:0 22px;border:none;border-radius:11px;background:var(--green);color:var(--ink);
+  font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;cursor:pointer;transition:background .2s}
+.searchbox .go:hover{background:var(--green-soft)}
+.summary{margin-top:14px;font-family:var(--mono);font-size:12px;letter-spacing:.04em;color:var(--mute)}
+.summary b{color:var(--cream)}
+
+/* ── Sections ── */
+main{padding:30px 0 40px}
+.section{margin-bottom:42px}
+.section-head{display:flex;align-items:baseline;gap:12px;margin-bottom:18px}
+.section-head h2{font-size:20px}
+.section-head .count{font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--mute);padding:3px 9px;background:var(--panel);border:1px solid var(--hair);border-radius:999px}
+
+/* ── Hero project tile (map pop-up style) ── */
+.hero{position:relative;display:grid;grid-template-columns:1.05fr 1fr;background:var(--panel);border:1px solid var(--hair-2);border-radius:20px;overflow:hidden;
+  box-shadow:0 24px 70px rgba(0,0,0,.5)}
+.hero-media{position:relative;min-height:340px;background:#0a0c0a}
+.hero-media img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
+.hero-media .ph{position:absolute;inset:0;background:radial-gradient(120% 120% at 30% 0%,#1d231d,#0a0c0a)}
+.hero-media .scrim{position:absolute;inset:0;background:linear-gradient(90deg,transparent 55%,rgba(20,23,20,.85))}
+.hero-media .besttag{position:absolute;top:16px;left:16px;display:inline-flex;align-items:center;gap:7px;font-family:var(--mono);font-size:10px;
+  letter-spacing:.18em;text-transform:uppercase;font-weight:700;color:var(--ink);background:var(--green);padding:6px 11px;border-radius:999px;z-index:2}
+.hero-body{padding:28px 30px 26px;display:flex;flex-direction:column;gap:14px}
+.hero-chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--mute-2);background:var(--panel-2);
+  border:1px solid var(--hair);border-radius:999px;padding:6px 11px}
+.chip.type{color:var(--gold-soft);border-color:rgba(230,197,116,.3)}
+.hero-body h1{font-size:clamp(26px,3vw,38px)}
+.hero-body .loc{font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:var(--mute-2);display:flex;align-items:center;gap:7px}
+.hero-desc{color:var(--mute-2);font-size:14px;font-weight:300;line-height:1.55;max-width:48ch;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+
+/* timeline */
+.tl{margin-top:4px}
+.tl-row{display:flex;align-items:center;justify-content:space-between;font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);margin-bottom:8px}
+.tl-status{color:var(--green);font-weight:700}
+.tl-track{position:relative;height:6px;border-radius:999px;background:var(--panel-3);overflow:visible}
+.tl-fill{position:absolute;left:0;top:0;bottom:0;border-radius:999px;background:linear-gradient(90deg,var(--green-deep),var(--green))}
+.tl-dot{position:absolute;top:50%;width:13px;height:13px;border-radius:50%;background:var(--white);border:3px solid var(--green);transform:translate(-50%,-50%);box-shadow:0 0 0 4px rgba(31,223,103,.18)}
+.tl-ends{display:flex;align-items:center;justify-content:space-between;margin-top:8px;font-family:var(--mono);font-size:11px;color:var(--mute-2)}
+
+.specs{display:flex;flex-wrap:wrap;gap:18px;padding-top:4px}
+.spec{display:flex;flex-direction:column;gap:2px}
+.spec .v{font-family:var(--serif);font-size:20px;color:var(--white);line-height:1}
+.spec .k{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute)}
+.byline{font-size:13px;color:var(--mute-2)}.byline b{color:var(--cream);font-weight:600}
+.hero-cta{display:flex;flex-wrap:wrap;gap:10px;margin-top:auto;padding-top:8px}
+.btn{display:inline-flex;align-items:center;gap:9px;font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;
+  padding:12px 18px;border-radius:11px;transition:all .2s;cursor:pointer;border:1px solid transparent}
+.btn.primary{background:var(--green);color:var(--ink)}.btn.primary:hover{background:var(--green-soft)}
+.btn.ghost{background:transparent;color:var(--cream);border-color:var(--hair-2)}.btn.ghost:hover{border-color:var(--hair-3);color:var(--white)}
+.btn svg{width:15px;height:15px}
+
+/* ── Project result grid ── */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(248px,1fr));gap:14px}
+.pcard{display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--hair);border-radius:14px;overflow:hidden;transition:border-color .2s,transform .2s}
+.pcard:hover{border-color:var(--hair-3);transform:translateY(-2px)}
+.pcard-media{position:relative;height:148px;background:#0a0c0a}
+.pcard-media img{width:100%;height:100%;object-fit:cover}
+.pcard-media .ph{position:absolute;inset:0;background:radial-gradient(120% 120% at 30% 0%,#1d231d,#0a0c0a)}
+.pcard-media .ptype{position:absolute;left:10px;bottom:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--gold-soft);background:rgba(7,8,7,.7);backdrop-filter:blur(6px);padding:4px 9px;border-radius:999px}
+.pcard-body{padding:13px 14px 15px;display:flex;flex-direction:column;gap:5px;flex:1}
+.pcard-body h3{font-size:16px;line-height:1.15}
+.pcard-body .loc{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;color:var(--mute);text-transform:uppercase}
+.pcard-body .meta{margin-top:auto;font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--mute-2);
+  display:flex;align-items:center;gap:6px;padding-top:8px}
+.pcard-body .meta .openmap{color:var(--green)}
+
+/* ── Firm / city chips ── */
+.chiprow{display:flex;flex-wrap:wrap;gap:10px}
+.entity{display:inline-flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--hair);border-radius:12px;padding:11px 15px;transition:border-color .2s}
+.entity:hover{border-color:var(--hair-3)}
+.entity .ico{width:30px;height:30px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;border-radius:8px;background:var(--panel-3);color:var(--mute-2)}
+.entity .ico svg{width:15px;height:15px}
+.entity .nm{font-size:14px;color:var(--white);font-weight:500}
+.entity .sub{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--mute)}
+
+/* ── Article matches ── */
+.acard{display:flex;gap:16px;padding:14px;background:var(--panel);border:1px solid var(--hair);border-radius:14px;transition:border-color .2s,transform .2s}
+.acard:hover{border-color:var(--hair-3);transform:translateY(-1px)}
+.acard-media{width:124px;height:84px;flex:0 0 auto;border-radius:10px;overflow:hidden;background:#0a0c0a}
+.acard-media img{width:100%;height:100%;object-fit:cover}
+.acard-media .ph{width:100%;height:100%;background:radial-gradient(120% 120% at 30% 0%,#23201a,#0a0c0a)}
+.acard-body{display:flex;flex-direction:column;gap:6px;min-width:0}
+.acard-body .cat{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold)}
+.acard-body h3{font-size:17px;line-height:1.2}
+.acard-body p{font-size:13px;color:var(--mute-2);font-weight:300;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.acard-body .am{margin-top:auto;font-family:var(--mono);font-size:10px;letter-spacing:.06em;color:var(--mute);text-transform:uppercase}
+.alist{display:flex;flex-direction:column;gap:12px}
+
+/* ── states ── */
+.empty{padding:50px 0;text-align:center;color:var(--mute)}
+.empty h2{font-size:22px;color:var(--cream);margin-bottom:8px}
+.empty p{font-size:14px;max-width:40ch;margin:0 auto}
+.loading{padding:40px 0;text-align:center;font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute)}
+.hidden{display:none!important}
+
+@media(max-width:760px){
+  .hero{grid-template-columns:1fr}
+  .hero-media{min-height:220px}
+  .hero-media .scrim{background:linear-gradient(180deg,transparent 50%,rgba(20,23,20,.9))}
+  .searchbox input{font-size:19px;height:60px}
+  .hdr-links{display:none}
+}
+</style>
+</head>
+<body>
+
+<header class="hdr">
+  <div class="wrap">
+    <div class="hdr-top">
+      <a class="brand" href="https://www.oftmw.com"><span class="brand-dot"></span> Markets of <b>Tomorrow</b></a>
+      <nav class="hdr-links">
+        <a href="https://map.oftmw.com">Map</a>
+        <a href="/journal/">Journal</a>
+        <a href="/journal/golf/">Iconic</a>
+      </nav>
+    </div>
+    <form class="searchbox" id="searchForm" role="search">
+      <svg class="mag" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg>
+      <input id="q" type="search" autocomplete="off" placeholder="Search projects, firms, cities…" aria-label="Search">
+      <button class="go" type="submit">Search</button>
+    </form>
+    <div class="summary" id="summary"></div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="loading" id="loading">Loading the index…</div>
+
+  <section class="section hidden" id="heroSection">
+    <div id="hero"></div>
+  </section>
+
+  <section class="section hidden" id="projectsSection">
+    <div class="section-head"><h2>Projects &amp; developments</h2><span class="count" id="projectsCount"></span></div>
+    <div class="grid" id="projects"></div>
+  </section>
+
+  <section class="section hidden" id="entitiesSection">
+    <div class="section-head"><h2>Firms &amp; places</h2><span class="count" id="entitiesCount"></span></div>
+    <div class="chiprow" id="entities"></div>
+  </section>
+
+  <section class="section hidden" id="articlesSection">
+    <div class="section-head"><h2>From the journal</h2><span class="count" id="articlesCount"></span></div>
+    <div class="alist" id="articles"></div>
+  </section>
+
+  <div class="empty hidden" id="empty">
+    <h2>Nothing matched “<span id="emptyTerm"></span>”</h2>
+    <p>Try a firm, city, or project name — like <em>Miami</em>, <em>Foster + Partners</em>, or <em>residences</em>.</p>
+  </div>
+
+  <div class="empty hidden" id="prompt">
+    <h2>Search the Markets of Tomorrow</h2>
+    <p>Find any project, firm, city, or journal story. Start typing above, or jump to the <a href="https://map.oftmw.com" style="color:var(--green)">live map</a>.</p>
+  </div>
+</main>
+
+<script src="/journal/_shared/journal-dock.js" defer></script>
+<script>
+'use strict';
+const WORKER_URL = 'https://tmw.jake-ab7.workers.dev';
+const MAP_URL    = 'https://map.oftmw.com';
+const MAX_PROJECTS = 12, MAX_FIRMS = 6, MAX_CITIES = 6, MAX_ARTICLES = 10;
+
+let PROJECTS = [], FIRMS = [], ARTICLES = [], DATA_READY = false;
+
+// ── helpers ──────────────────────────────────────────────────────
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function norm(s){ return String(s==null?'':s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,''); }
+function mapSlug(t){ return norm(t).replace(/[^a-z0-9]+/g,''); }
+function mapLink(t, full){ return MAP_URL + '/?project=' + mapSlug(t) + (full ? '&fullscreen=true' : ''); }
+function firstField(o, keys){ for(const k of keys){ if(o[k]!=null && String(o[k]).trim()!=='') return o[k]; } return ''; }
+function commaFirst(s){ return String(s||'').split(',')[0].trim(); }
+function qparam(){ return (new URLSearchParams(location.search).get('q') || '').trim(); }
+
+function parseYM(s){
+  const m = String(s||'').match(/(\d{4})-(\d{1,2})(?:-(\d{1,2}))?/);
+  if(!m) return null;
+  return new Date(+m[1], (+m[2])-1, m[3] ? +m[3] : 1);
+}
+function fmtMon(d){ return d ? d.toLocaleString('en-US',{month:'short',year:'numeric'}) : ''; }
+
+// ── data loading ─────────────────────────────────────────────────
+async function loadData(){
+  const [p,f] = await Promise.all([
+    fetch('/projects-flat.json',{cache:'force-cache'}).then(r=>r.ok?r.json():[]).catch(()=>[]),
+    fetch('/firms-flat.json',{cache:'force-cache'}).then(r=>r.ok?r.json():[]).catch(()=>[])
+  ]);
+  PROJECTS = Array.isArray(p) ? p : (p.projects || p.items || []);
+  if(Array.isArray(f)){
+    FIRMS = f.map(x=>Object.assign({role:'firm'}, x));
+  } else {
+    FIRMS = [].concat(
+      (f.architects||[]).map(x=>Object.assign({}, x, {role:'architect'})),
+      (f.developers||[]).map(x=>Object.assign({}, x, {role:'developer'}))
+    );
+  }
+  ARTICLES = await loadArticles();
+  DATA_READY = true;
+}
+async function loadArticles(){
+  try{
+    const r = await fetch(WORKER_URL+'/posts?limit=300&status=published',{cache:'no-store'});
+    if(r.ok){ const d = await r.json(); if(d && Array.isArray(d.items) && d.items.length) return d.items; }
+  }catch(e){}
+  try{
+    const r = await fetch(WORKER_URL+'/blog?limit=60',{cache:'no-store'});
+    if(r.ok){ const d = await r.json(); if(d && Array.isArray(d.items)) return d.items.map(x=>({
+      title:x.title, slug:x.slug, excerpt:x.summary, cover_image:x.image,
+      published_iso:x.pubDate, categories:x.categories||[], author_name:x.author||''
+    })); }
+  }catch(e){}
+  return [];
+}
+
+// ── scoring ──────────────────────────────────────────────────────
+function tokenize(q){ return norm(q).split(/[^a-z0-9]+/).filter(Boolean); }
+
+function scoreProject(p, toks, full){
+  const title=norm(p.Title), city=norm(p.City), type=norm(firstField(p,['ProjectType','PreferredType'])),
+        arch=norm(p.Architect), dev=norm(p.Developer), desc=norm(firstField(p,['DescriptionLong','Description']));
+  let s = 0;
+  if(title===full) s+=120;
+  else if(title.startsWith(full)) s+=50;
+  else if(full && title.includes(full)) s+=28;
+  if(full && city===full) s+=22;
+  for(const t of toks){
+    if(title.includes(t)) s+=12;
+    if(city.includes(t))  s+=8;
+    if(type.includes(t))  s+=6;
+    if(arch.includes(t))  s+=5;
+    if(dev.includes(t))   s+=5;
+    if(desc.includes(t))  s+=2;
+  }
+  if(s>0 && p.Featured) s+=1;
+  if(s>0 && firstField(p,['ImageURL','Image2'])) s+=0.5;
+  return s;
+}
+function scoreFirm(f, toks, full){
+  const name=norm(f.name), hq=norm(f.hq);
+  let s=0;
+  if(name===full) s+=60; else if(name.startsWith(full)) s+=28; else if(full && name.includes(full)) s+=16;
+  for(const t of toks){ if(name.includes(t)) s+=10; if(hq.includes(t)) s+=4; }
+  if(s>0) s += Math.min(6, (+f.project_count||0)*0.4);
+  return s;
+}
+function scoreArticle(a, toks, full){
+  const title=norm(a.title), exc=norm(a.excerpt), cats=norm((a.categories||[]).join(' ')), tags=norm((a.tags||[]).join(' '));
+  let s=0;
+  if(full && title.includes(full)) s+=24;
+  for(const t of toks){ if(title.includes(t)) s+=10; if(cats.includes(t)) s+=6; if(tags.includes(t)) s+=5; if(exc.includes(t)) s+=3; }
+  return s;
+}
+
+// ── renderers ────────────────────────────────────────────────────
+function timelineHtml(p){
+  const start = parseYM(p.StartDate), end = parseYM(p.DeliveryDate);
+  const status = firstField(p,['Delivery']) || (end ? 'Expected '+fmtMon(end) : '');
+  if(!start && !end){
+    return status ? '<div class="tl"><div class="tl-row"><span>Timeline</span><span class="tl-status">'+esc(status)+'</span></div></div>' : '';
+  }
+  let pct;
+  if(start && end){
+    const now = Date.now();
+    pct = Math.max(0, Math.min(1, (now - start.getTime()) / Math.max(1,(end.getTime() - start.getTime()))));
+  } else { pct = end ? (Date.now() >= end.getTime() ? 1 : 0.5) : 0.05; }
+  const pc = Math.round(pct*100);
+  const startLbl = start ? fmtMon(start) : '—';
+  const endLbl   = end ? fmtMon(end) : 'TBA';
+  return '<div class="tl">'+
+    '<div class="tl-row"><span>Construction timeline</span>'+(status?'<span class="tl-status">'+esc(status)+'</span>':'')+'</div>'+
+    '<div class="tl-track"><div class="tl-fill" style="width:'+pc+'%"></div><div class="tl-dot" style="left:'+pc+'%"></div></div>'+
+    '<div class="tl-ends"><span>'+esc(startLbl)+'</span><span>'+esc(endLbl)+'</span></div>'+
+  '</div>';
+}
+function specHtml(p){
+  const out=[];
+  const add=(v,k)=>{ if(v!=null && String(v).trim()!=='' && String(v).trim()!=='0') out.push('<div class="spec"><span class="v">'+esc(v)+'</span><span class="k">'+k+'</span></div>'); };
+  add(p.Units,'Units'); add(p.Keys,'Keys'); add(p.Floors,'Floors');
+  if(p.Price && String(p.Price).trim()) out.push('<div class="spec"><span class="v">'+esc(p.Price)+'</span><span class="k">From</span></div>');
+  return out.length ? '<div class="specs">'+out.join('')+'</div>' : '';
+}
+function heroHtml(p){
+  const img = firstField(p,['ImageURL','Image2','Image3']);
+  const type = firstField(p,['ProjectType','PreferredType']);
+  const city = p.City || '';
+  const desc = firstField(p,['DescriptionLong','Description']);
+  const dev = commaFirst(p.Developer), arch = commaFirst(p.Architect);
+  const site = p.OfficialWebsite;
+  const media = img
+    ? '<img src="'+esc(img)+'" alt="'+esc(p.Title)+'" loading="eager" onerror="this.style.display=\'none\'">'
+    : '<div class="ph"></div>';
+  let byline = '';
+  if(dev || arch){
+    byline = '<div class="byline">'+
+      (dev ? 'Developed by <b>'+esc(dev)+'</b>' : '')+
+      (dev && arch ? ' · ' : '')+
+      (arch ? 'Architecture by <b>'+esc(arch)+'</b>' : '')+'</div>';
+  }
+  return '<article class="hero">'+
+    '<div class="hero-media">'+media+'<div class="scrim"></div>'+
+      '<span class="besttag">★ Top match</span></div>'+
+    '<div class="hero-body">'+
+      '<div class="hero-chips">'+(type?'<span class="chip type">'+esc(type)+'</span>':'')+(city?'<span class="chip">'+esc(city)+'</span>':'')+'</div>'+
+      '<h1>'+esc(p.Title)+'</h1>'+
+      (city?'<div class="loc">'+esc(city)+'</div>':'')+
+      (desc?'<p class="hero-desc">'+esc(desc)+'</p>':'')+
+      timelineHtml(p)+
+      specHtml(p)+
+      byline+
+      '<div class="hero-cta">'+
+        '<a class="btn primary" href="'+esc(mapLink(p.Title,true))+'">Open on the map'+
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg></a>'+
+        (site?'<a class="btn ghost" href="'+esc(site)+'" target="_blank" rel="noopener">Visit site</a>':'')+
+      '</div>'+
+    '</div>'+
+  '</article>';
+}
+function pcardHtml(p){
+  const img = firstField(p,['ImageURL','Image2']);
+  const type = firstField(p,['ProjectType','PreferredType']);
+  const status = firstField(p,['Delivery']);
+  const media = img
+    ? '<img src="'+esc(img)+'" alt="'+esc(p.Title)+'" loading="lazy" onerror="this.style.display=\'none\'">'
+    : '<div class="ph"></div>';
+  return '<a class="pcard" href="'+esc(mapLink(p.Title,false))+'">'+
+    '<div class="pcard-media">'+media+(type?'<span class="ptype">'+esc(type)+'</span>':'')+'</div>'+
+    '<div class="pcard-body">'+
+      '<h3>'+esc(p.Title)+'</h3>'+
+      (p.City?'<div class="loc">'+esc(p.City)+'</div>':'')+
+      '<div class="meta">'+(status?esc(status)+' · ':'')+'<span class="openmap">View on map →</span></div>'+
+    '</div>'+
+  '</a>';
+}
+const ICO_FIRM = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 21h16M6 21V5l7-2v18M18 21V9l-5-2"/><path d="M9 8h1m-1 4h1m4 0h1m-1 4h1"/></svg>';
+const ICO_CITY = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 21s7-5.5 7-11a7 7 0 0 0-14 0c0 5.5 7 11 7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg>';
+function firmEntityHtml(f){
+  const roleLbl = f.role==='architect' ? 'Architect' : (f.role==='developer' ? 'Developer' : 'Firm');
+  const pc = +f.project_count||0;
+  const sub = esc(roleLbl) + (pc>0 ? ' · '+pc+' project'+(pc===1?'':'s') : '') + (f.hq ? ' · '+esc(f.hq) : '');
+  const href = '/journal/search/?q='+encodeURIComponent(f.name);
+  return '<a class="entity" href="'+href+'"><span class="ico">'+ICO_FIRM+'</span>'+
+    '<span><span class="nm">'+esc(f.name)+'</span><br><span class="sub">'+sub+'</span></span></a>';
+}
+function cityEntityHtml(c){
+  return '<a class="entity" href="/journal/search/?q='+encodeURIComponent(c.name)+'"><span class="ico">'+ICO_CITY+'</span>'+
+    '<span><span class="nm">'+esc(c.name)+'</span><br><span class="sub">'+c.count+' project'+(c.count===1?'':'s')+'</span></span></a>';
+}
+function acardHtml(a){
+  const img = a.cover_image || '';
+  const cat = (a.categories && a.categories[0]) || '';
+  const date = a.published_iso ? new Date(a.published_iso).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
+  const media = img ? '<img src="'+esc(img)+'" alt="" loading="lazy" onerror="this.parentNode.innerHTML=\'<div class=ph></div>\'">' : '<div class="ph"></div>';
+  return '<a class="acard" href="/journal/post/?slug='+encodeURIComponent(a.slug||'')+'">'+
+    '<div class="acard-media">'+media+'</div>'+
+    '<div class="acard-body">'+
+      (cat?'<div class="cat">'+esc(cat)+'</div>':'')+
+      '<h3>'+esc(a.title)+'</h3>'+
+      (a.excerpt?'<p>'+esc(a.excerpt)+'</p>':'')+
+      '<div class="am">'+[a.author_name,date,(a.reading_time_min?a.reading_time_min+' min read':'')].filter(Boolean).map(esc).join(' · ')+'</div>'+
+    '</div>'+
+  '</a>';
+}
+
+// ── search orchestration ─────────────────────────────────────────
+function show(id, on){ document.getElementById(id).classList.toggle('hidden', !on); }
+
+function runSearch(q){
+  const summary = document.getElementById('summary');
+  ['heroSection','projectsSection','entitiesSection','articlesSection','empty','prompt'].forEach(id=>show(id,false));
+
+  if(!q){
+    summary.innerHTML = '';
+    show('prompt', true);
+    return;
+  }
+
+  const toks = tokenize(q), full = norm(q);
+
+  // projects
+  const pScored = PROJECTS.map(p=>({p, s:scoreProject(p,toks,full)})).filter(x=>x.s>0).sort((a,b)=>b.s-a.s);
+  // firms
+  const fScored = FIRMS.map(f=>({f, s:scoreFirm(f,toks,full)})).filter(x=>x.s>0).sort((a,b)=>b.s-a.s);
+  // cities (distinct from matched projects, plus direct city-name matches)
+  const cityMap = new Map();
+  PROJECTS.forEach(p=>{
+    const c = (p.City||'').trim(); if(!c) return;
+    const nc = norm(c);
+    const hit = (full && nc===full) || toks.some(t=>nc.includes(t));
+    if(hit){ cityMap.set(c, (cityMap.get(c)||0)+1); }
+  });
+  const cities = [...cityMap.entries()].map(([name,count])=>({name,count})).sort((a,b)=>b.count-a.count);
+  // articles
+  const aScored = ARTICLES.map(a=>({a, s:scoreArticle(a,toks,full)})).filter(x=>x.s>0).sort((a,b)=>b.s-a.s);
+
+  const totalHits = pScored.length + fScored.length + cities.length + aScored.length;
+  if(totalHits===0){
+    summary.innerHTML = '';
+    document.getElementById('emptyTerm').textContent = q;
+    show('empty', true);
+    return;
+  }
+
+  summary.innerHTML = 'Showing results for <b>“'+esc(q)+'”</b> · '+pScored.length+' project'+(pScored.length===1?'':'s')+
+    ', '+fScored.length+' firm'+(fScored.length===1?'':'s')+', '+aScored.length+' stor'+(aScored.length===1?'y':'ies');
+
+  // hero = top project, else nothing
+  const rest = pScored.slice();
+  if(pScored.length){
+    const hero = rest.shift().p;
+    document.getElementById('hero').innerHTML = heroHtml(hero);
+    show('heroSection', true);
+  }
+
+  // project grid
+  const gridItems = rest.slice(0, MAX_PROJECTS);
+  if(gridItems.length){
+    document.getElementById('projects').innerHTML = gridItems.map(x=>pcardHtml(x.p)).join('');
+    document.getElementById('projectsCount').textContent = (pScored.length-1)+' total';
+    show('projectsSection', true);
+  }
+
+  // firms + cities
+  const ent = [];
+  fScored.slice(0, MAX_FIRMS).forEach(x=>ent.push(firmEntityHtml(x.f)));
+  cities.slice(0, MAX_CITIES).forEach(c=>ent.push(cityEntityHtml(c)));
+  if(ent.length){
+    document.getElementById('entities').innerHTML = ent.join('');
+    document.getElementById('entitiesCount').textContent = (fScored.length+cities.length)+' total';
+    show('entitiesSection', true);
+  }
+
+  // articles
+  const arts = aScored.slice(0, MAX_ARTICLES);
+  if(arts.length){
+    document.getElementById('articles').innerHTML = arts.map(x=>acardHtml(x.a)).join('');
+    document.getElementById('articlesCount').textContent = aScored.length+' total';
+    show('articlesSection', true);
+  }
+}
+
+// ── boot ─────────────────────────────────────────────────────────
+const input = document.getElementById('q');
+const form  = document.getElementById('searchForm');
+
+form.addEventListener('submit', e=>{
+  e.preventDefault();
+  const q = input.value.trim();
+  const url = '/journal/search/' + (q ? '?q='+encodeURIComponent(q) : '');
+  history.replaceState({}, '', url);
+  runSearch(q);
+});
+let liveTimer=null;
+input.addEventListener('input', ()=>{
+  if(!DATA_READY) return;
+  clearTimeout(liveTimer);
+  liveTimer = setTimeout(()=>{
+    const q = input.value.trim();
+    history.replaceState({}, '', '/journal/search/' + (q?'?q='+encodeURIComponent(q):''));
+    runSearch(q);
+  }, 180);
+});
+
+(async function init(){
+  const q0 = qparam();
+  input.value = q0;
+  await loadData();
+  document.getElementById('loading').classList.add('hidden');
+  runSearch(q0);
+  input.focus();
+})();
+</script>
+</body>
+</html>

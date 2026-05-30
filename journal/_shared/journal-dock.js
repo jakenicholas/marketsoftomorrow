@@ -1,0 +1,96 @@
+/* ------------------------------------------------------------------
+   Markets of Tomorrow — pinned journal dock
+   Injects a fixed bottom-center pill on every public journal page:
+     [ map ]   [ search input ]   [ home ]
+   - map icon  → the interactive map (map.oftmw.com)
+   - search    → submits to the journal search page (/journal/search/?q=)
+   - home icon → journal home (www.oftmw.com; domain moving soon)
+   Self-contained, no dependencies. Include once per page:
+     <script src="/journal/_shared/journal-dock.js" defer></script>
+-------------------------------------------------------------------*/
+(function () {
+  'use strict';
+  if (window.__tmwDock) return;
+  window.__tmwDock = true;
+
+  // ── Destinations (single source of truth; update when domain moves) ──
+  var MAP_URL     = 'https://map.oftmw.com';
+  var HOME_URL    = 'https://www.oftmw.com';
+  var SEARCH_PAGE = '/journal/search/';
+
+  // ── Icons (inline SVG, currentColor) ──
+  var ICON_MAP =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+    '<path d="M9 4 3 6.5v13L9 17l6 2.5 6-2.5v-13L15 6.5 9 4Z"/><path d="M9 4v13"/><path d="M15 6.5v13"/></svg>';
+  var ICON_SEARCH =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+    '<circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg>';
+  var ICON_HOME =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+    '<path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v9.5h5.5V14h3v5.5H19V10"/></svg>';
+
+  // ── Styles ──
+  var css = [
+    '.tmw-dock{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:9000;',
+    'display:flex;align-items:center;gap:8px;padding:8px;',
+    'background:rgba(9,11,9,.82);backdrop-filter:blur(18px) saturate(1.4);-webkit-backdrop-filter:blur(18px) saturate(1.4);',
+    'border:1px solid rgba(255,255,255,.13);border-radius:999px;',
+    'box-shadow:0 16px 50px rgba(0,0,0,.55),0 0 0 1px rgba(0,0,0,.25);',
+    'font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;max-width:calc(100vw - 24px);',
+    'opacity:0;transform:translateX(-50%) translateY(10px);transition:opacity .4s ease,transform .4s cubic-bezier(.22,1,.36,1)}',
+    '.tmw-dock.ready{opacity:1;transform:translateX(-50%) translateY(0)}',
+    '.tmw-dock-btn{width:46px;height:46px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;',
+    'border-radius:999px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.10);',
+    'color:#ECEAE5;transition:background .2s,color .2s,border-color .2s,transform .2s;cursor:pointer;text-decoration:none}',
+    '.tmw-dock-btn:hover{background:#1FDF67;color:#070807;border-color:#1FDF67;transform:translateY(-1px)}',
+    '.tmw-dock-btn svg{width:20px;height:20px}',
+    '.tmw-dock-search{position:relative;display:flex;align-items:center;margin:0}',
+    '.tmw-dock-search .ds-ico{position:absolute;left:15px;width:16px;height:16px;color:#9AA39C;pointer-events:none}',
+    '.tmw-dock-search input{height:46px;width:min(46vw,300px);padding:0 18px 0 42px;',
+    'background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.10);border-radius:999px;',
+    'color:#fff;font-size:14px;font-family:inherit;outline:none;transition:border-color .2s,background .2s,width .25s ease}',
+    '.tmw-dock-search input::placeholder{color:#9AA39C}',
+    '.tmw-dock-search input:focus{border-color:rgba(31,223,103,.55);background:rgba(255,255,255,.08);width:min(52vw,344px)}',
+    '@media(max-width:560px){.tmw-dock{bottom:14px;gap:6px;padding:6px}.tmw-dock-btn{width:42px;height:42px}',
+    '.tmw-dock-btn svg{width:18px;height:18px}.tmw-dock-search input{width:46vw;height:42px}',
+    '.tmw-dock-search input:focus{width:50vw}}',
+    'body{padding-bottom:104px}'
+  ].join('');
+
+  function mount() {
+    var style = document.createElement('style');
+    style.setAttribute('data-tmw-dock', '');
+    style.textContent = css;
+    document.head.appendChild(style);
+
+    var dock = document.createElement('div');
+    dock.className = 'tmw-dock';
+    dock.setAttribute('role', 'navigation');
+    dock.setAttribute('aria-label', 'Journal');
+    dock.innerHTML =
+      '<a class="tmw-dock-btn" href="' + MAP_URL + '" title="Open the live map" aria-label="Open the live map">' + ICON_MAP + '</a>' +
+      '<form class="tmw-dock-search" role="search" action="' + SEARCH_PAGE + '" method="get">' +
+        '<span class="ds-ico">' + ICON_SEARCH + '</span>' +
+        '<input name="q" type="search" autocomplete="off" placeholder="Search projects, firms, cities…" aria-label="Search">' +
+      '</form>' +
+      '<a class="tmw-dock-btn" href="' + HOME_URL + '" title="Journal home" aria-label="Journal home">' + ICON_HOME + '</a>';
+
+    // Submit → navigate to the search page with ?q=
+    var form  = dock.querySelector('form');
+    var input = dock.querySelector('input');
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var q = (input.value || '').trim();
+      window.location.href = SEARCH_PAGE + (q ? '?q=' + encodeURIComponent(q) : '');
+    });
+
+    document.body.appendChild(dock);
+    requestAnimationFrame(function () { dock.classList.add('ready'); });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', mount);
+  } else {
+    mount();
+  }
+})();
