@@ -1047,6 +1047,7 @@ body::after {
   letter-spacing: .04em;
 }
 </style>
+  <script src="/journal/_shared/admin-auth.js"></script>
 </head>
 <body>
 
@@ -1126,6 +1127,8 @@ body::after {
   <div class="gate" id="gate">
     <h3>Map Analytics</h3>
     <p>Identified-user behavior, watchlist activity, project clicks across time windows — live from <span style="color:var(--green-soft)">map.oftmw.com</span>.</p>
+    <a id="ghLoginBtn" href="#" style="display:inline-block;background:#fff;color:#070807;padding:13px 26px;border-radius:99px;text-decoration:none;font-weight:700;font-family:var(--mono);font-size:13px;letter-spacing:.04em;margin-bottom:16px">Log in with GitHub</a>
+    <p style="font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);margin:0 0 12px">— or use an admin token —</p>
     <form id="gateForm" onsubmit="boot(); return false;" autocomplete="on" style="display:flex;flex-direction:column;align-items:center;gap:14px;">
       <input type="password" id="adminToken" name="adminToken" placeholder="Admin token"
              autocomplete="current-password" spellcheck="false"
@@ -1622,6 +1625,11 @@ function boot() {
 window.addEventListener('DOMContentLoaded', () => {
   const i = document.getElementById('adminToken');
   if (i && _adminToken) i.value = _adminToken;
+  // Wire the "Log in with GitHub" button to the worker OAuth flow.
+  const gh = document.getElementById('ghLoginBtn');
+  if (gh && window.TMWAuth) gh.href = window.TMWAuth.loginUrl();
+  // GitHub login (or a remembered session) → skip the gate, load straight in.
+  if (_adminToken) boot();
 });
 
 async function refreshAll(showRefreshSpinner) {
