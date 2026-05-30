@@ -271,7 +271,9 @@ async function runLoop(mode){
       if (mode==='index') STATE.indexed += data.indexed||0; else STATE.copied += data.copied||0;
       if (data.total!=null) STATE.total = data.total;
       updateStats();
-      log(`Batch ${mode}:+${mode==='index'?data.indexed:data.copied} skip:+${data.skipped||0} err:${(data.errors||[]).length} (${dt}ms)`, 'ok');
+      const left = (data.foldersRemaining!=null) ? ` · folders left:${data.foldersRemaining}`
+                 : (data.remaining!=null ? ` · left:${data.remaining}` : '');
+      log(`Batch ${mode}:+${mode==='index'?data.indexed:data.copied} skip:+${data.skipped||0} err:${(data.errors||[]).length}${left} (${dt}ms)`, 'ok');
       for (const e of (data.errors||[]).slice(0,4)) log(`  ${(e.file||'?')}: ${e.error}`,'warn');
       if (data.done || !data.nextCursor){
         log(`✓ ${mode.toUpperCase()} complete. Processed ${fmt(STATE.processed)} · ${mode==='index'?'indexed '+fmt(STATE.indexed):'copied '+fmt(STATE.copied)} · skipped ${fmt(STATE.skipped)} · errors ${fmt(STATE.errors)}`,'ok');

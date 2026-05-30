@@ -2075,6 +2075,23 @@ async function wixListFilesPage(env, parentFolderId, fileCursor, limit) {
   return { files: d.files || [], next };
 }
 
+// One page of a folder's direct subfolders (for recursive tree crawl).
+async function wixListSubfoldersPage(env, parentFolderId, cursor) {
+  const u = 'https://www.wixapis.com/site-media/v1/folders?paging.limit=100'
+    + '&parentFolderId=' + encodeURIComponent(parentFolderId)
+    + (cursor ? '&paging.cursor=' + encodeURIComponent(cursor) : '');
+  const res = await fetch(u, { headers: wixHeaders(env) });
+  if (!res.ok) {
+    const t = await res.text();
+    const e = new Error('Wix subfolders ' + res.status + ' ' + (res.statusText || '') + ': ' + (t || '(empty)').slice(0, 300));
+    e.status = res.status; throw e;
+  }
+  const d = await res.json();
+  const nc = d.nextCursor;
+  const next = (nc && nc.hasNext && nc.cursors && nc.cursors.next) ? nc.cursors.next : null;
+  return { folders: d.folders || [], next };
+}
+
 function encState(o) { return btoa(unescape(encodeURIComponent(JSON.stringify(o)))); }
 function decState(s) { try { return JSON.parse(decodeURIComponent(escape(atob(s)))); } catch { return null; } }
 
@@ -2117,105 +2134,129 @@ async function handleMigrateWixMedia(req, env, origin, url) {
     }
   }
 
-  const mode   = (url.searchParams.get('mode') || 'index').toLowerCase();
-  const cursor = url.searchParams.get('cursor') || null;
-  const isCopy = mode === 'copy';
-  // Wix List Files caps paging.limit at 100. Copy mode fetches + R2-puts each
-  // file (binding calls count toward the 50-subrequest Free-plan limit), so keep
-  // copy batches small.
-  const limit  = clampInt(url.searchParams.get('limit'), isCopy ? 20 : 100, 1, 100);
+  const mode = (url.searchParams.get('mode') || 'index').toLowerCase();
+  const hasCursor = !!url.searchParams.get('cursor');  // runner omits cursor on a run's first call
+  const ts = Math.floor(Date.now() / 1000);
 
-  if (isCopy) {
+  // ── COPY: own the bytes. Walk media rows still hosted on Wix, pull each into
+  // R2, repoint the row at /media/<key>. Driven off the table the index pass
+  // populated, so it needs zero Wix calls and is fully resumable. ──────────────
+  if (mode === 'copy') {
     if (!env.MEDIA) return json({ error: 'R2 not configured' }, { status: 500 }, env, origin);
     if (!env.MEDIA_PUBLIC_BASE || /REPLACE-WITH/.test(env.MEDIA_PUBLIC_BASE)) {
       return json({ error: 'MEDIA_PUBLIC_BASE not configured' }, { status: 500 }, env, origin);
     }
-  }
-
-  // Enumerate via List Files, recursing through every folder. The cursor
-  // carries the folder list + current folder index + per-folder file cursor.
-  let files = [], next = null;
-  try {
-    let state = cursor ? decState(cursor) : null;
-    if (!state || !Array.isArray(state.folders)) {
-      const folderIds = await wixListAllFolderIds(env);
-      state = { folders: ['media-root', ...folderIds], fi: 0, fc: null };
-    }
-    while (state.fi < state.folders.length) {
-      const page = await wixListFilesPage(env, state.folders[state.fi], state.fc, limit);
-      files = page.files;
-      if (page.next && page.next !== state.fc) {       // advance within folder (guard: cursor must change)
-        next = encState({ folders: state.folders, fi: state.fi, fc: page.next });
-      } else if (state.fi + 1 < state.folders.length) {
-        next = encState({ folders: state.folders, fi: state.fi + 1, fc: null });
-      } else {
-        next = null;
-      }
-      if (files.length || next === null) break;   // got a page, or fully done
-      state = { folders: state.folders, fi: state.fi + 1, fc: null }; // skip empty folder
-    }
-  } catch (e) {
-    return json({ error: e.message, status: e.status || 502 }, { status: e.status === 403 ? 403 : 502 }, env, origin);
-  }
-  const total = null;
-
-  const publicBase = (env.MEDIA_PUBLIC_BASE || '').replace(/\/+$/, '');
-  const stats = { processed: 0, indexed: 0, copied: 0, skipped: 0, errors: [] };
-  const ts = Math.floor(Date.now() / 1000);
-  const inserts = [];
-
-  for (const f of files) {
-    stats.processed++;
-    const src = f.url || (f.media && f.media.image && f.media.image.image && f.media.image.image.url) || '';
-    if (!src || !/^https?:\/\//i.test(src)) { stats.skipped++; continue; }
-    const mimeType = guessMimeFromName(f.displayName || '') || mediaTypeToMime(f.mediaType) || 'application/octet-stream';
-    const key = deriveKeyFromWixMediaUrl(src, f.displayName, mimeType);
-    const sizeBytes = Number(f.sizeInBytes || 0) || null;
-
-    if (isCopy) {
+    const limit = clampInt(url.searchParams.get('limit'), 20, 1, 40);
+    const publicBase = env.MEDIA_PUBLIC_BASE.replace(/\/+$/, '');
+    const stats = { processed: 0, indexed: 0, copied: 0, skipped: 0, errors: [] };
+    const rows = await env.DB.prepare(
+      "SELECT key, url FROM media WHERE url LIKE '%wixstatic.com/%' LIMIT ?1"
+    ).bind(limit).all();
+    for (const r of (rows.results || [])) {
+      stats.processed++;
       try {
-        const res = await fetch(src, { cf: { cacheTtl: 86400 } });
-        if (!res.ok) { stats.errors.push({ file: f.displayName, error: 'fetch ' + res.status }); continue; }
+        const res = await fetch(r.url, { cf: { cacheTtl: 86400 } });
+        if (!res.ok) { stats.errors.push({ file: r.key, error: 'fetch ' + res.status }); continue; }
         const buf = await res.arrayBuffer();
-        const ct = res.headers.get('content-type') || mimeType;
-        await env.MEDIA.put(key, buf, {
+        const ct = res.headers.get('content-type') || guessMimeFromName(r.key) || 'application/octet-stream';
+        await env.MEDIA.put(r.key, buf, {
           httpMetadata: { contentType: ct, cacheControl: 'public, max-age=31536000, immutable' },
-          customMetadata: { source: src, wix_id: (f.id || '').slice(0, 200), migrated_at: String(Date.now()) },
+          customMetadata: { source: r.url, migrated_at: String(Date.now()) },
         });
-        const r2url = publicBase + '/' + key;
-        inserts.push(env.DB.prepare(`
-          INSERT INTO media (key, filename, mime_type, size_bytes, uploaded_by, uploaded_at, url)
-          VALUES (?1,?2,?3,?4,'wix-migrate',?5,?6)
-          ON CONFLICT(key) DO UPDATE SET url=excluded.url, mime_type=excluded.mime_type, size_bytes=excluded.size_bytes
-        `).bind(key, f.displayName || key.split('/').pop(), ct, buf.byteLength, ts, r2url));
-        inserts.push(env.DB.prepare(`
-          INSERT INTO media_map (source_url, r2_url, r2_key, size_bytes, mime_type, migrated_at)
-          VALUES (?1,?2,?3,?4,?5,?6)
-          ON CONFLICT(source_url) DO UPDATE SET r2_url=excluded.r2_url, r2_key=excluded.r2_key, migrated_at=excluded.migrated_at
-        `).bind(src, r2url, key, buf.byteLength, ct, ts));
+        await env.DB.prepare(
+          "UPDATE media SET url=?1, mime_type=?2, size_bytes=?3, uploaded_by='wix-migrate' WHERE key=?4"
+        ).bind(publicBase + '/' + r.key, ct, buf.byteLength, r.key).run();
+        try {
+          await env.DB.prepare(`INSERT INTO media_map (source_url, r2_url, r2_key, size_bytes, mime_type, migrated_at)
+            VALUES (?1,?2,?3,?4,?5,?6)
+            ON CONFLICT(source_url) DO UPDATE SET r2_url=excluded.r2_url, r2_key=excluded.r2_key, migrated_at=excluded.migrated_at`)
+            .bind(r.url, publicBase + '/' + r.key, r.key, buf.byteLength, ct, ts).run();
+        } catch {}
         stats.copied++;
-      } catch (e) {
-        stats.errors.push({ file: f.displayName, error: (e.message || String(e)).slice(0, 160) });
-      }
-    } else {
-      // index mode — register the row pointing at the existing public Wix URL.
-      // ON CONFLICT keeps any url already set (e.g. a prior copy pass) so we
-      // never regress an R2-owned asset back to its Wix URL.
-      inserts.push(env.DB.prepare(`
-        INSERT INTO media (key, filename, mime_type, size_bytes, uploaded_by, uploaded_at, url)
-        VALUES (?1,?2,?3,?4,'wix-index',?5,?6)
-        ON CONFLICT(key) DO UPDATE SET filename=excluded.filename, mime_type=excluded.mime_type, size_bytes=excluded.size_bytes
-      `).bind(key, f.displayName || key.split('/').pop(), mimeType, sizeBytes, ts, src));
-      stats.indexed++;
+      } catch (e) { stats.errors.push({ file: r.key, error: (e.message || String(e)).slice(0, 160) }); }
     }
+    const remRow = await env.DB.prepare("SELECT COUNT(*) c FROM media WHERE url LIKE '%wixstatic.com/%'").first();
+    const remaining = remRow ? remRow.c : 0;
+    return json({ mode, ...stats, remaining, total: null, done: remaining === 0, nextCursor: remaining ? 'go' : null }, {}, env, origin);
   }
 
-  if (inserts.length) {
-    try { await env.DB.batch(inserts); }
-    catch (e) { return json({ error: 'D1 batch failed: ' + (e.message || e), partialStats: stats }, { status: 500 }, env, origin); }
+  // ── INDEX: recursively crawl the whole Wix folder tree via List Files. A D1
+  // table (wix_crawl) holds the folder queue so cursors stay tiny; each call
+  // processes one folder (bounded) — enqueuing its subfolders and indexing its
+  // files at their static.wixstatic.com URLs. Resets on a run's first call. ────
+  const limit = clampInt(url.searchParams.get('limit'), 100, 1, 100);
+  const stats = { processed: 0, indexed: 0, copied: 0, skipped: 0, errors: [] };
+
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS wix_crawl (
+    folder_id TEXT PRIMARY KEY, subs_done INTEGER DEFAULT 0, sub_cursor TEXT,
+    files_done INTEGER DEFAULT 0, file_cursor TEXT )`).run();
+  if (!hasCursor) {
+    await env.DB.prepare('DELETE FROM wix_crawl').run();
+    await env.DB.prepare("INSERT INTO wix_crawl (folder_id) VALUES ('media-root')").run();
   }
 
-  return json({ mode, ...stats, nextCursor: next, done: !next, total }, {}, env, origin);
+  const inserts = [];
+  try {
+    const F = await env.DB.prepare(
+      'SELECT folder_id, subs_done, sub_cursor, files_done, file_cursor FROM wix_crawl WHERE subs_done=0 OR files_done=0 ORDER BY rowid LIMIT 1'
+    ).first();
+
+    if (F) {
+      let subCursor = F.sub_cursor || null, subsDone = F.subs_done;
+      let fileCursor = F.file_cursor || null, filesDone = F.files_done;
+      let wixCalls = 0;
+
+      // 1) enqueue this folder's subfolders (bounded)
+      while (!subsDone && wixCalls < 10) {
+        const sent = subCursor;
+        const page = await wixListSubfoldersPage(env, F.folder_id, sent); wixCalls++;
+        for (const sf of page.folders) {
+          if (sf.id) inserts.push(env.DB.prepare('INSERT OR IGNORE INTO wix_crawl (folder_id) VALUES (?1)').bind(sf.id));
+        }
+        subCursor = page.next;
+        if (!subCursor || subCursor === sent) subsDone = 1;
+      }
+
+      // 2) index this folder's files (bounded)
+      while (!filesDone && wixCalls < 26 && stats.indexed < 300) {
+        const sent = fileCursor;
+        const page = await wixListFilesPage(env, F.folder_id, sent, limit); wixCalls++;
+        for (const f of page.files) {
+          stats.processed++;
+          const src = f.url || '';
+          if (!src || !/^https?:\/\//i.test(src)) { stats.skipped++; continue; }
+          const mimeType = guessMimeFromName(f.displayName || '') || mediaTypeToMime(f.mediaType) || 'application/octet-stream';
+          const key = deriveKeyFromWixMediaUrl(src, f.displayName, mimeType);
+          const sizeBytes = Number(f.sizeInBytes || 0) || null;
+          inserts.push(env.DB.prepare(`INSERT INTO media (key, filename, mime_type, size_bytes, uploaded_by, uploaded_at, url)
+            VALUES (?1,?2,?3,?4,'wix-index',?5,?6)
+            ON CONFLICT(key) DO UPDATE SET filename=excluded.filename, mime_type=excluded.mime_type, size_bytes=excluded.size_bytes`)
+            .bind(key, f.displayName || key.split('/').pop(), mimeType, sizeBytes, ts, src));
+          stats.indexed++;
+        }
+        fileCursor = page.next;
+        if (!fileCursor || fileCursor === sent) filesDone = 1;
+      }
+
+      // 3) persist folder progress (delete when fully done so COUNT == remaining)
+      if (subsDone && filesDone) {
+        inserts.push(env.DB.prepare('DELETE FROM wix_crawl WHERE folder_id=?1').bind(F.folder_id));
+      } else {
+        inserts.push(env.DB.prepare('UPDATE wix_crawl SET subs_done=?1, sub_cursor=?2, files_done=?3, file_cursor=?4 WHERE folder_id=?5')
+          .bind(subsDone ? 1 : 0, subCursor, filesDone ? 1 : 0, fileCursor, F.folder_id));
+      }
+    }
+
+    if (inserts.length) await env.DB.batch(inserts);
+  } catch (e) {
+    if (inserts.length) { try { await env.DB.batch(inserts); } catch (_) {} }
+    return json({ error: e.message, status: e.status || 502, partial: stats }, { status: e.status === 403 ? 403 : 502 }, env, origin);
+  }
+
+  const remRow = await env.DB.prepare('SELECT COUNT(*) c FROM wix_crawl WHERE subs_done=0 OR files_done=0').first();
+  const foldersRemaining = remRow ? remRow.c : 0;
+  const done = foldersRemaining === 0;
+  return json({ mode, ...stats, foldersRemaining, total: null, done, nextCursor: done ? null : 'go' }, {}, env, origin);
 }
 
 // ---------------------------------------------------------------------------
