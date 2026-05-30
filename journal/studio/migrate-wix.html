@@ -129,7 +129,7 @@ html,body{background:var(--ink); color:var(--text); font-family:var(--sans); lin
       <div class="field">
         <label>Batch size</label>
         <input type="number" id="batchSize" value="0" min="0" max="300">
-        <span class="hint">0 = auto (200 for Index, 30 for Copy). Lower if a batch times out.</span>
+        <span class="hint">0 = auto (100 for Index, 30 for Copy). Wix caps this at 100. Lower if a batch times out.</span>
       </div>
 
       <div class="btn-row">
@@ -250,7 +250,7 @@ async function runLoop(mode){
   STATE.processed=0; STATE.skipped=0; STATE.errors=0;
   if (mode==='index') STATE.indexed=0; else STATE.copied=0;
   setBusy(true); updateStats();
-  const limit = bs>0 ? bs : (mode==='copy'?30:200);
+  const limit = bs>0 ? Math.min(bs,100) : (mode==='copy'?30:100);
   log(`Starting ${mode.toUpperCase()} pass (batch ${limit})…`, mode==='copy'?'warn':'ok');
   let cursor='';
   while (STATE.running){
