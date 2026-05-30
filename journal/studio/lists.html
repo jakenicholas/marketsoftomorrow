@@ -157,9 +157,9 @@ html,body{background:var(--ink); color:var(--text); font-family:var(--sans); lin
 const WORKER_URL = 'https://tmw.jake-ab7.workers.dev';
 const TOKEN_KEY  = 'tmw-admin-token-v1';
 const LISTS = [
-  { slug:'golf',        label:'Golf',        meta1:'Architect', noun:'course' },
-  { slug:'restaurants', label:'Restaurants', meta1:'Chef',      noun:'restaurant' },
-  { slug:'hotels',      label:'Hotels',      meta1:'Designer',  noun:'hotel' },
+  { slug:'golf',        label:'Golf',        meta1:'Level',   meta2:'Availability', noun:'course' },
+  { slug:'restaurants', label:'Restaurants', meta1:'Cuisine', meta2:'Price',        noun:'restaurant' },
+  { slug:'hotels',      label:'Hotels',      meta1:'Detail',  meta2:'Year',         noun:'hotel' },
 ];
 let CUR = null;        // current list config
 let DOC = null;        // current document being edited
@@ -304,7 +304,7 @@ function itemCard(it, i){
     <div class="grid3">
       <div class="fl"><label>Location</label><input data-f="location" value="${esc(it.location)}"></div>
       <div class="fl"><label>Region</label><input data-f="region" value="${esc(it.region)}" list="regionOpts"></div>
-      <div class="fl"><label>Year</label><input data-f="year" value="${esc(it.year)}"></div>
+      <div class="fl"><label>${esc(CUR.meta2||'Year')}</label><input data-f="year" value="${esc(it.year)}"></div>
     </div>
     <div class="grid2">
       <div class="fl"><label>${esc(CUR.meta1)}</label><input data-f="architect" value="${esc(it.architect)}"></div>
