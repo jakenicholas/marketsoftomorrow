@@ -242,7 +242,6 @@ nav.main .wrap{display:flex; align-items:center; justify-content:space-between; 
   text-shadow:0 4px 30px rgba(0,0,0,.55), 0 0 1px rgba(0,0,0,.4);
   z-index:2;
   letter-spacing:-.04em;
-  -webkit-text-stroke:1px rgba(31,223,103,.18);
 }
 .rank-item.flip .ri-rank{left:auto; right:-14px}
 .ri-photo .photo-credit{position:absolute; bottom:10px; right:12px; font-family:var(--mono); font-size:9.5px; letter-spacing:.12em; text-transform:uppercase; color:rgba(255,255,255,.75); background:rgba(0,0,0,.45); backdrop-filter:blur(6px); padding:4px 8px; border-radius:4px}
@@ -1423,16 +1422,17 @@ function renderRanking() {
   if (SORT_MODE === 'alpha')  items.sort((a, b) => a.name.localeCompare(b.name));
   if (SORT_MODE === 'region') items.sort((a, b) => (a.region || '').localeCompare(b.region || '') || a.name.localeCompare(b.name));
   // Find original index in DATA for rank numbering
-  wrap.innerHTML = items.map(it => {
+  wrap.innerHTML = items.map((it, visibleIdx) => {
     const originalIdx = DATA.items.indexOf(it);
-    return rankItemHtml(it, originalIdx);
+    return rankItemHtml(it, originalIdx, visibleIdx);
   }).join('') || `<div style="padding:60px 0; text-align:center; color:var(--mute); font-family:var(--mono); font-size:13px; letter-spacing:.1em">No courses in this region yet.</div>`;
   hookRowInteractions();
 }
 
-function rankItemHtml(it, originalIdx) {
+function rankItemHtml(it, originalIdx, visibleIdx) {
   const rankNum = originalIdx + 1;
-  const flip = rankNum % 2 === 0 ? ' flip' : '';
+  const vi = (typeof visibleIdx === 'number') ? visibleIdx : originalIdx;
+  const flip = (vi % 2 === 1) ? ' flip' : '';
   const photo = it.image
     ? `<img src="${escapeAttr(it.image)}" alt="${escapeAttr(it.name)}" loading="lazy">`
     : '';
@@ -1467,7 +1467,6 @@ function rankItemHtml(it, originalIdx) {
       </div>
       <p class="ri-desc" data-edit="description">${escapeHtml(it.description || '')}</p>
       <div class="ri-ctas">
-        ${it.officialUrl ? `<a class="btn-official" href="${escapeAttr(it.officialUrl)}" target="_blank" rel="noopener" data-edit-url="officialUrl">Official Website ↗</a>` : `<a class="btn-official" href="#" data-edit-url="officialUrl">+ Official URL</a>`}
         ${it.ctaUrl ? `<a class="btn-cta" href="${escapeAttr(it.ctaUrl)}" target="_blank" rel="noopener" data-edit-url="ctaUrl">
           <span data-edit="ctaLabel">${escapeHtml(it.ctaLabel || 'Book Now')}</span>
           <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
