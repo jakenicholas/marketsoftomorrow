@@ -2470,7 +2470,7 @@ function b64url(bytes) {
   let s = ''; for (let i = 0; i < a.length; i++) s += String.fromCharCode(a[i]);
   return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 }
-function b64urlBytes(s) {
+function b64urlDecode(s) {
   s = s.replace(/-/g, '+').replace(/_/g, '/'); while (s.length % 4) s += '=';
   const bin = atob(s); const a = new Uint8Array(bin.length);
   for (let i = 0; i < bin.length; i++) a[i] = bin.charCodeAt(i); return a;
@@ -2487,10 +2487,10 @@ async function verifyPayload(token, secret) {
   if (!token || token.indexOf('.') < 0 || !secret) return null;
   const [payload, sig] = token.split('.');
   let ok = false;
-  try { ok = await crypto.subtle.verify('HMAC', await hmacKey(secret), b64urlBytes(sig), new TextEncoder().encode(payload)); } catch { return null; }
+  try { ok = await crypto.subtle.verify('HMAC', await hmacKey(secret), b64urlDecode(sig), new TextEncoder().encode(payload)); } catch { return null; }
   if (!ok) return null;
   try {
-    const obj = JSON.parse(new TextDecoder().decode(b64urlBytes(payload)));
+    const obj = JSON.parse(new TextDecoder().decode(b64urlDecode(payload)));
     if (obj.exp && obj.exp < Math.floor(Date.now() / 1000)) return null;
     return obj;
   } catch { return null; }
