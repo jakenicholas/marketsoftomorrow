@@ -2015,7 +2015,7 @@ async function queryWixFiles(env, cursor, limit) {
   });
   if (!res.ok) {
     const txt = await res.text();
-    const err = new Error('Wix query ' + res.status + ': ' + txt.slice(0, 300));
+    const err = new Error('Wix query ' + res.status + ' ' + (res.statusText || '') + ': ' + (txt || '(empty body)').slice(0, 400));
     err.status = res.status;
     throw err;
   }
@@ -2063,7 +2063,8 @@ async function handleMigrateWixMedia(req, env, origin, url) {
   const mode   = (url.searchParams.get('mode') || 'index').toLowerCase();
   const cursor = url.searchParams.get('cursor') || null;
   const isCopy = mode === 'copy';
-  const limit  = clampInt(url.searchParams.get('limit'), isCopy ? 30 : 200, 1, isCopy ? 60 : 300);
+  // Wix Files Query caps cursorPaging.limit at 100 — never request more.
+  const limit  = clampInt(url.searchParams.get('limit'), isCopy ? 30 : 100, 1, 100);
 
   if (isCopy) {
     if (!env.MEDIA) return json({ error: 'R2 not configured' }, { status: 500 }, env, origin);
