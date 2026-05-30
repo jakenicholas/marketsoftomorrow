@@ -1981,6 +1981,166 @@ function deriveKeyFromWixUrl(srcUrl, mimeType) {
 function escapeRegex(s) { return String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
 
 // ---------------------------------------------------------------------------
+// /admin/migrate-wix-media — pull the ENTIRE Wix Media Manager into the studio.
+//
+// Driven by a client loop that follows the returned `nextCursor` until done.
+// Two modes:
+//   mode=index → register every file in the `media` table pointing at its
+//                existing public static.wixstatic.com URL. No byte copy, so it
+//                is fast and makes the studio fully browsable immediately.
+//   mode=copy  → fetch each file's bytes from the public Wix CDN, store them in
+//                R2, and repoint the media row at the worker-served /media/<key>
+//                URL so we own the asset (independent of Wix).
+//
+// Enumeration uses the Wix Media Manager Query Files API with the worker's
+// WIX_API_KEY (the key needs Media Manager read permission).
+//
+//   GET  /admin/migrate-wix-media?count=1                       -> { total }
+//   POST /admin/migrate-wix-media?mode=index&limit=200&cursor=
+//   POST /admin/migrate-wix-media?mode=copy&limit=30&cursor=
+//   -> { mode, processed, indexed, copied, skipped, errors[], nextCursor, done, total }
+// ---------------------------------------------------------------------------
+
+async function queryWixFiles(env, cursor, limit) {
+  const body = { query: { cursorPaging: cursor ? { limit, cursor } : { limit } } };
+  const res = await fetch('https://www.wixapis.com/site-media/v1/files/query', {
+    method: 'POST',
+    headers: {
+      'Authorization': env.WIX_API_KEY,
+      'wix-site-id':   env.WIX_SITE_ID,
+      'Content-Type':  'application/json',
+      ...(env.WIX_ACCOUNT_ID ? { 'wix-account-id': env.WIX_ACCOUNT_ID } : {}),
+    },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const txt = await res.text();
+    const err = new Error('Wix query ' + res.status + ': ' + txt.slice(0, 300));
+    err.status = res.status;
+    throw err;
+  }
+  return res.json();
+}
+
+function mediaTypeToMime(t) {
+  return ({ IMAGE: 'image/jpeg', VIDEO: 'video/mp4', VECTOR: 'image/svg+xml', DOCUMENT: 'application/pdf' })[t] || null;
+}
+
+// Stable R2 key from a Wix media URL — preserve the Wix media id so a later
+// copy pass overwrites the same key the index pass registered.
+function deriveKeyFromWixMediaUrl(srcUrl, displayName, mimeType) {
+  let m = srcUrl.match(/static\.wixstatic\.com\/media\/([^/?#]+)/i);
+  if (m) return 'wix/' + m[1];
+  m = srcUrl.match(/video\.wixstatic\.com\/video\/([^/?#]+)/i);
+  if (m) {
+    const id = m[1].replace(/\/.*$/, '');
+    const ext = (mimeType || '').includes('webm') ? '.webm' : '.mp4';
+    return 'wix/video/' + id + ext;
+  }
+  const safe = (displayName || 'file').replace(/[^a-zA-Z0-9._-]+/g, '-').replace(/-+/g, '-').slice(0, 80) || 'file';
+  return 'wix/other/' + cryptoRandomId(6) + '-' + safe;
+}
+
+async function handleMigrateWixMedia(req, env, origin, url) {
+  const authCheck = requireAdminToken(req, env, origin);
+  if (authCheck) return authCheck;
+  if (!env.WIX_API_KEY || !env.WIX_SITE_ID) {
+    return json({ error: 'WIX_API_KEY and WIX_SITE_ID secrets must be set' }, { status: 500 }, env, origin);
+  }
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+
+  // Count-only probe — confirms the worker's Wix key can read the Media Manager.
+  if (url.searchParams.get('count') === '1') {
+    try {
+      const data = await queryWixFiles(env, null, 1);
+      const total = data.pagingMetadata && data.pagingMetadata.total;
+      return json({ total: typeof total === 'number' ? total : null }, {}, env, origin);
+    } catch (e) {
+      return json({ error: e.message, status: e.status || 502 }, { status: e.status === 403 ? 403 : 502 }, env, origin);
+    }
+  }
+
+  const mode   = (url.searchParams.get('mode') || 'index').toLowerCase();
+  const cursor = url.searchParams.get('cursor') || null;
+  const isCopy = mode === 'copy';
+  const limit  = clampInt(url.searchParams.get('limit'), isCopy ? 30 : 200, 1, isCopy ? 60 : 300);
+
+  if (isCopy) {
+    if (!env.MEDIA) return json({ error: 'R2 not configured' }, { status: 500 }, env, origin);
+    if (!env.MEDIA_PUBLIC_BASE || /REPLACE-WITH/.test(env.MEDIA_PUBLIC_BASE)) {
+      return json({ error: 'MEDIA_PUBLIC_BASE not configured' }, { status: 500 }, env, origin);
+    }
+  }
+
+  let data;
+  try { data = await queryWixFiles(env, cursor, limit); }
+  catch (e) { return json({ error: e.message, status: e.status || 502 }, { status: e.status === 403 ? 403 : 502 }, env, origin); }
+
+  const files = data.files || [];
+  const total = (data.pagingMetadata && data.pagingMetadata.total) || null;
+  const next  = (data.pagingMetadata && data.pagingMetadata.hasNext && data.pagingMetadata.cursors)
+    ? data.pagingMetadata.cursors.next : null;
+
+  const publicBase = (env.MEDIA_PUBLIC_BASE || '').replace(/\/+$/, '');
+  const stats = { processed: 0, indexed: 0, copied: 0, skipped: 0, errors: [] };
+  const ts = Math.floor(Date.now() / 1000);
+  const inserts = [];
+
+  for (const f of files) {
+    stats.processed++;
+    const src = f.url || (f.media && f.media.image && f.media.image.image && f.media.image.image.url) || '';
+    if (!src || !/^https?:\/\//i.test(src)) { stats.skipped++; continue; }
+    const mimeType = guessMimeFromName(f.displayName || '') || mediaTypeToMime(f.mediaType) || 'application/octet-stream';
+    const key = deriveKeyFromWixMediaUrl(src, f.displayName, mimeType);
+    const sizeBytes = Number(f.sizeInBytes || 0) || null;
+
+    if (isCopy) {
+      try {
+        const res = await fetch(src, { cf: { cacheTtl: 86400 } });
+        if (!res.ok) { stats.errors.push({ file: f.displayName, error: 'fetch ' + res.status }); continue; }
+        const buf = await res.arrayBuffer();
+        const ct = res.headers.get('content-type') || mimeType;
+        await env.MEDIA.put(key, buf, {
+          httpMetadata: { contentType: ct, cacheControl: 'public, max-age=31536000, immutable' },
+          customMetadata: { source: src, wix_id: (f.id || '').slice(0, 200), migrated_at: String(Date.now()) },
+        });
+        const r2url = publicBase + '/' + key;
+        inserts.push(env.DB.prepare(`
+          INSERT INTO media (key, filename, mime_type, size_bytes, uploaded_by, uploaded_at, url)
+          VALUES (?1,?2,?3,?4,'wix-migrate',?5,?6)
+          ON CONFLICT(key) DO UPDATE SET url=excluded.url, mime_type=excluded.mime_type, size_bytes=excluded.size_bytes
+        `).bind(key, f.displayName || key.split('/').pop(), ct, buf.byteLength, ts, r2url));
+        inserts.push(env.DB.prepare(`
+          INSERT INTO media_map (source_url, r2_url, r2_key, size_bytes, mime_type, migrated_at)
+          VALUES (?1,?2,?3,?4,?5,?6)
+          ON CONFLICT(source_url) DO UPDATE SET r2_url=excluded.r2_url, r2_key=excluded.r2_key, migrated_at=excluded.migrated_at
+        `).bind(src, r2url, key, buf.byteLength, ct, ts));
+        stats.copied++;
+      } catch (e) {
+        stats.errors.push({ file: f.displayName, error: (e.message || String(e)).slice(0, 160) });
+      }
+    } else {
+      // index mode — register the row pointing at the existing public Wix URL.
+      // ON CONFLICT keeps any url already set (e.g. a prior copy pass) so we
+      // never regress an R2-owned asset back to its Wix URL.
+      inserts.push(env.DB.prepare(`
+        INSERT INTO media (key, filename, mime_type, size_bytes, uploaded_by, uploaded_at, url)
+        VALUES (?1,?2,?3,?4,'wix-index',?5,?6)
+        ON CONFLICT(key) DO UPDATE SET filename=excluded.filename, mime_type=excluded.mime_type, size_bytes=excluded.size_bytes
+      `).bind(key, f.displayName || key.split('/').pop(), mimeType, sizeBytes, ts, src));
+      stats.indexed++;
+    }
+  }
+
+  if (inserts.length) {
+    try { await env.DB.batch(inserts); }
+    catch (e) { return json({ error: 'D1 batch failed: ' + (e.message || e), partialStats: stats }, { status: 500 }, env, origin); }
+  }
+
+  return json({ mode, ...stats, nextCursor: next, done: !next, total }, {}, env, origin);
+}
+
+// ---------------------------------------------------------------------------
 // /admin/upload — accept an image upload via multipart/form-data, store
 // the object in R2, register a row in the media table, return the public
 // CDN URL the editor pastes into a post.
@@ -2110,6 +2270,58 @@ async function handleMediaDelete(req, env, origin, key) {
   try { await env.DB.prepare('DELETE FROM media WHERE key = ?1').bind(key).run(); }
   catch (e) { return json({ error: 'DB delete failed', detail: e.message }, { status: 500 }, env, origin); }
   return json({ ok: true, key }, {}, env, origin);
+}
+
+// ---------------------------------------------------------------------------
+// GET /media/<key> — public asset serving straight from R2. This keeps the
+// bucket PRIVATE (no r2.dev public access) while still giving every object a
+// stable public URL that <img>/<video> tags and the studio can use. Honors
+// Range requests so videos seek correctly.
+// ---------------------------------------------------------------------------
+
+async function handleMediaServe(req, env, key) {
+  if (!env.MEDIA) return new Response('media not configured', { status: 500 });
+
+  const rangeHeader = req.headers.get('range');
+  let object;
+  try {
+    if (rangeHeader) {
+      const m = /bytes=(\d*)-(\d*)/.exec(rangeHeader);
+      const range = {};
+      if (m && m[1] !== '') range.offset = parseInt(m[1], 10);
+      if (m && m[2] !== '') {
+        const end = parseInt(m[2], 10);
+        range.length = end - (range.offset || 0) + 1;
+      }
+      object = await env.MEDIA.get(key, Object.keys(range).length ? { range } : undefined);
+    } else {
+      object = await env.MEDIA.get(key);
+    }
+  } catch (e) {
+    return new Response('error', { status: 500 });
+  }
+  if (!object) return new Response('not found', { status: 404 });
+
+  const headers = new Headers();
+  object.writeHttpMetadata(headers);
+  headers.set('etag', object.httpEtag);
+  if (!headers.has('cache-control')) headers.set('cache-control', 'public, max-age=31536000, immutable');
+  headers.set('access-control-allow-origin', '*');
+  headers.set('accept-ranges', 'bytes');
+
+  if (req.method === 'HEAD') {
+    headers.set('content-length', String(object.size));
+    return new Response(null, { status: 200, headers });
+  }
+
+  if (rangeHeader && object.range) {
+    const start = object.range.offset || 0;
+    const len = object.range.length != null ? object.range.length : (object.size - start);
+    headers.set('content-range', `bytes ${start}-${start + len - 1}/${object.size}`);
+    headers.set('content-length', String(len));
+    return new Response(object.body, { status: 206, headers });
+  }
+  return new Response(object.body, { headers });
 }
 
 // Reusable admin-token guard. Returns null if authorized, or a Response
@@ -2326,6 +2538,17 @@ export default {
       // /admin/migrate-images — bulk pull Wix CDN URLs into R2 (admin-only)
       if (request.method === 'POST' && url.pathname === '/admin/migrate-images') {
         return await handleMigrateImages(request, env, origin, url);
+      }
+      // /admin/migrate-wix-media — pull the entire Wix Media Manager (admin-only)
+      if (url.pathname === '/admin/migrate-wix-media' && (request.method === 'GET' || request.method === 'POST')) {
+        return await handleMigrateWixMedia(request, env, origin, url);
+      }
+      // /media/:key — public R2 asset serving (bucket stays private)
+      {
+        const m = url.pathname.match(/^\/media\/(.+)$/);
+        if (m && (request.method === 'GET' || request.method === 'HEAD')) {
+          return await handleMediaServe(request, env, decodeURIComponent(m[1]));
+        }
       }
       // /admin/media — list/delete uploaded media (admin-only)
       if (request.method === 'GET' && url.pathname === '/admin/media') {

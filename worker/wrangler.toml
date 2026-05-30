@@ -39,11 +39,12 @@ ALLOWED_ORIGINS = "https://map.oftmw.com,https://oftmw.com,https://www.oftmw.com
 # you publish the Wix site to (e.g. https://studio.oftmw.com/blog-feed.xml).
 BLOG_FEED_URL = "https://www.oftmw.com/blog-feed.xml"
 
-# Public base URL for R2 media. After enabling public access on the bucket,
-# copy the pub-<hash>.r2.dev URL Cloudflare gives you, paste below.
-# Later you can move to a custom domain like https://media.oftmw.com.
-# Without this set, uploads still work but the returned URL will be empty.
-MEDIA_PUBLIC_BASE = "https://pub-REPLACE-WITH-YOUR-R2-PUBLIC-HASH.r2.dev"
+# Public base URL for R2 media. The bucket stays PRIVATE — media is served by
+# the worker's own GET /media/<key> route (see handleMediaServe), so there's no
+# world-readable r2.dev access to enable. To move to a clean custom domain
+# later, bind media.oftmw.com to the worker (or the bucket) and repoint this —
+# no re-migration needed since only the base changes.
+MEDIA_PUBLIC_BASE = "https://tmw.jake-ab7.workers.dev/media"
 
 [[d1_databases]]
 binding = "DB"
