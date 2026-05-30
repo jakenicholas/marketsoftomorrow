@@ -2114,6 +2114,181 @@ function deriveKeyFromWixMediaUrl(srcUrl, displayName, mimeType) {
   return 'wix/other/' + cryptoRandomId(6) + '-' + safe;
 }
 
+// ── Reusable migration steps (shared by the HTTP handler and the cron driver).
+// Both are bounded + idempotent so they're safe to call repeatedly and resume
+// after any interruption. ────────────────────────────────────────────────────
+
+// Copy ONE bounded batch of still-on-Wix media rows into R2 and repoint the
+// rows at /media/<key>. A copied row's url no longer matches the filter, so
+// successive calls naturally continue where the last left off (zero Wix calls,
+// no cursor needed). Returns { processed, copied, errors, remaining }.
+async function migrateCopyBatch(env, limit, publicBase, ts) {
+  const stats = { processed: 0, copied: 0, errors: [] };
+  const rows = await env.DB.prepare(
+    "SELECT key, url FROM media WHERE url LIKE '%wixstatic.com/%' LIMIT ?1"
+  ).bind(limit).all();
+  for (const r of (rows.results || [])) {
+    stats.processed++;
+    try {
+      const res = await fetch(r.url, { cf: { cacheTtl: 86400 } });
+      if (!res.ok) { stats.errors.push({ file: r.key, error: 'fetch ' + res.status }); continue; }
+      const buf = await res.arrayBuffer();
+      const ct = res.headers.get('content-type') || guessMimeFromName(r.key) || 'application/octet-stream';
+      await env.MEDIA.put(r.key, buf, {
+        httpMetadata: { contentType: ct, cacheControl: 'public, max-age=31536000, immutable' },
+        customMetadata: { source: r.url, migrated_at: String(Date.now()) },
+      });
+      await env.DB.prepare(
+        "UPDATE media SET url=?1, mime_type=?2, size_bytes=?3, uploaded_by='wix-migrate' WHERE key=?4"
+      ).bind(publicBase + '/' + r.key, ct, buf.byteLength, r.key).run();
+      try {
+        await env.DB.prepare(`INSERT INTO media_map (source_url, r2_url, r2_key, size_bytes, mime_type, migrated_at)
+          VALUES (?1,?2,?3,?4,?5,?6)
+          ON CONFLICT(source_url) DO UPDATE SET r2_url=excluded.r2_url, r2_key=excluded.r2_key, migrated_at=excluded.migrated_at`)
+          .bind(r.url, publicBase + '/' + r.key, r.key, buf.byteLength, ct, ts).run();
+      } catch {}
+      stats.copied++;
+    } catch (e) { stats.errors.push({ file: r.key, error: (e.message || String(e)).slice(0, 160) }); }
+  }
+  const remRow = await env.DB.prepare("SELECT COUNT(*) c FROM media WHERE url LIKE '%wixstatic.com/%'").first();
+  stats.remaining = remRow ? remRow.c : 0;
+  return stats;
+}
+
+// Crawl ONE pending Wix folder: enqueue its subfolders and index its files at
+// their static.wixstatic.com URLs. Tiny cursors live in the wix_crawl queue so
+// this is fully resumable. seedIfEmpty inserts the media-root row when the queue
+// is empty (HTTP fresh-run passes true; the cron passes false so it never
+// restarts a finished crawl). Returns { processed, indexed, skipped,
+// foldersRemaining, didWork }.
+async function migrateIndexFolder(env, ts, limit, seedIfEmpty) {
+  const stats = { processed: 0, indexed: 0, skipped: 0 };
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS wix_crawl (
+    folder_id TEXT PRIMARY KEY, subs_done INTEGER DEFAULT 0, sub_cursor TEXT,
+    files_done INTEGER DEFAULT 0, file_cursor TEXT, path TEXT )`).run();
+  if (seedIfEmpty) {
+    const any = await env.DB.prepare('SELECT 1 FROM wix_crawl LIMIT 1').first();
+    if (!any) await env.DB.prepare("INSERT INTO wix_crawl (folder_id, path) VALUES ('media-root', '')").run();
+  }
+  const inserts = [];
+  const F = await env.DB.prepare(
+    'SELECT folder_id, subs_done, sub_cursor, files_done, file_cursor, path FROM wix_crawl WHERE subs_done=0 OR files_done=0 ORDER BY rowid LIMIT 1'
+  ).first();
+  if (F) {
+    let subCursor = F.sub_cursor || null, subsDone = F.subs_done;
+    let fileCursor = F.file_cursor || null, filesDone = F.files_done;
+    let wixCalls = 0;
+    // 1) enqueue this folder's subfolders (bounded)
+    while (!subsDone && wixCalls < 10) {
+      const sent = subCursor;
+      const page = await wixListSubfoldersPage(env, F.folder_id, sent); wixCalls++;
+      for (const sf of page.folders) {
+        if (sf.id) {
+          const childPath = ((F.path || '').trim() ? (F.path + ' / ') : '') + (sf.displayName || sf.id);
+          inserts.push(env.DB.prepare('INSERT OR IGNORE INTO wix_crawl (folder_id, path) VALUES (?1, ?2)').bind(sf.id, childPath));
+        }
+      }
+      subCursor = page.next;
+      if (!subCursor || subCursor === sent) subsDone = 1;
+    }
+    // 2) index this folder's files (bounded)
+    while (!filesDone && wixCalls < 26 && stats.indexed < 300) {
+      const sent = fileCursor;
+      const page = await wixListFilesPage(env, F.folder_id, sent, limit); wixCalls++;
+      for (const f of page.files) {
+        stats.processed++;
+        const src = f.url || '';
+        if (!src || !/^https?:\/\//i.test(src)) { stats.skipped++; continue; }
+        const mimeType = guessMimeFromName(f.displayName || '') || mediaTypeToMime(f.mediaType) || 'application/octet-stream';
+        const key = deriveKeyFromWixMediaUrl(src, f.displayName, mimeType);
+        const sizeBytes = Number(f.sizeInBytes || 0) || null;
+        const folder = (F.path || '').trim() ? F.path : 'Media Root';
+        inserts.push(env.DB.prepare(`INSERT INTO media (key, filename, mime_type, size_bytes, uploaded_by, uploaded_at, url, folder)
+          VALUES (?1,?2,?3,?4,'wix-index',?5,?6,?7)
+          ON CONFLICT(key) DO UPDATE SET filename=excluded.filename, mime_type=excluded.mime_type, size_bytes=excluded.size_bytes, folder=excluded.folder`)
+          .bind(key, f.displayName || key.split('/').pop(), mimeType, sizeBytes, ts, src, folder));
+        stats.indexed++;
+      }
+      fileCursor = page.next;
+      if (!fileCursor || fileCursor === sent) filesDone = 1;
+    }
+    // 3) persist folder progress (delete when fully done so COUNT == remaining)
+    if (subsDone && filesDone) {
+      inserts.push(env.DB.prepare('DELETE FROM wix_crawl WHERE folder_id=?1').bind(F.folder_id));
+    } else {
+      inserts.push(env.DB.prepare('UPDATE wix_crawl SET subs_done=?1, sub_cursor=?2, files_done=?3, file_cursor=?4 WHERE folder_id=?5')
+        .bind(subsDone ? 1 : 0, subCursor, filesDone ? 1 : 0, fileCursor, F.folder_id));
+    }
+  }
+  if (inserts.length) await env.DB.batch(inserts);
+  const remRow = await env.DB.prepare('SELECT COUNT(*) c FROM wix_crawl WHERE subs_done=0 OR files_done=0').first();
+  stats.foldersRemaining = remRow ? remRow.c : 0;
+  stats.didWork = !!F;
+  return stats;
+}
+
+// Background migration driver — invoked by the cron trigger (see scheduled()).
+// Takes the browser out of the loop: drains the index queue, then copies bytes
+// into R2 server-side, fully resumable, until nothing remains. A soft lock in
+// sync_state stops overlapping ticks; sync_state migrate_auto='0' pauses it; on
+// completion it sets migrate_auto='0' so future ticks short-circuit cheaply.
+async function migrationTick(env) {
+  if (!env.DB) return { skipped: 'no-db' };
+  const now = Math.floor(Date.now() / 1000);
+
+  const auto = await env.DB.prepare("SELECT value FROM sync_state WHERE key='migrate_auto'").first();
+  if (auto && auto.value === '0') return { paused: true };
+
+  // soft lock (90s) so a slow tick isn't lapped by the next cron fire
+  const lock = await env.DB.prepare("SELECT updated_at FROM sync_state WHERE key='migrate_lock'").first();
+  if (lock && lock.updated_at && (now - lock.updated_at) < 90) return { locked: true };
+  await env.DB.prepare("INSERT INTO sync_state (key, value, updated_at) VALUES ('migrate_lock','running',?1) ON CONFLICT(key) DO UPDATE SET value='running', updated_at=?1").bind(now).run();
+
+  const out = { indexedFolders: 0, indexed: 0, copied: 0, foldersRemaining: null, remaining: null };
+  try {
+    // 1) advance the index a few folders — only if a crawl is already in flight
+    let foldersRemaining = 0;
+    if (env.WIX_API_KEY && env.WIX_SITE_ID) {
+      const has = await env.DB.prepare("SELECT COUNT(*) c FROM sqlite_master WHERE type='table' AND name='wix_crawl'").first();
+      if (has && has.c) {
+        for (let i = 0; i < 6; i++) {
+          const s = await migrateIndexFolder(env, now, 100, false); // never re-seed
+          foldersRemaining = s.foldersRemaining;
+          if (!s.didWork) break;
+          out.indexedFolders++; out.indexed += s.indexed;
+          if (s.foldersRemaining === 0) break;
+        }
+      }
+    }
+    out.foldersRemaining = foldersRemaining;
+
+    // 2) copy bytes into R2 (the bulk of the work)
+    let remaining = null;
+    if (env.MEDIA && env.MEDIA_PUBLIC_BASE && !/REPLACE-WITH/.test(env.MEDIA_PUBLIC_BASE)) {
+      const publicBase = env.MEDIA_PUBLIC_BASE.replace(/\/+$/, '');
+      for (let i = 0; i < 4; i++) {
+        const s = await migrateCopyBatch(env, 20, publicBase, now);
+        out.copied += s.copied;
+        remaining = s.remaining;
+        if (s.remaining === 0 || s.processed === 0) break;
+      }
+    }
+    out.remaining = remaining;
+
+    // 3) auto-pause once everything is indexed and copied
+    if (foldersRemaining === 0 && remaining === 0) {
+      await env.DB.prepare("INSERT INTO sync_state (key, value, updated_at) VALUES ('migrate_auto','0',?1) ON CONFLICT(key) DO UPDATE SET value='0', updated_at=?1").bind(now).run();
+      out.complete = true;
+    }
+  } catch (e) {
+    out.error = (e.message || String(e)).slice(0, 200);
+  } finally {
+    // release the lock (stamp 0 so the next cron tick runs immediately)
+    await env.DB.prepare("INSERT INTO sync_state (key, value, updated_at) VALUES ('migrate_lock','idle',0) ON CONFLICT(key) DO UPDATE SET value='idle', updated_at=0").run();
+  }
+  return out;
+}
+
 async function handleMigrateWixMedia(req, env, origin, url) {
   const authCheck = await requireAdminToken(req, env, origin);
   if (authCheck) return authCheck;
@@ -2134,6 +2309,42 @@ async function handleMigrateWixMedia(req, env, origin, url) {
     }
   }
 
+  // Lightweight progress snapshot — lets the studio watch the cron-driven
+  // migration without making copy/index calls itself.
+  if (url.searchParams.get('status') === '1') {
+    const row = await env.DB.prepare(`SELECT
+      (SELECT COUNT(*) FROM media) media_total,
+      (SELECT COUNT(*) FROM media WHERE url LIKE '%wixstatic.com/%') remaining,
+      (SELECT COUNT(*) FROM media WHERE uploaded_by='wix-migrate') copied,
+      (SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='wix_crawl') has_crawl`).first();
+    let foldersPending = 0;
+    if (row && row.has_crawl) {
+      const f = await env.DB.prepare('SELECT COUNT(*) c FROM wix_crawl WHERE subs_done=0 OR files_done=0').first();
+      foldersPending = f ? f.c : 0;
+    }
+    const autoRow = await env.DB.prepare("SELECT value FROM sync_state WHERE key='migrate_auto'").first();
+    const lockRow = await env.DB.prepare("SELECT updated_at FROM sync_state WHERE key='migrate_lock'").first();
+    return json({
+      media_total: (row && row.media_total) || 0,
+      copied: (row && row.copied) || 0,
+      remaining: (row && row.remaining) || 0,
+      foldersPending,
+      auto: !autoRow || autoRow.value !== '0',
+      lastTickAt: (lockRow && lockRow.updated_at) || null,
+      done: foldersPending === 0 && ((row && row.remaining) || 0) === 0,
+    }, {}, env, origin);
+  }
+
+  // Toggle the background cron driver: ?auto=on resumes (and re-arms after a
+  // completed run), ?auto=off pauses it.
+  const autoParam = (url.searchParams.get('auto') || '').toLowerCase();
+  if (autoParam === 'on' || autoParam === 'off') {
+    const v = autoParam === 'off' ? '0' : '1';
+    const now = Math.floor(Date.now() / 1000);
+    await env.DB.prepare("INSERT INTO sync_state (key, value, updated_at) VALUES ('migrate_auto',?1,?2) ON CONFLICT(key) DO UPDATE SET value=?1, updated_at=?2").bind(v, now).run();
+    return json({ auto: v === '1' }, {}, env, origin);
+  }
+
   const mode = (url.searchParams.get('mode') || 'index').toLowerCase();
   const hasCursor = !!url.searchParams.get('cursor');  // runner omits cursor on a run's first call
   const ts = Math.floor(Date.now() / 1000);
@@ -2148,122 +2359,29 @@ async function handleMigrateWixMedia(req, env, origin, url) {
     }
     const limit = clampInt(url.searchParams.get('limit'), 20, 1, 40);
     const publicBase = env.MEDIA_PUBLIC_BASE.replace(/\/+$/, '');
-    const stats = { processed: 0, indexed: 0, copied: 0, skipped: 0, errors: [] };
-    const rows = await env.DB.prepare(
-      "SELECT key, url FROM media WHERE url LIKE '%wixstatic.com/%' LIMIT ?1"
-    ).bind(limit).all();
-    for (const r of (rows.results || [])) {
-      stats.processed++;
-      try {
-        const res = await fetch(r.url, { cf: { cacheTtl: 86400 } });
-        if (!res.ok) { stats.errors.push({ file: r.key, error: 'fetch ' + res.status }); continue; }
-        const buf = await res.arrayBuffer();
-        const ct = res.headers.get('content-type') || guessMimeFromName(r.key) || 'application/octet-stream';
-        await env.MEDIA.put(r.key, buf, {
-          httpMetadata: { contentType: ct, cacheControl: 'public, max-age=31536000, immutable' },
-          customMetadata: { source: r.url, migrated_at: String(Date.now()) },
-        });
-        await env.DB.prepare(
-          "UPDATE media SET url=?1, mime_type=?2, size_bytes=?3, uploaded_by='wix-migrate' WHERE key=?4"
-        ).bind(publicBase + '/' + r.key, ct, buf.byteLength, r.key).run();
-        try {
-          await env.DB.prepare(`INSERT INTO media_map (source_url, r2_url, r2_key, size_bytes, mime_type, migrated_at)
-            VALUES (?1,?2,?3,?4,?5,?6)
-            ON CONFLICT(source_url) DO UPDATE SET r2_url=excluded.r2_url, r2_key=excluded.r2_key, migrated_at=excluded.migrated_at`)
-            .bind(r.url, publicBase + '/' + r.key, r.key, buf.byteLength, ct, ts).run();
-        } catch {}
-        stats.copied++;
-      } catch (e) { stats.errors.push({ file: r.key, error: (e.message || String(e)).slice(0, 160) }); }
-    }
-    const remRow = await env.DB.prepare("SELECT COUNT(*) c FROM media WHERE url LIKE '%wixstatic.com/%'").first();
-    const remaining = remRow ? remRow.c : 0;
-    return json({ mode, ...stats, remaining, total: null, done: remaining === 0, nextCursor: remaining ? 'go' : null }, {}, env, origin);
+    const s = await migrateCopyBatch(env, limit, publicBase, ts);
+    return json({ mode, processed: s.processed, indexed: 0, copied: s.copied, skipped: 0, errors: s.errors,
+      remaining: s.remaining, total: null, done: s.remaining === 0, nextCursor: s.remaining ? 'go' : null }, {}, env, origin);
   }
 
   // ── INDEX: recursively crawl the whole Wix folder tree via List Files. A D1
   // table (wix_crawl) holds the folder queue so cursors stay tiny; each call
-  // processes one folder (bounded) — enqueuing its subfolders and indexing its
-  // files at their static.wixstatic.com URLs. Resets on a run's first call. ────
+  // processes one folder (bounded). Resets on a run's first call (no cursor) so
+  // the schema is rebuilt; resumes otherwise. ─────────────────────────────────
   const limit = clampInt(url.searchParams.get('limit'), 100, 1, 100);
-  const stats = { processed: 0, indexed: 0, copied: 0, skipped: 0, errors: [] };
-
   // Drop the ephemeral crawl queue on a fresh run so it always recreates with
   // the current schema (CREATE TABLE IF NOT EXISTS won't add new columns to a
   // pre-existing table — which is what broke the folder-path migration).
   if (!hasCursor) await env.DB.prepare('DROP TABLE IF EXISTS wix_crawl').run();
-  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS wix_crawl (
-    folder_id TEXT PRIMARY KEY, subs_done INTEGER DEFAULT 0, sub_cursor TEXT,
-    files_done INTEGER DEFAULT 0, file_cursor TEXT, path TEXT )`).run();
-  if (!hasCursor) {
-    await env.DB.prepare("INSERT INTO wix_crawl (folder_id, path) VALUES ('media-root', '')").run();
-  }
-
-  const inserts = [];
+  let s;
   try {
-    const F = await env.DB.prepare(
-      'SELECT folder_id, subs_done, sub_cursor, files_done, file_cursor, path FROM wix_crawl WHERE subs_done=0 OR files_done=0 ORDER BY rowid LIMIT 1'
-    ).first();
-
-    if (F) {
-      let subCursor = F.sub_cursor || null, subsDone = F.subs_done;
-      let fileCursor = F.file_cursor || null, filesDone = F.files_done;
-      let wixCalls = 0;
-
-      // 1) enqueue this folder's subfolders (bounded)
-      while (!subsDone && wixCalls < 10) {
-        const sent = subCursor;
-        const page = await wixListSubfoldersPage(env, F.folder_id, sent); wixCalls++;
-        for (const sf of page.folders) {
-          if (sf.id) {
-            const childPath = ((F.path || '').trim() ? (F.path + ' / ') : '') + (sf.displayName || sf.id);
-            inserts.push(env.DB.prepare('INSERT OR IGNORE INTO wix_crawl (folder_id, path) VALUES (?1, ?2)').bind(sf.id, childPath));
-          }
-        }
-        subCursor = page.next;
-        if (!subCursor || subCursor === sent) subsDone = 1;
-      }
-
-      // 2) index this folder's files (bounded)
-      while (!filesDone && wixCalls < 26 && stats.indexed < 300) {
-        const sent = fileCursor;
-        const page = await wixListFilesPage(env, F.folder_id, sent, limit); wixCalls++;
-        for (const f of page.files) {
-          stats.processed++;
-          const src = f.url || '';
-          if (!src || !/^https?:\/\//i.test(src)) { stats.skipped++; continue; }
-          const mimeType = guessMimeFromName(f.displayName || '') || mediaTypeToMime(f.mediaType) || 'application/octet-stream';
-          const key = deriveKeyFromWixMediaUrl(src, f.displayName, mimeType);
-          const sizeBytes = Number(f.sizeInBytes || 0) || null;
-          const folder = (F.path || '').trim() ? F.path : 'Media Root';
-          inserts.push(env.DB.prepare(`INSERT INTO media (key, filename, mime_type, size_bytes, uploaded_by, uploaded_at, url, folder)
-            VALUES (?1,?2,?3,?4,'wix-index',?5,?6,?7)
-            ON CONFLICT(key) DO UPDATE SET filename=excluded.filename, mime_type=excluded.mime_type, size_bytes=excluded.size_bytes, folder=excluded.folder`)
-            .bind(key, f.displayName || key.split('/').pop(), mimeType, sizeBytes, ts, src, folder));
-          stats.indexed++;
-        }
-        fileCursor = page.next;
-        if (!fileCursor || fileCursor === sent) filesDone = 1;
-      }
-
-      // 3) persist folder progress (delete when fully done so COUNT == remaining)
-      if (subsDone && filesDone) {
-        inserts.push(env.DB.prepare('DELETE FROM wix_crawl WHERE folder_id=?1').bind(F.folder_id));
-      } else {
-        inserts.push(env.DB.prepare('UPDATE wix_crawl SET subs_done=?1, sub_cursor=?2, files_done=?3, file_cursor=?4 WHERE folder_id=?5')
-          .bind(subsDone ? 1 : 0, subCursor, filesDone ? 1 : 0, fileCursor, F.folder_id));
-      }
-    }
-
-    if (inserts.length) await env.DB.batch(inserts);
+    s = await migrateIndexFolder(env, ts, limit, true);
   } catch (e) {
-    if (inserts.length) { try { await env.DB.batch(inserts); } catch (_) {} }
-    return json({ error: e.message, status: e.status || 502, partial: stats }, { status: e.status === 403 ? 403 : 502 }, env, origin);
+    return json({ error: e.message, status: e.status || 502 }, { status: e.status === 403 ? 403 : 502 }, env, origin);
   }
-
-  const remRow = await env.DB.prepare('SELECT COUNT(*) c FROM wix_crawl WHERE subs_done=0 OR files_done=0').first();
-  const foldersRemaining = remRow ? remRow.c : 0;
-  const done = foldersRemaining === 0;
-  return json({ mode, ...stats, foldersRemaining, total: null, done, nextCursor: done ? null : 'go' }, {}, env, origin);
+  const done = s.foldersRemaining === 0;
+  return json({ mode, processed: s.processed, indexed: s.indexed, copied: 0, skipped: s.skipped, errors: [],
+    foldersRemaining: s.foldersRemaining, total: null, done, nextCursor: done ? null : 'go' }, {}, env, origin);
 }
 
 // ---------------------------------------------------------------------------
@@ -2848,5 +2966,12 @@ export default {
       // Catch-all so a thrown error never returns an opaque 1101 to the dashboard.
       return json({ error: e.message || String(e) }, { status: 500 }, env, origin);
     }
+  },
+
+  // Cron trigger (see [triggers] in wrangler.toml). Drives the Wix → R2 media
+  // migration server-side so it no longer depends on a browser tab staying open
+  // — fully resumable, self-pacing, and auto-pauses when everything is copied.
+  async scheduled(event, env, ctx) {
+    ctx.waitUntil(migrationTick(env));
   },
 };

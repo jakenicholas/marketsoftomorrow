@@ -46,6 +46,14 @@ BLOG_FEED_URL = "https://www.oftmw.com/blog-feed.xml"
 # no re-migration needed since only the base changes.
 MEDIA_PUBLIC_BASE = "https://tmw.jake-ab7.workers.dev/media"
 
+# Cron trigger — drives the Wix → R2 media migration server-side every minute
+# (see scheduled() in src/index.js). Self-pacing and resumable; it auto-pauses
+# (sets sync_state migrate_auto='0') once everything is indexed and copied, so
+# steady-state ticks are cheap no-ops. Re-arm any time with:
+#   GET /admin/migrate-wix-media?auto=on
+[triggers]
+crons = ["* * * * *"]
+
 [[d1_databases]]
 binding = "DB"
 database_name = "tmw_events"
