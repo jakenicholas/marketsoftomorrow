@@ -2052,7 +2052,9 @@ async function wixListAllFolderIds(env) {
     }
     const d = await res.json();
     for (const f of (d.folders || [])) if (f.id) ids.push(f.id);
-    cursor = d.nextCursor || null; guard++;
+    const nc = d.nextCursor;            // { cursors: { next }, hasNext } — NOT a string
+    cursor = (nc && nc.hasNext && nc.cursors && nc.cursors.next) ? nc.cursors.next : null;
+    guard++;
   } while (cursor && guard < 25);
   return ids;
 }
@@ -2068,7 +2070,9 @@ async function wixListFilesPage(env, parentFolderId, fileCursor, limit) {
     e.status = res.status; throw e;
   }
   const d = await res.json();
-  return { files: d.files || [], next: d.nextCursor || null };
+  const nc = d.nextCursor;              // { cursors: { next }, hasNext } — NOT a string
+  const next = (nc && nc.hasNext && nc.cursors && nc.cursors.next) ? nc.cursors.next : null;
+  return { files: d.files || [], next };
 }
 
 function encState(o) { return btoa(unescape(encodeURIComponent(JSON.stringify(o)))); }
@@ -2140,7 +2144,7 @@ async function handleMigrateWixMedia(req, env, origin, url) {
     while (state.fi < state.folders.length) {
       const page = await wixListFilesPage(env, state.folders[state.fi], state.fc, limit);
       files = page.files;
-      if (page.next) {
+      if (page.next && page.next !== state.fc) {       // advance within folder (guard: cursor must change)
         next = encState({ folders: state.folders, fi: state.fi, fc: page.next });
       } else if (state.fi + 1 < state.folders.length) {
         next = encState({ folders: state.folders, fi: state.fi + 1, fc: null });
