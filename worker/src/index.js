@@ -1992,8 +1992,10 @@ function escapeRegex(s) { return String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'
 //                R2, and repoint the media row at the worker-served /media/<key>
 //                URL so we own the asset (independent of Wix).
 //
-// Enumeration uses the Wix Media Manager Query Files API with the worker's
-// WIX_API_KEY (the key needs Media Manager read permission).
+// Enumeration uses the Wix Media Manager List Files API with folder recursion
+// (permission MEDIA.SITE_MEDIA_FILES_LIST, granted by the "Media Manager – Read"
+// API-key role) — NOT Query File Descriptors, whose permission the API-Keys UI
+// doesn't surface.
 //
 //   GET  /admin/migrate-wix-media?count=1                       -> { total }
 //   POST /admin/migrate-wix-media?mode=index&limit=200&cursor=
@@ -2022,6 +2024,56 @@ async function queryWixFiles(env, cursor, limit) {
   return res.json();
 }
 
+// We enumerate via the List Files API (permission MEDIA.SITE_MEDIA_FILES_LIST,
+// which the standard "Media Manager – Read" API-key role grants) instead of
+// Query File Descriptors (whose permission the API-Keys UI doesn't expose).
+// List Files is folder-scoped, so we recurse: list folders once, then page
+// through each folder. Folder position + per-folder cursor are carried in an
+// opaque base64 cursor between batches.
+function wixHeaders(env) {
+  return {
+    'Authorization': env.WIX_API_KEY,
+    'wix-site-id':   env.WIX_SITE_ID,
+    ...(env.WIX_ACCOUNT_ID ? { 'wix-account-id': env.WIX_ACCOUNT_ID } : {}),
+  };
+}
+
+async function wixListAllFolderIds(env) {
+  const ids = [];
+  let cursor = null, guard = 0;
+  do {
+    const u = 'https://www.wixapis.com/site-media/v1/folders?paging.limit=100'
+      + (cursor ? '&paging.cursor=' + encodeURIComponent(cursor) : '');
+    const res = await fetch(u, { headers: wixHeaders(env) });
+    if (!res.ok) {
+      const t = await res.text();
+      const e = new Error('Wix folders ' + res.status + ' ' + (res.statusText || '') + ': ' + (t || '(empty)').slice(0, 300));
+      e.status = res.status; throw e;
+    }
+    const d = await res.json();
+    for (const f of (d.folders || [])) if (f.id) ids.push(f.id);
+    cursor = d.nextCursor || null; guard++;
+  } while (cursor && guard < 25);
+  return ids;
+}
+
+async function wixListFilesPage(env, parentFolderId, fileCursor, limit) {
+  const u = 'https://www.wixapis.com/site-media/v1/files?paging.limit=' + (limit || 100)
+    + '&parentFolderId=' + encodeURIComponent(parentFolderId)
+    + (fileCursor ? '&paging.cursor=' + encodeURIComponent(fileCursor) : '');
+  const res = await fetch(u, { headers: wixHeaders(env) });
+  if (!res.ok) {
+    const t = await res.text();
+    const e = new Error('Wix files ' + res.status + ' ' + (res.statusText || '') + ': ' + (t || '(empty)').slice(0, 300));
+    e.status = res.status; throw e;
+  }
+  const d = await res.json();
+  return { files: d.files || [], next: d.nextCursor || null };
+}
+
+function encState(o) { return btoa(unescape(encodeURIComponent(JSON.stringify(o)))); }
+function decState(s) { try { return JSON.parse(decodeURIComponent(escape(atob(s)))); } catch { return null; } }
+
 function mediaTypeToMime(t) {
   return ({ IMAGE: 'image/jpeg', VIDEO: 'video/mp4', VECTOR: 'image/svg+xml', DOCUMENT: 'application/pdf' })[t] || null;
 }
@@ -2049,12 +2101,13 @@ async function handleMigrateWixMedia(req, env, origin, url) {
   }
   if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
 
-  // Count-only probe — confirms the worker's Wix key can read the Media Manager.
+  // Reachability probe — confirms the worker's Wix key can List Files. A global
+  // total isn't cheap with List Files, so we just confirm access here; the
+  // running total accrues during the index pass.
   if (url.searchParams.get('count') === '1') {
     try {
-      const data = await queryWixFiles(env, null, 1);
-      const total = data.pagingMetadata && data.pagingMetadata.total;
-      return json({ total: typeof total === 'number' ? total : null }, {}, env, origin);
+      await wixListFilesPage(env, 'media-root', null, 1);
+      return json({ total: null, reachable: true }, {}, env, origin);
     } catch (e) {
       return json({ error: e.message, status: e.status || 502 }, { status: e.status === 403 ? 403 : 502 }, env, origin);
     }
@@ -2063,8 +2116,10 @@ async function handleMigrateWixMedia(req, env, origin, url) {
   const mode   = (url.searchParams.get('mode') || 'index').toLowerCase();
   const cursor = url.searchParams.get('cursor') || null;
   const isCopy = mode === 'copy';
-  // Wix Files Query caps cursorPaging.limit at 100 — never request more.
-  const limit  = clampInt(url.searchParams.get('limit'), isCopy ? 30 : 100, 1, 100);
+  // Wix List Files caps paging.limit at 100. Copy mode fetches + R2-puts each
+  // file (binding calls count toward the 50-subrequest Free-plan limit), so keep
+  // copy batches small.
+  const limit  = clampInt(url.searchParams.get('limit'), isCopy ? 20 : 100, 1, 100);
 
   if (isCopy) {
     if (!env.MEDIA) return json({ error: 'R2 not configured' }, { status: 500 }, env, origin);
@@ -2073,14 +2128,32 @@ async function handleMigrateWixMedia(req, env, origin, url) {
     }
   }
 
-  let data;
-  try { data = await queryWixFiles(env, cursor, limit); }
-  catch (e) { return json({ error: e.message, status: e.status || 502 }, { status: e.status === 403 ? 403 : 502 }, env, origin); }
-
-  const files = data.files || [];
-  const total = (data.pagingMetadata && data.pagingMetadata.total) || null;
-  const next  = (data.pagingMetadata && data.pagingMetadata.hasNext && data.pagingMetadata.cursors)
-    ? data.pagingMetadata.cursors.next : null;
+  // Enumerate via List Files, recursing through every folder. The cursor
+  // carries the folder list + current folder index + per-folder file cursor.
+  let files = [], next = null;
+  try {
+    let state = cursor ? decState(cursor) : null;
+    if (!state || !Array.isArray(state.folders)) {
+      const folderIds = await wixListAllFolderIds(env);
+      state = { folders: ['media-root', ...folderIds], fi: 0, fc: null };
+    }
+    while (state.fi < state.folders.length) {
+      const page = await wixListFilesPage(env, state.folders[state.fi], state.fc, limit);
+      files = page.files;
+      if (page.next) {
+        next = encState({ folders: state.folders, fi: state.fi, fc: page.next });
+      } else if (state.fi + 1 < state.folders.length) {
+        next = encState({ folders: state.folders, fi: state.fi + 1, fc: null });
+      } else {
+        next = null;
+      }
+      if (files.length || next === null) break;   // got a page, or fully done
+      state = { folders: state.folders, fi: state.fi + 1, fc: null }; // skip empty folder
+    }
+  } catch (e) {
+    return json({ error: e.message, status: e.status || 502 }, { status: e.status === 403 ? 403 : 502 }, env, origin);
+  }
+  const total = null;
 
   const publicBase = (env.MEDIA_PUBLIC_BASE || '').replace(/\/+$/, '');
   const stats = { processed: 0, indexed: 0, copied: 0, skipped: 0, errors: [] };
