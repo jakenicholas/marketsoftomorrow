@@ -2189,16 +2189,16 @@ async function handleMigrateWixMedia(req, env, origin, url) {
 
   await env.DB.prepare(`CREATE TABLE IF NOT EXISTS wix_crawl (
     folder_id TEXT PRIMARY KEY, subs_done INTEGER DEFAULT 0, sub_cursor TEXT,
-    files_done INTEGER DEFAULT 0, file_cursor TEXT )`).run();
+    files_done INTEGER DEFAULT 0, file_cursor TEXT, path TEXT )`).run();
   if (!hasCursor) {
     await env.DB.prepare('DELETE FROM wix_crawl').run();
-    await env.DB.prepare("INSERT INTO wix_crawl (folder_id) VALUES ('media-root')").run();
+    await env.DB.prepare("INSERT INTO wix_crawl (folder_id, path) VALUES ('media-root', '')").run();
   }
 
   const inserts = [];
   try {
     const F = await env.DB.prepare(
-      'SELECT folder_id, subs_done, sub_cursor, files_done, file_cursor FROM wix_crawl WHERE subs_done=0 OR files_done=0 ORDER BY rowid LIMIT 1'
+      'SELECT folder_id, subs_done, sub_cursor, files_done, file_cursor, path FROM wix_crawl WHERE subs_done=0 OR files_done=0 ORDER BY rowid LIMIT 1'
     ).first();
 
     if (F) {
@@ -2211,7 +2211,10 @@ async function handleMigrateWixMedia(req, env, origin, url) {
         const sent = subCursor;
         const page = await wixListSubfoldersPage(env, F.folder_id, sent); wixCalls++;
         for (const sf of page.folders) {
-          if (sf.id) inserts.push(env.DB.prepare('INSERT OR IGNORE INTO wix_crawl (folder_id) VALUES (?1)').bind(sf.id));
+          if (sf.id) {
+            const childPath = ((F.path || '').trim() ? (F.path + ' / ') : '') + (sf.displayName || sf.id);
+            inserts.push(env.DB.prepare('INSERT OR IGNORE INTO wix_crawl (folder_id, path) VALUES (?1, ?2)').bind(sf.id, childPath));
+          }
         }
         subCursor = page.next;
         if (!subCursor || subCursor === sent) subsDone = 1;
@@ -2228,10 +2231,11 @@ async function handleMigrateWixMedia(req, env, origin, url) {
           const mimeType = guessMimeFromName(f.displayName || '') || mediaTypeToMime(f.mediaType) || 'application/octet-stream';
           const key = deriveKeyFromWixMediaUrl(src, f.displayName, mimeType);
           const sizeBytes = Number(f.sizeInBytes || 0) || null;
-          inserts.push(env.DB.prepare(`INSERT INTO media (key, filename, mime_type, size_bytes, uploaded_by, uploaded_at, url)
-            VALUES (?1,?2,?3,?4,'wix-index',?5,?6)
-            ON CONFLICT(key) DO UPDATE SET filename=excluded.filename, mime_type=excluded.mime_type, size_bytes=excluded.size_bytes`)
-            .bind(key, f.displayName || key.split('/').pop(), mimeType, sizeBytes, ts, src));
+          const folder = (F.path || '').trim() ? F.path : 'Media Root';
+          inserts.push(env.DB.prepare(`INSERT INTO media (key, filename, mime_type, size_bytes, uploaded_by, uploaded_at, url, folder)
+            VALUES (?1,?2,?3,?4,'wix-index',?5,?6,?7)
+            ON CONFLICT(key) DO UPDATE SET filename=excluded.filename, mime_type=excluded.mime_type, size_bytes=excluded.size_bytes, folder=excluded.folder`)
+            .bind(key, f.displayName || key.split('/').pop(), mimeType, sizeBytes, ts, src, folder));
           stats.indexed++;
         }
         fileCursor = page.next;
@@ -2357,17 +2361,28 @@ async function handleMediaList(req, env, origin, url) {
   if (authCheck) return authCheck;
   if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
 
+  // Folder index — distinct folders + counts, for the studio's folder sidebar.
+  if (url.searchParams.get('folders') === '1') {
+    const fr = await env.DB.prepare(
+      "SELECT COALESCE(NULLIF(folder,''),'Unfiled') AS folder, COUNT(*) AS count FROM media GROUP BY COALESCE(NULLIF(folder,''),'Unfiled') ORDER BY folder"
+    ).all();
+    const totalRow = await env.DB.prepare('SELECT COUNT(*) c FROM media').first();
+    return json({ folders: fr.results || [], total: totalRow ? totalRow.c : 0 }, {}, env, origin);
+  }
+
   const limit  = clampInt(url.searchParams.get('limit'), 60, 1, 200);
   const offset = clampInt(url.searchParams.get('offset'), 0, 0, 100000);
   const q      = (url.searchParams.get('q') || '').trim();
+  const folder = (url.searchParams.get('folder') || '').trim();
 
   const where = []; const params = [];
-  if (q) { where.push(`(filename LIKE ?${params.length+1} OR alt_text LIKE ?${params.length+1})`); params.push('%' + q + '%'); }
+  if (q)      { where.push(`(filename LIKE ?${params.length+1} OR alt_text LIKE ?${params.length+1})`); params.push('%' + q + '%'); }
+  if (folder) { where.push(`folder = ?${params.length+1}`); params.push(folder); }
   const whereSql = where.length ? 'WHERE ' + where.join(' AND ') : '';
 
   const total = await env.DB.prepare(`SELECT COUNT(*) c FROM media ${whereSql}`).bind(...params).first();
   const rows  = await env.DB.prepare(`
-    SELECT key, filename, mime_type, size_bytes, width, height, alt_text, caption, uploaded_at, url
+    SELECT key, filename, mime_type, size_bytes, width, height, alt_text, caption, uploaded_at, url, folder
     FROM media ${whereSql}
     ORDER BY uploaded_at DESC
     LIMIT ${limit} OFFSET ${offset}
