@@ -165,6 +165,8 @@ nav.main .wrap{display:flex; align-items:center; justify-content:space-between; 
 .story-card .sc-more{display:inline-flex; align-items:center; gap:10px; color:var(--white); font-family:var(--sans); font-size:14px; font-weight:500; margin-top:6px; transition:color .2s, gap .2s}
 .story-card .sc-more:hover{color:var(--green); gap:14px}
 .story-card .sc-more svg{width:14px; height:14px}
+.story-card .sc-emblem{position:absolute; inset:0; z-index:2; display:flex; align-items:center; justify-content:center; padding:clamp(40px,6vw,80px) clamp(24px,5vw,60px) clamp(70px,8vw,110px); background:radial-gradient(ellipse at center, rgba(7,8,7,.52) 0%, rgba(7,8,7,.24) 70%, rgba(7,8,7,.12) 100%)}
+.story-card .sc-emblem img{width:min(700px, 88%); height:auto; filter:drop-shadow(0 8px 30px rgba(0,0,0,.55))}
 .story-card .sc-tabs{position:absolute; left:50%; bottom:0; transform:translate(-50%, 50%); z-index:3; display:flex; gap:10px; padding:6px; background:rgba(7,8,7,.78); backdrop-filter:var(--glass); -webkit-backdrop-filter:var(--glass); border:1px solid var(--hair-2); border-radius:999px; box-shadow:0 18px 40px -10px rgba(0,0,0,.6)}
 .story-card .sc-tab{font-family:var(--mono); font-size:12px; letter-spacing:.18em; text-transform:uppercase; font-weight:600; padding:12px 24px; border-radius:999px; color:var(--cream); transition:all .2s ease; white-space:nowrap}
 .story-card .sc-tab:hover{background:rgba(255,255,255,.06); color:var(--white)}
@@ -254,6 +256,7 @@ nav.main .wrap{display:flex; align-items:center; justify-content:space-between; 
 .ri-chip.arch{color:var(--gold-soft); border-color:rgba(230,197,116,.3); background:rgba(230,197,116,.06)}
 .ri-chip.year{color:var(--purple-glow); border-color:rgba(167,139,250,.32); background:rgba(167,139,250,.06)}
 .ri-chip.par{color:var(--mute-2)}
+body:not(.edit-mode) .ri-chip:empty{display:none}
 .ri-desc{color:var(--mute-2); font-size:15px; line-height:1.65; font-weight:300; max-width:62ch}
 .ri-ctas{display:flex; gap:12px; margin-top:24px; flex-wrap:wrap; align-items:center}
 .btn-official{font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; font-weight:600; padding:11px 18px; border-radius:999px; border:1px solid var(--hair-2); color:var(--cream); display:inline-flex; align-items:center; gap:7px; transition:all .2s}
@@ -450,16 +453,8 @@ footer .tmw-wordmark{width:118px}
     <div class="sc-clip">
       <div class="sc-bg"><img id="hero-img" alt=""></div>
     </div>
-    <div class="sc-content">
-      <div class="sc-crumbs">
-        <a href="/">Markets of Tomorrow</a><span class="sep">/</span><span>Iconic Lists</span><span class="sep">/</span><span class="here">Hotels</span>
-      </div>
-      <div class="sc-eyebrow"><span class="star">☆</span> Featured</div>
-      <h1><a id="hero-link" href="#">Loading the latest hotel story&hellip;</a></h1>
-      <p class="sc-desc" id="hero-summary"></p>
-      <a href="#" class="sc-more" id="hero-cta">Read more
-        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
-      </a>
+    <div class="sc-emblem">
+      <img src="/journal/_shared/iconic/hotels.svg" alt="The Iconic Hotel List">
     </div>
     <nav class="sc-tabs" aria-label="Verticals">
       <a class="sc-tab" href="/">News</a>
@@ -642,7 +637,7 @@ footer .tmw-wordmark{width:118px}
       "name": "One Aldwych",
       "location": "London, UK, Europe",
       "region": "Europe",
-      "architect": "",
+      "architect": "London",
       "year": "",
       "image": "https://static.wixstatic.com/media/ca3b83_cf0db4fef757476a89abdcdc66505889~mv2.jpg",
       "credit": "",
@@ -656,7 +651,7 @@ footer .tmw-wordmark{width:118px}
       "name": "Little Palm Island",
       "location": "Little Torch Key, Florida",
       "region": "Florida",
-      "architect": "",
+      "architect": "Little Torch Key",
       "year": "",
       "image": "https://static.wixstatic.com/media/ca3b83_aa32cd563692400a8f80ace0472855d0~mv2.jpeg",
       "credit": "",
@@ -670,7 +665,7 @@ footer .tmw-wordmark{width:118px}
       "name": "1 Hotel Hanalei Bay",
       "location": "Princeville, Hawaii, United States",
       "region": "United States",
-      "architect": "",
+      "architect": "Princeville",
       "year": "",
       "image": "https://static.wixstatic.com/media/ca3b83_c828544cd36049d3ba45edd1eb6630e1~mv2.jpg",
       "credit": "",
@@ -684,7 +679,7 @@ footer .tmw-wordmark{width:118px}
       "name": "Four Seasons Hotel & Residences, Fort Lauderdale",
       "location": "Fort Lauderdale, Florida",
       "region": "Florida",
-      "architect": "",
+      "architect": "Fort Lauderdale",
       "year": "",
       "image": "https://static.wixstatic.com/media/ca3b83_c02930a27d0942da960e8b12061c2042~mv2.jpg",
       "credit": "",
@@ -698,7 +693,7 @@ footer .tmw-wordmark{width:118px}
       "name": "Andaz Maui",
       "location": "Maui, Hawaii, United States",
       "region": "United States",
-      "architect": "",
+      "architect": "Maui",
       "year": "",
       "image": "https://static.wixstatic.com/media/ca3b83_805027ff8f07425da91437588775b672~mv2.webp",
       "credit": "",
@@ -712,7 +707,7 @@ footer .tmw-wordmark{width:118px}
       "name": "The Biltmore",
       "location": "Coral Gables, Florida",
       "region": "Florida",
-      "architect": "",
+      "architect": "Coral Gables",
       "year": "",
       "image": "https://static.wixstatic.com/media/ca3b83_f4432e0f45ba4869b76f9f98e2951669~mv2.jpg",
       "credit": "",
@@ -726,7 +721,7 @@ footer .tmw-wordmark{width:118px}
       "name": "Ko'a Kea",
       "location": "Kauai, Hawaii, United States",
       "region": "United States",
-      "architect": "121 keys",
+      "architect": "Kauai",
       "year": "",
       "image": "https://static.wixstatic.com/media/ca3b83_219e38f7414b4a7e8819c899f35131fc~mv2.jpeg",
       "credit": "",
@@ -740,7 +735,7 @@ footer .tmw-wordmark{width:118px}
       "name": "Islander Resort",
       "location": "Islamorada, Florida",
       "region": "Florida",
-      "architect": "114 keys",
+      "architect": "Islamorada",
       "year": "",
       "image": "https://static.wixstatic.com/media/ca3b83_e8a7c148f72f4ebfaae34ae8afb6ca8e~mv2.jpeg",
       "credit": "",
@@ -754,7 +749,7 @@ footer .tmw-wordmark{width:118px}
       "name": "Aman New York",
       "location": "Manhattan, New York",
       "region": "New York",
-      "architect": "",
+      "architect": "Manhattan",
       "year": "",
       "image": "https://static.wixstatic.com/media/68dd32_5800f3a4c6df45a6a87524aee526b9f0~mv2.webp",
       "credit": "",
@@ -768,7 +763,7 @@ footer .tmw-wordmark{width:118px}
       "name": "Four Seasons Resort Palm Beach",
       "location": "Palm Beach, Florida",
       "region": "Florida",
-      "architect": "207 keys",
+      "architect": "Palm Beach",
       "year": "",
       "image": "https://static.wixstatic.com/media/ca3b83_a535b8dc549a43dd9f54205118c114ad~mv2.jpg",
       "credit": "",
@@ -782,7 +777,7 @@ footer .tmw-wordmark{width:118px}
       "name": "Bulgari Hotel Tokyo",
       "location": "Tokyo, Japan, Asia",
       "region": "Asia",
-      "architect": "",
+      "architect": "Tokyo",
       "year": "",
       "image": "https://static.wixstatic.com/media/68dd32_fe1def8666cc4bf3ba3c88233224f998~mv2.webp",
       "credit": "",
@@ -796,7 +791,7 @@ footer .tmw-wordmark{width:118px}
       "name": "Passalacqua",
       "location": "Moltrasio, Italy, Europe",
       "region": "Europe",
-      "architect": "",
+      "architect": "Moltrasio",
       "year": "",
       "image": "https://static.wixstatic.com/media/68dd32_cb5f0ec6cbf340bfa42b6db51b739ebf~mv2.jpeg",
       "credit": "",
@@ -810,7 +805,7 @@ footer .tmw-wordmark{width:118px}
       "name": "Hôtel de Crillon",
       "location": "Paris, France, Europe",
       "region": "Europe",
-      "architect": "",
+      "architect": "Paris",
       "year": "",
       "image": "https://static.wixstatic.com/media/68dd32_9d39a8a1b8ab4ace9ac545479255989a~mv2.jpg",
       "credit": "",
@@ -824,7 +819,7 @@ footer .tmw-wordmark{width:118px}
       "name": "The Breakers Palm Beach",
       "location": "Palm Beach, Florida",
       "region": "Florida",
-      "architect": "",
+      "architect": "Palm Beach",
       "year": "",
       "image": "https://static.wixstatic.com/media/ca3b83_4d11c423d6014133b04d86ebd0997f48~mv2.jpg",
       "credit": "",
@@ -838,7 +833,7 @@ footer .tmw-wordmark{width:118px}
       "name": "The Lana",
       "location": "Business Bay, Dubai, Asia",
       "region": "Asia",
-      "architect": "",
+      "architect": "Business Bay",
       "year": "",
       "image": "https://static.wixstatic.com/media/68dd32_6ad2cf81325a4db6960fed6f70bb187d~mv2.jpg",
       "credit": "",
@@ -852,7 +847,7 @@ footer .tmw-wordmark{width:118px}
       "name": "The Tampa EDITION",
       "location": "Tampa, Florida",
       "region": "Florida",
-      "architect": "",
+      "architect": "Tampa",
       "year": "",
       "image": "https://static.wixstatic.com/media/ca3b83_c6c8ddd460634a5aa99c771030888e6d~mv2.jpg",
       "credit": "",
@@ -866,7 +861,7 @@ footer .tmw-wordmark{width:118px}
       "name": "The Carlyle",
       "location": "Manhattan, New York",
       "region": "New York",
-      "architect": "",
+      "architect": "Manhattan",
       "year": "",
       "image": "https://static.wixstatic.com/media/68dd32_68077f5a259c463c8c526a69357d77d7~mv2.webp",
       "credit": "",
@@ -880,7 +875,7 @@ footer .tmw-wordmark{width:118px}
       "name": "The Boca Raton",
       "location": "Boca Raton, Florida",
       "region": "Florida",
-      "architect": "",
+      "architect": "Boca Raton",
       "year": "",
       "image": "https://static.wixstatic.com/media/ca3b83_a8965f1819824594813e67e093f97f7e~mv2.webp",
       "credit": "",
@@ -894,7 +889,7 @@ footer .tmw-wordmark{width:118px}
       "name": "La Mamounia",
       "location": "Marrakech, Morocco, Africa",
       "region": "Africa",
-      "architect": "",
+      "architect": "Marrakech",
       "year": "",
       "image": "https://static.wixstatic.com/media/68dd32_eab874a6b7044fa7b60d2920e4454902~mv2.png",
       "credit": "",
@@ -908,7 +903,7 @@ footer .tmw-wordmark{width:118px}
       "name": "Four Seasons Madrid",
       "location": "Madrid, Spain, Europe",
       "region": "Europe",
-      "architect": "",
+      "architect": "Madrid",
       "year": "",
       "image": "https://static.wixstatic.com/media/68dd32_2bc55e7cbeb248ea843324f1e5b3cc48~mv2.jpg",
       "credit": "",
@@ -922,7 +917,7 @@ footer .tmw-wordmark{width:118px}
       "name": "Four Seasons Firenze",
       "location": "Firenze, Italy, Europe",
       "region": "Europe",
-      "architect": "",
+      "architect": "Firenze",
       "year": "",
       "image": "https://static.wixstatic.com/media/68dd32_1b567728ae594cda80834cf7ad4f9507~mv2.jpeg",
       "credit": "",
@@ -936,7 +931,7 @@ footer .tmw-wordmark{width:118px}
       "name": "The Colony",
       "location": "Palm Beach, Florida",
       "region": "Florida",
-      "architect": "",
+      "architect": "Palm Beach",
       "year": "",
       "image": "https://static.wixstatic.com/media/ca3b83_c4f22ddb74704413821834df67cc7524~mv2.jpg",
       "credit": "",
@@ -950,7 +945,7 @@ footer .tmw-wordmark{width:118px}
       "name": "Capella Singapore",
       "location": "Sentosa Island, Singapore, Asia",
       "region": "Asia",
-      "architect": "",
+      "architect": "Sentosa Island",
       "year": "",
       "image": "https://static.wixstatic.com/media/68dd32_348bf617ecfb49b2ad6b95d42011bffd~mv2.jpg",
       "credit": "",
@@ -964,7 +959,7 @@ footer .tmw-wordmark{width:118px}
       "name": "Soneva Jani",
       "location": "Medhufaru Island, Maldives, Asia",
       "region": "Asia",
-      "architect": "",
+      "architect": "Medhufaru Island",
       "year": "",
       "image": "https://static.wixstatic.com/media/68dd32_b1757427848f464ab77b05bf51f0092d~mv2.jpg",
       "credit": "",
@@ -978,7 +973,7 @@ footer .tmw-wordmark{width:118px}
       "name": "The Beverly Hills Hotel",
       "location": "Beverly Hills, California, United States",
       "region": "United States",
-      "architect": "",
+      "architect": "Beverly Hills",
       "year": "",
       "image": "https://static.wixstatic.com/media/68dd32_561b36f9d01a49f0a5c525d04ff292a5~mv2.jpg",
       "credit": "",
@@ -992,7 +987,7 @@ footer .tmw-wordmark{width:118px}
       "name": "One&Only Cape Town",
       "location": "Cape Town, South Africa",
       "region": "Africa",
-      "architect": "",
+      "architect": "Cape Town",
       "year": "",
       "image": "https://static.wixstatic.com/media/68dd32_851543ceb5364dfa8b9b68493beddc02~mv2.jpg",
       "credit": "",
@@ -1006,7 +1001,7 @@ footer .tmw-wordmark{width:118px}
       "name": "The Upper House",
       "location": "Hong Kong, China, Asia",
       "region": "Asia",
-      "architect": "",
+      "architect": "Hong Kong",
       "year": "",
       "image": "https://static.wixstatic.com/media/68dd32_45201dc2b2da40bcb52cc2320ee5f9c2~mv2.jpg",
       "credit": "",
@@ -1020,7 +1015,7 @@ footer .tmw-wordmark{width:118px}
       "name": "Park Hyatt Sydney",
       "location": "Sydney, Australia, Oceania",
       "region": "Oceania",
-      "architect": "155 keys",
+      "architect": "Sydney",
       "year": "",
       "image": "https://static.wixstatic.com/media/68dd32_af0ebda727f243cbbd22d1f6ddea9324~mv2.jpg",
       "credit": "",
@@ -1034,7 +1029,7 @@ footer .tmw-wordmark{width:118px}
       "name": "Four Seasons Hotel at The Surf Club",
       "location": "Surfside, Florida",
       "region": "Florida",
-      "architect": "77 keys",
+      "architect": "Surfside",
       "year": "",
       "image": "https://static.wixstatic.com/media/ca3b83_5232caa9e9f7458797bdf6a4e44cb003~mv2.jpg",
       "credit": "",
@@ -1048,7 +1043,7 @@ footer .tmw-wordmark{width:118px}
       "name": "Park Hotel Vitznau",
       "location": "Vitznau, Switzerland, Europe",
       "region": "Europe",
-      "architect": "48 keys",
+      "architect": "Vitznau",
       "year": "",
       "image": "https://static.wixstatic.com/media/68dd32_d4f71ed238c849cbbfbca1d065ba9afd~mv2.webp",
       "credit": "",
@@ -1062,7 +1057,7 @@ footer .tmw-wordmark{width:118px}
       "name": "The Hermitage Hotel",
       "location": "Nashville, Tennessee",
       "region": "Tennessee",
-      "architect": "122 keys",
+      "architect": "Nashville",
       "year": "",
       "image": "https://static.wixstatic.com/media/68dd32_a6de9d106a1a4e9eb4cb27de4ceb3f35~mv2.jpg",
       "credit": "",
@@ -1076,7 +1071,7 @@ footer .tmw-wordmark{width:118px}
       "name": "The Siam",
       "location": "Bangkok, Thailand, Asia",
       "region": "Asia",
-      "architect": "38 keys",
+      "architect": "Bangkok",
       "year": "",
       "image": "https://static.wixstatic.com/media/68dd32_8e08f93920bc4366afc4ec1f6e6f0613~mv2.png",
       "credit": "",
@@ -1090,7 +1085,7 @@ footer .tmw-wordmark{width:118px}
       "name": "Jade Mountain Resort",
       "location": "Mamin, St. Lucia, Caribbean",
       "region": "Caribbean",
-      "architect": "29 keys",
+      "architect": "Mamin",
       "year": "",
       "image": "https://static.wixstatic.com/media/68dd32_2bd28959274e4424a48a8f3b4da4e0c6~mv2.jpeg",
       "credit": "",
@@ -1104,7 +1099,7 @@ footer .tmw-wordmark{width:118px}
       "name": "The Retreat Hotel",
       "location": "Grindavík, Iceland, Europe",
       "region": "Europe",
-      "architect": "62 keys",
+      "architect": "Grindavík",
       "year": "",
       "image": "https://static.wixstatic.com/media/68dd32_714c755b61c146dc901f976e392403a0~mv2.webp",
       "credit": "",
@@ -1118,7 +1113,7 @@ footer .tmw-wordmark{width:118px}
       "name": "Marbella Club",
       "location": "Málaga, Spain, Europe",
       "region": "Europe",
-      "architect": "130 keys",
+      "architect": "Málaga",
       "year": "",
       "image": "https://static.wixstatic.com/media/68dd32_24bcadd79dc44dd6b624800ce9e5e7fa~mv2.webp",
       "credit": "",
@@ -1132,7 +1127,7 @@ footer .tmw-wordmark{width:118px}
       "name": "Blanket Bay",
       "location": "Glenorchy, New Zealand, Oceania",
       "region": "Oceania",
-      "architect": "13 keys",
+      "architect": "Glenorchy",
       "year": "",
       "image": "https://static.wixstatic.com/media/68dd32_241d02961f754091b60acc434a61338e~mv2.avif",
       "credit": "",
@@ -1146,7 +1141,7 @@ footer .tmw-wordmark{width:118px}
       "name": "Claridge's",
       "location": "London, England, Europe",
       "region": "Europe",
-      "architect": "190 keys",
+      "architect": "London",
       "year": "",
       "image": "https://static.wixstatic.com/media/68dd32_7cc2a0f54f2843a79e0e17373fa22a35~mv2.jpg",
       "credit": "",
@@ -1160,7 +1155,7 @@ footer .tmw-wordmark{width:118px}
       "name": "Amanzoe",
       "location": "Porto Heli, Greece, Europe",
       "region": "Europe",
-      "architect": "38 keys",
+      "architect": "Porto Heli",
       "year": "",
       "image": "https://static.wixstatic.com/media/68dd32_82ccab7614ad480d8fe5207d2281e04e~mv2.jpg",
       "credit": "",
@@ -1174,7 +1169,7 @@ footer .tmw-wordmark{width:118px}
       "name": "Streamsong Resort",
       "location": "Bowling Green, Florida",
       "region": "Florida",
-      "architect": "",
+      "architect": "Bowling Green",
       "year": "",
       "image": "https://static.wixstatic.com/media/ca3b83_db400f0f900c4a2eb636289da2989b45~mv2.avif",
       "credit": "",
@@ -1188,7 +1183,7 @@ footer .tmw-wordmark{width:118px}
       "name": "Singita Faru Faru Lodge",
       "location": "Serengeti, Tanzania, Africa",
       "region": "Africa",
-      "architect": "9 keys",
+      "architect": "Serengeti",
       "year": "",
       "image": "https://static.wixstatic.com/media/68dd32_f1f33e1bc5fa46a09df00b5b16d27d23~mv2.jpg",
       "credit": "",
@@ -1202,7 +1197,7 @@ footer .tmw-wordmark{width:118px}
       "name": "Acqualina Resort & Residences",
       "location": "Sunny Isles Beach, Florida",
       "region": "Florida",
-      "architect": "98 keys",
+      "architect": "Sunny Isles Beach",
       "year": "",
       "image": "https://static.wixstatic.com/media/ca3b83_2790e32805ad43ec811e8a66e8e8e89a~mv2.webp",
       "credit": "",
@@ -1216,7 +1211,7 @@ footer .tmw-wordmark{width:118px}
       "name": "Amangiri",
       "location": "Canyon Point, Utah, United States",
       "region": "United States",
-      "architect": "34 keys",
+      "architect": "Canyon Point",
       "year": "",
       "image": "https://static.wixstatic.com/media/68dd32_052ce865ffa14d489f9f78fa212da8e8~mv2.webp",
       "credit": "",
@@ -1230,7 +1225,7 @@ footer .tmw-wordmark{width:118px}
       "name": "Hotel Santa Caterina",
       "location": "Amalfi, Italy, Europe",
       "region": "Europe",
-      "architect": "36 keys",
+      "architect": "Amalfi",
       "year": "",
       "image": "https://static.wixstatic.com/media/68dd32_ef92064db27c4b2d8641437cd1f7cd38~mv2.jpg",
       "credit": "",
@@ -2001,12 +1996,11 @@ window.logAdClick = function(id) {
 function renderFeaturedCard(item) {
   if (!item) return;
   const link = item.link || '#';
-  document.getElementById('hero-link').href = link;
-  document.getElementById('hero-link').textContent = item.title;
-  document.getElementById('hero-cta').href = link;
-  document.getElementById('hero-summary').textContent = item.summary || '';
-  const img = document.getElementById('hero-img');
-  if (item.image) { img.src = item.image; img.alt = item.title; }
+  const set = (id, fn) => { const el = document.getElementById(id); if (el) fn(el); };
+  set('hero-link', el => { el.href = link; el.textContent = item.title; });
+  set('hero-cta', el => { el.href = link; });
+  set('hero-summary', el => { el.textContent = item.summary || ''; });
+  set('hero-img', el => { if (item.image) { el.src = item.image; el.alt = item.title; } });
 }
 
 // ---------------------------------------------------------------

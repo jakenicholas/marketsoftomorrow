@@ -165,6 +165,8 @@ nav.main .wrap{display:flex; align-items:center; justify-content:space-between; 
 .story-card .sc-more{display:inline-flex; align-items:center; gap:10px; color:var(--white); font-family:var(--sans); font-size:14px; font-weight:500; margin-top:6px; transition:color .2s, gap .2s}
 .story-card .sc-more:hover{color:var(--green); gap:14px}
 .story-card .sc-more svg{width:14px; height:14px}
+.story-card .sc-emblem{position:absolute; inset:0; z-index:2; display:flex; align-items:center; justify-content:center; padding:clamp(40px,6vw,80px) clamp(24px,5vw,60px) clamp(70px,8vw,110px); background:radial-gradient(ellipse at center, rgba(7,8,7,.52) 0%, rgba(7,8,7,.24) 70%, rgba(7,8,7,.12) 100%)}
+.story-card .sc-emblem img{width:min(700px, 88%); height:auto; filter:drop-shadow(0 8px 30px rgba(0,0,0,.55))}
 .story-card .sc-tabs{position:absolute; left:50%; bottom:0; transform:translate(-50%, 50%); z-index:3; display:flex; gap:10px; padding:6px; background:rgba(7,8,7,.78); backdrop-filter:var(--glass); -webkit-backdrop-filter:var(--glass); border:1px solid var(--hair-2); border-radius:999px; box-shadow:0 18px 40px -10px rgba(0,0,0,.6)}
 .story-card .sc-tab{font-family:var(--mono); font-size:12px; letter-spacing:.18em; text-transform:uppercase; font-weight:600; padding:12px 24px; border-radius:999px; color:var(--cream); transition:all .2s ease; white-space:nowrap}
 .story-card .sc-tab:hover{background:rgba(255,255,255,.06); color:var(--white)}
@@ -254,6 +256,7 @@ nav.main .wrap{display:flex; align-items:center; justify-content:space-between; 
 .ri-chip.arch{color:var(--gold-soft); border-color:rgba(230,197,116,.3); background:rgba(230,197,116,.06)}
 .ri-chip.year{color:var(--purple-glow); border-color:rgba(167,139,250,.32); background:rgba(167,139,250,.06)}
 .ri-chip.par{color:var(--mute-2)}
+body:not(.edit-mode) .ri-chip:empty{display:none}
 .ri-desc{color:var(--mute-2); font-size:15px; line-height:1.65; font-weight:300; max-width:62ch}
 .ri-ctas{display:flex; gap:12px; margin-top:24px; flex-wrap:wrap; align-items:center}
 .btn-official{font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; font-weight:600; padding:11px 18px; border-radius:999px; border:1px solid var(--hair-2); color:var(--cream); display:inline-flex; align-items:center; gap:7px; transition:all .2s}
@@ -450,16 +453,8 @@ footer .tmw-wordmark{width:118px}
     <div class="sc-clip">
       <div class="sc-bg"><img id="hero-img" alt=""></div>
     </div>
-    <div class="sc-content">
-      <div class="sc-crumbs">
-        <a href="/">Markets of Tomorrow</a><span class="sep">/</span><span>Iconic Lists</span><span class="sep">/</span><span class="here">Golf</span>
-      </div>
-      <div class="sc-eyebrow"><span class="star">☆</span> Featured</div>
-      <h1><a id="hero-link" href="#">Loading the latest golf story&hellip;</a></h1>
-      <p class="sc-desc" id="hero-summary"></p>
-      <a href="#" class="sc-more" id="hero-cta">Read more
-        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
-      </a>
+    <div class="sc-emblem">
+      <img src="/journal/_shared/iconic/golf.svg" alt="The Iconic Golf List">
     </div>
     <nav class="sc-tabs" aria-label="Verticals">
       <a class="sc-tab" href="/">News</a>
@@ -1830,12 +1825,11 @@ window.logAdClick = function(id) {
 function renderFeaturedCard(item) {
   if (!item) return;
   const link = item.link || '#';
-  document.getElementById('hero-link').href = link;
-  document.getElementById('hero-link').textContent = item.title;
-  document.getElementById('hero-cta').href = link;
-  document.getElementById('hero-summary').textContent = item.summary || '';
-  const img = document.getElementById('hero-img');
-  if (item.image) { img.src = item.image; img.alt = item.title; }
+  const set = (id, fn) => { const el = document.getElementById(id); if (el) fn(el); };
+  set('hero-link', el => { el.href = link; el.textContent = item.title; });
+  set('hero-cta', el => { el.href = link; });
+  set('hero-summary', el => { el.textContent = item.summary || ''; });
+  set('hero-img', el => { if (item.image) { el.src = item.image; el.alt = item.title; } });
 }
 
 // ---------------------------------------------------------------
