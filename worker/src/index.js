@@ -2187,11 +2187,14 @@ async function handleMigrateWixMedia(req, env, origin, url) {
   const limit = clampInt(url.searchParams.get('limit'), 100, 1, 100);
   const stats = { processed: 0, indexed: 0, copied: 0, skipped: 0, errors: [] };
 
+  // Drop the ephemeral crawl queue on a fresh run so it always recreates with
+  // the current schema (CREATE TABLE IF NOT EXISTS won't add new columns to a
+  // pre-existing table — which is what broke the folder-path migration).
+  if (!hasCursor) await env.DB.prepare('DROP TABLE IF EXISTS wix_crawl').run();
   await env.DB.prepare(`CREATE TABLE IF NOT EXISTS wix_crawl (
     folder_id TEXT PRIMARY KEY, subs_done INTEGER DEFAULT 0, sub_cursor TEXT,
     files_done INTEGER DEFAULT 0, file_cursor TEXT, path TEXT )`).run();
   if (!hasCursor) {
-    await env.DB.prepare('DELETE FROM wix_crawl').run();
     await env.DB.prepare("INSERT INTO wix_crawl (folder_id, path) VALUES ('media-root', '')").run();
   }
 
