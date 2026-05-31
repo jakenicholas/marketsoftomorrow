@@ -2137,10 +2137,15 @@ async function migrateCopyBatch(env, limit, publicBase, ts) {
     stats.processed++;
     try {
       const res = await fetch(r.url, { cf: { cacheTtl: 86400 } });
-      if (!res.ok) { stats.errors.push({ file: r.key, error: 'fetch ' + res.status }); return null; }
-      const buf = await res.arrayBuffer();
+      if (!res.ok || !res.body) { stats.errors.push({ file: r.key, error: 'fetch ' + res.status }); return null; }
       const ct = res.headers.get('content-type') || guessMimeFromName(r.key) || 'application/octet-stream';
-      await env.MEDIA.put(r.key, buf, {
+      const clen = parseInt(res.headers.get('content-length') || '0', 10) || null;
+      // STREAM the response body straight into R2 — never buffer the whole file.
+      // Critical: the media set runs up to ~5MB+ per image; buffering with
+      // arrayBuffer() across the wave's concurrency blew the Worker's 128MB cap
+      // and OOM-killed the entire tick (no commit, lock left dangling). Streaming
+      // keeps memory flat regardless of file size.
+      await env.MEDIA.put(r.key, res.body, {
         httpMetadata: { contentType: ct, cacheControl: 'public, max-age=31536000, immutable' },
         customMetadata: { source: r.url, migrated_at: String(Date.now()) },
       });
@@ -2150,15 +2155,14 @@ async function migrateCopyBatch(env, limit, publicBase, ts) {
       // source→R2 mapping is fully recoverable from media (key encodes the Wix
       // id; R2 customMetadata.source holds the original URL).
       return env.DB.prepare("UPDATE media SET url=?1, mime_type=?2, size_bytes=?3, uploaded_by='wix-migrate' WHERE key=?4")
-        .bind(publicBase + '/' + r.key, ct, buf.byteLength, r.key);
+        .bind(publicBase + '/' + r.key, ct, clen, r.key);
     } catch (e) { stats.errors.push({ file: r.key, error: (e.message || String(e)).slice(0, 160) }); return null; }
   };
 
-  // Process the batch in bounded-concurrency waves (copy is I/O-bound), then
-  // flush each wave's DB writes in ONE batch. Failed/partial work just retries
-  // next call. Only the fetch counts toward the subrequest cap (R2/D1 bindings
-  // don't), so the concurrency can be high.
-  const CONC = 24;
+  // Process the batch in bounded-concurrency waves, flushing each wave's DB
+  // writes in ONE batch. Concurrency is kept modest because each in-flight item
+  // streams a (possibly multi-MB) file — too many at once risks memory pressure.
+  const CONC = 6;
   for (let i = 0; i < list.length; i += CONC) {
     const results = await Promise.all(list.slice(i, i + CONC).map(copyOne));
     const writes = results.filter(Boolean);
@@ -2277,7 +2281,7 @@ async function migrationTick(env) {
       const publicBase = env.MEDIA_PUBLIC_BASE.replace(/\/+$/, '');
       let batches = 0;
       while (Date.now() - startMs < COPY_DEADLINE_MS) {
-        const s = await migrateCopyBatch(env, 40, publicBase, now);
+        const s = await migrateCopyBatch(env, 24, publicBase, now);
         out.copied += s.copied;
         remaining = s.remaining;
         batches++;
