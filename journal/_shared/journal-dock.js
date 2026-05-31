@@ -98,9 +98,18 @@
     // Smaller wordmark in the header on desktop (mobile 74px is set above).
     'nav.main .tmw-wordmark{width:92px}',
 
+    // ── Header stacking: nav.main has a backdrop-filter, so it forms its own
+    //    stacking context. Static (the default) it would paint BELOW the
+    //    positioned pulse ticker, hiding the open Focus Markets dropdown behind
+    //    it. Promote nav.main above the ticker so the dropdown sits on top.
+    'nav.main{position:relative; z-index:50}',
+
     // ── Header CTA swapped from "Open Map" to an Instagram icon button.
-    '.nav-cta.tmw-ig{padding:0; width:42px; height:42px; min-width:42px; justify-content:center; gap:0; overflow:visible}',
-    '.nav-cta.tmw-ig svg{width:21px; height:21px; color:var(--cream); transition:color .2s}',
+    //    No circle: transparent bg + no border, just the glyph.
+    '.nav-cta.tmw-ig{padding:0; width:42px; height:42px; min-width:42px; justify-content:center; gap:0; overflow:visible; background:transparent !important; border:0 !important; box-shadow:none !important}',
+    '.nav-cta.tmw-ig::before{display:none !important}',
+    '.nav-cta.tmw-ig:hover{background:transparent !important; border-color:transparent !important; transform:none !important}',
+    '.nav-cta.tmw-ig svg{width:22px; height:22px; color:var(--cream); transition:color .2s}',
     '.nav-cta.tmw-ig:hover svg{color:#fff}',
     '@media(max-width:980px){.nav-cta.tmw-ig{width:38px; height:38px; min-width:38px}}',
 

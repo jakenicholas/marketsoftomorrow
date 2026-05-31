@@ -237,9 +237,8 @@ function renderArticle(post) {
   if (post.image) ensureMeta('twitter:image', post.image, false);
   injectArticleJsonLd(post, canonical, seoDesc);
 
-  // Categories (pills + first as crumb)
+  // Categories (pills)
   const cats = (post.categories || []).filter(c => !/markets of tomorrow|of tomorrow/i.test(c));
-  document.getElementById('crumb-cat').textContent = cats[0] || 'Story';
   const catRow = document.getElementById('cat-row');
   catRow.innerHTML = cats.slice(0, 4).map(c => `<span class="cat">${escapeHtml(c)}</span>`).join('');
 
@@ -253,7 +252,6 @@ function renderArticle(post) {
   // Byline
   document.getElementById('article-author').textContent = post.author || 'Markets of Tomorrow';
   document.getElementById('article-date').textContent = post.pubDate ? formatLongDate(post.pubDate) : '';
-  document.getElementById('legacy-source').href = post.link || '#';
 
   // Cover image
   const cover = document.getElementById('article-cover-img');
@@ -616,11 +614,22 @@ async function updateMapCounter() {
 }
 
 function hookCopyLink() {
-  const btn = document.getElementById('copy-link-btn');
+  const btn = document.getElementById('share-btn');
   if (!btn) return;
   btn.addEventListener('click', async () => {
-    try { await navigator.clipboard.writeText(location.href); btn.textContent = 'Copied!'; setTimeout(() => btn.textContent = 'Copy link', 1800); }
-    catch { btn.textContent = 'Copy failed'; }
+    const shareData = { title: document.title, url: location.href };
+    // Native share sheet where available (mobile + most modern browsers);
+    // fall back to copying the link with a brief check-mark confirmation.
+    if (navigator.share) {
+      try { await navigator.share(shareData); return; }
+      catch (e) { if (e && e.name === 'AbortError') return; /* else fall through to copy */ }
+    }
+    try {
+      await navigator.clipboard.writeText(location.href);
+      btn.classList.add('copied');
+      btn.setAttribute('title', 'Link copied');
+      setTimeout(() => { btn.classList.remove('copied'); btn.setAttribute('title', 'Share'); }, 1600);
+    } catch (e) {}
   });
 }
 

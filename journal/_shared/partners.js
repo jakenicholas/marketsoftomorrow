@@ -1,61 +1,52 @@
 /*
-  Partners of Tomorrow — shared mount script.
+  Partners of Tomorrow — shared client wall.
 
   Usage on any page:
       <div data-tmw-partners></div>
       <script src="/journal/_shared/partners.js" defer></script>
 
-  Reads /journal/partners.json (single source of truth across the site)
-  and renders the Signature Partners showcase into every matching mount
-  point. Styles are scoped via the .tmw-partners root class so this
-  embed doesn't collide with host-page CSS.
+  If no [data-tmw-partners] mount exists on the page, one is auto-injected
+  just before the footer (or at the end of <body>), so the section is
+  UNIVERSAL across every journal page with a single script include.
 
-  Edit partners.json → next page load propagates everywhere.
+  Reads /journal/clients.json (the same client list shown on the /media kit)
+  and renders a logo wall preview. The "Load more" button links to /media
+  for the full directory rather than expanding inline.
 */
 (function () {
   'use strict';
 
-  // Resolve the JSON URL relative to where THIS script lives in the
-  // repo, so the same snippet works at /, /golf/, /florida/foo/, etc.
   const scriptEl = document.currentScript || (function () {
     const s = document.getElementsByTagName('script');
     return s[s.length - 1];
   })();
   const SCRIPT_URL = scriptEl && scriptEl.src ? new URL(scriptEl.src) : null;
   const DATA_URL = SCRIPT_URL
-    ? new URL('../partners.json', SCRIPT_URL).href
-    : '/journal/partners.json';
+    ? new URL('../clients.json', SCRIPT_URL).href
+    : '/journal/clients.json';
 
-  // Inject styles once.
+  const PREVIEW_COUNT = 30;   // logos shown before "Load more"
+  const MEDIA_URL = '/media';
+
   if (!document.getElementById('tmw-partners-styles')) {
     const css = `
       .tmw-partners{background:#070807; color:#ECEAE5; padding:90px 0 80px; position:relative; font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif; border-top:1px solid rgba(255,255,255,.08); border-bottom:1px solid rgba(255,255,255,.08)}
       .tmw-partners::before{content:""; position:absolute; top:-30%; left:50%; transform:translateX(-50%); width:900px; height:600px; background:radial-gradient(closest-side, rgba(31,223,103,.06), transparent 70%); pointer-events:none}
       .tmw-partners-wrap{position:relative; max-width:1320px; margin:0 auto; padding:0 28px}
-      .tmw-partners-head{text-align:center; margin-bottom:54px}
-      .tmw-partners-eyebrow{font-family:'JetBrains Mono',ui-monospace,monospace; font-size:11px; letter-spacing:.24em; text-transform:uppercase; color:#9AA39C; margin-bottom:14px}
-      .tmw-partners-title{font-family:'Fraunces',Georgia,serif; font-weight:600; font-size:clamp(34px,4.4vw,56px); letter-spacing:-.02em; line-height:1.04; color:#fff; margin:0}
-      .tmw-partners-sub{font-family:'Fraunces',Georgia,serif; font-weight:300; font-style:italic; font-size:17px; color:#C2C9C3; margin-top:14px; max-width:48ch; margin-left:auto; margin-right:auto}
-      .tmw-partners-grid{display:grid; grid-template-columns:repeat(4, 1fr); gap:18px}
-      @media(max-width:1100px){.tmw-partners-grid{grid-template-columns:repeat(2, 1fr)}}
-      @media(max-width:620px){.tmw-partners-grid{grid-template-columns:1fr}}
-      .tmw-partner-card{background:#141714; border:1px solid rgba(255,255,255,.08); border-radius:14px; overflow:hidden; display:flex; flex-direction:column; transition:transform .25s ease, border-color .25s ease}
-      .tmw-partner-card:hover{transform:translateY(-3px); border-color:rgba(255,255,255,.18)}
-      .tmw-partner-img{aspect-ratio:16/10; background:#1a1d1a; overflow:hidden; position:relative}
-      .tmw-partner-img img{width:100%; height:100%; object-fit:cover; transition:transform .6s ease}
-      .tmw-partner-card:hover .tmw-partner-img img{transform:scale(1.04)}
-      .tmw-partner-body{padding:28px 22px 22px; display:flex; flex-direction:column; align-items:center; gap:18px; text-align:center; flex:1}
-      .tmw-partner-logo{height:54px; width:100%; max-width:200px; display:flex; align-items:center; justify-content:center}
-      /* Render the (often dark) brand SVG as a solid-white silhouette using the
-         SVG as a CSS mask over a white fill — robust across browsers and
-         independent of the SVG's own fill colors (img+filter was unreliable). */
-      .tmw-partner-logo .lmask{display:block; width:100%; height:54px; background:#fff; opacity:.95;
-        -webkit-mask-size:contain; mask-size:contain; -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat;
-        -webkit-mask-position:center; mask-position:center}
-      .tmw-partner-logo .wm-fallback{font-family:'Fraunces',Georgia,serif; font-weight:500; font-size:22px; color:#fff; letter-spacing:.04em; text-align:center; line-height:1.1}
-      .tmw-partner-cat{font-family:'JetBrains Mono',ui-monospace,monospace; font-size:10.5px; letter-spacing:.22em; text-transform:uppercase; color:#C2C9C3; font-weight:500}
-      .tmw-partner-cta{margin-top:auto; display:block; width:100%; text-align:center; padding:13px 18px; background:rgba(255,255,255,.045); border:1px solid rgba(255,255,255,.08); border-radius:10px; color:#ECEAE5; text-decoration:none; font-family:'Inter',sans-serif; font-size:13px; font-weight:500; transition:background .2s, border-color .2s, color .2s}
-      .tmw-partner-cta:hover{background:rgba(255,255,255,.09); border-color:rgba(255,255,255,.16); color:#fff}
+      .tmw-partners-head{text-align:center; margin-bottom:50px}
+      .tmw-partners-eyebrow{font-family:'JetBrains Mono',ui-monospace,monospace; font-size:11px; letter-spacing:.24em; text-transform:uppercase; color:#9AA39C; margin-bottom:16px}
+      .tmw-partners-title{font-family:'Fraunces',Georgia,serif; font-weight:600; font-size:clamp(30px,4vw,52px); letter-spacing:-.02em; line-height:1.06; color:#fff; margin:0 auto; max-width:20ch}
+      .tmw-clients-grid{display:grid; grid-template-columns:repeat(6,1fr); gap:14px}
+      @media(max-width:980px){.tmw-clients-grid{grid-template-columns:repeat(4,1fr)}}
+      @media(max-width:560px){.tmw-clients-grid{grid-template-columns:repeat(3,1fr); gap:9px}}
+      .tmw-client{display:flex; align-items:center; justify-content:center; aspect-ratio:1; border:1px solid rgba(255,255,255,.08); border-radius:14px; background:rgba(255,255,255,.025); padding:16px; transition:border-color .25s, background .25s}
+      .tmw-client:hover{border-color:rgba(31,223,103,.4); background:rgba(31,223,103,.05)}
+      .tmw-client img{max-width:100%; max-height:100%; width:auto; height:auto; object-fit:contain; filter:saturate(.95)}
+      @media(max-width:560px){.tmw-client{padding:9px; border-radius:10px}}
+      .tmw-clients-more{display:flex; justify-content:center; margin-top:44px}
+      .tmw-clients-more a{display:inline-flex; align-items:center; gap:10px; padding:14px 30px; border-radius:999px; border:1px solid rgba(255,255,255,.16); background:rgba(255,255,255,.04); color:#ECEAE5; font-family:'JetBrains Mono',ui-monospace,monospace; font-size:12px; letter-spacing:.16em; text-transform:uppercase; text-decoration:none; transition:all .2s}
+      .tmw-clients-more a:hover{border-color:rgba(31,223,103,.5); color:#fff; background:rgba(31,223,103,.08); gap:14px}
+      .tmw-clients-more svg{width:15px; height:15px}
     `;
     const style = document.createElement('style');
     style.id = 'tmw-partners-styles';
@@ -69,74 +60,59 @@
     );
   }
 
-  function cardHtml(p) {
-    const logoEl = p.logo
-      ? `<span class="lmask" role="img" aria-label="${esc(p.name)}" style="-webkit-mask-image:url('${esc(p.logo)}');mask-image:url('${esc(p.logo)}')"></span>`
-      : `<div class="wm-fallback">${esc(p.name)}</div>`;
-    const imgEl = p.image
-      ? `<img src="${esc(p.image)}" alt="" loading="lazy">`
-      : '';
-    return `<a class="tmw-partner-card" href="${esc(p.ctaUrl || '#')}" target="_blank" rel="noopener" data-partner-id="${esc(p.id)}">
-      <div class="tmw-partner-img">${imgEl}</div>
-      <div class="tmw-partner-body">
-        <div class="tmw-partner-logo">${logoEl}</div>
-        <div class="tmw-partner-cat">${esc(p.category || '')}</div>
-        <span class="tmw-partner-cta">${esc(p.ctaLabel || 'Learn More')}</span>
-      </div>
-    </a>`;
+  function logoTile(c) {
+    if (!c || !c.logo) return '';
+    return `<div class="tmw-client" title="${esc(c.name)}">
+      <img src="${esc(c.logo)}" alt="${esc(c.name)}" loading="lazy">
+    </div>`;
   }
 
-  function render(mount, data) {
-    const head = data.header || {};
-    const partners = (data.partners || []).filter(p => p && p.active !== false);
+  function render(mount, clients) {
+    const preview = clients.slice(0, PREVIEW_COUNT);
     mount.classList.add('tmw-partners');
     mount.innerHTML = `
       <div class="tmw-partners-wrap">
         <div class="tmw-partners-head">
-          ${head.eyebrow ? `<div class="tmw-partners-eyebrow">${esc(head.eyebrow)}</div>` : ''}
-          ${head.title   ? `<h2 class="tmw-partners-title">${esc(head.title)}</h2>` : ''}
-          ${head.sub     ? `<p class="tmw-partners-sub">${esc(head.sub)}</p>`     : ''}
+          <div class="tmw-partners-eyebrow">Partners of Tomorrow</div>
+          <h2 class="tmw-partners-title">We're grateful to work with some incredible people</h2>
         </div>
-        <div class="tmw-partners-grid">${partners.map(cardHtml).join('')}</div>
+        <div class="tmw-clients-grid">${preview.map(logoTile).join('')}</div>
+        <div class="tmw-clients-more">
+          <a href="${MEDIA_URL}">Load more
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+          </a>
+        </div>
       </div>
     `;
   }
 
-  const WORKER = 'https://tmw.jake-ab7.workers.dev';
-
-  // Studio-editable list (worker /list/partners) is stored as {title, subtitle,
-  // items:[...]}; the static partners.json is {header, partners:[...]}. Coerce
-  // either into the {header, partners} shape render() expects.
-  function toRenderShape(data) {
-    if (data && Array.isArray(data.items) && !data.partners) {
-      return {
-        header: { eyebrow: 'SIGNATURE PARTNERS', title: data.title || 'Our Partners of Tomorrow', sub: data.subtitle || '' },
-        partners: data.items,
-      };
-    }
-    return data || {};
+  async function loadClients() {
+    const res = await fetch(DATA_URL, { cache: 'no-store' });
+    if (!res.ok) throw new Error('clients ' + res.status);
+    const data = await res.json();
+    // clients.json is an array of {name, logo}; tolerate {clients:[...]} too.
+    return Array.isArray(data) ? data : (data.clients || []);
   }
 
-  async function loadData() {
-    // Prefer the studio-editable list; fall back to the bundled JSON.
-    try {
-      const r = await fetch(WORKER + '/list/partners', { cache: 'no-store' });
-      if (r.ok) {
-        const w = await r.json();
-        if (w && w.exists && w.data && Array.isArray(w.data.items) && w.data.items.length) return toRenderShape(w.data);
-      }
-    } catch (e) {}
-    const res = await fetch(DATA_URL, { cache: 'no-store' });
-    if (!res.ok) throw new Error('partners ' + res.status);
-    return await res.json();
+  // Universal: if the page didn't place a mount, drop one in before the footer.
+  function ensureMount() {
+    let mounts = document.querySelectorAll('[data-tmw-partners]');
+    if (mounts.length) return mounts;
+    const host = document.createElement('div');
+    host.setAttribute('data-tmw-partners', '');
+    const footer = document.querySelector('footer');
+    if (footer && footer.parentNode) footer.parentNode.insertBefore(host, footer);
+    else document.body.appendChild(host);
+    return document.querySelectorAll('[data-tmw-partners]');
   }
 
   async function init() {
-    const mounts = document.querySelectorAll('[data-tmw-partners]');
+    const mounts = ensureMount();
     if (!mounts.length) return;
     try {
-      const data = await loadData();
-      mounts.forEach(m => render(m, data));
+      const clients = await loadClients();
+      if (!clients.length) throw new Error('no clients');
+      mounts.forEach(m => render(m, clients));
     } catch (err) {
       console.warn('[tmw-partners] failed to load', err);
       mounts.forEach(m => { m.style.display = 'none'; });

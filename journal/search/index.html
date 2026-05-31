@@ -31,6 +31,29 @@ h1,h2,h3{font-family:var(--serif);font-weight:600;letter-spacing:-.015em;color:v
 .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--green)}
 
 /* ── Header / search ── */
+/* ===== TOP FEATURED-SLIDE CAROUSEL (shared banner, same as other journal pages) ===== */
+.banner-ad{background:var(--ink-2); border-bottom:1px solid var(--hair); overflow:hidden; max-height:320px; opacity:1; transition:max-height .35s cubic-bezier(.22,1,.36,1), opacity .25s ease, border-color .35s ease; position:relative}
+.banner-ad.collapsed{max-height:0; opacity:0; border-bottom-color:transparent; pointer-events:none}
+.featured-carousel{position:relative; height:clamp(180px, 22vw, 280px); overflow:hidden}
+.fc-track{position:absolute; inset:0; background:#000}
+.fc-slide{position:absolute; inset:0; display:block; text-decoration:none; opacity:0; visibility:hidden; transition:opacity .55s cubic-bezier(.22,1,.36,1), visibility 0s linear .55s; background:#000}
+.fc-slide.on{opacity:1; visibility:visible; transition:opacity .55s cubic-bezier(.22,1,.36,1), visibility 0s linear 0s}
+.fc-slide video{width:100%; height:100%; object-fit:cover; display:block; background:#000}
+.fc-slide img{width:100%; height:100%; object-fit:cover; display:block; background:#000}
+.fc-arrow{position:absolute; top:50%; transform:translateY(-50%); z-index:5; width:42px; height:42px; border-radius:999px; background:rgba(7,8,7,.55); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); border:1px solid var(--hair-2); display:flex; align-items:center; justify-content:center; color:var(--white); cursor:pointer; transition:all .2s ease; opacity:0}
+.featured-carousel:hover .fc-arrow{opacity:1}
+.fc-arrow:hover{background:var(--green); color:var(--ink); border-color:var(--green)}
+.fc-arrow.prev{left:18px}
+.fc-arrow.next{right:18px}
+.fc-arrow svg{width:14px; height:14px}
+@media (hover: none){.fc-arrow{opacity:.7}}
+.fc-bottom{position:absolute; left:0; right:0; bottom:10px; z-index:5; display:flex; align-items:center; justify-content:space-between; padding:0 clamp(60px, 6vw, 90px); pointer-events:none}
+.fc-dots{display:flex; gap:6px; pointer-events:auto}
+.fc-dot{width:7px; height:7px; border-radius:999px; background:rgba(255,255,255,.3); border:0; cursor:pointer; transition:all .2s; padding:0}
+.fc-dot:hover{background:rgba(255,255,255,.55)}
+.fc-dot.on{background:var(--white); width:20px}
+.fc-sponsor{display:none}
+@media(max-width:640px){.fc-bottom{padding:0 18px}.fc-arrow{display:none}}
 .hdr{padding:30px 0 22px;border-bottom:1px solid var(--hair);background:linear-gradient(180deg,var(--ink-2),var(--ink))}
 .hdr-top{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:24px}
 .brand{display:flex;align-items:center;gap:12px;font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--mute-2)}
@@ -137,7 +160,7 @@ main{padding:30px 0 40px}
 .acard-media img{width:100%;height:100%;object-fit:cover}
 .acard-media .ph{width:100%;height:100%;background:radial-gradient(120% 120% at 30% 0%,#23201a,#0a0c0a)}
 .acard-body{display:flex;flex-direction:column;gap:6px;min-width:0}
-.acard-body .cat{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold)}
+.acard-body .cat{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;font-weight:700;color:var(--gold-soft);text-shadow:0 0 14px rgba(230,197,116,.55),0 0 3px rgba(230,197,116,.35);margin-bottom:2px}
 .acard-body h3{font-size:17px;line-height:1.2}
 .acard-body p{font-size:13px;color:var(--mute-2);font-weight:300;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .acard-body .am{margin-top:auto;font-family:var(--mono);font-size:10px;letter-spacing:.06em;color:var(--mute);text-transform:uppercase}
@@ -171,6 +194,23 @@ main{padding:30px 0 40px}
 </style>
 </head>
 <body>
+
+<!-- ============== TOP FEATURED-SLIDE CAROUSEL ============== -->
+<div class="banner-ad" id="banner-ad" aria-label="Featured placements">
+  <div class="featured-carousel" id="fc">
+    <div class="fc-track" id="fc-track"></div>
+    <button class="fc-arrow prev" id="fc-prev" aria-label="Previous slide">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 8H3M7 4L3 8l4 4"/></svg>
+    </button>
+    <button class="fc-arrow next" id="fc-next" aria-label="Next slide">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+    </button>
+    <div class="fc-bottom">
+      <div class="fc-dots" id="fc-dots"></div>
+      <div class="fc-sponsor" id="fc-sponsor">Sponsored</div>
+    </div>
+  </div>
+</div>
 
 <header class="hdr">
   <div class="wrap">
@@ -221,6 +261,8 @@ main{padding:30px 0 40px}
 <script src="/journal/_shared/journal-chrome.js" defer></script>
 <!-- Pinned journal dock — map / search / home -->
 <script src="/journal/_shared/journal-dock.js" defer></script>
+<!-- Partners of Tomorrow — universal client wall (auto-injects before footer) -->
+<script src="/journal/_shared/partners.js" defer></script>
 <!-- TMW project intelligence — identical timeline + intel panel as the map -->
 <script src="/journal/_shared/tmw-project-intel.js"></script>
 <script>
@@ -428,7 +470,7 @@ function acardHtml(a){
       (cat?'<div class="cat">'+esc(cat)+'</div>':'')+
       '<h3>'+esc(a.title)+'</h3>'+
       (a.excerpt?'<p>'+esc(a.excerpt)+'</p>':'')+
-      '<div class="am">'+[a.author_name,date,(a.reading_time_min?a.reading_time_min+' min read':'')].filter(Boolean).map(esc).join(' · ')+'</div>'+
+      (date?'<div class="am">'+esc(date)+'</div>':'')+
     '</div>'+
   '</a>';
 }
@@ -548,9 +590,101 @@ input.addEventListener('input', ()=>{
   }, 180);
 });
 
+// ===== TOP FEATURED-SLIDE CAROUSEL — reads /journal/ads.json (same banner as the other journal pages) =====
+const ADS_URL = '/journal/ads.json';
+const PLACEMENT = 'search';
+const CAROUSEL = { slides: [], idx: 0, timer: null, intervalMs: 7000, hover: false };
+function escapeAttr(s){ return esc(s); }
+window.logAdClick = function(id){ try { console.log('[slide-click]', id); } catch {} };
+function hookBannerCollapse(){
+  const banner = document.getElementById('banner-ad');
+  if (!banner) return;
+  let collapsed = false;
+  const onScroll = () => {
+    const shouldCollapse = (window.scrollY || 0) > 60;
+    if (shouldCollapse !== collapsed) { collapsed = shouldCollapse; banner.classList.toggle('collapsed', collapsed); }
+  };
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+}
+async function loadAndRenderAd(){
+  let data;
+  try {
+    const res = await fetch(ADS_URL, { cache: 'no-store' });
+    if (!res.ok) throw new Error('ads.json ' + res.status);
+    data = await res.json();
+  } catch (e) {
+    const banner = document.getElementById('banner-ad'); if (banner) banner.style.display = 'none'; return;
+  }
+  CAROUSEL.intervalMs = Math.max(3000, (data.rotateSeconds || 7) * 1000);
+  CAROUSEL.slides = filterEligibleSlides(data.ads || [], PLACEMENT);
+  if (!CAROUSEL.slides.length) { const banner = document.getElementById('banner-ad'); if (banner) banner.style.display = 'none'; return; }
+  renderCarousel(); hookCarousel(); startCarouselTimer();
+}
+function filterEligibleSlides(ads, placement){
+  const now = new Date();
+  return ads.filter(a => {
+    if (!a || !a.active) return false;
+    if (a.starts && new Date(a.starts) > now) return false;
+    if (a.ends   && new Date(a.ends)   < now) return false;
+    const pl = a.placements || ['all'];
+    if (!pl.includes('all') && !pl.includes(placement)) return false;
+    if (!a.video && !a.image) return false;
+    return true;
+  });
+}
+function renderCarousel(){
+  const track = document.getElementById('fc-track');
+  const dots  = document.getElementById('fc-dots');
+  if (!track || !dots) return;
+  track.innerHTML = CAROUSEL.slides.map((s, i) => slideHtml(s, i)).join('');
+  dots.innerHTML  = CAROUSEL.slides.map((_, i) => `<button class="fc-dot${i === 0 ? ' on' : ''}" data-idx="${i}" aria-label="Go to slide ${i+1}"></button>`).join('');
+  setSlide(0);
+}
+function slideHtml(s, i){
+  const onCls = i === 0 ? ' on' : '';
+  const media = s.video
+    ? `<video src="${escapeAttr(s.video)}" ${s.poster ? `poster="${escapeAttr(s.poster)}"` : ''} muted playsinline preload="metadata" ${i === 0 ? 'autoplay' : ''}></video>`
+    : `<img src="${escapeAttr(s.image)}" alt="${escapeAttr(s.advertiser || '')}">`;
+  return `<a class="fc-slide${onCls}" href="${escapeAttr(s.url || '#')}" target="_blank" rel="noopener sponsored" data-slide-id="${escapeAttr(s.id)}" onclick="logAdClick('${escapeAttr(s.id)}')">${media}</a>`;
+}
+function setSlide(idx){
+  const slides = document.querySelectorAll('.fc-slide');
+  const dots   = document.querySelectorAll('.fc-dot');
+  if (!slides.length) return;
+  CAROUSEL.idx = (idx + slides.length) % slides.length;
+  slides.forEach((s, i) => {
+    const active = i === CAROUSEL.idx;
+    s.classList.toggle('on', active);
+    const v = s.querySelector('video');
+    if (v) { if (active) { try { v.currentTime = 0; v.play().catch(() => {}); } catch {} } else { try { v.pause(); v.currentTime = 0; } catch {} } }
+  });
+  dots.forEach((d, i) => d.classList.toggle('on', i === CAROUSEL.idx));
+}
+function hookCarousel(){
+  const root = document.getElementById('fc');
+  const prev = document.getElementById('fc-prev');
+  const next = document.getElementById('fc-next');
+  const dots = document.getElementById('fc-dots');
+  if (!root) return;
+  prev?.addEventListener('click', e => { e.preventDefault(); setSlide(CAROUSEL.idx - 1); restartTimer(); });
+  next?.addEventListener('click', e => { e.preventDefault(); setSlide(CAROUSEL.idx + 1); restartTimer(); });
+  dots?.addEventListener('click', e => { const btn = e.target.closest('.fc-dot'); if (!btn) return; setSlide(parseInt(btn.dataset.idx, 10) || 0); restartTimer(); });
+  root.addEventListener('mouseenter', () => { CAROUSEL.hover = true;  stopCarouselTimer(); });
+  root.addEventListener('mouseleave', () => { CAROUSEL.hover = false; startCarouselTimer(); });
+  root.querySelectorAll('video').forEach(v => {
+    v.addEventListener('ended', () => { const slide = v.closest('.fc-slide'); if (slide && slide.classList.contains('on') && !CAROUSEL.hover) { setSlide(CAROUSEL.idx + 1); restartTimer(); } });
+  });
+}
+function startCarouselTimer(){ if (CAROUSEL.slides.length < 2) return; stopCarouselTimer(); CAROUSEL.timer = setInterval(() => { if (!CAROUSEL.hover) setSlide(CAROUSEL.idx + 1); }, CAROUSEL.intervalMs); }
+function stopCarouselTimer(){ if (CAROUSEL.timer) { clearInterval(CAROUSEL.timer); CAROUSEL.timer = null; } }
+function restartTimer(){ startCarouselTimer(); }
+
 (async function init(){
   const q0 = qparam();
   input.value = q0;
+  hookBannerCollapse();
+  loadAndRenderAd();
   await loadData();
   document.getElementById('loading').classList.add('hidden');
   runSearch(q0);

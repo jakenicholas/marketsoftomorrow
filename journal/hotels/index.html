@@ -147,8 +147,8 @@ nav.main .wrap{display:flex; align-items:center; justify-content:space-between; 
 .story-card .sc-bg img{width:100%; height:100%; object-fit:cover; object-position:center}
 .story-card .sc-bg::after{content:""; position:absolute; inset:0;
   background:
-    linear-gradient(90deg, rgba(7,8,7,.85) 0%, rgba(7,8,7,.55) 38%, rgba(7,8,7,.18) 65%, transparent 100%),
-    linear-gradient(180deg, transparent 60%, rgba(7,8,7,.5) 100%);}
+    linear-gradient(90deg, rgba(7,8,7,.55) 0%, rgba(7,8,7,.28) 42%, rgba(7,8,7,.06) 72%, transparent 100%),
+    linear-gradient(180deg, transparent 72%, rgba(7,8,7,.30) 100%);}
 .story-card .sc-content{position:relative; z-index:2; padding:clamp(38px, 5vw, 70px) clamp(34px, 5vw, 70px) clamp(72px, 8vw, 110px); max-width:min(640px, 55%); display:flex; flex-direction:column; gap:18px}
 .story-card .sc-crumbs{font-family:var(--mono); font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:var(--mute-2); margin-bottom:-4px}
 .story-card .sc-crumbs a{color:var(--mute-2)}
@@ -165,7 +165,7 @@ nav.main .wrap{display:flex; align-items:center; justify-content:space-between; 
 .story-card .sc-more{display:inline-flex; align-items:center; gap:10px; color:var(--white); font-family:var(--sans); font-size:14px; font-weight:500; margin-top:6px; transition:color .2s, gap .2s}
 .story-card .sc-more:hover{color:var(--green); gap:14px}
 .story-card .sc-more svg{width:14px; height:14px}
-.story-card .sc-emblem{position:absolute; inset:0; z-index:2; display:flex; align-items:center; justify-content:center; padding:clamp(40px,6vw,80px) clamp(24px,5vw,60px) clamp(70px,8vw,110px); background:radial-gradient(ellipse at center, rgba(7,8,7,.52) 0%, rgba(7,8,7,.24) 70%, rgba(7,8,7,.12) 100%)}
+.story-card .sc-emblem{position:absolute; inset:0; z-index:2; display:flex; align-items:center; justify-content:center; padding:clamp(40px,6vw,80px) clamp(24px,5vw,60px) clamp(70px,8vw,110px); background:radial-gradient(ellipse at center, rgba(7,8,7,.30) 0%, rgba(7,8,7,.12) 70%, rgba(7,8,7,.04) 100%)}
 .story-card .sc-emblem img{width:min(700px, 88%); height:auto; filter:drop-shadow(0 8px 30px rgba(0,0,0,.55))}
 .story-card .sc-tabs{position:absolute; left:50%; bottom:0; transform:translate(-50%, 50%); z-index:3; display:flex; gap:10px; padding:6px; background:rgba(7,8,7,.78); backdrop-filter:var(--glass); -webkit-backdrop-filter:var(--glass); border:1px solid var(--hair-2); border-radius:999px; box-shadow:0 18px 40px -10px rgba(0,0,0,.6)}
 .story-card .sc-tab{font-family:var(--mono); font-size:12px; letter-spacing:.18em; text-transform:uppercase; font-weight:600; padding:12px 24px; border-radius:999px; color:var(--cream); transition:all .2s ease; white-space:nowrap}
@@ -174,7 +174,7 @@ nav.main .wrap{display:flex; align-items:center; justify-content:space-between; 
 @media(max-width:760px){
   .story-section{padding:18px 14px 60px}
   .story-card .sc-content{max-width:100%}
-  .story-card .sc-bg::after{background:linear-gradient(180deg, rgba(7,8,7,.45) 0%, rgba(7,8,7,.85) 60%, rgba(7,8,7,.95) 100%)}
+  .story-card .sc-bg::after{background:linear-gradient(180deg, rgba(7,8,7,.25) 0%, rgba(7,8,7,.6) 60%, rgba(7,8,7,.8) 100%)}
   .story-card .sc-tab{padding:10px 16px; font-size:11px; letter-spacing:.14em}
   .story-card .sc-tabs{padding:5px; gap:6px}
 }
@@ -339,6 +339,7 @@ body.edit-mode.dirty .savebar{display:flex}
 .card-img img{width:100%; height:100%; object-fit:cover; transition:transform .6s ease}
 .card:hover .card-img img{transform:scale(1.04)}
 .card-loc{position:absolute; top:12px; left:12px; background:rgba(7,8,7,.78); backdrop-filter:blur(8px); color:var(--green); padding:5px 10px; border-radius:999px; font-family:var(--mono); font-size:9.5px; letter-spacing:.16em; text-transform:uppercase; font-weight:600; border:1px solid rgba(31,223,103,.3)}
+.card-cat{font-family:var(--mono); font-size:10.5px; letter-spacing:.18em; text-transform:uppercase; font-weight:700; color:var(--gold-soft); text-shadow:0 0 14px rgba(230,197,116,.55), 0 0 3px rgba(230,197,116,.35); margin:0 0 7px}
 .card-body{padding:20px 22px 22px; display:flex; flex-direction:column; flex:1; gap:10px}
 .card-date{font-family:var(--mono); font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--mute)}
 .card-title{font-family:var(--serif); font-weight:600; font-size:19px; line-height:1.22; color:var(--white)}
@@ -453,7 +454,7 @@ footer .tmw-wordmark{width:118px}
 <section class="story-section" id="featured">
   <article class="story-card">
     <div class="sc-clip">
-      <div class="sc-bg"><img id="hero-img" alt=""></div>
+      <div class="sc-bg"><img id="hero-img" src="https://static.wixstatic.com/media/5e6308_dc7c2e13710e4cc6ace97bd436bea4a6~mv2.jpeg" alt=""></div>
     </div>
     <div class="sc-emblem">
       <img src="/journal/_shared/iconic/hotels.svg" alt="The Iconic Hotel List">
@@ -2002,7 +2003,7 @@ function renderFeaturedCard(item) {
   set('hero-link', el => { el.href = link; el.textContent = item.title; });
   set('hero-cta', el => { el.href = link; });
   set('hero-summary', el => { el.textContent = item.summary || ''; });
-  set('hero-img', el => { if (item.image) { el.src = item.image; el.alt = item.title; } });
+  // hero background image is locked to a static URL in the HTML (see #hero-img)
 }
 
 // ---------------------------------------------------------------
@@ -2082,17 +2083,17 @@ function renderNews(items) {
     return;
   }
   wrap.innerHTML = items.map(it => {
-    const loc = (it.categories || [])[0] || '';
+    const loc = (it.categories || []).find(c => !/markets of tomorrow|of tomorrow/i.test(c)) || '';
     const date = it.pubDate ? formatDate(new Date(it.pubDate)) : '';
     // In-repo article page rather than bouncing back to Wix.
     const href = it.slug ? ('/journal/post/' + encodeURIComponent(it.slug) + '/') : it.link;
     return `<article class="card">
       <a href="${escapeAttr(href)}"><div class="card-img">
-        ${loc ? `<span class="card-loc">${escapeHtml(loc)}</span>` : ''}
         ${it.image ? `<img src="${escapeAttr(it.image)}" alt="" loading="lazy">` : ''}
       </div></a>
       <div class="card-body">
         ${date ? `<div class="card-date">${escapeHtml(date)}</div>` : ''}
+        ${loc ? `<div class="card-cat">${escapeHtml(loc)}</div>` : ''}
         <h3 class="card-title"><a href="${escapeAttr(href)}">${escapeHtml(it.title)}</a></h3>
         ${it.summary ? `<p class="card-summary">${escapeHtml(trunc(it.summary, 130))}</p>` : ''}
         <a class="card-readmore" href="${escapeAttr(href)}">Read story →</a>

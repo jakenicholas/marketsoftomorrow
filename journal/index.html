@@ -343,11 +343,14 @@ nav.main .wrap{display:flex; align-items:center; justify-content:space-between; 
 }
 .story-card .sc-eyebrow{
   font-family:var(--mono);
-  font-size:12px; letter-spacing:.22em; text-transform:uppercase;
-  color:var(--green);
+  font-size:11px; letter-spacing:.22em; text-transform:uppercase; font-weight:600;
+  color:var(--gold-soft);
   display:inline-flex; align-items:center; gap:8px;
+  padding:6px 13px; border-radius:999px;
+  background:rgba(230,197,116,.10); border:1px solid rgba(230,197,116,.34);
+  text-shadow:0 0 14px rgba(230,197,116,.5), 0 0 3px rgba(230,197,116,.32);
+  box-shadow:0 0 18px rgba(230,197,116,.16);
 }
-.story-card .sc-eyebrow .star{font-size:14px; line-height:1}
 .story-card h1{
   font-family:var(--serif); font-weight:600;
   font-size:clamp(28px, 3.8vw, 52px);
@@ -714,7 +717,7 @@ footer .ft-logo .tmw-wordmark{width:118px}
       <div class="sc-bg"><img id="hero-img" alt=""></div>
     </div>
     <div class="sc-content">
-      <div class="sc-eyebrow"><span class="star">☆</span> Featured</div>
+      <div class="sc-eyebrow">Featured</div>
       <h1><a id="hero-link" href="#">Loading the latest story&hellip;</a></h1>
       <p class="sc-desc" id="hero-summary"></p>
       <a href="#" class="sc-more" id="hero-cta">Read more
@@ -1659,7 +1662,7 @@ function renderGrid() {
   const lbl  = bucketLabel(ACTIVE_CAT);
   document.getElementById('grid-title').textContent =
     ACTIVE_CAT === '*' ? 'The Latest' : `${lbl} stories`;
-  meta.textContent = `${FILTERED.length} ${FILTERED.length === 1 ? 'story' : 'stories'}`;
+  if (meta) meta.textContent = '';   // total-count removed per design
 
   if (!FILTERED.length) {
     wrap.innerHTML = `<div class="empty-state" style="grid-column:1 / -1">

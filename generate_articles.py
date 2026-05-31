@@ -40,13 +40,11 @@ T_DESC    = '<meta id="meta-description" name="description" content="">'
 T_OG_T    = '<meta id="og-title" property="og:title" content="">'
 T_OG_D    = '<meta id="og-description" property="og:description" content="">'
 T_OG_I    = '<meta id="og-image" property="og:image" content="">'
-T_CRUMB   = '<span id="crumb-cat" style="color:var(--green)">…</span>'
 T_CATROW  = '<div class="cat-row" id="cat-row"></div>'
 T_H1      = '<h1 id="article-title"><span class="skel-block" style="display:inline-block; height:54px; width:80%"></span></h1>'
 T_DECK    = '<p class="deck" id="article-deck"></p>'
 T_AUTHOR  = '<span id="article-author">—</span>'
 T_DATE    = '<span id="article-date">—</span>'
-T_LEGACY  = '<a href="#" id="legacy-source" target="_blank" rel="noopener" style="text-decoration:none">'
 T_COVER   = '<img class="article-cover-img skel-block" id="article-cover-img" alt="" loading="eager">'
 T_BODY    = (
     '<div class="article-body-content" id="article-body-content">\n'
@@ -152,9 +150,6 @@ def build_page(template, post):
     page = page.replace("</head>", head_extra, 1)
 
     # ── BODY: bake the rendered article into the skeleton ──
-    crumb_cat = esc(cats[0]) if cats else "Story"
-    page = page.replace(T_CRUMB, f'<span id="crumb-cat" style="color:var(--green)">{crumb_cat}</span>')
-
     pills = "".join(f'<span class="cat">{esc(c)}</span>' for c in cats[:4])
     page = page.replace(T_CATROW, f'<div class="cat-row" id="cat-row">{pills}</div>')
 
@@ -168,8 +163,6 @@ def build_page(template, post):
 
     page = page.replace(T_AUTHOR, f'<span id="article-author">{esc(author)}</span>')
     page = page.replace(T_DATE, f'<span id="article-date">{esc(date_str)}</span>')
-    page = page.replace(T_LEGACY,
-        f'<a href="{esc(post.get("wix_url") or "#")}" id="legacy-source" target="_blank" rel="noopener" style="text-decoration:none">')
 
     if cover:
         page = page.replace(T_COVER,
@@ -209,8 +202,8 @@ def main():
 
     # Sanity: every marker must exist exactly once, else a template edit
     # silently broke the pre-render. Fail loud rather than ship blank pages.
-    markers = [T_TITLE, T_DESC, T_OG_T, T_OG_D, T_OG_I, T_CRUMB, T_CATROW,
-               T_H1, T_DECK, T_AUTHOR, T_DATE, T_LEGACY, T_COVER, T_BODY, T_DATA_ANCHOR]
+    markers = [T_TITLE, T_DESC, T_OG_T, T_OG_D, T_OG_I, T_CATROW,
+               T_H1, T_DECK, T_AUTHOR, T_DATE, T_COVER, T_BODY, T_DATA_ANCHOR]
     missing = [m[:40] for m in markers if template.count(m) != 1]
     if missing:
         print("ERROR: template markers missing/duplicated — pre-render aborted:")
