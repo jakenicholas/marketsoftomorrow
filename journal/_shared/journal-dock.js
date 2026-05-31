@@ -148,7 +148,32 @@
     '.tmw-dock-search input{position:relative; z-index:1}',
     '.tmw-dock-search .ds-ico{z-index:2}',
     '.tmw-dock-search::before{content:""; position:absolute; inset:-1.5px; border-radius:999px; padding:1.5px; z-index:0; pointer-events:none; background:conic-gradient(from var(--tmw-ang,0deg), rgba(167,139,250,0) 0deg, rgba(167,139,250,0) 205deg, #A78BFA 300deg, #E9DEFF 338deg, rgba(167,139,250,0) 360deg); -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite:xor; mask-composite:exclude; filter:drop-shadow(0 0 5px rgba(167,139,250,.7)); animation:tmwChase 3s linear infinite}',
-    '@media(prefers-reduced-motion:reduce){.tmw-dock-search::before{animation:none}}'
+    '@media(prefers-reduced-motion:reduce){.tmw-dock-search::before{animation:none}}',
+
+    // ── Focus Markets dropdown (header): replaces the per-region links with a
+    //    single mega-menu of 5 rounded market tiles. 3-col desktop / 2-col mobile.
+    '.tmw-fm{position:relative; display:inline-flex; align-items:center}',
+    '.tmw-fm-trigger{font-family:var(--mono,"JetBrains Mono",monospace); font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--mute-2,#C2C9C3); background:none; border:0; cursor:pointer; display:inline-flex; align-items:center; gap:6px; padding:0; line-height:1; transition:color .2s}',
+    '.tmw-fm-trigger:hover, .tmw-fm.open .tmw-fm-trigger{color:var(--gold-soft,#f0d68a); text-shadow:0 0 14px rgba(230,197,116,.55), 0 0 3px rgba(230,197,116,.35)}',
+    '.tmw-fm-chev{width:10px; height:10px; transition:transform .22s ease}',
+    '.tmw-fm.open .tmw-fm-chev{transform:rotate(180deg)}',
+    '.tmw-fm-panel{position:absolute; top:calc(100% + 16px); left:50%; transform:translateX(-50%) translateY(-8px); width:min(640px,92vw); display:grid; grid-template-columns:repeat(3,1fr); gap:11px; padding:15px; background:rgba(9,11,9,.97); -webkit-backdrop-filter:blur(18px) saturate(1.4); backdrop-filter:blur(18px) saturate(1.4); border:1px solid rgba(255,255,255,.10); border-radius:18px; box-shadow:0 26px 64px rgba(0,0,0,.6); opacity:0; visibility:hidden; pointer-events:none; transition:opacity .22s ease, transform .22s cubic-bezier(.22,1,.36,1); z-index:80}',
+    '.tmw-fm-panel::before{content:""; position:absolute; top:-16px; left:0; right:0; height:16px}', // hover bridge across the gap
+    '.tmw-fm.open .tmw-fm-panel, .tmw-fm:hover .tmw-fm-panel{opacity:1; visibility:visible; pointer-events:auto; transform:translateX(-50%) translateY(0)}',
+    '.tmw-fm-tile{position:relative; display:block; aspect-ratio:4/3; border-radius:13px; overflow:hidden; background:#141714 center/cover no-repeat; text-decoration:none; box-shadow:inset 0 0 0 1px rgba(255,255,255,.07); transition:box-shadow .2s, transform .2s}',
+    '.tmw-fm-tile::after{content:""; position:absolute; inset:0; background:linear-gradient(180deg, rgba(7,8,7,0) 28%, rgba(7,8,7,.82) 100%); transition:background .2s ease}',
+    '.tmw-fm-tile:hover{transform:translateY(-2px); box-shadow:inset 0 0 0 1px rgba(230,197,116,.5), 0 10px 26px rgba(0,0,0,.4)}',
+    '.tmw-fm-tile:hover::after{background:linear-gradient(180deg, rgba(31,223,103,.10) 0%, rgba(7,8,7,.86) 100%)}',
+    '.tmw-fm-name{position:absolute; left:13px; bottom:11px; z-index:1; font-family:var(--serif,"Fraunces",Georgia,serif); font-weight:600; font-size:17px; letter-spacing:-.01em; color:#fff; text-shadow:0 2px 12px rgba(0,0,0,.65)}',
+    // mobile: Focus Markets is a full-width accordion inside the burger drawer
+    '@media(max-width:980px){.tmw-fm{display:block; width:100%}',
+    '.tmw-fm-trigger{width:100%; justify-content:space-between; padding:14px 2px; border-bottom:1px solid rgba(255,255,255,.08); font-size:12.5px}',
+    '.tmw-fm-panel{position:static; transform:none; width:auto; grid-template-columns:repeat(2,1fr); gap:9px; padding:12px 0 6px; background:transparent; border:0; box-shadow:none; opacity:1; pointer-events:auto; display:none; visibility:visible}',
+    // override the desktop open/hover transform (translateX(-50%)) which would
+    // otherwise shove the static panel off-screen left inside the drawer
+    '.tmw-fm.open .tmw-fm-panel, .tmw-fm:hover .tmw-fm-panel{display:none; transform:none; left:auto}',
+    '.tmw-fm.open .tmw-fm-panel{display:grid; transform:none; left:auto}',
+    '.tmw-fm-name{font-size:15px}}'
   ].join('');
 
   function mount() {
@@ -196,8 +221,86 @@
     document.body.appendChild(dock);
     requestAnimationFrame(function () { dock.classList.add('ready'); });
 
+    buildFocusMarkets();
     wireBurgers();
     swapToInstagram();
+  }
+
+  // ── Focus Markets ───────────────────────────────────────────────────
+  // The header used to list each region as its own nav link. Consolidate the
+  // five into a single "Focus Markets" dropdown (after "Global") with rounded
+  // image tiles. Each tile lands on the journal home filtered to that market
+  // (?market=<key> → the existing category-pill filter). Universal: runs on
+  // every journal page (incl. the 1,377 pre-rendered article pages) since they
+  // all load this dock — no per-page nav edits or regeneration needed.
+  var JOURNAL_HOME = '/journal/';
+  var FOCUS_MARKETS = [
+    { key: 'florida',   name: 'Florida',   img: 'https://tmw.jake-ab7.workers.dev/media/wix/ca3b83_43a9a53c6fa5471bb68ee3a4cd85870a~mv2.webp' },
+    { key: 'new-york',  name: 'New York',  img: 'https://tmw.jake-ab7.workers.dev/media/wix/ca3b83_bed92ab576ab4c41b17791ded5122897~mv2.jpg' },
+    { key: 'tennessee', name: 'Tennessee', img: 'https://tmw.jake-ab7.workers.dev/media/wix/ca3b83_3c779bada8a84d1e87b15996fb01265f~mv2.jpeg' },
+    { key: 'caribbean', name: 'Caribbean', img: 'https://tmw.jake-ab7.workers.dev/media/wix/ca3b83_35b55cec22e948cabe56b86bbfc912e4~mv2.webp' },
+    { key: 'rockies',   name: 'Rockies',   img: 'https://tmw.jake-ab7.workers.dev/media/wix/68dd32_e3a61d884f2f4f4fadea9bb77e1308ab~mv2.jpeg' }
+  ];
+  // Region link labels we pull OUT of the header (matched on visible text).
+  var MARKET_LABELS = { 'florida':1, 'new york':1, 'new-york':1, 'newyork':1, 'tennessee':1, 'caribbean':1, 'rockies':1 };
+
+  function buildFocusMarkets() {
+    var navs = document.querySelectorAll('.nav-links');
+    for (var n = 0; n < navs.length; n++) {
+      var nav = navs[n];
+      if (nav.__tmwFm) continue;
+      nav.__tmwFm = true;
+
+      // Find the "Global" anchor (insert point) and the region links to remove.
+      var anchors = nav.querySelectorAll('a');
+      var globalAnchor = null, toRemove = [];
+      for (var i = 0; i < anchors.length; i++) {
+        var a = anchors[i];
+        var t = (a.textContent || '').trim().toLowerCase();
+        if (t === 'global') globalAnchor = a;
+        else if (MARKET_LABELS[t]) toRemove.push(a);
+      }
+      for (var r = 0; r < toRemove.length; r++) {
+        if (toRemove[r].parentNode) toRemove[r].parentNode.removeChild(toRemove[r]);
+      }
+
+      // Build the dropdown.
+      var tiles = '';
+      for (var k = 0; k < FOCUS_MARKETS.length; k++) {
+        var m = FOCUS_MARKETS[k];
+        tiles += '<a class="tmw-fm-tile" role="menuitem" href="' + JOURNAL_HOME + '?market=' + m.key +
+                 '" style="background-image:url(\'' + m.img + '\')" aria-label="' + m.name +
+                 '"><span class="tmw-fm-name">' + m.name + '</span></a>';
+      }
+      var fm = document.createElement('div');
+      fm.className = 'tmw-fm';
+      fm.innerHTML =
+        '<button type="button" class="tmw-fm-trigger" aria-expanded="false" aria-haspopup="true">Focus Markets' +
+          '<svg class="tmw-fm-chev" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 6l4 4 4-4"/></svg>' +
+        '</button>' +
+        '<div class="tmw-fm-panel" role="menu">' + tiles + '</div>';
+
+      // Insert after "Global" if present, else after the first remaining link.
+      var ref = globalAnchor && globalAnchor.parentNode === nav ? globalAnchor : nav.firstElementChild;
+      if (ref && ref.nextSibling) nav.insertBefore(fm, ref.nextSibling);
+      else nav.appendChild(fm);
+
+      // Click toggle (touch + a11y) + outside-click close.
+      (function (fmEl) {
+        var trigger = fmEl.querySelector('.tmw-fm-trigger');
+        trigger.addEventListener('click', function (e) {
+          e.preventDefault(); e.stopPropagation();
+          var open = fmEl.classList.toggle('open');
+          trigger.setAttribute('aria-expanded', open ? 'true' : 'false');
+        });
+        document.addEventListener('click', function (e) {
+          if (!fmEl.contains(e.target)) {
+            fmEl.classList.remove('open');
+            trigger.setAttribute('aria-expanded', 'false');
+          }
+        });
+      })(fm);
+    }
   }
 
   // Swap the header's "Open Map" CTA for an Instagram icon → @floridaoftomorrow.

@@ -668,9 +668,9 @@ footer .ft-logo .tmw-wordmark{width:118px}
         <a href="#tennessee">Tennessee</a>
         <a href="#caribbean">Caribbean</a>
         <a href="#rockies">Rockies</a>
-        <a href="#hotels">Hotels</a>
-        <a href="#restaurants">Restaurants</a>
-        <a href="#golf">Golf</a>
+        <a href="/journal/hotels/">Hotels</a>
+        <a href="/journal/restaurants/">Restaurants</a>
+        <a href="/journal/golf/">Golf</a>
       </div>
       <a href="https://map.oftmw.com" class="nav-cta" id="nav-map-cta">
         <span class="mc-pin" aria-hidden="true">
@@ -1241,8 +1241,21 @@ async function loadFeed() {
       return;
     }
     renderFeatured(ALL_ITEMS[0]);
+    // Honor ?market=<key> from the header "Focus Markets" dropdown: pre-select
+    // that category filter so the article grid lands filtered to the market,
+    // then scroll down to the filter bar so the result is obvious.
+    var mkt = new URLSearchParams(location.search).get('market');
+    if (mkt && CATEGORY_BUCKETS.some(function (b) { return b.key === mkt; })) {
+      ACTIVE_CAT = mkt;
+    } else {
+      mkt = null;
+    }
     buildPills();
     applyFilters();
+    if (mkt) {
+      var fb = document.getElementById('filterbar');
+      if (fb) setTimeout(function () { fb.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 240);
+    }
   } catch (err) {
     console.error('blog fetch failed:', err);
     showError(err.message || String(err));
