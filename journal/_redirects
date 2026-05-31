@@ -1,0 +1,19 @@
+# Cloudflare Pages redirects — old Wix paths → new journal equivalents.
+# Article URLs (/post/<slug>) are unchanged and need no redirect.
+# Format: <from>  <to>  <status>
+
+# Wix blog index → journal home
+/blog            /            301
+/blog/*          /            301
+
+# Iconic list pages (best-guess old Wix slugs → new section pages).
+# Harmless if a source never existed; adjust to your real old URLs.
+/the-iconic-hotel-list        /hotels/        301
+/the-iconic-golf-list         /golf/          301
+/the-iconic-restaurant-list   /restaurants/   301
+/iconic-hotels                /hotels/        301
+/iconic-golf                  /golf/          301
+/iconic-restaurants           /restaurants/   301
+
+# Media kit (lives on the map deploy for now)
+/media-kit       https://map.oftmw.com/media/    301
