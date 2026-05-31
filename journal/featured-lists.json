@@ -1,6 +1,6 @@
 {
   "_comment": "Featured Lists — horizontal slider on the journal home. Each card links to an iconic-list page (or any URL). Edit this JSON to add/reorder lists site-wide. The order here is the display order; set active:false to hide.",
-  "version": 1,
+  "version": 2,
   "header": {
     "title": "Featured Lists",
     "sub": "Discover curated lists highlighting standout places that have left a lasting impression to our team, alongside latest openings and developments."
@@ -9,55 +9,37 @@
     {
       "id": "west-palm-beach",
       "title": "Every project reshaping West Palm Beach",
-      "image": "https://images.unsplash.com/photo-1582550945154-66ea8fff25e1?auto=format&fit=crop&w=900&h=1100&q=80",
+      "image": "https://tmw.jake-ab7.workers.dev/media/wix/ca3b83_3cfedc1c757a48d586b043a2c887afce~mv2.jpg",
       "location": "West Palm Beach",
-      "ctaLabel": "See Full List",
-      "url": "/florida/west-palm-beach",
+      "ctaLabel": "Read the Story",
+      "url": "/journal/post/?slug=every-major-project-reshaping-west-palm-beach-right-now",
       "active": true
     },
     {
       "id": "iconic-restaurants",
       "title": "Iconic Restaurants Across The Globe",
-      "image": "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=900&h=1100&q=80",
+      "image": "https://tmw.jake-ab7.workers.dev/media/wix/ca3b83_829dcd8c0fc34ce3be4be20101831d64~mv2.webp",
       "location": "Emelina",
       "ctaLabel": "See Full List",
-      "url": "/restaurants",
+      "url": "/journal/restaurants/",
       "active": true
     },
     {
       "id": "iconic-hotels",
       "title": "Iconic Hotels Across The Globe",
-      "image": "https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=900&h=1100&q=80",
+      "image": "https://tmw.jake-ab7.workers.dev/media/wix/ca3b83_072eb313ecd645d8842f134ace8b34b8~mv2.jpeg",
       "location": "Little Palm Island",
       "ctaLabel": "See Full List",
-      "url": "/hotels",
+      "url": "/journal/hotels/",
       "active": true
     },
     {
       "id": "iconic-golf",
       "title": "Iconic Golf Courses Across The Globe",
-      "image": "https://images.unsplash.com/photo-1535131749006-b7f58c99034b?auto=format&fit=crop&w=900&h=1100&q=80",
+      "image": "https://static.wixstatic.com/media/ca3b83_31d159b485084456afd2f2b40b7f8fc6~mv2.jpeg",
       "location": "Clear Creek Tahoe",
       "ctaLabel": "See Full List",
-      "url": "/golf",
-      "active": true
-    },
-    {
-      "id": "iconic-architects",
-      "title": "Iconic Architects Defining Tomorrow",
-      "image": "https://images.unsplash.com/photo-1486325212027-8081e485255e?auto=format&fit=crop&w=900&h=1100&q=80",
-      "location": "Foster + Partners",
-      "ctaLabel": "See Full List",
-      "url": "/architects",
-      "active": true
-    },
-    {
-      "id": "nashville",
-      "title": "Every project reshaping Nashville",
-      "image": "https://images.unsplash.com/photo-1545419913-775e3e82c7db?auto=format&fit=crop&w=900&h=1100&q=80",
-      "location": "Nashville",
-      "ctaLabel": "See Full List",
-      "url": "/tennessee/nashville",
+      "url": "/journal/golf/",
       "active": true
     }
   ]
