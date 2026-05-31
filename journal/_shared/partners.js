@@ -54,8 +54,8 @@
         -webkit-mask-position:center; mask-position:center}
       .tmw-partner-logo .wm-fallback{font-family:'Fraunces',Georgia,serif; font-weight:500; font-size:22px; color:#fff; letter-spacing:.04em; text-align:center; line-height:1.1}
       .tmw-partner-cat{font-family:'JetBrains Mono',ui-monospace,monospace; font-size:10.5px; letter-spacing:.22em; text-transform:uppercase; color:#C2C9C3; font-weight:500}
-      .tmw-partner-cta{margin-top:auto; display:inline-block; padding:11px 22px; border:1px solid rgba(255,255,255,.18); border-radius:999px; color:#ECEAE5; text-decoration:none; font-family:'Inter',sans-serif; font-size:13px; font-weight:500; transition:all .2s}
-      .tmw-partner-cta:hover{background:#1FDF67; color:#070807; border-color:#1FDF67}
+      .tmw-partner-cta{margin-top:auto; display:block; width:100%; text-align:center; padding:13px 18px; background:rgba(255,255,255,.045); border:1px solid rgba(255,255,255,.08); border-radius:10px; color:#ECEAE5; text-decoration:none; font-family:'Inter',sans-serif; font-size:13px; font-weight:500; transition:background .2s, border-color .2s, color .2s}
+      .tmw-partner-cta:hover{background:rgba(255,255,255,.09); border-color:rgba(255,255,255,.16); color:#fff}
     `;
     const style = document.createElement('style');
     style.id = 'tmw-partners-styles';

@@ -130,6 +130,11 @@
     // ── Header nav: drop the green underline; gold glow text on hover/active.
     '.nav-links a.active::after, .tmw-chrome-head .nav-links a.active::after, nav.main .nav-links a.active::after{display:none !important}',
     '.nav-links a:hover, .nav-links a.active, .tmw-chrome-head .nav-links a:hover, .tmw-chrome-head .nav-links a.active{color:var(--gold-soft) !important; text-shadow:0 0 14px rgba(230,197,116,.55), 0 0 3px rgba(230,197,116,.35)}',
+
+    // ── Rank-page CTA (Book a table / Website): subtle gold-glow text, no fill.
+    '.btn-cta{background:transparent !important; color:var(--gold-soft) !important; padding:8px 0 !important; border-radius:0 !important; text-shadow:0 0 14px rgba(230,197,116,.5), 0 0 3px rgba(230,197,116,.32)}',
+    '.btn-cta:hover{background:transparent !important; transform:none !important; gap:11px}',
+    '.btn-cta svg{color:var(--gold-soft)}',
     '@media(max-width:980px){.banner-ad{max-height:170px}.featured-carousel{height:151px}}',
     '@media(max-width:560px){.banner-ad{max-height:120px}.featured-carousel{height:100px}}',
 

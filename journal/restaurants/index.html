@@ -258,6 +258,8 @@ nav.main .wrap{display:flex; align-items:center; justify-content:space-between; 
 .ri-chip.par{color:var(--mute-2)}
 body:not(.edit-mode) .ri-chip:empty{display:none}
 .ri-desc{color:var(--mute-2); font-size:15px; line-height:1.65; font-weight:300; max-width:62ch}
+.ri-recs{color:var(--mute-2); font-size:14px; line-height:1.6; font-weight:300; max-width:62ch; margin-top:14px}
+.ri-recs .recs-label{color:var(--cream); font-weight:600}
 .ri-ctas{display:flex; gap:12px; margin-top:24px; flex-wrap:wrap; align-items:center}
 .btn-official{font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; font-weight:600; padding:11px 18px; border-radius:999px; border:1px solid var(--hair-2); color:var(--cream); display:inline-flex; align-items:center; gap:7px; transition:all .2s}
 .btn-official:hover{border-color:var(--white); color:var(--white)}
@@ -1630,9 +1632,9 @@ function rankItemHtml(it, originalIdx, visibleIdx) {
       <div class="ri-meta">
         ${it.architect ? `<span class="ri-chip arch" data-edit="architect">⚐ ${escapeHtml(it.architect)}</span>` : '<span class="ri-chip arch" data-edit="architect" data-placeholder="+ Chef"></span>'}
         ${it.year ? `<span class="ri-chip year" data-edit="year">${escapeHtml(it.year)}</span>` : '<span class="ri-chip year" data-edit="year" data-placeholder="+ Year"></span>'}
-        ${it.region ? `<span class="ri-chip" data-edit="region">${escapeHtml(it.region)}</span>` : '<span class="ri-chip" data-edit="region" data-placeholder="+ Region"></span>'}
       </div>
       <p class="ri-desc" data-edit="description">${escapeHtml(it.description || '')}</p>
+      ${it.recommendations ? `<p class="ri-recs"><span class="recs-label">Recommendations:</span> <span data-edit="recommendations">${escapeHtml(it.recommendations)}</span></p>` : ''}
       <div class="ri-ctas">
         ${it.ctaUrl ? `<a class="btn-cta" href="${escapeAttr(it.ctaUrl)}" target="_blank" rel="noopener" data-edit-url="ctaUrl">
           <span data-edit="ctaLabel">${escapeHtml(it.ctaLabel || 'Book Now')}</span>
