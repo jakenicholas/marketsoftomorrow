@@ -2127,28 +2127,45 @@ async function migrateCopyBatch(env, limit, publicBase, ts) {
   const rows = await env.DB.prepare(
     "SELECT key, url FROM media WHERE url LIKE '%wixstatic.com/%' LIMIT ?1"
   ).bind(limit).all();
-  for (const r of (rows.results || [])) {
+  const list = rows.results || [];
+
+  // Fetch the Wix bytes → R2 for one row, then RETURN the DB statements (don't
+  // await them here). The whole wave's writes are flushed in a single DB.batch()
+  // below — one D1 round-trip per wave instead of two per file, which is the
+  // real throughput lever (the fetch+put are I/O the wave already overlaps).
+  const copyOne = async (r) => {
     stats.processed++;
     try {
       const res = await fetch(r.url, { cf: { cacheTtl: 86400 } });
-      if (!res.ok) { stats.errors.push({ file: r.key, error: 'fetch ' + res.status }); continue; }
+      if (!res.ok) { stats.errors.push({ file: r.key, error: 'fetch ' + res.status }); return null; }
       const buf = await res.arrayBuffer();
       const ct = res.headers.get('content-type') || guessMimeFromName(r.key) || 'application/octet-stream';
       await env.MEDIA.put(r.key, buf, {
         httpMetadata: { contentType: ct, cacheControl: 'public, max-age=31536000, immutable' },
         customMetadata: { source: r.url, migrated_at: String(Date.now()) },
       });
-      await env.DB.prepare(
-        "UPDATE media SET url=?1, mime_type=?2, size_bytes=?3, uploaded_by='wix-migrate' WHERE key=?4"
-      ).bind(publicBase + '/' + r.key, ct, buf.byteLength, r.key).run();
-      try {
-        await env.DB.prepare(`INSERT INTO media_map (source_url, r2_url, r2_key, size_bytes, mime_type, migrated_at)
-          VALUES (?1,?2,?3,?4,?5,?6)
-          ON CONFLICT(source_url) DO UPDATE SET r2_url=excluded.r2_url, r2_key=excluded.r2_key, migrated_at=excluded.migrated_at`)
-          .bind(r.url, publicBase + '/' + r.key, r.key, buf.byteLength, ct, ts).run();
-      } catch {}
-      stats.copied++;
-    } catch (e) { stats.errors.push({ file: r.key, error: (e.message || String(e)).slice(0, 160) }); }
+      // Repoint the media row at its R2 URL. Return the statement (don't await)
+      // so the whole wave flushes in one DB.batch(). NOTE: we deliberately do
+      // NOT write media_map here — that table isn't present in this D1, and the
+      // source→R2 mapping is fully recoverable from media (key encodes the Wix
+      // id; R2 customMetadata.source holds the original URL).
+      return env.DB.prepare("UPDATE media SET url=?1, mime_type=?2, size_bytes=?3, uploaded_by='wix-migrate' WHERE key=?4")
+        .bind(publicBase + '/' + r.key, ct, buf.byteLength, r.key);
+    } catch (e) { stats.errors.push({ file: r.key, error: (e.message || String(e)).slice(0, 160) }); return null; }
+  };
+
+  // Process the batch in bounded-concurrency waves (copy is I/O-bound), then
+  // flush each wave's DB writes in ONE batch. Failed/partial work just retries
+  // next call. Only the fetch counts toward the subrequest cap (R2/D1 bindings
+  // don't), so the concurrency can be high.
+  const CONC = 24;
+  for (let i = 0; i < list.length; i += CONC) {
+    const results = await Promise.all(list.slice(i, i + CONC).map(copyOne));
+    const writes = results.filter(Boolean);
+    if (writes.length) {
+      try { await env.DB.batch(writes); stats.copied += writes.length; }
+      catch (e) { stats.errors.push({ file: 'batch', error: (e.message || String(e)).slice(0, 160) }); }
+    }
   }
   const remRow = await env.DB.prepare("SELECT COUNT(*) c FROM media WHERE url LIKE '%wixstatic.com/%'").first();
   stats.remaining = remRow ? remRow.c : 0;
@@ -2239,19 +2256,47 @@ async function migrationTick(env) {
   const auto = await env.DB.prepare("SELECT value FROM sync_state WHERE key='migrate_auto'").first();
   if (auto && auto.value === '0') return { paused: true };
 
-  // soft lock (90s) so a slow tick isn't lapped by the next cron fire
+  // soft lock so two ticks don't copy the same rows. Short TTL (45s) because the
+  // copy loop is wall-clock-boxed to ~20s and releases on exit — so even if a
+  // tick were ever killed, the next minute's fire still runs (no wasted minute).
   const lock = await env.DB.prepare("SELECT updated_at FROM sync_state WHERE key='migrate_lock'").first();
-  if (lock && lock.updated_at && (now - lock.updated_at) < 90) return { locked: true };
+  if (lock && lock.updated_at && (now - lock.updated_at) < 45) return { locked: true };
   await env.DB.prepare("INSERT INTO sync_state (key, value, updated_at) VALUES ('migrate_lock','running',?1) ON CONFLICT(key) DO UPDATE SET value='running', updated_at=?1").bind(now).run();
 
   const out = { indexedFolders: 0, indexed: 0, copied: 0, foldersRemaining: null, remaining: null };
   try {
-    // 1) advance the index a few folders — only if a crawl is already in flight
-    let foldersRemaining = 0;
-    if (env.WIX_API_KEY && env.WIX_SITE_ID) {
+    // 1) COPY bytes into R2 — the bulk of the work, and the priority. Done in
+    // concurrent waves, looped under a wall-clock deadline so each tick does as
+    // much as it reliably can and ALWAYS returns cleanly (releasing the lock)
+    // before any platform time limit could kill it mid-flight. While files
+    // remain, the whole invocation goes here (index is deferred below).
+    let remaining = null;
+    const COPY_DEADLINE_MS = 20000;
+    const startMs = Date.now();
+    if (env.MEDIA && env.MEDIA_PUBLIC_BASE && !/REPLACE-WITH/.test(env.MEDIA_PUBLIC_BASE)) {
+      const publicBase = env.MEDIA_PUBLIC_BASE.replace(/\/+$/, '');
+      let batches = 0;
+      while (Date.now() - startMs < COPY_DEADLINE_MS) {
+        const s = await migrateCopyBatch(env, 40, publicBase, now);
+        out.copied += s.copied;
+        remaining = s.remaining;
+        batches++;
+        if (s.remaining === 0 || s.processed === 0) break;
+      }
+      out.copyBatches = batches;
+    }
+    out.remaining = remaining;
+    out.copyMs = Date.now() - startMs;
+
+    // 2) INDEX — only once copy is fully drained. The remaining crawl folders
+    // surface almost no new files but cost ~36 Wix calls each, so we keep them
+    // out of the hot copy path and finish the tree only after R2 is caught up.
+    let foldersRemaining = null;
+    if ((remaining === 0 || remaining === null) && env.WIX_API_KEY && env.WIX_SITE_ID) {
       const has = await env.DB.prepare("SELECT COUNT(*) c FROM sqlite_master WHERE type='table' AND name='wix_crawl'").first();
       if (has && has.c) {
-        for (let i = 0; i < 6; i++) {
+        foldersRemaining = 0;
+        for (let i = 0; i < 12; i++) {
           const s = await migrateIndexFolder(env, now, 100, false); // never re-seed
           foldersRemaining = s.foldersRemaining;
           if (!s.didWork) break;
@@ -2262,23 +2307,18 @@ async function migrationTick(env) {
     }
     out.foldersRemaining = foldersRemaining;
 
-    // 2) copy bytes into R2 (the bulk of the work)
-    let remaining = null;
-    if (env.MEDIA && env.MEDIA_PUBLIC_BASE && !/REPLACE-WITH/.test(env.MEDIA_PUBLIC_BASE)) {
-      const publicBase = env.MEDIA_PUBLIC_BASE.replace(/\/+$/, '');
-      for (let i = 0; i < 4; i++) {
-        const s = await migrateCopyBatch(env, 20, publicBase, now);
-        out.copied += s.copied;
-        remaining = s.remaining;
-        if (s.remaining === 0 || s.processed === 0) break;
+    // 3) auto-pause once everything is copied AND the index tree is fully drained
+    if (remaining === 0) {
+      const fp = await env.DB.prepare("SELECT COUNT(*) c FROM sqlite_master WHERE type='table' AND name='wix_crawl'").first();
+      let pending = 0;
+      if (fp && fp.c) {
+        const p = await env.DB.prepare('SELECT COUNT(*) c FROM wix_crawl WHERE subs_done=0 OR files_done=0').first();
+        pending = p ? p.c : 0;
       }
-    }
-    out.remaining = remaining;
-
-    // 3) auto-pause once everything is indexed and copied
-    if (foldersRemaining === 0 && remaining === 0) {
-      await env.DB.prepare("INSERT INTO sync_state (key, value, updated_at) VALUES ('migrate_auto','0',?1) ON CONFLICT(key) DO UPDATE SET value='0', updated_at=?1").bind(now).run();
-      out.complete = true;
+      if (pending === 0) {
+        await env.DB.prepare("INSERT INTO sync_state (key, value, updated_at) VALUES ('migrate_auto','0',?1) ON CONFLICT(key) DO UPDATE SET value='0', updated_at=?1").bind(now).run();
+        out.complete = true;
+      }
     }
   } catch (e) {
     out.error = (e.message || String(e)).slice(0, 200);
@@ -2286,6 +2326,7 @@ async function migrationTick(env) {
     // release the lock (stamp 0 so the next cron tick runs immediately)
     await env.DB.prepare("INSERT INTO sync_state (key, value, updated_at) VALUES ('migrate_lock','idle',0) ON CONFLICT(key) DO UPDATE SET value='idle', updated_at=0").run();
   }
+  console.log('migrationTick ' + JSON.stringify(out));
   return out;
 }
 
