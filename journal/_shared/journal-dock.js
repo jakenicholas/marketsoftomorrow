@@ -118,6 +118,14 @@
     '.story-card .sc-tab:hover{background:rgba(255,255,255,.06); color:#fff; transform:translateY(-1px)}',
     '.story-card .sc-tab.on{background:#fff; color:var(--ink); font-weight:700; box-shadow:0 6px 16px -6px rgba(255,255,255,.5)}',
     '@media(max-width:560px){.story-card .sc-tab{padding:9px 15px; font-size:10.5px; letter-spacing:.12em}}',
+
+    // ── Rank-page section tabs: no counts, single row, cleaner sort control.
+    '.tab-btn .tb-count{display:none}',
+    '.tabs{flex-wrap:nowrap}',
+    '.tabs .tab-btn{white-space:nowrap}',
+    '.tabs-bar .sort{background-color:transparent; border:0; padding-left:2px}',
+    '.tabs-bar .sort:focus{border:0}',
+    '@media(max-width:560px){.tabs .tab-btn{padding:8px 12px; font-size:10px; letter-spacing:.07em}.tabs{padding:4px}}',
     '@media(max-width:980px){.banner-ad{max-height:170px}.featured-carousel{height:151px}}',
     '@media(max-width:560px){.banner-ad{max-height:120px}.featured-carousel{height:100px}}',
 

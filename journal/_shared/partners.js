@@ -45,8 +45,13 @@
       .tmw-partner-img img{width:100%; height:100%; object-fit:cover; transition:transform .6s ease}
       .tmw-partner-card:hover .tmw-partner-img img{transform:scale(1.04)}
       .tmw-partner-body{padding:28px 22px 22px; display:flex; flex-direction:column; align-items:center; gap:18px; text-align:center; flex:1}
-      .tmw-partner-logo{height:54px; max-width:80%; display:flex; align-items:center; justify-content:center}
-      .tmw-partner-logo img{max-height:100%; max-width:100%; object-fit:contain; filter:brightness(0) invert(1); opacity:.92}
+      .tmw-partner-logo{height:54px; width:100%; max-width:200px; display:flex; align-items:center; justify-content:center}
+      /* Render the (often dark) brand SVG as a solid-white silhouette using the
+         SVG as a CSS mask over a white fill — robust across browsers and
+         independent of the SVG's own fill colors (img+filter was unreliable). */
+      .tmw-partner-logo .lmask{display:block; width:100%; height:54px; background:#fff; opacity:.95;
+        -webkit-mask-size:contain; mask-size:contain; -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat;
+        -webkit-mask-position:center; mask-position:center}
       .tmw-partner-logo .wm-fallback{font-family:'Fraunces',Georgia,serif; font-weight:500; font-size:22px; color:#fff; letter-spacing:.04em; text-align:center; line-height:1.1}
       .tmw-partner-cat{font-family:'JetBrains Mono',ui-monospace,monospace; font-size:10.5px; letter-spacing:.22em; text-transform:uppercase; color:#C2C9C3; font-weight:500}
       .tmw-partner-cta{margin-top:auto; display:inline-block; padding:11px 22px; border:1px solid rgba(255,255,255,.18); border-radius:999px; color:#ECEAE5; text-decoration:none; font-family:'Inter',sans-serif; font-size:13px; font-weight:500; transition:all .2s}
@@ -66,7 +71,7 @@
 
   function cardHtml(p) {
     const logoEl = p.logo
-      ? `<img src="${esc(p.logo)}" alt="${esc(p.name)}" onerror="this.parentElement.innerHTML='<div class=&quot;wm-fallback&quot;>${esc(p.name)}</div>'">`
+      ? `<span class="lmask" role="img" aria-label="${esc(p.name)}" style="-webkit-mask-image:url('${esc(p.logo)}');mask-image:url('${esc(p.logo)}')"></span>`
       : `<div class="wm-fallback">${esc(p.name)}</div>`;
     const imgEl = p.image
       ? `<img src="${esc(p.image)}" alt="" loading="lazy">`

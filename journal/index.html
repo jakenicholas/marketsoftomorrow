@@ -723,6 +723,7 @@ footer .ft-logo .tmw-wordmark{width:118px}
     <nav class="sc-tabs" aria-label="Verticals">
       <a class="sc-tab on" href="/journal/">News</a>
       <a class="sc-tab" href="/journal/restaurants/">Restaurants</a>
+      <a class="sc-tab" href="/journal/hotels/">Hotels</a>
       <a class="sc-tab" href="/journal/golf/">Golf</a>
     </nav>
   </article>
@@ -1058,12 +1059,34 @@ footer .ft-logo .tmw-wordmark{width:118px}
       <h2>Seven stories. One Sunday. Zero fluff.</h2>
       <p>The week ahead in hospitality, real estate, food, and the markets defining tomorrow — delivered free every Sunday morning to 84,000+ operators, developers, and investors.</p>
     </div>
-    <form class="nlform" onsubmit="event.preventDefault(); alert('Wired to your ESP next — but this is the look.')">
-      <input type="email" placeholder="you@yourcompany.com" required>
+    <form class="nlform" id="nlform">
+      <input type="email" id="nlemail" placeholder="you@yourcompany.com" autocomplete="email" required>
       <button type="submit">Subscribe</button>
     </form>
   </div>
 </section>
+<script>
+// Newsletter subscribe — posts {email} to the Resend-backed worker. Email-only.
+(function(){
+  var f=document.getElementById('nlform'); if(!f) return;
+  var ENDPOINT='https://tmw-subscribe.jake-ab7.workers.dev';
+  var MARKETS=['florida','tennessee','newyork','caribbean','rockies','hotel'];
+  f.addEventListener('submit', async function(e){
+    e.preventDefault();
+    var input=document.getElementById('nlemail');
+    var btn=f.querySelector('button');
+    var email=(input.value||'').trim();
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ input.focus(); return; }
+    var orig=btn.textContent; btn.disabled=true; btn.textContent='Subscribing…';
+    try{
+      var r=await fetch(ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email,name:'',markets:MARKETS})});
+      var d=await r.json().catch(function(){return{};});
+      if(d&&d.success){ f.innerHTML='<div style="font-family:var(--mono);font-size:13px;letter-spacing:.06em;color:var(--green);padding:14px 4px">✓ You\'re in — check your inbox to confirm.</div>'; }
+      else { btn.disabled=false; btn.textContent=orig; input.focus(); }
+    }catch(err){ btn.disabled=false; btn.textContent=orig; }
+  });
+})();
+</script>
 
 <!-- ==================== PARTNERS — replaced by shared data-tmw-partners mount above the Quick Links section ==================== -->
 
