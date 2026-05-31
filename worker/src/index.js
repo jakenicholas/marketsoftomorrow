@@ -927,7 +927,48 @@ async function handlePostsBySlug(env, origin, slug) {
   );
 }
 
+// Wix categories were not migrated, so the posts table has none. Derive a
+// primary "category" (a region/location first, then a vertical) from the
+// title + excerpt at read-time so every consumer — the gold tile label, the
+// home region filters, the pre-rendered article pages — has something to show.
+// No DB mutation; pure function over the row.
+const CATEGORY_RULES = [
+  ['Florida',    /\b(miami|palm beach|west palm|orlando|tampa|jacksonville|sarasota|naples|fort lauderdale|boca raton|delray|brickell|wynwood|doral|kissimmee|fort myers|gainesville|tallahassee|broward|coral gables|aventura|key west|florida|edgewater)\b/i],
+  ['New York',   /\b(new york|nyc|manhattan|brooklyn|hamptons|hudson yards|queens|the bronx|long island|tribeca|soho|hudson valley)\b/i],
+  ['Tennessee',  /\b(nashville|memphis|knoxville|tennessee|chattanooga)\b/i],
+  ['Caribbean',  /\b(bahamas|turks|caicos|jamaica|cayman|bvi|antigua|barbados|aruba|st\.? barts|st\.? barth|puerto rico|dominican|caribbean|nevis|anguilla|bermuda|virgin islands|grenada|st\.? lucia)\b/i],
+  ['Rockies',    /\b(aspen|vail|jackson hole|telluride|park city|colorado|utah|wyoming|montana|big sky|breckenridge|steamboat|deer valley)\b/i],
+  ['Europe',     /\b(london|paris|milan|rome|madrid|barcelona|lisbon|monaco|ibiza|mykonos|santorini|amsterdam|berlin|europe|italy|france|spain|portugal|greece|switzerland|swiss|vienna|venice|florence|tuscany|cotswolds|riviera)\b/i],
+  ['Hawaii',     /\b(hawaii|maui|kauai|oahu|honolulu|lanai|big island|waikiki|wailea)\b/i],
+  ['California', /\b(los angeles|california|san francisco|beverly hills|malibu|napa|palm springs|la quinta|newport beach|san diego|montecito|santa monica|west hollywood)\b/i],
+  ['Texas',      /\b(texas|austin|dallas|houston|san antonio|fort worth)\b/i],
+  ['Carolinas',  /\b(charleston|carolina|asheville|kiawah|charlotte|raleigh)\b/i],
+  ['Arizona',    /\b(arizona|scottsdale|phoenix|sedona)\b/i],
+  ['Las Vegas',  /\b(las vegas|vegas|nevada)\b/i],
+  ['Georgia',    /\b(atlanta|georgia|savannah)\b/i],
+  ['Mexico',     /\b(mexico|cabo|tulum|los cabos|riviera maya|cancun)\b/i],
+  ['Middle East',/\b(dubai|abu dhabi|saudi|qatar|doha|riyadh|red sea)\b/i],
+  ['Asia',       /\b(tokyo|japan|singapore|hong kong|bangkok|bali|thailand|seoul|kyoto)\b/i],
+];
+const VERTICAL_RULES = [
+  ['Golf',        /\b(golf|fairway|tee time|country club|nicklaus|hanse|links)\b/i],
+  ['Restaurants', /\b(restaurant|dining|chef|michelin|cuisine|menu|tasting|culinary|eatery|cocktail|steakhouse|omakase)\b/i],
+  ['Hotels',      /\b(hotel|resort|hospitality|suite|lodge|ritz|four seasons|aman|rosewood|mandarin oriental|st\.? regis)\b/i],
+  ['Real Estate', /\b(residence|condo|tower|development|penthouse|high-rise|mixed-use|groundbreaking|breaks ground|waterfront)\b/i],
+];
+function deriveCategories(title, excerpt) {
+  const hay = (title || '') + ' ' + (excerpt || '');
+  const region = (CATEGORY_RULES.find(([, rx]) => rx.test(hay)) || [])[0];
+  const vert   = (VERTICAL_RULES.find(([, rx]) => rx.test(hay)) || [])[0];
+  const cats = [];
+  if (region) cats.push(region);
+  if (vert && vert !== region) cats.push(vert);
+  return cats.length ? cats : ['Markets'];
+}
+
 function rowToPostSummary(r) {
+  let categories = safeJsonArray(r.categories);
+  if (!categories.length) categories = deriveCategories(r.title, r.excerpt);
   return {
     id: r.id,
     slug: r.slug,
@@ -935,7 +976,7 @@ function rowToPostSummary(r) {
     excerpt: r.excerpt || '',
     cover_image: r.cover_image,
     cover_image_alt: r.cover_image_alt,
-    categories: safeJsonArray(r.categories),
+    categories,
     tags: safeJsonArray(r.tags),
     author_name: r.author_name,
     status: r.status,

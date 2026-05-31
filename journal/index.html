@@ -346,6 +346,7 @@ nav.main .wrap{display:flex; align-items:center; justify-content:space-between; 
   font-size:11px; letter-spacing:.22em; text-transform:uppercase; font-weight:600;
   color:var(--gold-soft);
   display:inline-flex; align-items:center; gap:8px;
+  align-self:flex-start; width:fit-content;
   padding:6px 13px; border-radius:999px;
   background:rgba(230,197,116,.10); border:1px solid rgba(230,197,116,.34);
   text-shadow:0 0 14px rgba(230,197,116,.5), 0 0 3px rgba(230,197,116,.32);
@@ -495,7 +496,9 @@ section.grid-section{padding:60px 0 90px; position:relative}
 .flist-arrow:hover{background:var(--green); color:var(--ink); border-color:var(--green); transform:translateY(-1px)}
 .flist-arrow:disabled{opacity:.3; cursor:not-allowed}
 .flist-arrow svg{width:14px; height:14px}
-.flists-track-wrap{position:relative; overflow:hidden; margin-right:-28px; padding-right:28px}
+/* Bleed the slider off the right edge of the viewport (no right padding) so a
+   card is cut at the edge, signalling there's more to scroll. */
+.flists-track-wrap{position:relative; overflow:hidden; margin-right:calc((min(1320px, 100vw) - 100vw) / 2 - 28px); padding-right:0}
 .flists-track{display:flex; gap:18px; overflow-x:auto; scroll-snap-type:x mandatory; scrollbar-width:none; -ms-overflow-style:none; padding-bottom:8px; scroll-behavior:smooth}
 .flists-track::-webkit-scrollbar{display:none}
 .flist-card{flex:0 0 340px; aspect-ratio:340/420; border-radius:18px; overflow:hidden; position:relative; background:var(--panel-2); scroll-snap-align:start; transition:transform .25s ease; isolation:isolate}
@@ -1126,14 +1129,14 @@ footer .ft-logo .tmw-wordmark{width:118px}
         <p class="blurb">A powerhouse news network covering the brands shaping the future of hospitality, real estate, and lifestyle.</p>
       </div>
       <div>
-        <h4>Editions</h4>
+        <h4>Focus Markets</h4>
         <ul>
-          <li><a href="#global">Global</a></li>
-          <li><a href="#florida">Florida</a></li>
-          <li><a href="#new-york">New York</a></li>
-          <li><a href="#tennessee">Tennessee</a></li>
-          <li><a href="#caribbean">Caribbean</a></li>
-          <li><a href="#rockies">Rockies</a></li>
+          <li><a href="/journal/">Global</a></li>
+          <li><a href="/journal/?market=florida">Florida</a></li>
+          <li><a href="/journal/?market=new-york">New York</a></li>
+          <li><a href="/journal/?market=tennessee">Tennessee</a></li>
+          <li><a href="/journal/?market=caribbean">Caribbean</a></li>
+          <li><a href="/journal/?market=rockies">Rockies</a></li>
         </ul>
       </div>
       <div>
@@ -1152,14 +1155,12 @@ footer .ft-logo .tmw-wordmark{width:118px}
           <li><a href="#newsletter">Subscribe</a></li>
           <li><a href="/media/">Advertise</a></li>
           <li><a href="mailto:hello@oftmw.com">Contact</a></li>
-          <li><a href="#">Privacy</a></li>
-          <li><a href="#">Terms</a></li>
         </ul>
       </div>
     </div>
     <div class="bottom">
-      <div>© <span id="yr">2026</span> Markets of Tomorrow · All rights reserved</div>
-      <div>Built on cream and caffeine in Florida</div>
+      <div>Markets of Tomorrow © <span id="yr">2026</span> · All rights reserved</div>
+      <div>The Future is Here</div>
     </div>
   </div>
 </footer>
@@ -1179,17 +1180,27 @@ const PULSE_MAX     = 8;                               // visible items in the s
 const PLACEMENT     = 'home';                          // page-specific tag for ad targeting
 const PAGE_SIZE     = 9;
 
+// Region filter tags. Categories are region-first (derived by the worker), so
+// each bucket matches its region label. buildPills() only shows buckets that
+// have stories, so empty regions never render an empty tag.
+// Broad region matching so the same bucket works whether the category is the
+// worker-derived region ("Florida") or a Wix RSS category ("Florida of
+// Tomorrow", "Miami"). buildPills() hides buckets with no stories.
 const CATEGORY_BUCKETS = [
-  { key: '*',           label: 'All',         match: () => true },
-  { key: 'global',      label: 'Global',      match: c => /global|world|international/i.test(c) },
-  { key: 'florida',     label: 'Florida',     match: c => /florida|orlando|tampa|miami|palm|jacksonville|sarasota|naples/i.test(c) },
-  { key: 'new-york',    label: 'New York',    match: c => /new york|nyc|manhattan|brooklyn|hudson|hamptons/i.test(c) },
-  { key: 'tennessee',   label: 'Tennessee',   match: c => /tennessee|nashville|memphis|knoxville/i.test(c) },
-  { key: 'caribbean',   label: 'Caribbean',   match: c => /caribbean|bahamas|turks|caicos|jamaica|cayman|bvi|antigua|barbados|aruba|saint|st\./i.test(c) },
-  { key: 'rockies',     label: 'Rockies',     match: c => /rockies|rocky|aspen|vail|jackson|telluride|park city|colorado|utah|wyoming|montana/i.test(c) },
-  { key: 'hotels',      label: 'Hotels',      match: c => /hotel|hospitality|resort|inn|lodge/i.test(c) },
-  { key: 'restaurants', label: 'Restaurants', match: c => /restaurant|dining|chef|food|cuisine|cocktail/i.test(c) },
-  { key: 'golf',        label: 'Golf',        match: c => /golf|course|country club/i.test(c) },
+  { key: '*',            label: 'All',         match: () => true },
+  { key: 'florida',      label: 'Florida',     match: c => /florida|miami|palm beach|orlando|tampa|jacksonville|sarasota|naples|fort lauderdale|boca|brickell|wynwood|delray/i.test(c) },
+  { key: 'new-york',     label: 'New York',    match: c => /new york|nyc|manhattan|brooklyn|hamptons|hudson|queens|tribeca|soho/i.test(c) },
+  { key: 'tennessee',    label: 'Tennessee',   match: c => /tennessee|nashville|memphis|knoxville/i.test(c) },
+  { key: 'caribbean',    label: 'Caribbean',   match: c => /caribbean|bahamas|turks|caicos|jamaica|cayman|antigua|barbados|aruba|bermuda|anguilla|nevis/i.test(c) },
+  { key: 'rockies',      label: 'Rockies',     match: c => /rockies|aspen|vail|jackson hole|telluride|park city|colorado|utah|wyoming|montana/i.test(c) },
+  { key: 'europe',       label: 'Europe',      match: c => /europe|london|paris|milan|rome|madrid|barcelona|lisbon|monaco|ibiza|santorini|italy|france|spain|portugal|greece/i.test(c) },
+  { key: 'hawaii',       label: 'Hawaii',      match: c => /hawaii|maui|kauai|oahu|honolulu|lanai|waikiki/i.test(c) },
+  { key: 'california',   label: 'California',  match: c => /california|los angeles|san francisco|beverly hills|malibu|napa|palm springs|san diego/i.test(c) },
+  { key: 'texas',        label: 'Texas',       match: c => /texas|austin|dallas|houston|san antonio/i.test(c) },
+  { key: 'carolinas',    label: 'Carolinas',   match: c => /carolina|charleston|asheville|kiawah|charlotte/i.test(c) },
+  { key: 'mexico',       label: 'Mexico',      match: c => /mexico|cabo|tulum|cancun|riviera maya/i.test(c) },
+  { key: 'middle-east',  label: 'Middle East', match: c => /middle east|dubai|abu dhabi|saudi|qatar|doha|riyadh/i.test(c) },
+  { key: 'asia',         label: 'Asia',        match: c => /asia|tokyo|japan|singapore|hong kong|bangkok|bali|thailand/i.test(c) },
 ];
 
 // ---------------------------------------------------------------
@@ -1614,7 +1625,7 @@ function buildPills() {
     const btn = document.createElement('button');
     btn.className = 'pill' + (bucket.key === ACTIVE_CAT ? ' on' : '');
     btn.dataset.cat = bucket.key;
-    btn.innerHTML = `${bucket.label}<span class="count">${count}</span>`;
+    btn.textContent = bucket.label;   // count removed per design
     btn.addEventListener('click', () => {
       ACTIVE_CAT = bucket.key;
       VISIBLE_N = PAGE_SIZE;
@@ -1734,8 +1745,9 @@ function showError(msg) {
 // ---------------------------------------------------------------
 function primaryCategory(cats) {
   if (!cats || !cats.length) return '';
-  const placey = cats.find(c => /florida|new york|tennessee|caribbean|rockies|orlando|tampa|miami|nashville|aspen|bahamas|jacksonville|carolinas|charleston/i.test(c));
-  return placey || cats.find(c => !/markets of tomorrow|of tomorrow/i.test(c)) || cats[0];
+  const clean = c => String(c).replace(/\s+of tomorrow$/i, '').trim();
+  const placey = cats.find(c => /florida|new york|tennessee|caribbean|rockies|europe|hawaii|california|texas|orlando|tampa|miami|nashville|aspen|bahamas|jacksonville|carolinas|charleston/i.test(c));
+  return clean(placey || cats.find(c => !/markets of tomorrow|of tomorrow/i.test(c)) || cats[0]);
 }
 function bucketLabel(key) {
   const b = CATEGORY_BUCKETS.find(x => x.key === key);

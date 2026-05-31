@@ -115,8 +115,8 @@
 
     // ── Top featured ad banner: explicit heights per device, full width, no
     //    sponsor chip. (Inline page rule is clamp(180px,22vw,280px).)
-    '.banner-ad{max-height:300px; width:100%; max-width:100vw}',
-    '.featured-carousel{height:260px; width:100%}',
+    '.banner-ad{max-height:360px; width:100%; max-width:100vw}',
+    '.featured-carousel{height:340px; width:100%}',
     '.fc-track,.fc-slide{width:100%; left:0; right:0}',
     '.fc-slide video,.fc-slide img{width:100%; height:100%; object-fit:cover; object-position:center}',
     '.fc-sponsor{display:none !important}',
