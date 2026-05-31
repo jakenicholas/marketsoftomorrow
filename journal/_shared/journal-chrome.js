@@ -76,15 +76,18 @@
     '<footer class="tmw-chrome-foot"><div class="wrap"><div class="ft-grid">' +
       '<div>' + '<a href="/" class="tmw-logo-lockup">' + HEX + WORDMARK + '</a>' +
         '<p class="blurb">A powerhouse news network covering the brands shaping the future of hospitality, real estate, and lifestyle.</p></div>' +
+      '<div><h4>Focus Markets</h4><ul>' +
+        '<li><a href="/">Global</a></li><li><a href="/?market=florida">Florida</a></li>' +
+        '<li><a href="/?market=new-york">New York</a></li><li><a href="/?market=tennessee">Tennessee</a></li>' +
+        '<li><a href="/?market=caribbean">Caribbean</a></li><li><a href="/?market=rockies">Rockies</a></li></ul></div>' +
       '<div><h4>Iconic Lists</h4><ul>' +
         '<li><a href="/golf/">Golf</a></li><li><a href="/restaurants/">Restaurants</a></li>' +
-        '<li><a href="/hotels/">Hotels</a></li><li><a href="/search/?q=residences">Residences</a></li>' +
-        '<li><a href="/search/?q=architects">Architects</a></li></ul></div>' +
-      '<div><h4>Network</h4><ul>' +
-        '<li><a href="/">The Journal</a></li><li><a href="https://map.oftmw.com">Map of Tomorrow</a></li>' +
-        '<li><a href="/search/">Search</a></li><li><a href="mailto:hello@oftmw.com">Contact</a></li></ul></div>' +
+        '<li><a href="/hotels/">Hotels</a></li></ul></div>' +
+      '<div><h4>Company</h4><ul>' +
+        '<li><a href="https://map.oftmw.com">Map of Tomorrow</a></li><li><a href="https://map.oftmw.com/media/">About Us</a></li>' +
+        '<li><a href="https://map.oftmw.com/media/">Advertise</a></li><li><a href="mailto:hello@oftmw.com">Contact</a></li></ul></div>' +
     '</div><div class="ft-bot"><div>&copy; <span id="tmw-yr"></span> Markets of Tomorrow</div>' +
-      '<div>Built on cream and caffeine in Florida</div></div></div></footer>';
+      '<div>The Future is Here</div></div></div></footer>';
 
   var css = [
     '.tmw-chrome-head{position:sticky; top:0; z-index:60}',
@@ -132,7 +135,7 @@
     '}',
     '.tmw-chrome-foot{background:var(--ink-2); color:var(--mute-2); padding:60px 0 30px; border-top:1px solid var(--hair); margin-top:40px}',
     '.tmw-chrome-foot .wrap{max-width:1240px; margin:0 auto; padding:0 28px}',
-    '.tmw-chrome-foot .ft-grid{display:grid; grid-template-columns:1.4fr 1fr 1fr; gap:40px; padding-bottom:30px; border-bottom:1px solid var(--hair)}',
+    '.tmw-chrome-foot .ft-grid{display:grid; grid-template-columns:1.5fr 1fr 1fr 1fr; gap:40px; padding-bottom:30px; border-bottom:1px solid var(--hair)}',
     '.tmw-chrome-foot h4{font-family:var(--mono); font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:var(--white); margin-bottom:14px; font-weight:600}',
     '.tmw-chrome-foot ul{list-style:none; display:flex; flex-direction:column; gap:9px; font-size:14px; margin:0; padding:0}',
     '.tmw-chrome-foot ul a{color:var(--mute); transition:color .2s; text-decoration:none}',
@@ -140,7 +143,8 @@
     '.tmw-chrome-foot .blurb{color:var(--mute); font-size:13px; line-height:1.55; margin-top:14px; max-width:32ch}',
     '.tmw-chrome-foot .tmw-wordmark{width:118px}',
     '.tmw-chrome-foot .ft-bot{padding-top:22px; font-family:var(--mono); font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--mute); display:flex; justify-content:space-between; flex-wrap:wrap; gap:14px}',
-    '@media(max-width:760px){.tmw-chrome-foot .ft-grid{grid-template-columns:1fr; gap:30px}}'
+    '@media(max-width:900px){.tmw-chrome-foot .ft-grid{grid-template-columns:1fr 1fr; gap:30px}}',
+    '@media(max-width:520px){.tmw-chrome-foot .ft-grid{grid-template-columns:1fr 1fr; gap:22px}}'
   ].join('');
 
   function mount() {
@@ -151,7 +155,15 @@
 
     var h = document.createElement('div');
     h.innerHTML = headerHtml;
-    document.body.insertBefore(h.firstChild, document.body.firstChild);
+    var headerEl = h.firstChild;
+    // Keep the banner-ad on top: if the page opens with a banner, drop the
+    // sticky header right AFTER it (instead of above it), matching the homepage.
+    var banner = document.querySelector('.banner-ad');
+    if (banner && banner.parentNode === document.body) {
+      document.body.insertBefore(headerEl, banner.nextSibling);
+    } else {
+      document.body.insertBefore(headerEl, document.body.firstChild);
+    }
 
     var f = document.createElement('div');
     f.innerHTML = footerHtml;

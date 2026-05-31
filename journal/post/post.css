@@ -208,8 +208,8 @@ nav.main .wrap{display:flex; align-items:center; justify-content:space-between; 
 
 /* Footer */
 footer{background:var(--ink-2); color:var(--mute-2); padding:60px 0 30px; border-top:1px solid var(--hair)}
-footer .ft-grid{display:grid; grid-template-columns:1.4fr 1fr 1fr; gap:40px; padding-bottom:30px; border-bottom:1px solid var(--hair)}
-@media(max-width:780px){footer .ft-grid{grid-template-columns:1fr}}
+footer .ft-grid{display:grid; grid-template-columns:1.5fr 1fr 1fr 1fr; gap:40px; padding-bottom:30px; border-bottom:1px solid var(--hair)}
+@media(max-width:900px){footer .ft-grid{grid-template-columns:1fr 1fr; gap:30px}}
 footer h4{font-family:var(--mono); font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:var(--white); margin-bottom:14px; font-weight:600}
 footer ul{list-style:none; display:flex; flex-direction:column; gap:9px; font-size:14px}
 footer ul a{color:var(--mute); transition:color .2s}

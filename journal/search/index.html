@@ -64,18 +64,18 @@ h1,h2,h3{font-family:var(--serif);font-weight:600;letter-spacing:-.015em;color:v
 .hdr-links a{transition:color .2s}.hdr-links a:hover{color:var(--white)}
 .searchbox{position:relative;display:flex;align-items:center}
 .searchbox .mag{position:absolute;left:22px;width:22px;height:22px;color:var(--mute);pointer-events:none}
-.searchbox input{width:100%;height:68px;padding:0 24px 0 58px;background:var(--panel);border:1px solid var(--hair-2);border-radius:16px;
+.searchbox input{width:100%;height:68px;padding:0 64px 0 58px;background:var(--panel);border:1px solid var(--hair-2);border-radius:16px;
   color:var(--white);font-family:var(--serif);font-size:24px;outline:none;transition:border-color .2s,background .2s}
 .searchbox input::placeholder{color:var(--mute);font-family:var(--serif)}
 .searchbox input:focus{border-color:rgba(31,223,103,.5);background:var(--panel-2)}
-.searchbox .go{position:absolute;right:10px;height:48px;padding:0 22px;border:none;border-radius:11px;background:var(--green);color:var(--ink);
-  font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;cursor:pointer;transition:background .2s}
-.searchbox .go:hover{background:var(--green-soft)}
+.searchbox .go{position:absolute;right:16px;height:48px;width:48px;padding:0;border:none;background:transparent;color:var(--gold);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:color .2s,transform .2s}
+.searchbox .go:hover{color:var(--gold-soft);transform:translateX(3px)}
+.searchbox .go svg{width:26px;height:26px;filter:drop-shadow(0 0 8px rgba(230,197,116,.4))}
 .summary{margin-top:14px;font-family:var(--mono);font-size:12px;letter-spacing:.04em;color:var(--mute)}
 .summary b{color:var(--cream)}
 
 /* ── Sections ── */
-main{padding:30px 0 40px}
+main{padding:54px 0 40px}
 .section{margin-bottom:42px}
 .section-head{display:flex;align-items:baseline;gap:12px;margin-bottom:18px}
 .section-head h2{font-size:20px}
@@ -119,10 +119,8 @@ main{padding:30px 0 40px}
 .btn{display:inline-flex;align-items:center;gap:9px;font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;
   padding:12px 18px;border-radius:11px;transition:all .2s;cursor:pointer;border:1px solid transparent}
 .btn.primary{background:var(--green);color:var(--ink)}.btn.primary:hover{background:var(--green-soft)}
-.btn.gold{background:var(--gold);color:var(--ink);border:none;animation:goldGlow 2.4s ease-in-out infinite}
-.btn.gold:hover{background:var(--gold-soft);transform:translateY(-1px)}
-@keyframes goldGlow{0%,100%{box-shadow:0 0 0 0 rgba(230,197,116,.5),0 0 18px 0 rgba(230,197,116,.4)}50%{box-shadow:0 0 0 7px rgba(230,197,116,0),0 0 26px 4px rgba(230,197,116,.6)}}
-@media(prefers-reduced-motion:reduce){.btn.gold{animation:none}}
+.btn.gold{background:var(--gold);color:var(--ink);border:none;box-shadow:0 0 22px rgba(230,197,116,.5),0 0 6px rgba(230,197,116,.35)}
+.btn.gold:hover{background:var(--gold-soft);transform:translateY(-1px);box-shadow:0 0 28px rgba(230,197,116,.62),0 0 8px rgba(230,197,116,.4)}
 .btn.ghost{background:transparent;color:var(--cream);border-color:var(--hair-2)}.btn.ghost:hover{border-color:var(--hair-3);color:var(--white)}
 .btn svg{width:15px;height:15px}
 .btn.ghost svg{color:#fff}
@@ -218,7 +216,7 @@ main{padding:30px 0 40px}
     <form class="searchbox" id="searchForm" role="search">
       <svg class="mag" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg>
       <input id="q" type="search" autocomplete="off" placeholder="Search projects, firms, cities…" aria-label="Search">
-      <button class="go" type="submit">Search</button>
+      <button class="go" type="submit" aria-label="Search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
     </form>
     <div class="summary" id="summary"></div>
   </div>
@@ -232,7 +230,7 @@ main{padding:30px 0 40px}
   </section>
 
   <section class="section hidden" id="projectsSection">
-    <div class="section-head"><h2>Projects &amp; developments</h2><span class="count" id="projectsCount"></span></div>
+    <div class="section-head"><h2>Nearby Projects</h2></div>
     <div class="grid" id="projects"></div>
   </section>
 
@@ -312,7 +310,7 @@ async function loadData(){
 }
 async function loadArticles(){
   try{
-    const r = await fetch(WORKER_URL+'/posts?limit=300&status=published',{cache:'no-store'});
+    const r = await fetch(WORKER_URL+'/posts?limit=1500&status=published',{cache:'no-store'});
     if(r.ok){ const d = await r.json(); if(d && Array.isArray(d.items) && d.items.length) return d.items; }
   }catch(e){}
   try{
@@ -358,9 +356,32 @@ function scoreFirm(f, toks, full){
 }
 function scoreArticle(a, toks, full){
   const title=norm(a.title), exc=norm(a.excerpt), cats=norm((a.categories||[]).join(' ')), tags=norm((a.tags||[]).join(' '));
+  const hay = title+' '+exc+' '+cats+' '+tags;
+  const meaningful = toks.filter(t=>t.length>=3);
+  // Multi-word queries must match the phrase OR a majority of the words, so
+  // "currie park" pulls actual Currie Park coverage — not every article with
+  // the word "park" — mirroring how the map ties stories to a place.
+  if(meaningful.length>=2){
+    const need = Math.ceil(meaningful.length*0.6);
+    const havePhrase = full && hay.includes(full);
+    const haveWords = meaningful.filter(t=>hay.includes(t)).length;
+    if(!havePhrase && haveWords < need) return 0;
+  }
   let s=0;
-  if(full && title.includes(full)) s+=24;
-  for(const t of toks){ if(title.includes(t)) s+=10; if(cats.includes(t)) s+=6; if(tags.includes(t)) s+=5; if(exc.includes(t)) s+=3; }
+  // Exact phrase = strongest signal.
+  if(full){
+    if(title.includes(full)) s+=60;        // phrase in the headline
+    else if(exc.includes(full)) s+=30;     // phrase in the standfirst
+    else if(hay.includes(full)) s+=18;     // phrase mentioned anywhere
+  }
+  let inTitle=0;
+  for(const t of toks){
+    if(title.includes(t)){ s+=10; inTitle++; }
+    if(cats.includes(t)) s+=6;
+    if(tags.includes(t)) s+=5;
+    if(exc.includes(t))  s+=3;
+  }
+  if(meaningful.length>=2 && inTitle>=meaningful.length) s+=24;  // whole query in the headline
   return s;
 }
 
@@ -504,8 +525,10 @@ function runSearch(q){
     if(hit){ cityMap.set(c, (cityMap.get(c)||0)+1); }
   });
   const cities = [...cityMap.entries()].map(([name,count])=>({name,count})).sort((a,b)=>b.count-a.count);
-  // articles
-  const aScored = ARTICLES.map(a=>({a, s:scoreArticle(a,toks,full)})).filter(x=>x.s>0).sort((a,b)=>b.s-a.s);
+  // articles — most relevant first, ties broken by newest (chronological)
+  const artTime = a => (a && a.published_iso ? (Date.parse(a.published_iso)||0) : 0);
+  const aScored = ARTICLES.map(a=>({a, s:scoreArticle(a,toks,full)})).filter(x=>x.s>0)
+    .sort((a,b)=> (b.s - a.s) || (artTime(b.a) - artTime(a.a)) );
 
   const totalHits = pScored.length + fScored.length + cities.length + aScored.length;
   if(totalHits===0){
@@ -518,19 +541,29 @@ function runSearch(q){
   summary.innerHTML = 'Showing results for <b>“'+esc(q)+'”</b> · '+pScored.length+' project'+(pScored.length===1?'':'s')+
     ', '+fScored.length+' firm'+(fScored.length===1?'':'s')+', '+aScored.length+' stor'+(aScored.length===1?'y':'ies');
 
-  // hero = top project, else nothing
+  // hero = top project, but ONLY when it's an obvious match — the full query
+  // phrase is in the title, or most query words land in the title. Otherwise
+  // show no hero, so a weak partial ("four seasons palm beach" → "YMCA Palm
+  // Beaches") never masquerades as the top result.
+  const heroEligible = (p)=>{
+    const title = norm(p.Title);
+    if(full && title.includes(full)) return true;
+    const meaningful = toks.filter(t=>t.length>=3);
+    if(!meaningful.length) return false;
+    const inTitle = meaningful.filter(t=>title.includes(t)).length;
+    return inTitle >= Math.ceil(meaningful.length * 0.6);
+  };
   const rest = pScored.slice();
-  if(pScored.length){
+  if(pScored.length && heroEligible(pScored[0].p)){
     const hero = rest.shift().p;
     document.getElementById('hero').innerHTML = heroHtml(hero);
     show('heroSection', true);
   }
 
-  // project grid
-  const gridItems = rest.slice(0, MAX_PROJECTS);
+  // project grid — "Nearby Projects": up to 4, no total pill
+  const gridItems = rest.slice(0, 4);
   if(gridItems.length){
     document.getElementById('projects').innerHTML = gridItems.map(x=>pcardHtml(x.p)).join('');
-    document.getElementById('projectsCount').textContent = (pScored.length-1)+' total';
     show('projectsSection', true);
   }
 
