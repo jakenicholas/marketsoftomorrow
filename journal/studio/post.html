@@ -596,9 +596,10 @@ window.addEventListener('beforeunload', e => {
   if (DIRTY) { e.preventDefault(); e.returnValue = ''; }
 });
 
-// Auth gate
+// Auth gate — GitHub login (session token works as the bearer)
 if (!getToken()) {
-  document.querySelector('.layout').innerHTML = `<div class="card" style="max-width:600px;margin:80px auto"><h4 style="color:var(--gold-soft)">Admin token required</h4><p style="color:var(--mute-2);margin:14px 0">Visit <a href="/journal/studio/" style="color:var(--green)">/journal/studio/</a> first to set your token, then come back.</p></div>`;
+  const loginUrl = (window.TMWAuth && window.TMWAuth.loginUrl && window.TMWAuth.loginUrl()) || '/journal/studio/';
+  document.querySelector('.layout').innerHTML = `<div class="card" style="max-width:600px;margin:80px auto"><h4 style="color:var(--gold-soft)">Sign in to TMW Studio</h4><p style="color:var(--mute-2);margin:14px 0">Log in with GitHub to write and publish.</p><a class="btn primary" href="${loginUrl}" style="display:inline-block">Log in with GitHub</a></div>`;
 } else {
   loadPost();
 }

@@ -157,20 +157,14 @@ function toast(msg, kind) {
 })();
 
 function renderAuthGate() {
+  const loginUrl = (window.TMWAuth && window.TMWAuth.loginUrl && window.TMWAuth.loginUrl()) || '#';
   document.getElementById('container').innerHTML = `
     <div class="auth-needed">
-      <h3>Admin token required</h3>
-      <p>Paste the worker's ADMIN_TOKEN (same value from the Wix-sync page).</p>
-      <input type="password" id="tokenInput" placeholder="Bearer token..."><br><br>
-      <button class="btn btn-primary" id="saveTokenBtn">Save + continue</button>
+      <h3>Sign in to TMW Studio</h3>
+      <p>Log in with GitHub to manage posts and lists.</p>
+      <a class="btn btn-primary" href="${loginUrl}">Log in with GitHub</a>
     </div>
   `;
-  document.getElementById('saveTokenBtn').addEventListener('click', () => {
-    const v = document.getElementById('tokenInput').value.trim();
-    if (!v) return toast('Paste a token first', 'error');
-    setToken(v);
-    location.reload();
-  });
 }
 
 // ─── List loading ──────────────────────────────────────────────────

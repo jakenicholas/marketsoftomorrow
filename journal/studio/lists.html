@@ -117,7 +117,7 @@ table.sheet{border-collapse:separate; border-spacing:0; width:max-content; min-w
 
 <div class="bar">
   <div class="listtabs" id="listTabs"></div>
-  <div class="grow"><input class="token" type="password" id="token" placeholder="Admin token (needed to save)"></div>
+  <div class="grow"></div>
   <button class="btn btn-ghost" id="reloadBtn">Reload</button>
   <button class="btn btn-ghost" id="importBtn" title="Pull items embedded in the public page">Import seed</button>
   <button class="btn btn-ghost" id="addTopBtn">+ Row</button>
@@ -171,8 +171,10 @@ const LISTS=[
 ];
 let CUR=null, DOC=null, DIRTY=false, pickIdx=-1, pickField='image';
 const $=s=>document.querySelector(s);
-const tokenInput=$('#token'); tokenInput.value=localStorage.getItem(TOKEN_KEY)||'';
-tokenInput.addEventListener('input',()=>localStorage.setItem(TOKEN_KEY,tokenInput.value));
+// Auth now comes from the GitHub login session (admin-auth.js stores it under
+// TOKEN_KEY). No manual token field.
+function getToken(){return ((window.TMWAuth&&window.TMWAuth.token&&window.TMWAuth.token())||localStorage.getItem(TOKEN_KEY)||'').trim();}
+function loginUrl(){return (window.TMWAuth&&window.TMWAuth.loginUrl&&window.TMWAuth.loginUrl())||'/journal/studio/';}
 function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
 function status(m,c){const e=$('#status');e.textContent=m;e.className='status '+(c||'')}
 function setDirty(d){DIRTY=d;$('#savebar').classList.toggle('show',d)}
@@ -258,9 +260,8 @@ function cellHtml(c,it,i){
   if(c.t==='region') return `<td class="col-region"><input data-i="${i}" data-f="region" list="regionOpts" value="${esc(it.region)}"></td>`;
   if(c.t==='textarea') return `<td class="col-desc"><textarea data-i="${i}" data-f="${f}">${esc(it[f])}</textarea></td>`;
   if(c.t==='img') return `<td class="col-img"><div class="imgcell">
-      <img src="${esc(it[f])}" alt="" onerror="this.style.opacity=.15" data-thumb="${i}" data-thumb-f="${f}">
-      <div class="imgr"><input data-i="${i}" data-f="${f}" data-thumbsync="1" placeholder="https://…" value="${esc(it[f])}">
-      <button class="browse" data-browse="${i}" data-browse-f="${f}">⊞ Browse</button></div></div></td>`;
+      <img src="${esc(it[f])}" alt="" onerror="this.style.opacity=.15" data-thumb="${i}" data-thumb-f="${f}" style="cursor:pointer" title="Click to choose an image">
+      <div class="imgr"><button class="browse" data-browse="${i}" data-browse-f="${f}">⊞ ${it[f]?'Change image':'Choose image'}</button></div></div></td>`;
   return `<td class="col-${f}"><input data-i="${i}" data-f="${f}" value="${esc(it[f])}"></td>`;
 }
 function renderSheet(){
@@ -299,7 +300,7 @@ $('#mediaClose').onclick=()=>$('#mediaModal').classList.remove('show');
 $('#mediaModal').addEventListener('click',e=>{if(e.target.id==='mediaModal')$('#mediaModal').classList.remove('show')});
 async function loadMedia(q){
   const g=$('#mediaGrid');g.innerHTML='<div style="grid-column:1/-1;color:var(--mute);font-family:var(--mono);font-size:12px">Loading…</div>';
-  const tok=tokenInput.value.trim(); if(!tok){g.innerHTML='<div style="grid-column:1/-1;color:var(--danger);font-family:var(--mono);font-size:12px">Enter your admin token first.</div>';return}
+  const tok=getToken(); if(!tok){g.innerHTML=`<div style="grid-column:1/-1;color:var(--danger);font-family:var(--mono);font-size:12px">Log in with GitHub first — <a href="${loginUrl()}" style="color:var(--green)">sign in</a>.</div>`;return}
   try{
     const p=new URLSearchParams({limit:'48'});if(q)p.set('q',q);
     const r=await fetch(`${WORKER_URL}/admin/media?`+p,{headers:{'Authorization':'Bearer '+tok}});
@@ -315,7 +316,7 @@ async function loadMedia(q){
 }
 
 async function save(){
-  const tok=tokenInput.value.trim(); if(!tok){status('Enter your admin token to save.','err');return}
+  const tok=getToken(); if(!tok){status('Log in with GitHub to save.','err');return}
   const body={slug:DOC.slug,title:DOC.title,subtitle:DOC.subtitle,about:DOC.about,regions:DOC.regions,items:DOC.items,__updatedBy:'studio'};
   $('#saveBtn').disabled=true;$('#saveTopBtn').disabled=true;$('#saveMsg').textContent='Saving…';
   try{
