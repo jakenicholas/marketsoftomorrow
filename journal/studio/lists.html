@@ -99,19 +99,19 @@ table.sheet{border-collapse:separate; border-spacing:0; width:max-content; min-w
 .mtile{border:1px solid var(--hair); border-radius:8px; overflow:hidden; cursor:pointer; background:#0a0a0a; aspect-ratio:4/3}
 .mtile img{width:100%; height:100%; object-fit:cover; display:block} .mtile:hover{border-color:var(--green)}
 </style>
-  <script src="/journal/_shared/admin-auth.js"></script>
+  <script src="/_shared/admin-auth.js"></script>
 </head>
 <body>
 
 <div class="topbar"><div class="topbar-inner">
   <div class="brand"><div class="brand-eyebrow">TMW Studio</div><div class="brand-title">Iconic Lists</div></div>
   <div class="tablinks">
-    <a href="/journal/studio/">Posts</a>
-    <a href="/journal/studio/media.html">Media</a>
-    <a href="/journal/studio/migrate-wix.html">Wix library</a>
-    <a href="/journal/studio/lists.html" class="on">Lists</a>
-    <a href="/journal/studio/sync.html">Wix sync</a>
-      <a href="/journal/studio/analytics.html">Analytics</a>
+    <a href="/studio/">Posts</a>
+    <a href="/studio/media.html">Media</a>
+    <a href="/studio/migrate-wix.html">Wix library</a>
+    <a href="/studio/lists.html" class="on">Lists</a>
+    <a href="/studio/sync.html">Wix sync</a>
+      <a href="/studio/analytics.html">Analytics</a>
   </div>
 </div></div>
 
@@ -174,7 +174,7 @@ const $=s=>document.querySelector(s);
 // Auth now comes from the GitHub login session (admin-auth.js stores it under
 // TOKEN_KEY). No manual token field.
 function getToken(){return ((window.TMWAuth&&window.TMWAuth.token&&window.TMWAuth.token())||localStorage.getItem(TOKEN_KEY)||'').trim();}
-function loginUrl(){return (window.TMWAuth&&window.TMWAuth.loginUrl&&window.TMWAuth.loginUrl())||'/journal/studio/';}
+function loginUrl(){return (window.TMWAuth&&window.TMWAuth.loginUrl&&window.TMWAuth.loginUrl())||'/studio/';}
 function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
 function status(m,c){const e=$('#status');e.textContent=m;e.className='status '+(c||'')}
 function setDirty(d){DIRTY=d;$('#savebar').classList.toggle('show',d)}
@@ -213,7 +213,7 @@ async function importSeed(){
   if(CUR.kind==='partners'){
     status('Fetching partners.json…');
     try{
-      const r=await fetch('/journal/partners.json',{cache:'no-store'}); const j=await r.json();
+      const r=await fetch('/partners.json',{cache:'no-store'}); const j=await r.json();
       DOC=normalize({slug:'partners', title:(j.header&&j.header.title)||'Our Partners of Tomorrow', subtitle:(j.header&&j.header.sub)||'', items:j.partners||[]});
       setDirty(true); status('Imported '+DOC.items.length+' partners — review and Save.','ok'); renderAll();
     }catch(e){status('Import failed: '+(e.message||e),'err')}
@@ -221,7 +221,7 @@ async function importSeed(){
   }
   status('Fetching page seed…');
   try{
-    const r=await fetch(`/journal/${CUR.slug}/`,{cache:'no-store'}); const html=await r.text();
+    const r=await fetch(`/${CUR.slug}/`,{cache:'no-store'}); const html=await r.text();
     const m=html.match(/id="seed-data"[^>]*>([\s\S]*?)<\/script>/); if(!m)throw new Error('no seed in page');
     DOC=normalize(JSON.parse(m[1])); setDirty(true); status('Imported '+DOC.items.length+' items — review and Save.','ok'); renderAll();
   }catch(e){status('Import failed: '+(e.message||e),'err')}

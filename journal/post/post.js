@@ -1,16 +1,16 @@
 // ===================================================================
-// Config (paths use absolute /journal/... so they keep working from
+// Config (paths use absolute /... so they keep working from
 // any URL depth, and survive the eventual migration to www.oftmw.com)
 // ===================================================================
 const WORKER_URL    = 'https://tmw.jake-ab7.workers.dev';
 const WIX_RSS_URL   = 'https://www.oftmw.com/blog-feed.xml';
 const CORS_PROXY    = 'https://api.codetabs.com/v1/proxy/?quest=';
-const ADS_URL       = '/journal/ads.json';
-const PULSE_URL     = '/pulse.json';
+const ADS_URL       = '/ads.json';
+const PULSE_URL     = 'https://map.oftmw.com/pulse.json';
 const PULSE_NEW_DAYS = 7;
 const PULSE_MAX     = 8;
 const PLACEMENT     = 'article';
-const POST_URL_BASE = '/journal/post/?slug=';
+const POST_URL_BASE = '/post/?slug=';
 
 document.getElementById('yr').textContent = new Date().getFullYear();
 
@@ -24,7 +24,7 @@ document.getElementById('yr').textContent = new Date().getFullYear();
   updateMapCounter();
   hookCopyLink();
   // ── Pre-rendered static page (generate_articles.py) ───────────────
-  // For path-based article URLs (/journal/post/<slug>/) the body + SEO
+  // For path-based article URLs (/post/<slug>/) the body + SEO
   // <head> are already baked into the HTML so crawlers + social scrapers
   // see real content without running JS. Skip the fetch/render entirely;
   // just run the progressive enhancements on the existing DOM and load
@@ -132,7 +132,7 @@ function adaptD1PostShape(p) {
   return {
     title:        p.title,
     slug:         p.slug,
-    link:         p.wix_url || ('/journal/post/?slug=' + p.slug),
+    link:         p.wix_url || ('/post/?slug=' + p.slug),
     summary:      p.excerpt || '',
     image:        p.cover_image || '',
     pubDate:      p.published_iso || (p.published_at ? new Date(p.published_at * 1000).toUTCString() : ''),
@@ -227,7 +227,7 @@ function renderArticle(post) {
   // Canonical points at the path-based pre-rendered page (the indexed URL),
   // not this ?slug= SPA fallback — keeps crawlers on one canonical per post.
   const canonical = post.slug
-    ? (location.origin + '/journal/post/' + encodeURIComponent(post.slug) + '/')
+    ? (location.origin + '/post/' + encodeURIComponent(post.slug) + '/')
     : (location.origin + location.pathname);
   ensureLink('canonical', canonical);
   ensureMeta('og:url', canonical, true);
@@ -466,7 +466,7 @@ async function loadReadNext(currentPost, currentSlug) {
     const others = items.filter(it => it.slug && it.slug !== currentSlug).slice(0, 3);
     if (!others.length) return;
     document.getElementById('read-next').style.display = '';
-    document.getElementById('rn-grid').innerHTML = others.map(it => `<a class="rn-card" href="/journal/post/${escapeAttr(it.slug)}/">
+    document.getElementById('rn-grid').innerHTML = others.map(it => `<a class="rn-card" href="/post/${escapeAttr(it.slug)}/">
       <div class="rn-card-img">${it.image ? `<img src="${escapeAttr(it.image)}" alt="" loading="lazy">` : ''}</div>
       <div class="rn-card-body">
         ${it.pubDate ? `<div class="rn-card-date">${escapeHtml(formatLongDate(it.pubDate))}</div>` : ''}

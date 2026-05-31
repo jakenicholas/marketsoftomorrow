@@ -16,7 +16,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600;9..144,700;9..144,900&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 
-<!-- GAM removed — top banner is the featured-slide carousel driven by /journal/ads.json -->
+<!-- GAM removed — top banner is the featured-slide carousel driven by /ads.json -->
 
 
 <style>
@@ -410,15 +410,15 @@ footer .tmw-wordmark{width:118px}
         </svg></div>
       </a>
       <div class="nav-links">
-        <a href="/journal/">Global</a>
-        <a href="/journal/#florida">Florida</a>
-        <a href="/journal/#new-york">New York</a>
-        <a href="/journal/#tennessee">Tennessee</a>
-        <a href="/journal/#caribbean">Caribbean</a>
-        <a href="/journal/#rockies">Rockies</a>
-        <a href="/journal/hotels/">Hotels</a>
-        <a href="/journal/restaurants/" class="active">Restaurants</a>
-        <a href="/journal/golf/">Golf</a>
+        <a href="/">Global</a>
+        <a href="/#florida">Florida</a>
+        <a href="/#new-york">New York</a>
+        <a href="/#tennessee">Tennessee</a>
+        <a href="/#caribbean">Caribbean</a>
+        <a href="/#rockies">Rockies</a>
+        <a href="/hotels/">Hotels</a>
+        <a href="/restaurants/" class="active">Restaurants</a>
+        <a href="/golf/">Golf</a>
       </div>
       <a href="https://map.oftmw.com" class="nav-cta" id="nav-map-cta">
         <span class="mc-pin" aria-hidden="true">
@@ -459,13 +459,13 @@ footer .tmw-wordmark{width:118px}
       <div class="sc-bg"><img id="hero-img" src="https://static.wixstatic.com/media/ca3b83_b9b0a59885f849c8b4845ec7edc5f8a3~mv2.jpeg" alt=""></div>
     </div>
     <div class="sc-emblem">
-      <img src="/journal/_shared/iconic/restaurants.svg" alt="The Iconic Restaurant List">
+      <img src="/_shared/iconic/restaurants.svg" alt="The Iconic Restaurant List">
     </div>
     <nav class="sc-tabs" aria-label="Verticals">
-      <a class="sc-tab" href="/journal/">News</a>
-      <a class="sc-tab on" href="/journal/restaurants/">Restaurants</a>
-      <a class="sc-tab" href="/journal/hotels/">Hotels</a>
-      <a class="sc-tab" href="/journal/golf/">Golf</a>
+      <a class="sc-tab" href="/">News</a>
+      <a class="sc-tab on" href="/restaurants/">Restaurants</a>
+      <a class="sc-tab" href="/hotels/">Hotels</a>
+      <a class="sc-tab" href="/golf/">Golf</a>
     </nav>
   </article>
 </section>
@@ -593,7 +593,7 @@ footer .tmw-wordmark{width:118px}
           <li><a href="/restaurants">Restaurants</a></li>
           <li><a href="/hotels">Hotels</a></li>
           <li><a href="/residences">Residences</a></li>
-          <li><a href="/architects">Architects</a></li>
+          <li><a href="https://map.oftmw.com/architects">Architects</a></li>
         </ul>
       </div>
       <div>
@@ -601,7 +601,7 @@ footer .tmw-wordmark{width:118px}
         <ul>
           <li><a href="/">The Journal</a></li>
           <li><a href="https://map.oftmw.com">Map of Tomorrow</a></li>
-          <li><a href="/media/">Media Kit</a></li>
+          <li><a href="https://map.oftmw.com/media/">Media Kit</a></li>
           <li><a href="mailto:hello@oftmw.com">Contact</a></li>
         </ul>
       </div>
@@ -1423,7 +1423,7 @@ const LIST_ENDPOINT = WORKER_URL + '/list/' + LIST_SLUG;
 const FEED_ENDPOINT = WORKER_URL + '/blog?limit=60';
 const WIX_RSS_URL   = 'https://www.oftmw.com/blog-feed.xml';
 const CORS_PROXY    = 'https://api.codetabs.com/v1/proxy/?quest='; // browser-side fallback (no API key, returns body verbatim)
-const ADS_URL       = '../ads.json';                   // one level up from /journal/golf/
+const ADS_URL       = '../ads.json';                   // one level up from /golf/
 const PULSE_URL     = '../../pulse.json';              // repo root
 const PULSE_NEW_DAYS = 7;
 const PULSE_MAX     = 8;                               // visible items in the scrolling track (matches live oftmw.com)
@@ -1955,7 +1955,7 @@ async function loadNewsAndTicker() {
 // ---------------------------------------------------------------
 // Blog-feed fetcher — D1 /posts first (1,377 canonical), then RSS
 // worker (legacy), then direct Wix RSS via CORS proxy (fallback).
-// Same shape as /journal/index.html.
+// Same shape as /index.html.
 // ---------------------------------------------------------------
 async function fetchBlogItems(limit) {
   const errors = [];
@@ -2003,7 +2003,7 @@ function d1PostToFeedShape(p) {
   return {
     title:      p.title,
     slug:       p.slug,
-    link:       '/journal/post/' + encodeURIComponent(p.slug) + '/',
+    link:       '/post/' + encodeURIComponent(p.slug) + '/',
     summary:    p.excerpt || '',
     image:      p.cover_image || '',
     pubDate:    p.published_iso || (p.published_at ? new Date(p.published_at * 1000).toUTCString() : ''),
@@ -2039,7 +2039,7 @@ function stripHtmlClient(s) { return String(s || '').replace(/<[^>]+>/g, ' ').re
 function pickImgFromHtml(html) { const m = String(html || '').match(/<img[^>]+src="([^"]+)"/i); return m ? m[1] : ''; }
 
 // ---------------------------------------------------------------
-// FEATURED-SLIDE CAROUSEL — reads /journal/ads.json. Same impl as
+// FEATURED-SLIDE CAROUSEL — reads /ads.json. Same impl as
 // /journal home; PLACEMENT is 'golf' so the worker can later target
 // vertical-specific sponsorships from a single source of truth.
 // ---------------------------------------------------------------
@@ -2180,7 +2180,7 @@ function renderFeaturedCard(item) {
 }
 
 // ---------------------------------------------------------------
-// PULSE ticker — same pattern as /journal/index.html. Reads
+// PULSE ticker — same pattern as /index.html. Reads
 // /pulse.json (generated by generate_pulse.py) and mixes map events
 // with articles in a scrolling marquee.
 // ---------------------------------------------------------------
@@ -2259,7 +2259,7 @@ function renderNews(items) {
     const loc = it.main_category || (it.categories || []).find(c => !/markets of tomorrow|of tomorrow/i.test(c)) || '';
     const date = it.pubDate ? formatDate(new Date(it.pubDate)) : '';
     // In-repo article page rather than bouncing back to Wix.
-    const href = it.slug ? ('/journal/post/' + encodeURIComponent(it.slug) + '/') : it.link;
+    const href = it.slug ? ('/post/' + encodeURIComponent(it.slug) + '/') : it.link;
     return `<article class="card">
       <a href="${escapeAttr(href)}"><div class="card-img">
         ${it.image ? `<img src="${escapeAttr(it.image)}" alt="" loading="lazy">` : ''}
@@ -2327,7 +2327,7 @@ function formatDate(s) {
 <script src="../_shared/partners.js" defer></script>
 
 <!-- Pinned journal dock — map / search / home -->
-<script src="/journal/_shared/journal-dock.js" defer></script>
+<script src="/_shared/journal-dock.js" defer></script>
 
 </body>
 </html>

@@ -258,13 +258,13 @@ main{padding:30px 0 40px}
 </main>
 
 <!-- Shared journal chrome — universal header + footer -->
-<script src="/journal/_shared/journal-chrome.js" defer></script>
+<script src="/_shared/journal-chrome.js" defer></script>
 <!-- Pinned journal dock — map / search / home -->
-<script src="/journal/_shared/journal-dock.js" defer></script>
+<script src="/_shared/journal-dock.js" defer></script>
 <!-- Partners of Tomorrow — universal client wall (auto-injects before footer) -->
-<script src="/journal/_shared/partners.js" defer></script>
+<script src="/_shared/partners.js" defer></script>
 <!-- TMW project intelligence — identical timeline + intel panel as the map -->
-<script src="/journal/_shared/tmw-project-intel.js"></script>
+<script src="/_shared/tmw-project-intel.js"></script>
 <script>
 'use strict';
 const WORKER_URL = 'https://tmw.jake-ab7.workers.dev';
@@ -292,7 +292,7 @@ function fmtMon(d){ return d ? d.toLocaleString('en-US',{month:'short',year:'num
 // ── data loading ─────────────────────────────────────────────────
 async function loadData(){
   const [p,f,intel] = await Promise.all([
-    fetch('/projects-flat.json',{cache:'force-cache'}).then(r=>r.ok?r.json():[]).catch(()=>[]),
+    fetch('https://map.oftmw.com/projects-flat.json',{cache:'force-cache'}).then(r=>r.ok?r.json():[]).catch(()=>[]),
     fetch('/firms-flat.json',{cache:'force-cache'}).then(r=>r.ok?r.json():[]).catch(()=>[]),
     (window.TMWIntel ? TMWIntel.loadIntel() : Promise.resolve({}))
   ]);
@@ -451,12 +451,12 @@ function firmEntityHtml(f){
   const roleLbl = f.role==='architect' ? 'Architect' : (f.role==='developer' ? 'Developer' : 'Firm');
   const pc = +f.project_count||0;
   const sub = esc(roleLbl) + (pc>0 ? ' · '+pc+' project'+(pc===1?'':'s') : '') + (f.hq ? ' · '+esc(f.hq) : '');
-  const href = '/journal/search/?q='+encodeURIComponent(f.name);
+  const href = '/search/?q='+encodeURIComponent(f.name);
   return '<a class="entity" href="'+href+'"><span class="ico">'+ICO_FIRM+'</span>'+
     '<span><span class="nm">'+esc(f.name)+'</span><br><span class="sub">'+sub+'</span></span></a>';
 }
 function cityEntityHtml(c){
-  return '<a class="entity" href="/journal/search/?q='+encodeURIComponent(c.name)+'"><span class="ico">'+ICO_CITY+'</span>'+
+  return '<a class="entity" href="/search/?q='+encodeURIComponent(c.name)+'"><span class="ico">'+ICO_CITY+'</span>'+
     '<span><span class="nm">'+esc(c.name)+'</span><br><span class="sub">'+c.count+' project'+(c.count===1?'':'s')+'</span></span></a>';
 }
 function acardHtml(a){
@@ -464,7 +464,7 @@ function acardHtml(a){
   const cat = a.main_category || (a.categories && a.categories[0]) || '';
   const date = a.published_iso ? new Date(a.published_iso).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
   const media = img ? '<img src="'+esc(img)+'" alt="" loading="lazy" onerror="this.parentNode.innerHTML=\'<div class=ph></div>\'">' : '<div class="ph"></div>';
-  return '<a class="acard" href="/journal/post/'+encodeURIComponent(a.slug||'')+'/">'+
+  return '<a class="acard" href="/post/'+encodeURIComponent(a.slug||'')+'/">'+
     '<div class="acard-media">'+media+'</div>'+
     '<div class="acard-body">'+
       (cat?'<div class="cat">'+esc(cat)+'</div>':'')+
@@ -574,7 +574,7 @@ const form  = document.getElementById('searchForm');
 form.addEventListener('submit', e=>{
   e.preventDefault();
   const q = input.value.trim();
-  const url = '/journal/search/' + (q ? '?q='+encodeURIComponent(q) : '');
+  const url = '/search/' + (q ? '?q='+encodeURIComponent(q) : '');
   history.replaceState({}, '', url);
   runSearch(q);
 });
@@ -585,13 +585,13 @@ input.addEventListener('input', ()=>{
   clearTimeout(liveTimer);
   liveTimer = setTimeout(()=>{
     const q = input.value.trim();
-    history.replaceState({}, '', '/journal/search/' + (q?'?q='+encodeURIComponent(q):''));
+    history.replaceState({}, '', '/search/' + (q?'?q='+encodeURIComponent(q):''));
     runSearch(q);
   }, 180);
 });
 
-// ===== TOP FEATURED-SLIDE CAROUSEL — reads /journal/ads.json (same banner as the other journal pages) =====
-const ADS_URL = '/journal/ads.json';
+// ===== TOP FEATURED-SLIDE CAROUSEL — reads /ads.json (same banner as the other journal pages) =====
+const ADS_URL = '/ads.json';
 const PLACEMENT = 'search';
 const CAROUSEL = { slides: [], idx: 0, timer: null, intervalMs: 7000, hover: false };
 function escapeAttr(s){ return esc(s); }

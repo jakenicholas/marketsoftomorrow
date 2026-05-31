@@ -3,14 +3,14 @@
 
   Usage on any page:
       <div data-tmw-partners></div>
-      <script src="/journal/_shared/partners.js" defer></script>
+      <script src="/_shared/partners.js" defer></script>
 
   Renders TWO stacked blocks into the mount (auto-injected before the footer
   if no mount exists, so the section is universal across journal pages):
 
     1. Signature Partners — curated rich cards (studio-editable list
-       /list/partners, falling back to /journal/partners.json).
-    2. Client wall — the full media-kit client list (/journal/clients.json),
+       /list/partners, falling back to /partners.json).
+    2. Client wall — the full media-kit client list (/clients.json),
        collapsed to ~2.5 rows with a fade and a "Load more" that links to /media.
 */
 (function () {
@@ -21,11 +21,11 @@
     return s[s.length - 1];
   })();
   const SCRIPT_URL = scriptEl && scriptEl.src ? new URL(scriptEl.src) : null;
-  const rel = (p) => SCRIPT_URL ? new URL(p, SCRIPT_URL).href : ('/journal/' + p.replace('../', ''));
+  const rel = (p) => SCRIPT_URL ? new URL(p, SCRIPT_URL).href : ('/' + p.replace('../', ''));
   const PARTNERS_URL = rel('../partners.json');
   const CLIENTS_URL  = rel('../clients.json');
   const WORKER = 'https://tmw.jake-ab7.workers.dev';
-  const MEDIA_URL = '/media';
+  const MEDIA_URL = 'https://map.oftmw.com/media';
   const CLIENT_PREVIEW = 36;   // logos rendered in the collapsed wall
 
   if (!document.getElementById('tmw-partners-styles')) {

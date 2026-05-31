@@ -1052,7 +1052,7 @@ body::after {
   letter-spacing: .04em;
 }
 </style>
-  <script src="/journal/_shared/admin-auth.js"></script>
+  <script src="/_shared/admin-auth.js"></script>
 </head>
 <body>
 
@@ -1119,12 +1119,12 @@ body::after {
       </div>
     </a>
     <nav class="studio-tabs">
-      <a href="/journal/studio/">Posts</a>
-      <a href="/journal/studio/media.html">Media</a>
-      <a href="/journal/studio/migrate-wix.html">Wix library</a>
-      <a href="/journal/studio/lists.html">Lists</a>
-      <a href="/journal/studio/sync.html">Wix sync</a>
-      <a href="/journal/studio/analytics.html" class="on">Analytics</a>
+      <a href="/studio/">Posts</a>
+      <a href="/studio/media.html">Media</a>
+      <a href="/studio/migrate-wix.html">Wix library</a>
+      <a href="/studio/lists.html">Lists</a>
+      <a href="/studio/sync.html">Wix sync</a>
+      <a href="/studio/analytics.html" class="on">Analytics</a>
     </nav>
     <div class="top-meta">
       <div class="live-pill"><span class="dot"></span>Live</div>
@@ -1566,7 +1566,7 @@ function mapFilter() {
   return {
     andGroup: { expressions: [
       hostnameFilter(),
-      { notExpression: { filter: { fieldName: 'pagePath', stringFilter: { matchType: 'BEGINS_WITH', value: '/media' } } } },
+      { notExpression: { filter: { fieldName: 'pagePath', stringFilter: { matchType: 'BEGINS_WITH', value: 'https://map.oftmw.com/media' } } } },
     ]}
   };
 }
@@ -1576,7 +1576,7 @@ function mediaFilter() {
   return {
     andGroup: { expressions: [
       hostnameFilter(),
-      { filter: { fieldName: 'pagePath', stringFilter: { matchType: 'BEGINS_WITH', value: '/media' } } },
+      { filter: { fieldName: 'pagePath', stringFilter: { matchType: 'BEGINS_WITH', value: 'https://map.oftmw.com/media' } } },
     ]}
   };
 }
@@ -1778,7 +1778,7 @@ async function loadProjects() {
   while (t.children.length > 1) t.removeChild(t.lastChild);
   empty.innerHTML = '';
   try {
-    const d = await workerGet('/projects?limit=15');
+    const d = await workerGet('https://map.oftmw.com/projects?limit=15');
     const rows = d.rows || [];
     if (!rows.length) {
       empty.innerHTML = '<div class="empty-state">No project clicks tracked yet.</div>';

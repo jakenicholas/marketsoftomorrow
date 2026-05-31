@@ -99,7 +99,7 @@ html,body{background:var(--ink); color:var(--text); font-family:var(--sans); lin
   .row .actions{justify-self:end; grid-column:2}
 }
 </style>
-  <script src="/journal/_shared/admin-auth.js"></script>
+  <script src="/_shared/admin-auth.js"></script>
 </head>
 <body>
 
@@ -111,15 +111,15 @@ html,body{background:var(--ink); color:var(--text); font-family:var(--sans); lin
       <div class="brand-sub">Edit + publish journal articles</div>
     </div>
     <div class="tablinks" style="margin-left:20px">
-      <a href="/journal/studio/" class="on">Posts</a>
-      <a href="/journal/studio/media.html">Media</a>
-      <a href="/journal/studio/migrate-wix.html">Wix library</a>
-      <a href="/journal/studio/lists.html">Lists</a>
-      <a href="/journal/studio/sync.html">Wix sync</a>
-      <a href="/journal/studio/analytics.html">Analytics</a>
+      <a href="/studio/" class="on">Posts</a>
+      <a href="/studio/media.html">Media</a>
+      <a href="/studio/migrate-wix.html">Wix library</a>
+      <a href="/studio/lists.html">Lists</a>
+      <a href="/studio/sync.html">Wix sync</a>
+      <a href="/studio/analytics.html">Analytics</a>
     </div>
     <div class="btn-row">
-      <a href="/journal/studio/post.html?id=NEW" class="btn btn-primary">
+      <a href="/studio/post.html?id=NEW" class="btn btn-primary">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M8 3v10M3 8h10"/></svg>
         New post
       </a>
@@ -284,8 +284,8 @@ function renderList() {
 }
 
 function rowHtml(p) {
-  const url  = '/journal/studio/post.html?id=' + encodeURIComponent(p.id);
-  const view = '/journal/post/?slug=' + encodeURIComponent(p.slug);
+  const url  = '/studio/post.html?id=' + encodeURIComponent(p.id);
+  const view = '/post/?slug=' + encodeURIComponent(p.slug);
   const date = p.published_at
     ? new Date(p.published_at * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
     : '—';

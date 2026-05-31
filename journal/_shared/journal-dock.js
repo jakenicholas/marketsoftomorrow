@@ -3,10 +3,10 @@
    Injects a fixed bottom-center pill on every public journal page:
      [ map ]   [ search input ]   [ home ]
    - map icon  → the interactive map (map.oftmw.com)
-   - search    → submits to the journal search page (/journal/search/?q=)
+   - search    → submits to the journal search page (/search/?q=)
    - home icon → journal home (www.oftmw.com; domain moving soon)
    Self-contained, no dependencies. Include once per page:
-     <script src="/journal/_shared/journal-dock.js" defer></script>
+     <script src="/_shared/journal-dock.js" defer></script>
 -------------------------------------------------------------------*/
 (function () {
   'use strict';
@@ -16,7 +16,7 @@
   // ── Destinations (single source of truth; update when domain moves) ──
   var MAP_URL     = 'https://map.oftmw.com';
   var HOME_URL    = 'https://www.oftmw.com';
-  var SEARCH_PAGE = '/journal/search/';
+  var SEARCH_PAGE = '/search/';
 
   // ── Icons (inline SVG, currentColor) ──
   var ICON_MAP =
@@ -242,7 +242,7 @@
   // (?market=<key> → the existing category-pill filter). Universal: runs on
   // every journal page (incl. the 1,377 pre-rendered article pages) since they
   // all load this dock — no per-page nav edits or regeneration needed.
-  var JOURNAL_HOME = '/journal/';
+  var JOURNAL_HOME = '/';
   var FOCUS_MARKETS = [
     { key: 'florida',   name: 'Florida',   img: 'https://tmw.jake-ab7.workers.dev/media/wix/ca3b83_43a9a53c6fa5471bb68ee3a4cd85870a~mv2.webp' },
     { key: 'new-york',  name: 'New York',  img: 'https://tmw.jake-ab7.workers.dev/media/wix/ca3b83_bed92ab576ab4c41b17791ded5122897~mv2.jpg' },

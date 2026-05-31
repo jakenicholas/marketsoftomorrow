@@ -28,7 +28,7 @@ Run locally or from CI (generate-pages.yml). Flip BASE after the domain move.
 import json, os, re, subprocess, sys, html, datetime
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-BASE   = "https://map.oftmw.com"        # ← flip to https://www.oftmw.com after the domain move
+BASE   = "https://www.oftmw.com"        # ← flip to https://www.oftmw.com after the domain move
 WORKER = "https://tmw.jake-ab7.workers.dev"
 TEMPLATE_PATH = "journal/post/index.html"
 OUT_ROOT = "journal/post"
@@ -53,7 +53,7 @@ T_BODY    = (
     '<span class="skel-block" style="display:block; height:18px; width:88%"></span></p>\n'
     '      </div>'
 )
-T_DATA_ANCHOR = '<script src="/journal/post/post.js" defer></script>'
+T_DATA_ANCHOR = '<script src="/post/post.js" defer></script>'
 
 
 def sh(cmd):
@@ -109,7 +109,7 @@ def build_page(template, post):
     author = post.get("author_name") or "Markets of Tomorrow"
     cats = clean_cats(post.get("categories"))
     body = post.get("body_html") or ("<p>" + esc(summary) + "</p>")
-    url = f"{BASE}/journal/post/{slug}/"
+    url = f"{BASE}/post/{slug}/"
     date_str = long_date(post)
     iso = post.get("published_iso") or ""
 
@@ -185,7 +185,7 @@ def build_page(template, post):
     # exist when the bootstrap fires).
     data_block = (
         f"<script>window.__PRERENDERED__=1;window.__POST__={data_json};</script>\n"
-        '<script src="/journal/post/post.js" defer></script>'
+        '<script src="/post/post.js" defer></script>'
     )
     page = page.replace(T_DATA_ANCHOR, data_block, 1)
 

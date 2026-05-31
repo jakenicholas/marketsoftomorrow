@@ -2,7 +2,7 @@
   TMW Studio admin auth — GitHub login glue.
 
   Include early in <head> on any admin page:
-      <script src="/journal/_shared/admin-auth.js"></script>
+      <script src="/_shared/admin-auth.js"></script>
 
   - Captures the session token the worker hands back in the URL fragment
     (#tmw_session=…) after GitHub OAuth, stores it under the same localStorage

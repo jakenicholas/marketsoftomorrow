@@ -3,7 +3,7 @@
    Injects the universal site header (logo + nav + Open Map CTA) at the
    top of <body> and the site footer at the bottom. One source of truth,
    so every page that includes this stays in sync.
-     <script src="/journal/_shared/journal-chrome.js" defer></script>
+     <script src="/_shared/journal-chrome.js" defer></script>
    Relies on the page's design tokens (--green, --mute-2, --white, --hair,
    --hair-2, --cream, --ink, --ink-2, --mono); the few it can't assume
    (--glass, --purple, --purple-glow) are hardcoded below.
@@ -35,24 +35,24 @@
     '<path d="M219.2,324.1v-90h49.1v20.2h-27.1v15.3h26.2v20.2h-26.2v34.3h-22Z"/>' +
     '</g></svg></div>';
 
-  var LOGO = '<a href="/journal/" class="tmw-logo-lockup" aria-label="Markets of Tomorrow">' + HEX + WORDMARK + '</a>';
+  var LOGO = '<a href="/" class="tmw-logo-lockup" aria-label="Markets of Tomorrow">' + HEX + WORDMARK + '</a>';
 
   var NAV = [
-    ['Global', '/journal/', 'global'],
-    ['Florida', '/journal/#florida', 'florida'],
-    ['New York', '/journal/#new-york', 'new-york'],
-    ['Tennessee', '/journal/#tennessee', 'tennessee'],
-    ['Caribbean', '/journal/#caribbean', 'caribbean'],
-    ['Rockies', '/journal/#rockies', 'rockies'],
-    ['Hotels', '/journal/hotels/', 'hotels'],
-    ['Restaurants', '/journal/restaurants/', 'restaurants'],
-    ['Golf', '/journal/golf/', 'golf']
+    ['Global', '/', 'global'],
+    ['Florida', '/#florida', 'florida'],
+    ['New York', '/#new-york', 'new-york'],
+    ['Tennessee', '/#tennessee', 'tennessee'],
+    ['Caribbean', '/#caribbean', 'caribbean'],
+    ['Rockies', '/#rockies', 'rockies'],
+    ['Hotels', '/hotels/', 'hotels'],
+    ['Restaurants', '/restaurants/', 'restaurants'],
+    ['Golf', '/golf/', 'golf']
   ];
   var path = location.pathname;
   var active = /\/journal\/hotels\//.test(path) ? 'hotels'
     : /\/journal\/restaurants\//.test(path) ? 'restaurants'
     : /\/journal\/golf\//.test(path) ? 'golf'
-    : (path === '/journal/' || path === '/journal/index.html') ? 'global'
+    : (path === '/' || path === '/index.html') ? 'global'
     : '';
   var navHtml = NAV.map(function (n) {
     return '<a href="' + n[1] + '"' + (n[2] === active ? ' class="active"' : '') + '>' + n[0] + '</a>';
@@ -74,15 +74,15 @@
 
   var footerHtml =
     '<footer class="tmw-chrome-foot"><div class="wrap"><div class="ft-grid">' +
-      '<div>' + '<a href="/journal/" class="tmw-logo-lockup">' + HEX + WORDMARK + '</a>' +
+      '<div>' + '<a href="/" class="tmw-logo-lockup">' + HEX + WORDMARK + '</a>' +
         '<p class="blurb">A powerhouse news network covering the brands shaping the future of hospitality, real estate, and lifestyle.</p></div>' +
       '<div><h4>Iconic Lists</h4><ul>' +
-        '<li><a href="/journal/golf/">Golf</a></li><li><a href="/journal/restaurants/">Restaurants</a></li>' +
-        '<li><a href="/journal/hotels/">Hotels</a></li><li><a href="/journal/search/?q=residences">Residences</a></li>' +
-        '<li><a href="/journal/search/?q=architects">Architects</a></li></ul></div>' +
+        '<li><a href="/golf/">Golf</a></li><li><a href="/restaurants/">Restaurants</a></li>' +
+        '<li><a href="/hotels/">Hotels</a></li><li><a href="/search/?q=residences">Residences</a></li>' +
+        '<li><a href="/search/?q=architects">Architects</a></li></ul></div>' +
       '<div><h4>Network</h4><ul>' +
-        '<li><a href="/journal/">The Journal</a></li><li><a href="https://map.oftmw.com">Map of Tomorrow</a></li>' +
-        '<li><a href="/journal/search/">Search</a></li><li><a href="mailto:hello@oftmw.com">Contact</a></li></ul></div>' +
+        '<li><a href="/">The Journal</a></li><li><a href="https://map.oftmw.com">Map of Tomorrow</a></li>' +
+        '<li><a href="/search/">Search</a></li><li><a href="mailto:hello@oftmw.com">Contact</a></li></ul></div>' +
     '</div><div class="ft-bot"><div>&copy; <span id="tmw-yr"></span> Markets of Tomorrow</div>' +
       '<div>Built on cream and caffeine in Florida</div></div></div></footer>';
 
@@ -165,7 +165,7 @@
     // page — inline headers and this chrome — behaves identically.
 
     // Live "X Live" count from pulse.json (cheapest signal)
-    fetch('/pulse.json', { cache: 'no-store' })
+    fetch('https://map.oftmw.com/pulse.json', { cache: 'no-store' })
       .then(function (r) { return r.ok ? r.json() : null; })
       .then(function (data) {
         var el = document.getElementById('mc-count-n');

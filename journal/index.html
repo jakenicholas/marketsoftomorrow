@@ -17,7 +17,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600;9..144,700;9..144,900&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
-<!-- GAM removed — the top banner is a curated featured-slide carousel reading from /journal/ads.json, not programmatic ad units. -->
+<!-- GAM removed — the top banner is a curated featured-slide carousel reading from /ads.json, not programmatic ad units. -->
 
 
 <style>
@@ -622,7 +622,7 @@ footer .ft-logo .tmw-wordmark{width:118px}
 <div class="banner-ad" id="banner-ad" aria-label="Featured placements">
   <div class="featured-carousel" id="fc">
     <div class="fc-track" id="fc-track">
-      <!-- slides injected by JS from /journal/ads.json -->
+      <!-- slides injected by JS from /ads.json -->
     </div>
     <button class="fc-arrow prev" id="fc-prev" aria-label="Previous slide">
       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 8H3M7 4L3 8l4 4"/></svg>
@@ -674,9 +674,9 @@ footer .ft-logo .tmw-wordmark{width:118px}
         <a href="#tennessee">Tennessee</a>
         <a href="#caribbean">Caribbean</a>
         <a href="#rockies">Rockies</a>
-        <a href="/journal/hotels/">Hotels</a>
-        <a href="/journal/restaurants/">Restaurants</a>
-        <a href="/journal/golf/">Golf</a>
+        <a href="/hotels/">Hotels</a>
+        <a href="/restaurants/">Restaurants</a>
+        <a href="/golf/">Golf</a>
       </div>
       <a href="https://map.oftmw.com" class="nav-cta" id="nav-map-cta">
         <span class="mc-pin" aria-hidden="true">
@@ -728,10 +728,10 @@ footer .ft-logo .tmw-wordmark{width:118px}
       </a>
     </div>
     <nav class="sc-tabs" aria-label="Verticals">
-      <a class="sc-tab on" href="/journal/">News</a>
-      <a class="sc-tab" href="/journal/restaurants/">Restaurants</a>
-      <a class="sc-tab" href="/journal/hotels/">Hotels</a>
-      <a class="sc-tab" href="/journal/golf/">Golf</a>
+      <a class="sc-tab on" href="/">News</a>
+      <a class="sc-tab" href="/restaurants/">Restaurants</a>
+      <a class="sc-tab" href="/hotels/">Hotels</a>
+      <a class="sc-tab" href="/golf/">Golf</a>
     </nav>
   </article>
 </section>
@@ -1034,7 +1034,7 @@ footer .ft-logo .tmw-wordmark{width:118px}
           <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
         </span>
       </a>
-      <a href="/media/" class="qcard b">
+      <a href="https://map.oftmw.com/media/" class="qcard b">
         <span class="qe">Media Kit</span>
         <div>
           <h3>Reach 8.1M readers every month</h3>
@@ -1131,12 +1131,12 @@ footer .ft-logo .tmw-wordmark{width:118px}
       <div>
         <h4>Focus Markets</h4>
         <ul>
-          <li><a href="/journal/">Global</a></li>
-          <li><a href="/journal/?market=florida">Florida</a></li>
-          <li><a href="/journal/?market=new-york">New York</a></li>
-          <li><a href="/journal/?market=tennessee">Tennessee</a></li>
-          <li><a href="/journal/?market=caribbean">Caribbean</a></li>
-          <li><a href="/journal/?market=rockies">Rockies</a></li>
+          <li><a href="/">Global</a></li>
+          <li><a href="/?market=florida">Florida</a></li>
+          <li><a href="/?market=new-york">New York</a></li>
+          <li><a href="/?market=tennessee">Tennessee</a></li>
+          <li><a href="/?market=caribbean">Caribbean</a></li>
+          <li><a href="/?market=rockies">Rockies</a></li>
         </ul>
       </div>
       <div>
@@ -1146,14 +1146,14 @@ footer .ft-logo .tmw-wordmark{width:118px}
           <li><a href="#restaurants">Restaurants</a></li>
           <li><a href="#golf">Golf</a></li>
           <li><a href="https://map.oftmw.com">Map of Tomorrow</a></li>
-          <li><a href="/media/">Media Kit</a></li>
+          <li><a href="https://map.oftmw.com/media/">Media Kit</a></li>
         </ul>
       </div>
       <div>
         <h4>Company</h4>
         <ul>
           <li><a href="#newsletter">Subscribe</a></li>
-          <li><a href="/media/">Advertise</a></li>
+          <li><a href="https://map.oftmw.com/media/">Advertise</a></li>
           <li><a href="mailto:hello@oftmw.com">Contact</a></li>
         </ul>
       </div>
@@ -1417,7 +1417,7 @@ function d1PostToFeedShape(p) {
   return {
     title:      p.title,
     slug:       p.slug,
-    link:       '/journal/post/' + encodeURIComponent(p.slug) + '/',
+    link:       '/post/' + encodeURIComponent(p.slug) + '/',
     summary:    p.excerpt || '',
     image:      p.cover_image || '',
     pubDate:    p.published_iso || (p.published_at ? new Date(p.published_at * 1000).toUTCString() : ''),
@@ -1459,7 +1459,7 @@ function pickImgFromHtml(html) {
 }
 
 // ---------------------------------------------------------------
-// FEATURED-SLIDE CAROUSEL — reads /journal/ads.json. Each eligible
+// FEATURED-SLIDE CAROUSEL — reads /ads.json. Each eligible
 // entry becomes one slide. Auto-rotates, pauses on hover, supports
 // prev/next + dot navigation. No programmatic ads — these are
 // curated placements the editor controls directly.
@@ -1850,6 +1850,6 @@ async function updateMapCounter() {
 <!-- Shared Partners of Tomorrow — renders into <div data-tmw-partners> on this page (and any future page that drops the same mount + script). -->
 <script src="./_shared/partners.js" defer></script>
 <!-- Pinned journal dock — map / search / home -->
-<script src="/journal/_shared/journal-dock.js" defer></script>
+<script src="/_shared/journal-dock.js" defer></script>
 </body>
 </html>

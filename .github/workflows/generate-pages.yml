@@ -111,6 +111,11 @@ jobs:
       - name: Pre-render journal article pages
         run: python3 generate_articles.py
 
+      # Journal sitemap + robots for the www.oftmw.com root (served from
+      # journal/). Separate from the map's root sitemap.xml.
+      - name: Generate journal sitemap
+        run: python3 generate_journal_sitemap.py
+
       - name: Check for changes
         id: changes
         run: |
@@ -135,7 +140,7 @@ jobs:
           # in generate_pulse.py handles single-run renames, but only
           # if it can see the previous state, which means the snapshot
           # has to live in the repo.
-          git add projects/ architects/ developers/ journal/post/ sitemap.xml robots.txt pulse.json articles.json atlas.json intel.json projects-flat.json firms-flat.json .pulse-snapshot.json 2>/dev/null || true
+          git add projects/ architects/ developers/ journal/post/ journal/sitemap.xml journal/robots.txt sitemap.xml robots.txt pulse.json articles.json atlas.json intel.json projects-flat.json firms-flat.json .pulse-snapshot.json 2>/dev/null || true
           if git diff --staged --quiet; then
             echo "changed=false" >> $GITHUB_OUTPUT
             echo "No changes detected."

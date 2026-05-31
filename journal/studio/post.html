@@ -134,13 +134,13 @@ html,body{background:var(--ink); color:var(--text); font-family:var(--sans); lin
 #toast.success{border-color:var(--green); color:var(--green-soft)}
 #toast.error{border-color:var(--danger); color:#ffb3b3}
 </style>
-  <script src="/journal/_shared/admin-auth.js"></script>
+  <script src="/_shared/admin-auth.js"></script>
 </head>
 <body>
 
 <div class="topbar">
   <div class="topbar-inner">
-    <a href="/journal/studio/" class="back-link">
+    <a href="/studio/" class="back-link">
       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 8H3M7 4L3 8l4 4"/></svg>
       Posts
     </a>
@@ -162,7 +162,7 @@ html,body{background:var(--ink); color:var(--text); font-family:var(--sans); lin
     <div class="slug-row">
       <label>URL:</label>
       <span class="preview-link">
-        <span>/journal/post/?slug=</span><input type="text" id="slugInput" placeholder="auto-from-title">
+        <span>/post/?slug=</span><input type="text" id="slugInput" placeholder="auto-from-title">
       </span>
     </div>
 
@@ -547,7 +547,7 @@ async function loadPost() {
     document.getElementById('statusChip').className = 'status-chip ' + (POST.status || 'draft');
     document.getElementById('statusChip').textContent = POST.status || 'draft';
     document.getElementById('deleteBtn').style.display = '';
-    document.getElementById('previewBtn').href = '/journal/post/?slug=' + encodeURIComponent(POST.slug);
+    document.getElementById('previewBtn').href = '/post/?slug=' + encodeURIComponent(POST.slug);
     markClean();
   } catch (e) {
     toast('Load failed: ' + e.message, 'error');
@@ -595,13 +595,13 @@ async function save(status) {
     document.getElementById('statusChip').className = 'status-chip ' + POST.status;
     document.getElementById('statusChip').textContent = POST.status;
     document.getElementById('deleteBtn').style.display = '';
-    document.getElementById('previewBtn').href = '/journal/post/?slug=' + encodeURIComponent(POST.slug);
+    document.getElementById('previewBtn').href = '/post/?slug=' + encodeURIComponent(POST.slug);
     document.getElementById('previewBtn').style.display = '';
     markClean();
     toast(status === 'published' ? 'Published!' : 'Saved', 'success');
     if (isCreate) {
       // Switch URL so refresh doesn't create a duplicate
-      history.replaceState(null, '', '/journal/studio/post.html?id=' + encodeURIComponent(POST.id));
+      history.replaceState(null, '', '/studio/post.html?id=' + encodeURIComponent(POST.id));
     }
   } catch (e) {
     toast('Save failed: ' + e.message, 'error');
@@ -619,7 +619,7 @@ async function delPost() {
     });
     if (!res.ok) throw new Error('HTTP ' + res.status);
     toast('Deleted', 'success');
-    setTimeout(() => location.href = '/journal/studio/', 600);
+    setTimeout(() => location.href = '/studio/', 600);
   } catch (e) { toast('Delete failed: ' + e.message, 'error'); }
 }
 
@@ -639,7 +639,7 @@ window.addEventListener('beforeunload', e => {
 
 // Auth gate — GitHub login (session token works as the bearer)
 if (!getToken()) {
-  const loginUrl = (window.TMWAuth && window.TMWAuth.loginUrl && window.TMWAuth.loginUrl()) || '/journal/studio/';
+  const loginUrl = (window.TMWAuth && window.TMWAuth.loginUrl && window.TMWAuth.loginUrl()) || '/studio/';
   document.querySelector('.layout').innerHTML = `<div class="card" style="max-width:600px;margin:80px auto"><h4 style="color:var(--gold-soft)">Sign in to TMW Studio</h4><p style="color:var(--mute-2);margin:14px 0">Log in with GitHub to write and publish.</p><a class="btn primary" href="${loginUrl}" style="display:inline-block">Log in with GitHub</a></div>`;
 } else {
   loadPost();
