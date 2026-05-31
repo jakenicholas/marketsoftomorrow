@@ -97,16 +97,43 @@
     `;
   }
 
+  const WORKER = 'https://tmw.jake-ab7.workers.dev';
+
+  // Studio-editable list (worker /list/partners) is stored as {title, subtitle,
+  // items:[...]}; the static partners.json is {header, partners:[...]}. Coerce
+  // either into the {header, partners} shape render() expects.
+  function toRenderShape(data) {
+    if (data && Array.isArray(data.items) && !data.partners) {
+      return {
+        header: { eyebrow: 'SIGNATURE PARTNERS', title: data.title || 'Our Partners of Tomorrow', sub: data.subtitle || '' },
+        partners: data.items,
+      };
+    }
+    return data || {};
+  }
+
+  async function loadData() {
+    // Prefer the studio-editable list; fall back to the bundled JSON.
+    try {
+      const r = await fetch(WORKER + '/list/partners', { cache: 'no-store' });
+      if (r.ok) {
+        const w = await r.json();
+        if (w && w.exists && w.data && Array.isArray(w.data.items) && w.data.items.length) return toRenderShape(w.data);
+      }
+    } catch (e) {}
+    const res = await fetch(DATA_URL, { cache: 'no-store' });
+    if (!res.ok) throw new Error('partners ' + res.status);
+    return await res.json();
+  }
+
   async function init() {
     const mounts = document.querySelectorAll('[data-tmw-partners]');
     if (!mounts.length) return;
     try {
-      const res = await fetch(DATA_URL, { cache: 'no-store' });
-      if (!res.ok) throw new Error('partners.json ' + res.status);
-      const data = await res.json();
+      const data = await loadData();
       mounts.forEach(m => render(m, data));
     } catch (err) {
-      console.warn('[tmw-partners] failed to load', DATA_URL, err);
+      console.warn('[tmw-partners] failed to load', err);
       mounts.forEach(m => { m.style.display = 'none'; });
     }
   }

@@ -149,12 +149,26 @@ table.sheet{border-collapse:separate; border-spacing:0; width:max-content; min-w
 <script>
 const WORKER_URL='https://tmw.jake-ab7.workers.dev';
 const TOKEN_KEY='tmw-admin-token-v1';
-const LISTS=[
-  {slug:'golf',label:'Golf',meta1:'Level',meta2:'Availability',noun:'course'},
-  {slug:'restaurants',label:'Restaurants',meta1:'Cuisine',meta2:'Price',noun:'restaurant'},
-  {slug:'hotels',label:'Hotels',meta1:'City',meta2:'Price',noun:'hotel'},
+// Column config per list kind. type: rank|text|img|textarea|region|tools.
+// label '@meta1'/'@meta2' is substituted with the list's meta labels at render.
+const ICONIC_COLS=[
+  {l:'#',f:'rank',t:'rank'},{l:'Name',f:'name',t:'text'},{l:'Location',f:'location',t:'text'},{l:'Region',f:'region',t:'region'},
+  {l:'@meta1',f:'architect',t:'text'},{l:'@meta2',f:'year',t:'text'},{l:'Image',f:'image',t:'img'},{l:'Description',f:'description',t:'textarea'},
+  {l:'CTA Label',f:'ctaLabel',t:'text'},{l:'CTA URL',f:'ctaUrl',t:'text'},{l:'Official URL',f:'officialUrl',t:'text'},{l:'',f:'tools',t:'tools'}
 ];
-let CUR=null, DOC=null, DIRTY=false, pickIdx=-1;
+const ICONIC_FIELDS=['name','location','region','architect','year','image','credit','description','officialUrl','ctaLabel','ctaUrl'];
+const PARTNER_COLS=[
+  {l:'#',f:'rank',t:'rank'},{l:'Name',f:'name',t:'text'},{l:'Logo (SVG)',f:'logo',t:'img'},{l:'Image',f:'image',t:'img'},
+  {l:'Category',f:'category',t:'text'},{l:'CTA Label',f:'ctaLabel',t:'text'},{l:'CTA URL',f:'ctaUrl',t:'text'},{l:'Offer',f:'offer',t:'text'},{l:'',f:'tools',t:'tools'}
+];
+const PARTNER_FIELDS=['name','logo','image','category','ctaLabel','ctaUrl','offer'];
+const LISTS=[
+  {slug:'golf',label:'Golf',meta1:'Level',meta2:'Availability',noun:'course',kind:'iconic',cols:ICONIC_COLS,fields:ICONIC_FIELDS},
+  {slug:'restaurants',label:'Restaurants',meta1:'Cuisine',meta2:'Price',noun:'restaurant',kind:'iconic',cols:ICONIC_COLS,fields:ICONIC_FIELDS},
+  {slug:'hotels',label:'Hotels',meta1:'City',meta2:'Price',noun:'hotel',kind:'iconic',cols:ICONIC_COLS,fields:ICONIC_FIELDS},
+  {slug:'partners',label:'Partners',noun:'partner',kind:'partners',cols:PARTNER_COLS,fields:PARTNER_FIELDS},
+];
+let CUR=null, DOC=null, DIRTY=false, pickIdx=-1, pickField='image';
 const $=s=>document.querySelector(s);
 const tokenInput=$('#token'); tokenInput.value=localStorage.getItem(TOKEN_KEY)||'';
 tokenInput.addEventListener('input',()=>localStorage.setItem(TOKEN_KEY,tokenInput.value));
@@ -184,15 +198,24 @@ async function loadList(){
 function normalize(d){
   d=d||{}; d.slug=d.slug||CUR.slug; d.title=d.title||''; d.subtitle=d.subtitle||''; d.about=d.about||{};
   d.regions=Array.isArray(d.regions)?d.regions:[];
-  d.items=Array.isArray(d.items)?d.items.map(it=>({
-    id:it.id||('item-'+Math.random().toString(36).slice(2,8)),
-    name:it.name||'',location:it.location||'',region:it.region||'',architect:it.architect||'',year:it.year||'',
-    image:it.image||'',credit:it.credit||'',description:it.description||'',officialUrl:it.officialUrl||'',
-    ctaLabel:it.ctaLabel||'',ctaUrl:it.ctaUrl||'',
-  })):[];
+  const fields=(CUR&&CUR.fields)||ICONIC_FIELDS;
+  d.items=Array.isArray(d.items)?d.items.map(it=>{
+    const o={id:it.id||('item-'+Math.random().toString(36).slice(2,8))};
+    fields.forEach(f=>{ o[f]=it[f]||''; });
+    return o;
+  }):[];
   return d;
 }
 async function importSeed(){
+  if(CUR.kind==='partners'){
+    status('Fetching partners.json…');
+    try{
+      const r=await fetch('/journal/partners.json',{cache:'no-store'}); const j=await r.json();
+      DOC=normalize({slug:'partners', title:(j.header&&j.header.title)||'Our Partners of Tomorrow', subtitle:(j.header&&j.header.sub)||'', items:j.partners||[]});
+      setDirty(true); status('Imported '+DOC.items.length+' partners — review and Save.','ok'); renderAll();
+    }catch(e){status('Import failed: '+(e.message||e),'err')}
+    return;
+  }
   status('Fetching page seed…');
   try{
     const r=await fetch(`/journal/${CUR.slug}/`,{cache:'no-store'}); const html=await r.text();
@@ -209,70 +232,66 @@ function renderAll(){
   // meta
   $('#meta').innerHTML=`
     <div class="fl full"><label>Title</label><input id="m_title" value="${esc(DOC.title)}"></div>
-    <div class="fl full"><label>Subtitle</label><textarea id="m_subtitle" rows="2">${esc(DOC.subtitle)}</textarea></div>
+    <div class="fl full"><label>Subtitle</label><textarea id="m_subtitle" rows="2">${esc(DOC.subtitle)}</textarea></div>`
+    + (CUR.kind==='partners' ? '' : `
     <div class="fl"><label>About — paragraph 1</label><textarea id="m_p1" rows="2">${esc(DOC.about.p1||'')}</textarea></div>
     <div class="fl"><label>About — pull quote</label><textarea id="m_pull" rows="2">${esc(DOC.about.pull||'')}</textarea></div>
     <div class="fl"><label>About — paragraph 2</label><textarea id="m_p2" rows="2">${esc(DOC.about.p2||'')}</textarea></div>
     <div class="fl"><label>About — paragraph 3</label><textarea id="m_p3" rows="2">${esc(DOC.about.p3||'')}</textarea></div>
-    <div class="fl full"><label>Regions (comma-separated — filter pills)</label><input id="m_regions" value="${esc(DOC.regions.join(', '))}"></div>`;
+    <div class="fl full"><label>Regions (comma-separated — filter pills)</label><input id="m_regions" value="${esc(DOC.regions.join(', '))}"></div>`);
   bindMeta('#m_title',v=>DOC.title=v); bindMeta('#m_subtitle',v=>DOC.subtitle=v);
   bindMeta('#m_p1',v=>DOC.about.p1=v); bindMeta('#m_pull',v=>DOC.about.pull=v);
   bindMeta('#m_p2',v=>DOC.about.p2=v); bindMeta('#m_p3',v=>DOC.about.p3=v);
   bindMeta('#m_regions',v=>{DOC.regions=v.split(',').map(s=>s.trim()).filter(Boolean);refreshRegions()});
   renderSheet();
 }
-function bindMeta(sel,fn){const el=$(sel);el.addEventListener('input',()=>{fn(el.value);setDirty(true)})}
+function bindMeta(sel,fn){const el=$(sel);if(!el)return;el.addEventListener('input',()=>{fn(el.value);setDirty(true)})}
 
+function cellHtml(c,it,i){
+  const f=c.f;
+  if(c.t==='rank') return `<td class="rank">${i+1}</td>`;
+  if(c.t==='tools') return `<td><div class="rowtools">
+      <button class="rtbtn" data-up="${i}" title="Move up">↑</button>
+      <button class="rtbtn" data-down="${i}" title="Move down">↓</button>
+      <button class="rtbtn del" data-del="${i}" title="Delete">✕</button></div></td>`;
+  if(c.t==='region') return `<td class="col-region"><input data-i="${i}" data-f="region" list="regionOpts" value="${esc(it.region)}"></td>`;
+  if(c.t==='textarea') return `<td class="col-desc"><textarea data-i="${i}" data-f="${f}">${esc(it[f])}</textarea></td>`;
+  if(c.t==='img') return `<td class="col-img"><div class="imgcell">
+      <img src="${esc(it[f])}" alt="" onerror="this.style.opacity=.15" data-thumb="${i}" data-thumb-f="${f}">
+      <div class="imgr"><input data-i="${i}" data-f="${f}" data-thumbsync="1" placeholder="https://…" value="${esc(it[f])}">
+      <button class="browse" data-browse="${i}" data-browse-f="${f}">⊞ Browse</button></div></div></td>`;
+  return `<td class="col-${f}"><input data-i="${i}" data-f="${f}" value="${esc(it[f])}"></td>`;
+}
 function renderSheet(){
-  const cols=[
-    ['#','rank'],['Name','name'],['Location','location'],['Region','region'],
-    [CUR.meta1,'architect'],[CUR.meta2,'year'],['Image','image'],['Description','description'],
-    ['CTA Label','ctaLabel'],['CTA URL','ctaUrl'],['Official URL','officialUrl'],['',' tools']
-  ];
-  if(!DOC.items.length){$('#sheet').innerHTML='<div class="empty">No rows yet — click “+ Add row” or “Import seed”.</div>';return}
-  const thead='<thead><tr>'+cols.map(c=>`<th>${esc(c[0])}</th>`).join('')+'</tr></thead>';
-  const rows=DOC.items.map((it,i)=>{
-    const cell=(f)=>`<td class="col-${f}"><input data-i="${i}" data-f="${f}" value="${esc(it[f])}"></td>`;
-    return `<tr>
-      <td class="rank">${i+1}</td>
-      ${cell('name')}${cell('location')}
-      <td class="col-region"><input data-i="${i}" data-f="region" list="regionOpts" value="${esc(it.region)}"></td>
-      ${cell('architect')}${cell('year')}
-      <td class="col-img"><div class="imgcell">
-        <img src="${esc(it.image)}" alt="" onerror="this.style.opacity=.15" data-thumb="${i}">
-        <div class="imgr"><input data-i="${i}" data-f="image" placeholder="https://…" value="${esc(it.image)}">
-        <button class="browse" data-browse="${i}">⊞ Browse library</button></div>
-      </div></td>
-      <td class="col-desc"><textarea data-i="${i}" data-f="description">${esc(it.description)}</textarea></td>
-      ${cell('ctaLabel')}${cell('ctaUrl')}${cell('officialUrl')}
-      <td><div class="rowtools">
-        <button class="rtbtn" data-up="${i}" title="Move up">↑</button>
-        <button class="rtbtn" data-down="${i}" title="Move down">↓</button>
-        <button class="rtbtn del" data-del="${i}" title="Delete">✕</button>
-      </div></td>
-    </tr>`;
-  }).join('');
+  const cols=CUR.cols.map(c=>({...c, lbl: c.l==='@meta1'?CUR.meta1 : c.l==='@meta2'?CUR.meta2 : c.l}));
+  if(!DOC.items.length){$('#sheet').innerHTML='<div class="empty">No rows yet — click “+ Add row”'+(CUR.kind==='partners'?'.':' or “Import seed”.')+'</div>';return}
+  const thead='<thead><tr>'+cols.map(c=>`<th>${esc(c.lbl)}</th>`).join('')+'</tr></thead>';
+  const rows=DOC.items.map((it,i)=>'<tr>'+cols.map(c=>cellHtml(c,it,i)).join('')+'</tr>').join('');
   $('#sheet').innerHTML=`<table class="sheet">${thead}<tbody>${rows}</tbody></table>`;
   // bind cell inputs
   $('#sheet').querySelectorAll('[data-f]').forEach(inp=>{
     inp.addEventListener('input',()=>{
       const it=DOC.items[+inp.dataset.i]; it[inp.dataset.f]=inp.value;
-      if(inp.dataset.f==='image'){const t=$('#sheet').querySelector(`[data-thumb="${inp.dataset.i}"]`);if(t){t.src=inp.value;t.style.opacity=1}}
+      if(inp.dataset.thumbsync){const t=$('#sheet').querySelector(`img[data-thumb="${inp.dataset.i}"][data-thumb-f="${inp.dataset.f}"]`);if(t){t.src=inp.value;t.style.opacity=1}}
       setDirty(true);
     });
   });
   $('#sheet').querySelectorAll('[data-up]').forEach(b=>b.onclick=()=>move(+b.dataset.up,-1));
   $('#sheet').querySelectorAll('[data-down]').forEach(b=>b.onclick=()=>move(+b.dataset.down,1));
   $('#sheet').querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{const i=+b.dataset.del;if(confirm('Delete “'+(DOC.items[i].name||'this row')+'”?')){DOC.items.splice(i,1);setDirty(true);renderSheet()}});
-  $('#sheet').querySelectorAll('[data-browse]').forEach(b=>b.onclick=()=>openMedia(+b.dataset.browse));
-  $('#sheet').querySelectorAll('[data-thumb]').forEach(t=>t.onclick=()=>openMedia(+t.dataset.thumb));
+  $('#sheet').querySelectorAll('[data-browse]').forEach(b=>b.onclick=()=>openMedia(+b.dataset.browse, b.dataset.browseF));
+  $('#sheet').querySelectorAll('img[data-thumb]').forEach(t=>t.onclick=()=>openMedia(+t.dataset.thumb, t.dataset.thumbF));
 }
 function move(i,d){const j=i+d;if(j<0||j>=DOC.items.length)return;const t=DOC.items[i];DOC.items[i]=DOC.items[j];DOC.items[j]=t;setDirty(true);renderSheet()}
-function addRow(){DOC.items.push(normalize({items:[{name:'New '+CUR.noun,ctaLabel:'Book Now',description:''}]}).items[0]);setDirty(true);renderSheet();
+function addRow(){
+  const seed={name:'New '+CUR.noun};
+  if(CUR.kind==='partners'){seed.ctaLabel='Learn More';seed.category='PARTNER OF TOMORROW';}
+  else{seed.ctaLabel='Book Now';}
+  DOC.items.push(normalize({items:[seed]}).items[0]);setDirty(true);renderSheet();
   const w=$('.sheet-wrap');if(w)w.scrollTop=w.scrollHeight}
 
 // media picker
-async function openMedia(i){pickIdx=i;$('#mediaModal').classList.add('show');$('#mediaSearch').value='';$('#mediaSearch').focus();loadMedia('')}
+async function openMedia(i,f){pickIdx=i;pickField=f||'image';$('#mediaModal').classList.add('show');$('#mediaSearch').value='';$('#mediaSearch').focus();loadMedia('')}
 let mt=null;
 $('#mediaSearch').addEventListener('input',e=>{clearTimeout(mt);mt=setTimeout(()=>loadMedia(e.target.value.trim()),250)});
 $('#mediaClose').onclick=()=>$('#mediaModal').classList.remove('show');
@@ -289,7 +308,7 @@ async function loadMedia(q){
     g.innerHTML='';
     imgs.forEach(m=>{const t=document.createElement('div');t.className='mtile';t.title=m.filename||'';
       t.innerHTML=`<img src="${esc(m.url)}" alt="" loading="lazy">`;
-      t.onclick=()=>{if(pickIdx>-1&&DOC.items[pickIdx]){DOC.items[pickIdx].image=m.url;setDirty(true);renderSheet()}$('#mediaModal').classList.remove('show')};
+      t.onclick=()=>{if(pickIdx>-1&&DOC.items[pickIdx]){DOC.items[pickIdx][pickField]=m.url;setDirty(true);renderSheet()}$('#mediaModal').classList.remove('show')};
       g.appendChild(t)});
   }catch(e){g.innerHTML='<div style="grid-column:1/-1;color:var(--danger);font-family:var(--mono);font-size:12px">'+esc(e.message||e)+'</div>'}
 }
