@@ -1001,7 +1001,7 @@ function rowToPostSummary(r) {
     slug: r.slug,
     title: r.title,
     excerpt: r.excerpt || '',
-    cover_image: r.cover_image,
+    cover_image: wixImagesToR2(r.cover_image),
     cover_image_alt: r.cover_image_alt,
     categories,
     tags: safeJsonArray(r.tags),
@@ -1014,9 +1014,18 @@ function rowToPostSummary(r) {
     featured: r.featured ? 1 : 0,
   };
 }
+// Serve every migrated Wix image from our own R2 (the originals were copied to
+// /media/wix/<file>), so the live site has no static.wixstatic.com dependency.
+// Strips Wix CDN transform suffixes (…~mv2.jpg/v1/fill/…) back to the original.
+const WIX_IMG_RE = /https?:\/\/static\.wixstatic\.com\/media\/([^\/\s"')?]+)(?:\/[^\s"')]*)?/gi;
+function wixImagesToR2(s) {
+  if (!s) return s;
+  return String(s).replace(WIX_IMG_RE, 'https://tmw.jake-ab7.workers.dev/media/wix/$1');
+}
+
 function rowToPostFull(r) {
   return Object.assign(rowToPostSummary(r), {
-    body_html: r.body_html,
+    body_html: wixImagesToR2(r.body_html),
     author_id: r.author_id,
     seo_title: r.seo_title,
     seo_description: r.seo_description,

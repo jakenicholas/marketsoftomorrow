@@ -99,6 +99,24 @@ def clean_cats(cats):
     return out
 
 
+def dedupe_hero(body, cover):
+    """The cover image is auto-set to the article's first image, which is ALSO
+    the first <img> in the body — so it renders twice (hero + body). Strip the
+    leading body copy of that image (and its wrapping <figure>/caption)."""
+    if not cover or not body:
+        return body
+    esc_cover = re.escape(cover)
+    window = body[:2000]
+    # <figure>…<img src="cover">…</figure>
+    m = re.search(r'<figure\b[^>]*>(?:(?!</figure>).)*?<img\b[^>]*\bsrc="' + esc_cover + r'"[^>]*>.*?</figure>',
+                  window, re.S | re.I)
+    if not m:  # bare <img src="cover">
+        m = re.search(r'<img\b[^>]*\bsrc="' + esc_cover + r'"[^>]*>', window, re.I)
+    if m:
+        return body[:m.start()] + body[m.end():]
+    return body
+
+
 def build_page(template, post):
     slug = post["slug"]
     title = post.get("title") or ""
@@ -108,7 +126,10 @@ def build_page(template, post):
     cover = post.get("cover_image") or ""
     author = post.get("author_name") or "Markets of Tomorrow"
     cats = clean_cats(post.get("categories"))
+    main_cat = post.get("main_category") or (cats[0] if cats else "")
     body = post.get("body_html") or ("<p>" + esc(summary) + "</p>")
+    if cover:
+        body = dedupe_hero(body, cover)   # the cover == the first body image; drop the dup
     url = f"{BASE}/post/{slug}/"
     date_str = long_date(post)
     iso = post.get("published_iso") or ""
@@ -150,8 +171,9 @@ def build_page(template, post):
     page = page.replace("</head>", head_extra, 1)
 
     # ── BODY: bake the rendered article into the skeleton ──
-    pills = "".join(f'<span class="cat">{esc(c)}</span>' for c in cats[:4])
-    page = page.replace(T_CATROW, f'<div class="cat-row" id="cat-row">{pills}</div>')
+    # Only the main category, as gold-glow text (no bubbles).
+    cat_html = f'<span class="main-cat">{esc(main_cat)}</span>' if main_cat else ''
+    page = page.replace(T_CATROW, f'<div class="cat-row" id="cat-row">{cat_html}</div>')
 
     page = page.replace(T_H1, f'<h1 id="article-title">{esc(title)}</h1>')
 

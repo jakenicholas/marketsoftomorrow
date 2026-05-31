@@ -237,10 +237,11 @@ function renderArticle(post) {
   if (post.image) ensureMeta('twitter:image', post.image, false);
   injectArticleJsonLd(post, canonical, seoDesc);
 
-  // Categories (pills)
+  // Main category only, as gold-glow text.
   const cats = (post.categories || []).filter(c => !/markets of tomorrow|of tomorrow/i.test(c));
+  const mainCat = post.main_category || cats[0] || '';
   const catRow = document.getElementById('cat-row');
-  catRow.innerHTML = cats.slice(0, 4).map(c => `<span class="cat">${escapeHtml(c)}</span>`).join('');
+  catRow.innerHTML = mainCat ? `<span class="main-cat">${escapeHtml(mainCat)}</span>` : '';
 
   // Title + deck (deck = derived from summary if it's punchy enough)
   document.getElementById('article-title').textContent = post.title;
@@ -263,8 +264,13 @@ function renderArticle(post) {
     cover.style.display = 'none';
   }
 
-  // Body
-  const bodyHtml = post.content_html || '';
+  // Body — drop the leading copy of the cover image (it's the same file).
+  let bodyHtml = post.content_html || '';
+  if (post.image && bodyHtml) {
+    const re = new RegExp('<figure\\b[^>]*>(?:(?!</figure>).)*?<img\\b[^>]*\\bsrc="' + post.image.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '"[^>]*>.*?</figure>', 'is');
+    if (re.test(bodyHtml)) bodyHtml = bodyHtml.replace(re, '');
+    else bodyHtml = bodyHtml.replace(new RegExp('<img\\b[^>]*\\bsrc="' + post.image.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '"[^>]*>', 'i'), '');
+  }
   const bodyEl = document.getElementById('article-body-content');
   if (!bodyHtml) {
     bodyEl.innerHTML = `<p>${escapeHtml(post.summary || '(no preview available — open original on Wix Studio)')}</p>`;

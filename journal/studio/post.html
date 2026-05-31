@@ -98,6 +98,12 @@ html,body{background:var(--ink); color:var(--text); font-family:var(--sans); lin
 .card h4{font-family:var(--mono); font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--mute); margin-bottom:12px}
 .card input, .card select{width:100%; background:rgba(255,255,255,.04); border:1px solid var(--hair-2); border-radius:6px; color:var(--white); font-family:inherit; font-size:13.5px; padding:9px 12px; outline:0; transition:border-color .15s}
 .card input:focus, .card select:focus{border-color:var(--green)}
+.card textarea{width:100%; background:rgba(255,255,255,.04); border:1px solid var(--hair-2); border-radius:6px; color:var(--white); font-family:inherit; font-size:13.5px; line-height:1.55; padding:10px 12px; outline:0; resize:vertical; min-height:104px}
+.card textarea:focus{border-color:var(--green)}
+.card .fieldlabel{display:block; font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--mute-2); margin-bottom:7px}
+.card .seohint{font-size:11px; color:var(--mute); margin-top:8px; line-height:1.45}
+.addcat button{flex:0 0 auto; background:var(--green); color:#0a0a0a; border:0; border-radius:6px; padding:0 16px; font-family:var(--mono); font-size:11px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; cursor:pointer; transition:background .15s}
+.addcat button:hover{background:var(--green-soft)}
 .cover-preview{aspect-ratio:16/10; background:#0a0a0a; border:1px solid var(--hair); border-radius:8px; overflow:hidden; margin-bottom:10px; display:flex; align-items:center; justify-content:center; color:var(--mute); font-family:var(--mono); font-size:11px; cursor:pointer}
 .cover-preview img{width:100%; height:100%; object-fit:cover; display:block}
 .cover-preview:hover{border-color:var(--green)}
@@ -201,7 +207,7 @@ html,body{background:var(--ink); color:var(--text); font-family:var(--sans); lin
     <div class="card">
       <h4>Cover image</h4>
       <div class="cover-preview" id="coverPreview">No cover image</div>
-      <input type="text" id="coverInput" placeholder="Image URL (or pick from media)">
+      <input type="hidden" id="coverInput">
       <div class="cover-row">
         <button id="coverPickBtn">Pick from media</button>
         <button class="danger" id="coverClearBtn">Clear</button>
@@ -231,9 +237,9 @@ html,body{background:var(--ink); color:var(--text); font-family:var(--sans); lin
 
     <div class="card">
       <h4>SEO</h4>
-      <input type="text" id="seoTitleInput" placeholder="SEO title (defaults to post title)">
-      <div style="height:8px"></div>
-      <input type="text" id="seoDescInput" placeholder="SEO description (defaults to excerpt)">
+      <label class="fieldlabel">Meta description</label>
+      <textarea id="seoDescInput" rows="4" placeholder="The summary Google shows under the title in search results. Defaults to the article excerpt if left blank."></textarea>
+      <p class="seohint">The SEO title is set automatically from the article title.</p>
     </div>
   </aside>
 </div>
@@ -379,7 +385,6 @@ const catChips  = document.getElementById('categoriesChips');
 const catSelect = document.getElementById('catSelect');
 const mainCatSelect = document.getElementById('mainCatSelect');
 const newCatInput = document.getElementById('newCatInput');
-const seoTitleEl= document.getElementById('seoTitleInput');
 const seoDescEl = document.getElementById('seoDescInput');
 
 let slugManuallyEdited = false;
@@ -390,7 +395,7 @@ titleEl.addEventListener('input', () => {
   }
 });
 slugEl.addEventListener('input', () => { slugManuallyEdited = true; markDirty(); });
-[excerptEl, coverEl, seoTitleEl, seoDescEl].forEach(el => el.addEventListener('input', markDirty));
+[excerptEl, coverEl, seoDescEl].forEach(el => el.addEventListener('input', markDirty));
 authorEl.addEventListener('change', markDirty);
 
 coverEl.addEventListener('input', () => updateCoverPreview());
@@ -535,7 +540,6 @@ async function loadPost() {
     excerptEl.value   = POST.excerpt || '';
     coverEl.value     = POST.cover_image || '';
     authorEl.value    = POST.author_name || '';
-    seoTitleEl.value  = POST.seo_title || '';
     seoDescEl.value   = POST.seo_description || '';
     catsList = POST.categories || [];
     mainCat  = POST.main_category || defaultMain();
@@ -566,7 +570,7 @@ function buildPayload() {
     author_name:     authorEl.value.trim() || 'Markets of Tomorrow',
     categories:      catsList,
     main_category:   mainCat || null,
-    seo_title:       seoTitleEl.value.trim() || null,
+    seo_title:       null,
     seo_description: seoDescEl.value.trim() || null,
   };
 }
