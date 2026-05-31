@@ -1069,6 +1069,18 @@ async function fetchWixCategoryMap(env) {
   return map;
 }
 
+// Map Wix author names to the canonical studio display names.
+function canonicalAuthor(name) {
+  const k = String(name || '').trim().toLowerCase();
+  const map = {
+    'kait': 'Kait Nicholas',
+    'kait nicholas': 'Kait Nicholas',
+    'jake': 'Jake Nicholas',
+    'jake nicholas': 'Jake Nicholas',
+  };
+  return map[k] || name;
+}
+
 // The displayed "main category" is the most specific one — i.e. the first that
 // is NOT a broad "… of Tomorrow" filter tag. Falls back to the first category.
 function pickMainCategory(cats) {
@@ -1163,10 +1175,11 @@ async function handleWixSync(req, env, origin, url) {
         coverAlt   = cm.altText || wp.title || '';
       }
 
-      // Author name (best-effort)
+      // Author name (best-effort), canonicalized to the studio display names.
       let authorName = null;
       if (wp.memberId) authorName = await resolveAuthor(wp.memberId);
       if (!authorName) authorName = 'Markets of Tomorrow';
+      authorName = canonicalAuthor(authorName);
 
       // Resolve Wix categoryIds → real labels via the category map.
       const cats = Array.isArray(wp.categoryIds)
