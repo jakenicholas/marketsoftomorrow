@@ -46,7 +46,7 @@
       .tmw-partner-card:hover .tmw-partner-img img{transform:scale(1.04)}
       .tmw-partner-body{padding:28px 22px 22px; display:flex; flex-direction:column; align-items:center; gap:18px; text-align:center; flex:1}
       .tmw-partner-logo{height:54px; max-width:80%; display:flex; align-items:center; justify-content:center}
-      .tmw-partner-logo img{max-height:100%; max-width:100%; object-fit:contain; filter:brightness(1.1)}
+      .tmw-partner-logo img{max-height:100%; max-width:100%; object-fit:contain; filter:brightness(0) invert(1); opacity:.92}
       .tmw-partner-logo .wm-fallback{font-family:'Fraunces',Georgia,serif; font-weight:500; font-size:22px; color:#fff; letter-spacing:.04em; text-align:center; line-height:1.1}
       .tmw-partner-cat{font-family:'JetBrains Mono',ui-monospace,monospace; font-size:10.5px; letter-spacing:.22em; text-transform:uppercase; color:#C2C9C3; font-weight:500}
       .tmw-partner-cta{margin-top:auto; display:inline-block; padding:11px 22px; border:1px solid rgba(255,255,255,.18); border-radius:999px; color:#ECEAE5; text-decoration:none; font-family:'Inter',sans-serif; font-size:13px; font-weight:500; transition:all .2s}

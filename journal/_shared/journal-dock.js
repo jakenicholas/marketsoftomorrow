@@ -28,6 +28,10 @@
   var ICON_HOME =
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
     '<path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v9.5h5.5V14h3v5.5H19V10"/></svg>';
+  var IG_URL  = 'https://www.instagram.com/floridaoftomorrow';
+  var ICON_IG =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+    '<rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.3" cy="6.7" r="1.2" fill="currentColor" stroke="none"/></svg>';
 
   // ── Styles ──
   var css = [
@@ -83,7 +87,41 @@
     'nav.main .nav-burger.is-open span:nth-child(1){transform:translateY(6.5px) rotate(45deg)}',
     'nav.main .nav-burger.is-open span:nth-child(2){opacity:0}',
     'nav.main .nav-burger.is-open span:nth-child(3){transform:translateY(-6.5px) rotate(-45deg)}',
-    '}'
+    '}',
+
+    // ── Remove the animated "intelligence" hex badge from every logo (header +
+    //    footer). Hidden, so the lockup re-centers on its own.
+    '.tmw-hex-badge{display:none !important}',
+    // Smaller wordmark in the header on desktop (mobile 74px is set above).
+    'nav.main .tmw-wordmark{width:92px}',
+
+    // ── Header CTA swapped from "Open Map" to an Instagram icon button.
+    '.nav-cta.tmw-ig{padding:0; width:42px; height:42px; min-width:42px; justify-content:center; gap:0; overflow:visible}',
+    '.nav-cta.tmw-ig svg{width:21px; height:21px; color:var(--cream); transition:color .2s}',
+    '.nav-cta.tmw-ig:hover svg{color:#fff}',
+    '@media(max-width:980px){.nav-cta.tmw-ig{width:38px; height:38px; min-width:38px}}',
+
+    // ── Top featured ad banner: explicit heights per device, full width, no
+    //    sponsor chip. (Inline page rule is clamp(180px,22vw,280px).)
+    '.banner-ad{max-height:430px; width:100%; max-width:100vw}',
+    '.featured-carousel{height:392px; width:100%}',
+    '.fc-track,.fc-slide{width:100%; left:0; right:0}',
+    '.fc-slide video,.fc-slide img{width:100%; height:100%; object-fit:cover; object-position:center}',
+    '.fc-sponsor{display:none !important}',
+    '@media(max-width:980px){.banner-ad{max-height:170px}.featured-carousel{height:151px}}',
+    '@media(max-width:560px){.banner-ad{max-height:85px}.featured-carousel{height:65px}}',
+
+    // ── Hide the public in-page "Edit" toggle on the list/ranking pages.
+    '.edit-toggle{display:none !important}',
+
+    // ── Dock search: purple "intelligence" glow chasing around the border.
+    '@property --tmw-ang{syntax:"<angle>"; inherits:false; initial-value:0deg}',
+    '@keyframes tmwChase{to{--tmw-ang:360deg}}',
+    '.tmw-dock-search{border-radius:999px}',
+    '.tmw-dock-search input{position:relative; z-index:1}',
+    '.tmw-dock-search .ds-ico{z-index:2}',
+    '.tmw-dock-search::before{content:""; position:absolute; inset:-1.5px; border-radius:999px; padding:1.5px; z-index:0; pointer-events:none; background:conic-gradient(from var(--tmw-ang,0deg), rgba(167,139,250,0) 0deg, rgba(167,139,250,0) 205deg, #A78BFA 300deg, #E9DEFF 338deg, rgba(167,139,250,0) 360deg); -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite:xor; mask-composite:exclude; filter:drop-shadow(0 0 5px rgba(167,139,250,.7)); animation:tmwChase 3s linear infinite}',
+    '@media(prefers-reduced-motion:reduce){.tmw-dock-search::before{animation:none}}'
   ].join('');
 
   function mount() {
@@ -123,6 +161,26 @@
     requestAnimationFrame(function () { dock.classList.add('ready'); });
 
     wireBurgers();
+    swapToInstagram();
+  }
+
+  // Swap the header's "Open Map" CTA for an Instagram icon → @floridaoftomorrow.
+  // (The map is still one tap away via the dock's map button.) Universal: applies
+  // to the inline page headers and the injected chrome header alike.
+  function swapToInstagram() {
+    var ctas = document.querySelectorAll('.nav-cta');
+    for (var i = 0; i < ctas.length; i++) {
+      var c = ctas[i];
+      if (c.__tmwIg) continue;
+      c.__tmwIg = true;
+      c.setAttribute('href', IG_URL);
+      c.setAttribute('target', '_blank');
+      c.setAttribute('rel', 'noopener');
+      c.setAttribute('aria-label', 'Instagram — @floridaoftomorrow');
+      c.removeAttribute('id'); // was nav-map-cta; drop so the live-count fetch can't repopulate
+      c.classList.add('tmw-ig');
+      c.innerHTML = ICON_IG;
+    }
   }
 
   // Wire the mobile hamburger(s) to open/close the nav dropdown. Works for both

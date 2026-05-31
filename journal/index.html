@@ -1622,7 +1622,7 @@ function renderGrid() {
   const lbl  = bucketLabel(ACTIVE_CAT);
   document.getElementById('grid-title').textContent =
     ACTIVE_CAT === '*' ? 'The Latest' : `${lbl} stories`;
-  meta.textContent = `${FILTERED.length} ${FILTERED.length === 1 ? 'story' : 'stories'} · auto-synced from Wix`;
+  meta.textContent = `${FILTERED.length} ${FILTERED.length === 1 ? 'story' : 'stories'}`;
 
   if (!FILTERED.length) {
     wrap.innerHTML = `<div class="empty-state" style="grid-column:1 / -1">
