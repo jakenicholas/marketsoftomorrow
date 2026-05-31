@@ -147,11 +147,18 @@ nav.main .wrap{display:flex; align-items:center; justify-content:space-between; 
 .article-body-content ul,
 .article-body-content ol{padding-left:26px; color:var(--cream); font-weight:300}
 .article-body-content li{margin:.4em 0}
-.article-body-content figure{margin:2em 0 !important}
-.article-body-content figure img{border-radius:12px}
-.article-body-content figcaption{font-family:var(--mono); font-size:11.5px; letter-spacing:.06em; color:var(--mute); margin-top:10px; text-align:center}
+.article-body-content figure{margin:2em 0 !important; position:relative; border-radius:12px; overflow:hidden}
+.article-body-content figure img{border-radius:0; display:block; margin:0}
+.article-body-content figcaption{position:absolute; left:0; right:0; bottom:0; margin:0; padding:36px 22px 16px; background:linear-gradient(transparent, rgba(7,8,7,.55) 35%, rgba(7,8,7,.9)); color:var(--white); font-family:var(--mono); font-size:11.5px; letter-spacing:.06em; line-height:1.5; text-align:left; pointer-events:none}
+.article-body-content figcaption:empty{display:none}
 .article-body-content img{max-width:100%; height:auto; border-radius:12px; background:var(--panel-2)}
 .article-body-content iframe{max-width:100%; aspect-ratio:16/9; height:auto; border-radius:12px; border:0; background:#000}
+/* Map of Tomorrow embed — fixed tall height so every article's map is identical,
+   regardless of the height="" the embed snippet was pasted with. Targets the
+   .tmw-map-embed class baked into the article body, so all current AND future
+   articles inherit it automatically. */
+.article-body-content iframe.tmw-map-embed{width:100%; aspect-ratio:auto; height:640px; max-height:80vh; border-radius:14px}
+@media(max-width:760px){.article-body-content iframe.tmw-map-embed{height:480px}}
 .article-body-content hr{border:0; height:1px; background:var(--hair); margin:2.4em 0}
 .article-body-content strong{color:var(--white); font-weight:600}
 

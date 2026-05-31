@@ -52,8 +52,8 @@
       .tmw-partner-logo .lmask{display:block; width:100%; height:54px; background:#fff; opacity:.95; -webkit-mask-size:contain; mask-size:contain; -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat; -webkit-mask-position:center; mask-position:center}
       .tmw-partner-logo .wm-fallback{font-family:'Fraunces',Georgia,serif; font-weight:500; font-size:22px; color:#fff; letter-spacing:.04em; text-align:center; line-height:1.1}
       .tmw-partner-cat{font-family:'JetBrains Mono',ui-monospace,monospace; font-size:10.5px; letter-spacing:.22em; text-transform:uppercase; color:#C2C9C3; font-weight:500}
-      .tmw-partner-cta{margin-top:auto; display:block; width:100%; text-align:center; padding:13px 18px; background:rgba(255,255,255,.045); border:1px solid rgba(255,255,255,.08); border-radius:10px; color:#ECEAE5; text-decoration:none; font-family:'Inter',sans-serif; font-size:13px; font-weight:500; transition:background .2s, border-color .2s, color .2s}
-      .tmw-partner-cta:hover{background:rgba(255,255,255,.09); border-color:rgba(255,255,255,.16); color:#fff}
+      .tmw-partner-cta{margin-top:auto; display:block; width:100%; text-align:center; padding:13px 18px; background:rgba(0,0,0,.24); border:1px solid rgba(255,255,255,.05); border-radius:10px; color:#9AA39C; text-decoration:none; font-family:'Inter',sans-serif; font-size:12.5px; font-weight:500; letter-spacing:.01em; transition:background .2s, border-color .2s, color .2s}
+      .tmw-partner-cta:hover{background:rgba(0,0,0,.34); border-color:rgba(255,255,255,.12); color:#ECEAE5}
       /* Client wall */
       .tmw-clients{margin-top:76px}
       .tmw-clients-head{text-align:center; margin-bottom:40px}

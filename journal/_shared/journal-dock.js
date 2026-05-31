@@ -58,7 +58,10 @@
     '@media(max-width:560px){.tmw-dock{bottom:14px;gap:6px;padding:6px}.tmw-dock-btn{width:42px;height:42px}',
     '.tmw-dock-btn svg{width:18px;height:18px}.tmw-dock-search input{width:46vw;height:42px}',
     '.tmw-dock-search input:focus{width:50vw}}',
-    'body{padding-bottom:104px}',
+    // Dock clearance lives on the FOOTER (not the body) so the footer's own
+    // background fills the reserved strip — no black gap below the footer.
+    'footer{padding-bottom:120px}',
+    '.tmw-chrome-foot{padding-bottom:120px}',
     // ── Mobile hardening: no horizontal scroll, ever. overflow-x:clip clips
     //    runaway/fixed/absolute elements WITHOUT forcing overflow-y:auto (so the
     //    sticky header keeps working — which plain overflow:hidden would break).
@@ -144,9 +147,14 @@
     '.btn-cta{background:transparent !important; color:var(--gold-soft) !important; padding:8px 0 !important; border-radius:0 !important; text-shadow:0 0 14px rgba(230,197,116,.5), 0 0 3px rgba(230,197,116,.32)}',
     '.btn-cta:hover{background:transparent !important; transform:none !important; gap:11px}',
     '.btn-cta svg{color:var(--gold-soft)}',
-    // Tablet + mobile: CONTAIN so wide ad creatives show in full (no side-crop).
-    '@media(max-width:980px){.banner-ad{max-height:150px}.featured-carousel{height:130px}.fc-slide video,.fc-slide img{object-fit:contain}}',
-    '@media(max-width:560px){.banner-ad{max-height:96px}.featured-carousel{height:84px}}',
+    // Iconic-list "About" → Request Visit (gold text + gold arrow, opens mail client).
+    '.about-cta{display:inline-flex; align-items:center; gap:9px; margin-top:34px; font-family:var(--mono); font-size:12px; letter-spacing:.18em; text-transform:uppercase; font-weight:700; color:var(--gold-soft); text-shadow:0 0 14px rgba(230,197,116,.5), 0 0 3px rgba(230,197,116,.32); text-decoration:none; transition:gap .2s ease, color .2s ease}',
+    '.about-cta:hover{gap:14px; color:var(--gold)}',
+    '.about-cta svg{width:15px; height:15px; stroke:currentColor; flex:0 0 auto}',
+    // Tablet + mobile: match the ad's native 1886x382 (~4.94:1) aspect so the
+    // creative fills the full width edge-to-edge — no side bars, no crop.
+    '@media(max-width:980px){.banner-ad{max-height:240px}.featured-carousel{height:auto; aspect-ratio:1886 / 382}.fc-slide video,.fc-slide img{object-fit:cover}}',
+    '@media(max-width:560px){.banner-ad{max-height:130px}}',
 
     // ── Hide the public in-page "Edit" toggle on the list/ranking pages.
     '.edit-toggle{display:none !important}',
