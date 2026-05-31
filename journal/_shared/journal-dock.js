@@ -71,8 +71,11 @@
     //    the shared chrome). Higher specificity than the pages' own mobile rules.
     '@media(max-width:980px){',
     // Lift the header above the pulse ticker so the open dropdown covers it
-    // (otherwise the first item sits behind the ticker).
-    'nav.main{position:relative; z-index:40}',
+    // (otherwise the first item sits behind the ticker). Pad the top by the
+    // safe-area inset so the logo/burger/Instagram clear the phone notch when
+    // the header is stuck to the top of the viewport (viewport-fit=cover).
+    'nav.main{position:relative; z-index:40; padding-top:env(safe-area-inset-top,0px)}',
+    '.sticky-stack,.tmw-chrome-head{top:0}',
     'nav.main .wrap{position:relative; gap:10px}',
     'nav.main .nav-burger{display:flex; order:0; background:none; border:0; cursor:pointer; z-index:2}',
     'nav.main .nav-cta{order:1; margin-left:auto; padding:7px 8px 7px 12px; z-index:2}',
@@ -109,7 +112,7 @@
     '.fc-slide video,.fc-slide img{width:100%; height:100%; object-fit:cover; object-position:center}',
     '.fc-sponsor{display:none !important}',
     '@media(max-width:980px){.banner-ad{max-height:170px}.featured-carousel{height:151px}}',
-    '@media(max-width:560px){.banner-ad{max-height:85px}.featured-carousel{height:65px}}',
+    '@media(max-width:560px){.banner-ad{max-height:150px}.featured-carousel{height:124px}}',
 
     // ── Hide the public in-page "Edit" toggle on the list/ranking pages.
     '.edit-toggle{display:none !important}',
