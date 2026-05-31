@@ -863,10 +863,10 @@ function decodeXml(s) {
 
 async function handlePostsList(env, origin, url) {
   if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
-  // Cap at 500 — enough to feed the journal home grid in one shot
-  // (1,377 total posts; the home shows the most-recent slice with
-  // pagination + filter pills computed from what's loaded).
-  const limit  = clampInt(url.searchParams.get('limit'), 50, 1, 500);
+  // Cap at 1500 — enough to feed the journal home grid the full archive in one
+  // shot (~1,377 total posts; the home shows the most-recent slice with
+  // client-side pagination + filter pills computed from what's loaded).
+  const limit  = clampInt(url.searchParams.get('limit'), 50, 1, 1500);
   const offset = clampInt(url.searchParams.get('offset'), 0, 0, 10000);
   const status = url.searchParams.get('status') || 'published';
   const category = url.searchParams.get('category');

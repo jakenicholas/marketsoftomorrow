@@ -452,8 +452,9 @@ section.grid-section{padding:60px 0 90px; position:relative}
 .card:hover .card-img img{transform:scale(1.04)}
 .card-img.empty{display:flex; align-items:center; justify-content:center; color:var(--mute); font-family:var(--mono); font-size:10px; letter-spacing:.2em; text-transform:uppercase}
 .card-loc{position:absolute; top:12px; left:12px; background:rgba(7,8,7,.78); backdrop-filter:blur(8px); color:var(--green); padding:5px 10px; border-radius:999px; font-family:var(--mono); font-size:9.5px; letter-spacing:.16em; text-transform:uppercase; font-weight:600; border:1px solid rgba(31,223,103,.3)}
-.card-body{padding:20px 22px 22px; display:flex; flex-direction:column; flex:1; gap:10px}
+.card-body{padding:20px 22px 22px; display:flex; flex-direction:column; flex:1; gap:8px}
 .card-date{font-family:var(--mono); font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--mute)}
+.card-cat{font-family:var(--mono); font-size:10.5px; letter-spacing:.18em; text-transform:uppercase; font-weight:700; color:var(--gold-soft); text-shadow:0 0 14px rgba(230,197,116,.55), 0 0 3px rgba(230,197,116,.35); margin-top:-2px}
 .card-title{font-family:var(--serif); font-weight:600; font-size:20px; line-height:1.22; color:var(--white); letter-spacing:-.01em}
 .card-title a{transition:color .2s}
 .card-title a:hover{color:var(--green-soft)}
@@ -1232,7 +1233,7 @@ async function loadFeed() {
   try {
     // Bumped from 60 → 300 since we now read from D1 (1,377 posts available)
     // rather than the 20-post Wix RSS window.
-    const { items, via, error } = await fetchBlogItems(300);
+    const { items, via, error } = await fetchBlogItems(1500);
     ALL_ITEMS = items.filter(it => it.title && it.link);
     console.log('[journal] feed via:', via, '·', ALL_ITEMS.length, 'items', error ? '(notes: ' + error + ')' : '');
     if (!ALL_ITEMS.length) {
@@ -1669,12 +1670,13 @@ function cardHtml(item) {
   // article page itself (shows a "View on Wix" link).
   const href = item.slug ? ('./post/?slug=' + encodeURIComponent(item.slug)) : item.link;
   const imgBlock = item.image
-    ? `<div class="card-img">${loc ? `<span class="card-loc">${escapeHtml(loc)}</span>` : ''}<img src="${escapeAttr(item.image)}" alt="" loading="lazy"></div>`
-    : `<div class="card-img empty">${loc ? `<span class="card-loc">${escapeHtml(loc)}</span>` : ''}Markets of Tomorrow</div>`;
+    ? `<div class="card-img"><img src="${escapeAttr(item.image)}" alt="" loading="lazy"></div>`
+    : `<div class="card-img empty">Markets of Tomorrow</div>`;
   return `<article class="card">
     <a href="${escapeAttr(href)}" aria-label="${escapeAttr(item.title)}">${imgBlock}</a>
     <div class="card-body">
       ${date ? `<div class="card-date">${escapeHtml(date)}</div>` : ''}
+      ${loc ? `<div class="card-cat">${escapeHtml(loc)}</div>` : ''}
       <h3 class="card-title"><a href="${escapeAttr(href)}">${escapeHtml(item.title)}</a></h3>
       ${item.summary ? `<p class="card-summary">${escapeHtml(trunc(item.summary, 140))}</p>` : ''}
       <a class="card-readmore" href="${escapeAttr(href)}">Read story

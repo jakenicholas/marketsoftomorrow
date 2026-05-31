@@ -126,6 +126,10 @@
     '.tabs-bar .sort{background-color:transparent; border:0; padding-left:2px}',
     '.tabs-bar .sort:focus{border:0}',
     '@media(max-width:560px){.tabs .tab-btn{padding:8px 12px; font-size:10px; letter-spacing:.07em}.tabs{padding:4px}}',
+
+    // ── Header nav: drop the green underline; gold glow text on hover/active.
+    '.nav-links a.active::after, .tmw-chrome-head .nav-links a.active::after, nav.main .nav-links a.active::after{display:none !important}',
+    '.nav-links a:hover, .nav-links a.active, .tmw-chrome-head .nav-links a:hover, .tmw-chrome-head .nav-links a.active{color:var(--gold-soft) !important; text-shadow:0 0 14px rgba(230,197,116,.55), 0 0 3px rgba(230,197,116,.35)}',
     '@media(max-width:980px){.banner-ad{max-height:170px}.featured-carousel{height:151px}}',
     '@media(max-width:560px){.banner-ad{max-height:120px}.featured-carousel{height:100px}}',
 
@@ -148,6 +152,15 @@
     var vp = document.querySelector('meta[name="viewport"]');
     if (!vp) { vp = document.createElement('meta'); vp.setAttribute('name', 'viewport'); document.head.appendChild(vp); }
     vp.setAttribute('content', 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover');
+
+    // Favicon — set on every journal page.
+    if (!document.querySelector('link[rel="icon"]')) {
+      var fav = document.createElement('link');
+      fav.rel = 'icon';
+      fav.type = 'image/png';
+      fav.href = 'https://tmw.jake-ab7.workers.dev/media/wix/ca3b83_71f3cd2ef61049028b2daf4e2ff71d52~mv2.png';
+      document.head.appendChild(fav);
+    }
 
     var style = document.createElement('style');
     style.setAttribute('data-tmw-dock', '');
