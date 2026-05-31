@@ -89,6 +89,20 @@ html,body{background:var(--ink); color:var(--text); font-family:var(--sans); lin
 .editor ul,.editor ol{padding-left:22px; margin:0 0 1.1em}
 .editor li{margin:.3em 0}
 .editor img{max-width:100%; height:auto; border-radius:10px; margin:1em 0; display:block}
+/* Captioned-image node view: edit caption on the image (hover) + alt button */
+.ed-figure{position:relative; margin:1.2em 0; display:block}
+.ed-figure img{max-width:100%; height:auto; border-radius:10px; margin:0; display:block}
+.ed-figure .ed-cap{position:absolute; left:0; right:0; bottom:0; width:100%; box-sizing:border-box; border:0; outline:0; padding:34px 16px 13px; font-family:var(--serif); font-style:italic; font-size:14px; color:#fff; background:linear-gradient(transparent, rgba(7,8,7,.85)); border-radius:0 0 10px 10px; opacity:0; transition:opacity .18s}
+.ed-figure:hover .ed-cap, .ed-figure .ed-cap:focus{opacity:1}
+.ed-figure .ed-cap::placeholder{color:rgba(255,255,255,.62); font-style:italic}
+.ed-img-btn{position:absolute; top:10px; right:10px; background:rgba(7,8,7,.72); backdrop-filter:blur(6px); border:1px solid var(--hair-2); color:#fff; font-family:var(--mono); font-size:10px; letter-spacing:.06em; padding:6px 10px; border-radius:6px; cursor:pointer; opacity:0; transition:all .18s}
+.ed-figure:hover .ed-img-btn{opacity:1}
+.ed-figure.show-alt .ed-img-btn{opacity:1; background:var(--green); color:#0a0a0a; border-color:var(--green)}
+@media (hover:none){.ed-img-btn{opacity:.9} .ed-figure .ed-cap{opacity:1}}
+.ed-altrow{display:none; margin-top:8px}
+.ed-figure.show-alt .ed-altrow{display:block}
+.ed-altrow input{width:100%; background:rgba(255,255,255,.05); border:1px solid var(--hair-2); border-radius:6px; color:var(--white); font-family:var(--mono); font-size:11.5px; padding:8px 11px; outline:0}
+.ed-altrow input:focus{border-color:var(--green)}
 .editor strong{color:var(--white); font-weight:600}
 .editor hr{border:0; height:1px; background:var(--hair); margin:1.8em 0}
 
@@ -300,6 +314,98 @@ function slugify(s) {
     .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 200);
 }
 
+// ─── Captioned image node ───────────────────────────────────────
+// Extends the Image node with caption + alt attributes, and a node view that
+// lets you edit the caption on top of the image (hover + type), edit alt text
+// via an "Alt" button, and serialize to <figure><img><figcaption>.
+const CaptionedImage = Image.extend({
+  name: 'image',
+  addAttributes() {
+    return {
+      src: { default: null },
+      alt: { default: '' },
+      caption: { default: '' },
+    };
+  },
+  parseHTML() {
+    return [
+      {
+        tag: 'figure',
+        getAttrs: (el) => {
+          const img = el.querySelector('img');
+          if (!img) return false;
+          const cap = el.querySelector('figcaption');
+          return { src: img.getAttribute('src'), alt: img.getAttribute('alt') || '', caption: cap ? cap.textContent : '' };
+        },
+      },
+      { tag: 'img[src]', getAttrs: (el) => ({ src: el.getAttribute('src'), alt: el.getAttribute('alt') || '', caption: '' }) },
+    ];
+  },
+  renderHTML({ HTMLAttributes }) {
+    const a = HTMLAttributes || {};
+    const imgAttrs = { src: a.src, alt: a.alt || '', loading: 'lazy' };
+    if (a.caption && String(a.caption).trim()) {
+      return ['figure', {}, ['img', imgAttrs], ['figcaption', {}, a.caption]];
+    }
+    return ['img', imgAttrs];
+  },
+  addNodeView() {
+    return ({ node, getPos, editor }) => {
+      const dom = document.createElement('figure');
+      dom.className = 'ed-figure';
+      dom.contentEditable = 'false';
+
+      const img = document.createElement('img');
+      img.src = node.attrs.src; img.alt = node.attrs.alt || '';
+      dom.appendChild(img);
+
+      const editBtn = document.createElement('button');
+      editBtn.type = 'button'; editBtn.className = 'ed-img-btn'; editBtn.title = 'Edit alt text';
+      editBtn.innerHTML = '✎ Alt';
+      dom.appendChild(editBtn);
+
+      const cap = document.createElement('input');
+      cap.className = 'ed-cap'; cap.placeholder = 'Add a caption…'; cap.value = node.attrs.caption || '';
+      dom.appendChild(cap);
+
+      const altRow = document.createElement('div');
+      altRow.className = 'ed-altrow';
+      const altInput = document.createElement('input');
+      altInput.placeholder = 'Alt text — describe the image (accessibility + SEO)';
+      altInput.value = node.attrs.alt || '';
+      altRow.appendChild(altInput);
+      dom.appendChild(altRow);
+
+      const setAttrs = (patch) => {
+        if (typeof getPos !== 'function') return;
+        const pos = getPos(); const cur = editor.view.state.doc.nodeAt(pos);
+        if (!cur) return;
+        editor.view.dispatch(editor.view.state.tr.setNodeMarkup(pos, undefined, { ...cur.attrs, ...patch }));
+      };
+      cap.addEventListener('input', () => setAttrs({ caption: cap.value }));
+      altInput.addEventListener('input', () => { img.alt = altInput.value; setAttrs({ alt: altInput.value }); });
+      editBtn.addEventListener('click', () => { dom.classList.toggle('show-alt'); if (dom.classList.contains('show-alt')) altInput.focus(); });
+      [cap, altInput].forEach(el => {
+        el.addEventListener('mousedown', e => e.stopPropagation());
+        el.addEventListener('keydown', e => e.stopPropagation());
+      });
+
+      return {
+        dom,
+        update: (n) => {
+          if (n.type.name !== 'image') return false;
+          if (img.getAttribute('src') !== n.attrs.src) img.src = n.attrs.src;
+          img.alt = n.attrs.alt || '';
+          if (document.activeElement !== cap) cap.value = n.attrs.caption || '';
+          if (document.activeElement !== altInput) altInput.value = n.attrs.alt || '';
+          return true;
+        },
+        ignoreMutation: () => true,
+      };
+    };
+  },
+});
+
 // ─── TipTap setup ───────────────────────────────────────────────
 const editor = new Editor({
   element: document.getElementById('editor'),
@@ -311,7 +417,7 @@ const editor = new Editor({
     }),
     Underline,
     Link.configure({ openOnClick: false, autolink: true, HTMLAttributes: { target: '_blank', rel: 'noopener' } }),
-    Image.configure({ HTMLAttributes: { loading: 'lazy' } }),
+    CaptionedImage.configure({ HTMLAttributes: { loading: 'lazy' } }),
     Placeholder.configure({ placeholder: 'Start writing the article…' }),
   ],
   content: '',
