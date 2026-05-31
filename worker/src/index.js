@@ -27,7 +27,10 @@ function corsHeaders(env, origin) {
   // origin will see an ACAO that doesn't match its own origin and the browser
   // will block the response, which is the behavior we want. (Auth, not CORS,
   // is the real access control — see requireAdminToken on the read endpoints.)
-  const allow = allowList.includes(origin) ? origin : (allowList[0] || 'https://map.oftmw.com');
+  const ok = allowList.includes(origin)
+    || /^https:\/\/([a-z0-9-]+\.)*pages\.dev$/i.test(origin)   // Cloudflare Pages previews + deploys
+    || /^https:\/\/([a-z0-9-]+\.)*oftmw\.com$/i.test(origin);  // any oftmw.com subdomain
+  const allow = ok ? origin : (allowList[0] || 'https://map.oftmw.com');
   return {
     'Access-Control-Allow-Origin': allow,
     'Access-Control-Allow-Methods': 'GET,POST,PATCH,DELETE,OPTIONS',
@@ -227,7 +230,10 @@ async function handleEventIngest(req, env, origin) {
   // gates those. This blocks the easy "fetch from any other website" forgery.
   const reqOrigin = req.headers.get('Origin') || '';
   const allowList = (env.ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean);
-  if (reqOrigin && allowList.length && !allowList.includes(reqOrigin)) {
+  const originOk = !reqOrigin || allowList.includes(reqOrigin)
+    || /^https:\/\/([a-z0-9-]+\.)*pages\.dev$/i.test(reqOrigin)
+    || /^https:\/\/([a-z0-9-]+\.)*oftmw\.com$/i.test(reqOrigin);
+  if (allowList.length && !originOk) {
     return json({ error: 'forbidden origin' }, { status: 403 }, env, origin);
   }
 
