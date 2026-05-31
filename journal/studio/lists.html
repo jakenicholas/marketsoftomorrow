@@ -100,6 +100,7 @@ table.sheet{border-collapse:separate; border-spacing:0; width:max-content; min-w
 .mtile img{width:100%; height:100%; object-fit:cover; display:block} .mtile:hover{border-color:var(--green)}
 </style>
   <script src="/_shared/admin-auth.js"></script>
+  <script src="/_shared/media-browser.js" defer></script>
 </head>
 <body>
 
@@ -292,8 +293,12 @@ function addRow(){
   DOC.items.push(normalize({items:[seed]}).items[0]);setDirty(true);renderSheet();
   const w=$('.sheet-wrap');if(w)w.scrollTop=w.scrollHeight}
 
-// media picker
-async function openMedia(i,f){pickIdx=i;pickField=f||'image';$('#mediaModal').classList.add('show');$('#mediaSearch').value='';$('#mediaSearch').focus();loadMedia('')}
+// media picker — folder-navigable shared browser
+function openMedia(i,f){
+  pickIdx=i; pickField=f||'image';
+  window.TMWMediaBrowser.open({ onPick:(url)=>{ if(pickIdx>-1&&DOC.items[pickIdx]){ DOC.items[pickIdx][pickField]=url; setDirty(true); renderSheet(); } } });
+}
+async function openMediaLegacy(i,f){pickIdx=i;pickField=f||'image';$('#mediaModal').classList.add('show');$('#mediaSearch').value='';$('#mediaSearch').focus();loadMedia('')}
 let mt=null;
 $('#mediaSearch').addEventListener('input',e=>{clearTimeout(mt);mt=setTimeout(()=>loadMedia(e.target.value.trim()),250)});
 $('#mediaClose').onclick=()=>$('#mediaModal').classList.remove('show');

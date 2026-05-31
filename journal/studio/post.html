@@ -155,6 +155,7 @@ html,body{background:var(--ink); color:var(--text); font-family:var(--sans); lin
 #toast.error{border-color:var(--danger); color:#ffb3b3}
 </style>
   <script src="/_shared/admin-auth.js"></script>
+  <script src="/_shared/media-browser.js" defer></script>
 </head>
 <body>
 
@@ -564,31 +565,12 @@ const modalUpload = document.getElementById('modalUpload');
 document.getElementById('modalClose').addEventListener('click', closeModal);
 modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
 
-async function openMediaPicker(target) {
+function openMediaPicker(target) {
   CURRENT_PICKER_TARGET = target;
-  document.getElementById('modalTitle').textContent = target === 'cover' ? 'Pick a cover image' : 'Insert an image';
-  modal.classList.add('show');
-  modalGrid.innerHTML = '<div style="color:var(--mute);padding:20px;font-family:var(--mono);font-size:12px">Loading…</div>';
-  try {
-    const res = await fetch(WORKER_URL + '/admin/media?limit=200', {
-      headers: { 'Authorization': 'Bearer ' + getToken() }, cache: 'no-store',
-    });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json();
-    const items = (data.items || []).filter(m => (m.mime_type || '').startsWith('image/'));
-    modalGrid.innerHTML = items.map(m =>
-      `<div class="mtile" data-url="${escAttr(m.url)}" data-alt="${escAttr(m.alt_text || m.filename)}">
-         <img src="${escAttr(m.url)}" alt="" loading="lazy">
-       </div>`
-    ).join('') || '<div style="color:var(--mute);padding:20px;font-family:var(--mono);font-size:12px">No images uploaded yet — use the upload button above.</div>';
-    modalGrid.querySelectorAll('.mtile').forEach(t => t.addEventListener('click', () => {
-      pickMedia(t.dataset.url, t.dataset.alt);
-    }));
-  } catch (e) {
-    modalGrid.innerHTML = `<div style="color:var(--danger);padding:20px">Load failed: ${escHtml(e.message)}</div>`;
-  }
+  // Folder-navigable, searchable shared media browser.
+  window.TMWMediaBrowser.open({ onPick: (url, alt) => pickMedia(url, alt) });
 }
-function closeModal() { modal.classList.remove('show'); CURRENT_PICKER_TARGET = null; }
+function closeModal() { if (modal) modal.classList.remove('show'); CURRENT_PICKER_TARGET = null; }
 
 function pickMedia(url, alt) {
   if (CURRENT_PICKER_TARGET === 'cover') {
