@@ -422,7 +422,7 @@ function acardHtml(a){
   const cat = (a.categories && a.categories[0]) || '';
   const date = a.published_iso ? new Date(a.published_iso).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
   const media = img ? '<img src="'+esc(img)+'" alt="" loading="lazy" onerror="this.parentNode.innerHTML=\'<div class=ph></div>\'">' : '<div class="ph"></div>';
-  return '<a class="acard" href="/journal/post/?slug='+encodeURIComponent(a.slug||'')+'">'+
+  return '<a class="acard" href="/journal/post/'+encodeURIComponent(a.slug||'')+'/">'+
     '<div class="acard-media">'+media+'</div>'+
     '<div class="acard-body">'+
       (cat?'<div class="cat">'+esc(cat)+'</div>':'')+

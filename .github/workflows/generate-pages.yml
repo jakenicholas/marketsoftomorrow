@@ -102,6 +102,15 @@ jobs:
         run: python3 generate_firm_pages.py
         continue-on-error: true
 
+      # Pre-render one static HTML page per journal article
+      # (/journal/post/<slug>/index.html) with baked SEO <head> + body so
+      # social scrapers and non-JS crawlers see real content. Pulls bodies
+      # from the worker /posts API. NOT continue-on-error: a marker-mismatch
+      # (someone edited the post template) should fail loud, not silently
+      # ship blank article pages.
+      - name: Pre-render journal article pages
+        run: python3 generate_articles.py
+
       - name: Check for changes
         id: changes
         run: |
@@ -126,7 +135,7 @@ jobs:
           # in generate_pulse.py handles single-run renames, but only
           # if it can see the previous state, which means the snapshot
           # has to live in the repo.
-          git add projects/ architects/ developers/ sitemap.xml robots.txt pulse.json articles.json atlas.json intel.json projects-flat.json firms-flat.json .pulse-snapshot.json 2>/dev/null || true
+          git add projects/ architects/ developers/ journal/post/ sitemap.xml robots.txt pulse.json articles.json atlas.json intel.json projects-flat.json firms-flat.json .pulse-snapshot.json 2>/dev/null || true
           if git diff --staged --quiet; then
             echo "changed=false" >> $GITHUB_OUTPUT
             echo "No changes detected."

@@ -1659,7 +1659,7 @@ function d1PostToFeedShape(p) {
   return {
     title:      p.title,
     slug:       p.slug,
-    link:       '/journal/post/?slug=' + encodeURIComponent(p.slug),
+    link:       '/journal/post/' + encodeURIComponent(p.slug) + '/',
     summary:    p.excerpt || '',
     image:      p.cover_image || '',
     pubDate:    p.published_iso || (p.published_at ? new Date(p.published_at * 1000).toUTCString() : ''),
@@ -1914,7 +1914,7 @@ function renderNews(items) {
     const loc = (it.categories || [])[0] || '';
     const date = it.pubDate ? formatDate(new Date(it.pubDate)) : '';
     // In-repo article page rather than bouncing back to Wix.
-    const href = it.slug ? ('/journal/post/?slug=' + encodeURIComponent(it.slug)) : it.link;
+    const href = it.slug ? ('/journal/post/' + encodeURIComponent(it.slug) + '/') : it.link;
     return `<article class="card">
       <a href="${escapeAttr(href)}"><div class="card-img">
         ${loc ? `<span class="card-loc">${escapeHtml(loc)}</span>` : ''}

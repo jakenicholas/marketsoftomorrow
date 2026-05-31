@@ -2734,6 +2734,29 @@ def write_sitemap_and_robots(items):
             'changefreq': 'weekly',
         })
 
+    # ── Journal: home + rank pages + search + every pre-rendered article ──
+    # Single sitemap (this file is the one submitted to Search Console), so the
+    # journal lives here rather than in a second sitemap. Article slugs come
+    # from the worker; best-effort so a worker hiccup never breaks the map build.
+    urls.append({'loc': SITE_URL + '/journal/', 'priority': '0.9', 'changefreq': 'daily'})
+    for p in ('golf', 'restaurants', 'hotels'):
+        urls.append({'loc': f"{SITE_URL}/journal/{p}/", 'priority': '0.8', 'changefreq': 'weekly'})
+    urls.append({'loc': SITE_URL + '/journal/search/', 'priority': '0.4', 'changefreq': 'monthly'})
+    try:
+        import subprocess, json as _json
+        raw = subprocess.check_output(
+            ["curl", "-s", "https://tmw.jake-ab7.workers.dev/posts?limit=1500&status=published"],
+            timeout=90)
+        posts = _json.loads(raw).get("items", [])
+        for it in posts:
+            s = it.get("slug")
+            if not s:
+                continue
+            urls.append({'loc': f"{SITE_URL}/journal/post/{s}/", 'priority': '0.7', 'changefreq': 'monthly'})
+        print(f"   Sitemap: +{len(posts)} journal articles")
+    except Exception as e:
+        print(f"   Sitemap: journal articles skipped ({e})")
+
     sitemap_xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
     sitemap_xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
     for u in urls:
