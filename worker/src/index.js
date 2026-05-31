@@ -861,6 +861,29 @@ function decodeXml(s) {
 // decommissioned. The article page reads from this table.
 // ---------------------------------------------------------------------------
 
+// GET /post-categories — the category master for the studio multi-select.
+// Union of the Wix blog taxonomy + every category already used on a post, so
+// "add new category" (saved on a post) shows up here on the next load.
+async function handlePostCategories(env, origin) {
+  const set = new Set();
+  try {
+    const m = await fetchWixCategoryMap(env);
+    for (const v of Object.values(m)) if (v) set.add(v);
+  } catch (e) {}
+  try {
+    const rows = await env.DB.prepare(
+      "SELECT DISTINCT categories FROM posts WHERE categories IS NOT NULL AND categories != '' AND categories != '[]' LIMIT 3000"
+    ).all();
+    for (const r of (rows.results || [])) for (const c of safeJsonArray(r.categories)) if (c) set.add(c);
+    const mc = await env.DB.prepare(
+      "SELECT DISTINCT main_category FROM posts WHERE main_category IS NOT NULL AND main_category != ''"
+    ).all();
+    for (const r of (mc.results || [])) if (r.main_category) set.add(r.main_category);
+  } catch (e) {}
+  const categories = [...set].sort((a, b) => a.localeCompare(b));
+  return json({ categories }, { headers: { 'Cache-Control': 'public, max-age=300, s-maxage=300' } }, env, origin);
+}
+
 async function handlePostsList(env, origin, url) {
   if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
   // Cap at 1500 — enough to feed the journal home grid the full archive in one
@@ -887,7 +910,7 @@ async function handlePostsList(env, origin, url) {
   const total = await env.DB.prepare(`SELECT COUNT(*) AS c FROM posts WHERE ${whereSql}`).bind(...params).first();
   const rows  = await env.DB.prepare(`
     SELECT id, slug, title, excerpt, cover_image, cover_image_alt, categories, tags,
-           author_name, status, published_at, reading_time_min, wix_url, featured
+           author_name, status, published_at, reading_time_min, wix_url, featured, main_category
     FROM posts WHERE ${whereSql}
     ORDER BY COALESCE(published_at, updated_at) DESC
     LIMIT ${limit} OFFSET ${offset}
@@ -969,7 +992,11 @@ function deriveCategories(title, excerpt) {
 function rowToPostSummary(r) {
   let categories = safeJsonArray(r.categories);
   if (!categories.length) categories = deriveCategories(r.title, r.excerpt);
+  // Displayed gold label: the post's chosen main_category, else the most
+  // specific of its categories.
+  const main_category = r.main_category || pickMainCategory(categories) || null;
   return {
+    main_category,
     id: r.id,
     slug: r.slug,
     title: r.title,
@@ -1017,14 +1044,43 @@ function checkAdminAuth(env, origin) {
 // page at /journal/studio/sync.html drives this in a loop until done.
 // ---------------------------------------------------------------------------
 
+// Wix Blog categories are referenced by id on each post (categoryIds). Fetch
+// the id→label map once so the sync can resolve real category names.
+async function fetchWixCategoryMap(env) {
+  const map = {};
+  try {
+    let offset = 0;
+    for (let guard = 0; guard < 20; guard++) {
+      const res = await fetch('https://www.wixapis.com/blog/v3/categories?paging.limit=100&paging.offset=' + offset, {
+        headers: {
+          'Authorization': env.WIX_API_KEY,
+          'wix-site-id':   env.WIX_SITE_ID,
+          ...(env.WIX_ACCOUNT_ID ? { 'wix-account-id': env.WIX_ACCOUNT_ID } : {}),
+        },
+      });
+      if (!res.ok) break;
+      const d = await res.json();
+      const cats = d.categories || [];
+      for (const c of cats) if (c && c.id) map[c.id] = c.label || c.title || c.name || '';
+      if (cats.length < 100) break;
+      offset += cats.length;
+    }
+  } catch (e) {}
+  return map;
+}
+
+// The displayed "main category" is the most specific one — i.e. the first that
+// is NOT a broad "… of Tomorrow" filter tag. Falls back to the first category.
+function pickMainCategory(cats) {
+  if (!cats || !cats.length) return null;
+  // "… of Tomorrow" tags are filter-only — never the displayed main category.
+  return cats.find(c => !/of tomorrow$/i.test(String(c).trim())) || null;
+}
+
 async function handleWixSync(req, env, origin, url) {
   if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
-  if (!env.ADMIN_TOKEN) return json({ error: 'ADMIN_TOKEN secret not set' }, { status: 500 }, env, origin);
-  const auth = req.headers.get('Authorization') || '';
-  const token = auth.startsWith('Bearer ') ? auth.slice(7).trim() : '';
-  if (!token || !constantTimeEqual(token, env.ADMIN_TOKEN)) {
-    return json({ error: 'unauthorized' }, { status: 401 }, env, origin);
-  }
+  const denied = await requireAdminToken(req, env, origin);   // accepts GitHub session OR ADMIN_TOKEN
+  if (denied) return denied;
   if (!env.WIX_API_KEY || !env.WIX_SITE_ID) {
     return json({ error: 'WIX_API_KEY and WIX_SITE_ID secrets must be set' }, { status: 500 }, env, origin);
   }
@@ -1062,6 +1118,7 @@ async function handleWixSync(req, env, origin, url) {
   const wixData = await wixRes.json();
   const wixPosts = wixData.posts || [];
   const total    = wixData.metaData && typeof wixData.metaData.total === 'number' ? wixData.metaData.total : null;
+  const catMap   = await fetchWixCategoryMap(env);   // id → label, for resolving post categoryIds
 
   // Author lookup helper — Wix returns memberId only. Cache resolves in a Map.
   const authorCache = new Map();
@@ -1111,9 +1168,12 @@ async function handleWixSync(req, env, origin, url) {
       if (wp.memberId) authorName = await resolveAuthor(wp.memberId);
       if (!authorName) authorName = 'Markets of Tomorrow';
 
-      const cats = Array.isArray(wp.categoryIds) ? [] : []; // category lookup is a separate API; defer to v2
-      const tags = Array.isArray(wp.tagIds) ? [] : [];      // ditto
-      // For v1, we also pass through Wix's category labels if present in the URL/seo data
+      // Resolve Wix categoryIds → real labels via the category map.
+      const cats = Array.isArray(wp.categoryIds)
+        ? wp.categoryIds.map(id => catMap[id]).filter(Boolean)
+        : [];
+      const mainCategory = pickMainCategory(cats);
+      const tags = [];
       if (Array.isArray(wp.tags)) for (const t of wp.tags) if (t.label) tags.push(t.label);
 
       const publishedAt = wp.firstPublishedDate ? Math.floor(new Date(wp.firstPublishedDate).getTime() / 1000) : null;
@@ -1134,6 +1194,7 @@ async function handleWixSync(req, env, origin, url) {
         cover_image:     coverImage,
         cover_image_alt: coverAlt,
         categories:      JSON.stringify(cats),
+        main_category:   mainCategory,
         tags:            JSON.stringify(tags),
         author_name:     authorName,
         author_id:       wp.memberId || null,
@@ -1158,14 +1219,14 @@ async function handleWixSync(req, env, origin, url) {
             cover_image = ?5, cover_image_alt = ?6, categories = ?7, tags = ?8,
             author_name = ?9, author_id = ?10, status = ?11, published_at = ?12,
             reading_time_min = ?13, seo_title = ?14, seo_description = ?15,
-            wix_url = ?16, body_source = ?17, updated_at = ?18
-          WHERE wix_id = ?19
+            wix_url = ?16, body_source = ?17, updated_at = ?18, main_category = ?19
+          WHERE wix_id = ?20
         `).bind(
           row.slug, row.title, row.excerpt, row.body_html,
           row.cover_image, row.cover_image_alt, row.categories, row.tags,
           row.author_name, row.author_id, row.status, row.published_at,
           row.reading_time_min, row.seo_title, row.seo_description,
-          row.wix_url, row.body_source, row.updated_at, wp.id,
+          row.wix_url, row.body_source, row.updated_at, row.main_category, wp.id,
         ).run();
         updated++;
       } else {
@@ -1174,14 +1235,15 @@ async function handleWixSync(req, env, origin, url) {
             id, slug, title, excerpt, body_html, cover_image, cover_image_alt,
             categories, tags, author_name, author_id, status, published_at,
             reading_time_min, seo_title, seo_description, wix_id, wix_url,
-            body_source, created_at, updated_at
-          ) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?16,?17,?18,?19,?20,?21)
+            body_source, created_at, updated_at, main_category
+          ) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?16,?17,?18,?19,?20,?21,?22)
         `).bind(
           row.id, row.slug, row.title, row.excerpt, row.body_html,
           row.cover_image, row.cover_image_alt, row.categories, row.tags,
           row.author_name, row.author_id, row.status, row.published_at,
           row.reading_time_min, row.seo_title, row.seo_description,
           row.wix_id, row.wix_url, row.body_source, row.created_at, row.updated_at,
+          row.main_category,
         ).run();
         inserted++;
       }
@@ -1786,6 +1848,7 @@ async function handlePostsUpdate(req, env, origin, id) {
   if ('categories' in body) patch.categories = JSON.stringify(asStringArray(body.categories));
   if ('tags'       in body) patch.tags       = JSON.stringify(asStringArray(body.tags));
   if ('featured'   in body) patch.featured   = body.featured ? 1 : 0;
+  if ('main_category' in body) patch.main_category = body.main_category ? String(body.main_category) : null;
   if ('slug'       in body && body.slug && body.slug !== existing.slug) {
     patch.slug = await ensureUniqueSlug(env, slugify(body.slug), id);
   }
@@ -2966,6 +3029,9 @@ export default {
       // /posts — D1-backed canonical posts table (post-migration source).
       if (request.method === 'GET' && url.pathname === '/posts') {
         return await handlePostsList(env, origin, url);
+      }
+      if (request.method === 'GET' && url.pathname === '/post-categories') {
+        return await handlePostCategories(env, origin);
       }
       {
         const m = url.pathname.match(/^\/posts\/by-slug\/([^/]+)\/?$/);

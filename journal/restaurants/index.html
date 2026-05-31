@@ -2009,6 +2009,7 @@ function d1PostToFeedShape(p) {
     pubDate:    p.published_iso || (p.published_at ? new Date(p.published_at * 1000).toUTCString() : ''),
     author:     p.author_name || '',
     categories: p.categories || [],
+    main_category: p.main_category || '',
   };
 }
 
@@ -2255,7 +2256,7 @@ function renderNews(items) {
     return;
   }
   wrap.innerHTML = items.map(it => {
-    const loc = (it.categories || []).find(c => !/markets of tomorrow|of tomorrow/i.test(c)) || '';
+    const loc = it.main_category || (it.categories || []).find(c => !/markets of tomorrow|of tomorrow/i.test(c)) || '';
     const date = it.pubDate ? formatDate(new Date(it.pubDate)) : '';
     // In-repo article page rather than bouncing back to Wix.
     const href = it.slug ? ('/journal/post/' + encodeURIComponent(it.slug) + '/') : it.link;

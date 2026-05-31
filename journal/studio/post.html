@@ -108,6 +108,7 @@ html,body{background:var(--ink); color:var(--text); font-family:var(--sans); lin
 
 .chips{display:flex; flex-wrap:wrap; gap:5px; margin-top:8px}
 .chip{display:inline-flex; align-items:center; gap:6px; padding:5px 10px; background:rgba(31,223,103,.10); border:1px solid rgba(31,223,103,.32); color:var(--green-soft); border-radius:99px; font-family:var(--mono); font-size:11px; letter-spacing:.04em}
+.chip.main{background:rgba(230,197,116,.12); border-color:rgba(230,197,116,.5); color:var(--gold-soft); font-weight:600; box-shadow:0 0 12px rgba(230,197,116,.18)}
 .chip button{background:none; border:0; color:inherit; cursor:pointer; padding:0; font-size:14px; line-height:1; opacity:.6}
 .chip button:hover{opacity:1}
 
@@ -209,13 +210,23 @@ html,body{background:var(--ink); color:var(--text); font-family:var(--sans); lin
 
     <div class="card">
       <h4>Author</h4>
-      <input type="text" id="authorInput" placeholder="Markets of Tomorrow">
+      <select id="authorSelect">
+        <option value="Markets of Tomorrow">Markets of Tomorrow</option>
+        <option value="Jake Nicholas">Jake Nicholas</option>
+        <option value="Kait">Kait</option>
+      </select>
     </div>
 
     <div class="card">
       <h4>Categories</h4>
-      <input type="text" id="categoriesInput" placeholder="e.g. Golf, Florida, Hotels (comma-separated)">
-      <div class="chips" id="categoriesChips"></div>
+      <select id="catSelect"><option value="">+ Add a category…</option></select>
+      <div class="addcat" style="display:flex; gap:6px; margin-top:8px">
+        <input type="text" id="newCatInput" placeholder="Or type a new category" style="flex:1">
+        <button id="addCatBtn" type="button">Add</button>
+      </div>
+      <div class="chips" id="categoriesChips" style="margin-top:10px"></div>
+      <label class="mainlabel" style="display:block; margin:14px 0 6px; font-size:12px; color:var(--gold-soft); letter-spacing:.04em">★ Main category <span style="color:var(--mute-2)">(shown on the site)</span></label>
+      <select id="mainCatSelect"><option value="">— none —</option></select>
     </div>
 
     <div class="card">
@@ -363,9 +374,11 @@ const slugEl    = document.getElementById('slugInput');
 const excerptEl = document.getElementById('excerptInput');
 const coverEl   = document.getElementById('coverInput');
 const coverPreview = document.getElementById('coverPreview');
-const authorEl  = document.getElementById('authorInput');
-const catsEl    = document.getElementById('categoriesInput');
+const authorEl  = document.getElementById('authorSelect');
 const catChips  = document.getElementById('categoriesChips');
+const catSelect = document.getElementById('catSelect');
+const mainCatSelect = document.getElementById('mainCatSelect');
+const newCatInput = document.getElementById('newCatInput');
 const seoTitleEl= document.getElementById('seoTitleInput');
 const seoDescEl = document.getElementById('seoDescInput');
 
@@ -377,7 +390,8 @@ titleEl.addEventListener('input', () => {
   }
 });
 slugEl.addEventListener('input', () => { slugManuallyEdited = true; markDirty(); });
-[excerptEl, coverEl, authorEl, seoTitleEl, seoDescEl].forEach(el => el.addEventListener('input', markDirty));
+[excerptEl, coverEl, seoTitleEl, seoDescEl].forEach(el => el.addEventListener('input', markDirty));
+authorEl.addEventListener('change', markDirty);
 
 coverEl.addEventListener('input', () => updateCoverPreview());
 function updateCoverPreview() {
@@ -390,24 +404,47 @@ coverPreview.addEventListener('click', () => openMediaPicker('cover'));
 document.getElementById('coverClearBtn').addEventListener('click', () => { coverEl.value = ''; updateCoverPreview(); markDirty(); });
 
 let catsList = [];
-catsEl.addEventListener('keydown', e => {
-  if (e.key === 'Enter' || e.key === ',') {
-    e.preventDefault();
-    const v = catsEl.value.trim().replace(/,$/,'').trim();
-    if (v && !catsList.includes(v)) { catsList.push(v); renderCatChips(); markDirty(); }
-    catsEl.value = '';
-  }
-});
-catsEl.addEventListener('blur', () => {
-  const v = catsEl.value.trim();
-  if (v) { v.split(',').forEach(x => { const t = x.trim(); if (t && !catsList.includes(t)) catsList.push(t); }); catsEl.value = ''; renderCatChips(); markDirty(); }
-});
+let mainCat = '';
+let ALL_CATEGORIES = [];
+
+async function loadCategoryOptions() {
+  try {
+    const r = await fetch(WORKER_URL + '/post-categories', { cache: 'no-store' });
+    if (r.ok) { const d = await r.json(); ALL_CATEGORIES = d.categories || []; }
+  } catch (e) {}
+  populateCatSelect();
+}
+function populateCatSelect() {
+  const opts = ['<option value="">+ Add a category…</option>']
+    .concat(ALL_CATEGORIES.filter(c => !catsList.includes(c)).map(c => `<option value="${escAttr(c)}">${escHtml(c)}</option>`));
+  catSelect.innerHTML = opts.join('');
+}
+function defaultMain() { return catsList.find(c => !/of tomorrow$/i.test(c)) || catsList[0] || ''; }
+function addCat(v) {
+  v = (v || '').trim();
+  if (!v) return;
+  if (!catsList.includes(v)) { catsList.push(v); if (!ALL_CATEGORIES.includes(v)) ALL_CATEGORIES.push(v); }
+  if (!mainCat) mainCat = defaultMain();
+  renderCatChips(); populateCatSelect(); renderMainCatOptions(); markDirty();
+}
+catSelect.addEventListener('change', () => { if (catSelect.value) addCat(catSelect.value); catSelect.value = ''; });
+document.getElementById('addCatBtn').addEventListener('click', () => { addCat(newCatInput.value); newCatInput.value = ''; });
+newCatInput.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); addCat(newCatInput.value); newCatInput.value = ''; } });
+mainCatSelect.addEventListener('change', () => { mainCat = mainCatSelect.value; renderCatChips(); markDirty(); });
+
 function renderCatChips() {
-  catChips.innerHTML = catsList.map(c => `<span class="chip">${escHtml(c)}<button data-remove="${escAttr(c)}">×</button></span>`).join('');
+  catChips.innerHTML = catsList.map(c => `<span class="chip${c === mainCat ? ' main' : ''}">${c === mainCat ? '★ ' : ''}${escHtml(c)}<button data-remove="${escAttr(c)}">×</button></span>`).join('');
   catChips.querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
-    catsList = catsList.filter(x => x !== b.dataset.remove); renderCatChips(); markDirty();
+    catsList = catsList.filter(x => x !== b.dataset.remove);
+    if (mainCat === b.dataset.remove) mainCat = defaultMain();
+    renderCatChips(); populateCatSelect(); renderMainCatOptions(); markDirty();
   }));
 }
+function renderMainCatOptions() {
+  mainCatSelect.innerHTML = ['<option value="">— none —</option>']
+    .concat(catsList.map(c => `<option value="${escAttr(c)}"${c === mainCat ? ' selected' : ''}>${escHtml(c)}</option>`)).join('');
+}
+loadCategoryOptions();
 
 // ─── Media picker ───────────────────────────────────────────────
 const modal = document.getElementById('mediaModal');
@@ -501,7 +538,10 @@ async function loadPost() {
     seoTitleEl.value  = POST.seo_title || '';
     seoDescEl.value   = POST.seo_description || '';
     catsList = POST.categories || [];
+    mainCat  = POST.main_category || defaultMain();
     renderCatChips();
+    renderMainCatOptions();
+    populateCatSelect();
     updateCoverPreview();
     editor.commands.setContent(POST.body_html || '');
     document.getElementById('statusChip').className = 'status-chip ' + (POST.status || 'draft');
@@ -525,6 +565,7 @@ function buildPayload() {
     cover_image_alt: '',
     author_name:     authorEl.value.trim() || 'Markets of Tomorrow',
     categories:      catsList,
+    main_category:   mainCat || null,
     seo_title:       seoTitleEl.value.trim() || null,
     seo_description: seoDescEl.value.trim() || null,
   };

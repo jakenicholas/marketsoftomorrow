@@ -1423,6 +1423,7 @@ function d1PostToFeedShape(p) {
     pubDate:    p.published_iso || (p.published_at ? new Date(p.published_at * 1000).toUTCString() : ''),
     author:     p.author_name || '',
     categories: p.categories || [],
+    main_category: p.main_category || '',
   };
 }
 
@@ -1690,7 +1691,7 @@ function renderGrid() {
 }
 
 function cardHtml(item) {
-  const loc = primaryCategory(item.categories);
+  const loc = item.main_category || primaryCategory(item.categories);
   const date = item.pubDate ? formatDate(item.pubDate) : '';
   // Read on the new in-repo article page rather than bouncing back to Wix.
   // Older posts that aren't in the RSS window fall back gracefully on the

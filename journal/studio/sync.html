@@ -97,29 +97,17 @@ body::before{content:""; position:fixed; inset:0; z-index:0; pointer-events:none
   <!-- LEFT: setup + config -->
   <aside>
     <div class="panel">
-      <h2>Setup</h2>
-      <p class="desc">Before running the sync, the worker needs three Wix secrets and one admin token. Set them once via wrangler, then come back here.</p>
+      <h2>Import from Wix</h2>
+      <p class="desc">Pulls the latest posts from the Wix blog (titles, body, cover, author, and categories) into the journal. Safe to re-run anytime — existing posts update in place, new ones are added.</p>
       <ol class="setup-list">
-        <li>Generate Wix API key in Studio →
-          <a href="https://manage.wix.com/account/api-keys" target="_blank" rel="noopener">manage.wix.com/account/api-keys</a>
-          with scope <code>BLOG.READ-POSTS</code>.</li>
-        <li>From the worker repo:
-          <pre style="margin-top:6px; padding:10px; background:rgba(0,0,0,.4); border-radius:6px; font-size:11px; color:var(--cream)">wrangler secret put WIX_API_KEY
-wrangler secret put WIX_SITE_ID
-wrangler secret put WIX_ACCOUNT_ID  # if needed
-wrangler secret put ADMIN_TOKEN     # if not already set</pre></li>
-        <li><code>cd worker && wrangler deploy</code></li>
-        <li>Enter admin token below + click "Start sync".</li>
+        <li>Make sure you're logged in with GitHub (top-right).</li>
+        <li>Click <strong>Start sync</strong> below. Leave it running until it says “done”.</li>
       </ol>
     </div>
 
     <div class="panel" style="margin-top:18px">
       <h2>Config</h2>
-      <div class="field">
-        <label>Admin Token</label>
-        <input type="password" id="token" placeholder="Bearer token for the worker">
-        <span class="hint">Same token as ADMIN_TOKEN secret. Stored locally only.</span>
-      </div>
+      <input type="hidden" id="token">
       <div class="field">
         <label>Worker URL</label>
         <input type="text" id="workerUrl" value="https://tmw.jake-ab7.workers.dev">
@@ -157,7 +145,7 @@ wrangler secret put ADMIN_TOKEN     # if not already set</pre></li>
         <span id="progressPct">0%</span>
         <span id="progressEta">—</span>
       </div>
-      <div class="log" id="log"><span class="ts">Ready. Enter admin token and click <strong>Start sync</strong>.</span></div>
+      <div class="log" id="log"><span class="ts">Ready. Click <strong>Start sync</strong> to import the latest from Wix.</span></div>
     </div>
   </main>
 </div>
@@ -165,11 +153,10 @@ wrangler secret put ADMIN_TOKEN     # if not already set</pre></li>
 <script>
 const TOKEN_KEY = 'tmw-admin-token-v1';
 
-// Persist token + restore on load
+// Auth comes from the GitHub login session (admin-auth.js).
 const tokenInput = document.getElementById('token');
 const workerInput = document.getElementById('workerUrl');
-tokenInput.value = localStorage.getItem(TOKEN_KEY) || '';
-tokenInput.addEventListener('input', () => localStorage.setItem(TOKEN_KEY, tokenInput.value));
+tokenInput.value = ((window.TMWAuth && window.TMWAuth.token && window.TMWAuth.token()) || localStorage.getItem(TOKEN_KEY) || '').trim();
 
 const STATE = {
   running: false,
@@ -233,8 +220,8 @@ function formatDuration(ms) {
 
 async function runSync() {
   if (STATE.running) return;
-  const token = tokenInput.value.trim();
-  if (!token) { log('No admin token entered.', 'err'); return; }
+  const token = ((window.TMWAuth && window.TMWAuth.token && window.TMWAuth.token()) || tokenInput.value || '').trim();
+  if (!token) { log('Not signed in — log in with GitHub (top-right) first.', 'err'); return; }
   const workerUrl = workerInput.value.trim().replace(/\/$/, '');
   const batchSize = parseInt(document.getElementById('batchSize').value, 10) || 50;
   STATE.offset    = parseInt(document.getElementById('startOffset').value, 10) || 0;
