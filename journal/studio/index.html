@@ -74,6 +74,8 @@ html,body{background:var(--ink); color:var(--text); font-family:var(--sans); lin
 .row .icon-btn{width:30px; height:30px; border-radius:6px; border:1px solid var(--hair-2); background:transparent; color:var(--mute-2); display:flex; align-items:center; justify-content:center; cursor:pointer}
 .row .icon-btn:hover{color:var(--white); border-color:rgba(255,255,255,.3)}
 .row .icon-btn.danger:hover{color:var(--danger); border-color:var(--danger)}
+.row .icon-btn.star.on{color:#e6c574; border-color:rgba(230,197,116,.55); box-shadow:0 0 12px rgba(230,197,116,.35)}
+.row .icon-btn.star:hover{color:#e6c574; border-color:rgba(230,197,116,.55)}
 .row .icon-btn svg{width:13px; height:13px}
 
 .empty{padding:60px 22px; text-align:center; color:var(--mute); background:var(--panel); border:1px solid var(--hair); border-radius:12px}
@@ -261,6 +263,30 @@ function renderList() {
       loadPosts(true);
     } catch (e) { toast('Delete failed: ' + e.message, 'error'); }
   }));
+  document.querySelectorAll('[data-feature-id]').forEach(b => b.addEventListener('click', async e => {
+    e.preventDefault(); e.stopPropagation();
+    if (b.dataset.busy) return;
+    const id = b.dataset.featureId;
+    const next = b.dataset.featured === '1' ? 0 : 1;
+    b.dataset.busy = '1'; b.style.opacity = '.4';
+    try {
+      const res = await fetch(WORKER_URL + '/posts/' + encodeURIComponent(id), {
+        method: 'PATCH',
+        headers: { 'Authorization': 'Bearer ' + getToken(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ featured: next }),
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      b.dataset.featured = String(next);
+      b.classList.toggle('on', !!next);
+      b.title = next ? 'Featured — click to unfeature' : 'Mark as featured';
+      b.querySelector('svg')?.setAttribute('fill', next ? 'currentColor' : 'none');
+      // keep STATE in sync so re-renders (search/filter) reflect the change
+      const item = STATE.items.find(x => String(x.id) === String(id));
+      if (item) item.featured = next;
+      toast(next ? 'Marked as featured' : 'Removed from featured', 'success');
+    } catch (e) { toast('Update failed: ' + e.message, 'error'); }
+    finally { delete b.dataset.busy; b.style.opacity = ''; }
+  }));
 }
 
 function rowHtml(p) {
@@ -279,6 +305,9 @@ function rowHtml(p) {
     <div><span class="status ${p.status}">${escHtml(p.status)}</span></div>
     <div class="date">${escHtml(date)}</div>
     <div class="actions">
+      <button class="icon-btn star${p.featured ? ' on' : ''}" data-feature-id="${escAttr(p.id)}" data-featured="${p.featured ? 1 : 0}" title="${p.featured ? 'Featured — click to unfeature' : 'Mark as featured'}">
+        <svg viewBox="0 0 16 16" fill="${p.featured ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="1.3"><path d="M8 1.7l1.85 3.75 4.15.6-3 2.93.7 4.12L8 11.18 4.3 13.12l.7-4.12-3-2.93 4.15-.6L8 1.7z"/></svg>
+      </button>
       <a class="icon-btn" href="${escAttr(view)}" target="_blank" rel="noopener" title="View on site">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M1.5 8s2.5-4.5 6.5-4.5S14.5 8 14.5 8s-2.5 4.5-6.5 4.5S1.5 8 1.5 8z"/><circle cx="8" cy="8" r="2"/></svg>
       </a>

@@ -887,7 +887,7 @@ async function handlePostsList(env, origin, url) {
   const total = await env.DB.prepare(`SELECT COUNT(*) AS c FROM posts WHERE ${whereSql}`).bind(...params).first();
   const rows  = await env.DB.prepare(`
     SELECT id, slug, title, excerpt, cover_image, cover_image_alt, categories, tags,
-           author_name, status, published_at, reading_time_min, wix_url
+           author_name, status, published_at, reading_time_min, wix_url, featured
     FROM posts WHERE ${whereSql}
     ORDER BY COALESCE(published_at, updated_at) DESC
     LIMIT ${limit} OFFSET ${offset}
@@ -943,6 +943,7 @@ function rowToPostSummary(r) {
     published_iso: r.published_at ? new Date(r.published_at * 1000).toISOString() : null,
     reading_time_min: r.reading_time_min,
     wix_url: r.wix_url,
+    featured: r.featured ? 1 : 0,
   };
 }
 function rowToPostFull(r) {
@@ -1743,6 +1744,7 @@ async function handlePostsUpdate(req, env, origin, id) {
   }
   if ('categories' in body) patch.categories = JSON.stringify(asStringArray(body.categories));
   if ('tags'       in body) patch.tags       = JSON.stringify(asStringArray(body.tags));
+  if ('featured'   in body) patch.featured   = body.featured ? 1 : 0;
   if ('slug'       in body && body.slug && body.slug !== existing.slug) {
     patch.slug = await ensureUniqueSlug(env, slugify(body.slug), id);
   }
