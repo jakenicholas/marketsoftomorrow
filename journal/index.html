@@ -521,6 +521,14 @@ section.grid-section{padding:60px 0 90px; position:relative}
 .intel-head .sub{font-size:16px; line-height:1.6; color:var(--mute-2); margin-top:18px; max-width:56ch; font-weight:300}
 .intel-grid{display:grid; grid-template-columns:1.05fr .95fr; gap:32px; align-items:start}
 @media(max-width:980px){.intel-grid{grid-template-columns:1fr}}
+.intel-grid-stack{display:block}
+.intel-grid-stack > .tmw-lb{margin-bottom:26px}
+.intel-grid-stack > #intel-map{margin-top:26px}
+.intel-seemap{display:flex; width:fit-content; margin:0 auto; align-items:center; gap:12px; padding:14px 28px; background:rgba(31,223,103,.10); border:1px solid rgba(31,223,103,.32); border-radius:999px; color:var(--green); font-family:var(--mono); font-size:12px; letter-spacing:.16em; text-transform:uppercase; font-weight:700; transition:background .2s, transform .2s}
+.intel-seemap:hover{background:rgba(31,223,103,.18); transform:translateY(2px)}
+.intel-seemap svg{width:16px; height:16px; animation:seemapBob 1.8s ease-in-out infinite}
+@media (prefers-reduced-motion: reduce){.intel-seemap svg{animation:none}}
+@keyframes seemapBob{0%,100%{transform:translateY(0)}50%{transform:translateY(3px)}}
 .intel-board{background:var(--panel); border:1px solid var(--hair); border-radius:16px; overflow:hidden; min-height:420px}
 .intel-board iframe{width:100%; height:480px; border:0; display:block; background:transparent}
 .intel-stats{display:flex; flex-direction:column; gap:14px}
@@ -776,19 +784,225 @@ footer .ft-logo .tmw-wordmark{width:118px}
       <h2>Happening, <em>by city, by firm, by pin.</em></h2>
       <p class="sub">Hundreds of tracked projects across 40+ markets. Below: the cities and firms moving the most right now, and the live map underneath them.</p>
     </header>
-    <div class="intel-grid">
-      <div class="intel-board">
-        <iframe src="/leaderboard-widget.html" title="Markets of Tomorrow Leaderboard" loading="lazy"></iframe>
+    <div class="intel-grid intel-grid-stack">
+
+      <!-- ===== Leaderboard (inline, no iframe) ===== -->
+      <style>
+        .tmw-lb{--tmw-bg:#0a0a0a;--tmw-surface:#1E1E1E;--tmw-line:rgba(255,255,255,0.08);--tmw-text:#fff;--tmw-text-mute:rgba(255,255,255,0.55);--tmw-text-dim:rgba(255,255,255,0.4);--tmw-green:#1FDF67;--tmw-warn:#FFD300;font-family:-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",system-ui,sans-serif;color:var(--tmw-text);background:var(--tmw-surface);border:1px solid var(--tmw-line);border-radius:16px;overflow:hidden;width:100%;display:flex;flex-direction:column;-webkit-font-smoothing:antialiased}
+        .tmw-lb *{box-sizing:border-box}
+        .tmw-lb-head{display:flex;align-items:baseline;justify-content:space-between;padding:20px 24px 14px;gap:16px;flex-wrap:wrap}
+        .tmw-lb-head-title{font-size:18px;font-weight:800;letter-spacing:-0.01em;line-height:1.2}
+        .tmw-lb-head-meta{font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--tmw-text-dim)}
+        .tmw-lb-head-meta strong{color:var(--tmw-text);font-weight:800}
+        .tmw-lb-tabs{display:flex;border-bottom:1px solid var(--tmw-line);padding:0 24px}
+        .tmw-lb-tab{appearance:none;-webkit-appearance:none;padding:12px 0;margin-right:24px;font-family:inherit;font-size:13px;font-weight:700;color:var(--tmw-text-mute);background:transparent;border:none;border-bottom:2px solid transparent;cursor:pointer;transition:color .15s ease,border-color .15s ease}
+        .tmw-lb-tab:hover{color:var(--tmw-text)}
+        .tmw-lb-tab.is-active{color:var(--tmw-text);border-bottom-color:var(--tmw-green)}
+        .tmw-lb-list{list-style:none;margin:0;padding:0}
+        .tmw-lb-row{display:grid;grid-template-columns:36px 1fr auto auto;gap:16px;align-items:center;padding:14px 24px;min-height:58px;border-bottom:1px solid var(--tmw-line);text-decoration:none;color:inherit;transition:background .12s ease}
+        .tmw-lb-row:last-child{border-bottom:none}
+        .tmw-lb-row.is-clickable{cursor:pointer}
+        .tmw-lb-row.is-clickable:hover{background:rgba(255,255,255,0.025)}
+        .tmw-lb-row a{display:contents;color:inherit;text-decoration:none}
+        .tmw-lb-rank{font-size:13px;font-weight:700;color:var(--tmw-text-dim);font-variant-numeric:tabular-nums}
+        .tmw-lb-row.is-top .tmw-lb-rank{color:var(--tmw-warn)}
+        .tmw-lb-name{font-size:15px;font-weight:600;color:var(--tmw-text);letter-spacing:-0.005em;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+        .tmw-lb-delta{font-size:11px;font-weight:800;font-variant-numeric:tabular-nums;text-align:right;min-width:58px;color:var(--tmw-text-dim);letter-spacing:0.02em;display:inline-flex;align-items:center;justify-content:flex-end;gap:4px}
+        .tmw-lb-delta.is-up{color:var(--tmw-green)}
+        .tmw-lb-delta svg{width:9px;height:9px;stroke:currentColor;fill:none;stroke-width:2.6}
+        .tmw-lb-count{font-size:16px;font-weight:800;color:var(--tmw-text);font-variant-numeric:tabular-nums;text-align:right;min-width:36px;line-height:1}
+        .tmw-lb-count small{display:block;font-size:9px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--tmw-text-dim);margin-top:4px}
+        .tmw-lb-loading{padding:80px 24px;text-align:center;color:var(--tmw-text-dim);font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase}
+        .tmw-lb-foot{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 24px;border-top:1px solid var(--tmw-line);font-size:11px;color:var(--tmw-text-mute);flex-wrap:wrap}
+        .tmw-lb-foot a{color:var(--tmw-green);text-decoration:none;font-weight:700;display:inline-flex;align-items:center;gap:8px;text-transform:uppercase;letter-spacing:0.06em;font-size:12px}
+        .tmw-lb-foot a:hover{text-decoration:underline}
+        .tmw-lb-foot svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2.2}
+        @media (max-width:700px){.tmw-lb{border-radius:12px}.tmw-lb-head{padding:16px 18px 12px}.tmw-lb-tabs{padding:0 18px}.tmw-lb-row{padding:12px 18px;gap:12px}.tmw-lb-foot{padding:12px 18px}.tmw-lb-name{font-size:14px}.tmw-lb-count{font-size:15px}}
+      </style>
+      <div class="tmw-lb" id="tmwLeaderboard">
+        <div class="tmw-lb-head">
+          <div class="tmw-lb-head-title">Markets of Tomorrow Leaderboard</div>
+          <div class="tmw-lb-head-meta" id="tmwLbCount">Loading&hellip;</div>
+        </div>
+        <div class="tmw-lb-tabs" role="tablist">
+          <button class="tmw-lb-tab is-active" data-tab="cities" role="tab" aria-selected="true">Cities</button>
+          <button class="tmw-lb-tab" data-tab="developers" role="tab" aria-selected="false">Developers</button>
+          <button class="tmw-lb-tab" data-tab="architects" role="tab" aria-selected="false">Architects</button>
+        </div>
+        <ul class="tmw-lb-list" id="tmwLbList">
+          <li class="tmw-lb-loading">Loading projects&hellip;</li>
+        </ul>
+        <div class="tmw-lb-foot">
+          <span id="tmwLbFootLabel">Total tracked &middot; pipeline = announced or breaking ground</span>
+          <a href="https://map.oftmw.com" target="_blank" rel="noopener">Open the map
+            <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </a>
+        </div>
       </div>
-      <div class="intel-stats">
-        <div class="intel-stat"><div><div class="iv" id="intel-projects">387</div><div class="il">Projects tracked</div></div><div class="ix"><span class="up" id="intel-projects-up">+54</span><br>this month</div></div>
-        <div class="intel-stat"><div><div class="iv" id="intel-readers">8.1M</div><div class="il">Monthly readers across the network</div></div><div class="ix"><span class="up">+12%</span><br>YoY</div></div>
-        <div class="intel-stat"><div><div class="iv" id="intel-members">2,318</div><div class="il">Map of Tomorrow members</div></div><div class="ix"><span class="up" id="intel-members-up">+186</span><br>last 30d</div></div>
-        <div class="intel-stat"><div><div class="iv" id="intel-pulse">31</div><div class="il">Pulse events this week</div></div><div class="ix"><span class="up">live</span><br>auto-updates</div></div>
-        <a class="intel-cta" href="/analytics.html">View the full intelligence dashboard
-          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
-        </a>
+      <script>
+      (function () {
+        var DATA_URL = 'https://map.oftmw.com/projects-flat.json';
+        var MAP_URL  = 'https://map.oftmw.com';
+        var TOP_N = 5;
+        var PIPELINE_STATUSES = ['announced', 'breaking ground'];
+        var FIRM_PRESERVE = ['Skidmore, Owings & Merrill', 'Robert A.M. Stern Architects'];
+        var UP_ARROW_SVG = '<svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="5 12 12 5 19 12"/></svg>';
+        var root = document.getElementById('tmwLeaderboard');
+        if (!root) return;
+        var listEl  = root.querySelector('#tmwLbList');
+        var countEl = root.querySelector('#tmwLbCount');
+        var tabs    = root.querySelectorAll('.tmw-lb-tab');
+        var state = { tab: 'cities', projects: null };
+        function isPipeline(p){ return PIPELINE_STATUSES.indexOf(String(p.Delivery || '').trim().toLowerCase()) !== -1; }
+        function splitFirms(value){
+          if (!value) return [];
+          var v = String(value); var placeholders = [];
+          FIRM_PRESERVE.forEach(function (name, i) {
+            var token = '__PRESERVE' + i + '__';
+            var re = new RegExp(name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+            if (re.test(v)) { placeholders.push({ token: token, name: name }); v = v.replace(re, token); }
+          });
+          return v.split(/\s*[,/]\s*/).map(function (s) {
+            var out = s.trim();
+            placeholders.forEach(function (p) { if (out === p.token) out = p.name; });
+            return out;
+          }).filter(Boolean);
+        }
+        function tally(projects, type){
+          var counts = {}; var pipeline = {};
+          function bump(bucket, key){ bucket[key] = (bucket[key] || 0) + 1; }
+          projects.forEach(function (p) {
+            var inPipe = isPipeline(p);
+            if (type === 'cities') {
+              var city = (p.City || '').trim(); if (!city) return;
+              bump(counts, city); if (inPipe) bump(pipeline, city);
+            } else if (type === 'developers') {
+              splitFirms(p.Developer).forEach(function (name) {
+                if (name.toLowerCase() === 'various') return;
+                bump(counts, name); if (inPipe) bump(pipeline, name);
+              });
+            } else if (type === 'architects') {
+              splitFirms(p.Architect).forEach(function (name) { bump(counts, name); if (inPipe) bump(pipeline, name); });
+            }
+          });
+          return Object.keys(counts).map(function (k) { return { name: k, count: counts[k], delta: pipeline[k] || 0 }; })
+            .sort(function (a, b) { return b.count - a.count || b.delta - a.delta || a.name.localeCompare(b.name); })
+            .slice(0, TOP_N);
+        }
+        function escapeHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+        function cityHref(city){ return MAP_URL + '/?city=' + encodeURIComponent(city); }
+        function render(){
+          if (!state.projects) return;
+          var rows = tally(state.projects, state.tab);
+          var clickable = state.tab === 'cities';
+          if (!rows.length) { listEl.innerHTML = '<li class="tmw-lb-loading">No data yet</li>'; return; }
+          listEl.innerHTML = rows.map(function (row, i) {
+            var rank = String(i + 1).padStart(2, '0');
+            var topClass = i < 3 ? ' is-top' : '';
+            var clickClass = clickable ? ' is-clickable' : '';
+            var deltaClass = row.delta > 0 ? 'is-up' : '';
+            var deltaInner = row.delta > 0 ? ('+' + row.delta + ' ' + UP_ARROW_SVG) : '&mdash;';
+            var inner =
+              '<span class="tmw-lb-rank">' + rank + '</span>' +
+              '<span class="tmw-lb-name">' + escapeHtml(row.name) + '</span>' +
+              '<span class="tmw-lb-delta ' + deltaClass + '">' + deltaInner + '</span>' +
+              '<span class="tmw-lb-count">' + row.count + '<small>projects</small></span>';
+            if (clickable) { inner = '<a href="' + cityHref(row.name) + '" target="_blank" rel="noopener">' + inner + '</a>'; }
+            return '<li class="tmw-lb-row' + topClass + clickClass + '">' + inner + '</li>';
+          }).join('');
+        }
+        tabs.forEach(function (t) {
+          t.addEventListener('click', function () {
+            tabs.forEach(function (x) { x.classList.remove('is-active'); x.setAttribute('aria-selected', 'false'); });
+            t.classList.add('is-active'); t.setAttribute('aria-selected', 'true');
+            state.tab = t.getAttribute('data-tab'); render();
+          });
+        });
+        fetch(DATA_URL, { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (data) {
+          state.projects = Array.isArray(data) ? data : [];
+          countEl.innerHTML = 'Tracking <strong>' + state.projects.length + '</strong> projects';
+          render();
+        }).catch(function () {
+          listEl.innerHTML = '<li class="tmw-lb-loading">Could not load data. Try again later.</li>';
+          countEl.textContent = '';
+        });
+      })();
+      </script>
+
+      <!-- ===== Jump button ===== -->
+      <a class="intel-seemap" href="#intel-map">Now see them on the map
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="4" x2="12" y2="20"/><polyline points="5 13 12 20 19 13"/></svg>
+      </a>
+
+      <!-- ===== Live map command center (inline) ===== -->
+      <div id="intel-map">
+        <style>
+          .mot-cc{--mot-green:#1FDF67;--mot-green-soft:rgba(31,223,103,0.08);--mot-bg:#1E1E1E;--mot-bg-2:#1E1E1E;--mot-border:rgba(255,255,255,0.06);--mot-border-2:rgba(255,255,255,0.1);--mot-text:#fff;--mot-text-dim:rgba(255,255,255,0.55);--mot-text-dimmer:rgba(255,255,255,0.35);--mot-mono:'JetBrains Mono','SF Mono',Menlo,Consolas,monospace;--mot-sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-family:var(--mot-sans);color:var(--mot-text);background:var(--mot-bg);border:1px solid var(--mot-border);border-radius:14px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.18);width:100%;display:flex;flex-direction:column}
+          .mot-cc-live{display:inline-flex;align-items:center;gap:8px;background:var(--mot-green-soft);border:1px solid rgba(31,223,103,0.2);padding:4px 10px;border-radius:4px;font-family:var(--mot-mono);font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mot-green);white-space:nowrap;align-self:flex-start}
+          .mot-cc-live-dot{width:6px;height:6px;border-radius:50%;background:var(--mot-green);box-shadow:0 0 8px var(--mot-green);animation:motPulse 1.6s ease-in-out infinite}
+          @keyframes motPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.4;transform:scale(0.8)}}
+          .mot-cc-frame{position:relative;width:100%;height:660px;background:var(--mot-bg-2)}
+          .mot-cc-frame::before{content:"Loading map…";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--mot-text-dimmer);font-size:12px;letter-spacing:0.05em;pointer-events:none;z-index:0}
+          .mot-cc-frame iframe{position:relative;z-index:1;width:100%;height:100%;border:0;display:block;background:transparent}
+          .mot-cc-ticker{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:12px 24px;background:rgba(255,255,255,0.015);border-top:1px solid var(--mot-border);font-family:var(--mot-mono);font-size:10px;letter-spacing:0.06em;color:var(--mot-text-dim);flex-wrap:wrap}
+          .mot-cc-ticker strong{color:var(--mot-green);font-weight:500}
+          .mot-cc-ticker-group{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+          .mot-cc-ticker-sep{width:1px;height:10px;background:var(--mot-border)}
+          .mot-cc-cta-bar{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:24px 24px;background:linear-gradient(180deg,rgba(31,223,103,0.04),transparent 60%),rgba(255,255,255,0.01);border-top:1px solid var(--mot-border);flex-wrap:wrap}
+          .mot-cc-cta-copy{display:flex;flex-direction:column;gap:8px;min-width:0}
+          .mot-cc-cta-title{font-family:'Fraunces','Playfair Display',Georgia,serif;font-size:22px;font-weight:400;letter-spacing:-0.01em;color:var(--mot-text);line-height:1.1}
+          .mot-cc-cta-btn{display:inline-flex;align-items:center;gap:12px;background:var(--mot-green);color:#1E1E1E;padding:14px 24px;border:none;border-radius:4px;font-family:var(--mot-sans);font-size:12px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;text-decoration:none;cursor:pointer;transition:transform .15s ease;white-space:nowrap;flex-shrink:0;animation:motGlow 2.2s ease-in-out infinite}
+          @keyframes motGlow{0%,100%{box-shadow:0 0 0 0 rgba(31,223,103,0.5),0 0 18px 0 rgba(31,223,103,0.45)}50%{box-shadow:0 0 0 8px rgba(31,223,103,0),0 0 28px 4px rgba(31,223,103,0.65)}}
+          .mot-cc-cta-btn:hover{transform:translateY(-1px)}
+          .mot-cc-cta-btn svg{width:14px;height:14px;transition:transform .15s ease}
+          .mot-cc-cta-btn:hover svg{transform:translateX(2px)}
+          .mot-cc-features{display:grid;grid-template-columns:repeat(5,1fr);gap:0;border-top:1px solid var(--mot-border);background:var(--mot-bg-2)}
+          .mot-cc-feature{padding:22px 20px;border-right:1px solid var(--mot-border);display:flex;flex-direction:column;gap:8px;position:relative;transition:background .15s ease}
+          .mot-cc-feature:last-child{border-right:none}
+          .mot-cc-feature:hover{background:rgba(31,223,103,0.025)}
+          .mot-cc-feature-num{font-family:var(--mot-mono);font-size:9px;color:var(--mot-green);letter-spacing:0.15em;margin-bottom:4px}
+          .mot-cc-feature-h{font-size:13px;font-weight:500;color:var(--mot-text);letter-spacing:-0.005em}
+          .mot-cc-feature-p{font-size:11px;line-height:1.5;color:var(--mot-text-dim)}
+          @media (max-width:1100px){.mot-cc-features{grid-template-columns:repeat(3,1fr)}.mot-cc-feature{border-right:1px solid var(--mot-border)}.mot-cc-feature:nth-child(3n){border-right:none}.mot-cc-feature:nth-child(n+4){border-top:1px solid var(--mot-border)}}
+          @media (max-width:900px){.mot-cc-frame{height:680px}.mot-cc-ticker{padding:10px 16px;font-size:9px}.mot-cc-cta-bar{padding:20px 20px;gap:16px}.mot-cc-cta-title{font-size:18px}}
+          @media (max-width:700px){.mot-cc-features{grid-template-columns:1fr}.mot-cc-feature{border-right:none !important;padding:20px 20px}.mot-cc-feature:nth-child(n+2){border-top:1px solid var(--mot-border)}}
+          @media (max-width:560px){.mot-cc{border-radius:10px}.mot-cc-frame{height:640px}.mot-cc-ticker-sep{display:none}.mot-cc-cta-bar{flex-direction:column;align-items:stretch;padding:22px 20px;gap:18px}.mot-cc-cta-btn{width:100%;justify-content:center;padding:16px 20px}}
+        </style>
+        <div class="mot-cc">
+          <div class="mot-cc-frame">
+            <iframe src="https://map.oftmw.com/?embed=1" title="Map of Tomorrow — interactive development map" loading="lazy" allow="geolocation; fullscreen" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+          </div>
+          <div class="mot-cc-ticker">
+            <div class="mot-cc-ticker-group">
+              <span>◆ CLUSTER SIZE = PROJECT COUNT</span>
+              <span class="mot-cc-ticker-sep"></span>
+              <span>TAP A MARKER FOR DETAILS</span>
+            </div>
+            <div class="mot-cc-ticker-group">
+              <span>TRACKING <strong>300+</strong> DEVELOPMENTS</span>
+              <span class="mot-cc-ticker-sep"></span>
+              <span>SYNCED <strong>DAILY</strong></span>
+            </div>
+          </div>
+          <div class="mot-cc-cta-bar">
+            <div class="mot-cc-cta-copy">
+              <span class="mot-cc-live"><span class="mot-cc-live-dot"></span>Live · Updated Daily</span>
+              <span class="mot-cc-cta-title">Explore every project, full-screen.</span>
+            </div>
+            <a class="mot-cc-cta-btn" href="https://map.oftmw.com" target="_blank" rel="noopener">Open the Full Map
+              <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="square"/></svg>
+            </a>
+          </div>
+          <div class="mot-cc-features">
+            <div class="mot-cc-feature"><div class="mot-cc-feature-num">01 / WATCHLIST</div><div class="mot-cc-feature-h">Save &amp; track favorites</div><div class="mot-cc-feature-p">Bookmark projects, filter your list, and get notified on every status change.</div></div>
+            <div class="mot-cc-feature"><div class="mot-cc-feature-num">02 / COMPARE</div><div class="mot-cc-feature-h">Side-by-side mode</div><div class="mot-cc-feature-p">Stack projects on specs, timing, and developer — and share your comparisons with clients.</div></div>
+            <div class="mot-cc-feature"><div class="mot-cc-feature-num">03 / PULSE</div><div class="mot-cc-feature-h">Live activity feed</div><div class="mot-cc-feature-p">A real-time stream of journal updates and new map additions, in one place.</div></div>
+            <div class="mot-cc-feature"><div class="mot-cc-feature-num">04 / TIMELINE</div><div class="mot-cc-feature-h">Every milestone</div><div class="mot-cc-feature-p">See when a project broke ground, opened, or first hit the map.</div></div>
+            <div class="mot-cc-feature"><div class="mot-cc-feature-num">05 / COVERAGE</div><div class="mot-cc-feature-h">Articles on TMW</div><div class="mot-cc-feature-p">Each project links to related stories and coverage from our journal.</div></div>
+          </div>
+        </div>
       </div>
+
     </div>
   </div>
 </section>

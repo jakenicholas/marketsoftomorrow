@@ -1,0 +1,190 @@
+/* ------------------------------------------------------------------
+   Markets of Tomorrow — shared journal chrome (header + footer)
+   Injects the universal site header (logo + nav + Open Map CTA) at the
+   top of <body> and the site footer at the bottom. One source of truth,
+   so every page that includes this stays in sync.
+     <script src="/journal/_shared/journal-chrome.js" defer></script>
+   Relies on the page's design tokens (--green, --mute-2, --white, --hair,
+   --hair-2, --cream, --ink, --ink-2, --mono); the few it can't assume
+   (--glass, --purple, --purple-glow) are hardcoded below.
+-------------------------------------------------------------------*/
+(function () {
+  'use strict';
+  if (window.__tmwChrome) return;
+  window.__tmwChrome = true;
+
+  var HEX =
+    '<div class="tmw-hex-badge"><svg viewBox="0 0 100 100">' +
+    '<polygon class="tmw-hex-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/>' +
+    '<g class="tmw-hex-spinner"><polygon class="tmw-hex-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g>' +
+    '</svg></div>';
+
+  var WORDMARK =
+    '<div class="tmw-wordmark"><svg viewBox="100 60 900 410"><g class="wm-fill">' +
+    '<path d="M233.5,220.4l1.1-105.9-.4-.4-30.2,106.3h-23.9l-30.6-107.2,1.1,107.2h-33.3V79h46.4l28.1,93.1h.4l27.7-93.1h46.6v141.4h-33.3Z"/>' +
+    '<path d="M383.6,220.4l-6.9-20.5h-49.1l-7.5,20.5h-38.8l56.8-141.4h28.5l56.2,141.4h-39.2ZM352.6,123.1l-.6-.2-14.5,48.4h29.6l-14.5-48.2Z"/>' +
+    '<path d="M504.9,220.4l-32.7-45.7h-.4v45.7h-34.6V79h46.3c14.7,0,26,1.9,33.4,5.2,15.3,6.9,26,23.5,26,43.6s-13.4,40.7-35.2,44.5l38.4,48.2h-41.3ZM485.3,150.1c14.3,0,23.1-6.7,23.1-20.3s-9.2-19.1-22.7-19.1h-13.8v39.4h13.4Z"/>' +
+    '<path d="M641,220.4l-38.6-61.2h-.4v61.2h-36.1V79h36.1v63.6h.4l39.9-63.6h37.8l-46.8,70.5,49.9,70.9h-42.2Z"/>' +
+    '<path d="M697.2,220.4V79h78.6v31.7h-44v22h42.6v31.7h-42.6v24.3h44v31.7h-78.6Z"/>' +
+    '<path d="M815.1,220.4v-109.7h-27.9v-31.7h91.7v31.7h-27.7v109.7h-36.1Z"/>' +
+    '<path d="M948.9,120.3c-1.5-10.1-5.7-13.8-12.8-13.8s-12.4,4.8-12.4,11.1,7.6,12.2,23.1,18.9c31.2,13.4,39,24.7,39,43.2,0,27.3-18.7,43.4-49.3,43.4s-51-16.1-51-46.4v-3.1h35.9c.2,11.7,5.9,19.3,14.9,19.3s13.6-5.9,13.6-13.6c0-11.3-15.7-16.2-28.5-21.4-23.1-9.4-33.6-21.6-33.6-39.9s23.3-41.7,49.3-41.7,17.6,2.1,25,5.9c15.1,7.8,22.4,19.1,22.6,38h-35.7Z"/>' +
+    '<path d="M333.7,452.5v-169.1h-43v-48.9h141.4v48.9h-42.7v169.1h-55.7Z"/>' +
+    '<path d="M633.3,452.5l1.8-163.2-.6-.6-46.5,163.8h-36.8l-47.1-165.3,1.8,165.3h-51.3v-218h71.6l43.3,143.5h.6l42.7-143.5h71.9v218h-51.3Z"/>' +
+    '<path d="M881.6,452.5l-32.7-141.1h-.6l-32.7,141.1h-50.4l-56.3-218h56.6l29.2,141.7h.6l32.1-141.7h42.7l31.5,142.3h.6l29.8-142.3h56.3l-57.7,218h-48.9Z"/>' +
+    '<path d="M111.8,281.1c0-27.9,20.1-48.8,47.4-48.8s47.6,20.3,47.6,46.1-20.7,47.3-46.5,47.3-48.5-18-48.5-44.6ZM183.8,279.2c0-14.1-10.1-26.6-24.6-26.6s-24.4,12-24.4,26.3,10.1,26.8,24.8,26.8,24.2-12,24.2-26.4Z"/>' +
+    '<path d="M219.2,324.1v-90h49.1v20.2h-27.1v15.3h26.2v20.2h-26.2v34.3h-22Z"/>' +
+    '</g></svg></div>';
+
+  var LOGO = '<a href="/journal/" class="tmw-logo-lockup" aria-label="Markets of Tomorrow">' + HEX + WORDMARK + '</a>';
+
+  var NAV = [
+    ['Global', '/journal/', 'global'],
+    ['Florida', '/journal/#florida', 'florida'],
+    ['New York', '/journal/#new-york', 'new-york'],
+    ['Tennessee', '/journal/#tennessee', 'tennessee'],
+    ['Caribbean', '/journal/#caribbean', 'caribbean'],
+    ['Rockies', '/journal/#rockies', 'rockies'],
+    ['Hotels', '/journal/hotels/', 'hotels'],
+    ['Restaurants', '/journal/restaurants/', 'restaurants'],
+    ['Golf', '/journal/golf/', 'golf']
+  ];
+  var path = location.pathname;
+  var active = /\/journal\/hotels\//.test(path) ? 'hotels'
+    : /\/journal\/restaurants\//.test(path) ? 'restaurants'
+    : /\/journal\/golf\//.test(path) ? 'golf'
+    : (path === '/journal/' || path === '/journal/index.html') ? 'global'
+    : '';
+  var navHtml = NAV.map(function (n) {
+    return '<a href="' + n[1] + '"' + (n[2] === active ? ' class="active"' : '') + '>' + n[0] + '</a>';
+  }).join('');
+
+  var CTA =
+    '<a href="https://map.oftmw.com" class="nav-cta" id="nav-map-cta">' +
+      '<span class="mc-pin" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+      '<path d="M12 21s-7-7-7-12a7 7 0 0114 0c0 5-7 12-7 12z"/><circle cx="12" cy="9" r="2.5" fill="currentColor"/></svg></span>' +
+      '<span class="mc-label">Open Map</span><span class="mc-sep" aria-hidden="true"></span>' +
+      '<span class="mc-count"><span class="mc-dot"></span><span id="mc-count-n">—</span> Live</span>' +
+    '</a>';
+
+  var headerHtml =
+    '<div class="sticky-stack tmw-chrome-head"><nav class="main"><div class="wrap">' +
+      LOGO + '<div class="nav-links">' + navHtml + '</div>' + CTA +
+      '<button class="nav-burger" aria-label="Menu"><span></span><span></span><span></span></button>' +
+    '</div></nav></div>';
+
+  var footerHtml =
+    '<footer class="tmw-chrome-foot"><div class="wrap"><div class="ft-grid">' +
+      '<div>' + '<a href="/journal/" class="tmw-logo-lockup">' + HEX + WORDMARK + '</a>' +
+        '<p class="blurb">A powerhouse news network covering the brands shaping the future of hospitality, real estate, and lifestyle.</p></div>' +
+      '<div><h4>Iconic Lists</h4><ul>' +
+        '<li><a href="/journal/golf/">Golf</a></li><li><a href="/journal/restaurants/">Restaurants</a></li>' +
+        '<li><a href="/journal/hotels/">Hotels</a></li><li><a href="/journal/search/?q=residences">Residences</a></li>' +
+        '<li><a href="/journal/search/?q=architects">Architects</a></li></ul></div>' +
+      '<div><h4>Network</h4><ul>' +
+        '<li><a href="/journal/">The Journal</a></li><li><a href="https://map.oftmw.com">Map of Tomorrow</a></li>' +
+        '<li><a href="/journal/search/">Search</a></li><li><a href="mailto:hello@oftmw.com">Contact</a></li></ul></div>' +
+    '</div><div class="ft-bot"><div>&copy; <span id="tmw-yr"></span> Markets of Tomorrow</div>' +
+      '<div>Built on cream and caffeine in Florida</div></div></div></footer>';
+
+  var css = [
+    '.tmw-chrome-head{position:sticky; top:0; z-index:60}',
+    '.tmw-chrome-head nav.main{position:relative; background:rgba(7,8,7,.82); backdrop-filter:blur(16px) saturate(1.4); -webkit-backdrop-filter:blur(16px) saturate(1.4); border-bottom:1px solid var(--hair)}',
+    '.tmw-chrome-head nav.main .wrap{display:flex; align-items:center; justify-content:space-between; padding-top:14px; padding-bottom:14px; gap:24px; max-width:1240px; margin:0 auto; padding-left:28px; padding-right:28px}',
+    '.tmw-chrome-head .nav-links{display:flex; gap:20px; align-items:center}',
+    '.tmw-chrome-head .nav-links a{font-family:var(--mono); font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--mute-2); transition:color .2s; position:relative; text-decoration:none}',
+    '.tmw-chrome-head .nav-links a:hover, .tmw-chrome-head .nav-links a.active{color:var(--white)}',
+    '.tmw-chrome-head .nav-links a.active::after{content:""; position:absolute; left:0; right:0; bottom:-6px; height:2px; background:var(--green); box-shadow:0 0 12px rgba(31,223,103,.6)}',
+    '.tmw-chrome-head .nav-cta{display:inline-flex; align-items:center; gap:10px; padding:8px 8px 8px 14px; background:rgba(255,255,255,.04); border:1px solid var(--hair-2); border-radius:999px; font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; font-weight:700; color:var(--white); transition:all .2s; position:relative; overflow:hidden; text-decoration:none}',
+    '.tmw-chrome-head .nav-cta::before{content:""; position:absolute; inset:0; background:radial-gradient(60% 100% at 100% 50%, rgba(31,223,103,.18), transparent 70%); opacity:0; transition:opacity .25s}',
+    '.tmw-chrome-head .nav-cta:hover{border-color:var(--green); transform:translateY(-1px)}',
+    '.tmw-chrome-head .nav-cta:hover::before{opacity:1}',
+    '.tmw-chrome-head .nav-cta .mc-pin{position:relative; width:18px; height:18px; flex:0 0 auto}',
+    '.tmw-chrome-head .nav-cta .mc-pin svg{width:100%; height:100%; color:var(--green); filter:drop-shadow(0 0 4px rgba(31,223,103,.5))}',
+    '.tmw-chrome-head .nav-cta .mc-pin::after{content:""; position:absolute; left:50%; top:50%; width:6px; height:6px; border-radius:50%; background:var(--green); transform:translate(-50%,-50%); animation:tmwcPinPulse 2.4s ease-out infinite; opacity:0}',
+    '@keyframes tmwcPinPulse{0%{transform:translate(-50%,-50%) scale(.5); opacity:.8}80%{transform:translate(-50%,-50%) scale(3.6); opacity:0}100%{opacity:0}}',
+    '.tmw-chrome-head .nav-cta .mc-label{position:relative; z-index:1}',
+    '.tmw-chrome-head .nav-cta .mc-sep{width:1px; height:14px; background:var(--hair-2); position:relative; z-index:1}',
+    '.tmw-chrome-head .nav-cta .mc-count{display:inline-flex; align-items:center; gap:6px; padding:5px 10px; background:rgba(31,223,103,.12); border:1px solid rgba(31,223,103,.32); border-radius:999px; color:var(--green); font-size:10.5px; letter-spacing:.06em; font-weight:700; position:relative; z-index:1}',
+    '.tmw-chrome-head .nav-cta .mc-count .mc-dot{width:5px; height:5px; border-radius:50%; background:var(--green); box-shadow:0 0 6px var(--green); animation:tmwcDot 1.6s ease-in-out infinite}',
+    '@keyframes tmwcDot{0%,100%{opacity:1}50%{opacity:.35}}',
+    '@media(max-width:1180px){.tmw-chrome-head .nav-cta .mc-count{display:none}.tmw-chrome-head .nav-cta .mc-sep{display:none}}',
+    '.tmw-chrome-head .nav-burger{display:none; width:28px; height:28px; flex-direction:column; gap:5px; padding:6px 0; align-items:flex-end; justify-content:center; background:none; border:0; cursor:pointer}',
+    '.tmw-chrome-head .nav-burger span{display:block; width:22px; height:1.5px; background:var(--cream); transition:transform .2s}',
+    '.tmw-chrome-head .tmw-logo-lockup{display:flex; align-items:center; gap:10px; text-decoration:none}',
+    '.tmw-hex-badge{flex:0 0 auto; width:22px; height:22px}',
+    '.tmw-hex-badge svg{width:100%; height:100%; display:block; overflow:visible}',
+    '.tmw-hex-spinner{transform-origin:50% 50%; animation:tmwHardspin 4.2s cubic-bezier(.16,1,.3,1) infinite}',
+    '@keyframes tmwHardspin{0%{transform:rotate(0)}55%{transform:rotate(810deg)}70%{transform:rotate(900deg)}100%{transform:rotate(1080deg)}}',
+    '.tmw-hex-core{animation:tmwHexpulse 4.2s ease-in-out infinite; transform-origin:50% 50%}',
+    '@keyframes tmwHexpulse{0%,45%{stroke:#A78BFA; filter:drop-shadow(0 0 0 rgba(167,139,250,0))}70%{stroke:#B9A6FF; filter:drop-shadow(0 0 6px rgba(185,166,255,.9))}100%{stroke:#A78BFA; filter:drop-shadow(0 0 0 rgba(167,139,250,0))}}',
+    '.tmw-hex-ring{transform-origin:50% 50%; animation:tmwRing 4.2s ease-out infinite}',
+    '@keyframes tmwRing{0%,60%{transform:scale(1);opacity:0}72%{opacity:.55}100%{transform:scale(1.7);opacity:0}}',
+    '.tmw-wordmark{flex:0 1 auto; width:108px}',
+    '.tmw-wordmark svg{width:100%; height:auto; display:block}',
+    '.tmw-wordmark .wm-fill{fill:#fff}',
+    '@media (prefers-reduced-motion: reduce){.tmw-hex-spinner,.tmw-hex-ring,.tmw-chrome-head .nav-cta .mc-pin::after,.tmw-chrome-head .nav-cta .mc-count .mc-dot{animation:none}.tmw-hex-ring{opacity:0}}',
+    '@media(max-width:980px){',
+    '.tmw-chrome-head .nav-burger{display:flex}',
+    '.tmw-chrome-head .nav-links{position:absolute; top:100%; left:0; right:0; display:none; flex-direction:column; gap:0; align-items:stretch; background:rgba(7,8,7,.97); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); border-bottom:1px solid var(--hair); padding:6px 28px 16px}',
+    '.tmw-chrome-head .nav-links.open{display:flex}',
+    '.tmw-chrome-head .nav-links a{padding:13px 0; border-bottom:1px solid var(--hair); font-size:12px}',
+    '.tmw-chrome-head .nav-links a.active::after{display:none}',
+    '}',
+    '.tmw-chrome-foot{background:var(--ink-2); color:var(--mute-2); padding:60px 0 30px; border-top:1px solid var(--hair); margin-top:40px}',
+    '.tmw-chrome-foot .wrap{max-width:1240px; margin:0 auto; padding:0 28px}',
+    '.tmw-chrome-foot .ft-grid{display:grid; grid-template-columns:1.4fr 1fr 1fr; gap:40px; padding-bottom:30px; border-bottom:1px solid var(--hair)}',
+    '.tmw-chrome-foot h4{font-family:var(--mono); font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:var(--white); margin-bottom:14px; font-weight:600}',
+    '.tmw-chrome-foot ul{list-style:none; display:flex; flex-direction:column; gap:9px; font-size:14px; margin:0; padding:0}',
+    '.tmw-chrome-foot ul a{color:var(--mute); transition:color .2s; text-decoration:none}',
+    '.tmw-chrome-foot ul a:hover{color:var(--green)}',
+    '.tmw-chrome-foot .blurb{color:var(--mute); font-size:13px; line-height:1.55; margin-top:14px; max-width:32ch}',
+    '.tmw-chrome-foot .tmw-wordmark{width:118px}',
+    '.tmw-chrome-foot .ft-bot{padding-top:22px; font-family:var(--mono); font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--mute); display:flex; justify-content:space-between; flex-wrap:wrap; gap:14px}',
+    '@media(max-width:760px){.tmw-chrome-foot .ft-grid{grid-template-columns:1fr; gap:30px}}'
+  ].join('');
+
+  function mount() {
+    var style = document.createElement('style');
+    style.setAttribute('data-tmw-chrome', '');
+    style.textContent = css;
+    document.head.appendChild(style);
+
+    var h = document.createElement('div');
+    h.innerHTML = headerHtml;
+    document.body.insertBefore(h.firstChild, document.body.firstChild);
+
+    var f = document.createElement('div');
+    f.innerHTML = footerHtml;
+    document.body.appendChild(f.firstChild);
+
+    var yr = document.getElementById('tmw-yr');
+    if (yr) yr.textContent = String(new Date().getFullYear());
+
+    // Mobile menu toggle
+    var burger = document.querySelector('.tmw-chrome-head .nav-burger');
+    var links = document.querySelector('.tmw-chrome-head .nav-links');
+    if (burger && links) {
+      burger.addEventListener('click', function () { links.classList.toggle('open'); });
+    }
+
+    // Live "X Live" count from pulse.json (cheapest signal)
+    fetch('/pulse.json', { cache: 'no-store' })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (data) {
+        var el = document.getElementById('mc-count-n');
+        if (!el) return;
+        if (!data) { el.textContent = '387'; return; }
+        var slugs = new Set();
+        (data.events || []).forEach(function (e) { if (e.project_slug) slugs.add(e.project_slug); });
+        var n = data.project_count || data.tracked || slugs.size || 387;
+        el.textContent = Number(n).toLocaleString();
+      })
+      .catch(function () { var el = document.getElementById('mc-count-n'); if (el) el.textContent = '387'; });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', mount);
+  } else {
+    mount();
+  }
+})();

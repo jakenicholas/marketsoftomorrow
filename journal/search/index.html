@@ -154,14 +154,6 @@ main{padding:30px 0 40px}
 
 <header class="hdr">
   <div class="wrap">
-    <div class="hdr-top">
-      <a class="brand" href="https://www.oftmw.com"><span class="brand-dot"></span> Markets of <b>Tomorrow</b></a>
-      <nav class="hdr-links">
-        <a href="https://map.oftmw.com">Map</a>
-        <a href="/journal/">Journal</a>
-        <a href="/journal/golf/">Iconic</a>
-      </nav>
-    </div>
     <form class="searchbox" id="searchForm" role="search">
       <svg class="mag" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg>
       <input id="q" type="search" autocomplete="off" placeholder="Search projects, firms, cities…" aria-label="Search">
@@ -204,6 +196,9 @@ main{padding:30px 0 40px}
   </div>
 </main>
 
+<!-- Shared journal chrome — universal header + footer -->
+<script src="/journal/_shared/journal-chrome.js" defer></script>
+<!-- Pinned journal dock — map / search / home -->
 <script src="/journal/_shared/journal-dock.js" defer></script>
 <script>
 'use strict';
@@ -350,7 +345,7 @@ function heroHtml(p){
     '<div class="hero-media">'+media+'<div class="scrim"></div>'+
       '<span class="besttag">★ Top match</span></div>'+
     '<div class="hero-body">'+
-      '<div class="hero-chips">'+(type?'<span class="chip type">'+esc(type)+'</span>':'')+(city?'<span class="chip">'+esc(city)+'</span>':'')+'</div>'+
+      '<div class="hero-chips">'+(type?'<span class="chip type">'+esc(type)+'</span>':'')+'</div>'+
       '<h1>'+esc(p.Title)+'</h1>'+
       (city?'<div class="loc">'+esc(city)+'</div>':'')+
       (desc?'<p class="hero-desc">'+esc(desc)+'</p>':'')+
@@ -373,7 +368,7 @@ function pcardHtml(p){
     ? '<img src="'+esc(img)+'" alt="'+esc(p.Title)+'" loading="lazy" onerror="this.style.display=\'none\'">'
     : '<div class="ph"></div>';
   return '<a class="pcard" href="'+esc(mapLink(p.Title,false))+'">'+
-    '<div class="pcard-media">'+media+(type?'<span class="ptype">'+esc(type)+'</span>':'')+'</div>'+
+    '<div class="pcard-media">'+media+'</div>'+
     '<div class="pcard-body">'+
       '<h3>'+esc(p.Title)+'</h3>'+
       (p.City?'<div class="loc">'+esc(p.City)+'</div>':'')+
