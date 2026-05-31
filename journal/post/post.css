@@ -210,3 +210,21 @@ footer ul a:hover{color:var(--green)}
 footer .blurb{color:var(--mute); font-size:13px; line-height:1.55; margin-top:14px; max-width:32ch}
 footer .ft-bot{padding-top:22px; font-family:var(--mono); font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--mute); display:flex; justify-content:space-between; flex-wrap:wrap; gap:14px}
 footer .tmw-wordmark{width:118px}
+
+/* ===== Subscribe lightbox — slides up from the bottom on article pages ===== */
+.tmw-sub{position:fixed; left:0; right:0; bottom:0; z-index:9500; display:flex; justify-content:center; padding:0 14px 14px; pointer-events:none}
+.tmw-sub-panel{pointer-events:auto; width:min(680px,100%); background:linear-gradient(180deg,#12150f,#0a0c08); border:1px solid rgba(230,197,116,.22); border-radius:18px; padding:26px 26px 24px; box-shadow:0 -12px 60px rgba(0,0,0,.6), 0 0 0 1px rgba(0,0,0,.3); position:relative; transform:translateY(150%); transition:transform .55s cubic-bezier(.22,1,.36,1)}
+.tmw-sub.show .tmw-sub-panel{transform:translateY(0)}
+.tmw-sub-x{position:absolute; top:11px; right:14px; background:none; border:0; color:var(--mute); font-size:26px; line-height:1; cursor:pointer; padding:0}
+.tmw-sub-x:hover{color:#fff}
+.tmw-sub-eyebrow{font-family:var(--mono); font-size:10.5px; letter-spacing:.26em; text-transform:uppercase; color:var(--gold-soft); text-shadow:0 0 12px rgba(230,197,116,.4); margin-bottom:12px}
+.tmw-sub-h{font-family:var(--serif); font-weight:600; font-size:clamp(20px,2.6vw,27px); line-height:1.16; color:#fff; max-width:34ch; margin:0 0 18px}
+.tmw-sub-form{display:flex; gap:9px; flex-wrap:wrap}
+.tmw-sub-form input{flex:1; min-width:150px; height:48px; padding:0 16px; background:rgba(255,255,255,.05); border:1px solid var(--hair-2); border-radius:10px; color:#fff; font-family:var(--sans); font-size:15px; outline:none; transition:border-color .15s}
+.tmw-sub-form input::placeholder{color:var(--mute)}
+.tmw-sub-form input:focus{border-color:var(--gold)}
+.tmw-sub-form button{height:48px; padding:0 24px; background:var(--green); color:#0a0a0a; border:0; border-radius:10px; font-family:var(--mono); font-size:13px; letter-spacing:.08em; text-transform:uppercase; font-weight:700; cursor:pointer; transition:background .2s; white-space:nowrap}
+.tmw-sub-form button:hover{background:var(--green-soft)}
+.tmw-sub-form button:disabled{opacity:.6; cursor:wait}
+.tmw-sub-msg{font-family:var(--mono); font-size:13.5px; letter-spacing:.04em; color:var(--green); margin-top:14px}
+@media(max-width:560px){.tmw-sub{padding:0 8px 8px}.tmw-sub-panel{padding:22px 18px 20px}.tmw-sub-form input{flex:1 1 100%; min-width:0}.tmw-sub-form button{flex:1 1 100%}}

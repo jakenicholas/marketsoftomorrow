@@ -144,8 +144,9 @@
     '.btn-cta{background:transparent !important; color:var(--gold-soft) !important; padding:8px 0 !important; border-radius:0 !important; text-shadow:0 0 14px rgba(230,197,116,.5), 0 0 3px rgba(230,197,116,.32)}',
     '.btn-cta:hover{background:transparent !important; transform:none !important; gap:11px}',
     '.btn-cta svg{color:var(--gold-soft)}',
-    '@media(max-width:980px){.banner-ad{max-height:170px}.featured-carousel{height:151px}}',
-    '@media(max-width:560px){.banner-ad{max-height:120px}.featured-carousel{height:100px}}',
+    // Tablet + mobile: CONTAIN so wide ad creatives show in full (no side-crop).
+    '@media(max-width:980px){.banner-ad{max-height:150px}.featured-carousel{height:130px}.fc-slide video,.fc-slide img{object-fit:contain}}',
+    '@media(max-width:560px){.banner-ad{max-height:96px}.featured-carousel{height:84px}}',
 
     // ── Hide the public in-page "Edit" toggle on the list/ranking pages.
     '.edit-toggle{display:none !important}',

@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="format-detection" content="telephone=no, date=no, address=no, email=no">
 <title>The Iconic Hotel List &mdash; Markets of Tomorrow</title>
 <meta name="description" content="A curated ranking of the most iconic hotels defining the modern travel experience — landmark properties, design-forward retreats, and new openings.">
 <link rel="canonical" href="https://www.oftmw.com/hotels">
@@ -1251,8 +1252,8 @@ const LIST_ENDPOINT = WORKER_URL + '/list/' + LIST_SLUG;
 const FEED_ENDPOINT = WORKER_URL + '/blog?limit=60';
 const WIX_RSS_URL   = 'https://www.oftmw.com/blog-feed.xml';
 const CORS_PROXY    = 'https://api.codetabs.com/v1/proxy/?quest='; // browser-side fallback (no API key, returns body verbatim)
-const ADS_URL       = '../ads.json';                   // one level up from /golf/
-const PULSE_URL     = '../../pulse.json';              // repo root
+const ADS_URL       = '/ads.json';                   // one level up from /golf/
+const PULSE_URL     = 'https://map.oftmw.com/pulse.json';              // repo root
 const PULSE_NEW_DAYS = 7;
 const PULSE_MAX     = 8;                               // visible items in the scrolling track (matches live oftmw.com)
 const PLACEMENT     = 'hotels';                           // page-specific tag for ad targeting
