@@ -61,7 +61,29 @@
     'html{overflow-x:clip}',
     'body{overflow-x:clip; max-width:100%}',
     // Disable double-tap-to-zoom (and the 300ms tap delay) site-wide.
-    'html{touch-action:manipulation}'
+    'html{touch-action:manipulation}',
+    // ── Mobile header: burger LEFT, logo CENTERED + smaller, Open Map RIGHT.
+    //    Targets nav.main so it applies to every journal header (inline pages +
+    //    the shared chrome). Higher specificity than the pages' own mobile rules.
+    '@media(max-width:980px){',
+    // Lift the header above the pulse ticker so the open dropdown covers it
+    // (otherwise the first item sits behind the ticker).
+    'nav.main{position:relative; z-index:40}',
+    'nav.main .wrap{position:relative; gap:10px}',
+    'nav.main .nav-burger{display:flex; order:0; background:none; border:0; cursor:pointer; z-index:2}',
+    'nav.main .nav-cta{order:1; margin-left:auto; padding:7px 8px 7px 12px; z-index:2}',
+    'nav.main .tmw-logo-lockup{position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); margin:0; z-index:1}',
+    'nav.main .tmw-wordmark{width:74px}',
+    'nav.main .tmw-hex-badge{width:16px; height:16px}',
+    'nav.main .nav-links{order:5; position:absolute; top:100%; left:0; right:0; display:none; flex-direction:column; gap:0; align-items:stretch; width:auto; margin:0; background:rgba(7,8,7,.97); -webkit-backdrop-filter:blur(16px) saturate(1.4); backdrop-filter:blur(16px) saturate(1.4); border-bottom:1px solid var(--hair); padding:6px 22px 16px; max-height:calc(100vh - 60px); overflow-y:auto}',
+    'nav.main .nav-links.open{display:flex}',
+    'nav.main .nav-links a{padding:14px 2px; border-bottom:1px solid var(--hair); font-size:12.5px}',
+    'nav.main .nav-links a:last-child{border-bottom:0}',
+    'nav.main .nav-links a.active::after{display:none}',
+    'nav.main .nav-burger.is-open span:nth-child(1){transform:translateY(6.5px) rotate(45deg)}',
+    'nav.main .nav-burger.is-open span:nth-child(2){opacity:0}',
+    'nav.main .nav-burger.is-open span:nth-child(3){transform:translateY(-6.5px) rotate(-45deg)}',
+    '}'
   ].join('');
 
   function mount() {
@@ -99,6 +121,36 @@
 
     document.body.appendChild(dock);
     requestAnimationFrame(function () { dock.classList.add('ready'); });
+
+    wireBurgers();
+  }
+
+  // Wire the mobile hamburger(s) to open/close the nav dropdown. Works for both
+  // the inline page headers and the shared chrome header (both use .nav-burger +
+  // .nav-links inside nav.main). Single source of truth — the chrome component
+  // no longer wires its own, so there's no double-toggle.
+  function wireBurgers() {
+    var burgers = document.querySelectorAll('.nav-burger');
+    for (var i = 0; i < burgers.length; i++) {
+      var b = burgers[i];
+      if (b.__tmwWired) continue;
+      var nav = b.closest('nav') || b.parentElement;
+      var links = nav && nav.querySelector('.nav-links');
+      if (!links) continue;
+      b.__tmwWired = true;
+      (function (btn, list) {
+        btn.addEventListener('click', function (e) {
+          e.preventDefault();
+          var open = list.classList.toggle('open');
+          btn.classList.toggle('is-open', open);
+          btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        });
+        // Close the menu after tapping a link
+        list.addEventListener('click', function (e) {
+          if (e.target.closest('a')) { list.classList.remove('open'); btn.classList.remove('is-open'); btn.setAttribute('aria-expanded', 'false'); }
+        });
+      })(b, links);
+    }
   }
 
   if (document.readyState === 'loading') {

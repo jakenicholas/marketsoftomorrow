@@ -1,43 +1,76 @@
 {
-  "_comment": "Video banner carousel. Each ad is a full-bleed muted autoplay .mp4 (the actual creative — no overlay text on top). Set the .mp4 URL in `video`. Optionally provide a poster image (first frame) so the slide paints instantly before the video buffers. Replace the placeholder URLs below with your real Wix CDN URLs (format: https://video.wixstatic.com/video/<hash>/720p/mp4/file.mp4) or repo-local files.",
-  "version": 3,
-  "rotateSeconds": 8,
+  "_comment": "Video banner carousel. Each ad is a full-bleed muted autoplay .mp4 (the creative — no overlay text). `video` is the .mp4 URL (Wix CDN format: https://video.wixstatic.com/video/<hash>/720p/mp4/file.mp4). Each video plays in full, then the carousel advances; rotateSeconds is the max dwell. `url` is the tracked click-through.",
+  "version": 4,
+  "rotateSeconds": 14,
   "schema": {
     "id": "stable slug for click analytics",
     "advertiser": "shown as 'Sponsored · X' in the bottom-right corner",
     "campaign": "internal label, never displayed",
     "video": "REQUIRED .mp4 URL — the creative itself",
-    "videoWebm": "optional .webm alternate for smaller file size",
     "poster": "optional first-frame image (paints instantly while video buffers)",
     "url": "click-through destination",
     "active": "false to pause without deleting",
-    "starts": "ISO date, optional",
-    "ends": "ISO date, optional",
     "placements": "['all'] or any of ['home', 'golf', 'restaurants', 'hotels', 'florida', ...]"
   },
   "ads": [
     {
-      "id": "PLACEHOLDER-replace-with-real-creative-1",
-      "advertiser": "Your Sponsor Name",
-      "campaign": "PLACEHOLDER — swap this for a real Wix CDN .mp4",
-      "video": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+      "id": "mowpb",
+      "advertiser": "Markets of West Palm Beach",
+      "campaign": "MOWPB",
+      "video": "https://video.wixstatic.com/video/ca3b83_4cc88517ec1b47a0aad2a3f0de09fd78/720p/mp4/file.mp4",
       "poster": "",
-      "url": "https://map.oftmw.com",
+      "url": "https://linkly.link/2i4Zm",
       "active": true,
-      "starts": null,
-      "ends": null,
       "placements": ["all"]
     },
     {
-      "id": "PLACEHOLDER-replace-with-real-creative-2",
-      "advertiser": "Your Other Sponsor",
-      "campaign": "PLACEHOLDER — swap this for a real Wix CDN .mp4",
-      "video": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4",
+      "id": "duos-wynwood",
+      "advertiser": "DUOS Wynwood",
+      "campaign": "DUOS Wynwood",
+      "video": "https://video.wixstatic.com/video/ca3b83_d4c586c5be1b45b09b4e3e6338d6a780/720p/mp4/file.mp4",
       "poster": "",
-      "url": "https://map.oftmw.com",
+      "url": "https://linkly.link/2i4Zm",
       "active": true,
-      "starts": null,
-      "ends": null,
+      "placements": ["all"]
+    },
+    {
+      "id": "ponce",
+      "advertiser": "Ponce",
+      "campaign": "Ponce",
+      "video": "https://video.wixstatic.com/video/ca3b83_8d2467c59954462fb26436560ab95ef8/720p/mp4/file.mp4",
+      "poster": "",
+      "url": "https://linkly.link/2HeDO",
+      "active": true,
+      "placements": ["all"]
+    },
+    {
+      "id": "purform",
+      "advertiser": "PURFORM",
+      "campaign": "PURFORM",
+      "video": "https://video.wixstatic.com/video/ca3b83_5bcee7f47c9946618b491a7e7b64db8e/720p/mp4/file.mp4",
+      "poster": "",
+      "url": "https://linkly.link/2FdrO",
+      "active": true,
+      "placements": ["all"]
+    },
+    {
+      "id": "marina-pointe",
+      "advertiser": "Marina Pointe",
+      "campaign": "Marina Pointe",
+      "video": "https://video.wixstatic.com/video/ca3b83_31e912d20b1d47c58184c301c01624bb/720p/mp4/file.mp4",
+      "poster": "",
+      "url": "https://linkly.link/2183i",
+      "active": true,
+      "placements": ["all"]
+    },
+    {
+      "id": "eudemonia",
+      "advertiser": "Eudemonia",
+      "campaign": "Eudemonia",
+      "video": "https://video.wixstatic.com/video/ca3b83_004fe9a6cc5f40c896869357cd6c9efd/720p/mp4/file.mp4",
+      "poster": "",
+      "url": "https://linkly.link/2EtNq",
+      "active": true,
       "placements": ["all"]
     }
   ]

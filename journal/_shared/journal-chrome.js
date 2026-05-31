@@ -160,12 +160,9 @@
     var yr = document.getElementById('tmw-yr');
     if (yr) yr.textContent = String(new Date().getFullYear());
 
-    // Mobile menu toggle
-    var burger = document.querySelector('.tmw-chrome-head .nav-burger');
-    var links = document.querySelector('.tmw-chrome-head .nav-links');
-    if (burger && links) {
-      burger.addEventListener('click', function () { links.classList.toggle('open'); });
-    }
+    // NOTE: the mobile hamburger toggle + mobile header layout are handled
+    // centrally by journal-dock.js (wireBurgers + nav.main mobile CSS), so every
+    // page — inline headers and this chrome — behaves identically.
 
     // Live "X Live" count from pulse.json (cheapest signal)
     fetch('/pulse.json', { cache: 'no-store' })
