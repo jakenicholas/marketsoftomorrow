@@ -54,10 +54,23 @@
     '@media(max-width:560px){.tmw-dock{bottom:14px;gap:6px;padding:6px}.tmw-dock-btn{width:42px;height:42px}',
     '.tmw-dock-btn svg{width:18px;height:18px}.tmw-dock-search input{width:46vw;height:42px}',
     '.tmw-dock-search input:focus{width:50vw}}',
-    'body{padding-bottom:104px}'
+    'body{padding-bottom:104px}',
+    // ── Mobile hardening: no horizontal scroll, ever. overflow-x:clip clips
+    //    runaway/fixed/absolute elements WITHOUT forcing overflow-y:auto (so the
+    //    sticky header keeps working — which plain overflow:hidden would break).
+    'html{overflow-x:clip}',
+    'body{overflow-x:clip; max-width:100%}',
+    // Disable double-tap-to-zoom (and the 300ms tap delay) site-wide.
+    'html{touch-action:manipulation}'
   ].join('');
 
   function mount() {
+    // Lock the viewport: prevents iOS input-focus zoom (maximum-scale=1) and
+    // pinch/double-tap zoom (user-scalable=no). viewport-fit=cover for notches.
+    var vp = document.querySelector('meta[name="viewport"]');
+    if (!vp) { vp = document.createElement('meta'); vp.setAttribute('name', 'viewport'); document.head.appendChild(vp); }
+    vp.setAttribute('content', 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover');
+
     var style = document.createElement('style');
     style.setAttribute('data-tmw-dock', '');
     style.textContent = css;
