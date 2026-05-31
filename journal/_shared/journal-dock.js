@@ -85,14 +85,14 @@
     'nav.main .tmw-logo-lockup{position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); margin:0; z-index:1}',
     'nav.main .tmw-wordmark{width:74px}',
     'nav.main .tmw-hex-badge{width:16px; height:16px}',
-    'nav.main .nav-links{order:5; position:absolute; top:100%; left:0; right:0; display:none; flex-direction:column; gap:0; align-items:stretch; width:auto; margin:0; background:rgba(7,8,7,.97); -webkit-backdrop-filter:blur(16px) saturate(1.4); backdrop-filter:blur(16px) saturate(1.4); border-bottom:1px solid var(--hair); padding:6px 22px 16px; max-height:calc(100vh - 60px); overflow-y:auto}',
+    'nav.main .nav-links{order:5; position:absolute; top:100%; left:0; right:0; display:none; flex-direction:column; gap:0; align-items:stretch; width:auto; margin:0; background:rgba(7,8,7,.98); -webkit-backdrop-filter:blur(16px) saturate(1.4); backdrop-filter:blur(16px) saturate(1.4); border-bottom:1px solid var(--hair); padding:10px 22px 24px; min-height:calc(100dvh - 56px); max-height:none; overflow-y:auto}',
     'nav.main .nav-links.open{display:flex}',
     'nav.main .nav-links a{padding:14px 2px; border-bottom:1px solid var(--hair); font-size:12.5px}',
     'nav.main .nav-links a:last-child{border-bottom:0}',
     'nav.main .nav-links a.active::after{display:none}',
-    'nav.main .nav-burger.is-open span:nth-child(1){transform:translateY(6.5px) rotate(45deg)}',
+    'nav.main .nav-burger.is-open span:nth-child(1){transform:translateY(5.5px) rotate(45deg)}',
     'nav.main .nav-burger.is-open span:nth-child(2){opacity:0}',
-    'nav.main .nav-burger.is-open span:nth-child(3){transform:translateY(-6.5px) rotate(-45deg)}',
+    'nav.main .nav-burger.is-open span:nth-child(3){transform:translateY(-5.5px) rotate(-45deg)}',
     '}',
 
     // ── Remove the animated "intelligence" hex badge from every logo (header +
@@ -123,6 +123,18 @@
     '.fc-track,.fc-slide{width:100%; left:0; right:0}',
     '.fc-slide video,.fc-slide img{width:100%; height:100%; object-fit:cover; object-position:center}',
     '.fc-sponsor{display:none !important}',
+    // Remove the slide-position dots (ticker) everywhere.
+    '.fc-dots, .fc-dot{display:none !important}',
+    // Arrows: no circle/background — a bare white chevron that appears on banner
+    // hover, turning into a gold glow on the arrow itself.
+    '.fc-arrow{background:transparent !important; border:0 !important; box-shadow:none !important; -webkit-backdrop-filter:none !important; backdrop-filter:none !important; border-radius:0 !important; color:#fff !important; width:46px; height:46px}',
+    '.fc-arrow svg{width:22px; height:22px; filter:drop-shadow(0 1px 4px rgba(0,0,0,.7))}',
+    '.fc-arrow:hover{background:transparent !important; border:0 !important; color:var(--gold,#e6c574) !important; transform:translateY(-50%) !important}',
+    '.fc-arrow:hover svg{filter:drop-shadow(0 0 9px rgba(230,197,116,.95)) drop-shadow(0 0 3px rgba(230,197,116,.7))}',
+    // Mobile header: slightly smaller hamburger + close (X). Gap stays 4px so
+    //    the is-open X transforms below (±5.5px) stay aligned.
+    'nav.main .nav-burger, .tmw-chrome-head .nav-burger{width:24px; gap:4px}',
+    'nav.main .nav-burger span, .tmw-chrome-head .nav-burger span{width:18px}',
 
     // ── Featured-hero vertical tabs — modernized, applied on every page.
     '.story-card .sc-tabs{padding:5px; gap:4px; background:rgba(9,11,9,.74); border:1px solid rgba(255,255,255,.12); box-shadow:0 22px 50px -18px rgba(0,0,0,.78), inset 0 1px 0 rgba(255,255,255,.06)}',
@@ -175,23 +187,29 @@
     '.tmw-fm-trigger:hover, .tmw-fm.open .tmw-fm-trigger{color:var(--gold-soft,#f0d68a); text-shadow:0 0 14px rgba(230,197,116,.55), 0 0 3px rgba(230,197,116,.35)}',
     '.tmw-fm-chev{width:10px; height:10px; transition:transform .22s ease}',
     '.tmw-fm.open .tmw-fm-chev{transform:rotate(180deg)}',
-    '.tmw-fm-panel{position:absolute; top:calc(100% + 16px); left:50%; transform:translateX(-50%) translateY(-8px); width:min(640px,92vw); display:grid; grid-template-columns:repeat(3,1fr); gap:11px; padding:15px; background:rgba(9,11,9,.97); -webkit-backdrop-filter:blur(18px) saturate(1.4); backdrop-filter:blur(18px) saturate(1.4); border:1px solid rgba(255,255,255,.10); border-radius:18px; box-shadow:0 26px 64px rgba(0,0,0,.6); opacity:0; visibility:hidden; pointer-events:none; transition:opacity .22s ease, transform .22s cubic-bezier(.22,1,.36,1); z-index:80}',
-    '.tmw-fm-panel::before{content:""; position:absolute; top:-16px; left:0; right:0; height:16px}', // hover bridge across the gap
-    '.tmw-fm.open .tmw-fm-panel, .tmw-fm:hover .tmw-fm-panel{opacity:1; visibility:visible; pointer-events:auto; transform:translateX(-50%) translateY(0)}',
-    '.tmw-fm-tile{position:relative; display:block; aspect-ratio:4/3; border-radius:13px; overflow:hidden; background:#141714 center/cover no-repeat; text-decoration:none; box-shadow:inset 0 0 0 1px rgba(255,255,255,.07); transition:box-shadow .2s, transform .2s}',
-    '.tmw-fm-tile::after{content:""; position:absolute; inset:0; background:linear-gradient(180deg, rgba(7,8,7,0) 28%, rgba(7,8,7,.82) 100%); transition:background .2s ease}',
+    // Desktop: full-viewport-width mega-menu, 5 market tiles in one row, pinned
+    // to the bottom of the sticky header (top set by JS via --tmw-fm-top).
+    '.tmw-fm-trigger{position:relative}',
+    '.tmw-fm-trigger::after{content:""; position:absolute; top:100%; left:-16px; right:-16px; height:24px}', // hover bridge to the panel
+    '.tmw-fm-panel{position:absolute; top:calc(100% + 18px); left:0; width:100vw; display:grid; grid-template-columns:repeat(5,1fr); gap:14px; padding:22px clamp(24px,4vw,72px) 28px; background:rgba(9,11,9,.98); -webkit-backdrop-filter:blur(20px) saturate(1.4); backdrop-filter:blur(20px) saturate(1.4); border:0; border-bottom:1px solid rgba(255,255,255,.10); border-radius:0 0 18px 18px; box-shadow:0 30px 64px rgba(0,0,0,.55); opacity:0; visibility:hidden; pointer-events:none; transform:translateY(-10px); transition:opacity .2s ease, transform .22s cubic-bezier(.22,1,.36,1); z-index:70}',
+    '.tmw-fm.open .tmw-fm-panel, .tmw-fm:hover .tmw-fm-panel{opacity:1; visibility:visible; pointer-events:auto; transform:translateY(0)}',
+    '.tmw-fm-tile{position:relative; display:block; aspect-ratio:16/9; border-radius:13px; overflow:hidden; background:#141714 center/cover no-repeat; text-decoration:none; box-shadow:inset 0 0 0 1px rgba(255,255,255,.07); transition:box-shadow .2s, transform .2s}',
+    '.tmw-fm-tile::after{content:""; position:absolute; inset:0; background:linear-gradient(180deg, rgba(7,8,7,0) 30%, rgba(7,8,7,.84) 100%); transition:background .2s ease}',
     '.tmw-fm-tile:hover{transform:translateY(-2px); box-shadow:inset 0 0 0 1px rgba(230,197,116,.5), 0 10px 26px rgba(0,0,0,.4)}',
     '.tmw-fm-tile:hover::after{background:linear-gradient(180deg, rgba(31,223,103,.10) 0%, rgba(7,8,7,.86) 100%)}',
-    '.tmw-fm-name{position:absolute; left:13px; bottom:11px; z-index:1; font-family:var(--serif,"Fraunces",Georgia,serif); font-weight:600; font-size:17px; letter-spacing:-.01em; color:#fff; text-shadow:0 2px 12px rgba(0,0,0,.65)}',
-    // mobile: Focus Markets is a full-width accordion inside the burger drawer
+    '.tmw-fm-name{position:absolute; left:14px; bottom:11px; z-index:1; font-family:var(--serif,"Fraunces",Georgia,serif); font-weight:600; font-size:17px; letter-spacing:-.01em; color:#fff; text-shadow:0 2px 12px rgba(0,0,0,.65)}',
+    // mobile: Focus Markets is a full-width accordion inside the burger drawer —
+    // one column of thin rows. Gradient is a full L→R wash so no bright corners.
     '@media(max-width:980px){.tmw-fm{display:block; width:100%}',
     '.tmw-fm-trigger{width:100%; justify-content:space-between; padding:14px 2px; border-bottom:1px solid rgba(255,255,255,.08); font-size:12.5px}',
-    '.tmw-fm-panel{position:static; transform:none; width:auto; grid-template-columns:repeat(2,1fr); gap:9px; padding:12px 0 6px; background:transparent; border:0; box-shadow:none; opacity:1; pointer-events:auto; display:none; visibility:visible}',
-    // override the desktop open/hover transform (translateX(-50%)) which would
-    // otherwise shove the static panel off-screen left inside the drawer
+    '.tmw-fm-trigger::after{display:none}',
+    '.tmw-fm-panel{position:static; top:auto; transform:none; width:auto; grid-template-columns:1fr; gap:8px; padding:10px 0 4px; background:transparent; -webkit-backdrop-filter:none; backdrop-filter:none; border:0; border-radius:0; box-shadow:none; opacity:1; pointer-events:auto; display:none; visibility:visible}',
     '.tmw-fm.open .tmw-fm-panel, .tmw-fm:hover .tmw-fm-panel{display:none; transform:none; left:auto}',
     '.tmw-fm.open .tmw-fm-panel{display:grid; transform:none; left:auto}',
-    '.tmw-fm-name{font-size:15px}}'
+    '.tmw-fm-tile{aspect-ratio:auto; height:58px; border-radius:12px}',
+    '.tmw-fm-tile::after{background:linear-gradient(90deg, rgba(7,8,7,.92) 0%, rgba(7,8,7,.55) 52%, rgba(7,8,7,.66) 100%)}',
+    '.tmw-fm-tile:hover::after{background:linear-gradient(90deg, rgba(31,223,103,.14) 0%, rgba(7,8,7,.6) 60%, rgba(7,8,7,.66) 100%)}',
+    '.tmw-fm-name{font-size:15px; left:16px; bottom:auto; top:50%; transform:translateY(-50%)}}'
   ].join('');
 
   function mount() {
@@ -242,6 +260,38 @@
     buildFocusMarkets();
     wireBurgers();
     swapToInstagram();
+    setupFmPanel();
+  }
+
+  // Stretch the desktop Focus Markets mega-panel to the full viewport width.
+  // It's position:absolute inside the trigger (the header's backdrop-filter
+  // makes position:fixed resolve against the header, not the viewport), so we
+  // offset its left edge back to x=0 and set its width to the viewport.
+  function setupFmPanel() {
+    function pos() {
+      var fms = document.querySelectorAll('.tmw-fm');
+      var vw = document.documentElement.clientWidth;
+      for (var i = 0; i < fms.length; i++) {
+        var panel = fms[i].querySelector('.tmw-fm-panel');
+        if (!panel) continue;
+        if (vw > 980) {
+          panel.style.left = (-Math.round(fms[i].getBoundingClientRect().left)) + 'px';
+          panel.style.width = vw + 'px';
+        } else {
+          panel.style.left = '';
+          panel.style.width = '';
+        }
+      }
+    }
+    pos();
+    window.addEventListener('resize', pos);
+    // Recompute right before it opens, in case layout shifted since load.
+    document.querySelectorAll('.tmw-fm-trigger').forEach(function (t) {
+      t.addEventListener('mouseenter', pos);
+      t.addEventListener('click', pos);
+    });
+    var p = document.querySelector('.tmw-fm');
+    if (p) p.addEventListener('mouseenter', pos);
   }
 
   // ── Focus Markets ───────────────────────────────────────────────────

@@ -157,8 +157,8 @@ nav.main .wrap{display:flex; align-items:center; justify-content:space-between; 
    regardless of the height="" the embed snippet was pasted with. Targets the
    .tmw-map-embed class baked into the article body, so all current AND future
    articles inherit it automatically. */
-.article-body-content iframe.tmw-map-embed{width:100%; aspect-ratio:auto; height:640px; max-height:80vh; border-radius:14px}
-@media(max-width:760px){.article-body-content iframe.tmw-map-embed{height:480px}}
+.article-body-content iframe.tmw-map-embed{width:100%; aspect-ratio:auto; height:760px; max-height:88vh; border-radius:14px}
+@media(max-width:760px){.article-body-content iframe.tmw-map-embed{height:600px}}
 .article-body-content hr{border:0; height:1px; background:var(--hair); margin:2.4em 0}
 .article-body-content strong{color:var(--white); font-weight:600}
 
