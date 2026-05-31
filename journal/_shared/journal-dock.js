@@ -111,8 +111,15 @@
     '.fc-track,.fc-slide{width:100%; left:0; right:0}',
     '.fc-slide video,.fc-slide img{width:100%; height:100%; object-fit:cover; object-position:center}',
     '.fc-sponsor{display:none !important}',
+
+    // ── Featured-hero vertical tabs — modernized, applied on every page.
+    '.story-card .sc-tabs{padding:5px; gap:4px; background:rgba(9,11,9,.74); border:1px solid rgba(255,255,255,.12); box-shadow:0 22px 50px -18px rgba(0,0,0,.78), inset 0 1px 0 rgba(255,255,255,.06)}',
+    '.story-card .sc-tab{padding:11px 22px; font-size:11.5px; letter-spacing:.16em; color:var(--mute-2); border-radius:999px; transition:background .2s, color .2s, box-shadow .2s, transform .15s}',
+    '.story-card .sc-tab:hover{background:rgba(255,255,255,.06); color:#fff; transform:translateY(-1px)}',
+    '.story-card .sc-tab.on{background:#fff; color:var(--ink); font-weight:700; box-shadow:0 6px 16px -6px rgba(255,255,255,.5)}',
+    '@media(max-width:560px){.story-card .sc-tab{padding:9px 15px; font-size:10.5px; letter-spacing:.12em}}',
     '@media(max-width:980px){.banner-ad{max-height:170px}.featured-carousel{height:151px}}',
-    '@media(max-width:560px){.banner-ad{max-height:150px}.featured-carousel{height:124px}}',
+    '@media(max-width:560px){.banner-ad{max-height:120px}.featured-carousel{height:100px}}',
 
     // ── Hide the public in-page "Edit" toggle on the list/ranking pages.
     '.edit-toggle{display:none !important}',

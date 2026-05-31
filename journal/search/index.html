@@ -95,8 +95,13 @@ main{padding:30px 0 40px}
 .btn{display:inline-flex;align-items:center;gap:9px;font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;
   padding:12px 18px;border-radius:11px;transition:all .2s;cursor:pointer;border:1px solid transparent}
 .btn.primary{background:var(--green);color:var(--ink)}.btn.primary:hover{background:var(--green-soft)}
+.btn.gold{background:var(--gold);color:var(--ink);border:none;animation:goldGlow 2.4s ease-in-out infinite}
+.btn.gold:hover{background:var(--gold-soft);transform:translateY(-1px)}
+@keyframes goldGlow{0%,100%{box-shadow:0 0 0 0 rgba(230,197,116,.5),0 0 18px 0 rgba(230,197,116,.4)}50%{box-shadow:0 0 0 7px rgba(230,197,116,0),0 0 26px 4px rgba(230,197,116,.6)}}
+@media(prefers-reduced-motion:reduce){.btn.gold{animation:none}}
 .btn.ghost{background:transparent;color:var(--cream);border-color:var(--hair-2)}.btn.ghost:hover{border-color:var(--hair-3);color:var(--white)}
 .btn svg{width:15px;height:15px}
+.btn.ghost svg{color:#fff}
 
 /* ── Project result grid ── */
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(248px,1fr));gap:14px}
@@ -154,6 +159,14 @@ main{padding:30px 0 40px}
   .hero-media .scrim{background:linear-gradient(180deg,transparent 50%,rgba(20,23,20,.9))}
   .searchbox input{font-size:19px;height:60px}
   .hdr-links{display:none}
+}
+@media(max-width:560px){
+  .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .pcard-media{height:108px}
+  .pcard-body{padding:10px 11px 12px;gap:4px}
+  .pcard-body h3{font-size:14px;line-height:1.15}
+  .pcard-body .loc{font-size:9.5px}
+  .pcard-body .meta{font-size:9px;padding-top:6px}
 }
 </style>
 </head>
@@ -367,9 +380,9 @@ function heroHtml(p){
       intel+
       byline+
       '<div class="hero-cta">'+
-        '<a class="btn primary" href="'+esc(mapLink(p.Title,true))+'">Learn more'+
-          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg></a>'+
-        (site?'<a class="btn ghost" href="'+esc(site)+'" target="_blank" rel="noopener">Visit site</a>':'')+
+        '<a class="btn gold" href="'+esc(mapLink(p.Title,true))+'">Learn more</a>'+
+        (site?'<a class="btn ghost" href="'+esc(site)+'" target="_blank" rel="noopener">Visit site'+
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg></a>':'')+
       '</div>'+
     '</div>'+
   '</article>';
