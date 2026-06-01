@@ -356,6 +356,19 @@
     setupFmPanel();
     loadAuth();
     linkifyArticle();
+    loadProjectCards();
+  }
+
+  // Render inline project cards (journal ↔ database bridge). Only loads the
+  // renderer when the article actually embeds a project (new card embed or a
+  // legacy map-embed iframe), so non-linked posts pay nothing.
+  function loadProjectCards() {
+    if (!document.querySelector('.tmw-project-card[data-project], iframe.tmw-map-embed')) return;
+    if (document.querySelector('script[src*="project-card.js"]')) return;
+    var s = document.createElement('script');
+    s.src = '/_shared/project-card.js';
+    s.defer = true;
+    document.head.appendChild(s);
   }
 
   // Make bare URLs in an article body clickable. The editor auto-links most, but
