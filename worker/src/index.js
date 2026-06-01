@@ -2666,6 +2666,104 @@ async function handleUpload(req, env, origin) {
   }, {}, env, origin);
 }
 
+// ---------------------------------------------------------------------------
+// Large-file (video) uploads via R2 multipart. A Worker can't accept a 700MB
+// request body, so the browser slices the file into parts and uploads each as
+// its own request; R2 stitches them on complete. The studio drives this for
+// any file too big for the single-shot /admin/upload path.
+//   POST /admin/upload-multipart/create   {filename, contentType, folder}
+//        → { key, uploadId }
+//   PUT  /admin/upload-multipart/part?key=&uploadId=&part=N   body=<chunk>
+//        → { partNumber, etag }
+//   POST /admin/upload-multipart/complete {key, uploadId, parts, filename, contentType, folder, size}
+//        → { ok, key, url, mime_type, size_bytes }
+//   POST /admin/upload-multipart/abort    {key, uploadId}
+// ---------------------------------------------------------------------------
+function buildMediaKey(filename) {
+  const now = new Date();
+  const yyyy = now.getUTCFullYear();
+  const mm = String(now.getUTCMonth() + 1).padStart(2, '0');
+  const rand = crypto.getRandomValues(new Uint8Array(6));
+  const slugHash = [...rand].map(b => b.toString(16).padStart(2, '0')).join('');
+  const safeName = (filename || 'upload')
+    .replace(/[^a-zA-Z0-9._-]+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '').slice(0, 80) || 'upload';
+  return `${yyyy}/${mm}/${slugHash}-${safeName}`;
+}
+
+async function handleMultipartUpload(req, env, origin, action, url) {
+  const authCheck = await requireAdminToken(req, env, origin);
+  if (authCheck) return authCheck;
+  if (!env.MEDIA) return json({ error: 'R2 not configured' }, { status: 500 }, env, origin);
+  if (!env.DB)    return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+
+  try {
+    if (action === 'create') {
+      const b = await req.json();
+      const filename = String(b.filename || 'upload').slice(0, 200);
+      const contentType = String(b.contentType || guessMimeFromName(filename) || 'application/octet-stream');
+      const key = buildMediaKey(filename);
+      const mpu = await env.MEDIA.createMultipartUpload(key, {
+        httpMetadata: { contentType, cacheControl: 'public, max-age=31536000, immutable' },
+        customMetadata: { filename, folder: String(b.folder || '').slice(0, 120) },
+      });
+      return json({ ok: true, key: mpu.key, uploadId: mpu.uploadId, contentType }, {}, env, origin);
+    }
+
+    if (action === 'part') {
+      const key = url.searchParams.get('key');
+      const uploadId = url.searchParams.get('uploadId');
+      const partNumber = parseInt(url.searchParams.get('part'), 10);
+      if (!key || !uploadId || !(partNumber >= 1)) {
+        return json({ error: 'key, uploadId and part are required' }, { status: 400 }, env, origin);
+      }
+      const mpu = env.MEDIA.resumeMultipartUpload(key, uploadId);
+      const uploaded = await mpu.uploadPart(partNumber, await req.arrayBuffer());
+      return json({ ok: true, partNumber: uploaded.partNumber, etag: uploaded.etag }, {}, env, origin);
+    }
+
+    if (action === 'complete') {
+      const b = await req.json();
+      const key = String(b.key || '');
+      const uploadId = String(b.uploadId || '');
+      const parts = Array.isArray(b.parts)
+        ? b.parts.map(p => ({ partNumber: p.partNumber, etag: p.etag })).sort((a, c) => a.partNumber - c.partNumber)
+        : [];
+      if (!key || !uploadId || !parts.length) {
+        return json({ error: 'key, uploadId and parts are required' }, { status: 400 }, env, origin);
+      }
+      const mpu = env.MEDIA.resumeMultipartUpload(key, uploadId);
+      const obj = await mpu.complete(parts);
+      const filename = String(b.filename || key.split('/').pop());
+      const mimeType = String(b.contentType || guessMimeFromName(filename) || 'application/octet-stream');
+      const size = Number(b.size) || (obj && obj.size) || 0;
+      const folder = String(b.folder || '').slice(0, 120);
+      const publicBase = (env.MEDIA_PUBLIC_BASE || '').replace(/\/+$/, '');
+      const mediaUrl = publicBase ? `${publicBase}/${key}` : '';
+      const ts = Math.floor(Date.now() / 1000);
+      try {
+        await env.DB.prepare(`
+          INSERT INTO media (key, filename, mime_type, size_bytes, alt_text, caption, uploaded_by, uploaded_at, url, folder)
+          VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10)
+          ON CONFLICT(key) DO UPDATE SET
+            filename=excluded.filename, mime_type=excluded.mime_type, size_bytes=excluded.size_bytes, url=excluded.url, folder=excluded.folder
+        `).bind(key, filename, mimeType, size, null, null, 'studio', ts, mediaUrl, folder).run();
+      } catch (e) { console.warn('[multipart] R2 ok, D1 index failed:', e.message); }
+      return json({ ok: true, key, url: mediaUrl, filename, mime_type: mimeType, size_bytes: size, uploaded_at: ts }, {}, env, origin);
+    }
+
+    if (action === 'abort') {
+      const b = await req.json().catch(() => ({}));
+      const key = String(b.key || ''); const uploadId = String(b.uploadId || '');
+      if (key && uploadId) { try { await env.MEDIA.resumeMultipartUpload(key, uploadId).abort(); } catch (_) {} }
+      return json({ ok: true }, {}, env, origin);
+    }
+
+    return json({ error: 'unknown multipart action' }, { status: 400 }, env, origin);
+  } catch (e) {
+    return json({ error: 'multipart upload failed', detail: e.message || String(e) }, { status: 500 }, env, origin);
+  }
+}
+
 async function handleMediaList(req, env, origin, url) {
   const authCheck = await requireAdminToken(req, env, origin);
   if (authCheck) return authCheck;
@@ -3355,6 +3453,13 @@ export default {
       // /admin/upload — image upload to R2 (admin-only)
       if (request.method === 'POST' && url.pathname === '/admin/upload') {
         return await handleUpload(request, env, origin);
+      }
+      // /admin/upload-multipart/* — large-file (video) upload via R2 multipart
+      {
+        const m = url.pathname.match(/^\/admin\/upload-multipart\/(create|part|complete|abort)$/);
+        if (m && (request.method === 'POST' || request.method === 'PUT')) {
+          return await handleMultipartUpload(request, env, origin, m[1], url);
+        }
       }
       // /admin/migrate-images — bulk pull Wix CDN URLs into R2 (admin-only)
       if (request.method === 'POST' && url.pathname === '/admin/migrate-images') {

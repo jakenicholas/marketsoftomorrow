@@ -268,30 +268,45 @@ function renderGalleryHTML(g, images, base) {
   const pinRequired = !!g.pin_hash;
   const downloadEnabled = g.download_enabled !== 0;
 
-  // Inline the image list so the page renders in one request.
+  // Split into photos and videos by mime type. The Videos tab only renders when
+  // at least one video is present.
+  const isVid = (im) => (im.mime_type || '').startsWith('video/');
+  const photos = images.filter(im => !isVid(im));
+  const videos = images.filter(isVid);
+
+  const itemJson = (im) => ({
+    key: im.key, caption: im.caption || '', alt: im.alt_text || g.title,
+    filename: im.filename || '', type: isVid(im) ? 'video' : 'image',
+  });
+  // Inline both lists so the page renders in one request.
   const data = JSON.stringify({
-    slug: g.slug,
-    pinRequired,
-    downloadEnabled,
-    images: images.map(im => ({
-      key: im.key, caption: im.caption || '', alt: im.alt_text || g.title,
-      w: im.width || 0, h: im.height || 0, filename: im.filename || '',
-    })),
+    slug: g.slug, pinRequired, downloadEnabled,
+    photos: photos.map(itemJson),
+    videos: videos.map(itemJson),
   }).replace(/</g, '\\u003c');
 
-  const tiles = images.map((im, i) => {
+  const photoTile = (im, i) => {
     // Eager-load the first screenful so thumbnails appear immediately; lazy for
-    // the rest (each tile reserves height via aspect-ratio, so lazy fires on scroll).
+    // the rest. srcset+sizes keeps tiles crisp on Retina without over-fetching.
     const load = i < 8 ? 'eager' : 'lazy';
-    // srcset + sizes so the browser fetches a resolution matched to the tile's
-    // displayed size AND device pixel ratio — tiles are large (~45vw, 2-up), so
-    // a single small width looked soft/blurry on Retina until opened.
     const tp = `${base}/thumb/${keyToPath(im.key)}`;
     const srcset = `${tp}?w=700 700w, ${tp}?w=1100 1100w, ${tp}?w=1500 1500w, ${tp}?w=2000 2000w`;
-    return `<button class="tile" data-i="${i}" aria-label="View photo ${i + 1}">
+    return `<button class="tile" data-set="photo" data-i="${i}" aria-label="View photo ${i + 1}">
       <img loading="${load}" decoding="async" src="${tp}?w=1100" srcset="${srcset}" sizes="(max-width:480px) 92vw, (min-width:2000px) 30vw, 45vw" alt="${esc(im.alt_text || g.title)}">
     </button>`;
-  }).join('');
+  };
+  const videoTile = (im, i) => {
+    // Cropped first-frame preview + play badge. preload=metadata stays light
+    // (Range-served); #t=0.1 nudges the browser to paint an actual frame.
+    const vp = `${base}/v/${keyToPath(im.key)}`;
+    return `<button class="tile vid" data-set="video" data-i="${i}" aria-label="Play video ${i + 1}">
+      <video src="${vp}#t=0.1" preload="metadata" muted playsinline tabindex="-1"></video>
+      <span class="play" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span>
+    </button>`;
+  };
+  const photoTiles = photos.map(photoTile).join('');
+  const videoTiles = videos.map(videoTile).join('');
+  const hasMedia = photos.length + videos.length > 0;
 
   const ogImg = g.cover_key || (images[0] && images[0].key);
 
@@ -343,10 +358,23 @@ ${FONTS}
 .tile{display:block;width:100%;margin:0;padding:0;border:0;border-radius:0;overflow:hidden;cursor:zoom-in;background:var(--panel);position:relative;line-height:0;aspect-ratio:3/2}
 .tile img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .5s cubic-bezier(.22,1,.36,1)}
 .tile:hover img{transform:scale(1.04)}
+/* video tiles — cropped first frame + play badge (same size as photos) */
+.tile.vid video{width:100%;height:100%;object-fit:cover;display:block;background:#000;pointer-events:none}
+.tile .play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
+.tile .play svg{width:54px;height:54px;color:#fff;opacity:.92;filter:drop-shadow(0 2px 12px rgba(0,0,0,.55));transition:transform .25s}
+.tile.vid:hover .play svg{transform:scale(1.1)}
+/* Photos / Videos tabs */
+.gtabs{display:flex;gap:0;padding:30px 0 0}
+.gtab{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:var(--mute);background:none;border:0;border-bottom:2px solid transparent;padding:8px 2px 12px;margin-right:26px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;transition:color .2s,border-color .2s}
+.gtab span{font-size:10px;opacity:.6}
+.gtab:hover{color:var(--cream)}
+.gtab.on{color:#fff;border-color:#fff}
+.masonry.tabpane{padding-top:18px}
 /* lightbox */
 .lb{position:fixed;inset:0;z-index:100;background:rgba(5,6,5,.96);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center}
 .lb.open{display:flex}
 .lb img{max-width:92vw;max-height:84vh;object-fit:contain;border-radius:6px;box-shadow:0 30px 90px rgba(0,0,0,.6)}
+.lb video{max-width:92vw;max-height:84vh;background:#000;box-shadow:0 30px 90px rgba(0,0,0,.6)}
 .lb-cap{position:fixed;left:0;right:0;bottom:22px;text-align:center;font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:var(--mute2);padding:0 20px}
 .lb-x,.lb-prev,.lb-next,.lb-dl{position:fixed;background:rgba(255,255,255,.07);border:1px solid var(--hair2);color:var(--cream);width:46px;height:46px;border-radius:999px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:20px;transition:background .2s}
 .lb-x:hover,.lb-prev:hover,.lb-next:hover,.lb-dl:hover{background:rgba(255,255,255,.16)}
@@ -399,17 +427,25 @@ ${navHTML(base)}
     <div class="gsub-left">
       <a class="back" href="${base}/">&larr;&nbsp;All galleries</a>
       <span class="gmeta">
-        <span>${images.length} photo${images.length === 1 ? '' : 's'}</span>
+        ${photos.length ? `<span>${photos.length} photo${photos.length === 1 ? '' : 's'}</span>` : ''}
+        ${videos.length ? `${photos.length ? '<span class="dot">&bull;</span>' : ''}<span>${videos.length} video${videos.length === 1 ? '' : 's'}</span>` : ''}
         ${pinRequired ? `<span class="dot">&bull;</span><span style="display:inline-flex;align-items:center;gap:6px">${LOCK_SVG} PIN to download</span>` : ''}
       </span>
     </div>
-    ${images.length && downloadEnabled ? `<button class="dl-all" id="dlAll">${DL_ICON}Download all</button>` : ''}
+    ${hasMedia && downloadEnabled ? `<button class="dl-all" id="dlAll">${DL_ICON}Download all</button>` : ''}
   </div>
   <div class="licstrip">
     <div class="lt">Found a frame you love? <b>License it</b> for your website, campaign, or full buyout.</div>
     <a class="btn gold" href="https://www.oftmw.com/media/licensing/">See licensing &amp; rights</a>
   </div>
-  ${images.length ? `<div class="masonry" id="grid">${tiles}</div>` : `<div class="empty2">No photos in this gallery yet.</div>`}
+  ${hasMedia ? `
+    ${videos.length ? `<div class="gtabs" role="tablist">
+      ${photos.length ? `<button class="gtab on" data-tab="photo">Photos <span>${photos.length}</span></button>` : ''}
+      <button class="gtab ${photos.length ? '' : 'on'}" data-tab="video">Videos <span>${videos.length}</span></button>
+    </div>` : ''}
+    ${photos.length ? `<div class="masonry tabpane" data-pane="photo">${photoTiles}</div>` : ''}
+    ${videos.length ? `<div class="masonry tabpane" data-pane="video"${photos.length ? ' hidden' : ''}>${videoTiles}</div>` : ''}
+  ` : `<div class="empty2">No media in this gallery yet.</div>`}
 </div>
 ${footerHTML()}
 
@@ -419,6 +455,7 @@ ${footerHTML()}
   <div class="lb-prev" id="lbPrev" role="button" aria-label="Previous">&#8249;</div>
   <div class="lb-next" id="lbNext" role="button" aria-label="Next">&#8250;</div>
   <img id="lbImg" alt="">
+  <video id="lbVid" controls playsinline preload="auto" style="display:none"></video>
   <div class="lb-cap" id="lbCap"></div>
 </div>
 
@@ -445,44 +482,62 @@ function getToken(){ try{return sessionStorage.getItem(tokenKey)||'';}catch(_){r
 function setToken(t){ try{sessionStorage.setItem(tokenKey,t);}catch(_){} }
 function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),2600); }
 
+const enc=k=>k.split('/').map(encodeURIComponent).join('/');
+function items(set){ return set==='video'?G.videos:G.photos; }
+
+/* ---- Tabs ---- */
+let curSet = G.photos.length ? 'photo' : 'video';
+document.querySelectorAll('.gtab').forEach(b=>b.onclick=()=>{
+  curSet=b.dataset.tab;
+  document.querySelectorAll('.gtab').forEach(x=>x.classList.toggle('on',x===b));
+  document.querySelectorAll('[data-pane]').forEach(p=>p.hidden=(p.dataset.pane!==curSet));
+});
+
 /* ---- Lightbox ---- */
-const lb=document.getElementById('lb'),lbImg=document.getElementById('lbImg'),lbCap=document.getElementById('lbCap');
-let cur=-1;
-function show(i){
-  if(i<0||i>=G.images.length)return; cur=i; const im=G.images[i];
-  lbImg.src=BASE+'/thumb/'+im.key.split('/').map(encodeURIComponent).join('/')+'?w=2200';
-  lbImg.alt=im.alt||''; lbCap.textContent=(im.caption||'')+'  '+(i+1)+' / '+G.images.length;
+const lb=document.getElementById('lb'),lbImg=document.getElementById('lbImg'),lbVid=document.getElementById('lbVid'),lbCap=document.getElementById('lbCap');
+let lbSet='photo',cur=-1;
+function show(set,i){
+  const list=items(set); if(i<0||i>=list.length)return; lbSet=set; cur=i; const im=list[i];
+  if(im.type==='video'){
+    lbImg.style.display='none'; lbImg.removeAttribute('src');
+    lbVid.style.display=''; lbVid.src=BASE+'/v/'+enc(im.key); lbVid.play().catch(()=>{});
+  }else{
+    lbVid.pause(); lbVid.removeAttribute('src'); lbVid.style.display='none';
+    lbImg.style.display=''; lbImg.src=BASE+'/thumb/'+enc(im.key)+'?w=2200'; lbImg.alt=im.alt||'';
+  }
+  lbCap.textContent=(im.caption||'')+'  '+(i+1)+' / '+list.length;
   lb.classList.add('open'); document.body.style.overflow='hidden';
 }
-function close(){ lb.classList.remove('open'); document.body.style.overflow=''; cur=-1; }
-document.getElementById('grid')&&document.getElementById('grid').addEventListener('click',e=>{
-  const t=e.target.closest('.tile'); if(t)show(+t.dataset.i);
+function close(){ lb.classList.remove('open'); document.body.style.overflow=''; cur=-1; lbVid.pause(); lbVid.removeAttribute('src'); }
+function step(d){ const list=items(lbSet); if(list.length)show(lbSet,(cur+d+list.length)%list.length); }
+document.getElementById('photos').addEventListener('click',e=>{
+  const t=e.target.closest('.tile'); if(t)show(t.dataset.set,+t.dataset.i);
 });
 document.getElementById('lbX').onclick=close;
-document.getElementById('lbPrev').onclick=()=>show((cur-1+G.images.length)%G.images.length);
-document.getElementById('lbNext').onclick=()=>show((cur+1)%G.images.length);
+document.getElementById('lbPrev').onclick=()=>step(-1);
+document.getElementById('lbNext').onclick=()=>step(1);
 lb.addEventListener('click',e=>{ if(e.target===lb)close(); });
 addEventListener('keydown',e=>{
   if(!lb.classList.contains('open'))return;
   if(e.key==='Escape')close();
-  if(e.key==='ArrowLeft')show((cur-1+G.images.length)%G.images.length);
-  if(e.key==='ArrowRight')show((cur+1)%G.images.length);
+  if(e.key==='ArrowLeft')step(-1);
+  if(e.key==='ArrowRight')step(1);
 });
-document.getElementById('lbDl').onclick=()=>{ if(cur>=0)requestDownload([G.images[cur]]); };
+document.getElementById('lbDl').onclick=()=>{ if(cur>=0)requestDownload([items(lbSet)[cur]]); };
 
 /* ---- Download + PIN flow ---- */
 let pending=null;
 function dlUrl(im){
   const t=getToken();
-  return BASE+'/dl/'+G.slug+'/'+im.key.split('/').map(encodeURIComponent).join('/')+(t?('?t='+encodeURIComponent(t)):'');
+  return BASE+'/dl/'+G.slug+'/'+enc(im.key)+(t?('?t='+encodeURIComponent(t)):'');
 }
 async function doDownloads(list){
   for(const im of list){
     const a=document.createElement('a'); a.href=dlUrl(im); a.download=im.filename||'';
     document.body.appendChild(a); a.click(); a.remove();
-    await new Promise(r=>setTimeout(r,400)); // stagger so the browser queues each
+    await new Promise(r=>setTimeout(r,500)); // stagger so the browser queues each
   }
-  toast(list.length>1?('Downloading '+list.length+' photos…'):'Downloading…');
+  toast(list.length>1?('Downloading '+list.length+' files…'):'Downloading…');
 }
 async function requestDownload(list){
   if(!G.downloadEnabled){ toast('Downloads are disabled for this gallery'); return; }
@@ -497,7 +552,7 @@ async function requestDownload(list){
   doDownloads(list);
 }
 const dlAllBtn=document.getElementById('dlAll');
-if(dlAllBtn)dlAllBtn.onclick=()=>requestDownload(G.images);
+if(dlAllBtn)dlAllBtn.onclick=()=>requestDownload(items(curSet));
 
 /* ---- PIN modal ---- */
 const modal=document.getElementById('pinModal'),pinInput=document.getElementById('pinInput'),pinErr=document.getElementById('pinErr');
@@ -513,7 +568,7 @@ async function submitPin(){
   try{
     const r=await fetch(BASE+'/api/gallery/'+G.slug+'/pin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pin})});
     const j=await r.json();
-    if(r.ok&&j.token){ setToken(j.token); closePin(); const list=pending||G.images; pending=null; doDownloads(list); }
+    if(r.ok&&j.token){ setToken(j.token); closePin(); const list=pending||items(curSet); pending=null; doDownloads(list); }
     else{ pinErr.textContent=j.error==='wrong_pin'?'Incorrect PIN — try again':'Could not verify PIN'; }
   }catch(_){ pinErr.textContent='Network error — try again'; }
 }
@@ -784,6 +839,15 @@ export async function handleGallery(request, env, url, origin, deps) {
     const m = path.match(/^\/thumb\/(.+)$/);
     if (m && (method === 'GET' || method === 'HEAD')) {
       return serveThumb(request, env, decodeURIComponent(m[1]), url, deps);
+    }
+  }
+  {
+    // /v/<key> — stream a video for in-gallery playback (Range-aware via
+    // handleMediaServe, so seeking works). Viewing is open like thumbnails;
+    // the explicit download stays PIN-gated through /dl.
+    const m = path.match(/^\/v\/(.+)$/);
+    if (m && (method === 'GET' || method === 'HEAD')) {
+      return deps.handleMediaServe(request, env, decodeURIComponent(m[1]));
     }
   }
   {
