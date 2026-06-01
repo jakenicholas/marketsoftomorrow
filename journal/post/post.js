@@ -431,13 +431,21 @@ function upgradeBodyImages(root) {
 // and keeps the counter in sync as the user scrolls.
 function hookGalleries(root) {
   root.querySelectorAll('.tmw-gallery').forEach(g => {
-    const track   = g.querySelector('.tmw-gallery-track');
-    const prev    = g.querySelector('.tmw-gallery-arrow.prev');
-    const next    = g.querySelector('.tmw-gallery-arrow.next');
-    const counter = g.querySelector('.tmw-gallery-counter');
+    const track = g.querySelector('.tmw-gallery-track');
     if (!track) return;
     const slides = [...track.children];
     if (!slides.length) return;
+    // Inject prev/next arrows + "1 / N" counter when the markup didn't include
+    // them (studio-created galleries emit just the track; Wix imports ship the
+    // controls). Single-slide galleries get none.
+    let prev = g.querySelector('.tmw-gallery-arrow.prev');
+    let next = g.querySelector('.tmw-gallery-arrow.next');
+    let counter = g.querySelector('.tmw-gallery-counter');
+    if (slides.length > 1) {
+      if (!prev) { prev = document.createElement('button'); prev.className = 'tmw-gallery-arrow prev'; prev.setAttribute('aria-label', 'Previous'); prev.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>'; g.appendChild(prev); }
+      if (!next) { next = document.createElement('button'); next.className = 'tmw-gallery-arrow next'; next.setAttribute('aria-label', 'Next'); next.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>'; g.appendChild(next); }
+      if (!counter) { counter = document.createElement('div'); counter.className = 'tmw-gallery-counter'; g.appendChild(counter); }
+    }
     const sync = () => {
       const i = Math.min(slides.length - 1, Math.max(0, Math.round(track.scrollLeft / track.clientWidth)));
       if (counter) counter.textContent = (i + 1) + ' / ' + slides.length;
