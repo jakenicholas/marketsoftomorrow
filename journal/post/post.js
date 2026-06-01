@@ -34,6 +34,7 @@ document.getElementById('yr').textContent = new Date().getFullYear();
     const bodyEl = document.getElementById('article-body-content');
     if (bodyEl) { try { upgradeBodyImages(bodyEl); hookGalleries(bodyEl); } catch (e) {} }
     try { loadReadNext(post, post.slug); } catch (e) {}
+    trackView(post.slug);
     return;
   }
   // URLSearchParams decodes ONCE, but some inbound URLs are double-
@@ -46,7 +47,21 @@ document.getElementById('yr').textContent = new Date().getFullYear();
   }
   if (!slug) return renderArticleEmpty('No article specified', 'Add ?slug=&lt;post-slug&gt; to the URL.', null);
   await loadArticle(slug);
+  trackView(slug);
 })();
+
+// First-party view counter — one beacon per page load to the worker. Skips
+// headless/bot agents; the worker also validates the slug + filters bots, and
+// only counts real posts. Fire-and-forget so it never blocks the page.
+function trackView(slug) {
+  if (!slug) return;
+  try {
+    if (navigator.webdriver) return;
+    const payload = JSON.stringify({ slug: String(slug) });
+    if (navigator.sendBeacon) navigator.sendBeacon(WORKER_URL + '/view', payload);
+    else fetch(WORKER_URL + '/view', { method: 'POST', body: payload, keepalive: true, headers: { 'Content-Type': 'text/plain' } });
+  } catch (e) {}
+}
 
 // ===================================================================
 // LOAD POST — worker /post/:slug first, RSS fallback if that fails

@@ -3029,6 +3029,71 @@ function constantTimeEqual(a, b) {
 }
 
 // ---------------------------------------------------------------------------
+// First-party post view counter — a number we fully own (no GA undercount,
+// no Wix black box). The journal post page beacons POST /view {slug} once per
+// load; we validate the slug is a real post + filter obvious bots, then bump a
+// per-slug counter in D1. GET /post-views returns the full {slug: count} map
+// for the studio's Posts column. Both are public (view counts aren't sensitive).
+// ---------------------------------------------------------------------------
+const POST_SLUG_RE = /^[a-z0-9][a-z0-9-]{1,160}$/;
+const VIEW_BOT_RE  = /bot|crawl|spider|slurp|facebookexternalhit|bingpreview|preview|headless|lighthouse|pingdom|monitor|curl|wget|python-requests|axios|node-fetch/i;
+
+async function ensurePostViewsTable(env) {
+  await env.DB.prepare(
+    'CREATE TABLE IF NOT EXISTS post_views (slug TEXT PRIMARY KEY, views INTEGER NOT NULL DEFAULT 0, updated_at INTEGER)'
+  ).run();
+}
+
+async function handlePostView(req, env, origin) {
+  // Always 204 (a beacon ignores the body); failures are silent so a bad
+  // request never costs the visitor anything.
+  const ok = () => new Response(null, { status: 204, headers: corsHeaders(env, origin) });
+  if (!env.DB) return ok();
+
+  const ua = (req.headers.get('User-Agent') || '');
+  if (!ua || VIEW_BOT_RE.test(ua)) return ok();
+
+  let slug = '';
+  try {
+    const txt = await req.text();
+    if (txt) { try { slug = (JSON.parse(txt).slug || '').toString(); } catch (_) { slug = ''; } }
+  } catch (_) {}
+  slug = slug.trim().toLowerCase();
+  if (!POST_SLUG_RE.test(slug)) return ok();
+
+  try {
+    await ensurePostViewsTable(env);
+    // Only count real posts so the table stays clean + un-inflatable by junk slugs.
+    const exists = await env.DB.prepare('SELECT 1 FROM posts WHERE slug = ?1 LIMIT 1').bind(slug).first();
+    if (exists) {
+      const now = Math.floor(Date.now() / 1000);
+      await env.DB.prepare(
+        'INSERT INTO post_views (slug, views, updated_at) VALUES (?1, 1, ?2) ' +
+        'ON CONFLICT(slug) DO UPDATE SET views = views + 1, updated_at = ?2'
+      ).bind(slug, now).run();
+    }
+  } catch (_) {}
+  return ok();
+}
+
+async function handlePostViews(env, origin) {
+  if (!env.DB) return json({ views: {} }, {}, env, origin);
+  try {
+    await ensurePostViewsTable(env);
+    const rows = await env.DB.prepare('SELECT slug, views FROM post_views').all();
+    const views = {};
+    for (const r of (rows.results || [])) views[r.slug] = r.views;
+    return json(
+      { views, count: Object.keys(views).length },
+      { headers: { 'Cache-Control': 'public, max-age=15, s-maxage=30' } },
+      env, origin,
+    );
+  } catch (e) {
+    return json({ views: {}, error: String(e && e.message || e) }, {}, env, origin);
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Main fetch handler
 // ---------------------------------------------------------------------------
 
@@ -3071,6 +3136,13 @@ export default {
       }
       if (request.method === 'POST' && url.pathname === '/event') {
         return await handleEventIngest(request, env, origin);
+      }
+      // First-party post view counter (public): beacon in, count map out.
+      if (request.method === 'POST' && url.pathname === '/view') {
+        return await handlePostView(request, env, origin);
+      }
+      if (request.method === 'GET' && url.pathname === '/post-views') {
+        return await handlePostViews(env, origin);
       }
       if (request.method === 'GET' && url.pathname === '/people') {
         return await handlePeople(env, origin, url);
