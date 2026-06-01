@@ -355,6 +355,38 @@
     swapToInstagram();
     setupFmPanel();
     loadAuth();
+    linkifyArticle();
+  }
+
+  // Make bare URLs in an article body clickable. The editor auto-links most, but
+  // a URL pasted with no trailing space (common at the very end of an article)
+  // stays plain text — and existing posts may have bare URLs too. Wrap any
+  // http(s) URL that isn't already inside a link / code block.
+  function linkifyArticle() {
+    var root = document.querySelector('.article-body-content');
+    if (!root) return;
+    var URL_RE = /(https?:\/\/[^\s<>"'`)\]}]+[^\s<>"'`)\]}.,;:!?])/g;
+    var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
+    var targets = [], n;
+    while ((n = walker.nextNode())) {
+      if (!n.nodeValue || n.nodeValue.indexOf('http') === -1) continue;
+      if (n.parentNode && n.parentNode.closest && n.parentNode.closest('a, code, pre')) continue;
+      URL_RE.lastIndex = 0;
+      if (URL_RE.test(n.nodeValue)) targets.push(n);
+    }
+    targets.forEach(function (node) {
+      var text = node.nodeValue, frag = document.createDocumentFragment(), last = 0, m;
+      URL_RE.lastIndex = 0;
+      while ((m = URL_RE.exec(text))) {
+        if (m.index > last) frag.appendChild(document.createTextNode(text.slice(last, m.index)));
+        var a = document.createElement('a');
+        a.href = m[0]; a.target = '_blank'; a.rel = 'noopener'; a.textContent = m[0];
+        frag.appendChild(a);
+        last = m.index + m[0].length;
+      }
+      if (last < text.length) frag.appendChild(document.createTextNode(text.slice(last)));
+      node.parentNode.replaceChild(frag, node);
+    });
   }
 
   // Load the shared auth cluster (Instagram + profile/Join) on EVERY journal
