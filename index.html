@@ -15035,9 +15035,11 @@
       renderTMWCities();
       if (!hasLocal) container.classList.add('hidden');
 
-      // Fire geocoding in parallel -- broader place results get appended
-      // to the Places section below TMW cities.
-      if (query.length >= 3) {
+      // Broader-places autocomplete geocoding DISABLED to cut Mapbox Geocoding
+      // cost — search now surfaces local TMW projects + cities only. (Typing a
+      // place name and submitting still flies there via geocodeAndFly, which is
+      // a single deliberate request, not a per-keystroke one.)
+      if (false && query.length >= 3) {
         geocodeSuggest(query).then(geoFeatures => {
           const broadTypes = ['country', 'region', 'district', 'place', 'locality'];
           const localCityNames = twmCities.map(([c]) => c.toLowerCase());
@@ -16653,38 +16655,16 @@
           // ‚îÄ‚îÄ Build city‚Üístate map via Mapbox reverse geocoding ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
           // One API call per unique city using a representative coordinate.
           // Results cached in window.cityStateMap for autocomplete labels.
+          // Load a PRECOMPUTED city->state map (cityStateMap.json) instead of
+          // reverse-geocoding ~111 cities on EVERY visit. That per-visit geocoding
+          // was ~450k Mapbox requests/month (the entire bill); this is one cached
+          // static fetch and zero geocoding. Regenerate the JSON if the cities change.
           (async () => {
             window.cityStateMap = window.cityStateMap || {};
-            const token = mapboxgl.accessToken;
-            // Collect one coordinate per city not yet cached
-            const cityCoords = {};
-            allProjectFeatures.forEach(f => {
-              const city = f.properties.city;
-              if (city && !window.cityStateMap[city] && !cityCoords[city]) {
-                cityCoords[city] = f.geometry.coordinates; // [lng, lat]
-              }
-            });
-            const entries = Object.entries(cityCoords);
-            if (!entries.length) return;
-            // Batch with a small delay between calls to avoid rate limits
-            for (const [city, [lng, lat]] of entries) {
-              try {
-                const res = await fetch(
-                  `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?types=region&access_token=${token}`
-                );
-                const data = await res.json();
-                const region = data.features?.[0];
-                if (region) {
-                  // Use short code like "FL", "NY", "TX" ‚Äî strip country prefix
-                  const code = region.properties?.short_code || '';
-                  const state = code.replace(/^US-/i, '').toUpperCase();
-                  window.cityStateMap[city] = state || region.text || '';
-                }
-              } catch (e) {
-                // Silently skip on error ‚Äî label will just show city name
-              }
-              await new Promise(r => setTimeout(r, 50)); // 50ms between calls
-            }
+            try {
+              const res = await fetch('/cityStateMap.json', { cache: 'force-cache' });
+              if (res.ok) Object.assign(window.cityStateMap, await res.json());
+            } catch (e) { /* labels just fall back to the city name */ }
           })();
 
           let updateTimeout;
