@@ -59,6 +59,20 @@ async function ensureGalleryTables(env) {
     )
   `).run();
   await env.DB.prepare(`CREATE INDEX IF NOT EXISTS idx_gallery_images_slug ON gallery_images(gallery_slug, sort_order)`).run();
+  // Lead capture: one row each time a visitor unlocks downloads with their email.
+  await env.DB.prepare(`
+    CREATE TABLE IF NOT EXISTS gallery_downloads (
+      id            INTEGER PRIMARY KEY AUTOINCREMENT,
+      email         TEXT NOT NULL,
+      gallery_slug  TEXT NOT NULL,
+      gallery_title TEXT,
+      created_at    INTEGER NOT NULL,
+      user_agent    TEXT,
+      country       TEXT
+    )
+  `).run();
+  await env.DB.prepare(`CREATE INDEX IF NOT EXISTS idx_gdl_created ON gallery_downloads(created_at DESC)`).run();
+  await env.DB.prepare(`CREATE INDEX IF NOT EXISTS idx_gdl_slug ON gallery_downloads(gallery_slug, created_at DESC)`).run();
   _galleryTablesReady = true;
 }
 
@@ -96,14 +110,18 @@ function htmlResponse(html, init = {}) {
 // Normalize the media key so it round-trips cleanly through path segments.
 function keyToPath(key) { return key.split('/').map(encodeURIComponent).join('/'); }
 
-// ── PIN tokens — a short signed grant that the download route checks ─────────
-async function mintPinToken(slug, deps, env) {
-  return deps.signPayload({ g: slug, s: 'dl', exp: nowSec() + 86400 }, pinSecret(env));
+// ── Download tokens — a short signed grant (carries the captured email) that
+//    the /dl route checks. Minted by /unlock after email (+ PIN) is provided. ─
+async function mintDlToken(slug, email, deps, env) {
+  return deps.signPayload({ g: slug, s: 'dl', e: email || '', exp: nowSec() + 86400 }, pinSecret(env));
 }
-async function pinTokenValid(token, slug, deps, env) {
+async function dlTokenValid(token, slug, deps, env) {
   if (!token) return false;
   const obj = await deps.verifyPayload(token, pinSecret(env));
   return !!(obj && obj.s === 'dl' && obj.g === slug);
+}
+function validEmail(e) {
+  return typeof e === 'string' && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e) && e.length <= 200;
 }
 
 // ── data access ─────────────────────────────────────────────────────────────
@@ -390,6 +408,7 @@ ${FONTS}
 .modal-card h3{font-size:24px;margin-bottom:8px}
 .modal-card p{color:var(--mute2);font-size:14px;margin-bottom:20px}
 .modal-card input{width:100%;text-align:center;font-family:var(--mono);font-size:22px;letter-spacing:.3em;padding:14px;border-radius:12px;border:1px solid var(--hair2);background:var(--ink);color:#fff;outline:none}
+.modal-card input.email{font-family:var(--sans);font-size:15px;letter-spacing:.01em}
 .modal-card input:focus{border-color:var(--green)}
 .modal-card .err{color:#ff6b6b;font-size:12.5px;font-family:var(--mono);min-height:18px;margin-top:10px}
 .modal-card .row{display:flex;gap:10px;margin-top:16px}
@@ -459,16 +478,17 @@ ${footerHTML()}
   <div class="lb-cap" id="lbCap"></div>
 </div>
 
-<div class="modal" id="pinModal">
+<div class="modal" id="dlModal">
   <div class="modal-card">
-    <span class="eyebrow">Protected download</span>
-    <h3>Enter the gallery PIN</h3>
-    <p>This gallery's downloads are PIN-protected. Enter the PIN shared with you to unlock full-resolution files.</p>
-    <input id="pinInput" inputmode="numeric" autocomplete="off" placeholder="••••" maxlength="12">
-    <div class="err" id="pinErr"></div>
+    <span class="eyebrow">Download</span>
+    <h3>Enter your email to download</h3>
+    <p>Add your email to download${pinRequired ? ', plus the gallery PIN shared with you' : ''}. We'll remember it on this device.</p>
+    <input id="emailInput" class="email" type="email" inputmode="email" autocomplete="email" placeholder="you@email.com">
+    ${pinRequired ? `<input id="pinInput" inputmode="numeric" autocomplete="off" placeholder="Gallery PIN" maxlength="12" style="margin-top:10px">` : ''}
+    <div class="err" id="dlErr"></div>
     <div class="row">
-      <button class="btn" id="pinCancel">Cancel</button>
-      <button class="btn primary" id="pinGo">Unlock</button>
+      <button class="btn" id="dlCancel">Cancel</button>
+      <button class="btn primary" id="dlGo">Download</button>
     </div>
   </div>
 </div>
@@ -525,7 +545,10 @@ addEventListener('keydown',e=>{
 });
 document.getElementById('lbDl').onclick=()=>{ if(cur>=0)requestDownload([items(lbSet)[cur]]); };
 
-/* ---- Download + PIN flow ---- */
+/* ---- Download + email/PIN flow ---- */
+const emailKey='tmw_gemail';
+function getEmail(){ try{return localStorage.getItem(emailKey)||'';}catch(_){return '';} }
+function setEmail(v){ try{localStorage.setItem(emailKey,v);}catch(_){} }
 let pending=null;
 function dlUrl(im){
   const t=getToken();
@@ -539,38 +562,41 @@ async function doDownloads(list){
   }
   toast(list.length>1?('Downloading '+list.length+' files…'):'Downloading…');
 }
+async function tokenStillValid(im){
+  try{ const probe=await fetch(dlUrl(im),{method:'HEAD'}); return probe.status!==401; }catch(_){ return true; }
+}
 async function requestDownload(list){
   if(!G.downloadEnabled){ toast('Downloads are disabled for this gallery'); return; }
-  if(G.pinRequired && !getToken()){ pending=list; openPin(); return; }
-  // verify token still valid by attempting; if 401, prompt
-  if(G.pinRequired){
-    try{
-      const probe=await fetch(dlUrl(list[0]),{method:'HEAD'});
-      if(probe.status===401){ pending=list; openPin(); return; }
-    }catch(_){}
-  }
-  doDownloads(list);
+  if(!list||!list.length)return;
+  if(getToken() && await tokenStillValid(list[0])){ doDownloads(list); return; }
+  pending=list; openDl();
 }
 const dlAllBtn=document.getElementById('dlAll');
 if(dlAllBtn)dlAllBtn.onclick=()=>requestDownload(items(curSet));
 
-/* ---- PIN modal ---- */
-const modal=document.getElementById('pinModal'),pinInput=document.getElementById('pinInput'),pinErr=document.getElementById('pinErr');
-function openPin(){ pinErr.textContent=''; pinInput.value=''; modal.classList.add('open'); setTimeout(()=>pinInput.focus(),50); }
-function closePin(){ modal.classList.remove('open'); }
-document.getElementById('pinCancel').onclick=closePin;
-modal.addEventListener('click',e=>{ if(e.target===modal)closePin(); });
-pinInput.addEventListener('keydown',e=>{ if(e.key==='Enter')submitPin(); });
-document.getElementById('pinGo').onclick=submitPin;
-async function submitPin(){
-  const pin=pinInput.value.trim(); if(!pin){pinErr.textContent='Enter the PIN';return;}
-  pinErr.textContent='Checking…';
+/* ---- Download modal: email (always) + PIN (when required) ---- */
+const modal=document.getElementById('dlModal'),emailInput=document.getElementById('emailInput'),pinInput=document.getElementById('pinInput'),dlErr=document.getElementById('dlErr');
+function openDl(){ dlErr.textContent=''; emailInput.value=getEmail(); if(pinInput)pinInput.value=''; modal.classList.add('open'); setTimeout(()=>{ ((getEmail()&&pinInput)?pinInput:emailInput).focus(); },50); }
+function closeDl(){ modal.classList.remove('open'); }
+document.getElementById('dlCancel').onclick=closeDl;
+modal.addEventListener('click',e=>{ if(e.target===modal)closeDl(); });
+function onEnter(e){ if(e.key==='Enter')submitDl(); }
+emailInput.addEventListener('keydown',onEnter); if(pinInput)pinInput.addEventListener('keydown',onEnter);
+document.getElementById('dlGo').onclick=submitDl;
+async function submitDl(){
+  const email=emailInput.value.trim();
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ dlErr.textContent='Enter a valid email'; emailInput.focus(); return; }
+  const pin=pinInput?pinInput.value.trim():'';
+  if(G.pinRequired && !pin){ dlErr.textContent='Enter the gallery PIN'; pinInput.focus(); return; }
+  dlErr.textContent='Checking…';
   try{
-    const r=await fetch(BASE+'/api/gallery/'+G.slug+'/pin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pin})});
+    const r=await fetch(BASE+'/api/gallery/'+G.slug+'/unlock',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,pin})});
     const j=await r.json();
-    if(r.ok&&j.token){ setToken(j.token); closePin(); const list=pending||items(curSet); pending=null; doDownloads(list); }
-    else{ pinErr.textContent=j.error==='wrong_pin'?'Incorrect PIN — try again':'Could not verify PIN'; }
-  }catch(_){ pinErr.textContent='Network error — try again'; }
+    if(r.ok&&j.token){ setToken(j.token); setEmail(email); closeDl(); const list=pending||items(curSet); pending=null; doDownloads(list); }
+    else if(j.error==='wrong_pin'){ dlErr.textContent='Incorrect PIN — try again'; }
+    else if(j.error==='bad_email'){ dlErr.textContent='Enter a valid email'; }
+    else{ dlErr.textContent='Could not verify — try again'; }
+  }catch(_){ dlErr.textContent='Network error — try again'; }
 }
 </script>
 </body></html>`;
@@ -580,17 +606,36 @@ async function submitPin(){
 // PUBLIC API + ASSET ROUTES
 // ===========================================================================
 
-async function apiVerifyPin(request, env, slug, deps, origin) {
+// POST /api/gallery/<slug>/unlock {email, pin} — capture the visitor's email
+// (required for every download), verify the PIN when the gallery has one, log
+// the lead, and mint a download token.
+async function apiUnlock(request, env, slug, deps, origin) {
   const g = await getGallery(env, slug);
   if (!g) return deps.json({ error: 'not_found' }, { status: 404 }, env, origin);
-  if (!g.pin_hash) return deps.json({ ok: true, token: await mintPinToken(slug, deps, env) }, {}, env, origin);
   let body;
   try { body = await request.json(); } catch { return deps.json({ error: 'bad_request' }, { status: 400 }, env, origin); }
-  const pin = String(body.pin || '').trim();
-  if (!pin) return deps.json({ error: 'bad_request' }, { status: 400 }, env, origin);
-  const h = await hashPin(pin, slug);
-  if (h !== g.pin_hash) return deps.json({ error: 'wrong_pin' }, { status: 403 }, env, origin);
-  return deps.json({ ok: true, token: await mintPinToken(slug, deps, env) }, {}, env, origin);
+  const email = String(body.email || '').trim().toLowerCase();
+  if (!validEmail(email)) return deps.json({ error: 'bad_email' }, { status: 400 }, env, origin);
+
+  if (g.pin_hash) {
+    const pin = String(body.pin || '').trim();
+    if (!pin) return deps.json({ error: 'pin_required' }, { status: 403 }, env, origin);
+    const h = await hashPin(pin, slug);
+    if (h !== g.pin_hash) return deps.json({ error: 'wrong_pin' }, { status: 403 }, env, origin);
+  }
+
+  // Log the lead (best-effort; never block the download on a logging failure).
+  try {
+    await env.DB.prepare(
+      'INSERT INTO gallery_downloads (email, gallery_slug, gallery_title, created_at, user_agent, country) VALUES (?1,?2,?3,?4,?5,?6)'
+    ).bind(
+      email, slug, g.title || null, nowSec(),
+      (request.headers.get('user-agent') || '').slice(0, 300),
+      request.headers.get('cf-ipcountry') || null,
+    ).run();
+  } catch (e) { console.warn('[gallery] download log failed:', e.message); }
+
+  return deps.json({ ok: true, token: await mintDlToken(slug, email, deps, env) }, {}, env, origin);
 }
 
 // /thumb/<key>?w=&q= — resized via Cloudflare image transforms; if the zone
@@ -613,7 +658,8 @@ async function serveThumb(request, env, key, url, deps) {
   return deps.handleMediaServe(request, env, key);
 }
 
-// /dl/<slug>/<key> — PIN-gated original download (Content-Disposition attachment)
+// /dl/<slug>/<key> — original download (Content-Disposition attachment), gated
+// by the download token from /unlock — so every download has a captured email.
 async function serveDownload(request, env, slug, key, url, deps, origin) {
   const g = await getGallery(env, slug);
   if (!g) return new Response('not found', { status: 404 });
@@ -623,11 +669,10 @@ async function serveDownload(request, env, slug, key, url, deps, origin) {
     .bind(slug, key).first();
   if (!member) return new Response('not found', { status: 404 });
 
-  if (g.pin_hash) {
-    const token = url.searchParams.get('t') || (request.headers.get('Authorization') || '').replace(/^Bearer\s+/i, '');
-    if (!(await pinTokenValid(token, slug, deps, env))) {
-      return deps.json({ error: 'pin_required' }, { status: 401 }, env, origin);
-    }
+  // Email gate: a valid /unlock token is required for ALL downloads now.
+  const token = url.searchParams.get('t') || (request.headers.get('Authorization') || '').replace(/^Bearer\s+/i, '');
+  if (!(await dlTokenValid(token, slug, deps, env))) {
+    return deps.json({ error: 'email_required' }, { status: 401 }, env, origin);
   }
 
   if (!env.MEDIA) return new Response('media not configured', { status: 500 });
@@ -649,6 +694,23 @@ async function serveDownload(request, env, slug, key, url, deps, origin) {
 // ===========================================================================
 // ADMIN ROUTES (token-gated; called by the Studio gallery manager)
 // ===========================================================================
+
+// GET /admin/gallery-downloads?slug=&q=&limit= — download/lead history
+async function adminListDownloads(request, env, url, deps, origin) {
+  const slug = (url.searchParams.get('slug') || '').trim();
+  const q = (url.searchParams.get('q') || '').trim();
+  const limit = clampI(url.searchParams.get('limit'), 200, 1, 1000);
+  const where = []; const params = [];
+  if (slug) { where.push(`gallery_slug = ?${params.length + 1}`); params.push(slug); }
+  if (q)    { where.push(`(email LIKE ?${params.length + 1} OR gallery_title LIKE ?${params.length + 1})`); params.push('%' + q + '%'); }
+  const whereSql = where.length ? 'WHERE ' + where.join(' AND ') : '';
+  const total = await env.DB.prepare(`SELECT COUNT(*) c FROM gallery_downloads ${whereSql}`).bind(...params).first();
+  const rows = await env.DB.prepare(`
+    SELECT id, email, gallery_slug, gallery_title, created_at, user_agent, country
+    FROM gallery_downloads ${whereSql} ORDER BY created_at DESC LIMIT ${limit}
+  `).bind(...params).all();
+  return deps.json({ items: rows.results || [], total: total ? total.c : 0 }, {}, env, origin);
+}
 
 async function adminListGalleries(request, env, deps, origin) {
   const r = await env.DB.prepare(`
@@ -790,6 +852,11 @@ export async function handleGallery(request, env, url, origin, deps) {
     if (method === 'GET')  return adminListGalleries(request, env, deps, origin);
     if (method === 'POST') return adminCreateOrUpdate(request, env, deps, origin, null);
   }
+  if (path === '/admin/gallery-downloads' && method === 'GET') {
+    const denied = await deps.requireAdminToken(request, env, origin);
+    if (denied) return denied;
+    return adminListDownloads(request, env, url, deps, origin);
+  }
   {
     const m = path.match(/^\/admin\/galleries\/([a-z0-9-]+)\/images\/?$/);
     if (m && method === 'POST') {
@@ -830,8 +897,8 @@ export async function handleGallery(request, env, url, origin, deps) {
     return deps.json({ items }, {}, env, origin);
   }
   {
-    const m = path.match(/^\/api\/gallery\/([a-z0-9-]+)\/pin\/?$/);
-    if (m && method === 'POST') return apiVerifyPin(request, env, m[1], deps, origin);
+    const m = path.match(/^\/api\/gallery\/([a-z0-9-]+)\/(unlock|pin)\/?$/);
+    if (m && method === 'POST') return apiUnlock(request, env, m[1], deps, origin);
   }
 
   // ---- Assets ----
