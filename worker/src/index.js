@@ -1879,11 +1879,13 @@ async function handlePostsUpdate(req, env, origin, id) {
   if ('tags'       in body) patch.tags       = JSON.stringify(asStringArray(body.tags));
   if ('featured'   in body) patch.featured   = body.featured ? 1 : 0;
   if ('main_category' in body) patch.main_category = body.main_category ? String(body.main_category) : null;
+  if ('published_at'  in body) patch.published_at  = body.published_at ? Number(body.published_at) : null;
   if ('slug'       in body && body.slug && body.slug !== existing.slug) {
     patch.slug = await ensureUniqueSlug(env, slugify(body.slug), id);
   }
-  // Publishing now? Set published_at if going draft→published.
-  if (patch.status === 'published' && existing.status !== 'published' && !existing.published_at) {
+  // Publishing now? Set published_at if going draft→published (unless the
+  // editor supplied an explicit date in this request).
+  if (patch.status === 'published' && existing.status !== 'published' && !existing.published_at && !('published_at' in body)) {
     patch.published_at = Math.floor(Date.now() / 1000);
   }
   if ('body_html' in patch) {

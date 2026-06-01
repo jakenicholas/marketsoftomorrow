@@ -320,7 +320,8 @@ const ALLOWED_IFRAME_HOSTS = [
   'youtube.com', 'youtube-nocookie.com', 'youtu.be',
   'vimeo.com', 'player.vimeo.com',
   'open.spotify.com',
-  'instagram.com', 'twitter.com', 'x.com'
+  'instagram.com', 'twitter.com', 'x.com',
+  'oftmw.com'   // map.oftmw.com — the linked-project Map of Tomorrow embed
 ];
 
 function sanitizeHtml(html) {
