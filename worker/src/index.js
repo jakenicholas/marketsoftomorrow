@@ -15,6 +15,8 @@
 //   account acts as a non-human principal granted read-only access to one
 //   specific GA4 property. The README walks through the GCP-side setup.
 
+import { handleMcp } from './mcp.js';
+
 // ---------------------------------------------------------------------------
 // CORS helpers
 // ---------------------------------------------------------------------------
@@ -3189,6 +3191,11 @@ export default {
 
     if (request.method === 'OPTIONS') {
       return new Response(null, { status: 204, headers: corsHeaders(env, origin) });
+    }
+
+    // Studio MCP server (Claude connector) — self-authenticating (bearer token).
+    if (url.pathname === '/mcp' || url.pathname === '/mcp/') {
+      return await handleMcp(request, env);
     }
 
     try {
