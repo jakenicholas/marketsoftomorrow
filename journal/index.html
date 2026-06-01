@@ -516,40 +516,7 @@ section.grid-section{padding:60px 0 90px; position:relative}
 .flist-card-content .bot{display:flex; align-items:center; gap:8px; font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--mute-2)}
 .flist-card-content .bot svg{width:12px; height:12px; flex:0 0 auto}
 
-/* =================================================================== */
-/* TMW INTELLIGENCE                                                     */
-/* =================================================================== */
-.intel{padding:90px 0 100px; border-top:1px solid var(--hair); background:var(--ink); position:relative; overflow:hidden}
-.intel::before{content:""; position:absolute; top:-30%; left:-10%; width:900px; height:700px; background:radial-gradient(closest-side, rgba(31,223,103,.07), transparent 70%); pointer-events:none}
-.intel-wrap{position:relative; max-width:1320px; margin:0 auto; padding:0 28px}
-.intel-head{max-width:880px; margin-bottom:46px}
-.intel-eyebrow{font-family:var(--mono); font-size:11.5px; letter-spacing:.22em; text-transform:uppercase; color:var(--green); margin-bottom:18px}
-.intel-head h2{font-family:var(--serif); font-weight:600; font-size:clamp(40px,5vw,70px); letter-spacing:-.025em; line-height:1.02; color:var(--white); text-wrap:balance}
-.intel-head h2 em{font-style:italic; color:var(--green-soft); font-weight:400}
-.intel-head .sub{font-size:16px; line-height:1.6; color:var(--mute-2); margin-top:18px; max-width:56ch; font-weight:300}
-.intel-grid{display:grid; grid-template-columns:1.05fr .95fr; gap:32px; align-items:start}
-@media(max-width:980px){.intel-grid{grid-template-columns:1fr}}
-.intel-grid-stack{display:block}
-.intel-grid-stack > .tmw-lb{margin-bottom:26px}
-.intel-grid-stack > #intel-map{margin-top:26px}
-.intel-seemap{display:flex; width:fit-content; margin:0 auto; align-items:center; gap:12px; padding:14px 28px; background:rgba(31,223,103,.10); border:1px solid rgba(31,223,103,.32); border-radius:999px; color:var(--green); font-family:var(--mono); font-size:12px; letter-spacing:.16em; text-transform:uppercase; font-weight:700; transition:background .2s, transform .2s}
-.intel-seemap:hover{background:rgba(31,223,103,.18); transform:translateY(2px)}
-.intel-seemap svg{width:16px; height:16px; animation:seemapBob 1.8s ease-in-out infinite}
-@media (prefers-reduced-motion: reduce){.intel-seemap svg{animation:none}}
-@keyframes seemapBob{0%,100%{transform:translateY(0)}50%{transform:translateY(3px)}}
-.intel-board{background:var(--panel); border:1px solid var(--hair); border-radius:16px; overflow:hidden; min-height:420px}
-.intel-board iframe{width:100%; height:480px; border:0; display:block; background:transparent}
-.intel-stats{display:flex; flex-direction:column; gap:14px}
-.intel-stat{background:var(--panel); border:1px solid var(--hair); border-radius:14px; padding:26px 28px; display:flex; align-items:flex-end; justify-content:space-between; gap:20px; transition:border-color .2s}
-.intel-stat:hover{border-color:var(--hair-2)}
-.intel-stat .iv{font-family:var(--serif); font-weight:600; font-size:clamp(38px,4.6vw,58px); letter-spacing:-.02em; line-height:1; color:var(--green-soft)}
-.intel-stat .il{font-family:var(--mono); font-size:10.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--mute-2); margin-top:8px; max-width:18ch; line-height:1.4}
-.intel-stat .ix{font-family:var(--mono); font-size:11px; color:var(--mute); letter-spacing:.04em; text-align:right}
-.intel-stat .ix .up{color:var(--green); font-weight:700}
-.intel-cta{margin-top:8px; display:inline-flex; align-items:center; gap:10px; padding:14px 26px; background:var(--green); color:var(--ink); border-radius:999px; font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; font-weight:700; align-self:flex-start; transition:all .2s}
-.intel-cta:hover{background:var(--green-soft); transform:translateY(-1px)}
-.intel-cta svg{width:13px; height:13px; transition:transform .2s}
-.intel-cta:hover svg{transform:translateX(3px)}
+/* TMW INTELLIGENCE — now a self-contained scoped block (.tmw-intel) lower in the body */
 
 /* =================================================================== */
 /* QUICK LINKS (Map / Media / Newsletter)                               */
@@ -786,234 +753,502 @@ footer .ft-logo .tmw-wordmark{width:118px}
 </section>
 
 <!-- ==================== TMW INTELLIGENCE ==================== -->
-<section class="intel" id="intelligence">
-  <div class="intel-wrap">
-    <header class="intel-head">
-      <div class="intel-eyebrow">TMW Intelligence</div>
-      <h2>Happening, <em>by city, by firm, by pin.</em></h2>
-      <p class="sub">Hundreds of tracked projects across 40+ markets. Below: the cities and firms moving the most right now, and the live map underneath them.</p>
-    </header>
-    <div class="intel-grid intel-grid-stack">
+<!-- ==================== TMW INTELLIGENCE (live product preview) ==================== -->
+<style>
+/* Scoped under .tmw-intel so the homepage's global .wrap/.eyebrow/h2/etc. are
+   untouched; keyframes are ti-prefixed to avoid colliding with site animations. */
+.tmw-intel{
+  --green:#1FDF67; --green-deep:#18c75a; --green-soft:#42EB81;
+  --purple:#A78BFA; --purple-glow:#B9A6FF; --purple-deep:#7c5cff;
+  --gold:#e6c574; --gold-soft:#f0d68a;
+  --ink:#070807; --panel:#121512; --panel2:#171a17; --panel3:#1d211d;
+  --hair:rgba(255,255,255,.08); --hair2:rgba(255,255,255,.14);
+  --white:#fff; --cream:#ECEAE5; --mute:#8b958d; --mute2:#C2C9C3;
+  --sans:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+  --serif:'Fraunces',Georgia,serif;
+  --mono:'JetBrains Mono',ui-monospace,monospace;
+  --glass:blur(18px) saturate(1.4);
+  position:relative; z-index:1; padding:104px 0 116px; color:var(--cream);
+  font-family:var(--sans); line-height:1.5; background:var(--ink); overflow:hidden;
+}
+.tmw-intel::before{content:""; position:absolute; inset:0; z-index:0; pointer-events:none;
+  background:
+    radial-gradient(1000px 680px at 80% -10%, rgba(167,139,250,.12), transparent 60%),
+    radial-gradient(820px 700px at -8% 18%, rgba(31,223,103,.07), transparent 55%),
+    radial-gradient(760px 640px at 112% 96%, rgba(31,223,103,.06), transparent 55%),
+    radial-gradient(720px 520px at 12% 88%, rgba(230,197,116,.05), transparent 60%);}
+.tmw-intel .wrap{position:relative; z-index:1; max-width:1200px; margin:0 auto; padding:0 32px}
 
-      <!-- ===== Leaderboard (inline, no iframe) ===== -->
-      <style>
-        .tmw-lb{--tmw-bg:#0a0a0a;--tmw-surface:#1E1E1E;--tmw-line:rgba(255,255,255,0.08);--tmw-text:#fff;--tmw-text-mute:rgba(255,255,255,0.55);--tmw-text-dim:rgba(255,255,255,0.4);--tmw-green:#1FDF67;--tmw-warn:#FFD300;font-family:-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",system-ui,sans-serif;color:var(--tmw-text);background:var(--tmw-surface);border:1px solid var(--tmw-line);border-radius:16px;overflow:hidden;width:100%;display:flex;flex-direction:column;-webkit-font-smoothing:antialiased}
-        .tmw-lb *{box-sizing:border-box}
-        .tmw-lb-head{display:flex;align-items:baseline;justify-content:space-between;padding:20px 24px 14px;gap:16px;flex-wrap:wrap}
-        .tmw-lb-head-title{font-size:18px;font-weight:800;letter-spacing:-0.01em;line-height:1.2}
-        .tmw-lb-head-meta{font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--tmw-text-dim)}
-        .tmw-lb-head-meta strong{color:var(--tmw-text);font-weight:800}
-        .tmw-lb-tabs{display:flex;border-bottom:1px solid var(--tmw-line);padding:0 24px}
-        .tmw-lb-tab{appearance:none;-webkit-appearance:none;padding:12px 0;margin-right:24px;font-family:inherit;font-size:13px;font-weight:700;color:var(--tmw-text-mute);background:transparent;border:none;border-bottom:2px solid transparent;cursor:pointer;transition:color .15s ease,border-color .15s ease}
-        .tmw-lb-tab:hover{color:var(--tmw-text)}
-        .tmw-lb-tab.is-active{color:var(--tmw-text);border-bottom-color:var(--tmw-green)}
-        .tmw-lb-list{list-style:none;margin:0;padding:0}
-        .tmw-lb-row{display:grid;grid-template-columns:36px 1fr auto auto;gap:16px;align-items:center;padding:14px 24px;min-height:58px;border-bottom:1px solid var(--tmw-line);text-decoration:none;color:inherit;transition:background .12s ease}
-        .tmw-lb-row:last-child{border-bottom:none}
-        .tmw-lb-row.is-clickable{cursor:pointer}
-        .tmw-lb-row.is-clickable:hover{background:rgba(255,255,255,0.025)}
-        .tmw-lb-row a{display:contents;color:inherit;text-decoration:none}
-        .tmw-lb-rank{font-size:13px;font-weight:700;color:var(--tmw-text-dim);font-variant-numeric:tabular-nums}
-        .tmw-lb-row.is-top .tmw-lb-rank{color:var(--tmw-warn)}
-        .tmw-lb-name{font-size:15px;font-weight:600;color:var(--tmw-text);letter-spacing:-0.005em;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-        .tmw-lb-delta{font-size:11px;font-weight:800;font-variant-numeric:tabular-nums;text-align:right;min-width:58px;color:var(--tmw-text-dim);letter-spacing:0.02em;display:inline-flex;align-items:center;justify-content:flex-end;gap:4px}
-        .tmw-lb-delta.is-up{color:var(--tmw-green)}
-        .tmw-lb-delta svg{width:9px;height:9px;stroke:currentColor;fill:none;stroke-width:2.6}
-        .tmw-lb-count{font-size:16px;font-weight:800;color:var(--tmw-text);font-variant-numeric:tabular-nums;text-align:right;min-width:36px;line-height:1}
-        .tmw-lb-count small{display:block;font-size:9px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--tmw-text-dim);margin-top:4px}
-        .tmw-lb-loading{padding:80px 24px;text-align:center;color:var(--tmw-text-dim);font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase}
-        .tmw-lb-foot{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 24px;border-top:1px solid var(--tmw-line);font-size:11px;color:var(--tmw-text-mute);flex-wrap:wrap}
-        .tmw-lb-foot a{color:var(--tmw-green);text-decoration:none;font-weight:700;display:inline-flex;align-items:center;gap:8px;text-transform:uppercase;letter-spacing:0.06em;font-size:12px}
-        .tmw-lb-foot a:hover{text-decoration:underline}
-        .tmw-lb-foot svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2.2}
-        @media (max-width:700px){.tmw-lb{border-radius:12px}.tmw-lb-head{padding:16px 18px 12px}.tmw-lb-tabs{padding:0 18px}.tmw-lb-row{padding:12px 18px;gap:12px}.tmw-lb-foot{padding:12px 18px}.tmw-lb-name{font-size:14px}.tmw-lb-count{font-size:15px}}
-      </style>
-      <div class="tmw-lb" id="tmwLeaderboard">
-        <div class="tmw-lb-head">
-          <div class="tmw-lb-head-title">Markets of Tomorrow Leaderboard</div>
-          <div class="tmw-lb-head-meta" id="tmwLbCount">Loading&hellip;</div>
-        </div>
-        <div class="tmw-lb-tabs" role="tablist">
-          <button class="tmw-lb-tab is-active" data-tab="cities" role="tab" aria-selected="true">Cities</button>
-          <button class="tmw-lb-tab" data-tab="developers" role="tab" aria-selected="false">Developers</button>
-          <button class="tmw-lb-tab" data-tab="architects" role="tab" aria-selected="false">Architects</button>
-        </div>
-        <ul class="tmw-lb-list" id="tmwLbList">
-          <li class="tmw-lb-loading">Loading projects&hellip;</li>
-        </ul>
-        <div class="tmw-lb-foot">
-          <span id="tmwLbFootLabel">Total tracked &middot; pipeline = announced or breaking ground</span>
-          <a href="https://map.oftmw.com" target="_blank" rel="noopener">Open the map
-            <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-          </a>
-        </div>
+/* header */
+.tmw-intel .eyebrow{display:inline-flex; align-items:center; gap:9px; font-family:var(--mono); font-size:11.5px; letter-spacing:.22em; text-transform:uppercase; color:var(--purple-glow); font-weight:500; margin-bottom:22px}
+.tmw-intel .eyebrow .pip{width:6px; height:6px; border-radius:50%; background:var(--purple); box-shadow:0 0 12px var(--purple); animation:tiPip 2.6s ease-in-out infinite}
+@keyframes tiPip{0%,100%{opacity:.45; transform:scale(.85)}50%{opacity:1; transform:scale(1.15)}}
+.tmw-intel h2{font-family:var(--serif); font-weight:400; letter-spacing:-.012em; line-height:1.03; color:var(--white); font-size:clamp(36px,5vw,64px)}
+.tmw-intel h2 em{font-style:italic; color:var(--purple-glow); font-weight:400}
+.tmw-intel .shead{display:flex; justify-content:space-between; align-items:flex-end; gap:40px; margin-bottom:42px}
+.tmw-intel .shead .htxt{max-width:760px}
+.tmw-intel .shead h2{margin:6px 0 20px}
+.tmw-intel .lede{font-size:clamp(15px,1.45vw,19px); color:var(--mute2); max-width:62ch; line-height:1.6; font-weight:300}
+.tmw-intel .lede b{color:var(--cream); font-weight:500}
+.tmw-intel .headstats{display:flex; gap:30px; flex-shrink:0; padding-bottom:6px}
+.tmw-intel .headstat .n{font-family:var(--serif); font-size:34px; font-weight:600; color:var(--white); line-height:1; letter-spacing:-.02em}
+.tmw-intel .headstat .n .pct{color:var(--green)}
+.tmw-intel .headstat .l{font-family:var(--mono); font-size:9.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--mute); margin-top:8px}
+
+/* product window */
+.tmw-intel .app{position:relative; border-radius:20px; overflow:hidden;
+  background:linear-gradient(180deg, rgba(20,23,20,.92), rgba(10,12,10,.96));
+  border:1px solid var(--hair2);
+  box-shadow:0 40px 120px rgba(0,0,0,.6), 0 0 0 1px rgba(167,139,250,.06), inset 0 1px 0 rgba(255,255,255,.05);}
+.tmw-intel .app::after{content:""; position:absolute; inset:0; pointer-events:none; border-radius:20px; box-shadow:inset 0 0 140px rgba(167,139,250,.05);}
+.tmw-intel .chrome{display:flex; align-items:center; gap:14px; padding:12px 16px; border-bottom:1px solid var(--hair); background:rgba(0,0,0,.25)}
+.tmw-intel .dots{display:flex; gap:7px}
+.tmw-intel .dots i{width:11px; height:11px; border-radius:50%; display:block}
+.tmw-intel .dots i:nth-child(1){background:#ff5f57}.tmw-intel .dots i:nth-child(2){background:#febc2e}.tmw-intel .dots i:nth-child(3){background:#28c840}
+.tmw-intel .urlbar{flex:1; display:flex; align-items:center; gap:9px; max-width:340px; margin:0 auto; padding:6px 13px; background:rgba(255,255,255,.04); border:1px solid var(--hair); border-radius:999px; font-family:var(--mono); font-size:11.5px; color:var(--mute2)}
+.tmw-intel .urlbar svg{width:11px; height:11px; stroke:var(--green); fill:none; stroke-width:2}
+.tmw-intel .urlbar b{color:var(--cream); font-weight:500}
+.tmw-intel .live{display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--green); font-weight:500}
+.tmw-intel .live .pip{width:6px; height:6px; border-radius:50%; background:var(--green); box-shadow:0 0 10px var(--green); animation:tiPip 2s ease-in-out infinite}
+.tmw-intel .cmd{display:flex; align-items:center; gap:13px; padding:15px 20px; border-bottom:1px solid var(--hair); background:rgba(255,255,255,.015)}
+.tmw-intel .cmd .mag{width:16px; height:16px; stroke:var(--mute2); fill:none; stroke-width:2; flex-shrink:0}
+.tmw-intel .cmd .ph{flex:1; font-size:14.5px; color:var(--mute2); font-weight:300}
+.tmw-intel .cmd .ph .typed{color:var(--cream); font-weight:400}
+.tmw-intel .cmd .ph .cursor{display:inline-block; width:1.5px; height:15px; background:var(--green); margin-left:1px; vertical-align:-2px; animation:tiBlink 1.1s step-end infinite}
+@keyframes tiBlink{50%{opacity:0}}
+.tmw-intel .cmd .kbd{font-family:var(--mono); font-size:10px; color:var(--mute); border:1px solid var(--hair); border-radius:6px; padding:3px 7px; letter-spacing:.04em}
+.tmw-intel .cmd .resultcount{font-family:var(--mono); font-size:11px; color:var(--green); font-weight:500}
+.tmw-intel .stage{display:grid; grid-template-columns:1.55fr 1fr; min-height:520px}
+.tmw-intel .map{position:relative; overflow:hidden; background:radial-gradient(120% 120% at 50% 40%, rgba(167,139,250,.06), transparent 70%), linear-gradient(180deg, #0c0f0d, #090b09);}
+.tmw-intel .map .grid{position:absolute; inset:0;
+  background-image:linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px);
+  background-size:38px 38px; mask-image:radial-gradient(95% 90% at 50% 45%, #000 35%, transparent 92%); -webkit-mask-image:radial-gradient(95% 90% at 50% 45%, #000 35%, transparent 92%);}
+.tmw-intel .map .arc{position:absolute; border:1px solid rgba(255,255,255,.05); border-radius:50%}
+.tmw-intel .map .arc.a1{width:420px; height:520px; right:-130px; top:60px; transform:rotate(18deg)}
+.tmw-intel .map .arc.a2{width:260px; height:360px; right:-40px; top:170px; transform:rotate(12deg); opacity:.6}
+.tmw-intel .map .coord{position:absolute; font-family:var(--mono); font-size:9px; letter-spacing:.05em; color:var(--mute); opacity:.45}
+.tmw-intel .map .coord.c1{top:14px; left:18px}.tmw-intel .map .coord.c2{bottom:14px; right:18px}
+.tmw-intel .pin{position:absolute; transform:translate(-50%,-50%); cursor:pointer; z-index:3}
+.tmw-intel .pin .bub{display:flex; align-items:center; justify-content:center; border-radius:999px; font-family:var(--mono); font-weight:700; color:#04210f; background:var(--green); box-shadow:0 0 0 5px rgba(31,223,103,.14), 0 4px 18px rgba(31,223,103,.45); transition:transform .25s, box-shadow .25s; position:relative}
+.tmw-intel .pin .bub::after{content:""; position:absolute; inset:-7px; border-radius:50%; border:1.5px solid var(--green); opacity:0; animation:tiRing 2.8s ease-out infinite}
+.tmw-intel .pin:hover .bub{transform:scale(1.12)}
+.tmw-intel .pin.sel .bub{background:var(--purple); color:#1a0f3d; box-shadow:0 0 0 6px rgba(167,139,250,.2), 0 6px 24px rgba(167,139,250,.55)}
+.tmw-intel .pin.sel .bub::after{border-color:var(--purple)}
+@keyframes tiRing{0%{transform:scale(.7); opacity:.8}100%{transform:scale(2.1); opacity:0}}
+.tmw-intel .pin .lab{position:absolute; left:50%; top:-22px; transform:translateX(-50%); font-family:var(--mono); font-size:9.5px; letter-spacing:.06em; color:var(--mute2); white-space:nowrap; opacity:.75}
+.tmw-intel .intel{position:absolute; z-index:6; width:294px; border-radius:14px; overflow:hidden;
+  background:linear-gradient(180deg, rgba(28,22,46,.92), rgba(14,12,22,.96));
+  backdrop-filter:var(--glass); -webkit-backdrop-filter:var(--glass);
+  border:1px solid rgba(167,139,250,.4); box-shadow:0 24px 60px rgba(0,0,0,.6), 0 0 0 1px rgba(167,139,250,.1); transition:opacity .35s, transform .35s;}
+.tmw-intel .intel .ihead{display:flex; align-items:center; gap:8px; padding:11px 14px 9px}
+.tmw-intel .intel .ihead .badge{display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:9px; letter-spacing:.14em; text-transform:uppercase; color:var(--purple-glow); font-weight:500}
+.tmw-intel .intel .ihead .badge svg{width:11px; height:11px; fill:var(--purple-glow)}
+.tmw-intel .intel .ihead .pro{margin-left:auto; font-family:var(--mono); font-size:8.5px; letter-spacing:.12em; color:var(--gold-soft); border:1px solid rgba(230,197,116,.4); border-radius:5px; padding:2px 6px}
+.tmw-intel .intel .iname{padding:0 14px; font-size:13.5px; font-weight:600; color:#fff; line-height:1.25}
+.tmw-intel .intel .iloc{padding:2px 14px 12px; font-family:var(--mono); font-size:10px; letter-spacing:.04em; color:var(--mute); text-transform:uppercase}
+.tmw-intel .intel .forecast{margin:0 14px; padding:12px 13px; background:rgba(0,0,0,.32); border:1px solid rgba(167,139,250,.2); border-radius:10px}
+.tmw-intel .intel .forecast .big{font-size:22px; font-weight:700; color:var(--purple-glow); letter-spacing:-.01em; line-height:1}
+.tmw-intel .intel .forecast .big small{font-size:12px; color:#fff; font-weight:500; margin-left:3px}
+.tmw-intel .intel .conf{display:flex; align-items:center; gap:8px; margin-top:10px}
+.tmw-intel .intel .conf .bar{flex:1; height:5px; border-radius:3px; background:rgba(255,255,255,.1); overflow:hidden}
+.tmw-intel .intel .conf .bar i{display:block; height:100%; border-radius:3px; background:linear-gradient(90deg, var(--purple-deep), var(--purple-glow)); transition:width .6s ease}
+.tmw-intel .intel .conf .pc{font-family:var(--mono); font-size:10px; color:var(--purple-glow); font-weight:500}
+.tmw-intel .intel .conf .lbl{font-family:var(--mono); font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:var(--mute)}
+.tmw-intel .intel .comps{padding:11px 14px 13px}
+.tmw-intel .intel .comps .ct{font-family:var(--mono); font-size:8.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--mute); margin-bottom:8px}
+.tmw-intel .intel .comp{display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-top:1px solid var(--hair); font-size:11px}
+.tmw-intel .intel .comp .cn{color:var(--mute2); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:180px}
+.tmw-intel .intel .comp .cv{font-family:var(--mono); color:#fff; font-weight:500; flex-shrink:0}
+.tmw-intel .rail{border-left:1px solid var(--hair); display:flex; flex-direction:column; background:rgba(255,255,255,.012)}
+.tmw-intel .rail .rhead{padding:16px 18px 0}
+.tmw-intel .rail .rtitle{font-size:13px; font-weight:600; color:#fff; display:flex; align-items:center; gap:8px}
+.tmw-intel .rail .rtitle .ic{width:14px; height:14px; stroke:var(--green); fill:none; stroke-width:2}
+.tmw-intel .rail .rsub{font-family:var(--mono); font-size:9.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--mute); margin-top:5px}
+.tmw-intel .bk{display:flex; gap:6px; padding:14px 18px 6px}
+.tmw-intel .bk button{flex:1; font-family:var(--mono); font-size:10.5px; letter-spacing:.04em; text-transform:uppercase; color:var(--mute2); background:rgba(255,255,255,.03); border:1px solid var(--hair); border-radius:8px; padding:8px 4px; cursor:pointer; transition:all .18s; font-weight:500}
+.tmw-intel .bk button:hover{color:var(--cream); border-color:var(--hair2)}
+.tmw-intel .bk button.on{color:#04210f; background:var(--green); border-color:var(--green); font-weight:700}
+.tmw-intel .lblist{list-style:none; padding:6px 14px 8px; flex:1; min-height:0; overflow:hidden; margin:0;
+  -webkit-mask-image:linear-gradient(180deg, #000 78%, transparent 99%); mask-image:linear-gradient(180deg, #000 78%, transparent 99%);}
+.tmw-intel .lblist li{display:grid; grid-template-columns:20px 1fr auto auto; gap:10px; align-items:center; padding:9px 6px; border-radius:8px; transition:background .15s; cursor:default; position:relative}
+.tmw-intel .lblist li:hover{background:rgba(255,255,255,.025)}
+.tmw-intel .lblist .rk{font-family:var(--mono); font-size:11px; font-weight:700; color:var(--mute); font-variant-numeric:tabular-nums}
+.tmw-intel .lblist li.top1 .rk,.tmw-intel .lblist li.top2 .rk,.tmw-intel .lblist li.top3 .rk{color:var(--gold-soft)}
+.tmw-intel .lblist .nmwrap{min-width:0}
+.tmw-intel .lblist .nm{font-size:13px; font-weight:600; color:var(--cream); overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.tmw-intel .lblist .track{height:3px; border-radius:2px; background:rgba(255,255,255,.07); margin-top:6px; overflow:hidden}
+.tmw-intel .lblist .track i{display:block; height:100%; border-radius:2px; background:linear-gradient(90deg, var(--green-deep), var(--green-soft)); transition:width .6s ease}
+.tmw-intel .lblist .dl{font-family:var(--mono); font-size:10px; font-weight:700; color:var(--green); text-align:right; min-width:40px; font-variant-numeric:tabular-nums; letter-spacing:.01em}
+.tmw-intel .lblist .dl.flat{color:var(--mute); opacity:.4}
+.tmw-intel .lblist .ct{font-family:var(--mono); font-size:15px; font-weight:700; color:#fff; font-variant-numeric:tabular-nums; line-height:1; text-align:right; min-width:24px}
+.tmw-intel .rail .rfoot{padding:12px 18px; border-top:1px solid var(--hair); display:flex; align-items:center; justify-content:space-between; font-family:var(--mono); font-size:10px; letter-spacing:.06em; text-transform:uppercase; color:var(--mute)}
+.tmw-intel .rail .rfoot a{display:inline-flex; align-items:center; gap:6px; color:var(--green); text-decoration:none; font-weight:700}
+.tmw-intel .rail .rfoot a svg{width:11px; height:11px; stroke:currentColor; fill:none; stroke-width:2.4}
+.tmw-intel .pulse{display:flex; align-items:center; gap:0; border-top:1px solid var(--hair); background:rgba(0,0,0,.3); overflow:hidden}
+.tmw-intel .pulse .ptag{flex-shrink:0; display:inline-flex; align-items:center; gap:7px; padding:11px 16px; font-family:var(--mono); font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--green); font-weight:500; border-right:1px solid var(--hair); background:rgba(31,223,103,.04)}
+.tmw-intel .pulse .ptag .pip{width:6px; height:6px; border-radius:50%; background:var(--green); box-shadow:0 0 10px var(--green); animation:tiPip 2s ease-in-out infinite}
+.tmw-intel .pulse .ptrack{flex:1; overflow:hidden; position:relative; mask-image:linear-gradient(90deg, transparent, #000 4%, #000 92%, transparent); -webkit-mask-image:linear-gradient(90deg, transparent, #000 4%, #000 92%, transparent)}
+.tmw-intel .pulse .pmove{display:inline-flex; gap:42px; white-space:nowrap; padding-left:24px; animation:tiTicker 34s linear infinite}
+.tmw-intel .pulse:hover .pmove{animation-play-state:paused}
+.tmw-intel .pulse .pitem{display:inline-flex; align-items:center; gap:11px; font-size:12.5px; color:var(--mute2)}
+.tmw-intel .pulse .pitem b{color:var(--cream); font-weight:500}
+.tmw-intel .pulse .pitem .age{font-family:var(--mono); font-size:10px; color:var(--purple-glow); border:1px solid rgba(167,139,250,.3); border-radius:5px; padding:1px 6px}
+.tmw-intel .pulse .pitem .dot{width:4px; height:4px; border-radius:50%; background:var(--green); flex-shrink:0}
+@keyframes tiTicker{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+.tmw-intel .feats{margin-top:30px; display:grid; grid-template-columns:repeat(5,1fr); gap:12px}
+.tmw-intel .feat{padding:18px 16px 16px; border-radius:14px; background:rgba(255,255,255,.03); border:1px solid var(--hair); position:relative; overflow:hidden; transition:transform .25s, border-color .25s, background .25s}
+.tmw-intel .feat:hover{transform:translateY(-3px); border-color:var(--hair2); background:rgba(255,255,255,.05)}
+.tmw-intel .feat .ficon{width:30px; height:30px; border-radius:9px; display:flex; align-items:center; justify-content:center; background:rgba(31,223,103,.1); border:1px solid rgba(31,223,103,.25); margin-bottom:13px}
+.tmw-intel .feat .ficon svg{width:15px; height:15px; stroke:var(--green-soft); fill:none; stroke-width:1.9}
+.tmw-intel .feat.pro .ficon{background:rgba(167,139,250,.12); border-color:rgba(167,139,250,.3)}
+.tmw-intel .feat.pro .ficon svg{stroke:var(--purple-glow)}
+.tmw-intel .feat .fname{font-size:13px; font-weight:600; color:#fff; display:flex; align-items:center; gap:7px}
+.tmw-intel .feat .fname .lock{width:11px; height:11px; stroke:var(--gold-soft); fill:none; stroke-width:2}
+.tmw-intel .feat .fdesc{font-size:11.5px; color:var(--mute); margin-top:5px; line-height:1.45; font-weight:300}
+.tmw-intel .feat .ptag2{position:absolute; top:13px; right:13px; font-family:var(--mono); font-size:8px; letter-spacing:.12em; color:var(--gold-soft); border:1px solid rgba(230,197,116,.4); border-radius:5px; padding:2px 5px}
+.tmw-intel .cta{margin-top:30px; display:flex; align-items:center; justify-content:space-between; gap:24px; padding:26px 30px; border-radius:16px;
+  background:linear-gradient(100deg, rgba(167,139,250,.1), rgba(31,223,103,.06)); border:1px solid var(--hair2); flex-wrap:wrap}
+.tmw-intel .cta .ctxt{max-width:560px}
+.tmw-intel .cta .ctxt h3{font-family:var(--serif); font-weight:400; font-size:clamp(20px,2.4vw,28px); color:#fff; letter-spacing:-.01em; line-height:1.2}
+.tmw-intel .cta .ctxt h3 em{font-style:italic; color:var(--purple-glow)}
+.tmw-intel .cta .ctxt p{font-size:13px; color:var(--mute2); margin-top:7px; font-weight:300}
+.tmw-intel .cta .cbtns{display:flex; gap:12px; flex-shrink:0}
+.tmw-intel .btn{display:inline-flex; align-items:center; gap:9px; padding:13px 22px; border-radius:999px; font-size:13.5px; font-weight:600; text-decoration:none; cursor:pointer; transition:transform .2s, box-shadow .2s, background .2s; font-family:var(--sans)}
+.tmw-intel .btn svg{width:15px; height:15px; stroke:currentColor; fill:none; stroke-width:2; transition:transform .2s}
+.tmw-intel .btn.primary{background:linear-gradient(180deg, var(--gold-soft), var(--gold)); color:#2a1f06; box-shadow:0 8px 30px 2px rgba(230,197,116,.45)}
+.tmw-intel .btn.primary:hover{transform:translateY(-2px); background:linear-gradient(180deg, #f6e2a6, var(--gold-soft)); box-shadow:0 12px 42px 6px rgba(240,214,138,.6)}
+.tmw-intel .btn.primary:hover svg{transform:translateX(3px)}
+.tmw-intel .btn.ghost{background:rgba(255,255,255,.05); color:var(--cream); border:1px solid var(--hair2)}
+.tmw-intel .btn.ghost:hover{background:rgba(167,139,250,.14); border-color:rgba(167,139,250,.4); color:#fff}
+.tmw-intel .ti-wrap{margin-top:64px}
+.tmw-intel .ti-eyebrow{display:inline-flex; align-items:center; gap:9px; font-family:var(--mono); font-size:11.5px; letter-spacing:.22em; text-transform:uppercase; color:var(--purple-glow); font-weight:500; margin-bottom:18px}
+.tmw-intel .ti-hex{display:inline-flex; width:18px; height:18px; flex:0 0 auto}
+.tmw-intel .ti-hex svg{width:100%; height:100%; overflow:visible}
+.tmw-intel .ti-hex polygon{stroke:var(--purple); fill:none; stroke-width:7; stroke-linejoin:round; animation:tiHexpulse 4.2s ease-in-out infinite; transform-origin:50% 50%}
+.tmw-intel .ti-hex .ti-spin{transform-origin:50% 50%; animation:tiHardspin 4.2s cubic-bezier(.16,1,.3,1) infinite}
+.tmw-intel .ti-wrap h3.tih{font-family:var(--serif); font-weight:400; letter-spacing:-.012em; line-height:1.05; color:var(--white); font-size:clamp(28px,3.4vw,42px); margin-bottom:16px}
+.tmw-intel .ti-wrap h3.tih em{font-style:italic; color:var(--purple-glow)}
+.tmw-intel .ti-wrap .lede{margin-bottom:30px}
+.tmw-intel .ti-wrap .lede .hl-gold{color:var(--gold-soft)}
+.tmw-intel .ti-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:16px}
+.tmw-intel .ti-card{padding:30px 28px; border:1px solid rgba(167,139,250,.24); border-radius:16px; background:rgba(167,139,250,.04); position:relative; overflow:hidden; transition:transform .28s ease, border-color .28s ease}
+.tmw-intel .ti-card:hover{transform:translateY(-4px); border-color:rgba(167,139,250,.45)}
+.tmw-intel .ti-card::after{content:""; position:absolute; inset:0; pointer-events:none; background:linear-gradient(135deg, rgba(167,139,250,.08), transparent 55%); opacity:.7}
+.tmw-intel .ti-card-num{font-family:var(--mono); font-size:12px; letter-spacing:.1em; color:var(--purple-glow); margin-bottom:18px; position:relative; z-index:1}
+.tmw-intel .ti-card-h{font-family:var(--serif); font-weight:600; font-size:22px; color:var(--white); letter-spacing:-.01em; margin-bottom:10px; position:relative; z-index:1}
+.tmw-intel .ti-card-p{font-size:14px; color:var(--mute2); line-height:1.55; font-weight:300; position:relative; z-index:1}
+.tmw-intel .ti-strip{display:flex; flex-wrap:wrap; gap:24px 38px; margin-top:16px; padding:22px 28px; border:1px solid rgba(167,139,250,.22); border-radius:16px; background:rgba(167,139,250,.05); align-items:center}
+.tmw-intel .ti-strip-lab{font-family:var(--mono); font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--purple-glow)}
+.tmw-intel .ti-strip-stats{flex:1; display:grid; grid-template-columns:repeat(4,1fr); gap:24px; align-items:start}
+.tmw-intel .ti-strip-stat{display:flex; flex-direction:column; gap:3px}
+.tmw-intel .ti-strip-v{font-family:var(--serif); font-weight:600; font-size:26px; color:var(--purple-glow); letter-spacing:-.02em; line-height:1}
+.tmw-intel .ti-strip-k{font-family:var(--mono); font-size:9.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--mute)}
+@keyframes tiHexpulse{0%,45%{stroke:var(--purple); filter:drop-shadow(0 0 0 rgba(167,139,250,0))}70%{stroke:var(--purple-glow); filter:drop-shadow(0 0 6px rgba(185,166,255,.9))}100%{stroke:var(--purple); filter:drop-shadow(0 0 0 rgba(167,139,250,0))}}
+@keyframes tiHardspin{0%{transform:rotate(0)}55%{transform:rotate(810deg)}70%{transform:rotate(900deg)}100%{transform:rotate(1080deg)}}
+@media(max-width:980px){
+  .tmw-intel .shead{flex-direction:column; align-items:flex-start; gap:24px}
+  .tmw-intel .stage{grid-template-columns:1fr}
+  .tmw-intel .map{min-height:340px}
+  .tmw-intel .rail{border-left:none; border-top:1px solid var(--hair)}
+  .tmw-intel .lblist{overflow:visible; -webkit-mask-image:none; mask-image:none}
+  .tmw-intel .intel{width:255px}
+  .tmw-intel .feats{grid-template-columns:repeat(2,1fr)}
+  .tmw-intel .headstats{gap:24px}
+  .tmw-intel .ti-grid{grid-template-columns:1fr}
+  .tmw-intel .ti-strip{flex-direction:column; align-items:stretch; gap:18px}
+  .tmw-intel .ti-strip-stats{grid-template-columns:1fr 1fr; gap:18px 20px; width:100%}
+}
+@media(max-width:560px){
+  .tmw-intel{padding:72px 0 82px}
+  .tmw-intel .wrap{padding:0 18px}
+  .tmw-intel .cmd .kbd{display:none}
+  .tmw-intel .feats{grid-template-columns:1fr}
+  .tmw-intel .cta{flex-direction:column; align-items:flex-start}
+  .tmw-intel .intel{position:relative; width:auto; margin:14px; left:0!important; top:0!important; right:auto!important; bottom:auto!important}
+}
+</style>
+
+<section class="tmw-intel" id="intelligence">
+  <div class="wrap">
+
+    <div class="shead">
+      <div class="htxt">
+        <span class="eyebrow"><span class="pip"></span>TMW Intelligence</span>
+        <h2>Not a map.<br>A live intelligence<br>layer on <em>every project.</em></h2>
+        <p class="lede">Behind every pin: timelines, developers, architects, units, milestones &mdash; and a <b>predictive engine</b> that forecasts completion and surfaces comparable developments. The cities and firms moving right now, broken down however you need to see them.</p>
       </div>
-      <script>
-      (function () {
-        var DATA_URL = 'https://map.oftmw.com/projects-flat.json';
-        var MAP_URL  = 'https://map.oftmw.com';
-        var TOP_N = 5;
-        var PIPELINE_STATUSES = ['announced', 'breaking ground'];
-        var FIRM_PRESERVE = ['Skidmore, Owings & Merrill', 'Robert A.M. Stern Architects'];
-        var UP_ARROW_SVG = '<svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="5 12 12 5 19 12"/></svg>';
-        var root = document.getElementById('tmwLeaderboard');
-        if (!root) return;
-        var listEl  = root.querySelector('#tmwLbList');
-        var countEl = root.querySelector('#tmwLbCount');
-        var tabs    = root.querySelectorAll('.tmw-lb-tab');
-        var state = { tab: 'cities', projects: null };
-        function isPipeline(p){ return PIPELINE_STATUSES.indexOf(String(p.Delivery || '').trim().toLowerCase()) !== -1; }
-        function splitFirms(value){
-          if (!value) return [];
-          var v = String(value); var placeholders = [];
-          FIRM_PRESERVE.forEach(function (name, i) {
-            var token = '__PRESERVE' + i + '__';
-            var re = new RegExp(name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
-            if (re.test(v)) { placeholders.push({ token: token, name: name }); v = v.replace(re, token); }
-          });
-          return v.split(/\s*[,/]\s*/).map(function (s) {
-            var out = s.trim();
-            placeholders.forEach(function (p) { if (out === p.token) out = p.name; });
-            return out;
-          }).filter(Boolean);
-        }
-        function tally(projects, type){
-          var counts = {}; var pipeline = {};
-          function bump(bucket, key){ bucket[key] = (bucket[key] || 0) + 1; }
-          projects.forEach(function (p) {
-            var inPipe = isPipeline(p);
-            if (type === 'cities') {
-              var city = (p.City || '').trim(); if (!city) return;
-              bump(counts, city); if (inPipe) bump(pipeline, city);
-            } else if (type === 'developers') {
-              splitFirms(p.Developer).forEach(function (name) {
-                if (name.toLowerCase() === 'various') return;
-                bump(counts, name); if (inPipe) bump(pipeline, name);
-              });
-            } else if (type === 'architects') {
-              splitFirms(p.Architect).forEach(function (name) { bump(counts, name); if (inPipe) bump(pipeline, name); });
-            }
-          });
-          return Object.keys(counts).map(function (k) { return { name: k, count: counts[k], delta: pipeline[k] || 0 }; })
-            .sort(function (a, b) { return b.count - a.count || b.delta - a.delta || a.name.localeCompare(b.name); })
-            .slice(0, TOP_N);
-        }
-        function escapeHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
-        function cityHref(city){ return MAP_URL + '/?city=' + encodeURIComponent(city); }
-        function render(){
-          if (!state.projects) return;
-          var rows = tally(state.projects, state.tab);
-          var clickable = state.tab === 'cities';
-          if (!rows.length) { listEl.innerHTML = '<li class="tmw-lb-loading">No data yet</li>'; return; }
-          listEl.innerHTML = rows.map(function (row, i) {
-            var rank = String(i + 1).padStart(2, '0');
-            var topClass = i < 3 ? ' is-top' : '';
-            var clickClass = clickable ? ' is-clickable' : '';
-            var deltaClass = row.delta > 0 ? 'is-up' : '';
-            var deltaInner = row.delta > 0 ? ('+' + row.delta + ' ' + UP_ARROW_SVG) : '&mdash;';
-            var inner =
-              '<span class="tmw-lb-rank">' + rank + '</span>' +
-              '<span class="tmw-lb-name">' + escapeHtml(row.name) + '</span>' +
-              '<span class="tmw-lb-delta ' + deltaClass + '">' + deltaInner + '</span>' +
-              '<span class="tmw-lb-count">' + row.count + '<small>projects</small></span>';
-            if (clickable) { inner = '<a href="' + cityHref(row.name) + '" target="_blank" rel="noopener">' + inner + '</a>'; }
-            return '<li class="tmw-lb-row' + topClass + clickClass + '">' + inner + '</li>';
-          }).join('');
-        }
-        tabs.forEach(function (t) {
-          t.addEventListener('click', function () {
-            tabs.forEach(function (x) { x.classList.remove('is-active'); x.setAttribute('aria-selected', 'false'); });
-            t.classList.add('is-active'); t.setAttribute('aria-selected', 'true');
-            state.tab = t.getAttribute('data-tab'); render();
-          });
-        });
-        fetch(DATA_URL, { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (data) {
-          state.projects = Array.isArray(data) ? data : [];
-          countEl.innerHTML = 'Tracking <strong>' + state.projects.length + '</strong> projects';
-          render();
-        }).catch(function () {
-          listEl.innerHTML = '<li class="tmw-lb-loading">Could not load data. Try again later.</li>';
-          countEl.textContent = '';
-        });
-      })();
-      </script>
-
-      <!-- ===== Jump button ===== -->
-      <a class="intel-seemap" href="#intel-map">Now see them on the map
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="4" x2="12" y2="20"/><polyline points="5 13 12 20 19 13"/></svg>
-      </a>
-
-      <!-- ===== Live map command center (inline) ===== -->
-      <div id="intel-map">
-        <style>
-          .mot-cc{--mot-green:#1FDF67;--mot-green-soft:rgba(31,223,103,0.08);--mot-bg:#1E1E1E;--mot-bg-2:#1E1E1E;--mot-border:rgba(255,255,255,0.06);--mot-border-2:rgba(255,255,255,0.1);--mot-text:#fff;--mot-text-dim:rgba(255,255,255,0.55);--mot-text-dimmer:rgba(255,255,255,0.35);--mot-mono:'JetBrains Mono','SF Mono',Menlo,Consolas,monospace;--mot-sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-family:var(--mot-sans);color:var(--mot-text);background:var(--mot-bg);border:1px solid var(--mot-border);border-radius:14px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.18);width:100%;display:flex;flex-direction:column}
-          .mot-cc-live{display:inline-flex;align-items:center;gap:8px;background:var(--mot-green-soft);border:1px solid rgba(31,223,103,0.2);padding:4px 10px;border-radius:4px;font-family:var(--mot-mono);font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mot-green);white-space:nowrap;align-self:flex-start}
-          .mot-cc-live-dot{width:6px;height:6px;border-radius:50%;background:var(--mot-green);box-shadow:0 0 8px var(--mot-green);animation:motPulse 1.6s ease-in-out infinite}
-          @keyframes motPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.4;transform:scale(0.8)}}
-          .mot-cc-frame{position:relative;width:100%;height:660px;background:var(--mot-bg-2)}
-          .mot-cc-frame::before{content:"Loading map…";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--mot-text-dimmer);font-size:12px;letter-spacing:0.05em;pointer-events:none;z-index:0}
-          .mot-cc-frame iframe{position:relative;z-index:1;width:100%;height:100%;border:0;display:block;background:transparent}
-          .mot-cc-ticker{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:12px 24px;background:rgba(255,255,255,0.015);border-top:1px solid var(--mot-border);font-family:var(--mot-mono);font-size:10px;letter-spacing:0.06em;color:var(--mot-text-dim);flex-wrap:wrap}
-          .mot-cc-ticker strong{color:var(--mot-green);font-weight:500}
-          .mot-cc-ticker-group{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
-          .mot-cc-ticker-sep{width:1px;height:10px;background:var(--mot-border)}
-          .mot-cc-cta-bar{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:24px 24px;background:linear-gradient(180deg,rgba(31,223,103,0.04),transparent 60%),rgba(255,255,255,0.01);border-top:1px solid var(--mot-border);flex-wrap:wrap}
-          .mot-cc-cta-copy{display:flex;flex-direction:column;gap:8px;min-width:0}
-          .mot-cc-cta-title{font-family:'Fraunces','Playfair Display',Georgia,serif;font-size:22px;font-weight:400;letter-spacing:-0.01em;color:var(--mot-text);line-height:1.1}
-          .mot-cc-cta-btn{display:inline-flex;align-items:center;gap:12px;background:var(--mot-green);color:#1E1E1E;padding:14px 24px;border:none;border-radius:4px;font-family:var(--mot-sans);font-size:12px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;text-decoration:none;cursor:pointer;transition:transform .15s ease;white-space:nowrap;flex-shrink:0;animation:motGlow 2.2s ease-in-out infinite}
-          @keyframes motGlow{0%,100%{box-shadow:0 0 0 0 rgba(31,223,103,0.5),0 0 18px 0 rgba(31,223,103,0.45)}50%{box-shadow:0 0 0 8px rgba(31,223,103,0),0 0 28px 4px rgba(31,223,103,0.65)}}
-          .mot-cc-cta-btn:hover{transform:translateY(-1px)}
-          .mot-cc-cta-btn svg{width:14px;height:14px;transition:transform .15s ease}
-          .mot-cc-cta-btn:hover svg{transform:translateX(2px)}
-          .mot-cc-features{display:grid;grid-template-columns:repeat(5,1fr);gap:0;border-top:1px solid var(--mot-border);background:var(--mot-bg-2)}
-          .mot-cc-feature{padding:22px 20px;border-right:1px solid var(--mot-border);display:flex;flex-direction:column;gap:8px;position:relative;transition:background .15s ease}
-          .mot-cc-feature:last-child{border-right:none}
-          .mot-cc-feature:hover{background:rgba(31,223,103,0.025)}
-          .mot-cc-feature-num{font-family:var(--mot-mono);font-size:9px;color:var(--mot-green);letter-spacing:0.15em;margin-bottom:4px}
-          .mot-cc-feature-h{font-size:13px;font-weight:500;color:var(--mot-text);letter-spacing:-0.005em}
-          .mot-cc-feature-p{font-size:11px;line-height:1.5;color:var(--mot-text-dim)}
-          @media (max-width:1100px){.mot-cc-features{grid-template-columns:repeat(3,1fr)}.mot-cc-feature{border-right:1px solid var(--mot-border)}.mot-cc-feature:nth-child(3n){border-right:none}.mot-cc-feature:nth-child(n+4){border-top:1px solid var(--mot-border)}}
-          @media (max-width:900px){.mot-cc-frame{height:680px}.mot-cc-ticker{padding:10px 16px;font-size:9px}.mot-cc-cta-bar{padding:20px 20px;gap:16px}.mot-cc-cta-title{font-size:18px}}
-          @media (max-width:700px){.mot-cc-features{grid-template-columns:1fr}.mot-cc-feature{border-right:none !important;padding:20px 20px}.mot-cc-feature:nth-child(n+2){border-top:1px solid var(--mot-border)}}
-          @media (max-width:560px){.mot-cc{border-radius:10px}.mot-cc-frame{height:640px}.mot-cc-ticker-sep{display:none}.mot-cc-cta-bar{flex-direction:column;align-items:stretch;padding:22px 20px;gap:18px}.mot-cc-cta-btn{width:100%;justify-content:center;padding:16px 20px}}
-        </style>
-        <div class="mot-cc">
-          <div class="mot-cc-frame">
-            <iframe src="https://map.oftmw.com/?embed=1" title="Map of Tomorrow — interactive development map" loading="lazy" allow="geolocation; fullscreen" referrerpolicy="strict-origin-when-cross-origin"></iframe>
-          </div>
-          <div class="mot-cc-ticker">
-            <div class="mot-cc-ticker-group">
-              <span>◆ CLUSTER SIZE = PROJECT COUNT</span>
-              <span class="mot-cc-ticker-sep"></span>
-              <span>TAP A MARKER FOR DETAILS</span>
-            </div>
-            <div class="mot-cc-ticker-group">
-              <span>TRACKING <strong>300+</strong> DEVELOPMENTS</span>
-              <span class="mot-cc-ticker-sep"></span>
-              <span>SYNCED <strong>DAILY</strong></span>
-            </div>
-          </div>
-          <div class="mot-cc-cta-bar">
-            <div class="mot-cc-cta-copy">
-              <span class="mot-cc-live"><span class="mot-cc-live-dot"></span>Live · Updated Daily</span>
-              <span class="mot-cc-cta-title">Explore every project, full-screen.</span>
-            </div>
-            <a class="mot-cc-cta-btn" href="https://map.oftmw.com" target="_blank" rel="noopener">Open the Full Map
-              <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="square"/></svg>
-            </a>
-          </div>
-          <div class="mot-cc-features">
-            <div class="mot-cc-feature"><div class="mot-cc-feature-num">01 / WATCHLIST</div><div class="mot-cc-feature-h">Save &amp; track favorites</div><div class="mot-cc-feature-p">Bookmark projects, filter your list, and get notified on every status change.</div></div>
-            <div class="mot-cc-feature"><div class="mot-cc-feature-num">02 / COMPARE</div><div class="mot-cc-feature-h">Side-by-side mode</div><div class="mot-cc-feature-p">Stack projects on specs, timing, and developer — and share your comparisons with clients.</div></div>
-            <div class="mot-cc-feature"><div class="mot-cc-feature-num">03 / PULSE</div><div class="mot-cc-feature-h">Live activity feed</div><div class="mot-cc-feature-p">A real-time stream of journal updates and new map additions, in one place.</div></div>
-            <div class="mot-cc-feature"><div class="mot-cc-feature-num">04 / TIMELINE</div><div class="mot-cc-feature-h">Every milestone</div><div class="mot-cc-feature-p">See when a project broke ground, opened, or first hit the map.</div></div>
-            <div class="mot-cc-feature"><div class="mot-cc-feature-num">05 / COVERAGE</div><div class="mot-cc-feature-h">Articles on TMW</div><div class="mot-cc-feature-p">Each project links to related stories and coverage from our journal.</div></div>
-          </div>
-        </div>
+      <div class="headstats">
+        <div class="headstat"><div class="n">396</div><div class="l">Projects tracked</div></div>
+        <div class="headstat"><div class="n">40<span class="pct">+</span></div><div class="l">Live markets</div></div>
+        <div class="headstat"><div class="n">Daily</div><div class="l">Synced</div></div>
       </div>
-
     </div>
+
+    <div class="app">
+      <div class="chrome">
+        <div class="dots"><i></i><i></i><i></i></div>
+        <div class="urlbar">
+          <svg viewBox="0 0 24 24"><path d="M12 21s-7-5.5-7-11a7 7 0 1114 0c0 5.5-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>
+          <b>map.oftmw.com</b>
+        </div>
+        <span class="live"><span class="pip"></span>Live</span>
+      </div>
+
+      <div class="cmd">
+        <svg class="mag" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>
+        <div class="ph">Search <span class="typed" id="tiTyped"></span><span class="cursor"></span></div>
+        <span class="resultcount" id="tiRcount">396 results</span>
+        <span class="kbd">&#8984;K</span>
+      </div>
+
+      <div class="stage">
+        <div class="map">
+          <div class="grid"></div>
+          <div class="arc a1"></div>
+          <div class="arc a2"></div>
+          <span class="coord c1">27.77&deg; N</span>
+          <span class="coord c2">82.64&deg; W</span>
+
+          <div class="pin sel" style="left:46%; top:60%" data-k="waldorf"><span class="lab">St. Petersburg</span><span class="bub" style="width:40px;height:40px;font-size:13px">15</span></div>
+          <div class="pin" style="left:63%; top:78%" data-k="melia"><span class="lab">Miami</span><span class="bub" style="width:52px;height:52px;font-size:15px">78</span></div>
+          <div class="pin" style="left:71%; top:62%" data-k="greene"><span class="lab">West Palm</span><span class="bub" style="width:44px;height:44px;font-size:14px">55</span></div>
+          <div class="pin" style="left:40%; top:40%" data-k="nashville"><span class="bub" style="width:34px;height:34px;font-size:12px">16</span></div>
+          <div class="pin" style="left:58%; top:86%" data-k="ftl"><span class="bub" style="width:30px;height:30px;font-size:11px">14</span></div>
+
+          <div class="intel" id="tiIntel" style="left:20px; top:18px">
+            <div class="ihead">
+              <span class="badge"><svg viewBox="0 0 24 24"><path d="M12 2l2.4 5.6L20 8l-4 4 1 6-5-2.8L7 18l1-6-4-4 5.6-.4z"/></svg>TMW Intelligence</span>
+              <span class="pro">PRO</span>
+            </div>
+            <div class="iname" id="tiName">Waldorf Astoria Residences</div>
+            <div class="iloc" id="tiLoc">St. Petersburg &middot; Construction</div>
+            <div class="forecast">
+              <div class="big" id="tiBig">~3.5 yrs<small>to completion</small></div>
+              <div class="conf">
+                <span class="lbl">Confidence</span>
+                <span class="bar"><i id="tiBar" style="width:82%"></i></span>
+                <span class="pc" id="tiPc">82%</span>
+              </div>
+            </div>
+            <div class="comps">
+              <div class="ct">Comparable projects &middot; same type, same metro</div>
+              <div id="tiComps"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="rail">
+          <div class="rhead">
+            <div class="rtitle">
+              <svg class="ic" viewBox="0 0 24 24"><path d="M4 19h16M7 16V9M12 16V5M17 16v-6"/></svg>
+              Movers, right now
+            </div>
+            <div class="rsub">Break it down by</div>
+          </div>
+          <div class="bk">
+            <button class="on" data-bk="cities">Cities</button>
+            <button data-bk="developers">Developers</button>
+            <button data-bk="architects">Architects</button>
+          </div>
+          <ul class="lblist" id="tiLblist"></ul>
+          <div class="rfoot">
+            <span id="tiRfoot">&#8593; = announced / breaking ground</span>
+            <a href="https://map.oftmw.com" target="_blank" rel="noopener">Open map <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
+          </div>
+        </div>
+      </div>
+
+      <div class="pulse">
+        <span class="ptag"><span class="pip"></span>Pulse</span>
+        <div class="ptrack"><div class="pmove" id="tiPmove"></div></div>
+      </div>
+    </div>
+
+    <div class="feats">
+      <div class="feat">
+        <div class="ficon"><svg viewBox="0 0 24 24"><path d="M12 21s-7-5.5-7-11a7 7 0 1114 0c0 5.5-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg></div>
+        <div class="fname">View on map</div>
+        <div class="fdesc">Every project as a pin. Fly to any city, filter by type, status, or year.</div>
+      </div>
+      <div class="feat pro">
+        <span class="ptag2">PRO</span>
+        <div class="ficon"><svg viewBox="0 0 24 24"><path d="M12 2l2.4 5.6L20 8l-4 4 1 6-5-2.8L7 18l1-6-4-4 5.6-.4z"/></svg></div>
+        <div class="fname">Intelligence <svg class="lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/></svg></div>
+        <div class="fdesc">Timeline forecasts &amp; comparable-project engine on every development.</div>
+      </div>
+      <div class="feat pro">
+        <span class="ptag2">PRO</span>
+        <div class="ficon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="7" height="16" rx="1"/><rect x="14" y="4" width="7" height="16" rx="1"/></svg></div>
+        <div class="fname">Compare <svg class="lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/></svg></div>
+        <div class="fdesc">Two developers, two markets, side by side. Units, timelines, pipeline.</div>
+      </div>
+      <div class="feat pro">
+        <span class="ptag2">PRO</span>
+        <div class="ficon"><svg viewBox="0 0 24 24"><path d="M12 3v18M5 8l7-5 7 5M5 16l7 5 7-5"/></svg></div>
+        <div class="fname">Watchlist <svg class="lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/></svg></div>
+        <div class="fdesc">Star the firms and projects you follow. Get pinged when they move.</div>
+      </div>
+      <div class="feat">
+        <div class="ficon"><svg viewBox="0 0 24 24"><path d="M3 12h4l2 6 4-14 2 8h6"/></svg></div>
+        <div class="fname">Pulse</div>
+        <div class="fdesc">A live feed of every new project, milestone, and market shift.</div>
+      </div>
+    </div>
+
+    <div class="ti-wrap">
+      <span class="ti-eyebrow">
+        <span class="ti-hex" aria-hidden="true"><svg viewBox="0 0 100 100"><g class="ti-spin"><polygon points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34"/></g></svg></span>
+        Under the hood
+      </span>
+      <h3 class="tih">A predictive AI built into <em>every project.</em></h3>
+      <p class="lede">Our proprietary intelligence engine analyzes <span class="hl-gold">hundreds of completed projects</span> to forecast timelines, surface comparable developments, and detect patterns developers can't see manually &mdash; turning every pin into context.</p>
+
+      <div class="ti-grid">
+        <div class="ti-card">
+          <div class="ti-card-num">01</div>
+          <div class="ti-card-h">Timeline forecasts</div>
+          <div class="ti-card-p">Predicts how long an in-progress project will take to complete by analyzing actual completion data from same-type projects in the same metro &mdash; with confidence levels and historical range.</div>
+        </div>
+        <div class="ti-card">
+          <div class="ti-card-num">02</div>
+          <div class="ti-card-h">Comparable projects engine</div>
+          <div class="ti-card-p">Surfaces three benchmark projects &mdash; same type, same market &mdash; so developers can sanity-check their timeline and journalists can contextualize coverage with precedent.</div>
+        </div>
+        <div class="ti-card">
+          <div class="ti-card-num">03</div>
+          <div class="ti-card-h">Pattern detection</div>
+          <div class="ti-card-p">Identifies how project types trend by region: Class A condos in Miami, ground-up resorts in the Caribbean, ultra-luxury homes in the Rockies &mdash; the patterns spreadsheets miss.</div>
+        </div>
+      </div>
+
+      <div class="ti-strip">
+        <div class="ti-strip-lab">Under the hood</div>
+        <div class="ti-strip-stats">
+          <div class="ti-strip-stat"><div class="ti-strip-v">Daily</div><div class="ti-strip-k">Refresh cycle</div></div>
+          <div class="ti-strip-stat"><div class="ti-strip-v">5+</div><div class="ti-strip-k">Markets modeled</div></div>
+          <div class="ti-strip-stat"><div class="ti-strip-v">Live</div><div class="ti-strip-k">In every project modal</div></div>
+          <div class="ti-strip-stat"><div class="ti-strip-v">&infin;</div><div class="ti-strip-k">Always learning</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cta">
+      <div class="ctxt">
+        <h3>The map is the front door. <em>Intelligence is the building.</em></h3>
+        <p>Explore all 396 projects free. Unlock forecasts, compare mode, and your watchlist with TMW Pro.</p>
+      </div>
+      <div class="cbtns">
+        <a class="btn primary" href="https://map.oftmw.com" target="_blank" rel="noopener">Open the full map <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
+        <a class="btn ghost" href="https://map.oftmw.com" target="_blank" rel="noopener">See TMW Pro</a>
+      </div>
+    </div>
+
   </div>
+
+  <script>
+  (function(){
+    var root = document.getElementById('intelligence'); if(!root) return;
+    function $(s){ return root.querySelector(s); }
+    function $all(s){ return root.querySelectorAll(s); }
+
+    var DATA = {
+      cities:{ label:'↑ = announced / breaking ground', rows:[
+        {n:'Miami',c:78,d:20},{n:'West Palm Beach',c:55,d:23},{n:'Nashville',c:16,d:5},
+        {n:'Miami Beach',c:15,d:3},{n:'Fort Lauderdale',c:14,d:2},{n:'Tampa',c:13,d:4},
+        {n:'New York City',c:12,d:2},{n:'Riviera Beach',c:9,d:6},{n:'Dubai',c:7,d:0}]},
+      developers:{ label:'↑ = active pipeline projects', rows:[
+        {n:'Related Group',c:13,d:3},{n:'Related Ross',c:11,d:5},{n:'Property Markets Group',c:11,d:1},
+        {n:'Two Roads Development',c:5,d:0},{n:'Terra Group',c:5,d:2},{n:'BH Group',c:5,d:1},
+        {n:'Witkoff',c:4,d:1},{n:'Place Projects',c:4,d:1},{n:'Wheelock Street Capital',c:4,d:1}]},
+      architects:{ label:'↑ = active pipeline projects', rows:[
+        {n:'Arquitectonica',c:56,d:15},{n:'Foster + Partners',c:18,d:8},{n:'Kohn Pedersen Fox',c:13,d:4},
+        {n:'Kobi Karp',c:12,d:4},{n:'Skidmore, Owings & Merrill',c:11,d:1},{n:'Spina O’Rourke + Partners',c:10,d:2},
+        {n:'REG Architects',c:9,d:6},{n:'Hart Howerton',c:9,d:0},{n:'Sieger Suarez Architects',c:7,d:2}]}
+    };
+    function esc(s){ return String(s).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];}); }
+    function renderBoard(key){
+      var set = DATA[key]; var max = Math.max.apply(null, set.rows.map(function(r){return r.c;}));
+      $('#tiLblist').innerHTML = set.rows.map(function(r,i){
+        var top = i<3 ? ' top'+(i+1) : ''; var w = Math.round((r.c/max)*100);
+        var dl = r.d>0 ? '+'+r.d+' ↑' : '·'; var dc = r.d>0 ? '' : ' flat';
+        return '<li class="'+top.trim()+'"><span class="rk">'+String(i+1).padStart(2,'0')+'</span>'+
+          '<span class="nmwrap"><span class="nm">'+esc(r.n)+'</span><span class="track"><i style="width:'+w+'%"></i></span></span>'+
+          '<span class="dl'+dc+'">'+dl+'</span><span class="ct">'+r.c+'</span></li>';
+      }).join('');
+      $('#tiRfoot').textContent = set.label;
+    }
+    $all('.bk button').forEach(function(b){
+      b.addEventListener('click', function(){
+        $all('.bk button').forEach(function(x){x.classList.remove('on');});
+        b.classList.add('on'); renderBoard(b.getAttribute('data-bk'));
+      });
+    });
+    renderBoard('cities');
+
+    var INTEL = {
+      waldorf:{name:'Waldorf Astoria Residences', loc:'St. Petersburg · Construction', big:'~3.5 yrs', pc:82,
+        comps:[['Saltaire St. Petersburg','+3.2 yrs'],['400 Central','+3.6 yrs'],['One St. Petersburg','+2.9 yrs']]},
+      melia:{name:'Meliá Residences Miami', loc:'Miami · Announced', big:'~4.1 yrs', pc:74,
+        comps:[['Aston Martin Residences','+4.4 yrs'],['Okan Tower','+3.9 yrs'],['Waldorf Astoria Miami','+4.6 yrs']]},
+      greene:{name:'One West Palm', loc:'West Palm Beach · Breaking ground', big:'~3.0 yrs', pc:79,
+        comps:[['Olara WPB','+2.8 yrs'],['South Flagler House','+3.1 yrs'],['Forté on Flagler','+2.6 yrs']]},
+      nashville:{name:'Nashville Yards', loc:'Nashville · Construction', big:'~2.7 yrs', pc:71,
+        comps:[['Five Twelve','+2.5 yrs'],['Paseo South Gulch','+3.0 yrs'],['1 Hotel Nashville','+2.4 yrs']]},
+      ftl:{name:'The Las Olas Project', loc:'Fort Lauderdale · Announced', big:'~3.8 yrs', pc:68,
+        comps:[['Riverwalk Residences','+3.5 yrs'],['Six13','+4.0 yrs'],['Olara FTL','+3.6 yrs']]}
+    };
+    function setIntel(k){
+      var d = INTEL[k]; if(!d) return;
+      $('#tiName').textContent = d.name;
+      $('#tiLoc').textContent = d.loc;
+      $('#tiBig').innerHTML = d.big+'<small>to completion</small>';
+      $('#tiBar').style.width = d.pc+'%';
+      $('#tiPc').textContent = d.pc+'%';
+      $('#tiComps').innerHTML = d.comps.map(function(c){
+        return '<div class="comp"><span class="cn">'+esc(c[0])+'</span><span class="cv">'+esc(c[1])+'</span></div>';
+      }).join('');
+    }
+    $all('.pin').forEach(function(p){
+      p.addEventListener('click', function(){
+        $all('.pin').forEach(function(x){x.classList.remove('sel');});
+        p.classList.add('sel'); setIntel(p.getAttribute('data-k'));
+      });
+    });
+    setIntel('waldorf');
+
+    var QUERIES = ['Related Group','condos in West Palm Beach','Foster + Partners','timelines · 2027 delivery','mass timber towers'];
+    var COUNTS  = ['41 results','22 results','17 results','63 results','4 results'];
+    var qi=0, ci=0, typing=true, tEl=$('#tiTyped'), rEl=$('#tiRcount');
+    function tick(){
+      var q = QUERIES[qi];
+      if(typing){
+        ci++; tEl.textContent = q.slice(0,ci);
+        if(ci>=q.length){ typing=false; rEl.textContent=COUNTS[qi]; setTimeout(tick,1700); return; }
+        setTimeout(tick, 55+Math.random()*55);
+      } else {
+        ci--; tEl.textContent = q.slice(0,ci);
+        if(ci<=0){ typing=true; qi=(qi+1)%QUERIES.length; rEl.textContent='396 results'; setTimeout(tick,260); return; }
+        setTimeout(tick, 28);
+      }
+    }
+    setTimeout(tick, 900);
+
+    var PULSE = [
+      ['Meliá Residences Miami added to the map','1d'],
+      ['Jeff Greene plans Florida’s tallest mass timber tower','2d'],
+      ['Nude Miami opens in Brickell — the city’s first organic grocer','5d'],
+      ['Waldorf Astoria Residences St. Petersburg → Construction','5d'],
+      ['Related Ross adds 3 West Palm towers to the pipeline','3d'],
+      ['Arquitectonica crosses 54 tracked projects','6d']
+    ];
+    function pulseHtml(){
+      return PULSE.map(function(p){
+        return '<span class="pitem"><span class="dot"></span><b>'+esc(p[0])+'</b><span class="age">'+p[1]+'</span></span>';
+      }).join('');
+    }
+    $('#tiPmove').innerHTML = pulseHtml()+pulseHtml();
+  })();
+  </script>
 </section>
 
 <!-- ==================== PARTNERS OF TOMORROW (shared, auto-mounted) ==================== -->
@@ -1035,7 +1270,7 @@ footer .ft-logo .tmw-wordmark{width:118px}
           <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
         </span>
       </a>
-      <a href="https://map.oftmw.com/media/" class="qcard b">
+      <a href="/media/" class="qcard b">
         <span class="qe">Media Kit</span>
         <div>
           <h3>Reach 8.1M readers every month</h3>
@@ -1152,8 +1387,8 @@ footer .ft-logo .tmw-wordmark{width:118px}
         <h4>Company</h4>
         <ul>
           <li><a href="https://map.oftmw.com">Map of Tomorrow</a></li>
-          <li><a href="https://map.oftmw.com/media/">About Us</a></li>
-          <li><a href="https://map.oftmw.com/media/">Advertise</a></li>
+          <li><a href="/media/">About Us</a></li>
+          <li><a href="/media/">Advertise</a></li>
           <li><a href="mailto:hello@oftmw.com">Contact</a></li>
         </ul>
       </div>
