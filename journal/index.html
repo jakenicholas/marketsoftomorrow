@@ -1298,8 +1298,7 @@ footer .ft-logo .tmw-wordmark{width:118px}
       renderBoard(curTab);
       // headstats + command-bar + CTA totals
       baseCount = rows.length;
-      var nEl = $('.headstats .headstat .n'); if(nEl) nEl.textContent = baseCount;
-      var mEl = $all('.headstats .headstat .n')[1]; if(mEl){ var mk = {}; rows.forEach(function(p){ var c=(p.City||'').trim(); if(c)mk[c]=1; }); mEl.innerHTML = Object.keys(mk).length+'<span class="pct">+</span>'; }
+      var nEl = $('.headstats .headstat .n'); if(nEl) nEl.textContent = baseCount;   // "Projects tracked" live; "40+ markets" stays curated
       if(rEl) rEl.textContent = baseCount+' results';
       var ctaP = $('.cta .ctxt p'); if(ctaP) ctaP.textContent = ctaP.textContent.replace(/\b\d{2,4}\b/, baseCount);
       // live pin counts (by city) + size scaled to the busiest pin
