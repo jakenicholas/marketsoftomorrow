@@ -13,6 +13,21 @@
   if (window.__tmwDock) return;
   window.__tmwDock = true;
 
+  // ── Google Analytics (GA4) — same property as the map. Journal traffic on
+  //    www.oftmw.com lands under hostName www.oftmw.com so the studio's Journal
+  //    analytics tab can scope to it (vs map.oftmw.com + /media).
+  (function loadGA() {
+    if (window.gtag) return;
+    var s = document.createElement('script');
+    s.async = true;
+    s.src = 'https://www.googletagmanager.com/gtag/js?id=G-6NPTWCVFCG';
+    document.head.appendChild(s);
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = function () { window.dataLayer.push(arguments); };
+    window.gtag('js', new Date());
+    window.gtag('config', 'G-6NPTWCVFCG');
+  })();
+
   // ── Destinations (single source of truth; update when domain moves) ──
   var MAP_URL     = 'https://map.oftmw.com';
   var HOME_URL    = 'https://www.oftmw.com';
