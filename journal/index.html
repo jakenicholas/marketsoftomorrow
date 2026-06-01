@@ -416,9 +416,10 @@ nav.main .wrap{display:flex; align-items:center; justify-content:space-between; 
 /* =================================================================== */
 /* FILTER BAR                                                           */
 /* =================================================================== */
-.bar{background:rgba(13,15,14,.85); backdrop-filter:var(--glass); -webkit-backdrop-filter:var(--glass); border-bottom:1px solid var(--hair); padding:16px 0}
+.bar{background:rgba(13,15,14,.85); backdrop-filter:var(--glass); -webkit-backdrop-filter:var(--glass); border-bottom:1px solid var(--hair); padding:4px 0}
 .bar .wrap{display:flex; align-items:center; gap:18px; justify-content:space-between}
-.pills{display:flex; gap:8px; overflow-x:auto; flex:1; scrollbar-width:none; -ms-overflow-style:none}
+/* vertical padding gives the .pill.on gold glow room so overflow-x:auto doesn't clip it top/bottom */
+.pills{display:flex; gap:8px; overflow-x:auto; overflow-y:visible; flex:1; scrollbar-width:none; -ms-overflow-style:none; padding:15px 6px}
 .pills::-webkit-scrollbar{display:none}
 .pill{flex:0 0 auto; font-family:var(--mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase; padding:8px 14px; border-radius:999px; border:1px solid var(--hair-2); color:var(--mute-2); background:rgba(255,255,255,.03); transition:all .2s; white-space:nowrap; font-weight:500}
 .pill:hover{border-color:rgba(255,255,255,.3); color:var(--white)}

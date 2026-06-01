@@ -207,12 +207,12 @@ nav.main .wrap{display:flex; align-items:center; justify-content:space-between; 
 .list-intro-meta strong{color:var(--green); font-weight:700}
 
 /* ============== REGION FILTER PILLS ============== */
-.region-bar{padding:30px 0 0}
-.region-pills{display:flex; gap:8px; overflow-x:auto; scrollbar-width:none; padding-bottom:4px}
+.region-bar{padding:18px 0 0}
+.region-pills{display:flex; gap:8px; overflow-x:auto; overflow-y:visible; scrollbar-width:none; padding:13px 6px}
 .region-pills::-webkit-scrollbar{display:none}
 .region-pills .pill{flex:0 0 auto; font-family:var(--mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase; padding:8px 14px; border-radius:999px; border:1px solid var(--hair-2); color:var(--mute-2); background:rgba(255,255,255,.03); transition:all .2s; white-space:nowrap; font-weight:500}
 .region-pills .pill:hover{border-color:var(--hair-3); color:var(--white)}
-.region-pills .pill.on{background:var(--green); color:var(--ink); border-color:var(--green); font-weight:700}
+.region-pills .pill.on{background:rgba(230,197,116,.10); color:var(--gold-soft); border-color:rgba(230,197,116,.34); font-weight:700; text-shadow:0 0 14px rgba(230,197,116,.5), 0 0 3px rgba(230,197,116,.32); box-shadow:0 0 18px rgba(230,197,116,.16)}
 .region-pills .pill .ct{opacity:.6; margin-left:6px; font-size:9.5px}
 
 /* ============== TAB PANELS ============== */
@@ -507,8 +507,6 @@ footer .tmw-wordmark{width:118px}
         <span><strong id="item-count-vis">—</strong> Restaurants</span>
         <span class="dot"></span>
         <span>Curated by Markets of Tomorrow</span>
-        <span class="dot"></span>
-        <span>Updated <span id="updated-stamp-vis">—</span></span>
       </div>
     </header>
     <div class="region-bar">
