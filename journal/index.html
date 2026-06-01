@@ -1150,7 +1150,14 @@ footer .ft-logo .tmw-wordmark{width:118px}
     var root = document.getElementById('intelligence'); if(!root) return;
     function $(s){ return root.querySelector(s); }
     function $all(s){ return root.querySelectorAll(s); }
+    function esc(s){ return String(s).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];}); }
 
+    var PROJECTS_URL = 'https://map.oftmw.com/projects-flat.json';
+    var PULSE_URL    = 'https://map.oftmw.com/pulse.json';
+    var PIN_CITY = { waldorf:'St. Petersburg', melia:'Miami', greene:'West Palm Beach', nashville:'Nashville', ftl:'Fort Lauderdale' };
+
+    /* ---- breakdown data (static seed = instant paint + offline fallback;
+            overwritten by live projects-flat.json below) ---- */
     var DATA = {
       cities:{ label:'↑ = announced / breaking ground', rows:[
         {n:'Miami',c:78,d:20},{n:'West Palm Beach',c:55,d:23},{n:'Nashville',c:16,d:5},
@@ -1165,9 +1172,12 @@ footer .ft-logo .tmw-wordmark{width:118px}
         {n:'Kobi Karp',c:12,d:4},{n:'Skidmore, Owings & Merrill',c:11,d:1},{n:'Spina O’Rourke + Partners',c:10,d:2},
         {n:'REG Architects',c:9,d:6},{n:'Hart Howerton',c:9,d:0},{n:'Sieger Suarez Architects',c:7,d:2}]}
     };
-    function esc(s){ return String(s).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];}); }
+    var curTab = 'cities';
+    var baseCount = 396;
+
     function renderBoard(key){
-      var set = DATA[key]; var max = Math.max.apply(null, set.rows.map(function(r){return r.c;}));
+      curTab = key;
+      var set = DATA[key]; var max = Math.max.apply(null, set.rows.map(function(r){return r.c;})) || 1;
       $('#tiLblist').innerHTML = set.rows.map(function(r,i){
         var top = i<3 ? ' top'+(i+1) : ''; var w = Math.round((r.c/max)*100);
         var dl = r.d>0 ? '+'+r.d+' ↑' : '·'; var dc = r.d>0 ? '' : ' flat';
@@ -1185,6 +1195,7 @@ footer .ft-logo .tmw-wordmark{width:118px}
     });
     renderBoard('cities');
 
+    /* ---- intelligence card content per pin (illustrative Pro preview) ---- */
     var INTEL = {
       waldorf:{name:'Waldorf Astoria Residences', loc:'St. Petersburg · Construction', big:'~3.5 yrs', pc:82,
         comps:[['Saltaire St. Petersburg','+3.2 yrs'],['400 Central','+3.6 yrs'],['One St. Petersburg','+2.9 yrs']]},
@@ -1216,6 +1227,7 @@ footer .ft-logo .tmw-wordmark{width:118px}
     });
     setIntel('waldorf');
 
+    /* ---- typed search placeholder ---- */
     var QUERIES = ['Related Group','condos in West Palm Beach','Foster + Partners','timelines · 2027 delivery','mass timber towers'];
     var COUNTS  = ['41 results','22 results','17 results','63 results','4 results'];
     var qi=0, ci=0, typing=true, tEl=$('#tiTyped'), rEl=$('#tiRcount');
@@ -1227,12 +1239,13 @@ footer .ft-logo .tmw-wordmark{width:118px}
         setTimeout(tick, 55+Math.random()*55);
       } else {
         ci--; tEl.textContent = q.slice(0,ci);
-        if(ci<=0){ typing=true; qi=(qi+1)%QUERIES.length; rEl.textContent='396 results'; setTimeout(tick,260); return; }
+        if(ci<=0){ typing=true; qi=(qi+1)%QUERIES.length; rEl.textContent=baseCount+' results'; setTimeout(tick,260); return; }
         setTimeout(tick, 28);
       }
     }
     setTimeout(tick, 900);
 
+    /* ---- pulse ticker (static seed; overwritten by pulse.json) ---- */
     var PULSE = [
       ['Meliá Residences Miami added to the map','1d'],
       ['Jeff Greene plans Florida’s tallest mass timber tower','2d'],
@@ -1243,10 +1256,74 @@ footer .ft-logo .tmw-wordmark{width:118px}
     ];
     function pulseHtml(){
       return PULSE.map(function(p){
-        return '<span class="pitem"><span class="dot"></span><b>'+esc(p[0])+'</b><span class="age">'+p[1]+'</span></span>';
+        return '<span class="pitem"><span class="dot"></span><b>'+esc(p[0])+'</b><span class="age">'+esc(p[1])+'</span></span>';
       }).join('');
     }
-    $('#tiPmove').innerHTML = pulseHtml()+pulseHtml();
+    function renderPulse(){ $('#tiPmove').innerHTML = pulseHtml()+pulseHtml(); }
+    renderPulse();
+
+    /* ================= LIVE DATA ================= */
+    var FIRM_PRESERVE = ['Skidmore, Owings & Merrill', 'Robert A.M. Stern Architects'];
+    var PIPELINE = ['announced', 'breaking ground'];   // the "↑" delta signal
+    function isPipe(p){ return PIPELINE.indexOf(String(p.Delivery||'').trim().toLowerCase()) !== -1; }
+    function splitFirms(value){
+      if(!value) return [];
+      var v = String(value); var ph = [];
+      FIRM_PRESERVE.forEach(function(name,i){
+        var token='__P'+i+'__'; var re=new RegExp(name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'gi');
+        if(re.test(v)){ ph.push({t:token,n:name}); v=v.replace(re,token); }
+      });
+      return v.split(/\s*[,/]\s*/).map(function(s){ var o=s.trim(); ph.forEach(function(p){ if(o===p.t)o=p.n; }); return o; }).filter(Boolean);
+    }
+    function tally(projects, type){
+      var counts={}, pipe={};
+      function bump(b,k){ b[k]=(b[k]||0)+1; }
+      projects.forEach(function(p){
+        var inP = isPipe(p);
+        if(type==='cities'){ var c=(p.City||'').trim(); if(!c) return; bump(counts,c); if(inP)bump(pipe,c); }
+        else { splitFirms(type==='developers'?p.Developer:p.Architect).forEach(function(n){ if(n.toLowerCase()==='various')return; bump(counts,n); if(inP)bump(pipe,n); }); }
+      });
+      return Object.keys(counts).map(function(k){ return {n:k, c:counts[k], d:pipe[k]||0}; })
+        .sort(function(a,b){ return b.c-a.c || b.d-a.d || a.n.localeCompare(b.n); }).slice(0,9);
+    }
+    function ageLabel(iso){
+      try{ var t=new Date(iso).getTime(); if(isNaN(t)) return ''; var h=Math.max(0,Math.round((Date.now()-t)/3600000));
+        return h<1?'now':h<24?h+'h':Math.round(h/24)+'d'; }catch(e){ return ''; }
+    }
+    fetch(PROJECTS_URL, {cache:'no-store'}).then(function(r){ return r.ok?r.json():null; }).then(function(rows){
+      if(!Array.isArray(rows) || !rows.length) return;
+      DATA.cities.rows = tally(rows,'cities');
+      DATA.developers.rows = tally(rows,'developers');
+      DATA.architects.rows = tally(rows,'architects');
+      renderBoard(curTab);
+      // headstats + command-bar + CTA totals
+      baseCount = rows.length;
+      var nEl = $('.headstats .headstat .n'); if(nEl) nEl.textContent = baseCount;
+      var mEl = $all('.headstats .headstat .n')[1]; if(mEl){ var mk = {}; rows.forEach(function(p){ var c=(p.City||'').trim(); if(c)mk[c]=1; }); mEl.innerHTML = Object.keys(mk).length+'<span class="pct">+</span>'; }
+      if(rEl) rEl.textContent = baseCount+' results';
+      var ctaP = $('.cta .ctxt p'); if(ctaP) ctaP.textContent = ctaP.textContent.replace(/\b\d{2,4}\b/, baseCount);
+      // live pin counts (by city) + size scaled to the busiest pin
+      var cityCount = {}; DATA.cities.rows.forEach(function(r){ cityCount[r.n]=r.c; });
+      rows.forEach(function(p){ var c=(p.City||'').trim(); if(c) cityCount[c]=(cityCount[c]||0); });
+      var cc={}; rows.forEach(function(p){ var c=(p.City||'').trim(); if(c) cc[c]=(cc[c]||0)+1; });
+      var pinVals = [];
+      $all('.pin').forEach(function(pin){ var city=PIN_CITY[pin.getAttribute('data-k')]; pinVals.push(city?(cc[city]||0):0); });
+      var pmax = Math.max.apply(null, pinVals.concat([1]));
+      $all('.pin').forEach(function(pin){
+        var city = PIN_CITY[pin.getAttribute('data-k')]; if(!city) return;
+        var c = cc[city]; if(c==null) return; var bub = pin.querySelector('.bub'); if(!bub) return;
+        var size = Math.round(30 + (c/pmax)*26);
+        bub.textContent = c; bub.style.width=size+'px'; bub.style.height=size+'px'; bub.style.fontSize=Math.max(11,Math.round(size*0.3))+'px';
+      });
+    }).catch(function(){});
+
+    fetch(PULSE_URL, {cache:'no-store'}).then(function(r){ return r.ok?r.json():null; }).then(function(d){
+      var ev = d && (Array.isArray(d)?d:d.events); if(!ev || !ev.length) return;
+      PULSE = ev.slice(0,14).map(function(e){ return [ (e.title||e.project_title||'').trim(), ageLabel(e.timestamp) ]; }).filter(function(x){ return x[0]; });
+      renderPulse();
+      var fresh = ev.filter(function(e){ try{ return (Date.now()-new Date(e.timestamp).getTime()) < 7*86400000; }catch(_){ return false; } }).length;
+      var tag = $('.pulse .ptag'); if(tag) tag.innerHTML = '<span class="pip"></span>Pulse'+(fresh?' · '+fresh+' new':'');
+    }).catch(function(){});
   })();
   </script>
 </section>
