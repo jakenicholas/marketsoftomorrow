@@ -102,6 +102,15 @@ nav.main .wrap{display:flex; align-items:center; justify-content:space-between; 
 .ticker-cta:hover{background:linear-gradient(90deg, transparent, rgba(31,223,103,.16))}
 .ticker-cta svg{width:13px; height:13px; transition:transform .2s}
 .ticker-cta:hover svg{transform:translateX(3px)}
+/* Match the homepage pulse on mobile — hide the "N NEW" pill, shorter bar. */
+@media(max-width:700px){
+  .ticker{height:36px}
+  .ticker-label{font-size:10px; padding:0 12px 0 14px; letter-spacing:.18em}
+  .ticker-label .newcount{display:none}
+  .ticker-cta{padding:0 14px; font-size:10px}
+  .ticker-item{font-size:12px}
+  .ticker-item .tage{font-size:9.5px}
+}
 @media (prefers-reduced-motion: reduce){.ticker-track{animation:none}}
 
 /* ============== ARTICLE HERO ============== */
@@ -122,6 +131,11 @@ nav.main .wrap{display:flex; align-items:center; justify-content:space-between; 
 .article-hero .byline .share .share-ico svg{width:16px; height:16px}
 .article-hero .byline .share .share-ico:hover{border-color:var(--green); color:var(--green); transform:translateY(-1px)}
 .article-hero .byline .share .share-ico.copied{border-color:var(--green); color:var(--green)}
+@media(max-width:560px){
+  .article-hero .byline{margin-top:16px; padding-top:14px; gap:10px}
+  .article-hero .byline .share .share-ico{width:34px; height:34px}
+  .article-hero .byline .share .share-ico svg{width:15px; height:15px}
+}
 
 .article-cover{margin:0 auto; max-width:1240px; padding:0 28px}
 .article-cover-img{width:100%; aspect-ratio:16/9; object-fit:cover; border-radius:16px; background:var(--panel-2); margin-top:14px}

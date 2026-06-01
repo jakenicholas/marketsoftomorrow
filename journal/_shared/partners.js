@@ -41,8 +41,8 @@
       .tmw-partners-grid{display:grid; grid-template-columns:repeat(4, 1fr); gap:18px}
       @media(max-width:1100px){.tmw-partners-grid{grid-template-columns:repeat(2, 1fr)}}
       @media(max-width:620px){.tmw-partners-grid{grid-template-columns:repeat(2, 1fr); gap:10px}}
-      .tmw-partner-card{background:linear-gradient(180deg,#121d11,#0d130c); border:1px solid rgba(120,200,130,.10); border-radius:16px; overflow:hidden; display:flex; flex-direction:column; transition:transform .25s ease, border-color .25s ease}
-      .tmw-partner-card:hover{transform:translateY(-3px); border-color:rgba(255,255,255,.18)}
+      .tmw-partner-card{background:linear-gradient(180deg,#121d11,#0d130c); border:1px solid rgba(230,197,116,.34); border-radius:16px; overflow:hidden; display:flex; flex-direction:column; box-shadow:0 0 18px rgba(230,197,116,.12), inset 0 0 0 1px rgba(230,197,116,.05); transition:transform .25s ease, border-color .25s ease, box-shadow .25s ease}
+      .tmw-partner-card:hover{transform:translateY(-3px); border-color:rgba(230,197,116,.7); box-shadow:0 0 28px rgba(230,197,116,.26), inset 0 0 0 1px rgba(230,197,116,.1)}
       .tmw-partner-img{aspect-ratio:16/10; background:#1a1d1a; overflow:hidden; position:relative}
       .tmw-partner-img img{width:100%; height:100%; object-fit:cover; transition:transform .6s ease}
       .tmw-partner-card:hover .tmw-partner-img img{transform:scale(1.04)}
@@ -52,6 +52,12 @@
       .tmw-partner-logo .lmask{display:block; width:100%; height:54px; background:#fff; opacity:.95; -webkit-mask-size:contain; mask-size:contain; -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat; -webkit-mask-position:center; mask-position:center}
       .tmw-partner-logo .wm-fallback{font-family:'Fraunces',Georgia,serif; font-weight:500; font-size:22px; color:#fff; letter-spacing:.04em; text-align:center; line-height:1.1}
       .tmw-partner-cat{font-family:'JetBrains Mono',ui-monospace,monospace; font-size:10.5px; letter-spacing:.22em; text-transform:uppercase; color:#C2C9C3; font-weight:500}
+      .tmw-mobr{display:none}
+      @media(max-width:620px){
+        .tmw-partner-logo, .tmw-partner-logo .lmask{height:40px}
+        .tmw-partner-cat{font-size:9.5px; letter-spacing:.16em; line-height:1.5}
+        .tmw-mobr{display:inline}
+      }
       .tmw-partner-cta{margin-top:auto; display:block; width:100%; text-align:center; padding:11px 14px; background:rgba(0,0,0,.24); border:1px solid rgba(255,255,255,.05); border-radius:14px; color:#9AA39C; text-decoration:none; font-family:'Inter',sans-serif; font-size:12.5px; font-weight:500; letter-spacing:.01em; transition:background .2s, border-color .2s, color .2s}
       .tmw-partner-cta:hover{background:rgba(0,0,0,.34); border-color:rgba(255,255,255,.12); color:#ECEAE5}
       /* Client wall */
@@ -93,7 +99,7 @@
       <div class="tmw-partner-img">${imgEl}</div>
       <div class="tmw-partner-body">
         <div class="tmw-partner-logo">${logoEl}</div>
-        <div class="tmw-partner-cat">${esc(p.category || '')}</div>
+        <div class="tmw-partner-cat">${esc(p.category || '').replace(/ TOMORROW/i, ' <br class="tmw-mobr">TOMORROW')}</div>
         <span class="tmw-partner-cta">${esc(p.ctaLabel || 'Learn More')}</span>
       </div>
     </a>`;
@@ -114,7 +120,7 @@
         ${partners.length ? `
           <div class="tmw-partners-head">
             ${head.eyebrow ? `<div class="tmw-partners-eyebrow">${esc(head.eyebrow)}</div>` : ''}
-            ${head.title   ? `<h2 class="tmw-partners-title">${esc(head.title)}</h2>` : ''}
+            ${head.title   ? `<h2 class="tmw-partners-title">${esc(head.title).replace(/ of /i, ' <br class="tmw-mobr">of ')}</h2>` : ''}
             ${head.sub     ? `<p class="tmw-partners-sub">${esc(head.sub)}</p>` : ''}
           </div>
           <div class="tmw-partners-grid">${partners.map(partnerCard).join('')}</div>
