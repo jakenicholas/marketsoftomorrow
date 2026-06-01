@@ -19,6 +19,11 @@
   var MAP_URL = 'https://map.oftmw.com';
 
   // 1) Load Memberstack once (shared across journal pages).
+  //    Cross-subdomain SSO: store the session in a cookie on the ROOT domain
+  //    (.oftmw.com) instead of localStorage, so a login on map.oftmw.com is the
+  //    same session as www.oftmw.com (and vice-versa). Must be set BEFORE the
+  //    Memberstack script loads, on every site sharing the app.
+  try { window.memberstackConfig = window.memberstackConfig || { useCookies: true, setCookieOnRootDomain: true }; } catch (e) {}
   if (!document.querySelector('script[data-memberstack-app]')) {
     var s = document.createElement('script');
     s.setAttribute('data-memberstack-app', MS_APP);

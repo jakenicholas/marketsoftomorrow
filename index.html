@@ -50,6 +50,11 @@
   <script src="https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
+  <!-- Cross-subdomain SSO: keep the Memberstack session in a cookie on the ROOT
+       domain (.oftmw.com) instead of localStorage, so a login here on the map is
+       the SAME session as the journal (www.oftmw.com), and vice-versa. This MUST
+       come before the Memberstack script below. -->
+  <script>window.memberstackConfig = window.memberstackConfig || { useCookies: true, setCookieOnRootDomain: true };</script>
   <!-- Memberstack 2.0 ‚Äî handles auth + Stripe checkout for the paywall -->
   <script data-memberstack-app="app_cmoq79nvv002d0syef7wpel3c"
           src="https://static.memberstack.com/scripts/v2/memberstack.js"
