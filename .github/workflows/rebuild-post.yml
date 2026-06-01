@@ -1,0 +1,56 @@
+# Fast rebuild-on-save for a single article page. Fired by the Studio (via the
+# GH_TOKEN proxy → repository_dispatch) the moment a post is published/edited, so
+# the pre-rendered /post/<slug>/ page goes live in ~30-60s instead of waiting
+# for the hourly job. repository_dispatch only needs the token's Contents
+# permission (which the studio's PAT already has).
+name: Rebuild one post
+
+on:
+  repository_dispatch:
+    types: [rebuild-post]
+  workflow_dispatch:
+    inputs:
+      slug:
+        description: 'Post slug to regenerate'
+        required: true
+
+# Serialize with the hourly job so two pushes don't race.
+concurrency:
+  group: generate-pages-pulse
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Resolve slug
+        id: s
+        run: |
+          SLUG="${{ github.event.client_payload.slug }}"
+          [ -z "$SLUG" ] && SLUG="${{ github.event.inputs.slug }}"
+          if [ -z "$SLUG" ]; then echo "No slug provided"; exit 1; fi
+          echo "slug=$SLUG" >> "$GITHUB_OUTPUT"
+
+      - name: Regenerate the post page
+        run: python3 generate_articles.py --only "${{ steps.s.outputs.slug }}"
+
+      - name: Commit + push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add journal/post/ 2>/dev/null || true
+          if git diff --staged --quiet; then
+            echo "No change for ${{ steps.s.outputs.slug }}"
+          else
+            git commit -m "Rebuild post: ${{ steps.s.outputs.slug }}"
+            git pull --rebase --autostash origin main || true
+            git push
+          fi

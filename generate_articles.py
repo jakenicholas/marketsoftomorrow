@@ -218,6 +218,10 @@ def main():
     limit = None
     if "--limit" in sys.argv:
         limit = int(sys.argv[sys.argv.index("--limit") + 1])
+    # --only <slug>: regenerate a single post page fast (rebuild-on-save path).
+    only = None
+    if "--only" in sys.argv:
+        only = sys.argv[sys.argv.index("--only") + 1].strip().strip("/")
 
     with open(TEMPLATE_PATH, encoding="utf-8") as f:
         template = f.read()
@@ -233,9 +237,12 @@ def main():
             print("   •", m)
         sys.exit(1)
 
-    slugs = fetch_slugs()
-    if limit:
-        slugs = slugs[:limit]
+    if only:
+        slugs = [only]
+    else:
+        slugs = fetch_slugs()
+        if limit:
+            slugs = slugs[:limit]
     print(f"Pre-rendering {len(slugs)} articles → {OUT_ROOT}/<slug>/index.html")
 
     def fetch(slug):

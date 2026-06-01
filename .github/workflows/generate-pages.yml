@@ -8,6 +8,10 @@ on:
   workflow_dispatch:
     # Manual trigger from the Actions tab. Use this after editing the sheet
     # to force a near-instant rebuild instead of waiting for the schedule.
+  repository_dispatch:
+    # Fired by the Map admin (via the GH_TOKEN proxy) right after a project is
+    # saved, so the map's projects-flat.json + pages rebuild in ~1-2 min.
+    types: [rebuild-map]
 
 # Cancel any in-flight runs when a new one starts. Without this, two
 # back-to-back manual triggers could race and the older run's commit
