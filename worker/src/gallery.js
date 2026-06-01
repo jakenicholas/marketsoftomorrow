@@ -144,7 +144,10 @@ async function getGalleryImages(env, slug) {
 // PUBLIC PAGES
 // ===========================================================================
 
-const FONTS = `<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,600;9..144,900&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">`;
+// Shared <head> bits included by every gallery page (index, gallery, 404) — so
+// the TMW favicon + fonts apply to current and future pages automatically.
+const FAVICON = `<link rel="icon" type="image/png" href="https://www.oftmw.com/media/img/83809b6809e2.png"><link rel="apple-touch-icon" href="https://www.oftmw.com/media/img/83809b6809e2.png">`;
+const FONTS = `${FAVICON}<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,600;9..144,900&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">`;
 
 const BASE_CSS = `
 :root{
