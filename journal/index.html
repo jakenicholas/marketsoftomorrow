@@ -422,7 +422,7 @@ nav.main .wrap{display:flex; align-items:center; justify-content:space-between; 
 .pills::-webkit-scrollbar{display:none}
 .pill{flex:0 0 auto; font-family:var(--mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase; padding:8px 14px; border-radius:999px; border:1px solid var(--hair-2); color:var(--mute-2); background:rgba(255,255,255,.03); transition:all .2s; white-space:nowrap; font-weight:500}
 .pill:hover{border-color:rgba(255,255,255,.3); color:var(--white)}
-.pill.on{background:var(--gold); color:var(--ink); border-color:var(--gold); font-weight:700; box-shadow:0 0 18px rgba(230,197,116,.5), 0 0 0 1px rgba(230,197,116,.35)}
+.pill.on{background:rgba(230,197,116,.10); color:var(--gold-soft); border-color:rgba(230,197,116,.34); font-weight:700; text-shadow:0 0 14px rgba(230,197,116,.5), 0 0 3px rgba(230,197,116,.32); box-shadow:0 0 18px rgba(230,197,116,.16)}
 .pill .count{opacity:.55; margin-left:6px; font-size:9.5px}
 .pill.on .count{opacity:.7}
 .search{display:flex; align-items:center; gap:8px; border:1px solid var(--hair-2); border-radius:999px; padding:8px 14px; background:rgba(255,255,255,.03); min-width:220px; transition:border-color .2s}
@@ -980,6 +980,7 @@ function hookBannerCollapse() {
 // State + feed
 // ---------------------------------------------------------------
 let ALL_ITEMS  = [];
+let HERO_ITEM  = null;   // the big featured story card — most-recent featured post, else newest
 let FILTERED   = [];
 let VISIBLE_N  = PAGE_SIZE;
 let ACTIVE_CAT = '*';
@@ -996,7 +997,11 @@ async function loadFeed() {
       showError(error || 'Both worker and direct RSS returned no items.');
       return;
     }
-    renderFeatured(ALL_ITEMS[0]);
+    // The hero is the most-recent post the Studio has marked "featured" (the
+    // star); if none is featured, fall back to the newest post. ALL_ITEMS is
+    // already ordered newest-first, so .find() gives the most-recent featured.
+    HERO_ITEM = ALL_ITEMS.find(it => it.featured) || ALL_ITEMS[0];
+    renderFeatured(HERO_ITEM);
     // Honor ?market=<key> from the header "Focus Markets" dropdown: pre-select
     // that category filter so the article grid lands filtered to the market,
     // then scroll down to the filter bar so the result is obvious.
@@ -1166,6 +1171,7 @@ function d1PostToFeedShape(p) {
     author:     p.author_name || '',
     categories: p.categories || [],
     main_category: p.main_category || '',
+    featured:   p.featured ? 1 : 0,
   };
 }
 
@@ -1403,9 +1409,11 @@ function applyFilters() {
     }
     return true;
   });
-  // Skip the featured article from the default grid view.
-  if (FILTERED[0] && FILTERED[0].link === ALL_ITEMS[0].link && !SEARCH_Q && ACTIVE_CAT === '*') {
-    FILTERED = FILTERED.slice(1);
+  // Skip the hero/featured article from the default grid view (it's the big
+  // story card up top). Filter by link so it's removed wherever it sits, not
+  // just when it happens to be newest.
+  if (HERO_ITEM && !SEARCH_Q && ACTIVE_CAT === '*') {
+    FILTERED = FILTERED.filter(it => it.link !== HERO_ITEM.link);
   }
   renderGrid();
 }

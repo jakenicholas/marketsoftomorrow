@@ -345,43 +345,6 @@
       </div>
     </div>
 
-    <div class="ti-wrap">
-      <span class="ti-eyebrow">
-        <span class="ti-hex" aria-hidden="true"><svg viewBox="0 0 100 100"><g class="ti-spin"><polygon points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34"/></g></svg></span>
-        Under the hood
-      </span>
-      <h3 class="tih">A predictive AI built into <em>every project.</em></h3>
-      <p class="lede">Our proprietary intelligence engine analyzes <span class="hl-gold">hundreds of completed projects</span> to forecast timelines, surface comparable developments, and detect patterns developers can't see manually &mdash; turning every pin into context.</p>
-
-      <div class="ti-grid">
-        <div class="ti-card">
-          <div class="ti-card-num">01</div>
-          <div class="ti-card-h">Timeline forecasts</div>
-          <div class="ti-card-p">Predicts how long an in-progress project will take to complete by analyzing actual completion data from same-type projects in the same metro &mdash; with confidence levels and historical range.</div>
-        </div>
-        <div class="ti-card">
-          <div class="ti-card-num">02</div>
-          <div class="ti-card-h">Comparable projects engine</div>
-          <div class="ti-card-p">Surfaces three benchmark projects &mdash; same type, same market &mdash; so developers can sanity-check their timeline and journalists can contextualize coverage with precedent.</div>
-        </div>
-        <div class="ti-card">
-          <div class="ti-card-num">03</div>
-          <div class="ti-card-h">Pattern detection</div>
-          <div class="ti-card-p">Identifies how project types trend by region: Class A condos in Miami, ground-up resorts in the Caribbean, ultra-luxury homes in the Rockies &mdash; the patterns spreadsheets miss.</div>
-        </div>
-      </div>
-
-      <div class="ti-strip">
-        <div class="ti-strip-lab">Under the hood</div>
-        <div class="ti-strip-stats">
-          <div class="ti-strip-stat"><div class="ti-strip-v">Daily</div><div class="ti-strip-k">Refresh cycle</div></div>
-          <div class="ti-strip-stat"><div class="ti-strip-v">5+</div><div class="ti-strip-k">Markets modeled</div></div>
-          <div class="ti-strip-stat"><div class="ti-strip-v">Live</div><div class="ti-strip-k">In every project modal</div></div>
-          <div class="ti-strip-stat"><div class="ti-strip-v">&infin;</div><div class="ti-strip-k">Always learning</div></div>
-        </div>
-      </div>
-    </div>
-
     <div class="cta">
       <div class="ctxt">
         <h3>The map is the front door. <em>Intelligence is the building.</em></h3>

@@ -198,7 +198,7 @@ nav.main .wrap{display:flex; align-items:center; justify-content:space-between; 
 /* ---- Gallery grid (2-column) ---- */
 .tmw-gallery-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:2em 0}
 .tmw-gallery-grid-item{margin:0; position:relative; border-radius:12px; overflow:hidden; background:#0a0a0a}
-.tmw-gallery-grid-item img{width:100%; height:100%; object-fit:cover; display:block; aspect-ratio:4/3; margin:0; border-radius:0}
+.tmw-gallery-grid-item img{width:100%; height:100%; object-fit:cover; display:block; aspect-ratio:3/4; margin:0; border-radius:0}
 .tmw-gallery-grid-item figcaption{position:absolute; left:0; right:0; bottom:0; padding:26px 16px 12px; background:linear-gradient(transparent, rgba(7,8,7,.85) 70%); color:var(--white); font-family:var(--mono); font-size:11px; letter-spacing:.06em; line-height:1.45; pointer-events:none}
 @media(max-width:560px){.tmw-gallery-grid{gap:6px} .tmw-gallery-grid-item figcaption{font-size:9.5px; padding:18px 10px 9px}}
 .article-body-content code{background:rgba(255,255,255,.06); padding:2px 6px; border-radius:4px; font-family:var(--mono); font-size:.9em}
