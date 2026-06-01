@@ -72,6 +72,30 @@
     if (host && !INTERNAL_HOSTS[host]) return tmwTrack('jrn_outbound', { domain: host.replace(/^www\./, '').slice(0, 40) });
   }, true);
 
+  // ── "Active now" heartbeat → worker ───────────────────────────────────
+  //    Every open journal page beacons a session id to the worker on load and
+  //    while visible, so the studio's Journal tab can show readers active in
+  //    the last 5 minutes (GA4 realtime can't be filtered to this host).
+  (function heartbeat() {
+    try {
+      if (navigator.webdriver) return;
+      var sid;
+      try { sid = sessionStorage.getItem('tmw-sid'); if (!sid) { sid = Date.now().toString(36) + Math.random().toString(36).slice(2, 8); sessionStorage.setItem('tmw-sid', sid); } }
+      catch (e) { sid = 's' + Math.random().toString(36).slice(2, 10); }
+      var PING = 'https://tmw.jake-ab7.workers.dev/journal-ping';
+      function ping() {
+        try {
+          var p = JSON.stringify({ sid: sid });
+          if (navigator.sendBeacon) navigator.sendBeacon(PING, p);
+          else fetch(PING, { method: 'POST', body: p, keepalive: true, headers: { 'Content-Type': 'text/plain' } });
+        } catch (e) {}
+      }
+      ping();
+      setInterval(function () { if (!document.hidden) ping(); }, 60000);
+      document.addEventListener('visibilitychange', function () { if (!document.hidden) ping(); });
+    } catch (e) {}
+  })();
+
   // ── Destinations (single source of truth; update when domain moves) ──
   var MAP_URL     = 'https://map.oftmw.com';
   var HOME_URL    = 'https://www.oftmw.com';

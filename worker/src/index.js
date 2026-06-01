@@ -3183,6 +3183,46 @@ async function handlePostViews(env, origin) {
 }
 
 // ---------------------------------------------------------------------------
+// Journal "active now" — first-party heartbeat. Every open journal page pings
+// POST /journal-ping {sid} every ~60s; GET /journal-active counts distinct
+// sessions seen in the last 5 minutes. (GA4 realtime can't be filtered to the
+// journal host, so we own this the same way as the post-view counter.)
+// ---------------------------------------------------------------------------
+async function ensureJournalActiveTable(env) {
+  await env.DB.prepare('CREATE TABLE IF NOT EXISTS journal_active (sid TEXT PRIMARY KEY, ts INTEGER)').run();
+}
+
+async function handleJournalPing(req, env, origin) {
+  const ok = () => new Response(null, { status: 204, headers: corsHeaders(env, origin) });
+  if (!env.DB) return ok();
+  const ua = (req.headers.get('User-Agent') || '');
+  if (!ua || VIEW_BOT_RE.test(ua)) return ok();
+  let sid = '';
+  try { const t = await req.text(); if (t) { try { sid = (JSON.parse(t).sid || '').toString(); } catch (_) { sid = ''; } } } catch (_) {}
+  sid = sid.replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 40);
+  if (!sid) return ok();
+  try {
+    await ensureJournalActiveTable(env);
+    const now = Math.floor(Date.now() / 1000);
+    await env.DB.prepare('INSERT INTO journal_active (sid, ts) VALUES (?1, ?2) ON CONFLICT(sid) DO UPDATE SET ts = ?2').bind(sid, now).run();
+  } catch (_) {}
+  return ok();
+}
+
+async function handleJournalActive(env, origin) {
+  if (!env.DB) return json({ active: 0 }, {}, env, origin);
+  try {
+    await ensureJournalActiveTable(env);
+    const now = Math.floor(Date.now() / 1000);
+    const r = await env.DB.prepare('SELECT COUNT(*) AS c FROM journal_active WHERE ts > ?1').bind(now - 300).first();
+    try { await env.DB.prepare('DELETE FROM journal_active WHERE ts < ?1').bind(now - 3600).run(); } catch (_) {}
+    return json({ active: r ? r.c : 0 }, { headers: { 'Cache-Control': 'no-store' } }, env, origin);
+  } catch (e) {
+    return json({ active: 0 }, {}, env, origin);
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Main fetch handler
 // ---------------------------------------------------------------------------
 
@@ -3243,6 +3283,13 @@ export default {
       }
       if (request.method === 'GET' && url.pathname === '/post-views') {
         return await handlePostViews(env, origin);
+      }
+      // Journal "active now" heartbeat (public): ping in, 5-min session count out.
+      if (request.method === 'POST' && url.pathname === '/journal-ping') {
+        return await handleJournalPing(request, env, origin);
+      }
+      if (request.method === 'GET' && url.pathname === '/journal-active') {
+        return await handleJournalActive(env, origin);
       }
       if (request.method === 'POST' && url.pathname === '/admin/backfill-wix-views') {
         return await handleBackfillWixViews(request, env, origin);
