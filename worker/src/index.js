@@ -16,6 +16,7 @@
 //   specific GA4 property. The README walks through the GCP-side setup.
 
 import { handleMcp } from './mcp.js';
+import { handleOAuth } from './oauth.js';
 
 // ---------------------------------------------------------------------------
 // CORS helpers
@@ -3196,6 +3197,12 @@ export default {
     // Studio MCP server (Claude connector) — self-authenticating (bearer token).
     if (url.pathname === '/mcp' || url.pathname === '/mcp/') {
       return await handleMcp(request, env);
+    }
+    // OAuth endpoints for the claude.ai custom-connector flow (DCR + PKCE).
+    if (url.pathname.startsWith('/.well-known/oauth') || url.pathname === '/.well-known/openid-configuration'
+        || url.pathname === '/register' || url.pathname === '/authorize' || url.pathname === '/token') {
+      const r = await handleOAuth(request, env, url);
+      if (r) return r;
     }
 
     try {

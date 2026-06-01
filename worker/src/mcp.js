@@ -15,6 +15,8 @@
   in the OAuth flow claude.ai's custom-connector UI requires.
 */
 
+import { isAuthorized } from './oauth.js';
+
 const SERVER_INFO = { name: 'tmw-studio', version: '1.0.0' };
 const DEFAULT_PROTOCOL = '2025-06-18';
 const PROJECTS_URL = 'https://map.oftmw.com/projects-flat.json';
@@ -343,13 +345,16 @@ const MCP_CORS = {
 export async function handleMcp(request, env) {
   if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: MCP_CORS });
 
-  // Token auth (phase A). 401 advertises Bearer so an OAuth layer can slot in.
+  // Accept either the static Desktop token (STUDIO_MCP_TOKEN) or a live OAuth
+  // access token (claude.ai). The 401 points Claude at the resource metadata so
+  // its custom-connector flow can discover the OAuth endpoints.
   const auth = request.headers.get('Authorization') || '';
   const token = auth.startsWith('Bearer ') ? auth.slice(7).trim() : '';
-  if (!env.STUDIO_MCP_TOKEN || token !== env.STUDIO_MCP_TOKEN) {
+  if (!(await isAuthorized(token, env))) {
+    const rm = new URL(request.url).origin + '/.well-known/oauth-protected-resource';
     return new Response(JSON.stringify({ error: 'unauthorized' }), {
       status: 401,
-      headers: { 'Content-Type': 'application/json', 'WWW-Authenticate': 'Bearer realm="tmw-studio"', ...MCP_CORS },
+      headers: { 'Content-Type': 'application/json', 'WWW-Authenticate': `Bearer resource_metadata="${rm}"`, ...MCP_CORS },
     });
   }
 
