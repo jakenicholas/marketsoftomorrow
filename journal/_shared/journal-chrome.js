@@ -172,6 +172,15 @@
     var yr = document.getElementById('tmw-yr');
     if (yr) yr.textContent = String(new Date().getFullYear());
 
+    // Shared Memberstack login — drops the account avatar into the header.
+    if (!document.querySelector('script[data-tmw-auth-loader]')) {
+      var authScript = document.createElement('script');
+      authScript.src = '/_shared/journal-auth.js';
+      authScript.defer = true;
+      authScript.setAttribute('data-tmw-auth-loader', '');
+      document.body.appendChild(authScript);
+    }
+
     // NOTE: the mobile hamburger toggle + mobile header layout are handled
     // centrally by journal-dock.js (wireBurgers + nav.main mobile CSS), so every
     // page — inline headers and this chrome — behaves identically.
