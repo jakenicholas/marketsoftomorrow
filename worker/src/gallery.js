@@ -186,6 +186,9 @@ const LOGO_LOCKUP = `<div class="tmw-hex-badge" aria-hidden="true"><svg viewBox=
 // White lock icon (PIN indicator).
 const LOCK_SVG = `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>`;
 
+// Download icon — shared by "Download all" and the lightbox download button.
+const DL_ICON = `<svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 1v9m0 0L4.5 6.5M8 10l3.5-3.5M2 13.5h12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+
 function navHTML(base, activeCta) {
   return `<nav><div class="wrap">
     <a class="tmw-logo-lockup" href="${base}/" aria-label="Markets of Tomorrow">${LOGO_LOCKUP}</a>
@@ -207,8 +210,9 @@ function footerHTML() {
 // Portfolio index — the public galleries, as a cover-image grid.
 function renderIndexHTML(galleries, base) {
   const cards = galleries.map(g => {
-    const cover = g.cover_key
-      ? `<img loading="eager" decoding="async" src="${base}/thumb/${keyToPath(g.cover_key)}?w=900" alt="${esc(g.title)}">`
+    const coverKey = g.cover_key || g.first_key;  // fall back to the first photo
+    const cover = coverKey
+      ? `<img loading="eager" decoding="async" src="${base}/thumb/${keyToPath(coverKey)}?w=900" alt="${esc(g.title)}">`
       : `<div class="noimg"></div>`;
     const meta = [g.category, g.location].filter(Boolean).map(esc).join(' &middot; ');
     const lock = g.pin_hash ? `<span class="lock" title="Download PIN required">${LOCK_SVG}</span>` : '';
@@ -344,38 +348,49 @@ ${FONTS}
 .modal-card .row .btn{flex:1;justify-content:center}
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--panel2);border:1px solid var(--hair2);color:var(--cream);padding:12px 20px;border-radius:999px;font-family:var(--mono);font-size:12px;letter-spacing:.04em;opacity:0;pointer-events:none;transition:opacity .3s,transform .3s;z-index:130}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-.licstrip{margin-top:60px;border:1px solid rgba(230,197,116,.3);background:linear-gradient(180deg,rgba(230,197,116,.06),rgba(230,197,116,.02));border-radius:18px;padding:30px 34px;display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap}
-.licstrip .lt{font-family:var(--serif);font-size:clamp(19px,2vw,26px);color:#fff;max-width:42ch}
+.licstrip{margin-top:30px;border:1px solid rgba(230,197,116,.3);background:linear-gradient(180deg,rgba(230,197,116,.06),rgba(230,197,116,.02));border-radius:18px;padding:24px 30px;display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap}
+.licstrip .lt{font-family:var(--serif);font-size:clamp(18px,1.9vw,24px);color:#fff;max-width:46ch}
 .licstrip .lt b{color:var(--gold-soft)}
 .empty2{padding:60px 0;color:var(--mute2);font-size:16px}
+/* wide content wrap so images fill ~90% of the screen */
+.gwrap{position:relative;z-index:1;width:90%;max-width:1800px;margin:0 auto}
+/* header row: title block left, Download-all top-right */
+.ghead-top{display:flex;justify-content:space-between;align-items:flex-start;gap:24px;flex-wrap:wrap}
+.ghead-info{flex:1;min-width:0}
+/* plain Download-all — white text + icon, no bg, no border */
+.dl-all{flex:0 0 auto;background:none;border:0;color:#fff;font-family:var(--mono);font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:8px;padding:6px 2px;margin-top:8px;transition:opacity .2s}
+.dl-all:hover{opacity:.65}
+.dl-all svg{width:15px;height:15px}
+.lb-dl svg{width:18px;height:18px}
 </style></head><body>
 ${navHTML(base)}
-<header class="ghead"><div class="wrap">
+<header class="ghead"><div class="gwrap">
   <a class="back" href="${base}/">&larr;&nbsp;All galleries</a>
-  <h1>${esc(g.title)}</h1>
-  ${g.subtitle ? `<div class="sub">${esc(g.subtitle)}</div>` : ''}
-  <div class="gmeta">
-    ${meta ? `<span>${meta}</span><span class="dot">&bull;</span>` : ''}
-    <span>${images.length} photo${images.length === 1 ? '' : 's'}</span>
-    ${pinRequired ? `<span class="dot">&bull;</span><span style="display:inline-flex;align-items:center;gap:6px">${LOCK_SVG} PIN to download</span>` : ''}
+  <div class="ghead-top">
+    <div class="ghead-info">
+      <h1>${esc(g.title)}</h1>
+      ${g.subtitle ? `<div class="sub">${esc(g.subtitle)}</div>` : ''}
+      <div class="gmeta">
+        ${meta ? `<span>${meta}</span><span class="dot">&bull;</span>` : ''}
+        <span>${images.length} photo${images.length === 1 ? '' : 's'}</span>
+        ${pinRequired ? `<span class="dot">&bull;</span><span style="display:inline-flex;align-items:center;gap:6px">${LOCK_SVG} PIN to download</span>` : ''}
+      </div>
+    </div>
+    ${images.length && downloadEnabled ? `<button class="dl-all" id="dlAll">${DL_ICON}Download all</button>` : ''}
   </div>
-  ${images.length && downloadEnabled ? `<div class="gactions">
-    <button class="btn primary" id="dlAll"><svg class="ic" viewBox="0 0 16 16" fill="none"><path d="M8 1v9m0 0L4.5 6.5M8 10l3.5-3.5M2 13.5h12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Download all</button>
-    <a class="btn gold" href="https://www.oftmw.com/media/licensing/">License this work</a>
-  </div>` : ''}
-</div></header>
-<main class="wrap">
-  ${images.length ? `<div class="masonry" id="grid">${tiles}</div>` : `<div class="empty2">No photos in this gallery yet.</div>`}
   <div class="licstrip">
     <div class="lt">Found a frame you love? <b>License it</b> for your website, campaign, or full buyout.</div>
     <a class="btn gold" href="https://www.oftmw.com/media/licensing/#cta">See licensing &amp; rights</a>
   </div>
+</div></header>
+<main class="gwrap">
+  ${images.length ? `<div class="masonry" id="grid">${tiles}</div>` : `<div class="empty2">No photos in this gallery yet.</div>`}
 </main>
 ${footerHTML()}
 
 <div class="lb" id="lb">
   <div class="lb-x" id="lbX" role="button" aria-label="Close">&times;</div>
-  <div class="lb-dl" id="lbDl" role="button" aria-label="Download" title="Download">&#11015;</div>
+  <div class="lb-dl" id="lbDl" role="button" aria-label="Download" title="Download">${DL_ICON}</div>
   <div class="lb-prev" id="lbPrev" role="button" aria-label="Previous">&#8249;</div>
   <div class="lb-next" id="lbNext" role="button" aria-label="Next">&#8250;</div>
   <img id="lbImg" alt="">
@@ -757,7 +772,8 @@ export async function handleGallery(request, env, url, origin, deps) {
   if (path === '/' && method === 'GET') {
     const r = await env.DB.prepare(`
       SELECT slug,title,subtitle,cover_key,category,location,pin_hash,
-             (SELECT COUNT(*) FROM gallery_images gi WHERE gi.gallery_slug=galleries.slug) AS image_count
+             (SELECT COUNT(*) FROM gallery_images gi WHERE gi.gallery_slug=galleries.slug) AS image_count,
+             (SELECT gi.media_key FROM gallery_images gi WHERE gi.gallery_slug=galleries.slug ORDER BY gi.sort_order ASC, gi.created_at ASC LIMIT 1) AS first_key
       FROM galleries WHERE visibility='public' ORDER BY sort_order ASC, updated_at DESC
     `).all();
     return htmlResponse(renderIndexHTML(r.results || [], base), { cache: 'public, max-age=120' });
