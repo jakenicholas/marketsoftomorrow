@@ -2665,13 +2665,26 @@ async function handleMediaList(req, env, origin, url) {
   if (authCheck) return authCheck;
   if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
 
-  // Folder index — distinct folders + counts, for the studio's folder sidebar.
+  // Folder index — derived folders (from media.folder) merged with registered
+  // folders (media_folders: favorites + empty folders). Favorites sort first.
   if (url.searchParams.get('folders') === '1') {
-    const fr = await env.DB.prepare(
-      "SELECT COALESCE(NULLIF(folder,''),'Unfiled') AS folder, COUNT(*) AS count FROM media GROUP BY COALESCE(NULLIF(folder,''),'Unfiled') ORDER BY folder"
+    await env.DB.prepare(`CREATE TABLE IF NOT EXISTS media_folders (name TEXT PRIMARY KEY, favorite INTEGER DEFAULT 0, created_at INTEGER)`).run();
+    const derived = await env.DB.prepare(
+      "SELECT COALESCE(NULLIF(folder,''),'Unfiled') AS folder, COUNT(*) AS count FROM media GROUP BY COALESCE(NULLIF(folder,''),'Unfiled')"
     ).all();
+    const registered = await env.DB.prepare("SELECT name, favorite FROM media_folders").all();
+    const map = new Map();
+    for (const r of (derived.results || [])) map.set(r.folder, { folder: r.folder, count: r.count, favorite: 0 });
+    for (const r of (registered.results || [])) {
+      const e = map.get(r.name) || { folder: r.name, count: 0, favorite: 0 };
+      e.favorite = r.favorite ? 1 : 0;
+      map.set(r.name, e);
+    }
+    const folders = [...map.values()].sort((a, b) =>
+      (b.favorite - a.favorite) || a.folder.localeCompare(b.folder, undefined, { sensitivity: 'base' })
+    );
     const totalRow = await env.DB.prepare('SELECT COUNT(*) c FROM media').first();
-    return json({ folders: fr.results || [], total: totalRow ? totalRow.c : 0 }, {}, env, origin);
+    return json({ folders, total: totalRow ? totalRow.c : 0 }, {}, env, origin);
   }
 
   const limit  = clampInt(url.searchParams.get('limit'), 60, 1, 200);
@@ -2698,6 +2711,30 @@ async function handleMediaList(req, env, origin, url) {
     limit, offset,
     hasMore: offset + (rows.results || []).length < (total ? total.c : 0),
   }, {}, env, origin);
+}
+
+// POST /admin/media/folders {name}        — create an (empty) folder
+// PATCH /admin/media/folders {name, favorite} — star/unstar a folder
+async function handleMediaFolders(req, env, origin) {
+  const authCheck = await requireAdminToken(req, env, origin);
+  if (authCheck) return authCheck;
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS media_folders (name TEXT PRIMARY KEY, favorite INTEGER DEFAULT 0, created_at INTEGER)`).run();
+  let body;
+  try { body = await req.json(); } catch { return json({ error: 'invalid JSON' }, { status: 400 }, env, origin); }
+  const name = String(body.name || '').trim();
+  if (!name || name.length > 120 || /[<>"'\\]/.test(name)) return json({ error: 'invalid folder name' }, { status: 400 }, env, origin);
+  const now = Math.floor(Date.now() / 1000);
+  if (req.method === 'POST') {
+    await env.DB.prepare(`INSERT OR IGNORE INTO media_folders (name, favorite, created_at) VALUES (?1, 0, ?2)`).bind(name, now).run();
+    return json({ ok: true, name }, {}, env, origin);
+  }
+  if (req.method === 'PATCH') {
+    const fav = body.favorite ? 1 : 0;
+    await env.DB.prepare(`INSERT INTO media_folders (name, favorite, created_at) VALUES (?1, ?2, ?3) ON CONFLICT(name) DO UPDATE SET favorite = ?2`).bind(name, fav, now).run();
+    return json({ ok: true, name, favorite: fav }, {}, env, origin);
+  }
+  return json({ error: 'method not allowed' }, { status: 405 }, env, origin);
 }
 
 async function handleMediaDelete(req, env, origin, key) {
@@ -3091,6 +3128,10 @@ export default {
         if (m && (request.method === 'GET' || request.method === 'HEAD')) {
           return await handleMediaServe(request, env, decodeURIComponent(m[1]));
         }
+      }
+      // /admin/media/folders — create / favorite a folder (admin-only)
+      if (url.pathname === '/admin/media/folders' && (request.method === 'POST' || request.method === 'PATCH')) {
+        return await handleMediaFolders(request, env, origin);
       }
       // /admin/media — list/delete uploaded media (admin-only)
       if (request.method === 'GET' && url.pathname === '/admin/media') {
