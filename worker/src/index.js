@@ -3189,7 +3189,9 @@ async function handlePostViews(env, origin) {
 // journal host, so we own this the same way as the post-view counter.)
 // ---------------------------------------------------------------------------
 async function ensureJournalActiveTable(env) {
-  await env.DB.prepare('CREATE TABLE IF NOT EXISTS journal_active (sid TEXT PRIMARY KEY, ts INTEGER)').run();
+  await env.DB.prepare('CREATE TABLE IF NOT EXISTS journal_active (sid TEXT PRIMARY KEY, ts INTEGER, path TEXT, title TEXT)').run();
+  try { await env.DB.prepare('ALTER TABLE journal_active ADD COLUMN path TEXT').run(); } catch (_) {}
+  try { await env.DB.prepare('ALTER TABLE journal_active ADD COLUMN title TEXT').run(); } catch (_) {}
 }
 
 async function handleJournalPing(req, env, origin) {
@@ -3197,28 +3199,34 @@ async function handleJournalPing(req, env, origin) {
   if (!env.DB) return ok();
   const ua = (req.headers.get('User-Agent') || '');
   if (!ua || VIEW_BOT_RE.test(ua)) return ok();
-  let sid = '';
-  try { const t = await req.text(); if (t) { try { sid = (JSON.parse(t).sid || '').toString(); } catch (_) { sid = ''; } } } catch (_) {}
+  let sid = '', path = '', title = '';
+  try {
+    const t = await req.text();
+    if (t) { try { const o = JSON.parse(t); sid = (o.sid || '').toString(); path = (o.path || '').toString().slice(0, 300); title = (o.title || '').toString().slice(0, 300); } catch (_) {} }
+  } catch (_) {}
   sid = sid.replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 40);
   if (!sid) return ok();
   try {
     await ensureJournalActiveTable(env);
     const now = Math.floor(Date.now() / 1000);
-    await env.DB.prepare('INSERT INTO journal_active (sid, ts) VALUES (?1, ?2) ON CONFLICT(sid) DO UPDATE SET ts = ?2').bind(sid, now).run();
+    await env.DB.prepare('INSERT INTO journal_active (sid, ts, path, title) VALUES (?1, ?2, ?3, ?4) ON CONFLICT(sid) DO UPDATE SET ts = ?2, path = ?3, title = ?4').bind(sid, now, path, title).run();
   } catch (_) {}
   return ok();
 }
 
 async function handleJournalActive(env, origin) {
-  if (!env.DB) return json({ active: 0 }, {}, env, origin);
+  if (!env.DB) return json({ active: 0, feed: [] }, {}, env, origin);
   try {
     await ensureJournalActiveTable(env);
     const now = Math.floor(Date.now() / 1000);
-    const r = await env.DB.prepare('SELECT COUNT(*) AS c FROM journal_active WHERE ts > ?1').bind(now - 300).first();
+    const cut = now - 300;
+    const cnt = await env.DB.prepare('SELECT COUNT(*) AS c FROM journal_active WHERE ts > ?1').bind(cut).first();
+    const rows = await env.DB.prepare('SELECT ts, path, title FROM journal_active WHERE ts > ?1 ORDER BY ts DESC LIMIT 40').bind(cut).all();
+    const feed = (rows.results || []).map(r => ({ path: r.path || '', title: r.title || '', ago: Math.max(0, now - (r.ts || now)) }));
     try { await env.DB.prepare('DELETE FROM journal_active WHERE ts < ?1').bind(now - 3600).run(); } catch (_) {}
-    return json({ active: r ? r.c : 0 }, { headers: { 'Cache-Control': 'no-store' } }, env, origin);
+    return json({ active: cnt ? cnt.c : 0, feed }, { headers: { 'Cache-Control': 'no-store' } }, env, origin);
   } catch (e) {
-    return json({ active: 0 }, {}, env, origin);
+    return json({ active: 0, feed: [] }, {}, env, origin);
   }
 }
 

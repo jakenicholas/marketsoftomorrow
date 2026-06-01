@@ -85,7 +85,7 @@
       var PING = 'https://tmw.jake-ab7.workers.dev/journal-ping';
       function ping() {
         try {
-          var p = JSON.stringify({ sid: sid });
+          var p = JSON.stringify({ sid: sid, path: location.pathname, title: (document.title || '').slice(0, 200) });
           if (navigator.sendBeacon) navigator.sendBeacon(PING, p);
           else fetch(PING, { method: 'POST', body: p, keepalive: true, headers: { 'Content-Type': 'text/plain' } });
         } catch (e) {}
