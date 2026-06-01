@@ -2600,6 +2600,7 @@ async function handleUpload(req, env, origin) {
   }
   const alt     = (form.get('alt')     || '').toString().slice(0, 500);
   const caption = (form.get('caption') || '').toString().slice(0, 1000);
+  const folder  = (form.get('folder')  || '').toString().slice(0, 120);
 
   // Build a clean R2 key: YYYY/MM/<short-hash>-<safe-filename>
   const now = new Date();
@@ -2641,14 +2642,14 @@ async function handleUpload(req, env, origin) {
   const ts = Math.floor(Date.now() / 1000);
   try {
     await env.DB.prepare(`
-      INSERT INTO media (key, filename, mime_type, size_bytes, alt_text, caption, uploaded_by, uploaded_at, url)
-      VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9)
+      INSERT INTO media (key, filename, mime_type, size_bytes, alt_text, caption, uploaded_by, uploaded_at, url, folder)
+      VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10)
       ON CONFLICT(key) DO UPDATE SET
         filename=excluded.filename, mime_type=excluded.mime_type, size_bytes=excluded.size_bytes,
-        alt_text=excluded.alt_text, caption=excluded.caption, url=excluded.url
+        alt_text=excluded.alt_text, caption=excluded.caption, url=excluded.url, folder=excluded.folder
     `).bind(
       key, file.name || '', mimeType, buf.byteLength,
-      alt || null, caption || null, 'studio', ts, url,
+      alt || null, caption || null, 'studio', ts, url, folder || '',
     ).run();
   } catch (e) {
     // R2 upload succeeded but DB index failed — log but still return the URL
