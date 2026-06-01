@@ -208,7 +208,7 @@ function footerHTML() {
 function renderIndexHTML(galleries, base) {
   const cards = galleries.map(g => {
     const cover = g.cover_key
-      ? `<img loading="lazy" src="${base}/thumb/${keyToPath(g.cover_key)}?w=900" alt="${esc(g.title)}">`
+      ? `<img loading="eager" decoding="async" src="${base}/thumb/${keyToPath(g.cover_key)}?w=900" alt="${esc(g.title)}">`
       : `<div class="noimg"></div>`;
     const meta = [g.category, g.location].filter(Boolean).map(esc).join(' &middot; ');
     const lock = g.pin_hash ? `<span class="lock" title="Download PIN required">${LOCK_SVG}</span>` : '';
