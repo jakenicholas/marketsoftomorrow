@@ -169,9 +169,9 @@ footer a{color:var(--green);text-decoration:none}
 
 const HEX_SVG = `<svg class="hex" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><polygon points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></svg>`;
 
-function navHTML(activeCta) {
+function navHTML(base, activeCta) {
   return `<nav><div class="wrap">
-    <a class="logo" href="/">${HEX_SVG}<span class="nm">Markets of <b>Tomorrow</b></span></a>
+    <a class="logo" href="${base}/">${HEX_SVG}<span class="nm">Markets of <b>Tomorrow</b></span></a>
     <div class="nav-right">
       <a class="nav-link" href="https://www.oftmw.com/media/">Media Kit</a>
       <a class="nav-link" href="https://www.oftmw.com/media/licensing/">Licensing</a>
@@ -188,14 +188,14 @@ function footerHTML() {
 }
 
 // Portfolio index — the public galleries, as a cover-image grid.
-function renderIndexHTML(galleries) {
+function renderIndexHTML(galleries, base) {
   const cards = galleries.map(g => {
     const cover = g.cover_key
-      ? `<img loading="lazy" src="/thumb/${keyToPath(g.cover_key)}?w=900" alt="${esc(g.title)}">`
+      ? `<img loading="lazy" src="${base}/thumb/${keyToPath(g.cover_key)}?w=900" alt="${esc(g.title)}">`
       : `<div class="noimg"></div>`;
     const meta = [g.category, g.location].filter(Boolean).map(esc).join(' &middot; ');
     const lock = g.pin_hash ? `<span class="lock" title="Download PIN required">&#128274;</span>` : '';
-    return `<a class="card" href="/g/${esc(g.slug)}">
+    return `<a class="card" href="${base}/g/${esc(g.slug)}">
       <div class="card-img">${cover}${lock}<span class="count">${g.image_count || 0} photos</span></div>
       <div class="card-body">
         <div class="card-title">${esc(g.title)}</div>
@@ -234,7 +234,7 @@ ${FONTS}
 @media(max-width:900px){.grid{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:560px){.grid{grid-template-columns:1fr}}
 </style></head><body>
-${navHTML()}
+${navHTML(base)}
 <header class="hero"><div class="wrap">
   <div class="eyebrow">Markets of Tomorrow &middot; Visual Portfolio</div>
   <h1>The Work</h1>
@@ -248,7 +248,7 @@ ${footerHTML()}
 }
 
 // Per-gallery page — server-rendered grid + lightbox + PIN download flow.
-function renderGalleryHTML(g, images) {
+function renderGalleryHTML(g, images, base) {
   const noindex = g.visibility !== 'public'
     ? `<meta name="robots" content="noindex,nofollow,noarchive">` : '';
   const meta = [g.category, g.location].filter(Boolean).map(esc).join(' &middot; ');
@@ -269,7 +269,7 @@ function renderGalleryHTML(g, images) {
   const tiles = images.map((im, i) => {
     const ratio = (im.width && im.height) ? (im.height / im.width) : 0.7;
     return `<button class="tile" data-i="${i}" style="--r:${ratio}" aria-label="View photo ${i + 1}">
-      <img loading="lazy" src="/thumb/${keyToPath(im.key)}?w=700" alt="${esc(im.alt_text || g.title)}">
+      <img loading="lazy" src="${base}/thumb/${keyToPath(im.key)}?w=700" alt="${esc(im.alt_text || g.title)}">
     </button>`;
   }).join('');
 
@@ -336,9 +336,9 @@ ${FONTS}
 .licstrip .lt b{color:var(--gold-soft)}
 .empty2{padding:60px 0;color:var(--mute2);font-size:16px}
 </style></head><body>
-${navHTML()}
+${navHTML(base)}
 <header class="ghead"><div class="wrap">
-  <a class="back" href="/">&larr;&nbsp;All galleries</a>
+  <a class="back" href="${base}/">&larr;&nbsp;All galleries</a>
   <h1>${esc(g.title)}</h1>
   ${g.subtitle ? `<div class="sub">${esc(g.subtitle)}</div>` : ''}
   <div class="gmeta">
@@ -386,6 +386,7 @@ ${footerHTML()}
 
 <script>
 const G = ${data};
+const BASE = ${JSON.stringify(base)};
 const tokenKey = 'tmw_gpin_' + G.slug;
 function getToken(){ try{return sessionStorage.getItem(tokenKey)||'';}catch(_){return '';} }
 function setToken(t){ try{sessionStorage.setItem(tokenKey,t);}catch(_){} }
@@ -396,7 +397,7 @@ const lb=document.getElementById('lb'),lbImg=document.getElementById('lbImg'),lb
 let cur=-1;
 function show(i){
   if(i<0||i>=G.images.length)return; cur=i; const im=G.images[i];
-  lbImg.src='/thumb/'+im.key.split('/').map(encodeURIComponent).join('/')+'?w=2200';
+  lbImg.src=BASE+'/thumb/'+im.key.split('/').map(encodeURIComponent).join('/')+'?w=2200';
   lbImg.alt=im.alt||''; lbCap.textContent=(im.caption||'')+'  '+(i+1)+' / '+G.images.length;
   lb.classList.add('open'); document.body.style.overflow='hidden';
 }
@@ -420,7 +421,7 @@ document.getElementById('lbDl').onclick=()=>{ if(cur>=0)requestDownload([G.image
 let pending=null;
 function dlUrl(im){
   const t=getToken();
-  return '/dl/'+G.slug+'/'+im.key.split('/').map(encodeURIComponent).join('/')+(t?('?t='+encodeURIComponent(t)):'');
+  return BASE+'/dl/'+G.slug+'/'+im.key.split('/').map(encodeURIComponent).join('/')+(t?('?t='+encodeURIComponent(t)):'');
 }
 async function doDownloads(list){
   for(const im of list){
@@ -457,7 +458,7 @@ async function submitPin(){
   const pin=pinInput.value.trim(); if(!pin){pinErr.textContent='Enter the PIN';return;}
   pinErr.textContent='Checking…';
   try{
-    const r=await fetch('/api/gallery/'+G.slug+'/pin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pin})});
+    const r=await fetch(BASE+'/api/gallery/'+G.slug+'/pin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pin})});
     const j=await r.json();
     if(r.ok&&j.token){ setToken(j.token); closePin(); const list=pending||G.images; pending=null; doDownloads(list); }
     else{ pinErr.textContent=j.error==='wrong_pin'?'Incorrect PIN — try again':'Could not verify PIN'; }
@@ -699,6 +700,11 @@ export async function handleGallery(request, env, url, origin, deps) {
   // main worker dispatcher so map/journal routes are never shadowed.
   if (!galleryContext) return null;
 
+  // URL prefix for all in-page links/assets: '' on the real gallery.oftmw.com
+  // host, '/gallery' when testing under the prefix on workers.dev. This keeps
+  // thumbnails, downloads, and nav links resolving correctly on both.
+  const base = url.hostname === 'gallery.oftmw.com' ? '' : '/gallery';
+
   // ---- Public API ----
   if (path === '/api/galleries' && method === 'GET') {
     const r = await env.DB.prepare(`
@@ -735,15 +741,15 @@ export async function handleGallery(request, env, url, origin, deps) {
              (SELECT COUNT(*) FROM gallery_images gi WHERE gi.gallery_slug=galleries.slug) AS image_count
       FROM galleries WHERE visibility='public' ORDER BY sort_order ASC, updated_at DESC
     `).all();
-    return htmlResponse(renderIndexHTML(r.results || []), { cache: 'public, max-age=120' });
+    return htmlResponse(renderIndexHTML(r.results || [], base), { cache: 'public, max-age=120' });
   }
   {
     const m = path.match(/^\/g\/([a-z0-9-]+)\/?$/);
     if (m && method === 'GET') {
       const g = await getGallery(env, m[1]);
-      if (!g) return htmlResponse(render404(), { status: 404, cache: 'no-store' });
+      if (!g) return htmlResponse(render404(base), { status: 404, cache: 'no-store' });
       const images = await getGalleryImages(env, m[1]);
-      return htmlResponse(renderGalleryHTML(g, images), {
+      return htmlResponse(renderGalleryHTML(g, images, base), {
         cache: g.visibility === 'public' ? 'public, max-age=120' : 'private, no-store',
       });
     }
@@ -752,6 +758,6 @@ export async function handleGallery(request, env, url, origin, deps) {
   return null; // not a gallery route → fall through to the main dispatcher
 }
 
-function render404() {
-  return `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Not found — Markets of Tomorrow</title>${FONTS}<style>${BASE_CSS}.x{min-height:80vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:14px}.x h1{font-size:64px;font-weight:900}.x a{color:var(--green);text-decoration:none;font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase}</style></head><body>${navHTML()}<div class="x"><div class="eyebrow">404</div><h1>Gallery not found</h1><a href="/">&larr; Back to the portfolio</a></div></body></html>`;
+function render404(base) {
+  return `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Not found — Markets of Tomorrow</title>${FONTS}<style>${BASE_CSS}.x{min-height:80vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:14px}.x h1{font-size:64px;font-weight:900}.x a{color:var(--green);text-decoration:none;font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase}</style></head><body>${navHTML(base || '')}<div class="x"><div class="eyebrow">404</div><h1>Gallery not found</h1><a href="${base || ''}/">&larr; Back to the portfolio</a></div></body></html>`;
 }
