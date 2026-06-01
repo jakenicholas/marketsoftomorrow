@@ -1,21 +1,27 @@
 /*
   TMW "Studio" — remote MCP server (Model Context Protocol over Streamable HTTP).
 
-  Lets Claude (Desktop now via token auth; claude.ai once OAuth is layered on)
-  query the Studio and push DRAFTS:
-    • read journal posts, drafts, view counts
-    • read Map of Tomorrow projects, project types, architects, developers
-    • create an article DRAFT (status=draft — never publishes anything live)
+  Lets Claude (Desktop via token auth; claude.ai via OAuth) run the Studio
+  remotely. READ everything, and WRITE only safe, reviewable artifacts:
+    • Journal:  read posts/drafts/views; create + edit article DRAFTS (never publishes)
+    • Media:    upload photos (by URL) into folders; create + list folders; list media
+    • Lists:    read/list the studio lists (clients, iconic rankings…); add rows; replace
+    • Map:      create + list MAP DRAFTS (staged in D1 for a human to promote — never live)
+    • Analytics: audience stats (members/events), per-post views, GA4 journal engagement
+
+  Everything a write-tool produces is a DRAFT or a list edit a human can see and
+  undo in the Studio — nothing here publishes to the live journal or live map.
 
   Transport: a minimal, stateless JSON-RPC 2.0 handler. Each POST /mcp carries
   one JSON-RPC message; we answer inline as application/json. No SSE/Durable
   Object needed because every tool call is a self-contained request/response.
 
-  Auth (phase A): Authorization: Bearer <STUDIO_MCP_TOKEN>. Phase B wraps this
-  in the OAuth flow claude.ai's custom-connector UI requires.
+  Auth: Authorization: Bearer <token> — either the static Desktop token
+  (STUDIO_MCP_TOKEN) or a live OAuth access token (claude.ai). See oauth.js.
 */
 
 import { isAuthorized } from './oauth.js';
+import { getGoogleAccessToken } from './index.js';
 
 const SERVER_INFO = { name: 'tmw-studio', version: '1.0.0' };
 const DEFAULT_PROTOCOL = '2025-06-18';
@@ -96,6 +102,150 @@ const TOOLS = [
       required: ['title'],
     },
   },
+  {
+    name: 'update_post_draft',
+    description: 'Edit an existing journal article DRAFT (only status=draft — refuses to touch published/scheduled posts). Update any of title, body, excerpt, category, cover image. Returns the Studio edit URL.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        slug: { type: 'string', description: 'Slug of the draft to edit' },
+        title: { type: 'string' },
+        body_markdown: { type: 'string', description: 'Replacement body in Markdown' },
+        excerpt: { type: 'string' },
+        category: { type: 'string' },
+        cover_image: { type: 'string' },
+      },
+      required: ['slug'],
+    },
+  },
+
+  // ── Media ──────────────────────────────────────────────────────────────────
+  {
+    name: 'upload_photo',
+    description: 'Upload a photo (or video) into the Studio media library by URL. Fetches source_url, stores it in R2, and indexes it in the chosen folder so it shows up in the Studio media picker. Returns the permanent public URL. Use list_media_folders to see folders, or just pass any folder name (created if new).',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        source_url: { type: 'string', description: 'Public http(s) URL of the image/video to import' },
+        folder: { type: 'string', description: 'Destination folder name (created if it does not exist). Omit for "Unfiled".' },
+        alt: { type: 'string', description: 'Alt text (accessibility / SEO)' },
+        caption: { type: 'string', description: 'Caption (optional)' },
+        filename: { type: 'string', description: 'Override the stored filename (optional; derived from the URL otherwise)' },
+      },
+      required: ['source_url'],
+    },
+  },
+  {
+    name: 'create_media_folder',
+    description: 'Create a media folder in the Studio library (so photos can be uploaded into it). Optionally star it as a favorite so it sorts first.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        name: { type: 'string', description: 'Folder name' },
+        favorite: { type: 'boolean', description: 'Pin to the top of the folder list' },
+      },
+      required: ['name'],
+    },
+  },
+  {
+    name: 'list_media_folders',
+    description: 'List Studio media folders with the number of assets in each (favorites first).',
+    inputSchema: { type: 'object', properties: {} },
+  },
+  {
+    name: 'list_media',
+    description: 'List/search uploaded media in the Studio library. Filter by folder and/or free-text (filename + alt). Returns public URLs, folders, alt/caption.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        folder: { type: 'string', description: 'Limit to one folder' },
+        query: { type: 'string', description: 'Free text matched against filename + alt' },
+        limit: { type: 'integer', description: 'Max results (default 40, max 100)' },
+      },
+    },
+  },
+
+  // ── Lists (client wall, iconic rankings…) ──────────────────────────────────
+  {
+    name: 'list_lists',
+    description: 'List the Studio lists that have saved rows, with item counts. Examples: "clients" (the client/partner wall shown on the journal + media kit) and the iconic ranking lists (e.g. hotels, restaurants, golf).',
+    inputSchema: { type: 'object', properties: {} },
+  },
+  {
+    name: 'get_list',
+    description: 'Read one Studio list by slug (e.g. "clients") — returns its title and the full array of item rows so you can see the existing schema before adding to it.',
+    inputSchema: { type: 'object', properties: { slug: { type: 'string' } }, required: ['slug'] },
+  },
+  {
+    name: 'add_to_list',
+    description: 'Append one row to a Studio list (creates the list if it does not exist yet). The item is a free-form object — match the existing rows\' shape (call get_list first). For "clients" use {name, logo, industries, location, active}. Edits go live on the journal/media-kit immediately.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        slug: { type: 'string', description: 'List slug, e.g. "clients"' },
+        item: { type: 'object', description: 'The row to add (object). e.g. {"name":"Acme","logo":"https://…","location":"Miami, FL","active":true}' },
+        position: { type: 'string', enum: ['top', 'bottom'], description: 'Where to insert (default bottom)' },
+        title: { type: 'string', description: 'Set the list title (only used when first creating the list)' },
+      },
+      required: ['slug', 'item'],
+    },
+  },
+  {
+    name: 'update_list',
+    description: 'Replace the entire array of rows for a Studio list (full overwrite — use add_to_list for a single append). Preserves the existing title unless you pass a new one.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        slug: { type: 'string' },
+        items: { type: 'array', description: 'The complete new array of row objects', items: { type: 'object' } },
+        title: { type: 'string' },
+      },
+      required: ['slug', 'items'],
+    },
+  },
+
+  // ── Map drafts ─────────────────────────────────────────────────────────────
+  {
+    name: 'create_map_draft',
+    description: 'Propose a NEW Map of Tomorrow project as a DRAFT. It is staged in the Studio for human review and is NOT placed on the live map until a person promotes it. Provide as much as you know; latitude/longitude are needed before it can be mapped (a human can geocode the city/address on review).',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        title: { type: 'string', description: 'Project name' },
+        city: { type: 'string' },
+        address: { type: 'string', description: 'Street address (helps a human geocode it)' },
+        latitude: { type: 'number' },
+        longitude: { type: 'number' },
+        description: { type: 'string' },
+        project_type: { type: 'string', description: 'e.g. "Hotel", "Residential", "Mixed-Use"' },
+        architect: { type: 'string' },
+        developer: { type: 'string' },
+        delivery: { type: 'string', description: 'Delivery/completion year or phase' },
+        units: { type: 'string' },
+        floors: { type: 'string' },
+        website: { type: 'string', description: 'Official project website' },
+        image_url: { type: 'string', description: 'A hero/render image URL' },
+      },
+      required: ['title'],
+    },
+  },
+  {
+    name: 'list_map_drafts',
+    description: 'List pending Map of Tomorrow project drafts waiting in the Studio for human review.',
+    inputSchema: { type: 'object', properties: { limit: { type: 'integer', description: 'Max results (default 50)' } } },
+  },
+
+  // ── Analytics ──────────────────────────────────────────────────────────────
+  {
+    name: 'get_audience_stats',
+    description: 'Audience analytics from the first-party event store: total/paid/free members, members active right now and in the last 7 days, event volume (today / 7d / prior 7d / all-time), and the most common event names.',
+    inputSchema: { type: 'object', properties: {} },
+  },
+  {
+    name: 'get_journal_analytics',
+    description: 'Journal engagement from GA4 over the last N days (default 28): counts for the custom journal events (jrn_partner, jrn_share, jrn_post_open, jrn_outbound, jrn_map, jrn_mediakit) and newsletter signups (subscribe_home, subscribe_article), plus the top events overall.',
+    inputSchema: { type: 'object', properties: { days: { type: 'integer', description: 'Look-back window in days (default 28, max 365)' } } },
+  },
 ];
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
@@ -150,6 +300,31 @@ function projectSummary(p) {
 // Split a comma/semicolon/"&"-joined firm or type list into clean tokens.
 function splitList(s) {
   return String(s || '').split(/\s*[,;]\s*|\s+&\s+/).map((x) => x.trim()).filter(Boolean);
+}
+
+// Must match index.js's list-slug guard so MCP writes hit the same rows the
+// page editors do (clients, hotels, restaurants, golf, …).
+const LIST_SLUG_RE = /^[a-z0-9][a-z0-9-]{0,40}$/;
+
+// Same R2 key shape as the upload handler: YYYY/MM/<rand>-<safe-name>.
+function buildMediaKey(filename) {
+  const now = new Date();
+  const yyyy = now.getUTCFullYear();
+  const mm = String(now.getUTCMonth() + 1).padStart(2, '0');
+  const rand = crypto.getRandomValues(new Uint8Array(6));
+  const hash = [...rand].map((b) => b.toString(16).padStart(2, '0')).join('');
+  const safe = String(filename || 'upload')
+    .replace(/[^a-zA-Z0-9._-]+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '').slice(0, 80) || 'upload';
+  return `${yyyy}/${mm}/${hash}-${safe}`;
+}
+
+async function ensureMediaFoldersTable(env) {
+  await env.DB.prepare('CREATE TABLE IF NOT EXISTS media_folders (name TEXT PRIMARY KEY, favorite INTEGER DEFAULT 0, created_at INTEGER)').run();
+}
+async function ensureMapDraftsTable(env) {
+  await env.DB.prepare(
+    "CREATE TABLE IF NOT EXISTS map_drafts (id TEXT PRIMARY KEY, title TEXT, city TEXT, data TEXT, status TEXT DEFAULT 'draft', created_by TEXT, created_at INTEGER, updated_at INTEGER)"
+  ).run();
 }
 
 // ── Tool implementations ────────────────────────────────────────────────────
@@ -278,6 +453,274 @@ const IMPL = {
       note: 'Saved as a DRAFT. Review/finish it in the Studio, then publish from there.',
     };
   },
+
+  async update_post_draft(args, env) {
+    const slug = String(args.slug || '').trim().toLowerCase();
+    if (!slug) throw new Error('slug is required');
+    const row = await env.DB.prepare('SELECT id, status FROM posts WHERE slug = ?1').bind(slug).first();
+    if (!row) throw new Error('no post with slug "' + slug + '"');
+    if (row.status !== 'draft') throw new Error('refusing to edit a ' + row.status + ' post via MCP — only drafts are editable remotely');
+    const sets = [], params = []; let p = 1;
+    if (args.title != null)       { sets.push(`title = ?${p++}`); params.push(String(args.title)); }
+    let derivedExcerpt = null;
+    if (args.body_markdown != null) {
+      const html = mdToHtml(args.body_markdown);
+      const text = stripHtml(html);
+      sets.push(`body_html = ?${p++}`); params.push(html);
+      sets.push(`reading_time_min = ?${p++}`); params.push(Math.max(1, Math.round(text.split(/\s+/).filter(Boolean).length / 200)));
+      derivedExcerpt = text.slice(0, 180);
+    }
+    if (args.excerpt != null)     { sets.push(`excerpt = ?${p++}`); params.push(String(args.excerpt)); }
+    else if (derivedExcerpt && args.body_markdown != null) { sets.push(`excerpt = ?${p++}`); params.push(derivedExcerpt); }
+    if (args.category != null)    { sets.push(`categories = ?${p++}`); params.push(JSON.stringify([String(args.category)])); }
+    if (args.cover_image != null) { sets.push(`cover_image = ?${p++}`); params.push(String(args.cover_image)); }
+    if (!sets.length) throw new Error('nothing to update — pass at least one of title/body_markdown/excerpt/category/cover_image');
+    sets.push(`updated_at = ?${p++}`); params.push(Math.floor(Date.now() / 1000));
+    params.push(slug);
+    await env.DB.prepare(`UPDATE posts SET ${sets.join(', ')} WHERE slug = ?${p}`).bind(...params).run();
+    return { ok: true, slug, status: 'draft', edit_url: 'https://admin.oftmw.com/post.html?id=' + row.id };
+  },
+
+  // ── Media ──────────────────────────────────────────────────────────────────
+  async upload_photo(args, env) {
+    if (!env.MEDIA) throw new Error('R2 media bucket not configured');
+    if (!env.DB) throw new Error('D1 not configured');
+    const src = String(args.source_url || '').trim();
+    if (!/^https?:\/\//i.test(src)) throw new Error('source_url must be a public http(s) URL');
+    const folder = String(args.folder || '').slice(0, 120);
+    const alt = String(args.alt || '').slice(0, 500);
+    const caption = String(args.caption || '').slice(0, 1000);
+
+    const res = await fetch(src, { redirect: 'follow' });
+    if (!res.ok) throw new Error('could not fetch source_url (HTTP ' + res.status + ')');
+    const ct = (res.headers.get('content-type') || '').split(';')[0].trim().toLowerCase();
+    if (!/^image\//.test(ct) && !/^video\//.test(ct)) {
+      throw new Error('source_url is not an image or video (content-type: ' + (ct || 'unknown') + ')');
+    }
+    const buf = await res.arrayBuffer();
+    const MAX = 25 * 1024 * 1024;
+    if (buf.byteLength > MAX) throw new Error('file too large (' + buf.byteLength + ' bytes; 25MB max for URL import)');
+
+    let fname = String(args.filename || '').trim();
+    if (!fname) { try { fname = decodeURIComponent(new URL(src).pathname.split('/').pop() || ''); } catch (_) {} }
+    if (!fname) fname = 'upload';
+    const ext = { 'image/jpeg': '.jpg', 'image/png': '.png', 'image/webp': '.webp', 'image/gif': '.gif', 'image/avif': '.avif', 'video/mp4': '.mp4' }[ct];
+    if (ext && !/\.[a-z0-9]{2,4}$/i.test(fname)) fname += ext;
+
+    const key = buildMediaKey(fname);
+    await env.MEDIA.put(key, buf, {
+      httpMetadata: { contentType: ct, cacheControl: 'public, max-age=31536000, immutable' },
+      customMetadata: { filename: fname, alt, caption, folder },
+    });
+    const publicBase = (env.MEDIA_PUBLIC_BASE || '').replace(/\/+$/, '');
+    const url = publicBase ? `${publicBase}/${key}` : '';
+    const ts = Math.floor(Date.now() / 1000);
+    if (folder) { try { await ensureMediaFoldersTable(env); await env.DB.prepare('INSERT OR IGNORE INTO media_folders (name, favorite, created_at) VALUES (?1, 0, ?2)').bind(folder, ts).run(); } catch (_) {} }
+    await env.DB.prepare(
+      `INSERT INTO media (key, filename, mime_type, size_bytes, alt_text, caption, uploaded_by, uploaded_at, url, folder)
+       VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10)
+       ON CONFLICT(key) DO UPDATE SET filename=excluded.filename, mime_type=excluded.mime_type,
+         size_bytes=excluded.size_bytes, alt_text=excluded.alt_text, caption=excluded.caption,
+         url=excluded.url, folder=excluded.folder`
+    ).bind(key, fname, ct, buf.byteLength, alt || null, caption || null, 'studio-mcp', ts, url, folder || '').run();
+    return { ok: true, key, url, folder: folder || '(unfiled)', mime_type: ct, size_bytes: buf.byteLength };
+  },
+
+  async create_media_folder(args, env) {
+    if (!env.DB) throw new Error('D1 not configured');
+    const name = String(args.name || '').trim();
+    if (!name || name.length > 120 || /[<>"'\\]/.test(name)) throw new Error('invalid folder name');
+    await ensureMediaFoldersTable(env);
+    const now = Math.floor(Date.now() / 1000);
+    await env.DB.prepare('INSERT OR IGNORE INTO media_folders (name, favorite, created_at) VALUES (?1, ?2, ?3)').bind(name, args.favorite ? 1 : 0, now).run();
+    if (args.favorite) await env.DB.prepare('UPDATE media_folders SET favorite = 1 WHERE name = ?1').bind(name).run();
+    return { ok: true, name, favorite: args.favorite ? 1 : 0 };
+  },
+
+  async list_media_folders(args, env) {
+    if (!env.DB) throw new Error('D1 not configured');
+    await ensureMediaFoldersTable(env);
+    const derived = (await env.DB.prepare(
+      "SELECT COALESCE(NULLIF(folder,''),'Unfiled') AS folder, COUNT(*) AS count FROM media GROUP BY COALESCE(NULLIF(folder,''),'Unfiled')"
+    ).all()).results || [];
+    const registered = (await env.DB.prepare('SELECT name, favorite FROM media_folders').all()).results || [];
+    const map = new Map();
+    for (const r of derived) map.set(r.folder, { folder: r.folder, count: r.count, favorite: 0 });
+    for (const r of registered) { const e = map.get(r.name) || { folder: r.name, count: 0, favorite: 0 }; e.favorite = r.favorite ? 1 : 0; map.set(r.name, e); }
+    const folders = [...map.values()].sort((a, b) => (b.favorite - a.favorite) || a.folder.localeCompare(b.folder, undefined, { sensitivity: 'base' }));
+    const totalRow = await env.DB.prepare('SELECT COUNT(*) c FROM media').first();
+    return { folders, total: totalRow ? totalRow.c : 0 };
+  },
+
+  async list_media(args, env) {
+    if (!env.DB) throw new Error('D1 not configured');
+    const limit = Math.min(Math.max(parseInt(args.limit, 10) || 40, 1), 100);
+    const q = String(args.query || '').trim();
+    const folder = String(args.folder || '').trim();
+    const where = [], params = [];
+    if (q)      { where.push(`(filename LIKE ?${params.length + 1} OR alt_text LIKE ?${params.length + 1})`); params.push('%' + q + '%'); }
+    if (folder) { where.push(`folder = ?${params.length + 1}`); params.push(folder); }
+    const whereSql = where.length ? 'WHERE ' + where.join(' AND ') : '';
+    const total = await env.DB.prepare(`SELECT COUNT(*) c FROM media ${whereSql}`).bind(...params).first();
+    const rows = (await env.DB.prepare(
+      `SELECT key, filename, mime_type, size_bytes, alt_text, caption, uploaded_at, url, folder
+       FROM media ${whereSql} ORDER BY uploaded_at DESC LIMIT ${limit}`
+    ).bind(...params).all()).results || [];
+    return {
+      total: total ? total.c : 0, count: rows.length,
+      items: rows.map((r) => ({ key: r.key, url: r.url, filename: r.filename, folder: r.folder || '(unfiled)', alt: r.alt_text || '', caption: r.caption || '', mime_type: r.mime_type, size_bytes: r.size_bytes, uploaded: iso(r.uploaded_at) })),
+    };
+  },
+
+  // ── Lists ──────────────────────────────────────────────────────────────────
+  async list_lists(args, env) {
+    if (!env.DB) throw new Error('D1 not configured');
+    const rows = (await env.DB.prepare('SELECT slug, data, updated_at, updated_by FROM iconic_lists ORDER BY slug').all()).results || [];
+    return {
+      count: rows.length,
+      lists: rows.map((r) => { const d = parseJSON(r.data, {}); return { slug: r.slug, title: d.title || '', items: Array.isArray(d.items) ? d.items.length : 0, updated: iso(r.updated_at), updated_by: r.updated_by || '' }; }),
+      note: 'Known lists include "clients" (the partner/client wall on the journal + media kit) and the iconic ranking lists (e.g. hotels, restaurants, golf). A list with no saved rows yet simply will not appear here until first written.',
+    };
+  },
+
+  async get_list(args, env) {
+    if (!env.DB) throw new Error('D1 not configured');
+    const slug = String(args.slug || '').trim().toLowerCase();
+    if (!LIST_SLUG_RE.test(slug)) throw new Error('invalid list slug');
+    const row = await env.DB.prepare('SELECT data, updated_at, updated_by FROM iconic_lists WHERE slug = ?1').bind(slug).first();
+    if (!row) return { slug, exists: false, title: '', items: [], note: 'No saved rows yet for this list — add_to_list will create it.' };
+    const d = parseJSON(row.data, {});
+    const items = Array.isArray(d.items) ? d.items : [];
+    return { slug, exists: true, title: d.title || '', count: items.length, items, updated: iso(row.updated_at), updated_by: row.updated_by || '' };
+  },
+
+  async add_to_list(args, env) {
+    if (!env.DB) throw new Error('D1 not configured');
+    const slug = String(args.slug || '').trim().toLowerCase();
+    if (!LIST_SLUG_RE.test(slug)) throw new Error('invalid list slug');
+    let item = args.item;
+    if (typeof item === 'string') { try { item = JSON.parse(item); } catch (_) { item = { name: item }; } }
+    if (!item || typeof item !== 'object' || Array.isArray(item)) throw new Error('item must be an object, e.g. {"name":"…"}');
+    const row = await env.DB.prepare('SELECT data FROM iconic_lists WHERE slug = ?1').bind(slug).first();
+    const doc = row ? parseJSON(row.data, {}) : {};
+    if (!Array.isArray(doc.items)) doc.items = [];
+    if (args.title && !doc.title) doc.title = String(args.title);
+    if (args.position === 'top') doc.items.unshift(item); else doc.items.push(item);
+    const serialized = JSON.stringify(doc);
+    if (serialized.length > 1_000_000) throw new Error('list too large (1MB max)');
+    const now = Math.floor(Date.now() / 1000);
+    await env.DB.prepare(
+      `INSERT INTO iconic_lists (slug, data, updated_at, updated_by) VALUES (?1, ?2, ?3, ?4)
+       ON CONFLICT(slug) DO UPDATE SET data = excluded.data, updated_at = excluded.updated_at, updated_by = excluded.updated_by`
+    ).bind(slug, serialized, now, 'Claude (Studio MCP)').run();
+    return { ok: true, slug, items: doc.items.length, added: item, note: 'Live consumers (journal wall / media kit) read this list directly, so the change is visible immediately.' };
+  },
+
+  async update_list(args, env) {
+    if (!env.DB) throw new Error('D1 not configured');
+    const slug = String(args.slug || '').trim().toLowerCase();
+    if (!LIST_SLUG_RE.test(slug)) throw new Error('invalid list slug');
+    let items = args.items;
+    if (typeof items === 'string') { try { items = JSON.parse(items); } catch (_) { throw new Error('items must be a JSON array'); } }
+    if (!Array.isArray(items)) throw new Error('items must be an array of row objects');
+    let title = args.title != null ? String(args.title) : null;
+    if (title == null) { const row = await env.DB.prepare('SELECT data FROM iconic_lists WHERE slug = ?1').bind(slug).first(); title = (row ? parseJSON(row.data, {}) : {}).title || ''; }
+    const serialized = JSON.stringify({ title, items });
+    if (serialized.length > 1_000_000) throw new Error('list too large (1MB max)');
+    const now = Math.floor(Date.now() / 1000);
+    await env.DB.prepare(
+      `INSERT INTO iconic_lists (slug, data, updated_at, updated_by) VALUES (?1, ?2, ?3, ?4)
+       ON CONFLICT(slug) DO UPDATE SET data = excluded.data, updated_at = excluded.updated_at, updated_by = excluded.updated_by`
+    ).bind(slug, serialized, now, 'Claude (Studio MCP)').run();
+    return { ok: true, slug, items: items.length };
+  },
+
+  // ── Map drafts ─────────────────────────────────────────────────────────────
+  async create_map_draft(args, env) {
+    if (!env.DB) throw new Error('D1 not configured');
+    const title = String(args.title || '').trim();
+    if (!title) throw new Error('title is required');
+    await ensureMapDraftsTable(env);
+    const city = String(args.city || '').trim();
+    const num = (v) => (v == null || v === '' || isNaN(Number(v)) ? null : Number(v));
+    const rec = {
+      Title: title, City: city, Address: String(args.address || ''),
+      Latitude: num(args.latitude), Longitude: num(args.longitude),
+      Description: String(args.description || ''), ProjectType: String(args.project_type || ''),
+      Architect: String(args.architect || ''), Developer: String(args.developer || ''),
+      Delivery: String(args.delivery || ''), Units: args.units != null ? String(args.units) : '',
+      Floors: args.floors != null ? String(args.floors) : '', OfficialWebsite: String(args.website || ''),
+      ImageURL: String(args.image_url || ''),
+    };
+    const id = 'mapd-' + (crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2));
+    const now = Math.floor(Date.now() / 1000);
+    await env.DB.prepare(
+      "INSERT INTO map_drafts (id, title, city, data, status, created_by, created_at, updated_at) VALUES (?1,?2,?3,?4,'draft',?5,?6,?6)"
+    ).bind(id, title, city, JSON.stringify(rec), 'Claude (Studio MCP)', now).run();
+    const needsCoords = rec.Latitude == null || rec.Longitude == null;
+    return {
+      ok: true, id, status: 'draft', project: rec, needs_coords: needsCoords,
+      note: 'Staged as a MAP DRAFT in the Studio for human review' + (needsCoords ? ' — latitude/longitude still needed before it can be placed on the map.' : '.') + ' It is NOT on the live map until a person promotes it.',
+    };
+  },
+
+  async list_map_drafts(args, env) {
+    if (!env.DB) throw new Error('D1 not configured');
+    await ensureMapDraftsTable(env);
+    const limit = Math.min(Math.max(parseInt(args.limit, 10) || 50, 1), 100);
+    const rows = (await env.DB.prepare(
+      `SELECT id, title, city, data, created_at FROM map_drafts WHERE status='draft' ORDER BY created_at DESC LIMIT ${limit}`
+    ).all()).results || [];
+    return { count: rows.length, drafts: rows.map((r) => ({ id: r.id, title: r.title, city: r.city, created: iso(r.created_at), project: parseJSON(r.data, {}) })) };
+  },
+
+  // ── Analytics ──────────────────────────────────────────────────────────────
+  async get_audience_stats(args, env) {
+    if (!env.DB) throw new Error('D1 not configured');
+    const rows = (await env.DB.prepare('SELECT member_id, plan, ts, event_name FROM events').all()).results || [];
+    const nowSec = Math.floor(Date.now() / 1000), day = 86400, fiveMinAgo = nowSec - 300;
+    const planTs = new Map(), memberPlans = new Map(), nameCounts = new Map();
+    const active7d = new Set(), activeNow = new Set();
+    let eventsToday = 0, events7d = 0, eventsPrev7d = 0;
+    for (const r of rows) {
+      if (!planTs.has(r.member_id) || planTs.get(r.member_id) < r.ts) { planTs.set(r.member_id, r.ts); memberPlans.set(r.member_id, r.plan); }
+      const age = nowSec - r.ts;
+      if (age < day) eventsToday++;
+      if (age < 7 * day) { events7d++; active7d.add(r.member_id); } else if (age < 14 * day) eventsPrev7d++;
+      if (r.ts >= fiveMinAgo) activeNow.add(r.member_id);
+      if (r.event_name) nameCounts.set(r.event_name, (nameCounts.get(r.event_name) || 0) + 1);
+    }
+    let paid = 0, free = 0;
+    for (const p of memberPlans.values()) { if (p === 'paid') paid++; else free++; }
+    return {
+      members_total: memberPlans.size, members_paid: paid, members_free: free,
+      active_now: activeNow.size, active_members_7d: active7d.size,
+      events_today: eventsToday, events_last_7d: events7d, events_prev_7d: eventsPrev7d, events_total: rows.length,
+      top_events: [...nameCounts.entries()].map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count).slice(0, 15),
+    };
+  },
+
+  async get_journal_analytics(args, env) {
+    if (!env.GA_SERVICE_ACCOUNT_JSON || !env.GA4_PROPERTY_ID) throw new Error('GA4 not configured on the worker (GA_SERVICE_ACCOUNT_JSON / GA4_PROPERTY_ID)');
+    const days = Math.min(Math.max(parseInt(args.days, 10) || 28, 1), 365);
+    const token = await getGoogleAccessToken(env);
+    const reqBody = {
+      dateRanges: [{ startDate: `${days}daysAgo`, endDate: 'today' }],
+      dimensions: [{ name: 'eventName' }],
+      metrics: [{ name: 'eventCount' }, { name: 'totalUsers' }],
+      dimensionFilter: { filter: { fieldName: 'hostName', stringFilter: { matchType: 'CONTAINS', value: 'oftmw.com' } } },
+      orderBys: [{ metric: { metricName: 'eventCount' }, desc: true }],
+      limit: 200,
+    };
+    const r = await fetch(`https://analyticsdata.googleapis.com/v1beta/properties/${env.GA4_PROPERTY_ID}:runReport`, {
+      method: 'POST', headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' }, body: JSON.stringify(reqBody),
+    });
+    if (!r.ok) throw new Error('GA4 report failed (HTTP ' + r.status + '): ' + (await r.text()).slice(0, 300));
+    const data = await r.json();
+    const all = (data.rows || []).map((row) => ({ event: row.dimensionValues[0].value, count: Number(row.metricValues[0].value || 0), users: Number(row.metricValues[1].value || 0) }));
+    const journal = all.filter((e) => /^jrn_|^subscribe_/.test(e.event));
+    return { range_days: days, journal_events: journal, journal_total: journal.reduce((s, e) => s + e.count, 0), top_events: all.slice(0, 40) };
+  },
 };
 
 function firmList(all, field, args) {
@@ -314,7 +757,7 @@ async function dispatch(msg, env) {
       protocolVersion: (params && params.protocolVersion) || DEFAULT_PROTOCOL,
       capabilities: { tools: { listChanged: false } },
       serverInfo: SERVER_INFO,
-      instructions: 'Markets of Tomorrow Studio. Read journal posts/drafts/views and Map of Tomorrow projects; create article DRAFTS (never publishes). Drafts land in the Studio for human review.',
+      instructions: 'Markets of Tomorrow Studio — run the studio remotely. Read journal posts/drafts/views, Map of Tomorrow projects, media, lists, and analytics. Write only reviewable artifacts: create/edit article DRAFTS, upload photos into media folders, create folders, add to or replace studio lists (e.g. the client wall), and stage MAP DRAFTS for review. Nothing here publishes to the live journal or live map — drafts wait in the Studio for a human to promote.',
     });
   }
   if (method === 'ping') return rpcResult(id, {});

@@ -67,7 +67,7 @@ function json(body, init = {}, env, origin) {
 
 let _cachedToken = null;        // { token: string, expiresAt: number(ms) }
 
-async function getGoogleAccessToken(env) {
+export async function getGoogleAccessToken(env) {
   const now = Date.now();
   if (_cachedToken && _cachedToken.expiresAt > now + 60_000) {
     return _cachedToken.token;
