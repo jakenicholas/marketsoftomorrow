@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Project Card — mockup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#070807; --panel:#101310; --panel2:#161a16; --panel3:#1c211c;
+    --gold:#e6c574; --gold-soft:#f0d68a; --gold-deep:#c9a558;
+    --green:#1FDF67; --green-soft:#42EB81;
+    --orange:#f59e3c;
+    --purple:#A78BFA; --purple-glow:#B9A6FF; --purple-deep:#7c5cff;
+    --white:#fff; --cream:#ECEAE5; --mute:#8b958d; --mute2:#C2C9C3;
+    --hair:rgba(255,255,255,.08); --hair2:rgba(255,255,255,.16);
+    --sans:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+    --serif:'Fraunces',Georgia,serif;
+    --mono:'JetBrains Mono',ui-monospace,monospace;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:
+      radial-gradient(900px 600px at 85% -8%, rgba(167,139,250,.10), transparent 60%),
+      radial-gradient(800px 600px at -5% 110%, rgba(31,223,103,.06), transparent 55%),
+      var(--ink);
+    color:var(--cream); font-family:var(--sans); min-height:100vh;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    padding:48px 24px; gap:26px;
+  }
+  .mock-label{font-family:var(--mono); font-size:11px; letter-spacing:.22em; text-transform:uppercase; color:var(--mute); display:flex; align-items:center; gap:10px}
+  .mock-label .dot{width:6px;height:6px;border-radius:50%;background:var(--gold);box-shadow:0 0 10px var(--gold)}
+  .ctx-note{font-size:12.5px; color:var(--mute2); max-width:680px; text-align:center; line-height:1.6; font-weight:300}
+  .ctx-note b{color:var(--cream); font-weight:500}
+
+  /* ── PROJECT CARD ─────────────────────────────────────────────── */
+  .pc{
+    width:100%; max-width:1040px; display:grid; grid-template-columns:minmax(0,46%) 1fr;
+    background:linear-gradient(180deg, rgba(22,26,22,.94), rgba(10,12,10,.97));
+    border:1px solid var(--hair2); border-radius:22px; overflow:hidden;
+    box-shadow:0 40px 110px rgba(0,0,0,.6), 0 0 0 1px rgba(167,139,250,.05), inset 0 1px 0 rgba(255,255,255,.05);
+  }
+
+  /* Flyover tile (render) */
+  .pc-media{position:relative; min-height:420px; overflow:hidden; background:#0a0a0a}
+  .pc-media img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block}
+  .pc-media::after{content:""; position:absolute; inset:0; background:linear-gradient(90deg, transparent 60%, rgba(10,12,10,.55)); pointer-events:none}
+  .pc-badge{
+    position:absolute; top:20px; left:20px; z-index:2;
+    font-family:var(--mono); font-size:10.5px; letter-spacing:.22em; text-transform:uppercase; font-weight:700;
+    color:var(--gold-soft); padding:9px 16px; border-radius:999px;
+    background:rgba(7,8,7,.5); -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px);
+    border:1px solid rgba(230,197,116,.55);
+    text-shadow:0 0 14px rgba(230,197,116,.5);
+  }
+  .pc-flyover{
+    position:absolute; top:18px; right:18px; z-index:2; width:38px; height:38px; border-radius:999px;
+    display:flex; align-items:center; justify-content:center; cursor:pointer;
+    background:rgba(7,8,7,.55); -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px);
+    border:1px solid var(--hair2); color:#fff; transition:all .18s; padding:0;
+  }
+  .pc-flyover:hover{border-color:var(--gold); color:var(--gold-soft); transform:translateY(-1px)}
+  .pc-flyover svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2}
+  .pc-flyover .lbl{
+    position:absolute; right:calc(100% + 8px); top:50%; transform:translateY(-50%);
+    font-family:var(--mono); font-size:9px; letter-spacing:.14em; text-transform:uppercase; color:var(--cream);
+    background:rgba(7,8,7,.7); padding:5px 9px; border-radius:6px; white-space:nowrap; opacity:0; transition:opacity .18s; pointer-events:none;
+  }
+  .pc-flyover:hover .lbl{opacity:1}
+
+  /* Body */
+  .pc-body{padding:34px 38px 32px; display:flex; flex-direction:column; gap:0}
+  .pc-name{font-family:var(--serif); font-weight:600; font-size:clamp(34px,4vw,52px); line-height:1; letter-spacing:-.02em; color:#fff; margin:0}
+  .pc-loc{font-family:var(--mono); font-size:11.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--mute2); margin-top:14px}
+  .pc-desc{font-size:15px; line-height:1.6; color:var(--mute2); font-weight:300; margin:18px 0 0; max-width:48ch}
+
+  /* Status / progress */
+  .pc-status{margin-top:24px}
+  .pc-status-top{display:flex; align-items:center; justify-content:space-between; margin-bottom:9px}
+  .pc-phase{font-family:var(--mono); font-size:11px; letter-spacing:.16em; text-transform:uppercase; font-weight:700; color:var(--orange)}
+  .pc-pct{font-family:var(--mono); font-size:11px; color:var(--mute2); font-weight:500}
+  .pc-track{display:flex; gap:5px}
+  .pc-seg{flex:1; height:6px; border-radius:999px; background:rgba(255,255,255,.08); overflow:hidden; position:relative}
+  .pc-seg.done{background:linear-gradient(90deg,var(--gold-deep),var(--gold))}
+  .pc-seg.cur{background:rgba(245,158,60,.18)}
+  .pc-seg.cur::after{content:""; position:absolute; left:0; top:0; bottom:0; width:35%; border-radius:999px; background:linear-gradient(90deg,var(--gold),var(--orange)); box-shadow:0 0 10px rgba(245,158,60,.6)}
+  .pc-phases{display:flex; justify-content:space-between; margin-top:8px; font-family:var(--mono); font-size:8.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--mute)}
+  .pc-phases span.on{color:var(--orange)}
+  .pc-delivery{font-family:var(--mono); font-size:10.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--mute2); margin-top:11px}
+
+  /* Stats */
+  .pc-stats{display:flex; gap:34px; margin-top:22px}
+  .pc-stat .n{font-family:var(--serif); font-weight:600; font-size:30px; color:#fff; line-height:1; letter-spacing:-.02em}
+  .pc-stat .l{display:block; font-family:var(--mono); font-size:9px; letter-spacing:.14em; text-transform:uppercase; color:var(--mute); margin-top:7px}
+
+  .pc-firms{font-size:13.5px; color:var(--mute2); margin-top:20px; font-weight:300}
+  .pc-firms b{color:var(--cream); font-weight:600}
+
+  /* ── TMW INTELLIGENCE panel — UNIFIED with the map's project modal ──
+     Same .pm-intel-* classes + values as the map (index.html), so the real
+     component literally shares this CSS. Only change here: inherits this page's
+     fonts. */
+  .pm-intel{margin:24px 0 0; padding:18px; background:rgba(167,139,250,0.06); border:1px solid rgba(167,139,250,0.18); border-radius:12px}
+  .pm-intel-head{display:flex; align-items:center; gap:10px; margin-bottom:14px; flex-wrap:wrap}
+  .pm-intel-badge{display:inline-flex; align-items:center; gap:6px; background:rgba(167,139,250,0.14); border:1px solid rgba(167,139,250,0.32); color:#A78BFA; padding:4px 10px; border-radius:12px; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em}
+  .pm-intel-badge svg{width:11px; height:11px; fill:currentColor}
+  .pm-intel-confidence{font-size:10px; color:rgba(255,255,255,0.5); text-transform:uppercase; letter-spacing:0.08em; font-weight:600}
+  .pm-intel-confidence[data-conf="high"]{color:#1FDF67}
+  .pm-intel-confidence[data-conf="medium"]{color:#A78BFA}
+  .pm-intel-confidence[data-conf="low"]{color:rgba(255,255,255,0.45)}
+  .pm-intel-title{font-size:13px; font-weight:700; color:#fff}
+  .pm-intel-estimate{font-size:30px; font-weight:700; letter-spacing:-0.02em; color:#A78BFA; margin-bottom:14px; line-height:1.05}
+  .pm-intel-estimate .unit{font-size:14px; color:rgba(255,255,255,0.62); font-weight:500; margin-left:6px}
+  .pm-intel-estimate .range{font-size:13px; color:rgba(255,255,255,0.4); font-weight:500; margin-left:6px}
+  .pm-intel-similar-label{font-size:10px; text-transform:uppercase; letter-spacing:0.1em; color:#A78BFA; font-weight:700; margin-bottom:10px; padding-top:14px; border-top:1px solid rgba(167,139,250,0.18)}
+  .pm-intel-similars{display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:8px; margin-bottom:14px}
+  .pm-intel-similar{background:rgba(0,0,0,0.3); border:1px solid rgba(167,139,250,0.16); border-radius:8px; padding:11px 12px; cursor:pointer; transition:all 0.15s; text-decoration:none; color:inherit; display:block}
+  .pm-intel-similar:hover{border-color:rgba(167,139,250,0.4); background:rgba(0,0,0,0.5)}
+  .pm-intel-similar-name{font-size:12px; font-weight:600; margin-bottom:2px; color:#fff; line-height:1.25; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .pm-intel-similar-loc{font-size:10px; color:rgba(255,255,255,0.55); margin-bottom:9px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .pm-intel-similar-row{display:flex; justify-content:flex-end; font-size:11px; color:rgba(255,255,255,0.55); padding-top:7px; border-top:1px solid rgba(167,139,250,0.1)}
+  .pm-intel-similar-row b{color:#fff; font-weight:700}
+  .pm-intel-pattern{background:rgba(167,139,250,0.08); border:1px solid rgba(167,139,250,0.22); border-radius:8px; padding:12px 14px; font-size:12px; line-height:1.55; color:rgba(255,255,255,0.7)}
+  .pm-intel-pattern b{color:#fff; font-weight:600}
+  .pm-intel-pattern .pm-intel-highlight{color:#A78BFA; font-weight:700}
+  .pm-intel-disclaimer{font-size:10px; color:rgba(255,255,255,0.4); margin-top:12px; font-style:italic; line-height:1.5}
+  @media(max-width:600px){.pm-intel-similars{grid-template-columns:1fr}}
+
+  /* Actions */
+  .pc-actions{display:flex; gap:12px; margin-top:24px; flex-wrap:wrap}
+  .pc-btn{display:inline-flex; align-items:center; gap:8px; font-family:var(--mono); font-size:11.5px; letter-spacing:.12em; text-transform:uppercase; font-weight:700; padding:13px 22px; border-radius:11px; text-decoration:none; cursor:pointer; transition:transform .18s, box-shadow .18s, background .18s, border-color .18s}
+  .pc-btn svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2.2}
+  .pc-btn.primary{background:linear-gradient(180deg,var(--gold-soft),var(--gold)); color:#2a1f06; box-shadow:0 8px 26px rgba(230,197,116,.4)}
+  .pc-btn.primary:hover{transform:translateY(-2px); box-shadow:0 12px 34px rgba(240,214,138,.55)}
+  .pc-btn.ghost{background:rgba(255,255,255,.04); color:var(--cream); border:1px solid var(--hair2)}
+  .pc-btn.ghost:hover{border-color:var(--gold); color:#fff}
+
+  @media(max-width:760px){
+    .pc{grid-template-columns:1fr}
+    .pc-media{min-height:280px}
+    .pc-media::after{background:linear-gradient(180deg, transparent 55%, rgba(10,12,10,.5))}
+    .pc-body{padding:26px 24px 26px}
+    .pc-stats{gap:26px}
+  }
+</style>
+</head>
+<body>
+
+  <div class="mock-label"><span class="dot"></span>Project card · mockup</div>
+
+  <article class="pc">
+    <div class="pc-media">
+      <img src="https://tmw.jake-ab7.workers.dev/media/wix/ca3b83_68d5035d453d4231ba1a1106850152f7~mv2.jpeg" alt="Olara render">
+      <span class="pc-badge">Top Match</span>
+      <button class="pc-flyover" aria-label="Fly to on the map">
+        <span class="lbl">Flyover</span>
+        <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+      </button>
+    </div>
+
+    <div class="pc-body">
+      <h2 class="pc-name">Olara</h2>
+      <div class="pc-loc">West Palm Beach · Residences</div>
+      <p class="pc-desc">A 26‑story luxury waterfront tower bringing 80,000 sqft. of resort‑style amenities, a private marina with Intracoastal access, and a signature Chef José Andrés restaurant.</p>
+
+      <div class="pc-status">
+        <div class="pc-status-top"><span class="pc-phase">Under Construction</span><span class="pc-pct">35%</span></div>
+        <div class="pc-track">
+          <div class="pc-seg done"></div>
+          <div class="pc-seg done"></div>
+          <div class="pc-seg cur"></div>
+          <div class="pc-seg"></div>
+          <div class="pc-seg"></div>
+        </div>
+        <div class="pc-phases">
+          <span>Announced</span><span>Breaking Ground</span><span class="on">Construction</span><span>Opening Soon</span><span>Now Open</span>
+        </div>
+        <div class="pc-delivery">Started 2024 · Est. delivery 2028</div>
+      </div>
+
+      <div class="pc-stats">
+        <div class="pc-stat"><span class="n">275</span><span class="l">Units</span></div>
+        <div class="pc-stat"><span class="n">26</span><span class="l">Floors</span></div>
+        <div class="pc-stat"><span class="n">80k</span><span class="l">Amenity sqft</span></div>
+      </div>
+
+      <div class="pc-firms">Developed by <b>Savanna</b> · Architecture by <b>Arquitectonica</b></div>
+
+      <div class="pm-intel">
+        <div class="pm-intel-head">
+          <span class="pm-intel-badge">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2L4 7v10l8 5 8-5V7l-8-5zm0 2.5L18 8v8l-6 3.75L6 16V8l6-3.5z"/></svg>
+            TMW Intelligence
+          </span>
+          <div class="pm-intel-title">Estimated Time to Completion</div>
+          <span class="pm-intel-confidence" data-conf="high">High confidence</span>
+        </div>
+        <div class="pm-intel-estimate">~2.6 years <span class="unit">to completion</span><span class="range">(2–3 yrs)</span></div>
+        <div class="pm-intel-similar-label">Similar Projects in TMW's Data</div>
+        <div class="pm-intel-similars">
+          <a class="pm-intel-similar" href="#"><div class="pm-intel-similar-name">Forté on Flagler</div><div class="pm-intel-similar-loc">West Palm Beach</div><div class="pm-intel-similar-row"><span><b>2.6</b> yrs</span></div></a>
+          <a class="pm-intel-similar" href="#"><div class="pm-intel-similar-name">South Flagler House</div><div class="pm-intel-similar-loc">West Palm Beach</div><div class="pm-intel-similar-row"><span><b>3.1</b> yrs</span></div></a>
+          <a class="pm-intel-similar" href="#"><div class="pm-intel-similar-name">One West Palm</div><div class="pm-intel-similar-loc">West Palm Beach</div><div class="pm-intel-similar-row"><span><b>3.0</b> yrs</span></div></a>
+        </div>
+        <div class="pm-intel-pattern">Based on <span class="pm-intel-highlight">3</span> comparable luxury waterfront towers in West Palm Beach, all delivered roughly 30–40 months from groundbreaking.</div>
+        <div class="pm-intel-disclaimer">Pattern-based estimate, not a developer commitment. Actual timelines can vary by 6–18 months.</div>
+      </div>
+
+      <div class="pc-actions">
+        <a class="pc-btn primary" href="#">Learn more</a>
+        <a class="pc-btn ghost" href="#">Visit site
+          <svg viewBox="0 0 24 24"><path d="M7 17 17 7M9 7h8v8"/></svg>
+        </a>
+      </div>
+    </div>
+  </article>
+
+  <p class="ctx-note">Dropped inline in a journal article when a story references a tracked project. The <b>journal is free</b> — the <b>TMW Intelligence</b> forecast is the Pro hook (shown here as a teaser; locked/blurred for free readers).</p>
+
+</body>
+</html>
