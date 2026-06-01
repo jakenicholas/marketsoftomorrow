@@ -314,7 +314,7 @@ ${FONTS}
    aspect-ratio gives each tile a definite height so images reserve space and
    actually load (lazy images with no height never trigger). */
 .masonry{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;padding:24px 0 0}
-@media(min-width:1700px){.masonry{grid-template-columns:repeat(3,1fr)}}
+@media(min-width:2000px){.masonry{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:480px){.masonry{grid-template-columns:1fr}}
 .tile{display:block;width:100%;margin:0;padding:0;border:0;border-radius:0;overflow:hidden;cursor:zoom-in;background:var(--panel);position:relative;line-height:0;aspect-ratio:3/2}
 .tile img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .5s cubic-bezier(.22,1,.36,1)}
