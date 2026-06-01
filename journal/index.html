@@ -1599,15 +1599,28 @@ async function updateMapCounter() {
 
 <!-- Shared Partners of Tomorrow — renders into <div data-tmw-partners> on this page (and any future page that drops the same mount + script). -->
 <script src="./_shared/partners.js" defer></script>
-<!-- Async sections (Partners, carousel, cards) mount after first paint and shift
-     the layout, so a #hash in the URL (e.g. /#newsletter) scrolls to the wrong
-     section on load. Re-apply the scroll to the hash target once things settle. -->
+<!-- Async sections (Partners, the 1,500-post card grid, carousel) mount after
+     first paint and keep shifting the layout, so a #hash in the URL (e.g.
+     /#newsletter) scrolls to the wrong section. Re-align to the target on a
+     short poll until its position settles (or the user scrolls). -->
 <script>
 (function () {
-  var hash = location.hash;
-  if (!hash || hash.length < 2) return;
-  function go() { try { var el = document.getElementById(decodeURIComponent(hash.slice(1))); if (el) el.scrollIntoView({ block: 'start' }); } catch (e) {} }
-  window.addEventListener('load', function () { go(); setTimeout(go, 300); setTimeout(go, 1000); });
+  var id = (location.hash || '').slice(1);
+  if (!id) return;
+  try { id = decodeURIComponent(id); } catch (e) {}
+  var stop = false, start = Date.now();
+  ['wheel', 'touchstart', 'keydown'].forEach(function (ev) {
+    addEventListener(ev, function () { stop = true; }, { passive: true, once: true });
+  });
+  // Re-align every 250ms for 6s so we keep tracking the target as the async
+  // sections (Partners, card grid, carousel) mount and shift it — and stop the
+  // moment the user scrolls so we never fight them.
+  (function tick() {
+    if (stop || Date.now() - start > 6000) return;
+    var el = document.getElementById(id);
+    if (el) el.scrollIntoView({ block: 'start' });
+    setTimeout(tick, 250);
+  })();
 })();
 </script>
 <!-- Pinned journal dock — map / search / home -->
