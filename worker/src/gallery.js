@@ -283,8 +283,13 @@ function renderGalleryHTML(g, images, base) {
     // Eager-load the first screenful so thumbnails appear immediately; lazy for
     // the rest (each tile reserves height via aspect-ratio, so lazy fires on scroll).
     const load = i < 8 ? 'eager' : 'lazy';
+    // srcset + sizes so the browser fetches a resolution matched to the tile's
+    // displayed size AND device pixel ratio — tiles are large (~45vw, 2-up), so
+    // a single small width looked soft/blurry on Retina until opened.
+    const tp = `${base}/thumb/${keyToPath(im.key)}`;
+    const srcset = `${tp}?w=700 700w, ${tp}?w=1100 1100w, ${tp}?w=1500 1500w, ${tp}?w=2000 2000w`;
     return `<button class="tile" data-i="${i}" aria-label="View photo ${i + 1}">
-      <img loading="${load}" decoding="async" src="${base}/thumb/${keyToPath(im.key)}?w=900" alt="${esc(im.alt_text || g.title)}">
+      <img loading="${load}" decoding="async" src="${tp}?w=1100" srcset="${srcset}" sizes="(max-width:480px) 92vw, (min-width:2000px) 30vw, 45vw" alt="${esc(im.alt_text || g.title)}">
     </button>`;
   }).join('');
 
