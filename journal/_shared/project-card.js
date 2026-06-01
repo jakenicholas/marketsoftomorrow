@@ -175,7 +175,7 @@
     return '' +
     '<div class="pc-media">' +
       (rec.ImageURL ? '<img src="' + esc(img(rec.ImageURL)) + '" alt="' + esc(rec.Title) + '" loading="lazy">' : '') +
-      (rec.Featured ? '<span class="pc-badge">In the database</span>' : '<span class="pc-badge">In the database</span>') +
+      '<span class="pc-badge">Tracking</span>' +
       '<button class="pc-flyover" type="button" aria-label="See on the map"><span class="lbl">See on the map</span>' +
         '<svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>' +
     '</div>' +
@@ -209,7 +209,11 @@
     if (document.getElementById('tmw-pcard-styles')) return;
     var css = [
       '.tmw-pcard{--g:#e6c574;--gs:#f0d68a;--grn:#1FDF67;--or:#f59e3c;--pp:#A78BFA;--cream:#ECEAE5;--mute:#8b958d;--mute2:#C2C9C3;',
-        'font-family:"Inter",-apple-system,sans-serif; display:grid; grid-template-columns:minmax(0,46%) 1fr; margin:2em 0 !important;',
+        'font-family:"Inter",-apple-system,sans-serif; display:grid; grid-template-columns:minmax(0,44%) 1fr;',
+        // Break out of the narrow article column to the full hero-image width
+        // (the .article-cover is max-width:1240px with 28px padding = 1184px),
+        // centered on the page. min() keeps it inside the viewport on mobile.
+        'width:min(100vw - 56px, 1184px); margin:2em 0; margin-left:50%; transform:translateX(-50%);',
         'background:linear-gradient(180deg, rgba(22,26,22,.94), rgba(10,12,10,.97)); border:1px solid rgba(255,255,255,.16); border-radius:22px; overflow:hidden;',
         'box-shadow:0 40px 110px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.05); color:var(--cream)}',
       '.article-body-content > .tmw-pcard + *{margin-top:0 !important}',
@@ -274,6 +278,8 @@
       '.tmw-pcard .pc-btn.primary:hover{transform:translateY(-2px); box-shadow:0 12px 34px rgba(240,214,138,.55)}',
       '.tmw-pcard .pc-btn.ghost{background:rgba(255,255,255,.04); color:var(--cream); border:1px solid rgba(255,255,255,.16)}',
       '.tmw-pcard .pc-btn.ghost:hover{border-color:var(--g); color:#fff}',
+      // Tighter vertical rhythm so the card stays wide & shallow, not tall.
+      '.tmw-pcard .pc-body{padding:24px 30px}.tmw-pcard .pc-desc{margin-top:11px}.tmw-pcard .pc-status{margin-top:14px}.tmw-pcard .pc-stats{margin-top:14px}.tmw-pcard .pc-firms{margin-top:12px}.tmw-pcard .pm-intel{margin-top:14px;padding:15px 16px}.tmw-pcard .pm-intel-head{margin-bottom:10px}.tmw-pcard .pm-intel-estimate{margin-bottom:9px}.tmw-pcard .pc-actions{margin-top:15px}',
       '@media(max-width:720px){.tmw-pcard{grid-template-columns:1fr}.tmw-pcard .pc-media{min-height:240px}.tmw-pcard .pc-media::after{background:linear-gradient(180deg, transparent 55%, rgba(10,12,10,.5))}.tmw-pcard .pc-body{padding:24px 22px}.tmw-pcard .pm-intel-similars{grid-template-columns:1fr}}'
     ].join('');
     var st = document.createElement('style'); st.id = 'tmw-pcard-styles'; st.textContent = css; document.head.appendChild(st);
