@@ -57,6 +57,17 @@ jobs:
           TMW_DATA_TOKEN: ${{ secrets.TMW_DATA_TOKEN }}
         run: python3 fetch_projects.py
 
+      # City -> state labels for the map's search autocomplete. INCREMENTAL: only
+      # geocodes cities NOT already in cityStateMap.json (a brand-new city = one
+      # Mapbox request), so a new project in a new city auto-adds in this same run.
+      # This replaces the old per-visitor reverse-geocoding (~450k req/mo = the
+      # whole Mapbox bill). Non-blocking — on failure the existing file ships.
+      - name: Refresh city -> state map (new cities only)
+        env:
+          MAPBOX_TOKEN: ${{ secrets.MAPBOX_TOKEN }}
+        run: python3 generate_city_states.py
+        continue-on-error: true
+
       # Step order matters here:
       #
       # 1. Pulse FIRST. generate_pulse.py refreshes articles.json (pulls
@@ -144,7 +155,7 @@ jobs:
           # in generate_pulse.py handles single-run renames, but only
           # if it can see the previous state, which means the snapshot
           # has to live in the repo.
-          git add projects/ architects/ developers/ journal/post/ journal/sitemap.xml journal/robots.txt sitemap.xml robots.txt pulse.json articles.json atlas.json intel.json projects-flat.json firms-flat.json .pulse-snapshot.json 2>/dev/null || true
+          git add projects/ architects/ developers/ journal/post/ journal/sitemap.xml journal/robots.txt sitemap.xml robots.txt pulse.json articles.json atlas.json intel.json projects-flat.json firms-flat.json cityStateMap.json .pulse-snapshot.json 2>/dev/null || true
           if git diff --staged --quiet; then
             echo "changed=false" >> $GITHUB_OUTPUT
             echo "No changes detected."
