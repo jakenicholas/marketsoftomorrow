@@ -169,7 +169,17 @@
     var firms = [];
     if (rec.Developer) firms.push('Developed by <b>' + esc(rec.Developer) + '</b>');
     if (rec.Architect) firms.push('Architecture by <b>' + esc(rec.Architect) + '</b>');
-    var deliv = (entry && entry.delivery_date && entry.delivery_date.slice(0, 4)) || yearOf(rec.DeliveryDate);
+    // Start / delivery line. When a date is a TMW estimate (speculative) rather
+    // than developer-confirmed, label it "Estimated to start/deliver" so readers
+    // know it's our projection, not an announced date.
+    var startY = yearOf(rec.StartDate);
+    var delivY = (entry && entry.delivery_date && entry.delivery_date.slice(0, 4)) || yearOf(rec.DeliveryDate);
+    var startSpec = String(rec.StartSpeculative) === '1' || !!(entry && entry.start_speculative);
+    var delivSpec = String(rec.DeliverySpeculative) === '1' || !!(entry && entry.delivery_speculative);
+    var dParts = [];
+    if (startY) dParts.push(ph >= 1 ? ('Started ' + startY) : (startSpec ? ('Estimated to start ' + startY) : ('Starts ' + startY)));
+    if (delivY) dParts.push(delivSpec ? ('Estimated to deliver ' + delivY) : ('Est. delivery ' + delivY));
+    var delivLine = dParts.join(' · ');
     var subline = [esc(rec.City)]; var t = firstType(rec); if (t) subline.push(esc(t));
 
     return '' +
@@ -187,7 +197,7 @@
         '<div class="pc-status-top"><span class="pc-phase">' + esc(rec.Delivery || PHASES[ph]) + '</span>' + (pct != null ? '<span class="pc-pct">' + pct + '%</span>' : '') + '</div>' +
         '<div class="pc-track">' + segs + '</div>' +
         '<div class="pc-phases">' + phaseLabels + '</div>' +
-        (deliv ? '<div class="pc-delivery">' + (yearOf(rec.StartDate) ? 'Started ' + yearOf(rec.StartDate) + ' · ' : '') + 'Est. delivery ' + deliv + '</div>' : '') +
+        (delivLine ? '<div class="pc-delivery">' + delivLine + '</div>' : '') +
       '</div>' +
       (stats.length ? '<div class="pc-stats">' + stats.join('') + '</div>' : '') +
       (firms.length ? '<div class="pc-firms">' + firms.join(' · ') + '</div>' : '') +
@@ -230,6 +240,9 @@
       '.tmw-pcard .pc-name{font-family:"Fraunces",Georgia,serif; font-weight:600; font-size:clamp(28px,3.4vw,46px); line-height:1; letter-spacing:-.02em; color:#fff; margin:0}',
       '.tmw-pcard .pc-loc{font-family:"JetBrains Mono",monospace; font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--mute2); margin-top:13px}',
       '.tmw-pcard .pc-desc{font-size:14.5px; line-height:1.6; color:var(--mute2); font-weight:300; margin:16px 0 0; max-width:48ch}',
+      // The article CSS drop-caps the first <p>; .pc-desc is a first-of-type <p>
+      // inside .pc-body, so it inherits the giant first letter. Reset it.
+      '.tmw-pcard .pc-desc::first-letter{font-size:inherit !important; float:none !important; font-family:inherit !important; font-weight:inherit !important; padding:0 !important; line-height:inherit !important; color:inherit !important}',
       '.tmw-pcard .pc-status{margin-top:22px}',
       '.tmw-pcard .pc-status-top{display:flex; align-items:center; justify-content:space-between; margin-bottom:9px}',
       '.tmw-pcard .pc-phase{font-family:"JetBrains Mono",monospace; font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; font-weight:700; color:var(--or)}',
