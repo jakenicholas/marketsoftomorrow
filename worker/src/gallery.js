@@ -388,6 +388,7 @@ ${FONTS}
 .gtab:hover{color:var(--cream)}
 .gtab.on{color:#fff;border-color:#fff}
 .masonry.tabpane{padding-top:18px}
+.masonry[hidden]{display:none}  /* author rule must beat .masonry{display:grid} for the hidden pane */
 /* lightbox */
 .lb{position:fixed;inset:0;z-index:100;background:rgba(5,6,5,.96);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center}
 .lb.open{display:flex}
