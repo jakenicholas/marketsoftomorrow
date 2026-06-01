@@ -175,6 +175,9 @@
   if (!document.getElementById('tmw-auth-styles')) {
     var css = [
       '.tmw-auth{position:relative;display:inline-flex;align-items:center;flex:0 0 auto;font-family:"Inter",-apple-system,BlinkMacSystemFont,sans-serif}',
+      '.tmw-auth .tmw-auth-ig{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;margin-right:8px;color:rgba(255,255,255,0.72);text-decoration:none;transition:color .15s}',
+      '.tmw-auth .tmw-auth-ig svg{width:18px;height:18px}',
+      '.tmw-auth .tmw-auth-ig:hover{color:#fff}',
       '.tmw-auth .v2-profile-btn{width:30px;height:30px;border-radius:50%;background:transparent;border:none;position:relative;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;color:#fff;padding:0;transition:width .15s,border-radius .15s,background .15s,padding .15s}',
       '.tmw-auth .v2-profile-btn svg.profile-icon{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}',
       '.tmw-auth .v2-profile-btn .v2-premium-star{position:absolute;bottom:-3px;right:-3px;width:14px;height:14px;background:#FFD300;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid rgba(15,15,15,0.85)}',
@@ -213,8 +216,11 @@
   var PROFILE_ICON = '<svg class="profile-icon" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-7 8-7s8 3 8 7"/></svg>';
   var STAR_ICON = '<svg viewBox="0 0 24 24"><path d="M12 2l3 6.3 6.9 1-5 4.9 1.2 7L12 17.8 5.9 21.2l1.2-7-5-4.9L9 8.3z"/></svg>';
 
+  var IG_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4.5"/><circle cx="17.5" cy="6.5" r="1.2" fill="currentColor" stroke="none"/></svg>';
+
   function buildUI(host) {
     host.innerHTML =
+      '<a class="tmw-auth-ig" href="https://www.instagram.com/floridaoftomorrow" target="_blank" rel="noopener" aria-label="Instagram">' + IG_ICON + '</a>' +
       '<button class="v2-profile-btn" type="button" aria-label="Join">' +
         '<span class="v2-login-text">Join</span>' + PROFILE_ICON +
         '<span class="v2-premium-star">' + STAR_ICON + '</span>' +
@@ -233,12 +239,32 @@
 
     function ms() { return window.$memberstackDom; }
 
+    // Repaint the button from the current auth state.
+    function applyState(member) {
+      var signedIn = !!member;
+      btn.classList.toggle('signed-in', signedIn);
+      btn.classList.toggle('is-pro', signedIn && isPaid(member));
+      btn.setAttribute('aria-label', signedIn ? 'Profile menu' : 'Join');
+      if (!signedIn) menu.classList.remove('open');
+    }
+    // Re-fetch the member and repaint (after login / plan change).
+    function refresh() {
+      try { var m = ms(); if (m) m.getCurrentMember().then(function (r) { applyState(r && r.data); }); } catch (_) {}
+    }
+
     // Signed out → open the Memberstack modal (Join = signup, with a "log in"
-    // link inside). Signed in → toggle the dropdown.
+    // link inside). openModal() resolves on success but does NOT close itself,
+    // so we hideModal() + repaint once it resolves. Signed in → toggle menu.
     btn.addEventListener('click', function (e) {
       e.stopPropagation();
       if (btn.classList.contains('signed-in')) { menu.classList.toggle('open'); return; }
-      try { var m = ms(); if (m) m.openModal('SIGNUP'); } catch (_) {}
+      try {
+        var m = ms();
+        if (m) m.openModal('SIGNUP').then(function () {
+          try { m.hideModal(); } catch (_) {}
+          refresh();
+        }).catch(function () { try { m.hideModal(); } catch (_) {} });
+      } catch (_) {}
     });
     goPro.addEventListener('click', function (e) {
       e.stopPropagation(); e.preventDefault();
@@ -246,7 +272,10 @@
     });
     host.querySelector('[data-act="account"]').addEventListener('click', function (e) {
       e.stopPropagation(); menu.classList.remove('open');
-      try { var m = ms(); if (m) m.openModal('PROFILE'); } catch (_) {}
+      try {
+        var m = ms();
+        if (m) m.openModal('PROFILE').then(function () { try { m.hideModal(); } catch (_) {} refresh(); }).catch(function () {});
+      } catch (_) {}
     });
     host.querySelector('[data-act="map"]').addEventListener('click', function () { menu.classList.remove('open'); });
     host.querySelector('[data-act="signout"]').addEventListener('click', function (e) {
@@ -258,15 +287,7 @@
       location.reload();
     });
 
-    return { btn: btn, menu: menu };
-  }
-
-  function sync(refs, member) {
-    var signedIn = !!member;
-    refs.btn.classList.toggle('signed-in', signedIn);
-    refs.btn.classList.toggle('is-pro', signedIn && isPaid(member));
-    refs.btn.setAttribute('aria-label', signedIn ? 'Profile menu' : 'Join');
-    if (!signedIn) refs.menu.classList.remove('open');
+    return { apply: applyState, refresh: refresh };
   }
 
   // Close the menu on any outside click.
@@ -278,12 +299,14 @@
   });
 
   // ── 5) Mount ────────────────────────────────────────────────────────────
-  // An explicit [data-tmw-auth] slot, else right after the Instagram link /
-  // "Open Map" CTA in the header.
+  // An explicit [data-tmw-auth] slot, else right after the header's "Open Map"
+  // / CTA button. We deliberately anchor to the HEADER CTA only — never a
+  // page-wide `a[href*="instagram.com"]`, which would match Instagram links
+  // inside article bodies and mount the avatar in the wrong place.
   function findMount() {
-    var m = document.querySelector('[data-tmw-auth]'); if (m) return m;
-    var anchor = document.querySelector('header a[href*="instagram.com"], .tmw-chrome-head a[href*="instagram.com"], a[href*="instagram.com"]')
-      || document.getElementById('nav-map-cta') || document.querySelector('.nav-cta');
+    var existing = document.querySelector('[data-tmw-auth]'); if (existing) return existing;
+    var anchor = document.getElementById('nav-map-cta')
+      || document.querySelector('.tmw-chrome-head .nav-cta, nav.main .nav-cta, header .nav-cta, .nav-cta');
     if (!anchor || !anchor.parentNode) return null;
     var host = document.createElement('div'); host.className = 'tmw-auth'; host.setAttribute('data-tmw-auth', '');
     anchor.parentNode.insertBefore(host, anchor.nextSibling);
@@ -303,11 +326,11 @@
       var refs = buildUI(host);        // render immediately in signed-out state
       whenMs(function () {
         var ms = window.$memberstackDom;
-        ms.getCurrentMember().then(function (r) { sync(refs, r && r.data); }).catch(function () { sync(refs, null); });
+        ms.getCurrentMember().then(function (r) { refs.apply(r && r.data); }).catch(function () { refs.apply(null); });
         if (typeof ms.onAuthChange === 'function') {
           ms.onAuthChange(function () {
             setTimeout(function () {
-              try { ms.getCurrentMember().then(function (r) { sync(refs, r && r.data); }); } catch (e) {}
+              try { ms.getCurrentMember().then(function (r) { refs.apply(r && r.data); }); } catch (e) {}
             }, 0);
           });
         }
