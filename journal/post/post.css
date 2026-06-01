@@ -153,6 +153,10 @@ nav.main .wrap{display:flex; align-items:center; justify-content:space-between; 
 .article-body-content figcaption:empty{display:none}
 .article-body-content img{max-width:100%; height:auto; border-radius:12px; background:var(--panel-2)}
 .article-body-content iframe{max-width:100%; aspect-ratio:16/9; height:auto; border-radius:12px; border:0; background:#000}
+/* YouTube embeds carry a fixed width attr — force them full-width like images. */
+.article-body-content div[data-youtube-video]{width:100%; margin:2em 0}
+.article-body-content div[data-youtube-video] iframe,
+.article-body-content iframe[src*="youtube"]{width:100%; aspect-ratio:16/9; height:auto}
 /* Map of Tomorrow embed — fixed tall height so every article's map is identical,
    regardless of the height="" the embed snippet was pasted with. Targets the
    .tmw-map-embed class baked into the article body, so all current AND future
