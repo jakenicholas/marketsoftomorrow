@@ -299,14 +299,29 @@ ${ogImg ? `<meta property="og:image" content="https://gallery.oftmw.com/thumb/${
 <meta property="og:title" content="${esc(g.title)} — Markets of Tomorrow">
 ${FONTS}
 <style>${BASE_CSS}
-.ghead{padding:140px 0 30px}
+/* hero cover banner — the first image with a title + button overlay */
+.hero{position:relative;min-height:88vh;display:flex;align-items:center;justify-content:center;text-align:center;overflow:hidden}
+.hero-bg{position:absolute;inset:0;z-index:0;background:linear-gradient(135deg,var(--panel),var(--panel2))}
+.hero-bg img{width:100%;height:100%;object-fit:cover;object-position:center}
+.hero-bg::after{content:"";position:absolute;inset:0;background:radial-gradient(120% 95% at 50% 34%,rgba(7,8,7,.26),rgba(7,8,7,.55) 82%),linear-gradient(180deg,rgba(7,8,7,.5),transparent 26%,transparent 52%,var(--ink))}
+.hero-inner{position:relative;z-index:2;max-width:1000px;padding:90px 28px 0}
+.hero-eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold-soft);text-shadow:0 0 18px rgba(230,197,116,.4);margin-bottom:20px}
+.hero h1{font-family:var(--serif);font-weight:600;font-size:clamp(46px,8vw,104px);letter-spacing:-.02em;line-height:1.0;color:#fff;text-shadow:0 4px 60px rgba(0,0,0,.5)}
+.hero-sub{font-family:var(--serif);font-weight:300;font-style:italic;font-size:clamp(17px,2.2vw,26px);color:var(--cream);margin-top:20px;text-wrap:balance;text-shadow:0 2px 20px rgba(0,0,0,.5)}
+.hero-btn{margin-top:36px;font-family:var(--mono);font-size:12px;letter-spacing:.16em;text-transform:uppercase;font-weight:700;padding:14px 30px;border-radius:999px;border:1px solid rgba(255,255,255,.55);background:rgba(255,255,255,.08);color:#fff;text-decoration:none;cursor:pointer;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);display:inline-flex;align-items:center;gap:9px;transition:all .2s}
+.hero-btn:hover{background:rgba(255,255,255,.18);border-color:#fff;transform:translateY(-1px)}
+.hero-scroll{position:absolute;left:50%;bottom:26px;transform:translateX(-50%);z-index:2;color:rgba(255,255,255,.7);animation:herobob 2.2s ease-in-out infinite}
+.hero-scroll svg{width:26px;height:26px}
+@keyframes herobob{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(7px)}}
+@media(prefers-reduced-motion:reduce){.hero-scroll{animation:none}}
+/* sub-bar above the grid: back + meta on the left, Download-all on the right */
+#photos{scroll-margin-top:70px}
+.gsub{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;padding:34px 0 0}
+.gsub-left{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
 .back{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--mute2);text-decoration:none}
 .back:hover{color:var(--cream)}
-.ghead h1{font-size:clamp(36px,5.5vw,68px);font-weight:900;letter-spacing:-.03em;color:#fff;margin:18px 0 0}
-.ghead .sub{font-family:var(--serif);font-weight:300;font-style:italic;font-size:clamp(16px,2vw,22px);color:var(--cream);margin-top:16px;max-width:54ch}
-.ghead .gmeta{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);margin-top:18px;display:flex;gap:18px;flex-wrap:wrap;align-items:center}
-.ghead .gmeta .dot{opacity:.4}
-.gactions{display:flex;gap:12px;margin-top:26px;flex-wrap:wrap}
+.gmeta{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+.gmeta .dot{opacity:.4}
 .btn{font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;padding:11px 18px;border-radius:999px;border:1px solid var(--hair2);background:rgba(255,255,255,.04);color:var(--cream);cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:8px;transition:background .2s,transform .2s,border-color .2s}
 .btn:hover{background:rgba(255,255,255,.08);transform:translateY(-1px)}
 .btn.primary{background:var(--green);color:var(--ink);border-color:var(--green)}
@@ -358,23 +373,30 @@ ${FONTS}
 .ghead-top{display:flex;justify-content:space-between;align-items:flex-start;gap:24px;flex-wrap:wrap}
 .ghead-info{flex:1;min-width:0}
 /* plain Download-all — white text + icon, no bg, no border */
-.dl-all{flex:0 0 auto;background:none;border:0;color:#fff;font-family:var(--mono);font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:8px;padding:6px 2px;margin-top:8px;transition:opacity .2s}
+.dl-all{flex:0 0 auto;background:none;border:0;color:#fff;font-family:var(--mono);font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:8px;padding:6px 2px;transition:opacity .2s}
 .dl-all:hover{opacity:.65}
 .dl-all svg{width:15px;height:15px}
 .lb-dl svg{width:18px;height:18px}
 </style></head><body>
 ${navHTML(base)}
-<header class="ghead"><div class="gwrap">
-  <a class="back" href="${base}/">&larr;&nbsp;All galleries</a>
-  <div class="ghead-top">
-    <div class="ghead-info">
-      <h1>${esc(g.title)}</h1>
-      ${g.subtitle ? `<div class="sub">${esc(g.subtitle)}</div>` : ''}
-      <div class="gmeta">
-        ${meta ? `<span>${meta}</span><span class="dot">&bull;</span>` : ''}
+<header class="hero">
+  <div class="hero-bg">${ogImg ? `<img loading="eager" src="${base}/thumb/${keyToPath(ogImg)}?w=2000" alt="${esc(g.title)}">` : ''}</div>
+  <div class="hero-inner">
+    ${meta ? `<div class="hero-eyebrow">${meta}</div>` : ''}
+    <h1>${esc(g.title)}</h1>
+    ${g.subtitle ? `<div class="hero-sub">${esc(g.subtitle)}</div>` : ''}
+    ${images.length ? `<a class="hero-btn" href="#photos">View gallery <svg viewBox="0 0 16 16" fill="none" style="width:14px;height:14px"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a>` : ''}
+  </div>
+  ${images.length ? `<a class="hero-scroll" href="#photos" aria-label="View gallery"><svg viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a>` : ''}
+</header>
+<div class="gwrap" id="photos">
+  <div class="gsub">
+    <div class="gsub-left">
+      <a class="back" href="${base}/">&larr;&nbsp;All galleries</a>
+      <span class="gmeta">
         <span>${images.length} photo${images.length === 1 ? '' : 's'}</span>
         ${pinRequired ? `<span class="dot">&bull;</span><span style="display:inline-flex;align-items:center;gap:6px">${LOCK_SVG} PIN to download</span>` : ''}
-      </div>
+      </span>
     </div>
     ${images.length && downloadEnabled ? `<button class="dl-all" id="dlAll">${DL_ICON}Download all</button>` : ''}
   </div>
@@ -382,10 +404,8 @@ ${navHTML(base)}
     <div class="lt">Found a frame you love? <b>License it</b> for your website, campaign, or full buyout.</div>
     <a class="btn gold" href="https://www.oftmw.com/media/licensing/#cta">See licensing &amp; rights</a>
   </div>
-</div></header>
-<main class="gwrap">
   ${images.length ? `<div class="masonry" id="grid">${tiles}</div>` : `<div class="empty2">No photos in this gallery yet.</div>`}
-</main>
+</div>
 ${footerHTML()}
 
 <div class="lb" id="lb">
