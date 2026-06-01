@@ -3,7 +3,7 @@
 Regenerate the static client files from the studio's Clients list (D1).
 
 The live surfaces (the universal partners "good company" wall via
-journal/_shared/partners.js, and the media kit grid at map.oftmw.com/media) read
+journal/_shared/partners.js, and the media kit grid at oftmw.com/media) read
 the studio list straight from the worker (/list/clients) so studio edits show
 up instantly. This script just refreshes the *static* copies that serve as the
 no-JS / offline fallback and keep the data in git:

@@ -25,7 +25,7 @@
   const PARTNERS_URL = rel('../partners.json');
   const CLIENTS_URL  = rel('../clients.json');
   const WORKER = 'https://tmw.jake-ab7.workers.dev';
-  const MEDIA_URL = 'https://map.oftmw.com/media';
+  const MEDIA_URL = '/media';
   const CLIENT_PREVIEW = 36;   // logos rendered in the collapsed wall
 
   if (!document.getElementById('tmw-partners-styles')) {

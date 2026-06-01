@@ -84,8 +84,8 @@
         '<li><a href="/golf/">Golf</a></li><li><a href="/restaurants/">Restaurants</a></li>' +
         '<li><a href="/hotels/">Hotels</a></li></ul></div>' +
       '<div><h4>Company</h4><ul>' +
-        '<li><a href="https://map.oftmw.com">Map of Tomorrow</a></li><li><a href="https://map.oftmw.com/media/">About Us</a></li>' +
-        '<li><a href="https://map.oftmw.com/media/">Advertise</a></li><li><a href="mailto:hello@oftmw.com">Contact</a></li></ul></div>' +
+        '<li><a href="https://map.oftmw.com">Map of Tomorrow</a></li><li><a href="/media/">About Us</a></li>' +
+        '<li><a href="/media/">Advertise</a></li><li><a href="mailto:hello@oftmw.com">Contact</a></li></ul></div>' +
     '</div><div class="ft-bot"><div>&copy; <span id="tmw-yr"></span> Markets of Tomorrow</div>' +
       '<div>The Future is Here</div></div></div></footer>';
 

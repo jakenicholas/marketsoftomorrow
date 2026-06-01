@@ -1322,7 +1322,7 @@ body::after {
         <div class="stat accent">
           <div class="stat-label">Page Views · 7d</div>
           <div class="stat-value accent" id="mediaViews7d">—</div>
-          <div class="stat-meta" id="mediaViews7dSub">map.oftmw.com/media</div>
+          <div class="stat-meta" id="mediaViews7dSub">oftmw.com/media</div>
         </div>
         <div class="stat">
           <div class="stat-label">Page Views · 28d</div>
@@ -1442,6 +1442,10 @@ body::after {
 const WORKER_URL = 'https://tmw.jake-ab7.workers.dev';
 const PROPERTY_ID = '467692471';
 const HOSTNAME = 'map.oftmw.com';
+// The media kit page now lives on the journal site (oftmw.com / www.oftmw.com),
+// not map.oftmw.com. The Media tab filters on these hosts; the Map tab stays
+// scoped to HOSTNAME above.
+const MEDIA_HOSTNAMES = ['oftmw.com', 'www.oftmw.com'];
 
 /* ──────────────────────────────────────────────────────────────────────
    Admin auth
@@ -1560,6 +1564,10 @@ async function gaFetch(endpoint, body) {
 function hostnameFilter() {
   return { filter: { fieldName: 'hostName', stringFilter: { matchType: 'EXACT', value: HOSTNAME } } };
 }
+// Media kit lives on the journal host(s), so it gets its own hostname filter.
+function mediaHostnameFilter() {
+  return { filter: { fieldName: 'hostName', inListFilter: { values: MEDIA_HOSTNAMES } } };
+}
 
 // Map-tab GA4 filter: same hostname, but EXCLUDE pagePath starting with
 // /media/ so media-page traffic doesn't bleed into the map dashboard.
@@ -1567,17 +1575,17 @@ function mapFilter() {
   return {
     andGroup: { expressions: [
       hostnameFilter(),
-      { notExpression: { filter: { fieldName: 'pagePath', stringFilter: { matchType: 'BEGINS_WITH', value: 'https://map.oftmw.com/media' } } } },
+      { notExpression: { filter: { fieldName: 'pagePath', stringFilter: { matchType: 'BEGINS_WITH', value: '/media' } } } },
     ]}
   };
 }
 
-// Media-tab GA4 filter: same hostname AND pagePath starting with /media/.
+// Media-tab GA4 filter: journal host(s) AND pagePath starting with /media/.
 function mediaFilter() {
   return {
     andGroup: { expressions: [
-      hostnameFilter(),
-      { filter: { fieldName: 'pagePath', stringFilter: { matchType: 'BEGINS_WITH', value: 'https://map.oftmw.com/media' } } },
+      mediaHostnameFilter(),
+      { filter: { fieldName: 'pagePath', stringFilter: { matchType: 'BEGINS_WITH', value: '/media' } } },
     ]}
   };
 }
@@ -2075,7 +2083,7 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeOverl
 
 /* ──────────────────────────────────────────────────────────────────────
    Media Kit tab — GA4-only (the media page is anonymous; no D1 events)
-   All filters scope to map.oftmw.com + pagePath BEGINS_WITH /media.
+   All filters scope to the journal host(s) + pagePath BEGINS_WITH /media.
    ─────────────────────────────────────────────────────────────────── */
 async function loadMediaTab() {
   await Promise.allSettled([
