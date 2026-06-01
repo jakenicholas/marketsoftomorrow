@@ -50,7 +50,7 @@
     tg.innerHTML =
       '<button class="iv-btn on" data-v="card" title="Card view" aria-label="Card view">' + IMG + '</button>' +
       '<button class="iv-btn" data-v="text" title="List view" aria-label="List view"><span class="iv-t">T</span></button>';
-    actions.insertBefore(tg, actions.firstChild);
+    actions.appendChild(tg);   // gold toggle on the right (after the sort dropdown)
 
     var sheet = document.createElement('div');
     sheet.id = 'iconicSheet'; sheet.className = 'iv-sheet'; sheet.hidden = true;
