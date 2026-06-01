@@ -1089,7 +1089,7 @@ footer .ft-logo .tmw-wordmark{width:118px}
     try{
       var r=await fetch(ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email,name:'',markets:MARKETS})});
       var d=await r.json().catch(function(){return{};});
-      if(d&&d.success){ f.innerHTML='<div style="font-family:var(--mono);font-size:13px;letter-spacing:.06em;color:var(--green);padding:14px 4px">✓ You\'ve subscribed! Welcome to The Weekly.</div>'; }
+      if(d&&d.success){ try{ if(window.gtag) window.gtag('event','subscribe_home'); }catch(_){} f.innerHTML='<div style="font-family:var(--mono);font-size:13px;letter-spacing:.06em;color:var(--green);padding:14px 4px">✓ You\'ve subscribed! Welcome to The Weekly.</div>'; }
       else { btn.disabled=false; btn.textContent=orig; input.focus(); }
     }catch(err){ btn.disabled=false; btn.textContent=orig; }
   });

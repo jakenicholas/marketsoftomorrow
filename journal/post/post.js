@@ -696,6 +696,7 @@ function escapeAttr(s) { return escapeHtml(s); }
         var r = await fetch(SUB_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: email, name: name, markets: MARKETS }) });
         var d = await r.json().catch(function () { return {}; });
         if (d && d.success) {
+          try { if (window.gtag) window.gtag('event', 'subscribe_article'); } catch (_) {}
           form.style.display = 'none';
           msg.textContent = "✓ You've subscribed! Welcome to The Weekly.";
           mark('subscribed');

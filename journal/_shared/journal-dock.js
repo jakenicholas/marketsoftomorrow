@@ -28,6 +28,50 @@
     window.gtag('config', 'G-6NPTWCVFCG');
   })();
 
+  // ── Journal click tracking → GA4 ──────────────────────────────────────
+  //    Fires distinct `jrn_*` events so the studio's Journal analytics tab can
+  //    group them into "Click Categories" (it splits on the first segment after
+  //    `jrn_`, mirroring how the media kit groups `media_*`). Distinct event
+  //    NAMES are used (not event params) so they're queryable in the GA4 Data
+  //    API without registering custom dimensions. Subscribe events are fired by
+  //    the forms themselves on success; everything else is delegated here.
+  var INTERNAL_HOSTS = { 'www.oftmw.com': 1, 'oftmw.com': 1, 'map.oftmw.com': 1, 'localhost': 1, '127.0.0.1': 1 };
+  function tmwTrack(name, params) {
+    try { if (window.gtag) window.gtag('event', name, params || {}); } catch (e) {}
+  }
+  window.tmwTrack = tmwTrack;
+  document.addEventListener('click', function (e) {
+    var t = e.target;
+    if (!t || !t.closest) return;
+    var a = t.closest('a[href], button');
+    if (!a) return;
+
+    // Share buttons (article byline) — match by class/ancestor, may be buttons.
+    if (a.classList.contains('share-ico') || a.closest('.share') || a.closest('[data-share]')) {
+      var net = a.getAttribute('data-share') || a.getAttribute('aria-label') || a.getAttribute('title') || '';
+      return tmwTrack('jrn_share', { network: net.toLowerCase().slice(0, 24) });
+    }
+    // Partner cards (universal partners section).
+    var pcard = a.closest('.tmw-partner-card');
+    if (pcard) return tmwTrack('jrn_partner', { partner: (pcard.getAttribute('data-partner-id') || '').slice(0, 40) });
+    // Dock map button.
+    if (a.closest('.tmw-dock') && /map\.oftmw\.com/.test(a.getAttribute('href') || '')) return tmwTrack('jrn_map');
+
+    if (a.tagName !== 'A') return;
+    var href = a.getAttribute('href') || '';
+    if (!href || href.charAt(0) === '#' || /^(mailto:|tel:|javascript:)/i.test(href)) return;
+
+    var host = '', path = '';
+    try { var u = new URL(a.href, location.href); host = u.hostname; path = u.pathname; } catch (e) { return; }
+
+    // Opening an article.
+    if (/\/post\//.test(path)) return tmwTrack('jrn_post_open');
+    // Map / media kit referrals.
+    if (host === 'map.oftmw.com') return tmwTrack(/\/media/.test(path) ? 'jrn_mediakit' : 'jrn_map');
+    // Outbound (anything off the journal's own hosts).
+    if (host && !INTERNAL_HOSTS[host]) return tmwTrack('jrn_outbound', { domain: host.replace(/^www\./, '').slice(0, 40) });
+  }, true);
+
   // ── Destinations (single source of truth; update when domain moves) ──
   var MAP_URL     = 'https://map.oftmw.com';
   var HOME_URL    = 'https://www.oftmw.com';
