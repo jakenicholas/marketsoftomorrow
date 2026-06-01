@@ -174,10 +174,13 @@
   // (b) Profile button + menu — verbatim from the map, re-scoped under .tmw-auth.
   if (!document.getElementById('tmw-auth-styles')) {
     var css = [
-      '.tmw-auth{position:relative;display:inline-flex;align-items:center;flex:0 0 auto;font-family:"Inter",-apple-system,BlinkMacSystemFont,sans-serif}',
-      '.tmw-auth .tmw-auth-ig{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;margin-right:8px;color:rgba(255,255,255,0.72);text-decoration:none;transition:color .15s}',
-      '.tmw-auth .tmw-auth-ig svg{width:18px;height:18px}',
+      '.tmw-auth{position:relative;display:inline-flex;align-items:center;gap:6px;flex:0 0 auto;font-family:"Inter",-apple-system,BlinkMacSystemFont,sans-serif}',
+      // IG icon — either the dock\'s .tmw-ig (moved in) or our own fallback — sized to sit level with the avatar.
+      '.tmw-auth .tmw-auth-ig{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;color:rgba(255,255,255,0.72);text-decoration:none;transition:color .15s}',
+      '.tmw-auth .tmw-auth-ig svg{width:20px;height:20px}',
       '.tmw-auth .tmw-auth-ig:hover{color:#fff}',
+      '.tmw-auth .nav-cta.tmw-ig{width:32px;min-width:32px;height:32px;margin:0}',
+      '.tmw-auth .nav-cta.tmw-ig svg{width:20px;height:20px}',
       '.tmw-auth .v2-profile-btn{width:30px;height:30px;border-radius:50%;background:transparent;border:none;position:relative;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;color:#fff;padding:0;transition:width .15s,border-radius .15s,background .15s,padding .15s}',
       '.tmw-auth .v2-profile-btn svg.profile-icon{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}',
       '.tmw-auth .v2-profile-btn .v2-premium-star{position:absolute;bottom:-3px;right:-3px;width:14px;height:14px;background:#FFD300;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid rgba(15,15,15,0.85)}',
@@ -189,7 +192,7 @@
       '.tmw-auth .v2-profile-btn:not(.signed-in) .v2-premium-star{display:none!important}',
       '.tmw-auth .v2-profile-btn.signed-in .v2-login-text{display:none}',
       '.tmw-auth .v2-profile-btn:not(.is-pro) .v2-premium-star{display:none!important}',
-      '.tmw-auth .v2-go-pro-badge{display:none;align-items:center;height:26px;padding:0 10px;margin-left:6px;background:#FFD300;color:#0a0a0a;border:none;border-radius:999px;font-family:inherit;font-size:10.5px;font-weight:800;letter-spacing:.06em;cursor:pointer;flex-shrink:0;transition:filter .15s,box-shadow .15s;box-shadow:0 0 0 1px rgba(255,211,0,0.4) inset,0 0 10px rgba(255,211,0,0.3)}',
+      '.tmw-auth .v2-go-pro-badge{display:none;align-items:center;height:26px;padding:0 10px;margin-left:0;background:#FFD300;color:#0a0a0a;border:none;border-radius:999px;font-family:inherit;font-size:10.5px;font-weight:800;letter-spacing:.06em;cursor:pointer;flex-shrink:0;transition:filter .15s,box-shadow .15s;box-shadow:0 0 0 1px rgba(255,211,0,0.4) inset,0 0 10px rgba(255,211,0,0.3)}',
       '.tmw-auth .v2-go-pro-badge:hover{filter:brightness(1.08);box-shadow:0 0 0 1px rgba(255,211,0,0.6) inset,0 0 14px rgba(255,211,0,0.4)}',
       '.tmw-auth:has(.v2-profile-btn.signed-in:not(.is-pro)) .v2-go-pro-badge{display:inline-flex}',
       '.tmw-auth .v2-profile-menu{position:absolute;top:calc(100% + 8px);right:0;left:auto;min-width:220px;background:rgba(20,20,20,0.96);backdrop-filter:blur(28px) saturate(1.4);-webkit-backdrop-filter:blur(28px) saturate(1.4);border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:6px;box-shadow:0 16px 40px rgba(0,0,0,0.5);display:none;z-index:10000}',
@@ -218,9 +221,34 @@
 
   var IG_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4.5"/><circle cx="17.5" cy="6.5" r="1.2" fill="currentColor" stroke="none"/></svg>';
 
+  // The header's Instagram icon is owned by journal-dock.js (.nav-cta.tmw-ig).
+  // We REUSE it — moving it into this cluster so [IG][profile] reads as one
+  // tight unit on the right — and only mint our own as a fallback on pages
+  // without the dock (e.g. /media). attachIG waits briefly for the dock to run
+  // its swap before deciding, so the two never both render.
+  function attachIG(host) {
+    if (host.querySelector('.tmw-ig, .tmw-auth-ig')) return;     // already have one
+    var ig = document.querySelector('.tmw-ig');
+    if (ig) { host.insertBefore(ig, host.firstChild); return; }  // reuse the dock's
+    var tries = 0;
+    var t = setInterval(function () {
+      if (host.querySelector('.tmw-ig, .tmw-auth-ig')) { clearInterval(t); return; }
+      var el = document.querySelector('.tmw-ig');
+      if (el) { clearInterval(t); host.insertBefore(el, host.firstChild); return; }
+      if (++tries > 30) {                                        // ~3s, no dock here → mint our own
+        clearInterval(t);
+        var a = document.createElement('a');
+        a.className = 'tmw-auth-ig';
+        a.href = 'https://www.instagram.com/floridaoftomorrow';
+        a.target = '_blank'; a.rel = 'noopener'; a.setAttribute('aria-label', 'Instagram');
+        a.innerHTML = IG_ICON;
+        host.insertBefore(a, host.firstChild);
+      }
+    }, 100);
+  }
+
   function buildUI(host) {
     host.innerHTML =
-      '<a class="tmw-auth-ig" href="https://www.instagram.com/floridaoftomorrow" target="_blank" rel="noopener" aria-label="Instagram">' + IG_ICON + '</a>' +
       '<button class="v2-profile-btn" type="button" aria-label="Join">' +
         '<span class="v2-login-text">Join</span>' + PROFILE_ICON +
         '<span class="v2-premium-star">' + STAR_ICON + '</span>' +
@@ -305,7 +333,10 @@
   // inside article bodies and mount the avatar in the wrong place.
   function findMount() {
     var existing = document.querySelector('[data-tmw-auth]'); if (existing) return existing;
-    var anchor = document.getElementById('nav-map-cta')
+    // Prefer the dock's Instagram button (.tmw-ig) so the cluster lands right
+    // where it is; else the header's Open Map / CTA button.
+    var anchor = document.querySelector('.tmw-ig')
+      || document.getElementById('nav-map-cta')
       || document.querySelector('.tmw-chrome-head .nav-cta, nav.main .nav-cta, header .nav-cta, .nav-cta');
     if (!anchor || !anchor.parentNode) return null;
     var host = document.createElement('div'); host.className = 'tmw-auth'; host.setAttribute('data-tmw-auth', '');
@@ -323,7 +354,10 @@
     (function place() {
       var host = findMount();
       if (!host) { if (++tries < 40) return setTimeout(place, 100); return; }
+      if (host.__tmwBuilt) return;     // already initialised (script can load twice)
+      host.__tmwBuilt = true;
       var refs = buildUI(host);        // render immediately in signed-out state
+      attachIG(host);                  // pull in the dock's IG icon (or mint a fallback)
       whenMs(function () {
         var ms = window.$memberstackDom;
         ms.getCurrentMember().then(function (r) { refs.apply(r && r.data); }).catch(function () { refs.apply(null); });

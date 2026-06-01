@@ -219,6 +219,16 @@
     'nav.main .nav-burger, .tmw-chrome-head .nav-burger{width:24px; gap:4px}',
     'nav.main .nav-burger span, .tmw-chrome-head .nav-burger span{width:18px}',
 
+    // ── Universal right-side cluster (Instagram + profile/Join). On mobile the
+    //    hamburger moves to the LEFT; the logo gets an auto right-margin so the
+    //    cluster is pinned to the RIGHT edge. Same in inline + chrome headers.
+    '@media(max-width:980px){'
+      + 'nav.main .wrap, .tmw-chrome-head nav.main .wrap{position:relative}'
+      + 'nav.main .nav-burger, .tmw-chrome-head .nav-burger{order:-2}'
+      + 'nav.main .tmw-logo-lockup, .tmw-chrome-head .tmw-logo-lockup{order:-1; margin-right:auto}'
+      + 'nav.main .tmw-auth, .tmw-chrome-head .tmw-auth{order:0}'
+    + '}',
+
     // ── Featured-hero vertical tabs — modernized, applied on every page.
     '.story-card .sc-tabs{padding:5px; gap:4px; background:rgba(9,11,9,.74); border:1px solid rgba(255,255,255,.12); box-shadow:0 22px 50px -18px rgba(0,0,0,.78), inset 0 1px 0 rgba(255,255,255,.06)}',
     '.story-card .sc-tab{padding:11px 22px; font-size:11.5px; letter-spacing:.16em; color:var(--mute-2); border-radius:999px; transition:background .2s, color .2s, box-shadow .2s, transform .15s}',
@@ -344,6 +354,20 @@
     wireBurgers();
     swapToInstagram();
     setupFmPanel();
+    loadAuth();
+  }
+
+  // Load the shared auth cluster (Instagram + profile/Join) on EVERY journal
+  // page, AFTER swapToInstagram() so journal-auth.js reuses the dock's .tmw-ig
+  // button instead of minting a second one. Guarded so pages that already embed
+  // the script (or have it injected by the chrome) don't double-load.
+  function loadAuth() {
+    if (document.querySelector('script[src*="journal-auth.js"], script[data-tmw-auth-loader]')) return;
+    var s = document.createElement('script');
+    s.src = '/_shared/journal-auth.js';
+    s.defer = true;
+    s.setAttribute('data-tmw-auth-loader', '');
+    document.head.appendChild(s);
   }
 
   // Stretch the desktop Focus Markets mega-panel to the full viewport width.
