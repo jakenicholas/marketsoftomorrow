@@ -47,7 +47,10 @@ def main():
         slug = it.get("slug")
         if not slug:
             continue
-        out.append(url_tag(f"{BASE}/post/{slug}/", iso(it.get("published_at")), "0.7", "monthly"))
+        # lastmod = last edit (updated_at) so edited posts get recrawled; fall
+        # back to first-publish if updated_at is somehow missing.
+        lastmod = iso(it.get("updated_at") or it.get("published_at"))
+        out.append(url_tag(f"{BASE}/post/{slug}/", lastmod, "0.7", "monthly"))
     out.append('</urlset>\n')
     with open(f"{OUT_DIR}/sitemap.xml", "w", encoding="utf-8") as f:
         f.write("\n".join(out))
