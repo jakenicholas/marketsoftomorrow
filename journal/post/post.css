@@ -146,7 +146,10 @@ nav.main .wrap{display:flex; align-items:center; justify-content:space-between; 
 .article-body-content{font-family:var(--sans); font-size:18px; line-height:1.75; color:var(--cream)}
 .article-body-content > * + *{margin-top:1.2em}
 .article-body-content p{font-size:18px; line-height:1.75; color:var(--cream); font-weight:300; max-width:64ch}
-.article-body-content p:first-of-type::first-letter{font-family:var(--serif); font-size:3.6em; font-weight:600; float:left; line-height:.92; padding-right:14px; padding-top:4px; color:var(--white)}
+/* Drop-cap ONLY the article's opening paragraph. The "> " (direct child) is
+   essential: without it, p:first-of-type also matches the first <p> inside every
+   <li> (TipTap wraps list items in <p>), giant-lettering every bullet point. */
+.article-body-content > p:first-of-type::first-letter{font-family:var(--serif); font-size:3.6em; font-weight:600; float:left; line-height:.92; padding-right:14px; padding-top:4px; color:var(--white)}
 .article-body-content a{color:var(--green); text-decoration:underline; text-decoration-color:rgba(31,223,103,.4); text-underline-offset:3px; transition:color .15s, text-decoration-color .15s}
 .article-body-content a:hover{color:var(--green-soft); text-decoration-color:var(--green-soft)}
 .article-body-content h1,
