@@ -3040,8 +3040,89 @@ const VIEW_BOT_RE  = /bot|crawl|spider|slurp|facebookexternalhit|bingpreview|pre
 
 async function ensurePostViewsTable(env) {
   await env.DB.prepare(
-    'CREATE TABLE IF NOT EXISTS post_views (slug TEXT PRIMARY KEY, views INTEGER NOT NULL DEFAULT 0, updated_at INTEGER)'
+    'CREATE TABLE IF NOT EXISTS post_views (slug TEXT PRIMARY KEY, views INTEGER NOT NULL DEFAULT 0, wix_views INTEGER NOT NULL DEFAULT 0, updated_at INTEGER)'
   ).run();
+  // Existing tables (pre wix_views) get the column added; ignore "already exists".
+  try { await env.DB.prepare('ALTER TABLE post_views ADD COLUMN wix_views INTEGER NOT NULL DEFAULT 0').run(); } catch (_) {}
+}
+
+// Tiny key/value store for run-once / last-run bookkeeping (Wix backfill clock).
+async function metaGet(env, key) {
+  try { const r = await env.DB.prepare('SELECT value FROM app_meta WHERE key = ?').bind(key).first(); return r ? r.value : null; }
+  catch (_) { return null; }
+}
+async function metaSet(env, key, value) {
+  try {
+    await env.DB.prepare('CREATE TABLE IF NOT EXISTS app_meta (key TEXT PRIMARY KEY, value TEXT)').run();
+    await env.DB.prepare('INSERT INTO app_meta (key, value) VALUES (?1, ?2) ON CONFLICT(key) DO UPDATE SET value = ?2').bind(key, String(value)).run();
+  } catch (_) {}
+}
+
+// Snapshot each post's historical Wix view count into post_views.wix_views.
+// The reported total per post is wix_views (frozen-ish baseline, refreshed
+// daily) + views (our live first-party counter). New posts that never lived on
+// Wix have wix_views = 0, so their total is purely our counter.
+async function backfillWixViews(env) {
+  if (!env.DB || !env.WIX_API_KEY || !env.WIX_SITE_ID) return { ok: false, reason: 'not configured' };
+  await ensurePostViewsTable(env);
+  const wixUrl = 'https://www.wixapis.com/blog/v3/posts/query';
+  const limit = 100;
+  let offset = 0, scanned = 0, withViews = 0, pages = 0;
+  while (pages < 60) {
+    const res = await fetch(wixUrl, {
+      method: 'POST',
+      headers: {
+        'Authorization': env.WIX_API_KEY, 'wix-site-id': env.WIX_SITE_ID, 'Content-Type': 'application/json',
+        ...(env.WIX_ACCOUNT_ID ? { 'wix-account-id': env.WIX_ACCOUNT_ID } : {}),
+      },
+      body: JSON.stringify({ query: { paging: { limit, offset }, sort: [{ fieldName: 'firstPublishedDate', order: 'DESC' }] }, fieldsets: ['URL', 'METRICS'] }),
+    });
+    if (!res.ok) break;
+    const data = await res.json();
+    const posts = data.posts || [];
+    if (!posts.length) break;
+    const now = Math.floor(Date.now() / 1000);
+    const stmts = [];
+    for (const wp of posts) {
+      const slug = (wp.slug || '').toLowerCase().trim();
+      const m = wp.metrics || {};
+      const v = parseInt((m.views != null ? m.views : (m.viewCount != null ? m.viewCount : 0)), 10) || 0;
+      scanned++;
+      if (!slug) continue;
+      if (v > 0) withViews++;
+      stmts.push(env.DB.prepare(
+        'INSERT INTO post_views (slug, views, wix_views, updated_at) VALUES (?1, 0, ?2, ?3) ' +
+        'ON CONFLICT(slug) DO UPDATE SET wix_views = ?2, updated_at = ?3'
+      ).bind(slug, v, now));
+    }
+    if (stmts.length) await env.DB.batch(stmts);
+    pages++;
+    offset += limit;
+    if (posts.length < limit) break;
+    const total = data.metaData && data.metaData.total;
+    if (typeof total === 'number' && offset >= total) break;
+  }
+  await metaSet(env, 'wix_views_last_backfill', Math.floor(Date.now() / 1000));
+  return { ok: true, scanned, withViews, pages };
+}
+
+// Cron-driven: claim the daily slot first (so a slow/failed run doesn't retry
+// every minute), then refresh the Wix baseline. Self-seeds within ~1 min of deploy.
+async function maybeBackfillWixViews(env) {
+  try {
+    const last = parseInt(await metaGet(env, 'wix_views_last_backfill') || '0', 10) || 0;
+    const now = Math.floor(Date.now() / 1000);
+    if (now - last < 86400) return;
+    await metaSet(env, 'wix_views_last_backfill', now);   // claim before running
+    await backfillWixViews(env);
+  } catch (_) {}
+}
+
+async function handleBackfillWixViews(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin);
+  if (denied) return denied;
+  const r = await backfillWixViews(env);
+  return json(r, {}, env, origin);
 }
 
 async function handlePostView(req, env, origin) {
@@ -3080,11 +3161,15 @@ async function handlePostViews(env, origin) {
   if (!env.DB) return json({ views: {} }, {}, env, origin);
   try {
     await ensurePostViewsTable(env);
-    const rows = await env.DB.prepare('SELECT slug, views FROM post_views').all();
-    const views = {};
-    for (const r of (rows.results || [])) views[r.slug] = r.views;
+    const rows = await env.DB.prepare('SELECT slug, views, wix_views FROM post_views').all();
+    const views = {}, breakdown = {};
+    for (const r of (rows.results || [])) {
+      const live = r.views || 0, wix = r.wix_views || 0;
+      views[r.slug] = live + wix;          // combined total (Wix baseline + our counter)
+      breakdown[r.slug] = { live, wix };
+    }
     return json(
-      { views, count: Object.keys(views).length },
+      { views, breakdown, count: Object.keys(views).length },
       { headers: { 'Cache-Control': 'public, max-age=15, s-maxage=30' } },
       env, origin,
     );
@@ -3143,6 +3228,9 @@ export default {
       }
       if (request.method === 'GET' && url.pathname === '/post-views') {
         return await handlePostViews(env, origin);
+      }
+      if (request.method === 'POST' && url.pathname === '/admin/backfill-wix-views') {
+        return await handleBackfillWixViews(request, env, origin);
       }
       if (request.method === 'GET' && url.pathname === '/people') {
         return await handlePeople(env, origin, url);
@@ -3273,5 +3361,6 @@ export default {
   // — fully resumable, self-pacing, and auto-pauses when everything is copied.
   async scheduled(event, env, ctx) {
     ctx.waitUntil(migrationTick(env));
+    ctx.waitUntil(maybeBackfillWixViews(env));   // refresh Wix view baseline ~daily
   },
 };
