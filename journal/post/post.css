@@ -181,7 +181,14 @@ nav.main .wrap{display:flex; align-items:center; justify-content:space-between; 
 .article-body-content strong{color:var(--white); font-weight:600}
 
 /* ---- Gallery slideshow (rendered from Wix GALLERY nodes) ---- */
-.tmw-gallery{position:relative; margin:1.2em 0 !important; aspect-ratio:16/10; overflow:hidden; border-radius:12px; background:#0a0a0a; padding:0}
+.tmw-gallery{position:relative; margin:2em 0 !important; aspect-ratio:16/10; overflow:hidden; border-radius:12px; background:#0a0a0a; padding:0}
+/* Grid/slideshow galleries are display:grid/flex, so their vertical margins do
+   NOT collapse with adjacent paragraph margins the way a <figure> does — that
+   double-counts and leaves an oversized gap. Zero the following element's
+   top-margin so a gallery's gap matches a single image's (the 2em above + 2em
+   below, never stacked with the next paragraph's margin). */
+.article-body-content > .tmw-gallery + *,
+.article-body-content > .tmw-gallery-grid + *{margin-top:0 !important}
 .tmw-gallery-track{display:flex; overflow-x:auto; scroll-snap-type:x mandatory; scrollbar-width:none; -ms-overflow-style:none; height:100%; scroll-behavior:smooth}
 .tmw-gallery-track::-webkit-scrollbar{display:none}
 .tmw-gallery-slide{flex:0 0 100%; width:100%; height:100%; position:relative; scroll-snap-align:start}
@@ -196,9 +203,9 @@ nav.main .wrap{display:flex; align-items:center; justify-content:space-between; 
 .tmw-gallery-counter{position:absolute; top:14px; right:14px; font-family:var(--mono); font-size:10.5px; letter-spacing:.1em; color:var(--white); background:rgba(7,8,7,.65); backdrop-filter:blur(10px); padding:5px 10px; border-radius:999px; z-index:3; font-weight:700}
 @media (hover: none){.tmw-gallery-arrow{opacity:.65}}
 /* ---- Gallery grid (2-column) ---- */
-.tmw-gallery-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:1.2em 0 !important}
+.tmw-gallery-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:2em 0 !important}
 .tmw-gallery-grid-item{margin:0; position:relative; border-radius:12px; overflow:hidden; background:#0a0a0a}
-.tmw-gallery-grid-item img{width:100%; height:100%; object-fit:cover; display:block; aspect-ratio:3/4; margin:0; border-radius:0}
+.tmw-gallery-grid-item img{width:100%; height:100%; object-fit:cover; display:block; aspect-ratio:2/3; margin:0; border-radius:0}
 .tmw-gallery-grid-item figcaption{position:absolute; left:0; right:0; bottom:0; padding:26px 16px 12px; background:linear-gradient(transparent, rgba(7,8,7,.85) 70%); color:var(--white); font-family:var(--mono); font-size:11px; letter-spacing:.06em; line-height:1.45; pointer-events:none}
 @media(max-width:560px){.tmw-gallery-grid{gap:6px} .tmw-gallery-grid-item figcaption{font-size:9.5px; padding:18px 10px 9px}}
 .article-body-content code{background:rgba(255,255,255,.06); padding:2px 6px; border-radius:4px; font-family:var(--mono); font-size:.9em}
