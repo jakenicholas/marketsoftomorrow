@@ -657,11 +657,17 @@ export async function handleGallery(request, env, url, origin, deps) {
   await ensureGalleryTables(env);
 
   const method = request.method;
+  // Are we serving the real gallery host? True directly on gallery.oftmw.com, or
+  // when a Cloudflare Pages proxy forwards for it (DNS lives at Wix, so the
+  // public host is fronted by a Pages proxy that sets X-Forwarded-Host — see
+  // tmw-gallery). On the gallery host we emit clean root-relative URLs (base='').
+  const fwdHost = request.headers.get('x-forwarded-host') || '';
+  const onGalleryHost = url.hostname === 'gallery.oftmw.com' || fwdHost === 'gallery.oftmw.com';
   // "Gallery context" = we're serving the public gallery surface. True on the
-  // real gallery.oftmw.com host, or under a /gallery/* prefix on workers.dev
-  // (so the whole thing is testable before the DNS cutover). Admin routes are
-  // NOT gated by this — the Studio calls them on the workers.dev origin.
-  const galleryContext = url.hostname === 'gallery.oftmw.com'
+  // gallery host, or under a /gallery/* prefix on workers.dev (testable before
+  // cutover). Admin routes are NOT gated by this — the Studio calls /admin/* on
+  // the workers.dev origin.
+  const galleryContext = onGalleryHost
     || url.pathname === '/gallery' || url.pathname.startsWith('/gallery/');
 
   // Normalize a /gallery prefix so the same routes work on workers.dev.
@@ -700,10 +706,10 @@ export async function handleGallery(request, env, url, origin, deps) {
   // main worker dispatcher so map/journal routes are never shadowed.
   if (!galleryContext) return null;
 
-  // URL prefix for all in-page links/assets: '' on the real gallery.oftmw.com
-  // host, '/gallery' when testing under the prefix on workers.dev. This keeps
-  // thumbnails, downloads, and nav links resolving correctly on both.
-  const base = url.hostname === 'gallery.oftmw.com' ? '' : '/gallery';
+  // URL prefix for all in-page links/assets: '' on the real gallery host (direct
+  // or via the Pages proxy), '/gallery' when testing under the prefix on
+  // workers.dev. Keeps thumbnails, downloads, and nav links resolving on both.
+  const base = onGalleryHost ? '' : '/gallery';
 
   // ---- Public API ----
   if (path === '/api/galleries' && method === 'GET') {
