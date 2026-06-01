@@ -306,10 +306,10 @@ ${FONTS}
 .hero-bg::after{content:"";position:absolute;inset:0;background:radial-gradient(120% 95% at 50% 34%,rgba(7,8,7,.26),rgba(7,8,7,.55) 82%),linear-gradient(180deg,rgba(7,8,7,.5),transparent 26%,transparent 52%,var(--ink))}
 .hero-inner{position:relative;z-index:2;max-width:1000px;padding:90px 28px 0}
 .hero-eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold-soft);text-shadow:0 0 18px rgba(230,197,116,.4);margin-bottom:20px}
-.hero h1{font-family:var(--serif);font-weight:600;font-size:clamp(46px,8vw,104px);letter-spacing:-.02em;line-height:1.0;color:#fff;text-shadow:0 4px 60px rgba(0,0,0,.5)}
-.hero-sub{font-family:var(--serif);font-weight:300;font-style:italic;font-size:clamp(17px,2.2vw,26px);color:var(--cream);margin-top:20px;text-wrap:balance;text-shadow:0 2px 20px rgba(0,0,0,.5)}
-.hero-btn{margin-top:36px;font-family:var(--mono);font-size:12px;letter-spacing:.16em;text-transform:uppercase;font-weight:700;padding:14px 30px;border-radius:999px;border:1px solid rgba(255,255,255,.55);background:rgba(255,255,255,.08);color:#fff;text-decoration:none;cursor:pointer;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);display:inline-flex;align-items:center;gap:9px;transition:all .2s}
-.hero-btn:hover{background:rgba(255,255,255,.18);border-color:#fff;transform:translateY(-1px)}
+.hero h1{font-family:var(--sans);font-weight:600;font-size:clamp(40px,7.5vw,96px);letter-spacing:.04em;text-transform:uppercase;line-height:1.02;color:#fff;text-shadow:0 4px 60px rgba(0,0,0,.5)}
+.hero-sub{font-family:var(--mono);font-weight:400;font-size:clamp(11px,1.1vw,13px);letter-spacing:.18em;text-transform:uppercase;color:var(--cream);margin-top:18px;text-shadow:0 2px 20px rgba(0,0,0,.5)}
+.hero-btn{margin-top:34px;font-family:var(--mono);font-size:12px;letter-spacing:.2em;text-transform:uppercase;font-weight:600;padding:15px 34px;border-radius:0;border:1px solid rgba(255,255,255,.6);background:transparent;color:#fff;text-decoration:none;cursor:pointer;display:inline-flex;align-items:center;gap:9px;transition:all .2s}
+.hero-btn:hover{background:#fff;color:#0a0a0a;border-color:#fff}
 .hero-scroll{position:absolute;left:50%;bottom:26px;transform:translateX(-50%);z-index:2;color:rgba(255,255,255,.7);animation:herobob 2.2s ease-in-out infinite}
 .hero-scroll svg{width:26px;height:26px}
 @keyframes herobob{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(7px)}}
@@ -385,7 +385,7 @@ ${navHTML(base)}
     ${meta ? `<div class="hero-eyebrow">${meta}</div>` : ''}
     <h1>${esc(g.title)}</h1>
     ${g.subtitle ? `<div class="hero-sub">${esc(g.subtitle)}</div>` : ''}
-    ${images.length ? `<a class="hero-btn" href="#photos">View gallery <svg viewBox="0 0 16 16" fill="none" style="width:14px;height:14px"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a>` : ''}
+    ${images.length ? `<a class="hero-btn" href="#photos">View gallery</a>` : ''}
   </div>
   ${images.length ? `<a class="hero-scroll" href="#photos" aria-label="View gallery"><svg viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a>` : ''}
 </header>
@@ -402,7 +402,7 @@ ${navHTML(base)}
   </div>
   <div class="licstrip">
     <div class="lt">Found a frame you love? <b>License it</b> for your website, campaign, or full buyout.</div>
-    <a class="btn gold" href="https://www.oftmw.com/media/licensing/#cta">See licensing &amp; rights</a>
+    <a class="btn gold" href="https://www.oftmw.com/media/licensing/">See licensing &amp; rights</a>
   </div>
   ${images.length ? `<div class="masonry" id="grid">${tiles}</div>` : `<div class="empty2">No photos in this gallery yet.</div>`}
 </div>
