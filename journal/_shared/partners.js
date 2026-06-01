@@ -166,11 +166,32 @@
     return { header: {}, partners: [] };
   }
 
+  function clientsActive(c) {
+    return c && c.logo && c.active !== false && c.active !== '' && c.active !== '0' && c.active !== 'false' && c.active !== 'no';
+  }
   async function loadClients() {
+    // 1) Live, studio-editable list (D1) — honors the active flag + view order.
     try {
-      const res = await fetch(CLIENTS_URL, { cache: 'no-store' });
-      if (res.ok) { const data = await res.json(); return Array.isArray(data) ? data : (data.clients || []); }
+      const r = await fetch(WORKER + '/list/clients', { cache: 'no-store' });
+      if (r.ok) {
+        const w = await r.json();
+        if (w && w.exists && w.data && Array.isArray(w.data.items) && w.data.items.length) {
+          return w.data.items.filter(clientsActive).map(c => ({ name: c.name || '', logo: c.logo }));
+        }
+      }
     } catch (e) {}
+    // 2) Rich static seed (regenerated on save), then 3) the flat legacy file.
+    for (const url of [rel('../clients-data.json'), CLIENTS_URL]) {
+      try {
+        const res = await fetch(url, { cache: 'no-store' });
+        if (res.ok) {
+          const data = await res.json();
+          const arr = Array.isArray(data) ? data : (data.clients || []);
+          const out = arr.filter(clientsActive).map(c => ({ name: c.name || '', logo: c.logo }));
+          if (out.length) return out;
+        }
+      } catch (e) {}
+    }
     return [];
   }
 

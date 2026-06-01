@@ -1,0 +1,44 @@
+# Fast rebuild-on-save for the client wall. Fired by the Studio (via the
+# GH_TOKEN proxy -> repository_dispatch) when the Clients list is saved, so the
+# static journal/clients.json + journal/clients-data.json fallback copies stay
+# in sync with D1. The live surfaces (partners wall + media kit) already read
+# /list/clients directly, so this is just the durable/no-JS fallback refresh.
+name: Rebuild clients
+
+on:
+  repository_dispatch:
+    types: [rebuild-clients]
+  workflow_dispatch:
+
+# Serialize with the hourly job so two pushes don't race.
+concurrency:
+  group: generate-pages-pulse
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Regenerate client files from the studio list
+        run: python3 generate_clients.py
+
+      - name: Commit + push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add journal/clients.json journal/clients-data.json 2>/dev/null || true
+          if git diff --staged --quiet; then
+            echo "No client changes to commit."
+          else
+            git commit -m "Rebuild clients from studio list"
+            git pull --rebase --autostash origin main || true
+            git push
+          fi

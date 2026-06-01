@@ -1553,7 +1553,7 @@ let last=0; const nav=document.getElementById('nav');
   const cc=document.getElementById('ccount'), clr=document.getElementById('cclear'), empty=document.getElementById('pempty');
   const segView=document.getElementById('segView'), segSort=document.getElementById('segSort');
   if(!pg) return;
-  const cards=[...pg.querySelectorAll('.p')];
+  let cards=[...pg.querySelectorAll('.p')];
   function apply(){
     const iv=fInd.value, lv=fLoc.value, filtering=!!(iv||lv);
     let shown=0;
@@ -1585,6 +1585,35 @@ let last=0; const nav=document.getElementById('nav');
       ? a.dataset.name.toLowerCase().localeCompare(z.dataset.name.toLowerCase())
       : (+a.dataset.idx)-(+z.dataset.idx));
     sorted.forEach(c=>pg.appendChild(c));});
+
+  // ── Live client list (studio-editable, D1) ──────────────────────────
+  //    When the studio's Clients list exists, render the grid from it so
+  //    edits (add/remove/reorder/retag/activate) reflect here instantly. The
+  //    inline tiles above remain the no-JS / fallback render.
+  function escA(s){return String(s==null?'':s).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));}
+  function indStr(c){return Array.isArray(c.industries)?c.industries.join('|'):String(c.industries||'').replace(/\s*[,]\s*/g,'|').replace(/\s*\|\s*/g,'|');}
+  function isActive(c){return c&&c.logo&&!(c.active===false||c.active===''||c.active==='0'||c.active==='false'||c.active==='no');}
+  function rebuildOptions(items){
+    const inds=new Set(), locs=new Set();
+    items.forEach(c=>{ indStr(c).split('|').forEach(x=>{x=x.trim(); if(x)inds.add(x);}); const l=(c.location||'').trim(); if(l)locs.add(l); });
+    const optList=(set,all)=>'<option value="">'+all+'</option>'+[...set].sort((a,z)=>a.localeCompare(z)).map(v=>'<option value="'+escA(v)+'">'+escA(v)+'</option>').join('');
+    const iv=fInd.value, lv=fLoc.value;
+    fInd.innerHTML=optList(inds,'All Industries'); fLoc.innerHTML=optList(locs,'All Markets');
+    fInd.value=iv; fLoc.value=lv;
+  }
+  function rebuildFrom(items){
+    const list=items.filter(isActive);
+    if(!list.length) return;
+    pg.innerHTML=list.map((c,i)=>'<div class="p" data-ind="'+escA(indStr(c))+'" data-loc="'+escA(c.location||'')+'" data-name="'+escA(c.name||'')+'" data-idx="'+i+'"><span class="pname">'+escA(c.name||'')+'</span><img class="plogo" src="'+escA(c.logo||'')+'" alt="'+escA(c.name||'')+'" loading="lazy"></div>').join('');
+    cards=[...pg.querySelectorAll('.p')];
+    rebuildOptions(list);
+    pg.classList.add('collapsed'); pg.classList.remove('filtering');
+    apply();
+  }
+  fetch('https://tmw.jake-ab7.workers.dev/list/clients',{cache:'no-store'})
+    .then(r=>r.ok?r.json():null)
+    .then(w=>{ if(w&&w.exists&&w.data&&Array.isArray(w.data.items)&&w.data.items.length) rebuildFrom(w.data.items); })
+    .catch(()=>{});
 })();
 // markets-visited region filter
 (function(){
