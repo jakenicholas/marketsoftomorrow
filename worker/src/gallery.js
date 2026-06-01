@@ -152,26 +152,43 @@ a{color:inherit}
 h1,h2,h3{font-family:var(--serif);font-weight:600;letter-spacing:-.01em;line-height:1.05;color:var(--white)}
 nav{position:fixed;top:0;left:0;right:0;z-index:50;padding:14px 0;background:rgba(7,8,7,.6);backdrop-filter:var(--glass);-webkit-backdrop-filter:var(--glass);border-bottom:1px solid var(--hair)}
 nav .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px}
-.logo{display:flex;align-items:center;gap:9px;text-decoration:none}
-.logo .hex{width:20px;height:20px;flex:0 0 auto}
-.logo .nm{font-family:var(--serif);font-weight:600;font-size:17px;color:#fff;letter-spacing:-.01em}
-.logo .nm b{color:var(--green)}
+/* animated logo lockup — matches /media/licensing exactly */
+.tmw-logo-lockup{display:flex;align-items:center;gap:8px;text-decoration:none}
+.tmw-hex-badge{flex:0 0 auto;width:21px;height:21px}
+.tmw-hex-badge svg{width:100%;height:100%;display:block;overflow:visible}
+.tmw-hex-spinner{transform-origin:50% 50%;animation:tmw-hardspin 4.2s cubic-bezier(.16,1,.3,1) infinite}
+@keyframes tmw-hardspin{0%{transform:rotate(0)}55%{transform:rotate(810deg)}70%{transform:rotate(900deg)}100%{transform:rotate(1080deg)}}
+.tmw-hex-core{animation:tmw-hexpulse 4.2s ease-in-out infinite;transform-origin:50% 50%}
+@keyframes tmw-hexpulse{0%,45%{stroke:var(--purple);filter:drop-shadow(0 0 0 rgba(167,139,250,0))}70%{stroke:var(--purple-glow);filter:drop-shadow(0 0 6px rgba(185,166,255,.9))}100%{stroke:var(--purple);filter:drop-shadow(0 0 0 rgba(167,139,250,0))}}
+.tmw-hex-ring{transform-origin:50% 50%;animation:tmw-ring 4.2s ease-out infinite}
+@keyframes tmw-ring{0%,60%{transform:scale(1);opacity:0}72%{opacity:.55}100%{transform:scale(1.7);opacity:0}}
+.tmw-wordmark{flex:0 1 auto;width:92px;height:auto}
+.tmw-wordmark svg{width:100%;height:auto;display:block}
+.tmw-wordmark .wm-fill{fill:#fff}
+.tmw-sweep{animation:tmw-sweep 4.2s ease-in-out infinite}
+@keyframes tmw-sweep{0%,60%{transform:translateX(-40%);opacity:0}68%{opacity:1}100%{transform:translateX(140%);opacity:0}}
+@media (prefers-reduced-motion: reduce){.tmw-hex-spinner{animation:tmw-fadespin 6s ease-in-out infinite}@keyframes tmw-fadespin{0%,100%{transform:rotate(0)}50%{transform:rotate(180deg)}}.tmw-sweep,.tmw-hex-ring{animation:none;opacity:0}}
 .nav-right{display:flex;align-items:center;gap:18px}
 .nav-link{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--mute2);text-decoration:none;transition:color .2s;white-space:nowrap}
 .nav-link:hover{color:var(--cream)}
-.nav-cta{font-family:var(--mono);font-size:11.5px;letter-spacing:.06em;color:var(--ink);background:var(--green);padding:9px 15px;border-radius:999px;text-decoration:none;font-weight:700;text-transform:uppercase;transition:transform .2s,background .2s;white-space:nowrap}
-.nav-cta:hover{background:var(--green-soft);transform:translateY(-1px)}
+/* gold-glow CTA — matches the selected location filter pill (.pill.on) */
+.nav-cta{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;padding:8px 15px;border-radius:999px;border:1px solid rgba(230,197,116,.34);background:rgba(230,197,116,.10);color:var(--gold-soft);text-decoration:none;white-space:nowrap;text-shadow:0 0 14px rgba(230,197,116,.5),0 0 3px rgba(230,197,116,.32);box-shadow:0 0 18px rgba(230,197,116,.16);transition:all .2s}
+.nav-cta:hover{background:rgba(230,197,116,.16);border-color:rgba(230,197,116,.5);transform:translateY(-1px)}
 footer{border-top:1px solid var(--hair);margin-top:90px;padding:34px 0 60px}
 footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:14px;font-family:var(--mono);font-size:11.5px;letter-spacing:.06em;color:var(--mute)}
 footer a{color:var(--green);text-decoration:none}
 @media(max-width:640px){.nav-link{display:none}}
 `;
 
-const HEX_SVG = `<svg class="hex" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><polygon points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></svg>`;
+// Full animated logo lockup (hex badge + wordmark), identical to /media/licensing.
+const LOGO_LOCKUP = `<div class="tmw-hex-badge" aria-hidden="true"><svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><polygon class="tmw-hex-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/><g class="tmw-hex-spinner"><polygon class="tmw-hex-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g></svg></div><div class="tmw-wordmark" aria-hidden="true"><svg viewBox="100 60 900 410" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="tmw-sweepgrad" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#A78BFA" stop-opacity="0"/><stop offset="50%" stop-color="#B9A6FF" stop-opacity="1"/><stop offset="100%" stop-color="#A78BFA" stop-opacity="0"/></linearGradient><clipPath id="tmw-wmclip"><path d="M233.5,220.4l1.1-105.9-.4-.4-30.2,106.3h-23.9l-30.6-107.2,1.1,107.2h-33.3V79h46.4l28.1,93.1h.4l27.7-93.1h46.6v141.4h-33.3Z"/><path d="M383.6,220.4l-6.9-20.5h-49.1l-7.5,20.5h-38.8l56.8-141.4h28.5l56.2,141.4h-39.2ZM352.6,123.1l-.6-.2-14.5,48.4h29.6l-14.5-48.2Z"/><path d="M504.9,220.4l-32.7-45.7h-.4v45.7h-34.6V79h46.3c14.7,0,26,1.9,33.4,5.2,15.3,6.9,26,23.5,26,43.6s-13.4,40.7-35.2,44.5l38.4,48.2h-41.3ZM485.3,150.1c14.3,0,23.1-6.7,23.1-20.3s-9.2-19.1-22.7-19.1h-13.8v39.4h13.4Z"/><path d="M641,220.4l-38.6-61.2h-.4v61.2h-36.1V79h36.1v63.6h.4l39.9-63.6h37.8l-46.8,70.5,49.9,70.9h-42.2Z"/><path d="M697.2,220.4V79h78.6v31.7h-44v22h42.6v31.7h-42.6v24.3h44v31.7h-78.6Z"/><path d="M815.1,220.4v-109.7h-27.9v-31.7h91.7v31.7h-27.7v109.7h-36.1Z"/><path d="M948.9,120.3c-1.5-10.1-5.7-13.8-12.8-13.8s-12.4,4.8-12.4,11.1,7.6,12.2,23.1,18.9c31.2,13.4,39,24.7,39,43.2,0,27.3-18.7,43.4-49.3,43.4s-51-16.1-51-46.4v-3.1h35.9c.2,11.7,5.9,19.3,14.9,19.3s13.6-5.9,13.6-13.6c0-11.3-15.7-16.2-28.5-21.4-23.1-9.4-33.6-21.6-33.6-39.9s23.3-41.7,49.3-41.7,17.6,2.1,25,5.9c15.1,7.8,22.4,19.1,22.6,38h-35.7Z"/><path d="M333.7,452.5v-169.1h-43v-48.9h141.4v48.9h-42.7v169.1h-55.7Z"/><path d="M633.3,452.5l1.8-163.2-.6-.6-46.5,163.8h-36.8l-47.1-165.3,1.8,165.3h-51.3v-218h71.6l43.3,143.5h.6l42.7-143.5h71.9v218h-51.3Z"/><path d="M881.6,452.5l-32.7-141.1h-.6l-32.7,141.1h-50.4l-56.3-218h56.6l29.2,141.7h.6l32.1-141.7h42.7l31.5,142.3h.6l29.8-142.3h56.3l-57.7,218h-48.9Z"/><path d="M111.8,281.1c0-27.9,20.1-48.8,47.4-48.8s47.6,20.3,47.6,46.1-20.7,47.3-46.5,47.3-48.5-18-48.5-44.6ZM183.8,279.2c0-14.1-10.1-26.6-24.6-26.6s-24.4,12-24.4,26.3,10.1,26.8,24.8,26.8,24.2-12,24.2-26.4Z"/><path d="M219.2,324.1v-90h49.1v20.2h-27.1v15.3h26.2v20.2h-26.2v34.3h-22Z"/></clipPath></defs><g class="wm-fill"><path d="M233.5,220.4l1.1-105.9-.4-.4-30.2,106.3h-23.9l-30.6-107.2,1.1,107.2h-33.3V79h46.4l28.1,93.1h.4l27.7-93.1h46.6v141.4h-33.3Z"/><path d="M383.6,220.4l-6.9-20.5h-49.1l-7.5,20.5h-38.8l56.8-141.4h28.5l56.2,141.4h-39.2ZM352.6,123.1l-.6-.2-14.5,48.4h29.6l-14.5-48.2Z"/><path d="M504.9,220.4l-32.7-45.7h-.4v45.7h-34.6V79h46.3c14.7,0,26,1.9,33.4,5.2,15.3,6.9,26,23.5,26,43.6s-13.4,40.7-35.2,44.5l38.4,48.2h-41.3ZM485.3,150.1c14.3,0,23.1-6.7,23.1-20.3s-9.2-19.1-22.7-19.1h-13.8v39.4h13.4Z"/><path d="M641,220.4l-38.6-61.2h-.4v61.2h-36.1V79h36.1v63.6h.4l39.9-63.6h37.8l-46.8,70.5,49.9,70.9h-42.2Z"/><path d="M697.2,220.4V79h78.6v31.7h-44v22h42.6v31.7h-42.6v24.3h44v31.7h-78.6Z"/><path d="M815.1,220.4v-109.7h-27.9v-31.7h91.7v31.7h-27.7v109.7h-36.1Z"/><path d="M948.9,120.3c-1.5-10.1-5.7-13.8-12.8-13.8s-12.4,4.8-12.4,11.1,7.6,12.2,23.1,18.9c31.2,13.4,39,24.7,39,43.2,0,27.3-18.7,43.4-49.3,43.4s-51-16.1-51-46.4v-3.1h35.9c.2,11.7,5.9,19.3,14.9,19.3s13.6-5.9,13.6-13.6c0-11.3-15.7-16.2-28.5-21.4-23.1-9.4-33.6-21.6-33.6-39.9s23.3-41.7,49.3-41.7,17.6,2.1,25,5.9c15.1,7.8,22.4,19.1,22.6,38h-35.7Z"/><path d="M333.7,452.5v-169.1h-43v-48.9h141.4v48.9h-42.7v169.1h-55.7Z"/><path d="M633.3,452.5l1.8-163.2-.6-.6-46.5,163.8h-36.8l-47.1-165.3,1.8,165.3h-51.3v-218h71.6l43.3,143.5h.6l42.7-143.5h71.9v218h-51.3Z"/><path d="M881.6,452.5l-32.7-141.1h-.6l-32.7,141.1h-50.4l-56.3-218h56.6l29.2,141.7h.6l32.1-141.7h42.7l31.5,142.3h.6l29.8-142.3h56.3l-57.7,218h-48.9Z"/><path d="M111.8,281.1c0-27.9,20.1-48.8,47.4-48.8s47.6,20.3,47.6,46.1-20.7,47.3-46.5,47.3-48.5-18-48.5-44.6ZM183.8,279.2c0-14.1-10.1-26.6-24.6-26.6s-24.4,12-24.4,26.3,10.1,26.8,24.8,26.8,24.2-12,24.2-26.4Z"/><path d="M219.2,324.1v-90h49.1v20.2h-27.1v15.3h26.2v20.2h-26.2v34.3h-22Z"/></g><g clip-path="url(#tmw-wmclip)"><rect class="tmw-sweep" x="100" y="60" width="240" height="410" fill="url(#tmw-sweepgrad)"/></g></svg></div>`;
+
+// White lock icon (PIN indicator).
+const LOCK_SVG = `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>`;
 
 function navHTML(base, activeCta) {
   return `<nav><div class="wrap">
-    <a class="logo" href="${base}/">${HEX_SVG}<span class="nm">Markets of <b>Tomorrow</b></span></a>
+    <a class="tmw-logo-lockup" href="${base}/" aria-label="Markets of Tomorrow">${LOGO_LOCKUP}</a>
     <div class="nav-right">
       <a class="nav-link" href="https://www.oftmw.com/media/">Media Kit</a>
       <a class="nav-link" href="https://www.oftmw.com/media/licensing/">Licensing</a>
@@ -194,7 +211,7 @@ function renderIndexHTML(galleries, base) {
       ? `<img loading="lazy" src="${base}/thumb/${keyToPath(g.cover_key)}?w=900" alt="${esc(g.title)}">`
       : `<div class="noimg"></div>`;
     const meta = [g.category, g.location].filter(Boolean).map(esc).join(' &middot; ');
-    const lock = g.pin_hash ? `<span class="lock" title="Download PIN required">&#128274;</span>` : '';
+    const lock = g.pin_hash ? `<span class="lock" title="Download PIN required">${LOCK_SVG}</span>` : '';
     return `<a class="card" href="${base}/g/${esc(g.slug)}">
       <div class="card-img">${cover}${lock}<span class="count">${g.image_count || 0} photos</span></div>
       <div class="card-body">
@@ -214,10 +231,7 @@ function renderIndexHTML(galleries, base) {
 <meta property="og:type" content="website">
 ${FONTS}
 <style>${BASE_CSS}
-.hero{padding:150px 0 40px;text-align:center}
-.hero h1{font-size:clamp(44px,7vw,86px);font-weight:900;letter-spacing:-.03em;color:#fff;margin:14px 0 0}
-.hero p{font-family:var(--serif);font-style:italic;font-weight:300;font-size:clamp(17px,2.2vw,25px);color:var(--cream);max-width:30ch;margin:22px auto 0;text-wrap:balance}
-.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;padding:40px 0 10px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;padding:112px 0 10px}
 .card{text-decoration:none;display:block;border-radius:16px;overflow:hidden;background:rgba(255,255,255,.03);border:1px solid var(--hair);transition:transform .35s cubic-bezier(.22,1,.36,1),border-color .35s}
 .card:hover{transform:translateY(-4px);border-color:var(--hair2)}
 .card-img{position:relative;aspect-ratio:4/3;overflow:hidden;background:var(--panel)}
@@ -229,17 +243,12 @@ ${FONTS}
 .card-body{padding:16px 18px 20px}
 .card-title{font-family:var(--serif);font-weight:600;font-size:20px;color:#fff;letter-spacing:-.01em}
 .card-meta{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);margin-top:7px}
-.empty{padding:80px 0;text-align:center;color:var(--mute2)}
+.empty{padding:160px 0 80px;text-align:center;color:var(--mute2)}
 .empty p{margin-top:16px;font-size:17px}.empty a{color:var(--green);text-decoration:none}
 @media(max-width:900px){.grid{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:560px){.grid{grid-template-columns:1fr}}
 </style></head><body>
 ${navHTML(base)}
-<header class="hero"><div class="wrap">
-  <div class="eyebrow">Markets of Tomorrow &middot; Visual Portfolio</div>
-  <h1>The Work</h1>
-  <p>Photography &amp; film for the hotels, resorts, and golf courses defining luxury travel.</p>
-</div></header>
 <main class="wrap">
   ${galleries.length ? `<div class="grid">${cards}</div>` : empty}
 </main>
@@ -267,9 +276,8 @@ function renderGalleryHTML(g, images, base) {
   }).replace(/</g, '\\u003c');
 
   const tiles = images.map((im, i) => {
-    const ratio = (im.width && im.height) ? (im.height / im.width) : 0.7;
-    return `<button class="tile" data-i="${i}" style="--r:${ratio}" aria-label="View photo ${i + 1}">
-      <img loading="lazy" src="${base}/thumb/${keyToPath(im.key)}?w=700" alt="${esc(im.alt_text || g.title)}">
+    return `<button class="tile" data-i="${i}" aria-label="View photo ${i + 1}">
+      <img loading="lazy" src="${base}/thumb/${keyToPath(im.key)}?w=900" alt="${esc(im.alt_text || g.title)}">
     </button>`;
   }).join('');
 
@@ -298,14 +306,16 @@ ${FONTS}
 .btn.primary:hover{background:var(--green-soft)}
 .btn.gold{border-color:rgba(230,197,116,.4);color:var(--gold-soft)}
 .btn .ic{width:15px;height:15px}
-/* masonry via CSS columns */
-.masonry{column-count:4;column-gap:14px;padding:26px 0 0}
-.tile{display:block;width:100%;margin:0 0 14px;padding:0;border:0;background:var(--panel);border-radius:12px;overflow:hidden;cursor:zoom-in;break-inside:avoid;position:relative;line-height:0}
-.tile img{width:100%;height:auto;display:block;transition:transform .5s cubic-bezier(.22,1,.36,1),opacity .4s}
+/* uniform grid — large, wide, square-edged tiles, all cropped to one height.
+   2 columns by default, 3 on wide screens, 1 on narrow phones. Fixed
+   aspect-ratio gives each tile a definite height so images reserve space and
+   actually load (lazy images with no height never trigger). */
+.masonry{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;padding:24px 0 0}
+@media(min-width:1300px){.masonry{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:480px){.masonry{grid-template-columns:1fr}}
+.tile{display:block;width:100%;margin:0;padding:0;border:0;border-radius:0;overflow:hidden;cursor:zoom-in;background:var(--panel);position:relative;line-height:0;aspect-ratio:3/2}
+.tile img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .5s cubic-bezier(.22,1,.36,1)}
 .tile:hover img{transform:scale(1.04)}
-@media(max-width:1100px){.masonry{column-count:3}}
-@media(max-width:760px){.masonry{column-count:2}}
-@media(max-width:460px){.masonry{column-count:1}}
 /* lightbox */
 .lb{position:fixed;inset:0;z-index:100;background:rgba(5,6,5,.96);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center}
 .lb.open{display:flex}
@@ -344,7 +354,7 @@ ${navHTML(base)}
   <div class="gmeta">
     ${meta ? `<span>${meta}</span><span class="dot">&bull;</span>` : ''}
     <span>${images.length} photo${images.length === 1 ? '' : 's'}</span>
-    ${pinRequired ? `<span class="dot">&bull;</span><span>&#128274; PIN to download</span>` : ''}
+    ${pinRequired ? `<span class="dot">&bull;</span><span style="display:inline-flex;align-items:center;gap:6px">${LOCK_SVG} PIN to download</span>` : ''}
   </div>
   ${images.length && downloadEnabled ? `<div class="gactions">
     <button class="btn primary" id="dlAll"><svg class="ic" viewBox="0 0 16 16" fill="none"><path d="M8 1v9m0 0L4.5 6.5M8 10l3.5-3.5M2 13.5h12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Download all</button>
