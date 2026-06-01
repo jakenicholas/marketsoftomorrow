@@ -20,6 +20,7 @@
   var MAP_URL      = 'https://map.oftmw.com';
   var PROJECTS_URL = MAP_URL + '/projects-flat.json';
   var INTEL_URL    = MAP_URL + '/intel.json';
+  var LINKS_URL    = '/_shared/project-links.json';  // reverse map coverage: postSlug -> projectSlug
 
   // ── 1) Collect embeds (new cards + legacy iframes) ──────────────────────
   function collect() {
@@ -40,7 +41,7 @@
   }
 
   var embeds = collect();
-  if (!embeds.length) return;
+  // No early return: even with no manual embed we may auto-link from coverage.
 
   // ── 2) Helpers ──────────────────────────────────────────────────────────
   // Mirrors the map's pyStyleSlug / generate_pulse.py slugify so keys line up.
@@ -301,19 +302,45 @@
   // ── 6) Fetch + render ───────────────────────────────────────────────────
   function fetchJson(u) { return fetch(u, { cache: 'force-cache' }).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; }); }
 
-  injectCSS();
-  Promise.all([fetchJson(PROJECTS_URL), fetchJson(INTEL_URL)]).then(function (res) {
-    var rows = res[0] || [], intel = (res[1] && res[1].projects) || {};
-    if (!Array.isArray(rows)) rows = rows.projects || rows.rows || [];
-    var bySlug = {};
-    rows.forEach(function (r) { var s = slugify(r.Title || r.Name || ''); if (s && !bySlug[s]) bySlug[s] = r; });
-    embeds.forEach(function (e) {
-      var rec = bySlug[e.slug];
-      if (!rec) { e.el.style.display = 'none'; return; }
-      e.el.setAttribute('data-tmw-done', '1');
-      e.el.className = 'tmw-pcard';
-      e.el.innerHTML = renderCard(rec, e.slug, intel[e.slug]);
-      wire(e.el, e.slug);
+  // Auto-link from the map's reverse coverage when the article has no manual
+  // embed: look up the current post slug in project-links.json and append a card
+  // at the end of the article. A manual Studio link always takes precedence.
+  function currentPostSlug() {
+    var m = location.pathname.match(/\/post\/([^\/]+)\/?$/);
+    if (m) return decodeURIComponent(m[1]);
+    try { var q = new URLSearchParams(location.search).get('slug'); return q ? decodeURIComponent(q) : ''; } catch (e) { return ''; }
+  }
+  function autoLink() {
+    if (embeds.length) return Promise.resolve();
+    var body = document.querySelector('.article-body-content');
+    var slug = currentPostSlug();
+    if (!body || !slug) return Promise.resolve();
+    return fetchJson(LINKS_URL).then(function (links) {
+      var proj = links && links[slug];
+      if (!proj) return;
+      var div = document.createElement('div');
+      div.className = 'tmw-project-card'; div.setAttribute('data-project', proj); div.setAttribute('data-tmw-auto', '');
+      body.appendChild(div);
+      embeds.push({ el: div, slug: proj });
+    });
+  }
+
+  autoLink().then(function () {
+    if (!embeds.length) return;
+    injectCSS();
+    Promise.all([fetchJson(PROJECTS_URL), fetchJson(INTEL_URL)]).then(function (res) {
+      var rows = res[0] || [], intel = (res[1] && res[1].projects) || {};
+      if (!Array.isArray(rows)) rows = rows.projects || rows.rows || [];
+      var bySlug = {};
+      rows.forEach(function (r) { var s = slugify(r.Title || r.Name || ''); if (s && !bySlug[s]) bySlug[s] = r; });
+      embeds.forEach(function (e) {
+        var rec = bySlug[e.slug];
+        if (!rec) { e.el.style.display = 'none'; return; }
+        e.el.setAttribute('data-tmw-done', '1');
+        e.el.className = 'tmw-pcard';
+        e.el.innerHTML = renderCard(rec, e.slug, intel[e.slug]);
+        wire(e.el, e.slug);
+      });
     });
   });
 })();

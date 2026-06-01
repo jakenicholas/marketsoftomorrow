@@ -363,7 +363,9 @@
   // renderer when the article actually embeds a project (new card embed or a
   // legacy map-embed iframe), so non-linked posts pay nothing.
   function loadProjectCards() {
-    if (!document.querySelector('.tmw-project-card[data-project], iframe.tmw-map-embed')) return;
+    // Load on any post page (so the coverage auto-link can run) or when a post
+    // already has a manual project embed / legacy map iframe.
+    if (!document.querySelector('.article-body-content, .tmw-project-card[data-project], iframe.tmw-map-embed')) return;
     if (document.querySelector('script[src*="project-card.js"]')) return;
     var s = document.createElement('script');
     s.src = '/_shared/project-card.js';
