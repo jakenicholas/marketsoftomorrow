@@ -890,7 +890,7 @@ async function handlePostCategories(env, origin) {
   return json({ categories }, { headers: { 'Cache-Control': 'public, max-age=300, s-maxage=300' } }, env, origin);
 }
 
-async function handlePostsList(env, origin, url) {
+async function handlePostsList(req, env, origin, url) {
   if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
   // Cap at 1500 — enough to feed the journal home grid the full archive in one
   // shot (~1,377 total posts; the home shows the most-recent slice with
@@ -901,9 +901,10 @@ async function handlePostsList(env, origin, url) {
   const category = url.searchParams.get('category');
   const q = (url.searchParams.get('q') || '').trim();
 
-  // status=published is public; anything else requires admin token
+  // status=published is public; anything else requires admin auth
   if (status !== 'published') {
-    if (!checkAdminAuth(env, origin)) return json({ error: 'unauthorized for non-published' }, { status: 401 }, env, origin);
+    const denied = await requireAdminToken(req, env, origin);
+    if (denied) return denied;
   }
 
   const where = ['status = ?1'];
@@ -930,7 +931,7 @@ async function handlePostsList(env, origin, url) {
   );
 }
 
-async function handlePostsBySlug(env, origin, slug) {
+async function handlePostsBySlug(req, env, origin, slug) {
   if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
   // Idempotently decode URL-encoded chars. Some inbound URLs are
   // double-encoded (e.g. %25C3%25A9 = encoded %C3%A9 = encoded é) and
@@ -945,9 +946,10 @@ async function handlePostsBySlug(env, origin, slug) {
     .prepare(`SELECT * FROM posts WHERE slug = ?1 LIMIT 1`)
     .bind(slug).first();
   if (!row) return json({ error: 'post not found in DB', slug }, { status: 404 }, env, origin);
-  // Drafts only visible with admin token
-  if (row.status !== 'published' && !checkAdminAuth(env, origin)) {
-    return json({ error: 'post not yet published' }, { status: 404 }, env, origin);
+  // Drafts only visible to an authenticated admin
+  if (row.status !== 'published') {
+    const denied = await requireAdminToken(req, env, origin);
+    if (denied) return json({ error: 'post not yet published' }, { status: 404 }, env, origin);
   }
   return json(
     { post: rowToPostFull(row) },
@@ -3056,14 +3058,14 @@ export default {
       }
       // /posts — D1-backed canonical posts table (post-migration source).
       if (request.method === 'GET' && url.pathname === '/posts') {
-        return await handlePostsList(env, origin, url);
+        return await handlePostsList(request, env, origin, url);
       }
       if (request.method === 'GET' && url.pathname === '/post-categories') {
         return await handlePostCategories(env, origin);
       }
       {
         const m = url.pathname.match(/^\/posts\/by-slug\/([^/]+)\/?$/);
-        if (m && request.method === 'GET') return await handlePostsBySlug(env, origin, m[1]);
+        if (m && request.method === 'GET') return await handlePostsBySlug(request, env, origin, m[1]);
       }
       // /admin/sync-wix — batched migration importer (admin-only)
       if (request.method === 'POST' && url.pathname === '/admin/sync-wix') {
