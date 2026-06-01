@@ -17,6 +17,7 @@
 
 import { handleMcp } from './mcp.js';
 import { handleOAuth } from './oauth.js';
+import { handleGallery } from './gallery.js';
 
 // ---------------------------------------------------------------------------
 // CORS helpers
@@ -3255,6 +3256,16 @@ export default {
     }
 
     try {
+      // ── In-house image galleries (gallery.oftmw.com) ─────────────────────
+      // Serves the public portfolio + per-gallery pages + PIN-gated downloads
+      // on the gallery host, and the admin gallery API on any host. Returns
+      // null for non-gallery routes so the rest of this dispatcher still runs.
+      {
+        const gdeps = { json, requireAdminToken, signPayload, verifyPayload, handleMediaServe };
+        const gr = await handleGallery(request, env, url, origin, gdeps);
+        if (gr) return gr;
+      }
+
       // ── GitHub-OAuth login (public — these mint/verify the session) ──────
       if (request.method === 'GET' && url.pathname === '/admin/auth/login')    return await handleAuthLogin(env, url);
       if (request.method === 'GET' && url.pathname === '/admin/auth/callback') return await handleAuthCallback(env, url);

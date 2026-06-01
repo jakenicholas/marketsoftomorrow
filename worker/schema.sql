@@ -126,6 +126,43 @@ CREATE TABLE IF NOT EXISTS media_map (
 
 CREATE INDEX IF NOT EXISTS idx_media_map_migrated ON media_map(migrated_at DESC);
 
+-- ---------------------------------------------------------------------------
+-- galleries / gallery_images: the in-house image-gallery system that serves
+-- gallery.oftmw.com (the Pixieset replacement). See src/gallery.js.
+--
+-- These tables also self-bootstrap (ensureGalleryTables runs CREATE TABLE IF
+-- NOT EXISTS on first request), so a fresh deploy needs no manual migration —
+-- this block just documents the shape. Image bytes live in R2 (the `media`
+-- index above); gallery_images is only the ordered membership.
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS galleries (
+  slug              TEXT PRIMARY KEY,                  -- URL slug, /g/<slug>
+  title             TEXT NOT NULL,
+  subtitle          TEXT,
+  description       TEXT,
+  cover_key         TEXT,                              -- R2 key used as the cover
+  visibility        TEXT NOT NULL DEFAULT 'unlisted',  -- 'public' (in portfolio) | 'unlisted' (link-only)
+  category          TEXT,                              -- e.g. 'Hotels','Golf','Restaurants'
+  location          TEXT,
+  pin_hash          TEXT,                              -- sha256(slug:pin); null = downloads open
+  download_enabled  INTEGER NOT NULL DEFAULT 1,        -- 0 = view-only, no downloads
+  sort_order        INTEGER NOT NULL DEFAULT 0,
+  shot_date         INTEGER,                           -- unix seconds (optional)
+  created_at        INTEGER NOT NULL,
+  updated_at        INTEGER NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS gallery_images (
+  gallery_slug  TEXT NOT NULL,
+  media_key     TEXT NOT NULL,                         -- references media.key / R2 object
+  caption       TEXT,
+  sort_order    INTEGER NOT NULL DEFAULT 0,
+  created_at    INTEGER NOT NULL,
+  PRIMARY KEY (gallery_slug, media_key)
+);
+
+CREATE INDEX IF NOT EXISTS idx_gallery_images_slug ON gallery_images(gallery_slug, sort_order);
+
 -- A view of the most recent event per member, for the People list.
 -- We define it as a view (not a materialized table) so it's always fresh
 -- and we never have to write a backfill job.

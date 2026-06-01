@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<!-- build-stamp: gallery-v1 · studio gallery manager -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="format-detection" content="telephone=no, date=no, address=no, email=no">
+<title>TMW Studio · Galleries</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#070807; --panel:#131613; --panel-2:#1a1d1a;
+  --hair:rgba(255,255,255,.08); --hair-2:rgba(255,255,255,.14);
+  --text:#ECEAE5; --mute:#9AA39C; --white:#fff;
+  --green:#1FDF67; --green-soft:#42EB81; --gold-soft:#f0d68a; --danger:#ff5d5d;
+  --sans:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+  --serif:'Fraunces',Georgia,serif; --mono:'JetBrains Mono',ui-monospace,monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{background:var(--ink);color:var(--text);font-family:var(--sans);-webkit-font-smoothing:antialiased;line-height:1.5}
+.topbar{position:sticky;top:0;z-index:10;background:rgba(7,8,7,.94);backdrop-filter:blur(20px);border-bottom:1px solid var(--hair)}
+.topbar-inner{display:flex;align-items:center;gap:18px;padding:16px 22px;max-width:1500px;margin:0 auto}
+.brand{display:flex;flex-direction:column;gap:2px}
+.brand-eyebrow{font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--green)}
+.brand-title{font-family:var(--serif);font-weight:600;font-size:22px;color:var(--white)}
+.tablinks{display:flex;gap:4px;padding:5px;background:rgba(255,255,255,.04);border:1px solid var(--hair);border-radius:99px;margin-left:20px;flex-wrap:wrap}
+.tablinks a{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;padding:9px 16px;border-radius:99px;color:var(--mute);text-decoration:none;font-weight:600}
+.tablinks a:hover{color:var(--white)}
+.tablinks a.on{background:var(--white);color:var(--ink)}
+
+.container{max-width:1500px;margin:24px auto 90px;padding:0 22px}
+.layout{display:flex;gap:22px;align-items:flex-start}
+.side{width:280px;flex-shrink:0;position:sticky;top:88px}
+.newbtn{width:100%;padding:12px;background:var(--green);color:var(--ink);font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;border-radius:9px;border:0;cursor:pointer;margin-bottom:12px}
+.newbtn:hover{background:var(--green-soft)}
+.glist{background:var(--panel);border:1px solid var(--hair);border-radius:12px;overflow:hidden}
+.gitem{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--hair);cursor:pointer}
+.gitem:last-child{border-bottom:0}
+.gitem:hover{background:rgba(255,255,255,.04)}
+.gitem.on{background:rgba(31,223,103,.1)}
+.gitem .gt{overflow:hidden}
+.gitem .gn{font-size:13.5px;color:var(--white);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gitem .gs{font-family:var(--mono);font-size:10px;color:var(--mute);margin-top:3px;display:flex;gap:7px;align-items:center}
+.badge{font-family:var(--mono);font-size:8.5px;letter-spacing:.08em;text-transform:uppercase;padding:2px 6px;border-radius:4px;font-weight:700}
+.badge.pub{background:rgba(31,223,103,.15);color:var(--green-soft)}
+.badge.unl{background:rgba(255,255,255,.08);color:var(--mute)}
+.gitem .gc{font-family:var(--mono);font-size:11px;color:var(--mute);flex-shrink:0}
+
+.main{flex:1;min-width:0}
+.placeholder{padding:80px 22px;text-align:center;color:var(--mute);background:var(--panel);border:1px solid var(--hair);border-radius:12px}
+.placeholder h3{color:var(--white);font-family:var(--serif);font-size:20px;margin-bottom:8px}
+.card{background:var(--panel);border:1px solid var(--hair);border-radius:14px;padding:22px 24px;margin-bottom:18px}
+.card h2{font-family:var(--serif);font-size:18px;color:var(--white);margin-bottom:4px}
+.card .ch-sub{font-size:12.5px;color:var(--mute);margin-bottom:18px}
+.frow{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:14px}
+.field{flex:1;min-width:200px;display:flex;flex-direction:column;gap:6px}
+.field.full{flex-basis:100%}
+.field label{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--mute)}
+.field input,.field select,.field textarea{background:rgba(255,255,255,.04);border:1px solid var(--hair-2);color:var(--white);font:inherit;font-size:13.5px;padding:10px 12px;border-radius:8px;outline:0}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--green)}
+.field .hint{font-size:11px;color:var(--mute);font-family:var(--mono)}
+.field textarea{resize:vertical;min-height:60px}
+.toggle{display:flex;align-items:center;gap:9px;font-size:13px;color:var(--text);cursor:pointer}
+.toggle input{width:16px;height:16px;accent-color:var(--green)}
+.btnrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px;align-items:center}
+.btn{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;padding:10px 16px;border-radius:8px;border:1px solid var(--hair-2);background:rgba(255,255,255,.04);color:var(--text);cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:7px}
+.btn:hover{background:rgba(255,255,255,.08)}
+.btn.primary{background:var(--green);color:var(--ink);border-color:var(--green)}
+.btn.primary:hover{background:var(--green-soft)}
+.btn.danger{color:#ffb3b3;border-color:rgba(255,93,93,.4)}
+.btn.danger:hover{background:rgba(255,93,93,.15)}
+.btn.ghost{color:var(--gold-soft);border-color:rgba(240,214,138,.35)}
+.linkbox{font-family:var(--mono);font-size:11.5px;color:var(--mute);margin-left:auto}
+.linkbox a{color:var(--green);text-decoration:none}
+
+.dropzone{display:block;position:relative;padding:34px 22px;border:2px dashed var(--hair-2);border-radius:12px;text-align:center;background:var(--panel-2);transition:border-color .15s;margin-bottom:16px;cursor:pointer}
+.dropzone:hover,.dropzone.drag{border-color:var(--green)}
+.dropzone svg{width:30px;height:30px;color:var(--mute);margin-bottom:10px}
+.dropzone h3{font-family:var(--serif);font-size:17px;color:var(--white);margin-bottom:4px}
+.dropzone p{color:var(--mute);font-size:12.5px}
+.dropzone input{display:none}
+.uploading{display:flex;align-items:center;gap:10px;padding:11px 15px;background:rgba(31,223,103,.06);border:1px solid rgba(31,223,103,.3);border-radius:9px;margin-bottom:10px;font-family:var(--mono);font-size:11.5px;color:var(--green-soft)}
+.spin{width:15px;height:15px;border:2px solid rgba(31,223,103,.2);border-top-color:var(--green);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.ptile{position:relative;background:#0a0a0a;border:1px solid var(--hair);border-radius:10px;overflow:hidden;cursor:grab}
+.ptile.dragging{opacity:.4}
+.ptile.cover{border-color:var(--gold-soft);box-shadow:0 0 0 1px var(--gold-soft)}
+.ptile .pimg{aspect-ratio:1/1;width:100%}
+.ptile img{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}
+.ptile .ord{position:absolute;top:7px;left:7px;font-family:var(--mono);font-size:10px;background:rgba(7,8,7,.8);color:var(--white);padding:2px 6px;border-radius:5px}
+.ptile .covtag{position:absolute;top:7px;left:7px;font-family:var(--mono);font-size:8.5px;letter-spacing:.08em;text-transform:uppercase;background:var(--gold-soft);color:#2a2410;padding:3px 6px;border-radius:5px;font-weight:700}
+.ptile .pacts{position:absolute;top:6px;right:6px;display:flex;gap:5px;opacity:0;transition:opacity .15s}
+.ptile:hover .pacts{opacity:1}
+.ptile .pacts button{width:28px;height:28px;border-radius:6px;border:0;background:rgba(7,8,7,.8);backdrop-filter:blur(6px);color:var(--white);cursor:pointer;display:flex;align-items:center;justify-content:center}
+.ptile .pacts button:hover{background:var(--green);color:var(--ink)}
+.ptile .pacts button.danger:hover{background:var(--danger)}
+.ptile .pacts svg{width:13px;height:13px}
+.ptile .pcap{width:100%;background:rgba(7,8,7,.6);border:0;border-top:1px solid var(--hair);color:var(--mute);font-family:var(--mono);font-size:10px;padding:6px 8px;outline:0}
+.ptile .pcap:focus{color:var(--white);background:rgba(7,8,7,.9)}
+
+#toast{position:fixed;top:80px;right:24px;z-index:100;background:rgba(7,8,7,.94);backdrop-filter:blur(14px);border:1px solid var(--hair-2);color:var(--text);padding:14px 20px;border-radius:10px;font-family:var(--mono);font-size:12px;opacity:0;transform:translateY(-10px);transition:opacity .25s,transform .25s;pointer-events:none;max-width:340px}
+#toast.visible{opacity:1;transform:none}
+#toast.success{border-color:var(--green);color:var(--green-soft)}
+#toast.error{border-color:var(--danger);color:#ffb3b3}
+@media(max-width:900px){.layout{flex-direction:column}.side{width:100%;position:static}}
+</style>
+<script src="/_shared/admin-auth.js"></script>
+</head>
+<body>
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <div class="brand-eyebrow">TMW Studio</div>
+      <div class="brand-title">Galleries</div>
+    </div>
+    <div class="tablinks">
+      <a href="/studio/">Posts</a>
+      <a href="/studio/media.html">Media</a>
+      <a href="/studio/galleries.html" class="on">Galleries</a>
+      <a href="/studio/migrate-wix.html">Wix library</a>
+      <a href="/studio/lists.html">Lists</a>
+      <a href="/studio/sync.html">Wix sync</a>
+      <a href="/studio/analytics.html">Analytics</a>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="layout">
+    <aside class="side">
+      <button class="newbtn" id="newBtn">+ New gallery</button>
+      <div class="glist" id="glist"></div>
+    </aside>
+    <div class="main" id="main">
+      <div class="placeholder"><h3>Select a gallery</h3><p>Choose a gallery on the left, or create a new one.</p></div>
+    </div>
+  </div>
+</div>
+<div id="toast"></div>
+
+<script>
+const WORKER_URL = 'https://tmw.jake-ab7.workers.dev';
+const GALLERY_HOST = 'https://gallery.oftmw.com';
+const TOKEN_KEY = 'tmw-admin-token-v1';
+
+let GALLERIES = [];
+let CUR = null;        // current gallery object {gallery, images}
+let DIRTY_ORDER = false;
+
+function getToken(){ return (localStorage.getItem(TOKEN_KEY)||'').trim(); }
+function authHdr(){ return { 'Authorization':'Bearer '+getToken() }; }
+function toast(msg,kind){ const e=document.getElementById('toast'); e.textContent=msg; e.classList.remove('success','error'); if(kind)e.classList.add(kind); e.classList.add('visible'); clearTimeout(e._t); e._t=setTimeout(()=>e.classList.remove('visible'),2800); }
+function escHtml(s){ return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function escAttr(s){ return escHtml(s); }
+function slugify(s){ return String(s||'').toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,60); }
+function thumb(key,w){ return GALLERY_HOST+'/thumb/'+key.split('/').map(encodeURIComponent).join('/')+'?w='+(w||300); }
+
+(async function init(){
+  if(!getToken()){
+    document.querySelector('.container').innerHTML='<div class="placeholder"><h3>Admin token required</h3><p>Visit <a href="/studio/" style="color:var(--green)">Posts</a> first to set your token, then come back.</p></div>';
+    return;
+  }
+  document.getElementById('newBtn').onclick=newGallery;
+  await loadList();
+})();
+
+async function loadList(){
+  try{
+    const r=await fetch(WORKER_URL+'/admin/galleries',{headers:authHdr(),cache:'no-store'});
+    if(r.status===401){ toast('Token rejected — set on /studio/ first','error'); return; }
+    const j=await r.json(); GALLERIES=j.items||[]; renderList();
+  }catch(e){ toast('Load failed: '+e.message,'error'); }
+}
+
+function renderList(){
+  const el=document.getElementById('glist');
+  if(!GALLERIES.length){ el.innerHTML='<div style="padding:18px;color:var(--mute);font-size:12.5px">No galleries yet. Create one →</div>'; return; }
+  el.innerHTML=GALLERIES.map(g=>`
+    <div class="gitem ${CUR&&CUR.gallery.slug===g.slug?'on':''}" data-slug="${escAttr(g.slug)}">
+      <div class="gt">
+        <div class="gn">${escHtml(g.title)}</div>
+        <div class="gs">
+          <span class="badge ${g.visibility==='public'?'pub':'unl'}">${g.visibility==='public'?'Public':'Unlisted'}</span>
+          ${g.has_pin?'<span title="Download PIN set">🔒</span>':''}
+        </div>
+      </div>
+      <span class="gc">${g.image_count||0}</span>
+    </div>`).join('');
+  el.querySelectorAll('.gitem').forEach(it=>it.onclick=()=>openGallery(it.dataset.slug));
+}
+
+function newGallery(){
+  CUR={ gallery:{ slug:'', title:'', subtitle:'', description:'', category:'', location:'', visibility:'unlisted', download_enabled:1, has_pin:false, cover_key:null }, images:[], isNew:true };
+  renderList(); renderEditor();
+}
+
+async function openGallery(slug){
+  try{
+    const r=await fetch(WORKER_URL+'/admin/galleries/'+encodeURIComponent(slug),{headers:authHdr(),cache:'no-store'});
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const j=await r.json(); CUR={ gallery:j.gallery, images:j.images||[], isNew:false }; DIRTY_ORDER=false;
+    renderList(); renderEditor();
+  }catch(e){ toast('Open failed: '+e.message,'error'); }
+}
+
+function renderEditor(){
+  const g=CUR.gallery;
+  const liveUrl=GALLERY_HOST+'/g/'+(g.slug||'');
+  document.getElementById('main').innerHTML=`
+    <div class="card">
+      <h2>${CUR.isNew?'New gallery':escHtml(g.title)}</h2>
+      <div class="ch-sub">${CUR.isNew?'Fill in the details and save to start adding photos.':'Settings'}</div>
+      <div class="frow">
+        <div class="field"><label>Title</label><input id="f_title" value="${escAttr(g.title)}" placeholder="The Boca Raton — Pool & Grounds"></div>
+        <div class="field"><label>Slug</label><input id="f_slug" value="${escAttr(g.slug)}" placeholder="boca-raton-pool" ${CUR.isNew?'':'disabled'}><span class="hint">${CUR.isNew?'lowercase-with-hyphens · used in the URL':'URL is fixed once created'}</span></div>
+      </div>
+      <div class="frow">
+        <div class="field"><label>Subtitle</label><input id="f_subtitle" value="${escAttr(g.subtitle||'')}" placeholder="A spring afternoon across the resort"></div>
+      </div>
+      <div class="frow">
+        <div class="field"><label>Category</label><input id="f_category" value="${escAttr(g.category||'')}" placeholder="Hotels · Golf · Restaurants"></div>
+        <div class="field"><label>Location</label><input id="f_location" value="${escAttr(g.location||'')}" placeholder="Boca Raton, FL"></div>
+        <div class="field"><label>Visibility</label><select id="f_visibility">
+          <option value="unlisted" ${g.visibility!=='public'?'selected':''}>Unlisted (link only)</option>
+          <option value="public" ${g.visibility==='public'?'selected':''}>Public (shows in portfolio)</option>
+        </select></div>
+      </div>
+      <div class="frow">
+        <div class="field">
+          <label>Download PIN</label>
+          <input id="f_pin" type="text" autocomplete="off" placeholder="${g.has_pin?'•••• (PIN is set)':'No PIN — downloads open'}">
+          <span class="hint">${g.has_pin?'PIN is set. Type a new one to change it.':'Type a PIN to require it for downloads.'}</span>
+        </div>
+        <div class="field" style="justify-content:flex-end">
+          <label class="toggle"><input type="checkbox" id="f_download" ${g.download_enabled!==0?'checked':''}> Allow downloads</label>
+          ${g.has_pin?'<button class="btn danger" id="rmPin" type="button" style="margin-top:8px">Remove PIN</button>':''}
+        </div>
+      </div>
+      <div class="btnrow">
+        <button class="btn primary" id="saveBtn">${CUR.isNew?'Create gallery':'Save settings'}</button>
+        ${CUR.isNew?'':`<a class="btn" href="${escAttr(liveUrl)}" target="_blank" rel="noopener">View live ↗</a>
+        <button class="btn" id="copyLink" type="button">Copy link</button>
+        <button class="btn danger" id="delBtn" type="button">Delete</button>`}
+        ${CUR.isNew?'':`<span class="linkbox"><a href="${escAttr(liveUrl)}" target="_blank" rel="noopener">${escHtml(liveUrl)}</a></span>`}
+      </div>
+    </div>
+    ${CUR.isNew?'':`
+    <div class="card">
+      <h2>Photos <span style="color:var(--mute);font-family:var(--mono);font-size:12px;font-weight:400">${CUR.images.length}</span></h2>
+      <div class="ch-sub">Drag tiles to reorder. Hover a tile to set the cover or remove it. Click a caption to edit.</div>
+      <label class="dropzone" id="dropzone" for="fileInput">
+        <input type="file" id="fileInput" accept="image/*" multiple>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3v14M5 10l7-7 7 7M3 21h18"/></svg>
+        <h3>Drop photos here, or click to choose</h3>
+        <p>JPEG / PNG / WebP · up to 25 MB each · added to this gallery</p>
+      </label>
+      <div id="uploads"></div>
+      <div class="btnrow" style="margin-bottom:14px">
+        <button class="btn" id="saveOrder" type="button" disabled>Save order</button>
+      </div>
+      <div class="pgrid" id="pgrid"></div>
+    </div>`}
+  `;
+
+  // hook settings
+  const titleEl=document.getElementById('f_title');
+  if(CUR.isNew){ titleEl.addEventListener('input',()=>{ const s=document.getElementById('f_slug'); if(!s._touched) s.value=slugify(titleEl.value); }); document.getElementById('f_slug').addEventListener('input',e=>e.target._touched=true); }
+  document.getElementById('saveBtn').onclick=saveSettings;
+  const rmPin=document.getElementById('rmPin'); if(rmPin)rmPin.onclick=removePin;
+  const del=document.getElementById('delBtn'); if(del)del.onclick=deleteGallery;
+  const cp=document.getElementById('copyLink'); if(cp)cp.onclick=async()=>{ try{await navigator.clipboard.writeText(liveUrl);toast('Link copied','success');}catch{toast('Copy failed','error');} };
+
+  if(!CUR.isNew){ hookDropzone(); renderPhotos(); const so=document.getElementById('saveOrder'); so.onclick=saveOrder; so.disabled=!DIRTY_ORDER; }
+}
+
+async function saveSettings(){
+  const g=CUR.gallery;
+  const body={
+    slug: CUR.isNew ? slugify(document.getElementById('f_slug').value||document.getElementById('f_title').value) : g.slug,
+    title: document.getElementById('f_title').value.trim(),
+    subtitle: document.getElementById('f_subtitle').value.trim(),
+    category: document.getElementById('f_category').value.trim(),
+    location: document.getElementById('f_location').value.trim(),
+    visibility: document.getElementById('f_visibility').value,
+    download_enabled: document.getElementById('f_download').checked,
+  };
+  const pin=document.getElementById('f_pin').value.trim();
+  if(pin) body.pin=pin;
+  if(!body.title){ toast('Title is required','error'); return; }
+  if(!body.slug){ toast('Slug is required','error'); return; }
+  try{
+    const r=await fetch(WORKER_URL+'/admin/galleries'+(CUR.isNew?'':'/'+encodeURIComponent(g.slug)),{
+      method:'POST', headers:{...authHdr(),'Content-Type':'application/json'}, body:JSON.stringify(body)
+    });
+    const j=await r.json();
+    if(!r.ok)throw new Error(j.error||('HTTP '+r.status));
+    toast(CUR.isNew?'Gallery created':'Saved','success');
+    await loadList(); await openGallery(body.slug);
+  }catch(e){ toast('Save failed: '+e.message,'error'); }
+}
+
+async function removePin(){
+  if(!confirm('Remove the download PIN? Downloads will be open to anyone.'))return;
+  try{
+    const r=await fetch(WORKER_URL+'/admin/galleries/'+encodeURIComponent(CUR.gallery.slug),{method:'POST',headers:{...authHdr(),'Content-Type':'application/json'},body:JSON.stringify({pin:''})});
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    toast('PIN removed','success'); await openGallery(CUR.gallery.slug);
+  }catch(e){ toast('Failed: '+e.message,'error'); }
+}
+
+async function deleteGallery(){
+  if(!confirm('Delete this gallery? The photos stay in your media library, but the gallery and its order are removed.'))return;
+  try{
+    const r=await fetch(WORKER_URL+'/admin/galleries/'+encodeURIComponent(CUR.gallery.slug),{method:'DELETE',headers:authHdr()});
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    toast('Deleted','success'); CUR=null; await loadList();
+    document.getElementById('main').innerHTML='<div class="placeholder"><h3>Select a gallery</h3><p>Choose a gallery on the left, or create a new one.</p></div>';
+  }catch(e){ toast('Delete failed: '+e.message,'error'); }
+}
+
+// ── uploads ──
+function hookDropzone(){
+  const dz=document.getElementById('dropzone'), input=document.getElementById('fileInput');
+  ['dragenter','dragover'].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();e.stopPropagation();dz.classList.add('drag');}));
+  ['dragleave','drop'].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();e.stopPropagation();dz.classList.remove('drag');}));
+  dz.addEventListener('drop',e=>{ if(e.dataTransfer.files)uploadFiles([...e.dataTransfer.files]); });
+  input.addEventListener('change',e=>{ if(e.target.files)uploadFiles([...e.target.files]); input.value=''; });
+}
+
+async function uploadFiles(files){
+  if(!files.length)return;
+  const uploadsEl=document.getElementById('uploads');
+  const newKeys=[];
+  for(const file of files){
+    if(!file.type.startsWith('image/')){ continue; }
+    const node=document.createElement('div'); node.className='uploading';
+    node.innerHTML=`<div class="spin"></div><span>Uploading ${escHtml(file.name)}…</span>`; uploadsEl.appendChild(node);
+    try{
+      const form=new FormData(); form.append('file',file); form.append('folder',CUR.gallery.slug);
+      const r=await fetch(WORKER_URL+'/admin/upload',{method:'POST',headers:authHdr(),body:form});
+      if(!r.ok){ const t=await r.text(); throw new Error('HTTP '+r.status+': '+t.slice(0,120)); }
+      const d=await r.json(); newKeys.push(d.key);
+      node.innerHTML=`<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;color:var(--green)"><path d="M3 8l4 4 6-8"/></svg><span>Uploaded ${escHtml(file.name)}</span>`;
+      setTimeout(()=>node.remove(),1800);
+    }catch(e){
+      node.innerHTML=`<span style="color:var(--danger)">Failed ${escHtml(file.name)}: ${escHtml(e.message)}</span>`; setTimeout(()=>node.remove(),6000);
+    }
+  }
+  if(newKeys.length) await attachImages(newKeys);
+}
+
+async function attachImages(keys){
+  try{
+    const r=await fetch(WORKER_URL+'/admin/galleries/'+encodeURIComponent(CUR.gallery.slug)+'/images',{method:'POST',headers:{...authHdr(),'Content-Type':'application/json'},body:JSON.stringify({add:keys})});
+    const j=await r.json(); if(!r.ok)throw new Error(j.error||('HTTP '+r.status));
+    CUR.images=j.images||CUR.images; toast('Added '+keys.length+' photo'+(keys.length>1?'s':''),'success'); renderEditor();
+  }catch(e){ toast('Attach failed: '+e.message,'error'); }
+}
+
+// ── photo grid: reorder / cover / caption / remove ──
+function renderPhotos(){
+  const grid=document.getElementById('pgrid');
+  if(!CUR.images.length){ grid.innerHTML='<div style="color:var(--mute);font-size:13px;padding:20px">No photos yet — drop some above.</div>'; return; }
+  const coverKey=CUR.gallery.cover_key;
+  grid.innerHTML=CUR.images.map((im,i)=>`
+    <div class="ptile ${im.key===coverKey?'cover':''}" draggable="true" data-key="${escAttr(im.key)}" data-i="${i}">
+      <div class="pimg"><img src="${escAttr(thumb(im.key,300))}" alt=""></div>
+      ${im.key===coverKey?'<span class="covtag">Cover</span>':`<span class="ord">${i+1}</span>`}
+      <div class="pacts">
+        <button data-cover="${escAttr(im.key)}" title="Set as cover">★</button>
+        <button class="danger" data-remove="${escAttr(im.key)}" title="Remove from gallery">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 4l8 8M12 4l-8 8"/></svg>
+        </button>
+      </div>
+      <input class="pcap" value="${escAttr(im.caption||'')}" placeholder="Caption…" data-cap="${escAttr(im.key)}">
+    </div>`).join('');
+
+  grid.querySelectorAll('[data-cover]').forEach(b=>b.onclick=e=>{e.stopPropagation();setCover(b.dataset.cover);});
+  grid.querySelectorAll('[data-remove]').forEach(b=>b.onclick=e=>{e.stopPropagation();removeImage(b.dataset.remove);});
+  grid.querySelectorAll('[data-cap]').forEach(inp=>{
+    inp.onclick=e=>e.stopPropagation();
+    inp.onchange=()=>saveCaption(inp.dataset.cap,inp.value);
+  });
+  hookDrag(grid);
+}
+
+let dragKey=null;
+function hookDrag(grid){
+  grid.querySelectorAll('.ptile').forEach(tile=>{
+    tile.addEventListener('dragstart',e=>{ dragKey=tile.dataset.key; tile.classList.add('dragging'); e.dataTransfer.effectAllowed='move'; });
+    tile.addEventListener('dragend',()=>tile.classList.remove('dragging'));
+    tile.addEventListener('dragover',e=>{ e.preventDefault(); const t=e.currentTarget; if(t.dataset.key===dragKey)return;
+      const r=t.getBoundingClientRect(); const after=(e.clientY-r.top)/(r.height)>0.5||(e.clientX-r.left)/(r.width)>0.5;
+    });
+    tile.addEventListener('drop',e=>{ e.preventDefault(); const targetKey=e.currentTarget.dataset.key; reorder(dragKey,targetKey); });
+  });
+}
+function reorder(fromKey,toKey){
+  if(!fromKey||fromKey===toKey)return;
+  const arr=CUR.images; const fi=arr.findIndex(x=>x.key===fromKey); const ti=arr.findIndex(x=>x.key===toKey);
+  if(fi<0||ti<0)return;
+  const [moved]=arr.splice(fi,1); arr.splice(ti,0,moved);
+  DIRTY_ORDER=true; renderPhotos(); document.getElementById('saveOrder').disabled=false;
+}
+async function saveOrder(){
+  try{
+    const order=CUR.images.map(x=>x.key);
+    const r=await fetch(WORKER_URL+'/admin/galleries/'+encodeURIComponent(CUR.gallery.slug)+'/images',{method:'POST',headers:{...authHdr(),'Content-Type':'application/json'},body:JSON.stringify({order})});
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    DIRTY_ORDER=false; document.getElementById('saveOrder').disabled=true; toast('Order saved','success');
+  }catch(e){ toast('Save order failed: '+e.message,'error'); }
+}
+async function setCover(key){
+  try{
+    const r=await fetch(WORKER_URL+'/admin/galleries/'+encodeURIComponent(CUR.gallery.slug)+'/images',{method:'POST',headers:{...authHdr(),'Content-Type':'application/json'},body:JSON.stringify({cover:key})});
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    CUR.gallery.cover_key=key; toast('Cover set','success'); renderPhotos();
+  }catch(e){ toast('Failed: '+e.message,'error'); }
+}
+async function removeImage(key){
+  if(!confirm('Remove this photo from the gallery? (It stays in your media library.)'))return;
+  try{
+    const r=await fetch(WORKER_URL+'/admin/galleries/'+encodeURIComponent(CUR.gallery.slug)+'/images',{method:'POST',headers:{...authHdr(),'Content-Type':'application/json'},body:JSON.stringify({remove:[key]})});
+    const j=await r.json(); if(!r.ok)throw new Error(j.error||('HTTP '+r.status));
+    CUR.images=j.images||CUR.images.filter(x=>x.key!==key); toast('Removed','success'); renderEditor();
+  }catch(e){ toast('Remove failed: '+e.message,'error'); }
+}
+async function saveCaption(key,val){
+  try{
+    const r=await fetch(WORKER_URL+'/admin/galleries/'+encodeURIComponent(CUR.gallery.slug)+'/images',{method:'POST',headers:{...authHdr(),'Content-Type':'application/json'},body:JSON.stringify({captions:{[key]:val}})});
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const im=CUR.images.find(x=>x.key===key); if(im)im.caption=val; toast('Caption saved','success');
+  }catch(e){ toast('Caption failed: '+e.message,'error'); }
+}
+</script>
+</body>
+</html>
