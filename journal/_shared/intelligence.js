@@ -100,7 +100,7 @@
 .tmw-intel .intel .forecast .big{font-size:22px; font-weight:700; color:var(--purple-glow); letter-spacing:-.01em; line-height:1}
 .tmw-intel .intel .forecast .big small{font-size:12px; color:#fff; font-weight:500; margin-left:3px}
 .tmw-intel .intel .conf{display:flex; align-items:center; gap:8px; margin-top:10px}
-.tmw-intel .intel .conf .bar{flex:1; height:5px; border-radius:3px; background:rgba(255,255,255,.1); overflow:hidden}
+.tmw-intel .intel .conf .bar{flex:1; height:5px; padding:0; border:0; backdrop-filter:none; -webkit-backdrop-filter:none; border-radius:3px; background:rgba(255,255,255,.1); overflow:hidden}
 .tmw-intel .intel .conf .bar i{display:block; height:100%; border-radius:3px; background:linear-gradient(90deg, var(--purple-deep), var(--purple-glow)); transition:width .6s ease}
 .tmw-intel .intel .conf .pc{font-family:var(--mono); font-size:10px; color:var(--purple-glow); font-weight:500}
 .tmw-intel .intel .conf .lbl{font-family:var(--mono); font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:var(--mute)}
