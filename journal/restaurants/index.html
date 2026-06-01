@@ -536,10 +536,11 @@ footer .tmw-wordmark{width:118px}
 <!-- ============== ABOUT PANEL ============== -->
 <section class="tab-panel" data-panel="about">
   <div class="wrap about-panel">
-    <p data-edit="aboutP1">The Iconic Restaurant List is Markets of Tomorrow's curated ranking of the restaurants defining the modern dining experience. It is editorial, not algorithmic — assembled by our editors after meals shared, conversations with operators, and tracking what's opening next.</p>
-    <p class="pull" data-edit="aboutPull">"We don't rank by stars or hype — we rank by what stays with you after the last plate."</p>
-    <p data-edit="aboutP2">Inclusion is invitation-only and revisited annually. The list spans destination tables, neighborhood institutions, and the chef-driven openings shaping tomorrow's standard.</p>
-    <p data-edit="aboutP3">To nominate a restaurant for consideration, or to inquire about partnership opportunities, contact our editors at <a href="mailto:hello@oftmw.com">hello@oftmw.com</a>.</p>
+    <p data-edit="aboutP1">The Iconic Restaurants List is Markets of Tomorrow's curated record of rooms that have left a lasting impression — shaped not by rankings or reputation, but by firsthand experience gathered over years of meals across cities, neighborhoods, and culinary traditions.</p>
+    <p data-edit="aboutP2">Every restaurant has been personally dined in by our team, so each entry is grounded in a real, at-the-table perspective. From neighborhood counters to celebrated fine-dining destinations, the list spans a wide spectrum united by one standard: kitchen integrity, hospitality, setting, and a distinct sense of place.</p>
+    <p class="pull" data-edit="aboutPull">"It's not about where to eat, but about the meals that stay with you long after the last course."</p>
+    <p data-edit="aboutP3">Our evaluations go beyond the menu. We weigh the cooking — technique, sourcing, the intent behind each plate — alongside the full experience: how a meal unfolds from the first seat to the last pour, the rhythm of service, the room and the bar, the atmosphere around the table.</p>
+    <p data-edit="aboutP4">Rather than rigid scoring, the list is shaped by comparison, memory, and repeat visits. Restaurants rise on how distinctly they stand apart and how strongly they resonate over time. Some earn their place through the food, others through setting or history; the most iconic balance all three.</p>
     <a class="about-cta" href="mailto:media@oftmw.com?subject=Request%20a%20Visit%20%E2%80%94%20Iconic%20Restaurant%20List">Request Visit <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></a>
   </div>
 </section>
@@ -622,10 +623,11 @@ footer .tmw-wordmark{width:118px}
   "title": "The Iconic Restaurant List",
   "subtitle": "A curated ranking of the restaurants defining the modern dining experience — destination tables, chef-driven institutions, and the new openings setting tomorrow's standard.",
   "about": {
-    "p1": "The Iconic Restaurant List is Markets of Tomorrow's curated ranking of the restaurants defining the modern dining experience. It is editorial, not algorithmic — assembled by our editors after meals shared, conversations with operators, and tracking what's opening next.",
-    "pull": "\"We don't rank by stars or hype — we rank by what stays with you after the last plate.\"",
-    "p2": "Inclusion is invitation-only and revisited annually. The list spans destination tables, neighborhood institutions, and the chef-driven openings shaping tomorrow's standard.",
-    "p3": "To nominate a restaurant for consideration, or to inquire about partnership opportunities, contact our editors at hello@oftmw.com."
+    "p1": "The Iconic Restaurants List is Markets of Tomorrow's curated record of rooms that have left a lasting impression — shaped not by rankings or reputation, but by firsthand experience gathered over years of meals across cities, neighborhoods, and culinary traditions.",
+    "p2": "Every restaurant has been personally dined in by our team, so each entry is grounded in a real, at-the-table perspective. From neighborhood counters to celebrated fine-dining destinations, the list spans a wide spectrum united by one standard: kitchen integrity, hospitality, setting, and a distinct sense of place.",
+    "pull": "\"It's not about where to eat, but about the meals that stay with you long after the last course.\"",
+    "p3": "Our evaluations go beyond the menu. We weigh the cooking — technique, sourcing, the intent behind each plate — alongside the full experience: how a meal unfolds from the first seat to the last pour, the rhythm of service, the room and the bar, the atmosphere around the table.",
+    "p4": "Rather than rigid scoring, the list is shaped by comparison, memory, and repeat visits. Restaurants rise on how distinctly they stand apart and how strongly they resonate over time. Some earn their place through the food, others through setting or history; the most iconic balance all three."
   },
   "regions": [
     "Florida",
@@ -1530,11 +1532,16 @@ function applyDocToHeader() {
   // (no <em> markup) since contenteditable doesn't preserve tags reliably.
   if (DATA.title)    setEditable('title', DATA.title);
   if (DATA.subtitle) setEditable('subtitle', DATA.subtitle);
-  if (DATA.about) {
+  // About: the canonical bios now live in this page's HTML. Only let a worker
+  // doc override them if it's a genuine Studio edit — not the legacy seeded
+  // "editorial, not algorithmic" copy we've since replaced.
+  var legacyAbout = DATA.about && /editorial,\s*not\s*algorithmic/i.test(DATA.about.p1 || '');
+  if (DATA.about && !legacyAbout) {
     if (DATA.about.p1)   setEditable('aboutP1', DATA.about.p1);
-    if (DATA.about.pull) setEditable('aboutPull', DATA.about.pull);
     if (DATA.about.p2)   setEditable('aboutP2', DATA.about.p2);
+    if (DATA.about.pull) setEditable('aboutPull', DATA.about.pull);
     if (DATA.about.p3)   setEditable('aboutP3', DATA.about.p3);
+    if (DATA.about.p4)   setEditable('aboutP4', DATA.about.p4);
   }
   const count = (DATA.items || []).length;
   // Mirror the count into both the hidden + visible nodes so older JS
@@ -1781,6 +1788,7 @@ function makeFieldEditable(el, id) {
         if (field === 'aboutPull') DATA.about.pull = val;
         if (field === 'aboutP2')   DATA.about.p2 = val;
         if (field === 'aboutP3')   DATA.about.p3 = val;
+        if (field === 'aboutP4')   DATA.about.p4 = val;
       }
     }
     markDirty();

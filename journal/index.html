@@ -545,7 +545,7 @@ section.grid-section{padding:60px 0 90px; position:relative}
 /* =================================================================== */
 /* NEWSLETTER STRIP                                                     */
 /* =================================================================== */
-.nlstrip{background:linear-gradient(180deg, var(--ink-2), var(--ink)); border-top:1px solid var(--hair); border-bottom:1px solid var(--hair); padding:70px 0; position:relative; overflow:hidden}
+.nlstrip{background:linear-gradient(180deg, var(--ink-2), var(--ink)); border-top:1px solid var(--hair); border-bottom:1px solid var(--hair); padding:70px 0; position:relative; overflow:hidden; scroll-margin-top:110px}
 .nlstrip::before{content:""; position:absolute; top:-50%; right:-10%; width:700px; height:700px; background:radial-gradient(closest-side, rgba(31,223,103,.18), transparent 70%); pointer-events:none}
 .nlstrip::after{content:""; position:absolute; bottom:-40%; left:-10%; width:600px; height:600px; background:radial-gradient(closest-side, rgba(230,197,116,.10), transparent 70%); pointer-events:none}
 .nlstrip .wrap{position:relative; display:grid; grid-template-columns:1.2fr 1fr; gap:60px; align-items:center}
@@ -791,7 +791,7 @@ footer .ft-logo .tmw-wordmark{width:118px}
         <span class="qe">The Newsletter</span>
         <div>
           <h3>Get the weekly pulse, free</h3>
-          <p>One curated email every Sunday — the seven stories shaping next week's markets.</p>
+          <p>One curated email every Tuesday — the seven markets shaping the week ahead.</p>
         </div>
         <span class="qarr">Subscribe
           <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
@@ -805,9 +805,9 @@ footer .ft-logo .tmw-wordmark{width:118px}
 <section class="nlstrip" id="newsletter">
   <div class="wrap">
     <div>
-      <div class="eyebrow">The Sunday Brief</div>
-      <h2>Seven stories. One Sunday. Zero fluff.</h2>
-      <p>The week ahead in hospitality, real estate, food, and the markets defining tomorrow — delivered free every Sunday morning to 84,000+ operators, developers, and investors.</p>
+      <div class="eyebrow">The Tuesday Brief</div>
+      <h2>Seven markets. One blast.</h2>
+      <p>The week ahead in hospitality, real estate, food, and the markets defining tomorrow — delivered free every Tuesday morning to tens of thousands of operators, developers, and investors.</p>
     </div>
     <form class="nlform" id="nlform">
       <input type="email" id="nlemail" placeholder="you@yourcompany.com" autocomplete="email" required>
@@ -831,7 +831,7 @@ footer .ft-logo .tmw-wordmark{width:118px}
     try{
       var r=await fetch(ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email,name:'',markets:MARKETS})});
       var d=await r.json().catch(function(){return{};});
-      if(d&&d.success){ try{ if(window.gtag) window.gtag('event','subscribe_home'); }catch(_){} f.innerHTML='<div style="font-family:var(--mono);font-size:13px;letter-spacing:.06em;color:var(--green);padding:14px 4px">✓ You\'ve subscribed! Welcome to The Weekly.</div>'; }
+      if(d&&d.success){ try{ if(window.gtag) window.gtag('event','subscribe_home'); }catch(_){} f.innerHTML='<div style="font-family:var(--mono);font-size:13px;letter-spacing:.06em;color:var(--green);padding:14px 4px">✓ You\'ve subscribed! Welcome to The Tuesday Brief.</div>'; }
       else { btn.disabled=false; btn.textContent=orig; input.focus(); }
     }catch(err){ btn.disabled=false; btn.textContent=orig; }
   });
@@ -1599,6 +1599,17 @@ async function updateMapCounter() {
 
 <!-- Shared Partners of Tomorrow — renders into <div data-tmw-partners> on this page (and any future page that drops the same mount + script). -->
 <script src="./_shared/partners.js" defer></script>
+<!-- Async sections (Partners, carousel, cards) mount after first paint and shift
+     the layout, so a #hash in the URL (e.g. /#newsletter) scrolls to the wrong
+     section on load. Re-apply the scroll to the hash target once things settle. -->
+<script>
+(function () {
+  var hash = location.hash;
+  if (!hash || hash.length < 2) return;
+  function go() { try { var el = document.getElementById(decodeURIComponent(hash.slice(1))); if (el) el.scrollIntoView({ block: 'start' }); } catch (e) {} }
+  window.addEventListener('load', function () { go(); setTimeout(go, 300); setTimeout(go, 1000); });
+})();
+</script>
 <!-- Pinned journal dock — map / search / home -->
 <script src="/_shared/journal-dock.js" defer></script>
 <!-- Shared Memberstack login (one account across map + journal) -->
