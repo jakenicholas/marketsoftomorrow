@@ -70,8 +70,9 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between; gap:1
 .nav-right{display:flex; align-items:center; gap:20px}
 .nav-back{font-family:var(--mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--mute2); text-decoration:none; transition:color .2s; white-space:nowrap}
 .nav-back:hover{color:var(--cream)}
-.nav-cta{font-family:var(--mono); font-size:12px; letter-spacing:.08em; color:var(--ink); background:var(--green); padding:9px 16px; border-radius:999px; text-decoration:none; font-weight:700; text-transform:uppercase; transition:transform .2s, background .2s; white-space:nowrap}
-.nav-cta:hover{background:var(--green-soft); transform:translateY(-1px)}
+/* gold-glow CTA — matches the selected location filter pill (.pill.on) */
+.nav-cta{font-family:var(--mono); font-size:12px; letter-spacing:.08em; color:var(--gold-soft); background:rgba(230,197,116,.10); border:1px solid rgba(230,197,116,.34); padding:9px 16px; border-radius:999px; text-decoration:none; font-weight:700; text-transform:uppercase; white-space:nowrap; text-shadow:0 0 14px rgba(230,197,116,.5),0 0 3px rgba(230,197,116,.32); box-shadow:0 0 18px rgba(230,197,116,.16); transition:all .2s}
+.nav-cta:hover{background:rgba(230,197,116,.16); border-color:rgba(230,197,116,.5); transform:translateY(-1px)}
 
 .tmw-logo-lockup{display:flex; align-items:center; gap:8px}
 .tmw-hex-badge{flex:0 0 auto; width:21px; height:21px}
