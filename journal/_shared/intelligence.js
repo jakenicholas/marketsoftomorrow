@@ -156,7 +156,7 @@
 .tmw-intel .feat .fname .lock{width:11px; height:11px; stroke:var(--gold-soft); fill:none; stroke-width:2}
 .tmw-intel .feat .fdesc{font-size:11.5px; color:var(--mute); margin-top:5px; line-height:1.45; font-weight:300}
 .tmw-intel .feat .ptag2{position:absolute; top:13px; right:13px; font-family:var(--mono); font-size:8px; letter-spacing:.12em; color:var(--gold-soft); border:1px solid rgba(230,197,116,.4); border-radius:5px; padding:2px 5px}
-.tmw-intel .cta{margin-top:30px; display:flex; align-items:center; justify-content:space-between; gap:24px; padding:26px 30px; border-radius:16px;
+.tmw-intel .cta{margin-top:30px; min-height:0; display:flex; align-items:center; justify-content:space-between; gap:24px; padding:26px 30px; border-radius:16px;
   background:linear-gradient(100deg, rgba(167,139,250,.1), rgba(31,223,103,.06)); border:1px solid var(--hair2); flex-wrap:wrap}
 .tmw-intel .cta .ctxt{max-width:560px}
 .tmw-intel .cta .ctxt h3{font-family:var(--serif); font-weight:400; font-size:clamp(20px,2.4vw,28px); color:#fff; letter-spacing:-.01em; line-height:1.2}
