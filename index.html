@@ -17000,6 +17000,9 @@
             }
             // Honor ?view=favorites if user landed on the URL ‚Äî paid only
             if (window._maybeActivateFavoritesViewFromUrl) window._maybeActivateFavoritesViewFromUrl();
+            // Honor ?upgrade=1 (the journal's GO PRO chip deep-links here) ‚Äî open
+            // the subscription paywall for non-paid users.
+            if (window._maybeShowUpgradeFromUrl) window._maybeShowUpgradeFromUrl();
           } else {
             window._favorites = new Set();
             window._lastViewed = {};
@@ -18806,6 +18809,23 @@
         if (params.get('view') === 'favorites' && isPaidMember) {
           window.setFavoritesView(true);
         }
+      };
+
+      // ?upgrade=1 deep-link ‚Äî the journal's universal-header "GO PRO" chip sends
+      // free members here. Open the SAME subscription paywall the map's own GO PRO
+      // badge opens, once (guarded), and only for non-paid users. Already-Pro users
+      // just get the param cleaned off the URL.
+      window._maybeShowUpgradeFromUrl = function() {
+        try {
+          const params = new URLSearchParams(window.location.search);
+          if (params.get('upgrade') !== '1') return;
+          if (window.__tmwUpgradeShown) return;
+          if (isPaidMember) { try { history.replaceState(null, '', window.location.pathname); } catch (_) {} return; }
+          window.__tmwUpgradeShown = true;
+          if (typeof window.showSubscriptionPaywall === 'function') {
+            window.showSubscriptionPaywall('upgrade:deeplink');
+          }
+        } catch (_) {}
       };
 
       // ‚îÄ‚îÄ‚îÄ Public API: gate every project interaction ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ

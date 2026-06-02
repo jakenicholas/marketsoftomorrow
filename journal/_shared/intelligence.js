@@ -202,7 +202,7 @@
   .tmw-intel .rail{border-left:none; border-top:1px solid var(--hair)}
   .tmw-intel .lblist{overflow:visible; -webkit-mask-image:none; mask-image:none}
   .tmw-intel .intel{width:255px}
-  .tmw-intel .feats{grid-template-columns:repeat(2,1fr)}
+  .tmw-intel .feats{grid-template-columns:repeat(2,1fr); grid-auto-rows:1fr}
   .tmw-intel .headstats{gap:24px}
   .tmw-intel .ti-grid{grid-template-columns:1fr}
   .tmw-intel .ti-strip{flex-direction:column; align-items:stretch; gap:18px}
@@ -212,7 +212,7 @@
   .tmw-intel{padding:72px 0 82px}
   .tmw-intel .wrap{padding:0 18px}
   .tmw-intel .cmd .kbd{display:none}
-  .tmw-intel .feats{grid-template-columns:1fr}
+  .tmw-intel .feats{grid-template-columns:repeat(2,1fr); grid-auto-rows:1fr}
   .tmw-intel .cta{flex-direction:column; align-items:flex-start}
   .tmw-intel .intel{position:relative; width:auto; margin:14px; left:0!important; top:0!important; right:auto!important; bottom:auto!important}
 }
