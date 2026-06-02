@@ -306,11 +306,15 @@ const TOOLS = [
         description_long: { type: 'string', description: 'Full descriptive paragraph' },
         types: { type: 'array', items: { type: 'string' }, description: 'Project types from the controlled vocab: Residences, Hotel, Mixed-Use, Entertainment, Eateries, Retail, Office, Park, Marina, Golf, Resort, Cultural, Museum, Stadium, Education, Healthcare, Spa, Travel, Airport, Opera House, Hospital' },
         preferred_type: { type: 'string', description: 'The single primary type (defaults to the first of types)' },
-        architects: { type: 'array', items: { type: 'string' }, description: 'Architect firm names — slugified into architect_slugs' },
-        developers: { type: 'array', items: { type: 'string' }, description: 'Developer firm names — slugified into developer_slugs' },
+        architects: { type: 'array', items: { type: 'string' }, description: 'Architect firm names. Each is matched against the existing firm registry (punctuation-insensitive) and bound to the canonical slug so established firms attach in the admin picker; unmatched names are staged as new firms. Use the real firm name (e.g. "Spina O\'Rourke + Partners"); search_firms can confirm existing ones first.' },
+        developers: { type: 'array', items: { type: 'string' }, description: 'Developer firm names — matched to the firm registry the same way as architects (existing firms bind to the picker; new ones are staged).' },
         website: { type: 'string', description: 'Official project website' },
         units: { type: 'integer' },
         floors: { type: 'integer' },
+        start_date: { type: 'string', description: 'Construction start date — year ("2027") or ISO ("2027-06"). Set start_speculative when it is a TMW estimate rather than developer-committed.' },
+        delivery_date: { type: 'string', description: 'Expected completion/delivery date — year or ISO. Set delivery_speculative when it is a TMW estimate.' },
+        start_speculative: { type: 'boolean', description: 'True if start_date is a TMW estimate (not developer-committed) — checks the "TMW estimate" box on the start date.' },
+        delivery_speculative: { type: 'boolean', description: 'True if delivery_date is a TMW estimate — checks the "TMW estimate" box on the delivery date.' },
         images: { type: 'array', items: { type: 'string' }, description: 'Image URLs (hero / renders)' },
         source_note: { type: 'string', description: 'Where this came from — e.g. the TMW article URL or press source' },
       },
@@ -506,6 +510,44 @@ async function ghPutFile(env, path, contentStr, sha, message) {
     throw e;
   }
   return await r.json();
+}
+
+// ── Firm registry → resolve architect/developer names to canonical slugs ─────
+// The admin form's architect/developer pickers bind on the EXACT slug from
+// tmw-data's firm registry (data/architects.json + data/developers.json).
+// Naively slugifying a name can miss the canonical slug — e.g. "Spina O'Rourke
+// + Partners" slugifies to "spina-o-rourke-partners" but the registry slug is
+// "spina-orourke-partners" — so the established firm wouldn't attach. We load
+// the registry and match on a punctuation-insensitive normalized name, falling
+// back to slugify() only for genuinely new firms.
+let _firmRegCache = null;
+function normFirmName(s) { return String(s || '').toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g, ''); }
+async function loadFirmRegistry(env) {
+  if (_firmRegCache) return _firmRegCache;
+  const reg = { architects: new Map(), developers: new Map() };
+  for (const [role, path] of [['architects', 'data/architects.json'], ['developers', 'data/developers.json']]) {
+    try {
+      const { text } = await ghGetFile(env, path);
+      const arr = text ? JSON.parse(text) : [];
+      for (const f of (Array.isArray(arr) ? arr : [])) {
+        if (f && f.slug && f.name) reg[role].set(normFirmName(f.name), { slug: f.slug, name: f.name });
+      }
+    } catch (_) { /* registry unavailable — resolveFirms will fall back to slugify */ }
+  }
+  _firmRegCache = reg;
+  return _firmRegCache;
+}
+// Resolve firm names to canonical slugs; report which matched an existing firm.
+function resolveFirms(names, regMap) {
+  const slugs = [], report = [];
+  for (const raw of (Array.isArray(names) ? names : [])) {
+    const name = String(raw || '').trim();
+    if (!name) continue;
+    const hit = regMap.get(normFirmName(name));
+    const slug = hit ? hit.slug : slugify(name);
+    if (slug) { slugs.push(slug); report.push({ name, slug, existing: !!hit }); }
+  }
+  return { slugs, report };
 }
 
 // ── Tool implementations ────────────────────────────────────────────────────
@@ -946,6 +988,12 @@ const IMPL = {
     const num = (v) => (v == null || v === '' || isNaN(Number(v)) ? null : Number(v));
     const types = Array.isArray(args.types) ? args.types.map((t) => String(t).trim()).filter(Boolean) : [];
 
+    // Resolve architect/developer names to the registry's canonical slugs so
+    // established firms attach in the admin picker (not duplicate slugs).
+    const registry = await loadFirmRegistry(env);
+    const archRes = resolveFirms(args.architects, registry.architects);
+    const devRes = resolveFirms(args.developers, registry.developers);
+
     const data = {
       slug: slugify(title),
       name: title,
@@ -957,13 +1005,20 @@ const IMPL = {
       preferred_type: String(args.preferred_type || types[0] || ''),
       description: String(args.description || ''),
       description_long: String(args.description_long || args.description || ''),
-      architect_slugs: (Array.isArray(args.architects) ? args.architects : []).map((a) => slugify(a)).filter(Boolean),
-      developer_slugs: (Array.isArray(args.developers) ? args.developers : []).map((d) => slugify(d)).filter(Boolean),
+      architect_slugs: archRes.slugs,
+      developer_slugs: devRes.slugs,
       official_website: String(args.website || ''),
       units: num(args.units),
       floors: num(args.floors),
     };
     if (Array.isArray(args.images) && args.images.length) data.images = args.images.map(String);
+    // Dates (optional). The admin reads start_date/delivery_date + their
+    // *_speculative flags — set the flag when it's a TMW estimate vs a
+    // developer-committed date.
+    if (args.start_date) data.start_date = String(args.start_date);
+    if (args.delivery_date) data.delivery_date = String(args.delivery_date);
+    if (args.start_speculative) data.start_speculative = true;
+    if (args.delivery_speculative) data.delivery_speculative = true;
 
     const isoNow = new Date().toISOString();
     const stamp = isoNow.slice(0, 10);
@@ -997,10 +1052,17 @@ const IMPL = {
     }
 
     const needsCoords = data.lat == null || data.lng == null;
+    const newFirms = [...archRes.report, ...devRes.report].filter((f) => !f.existing).map((f) => f.name);
     return {
       ok: true, draft_id, created_by: 'claude-studio', status: data.status, project: data, needs_coords: needsCoords,
       admin_url: MAP_ADMIN_URL,
-      note: 'Queued for review — open the TMW Studio map admin at ' + MAP_ADMIN_URL + ' and click the "Drafts" tab; "' + data.name + '" is there now as a CLAUDE DRAFT. Review and promote it from that tab to put it on the live map — it is NOT live yet. (Stored in ' + ghRepo(env) + '/' + GH_DRAFTS_PATH + ', which that admin reads directly — so this IS the right place; do not tell the user it landed anywhere the admin cannot see.)' + (needsCoords ? ' Add lat/lng before it can be placed.' : ''),
+      firms: { architects: archRes.report, developers: devRes.report },
+      note: 'Queued for review — open the TMW Studio map admin at ' + MAP_ADMIN_URL + ' and click the "Drafts" tab; "' + data.name + '" is there now as a CLAUDE DRAFT. Review and promote it from that tab to put it on the live map — it is NOT live yet. (Stored in ' + ghRepo(env) + '/' + GH_DRAFTS_PATH + ', which that admin reads directly.)'
+        + (archRes.report.length || devRes.report.length
+            ? ' Firms resolved to registry slugs (existing firms bind to the admin picker automatically; '
+              + (newFirms.length ? 'NEW firms not yet in the registry: ' + newFirms.join(', ') + ' — they will be created on publish/review).' : 'all matched existing firms).')
+            : '')
+        + (needsCoords ? ' Add lat/lng before it can be placed.' : ''),
     };
   },
 
@@ -1223,6 +1285,7 @@ export async function handleMcp(request, env) {
 
   _projectsCache = null;   // fresh per request
   _articlesCache = null;
+  _firmRegCache = null;
 
   const batch = Array.isArray(payload);
   const msgs = batch ? payload : [payload];
