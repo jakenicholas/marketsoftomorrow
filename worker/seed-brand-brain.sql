@@ -1,0 +1,23 @@
+CREATE TABLE IF NOT EXISTS brand_notes (id TEXT PRIMARY KEY, kind TEXT NOT NULL, category TEXT, note TEXT NOT NULL, context TEXT, created_by TEXT, created_at INTEGER, active INTEGER DEFAULT 1);
+
+INSERT OR REPLACE INTO brand_notes (id, kind, category, note, context, created_by, created_at, active) VALUES
+('bn-seed-01','voice','voice','Write in Markets of Tomorrow''s optimistic, momentum-driven voice — every story is about what''s being built next; favor forward-looking verbs (unveils, to rise, debuts, launches, is coming, reshaping).',NULL,'claude-seed',1748822401,1),
+('bn-seed-02','voice','voice','Lead the first sentence with what + where + when, and land a hook fast — a nickname or superlative works well (e.g. "West Palm Beach, aka Wall Street South" or "Miami''s first floating padel courts").',NULL,'claude-seed',1748822402,1),
+('bn-seed-03','voice','voice','Promotional but factual: celebrate the project, but back every claim with specifics — never hype without numbers.',NULL,'claude-seed',1748822403,1),
+('bn-seed-04','voice','voice','Byline is Jake Nicholas; the masthead is Markets of Tomorrow / Florida of Tomorrow.',NULL,'claude-seed',1748822404,1),
+('bn-seed-05','rule','rule','Always name the players — developer, architect/design firm, and operator/brand — and hyperlink each firm and the project''s official site (target=_blank rel=noopener).',NULL,'claude-seed',1748822405,1),
+('bn-seed-06','rule','rule','Pack in hard specifics: square footage, unit/key counts, floor count, price range, acreage, and a delivery/completion timeline.',NULL,'claude-seed',1748822406,1),
+('bn-seed-07','rule','rule','Tag every post with a geography category (e.g. Miami, The Palm Beaches) plus "Florida of Tomorrow" and "Markets of Tomorrow".',NULL,'claude-seed',1748822407,1),
+('bn-seed-08','rule','rule','Attribute every rendering/photo in its caption to the source, formatted "Rendering of [Project], [Developer/firm]".',NULL,'claude-seed',1748822408,1),
+('bn-seed-09','rule','rule','End single-project posts with the italic Florida of Tomorrow newsletter sign-up line.',NULL,'claude-seed',1748822409,1),
+('bn-seed-10','structure','structure','Two proven formats: (1) the listicle — hook + scene-setting paragraph, then bold, numbered entries separated by horizontal rules, each a data-rich mini-profile; (2) the single announcement — a tight lead, hero image, bold subheads with bullet "Key Features", galleries, and a what''s-next/expansion note.',NULL,'claude-seed',1748822410,1),
+('bn-seed-11','structure','structure','Use bold subheads and bullet lists to keep feature lists skimmable; keep paragraphs short.',NULL,'claude-seed',1748822411,1),
+('bn-seed-12','structure','structure','Open with a hero rendering image right after the lead sentence.',NULL,'claude-seed',1748822412,1),
+('bn-seed-13','topic','topics','South Florida is the core beat — West Palm Beach and Miami especially; the "Wall Street South" finance-migration theme consistently overperforms.',NULL,'claude-seed',1748822413,1),
+('bn-seed-14','topic','topics','Marquee names drive the biggest readership — put the recognizable celebrity, athlete, or brand in the headline (Tiger Woods, Justin Timberlake, Wayne Gretzky, Apple, Erewhon, Orient Express all topped the charts).',NULL,'claude-seed',1748822414,1),
+('bn-seed-15','topic','topics','Beats that overperform: luxury & mixed-use towers, golf, hotels/hospitality, notable dining expansions, sports & lifestyle venues (padel, ice rinks), and major transit.',NULL,'claude-seed',1748822415,1),
+('bn-seed-16','topic','topics','Headlines with a concrete number or superlative win — "Six new projects…", "$2 billion waterfront district", "first", "biggest-ever".',NULL,'claude-seed',1748822416,1),
+('bn-seed-17','example','example','Gold-standard listicle (8.3k views): "Six new projects that are reshaping the future of West Palm Beach".','six-new-projects-that-are-reshaping-the-future-of-west-palm-beach','claude-seed',1748822417,1),
+('bn-seed-18','example','example','Gold-standard single announcement (~4k views): "Miami''s first floating padel courts, ULTRA on the Water, is coming this winter".','miami-s-first-floating-padel-courts-ultra-on-the-water-is-coming-this-winter','claude-seed',1748822418,1),
+('bn-seed-19','avoid','general','Avoid vague, number-free copy — "a large new development" should always become "24-story, 447,484 sq ft". (seed default — refine as you go)',NULL,'claude-seed',1748822419,1),
+('bn-seed-20','avoid','general','Avoid burying the marquee name or the location — both belong in the headline and the first line. (seed default — refine as you go)',NULL,'claude-seed',1748822420,1);

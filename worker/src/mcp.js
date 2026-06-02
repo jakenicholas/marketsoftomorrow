@@ -249,6 +249,33 @@ const TOOLS = [
     description: 'Journal engagement from GA4 over the last N days (default 28): counts for the custom journal events (jrn_partner, jrn_share, jrn_post_open, jrn_outbound, jrn_map, jrn_mediakit) and newsletter signups (subscribe_home, subscribe_article), plus the top events overall.',
     inputSchema: { type: 'object', properties: { days: { type: 'integer', description: 'Look-back window in days (default 28, max 365)' } } },
   },
+
+  // ── Brand brain (shared house style / taste, updates for both accounts) ──────
+  {
+    name: 'get_brand_brain',
+    description: 'Read the shared Markets of Tomorrow "brand brain" — the house style and accumulated taste the team teaches over time: voice, rules, structure, topics to lean into, things to avoid, and example posts that worked. CALL THIS FIRST before writing or critiquing any post, carousel, caption, headline, or article so the output matches the brand. Returns a ready-to-use markdown playbook plus the structured notes (with ids). It is the SAME brain for every connected account, so it reflects what either person has taught it.',
+    inputSchema: { type: 'object', properties: {} },
+  },
+  {
+    name: 'record_preference',
+    description: 'Add a learning to the shared brand brain so it updates for BOTH accounts immediately. Use whenever someone expresses a like, dislike, rule, voice/tone note, structure preference, topic interest, or names a good example. Keep each note to one crisp, reusable sentence. Do this proactively as you learn what they like/dislike.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        kind: { type: 'string', enum: ['like', 'dislike', 'rule', 'voice', 'structure', 'topic', 'avoid', 'example'], description: 'What kind of guidance this is' },
+        note: { type: 'string', description: 'One crisp, reusable sentence of guidance' },
+        category: { type: 'string', description: 'Optional grouping, e.g. "carousel", "article", "headline", "general"' },
+        context: { type: 'string', description: 'Optional: a post slug, example snippet, or the reason behind it' },
+        by: { type: 'string', description: 'Who said it, if known (e.g. "Jake", "wife")' },
+      },
+      required: ['kind', 'note'],
+    },
+  },
+  {
+    name: 'remove_brand_note',
+    description: 'Retire one note from the brand brain by its id (from get_brand_brain) — use when a preference changes or a note was wrong.',
+    inputSchema: { type: 'object', properties: { id: { type: 'string' } }, required: ['id'] },
+  },
 ];
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
@@ -323,6 +350,11 @@ function buildMediaKey(filename) {
 
 async function ensureMediaFoldersTable(env) {
   await env.DB.prepare('CREATE TABLE IF NOT EXISTS media_folders (name TEXT PRIMARY KEY, favorite INTEGER DEFAULT 0, created_at INTEGER)').run();
+}
+async function ensureBrandNotesTable(env) {
+  await env.DB.prepare(
+    'CREATE TABLE IF NOT EXISTS brand_notes (id TEXT PRIMARY KEY, kind TEXT NOT NULL, category TEXT, note TEXT NOT NULL, context TEXT, created_by TEXT, created_at INTEGER, active INTEGER DEFAULT 1)'
+  ).run();
 }
 
 // ── Map drafts → tmw-data/data/drafts.json via the GitHub Contents API ───────
@@ -797,6 +829,67 @@ const IMPL = {
     const journal = all.filter((e) => /^jrn_|^subscribe_/.test(e.event));
     return { range_days: days, journal_events: journal, journal_total: journal.reduce((s, e) => s + e.count, 0), top_events: all.slice(0, 40) };
   },
+
+  // ── Brand brain ─────────────────────────────────────────────────────────────
+  async get_brand_brain(args, env) {
+    if (!env.DB) throw new Error('D1 not configured');
+    await ensureBrandNotesTable(env);
+    const rows = (await env.DB.prepare(
+      'SELECT id, kind, category, note, context, created_by, created_at FROM brand_notes WHERE active = 1 ORDER BY created_at ASC'
+    ).all()).results || [];
+    const SECTIONS = [
+      { title: 'Voice & identity', kinds: ['voice'] },
+      { title: 'Rules', kinds: ['rule'] },
+      { title: 'Structure & format', kinds: ['structure'] },
+      { title: 'Lean into (topics & likes)', kinds: ['like', 'topic'] },
+      { title: 'Avoid', kinds: ['dislike', 'avoid'] },
+      { title: 'Examples that worked', kinds: ['example'] },
+    ];
+    const used = new Set();
+    let md = '# Markets of Tomorrow — Brand Brain\n';
+    for (const s of SECTIONS) {
+      const items = rows.filter((r) => s.kinds.includes(r.kind));
+      if (!items.length) continue;
+      md += `\n## ${s.title}\n`;
+      for (const r of items) { used.add(r.id); md += `- ${r.note}${r.context ? ` _(${r.context})_` : ''}\n`; }
+    }
+    const other = rows.filter((r) => !used.has(r.id));
+    if (other.length) { md += '\n## Other\n'; for (const r of other) md += `- [${r.kind}] ${r.note}\n`; }
+    if (!rows.length) md += '\n_(empty — teach it with record_preference)_\n';
+    return {
+      playbook: md,
+      count: rows.length,
+      last_updated: rows.length ? iso(rows[rows.length - 1].created_at) : null,
+      notes: rows.map((r) => ({ id: r.id, kind: r.kind, category: r.category || '', note: r.note, context: r.context || '', by: r.created_by || '', when: iso(r.created_at) })),
+      how_to_use: 'This is the shared house style for Markets of Tomorrow. Apply the playbook to any post/carousel/caption/article you write or critique. When anyone expresses a new like/dislike/rule, call record_preference so it updates for everyone.',
+    };
+  },
+
+  async record_preference(args, env) {
+    if (!env.DB) throw new Error('D1 not configured');
+    await ensureBrandNotesTable(env);
+    const kind = String(args.kind || '').trim().toLowerCase();
+    const ALLOWED = ['like', 'dislike', 'rule', 'voice', 'structure', 'topic', 'avoid', 'example'];
+    if (!ALLOWED.includes(kind)) throw new Error('kind must be one of: ' + ALLOWED.join(', '));
+    const note = String(args.note || '').trim();
+    if (!note) throw new Error('note is required');
+    const id = 'bn-' + (crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2));
+    const now = Math.floor(Date.now() / 1000);
+    await env.DB.prepare(
+      'INSERT INTO brand_notes (id, kind, category, note, context, created_by, created_at, active) VALUES (?1,?2,?3,?4,?5,?6,?7,1)'
+    ).bind(id, kind, String(args.category || '').slice(0, 60) || null, note.slice(0, 2000), String(args.context || '').slice(0, 500) || null, String(args.by || 'studio').slice(0, 40), now).run();
+    const c = await env.DB.prepare('SELECT COUNT(*) c FROM brand_notes WHERE active = 1').first();
+    return { ok: true, id, kind, note, brain_size: c ? c.c : null, msg: 'Recorded to the shared brand brain — visible to every connected account immediately.' };
+  },
+
+  async remove_brand_note(args, env) {
+    if (!env.DB) throw new Error('D1 not configured');
+    await ensureBrandNotesTable(env);
+    const id = String(args.id || '').trim();
+    if (!id) throw new Error('id is required (from get_brand_brain)');
+    await env.DB.prepare('UPDATE brand_notes SET active = 0 WHERE id = ?1').bind(id).run();
+    return { ok: true, id, removed: true };
+  },
 };
 
 function firmList(all, field, args) {
@@ -833,7 +926,7 @@ async function dispatch(msg, env) {
       protocolVersion: (params && params.protocolVersion) || DEFAULT_PROTOCOL,
       capabilities: { tools: { listChanged: false } },
       serverInfo: SERVER_INFO,
-      instructions: 'Markets of Tomorrow Studio — run the studio remotely. Read journal posts/drafts/views, Map of Tomorrow projects, media, lists, and analytics. Write only reviewable artifacts: create/edit article DRAFTS, upload photos into media folders, create folders, add to or replace studio lists (e.g. the client wall), and stage MAP DRAFTS for review. Nothing here publishes to the live journal or live map — drafts wait in the Studio for a human to promote.',
+      instructions: 'Markets of Tomorrow Studio — run the studio remotely. Before writing or critiquing any post, carousel, caption, headline, or article, call get_brand_brain to load the shared house style; record new likes/dislikes/rules with record_preference so taste stays in sync across every connected account. Read journal posts/drafts/views, Map of Tomorrow projects, media, lists, and analytics. Write only reviewable artifacts: create/edit article DRAFTS, upload photos into media folders, create folders, add to or replace studio lists (e.g. the client wall), and stage MAP DRAFTS to the tmw-data review queue. Nothing here publishes to the live journal or live map — drafts wait for a human to promote.',
     });
   }
   if (method === 'ping') return rpcResult(id, {});
