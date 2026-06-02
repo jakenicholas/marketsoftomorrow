@@ -77,7 +77,16 @@
       '.tmw-fa-msg.err{color:#ff9b9b} .tmw-fa-msg.ok{color:#42eb81}',
       '.tmw-fa-msg a{color:#42eb81; font-weight:600; text-decoration:none}',
       '.tmw-fa-skip{margin-top:11px; background:none; border:0; color:rgba(255,255,255,.45); font-family:var(--sans,"Inter",sans-serif); font-size:11.5px; cursor:pointer; padding:0; text-decoration:underline}',
-      '.tmw-fa-skip:hover{color:#fff}'
+      '.tmw-fa-skip:hover{color:#fff}',
+      // Third step — profile fields (stacked inputs)
+      '.tmw-fa-prof{display:flex; flex-direction:column; gap:9px}',
+      '.tmw-fa-row{display:flex; gap:9px}',
+      '.tmw-fa-prof input{flex:1; min-width:0; height:42px; padding:0 14px; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.16); border-radius:10px; color:#fff; font-family:var(--sans,"Inter",sans-serif); font-size:14px; outline:none; transition:border-color .15s}',
+      '.tmw-fa-prof input:focus{border-color:#1FDF67}',
+      '.tmw-fa-prof input::placeholder{color:rgba(255,255,255,.4)}',
+      '.tmw-fa-prof button{height:44px; margin-top:3px; border:0; border-radius:10px; background:#1FDF67; color:#04210f; font-family:var(--mono,monospace); font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; cursor:pointer; transition:background .2s}',
+      '.tmw-fa-prof button:hover{background:#42eb81}',
+      '.tmw-fa-prof button:disabled{opacity:.6; cursor:wait}'
     ].join('');
     document.head.appendChild(st);
   }
@@ -113,9 +122,8 @@
       window.tmwCreateFreeAccount(email, pw).then(function (res) {
         if (res.ok) {
           try { if (window.gtag) window.gtag('event', 'free_account_created', { source: 'newsletter' }); } catch (_) {}
-          form.style.display = 'none'; skip.style.display = 'none';
-          msg.className = 'tmw-fa-msg ok'; msg.textContent = '✓ Account created — you’re signed in.';
-          setTimeout(function () { done(true); }, 1900);
+          // Step 3: collect profile info → Memberstack custom fields + the list.
+          window.tmwProfileStep(host, email, onClose);
         } else if (res.code === 'exists') {
           msg.className = 'tmw-fa-msg err';
           msg.innerHTML = 'Looks like you already have an account. <a href="#" class="tmw-fa-si">Sign in →</a>';
@@ -129,6 +137,59 @@
       });
     });
     return true;
+  };
+
+  // Step 3 of the funnel: a short profile form after the account is created.
+  // Writes to Memberstack custom fields (first-name / last-name / profession /
+  // company-name / based) and best-effort posts the same to the newsletter
+  // worker so Resend gets them too.
+  window.tmwProfileStep = function (host, email, onClose) {
+    injectFaCss();
+    host.innerHTML =
+      '<div class="tmw-fa">' +
+        '<div class="tmw-fa-h">✓ Account created — tell us about you</div>' +
+        '<div class="tmw-fa-sub">A few details so we send you what actually matters. You can skip this.</div>' +
+        '<form class="tmw-fa-prof" novalidate>' +
+          '<div class="tmw-fa-row"><input name="first" placeholder="First name" autocomplete="given-name"><input name="last" placeholder="Last name" autocomplete="family-name"></div>' +
+          '<input name="profession" placeholder="Profession" autocomplete="organization-title">' +
+          '<input name="company" placeholder="Company" autocomplete="organization">' +
+          '<input name="based" placeholder="Based in (city)" autocomplete="address-level2">' +
+          '<button type="submit">Finish</button>' +
+        '</form>' +
+        '<div class="tmw-fa-msg" aria-live="polite"></div>' +
+        '<button class="tmw-fa-skip" type="button">Skip for now</button>' +
+      '</div>';
+    var form = host.querySelector('.tmw-fa-prof');
+    var msg = host.querySelector('.tmw-fa-msg');
+    var skip = host.querySelector('.tmw-fa-skip');
+    function finish() { if (typeof onClose === 'function') onClose(true); }
+    skip.addEventListener('click', finish);
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var v = function (n) { return (form[n] && form[n].value || '').trim(); };
+      var data = { first: v('first'), last: v('last'), profession: v('profession'), company: v('company'), based: v('based') };
+      var btn = form.querySelector('button'); btn.disabled = true; btn.textContent = 'Saving…';
+      var jobs = [];
+      var m = window.$memberstackDom;
+      if (m && m.updateMember) {
+        jobs.push(m.updateMember({ customFields: {
+          'first-name': data.first, 'last-name': data.last,
+          'profession': data.profession, 'company-name': data.company, 'based': data.based
+        } }).catch(function () {}));
+      }
+      // Resend, via the newsletter worker (best-effort — the worker must accept
+      // these fields + update the contact for them to land in Resend).
+      jobs.push(fetch('https://tmw-subscribe.jake-ab7.workers.dev', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email, update: true, first_name: data.first, last_name: data.last, profession: data.profession, company_name: data.company, based: data.based })
+      }).catch(function () {}));
+      Promise.all(jobs).then(function () {
+        try { if (window.gtag) window.gtag('event', 'profile_completed', { source: 'newsletter' }); } catch (_) {}
+        form.style.display = 'none'; skip.style.display = 'none';
+        msg.className = 'tmw-fa-msg ok'; msg.textContent = '✓ You’re all set. Welcome to Markets of Tomorrow.';
+        setTimeout(finish, 1700);
+      });
+    });
   };
 
   // ── 2) Memberstack modal dark theme ─────────────────────────────────────
