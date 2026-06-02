@@ -258,8 +258,8 @@ def load_app_updates():
         line = line.strip()
         if line.startswith("# "):
             headline = line[2:].strip()
-        elif line.startswith("- ") or line.startswith("* "):
-            bullets.append(line[2:].strip())
+        elif line and line[0] in "-*•–—":  # accept dash, asterisk, bullet, en/em dash
+            bullets.append(line[1:].strip())
     if not bullets: return None
     return {"headline": headline or "What's new in the app", "bullets": bullets}
 
@@ -275,7 +275,9 @@ def load_ads():
         print(f"[err] {ADS_PATH} is INVALID JSON: {e}", file=sys.stderr)
         return slots
 
-    ads_data = data.get("ads", {})
+    # Slots may live under an "ads" wrapper or at the top level (the format
+    # this file is hand-edited in each week). Support both.
+    ads_data = data.get("ads") or data
     for slot_key in slots:
         ad = ads_data.get(slot_key)
         if ad and ad.get("image_url") and ad.get("click_url"):
