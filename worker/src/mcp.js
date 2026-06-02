@@ -26,6 +26,7 @@ import { getGoogleAccessToken } from './index.js';
 const SERVER_INFO = { name: 'tmw-studio', version: '1.0.0' };
 const DEFAULT_PROTOCOL = '2025-06-18';
 const PROJECTS_URL = 'https://map.oftmw.com/projects-flat.json';
+const ARTICLES_URL = 'https://map.oftmw.com/articles.json';
 
 // ── Tool catalog ────────────────────────────────────────────────────────────
 const TOOLS = [
@@ -86,6 +87,57 @@ const TOOLS = [
     name: 'list_developers',
     description: 'List developer firms across Map of Tomorrow projects (optionally filtered by name), with project counts.',
     inputSchema: { type: 'object', properties: { query: { type: 'string' }, limit: { type: 'integer', description: 'Default 50' } } },
+  },
+  {
+    name: 'search_firms',
+    description: 'Search architect AND developer firms across Map of Tomorrow projects in one call (by name substring), with project counts. Use when you are not sure whether a firm is an architect or a developer.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        query: { type: 'string', description: 'Firm name substring' },
+        role: { type: 'string', enum: ['architect', 'developer', 'both'], description: 'Which side to search (default both)' },
+        limit: { type: 'integer', description: 'Max per role (default 25, max 100)' },
+      },
+      required: ['query'],
+    },
+  },
+  {
+    name: 'search_lists',
+    description: 'Search rows ACROSS the studio lists (the client wall + iconic rankings). Matches the query against each row’s full contents; optionally limit to one list by slug. Use to check whether something is already listed, or find which list a name lives in.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        query: { type: 'string', description: 'Text to find within list rows (name, location, industry, etc.)' },
+        slug: { type: 'string', description: 'Limit the search to one list (e.g. "clients")' },
+        limit: { type: 'integer', description: 'Max matches (default 30, max 100)' },
+      },
+      required: ['query'],
+    },
+  },
+  {
+    name: 'search_media',
+    description: 'Search the Studio media library by filename, alt text, or caption (optionally within one folder). Returns public URLs. (list_media browses by folder; this searches by text.)',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        query: { type: 'string', description: 'Text matched against filename, alt, and caption' },
+        folder: { type: 'string', description: 'Limit to one folder' },
+        limit: { type: 'integer', description: 'Max results (default 40, max 100)' },
+      },
+      required: ['query'],
+    },
+  },
+  {
+    name: 'search_articles',
+    description: 'Search Map of Tomorrow article coverage — which journal articles are linked to which map projects. Pass a project slug to get that project’s articles, or a query to match article titles across all projects.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        query: { type: 'string', description: 'Text matched against article titles' },
+        project: { type: 'string', description: 'A project slug — returns all articles linked to it' },
+        limit: { type: 'integer', description: 'Max results (default 20, max 50)' },
+      },
+    },
   },
   {
     name: 'create_post_draft',
@@ -318,6 +370,16 @@ async function loadProjects() {
   return _projectsCache;
 }
 
+let _articlesCache = null;
+async function loadArticles() {
+  if (_articlesCache) return _articlesCache;
+  const r = await fetch(ARTICLES_URL, { cf: { cacheTtl: 60 } });
+  if (!r.ok) throw new Error('articles feed ' + r.status);
+  const data = await r.json();
+  _articlesCache = (data && typeof data === 'object' && !Array.isArray(data)) ? data : {};
+  return _articlesCache;
+}
+
 function projectSummary(p) {
   return {
     title: p.Title, city: p.City, type: p.ProjectType || p.PreferredType || '',
@@ -504,6 +566,90 @@ const IMPL = {
   },
   async list_developers(args) {
     return firmList(await loadProjects(), 'Developer', args);
+  },
+
+  async search_firms(args) {
+    const q = String(args.query || '').trim().toLowerCase();
+    if (!q) throw new Error('query is required');
+    const role = String(args.role || 'both').toLowerCase();
+    const limit = Math.min(Math.max(parseInt(args.limit, 10) || 25, 1), 100);
+    const all = await loadProjects();
+    const build = (field) => {
+      const counts = new Map();
+      for (const p of all) for (const f of splitList(p[field])) counts.set(f, (counts.get(f) || 0) + 1);
+      return [...counts.entries()]
+        .filter(([name]) => name.toLowerCase().includes(q))
+        .map(([name, count]) => ({ name, count }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, limit);
+    };
+    const out = { query: args.query };
+    if (role === 'architect' || role === 'both') out.architects = build('Architect');
+    if (role === 'developer' || role === 'both') out.developers = build('Developer');
+    return out;
+  },
+
+  async search_lists(args, env) {
+    if (!env.DB) throw new Error('D1 not configured');
+    const q = String(args.query || '').trim().toLowerCase();
+    if (!q) throw new Error('query is required');
+    const limit = Math.min(Math.max(parseInt(args.limit, 10) || 30, 1), 100);
+    const onlySlug = String(args.slug || '').trim().toLowerCase();
+    let rows;
+    if (onlySlug) {
+      if (!LIST_SLUG_RE.test(onlySlug)) throw new Error('invalid list slug');
+      rows = (await env.DB.prepare('SELECT slug, data FROM iconic_lists WHERE slug = ?1').bind(onlySlug).all()).results || [];
+    } else {
+      rows = (await env.DB.prepare('SELECT slug, data FROM iconic_lists').all()).results || [];
+    }
+    const matches = [];
+    for (const r of rows) {
+      const doc = parseJSON(r.data, {});
+      const items = Array.isArray(doc.items) ? doc.items : [];
+      items.forEach((item, index) => {
+        if (JSON.stringify(item).toLowerCase().includes(q)) matches.push({ list: r.slug, list_title: doc.title || '', index, item });
+      });
+    }
+    return { query: args.query, count: matches.length, showing: Math.min(matches.length, limit), matches: matches.slice(0, limit) };
+  },
+
+  async search_media(args, env) {
+    if (!env.DB) throw new Error('D1 not configured');
+    const q = String(args.query || '').trim();
+    if (!q) throw new Error('query is required');
+    const limit = Math.min(Math.max(parseInt(args.limit, 10) || 40, 1), 100);
+    const folder = String(args.folder || '').trim();
+    const where = ['(filename LIKE ?1 OR alt_text LIKE ?1 OR caption LIKE ?1)'];
+    const params = ['%' + q + '%'];
+    if (folder) { where.push(`folder = ?${params.length + 1}`); params.push(folder); }
+    const rows = (await env.DB.prepare(
+      `SELECT key, filename, mime_type, size_bytes, alt_text, caption, uploaded_at, url, folder
+       FROM media WHERE ${where.join(' AND ')} ORDER BY uploaded_at DESC LIMIT ${limit}`
+    ).bind(...params).all()).results || [];
+    return {
+      query: q, count: rows.length,
+      items: rows.map((r) => ({ key: r.key, url: r.url, filename: r.filename, folder: r.folder || '(unfiled)', alt: r.alt_text || '', caption: r.caption || '', mime_type: r.mime_type, size_bytes: r.size_bytes, uploaded: iso(r.uploaded_at) })),
+    };
+  },
+
+  async search_articles(args) {
+    const map = await loadArticles();
+    const limit = Math.min(Math.max(parseInt(args.limit, 10) || 20, 1), 50);
+    const project = String(args.project || '').trim().toLowerCase();
+    const q = String(args.query || '').trim().toLowerCase();
+    if (project) {
+      const arts = map[project] || [];
+      return { project, count: arts.length, articles: arts.slice(0, limit) };
+    }
+    if (!q) throw new Error('pass a project slug, or a query that matches article titles');
+    const hits = [];
+    for (const [slug, arts] of Object.entries(map)) {
+      for (const a of (arts || [])) {
+        if (String(a.title || '').toLowerCase().includes(q)) hits.push({ project: slug, title: a.title, link: a.link, published_at: a.published_at });
+      }
+    }
+    hits.sort((a, b) => String(b.published_at || '').localeCompare(String(a.published_at || '')));
+    return { query: args.query, count: hits.length, showing: Math.min(hits.length, limit), articles: hits.slice(0, limit) };
   },
 
   async create_post_draft(args, env) {
@@ -980,6 +1126,7 @@ export async function handleMcp(request, env) {
   catch (_) { return new Response(JSON.stringify(rpcError(null, -32700, 'Parse error')), { status: 400, headers: { 'Content-Type': 'application/json', ...MCP_CORS } }); }
 
   _projectsCache = null;   // fresh per request
+  _articlesCache = null;
 
   const batch = Array.isArray(payload);
   const msgs = batch ? payload : [payload];
