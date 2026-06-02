@@ -818,7 +818,7 @@ const IMPL = {
       `INSERT INTO posts (id, slug, title, excerpt, body_html, cover_image, categories, tags,
                           author_name, status, published_at, reading_time_min, body_source, created_at, updated_at)
        VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, '[]', ?8, 'draft', NULL, ?9, 'studio-mcp', ?10, ?10)`
-    ).bind(id, slug, title, excerpt, bodyHtml, args.cover_image || null, categories, 'Claude (Studio)', reading, now).run();
+    ).bind(id, slug, title, excerpt, bodyHtml, args.cover_image || null, categories, 'Jake Nicholas', reading, now).run();
     return {
       ok: true, id, slug, status: 'draft', linked_project: linkedSlug || undefined,
       edit_url: 'https://admin.oftmw.com/post.html?id=' + id,
