@@ -415,13 +415,15 @@ nav.main .wrap{display:flex; align-items:center; justify-content:space-between; 
     display:flex; flex-direction:column;
     padding:18px clamp(20px,6vw,24px) 56px}
   .story-card .sc-eyebrow{font-size:9.5px; letter-spacing:.18em; padding:5px 11px; gap:6px}
-  .story-card h1{margin-top:auto; font-size:clamp(26px, 6.8vw, 34px); line-height:1.13;
-    text-shadow:0 2px 22px rgba(0,0,0,.55), 0 1px 4px rgba(0,0,0,.45)}
+  .story-card h1{margin-top:auto; font-size:clamp(24px, 6.2vw, 31px); line-height:1.14;
+    text-shadow:0 1px 12px rgba(0,0,0,.4)}
   .story-card .sc-desc{display:none}                 /* V1: no excerpt on mobile */
   .story-card .sc-more{margin-top:14px; text-shadow:0 1px 10px rgba(0,0,0,.5)}
-  /* clear top + middle (show the photo), tight strong dark strip only at the bottom */
-  .story-card .sc-bg::after{background:linear-gradient(180deg,
-     transparent 0%, transparent 56%, rgba(7,8,7,.78) 84%, rgba(7,8,7,.96) 100%)}
+  /* short dark scrim up top (protects the Featured pill) + a slightly taller
+     dark strip at the bottom for the headline. Middle stays clear (the photo). */
+  .story-card .sc-bg::after{background:
+     linear-gradient(180deg, rgba(7,8,7,.5) 0%, rgba(7,8,7,0) 15%),
+     linear-gradient(180deg, transparent 0%, transparent 48%, rgba(7,8,7,.78) 80%, rgba(7,8,7,.96) 100%)}
   .story-card .sc-tab{padding:10px 16px; font-size:11px; letter-spacing:.14em}
   .story-card .sc-tabs{padding:5px; gap:6px}
 }
