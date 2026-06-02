@@ -14,7 +14,7 @@
 
   var PRICE_ID_MONTHLY = 'prc_monthly-86u0uyc';
   var PRICE_ID_ANNUAL  = 'prc_annual-9i2e0eab';
-  var ICON = 'https://static.wixstatic.com/shapes/ca3b83_a647b53cad4c49c5b012af991d286a86.svg';
+  var ICON = 'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/other/50822a-TMW_Logos-16.svg';
 
   function ms() { return window.$memberstackDom; }
 

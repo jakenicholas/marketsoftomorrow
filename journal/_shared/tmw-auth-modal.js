@@ -103,7 +103,7 @@
     document.head.appendChild(st);
   }
 
-  var LOGO = '<div class="tmw-am-logo"><img src="https://static.wixstatic.com/shapes/ca3b83_a647b53cad4c49c5b012af991d286a86.svg" alt="Markets of Tomorrow"></div>';
+  var LOGO = '<div class="tmw-am-logo"><img src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/other/50822a-TMW_Logos-16.svg" alt="Markets of Tomorrow"></div>';
 
   // ── shell ─────────────────────────────────────────────────────────────────
   var current = null;
