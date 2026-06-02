@@ -680,10 +680,12 @@ function escapeAttr(s) { return escapeHtml(s); }
   var SUB_ENDPOINT = 'https://tmw-subscribe.jake-ab7.workers.dev';
   var MARKETS = ['florida', 'tennessee', 'newyork', 'caribbean', 'rockies', 'hotel'];
   var KEY = 'tmw-sub-lightbox-v1';
+  var SUB_EMAIL_KEY = 'tmw-sub-email';   // the address a visitor subscribed with
   var DELAY_MS = 3000;
 
   function seen() { try { return localStorage.getItem(KEY); } catch (e) { return null; } }
   function mark(v) { try { localStorage.setItem(KEY, v); } catch (e) {} }
+  function subscribedEmail() { try { return localStorage.getItem(SUB_EMAIL_KEY); } catch (e) { return null; } }
 
   function build() {
     var el = document.createElement('div');
@@ -720,6 +722,7 @@ function escapeAttr(s) { return escapeHtml(s); }
         if (d && d.success) {
           try { if (window.gtag) window.gtag('event', 'subscribe_article'); } catch (_) {}
           mark('subscribed');
+          try { localStorage.setItem(SUB_EMAIL_KEY, email); } catch (_) {}
           // Logged-out → offer a free account (just add a password). Else thanks.
           var panel = el.querySelector('.tmw-sub-panel');
           ['.tmw-sub-eyebrow', '.tmw-sub-h', '.tmw-sub-form', '.tmw-sub-msg'].forEach(function (sel) { var n = panel.querySelector(sel); if (n) n.style.display = 'none'; });
@@ -736,21 +739,54 @@ function escapeAttr(s) { return escapeHtml(s); }
     requestAnimationFrame(function () { el.classList.add('show'); });
   }
 
-  // Show on EVERY article for logged-out readers. Suppress only for (a) people
-  // who already subscribed via this lightbox, and (b) signed-in members (free
-  // or pro) — they've already got an account.
-  function suppressed(cb) {
-    try { if (localStorage.getItem(KEY) === 'subscribed') { cb(true); return; } } catch (e) {}
+  // "Account mode" — a returning subscriber who hasn't made an account yet gets
+  // the "add a password" step directly (we already know their email), instead
+  // of being re-asked to subscribe. Skipping it stops the nudge for the session.
+  function buildAccountMode(email) {
+    if (window._tmwSignedIn === true) return false;
+    var el = document.createElement('div');
+    el.className = 'tmw-sub';
+    el.innerHTML =
+      '<div class="tmw-sub-panel" role="dialog" aria-label="Create your free account">' +
+        '<button class="tmw-sub-x" aria-label="Close">&times;</button>' +
+        '<div class="tmw-sub-eyebrow">The Future Is Here</div>' +
+        '<div class="tmw-sub-acct"></div>' +
+      '</div>';
+    document.body.appendChild(el);
+    function close(skip) { el.classList.remove('show'); if (skip) { try { sessionStorage.setItem('tmw-acct-skip', '1'); } catch (e) {} } }
+    el.querySelector('.tmw-sub-x').addEventListener('click', function () { close(true); });
+    el.addEventListener('click', function (e) { if (e.target === el) close(true); });
+    var host = el.querySelector('.tmw-sub-acct');
+    var ok = window.tmwFreeAccountPrompt && window.tmwFreeAccountPrompt(host, email, function (created) {
+      if (created) { setTimeout(function () { el.classList.remove('show'); }, 200); } else { close(true); }
+    });
+    if (!ok) { el.remove(); return false; }
+    requestAnimationFrame(function () { el.classList.add('show'); });
+    return true;
+  }
+
+  // Signed-in members (free or pro) never see the lightbox.
+  function checkSignedIn(cb) {
     if (window._tmwSignedIn === true) { cb(true); return; }
     if (window._tmwSignedIn === false) { cb(false); return; }
     var m = window.$memberstackDom;
-    if (m && m.getCurrentMember) {
-      m.getCurrentMember().then(function (r) { cb(!!(r && r.data)); }).catch(function () { cb(false); });
-      return;
-    }
+    if (m && m.getCurrentMember) { m.getCurrentMember().then(function (r) { cb(!!(r && r.data)); }).catch(function () { cb(false); }); return; }
     cb(false); // Memberstack not up yet → treat as logged-out
   }
-  var t = setTimeout(function () { suppressed(function (s) { if (!s) build(); }); }, DELAY_MS);
+  var t = setTimeout(function () {
+    checkSignedIn(function (signedIn) {
+      if (signedIn) return;
+      var subEmail = subscribedEmail();
+      if (subEmail) {
+        // Already subscribed, no account → push the password step (not the email
+        // form), unless they dismissed it earlier this session.
+        try { if (sessionStorage.getItem('tmw-acct-skip')) return; } catch (e) {}
+        buildAccountMode(subEmail);
+      } else {
+        build(); // first-timer → email subscribe form
+      }
+    });
+  }, DELAY_MS);
   // If they bounce fast, don't bother.
   window.addEventListener('pagehide', function () { clearTimeout(t); });
 })();

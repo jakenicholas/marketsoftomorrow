@@ -849,6 +849,7 @@ footer .ft-logo .tmw-wordmark{width:118px}
       var d=await r.json().catch(function(){return{};});
       if(d&&d.success){
         try{ if(window.gtag) window.gtag('event','subscribe_home'); }catch(_){}
+        try{ localStorage.setItem('tmw-sub-email', email); }catch(_){}
         var host=document.createElement('div'); f.parentNode.insertBefore(host, f.nextSibling); f.style.display='none';
         var offered = window.tmwFreeAccountPrompt && window.tmwFreeAccountPrompt(host, email, function(){ host.innerHTML='<div style="font-family:var(--mono);font-size:13px;letter-spacing:.06em;color:var(--green);padding:8px 4px">✓ You\'re all set.</div>'; });
         if(!offered){ host.innerHTML='<div style="font-family:var(--mono);font-size:13px;letter-spacing:.06em;color:var(--green);padding:14px 4px">✓ You\'ve subscribed! Welcome to The Tuesday Brief.</div>'; }
