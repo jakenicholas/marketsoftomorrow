@@ -272,7 +272,7 @@
     '.tmw-pm .pm-step-labels{display:flex;gap:3px}',
     '.tmw-pm .pm-step-label{font-size:7.5px;color:rgba(255,255,255,.2);letter-spacing:.02em;padding-right:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
     '.tmw-pm .pm-step-label.cur{color:var(--stage-color,#FF9500);font-weight:600}',
-    '.tmw-pm .pm-progress-sub{margin-top:6px;font-family:"JetBrains Mono",ui-monospace,monospace;font-size:9px;letter-spacing:.06em;color:rgba(255,255,255,.5)}',
+    '.tmw-pm .pm-progress-sub{margin-top:6px;font-family:"Inter",-apple-system,BlinkMacSystemFont,sans-serif;font-size:9px;letter-spacing:.06em;color:rgba(255,255,255,.5)}',
     '.tmw-pm .pm-intel{margin:0;padding:18px;background:rgba(167,139,250,.06);border:1px solid rgba(167,139,250,.18);border-radius:12px}',
     '.tmw-pm .pm-intel-head{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}',
     '.tmw-pm .pm-intel-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(167,139,250,.14);border:1px solid rgba(167,139,250,.32);color:#A78BFA;padding:4px 10px;border-radius:12px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em}',

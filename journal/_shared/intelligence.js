@@ -16,7 +16,7 @@
   --white:#fff; --cream:#ECEAE5; --mute:#8b958d; --mute2:#C2C9C3;
   --sans:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
   --serif:'Fraunces',Georgia,serif;
-  --mono:'JetBrains Mono',ui-monospace,monospace;
+  --mono:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
   --glass:blur(18px) saturate(1.4);
   position:relative; z-index:1; padding:104px 0 116px; color:var(--cream);
   font-family:var(--sans); line-height:1.5; background:var(--ink); overflow:hidden;

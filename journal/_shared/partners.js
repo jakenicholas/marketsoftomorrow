@@ -34,7 +34,7 @@
       .tmw-partners::before{content:""; position:absolute; top:-30%; left:50%; transform:translateX(-50%); width:900px; height:600px; background:radial-gradient(closest-side, rgba(31,223,103,.06), transparent 70%); pointer-events:none}
       .tmw-partners-wrap{position:relative; max-width:1320px; margin:0 auto; padding:0 28px}
       .tmw-partners-head{text-align:center; margin-bottom:50px}
-      .tmw-partners-eyebrow{font-family:'JetBrains Mono',ui-monospace,monospace; font-size:11px; letter-spacing:.24em; text-transform:uppercase; color:#9AA39C; margin-bottom:14px}
+      .tmw-partners-eyebrow{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif; font-size:11px; letter-spacing:.24em; text-transform:uppercase; color:#9AA39C; margin-bottom:14px}
       .tmw-partners-title{font-family:'Fraunces',Georgia,serif; font-weight:600; font-size:clamp(34px,4.4vw,56px); letter-spacing:-.02em; line-height:1.04; color:#fff; margin:0}
       .tmw-partners-sub{font-family:'Fraunces',Georgia,serif; font-weight:300; font-style:italic; font-size:17px; color:#C2C9C3; margin-top:14px; max-width:48ch; margin-left:auto; margin-right:auto}
       /* Signature Partners cards */
@@ -51,7 +51,7 @@
       .tmw-partner-logo{height:54px; width:100%; max-width:200px; display:flex; align-items:center; justify-content:center}
       .tmw-partner-logo .lmask{display:block; width:100%; height:54px; background:#fff; opacity:.95; -webkit-mask-size:contain; mask-size:contain; -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat; -webkit-mask-position:center; mask-position:center}
       .tmw-partner-logo .wm-fallback{font-family:'Fraunces',Georgia,serif; font-weight:500; font-size:22px; color:#fff; letter-spacing:.04em; text-align:center; line-height:1.1}
-      .tmw-partner-cat{font-family:'JetBrains Mono',ui-monospace,monospace; font-size:10.5px; letter-spacing:.22em; text-transform:uppercase; color:#C2C9C3; font-weight:500}
+      .tmw-partner-cat{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif; font-size:10.5px; letter-spacing:.22em; text-transform:uppercase; color:#C2C9C3; font-weight:500}
       .tmw-mobr{display:none}
       @media(max-width:620px){
         .tmw-partner-logo, .tmw-partner-logo .lmask{height:40px}
@@ -74,7 +74,7 @@
       .tmw-client img{max-width:100%; max-height:100%; width:auto; height:auto; object-fit:contain; filter:saturate(.95)}
       @media(max-width:560px){.tmw-client{padding:9px; border-radius:10px}}
       .tmw-clients-more{position:relative; z-index:2; display:flex; justify-content:center; margin-top:-40px}
-      .tmw-clients-more a{display:inline-flex; align-items:center; gap:10px; padding:14px 30px; border-radius:999px; border:1px solid rgba(255,255,255,.16); background:rgba(13,15,13,.92); -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px); color:#ECEAE5; font-family:'JetBrains Mono',ui-monospace,monospace; font-size:12px; letter-spacing:.16em; text-transform:uppercase; text-decoration:none; transition:all .2s}
+      .tmw-clients-more a{display:inline-flex; align-items:center; gap:10px; padding:14px 30px; border-radius:999px; border:1px solid rgba(255,255,255,.16); background:rgba(13,15,13,.92); -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px); color:#ECEAE5; font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif; font-size:12px; letter-spacing:.16em; text-transform:uppercase; text-decoration:none; transition:all .2s}
       .tmw-clients-more a:hover{border-color:rgba(31,223,103,.5); color:#fff; background:rgba(31,223,103,.10); gap:14px}
       .tmw-clients-more svg{width:15px; height:15px}
     `;
