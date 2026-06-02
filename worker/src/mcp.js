@@ -23,7 +23,24 @@
 import { isAuthorized } from './oauth.js';
 import { getGoogleAccessToken } from './index.js';
 
-const SERVER_INFO = { name: 'tmw-studio', version: '1.0.0' };
+// serverInfo per the MCP `Implementation` shape. `title`/`websiteUrl`/`icons`
+// were added in spec 2025-11-25 (SEP-973). Clients that support icons (e.g.
+// Claude Desktop) show the TMW logo now; claude.ai ignores it today (open
+// request: anthropics/claude-ai-mcp#152) but will pick it up automatically when
+// that ships — no server change needed then.
+const SERVER_INFO = {
+  name: 'tmw-studio',
+  title: 'Markets of Tomorrow Studio',
+  version: '1.0.0',
+  websiteUrl: 'https://www.oftmw.com',
+  icons: [
+    {
+      src: 'https://tmw.jake-ab7.workers.dev/media/wix/ca3b83_247de859635d486f9fee7c9b7261dae2~mv2.jpg',
+      mimeType: 'image/jpeg',
+      sizes: ['1080x1080'],
+    },
+  ],
+};
 const DEFAULT_PROTOCOL = '2025-06-18';
 const PROJECTS_URL = 'https://map.oftmw.com/projects-flat.json';
 const ARTICLES_URL = 'https://map.oftmw.com/articles.json';
