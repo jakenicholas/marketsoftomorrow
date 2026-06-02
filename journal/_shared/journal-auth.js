@@ -252,10 +252,10 @@
   (function tagMemberstackModals() {
     function looksLikeMSModal(el) {
       if (!el || el.nodeType !== 1) return false;
-      // The subscribe lightbox is fixed + has an email input + role=dialog, but
-      // it is NOT a Memberstack modal — tagging it applied the dark MS scrim
-      // (rgba(0,0,0,.78)) full-width behind it. Never treat it as one.
-      if (el.classList && el.classList.contains('tmw-sub')) return false;
+      // Our own fixed overlays (subscribe lightbox, custom auth modal) have
+      // email/password inputs but are NOT Memberstack modals — never tag them,
+      // or the MS theme overrides their styling.
+      if (el.classList && (el.classList.contains('tmw-sub') || el.classList.contains('tmw-am'))) return false;
       try {
         var cs = window.getComputedStyle(el);
         if (cs.position !== 'fixed' && cs.position !== 'absolute') return false;
@@ -508,6 +508,9 @@
     btn.addEventListener('click', function (e) {
       e.stopPropagation();
       if (btn.classList.contains('signed-in')) { menu.classList.toggle('open'); return; }
+      // Custom TMW login/signup modal; fall back to Memberstack's own if it
+      // hasn't loaded yet.
+      if (typeof window.tmwAuthModal === 'function') { window.tmwAuthModal('signup'); return; }
       try {
         var m = ms();
         if (m) m.openModal('SIGNUP').then(function () {

@@ -421,6 +421,14 @@
       s.setAttribute('data-tmw-auth-loader', '');
       document.head.appendChild(s);
     }
+    // Custom TMW-branded auth modals (login/signup) on Memberstack headless.
+    if (!document.querySelector('script[src*="tmw-auth-modal.js"], script[data-tmw-authui-loader]')) {
+      var a = document.createElement('script');
+      a.src = '/_shared/tmw-auth-modal.js';
+      a.defer = true;
+      a.setAttribute('data-tmw-authui-loader', '');
+      document.head.appendChild(a);
+    }
     // Native "Go Pro" paywall — so Pro upgrades pop up in-page instead of
     // redirecting to the map. Reuses the Memberstack instance auth.js loads.
     if (PAYWALL_NATIVE && !document.querySelector('script[src*="journal-paywall.js"], script[data-tmw-paywall-loader]')) {
