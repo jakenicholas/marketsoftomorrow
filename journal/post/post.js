@@ -719,10 +719,16 @@ function escapeAttr(s) { return escapeHtml(s); }
         var d = await r.json().catch(function () { return {}; });
         if (d && d.success) {
           try { if (window.gtag) window.gtag('event', 'subscribe_article'); } catch (_) {}
-          form.style.display = 'none';
-          msg.textContent = "✓ You've subscribed! Welcome to The Weekly.";
           mark('subscribed');
-          setTimeout(function () { el.classList.remove('show'); }, 2600);
+          // Logged-out → offer a free account (just add a password). Else thanks.
+          var panel = el.querySelector('.tmw-sub-panel');
+          ['.tmw-sub-eyebrow', '.tmw-sub-h', '.tmw-sub-form', '.tmw-sub-msg'].forEach(function (sel) { var n = panel.querySelector(sel); if (n) n.style.display = 'none'; });
+          var faHost = document.createElement('div'); panel.appendChild(faHost);
+          var offered = window.tmwFreeAccountPrompt && window.tmwFreeAccountPrompt(faHost, email, function () { el.classList.remove('show'); });
+          if (!offered) {
+            msg.style.display = ''; msg.textContent = "✓ You've subscribed! Welcome to The Weekly.";
+            setTimeout(function () { el.classList.remove('show'); }, 2600);
+          }
         } else { btn.disabled = false; btn.textContent = orig; }
       } catch (err) { btn.disabled = false; btn.textContent = orig; }
     });

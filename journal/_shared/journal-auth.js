@@ -37,6 +37,100 @@
     document.head.appendChild(s);
   }
 
+  // ── 1b) Free-account upgrade for newsletter subscribers ─────────────────
+  //    When a logged-out visitor subscribes to the newsletter, we offer to
+  //    turn that email into a free Memberstack account — they only add a
+  //    password. Cross-domain SSO means the account works on the map too, and
+  //    journal-auth's onAuthChange listener repaints the header to signed-in.
+  //    Used by the homepage newsletter strip and the article subscribe lightbox.
+  window.tmwCreateFreeAccount = function (email, password) {
+    var m = window.$memberstackDom;
+    if (!m || typeof m.signupMemberEmailPassword !== 'function') {
+      return Promise.resolve({ ok: false, code: 'not-ready', message: 'Accounts are still loading — please try again in a moment.' });
+    }
+    return m.signupMemberEmailPassword({ email: email, password: password })
+      .then(function (res) { return { ok: true, member: res && res.data }; })
+      .catch(function (e) {
+        var message = (e && e.message) || 'Could not create your account.';
+        var code = (e && (e.code || e.statusCode)) || '';
+        if (/exist|already|registered|taken|in use/i.test(message)) { code = 'exists'; }
+        return { ok: false, code: code, message: message };
+      });
+  };
+
+  var FA_CSS = false;
+  function injectFaCss() {
+    if (FA_CSS || document.getElementById('tmw-fa-css')) return; FA_CSS = true;
+    var st = document.createElement('style'); st.id = 'tmw-fa-css';
+    st.textContent = [
+      '.tmw-fa{text-align:left}',
+      '.tmw-fa-h{font-family:var(--sans,"Inter",sans-serif); font-size:15px; font-weight:600; color:#fff; line-height:1.3; margin-bottom:5px}',
+      '.tmw-fa-sub{font-family:var(--sans,"Inter",sans-serif); font-size:12px; color:rgba(255,255,255,.55); line-height:1.45; margin-bottom:13px}',
+      '.tmw-fa-form{display:flex; gap:8px; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.16); border-radius:999px; padding:6px 6px 6px 18px; transition:border-color .2s}',
+      '.tmw-fa-form:focus-within{border-color:#1FDF67}',
+      '.tmw-fa-form input{flex:1; min-width:0; border:0; outline:0; background:transparent; color:#fff; font-family:var(--sans,"Inter",sans-serif); font-size:14px}',
+      '.tmw-fa-form input::placeholder{color:rgba(255,255,255,.4)}',
+      '.tmw-fa-form button{flex:0 0 auto; border:0; border-radius:999px; background:#1FDF67; color:#04210f; font-family:var(--mono,monospace); font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; padding:11px 16px; cursor:pointer; white-space:nowrap; transition:background .2s}',
+      '.tmw-fa-form button:hover{background:#42eb81}',
+      '.tmw-fa-form button:disabled{opacity:.6; cursor:wait}',
+      '.tmw-fa-msg{font-family:var(--sans,"Inter",sans-serif); font-size:12px; line-height:1.4; margin-top:10px}',
+      '.tmw-fa-msg.err{color:#ff9b9b} .tmw-fa-msg.ok{color:#42eb81}',
+      '.tmw-fa-msg a{color:#42eb81; font-weight:600; text-decoration:none}',
+      '.tmw-fa-skip{margin-top:11px; background:none; border:0; color:rgba(255,255,255,.45); font-family:var(--sans,"Inter",sans-serif); font-size:11.5px; cursor:pointer; padding:0; text-decoration:underline}',
+      '.tmw-fa-skip:hover{color:#fff}'
+    ].join('');
+    document.head.appendChild(st);
+  }
+
+  // Render the "add a password for a free account" step into `host`. Returns
+  // false (does nothing) if the visitor is already signed in. onClose(created?)
+  // fires when the user finishes or skips.
+  window.tmwFreeAccountPrompt = function (host, email, onClose) {
+    if (!host || window._tmwSignedIn) return false;
+    injectFaCss();
+    host.innerHTML =
+      '<div class="tmw-fa">' +
+        '<div class="tmw-fa-h">You’re subscribed — create your free account</div>' +
+        '<div class="tmw-fa-sub">Your email’s already set. Add a password to follow projects, build a watchlist, and pick up where you left off — across the journal and the map.</div>' +
+        '<form class="tmw-fa-form" novalidate>' +
+          '<input type="password" name="pw" placeholder="Create a password" autocomplete="new-password" required>' +
+          '<button type="submit">Create account</button>' +
+        '</form>' +
+        '<div class="tmw-fa-msg" aria-live="polite"></div>' +
+        '<button class="tmw-fa-skip" type="button">No thanks</button>' +
+      '</div>';
+    var form = host.querySelector('.tmw-fa-form');
+    var msg = host.querySelector('.tmw-fa-msg');
+    var skip = host.querySelector('.tmw-fa-skip');
+    function done(ok) { if (typeof onClose === 'function') onClose(!!ok); }
+    skip.addEventListener('click', function () { done(false); });
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var pw = (form.pw.value || '');
+      if (pw.length < 8) { msg.className = 'tmw-fa-msg err'; msg.textContent = 'Use at least 8 characters.'; form.pw.focus(); return; }
+      var btn = form.querySelector('button'); var orig = btn.textContent;
+      btn.disabled = true; btn.textContent = 'Creating…'; msg.className = 'tmw-fa-msg'; msg.textContent = '';
+      window.tmwCreateFreeAccount(email, pw).then(function (res) {
+        if (res.ok) {
+          try { if (window.gtag) window.gtag('event', 'free_account_created', { source: 'newsletter' }); } catch (_) {}
+          form.style.display = 'none'; skip.style.display = 'none';
+          msg.className = 'tmw-fa-msg ok'; msg.textContent = '✓ Account created — you’re signed in.';
+          setTimeout(function () { done(true); }, 1900);
+        } else if (res.code === 'exists') {
+          msg.className = 'tmw-fa-msg err';
+          msg.innerHTML = 'Looks like you already have an account. <a href="#" class="tmw-fa-si">Sign in →</a>';
+          btn.disabled = false; btn.textContent = orig;
+          var si = host.querySelector('.tmw-fa-si');
+          if (si) si.addEventListener('click', function (ev) { ev.preventDefault(); var m = window.$memberstackDom; if (m && m.openModal) m.openModal('LOGIN').then(function () { try { m.hideModal(); } catch (_) {} }).catch(function () {}); });
+        } else {
+          msg.className = 'tmw-fa-msg err'; msg.textContent = res.message || 'Could not create your account.';
+          btn.disabled = false; btn.textContent = orig;
+        }
+      });
+    });
+    return true;
+  };
+
   // ── 2) Memberstack modal dark theme ─────────────────────────────────────
   //    Memberstack v2's modal DOM uses container names that aren't documented
   //    and change between versions, so we run a MutationObserver that tags any
