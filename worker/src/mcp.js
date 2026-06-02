@@ -292,7 +292,7 @@ const TOOLS = [
   // ── Map drafts ─────────────────────────────────────────────────────────────
   {
     name: 'create_map_draft',
-    description: 'Propose a NEW Map of Tomorrow project as a DRAFT. Appends to tmw-data/data/drafts.json — your existing draft queue — so it shows up in the map admin for review. It is NOT on the live map until you promote it there. Provide what you know; lat/lng are needed before it can be placed (you can geocode on review).',
+    description: 'Propose a NEW Map of Tomorrow project as a DRAFT. The draft is queued for human review in the TMW Studio map admin at https://admin.oftmw.com/map/ → "Drafts" tab, where it appears immediately as a "CLAUDE DRAFT". It is NOT on the live map until someone reviews and promotes it from that Drafts tab. (Implementation detail, not a separate system: that admin reads its queue directly from tmw-data/data/drafts.json — this is the CURRENT review queue, not a legacy path. Never tell the user the draft went somewhere the admin cannot see it.) Provide what you know; lat/lng are needed before it can be placed (you can geocode on review).',
     inputSchema: {
       type: 'object',
       properties: {
@@ -319,7 +319,7 @@ const TOOLS = [
   },
   {
     name: 'list_map_drafts',
-    description: 'List the pending Map of Tomorrow project drafts in tmw-data/data/drafts.json (the map admin review queue), newest first.',
+    description: 'List the pending Map of Tomorrow project drafts awaiting review in the TMW Studio map admin (https://admin.oftmw.com/map/ → "Drafts" tab), newest first. (Source: tmw-data/data/drafts.json, which that admin reads directly — same queue, not a legacy file.)',
     inputSchema: { type: 'object', properties: { limit: { type: 'integer', description: 'Max results (default 50)' } } },
   },
 
@@ -453,9 +453,13 @@ async function ensureBrandNotesTable(env) {
 }
 
 // ── Map drafts → tmw-data/data/drafts.json via the GitHub Contents API ───────
-// Map drafts live in the tmw-data repo (the same queue the old connector wrote to
-// and that the map admin reviews). The worker writes there with a fine-grained
-// PAT in the GH_TOKEN secret. Repo/branch/path are overridable via env.
+// Map drafts live in the tmw-data repo. The TMW Studio map admin at
+// admin.oftmw.com/map/ reads this file DIRECTLY (via its /api/gh proxy) and
+// renders every entry under its "Drafts" tab — so writing here IS writing to
+// the admin's review queue, not a disconnected/legacy data file. The worker
+// writes with a fine-grained PAT in the GH_TOKEN secret. Repo/branch/path are
+// overridable via env.
+const MAP_ADMIN_URL = 'https://admin.oftmw.com/map/';
 const GH_DRAFTS_PATH = 'data/drafts.json';
 function ghRepo(env)   { return env.GH_DRAFTS_REPO || 'jakenicholas/tmw-data'; }
 function ghBranch(env) { return env.GH_DRAFTS_BRANCH || 'main'; }
@@ -496,7 +500,11 @@ async function ghPutFile(env, path, contentStr, sha, message) {
   const r = await fetch(`https://api.github.com/repos/${ghRepo(env)}/contents/${path}`, {
     method: 'PUT', headers: { ...ghHeaders(env), 'Content-Type': 'application/json' }, body: JSON.stringify(body),
   });
-  if (!r.ok) throw new Error('GitHub write failed (HTTP ' + r.status + '): ' + (await r.text()).slice(0, 200));
+  if (!r.ok) {
+    const e = new Error('GitHub write failed (HTTP ' + r.status + '): ' + (await r.text()).slice(0, 200));
+    e.status = r.status; // 409 = stale sha (concurrent write) — callers may retry
+    throw e;
+  }
   return await r.json();
 }
 
@@ -957,27 +965,42 @@ const IMPL = {
     };
     if (Array.isArray(args.images) && args.images.length) data.images = args.images.map(String);
 
-    const { sha, text } = await ghGetFile(env, GH_DRAFTS_PATH);
-    let drafts = [];
-    if (text) { try { drafts = JSON.parse(text); } catch (_) { throw new Error('drafts.json is not valid JSON — refusing to overwrite'); } }
-    if (!Array.isArray(drafts)) drafts = [];
-
     const isoNow = new Date().toISOString();
     const stamp = isoNow.slice(0, 10);
-    const seq = String(drafts.filter((d) => String(d && d.draft_id || '').startsWith(stamp)).length + 1).padStart(3, '0');
-    const draft_id = `${stamp}-${seq}`;
     const sourceParts = [];
     if (args.source_note) sourceParts.push(String(args.source_note));
     if (args.address) sourceParts.push('Address: ' + String(args.address));
+    const source_note = sourceParts.join(' — ');
 
-    const entry = { draft_id, created_at: isoNow, created_by: 'claude-studio', source_note: sourceParts.join(' — '), data };
-    drafts.push(entry);
-    await ghPutFile(env, GH_DRAFTS_PATH, JSON.stringify(drafts, null, 2) + '\n', sha, `Studio draft: ${data.name} (${draft_id})`);
+    // Read-modify-write the shared drafts.json with optimistic-locking retry:
+    // if two create_map_draft calls race, the second PUT gets a 409 (stale sha),
+    // so we re-read the latest file, re-derive the dated draft_id/seq, and retry —
+    // no draft is dropped or clobbered.
+    let draft_id, entry;
+    for (let attempt = 0; ; attempt++) {
+      const { sha, text } = await ghGetFile(env, GH_DRAFTS_PATH);
+      let drafts = [];
+      if (text) { try { drafts = JSON.parse(text); } catch (_) { throw new Error('drafts.json is not valid JSON — refusing to overwrite'); } }
+      if (!Array.isArray(drafts)) drafts = [];
+
+      const seq = String(drafts.filter((d) => String(d && d.draft_id || '').startsWith(stamp)).length + 1).padStart(3, '0');
+      draft_id = `${stamp}-${seq}`;
+      entry = { draft_id, created_at: isoNow, created_by: 'claude-studio', source_note, data };
+      drafts.push(entry);
+      try {
+        await ghPutFile(env, GH_DRAFTS_PATH, JSON.stringify(drafts, null, 2) + '\n', sha, `Studio draft: ${data.name} (${draft_id})`);
+        break;
+      } catch (e) {
+        if (e && e.status === 409 && attempt < 4) continue; // stale sha — re-read and retry
+        throw e;
+      }
+    }
 
     const needsCoords = data.lat == null || data.lng == null;
     return {
       ok: true, draft_id, created_by: 'claude-studio', status: data.status, project: data, needs_coords: needsCoords,
-      note: 'Appended to ' + ghRepo(env) + '/' + GH_DRAFTS_PATH + ' — review & promote it from the map admin. It is NOT on the live map yet.' + (needsCoords ? ' Add lat/lng before it can be placed.' : ''),
+      admin_url: MAP_ADMIN_URL,
+      note: 'Queued for review — open the TMW Studio map admin at ' + MAP_ADMIN_URL + ' and click the "Drafts" tab; "' + data.name + '" is there now as a CLAUDE DRAFT. Review and promote it from that tab to put it on the live map — it is NOT live yet. (Stored in ' + ghRepo(env) + '/' + GH_DRAFTS_PATH + ', which that admin reads directly — so this IS the right place; do not tell the user it landed anywhere the admin cannot see.)' + (needsCoords ? ' Add lat/lng before it can be placed.' : ''),
     };
   },
 
@@ -991,6 +1014,8 @@ const IMPL = {
     const recent = drafts.slice().reverse().slice(0, limit);
     return {
       count: drafts.length, showing: recent.length, repo: ghRepo(env) + '/' + GH_DRAFTS_PATH,
+      admin_url: MAP_ADMIN_URL,
+      note: 'These are pending in the TMW Studio map admin → ' + MAP_ADMIN_URL + ' "Drafts" tab, awaiting human review/promotion.',
       drafts: recent.map((d) => ({
         draft_id: d.draft_id, name: d.data && d.data.name, city: d.data && d.data.city,
         status: d.data && d.data.status, created_at: d.created_at, created_by: d.created_by,
@@ -1143,7 +1168,7 @@ async function dispatch(msg, env) {
       protocolVersion: (params && params.protocolVersion) || DEFAULT_PROTOCOL,
       capabilities: { tools: { listChanged: false } },
       serverInfo: SERVER_INFO,
-      instructions: 'Markets of Tomorrow Studio — run the studio remotely. Before writing or critiquing any post, carousel, caption, headline, or article, call get_brand_brain to load the shared house style; record new likes/dislikes/rules with record_preference so taste stays in sync across every connected account. Read journal posts/drafts/views, Map of Tomorrow projects, media, lists, and analytics. Write only reviewable artifacts: create/edit article DRAFTS, upload photos into media folders, create folders, add to or replace studio lists (e.g. the client wall), and stage MAP DRAFTS to the tmw-data review queue. Nothing here publishes to the live journal or live map — drafts wait for a human to promote.',
+      instructions: 'Markets of Tomorrow Studio — run the studio remotely. Before writing or critiquing any post, carousel, caption, headline, or article, call get_brand_brain to load the shared house style; record new likes/dislikes/rules with record_preference so taste stays in sync across every connected account. Read journal posts/drafts/views, Map of Tomorrow projects, media, lists, and analytics. Write only reviewable artifacts: create/edit article DRAFTS, upload photos into media folders, create folders, add to or replace studio lists (e.g. the client wall), and stage MAP DRAFTS for review (they appear in the TMW Studio map admin at https://admin.oftmw.com/map/ under the "Drafts" tab — that admin reads the draft queue directly, so a created map draft is immediately visible there for a human to review and promote). Nothing here publishes to the live journal or live map — drafts wait for a human to promote.',
     });
   }
   if (method === 'ping') return rpcResult(id, {});
