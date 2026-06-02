@@ -47,6 +47,10 @@
   (function tagMemberstackModals() {
     function looksLikeMSModal(el) {
       if (!el || el.nodeType !== 1) return false;
+      // The subscribe lightbox is fixed + has an email input + role=dialog, but
+      // it is NOT a Memberstack modal — tagging it applied the dark MS scrim
+      // (rgba(0,0,0,.78)) full-width behind it. Never treat it as one.
+      if (el.classList && el.classList.contains('tmw-sub')) return false;
       try {
         var cs = window.getComputedStyle(el);
         if (cs.position !== 'fixed' && cs.position !== 'absolute') return false;
@@ -275,10 +279,15 @@
     // Repaint the button from the current auth state.
     function applyState(member) {
       var signedIn = !!member;
+      var paid = signedIn && isPaid(member);
       btn.classList.toggle('signed-in', signedIn);
-      btn.classList.toggle('is-pro', signedIn && isPaid(member));
+      btn.classList.toggle('is-pro', paid);
       btn.setAttribute('aria-label', signedIn ? 'Profile menu' : 'Join');
       if (!signedIn) menu.classList.remove('open');
+      // Expose for the dock's paywall interceptor: paid members follow Pro
+      // links straight to the map feature; everyone else gets the paywall.
+      window._tmwSignedIn = signedIn;
+      window._isPaidMember = paid;
     }
     // Re-fetch the member and repaint (after login / plan change).
     function refresh() {
@@ -301,7 +310,9 @@
     });
     goPro.addEventListener('click', function (e) {
       e.stopPropagation(); e.preventDefault();
-      location.href = MAP_URL + '/?upgrade=1';
+      // Native in-page paywall; fall back to the map deep-link if it hasn't loaded.
+      if (typeof window.tmwShowPaywall === 'function') window.tmwShowPaywall('go-pro');
+      else location.href = MAP_URL + '/?upgrade=1';
     });
     host.querySelector('[data-act="account"]').addEventListener('click', function (e) {
       e.stopPropagation(); menu.classList.remove('open');

@@ -408,13 +408,28 @@
   // page, AFTER swapToInstagram() so journal-auth.js reuses the dock's .tmw-ig
   // button instead of minting a second one. Guarded so pages that already embed
   // the script (or have it injected by the chrome) don't double-load.
+  // Feature flag: the native in-page "Go Pro" paywall. While false, Pro tiles /
+  // "Go Pro" keep their old behaviour (graceful fallback redirect to the map's
+  // ?upgrade=1). Flip to true once the Memberstack checkout is verified.
+  var PAYWALL_NATIVE = false;
+
   function loadAuth() {
-    if (document.querySelector('script[src*="journal-auth.js"], script[data-tmw-auth-loader]')) return;
-    var s = document.createElement('script');
-    s.src = '/_shared/journal-auth.js';
-    s.defer = true;
-    s.setAttribute('data-tmw-auth-loader', '');
-    document.head.appendChild(s);
+    if (!document.querySelector('script[src*="journal-auth.js"], script[data-tmw-auth-loader]')) {
+      var s = document.createElement('script');
+      s.src = '/_shared/journal-auth.js';
+      s.defer = true;
+      s.setAttribute('data-tmw-auth-loader', '');
+      document.head.appendChild(s);
+    }
+    // Native "Go Pro" paywall — so Pro upgrades pop up in-page instead of
+    // redirecting to the map. Reuses the Memberstack instance auth.js loads.
+    if (PAYWALL_NATIVE && !document.querySelector('script[src*="journal-paywall.js"], script[data-tmw-paywall-loader]')) {
+      var p = document.createElement('script');
+      p.src = '/_shared/journal-paywall.js';
+      p.defer = true;
+      p.setAttribute('data-tmw-paywall-loader', '');
+      document.head.appendChild(p);
+    }
   }
 
   // Stretch the desktop Focus Markets mega-panel to the full viewport width.
@@ -612,20 +627,20 @@
 
   function theMapPanel() {
     var U = MAP_BASE, UP = MAP_BASE + '/?upgrade=1';
-    function pro(icon, name, sub) {
-      return '<a class="tmw-mm-item" href="' + UP + '"><span class="tmw-mm-ic">' + ic(icon) + '</span><span class="tmw-mm-tx"><b>' + name + '<em>PRO</em></b><i>' + sub + '</i></span></a>';
+    function pro(icon, name, sub, ctx) {
+      return '<a class="tmw-mm-item" href="' + UP + '" data-paywall="' + ctx + '"><span class="tmw-mm-ic">' + ic(icon) + '</span><span class="tmw-mm-tx"><b>' + name + '<em>PRO</em></b><i>' + sub + '</i></span></a>';
     }
     return '<div class="tmw-mm">' +
       '<div><div class="tmw-mm-h">Explore — free</div>' +
         '<a class="tmw-mm-item" href="' + U + '"><span class="tmw-mm-ic green">' + ic('<path d="M9 18l-6 3V6l6-3 6 3 6-3v15l-6 3-6-3z"/><path d="M9 3v15M15 6v15"/>') + '</span><span class="tmw-mm-tx"><b>Interactive Map</b><i>396 projects across 40+ markets.</i></span></a>' +
         '<a class="tmw-mm-item" href="' + U + '/?view=atlas"><span class="tmw-mm-ic green">' + ic('<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>') + '</span><span class="tmw-mm-tx"><b>The Atlas</b><i>Every tracked project on one canvas.</i></span></a></div>' +
       '<div class="tmw-mm-pro"><div class="tmw-mm-h">Pro tools</div><div class="tmw-mm-pro-grid">' +
-        pro(HEX_IC, 'TMW Intelligence', 'Completion forecasts &amp; confidence.') +
-        pro(EYE_IC, 'Watchlist', 'Track projects, get notified.') +
-        pro(CMP_IC, 'Compare', 'Stack any projects side-by-side.') +
-        pro(PULSE_IC, 'Pulse', 'A live feed of every new project.') +
+        pro(HEX_IC, 'TMW Intelligence', 'Completion forecasts &amp; confidence.', 'feature:intelligence') +
+        pro(EYE_IC, 'Watchlist', 'Track projects, get notified.', 'feature:watchlist') +
+        pro(CMP_IC, 'Compare', 'Stack any projects side-by-side.', 'feature:compare') +
+        pro(PULSE_IC, 'Pulse', 'A live feed of every new project.', 'feature:pulse') +
       '</div></div>' +
-      '<a class="tmw-mm-cta" href="' + UP + '"><span class="t">Explore the map free. <em>Go Pro for the intelligence.</em></span><span class="go">Go Pro →</span></a>' +
+      '<a class="tmw-mm-cta" href="' + UP + '" data-paywall="go-pro"><span class="t">Explore the map free. <em>Go Pro for the intelligence.</em></span><span class="go">Go Pro →</span></a>' +
     '</div>';
   }
 
@@ -659,9 +674,28 @@
     });
   }
 
+  // Intercept clicks on Pro tiles / "Go Pro" so the native paywall pops up
+  // in-page instead of redirecting to the map's ?upgrade=1. Paid members fall
+  // through to the link (the real map feature); if the paywall script hasn't
+  // loaded yet, the href (map ?upgrade=1) is the graceful fallback.
+  var _pwWired = false;
+  function wirePaywallTiles() {
+    if (_pwWired) return; _pwWired = true;
+    document.addEventListener('click', function (e) {
+      var el = e.target.closest && e.target.closest('[data-paywall]');
+      if (!el) return;
+      if (window._isPaidMember) return;
+      if (typeof window.tmwShowPaywall === 'function') {
+        e.preventDefault(); e.stopPropagation();
+        window.tmwShowPaywall(el.getAttribute('data-paywall'));
+      }
+    });
+  }
+
   function buildFocusMarkets() {
     buildHeaderNavCSS();
     wireIgClicks();
+    wirePaywallTiles();
     var navs = document.querySelectorAll('.nav-links');
     for (var n = 0; n < navs.length; n++) {
       var nav = navs[n];

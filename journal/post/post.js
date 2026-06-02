@@ -680,7 +680,7 @@ function escapeAttr(s) { return escapeHtml(s); }
   var SUB_ENDPOINT = 'https://tmw-subscribe.jake-ab7.workers.dev';
   var MARKETS = ['florida', 'tennessee', 'newyork', 'caribbean', 'rockies', 'hotel'];
   var KEY = 'tmw-sub-lightbox-v1';
-  var DELAY_MS = 8000;
+  var DELAY_MS = 3000;
 
   function seen() { try { return localStorage.getItem(KEY); } catch (e) { return null; } }
   function mark(v) { try { localStorage.setItem(KEY, v); } catch (e) {} }
@@ -694,15 +694,15 @@ function escapeAttr(s) { return escapeHtml(s); }
         '<div class="tmw-sub-eyebrow">The Future Is Here</div>' +
         '<h3 class="tmw-sub-h">Separate yourself from millions of monthly readers and join our newsletter.</h3>' +
         '<form class="tmw-sub-form">' +
-          '<input type="text" name="name" placeholder="First name" autocomplete="given-name">' +
           '<input type="email" name="email" placeholder="you@example.com" autocomplete="email" required>' +
-          '<button type="submit">Subscribe &rarr;</button>' +
+          '<button type="submit">Subscribe</button>' +
         '</form>' +
         '<div class="tmw-sub-msg" aria-live="polite"></div>' +
       '</div>';
     document.body.appendChild(el);
 
-    function close() { el.classList.remove('show'); mark('dismissed'); }
+    // Dismiss only closes it for this page — it re-appears on the next article.
+    function close() { el.classList.remove('show'); }
     el.querySelector('.tmw-sub-x').addEventListener('click', close);
     el.addEventListener('click', function (e) { if (e.target === el) close(); });
 
@@ -711,12 +711,11 @@ function escapeAttr(s) { return escapeHtml(s); }
     form.addEventListener('submit', async function (e) {
       e.preventDefault();
       var email = (form.email.value || '').trim();
-      var name = (form.name.value || '').trim();
       if (!email) return;
       var btn = form.querySelector('button'); var orig = btn.textContent;
       btn.disabled = true; btn.textContent = 'Subscribing…';
       try {
-        var r = await fetch(SUB_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: email, name: name, markets: MARKETS }) });
+        var r = await fetch(SUB_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: email, markets: MARKETS }) });
         var d = await r.json().catch(function () { return {}; });
         if (d && d.success) {
           try { if (window.gtag) window.gtag('event', 'subscribe_article'); } catch (_) {}
@@ -731,8 +730,21 @@ function escapeAttr(s) { return escapeHtml(s); }
     requestAnimationFrame(function () { el.classList.add('show'); });
   }
 
-  if (seen()) return;
-  var t = setTimeout(function () { if (!seen()) build(); }, DELAY_MS);
+  // Show on EVERY article for logged-out readers. Suppress only for (a) people
+  // who already subscribed via this lightbox, and (b) signed-in members (free
+  // or pro) — they've already got an account.
+  function suppressed(cb) {
+    try { if (localStorage.getItem(KEY) === 'subscribed') { cb(true); return; } } catch (e) {}
+    if (window._tmwSignedIn === true) { cb(true); return; }
+    if (window._tmwSignedIn === false) { cb(false); return; }
+    var m = window.$memberstackDom;
+    if (m && m.getCurrentMember) {
+      m.getCurrentMember().then(function (r) { cb(!!(r && r.data)); }).catch(function () { cb(false); });
+      return;
+    }
+    cb(false); // Memberstack not up yet → treat as logged-out
+  }
+  var t = setTimeout(function () { suppressed(function (s) { if (!s) build(); }); }, DELAY_MS);
   // If they bounce fast, don't bother.
   window.addEventListener('pagehide', function () { clearTimeout(t); });
 })();
