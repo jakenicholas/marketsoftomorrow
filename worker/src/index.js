@@ -457,57 +457,28 @@ function msAmount(raw) {
 // Map any Memberstack interval representation to a per-month multiplier and a
 // coarse 'monthly'|'yearly'|'other' bucket. Handles string ("MONTHLY"),
 // nested ({ type:'month', count:1 }), and Stripe-ish ({ interval:'year' }).
-function msInterval(price) {
-  let s = '';
-  if (!price) s = '';
-  else if (typeof price.interval === 'string') s = price.interval;
-  else if (price.interval && typeof price.interval === 'object') s = price.interval.type || price.interval.interval || '';
-  else s = price.recurring?.interval || price.billingInterval || price.frequency || '';
-  s = String(s).toLowerCase();
-  const count = Number(price?.intervalCount || price?.interval?.count || price?.recurring?.interval_count || 1) || 1;
-  if (/year|annual/.test(s)) return { bucket: 'yearly',  perMonth: 1 / (12 * count) };
-  if (/month/.test(s))       return { bucket: 'monthly', perMonth: 1 / count };
-  if (/week/.test(s))        return { bucket: 'other',   perMonth: (52 / 12) / count };
-  if (/day/.test(s))         return { bucket: 'other',   perMonth: (365 / 12) / count };
-  return { bucket: 'other', perMonth: 0 }; // one-time / unknown → no MRR contribution
-}
-
-// Pick the most representative recurring price from a plan's prices array.
-function msPlanPrice(plan) {
-  const prices = plan?.prices || plan?.planPrices || [];
-  if (!Array.isArray(prices) || !prices.length) return null;
-  // Prefer recurring prices; fall back to the first price.
-  const recurring = prices.filter(p => {
-    const t = String(p.type || p.priceType || '').toLowerCase();
-    return /recur/.test(t) || p.interval || p.recurring;
-  });
-  return (recurring[0] || prices[0]) || null;
-}
-
-async function msFetchAllPlans(env) {
-  // GET /plans → list of plans with prices. Some accounts paginate; most return
-  // a flat list. Tolerate { data:[...] }, { plans:[...] }, or a bare array.
-  const r = await fetch(`${MS_API}/plans`, { headers: msHeaders(env) });
-  if (!r.ok) throw new Error(`Memberstack /plans ${r.status}: ${(await r.text()).slice(0, 200)}`);
-  const body = await r.json();
-  const list = Array.isArray(body) ? body : (body.data || body.plans || []);
-  const map = new Map();
-  for (const plan of list) {
-    const price = msPlanPrice(plan);
-    const iv = msInterval(price);
-    const amount = price ? msAmount(price.amount ?? price.unitAmount ?? price.value) : 0;
-    const paid = amount > 0;
-    map.set(plan.id, {
-      id: plan.id,
-      name: plan.name || plan.title || plan.id,
-      paid,
-      amount,
-      currency: (price && (price.currency || price.currencyCode)) || 'usd',
-      bucket: iv.bucket,
-      perMonth: amount * iv.perMonth,
-    });
+// Derive billing cadence from a planConnection.payment object. Memberstack's
+// payment object has NO interval field — the cadence lives in the priceId slug
+// (e.g. "prc_annual-9i2e0eab", "prc_monthly-86u0uyc"). We parse that, and fall
+// back to the gap between lastBillingDate/nextBillingDate (unix seconds) when
+// the slug isn't descriptive. Returns a coarse bucket + a factor that converts
+// the charge amount to a monthly-equivalent (for MRR).
+function msPaymentCadence(payment) {
+  const pid = String(payment.priceId || payment.priceName || payment.price || '').toLowerCase();
+  if (/annual|yearly|year|yr|12mo/.test(pid)) return { bucket: 'yearly',  perMonthFactor: 1 / 12 };
+  if (/month|monthly|\bmo\b|30day/.test(pid)) return { bucket: 'monthly', perMonthFactor: 1 };
+  if (/quarter|3mo|90day/.test(pid))          return { bucket: 'other',   perMonthFactor: 1 / 3 };
+  if (/week|weekly/.test(pid))                return { bucket: 'other',   perMonthFactor: 52 / 12 };
+  // Fallback: infer from the spacing of the billing dates.
+  const last = Number(payment.lastBillingDate), next = Number(payment.nextBillingDate);
+  if (last && next && next > last) {
+    const days = (next - last) / 86400;
+    if (days > 300) return { bucket: 'yearly',  perMonthFactor: 1 / 12 };
+    if (days > 75)  return { bucket: 'other',   perMonthFactor: 1 / 3 };
+    if (days > 20)  return { bucket: 'monthly', perMonthFactor: 1 };
+    return { bucket: 'other', perMonthFactor: 52 / 12 };
   }
-  return map;
+  return { bucket: 'other', perMonthFactor: 0 };
 }
 
 async function msFetchAllMembers(env) {
@@ -536,51 +507,53 @@ async function handleSubscriptions(env, origin, url) {
     return json({ configured: false, reason: 'MEMBERSTACK_SECRET_KEY not set' }, {}, env, origin);
   }
   const debug = url && url.searchParams.get('debug') === '1';
-  let plans, members;
+  let members = [];
   try {
-    [plans, members] = await Promise.all([msFetchAllPlans(env), msFetchAllMembers(env)]);
+    members = await msFetchAllMembers(env);
   } catch (e) {
     return json({ configured: true, error: String(e.message || e) }, { status: 502 }, env, origin);
   }
+  // Memberstack's Admin REST API has no list-plans endpoint, so price + cadence
+  // come straight from each member's planConnections[].payment (priceId names
+  // the interval; amount is in major currency units; free plans have payment=null).
+  const plansError = 'no /plans endpoint — deriving from planConnections.payment';
 
   const nowMs = Date.now();
+  const MS_PER_MONTH = 1000 * 60 * 60 * 24 * 30.4375;
   let paying = 0, free = 0, monthlyCount = 0, yearlyCount = 0, otherCount = 0;
   let mrr = 0, allTimeEstimate = 0;
   const currencies = new Set();
 
   for (const m of members) {
     const conns = m.planConnections || m.planConnection || [];
-    // An "active paid" connection: active/ACTIVE status AND resolves to a paid plan.
     let memberPays = false;
     for (const c of (Array.isArray(conns) ? conns : [])) {
-      const active = c.active === true || /^(active|trialing)$/i.test(String(c.status || ''));
+      const active = c.active === true || /^(active|trialing|past_due)$/i.test(String(c.status || ''));
       if (!active) continue;
-      const plan = plans.get(c.planId);
-      const isPaid = plan ? plan.paid
-        : (c.payment != null || /paid|premium|pro/i.test(String(c.type || c.planName || '')));
+      // A paid subscription is a non-FREE connection carrying a payment object.
+      const pay = c.payment;
+      const isPaid = !!pay && String(c.type || '').toUpperCase() !== 'FREE';
       if (!isPaid) continue;
       memberPays = true;
 
-      // Resolve amount + cadence: prefer the plan's price, fall back to the
-      // connection's own payment object if the plan lookup came up empty.
-      let perMonth = plan ? plan.perMonth : 0;
-      let bucket = plan ? plan.bucket : 'other';
-      let amount = plan ? plan.amount : 0;
-      if ((!plan || !perMonth) && c.payment) {
-        amount = msAmount(c.payment.amount ?? c.payment.unitAmount);
-        const iv = msInterval(c.payment);
-        bucket = iv.bucket; perMonth = amount * iv.perMonth;
-      }
-      if (plan) currencies.add(plan.currency);
-      if (bucket === 'yearly') yearlyCount++;
-      else if (bucket === 'monthly') monthlyCount++;
+      const amount = msAmount(pay.amount ?? pay.unitAmount);          // major units (e.g. 90)
+      const cad = msPaymentCadence(pay);                              // bucket + monthly factor
+      const perMonth = amount * cad.perMonthFactor;
+      currencies.add(String(pay.currency || 'usd').toLowerCase());
+      if (cad.bucket === 'yearly') yearlyCount++;
+      else if (cad.bucket === 'monthly') monthlyCount++;
       else otherCount++;
       mrr += perMonth || 0;
 
-      // All-time income estimate: monthly run-rate × months since member joined.
-      const createdMs = Date.parse(m.createdAt || m.created_at || c.createdAt || '') || nowMs;
-      const months = Math.max(1, (nowMs - createdMs) / (1000 * 60 * 60 * 24 * 30.4375));
-      allTimeEstimate += (perMonth || 0) * months;
+      // All-time income estimate: amount × billing cycles charged so far. Uses
+      // the member's account age as the subscription lifetime (Memberstack has
+      // no charge-history API), with a 1-cycle floor (their first charge).
+      const createdMs = Date.parse(m.createdAt || m.created_at || '') || nowMs;
+      const monthsSince = Math.max(0, (nowMs - createdMs) / MS_PER_MONTH);
+      let cycles = 1;
+      if (cad.bucket === 'yearly')       cycles = Math.floor(monthsSince / 12) + 1;
+      else if (cad.bucket === 'monthly') cycles = Math.floor(monthsSince) + 1;
+      allTimeEstimate += amount * Math.max(1, cycles);
     }
     if (memberPays) paying++; else free++;
   }
@@ -597,14 +570,19 @@ async function handleSubscriptions(env, origin, url) {
     arr: Math.round(mrr * 12 * 100) / 100,
     all_time_income_estimate: Math.round(allTimeEstimate * 100) / 100,
     currency: currencies.size === 1 ? [...currencies][0] : (currencies.size ? 'mixed' : 'usd'),
-    plans_count: plans.size,
     updated_at: Math.floor(nowMs / 1000),
   };
   if (debug) {
+    // Dump real plan connections (no email/PII) so we can calibrate the
+    // amount/interval parser against the actual Memberstack shape.
+    const withConns = members.filter(m => (m.planConnections || []).length);
     resp._debug = {
-      first_plan: [...plans.values()][0] || null,
-      sample_member_conn: (members.find(m => (m.planConnections || []).length) || {}).planConnections || null,
+      plans_error: plansError,
       member_keys: members[0] ? Object.keys(members[0]) : [],
+      sample_connections: withConns.slice(0, 6).map(m => ({
+        createdAt: m.createdAt || m.created_at || null,
+        planConnections: m.planConnections,
+      })),
     };
   }
   return json(resp, {}, env, origin);
