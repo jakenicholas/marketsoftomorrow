@@ -3122,6 +3122,57 @@ async function handleListPost(req, env, origin, slug) {
   return json({ ok: true, slug, updatedAt: now, updatedBy }, {}, env, origin);
 }
 
+// ── Brand brain (shared house-style notes) — admin read/write. The Studio MCP
+// connector reads/writes this same brand_notes table via get_brand_brain /
+// record_preference, so the Studio UI and Claude stay in sync. ───────────────
+const BRAIN_KINDS = ['like', 'dislike', 'rule', 'voice', 'structure', 'topic', 'avoid', 'example'];
+async function ensureBrandNotes(env) {
+  await env.DB.prepare(
+    'CREATE TABLE IF NOT EXISTS brand_notes (id TEXT PRIMARY KEY, kind TEXT NOT NULL, category TEXT, note TEXT NOT NULL, context TEXT, created_by TEXT, created_at INTEGER, active INTEGER DEFAULT 1)'
+  ).run();
+}
+async function handleBrainGet(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin);
+  if (denied) return denied;
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  await ensureBrandNotes(env);
+  const rows = (await env.DB.prepare(
+    'SELECT id, kind, category, note, context, created_by, created_at FROM brand_notes WHERE active = 1 ORDER BY created_at ASC'
+  ).all()).results || [];
+  return json({ count: rows.length, notes: rows }, {}, env, origin);
+}
+async function handleBrainPost(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin);
+  if (denied) return denied;
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  await ensureBrandNotes(env);
+  let b; try { b = await req.json(); } catch { return json({ error: 'invalid JSON' }, { status: 400 }, env, origin); }
+  const kind = String(b.kind || '').trim().toLowerCase();
+  if (!BRAIN_KINDS.includes(kind)) return json({ error: 'kind must be one of: ' + BRAIN_KINDS.join(', ') }, { status: 400 }, env, origin);
+  const note = String(b.note || '').trim();
+  if (!note) return json({ error: 'note is required' }, { status: 400 }, env, origin);
+  const category = String(b.category || '').slice(0, 60) || null;
+  const context = String(b.context || '').slice(0, 500) || null;
+  if (b.id) {
+    await env.DB.prepare('UPDATE brand_notes SET kind = ?1, category = ?2, note = ?3, context = ?4 WHERE id = ?5')
+      .bind(kind, category, note.slice(0, 2000), context, String(b.id)).run();
+    return json({ ok: true, id: b.id, updated: true }, {}, env, origin);
+  }
+  const id = 'bn-' + (crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2));
+  const now = Math.floor(Date.now() / 1000);
+  await env.DB.prepare('INSERT INTO brand_notes (id, kind, category, note, context, created_by, created_at, active) VALUES (?1,?2,?3,?4,?5,?6,?7,1)')
+    .bind(id, kind, category, note.slice(0, 2000), context, String(b.by || 'studio').slice(0, 40), now).run();
+  return json({ ok: true, id }, {}, env, origin);
+}
+async function handleBrainDelete(req, env, origin, id) {
+  const denied = await requireAdminToken(req, env, origin);
+  if (denied) return denied;
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  await ensureBrandNotes(env);
+  await env.DB.prepare('UPDATE brand_notes SET active = 0 WHERE id = ?1').bind(String(id)).run();
+  return json({ ok: true, id, removed: true }, {}, env, origin);
+}
+
 // Length-safe compare so timing differences don't leak the token byte-by-byte.
 function constantTimeEqual(a, b) {
   if (typeof a !== 'string' || typeof b !== 'string') return false;
@@ -3531,6 +3582,16 @@ export default {
           if (request.method === 'GET')  return await handleListGet(env, origin, slug);
           if (request.method === 'POST') return await handleListPost(request, env, origin, slug);
         }
+      }
+      // /brain — shared brand-brain notes (admin read/write; same brand_notes
+      // table the MCP connector uses, so the Studio UI and Claude stay in sync).
+      if (url.pathname === '/brain' || url.pathname === '/brain/') {
+        if (request.method === 'GET')  return await handleBrainGet(request, env, origin);
+        if (request.method === 'POST') return await handleBrainPost(request, env, origin);
+      }
+      {
+        const m = url.pathname.match(/^\/brain\/([^/]+)\/?$/);
+        if (m && request.method === 'DELETE') return await handleBrainDelete(request, env, origin, decodeURIComponent(m[1]));
       }
       if (request.method === 'GET' && url.pathname === '/health') {
         return json({ ok: true, ts: Date.now() }, {}, env, origin);
