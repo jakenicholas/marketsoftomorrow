@@ -408,12 +408,14 @@ nav.main .wrap{display:flex; align-items:center; justify-content:space-between; 
 @media(max-width:760px){
   .story-section{padding:18px 14px 60px}
   .story-card{min-height:438px; display:flex; flex-direction:column}
-  /* anchor the headline / paragraph / read-more at the bottom of the image;
-     the FEATURED pill stays pinned at the top */
+  /* eyebrow + headline + paragraph sit at the top; only "Read more" is pushed
+     to the bottom so it stays legible over the lower gradient */
   .story-card .sc-content{max-width:100%; flex:1; padding-bottom:52px}
-  .story-card h1{margin-top:auto}
+  .story-card .sc-more{margin-top:auto}
   .story-card .sc-eyebrow{font-size:9px; letter-spacing:.16em; padding:4px 10px; gap:6px}
-  .story-card .sc-bg::after{background:linear-gradient(180deg, rgba(7,8,7,.32) 0%, rgba(7,8,7,.72) 62%, rgba(7,8,7,.85) 100%)}
+  /* dark at top (protect eyebrow/title), clear through the middle (show the
+     image), light gradient at the bottom (protect "Read more") */
+  .story-card .sc-bg::after{background:linear-gradient(180deg, rgba(7,8,7,.70) 0%, rgba(7,8,7,0) 38%, rgba(7,8,7,0) 62%, rgba(7,8,7,.30) 100%)}
   .story-card .sc-tab{padding:10px 16px; font-size:11px; letter-spacing:.14em}
   .story-card .sc-tabs{padding:5px; gap:6px}
 }

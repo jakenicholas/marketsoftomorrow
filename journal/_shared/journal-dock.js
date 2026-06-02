@@ -502,16 +502,18 @@
       '.tmw-oc:hover .tmw-oc-banner img{transform:scale(1.04)}',
       '.tmw-oc-body{padding:14px 16px 16px; display:flex; flex-direction:column; flex:1}',
       '.tmw-oc-name{font-size:13px; font-weight:600; color:#fff; text-transform:none; letter-spacing:normal; line-height:1.25; margin-bottom:13px}',
-      '.tmw-oc-ig{position:absolute; top:8px; right:8px; z-index:2; display:flex; align-items:center; justify-content:center; width:28px; height:28px; border-radius:8px; background:rgba(7,8,7,.55); -webkit-backdrop-filter:blur(5px); backdrop-filter:blur(5px); border:1px solid rgba(255,255,255,.2); color:#fff; cursor:pointer; transition:background .2s, color .2s}',
-      '.tmw-oc-ig:hover{background:rgba(7,8,7,.85); color:#1FDF67}',
-      '.tmw-oc-ig svg{width:15px; height:15px}',
       '.tmw-oc-stats{display:grid; grid-template-columns:1fr 1fr; gap:13px 12px; padding-bottom:15px; border-bottom:1px solid rgba(255,255,255,.08)}',
       '.tmw-oc-st{display:flex; flex-direction:column; gap:3px}',
       '.tmw-oc-st .v{font-family:var(--serif,Georgia,serif); font-weight:600; font-size:20px; color:#fff; letter-spacing:-.01em; line-height:1}',
       '.tmw-oc-st .k{font-family:var(--mono); font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:var(--mute,#9AA39C)}',
-      '.tmw-oc-read{margin-top:auto; padding-top:13px; display:inline-flex; align-items:center; gap:8px; font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--gold-soft,#f0d68a)}',
+      // Footer row: "Read articles" (left) + Instagram button (right), bottom-aligned.
+      '.tmw-oc-foot{margin-top:auto; padding-top:13px; display:flex; align-items:center; justify-content:space-between; gap:10px; position:relative}',
+      '.tmw-oc-read{display:inline-flex; align-items:center; gap:8px; white-space:nowrap; font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--gold-soft,#f0d68a)}',
       '.tmw-oc-read svg{width:13px; height:13px; transition:transform .2s}',
       '.tmw-oc:hover .tmw-oc-read{color:#fff} .tmw-oc:hover .tmw-oc-read svg{transform:translateX(3px)}',
+      '.tmw-oc-ig{flex:0 0 auto; display:flex; align-items:center; justify-content:center; width:30px; height:30px; border-radius:8px; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.12); color:var(--mute,#9AA39C); cursor:pointer; transition:background .2s, color .2s, border-color .2s}',
+      '.tmw-oc-ig:hover{background:rgba(31,223,103,.1); border-color:rgba(31,223,103,.3); color:#1FDF67}',
+      '.tmw-oc-ig svg{width:15px; height:15px}',
       // The Map — explore (free) + pro intelligence + Go Pro CTA.
       '.tmw-mm{display:grid; grid-template-columns:1fr 2fr; gap:22px 30px; max-width:980px}',
       '.tmw-mm-h{font-family:var(--mono); font-size:9.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--mute,#9AA39C); margin-bottom:8px}',
@@ -555,10 +557,13 @@
       '.tmw-oc-grid{grid-template-columns:repeat(2,1fr); max-width:none; gap:10px}',
       '.tmw-oc-banner{aspect-ratio:16/10}',
       '.tmw-oc-body{padding:11px 12px 9px}',
-      '.tmw-oc-name{font-size:11.5px}',
+      '.tmw-oc-name{font-size:13px}',
       '.tmw-oc-stats{gap:10px 12px; padding-bottom:13px}',
       '.tmw-oc-st .v{font-size:16px}',
-      '.tmw-oc-read{font-size:9px; margin-top:11px}',
+      // Mobile: centre "Read articles" in the space left of the IG button (right).
+      '.tmw-oc-foot{gap:6px}',
+      '.tmw-oc-read{font-size:8.5px; letter-spacing:.06em; flex:1; justify-content:center; gap:6px}',
+      '.tmw-oc-ig{width:24px; height:24px}',
       '.tmw-mm{grid-template-columns:1fr; max-width:none; gap:10px}',
       '.tmw-mm-pro-grid{grid-template-columns:1fr}',
       '.tmw-ll{grid-template-columns:1fr; max-width:none; gap:10px}',
@@ -596,11 +601,11 @@
     var cards = FOCUS_MARKETS.map(function (m) {
       var stats = m.s.slice(0, 2).map(function (v, i) { return '<div class="tmw-oc-st"><span class="v">' + v + '</span><span class="k">' + SK[i] + '</span></div>'; }).join('');
       return '<a class="tmw-oc" role="menuitem" href="' + JOURNAL_HOME + '?market=' + m.key + '">' +
-        '<div class="tmw-oc-banner"><img src="' + m.img + '" alt="' + m.name + '" loading="lazy">' +
-          '<span class="tmw-oc-ig" data-ig="' + m.h + '" role="link" tabindex="0" aria-label="Instagram">' + IG_SM + '</span></div>' +
+        '<div class="tmw-oc-banner"><img src="' + m.img + '" alt="' + m.name + '" loading="lazy"></div>' +
         '<div class="tmw-oc-body"><span class="tmw-oc-name">' + m.name.replace(/ Tomorrow$/, '<br>Tomorrow') + '</span>' +
           '<div class="tmw-oc-stats">' + stats + '</div>' +
-          '<span class="tmw-oc-read">Read articles ' + ARR2 + '</span></div></a>';
+          '<div class="tmw-oc-foot"><span class="tmw-oc-read">Read articles ' + ARR2 + '</span>' +
+            '<span class="tmw-oc-ig" data-ig="' + m.h + '" role="link" tabindex="0" aria-label="Instagram">' + IG_SM + '</span></div></div></a>';
     }).join('');
     return '<div class="tmw-nav-eyebrow">Each market — its own journal feed, social &amp; project coverage</div><div class="tmw-oc-grid">' + cards + '</div>';
   }
