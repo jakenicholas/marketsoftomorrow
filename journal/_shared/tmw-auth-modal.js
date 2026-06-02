@@ -29,6 +29,11 @@
       '.tmw-am.show{opacity:1; pointer-events:auto}',
       '.tmw-am-bd{position:absolute; inset:0; background:rgba(0,0,0,.78); -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px)}',
       '.tmw-am-card{position:relative; z-index:1; width:100%; max-width:430px; max-height:calc(100vh - 40px); overflow-y:auto; background:#0f1110; border:1px solid rgba(255,255,255,.1); border-radius:18px; padding:34px 32px 30px; box-shadow:0 40px 90px rgba(0,0,0,.6); transform:translateY(8px); transition:transform .2s; font-family:var(--sans,"Inter",-apple-system,sans-serif)}',
+      // logged-in account modal: twice as wide on desktop. Forms stay a readable
+      // centered column; the watchlist breaks out to the full width for its grid.
+      '.tmw-am-card.wide{max-width:860px}',
+      '.tmw-am-card.wide .tmw-am-sec{max-width:600px; margin-left:auto; margin-right:auto}',
+      '.tmw-am-card.wide .tmw-am-sec.tmw-am-sec-wl{max-width:none}',
       '.tmw-am.show .tmw-am-card{transform:translateY(0)}',
       '.tmw-am-x{position:absolute; top:14px; right:16px; width:30px; height:30px; border:0; border-radius:50%; background:rgba(255,255,255,.06); color:rgba(255,255,255,.6); font-size:18px; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background .15s,color .15s}',
       '.tmw-am-x:hover{background:rgba(255,255,255,.12); color:#fff}',
@@ -73,11 +78,15 @@
       '.tmw-am-plans{background:none; border:0; color:#1FDF67; font-family:var(--sans,"Inter",sans-serif); font-size:13px; font-weight:600; cursor:pointer}',
       '.tmw-am-tab-pro{font-style:normal; font-size:8px; font-weight:800; color:#000; background:#FFD300; padding:1px 5px; border-radius:4px; margin-left:5px; letter-spacing:.06em; vertical-align:middle}',
       // watchlist
-      '.tmw-am-wl{display:flex; flex-direction:column; gap:8px; max-height:300px; overflow-y:auto}',
-      '.tmw-am-wl-item{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:13px 15px; border-radius:11px; text-decoration:none; border:1px solid rgba(255,255,255,.1); background:rgba(255,255,255,.03); transition:background .15s,border-color .15s}',
-      '.tmw-am-wl-item:hover{background:rgba(31,223,103,.07); border-color:rgba(31,223,103,.35)}',
-      '.tmw-am-wl-nm{font-family:var(--serif,Georgia,serif); font-size:15px; color:#fff}',
-      '.tmw-am-wl-arr{color:#1FDF67; flex:0 0 auto; font-size:15px}',
+      // watchlist — image cards (mirrors the map tiles)
+      '.tmw-am-wl{display:grid; grid-template-columns:1fr 1fr; gap:12px; max-height:460px; overflow-y:auto; padding:2px}',
+      '.tmw-am-wlc{position:relative; display:block; aspect-ratio:16/10; border-radius:13px; overflow:hidden; text-decoration:none; border:1px solid rgba(255,255,255,.1); background:linear-gradient(135deg,#1b1e1b,#0c0e0c)}',
+      '.tmw-am-wlc img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; transition:transform .45s ease}',
+      '.tmw-am-wlc::after{content:""; position:absolute; inset:0; background:linear-gradient(to top, rgba(5,6,5,.93), rgba(5,6,5,.12) 58%, transparent)}',
+      '.tmw-am-wlc:hover img{transform:scale(1.05)}',
+      '.tmw-am-wlc-meta{position:absolute; left:0; right:0; bottom:0; padding:12px 13px; z-index:2}',
+      '.tmw-am-wlc-city{font-family:var(--mono,monospace); font-size:8.5px; letter-spacing:.14em; text-transform:uppercase; color:rgba(255,255,255,.72); margin-bottom:3px}',
+      '.tmw-am-wlc-ttl{font-family:var(--serif,Georgia,serif); font-size:14.5px; line-height:1.15; color:#fff}',
       '.tmw-am-wl-empty{text-align:center; padding:10px 0}',
       '.tmw-am-wl-empty b{display:block; font-family:var(--serif,Georgia,serif); font-weight:500; font-size:18px; color:#fff; margin-bottom:6px}',
       '.tmw-am-wl-empty i{font-style:normal; display:block; font-size:12.5px; color:rgba(255,255,255,.55); line-height:1.45; margin-bottom:16px}',
@@ -88,6 +97,7 @@
       '.tmw-am-lock-sub{font-size:12.5px; color:rgba(255,255,255,.6); line-height:1.5; max-width:34ch; margin:0 auto 16px}',
       '.tmw-am-lockrows{display:flex; flex-direction:column; gap:8px; margin-bottom:18px; -webkit-mask-image:linear-gradient(#000 30%,transparent); mask-image:linear-gradient(#000 30%,transparent); pointer-events:none}',
       '.tmw-am-lockrow{height:44px; border-radius:11px; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08)}',
+      '@media(max-width:560px){.tmw-am-wl{grid-template-columns:1fr}}',
       '@media(max-width:480px){.tmw-am-card{padding:30px 22px 24px}}'
     ].join('');
     document.head.appendChild(st);
@@ -296,6 +306,19 @@
   }
   function unslug(s) { return String(s || '').replace(/-/g, ' ').replace(/\b\w/g, function (c) { return c.toUpperCase(); }); }
 
+  // Map projects (for watchlist images). Slug = projectSlugify(Title), same as
+  // the map. Fetched once + cached; CORS is open on map.oftmw.com.
+  function projectSlugify(t) { return String(t || '').toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/[\s-]+/g, '-').replace(/^-|-$/g, ''); }
+  var _projBySlug = null;
+  function loadProjects() {
+    if (_projBySlug) return Promise.resolve(_projBySlug);
+    return fetch('https://map.oftmw.com/projects-flat.json').then(function (r) { return r.json(); }).then(function (arr) {
+      var map = {};
+      (Array.isArray(arr) ? arr : []).forEach(function (p) { var s = projectSlugify(p.Title); if (s && !map[s]) map[s] = p; });
+      _projBySlug = map; return map;
+    }).catch(function () { return {}; });
+  }
+
   // Watchlist tab — Pro only. Free members see a locked, grayed preview + Go Pro.
   function watchlistSection(el, paid, host) {
     if (!paid) {
@@ -314,23 +337,27 @@
     }
     el.innerHTML = '<div class="tmw-am-msg">Loading your watchlist…</div>';
     var m = ms(); if (!m || !m.getMemberJSON) { el.innerHTML = '<div class="tmw-am-msg err">Couldn’t load your watchlist.</div>'; return; }
-    m.getMemberJSON().then(function (r) {
-      var json = (r && r.data) || {};
+    Promise.all([m.getMemberJSON(), loadProjects()]).then(function (out) {
+      var json = (out[0] && out[0].data) || {}, pmap = out[1] || {};
       var favs = Array.isArray(json.favorites) ? json.favorites.filter(function (s) { return typeof s === 'string' && s; }) : [];
       if (!favs.length) {
         el.innerHTML = '<div class="tmw-am-wl-empty"><b>No saved projects yet</b><i>Star projects on the map to start your watchlist.</i><a class="tmw-am-primary" href="https://map.oftmw.com" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;text-decoration:none">Explore the map →</a></div>';
         return;
       }
       el.innerHTML = '';
-      var wrap = document.createElement('div'); wrap.className = 'tmw-am-wl';
+      var grid = document.createElement('div'); grid.className = 'tmw-am-wl';
       favs.forEach(function (slug) {
-        var a = document.createElement('a'); a.className = 'tmw-am-wl-item';
+        var p = pmap[slug] || null;
+        var a = document.createElement('a'); a.className = 'tmw-am-wlc';
         a.href = 'https://map.oftmw.com/?project=' + encodeURIComponent(slug); a.target = '_blank'; a.rel = 'noopener';
-        var nm = document.createElement('span'); nm.className = 'tmw-am-wl-nm'; nm.textContent = unslug(slug);
-        var ar = document.createElement('span'); ar.className = 'tmw-am-wl-arr'; ar.textContent = '→';
-        a.appendChild(nm); a.appendChild(ar); wrap.appendChild(a);
+        var img = (p && (p.ImageURL || p.Image2)) || '';
+        if (img) { var im = document.createElement('img'); im.src = img; im.loading = 'lazy'; im.alt = ''; a.appendChild(im); }
+        var meta = document.createElement('div'); meta.className = 'tmw-am-wlc-meta';
+        if (p && p.City) { var c = document.createElement('div'); c.className = 'tmw-am-wlc-city'; c.textContent = p.City; meta.appendChild(c); }
+        var t = document.createElement('div'); t.className = 'tmw-am-wlc-ttl'; t.textContent = (p && p.Title) || unslug(slug);
+        meta.appendChild(t); a.appendChild(meta); grid.appendChild(a);
       });
-      el.appendChild(wrap);
+      el.appendChild(grid);
     }).catch(function () { el.innerHTML = '<div class="tmw-am-msg err">Couldn’t load your watchlist.</div>'; });
   }
 
@@ -343,6 +370,7 @@
     var sec = host.querySelector('.tmw-am-sec'), tabs = host.querySelectorAll('.tmw-am-tab');
     function show(s) {
       tabs.forEach(function (t) { t.classList.toggle('on', t.getAttribute('data-sec') === s); });
+      sec.classList.toggle('tmw-am-sec-wl', s === 'watchlist');
       setMsg(host, '', '');
       if (s === 'security') securitySection(sec, email, host);
       else if (s === 'watchlist') watchlistSection(sec, paid, host);
@@ -360,6 +388,7 @@
 
   function viewAccount(host, section) {
     var m = ms(); if (!m) return;
+    var card = host.closest && host.closest('.tmw-am-card'); if (card) card.classList.add('wide');
     host.innerHTML = LOGO + '<div class="tmw-am-msg">Loading…</div>';
     m.getCurrentMember().then(function (r) {
       var d = (r && r.data) || {};
