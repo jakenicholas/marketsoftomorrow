@@ -481,8 +481,6 @@
     if (document.getElementById('tmw-nav2-css')) return;
     var s = document.createElement('style'); s.id = 'tmw-nav2-css';
     s.textContent = [
-      // Hide the pulse ticker for now (reversible — just remove this rule).
-      '.ticker{display:none !important}',
       // v2 mega panels — full-width backdrop, centered inner content.
       '.tmw-fm-panel.v2{display:block; grid-template-columns:none; padding:0}',
       '.tmw-fm-inner{max-width:1240px; margin:0 auto; padding:26px clamp(24px,4vw,72px) 32px}',
