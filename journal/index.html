@@ -261,7 +261,9 @@ nav.main .wrap{display:flex; align-items:center; justify-content:space-between; 
   padding-left:8px;
   will-change:transform;
 }
-.ticker:hover .ticker-track{animation-play-state:paused}
+/* Pause on hover only on real pointer devices — on touch, :hover sticks after a
+   tap and would freeze the ticker permanently. */
+@media (hover:hover){.ticker:hover .ticker-track{animation-play-state:paused}}
 @keyframes tickerScroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 
 .ticker-item{
@@ -405,7 +407,9 @@ nav.main .wrap{display:flex; align-items:center; justify-content:space-between; 
 
 @media(max-width:760px){
   .story-section{padding:18px 14px 60px}
+  .story-card{min-height:438px}
   .story-card .sc-content{max-width:100%}
+  .story-card .sc-eyebrow{font-size:9px; letter-spacing:.16em; padding:4px 10px; gap:6px}
   .story-card .sc-bg::after{background:linear-gradient(180deg, rgba(7,8,7,.45) 0%, rgba(7,8,7,.85) 60%, rgba(7,8,7,.95) 100%)}
   .story-card .sc-tab{padding:10px 16px; font-size:11px; letter-spacing:.14em}
   .story-card .sc-tabs{padding:5px; gap:6px}
@@ -1052,13 +1056,34 @@ async function loadPulse() {
   }
 }
 
-function renderPulse(events) {
+// Paint a strip of items into the ticker so the CSS marquee loops forever and
+// NEVER shows blank space or stalls. The animation translates the track by -50%,
+// so the track must hold exactly two identical "units"; for the loop to be
+// gapless that unit must also be at least as wide as the viewport. With only a
+// couple of items the raw strip is narrower than the bar, which is what made the
+// old ticker flash empty — so we repeat the strip until one unit fills the
+// viewport, then duplicate it and scale the duration to the width (constant ~55px/s).
+let _pulseStrip = '';
+function paintPulseTrack(strip) {
   const track = document.getElementById('ticker-track');
-  if (!events.length) {
-    track.innerHTML = '<span class="ticker-item"><span class="pdot"></span><span class="ttxt">Network pulse currently quiet — check the map.</span></span>';
-    setPulseNewBadge(0);
-    return;
-  }
+  if (!track || !strip) return;
+  _pulseStrip = strip;
+  const vp = (track.parentElement && track.parentElement.clientWidth) || window.innerWidth || 600;
+  let unit = strip;
+  track.style.animation = 'none';                 // measure natural width
+  track.innerHTML = unit;
+  let guard = 0;
+  while (track.scrollWidth < vp + 40 && guard < 40) { unit += strip; track.innerHTML = unit; guard++; }
+  track.innerHTML = unit + unit;                  // two identical units → seamless -50% loop
+  const half = track.scrollWidth / 2;
+  const secs = Math.max(18, Math.round(half / 55));
+  // force a reflow so the animation restarts cleanly from 0
+  void track.offsetWidth;
+  track.style.animation = 'tickerScroll ' + secs + 's linear infinite';
+}
+
+function renderPulse(events) {
+  if (!events || !events.length) { renderPulseFallback(); setPulseNewBadge(0); return; }
   const now = Date.now();
   const fresh = events.filter(e => {
     const t = Date.parse(e.timestamp || 0);
@@ -1067,22 +1092,40 @@ function renderPulse(events) {
   setPulseNewBadge(fresh.length);
   // Only the most-recent PULSE_MAX items go in the scrolling track —
   // the "N NEW" badge still reflects the full count.
-  const visible = events.slice(0, PULSE_MAX);
-  const strip = visible.map(pulseItemHtml).join('');
-  // Duplicate the strip so the CSS marquee loops seamlessly.
-  track.innerHTML = strip + strip;
+  paintPulseTrack(events.slice(0, PULSE_MAX).map(pulseItemHtml).join(''));
 }
 
 function renderPulseFromBlog(items) {
-  const track = document.getElementById('ticker-track');
+  if (!items || !items.length) { renderPulseFallback(); setPulseNewBadge(null); return; }
   const strip = items.slice(0, 20).map(it => `<a class="ticker-item" href="${escapeAttr(it.link)}">
     <span class="pdot article"></span>
     <span class="ttxt">${escapeHtml(it.title)}</span>
     ${it.pubDate ? `<span class="tage">${escapeHtml(relativeAge(it.pubDate))}</span>` : ''}
   </a>`).join('');
-  track.innerHTML = strip + strip;
+  paintPulseTrack(strip);
   setPulseNewBadge(null);
 }
+
+// Evergreen fallback so the bar is NEVER empty — even if pulse.json is missing
+// and no blog items have loaded. These loop the same lines, which is fine.
+function renderPulseFallback() {
+  const lines = [
+    'Tracking 396 projects across 40+ markets',
+    'Explore the Map of Tomorrow',
+    'New developments added across every market',
+    'Florida · New York · Tennessee · Caribbean · Rockies'
+  ];
+  paintPulseTrack(lines.map(t =>
+    `<a class="ticker-item" href="https://map.oftmw.com" target="_blank" rel="noopener"><span class="pdot"></span><span class="ttxt">${escapeHtml(t)}</span></a>`
+  ).join(''));
+}
+
+// Keep the loop gapless across rotation / resize.
+let _pulseRz;
+window.addEventListener('resize', () => {
+  clearTimeout(_pulseRz);
+  _pulseRz = setTimeout(() => { if (_pulseStrip) paintPulseTrack(_pulseStrip); }, 250);
+});
 
 function pulseItemHtml(e) {
   const kind = e.type === 'article' ? 'article' : (e.type === 'status_change' ? 'status' : 'new');

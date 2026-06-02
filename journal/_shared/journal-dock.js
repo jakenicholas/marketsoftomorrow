@@ -170,8 +170,8 @@
     'nav.main .tmw-hex-badge{width:16px; height:16px}',
     'nav.main .nav-links{order:5; position:absolute; top:100%; left:0; right:0; display:none; flex-direction:column; gap:0; align-items:stretch; width:auto; margin:0; background:rgba(7,8,7,.98); -webkit-backdrop-filter:blur(16px) saturate(1.4); backdrop-filter:blur(16px) saturate(1.4); border-bottom:1px solid var(--hair); padding:10px 22px 24px; height:calc(100dvh - 56px); max-height:calc(100dvh - 56px); overflow-y:auto; -webkit-overflow-scrolling:touch}',
     'nav.main .nav-links.open{display:flex}',
-    'nav.main .nav-links a{padding:14px 2px; border-bottom:1px solid var(--hair); font-size:12.5px}',
-    'nav.main .nav-links a:last-child{border-bottom:0}',
+    'nav.main .nav-links > a{padding:14px 2px; border-bottom:1px solid var(--hair); font-size:12.5px}',
+    'nav.main .nav-links > a:last-child{border-bottom:0}',
     'nav.main .nav-links a.active::after{display:none}',
     'nav.main .nav-burger.is-open span:nth-child(1){transform:translateY(5.5px) rotate(45deg)}',
     'nav.main .nav-burger.is-open span:nth-child(2){opacity:0}',
@@ -503,7 +503,7 @@
       '.tmw-oc-flag{position:absolute; top:11px; left:11px; font-family:var(--mono); font-size:8.5px; letter-spacing:.1em; text-transform:uppercase; color:#0a0a0a; background:#1FDF67; padding:4px 9px; border-radius:5px; font-weight:700}',
       '.tmw-oc-body{padding:15px 16px 16px; display:flex; flex-direction:column}',
       '.tmw-oc-top{display:flex; align-items:center; justify-content:space-between; margin-bottom:14px}',
-      '.tmw-oc-name{font-size:13px; font-weight:600; color:#fff}',
+      '.tmw-oc-name{font-size:13px; font-weight:600; color:#fff; text-transform:none}',
       '.tmw-oc-ig{color:var(--mute,#9AA39C); display:flex; align-items:center; cursor:pointer}',
       '.tmw-oc-ig:hover{color:#1FDF67}',
       '.tmw-oc-ig svg{width:15px; height:15px}',
@@ -556,7 +556,7 @@
       // Focus Markets: 2 columns; banner fills the top; only Followers + Mo. Views.
       '.tmw-oc-grid{grid-template-columns:repeat(2,1fr); max-width:none; gap:10px}',
       '.tmw-oc-banner{aspect-ratio:16/10}',
-      '.tmw-oc-body{padding:11px 12px 13px}',
+      '.tmw-oc-body{padding:11px 12px 9px}',
       '.tmw-oc-name{font-size:11.5px}',
       '.tmw-oc-stats{gap:10px 12px; padding-bottom:13px}',
       '.tmw-oc-st .v{font-size:16px}',
@@ -598,7 +598,7 @@
     var cards = FOCUS_MARKETS.map(function (m) {
       var stats = m.s.slice(0, 2).map(function (v, i) { return '<div class="tmw-oc-st"><span class="v">' + v + '</span><span class="k">' + SK[i] + '</span></div>'; }).join('');
       return '<a class="tmw-oc' + (m.flag ? ' flag' : '') + '" role="menuitem" href="' + JOURNAL_HOME + '?market=' + m.key + '">' +
-        '<div class="tmw-oc-banner"><img src="' + m.img + '" alt="' + m.name + '" loading="lazy">' + (m.flag ? '<span class="tmw-oc-flag">Flagship</span>' : '') + '</div>' +
+        '<div class="tmw-oc-banner"><img src="' + m.img + '" alt="' + m.name + '" loading="lazy"></div>' +
         '<div class="tmw-oc-body"><div class="tmw-oc-top"><span class="tmw-oc-name">' + m.name + '</span>' +
           '<span class="tmw-oc-ig" data-ig="' + m.h + '" role="link" tabindex="0" aria-label="Instagram">' + IG_SM + '</span></div>' +
           '<div class="tmw-oc-stats">' + stats + '</div>' +
