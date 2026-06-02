@@ -411,7 +411,7 @@
   // Feature flag: the native in-page "Go Pro" paywall. While false, Pro tiles /
   // "Go Pro" keep their old behaviour (graceful fallback redirect to the map's
   // ?upgrade=1). Flip to true once the Memberstack checkout is verified.
-  var PAYWALL_NATIVE = false;
+  var PAYWALL_NATIVE = true;
 
   function loadAuth() {
     if (!document.querySelector('script[src*="journal-auth.js"], script[data-tmw-auth-loader]')) {

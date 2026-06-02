@@ -33,7 +33,9 @@
       '.paywall-close:hover{background:rgba(255,255,255,.12); color:#fff}',
       '.paywall-icon{margin:0 auto 18px; display:flex; align-items:center; justify-content:center}',
       '.paywall-icon img{height:34px; width:auto; display:block; filter:brightness(0) invert(1)}',
-      '.paywall-title{font-size:22px; font-weight:700; line-height:1.2; margin-bottom:8px}',
+      // Map header font (Inter), not the journal\'s serif h2 — explicit so the
+      // journal global "h2{font-family:var(--serif)}" rule can\'t win.
+      '.paywall-title{font-family:"Inter",-apple-system,BlinkMacSystemFont,sans-serif !important; font-size:22px; font-weight:700; letter-spacing:-.01em; line-height:1.2; margin-bottom:8px}',
       '.paywall-subtitle{font-size:13px; color:rgba(255,255,255,.55); line-height:1.5; margin-bottom:22px}',
       '.paywall-plans{display:flex; flex-direction:column; gap:10px; margin-bottom:18px}',
       '.paywall-plan{position:relative; background:rgba(255,255,255,.04); border:1.5px solid rgba(255,255,255,.08); border-radius:12px; padding:16px 18px; color:#fff; cursor:pointer; text-align:left; transition:border-color .15s, background .15s, transform .1s; font-family:inherit}',
@@ -46,8 +48,10 @@
       '.paywall-plan-per{font-size:13px; font-weight:500; color:rgba(255,255,255,.45); margin-left:2px}',
       '.paywall-plan-note{font-size:11px; color:rgba(255,255,255,.5)}',
       '.paywall-features{display:flex; flex-direction:column; gap:8px; padding:14px 0; border-top:1px solid rgba(255,255,255,.06); border-bottom:1px solid rgba(255,255,255,.06); margin-bottom:14px}',
-      '.paywall-feature{display:flex; align-items:center; gap:8px; font-size:12px; color:rgba(255,255,255,.7); text-align:left}',
+      '.paywall-feature{display:flex; align-items:center; gap:9px; font-size:12px; color:rgba(255,255,255,.7); text-align:left}',
       '.paywall-feature svg{flex-shrink:0}',
+      // Yellow PRO pill (matches the avatar-dropdown Pro tag) in place of checks.
+      '.paywall-feature-pro-pill{flex-shrink:0; font-size:9px; font-weight:800; color:#000; background:#FFD300; padding:2px 7px; border-radius:4px; letter-spacing:.08em; text-transform:uppercase; line-height:1.2}',
       '.paywall-founding{display:flex; flex-direction:column; align-items:center; gap:4px; margin:0 0 14px; padding:12px 18px; border-radius:12px; background:rgba(255,211,0,.10); border:1px solid rgba(255,211,0,.32); text-align:center; box-shadow:0 0 14px rgba(255,211,0,.18); width:100%; box-sizing:border-box}',
       '.paywall-founding-eyebrow{font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; color:#FFD300}',
       '.paywall-founding-body{font-size:12px; font-weight:500; color:rgba(255,255,255,.78); line-height:1.4}',
@@ -99,7 +103,7 @@
           '</button>' +
         '</div>' +
         '<div class="paywall-features">' +
-          FEATURES.map(function (f) { return '<div class="paywall-feature">' + CHECK + ' ' + f + '</div>'; }).join('') +
+          FEATURES.map(function (f) { return '<div class="paywall-feature"><span class="paywall-feature-pro-pill">PRO</span><span>' + f + '</span></div>'; }).join('') +
         '</div>' +
         '<div class="paywall-founding">' +
           '<span class="paywall-founding-eyebrow">Become a Founding Member</span>' +
