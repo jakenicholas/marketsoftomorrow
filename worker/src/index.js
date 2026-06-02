@@ -415,6 +415,201 @@ async function handleStats(env, origin) {
   }, {}, env, origin);
 }
 
+// ---------------------------------------------------------------------------
+// GET /subscriptions — Memberstack subscription analytics for the map
+// dashboard's revenue tiles. Memberstack runs paid plans on top of Stripe and
+// exposes an Admin REST API (base https://admin.memberstack.com, auth via the
+// `X-API-KEY: sk_...` header). We pull every plan (for price + billing cadence)
+// and every member (for active plan connections), then aggregate:
+//   - paying / free subscriber counts
+//   - monthly vs yearly active-subscription counts ("purchase tendencies")
+//   - MRR (each active paid sub normalized to a monthly amount)
+//   - all-time income — ESTIMATED. Memberstack's Admin API has no
+//     transactions/invoices endpoint, so true historical revenue lives in
+//     Stripe. We approximate lifetime billed from *current* paying members as
+//     (monthly amount × months since the member was created). This excludes
+//     churned members and is intentionally labeled an estimate in the UI.
+//
+// Requires the MEMBERSTACK_SECRET_KEY secret (wrangler secret put). When it's
+// absent we return { configured:false } so the UI can show a setup hint rather
+// than erroring. Field shapes vary across Memberstack accounts, so every read
+// below is defensive; pass ?debug=1 to echo a raw plan + connection sample for
+// calibration against live data.
+// ---------------------------------------------------------------------------
+const MS_API = 'https://admin.memberstack.com';
+
+function msHeaders(env) {
+  return { 'X-API-KEY': env.MEMBERSTACK_SECRET_KEY, 'Content-Type': 'application/json' };
+}
+
+// Normalize a money amount to major units (dollars). Memberstack usually
+// reports amounts in major units already (e.g. 25 for $25), but some payloads
+// use Stripe-style minor units (cents). Guard: treat a large whole number as
+// cents only when it's an exact integer ≥ 1000 (i.e. ≥ $1000 would be unusual
+// for a sub price but $10.00 = 1000 cents is common).
+function msAmount(raw) {
+  const n = Number(raw);
+  if (!isFinite(n) || n <= 0) return 0;
+  if (Number.isInteger(n) && n >= 1000) return n / 100;
+  return n;
+}
+
+// Map any Memberstack interval representation to a per-month multiplier and a
+// coarse 'monthly'|'yearly'|'other' bucket. Handles string ("MONTHLY"),
+// nested ({ type:'month', count:1 }), and Stripe-ish ({ interval:'year' }).
+function msInterval(price) {
+  let s = '';
+  if (!price) s = '';
+  else if (typeof price.interval === 'string') s = price.interval;
+  else if (price.interval && typeof price.interval === 'object') s = price.interval.type || price.interval.interval || '';
+  else s = price.recurring?.interval || price.billingInterval || price.frequency || '';
+  s = String(s).toLowerCase();
+  const count = Number(price?.intervalCount || price?.interval?.count || price?.recurring?.interval_count || 1) || 1;
+  if (/year|annual/.test(s)) return { bucket: 'yearly',  perMonth: 1 / (12 * count) };
+  if (/month/.test(s))       return { bucket: 'monthly', perMonth: 1 / count };
+  if (/week/.test(s))        return { bucket: 'other',   perMonth: (52 / 12) / count };
+  if (/day/.test(s))         return { bucket: 'other',   perMonth: (365 / 12) / count };
+  return { bucket: 'other', perMonth: 0 }; // one-time / unknown → no MRR contribution
+}
+
+// Pick the most representative recurring price from a plan's prices array.
+function msPlanPrice(plan) {
+  const prices = plan?.prices || plan?.planPrices || [];
+  if (!Array.isArray(prices) || !prices.length) return null;
+  // Prefer recurring prices; fall back to the first price.
+  const recurring = prices.filter(p => {
+    const t = String(p.type || p.priceType || '').toLowerCase();
+    return /recur/.test(t) || p.interval || p.recurring;
+  });
+  return (recurring[0] || prices[0]) || null;
+}
+
+async function msFetchAllPlans(env) {
+  // GET /plans → list of plans with prices. Some accounts paginate; most return
+  // a flat list. Tolerate { data:[...] }, { plans:[...] }, or a bare array.
+  const r = await fetch(`${MS_API}/plans`, { headers: msHeaders(env) });
+  if (!r.ok) throw new Error(`Memberstack /plans ${r.status}: ${(await r.text()).slice(0, 200)}`);
+  const body = await r.json();
+  const list = Array.isArray(body) ? body : (body.data || body.plans || []);
+  const map = new Map();
+  for (const plan of list) {
+    const price = msPlanPrice(plan);
+    const iv = msInterval(price);
+    const amount = price ? msAmount(price.amount ?? price.unitAmount ?? price.value) : 0;
+    const paid = amount > 0;
+    map.set(plan.id, {
+      id: plan.id,
+      name: plan.name || plan.title || plan.id,
+      paid,
+      amount,
+      currency: (price && (price.currency || price.currencyCode)) || 'usd',
+      bucket: iv.bucket,
+      perMonth: amount * iv.perMonth,
+    });
+  }
+  return map;
+}
+
+async function msFetchAllMembers(env) {
+  const out = [];
+  let after = null, guard = 0;
+  do {
+    const u = new URL(`${MS_API}/members`);
+    u.searchParams.set('limit', '100');
+    if (after) u.searchParams.set('after', after);
+    const r = await fetch(u.toString(), { headers: msHeaders(env) });
+    if (!r.ok) throw new Error(`Memberstack /members ${r.status}: ${(await r.text()).slice(0, 200)}`);
+    const body = await r.json();
+    const data = body.data || body.members || (Array.isArray(body) ? body : []);
+    out.push(...data);
+    // Pagination shapes: { hasNextPage, endCursor } or { totalCount, ... }.
+    after = body.hasNextPage ? (body.endCursor || body.lastKey || null) : null;
+    if (!after && body.totalCount && out.length < body.totalCount && data.length) {
+      after = data[data.length - 1]?.id || null; // best-effort cursor fallback
+    }
+  } while (after && ++guard < 200);
+  return out;
+}
+
+async function handleSubscriptions(env, origin, url) {
+  if (!env.MEMBERSTACK_SECRET_KEY) {
+    return json({ configured: false, reason: 'MEMBERSTACK_SECRET_KEY not set' }, {}, env, origin);
+  }
+  const debug = url && url.searchParams.get('debug') === '1';
+  let plans, members;
+  try {
+    [plans, members] = await Promise.all([msFetchAllPlans(env), msFetchAllMembers(env)]);
+  } catch (e) {
+    return json({ configured: true, error: String(e.message || e) }, { status: 502 }, env, origin);
+  }
+
+  const nowMs = Date.now();
+  let paying = 0, free = 0, monthlyCount = 0, yearlyCount = 0, otherCount = 0;
+  let mrr = 0, allTimeEstimate = 0;
+  const currencies = new Set();
+
+  for (const m of members) {
+    const conns = m.planConnections || m.planConnection || [];
+    // An "active paid" connection: active/ACTIVE status AND resolves to a paid plan.
+    let memberPays = false;
+    for (const c of (Array.isArray(conns) ? conns : [])) {
+      const active = c.active === true || /^(active|trialing)$/i.test(String(c.status || ''));
+      if (!active) continue;
+      const plan = plans.get(c.planId);
+      const isPaid = plan ? plan.paid
+        : (c.payment != null || /paid|premium|pro/i.test(String(c.type || c.planName || '')));
+      if (!isPaid) continue;
+      memberPays = true;
+
+      // Resolve amount + cadence: prefer the plan's price, fall back to the
+      // connection's own payment object if the plan lookup came up empty.
+      let perMonth = plan ? plan.perMonth : 0;
+      let bucket = plan ? plan.bucket : 'other';
+      let amount = plan ? plan.amount : 0;
+      if ((!plan || !perMonth) && c.payment) {
+        amount = msAmount(c.payment.amount ?? c.payment.unitAmount);
+        const iv = msInterval(c.payment);
+        bucket = iv.bucket; perMonth = amount * iv.perMonth;
+      }
+      if (plan) currencies.add(plan.currency);
+      if (bucket === 'yearly') yearlyCount++;
+      else if (bucket === 'monthly') monthlyCount++;
+      else otherCount++;
+      mrr += perMonth || 0;
+
+      // All-time income estimate: monthly run-rate × months since member joined.
+      const createdMs = Date.parse(m.createdAt || m.created_at || c.createdAt || '') || nowMs;
+      const months = Math.max(1, (nowMs - createdMs) / (1000 * 60 * 60 * 24 * 30.4375));
+      allTimeEstimate += (perMonth || 0) * months;
+    }
+    if (memberPays) paying++; else free++;
+  }
+
+  const resp = {
+    configured: true,
+    members_total: members.length,
+    paying_subscribers: paying,
+    free_subscribers: free,
+    monthly_subscriptions: monthlyCount,
+    yearly_subscriptions: yearlyCount,
+    other_subscriptions: otherCount,
+    mrr: Math.round(mrr * 100) / 100,
+    arr: Math.round(mrr * 12 * 100) / 100,
+    all_time_income_estimate: Math.round(allTimeEstimate * 100) / 100,
+    currency: currencies.size === 1 ? [...currencies][0] : (currencies.size ? 'mixed' : 'usd'),
+    plans_count: plans.size,
+    updated_at: Math.floor(nowMs / 1000),
+  };
+  if (debug) {
+    resp._debug = {
+      first_plan: [...plans.values()][0] || null,
+      sample_member_conn: (members.find(m => (m.planConnections || []).length) || {}).planConnections || null,
+      member_keys: members[0] ? Object.keys(members[0]) : [],
+    };
+  }
+  return json(resp, {}, env, origin);
+}
+
 // GET /member?id=... — full profile + timeline + computed analytics for a
 // single member. Powers the click-to-drill-in modal in the dashboard.
 async function handleMember(env, origin, url) {
@@ -3431,7 +3626,7 @@ export default {
       // already enforce the token inside their own handlers.
       const ADMIN_READ_PATHS = new Set([
         '/people', '/stats', '/member', '/timeline',
-        '/watchlist', '/projects', '/activity',
+        '/watchlist', '/projects', '/activity', '/subscriptions',
       ]);
       if (request.method === 'GET' && ADMIN_READ_PATHS.has(url.pathname)) {
         const denied = await requireAdminToken(request, env, origin);
@@ -3467,6 +3662,9 @@ export default {
       }
       if (request.method === 'GET' && url.pathname === '/stats') {
         return await handleStats(env, origin);
+      }
+      if (request.method === 'GET' && url.pathname === '/subscriptions') {
+        return await handleSubscriptions(env, origin, url);
       }
       if (request.method === 'GET' && url.pathname === '/member') {
         return await handleMember(env, origin, url);

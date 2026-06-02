@@ -89,3 +89,9 @@ bucket_name = "tmw-media"
 #   WIX_ACCOUNT_ID            — Optional. Some endpoints need it. Find in
 #                               Wix Studio account settings. Run:
 #                                   wrangler secret put WIX_ACCOUNT_ID
+#   MEMBERSTACK_SECRET_KEY    — Memberstack Admin API secret key (sk_...) for
+#                               the /subscriptions revenue tiles on the map
+#                               dashboard. Get it in Memberstack → Dev Tools →
+#                               API Keys (the SECRET key, not the public pk_).
+#                               Run:
+#                                   wrangler secret put MEMBERSTACK_SECRET_KEY
