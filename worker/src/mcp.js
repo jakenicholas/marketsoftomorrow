@@ -32,14 +32,28 @@ const ARTICLES_URL = 'https://map.oftmw.com/articles.json';
 const TOOLS = [
   {
     name: 'search_posts',
-    description: 'Search/list journal articles in the Studio (D1). Filter by free-text query, status (published|draft|scheduled), or category. Returns slug, title, status, date, category and total view count.',
+    description: 'Search/list journal articles in the Studio (D1). Filter by free-text query, status (published|draft|scheduled), or category. Paginated via offset. Returns slug, title, status, date, category and total view count. For pulling the WHOLE corpus, use list_posts.',
     inputSchema: {
       type: 'object',
       properties: {
         query: { type: 'string', description: 'Free text matched against title + excerpt' },
         status: { type: 'string', enum: ['published', 'draft', 'scheduled'], description: 'Filter by post status' },
         category: { type: 'string', description: 'Filter by a category label' },
-        limit: { type: 'integer', description: 'Max results (default 20, max 50)' },
+        limit: { type: 'integer', description: 'Max results (default 20, max 100)' },
+        offset: { type: 'integer', description: 'Pagination offset (default 0)' },
+      },
+    },
+  },
+  {
+    name: 'list_posts',
+    description: 'Bulk-list journal posts as compact rows (slug, title, date, status, category, reading time, views, short excerpt) — built for pulling the WHOLE corpus to learn the house style. Paginated: returns total, hasMore, and nextOffset; default 100, up to 500 per call (so the full archive is usually one or two calls). Filter by status/category. Then deep-read any single post with get_post.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        status: { type: 'string', enum: ['published', 'draft', 'scheduled'], description: 'Filter by post status' },
+        category: { type: 'string', description: 'Filter by a category label' },
+        limit: { type: 'integer', description: 'Per page (default 100, max 500)' },
+        offset: { type: 'integer', description: 'Pagination offset — pass nextOffset from the previous call' },
       },
     },
   },
@@ -470,24 +484,51 @@ async function ghPutFile(env, path, contentStr, sha, message) {
 // ── Tool implementations ────────────────────────────────────────────────────
 const IMPL = {
   async search_posts(args, env) {
-    const limit = Math.min(Math.max(parseInt(args.limit, 10) || 20, 1), 50);
+    const limit = Math.min(Math.max(parseInt(args.limit, 10) || 20, 1), 100);
+    const offset = Math.max(parseInt(args.offset, 10) || 0, 0);
     const where = [], params = []; let p = 1;
     if (args.status) { where.push(`status = ?${p++}`); params.push(String(args.status)); }
     if (args.category) { where.push(`categories LIKE ?${p++}`); params.push('%"' + args.category + '"%'); }
     if (args.query) { where.push(`(title LIKE ?${p} OR excerpt LIKE ?${p})`); params.push('%' + args.query + '%'); p++; }
     const sql = `SELECT slug, title, excerpt, status, published_at, categories, main_category
                  FROM posts ${where.length ? 'WHERE ' + where.join(' AND ') : ''}
-                 ORDER BY COALESCE(published_at, updated_at) DESC LIMIT ${limit}`;
+                 ORDER BY COALESCE(published_at, updated_at) DESC LIMIT ${limit} OFFSET ${offset}`;
     const rows = (await env.DB.prepare(sql).bind(...params).all()).results || [];
     const slugs = rows.map((r) => r.slug);
     const views = await viewsForSlugs(env, slugs);
     return {
-      count: rows.length,
+      count: rows.length, offset,
       posts: rows.map((r) => ({
         slug: r.slug, title: r.title, status: r.status, date: iso(r.published_at),
         category: r.main_category || (parseJSON(r.categories, [])[0] || ''),
         views: views[r.slug] || 0,
         excerpt: r.excerpt || '',
+      })),
+    };
+  },
+
+  async list_posts(args, env) {
+    const limit = Math.min(Math.max(parseInt(args.limit, 10) || 100, 1), 500);
+    const offset = Math.max(parseInt(args.offset, 10) || 0, 0);
+    const where = [], params = []; let p = 1;
+    if (args.status) { where.push(`status = ?${p++}`); params.push(String(args.status)); }
+    if (args.category) { where.push(`categories LIKE ?${p++}`); params.push('%"' + args.category + '"%'); }
+    const whereSql = where.length ? 'WHERE ' + where.join(' AND ') : '';
+    const totalRow = await env.DB.prepare(`SELECT COUNT(*) c FROM posts ${whereSql}`).bind(...params).first();
+    const total = totalRow ? totalRow.c : 0;
+    const rows = (await env.DB.prepare(
+      `SELECT slug, title, excerpt, status, published_at, main_category, categories, reading_time_min
+       FROM posts ${whereSql} ORDER BY COALESCE(published_at, updated_at) DESC LIMIT ${limit} OFFSET ${offset}`
+    ).bind(...params).all()).results || [];
+    const views = await viewsForSlugs(env, rows.map((r) => r.slug));
+    const hasMore = offset + rows.length < total;
+    return {
+      total, offset, count: rows.length, hasMore, nextOffset: hasMore ? offset + rows.length : null,
+      posts: rows.map((r) => ({
+        slug: r.slug, title: r.title, date: iso(r.published_at), status: r.status,
+        category: r.main_category || (parseJSON(r.categories, [])[0] || ''),
+        reading_time_min: r.reading_time_min || null, views: views[r.slug] || 0,
+        excerpt: (r.excerpt || '').slice(0, 160),
       })),
     };
   },
