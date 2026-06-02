@@ -81,12 +81,21 @@
       // Third step — profile fields (stacked inputs)
       '.tmw-fa-prof{display:flex; flex-direction:column; gap:9px}',
       '.tmw-fa-row{display:flex; gap:9px}',
-      '.tmw-fa-prof input{flex:1; min-width:0; height:42px; padding:0 14px; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.16); border-radius:10px; color:#fff; font-family:var(--sans,"Inter",sans-serif); font-size:14px; outline:none; transition:border-color .15s}',
+      '.tmw-fa-row > *{flex:1; min-width:0}',
+      // box-sizing + fixed height + no flex-shrink → every field is the same height
+      '.tmw-fa-prof input{box-sizing:border-box; width:100%; height:46px; flex-shrink:0; padding:0 14px; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.16); border-radius:10px; color:#fff; font-family:var(--sans,"Inter",sans-serif); font-size:14px; line-height:normal; outline:none; transition:border-color .15s}',
       '.tmw-fa-prof input:focus{border-color:#1FDF67}',
       '.tmw-fa-prof input::placeholder{color:rgba(255,255,255,.4)}',
-      '.tmw-fa-prof button{height:44px; margin-top:3px; border:0; border-radius:10px; background:#1FDF67; color:#04210f; font-family:var(--mono,monospace); font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; cursor:pointer; transition:background .2s}',
+      '.tmw-fa-prof button{box-sizing:border-box; width:100%; height:46px; flex-shrink:0; margin-top:3px; border:0; border-radius:10px; background:#1FDF67; color:#04210f; font-family:var(--mono,monospace); font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; cursor:pointer; transition:background .2s}',
       '.tmw-fa-prof button:hover{background:#42eb81}',
-      '.tmw-fa-prof button:disabled{opacity:.6; cursor:wait}'
+      '.tmw-fa-prof button:disabled{opacity:.6; cursor:wait}',
+      // "Based" — Mapbox place autocomplete dropdown
+      '.tmw-fa-geo{position:relative}',
+      '.tmw-fa-geo-list{position:absolute; left:0; right:0; top:calc(100% + 4px); z-index:6; background:#16181a; border:1px solid rgba(255,255,255,.16); border-radius:10px; overflow:hidden; box-shadow:0 16px 40px rgba(0,0,0,.55); max-height:210px; overflow-y:auto}',
+      '.tmw-fa-geo-list[hidden]{display:none}',
+      '.tmw-fa-geo-item{padding:10px 14px; font-family:var(--sans,"Inter",sans-serif); font-size:13px; color:#e8e8e8; cursor:pointer; border-bottom:1px solid rgba(255,255,255,.06)}',
+      '.tmw-fa-geo-item:last-child{border-bottom:0}',
+      '.tmw-fa-geo-item:hover{background:rgba(31,223,103,.12); color:#fff}'
     ].join('');
     document.head.appendChild(st);
   }
@@ -151,9 +160,8 @@
         '<div class="tmw-fa-sub">A few details so we send you what actually matters. You can skip this.</div>' +
         '<form class="tmw-fa-prof" novalidate>' +
           '<div class="tmw-fa-row"><input name="first" placeholder="First name" autocomplete="given-name"><input name="last" placeholder="Last name" autocomplete="family-name"></div>' +
-          '<input name="profession" placeholder="Profession" autocomplete="organization-title">' +
-          '<input name="company" placeholder="Company" autocomplete="organization">' +
-          '<input name="based" placeholder="Based in (city)" autocomplete="address-level2">' +
+          '<div class="tmw-fa-row"><input name="profession" placeholder="Profession" autocomplete="organization-title"><input name="company" placeholder="Company" autocomplete="organization"></div>' +
+          '<div class="tmw-fa-geo"><input name="based" placeholder="Based in (city)" autocomplete="off"><div class="tmw-fa-geo-list" hidden></div></div>' +
           '<button type="submit">Finish</button>' +
         '</form>' +
         '<div class="tmw-fa-msg" aria-live="polite"></div>' +
@@ -164,6 +172,48 @@
     var skip = host.querySelector('.tmw-fa-skip');
     function finish() { if (typeof onClose === 'function') onClose(true); }
     skip.addEventListener('click', finish);
+
+    // "Based" — live place suggestions via Mapbox geocoding (public token).
+    (function () {
+      var MAPBOX_TOKEN = 'pk.eyJ1IjoiZmxvcmlkYW9mdG9tb3Jyb3ciLCJhIjoiY2xrYmpmdGQ2MGdibTNzcXZjMnA4aXh3ZiJ9.uBeYS7jmKwWS6xAgY-R1UA';
+      var inp = host.querySelector('input[name="based"]');
+      var list = host.querySelector('.tmw-fa-geo-list');
+      if (!inp || !list) return;
+      var timer, hideT;
+      function hide() { list.hidden = true; list.innerHTML = ''; }
+      inp.addEventListener('input', function () {
+        var q = inp.value.trim();
+        clearTimeout(timer);
+        if (q.length < 2) { hide(); return; }
+        timer = setTimeout(function () {
+          fetch('https://api.mapbox.com/geocoding/v5/mapbox.places/' + encodeURIComponent(q) +
+                '.json?access_token=' + MAPBOX_TOKEN + '&autocomplete=true&types=place,region,district&limit=5')
+            .then(function (r) { return r.json(); })
+            .then(function (d) {
+              var feats = (d && d.features) || [];
+              if (!feats.length) { hide(); return; }
+              list.innerHTML = '';
+              feats.forEach(function (f) {
+                var it = document.createElement('div');
+                it.className = 'tmw-fa-geo-item';
+                it.textContent = f.place_name || '';
+                list.appendChild(it);
+              });
+              list.hidden = false;
+            })
+            .catch(hide);
+        }, 250);
+      });
+      list.addEventListener('mousedown', function (e) {
+        var it = e.target.closest && e.target.closest('.tmw-fa-geo-item');
+        if (!it) return;
+        e.preventDefault();
+        inp.value = it.textContent;
+        hide();
+      });
+      inp.addEventListener('blur', function () { clearTimeout(hideT); hideT = setTimeout(hide, 150); });
+    })();
+
     form.addEventListener('submit', function (e) {
       e.preventDefault();
       var v = function (n) { return (form[n] && form[n].value || '').trim(); };

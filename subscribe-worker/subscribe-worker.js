@@ -143,12 +143,15 @@ function authHeaders(env) {
   return { "Authorization": `Bearer ${env.RESEND_API_KEY}`, "Content-Type": "application/json" };
 }
 
-// Only attach custom props that actually have a value, so a partial update
-// never wipes existing data with blanks.
+// Attach custom props under Resend's `properties` map (NOT top-level — Resend
+// ignores unknown top-level fields). Only include props that have a value, so a
+// partial update never wipes existing data with blanks.
 function withProps(payload, props) {
-  if (props.profession)   payload.profession   = props.profession;
-  if (props.company_name) payload.company_name = props.company_name;
-  if (props.based)        payload.based        = props.based;
+  var p = {};
+  if (props.profession)   p.profession   = props.profession;
+  if (props.company_name) p.company_name = props.company_name;
+  if (props.based)        p.based        = props.based;
+  if (Object.keys(p).length) payload.properties = p;
   return payload;
 }
 
