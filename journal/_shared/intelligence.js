@@ -214,7 +214,11 @@
   .tmw-intel .cmd .kbd{display:none}
   .tmw-intel .feats{grid-template-columns:repeat(2,1fr); grid-auto-rows:1fr}
   .tmw-intel .cta{flex-direction:column; align-items:flex-start}
-  .tmw-intel .intel{position:relative; width:auto; margin:14px; left:0!important; top:0!important; right:auto!important; bottom:auto!important}
+  /* Mobile: keep the intel card a compact overlay anchored top-LEFT of the map
+     (like desktop) instead of a full-width relative block that buries the whole
+     map. width stays at the desktop 294px and transform:scale(.6) shrinks the
+     whole card 40% from its top-left corner, so it covers only the corner. */
+  .tmw-intel .intel{position:absolute!important; left:12px!important; top:12px!important; right:auto!important; bottom:auto!important; width:294px!important; margin:0!important; transform:scale(.6); transform-origin:top left}
 }
 .tmw-intel .btn-pro{font-family:var(--mono); font-size:9px; font-weight:500; letter-spacing:.12em; color:var(--gold-soft); border:1px solid rgba(230,197,116,.45); border-radius:5px; padding:2px 6px; line-height:1.2}`;
   var HTML = `<section class="tmw-intel">

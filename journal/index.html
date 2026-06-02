@@ -419,13 +419,16 @@ nav.main .wrap{display:flex; align-items:center; justify-content:space-between; 
 .bar{background:rgba(13,15,14,.85); backdrop-filter:var(--glass); -webkit-backdrop-filter:var(--glass); border-bottom:1px solid var(--hair); padding:4px 0}
 .bar .wrap{display:flex; align-items:center; gap:18px; justify-content:space-between}
 /* vertical padding gives the .pill.on gold glow room so overflow-x:auto doesn't clip it top/bottom */
-.pills{display:flex; gap:8px; overflow-x:auto; overflow-y:visible; flex:1; scrollbar-width:none; -ms-overflow-style:none; padding:15px 6px}
+.pills{display:flex; gap:8px; overflow-x:auto; overflow-y:visible; flex:1; scrollbar-width:none; -ms-overflow-style:none; padding:15px 20px}
 .pills::-webkit-scrollbar{display:none}
 .pill{flex:0 0 auto; font-family:var(--mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase; padding:8px 14px; border-radius:999px; border:1px solid var(--hair-2); color:var(--mute-2); background:rgba(255,255,255,.03); transition:all .2s; white-space:nowrap; font-weight:500}
 .pill:hover{border-color:rgba(255,255,255,.3); color:var(--white)}
 .pill.on{background:rgba(230,197,116,.10); color:var(--gold-soft); border-color:rgba(230,197,116,.34); font-weight:700; text-shadow:0 0 14px rgba(230,197,116,.5), 0 0 3px rgba(230,197,116,.32); box-shadow:0 0 18px rgba(230,197,116,.16)}
 .pill .count{opacity:.55; margin-left:6px; font-size:9.5px}
 .pill.on .count{opacity:.7}
+/* Mobile: drop the right padding so the row bleeds off the right edge ("falls off
+   the page"); keep the left padding so the first "All" pill's gold glow isn't clipped. */
+@media(max-width:760px){.pills{padding-right:0}}
 .search{display:flex; align-items:center; gap:8px; border:1px solid var(--hair-2); border-radius:999px; padding:8px 14px; background:rgba(255,255,255,.03); min-width:220px; transition:border-color .2s}
 .search:focus-within{border-color:var(--green)}
 .search input{border:0; outline:0; background:transparent; font:inherit; font-size:13px; width:100%; color:var(--white)}
@@ -495,8 +498,8 @@ section.grid-section{padding:60px 0 90px; position:relative}
 .flists-head h2{font-family:var(--serif); font-weight:600; font-size:clamp(40px,4.5vw,60px); letter-spacing:-.025em; line-height:1; color:var(--white); margin-bottom:18px; text-wrap:balance}
 .flists-head .sub{font-size:14px; line-height:1.6; color:var(--mute-2); font-weight:300; max-width:32ch}
 .flists-head .controls{display:flex; gap:10px; margin-top:28px}
-.flist-arrow{width:42px; height:42px; border-radius:999px; border:1px solid var(--hair-2); display:flex; align-items:center; justify-content:center; color:var(--cream); transition:all .2s}
-.flist-arrow:hover{background:var(--green); color:var(--ink); border-color:var(--green); transform:translateY(-1px)}
+.flist-arrow{width:42px; height:42px; border-radius:999px; border:1px solid rgba(230,197,116,.42); display:flex; align-items:center; justify-content:center; color:var(--gold-soft); background:rgba(230,197,116,.06); box-shadow:0 0 16px rgba(230,197,116,.28); transition:all .2s}
+.flist-arrow:hover{background:rgba(230,197,116,.16); color:var(--gold-soft); border-color:var(--gold); box-shadow:0 0 22px rgba(230,197,116,.5); transform:translateY(-1px)}
 .flist-arrow:disabled{opacity:.3; cursor:not-allowed}
 .flist-arrow svg{width:14px; height:14px}
 /* Bleed the slider off the right edge of the viewport (no right padding) so a
@@ -504,7 +507,7 @@ section.grid-section{padding:60px 0 90px; position:relative}
 .flists-track-wrap{position:relative; overflow:hidden; margin-right:calc((min(1320px, 100vw) - 100vw) / 2 - 28px); padding-right:0}
 .flists-track{display:flex; gap:18px; overflow-x:auto; scroll-snap-type:x mandatory; scrollbar-width:none; -ms-overflow-style:none; padding-bottom:8px; scroll-behavior:smooth}
 .flists-track::-webkit-scrollbar{display:none}
-.flist-card{flex:0 0 340px; aspect-ratio:340/420; border-radius:18px; overflow:hidden; position:relative; background:var(--panel-2); scroll-snap-align:start; transition:transform .25s ease; isolation:isolate}
+.flist-card{flex:0 0 340px; aspect-ratio:340/420; border-radius:18px; overflow:hidden; position:relative; background:var(--panel-2); scroll-snap-align:center; transition:transform .25s ease; isolation:isolate}
 @media(max-width:480px){.flist-card{flex-basis:80vw}}
 .flist-card:hover{transform:translateY(-3px)}
 .flist-card img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; transition:transform .6s ease}
@@ -1562,12 +1565,28 @@ function hookFeaturedListArrows() {
   const prev  = document.getElementById('flist-prev');
   const next  = document.getElementById('flist-next');
   if (!track || !prev || !next) return;
-  const step = () => Math.max(280, track.clientWidth * 0.6);
-  prev.addEventListener('click', () => track.scrollBy({ left: -step(), behavior: 'smooth' }));
-  next.addEventListener('click', () => track.scrollBy({ left:  step(), behavior: 'smooth' }));
+  // Advance exactly ONE card per click and center it in the track (no more
+  // half-scrolls). Pairs with scroll-snap-align:center on .flist-card.
+  const cards = () => [...track.querySelectorAll('.flist-card')];
+  const centerOn = (i) => {
+    const c = cards(); if (!c.length) return;
+    const card = c[Math.max(0, Math.min(i, c.length - 1))];
+    const target = card.offsetLeft - (track.clientWidth - card.clientWidth) / 2;
+    track.scrollTo({ left: Math.max(0, target), behavior: 'smooth' });
+  };
+  const currentIndex = () => {
+    const c = cards(); if (!c.length) return 0;
+    const mid = track.scrollLeft + track.clientWidth / 2;
+    let best = 0, bd = Infinity;
+    c.forEach((el, i) => { const cc = el.offsetLeft + el.clientWidth / 2, d = Math.abs(cc - mid); if (d < bd) { bd = d; best = i; } });
+    return best;
+  };
+  prev.addEventListener('click', () => centerOn(currentIndex() - 1));
+  next.addEventListener('click', () => centerOn(currentIndex() + 1));
   const sync = () => {
-    prev.disabled = track.scrollLeft <= 4;
-    next.disabled = track.scrollLeft + track.clientWidth >= track.scrollWidth - 4;
+    const i = currentIndex(), n = cards().length;
+    prev.disabled = i <= 0 && track.scrollLeft <= 4;
+    next.disabled = i >= n - 1;
   };
   track.addEventListener('scroll', sync, { passive: true });
   setTimeout(sync, 600); // after cards render

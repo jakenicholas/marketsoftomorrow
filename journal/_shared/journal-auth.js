@@ -181,9 +181,11 @@
       '.tmw-auth .tmw-auth-ig:hover{color:#fff}',
       '.tmw-auth .nav-cta.tmw-ig{width:34px;min-width:34px;height:34px;margin:0}',
       '.tmw-auth .nav-cta.tmw-ig svg{width:23px;height:23px}',
-      /* Mobile: keep the IG identical to desktop — same size, and first in the
-         cluster so it sits to the LEFT of the Join/profile button. */
-      '@media(max-width:980px){.tmw-auth .nav-cta.tmw-ig{width:34px;min-width:34px;height:34px}.tmw-auth .nav-cta.tmw-ig svg{width:23px;height:23px}}',
+      /* Mobile: the dock's mobile rule `nav.main .nav-cta{order:1;margin-left:auto}`
+         also matches the IG (it IS a .nav-cta), shoving it AFTER the profile with a
+         big auto-margin gap. Override: order:-1 puts it first (left of the
+         Join/profile button) and margin-left:0 kills the gap — identical to desktop. */
+      '@media(max-width:980px){.tmw-auth .nav-cta.tmw-ig{width:34px;min-width:34px;height:34px;order:-1;margin-left:0}.tmw-auth .nav-cta.tmw-ig svg{width:23px;height:23px}}',
       '.tmw-auth .v2-profile-btn{width:30px;height:30px;border-radius:50%;background:transparent;border:none;position:relative;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;color:#fff;padding:0;transition:width .15s,border-radius .15s,background .15s,padding .15s}',
       '.tmw-auth .v2-profile-btn svg.profile-icon{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}',
       '.tmw-auth .v2-profile-btn .v2-premium-star{position:absolute;bottom:-3px;right:-3px;width:14px;height:14px;background:#FFD300;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid rgba(15,15,15,0.85)}',
