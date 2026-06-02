@@ -500,18 +500,16 @@
       '.tmw-oc-banner{position:relative; width:100%; aspect-ratio:2/1; overflow:hidden; border-bottom:1px solid rgba(255,255,255,.08)}',
       '.tmw-oc-banner img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block; transition:transform .5s ease}',
       '.tmw-oc:hover .tmw-oc-banner img{transform:scale(1.04)}',
-      '.tmw-oc-flag{position:absolute; top:11px; left:11px; font-family:var(--mono); font-size:8.5px; letter-spacing:.1em; text-transform:uppercase; color:#0a0a0a; background:#1FDF67; padding:4px 9px; border-radius:5px; font-weight:700}',
-      '.tmw-oc-body{padding:15px 16px 16px; display:flex; flex-direction:column}',
-      '.tmw-oc-top{display:flex; align-items:center; justify-content:space-between; margin-bottom:14px}',
-      '.tmw-oc-name{font-size:13px; font-weight:600; color:#fff; text-transform:none}',
-      '.tmw-oc-ig{color:var(--mute,#9AA39C); display:flex; align-items:center; cursor:pointer}',
-      '.tmw-oc-ig:hover{color:#1FDF67}',
+      '.tmw-oc-body{padding:14px 16px 16px; display:flex; flex-direction:column; flex:1}',
+      '.tmw-oc-name{font-size:13px; font-weight:600; color:#fff; text-transform:none; letter-spacing:normal; line-height:1.25; margin-bottom:13px}',
+      '.tmw-oc-ig{position:absolute; top:8px; right:8px; z-index:2; display:flex; align-items:center; justify-content:center; width:28px; height:28px; border-radius:8px; background:rgba(7,8,7,.55); -webkit-backdrop-filter:blur(5px); backdrop-filter:blur(5px); border:1px solid rgba(255,255,255,.2); color:#fff; cursor:pointer; transition:background .2s, color .2s}',
+      '.tmw-oc-ig:hover{background:rgba(7,8,7,.85); color:#1FDF67}',
       '.tmw-oc-ig svg{width:15px; height:15px}',
       '.tmw-oc-stats{display:grid; grid-template-columns:1fr 1fr; gap:13px 12px; padding-bottom:15px; border-bottom:1px solid rgba(255,255,255,.08)}',
       '.tmw-oc-st{display:flex; flex-direction:column; gap:3px}',
       '.tmw-oc-st .v{font-family:var(--serif,Georgia,serif); font-weight:600; font-size:20px; color:#fff; letter-spacing:-.01em; line-height:1}',
       '.tmw-oc-st .k{font-family:var(--mono); font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:var(--mute,#9AA39C)}',
-      '.tmw-oc-read{margin-top:13px; display:inline-flex; align-items:center; gap:8px; font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--gold-soft,#f0d68a)}',
+      '.tmw-oc-read{margin-top:auto; padding-top:13px; display:inline-flex; align-items:center; gap:8px; font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--gold-soft,#f0d68a)}',
       '.tmw-oc-read svg{width:13px; height:13px; transition:transform .2s}',
       '.tmw-oc:hover .tmw-oc-read{color:#fff} .tmw-oc:hover .tmw-oc-read svg{transform:translateX(3px)}',
       // The Map — explore (free) + pro intelligence + Go Pro CTA.
@@ -597,10 +595,10 @@
   function focusMarketsPanel() {
     var cards = FOCUS_MARKETS.map(function (m) {
       var stats = m.s.slice(0, 2).map(function (v, i) { return '<div class="tmw-oc-st"><span class="v">' + v + '</span><span class="k">' + SK[i] + '</span></div>'; }).join('');
-      return '<a class="tmw-oc' + (m.flag ? ' flag' : '') + '" role="menuitem" href="' + JOURNAL_HOME + '?market=' + m.key + '">' +
-        '<div class="tmw-oc-banner"><img src="' + m.img + '" alt="' + m.name + '" loading="lazy"></div>' +
-        '<div class="tmw-oc-body"><div class="tmw-oc-top"><span class="tmw-oc-name">' + m.name + '</span>' +
+      return '<a class="tmw-oc" role="menuitem" href="' + JOURNAL_HOME + '?market=' + m.key + '">' +
+        '<div class="tmw-oc-banner"><img src="' + m.img + '" alt="' + m.name + '" loading="lazy">' +
           '<span class="tmw-oc-ig" data-ig="' + m.h + '" role="link" tabindex="0" aria-label="Instagram">' + IG_SM + '</span></div>' +
+        '<div class="tmw-oc-body"><span class="tmw-oc-name">' + m.name.replace(/ Tomorrow$/, '<br>Tomorrow') + '</span>' +
           '<div class="tmw-oc-stats">' + stats + '</div>' +
           '<span class="tmw-oc-read">Read articles ' + ARR2 + '</span></div></a>';
     }).join('');
