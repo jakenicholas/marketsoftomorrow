@@ -488,7 +488,7 @@
       '.tmw-fm-inner{max-width:1240px; margin:0 auto; padding:26px clamp(24px,4vw,72px) 32px}',
       '.tmw-nav-eyebrow{font-family:var(--mono,"JetBrains Mono",monospace); font-size:9.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--mute,#9AA39C); margin-bottom:15px}',
       // Focus Markets — the media-kit .ocard, with "Read articles" in place of chips.
-      '.tmw-oc-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:14px}',
+      '.tmw-oc-grid{display:grid; grid-template-columns:repeat(5,1fr); gap:12px}',
       '.tmw-oc{display:flex; flex-direction:column; background:rgba(255,255,255,.025); border:1px solid rgba(255,255,255,.16); border-radius:14px; overflow:hidden; text-decoration:none; transition:transform .25s, border-color .25s}',
       '.tmw-oc:hover{transform:translateY(-3px); border-color:rgba(255,255,255,.32)}',
       '.tmw-oc.flag{border-color:rgba(31,223,103,.4)}',
@@ -536,9 +536,22 @@
       '@media(max-width:980px){',
       '.tmw-fm-panel.v2{display:none}',
       '.tmw-fm.open .tmw-fm-panel.v2{display:block}',
-      '.tmw-fm-inner{padding:8px 0 6px; max-width:none}',
-      '.tmw-oc-grid, .tmw-mm, .tmw-ll{grid-template-columns:1fr; max-width:none; gap:12px}',
-      '.tmw-li{aspect-ratio:auto; min-height:90px}',
+      '.tmw-fm-inner{padding:8px 0 8px; max-width:none}',
+      'nav.main .nav-links{overscroll-behavior:contain}',
+      // Focus Markets: 2 columns; banner fills the top; only Followers + Mo. Views.
+      '.tmw-oc-grid{grid-template-columns:repeat(2,1fr); max-width:none; gap:10px}',
+      '.tmw-oc-banner{aspect-ratio:16/10}',
+      '.tmw-oc-body{padding:11px 12px 13px}',
+      '.tmw-oc-name{font-size:13px}',
+      '.tmw-oc-stats{gap:10px 12px; padding-bottom:13px}',
+      '.tmw-oc-st .v{font-size:16px}',
+      '.tmw-oc-read{font-size:9px; margin-top:11px}',
+      '.tmw-mm, .tmw-ll{grid-template-columns:1fr; max-width:none; gap:10px}',
+      // Lists: horizontal rows (icon left, title/sub right) in the drawer.
+      '.tmw-li{flex-direction:row; align-items:center; aspect-ratio:auto; min-height:auto; padding:14px 16px 14px 60px; justify-content:center}',
+      '.tmw-li-ic{top:50%; transform:translateY(-50%)}',
+      '.tmw-li-sub{margin-top:2px}',
+      '.tmw-li-go{display:none}',
       '.tmw-mm-cta{flex-direction:column; align-items:stretch; text-align:center; gap:10px}',
       '.tmw-nav-eyebrow{margin:6px 0 10px}',
       '}'
@@ -570,7 +583,7 @@
 
   function focusMarketsPanel() {
     var cards = FOCUS_MARKETS.map(function (m) {
-      var stats = m.s.map(function (v, i) { return '<div class="tmw-oc-st"><span class="v">' + v + '</span><span class="k">' + SK[i] + '</span></div>'; }).join('');
+      var stats = m.s.slice(0, 2).map(function (v, i) { return '<div class="tmw-oc-st"><span class="v">' + v + '</span><span class="k">' + SK[i] + '</span></div>'; }).join('');
       return '<a class="tmw-oc' + (m.flag ? ' flag' : '') + '" role="menuitem" href="' + JOURNAL_HOME + '?market=' + m.key + '">' +
         '<div class="tmw-oc-banner"><img src="' + m.img + '" alt="' + m.name + '" loading="lazy">' + (m.flag ? '<span class="tmw-oc-flag">Flagship</span>' : '') + '</div>' +
         '<div class="tmw-oc-body"><div class="tmw-oc-top"><span class="tmw-oc-name">' + m.name + '</span>' +
@@ -688,10 +701,13 @@
           var open = list.classList.toggle('open');
           btn.classList.toggle('is-open', open);
           btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+          // Lock the page behind the open drawer so scrolling the menu doesn't
+          // scroll the article underneath (drawer itself stays overflow-y:auto).
+          document.documentElement.style.overflow = open ? 'hidden' : '';
         });
         // Close the menu after tapping a link
         list.addEventListener('click', function (e) {
-          if (e.target.closest('a')) { list.classList.remove('open'); btn.classList.remove('is-open'); btn.setAttribute('aria-expanded', 'false'); }
+          if (e.target.closest('a')) { list.classList.remove('open'); btn.classList.remove('is-open'); btn.setAttribute('aria-expanded', 'false'); document.documentElement.style.overflow = ''; }
         });
       })(b, links);
     }
