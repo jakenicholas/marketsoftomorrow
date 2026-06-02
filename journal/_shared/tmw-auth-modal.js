@@ -71,6 +71,23 @@
       '.tmw-am-logout{background:none; border:0; color:rgba(255,255,255,.55); font-family:var(--sans,"Inter",sans-serif); font-size:13px; cursor:pointer}',
       '.tmw-am-logout:hover{color:#fff}',
       '.tmw-am-plans{background:none; border:0; color:#1FDF67; font-family:var(--sans,"Inter",sans-serif); font-size:13px; font-weight:600; cursor:pointer}',
+      '.tmw-am-tab-pro{font-style:normal; font-size:8px; font-weight:800; color:#000; background:#FFD300; padding:1px 5px; border-radius:4px; margin-left:5px; letter-spacing:.06em; vertical-align:middle}',
+      // watchlist
+      '.tmw-am-wl{display:flex; flex-direction:column; gap:8px; max-height:300px; overflow-y:auto}',
+      '.tmw-am-wl-item{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:13px 15px; border-radius:11px; text-decoration:none; border:1px solid rgba(255,255,255,.1); background:rgba(255,255,255,.03); transition:background .15s,border-color .15s}',
+      '.tmw-am-wl-item:hover{background:rgba(31,223,103,.07); border-color:rgba(31,223,103,.35)}',
+      '.tmw-am-wl-nm{font-family:var(--serif,Georgia,serif); font-size:15px; color:#fff}',
+      '.tmw-am-wl-arr{color:#1FDF67; flex:0 0 auto; font-size:15px}',
+      '.tmw-am-wl-empty{text-align:center; padding:10px 0}',
+      '.tmw-am-wl-empty b{display:block; font-family:var(--serif,Georgia,serif); font-weight:500; font-size:18px; color:#fff; margin-bottom:6px}',
+      '.tmw-am-wl-empty i{font-style:normal; display:block; font-size:12.5px; color:rgba(255,255,255,.55); line-height:1.45; margin-bottom:16px}',
+      // watchlist — locked (non-pro)
+      '.tmw-am-lock{text-align:center; padding:4px 0}',
+      '.tmw-am-lock-pill{display:inline-block; font-size:9px; font-weight:800; color:#000; background:#FFD300; padding:3px 9px; border-radius:5px; letter-spacing:.08em; margin-bottom:13px}',
+      '.tmw-am-lock-ttl{font-family:var(--serif,Georgia,serif); font-weight:500; font-size:19px; color:#fff; margin-bottom:7px}',
+      '.tmw-am-lock-sub{font-size:12.5px; color:rgba(255,255,255,.6); line-height:1.5; max-width:34ch; margin:0 auto 16px}',
+      '.tmw-am-lockrows{display:flex; flex-direction:column; gap:8px; margin-bottom:18px; -webkit-mask-image:linear-gradient(#000 30%,transparent); mask-image:linear-gradient(#000 30%,transparent); pointer-events:none}',
+      '.tmw-am-lockrow{height:44px; border-radius:11px; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08)}',
       '@media(max-width:480px){.tmw-am-card{padding:30px 22px 24px}}'
     ].join('');
     document.head.appendChild(st);
@@ -273,9 +290,53 @@
     });
   }
 
-  function renderAccount(host, section, cf, email) {
+  function isPaidMember(d) {
+    var plans = (d && d.planConnections) || [];
+    return plans.some(function (p) { return p.active === true || p.status === 'ACTIVE'; });
+  }
+  function unslug(s) { return String(s || '').replace(/-/g, ' ').replace(/\b\w/g, function (c) { return c.toUpperCase(); }); }
+
+  // Watchlist tab — Pro only. Free members see a locked, grayed preview + Go Pro.
+  function watchlistSection(el, paid, host) {
+    if (!paid) {
+      el.innerHTML =
+        '<div class="tmw-am-lock">' +
+          '<span class="tmw-am-lock-pill">PRO</span>' +
+          '<div class="tmw-am-lock-ttl">Your watchlist is a Pro feature</div>' +
+          '<div class="tmw-am-lock-sub">Star any project on the map to follow it, build your list, and get notified when it moves forward.</div>' +
+          '<div class="tmw-am-lockrows"><div class="tmw-am-lockrow"></div><div class="tmw-am-lockrow"></div><div class="tmw-am-lockrow"></div></div>' +
+          '<button class="tmw-am-primary" data-act="go-pro">Go Pro</button>' +
+        '</div>';
+      el.querySelector('[data-act="go-pro"]').addEventListener('click', function () {
+        close(); if (typeof window.tmwShowPaywall === 'function') window.tmwShowPaywall('watchlist'); else window.location.href = 'https://map.oftmw.com/?upgrade=1';
+      });
+      return;
+    }
+    el.innerHTML = '<div class="tmw-am-msg">Loading your watchlist…</div>';
+    var m = ms(); if (!m || !m.getMemberJSON) { el.innerHTML = '<div class="tmw-am-msg err">Couldn’t load your watchlist.</div>'; return; }
+    m.getMemberJSON().then(function (r) {
+      var json = (r && r.data) || {};
+      var favs = Array.isArray(json.favorites) ? json.favorites.filter(function (s) { return typeof s === 'string' && s; }) : [];
+      if (!favs.length) {
+        el.innerHTML = '<div class="tmw-am-wl-empty"><b>No saved projects yet</b><i>Star projects on the map to start your watchlist.</i><a class="tmw-am-primary" href="https://map.oftmw.com" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;text-decoration:none">Explore the map →</a></div>';
+        return;
+      }
+      el.innerHTML = '';
+      var wrap = document.createElement('div'); wrap.className = 'tmw-am-wl';
+      favs.forEach(function (slug) {
+        var a = document.createElement('a'); a.className = 'tmw-am-wl-item';
+        a.href = 'https://map.oftmw.com/?project=' + encodeURIComponent(slug); a.target = '_blank'; a.rel = 'noopener';
+        var nm = document.createElement('span'); nm.className = 'tmw-am-wl-nm'; nm.textContent = unslug(slug);
+        var ar = document.createElement('span'); ar.className = 'tmw-am-wl-arr'; ar.textContent = '→';
+        a.appendChild(nm); a.appendChild(ar); wrap.appendChild(a);
+      });
+      el.appendChild(wrap);
+    }).catch(function () { el.innerHTML = '<div class="tmw-am-msg err">Couldn’t load your watchlist.</div>'; });
+  }
+
+  function renderAccount(host, section, cf, email, paid) {
     host.innerHTML = LOGO +
-      '<div class="tmw-am-tabs"><button class="tmw-am-tab" data-sec="profile">Profile</button><button class="tmw-am-tab" data-sec="security">Security</button></div>' +
+      '<div class="tmw-am-tabs"><button class="tmw-am-tab" data-sec="profile">Profile</button><button class="tmw-am-tab" data-sec="security">Security</button><button class="tmw-am-tab" data-sec="watchlist">Watchlist' + (paid ? '' : '<em class="tmw-am-tab-pro">PRO</em>') + '</button></div>' +
       '<div class="tmw-am-sec"></div>' +
       '<div class="tmw-am-msg" aria-live="polite"></div>' +
       '<div class="tmw-am-foot"><button class="tmw-am-logout" data-act="logout">Log out</button><button class="tmw-am-plans" data-act="plans">Manage plan →</button></div>';
@@ -283,7 +344,9 @@
     function show(s) {
       tabs.forEach(function (t) { t.classList.toggle('on', t.getAttribute('data-sec') === s); });
       setMsg(host, '', '');
-      if (s === 'security') securitySection(sec, email, host); else profileSection(sec, cf, email, host);
+      if (s === 'security') securitySection(sec, email, host);
+      else if (s === 'watchlist') watchlistSection(sec, paid, host);
+      else profileSection(sec, cf, email, host);
     }
     tabs.forEach(function (t) { t.addEventListener('click', function () { show(t.getAttribute('data-sec')); }); });
     host.querySelector('[data-act="logout"]').addEventListener('click', function () {
@@ -300,8 +363,8 @@
     host.innerHTML = LOGO + '<div class="tmw-am-msg">Loading…</div>';
     m.getCurrentMember().then(function (r) {
       var d = (r && r.data) || {};
-      renderAccount(host, section, d.customFields || {}, (d.auth && d.auth.email) || d.email || '');
-    }).catch(function () { renderAccount(host, section, {}, ''); });
+      renderAccount(host, section, d.customFields || {}, (d.auth && d.auth.email) || d.email || '', isPaidMember(d));
+    }).catch(function () { renderAccount(host, section, {}, '', false); });
   }
 
   window.tmwAuthModal = function (view) {
@@ -309,6 +372,7 @@
     var host = openShell();
     if (view === 'profile' || view === 'account') viewAccount(host, 'profile');
     else if (view === 'security') viewAccount(host, 'security');
+    else if (view === 'watchlist') viewAccount(host, 'watchlist');
     else if (view === 'signup') viewSignup(host);
     else viewLogin(host);
   };
