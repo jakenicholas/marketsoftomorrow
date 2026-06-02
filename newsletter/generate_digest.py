@@ -16,7 +16,6 @@ Writes:
 import json, os, re, sys, urllib.request
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from xml.etree import ElementTree as ET
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from premailer import Premailer
@@ -31,7 +30,9 @@ OUT_HTML      = "newsletter/digest-latest.html"
 OUT_SUBJECT   = "newsletter/digest-subject.txt"
 ARCHIVE_DIR   = "newsletter/digest-archive"
 
-RSS_URL       = "https://www.oftmw.com/blog-feed.xml"
+# Journal posts now come from our own Worker API (the old Wix blog-feed.xml is
+# dead after the migration off Wix). Articles live at www.oftmw.com/post/<slug>/.
+POSTS_API     = "https://tmw.jake-ab7.workers.dev/posts?limit=50&status=published"
 SITE_URL      = "https://map.oftmw.com"
 TMW_URL       = "https://www.oftmw.com"
 LOGO_URL      = "https://static.wixstatic.com/media/ca3b83_e80e88810ca942459bfaa140e9fc2267~mv2.png"
@@ -198,42 +199,31 @@ def group_events(events):
     map_items.sort(key=lambda x: x.get("_ts", ""), reverse=True)
     return map_items
 
-def parse_articles_from_rss():
-    """Parse all articles from RSS with categories and best-quality images."""
-    import html  # for unescaping HTML entities like &#38; → &
+def parse_articles_from_api():
+    """Fetch the latest published journal posts from the Worker API.
+    The API returns items newest-first with categories and full-quality cover
+    images already hosted on our own CDN, so no Wix URL cleanup is needed.
+    """
     try:
-        xml = fetch(RSS_URL)
-        root = ET.fromstring(xml)
+        data = json.loads(fetch(POSTS_API))
     except Exception as e:
-        print(f"[warn] RSS unavailable: {e}", file=sys.stderr)
+        print(f"[warn] posts API unavailable: {e}", file=sys.stderr)
         return []
 
     out = []
-    for it in root.findall(".//item"):
-        title = (it.findtext("title") or "").strip()
-        link  = (it.findtext("link")  or "").strip()
-        desc  = (it.findtext("description") or "").strip()
+    for it in data.get("items", []):
+        title = (it.get("title") or "").strip()
+        slug  = (it.get("slug")  or "").strip()
+        if not title or not slug:
+            continue
 
-        # Decode HTML entities (&#38; → &, &amp; → &, &quot; → ", etc.)
-        title = html.unescape(title)
-        desc  = html.unescape(desc)
+        # Canonical journal URL (mirrors the old Wix /post/<slug>/ paths).
+        link = f"{TMW_URL}/post/{slug}/"
 
-        # Categories — list of all <category> tags
-        categories = [c.text.strip() for c in it.findall("category") if c.text]
+        image = it.get("cover_image") or ""
 
-        # Image — prefer enclosure URL (cleaner), fall back to first <img> in description
-        image = ""
-        encl = it.find("enclosure")
-        if encl is not None and encl.get("url"):
-            image = clean_wix_image_url(encl.get("url"))
-        if not image:
-            img_match = re.search(r'<img[^>]+src=["\']([^"\']+)["\']', desc)
-            if img_match:
-                image = clean_wix_image_url(img_match.group(1))
-
-        # Summary — strip HTML, trim to ~160 chars
-        summary = re.sub(r"<[^>]+>", "", desc).strip()
-        summary = re.sub(r"\s+", " ", summary)[:160]
+        # Summary — collapse whitespace, trim to ~160 chars.
+        summary = re.sub(r"\s+", " ", (it.get("excerpt") or "").strip())[:160]
         if summary and len(summary) == 160: summary += "…"
 
         out.append({
@@ -241,7 +231,7 @@ def parse_articles_from_rss():
             "link":  link,
             "image": image,
             "summary": summary,
-            "categories": categories,
+            "categories": it.get("categories") or [],
         })
     return out
 
@@ -353,8 +343,8 @@ def main():
 
     map_items = group_events(recent)
 
-    all_articles = parse_articles_from_rss()
-    print(f"[info] RSS: {len(all_articles)} total articles")
+    all_articles = parse_articles_from_api()
+    print(f"[info] posts API: {len(all_articles)} total articles")
     florida_articles, more_markets_articles = split_articles(all_articles)
     print(f"[info]   florida={len(florida_articles)} more_markets={len(more_markets_articles)}")
 
