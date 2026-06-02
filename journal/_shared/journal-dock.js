@@ -456,24 +456,175 @@
   // every journal page (incl. the 1,377 pre-rendered article pages) since they
   // all load this dock — no per-page nav edits or regeneration needed.
   var JOURNAL_HOME = '/';
+  var SK = ['Followers', 'Mo. Views', 'Mo. Web', 'Interactions'];
   var FOCUS_MARKETS = [
-    { key: 'florida',   name: 'Florida',   img: 'https://tmw.jake-ab7.workers.dev/media/wix/ca3b83_43a9a53c6fa5471bb68ee3a4cd85870a~mv2.webp' },
-    { key: 'new-york',  name: 'New York',  img: 'https://tmw.jake-ab7.workers.dev/media/wix/ca3b83_bed92ab576ab4c41b17791ded5122897~mv2.jpg' },
-    { key: 'tennessee', name: 'Tennessee', img: 'https://tmw.jake-ab7.workers.dev/media/wix/ca3b83_3c779bada8a84d1e87b15996fb01265f~mv2.jpeg' },
-    { key: 'caribbean', name: 'Caribbean', img: 'https://tmw.jake-ab7.workers.dev/media/wix/ca3b83_35b55cec22e948cabe56b86bbfc912e4~mv2.webp' },
-    { key: 'rockies',   name: 'Rockies',   img: 'https://tmw.jake-ab7.workers.dev/media/wix/68dd32_e3a61d884f2f4f4fadea9bb77e1308ab~mv2.jpeg' }
+    { key: 'florida',   name: 'Florida of Tomorrow',   h: 'floridaoftomorrow',   img: '/media/img/9998de3ca8af.jpg', flag: true,  s: ['150,000', '3.5M', '1.2M', '150K'] },
+    { key: 'new-york',  name: 'New York of Tomorrow',  h: 'newyorkoftomorrow',   img: '/media/img/e3c8a4e4ff38.jpg', flag: false, s: ['9,000', '297K', '22K', '19K'] },
+    { key: 'tennessee', name: 'Tennessee of Tomorrow', h: 'tennesseeoftomorrow', img: '/media/img/d3ce63b84f46.jpg', flag: false, s: ['11,000', '305K', '41K', '32K'] },
+    { key: 'caribbean', name: 'Caribbean of Tomorrow', h: 'caribbeanoftomorrow', img: '/media/img/5d9804404207.jpg', flag: false, s: ['2,500', '88K', '12K', '5.7K'] },
+    { key: 'rockies',   name: 'Rockies of Tomorrow',   h: 'rockiesoftomorrow',   img: '/media/img/35b59ff84cf5.jpg', flag: false, s: ['400', '12K', '4.1K', '1.1K'] }
   ];
-  // Region link labels we pull OUT of the header (matched on visible text).
-  var MARKET_LABELS = { 'florida':1, 'new york':1, 'new-york':1, 'newyork':1, 'tennessee':1, 'caribbean':1, 'rockies':1 };
+  // Flat region/list link labels we pull OUT of the header (matched on visible
+  // text) and re-home into the new Focus Markets / The Lists dropdowns.
+  var MARKET_LABELS = { 'florida':1, 'new york':1, 'new-york':1, 'newyork':1, 'tennessee':1, 'caribbean':1, 'rockies':1, 'hotels':1, 'restaurants':1, 'golf':1 };
+
+  var MAP_BASE = 'https://map.oftmw.com';
+  var CHEV = '<svg class="tmw-fm-chev" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 6l4 4 4-4"/></svg>';
+  var IG_SM = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4.5"/><circle cx="17.5" cy="6.5" r="1.2" fill="currentColor" stroke="none"/></svg>';
+  var ARR2 = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h10M9 4l4 4-4 4"/></svg>';
+  function ic(p) { return '<svg viewBox="0 0 24 24">' + p + '</svg>'; }
+
+  // The redesigned header nav: keep "Global", consolidate the region links into a
+  // rich Focus Markets dropdown (media-kit social cards), add a "The Map" menu
+  // (Explore + Pro intelligence) and a "The Lists" menu (Hotels/Restaurants/Golf).
+  function buildHeaderNavCSS() {
+    if (document.getElementById('tmw-nav2-css')) return;
+    var s = document.createElement('style'); s.id = 'tmw-nav2-css';
+    s.textContent = [
+      // Hide the pulse ticker for now (reversible — just remove this rule).
+      '.ticker{display:none !important}',
+      // v2 mega panels — full-width backdrop, centered inner content.
+      '.tmw-fm-panel.v2{display:block; grid-template-columns:none; padding:0}',
+      '.tmw-fm-inner{max-width:1240px; margin:0 auto; padding:26px clamp(24px,4vw,72px) 32px}',
+      '.tmw-nav-eyebrow{font-family:var(--mono,"JetBrains Mono",monospace); font-size:9.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--mute,#9AA39C); margin-bottom:15px}',
+      // Focus Markets — the media-kit .ocard, with "Read articles" in place of chips.
+      '.tmw-oc-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:14px}',
+      '.tmw-oc{display:flex; flex-direction:column; background:rgba(255,255,255,.025); border:1px solid rgba(255,255,255,.16); border-radius:14px; overflow:hidden; text-decoration:none; transition:transform .25s, border-color .25s}',
+      '.tmw-oc:hover{transform:translateY(-3px); border-color:rgba(255,255,255,.32)}',
+      '.tmw-oc.flag{border-color:rgba(31,223,103,.4)}',
+      '.tmw-oc-banner{position:relative; width:100%; aspect-ratio:2/1; overflow:hidden; border-bottom:1px solid rgba(255,255,255,.08)}',
+      '.tmw-oc-banner img{width:100%; height:100%; object-fit:cover; display:block; transition:transform .5s ease}',
+      '.tmw-oc:hover .tmw-oc-banner img{transform:scale(1.04)}',
+      '.tmw-oc-flag{position:absolute; top:11px; left:11px; font-family:var(--mono); font-size:8.5px; letter-spacing:.1em; text-transform:uppercase; color:#0a0a0a; background:#1FDF67; padding:4px 9px; border-radius:5px; font-weight:700}',
+      '.tmw-oc-body{padding:15px 16px 16px; display:flex; flex-direction:column}',
+      '.tmw-oc-top{display:flex; align-items:center; justify-content:space-between; margin-bottom:14px}',
+      '.tmw-oc-name{font-size:15px; font-weight:600; color:#fff}',
+      '.tmw-oc-ig{color:var(--mute,#9AA39C); display:flex; align-items:center; cursor:pointer}',
+      '.tmw-oc-ig:hover{color:#1FDF67}',
+      '.tmw-oc-ig svg{width:15px; height:15px}',
+      '.tmw-oc-stats{display:grid; grid-template-columns:1fr 1fr; gap:13px 12px; padding-bottom:15px; border-bottom:1px solid rgba(255,255,255,.08)}',
+      '.tmw-oc-st{display:flex; flex-direction:column; gap:3px}',
+      '.tmw-oc-st .v{font-family:var(--serif,Georgia,serif); font-weight:600; font-size:20px; color:#fff; letter-spacing:-.01em; line-height:1}',
+      '.tmw-oc-st .k{font-family:var(--mono); font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:var(--mute,#9AA39C)}',
+      '.tmw-oc-read{margin-top:13px; display:inline-flex; align-items:center; gap:8px; font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--gold-soft,#f0d68a)}',
+      '.tmw-oc-read svg{width:13px; height:13px; transition:transform .2s}',
+      '.tmw-oc:hover .tmw-oc-read{color:#fff} .tmw-oc:hover .tmw-oc-read svg{transform:translateX(3px)}',
+      // The Map — explore (free) + pro intelligence + Go Pro CTA.
+      '.tmw-mm{display:grid; grid-template-columns:1fr 1fr; gap:22px 30px; max-width:760px}',
+      '.tmw-mm-h{font-family:var(--mono); font-size:9.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--mute,#9AA39C); margin-bottom:8px}',
+      '.tmw-mm-item{display:flex; gap:13px; padding:11px; border-radius:12px; text-decoration:none; transition:background .18s}',
+      '.tmw-mm-item:hover{background:rgba(255,255,255,.05)}',
+      '.tmw-mm-ic{flex:0 0 auto; width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; background:rgba(167,139,250,.12); border:1px solid rgba(167,139,250,.3); color:#C4B5FD}',
+      '.tmw-mm-ic.green{background:rgba(31,223,103,.1); border-color:rgba(31,223,103,.26); color:#42EB81}',
+      '.tmw-mm-ic svg{width:17px; height:17px; stroke:currentColor; fill:none; stroke-width:1.8}',
+      '.tmw-mm-tx b{display:block; font-size:13.5px; font-weight:600; color:#fff}',
+      '.tmw-mm-tx b em{font-style:normal; font-family:var(--mono); font-size:8px; letter-spacing:.12em; color:var(--gold-soft,#f0d68a); border:1px solid rgba(230,197,116,.42); border-radius:5px; padding:2px 5px; margin-left:7px; vertical-align:middle}',
+      '.tmw-mm-tx i{font-style:normal; display:block; font-size:11.5px; color:var(--mute,#9AA39C); margin-top:3px}',
+      '.tmw-mm-cta{grid-column:1/-1; display:flex; align-items:center; justify-content:space-between; gap:14px; padding:13px 16px; border-radius:13px; text-decoration:none; background:linear-gradient(120deg,rgba(167,139,250,.13),rgba(31,223,103,.06)); border:1px solid rgba(167,139,250,.3)}',
+      '.tmw-mm-cta .t{font-size:12.5px; color:var(--mute-2,#C2C9C3)} .tmw-mm-cta .t b{color:#fff; font-weight:600}',
+      '.tmw-mm-cta .go{font-family:var(--mono); font-size:11px; letter-spacing:.06em; text-transform:uppercase; font-weight:700; padding:10px 16px; border-radius:9px; background:#FFD300; color:#0a0a0a; white-space:nowrap}',
+      // The Lists — iconic ranked guides.
+      '.tmw-ll{display:grid; grid-template-columns:repeat(3,1fr); gap:14px; max-width:720px}',
+      '.tmw-li{position:relative; display:flex; flex-direction:column; justify-content:flex-end; aspect-ratio:4/3; padding:16px; border-radius:14px; text-decoration:none; background:linear-gradient(180deg,#12150f,#0b0d0a); border:1px solid rgba(255,255,255,.16); transition:transform .25s, border-color .25s}',
+      '.tmw-li:hover{transform:translateY(-3px); border-color:rgba(230,197,116,.5)}',
+      '.tmw-li-ic{position:absolute; top:15px; left:15px; width:34px; height:34px; border-radius:9px; display:flex; align-items:center; justify-content:center; background:rgba(230,197,116,.1); border:1px solid rgba(230,197,116,.3); color:var(--gold-soft,#f0d68a)}',
+      '.tmw-li-ic svg{width:17px; height:17px; stroke:currentColor; fill:none; stroke-width:1.7}',
+      '.tmw-li-name{font-family:var(--serif,Georgia,serif); font-weight:600; font-size:18px; color:#fff}',
+      '.tmw-li-sub{font-size:11px; color:var(--mute,#9AA39C); margin-top:4px}',
+      '.tmw-li-go{margin-top:10px; font-family:var(--mono); font-size:9px; letter-spacing:.08em; text-transform:uppercase; color:var(--gold-soft,#f0d68a)}',
+      // Mobile: panels become stacked accordion content (1 column).
+      '@media(max-width:980px){',
+      '.tmw-fm-panel.v2{display:none}',
+      '.tmw-fm.open .tmw-fm-panel.v2{display:block}',
+      '.tmw-fm-inner{padding:8px 0 6px; max-width:none}',
+      '.tmw-oc-grid, .tmw-mm, .tmw-ll{grid-template-columns:1fr; max-width:none; gap:12px}',
+      '.tmw-li{aspect-ratio:auto; min-height:90px}',
+      '.tmw-mm-cta{flex-direction:column; align-items:stretch; text-align:center; gap:10px}',
+      '.tmw-nav-eyebrow{margin:6px 0 10px}',
+      '}'
+    ].join('');
+    document.head.appendChild(s);
+  }
+
+  // Make one full-width mega dropdown (.tmw-fm) with a trigger + panel + toggle.
+  function makeFm(label, innerHTML) {
+    var fm = document.createElement('div');
+    fm.className = 'tmw-fm';
+    fm.innerHTML =
+      '<button type="button" class="tmw-fm-trigger" aria-expanded="false" aria-haspopup="true">' + label + CHEV + '</button>' +
+      '<div class="tmw-fm-panel v2" role="menu"><div class="tmw-fm-inner">' + innerHTML + '</div></div>';
+    var trigger = fm.querySelector('.tmw-fm-trigger');
+    trigger.addEventListener('click', function (e) {
+      e.preventDefault(); e.stopPropagation();
+      // Close any other open dropdown in this nav first.
+      var sibs = fm.parentNode ? fm.parentNode.querySelectorAll('.tmw-fm.open') : [];
+      for (var i = 0; i < sibs.length; i++) if (sibs[i] !== fm) sibs[i].classList.remove('open');
+      var open = fm.classList.toggle('open');
+      trigger.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    document.addEventListener('click', function (e) {
+      if (!fm.contains(e.target)) { fm.classList.remove('open'); trigger.setAttribute('aria-expanded', 'false'); }
+    });
+    return fm;
+  }
+
+  function focusMarketsPanel() {
+    var cards = FOCUS_MARKETS.map(function (m) {
+      var stats = m.s.map(function (v, i) { return '<div class="tmw-oc-st"><span class="v">' + v + '</span><span class="k">' + SK[i] + '</span></div>'; }).join('');
+      return '<a class="tmw-oc' + (m.flag ? ' flag' : '') + '" role="menuitem" href="' + JOURNAL_HOME + '?market=' + m.key + '">' +
+        '<div class="tmw-oc-banner"><img src="' + m.img + '" alt="' + m.name + '" loading="lazy">' + (m.flag ? '<span class="tmw-oc-flag">Flagship</span>' : '') + '</div>' +
+        '<div class="tmw-oc-body"><div class="tmw-oc-top"><span class="tmw-oc-name">' + m.name + '</span>' +
+          '<span class="tmw-oc-ig" data-ig="' + m.h + '" role="link" tabindex="0" aria-label="Instagram">' + IG_SM + '</span></div>' +
+          '<div class="tmw-oc-stats">' + stats + '</div>' +
+          '<span class="tmw-oc-read">Read articles ' + ARR2 + '</span></div></a>';
+    }).join('');
+    return '<div class="tmw-nav-eyebrow">Each market — its own journal feed, social &amp; project coverage</div><div class="tmw-oc-grid">' + cards + '</div>';
+  }
+
+  function theMapPanel() {
+    var U = MAP_BASE, UP = MAP_BASE + '/?upgrade=1';
+    return '<div class="tmw-mm">' +
+      '<div><div class="tmw-mm-h">Explore — free</div>' +
+        '<a class="tmw-mm-item" href="' + U + '"><span class="tmw-mm-ic green">' + ic('<path d="M9 18l-6 3V6l6-3 6 3 6-3v15l-6 3-6-3z"/><path d="M9 3v15M15 6v15"/>') + '</span><span class="tmw-mm-tx"><b>Interactive Map</b><i>396 projects across 40+ markets.</i></span></a>' +
+        '<a class="tmw-mm-item" href="' + U + '/?view=atlas"><span class="tmw-mm-ic green">' + ic('<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>') + '</span><span class="tmw-mm-tx"><b>The Atlas</b><i>Every tracked project on one canvas.</i></span></a></div>' +
+      '<div><div class="tmw-mm-h">Pro intelligence</div>' +
+        '<a class="tmw-mm-item" href="' + UP + '"><span class="tmw-mm-ic">' + ic('<path d="M3 17l6-6 4 4 8-8"/><path d="M21 7v6h-6"/>') + '</span><span class="tmw-mm-tx"><b>TMW Intelligence<em>PRO</em></b><i>Completion forecasts &amp; confidence.</i></span></a>' +
+        '<a class="tmw-mm-item" href="' + UP + '"><span class="tmw-mm-ic">' + ic('<path d="M12 21s-7-4.5-7-10a7 7 0 0114 0c0 5.5-7 10-7 10z"/><circle cx="12" cy="11" r="2.5"/>') + '</span><span class="tmw-mm-tx"><b>Watchlist<em>PRO</em></b><i>Track projects, get notified.</i></span></a>' +
+        '<a class="tmw-mm-item" href="' + UP + '"><span class="tmw-mm-ic">' + ic('<path d="M4 6h7M4 12h7M4 18h7M16 4v16M20 8l-4-4-4 4"/>') + '</span><span class="tmw-mm-tx"><b>Compare<em>PRO</em></b><i>Stack any projects side-by-side.</i></span></a></div>' +
+      '<a class="tmw-mm-cta" href="' + UP + '"><span class="t"><b>Go Pro</b> — forecasts, watchlist, compare &amp; the full atlas.</span><span class="go">Go Pro →</span></a>' +
+    '</div>';
+  }
+
+  function theListsPanel() {
+    return '<div class="tmw-nav-eyebrow">The definitive ranked guides</div><div class="tmw-ll">' +
+      '<a class="tmw-li" href="/hotels/"><span class="tmw-li-ic">' + ic('<path d="M3 21V8l9-5 9 5v13"/><path d="M9 21v-6h6v6"/>') + '</span><span class="tmw-li-name">Iconic Hotels</span><span class="tmw-li-sub">The stays that define a market</span><span class="tmw-li-go">The ranked list →</span></a>' +
+      '<a class="tmw-li" href="/restaurants/"><span class="tmw-li-ic">' + ic('<path d="M6 3v8a3 3 0 006 0V3M9 3v18M16 3c-1.5 1-2 3-2 6s.5 4 2 4v8"/>') + '</span><span class="tmw-li-name">Iconic Restaurants</span><span class="tmw-li-sub">Where the future eats</span><span class="tmw-li-go">The ranked list →</span></a>' +
+      '<a class="tmw-li" href="/golf/"><span class="tmw-li-ic">' + ic('<path d="M12 19V5M12 5l7 3-7 3"/><circle cx="12" cy="20" r="1.6"/>') + '</span><span class="tmw-li-name">Iconic Golf</span><span class="tmw-li-sub">The courses worth the trip</span><span class="tmw-li-go">The ranked list →</span></a></div>';
+  }
+
+  // IG icons inside the (anchor) market cards can't be nested anchors — handle
+  // their click manually so they open Instagram without following the card link.
+  var _igWired = false;
+  function wireIgClicks() {
+    if (_igWired) return; _igWired = true;
+    document.addEventListener('click', function (e) {
+      var ig = e.target.closest && e.target.closest('.tmw-oc-ig');
+      if (!ig) return;
+      e.preventDefault(); e.stopPropagation();
+      window.open('https://www.instagram.com/' + ig.getAttribute('data-ig'), '_blank', 'noopener');
+    });
+  }
 
   function buildFocusMarkets() {
+    buildHeaderNavCSS();
+    wireIgClicks();
     var navs = document.querySelectorAll('.nav-links');
     for (var n = 0; n < navs.length; n++) {
       var nav = navs[n];
       if (nav.__tmwFm) continue;
       nav.__tmwFm = true;
 
-      // Find the "Global" anchor (insert point) and the region links to remove.
+      // Find "Global" (insert point) and remove the flat region/list links.
       var anchors = nav.querySelectorAll('a');
       var globalAnchor = null, toRemove = [];
       for (var i = 0; i < anchors.length; i++) {
@@ -486,42 +637,16 @@
         if (toRemove[r].parentNode) toRemove[r].parentNode.removeChild(toRemove[r]);
       }
 
-      // Build the dropdown.
-      var tiles = '';
-      for (var k = 0; k < FOCUS_MARKETS.length; k++) {
-        var m = FOCUS_MARKETS[k];
-        tiles += '<a class="tmw-fm-tile" role="menuitem" href="' + JOURNAL_HOME + '?market=' + m.key +
-                 '" style="background-image:url(\'' + m.img + '\')" aria-label="' + m.name +
-                 '"><span class="tmw-fm-name">' + m.name + '</span></a>';
-      }
-      var fm = document.createElement('div');
-      fm.className = 'tmw-fm';
-      fm.innerHTML =
-        '<button type="button" class="tmw-fm-trigger" aria-expanded="false" aria-haspopup="true">Focus Markets' +
-          '<svg class="tmw-fm-chev" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 6l4 4 4-4"/></svg>' +
-        '</button>' +
-        '<div class="tmw-fm-panel" role="menu">' + tiles + '</div>';
-
-      // Insert after "Global" if present, else after the first remaining link.
+      // Build the three dropdowns and insert them after "Global".
+      var fmMarkets = makeFm('Focus Markets', focusMarketsPanel());
+      var fmMap     = makeFm('The Map', theMapPanel());
+      var fmLists   = makeFm('The Lists', theListsPanel());
       var ref = globalAnchor && globalAnchor.parentNode === nav ? globalAnchor : nav.firstElementChild;
-      if (ref && ref.nextSibling) nav.insertBefore(fm, ref.nextSibling);
-      else nav.appendChild(fm);
-
-      // Click toggle (touch + a11y) + outside-click close.
-      (function (fmEl) {
-        var trigger = fmEl.querySelector('.tmw-fm-trigger');
-        trigger.addEventListener('click', function (e) {
-          e.preventDefault(); e.stopPropagation();
-          var open = fmEl.classList.toggle('open');
-          trigger.setAttribute('aria-expanded', open ? 'true' : 'false');
-        });
-        document.addEventListener('click', function (e) {
-          if (!fmEl.contains(e.target)) {
-            fmEl.classList.remove('open');
-            trigger.setAttribute('aria-expanded', 'false');
-          }
-        });
-      })(fm);
+      if (ref && ref.nextSibling) {
+        nav.insertBefore(fmMarkets, ref.nextSibling);
+        nav.insertBefore(fmMap, fmMarkets.nextSibling);
+        nav.insertBefore(fmLists, fmMap.nextSibling);
+      } else { nav.appendChild(fmMarkets); nav.appendChild(fmMap); nav.appendChild(fmLists); }
     }
   }
 
