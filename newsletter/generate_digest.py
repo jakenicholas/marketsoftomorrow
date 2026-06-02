@@ -36,9 +36,11 @@ POSTS_API     = "https://tmw.jake-ab7.workers.dev/posts?limit=50&status=publishe
 SITE_URL      = "https://map.oftmw.com"
 TMW_URL       = "https://www.oftmw.com"
 LOGO_URL      = "https://static.wixstatic.com/media/ca3b83_e80e88810ca942459bfaa140e9fc2267~mv2.png"
-APP_IMAGE_URL = "https://static.wixstatic.com/media/ca3b83_c21aded84c7642bf8fa3de0f0c470a73~mv2.jpeg"
+APP_IMAGE_URL = "https://tmw.jake-ab7.workers.dev/media/2026/06/060f97cafdd8-june-2-newsletter.gif"
 
 LOOKBACK_DAYS    = 7
+MIN_MAP_ITEMS    = 8   # Keep the "New on the map" grid full (4+4) so banner ads
+                       # don't stack; backfill older events on quiet weeks.
 FLORIDA_LIMIT    = 5   # Articles in Florida section
 MORE_MKTS_LIMIT  = 3   # Articles in More Markets section
 FLORIDA_CATEGORY = "Florida of Tomorrow"
@@ -344,6 +346,13 @@ def main():
     print(f"[info] {len(recent)} events in last {LOOKBACK_DAYS} days")
 
     map_items = group_events(recent)
+
+    # On a quiet week the strict lookback can leave too few tiles, which breaks
+    # the grid layout (banner ads end up stacked). Backfill with the most-recent
+    # map events so the section always shows a full grid.
+    if len(map_items) < MIN_MAP_ITEMS:
+        map_items = group_events(events)[:MIN_MAP_ITEMS]
+        print(f"[info] only {len(group_events(recent))} map events in window — backfilled to {len(map_items)}")
 
     all_articles = parse_articles_from_api()
     print(f"[info] posts API: {len(all_articles)} total articles")
