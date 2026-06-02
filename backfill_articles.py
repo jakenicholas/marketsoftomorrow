@@ -134,7 +134,7 @@ def extract_post_image(post):
             slash = tail.find('/')
             if slash > 0:
                 tail = tail[:slash]
-            return f"https://static.wixstatic.com/media/{tail}"
+            return f"https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/{tail}"
     # Older shape: media.url or media.thumbnailUrl
     if media.get('url'):
         return media['url']

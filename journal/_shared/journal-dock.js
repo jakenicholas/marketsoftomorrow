@@ -317,7 +317,7 @@
       var fav = document.createElement('link');
       fav.rel = 'icon';
       fav.type = 'image/png';
-      fav.href = 'https://tmw.jake-ab7.workers.dev/media/wix/ca3b83_71f3cd2ef61049028b2daf4e2ff71d52~mv2.png';
+      fav.href = 'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_71f3cd2ef61049028b2daf4e2ff71d52~mv2.png';
       document.head.appendChild(fav);
     }
 
@@ -653,9 +653,9 @@
   }
 
   function theListsPanel() {
-    var IMG_H = 'https://tmw.jake-ab7.workers.dev/media/wix/ca3b83_07e4600c7eb745c28897b90cbab6d7ff~mv2.jpeg';
-    var IMG_R = 'https://tmw.jake-ab7.workers.dev/media/wix/ca3b83_42e28b9d09364b0ca9b3c4d6ca2e9498~mv2.jpeg';
-    var IMG_G = 'https://tmw.jake-ab7.workers.dev/media/wix/ca3b83_d11891954f1f433f9d6a933b28d7cf5f~mv2.jpeg';
+    var IMG_H = 'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_07e4600c7eb745c28897b90cbab6d7ff~mv2.jpeg';
+    var IMG_R = 'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_42e28b9d09364b0ca9b3c4d6ca2e9498~mv2.jpeg';
+    var IMG_G = 'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_d11891954f1f433f9d6a933b28d7cf5f~mv2.jpeg';
     return '<div class="tmw-nav-eyebrow">The definitive ranked guides</div><div class="tmw-ll">' +
       '<a class="tmw-lc-feat" href="/hotels/"><img src="' + IMG_H + '" alt="Iconic Hotels" loading="lazy">' +
         '<div class="tmw-lc-fm"><div class="tmw-lc-eye">The flagship guide</div><h3>Iconic Hotels</h3>' +

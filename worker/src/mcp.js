@@ -35,7 +35,7 @@ const SERVER_INFO = {
   websiteUrl: 'https://www.oftmw.com',
   icons: [
     {
-      src: 'https://tmw.jake-ab7.workers.dev/media/wix/ca3b83_247de859635d486f9fee7c9b7261dae2~mv2.jpg',
+      src: 'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_247de859635d486f9fee7c9b7261dae2~mv2.jpg',
       mimeType: 'image/jpeg',
       sizes: ['1080x1080'],
     },

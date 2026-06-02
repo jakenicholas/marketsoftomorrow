@@ -221,7 +221,7 @@ function injectArticleJsonLd(post, url, desc) {
       datePublished: post.published_iso || post.pubDate || undefined,
       dateModified: post.updated_iso || post.published_iso || post.pubDate || undefined,
       author: post.author_name ? { '@type': 'Person', name: post.author_name } : { '@type': 'Organization', name: 'Markets of Tomorrow' },
-      publisher: { '@type': 'Organization', name: 'Markets of Tomorrow', logo: { '@type': 'ImageObject', url: 'https://tmw.jake-ab7.workers.dev/media/wix/ca3b83_71f3cd2ef61049028b2daf4e2ff71d52~mv2.png' } },
+      publisher: { '@type': 'Organization', name: 'Markets of Tomorrow', logo: { '@type': 'ImageObject', url: 'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_71f3cd2ef61049028b2daf4e2ff71d52~mv2.png' } },
       mainEntityOfPage: { '@type': 'WebPage', '@id': url },
     };
     const s = document.createElement('script'); s.type = 'application/ld+json'; s.id = 'article-jsonld';

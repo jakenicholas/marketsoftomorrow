@@ -53,14 +53,17 @@
       return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c];
     });
   }
-  // Serve migrated Wix images from our R2 (drop CDN transform suffixes).
+  // Serve migrated Wix images from our public R2 (drop CDN transform suffixes).
+  var R2_PUBLIC = 'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev';
   function img(url) {
     if (!url) return '';
     var u = String(url);
     if (u.indexOf('static.wixstatic.com/media/') !== -1) {
-      u = u.replace(/^https?:\/\/static\.wixstatic\.com\/media\//, MAP_URL.replace('map.oftmw.com', 'tmw.jake-ab7.workers.dev') + '/media/wix/');
+      u = u.replace(/^https?:\/\/static\.wixstatic\.com\/media\//, R2_PUBLIC + '/wix/');
       u = u.split('/v1/')[0];
     }
+    // Re-point any older worker-served /media URLs to the public R2 base.
+    u = u.replace(/^https?:\/\/tmw\.jake-ab7\.workers\.dev\/media\//, R2_PUBLIC + '/');
     return u;
   }
   function firstType(rec) {

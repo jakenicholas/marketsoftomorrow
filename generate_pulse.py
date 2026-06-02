@@ -22,6 +22,15 @@ SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1qwU7ykIDUrtPlIQu-qk2FIJ
 RSS_URL = "https://www.oftmw.com/blog-feed.xml"
 SITE_URL = "https://map.oftmw.com"
 
+# Public R2 base — migrated Wix images serve from here (bypassing the Worker).
+R2_PUBLIC_BASE = "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev"
+_WIX_RE = re.compile(r'https?://static\.wixstatic\.com/media/([^/\s"\')?]+)(?:/[^\s"\')]*)?', re.I)
+def wix_to_r2(url):
+    """Rewrite a Wix CDN image URL to our public R2 (strips transform suffix)."""
+    if not url:
+        return url
+    return _WIX_RE.sub(lambda m: f"{R2_PUBLIC_BASE}/wix/{m.group(1)}", str(url))
+
 # Output files
 PULSE_JSON = "pulse.json"
 SNAPSHOT_JSON = ".pulse-snapshot.json"  # internal state file for diffing
@@ -217,9 +226,9 @@ def fetch_rss():
         desc_el = item.find('description')
         content_el = item.find(CONTENT_NS)
 
-        # Image from <enclosure url="...">
+        # Image from <enclosure url="..."> — rewrite Wix CDN → public R2.
         enclosure = item.find('enclosure')
-        image_url = enclosure.get('url') if enclosure is not None else None
+        image_url = wix_to_r2(enclosure.get('url')) if enclosure is not None else None
 
         # Categories -- useful for matching to map projects later
         categories = [c.text for c in item.findall('category') if c.text]

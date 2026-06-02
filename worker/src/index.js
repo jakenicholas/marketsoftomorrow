@@ -1204,9 +1204,14 @@ function rowToPostSummary(r) {
 // /media/wix/<file>), so the live site has no static.wixstatic.com dependency.
 // Strips Wix CDN transform suffixes (…~mv2.jpg/v1/fill/…) back to the original.
 const WIX_IMG_RE = /https?:\/\/static\.wixstatic\.com\/media\/([^\/\s"')?]+)(?:\/[^\s"')]*)?/gi;
+// Public R2 base (r2.dev) — images serve straight from R2, bypassing the Worker.
+const R2_PUBLIC_BASE = 'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev';
 function wixImagesToR2(s) {
   if (!s) return s;
-  return String(s).replace(WIX_IMG_RE, 'https://tmw.jake-ab7.workers.dev/media/wix/$1');
+  // Also re-point any older worker-served /media URLs to the public R2 base.
+  return String(s)
+    .replace(WIX_IMG_RE, R2_PUBLIC_BASE + '/wix/$1')
+    .replace(/https?:\/\/tmw\.jake-ab7\.workers\.dev\/media\//gi, R2_PUBLIC_BASE + '/');
 }
 
 function rowToPostFull(r) {

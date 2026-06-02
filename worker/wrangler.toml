@@ -44,7 +44,7 @@ BLOG_FEED_URL = "https://www.oftmw.com/blog-feed.xml"
 # world-readable r2.dev access to enable. To move to a clean custom domain
 # later, bind media.oftmw.com to the worker (or the bucket) and repoint this —
 # no re-migration needed since only the base changes.
-MEDIA_PUBLIC_BASE = "https://tmw.jake-ab7.workers.dev/media"
+MEDIA_PUBLIC_BASE = "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev"
 
 # Cron trigger — drives the Wix → R2 media migration server-side every minute
 # (see scheduled() in src/index.js). Self-pacing and resumable; it auto-pauses

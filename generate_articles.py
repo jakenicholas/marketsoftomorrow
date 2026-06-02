@@ -32,7 +32,7 @@ BASE   = "https://www.oftmw.com"        # ← flip to https://www.oftmw.com afte
 WORKER = "https://tmw.jake-ab7.workers.dev"
 TEMPLATE_PATH = "journal/post/index.html"
 OUT_ROOT = "journal/post"
-PUBLISHER_LOGO = "https://tmw.jake-ab7.workers.dev/media/wix/ca3b83_71f3cd2ef61049028b2daf4e2ff71d52~mv2.png"
+PUBLISHER_LOGO = "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_71f3cd2ef61049028b2daf4e2ff71d52~mv2.png"
 
 # ── Exact template substrings we swap (kept in sync with journal/post/index.html) ──
 T_TITLE   = "<title>Loading article — Markets of Tomorrow</title>"
