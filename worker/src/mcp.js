@@ -306,8 +306,8 @@ const TOOLS = [
         description_long: { type: 'string', description: 'Full descriptive paragraph' },
         types: { type: 'array', items: { type: 'string' }, description: 'Project types from the controlled vocab: Residences, Hotel, Mixed-Use, Entertainment, Eateries, Retail, Office, Park, Marina, Golf, Resort, Cultural, Museum, Stadium, Education, Healthcare, Spa, Travel, Airport, Opera House, Hospital' },
         preferred_type: { type: 'string', description: 'The single primary type (defaults to the first of types)' },
-        architects: { type: 'array', items: { type: 'string' }, description: 'Architect firm names. Each is matched against the existing firm registry (punctuation-insensitive) and bound to the canonical slug so established firms attach in the admin picker; unmatched names are staged as new firms. Use the real firm name (e.g. "Spina O\'Rourke + Partners"); search_firms can confirm existing ones first.' },
-        developers: { type: 'array', items: { type: 'string' }, description: 'Developer firm names — matched to the firm registry the same way as architects (existing firms bind to the picker; new ones are staged).' },
+        architects: { type: 'array', items: { type: 'string' }, description: 'Architect firm names. Each is matched against the firm registry (punctuation-insensitive) and bound to the canonical slug so established firms attach in the admin picker; names with no match are CREATED as new registry records (so they bind too). Use the real firm name (e.g. "Spina O\'Rourke + Partners"); search_firms can confirm existing ones first.' },
+        developers: { type: 'array', items: { type: 'string' }, description: 'Developer firm names — matched to the firm registry like architects; existing firms bind to the picker and brand-new ones are created as registry records automatically.' },
         website: { type: 'string', description: 'Official project website' },
         units: { type: 'integer' },
         floors: { type: 'integer' },
@@ -548,6 +548,40 @@ function resolveFirms(names, regMap) {
     if (slug) { slugs.push(slug); report.push({ name, slug, existing: !!hit }); }
   }
   return { slugs, report };
+}
+
+// Create brand-new firms (existing:false) as real records in the registry file
+// so they bind in the admin picker and aren't silently dropped. The admin's
+// chip picker only renders firms it finds in architects.json/developers.json —
+// an unknown slug shows nothing and is NOT created on publish — so staging a
+// slug on the draft isn't enough; the firm record must exist. Mirrors the
+// registry's record shape, dedupes by slug, retries on a 409 sha conflict.
+async function ensureFirms(env, role, report) {
+  const fresh = (report || []).filter((f) => f && !f.existing && f.slug);
+  if (!fresh.length) return [];
+  const path = role === 'architects' ? 'data/architects.json' : 'data/developers.json';
+  for (let attempt = 0; ; attempt++) {
+    const { sha, text } = await ghGetFile(env, path);
+    let arr = [];
+    if (text) { try { arr = JSON.parse(text); } catch (_) { throw new Error(path + ' is not valid JSON — refusing to overwrite'); } }
+    if (!Array.isArray(arr)) arr = [];
+    const have = new Set(arr.map((f) => f && f.slug));
+    const created = [];
+    for (const f of fresh) {
+      if (have.has(f.slug)) continue;
+      arr.push({ slug: f.slug, name: f.name, project_count: 0, hq: null, founded: null, bio_md_slug: f.slug });
+      have.add(f.slug);
+      created.push(f.slug);
+    }
+    if (!created.length) return []; // someone else already added them
+    try {
+      await ghPutFile(env, path, JSON.stringify(arr, null, 2) + '\n', sha, `Studio: register ${created.length} ${role} — ${created.join(', ')}`);
+      return created;
+    } catch (e) {
+      if (e && e.status === 409 && attempt < 4) continue;
+      throw e;
+    }
+  }
 }
 
 // ── Tool implementations ────────────────────────────────────────────────────
@@ -989,10 +1023,17 @@ const IMPL = {
     const types = Array.isArray(args.types) ? args.types.map((t) => String(t).trim()).filter(Boolean) : [];
 
     // Resolve architect/developer names to the registry's canonical slugs so
-    // established firms attach in the admin picker (not duplicate slugs).
+    // established firms attach in the admin picker (not duplicate slugs), and
+    // create any brand-new firms as real registry records so they bind too.
     const registry = await loadFirmRegistry(env);
     const archRes = resolveFirms(args.architects, registry.architects);
     const devRes = resolveFirms(args.developers, registry.developers);
+    const createdArch = await ensureFirms(env, 'architects', archRes.report);
+    const createdDev = await ensureFirms(env, 'developers', devRes.report);
+    const createdSet = new Set([...createdArch, ...createdDev]);
+    for (const f of [...archRes.report, ...devRes.report]) {
+      if (createdSet.has(f.slug)) { f.created = true; f.existing = true; } // now a real registry record
+    }
 
     const data = {
       slug: slugify(title),
@@ -1052,15 +1093,17 @@ const IMPL = {
     }
 
     const needsCoords = data.lat == null || data.lng == null;
-    const newFirms = [...archRes.report, ...devRes.report].filter((f) => !f.existing).map((f) => f.name);
+    const createdFirms = [...createdArch, ...createdDev];
     return {
       ok: true, draft_id, created_by: 'claude-studio', status: data.status, project: data, needs_coords: needsCoords,
       admin_url: MAP_ADMIN_URL,
       firms: { architects: archRes.report, developers: devRes.report },
+      firms_created: createdFirms,
       note: 'Queued for review — open the TMW Studio map admin at ' + MAP_ADMIN_URL + ' and click the "Drafts" tab; "' + data.name + '" is there now as a CLAUDE DRAFT. Review and promote it from that tab to put it on the live map — it is NOT live yet. (Stored in ' + ghRepo(env) + '/' + GH_DRAFTS_PATH + ', which that admin reads directly.)'
         + (archRes.report.length || devRes.report.length
-            ? ' Firms resolved to registry slugs (existing firms bind to the admin picker automatically; '
-              + (newFirms.length ? 'NEW firms not yet in the registry: ' + newFirms.join(', ') + ' — they will be created on publish/review).' : 'all matched existing firms).')
+            ? ' All architects/developers are now real registry records, so they bind in the admin picker'
+              + (createdFirms.length ? ' (newly created firms: ' + createdFirms.join(', ') + ')' : ' (all matched existing firms)') + '.'
+              + ' If the admin is already open, reload it to see the new firms.'
             : '')
         + (needsCoords ? ' Add lat/lng before it can be placed.' : ''),
     };
