@@ -37,8 +37,9 @@
       '.tmw-am.show .tmw-am-card{transform:translateY(0)}',
       '.tmw-am-x{position:absolute; top:14px; right:16px; width:30px; height:30px; border:0; border-radius:50%; background:rgba(255,255,255,.06); color:rgba(255,255,255,.6); font-size:18px; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background .15s,color .15s}',
       '.tmw-am-x:hover{background:rgba(255,255,255,.12); color:#fff}',
-      '.tmw-am-logo{display:flex; justify-content:center; margin-bottom:18px}',
+      '.tmw-am-logo{display:flex; align-items:center; justify-content:center; gap:9px; margin-bottom:18px}',
       '.tmw-am-logo img{height:34px; width:auto; display:block; filter:brightness(0) invert(1)}',
+      '.tmw-am-pro-pill{font-size:9px; font-weight:800; color:#000; background:#FFD300; padding:3px 8px; border-radius:5px; letter-spacing:.08em; text-transform:uppercase; line-height:1.2}',
       '.tmw-am h2{font-family:var(--serif,Georgia,serif); font-weight:500; font-size:23px; color:#fff; text-align:center; letter-spacing:-.01em; margin:0 0 22px}',
       '.tmw-am-field{margin-bottom:15px}',
       '.tmw-am-field label{display:block; font-size:12.5px; font-weight:600; color:#fff; margin-bottom:7px}',
@@ -79,8 +80,8 @@
       '.tmw-am-tab-pro{font-style:normal; font-size:8px; font-weight:800; color:#000; background:#FFD300; padding:1px 5px; border-radius:4px; margin-left:5px; letter-spacing:.06em; vertical-align:middle}',
       // watchlist
       // watchlist — image cards (mirrors the map tiles)
-      '.tmw-am-wl{display:grid; grid-template-columns:1fr 1fr; gap:12px; max-height:460px; overflow-y:auto; padding:2px}',
-      '.tmw-am-wlc{position:relative; display:block; aspect-ratio:16/10; border-radius:13px; overflow:hidden; text-decoration:none; border:1px solid rgba(255,255,255,.1); background:linear-gradient(135deg,#1b1e1b,#0c0e0c)}',
+      '.tmw-am-wl{display:grid; grid-template-columns:1fr 1fr; gap:12px; align-items:start; max-height:480px; overflow-y:auto; overflow-x:hidden; padding:2px}',
+      '.tmw-am-wlc{position:relative; display:block; height:170px; border-radius:13px; overflow:hidden; text-decoration:none; border:1px solid rgba(255,255,255,.1); background:linear-gradient(135deg,#1b1e1b,#0c0e0c)}',
       '.tmw-am-wlc img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; transition:transform .45s ease}',
       '.tmw-am-wlc::after{content:""; position:absolute; inset:0; background:linear-gradient(to top, rgba(5,6,5,.93), rgba(5,6,5,.12) 58%, transparent)}',
       '.tmw-am-wlc:hover img{transform:scale(1.05)}',
@@ -309,6 +310,9 @@
   // Map projects (for watchlist images). Slug = projectSlugify(Title), same as
   // the map. Fetched once + cached; CORS is open on map.oftmw.com.
   function projectSlugify(t) { return String(t || '').toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/[\s-]+/g, '-').replace(/^-|-$/g, ''); }
+  // The map deep-link matches on title.toLowerCase().replace(/[^a-z0-9]+/g,'') —
+  // fully concatenated, no separators (e.g. "The Nora Hotel" -> "thenorahotel").
+  function mapSlug(t) { return String(t || '').toLowerCase().replace(/[^a-z0-9]+/g, ''); }
   var _projBySlug = null;
   function loadProjects() {
     if (_projBySlug) return Promise.resolve(_projBySlug);
@@ -348,8 +352,9 @@
       var grid = document.createElement('div'); grid.className = 'tmw-am-wl';
       favs.forEach(function (slug) {
         var p = pmap[slug] || null;
+        var mslug = (p && p.Title) ? mapSlug(p.Title) : slug.replace(/-/g, '');
         var a = document.createElement('a'); a.className = 'tmw-am-wlc';
-        a.href = 'https://map.oftmw.com/?project=' + encodeURIComponent(slug); a.target = '_blank'; a.rel = 'noopener';
+        a.href = 'https://map.oftmw.com/?fullscreen=true&project=' + encodeURIComponent(mslug); a.target = '_blank'; a.rel = 'noopener';
         var img = (p && (p.ImageURL || p.Image2)) || '';
         if (img) { var im = document.createElement('img'); im.src = img; im.loading = 'lazy'; im.alt = ''; a.appendChild(im); }
         var meta = document.createElement('div'); meta.className = 'tmw-am-wlc-meta';
@@ -362,11 +367,12 @@
   }
 
   function renderAccount(host, section, cf, email, paid) {
-    host.innerHTML = LOGO +
+    var logo = paid ? LOGO.replace('</div>', '<span class="tmw-am-pro-pill">PRO</span></div>') : LOGO;
+    host.innerHTML = logo +
       '<div class="tmw-am-tabs"><button class="tmw-am-tab" data-sec="profile">Profile</button><button class="tmw-am-tab" data-sec="security">Security</button><button class="tmw-am-tab" data-sec="watchlist">Watchlist' + (paid ? '' : '<em class="tmw-am-tab-pro">PRO</em>') + '</button></div>' +
       '<div class="tmw-am-sec"></div>' +
       '<div class="tmw-am-msg" aria-live="polite"></div>' +
-      '<div class="tmw-am-foot"><button class="tmw-am-logout" data-act="logout">Log out</button><button class="tmw-am-plans" data-act="plans">Manage plan →</button></div>';
+      '<div class="tmw-am-foot"><button class="tmw-am-logout" data-act="logout">Log out</button><button class="tmw-am-plans" data-act="plans">' + (paid ? 'Manage plan →' : 'Go Pro →') + '</button></div>';
     var sec = host.querySelector('.tmw-am-sec'), tabs = host.querySelectorAll('.tmw-am-tab');
     function show(s) {
       tabs.forEach(function (t) { t.classList.toggle('on', t.getAttribute('data-sec') === s); });
@@ -381,7 +387,21 @@
       var m = ms(); if (m && m.logout) { m.logout().then(function () { close(); location.reload(); }).catch(function () { close(); location.reload(); }); } else { close(); location.reload(); }
     });
     host.querySelector('[data-act="plans"]').addEventListener('click', function () {
-      close(); if (typeof window.tmwShowPaywall === 'function') window.tmwShowPaywall('account'); else window.location.href = 'https://map.oftmw.com/?upgrade=1';
+      var m = ms();
+      // Pro members → Stripe customer portal (update billing / cancel plan),
+      // same call the map uses. Free members → the Go Pro paywall.
+      if (paid && m && typeof m.launchStripeCustomerPortal === 'function') {
+        var btn = host.querySelector('[data-act="plans"]');
+        if (btn) { btn.disabled = true; btn.textContent = 'Opening…'; }
+        m.launchStripeCustomerPortal({ returnUrl: window.location.href }).catch(function () {
+          if (btn) { btn.disabled = false; btn.textContent = 'Manage plan →'; }
+          setMsg(host, 'Couldn’t open the billing portal. Please try again.', 'err');
+        });
+        return;
+      }
+      close();
+      if (typeof window.tmwShowPaywall === 'function') window.tmwShowPaywall('account');
+      else window.location.href = 'https://map.oftmw.com/?upgrade=1';
     });
     show(section || 'profile');
   }
