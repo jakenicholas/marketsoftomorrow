@@ -169,6 +169,12 @@ nav.main .wrap{display:flex; align-items:center; justify-content:space-between; 
 .article-body-content figcaption{position:absolute; left:0; right:0; bottom:0; margin:0; padding:36px 22px 16px; background:linear-gradient(transparent, rgba(7,8,7,.55) 35%, rgba(7,8,7,.9)); color:var(--white); font-family:var(--mono); font-size:11.5px; letter-spacing:.06em; line-height:1.5; text-align:left; pointer-events:none}
 .article-body-content figcaption:empty{display:none}
 .article-body-content img{max-width:100%; height:auto; border-radius:12px; background:var(--panel-2)}
+/* Single body images auto-crop to the hero's 16/9 (object-fit:cover). The
+   :not() excludes the 2-column gallery grid, whose <figure> cells keep their
+   2/3 portrait crop. Slideshows are handled on .tmw-gallery below. */
+.article-body-content figure:not(.tmw-gallery-grid-item){aspect-ratio:16/9}
+.article-body-content figure:not(.tmw-gallery-grid-item) img{width:100%; height:100%; object-fit:cover}
+.article-body-content > img{width:100%; aspect-ratio:16/9; object-fit:cover}
 .article-body-content iframe{max-width:100%; aspect-ratio:16/9; height:auto; border-radius:12px; border:0; background:#000}
 /* YouTube embeds carry a fixed width attr — force them full-width like images. */
 .article-body-content div[data-youtube-video]{width:100%; margin:2em 0}
@@ -184,7 +190,7 @@ nav.main .wrap{display:flex; align-items:center; justify-content:space-between; 
 .article-body-content strong{color:var(--white); font-weight:600}
 
 /* ---- Gallery slideshow (rendered from Wix GALLERY nodes) ---- */
-.tmw-gallery{position:relative; margin:2em 0 !important; aspect-ratio:16/10; overflow:hidden; border-radius:12px; background:#0a0a0a; padding:0}
+.tmw-gallery{position:relative; margin:2em 0 !important; aspect-ratio:16/9; overflow:hidden; border-radius:12px; background:#0a0a0a; padding:0}
 /* Grid/slideshow galleries are display:grid/flex, so their vertical margins do
    NOT collapse with adjacent paragraph margins the way a <figure> does — that
    double-counts and leaves an oversized gap. Zero the following element's
