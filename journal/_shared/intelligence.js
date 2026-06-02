@@ -270,7 +270,7 @@
 
           <div class="intel" id="tiIntel" style="left:20px; top:18px">
             <div class="ihead">
-              <span class="badge"><svg viewBox="0 0 24 24"><path d="M12 2l2.4 5.6L20 8l-4 4 1 6-5-2.8L7 18l1-6-4-4 5.6-.4z"/></svg>TMW Intelligence</span>
+              <span class="badge"><svg viewBox="0 0 24 24"><polygon points="12,4.3 18.65,8.16 18.65,15.84 12,19.68 5.35,15.84 5.35,8.16"/></svg>TMW Intelligence</span>
               <span class="pro">PRO</span>
             </div>
             <div class="iname" id="tiName">Waldorf Astoria Residences</div>
@@ -325,7 +325,7 @@
       </div>
       <div class="feat pro">
         <span class="ptag2">PRO</span>
-        <div class="ficon"><svg viewBox="0 0 24 24"><path d="M12 2l2.4 5.6L20 8l-4 4 1 6-5-2.8L7 18l1-6-4-4 5.6-.4z"/></svg></div>
+        <div class="ficon"><svg viewBox="0 0 24 24"><polygon points="12,4.3 18.65,8.16 18.65,15.84 12,19.68 5.35,15.84 5.35,8.16"/></svg></div>
         <div class="fname">Intelligence <svg class="lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/></svg></div>
         <div class="fdesc">Timeline forecasts &amp; comparable-project engine on every development.</div>
       </div>
@@ -337,7 +337,7 @@
       </div>
       <div class="feat pro">
         <span class="ptag2">PRO</span>
-        <div class="ficon"><svg viewBox="0 0 24 24"><path d="M12 3v18M5 8l7-5 7 5M5 16l7 5 7-5"/></svg></div>
+        <div class="ficon"><svg viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></div>
         <div class="fname">Watchlist <svg class="lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/></svg></div>
         <div class="fdesc">Star the firms and projects you follow. Get pinged when they move.</div>
       </div>

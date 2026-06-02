@@ -168,7 +168,7 @@
     'nav.main .tmw-logo-lockup{position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); margin:0; z-index:1}',
     'nav.main .tmw-wordmark{width:74px}',
     'nav.main .tmw-hex-badge{width:16px; height:16px}',
-    'nav.main .nav-links{order:5; position:absolute; top:100%; left:0; right:0; display:none; flex-direction:column; gap:0; align-items:stretch; width:auto; margin:0; background:rgba(7,8,7,.98); -webkit-backdrop-filter:blur(16px) saturate(1.4); backdrop-filter:blur(16px) saturate(1.4); border-bottom:1px solid var(--hair); padding:10px 22px 24px; min-height:calc(100dvh - 56px); max-height:none; overflow-y:auto}',
+    'nav.main .nav-links{order:5; position:absolute; top:100%; left:0; right:0; display:none; flex-direction:column; gap:0; align-items:stretch; width:auto; margin:0; background:rgba(7,8,7,.98); -webkit-backdrop-filter:blur(16px) saturate(1.4); backdrop-filter:blur(16px) saturate(1.4); border-bottom:1px solid var(--hair); padding:10px 22px 24px; height:calc(100dvh - 56px); max-height:calc(100dvh - 56px); overflow-y:auto; -webkit-overflow-scrolling:touch}',
     'nav.main .nav-links.open{display:flex}',
     'nav.main .nav-links a{padding:14px 2px; border-bottom:1px solid var(--hair); font-size:12.5px}',
     'nav.main .nav-links a:last-child{border-bottom:0}',
@@ -473,6 +473,11 @@
   var IG_SM = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4.5"/><circle cx="17.5" cy="6.5" r="1.2" fill="currentColor" stroke="none"/></svg>';
   var ARR2 = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h10M9 4l4 4-4 4"/></svg>';
   function ic(p) { return '<svg viewBox="0 0 24 24">' + p + '</svg>'; }
+  // Canonical TMW feature icons (also used in the intelligence section on each page).
+  var HEX_IC = '<polygon points="12,4.3 18.65,8.16 18.65,15.84 12,19.68 5.35,15.84 5.35,8.16"/>';      // Intelligence = TMW hexagon
+  var EYE_IC = '<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/>'; // Watchlist = eye
+  var CMP_IC = '<rect x="3" y="4" width="7" height="16" rx="1"/><rect x="14" y="4" width="7" height="16" rx="1"/>'; // Compare = two columns
+  var PULSE_IC = '<path d="M3 12h4l2 6 4-14 2 8h6"/>';                                                  // Pulse = live feed
 
   // The redesigned header nav: keep "Global", consolidate the region links into a
   // rich Focus Markets dropdown (media-kit social cards), add a "The Map" menu
@@ -482,8 +487,11 @@
     var s = document.createElement('style'); s.id = 'tmw-nav2-css';
     s.textContent = [
       // v2 mega panels — full-width backdrop, centered inner content.
-      '.tmw-fm-panel.v2{display:block; grid-template-columns:none; padding:0}',
+      '.tmw-fm-panel.v2{display:block; grid-template-columns:none; padding:0; background:#0a0c0a; -webkit-backdrop-filter:none; backdrop-filter:none; z-index:9100}',
       '.tmw-fm-inner{max-width:1240px; margin:0 auto; padding:26px clamp(24px,4vw,72px) 32px}',
+      // The open menu sits ON TOP of the whole site; the pinned search dock hides.
+      'body:has(.tmw-fm.open) .tmw-dock, body:has(.nav-links.open) .tmw-dock{opacity:0 !important; visibility:hidden !important; pointer-events:none !important}',
+      '.sticky-stack:has(.nav-links.open){z-index:9200}',
       '.tmw-nav-eyebrow{font-family:var(--mono,"JetBrains Mono",monospace); font-size:9.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--mute,#9AA39C); margin-bottom:15px}',
       // Focus Markets — the media-kit .ocard, with "Read articles" in place of chips.
       '.tmw-oc-grid{display:grid; grid-template-columns:repeat(5,1fr); gap:12px}',
@@ -508,7 +516,7 @@
       '.tmw-oc-read svg{width:13px; height:13px; transition:transform .2s}',
       '.tmw-oc:hover .tmw-oc-read{color:#fff} .tmw-oc:hover .tmw-oc-read svg{transform:translateX(3px)}',
       // The Map — explore (free) + pro intelligence + Go Pro CTA.
-      '.tmw-mm{display:grid; grid-template-columns:1fr 1fr; gap:22px 30px; max-width:760px}',
+      '.tmw-mm{display:grid; grid-template-columns:1fr 1fr 1fr; gap:22px 28px; max-width:940px}',
       '.tmw-mm-h{font-family:var(--mono); font-size:9.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--mute,#9AA39C); margin-bottom:8px}',
       '.tmw-mm-item{display:flex; gap:13px; padding:11px; border-radius:12px; text-decoration:none; transition:background .18s}',
       '.tmw-mm-item:hover{background:rgba(255,255,255,.05)}',
@@ -522,14 +530,16 @@
       '.tmw-mm-cta .t{font-size:12.5px; color:var(--mute-2,#C2C9C3)} .tmw-mm-cta .t b{color:#fff; font-weight:600}',
       '.tmw-mm-cta .go{font-family:var(--mono); font-size:11px; letter-spacing:.06em; text-transform:uppercase; font-weight:700; padding:10px 16px; border-radius:9px; background:#FFD300; color:#0a0a0a; white-space:nowrap}',
       // The Lists — iconic ranked guides.
-      '.tmw-ll{display:grid; grid-template-columns:repeat(3,1fr); gap:14px; max-width:720px}',
-      '.tmw-li{position:relative; display:flex; flex-direction:column; justify-content:flex-end; aspect-ratio:4/3; padding:16px; border-radius:14px; text-decoration:none; background:linear-gradient(180deg,#12150f,#0b0d0a); border:1px solid rgba(255,255,255,.16); transition:transform .25s, border-color .25s}',
-      '.tmw-li:hover{transform:translateY(-3px); border-color:rgba(230,197,116,.5)}',
-      '.tmw-li-ic{position:absolute; top:15px; left:15px; width:34px; height:34px; border-radius:9px; display:flex; align-items:center; justify-content:center; background:rgba(230,197,116,.1); border:1px solid rgba(230,197,116,.3); color:var(--gold-soft,#f0d68a)}',
-      '.tmw-li-ic svg{width:17px; height:17px; stroke:currentColor; fill:none; stroke-width:1.7}',
-      '.tmw-li-name{font-family:var(--serif,Georgia,serif); font-weight:600; font-size:18px; color:#fff}',
-      '.tmw-li-sub{font-size:11px; color:var(--mute,#9AA39C); margin-top:4px}',
-      '.tmw-li-go{margin-top:10px; font-family:var(--mono); font-size:9px; letter-spacing:.08em; text-transform:uppercase; color:var(--gold-soft,#f0d68a)}',
+      '.tmw-ll{display:flex; flex-direction:column; gap:9px; max-width:560px}',
+      '.tmw-li{display:flex; align-items:center; gap:14px; padding:13px 16px; border-radius:12px; text-decoration:none; border:1px solid rgba(255,255,255,.1); background:rgba(255,255,255,.025); transition:background .18s, border-color .18s}',
+      '.tmw-li:hover{background:rgba(230,197,116,.07); border-color:rgba(230,197,116,.45)}',
+      '.tmw-li-ic{flex:0 0 auto; width:42px; height:42px; border-radius:11px; display:flex; align-items:center; justify-content:center; background:rgba(230,197,116,.1); border:1px solid rgba(230,197,116,.3); color:var(--gold-soft,#f0d68a)}',
+      '.tmw-li-ic svg{width:19px; height:19px; stroke:currentColor; fill:none; stroke-width:1.7}',
+      '.tmw-li-tx{flex:1; min-width:0}',
+      '.tmw-li-tx b{display:block; font-family:var(--serif,Georgia,serif); font-weight:600; font-size:16.5px; color:#fff; letter-spacing:-.01em}',
+      '.tmw-li-tx i{font-style:normal; display:block; font-size:12px; color:var(--mute,#9AA39C); margin-top:2px}',
+      '.tmw-li-arr{flex:0 0 auto; color:var(--gold-soft,#f0d68a)}',
+      '.tmw-li-arr svg{width:14px; height:14px; stroke:currentColor; fill:none; stroke-width:2}',
       // Mobile: panels become stacked accordion content (1 column).
       '@media(max-width:980px){',
       '.tmw-fm-panel.v2{display:none}',
@@ -544,12 +554,8 @@
       '.tmw-oc-stats{gap:10px 12px; padding-bottom:13px}',
       '.tmw-oc-st .v{font-size:16px}',
       '.tmw-oc-read{font-size:9px; margin-top:11px}',
-      '.tmw-mm, .tmw-ll{grid-template-columns:1fr; max-width:none; gap:10px}',
-      // Lists: horizontal rows (icon left, title/sub right) in the drawer.
-      '.tmw-li{flex-direction:row; align-items:center; aspect-ratio:auto; min-height:auto; padding:14px 16px 14px 60px; justify-content:center}',
-      '.tmw-li-ic{top:50%; transform:translateY(-50%)}',
-      '.tmw-li-sub{margin-top:2px}',
-      '.tmw-li-go{display:none}',
+      '.tmw-mm{grid-template-columns:1fr; max-width:none; gap:10px}',
+      '.tmw-ll{max-width:none; gap:8px}',
       '.tmw-mm-cta{flex-direction:column; align-items:stretch; text-align:center; gap:10px}',
       '.tmw-nav-eyebrow{margin:6px 0 10px}',
       '}'
@@ -599,18 +605,25 @@
         '<a class="tmw-mm-item" href="' + U + '"><span class="tmw-mm-ic green">' + ic('<path d="M9 18l-6 3V6l6-3 6 3 6-3v15l-6 3-6-3z"/><path d="M9 3v15M15 6v15"/>') + '</span><span class="tmw-mm-tx"><b>Interactive Map</b><i>396 projects across 40+ markets.</i></span></a>' +
         '<a class="tmw-mm-item" href="' + U + '/?view=atlas"><span class="tmw-mm-ic green">' + ic('<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>') + '</span><span class="tmw-mm-tx"><b>The Atlas</b><i>Every tracked project on one canvas.</i></span></a></div>' +
       '<div><div class="tmw-mm-h">Pro intelligence</div>' +
-        '<a class="tmw-mm-item" href="' + UP + '"><span class="tmw-mm-ic">' + ic('<path d="M3 17l6-6 4 4 8-8"/><path d="M21 7v6h-6"/>') + '</span><span class="tmw-mm-tx"><b>TMW Intelligence<em>PRO</em></b><i>Completion forecasts &amp; confidence.</i></span></a>' +
-        '<a class="tmw-mm-item" href="' + UP + '"><span class="tmw-mm-ic">' + ic('<path d="M12 21s-7-4.5-7-10a7 7 0 0114 0c0 5.5-7 10-7 10z"/><circle cx="12" cy="11" r="2.5"/>') + '</span><span class="tmw-mm-tx"><b>Watchlist<em>PRO</em></b><i>Track projects, get notified.</i></span></a>' +
-        '<a class="tmw-mm-item" href="' + UP + '"><span class="tmw-mm-ic">' + ic('<path d="M4 6h7M4 12h7M4 18h7M16 4v16M20 8l-4-4-4 4"/>') + '</span><span class="tmw-mm-tx"><b>Compare<em>PRO</em></b><i>Stack any projects side-by-side.</i></span></a></div>' +
+        '<a class="tmw-mm-item" href="' + UP + '"><span class="tmw-mm-ic">' + ic(HEX_IC) + '</span><span class="tmw-mm-tx"><b>TMW Intelligence<em>PRO</em></b><i>Completion forecasts &amp; confidence.</i></span></a>' +
+        '<a class="tmw-mm-item" href="' + UP + '"><span class="tmw-mm-ic">' + ic(EYE_IC) + '</span><span class="tmw-mm-tx"><b>Watchlist<em>PRO</em></b><i>Track projects, get notified.</i></span></a></div>' +
+      '<div><div class="tmw-mm-h">Pro tools</div>' +
+        '<a class="tmw-mm-item" href="' + UP + '"><span class="tmw-mm-ic">' + ic(CMP_IC) + '</span><span class="tmw-mm-tx"><b>Compare<em>PRO</em></b><i>Stack any projects side-by-side.</i></span></a>' +
+        '<a class="tmw-mm-item" href="' + U + '"><span class="tmw-mm-ic green">' + ic(PULSE_IC) + '</span><span class="tmw-mm-tx"><b>Pulse</b><i>A live feed of every new project.</i></span></a></div>' +
       '<a class="tmw-mm-cta" href="' + UP + '"><span class="t"><b>Go Pro</b> — forecasts, watchlist, compare &amp; the full atlas.</span><span class="go">Go Pro →</span></a>' +
     '</div>';
   }
 
   function theListsPanel() {
+    function row(href, icon, name, sub) {
+      return '<a class="tmw-li" href="' + href + '"><span class="tmw-li-ic">' + ic(icon) + '</span>' +
+        '<span class="tmw-li-tx"><b>' + name + '</b><i>' + sub + '</i></span><span class="tmw-li-arr">' + ARR2 + '</span></a>';
+    }
     return '<div class="tmw-nav-eyebrow">The definitive ranked guides</div><div class="tmw-ll">' +
-      '<a class="tmw-li" href="/hotels/"><span class="tmw-li-ic">' + ic('<path d="M3 21V8l9-5 9 5v13"/><path d="M9 21v-6h6v6"/>') + '</span><span class="tmw-li-name">Iconic Hotels</span><span class="tmw-li-sub">The stays that define a market</span><span class="tmw-li-go">The ranked list →</span></a>' +
-      '<a class="tmw-li" href="/restaurants/"><span class="tmw-li-ic">' + ic('<path d="M6 3v8a3 3 0 006 0V3M9 3v18M16 3c-1.5 1-2 3-2 6s.5 4 2 4v8"/>') + '</span><span class="tmw-li-name">Iconic Restaurants</span><span class="tmw-li-sub">Where the future eats</span><span class="tmw-li-go">The ranked list →</span></a>' +
-      '<a class="tmw-li" href="/golf/"><span class="tmw-li-ic">' + ic('<path d="M12 19V5M12 5l7 3-7 3"/><circle cx="12" cy="20" r="1.6"/>') + '</span><span class="tmw-li-name">Iconic Golf</span><span class="tmw-li-sub">The courses worth the trip</span><span class="tmw-li-go">The ranked list →</span></a></div>';
+      row('/hotels/', '<path d="M3 21V8l9-5 9 5v13"/><path d="M9 21v-6h6v6"/>', 'Iconic Hotels', 'The stays that define a market') +
+      row('/restaurants/', '<path d="M6 3v8a3 3 0 006 0V3M9 3v18M16 3c-1.5 1-2 3-2 6s.5 4 2 4v8"/>', 'Iconic Restaurants', 'Where the future eats') +
+      row('/golf/', '<path d="M12 19V5M12 5l7 3-7 3"/><circle cx="12" cy="20" r="1.6"/>', 'Iconic Golf', 'The courses worth the trip') +
+    '</div>';
   }
 
   // IG icons inside the (anchor) market cards can't be nested anchors — handle
@@ -650,7 +663,7 @@
 
       // Build the three dropdowns and insert them after "Global".
       var fmMarkets = makeFm('Focus Markets', focusMarketsPanel());
-      var fmMap     = makeFm('The Map', theMapPanel());
+      var fmMap     = makeFm('Database', theMapPanel());
       var fmLists   = makeFm('The Lists', theListsPanel());
       var ref = globalAnchor && globalAnchor.parentNode === nav ? globalAnchor : nav.firstElementChild;
       if (ref && ref.nextSibling) {
