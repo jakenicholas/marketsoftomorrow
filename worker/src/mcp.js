@@ -207,31 +207,34 @@ const TOOLS = [
   // ── Map drafts ─────────────────────────────────────────────────────────────
   {
     name: 'create_map_draft',
-    description: 'Propose a NEW Map of Tomorrow project as a DRAFT. It is staged in the Studio for human review and is NOT placed on the live map until a person promotes it. Provide as much as you know; latitude/longitude are needed before it can be mapped (a human can geocode the city/address on review).',
+    description: 'Propose a NEW Map of Tomorrow project as a DRAFT. Appends to tmw-data/data/drafts.json — your existing draft queue — so it shows up in the map admin for review. It is NOT on the live map until you promote it there. Provide what you know; lat/lng are needed before it can be placed (you can geocode on review).',
     inputSchema: {
       type: 'object',
       properties: {
-        title: { type: 'string', description: 'Project name' },
+        title: { type: 'string', description: 'Project name (stored as "name"; slug is derived from it)' },
+        status: { type: 'string', enum: ['announced', 'breaking-ground', 'construction', 'coming-soon', 'open'], description: 'Project status (default "announced")' },
         city: { type: 'string' },
-        address: { type: 'string', description: 'Street address (helps a human geocode it)' },
+        address: { type: 'string', description: 'Street address — captured in source_note to help geocoding' },
         latitude: { type: 'number' },
         longitude: { type: 'number' },
-        description: { type: 'string' },
-        project_type: { type: 'string', description: 'e.g. "Hotel", "Residential", "Mixed-Use"' },
-        architect: { type: 'string' },
-        developer: { type: 'string' },
-        delivery: { type: 'string', description: 'Delivery/completion year or phase' },
-        units: { type: 'string' },
-        floors: { type: 'string' },
+        description: { type: 'string', description: 'Short 1–2 sentence summary' },
+        description_long: { type: 'string', description: 'Full descriptive paragraph' },
+        types: { type: 'array', items: { type: 'string' }, description: 'Project types from the controlled vocab: Residences, Hotel, Mixed-Use, Entertainment, Eateries, Retail, Office, Park, Marina, Golf, Resort, Cultural, Museum, Stadium, Education, Healthcare, Spa, Travel, Airport, Opera House, Hospital' },
+        preferred_type: { type: 'string', description: 'The single primary type (defaults to the first of types)' },
+        architects: { type: 'array', items: { type: 'string' }, description: 'Architect firm names — slugified into architect_slugs' },
+        developers: { type: 'array', items: { type: 'string' }, description: 'Developer firm names — slugified into developer_slugs' },
         website: { type: 'string', description: 'Official project website' },
-        image_url: { type: 'string', description: 'A hero/render image URL' },
+        units: { type: 'integer' },
+        floors: { type: 'integer' },
+        images: { type: 'array', items: { type: 'string' }, description: 'Image URLs (hero / renders)' },
+        source_note: { type: 'string', description: 'Where this came from — e.g. the TMW article URL or press source' },
       },
       required: ['title'],
     },
   },
   {
     name: 'list_map_drafts',
-    description: 'List pending Map of Tomorrow project drafts waiting in the Studio for human review.',
+    description: 'List the pending Map of Tomorrow project drafts in tmw-data/data/drafts.json (the map admin review queue), newest first.',
     inputSchema: { type: 'object', properties: { limit: { type: 'integer', description: 'Max results (default 50)' } } },
   },
 
@@ -321,10 +324,53 @@ function buildMediaKey(filename) {
 async function ensureMediaFoldersTable(env) {
   await env.DB.prepare('CREATE TABLE IF NOT EXISTS media_folders (name TEXT PRIMARY KEY, favorite INTEGER DEFAULT 0, created_at INTEGER)').run();
 }
-async function ensureMapDraftsTable(env) {
-  await env.DB.prepare(
-    "CREATE TABLE IF NOT EXISTS map_drafts (id TEXT PRIMARY KEY, title TEXT, city TEXT, data TEXT, status TEXT DEFAULT 'draft', created_by TEXT, created_at INTEGER, updated_at INTEGER)"
-  ).run();
+
+// ── Map drafts → tmw-data/data/drafts.json via the GitHub Contents API ───────
+// Map drafts live in the tmw-data repo (the same queue the old connector wrote to
+// and that the map admin reviews). The worker writes there with a fine-grained
+// PAT in the GH_TOKEN secret. Repo/branch/path are overridable via env.
+const GH_DRAFTS_PATH = 'data/drafts.json';
+function ghRepo(env)   { return env.GH_DRAFTS_REPO || 'jakenicholas/tmw-data'; }
+function ghBranch(env) { return env.GH_DRAFTS_BRANCH || 'main'; }
+function ghHeaders(env) {
+  return {
+    Authorization: 'Bearer ' + env.GH_TOKEN,
+    'User-Agent': 'tmw-studio',
+    Accept: 'application/vnd.github+json',
+    'X-GitHub-Api-Version': '2022-11-28',
+  };
+}
+// UTF-8-safe base64 (GitHub returns/expects base64; descriptions carry em-dashes, $, …).
+function b64encodeUtf8(str) {
+  const bytes = new TextEncoder().encode(str);
+  let bin = ''; for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+  return btoa(bin);
+}
+function b64decodeUtf8(b64) {
+  const bin = atob(String(b64 || '').replace(/\s+/g, ''));
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return new TextDecoder().decode(bytes);
+}
+function requireGhToken(env) {
+  if (!env.GH_TOKEN) throw new Error('GH_TOKEN is not set on the worker. Add a fine-grained PAT for ' + ghRepo(env) + ' (Contents: read+write), then `cd worker && npx wrangler secret put GH_TOKEN`.');
+}
+async function ghGetFile(env, path) {
+  const url = `https://api.github.com/repos/${ghRepo(env)}/contents/${path}?ref=${encodeURIComponent(ghBranch(env))}`;
+  const r = await fetch(url, { headers: ghHeaders(env) });
+  if (r.status === 404) return { sha: null, text: null };
+  if (!r.ok) throw new Error('GitHub read failed (HTTP ' + r.status + '): ' + (await r.text()).slice(0, 200));
+  const data = await r.json();
+  return { sha: data.sha, text: b64decodeUtf8(data.content) };
+}
+async function ghPutFile(env, path, contentStr, sha, message) {
+  const body = { message, content: b64encodeUtf8(contentStr), branch: ghBranch(env) };
+  if (sha) body.sha = sha;
+  const r = await fetch(`https://api.github.com/repos/${ghRepo(env)}/contents/${path}`, {
+    method: 'PUT', headers: { ...ghHeaders(env), 'Content-Type': 'application/json' }, body: JSON.stringify(body),
+  });
+  if (!r.ok) throw new Error('GitHub write failed (HTTP ' + r.status + '): ' + (await r.text()).slice(0, 200));
+  return await r.json();
 }
 
 // ── Tool implementations ────────────────────────────────────────────────────
@@ -635,43 +681,73 @@ const IMPL = {
     return { ok: true, slug, items: items.length };
   },
 
-  // ── Map drafts ─────────────────────────────────────────────────────────────
+  // ── Map drafts (→ tmw-data/data/drafts.json) ────────────────────────────────
   async create_map_draft(args, env) {
-    if (!env.DB) throw new Error('D1 not configured');
+    requireGhToken(env);
     const title = String(args.title || '').trim();
     if (!title) throw new Error('title is required');
-    await ensureMapDraftsTable(env);
-    const city = String(args.city || '').trim();
     const num = (v) => (v == null || v === '' || isNaN(Number(v)) ? null : Number(v));
-    const rec = {
-      Title: title, City: city, Address: String(args.address || ''),
-      Latitude: num(args.latitude), Longitude: num(args.longitude),
-      Description: String(args.description || ''), ProjectType: String(args.project_type || ''),
-      Architect: String(args.architect || ''), Developer: String(args.developer || ''),
-      Delivery: String(args.delivery || ''), Units: args.units != null ? String(args.units) : '',
-      Floors: args.floors != null ? String(args.floors) : '', OfficialWebsite: String(args.website || ''),
-      ImageURL: String(args.image_url || ''),
+    const types = Array.isArray(args.types) ? args.types.map((t) => String(t).trim()).filter(Boolean) : [];
+
+    const data = {
+      slug: slugify(title),
+      name: title,
+      status: String(args.status || 'announced'),
+      city: String(args.city || ''),
+      lat: num(args.latitude),
+      lng: num(args.longitude),
+      types,
+      preferred_type: String(args.preferred_type || types[0] || ''),
+      description: String(args.description || ''),
+      description_long: String(args.description_long || args.description || ''),
+      architect_slugs: (Array.isArray(args.architects) ? args.architects : []).map((a) => slugify(a)).filter(Boolean),
+      developer_slugs: (Array.isArray(args.developers) ? args.developers : []).map((d) => slugify(d)).filter(Boolean),
+      official_website: String(args.website || ''),
+      units: num(args.units),
+      floors: num(args.floors),
     };
-    const id = 'mapd-' + (crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2));
-    const now = Math.floor(Date.now() / 1000);
-    await env.DB.prepare(
-      "INSERT INTO map_drafts (id, title, city, data, status, created_by, created_at, updated_at) VALUES (?1,?2,?3,?4,'draft',?5,?6,?6)"
-    ).bind(id, title, city, JSON.stringify(rec), 'Claude (Studio MCP)', now).run();
-    const needsCoords = rec.Latitude == null || rec.Longitude == null;
+    if (Array.isArray(args.images) && args.images.length) data.images = args.images.map(String);
+
+    const { sha, text } = await ghGetFile(env, GH_DRAFTS_PATH);
+    let drafts = [];
+    if (text) { try { drafts = JSON.parse(text); } catch (_) { throw new Error('drafts.json is not valid JSON — refusing to overwrite'); } }
+    if (!Array.isArray(drafts)) drafts = [];
+
+    const isoNow = new Date().toISOString();
+    const stamp = isoNow.slice(0, 10);
+    const seq = String(drafts.filter((d) => String(d && d.draft_id || '').startsWith(stamp)).length + 1).padStart(3, '0');
+    const draft_id = `${stamp}-${seq}`;
+    const sourceParts = [];
+    if (args.source_note) sourceParts.push(String(args.source_note));
+    if (args.address) sourceParts.push('Address: ' + String(args.address));
+
+    const entry = { draft_id, created_at: isoNow, created_by: 'claude-studio', source_note: sourceParts.join(' — '), data };
+    drafts.push(entry);
+    await ghPutFile(env, GH_DRAFTS_PATH, JSON.stringify(drafts, null, 2) + '\n', sha, `Studio draft: ${data.name} (${draft_id})`);
+
+    const needsCoords = data.lat == null || data.lng == null;
     return {
-      ok: true, id, status: 'draft', project: rec, needs_coords: needsCoords,
-      note: 'Staged as a MAP DRAFT in the Studio for human review' + (needsCoords ? ' — latitude/longitude still needed before it can be placed on the map.' : '.') + ' It is NOT on the live map until a person promotes it.',
+      ok: true, draft_id, created_by: 'claude-studio', status: data.status, project: data, needs_coords: needsCoords,
+      note: 'Appended to ' + ghRepo(env) + '/' + GH_DRAFTS_PATH + ' — review & promote it from the map admin. It is NOT on the live map yet.' + (needsCoords ? ' Add lat/lng before it can be placed.' : ''),
     };
   },
 
   async list_map_drafts(args, env) {
-    if (!env.DB) throw new Error('D1 not configured');
-    await ensureMapDraftsTable(env);
-    const limit = Math.min(Math.max(parseInt(args.limit, 10) || 50, 1), 100);
-    const rows = (await env.DB.prepare(
-      `SELECT id, title, city, data, created_at FROM map_drafts WHERE status='draft' ORDER BY created_at DESC LIMIT ${limit}`
-    ).all()).results || [];
-    return { count: rows.length, drafts: rows.map((r) => ({ id: r.id, title: r.title, city: r.city, created: iso(r.created_at), project: parseJSON(r.data, {}) })) };
+    requireGhToken(env);
+    const { text } = await ghGetFile(env, GH_DRAFTS_PATH);
+    let drafts = [];
+    if (text) { try { drafts = JSON.parse(text); } catch (_) {} }
+    if (!Array.isArray(drafts)) drafts = [];
+    const limit = Math.min(Math.max(parseInt(args.limit, 10) || 50, 1), 200);
+    const recent = drafts.slice().reverse().slice(0, limit);
+    return {
+      count: drafts.length, showing: recent.length, repo: ghRepo(env) + '/' + GH_DRAFTS_PATH,
+      drafts: recent.map((d) => ({
+        draft_id: d.draft_id, name: d.data && d.data.name, city: d.data && d.data.city,
+        status: d.data && d.data.status, created_at: d.created_at, created_by: d.created_by,
+        source_note: d.source_note, project: d.data,
+      })),
+    };
   },
 
   // ── Analytics ──────────────────────────────────────────────────────────────
