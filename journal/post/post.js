@@ -294,6 +294,9 @@ function renderArticle(post) {
     upgradeBodyImages(bodyEl);
     hookGalleries(bodyEl);
   }
+  // The body (incl. any tmw-project-card embed) is now in the DOM — tell
+  // project-card.js to (re)hydrate, since it likely ran before this injection.
+  document.dispatchEvent(new CustomEvent('tmw:article-ready'));
 }
 
 function renderArticleEmpty(title, msg, legacyUrl, technicalErr) {

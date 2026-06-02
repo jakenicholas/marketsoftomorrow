@@ -40,8 +40,8 @@
     return out;
   }
 
-  var embeds = collect();
-  // No early return: even with no manual embed we may auto-link from coverage.
+  // Embeds are collected inside hydrate() (below) so it can re-run when a
+  // client-rendered post injects its body after this script loads.
 
   // ── 2) Helpers ──────────────────────────────────────────────────────────
   // Mirrors the map's pyStyleSlug / generate_pulse.py slugify so keys line up.
@@ -300,7 +300,13 @@
   }
 
   // ── 6) Fetch + render ───────────────────────────────────────────────────
-  function fetchJson(u) { return fetch(u, { cache: 'force-cache' }).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; }); }
+  // Cache-bust per-minute so a freshly-published project resolves here within
+  // ~60s instead of being pinned to a stale copy (force-cache used to hide the
+  // card for any project added after the visitor last cached projects-flat).
+  function fetchJson(u) {
+    var bust = (u.indexOf('?') === -1 ? '?' : '&') + 'v=' + Math.floor(Date.now() / 60000);
+    return fetch(u + bust, { cache: 'no-cache' }).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; });
+  }
 
   // Auto-link from the map's reverse coverage when the article has no manual
   // embed: look up the current post slug in project-links.json and append a card
@@ -310,8 +316,9 @@
     if (m) return decodeURIComponent(m[1]);
     try { var q = new URLSearchParams(location.search).get('slug'); return q ? decodeURIComponent(q) : ''; } catch (e) { return ''; }
   }
-  function autoLink() {
+  function autoLink(embeds) {
     if (embeds.length) return Promise.resolve();
+    if (document.querySelector('.tmw-project-card[data-tmw-auto]')) return Promise.resolve(); // already auto-linked
     var body = document.querySelector('.article-body-content');
     var slug = currentPostSlug();
     if (!body || !slug) return Promise.resolve();
@@ -325,22 +332,42 @@
     });
   }
 
-  autoLink().then(function () {
-    if (!embeds.length) return;
-    injectCSS();
-    Promise.all([fetchJson(PROJECTS_URL), fetchJson(INTEL_URL)]).then(function (res) {
-      var rows = res[0] || [], intel = (res[1] && res[1].projects) || {};
-      if (!Array.isArray(rows)) rows = rows.projects || rows.rows || [];
-      var bySlug = {};
-      rows.forEach(function (r) { var s = slugify(r.Title || r.Name || ''); if (s && !bySlug[s]) bySlug[s] = r; });
-      embeds.forEach(function (e) {
-        var rec = bySlug[e.slug];
-        if (!rec) { e.el.style.display = 'none'; return; }
-        e.el.setAttribute('data-tmw-done', '1');
-        e.el.className = 'tmw-pcard';
-        e.el.innerHTML = renderCard(rec, e.slug, intel[e.slug]);
-        wire(e.el, e.slug);
+  // Fetch the map data once per page, reuse across hydrate() runs.
+  var _dataPromise = null;
+  function loadData() {
+    if (!_dataPromise) _dataPromise = Promise.all([fetchJson(PROJECTS_URL), fetchJson(INTEL_URL)]);
+    return _dataPromise;
+  }
+
+  // Collect embeds and render their cards. Idempotent: already-rendered cards
+  // carry data-tmw-done and are skipped, so this is safe to run more than once.
+  function hydrate() {
+    var embeds = collect();
+    return autoLink(embeds).then(function () {
+      if (!embeds.length) return;
+      injectCSS();
+      return loadData().then(function (res) {
+        var rows = res[0] || [], intel = (res[1] && res[1].projects) || {};
+        if (!Array.isArray(rows)) rows = rows.projects || rows.rows || [];
+        var bySlug = {};
+        rows.forEach(function (r) { var s = slugify(r.Title || r.Name || ''); if (s && !bySlug[s]) bySlug[s] = r; });
+        embeds.forEach(function (e) {
+          if (e.el.getAttribute('data-tmw-done')) return;
+          var rec = bySlug[e.slug];
+          if (!rec) { e.el.style.display = 'none'; return; }
+          e.el.style.display = '';
+          e.el.setAttribute('data-tmw-done', '1');
+          e.el.className = 'tmw-pcard';
+          e.el.innerHTML = renderCard(rec, e.slug, intel[e.slug]);
+          wire(e.el, e.slug);
+        });
       });
     });
-  });
+  }
+
+  hydrate();
+  // Client-rendered post pages (/post/?slug=…) inject the article body — with
+  // its project-card embed — AFTER this script runs. post.js dispatches
+  // 'tmw:article-ready' once the body is in the DOM, so we re-hydrate then.
+  document.addEventListener('tmw:article-ready', hydrate);
 })();
