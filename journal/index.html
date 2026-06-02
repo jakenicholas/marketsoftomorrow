@@ -426,9 +426,11 @@ nav.main .wrap{display:flex; align-items:center; justify-content:space-between; 
 .pill.on{background:rgba(230,197,116,.10); color:var(--gold-soft); border-color:rgba(230,197,116,.34); font-weight:700; text-shadow:0 0 14px rgba(230,197,116,.5), 0 0 3px rgba(230,197,116,.32); box-shadow:0 0 18px rgba(230,197,116,.16)}
 .pill .count{opacity:.55; margin-left:6px; font-size:9.5px}
 .pill.on .count{opacity:.7}
-/* Mobile: drop the right padding so the row bleeds off the right edge ("falls off
-   the page"); keep the left padding so the first "All" pill's gold glow isn't clipped. */
-@media(max-width:760px){.pills{padding-right:0}}
+/* Mobile: make the pill slider full-bleed — strip the filter bar wrap's side
+   padding so the row spans the whole device width (the last pill reaches/runs off
+   the right edge, making the horizontal scroll obvious). The first "All" pill is
+   still offset by .pills' own left padding (which also protects its gold glow). */
+@media(max-width:760px){.pills{padding-right:0} .bar .wrap{padding:0}}
 .search{display:flex; align-items:center; gap:8px; border:1px solid var(--hair-2); border-radius:999px; padding:8px 14px; background:rgba(255,255,255,.03); min-width:220px; transition:border-color .2s}
 .search:focus-within{border-color:var(--green)}
 .search input{border:0; outline:0; background:transparent; font:inherit; font-size:13px; width:100%; color:var(--white)}

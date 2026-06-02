@@ -41,8 +41,8 @@
       .tmw-partners-grid{display:grid; grid-template-columns:repeat(4, 1fr); gap:18px}
       @media(max-width:1100px){.tmw-partners-grid{grid-template-columns:repeat(2, 1fr)}}
       @media(max-width:620px){.tmw-partners-grid{grid-template-columns:repeat(2, 1fr); gap:10px}}
-      .tmw-partner-card{background:linear-gradient(180deg,#121d11,#0d130c); border:1px solid rgba(230,197,116,.34); border-radius:16px; overflow:hidden; display:flex; flex-direction:column; box-shadow:0 0 18px rgba(230,197,116,.12), inset 0 0 0 1px rgba(230,197,116,.05); transition:transform .25s ease, border-color .25s ease, box-shadow .25s ease}
-      .tmw-partner-card:hover{transform:translateY(-3px); border-color:rgba(230,197,116,.7); box-shadow:0 0 28px rgba(230,197,116,.26), inset 0 0 0 1px rgba(230,197,116,.1)}
+      .tmw-partner-card{background:rgba(255,255,255,.025); border:1px solid rgba(230,197,116,.34); border-radius:16px; overflow:hidden; display:flex; flex-direction:column; transition:transform .25s ease, border-color .25s ease}
+      .tmw-partner-card:hover{transform:translateY(-3px); border-color:rgba(230,197,116,.6)}
       .tmw-partner-img{aspect-ratio:16/10; background:#1a1d1a; overflow:hidden; position:relative}
       .tmw-partner-img img{width:100%; height:100%; object-fit:cover; transition:transform .6s ease}
       .tmw-partner-card:hover .tmw-partner-img img{transform:scale(1.04)}
