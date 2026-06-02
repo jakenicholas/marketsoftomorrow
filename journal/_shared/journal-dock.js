@@ -197,7 +197,7 @@
     '.nav-cta.tmw-ig:hover{background:transparent !important; border-color:transparent !important; transform:none !important}',
     '.nav-cta.tmw-ig svg{width:22px; height:22px; color:var(--cream); transition:color .2s}',
     '.nav-cta.tmw-ig:hover svg{color:#fff}',
-    '@media(max-width:980px){.nav-cta.tmw-ig{width:38px; height:38px; min-width:38px}}',
+    '@media(max-width:980px){.nav-cta.tmw-ig{display:none !important}}',
 
     // ── Top featured ad banner: explicit heights per device, full width, no
     //    sponsor chip. (Inline page rule is clamp(180px,22vw,280px).)
