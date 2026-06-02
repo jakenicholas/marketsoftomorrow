@@ -527,6 +527,7 @@
     });
     host.querySelector('[data-act="account"]').addEventListener('click', function (e) {
       e.stopPropagation(); menu.classList.remove('open');
+      if (typeof window.tmwAuthModal === 'function') { window.tmwAuthModal('profile'); return; }
       try {
         var m = ms();
         if (m) m.openModal('PROFILE').then(function () { try { m.hideModal(); } catch (_) {} refresh(); }).catch(function () {});

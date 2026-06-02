@@ -33,8 +33,7 @@
       '.tmw-am-x{position:absolute; top:14px; right:16px; width:30px; height:30px; border:0; border-radius:50%; background:rgba(255,255,255,.06); color:rgba(255,255,255,.6); font-size:18px; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background .15s,color .15s}',
       '.tmw-am-x:hover{background:rgba(255,255,255,.12); color:#fff}',
       '.tmw-am-logo{display:flex; justify-content:center; margin-bottom:18px}',
-      '.tmw-am-logo b{font-family:var(--sans,"Inter",sans-serif); font-weight:800; font-size:17px; letter-spacing:-.02em; line-height:.92; color:#fff; text-align:center; text-transform:uppercase}',
-      '.tmw-am-logo b span{display:block; font-size:9px; font-weight:600; letter-spacing:.12em; color:rgba(255,255,255,.55)}',
+      '.tmw-am-logo img{height:34px; width:auto; display:block; filter:brightness(0) invert(1)}',
       '.tmw-am h2{font-family:var(--serif,Georgia,serif); font-weight:500; font-size:23px; color:#fff; text-align:center; letter-spacing:-.01em; margin:0 0 22px}',
       '.tmw-am-field{margin-bottom:15px}',
       '.tmw-am-field label{display:block; font-size:12.5px; font-weight:600; color:#fff; margin-bottom:7px}',
@@ -57,12 +56,27 @@
       '.tmw-am-alt a{color:#1FDF67; text-decoration:none; font-weight:600; cursor:pointer}',
       '.tmw-am-msg{font-size:12.5px; line-height:1.4; margin-top:13px; text-align:center; min-height:1px}',
       '.tmw-am-msg.err{color:#ff9b9b} .tmw-am-msg.ok{color:#42eb81}',
+      // account view (profile / security)
+      '.tmw-am-tabs{display:flex; gap:6px; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.1); border-radius:11px; padding:4px; margin-bottom:20px}',
+      '.tmw-am-tab{flex:1; border:0; background:none; color:rgba(255,255,255,.6); font-family:var(--sans,"Inter",sans-serif); font-size:13px; font-weight:600; padding:9px; border-radius:8px; cursor:pointer; transition:background .15s,color .15s}',
+      '.tmw-am-tab.on{background:rgba(255,255,255,.08); color:#fff}',
+      '.tmw-am-row{display:flex; gap:9px}',
+      '.tmw-am-row > *{flex:1; min-width:0}',
+      '.tmw-am-geo{position:relative}',
+      '.tmw-am-geolist{position:absolute; left:0; right:0; top:calc(100% + 4px); z-index:6; background:#16181a; border:1px solid rgba(255,255,255,.16); border-radius:10px; overflow:hidden; max-height:200px; overflow-y:auto; box-shadow:0 16px 40px rgba(0,0,0,.55)}',
+      '.tmw-am-geolist[hidden]{display:none}',
+      '.tmw-am-geoitem{padding:10px 14px; font-size:13px; color:#e8e8e8; cursor:pointer; border-bottom:1px solid rgba(255,255,255,.06)}',
+      '.tmw-am-geoitem:last-child{border-bottom:0} .tmw-am-geoitem:hover{background:rgba(31,223,103,.12); color:#fff}',
+      '.tmw-am-foot{display:flex; align-items:center; justify-content:space-between; margin-top:18px}',
+      '.tmw-am-logout{background:none; border:0; color:rgba(255,255,255,.55); font-family:var(--sans,"Inter",sans-serif); font-size:13px; cursor:pointer}',
+      '.tmw-am-logout:hover{color:#fff}',
+      '.tmw-am-plans{background:none; border:0; color:#1FDF67; font-family:var(--sans,"Inter",sans-serif); font-size:13px; font-weight:600; cursor:pointer}',
       '@media(max-width:480px){.tmw-am-card{padding:30px 22px 24px}}'
     ].join('');
     document.head.appendChild(st);
   }
 
-  var LOGO = '<div class="tmw-am-logo"><b>Markets<span>of</span>TMW</b></div>';
+  var LOGO = '<div class="tmw-am-logo"><img src="https://static.wixstatic.com/shapes/ca3b83_a647b53cad4c49c5b012af991d286a86.svg" alt="Markets of Tomorrow"></div>';
 
   // ── shell ─────────────────────────────────────────────────────────────────
   var current = null;
@@ -184,10 +198,118 @@
     });
   }
 
+  // ── account (profile + security) ──────────────────────────────────────────
+  function wireGeo(scope) {
+    var inp = scope.querySelector('input[name="based"]'), list = scope.querySelector('.tmw-am-geolist');
+    if (!inp || !list) return;
+    var timer, hideT;
+    function hide() { list.hidden = true; list.innerHTML = ''; }
+    inp.addEventListener('input', function () {
+      var q = inp.value.trim(); clearTimeout(timer);
+      if (q.length < 2) { hide(); return; }
+      timer = setTimeout(function () {
+        fetch('https://api.mapbox.com/geocoding/v5/mapbox.places/' + encodeURIComponent(q) + '.json?access_token=' + MAPBOX_TOKEN + '&autocomplete=true&types=place,region,district&limit=5')
+          .then(function (r) { return r.json(); })
+          .then(function (d) {
+            var fs = (d && d.features) || []; if (!fs.length) { hide(); return; }
+            list.innerHTML = ''; fs.forEach(function (f) { var it = document.createElement('div'); it.className = 'tmw-am-geoitem'; it.textContent = f.place_name || ''; list.appendChild(it); }); list.hidden = false;
+          }).catch(hide);
+      }, 250);
+    });
+    list.addEventListener('mousedown', function (e) { var it = e.target.closest && e.target.closest('.tmw-am-geoitem'); if (!it) return; e.preventDefault(); inp.value = it.textContent; hide(); });
+    inp.addEventListener('blur', function () { clearTimeout(hideT); hideT = setTimeout(hide, 150); });
+  }
+
+  function profileSection(el, cf, email, host) {
+    el.innerHTML =
+      '<div class="tmw-am-row">' +
+        '<div class="tmw-am-field"><label>First name</label><div class="tmw-am-inp"><input name="first" autocomplete="given-name"></div></div>' +
+        '<div class="tmw-am-field"><label>Last name</label><div class="tmw-am-inp"><input name="last" autocomplete="family-name"></div></div>' +
+      '</div>' +
+      '<div class="tmw-am-field"><label>Profession</label><div class="tmw-am-inp"><input name="profession"></div></div>' +
+      '<div class="tmw-am-field"><label>Company</label><div class="tmw-am-inp"><input name="company"></div></div>' +
+      '<div class="tmw-am-field"><label>Based</label><div class="tmw-am-geo"><div class="tmw-am-inp"><input name="based" autocomplete="off" placeholder="City"></div><div class="tmw-am-geolist" hidden></div></div></div>' +
+      '<button class="tmw-am-primary" data-act="save-profile">Save changes</button>';
+    var set = function (n, v) { var i = el.querySelector('input[name="' + n + '"]'); if (i) i.value = v || ''; };
+    set('first', cf['first-name']); set('last', cf['last-name']); set('profession', cf['profession']); set('company', cf['company-name']); set('based', cf['based']);
+    wireGeo(el);
+    el.querySelector('[data-act="save-profile"]').addEventListener('click', function () {
+      var v = function (n) { var i = el.querySelector('input[name="' + n + '"]'); return (i && i.value || '').trim(); };
+      var data = { first: v('first'), last: v('last'), profession: v('profession'), company: v('company'), based: v('based') };
+      var btn = el.querySelector('[data-act="save-profile"]'); btn.disabled = true; btn.textContent = 'Saving…'; setMsg(host, '', '');
+      var jobs = [], m = ms();
+      if (m && m.updateMember) jobs.push(m.updateMember({ customFields: { 'first-name': data.first, 'last-name': data.last, 'profession': data.profession, 'company-name': data.company, 'based': data.based } }).catch(function () {}));
+      jobs.push(fetch('https://tmw-subscribe.jake-ab7.workers.dev', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: email, update: true, first_name: data.first, last_name: data.last, profession: data.profession, company_name: data.company, based: data.based }) }).catch(function () {}));
+      Promise.all(jobs).then(function () { btn.disabled = false; btn.textContent = 'Save changes'; setMsg(host, 'ok', '✓ Saved.'); });
+    });
+  }
+
+  function securitySection(el, email, host) {
+    el.innerHTML =
+      '<div class="tmw-am-field"><label>Email Address</label><div class="tmw-am-inp"><input name="email" type="email" autocomplete="email"></div></div>' +
+      '<div class="tmw-am-field"><label>Current password</label><div class="tmw-am-inp"><input name="cur" type="password" autocomplete="current-password" placeholder="Needed to change password"></div></div>' +
+      '<div class="tmw-am-field"><label>New password</label><div class="tmw-am-inp"><input name="new" type="password" autocomplete="new-password" placeholder="At least 8 characters"></div></div>' +
+      '<button class="tmw-am-primary" data-act="save-security">Save changes</button>' +
+      '<div class="tmw-am-or">or</div>' +
+      '<button class="tmw-am-google" data-act="connect-google">' + GOOGLE_ICON + ' Connect with Google</button>';
+    var ei = el.querySelector('input[name="email"]'); if (ei) ei.value = email || '';
+    el.querySelector('[data-act="connect-google"]').addEventListener('click', function () {
+      var m = ms(); if (m && m.connectProvider) m.connectProvider({ provider: 'google' }).then(function () { setMsg(host, 'ok', '✓ Google connected.'); }).catch(function (e) { setMsg(host, 'err', niceError(e)); });
+    });
+    el.querySelector('[data-act="save-security"]').addEventListener('click', function () {
+      var m = ms(); if (!m) return;
+      var newEmail = (el.querySelector('input[name="email"]').value || '').trim();
+      var cur = el.querySelector('input[name="cur"]').value || '', nw = el.querySelector('input[name="new"]').value || '';
+      var btn = el.querySelector('[data-act="save-security"]'); setMsg(host, '', '');
+      if (nw && nw.length < 8) { setMsg(host, 'err', 'New password must be at least 8 characters.'); return; }
+      if (nw && !cur) { setMsg(host, 'err', 'Enter your current password to set a new one.'); return; }
+      var ops = [];
+      if (newEmail && newEmail !== email) ops.push(m.updateMemberAuth({ email: newEmail }));
+      if (nw) ops.push(m.updateMemberAuth({ oldPassword: cur, newPassword: nw }));
+      if (!ops.length) { setMsg(host, 'err', 'Nothing to update.'); return; }
+      btn.disabled = true; btn.textContent = 'Saving…';
+      Promise.all(ops).then(function () { btn.disabled = false; btn.textContent = 'Save changes'; setMsg(host, 'ok', '✓ Updated.'); })
+        .catch(function (e) { setMsg(host, 'err', niceError(e)); btn.disabled = false; btn.textContent = 'Save changes'; });
+    });
+  }
+
+  function renderAccount(host, section, cf, email) {
+    host.innerHTML = LOGO +
+      '<div class="tmw-am-tabs"><button class="tmw-am-tab" data-sec="profile">Profile</button><button class="tmw-am-tab" data-sec="security">Security</button></div>' +
+      '<div class="tmw-am-sec"></div>' +
+      '<div class="tmw-am-msg" aria-live="polite"></div>' +
+      '<div class="tmw-am-foot"><button class="tmw-am-logout" data-act="logout">Log out</button><button class="tmw-am-plans" data-act="plans">Manage plan →</button></div>';
+    var sec = host.querySelector('.tmw-am-sec'), tabs = host.querySelectorAll('.tmw-am-tab');
+    function show(s) {
+      tabs.forEach(function (t) { t.classList.toggle('on', t.getAttribute('data-sec') === s); });
+      setMsg(host, '', '');
+      if (s === 'security') securitySection(sec, email, host); else profileSection(sec, cf, email, host);
+    }
+    tabs.forEach(function (t) { t.addEventListener('click', function () { show(t.getAttribute('data-sec')); }); });
+    host.querySelector('[data-act="logout"]').addEventListener('click', function () {
+      var m = ms(); if (m && m.logout) { m.logout().then(function () { close(); location.reload(); }).catch(function () { close(); location.reload(); }); } else { close(); location.reload(); }
+    });
+    host.querySelector('[data-act="plans"]').addEventListener('click', function () {
+      close(); if (typeof window.tmwShowPaywall === 'function') window.tmwShowPaywall('account'); else window.location.href = 'https://map.oftmw.com/?upgrade=1';
+    });
+    show(section || 'profile');
+  }
+
+  function viewAccount(host, section) {
+    var m = ms(); if (!m) return;
+    host.innerHTML = LOGO + '<div class="tmw-am-msg">Loading…</div>';
+    m.getCurrentMember().then(function (r) {
+      var d = (r && r.data) || {};
+      renderAccount(host, section, d.customFields || {}, (d.auth && d.auth.email) || d.email || '');
+    }).catch(function () { renderAccount(host, section, {}, ''); });
+  }
+
   window.tmwAuthModal = function (view) {
     if (!ms()) return;
     var host = openShell();
-    if (view === 'signup') viewSignup(host);
+    if (view === 'profile' || view === 'account') viewAccount(host, 'profile');
+    else if (view === 'security') viewAccount(host, 'security');
+    else if (view === 'signup') viewSignup(host);
     else viewLogin(host);
   };
 })();
