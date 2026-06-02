@@ -48,6 +48,11 @@
   function slugify(t) {
     return String(t || '').toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/[\s-]+/g, '-').replace(/^-|-$/g, '');
   }
+  // The map deep-link matches on title.toLowerCase().replace(/[^a-z0-9]+/g,'') —
+  // fully concatenated, no separators ("nobe-parc-miami-beach" -> "nobeparcmiamibeach").
+  function mapSlug(t) { return String(t || '').toLowerCase().replace(/[^a-z0-9]+/g, ''); }
+  // A map deep-link that opens the full project modal.
+  function projectUrl(slug) { return MAP_URL + '/?fullscreen=true&project=' + encodeURIComponent(mapSlug(slug)); }
   function esc(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
       return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c];
@@ -105,7 +110,7 @@
       return '<div class="pm-intel">' +
         '<div class="pm-intel-head">' + badge +
           '<div class="pm-intel-title">' + (isSpecC ? 'Estimated Time to Complete' : 'Actual Time to Complete') + '</div>' +
-          '<span class="pm-intel-confidence" data-conf="' + (isSpecC ? 'medium' : 'high') + '">' + (isSpecC ? 'TMW estimate' : 'Completed') + '</span>' +
+          (isSpecC ? '' : '<span class="pm-intel-confidence" data-conf="high">Completed</span>') +
         '</div>' +
         '<div class="pm-intel-estimate">' + esc(estimateLabel) + ' <span class="unit">to complete</span></div>' +
         '<div class="pm-intel-pattern">' + esc(entry.pattern_summary || '') + '</div>' +
@@ -115,7 +120,7 @@
     if (source === 'known_date') {
       var isDay = (entry.precision === 'day');
       var isSpecK = !!entry.dates_speculative;
-      var pill = isSpecK ? '<span class="pm-intel-confidence" data-conf="medium">TMW estimate</span>'
+      var pill = isSpecK ? ''
         : (isDay ? '<span class="pm-intel-confidence" data-conf="high">Developer announced</span>' : '');
       var disc = isSpecK ? 'TMW-estimated dates based on project type and stage — not a developer commitment. Confidence drops accordingly.'
         : (isDay ? "Based on the developer's announced opening date. Schedules can shift; we update this daily."
@@ -135,7 +140,7 @@
     var range = (entry.range_low != null && entry.range_high != null && entry.range_low !== entry.range_high)
       ? ' <span class="range">(' + entry.range_low + '–' + entry.range_high + ' yrs)</span>' : '';
     var similars = (entry.comparables || []).slice(0, 3).map(function (c) {
-      return '<a class="pm-intel-similar" href="' + MAP_URL + '/?project=' + encodeURIComponent(c.slug || '') + '" target="_blank" rel="noopener">' +
+      return '<a class="pm-intel-similar" href="' + projectUrl(c.slug || '') + '" target="_blank" rel="noopener">' +
         '<div class="pm-intel-similar-name">' + esc(c.name || '') + '</div>' +
         '<div class="pm-intel-similar-loc">' + esc(c.location || '') + '</div>' +
         '<div class="pm-intel-similar-row"><span><b>' + esc(c.years) + '</b> yrs</span></div></a>';
@@ -207,7 +212,7 @@
       (firms.length ? '<div class="pc-firms">' + firms.join(' · ') + '</div>' : '') +
       renderIntel(entry) +
       '<div class="pc-actions">' +
-        '<a class="pc-btn primary" href="' + MAP_URL + '/?project=' + encodeURIComponent(slug) + '" target="_blank" rel="noopener">Learn more</a>' +
+        '<a class="pc-btn primary" href="' + projectUrl(slug) + '" target="_blank" rel="noopener">Learn more</a>' +
         (rec.OfficialWebsite ? '<a class="pc-btn ghost" href="' + esc(rec.OfficialWebsite) + '" target="_blank" rel="noopener">Visit site <svg viewBox="0 0 24 24"><path d="M7 17 17 7M9 7h8v8"/></svg></a>' : '') +
       '</div>' +
     '</div>';
@@ -215,7 +220,7 @@
 
   function wire(card, slug) {
     var fly = card.querySelector('.pc-flyover');
-    if (fly) fly.addEventListener('click', function () { window.open(MAP_URL + '/?project=' + encodeURIComponent(slug), '_blank', 'noopener'); });
+    if (fly) fly.addEventListener('click', function () { window.open(projectUrl(slug), '_blank', 'noopener'); });
   }
 
   // ── 5) Styles (scoped under .tmw-pcard) ─────────────────────────────────

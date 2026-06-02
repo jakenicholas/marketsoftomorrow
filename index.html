@@ -13226,7 +13226,7 @@
                   TMW Intelligence
                 </span>
                 <div class="pm-intel-title">${isSpec ? 'Estimated Time to Complete' : 'Actual Time to Complete'}</div>
-                <span class="pm-intel-confidence" data-conf="${isSpec ? 'medium' : 'high'}">${isSpec ? 'TMW estimate' : 'Completed'}</span>
+                ${isSpec ? '' : '<span class="pm-intel-confidence" data-conf="high">Completed</span>'}
               </div>
               <div class="pm-intel-estimate">${escapeArticleHtml(estimateLabel)} <span class="unit">to complete</span></div>
               <div class="pm-intel-pattern">${escapeArticleHtml(entry.pattern_summary || '')}</div>
@@ -13243,7 +13243,7 @@
             const isDayPrecise = (entry.precision === 'day');
             const isSpec = !!entry.dates_speculative;
             const confidencePill = isSpec
-              ? '<span class="pm-intel-confidence" data-conf="medium">TMW estimate</span>'
+              ? ''
               : (isDayPrecise ? '<span class="pm-intel-confidence" data-conf="high">Developer announced</span>' : '');
             const disclaimerText = isSpec
               ? "TMW-estimated dates based on project type and stage ‚Äî not a developer commitment. Confidence drops accordingly."
