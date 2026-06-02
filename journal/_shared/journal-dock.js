@@ -497,14 +497,13 @@
       '.tmw-oc-grid{display:grid; grid-template-columns:repeat(5,1fr); gap:12px}',
       '.tmw-oc{display:flex; flex-direction:column; background:rgba(255,255,255,.025); border:1px solid rgba(255,255,255,.16); border-radius:14px; overflow:hidden; text-decoration:none; transition:transform .25s, border-color .25s}',
       '.tmw-oc:hover{transform:translateY(-3px); border-color:rgba(255,255,255,.32)}',
-      '.tmw-oc.flag{border-color:rgba(31,223,103,.4)}',
       '.tmw-oc-banner{position:relative; width:100%; aspect-ratio:2/1; overflow:hidden; border-bottom:1px solid rgba(255,255,255,.08)}',
-      '.tmw-oc-banner img{width:100%; height:100%; object-fit:cover; display:block; transition:transform .5s ease}',
+      '.tmw-oc-banner img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block; transition:transform .5s ease}',
       '.tmw-oc:hover .tmw-oc-banner img{transform:scale(1.04)}',
       '.tmw-oc-flag{position:absolute; top:11px; left:11px; font-family:var(--mono); font-size:8.5px; letter-spacing:.1em; text-transform:uppercase; color:#0a0a0a; background:#1FDF67; padding:4px 9px; border-radius:5px; font-weight:700}',
       '.tmw-oc-body{padding:15px 16px 16px; display:flex; flex-direction:column}',
       '.tmw-oc-top{display:flex; align-items:center; justify-content:space-between; margin-bottom:14px}',
-      '.tmw-oc-name{font-size:15px; font-weight:600; color:#fff}',
+      '.tmw-oc-name{font-size:13px; font-weight:600; color:#fff}',
       '.tmw-oc-ig{color:var(--mute,#9AA39C); display:flex; align-items:center; cursor:pointer}',
       '.tmw-oc-ig:hover{color:#1FDF67}',
       '.tmw-oc-ig svg{width:15px; height:15px}',
@@ -516,30 +515,38 @@
       '.tmw-oc-read svg{width:13px; height:13px; transition:transform .2s}',
       '.tmw-oc:hover .tmw-oc-read{color:#fff} .tmw-oc:hover .tmw-oc-read svg{transform:translateX(3px)}',
       // The Map — explore (free) + pro intelligence + Go Pro CTA.
-      '.tmw-mm{display:grid; grid-template-columns:1fr 1fr 1fr; gap:22px 28px; max-width:940px}',
+      '.tmw-mm{display:grid; grid-template-columns:1fr 2fr; gap:22px 30px; max-width:980px}',
       '.tmw-mm-h{font-family:var(--mono); font-size:9.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--mute,#9AA39C); margin-bottom:8px}',
-      '.tmw-mm-item{display:flex; gap:13px; padding:11px; border-radius:12px; text-decoration:none; transition:background .18s}',
+      '.tmw-mm-pro-grid{display:grid; grid-template-columns:1fr 1fr; gap:4px 14px}',
+      '.tmw-mm-item{display:flex; gap:12px; padding:10px; border-radius:12px; text-decoration:none; transition:background .18s}',
       '.tmw-mm-item:hover{background:rgba(255,255,255,.05)}',
-      '.tmw-mm-ic{flex:0 0 auto; width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; background:rgba(167,139,250,.12); border:1px solid rgba(167,139,250,.3); color:#C4B5FD}',
+      '.tmw-mm-ic{flex:0 0 auto; width:34px; height:34px; border-radius:10px; display:flex; align-items:center; justify-content:center; background:rgba(167,139,250,.12); border:1px solid rgba(167,139,250,.3); color:#C4B5FD}',
       '.tmw-mm-ic.green{background:rgba(31,223,103,.1); border-color:rgba(31,223,103,.26); color:#42EB81}',
-      '.tmw-mm-ic svg{width:17px; height:17px; stroke:currentColor; fill:none; stroke-width:1.8}',
-      '.tmw-mm-tx b{display:block; font-size:13.5px; font-weight:600; color:#fff}',
-      '.tmw-mm-tx b em{font-style:normal; font-family:var(--mono); font-size:8px; letter-spacing:.12em; color:var(--gold-soft,#f0d68a); border:1px solid rgba(230,197,116,.42); border-radius:5px; padding:2px 5px; margin-left:7px; vertical-align:middle}',
-      '.tmw-mm-tx i{font-style:normal; display:block; font-size:11.5px; color:var(--mute,#9AA39C); margin-top:3px}',
-      '.tmw-mm-cta{grid-column:1/-1; display:flex; align-items:center; justify-content:space-between; gap:14px; padding:13px 16px; border-radius:13px; text-decoration:none; background:linear-gradient(120deg,rgba(167,139,250,.13),rgba(31,223,103,.06)); border:1px solid rgba(167,139,250,.3)}',
-      '.tmw-mm-cta .t{font-size:12.5px; color:var(--mute-2,#C2C9C3)} .tmw-mm-cta .t b{color:#fff; font-weight:600}',
+      '.tmw-mm-ic svg{width:16px; height:16px; stroke:currentColor; fill:none; stroke-width:1.8}',
+      '.tmw-mm-tx b{display:block; font-size:12px; font-weight:600; color:#fff}',
+      '.tmw-mm-tx b em{font-style:normal; font-family:var(--mono); font-size:7.5px; letter-spacing:.12em; color:var(--gold-soft,#f0d68a); border:1px solid rgba(230,197,116,.42); border-radius:5px; padding:2px 5px; margin-left:7px; vertical-align:middle}',
+      '.tmw-mm-tx i{font-style:normal; display:block; font-size:11px; color:var(--mute,#9AA39C); margin-top:2px}',
+      '.tmw-mm-cta{grid-column:1/-1; display:flex; align-items:center; justify-content:space-between; gap:14px; padding:15px 18px; border-radius:13px; text-decoration:none; background:linear-gradient(120deg,rgba(167,139,250,.13),rgba(31,223,103,.06)); border:1px solid rgba(167,139,250,.3)}',
+      '.tmw-mm-cta .t{font-family:var(--serif,Georgia,serif); font-weight:400; font-size:16px; line-height:1.25; letter-spacing:-.01em; text-transform:none; color:#fff}',
+      '.tmw-mm-cta .t em{font-style:italic; color:#B9A6FF}',
       '.tmw-mm-cta .go{font-family:var(--mono); font-size:11px; letter-spacing:.06em; text-transform:uppercase; font-weight:700; padding:10px 16px; border-radius:9px; background:#FFD300; color:#0a0a0a; white-space:nowrap}',
-      // The Lists — iconic ranked guides.
-      '.tmw-ll{display:flex; flex-direction:column; gap:9px; max-width:560px}',
-      '.tmw-li{display:flex; align-items:center; gap:14px; padding:13px 16px; border-radius:12px; text-decoration:none; border:1px solid rgba(255,255,255,.1); background:rgba(255,255,255,.025); transition:background .18s, border-color .18s}',
-      '.tmw-li:hover{background:rgba(230,197,116,.07); border-color:rgba(230,197,116,.45)}',
-      '.tmw-li-ic{flex:0 0 auto; width:42px; height:42px; border-radius:11px; display:flex; align-items:center; justify-content:center; background:rgba(230,197,116,.1); border:1px solid rgba(230,197,116,.3); color:var(--gold-soft,#f0d68a)}',
-      '.tmw-li-ic svg{width:19px; height:19px; stroke:currentColor; fill:none; stroke-width:1.7}',
-      '.tmw-li-tx{flex:1; min-width:0}',
-      '.tmw-li-tx b{display:block; font-family:var(--sans,"Inter",sans-serif); font-weight:600; font-size:16.5px; color:#fff; letter-spacing:-.01em; text-transform:none}',
-      '.tmw-li-tx i{font-style:normal; display:block; font-family:var(--sans,"Inter",sans-serif); font-size:12px; letter-spacing:normal; text-transform:none; color:var(--mute,#9AA39C); margin-top:2px}',
-      '.tmw-li-arr{flex:0 0 auto; color:var(--gold-soft,#f0d68a)}',
-      '.tmw-li-arr svg{width:14px; height:14px; stroke:currentColor; fill:none; stroke-width:2}',
+      // The Lists — featured split: one hero list + two compact image rows.
+      '.tmw-ll{display:grid; grid-template-columns:1.5fr 1fr; gap:14px; max-width:860px}',
+      '.tmw-lc-feat{position:relative; display:block; border-radius:15px; overflow:hidden; text-decoration:none; min-height:262px; border:1px solid rgba(255,255,255,.1)}',
+      '.tmw-lc-feat img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; transition:transform .55s ease}',
+      '.tmw-lc-feat::after{content:""; position:absolute; inset:0; background:linear-gradient(to top, rgba(5,6,5,.93), rgba(5,6,5,.2) 55%, rgba(5,6,5,.4))}',
+      '.tmw-lc-feat:hover img{transform:scale(1.05)}',
+      '.tmw-lc-fm{position:absolute; left:0; right:0; bottom:0; padding:22px; z-index:2}',
+      '.tmw-lc-eye{font-family:var(--mono); font-size:9px; letter-spacing:.16em; text-transform:uppercase; color:var(--gold-soft,#f0d68a); margin-bottom:7px}',
+      '.tmw-lc-feat h3{font-family:var(--serif,Georgia,serif); font-weight:500; font-size:28px; line-height:1; letter-spacing:-.015em; text-transform:none; color:#fff}',
+      '.tmw-lc-feat p{font-family:var(--sans,"Inter",sans-serif); text-transform:none; font-size:12.5px; line-height:1.45; color:var(--mute-2,#C2C9C3); margin-top:9px; max-width:34ch}',
+      '.tmw-lc-side{display:flex; flex-direction:column; gap:14px}',
+      '.tmw-lc-row{position:relative; display:block; border-radius:14px; overflow:hidden; text-decoration:none; flex:1; min-height:123px; border:1px solid rgba(255,255,255,.1)}',
+      '.tmw-lc-row img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; transition:transform .55s ease}',
+      '.tmw-lc-row::after{content:""; position:absolute; inset:0; background:linear-gradient(100deg, rgba(5,6,5,.9) 36%, rgba(5,6,5,.4))}',
+      '.tmw-lc-row:hover img{transform:scale(1.05)}',
+      '.tmw-lc-rm{position:absolute; left:0; bottom:0; padding:16px 18px; z-index:2}',
+      '.tmw-lc-row h3{font-family:var(--serif,Georgia,serif); font-weight:500; font-size:20px; line-height:1; letter-spacing:-.01em; text-transform:none; color:#fff}',
       // Mobile: panels become stacked accordion content (1 column).
       '@media(max-width:980px){',
       '.tmw-fm-panel.v2{display:none}',
@@ -550,12 +557,14 @@
       '.tmw-oc-grid{grid-template-columns:repeat(2,1fr); max-width:none; gap:10px}',
       '.tmw-oc-banner{aspect-ratio:16/10}',
       '.tmw-oc-body{padding:11px 12px 13px}',
-      '.tmw-oc-name{font-size:13px}',
+      '.tmw-oc-name{font-size:11.5px}',
       '.tmw-oc-stats{gap:10px 12px; padding-bottom:13px}',
       '.tmw-oc-st .v{font-size:16px}',
       '.tmw-oc-read{font-size:9px; margin-top:11px}',
       '.tmw-mm{grid-template-columns:1fr; max-width:none; gap:10px}',
-      '.tmw-ll{max-width:none; gap:8px}',
+      '.tmw-mm-pro-grid{grid-template-columns:1fr}',
+      '.tmw-ll{grid-template-columns:1fr; max-width:none; gap:10px}',
+      '.tmw-lc-feat{min-height:200px}',
       '.tmw-mm-cta{flex-direction:column; align-items:stretch; text-align:center; gap:10px}',
       '.tmw-nav-eyebrow{margin:6px 0 10px}',
       '}'
@@ -600,29 +609,37 @@
 
   function theMapPanel() {
     var U = MAP_BASE, UP = MAP_BASE + '/?upgrade=1';
+    function pro(icon, name, sub) {
+      return '<a class="tmw-mm-item" href="' + UP + '"><span class="tmw-mm-ic">' + ic(icon) + '</span><span class="tmw-mm-tx"><b>' + name + '<em>PRO</em></b><i>' + sub + '</i></span></a>';
+    }
     return '<div class="tmw-mm">' +
       '<div><div class="tmw-mm-h">Explore — free</div>' +
         '<a class="tmw-mm-item" href="' + U + '"><span class="tmw-mm-ic green">' + ic('<path d="M9 18l-6 3V6l6-3 6 3 6-3v15l-6 3-6-3z"/><path d="M9 3v15M15 6v15"/>') + '</span><span class="tmw-mm-tx"><b>Interactive Map</b><i>396 projects across 40+ markets.</i></span></a>' +
         '<a class="tmw-mm-item" href="' + U + '/?view=atlas"><span class="tmw-mm-ic green">' + ic('<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>') + '</span><span class="tmw-mm-tx"><b>The Atlas</b><i>Every tracked project on one canvas.</i></span></a></div>' +
-      '<div><div class="tmw-mm-h">Pro intelligence</div>' +
-        '<a class="tmw-mm-item" href="' + UP + '"><span class="tmw-mm-ic">' + ic(HEX_IC) + '</span><span class="tmw-mm-tx"><b>TMW Intelligence<em>PRO</em></b><i>Completion forecasts &amp; confidence.</i></span></a>' +
-        '<a class="tmw-mm-item" href="' + UP + '"><span class="tmw-mm-ic">' + ic(EYE_IC) + '</span><span class="tmw-mm-tx"><b>Watchlist<em>PRO</em></b><i>Track projects, get notified.</i></span></a></div>' +
-      '<div><div class="tmw-mm-h">Pro tools</div>' +
-        '<a class="tmw-mm-item" href="' + UP + '"><span class="tmw-mm-ic">' + ic(CMP_IC) + '</span><span class="tmw-mm-tx"><b>Compare<em>PRO</em></b><i>Stack any projects side-by-side.</i></span></a>' +
-        '<a class="tmw-mm-item" href="' + U + '"><span class="tmw-mm-ic green">' + ic(PULSE_IC) + '</span><span class="tmw-mm-tx"><b>Pulse</b><i>A live feed of every new project.</i></span></a></div>' +
-      '<a class="tmw-mm-cta" href="' + UP + '"><span class="t"><b>Go Pro</b> — forecasts, watchlist, compare &amp; the full atlas.</span><span class="go">Go Pro →</span></a>' +
+      '<div class="tmw-mm-pro"><div class="tmw-mm-h">Pro tools</div><div class="tmw-mm-pro-grid">' +
+        pro(HEX_IC, 'TMW Intelligence', 'Completion forecasts &amp; confidence.') +
+        pro(EYE_IC, 'Watchlist', 'Track projects, get notified.') +
+        pro(CMP_IC, 'Compare', 'Stack any projects side-by-side.') +
+        pro(PULSE_IC, 'Pulse', 'A live feed of every new project.') +
+      '</div></div>' +
+      '<a class="tmw-mm-cta" href="' + UP + '"><span class="t">Explore the map free. <em>Go Pro for the intelligence.</em></span><span class="go">Go Pro →</span></a>' +
     '</div>';
   }
 
   function theListsPanel() {
-    function row(href, icon, name, sub) {
-      return '<a class="tmw-li" href="' + href + '"><span class="tmw-li-ic">' + ic(icon) + '</span>' +
-        '<span class="tmw-li-tx"><b>' + name + '</b><i>' + sub + '</i></span><span class="tmw-li-arr">' + ARR2 + '</span></a>';
-    }
+    var IMG_H = 'https://tmw.jake-ab7.workers.dev/media/wix/ca3b83_07e4600c7eb745c28897b90cbab6d7ff~mv2.jpeg';
+    var IMG_R = 'https://tmw.jake-ab7.workers.dev/media/wix/ca3b83_42e28b9d09364b0ca9b3c4d6ca2e9498~mv2.jpeg';
+    var IMG_G = 'https://tmw.jake-ab7.workers.dev/media/wix/ca3b83_d11891954f1f433f9d6a933b28d7cf5f~mv2.jpeg';
     return '<div class="tmw-nav-eyebrow">The definitive ranked guides</div><div class="tmw-ll">' +
-      row('/hotels/', '<path d="M3 21V8l9-5 9 5v13"/><path d="M9 21v-6h6v6"/>', 'Iconic Hotels', 'The stays that define a market') +
-      row('/restaurants/', '<path d="M6 3v8a3 3 0 006 0V3M9 3v18M16 3c-1.5 1-2 3-2 6s.5 4 2 4v8"/>', 'Iconic Restaurants', 'Where the future eats') +
-      row('/golf/', '<path d="M12 19V5M12 5l7 3-7 3"/><circle cx="12" cy="20" r="1.6"/>', 'Iconic Golf', 'The courses worth the trip') +
+      '<a class="tmw-lc-feat" href="/hotels/"><img src="' + IMG_H + '" alt="Iconic Hotels" loading="lazy">' +
+        '<div class="tmw-lc-fm"><div class="tmw-lc-eye">The flagship guide</div><h3>Iconic Hotels</h3>' +
+        '<p>The stays that define every market — ranked, property by property.</p></div></a>' +
+      '<div class="tmw-lc-side">' +
+        '<a class="tmw-lc-row" href="/restaurants/"><img src="' + IMG_R + '" alt="Iconic Restaurants" loading="lazy">' +
+          '<div class="tmw-lc-rm"><div class="tmw-lc-eye">Where the future eats</div><h3>Iconic Restaurants</h3></div></a>' +
+        '<a class="tmw-lc-row" href="/golf/"><img src="' + IMG_G + '" alt="Iconic Golf" loading="lazy">' +
+          '<div class="tmw-lc-rm"><div class="tmw-lc-eye">The courses worth the trip</div><h3>Iconic Golf</h3></div></a>' +
+      '</div>' +
     '</div>';
   }
 
