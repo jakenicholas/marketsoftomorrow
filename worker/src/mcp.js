@@ -155,7 +155,7 @@ const TOOLS = [
   },
   {
     name: 'create_post_draft',
-    description: 'Create a NEW journal article DRAFT in the Studio (status=draft — it does NOT publish). Returns the draft id, slug, and the Studio edit URL so a human can review, finish, and publish it.',
+    description: 'Create a NEW journal article DRAFT in the Studio (status=draft — it does NOT publish). Returns the draft id, slug, and the Studio edit URL so a human can review, finish, and publish it. If the article is about a Map of Tomorrow project, pass linked_project to embed the live project card.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -164,6 +164,7 @@ const TOOLS = [
         excerpt: { type: 'string', description: '1–2 sentence summary (optional; auto-derived if omitted)' },
         category: { type: 'string', description: 'Primary category label (optional)' },
         cover_image: { type: 'string', description: 'Absolute cover image URL (optional)' },
+        linked_project: { type: 'string', description: 'Slug of the Map of Tomorrow project this article covers — embeds the live project card (status, intel, stats) in the post, exactly like the Studio "linked project" picker. Use the slug from search_projects. Always set this when the article is about a tracked project.' },
       },
       required: ['title'],
     },
@@ -180,6 +181,7 @@ const TOOLS = [
         excerpt: { type: 'string' },
         category: { type: 'string' },
         cover_image: { type: 'string' },
+        linked_project: { type: 'string', description: 'Slug of the Map of Tomorrow project to link — embeds the live project card (added once if not already present). Use to connect an existing draft to its project.' },
       },
       required: ['slug'],
     },
@@ -701,7 +703,11 @@ const IMPL = {
     const exists = await env.DB.prepare('SELECT 1 FROM posts WHERE slug = ?1 LIMIT 1').bind(slug).first();
     if (exists) slug = (slug + '-' + Math.random().toString(36).slice(2, 6)).slice(0, 160);
     const id = 'tmw-' + (crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2));
-    const bodyHtml = mdToHtml(args.body_markdown || '');
+    let bodyHtml = mdToHtml(args.body_markdown || '');
+    const linkedSlug = args.linked_project ? String(args.linked_project).toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 160) : '';
+    if (linkedSlug && !/class=["']tmw-(project-card|map-embed)["']/.test(bodyHtml)) {
+      bodyHtml += `\n<div class="tmw-project-card" data-project="${linkedSlug}"></div>`;
+    }
     const text = stripHtml(bodyHtml);
     const excerpt = (args.excerpt && String(args.excerpt).trim()) || text.slice(0, 180);
     const categories = args.category ? JSON.stringify([String(args.category)]) : '[]';
@@ -713,37 +719,44 @@ const IMPL = {
        VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, '[]', ?8, 'draft', NULL, ?9, 'studio-mcp', ?10, ?10)`
     ).bind(id, slug, title, excerpt, bodyHtml, args.cover_image || null, categories, 'Claude (Studio)', reading, now).run();
     return {
-      ok: true, id, slug, status: 'draft',
+      ok: true, id, slug, status: 'draft', linked_project: linkedSlug || undefined,
       edit_url: 'https://admin.oftmw.com/post.html?id=' + id,
-      note: 'Saved as a DRAFT. Review/finish it in the Studio, then publish from there.',
+      note: 'Saved as a DRAFT. Review/finish it in the Studio, then publish from there.' + (linkedSlug ? ' Project card embedded for "' + linkedSlug + '".' : ''),
     };
   },
 
   async update_post_draft(args, env) {
     const slug = String(args.slug || '').trim().toLowerCase();
     if (!slug) throw new Error('slug is required');
-    const row = await env.DB.prepare('SELECT id, status FROM posts WHERE slug = ?1').bind(slug).first();
+    const row = await env.DB.prepare('SELECT id, status, body_html FROM posts WHERE slug = ?1').bind(slug).first();
     if (!row) throw new Error('no post with slug "' + slug + '"');
     if (row.status !== 'draft') throw new Error('refusing to edit a ' + row.status + ' post via MCP — only drafts are editable remotely');
     const sets = [], params = []; let p = 1;
-    if (args.title != null)       { sets.push(`title = ?${p++}`); params.push(String(args.title)); }
-    let derivedExcerpt = null;
-    if (args.body_markdown != null) {
-      const html = mdToHtml(args.body_markdown);
-      const text = stripHtml(html);
-      sets.push(`body_html = ?${p++}`); params.push(html);
-      sets.push(`reading_time_min = ?${p++}`); params.push(Math.max(1, Math.round(text.split(/\s+/).filter(Boolean).length / 200)));
-      derivedExcerpt = text.slice(0, 180);
+    if (args.title != null) { sets.push(`title = ?${p++}`); params.push(String(args.title)); }
+
+    // Body: rebuild from markdown if given; otherwise start from the stored body
+    // so we can inject a project-card link without a full rewrite.
+    let finalBody = (args.body_markdown != null) ? mdToHtml(args.body_markdown) : null;
+    const derivedExcerpt = (args.body_markdown != null) ? stripHtml(finalBody).slice(0, 180) : null;
+    const linkedSlug = args.linked_project ? String(args.linked_project).toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 160) : '';
+    if (linkedSlug) {
+      let base = finalBody != null ? finalBody : (row.body_html || '');
+      if (!/class=["']tmw-(project-card|map-embed)["']/.test(base)) base += `\n<div class="tmw-project-card" data-project="${linkedSlug}"></div>`;
+      finalBody = base;
     }
-    if (args.excerpt != null)     { sets.push(`excerpt = ?${p++}`); params.push(String(args.excerpt)); }
+    if (finalBody != null) {
+      sets.push(`body_html = ?${p++}`); params.push(finalBody);
+      if (args.body_markdown != null) { sets.push(`reading_time_min = ?${p++}`); params.push(Math.max(1, Math.round(stripHtml(finalBody).split(/\s+/).filter(Boolean).length / 200))); }
+    }
+    if (args.excerpt != null) { sets.push(`excerpt = ?${p++}`); params.push(String(args.excerpt)); }
     else if (derivedExcerpt && args.body_markdown != null) { sets.push(`excerpt = ?${p++}`); params.push(derivedExcerpt); }
-    if (args.category != null)    { sets.push(`categories = ?${p++}`); params.push(JSON.stringify([String(args.category)])); }
+    if (args.category != null) { sets.push(`categories = ?${p++}`); params.push(JSON.stringify([String(args.category)])); }
     if (args.cover_image != null) { sets.push(`cover_image = ?${p++}`); params.push(String(args.cover_image)); }
-    if (!sets.length) throw new Error('nothing to update — pass at least one of title/body_markdown/excerpt/category/cover_image');
+    if (!sets.length) throw new Error('nothing to update — pass at least one of title/body_markdown/excerpt/category/cover_image/linked_project');
     sets.push(`updated_at = ?${p++}`); params.push(Math.floor(Date.now() / 1000));
     params.push(slug);
     await env.DB.prepare(`UPDATE posts SET ${sets.join(', ')} WHERE slug = ?${p}`).bind(...params).run();
-    return { ok: true, slug, status: 'draft', edit_url: 'https://admin.oftmw.com/post.html?id=' + row.id };
+    return { ok: true, slug, status: 'draft', linked_project: linkedSlug || undefined, edit_url: 'https://admin.oftmw.com/post.html?id=' + row.id };
   },
 
   // ── Media ──────────────────────────────────────────────────────────────────
