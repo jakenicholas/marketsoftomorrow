@@ -406,16 +406,23 @@ nav.main .wrap{display:flex; align-items:center; justify-content:space-between; 
 .story-card .sc-tab.on{background:var(--white); color:var(--ink); font-weight:700}
 
 @media(max-width:760px){
-  .story-section{padding:18px 14px 60px}
-  .story-card{min-height:438px; display:flex; flex-direction:column}
-  /* eyebrow + headline + paragraph sit at the top; only "Read more" is pushed
-     to the bottom so it stays legible over the lower gradient */
-  .story-card .sc-content{max-width:100%; flex:1; padding-bottom:52px}
-  .story-card .sc-more{margin-top:auto}
+  .story-section{padding:18px 14px 56px}
+  /* Editorial hero: the photo fills the card and ALL the text is anchored to
+     the bottom over a strong bottom scrim, so it's readable on any image. (The
+     old dark>clear>dark gradient dropped the excerpt into a transparent band
+     and flooded bright photos with white text.) */
+  .story-card{min-height:clamp(470px, 116vw, 600px); display:flex; flex-direction:column; justify-content:flex-end}
+  .story-card .sc-content{max-width:100%; flex:0 0 auto; gap:11px; padding:44px clamp(20px,6vw,26px) 58px}
   .story-card .sc-eyebrow{font-size:9px; letter-spacing:.16em; padding:4px 10px; gap:6px}
-  /* dark at top (protect eyebrow/title), clear through the middle (show the
-     image), light gradient at the bottom (protect "Read more") */
-  .story-card .sc-bg::after{background:linear-gradient(180deg, rgba(7,8,7,.70) 0%, rgba(7,8,7,0) 38%, rgba(7,8,7,0) 62%, rgba(7,8,7,.30) 100%)}
+  .story-card h1{font-size:clamp(26px, 6.6vw, 34px); line-height:1.13;
+    text-shadow:0 2px 22px rgba(0,0,0,.5), 0 1px 4px rgba(0,0,0,.45)}
+  .story-card .sc-desc{font-size:13.5px; line-height:1.5; color:rgba(255,255,255,.84);
+    text-shadow:0 1px 12px rgba(0,0,0,.55);
+    display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden}
+  .story-card .sc-more{margin-top:4px; text-shadow:0 1px 10px rgba(0,0,0,.5)}
+  /* clear at the top (show the photo), strong dark where the text lives */
+  .story-card .sc-bg::after{background:linear-gradient(180deg,
+     rgba(7,8,7,0) 0%, rgba(7,8,7,0) 26%, rgba(7,8,7,.40) 48%, rgba(7,8,7,.80) 72%, rgba(7,8,7,.96) 100%)}
   .story-card .sc-tab{padding:10px 16px; font-size:11px; letter-spacing:.14em}
   .story-card .sc-tabs{padding:5px; gap:6px}
 }
