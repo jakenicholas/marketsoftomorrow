@@ -139,7 +139,7 @@
   // the logo. Universal — covers the homepage's inline header AND the injected
   // chrome header. Guarded so it's added at most once per header.
   function injectSurfaceToggle() {
-    var active = /^\/atlas(\/|$)/.test(location.pathname) ? 'atlas' : 'journal';
+    var active = location.hostname === 'map.oftmw.com' ? 'map' : (/^\/atlas(\/|$)/.test(location.pathname) ? 'atlas' : 'journal');
     var wraps = document.querySelectorAll('nav.main .wrap');
     for (var i = 0; i < wraps.length; i++) {
       var wrap = wraps[i];
@@ -394,7 +394,7 @@
     dock.setAttribute('aria-label', 'Journal');
     // Map · Atlas · Journal toggle on the left, then the search field. (The old
     // standalone map + home buttons are gone — Map and Journal live in the toggle.)
-    var stActive = /^\/atlas(\/|$)/.test(location.pathname) ? 'atlas' : 'journal';
+    var stActive = location.hostname === 'map.oftmw.com' ? 'map' : (/^\/atlas(\/|$)/.test(location.pathname) ? 'atlas' : 'journal');
     dock.innerHTML =
       buildToggle(stActive, true) +
       '<form class="tmw-dock-search" role="search" action="' + SEARCH_PAGE + '" method="get">' +

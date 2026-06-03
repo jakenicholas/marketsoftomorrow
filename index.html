@@ -14,7 +14,7 @@
        Inter already loads via the Mapbox token script's CSS; not duplicated here. -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
   <title>Map of Tomorrow | Interactive Future Development Map | Markets of Tomorrow</title>
   <meta name="description" content="Explore the world's most exciting developments in an interactive map by Markets of Tomorrow ‚Äî from luxury projects to future neighborhoods.">
@@ -712,7 +712,12 @@
     :root {
       --app-height: 100vh;
       --viewport-height: 100vh;
-      --header-height: 50px;
+      /* Height of the injected journal chrome header (.tmw-chrome-head):
+         nav.main .wrap has 14px top + 14px bottom padding around a 34px-tall
+         toggle/nav row = ~62px. The map lays its sidebar/map/search below
+         this via calc(... - var(--header-height)), so it must match the
+         journal header's real rendered height for a flush, gap-free fit. */
+      --header-height: 62px;
       --safe-area-top: env(safe-area-inset-top);
       --safe-area-bottom: env(safe-area-inset-bottom);
       --safe-area-left: env(safe-area-inset-left);
@@ -730,6 +735,28 @@
       --transition-fast: 0.15s ease;
       --transition-med: 0.25s ease;
       --transition-slow: 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+
+      /* Journal chrome design tokens. The shared journal-chrome.js /
+         journal-dock.js / journal-auth.js reference these (var(--green),
+         var(--mono), etc.) which are undefined on the map. Define them
+         here (ASCII only) so the injected journal header renders with the
+         exact journal styling. These ADD to the map's own
+         --accent/--bg/--surface (no name clashes). */
+      --green: #1FDF67;
+      --green-soft: #42EB81;
+      --hair: rgba(255,255,255,.08);
+      --hair-2: rgba(255,255,255,.14);
+      --white: #fff;
+      --cream: #ECEAE5;
+      --mute: #9AA39C;
+      --mute-2: #C2C9C3;
+      --mono: 'Inter',-apple-system,sans-serif;
+      --serif: 'Fraunces',Georgia,serif;
+      --ink: #070807;
+      --ink-2: #0c0e0c;
+      --gold: #e6c574;
+      --gold-soft: #f0d68a;
+      --purple: #A78BFA;
     }
 
     html {
@@ -10618,6 +10645,51 @@
     .v2-tmw-hex .tmw-hex-core{transform-origin:50% 50%;animation:tmw-hex-corepulse 4.2s ease-in-out infinite}
     .v2-tmw-hex .tmw-hex-ring{transform-origin:50% 50%;animation:tmw-hex-ring 4.2s ease-out infinite}
     @media (prefers-reduced-motion: reduce){.v2-tmw-hex .tmw-hex-spinner,.v2-tmw-hex .tmw-hex-core,.v2-tmw-hex .tmw-hex-ring{animation:none}.v2-tmw-hex .tmw-hex-ring{opacity:0}}
+
+    /* === Journal chrome integration ==================================== */
+    /* The map now loads the journal's own chrome (journal-chrome.js +
+       journal-dock.js + journal-auth.js) to render the EXACT journal
+       header: wordmark, Map-Atlas-Journal toggle, Global / Focus Markets /
+       Database / The Lists nav, Instagram, account/Join. These rules
+       (a) hide the map's OWN header + login, (b) hide journal bits the map
+       doesn't want (footer + bottom search dock), and (c) re-position the
+       journal header to behave like the map's old fixed full-screen header
+       so the sidebar/map/search line up under it. Placed in this block
+       because new rules in the giant inline stylesheet sometimes fail to
+       apply; here they reliably win. */
+
+    /* (a) Hide the map's own header + login. The old logo/login/profile
+       lived in #header (desktop) and #v2TopChrome (mobile) - both gone now
+       that the journal chrome carries them. */
+    #header{display:none!important;}
+    #v2TopChrome{display:none!important;}
+
+    /* (b) Hide journal bits the map doesn't want: the chrome footer and the
+       bottom-center search dock (the map has its own search + bottom rail). */
+    .tmw-chrome-foot{display:none!important;}
+    .tmw-dock{display:none!important;}
+
+    /* (c) Position the journal header (.tmw-chrome-head) like the map's old
+       fixed header: pinned to the top, full width, above the map UI. The
+       journal default is position:sticky;top:0 which would scroll with the
+       (non-scrolling) map body and leave the inner nav.main mis-stacked, so
+       force fixed. z-index 99 matches the map's old #header. Visible on all
+       sizes (the map hid #header on mobile, but the journal header collapses
+       to a burger and must show here). The map's content below uses
+       calc(... - var(--header-height)) so it stays flush. */
+    .tmw-chrome-head{position:fixed!important;top:0;left:0;right:0;z-index:99;}
+    .tmw-chrome-head nav.main{padding-top:var(--safe-area-top);}
+    /* Loading overlay sits BELOW the journal header (var(--header-height))
+       instead of the old hard-coded 60px ui-v2 header. */
+    @media(min-width:801px){
+      #loadingOverlay{top:var(--header-height)!important;height:calc(100% - var(--header-height))!important;}
+    }
+    @media(max-width:800px){
+      #loadingOverlay{top:calc(var(--safe-area-top, 0px) + var(--header-height))!important;height:calc(100% - var(--safe-area-top, 0px) - var(--header-height))!important;}
+    }
+    /* Embed mode: journal chrome is not loaded (no header), so reset. */
+    body.embed-mode .tmw-chrome-head{display:none!important;}
+    /* === end journal chrome integration ================================ */
   </style>
 </head>
 <body>
@@ -22330,6 +22402,14 @@
       const widget = chrome && chrome.querySelector('.v2-tmw-profile-widget');
       const header = document.getElementById('header');
       if (!chrome || !widget || !header) return;
+      // The journal chrome (journal-chrome.js + journal-dock.js) now renders
+      // the header, so the map's own #header is hidden. Reparenting the old
+      // toggle/account into a display:none header is pointless - bail early.
+      // (The journal header carries the toggle + account/Join itself.)
+      // The journal chrome now owns the header, so the map's own #header is
+      // hidden. We still run the rest: the old toggle/account just reparent into
+      // the hidden #header harmlessly, and crucially the Compare button below
+      // still gets added to the bottom-right rail.
       if (header.querySelector('.v2-desktop-header-group')) return;
 
       // ‚îÄ‚îÄ Surface toggle ‚Üí header left side ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
@@ -23985,5 +24065,38 @@
     }
   })();
   </script>
+
+  <!-- ================================================================== -->
+  <!-- Journal chrome: render the EXACT journal header on the map.        -->
+  <!-- journal-chrome.js injects nav.main (wordmark + nav links) + its    -->
+  <!-- CSS; journal-dock.js turns the flat links into the Focus Markets / -->
+  <!-- Database / The Lists dropdowns, swaps the CTA to Instagram, and    -->
+  <!-- injects the Map-Atlas-Journal toggle (host-aware: "Map" is active  -->
+  <!-- on map.oftmw.com). The map hides its own #header/#v2TopChrome and  -->
+  <!-- the journal footer/dock via CSS (see #tmw-surface-toggle-css).     -->
+  <!--                                                                    -->
+  <!-- journal-auth.js (account/Join cluster) is loaded HERE with its     -->
+  <!-- ABSOLUTE www.oftmw.com URL. The dock would otherwise inject it     -->
+  <!-- relative (/_shared/journal-auth.js), which 404s on map.oftmw.com;  -->
+  <!-- loading it explicitly makes the dock's guard skip that broken      -->
+  <!-- relative injection. It reuses the map's existing Memberstack       -->
+  <!-- instance (same app id app_cmoq79nvv002d0syef7wpel3c), so no        -->
+  <!-- double-load. The data-tmw-auth-loader marker matches the dock's    -->
+  <!-- guard selector exactly. -->
+  <!--                                                                    -->
+  <!-- The dock also injects two journal-article-only scripts relative:   -->
+  <!-- tmw-auth-modal.js (custom login/signup UI) and journal-paywall.js  -->
+  <!-- (Go Pro paywall). Both would 404 on map.oftmw.com, and the map     -->
+  <!-- already has its OWN Memberstack login/signup modals + paywall      -->
+  <!-- flow. journal-auth.js gracefully falls back to Memberstack's own   -->
+  <!-- openModal() when window.tmwAuthModal is absent, so account/Join    -->
+  <!-- still works. We pre-seed the dock's guard markers below (no src,   -->
+  <!-- so no request, no 404) to suppress those relative injections and   -->
+  <!-- keep the map's existing auth modals untouched. -->
+  <script data-tmw-authui-loader></script>
+  <script data-tmw-paywall-loader></script>
+  <script src="https://www.oftmw.com/_shared/journal-auth.js" defer data-tmw-auth-loader></script>
+  <script src="https://www.oftmw.com/_shared/journal-chrome.js" defer></script>
+  <script src="https://www.oftmw.com/_shared/journal-dock.js" defer></script>
 </body>
 </html>
