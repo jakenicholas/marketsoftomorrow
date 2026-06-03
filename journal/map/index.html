@@ -3296,10 +3296,12 @@
        over one 3s loop and holds on the search icon. Sourced from
        tmw_hex_to_search_icon.html; classes prefixed (tmwload-) so they don't
        collide with the header lockup's .tmw-hex-* animation. */
-    .tmwload-icon { width: 92px; height: 92px; margin: 0 auto 22px; }
+    .tmwload-icon { width: 60px; height: 60px; margin: 0 auto 20px; }
     .tmwload-icon svg { width: 100%; height: 100%; display: block; overflow: visible; }
-    .tmwload-spinner { transform-origin: 50% 50%; animation: tmwload-spin 3s cubic-bezier(0.55,0,0.9,0.4) forwards; }
-    @keyframes tmwload-spin { 0%{transform:rotate(0deg) scale(1)} 67%{transform:rotate(1440deg) scale(0.75)} 100%{transform:rotate(1440deg) scale(0.75)} }
+    /* Smaller mark; fewer turns + a smooth accel→settle ease so it doesn't
+       feel jittery (the old cubic-bezier dipped below the line mid-spin). */
+    .tmwload-spinner { transform-origin: 50% 50%; animation: tmwload-spin 3s cubic-bezier(0.45,0,0.25,1) forwards; }
+    @keyframes tmwload-spin { 0%{transform:rotate(0deg) scale(1)} 67%{transform:rotate(1080deg) scale(0.75)} 100%{transform:rotate(1080deg) scale(0.75)} }
     .tmwload-core { stroke: #A78BFA; animation: tmwload-hexfade 3s linear forwards; }
     @keyframes tmwload-hexfade { 0%,60%{opacity:1} 67%{opacity:0} 100%{opacity:0} }
     .tmwload-circle { stroke-linejoin: round; opacity: 0; animation: tmwload-circlein 3s linear forwards; }
@@ -8423,7 +8425,7 @@
     /* Drawer opens to 85vh, minus the universal header (+ safe-area) so it
        clears the journal chrome that now sits at the top — without it the
        sheet rose right up under the header and felt too tall. */
-    body.v2-sheet-open .v2-sheet { height: calc(85vh - var(--header-height) - var(--safe-area-top, 0px)); }
+    body.v2-sheet-open .v2-sheet { height: calc(90vh - var(--header-height) - var(--safe-area-top, 0px)); }
     /* Bigger handle target. The full top strip of the sheet (down to the
        search bar) is also draggable via JS, so users can grab anywhere
        in that zone to dismiss. */
@@ -10694,7 +10696,10 @@
        sizes (the map hid #header on mobile, but the journal header collapses
        to a burger and must show here). The map's content below uses
        calc(... - var(--header-height)) so it stays flush. */
-    .tmw-chrome-head{position:fixed!important;top:0;left:0;right:0;z-index:99;}
+    /* z-index ABOVE the loading overlay (z-90) and !important so it beats
+       journal-chrome.js's runtime-injected z-60 — otherwise the full-screen
+       loader covers the universal header while loading between screens. */
+    .tmw-chrome-head{position:fixed!important;top:0;left:0;right:0;z-index:100!important;}
     .tmw-chrome-head nav.main{padding-top:var(--safe-area-top);}
     /* Loading overlay covers the FULL viewport (top:0) and sits BEHIND the
        z-99 journal header, which renders on top of it. Covering from the very
@@ -10726,29 +10731,32 @@
          (and replaces) the journal search — the user then searches in the
          drawer's own search bar. */
       body.v2-sheet-open .tmw-dock{display:none!important;}
+      /* Hide the full-screen button while the drawer is open (mobile). */
+      body.v2-sheet-open #tmwMapFsBtn{display:none!important;}
     }
     /* ── Full-screen map toggle ──────────────────────────────────────
        A button pinned to the top-right of the map. Clicking it hides the
        journal chrome header for an edge-to-edge map (desktop + mobile);
        clicking again restores it. The map canvas is already full-height
        behind the header, so we only hide the header + reclaim its padding. */
+    /* Glass circle matching the right-rail action buttons (.v2-action-btn). */
     #tmwMapFsBtn{
       position:fixed;
       top:calc(var(--safe-area-top, 0px) + var(--header-height) + 12px);
       right:12px;
-      z-index:80;              /* above the map + rail, below the loader (90) + header (99) */
-      width:40px;height:40px;
+      z-index:80;              /* above the map + rail, below the loader (90) + header (100) */
+      width:44px;height:44px;
       display:flex;align-items:center;justify-content:center;
-      background:rgba(16,16,18,0.82);
-      -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
-      border:1px solid rgba(255,255,255,0.12);
-      border-radius:11px;
+      background:rgba(15,15,15,0.72);
+      -webkit-backdrop-filter:blur(16px) saturate(1.4);backdrop-filter:blur(16px) saturate(1.4);
+      border:1px solid rgba(255,255,255,0.1);
+      border-radius:50%;
       color:#fff;cursor:pointer;
       transition:background .15s ease, transform .12s ease, top .25s ease;
     }
-    #tmwMapFsBtn:hover{background:rgba(34,34,38,0.95);}
+    #tmwMapFsBtn:hover{background:rgba(34,34,38,0.9);}
     #tmwMapFsBtn:active{transform:scale(0.93);}
-    #tmwMapFsBtn svg{width:19px;height:19px;display:block;}
+    #tmwMapFsBtn svg{width:18px;height:18px;display:block;}
     #tmwMapFsBtn .fs-collapse{display:none;}
     body.tmw-mapfs #tmwMapFsBtn{top:calc(var(--safe-area-top, 0px) + 12px);}
     body.tmw-mapfs #tmwMapFsBtn .fs-expand{display:none;}
@@ -10949,7 +10957,7 @@
        header for an edge-to-edge map; click again to restore it. -->
   <button id="tmwMapFsBtn" type="button" aria-label="Full screen map" aria-pressed="false" title="Full screen map">
     <svg class="fs-expand" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
-    <svg class="fs-collapse" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3M3 16h3a2 2 0 0 1 2 2v3m13-3h-3a2 2 0 0 0-2 2v3"/></svg>
+    <svg class="fs-collapse" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v3a2 2 0 0 1-2 2H3"/><path d="M21 8h-3a2 2 0 0 1-2-2V3"/><path d="M3 16h3a2 2 0 0 1 2 2v3"/><path d="M16 21v-3a2 2 0 0 1 2-2h3"/></svg>
   </button>
 
   <div id="app-container">
