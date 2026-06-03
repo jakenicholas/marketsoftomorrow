@@ -289,6 +289,23 @@ function parseYM(s){
 }
 function fmtMon(d){ return d ? d.toLocaleString('en-US',{month:'short',year:'numeric'}) : ''; }
 
+// Build developer + architect entities from the projects themselves. Used when
+// /firms-flat.json is absent so firms (e.g. "Related Ross") still surface.
+function deriveFirmsFromProjects(projects){
+  const map = new Map();
+  function add(raw, role){
+    String(raw||'').split(',').map(s=>s.trim()).filter(Boolean).forEach(name=>{
+      if (name.toLowerCase()==='various') return;
+      const key = role+'|'+norm(name);
+      let e = map.get(key);
+      if(!e){ e = { name:name, role:role, project_count:0 }; map.set(key,e); }
+      e.project_count++;
+    });
+  }
+  projects.forEach(p=>{ add(p.Developer,'developer'); add(p.Architect,'architect'); });
+  return [...map.values()];
+}
+
 // ── data loading ─────────────────────────────────────────────────
 async function loadData(){
   const [p,f,intel] = await Promise.all([
@@ -306,6 +323,9 @@ async function loadData(){
       (f.developers||[]).map(x=>Object.assign({}, x, {role:'developer'}))
     );
   }
+  // /firms-flat.json is currently absent → derive firms from the project list so
+  // developers/architects (e.g. "Related Ross") still appear in search results.
+  if (!FIRMS.length && PROJECTS.length) FIRMS = deriveFirmsFromProjects(PROJECTS);
   ARTICLES = await loadArticles();
   DATA_READY = true;
 }
