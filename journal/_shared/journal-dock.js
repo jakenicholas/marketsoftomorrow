@@ -13,13 +13,17 @@
   if (window.__tmwDock) return;
   window.__tmwDock = true;
 
-  // Tag <html> with the current surface so per-surface accents (the gold glow on
-  // Global for the journal vs Database for the map/atlas) can be scoped in CSS.
-  (function tagSurface() {
-    var surf = location.hostname === 'map.oftmw.com' ? 'map'
+  // The current surface. "map" = the map.oftmw.com host OR the /map clone path on
+  // www.oftmw.com; "atlas" = the /atlas path; everything else is the journal.
+  // Single source of truth so the toggle, surface tag, and accents stay in sync.
+  function tmwSurface() {
+    return (location.hostname === 'map.oftmw.com' || /^\/map(\/|$)/.test(location.pathname)) ? 'map'
       : (/^\/atlas(\/|$)/.test(location.pathname) ? 'atlas' : 'journal');
-    document.documentElement.classList.add('tmw-surf-' + surf);
-  })();
+  }
+  window.tmwSurface = tmwSurface;
+  // Tag <html> with the surface so per-surface accents (the gold glow on Global
+  // for the journal vs Database for the map/atlas) can be scoped in CSS.
+  document.documentElement.classList.add('tmw-surf-' + tmwSurface());
 
   // ── Google Analytics (GA4) — same property as the map. Journal traffic on
   //    www.oftmw.com lands under hostName www.oftmw.com so the studio's Journal
@@ -147,7 +151,7 @@
   // the logo. Universal — covers the homepage's inline header AND the injected
   // chrome header. Guarded so it's added at most once per header.
   function injectSurfaceToggle() {
-    var active = location.hostname === 'map.oftmw.com' ? 'map' : (/^\/atlas(\/|$)/.test(location.pathname) ? 'atlas' : 'journal');
+    var active = tmwSurface();
     var wraps = document.querySelectorAll('nav.main .wrap');
     for (var i = 0; i < wraps.length; i++) {
       var wrap = wraps[i];
@@ -412,7 +416,7 @@
     dock.setAttribute('aria-label', 'Journal');
     // Map · Atlas · Journal toggle on the left, then the search field. (The old
     // standalone map + home buttons are gone — Map and Journal live in the toggle.)
-    var stActive = location.hostname === 'map.oftmw.com' ? 'map' : (/^\/atlas(\/|$)/.test(location.pathname) ? 'atlas' : 'journal');
+    var stActive = tmwSurface();
     dock.innerHTML =
       buildToggle(stActive, true) +
       '<form class="tmw-dock-search" role="search" action="' + SEARCH_PAGE + '" method="get">' +

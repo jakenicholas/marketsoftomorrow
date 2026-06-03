@@ -21,9 +21,9 @@
        as the DOM is ready instead of after this 1MB document finishes parsing
        (kills the gray flash before the header appears). -->
   <link rel="preconnect" href="https://www.oftmw.com">
-  <link rel="preload" as="script" href="https://www.oftmw.com/_shared/journal-chrome.js">
-  <link rel="preload" as="script" href="https://www.oftmw.com/_shared/journal-dock.js">
-  <link rel="preload" as="script" href="https://www.oftmw.com/_shared/journal-auth.js">
+  <link rel="preload" as="script" href="/_shared/journal-chrome.js">
+  <link rel="preload" as="script" href="/_shared/journal-dock.js">
+  <link rel="preload" as="script" href="/_shared/journal-auth.js">
 
   <title>Map of Tomorrow | Interactive Future Development Map | Markets of Tomorrow</title>
   <meta name="description" content="Explore the world's most exciting developments in an interactive map by Markets of Tomorrow ‚Äî from luxury projects to future neighborhoods.">
@@ -10846,7 +10846,7 @@
   </div>
 
   <!-- Atlas overlay -- hidden until body.atlas-mode is set. Initial content
-       is a loading state; populated by JS after fetch('/atlas.json'). -->
+       is a loading state; populated by JS after fetch('atlas.json'). -->
   <!-- Firm sheet (SPA modal): opens when user clicks a firm chip on a project
        popup or an architect/developer row in the atlas leaderboard. URL gets
        pushed to /architects/<slug>/ or /developers/<slug>/ so it's shareable.
@@ -13077,7 +13077,7 @@
       function loadArticlesArchive() {
         if (articlesArchive) return Promise.resolve(articlesArchive);
         if (articlesArchivePromise) return articlesArchivePromise;
-        articlesArchivePromise = fetch('/articles.json', { cache: 'no-store' })
+        articlesArchivePromise = fetch('articles.json', { cache: 'no-store' })
           .then(r => r.ok ? r.json() : {})
           .then(data => {
             articlesArchive = (data && typeof data === 'object') ? data : {};
@@ -13100,7 +13100,7 @@
       function loadIntelData() {
         if (intelData) return Promise.resolve(intelData);
         if (intelPromise) return intelPromise;
-        intelPromise = fetch('/intel.json', { cache: 'no-store' })
+        intelPromise = fetch('intel.json', { cache: 'no-store' })
           .then(r => r.ok ? r.json() : null)
           .then(data => {
             intelData = (data && data.projects && typeof data.projects === 'object')
@@ -13266,7 +13266,7 @@
         // user goes straight to a project we kick off a fetch here too.
         const ensure = (window._pulseEvents && window._pulseEvents.length)
           ? Promise.resolve(window._pulseEvents)
-          : fetch('/pulse.json', { cache: 'no-store' })
+          : fetch('pulse.json', { cache: 'no-store' })
               .then(r => r.ok ? r.json() : { events: [] })
               .then(d => {
                 const events = (d && Array.isArray(d.events)) ? d.events : [];
@@ -16600,7 +16600,7 @@
       // unchanged. To roll back, swap this fetch() for the legacy
       // Papa.parse('https://docs.google.com/spreadsheets/d/.../export?format=csv&gid=0', ...)
       // call that lived here previously.
-      fetch('/projects-flat.json', { cache: 'no-store' })
+      fetch('projects-flat.json', { cache: 'no-store' })
         .then(r => {
           if (!r.ok) throw new Error('projects-flat.json fetch failed: ' + r.status);
           return r.json();
@@ -16830,7 +16830,7 @@
           (async () => {
             window.cityStateMap = window.cityStateMap || {};
             try {
-              const res = await fetch('/cityStateMap.json', { cache: 'force-cache' });
+              const res = await fetch('cityStateMap.json', { cache: 'force-cache' });
               if (res.ok) Object.assign(window.cityStateMap, await res.json());
             } catch (e) { /* labels just fall back to the city name */ }
           })();
@@ -20959,7 +20959,7 @@
       async function ensureFirmsLoaded() {
         if (_firmData) return _firmData;
         try {
-          const r = await fetch('/firms-flat.json', { cache: 'no-store' });
+          const r = await fetch('firms-flat.json', { cache: 'no-store' });
           if (!r.ok) throw new Error('firms-flat.json fetch failed: ' + r.status);
           _firmData = await r.json();
         } catch (e) {
@@ -20977,7 +20977,7 @@
           return _firmArticles;
         }
         try {
-          const r = await fetch('/articles.json', { cache: 'no-store' });
+          const r = await fetch('articles.json', { cache: 'no-store' });
           if (r.ok) _firmArticles = await r.json();
         } catch (e) { /* graceful: coverage section just renders empty */ }
         _firmArticles = _firmArticles || {};
@@ -24141,8 +24141,8 @@
   <!-- keep the map's existing auth modals untouched. -->
   <script data-tmw-authui-loader></script>
   <script data-tmw-paywall-loader></script>
-  <script src="https://www.oftmw.com/_shared/journal-auth.js" defer data-tmw-auth-loader></script>
-  <script src="https://www.oftmw.com/_shared/journal-chrome.js" defer></script>
-  <script src="https://www.oftmw.com/_shared/journal-dock.js" defer></script>
+  <script src="/_shared/journal-auth.js" defer data-tmw-auth-loader></script>
+  <script src="/_shared/journal-chrome.js" defer></script>
+  <script src="/_shared/journal-dock.js" defer></script>
 </body>
 </html>
