@@ -10866,6 +10866,13 @@
     }
     /* Mobile uses the bottom sheet, not this drawer — never show these. */
     @media(max-width:980px){ #tmwDrawerClose, #tmwDrawerHandle, #tmwDockAC{ display:none!important; } }
+    /* Pulse is now universal (header bell + popup on every page), so remove the
+       map's own Pulse access: the sidebar tab (desktop + mobile) and the
+       right-rail bell. Hidden rather than deleted so the v2 JS that references
+       these nodes never throws. */
+    .v2-tab[data-v2-tab="pulse"]{display:none!important;}
+    .v2-desktop-tabs [data-v2d-tab="pulse"]{display:none!important;}
+    #v2PulseQuickBtn{display:none!important;}
     /* === end journal chrome integration ================================ */
   </style>
 </head>

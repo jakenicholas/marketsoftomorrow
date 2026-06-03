@@ -267,6 +267,9 @@
      reuse the v2 drawer's .v2-pulse-content styling; here we ship a compact,
      self-contained version of those rules (spine, colored dot, type label,
      title) so the section reads identically without the map's v2 chrome. */
+  /* Pulse is now universal in the header — hide the atlas "This week on the
+     map" Pulse section (the one carrying .v2-pulse-content). */
+  .atlas-section:has(.v2-pulse-content) { display: none !important; }
   .v2-pulse-content .pulse-spine { padding: 0; position: relative; }
   .v2-pulse-content .pulse-ev-wrap {
     position: relative;
