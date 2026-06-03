@@ -10819,16 +10819,20 @@
     }
     /* ── Desktop drawer: close (X) + pull handle ─────────────────────── */
     @media(min-width:981px){
-      /* Close X — pinned to the drawer's top-right; slides out with the drawer. */
+      /* Close X — a solid-black circle straddling the drawer's right edge,
+         vertically centered on the tabs row. Outside the sidebar so the
+         overhanging half shows over the map. Hidden when collapsed. */
       #tmwDrawerClose{
-        position:absolute; top:12px; right:12px; z-index:14;
-        width:30px; height:30px; border-radius:50%;
-        background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12);
-        color:rgba(255,255,255,0.62); display:flex; align-items:center; justify-content:center; cursor:pointer;
+        position:fixed; left:calc(35% - 16px); top:calc(var(--header-height) + 29px); z-index:14;
+        width:32px; height:32px; border-radius:50%;
+        background:#0a0a0a; border:1px solid rgba(255,255,255,0.16);
+        color:rgba(255,255,255,0.7); display:none; align-items:center; justify-content:center; cursor:pointer;
+        box-shadow:0 2px 14px rgba(0,0,0,0.55);
         transition:background .15s ease, color .15s ease;
       }
       #tmwDrawerClose svg{ width:15px; height:15px; }
-      #tmwDrawerClose:hover{ background:rgba(255,255,255,0.14); color:#fff; }
+      #tmwDrawerClose:hover{ background:#1c1c1c; color:#fff; }
+      body.ui-v2 #tmwDrawerClose{ display:flex; }
       /* Pull handle — a tab on the left edge, shown only while collapsed. */
       #tmwDrawerHandle{
         position:fixed; left:0; top:calc(var(--header-height) + 26px); z-index:26;
@@ -10844,6 +10848,8 @@
       #tmwDrawerHandle:hover{ background:rgba(30,30,34,0.96); transform:translateX(2px); }
       body.ui-v2.v2-sidebar-collapsed #tmwDrawerHandle{ display:flex; }
       body.ui-v2.v2-sidebar-collapsed #tmwDrawerClose{ display:none; }
+      /* A project page has its own close — hide the drawer X then. */
+      body.ui-v2:has(#projectModal.open) #tmwDrawerClose{ display:none; }
       /* Bottom-search suggestions while the drawer is collapsed — a dropdown
          floating just above the bottom dock. Selecting one flies + opens the
          tile; only shown when collapsed. */
@@ -10855,6 +10861,7 @@
         box-shadow:0 14px 44px rgba(0,0,0,0.55); padding:6px;
       }
       #tmwDockAC.hidden{ display:none; }
+      #tmwDockAC .tmw-dock-ac-empty{ padding:18px 16px; text-align:center; color:rgba(255,255,255,0.5); font-size:13.5px; font-weight:500; letter-spacing:.01em; }
       body:not(.v2-sidebar-collapsed) #tmwDockAC{ display:none!important; }
     }
     /* Mobile uses the bottom sheet, not this drawer — never show these. */
@@ -11294,11 +11301,14 @@
          one flies to the pin + opens the project tile (showPopup). -->
     <div id="tmwDockAC" class="hidden" role="listbox" aria-label="Search suggestions"></div>
 
+    <!-- Close (X): a black circle straddling the drawer's right edge, aligned
+         with the Discover/Watchlist tabs row. Kept OUTSIDE the sidebar so the
+         overhanging half isn't clipped by its overflow. -->
+    <button id="tmwDrawerClose" type="button" aria-label="Close panel" title="Close panel">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </button>
+
     <div id="desktopSidebar">
-      <!-- Close (X): slides out with the drawer; the pull handle brings it back. -->
-      <button id="tmwDrawerClose" type="button" aria-label="Close panel" title="Close panel">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
-      </button>
       <div class="sidebar-header">
 
         <!-- Row 1: Search glass pill + close button -->
@@ -12035,6 +12045,10 @@
               }
             } catch(err){}
           });
+          // No matches → show a message inside the box instead of an empty bar.
+          if (!ac.querySelector('.autocomplete-item')){
+            ac.innerHTML = '<div class="tmw-dock-ac-empty">No results</div>';
+          }
           ac.classList.remove('hidden');
         } catch(e){ hideDockAC(); }
       }
