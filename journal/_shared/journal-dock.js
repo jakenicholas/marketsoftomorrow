@@ -981,7 +981,7 @@
   function paintCircle(){
     if (!circleEl) return;
     var n = countNew();
-    if (n > 0){ circleEl.textContent = n > 9 ? '9+' : String(n); circleEl.classList.remove('is-zero'); }
+    if (n > 0){ circleEl.textContent = String(n); circleEl.classList.remove('is-zero'); }
     else      { circleEl.textContent = '';                       circleEl.classList.add('is-zero'); }
   }
   function repaint(){ paintCircle(); if (feedEl) feedEl.innerHTML = feedHtml(); }
@@ -1013,9 +1013,9 @@
       '.tmw-pulse-item .pi-tag.pi-article{color:#8FB8FF}',
       '.tmw-pulse-item .pi-title{font-size:13px;font-weight:600;color:#ECEAE5;line-height:1.3;max-width:80%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
       '.tmw-pulse-item .pi-meta{font-size:11px;color:rgba(255,255,255,.4);margin-top:3px}',
-      '.tmw-pulse-item .pi-x{position:absolute;top:50%;right:8px;transform:translateY(-50%);width:20px;height:20px;border-radius:50%;background:#E5484D;color:#fff;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;opacity:.92;box-shadow:0 1px 4px rgba(0,0,0,.35);transition:opacity .12s,transform .12s}',
-      '.tmw-pulse-item .pi-x:hover{opacity:1;transform:translateY(-50%) scale(1.14);background:#F0595E}',
-      '.tmw-pulse-item .pi-x svg{width:11px;height:11px;stroke:#fff;fill:none;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}',
+      '.tmw-pulse-item .pi-x{position:absolute;top:50%;right:8px;transform:translateY(-50%);width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,.06);color:rgba(255,255,255,.45);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;transition:background .14s,color .14s,transform .12s}',
+      '.tmw-pulse-item .pi-x:hover{background:#E5484D;color:#fff;transform:translateY(-50%) scale(1.12)}',
+      '.tmw-pulse-item .pi-x svg{width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}',
       '.tmw-pulse-empty{padding:28px 16px;text-align:center;color:rgba(255,255,255,.4);font-size:13px}',
       '@media(max-width:980px){.tmw-pulse-pop{position:fixed!important;top:62px!important;bottom:auto!important;left:12px!important;right:12px!important;width:auto!important;max-width:none!important;max-height:74vh!important}}'
     ].join('');
