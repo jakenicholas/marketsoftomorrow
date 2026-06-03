@@ -769,20 +769,24 @@
     /* ‚îÄ‚îÄ‚îÄ HEADER ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ */
     #header {
       position: fixed; left: 0; right: 0; height: var(--header-height);
-      background: var(--surface);
-      backdrop-filter: blur(15px) brightness(0.7);
-      -webkit-backdrop-filter: blur(15px) brightness(0.7);
+      /* Universal journal header bar: clean translucent slab, not a heavy
+         black shadow strip. Matches journal-chrome.js nav.main. */
+      background: rgba(7,8,7,0.82);
+      backdrop-filter: blur(16px) saturate(1.4);
+      -webkit-backdrop-filter: blur(16px) saturate(1.4);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
       z-index: 99; display: flex; align-items: center;
       justify-content: space-between;
       padding: 0 calc(15px + var(--safe-area-left)) 0 calc(15px + var(--safe-area-right));
-      box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+      box-shadow: none;
     }
     @media(min-width:801px) { #header { top: 0; padding-top: var(--safe-area-top); } }
     @media(max-width:800px) { #header { display: none !important; } }
 
     #header-logo-link {
       display: flex; align-items: center;
-      gap: 5px;
+      /* Match the universal journal lockup gap (journal-chrome.js): 10px. */
+      gap: 10px;
       text-decoration: none;
     }
     #header-logo { height: 30px; width: auto; filter: brightness(0) invert(1); }
@@ -795,7 +799,8 @@
        Wordmark 60px. Total lockup width = 30 + 5 + 60 = 95px. */
     #header-logo-link .tmw-hex-badge {
       flex: 0 0 auto;
-      width: 30px; height: 30px;
+      /* Match the universal journal lockup (journal-chrome.js): 22px hex. */
+      width: 22px; height: 22px;
       display: inline-flex; align-items: center; justify-content: center;
     }
     #header-logo-link .tmw-hex-badge svg {
@@ -838,7 +843,8 @@
     }
     #header-logo-link .tmw-wordmark {
       flex: 0 0 auto;
-      width: 60px;
+      /* Match the universal journal lockup (journal-chrome.js): 108px wordmark. */
+      width: 108px;
       display: inline-flex; align-items: center;
       position: relative;
     }
@@ -3237,9 +3243,16 @@
 
     /* ‚îÄ‚îÄ‚îÄ LOADING OVERLAY ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ */
     #loadingOverlay {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      /* In-window loading: sit BELOW the header so the universal header
+         (logo + surface toggle + account) stays visible during load and
+         the site never feels "left." Header is z-index:99; this overlay
+         drops to z-index:90 and starts at the header's bottom edge. The
+         per-breakpoint top/height live in the #tmw-surface-toggle-css
+         block at the end of <head> (that block is known to apply). */
+      position: fixed; top: var(--header-height); left: 0; width: 100%;
+      height: calc(100% - var(--header-height));
       background: #111; display: flex; align-items: center; justify-content: center;
-      z-index: 99999; transition: opacity 0.5s ease;
+      z-index: 90; transition: opacity 0.5s ease;
     }
     #loadingOverlay.fade-out { opacity: 0; pointer-events: none; }
     .loading-content { text-align: center; color: #fff; }
@@ -9387,11 +9400,13 @@
     /* Never show the Map return pill on desktop (mobile only) */
     body.ui-v2 #v2MapReturnBtn { display: none !important; }
 
-    /* ‚îÄ‚îÄ HEADER ‚Äî glass bar (mockup: full-width 60px top chrome) ‚îÄ‚îÄ‚îÄ‚îÄ */
+    /* HEADER - universal journal glass bar (matches journal-chrome.js
+       nav.main exactly: rgba(7,8,7,.82) + blur(16px) saturate(1.4) + a
+       1px hairline bottom border, no heavy shadow). */
     body.ui-v2 #header {
-      background: rgba(10,10,10,0.85) !important;
-      backdrop-filter: blur(20px) saturate(1.4) !important;
-      -webkit-backdrop-filter: blur(20px) saturate(1.4) !important;
+      background: rgba(7,8,7,0.82) !important;
+      backdrop-filter: blur(16px) saturate(1.4) !important;
+      -webkit-backdrop-filter: blur(16px) saturate(1.4) !important;
       border-bottom: 1px solid rgba(255,255,255,0.08) !important;
       box-shadow: none !important;
       height: 60px !important;
@@ -9435,11 +9450,13 @@
       display: inline-flex !important;
     }
     /* Vertical divider centered between the TMW logo lockup and the
-       Map/Atlas toggle. left = (header pad + logo width + 14px gap). */
+       Map/Atlas toggle. left = (header pad + lockup width + half the
+       14px gap). Lockup is now the universal journal size:
+       22px hex + 10px gap + 108px wordmark = 140px. */
     body.ui-v2 #header::after {
       content: '';
       position: absolute;
-      left: calc(24px + 95px + 14px);
+      left: calc(24px + 140px + 7px);
       top: 50%; transform: translateY(-50%);
       width: 1px; height: 28px;
       background: rgba(255,255,255,0.12);
@@ -10576,6 +10593,31 @@
     .tmw-st .tmw-st-seg.on .tmw-st-lbl{max-width:90px;opacity:1;margin-left:7px}
     .tmw-st .tmw-st-seg[data-s="atlas"].on{background:#A78BFA!important;color:#140a2e!important}
     .tmw-st .tmw-st-seg[data-s="journal"].on{background:#ECEAE5!important;color:#0a0a0a!important}
+    /* In-window loading overlay.
+       Keep the universal header (logo + surface toggle + account) visible
+       during map load by sitting the overlay BELOW it, not over it. Header
+       is z-index:99; overlay z-index:90. These per-breakpoint rules live in
+       this block (known to reliably apply) so they win over the giant inline
+       stylesheet. Desktop ui-v2 header is 60px tall; mobile chrome floats
+       below the safe-area inset. */
+    @media(min-width:801px){
+      #loadingOverlay{top:60px!important;height:calc(100% - 60px)!important;z-index:90!important;}
+    }
+    @media(max-width:800px){
+      #loadingOverlay{top:calc(var(--safe-area-top, 0px) + 54px)!important;height:calc(100% - var(--safe-area-top, 0px) - 54px)!important;z-index:90!important;}
+    }
+    /* Embed mode hides the header entirely (--header-height:0), so the
+       loading overlay must cover the FULL widget viewport - reset it. */
+    body.embed-mode #loadingOverlay{top:0!important;height:100%!important;}
+    /* Universal hex badge inside the account pill (replaces the old R2
+       img). Sized to the journal lockup hex (22px) and wired to the
+       existing global hex keyframes so it animates like the header mark. */
+    .v2-tmw-hex{width:22px!important;height:22px!important;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto}
+    .v2-tmw-hex svg{width:100%;height:100%;display:block;overflow:visible}
+    .v2-tmw-hex .tmw-hex-spinner{transform-origin:50% 50%;animation:tmw-hex-hardspin 4.2s cubic-bezier(0.16,1,0.3,1) infinite}
+    .v2-tmw-hex .tmw-hex-core{transform-origin:50% 50%;animation:tmw-hex-corepulse 4.2s ease-in-out infinite}
+    .v2-tmw-hex .tmw-hex-ring{transform-origin:50% 50%;animation:tmw-hex-ring 4.2s ease-out infinite}
+    @media (prefers-reduced-motion: reduce){.v2-tmw-hex .tmw-hex-spinner,.v2-tmw-hex .tmw-hex-core,.v2-tmw-hex .tmw-hex-ring{animation:none}.v2-tmw-hex .tmw-hex-ring{opacity:0}}
   </style>
 </head>
 <body>
@@ -11120,7 +11162,14 @@
     <div class="v2-top-chrome" id="v2TopChrome" aria-hidden="true">
       <div class="v2-tmw-profile-widget">
         <a href="https://www.oftmw.com" target="_blank" class="v2-tmw-logo" aria-label="Markets of Tomorrow">
-          <img src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/other/50822a-TMW_Logos-16.svg" alt="" />
+          <!-- Universal animated hex badge (matches journal-chrome.js HEX):
+               icon-only mark that fits the compact account pill. -->
+          <span class="tmw-hex-badge v2-tmw-hex" aria-hidden="true">
+            <svg viewBox="0 0 100 100" overflow="visible" xmlns="http://www.w3.org/2000/svg">
+              <polygon class="tmw-hex-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/>
+              <g class="tmw-hex-spinner"><polygon class="tmw-hex-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g>
+            </svg>
+          </span>
         </a>
         <div class="v2-widget-divider"></div>
         <button class="v2-profile-btn" id="v2ProfileBtn" aria-label="Join">
