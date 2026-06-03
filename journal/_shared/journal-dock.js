@@ -921,12 +921,14 @@
 /* ── Universal Pulse — gold count circle + activity feed popup ───────────────
    Lives in journal-dock.js because the dock is the ONLY shared script loaded on
    every surface (journal home, /map, /atlas). Renders a gold notification circle
-   (the "new since last opened" count) to the LEFT of the profile icon
-   (.tmw-auth .v2-profile-btn) plus a popup feed. Self-guarded; builds once. */
+   (the count of undismissed items) to the LEFT of the profile icon
+   (.tmw-auth .v2-profile-btn) plus a popup feed where each tile has a red ✕ to
+   clear it individually (the count drops per clear). Self-guarded; builds once. */
 (function () {
   if (window.__tmwPulse) return; window.__tmwPulse = true;
   var PULSE_URL = 'https://www.oftmw.com/map/pulse.json';
-  var SEEN_KEY  = 'tmw_pulse_seen';
+  var DISMISS_KEY = 'tmw_pulse_dismissed';
+  var FEED_MAX = 30;
   var events = [], circleEl = null, popEl = null, feedEl = null;
 
   function esc(s){ return (s == null ? '' : String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
@@ -954,18 +956,23 @@
                                       : (e.title || e.project_title || '');
     return String(s).replace(/\s+/g, ' ').trim();
   }
-  function seenTs(){ var s = parseInt(localStorage.getItem(SEEN_KEY) || '0', 10); return s || (Date.now() - 7 * 86400000); }
-  function countNew(){ var s = seenTs(); return events.filter(function(e){ return new Date(e.timestamp).getTime() > s; }).length; }
+  function eid(e){ return e.id != null ? String(e.id) : (e.type + '|' + e.timestamp + '|' + (e.project_slug || e.title || '')); }
+  function getDismissed(){ try { return new Set(JSON.parse(localStorage.getItem(DISMISS_KEY) || '[]')); } catch(e){ return new Set(); } }
+  function saveDismissed(set){ try { localStorage.setItem(DISMISS_KEY, JSON.stringify(Array.from(set))); } catch(e){} }
+  function active(){ var d = getDismissed(); return events.slice(0, FEED_MAX).filter(function(e){ return !d.has(eid(e)); }); }
+  function countNew(){ return active().length; }
   function feedHtml(){
-    if (!events.length) return '<div class="tmw-pulse-empty">No recent activity</div>';
-    return events.slice(0, 30).map(function(e){
+    var list = active();
+    if (!list.length) return '<div class="tmw-pulse-empty">You’re all caught up</div>';
+    return list.map(function(e){
       var lab = label(e);
       var img = e.image ? '<img class="pi-img" src="' + esc(e.image) + '" alt="" loading="lazy">' : '<div class="pi-img"></div>';
       var meta = (e.city ? esc(e.city) + ' · ' : '') + rel(e.timestamp);
-      return '<a class="tmw-pulse-item" href="' + esc(e.link || '#') + '">' + img +
+      return '<a class="tmw-pulse-item" href="' + esc(e.link || '#') + '" data-eid="' + esc(eid(e)) + '">' + img +
         '<div class="pi-body"><span class="pi-tag pi-' + lab.toLowerCase() + '">' + esc(lab) + '</span>' +
         '<div class="pi-title">' + esc(title(e)) + '</div>' +
-        '<div class="pi-meta">' + meta + '</div></div></a>';
+        '<div class="pi-meta">' + meta + '</div></div>' +
+        '<span class="pi-x" role="button" aria-label="Clear notification" tabindex="0"><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></span></a>';
     }).join('');
   }
   function paintCircle(){
@@ -994,15 +1001,18 @@
       '.tmw-pulse-refresh.spin{transform:rotate(360deg)}',
       '.tmw-pulse-refresh svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}',
       '.tmw-pulse-feed{overflow-y:auto;padding:6px}',
-      '.tmw-pulse-item{display:flex;gap:11px;padding:9px 10px;border-radius:11px;text-decoration:none;cursor:pointer;transition:background .12s}',
+      '.tmw-pulse-item{position:relative;display:flex;gap:11px;padding:9px 32px 9px 10px;border-radius:11px;text-decoration:none;cursor:pointer;transition:background .12s}',
       '.tmw-pulse-item:hover{background:rgba(255,255,255,.05)}',
       '.tmw-pulse-item .pi-img{width:52px;height:52px;border-radius:9px;flex:0 0 auto;object-fit:cover;background:rgba(255,255,255,.06)}',
       '.tmw-pulse-item .pi-body{min-width:0;flex:1}',
       '.tmw-pulse-item .pi-tag{display:inline-block;font-size:9px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;margin-bottom:3px;color:#1FDF67}',
       '.tmw-pulse-item .pi-tag.pi-update{color:#FFD300}',
       '.tmw-pulse-item .pi-tag.pi-article{color:#8FB8FF}',
-      '.tmw-pulse-item .pi-title{font-size:13px;font-weight:600;color:#ECEAE5;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}',
+      '.tmw-pulse-item .pi-title{font-size:13px;font-weight:600;color:#ECEAE5;line-height:1.3;max-width:80%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
       '.tmw-pulse-item .pi-meta{font-size:11px;color:rgba(255,255,255,.4);margin-top:3px}',
+      '.tmw-pulse-item .pi-x{position:absolute;top:50%;right:8px;transform:translateY(-50%);width:20px;height:20px;border-radius:50%;background:#E5484D;color:#fff;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;opacity:.92;box-shadow:0 1px 4px rgba(0,0,0,.35);transition:opacity .12s,transform .12s}',
+      '.tmw-pulse-item .pi-x:hover{opacity:1;transform:translateY(-50%) scale(1.14);background:#F0595E}',
+      '.tmw-pulse-item .pi-x svg{width:11px;height:11px;stroke:#fff;fill:none;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}',
       '.tmw-pulse-empty{padding:28px 16px;text-align:center;color:rgba(255,255,255,.4);font-size:13px}',
       '@media(max-width:980px){.tmw-pulse-pop{position:fixed!important;top:62px!important;bottom:auto!important;left:12px!important;right:12px!important;width:auto!important;max-width:none!important;max-height:74vh!important}}'
     ].join('');
@@ -1032,14 +1042,21 @@
     repaint();
     circleEl.addEventListener('click', function(ev){
       ev.stopPropagation();
-      var opening = popEl.hidden;
-      popEl.hidden = !opening;
-      if (opening){ localStorage.setItem(SEEN_KEY, String(Date.now())); paintCircle(); }
+      popEl.hidden = !popEl.hidden;   // opening no longer clears — dismiss each tile to lower the count
+    });
+    feedEl.addEventListener('click', function(ev){
+      var x = ev.target.closest ? ev.target.closest('.pi-x') : null;
+      if (!x) return;
+      ev.preventDefault(); ev.stopPropagation();
+      var item = x.closest('.tmw-pulse-item'); if (!item) return;
+      var id = item.getAttribute('data-eid');
+      var d = getDismissed(); d.add(id); saveDismissed(d);
+      repaint();
     });
     popEl.querySelector('.tmw-pulse-refresh').addEventListener('click', function(ev){
       ev.stopPropagation();
       var btn = this; btn.classList.add('spin'); setTimeout(function(){ btn.classList.remove('spin'); }, 480);
-      localStorage.removeItem(SEEN_KEY);   // reset "viewed" → the count returns
+      localStorage.removeItem(DISMISS_KEY);   // un-dismiss all → the count returns
       fetch(PULSE_URL, { cache: 'no-store' }).then(function(r){ return r.ok ? r.json() : null; })
         .then(function(d){ if (d && d.events) events = d.events.slice().sort(byTime); repaint(); })
         .catch(function(){ repaint(); });
