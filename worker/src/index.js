@@ -549,22 +549,31 @@ async function fetchStripeIncome(env) {
     after = page.has_more ? page.data[page.data.length - 1].id : null;
   } while (after && ++guard < 50);
 
-  // Succeeded charges → actual collected revenue (all-time + this calendar year).
+  // Succeeded charges → actual collected revenue (gross) + Stripe fees, so we can
+  // show revenue (before fees) and income (after fees). Expand the balance
+  // transaction to read the processing fee Stripe took on each charge.
   const yearStart = Math.floor(Date.UTC(new Date().getUTCFullYear(), 0, 1) / 1000);
-  let allTime = 0, yearInc = 0, after2 = null, cg = 0, truncated = false;
+  let allTime = 0, allFee = 0, yearInc = 0, yearFee = 0, after2 = null, cg = 0, truncated = false;
   do {
-    const page = await stripeGet(env, '/charges?limit=100' + (after2 ? '&starting_after=' + after2 : ''));
+    const page = await stripeGet(env, '/charges?limit=100&expand[]=data.balance_transaction' + (after2 ? '&starting_after=' + after2 : ''));
     for (const c of (page.data || [])) {
       if (c.status !== 'succeeded' || !c.paid) continue;
-      const net = ((c.amount || 0) - (c.amount_refunded || 0)) / 100;
-      allTime += net;
-      if (c.created >= yearStart) yearInc += net;
+      const gross = ((c.amount || 0) - (c.amount_refunded || 0)) / 100;   // revenue (customer paid, less refunds)
+      const fee = ((c.balance_transaction && c.balance_transaction.fee) || 0) / 100;
+      allTime += gross; allFee += fee;
+      if (c.created >= yearStart) { yearInc += gross; yearFee += fee; }
     }
     after2 = page.has_more ? page.data[page.data.length - 1].id : null;
     if (++cg >= 30) { truncated = !!after2; break; }
   } while (after2);
+  const feeRate = allTime > 0 ? allFee / allTime : 0;   // effective fee % (for netting the run-rate)
 
   return {
+    fees_all_time: Math.round(allFee * 100) / 100,
+    fees_year: Math.round(yearFee * 100) / 100,
+    fee_rate: Math.round(feeRate * 10000) / 10000,
+    all_time_net: Math.round((allTime - allFee) * 100) / 100,
+    year_net: Math.round((yearInc - yearFee) * 100) / 100,
     mrr: Math.round(mrr * 100) / 100,
     arr: Math.round(mrr * 12 * 100) / 100,
     all_time_income: Math.round(allTime * 100) / 100,
@@ -657,8 +666,13 @@ async function handleSubscriptions(env, origin, url) {
       const s = await fetchStripeIncome(env);
       resp.mrr = s.mrr;
       resp.arr = s.arr;
-      resp.all_time_income = s.all_time_income;     // actual collected (not "_estimate")
+      resp.all_time_income = s.all_time_income;     // gross revenue (customer paid, less refunds)
       resp.year_income = s.year_income;
+      resp.all_time_net = s.all_time_net;           // income after Stripe fees
+      resp.year_net = s.year_net;
+      resp.fees_all_time = s.fees_all_time;
+      resp.fees_year = s.fees_year;
+      resp.fee_rate = s.fee_rate;
       resp.paying_subscribers = s.paying_subscribers;
       resp.monthly_subscriptions = s.monthly_subscriptions;
       resp.yearly_subscriptions = s.yearly_subscriptions;
