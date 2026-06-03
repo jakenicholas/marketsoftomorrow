@@ -11812,6 +11812,26 @@
     // don't collide with `window.map`, which the browser sets to the
     // <div id="map"> element via id-named-globals.
     window._tmwMap = map;
+
+    // Token-domain fallback: the Mapbox token is restricted by URL. If it doesn't
+    // authorize the host serving this clone yet (e.g. www.oftmw.com before it's
+    // whitelisted), the style request returns 401/403 and the map is blank — so
+    // fall back to the authorized live map.oftmw.com, once, preserving any
+    // ?project=/#hash deep link. A no-op on map.oftmw.com itself, and silent once
+    // the host is whitelisted (no 401, no redirect). Lets the toggle/deep links
+    // point at /map safely before the token step is done.
+    map.on('error', function (e) {
+      try {
+        var st = e && e.error && e.error.status;
+        if ((st === 401 || st === 403) &&
+            location.hostname !== 'map.oftmw.com' &&
+            !sessionStorage.getItem('tmw-map-fellback')) {
+          sessionStorage.setItem('tmw-map-fellback', '1');
+          location.replace('https://map.oftmw.com/' + location.search + location.hash);
+        }
+      } catch (_) {}
+    });
+
     let activePopup, stationPopup, fullscreenMap;
 
     const stations = [
