@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Comparison table &mdash; mockup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,600;9..144,900&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --green:#1FDF67; --green-deep:#18c75a; --green-soft:#42EB81;
+  --gold:#e6c574; --gold-soft:#f0d68a; --gold-deep:#c9a558;
+  --ink:#070807; --ink2:#0d0f0e;
+  --hair:rgba(255,255,255,.08); --hair2:rgba(255,255,255,.14);
+  --white:#ffffff; --cream:#ECEAE5; --mute:#9AA39C; --mute2:#C2C9C3;
+  --sans:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+  --serif:'Fraunces',Georgia,serif;
+  --mono:'JetBrains Mono',ui-monospace,monospace;
+  --glass:blur(16px) saturate(1.4);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--ink); color:var(--cream); font-family:var(--sans); -webkit-font-smoothing:antialiased; line-height:1.5; padding:80px 0}
+body::before{content:""; position:fixed; inset:0; z-index:0; pointer-events:none;
+  background:radial-gradient(900px 600px at 78% -8%, rgba(31,223,103,.10), transparent 60%),
+            radial-gradient(700px 600px at 110% 95%, rgba(230,197,116,.06), transparent 55%);}
+.wrap{position:relative; z-index:1; max-width:1180px; margin:0 auto; padding:0 32px}
+.eyebrow{font-family:var(--mono); font-size:12px; letter-spacing:.22em; text-transform:uppercase; color:var(--green); font-weight:500; margin-bottom:22px}
+h2{font-family:var(--serif); font-weight:600; letter-spacing:-.01em; line-height:1.04; color:var(--white); font-size:clamp(34px,4.6vw,52px)}
+.lede{font-size:clamp(15px,1.4vw,18px); color:var(--mute2); max-width:60ch; line-height:1.55; font-weight:300; margin-top:14px}
+.shead{margin-bottom:42px}
+.glass{background:rgba(255,255,255,.03); backdrop-filter:var(--glass); -webkit-backdrop-filter:var(--glass);
+  border:1px solid var(--hair); border-radius:20px; box-shadow:0 18px 50px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.05);}
+
+/* === comparison table === */
+.cmp{overflow:hidden; padding:0}
+.cmp-table{width:100%; border-collapse:collapse; table-layout:fixed}
+.cmp-table th, .cmp-table td{vertical-align:middle}
+
+.cmp-table thead th{padding:36px 14px 24px; text-align:center; border-bottom:1px solid var(--hair); position:relative}
+.cmp-table thead th:first-child{width:38%; text-align:left; padding-left:36px; vertical-align:bottom}
+.cmp-h-eyebrow{font-family:var(--mono); font-size:10px; letter-spacing:.2em; text-transform:uppercase; color:var(--mute); display:block; margin-bottom:8px}
+.cmp-h-name{font-family:var(--serif); font-weight:600; font-size:22px; color:var(--white); letter-spacing:-.015em; line-height:1; display:block}
+.cmp-h-pop{position:absolute; top:10px; left:50%; transform:translateX(-50%); background:var(--green); color:var(--ink); font-family:var(--mono); font-size:9.5px; letter-spacing:.15em; text-transform:uppercase; font-weight:700; padding:4px 11px; border-radius:5px; box-shadow:0 4px 16px rgba(31,223,103,.4); white-space:nowrap}
+.cmp-popcol{background:linear-gradient(180deg,rgba(31,223,103,.045),transparent 60%); position:relative}
+
+/* group separator rows */
+.cmp-grp td{padding:26px 18px 8px; border-bottom:none; font-family:var(--mono); font-size:10.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--green-soft); font-weight:500}
+.cmp-grp.gold td{color:var(--gold-soft)}
+.cmp-grp td:first-child{padding-left:36px}
+
+/* data rows */
+.cmp-row td{padding:16px 14px; border-bottom:1px solid var(--hair); font-size:14px; color:var(--cream); text-align:center; transition:background .15s}
+.cmp-row td:first-child{text-align:left; color:var(--white); font-weight:500; padding-left:36px}
+.cmp-row:hover td{background:rgba(255,255,255,.022)}
+.cmp-row:hover td.cmp-popcol{background:rgba(31,223,103,.06)}
+.cmp-row td.cmp-popcol{background:linear-gradient(180deg,rgba(31,223,103,.025),rgba(31,223,103,.015))}
+
+.cv-num{font-family:var(--serif); font-weight:600; color:var(--green-soft); font-size:18px; line-height:1; display:inline-block}
+.cv-num + .cv-sub{margin-left:4px}
+.cv-check{font-family:var(--serif); font-weight:600; color:var(--green-soft); font-size:16px; line-height:1}
+.cv-gold{font-family:var(--mono); font-weight:700; color:var(--gold-soft); font-size:17px; line-height:1; text-shadow:0 0 10px rgba(230,197,116,.45)}
+.cv-none{color:var(--mute); font-size:18px; opacity:.45}
+.cv-sub{font-family:var(--mono); font-size:10px; color:var(--mute); letter-spacing:.05em; text-transform:uppercase}
+
+/* investment row -- price reveal at the bottom */
+.cmp-investment td{padding:30px 14px 10px; border-bottom:none; text-align:center; border-top:1px solid var(--hair2)}
+.cmp-investment td:first-child{padding-left:36px; text-align:left; font-family:var(--mono); font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:var(--gold-soft); font-weight:500; vertical-align:middle}
+.cv-price{font-family:var(--serif); font-weight:600; font-size:28px; color:var(--gold-soft); letter-spacing:-.02em; line-height:1; text-shadow:0 0 18px rgba(230,197,116,.3); display:inline-block}
+.cv-price-per{font-family:var(--sans); font-size:13px; color:var(--mute); font-weight:400; margin-left:2px; vertical-align:baseline}
+
+/* minimum-term footer row */
+.cmp-foot td{padding:10px 14px 30px; border-bottom:none; text-align:center}
+.cmp-foot td:first-child{padding-left:36px; text-align:left; font-family:var(--mono); font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--mute)}
+.cmp-foot .min{font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--mute2)}
+
+@media(max-width:880px){
+  .cmp-table thead th:first-child{width:34%}
+  .cmp-table thead th{padding:24px 8px 20px}
+  .cmp-h-name{font-size:18px}
+  .cmp-h-price{font-size:17px}
+  .cmp-row td{padding:14px 8px; font-size:12.5px}
+  .cmp-row td:first-child{padding-left:18px}
+  .cmp-grp td:first-child{padding-left:18px}
+  .cmp-table thead th:first-child{padding-left:18px}
+  .cmp-foot td:first-child{padding-left:18px}
+}
+</style>
+</head>
+<body>
+
+<section>
+  <div class="wrap">
+    <div class="shead">
+      <div class="eyebrow">Quick Comparison</div>
+      <h2>All three, side by side.</h2>
+      <p class="lede">A flat read of what each package includes &mdash; so you can pick the one built for your moment.</p>
+    </div>
+
+    <div class="cmp glass">
+      <table class="cmp-table">
+        <thead>
+          <tr>
+            <th></th>
+            <th>
+              <span class="cmp-h-eyebrow">01</span>
+              <span class="cmp-h-name">Platinum</span>
+            </th>
+            <th class="cmp-popcol">
+              <span class="cmp-h-pop">Most Popular</span>
+              <span class="cmp-h-eyebrow">02</span>
+              <span class="cmp-h-name">Gold</span>
+            </th>
+            <th>
+              <span class="cmp-h-eyebrow">03</span>
+              <span class="cmp-h-name">Blast</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+
+          <tr class="cmp-grp"><td colspan="4">Core inclusions</td></tr>
+          <tr class="cmp-row">
+            <td>Collab posts on socials</td>
+            <td><span class="cv-num">2</span><span class="cv-sub">/ mo</span></td>
+            <td class="cmp-popcol"><span class="cv-num">1</span><span class="cv-sub">/ mo</span></td>
+            <td><span class="cv-num">1</span></td>
+          </tr>
+          <tr class="cmp-row">
+            <td>Website articles &amp; features</td>
+            <td><span class="cv-num">2</span><span class="cv-sub">/ mo</span></td>
+            <td class="cmp-popcol"><span class="cv-num">1</span><span class="cv-sub">/ mo</span></td>
+            <td><span class="cv-num">1</span></td>
+          </tr>
+          <tr class="cmp-row">
+            <td>Instagram + Facebook stories</td>
+            <td><span class="cv-check">Weekly</span></td>
+            <td class="cmp-popcol"><span class="cv-check">Weekly</span></td>
+            <td><span class="cv-num">1</span></td>
+          </tr>
+
+          <tr class="cmp-grp"><td colspan="4">Reach amplifiers</td></tr>
+          <tr class="cmp-row">
+            <td>Features + banner ads in The Weekly</td>
+            <td><span class="cv-check">Monthly</span></td>
+            <td class="cmp-popcol"><span class="cv-check">Monthly</span></td>
+            <td><span class="cv-none">&mdash;</span></td>
+          </tr>
+          <tr class="cmp-row">
+            <td>Dynamic banner ad across our website</td>
+            <td><span class="cv-check">&#10003;</span></td>
+            <td class="cmp-popcol"><span class="cv-check">&#10003;</span></td>
+            <td><span class="cv-none">&mdash;</span></td>
+          </tr>
+          <tr class="cmp-row">
+            <td>Featured spotlight in our Database</td>
+            <td><span class="cv-check">&#10003;</span></td>
+            <td class="cmp-popcol"><span class="cv-check">&#10003;</span></td>
+            <td><span class="cv-none">&mdash;</span></td>
+          </tr>
+
+          <tr class="cmp-grp gold"><td colspan="4">Platinum exclusives</td></tr>
+          <tr class="cmp-row">
+            <td>Additional focus-market push</td>
+            <td><span class="cv-gold">+</span></td>
+            <td class="cmp-popcol"><span class="cv-none">&mdash;</span></td>
+            <td><span class="cv-none">&mdash;</span></td>
+          </tr>
+          <tr class="cmp-row">
+            <td>Pinned post across profiles</td>
+            <td><span class="cv-gold">+</span></td>
+            <td class="cmp-popcol"><span class="cv-none">&mdash;</span></td>
+            <td><span class="cv-none">&mdash;</span></td>
+          </tr>
+          <tr class="cmp-row">
+            <td>Official Partner of Tomorrow</td>
+            <td><span class="cv-gold">+</span></td>
+            <td class="cmp-popcol"><span class="cv-none">&mdash;</span></td>
+            <td><span class="cv-none">&mdash;</span></td>
+          </tr>
+          <tr class="cmp-row">
+            <td>Featured spotlight article on homepage</td>
+            <td><span class="cv-gold">+</span></td>
+            <td class="cmp-popcol"><span class="cv-none">&mdash;</span></td>
+            <td><span class="cv-none">&mdash;</span></td>
+          </tr>
+          <tr class="cmp-row">
+            <td>Monthly solo edition of The Weekly</td>
+            <td><span class="cv-gold">+</span></td>
+            <td class="cmp-popcol"><span class="cv-none">&mdash;</span></td>
+            <td><span class="cv-none">&mdash;</span></td>
+          </tr>
+          <tr class="cmp-row">
+            <td>Priority placement in suggested articles</td>
+            <td><span class="cv-gold">+</span></td>
+            <td class="cmp-popcol"><span class="cv-none">&mdash;</span></td>
+            <td><span class="cv-none">&mdash;</span></td>
+          </tr>
+
+          <tr class="cmp-investment">
+            <td>Investment</td>
+            <td><span class="cv-price">$4,700</span><span class="cv-price-per">/mo</span></td>
+            <td class="cmp-popcol"><span class="cv-price">$3,000</span><span class="cv-price-per">/mo</span></td>
+            <td><span class="cv-price">$950</span></td>
+          </tr>
+          <tr class="cmp-foot">
+            <td>Minimum term</td>
+            <td><span class="min">2 months</span></td>
+            <td class="cmp-popcol"><span class="min">3 months</span></td>
+            <td><span class="min">No commitment</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+</body>
+</html>
