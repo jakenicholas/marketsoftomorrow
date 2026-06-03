@@ -1001,52 +1001,10 @@ hookBannerCollapse();
 // Banner ad: collapse once the user scrolls past it
 // ---------------------------------------------------------------
 function hookBannerCollapse() {
-  const banner = document.getElementById('banner-ad');
-  if (!banner) return;
-  // The banner sits ABOVE the sticky header in normal flow, so it scrolls away
-  // on its own while the nav pins to the top and stays there. Nothing to wire on
-  // a fresh load — the banner shows, and scrolling up always brings it back.
-  //
-  // Arriving from the Map or Atlas via the surface toggle, we want to land with
-  // the nav already pinned to the top and the banner tucked just above the
-  // viewport (NOT destroyed) — so the reader can scroll up to reveal it again.
-  // We do that by scrolling past the banner's height once it has laid out.
-  let fromSurface = false;
-  try {
-    const ref = document.referrer ? new URL(document.referrer) : null;
-    fromSurface = !!ref && (ref.hostname === 'map.oftmw.com' ||
-      (ref.hostname === location.hostname && /^\/atlas(\/|$)/.test(ref.pathname)));
-  } catch (_) {}
-  if (!fromSurface) return;
-
-  // Snap the universal header flush to the very top (banner scrolled fully out
-  // of view, not destroyed). We target the HEADER's own position rather than the
-  // banner height so it lands flush even when the banner finishes laying out
-  // taller than it measured at first (its carousel/images settle a beat later).
-  // Re-apply for a short window to catch that late growth, and never fight the
-  // reader — a real scroll (e.g. up to reveal the banner) stops us.
-  const header = document.querySelector('.sticky-stack')
-    || document.querySelector('.tmw-chrome-head') || banner.nextElementSibling;
-  let userMoved = false;
-  window.addEventListener('wheel', (e) => { if (Math.abs(e.deltaY) > 4) userMoved = true; }, { passive: true });
-  ['touchstart', 'keydown'].forEach((ev) =>
-    window.addEventListener(ev, () => { userMoved = true; }, { passive: true, once: true }));
-  const snapTop = () => {
-    if (userMoved || !header) return;
-    const top = header.getBoundingClientRect().top;
-    if (top > 1) {
-      // html has scroll-behavior:smooth, so a plain scrollTo animates and gets
-      // cancelled by the async layout during load. Force an instant jump.
-      const root = document.documentElement;
-      const prev = root.style.scrollBehavior;
-      root.style.scrollBehavior = 'auto';
-      window.scrollTo(0, top + (window.scrollY || window.pageYOffset || 0));
-      root.style.scrollBehavior = prev;
-    }
-  };
-  requestAnimationFrame(() => requestAnimationFrame(snapTop));
-  [0, 120, 300, 600, 1000].forEach((d) => setTimeout(snapTop, d));
-  window.addEventListener('load', snapTop, { once: true });
+  // The banner sits above the sticky header in normal document flow, so it shows
+  // full-height at the top of the window on every load — including when arriving
+  // via a surface toggle switch — and the universal header stays pinned to the
+  // top of the viewport as you scroll past it. No scroll manipulation needed.
 }
 
 // ---------------------------------------------------------------

@@ -13,6 +13,14 @@
   if (window.__tmwDock) return;
   window.__tmwDock = true;
 
+  // Tag <html> with the current surface so per-surface accents (the gold glow on
+  // Global for the journal vs Database for the map/atlas) can be scoped in CSS.
+  (function tagSurface() {
+    var surf = location.hostname === 'map.oftmw.com' ? 'map'
+      : (/^\/atlas(\/|$)/.test(location.pathname) ? 'atlas' : 'journal');
+    document.documentElement.classList.add('tmw-surf-' + surf);
+  })();
+
   // ── Google Analytics (GA4) — same property as the map. Journal traffic on
   //    www.oftmw.com lands under hostName www.oftmw.com so the studio's Journal
   //    analytics tab can scope to it (vs map.oftmw.com + /media).
@@ -314,6 +322,11 @@
     // ── Header nav: drop the green underline; gold glow text on hover/active.
     '.nav-links a.active::after, .tmw-chrome-head .nav-links a.active::after, nav.main .nav-links a.active::after{display:none !important}',
     '.nav-links a:hover, .nav-links a.active, .tmw-chrome-head .nav-links a:hover, .tmw-chrome-head .nav-links a.active{color:var(--gold-soft) !important; text-shadow:0 0 14px rgba(230,197,116,.55), 0 0 3px rgba(230,197,116,.35)}',
+    // Per-surface gold accent: Global glows on the journal home; Database carries
+    // the same glow on the map + atlas (their primary context). A touch stronger
+    // than the shared hover glow so it reads clearly against every chrome.
+    'html.tmw-surf-journal nav.main .nav-links a.active{color:var(--gold-soft) !important; text-shadow:0 0 16px rgba(230,197,116,.7), 0 0 5px rgba(230,197,116,.42)}',
+    'html.tmw-surf-map .tmw-fm-database .tmw-fm-trigger, html.tmw-surf-atlas .tmw-fm-database .tmw-fm-trigger{color:var(--gold-soft) !important; text-shadow:0 0 16px rgba(230,197,116,.7), 0 0 5px rgba(230,197,116,.42)}',
 
     // ── Rank-page CTA (Book a table / Website): subtle gold-glow text, no fill.
     '.btn-cta{background:transparent !important; color:var(--gold-soft) !important; padding:8px 0 !important; border-radius:0 !important; text-shadow:0 0 14px rgba(230,197,116,.5), 0 0 3px rgba(230,197,116,.32)}',
@@ -676,7 +689,9 @@
   // Make one full-width mega dropdown (.tmw-fm) with a trigger + panel + toggle.
   function makeFm(label, innerHTML) {
     var fm = document.createElement('div');
-    fm.className = 'tmw-fm';
+    // e.g. "Database" -> "tmw-fm tmw-fm-database" so a single dropdown can be
+    // targeted (the gold accent on Database for the map/atlas surfaces).
+    fm.className = 'tmw-fm tmw-fm-' + label.toLowerCase().replace(/\s+/g, '-');
     fm.innerHTML =
       '<button type="button" class="tmw-fm-trigger" aria-expanded="false" aria-haspopup="true">' + label + CHEV + '</button>' +
       '<div class="tmw-fm-panel v2" role="menu"><div class="tmw-fm-inner">' + innerHTML + '</div></div>';

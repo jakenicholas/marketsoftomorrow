@@ -52,7 +52,9 @@
   var active = /\/journal\/hotels\//.test(path) ? 'hotels'
     : /\/journal\/restaurants\//.test(path) ? 'restaurants'
     : /\/journal\/golf\//.test(path) ? 'golf'
-    : (path === '/' || path === '/index.html') ? 'global'
+    // "Global" is the active accent on the JOURNAL home only — not the map (which
+    // also lives at "/"), where Database carries the gold glow instead.
+    : ((path === '/' || path === '/index.html') && location.hostname !== 'map.oftmw.com') ? 'global'
     : '';
   var navHtml = NAV.map(function (n) {
     return '<a href="' + n[1] + '"' + (n[2] === active ? ' class="active"' : '') + '>' + n[0] + '</a>';
