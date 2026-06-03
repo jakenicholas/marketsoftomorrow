@@ -91,7 +91,9 @@ nav.main .wrap{display:flex; align-items:center; justify-content:space-between; 
 .ticker-label .newcount.has{background:rgba(31,223,103,.15); color:var(--green); border:1px solid rgba(31,223,103,.35); padding:2px 7px}
 .ticker-viewport{flex:1; min-width:0; overflow:hidden; display:flex; align-items:center; height:100%; -webkit-mask-image:linear-gradient(90deg, transparent, #000 24px, #000 calc(100% - 32px), transparent); mask-image:linear-gradient(90deg, transparent, #000 24px, #000 calc(100% - 32px), transparent)}
 .ticker-track{display:flex; align-items:center; gap:28px; white-space:nowrap; animation:tickerScroll 60s linear infinite; padding-left:8px; will-change:transform}
-.ticker:hover .ticker-track{animation-play-state:paused}
+/* Pause on hover only on real pointer devices — on touch, :hover sticks after a
+   tap and would freeze the ticker permanently. */
+@media (hover:hover){.ticker:hover .ticker-track{animation-play-state:paused}}
 @keyframes tickerScroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 .ticker-item{display:inline-flex; align-items:center; gap:10px; font-size:13px; color:var(--cream); transition:color .15s}
 .ticker-item:hover{color:var(--green-soft)}
