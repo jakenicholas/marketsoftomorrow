@@ -360,7 +360,7 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
 .tier-card{padding:34px 30px 28px; display:flex; flex-direction:column; position:relative; overflow:visible}
 .tier-card.popular{border-color:rgba(31,223,103,.32); box-shadow:0 18px 60px rgba(0,0,0,.55), 0 0 0 1px rgba(31,223,103,.18) inset, inset 0 1px 0 rgba(255,255,255,.07), 0 0 40px -10px rgba(31,223,103,.25)}
 .tier-pop{position:absolute; top:-12px; left:30px; background:var(--green); color:var(--ink); font-family:var(--mono); font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; font-weight:700; padding:6px 13px; border-radius:6px; box-shadow:0 8px 26px rgba(31,223,103,.4); z-index:2}
-.tier-head{display:flex; justify-content:space-between; align-items:baseline; gap:14px; padding-bottom:22px; margin-bottom:24px; border-bottom:1px solid var(--hair); flex-wrap:wrap}
+.tier-head{display:flex; flex-direction:column; align-items:flex-start; gap:10px; padding-bottom:22px; margin-bottom:24px; border-bottom:1px solid var(--hair)}
 .tier-name{font-family:var(--serif); font-weight:600; font-size:26px; color:var(--white); letter-spacing:-.015em; line-height:1.1}
 .tier-price{font-family:var(--serif); font-weight:600; font-size:30px; color:var(--gold-soft); letter-spacing:-.02em; line-height:1; white-space:nowrap; text-shadow:0 0 20px rgba(230,197,116,.3)}
 .tier-price .per{font-family:var(--sans); font-size:14px; color:var(--mute); font-weight:400; letter-spacing:0; margin-left:3px; text-shadow:none}
@@ -368,6 +368,7 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
 .tier-list li{display:grid; grid-template-columns:24px 1fr; gap:10px; align-items:flex-start}
 .tier-list .qty{font-family:var(--serif); font-weight:600; color:var(--green-soft); font-size:18px; line-height:1.1; text-align:center}
 .tier-list .qty.plus{font-family:var(--mono); font-weight:600; font-size:18px; color:var(--green-soft); line-height:1.05}
+.tier-list .qty.gold{color:var(--gold-soft); text-shadow:0 0 12px rgba(230,197,116,.45)}
 .tier-list .item{display:flex; flex-direction:column; gap:4px}
 .tier-list .item-h{font-size:14.5px; color:var(--white); font-weight:600; line-height:1.35; letter-spacing:-.005em}
 .tier-list .item-s{font-size:12.5px; color:var(--mute); line-height:1.45; font-weight:300}
@@ -690,20 +691,22 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
           <li><span class="qty">2</span><span class="item"><span class="item-h">Monthly collab posts on our social accounts</span><span class="item-s">Instagram, TikTok, LinkedIn, Twitter, Threads &mdash; build your audience with tagged collabs</span></span></li>
           <li><span class="qty">2</span><span class="item"><span class="item-h">Monthly website articles / features</span><span class="item-s">Original articles published across Markets of Tomorrow</span></span></li>
           <li><span class="qty plus">+</span><span class="item"><span class="item-h">Weekly Instagram + Facebook stories</span><span class="item-s">We continually share your project on our 5,000-avg-viewer stories</span></span></li>
-          <li><span class="qty plus">+</span><span class="item"><span class="item-h">Monthly highlighted newsletter features + banner ads</span><span class="item-s">Shared with our active email subscribers</span></span></li>
+          <li><span class="qty plus">+</span><span class="item"><span class="item-h">Monthly features + banner ads in The Weekly</span><span class="item-s">Our weekly newsletter, shared with active email subscribers</span></span></li>
           <li><span class="qty plus">+</span><span class="item"><span class="item-h">Dynamic banner ad across all of our website pages</span><span class="item-s">Take over the main header across every Markets of Tomorrow page</span></span></li>
           <li><span class="qty plus">+</span><span class="item"><span class="item-h">Additional focus-market accounts push</span><span class="item-s">Beyond your home market, choose another of our market accounts to push to</span></span></li>
           <li><span class="qty plus">+</span><span class="item"><span class="item-h">Pinned post across profiles</span><span class="item-s">Always be the center of attention with a pinned post on all of our socials</span></span></li>
           <li><span class="qty plus">+</span><span class="item"><span class="item-h">Official Partner of Tomorrow</span><span class="item-s">Company spotlight across all of our social media and website pages</span></span></li>
           <li><span class="qty plus">+</span><span class="item"><span class="item-h">Featured spotlight article on website homepage</span><span class="item-s">Push your website article even further in our massive featured section</span></span></li>
-          <li><span class="qty plus">+</span><span class="item"><span class="item-h">Monthly dedicated solo email blast</span><span class="item-s">Every month we send a newsletter to all subscribers with you as sole focus</span></span></li>
-          <li><span class="qty plus">+</span><span class="item"><span class="item-h">Featured listing on our Map of Tomorrow</span><span class="item-s">Your in-development project as a spotlight feature on our interactive map</span></span></li>
+          <li><span class="qty plus">+</span><span class="item"><span class="item-h">Monthly solo edition of The Weekly</span><span class="item-s">A dedicated edition of our weekly newsletter with you as the sole focus</span></span></li>
+          <li><span class="qty plus">+</span><span class="item"><span class="item-h">Featured spotlight in our Database</span><span class="item-s">Including our Map, Atlas, TMW Intelligence, and more</span></span></li>
+          <li><span class="qty plus gold">+</span><span class="item"><span class="item-h">Priority placement in suggested articles</span><span class="item-s">Your articles surface more often in our &ldquo;Read More&rdquo; and &ldquo;Suggested&rdquo; sections across the network</span></span></li>
         </ul>
         <div class="tier-min">2-Month Minimum</div>
       </article>
 
       <!-- 02 GOLD CAMPAIGN -->
-      <article class="tier-card glass reveal d2">
+      <article class="tier-card glass popular reveal d2">
+        <div class="tier-pop">Most Popular</div>
         <div class="tier-head">
           <h3 class="tier-name">Gold Campaign</h3>
           <div class="tier-price">$3,000<span class="per">/mo</span></div>
@@ -712,19 +715,18 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
           <li><span class="qty">1</span><span class="item"><span class="item-h">Monthly collaborative post on our social accounts</span><span class="item-s">Instagram, TikTok, LinkedIn, Twitter, Threads &mdash; build your audience with tagged collabs</span></span></li>
           <li><span class="qty">1</span><span class="item"><span class="item-h">Monthly website article / feature</span><span class="item-s">Original article published across Markets of Tomorrow</span></span></li>
           <li><span class="qty plus">+</span><span class="item"><span class="item-h">Weekly Instagram + Facebook story</span><span class="item-s">The post with a link to your website article</span></span></li>
-          <li><span class="qty plus">+</span><span class="item"><span class="item-h">Monthly highlighted newsletter features</span><span class="item-s">Shared with our active email subscribers</span></span></li>
+          <li><span class="qty plus">+</span><span class="item"><span class="item-h">Monthly highlighted features in The Weekly</span><span class="item-s">Our weekly newsletter, shared with active email subscribers</span></span></li>
           <li><span class="qty plus">+</span><span class="item"><span class="item-h">Dynamic banner ad across all of our website pages</span><span class="item-s">Take over the main header across every Markets of Tomorrow page</span></span></li>
-          <li><span class="qty plus">+</span><span class="item"><span class="item-h">Featured listing on our Map of Tomorrow</span><span class="item-s">Your in-development project as a spotlight feature on our interactive map</span></span></li>
+          <li><span class="qty plus">+</span><span class="item"><span class="item-h">Featured spotlight in our Database</span><span class="item-s">Including our Map, Atlas, TMW Intelligence, and more</span></span></li>
         </ul>
         <div class="tier-min">3-Month Minimum</div>
       </article>
 
       <!-- 03 ONE-TIME BLAST -->
-      <article class="tier-card glass popular reveal d3">
-        <div class="tier-pop">Most Popular</div>
+      <article class="tier-card glass reveal d3">
         <div class="tier-head">
           <h3 class="tier-name">One-Time Blast</h3>
-          <div class="tier-price">$900</div>
+          <div class="tier-price">$950</div>
         </div>
         <ul class="tier-list">
           <li><span class="qty">1</span><span class="item"><span class="item-h">Collaborative post on our socials</span><span class="item-s">Instagram, TikTok, LinkedIn, Twitter, Threads</span></span></li>
