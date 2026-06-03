@@ -109,7 +109,7 @@
   })();
 
   // ── Destinations (single source of truth; update when domain moves) ──
-  var MAP_URL     = 'https://map.oftmw.com';
+  var MAP_URL     = 'https://www.oftmw.com/map';
   var HOME_URL    = 'https://www.oftmw.com';
   var SEARCH_PAGE = '/search/';
 
@@ -137,7 +137,7 @@
   function buildToggle(active, mini) {
     var segs = [
       ['journal', 'Journal', 'https://www.oftmw.com/'],
-      ['map', 'Map', 'https://map.oftmw.com'],
+      ['map', 'Map', 'https://www.oftmw.com/map'],
       ['atlas', 'Atlas', 'https://www.oftmw.com/atlas']
     ];
     return '<div class="tmw-st' + (mini ? ' mini' : '') + '" role="tablist" aria-label="Switch interface">' +
@@ -583,7 +583,7 @@
   // text) and re-home into the new Focus Markets / The Lists dropdowns.
   var MARKET_LABELS = { 'florida':1, 'new york':1, 'new-york':1, 'newyork':1, 'tennessee':1, 'caribbean':1, 'rockies':1, 'hotels':1, 'restaurants':1, 'golf':1 };
 
-  var MAP_BASE = 'https://map.oftmw.com';
+  var MAP_BASE = 'https://www.oftmw.com/map';
   var CHEV = '<svg class="tmw-fm-chev" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 6l4 4 4-4"/></svg>';
   var IG_SM = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4.5"/><circle cx="17.5" cy="6.5" r="1.2" fill="currentColor" stroke="none"/></svg>';
   var ARR2 = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h10M9 4l4 4-4 4"/></svg>';

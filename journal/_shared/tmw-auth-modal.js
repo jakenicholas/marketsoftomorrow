@@ -335,7 +335,7 @@
           '<button class="tmw-am-primary" data-act="go-pro">Go Pro</button>' +
         '</div>';
       el.querySelector('[data-act="go-pro"]').addEventListener('click', function () {
-        close(); if (typeof window.tmwShowPaywall === 'function') window.tmwShowPaywall('watchlist'); else window.location.href = 'https://map.oftmw.com/?upgrade=1';
+        close(); if (typeof window.tmwShowPaywall === 'function') window.tmwShowPaywall('watchlist'); else window.location.href = 'https://www.oftmw.com/map/?upgrade=1';
       });
       return;
     }
@@ -345,7 +345,7 @@
       var json = (out[0] && out[0].data) || {}, pmap = out[1] || {};
       var favs = Array.isArray(json.favorites) ? json.favorites.filter(function (s) { return typeof s === 'string' && s; }) : [];
       if (!favs.length) {
-        el.innerHTML = '<div class="tmw-am-wl-empty"><b>No saved projects yet</b><i>Star projects on the map to start your watchlist.</i><a class="tmw-am-primary" href="https://map.oftmw.com" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;text-decoration:none">Explore the map →</a></div>';
+        el.innerHTML = '<div class="tmw-am-wl-empty"><b>No saved projects yet</b><i>Star projects on the map to start your watchlist.</i><a class="tmw-am-primary" href="https://www.oftmw.com/map" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;text-decoration:none">Explore the map →</a></div>';
         return;
       }
       el.innerHTML = '';
@@ -354,7 +354,7 @@
         var p = pmap[slug] || null;
         var mslug = (p && p.Title) ? mapSlug(p.Title) : slug.replace(/-/g, '');
         var a = document.createElement('a'); a.className = 'tmw-am-wlc';
-        a.href = 'https://map.oftmw.com/?fullscreen=true&project=' + encodeURIComponent(mslug); a.target = '_blank'; a.rel = 'noopener';
+        a.href = 'https://www.oftmw.com/map/?fullscreen=true&project=' + encodeURIComponent(mslug); a.target = '_blank'; a.rel = 'noopener';
         var img = (p && (p.ImageURL || p.Image2)) || '';
         if (img) { var im = document.createElement('img'); im.src = img; im.loading = 'lazy'; im.alt = ''; a.appendChild(im); }
         var meta = document.createElement('div'); meta.className = 'tmw-am-wlc-meta';
@@ -401,7 +401,7 @@
       }
       close();
       if (typeof window.tmwShowPaywall === 'function') window.tmwShowPaywall('account');
-      else window.location.href = 'https://map.oftmw.com/?upgrade=1';
+      else window.location.href = 'https://www.oftmw.com/map/?upgrade=1';
     });
     show(section || 'profile');
   }

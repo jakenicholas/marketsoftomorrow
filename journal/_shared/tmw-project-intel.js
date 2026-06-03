@@ -212,7 +212,7 @@
       ? ' <span style="font-size:13px;color:rgba(255,255,255,0.5);font-weight:500;">(' + entry.range_low + '–' + entry.range_high + ' yrs)</span>' : '';
     var similarsHtml = '';
     (entry.comparables || []).forEach(function (c) {
-      similarsHtml += '<a class="pm-intel-similar" href="https://map.oftmw.com/?project=' + mapSlug(c.name || '') + '" target="_blank" rel="noopener">' +
+      similarsHtml += '<a class="pm-intel-similar" href="https://www.oftmw.com/map/?project=' + mapSlug(c.name || '') + '" target="_blank" rel="noopener">' +
         '<div class="pm-intel-similar-name">' + esc(c.name || '') + '</div>' +
         '<div class="pm-intel-similar-loc">' + esc(c.location || '') + '</div>' +
         '<div class="pm-intel-similar-row"><span><b>' + esc(c.years) + '</b> yrs</span></div></a>';

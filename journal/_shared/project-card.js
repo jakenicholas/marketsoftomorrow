@@ -9,7 +9,7 @@
       <div class="tmw-project-card" data-project="olara"></div>
 
   Legacy map-embed iframes are auto-upgraded into cards:
-      <iframe class="tmw-map-embed" src="https://map.oftmw.com/?project=olara">
+      <iframe class="tmw-map-embed" src="https://www.oftmw.com/map/?project=olara">
 
   Loaded on journal post pages (injected by journal-dock.js). No-ops if the page
   has no embeds.
@@ -17,7 +17,7 @@
 (function () {
   'use strict';
 
-  var MAP_URL      = 'https://map.oftmw.com';
+  var MAP_URL      = 'https://www.oftmw.com/map';
   var PROJECTS_URL = MAP_URL + '/projects-flat.json';
   var INTEL_URL    = MAP_URL + '/intel.json';
   var LINKS_URL    = '/_shared/project-links.json';  // reverse map coverage: postSlug -> projectSlug

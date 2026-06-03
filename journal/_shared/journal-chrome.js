@@ -61,7 +61,7 @@
   }).join('');
 
   var CTA =
-    '<a href="https://map.oftmw.com" class="nav-cta" id="nav-map-cta">' +
+    '<a href="https://www.oftmw.com/map" class="nav-cta" id="nav-map-cta">' +
       '<span class="mc-pin" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
       '<path d="M12 21s-7-7-7-12a7 7 0 0114 0c0 5-7 12-7 12z"/><circle cx="12" cy="9" r="2.5" fill="currentColor"/></svg></span>' +
       '<span class="mc-label">Open Map</span><span class="mc-sep" aria-hidden="true"></span>' +
@@ -86,7 +86,7 @@
         '<li><a href="/golf/">Golf</a></li><li><a href="/restaurants/">Restaurants</a></li>' +
         '<li><a href="/hotels/">Hotels</a></li></ul></div>' +
       '<div><h4>Company</h4><ul>' +
-        '<li><a href="https://map.oftmw.com">Map of Tomorrow</a></li><li><a href="/media/">About Us</a></li>' +
+        '<li><a href="https://www.oftmw.com/map">Map of Tomorrow</a></li><li><a href="/media/">About Us</a></li>' +
         '<li><a href="/media/">Advertise</a></li><li><a href="mailto:hello@oftmw.com">Contact</a></li></ul></div>' +
     '</div><div class="ft-bot"><div>&copy; <span id="tmw-yr"></span> Markets of Tomorrow</div>' +
       '<div>The Future is Here</div></div></div></footer>';

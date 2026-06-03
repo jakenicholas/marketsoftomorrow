@@ -21,7 +21,7 @@
 (function () {
   'use strict';
   var MS_APP = 'app_cmoq79nvv002d0syef7wpel3c';   // same app as the map
-  var MAP_URL = 'https://map.oftmw.com';
+  var MAP_URL = 'https://www.oftmw.com/map';
 
   // ── 1) Load Memberstack once (shared across journal pages) ──────────────
   //    Cross-subdomain SSO: store the session in a cookie on the ROOT domain

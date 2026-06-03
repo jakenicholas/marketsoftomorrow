@@ -306,7 +306,7 @@
           <ul class="lblist" id="tiLblist"></ul>
           <div class="rfoot">
             <span id="tiRfoot">&#8593; = announced / breaking ground</span>
-            <a href="https://map.oftmw.com" target="_blank" rel="noopener">Open map <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
+            <a href="https://www.oftmw.com/map" target="_blank" rel="noopener">Open map <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
           </div>
         </div>
       </div>
@@ -355,7 +355,7 @@
         <p>Explore all 396 projects free. Unlock forecasts, compare mode, and your watchlist with TMW Pro.</p>
       </div>
       <div class="cbtns">
-        <a class="btn ghost" href="https://map.oftmw.com" target="_blank" rel="noopener">See TMW Pro <span class="btn-pro">PRO</span></a>
+        <a class="btn ghost" href="https://www.oftmw.com/map" target="_blank" rel="noopener">See TMW Pro <span class="btn-pro">PRO</span></a>
       </div>
     </div>
 
