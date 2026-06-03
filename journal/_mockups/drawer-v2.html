@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TMW · Unified Search Drawer — concept</title>
+<style>
+  :root{
+    --bg:#0a0a0a; --map:#0c0d0e;
+    --surface:rgba(17,17,19,0.86); --surface-2:rgba(30,30,34,0.82);
+    --text:#ECEAE5; --mute:rgba(236,234,229,0.55); --dim:rgba(236,234,229,0.36);
+    --line:rgba(255,255,255,0.08); --line-2:rgba(255,255,255,0.05);
+    --green:#1FDF67; --gold:#f0d68a; --purple:#A78BFA; --purple-glow:#B9A6FF;
+  }
+  @property --ang{ syntax:'<angle>'; inherits:false; initial-value:0deg; }
+  @keyframes chase{ to{ --ang:360deg; } }
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  html,body{ height:100%; }
+  body{
+    background:var(--bg); color:var(--text); overflow:hidden;
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  /* ── Map background ─────────────────────────────────────────── */
+  .map{
+    position:fixed; inset:0; z-index:1;
+    background:
+      radial-gradient(900px 600px at 74% 78%, rgba(31,223,103,0.16), transparent 60%),
+      radial-gradient(1200px 900px at 60% 30%, rgba(255,255,255,0.025), transparent 60%),
+      var(--map);
+  }
+  .map svg{ position:absolute; inset:0; width:100%; height:100%; opacity:.5; }
+  .map .pin{ position:absolute; transform:translate(-50%,-50%); border-radius:50%;
+    background:var(--green); color:#06210f; font-weight:800; font-size:12px;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 0 0 4px rgba(31,223,103,0.18), 0 0 22px rgba(31,223,103,0.45); }
+
+  /* ── Header ─────────────────────────────────────────────────── */
+  header{
+    position:fixed; top:0; left:0; right:0; height:60px; z-index:40;
+    display:flex; align-items:center; gap:26px; padding:0 26px;
+    background:rgba(8,8,8,0.82); backdrop-filter:blur(20px);
+    border-bottom:1px solid var(--line-2);
+  }
+  .wordmark{ font-weight:800; letter-spacing:-.01em; line-height:.92; font-size:15px; }
+  .wordmark small{ display:block; font-size:9px; letter-spacing:.18em; color:var(--mute); }
+  .seg{ display:flex; gap:2px; background:rgba(255,255,255,0.04); border:1px solid var(--line); border-radius:999px; padding:3px; }
+  .seg a{ display:flex; align-items:center; gap:6px; height:30px; padding:0 12px; border-radius:999px;
+    color:#C2C9C3; text-decoration:none; font-size:11px; font-weight:700; letter-spacing:.1em; }
+  .seg a.on{ background:#3a3d42; color:#fff; }
+  .seg svg{ width:15px; height:15px; }
+  nav{ display:flex; gap:22px; margin-left:8px; }
+  nav a{ color:var(--mute); text-decoration:none; font-size:12px; font-weight:700; letter-spacing:.08em; }
+  nav a.db{ color:var(--gold); text-shadow:0 0 16px rgba(230,197,116,.7), 0 0 5px rgba(230,197,116,.42); }
+  .join{ margin-left:auto; height:34px; padding:0 18px; border-radius:999px; border:1px solid var(--line);
+    background:rgba(255,255,255,0.03); color:#fff; font-size:12px; font-weight:700; display:flex; align-items:center; }
+
+  /* ── Drawer ─────────────────────────────────────────────────── */
+  .drawer{
+    position:fixed; left:0; top:60px; bottom:0; width:412px; z-index:30;
+    background:var(--surface); backdrop-filter:blur(40px) saturate(1.3);
+    border-right:1px solid var(--line); display:flex; flex-direction:column;
+  }
+  .drawer-head{ padding:18px 18px 12px; border-bottom:1px solid var(--line-2); }
+
+  /* glow search */
+  .search{ position:relative; display:flex; align-items:center; height:46px;
+    background:rgba(255,255,255,0.045); border-radius:999px; padding:0 14px 0 42px; }
+  .search::before{ content:""; position:absolute; inset:-1.5px; border-radius:999px; padding:1.5px; pointer-events:none;
+    background:conic-gradient(from var(--ang), rgba(167,139,250,0) 0deg, rgba(167,139,250,0) 205deg, #A78BFA 300deg, #E9DEFF 338deg, rgba(167,139,250,0) 360deg);
+    -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite:xor; mask-composite:exclude;
+    filter:drop-shadow(0 0 5px rgba(167,139,250,.7)); animation:chase 3s linear infinite; }
+  .search .ico{ position:absolute; left:15px; width:17px; height:17px; color:var(--purple); }
+  .search input{ background:none; border:0; outline:0; color:var(--text); font-size:15px; font-weight:500; width:100%; }
+  .search .x{ width:22px; height:22px; border-radius:50%; background:rgba(255,255,255,0.08); color:var(--mute);
+    display:flex; align-items:center; justify-content:center; font-size:14px; flex:0 0 auto; cursor:pointer; }
+  .search-meta{ display:flex; align-items:center; gap:8px; margin-top:11px; font-size:11.5px; }
+  .scope{ display:flex; gap:6px; }
+  .scope b{ padding:5px 11px; border-radius:999px; font-size:11px; font-weight:700; letter-spacing:.02em; cursor:pointer;
+    background:rgba(255,255,255,0.05); color:var(--mute); border:1px solid transparent; }
+  .scope b.on{ background:rgba(167,139,250,0.16); color:#d9ccff; border-color:rgba(167,139,250,0.4); }
+  .count{ margin-left:auto; color:var(--green); font-weight:700; }
+
+  .results{ flex:1; overflow-y:auto; padding:6px 0 90px; }
+  .results::-webkit-scrollbar{ width:0; }
+  .sec{ padding:14px 18px 4px; display:flex; align-items:center; gap:8px; }
+  .sec .lbl{ font-size:10.5px; font-weight:800; letter-spacing:.16em; color:var(--dim); }
+  .sec .tag{ font-size:9px; font-weight:800; letter-spacing:.12em; padding:2px 7px; border-radius:999px; }
+  .sec .tag.map{ background:rgba(31,223,103,0.14); color:var(--green); }
+  .sec .tag.jrnl{ background:rgba(167,139,250,0.16); color:#cdbcff; }
+  .sec .tag.atlas{ background:rgba(230,197,116,0.14); color:var(--gold); }
+  .sec .n{ margin-left:auto; font-size:11px; color:var(--dim); font-weight:700; }
+
+  /* project card */
+  .card{ margin:8px 14px; border-radius:14px; overflow:hidden; background:rgba(255,255,255,0.025);
+    border:1px solid var(--line-2); cursor:pointer; transition:transform .15s, border-color .15s; }
+  .card:hover{ transform:translateY(-1px); border-color:rgba(167,139,250,0.4); }
+  .card .img{ height:120px; position:relative; }
+  .card .img .status{ position:absolute; left:10px; bottom:10px; display:flex; align-items:center; gap:6px;
+    background:rgba(7,7,7,0.7); backdrop-filter:blur(6px); padding:5px 10px; border-radius:999px; font-size:10px; font-weight:800; letter-spacing:.06em; }
+  .card .img .status i{ width:7px; height:7px; border-radius:50%; background:var(--green); display:inline-block; }
+  .card .img .fav{ position:absolute; right:10px; top:10px; width:26px; height:26px; border-radius:50%;
+    background:var(--gold); display:flex; align-items:center; justify-content:center; color:#3a2c00; }
+  .card .body{ padding:11px 13px 13px; }
+  .card .body h4{ font-size:14.5px; font-weight:700; }
+  .card .body .city{ font-size:12px; color:var(--mute); margin-top:2px; }
+  .card .body .meta{ display:flex; align-items:center; justify-content:space-between; margin-top:9px;
+    padding-top:9px; border-top:1px solid var(--line-2); font-size:11px; color:var(--mute); }
+  .card .body .meta .eta{ color:#b9a6ff; }
+
+  /* article row */
+  .row{ display:flex; gap:12px; align-items:center; margin:4px 8px; padding:9px 10px; border-radius:12px; cursor:pointer; }
+  .row:hover{ background:rgba(255,255,255,0.04); }
+  .row .thumb{ width:58px; height:58px; border-radius:9px; flex:0 0 auto; }
+  .row .rb h5{ font-size:13.5px; font-weight:650; line-height:1.25; }
+  .row .rb .sub{ font-size:11px; color:var(--dim); margin-top:5px; display:flex; gap:7px; align-items:center; }
+  .row .rb .sub .dot{ width:3px; height:3px; border-radius:50%; background:var(--dim); }
+
+  /* firm row */
+  .firm{ display:flex; gap:12px; align-items:center; margin:2px 8px; padding:9px 10px; border-radius:12px; cursor:pointer; }
+  .firm:hover{ background:rgba(255,255,255,0.04); }
+  .firm .av{ width:38px; height:38px; border-radius:10px; flex:0 0 auto; display:flex; align-items:center; justify-content:center;
+    font-weight:800; font-size:14px; color:#0a0a0a; }
+  .firm .fb{ flex:1; }
+  .firm .fb h5{ font-size:13.5px; font-weight:700; }
+  .firm .fb .sub{ font-size:11px; color:var(--mute); margin-top:2px; }
+  .firm .bar{ width:78px; flex:0 0 auto; }
+  .firm .bar .t{ height:4px; border-radius:99px; background:rgba(255,255,255,0.08); overflow:hidden; }
+  .firm .bar .t i{ display:block; height:100%; background:var(--green); border-radius:99px; }
+  .firm .bar .nn{ text-align:right; font-size:11px; font-weight:800; margin-top:4px; }
+
+  /* ── Bottom universal command bar ───────────────────────────── */
+  .cmd{ position:fixed; left:calc(412px + (100% - 412px)/2); bottom:26px; transform:translateX(-50%); z-index:35;
+    width:440px; max-width:46vw; }
+  .cmd .bar{ position:relative; display:flex; align-items:center; height:52px; padding:0 16px 0 46px;
+    background:rgba(14,14,16,0.82); backdrop-filter:blur(20px); border-radius:999px; }
+  .cmd .bar::before{ content:""; position:absolute; inset:-1.5px; border-radius:999px; padding:1.5px; pointer-events:none;
+    background:conic-gradient(from var(--ang), rgba(167,139,250,0) 0deg, rgba(167,139,250,0) 205deg, #A78BFA 300deg, #E9DEFF 338deg, rgba(167,139,250,0) 360deg);
+    -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite:xor; mask-composite:exclude;
+    filter:drop-shadow(0 0 6px rgba(167,139,250,.75)); animation:chase 3s linear infinite; }
+  .cmd .bar .ico{ position:absolute; left:18px; width:18px; height:18px; color:var(--purple); }
+  .cmd .bar span{ color:var(--mute); font-size:14.5px; font-weight:500; }
+  .cmd .bar .kbd{ margin-left:auto; display:flex; gap:4px; }
+  .cmd .bar .kbd b{ font-size:10px; color:var(--dim); background:rgba(255,255,255,0.06); border:1px solid var(--line);
+    border-radius:6px; padding:2px 6px; font-weight:700; }
+  .cmd .hint{ text-align:center; margin-top:8px; font-size:10.5px; color:var(--dim); letter-spacing:.04em; }
+  .cmd .hint b{ color:#b9a6ff; font-weight:700; }
+
+  /* ── Right rail ─────────────────────────────────────────────── */
+  .rail{ position:fixed; right:18px; top:50%; transform:translateY(-50%); z-index:35; display:flex; flex-direction:column; gap:12px; }
+  .rail button{ width:44px; height:44px; border-radius:50%; border:1px solid rgba(255,255,255,0.1);
+    background:rgba(15,15,15,0.72); backdrop-filter:blur(16px); color:#fff; display:flex; align-items:center; justify-content:center; position:relative; }
+  .rail button svg{ width:19px; height:19px; }
+  .rail .badge{ position:absolute; top:-3px; right:-3px; background:var(--gold); color:#3a2c00; font-size:10px; font-weight:800;
+    width:18px; height:18px; border-radius:50%; display:flex; align-items:center; justify-content:center; }
+  .fs{ position:fixed; right:18px; top:78px; z-index:35; width:44px; height:44px; border-radius:50%;
+    border:1px solid rgba(255,255,255,0.1); background:rgba(15,15,15,0.72); backdrop-filter:blur(16px);
+    color:#fff; display:flex; align-items:center; justify-content:center; }
+</style>
+</head>
+<body>
+
+  <!-- map -->
+  <div class="map">
+    <svg viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice">
+      <g fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="1">
+        <path d="M720 80 L900 140 L1040 320 L980 560 L1180 700 L1320 760"/>
+        <path d="M560 120 L620 360 L520 540 L700 700 L860 820"/>
+        <path d="M900 140 L760 300 L820 520 L1000 640"/>
+        <path d="M300 200 L520 280 L600 520 L460 720"/>
+      </g>
+    </svg>
+    <div class="pin" style="left:62%; top:55%; width:34px; height:34px;">18</div>
+    <div class="pin" style="left:71%; top:84%; width:54px; height:54px;">218</div>
+    <div class="pin" style="left:66%; top:78%; width:30px; height:30px;">21</div>
+    <div class="pin" style="left:78%; top:80%; width:26px; height:26px;">4</div>
+    <div class="pin" style="left:48%; top:60%; width:28px; height:28px;">5</div>
+    <div class="pin" style="left:84%; top:42%; width:30px; height:30px;">14</div>
+  </div>
+
+  <!-- header -->
+  <header>
+    <div class="wordmark">MARKETS<small>OF TMW</small></div>
+    <div class="seg">
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5.2A1.2 1.2 0 0 1 4.2 4H10a2 2 0 0 1 2 2 2 2 0 0 1 2-2h5.8A1.2 1.2 0 0 1 21 5.2v12.6a1 1 0 0 1-1 1h-6a2 2 0 0 0-2 2 2 2 0 0 0-2-2H4a1 1 0 0 1-1-1z"/></svg></a>
+      <a href="#" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l-6 3V6l6-3 6 3 6-3v15l-6 3-6-3z"/><path d="M9 3v15M15 6v15"/></svg> MAP</a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></a>
+    </div>
+    <nav>
+      <a href="#">GLOBAL</a><a href="#">FOCUS MARKETS</a><a href="#" class="db">DATABASE</a><a href="#">THE LISTS</a>
+    </nav>
+    <div class="join">Join</div>
+  </header>
+
+  <!-- drawer -->
+  <div class="drawer">
+    <div class="drawer-head">
+      <div class="search">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input value="miami" />
+        <div class="x">&times;</div>
+      </div>
+      <div class="search-meta">
+        <div class="scope">
+          <b class="on">Everything</b><b>Projects</b><b>Articles</b><b>Firms</b>
+        </div>
+        <span class="count">37 results</span>
+      </div>
+    </div>
+
+    <div class="results">
+      <!-- PROJECTS (map) -->
+      <div class="sec"><span class="lbl">PROJECTS</span><span class="tag map">MAP</span><span class="n">24</span></div>
+
+      <div class="card">
+        <div class="img" style="background:linear-gradient(135deg,#1b2a3a,#324b63 55%,#5b7fa3);">
+          <div class="status"><i></i> CONSTRUCTION</div>
+          <div class="fav"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 17.3l-6.16 3.7 1.64-7-5.48-4.73 7.19-.61L12 2l2.81 6.66 7.19.61-5.48 4.73 1.64 7z"/></svg></div>
+        </div>
+        <div class="body"><h4>Waldorf Astoria Residences Miami</h4><div class="city">Miami · Downtown</div>
+          <div class="meta"><span>Delivery 2027</span><span class="eta">◷ ~2.4 years</span></div></div>
+      </div>
+
+      <div class="card">
+        <div class="img" style="background:linear-gradient(135deg,#2a1f33,#4a3357 55%,#7a5a96);">
+          <div class="status"><i></i> CONSTRUCTION</div>
+          <div class="fav"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 17.3l-6.16 3.7 1.64-7-5.48-4.73 7.19-.61L12 2l2.81 6.66 7.19.61-5.48 4.73 1.64 7z"/></svg></div>
+        </div>
+        <div class="body"><h4>Cipriani Residences Miami</h4><div class="city">Miami · Brickell</div>
+          <div class="meta"><span>Delivery 2026</span><span class="eta">◷ ~1.6 years</span></div></div>
+      </div>
+
+      <!-- ARTICLES (journal) -->
+      <div class="sec"><span class="lbl">ARTICLES</span><span class="tag jrnl">JOURNAL</span><span class="n">8</span></div>
+
+      <div class="row">
+        <div class="thumb" style="background:linear-gradient(135deg,#16313f,#2f5d57);"></div>
+        <div class="rb"><h5>Brickell's supertall race: who's actually building in Miami</h5>
+          <div class="sub">Markets of Tomorrow <span class="dot"></span> 3 days ago</div></div>
+      </div>
+      <div class="row">
+        <div class="thumb" style="background:linear-gradient(135deg,#3a2a16,#6b4f2a);"></div>
+        <div class="rb"><h5>Related Group lands financing for its next Miami condo tower</h5>
+          <div class="sub">Markets of Tomorrow <span class="dot"></span> 1 week ago</div></div>
+      </div>
+
+      <!-- FIRMS (atlas) -->
+      <div class="sec"><span class="lbl">FIRMS</span><span class="tag atlas">ATLAS</span><span class="n">5</span></div>
+
+      <div class="firm">
+        <div class="av" style="background:linear-gradient(135deg,#1FDF67,#13a64b);">R</div>
+        <div class="fb"><h5>Related Group</h5><div class="sub">Developer · Miami</div></div>
+        <div class="bar"><div class="t"><i style="width:100%"></i></div><div class="nn">13</div></div>
+      </div>
+      <div class="firm">
+        <div class="av" style="background:linear-gradient(135deg,#A78BFA,#7a5ad0);">P</div>
+        <div class="fb"><h5>Property Markets Group</h5><div class="sub">Developer · Miami</div></div>
+        <div class="bar"><div class="t"><i style="width:85%"></i></div><div class="nn">11</div></div>
+      </div>
+      <div class="firm">
+        <div class="av" style="background:linear-gradient(135deg,#f0d68a,#c9a94f);">T</div>
+        <div class="fb"><h5>Terra Group</h5><div class="sub">Developer · Miami</div></div>
+        <div class="bar"><div class="t"><i style="width:40%"></i></div><div class="nn">5</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- bottom universal command bar -->
+  <div class="cmd">
+    <div class="bar">
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <span>Search the Map of Tomorrow…</span>
+      <div class="kbd"><b>⌘</b><b>K</b></div>
+    </div>
+    <div class="hint">One search · <b>projects</b>, <b>articles</b> &amp; <b>firms</b> across Map, Journal &amp; Atlas</div>
+  </div>
+
+  <!-- right rail -->
+  <button class="fs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg></button>
+  <div class="rail">
+    <button><span class="badge">19</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></button>
+    <button><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 2 7l10 5 10-5-10-5z"/><path d="m2 17 10 5 10-5"/><path d="m2 12 10 5 10-5"/></svg></button>
+    <button><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></button>
+    <button><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/></svg></button>
+    <button><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></button>
+  </div>
+
+</body>
+</html>
