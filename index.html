@@ -16,6 +16,15 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
+  <!-- The universal header/dock/auth are served from www.oftmw.com. Warm the
+       connection and start fetching them up front so the header paints as soon
+       as the DOM is ready instead of after this 1MB document finishes parsing
+       (kills the gray flash before the header appears). -->
+  <link rel="preconnect" href="https://www.oftmw.com">
+  <link rel="preload" as="script" href="https://www.oftmw.com/_shared/journal-chrome.js">
+  <link rel="preload" as="script" href="https://www.oftmw.com/_shared/journal-dock.js">
+  <link rel="preload" as="script" href="https://www.oftmw.com/_shared/journal-auth.js">
+
   <title>Map of Tomorrow | Interactive Future Development Map | Markets of Tomorrow</title>
   <meta name="description" content="Explore the world's most exciting developments in an interactive map by Markets of Tomorrow ‚Äî from luxury projects to future neighborhoods.">
   <meta name="keywords" content="Florida real estate map, development map, development pipeline, new developments coming to Florida, new developments coming to Bahamas, new developments around the United States, Markets of Tomorrow, Florida of Tomorrow, new projects Florida, interactive map, future developments">
@@ -724,7 +733,7 @@
       --safe-area-right: env(safe-area-inset-right);
       --accent: #1FDF67;
       --accent-yellow: #FFD300;
-      --bg: #111111;
+      --bg: #070807;
       --surface: rgba(17,17,17,0.95);
       --surface-light: #1a1a1a;
       --border: rgba(255,255,255,0.1);
@@ -3278,7 +3287,7 @@
          block at the end of <head> (that block is known to apply). */
       position: fixed; top: var(--header-height); left: 0; width: 100%;
       height: calc(100% - var(--header-height));
-      background: #111; display: flex; align-items: center; justify-content: center;
+      background: #070807; display: flex; align-items: center; justify-content: center;
       z-index: 90; transition: opacity 0.5s ease;
     }
     #loadingOverlay.fade-out { opacity: 0; pointer-events: none; }
@@ -10704,6 +10713,38 @@
       } catch (_) { /* non-fatal */ }
     })();
   </script>
+
+  <!-- Static header skeleton: a dark bar with the wordmark, painted instantly so
+       the top reads as the header (not an empty gray strip) in the beat before
+       the cross-origin universal header (journal-chrome.js) mounts. It hides the
+       moment the real header (.tmw-chrome-head) is in the DOM, so they never both
+       show, and it's pointer-events:none + skipped in embed mode. -->
+  <style>
+    #tmw-head-skel{position:fixed;top:0;left:0;right:0;z-index:98;display:flex;align-items:center;padding:14px 0;
+      background:rgba(7,8,7,.95);border-bottom:1px solid rgba(255,255,255,.08);pointer-events:none}
+    #tmw-head-skel .tmw-hs-wrap{max-width:1240px;width:100%;margin:0 auto;padding:0 28px;display:flex;align-items:center}
+    #tmw-head-skel .tmw-hs-wm{width:80px;flex:0 0 auto}
+    #tmw-head-skel .tmw-hs-wm svg{width:100%;height:auto;display:block;fill:#fff}
+    @media(max-width:980px){#tmw-head-skel .tmw-hs-wrap{justify-content:center}#tmw-head-skel .tmw-hs-wm{width:74px}}
+    body.embed-mode #tmw-head-skel{display:none}
+    body:has(.tmw-chrome-head) #tmw-head-skel{display:none}
+  </style>
+  <div id="tmw-head-skel" aria-hidden="true"><div class="tmw-hs-wrap"><div class="tmw-hs-wm">
+    <svg viewBox="100 60 900 410"><g>
+      <path d="M233.5,220.4l1.1-105.9-.4-.4-30.2,106.3h-23.9l-30.6-107.2,1.1,107.2h-33.3V79h46.4l28.1,93.1h.4l27.7-93.1h46.6v141.4h-33.3Z"/>
+      <path d="M383.6,220.4l-6.9-20.5h-49.1l-7.5,20.5h-38.8l56.8-141.4h28.5l56.2,141.4h-39.2ZM352.6,123.1l-.6-.2-14.5,48.4h29.6l-14.5-48.2Z"/>
+      <path d="M504.9,220.4l-32.7-45.7h-.4v45.7h-34.6V79h46.3c14.7,0,26,1.9,33.4,5.2,15.3,6.9,26,23.5,26,43.6s-13.4,40.7-35.2,44.5l38.4,48.2h-41.3ZM485.3,150.1c14.3,0,23.1-6.7,23.1-20.3s-9.2-19.1-22.7-19.1h-13.8v39.4h13.4Z"/>
+      <path d="M641,220.4l-38.6-61.2h-.4v61.2h-36.1V79h36.1v63.6h.4l39.9-63.6h37.8l-46.8,70.5,49.9,70.9h-42.2Z"/>
+      <path d="M697.2,220.4V79h78.6v31.7h-44v22h42.6v31.7h-42.6v24.3h44v31.7h-78.6Z"/>
+      <path d="M815.1,220.4v-109.7h-27.9v-31.7h91.7v31.7h-27.7v109.7h-36.1Z"/>
+      <path d="M948.9,120.3c-1.5-10.1-5.7-13.8-12.8-13.8s-12.4,4.8-12.4,11.1,7.6,12.2,23.1,18.9c31.2,13.4,39,24.7,39,43.2,0,27.3-18.7,43.4-49.3,43.4s-51-16.1-51-46.4v-3.1h35.9c.2,11.7,5.9,19.3,14.9,19.3s13.6-5.9,13.6-13.6c0-11.3-15.7-16.2-28.5-21.4-23.1-9.4-33.6-21.6-33.6-39.9s23.3-41.7,49.3-41.7,17.6,2.1,25,5.9c15.1,7.8,22.4,19.1,22.6,38h-35.7Z"/>
+      <path d="M333.7,452.5v-169.1h-43v-48.9h141.4v48.9h-42.7v169.1h-55.7Z"/>
+      <path d="M633.3,452.5l1.8-163.2-.6-.6-46.5,163.8h-36.8l-47.1-165.3,1.8,165.3h-51.3v-218h71.6l43.3,143.5h.6l42.7-143.5h71.9v218h-51.3Z"/>
+      <path d="M881.6,452.5l-32.7-141.1h-.6l-32.7,141.1h-50.4l-56.3-218h56.6l29.2,141.7h.6l32.1-141.7h42.7l31.5,142.3h.6l29.8-142.3h56.3l-57.7,218h-48.9Z"/>
+      <path d="M111.8,281.1c0-27.9,20.1-48.8,47.4-48.8s47.6,20.3,47.6,46.1-20.7,47.3-46.5,47.3-48.5-18-48.5-44.6ZM183.8,279.2c0-14.1-10.1-26.6-24.6-26.6s-24.4,12-24.4,26.3,10.1,26.8,24.8,26.8,24.2-12,24.2-26.4Z"/>
+      <path d="M219.2,324.1v-90h49.1v20.2h-27.1v15.3h26.2v20.2h-26.2v34.3h-22Z"/>
+    </g></svg>
+  </div></div></div>
   <!-- Header Bar -->
   <div id="header">
     <!-- Animated TMW logo lockup: purple hex spinner + white wordmark.

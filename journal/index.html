@@ -17,6 +17,9 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- Warm the connection to the map so the Map toggle switches with less lag. -->
+<link rel="preconnect" href="https://map.oftmw.com">
+<link rel="dns-prefetch" href="https://map.oftmw.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600;9..144,700;9..144,900&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
 <!-- GAM removed — the top banner is a curated featured-slide carousel reading from /ads.json, not programmatic ad units. -->
@@ -1007,30 +1010,34 @@ function hookBannerCollapse() {
   } catch (_) {}
   if (!fromSurface) return;
 
-  // Tuck exactly once, as soon as the banner has laid out, and never fight the
-  // reader: the moment they scroll/swipe (e.g. up to reveal the banner) we stop.
-  let tucked = false, userMoved = false;
-  ['wheel', 'touchstart', 'keydown'].forEach((ev) =>
+  // Snap the universal header flush to the very top (banner scrolled fully out
+  // of view, not destroyed). We target the HEADER's own position rather than the
+  // banner height so it lands flush even when the banner finishes laying out
+  // taller than it measured at first (its carousel/images settle a beat later).
+  // Re-apply for a short window to catch that late growth, and never fight the
+  // reader — a real scroll (e.g. up to reveal the banner) stops us.
+  const header = document.querySelector('.sticky-stack')
+    || document.querySelector('.tmw-chrome-head') || banner.nextElementSibling;
+  let userMoved = false;
+  window.addEventListener('wheel', (e) => { if (Math.abs(e.deltaY) > 4) userMoved = true; }, { passive: true });
+  ['touchstart', 'keydown'].forEach((ev) =>
     window.addEventListener(ev, () => { userMoved = true; }, { passive: true, once: true }));
-  const tuck = () => {
-    if (tucked || userMoved) return;
-    const h = banner.offsetHeight;
-    if (h <= 1) return;                 // banner not laid out yet — a later retry handles it
-    const y = window.scrollY || window.pageYOffset || 0;
-    if (y < h) {
+  const snapTop = () => {
+    if (userMoved || !header) return;
+    const top = header.getBoundingClientRect().top;
+    if (top > 1) {
       // html has scroll-behavior:smooth, so a plain scrollTo animates and gets
       // cancelled by the async layout during load. Force an instant jump.
       const root = document.documentElement;
       const prev = root.style.scrollBehavior;
       root.style.scrollBehavior = 'auto';
-      window.scrollTo(0, h);
+      window.scrollTo(0, top + (window.scrollY || window.pageYOffset || 0));
       root.style.scrollBehavior = prev;
     }
-    tucked = true;
   };
-  requestAnimationFrame(() => requestAnimationFrame(tuck));
-  setTimeout(tuck, 200);
-  setTimeout(tuck, 500);
+  requestAnimationFrame(() => requestAnimationFrame(snapTop));
+  [0, 120, 300, 600, 1000].forEach((d) => setTimeout(snapTop, d));
+  window.addEventListener('load', snapTop, { once: true });
 }
 
 // ---------------------------------------------------------------
