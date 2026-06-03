@@ -502,6 +502,81 @@ async function msFetchAllMembers(env) {
   return out;
 }
 
+// ── Stripe — authoritative income (Memberstack bills through Stripe) ──────────
+// When STRIPE_SECRET_KEY is set we pull real money from Stripe instead of
+// estimating: MRR from active subscriptions (annual plans amortized to a monthly
+// figure so a $90/yr payer counts as $7.50/mo, not $90 this month), and actual
+// collected revenue (all-time + this calendar year) from succeeded charges minus
+// refunds. Requires a restricted Stripe key with read access to subscriptions +
+// charges. Paginated; charge history is capped at 30 pages (3,000 charges).
+async function stripeGet(env, path) {
+  const r = await fetch('https://api.stripe.com/v1' + path, {
+    headers: { Authorization: 'Bearer ' + env.STRIPE_SECRET_KEY },
+  });
+  if (!r.ok) throw new Error('Stripe ' + r.status + ': ' + (await r.text()).slice(0, 200));
+  return r.json();
+}
+function stripePerMonth(amount, interval, count) {
+  const c = count || 1;
+  if (interval === 'year')  return amount / (12 * c);
+  if (interval === 'month') return amount / c;
+  if (interval === 'week')  return (amount * 52 / 12) / c;
+  if (interval === 'day')   return (amount * 365 / 12) / c;
+  return 0;
+}
+async function fetchStripeIncome(env) {
+  let mrr = 0, monthly = 0, yearly = 0, other = 0, paying = 0;
+  const currencies = new Set();
+  // Active subscriptions → MRR + cadence split.
+  let after = null, guard = 0;
+  do {
+    const page = await stripeGet(env, '/subscriptions?status=active&limit=100&expand[]=data.items.data.price' + (after ? '&starting_after=' + after : ''));
+    for (const sub of (page.data || [])) {
+      paying++;
+      let subBucket = null;
+      for (const it of (sub.items && sub.items.data || [])) {
+        const price = it.price || {};
+        const amt = (price.unit_amount || 0) / 100 * (it.quantity || 1);
+        currencies.add((price.currency || 'usd').toLowerCase());
+        const iv = price.recurring && price.recurring.interval;
+        const ivc = (price.recurring && price.recurring.interval_count) || 1;
+        mrr += stripePerMonth(amt, iv, ivc);
+        if (iv === 'year') subBucket = 'yearly'; else if (iv === 'month' && subBucket !== 'yearly') subBucket = 'monthly';
+      }
+      if (subBucket === 'yearly') yearly++; else if (subBucket === 'monthly') monthly++; else other++;
+    }
+    after = page.has_more ? page.data[page.data.length - 1].id : null;
+  } while (after && ++guard < 50);
+
+  // Succeeded charges → actual collected revenue (all-time + this calendar year).
+  const yearStart = Math.floor(Date.UTC(new Date().getUTCFullYear(), 0, 1) / 1000);
+  let allTime = 0, yearInc = 0, after2 = null, cg = 0, truncated = false;
+  do {
+    const page = await stripeGet(env, '/charges?limit=100' + (after2 ? '&starting_after=' + after2 : ''));
+    for (const c of (page.data || [])) {
+      if (c.status !== 'succeeded' || !c.paid) continue;
+      const net = ((c.amount || 0) - (c.amount_refunded || 0)) / 100;
+      allTime += net;
+      if (c.created >= yearStart) yearInc += net;
+    }
+    after2 = page.has_more ? page.data[page.data.length - 1].id : null;
+    if (++cg >= 30) { truncated = !!after2; break; }
+  } while (after2);
+
+  return {
+    mrr: Math.round(mrr * 100) / 100,
+    arr: Math.round(mrr * 12 * 100) / 100,
+    all_time_income: Math.round(allTime * 100) / 100,
+    year_income: Math.round(yearInc * 100) / 100,
+    paying_subscribers: paying,
+    monthly_subscriptions: monthly,
+    yearly_subscriptions: yearly,
+    other_subscriptions: other,
+    currency: currencies.size === 1 ? [...currencies][0] : (currencies.size ? 'mixed' : 'usd'),
+    income_truncated: truncated,
+  };
+}
+
 async function handleSubscriptions(env, origin, url) {
   if (!env.MEMBERSTACK_SECRET_KEY) {
     return json({ configured: false, reason: 'MEMBERSTACK_SECRET_KEY not set' }, {}, env, origin);
@@ -570,8 +645,30 @@ async function handleSubscriptions(env, origin, url) {
     arr: Math.round(mrr * 12 * 100) / 100,
     all_time_income_estimate: Math.round(allTimeEstimate * 100) / 100,
     currency: currencies.size === 1 ? [...currencies][0] : (currencies.size ? 'mixed' : 'usd'),
+    income_source: 'estimate',
     updated_at: Math.floor(nowMs / 1000),
   };
+
+  // If Stripe is wired up, replace the estimated money with authoritative Stripe
+  // figures (real MRR with annual amortized, actual collected all-time/this-year).
+  if (env.STRIPE_SECRET_KEY) {
+    try {
+      const s = await fetchStripeIncome(env);
+      resp.mrr = s.mrr;
+      resp.arr = s.arr;
+      resp.all_time_income = s.all_time_income;     // actual collected (not "_estimate")
+      resp.year_income = s.year_income;
+      resp.paying_subscribers = s.paying_subscribers;
+      resp.monthly_subscriptions = s.monthly_subscriptions;
+      resp.yearly_subscriptions = s.yearly_subscriptions;
+      resp.other_subscriptions = s.other_subscriptions;
+      resp.currency = s.currency;
+      resp.income_source = 'stripe';
+      resp.income_truncated = s.income_truncated;
+    } catch (e) {
+      resp.stripe_error = String(e.message || e);   // keep Memberstack estimates as fallback
+    }
+  }
   if (debug) {
     // Dump real plan connections (no email/PII) so we can calibrate the
     // amount/interval parser against the actual Memberstack shape.

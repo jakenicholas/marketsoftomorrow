@@ -95,3 +95,9 @@ bucket_name = "tmw-media"
 #                               API Keys (the SECRET key, not the public pk_).
 #                               Run:
 #                                   wrangler secret put MEMBERSTACK_SECRET_KEY
+#   STRIPE_SECRET_KEY         — Restricted Stripe key (read: subscriptions +
+#                               charges) for authoritative subscription income
+#                               on the map analytics tiles. Memberstack bills
+#                               through Stripe, so this gives real MRR (annual
+#                               amortized) + actual collected revenue. Run:
+#                                   wrangler secret put STRIPE_SECRET_KEY
