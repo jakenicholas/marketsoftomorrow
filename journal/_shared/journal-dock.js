@@ -344,10 +344,10 @@
     '.nav-links a.active::after, .tmw-chrome-head .nav-links a.active::after, nav.main .nav-links a.active::after{display:none !important}',
     '.nav-links a:hover, .nav-links a.active, .tmw-chrome-head .nav-links a:hover, .tmw-chrome-head .nav-links a.active{color:var(--gold-soft) !important; text-shadow:0 0 14px rgba(230,197,116,.55), 0 0 3px rgba(230,197,116,.35)}',
     // Per-surface gold accent: Global glows on the journal home; Database carries
-    // the same glow on the map + atlas (their primary context). A touch stronger
-    // than the shared hover glow so it reads clearly against every chrome.
+    // the same glow on the map + atlas (their primary context) — but NOT on the
+    // journal, where Database is just one nav item among many.
     'html.tmw-surf-journal nav.main .nav-links a.active{color:var(--gold-soft) !important; text-shadow:0 0 16px rgba(230,197,116,.7), 0 0 5px rgba(230,197,116,.42)}',
-    'html.tmw-surf-map .tmw-fm-database .tmw-fm-trigger, html.tmw-surf-atlas .tmw-fm-database .tmw-fm-trigger, html.tmw-surf-journal .tmw-fm-database .tmw-fm-trigger{color:var(--gold-soft) !important; text-shadow:0 0 16px rgba(230,197,116,.7), 0 0 5px rgba(230,197,116,.42)}',
+    'html.tmw-surf-map .tmw-fm-database .tmw-fm-trigger, html.tmw-surf-atlas .tmw-fm-database .tmw-fm-trigger{color:var(--gold-soft) !important; text-shadow:0 0 16px rgba(230,197,116,.7), 0 0 5px rgba(230,197,116,.42)}',
 
     // ── Rank-page CTA (Book a table / Website): subtle gold-glow text, no fill.
     '.btn-cta{background:transparent !important; color:var(--gold-soft) !important; padding:8px 0 !important; border-radius:0 !important; text-shadow:0 0 14px rgba(230,197,116,.5), 0 0 3px rgba(230,197,116,.32)}',
@@ -649,6 +649,7 @@
       // The Map — explore (free) + pro intelligence + Go Pro CTA.
       '.tmw-mm{display:grid; grid-template-columns:1fr 2fr; gap:22px 30px; max-width:980px}',
       '.tmw-mm-h{font-family:var(--mono); font-size:9.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--mute,#9AA39C); margin-bottom:8px}',
+      '.tmw-mm-h-span{grid-column:1/-1; margin-bottom:-6px}',
       '.tmw-mm-pro-grid{display:grid; grid-template-columns:1fr 1fr; gap:4px 14px}',
       '.tmw-mm-item{display:flex; gap:12px; padding:10px; border-radius:12px; text-decoration:none; transition:background .18s}',
       '.tmw-mm-item:hover{background:rgba(255,255,255,.05)}',
@@ -750,10 +751,12 @@
       return '<a class="tmw-mm-item" href="' + UP + '" data-paywall="' + ctx + '"><span class="tmw-mm-ic">' + ic(icon) + '</span><span class="tmw-mm-tx"><b>' + name + '<em>PRO</em></b><i>' + sub + '</i></span></a>';
     }
     return '<div class="tmw-mm">' +
-      '<div><div class="tmw-mm-h">Explore — free</div>' +
-        '<a class="tmw-mm-item" href="' + U + '"><span class="tmw-mm-ic green">' + ic('<path d="M9 18l-6 3V6l6-3 6 3 6-3v15l-6 3-6-3z"/><path d="M9 3v15M15 6v15"/>') + '</span><span class="tmw-mm-tx"><b>Interactive Map</b><i>396 projects across 40+ markets.</i></span></a>' +
-        '<a class="tmw-mm-item" href="' + U + '/?view=atlas"><span class="tmw-mm-ic green">' + ic('<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>') + '</span><span class="tmw-mm-tx"><b>The Atlas</b><i>Every tracked project on one canvas.</i></span></a></div>' +
-      '<div class="tmw-mm-pro"><div class="tmw-mm-h">Pro tools</div><div class="tmw-mm-pro-grid">' +
+      '<div class="tmw-mm-h tmw-mm-h-span">Pro tools</div>' +
+      '<div>' +
+        '<a class="tmw-mm-item" href="' + U + '"><span class="tmw-mm-ic">' + ic('<path d="M9 18l-6 3V6l6-3 6 3 6-3v15l-6 3-6-3z"/><path d="M9 3v15M15 6v15"/>') + '</span><span class="tmw-mm-tx"><b>Interactive Map<em>PRO</em></b><i>396 projects across 40+ markets.</i></span></a>' +
+        '<a class="tmw-mm-item" href="https://www.oftmw.com/atlas/"><span class="tmw-mm-ic">' + ic('<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>') + '</span><span class="tmw-mm-tx"><b>The Atlas<em>PRO</em></b><i>Every tracked project on one canvas.</i></span></a>' +
+      '</div>' +
+      '<div class="tmw-mm-pro"><div class="tmw-mm-pro-grid">' +
         pro(HEX_IC, 'TMW Intelligence', 'Completion forecasts &amp; confidence.', 'feature:intelligence') +
         pro(EYE_IC, 'Watchlist', 'Track projects, get notified.', 'feature:watchlist') +
         pro(CMP_IC, 'Compare', 'Stack any projects side-by-side.', 'feature:compare') +

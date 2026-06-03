@@ -477,6 +477,16 @@
 
     el.classList.add('open');
     document.body.style.overflow = 'hidden';
+    // Reflect "compare mode" in the URL so it can be linked / bookmarked / shared
+    // (https://www.oftmw.com/map/?compare=new). Edits keep their own URL.
+    if (!opts.editId) {
+      try {
+        var cu = new URL(window.location.href);
+        cu.searchParams.set('compare', 'new');
+        cu.searchParams.delete('project'); cu.searchParams.delete('view');
+        if (cu.toString() !== window.location.href) history.pushState({}, '', cu.toString());
+      } catch (e) {}
+    }
     // Focus the most relevant field
     setTimeout(() => {
       const focusTarget = builderSection.hasAttribute('hidden')
@@ -490,6 +500,14 @@
     if (!modalEl) return;
     modalEl.classList.remove('open');
     document.body.style.overflow = '';
+    // Drop the compare-mode flag from the URL when leaving the builder.
+    try {
+      var cu = new URL(window.location.href);
+      if (cu.searchParams.get('compare') === 'new') {
+        cu.searchParams.delete('compare');
+        history.replaceState({}, '', cu.toString());
+      }
+    } catch (e) {}
   }
 
   function refreshSaveButton() {
@@ -1655,6 +1673,12 @@
     const params = new URLSearchParams(window.location.search);
     const id = params.get('compare');
     if (!id) return;
+    if (id === 'new') {
+      // Compare-MODE deep link (?compare=new) -- open the builder. Gated inside
+      // openBuilderModal (free/anon users get the paywall).
+      openBuilderModal({});
+      return;
+    }
     if (!isSignedIn()) {
       // Anonymous viewer trying to open a private comparison ID -- fire
       // signup wall. After signup, refreshMemberStatus will run hydrate
@@ -1676,6 +1700,12 @@
     }
     const params = new URLSearchParams(window.location.search);
     const id = params.get('compare');
+    if (id === 'new') { openBuilderModal({}); return; }
+    // Left compare-mode in the URL — make sure the builder is closed.
+    if (modalEl && modalEl.classList.contains('open')) {
+      modalEl.classList.remove('open');
+      document.body.style.overflow = '';
+    }
     if (id && hydrationDone) {
       openComparisonView(id);
     } else {
