@@ -10711,12 +10711,21 @@
     body.embed-mode .tmw-chrome-head{display:none!important;}
     /* (d) Mobile: the header collapses to [burger][centered logo][account] with
        no room for the surface toggle (it was colliding with the logo). Move it to
-       the bottom dock like the journal/atlas do — bring the dock back but with
-       ONLY the toggle, since the map already has its own search + bottom rail. */
+       the bottom dock like the journal/atlas do — bring the dock back with the
+       toggle AND the journal search. The journal dock search is the single
+       "tap to search" trigger: tapping it opens the discovery drawer (whose own
+       search bar runs the query), so the old floating map capsule is hidden. */
     @media(max-width:980px){
       nav.main .tmw-st{display:none!important;}
       .tmw-dock{display:flex!important;}
-      .tmw-dock .tmw-dock-search{display:none!important;}
+      .tmw-dock .tmw-dock-search{display:flex!important;}
+      /* Hide the legacy floating "hovers on map" search capsule — the dock
+         search replaces it as the drawer trigger. */
+      body.ui-v2 #v2Capsule{display:none!important;}
+      /* When the discovery drawer opens, hide the dock so it sits on top of
+         (and replaces) the journal search — the user then searches in the
+         drawer's own search bar. */
+      body.v2-sheet-open .tmw-dock{display:none!important;}
     }
     /* ── Full-screen map toggle ──────────────────────────────────────
        A button pinned to the top-right of the map. Clicking it hides the
@@ -11858,6 +11867,40 @@
       document.addEventListener('keydown', function(e){
         if (e.key === 'Escape' && document.body.classList.contains('tmw-mapfs')) fsBtn.click();
       });
+    })();
+
+    // Search consolidation: the journal dock search (next to the toggle) is the
+    // single "tap to search" trigger on the map. Tapping it opens the discovery
+    // drawer — whose own search bar (#v2SearchInput) runs the query — instead of
+    // navigating to the journal search page. The old floating capsule is hidden
+    // via CSS. journal-dock.js injects the dock asynchronously, so poll for it.
+    (function(){
+      function openDrawer(e){
+        if (e){ e.preventDefault(); e.stopPropagation(); }
+        var cap = document.getElementById('v2Capsule');
+        if (cap) cap.click();                    // reuse the capsule flow: opens sheet + focuses #v2SearchInput
+        else document.body.classList.add('v2-sheet-open');
+      }
+      function wire(){
+        var form = document.querySelector('.tmw-dock-search');
+        if (!form) return false;
+        var input = form.querySelector('input');
+        if (!input || form.dataset.tmwMapWired) return !!form.dataset.tmwMapWired;
+        form.dataset.tmwMapWired = '1';
+        // It's a trigger, not a field: no inline typing/keyboard.
+        input.readOnly = true;
+        input.setAttribute('inputmode', 'none');
+        input.setAttribute('aria-label', 'Search the map');
+        ['mousedown','click','focus','touchstart'].forEach(function(ev){
+          input.addEventListener(ev, function(e){ input.blur(); openDrawer(e); }, ev === 'touchstart' ? {passive:false} : false);
+        });
+        form.addEventListener('submit', openDrawer);
+        return true;
+      }
+      if (!wire()){
+        var tries = 0;
+        var iv = setInterval(function(){ if (wire() || ++tries > 40) clearInterval(iv); }, 150);
+      }
     })();
 
     document.addEventListener('gesturestart', e => e.preventDefault());
