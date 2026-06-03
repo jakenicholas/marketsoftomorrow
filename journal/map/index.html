@@ -3292,11 +3292,21 @@
     }
     #loadingOverlay.fade-out { opacity: 0; pointer-events: none; }
     .loading-content { text-align: center; color: #fff; }
-    .loading-spinner {
-      width: 50px; height: 50px; margin: 0 auto 20px;
-      border: 3px solid rgba(255,255,255,0.1); border-top-color: var(--accent);
-      border-radius: 50%; animation: spin 1s linear infinite;
-    }
+    /* Loading mark: the TMW hex spins up, then crossfades into a search icon
+       over one 3s loop and holds on the search icon. Sourced from
+       tmw_hex_to_search_icon.html; classes prefixed (tmwload-) so they don't
+       collide with the header lockup's .tmw-hex-* animation. */
+    .tmwload-icon { width: 92px; height: 92px; margin: 0 auto 22px; }
+    .tmwload-icon svg { width: 100%; height: 100%; display: block; overflow: visible; }
+    .tmwload-spinner { transform-origin: 50% 50%; animation: tmwload-spin 3s cubic-bezier(0.55,0,0.9,0.4) forwards; }
+    @keyframes tmwload-spin { 0%{transform:rotate(0deg) scale(1)} 67%{transform:rotate(1440deg) scale(0.75)} 100%{transform:rotate(1440deg) scale(0.75)} }
+    .tmwload-core { stroke: #A78BFA; animation: tmwload-hexfade 3s linear forwards; }
+    @keyframes tmwload-hexfade { 0%,60%{opacity:1} 67%{opacity:0} 100%{opacity:0} }
+    .tmwload-circle { stroke-linejoin: round; opacity: 0; animation: tmwload-circlein 3s linear forwards; }
+    @keyframes tmwload-circlein { 0%,60%{opacity:0;stroke:#A78BFA} 67%{opacity:1;stroke:#A78BFA} 74%{stroke:#A78BFA} 100%{opacity:1;stroke:#8e8e93} }
+    .tmwload-handle { stroke-linecap: round; stroke-dasharray: 30; stroke-dashoffset: 30; opacity: 0; stroke: #A78BFA; animation: tmwload-handlein 3s linear forwards; }
+    @keyframes tmwload-handlein { 0%,68%{opacity:0;stroke-dashoffset:30;stroke:#A78BFA} 70%{opacity:1;stroke-dashoffset:30;stroke:#A78BFA} 80%{opacity:1;stroke-dashoffset:0;stroke:#A78BFA} 100%{opacity:1;stroke-dashoffset:0;stroke:#8e8e93} }
+    @media (prefers-reduced-motion: reduce){ .tmwload-spinner{animation:none} .tmwload-core{animation:none;opacity:0} .tmwload-circle,.tmwload-handle{animation:none;opacity:1;stroke:#8e8e93} }
     .loading-text { font-size: 18px; font-weight: 300; opacity: 0.8; }
     .loading-subtitle { font-size: 14px; font-weight: 300; opacity: 0.6; margin-top: 8px; }
     .loading-presented {
@@ -8410,8 +8420,10 @@
       transition: height 0.32s cubic-bezier(0.2, 0.8, 0.2, 1);
       display: flex; flex-direction: column;
     }
-    /* Drawer opens to 85vh (10% taller than the prior 75vh) */
-    body.v2-sheet-open .v2-sheet { height: 85vh; }
+    /* Drawer opens to 85vh, minus the universal header (+ safe-area) so it
+       clears the journal chrome that now sits at the top — without it the
+       sheet rose right up under the header and felt too tall. */
+    body.v2-sheet-open .v2-sheet { height: calc(85vh - var(--header-height) - var(--safe-area-top, 0px)); }
     /* Bigger handle target. The full top strip of the sheet (down to the
        search bar) is also draggable via JS, so users can grab anywhere
        in that zone to dismiss. */
@@ -10684,13 +10696,16 @@
        calc(... - var(--header-height)) so it stays flush. */
     .tmw-chrome-head{position:fixed!important;top:0;left:0;right:0;z-index:99;}
     .tmw-chrome-head nav.main{padding-top:var(--safe-area-top);}
-    /* Loading overlay sits BELOW the journal header (var(--header-height))
-       instead of the old hard-coded 60px ui-v2 header. */
+    /* Loading overlay covers the FULL viewport (top:0) and sits BEHIND the
+       z-99 journal header, which renders on top of it. Covering from the very
+       top removes the thin sliver of map that used to peek between the header
+       and an overlay that started at var(--header-height) (the header height
+       isn't known until the chrome mounts, leaving a first-paint gap). */
     @media(min-width:801px){
-      #loadingOverlay{top:var(--header-height)!important;height:calc(100% - var(--header-height))!important;}
+      #loadingOverlay{top:0!important;height:100%!important;}
     }
     @media(max-width:800px){
-      #loadingOverlay{top:calc(var(--safe-area-top, 0px) + var(--header-height))!important;height:calc(100% - var(--safe-area-top, 0px) - var(--header-height))!important;}
+      #loadingOverlay{top:0!important;height:100%!important;}
     }
     /* Embed mode: journal chrome is not loaded (no header), so reset. */
     body.embed-mode .tmw-chrome-head{display:none!important;}
@@ -10703,6 +10718,38 @@
       .tmw-dock{display:flex!important;}
       .tmw-dock .tmw-dock-search{display:none!important;}
     }
+    /* ── Full-screen map toggle ──────────────────────────────────────
+       A button pinned to the top-right of the map. Clicking it hides the
+       journal chrome header for an edge-to-edge map (desktop + mobile);
+       clicking again restores it. The map canvas is already full-height
+       behind the header, so we only hide the header + reclaim its padding. */
+    #tmwMapFsBtn{
+      position:fixed;
+      top:calc(var(--safe-area-top, 0px) + var(--header-height) + 12px);
+      right:12px;
+      z-index:80;              /* above the map + rail, below the loader (90) + header (99) */
+      width:40px;height:40px;
+      display:flex;align-items:center;justify-content:center;
+      background:rgba(16,16,18,0.82);
+      -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
+      border:1px solid rgba(255,255,255,0.12);
+      border-radius:11px;
+      color:#fff;cursor:pointer;
+      transition:background .15s ease, transform .12s ease, top .25s ease;
+    }
+    #tmwMapFsBtn:hover{background:rgba(34,34,38,0.95);}
+    #tmwMapFsBtn:active{transform:scale(0.93);}
+    #tmwMapFsBtn svg{width:19px;height:19px;display:block;}
+    #tmwMapFsBtn .fs-collapse{display:none;}
+    body.tmw-mapfs #tmwMapFsBtn{top:calc(var(--safe-area-top, 0px) + 12px);}
+    body.tmw-mapfs #tmwMapFsBtn .fs-expand{display:none;}
+    body.tmw-mapfs #tmwMapFsBtn .fs-collapse{display:block;}
+    /* Hide the journal chrome header + reclaim its space for the map. */
+    body.tmw-mapfs .tmw-chrome-head{display:none!important;}
+    body.tmw-mapfs #app-container{padding-top:0!important;}
+    body.tmw-mapfs.ui-v2 #app-container{padding-top:0!important;}
+    /* Embed mode has no header, so no button. */
+    body.embed-mode #tmwMapFsBtn{display:none!important;}
     /* === end journal chrome integration ================================ */
   </style>
 </head>
@@ -10837,13 +10884,10 @@
     <!-- Auth UI gets injected here at runtime by paywall script -->
   </div>
 
-  <!-- Atlas / Map mode toggle. Lives OUTSIDE #header so it stays visible
-       on mobile (where #header is display:none). Click toggles ?view=atlas
-       in the URL and shows/hides the Atlas overlay. -->
-  <div class="atlas-mode-toggle" id="atlasModeToggle" role="tablist" aria-label="Switch between map and atlas view">
-    <button class="atlas-mode-toggle-btn active" data-mode="map" role="tab" aria-selected="true">Map</button>
-    <button class="atlas-mode-toggle-btn" data-mode="atlas" role="tab" aria-selected="false">Atlas</button>
-  </div>
+  <!-- Old gold Map/Atlas pill REMOVED. It flashed on load (hidden only behind
+       the JS-added body.ui-v2 class) and is superseded by the universal
+       Map/Atlas/Journal toggle in the journal chrome header. In-page atlas is
+       still reachable via ?view=atlas and the universal toggle's Atlas link. -->
 
   <!-- Atlas overlay -- hidden until body.atlas-mode is set. Initial content
        is a loading state; populated by JS after fetch('atlas.json'). -->
@@ -10874,7 +10918,15 @@
   <!-- Loading Overlay -->
   <div id="loadingOverlay">
     <div class="loading-content">
-      <div class="loading-spinner"></div>
+      <div class="tmwload-icon" role="img" aria-label="Loading Markets of Tomorrow">
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <g class="tmwload-spinner">
+            <polygon class="tmwload-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/>
+            <circle class="tmwload-circle" cx="50" cy="50" r="28" fill="none" stroke-width="9.3"/>
+          </g>
+          <line class="tmwload-handle" x1="65" y1="65" x2="84" y2="84" stroke-width="7"/>
+        </svg>
+      </div>
       <div class="loading-text">Loading Map of Tomorrow...</div>
       <div class="loading-subtitle">Development Pipeline Map</div>
     </div>
@@ -10883,7 +10935,14 @@
       <span class="presented-brand">MARKETS OF TOMORROW</span>
     </div>
   </div>
-  
+
+  <!-- Full-screen map toggle (top-right of the map). Hides the universal
+       header for an edge-to-edge map; click again to restore it. -->
+  <button id="tmwMapFsBtn" type="button" aria-label="Full screen map" aria-pressed="false" title="Full screen map">
+    <svg class="fs-expand" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+    <svg class="fs-collapse" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3M3 16h3a2 2 0 0 1 2 2v3m13-3h-3a2 2 0 0 0-2 2v3"/></svg>
+  </button>
+
   <div id="app-container">
     <button id="toggleView" class="hidden" style="display:none!important"></button>
     <button id="openSearch" class="hidden" style="display:none!important"></button>
@@ -11762,14 +11821,44 @@
       window.history.replaceState({}, '', url);
     };
 
-    // Loading overlay
-    window.addEventListener('load', () => {
-      setTimeout(() => {
-        const lo = document.getElementById('loadingOverlay');
+    // Loading overlay: show for a fixed ~3s so the hex→search animation
+    // completes its full loop and lands on the search icon, then fade out.
+    // If window.load is slower than 3s, wait for it (so the map never reveals
+    // half-painted); hard-cap at 6s so a stalled load never traps the user.
+    (function(){
+      var MIN_MS = 3000, started = Date.now();
+      function hideLoader(){
+        var lo = document.getElementById('loadingOverlay');
+        if (!lo || lo.classList.contains('fade-out')) return;
         lo.classList.add('fade-out');
-        setTimeout(() => lo.style.display = 'none', 500);
-      }, 2500);
-    });
+        setTimeout(function(){ if (lo) lo.style.display = 'none'; }, 500);
+      }
+      function scheduleHide(){
+        setTimeout(hideLoader, Math.max(0, MIN_MS - (Date.now() - started)));
+      }
+      if (document.readyState === 'complete') scheduleHide();
+      else window.addEventListener('load', scheduleHide);
+      setTimeout(hideLoader, 6000);
+    })();
+
+    // Full-screen map toggle: hide the journal chrome header for an
+    // edge-to-edge map, click again to restore. The map canvas is already
+    // full-height behind the header; dispatching a resize keeps Mapbox crisp.
+    (function(){
+      var fsBtn = document.getElementById('tmwMapFsBtn');
+      if (!fsBtn) return;
+      fsBtn.addEventListener('click', function(){
+        var on = document.body.classList.toggle('tmw-mapfs');
+        fsBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
+        fsBtn.setAttribute('title', on ? 'Exit full screen' : 'Full screen map');
+        fsBtn.setAttribute('aria-label', on ? 'Exit full screen map' : 'Full screen map');
+        setTimeout(function(){ try { window.dispatchEvent(new Event('resize')); } catch(e){} }, 280);
+      });
+      // Esc exits full screen.
+      document.addEventListener('keydown', function(e){
+        if (e.key === 'Escape' && document.body.classList.contains('tmw-mapfs')) fsBtn.click();
+      });
+    })();
 
     document.addEventListener('gesturestart', e => e.preventDefault());
     const smoothScrollElements = document.querySelectorAll('#desktopSidebar');
