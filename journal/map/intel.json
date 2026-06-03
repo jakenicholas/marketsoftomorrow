@@ -1,6 +1,41 @@
 {
   "generated_at": "2026-06-03",
   "projects": {
+    "flow-at-aventura-corporate-center": {
+      "estimate_years": 3.2,
+      "estimate_label": "~3.2 years",
+      "range_low": 3.2,
+      "range_high": 3.2,
+      "confidence": "low",
+      "comparable_count": 1,
+      "good_count": 0,
+      "exact_count": 0,
+      "used_relaxed": true,
+      "avg_match_score": 0.61,
+      "avg_distance_km": 92.0,
+      "avg_distance_mi": 57.2,
+      "scale_used": true,
+      "firm_signal": null,
+      "source": "comparables",
+      "project_type": "Residences",
+      "metro": "South Florida",
+      "comparables": [
+        {
+          "name": "Nautilus 220",
+          "slug": "nautilus-220",
+          "location": "Lake Park",
+          "years": 3.2,
+          "score": 0.61,
+          "distance_km": 92.0,
+          "distance_mi": 57.2
+        }
+      ],
+      "pattern_summary": "Among 1 regional residences project in TMW's data, the median build time is 3.2 years.",
+      "dates_speculative": true,
+      "start_speculative": true,
+      "delivery_speculative": true,
+      "is_mixed_use": false
+    },
     "pine-crest-school-west-palm-beach": {
       "estimate_years": 3.5,
       "estimate_label": "~3.5 years",
@@ -7719,7 +7754,7 @@
   "stats": {
     "high": 2,
     "medium": 26,
-    "low": 28,
+    "low": 29,
     "known_date": 251,
     "completed": 33,
     "skipped": 63,
