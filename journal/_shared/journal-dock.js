@@ -419,14 +419,15 @@
     document.body.appendChild(dock);
     requestAnimationFrame(function () { dock.classList.add('ready'); });
 
-    buildFocusMarkets();
-    injectSurfaceToggle();
-    // The chrome header can mount a tick later than the dock; retry so the
-    // toggle lands there too (the per-header guard makes repeats no-ops).
-    requestAnimationFrame(injectSurfaceToggle);
-    setTimeout(injectSurfaceToggle, 300);
+    // Transform every header into the universal menu (consolidate the flat nav,
+    // inject the surface toggle, swap Open Map -> Instagram) THEN reveal it, in
+    // one pass, so the raw nav never flashes. The chrome header can mount a tick
+    // later than the dock, so re-run a couple of times (every step is guarded).
+    finishHeaders();
+    requestAnimationFrame(finishHeaders);
+    setTimeout(finishHeaders, 300);
+    setTimeout(finishHeaders, 700);
     wireBurgers();
-    swapToInstagram();
     setupFmPanel();
     loadAuth();
     linkifyArticle();
@@ -827,6 +828,19 @@
       c.classList.add('tmw-ig');
       c.innerHTML = ICON_IG;
     }
+  }
+
+  // Run every header transform (all idempotently guarded) then flag each
+  // nav.main ready. The universal nav is hidden by CSS until .tmw-nav-ready, so
+  // the raw flat links + Open Map CTA never flash before the menu is built.
+  function finishHeaders() {
+    try { buildFocusMarkets(); } catch (e) {}
+    try { injectSurfaceToggle(); } catch (e) {}
+    try { swapToInstagram(); } catch (e) {}
+    // Always reveal, even if a transform threw — a hidden nav is worse than an
+    // imperfect one.
+    var navs = document.querySelectorAll('nav.main');
+    for (var i = 0; i < navs.length; i++) navs[i].classList.add('tmw-nav-ready');
   }
 
   // Wire the mobile hamburger(s) to open/close the nav dropdown. Works for both

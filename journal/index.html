@@ -163,6 +163,15 @@ nav.main{
   border-bottom:1px solid var(--hair);
 }
 nav.main .wrap{display:flex; align-items:center; justify-content:space-between; padding-top:14px; padding-bottom:14px; gap:24px}
+/* Hide the raw header nav (flat region links + Open Map CTA) and the hex badge
+   until journal-dock.js consolidates them into the universal menu, so the
+   un-transformed header doesn't flash when landing from the map/atlas. The dock
+   adds .tmw-nav-ready when done; a 1.2s fallback keyframe reveals it anyway if
+   the dock somehow never runs. */
+nav.main .tmw-hex-badge{display:none}
+nav.main .nav-links, nav.main .nav-cta{opacity:0; animation:tmwNavReveal 0s linear 1.5s forwards}
+nav.main.tmw-nav-ready .nav-links, nav.main.tmw-nav-ready .nav-cta{opacity:1; animation:none}
+@keyframes tmwNavReveal{to{opacity:1}}
 .nav-links{display:flex; gap:20px; align-items:center}
 .nav-links a{font-family:var(--mono); font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--mute-2); transition:color .2s; position:relative}
 .nav-links a:hover{color:var(--white)}

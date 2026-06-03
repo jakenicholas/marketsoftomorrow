@@ -93,6 +93,14 @@
     '.tmw-chrome-head{position:sticky; top:0; z-index:60}',
     '.tmw-chrome-head nav.main{position:relative; background:rgba(7,8,7,.82); backdrop-filter:blur(16px) saturate(1.4); -webkit-backdrop-filter:blur(16px) saturate(1.4); border-bottom:1px solid var(--hair)}',
     '.tmw-chrome-head nav.main .wrap{display:flex; align-items:center; justify-content:space-between; padding-top:14px; padding-bottom:14px; gap:24px; max-width:1240px; margin:0 auto; padding-left:28px; padding-right:28px}',
+    // Hide the raw nav (flat region links + Open Map CTA) + hex until journal-dock
+    // consolidates them into the universal menu, so the un-transformed chrome
+    // header doesn't flash. journal-dock adds .tmw-nav-ready when done; the 1.2s
+    // keyframe is the fallback if the dock never runs.
+    'nav.main .tmw-hex-badge{display:none}',
+    'nav.main .nav-links, nav.main .nav-cta{opacity:0; animation:tmwNavReveal 0s linear 1.5s forwards}',
+    'nav.main.tmw-nav-ready .nav-links, nav.main.tmw-nav-ready .nav-cta{opacity:1; animation:none}',
+    '@keyframes tmwNavReveal{to{opacity:1}}',
     '.tmw-chrome-head .nav-links{display:flex; gap:20px; align-items:center}',
     '.tmw-chrome-head .nav-links a{font-family:var(--mono); font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--mute-2); transition:color .2s; position:relative; text-decoration:none}',
     '.tmw-chrome-head .nav-links a:hover, .tmw-chrome-head .nav-links a.active{color:var(--white)}',
