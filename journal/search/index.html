@@ -293,16 +293,20 @@ function fmtMon(d){ return d ? d.toLocaleString('en-US',{month:'short',year:'num
 // /firms-flat.json is absent so firms (e.g. "Related Ross") still surface.
 function deriveFirmsFromProjects(projects){
   const map = new Map();
-  function add(raw, role){
-    String(raw||'').split(',').map(s=>s.trim()).filter(Boolean).forEach(name=>{
-      if (name.toLowerCase()==='various') return;
+  function add(rawNames, rawSlugs, role){
+    const names = String(rawNames||'').split(',').map(s=>s.trim());
+    const slugs = String(rawSlugs||'').split(',').map(s=>s.trim());
+    names.forEach((name, i)=>{
+      if(!name || name.toLowerCase()==='various') return;
+      const slug = slugs[i] || '';
       const key = role+'|'+norm(name);
       let e = map.get(key);
-      if(!e){ e = { name:name, role:role, project_count:0 }; map.set(key,e); }
+      if(!e){ e = { name:name, role:role, slug:slug, project_count:0 }; map.set(key,e); }
+      if(!e.slug && slug) e.slug = slug;
       e.project_count++;
     });
   }
-  projects.forEach(p=>{ add(p.Developer,'developer'); add(p.Architect,'architect'); });
+  projects.forEach(p=>{ add(p.Developer, p.DeveloperSlugs, 'developer'); add(p.Architect, p.ArchitectSlugs, 'architect'); });
   return [...map.values()];
 }
 
@@ -494,7 +498,10 @@ function firmEntityHtml(f){
   const roleLbl = f.role==='architect' ? 'Architect' : (f.role==='developer' ? 'Developer' : 'Firm');
   const pc = +f.project_count||0;
   const sub = esc(roleLbl) + (pc>0 ? ' · '+pc+' project'+(pc===1?'':'s') : '') + (f.hq ? ' · '+esc(f.hq) : '');
-  const href = '/search/?q='+encodeURIComponent(f.name);
+  // Slugged firms open their firm page (currently served at /map/developers|architects/;
+  // will move to /firm/<slug>/). Unslugged firms fall back to re-searching the name.
+  const href = f.slug ? ('/map/' + (f.role==='architect'?'architects':'developers') + '/' + encodeURIComponent(f.slug) + '/')
+                      : ('/search/?q='+encodeURIComponent(f.name));
   return '<a class="entity" href="'+href+'"><span class="ico">'+ICO_FIRM+'</span>'+
     '<span><span class="nm">'+esc(f.name)+'</span><br><span class="sub">'+sub+'</span></span></a>';
 }
