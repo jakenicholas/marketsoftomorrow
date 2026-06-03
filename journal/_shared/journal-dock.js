@@ -182,9 +182,7 @@
     '.tmw-dock .tmw-st-seg{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:999px;color:#ECEAE5;text-decoration:none;transition:background .2s,color .2s}',
     '.tmw-dock .tmw-st-seg svg{width:19px;height:19px}',
     '.tmw-dock .tmw-st-seg:not(.on):hover{background:rgba(255,255,255,.08);color:#fff}',
-    '.tmw-dock .tmw-st-seg.on{background:#1FDF67;color:#06210f}',
-    '.tmw-dock .tmw-st-seg[data-s="atlas"].on{background:#A78BFA;color:#140a2e}',
-    '.tmw-dock .tmw-st-seg[data-s="journal"].on{background:#ECEAE5;color:#0a0a0a}',
+    '.tmw-dock .tmw-st-seg.on{background:#3a3d42;color:#fff}',
     '@media(min-width:981px){.tmw-dock .tmw-st{display:none}}',
     '@media(max-width:560px){.tmw-dock .tmw-st-seg{width:36px;height:36px}.tmw-dock .tmw-st-seg svg{width:18px;height:18px}}',
     // Labelled toggle injected into the header (nav.main) right after the logo.
@@ -194,11 +192,12 @@
     'nav.main .tmw-st .tmw-st-seg svg{width:17px;height:17px;flex:0 0 auto}',
     'nav.main .tmw-st .tmw-st-lbl{display:inline-block;max-width:0;overflow:hidden;opacity:0;transition:max-width .22s ease,opacity .18s ease,margin .22s ease}',
     'nav.main .tmw-st .tmw-st-seg:hover{color:#fff}',
-    'nav.main .tmw-st .tmw-st-seg.on{background:#1FDF67;color:#06210f}',
+    'nav.main .tmw-st .tmw-st-seg.on{background:#3a3d42;color:#fff}',
     'nav.main .tmw-st .tmw-st-seg.on .tmw-st-lbl{max-width:90px;opacity:1;margin-left:7px}',
-    'nav.main .tmw-st .tmw-st-seg[data-s="atlas"].on{background:#A78BFA;color:#140a2e}',
-    'nav.main .tmw-st .tmw-st-seg[data-s="journal"].on{background:#ECEAE5;color:#0a0a0a}',
-    '@media(min-width:981px){nav.main .nav-links{margin-left:auto;margin-right:auto}}',
+    // Right-anchor the nav menu so it grows leftward from a fixed right edge and
+    // never shifts as the dropdowns hydrate (was centered, which jittered).
+    '@media(min-width:981px){nav.main .nav-links{margin-left:auto;margin-right:0}}',
+    '@media(min-width:981px){.nav-cta.tmw-ig{display:none !important}}',
     '@media(max-width:980px){nav.main .tmw-st{display:none}}',
     '@media(max-width:560px){.tmw-dock{bottom:14px;gap:6px;padding:6px}.tmw-dock-btn{width:42px;height:42px}',
     '.tmw-dock-btn svg{width:18px;height:18px}.tmw-dock-search input{width:46vw;height:42px}',
@@ -244,7 +243,7 @@
     //    footer). Hidden, so the lockup re-centers on its own.
     '.tmw-hex-badge{display:none !important}',
     // Smaller wordmark in the header on desktop (mobile 74px is set above).
-    'nav.main .tmw-wordmark{width:92px}',
+    'nav.main .tmw-wordmark{width:80px}',
 
     // ── Header stacking: nav.main has a backdrop-filter, so it forms its own
     //    stacking context. Static (the default) it would paint BELOW the

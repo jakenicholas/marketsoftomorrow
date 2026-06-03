@@ -991,6 +991,15 @@ hookBannerCollapse();
 function hookBannerCollapse() {
   const banner = document.getElementById('banner-ad');
   if (!banner) return;
+  // Arriving from the Map or Atlas via the surface toggle: snap the header to
+  // the top with the ad banner hidden, so the chrome stays consistent across
+  // all three surfaces (the map/atlas headers are pinned to the very top).
+  try {
+    const ref = document.referrer ? new URL(document.referrer) : null;
+    const fromSurface = !!ref && (ref.hostname === 'map.oftmw.com' ||
+      (ref.hostname === location.hostname && /^\/atlas(\/|$)/.test(ref.pathname)));
+    if (fromSurface) { banner.classList.add('collapsed'); return; }
+  } catch (_) {}
   let collapsed = false;
   const THRESHOLD = 60; // px of scroll before banner tucks away
 
