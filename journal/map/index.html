@@ -10687,10 +10687,12 @@
     #header{display:none!important;}
     #v2TopChrome{display:none!important;}
 
-    /* (b) Hide journal bits the map doesn't want: the chrome footer and the
-       bottom-center search dock (the map has its own search + bottom rail). */
+    /* (b) Hide the chrome footer. The bottom-center dock search now SHOWS on
+       the map (desktop + mobile) like atlas/journal — the dock toggle is
+       hidden >980px (journal-dock default), so only the search hovers. The
+       desktop @media block below hides the old top-left searches + wires this
+       dock search to drive the map. */
     .tmw-chrome-foot{display:none!important;}
-    .tmw-dock{display:none!important;}
 
     /* (c) Position the journal header (.tmw-chrome-head) like the map's old
        fixed header: pinned to the top, full width, above the map UI. The
@@ -10800,6 +10802,18 @@
     .desktop-search-pill > :not(#sidebarAutocomplete){ position:relative; z-index:1; }
     #desktopSearchPill{ overflow:visible; }
     #desktopSearchPill > *{ position:relative; z-index:1; }
+    /* ── Desktop: bottom-center dock search replaces the top-left searches ──
+       The universal dock search now hovers bottom-center (like atlas/journal).
+       Hide the old top-left in-sidebar search row AND the collapsed-state pill.
+       #sidebarSearchBar stays in the DOM (inside the hidden row) as the search
+       backend that the dock search mirrors into, so the map keeps filtering. */
+    @media(min-width:981px){
+      body.ui-v2 #desktopSidebar .desktop-search-row{display:none!important;}
+      body.ui-v2 #desktopSearchPill{display:none!important;}
+      /* dock = just the search on desktop (the map's .tmw-st{!important} forces
+         the toggle visible, so override it here like journal-dock does >980px). */
+      .tmw-dock .tmw-st{display:none!important;}
+    }
     /* === end journal chrome integration ================================ */
   </style>
 </head>
@@ -11910,32 +11924,52 @@
       });
     })();
 
-    // Search consolidation: the journal dock search (next to the toggle) is the
-    // single "tap to search" trigger on the map. Tapping it opens the discovery
-    // drawer — whose own search bar (#v2SearchInput) runs the query — instead of
-    // navigating to the journal search page. The old floating capsule is hidden
-    // via CSS. journal-dock.js injects the dock asynchronously, so poll for it.
+    // Dock search wiring. The universal dock search (bottom-center) is the
+    // single search control on the map:
+    //  • Mobile (≤980): a "tap to search" trigger — readonly; tapping opens the
+    //    discovery drawer whose own #v2SearchInput runs the query.
+    //  • Desktop (≥981): a real input. Typing mirrors into the (hidden, in the
+    //    sidebar) #sidebarSearchBar so the map filters live; focusing it makes
+    //    sure the sidebar is open so the filtered results show.
+    // journal-dock.js injects the dock asynchronously, so poll for it.
     (function(){
-      function openDrawer(e){
+      function isDesktop(){ return window.matchMedia('(min-width:981px)').matches; }
+      function openMobileDrawer(e){
         if (e){ e.preventDefault(); e.stopPropagation(); }
         var cap = document.getElementById('v2Capsule');
-        if (cap) cap.click();                    // reuse the capsule flow: opens sheet + focuses #v2SearchInput
+        if (cap) cap.click();
         else document.body.classList.add('v2-sheet-open');
+      }
+      function applyMode(input){
+        if (isDesktop()){ input.readOnly = false; input.removeAttribute('inputmode'); }
+        else { input.readOnly = true; input.setAttribute('inputmode', 'none'); }
       }
       function wire(){
         var form = document.querySelector('.tmw-dock-search');
         if (!form) return false;
         var input = form.querySelector('input');
-        if (!input || form.dataset.tmwMapWired) return !!form.dataset.tmwMapWired;
+        if (!input) return false;
+        if (form.dataset.tmwMapWired) return true;
         form.dataset.tmwMapWired = '1';
-        // It's a trigger, not a field: no inline typing/keyboard.
-        input.readOnly = true;
-        input.setAttribute('inputmode', 'none');
         input.setAttribute('aria-label', 'Search the map');
-        ['mousedown','click','focus','touchstart'].forEach(function(ev){
-          input.addEventListener(ev, function(e){ input.blur(); openDrawer(e); }, ev === 'touchstart' ? {passive:false} : false);
+        applyMode(input);
+        window.addEventListener('resize', function(){ applyMode(input); });
+        input.addEventListener('focus', function(e){
+          if (!isDesktop()){ input.blur(); openMobileDrawer(e); return; }
+          document.body.classList.remove('v2-sidebar-collapsed');
+          var sb = document.getElementById('desktopSidebar');
+          if (sb && !sb.classList.contains('open')) sb.classList.add('open');
         });
-        form.addEventListener('submit', openDrawer);
+        ['mousedown','click','touchstart'].forEach(function(ev){
+          input.addEventListener(ev, function(e){ if (!isDesktop()){ input.blur(); openMobileDrawer(e); } }, ev === 'touchstart' ? {passive:false} : false);
+        });
+        // desktop: mirror typing into the hidden sidebar search → map filters live
+        input.addEventListener('input', function(){
+          if (!isDesktop()) return;
+          var rs = document.getElementById('sidebarSearchBar');
+          if (rs){ rs.value = input.value; rs.dispatchEvent(new Event('input', {bubbles:true})); }
+        });
+        form.addEventListener('submit', function(e){ e.preventDefault(); if (!isDesktop()) openMobileDrawer(e); });
         return true;
       }
       if (!wire()){
