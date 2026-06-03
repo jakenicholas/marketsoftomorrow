@@ -194,9 +194,15 @@
     'nav.main .tmw-st .tmw-st-seg:hover{color:#fff}',
     'nav.main .tmw-st .tmw-st-seg.on{background:#3a3d42;color:#fff}',
     'nav.main .tmw-st .tmw-st-seg.on .tmw-st-lbl{max-width:90px;opacity:1;margin-left:7px}',
-    // Right-anchor the nav menu so it grows leftward from a fixed right edge and
-    // never shifts as the dropdowns hydrate (was centered, which jittered).
-    '@media(min-width:981px){nav.main .nav-links{margin-left:auto;margin-right:0}}',
+    // Lock the nav menu dead-centre of the header. It's absolutely positioned
+    // (anchored like the logo) so it never shifts as the toggle injects on the
+    // left or the login/Join state hydrates on the right — both used to jitter
+    // it. Desktop only; mobile collapses into the burger drawer.
+    '@media(min-width:981px){nav.main .wrap{position:relative}',
+    'nav.main .nav-links{position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); margin:0}',
+    // The nav-links are out of flow now, so keep the logo+toggle pinned left and
+    // the login pinned right: the toggle eats the free space to its right.
+    'nav.main .tmw-st{margin-right:auto}}',
     '@media(min-width:981px){.nav-cta.tmw-ig{display:none !important}}',
     '@media(max-width:980px){nav.main .tmw-st{display:none}}',
     '@media(max-width:560px){.tmw-dock{bottom:14px;gap:6px;padding:6px}.tmw-dock-btn{width:42px;height:42px}',

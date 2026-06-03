@@ -991,28 +991,46 @@ hookBannerCollapse();
 function hookBannerCollapse() {
   const banner = document.getElementById('banner-ad');
   if (!banner) return;
-  // Arriving from the Map or Atlas via the surface toggle: snap the header to
-  // the top with the ad banner hidden, so the chrome stays consistent across
-  // all three surfaces (the map/atlas headers are pinned to the very top).
+  // The banner sits ABOVE the sticky header in normal flow, so it scrolls away
+  // on its own while the nav pins to the top and stays there. Nothing to wire on
+  // a fresh load — the banner shows, and scrolling up always brings it back.
+  //
+  // Arriving from the Map or Atlas via the surface toggle, we want to land with
+  // the nav already pinned to the top and the banner tucked just above the
+  // viewport (NOT destroyed) — so the reader can scroll up to reveal it again.
+  // We do that by scrolling past the banner's height once it has laid out.
+  let fromSurface = false;
   try {
     const ref = document.referrer ? new URL(document.referrer) : null;
-    const fromSurface = !!ref && (ref.hostname === 'map.oftmw.com' ||
+    fromSurface = !!ref && (ref.hostname === 'map.oftmw.com' ||
       (ref.hostname === location.hostname && /^\/atlas(\/|$)/.test(ref.pathname)));
-    if (fromSurface) { banner.classList.add('collapsed'); return; }
   } catch (_) {}
-  let collapsed = false;
-  const THRESHOLD = 60; // px of scroll before banner tucks away
+  if (!fromSurface) return;
 
-  const onScroll = () => {
-    const y = window.scrollY || window.pageYOffset;
-    const shouldCollapse = y > THRESHOLD;
-    if (shouldCollapse !== collapsed) {
-      collapsed = shouldCollapse;
-      banner.classList.toggle('collapsed', collapsed);
+  // Tuck exactly once, as soon as the banner has laid out, and never fight the
+  // reader: the moment they scroll/swipe (e.g. up to reveal the banner) we stop.
+  let tucked = false, userMoved = false;
+  ['wheel', 'touchstart', 'keydown'].forEach((ev) =>
+    window.addEventListener(ev, () => { userMoved = true; }, { passive: true, once: true }));
+  const tuck = () => {
+    if (tucked || userMoved) return;
+    const h = banner.offsetHeight;
+    if (h <= 1) return;                 // banner not laid out yet — a later retry handles it
+    const y = window.scrollY || window.pageYOffset || 0;
+    if (y < h) {
+      // html has scroll-behavior:smooth, so a plain scrollTo animates and gets
+      // cancelled by the async layout during load. Force an instant jump.
+      const root = document.documentElement;
+      const prev = root.style.scrollBehavior;
+      root.style.scrollBehavior = 'auto';
+      window.scrollTo(0, h);
+      root.style.scrollBehavior = prev;
     }
+    tucked = true;
   };
-  window.addEventListener('scroll', onScroll, { passive: true });
-  onScroll();
+  requestAnimationFrame(() => requestAnimationFrame(tuck));
+  setTimeout(tuck, 200);
+  setTimeout(tuck, 500);
 }
 
 // ---------------------------------------------------------------

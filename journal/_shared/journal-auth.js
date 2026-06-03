@@ -482,6 +482,19 @@
     var menu = host.querySelector('.v2-profile-menu');
     var goPro = host.querySelector('.v2-go-pro-badge');
 
+    // Pre-paint from the cached auth state (written by applyState on the last
+    // load) so a returning member sees their avatar immediately instead of a
+    // "Join" pill that flips to the avatar once Memberstack resolves async — the
+    // flash. Memberstack still confirms via applyState() and corrects if stale.
+    try {
+      var cached = localStorage.getItem('tmw_auth_state');
+      if (cached === 'in' || cached === 'pro') {
+        btn.classList.add('signed-in');
+        if (cached === 'pro') btn.classList.add('is-pro');
+        btn.setAttribute('aria-label', 'Profile menu');
+      }
+    } catch (_) {}
+
     function ms() { return window.$memberstackDom; }
 
     // Repaint the button from the current auth state.
@@ -496,6 +509,9 @@
       // links straight to the map feature; everyone else gets the paywall.
       window._tmwSignedIn = signedIn;
       window._isPaidMember = paid;
+      // Cache for the next page load so buildUI() can pre-paint the right state
+      // and skip the "Join"-pill flash (see buildUI).
+      try { localStorage.setItem('tmw_auth_state', paid ? 'pro' : signedIn ? 'in' : 'out'); } catch (_) {}
     }
     // Re-fetch the member and repaint (after login / plan change).
     function refresh() {
