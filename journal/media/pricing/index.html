@@ -352,10 +352,18 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
 .alt-tier li .at-dot{width:6px; height:6px; border-radius:50%; background:var(--gold); margin-top:7px; flex:none; box-shadow:0 0 8px rgba(230,197,116,.55)}
 
 /* compact hero (sub-pages: pricing) */
-.hero.hero-compact{min-height:auto; padding-top:140px; padding-bottom:80px; display:block}
+.hero.hero-compact{min-height:auto; padding-top:140px; padding-bottom:40px; display:block}
 .hero.hero-compact .hero-wrap{text-align:center; max-width:1000px; margin:0 auto}
 .hero.hero-compact .hero-h1{font-size:clamp(56px,9vw,128px); line-height:.9}
 .hero.hero-compact .hero-tag{max-width:48ch; margin:30px auto 0}
+
+/* proof strip (sits under hero, above pricing) */
+#proof{padding:40px 0 60px}
+.proof-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:24px; max-width:960px; margin:0 auto}
+.proof-grid .ps{text-align:center; padding:18px 8px; position:relative}
+.proof-grid .ps + .ps::before{content:""; position:absolute; left:-12px; top:50%; transform:translateY(-50%); width:1px; height:42px; background:var(--hair)}
+.proof-grid .ps-num{font-family:var(--serif); font-weight:600; font-size:clamp(28px,3.4vw,44px); color:var(--green-soft); letter-spacing:-.02em; line-height:1}
+.proof-grid .ps-lab{font-family:var(--mono); font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--mute2); margin-top:11px}
 
 /* pricing tiers */
 .tier-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:18px; margin-top:8px}
@@ -553,6 +561,8 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
   .globe-stats{grid-template-columns:1fr} .deliver{grid-template-columns:1fr} .dgrid{grid-template-columns:1fr} .offer-grid{grid-template-columns:1fr} .audmeta{grid-template-columns:1fr; gap:22px} .nerd{grid-template-columns:repeat(2,1fr)}
   .lens-grid{grid-template-columns:1fr} .lens-card{min-height:auto}
   .tier-grid{grid-template-columns:1fr}
+  .proof-grid{grid-template-columns:repeat(2,1fr); gap:16px}
+  .proof-grid .ps + .ps::before{display:none}
   .tier-custom{grid-template-columns:1fr; text-align:left}
   .amplify{padding:32px 26px}
   .hero.hero-compact{padding-top:120px; padding-bottom:60px}
@@ -679,6 +689,17 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
     <p class="hero-tag reveal d2">Three ways to put your brand in front of <span class="hl-gold">10M monthly viewers</span> &mdash; or build a custom campaign that fits.</p>
   </div>
 </header>
+
+<section id="proof">
+  <div class="wrap">
+    <div class="proof-grid">
+      <div class="ps reveal"><div class="ps-num">9.2M</div><div class="ps-lab">Monthly social views</div></div>
+      <div class="ps reveal d1"><div class="ps-num">392K</div><div class="ps-lab">Monthly web impressions</div></div>
+      <div class="ps reveal d2"><div class="ps-num">15.3K</div><div class="ps-lab">Email subscribers</div></div>
+      <div class="ps reveal d3"><div class="ps-num">250+</div><div class="ps-lab">Brands worked with</div></div>
+    </div>
+  </div>
+</section>
 
 <section id="pricing">
   <div class="wrap">
