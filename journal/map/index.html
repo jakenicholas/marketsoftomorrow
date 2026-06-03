@@ -10817,6 +10817,36 @@
          the toggle visible, so override it here like journal-dock does >980px). */
       .tmw-dock .tmw-st{display:none!important;}
     }
+    /* ── Desktop drawer: close (X) + pull handle ─────────────────────── */
+    @media(min-width:981px){
+      /* Close X — pinned to the drawer's top-right; slides out with the drawer. */
+      #tmwDrawerClose{
+        position:absolute; top:12px; right:12px; z-index:14;
+        width:30px; height:30px; border-radius:50%;
+        background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12);
+        color:rgba(255,255,255,0.62); display:flex; align-items:center; justify-content:center; cursor:pointer;
+        transition:background .15s ease, color .15s ease;
+      }
+      #tmwDrawerClose svg{ width:15px; height:15px; }
+      #tmwDrawerClose:hover{ background:rgba(255,255,255,0.14); color:#fff; }
+      /* Pull handle — a tab on the left edge, shown only while collapsed. */
+      #tmwDrawerHandle{
+        position:fixed; left:0; top:calc(var(--header-height) + 26px); z-index:26;
+        width:26px; height:54px; padding:0;
+        border:1px solid rgba(255,255,255,0.12); border-left:0;
+        border-top-right-radius:13px; border-bottom-right-radius:13px;
+        background:rgba(17,17,19,0.92); -webkit-backdrop-filter:blur(16px); backdrop-filter:blur(16px);
+        color:rgba(255,255,255,0.82); display:none; align-items:center; justify-content:center; cursor:pointer;
+        box-shadow:2px 0 18px rgba(0,0,0,0.42);
+        transition:background .15s ease, transform .15s ease;
+      }
+      #tmwDrawerHandle svg{ width:16px; height:16px; }
+      #tmwDrawerHandle:hover{ background:rgba(30,30,34,0.96); transform:translateX(2px); }
+      body.ui-v2.v2-sidebar-collapsed #tmwDrawerHandle{ display:flex; }
+      body.ui-v2.v2-sidebar-collapsed #tmwDrawerClose{ display:none; }
+    }
+    /* Mobile uses the bottom sheet, not this drawer — never show these. */
+    @media(max-width:980px){ #tmwDrawerClose, #tmwDrawerHandle{ display:none!important; } }
     /* === end journal chrome integration ================================ */
   </style>
 </head>
@@ -11242,7 +11272,17 @@
     </div>
     
     <!-- Desktop Sidebar -->
+    <!-- Pull handle: a tab sticking out top-left, shown only when the drawer is
+         collapsed off-screen. Click slides the drawer back in. (Desktop only.) -->
+    <button id="tmwDrawerHandle" type="button" aria-label="Open panel" title="Open panel">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>
+    </button>
+
     <div id="desktopSidebar">
+      <!-- Close (X): slides out with the drawer; the pull handle brings it back. -->
+      <button id="tmwDrawerClose" type="button" aria-label="Close panel" title="Close panel">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
       <div class="sidebar-header">
 
         <!-- Row 1: Search glass pill + close button -->
@@ -11979,6 +12019,21 @@
         var tries = 0;
         var iv = setInterval(function(){ if (wire() || ++tries > 40) clearInterval(iv); }, 150);
       }
+    })();
+
+    // Desktop drawer: X closes (slides the sidebar off-screen left via
+    // body.v2-sidebar-collapsed); the left-edge pull handle slides it back in.
+    (function(){
+      function collapse(){ document.body.classList.add('v2-sidebar-collapsed'); }
+      function expand(){
+        document.body.classList.remove('v2-sidebar-collapsed');
+        var sb = document.getElementById('desktopSidebar');
+        if (sb && !sb.classList.contains('open')) sb.classList.add('open');
+      }
+      var x = document.getElementById('tmwDrawerClose');
+      var h = document.getElementById('tmwDrawerHandle');
+      if (x) x.addEventListener('click', collapse);
+      if (h) h.addEventListener('click', expand);
     })();
 
     document.addEventListener('gesturestart', e => e.preventDefault());
