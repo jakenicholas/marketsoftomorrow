@@ -20,6 +20,7 @@
 
   // ── styles (ported from the map, prefixed-safe class names) ───────────
   var cssInjected = false;
+  var hardLock = false;   // when true the paywall can't be dismissed (atlas gate)
   function injectCSS() {
     if (cssInjected) return; cssInjected = true;
     var s = document.createElement('style'); s.id = 'tmw-paywall-css';
@@ -31,6 +32,7 @@
       '@keyframes paywallPop{from{opacity:0; transform:scale(.9) translateY(20px)} to{opacity:1; transform:scale(1) translateY(0)}}',
       '.paywall-close{position:absolute; top:13px; right:13px; width:30px; height:30px; border-radius:50%; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.05); color:rgba(255,255,255,.7); font-size:17px; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background .15s,color .15s; z-index:2}',
       '.paywall-close:hover{background:rgba(255,255,255,.12); color:#fff}',
+      '.paywall-modal.paywall-hard .paywall-close{display:none}',
       '.paywall-icon{margin:0 auto 18px; display:flex; align-items:center; justify-content:center}',
       '.paywall-icon img{height:34px; width:auto; display:block; filter:brightness(0) invert(1)}',
       // Map header font (Inter), not the journal\'s serif h2 — explicit so the
@@ -125,14 +127,16 @@
     });
   }
 
-  function show(ctx) {
+  function show(ctx, opts) {
     build();
+    hardLock = !!(opts && opts.hard);
     // close any open nav dropdown / drawer so the paywall is unobstructed
     document.querySelectorAll('.tmw-fm.open').forEach(function (f) { f.classList.remove('open'); });
     var nl = document.querySelector('nav.main .nav-links.open'); if (nl) nl.classList.remove('open');
     document.documentElement.style.overflow = 'hidden';
     var modal = document.getElementById('paywallModal');
     modal.classList.add('active');
+    modal.classList.toggle('paywall-hard', hardLock);
     // hide the "Already a subscriber?" line for signed-in members
     var wrap = document.getElementById('tmwPaywallSigninWrap');
     if (wrap) wrap.style.display = window._tmwSignedIn ? 'none' : '';
@@ -140,6 +144,7 @@
     var titleEl = modal.querySelector('.paywall-title');
     var subEl = modal.querySelector('.paywall-subtitle');
     var map = {
+      'atlas': ['Unlock the full Atlas', 'You’ve reached the end of your free preview. The Atlas — every tracked project on one canvas — is a Pro feature. Subscribe to keep exploring.'],
       'feature:intelligence': ['TMW Intelligence', 'Completion forecasts and the comparable-project engine are a Pro feature. Upgrade to unlock intelligence on every development.'],
       'feature:watchlist': ['Start your watchlist', 'Watching projects is a Pro feature. Track the firms and projects you follow and get pinged when they move.'],
       'feature:compare': ['Build your comparison', 'Side-by-side comparisons are a Pro feature. Stack any projects together across cities.'],
@@ -154,6 +159,7 @@
   }
 
   function hide() {
+    if (hardLock) return;            // hard block (atlas gate) — can't be dismissed
     var modal = document.getElementById('paywallModal');
     if (modal) modal.classList.remove('active');
     document.documentElement.style.overflow = '';

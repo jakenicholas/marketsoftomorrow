@@ -921,6 +921,9 @@
        toggle — Atlas active on /atlas) + the bottom dock. -->
   <script src="/_shared/journal-chrome.js" defer></script>
   <script src="/_shared/journal-dock.js" defer></script>
+  <!-- Native Pro paywall (window.tmwShowPaywall). Memberstack + _isPaidMember
+       come from journal-auth.js, which journal-chrome.js loads on this page. -->
+  <script src="/_shared/journal-paywall.js" defer></script>
 
   <!-- ───────────────────────────────────────────────────────────────────
        ATLAS RENDER — ported from the map (repo-root index.html, the
@@ -1915,6 +1918,43 @@
         }
       }
     });
+  })();
+  </script>
+
+  <!-- ───────────────────────────────────────────────────────────────────
+       ATLAS PAYWALL GATE — the atlas is free to browse for 10 seconds, then a
+       hard (non-dismissable) Pro paywall blocks it. localStorage marks the free
+       view as used, so refreshing can't reset the 10s. Paid members are never
+       gated (Memberstack/_isPaidMember resolves via journal-auth).
+       ─────────────────────────────────────────────────────────────────── -->
+  <script>
+  (function () {
+    var KEY = 'tmw_atlas_gate', GRACE = 10000;
+    var used = false; try { used = !!localStorage.getItem(KEY); } catch (e) {}
+    function fire() {
+      if (window._isPaidMember) return;                       // never gate Pro members
+      try { localStorage.setItem(KEY, String(Date.now())); } catch (e) {}
+      if (typeof window.tmwShowPaywall === 'function') {
+        window.tmwShowPaywall('atlas', { hard: true });
+      }
+    }
+    function start() {
+      if (window._isPaidMember) return;
+      // First visit → 10s free preview. Returning (free view already used) → block
+      // straight away so a refresh can't buy another 10 seconds.
+      setTimeout(function () { if (!window._isPaidMember) fire(); }, used ? 0 : GRACE);
+    }
+    // Wait for Memberstack to resolve _isPaidMember first (so a Pro member is
+    // never briefly blocked), capped at ~4s in case it never loads.
+    function ready(cb) {
+      if (typeof window._isPaidMember !== 'undefined') return cb();
+      var n = 0, t = setInterval(function () {
+        if (typeof window._isPaidMember !== 'undefined' || ++n > 40) { clearInterval(t); cb(); }
+      }, 100);
+    }
+    function boot() { ready(start); }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+    else boot();
   })();
   </script>
 </body>
