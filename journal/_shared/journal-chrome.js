@@ -11,23 +11,6 @@
 (function () {
   'use strict';
 
-  // ── Universal Pulse trigger ──────────────────────────────────────────────
-  // Runs BEFORE the chrome guard so Pulse appears on every page — including the
-  // map, which mounts its header inline and sets __tmwChrome (so the chrome
-  // block below is skipped there). buildPulse + pEsc + pRel are function
-  // declarations, hoisted to the top of this IIFE, so they're callable here.
-  (function () {
-    if (window.__tmwPulse) return; window.__tmwPulse = true;
-    function go(){
-      fetch('https://www.oftmw.com/map/pulse.json', { cache: 'no-store' })
-        .then(function (r) { return r.ok ? r.json() : null; })
-        .then(function (d) { if (d) buildPulse(d.events || []); })
-        .catch(function () {});
-    }
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', go);
-    else go();
-  })();
-
   if (window.__tmwChrome) return;
   window.__tmwChrome = true;
 
@@ -228,95 +211,8 @@
             el.textContent = Number(n).toLocaleString();
           }
         }
-        if (data) buildPulse(data.events || []);
       })
       .catch(function () { var el = document.getElementById('mc-count-n'); if (el) el.textContent = '387'; });
-  }
-
-  // ── Universal Pulse ──────────────────────────────────────────────────────
-  // A bell + gold "new since you last looked" count, left of the profile icon
-  // on every page; clicking opens a popup feed (like the account menu).
-  function pEsc(s){ return (s == null ? '' : String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-  function pRel(ts){
-    var t = new Date(ts).getTime(); if (isNaN(t)) return '';
-    var s = Math.max(0, (Date.now() - t) / 1000);
-    if (s < 3600) return Math.max(1, Math.floor(s/60)) + 'm ago';
-    if (s < 86400) return Math.floor(s/3600) + 'h ago';
-    if (s < 604800) return Math.floor(s/86400) + 'd ago';
-    try { return new Date(ts).toLocaleDateString(undefined, { month:'short', day:'numeric' }); } catch(e){ return ''; }
-  }
-  function buildPulse(events){
-    if (document.getElementById('tmw-pulse-bell')) return;
-    events = (events || []).slice().sort(function(a,b){ return new Date(b.timestamp) - new Date(a.timestamp); });
-    if (!document.getElementById('tmw-pulse-css')){
-      var st = document.createElement('style'); st.id = 'tmw-pulse-css';
-      st.textContent = [
-        '.tmw-pulse-bell{position:relative;width:32px;height:32px;border-radius:50%;background:transparent;border:none;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,0.72);flex:0 0 auto;padding:0;transition:color .15s}',
-        '.tmw-pulse-bell:hover{color:#fff}',
-        '.tmw-pulse-bell svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}',
-        '.tmw-pulse-count{position:absolute;top:-3px;right:-5px;min-width:11px;height:16px;padding:0 4px;border-radius:999px;background:#FFD300;color:#0a0a0a;font-size:10px;font-weight:800;line-height:16px;text-align:center;border:2px solid rgba(10,10,10,0.92)}',
-        '.tmw-pulse-count[hidden]{display:none}',
-        '.tmw-pulse-pop{position:absolute;top:calc(100% + 14px);right:0;width:372px;max-width:92vw;max-height:72vh;display:flex;flex-direction:column;background:rgba(16,16,18,0.97);-webkit-backdrop-filter:blur(24px);backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,0.1);border-radius:16px;box-shadow:0 22px 60px rgba(0,0,0,0.6);z-index:200;overflow:hidden}',
-        '.tmw-pulse-pop[hidden]{display:none}',
-        '.tmw-pulse-head{padding:14px 16px;border-bottom:1px solid rgba(255,255,255,0.07);display:flex;align-items:baseline;gap:8px;flex:0 0 auto}',
-        '.tmw-pulse-head b{font-size:14px;font-weight:800;color:#fff;letter-spacing:.02em}',
-        '.tmw-pulse-head .tmw-pulse-sub{font-size:11px;color:rgba(255,255,255,0.4)}',
-        '.tmw-pulse-feed{overflow-y:auto;padding:6px}',
-        '.tmw-pulse-item{display:flex;gap:11px;padding:9px 10px;border-radius:11px;text-decoration:none;cursor:pointer;transition:background .12s}',
-        '.tmw-pulse-item:hover{background:rgba(255,255,255,0.05)}',
-        '.tmw-pulse-item .pi-img{width:52px;height:52px;border-radius:9px;flex:0 0 auto;object-fit:cover;background:rgba(255,255,255,0.06)}',
-        '.tmw-pulse-item .pi-body{min-width:0;flex:1}',
-        '.tmw-pulse-item .pi-tag{display:inline-block;font-size:9px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#1FDF67;margin-bottom:3px}',
-        '.tmw-pulse-item .pi-title{font-size:13px;font-weight:600;color:#ECEAE5;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}',
-        '.tmw-pulse-item .pi-meta{font-size:11px;color:rgba(255,255,255,0.4);margin-top:3px}',
-        '.tmw-pulse-empty{padding:28px 16px;text-align:center;color:rgba(255,255,255,0.4);font-size:13px}',
-        '@media(max-width:980px){.tmw-pulse-pop{position:fixed!important;top:62px!important;bottom:auto!important;left:12px!important;right:12px!important;width:auto!important;max-width:none!important;max-height:74vh!important}}'
-      ].join('');
-      document.head.appendChild(st);
-    }
-    var SEEN_KEY = 'tmw_pulse_seen';
-    var seen = parseInt(localStorage.getItem(SEEN_KEY) || '0', 10);
-    if (!seen) seen = Date.now() - 7 * 86400000;        // first visit → last 7 days
-    var newCount = events.filter(function(e){ return new Date(e.timestamp).getTime() > seen; }).length;
-    var feedHtml = events.length ? events.slice(0, 30).map(function(e){
-      var img = e.image ? '<img class="pi-img" src="' + pEsc(e.image) + '" alt="" loading="lazy">' : '<div class="pi-img"></div>';
-      var meta = (e.city ? pEsc(e.city) + ' · ' : '') + pRel(e.timestamp);
-      return '<a class="tmw-pulse-item" href="' + pEsc(e.link || '#') + '">' + img +
-        '<div class="pi-body"><span class="pi-tag">' + pEsc(e.tag || 'Update') + '</span>' +
-        '<div class="pi-title">' + pEsc(e.title || e.project_title || '') + '</div>' +
-        '<div class="pi-meta">' + meta + '</div></div></a>';
-    }).join('') : '<div class="tmw-pulse-empty">No recent activity</div>';
-
-    function attach(){
-      var authBox = document.querySelector('.tmw-auth');
-      var prof = authBox ? authBox.querySelector('.v2-profile-btn') : null;
-      if (!authBox || !prof) return false;
-      if (document.getElementById('tmw-pulse-bell')) return true;
-      var bell = document.createElement('button');
-      bell.id = 'tmw-pulse-bell'; bell.className = 'tmw-pulse-bell'; bell.type = 'button'; bell.setAttribute('aria-label', 'Pulse');
-      bell.innerHTML = '<svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>' +
-        '<span class="tmw-pulse-count"' + (newCount > 0 ? '' : ' hidden') + '>' + (newCount > 9 ? '9+' : newCount) + '</span>';
-      var pop = document.createElement('div');
-      pop.id = 'tmw-pulse-pop'; pop.className = 'tmw-pulse-pop'; pop.hidden = true;
-      pop.innerHTML = '<div class="tmw-pulse-head"><b>Pulse</b><span class="tmw-pulse-sub">Latest across the network</span></div>' +
-        '<div class="tmw-pulse-feed">' + feedHtml + '</div>';
-      authBox.insertBefore(bell, prof);
-      authBox.appendChild(pop);
-      bell.addEventListener('click', function(ev){
-        ev.stopPropagation();
-        var opening = pop.hidden;
-        pop.hidden = !opening;
-        if (opening){
-          localStorage.setItem(SEEN_KEY, String(Date.now()));
-          var c = bell.querySelector('.tmw-pulse-count'); if (c) c.hidden = true;
-        }
-      });
-      document.addEventListener('click', function(ev){
-        if (!pop.hidden && !bell.contains(ev.target) && !pop.contains(ev.target)) pop.hidden = true;
-      });
-      return true;
-    }
-    if (!attach()){ var n = 0, iv = setInterval(function(){ if (attach() || ++n > 60) clearInterval(iv); }, 150); }
   }
 
   if (document.readyState === 'loading') {

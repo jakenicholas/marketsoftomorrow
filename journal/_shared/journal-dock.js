@@ -916,3 +916,149 @@
     mount();
   }
 })();
+
+
+/* ── Universal Pulse — gold count circle + activity feed popup ───────────────
+   Lives in journal-dock.js because the dock is the ONLY shared script loaded on
+   every surface (journal home, /map, /atlas). Renders a gold notification circle
+   (the "new since last opened" count) to the LEFT of the profile icon
+   (.tmw-auth .v2-profile-btn) plus a popup feed. Self-guarded; builds once. */
+(function () {
+  if (window.__tmwPulse) return; window.__tmwPulse = true;
+  var PULSE_URL = 'https://www.oftmw.com/map/pulse.json';
+  var SEEN_KEY  = 'tmw_pulse_seen';
+  var events = [], circleEl = null, popEl = null, feedEl = null;
+
+  function esc(s){ return (s == null ? '' : String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function rel(ts){
+    var t = new Date(ts).getTime(); if (isNaN(t)) return '';
+    var s = Math.max(0, (Date.now() - t) / 1000);
+    if (s < 3600)   return Math.max(1, Math.floor(s/60)) + 'm ago';
+    if (s < 86400)  return Math.floor(s/3600) + 'h ago';
+    if (s < 604800) return Math.floor(s/86400) + 'd ago';
+    try { return new Date(ts).toLocaleDateString(undefined, { month:'short', day:'numeric' }); } catch(e){ return ''; }
+  }
+  function byTime(a,b){ return new Date(b.timestamp) - new Date(a.timestamp); }
+  function label(e){
+    var t = (e.type || '').toLowerCase();
+    if (t === 'new_project')   return 'Addition';
+    if (t === 'article')       return 'Article';
+    if (t === 'status_change') return 'Update';
+    var tag = (e.tag || '').toLowerCase();
+    if (tag.indexOf('on tmw') > -1 || tag.indexOf('article') > -1) return 'Article';
+    if (tag.indexOf('new on map') > -1 || tag.indexOf('added') > -1) return 'Addition';
+    return 'Update';
+  }
+  function title(e){
+    var s = (label(e) === 'Addition') ? (e.project_title || e.title || '')
+                                      : (e.title || e.project_title || '');
+    return String(s).replace(/\s+/g, ' ').trim();
+  }
+  function seenTs(){ var s = parseInt(localStorage.getItem(SEEN_KEY) || '0', 10); return s || (Date.now() - 7 * 86400000); }
+  function countNew(){ var s = seenTs(); return events.filter(function(e){ return new Date(e.timestamp).getTime() > s; }).length; }
+  function feedHtml(){
+    if (!events.length) return '<div class="tmw-pulse-empty">No recent activity</div>';
+    return events.slice(0, 30).map(function(e){
+      var lab = label(e);
+      var img = e.image ? '<img class="pi-img" src="' + esc(e.image) + '" alt="" loading="lazy">' : '<div class="pi-img"></div>';
+      var meta = (e.city ? esc(e.city) + ' · ' : '') + rel(e.timestamp);
+      return '<a class="tmw-pulse-item" href="' + esc(e.link || '#') + '">' + img +
+        '<div class="pi-body"><span class="pi-tag pi-' + lab.toLowerCase() + '">' + esc(lab) + '</span>' +
+        '<div class="pi-title">' + esc(title(e)) + '</div>' +
+        '<div class="pi-meta">' + meta + '</div></div></a>';
+    }).join('');
+  }
+  function paintCircle(){
+    if (!circleEl) return;
+    var n = countNew();
+    if (n > 0){ circleEl.textContent = n > 9 ? '9+' : String(n); circleEl.classList.remove('is-zero'); }
+    else      { circleEl.textContent = '';                       circleEl.classList.add('is-zero'); }
+  }
+  function repaint(){ paintCircle(); if (feedEl) feedEl.innerHTML = feedHtml(); }
+
+  function injectCss(){
+    if (document.getElementById('tmw-pulse-css')) return;
+    var st = document.createElement('style'); st.id = 'tmw-pulse-css';
+    st.textContent = [
+      '.tmw-pulse-bell{position:relative;min-width:24px;height:24px;padding:0 6px;border-radius:999px;background:#FFD300;color:#0a0a0a;border:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font:800 11px/1 "Inter",-apple-system,BlinkMacSystemFont,sans-serif;flex:0 0 auto;box-shadow:0 0 10px rgba(255,211,0,.45);transition:transform .12s,box-shadow .15s,width .15s,opacity .15s}',
+      '.tmw-pulse-bell:hover{transform:scale(1.08);box-shadow:0 0 15px rgba(255,211,0,.75)}',
+      '.tmw-pulse-bell.is-zero{min-width:0;width:16px;height:16px;padding:0;opacity:.6;box-shadow:0 0 6px rgba(255,211,0,.3)}',
+      '.tmw-pulse-bell.is-zero:hover{opacity:1;box-shadow:0 0 12px rgba(255,211,0,.6)}',
+      '.tmw-pulse-pop{position:absolute;top:calc(100% + 14px);right:0;width:372px;max-width:92vw;max-height:72vh;display:flex;flex-direction:column;background:rgba(16,16,18,.97);-webkit-backdrop-filter:blur(24px);backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,.1);border-radius:16px;box-shadow:0 22px 60px rgba(0,0,0,.6);z-index:200;overflow:hidden}',
+      '.tmw-pulse-pop[hidden]{display:none}',
+      '.tmw-pulse-head{padding:12px 12px 12px 16px;border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;gap:8px;flex:0 0 auto}',
+      '.tmw-pulse-head b{font-size:14px;font-weight:800;color:#fff;letter-spacing:.02em}',
+      '.tmw-pulse-head .tmw-pulse-sub{font-size:11px;color:rgba(255,255,255,.4)}',
+      '.tmw-pulse-refresh{margin-left:auto;width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.6);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;flex:0 0 auto;transition:background .15s,color .15s,border-color .15s,transform .45s ease}',
+      '.tmw-pulse-refresh:hover{background:rgba(255,211,0,.14);color:#FFD300;border-color:rgba(255,211,0,.4)}',
+      '.tmw-pulse-refresh.spin{transform:rotate(360deg)}',
+      '.tmw-pulse-refresh svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}',
+      '.tmw-pulse-feed{overflow-y:auto;padding:6px}',
+      '.tmw-pulse-item{display:flex;gap:11px;padding:9px 10px;border-radius:11px;text-decoration:none;cursor:pointer;transition:background .12s}',
+      '.tmw-pulse-item:hover{background:rgba(255,255,255,.05)}',
+      '.tmw-pulse-item .pi-img{width:52px;height:52px;border-radius:9px;flex:0 0 auto;object-fit:cover;background:rgba(255,255,255,.06)}',
+      '.tmw-pulse-item .pi-body{min-width:0;flex:1}',
+      '.tmw-pulse-item .pi-tag{display:inline-block;font-size:9px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;margin-bottom:3px;color:#1FDF67}',
+      '.tmw-pulse-item .pi-tag.pi-update{color:#FFD300}',
+      '.tmw-pulse-item .pi-tag.pi-article{color:#8FB8FF}',
+      '.tmw-pulse-item .pi-title{font-size:13px;font-weight:600;color:#ECEAE5;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}',
+      '.tmw-pulse-item .pi-meta{font-size:11px;color:rgba(255,255,255,.4);margin-top:3px}',
+      '.tmw-pulse-empty{padding:28px 16px;text-align:center;color:rgba(255,255,255,.4);font-size:13px}',
+      '@media(max-width:980px){.tmw-pulse-pop{position:fixed!important;top:62px!important;bottom:auto!important;left:12px!important;right:12px!important;width:auto!important;max-width:none!important;max-height:74vh!important}}'
+    ].join('');
+    document.head.appendChild(st);
+  }
+
+  function attach(){
+    var box = document.querySelector('.tmw-auth');
+    var prof = box ? box.querySelector('.v2-profile-btn') : null;
+    if (!box || !prof) return false;
+    if (document.getElementById('tmw-pulse-bell')){ circleEl = document.getElementById('tmw-pulse-bell'); return true; }
+    injectCss();
+    circleEl = document.createElement('button');
+    circleEl.id = 'tmw-pulse-bell'; circleEl.className = 'tmw-pulse-bell'; circleEl.type = 'button';
+    circleEl.setAttribute('aria-label', 'Pulse — recent activity');
+    popEl = document.createElement('div');
+    popEl.id = 'tmw-pulse-pop'; popEl.className = 'tmw-pulse-pop'; popEl.hidden = true;
+    popEl.innerHTML =
+      '<div class="tmw-pulse-head"><b>Pulse</b><span class="tmw-pulse-sub">Latest across the network</span>' +
+        '<button class="tmw-pulse-refresh" type="button" aria-label="Refresh" title="Refresh">' +
+          '<svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>' +
+        '</button></div>' +
+      '<div class="tmw-pulse-feed"></div>';
+    box.insertBefore(circleEl, prof);
+    box.appendChild(popEl);
+    feedEl = popEl.querySelector('.tmw-pulse-feed');
+    repaint();
+    circleEl.addEventListener('click', function(ev){
+      ev.stopPropagation();
+      var opening = popEl.hidden;
+      popEl.hidden = !opening;
+      if (opening){ localStorage.setItem(SEEN_KEY, String(Date.now())); paintCircle(); }
+    });
+    popEl.querySelector('.tmw-pulse-refresh').addEventListener('click', function(ev){
+      ev.stopPropagation();
+      var btn = this; btn.classList.add('spin'); setTimeout(function(){ btn.classList.remove('spin'); }, 480);
+      localStorage.removeItem(SEEN_KEY);   // reset "viewed" → the count returns
+      fetch(PULSE_URL, { cache: 'no-store' }).then(function(r){ return r.ok ? r.json() : null; })
+        .then(function(d){ if (d && d.events) events = d.events.slice().sort(byTime); repaint(); })
+        .catch(function(){ repaint(); });
+    });
+    document.addEventListener('click', function(ev){
+      if (popEl && !popEl.hidden && !circleEl.contains(ev.target) && !popEl.contains(ev.target)) popEl.hidden = true;
+    });
+    return true;
+  }
+
+  function go(){
+    fetch(PULSE_URL, { cache: 'no-store' })
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(d){
+        events = ((d && d.events) || []).slice().sort(byTime);
+        if (!attach()){ var n = 0, iv = setInterval(function(){ if (attach() || ++n > 80) clearInterval(iv); }, 150); }
+      })
+      .catch(function(){});
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', go);
+  else go();
+})();
