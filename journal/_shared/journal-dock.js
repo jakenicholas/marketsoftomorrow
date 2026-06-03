@@ -747,8 +747,8 @@
 
   function theMapPanel() {
     var U = MAP_BASE, UP = MAP_BASE + '/?upgrade=1';
-    function pro(icon, name, sub, ctx) {
-      return '<a class="tmw-mm-item" href="' + UP + '" data-paywall="' + ctx + '"><span class="tmw-mm-ic">' + ic(icon) + '</span><span class="tmw-mm-tx"><b>' + name + '<em>PRO</em></b><i>' + sub + '</i></span></a>';
+    function pro(icon, name, sub, ctx, href) {
+      return '<a class="tmw-mm-item" href="' + (href || UP) + '" data-paywall="' + ctx + '"><span class="tmw-mm-ic">' + ic(icon) + '</span><span class="tmw-mm-tx"><b>' + name + '<em>PRO</em></b><i>' + sub + '</i></span></a>';
     }
     return '<div class="tmw-mm">' +
       '<div class="tmw-mm-h tmw-mm-h-span">Pro tools</div>' +
@@ -759,7 +759,7 @@
       '<div class="tmw-mm-pro"><div class="tmw-mm-pro-grid">' +
         pro(HEX_IC, 'TMW Intelligence', 'Completion forecasts &amp; confidence.', 'feature:intelligence') +
         pro(EYE_IC, 'Watchlist', 'Track projects, get notified.', 'feature:watchlist') +
-        pro(CMP_IC, 'Compare', 'Stack any projects side-by-side.', 'feature:compare') +
+        pro(CMP_IC, 'Compare', 'Stack any projects side-by-side.', 'feature:compare', 'https://www.oftmw.com/map/?compare=new') +
         pro(PULSE_IC, 'Pulse', 'A live feed of every new project.', 'feature:pulse') +
       '</div></div>' +
       '<a class="tmw-mm-cta" href="' + UP + '" data-paywall="go-pro"><span class="t">Explore the map free. <em>Go Pro for the intelligence.</em></span><span class="go">Go Pro →</span></a>' +
