@@ -8249,7 +8249,7 @@
       bottom: auto;
       top: calc(env(safe-area-inset-top, 0px) + 2px);
     }
-    body.v2-sheet-open .v2-right-rail > *:not(#v2GeolocateBtn) {
+    body.v2-sheet-open .v2-right-rail > * {
       display: none !important;
     }
     body.ui-v2 .v2-action-btn {
@@ -9754,7 +9754,8 @@
       background: rgba(15,15,15,0.98) !important;
       backdrop-filter: blur(24px) saturate(1.4) !important;
       -webkit-backdrop-filter: blur(24px) saturate(1.4) !important;
-      padding: 14px 16px 0 !important;
+      /* extra top padding so sidebar content clears the universal header */
+      padding: 26px 16px 0 !important;
       gap: 8px !important;
       position: sticky !important;
       top: 0 !important;
@@ -10734,8 +10735,16 @@
          (and replaces) the journal search — the user then searches in the
          drawer's own search bar. */
       body.v2-sheet-open .tmw-dock{display:none!important;}
-      /* Hide the full-screen button while the drawer is open (mobile). */
-      body.v2-sheet-open #tmwMapFsBtn{display:none!important;}
+      /* Hide ALL floating map controls (full-screen button, dock, AND the
+         entire right rail incl geolocate) whenever ANY overlay is open: the
+         search/discovery drawer, a project's detail modal, or a firm sheet. */
+      body.v2-sheet-open #tmwMapFsBtn,
+      body:has(#projectModal.open) #tmwMapFsBtn,
+      body:has(#firmSheet.open) #tmwMapFsBtn,
+      body:has(#projectModal.open) .tmw-dock,
+      body:has(#firmSheet.open) .tmw-dock{display:none!important;}
+      body:has(#projectModal.open) .v2-right-rail,
+      body:has(#firmSheet.open) .v2-right-rail{opacity:0!important;pointer-events:none!important;}
     }
     /* ── Full-screen map toggle ──────────────────────────────────────
        A button pinned to the top-right of the map. Clicking it hides the

@@ -347,7 +347,7 @@
     // the same glow on the map + atlas (their primary context). A touch stronger
     // than the shared hover glow so it reads clearly against every chrome.
     'html.tmw-surf-journal nav.main .nav-links a.active{color:var(--gold-soft) !important; text-shadow:0 0 16px rgba(230,197,116,.7), 0 0 5px rgba(230,197,116,.42)}',
-    'html.tmw-surf-map .tmw-fm-database .tmw-fm-trigger, html.tmw-surf-atlas .tmw-fm-database .tmw-fm-trigger{color:var(--gold-soft) !important; text-shadow:0 0 16px rgba(230,197,116,.7), 0 0 5px rgba(230,197,116,.42)}',
+    'html.tmw-surf-map .tmw-fm-database .tmw-fm-trigger, html.tmw-surf-atlas .tmw-fm-database .tmw-fm-trigger, html.tmw-surf-journal .tmw-fm-database .tmw-fm-trigger{color:var(--gold-soft) !important; text-shadow:0 0 16px rgba(230,197,116,.7), 0 0 5px rgba(230,197,116,.42)}',
 
     // ── Rank-page CTA (Book a table / Website): subtle gold-glow text, no fill.
     '.btn-cta{background:transparent !important; color:var(--gold-soft) !important; padding:8px 0 !important; border-radius:0 !important; text-shadow:0 0 14px rgba(230,197,116,.5), 0 0 3px rgba(230,197,116,.32)}',
