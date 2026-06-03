@@ -9728,8 +9728,11 @@
     /* Hide the floating #desktopSearchPill while the v2 sidebar is open
        (its search bar is the canonical input). Only show it when the
        sidebar is collapsed, as the reopen affordance. */
-    body.ui-v2 #desktopSearchPill { display: none !important; }
-    body.ui-v2.v2-sidebar-collapsed #desktopSearchPill { display: flex !important; }
+    /* Collapsed-state search pill: animate in/out instead of display:none/flex
+       (display is left to the base rule: none on mobile, flex on desktop) so it
+       fades + slides away when the sidebar opens and back when it closes. */
+    body.ui-v2 #desktopSearchPill { opacity: 0; transform: translateY(-6px); pointer-events: none; transition: opacity .3s ease, transform .35s cubic-bezier(.22,1,.36,1); }
+    body.ui-v2.v2-sidebar-collapsed #desktopSearchPill { opacity: 1; transform: none; pointer-events: auto; }
     body.ui-v2 #desktopSidebar {
       /* Match the project modal's width (35% of viewport) so opening a
          project page sits flush over the sidebar -- no peek-through on
@@ -10767,6 +10770,27 @@
     body.tmw-mapfs.ui-v2 #app-container{padding-top:0!important;}
     /* Embed mode has no header, so no button. */
     body.embed-mode #tmwMapFsBtn{display:none!important;}
+    /* ── Desktop universal search (#3/#4) ─────────────────────────────
+       Give the in-sidebar search (.desktop-search-pill) AND the collapsed-
+       state pill (#desktopSearchPill) the journal "intelligence" purple-glow
+       border, so desktop matches the mobile dock search. Reuses the
+       @property --tmw-ang + tmwChase keyframes that journal-dock.js injects. */
+    .desktop-search-pill::before,
+    #desktopSearchPill::before{
+      content:""; position:absolute; inset:-1.5px; border-radius:inherit; padding:1.5px;
+      z-index:0; pointer-events:none;
+      background:conic-gradient(from var(--tmw-ang,0deg), rgba(167,139,250,0) 0deg, rgba(167,139,250,0) 205deg, #A78BFA 300deg, #E9DEFF 338deg, rgba(167,139,250,0) 360deg);
+      -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite:xor; mask-composite:exclude;
+      filter:drop-shadow(0 0 5px rgba(167,139,250,.7));
+      animation:tmwChase 3s linear infinite;
+    }
+    @media(prefers-reduced-motion:reduce){ .desktop-search-pill::before, #desktopSearchPill::before{animation:none} }
+    /* content sits above the glow ring; the collapsed pill must not clip it.
+       Exclude #sidebarAutocomplete — it's position:absolute and must stay so. */
+    .desktop-search-pill > :not(#sidebarAutocomplete){ position:relative; z-index:1; }
+    #desktopSearchPill{ overflow:visible; }
+    #desktopSearchPill > *{ position:relative; z-index:1; }
     /* === end journal chrome integration ================================ */
   </style>
 </head>
