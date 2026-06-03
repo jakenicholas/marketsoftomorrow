@@ -400,6 +400,33 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
 .mc-link:hover svg{opacity:1; transform:translate(1px,-1px)}
 .mc-none{color:var(--mute); opacity:.5}
 
+/* analytics: totals row inside table (aligns with metric columns) */
+.mc-table tbody tr.mc-totals td{font-family:var(--serif); font-weight:600; font-size:17px; color:var(--gold-soft); background:linear-gradient(180deg,rgba(230,197,116,.06),rgba(230,197,116,.02)); border-bottom:1px solid rgba(230,197,116,.18); padding-top:16px; padding-bottom:16px; text-shadow:0 0 14px rgba(230,197,116,.2)}
+.mc-table tbody tr.mc-totals td:nth-child(-n+2){background:transparent}
+.mc-table tbody tr.mc-totals td.mc-totals-lab{font-family:var(--mono); font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--mute); font-weight:500; text-shadow:none; text-align:left}
+.mc-table tbody tr.mc-totals:hover td{background:linear-gradient(180deg,rgba(230,197,116,.08),rgba(230,197,116,.03))}
+.mc-table tbody tr.mc-totals:hover td:nth-child(-n+2){background:transparent}
+
+/* analytics: gold month pill for recurring (date-less) rows */
+.mc-monthpill{display:inline-block; font-family:var(--mono); font-size:9.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--gold-soft); background:rgba(230,197,116,.09); border:1px solid rgba(230,197,116,.34); padding:3px 8px 4px; border-radius:4px; font-weight:700; line-height:1; text-shadow:0 0 8px rgba(230,197,116,.25)}
+
+/* analytics: latest-month glow */
+.mc-month.latest{border-color:rgba(230,197,116,.4); box-shadow:0 18px 60px rgba(0,0,0,.55), 0 0 0 1px rgba(230,197,116,.22) inset, inset 0 1px 0 rgba(255,255,255,.07), 0 0 44px -10px rgba(230,197,116,.42)}
+.mc-month.latest .mc-name{text-shadow:0 0 22px rgba(230,197,116,.22)}
+.mc-latest-pill{font-family:var(--mono); font-size:10px; letter-spacing:.18em; text-transform:uppercase; color:var(--gold-soft); background:rgba(230,197,116,.1); border:1px solid rgba(230,197,116,.36); padding:4px 10px; border-radius:5px; font-weight:700; line-height:1; text-shadow:0 0 12px rgba(230,197,116,.35); animation:latest-pulse 2.6s ease-in-out infinite}
+@keyframes latest-pulse{0%,100%{box-shadow:0 4px 14px rgba(230,197,116,.25)}50%{box-shadow:0 4px 24px rgba(230,197,116,.55)}}
+
+/* learn-more section + gold nl-btn */
+#learn-more{padding:60px 0 30px}
+#learn-more .wrap{display:flex; justify-content:center}
+.nl-btn{display:inline-flex; align-items:center; gap:8px; padding:11px 18px; border:1px solid rgba(31,223,103,.4); border-radius:999px; background:rgba(31,223,103,.06); color:var(--green-soft); font-family:var(--mono); font-size:11px; letter-spacing:.06em; text-transform:uppercase; font-weight:500; text-decoration:none; transition:background .2s, border-color .2s, transform .2s}
+.nl-btn:hover{background:rgba(31,223,103,.14); border-color:var(--green); transform:translateY(-1px)}
+.nl-btn svg{width:13px; height:13px; transition:transform .2s}
+.nl-btn:hover svg{transform:translateX(2px)}
+.nl-btn.gold{border-color:rgba(230,197,116,.45); background:rgba(230,197,116,.08); color:var(--gold-soft); text-shadow:0 0 10px rgba(230,197,116,.25); box-shadow:0 0 18px rgba(230,197,116,.14)}
+.nl-btn.gold:hover{background:rgba(230,197,116,.16); border-color:var(--gold); box-shadow:0 0 24px rgba(230,197,116,.28)}
+.pp-learn-btn{margin:0 auto}
+
 /* products / three lenses */
 .lens-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:18px}
 .lens-card{display:flex; flex-direction:column; padding:28px 28px 26px; min-height:460px; position:relative; overflow:hidden; transition:transform .3s ease, border-color .3s ease}
@@ -746,7 +773,7 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
     </div>
     <div class="grand-grid">
       <div class="grand glass reveal d1"><div class="grand-num">3,285,031</div><div class="grand-lab">Total impressions</div></div>
-      <div class="grand glass reveal d2"><div class="grand-num">13,719</div><div class="grand-lab">Interactions</div></div>
+      <div class="grand glass reveal d2"><div class="grand-num">14,860</div><div class="grand-lab">Interactions</div></div>
       <div class="grand glass reveal d3"><div class="grand-num">7,221</div><div class="grand-lab">URL clicks</div></div>
       <div class="grand glass reveal d4"><div class="grand-num">171,041</div><div class="grand-lab">Email sends</div></div>
     </div>
@@ -761,15 +788,10 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
       <p class="lede reveal d2">Every piece, every channel, every month &mdash; click any item to view the live placement.</p>
     </div>
     <div class="months-stack">
-      <div class="mc-month glass reveal">
+      <article class="mc-month glass reveal">
         <div class="mc-head">
           <div class="mc-name">October 2025</div>
-          <div class="mc-stats">
-            <span><b>442,885</b><span class="mc-stat-lab">impressions</span></span>
-            <span><b>455</b><span class="mc-stat-lab">interactions</span></span>
-            <span><b>1,004</b><span class="mc-stat-lab">URL clicks</span></span>
-            <span><b>0</b><span class="mc-stat-lab">email sends</span></span>
-          </div>
+          
         </div>
         <div class="mc-table-wrap">
           <table class="mc-table">
@@ -777,6 +799,14 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
               <tr><th>Date</th><th>Piece</th><th>Impressions</th><th>Interactions</th><th>URL Clicks</th><th>Email Sends</th></tr>
             </thead>
             <tbody>
+              <tr class="mc-totals">
+                <td></td>
+                <td class="mc-totals-lab">Monthly totals</td>
+                <td>442,885</td>
+                <td>455</td>
+                <td>1,004</td>
+                <td>0</td>
+              </tr>
         <tr>
           <td class="mc-date">Oct 7</td>
           <td class="mc-piece"><a class="mc-link" href="https://www.oftmw.com/post/ponce-park-coral-gables-unveils-an-inside-look-at-its-lavish-amenities-set" target="_blank" rel="noopener">Website Article <svg viewBox="0 0 12 12" width="9" height="9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 9 9 3M5 3h4v4"/></svg></a></td>
@@ -802,7 +832,7 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
           <td><span class="mc-none">&mdash;</span></td>
         </tr>
         <tr>
-          <td class="mc-date">—</td>
+          <td class="mc-date"><span class="mc-monthpill">OCT 25</span></td>
           <td class="mc-piece"><a class="mc-link" href="https://www.oftmw.com/" target="_blank" rel="noopener">Website Banner Ad <svg viewBox="0 0 12 12" width="9" height="9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 9 9 3M5 3h4v4"/></svg></a></td>
           <td>401,200</td>
           <td><span class="mc-none">&mdash;</span></td>
@@ -812,17 +842,12 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
             </tbody>
           </table>
         </div>
-      </div>
+      </article>
 
-      <div class="mc-month glass reveal d1">
+      <article class="mc-month glass reveal d1">
         <div class="mc-head">
           <div class="mc-name">November 2025</div>
-          <div class="mc-stats">
-            <span><b>400,437</b><span class="mc-stat-lab">impressions</span></span>
-            <span><b>0</b><span class="mc-stat-lab">interactions</span></span>
-            <span><b>547</b><span class="mc-stat-lab">URL clicks</span></span>
-            <span><b>10,198</b><span class="mc-stat-lab">email sends</span></span>
-          </div>
+          
         </div>
         <div class="mc-table-wrap">
           <table class="mc-table">
@@ -830,6 +855,14 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
               <tr><th>Date</th><th>Piece</th><th>Impressions</th><th>Interactions</th><th>URL Clicks</th><th>Email Sends</th></tr>
             </thead>
             <tbody>
+              <tr class="mc-totals">
+                <td></td>
+                <td class="mc-totals-lab">Monthly totals</td>
+                <td>400,437</td>
+                <td>0</td>
+                <td>547</td>
+                <td>10,198</td>
+              </tr>
         <tr>
           <td class="mc-date">Nov 13</td>
           <td class="mc-piece"><a class="mc-link" href="https://www.oftmw.com/newsletter/digest-archive/2025-11-13.html" target="_blank" rel="noopener">Newsletter Banner Ad <svg viewBox="0 0 12 12" width="9" height="9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 9 9 3M5 3h4v4"/></svg></a></td>
@@ -839,7 +872,7 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
           <td>10,198</td>
         </tr>
         <tr>
-          <td class="mc-date">—</td>
+          <td class="mc-date"><span class="mc-monthpill">NOV 25</span></td>
           <td class="mc-piece"><a class="mc-link" href="https://www.oftmw.com/" target="_blank" rel="noopener">Website Banner Ad <svg viewBox="0 0 12 12" width="9" height="9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 9 9 3M5 3h4v4"/></svg></a></td>
           <td>395,450</td>
           <td><span class="mc-none">&mdash;</span></td>
@@ -849,17 +882,12 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
             </tbody>
           </table>
         </div>
-      </div>
+      </article>
 
-      <div class="mc-month glass reveal d2">
+      <article class="mc-month glass reveal d2">
         <div class="mc-head">
           <div class="mc-name">December 2025</div>
-          <div class="mc-stats">
-            <span><b>482,753</b><span class="mc-stat-lab">impressions</span></span>
-            <span><b>0</b><span class="mc-stat-lab">interactions</span></span>
-            <span><b>1,165</b><span class="mc-stat-lab">URL clicks</span></span>
-            <span><b>10,198</b><span class="mc-stat-lab">email sends</span></span>
-          </div>
+          
         </div>
         <div class="mc-table-wrap">
           <table class="mc-table">
@@ -867,6 +895,14 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
               <tr><th>Date</th><th>Piece</th><th>Impressions</th><th>Interactions</th><th>URL Clicks</th><th>Email Sends</th></tr>
             </thead>
             <tbody>
+              <tr class="mc-totals">
+                <td></td>
+                <td class="mc-totals-lab">Monthly totals</td>
+                <td>482,753</td>
+                <td>1,141</td>
+                <td>1,165</td>
+                <td>10,198</td>
+              </tr>
         <tr>
           <td class="mc-date">Dec 8</td>
           <td class="mc-piece"><a class="mc-link" href="https://www.oftmw.com/newsletter/digest-archive/2025-12-08.html" target="_blank" rel="noopener">Newsletter Banner Ad <svg viewBox="0 0 12 12" width="9" height="9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 9 9 3M5 3h4v4"/></svg></a></td>
@@ -900,7 +936,7 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
           <td><span class="mc-none">&mdash;</span></td>
         </tr>
         <tr>
-          <td class="mc-date">—</td>
+          <td class="mc-date"><span class="mc-monthpill">DEC 25</span></td>
           <td class="mc-piece"><a class="mc-link" href="https://www.oftmw.com/" target="_blank" rel="noopener">Website Banner Ad <svg viewBox="0 0 12 12" width="9" height="9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 9 9 3M5 3h4v4"/></svg></a></td>
           <td>372,960</td>
           <td><span class="mc-none">&mdash;</span></td>
@@ -910,17 +946,12 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
             </tbody>
           </table>
         </div>
-      </div>
+      </article>
 
-      <div class="mc-month glass reveal d3">
+      <article class="mc-month glass reveal d3">
         <div class="mc-head">
           <div class="mc-name">January 2026</div>
-          <div class="mc-stats">
-            <span><b>366,899</b><span class="mc-stat-lab">impressions</span></span>
-            <span><b>929</b><span class="mc-stat-lab">interactions</span></span>
-            <span><b>1,102</b><span class="mc-stat-lab">URL clicks</span></span>
-            <span><b>26,404</b><span class="mc-stat-lab">email sends</span></span>
-          </div>
+          
         </div>
         <div class="mc-table-wrap">
           <table class="mc-table">
@@ -928,6 +959,14 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
               <tr><th>Date</th><th>Piece</th><th>Impressions</th><th>Interactions</th><th>URL Clicks</th><th>Email Sends</th></tr>
             </thead>
             <tbody>
+              <tr class="mc-totals">
+                <td></td>
+                <td class="mc-totals-lab">Monthly totals</td>
+                <td>366,899</td>
+                <td>929</td>
+                <td>1,102</td>
+                <td>26,404</td>
+              </tr>
         <tr>
           <td class="mc-date">Jan 26</td>
           <td class="mc-piece"><a class="mc-link" href="https://www.oftmw.com/post/the-allen-morris-company-launches-ponce-park-residences-in-the-heart-of-coral-gables" target="_blank" rel="noopener">Website Article <svg viewBox="0 0 12 12" width="9" height="9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 9 9 3M5 3h4v4"/></svg></a></td>
@@ -969,7 +1008,7 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
           <td>13,202</td>
         </tr>
         <tr>
-          <td class="mc-date">—</td>
+          <td class="mc-date"><span class="mc-monthpill">JAN 26</span></td>
           <td class="mc-piece"><a class="mc-link" href="https://www.oftmw.com/" target="_blank" rel="noopener">Website Banner Ad <svg viewBox="0 0 12 12" width="9" height="9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 9 9 3M5 3h4v4"/></svg></a></td>
           <td>287,504</td>
           <td><span class="mc-none">&mdash;</span></td>
@@ -979,17 +1018,12 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
             </tbody>
           </table>
         </div>
-      </div>
+      </article>
 
-      <div class="mc-month glass reveal">
+      <article class="mc-month glass reveal">
         <div class="mc-head">
           <div class="mc-name">February 2026</div>
-          <div class="mc-stats">
-            <span><b>285,016</b><span class="mc-stat-lab">impressions</span></span>
-            <span><b>0</b><span class="mc-stat-lab">interactions</span></span>
-            <span><b>425</b><span class="mc-stat-lab">URL clicks</span></span>
-            <span><b>26,462</b><span class="mc-stat-lab">email sends</span></span>
-          </div>
+          
         </div>
         <div class="mc-table-wrap">
           <table class="mc-table">
@@ -997,6 +1031,14 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
               <tr><th>Date</th><th>Piece</th><th>Impressions</th><th>Interactions</th><th>URL Clicks</th><th>Email Sends</th></tr>
             </thead>
             <tbody>
+              <tr class="mc-totals">
+                <td></td>
+                <td class="mc-totals-lab">Monthly totals</td>
+                <td>285,016</td>
+                <td>0</td>
+                <td>425</td>
+                <td>26,462</td>
+              </tr>
         <tr>
           <td class="mc-date">Feb 8</td>
           <td class="mc-piece"><a class="mc-link" href="https://www.oftmw.com/newsletter/digest-archive/2026-02-08.html" target="_blank" rel="noopener">Newsletter Banner Ad <svg viewBox="0 0 12 12" width="9" height="9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 9 9 3M5 3h4v4"/></svg></a></td>
@@ -1014,7 +1056,7 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
           <td>13,231</td>
         </tr>
         <tr>
-          <td class="mc-date">—</td>
+          <td class="mc-date"><span class="mc-monthpill">FEB 26</span></td>
           <td class="mc-piece"><a class="mc-link" href="https://www.oftmw.com/" target="_blank" rel="noopener">Website Banner Ad <svg viewBox="0 0 12 12" width="9" height="9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 9 9 3M5 3h4v4"/></svg></a></td>
           <td>275,050</td>
           <td><span class="mc-none">&mdash;</span></td>
@@ -1024,17 +1066,12 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
             </tbody>
           </table>
         </div>
-      </div>
+      </article>
 
-      <div class="mc-month glass reveal d1">
+      <article class="mc-month glass reveal d1">
         <div class="mc-head">
           <div class="mc-name">March 2026</div>
-          <div class="mc-stats">
-            <span><b>548,844</b><span class="mc-stat-lab">impressions</span></span>
-            <span><b>11,741</b><span class="mc-stat-lab">interactions</span></span>
-            <span><b>1,177</b><span class="mc-stat-lab">URL clicks</span></span>
-            <span><b>14,101</b><span class="mc-stat-lab">email sends</span></span>
-          </div>
+          
         </div>
         <div class="mc-table-wrap">
           <table class="mc-table">
@@ -1042,6 +1079,14 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
               <tr><th>Date</th><th>Piece</th><th>Impressions</th><th>Interactions</th><th>URL Clicks</th><th>Email Sends</th></tr>
             </thead>
             <tbody>
+              <tr class="mc-totals">
+                <td></td>
+                <td class="mc-totals-lab">Monthly totals</td>
+                <td>548,844</td>
+                <td>11,741</td>
+                <td>1,177</td>
+                <td>14,101</td>
+              </tr>
         <tr>
           <td class="mc-date">Mar 2</td>
           <td class="mc-piece"><a class="mc-link" href="https://www.oftmw.com/post/madrid-s-cult-favorite-quintín-ultramarinos-is-coming-to-miami" target="_blank" rel="noopener">Website Article <svg viewBox="0 0 12 12" width="9" height="9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 9 9 3M5 3h4v4"/></svg></a></td>
@@ -1075,7 +1120,7 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
           <td>14,101</td>
         </tr>
         <tr>
-          <td class="mc-date">—</td>
+          <td class="mc-date"><span class="mc-monthpill">MAR 26</span></td>
           <td class="mc-piece"><a class="mc-link" href="https://www.oftmw.com/" target="_blank" rel="noopener">Website Banner Ad <svg viewBox="0 0 12 12" width="9" height="9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 9 9 3M5 3h4v4"/></svg></a></td>
           <td>345,870</td>
           <td><span class="mc-none">&mdash;</span></td>
@@ -1085,17 +1130,12 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
             </tbody>
           </table>
         </div>
-      </div>
+      </article>
 
-      <div class="mc-month glass reveal d2">
+      <article class="mc-month glass reveal d2">
         <div class="mc-head">
           <div class="mc-name">April 2026</div>
-          <div class="mc-stats">
-            <span><b>390,418</b><span class="mc-stat-lab">impressions</span></span>
-            <span><b>493</b><span class="mc-stat-lab">interactions</span></span>
-            <span><b>949</b><span class="mc-stat-lab">URL clicks</span></span>
-            <span><b>41,859</b><span class="mc-stat-lab">email sends</span></span>
-          </div>
+          
         </div>
         <div class="mc-table-wrap">
           <table class="mc-table">
@@ -1103,6 +1143,14 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
               <tr><th>Date</th><th>Piece</th><th>Impressions</th><th>Interactions</th><th>URL Clicks</th><th>Email Sends</th></tr>
             </thead>
             <tbody>
+              <tr class="mc-totals">
+                <td></td>
+                <td class="mc-totals-lab">Monthly totals</td>
+                <td>390,418</td>
+                <td>493</td>
+                <td>949</td>
+                <td>41,859</td>
+              </tr>
         <tr>
           <td class="mc-date">Apr 7</td>
           <td class="mc-piece"><a class="mc-link" href="https://www.oftmw.com/post/an-evening-at-ponce-park-with-colin-cowie" target="_blank" rel="noopener">Website Article <svg viewBox="0 0 12 12" width="9" height="9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 9 9 3M5 3h4v4"/></svg></a></td>
@@ -1152,7 +1200,7 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
           <td>13,953</td>
         </tr>
         <tr>
-          <td class="mc-date">—</td>
+          <td class="mc-date"><span class="mc-monthpill">APR 26</span></td>
           <td class="mc-piece"><a class="mc-link" href="https://map.oftmw.com/" target="_blank" rel="noopener">Map of Tomorrow <svg viewBox="0 0 12 12" width="9" height="9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 9 9 3M5 3h4v4"/></svg></a></td>
           <td>33,765</td>
           <td>99</td>
@@ -1160,7 +1208,7 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
           <td><span class="mc-none">&mdash;</span></td>
         </tr>
         <tr>
-          <td class="mc-date">—</td>
+          <td class="mc-date"><span class="mc-monthpill">APR 26</span></td>
           <td class="mc-piece"><a class="mc-link" href="https://www.oftmw.com/" target="_blank" rel="noopener">Website Banner Ad <svg viewBox="0 0 12 12" width="9" height="9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 9 9 3M5 3h4v4"/></svg></a></td>
           <td>276,102</td>
           <td><span class="mc-none">&mdash;</span></td>
@@ -1170,17 +1218,12 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
             </tbody>
           </table>
         </div>
-      </div>
+      </article>
 
-      <div class="mc-month glass reveal d3">
+      <article class="mc-month glass reveal latest d3">
         <div class="mc-head">
           <div class="mc-name">May 2026</div>
-          <div class="mc-stats">
-            <span><b>367,779</b><span class="mc-stat-lab">impressions</span></span>
-            <span><b>101</b><span class="mc-stat-lab">interactions</span></span>
-            <span><b>852</b><span class="mc-stat-lab">URL clicks</span></span>
-            <span><b>41,819</b><span class="mc-stat-lab">email sends</span></span>
-          </div>
+          <div class="mc-latest-pill">Latest</div>
         </div>
         <div class="mc-table-wrap">
           <table class="mc-table">
@@ -1188,6 +1231,14 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
               <tr><th>Date</th><th>Piece</th><th>Impressions</th><th>Interactions</th><th>URL Clicks</th><th>Email Sends</th></tr>
             </thead>
             <tbody>
+              <tr class="mc-totals">
+                <td></td>
+                <td class="mc-totals-lab">Monthly totals</td>
+                <td>367,779</td>
+                <td>101</td>
+                <td>852</td>
+                <td>41,819</td>
+              </tr>
         <tr>
           <td class="mc-date">May 12</td>
           <td class="mc-piece"><a class="mc-link" href="https://www.oftmw.com/post/coral-gables-gets-its-first-taste-of-madrid-s-quintín-ultramarinos-at-ponce-park" target="_blank" rel="noopener">Website Article <svg viewBox="0 0 12 12" width="9" height="9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 9 9 3M5 3h4v4"/></svg></a></td>
@@ -1221,7 +1272,7 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
           <td>13,921</td>
         </tr>
         <tr>
-          <td class="mc-date">—</td>
+          <td class="mc-date"><span class="mc-monthpill">MAY 26</span></td>
           <td class="mc-piece"><a class="mc-link" href="https://map.oftmw.com/" target="_blank" rel="noopener">Map of Tomorrow <svg viewBox="0 0 12 12" width="9" height="9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 9 9 3M5 3h4v4"/></svg></a></td>
           <td>41,540</td>
           <td>101</td>
@@ -1229,7 +1280,7 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
           <td><span class="mc-none">&mdash;</span></td>
         </tr>
         <tr>
-          <td class="mc-date">—</td>
+          <td class="mc-date"><span class="mc-monthpill">MAY 26</span></td>
           <td class="mc-piece"><a class="mc-link" href="https://www.oftmw.com/" target="_blank" rel="noopener">Website Banner Ad <svg viewBox="0 0 12 12" width="9" height="9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 9 9 3M5 3h4v4"/></svg></a></td>
           <td>291,500</td>
           <td><span class="mc-none">&mdash;</span></td>
@@ -1239,15 +1290,21 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
             </tbody>
           </table>
         </div>
-      </div>
+      </article>
     </div>
+  </div>
+</section>
+
+<section id="learn-more">
+  <div class="wrap">
+    <a class="nl-btn gold pp-learn-btn" href="/media/">Learn more about our reach <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="square"/></svg></a>
   </div>
 </section>
 
 <section class="cta" id="cta">
   <div class="cta-bg" aria-hidden="true"><img src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_76035e8728d8441496981acae59d1531~mv2.jpg" alt=""></div>
   <div class="wrap">
-    <div class="eyebrow reveal">Want a deeper read?</div>
+    <div class="eyebrow reveal">Any questions?</div>
     <h2 class="reveal d1" style="margin-top:14px">Ready to extend or expand the<br class="m-br"> <span class="hl-gold">Ponce Park</span> campaign</h2>
     <div class="contacts">
       <div class="c reveal d2">
@@ -1258,7 +1315,7 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
     </div>
     <div class="foot reveal">
       <div>Markets of Tomorrow &middot; Florida of Tomorrow LLC &middot; West Palm Beach, FL</div>
-      <div><a href="https://oftmw.com">oftmw.com</a> &middot; <a href="https://map.oftmw.com">map.oftmw.com</a> &middot; <a href="https://www.instagram.com/marketsoftomorrow" target="_blank" rel="noopener">@marketsoftomorrow</a></div>
+      <div><a href="https://oftmw.com">oftmw.com</a> &middot; <a href="https://www.instagram.com/marketsoftomorrow" target="_blank" rel="noopener">@marketsoftomorrow</a></div>
     </div>
   </div>
 </section>
