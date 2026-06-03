@@ -1573,9 +1573,12 @@ function mediaHostnameFilter() {
 // /media/ so media-page traffic doesn't bleed into the map dashboard.
 function mapFilter() {
   return {
-    andGroup: { expressions: [
-      hostnameFilter(),
-      { notExpression: { filter: { fieldName: 'pagePath', stringFilter: { matchType: 'BEGINS_WITH', value: '/media' } } } },
+    orGroup: { expressions: [
+      { filter: { fieldName: 'hostName', stringFilter: { matchType: 'EXACT', value: 'map.oftmw.com' } } },
+      { andGroup: { expressions: [
+        { filter: { fieldName: 'hostName', stringFilter: { matchType: 'EXACT', value: 'www.oftmw.com' } } },
+        { filter: { fieldName: 'pagePath', stringFilter: { matchType: 'BEGINS_WITH', value: '/map' } } },
+      ]}},
     ]}
   };
 }

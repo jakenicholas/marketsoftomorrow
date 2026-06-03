@@ -42,8 +42,8 @@ const SERVER_INFO = {
   ],
 };
 const DEFAULT_PROTOCOL = '2025-06-18';
-const PROJECTS_URL = 'https://map.oftmw.com/projects-flat.json';
-const ARTICLES_URL = 'https://map.oftmw.com/articles.json';
+const PROJECTS_URL = 'https://www.oftmw.com/map/projects-flat.json';
+const ARTICLES_URL = 'https://www.oftmw.com/map/articles.json';
 
 // ── Tool catalog ────────────────────────────────────────────────────────────
 const TOOLS = [
