@@ -1,11 +1,11 @@
 {
   "generated_at": "2026-06-03",
   "hero_stats": {
-    "total_projects": 404,
+    "total_projects": 405,
     "total_dollars_short": "$0",
     "total_dollars_raw": 0,
     "under_construction": 242,
-    "opening_this_year": 122
+    "opening_this_year": 123
   },
   "leaderboards": {
     "developers": [
@@ -867,8 +867,8 @@
       },
       {
         "name": "Entertainment",
-        "sub": "9% of pipeline",
-        "count": 38,
+        "sub": "10% of pipeline",
+        "count": 39,
         "states": [
           "FL",
           "Other",
@@ -1528,6 +1528,15 @@
           ]
         },
         {
+          "name": "MSA Architects",
+          "slug": "msa-architects",
+          "sub": "Boynton Beach",
+          "count": 2,
+          "states": [
+            "FL"
+          ]
+        },
+        {
           "name": "Smallwood",
           "slug": "smallwood",
           "sub": "Naples",
@@ -1576,15 +1585,6 @@
           "name": "MKDA",
           "slug": "mkda",
           "sub": "Miami",
-          "count": 2,
-          "states": [
-            "FL"
-          ]
-        },
-        {
-          "name": "Luis Revuelta",
-          "slug": "luis-revuelta",
-          "sub": "Bay Harbour Islands",
           "count": 2,
           "states": [
             "FL"
@@ -1769,6 +1769,14 @@
           ]
         },
         {
+          "name": "Boynton Beach",
+          "sub": "1 development \u00b7 1 developer",
+          "count": 1,
+          "states": [
+            "FL"
+          ]
+        },
+        {
           "name": "Lake Worth Beach",
           "sub": "1 development \u00b7 1 developer",
           "count": 1,
@@ -1837,7 +1845,7 @@
         {
           "name": "Entertainment",
           "sub": "10% of pipeline",
-          "count": 25,
+          "count": 26,
           "states": [
             "FL",
             "Other",
@@ -1848,7 +1856,7 @@
         },
         {
           "name": "Hotel",
-          "sub": "6% of pipeline",
+          "sub": "5% of pipeline",
           "count": 14,
           "states": [
             "Other",
@@ -3851,6 +3859,7 @@
     }
   },
   "city_state_map": {
+    "Boynton Beach": "FL",
     "Miami": "FL",
     "Daytona Beach Shores": "Other",
     "Nashville": "TN",
@@ -3979,7 +3988,7 @@
     },
     {
       "label": "Opening Soon",
-      "count": 26
+      "count": 27
     },
     {
       "label": "Now Open",
@@ -4005,7 +4014,7 @@
     {
       "month": "Oct",
       "year": 2025,
-      "count": 8
+      "count": 9
     },
     {
       "month": "Nov",
@@ -4051,7 +4060,7 @@
   "openings_by_year": [
     {
       "year": 2026,
-      "count": 122
+      "count": 123
     },
     {
       "year": 2027,
@@ -4074,7 +4083,7 @@
     {
       "code": "FL",
       "label": "Florida",
-      "count": 254
+      "count": 255
     },
     {
       "code": "TN",
@@ -4118,6 +4127,18 @@
     }
   ],
   "recent_activity": [
+    {
+      "id": "new-the-brook-tennis-and-pickleball",
+      "type": "new_project",
+      "tag": "New on Map",
+      "title": "The Brook Tennis and Pickleball added to the map",
+      "project_slug": "the-brook-tennis-and-pickleball",
+      "project_title": "The Brook Tennis and Pickleball",
+      "city": "Boynton Beach",
+      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/ab05ab0d85e1-90249866007-the-brook-render.webp",
+      "link": "https://www.oftmw.com/map/?project=thebrooktennisandpickleball",
+      "timestamp": "2026-06-03T13:17:21.756482+00:00"
+    },
     {
       "id": "new-aston-martin-residences-daytona-beach-shores",
       "type": "new_project",
@@ -4177,18 +4198,6 @@
       "image": "https://cdn.sanity.io/images/9mpasezg/development/756cd4045f0b99542c73fff1a24b063fc8ad1cd9-5000x3125.jpg",
       "link": "https://map.oftmw.com/?project=1irislanetheresidencesatbellemeadevillage",
       "timestamp": "2026-06-03T02:04:04.961341+00:00"
-    },
-    {
-      "id": "new-belle-meade-village",
-      "type": "new_project",
-      "tag": "New on Map",
-      "title": "Belle Meade Village added to the map",
-      "project_slug": "belle-meade-village",
-      "project_title": "Belle Meade Village",
-      "city": "Nashville",
-      "image": "https://cdn.sanity.io/images/ooqsuexs/production/2c923bdd022273c3e89513a979a21262414b9006-3948x2778.jpg?w=2500&auto=format",
-      "link": "https://map.oftmw.com/?project=bellemeadevillage",
-      "timestamp": "2026-06-03T00:31:40.354149+00:00"
     }
   ],
   "most_covered": [
@@ -4333,6 +4342,17 @@
       "display_precision": "day"
     },
     {
+      "slug": "the-brook-tennis-and-pickleball",
+      "title": "The Brook Tennis and Pickleball",
+      "city": "Boynton Beach",
+      "delivery_date": "2026-09-15",
+      "days_out": 104,
+      "bucket": "rest",
+      "status": "Opening Soon",
+      "display_label": "Sep",
+      "display_precision": "month"
+    },
+    {
       "slug": "dolly-partons-songteller-hotel",
       "title": "Dolly Parton's SongTeller Hotel",
       "city": "Nashville",
@@ -4446,17 +4466,6 @@
       "slug": "casa-bella-residences-miami",
       "title": "Casa Bella Residences Miami",
       "city": "Miami",
-      "delivery_date": "2026-12-31",
-      "days_out": 211,
-      "bucket": "rest",
-      "status": "Construction",
-      "display_label": "Winter",
-      "display_precision": "year"
-    },
-    {
-      "slug": "the-village-at-coral-gables",
-      "title": "The Village at Coral Gables",
-      "city": "Coral Gables",
       "delivery_date": "2026-12-31",
       "days_out": 211,
       "bucket": "rest",
