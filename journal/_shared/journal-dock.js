@@ -13,6 +13,16 @@
   if (window.__tmwDock) return;
   window.__tmwDock = true;
 
+  // Identify a logged-in member to analytics (loads /_shared/member-track.js once).
+  // Self-contained there; covers every journal page that includes this dock.
+  if (!document.querySelector('script[data-tmw-membertrack]')) {
+    var _mt = document.createElement('script');
+    _mt.src = '/_shared/member-track.js';
+    _mt.defer = true;
+    _mt.setAttribute('data-tmw-membertrack', '1');
+    document.head.appendChild(_mt);
+  }
+
   // The current surface. "map" = the map.oftmw.com host OR the /map clone path on
   // www.oftmw.com; "atlas" = the /atlas path; everything else is the journal.
   // Single source of truth so the toggle, surface tag, and accents stay in sync.

@@ -225,20 +225,21 @@ async function handleGAProxy(req, env, origin) {
 // shared token.
 async function handleEventIngest(req, env, origin) {
   const headerToken = req.headers.get('X-Ingest-Token') || '';
-  if (!env.EVENT_INGEST_TOKEN || headerToken !== env.EVENT_INGEST_TOKEN) {
-    return json({ error: 'unauthorized' }, { status: 401 }, env, origin);
-  }
+  const tokenOk = !!env.EVENT_INGEST_TOKEN && headerToken === env.EVENT_INGEST_TOKEN;
 
-  // Reject requests from a browser Origin that isn't in our allowlist. Empty
-  // Origin (curl / server-to-server) is allowed through — the token still
-  // gates those. This blocks the easy "fetch from any other website" forgery.
+  // Accept EITHER a token-authenticated server post OR a first-party browser
+  // beacon (a trusted Origin). Browsers can't forge the Origin header, so a
+  // trusted-origin request can only come from our own oftmw.com pages — that
+  // lets the journal + media-kit identify logged-in members without shipping the
+  // ingest secret into public JS. Server-to-server (blank Origin) needs the token.
   const reqOrigin = req.headers.get('Origin') || '';
   const allowList = (env.ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean);
-  const originOk = !reqOrigin || allowList.includes(reqOrigin)
+  const originOk = !!reqOrigin && (allowList.includes(reqOrigin)
     || /^https:\/\/([a-z0-9-]+\.)*pages\.dev$/i.test(reqOrigin)
-    || /^https:\/\/([a-z0-9-]+\.)*oftmw\.com$/i.test(reqOrigin);
-  if (allowList.length && !originOk) {
-    return json({ error: 'forbidden origin' }, { status: 403 }, env, origin);
+    || /^https:\/\/([a-z0-9-]+\.)*oftmw\.com$/i.test(reqOrigin));
+
+  if (!tokenOk && !originOk) {
+    return json({ error: 'unauthorized' }, { status: 401 }, env, origin);
   }
 
   let body;
