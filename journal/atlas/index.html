@@ -1,0 +1,1918 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Atlas — Markets of Tomorrow</title>
+<meta name="description" content="The Atlas — every tracked project in the Markets of Tomorrow pipeline on one canvas: leaderboards, momentum, openings, and coverage.">
+<link rel="canonical" href="https://www.oftmw.com/atlas">
+<meta property="og:title" content="The Atlas — Markets of Tomorrow">
+<meta property="og:description" content="Every tracked project on one canvas — leaderboards, momentum, openings, and coverage.">
+<meta property="og:url" content="https://www.oftmw.com/atlas">
+<meta name="robots" content="index, follow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://map.oftmw.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  /* CSS vars the shared journal chrome + dock expect (mirrors the journal pages). */
+  :root{
+    --ink:#070807; --ink-2:#0c0e0c; --panel:#131613;
+    --hair:rgba(255,255,255,.08); --hair-2:rgba(255,255,255,.14);
+    --white:#fff; --cream:#ECEAE5; --mute:#9AA39C; --mute-2:#C2C9C3;
+    --green:#1FDF67; --green-soft:#42EB81; --gold:#e6c574; --gold-soft:#f0d68a; --purple:#A78BFA;
+    --accent:#1FDF67; --orange:#FF9500; --blue:#6FA8FF; --warn:#FFD300;
+    --sans:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+    --mono:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+    --serif:'Fraunces',Georgia,serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:auto}
+  /* Native Atlas: the page scrolls normally. The shared journal chrome
+     header is sticky at the top (position:sticky; top:0; z-index:60 — see
+     journal-chrome.js); the atlas content flows below it. This replaces the
+     old cross-origin iframe with a first-party render of atlas.json. */
+  body{background:#0a0a0a; color:var(--cream); font-family:var(--sans); -webkit-font-smoothing:antialiased; min-height:100%}
+  /* The shared chrome footer isn't shown — the atlas carries its own footer
+     line. Leave room at the bottom for the fixed dock. */
+  .tmw-chrome-foot{display:none !important}
+
+  /* ───────────────────────────────────────────────────────────────────
+     ATLAS — ported from the map (repo-root index.html). The .atlas-overlay
+     was a fixed full-takeover on the map (hidden until atlas-mode); here it
+     is a normal-flow always-visible block below the sticky header.
+     ─────────────────────────────────────────────────────────────────── */
+  .atlas-overlay {
+    position: relative;
+    background: #0a0a0a;
+    color: #fff;
+    -webkit-font-smoothing: antialiased;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  }
+  .atlas-container { max-width: 1280px; margin: 0 auto; padding: 0 32px; }
+  @media(max-width:800px) { .atlas-container { padding: 0 18px; } }
+
+  /* Top padding gives the content air below the sticky header; bottom
+     padding clears the fixed dock (position:fixed; bottom:22px). */
+  .atlas-body { padding: 0 0 140px; }
+  @media(max-width:800px) { .atlas-body { padding: 0 0 140px; } }
+
+  /* State filter bar */
+  .atlas-filter-bar {
+    margin-bottom: 32px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .atlas-filter-pills {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    flex-wrap: wrap;
+  }
+  .atlas-filter-pills::-webkit-scrollbar { display: none; }
+  .atlas-filter-pill {
+    padding: 8px 14px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: rgba(255,255,255,0.7);
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+    font-family: inherit;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .atlas-filter-pill:hover {
+    background: rgba(255,255,255,0.07);
+    color: #fff;
+  }
+  .atlas-filter-pill.active {
+    background: rgba(31,223,103,0.15);
+    border-color: rgba(31,223,103,0.4);
+    color: #1FDF67;
+  }
+  .atlas-filter-count {
+    font-size: 11px;
+    color: rgba(255,255,255,0.4);
+    font-variant-numeric: tabular-nums;
+  }
+  .atlas-filter-pill.active .atlas-filter-count { color: rgba(31,223,103,0.7); }
+  @media(max-width:800px) {
+    .atlas-filter-pills { flex-wrap: nowrap; padding-bottom: 4px; }
+    .atlas-filter-pill { padding: 6px 12px; font-size: 11px; }
+  }
+
+  .atlas-section { padding-bottom: 36px; }
+  @media(max-width:800px) {
+    .atlas-section { padding-bottom: 20px; }
+    .atlas-section-head { margin-bottom: 14px; }
+  }
+  .atlas-section-head {
+    display: flex; justify-content: space-between; align-items: end;
+    margin-bottom: 22px; gap: 16px; flex-wrap: wrap;
+  }
+  .atlas-section-title { font-size: 22px; font-weight: 600; letter-spacing: -0.015em; color: #fff; margin: 0; }
+  .atlas-section-sub { color: rgba(255,255,255,0.55); font-size: 13px; margin-top: 4px; }
+  .atlas-section-link {
+    color: #1FDF67; text-decoration: none;
+    font-size: 13px; font-weight: 500;
+    display: inline-flex; align-items: center; gap: 4px;
+  }
+  .atlas-section-link:hover { text-decoration: underline; }
+  .atlas-section-link-arrow {
+    width: 13px; height: 13px;
+    flex-shrink: 0;
+    vertical-align: middle;
+  }
+
+  /* Leaderboard rows become clickable links to /architects/<slug>/ or
+     /developers/<slug>/ — those firm pages live on map.oftmw.com (they 404
+     on www), so the render emits absolute map URLs. Inherits the number,
+     bar, and count layout from the .atlas-lb-row grid. */
+  .atlas-lb-link {
+    color: inherit;
+    text-decoration: none;
+    display: block;
+    transition: color 0.12s;
+  }
+  .atlas-lb-row.is-linkable { cursor: pointer; }
+  .atlas-lb-row.is-linkable:hover .atlas-lb-name {
+    color: #1FDF67;
+  }
+  .atlas-lb-link .atlas-lb-name {
+    transition: color 0.12s;
+  }
+
+  .atlas-lb-wrap {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+  .atlas-lb-tabs {
+    display: flex;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    padding: 0 6px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    touch-action: pan-x;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+  .atlas-lb-tabs::-webkit-scrollbar { display: none; }
+  .atlas-lb-tab {
+    padding: 16px 18px;
+    background: transparent;
+    border: none;
+    color: rgba(255,255,255,0.55);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    transition: color 0.15s;
+    white-space: nowrap;
+    font-family: inherit;
+  }
+  .atlas-lb-tab:hover { color: #fff; }
+  .atlas-lb-tab.active { color: #fff; border-bottom-color: #1FDF67; }
+  .atlas-lb-content { padding: 4px 0; }
+  .atlas-lb-row {
+    display: grid;
+    grid-template-columns: 32px 1fr 100px 110px;
+    gap: 16px;
+    align-items: center;
+    padding: 14px 24px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .atlas-lb-row:hover { background: rgba(255,255,255,0.02); }
+  .atlas-lb-row:last-child { border-bottom: none; }
+  @media(max-width:800px) {
+    .atlas-lb-row { grid-template-columns: 28px 1fr 60px; gap: 12px; padding: 12px 16px; }
+    .atlas-lb-row .atlas-lb-bar-wrap { display: none; }
+  }
+  .atlas-lb-rank {
+    color: rgba(255,255,255,0.4); font-size: 13px; font-weight: 500;
+    text-align: right; font-variant-numeric: tabular-nums;
+  }
+  .atlas-lb-rank.top { color: #1FDF67; font-weight: 600; }
+  .atlas-lb-name { font-size: 14px; font-weight: 500; color: #fff; }
+  .atlas-lb-sub { font-size: 12px; color: rgba(255,255,255,0.45); margin-top: 2px; }
+  .atlas-lb-count {
+    font-size: 14px; font-weight: 600; color: #fff;
+    font-variant-numeric: tabular-nums; text-align: right;
+  }
+  .atlas-lb-bar-wrap { background: rgba(255,255,255,0.05); height: 5px; border-radius: 3px; overflow: hidden; }
+  .atlas-lb-bar { background: #1FDF67; height: 100%; }
+  .atlas-load-more {
+    display: block; width: 100%; text-align: center; padding: 14px;
+    background: transparent; color: rgba(255,255,255,0.65); border: none;
+    border-top: 1px solid rgba(255,255,255,0.04); cursor: pointer; font-size: 13px;
+    font-family: inherit;
+  }
+  .atlas-load-more:hover { color: #fff; }
+  .atlas-load-more[hidden] { display: none !important; }
+
+  .atlas-grid-2 { display: grid; grid-template-columns: 1.2fr 1fr; gap: 20px; }
+  @media(max-width:800px) { .atlas-grid-2 { grid-template-columns: 1fr; } }
+  .atlas-panel {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 16px;
+    padding: 24px;
+  }
+  .atlas-panel-title { font-size: 15px; font-weight: 600; margin-bottom: 4px; color: #fff; }
+  .atlas-panel-sub { font-size: 12px; color: rgba(255,255,255,0.5); margin-bottom: 20px; }
+
+  .atlas-status-row {
+    display: grid; grid-template-columns: 130px 1fr 50px;
+    gap: 14px; align-items: center; padding: 10px 0;
+  }
+  @media(max-width:800px) { .atlas-status-row { grid-template-columns: 110px 1fr 40px; gap: 10px; } }
+  .atlas-status-label { font-size: 13px; color: rgba(255,255,255,0.75); }
+  .atlas-status-bar-wrap { background: rgba(255,255,255,0.05); height: 8px; border-radius: 4px; overflow: hidden; }
+  .atlas-status-bar { height: 100%; border-radius: 4px; transition: width 0.3s; }
+  .atlas-status-bar[data-status="Announced"]       { background: rgba(255,255,255,0.55); }
+  .atlas-status-bar[data-status="Breaking Ground"] { background: #FFD300; }
+  .atlas-status-bar[data-status="Construction"]    { background: #FF9500; }
+  .atlas-status-bar[data-status="Topping Out"]     { background: #FF9500; }
+  .atlas-status-bar[data-status="Opening Soon"]    { background: #1FDF67; }
+  .atlas-status-bar[data-status="Now Open"]        { background: #1FDF67; }
+  .atlas-status-count {
+    font-size: 13px; text-align: right;
+    font-variant-numeric: tabular-nums; color: rgba(255,255,255,0.75);
+  }
+
+  .atlas-trend-chart { height: 180px; display: flex; align-items: end; gap: 5px; padding: 14px 0; }
+  .atlas-trend-bar {
+    flex: 1;
+    background: linear-gradient(180deg, #1FDF67 0%, rgba(31,223,103,0.3) 100%);
+    border-radius: 3px 3px 0 0;
+    min-height: 4px;
+  }
+  .atlas-trend-bar[data-count="0"] { background: rgba(255,255,255,0.05); min-height: 4px; }
+  .atlas-trend-labels {
+    display: flex; justify-content: space-between;
+    padding: 0 6px; font-size: 11px; color: rgba(255,255,255,0.4);
+  }
+
+  /* ── Recent activity ("This week on the map") pulse rows. On the map these
+     reuse the v2 drawer's .v2-pulse-content styling; here we ship a compact,
+     self-contained version of those rules (spine, colored dot, type label,
+     title) so the section reads identically without the map's v2 chrome. */
+  .v2-pulse-content .pulse-spine { padding: 0; position: relative; }
+  .v2-pulse-content .pulse-ev-wrap {
+    position: relative;
+    padding: 14px 16px 14px 30px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    width: 100%;
+  }
+  .v2-pulse-content .pulse-ev-wrap:last-child { border-bottom: none; }
+  .v2-pulse-content .pulse-ev-wrap::before {
+    content: '';
+    position: absolute;
+    left: 16px; top: 50%;
+    transform: translateY(-50%);
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.3);
+  }
+  .v2-pulse-content .pulse-ev-wrap:hover { background: rgba(255,255,255,0.04); }
+  .v2-pulse-content .pulse-ev-wrap[data-event-type="status_change"]::before { background: var(--orange, #FF9500); box-shadow: 0 0 0 3px rgba(255,149,0,0.18); }
+  .v2-pulse-content .pulse-ev-wrap[data-event-type="article"]::before      { background: var(--accent, #1FDF67); box-shadow: 0 0 0 3px rgba(31,223,103,0.18); }
+  .v2-pulse-content .pulse-ev-wrap[data-event-type="new_project"]::before  { background: var(--blue, #6FA8FF); box-shadow: 0 0 0 3px rgba(111,168,255,0.18); }
+  .v2-pulse-content .pulse-ev {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+  }
+  .v2-pulse-content .pulse-ev-tsrow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .v2-pulse-content .pulse-ev-type-lbl {
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--orange, #FF9500);
+  }
+  .v2-pulse-content .pulse-ev-wrap[data-event-type="article"]     .pulse-ev-type-lbl { color: var(--accent, #1FDF67); }
+  .v2-pulse-content .pulse-ev-wrap[data-event-type="new_project"] .pulse-ev-type-lbl { color: var(--blue, #6FA8FF); }
+  .v2-pulse-content .pulse-ev-loc,
+  .v2-pulse-content .pulse-ev-ts {
+    color: rgba(255,255,255,0.55);
+    font-weight: 500;
+    text-transform: none;
+    letter-spacing: 0;
+    font-size: 11px;
+  }
+  .v2-pulse-content .pulse-ev-sep { color: rgba(255,255,255,0.35); }
+  .v2-pulse-content .pulse-ev-title {
+    font-size: 14px;
+    color: #fff;
+    font-weight: 600;
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+    margin: 4px 0 0;
+  }
+  .v2-pulse-content .pulse-ev-ext-icon {
+    display: inline-block;
+    vertical-align: -1px;
+    margin-left: 10px;
+    color: rgba(255,255,255,0.35);
+    stroke: currentColor;
+  }
+
+  /* Most-covered projects -- ranked list like the leaderboards */
+  .atlas-coverage-row {
+    display: grid;
+    grid-template-columns: 24px 1fr auto;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    cursor: pointer;
+    transition: padding-left 0.15s, background 0.1s;
+    text-decoration: none;
+    color: inherit;
+  }
+  .atlas-coverage-row:last-child { border-bottom: none; }
+  .atlas-coverage-row:hover {
+    background: rgba(255,255,255,0.02);
+    padding-left: 4px;
+  }
+  .atlas-coverage-rank {
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+    color: rgba(255,255,255,0.35);
+    font-weight: 500;
+    text-align: center;
+  }
+  .atlas-coverage-rank.top { color: #1FDF67; }
+  .atlas-coverage-info { min-width: 0; }
+  .atlas-coverage-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: #fff;
+    margin-bottom: 2px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .atlas-coverage-meta {
+    font-size: 11px;
+    color: rgba(255,255,255,0.45);
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
+  .atlas-coverage-count {
+    text-align: right;
+  }
+  .atlas-coverage-count-num {
+    font-size: 18px;
+    font-weight: 600;
+    color: #fff;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+  .atlas-coverage-count-label {
+    font-size: 10px;
+    color: rgba(255,255,255,0.4);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+
+  /* Coming soon -- bucketed list of upcoming deliveries */
+  .atlas-coming-bucket { margin-bottom: 24px; }
+  .atlas-coming-bucket:last-child { margin-bottom: 0; }
+  .atlas-coming-bucket-head {
+    font-size: 11px;
+    color: rgba(255,255,255,0.5);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 600;
+    padding: 0 0 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .atlas-coming-bucket-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: #1FDF67;
+  }
+  .atlas-coming-bucket[data-bucket="30d"] .atlas-coming-bucket-dot  { background: #1FDF67; }
+  .atlas-coming-bucket[data-bucket="90d"] .atlas-coming-bucket-dot  { background: #FF9500; }
+  .atlas-coming-bucket[data-bucket="rest"] .atlas-coming-bucket-dot { background: #6FA8FF; }
+  .atlas-coming-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 16px;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    cursor: pointer;
+    transition: padding-left 0.15s, background 0.1s;
+    text-decoration: none;
+    color: inherit;
+  }
+  .atlas-coming-row:last-child { border-bottom: none; }
+  .atlas-coming-row:hover {
+    background: rgba(255,255,255,0.02);
+    padding-left: 4px;
+  }
+  .atlas-coming-info { min-width: 0; }
+  .atlas-coming-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: #fff;
+    margin-bottom: 2px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .atlas-coming-meta {
+    font-size: 11px;
+    color: rgba(255,255,255,0.45);
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
+  .atlas-coming-days {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+  .atlas-coming-days-num {
+    font-size: 16px;
+    font-weight: 600;
+    color: #fff;
+    line-height: 1;
+  }
+  .atlas-coming-days-label {
+    font-size: 10px;
+    color: rgba(255,255,255,0.4);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+
+  /* Side-by-side desktop layout for these two sections */
+  .atlas-coverage-coming-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    padding-bottom: 36px;
+    align-items: stretch;
+  }
+  /* ── Atlas view tabs (Overview / Pipeline) ──────────────────────────
+     Top-level switcher sitting above the state filter. Toggling re-renders
+     the atlas content into either the Overview (leaderboards + outlook +
+     distribution + coverage + recent) or the Pipeline (timeline only). */
+  .atlas-view-tabs {
+    display: inline-flex;
+    gap: 4px;
+    margin: 0 0 22px;
+    padding: 4px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 12px;
+  }
+  .atlas-view-tab {
+    padding: 9px 18px;
+    background: transparent; border: none;
+    color: rgba(255,255,255,0.55);
+    font-size: 13px; font-weight: 600;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.12s, color 0.12s;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .atlas-view-tab:hover { color: #fff; }
+  .atlas-view-tab.active {
+    background: rgba(31,223,103,0.14);
+    color: #1FDF67;
+  }
+  @media (max-width: 700px) {
+    .atlas-view-tabs { width: 100%; display: flex; }
+    .atlas-view-tab { flex: 1; justify-content: center; padding: 9px 12px; }
+  }
+
+  /* Pinned sub-header: the view tabs (Pipeline/Overview) + the location filter
+     pills stay fixed just below the journal nav; everything else scrolls under.
+     --atlas-head is the live journal-chrome header height (set by JS). The
+     negative side margins + matching padding bleed the bar's background to the
+     container edges so scrolling content is fully covered as it passes under. */
+  .atlas-stickyhead {
+    position: sticky; top: var(--atlas-head, 64px); z-index: 30;
+    background: #0a0a0a;
+    margin: 0 -32px 22px; padding: 12px 32px 13px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .atlas-stickyhead .atlas-view-tabs { margin: 0; }
+  .atlas-stickyhead .atlas-filter-bar { margin: 0; }
+  @media (max-width: 800px) {
+    .atlas-stickyhead { margin: 0 -18px 18px; padding: 10px 18px 11px; gap: 10px; }
+  }
+
+  /* ── Pipeline timeline section (atlas) — mockup-style layout ────────
+     Hero (title + description + 4-stat row), filter chips (status + featured),
+     then a single-column vertical timeline with a thin connector line down
+     the left. Each project row: date column · connector · full-width card
+     with image + body + scale stats. */
+
+  /* Hero */
+  .atlas-tl-hero { padding: 12px 0 28px; max-width: 720px; }
+  .atlas-tl-hero h2 {
+    font-size: 38px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.05;
+    background: linear-gradient(180deg, #fff 0%, rgba(255,255,255,0.7) 100%);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin: 0;
+  }
+  .atlas-tl-hero p {
+    font-size: 15px; color: rgba(255,255,255,0.62);
+    margin-top: 12px; line-height: 1.55;
+  }
+  .atlas-tl-hero-stats { margin-top: 24px; display: flex; gap: 22px; flex-wrap: wrap; }
+  .atlas-tl-hero-stat { display: flex; flex-direction: column; gap: 2px; }
+  .atlas-tl-hero-stat .val {
+    font-size: 24px; font-weight: 700; font-variant-numeric: tabular-nums;
+    line-height: 1; color: #fff;
+  }
+  .atlas-tl-hero-stat .val.accent { color: #1FDF67; }
+  .atlas-tl-hero-stat .lbl {
+    font-size: 10.5px; color: rgba(255,255,255,0.4);
+    font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em;
+    margin-top: 4px;
+  }
+  @media (max-width: 700px) {
+    .atlas-tl-hero h2 { font-size: 28px; }
+    .atlas-tl-hero p { font-size: 14px; }
+    .atlas-tl-hero-stats {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 18px 24px;
+      margin-top: 20px;
+    }
+    .atlas-tl-hero-stat .val { font-size: 20px; }
+  }
+
+  /* Filter chip row: status pills + featured toggle + count, side by side */
+  .atlas-tl-filters {
+    display: flex; gap: 8px; flex-wrap: wrap;
+    align-items: center; margin-bottom: 28px;
+  }
+  .atlas-tl-filter-group {
+    display: flex; gap: 4px;
+    background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 10px; padding: 3px;
+  }
+  .atlas-tl-chip {
+    padding: 7px 12px; background: transparent; border: none;
+    color: rgba(255,255,255,0.55); border-radius: 7px;
+    font-size: 12px; font-weight: 600; cursor: pointer;
+    font-family: inherit; display: flex; align-items: center; gap: 6px;
+    transition: background 0.12s, color 0.12s; white-space: nowrap;
+  }
+  .atlas-tl-chip:hover { color: #fff; }
+  .atlas-tl-chip.active { background: rgba(255,255,255,0.08); color: #fff; }
+  .atlas-tl-chip .swatch { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .atlas-tl-meta-count {
+    color: rgba(255,255,255,0.4); font-size: 11px;
+    font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em;
+    margin-left: auto;
+  }
+  @media (max-width: 700px) {
+    .atlas-tl-filters {
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      overflow-y: hidden;
+      scrollbar-width: none;
+      margin-left: -18px;
+      margin-right: -18px;
+      padding-left: 18px;
+      padding-right: 18px;
+    }
+    .atlas-tl-filters::-webkit-scrollbar { display: none; }
+    .atlas-tl-filter-group { flex-shrink: 0; }
+    .atlas-tl-meta-count { display: none; }
+  }
+
+  /* Timeline list + vertical connector line. Line at left:122px desktop,
+     8px mobile (date column collapses). Faded ends via mask gradient. */
+  .atlas-tl-list { position: relative; margin-bottom: 40px; }
+  .atlas-tl-list::before {
+    content: ""; position: absolute;
+    left: 122px; top: 24px; bottom: 24px;
+    width: 1px;
+    background: linear-gradient(180deg, transparent 0%, rgba(255,255,255,0.10) 6%, rgba(255,255,255,0.10) 94%, transparent 100%);
+  }
+  @media (max-width: 700px) {
+    .atlas-tl-list::before { left: 9px; }
+  }
+
+  /* Sticky quarter header — single green dot on the line marks each quarter.
+     top offset accounts for the sticky journal-chrome header (~62px) so the
+     quarter header parks just below it instead of under it. */
+  .atlas-tl-qhead {
+    display: grid; grid-template-columns: 110px 24px 1fr; gap: 12px;
+    padding: 18px 0 10px;
+    background: #0a0a0a;
+    margin-bottom: 4px;
+  }
+  .atlas-tl-qhead-date {
+    text-align: right;
+    font-size: 18px; font-weight: 800;
+    color: #fff; letter-spacing: -0.01em; line-height: 1;
+  }
+  .atlas-tl-qhead-date .yr {
+    display: block;
+    font-size: 10px; font-weight: 700;
+    color: rgba(255,255,255,0.45);
+    text-transform: uppercase; letter-spacing: 0.07em;
+    margin-top: 4px;
+  }
+  .atlas-tl-qhead-dot {
+    align-self: center; justify-self: center;
+    width: 12px; height: 12px;
+    border-radius: 50%; background: #1FDF67;
+    box-shadow: 0 0 0 4px rgba(31,223,103,0.18);
+  }
+  .atlas-tl-qhead-count {
+    align-self: center;
+    font-size: 11px; color: rgba(255,255,255,0.55);
+    font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;
+  }
+  .atlas-tl-qhead-count b { color: #fff; font-weight: 800; }
+  .atlas-tl-qhead-date-inline { display: none; }
+  @media (max-width: 700px) {
+    .atlas-tl-qhead {
+      grid-template-columns: 24px 1fr;
+      gap: 10px; padding: 18px 0 10px;
+    }
+    .atlas-tl-qhead-date { display: none; }
+    .atlas-tl-qhead-date-inline {
+      display: inline;
+      color: #fff; font-weight: 800;
+      margin-right: 6px;
+    }
+  }
+
+  /* Project row: date column · connector slot · card */
+  .atlas-tl-row {
+    display: grid; grid-template-columns: 110px 24px 1fr;
+    gap: 12px; padding: 8px 0;
+    cursor: pointer;
+    transition: transform 0.12s;
+    content-visibility: auto;
+    contain-intrinsic-size: auto 146px;
+  }
+  .atlas-tl-row:hover { transform: translateX(2px); }
+  .atlas-tl-row-link { text-decoration: none; color: inherit; display: contents; }
+  .atlas-tl-row-date {
+    text-align: right; padding-top: 14px;
+    font-size: 11px; color: rgba(255,255,255,0.4); font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+  .atlas-tl-row-dot-slot { /* connector line passes through */ }
+  .atlas-tl-row-card {
+    display: grid; grid-template-columns: 180px 1fr;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px;
+    overflow: hidden;
+    transition: border-color 0.12s, box-shadow 0.12s;
+    min-width: 0;
+  }
+  .atlas-tl-row:hover .atlas-tl-row-card {
+    border-color: rgba(255,255,255,0.18);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+  }
+  .atlas-tl-row-img {
+    width: 180px; height: 130px;
+    background:
+      linear-gradient(110deg,
+        rgba(255,255,255,0.04) 0%,
+        rgba(255,255,255,0.08) 45%,
+        rgba(255,255,255,0.04) 90%) 0 0 / 200% 100%,
+      linear-gradient(135deg, #1a1a1a, #222);
+    animation: atlasTlImgShimmer 1.6s linear infinite;
+    position: relative; flex-shrink: 0;
+    overflow: hidden;
+  }
+  @keyframes atlasTlImgShimmer {
+    from { background-position: 200% 0, 0 0; }
+    to   { background-position: -200% 0, 0 0; }
+  }
+  .atlas-tl-row-img-photo {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .atlas-tl-row--completed { opacity: 0.62; }
+  .atlas-tl-row--completed:hover { opacity: 0.92; }
+  .atlas-tl-qhead--completed { opacity: 0.7; }
+  .atlas-tl-archive-head {
+    padding: 28px 0 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    margin-bottom: 14px;
+    text-align: left;
+  }
+  .atlas-tl-archive-eyebrow {
+    font-size: 10px; font-weight: 800; letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.4);
+    margin-bottom: 6px;
+  }
+  .atlas-tl-archive-title {
+    font-size: 18px; font-weight: 700;
+    color: rgba(255,255,255,0.7);
+    margin-bottom: 4px;
+  }
+  .atlas-tl-archive-sub {
+    font-size: 12.5px;
+    color: rgba(255,255,255,0.45);
+    line-height: 1.45;
+  }
+  .atlas-tl-now-boundary {
+    position: relative;
+    display: flex; align-items: center; justify-content: center;
+    padding: 36px 0 28px;
+    margin: 18px 0 8px;
+  }
+  .atlas-tl-now-boundary::before {
+    content: '';
+    position: absolute;
+    left: 0; right: 0;
+    top: 50%;
+    height: 1px;
+    background: linear-gradient(to right,
+      rgba(255,211,0,0) 0%,
+      rgba(255,211,0,0.35) 20%,
+      rgba(255,211,0,0.35) 80%,
+      rgba(255,211,0,0) 100%);
+  }
+  .atlas-tl-now-pill {
+    position: relative;
+    background: var(--warn, #FFD300);
+    color: #0a0a0a;
+    font-size: 11px; font-weight: 800;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    padding: 6px 14px;
+    border-radius: 999px;
+    box-shadow: 0 0 0 1px rgba(255,211,0,0.45) inset,
+                0 0 16px rgba(255,211,0,0.35);
+    z-index: 1;
+  }
+  .atlas-tl-row-status {
+    position: absolute; bottom: 8px; left: 8px;
+    background: rgba(0,0,0,0.78);
+    border: 1px solid rgba(255,255,255,0.14);
+    padding: 3px 9px; border-radius: 100px;
+    font-size: 9.5px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    color: #fff;
+    display: flex; align-items: center; gap: 5px;
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  }
+  .atlas-tl-row-status .dot { width: 6px; height: 6px; border-radius: 50%; }
+  .atlas-tl-row-featured {
+    position: absolute; top: 8px; right: 8px;
+    width: 22px; height: 22px; border-radius: 6px;
+    background: rgba(255,211,0,0.18);
+    border: 1px solid rgba(255,211,0,0.4);
+    display: flex; align-items: center; justify-content: center;
+    color: #FFD300; font-size: 11px;
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  }
+  .atlas-tl-row-body {
+    padding: 14px 18px;
+    display: flex; flex-direction: column; gap: 6px;
+    min-width: 0;
+  }
+  .atlas-tl-row-title {
+    font-size: 16px; font-weight: 700; color: #fff;
+    line-height: 1.25; letter-spacing: -0.005em;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .atlas-tl-row-meta {
+    font-size: 12px; color: rgba(255,255,255,0.55);
+    display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
+  }
+  .atlas-tl-row-meta .sep { color: rgba(255,255,255,0.18); }
+  .atlas-tl-row-meta .atlas-tl-row-chip {
+    display: inline-flex; align-items: center;
+    padding: 2px 7px;
+    border-radius: 100px;
+    font-size: 10px; font-weight: 700;
+    letter-spacing: 0.04em; text-transform: uppercase;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.14);
+    color: rgba(255,255,255,0.78);
+    line-height: 1.4;
+    white-space: nowrap;
+  }
+  .atlas-tl-row-meta .atlas-tl-row-chip.warn {
+    background: rgba(255,211,0,0.12);
+    border-color: rgba(255,211,0,0.32);
+    color: #FFD300;
+  }
+  .atlas-tl-row-meta .atlas-tl-row-chip.est {
+    background: rgba(167,139,250,0.12);
+    border-color: rgba(167,139,250,0.32);
+    color: #A78BFA;
+  }
+  .atlas-tl-row-scale {
+    margin-top: auto;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    display: flex; gap: 14px;
+  }
+  .atlas-tl-row-scale .stat { font-size: 11px; color: rgba(255,255,255,0.45); }
+  .atlas-tl-row-scale .stat b {
+    color: #fff; font-weight: 700; font-variant-numeric: tabular-nums;
+    margin-right: 4px;
+  }
+  @media (max-width: 700px) {
+    .atlas-tl-row {
+      grid-template-columns: 24px 1fr; gap: 10px;
+      contain-intrinsic-size: auto 340px;
+    }
+    .atlas-tl-row-date { display: none; }
+    .atlas-tl-row-card { grid-template-columns: 1fr; }
+    .atlas-tl-row-img { width: 100%; height: 160px; }
+    .atlas-tl-row-body { padding: 12px 14px 14px; }
+    .atlas-tl-row-title { font-size: 15px; }
+  }
+
+  .atlas-tl-empty {
+    padding: 60px 24px;
+    text-align: center;
+    color: rgba(255,255,255,0.5);
+    font-size: 13px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 14px;
+  }
+
+  .atlas-coverage-coming-grid .atlas-section-half {
+    padding-bottom: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .atlas-coverage-coming-grid .atlas-section-half .atlas-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  @media(max-width:800px) {
+    .atlas-coverage-coming-grid { grid-template-columns: 1fr; gap: 28px; padding-bottom: 20px; }
+  }
+
+  .atlas-footer {
+    padding: 32px 0 0;
+    text-align: center;
+    color: rgba(255,255,255,0.4);
+    font-size: 12px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    margin-top: 32px;
+  }
+
+  .atlas-loading, .atlas-error {
+    padding: 80px 0; text-align: center;
+    color: rgba(255,255,255,0.5); font-size: 14px;
+  }
+  .atlas-error { color: rgba(255,90,90,0.8); }
+</style>
+</head>
+<body>
+  <!-- Atlas content (always shown — on the map this was hidden until
+       atlas-mode; here it's the whole page). The render JS writes into
+       #atlasRoot. -->
+  <div class="atlas-overlay" id="atlasOverlay">
+    <div class="atlas-body">
+      <div class="atlas-container" id="atlasRoot">
+        <div class="atlas-loading">Loading Atlas…</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Universal journal chrome: injects the header (with the Map · Atlas · Journal
+       toggle — Atlas active on /atlas) + the bottom dock. -->
+  <script src="/_shared/journal-chrome.js" defer></script>
+  <script src="/_shared/journal-dock.js" defer></script>
+
+  <!-- ───────────────────────────────────────────────────────────────────
+       ATLAS RENDER — ported from the map (repo-root index.html, the
+       self-contained atlas IIFE ~lines 19674–21258). Adapted for the native
+       journal page: data fetched cross-origin from map.oftmw.com; firm /
+       project / coverage links point at absolute map.oftmw.com URLs (those
+       routes 404 on www); the Pipeline timeline's project list is built from
+       projects-flat.json (mapped into the {properties:{...}} shape the map's
+       window.allProjectFeatures uses); no Pro gating (everything is public);
+       the firm-sheet SPA modal and map deep-link handlers are dropped in
+       favor of plain navigation.
+       ─────────────────────────────────────────────────────────────────── -->
+  <script>
+  (function() {
+    'use strict';
+
+    // Cross-origin asset bases. This page lives at www.oftmw.com/atlas; the
+    // atlas data + firm/project pages are served from map.oftmw.com.
+    const MAP_ORIGIN = 'https://map.oftmw.com';
+
+    // Keep --atlas-head in sync with the live journal-chrome header height so the
+    // pinned sub-header (tabs + filters) parks exactly below the nav on every
+    // breakpoint. The chrome header is injected async, so we also re-measure on
+    // load + resize.
+    function syncHeadOffset() {
+      try {
+        const h = document.querySelector('.tmw-chrome-head') || document.querySelector('nav.main');
+        const hh = h ? Math.round(h.getBoundingClientRect().height) : 0;
+        if (hh > 0) document.documentElement.style.setProperty('--atlas-head', hh + 'px');
+      } catch (_) {}
+    }
+
+    let atlasData = null;
+    let atlasLoaded = false;
+    let lbState = {
+      developers: { showAll: false },
+      architects: { showAll: false },
+      cities:     { showAll: false },
+      types:      { showAll: false },
+    };
+    const TOP_N_DESKTOP = 8;
+    const TOP_N_MOBILE  = 5;
+
+    function isMobileNow() { return window.matchMedia('(max-width: 800px)').matches; }
+
+    function escapeHtml(s) {
+      const decoded = window.decodeEntitiesOnce ? window.decodeEntitiesOnce(s) : (s == null ? '' : String(s));
+      return decoded
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    // ── Render functions ────────────────────────────────────────────────
+    function renderOpeningsByYear() {
+      const data = atlasData.openings_by_year || [];
+      if (!data.length) return '';
+      const max = Math.max(...data.map(d => d.count), 1);
+      const rows = data.map(d => {
+        const pct = (d.count / max) * 100;
+        return `
+          <div class="atlas-status-row">
+            <div class="atlas-status-label">${d.year}</div>
+            <div class="atlas-status-bar-wrap"><div class="atlas-status-bar" data-status="Opening Soon" style="width: ${pct}%;"></div></div>
+            <div class="atlas-status-count">${d.count}</div>
+          </div>`;
+      }).join('');
+      return `
+        <section class="atlas-section">
+          <div class="atlas-section-head">
+            <div>
+              <h2 class="atlas-section-title">Openings outlook</h2>
+              <p class="atlas-section-sub">Projects delivering each year, ${new Date().getFullYear()} onward.</p>
+            </div>
+          </div>
+          <div class="atlas-panel">
+            ${rows}
+          </div>
+        </section>`;
+    }
+
+    function renderStateFilter() {
+      const states = atlasData.available_states || [];
+      if (!states.length) return '';
+      const total = (atlasData.hero_stats && atlasData.hero_stats.total_projects) || states.reduce((s, x) => s + x.count, 0);
+      const pills = states.map(s => `
+        <button class="atlas-filter-pill ${currentStateFilter === s.code ? 'active' : ''}" data-state="${escapeHtml(s.code)}" type="button">
+          ${escapeHtml(s.label)} <span class="atlas-filter-count">${s.count}</span>
+        </button>
+      `).join('');
+      return `
+        <div class="atlas-filter-bar">
+          <div class="atlas-filter-pills">
+            <button class="atlas-filter-pill ${currentStateFilter === 'ALL' ? 'active' : ''}" data-state="ALL" type="button">All <span class="atlas-filter-count">${total}</span></button>
+            ${pills}
+          </div>
+        </div>`;
+    }
+
+    let currentStateFilter = 'ALL';
+    // Default to the Overview ('stats') view — it renders instantly from
+    // atlas.json alone (no projects-flat.json dependency), so the page is
+    // never stuck on a loading state.
+    let currentAtlasView = 'stats';
+    let currentTimelineStatus = 'all';
+    let currentTimelineFeatured = false;
+
+    function leaderboardSource(key) {
+      if (currentStateFilter === 'ALL') {
+        return (atlasData.leaderboards && atlasData.leaderboards[key]) || [];
+      }
+      const byState = atlasData.leaderboards_by_state || {};
+      const stateLb = byState[currentStateFilter] || {};
+      return stateLb[key] || [];
+    }
+
+    function renderLeaderboardRows(key) {
+      const data = leaderboardSource(key);
+      if (!data.length) {
+        return '<div style="padding:32px;text-align:center;color:rgba(255,255,255,0.4);font-size:13px;">No entries match this filter</div>';
+      }
+      const max = data[0].count || 1;
+      const limit = lbState[key].showAll ? data.length : (isMobileNow() ? TOP_N_MOBILE : TOP_N_DESKTOP);
+      const visible = data.slice(0, limit);
+      // Developers/architects with slugs link to their firm pages. Those pages
+      // live on map.oftmw.com (they 404 on www), so we emit absolute URLs.
+      const role = (key === 'developers' || key === 'architects') ? key : null;
+      return visible.map((row, i) => {
+        const pct = (row.count / max) * 100;
+        const rankClass = i < 3 ? 'top' : '';
+        const linkable = role && row.slug;
+        const nameInner = `<div class="atlas-lb-name">${escapeHtml(row.name)}</div>
+              <div class="atlas-lb-sub">${escapeHtml(row.sub || '')}</div>`;
+        const rowInner = linkable
+          ? `<a class="atlas-lb-link" href="${MAP_ORIGIN}/${role}/${encodeURIComponent(row.slug)}/">${nameInner}</a>`
+          : `<div>${nameInner}</div>`;
+        return `
+          <div class="atlas-lb-row${linkable ? ' is-linkable' : ''}">
+            <div class="atlas-lb-rank ${rankClass}">${i + 1}</div>
+            ${rowInner}
+            <div class="atlas-lb-bar-wrap"><div class="atlas-lb-bar" style="width: ${pct}%;"></div></div>
+            <div class="atlas-lb-count">${row.count}</div>
+          </div>`;
+      }).join('');
+    }
+
+    function renderLeaderboardSection() {
+      return `
+        <section class="atlas-section">
+          <div class="atlas-section-head">
+            <div>
+              <h2 class="atlas-section-title">Who's building what</h2>
+              <p class="atlas-section-sub">The developers, architects, and cities shaping the pipeline.</p>
+            </div>
+          </div>
+          <div class="atlas-lb-wrap">
+            <div class="atlas-lb-tabs" role="tablist">
+              <button class="atlas-lb-tab active" data-lb-tab="developers" role="tab">Top developers</button>
+              <button class="atlas-lb-tab" data-lb-tab="architects" role="tab">Top architects</button>
+              <button class="atlas-lb-tab" data-lb-tab="cities" role="tab">Top cities</button>
+              <button class="atlas-lb-tab" data-lb-tab="types" role="tab">Top product types</button>
+            </div>
+            <div class="atlas-lb-content" id="atlasLbContent">${renderLeaderboardRows('developers')}</div>
+            <button class="atlas-load-more" id="atlasLoadMore">Load more &darr;</button>
+          </div>
+        </section>`;
+    }
+
+    function updateLoadMoreBtn(key) {
+      const btn = document.getElementById('atlasLoadMore');
+      if (!btn) return;
+      const data = leaderboardSource(key);
+      const topN = isMobileNow() ? TOP_N_MOBILE : TOP_N_DESKTOP;
+      const hasOverflow = data.length > topN;
+      btn.hidden = !hasOverflow;
+      if (lbState[key].showAll) {
+        btn.textContent = 'Show less ↑';
+      } else {
+        btn.textContent = `Show all (${data.length - topN} more) ↓`;
+      }
+    }
+
+    function renderDistribution() {
+      const dist = atlasData.status_distribution || [];
+      const max = dist.length ? Math.max(...dist.map(d => d.count)) : 1;
+      const rows = dist.map(d => {
+        const pct = (d.count / max) * 100;
+        return `
+          <div class="atlas-status-row">
+            <div class="atlas-status-label">${escapeHtml(d.label)}</div>
+            <div class="atlas-status-bar-wrap"><div class="atlas-status-bar" data-status="${escapeHtml(d.label)}" style="width: ${pct}%;"></div></div>
+            <div class="atlas-status-count">${d.count}</div>
+          </div>`;
+      }).join('');
+      return `
+        <div class="atlas-panel">
+          <div class="atlas-panel-title">Pipeline by status</div>
+          <div class="atlas-panel-sub">Where every project sits in the development cycle.</div>
+          ${rows}
+        </div>`;
+    }
+
+    function renderMomentum() {
+      const m = atlasData.momentum || [];
+      const max = m.length ? Math.max(...m.map(x => x.count), 1) : 1;
+      const bars = m.map(b => {
+        const h = (b.count / max) * 100;
+        return `<div class="atlas-trend-bar" data-count="${b.count}" style="height: ${h}%;" title="${escapeHtml(b.month)} ${b.year}: ${b.count}"></div>`;
+      }).join('');
+      const labels = m.map(b => `<span>${escapeHtml(b.month)}</span>`).join('');
+      return `
+        <div class="atlas-panel">
+          <div class="atlas-panel-title">Announcement momentum</div>
+          <div class="atlas-panel-sub">New projects added to the map, by month.</div>
+          <div class="atlas-trend-chart">${bars}</div>
+          <div class="atlas-trend-labels">${labels}</div>
+        </div>`;
+    }
+
+    function renderDistributionAndMomentum() {
+      return `
+        <section class="atlas-section">
+          <div class="atlas-grid-2">
+            ${renderDistribution()}
+            ${renderMomentum()}
+          </div>
+        </section>`;
+    }
+
+    function renderRecentActivity() {
+      const events = atlasData.recent_activity || [];
+      if (!events.length) return '';
+      const atlasTagClass = (ev) => {
+        if (ev.type === 'article')     return 'news';
+        if (ev.type === 'new_project') return 'map';
+        return 'update';
+      };
+      const atlasTagLabel = (ev) => {
+        if (ev.type === 'article')     return 'News';
+        if (ev.type === 'new_project') return 'Map';
+        return 'Update';
+      };
+      const sepDot = '<span class="pulse-ev-sep">&middot;</span>';
+      const cards = events.slice(0, 10).map(ev => {
+        const type = ev.type || 'article';
+        const tag = ev.tag || atlasTagLabel(ev);
+        const typeLbl = escapeHtml(tag.toUpperCase());
+        // Article rows always open in a new tab; map events (new_project /
+        // status_change) deep-link into the map, so they also open there.
+        const target = ' target="_blank" rel="noopener"';
+        const locPart = ev.city
+          ? sepDot + '<span class="pulse-ev-loc">' + escapeHtml(ev.city) + '</span>'
+          : '';
+        const tsPart = ev.ago
+          ? sepDot + '<span class="pulse-ev-ts">' + escapeHtml(ev.ago) + '</span>'
+          : '';
+        const extIcon = type === 'article'
+          ? '<svg class="pulse-ev-ext-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="11" height="11" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>'
+          : '';
+        // Map events carry a relative ?project= link on the map; rewrite to an
+        // absolute map URL so the row opens the project on map.oftmw.com.
+        let href = ev.link || '#';
+        if (type !== 'article' && href && href.charAt(0) !== 'h') {
+          href = MAP_ORIGIN + (href.charAt(0) === '/' ? '' : '/') + href;
+        }
+        return `
+          <div class="pulse-ev-wrap pulse-ev-type-${atlasTagClass(ev)}" data-event-type="${escapeHtml(type)}">
+            <a class="pulse-ev" href="${escapeHtml(href)}"${target}>
+              <div class="pulse-ev-tsrow">
+                <span class="pulse-ev-type-lbl">${typeLbl}</span>
+                ${locPart}
+                ${tsPart}
+              </div>
+              <div class="pulse-ev-title">${escapeHtml(ev.title || '')}${extIcon}</div>
+            </a>
+          </div>`;
+      }).join('');
+      return `
+        <section class="atlas-section">
+          <div class="atlas-section-head">
+            <div>
+              <h2 class="atlas-section-title">This week on the map</h2>
+              <p class="atlas-section-sub">Latest additions, status changes, and TMW coverage.</p>
+            </div>
+            <a href="${MAP_ORIGIN}/" class="atlas-section-link">Open the map <svg class="atlas-section-link-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
+          </div>
+          <div class="v2-pulse-content">
+            <div class="pulse-spine">${cards}</div>
+          </div>
+        </section>`;
+    }
+
+    function renderMostCovered() {
+      const data = atlasData.most_covered || [];
+      if (!data.length) return '';
+      const rows = data.slice(0, 15).map((p, i) => {
+        const rankClass = i < 3 ? 'top' : '';
+        const href = p.slug ? `${MAP_ORIGIN}/projects/${encodeURIComponent(p.slug)}/` : '#';
+        return `
+          <a class="atlas-coverage-row" href="${escapeHtml(href)}">
+            <div class="atlas-coverage-rank ${rankClass}">${i + 1}</div>
+            <div class="atlas-coverage-info">
+              <div class="atlas-coverage-title">${escapeHtml(p.title || '')}</div>
+              <div class="atlas-coverage-meta">${escapeHtml(p.city || '')}</div>
+            </div>
+            <div class="atlas-coverage-count">
+              <div class="atlas-coverage-count-num">${p.count}</div>
+              <div class="atlas-coverage-count-label">article${p.count === 1 ? '' : 's'}</div>
+            </div>
+          </a>`;
+      }).join('');
+      return `
+        <section class="atlas-section atlas-section-half">
+          <div class="atlas-section-head">
+            <div>
+              <h2 class="atlas-section-title">Most covered on Tomorrow</h2>
+              <p class="atlas-section-sub">Projects making the most headlines.</p>
+            </div>
+          </div>
+          <div class="atlas-panel">${rows}</div>
+        </section>`;
+    }
+
+    function renderComingSoon() {
+      const data = atlasData.coming_soon || [];
+      if (!data.length) return '';
+      const buckets = { '30d': [], '90d': [], 'rest': [] };
+      data.forEach(p => { if (buckets[p.bucket]) buckets[p.bucket].push(p); });
+      const yearLabel = new Date().getFullYear();
+      const bucketLabels = {
+        '30d':  'Next 30 days',
+        '90d':  'Next 90 days',
+        'rest': `Later in ${yearLabel}`,
+      };
+      const sections = ['30d', '90d', 'rest'].map(key => {
+        if (!buckets[key].length) return '';
+        const rows = buckets[key].map(p => {
+          const href = p.slug ? `${MAP_ORIGIN}/projects/${encodeURIComponent(p.slug)}/` : '#';
+          const label = p.display_label || (p.days_out != null ? `${p.days_out}d` : '');
+          const showOut = (p.display_precision === 'day');
+          return `
+            <a class="atlas-coming-row" href="${escapeHtml(href)}">
+              <div class="atlas-coming-info">
+                <div class="atlas-coming-title">${escapeHtml(p.title || '')}</div>
+                <div class="atlas-coming-meta">${escapeHtml(p.city || '')}${p.status ? ' · ' + escapeHtml(p.status) : ''}</div>
+              </div>
+              <div class="atlas-coming-days">
+                <div class="atlas-coming-days-num">${escapeHtml(label)}</div>
+                ${showOut ? '<div class="atlas-coming-days-label">out</div>' : ''}
+              </div>
+            </a>`;
+        }).join('');
+        return `
+          <div class="atlas-coming-bucket" data-bucket="${key}">
+            <div class="atlas-coming-bucket-head">
+              <span class="atlas-coming-bucket-dot"></span>
+              ${escapeHtml(bucketLabels[key])} <span style="color:rgba(255,255,255,0.4);font-weight:500;margin-left:auto;">${buckets[key].length}</span>
+            </div>
+            ${rows}
+          </div>`;
+      }).join('');
+      return `
+        <section class="atlas-section atlas-section-half">
+          <div class="atlas-section-head">
+            <div>
+              <h2 class="atlas-section-title">Coming soon</h2>
+              <p class="atlas-section-sub">Projects delivering through year-end.</p>
+            </div>
+          </div>
+          <div class="atlas-panel">${sections}</div>
+        </section>`;
+    }
+
+    function renderCoverageAndComing() {
+      const left = renderMostCovered();
+      const right = renderComingSoon();
+      if (!left && !right) return '';
+      return `<div class="atlas-coverage-coming-grid">${left}${right}</div>`;
+    }
+
+    function renderFooter() {
+      const ts = atlasData.generated_at ? new Date(atlasData.generated_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : '';
+      return `<div class="atlas-footer">Atlas · part of <a href="https://oftmw.com" style="color:rgba(255,255,255,0.6);">Markets of Tomorrow</a>${ts ? ' · data updated ' + escapeHtml(ts) : ''}</div>`;
+    }
+
+    // Build a city → state lookup from atlas data.
+    function buildCityStateMap() {
+      if (!atlasData) return {};
+      if (atlasData.city_state_map && typeof atlasData.city_state_map === 'object') {
+        return atlasData.city_state_map;
+      }
+      const out = {};
+      const byState = atlasData.leaderboards_by_state || {};
+      Object.entries(byState).forEach(([state, lb]) => {
+        (lb && lb.cities || []).forEach(c => {
+          if (c && c.name && !(c.name in out)) out[c.name] = state;
+        });
+      });
+      (atlasData.leaderboards && atlasData.leaderboards.cities || []).forEach(c => {
+        if (c && c.name && !(c.name in out) && c.states && c.states.length) {
+          out[c.name] = c.states[0];
+        }
+      });
+      return out;
+    }
+
+    // ── View tabs renderer — Overview vs Pipeline switcher
+    function renderViewTabs() {
+      return `
+        <div class="atlas-view-tabs" role="tablist" aria-label="Atlas view">
+          <button class="atlas-view-tab ${currentAtlasView === 'timeline' ? 'active' : ''}" data-atlas-view="timeline" role="tab" type="button">Pipeline timeline</button>
+          <button class="atlas-view-tab ${currentAtlasView === 'stats' ? 'active' : ''}" data-atlas-view="stats" role="tab" type="button">Overview</button>
+        </div>`;
+    }
+
+    // ── Pipeline timeline section — reads window.allProjectFeatures (built
+    //    from projects-flat.json, see ensureProjectsLoaded). Each row links to
+    //    the project page on map.oftmw.com.
+    function renderTimelineSection() {
+      const features = window.allProjectFeatures || [];
+      if (!features.length) {
+        return `
+          <section class="atlas-section">
+            <div class="atlas-tl-hero">
+              <h2>What's opening next.</h2>
+              <p>Every project in the TMW pipeline, ordered by delivery date.</p>
+            </div>
+            <div class="atlas-tl-empty">Pipeline still loading&hellip;</div>
+          </section>`;
+      }
+
+      const cityToState = buildCityStateMap();
+      const stateFilter = (currentStateFilter && currentStateFilter !== 'ALL') ? currentStateFilter : null;
+
+      const STATUS_INFO = {
+        'announced':       { label: 'Announced',       color: '#9CA3AF' },
+        'breaking-ground': { label: 'Breaking Ground', color: '#FFD300' },
+        'construction':    { label: 'Construction',    color: '#FF9500' },
+        'coming-soon':     { label: 'Coming Soon',     color: '#4DABFF' },
+        'open':            { label: 'Now Open',        color: '#1FDF67' },
+      };
+      const STATUS_FILTERS = [
+        { id: 'all',              label: 'All' },
+        { id: 'breaking-ground',  label: 'Breaking ground', color: '#FFD300' },
+        { id: 'construction',     label: 'Construction',    color: '#FF9500' },
+        { id: 'coming-soon',      label: 'Coming soon',     color: '#4DABFF' },
+        { id: 'open',             label: 'Now open',        color: '#1FDF67' },
+      ];
+      function normStatus(raw) {
+        const s = (raw || '').toString().toLowerCase();
+        if (s.includes('now open') || s === 'open' || s.includes('complete')) return 'open';
+        if (s.includes('opening') || s.includes('coming')) return 'coming-soon';
+        if (s.includes('construction')) return 'construction';
+        if (s.includes('breaking')) return 'breaking-ground';
+        return 'announced';
+      }
+      function pyStyleSlugLocal(text) {
+        return (text || '').toLowerCase()
+          .replace(/[^a-z0-9\s-]/g, '').replace(/[\s-]+/g, '-').replace(/^-|-$/g, '');
+      }
+      function escapeAttr(s) {
+        return (s == null ? '' : String(s))
+          .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+          .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+      }
+      function fmtMonthYear(s) {
+        if (!s) return '—';
+        const m = String(s).match(/^(\d{4})(?:-(\d{2}))?/);
+        if (!m) return s;
+        const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        return m[2] ? `${MONTHS[+m[2]-1] || m[2]} ${m[1]}` : m[1];
+      }
+      function fmtNum(n) {
+        if (n == null || n === '') return null;
+        const v = parseInt(n, 10);
+        return isNaN(v) ? null : v.toLocaleString();
+      }
+
+      const allBase = features.map(f => f.properties).filter(p => {
+        if (!p.deliveryDate) return false;
+        if (stateFilter) {
+          const projectState = cityToState[p.city] || 'Other';
+          if (projectState !== stateFilter) return false;
+        }
+        if (currentTimelineFeatured && !p.featured) return false;
+        return true;
+      });
+
+      const _now = new Date();
+      const todayPivot = new Date(_now.getFullYear(), _now.getMonth(), 1);
+      function deliveryAsDate(p) {
+        const m = (p.deliveryDate || '').match(/^(\d{4})(?:-(\d{2}))?/);
+        if (!m) return null;
+        const year = +m[1];
+        const month = m[2] ? +m[2] - 1 : 11;
+        return new Date(year, month, 1);
+      }
+
+      const pipelineBase  = allBase.filter(p => { const d = deliveryAsDate(p); return d && d >= todayPivot; });
+      const completedBase = allBase.filter(p => { const d = deliveryAsDate(p); return d && d <  todayPivot; });
+
+      const statusFilter = currentTimelineStatus;
+      const showCompleted = (statusFilter === 'all' || statusFilter === 'open');
+      const showPipeline  = (statusFilter !== 'open');
+      const pipelineShown = showPipeline
+        ? pipelineBase.filter(p => statusFilter === 'all' || normStatus(p.delivery) === statusFilter)
+        : [];
+      const completedShown = showCompleted
+        ? completedBase.filter(p => statusFilter === 'all' || normStatus(p.delivery) === statusFilter)
+        : [];
+
+      const filtered = (statusFilter === 'open') ? completedShown : pipelineShown;
+
+      const totalCount = filtered.length;
+      const totalUnits = filtered.reduce((s, p) => s + (parseInt(p.units, 10) || 0), 0);
+      const totalKeys  = filtered.reduce((s, p) => s + (parseInt(p.keys, 10)  || 0), 0);
+      const now = new Date();
+      const cutoff = new Date(now.getFullYear(), now.getMonth() + 12, 1);
+      let next12 = 0;
+      for (const p of filtered) {
+        const m = (p.deliveryDate || '').match(/^(\d{4})(?:-(\d{2}))?/);
+        if (!m) continue;
+        const d = new Date(+m[1], (m[2] ? +m[2] - 1 : 11), 1);
+        if (d <= cutoff) next12++;
+      }
+
+      const heroHtml = `
+        <div class="atlas-tl-hero">
+          <h2>What's opening next.</h2>
+          <p>Every project in the TMW pipeline, ordered by delivery date. Scroll forward through the calendar — see what's about to land in your market.</p>
+          <div class="atlas-tl-hero-stats">
+            <div class="atlas-tl-hero-stat"><span class="val accent">${totalCount}</span><span class="lbl">In pipeline</span></div>
+            <div class="atlas-tl-hero-stat"><span class="val">${fmtNum(totalUnits) || '—'}</span><span class="lbl">Residential units</span></div>
+            <div class="atlas-tl-hero-stat"><span class="val">${fmtNum(totalKeys) || '—'}</span><span class="lbl">Hotel keys</span></div>
+            <div class="atlas-tl-hero-stat"><span class="val">${next12}</span><span class="lbl">Open in next 12 mo</span></div>
+          </div>
+        </div>`;
+
+      const statusChipsHtml = STATUS_FILTERS.map(s => `
+        <button class="atlas-tl-chip ${currentTimelineStatus === s.id ? 'active' : ''}" data-tl-status="${s.id}" type="button">
+          ${s.color ? `<span class="swatch" style="background:${s.color}"></span>` : ''}${s.label}
+        </button>
+      `).join('');
+      const featuredChipsHtml = `
+        <button class="atlas-tl-chip ${!currentTimelineFeatured ? 'active' : ''}" data-tl-featured="all" type="button">All projects</button>
+        <button class="atlas-tl-chip ${currentTimelineFeatured  ? 'active' : ''}" data-tl-featured="featured" type="button"><span style="color:#FFD300">&#9733;</span> Featured only</button>
+      `;
+      const totalAvailable = allBase.length;
+      const filtersHtml = `
+        <div class="atlas-tl-filters">
+          <div class="atlas-tl-filter-group">${statusChipsHtml}</div>
+          <div class="atlas-tl-filter-group">${featuredChipsHtml}</div>
+          <span class="atlas-tl-meta-count">${totalCount} of ${totalAvailable}</span>
+        </div>`;
+
+      if (!pipelineShown.length && !completedShown.length) {
+        const stateNote = stateFilter
+          ? `No matching projects in <b>${escapeAttr(stateFilter)}</b>. Try a different state or filter.`
+          : `No projects match the current filters.`;
+        return `
+          <section class="atlas-section">
+            ${heroHtml}
+            ${filtersHtml}
+            <div class="atlas-tl-empty">${stateNote}</div>
+          </section>`;
+      }
+
+      function buildGroups(items) {
+        const groups = new Map();
+        for (const p of items) {
+          const m = (p.deliveryDate || '').match(/^(\d{4})(?:-(\d{2}))?/);
+          if (!m) continue;
+          const year = +m[1];
+          const month = m[2] ? +m[2] : 12;
+          const quarter = Math.ceil(month / 3);
+          const key = `${year}-${quarter}`;
+          if (!groups.has(key)) groups.set(key, { year, quarter, items: [] });
+          groups.get(key).items.push(p);
+        }
+        return groups;
+      }
+      function rowHtml(p, isCompleted) {
+        const status = normStatus(p.delivery);
+        const info = STATUS_INFO[status] || STATUS_INFO.announced;
+        const imgHtml = p.image
+          ? `<img class="atlas-tl-row-img-photo" src="${escapeAttr(p.image)}" alt="" loading="lazy" decoding="async" />`
+          : '';
+        const type = p.preferredType || ((p.projectType || '').split(',')[0] || '').trim();
+          const metaParts = [];
+          if (p.city) metaParts.push(`<span>${escapeAttr(p.city)}</span>`);
+          if (type)  metaParts.push(`<span class="sep">·</span><span>${escapeAttr(type)}</span>`);
+          const firstFirm = (p.architects && p.architects[0] && p.architects[0].name)
+            || (p.developers && p.developers[0] && p.developers[0].name)
+            || '';
+          if (firstFirm) {
+            metaParts.push(`<span class="sep">&middot;</span><span>${escapeAttr(firstFirm)}</span>`);
+          }
+          const cfgChip = (() => {
+            const s = (p.configSummary || '').trim();
+            if (!s) return '';
+            const SPELL = { two:2, three:3, four:4, five:5, six:6, seven:7, eight:8 };
+            let m = s.match(/\b(\d+)[\s-]?(tower|building)s?\b/i);
+            if (!m) {
+              m = s.match(/\b(two|three|four|five|six|seven|eight)[\s-]?(tower|building)s?\b/i);
+              if (m) m = [m[0], String(SPELL[m[1].toLowerCase()]), m[2]];
+            }
+            if (m) {
+              const n = parseInt(m[1], 10);
+              const noun = m[2].toLowerCase() === 'building' ? 'buildings' : 'towers';
+              return `<span class="sep">&middot;</span><span class="atlas-tl-row-chip">${n} ${noun}</span>`;
+            }
+            if (/\b(tower|building)s?\b/i.test(s)) {
+              return `<span class="sep">&middot;</span><span class="atlas-tl-row-chip">Multi-tower</span>`;
+            }
+            return '';
+          })();
+          if (cfgChip) metaParts.push(cfgChip);
+          const phsChip = (() => {
+            const s = (p.deliveryPhases || '').trim();
+            if (!s) return '';
+            const phaseMatches = s.match(/\bphase\s+\d+\b/gi);
+            if (phaseMatches && phaseMatches.length >= 2) {
+              return `<span class="sep">&middot;</span><span class="atlas-tl-row-chip warn">${phaseMatches.length} phases</span>`;
+            }
+            const dotParts = s.split(/\s+·\s+/).filter(Boolean);
+            if (dotParts.length >= 2) {
+              return `<span class="sep">&middot;</span><span class="atlas-tl-row-chip warn">${dotParts.length} phases</span>`;
+            }
+            return `<span class="sep">&middot;</span><span class="atlas-tl-row-chip warn">Phased</span>`;
+          })();
+          if (phsChip) metaParts.push(phsChip);
+          if (p.datesSpeculative) {
+            metaParts.push(`<span class="sep">&middot;</span><span class="atlas-tl-row-chip est">EST date</span>`);
+          }
+        const scaleParts = [];
+        if (p.keys)   scaleParts.push(`<div class="stat"><b>${fmtNum(p.keys)}</b>keys</div>`);
+        if (p.units)  scaleParts.push(`<div class="stat"><b>${fmtNum(p.units)}</b>units</div>`);
+        if (p.floors) scaleParts.push(`<div class="stat"><b>${escapeAttr(p.floors)}</b>floors</div>`);
+        const slug = pyStyleSlugLocal(p.title || '');
+        const rowClass = 'atlas-tl-row atlas-tl-item' + (isCompleted ? ' atlas-tl-row--completed' : '');
+        const projHref = slug ? `${MAP_ORIGIN}/projects/${encodeURIComponent(slug)}/` : '#';
+        // Wrap the whole grid row in an anchor (display:contents) so the row
+        // navigates to the project page on map.oftmw.com instead of relying on
+        // the map's in-app click handler.
+        return `
+          <a class="atlas-tl-row-link" href="${escapeAttr(projHref)}">
+          <div class="${rowClass}" data-project-slug="${escapeAttr(slug)}">
+            <div class="atlas-tl-row-date">${escapeAttr(fmtMonthYear(p.deliveryDate))}</div>
+            <div class="atlas-tl-row-dot-slot"></div>
+            <div class="atlas-tl-row-card">
+              <div class="atlas-tl-row-img">
+                ${imgHtml}
+                ${p.featured ? '<div class="atlas-tl-row-featured" title="Featured">&#9733;</div>' : ''}
+                <div class="atlas-tl-row-status"><span class="dot" style="background:${info.color}"></span>${escapeAttr(info.label)}</div>
+              </div>
+              <div class="atlas-tl-row-body">
+                <div class="atlas-tl-row-title">${escapeAttr(p.title || '')}</div>
+                <div class="atlas-tl-row-meta">${metaParts.join('')}</div>
+                ${scaleParts.length ? `<div class="atlas-tl-row-scale">${scaleParts.join('')}</div>` : ''}
+              </div>
+            </div>
+          </div>
+          </a>`;
+      }
+      function buildGroupsHtml(items, { isCompleted = false, descending = false } = {}) {
+        if (!items.length) return '';
+        const groups = buildGroups(items);
+        const keys = [...groups.keys()].sort();
+        if (descending) keys.reverse();
+        const verb = isCompleted ? 'opened' : 'opening';
+        return keys.map(k => {
+          const g = groups.get(k);
+          const sortedItems = g.items.slice().sort((a, b) => {
+            const fa = (a.featured ? 1 : 0) - (b.featured ? 1 : 0);
+            if (fa !== 0) return -fa;
+            const cmp = (a.deliveryDate || '').localeCompare(b.deliveryDate || '');
+            return descending ? -cmp : cmp;
+          });
+          const rowsHtml = sortedItems.map(p => rowHtml(p, isCompleted)).join('');
+          const qheadClass = 'atlas-tl-qhead' + (isCompleted ? ' atlas-tl-qhead--completed' : '');
+          return `
+            <div class="${qheadClass}">
+              <div class="atlas-tl-qhead-date">Q${g.quarter}<span class="yr">${g.year}</span></div>
+              <div class="atlas-tl-qhead-dot"></div>
+              <div class="atlas-tl-qhead-count"><span class="atlas-tl-qhead-date-inline">Q${g.quarter} ${g.year} &middot;</span> <b>${g.items.length}</b> project${g.items.length === 1 ? '' : 's'} ${verb}</div>
+            </div>
+            ${rowsHtml}`;
+        }).join('');
+      }
+      const completedGroupsHtml = buildGroupsHtml(completedShown, { isCompleted: true, descending: false });
+      const pipelineGroupsHtml  = buildGroupsHtml(pipelineShown,  { isCompleted: false });
+      const archiveHeaderHtml = completedShown.length ? `
+        <div class="atlas-tl-archive-head">
+          <div class="atlas-tl-archive-eyebrow">Scroll down for today &darr;</div>
+          <div class="atlas-tl-archive-title">Recently opened</div>
+          <div class="atlas-tl-archive-sub">${completedShown.length} project${completedShown.length === 1 ? '' : 's'} already delivered &mdash; oldest first, working forward to today.</div>
+        </div>` : '';
+      const nowBoundaryHtml = (completedShown.length && pipelineShown.length) ? `
+        <div class="atlas-tl-now-boundary" id="atlasTlNowBoundary">
+          <span class="atlas-tl-now-pill">Today</span>
+        </div>` : '';
+
+      return `
+        <section class="atlas-section">
+          ${heroHtml}
+          ${filtersHtml}
+          <div class="atlas-tl-list">
+            ${archiveHeaderHtml}
+            ${completedGroupsHtml}
+            ${nowBoundaryHtml}
+            ${pipelineGroupsHtml}
+          </div>
+        </section>`;
+    }
+
+    function renderAll() {
+      if (!atlasData) return;
+      const root = document.getElementById('atlasRoot');
+      if (!root) return;
+      syncHeadOffset();
+      const sections = [
+        '<div class="atlas-stickyhead">' + renderViewTabs() + renderStateFilter() + '</div>',
+      ];
+      if (currentAtlasView === 'timeline') {
+        sections.push(renderTimelineSection());
+      } else {
+        sections.push(
+          renderLeaderboardSection(),
+          renderOpeningsByYear(),
+          renderDistributionAndMomentum(),
+          renderCoverageAndComing(),
+          renderRecentActivity()
+        );
+      }
+      sections.push(renderFooter());
+      root.innerHTML = sections.join('');
+      wireInteractions();
+      updateLoadMoreBtn('developers');
+      // Land the user at the "Today" boundary in timeline view. On the native
+      // page the scroll container is the window (not a fixed overlay), so we
+      // scroll the boundary element into view just below the sticky header.
+      if (currentAtlasView === 'timeline' && !_atlasTlScrolledOnce) {
+        const boundary = document.getElementById('atlasTlNowBoundary');
+        if (boundary) {
+          requestAnimationFrame(() => {
+            const rect = boundary.getBoundingClientRect();
+            const top = window.pageYOffset + rect.top - 100;
+            window.scrollTo({ top: top > 0 ? top : 0, behavior: 'auto' });
+            _atlasTlScrolledOnce = true;
+          });
+        }
+      }
+    }
+    let _atlasTlScrolledOnce = false;
+
+    function wireInteractions() {
+      // Atlas view tabs (Overview / Pipeline timeline)
+      document.querySelectorAll('.atlas-view-tab').forEach(t => {
+        t.addEventListener('click', function() {
+          const view = this.dataset.atlasView;
+          if (!view || view === currentAtlasView) return;
+          currentAtlasView = view;
+          _atlasTlScrolledOnce = false;
+          // Switching to the Pipeline view the first time needs the project
+          // list; kick off the fetch and re-render when it resolves.
+          if (view === 'timeline' && !(window.allProjectFeatures && window.allProjectFeatures.length)) {
+            renderAll();           // render hero + "loading" placeholder immediately
+            ensureProjectsLoaded().then(() => {
+              if (currentAtlasView === 'timeline') renderAll();
+            });
+            return;
+          }
+          renderAll();
+          if (view !== 'timeline') {
+            window.scrollTo({ top: 0, behavior: 'auto' });
+          }
+        });
+      });
+
+      // Timeline status filter chips
+      document.querySelectorAll('.atlas-tl-chip[data-tl-status]').forEach(chip => {
+        chip.addEventListener('click', function() {
+          const next = this.dataset.tlStatus;
+          if (next === currentTimelineStatus) return;
+          currentTimelineStatus = next;
+          renderAll();
+        });
+      });
+      // Timeline featured-only toggle
+      document.querySelectorAll('.atlas-tl-chip[data-tl-featured]').forEach(chip => {
+        chip.addEventListener('click', function() {
+          const next = this.dataset.tlFeatured === 'featured';
+          if (next === currentTimelineFeatured) return;
+          currentTimelineFeatured = next;
+          renderAll();
+        });
+      });
+
+      // State filter pills
+      document.querySelectorAll('.atlas-filter-pill').forEach(pill => {
+        pill.addEventListener('click', function() {
+          document.querySelectorAll('.atlas-filter-pill').forEach(p => p.classList.remove('active'));
+          this.classList.add('active');
+          currentStateFilter = this.dataset.state;
+          if (currentAtlasView === 'timeline') {
+            renderAll();
+            return;
+          }
+          Object.keys(lbState).forEach(k => { lbState[k].showAll = false; });
+          const activeTab = document.querySelector('.atlas-lb-tab.active');
+          const key = activeTab ? activeTab.dataset.lbTab : 'developers';
+          const content = document.getElementById('atlasLbContent');
+          if (content) content.innerHTML = renderLeaderboardRows(key);
+          updateLoadMoreBtn(key);
+        });
+      });
+      // Leaderboard tab switching
+      document.querySelectorAll('.atlas-lb-tab').forEach(btn => {
+        btn.addEventListener('click', function() {
+          document.querySelectorAll('.atlas-lb-tab').forEach(b => b.classList.remove('active'));
+          this.classList.add('active');
+          const key = this.dataset.lbTab;
+          const content = document.getElementById('atlasLbContent');
+          if (content) content.innerHTML = renderLeaderboardRows(key);
+          updateLoadMoreBtn(key);
+        });
+      });
+      // Load more / Show less toggle
+      const loadMore = document.getElementById('atlasLoadMore');
+      if (loadMore) {
+        loadMore.addEventListener('click', function() {
+          const activeTab = document.querySelector('.atlas-lb-tab.active');
+          const key = activeTab ? activeTab.dataset.lbTab : 'developers';
+          lbState[key].showAll = !lbState[key].showAll;
+          const content = document.getElementById('atlasLbContent');
+          if (content) content.innerHTML = renderLeaderboardRows(key);
+          updateLoadMoreBtn(key);
+          if (!lbState[key].showAll) {
+            const tabs = document.querySelector('.atlas-lb-tabs');
+            if (tabs) tabs.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        });
+      }
+    }
+
+    // ── Data loading ────────────────────────────────────────────────────
+    function loadAtlasData() {
+      if (atlasLoaded) return Promise.resolve(atlasData);
+      // Absolute URL — this page is on www.oftmw.com; atlas.json is served
+      // from map.oftmw.com (CORS: access-control-allow-origin: *).
+      return fetch(`${MAP_ORIGIN}/atlas.json`, { cache: 'no-cache' })
+        .then(r => {
+          if (!r.ok) throw new Error('atlas.json fetch failed: ' + r.status);
+          return r.json();
+        })
+        .then(data => {
+          atlasData = data;
+          atlasLoaded = true;
+          return data;
+        })
+        .catch(err => {
+          console.warn('[Atlas] Could not load atlas.json:', err);
+          const root = document.getElementById('atlasRoot');
+          if (root) {
+            root.innerHTML = '<div class="atlas-error">Could not load Atlas data. Please try again later.</div>';
+          }
+          throw err;
+        });
+    }
+
+    // Build window.allProjectFeatures from projects-flat.json, mapping each
+    // flat (PascalCase) record into the {properties:{...camelCase}} shape the
+    // map's render code expects — mirrors the map's initializeData() mapping
+    // (architects/developers zipped name+slug arrays, boolean featured, etc.).
+    let _projectsLoaded = false;
+    let _projectsPromise = null;
+    function ensureProjectsLoaded() {
+      if (_projectsLoaded) return Promise.resolve(window.allProjectFeatures);
+      if (_projectsPromise) return _projectsPromise;
+      _projectsPromise = fetch(`${MAP_ORIGIN}/projects-flat.json`, { cache: 'no-store' })
+        .then(r => {
+          if (!r.ok) throw new Error('projects-flat.json fetch failed: ' + r.status);
+          return r.json();
+        })
+        .then(jsonRows => {
+          const rows = Array.isArray(jsonRows) ? jsonRows : [];
+          const features = rows.map(p => {
+            const types = p.ProjectType
+              ? p.ProjectType.split(',').map(t => t.trim().toLowerCase()).filter(Boolean)
+              : [];
+            return {
+              type: 'Feature',
+              geometry: { type: 'Point', coordinates: [+p.Longitude, +p.Latitude] },
+              properties: {
+                title: p.Title, city: p.City, description: p.Description,
+                delivery: p.Delivery, image: p.ImageURL, website: p.OfficialWebsite,
+                projectType: p.ProjectType,
+                preferredType: (p.PreferredType || '').trim(),
+                projectTypesStr: types.join(','),
+                developer: p.Developer || '',
+                architect: p.Architect || '',
+                architects: (function () {
+                  const names = (p.Architect || '').split(',').map(s => s.trim()).filter(Boolean);
+                  const slugs = (p.ArchitectSlugs || '').split(',').map(s => s.trim()).filter(Boolean);
+                  return names.map((name, i) => ({ name, slug: slugs[i] || '' }));
+                })(),
+                developers: (function () {
+                  const names = (p.Developer || '').split(',').map(s => s.trim()).filter(Boolean);
+                  const slugs = (p.DeveloperSlugs || '').split(',').map(s => s.trim()).filter(Boolean);
+                  return names.map((name, i) => ({ name, slug: slugs[i] || '' }));
+                })(),
+                deliveryDate: p.DeliveryDate || '',
+                keys: p.Keys || '',
+                units: p.Units || '',
+                floors: p.Floors || '',
+                configSummary: p.ConfigSummary || '',
+                deliveryPhases: p.DeliveryPhases || '',
+                startSpeculative:    (p.StartSpeculative === '1' || p.StartSpeculative === true),
+                deliverySpeculative: (p.DeliverySpeculative === '1' || p.DeliverySpeculative === true),
+                datesSpeculative:    (p.DatesSpeculative === '1' || p.DatesSpeculative === true
+                                     || p.StartSpeculative === '1' || p.DeliverySpeculative === '1'),
+                startDate: p.StartDate || '',
+                descriptionLong: p.DescriptionLong || '',
+                featured: (p.Featured || '').trim().toLowerCase() === 'featured'
+              },
+              _projectTypes: types
+            };
+          });
+          window.allProjectFeatures = features;
+          _projectsLoaded = true;
+          return features;
+        })
+        .catch(err => {
+          console.warn('[Atlas] Could not load projects-flat.json:', err);
+          window.allProjectFeatures = window.allProjectFeatures || [];
+          _projectsLoaded = true;   // don't retry-storm; timeline degrades to empty state
+          return window.allProjectFeatures;
+        });
+      return _projectsPromise;
+    }
+
+    // ── Boot ─────────────────────────────────────────────────────────────
+    // Allow deep-linking the timeline via ?view=timeline (anything else,
+    // including no param, defaults to the instant-rendering Overview).
+    (function readInitialView() {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const v = params.get('view');
+        if (v === 'timeline' || v === 'pipeline') currentAtlasView = 'timeline';
+      } catch (_) {}
+    })();
+
+    function init() {
+      loadAtlasData().then(() => {
+        // If the initial view is the timeline, we also need the project list
+        // before the first render shows real rows.
+        if (currentAtlasView === 'timeline') {
+          renderAll();  // hero + loading placeholder
+          return ensureProjectsLoaded().then(() => {
+            if (atlasData && currentAtlasView === 'timeline') renderAll();
+          });
+        }
+        if (atlasData) renderAll();
+      }).catch(() => {});
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+    // The journal-chrome header injects asynchronously — re-measure once it lands.
+    window.addEventListener('load', syncHeadOffset);
+    setTimeout(syncHeadOffset, 300);
+    setTimeout(syncHeadOffset, 1000);
+
+    // Re-render leaderboard if viewport crosses the mobile/desktop boundary
+    let lastMobile = isMobileNow();
+    window.addEventListener('resize', function() {
+      syncHeadOffset();
+      const m = isMobileNow();
+      if (m !== lastMobile) {
+        lastMobile = m;
+        if (atlasData && currentAtlasView === 'stats') {
+          const activeTab = document.querySelector('.atlas-lb-tab.active');
+          const key = activeTab ? activeTab.dataset.lbTab : 'developers';
+          const content = document.getElementById('atlasLbContent');
+          if (content) content.innerHTML = renderLeaderboardRows(key);
+          updateLoadMoreBtn(key);
+        }
+      }
+    });
+  })();
+  </script>
+</body>
+</html>

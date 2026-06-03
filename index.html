@@ -8160,6 +8160,17 @@
       font-weight: 700;
     }
 
+    /* Universal surface toggle (Journal / Map / Atlas) - matches the journal .tmw-st control. */
+    .tmw-st{display:inline-flex;align-items:center;gap:2px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:3px}
+    .tmw-st-seg{display:inline-flex;align-items:center;height:34px;padding:0 9px;border-radius:999px;color:#C2C9C3;text-decoration:none;font-family:'Inter',-apple-system,sans-serif;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;transition:background .22s,color .22s,padding .22s;white-space:nowrap}
+    .tmw-st-seg svg{width:17px;height:17px;flex:0 0 auto}
+    .tmw-st-lbl{display:inline-block;max-width:0;overflow:hidden;opacity:0;transition:max-width .22s,opacity .18s,margin .22s}
+    .tmw-st-seg:hover{color:#fff}
+    .tmw-st-seg.on{background:#1FDF67;color:#06210f}
+    .tmw-st-seg.on .tmw-st-lbl{max-width:90px;opacity:1;margin-left:7px}
+    .tmw-st-seg[data-s="atlas"].on{background:#A78BFA;color:#140a2e}
+    .tmw-st-seg[data-s="journal"].on{background:#ECEAE5;color:#0a0a0a}
+
     /* ‚îÄ‚îÄ RIGHT-RAIL ACTIONS ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ */
     body.ui-v2 .v2-right-rail {
       display: flex;
@@ -9401,21 +9412,27 @@
       width: 1px; height: 28px;
       background: rgba(255,255,255,0.08);
     }
-    /* Map/Atlas toggle ‚Äî sits just to the right of the TMW logo + divider.
-       Layout: [24px header pad] [95px logo lockup] [14px gap]
-               [1px divider]    [14px gap]         [toggle]
-       So the divider is centered in the 29px gap between logo and
-       toggle (14px on either side). */
-    body.ui-v2 .atlas-mode-toggle {
-      top: 12px !important;
-      left: calc(24px + 95px + 14px + 1px + 14px) !important;
+    /* Legacy Map/Atlas toggle is now retired ‚Äî the universal
+       Journal¬∑Map¬∑Atlas surface toggle (.v2-mode-toggle ‚Üí .tmw-st),
+       reparented into #header on desktop, takes its slot. Keep the legacy
+       element in the DOM (the dormant atlas-mode code still references its
+       handlers for ?view=atlas back-compat) but hide it everywhere. */
+    body.ui-v2 .atlas-mode-toggle { display: none !important; }
+    /* Universal surface toggle ‚Äî sits just to the right of the TMW logo +
+       divider on desktop, in the slot the old Map/Atlas toggle occupied.
+       JS reparents .v2-mode-toggle into #header and adds --header. */
+    body.ui-v2 .v2-mode-toggle--header {
+      position: static !important;
+      left: auto !important;
+      top: auto !important;
       transform: none !important;
-      background: rgba(255,255,255,0.05) !important;
-      border: 1px solid rgba(255,255,255,0.08) !important;
+      background: transparent !important;
+      border: none !important;
       box-shadow: none !important;
+      padding: 0 !important;
+      margin-left: 14px !important;
       z-index: 100 !important;
-      border-radius: 999px !important;
-      padding: 3px !important;
+      display: inline-flex !important;
     }
     /* Vertical divider centered between the TMW logo lockup and the
        Map/Atlas toggle. left = (header pad + logo width + 14px gap). */
@@ -9490,46 +9507,12 @@
     body.ui-v2 :is(.v2-top-chrome, .v2-desktop-header-group) .v2-mode-toggle {
       display: none !important;
     }
-    /* Notification + comparison icon buttons on the top-right */
-    body.ui-v2 .v2-desktop-header-icon {
-      width: 38px; height: 38px;
-      background: rgba(15,15,15,0.7);
-      backdrop-filter: blur(16px) saturate(1.4);
-      -webkit-backdrop-filter: blur(16px) saturate(1.4);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 50%;
-      color: rgba(255,255,255,0.85);
-      display: flex; align-items: center; justify-content: center;
-      cursor: pointer;
-      padding: 0;
-      position: relative;
-      flex-shrink: 0;
-    }
-    body.ui-v2 .v2-desktop-header-icon:hover {
-      background: rgba(25,25,25,0.85);
-      color: #fff;
-    }
-    body.ui-v2 .v2-desktop-header-icon svg {
-      width: 16px; height: 16px;
-      stroke: currentColor; fill: none;
-    }
-    body.ui-v2 .v2-desktop-header-icon .v2-header-icon-badge {
-      position: absolute;
-      top: -3px; right: -3px;
-      background: #FFD300;
-      color: #0a0a0a;
-      font-size: 10px;
-      font-weight: 800;
-      padding: 1px 5px;
-      border-radius: 100px;
-      line-height: 1.2;
-      border: 2px solid #0a0a0a;
-      min-width: 17px;
-      text-align: center;
-    }
-    /* Remove the bell button from the right-side rail on desktop ‚Äî it
-       now lives in the header chrome. */
-    body.ui-v2 .v2-right-rail #v2PulseQuickBtn { display: none !important; }
+    /* (Removed: .v2-desktop-header-icon styles ‚Äî the desktop header bell
+       and comparison icon buttons no longer exist. Pulse + Compare now
+       live in the bottom-right .v2-right-rail as .v2-action-btn.) */
+    /* Pulse now lives in the bottom-right rail on BOTH breakpoints (the
+       desktop header bell was removed). Keep #v2PulseQuickBtn visible on
+       desktop; its click handler is breakpoint-aware. */
     /* Now style the widget itself on desktop. Reuse the same mobile
        look ‚Äî pill with TMW logo + divider + profile icon ‚Äî so behavior
        and look match across breakpoints. */
@@ -10579,6 +10562,21 @@
   }
 
   </style>
+  <!-- Surface toggle (Journal/Map/Atlas) styles in a dedicated final stylesheet
+       so they always win the cascade (the inline copy above sits in a huge
+       <style> and was getting skipped). Scoped under .tmw-st + !important to
+       beat the header's generic a/svg rules wherever the toggle is reparented. -->
+  <style id="tmw-surface-toggle-css">
+    .tmw-st{display:inline-flex!important;align-items:center;gap:2px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:3px}
+    .tmw-st .tmw-st-seg{display:inline-flex!important;align-items:center;height:34px!important;padding:0 9px;border-radius:999px;color:#C2C9C3!important;text-decoration:none!important;font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;transition:background .22s,color .22s,padding .22s;white-space:nowrap;background:transparent!important;box-shadow:none!important}
+    .tmw-st .tmw-st-seg svg{width:17px!important;height:17px!important;flex:0 0 auto}
+    .tmw-st .tmw-st-lbl{display:inline-block;max-width:0;overflow:hidden;opacity:0;transition:max-width .22s,opacity .18s,margin .22s}
+    .tmw-st .tmw-st-seg:hover{color:#fff!important}
+    .tmw-st .tmw-st-seg.on{background:#1FDF67!important;color:#06210f!important}
+    .tmw-st .tmw-st-seg.on .tmw-st-lbl{max-width:90px;opacity:1;margin-left:7px}
+    .tmw-st .tmw-st-seg[data-s="atlas"].on{background:#A78BFA!important;color:#140a2e!important}
+    .tmw-st .tmw-st-seg[data-s="journal"].on{background:#ECEAE5!important;color:#0a0a0a!important}
+  </style>
 </head>
 <body>
   <script>
@@ -11163,9 +11161,12 @@
           </button>
         </div>
       </div>
-      <div class="v2-mode-toggle" role="tablist" aria-label="Switch between map and atlas view">
-        <button id="v2MapBtn" class="active" data-mode="map" role="tab" aria-selected="true">Map</button>
-        <button id="v2AtlasBtn" data-mode="atlas" role="tab" aria-selected="false">Atlas</button>
+      <div class="v2-mode-toggle" aria-label="Switch surface: Journal, Map, Atlas">
+        <div class="tmw-st">
+          <a class="tmw-st-seg" data-s="journal" href="https://www.oftmw.com/" title="Journal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5.2A1.2 1.2 0 0 1 4.2 4H10a2 2 0 0 1 2 2 2 2 0 0 1 2-2h5.8A1.2 1.2 0 0 1 21 5.2v12.6a1 1 0 0 1-1 1h-6a2 2 0 0 0-2 2 2 2 0 0 0-2-2H4a1 1 0 0 1-1-1z"/><path d="M12 6v14"/></svg><span class="tmw-st-lbl">Journal</span></a>
+          <a class="tmw-st-seg on" data-s="map" href="https://map.oftmw.com/" title="Map" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l-6 3V6l6-3 6 3 6-3v15l-6 3-6-3z"/><path d="M9 3v15M15 6v15"/></svg><span class="tmw-st-lbl">Map</span></a>
+          <a class="tmw-st-seg" data-s="atlas" href="https://www.oftmw.com/atlas" title="Atlas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg><span class="tmw-st-lbl">Atlas</span></a>
+        </div>
       </div>
     </div>
 
@@ -22280,70 +22281,66 @@
       const widget = chrome && chrome.querySelector('.v2-tmw-profile-widget');
       const header = document.getElementById('header');
       if (!chrome || !widget || !header) return;
-      if (header.querySelector('#v2HeaderBell')) return;
+      if (header.querySelector('.v2-desktop-header-group')) return;
 
-      const bell = document.createElement('button');
-      bell.id = 'v2HeaderBell';
-      bell.className = 'v2-desktop-header-icon';
-      bell.setAttribute('aria-label', 'Open pulse');
-      bell.innerHTML = `
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
-        <span class="v2-header-icon-badge" id="v2HeaderBellBadge" hidden>0</span>
-      `;
-      bell.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const pulseTab = document.querySelector('.v2-desktop-tabs button[data-v2d-tab="pulse"]');
-        if (pulseTab) pulseTab.click();
-      });
+      // ‚îÄ‚îÄ Surface toggle ‚Üí header left side ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
+      // Reparent the universal Journal¬∑Map¬∑Atlas toggle (lives inside the
+      // mobile .v2-top-chrome) into the actual #header bar so it renders
+      // on desktop in the slot the old Map/Atlas toggle occupied. The
+      // legacy .atlas-mode-toggle is hidden on desktop via CSS.
+      const modeToggle = chrome.querySelector('.v2-mode-toggle');
+      if (modeToggle) {
+        modeToggle.classList.add('v2-mode-toggle--header');
+        header.appendChild(modeToggle);
+      }
 
-      const compare = document.createElement('button');
-      compare.id = 'v2HeaderCompare';
-      compare.className = 'v2-desktop-header-icon';
-      compare.setAttribute('aria-label', 'Open comparison view');
-      compare.innerHTML = `
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="7" height="16" rx="1"/><rect x="14" y="4" width="7" height="16" rx="1"/></svg>
-      `;
-      compare.addEventListener('click', (e) => {
-        e.stopPropagation();
-        if (window.comparisons && typeof window.comparisons.openBuilder === 'function') {
-          window.comparisons.openBuilder();
-          return;
+      // ‚îÄ‚îÄ Compare ‚Üí bottom-right rail (.v2-right-rail) ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
+      // Pulse already lives in the rail as #v2PulseQuickBtn (now revealed
+      // on desktop), so we only add Compare here. Styled as .v2-action-btn
+      // to match the rest of the rail.
+      const rail = document.getElementById('v2RightRail');
+      if (rail && !document.getElementById('v2HeaderCompare')) {
+        const compare = document.createElement('button');
+        compare.id = 'v2HeaderCompare';
+        compare.className = 'v2-action-btn';
+        compare.setAttribute('aria-label', 'Open comparison view');
+        compare.innerHTML = `
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="7" height="16" rx="1"/><rect x="14" y="4" width="7" height="16" rx="1"/></svg>
+        `;
+        compare.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (window.comparisons && typeof window.comparisons.openBuilder === 'function') {
+            window.comparisons.openBuilder();
+            return;
+          }
+          try {
+            const url = new URL(window.location.href);
+            url.searchParams.set('view', 'compare');
+            window.location.href = url.toString();
+          } catch (_) {}
+        });
+        // Place Compare just after the Pulse button so the rail reads:
+        // [Pulse] [Compare] [Layers] [zoom] [geolocate]. insertBefore with a
+        // null reference (no Pulse, or Pulse is last) appends to the end.
+        const pulseBtn = document.getElementById('v2PulseQuickBtn');
+        if (pulseBtn) {
+          rail.insertBefore(compare, pulseBtn.nextSibling);
+        } else {
+          rail.insertBefore(compare, rail.firstChild);
         }
-        try {
-          const url = new URL(window.location.href);
-          url.searchParams.set('view', 'compare');
-          window.location.href = url.toString();
-        } catch (_) {}
-      });
+      }
 
       // Reparent the TMW profile widget INTO the actual #header bar so
       // it's part of the chrome's DOM (not a position:fixed overlay).
-      // Then append bell + compare alongside it in a right-aligned group.
-      // This guarantees the icons render inside the black header strip
-      // regardless of any z-index / pointer-events drift elsewhere.
+      // This guarantees the account widget renders inside the black header
+      // strip regardless of any z-index / pointer-events drift elsewhere.
       const group = document.createElement('div');
       group.className = 'v2-desktop-header-group';
-      group.appendChild(bell);
-      group.appendChild(compare);
       group.appendChild(widget);
       header.appendChild(group);
       // The now-empty .v2-top-chrome can be hidden ‚Äî its contents are in
       // the header group now.
       chrome.style.display = 'none';
-
-      // Sync badge count from the existing pulse badge
-      function syncBellBadge() {
-        const src = document.getElementById('pulseBellBadge');
-        const myBadge = document.getElementById('v2HeaderBellBadge');
-        if (!src || !myBadge) return;
-        const isHidden = src.hasAttribute('hidden');
-        const n = isHidden ? 0 : (parseInt(src.textContent || '0', 10) || 0);
-        if (n > 0) { myBadge.hidden = false; myBadge.textContent = String(n); }
-        else { myBadge.hidden = true; }
-      }
-      syncBellBadge();
-      const src = document.getElementById('pulseBellBadge');
-      if (src) new MutationObserver(syncBellBadge).observe(src, { childList: true, attributes: true, characterData: true });
     }
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', injectDesktopHeaderIcons);
@@ -22423,47 +22420,16 @@
         console.error('[v2] DOM relocation failed', err);
       }
 
-      // ‚îÄ‚îÄ Mode toggle: hook to existing setMapMode/setAtlasMode ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
-      // Reuse the existing atlas-mode-toggle's onclick handlers if present;
-      // otherwise just toggle body.atlas-mode (which the existing code keys off).
-      const legacyToggle = document.querySelector('.atlas-mode-toggle');
-      const v2Map = document.getElementById('v2MapBtn');
-      const v2Atl = document.getElementById('v2AtlasBtn');
-      if (v2Map && v2Atl && legacyToggle) {
-        const legacyMap = legacyToggle.querySelector('[data-mode="map"]');
-        const legacyAtl = legacyToggle.querySelector('[data-mode="atlas"]');
-        v2Map.addEventListener('click', () => legacyMap && legacyMap.click());
-        v2Atl.addEventListener('click', () => legacyAtl && legacyAtl.click());
-        // Mirror active state when the legacy toggle changes (e.g. via
-        // popstate or programmatic switch).
-        const mirror = () => {
-          const atlasOn = document.body.classList.contains('atlas-mode');
-          v2Map.classList.toggle('active', !atlasOn);
-          v2Atl.classList.toggle('active',  atlasOn);
-          v2Map.setAttribute('aria-selected', String(!atlasOn));
-          v2Atl.setAttribute('aria-selected', String(atlasOn));
-        };
-        mirror();
-        // Watch body class changes to mirror Map/Atlas active state. Track
-        // last atlas-mode value to avoid running closeSheet on every class
-        // mutation (which would re-fire whenever ANY class toggles on body).
-        let _lastAtlas = document.body.classList.contains('atlas-mode');
-        new MutationObserver(() => {
-          mirror();
-          const nowAtlas = document.body.classList.contains('atlas-mode');
-          if (nowAtlas && !_lastAtlas) {
-            // Just entered atlas mode ‚Üí collapse the drawer.
-            // Defer to next tick so we don't mutate body inside an observer
-            // callback (which would re-trigger this observer immediately).
-            setTimeout(() => {
-              if (typeof window.v2CloseSheet === 'function') window.v2CloseSheet();
-            }, 0);
-          }
-          _lastAtlas = nowAtlas;
-        }).observe(document.body, {
-          attributes: true, attributeFilter: ['class'],
-        });
-      }
+      // ‚îÄ‚îÄ Mode toggle ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
+      // The in-map Map/Atlas mode toggle (#v2MapBtn / #v2AtlasBtn) has been
+      // replaced by the universal Journal¬∑Map¬∑Atlas surface toggle (plain
+      // <a href> links inside .v2-mode-toggle ‚Üí .tmw-st). Those links
+      // navigate to the standalone Journal / Map / Atlas pages and are NOT
+      // wired to setAtlasMode ‚Äî the in-map atlas-mode code stays dormant.
+      // The old #v2MapBtn / #v2AtlasBtn lookups would now return null, so the
+      // legacy hook-up block was removed to avoid dangling references. The
+      // ?view=atlas URL path + .atlas-mode-toggle handlers remain intact for
+      // backwards compatibility but are no longer triggered from the header.
 
       // ‚îÄ‚îÄ Sheet open / close + drag-to-close ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
       // Single open state at 75vh. Tap the capsule to open; tap the
@@ -22879,6 +22845,16 @@
         }
       });
       if (v2Pulse) v2Pulse.addEventListener('click', () => {
+        // Desktop: open the sidebar pulse tab; mobile: open the sheet's
+        // pulse tab. The rail's pulse button is now shown on both
+        // breakpoints, so route to the right surface.
+        if (window.matchMedia('(min-width: 801px)').matches) {
+          const sb = document.getElementById('desktopSidebar');
+          if (sb && !sb.classList.contains('open')) sb.classList.add('open');
+          const deskPulse = document.querySelector('.v2-desktop-tabs button[data-v2d-tab="pulse"]');
+          if (deskPulse) deskPulse.click();
+          return;
+        }
         openSheet();
         const pulseTab = document.querySelector('.v2-tab[data-v2-tab="pulse"]');
         if (pulseTab) pulseTab.click();

@@ -116,6 +116,44 @@
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
     '<rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.3" cy="6.7" r="1.2" fill="currentColor" stroke="none"/></svg>';
 
+  // ── Surface toggle (Journal · Map · Atlas) — icon-only variant for the dock ──
+  var ST_ICON = {
+    journal: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5.2A1.2 1.2 0 0 1 4.2 4H10a2 2 0 0 1 2 2 2 2 0 0 1 2-2h5.8A1.2 1.2 0 0 1 21 5.2v12.6a1 1 0 0 1-1 1h-6a2 2 0 0 0-2 2 2 2 0 0 0-2-2H4a1 1 0 0 1-1-1z"/><path d="M12 6v14"/></svg>',
+    map: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l-6 3V6l6-3 6 3 6-3v15l-6 3-6-3z"/><path d="M9 3v15M15 6v15"/></svg>',
+    atlas: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>'
+  };
+  function buildToggle(active, mini) {
+    var segs = [
+      ['journal', 'Journal', 'https://www.oftmw.com/'],
+      ['map', 'Map', 'https://map.oftmw.com'],
+      ['atlas', 'Atlas', 'https://www.oftmw.com/atlas']
+    ];
+    return '<div class="tmw-st' + (mini ? ' mini' : '') + '" role="tablist" aria-label="Switch interface">' +
+      segs.map(function (s) {
+        var on = s[0] === active;
+        return '<a class="tmw-st-seg' + (on ? ' on' : '') + '" data-s="' + s[0] + '" href="' + s[2] + '" title="' + s[1] + '" aria-label="' + s[1] + '"' + (on ? ' aria-current="page"' : '') + '>' +
+          ST_ICON[s[0]] + (mini ? '' : '<span class="tmw-st-lbl">' + s[1] + '</span>') + '</a>';
+      }).join('') + '</div>';
+  }
+  // Inject the labelled toggle into every header (nav.main .wrap), right after
+  // the logo. Universal — covers the homepage's inline header AND the injected
+  // chrome header. Guarded so it's added at most once per header.
+  function injectSurfaceToggle() {
+    var active = /^\/atlas(\/|$)/.test(location.pathname) ? 'atlas' : 'journal';
+    var wraps = document.querySelectorAll('nav.main .wrap');
+    for (var i = 0; i < wraps.length; i++) {
+      var wrap = wraps[i];
+      if (wrap.__tmwSt) continue;
+      var logo = wrap.querySelector('.tmw-logo-lockup');
+      if (!logo) continue;
+      wrap.__tmwSt = true;
+      var holder = document.createElement('div');
+      holder.innerHTML = buildToggle(active, false);
+      var el = holder.firstChild;
+      if (logo.nextSibling) wrap.insertBefore(el, logo.nextSibling); else wrap.appendChild(el);
+    }
+  }
+
   // ── Styles ──
   var css = [
     '.tmw-dock{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:9000;',
@@ -138,6 +176,30 @@
     'color:#fff;font-size:14px;font-family:inherit;outline:none;transition:border-color .2s,background .2s,width .25s ease}',
     '.tmw-dock-search input::placeholder{color:#9AA39C}',
     '.tmw-dock-search input:focus{border-color:rgba(31,223,103,.55);background:rgba(255,255,255,.08);width:min(52vw,344px)}',
+    // Map · Atlas · Journal toggle inside the dock (icon-only). Shown on mobile;
+    // hidden >=981px because the header already carries the labelled toggle there.
+    '.tmw-dock .tmw-st{display:inline-flex;align-items:center;gap:2px;flex:0 0 auto;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.10);border-radius:999px;padding:3px}',
+    '.tmw-dock .tmw-st-seg{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:999px;color:#ECEAE5;text-decoration:none;transition:background .2s,color .2s}',
+    '.tmw-dock .tmw-st-seg svg{width:19px;height:19px}',
+    '.tmw-dock .tmw-st-seg:not(.on):hover{background:rgba(255,255,255,.08);color:#fff}',
+    '.tmw-dock .tmw-st-seg.on{background:#1FDF67;color:#06210f}',
+    '.tmw-dock .tmw-st-seg[data-s="atlas"].on{background:#A78BFA;color:#140a2e}',
+    '.tmw-dock .tmw-st-seg[data-s="journal"].on{background:#ECEAE5;color:#0a0a0a}',
+    '@media(min-width:981px){.tmw-dock .tmw-st{display:none}}',
+    '@media(max-width:560px){.tmw-dock .tmw-st-seg{width:36px;height:36px}.tmw-dock .tmw-st-seg svg{width:18px;height:18px}}',
+    // Labelled toggle injected into the header (nav.main) right after the logo.
+    // Active segment expands to show its label. Desktop only — mobile uses the dock.
+    'nav.main .tmw-st{display:inline-flex;align-items:center;gap:2px;flex:0 0 auto;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:3px}',
+    'nav.main .tmw-st .tmw-st-seg{display:inline-flex;align-items:center;height:34px;padding:0 9px;border-radius:999px;color:#C2C9C3;text-decoration:none;font-family:"Inter",-apple-system,BlinkMacSystemFont,sans-serif;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;transition:background .22s ease,color .22s ease,padding .22s ease;white-space:nowrap}',
+    'nav.main .tmw-st .tmw-st-seg svg{width:17px;height:17px;flex:0 0 auto}',
+    'nav.main .tmw-st .tmw-st-lbl{display:inline-block;max-width:0;overflow:hidden;opacity:0;transition:max-width .22s ease,opacity .18s ease,margin .22s ease}',
+    'nav.main .tmw-st .tmw-st-seg:hover{color:#fff}',
+    'nav.main .tmw-st .tmw-st-seg.on{background:#1FDF67;color:#06210f}',
+    'nav.main .tmw-st .tmw-st-seg.on .tmw-st-lbl{max-width:90px;opacity:1;margin-left:7px}',
+    'nav.main .tmw-st .tmw-st-seg[data-s="atlas"].on{background:#A78BFA;color:#140a2e}',
+    'nav.main .tmw-st .tmw-st-seg[data-s="journal"].on{background:#ECEAE5;color:#0a0a0a}',
+    '@media(min-width:981px){nav.main .nav-links{margin-left:auto;margin-right:auto}}',
+    '@media(max-width:980px){nav.main .tmw-st{display:none}}',
     '@media(max-width:560px){.tmw-dock{bottom:14px;gap:6px;padding:6px}.tmw-dock-btn{width:42px;height:42px}',
     '.tmw-dock-btn svg{width:18px;height:18px}.tmw-dock-search input{width:46vw;height:42px}',
     '.tmw-dock-search input:focus{width:50vw}}',
@@ -330,13 +392,15 @@
     dock.className = 'tmw-dock';
     dock.setAttribute('role', 'navigation');
     dock.setAttribute('aria-label', 'Journal');
+    // Map · Atlas · Journal toggle on the left, then the search field. (The old
+    // standalone map + home buttons are gone — Map and Journal live in the toggle.)
+    var stActive = /^\/atlas(\/|$)/.test(location.pathname) ? 'atlas' : 'journal';
     dock.innerHTML =
-      '<a class="tmw-dock-btn" href="' + MAP_URL + '" title="Open the live map" aria-label="Open the live map">' + ICON_MAP + '</a>' +
+      buildToggle(stActive, true) +
       '<form class="tmw-dock-search" role="search" action="' + SEARCH_PAGE + '" method="get">' +
         '<span class="ds-ico">' + ICON_SEARCH + '</span>' +
         '<input name="q" type="search" autocomplete="off" placeholder="Search projects, firms, cities…" aria-label="Search">' +
-      '</form>' +
-      '<a class="tmw-dock-btn" href="' + HOME_URL + '" title="Journal home" aria-label="Journal home">' + ICON_HOME + '</a>';
+      '</form>';
 
     // Submit → navigate to the search page with ?q=
     var form  = dock.querySelector('form');
@@ -351,6 +415,11 @@
     requestAnimationFrame(function () { dock.classList.add('ready'); });
 
     buildFocusMarkets();
+    injectSurfaceToggle();
+    // The chrome header can mount a tick later than the dock; retry so the
+    // toggle lands there too (the per-header guard makes repeats no-ops).
+    requestAnimationFrame(injectSurfaceToggle);
+    setTimeout(injectSurfaceToggle, 300);
     wireBurgers();
     swapToInstagram();
     setupFmPanel();
