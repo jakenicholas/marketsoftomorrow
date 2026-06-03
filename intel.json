@@ -1,6 +1,24 @@
 {
   "generated_at": "2026-06-03",
   "projects": {
+    "nauka": {
+      "estimate_years": 1.1,
+      "estimate_label": "1 years",
+      "start_date": "2025-04-15",
+      "end_date": "2026-05-15",
+      "start_year": 2025,
+      "end_year": 2026,
+      "source": "completed",
+      "confidence": "high",
+      "project_type": "Residences",
+      "metro": "Other",
+      "comparables": [],
+      "comparable_count": 0,
+      "pattern_summary": "Completed in 1 years, from 2025 groundbreaking to 2026 opening.",
+      "dates_speculative": false,
+      "start_speculative": false,
+      "delivery_speculative": false
+    },
     "mirai-design-district": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
@@ -19,18 +37,18 @@
       "delivery_speculative": false
     },
     "flow-at-aventura-corporate-center": {
-      "estimate_years": 3.2,
-      "estimate_label": "~3.2 years",
-      "range_low": 3.2,
+      "estimate_years": 2.1,
+      "estimate_label": "~2.1 years",
+      "range_low": 1.1,
       "range_high": 3.2,
       "confidence": "low",
-      "comparable_count": 1,
+      "comparable_count": 2,
       "good_count": 0,
       "exact_count": 0,
       "used_relaxed": true,
-      "avg_match_score": 0.61,
-      "avg_distance_km": 92.0,
-      "avg_distance_mi": 57.2,
+      "avg_match_score": 0.47,
+      "avg_distance_km": 1369.0,
+      "avg_distance_mi": 850.6,
       "scale_used": true,
       "firm_signal": null,
       "source": "comparables",
@@ -45,9 +63,18 @@
           "score": 0.61,
           "distance_km": 92.0,
           "distance_mi": 57.2
+        },
+        {
+          "name": "Nauka",
+          "slug": "nauka",
+          "location": "Riviera Nayarit",
+          "years": 1.1,
+          "score": 0.34,
+          "distance_km": 2645.9,
+          "distance_mi": 1644.1
         }
       ],
-      "pattern_summary": "Among 1 regional residences project in TMW's data, the median build time is 3.2 years.",
+      "pattern_summary": "Among 2 residences projects in TMW's data, the median build time is 2.1 years (range 1.1–3.2).",
       "dates_speculative": true,
       "start_speculative": true,
       "delivery_speculative": true,
@@ -224,18 +251,18 @@
       "delivery_speculative": true
     },
     "120-s-dixie-highway": {
-      "estimate_years": 4.6,
-      "estimate_label": "~4.6 years",
-      "range_low": 2.0,
-      "range_high": 6.5,
+      "estimate_years": 4.3,
+      "estimate_label": "~4.3 years",
+      "range_low": 1.1,
+      "range_high": 5.0,
       "confidence": "low",
-      "comparable_count": 2,
+      "comparable_count": 3,
       "good_count": 1,
       "exact_count": 1,
       "used_relaxed": true,
-      "avg_match_score": 0.78,
-      "avg_distance_km": 6.6,
-      "avg_distance_mi": 4.1,
+      "avg_match_score": 0.73,
+      "avg_distance_km": 893.0,
+      "avg_distance_mi": 554.9,
       "scale_used": true,
       "firm_signal": {
         "firm": "Jeff Greene",
@@ -260,6 +287,15 @@
           "distance_mi": 5.8
         },
         {
+          "name": "Nauka",
+          "slug": "nauka",
+          "location": "Riviera Nayarit",
+          "years": 1.1,
+          "score": 0.64,
+          "distance_km": 2665.8,
+          "distance_mi": 1656.4
+        },
+        {
           "name": "Inscription",
           "slug": "inscription",
           "location": "West Palm Beach",
@@ -269,31 +305,40 @@
           "distance_mi": 2.4
         }
       ],
-      "pattern_summary": "Among 2 nearby residences projects in TMW's data, the median build time is 2.6 years (range 2–6.5). Adjusted to ~4.6 years for Jeff Greene's own track record (~7.7-year typical pace across 1 prior project).",
+      "pattern_summary": "Among 3 residences projects in TMW's data, the median build time is 2 years (range 1.1–5). Adjusted to ~4.3 years for Jeff Greene's own track record (~7.7-year typical pace across 1 prior project).",
       "dates_speculative": true,
       "start_speculative": true,
       "delivery_speculative": true,
       "is_mixed_use": false
     },
     "400-lake-shore-drive": {
-      "estimate_years": 3.2,
-      "estimate_label": "~3.2 years",
-      "range_low": 3.2,
+      "estimate_years": 2.1,
+      "estimate_label": "~2.1 years",
+      "range_low": 1.1,
       "range_high": 3.2,
       "confidence": "low",
-      "comparable_count": 1,
+      "comparable_count": 2,
       "good_count": 0,
       "exact_count": 0,
       "used_relaxed": true,
       "avg_match_score": 0.34,
-      "avg_distance_km": 1814.2,
-      "avg_distance_mi": 1127.3,
+      "avg_distance_km": 2343.6,
+      "avg_distance_mi": 1456.2,
       "scale_used": true,
       "firm_signal": null,
       "source": "comparables",
       "project_type": "Residences",
       "metro": "Other",
       "comparables": [
+        {
+          "name": "Nauka",
+          "slug": "nauka",
+          "location": "Riviera Nayarit",
+          "years": 1.1,
+          "score": 0.34,
+          "distance_km": 2873.0,
+          "distance_mi": 1785.2
+        },
         {
           "name": "Nautilus 220",
           "slug": "nautilus-220",
@@ -304,7 +349,7 @@
           "distance_mi": 1127.3
         }
       ],
-      "pattern_summary": "Among 1 residences project in TMW's data, the median build time is 3.2 years.",
+      "pattern_summary": "Among 2 residences projects in TMW's data, the median build time is 2.1 years (range 1.1–3.2).",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false,
@@ -467,18 +512,18 @@
       "delivery_speculative": false
     },
     "palm-tree-residences-miami": {
-      "estimate_years": 2.6,
-      "estimate_label": "~2.6 years",
-      "range_low": 2.0,
+      "estimate_years": 2.0,
+      "estimate_label": "~2 years",
+      "range_low": 1.1,
       "range_high": 3.2,
       "confidence": "low",
-      "comparable_count": 2,
+      "comparable_count": 3,
       "good_count": 1,
       "exact_count": 1,
       "used_relaxed": true,
-      "avg_match_score": 0.61,
-      "avg_distance_km": 109.7,
-      "avg_distance_mi": 68.2,
+      "avg_match_score": 0.62,
+      "avg_distance_km": 952.6,
+      "avg_distance_mi": 591.9,
       "scale_used": true,
       "firm_signal": null,
       "source": "comparables",
@@ -495,6 +540,15 @@
           "distance_mi": 70.4
         },
         {
+          "name": "Nauka",
+          "slug": "nauka",
+          "location": "Riviera Nayarit",
+          "years": 1.1,
+          "score": 0.64,
+          "distance_km": 2638.3,
+          "distance_mi": 1639.4
+        },
+        {
           "name": "Inscription",
           "slug": "inscription",
           "location": "West Palm Beach",
@@ -504,7 +558,7 @@
           "distance_mi": 65.9
         }
       ],
-      "pattern_summary": "Among 2 regional residences projects in TMW's data, the median build time is 2.6 years (range 2–3.2).",
+      "pattern_summary": "Among 3 residences projects in TMW's data, the median build time is 2 years (range 1.1–3.2).",
       "dates_speculative": true,
       "start_speculative": true,
       "delivery_speculative": true,
@@ -572,18 +626,18 @@
       "is_mixed_use": false
     },
     "fulton-bond": {
-      "estimate_years": 4.0,
-      "estimate_label": "~4 years",
-      "range_low": 2.0,
-      "range_high": 5.2,
+      "estimate_years": 3.7,
+      "estimate_label": "~3.7 years",
+      "range_low": 1.1,
+      "range_high": 5.0,
       "confidence": "low",
-      "comparable_count": 2,
+      "comparable_count": 3,
       "good_count": 0,
       "exact_count": 0,
       "used_relaxed": true,
-      "avg_match_score": 0.41,
-      "avg_distance_km": 1818.4,
-      "avg_distance_mi": 1129.9,
+      "avg_match_score": 0.39,
+      "avg_distance_km": 2169.1,
+      "avg_distance_mi": 1347.8,
       "scale_used": true,
       "firm_signal": {
         "firm": "Kohn Pedersen Fox",
@@ -608,6 +662,15 @@
           "distance_mi": 1128.3
         },
         {
+          "name": "Nauka",
+          "slug": "nauka",
+          "location": "Riviera Nayarit",
+          "years": 1.1,
+          "score": 0.34,
+          "distance_km": 2870.4,
+          "distance_mi": 1783.6
+        },
+        {
           "name": "Inscription",
           "slug": "inscription",
           "location": "West Palm Beach",
@@ -617,7 +680,7 @@
           "distance_mi": 1131.6
         }
       ],
-      "pattern_summary": "Among 2 residences projects in TMW's data, the median build time is 2.6 years (range 2–5.2). Adjusted to ~4 years for Kohn Pedersen Fox's own track record (~5.2-year typical pace across 2 prior projects).",
+      "pattern_summary": "Among 3 residences projects in TMW's data, the median build time is 2 years (range 1.1–5). Adjusted to ~3.7 years for Kohn Pedersen Fox's own track record (~5.2-year typical pace across 2 prior projects).",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false,
@@ -3446,18 +3509,18 @@
       "delivery_speculative": false
     },
     "edgeworth": {
-      "estimate_years": 1.6,
-      "estimate_label": "~1.6 years",
-      "range_low": 1.3,
+      "estimate_years": 1.4,
+      "estimate_label": "~1.4 years",
+      "range_low": 1.0,
       "range_high": 3.2,
       "confidence": "medium",
-      "comparable_count": 2,
+      "comparable_count": 3,
       "good_count": 2,
       "exact_count": 2,
       "used_relaxed": false,
-      "avg_match_score": 0.85,
-      "avg_distance_km": 7.5,
-      "avg_distance_mi": 4.7,
+      "avg_match_score": 0.68,
+      "avg_distance_km": 893.6,
+      "avg_distance_mi": 555.3,
       "scale_used": true,
       "firm_signal": {
         "firm": "Related Ross",
@@ -3489,9 +3552,18 @@
           "score": 0.7,
           "distance_km": 10.2,
           "distance_mi": 6.4
+        },
+        {
+          "name": "Nauka",
+          "slug": "nauka",
+          "location": "Riviera Nayarit",
+          "years": 1.1,
+          "score": 0.34,
+          "distance_km": 2665.9,
+          "distance_mi": 1656.5
         }
       ],
-      "pattern_summary": "Among 2 nearby residences projects in TMW's data, the median build time is 2.6 years (range 1.3–3.2). Adjusted to ~1.6 years for Related Ross's own track record (~0.9-year typical pace across 2 prior projects).",
+      "pattern_summary": "Among 3 residences projects in TMW's data, the median build time is 2 years (range 1–3.2). Adjusted to ~1.4 years for Related Ross's own track record (~0.9-year typical pace across 2 prior projects).",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false,
@@ -4575,18 +4647,18 @@
       "delivery_speculative": false
     },
     "park-place": {
-      "estimate_years": 4.3,
-      "estimate_label": "~4.3 years",
-      "range_low": 3.2,
-      "range_high": 6.0,
+      "estimate_years": 3.7,
+      "estimate_label": "~3.7 years",
+      "range_low": 1.1,
+      "range_high": 5.3,
       "confidence": "low",
-      "comparable_count": 1,
+      "comparable_count": 2,
       "good_count": 0,
       "exact_count": 0,
       "used_relaxed": true,
-      "avg_match_score": 0.49,
-      "avg_distance_km": 1219.7,
-      "avg_distance_mi": 757.9,
+      "avg_match_score": 0.41,
+      "avg_distance_km": 1853.4,
+      "avg_distance_mi": 1151.7,
       "scale_used": true,
       "firm_signal": {
         "firm": "Southwest Value Partners",
@@ -4609,9 +4681,18 @@
           "score": 0.49,
           "distance_km": 1219.7,
           "distance_mi": 757.9
+        },
+        {
+          "name": "Nauka",
+          "slug": "nauka",
+          "location": "Riviera Nayarit",
+          "years": 1.1,
+          "score": 0.34,
+          "distance_km": 2487.2,
+          "distance_mi": 1545.5
         }
       ],
-      "pattern_summary": "Among 1 residences project in TMW's data, the median build time is 3.2 years (range 3.2–6). Adjusted to ~4.3 years for Southwest Value Partners's own track record (~6-year typical pace across 1 prior project).",
+      "pattern_summary": "Among 2 residences projects in TMW's data, the median build time is 2.1 years (range 1.1–5.3). Adjusted to ~3.7 years for Southwest Value Partners's own track record (~6-year typical pace across 1 prior project).",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false,
@@ -4764,18 +4845,18 @@
       "is_mixed_use": false
     },
     "currie-park-towers": {
-      "estimate_years": 4.6,
-      "estimate_label": "~4.6 years",
-      "range_low": 2.0,
-      "range_high": 6.5,
+      "estimate_years": 4.3,
+      "estimate_label": "~4.3 years",
+      "range_low": 1.1,
+      "range_high": 5.0,
       "confidence": "low",
-      "comparable_count": 2,
+      "comparable_count": 3,
       "good_count": 1,
       "exact_count": 1,
       "used_relaxed": true,
-      "avg_match_score": 0.55,
-      "avg_distance_km": 5.0,
-      "avg_distance_mi": 3.1,
+      "avg_match_score": 0.48,
+      "avg_distance_km": 892.1,
+      "avg_distance_mi": 554.3,
       "scale_used": true,
       "firm_signal": {
         "firm": "Jeff Greene",
@@ -4807,9 +4888,18 @@
           "score": 0.4,
           "distance_km": 3.3,
           "distance_mi": 2.0
+        },
+        {
+          "name": "Nauka",
+          "slug": "nauka",
+          "location": "Riviera Nayarit",
+          "years": 1.1,
+          "score": 0.34,
+          "distance_km": 2666.3,
+          "distance_mi": 1656.8
         }
       ],
-      "pattern_summary": "Among 2 nearby residences projects in TMW's data, the median build time is 2.6 years (range 2–6.5). Adjusted to ~4.6 years for Jeff Greene's own track record (~7.7-year typical pace across 1 prior project).",
+      "pattern_summary": "Among 3 residences projects in TMW's data, the median build time is 2 years (range 1.1–5). Adjusted to ~4.3 years for Jeff Greene's own track record (~7.7-year typical pace across 1 prior project).",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false,
@@ -5642,18 +5732,18 @@
       "is_mixed_use": false
     },
     "2823-broadway": {
-      "estimate_years": 2.1,
-      "estimate_label": "~2.1 years",
-      "range_low": 1.6,
+      "estimate_years": 1.8,
+      "estimate_label": "~1.8 years",
+      "range_low": 1.1,
       "range_high": 8.4,
       "confidence": "low",
-      "comparable_count": 3,
+      "comparable_count": 4,
       "good_count": 1,
       "exact_count": 1,
       "used_relaxed": true,
-      "avg_match_score": 0.67,
-      "avg_distance_km": 40.9,
-      "avg_distance_mi": 25.4,
+      "avg_match_score": 0.59,
+      "avg_distance_km": 697.2,
+      "avg_distance_mi": 433.2,
       "scale_used": true,
       "firm_signal": {
         "firm": "REG Architects",
@@ -5696,7 +5786,7 @@
           "distance_mi": 70.7
         }
       ],
-      "pattern_summary": "Among 3 same-metro residences projects in TMW's data, the median build time is 3.2 years (range 1.6–8.4). Adjusted to ~2.1 years for REG Architects's own track record (~0.6-year typical pace across 1 prior project).",
+      "pattern_summary": "Among 4 residences projects in TMW's data, the median build time is 2.6 years (range 1.1–8.4). Adjusted to ~1.8 years for REG Architects's own track record (~0.6-year typical pace across 1 prior project).",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false,
@@ -6686,18 +6776,18 @@
       "delivery_speculative": false
     },
     "delux-weho": {
-      "estimate_years": 2.4,
-      "estimate_label": "~2.4 years",
-      "range_low": 1.8,
+      "estimate_years": 2.1,
+      "estimate_label": "~2.1 years",
+      "range_low": 1.1,
       "range_high": 8.4,
       "confidence": "low",
-      "comparable_count": 3,
+      "comparable_count": 4,
       "good_count": 0,
       "exact_count": 0,
       "used_relaxed": true,
-      "avg_match_score": 0.44,
-      "avg_distance_km": 1251.1,
-      "avg_distance_mi": 777.4,
+      "avg_match_score": 0.41,
+      "avg_distance_km": 1560.0,
+      "avg_distance_mi": 969.3,
       "scale_used": true,
       "firm_signal": {
         "firm": "The Bradley Projects",
@@ -6722,6 +6812,15 @@
           "distance_mi": 759.5
         },
         {
+          "name": "Nauka",
+          "slug": "nauka",
+          "location": "Riviera Nayarit",
+          "years": 1.1,
+          "score": 0.34,
+          "distance_km": 2486.7,
+          "distance_mi": 1545.2
+        },
+        {
           "name": "Nautilus 220",
           "slug": "nautilus-220",
           "location": "Lake Park",
@@ -6729,18 +6828,9 @@
           "score": 0.34,
           "distance_km": 1217.8,
           "distance_mi": 756.7
-        },
-        {
-          "name": "Arbor Coconut Grove",
-          "slug": "arbor-coconut-grove",
-          "location": "Miami",
-          "years": 8.4,
-          "score": 0.34,
-          "distance_km": 1313.3,
-          "distance_mi": 816.1
         }
       ],
-      "pattern_summary": "Among 3 residences projects in TMW's data, the median build time is 3.2 years (range 1.8–8.4). Adjusted to ~2.4 years for The Bradley Projects's own track record (~1.8-year typical pace across 2 prior projects).",
+      "pattern_summary": "Among 4 residences projects in TMW's data, the median build time is 2.6 years (range 1.1–8.4). Adjusted to ~2.1 years for The Bradley Projects's own track record (~1.8-year typical pace across 2 prior projects).",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false,
@@ -7773,7 +7863,7 @@
     "medium": 26,
     "low": 29,
     "known_date": 252,
-    "completed": 33,
+    "completed": 34,
     "skipped": 63,
     "no_type": 0,
     "firm_boosted": 35,
