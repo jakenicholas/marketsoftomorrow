@@ -1102,17 +1102,24 @@ function paintPulseTrack(strip) {
   track.style.animation = 'tickerScroll ' + secs + 's linear infinite';
 }
 
+// Match the Pulse bubble (journal-dock.js): same undismissed set + titles.
+function pulseEid(e) { return e.id != null ? String(e.id) : (e.type + '|' + e.timestamp + '|' + (e.project_slug || e.title || '')); }
+function pulseActive(list) {
+  let d; try { d = new Set(JSON.parse(localStorage.getItem('tmw_pulse_dismissed') || '[]')); } catch (_) { d = new Set(); }
+  return list.slice(0, 30).filter(e => !d.has(pulseEid(e)));
+}
+function pulseTitle(e) {
+  return String((e.type === 'new_project' ? (e.project_title || e.title) : (e.title || e.project_title)) || '').replace(/\s+/g, ' ').trim();
+}
+
 function renderPulse(events) {
   if (!events || !events.length) { renderPulseFallback(); setPulseNewBadge(0); return; }
-  const now = Date.now();
-  const fresh = events.filter(e => {
-    const t = Date.parse(e.timestamp || 0);
-    return t && (now - t) <= PULSE_NEW_DAYS * 86400_000;
-  });
-  setPulseNewBadge(fresh.length);
+  const active = pulseActive(events);
+  setPulseNewBadge(active.length);
+  if (!active.length) { renderPulseFallback(); return; }
   // Only the most-recent PULSE_MAX items go in the scrolling track —
-  // the "N NEW" badge still reflects the full count.
-  paintPulseTrack(events.slice(0, PULSE_MAX).map(pulseItemHtml).join(''));
+  // the "N NEW" badge reflects the full undismissed count (matches the bubble).
+  paintPulseTrack(active.slice(0, PULSE_MAX).map(pulseItemHtml).join(''));
 }
 
 function renderPulseFromBlog(items) {
@@ -1150,7 +1157,7 @@ window.addEventListener('resize', () => {
 function pulseItemHtml(e) {
   const kind = e.type === 'article' ? 'article' : (e.type === 'status_change' ? 'status' : 'new');
   const age = e.timestamp ? relativeAge(e.timestamp) : '';
-  const title = e.title_full || e.title || '';
+  const title = pulseTitle(e);
   return `<a class="ticker-item" href="${escapeAttr(e.link)}" target="_blank" rel="noopener">
     <span class="pdot ${kind}"></span>
     <span class="ttxt">${escapeHtml(title)}</span>

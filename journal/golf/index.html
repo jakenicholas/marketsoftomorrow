@@ -1856,6 +1856,35 @@ async function loadPulse() {
   }
 }
 
+// Match the Pulse bubble (journal-dock.js): same undismissed set + titles + robust marquee.
+function pulseEid(e) { return e.id != null ? String(e.id) : (e.type + '|' + e.timestamp + '|' + (e.project_slug || e.title || '')); }
+function pulseActive(list) {
+  let d; try { d = new Set(JSON.parse(localStorage.getItem('tmw_pulse_dismissed') || '[]')); } catch (_) { d = new Set(); }
+  return list.slice(0, 30).filter(e => !d.has(pulseEid(e)));
+}
+function pulseTitle(e) {
+  return String((e.type === 'new_project' ? (e.project_title || e.title) : (e.title || e.project_title)) || '').replace(/\s+/g, ' ').trim();
+}
+let _pulseStrip = '';
+function paintPulseTrack(strip) {
+  const track = document.getElementById('ticker-track');
+  if (!track || !strip) return;
+  _pulseStrip = strip;
+  const vp = (track.parentElement && track.parentElement.clientWidth) || window.innerWidth || 600;
+  let unit = strip;
+  track.style.animation = 'none';
+  track.innerHTML = unit;
+  let guard = 0;
+  while (track.scrollWidth < vp + 40 && guard < 40) { unit += strip; track.innerHTML = unit; guard++; }
+  track.innerHTML = unit + unit;
+  const half = track.scrollWidth / 2;
+  const secs = Math.max(18, Math.round(half / 55));
+  void track.offsetWidth;
+  track.style.animation = 'tickerScroll ' + secs + 's linear infinite';
+}
+let _pulseRz2;
+window.addEventListener('resize', () => { clearTimeout(_pulseRz2); _pulseRz2 = setTimeout(() => { if (_pulseStrip) paintPulseTrack(_pulseStrip); }, 250); });
+
 function renderPulse(events) {
   const track = document.getElementById('ticker-track');
   if (!events.length) {
@@ -1868,18 +1897,18 @@ function renderPulse(events) {
     const t = Date.parse(e.timestamp || 0);
     return t && (now - t) <= PULSE_NEW_DAYS * 86400_000;
   });
-  setPulseNewBadge(fresh.length);
+  setPulseNewBadge(pulseActive(events).length);
   // Cap to most-recent PULSE_MAX items so the marquee speed matches
   // the live oftmw.com bar (60s cycle through ~8 visible items).
-  const visible = events.slice(0, PULSE_MAX);
+  const visible = pulseActive(events).slice(0, PULSE_MAX);
   const strip = visible.map(pulseItemHtml).join('');
-  track.innerHTML = strip + strip;
+  paintPulseTrack(strip);
 }
 
 function pulseItemHtml(e) {
   const kind = e.type === 'article' ? 'article' : (e.type === 'status_change' ? 'status' : 'new');
   const age = e.timestamp ? relativeAge(e.timestamp) : '';
-  const title = e.title_full || e.title || '';
+  const title = pulseTitle(e);
   return `<a class="ticker-item" href="${escapeAttr(e.link)}" target="_blank" rel="noopener">
     <span class="pdot ${kind}"></span>
     <span class="ttxt">${escapeHtml(title)}</span>

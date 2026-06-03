@@ -594,6 +594,41 @@ function startCarouselTimer() {
 }
 function stopCarouselTimer() { if (CAROUSEL.timer) { clearInterval(CAROUSEL.timer); CAROUSEL.timer = null; } }
 
+// Match the Pulse bubble (journal-dock.js) exactly: same undismissed set, same
+// count, same titles (additions drop the "added to the map" suffix).
+function pulseEid(e) { return e.id != null ? String(e.id) : (e.type + '|' + e.timestamp + '|' + (e.project_slug || e.title || '')); }
+function pulseActive(list) {
+  let d; try { d = new Set(JSON.parse(localStorage.getItem('tmw_pulse_dismissed') || '[]')); } catch (_) { d = new Set(); }
+  return list.slice(0, 30).filter(e => !d.has(pulseEid(e)));
+}
+function pulseTitle(e) {
+  return String((e.type === 'new_project' ? (e.project_title || e.title) : (e.title || e.project_title)) || '').replace(/\s+/g, ' ').trim();
+}
+
+// Robust marquee (ported from the homepage): repeat the strip until one unit
+// fills the viewport, then duplicate it for a seamless -50% loop, scaling the
+// duration to width (~55px/s). Setting the animation INLINE also keeps it moving
+// under prefers-reduced-motion — which is what froze the old mobile ticker.
+let _pulseStrip = '';
+function paintPulseTrack(strip) {
+  const track = document.getElementById('ticker-track');
+  if (!track || !strip) return;
+  _pulseStrip = strip;
+  const vp = (track.parentElement && track.parentElement.clientWidth) || window.innerWidth || 600;
+  let unit = strip;
+  track.style.animation = 'none';
+  track.innerHTML = unit;
+  let guard = 0;
+  while (track.scrollWidth < vp + 40 && guard < 40) { unit += strip; track.innerHTML = unit; guard++; }
+  track.innerHTML = unit + unit;
+  const half = track.scrollWidth / 2;
+  const secs = Math.max(18, Math.round(half / 55));
+  void track.offsetWidth;
+  track.style.animation = 'tickerScroll ' + secs + 's linear infinite';
+}
+let _pulseRz;
+window.addEventListener('resize', () => { clearTimeout(_pulseRz); _pulseRz = setTimeout(() => { if (_pulseStrip) paintPulseTrack(_pulseStrip); }, 250); });
+
 async function loadPulse() {
   try {
     const r = await fetch(PULSE_URL, { cache: 'no-store' });
@@ -601,20 +636,19 @@ async function loadPulse() {
     const d = await r.json();
     const events = (d.events || []).filter(e => e && e.title && e.link);
     if (!events.length) { setPulseBadge(0); return; }
-    const fresh = events.filter(e => { const t = Date.parse(e.timestamp || 0); return t && (Date.now() - t) <= PULSE_NEW_DAYS * 86400_000; });
-    setPulseBadge(fresh.length);
-    const visible = events.slice(0, PULSE_MAX);
+    const active = pulseActive(events);
+    setPulseBadge(active.length);
+    if (!active.length) return;
     const cell = e => {
       const kind = e.type === 'article' ? 'article' : (e.type === 'status_change' ? 'status' : 'new');
       const age = e.timestamp ? relAge(e.timestamp) : '';
       return `<a class="ticker-item" href="${escapeAttr(e.link)}" target="_blank" rel="noopener">
         <span class="pdot ${kind}"></span>
-        <span>${escapeHtml(e.title_full || e.title)}</span>
+        <span>${escapeHtml(pulseTitle(e))}</span>
         ${age ? `<span class="tage">${escapeHtml(age)}</span>` : ''}
       </a>`;
     };
-    const strip = visible.map(cell).join('');
-    document.getElementById('ticker-track').innerHTML = strip + strip;
+    paintPulseTrack(active.slice(0, PULSE_MAX).map(cell).join(''));
   } catch (e) { console.warn('[pulse]', e); setPulseBadge(null); }
 }
 function setPulseBadge(n) {
