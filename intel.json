@@ -1,6 +1,40 @@
 {
   "generated_at": "2026-06-03",
   "projects": {
+    "1-iris-lane-the-residences-at-belle-meade-village": {
+      "estimate_years": 2.5,
+      "estimate_label": "~2.5 years",
+      "days_out": 942,
+      "delivery_date": "2028-12-31",
+      "source": "known_date",
+      "precision": "year",
+      "confidence": "medium",
+      "project_type": "Residences",
+      "metro": "Nashville",
+      "comparables": [],
+      "comparable_count": 0,
+      "pattern_summary": "TMW estimates an opening in ~2.5 years based on project type and current stage.",
+      "dates_speculative": true,
+      "start_speculative": true,
+      "delivery_speculative": true
+    },
+    "dolly-partons-songteller-hotel": {
+      "estimate_years": 0.4,
+      "estimate_label": "~4 months",
+      "days_out": 134,
+      "delivery_date": "2026-10-15",
+      "source": "known_date",
+      "precision": "month",
+      "confidence": "high",
+      "project_type": "Hotel",
+      "metro": "Nashville",
+      "comparables": [],
+      "comparable_count": 0,
+      "pattern_summary": "Targeted for opening in ~4 months.",
+      "dates_speculative": false,
+      "start_speculative": false,
+      "delivery_speculative": false
+    },
     "belle-meade-village": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
@@ -7618,12 +7652,12 @@
     "high": 2,
     "medium": 26,
     "low": 28,
-    "known_date": 245,
+    "known_date": 247,
     "completed": 33,
     "skipped": 63,
     "no_type": 0,
     "firm_boosted": 35,
-    "speculative_softened": 17,
+    "speculative_softened": 18,
     "mixed_use_adjusted": 1
   }
 }
