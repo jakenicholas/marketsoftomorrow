@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Moved to oftmw.com/map</title>
+<script>
+  /* map.oftmw.com has moved to www.oftmw.com/map. GitHub Pages serves this 404
+     for any path that no longer exists here (the moved /projects/, /architects/,
+     /developers/ pages). Forward to the SAME path under /map so old deep links
+     and Google's index land on the new location. */
+  (function () {
+    try {
+      var p = location.pathname || '/';
+      location.replace('https://www.oftmw.com/map' + p + (location.search || '') + (location.hash || ''));
+    } catch (e) {
+      location.href = 'https://www.oftmw.com/map/';
+    }
+  })();
+</script>
+<meta http-equiv="refresh" content="0; url=https://www.oftmw.com/map/">
+<style>html,body{height:100%;margin:0}body{background:#070807;color:#ECEAE5;display:flex;align-items:center;justify-content:center;text-align:center;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}a{color:#1FDF67;text-decoration:none}</style>
+</head>
+<body>
+<p>This page now lives at <a id="l" href="https://www.oftmw.com/map/">oftmw.com/map</a> — taking you there&hellip;</p>
+<script>try{document.getElementById('l').href='https://www.oftmw.com/map'+location.pathname;}catch(e){}</script>
+</body>
+</html>

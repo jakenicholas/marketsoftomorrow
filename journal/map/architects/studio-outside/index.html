@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Studio Outside on Map of Tomorrow — 1 project tracked, including 1 in progress and 0 completed.">
+<title>Studio Outside · Map of Tomorrow</title>
+<link rel="canonical" href="https://www.oftmw.com/map/architects/studio-outside/">
+<meta property="og:title" content="Studio Outside on Map of Tomorrow">
+<meta property="og:description" content="Studio Outside on Map of Tomorrow — 1 project tracked, including 1 in progress and 0 completed.">
+<meta property="og:url" content="https://www.oftmw.com/map/architects/studio-outside/">
+<meta property="og:type" content="profile">
+<style>
+  :root {
+    --accent: #1FDF67;
+    --warn: #FFD300;
+    --orange: #FF9500;
+    --blue: #4DABFF;
+    --intel: #A78BFA;
+    --bg: #0a0a0a;
+    --surface: #141414;
+    --surface-2: #1a1a1a;
+    --surface-3: #222;
+    --line: rgba(255,255,255,0.08);
+    --line-strong: rgba(255,255,255,0.14);
+    --text: #fff;
+    --text-mute: rgba(255,255,255,0.62);
+    --text-faint: rgba(255,255,255,0.4);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased; min-height: 100vh; }
+  button, input, select { font-family: inherit; }
+  a { color: inherit; text-decoration: none; }
+
+  /* Sheet aesthetic: padded from viewport edges (left/right/top), rounded
+     corners on top, full-height bottom — feels like a modal pinned to the
+     bottom of the viewport. On the live site this same look appears as an
+     SPA modal over the map; here on the standalone static page we use a
+     deep dark gradient as a stand-in for "map behind". */
+  body { background: radial-gradient(ellipse at top, #0e1a14 0%, #050505 60%); }
+  .sheet { background: var(--bg); border: 1px solid var(--line); border-bottom: none;
+    border-radius: 18px 18px 0 0; max-width: 1200px;
+    margin: 40px 24px 0; min-height: calc(100vh - 40px);
+    box-shadow: 0 -20px 60px rgba(0,0,0,0.5);
+    position: relative; overflow: hidden; }
+  @media (min-width: 1248px) { .sheet { margin-left: auto; margin-right: auto; } }
+  @media (max-width: 700px) { .sheet { margin: 60px 0 0; border-radius: 18px 18px 0 0; } }
+
+  .sheet-handle { width: 36px; height: 4px; background: rgba(255,255,255,0.2);
+    border-radius: 2px; margin: 10px auto 0; }
+
+  .sheet-close { position: fixed; top: 56px; right: 36px; z-index: 50;
+    width: 36px; height: 36px; background: rgba(20,20,20,0.92);
+    border: 1px solid rgba(255,255,255,0.14); border-radius: 11px; color: #fff;
+    font-size: 20px; line-height: 1; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    transition: background 0.12s, border-color 0.12s; }
+  .sheet-close:hover { background: rgba(40,40,40,0.95); border-color: rgba(255,255,255,0.25); }
+  @media (max-width: 700px) { .sheet-close { top: 76px; right: 16px; } }
+
+  .page { padding: 32px 40px 80px; }
+  @media (max-width: 700px) { .page { padding: 24px 20px 60px; } }
+
+  .firm-head { padding: 28px 0 28px; }
+  .firm-role { font-size: 11px; color: var(--text-faint); font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.1em; }
+  .firm-name { font-size: 56px; font-weight: 800; letter-spacing: -0.025em;
+    line-height: 1.0; margin: 8px 0 16px;
+    background: linear-gradient(180deg, #fff 0%, rgba(255,255,255,0.6) 100%);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+  .firm-meta { display: flex; gap: 18px; flex-wrap: wrap;
+    color: var(--text-mute); font-size: 13px; }
+  .firm-meta .item { display: flex; align-items: center; gap: 7px; }
+  .firm-meta .item-lbl { color: var(--text-faint); font-size: 11px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.06em; }
+
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px; margin: 28px 0 40px; }
+  .stat-card { background: var(--surface); border: 1px solid var(--line);
+    border-radius: 14px; padding: 18px 20px; }
+  .stat-val { font-size: 32px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.05;
+    font-variant-numeric: tabular-nums; }
+  .stat-val.accent { color: var(--accent); }
+  .stat-lbl { font-size: 11px; color: var(--text-faint); font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.07em; margin-top: 8px; }
+  .stat-sub { font-size: 11px; color: var(--text-mute); margin-top: 2px; }
+
+  .tabs { display: flex; gap: 0; border-bottom: 1px solid var(--line); margin-bottom: 28px; }
+  .tab { padding: 12px 18px; background: transparent; border: none;
+    color: var(--text-mute); font-size: 13px; font-weight: 600; cursor: pointer;
+    border-bottom: 2px solid transparent; display: flex; align-items: center; gap: 8px; }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--text); border-bottom-color: var(--accent); }
+  .tab .count { font-size: 10px; color: var(--text-faint); background: var(--surface-3);
+    padding: 1px 7px; border-radius: 100px; font-weight: 700; }
+  .tab.active .count { color: var(--accent); background: rgba(31,223,103,0.12); }
+
+  /* "Open on Map" CTA — replaces the faux-map snippet (the real map is the
+     background on the live site; on the standalone page we just link out). */
+  .map-cta { background: var(--surface); border: 1px solid var(--line);
+    border-radius: 12px; padding: 16px 20px; margin-bottom: 28px;
+    display: flex; align-items: center; gap: 14px; }
+  .map-cta-icon { width: 36px; height: 36px; border-radius: 10px;
+    background: rgba(31,223,103,0.1); border: 1px solid rgba(31,223,103,0.25);
+    color: var(--accent); display: flex; align-items: center; justify-content: center;
+    font-size: 18px; flex-shrink: 0; }
+  .map-cta-body { flex: 1; font-size: 12.5px; color: var(--text-mute); line-height: 1.5; }
+  .map-cta .btn { padding: 8px 14px; background: var(--accent); color: #000;
+    font-size: 12px; font-weight: 700; border-radius: 8px; flex-shrink: 0; }
+  .map-cta .btn:hover { background: #2BE875; }
+
+  .section-head { display: flex; align-items: baseline; justify-content: space-between;
+    margin-bottom: 14px; }
+  .section-title { font-size: 13px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.07em; color: var(--text-faint); }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 14px; margin-bottom: 40px; }
+  .proj-card { background: var(--surface); border: 1px solid var(--line);
+    border-radius: 12px; overflow: hidden; cursor: pointer; transition: all 0.18s;
+    display: block; color: inherit; text-decoration: none; }
+  .proj-card:hover { border-color: var(--line-strong); transform: translateY(-2px);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.4); }
+  .proj-hero { aspect-ratio: 16/10;
+    background: linear-gradient(135deg, var(--surface-2), var(--surface-3));
+    background-size: cover; background-position: center; position: relative; }
+  .proj-status { position: absolute; bottom: 8px; left: 8px;
+    background: rgba(0,0,0,0.78); border: 1px solid rgba(255,255,255,0.15);
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    padding: 3px 9px; border-radius: 100px; font-size: 9.5px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.05em; color: #fff;
+    display: flex; align-items: center; gap: 5px; }
+  .proj-status .dot { width: 6px; height: 6px; border-radius: 50%; }
+  .proj-featured { position: absolute; top: 8px; right: 8px;
+    background: rgba(255,211,0,0.18); border: 1px solid rgba(255,211,0,0.4);
+    width: 22px; height: 22px; border-radius: 6px; display: flex;
+    align-items: center; justify-content: center; color: var(--warn); font-size: 11px;
+    backdrop-filter: blur(8px); }
+  .proj-body { padding: 12px 14px 14px; }
+  .proj-title { font-size: 14px; font-weight: 700; line-height: 1.25;
+    overflow: hidden; text-overflow: ellipsis; display: -webkit-box;
+    -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+  .proj-meta { font-size: 11.5px; color: var(--text-mute); margin-top: 4px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .proj-foot { font-size: 11px; color: var(--text-faint); margin-top: 7px;
+    padding-top: 7px; border-top: 1px solid var(--line); display: flex;
+    justify-content: space-between; }
+  .proj-foot .date { color: var(--text); font-weight: 600; }
+
+  .coverage-section { margin: 40px 0 80px; }
+  .coverage-list { display: flex; flex-direction: column; gap: 8px; }
+  .coverage-item { display: grid; grid-template-columns: auto 1fr auto;
+    gap: 14px; padding: 14px 16px; background: var(--surface);
+    border: 1px solid var(--line); border-radius: 10px; align-items: center;
+    transition: border-color 0.15s; cursor: pointer; color: inherit;
+    text-decoration: none; }
+  .coverage-item:hover { border-color: var(--line-strong); }
+  .coverage-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+  .coverage-info { min-width: 0; }
+  .coverage-title { font-size: 13px; font-weight: 600; overflow: hidden;
+    text-overflow: ellipsis; white-space: nowrap; }
+  .coverage-meta { font-size: 11px; color: var(--text-faint); margin-top: 3px; }
+  .coverage-meta b { color: var(--accent); font-weight: 700; }
+  .coverage-date { font-size: 11px; color: var(--text-faint); font-variant-numeric: tabular-nums;
+    white-space: nowrap; }
+
+  .empty { padding: 40px 20px; text-align: center; color: var(--text-faint); font-size: 12.5px;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
+
+  footer { padding: 40px 28px; border-top: 1px solid var(--line);
+    color: var(--text-faint); font-size: 11px; text-align: center; }
+  footer a { color: var(--text-mute); }
+
+  @media (max-width: 700px) {
+    .firm-name { font-size: 36px; }
+    .map-snippet { grid-template-columns: 1fr; }
+    .topbar { padding: 14px 16px; }
+    .page { padding: 0 16px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Close button — sits over the sheet's rounded top-right corner. On the live
+     site this same UI appears as an SPA modal where this button triggers
+     history.back(); here on the standalone page it returns to the map. -->
+<a href="/" class="sheet-close" aria-label="Close">×</a>
+
+<div class="sheet">
+  <div class="sheet-handle"></div>
+  <div class="page">
+
+  <div class="firm-head">
+    <div class="firm-role">Architecture firm</div>
+    <h1 class="firm-name">Studio Outside</h1>
+    <div class="firm-meta">
+        
+        <div class="item"><span class="item-lbl">Active in</span><span>1 market</span></div>
+    </div>
+  </div>
+
+  
+    <div class="stats">
+      <div class="stat-card">
+        <div class="stat-val accent">1</div>
+        <div class="stat-lbl">Projects on TMW</div>
+        <div class="stat-sub">1 in progress · 0 completed</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val">—</div>
+        <div class="stat-lbl">Residential units</div>
+        <div class="stat-sub">across all projects</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val">—</div>
+        <div class="stat-lbl">Hotel keys</div>
+        <div class="stat-sub">across all projects</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val">1.0 yr</div>
+        <div class="stat-lbl">Avg years to delivery</div>
+        <div class="stat-sub">from 1 project with start + delivery dates</div>
+      </div>
+    </div>
+
+  
+    <div class="map-cta">
+      <div class="map-cta-icon">◉</div>
+      <div class="map-cta-body">
+        <strong>1 pin across 1 market</strong>
+        · Fredericksburg
+      </div>
+      <a href="/architects/studio-outside/" class="btn">Open on Map ↗</a>
+    </div>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="all">All projects <span class="count">1</span></button>
+    <button class="tab" data-tab="in-progress">In progress <span class="count">1</span></button>
+    <button class="tab" data-tab="completed">Completed <span class="count">0</span></button>
+  </div>
+
+  <div class="section-head">
+    <div class="section-title">Portfolio</div>
+  </div>
+
+  <div class="grid">
+        <a class="proj-card" data-status="construction" href="/projects/waldorf-astoria-texas-hill-country/">
+          <div class="proj-hero" style="background-image:url('https://imgproxy.divecdn.com/DJ4fd68OEwUT8wvJjivqwJFWpfanzfi6q__7aQ-2Hlw/g:ce/rs:fill:1200:675:1/Z3M6Ly9kaXZlc2l0ZS1zdG9yYWdlL2RpdmVpbWFnZS9XYWxkb3JmLUFzdG9yaWEtVGV4YXMtSGlsbC1Db3VudHJ5LUFydGlzdHMtQ29uY2VwdHVhbC1SZW5kZXJpbmcuanBn.webp')">
+            
+            <div class="proj-status"><span class="dot" style="background:#FF9500"></span>Construction</div>
+          </div>
+          <div class="proj-body">
+            <div class="proj-title">Waldorf Astoria Texas Hill Country</div>
+            <div class="proj-meta">Fredericksburg · Hotel</div>
+            <div class="proj-foot">
+              <span>Delivery</span>
+              <span class="date">2026</span>
+            </div>
+          </div>
+        </a></div>
+
+  
+    <section class="coverage-section">
+      <div class="section-head"><div class="section-title">Coverage</div></div>
+      <div class="empty">No articles linked to this firm's projects yet.</div>
+    </section>
+
+  </div>
+</div>
+
+<footer style="text-align:center; padding: 32px 28px 80px; color: var(--text-faint); font-size: 11px;">
+  Map of Tomorrow · Independent index of the construction pipeline ·
+  <a href="https://oftmw.com" style="color: var(--text-mute);">oftmw.com</a>
+</footer>
+
+<script>
+  document.querySelectorAll('.tab').forEach(t => {
+    t.addEventListener('click', () => {
+      const active = t.dataset.tab;
+      document.querySelectorAll('.tab').forEach(x => x.classList.toggle('active', x === t));
+      document.querySelectorAll('.proj-card').forEach(c => {
+        const isOpen = c.dataset.status === 'open';
+        const show = active === 'all' || (active === 'in-progress' && !isOpen) || (active === 'completed' && isOpen);
+        c.style.display = show ? '' : 'none';
+      });
+    });
+  });
+</script>
+
+</body>
+</html>

@@ -8,8 +8,8 @@ Run: python3 generate_pages.py
 import csv, io, os, re, json, time, urllib.request, urllib.parse, sys
 
 SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1qwU7ykIDUrtPlIQu-qk2FIJwiz-WWg5caq02ja30sgM/export?format=csv&gid=0"
-OUTPUT_DIR = "projects"
-SITE_URL = "https://map.oftmw.com"
+OUTPUT_DIR = "journal/map/projects"
+SITE_URL = "https://www.oftmw.com/map"
 DEFAULT_IMAGE = "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_93ffb2f000f94a12aa874fe44153be18~mv2.jpg"
 LOGO_URL = "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_71f3cd2ef61049028b2daf4e2ff71d52~mv2.png"
 
@@ -1787,7 +1787,7 @@ def build_page(row, articles=None):
       // pulse.json. Same logic as the map's getUnreadForProject() but local
       // to this page so we don't pull in the whole map JS bundle.
       function fetchUnread(lastViewedIso, cb) {{
-        fetch('/pulse.json', {{ cache: 'no-store' }})
+        fetch('/map/pulse.json', {{ cache: 'no-store' }})
           .then(function(r) {{ if (!r.ok) throw 0; return r.json(); }})
           .then(function(data) {{
             var events = (data && Array.isArray(data.events)) ? data.events : [];
@@ -1958,7 +1958,7 @@ def build_page(row, articles=None):
         }} catch (e) {{ return ''; }}
       }}
 
-      fetch('/pulse.json', {{ cache: 'no-store' }})
+      fetch('/map/pulse.json', {{ cache: 'no-store' }})
         .then(function(r) {{ return r.ok ? r.json() : {{ events: [] }}; }})
         .then(function(data) {{
           var events = (data && Array.isArray(data.events)) ? data.events : [];

@@ -45,7 +45,7 @@ PROJECTS_FLAT = 'projects-flat.json'
 FIRMS_FLAT    = 'firms-flat.json'
 ARTICLES_JSON = 'articles.json'
 
-OUTPUT_ROOT = '.'  # writes architects/<slug>/index.html, developers/<slug>/index.html
+OUTPUT_ROOT = 'journal/map'  # writes architects/<slug>/index.html, developers/<slug>/index.html
 
 # Date sanity: durations outside [0.25, 15] years are likely bad data
 DURATION_MIN_YEARS = 0.25
@@ -604,10 +604,10 @@ def render_page(firm, role, firm_projects, stats, coverage_items):
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="description" content="{e(description)}">
 <title>{e(title)} · Map of Tomorrow</title>
-<link rel="canonical" href="https://map.oftmw.com/{role}/{e(firm['slug'])}/">
+<link rel="canonical" href="https://www.oftmw.com/map/{role}/{e(firm['slug'])}/">
 <meta property="og:title" content="{e(title)} on Map of Tomorrow">
 <meta property="og:description" content="{e(description)}">
-<meta property="og:url" content="https://map.oftmw.com/{role}/{e(firm['slug'])}/">
+<meta property="og:url" content="https://www.oftmw.com/map/{role}/{e(firm['slug'])}/">
 <meta property="og:type" content="profile">
 <style>{CSS}</style>
 </head>

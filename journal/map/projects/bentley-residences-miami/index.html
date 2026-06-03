@@ -1,0 +1,1422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Cache hint: project pages should always reflect the latest sheet data.
+       GitHub Pages still has an edge cache (~10min) so changes can lag, but
+       this at least keeps browsers + intermediate proxies honest. -->
+  <meta http-equiv="Cache-Control" content="no-cache, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <!-- Disable iOS Safari Data Detectors so phone numbers, addresses, dates, etc.
+       in body copy aren't auto-linked into tappable blue text -->
+  <meta name="format-detection" content="telephone=no, address=no, email=no, date=no">
+  <meta name="x-apple-disable-message-reformatting" content="">
+  <title>Bentley Residences Miami, Sunny Isles Beach | Markets of Tomorrow</title>
+  <meta name="description" content="A 62-story, 749-foot oceanfront tower with a patented "Dezervator" car elevator system.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://www.oftmw.com/map/projects/bentley-residences-miami/">
+  <!-- Mono face used by the date-driven progress subtitle. Single weight
+       loads quickly. Inter (the body family) is loaded later via the
+       general <style> block. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <!-- Memberstack 2.0 - for Watch button + watching card hydration. Loads
+       async so it doesn't block page render; the hydration script at the
+       bottom of the page polls for window.$memberstackDom before wiring up
+       the button so initial render works even on slow connections. -->
+  <script data-memberstack-app="app_cmoq79nvv002d0syef7wpel3c"
+          src="https://static.memberstack.com/scripts/v2/memberstack.js"
+          type="text/javascript"></script>
+
+  <!-- Memberstack modal dark theme: tagger script + targeted CSS.
+       See index.html for the full rationale. Identical strategy here. -->
+  <script>
+    (function tagMemberstackModals() {
+      function looksLikeMSModal(el) {
+        if (!el || el.nodeType !== 1) return false;
+        try {
+          var cs = window.getComputedStyle(el);
+          if (cs.position !== 'fixed' && cs.position !== 'absolute') return false;
+        } catch (_) { return false; }
+        if (el.querySelector && (
+            el.querySelector('[data-ms-modal]') ||
+            el.querySelector('[data-cy]') ||
+            el.querySelector('[data-ms-form]') ||
+            el.id && el.id.toLowerCase().indexOf('ms') === 0
+        )) return true;
+        var hasEmail = el.querySelector && el.querySelector('input[type="email"]');
+        var hasPwd   = el.querySelector && el.querySelector('input[type="password"]');
+        if (hasEmail || hasPwd) return true;
+        return false;
+      }
+      function tagContainerAndChildren(el) {
+        if (!el || !el.classList) return;
+        if (!el.classList.contains('tmw-ms-modal')) {
+          el.classList.add('tmw-ms-modal');
+        }
+        try {
+          el.querySelectorAll('input, textarea, select').forEach(function(node) {
+            node.classList.add('tmw-ms-input');
+          });
+          el.querySelectorAll('button').forEach(function(node) {
+            var isSubmit = node.getAttribute('type') === 'submit';
+            var dataCy   = (node.getAttribute('data-cy') || '').toLowerCase();
+            var ariaLbl  = (node.getAttribute('aria-label') || '').toLowerCase();
+            var txt      = (node.textContent || '').trim().toLowerCase();
+            if (isSubmit
+                || dataCy.indexOf('save') !== -1
+                || dataCy.indexOf('submit') !== -1
+                || /^(save|sign in|sign up|log in|create account|continue)$/i.test(txt)) {
+              node.classList.add('tmw-ms-btn-primary');
+            } else if (ariaLbl.indexOf('close') !== -1 || dataCy.indexOf('close') !== -1) {
+              node.classList.add('tmw-ms-btn-close');
+            } else if (ariaLbl.indexOf('password') !== -1) {
+              node.classList.add('tmw-ms-btn-eye');
+            } else {
+              node.classList.add('tmw-ms-btn-secondary');
+            }
+          });
+          el.querySelectorAll('label').forEach(function(node) {
+            node.classList.add('tmw-ms-label');
+          });
+          el.querySelectorAll('img').forEach(function(node) {
+            node.classList.add('tmw-ms-img');
+          });
+        } catch (_) { /* defensive */ }
+      }
+      function scan() {
+        var nodes = document.body ? document.body.children : [];
+        for (var i = 0; i < nodes.length; i++) {
+          if (looksLikeMSModal(nodes[i])) tagContainerAndChildren(nodes[i]);
+        }
+      }
+      if (document.body) scan();
+      else document.addEventListener('DOMContentLoaded', scan);
+      var obs = new MutationObserver(function(muts) {
+        for (var i = 0; i < muts.length; i++) {
+          var added = muts[i].addedNodes;
+          for (var j = 0; j < added.length; j++) {
+            var node = added[j];
+            if (node.nodeType !== 1) continue;
+            if (node.parentNode === document.body && looksLikeMSModal(node)) {
+              tagContainerAndChildren(node);
+              continue;
+            }
+            var modalAncestor = node.closest && node.closest('.tmw-ms-modal');
+            if (modalAncestor) {
+              tagContainerAndChildren(modalAncestor);
+            }
+          }
+        }
+      });
+      function startObserver() {
+        if (document.body) obs.observe(document.body, { childList: true, subtree: true });
+        else document.addEventListener('DOMContentLoaded', startObserver);
+      }
+      startObserver();
+    })();
+  </script>
+
+  <style>
+    .tmw-ms-modal,
+    #msOverlay,
+    body > div[id^="ms-"] {
+      background: rgba(0,0,0,0.78) !important;
+      backdrop-filter: blur(8px) !important;
+      -webkit-backdrop-filter: blur(8px) !important;
+    }
+    .tmw-ms-modal > div,
+    .tmw-ms-modal [role="dialog"],
+    #msOverlay > div {
+      background: #0f0f0f !important;
+      color: #fff !important;
+      border: 1px solid rgba(255,255,255,0.08) !important;
+      border-radius: 16px !important;
+      box-shadow: 0 30px 90px rgba(0,0,0,0.55) !important;
+    }
+    .tmw-ms-modal img,
+    #msOverlay img {
+      filter: brightness(0) invert(1) !important;
+      opacity: 0.95 !important;
+    }
+    .tmw-ms-modal, .tmw-ms-modal *,
+    #msOverlay, #msOverlay * {
+      color: #fff !important;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+    }
+    .tmw-ms-modal h1, .tmw-ms-modal h2, .tmw-ms-modal h3,
+    #msOverlay h1, #msOverlay h2, #msOverlay h3 {
+      color: #fff !important;
+    }
+    .tmw-ms-modal p, .tmw-ms-modal small,
+    #msOverlay p, #msOverlay small {
+      color: rgba(255,255,255,0.7) !important;
+    }
+    .tmw-ms-modal label, #msOverlay label {
+      color: #fff !important;
+      font-weight: 600 !important;
+      font-size: 13px !important;
+    }
+    .tmw-ms-modal input,
+    .tmw-ms-modal textarea,
+    .tmw-ms-modal select,
+    #msOverlay input, #msOverlay textarea {
+      background: rgba(255,255,255,0.05) !important;
+      border: 1px solid rgba(255,255,255,0.14) !important;
+      color: #fff !important;
+      border-radius: 10px !important;
+      padding: 12px 14px !important;
+      font-size: 14px !important;
+      box-shadow: none !important;
+    }
+    .tmw-ms-modal input:focus,
+    #msOverlay input:focus {
+      outline: none !important;
+      border-color: #1FDF67 !important;
+      background: rgba(255,255,255,0.07) !important;
+      box-shadow: 0 0 0 3px rgba(31,223,103,0.20) !important;
+    }
+    .tmw-ms-modal input::placeholder,
+    #msOverlay input::placeholder {
+      color: rgba(255,255,255,0.35) !important;
+      opacity: 1 !important;
+    }
+    .tmw-ms-modal input[disabled],
+    .tmw-ms-modal input[readonly] {
+      color: rgba(255,255,255,0.6) !important;
+      background: rgba(255,255,255,0.03) !important;
+    }
+    .tmw-ms-modal button[aria-label*="assword"] {
+      background: transparent !important;
+      border: none !important;
+      color: rgba(255,255,255,0.55) !important;
+      box-shadow: none !important;
+      outline: none !important;
+    }
+    .tmw-ms-modal button[aria-label*="assword"]:focus {
+      box-shadow: 0 0 0 2px rgba(31,223,103,0.5) !important;
+      border-radius: 6px !important;
+    }
+    .tmw-ms-modal button[type="submit"],
+    .tmw-ms-modal button[class*="primary" i],
+    .tmw-ms-modal [data-cy*="save"],
+    .tmw-ms-modal [data-cy*="submit"] {
+      background: #1FDF67 !important;
+      color: #000 !important;
+      border: none !important;
+      border-radius: 10px !important;
+      font-weight: 700 !important;
+      padding: 13px 18px !important;
+      cursor: pointer !important;
+    }
+    .tmw-ms-modal button[type="submit"]:hover {
+      background: #18c75a !important;
+    }
+    .tmw-ms-modal [data-cy="save-btn"],
+    .tmw-ms-modal [data-cy="save"] {
+      background: #1FDF67 !important;
+      color: #000 !important;
+    }
+    .tmw-ms-modal button:not([type="submit"]):not([class*="primary" i]):not([aria-label*="lose" i]):not([aria-label*="assword" i]):not([data-cy*="save"]) {
+      background: rgba(255,255,255,0.06) !important;
+      color: #fff !important;
+      border: 1px solid rgba(255,255,255,0.10) !important;
+      border-radius: 10px !important;
+      cursor: pointer !important;
+    }
+    .tmw-ms-modal a, #msOverlay a {
+      color: #1FDF67 !important;
+      text-decoration: none !important;
+      font-weight: 600 !important;
+    }
+    .tmw-ms-modal button[aria-label*="lose" i],
+    .tmw-ms-modal [data-cy*="close"] {
+      color: rgba(255,255,255,0.5) !important;
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+    }
+    .tmw-ms-modal nav button,
+    .tmw-ms-modal [class*="sidebar" i] button,
+    .tmw-ms-modal [data-cy*="tab"] {
+      color: #fff !important;
+      background: transparent !important;
+      border: none !important;
+      text-align: left !important;
+    }
+    .tmw-ms-modal nav button[aria-current="true"],
+    .tmw-ms-modal nav button.active,
+    .tmw-ms-modal [data-cy*="tab"][aria-current="true"] {
+      background: rgba(31,223,103,0.10) !important;
+      color: #1FDF67 !important;
+      border-radius: 8px !important;
+    }
+    .tmw-ms-modal [data-cy*="logout"],
+    .tmw-ms-modal button[aria-label*="ogout" i] {
+      color: rgba(255,255,255,0.7) !important;
+      background: transparent !important;
+      border: none !important;
+    }
+    .tmw-ms-modal [class*="error" i],
+    .tmw-ms-modal [role="alert"] {
+      color: #FF6B6B !important;
+      background: rgba(255,107,107,0.10) !important;
+      border: 1px solid rgba(255,107,107,0.25) !important;
+      border-radius: 8px !important;
+      padding: 10px 12px !important;
+    }
+
+    /* === Direct per-element classes ====================================
+       The tagger script tags inputs/buttons/labels inside any Memberstack
+       modal so styling reaches them regardless of how deeply they're nested. */
+    .tmw-ms-input {
+      background: #1a1a1a !important;
+      border: 1px solid rgba(255,255,255,0.14) !important;
+      color: #fff !important;
+      border-radius: 10px !important;
+      padding: 12px 14px !important;
+      font-size: 14px !important;
+      box-shadow: none !important;
+      caret-color: #1FDF67 !important;
+    }
+    .tmw-ms-input:focus {
+      outline: none !important;
+      border-color: #1FDF67 !important;
+      background: #1f1f1f !important;
+      box-shadow: 0 0 0 3px rgba(31,223,103,0.22) !important;
+    }
+    .tmw-ms-input::placeholder {
+      color: rgba(255,255,255,0.35) !important;
+      opacity: 1 !important;
+    }
+    .tmw-ms-input[disabled], .tmw-ms-input[readonly] {
+      color: rgba(255,255,255,0.55) !important;
+      background: #141414 !important;
+    }
+    .tmw-ms-input:-webkit-autofill,
+    .tmw-ms-input:-webkit-autofill:hover,
+    .tmw-ms-input:-webkit-autofill:focus {
+      -webkit-text-fill-color: #fff !important;
+      -webkit-box-shadow: 0 0 0 1000px #1a1a1a inset !important;
+    }
+
+    .tmw-ms-btn-primary {
+      background: #1FDF67 !important;
+      color: #000 !important;
+      border: none !important;
+      border-radius: 10px !important;
+      font-weight: 700 !important;
+      padding: 13px 18px !important;
+      cursor: pointer !important;
+    }
+    .tmw-ms-btn-primary:hover { background: #18c75a !important; }
+    .tmw-ms-btn-primary:disabled, .tmw-ms-btn-primary[disabled] {
+      background: rgba(31,223,103,0.35) !important;
+      color: rgba(0,0,0,0.55) !important;
+      cursor: default !important;
+    }
+
+    .tmw-ms-btn-secondary {
+      background: #1a1a1a !important;
+      color: #fff !important;
+      border: 1px solid rgba(255,255,255,0.15) !important;
+      border-radius: 10px !important;
+      padding: 10px 14px !important;
+      font-weight: 600 !important;
+      font-size: 13px !important;
+      cursor: pointer !important;
+    }
+    .tmw-ms-btn-secondary:hover {
+      background: #222 !important;
+      border-color: rgba(255,255,255,0.25) !important;
+    }
+
+    .tmw-ms-btn-close {
+      color: rgba(255,255,255,0.55) !important;
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+      padding: 6px !important;
+      cursor: pointer !important;
+    }
+    .tmw-ms-btn-close:hover { color: #fff !important; }
+
+    .tmw-ms-btn-eye {
+      background: transparent !important;
+      border: none !important;
+      color: rgba(255,255,255,0.55) !important;
+      box-shadow: none !important;
+      outline: none !important;
+      padding: 4px !important;
+      cursor: pointer !important;
+    }
+    .tmw-ms-btn-eye:focus {
+      outline: none !important;
+      box-shadow: 0 0 0 2px rgba(31,223,103,0.5) !important;
+      border-radius: 6px !important;
+    }
+
+    .tmw-ms-label {
+      color: #fff !important;
+      font-weight: 600 !important;
+      font-size: 13px !important;
+    }
+
+    .tmw-ms-img {
+      filter: brightness(0) invert(1) !important;
+      opacity: 0.95 !important;
+    }
+  </style>
+
+  <!-- Open Graph -->
+  <meta property="og:site_name" content="Markets of Tomorrow">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Bentley Residences Miami, Sunny Isles Beach | Markets of Tomorrow">
+  <meta property="og:description" content="A 62-story, 749-foot oceanfront tower with a patented "Dezervator" car elevator system.">
+  <meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_84a633b15cd44cc4857db839ae4da0fb~mv2.webp">
+  <meta property="og:url" content="https://www.oftmw.com/map/projects/bentley-residences-miami/">
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@floridaoftomorrow">
+  <meta name="twitter:title" content="Bentley Residences Miami, Sunny Isles Beach | Markets of Tomorrow">
+  <meta name="twitter:description" content="A 62-story, 749-foot oceanfront tower with a patented "Dezervator" car elevator system.">
+  <meta name="twitter:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_84a633b15cd44cc4857db839ae4da0fb~mv2.webp">
+
+  <!-- Favicon -->
+  <link rel="icon" href="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_71f3cd2ef61049028b2daf4e2ff71d52~mv2.png" type="image/png">
+
+  <!-- JSON-LD -->
+  <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "Place",
+  "name": "Bentley Residences Miami",
+  "description": "A 62-story, 749-foot oceanfront tower with a patented \"Dezervator\" car elevator system.",
+  "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_84a633b15cd44cc4857db839ae4da0fb~mv2.webp",
+  "url": "https://www.oftmw.com/map/projects/bentley-residences-miami/",
+  "address": {
+    "@type": "PostalAddress",
+    "addressLocality": "Sunny Isles Beach"
+  },
+  "additionalProperty": [
+    {
+      "@type": "PropertyValue",
+      "name": "Status",
+      "value": "Under Construction"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Developer",
+      "value": "Dezer Development"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Architect",
+      "value": "Sieger Suarez Architects"
+    }
+  ]
+}</script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #0d0d0d; color: #fff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; min-height: 100vh; }
+    /* Belt-and-suspenders defense against iOS Safari Data Detectors:
+       even when the format-detection meta tag is set, iOS sometimes still auto-links
+       addresses/phones/dates inside body copy. Neutralize any that slip through. */
+    .description a[href^="tel:"], .description a[href^="mailto:"], .description a[x-apple-data-detectors] {
+      color: inherit !important;
+      text-decoration: inherit !important;
+      pointer-events: none !important;
+      cursor: text !important;
+    }
+
+    /* Gallery */
+    .gallery { width: 100%; position: relative; overflow: hidden; }
+    .gallery-hero { width: 100%; height: 320px; object-fit: cover; display: block; }
+
+    /* Slider — multi-image cycling gallery
+       Desktop: center slide at 60% width with prev/next visible at lower opacity.
+       Hidden slides park at the peek positions (just at opacity 0) so when they
+       transition into prev/next state only opacity animates — no horizontal flash.
+       Mobile: full-width single-slide fade. */
+    .gs-slider {
+      height: 460px;
+      background: #0d0d0d;
+      padding: 24px 0;
+      box-sizing: content-box;
+      overflow: hidden;
+    }
+    .gs-track { position: relative; width: 100%; height: 100%; }
+    .gs-slide {
+      position: absolute;
+      top: 0;
+      height: 100%;
+      width: 60%;
+      object-fit: cover;
+      border-radius: 12px;
+      transition: left 0.4s ease, opacity 0.4s ease;
+      pointer-events: none;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+      /* Default: parked off-screen right at opacity 0 (used until JS assigns data-pos) */
+      left: 105%;
+      opacity: 0;
+    }
+    .gs-slide[data-pos="active"] {
+      left: 20%;
+      opacity: 1;
+      pointer-events: auto;
+      z-index: 3;
+    }
+    .gs-slide[data-pos="prev"] {
+      left: -42%;
+      opacity: 0.55;
+      z-index: 1;
+    }
+    .gs-slide[data-pos="next"] {
+      left: 82%;
+      opacity: 0.55;
+      z-index: 1;
+    }
+    /* Hidden slides park at the peek positions but invisible, so when they
+       transition into prev/next state only opacity changes (no horizontal flash). */
+    .gs-slide[data-pos="hidden-left"] {
+      left: -42%;
+      opacity: 0;
+      z-index: 0;
+    }
+    .gs-slide[data-pos="hidden-right"] {
+      left: 82%;
+      opacity: 0;
+      z-index: 0;
+    }
+    .gs-arrow {
+      position: absolute;
+      top: 50%; transform: translateY(-50%);
+      width: 38px; height: 38px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.92);
+      border: none;
+      color: #000;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.4);
+      transition: background 0.15s, transform 0.1s;
+      z-index: 3;
+    }
+    .gs-arrow:hover { background: #fff; }
+    .gs-arrow:active { transform: translateY(-50%) scale(0.94); }
+    .gs-arrow svg { width: 18px; height: 18px; }
+    .gs-prev { left: 14%; transform: translate(-50%, -50%); }
+    .gs-prev:active { transform: translate(-50%, -50%) scale(0.94); }
+    .gs-next { right: 14%; transform: translate(50%, -50%); }
+    .gs-next:active { transform: translate(50%, -50%) scale(0.94); }
+    .gs-counter {
+      position: absolute;
+      bottom: 38px; left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.7);
+      color: rgba(255,255,255,0.95);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 20px;
+      z-index: 3;
+      letter-spacing: 0.02em;
+    }
+
+    /* Content */
+    .content { max-width: 560px; margin: 0 auto; padding: 20px 20px 40px; }
+
+    /* Pills */
+    .pills { display: flex; gap: 6px; margin-bottom: 12px; }
+    .pill { font-size: 9px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 3px 9px; border-radius: 20px; }
+    .pill-featured { background: #FFD300; color: #000; }
+
+    /* Title */
+    .project-title { font-size: 28px; font-weight: 700; line-height: 1.15; margin-bottom: 4px; }
+    .project-city { font-size: 13px; color: rgba(255,255,255,0.45); margin-bottom: 16px; }
+
+    /* Progress */
+    .ps-wrap { margin-bottom: 16px; }
+    .ps-top { display: flex; justify-content: space-between; margin-bottom: 6px; }
+    .ps-stage { font-size: 10px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; }
+    .ps-pct { font-size: 10px; color: rgba(255,255,255,0.25); }
+    /* Segmented bar: 5 stages with proportional widths (10/10/60/10/10).
+       Each segment fills independently -- done = 100%, active varies by
+       date math, future = 0%. Matches the modal's pm-segments. */
+    .ps-segments { display: flex; gap: 3px; height: 4px; margin-bottom: 5px; }
+    .ps-seg {
+      /* width set inline via flex: <width_pct> 0 0 */
+      height: 100%;
+      background: rgba(255,255,255,0.08);
+      border-radius: 2px;
+      overflow: hidden;
+      position: relative;
+    }
+    .ps-seg-fill {
+      height: 100%;
+      background: var(--seg-c, #FF9500);
+      border-radius: 2px;
+      transition: width 0.4s ease;
+    }
+    .ps-seg-done .ps-seg-fill   { width: 100% !important; }
+    .ps-seg-future .ps-seg-fill { width: 0 !important; }
+    .ps-labels { display: flex; gap: 3px; }
+    .ps-label { font-size: 7px; color: rgba(255,255,255,0.2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 2px; }
+    .ps-cur { color: var(--sc, #FF9500); font-weight: 600; }
+    /* Date-driven subtitle: "18 months to delivery" / "Delivered Sep '23".
+       Matches the modal's pm-progress-sub treatment so all three surfaces
+       (modal, comparison sheet, static page) read like one system. */
+    .ps-sub {
+      margin-top: 6px;
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 9px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.4);
+    }
+
+    /* Divider */
+    .divider { height: 0.5px; background: rgba(255,255,255,0.07); margin: 16px 0; }
+
+    /* Description */
+    .description { font-size: 14px; color: rgba(255,255,255,0.6); line-height: 1.7; margin-bottom: 16px; }
+
+    /* Stats */
+    .stats-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; margin-bottom: 20px; align-items: stretch; }
+    .stat-card { background: rgba(255,255,255,0.04); border-radius: 8px; padding: 10px 12px; min-width: 0; display: flex; flex-direction: column; }
+    .stat-label { font-size: 8px; color: rgba(255,255,255,0.28); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 3px; }
+    .stat-val { font-size: 13px; color: #fff; font-weight: 500; word-wrap: break-word; overflow-wrap: break-word; hyphens: auto; }
+
+    /* CTA */
+    .cta-row { display: flex; gap: 10px; align-items: stretch; margin-bottom: 16px; }
+    .btn-primary { flex: 1; background: #1FDF67; color: #000; border: none; border-radius: 10px; padding: 13px 16px; font-size: 14px; font-weight: 700; cursor: pointer; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 6px; }
+    .btn-primary:hover { background: #18c75a; }
+    .btn-disabled { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.3); cursor: default; }
+
+    /* Watch button (Phase 4) - hydrated client-side by Memberstack script.
+       Default state is the same dark "Watch" pill as the modal; .watching
+       turns it green-tinted; .has-unread shows a pulsing green dot. Mobile
+       collapses to icon-only to keep the cta-row tidy. */
+    .btn-watch {
+      flex: 0 0 auto;
+      display: inline-flex; align-items: center; justify-content: center;
+      gap: 6px;
+      height: 50px;
+      padding: 0 14px;
+      background: rgba(255,255,255,0.06);
+      border: 0.5px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      color: rgba(255,255,255,0.85);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      line-height: 1;
+      position: relative;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+    }
+    .btn-watch:hover { background: rgba(255,255,255,0.10); color: #fff; }
+    .btn-watch svg { width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 1.8; flex-shrink: 0; }
+    .btn-watch.watching {
+      background: rgba(31,223,103,0.12);
+      border-color: rgba(31,223,103,0.4);
+      color: #1FDF67;
+    }
+    .btn-watch.watching:hover { background: rgba(31,223,103,0.18); }
+    .btn-watch-dot {
+      display: none;
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: #1FDF67;
+      margin-left: 2px;
+      box-shadow: 0 0 8px rgba(31,223,103,0.8);
+      animation: pulseDot 1.6s ease-in-out infinite;
+    }
+    .btn-watch.watching.has-unread .btn-watch-dot { display: inline-block; }
+    @media (max-width: 480px) {
+      .btn-watch { width: 50px; padding: 0; gap: 0; }
+      .btn-watch-label { display: none; }
+      .btn-watch-dot {
+        position: absolute;
+        top: 8px; right: 8px;
+        margin: 0;
+      }
+    }
+    @keyframes pulseDot {
+      0%, 100% { transform: scale(1);    opacity: 1;   }
+      50%      { transform: scale(1.25); opacity: 0.7; }
+    }
+
+    /* "You're watching" summary card */
+    .watching-card[hidden] { display: none; }
+    .watching-card {
+      margin: 0 0 16px;
+      padding: 12px 14px;
+      background: rgba(31,223,103,0.08);
+      border: 1px solid rgba(31,223,103,0.25);
+      border-radius: 10px;
+    }
+    .watching-card-eyebrow {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #1FDF67;
+      margin-bottom: 4px;
+    }
+    .watching-card-eyebrow svg {
+      width: 12px; height: 12px;
+      stroke: currentColor; fill: none; stroke-width: 2;
+    }
+    .watching-card-body {
+      font-size: 13px;
+      line-height: 1.4;
+      color: rgba(255,255,255,0.85);
+    }
+    .watching-card-body strong {
+      color: #fff;
+      font-weight: 700;
+    }
+    /* Share button — square, gray pill matching map-preview CTA aesthetic */
+    .btn-share {
+      flex: 0 0 auto;
+      width: 50px;
+      background: rgba(255,255,255,0.07);
+      border: 0.5px solid rgba(255,255,255,0.15);
+      border-radius: 10px;
+      color: rgba(255,255,255,0.85);
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.15s, color 0.15s;
+      position: relative;
+      padding: 0;
+    }
+    .btn-share:hover { background: rgba(255,255,255,0.14); color: #fff; }
+    .btn-share:active { transform: scale(0.97); }
+    .btn-share svg { opacity: 0.85; }
+    /* "Link copied" tooltip — fades in for 1.5s after a desktop fallback copy */
+    .btn-share-tooltip {
+      position: absolute;
+      bottom: calc(100% + 6px); right: 0;
+      background: rgba(0,0,0,0.85);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 5px 9px;
+      border-radius: 6px;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.18s;
+    }
+    .btn-share.copied .btn-share-tooltip { opacity: 1; }
+
+    /* Mini map preview — clickable Mapbox static image with overlay CTA */
+    .map-preview {
+      display: block;
+      position: relative;
+      width: 100%;
+      height: 180px;
+      border-radius: 12px;
+      overflow: hidden;
+      text-decoration: none;
+      margin-bottom: 16px;
+      background: #1a1a1a;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .map-preview:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(0,0,0,0.4); }
+    .map-preview img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .map-preview-overlay {
+      position: absolute; inset: 0;
+      background: linear-gradient(to bottom, rgba(0,0,0,0) 50%, rgba(0,0,0,0.7) 100%);
+      display: flex; align-items: flex-end; justify-content: center;
+      padding: 14px;
+    }
+    .map-preview-cta {
+      display: flex; align-items: center; gap: 7px;
+      background: rgba(255,255,255,0.07);
+      border: 0.5px solid rgba(255,255,255,0.15);
+      color: rgba(255,255,255,0.9);
+      padding: 10px 16px;
+      border-radius: 22px;
+      font-size: 13px; font-weight: 500;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.4);
+      transition: background 0.15s;
+    }
+    .map-preview-cta svg { opacity: 0.7; }
+    .map-preview:hover .map-preview-cta { background: rgba(255,255,255,0.14); }
+
+    /* Site header is hidden across all viewports — brand lives in the footer logo */
+    .site-header { display: none !important; }
+
+    /* Footer logo — centered Markets of Tomorrow wordmark below content (all viewports) */
+    .footer-logo {
+      display: block;
+      padding: 40px 20px 48px;
+      text-align: center;
+    }
+    .footer-logo a {
+      display: inline-block;
+      transition: opacity 0.2s;
+    }
+    .footer-logo a:hover { opacity: 0.8; }
+    .footer-logo img {
+      height: 56px;
+      width: auto;
+      filter: brightness(0) invert(1);
+      opacity: 0.9;
+    }
+
+    @media (max-width: 480px) {
+      /* Mobile keeps a slightly smaller footer logo */
+      .footer-logo img { height: 48px; }
+      /* Gallery taller on mobile since header reclaim is freed up */
+      .gallery-hero { height: 280px; }
+      /* Mobile slider: revert to full-width single-image fade (no desktop peek) */
+      .gs-slider { height: 280px; padding: 0; }
+      .gs-slide { border-radius: 0; box-shadow: none; width: 100%; left: 0; }
+      .gs-slide[data-pos="active"] { left: 0; width: 100%; transform: none; opacity: 1; }
+      .gs-slide[data-pos="prev"],
+      .gs-slide[data-pos="next"],
+      .gs-slide[data-pos="hidden-left"],
+      .gs-slide[data-pos="hidden-right"] {
+        left: 0; width: 100%; opacity: 0; transform: none; filter: none; pointer-events: none;
+      }
+      .gs-arrow { width: 34px; height: 34px; }
+      .gs-prev { left: 10px; transform: translateY(-50%); }
+      .gs-prev:active { transform: translateY(-50%) scale(0.94); }
+      .gs-next { right: 10px; transform: translateY(-50%); }
+      .gs-next:active { transform: translateY(-50%) scale(0.94); }
+      .gs-counter { bottom: 14px; left: auto; right: 14px; transform: none; }
+      .project-title { font-size: 24px; }
+      .stats-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+      .map-preview { height: 180px; }
+    }
+
+    /* ── Project Updates: timeline of status_change + new_project events ── */
+    .updates-section[hidden] { display: none; }
+    .updates-section { margin-top: 28px; padding-top: 22px; border-top: 1px solid rgba(255,255,255,0.08); }
+    .updates-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+    .updates-title { font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; color: #fff; margin: 0; display: flex; align-items: center; gap: 8px; }
+    .updates-count { font-size: 10px; background: rgba(31,223,103,0.12); color: #1FDF67; padding: 2px 7px; border-radius: 10px; font-weight: 700; letter-spacing: 0.04em; }
+    .update-row { display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .update-row:last-child { border-bottom: none; }
+    .update-dot { flex-shrink: 0; width: 8px; height: 8px; margin-top: 6px; border-radius: 50%; background: #FF9500; }
+    .update-dot.map { background: #6FA8FF; }
+    .update-body { flex: 1; min-width: 0; }
+    .update-text { font-size: 13px; color: #fff; line-height: 1.4; }
+    .update-meta { font-size: 10px; color: rgba(255,255,255,0.45); text-transform: uppercase; letter-spacing: 0.06em; margin-top: 2px; }
+
+    /* ── Coverage on TMW: list of articles mentioning this project ── */
+    .coverage-section { margin-top: 28px; padding-top: 22px; border-top: 1px solid rgba(255,255,255,0.08); }
+    .cv-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+    .cv-title { font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; color: #fff; margin: 0; display: flex; align-items: center; gap: 8px; }
+    .cv-count { font-size: 10px; background: rgba(31,223,103,0.12); color: #1FDF67; padding: 2px 7px; border-radius: 10px; font-weight: 700; letter-spacing: 0.04em; }
+    .cv-featured { display: block; background: #000; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; overflow: hidden; text-decoration: none; color: inherit; margin-bottom: 12px; transition: border-color 0.15s; }
+    .cv-featured:hover { border-color: rgba(31,223,103,0.3); }
+    .cv-featured-img { width: 100%; height: 160px; background-size: cover; background-position: center; background-color: #000; position: relative; }
+    .cv-featured-tag { position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); color: #1FDF67; padding: 3px 8px; border-radius: 4px; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; }
+    .cv-featured-body { padding: 14px 16px 16px; }
+    .cv-featured-title { font-size: 15px; font-weight: 600; line-height: 1.35; margin-bottom: 6px; color: #fff; }
+    .cv-meta { font-size: 11px; color: rgba(255,255,255,0.4); }
+    .cv-list { display: flex; flex-direction: column; gap: 1px; background: rgba(255,255,255,0.06); border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.08); }
+    .cv-row { background: #000; padding: 12px 14px; display: flex; align-items: center; gap: 12px; text-decoration: none; color: inherit; transition: background 0.15s; }
+    .cv-row:hover { background: #0a0a0a; }
+    .cv-thumb { width: 56px; height: 56px; flex-shrink: 0; background-size: cover; background-position: center; background-color: #000; border-radius: 8px; }
+    .cv-row-body { flex: 1; min-width: 0; }
+    .cv-row-title { font-size: 13px; font-weight: 600; line-height: 1.35; margin-bottom: 3px; color: #fff; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+    .cv-row-meta { font-size: 11px; color: rgba(255,255,255,0.4); }
+    .cv-row-arrow { color: rgba(255,255,255,0.4); flex-shrink: 0; }
+    .cv-row-arrow svg { stroke: currentColor; fill: none; }
+    .cv-view-all { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 12px; margin-top: 12px; border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; font-size: 12px; color: rgba(255,255,255,0.55); font-weight: 600; text-decoration: none; transition: color 0.15s, border-color 0.15s; }
+    .cv-view-all:hover { color: #fff; border-color: rgba(255,255,255,0.18); }
+    .cv-view-all svg { stroke: currentColor; fill: none; }
+  </style>
+</head>
+<body>
+
+  
+    <div class="gallery gs-slider" data-count="1">
+      <div class="gs-track">
+        <img class="gs-slide" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_84a633b15cd44cc4857db839ae4da0fb~mv2.webp" alt="" loading="eager" data-i="0" data-pos="active" />
+      </div>
+    </div>
+
+  <div class="content">
+    
+    <h1 class="project-title">Bentley Residences Miami</h1>
+    <p class="project-city">Sunny Isles Beach • Residences</p>
+    <!-- "You're watching" summary card. Hidden by default; the inline
+         Memberstack hydration script below reveals it when the user is
+         signed in, watching this project, and has unread pulse events. -->
+    <div class="watching-card" id="watchingCard" hidden>
+      <div class="watching-card-eyebrow">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        You're watching
+      </div>
+      <div class="watching-card-body" id="watchingCardBody"></div>
+    </div>
+    
+    <div class="ps-wrap">
+      <div class="ps-top">
+        <span class="ps-stage" style="color:#FF9500">Construction</span>
+        <span class="ps-pct">80%</span>
+      </div>
+      <div class="ps-segments"><div class="ps-seg ps-seg-done" style="flex:15 0 0;--seg-c:rgba(255,255,255,0.55);"><div class="ps-seg-fill" style="width:100%"></div></div><div class="ps-seg ps-seg-done" style="flex:15 0 0;--seg-c:#FFD300;"><div class="ps-seg-fill" style="width:100%"></div></div><div class="ps-seg ps-seg-active" style="flex:40 0 0;--seg-c:#FF9500;"><div class="ps-seg-fill" style="width:64%"></div></div><div class="ps-seg ps-seg-future" style="flex:15 0 0;--seg-c:rgba(255,255,255,0.08);"><div class="ps-seg-fill" style="width:0%"></div></div><div class="ps-seg ps-seg-future" style="flex:15 0 0;--seg-c:rgba(255,255,255,0.08);"><div class="ps-seg-fill" style="width:0%"></div></div></div>
+      <div class="ps-labels"><span class="ps-label" style="flex:15 0 0;">Announced</span><span class="ps-label" style="flex:15 0 0;">Breaking Ground</span><span class="ps-label ps-cur" style="flex:40 0 0;color:#FF9500;">Construction</span><span class="ps-label" style="flex:15 0 0;">Opening Soon</span><span class="ps-label" style="flex:15 0 0;">Now Open</span></div>
+      <div class="ps-sub">7 months to delivery</div>
+    </div>
+    <div class="divider"></div>
+    <p class="description">A 62-story, 749-foot oceanfront tower with a patented "Dezervator" car elevator system.</p>
+    <div class="divider"></div>
+    <div class="stats-grid"><div class="stat-card">
+      <div class="stat-label">Developer</div>
+      <div class="stat-val">Dezer Development</div>
+    </div><div class="stat-card">
+      <div class="stat-label">Architect</div>
+      <div class="stat-val">Sieger Suarez Architects</div>
+    </div><div class="stat-card">
+      <div class="stat-label">Delivery</div>
+      <div class="stat-val">2026</div>
+    </div><div class="stat-card">
+      <div class="stat-label">Market</div>
+      <div class="stat-val">Sunny Isles Beach</div>
+    </div></div>
+    <div class="cta-row">
+      <a class="btn-primary" href="https://bentleyresidencesmiami.com/" target="_blank" rel="noopener">Official Website <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></a>
+      <button class="btn-share" type="button" aria-label="Share project" onclick="window.shareProject &amp;&amp; window.shareProject(this)"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg><span class="btn-share-tooltip" aria-live="polite"></span></button>
+      <!-- Watch button: stays "Watch" until the page-load script hydrates
+           the actual signed-in + watching state from Memberstack. Click is
+           bound by the script too; the bare button is non-functional until
+           Memberstack loads (which is fine, the share/website buttons are
+           the primary CTAs). -->
+      <button class="btn-watch" id="watchBtn" type="button" aria-label="Watch this project" data-slug="bentley-residences-miami" data-title="Bentley Residences Miami">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+          <circle cx="12" cy="12" r="3"/>
+        </svg>
+        <span class="btn-watch-label" id="watchBtnLabel">Watch</span>
+        <span class="btn-watch-dot" aria-hidden="true"></span>
+      </button>
+    </div>
+    
+    <a class="map-preview" href="https://www.oftmw.com/map/?project=bentleyresidencesmiami" aria-label="View on map">
+      <img src="https://api.mapbox.com/styles/v1/floridaoftomorrow/clkbk4qlw000a01qw94rj0xa7/static/pin-l+1FDF67(-80.120015,25.9470642)/-80.120015,25.9470642,14,0/720x320@2x?access_token=pk.eyJ1IjoiZmxvcmlkYW9mdG9tb3Jyb3ciLCJhIjoiY2xrYmpmdGQ2MGdibTNzcXZjMnA4aXh3ZiJ9.uBeYS7jmKwWS6xAgY-R1UA" alt="Map location" loading="lazy" />
+      <div class="map-preview-overlay">
+        <div class="map-preview-cta">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>
+          View on Map
+        </div>
+      </div>
+    </a>
+    <!-- Project Updates (Phase X): client-side hydrated from pulse.json on
+         page load. Lists status_change + new_project events tied to this
+         slug. Hidden by default; the hydration script reveals it if any
+         pulse events match. -->
+    <div class="updates-section" id="updatesSection" hidden>
+      <div class="updates-header">
+        <div class="updates-title">
+          Project Updates
+          <span class="updates-count" id="updatesCount"></span>
+        </div>
+      </div>
+      <div id="updatesBody"></div>
+    </div>
+    
+  <section class="coverage-section">
+    <div class="cv-header">
+      <h2 class="cv-title">Coverage on TMW <span class="cv-count">4</span></h2>
+    </div>
+    <a class="cv-featured" href="https://www.oftmw.com/post/bentley-residences-miami-completes-the-largest-residential-foundation-pour-in-america" target="_blank" rel="noopener">
+      <div class="cv-featured-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_d30d205a97d94d809d703fa69297a6a1~mv2.webp')">
+        <div class="cv-featured-tag">Latest</div>
+      </div>
+      <div class="cv-featured-body">
+        <div class="cv-featured-title">Bentley Residences Miami completes the largest residential foundation pour in America</div>
+        <div class="cv-meta">Nov 18, 2025</div>
+      </div>
+    </a>
+    <div class="cv-list">
+          <a class="cv-row" href="https://www.oftmw.com/post/the-world-s-first-bentley-branded-residences-unveils-its-37-5-million-penthouse-in-miami" target="_blank" rel="noopener">
+            <div class="cv-thumb" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_d30d205a97d94d809d703fa69297a6a1~mv2.webp')"></div>
+            <div class="cv-row-body">
+              <div class="cv-row-title">The world’s first Bentley-branded residences unveils its $37.5 million penthouse in Miami</div>
+              <div class="cv-row-meta">Sep 3, 2025</div>
+            </div>
+            <div class="cv-row-arrow">
+              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+            </div>
+          </a>
+        
+          <a class="cv-row" href="https://www.oftmw.com/post/first-pagani-residences-in-the-world-to-launch-in-miami-s-north-bay-village-featuring-70-units-in-2" target="_blank" rel="noopener">
+            <div class="cv-thumb" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_57fd9797cbdc47cba1a19fa77e71ff46~mv2.jpg')"></div>
+            <div class="cv-row-body">
+              <div class="cv-row-title">World's first Pagani Residences to launch in Miami’s North Bay Village, featuring 70 units in 28 stories, with prices starting at $2.4 million</div>
+              <div class="cv-row-meta">Mar 6, 2024</div>
+            </div>
+            <div class="cv-row-arrow">
+              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+            </div>
+          </a>
+        
+          <a class="cv-row" href="https://www.oftmw.com/post/the-bentley-residences-in-sunny-isles-beach-is-set-to-break-ground-early-next-year-and-will-offer-a" target="_blank" rel="noopener">
+            <div class="cv-thumb" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_95868758a2144b91b792b159b169f12e~mv2.webp')"></div>
+            <div class="cv-row-body">
+              <div class="cv-row-title">The Bentley Residences in Sunny Isles Beach is set to break ground early next year, and will offer a unique car elevator system</div>
+              <div class="cv-row-meta">Dec 21, 2023</div>
+            </div>
+            <div class="cv-row-arrow">
+              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+            </div>
+          </a>
+        </div>
+    
+  </section>
+
+  </div>
+
+  <!-- Footer logo — centered Markets of Tomorrow wordmark, shown on all viewports -->
+  <div class="footer-logo">
+    <a href="https://www.oftmw.com/map" aria-label="Markets of Tomorrow home">
+      <img src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/other/50822a-TMW_Logos-16.svg" alt="Markets of Tomorrow" />
+    </a>
+  </div>
+
+  <script>
+    // Share button — uses Web Share API on mobile/supported browsers,
+    // falls back to copying the page URL to the clipboard with a "Link copied" tooltip.
+    window.shareProject = function(btn) {
+      const url = window.location.href;
+      const title = document.title;
+      const shareData = { title: title, url: url };
+      if (navigator.share) {
+        navigator.share(shareData).catch(() => { /* user dismissed; nothing to do */ });
+        return;
+      }
+      // Clipboard fallback
+      const showTooltip = (text) => {
+        const tip = btn && btn.querySelector('.btn-share-tooltip');
+        if (!tip) return;
+        tip.textContent = text;
+        btn.classList.add('copied');
+        clearTimeout(btn._tipTimer);
+        btn._tipTimer = setTimeout(() => btn.classList.remove('copied'), 1500);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url)
+          .then(() => showTooltip('Link copied'))
+          .catch(() => showTooltip('Press ⌘C to copy'));
+      } else {
+        // Last resort: legacy execCommand
+        try {
+          const ta = document.createElement('textarea');
+          ta.value = url; ta.setAttribute('readonly', '');
+          ta.style.position = 'absolute'; ta.style.left = '-9999px';
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand('copy');
+          document.body.removeChild(ta);
+          showTooltip('Link copied');
+        } catch (e) {
+          showTooltip('Could not copy');
+        }
+      }
+    };
+
+    // Gallery slider — arrow cycling, keyboard arrows, and touch swipe
+    // Uses data-pos="active|prev|next" so CSS can position the center slide and
+    // peek slides on desktop, while mobile collapses to a full-width fade.
+    (function() {
+      const slider = document.querySelector('.gs-slider');
+      if (!slider) return;
+      const slides = slider.querySelectorAll('.gs-slide');
+      const counter = slider.querySelector('.gs-cur');
+      const prevBtn = slider.querySelector('.gs-prev');
+      const nextBtn = slider.querySelector('.gs-next');
+      const total = slides.length;
+      let cur = 0;
+
+      // Preload an image so transitions feel instant
+      function preload(idx) {
+        const img = slides[idx];
+        if (!img) return;
+        if (img.dataset.preloaded) return;
+        const ghost = new Image();
+        ghost.src = img.src;
+        img.dataset.preloaded = '1';
+      }
+
+      function applyPositions() {
+        const prevIdx = (cur - 1 + total) % total;
+        const nextIdx = (cur + 1) % total;
+
+        // Determine the new pos for each slide
+        const newPos = new Array(total);
+        slides.forEach((slide, i) => {
+          if (i === cur) {
+            newPos[i] = 'active';
+            return;
+          }
+          if (total === 2) {
+            newPos[i] = i === nextIdx ? 'next' : 'hidden-right';
+            return;
+          }
+          if (i === prevIdx) {
+            newPos[i] = 'prev';
+          } else if (i === nextIdx) {
+            newPos[i] = 'next';
+          } else {
+            // Park hidden slides on the side closer in cycle direction so they only
+            // need to fade in (not slide across the screen) when activated.
+            const forwardDist  = (i - cur + total) % total;
+            const backwardDist = (cur - i + total) % total;
+            newPos[i] = forwardDist <= backwardDist ? 'hidden-right' : 'hidden-left';
+          }
+        });
+
+        // Snap-then-animate: if a slide is changing from a left-side state to a
+        // right-side state (or vice versa), it would otherwise animate horizontally
+        // across the visible area, causing a half-image flash. Disable its `left`
+        // transition for one frame so the position change is instant, then restore
+        // the transition so subsequent state changes animate normally.
+        const LEFT_SIDE  = new Set(['prev', 'hidden-left']);
+        const RIGHT_SIDE = new Set(['next', 'hidden-right']);
+        const teleporters = [];
+        slides.forEach((slide, i) => {
+          const oldP = slide.getAttribute('data-pos');
+          const newP = newPos[i];
+          if (!oldP || oldP === newP) return;
+          const crossesSides =
+            (LEFT_SIDE.has(oldP) && RIGHT_SIDE.has(newP)) ||
+            (RIGHT_SIDE.has(oldP) && LEFT_SIDE.has(newP));
+          if (crossesSides) teleporters.push(slide);
+        });
+
+        teleporters.forEach(s => { s.style.transition = 'opacity 0.4s ease'; });
+        slides.forEach((slide, i) => slide.setAttribute('data-pos', newPos[i]));
+        if (teleporters.length) {
+          // Force layout flush, then restore the transition next frame so future
+          // state changes animate `left` normally.
+          // eslint-disable-next-line no-unused-expressions
+          teleporters[0].offsetHeight;
+          requestAnimationFrame(() => {
+            teleporters.forEach(s => { s.style.transition = ''; });
+          });
+        }
+      }
+
+      function go(next) {
+        if (next === cur) return;
+        cur = (next + total) % total;
+        applyPositions();
+        if (counter) counter.textContent = cur + 1;
+        // Preload neighbors
+        preload((cur + 1) % total);
+        preload((cur - 1 + total) % total);
+      }
+
+      // Initial render
+      applyPositions();
+
+      prevBtn?.addEventListener('click', () => go(cur - 1));
+      nextBtn?.addEventListener('click', () => go(cur + 1));
+
+      // Click on a peek slide to navigate to it
+      slides.forEach((slide, i) => {
+        slide.addEventListener('click', () => {
+          const pos = slide.getAttribute('data-pos');
+          if (pos === 'prev') go(cur - 1);
+          else if (pos === 'next') go(cur + 1);
+        });
+      });
+
+      // Keyboard arrows when slider is focused/in view
+      document.addEventListener('keydown', (e) => {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+        if (e.key === 'ArrowLeft')  go(cur - 1);
+        if (e.key === 'ArrowRight') go(cur + 1);
+      });
+
+      // Touch swipe for mobile
+      let startX = 0, startY = 0;
+      slider.addEventListener('touchstart', (e) => {
+        startX = e.touches[0].clientX; startY = e.touches[0].clientY;
+      }, { passive: true });
+      slider.addEventListener('touchend', (e) => {
+        const dx = e.changedTouches[0].clientX - startX;
+        const dy = e.changedTouches[0].clientY - startY;
+        if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) {
+          go(dx < 0 ? cur + 1 : cur - 1);
+        }
+      }, { passive: true });
+
+      // Preload the second image immediately
+      preload(1 % total);
+    })();
+
+    /* ─── Watch button hydration (Phase 4) ─────────────────────────────
+       Static pages don't know who the visitor is at build time, so the
+       Watch button ships in its default "Watch" state. On page load:
+         1. Wait for Memberstack to be ready
+         2. Read favorites + last_viewed_at from the member JSON
+         3. If watching this project, flip button to "Watching" state
+         4. Fetch pulse.json + compute unread count → show summary card
+         5. Stamp last_viewed_at = now (matches the map modal's behavior)
+         6. Wire click handler: toggle favorite + persist (merge-fetch-write
+            to avoid clobbering sibling JSON keys) + update UI
+
+       Anonymous users see a stable "Watch" button. Clicking it sends them
+       to the map's signup wall via the standard map URL. */
+    (function watchBtnHydrate() {
+      var btn      = document.getElementById('watchBtn');
+      var labelEl  = document.getElementById('watchBtnLabel');
+      var card     = document.getElementById('watchingCard');
+      var cardBody = document.getElementById('watchingCardBody');
+      if (!btn) return;
+      var slug = btn.getAttribute('data-slug') || '';
+      var title = btn.getAttribute('data-title') || '';
+      if (!slug) return;
+
+      // Sync UI to current state. `watching` toggles the green pill; the
+      // dot piggybacks on `.has-unread` which is set by the unread-counter
+      // step below once pulse.json comes back.
+      function setUI(watching) {
+        if (watching) {
+          btn.classList.add('watching');
+          if (labelEl) labelEl.textContent = 'Watching';
+          btn.setAttribute('aria-label', 'Stop watching this project');
+        } else {
+          btn.classList.remove('watching', 'has-unread');
+          if (labelEl) labelEl.textContent = 'Watch';
+          btn.setAttribute('aria-label', 'Watch this project');
+          if (card) card.setAttribute('hidden', '');
+        }
+      }
+
+      function waitForMemberstack(cb, tries) {
+        tries = tries || 0;
+        if (window.$memberstackDom && window.$memberstackDom.getCurrentMember) {
+          cb(window.$memberstackDom);
+        } else if (tries < 60) {
+          // Poll up to ~6s. Plenty for the async <script> tag in head.
+          setTimeout(function() { waitForMemberstack(cb, tries + 1); }, 100);
+        }
+      }
+
+      // Compute "N new updates since last_viewed_at" for this project from
+      // pulse.json. Same logic as the map's getUnreadForProject() but local
+      // to this page so we don't pull in the whole map JS bundle.
+      function fetchUnread(lastViewedIso, cb) {
+        fetch('/map/pulse.json', { cache: 'no-store' })
+          .then(function(r) { if (!r.ok) throw 0; return r.json(); })
+          .then(function(data) {
+            var events = (data && Array.isArray(data.events)) ? data.events : [];
+            var count = 0;
+            var lastEvent = null;
+            for (var i = 0; i < events.length; i++) {
+              var ev = events[i];
+              if (ev.project_slug !== slug) continue;
+              var ts = ev.timestamp || '';
+              if (!lastViewedIso || ts > lastViewedIso) {
+                count++;
+                if (!lastEvent || ts > (lastEvent.timestamp || '')) lastEvent = ev;
+              }
+            }
+            cb(count, lastEvent);
+          })
+          .catch(function() { cb(0, null); });
+      }
+
+      function renderWatchingCard(count, lastEvent, lastViewedIso) {
+        if (!card || !cardBody) return;
+        // Show the card on EVERY watched project. Copy adapts: highlight new
+        // activity when there is some, or quietly reinforce that we're
+        // tracking when there isn't.
+        if (count > 0) {
+          btn.classList.add('has-unread');
+          var detail = '';
+          if (lastEvent) {
+            var t = lastEvent.type || '';
+            if (t === 'article')           detail = ' — incl. a new article';
+            else if (t === 'status_change') detail = ' — incl. a status change';
+          }
+          var noun = count === 1 ? 'update' : 'updates';
+          cardBody.innerHTML = '<strong>' + count + ' new ' + noun + '</strong> since you last viewed' + detail;
+        } else {
+          btn.classList.remove('has-unread');
+          var when = '';
+          if (lastViewedIso) {
+            var ms = new Date(lastViewedIso).getTime();
+            if (ms) {
+              var s = Math.max(1, Math.floor((Date.now() - ms) / 1000));
+              if (s < 60)        when = 'just now';
+              else if (s < 3600) when = Math.floor(s / 60)   + 'm ago';
+              else if (s < 86400) when = Math.floor(s / 3600) + 'h ago';
+              else if (s < 604800) when = Math.floor(s / 86400) + 'd ago';
+              else                when = Math.floor(s / 604800) + 'w ago';
+            }
+          }
+          if (when) {
+            cardBody.innerHTML = '<strong>You’re up to date</strong> — last viewed ' + when;
+          } else {
+            cardBody.innerHTML = '<strong>Tracking this project</strong> — we’ll surface news and status changes here.';
+          }
+        }
+        card.removeAttribute('hidden');
+      }
+
+      // Merge-fetch-write to Memberstack JSON. Required because updateMemberJSON
+      // REPLACES the entire blob (Memberstack API behavior, not a merge).
+      async function saveMemberJson(patch) {
+        var ms = window.$memberstackDom;
+        if (!ms) return;
+        try {
+          var cur = await ms.getMemberJSON();
+          var json = (cur && cur.data && typeof cur.data === 'object') ? cur.data : {};
+          for (var k in patch) { json[k] = patch[k]; }
+          await ms.updateMemberJSON({ json: json });
+        } catch (e) { /* swallow; non-fatal */ }
+      }
+
+      // Anon users: clicking the watch button just sends them to the map's
+      // signup flow. The map already handles the sign-up wall, so we route
+      // there with the deep-link to this project so after sign-up they land
+      // back in context.
+      function anonClick() {
+        var mapHref = 'https://www.oftmw.com/map/?project=' + encodeURIComponent(slug);
+        window.location.href = mapHref;
+      }
+
+      waitForMemberstack(async function(ms) {
+        var memberResp;
+        try { memberResp = await ms.getCurrentMember(); } catch (e) { memberResp = null; }
+        var member = memberResp && memberResp.data;
+        if (!member) {
+          // Anonymous: leave button in default state. Clicking it deep-links
+          // to the map (which knows how to handle the signup wall).
+          btn.addEventListener('click', anonClick);
+          return;
+        }
+
+        // Signed in: load JSON, set state, wire click
+        var json = {};
+        try {
+          var got = await ms.getMemberJSON();
+          json = (got && got.data && typeof got.data === 'object') ? got.data : {};
+        } catch (e) { json = {}; }
+        var favs = Array.isArray(json.favorites) ? json.favorites : [];
+        var lastViewed = (json.last_viewed_at && typeof json.last_viewed_at === 'object') ? json.last_viewed_at : {};
+        var isWatching = favs.indexOf(slug) !== -1;
+        setUI(isWatching);
+
+        if (isWatching) {
+          // Pull unread count then render summary card. Then mark this view
+          // as "just viewed" so the counter resets for next time.
+          fetchUnread(lastViewed[slug] || '', function(count, lastEvent) {
+            // Pass the prior last_viewed so the "0 unread" path can show
+            // relative time. Then stamp = now so next visit's counter is
+            // accurate.
+            renderWatchingCard(count, lastEvent, lastViewed[slug] || '');
+            lastViewed[slug] = new Date().toISOString();
+            saveMemberJson({ last_viewed_at: lastViewed });
+          });
+        }
+
+        // Click handler. Paid-tier gate matches the map: free users get
+        // routed to the map for the subscription paywall flow. Detecting
+        // paid status here is best-effort -- if any plan is active we
+        // assume paid. (The map is the source of truth; this is just to
+        // avoid silently doing nothing on free clicks.)
+        var plans = member.planConnections || [];
+        var isPaid = plans.some(function(p) { return p.active === true || p.status === 'ACTIVE'; });
+
+        btn.addEventListener('click', async function() {
+          if (!isPaid) {
+            // Free users: route to map which handles the paywall UX.
+            anonClick();
+            return;
+          }
+          // Toggle state, persist, repaint
+          var idx = favs.indexOf(slug);
+          if (idx === -1) {
+            favs.push(slug);
+            isWatching = true;
+          } else {
+            favs.splice(idx, 1);
+            isWatching = false;
+          }
+          setUI(isWatching);
+          // Persist favorites (merge-write to preserve last_viewed_at etc).
+          await saveMemberJson({ favorites: favs });
+        });
+      });
+    })();
+
+    /* ─── Project Updates hydration ─────────────────────────────────────
+       Fetches /pulse.json on page load and surfaces any status_change or
+       new_project events for THIS project as a compact timeline. Section
+       stays hidden if no matching events exist. Mirrors the modal's
+       Project Updates section. */
+    (function updatesHydrate() {
+      var section = document.getElementById('updatesSection');
+      var body    = document.getElementById('updatesBody');
+      var countEl = document.getElementById('updatesCount');
+      if (!section || !body) return;
+      var pageSlug = 'bentley-residences-miami';
+      if (!pageSlug) return;
+
+      function escapeHtml(s) {
+        return String(s || '').replace(/[&<>"']/g, function(ch) {
+          return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[ch];
+        });
+      }
+      function formatDate(iso) {
+        if (!iso) return '';
+        try {
+          var d = new Date(iso);
+          return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+        } catch (e) { return ''; }
+      }
+
+      fetch('/map/pulse.json', { cache: 'no-store' })
+        .then(function(r) { return r.ok ? r.json() : { events: [] }; })
+        .then(function(data) {
+          var events = (data && Array.isArray(data.events)) ? data.events : [];
+          var matches = events.filter(function(ev) {
+            return ev.project_slug === pageSlug &&
+                   (ev.type === 'status_change' || ev.type === 'new_project');
+          });
+          if (!matches.length) {
+            section.setAttribute('hidden', '');
+            return;
+          }
+          var html = '';
+          matches.forEach(function(ev) {
+            var dotCls = (ev.type === 'new_project') ? 'map' : '';
+            var text = ev.title_full || ev.title || 'Project update';
+            html += '<div class="update-row">' +
+                      '<div class="update-dot ' + dotCls + '"></div>' +
+                      '<div class="update-body">' +
+                        '<div class="update-text">' + escapeHtml(text) + '</div>' +
+                        '<div class="update-meta">' + escapeHtml(formatDate(ev.timestamp)) + '</div>' +
+                      '</div>' +
+                    '</div>';
+          });
+          body.innerHTML = html;
+          if (countEl) countEl.textContent = matches.length;
+          section.removeAttribute('hidden');
+        })
+        .catch(function() { /* non-fatal */ });
+    })();
+  </script>
+</body>
+</html>
