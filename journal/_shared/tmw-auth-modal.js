@@ -316,7 +316,7 @@
   var _projBySlug = null;
   function loadProjects() {
     if (_projBySlug) return Promise.resolve(_projBySlug);
-    return fetch('https://map.oftmw.com/projects-flat.json').then(function (r) { return r.json(); }).then(function (arr) {
+    return fetch('https://www.oftmw.com/map/projects-flat.json').then(function (r) { return r.json(); }).then(function (arr) {
       var map = {};
       (Array.isArray(arr) ? arr : []).forEach(function (p) { var s = projectSlugify(p.Title); if (s && !map[s]) map[s] = p; });
       _projBySlug = map; return map;

@@ -30,13 +30,13 @@
   <meta name="keywords" content="Florida real estate map, development map, development pipeline, new developments coming to Florida, new developments coming to Bahamas, new developments around the United States, Markets of Tomorrow, Florida of Tomorrow, new projects Florida, interactive map, future developments">
   <meta name="author" content="Markets of Tomorrow">
   <meta name="robots" content="index, follow">
-  <link rel="canonical" href="https://map.oftmw.com/">
+  <link rel="canonical" href="https://www.oftmw.com/map/">
 
   <meta property="og:site_name" content="Markets of Tomorrow">
   <meta property="og:title" content="Map of Tomorrow | Interactive Future Development Map | Markets of Tomorrow">
   <meta property="og:description" content="Explore the world's most exciting developments in an interactive map by Markets of Tomorrow ‚Äî from luxury projects to future neighborhoods.">
   <meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_93ffb2f000f94a12aa874fe44153be18~mv2.jpg">
-  <meta property="og:url" content="https://map.oftmw.com/">
+  <meta property="og:url" content="https://www.oftmw.com/map/">
   <meta property="og:type" content="website">
 
   <meta name="twitter:card" content="summary_large_image">
@@ -610,7 +610,7 @@
     "@context": "https://schema.org",
     "@type": "WebSite",
     "name": "Map of Tomorrow",
-    "url": "https://map.oftmw.com",
+    "url": "https://www.oftmw.com/map",
     "publisher": {
       "@type": "Organization",
       "name": "Markets of Tomorrow",
@@ -11331,7 +11331,7 @@
       <div class="v2-mode-toggle" aria-label="Switch surface: Journal, Map, Atlas">
         <div class="tmw-st">
           <a class="tmw-st-seg" data-s="journal" href="https://www.oftmw.com/" title="Journal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5.2A1.2 1.2 0 0 1 4.2 4H10a2 2 0 0 1 2 2 2 2 0 0 1 2-2h5.8A1.2 1.2 0 0 1 21 5.2v12.6a1 1 0 0 1-1 1h-6a2 2 0 0 0-2 2 2 2 0 0 0-2-2H4a1 1 0 0 1-1-1z"/><path d="M12 6v14"/></svg><span class="tmw-st-lbl">Journal</span></a>
-          <a class="tmw-st-seg on" data-s="map" href="https://map.oftmw.com/" title="Map" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l-6 3V6l6-3 6 3 6-3v15l-6 3-6-3z"/><path d="M9 3v15M15 6v15"/></svg><span class="tmw-st-lbl">Map</span></a>
+          <a class="tmw-st-seg on" data-s="map" href="https://www.oftmw.com/map/" title="Map" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l-6 3V6l6-3 6 3 6-3v15l-6 3-6-3z"/><path d="M9 3v15M15 6v15"/></svg><span class="tmw-st-lbl">Map</span></a>
           <a class="tmw-st-seg" data-s="atlas" href="https://www.oftmw.com/atlas" title="Atlas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg><span class="tmw-st-lbl">Atlas</span></a>
         </div>
       </div>
@@ -11812,25 +11812,6 @@
     // don't collide with `window.map`, which the browser sets to the
     // <div id="map"> element via id-named-globals.
     window._tmwMap = map;
-
-    // Token-domain fallback: the Mapbox token is restricted by URL. If it doesn't
-    // authorize the host serving this clone yet (e.g. www.oftmw.com before it's
-    // whitelisted), the style request returns 401/403 and the map is blank — so
-    // fall back to the authorized live map.oftmw.com, once, preserving any
-    // ?project=/#hash deep link. A no-op on map.oftmw.com itself, and silent once
-    // the host is whitelisted (no 401, no redirect). Lets the toggle/deep links
-    // point at /map safely before the token step is done.
-    map.on('error', function (e) {
-      try {
-        var st = e && e.error && e.error.status;
-        if ((st === 401 || st === 403) &&
-            location.hostname !== 'map.oftmw.com' &&
-            !sessionStorage.getItem('tmw-map-fellback')) {
-          sessionStorage.setItem('tmw-map-fellback', '1');
-          location.replace('https://map.oftmw.com/' + location.search + location.hash);
-        }
-      } catch (_) {}
-    });
 
     let activePopup, stationPopup, fullscreenMap;
 
@@ -13910,7 +13891,7 @@
         // Restore SEO meta to defaults
         document.title = 'Map of Tomorrow | Interactive Future Development Map | Markets of Tomorrow';
         document.querySelector('meta[property="og:title"]')?.setAttribute('content', 'Map of Tomorrow | Interactive Future Development Map | Markets of Tomorrow');
-        document.querySelector('meta[property="og:url"]')?.setAttribute('content', 'https://map.oftmw.com/');
+        document.querySelector('meta[property="og:url"]')?.setAttribute('content', 'https://www.oftmw.com/map/');
         document.querySelector('meta[property="og:image"]')?.setAttribute('content', 'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_93ffb2f000f94a12aa874fe44153be18~mv2.jpg');
         document.querySelector('meta[name="twitter:title"]')?.setAttribute('content', 'Map of Tomorrow | Interactive Future Development Map | Markets of Tomorrow');
         document.querySelector('meta[name="twitter:image"]')?.setAttribute('content', 'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_93ffb2f000f94a12aa874fe44153be18~mv2.jpg');

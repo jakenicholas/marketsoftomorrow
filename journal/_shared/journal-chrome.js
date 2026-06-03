@@ -196,7 +196,7 @@
     // page — inline headers and this chrome — behaves identically.
 
     // Live "X Live" count from pulse.json (cheapest signal)
-    fetch('https://map.oftmw.com/pulse.json', { cache: 'no-store' })
+    fetch('https://www.oftmw.com/map/pulse.json', { cache: 'no-store' })
       .then(function (r) { return r.ok ? r.json() : null; })
       .then(function (data) {
         var el = document.getElementById('mc-count-n');

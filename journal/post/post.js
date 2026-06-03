@@ -6,7 +6,7 @@ const WORKER_URL    = 'https://tmw.jake-ab7.workers.dev';
 const WIX_RSS_URL   = 'https://www.oftmw.com/blog-feed.xml';
 const CORS_PROXY    = 'https://api.codetabs.com/v1/proxy/?quest=';
 const ADS_URL       = '/ads.json';
-const PULSE_URL     = 'https://map.oftmw.com/pulse.json';
+const PULSE_URL     = 'https://www.oftmw.com/map/pulse.json';
 const PULSE_NEW_DAYS = 7;
 const PULSE_MAX     = 8;
 const PLACEMENT     = 'article';

@@ -377,8 +377,8 @@
     function $all(s){ return root.querySelectorAll(s); }
     function esc(s){ return String(s).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];}); }
 
-    var PROJECTS_URL = 'https://map.oftmw.com/projects-flat.json';
-    var PULSE_URL    = 'https://map.oftmw.com/pulse.json';
+    var PROJECTS_URL = 'https://www.oftmw.com/map/projects-flat.json';
+    var PULSE_URL    = 'https://www.oftmw.com/map/pulse.json';
     var PIN_CITY = { waldorf:'St. Petersburg', melia:'Miami', greene:'West Palm Beach', nashville:'Nashville', ftl:'Fort Lauderdale' };
 
     /* ---- breakdown data (static seed = instant paint + offline fallback;

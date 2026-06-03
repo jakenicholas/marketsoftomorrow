@@ -20,7 +20,7 @@ from xml.etree import ElementTree as ET
 # --- CONFIG -----------------------------------------------------------------
 SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1qwU7ykIDUrtPlIQu-qk2FIJwiz-WWg5caq02ja30sgM/export?format=csv&gid=0"
 RSS_URL = "https://www.oftmw.com/blog-feed.xml"
-SITE_URL = "https://map.oftmw.com"
+SITE_URL = "https://www.oftmw.com/map"
 
 # Public R2 base — migrated Wix images serve from here (bypassing the Worker).
 R2_PUBLIC_BASE = "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev"

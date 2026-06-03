@@ -292,7 +292,7 @@ function fmtMon(d){ return d ? d.toLocaleString('en-US',{month:'short',year:'num
 // ── data loading ─────────────────────────────────────────────────
 async function loadData(){
   const [p,f,intel] = await Promise.all([
-    fetch('https://map.oftmw.com/projects-flat.json',{cache:'force-cache'}).then(r=>r.ok?r.json():[]).catch(()=>[]),
+    fetch('https://www.oftmw.com/map/projects-flat.json',{cache:'force-cache'}).then(r=>r.ok?r.json():[]).catch(()=>[]),
     fetch('/firms-flat.json',{cache:'force-cache'}).then(r=>r.ok?r.json():[]).catch(()=>[]),
     (window.TMWIntel ? TMWIntel.loadIntel() : Promise.resolve({}))
   ]);

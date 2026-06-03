@@ -1,0 +1,6 @@
+# Cloudflare Pages headers.
+# The map's data JSONs (served at /map/*.json) are read cross-origin by the
+# Studio (admin.oftmw.com) and, during the cutover, by the legacy map.oftmw.com.
+# Same-origin journal pages don't need this, but cross-origin readers do.
+/map/*
+  Access-Control-Allow-Origin: *
