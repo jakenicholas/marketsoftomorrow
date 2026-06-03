@@ -10844,9 +10844,21 @@
       #tmwDrawerHandle:hover{ background:rgba(30,30,34,0.96); transform:translateX(2px); }
       body.ui-v2.v2-sidebar-collapsed #tmwDrawerHandle{ display:flex; }
       body.ui-v2.v2-sidebar-collapsed #tmwDrawerClose{ display:none; }
+      /* Bottom-search suggestions while the drawer is collapsed — a dropdown
+         floating just above the bottom dock. Selecting one flies + opens the
+         tile; only shown when collapsed. */
+      #tmwDockAC{
+        position:fixed; left:50%; transform:translateX(-50%); bottom:92px; z-index:36;
+        width:440px; max-width:46vw; max-height:48vh; overflow-y:auto;
+        background:rgba(13,13,15,0.95); -webkit-backdrop-filter:blur(22px); backdrop-filter:blur(22px);
+        border:1px solid rgba(255,255,255,0.1); border-radius:16px;
+        box-shadow:0 14px 44px rgba(0,0,0,0.55); padding:6px;
+      }
+      #tmwDockAC.hidden{ display:none; }
+      body:not(.v2-sidebar-collapsed) #tmwDockAC{ display:none!important; }
     }
     /* Mobile uses the bottom sheet, not this drawer — never show these. */
-    @media(max-width:980px){ #tmwDrawerClose, #tmwDrawerHandle{ display:none!important; } }
+    @media(max-width:980px){ #tmwDrawerClose, #tmwDrawerHandle, #tmwDockAC{ display:none!important; } }
     /* === end journal chrome integration ================================ */
   </style>
 </head>
@@ -11277,6 +11289,10 @@
     <button id="tmwDrawerHandle" type="button" aria-label="Open panel" title="Open panel">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>
     </button>
+
+    <!-- Suggestions for the bottom search when the drawer is collapsed: picking
+         one flies to the pin + opens the project tile (showPopup). -->
+    <div id="tmwDockAC" class="hidden" role="listbox" aria-label="Search suggestions"></div>
 
     <div id="desktopSidebar">
       <!-- Close (X): slides out with the drawer; the pull handle brings it back. -->
@@ -11977,6 +11993,7 @@
     // journal-dock.js injects the dock asynchronously, so poll for it.
     (function(){
       function isDesktop(){ return window.matchMedia('(min-width:981px)').matches; }
+      function isCollapsed(){ return document.body.classList.contains('v2-sidebar-collapsed'); }
       function openMobileDrawer(e){
         if (e){ e.preventDefault(); e.stopPropagation(); }
         var cap = document.getElementById('v2Capsule');
@@ -11986,6 +12003,40 @@
       function applyMode(input){
         if (isDesktop()){ input.readOnly = false; input.removeAttribute('inputmode'); }
         else { input.readOnly = true; input.setAttribute('inputmode', 'none'); }
+      }
+      function hideDockAC(){ var ac=document.getElementById('tmwDockAC'); if(ac) ac.classList.add('hidden'); }
+      // Drawer collapsed: float suggestions above the dock; picking one flies to
+      // the pin + opens the project tile (showPopup). Learn More in the tile then
+      // un-collapses the drawer to the project page (listener below).
+      function dockAutocomplete(q){
+        var ac = document.getElementById('tmwDockAC');
+        if (!ac) return;
+        q = (q||'').trim();
+        if (!q || typeof map==='undefined' || !map.getSource){ hideDockAC(); return; }
+        var src = map.getSource('projects');
+        if (!src || !src._data){ hideDockAC(); return; }
+        try {
+          buildAutocomplete(q, src._data.features, ac, function(f, isCity){
+            hideDockAC();
+            var di = document.querySelector('.tmw-dock-search input');
+            try {
+              if (isCity === 'geo'){
+                if (di) di.value = f._geoLabel || q;
+                if (typeof flyToGeoFeature === 'function') flyToGeoFeature(f._geoFeature);
+                return;
+              }
+              if (isCity){
+                if (di) di.value = f._cityLabel || q;
+                var feats = (window.allProjectFeatures || src._data.features).filter(function(p){ return p.properties && p.properties.city === f._cityValue; });
+                if (feats[0]) showPopup(feats[0]);
+              } else {
+                if (di) di.value = (f.properties && f.properties.title) || q;
+                showPopup(f);
+              }
+            } catch(err){}
+          });
+          ac.classList.remove('hidden');
+        } catch(e){ hideDockAC(); }
       }
       function wire(){
         var form = document.querySelector('.tmw-dock-search');
@@ -11999,19 +12050,27 @@
         window.addEventListener('resize', function(){ applyMode(input); });
         input.addEventListener('focus', function(e){
           if (!isDesktop()){ input.blur(); openMobileDrawer(e); return; }
-          document.body.classList.remove('v2-sidebar-collapsed');
-          var sb = document.getElementById('desktopSidebar');
-          if (sb && !sb.classList.contains('open')) sb.classList.add('open');
+          // Drawer OPEN → keep it open (filtered list shows). COLLAPSED → leave
+          // it closed; the search drives the map (fly to pin + tile) instead.
+          if (!isCollapsed()){
+            var sb = document.getElementById('desktopSidebar');
+            if (sb && !sb.classList.contains('open')) sb.classList.add('open');
+          } else if (input.value.trim()){ dockAutocomplete(input.value); }
         });
         ['mousedown','click','touchstart'].forEach(function(ev){
           input.addEventListener(ev, function(e){ if (!isDesktop()){ input.blur(); openMobileDrawer(e); } }, ev === 'touchstart' ? {passive:false} : false);
         });
-        // desktop: mirror typing into the hidden sidebar search → map filters live
         input.addEventListener('input', function(){
           if (!isDesktop()) return;
-          var rs = document.getElementById('sidebarSearchBar');
-          if (rs){ rs.value = input.value; rs.dispatchEvent(new Event('input', {bubbles:true})); }
+          if (isCollapsed()){
+            dockAutocomplete(input.value);
+          } else {
+            hideDockAC();
+            var rs = document.getElementById('sidebarSearchBar');
+            if (rs){ rs.value = input.value; rs.dispatchEvent(new Event('input', {bubbles:true})); }
+          }
         });
+        input.addEventListener('blur', function(){ setTimeout(hideDockAC, 180); });
         form.addEventListener('submit', function(e){ e.preventDefault(); if (!isDesktop()) openMobileDrawer(e); });
         return true;
       }
@@ -12019,6 +12078,12 @@
         var tries = 0;
         var iv = setInterval(function(){ if (wire() || ++tries > 40) clearInterval(iv); }, 150);
       }
+      // Learn More in a map tile (while collapsed) opens the drawer + project page.
+      document.addEventListener('click', function(e){
+        if (e.target && e.target.closest && e.target.closest('.popup-learn-more')){
+          document.body.classList.remove('v2-sidebar-collapsed');
+        }
+      });
     })();
 
     // Desktop drawer: X closes (slides the sidebar off-screen left via
