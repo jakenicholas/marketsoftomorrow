@@ -425,6 +425,37 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
 .nl-btn.gold:hover{background:rgba(230,197,116,.16); border-color:var(--gold); box-shadow:0 0 24px rgba(230,197,116,.28)}
 .pp-learn-btn{margin:0 auto}
 
+/* report builder */
+.rb{padding:34px 36px}
+.rb-group{padding:24px 0; border-bottom:1px solid var(--hair)}
+.rb-group:first-child{padding-top:0}
+.rb-grow{display:flex; align-items:center; gap:14px; margin-bottom:14px}
+.rb-lab{font-family:var(--mono); font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:var(--mute); font-weight:500; margin-right:auto}
+.rb-allbtn{font-family:var(--mono); font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--mute2); background:transparent; border:1px solid var(--hair); border-radius:999px; padding:5px 11px; cursor:pointer; transition:color .15s, border-color .15s, background .15s; font-weight:500}
+.rb-allbtn:hover{color:var(--cream); border-color:var(--hair2); background:rgba(255,255,255,.03)}
+.rb-chips{display:flex; flex-wrap:wrap; gap:8px}
+.rb-chip{font-family:var(--mono); font-size:11px; letter-spacing:.06em; color:var(--mute); background:rgba(255,255,255,.025); border:1px solid var(--hair); border-radius:999px; padding:7px 14px; cursor:pointer; transition:color .15s, border-color .15s, background .15s, transform .12s; font-weight:500; white-space:nowrap}
+.rb-chip:hover{color:var(--cream); border-color:var(--hair2); transform:translateY(-1px)}
+.rb-chip.active{color:var(--green-soft); background:rgba(31,223,103,.08); border-color:rgba(31,223,103,.38); box-shadow:0 0 12px rgba(31,223,103,.12)}
+.rb-chip.rb-metric.active{color:var(--gold-soft); background:rgba(230,197,116,.08); border-color:rgba(230,197,116,.4); box-shadow:0 0 12px rgba(230,197,116,.14)}
+
+.rb-output{padding:28px 0 0; margin-top:6px; border-top:1px dashed rgba(255,255,255,.08)}
+.rb-cards{display:grid; grid-template-columns:repeat(4,1fr); gap:16px}
+.rb-card{padding:22px 20px; border-radius:14px; background:rgba(255,255,255,.025); border:1px solid var(--hair); transition:opacity .2s, filter .2s}
+.rb-card.dim{opacity:.3; filter:grayscale(.8)}
+.rb-num{font-family:var(--serif); font-weight:600; font-size:clamp(26px,3.4vw,38px); color:var(--gold-soft); letter-spacing:-.02em; line-height:1; text-shadow:0 0 16px rgba(230,197,116,.22); font-variant-numeric:tabular-nums}
+.rb-cardlab{font-family:var(--mono); font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--mute2); margin-top:10px}
+.rb-summary{font-family:var(--mono); font-size:11px; letter-spacing:.06em; color:var(--mute); margin-top:22px; text-align:center}
+.rb-summary b{color:var(--cream); font-weight:600; font-family:var(--serif); font-size:14px; letter-spacing:-.01em}
+
+#builder{padding-bottom:40px}
+
+@media(max-width:760px){
+  .rb{padding:24px 22px}
+  .rb-cards{grid-template-columns:repeat(2,1fr); gap:10px}
+  .rb-card{padding:16px 14px}
+}
+
 /* products / three lenses */
 .lens-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:18px}
 .lens-card{display:flex; flex-direction:column; padding:28px 28px 26px; min-height:460px; position:relative; overflow:hidden; transition:transform .3s ease, border-color .3s ease}
@@ -1308,6 +1339,126 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
     </div>
   </div>
 </section>
+
+<section id="builder">
+  <div class="wrap">
+    <div class="shead">
+      <div class="eyebrow reveal">Build Your Own Report</div>
+      <h2 class="reveal d1">Slice the data your way.</h2>
+      <p class="reveal d2 lede">Toggle months, channels, and metrics &mdash; the totals roll up live.</p>
+    </div>
+
+    <div class="rb glass reveal">
+      <div class="rb-group">
+        <div class="rb-grow">
+          <span class="rb-lab">Months</span>
+          <button type="button" class="rb-allbtn" data-target="month">All</button>
+          <button type="button" class="rb-allbtn" data-target="month" data-mode="none">None</button>
+        </div>
+        <div class="rb-chips">
+        <button type="button" class="rb-chip rb-month active" data-month="October 2025">Oct 25</button>
+        <button type="button" class="rb-chip rb-month active" data-month="November 2025">Nov 25</button>
+        <button type="button" class="rb-chip rb-month active" data-month="December 2025">Dec 25</button>
+        <button type="button" class="rb-chip rb-month active" data-month="January 2026">Jan 26</button>
+        <button type="button" class="rb-chip rb-month active" data-month="February 2026">Feb 26</button>
+        <button type="button" class="rb-chip rb-month active" data-month="March 2026">Mar 26</button>
+        <button type="button" class="rb-chip rb-month active" data-month="April 2026">Apr 26</button>
+        <button type="button" class="rb-chip rb-month active" data-month="May 2026">May 26</button>
+        </div>
+      </div>
+
+      <div class="rb-group">
+        <div class="rb-grow">
+          <span class="rb-lab">Channels</span>
+          <button type="button" class="rb-allbtn" data-target="type">All</button>
+          <button type="button" class="rb-allbtn" data-target="type" data-mode="none">None</button>
+        </div>
+        <div class="rb-chips">
+        <button type="button" class="rb-chip rb-type active" data-type="Website Article">Website Article</button>
+        <button type="button" class="rb-chip rb-type active" data-type="Instagram Post">Instagram Post</button>
+        <button type="button" class="rb-chip rb-type active" data-type="Linkedin Post">Linkedin Post</button>
+        <button type="button" class="rb-chip rb-type active" data-type="Website Banner Ad">Website Banner Ad</button>
+        <button type="button" class="rb-chip rb-type active" data-type="Newsletter Banner Ad">Newsletter Banner Ad</button>
+        <button type="button" class="rb-chip rb-type active" data-type="Newsletter Story">Newsletter Story</button>
+        <button type="button" class="rb-chip rb-type active" data-type="Exclusive Solo Newsletter">Exclusive Solo Newsletter</button>
+        <button type="button" class="rb-chip rb-type active" data-type="Newsletter Featured Story">Newsletter Featured Story</button>
+        <button type="button" class="rb-chip rb-type active" data-type="Map of Tomorrow">Map of Tomorrow</button>
+        <button type="button" class="rb-chip rb-type active" data-type="Atlas">Atlas</button>
+        </div>
+      </div>
+
+      <div class="rb-group">
+        <div class="rb-grow">
+          <span class="rb-lab">Metrics</span>
+          <button type="button" class="rb-allbtn" data-target="metric">All</button>
+        </div>
+        <div class="rb-chips">
+        <button type="button" class="rb-chip rb-metric active" data-metric="impressions">Impressions</button>
+        <button type="button" class="rb-chip rb-metric active" data-metric="interactions">Interactions</button>
+        <button type="button" class="rb-chip rb-metric active" data-metric="clicks">URL Clicks</button>
+        <button type="button" class="rb-chip rb-metric active" data-metric="emails">Email Sends</button>
+        </div>
+      </div>
+
+      <div class="rb-output">
+        <div class="rb-cards">
+          <div class="rb-card" data-metric="impressions"><div class="rb-num" data-val="impressions">0</div><div class="rb-cardlab">Impressions</div></div>
+          <div class="rb-card" data-metric="interactions"><div class="rb-num" data-val="interactions">0</div><div class="rb-cardlab">Interactions</div></div>
+          <div class="rb-card" data-metric="clicks"><div class="rb-num" data-val="clicks">0</div><div class="rb-cardlab">URL Clicks</div></div>
+          <div class="rb-card" data-metric="emails"><div class="rb-num" data-val="emails">0</div><div class="rb-cardlab">Email Sends</div></div>
+        </div>
+        <div class="rb-summary">
+          From <b data-summary="pieces">0</b> pieces across <b data-summary="months">0</b> months &middot; <b data-summary="types">0</b> channels.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+(function(){
+  const PIECES = [{"month": "October 2025", "type": "Website Article", "impressions": 12431, "interactions": 0, "clicks": 354, "emails": 0}, {"month": "October 2025", "type": "Instagram Post", "impressions": 27300, "interactions": 354, "clicks": 88, "emails": 0}, {"month": "October 2025", "type": "Linkedin Post", "impressions": 1954, "interactions": 101, "clicks": 33, "emails": 0}, {"month": "October 2025", "type": "Website Banner Ad", "impressions": 401200, "interactions": 0, "clicks": 529, "emails": 0}, {"month": "November 2025", "type": "Newsletter Banner Ad", "impressions": 4987, "interactions": 0, "clicks": 145, "emails": 10198}, {"month": "November 2025", "type": "Website Banner Ad", "impressions": 395450, "interactions": 0, "clicks": 402, "emails": 0}, {"month": "December 2025", "type": "Newsletter Banner Ad", "impressions": 50001, "interactions": 0, "clicks": 149, "emails": 10198}, {"month": "December 2025", "type": "Website Article", "impressions": 21391, "interactions": 0, "clicks": 349, "emails": 0}, {"month": "December 2025", "type": "Instagram Post", "impressions": 31456, "interactions": 668, "clicks": 212, "emails": 0}, {"month": "December 2025", "type": "Linkedin Post", "impressions": 6945, "interactions": 473, "clicks": 101, "emails": 0}, {"month": "December 2025", "type": "Website Banner Ad", "impressions": 372960, "interactions": 0, "clicks": 354, "emails": 0}, {"month": "January 2026", "type": "Website Article", "impressions": 33870, "interactions": 0, "clicks": 200, "emails": 0}, {"month": "January 2026", "type": "Instagram Post", "impressions": 27890, "interactions": 804, "clicks": 134, "emails": 0}, {"month": "January 2026", "type": "Linkedin Post", "impressions": 1845, "interactions": 125, "clicks": 85, "emails": 0}, {"month": "January 2026", "type": "Newsletter Banner Ad", "impressions": 7895, "interactions": 0, "clicks": 157, "emails": 13202}, {"month": "January 2026", "type": "Newsletter Story", "impressions": 7895, "interactions": 0, "clicks": 239, "emails": 13202}, {"month": "January 2026", "type": "Website Banner Ad", "impressions": 287504, "interactions": 0, "clicks": 287, "emails": 0}, {"month": "February 2026", "type": "Newsletter Banner Ad", "impressions": 4983, "interactions": 0, "clicks": 77, "emails": 13231}, {"month": "February 2026", "type": "Newsletter Story", "impressions": 4983, "interactions": 0, "clicks": 149, "emails": 13231}, {"month": "February 2026", "type": "Website Banner Ad", "impressions": 275050, "interactions": 0, "clicks": 199, "emails": 0}, {"month": "March 2026", "type": "Website Article", "impressions": 41876, "interactions": 0, "clicks": 372, "emails": 0}, {"month": "March 2026", "type": "Instagram Post", "impressions": 152209, "interactions": 11700, "clicks": 476, "emails": 0}, {"month": "March 2026", "type": "Linkedin Post", "impressions": 2300, "interactions": 41, "clicks": 20, "emails": 0}, {"month": "March 2026", "type": "Newsletter Banner Ad", "impressions": 6589, "interactions": 0, "clicks": 107, "emails": 14101}, {"month": "March 2026", "type": "Website Banner Ad", "impressions": 345870, "interactions": 0, "clicks": 202, "emails": 0}, {"month": "April 2026", "type": "Website Article", "impressions": 29031, "interactions": 0, "clicks": 142, "emails": 0}, {"month": "April 2026", "type": "Instagram Post", "impressions": 27905, "interactions": 298, "clicks": 29, "emails": 0}, {"month": "April 2026", "type": "Linkedin Post", "impressions": 3450, "interactions": 96, "clicks": 23, "emails": 0}, {"month": "April 2026", "type": "Exclusive Solo Newsletter", "impressions": 5865, "interactions": 0, "clicks": 292, "emails": 13953}, {"month": "April 2026", "type": "Newsletter Featured Story", "impressions": 7150, "interactions": 0, "clicks": 121, "emails": 13953}, {"month": "April 2026", "type": "Newsletter Banner Ad", "impressions": 7150, "interactions": 0, "clicks": 98, "emails": 13953}, {"month": "April 2026", "type": "Map of Tomorrow", "impressions": 33765, "interactions": 99, "clicks": 23, "emails": 0}, {"month": "April 2026", "type": "Website Banner Ad", "impressions": 276102, "interactions": 0, "clicks": 221, "emails": 0}, {"month": "May 2026", "type": "Website Article", "impressions": 13456, "interactions": 0, "clicks": 56, "emails": 0}, {"month": "May 2026", "type": "Newsletter Banner Ad", "impressions": 6622, "interactions": 0, "clicks": 156, "emails": 13933}, {"month": "May 2026", "type": "Newsletter Banner Ad", "impressions": 6541, "interactions": 0, "clicks": 144, "emails": 13965}, {"month": "May 2026", "type": "Newsletter Banner Ad", "impressions": 8120, "interactions": 0, "clicks": 87, "emails": 13921}, {"month": "May 2026", "type": "Map of Tomorrow", "impressions": 41540, "interactions": 101, "clicks": 34, "emails": 0}, {"month": "May 2026", "type": "Website Banner Ad", "impressions": 291500, "interactions": 0, "clicks": 375, "emails": 0}, {"month": "April 2026", "type": "Atlas", "impressions": 501, "interactions": 5, "clicks": 1, "emails": 0}, {"month": "May 2026", "type": "Atlas", "impressions": 875, "interactions": 14, "clicks": 7, "emails": 0}];
+  const root = document.getElementById('builder');
+  if(!root) return;
+  function selected(sel){return [...root.querySelectorAll(sel+'.active')].map(el => el.dataset[Object.keys(el.dataset)[0]] || el.textContent);}
+  function recalc(){
+    const months = new Set([...root.querySelectorAll('.rb-month.active')].map(b => b.dataset.month));
+    const types = new Set([...root.querySelectorAll('.rb-type.active')].map(b => b.dataset.type));
+    const metrics = new Set([...root.querySelectorAll('.rb-metric.active')].map(b => b.dataset.metric));
+    const filtered = PIECES.filter(p => months.has(p.month) && types.has(p.type));
+    const sums = {impressions:0, interactions:0, clicks:0, emails:0};
+    const monthsHit = new Set(), typesHit = new Set();
+    filtered.forEach(p => {
+      sums.impressions += p.impressions; sums.interactions += p.interactions;
+      sums.clicks += p.clicks; sums.emails += p.emails;
+      monthsHit.add(p.month); typesHit.add(p.type);
+    });
+    root.querySelectorAll('.rb-card').forEach(card => {
+      const k = card.dataset.metric;
+      const active = metrics.has(k);
+      card.classList.toggle('dim', !active);
+      card.querySelector('.rb-num').textContent = sums[k].toLocaleString();
+    });
+    root.querySelector('[data-summary="pieces"]').textContent = filtered.length;
+    root.querySelector('[data-summary="months"]').textContent = monthsHit.size;
+    root.querySelector('[data-summary="types"]').textContent = typesHit.size;
+  }
+  // Chip toggle
+  root.addEventListener('click', e => {
+    const chip = e.target.closest('.rb-chip');
+    if(chip){ chip.classList.toggle('active'); recalc(); return; }
+    const all = e.target.closest('.rb-allbtn');
+    if(all){
+      const target = all.dataset.target;
+      const mode = all.dataset.mode || 'all';
+      const sel = '.rb-' + target;
+      root.querySelectorAll(sel).forEach(b => b.classList.toggle('active', mode === 'all'));
+      recalc();
+    }
+  });
+  recalc();
+})();
+</script>
 
 <section id="learn-more">
   <div class="wrap">
