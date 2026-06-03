@@ -10779,6 +10779,9 @@
     body.tmw-mapfs .tmw-chrome-head{display:none!important;}
     body.tmw-mapfs #app-container{padding-top:0!important;}
     body.tmw-mapfs.ui-v2 #app-container{padding-top:0!important;}
+    /* In full screen the header is gone, so pin the sidebar to the very top —
+       otherwise its top:60px (header height) leaves a gap that shows the map. */
+    body.tmw-mapfs.ui-v2 #desktopSidebar{top:0!important;height:100%!important;}
     /* Embed mode has no header, so no button. */
     body.embed-mode #tmwMapFsBtn{display:none!important;}
     /* ── Desktop universal search (#3/#4) ─────────────────────────────
