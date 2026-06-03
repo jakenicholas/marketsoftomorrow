@@ -58,6 +58,12 @@
         fetch(WORKER + '/event', { method: 'POST', body: payload, keepalive: true, headers: { 'Content-Type': 'text/plain' } }).catch(function () {});
       }
     } catch (e) {}
+    // Hand the identity to the journal "reading now" heartbeat (journal-dock.js)
+    // so the live feed shows this member's name, then fire an immediate ping.
+    try {
+      window.__tmwMember = { id: member.id, name: nameOf(member) || ((member.auth && member.auth.email) || ''), plan: planOf(member) };
+      if (typeof window.__tmwPing === 'function') window.__tmwPing();
+    } catch (e) {}
   }
 
   var tries = 0;

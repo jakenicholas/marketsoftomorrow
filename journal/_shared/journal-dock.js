@@ -107,11 +107,18 @@
       var PING = 'https://tmw.jake-ab7.workers.dev/journal-ping';
       function ping() {
         try {
-          var p = JSON.stringify({ sid: sid, path: location.pathname, title: (document.title || '').slice(0, 200) });
+          // member-track.js sets window.__tmwMember once it resolves the logged-in
+          // member, so the "reading now" feed can show a name instead of anon.
+          var mem = window.__tmwMember || null;
+          var p = JSON.stringify({
+            sid: sid, path: location.pathname, title: (document.title || '').slice(0, 200),
+            member_id: (mem && mem.id) || null, member_name: (mem && mem.name) || null,
+          });
           if (navigator.sendBeacon) navigator.sendBeacon(PING, p);
           else fetch(PING, { method: 'POST', body: p, keepalive: true, headers: { 'Content-Type': 'text/plain' } });
         } catch (e) {}
       }
+      window.__tmwPing = ping;   // member-track.js calls this the moment it identifies the member
       ping();
       setInterval(function () { if (!document.hidden) ping(); }, 60000);
       document.addEventListener('visibilitychange', function () { if (!document.hidden) ping(); });

@@ -3632,6 +3632,8 @@ async function ensureJournalActiveTable(env) {
   await env.DB.prepare('CREATE TABLE IF NOT EXISTS journal_active (sid TEXT PRIMARY KEY, ts INTEGER, path TEXT, title TEXT)').run();
   try { await env.DB.prepare('ALTER TABLE journal_active ADD COLUMN path TEXT').run(); } catch (_) {}
   try { await env.DB.prepare('ALTER TABLE journal_active ADD COLUMN title TEXT').run(); } catch (_) {}
+  try { await env.DB.prepare('ALTER TABLE journal_active ADD COLUMN member_id TEXT').run(); } catch (_) {}
+  try { await env.DB.prepare('ALTER TABLE journal_active ADD COLUMN member_name TEXT').run(); } catch (_) {}
 }
 
 async function handleJournalPing(req, env, origin) {
@@ -3639,17 +3641,19 @@ async function handleJournalPing(req, env, origin) {
   if (!env.DB) return ok();
   const ua = (req.headers.get('User-Agent') || '');
   if (!ua || VIEW_BOT_RE.test(ua)) return ok();
-  let sid = '', path = '', title = '';
+  let sid = '', path = '', title = '', memberId = '', memberName = '';
   try {
     const t = await req.text();
-    if (t) { try { const o = JSON.parse(t); sid = (o.sid || '').toString(); path = (o.path || '').toString().slice(0, 300); title = (o.title || '').toString().slice(0, 300); } catch (_) {} }
+    if (t) { try { const o = JSON.parse(t); sid = (o.sid || '').toString(); path = (o.path || '').toString().slice(0, 300); title = (o.title || '').toString().slice(0, 300); memberId = (o.member_id || '').toString().slice(0, 80); memberName = (o.member_name || '').toString().slice(0, 120); } catch (_) {} }
   } catch (_) {}
   sid = sid.replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 40);
   if (!sid) return ok();
   try {
     await ensureJournalActiveTable(env);
     const now = Math.floor(Date.now() / 1000);
-    await env.DB.prepare('INSERT INTO journal_active (sid, ts, path, title) VALUES (?1, ?2, ?3, ?4) ON CONFLICT(sid) DO UPDATE SET ts = ?2, path = ?3, title = ?4').bind(sid, now, path, title).run();
+    // Keep an existing member identity if a later ping arrives without one (the
+    // member resolves a beat after the first anonymous ping).
+    await env.DB.prepare('INSERT INTO journal_active (sid, ts, path, title, member_id, member_name) VALUES (?1, ?2, ?3, ?4, ?5, ?6) ON CONFLICT(sid) DO UPDATE SET ts = ?2, path = ?3, title = ?4, member_id = COALESCE(NULLIF(?5, \'\'), member_id), member_name = COALESCE(NULLIF(?6, \'\'), member_name)').bind(sid, now, path, title, memberId || null, memberName || null).run();
   } catch (_) {}
   return ok();
 }
@@ -3661,8 +3665,8 @@ async function handleJournalActive(env, origin) {
     const now = Math.floor(Date.now() / 1000);
     const cut = now - 300;
     const cnt = await env.DB.prepare('SELECT COUNT(*) AS c FROM journal_active WHERE ts > ?1').bind(cut).first();
-    const rows = await env.DB.prepare('SELECT ts, path, title FROM journal_active WHERE ts > ?1 ORDER BY ts DESC LIMIT 40').bind(cut).all();
-    const feed = (rows.results || []).map(r => ({ path: r.path || '', title: r.title || '', ago: Math.max(0, now - (r.ts || now)) }));
+    const rows = await env.DB.prepare('SELECT ts, path, title, member_name FROM journal_active WHERE ts > ?1 ORDER BY ts DESC LIMIT 40').bind(cut).all();
+    const feed = (rows.results || []).map(r => ({ path: r.path || '', title: r.title || '', member_name: r.member_name || null, ago: Math.max(0, now - (r.ts || now)) }));
     try { await env.DB.prepare('DELETE FROM journal_active WHERE ts < ?1').bind(now - 3600).run(); } catch (_) {}
     return json({ active: cnt ? cnt.c : 0, feed }, { headers: { 'Cache-Control': 'no-store' } }, env, origin);
   } catch (e) {
