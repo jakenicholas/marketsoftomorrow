@@ -36,7 +36,10 @@ POSTS_API     = "https://tmw.jake-ab7.workers.dev/posts?limit=50&status=publishe
 SITE_URL      = "https://map.oftmw.com"
 TMW_URL       = "https://www.oftmw.com"
 LOGO_URL      = "https://static.wixstatic.com/media/ca3b83_e80e88810ca942459bfaa140e9fc2267~mv2.png"
-APP_IMAGE_URL = "https://tmw.jake-ab7.workers.dev/media/2026/06/060f97cafdd8-june-2-newsletter.gif"
+# Fallback only — the real image is set per-issue via an `image:` line in
+# app_updates.md. Served from R2 (not the Worker) to avoid its request limit
+# on a mass send.
+APP_IMAGE_URL = "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/060f97cafdd8-june-2-newsletter.gif"
 
 LOOKBACK_DAYS    = 7
 MIN_MAP_ITEMS    = 8   # Keep the "New on the map" grid full (4+4) so banner ads
@@ -255,15 +258,24 @@ def load_app_updates():
     with open(UPDATES_PATH) as f:
         text = f.read().strip()
     if not text: return None
-    headline, bullets = "", []
+    headline, image, bullets = "", "", []
     for line in text.splitlines():
         line = line.strip()
         if line.startswith("# "):
             headline = line[2:].strip()
+        elif line.lower().startswith("image:"):           # image: <url>
+            image = line.split(":", 1)[1].strip()
+        elif line.startswith("!["):                        # markdown ![alt](url)
+            m = re.search(r'\((https?://[^)]+)\)', line)
+            if m: image = m.group(1)
         elif line and line[0] in "-*•–—":  # accept dash, asterisk, bullet, en/em dash
             bullets.append(line[1:].strip())
     if not bullets: return None
-    return {"headline": headline or "What's new in the app", "bullets": bullets}
+    # Image + bullets both come from this one file so a generate always uses the
+    # latest of both; fall back to the module default if no image line is given.
+    return {"headline": headline or "What's new in the app",
+            "image":    image or APP_IMAGE_URL,
+            "bullets":  bullets}
 
 def load_ads():
     slots = {f"slot{i}": None for i in range(1, 7)}
@@ -384,7 +396,7 @@ def main():
         more_markets_articles=more_markets_articles,
         app_updates=app_updates, ads=ads,
         site_url=SITE_URL, tmw_url=TMW_URL, logo_url=LOGO_URL,
-        app_image_url=APP_IMAGE_URL,
+        app_image_url=(app_updates or {}).get("image") or APP_IMAGE_URL,
     )
 
     inlined = Premailer(

@@ -1,4 +1,5 @@
 # A better Markets of Tomorrow
+image: https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/060f97cafdd8-june-2-newsletter.gif
 
 • A brand-new Journal — faster, cleaner, and built to support a better experience
 
