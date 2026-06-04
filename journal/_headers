@@ -4,3 +4,11 @@
 # Same-origin journal pages don't need this, but cross-origin readers do.
 /map/*
   Access-Control-Allow-Origin: *
+
+# The shared chrome/menu/auth scripts ARE the universal header. Force browsers
+# to revalidate them every load (cheap 304 when unchanged) so every page always
+# runs the SAME current version — otherwise one page can render an old cached
+# header while another has the new one, which looks like the header is
+# "inconsistent across pages."
+/_shared/*
+  Cache-Control: public, max-age=0, must-revalidate
