@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Supercharged Filters — Concept</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0b0a; --panel:#101312; --line:rgba(255,255,255,.08); --line-2:rgba(255,255,255,.14);
+    --white:#fff; --mute:rgba(255,255,255,.6); --faint:rgba(255,255,255,.4);
+    --green:#1FDF67; --purple:#A78BFA; --gold:#f0d68a;
+    --sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; --serif:'Fraunces',Georgia,serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-font-smoothing:antialiased}
+  body{background:var(--bg);color:var(--white);font-family:var(--sans);line-height:1.5;padding:30px 16px 80px}
+  .wrap{max-width:760px;margin:0 auto}
+  .intro h1{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--green);font-weight:800}
+  .intro p{color:var(--mute);font-size:13.5px;margin-top:8px;max-width:70ch}
+  .intro b{color:#fff}
+
+  .panel{margin-top:22px;background:
+      radial-gradient(120% 50% at 50% 0%, rgba(31,223,103,.05), transparent 60%),
+      linear-gradient(180deg,#11140f,#0c0d0c);
+    border:1px solid var(--line);border-radius:20px;overflow:hidden;box-shadow:0 30px 80px -30px rgba(0,0,0,.9)}
+  .ptop{display:flex;align-items:center;justify-content:space-between;padding:18px 20px 14px;border-bottom:1px solid var(--line)}
+  .ptop h2{font-family:var(--serif);font-weight:600;font-size:21px;letter-spacing:-.01em}
+  .ptop .reset{font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--faint);cursor:pointer;background:none;border:none;font-family:inherit}
+  .ptop .reset:hover{color:var(--green)}
+
+  .sec{padding:18px 20px;border-bottom:1px solid var(--line)}
+  .sec-h{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);font-weight:700;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between}
+  .sec-h .val{color:var(--green);font-weight:700;letter-spacing:.02em;font-size:12px;text-transform:none}
+
+  /* chips */
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{font-size:12px;font-weight:600;padding:8px 13px;border-radius:999px;border:1px solid var(--line-2);background:rgba(255,255,255,.03);color:var(--mute);cursor:pointer;transition:.15s;display:inline-flex;align-items:center;gap:6px}
+  .chip .dot{width:7px;height:7px;border-radius:50%;background:var(--c,#888)}
+  .chip:hover{border-color:rgba(255,255,255,.3);color:#fff}
+  .chip.on{background:rgba(31,223,103,.14);border-color:rgba(31,223,103,.5);color:var(--green)}
+  .chip .n{font-size:10px;opacity:.6;font-weight:700}
+
+  /* dual range slider */
+  .rng{position:relative;height:34px;margin-top:6px}
+  .rng .track{position:absolute;top:50%;left:6px;right:6px;height:4px;transform:translateY(-50%);background:rgba(255,255,255,.12);border-radius:999px}
+  .rng .fill{position:absolute;top:50%;height:4px;transform:translateY(-50%);background:linear-gradient(90deg,#7C5CE0,var(--green));border-radius:999px}
+  .rng input{position:absolute;top:0;left:0;width:100%;height:34px;margin:0;background:none;pointer-events:none;-webkit-appearance:none;appearance:none}
+  .rng input::-webkit-slider-thumb{-webkit-appearance:none;pointer-events:auto;width:18px;height:18px;border-radius:50%;background:#fff;border:2px solid var(--green);box-shadow:0 2px 8px rgba(0,0,0,.5);cursor:grab}
+  .rng input::-moz-range-thumb{pointer-events:auto;width:18px;height:18px;border-radius:50%;background:#fff;border:2px solid var(--green);box-shadow:0 2px 8px rgba(0,0,0,.5);cursor:grab}
+  .rng-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--faint);margin-top:2px}
+
+  .mkt input{width:100%;height:42px;padding:0 15px;border-radius:11px;background:rgba(255,255,255,.04);border:1px solid var(--line-2);color:#fff;font-family:inherit;font-size:13px}
+  .mkt input::placeholder{color:var(--faint)}
+  .mkt input:focus{outline:none;border-color:rgba(31,223,103,.5)}
+
+  /* presets */
+  .presets{display:flex;gap:8px;flex-wrap:wrap}
+  .preset{font-size:11.5px;font-weight:600;padding:7px 12px;border-radius:10px;border:1px dashed var(--line-2);background:none;color:var(--mute);cursor:pointer;font-family:inherit}
+  .preset:hover{border-color:var(--green);color:var(--green);border-style:solid}
+
+  /* sticky footer */
+  .pfoot{position:sticky;bottom:0;background:rgba(10,11,10,.92);backdrop-filter:blur(12px);border-top:1px solid var(--line);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .pfoot .cta{flex:1;background:var(--green);color:#062b13;border:none;border-radius:12px;padding:14px;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit}
+  .pfoot .save{background:rgba(255,255,255,.06);border:1px solid var(--line-2);color:#fff;border-radius:12px;padding:14px 16px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:6px}
+
+  .note{color:var(--mute);font-size:12.5px;margin-top:18px;max-width:72ch}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="intro">
+    <h1>Supercharged Filters · Concept</h1>
+    <p>A Redfin-style "build your own data" panel: drag <b>sliders</b> for delivery window, unit count and height, toggle <b>status / type</b>, and watch the result count update <b>live against all 414 real projects</b>. One-tap <b>presets</b> + save-your-filter at the bottom.</p>
+  </div>
+
+  <div class="panel">
+    <div class="ptop">
+      <h2>Build your filter</h2>
+      <button class="reset" id="reset">Reset all</button>
+    </div>
+
+    <!-- quick presets -->
+    <div class="sec">
+      <div class="sec-h">Quick presets</div>
+      <div class="presets" id="presets"></div>
+    </div>
+
+    <!-- delivery window -->
+    <div class="sec">
+      <div class="sec-h"><span>Delivering between</span><span class="val" id="yrVal">—</span></div>
+      <div class="rng" id="rngYear"></div>
+      <div class="rng-labels"><span>Now</span><span>2035 +</span></div>
+    </div>
+
+    <!-- units -->
+    <div class="sec">
+      <div class="sec-h"><span>Units / Residences</span><span class="val" id="unitVal">—</span></div>
+      <div class="rng" id="rngUnits"></div>
+      <div class="rng-labels"><span>0</span><span>4,000 +</span></div>
+    </div>
+
+    <!-- floors -->
+    <div class="sec">
+      <div class="sec-h"><span>Floors / Height</span><span class="val" id="floorVal">—</span></div>
+      <div class="rng" id="rngFloors"></div>
+      <div class="rng-labels"><span>1</span><span>131 +</span></div>
+    </div>
+
+    <!-- status -->
+    <div class="sec">
+      <div class="sec-h">Stage</div>
+      <div class="chips" id="statusChips"></div>
+    </div>
+
+    <!-- type -->
+    <div class="sec">
+      <div class="sec-h">Asset type</div>
+      <div class="chips" id="typeChips"></div>
+    </div>
+
+    <!-- market -->
+    <div class="sec mkt">
+      <div class="sec-h">Market</div>
+      <input id="market" placeholder="City, region, or firm…">
+    </div>
+
+    <div class="pfoot">
+      <button class="save" title="Save this filter">★ Save</button>
+      <button class="cta" id="cta">Show 414 projects</button>
+    </div>
+  </div>
+
+  <p class="note"><b style="color:#fff">How it'd work:</b> this replaces the row of dropdowns with one panel that filters the map + drawer in real time. Tell me what to keep — and whether you want a <b>Price</b> slider, <b>Keys</b> (hotels), <b>Developer/Architect</b> filters, or saved "smart filters" (e.g. "Opening within 12 months · 100+ units · Miami").</p>
+</div>
+
+<script>
+const STATUS=[['Now Open','#1FDF67'],['Opening Soon','#1FDF67'],['Under Construction','#FF9500'],['Breaking Ground','#FFD300'],['Announced','#9aa39c']];
+const TYPES=['Residences','Hotel','Mixed-Use','Office','Entertainment','Golf','Stadium','Park','Museum'];
+const PRESETS=[
+  ['Opening within 12 months', f=>{f.yMin=2025;f.yMax=2026;f.status=new Set(['Opening Soon','Under Construction']);}],
+  ['Supertall (50+ floors)', f=>{f.flMin=50;}],
+  ['Mega (500+ units)', f=>{f.uMin=500;}],
+  ['Just announced', f=>{f.status=new Set(['Announced']);}],
+  ['Hotels', f=>{f.types=new Set(['Hotel']);}],
+];
+const YEAR_MIN=2024, YEAR_MAX=2036, U_MAX=4000, F_MAX=131;
+let DATA=[];
+const F={ yMin:YEAR_MIN, yMax:YEAR_MAX, uMin:0, uMax:U_MAX, flMin:1, flMax:F_MAX, status:new Set(), types:new Set(), market:'' };
+
+function dualRange(host, min, max, getLo, getHi, setLo, setHi){
+  host.innerHTML='<div class="track"></div><div class="fill"></div><input type="range" class="lo"><input type="range" class="hi">';
+  const lo=host.querySelector('.lo'), hi=host.querySelector('.hi'), fill=host.querySelector('.fill');
+  [lo,hi].forEach(i=>{i.min=min;i.max=max;});
+  function paint(){ const a=+lo.value,b=+hi.value; const pa=(a-min)/(max-min)*100, pb=(b-min)/(max-min)*100; fill.style.left=pa+'%'; fill.style.width=(pb-pa)+'%'; }
+  function sync(){ lo.value=getLo(); hi.value=getHi(); paint(); }
+  lo.oninput=()=>{ let a=Math.min(+lo.value,+hi.value-1); setLo(a); lo.value=a; paint(); apply(); };
+  hi.oninput=()=>{ let b=Math.max(+hi.value,+lo.value+1); setHi(b); hi.value=b; paint(); apply(); };
+  sync();
+  return sync;
+}
+
+function deliveryYear(r){ const m=(r.DeliveryDate||'').match(/^(\d{4})/); return m?+m[1]:null; }
+function num(v){ const n=parseInt(v,10); return isNaN(n)?null:n; }
+function typeOf(r){ return ((r.PreferredType||'')||(r.ProjectType||'').split(',')[0]||'').trim(); }
+
+function matches(r){
+  const y=deliveryYear(r);
+  if(y!=null){ if(y<F.yMin || (F.yMax<YEAR_MAX && y>F.yMax)) return false; }
+  const u=num(r.Units); if(u!=null){ if(u<F.uMin || (F.uMax<U_MAX && u>F.uMax)) return false; } else if(F.uMin>0) return false;
+  const fl=num(r.Floors); if(fl!=null){ if(fl<F.flMin || (F.flMax<F_MAX && fl>F.flMax)) return false; } else if(F.flMin>1) return false;
+  if(F.status.size && !F.status.has((r.Delivery||'').trim())) return false;
+  if(F.types.size && !F.types.has(typeOf(r))) return false;
+  if(F.market){ const q=F.market.toLowerCase(); const hay=((r.City||'')+' '+(r.Developer||'')+' '+(r.Architect||'')+' '+(r.Title||'')).toLowerCase(); if(!hay.includes(q)) return false; }
+  return true;
+}
+
+let syncYear, syncU, syncF;
+function apply(){
+  const n=DATA.filter(matches).length;
+  document.getElementById('cta').textContent='Show '+n.toLocaleString()+' project'+(n===1?'':'s');
+  document.getElementById('yrVal').textContent = (F.yMin<=YEAR_MIN?'Now':F.yMin)+' – '+(F.yMax>=YEAR_MAX?'2035+':F.yMax);
+  document.getElementById('unitVal').textContent = (F.uMin||0)+' – '+(F.uMax>=U_MAX?'4,000+':F.uMax.toLocaleString());
+  document.getElementById('floorVal').textContent = (F.flMin||1)+' – '+(F.flMax>=F_MAX?'131+':F.flMax);
+}
+function repaintChips(){
+  document.querySelectorAll('#statusChips .chip').forEach(c=>c.classList.toggle('on',F.status.has(c.dataset.v)));
+  document.querySelectorAll('#typeChips .chip').forEach(c=>c.classList.toggle('on',F.types.has(c.dataset.v)));
+}
+
+function build(){
+  // status chips
+  document.getElementById('statusChips').innerHTML=STATUS.map(([s,c])=>{
+    const n=DATA.filter(r=>(r.Delivery||'').trim()===s).length;
+    return `<button class="chip" data-v="${s}" style="--c:${c}"><span class="dot"></span>${s}<span class="n">${n}</span></button>`;}).join('');
+  document.getElementById('typeChips').innerHTML=TYPES.map(t=>{
+    const n=DATA.filter(r=>typeOf(r)===t).length;
+    return `<button class="chip" data-v="${t}">${t}<span class="n">${n}</span></button>`;}).join('');
+  document.getElementById('statusChips').onclick=e=>{const c=e.target.closest('.chip');if(!c)return;F.status.has(c.dataset.v)?F.status.delete(c.dataset.v):F.status.add(c.dataset.v);repaintChips();apply();};
+  document.getElementById('typeChips').onclick=e=>{const c=e.target.closest('.chip');if(!c)return;F.types.has(c.dataset.v)?F.types.delete(c.dataset.v):F.types.add(c.dataset.v);repaintChips();apply();};
+  document.getElementById('market').oninput=e=>{F.market=e.target.value.trim();apply();};
+  // sliders
+  syncYear=dualRange(document.getElementById('rngYear'),YEAR_MIN,YEAR_MAX,()=>F.yMin,()=>F.yMax,v=>F.yMin=v,v=>F.yMax=v);
+  syncU=dualRange(document.getElementById('rngUnits'),0,U_MAX,()=>F.uMin,()=>F.uMax,v=>F.uMin=v,v=>F.uMax=v);
+  syncF=dualRange(document.getElementById('rngFloors'),1,F_MAX,()=>F.flMin,()=>F.flMax,v=>F.flMin=v,v=>F.flMax=v);
+  // presets
+  document.getElementById('presets').innerHTML=PRESETS.map((p,i)=>`<button class="preset" data-i="${i}">${p[0]}</button>`).join('');
+  document.getElementById('presets').onclick=e=>{const b=e.target.closest('.preset');if(!b)return;reset(true);PRESETS[+b.dataset.i][1](F);syncYear();syncU();syncF();repaintChips();apply();};
+  document.getElementById('reset').onclick=()=>reset();
+  apply();
+}
+function reset(skipApply){
+  F.yMin=YEAR_MIN;F.yMax=YEAR_MAX;F.uMin=0;F.uMax=U_MAX;F.flMin=1;F.flMax=F_MAX;F.status=new Set();F.types=new Set();F.market='';
+  const mk=document.getElementById('market'); if(mk)mk.value='';
+  if(syncYear){syncYear();syncU();syncF();repaintChips();}
+  if(!skipApply)apply();
+}
+
+fetch('/map/projects-flat.json').then(r=>r.json()).then(d=>{ DATA=Array.isArray(d)?d:[]; build(); })
+  .catch(()=>{ DATA=[]; document.getElementById('cta').textContent='(could not load data)'; });
+</script>
+</body>
+</html>
