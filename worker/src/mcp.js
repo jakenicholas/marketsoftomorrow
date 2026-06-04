@@ -340,23 +340,23 @@ const TOOLS = [
   },
   {
     name: 'update_project_status',
-    description: 'Advance a Map of Tomorrow project to a LATER lifecycle status based on a credible web source. Status order is announced → coming-soon → breaking-ground → construction → open; ONLY forward advances are allowed (regressions and no-ops are refused). mode "apply" changes the LIVE status (the public map rebuilds automatically within ~1h) and records the source in the project\'s status_history (git history = audit trail). mode "propose" does NOT change the live status — it queues the change for one-tap human review (use for ambiguous signals, thin/single sources, or multi-step jumps). Always pass source_url. This is the hybrid policy: apply clear well-sourced milestones, propose the rest.',
+    description: 'Update a Map of Tomorrow project from a credible web source — advance its lifecycle status AND/OR update its construction-start / completion dates. Status order is announced → coming-soon → breaking-ground → construction → open; status only ever moves FORWARD (regressions refused). Dates can change in either direction (delays are common) and auto-apply when a source states a new one — even with NO status change (e.g. a project still "construction" whose opening slips a year). mode "apply" writes to the LIVE map (rebuilds within ~1h) and records the source in status_history (git history = audit trail). mode "propose" queues a STATUS change for one-tap human review (ambiguous/thin/multi-step) — dates always auto-apply regardless of mode. Always pass source_url. Pass new_status only when the status actually advances; omit it for a date-only update.',
     inputSchema: {
       type: 'object',
       properties: {
         slug: { type: 'string', description: 'Project slug from list_projects_due / search_projects' },
-        new_status: { type: 'string', enum: STATUS_ORDER, description: 'The later status the source supports' },
-        source_url: { type: 'string', description: 'URL of the article / press release / permit showing the milestone (required)' },
+        new_status: { type: 'string', enum: STATUS_ORDER, description: 'The later status the source supports. OMIT for a date-only update (no status change).' },
+        source_url: { type: 'string', description: 'URL of the article / press release / permit showing the update (required)' },
         source_published: { type: 'string', description: 'Publish date of the source (YYYY-MM-DD) if known' },
-        note: { type: 'string', description: 'One-line rationale, e.g. "Topped out per SFBJ, 2026-05-12"' },
-        mode: { type: 'string', enum: ['apply', 'propose'], description: 'apply = update the live map (confident, well-sourced single-step milestone). propose = queue for review (ambiguous, thin source, or a multi-step jump). Default apply.' },
+        note: { type: 'string', description: 'One-line rationale, e.g. "Topped out per SFBJ, 2026-05-12" or "Opening pushed to late 2027 per Gulfshore Life"' },
+        mode: { type: 'string', enum: ['apply', 'propose'], description: 'apply = update the live map (confident, well-sourced single-step status milestone). propose = queue the STATUS change for review (ambiguous/thin/multi-step). Default apply. Date changes always auto-apply.' },
         confidence: { type: 'string', enum: ['high', 'low'], description: 'Your confidence in the call' },
-        start_date: { type: 'string', description: 'Confirmed construction start (year or ISO), if the source gives one' },
-        delivery_date: { type: 'string', description: 'Confirmed completion / opening date (year or ISO), if given' },
+        start_date: { type: 'string', description: 'New/confirmed construction start (year or ISO) — updates the date even if status is unchanged' },
+        delivery_date: { type: 'string', description: 'New/confirmed completion/opening date (year or ISO) — updates the date even if status is unchanged (catches delays)' },
         start_speculative: { type: 'boolean', description: 'True if start_date is a TMW estimate, not developer-committed' },
         delivery_speculative: { type: 'boolean', description: 'True if delivery_date is a TMW estimate' },
       },
-      required: ['slug', 'new_status', 'source_url'],
+      required: ['slug', 'source_url'],
     },
   },
 
@@ -1232,10 +1232,13 @@ const IMPL = {
     const slug = String(args.slug || '').trim();
     if (!slug) throw new Error('slug is required');
     const newStatus = String(args.new_status || '').toLowerCase().trim();
-    if (!STATUS_ORDER.includes(newStatus)) throw new Error('new_status must be one of: ' + STATUS_ORDER.join(', '));
+    if (newStatus && !STATUS_ORDER.includes(newStatus)) throw new Error('new_status must be one of: ' + STATUS_ORDER.join(', '));
     const sourceUrl = String(args.source_url || '').trim();
     if (!sourceUrl) throw new Error('source_url is required — cite where the update came from');
     const mode = (String(args.mode || 'apply').toLowerCase() === 'propose') ? 'propose' : 'apply';
+    const clean = (v) => (v == null ? '' : String(v).trim());
+    const newStart = clean(args.start_date);
+    const newDelivery = clean(args.delivery_date);
 
     for (let attempt = 0; ; attempt++) {
       const { sha, projects } = await readProjectsFile(env);
@@ -1244,12 +1247,22 @@ const IMPL = {
       const from = String(p.status || '').toLowerCase();
       const nowIso = new Date().toISOString();
 
-      if (statusRank(newStatus) <= statusRank(from)) {
+      const statusAdvances = !!newStatus && statusRank(newStatus) > statusRank(from);
+      const startChanged = !!newStart && newStart !== clean(p.start_date);
+      const deliveryChanged = !!newDelivery && newDelivery !== clean(p.delivery_date);
+
+      // A status that isn't a forward advance is refused — but only when no date
+      // change rides with it (a date-only update on an unchanged status is fine).
+      if (newStatus && !statusAdvances && !startChanged && !deliveryChanged) {
         return { ok: false, skipped: 'not-a-forward-advance', slug, current_status: from, requested: newStatus };
       }
+      if (!statusAdvances && !startChanged && !deliveryChanged) {
+        return { ok: false, skipped: 'no-change', slug, current_status: from };
+      }
 
-      if (mode === 'propose') {
-        p.status_checked_at = nowIso;   // bump so it isn't re-flagged next sweep
+      // Status proposals (mode "propose") only apply to STATUS — dates auto-apply.
+      if (mode === 'propose' && statusAdvances) {
+        p.status_checked_at = nowIso;
         try {
           await ghPutFile(env, GH_PROJECTS_PATH, serializeProjects(projects), sha, `Status check: ${p.name} — ${from}→${newStatus} flagged for review`);
         } catch (e) { if (e && e.status === 409 && attempt < 4) continue; throw e; }
@@ -1261,20 +1274,36 @@ const IMPL = {
         return { ok: true, mode: 'proposed', slug, name: p.name, from, to: newStatus, review_queue: GH_PROPOSALS_PATH, queue_size: queued };
       }
 
-      // mode apply — change the live status + record provenance.
-      p.status = newStatus;
-      p.status_checked_at = nowIso;
+      // mode apply — write the status advance and/or date change(s) + provenance.
       if (!Array.isArray(p.status_history)) p.status_history = [];
-      const h = { from, to: newStatus, at: nowIso, source_url: sourceUrl };
-      if (args.source_published) h.source_published = String(args.source_published);
-      if (args.note) h.note = String(args.note);
-      p.status_history.push(h);
-      if (args.start_date) { p.start_date = String(args.start_date); if (args.start_speculative) p.start_speculative = true; }
-      if (args.delivery_date) { p.delivery_date = String(args.delivery_date); if (args.delivery_speculative) p.delivery_speculative = true; }
+      const changes = [];
+      const base = { at: nowIso, source_url: sourceUrl };
+      if (args.source_published) base.source_published = String(args.source_published);
+      if (args.note) base.note = String(args.note);
+      if (statusAdvances) {
+        p.status = newStatus;
+        p.status_history.push({ ...base, from, to: newStatus });
+        changes.push(`${from}→${newStatus}`);
+      }
+      if (startChanged) {
+        const old = clean(p.start_date) || null;
+        p.start_date = newStart;
+        if (args.start_speculative) p.start_speculative = true;
+        p.status_history.push({ ...base, type: 'date', field: 'start_date', from: old, to: newStart });
+        changes.push(`start ${old || '—'}→${newStart}`);
+      }
+      if (deliveryChanged) {
+        const old = clean(p.delivery_date) || null;
+        p.delivery_date = newDelivery;
+        if (args.delivery_speculative) p.delivery_speculative = true;
+        p.status_history.push({ ...base, type: 'date', field: 'delivery_date', from: old, to: newDelivery });
+        changes.push(`delivery ${old || '—'}→${newDelivery}`);
+      }
+      p.status_checked_at = nowIso;
       try {
-        await ghPutFile(env, GH_PROJECTS_PATH, serializeProjects(projects), sha, `Status: ${p.name} ${from}→${newStatus} (auto)`);
+        await ghPutFile(env, GH_PROJECTS_PATH, serializeProjects(projects), sha, `${p.name}: ${changes.join(', ')} (auto)`);
       } catch (e) { if (e && e.status === 409 && attempt < 4) continue; throw e; }
-      return { ok: true, mode: 'applied', slug, name: p.name, from, to: newStatus, source_url: sourceUrl, note: 'Live map rebuilds within ~1h; projects.json git history is the audit trail.' };
+      return { ok: true, mode: 'applied', slug, name: p.name, status: p.status, changes, source_url: sourceUrl, note: 'Live map rebuilds within ~1h; projects.json git history is the audit trail.' };
     }
   },
 
