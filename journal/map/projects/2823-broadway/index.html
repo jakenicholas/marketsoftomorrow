@@ -540,44 +540,23 @@
     .project-city { font-size: 13px; color: rgba(255,255,255,0.45); margin-bottom: 16px; }
 
     /* Progress */
-    .ps-wrap { margin-bottom: 16px; }
-    .ps-top { display: flex; justify-content: space-between; margin-bottom: 6px; }
-    .ps-stage { font-size: 10px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; }
-    .ps-pct { font-size: 10px; color: rgba(255,255,255,0.25); }
-    /* Segmented bar: 5 stages with proportional widths (10/10/60/10/10).
-       Each segment fills independently -- done = 100%, active varies by
-       date math, future = 0%. Matches the modal's pm-segments. */
-    .ps-segments { display: flex; gap: 3px; height: 4px; margin-bottom: 5px; }
-    .ps-seg {
-      /* width set inline via flex: <width_pct> 0 0 */
-      height: 100%;
-      background: rgba(255,255,255,0.08);
-      border-radius: 2px;
-      overflow: hidden;
-      position: relative;
-    }
-    .ps-seg-fill {
-      height: 100%;
-      background: var(--seg-c, #FF9500);
-      border-radius: 2px;
-      transition: width 0.4s ease;
-    }
-    .ps-seg-done .ps-seg-fill   { width: 100% !important; }
-    .ps-seg-future .ps-seg-fill { width: 0 !important; }
-    .ps-labels { display: flex; gap: 3px; }
-    .ps-label { font-size: 7px; color: rgba(255,255,255,0.2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 2px; }
-    .ps-cur { color: var(--sc, #FF9500); font-weight: 600; }
-    /* Date-driven subtitle: "18 months to delivery" / "Delivered Sep '23".
-       Matches the modal's pm-progress-sub treatment so all three surfaces
-       (modal, comparison sheet, static page) read like one system. */
-    .ps-sub {
-      margin-top: 6px;
-      font-family: 'JetBrains Mono', ui-monospace, monospace;
-      font-size: 9px;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      color: rgba(255,255,255,0.4);
-    }
+    /* ── Gradient Meter timeline (purple → green; green only at completion).
+       Shared verbatim with tmw-project-intel.js renderTimeline and the map
+       modal's buildProgress() so every surface reads as one system. ── */
+    .pm-tl { margin-bottom: 16px; }
+    .pm-tl-date { text-align: right; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 9px; letter-spacing: 0.06em; text-transform: uppercase; color: rgba(255,255,255,0.5); margin-bottom: 8px; }
+    .pm-tl-meter { position: relative; height: 11px; border-radius: 999px; overflow: hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,0.55); }
+    .pm-tl-grad { position: absolute; inset: 0; background: linear-gradient(90deg, #3a2f6b, #7C5CE0 38%, #A78BFA 64%, #1FDF67); }
+    .pm-tl-grad::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent); background-size: 200% 100%; animation: pmtlShine 2.6s linear infinite; mix-blend-mode: overlay; }
+    @keyframes pmtlShine { 0% { background-position: 200% 0; } 100% { background-position: -60% 0; } }
+    @media (prefers-reduced-motion: reduce) { .pm-tl-grad::after { animation: none; } }
+    .pm-tl-empty { position: absolute; top: 0; bottom: 0; right: 0; background: #0d0f0e; box-shadow: inset 2px 0 3px rgba(0,0,0,0.6); }
+    .pm-tl-knob { position: absolute; top: 50%; transform: translate(-50%,-50%); background: #fff; color: #0a0a0a; font-size: 9.5px; font-weight: 800; padding: 2px 8px; border-radius: 999px; white-space: nowrap; z-index: 2; font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
+    .pm-tl-stages { display: flex; gap: 3px; margin-top: 12px; }
+    .pm-tl-stage { flex: 1; font-size: 7.5px; letter-spacing: 0.02em; text-transform: uppercase; color: rgba(255,255,255,0.2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center; font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
+    .pm-tl-stage:first-child { text-align: left; }
+    .pm-tl-stage:last-child { text-align: right; }
+    .pm-tl-stage.done { color: rgba(255,255,255,0.5); }
 
     /* Divider */
     .divider { height: 0.5px; background: rgba(255,255,255,0.07); margin: 16px 0; }
@@ -866,14 +845,12 @@
       <div class="watching-card-body" id="watchingCardBody"></div>
     </div>
     
-    <div class="ps-wrap">
-      <div class="ps-top">
-        <span class="ps-stage" style="color:#999999">Announced</span>
-        <span class="ps-pct">5%</span>
+    <div class="pm-tl">
+      <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
+        <div class="pm-tl-empty" style="left:5%"></div>
+        <div class="pm-tl-knob" style="left:5%;box-shadow:0 2px 8px rgba(0,0,0,.5),0 0 0 2px rgba(167,139,250,.42),0 0 12px rgba(167,139,250,.55)">5%</div>
       </div>
-      <div class="ps-segments"><div class="ps-seg ps-seg-active" style="flex:15 0 0;--seg-c:rgba(255,255,255,0.55);"><div class="ps-seg-fill" style="width:100%"></div></div><div class="ps-seg ps-seg-future" style="flex:15 0 0;--seg-c:rgba(255,255,255,0.08);"><div class="ps-seg-fill" style="width:0%"></div></div><div class="ps-seg ps-seg-future" style="flex:40 0 0;--seg-c:rgba(255,255,255,0.08);"><div class="ps-seg-fill" style="width:0%"></div></div><div class="ps-seg ps-seg-future" style="flex:15 0 0;--seg-c:rgba(255,255,255,0.08);"><div class="ps-seg-fill" style="width:0%"></div></div><div class="ps-seg ps-seg-future" style="flex:15 0 0;--seg-c:rgba(255,255,255,0.08);"><div class="ps-seg-fill" style="width:0%"></div></div></div>
-      <div class="ps-labels"><span class="ps-label ps-cur" style="flex:15 0 0;color:rgba(255,255,255,0.55);">Announced</span><span class="ps-label" style="flex:15 0 0;">Breaking Ground</span><span class="ps-label" style="flex:40 0 0;">Construction</span><span class="ps-label" style="flex:15 0 0;">Opening Soon</span><span class="ps-label" style="flex:15 0 0;">Now Open</span></div>
-      
+      <div class="pm-tl-stages"><span class="pm-tl-stage on" style="color:#B9A6FF;font-weight:800;text-shadow:0 0 12px rgba(167,139,250,.5)">Announced</span><span class="pm-tl-stage ">Breaking Ground</span><span class="pm-tl-stage ">Construction</span><span class="pm-tl-stage ">Opening Soon</span><span class="pm-tl-stage ">Now Open</span></div>
     </div>
     <div class="divider"></div>
     <p class="description">Broadway may soon welcome a seven-story building delivering entirely affordable 151 units, along with ground-floor retail and new public space improvements along a stretch of Broadway.</p>

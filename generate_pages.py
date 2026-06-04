@@ -380,41 +380,34 @@ def format_delivery_display(raw):
     return s
 
 def progress_bar_html(delivery, delivery_date='', start_date=''):
-    """Render the segmented progress bar (5 stages with proportional widths
-    10/10/60/10/10). Each segment fills independently based on date math.
-    Same look as window.computeProgress + buildProgress in index.html."""
-    stage_label, _, color = delivery_info(delivery)
+    """Render the Gradient Meter timeline (purple→green, with an overlay so green
+    only shows at completion). Shared verbatim with tmw-project-intel.js
+    renderTimeline (search/articles) and the map modal's buildProgress()."""
     pct, _, _, subtitle, segments = compute_progress(delivery_date, delivery, start_date)
+    pct = max(0, min(100, round(pct)))
+    d = (delivery or '').lower()
+    complete = pct >= 100 or 'now open' in d or 'complete' in d or 'delivered' in d
+    glow = '31,223,103' if complete else '167,139,250'   # green when done, purple in progress
+    accent = '#1FDF67' if complete else '#B9A6FF'
 
-    segs_html = ''
+    stages_html = ''
     for seg in segments:
-        seg_color = 'rgba(255,255,255,0.08)' if seg['state'] == 'future' else seg['color']
-        segs_html += (
-            f'<div class="ps-seg ps-seg-{seg["state"]}" '
-            f'style="flex:{seg["width_pct"]} 0 0;--seg-c:{seg_color};">'
-            f'<div class="ps-seg-fill" style="width:{seg["fill_pct"]}%"></div>'
-            f'</div>'
-        )
+        on = seg['state'] == 'active'
+        cls = 'on' if on else ('done' if seg['state'] == 'done' else '')
+        style = (f' style="color:{accent};font-weight:800;'
+                 f'text-shadow:0 0 12px rgba({glow},.5)"') if on else ''
+        stages_html += f'<span class="pm-tl-stage {cls}"{style}>{seg["label"]}</span>'
 
-    labels_html = ''
-    for seg in segments:
-        cur = ' ps-cur' if seg['state'] == 'active' else ''
-        style = f'flex:{seg["width_pct"]} 0 0;'
-        if seg['state'] == 'active':
-            style += f'color:{seg["color"]};'
-        labels_html += f'<span class="ps-label{cur}" style="{style}">{seg["label"]}</span>'
-
-    sub_html = f'<div class="ps-sub">{subtitle}</div>' if subtitle else ''
+    date_html = f'<div class="pm-tl-date">{subtitle}</div>' if subtitle else ''
+    knob_left = 'calc(100% - 18px)' if pct >= 98 else f'{pct}%'
 
     return f'''
-    <div class="ps-wrap">
-      <div class="ps-top">
-        <span class="ps-stage" style="color:{color}">{stage_label}</span>
-        <span class="ps-pct">{pct}%</span>
+    <div class="pm-tl">{date_html}
+      <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
+        <div class="pm-tl-empty" style="left:{pct}%"></div>
+        <div class="pm-tl-knob" style="left:{knob_left};box-shadow:0 2px 8px rgba(0,0,0,.5),0 0 0 2px rgba({glow},.42),0 0 12px rgba({glow},.55)">{pct}%</div>
       </div>
-      <div class="ps-segments">{segs_html}</div>
-      <div class="ps-labels">{labels_html}</div>
-      {sub_html}
+      <div class="pm-tl-stages">{stages_html}</div>
     </div>'''
 
 def gallery_html(row):
@@ -1196,44 +1189,23 @@ def build_page(row, articles=None):
     .project-city {{ font-size: 13px; color: rgba(255,255,255,0.45); margin-bottom: 16px; }}
 
     /* Progress */
-    .ps-wrap {{ margin-bottom: 16px; }}
-    .ps-top {{ display: flex; justify-content: space-between; margin-bottom: 6px; }}
-    .ps-stage {{ font-size: 10px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; }}
-    .ps-pct {{ font-size: 10px; color: rgba(255,255,255,0.25); }}
-    /* Segmented bar: 5 stages with proportional widths (10/10/60/10/10).
-       Each segment fills independently -- done = 100%, active varies by
-       date math, future = 0%. Matches the modal's pm-segments. */
-    .ps-segments {{ display: flex; gap: 3px; height: 4px; margin-bottom: 5px; }}
-    .ps-seg {{
-      /* width set inline via flex: <width_pct> 0 0 */
-      height: 100%;
-      background: rgba(255,255,255,0.08);
-      border-radius: 2px;
-      overflow: hidden;
-      position: relative;
-    }}
-    .ps-seg-fill {{
-      height: 100%;
-      background: var(--seg-c, #FF9500);
-      border-radius: 2px;
-      transition: width 0.4s ease;
-    }}
-    .ps-seg-done .ps-seg-fill   {{ width: 100% !important; }}
-    .ps-seg-future .ps-seg-fill {{ width: 0 !important; }}
-    .ps-labels {{ display: flex; gap: 3px; }}
-    .ps-label {{ font-size: 7px; color: rgba(255,255,255,0.2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 2px; }}
-    .ps-cur {{ color: var(--sc, #FF9500); font-weight: 600; }}
-    /* Date-driven subtitle: "18 months to delivery" / "Delivered Sep '23".
-       Matches the modal's pm-progress-sub treatment so all three surfaces
-       (modal, comparison sheet, static page) read like one system. */
-    .ps-sub {{
-      margin-top: 6px;
-      font-family: 'JetBrains Mono', ui-monospace, monospace;
-      font-size: 9px;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      color: rgba(255,255,255,0.4);
-    }}
+    /* ── Gradient Meter timeline (purple → green; green only at completion).
+       Shared verbatim with tmw-project-intel.js renderTimeline and the map
+       modal's buildProgress() so every surface reads as one system. ── */
+    .pm-tl {{ margin-bottom: 16px; }}
+    .pm-tl-date {{ text-align: right; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 9px; letter-spacing: 0.06em; text-transform: uppercase; color: rgba(255,255,255,0.5); margin-bottom: 8px; }}
+    .pm-tl-meter {{ position: relative; height: 11px; border-radius: 999px; overflow: hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,0.55); }}
+    .pm-tl-grad {{ position: absolute; inset: 0; background: linear-gradient(90deg, #3a2f6b, #7C5CE0 38%, #A78BFA 64%, #1FDF67); }}
+    .pm-tl-grad::after {{ content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent); background-size: 200% 100%; animation: pmtlShine 2.6s linear infinite; mix-blend-mode: overlay; }}
+    @keyframes pmtlShine {{ 0% {{ background-position: 200% 0; }} 100% {{ background-position: -60% 0; }} }}
+    @media (prefers-reduced-motion: reduce) {{ .pm-tl-grad::after {{ animation: none; }} }}
+    .pm-tl-empty {{ position: absolute; top: 0; bottom: 0; right: 0; background: #0d0f0e; box-shadow: inset 2px 0 3px rgba(0,0,0,0.6); }}
+    .pm-tl-knob {{ position: absolute; top: 50%; transform: translate(-50%,-50%); background: #fff; color: #0a0a0a; font-size: 9.5px; font-weight: 800; padding: 2px 8px; border-radius: 999px; white-space: nowrap; z-index: 2; font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }}
+    .pm-tl-stages {{ display: flex; gap: 3px; margin-top: 12px; }}
+    .pm-tl-stage {{ flex: 1; font-size: 7.5px; letter-spacing: 0.02em; text-transform: uppercase; color: rgba(255,255,255,0.2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center; font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }}
+    .pm-tl-stage:first-child {{ text-align: left; }}
+    .pm-tl-stage:last-child {{ text-align: right; }}
+    .pm-tl-stage.done {{ color: rgba(255,255,255,0.5); }}
 
     /* Divider */
     .divider {{ height: 0.5px; background: rgba(255,255,255,0.07); margin: 16px 0; }}
