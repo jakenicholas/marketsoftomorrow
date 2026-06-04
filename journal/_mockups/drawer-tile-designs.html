@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Drawer Tiles — Linked-Card Redesign</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --line:rgba(255,255,255,.08); --line-2:rgba(255,255,255,.14);
+    --white:#fff; --mute:rgba(255,255,255,.62); --faint:rgba(255,255,255,.4);
+    --green:#1FDF67; --gold:#e6c574; --gold-soft:#f0d68a; --purple:#A78BFA;
+    --sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    --serif:'Fraunces',Georgia,serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-font-smoothing:antialiased}
+  body{background:#0a0a0a;color:var(--white);font-family:var(--sans);line-height:1.5}
+  a{color:inherit;text-decoration:none}
+
+  .intro{max-width:1240px;margin:0 auto;padding:40px 24px 6px}
+  .intro h1{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--green);font-weight:800}
+  .intro p{color:var(--mute);font-size:13.5px;margin-top:8px;max-width:80ch}
+  .intro b{color:#fff}
+  .lab{max-width:1240px;margin:36px auto 0;padding:0 24px;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+  .lab .n{font-size:11px;font-weight:800;letter-spacing:.1em;color:#0a0a0a;background:var(--green);border-radius:6px;padding:3px 8px}
+  .lab .t{font-size:19px;font-weight:700}
+  .lab .d{color:var(--faint);font-size:12.5px;width:100%;max-width:78ch;margin-top:2px}
+
+  /* drawer shell — flat dark like the live drawer (gradient reverted) */
+  .drawer{max-width:412px;margin:14px auto 0;border:1px solid var(--line);border-radius:18px;overflow:hidden;background:#101110}
+  .drawer-top{padding:14px 14px 8px;display:flex;align-items:center;gap:10px}
+  .drawer-search{flex:1;display:flex;align-items:center;gap:9px;height:42px;padding:0 15px;border-radius:999px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:var(--faint);font-size:12.5px}
+  .drawer-search svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2}
+  .drawer-count{padding:8px 16px 6px;font-size:11px;color:var(--mute)}.drawer-count b{color:#fff}
+  .drawer-list{padding:6px 12px 16px;display:flex;flex-direction:column;gap:12px}
+
+  /* status pill */
+  .stp{display:inline-flex;align-items:center;gap:5px;font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--c,#999)}
+  .stp .dot{width:6px;height:6px;border-radius:50%;background:var(--c,#999)}
+  /* tracking badge (gold) — straight from the linked card */
+  .trk{display:inline-flex;align-items:center;gap:6px;font-size:9px;letter-spacing:.16em;text-transform:uppercase;font-weight:700;color:var(--gold-soft);
+    padding:6px 11px;border-radius:999px;background:rgba(7,8,7,.55);backdrop-filter:blur(8px);border:1px solid rgba(230,197,116,.5)}
+
+  /* gradient meter */
+  .gm{margin-top:11px}
+  .gm-date{text-align:right;font-size:8.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--faint);margin-bottom:6px}
+  .gm-track{position:relative;height:8px;border-radius:999px;overflow:hidden;box-shadow:inset 0 1px 2px rgba(0,0,0,.5)}
+  .gm-grad{position:absolute;inset:0;background:linear-gradient(90deg,#3a2f6b,#7C5CE0 38%,#A78BFA 64%,var(--green))}
+  .gm-empty{position:absolute;top:0;bottom:0;right:0;background:#0e0f0e}
+  .gm-knob{position:absolute;top:50%;transform:translate(-50%,-50%);background:#fff;color:#0a0a0a;font-size:8px;font-weight:800;padding:1px 5px;border-radius:999px;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,.5)}
+  .gm-stages{display:flex;gap:2px;margin-top:8px}
+  .gm-stages span{flex:1;font-size:6.5px;letter-spacing:.03em;text-transform:uppercase;color:rgba(255,255,255,.22);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .gm-stages span:first-child{text-align:left}.gm-stages span:last-child{text-align:right}
+  .gm-stages span.on{color:var(--green);font-weight:800}.gm-stages span.done{color:rgba(255,255,255,.45)}
+
+  /* stats (bold n + label) */
+  .stats{display:flex;gap:20px;margin-top:13px}
+  .stat .n{font-family:var(--serif);font-size:20px;font-weight:600;letter-spacing:-.01em;line-height:1}
+  .stat .l{font-size:8px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);margin-top:3px}
+
+  .title{font-family:var(--serif);font-weight:600;letter-spacing:-.02em;line-height:1.02;color:#fff}
+  .loc{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--mute);margin-top:7px}
+
+  /* ════ A — VERTICAL MINI LINKED CARD ════ */
+  .ca{background:rgba(255,255,255,.025);border:1px solid var(--line);border-radius:16px;overflow:hidden;transition:.16s}
+  .ca:hover{border-color:rgba(230,197,116,.4);transform:translateY(-2px)}
+  .ca .media{position:relative;aspect-ratio:16/10;background-size:cover;background-position:center;background-color:#111}
+  .ca .media .trk{position:absolute;top:12px;left:12px}
+  .ca .media .eye{position:absolute;top:12px;right:12px;width:30px;height:30px;border-radius:50%;background:rgba(7,8,7,.5);backdrop-filter:blur(8px);border:1px solid var(--line-2);display:flex;align-items:center;justify-content:center}
+  .ca .media .eye svg{width:14px;height:14px;stroke:var(--faint);fill:none;stroke-width:2}
+  .ca .body{padding:15px 16px 16px}
+  .ca .title{font-size:24px}
+
+  /* ════ B — HORIZONTAL COMPACT ════ */
+  .cb{display:flex;gap:13px;background:rgba(255,255,255,.025);border:1px solid var(--line);border-radius:16px;padding:11px;transition:.16s}
+  .cb:hover{border-color:rgba(230,197,116,.4);transform:translateY(-1px)}
+  .cb .media{width:108px;flex-shrink:0;align-self:stretch;min-height:128px;border-radius:11px;background-size:cover;background-position:center;background-color:#111;position:relative;overflow:hidden}
+  .cb .media .stp{position:absolute;left:8px;bottom:8px;background:rgba(0,0,0,.5);backdrop-filter:blur(6px);padding:4px 7px;border-radius:999px}
+  .cb .body{flex:1;min-width:0;display:flex;flex-direction:column}
+  .cb .title{font-size:19px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .cb .gm-stages span{font-size:6px}
+
+  /* ════ C — EDITORIAL (overlay title) ════ */
+  .cc{position:relative;border:1px solid var(--line);border-radius:16px;overflow:hidden;transition:.16s;background:rgba(255,255,255,.025)}
+  .cc:hover{border-color:rgba(230,197,116,.4);transform:translateY(-2px)}
+  .cc .media{position:relative;aspect-ratio:5/3;background-size:cover;background-position:center;background-color:#111;display:flex;align-items:flex-end}
+  .cc .media::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(7,8,7,.05) 35%,rgba(7,8,7,.55) 65%,rgba(7,8,7,.92))}
+  .cc .media .trk{position:absolute;top:12px;left:12px}
+  .cc .ov{position:relative;z-index:2;padding:14px 16px 12px;width:100%}
+  .cc .ov .title{font-size:25px;text-shadow:0 2px 14px rgba(0,0,0,.5)}
+  .cc .ov .loc{color:rgba(255,255,255,.72)}
+  .cc .body{padding:13px 16px 16px}
+  .cc .gm-stages span{color:rgba(255,255,255,.3)}
+
+  .foot{max-width:1240px;margin:0 auto;padding:42px 24px 70px}
+  .foot p{color:var(--mute);font-size:13px;max-width:80ch}
+</style>
+</head>
+<body>
+  <div class="intro">
+    <h1>Drawer Tiles · Linked-Card Redesign</h1>
+    <p>Three drawer-tile directions that channel the <b>linked-project card</b>: <b>Fraunces serif</b> titles, the gold <b>Tracking</b> badge, the <b>gradient-meter</b> timeline, and bold serif <b>stats</b> — sized for the map list (flat dark drawer, since we reverted the background gradient). Real projects.</p>
+  </div>
+
+  <div class="lab"><span class="n">A</span><span class="t">Vertical Mini-Card</span><span class="d">Image on top with the Tracking badge + watch eye, serif title &amp; location below, gradient meter, then serif stats. The most faithful shrink of the linked card.</span></div>
+  <div class="drawer">
+    <div class="drawer-top"><div class="drawer-search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg> Search projects, cities, firms…</div></div>
+    <div class="drawer-count"><b>312</b> projects in view</div>
+    <div class="drawer-list" id="listA"></div>
+  </div>
+
+  <div class="lab"><span class="n">B</span><span class="t">Horizontal Compact</span><span class="d">Image left, serif title + location + gradient meter right. Dense — fits more tiles on screen while keeping the serif/meter language.</span></div>
+  <div class="drawer">
+    <div class="drawer-top"><div class="drawer-search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg> Search projects, cities, firms…</div></div>
+    <div class="drawer-count"><b>312</b> projects in view</div>
+    <div class="drawer-list" id="listB"></div>
+  </div>
+
+  <div class="lab"><span class="n">C</span><span class="t">Editorial (title over image)</span><span class="d">Serif title set right over the bottom of the image (like the cinematic project pages), meter + stats below. The most magazine-like.</span></div>
+  <div class="drawer">
+    <div class="drawer-top"><div class="drawer-search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg> Search projects, cities, firms…</div></div>
+    <div class="drawer-count"><b>312</b> projects in view</div>
+    <div class="drawer-list" id="listC"></div>
+  </div>
+
+  <div class="foot"><p><b style="color:#fff">Pick A, B, or C</b> (or a blend) and I'll build it into the real map drawer for both desktop &amp; mobile — keeping the gallery arrows, watch star, status filters and the rest wired up. I can also swap the gold Tracking badge for a colored status pill (Now Open / Construction…) if you'd rather lead with status.</p></div>
+
+<script>
+const STAGES=["Announced","Breaking Ground","Construction","Opening Soon","Now Open"];
+const SC={"Announced":"#9aa39c","Breaking Ground":"#FFD300","Under Construction":"#FF9500","Construction":"#FF9500","Opening Soon":"#1FDF67","Now Open":"#1FDF67"};
+function aiFor(s){s=(s||'').toLowerCase();if(s.includes('now open'))return 4;if(s.includes('opening'))return 3;if(s.includes('construction')||s.includes('topping'))return 2;if(s.includes('breaking'))return 1;return 0;}
+function pctFor(ai){if(ai>=4)return 100;if(ai<=0)return 5;return Math.round((ai+0.45)*20);}
+function fmtD(d){if(!d)return '';const m=d.match(/^(\d{4})-(\d{2})/);if(m){const M=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];return M[+m[2]-1]+" '"+m[1].slice(2);}return d;}
+
+const P=[
+ {title:"Nauka",city:"Riviera Nayarit",type:"Residences",status:"Now Open",delivery:"2026-05",units:"395",keys:"91",img:"https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/ec8073af2305-Nauka14_no-tracks_DJI_20251106185407_0405-.jpeg"},
+ {title:"Four Seasons Coconut Grove",city:"Miami",type:"Residences",status:"Under Construction",delivery:"2028-11",units:"70",floors:"20",img:"https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/ce4fee4804e4-2-Four-Seasons-Coconut-Grove-Exterior-crop.jpg"},
+ {title:"Eden Residences",city:"Miami",type:"Residences",status:"Breaking Ground",delivery:"2027-11",units:"32",floors:"10",img:"https://residencesateden.com/images/EDEN/optimized/north-east-aerial-1440.webp"},
+ {title:"Dutchman's Pipe",city:"West Palm Beach",type:"Golf",status:"Now Open",delivery:"2024-11",units:"22",img:"https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/659820a59b4c-DutchmansPipe_TMW_1.jpeg"},
+ {title:"346 Madison Avenue",city:"New York",type:"Office",status:"Announced",delivery:"2031",floors:"46",img:"https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/9523d42a9025-260528_4.jpeg"},
+];
+
+function meter(p,withDate){
+  const ai=aiFor(p.status),pct=pctFor(ai);
+  const stages=STAGES.map((n,i)=>`<span class="${i<ai?'done':(i===ai?'on':'')}">${n}</span>`).join('');
+  const knobL=pct>=97?'calc(100% - 14px)':pct+'%';
+  const date=withDate?`<div class="gm-date">${ai>=4?'Delivered '+fmtD(p.delivery):'Est. '+fmtD(p.delivery)}</div>`:'';
+  return `<div class="gm">${date}<div class="gm-track"><div class="gm-grad"></div><div class="gm-empty" style="left:${pct}%"></div><div class="gm-knob" style="left:${knobL}">${pct}%</div></div><div class="gm-stages">${stages}</div></div>`;
+}
+function stats(p){const a=[];if(p.units)a.push(['n',p.units,'Units']);if(p.keys)a.push(['n',p.keys,'Keys']);if(p.floors)a.push(['n',p.floors,'Floors']);
+  if(!a.length)return '';return `<div class="stats">${a.map(s=>`<div class="stat"><div class="n">${s[1]}</div><div class="l">${s[2]}</div></div>`).join('')}</div>`;}
+function pill(p){const c=SC[p.status]||'#999';return `<span class="stp" style="--c:${c}"><span class="dot"></span>${p.status}</span>`;}
+const TRK='<span class="trk">● Tracking</span>';
+const EYE='<span class="eye"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></span>';
+
+document.getElementById('listA').innerHTML=P.map(p=>`
+ <a class="ca">
+   <div class="media" style="background-image:url('${p.img}')">${TRK}${EYE}</div>
+   <div class="body"><div class="title">${p.title}</div><div class="loc">${p.city} · ${p.type}</div>${meter(p,true)}${stats(p)}</div>
+ </a>`).join('');
+
+document.getElementById('listB').innerHTML=P.map(p=>`
+ <a class="cb">
+   <div class="media" style="background-image:url('${p.img}')">${pill(p)}</div>
+   <div class="body"><div class="title">${p.title}</div><div class="loc">${p.city} · ${p.type}</div>${meter(p,false)}</div>
+ </a>`).join('');
+
+document.getElementById('listC').innerHTML=P.map(p=>`
+ <a class="cc">
+   <div class="media" style="background-image:url('${p.img}')">${TRK}<div class="ov"><div class="title">${p.title}</div><div class="loc">${p.city} · ${p.type}</div></div></div>
+   <div class="body">${meter(p,true)}${stats(p)}</div>
+ </a>`).join('');
+</script>
+</body>
+</html>
