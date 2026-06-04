@@ -696,22 +696,29 @@
       '.tmw-fm.open .tmw-fm-panel.v2{display:block}',
       '.tmw-fm-inner{padding:8px 0 8px; max-width:none}',
       'nav.main .nav-links{overscroll-behavior:contain}',
-      // Focus Markets: 2 columns; banner fills the top; only Followers + Mo. Views.
+      // Focus Markets: 2 columns. Image fills the full top frame (flush to the
+      // card's rounded corners, no gap); 16/9 keeps it tight so the title +
+      // stats get the bigger share of the tile.
       '.tmw-oc-grid{grid-template-columns:repeat(2,1fr); max-width:none; gap:10px}',
-      '.tmw-oc-banner{aspect-ratio:16/10}',
-      '.tmw-oc-body{padding:11px 12px 9px}',
-      '.tmw-oc-name{font-size:13px}',
+      '.tmw-oc-banner{aspect-ratio:16/9; border-radius:13px 13px 0 0; border-bottom:0}',
+      '.tmw-oc-banner img{object-fit:cover; object-position:center}',
+      '.tmw-oc-body{padding:12px 13px 12px; gap:0}',
+      '.tmw-oc-name{font-size:13.5px; margin-bottom:12px}',
       '.tmw-oc-stats{gap:10px 12px; padding-bottom:13px}',
       '.tmw-oc-st .v{font-size:16px}',
-      // Mobile: centre "Read articles" in the space left of the IG button (right).
-      '.tmw-oc-foot{gap:6px}',
-      '.tmw-oc-read{font-size:8.5px; letter-spacing:.06em; flex:1; justify-content:center; gap:6px}',
-      '.tmw-oc-ig{width:24px; height:24px}',
+      // Footer: "Read articles" anchored LEFT, Instagram anchored RIGHT, equal
+      // padding to each edge of the tile (no centred-floating link).
+      '.tmw-oc-foot{gap:8px; padding-top:12px; justify-content:space-between}',
+      '.tmw-oc-read{font-size:8.5px; letter-spacing:.06em; flex:0 1 auto; justify-content:flex-start; gap:6px}',
+      '.tmw-oc-ig{flex:0 0 auto; width:26px; height:26px}',
       '.tmw-mm{grid-template-columns:1fr; max-width:none; gap:10px}',
       '.tmw-mm-pro-grid{grid-template-columns:1fr}',
       '.tmw-ll{grid-template-columns:1fr; max-width:none; gap:10px}',
       '.tmw-lc-feat{min-height:200px}',
-      '.tmw-mm-cta{flex-direction:column; align-items:stretch; text-align:center; gap:10px}',
+      // Go-Pro CTA: the pill is content-width and padded so it never touches the
+      // card edges (was stretched edge-to-edge, "too long").
+      '.tmw-mm-cta{flex-direction:column; align-items:center; text-align:center; gap:11px; padding:16px}',
+      '.tmw-mm-cta .go{align-self:center; padding:11px 30px}',
       '.tmw-nav-eyebrow{margin:6px 0 10px}',
       '}'
     ].join('');
@@ -919,6 +926,18 @@
     document.documentElement.style.overflow = '';
     window.scrollTo(0, __tmwLockedY);
   }
+  // Size the open drawer to fill exactly from its top (just under the header) to
+  // the viewport bottom, so its content scrolls (overflow-y:auto) instead of
+  // running off the bottom edge unreachable. Robust to a banner/hero above the
+  // header, header height, and safe-area insets — unlike a fixed
+  // calc(100dvh - 56px), which overshoots whenever the header isn't at y=0.
+  function sizeMobileDrawer(list) {
+    if (window.innerWidth > 980) { list.style.height = ''; list.style.maxHeight = ''; return; }
+    var top = list.getBoundingClientRect().top;
+    var h = Math.max(160, Math.round(window.innerHeight - top)) + 'px';
+    list.style.height = h;
+    list.style.maxHeight = h;
+  }
 
   // Wire the mobile hamburger(s) to open/close the nav dropdown. Works for both
   // the inline page headers and the shared chrome header (both use .nav-burger +
@@ -941,11 +960,19 @@
           btn.setAttribute('aria-expanded', open ? 'true' : 'false');
           // Lock the page behind the open drawer so scrolling the menu doesn't
           // scroll the article underneath (drawer itself stays overflow-y:auto).
-          if (open) lockBodyScroll(); else unlockBodyScroll();
+          if (open) {
+            lockBodyScroll();
+            // After the lock freezes layout, size the drawer to the remaining
+            // viewport so it scrolls. Re-size on resize/orientation while open.
+            setTimeout(function () { sizeMobileDrawer(list); }, 0);
+          } else {
+            unlockBodyScroll();
+            list.style.height = ''; list.style.maxHeight = '';
+          }
         });
         // Close the menu after tapping a link
         list.addEventListener('click', function (e) {
-          if (e.target.closest('a')) { list.classList.remove('open'); btn.classList.remove('is-open'); btn.setAttribute('aria-expanded', 'false'); unlockBodyScroll(); }
+          if (e.target.closest('a')) { list.classList.remove('open'); btn.classList.remove('is-open'); btn.setAttribute('aria-expanded', 'false'); unlockBodyScroll(); list.style.height = ''; list.style.maxHeight = ''; }
         });
       })(b, links);
     }
