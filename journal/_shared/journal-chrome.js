@@ -197,6 +197,18 @@
       }
     } catch (e) { /* ticker is optional; header still works without it */ }
 
+    // Strip any pre-existing static page footer so only the universal chrome
+    // footer renders. Pages that adopted the shared chrome kept their old
+    // hand-rolled <footer> in place, which produced two stacked footers. This
+    // removes every footer that isn't ours, making the chrome footer the single
+    // source of truth across the whole site (one fix, all pages).
+    try {
+      var stale = document.querySelectorAll('footer:not(.tmw-chrome-foot)');
+      for (var si = 0; si < stale.length; si++) {
+        stale[si].parentNode && stale[si].parentNode.removeChild(stale[si]);
+      }
+    } catch (e) { /* defensive; footer injection still proceeds */ }
+
     var f = document.createElement('div');
     f.innerHTML = footerHtml;
     document.body.appendChild(f.firstChild);
