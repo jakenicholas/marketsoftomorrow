@@ -14073,11 +14073,18 @@
         const unitsVal = fmtNum(p.units);
         const floorsVal = fmtNum(p.floors);
         const escTxt = (s) => (s || '').toString().replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        // Start date — only when a real (non-speculative) start date exists; sits
+        // just before Delivery (the two timeline bookends).
+        const startRaw = (p.startDate || '').trim();
+        const startDisplay = (startRaw && !p.startSpeculative)
+          ? ((typeof window.formatDeliveryDisplay === 'function') ? window.formatDeliveryDisplay(startRaw) : startRaw)
+          : '';
 
         const factItems = [];
         if (unitsVal)        factItems.push({ label: 'Units',    val: unitsVal });
-        if (keysVal)         factItems.push({ label: 'Keys',     val: keysVal });
         if (floorsVal)       factItems.push({ label: 'Floors',   val: floorsVal });
+        if (keysVal)         factItems.push({ label: 'Keys',     val: keysVal });
+        if (startDisplay)    factItems.push({ label: 'Start',    val: startDisplay });
         if (deliveryDisplay) factItems.push({ label: 'Delivery', val: deliveryDisplay });
         if (p.city)          factItems.push({ label: 'Market',   val: p.city });
 

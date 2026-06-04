@@ -733,20 +733,24 @@ def build_page(row, articles=None, nearby=None):
             '<svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button></div>'
         )
 
-    # Hero mini-stats (panel) — pick up to 3 of Units / Keys / Floors, backfill
-    # with Delivery + Market so the panel never looks empty.
+    # Hero mini-stats (panel) — the standardized fact set, matching the map
+    # modal: Units / Floors / Keys / Start / Delivery / Market, whichever are
+    # available. Start shows only when a real (non-speculative) start date exists,
+    # and always sits just before Delivery (the two timeline bookends).
     mini_items = []
-    for _v, _l in [(row.get('Units', ''), 'Units'), (row.get('Keys', ''), 'Keys'),
-                   (row.get('Floors', ''), 'Floors')]:
-        if (_v or '').strip():
-            mini_items.append((_v.strip(), _l))
-    if len(mini_items) < 2:
-        _dv = format_delivery_display(delivery_date or delivery)
-        if _dv:
-            mini_items.append((_dv, 'Delivery'))
-        if city:
-            mini_items.append((city, 'Market'))
-    mini_items = mini_items[:3]
+    def _add_mini(_v, _l):
+        _v = (_v or '').strip()
+        if _v:
+            mini_items.append((_v, _l))
+    _add_mini(row.get('Units', ''), 'Units')
+    _add_mini(row.get('Floors', ''), 'Floors')
+    _add_mini(row.get('Keys', ''), 'Keys')
+    _start_raw = (row.get('StartDate', '') or '').strip()
+    _start_spec = (row.get('StartSpeculative', '') or '').strip() in ('1', 'true', 'True')
+    if _start_raw and not _start_spec:
+        _add_mini(format_delivery_display(_start_raw), 'Start')
+    _add_mini(format_delivery_display(delivery_date or delivery), 'Delivery')
+    _add_mini(city, 'Market')
     minis_html = ''
     if mini_items:
         minis_html = '<div class="pp-minis">' + ''.join(
