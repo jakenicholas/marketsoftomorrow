@@ -11009,19 +11009,21 @@
     }
     /* ── Desktop drawer: close (X) + pull handle ─────────────────────── */
     @media(min-width:981px){
-      /* Close X — a solid-black circle straddling the drawer's right edge,
-         vertically centered on the tabs row. Outside the sidebar so the
-         overhanging half shows over the map. Hidden when collapsed. */
+      /* Close tab — the mirror image of the collapsed pull-handle, attached to
+         the drawer's right edge and pointing left. Clicking it collapses the
+         drawer (slides it out left). Replaces the old overhanging X circle. */
       #tmwDrawerClose{
-        position:fixed; left:calc(35% - 16px); top:calc(var(--header-height) + 29px); z-index:14;
-        width:32px; height:32px; border-radius:50%;
-        background:#0a0a0a; border:1px solid rgba(255,255,255,0.16);
-        color:rgba(255,255,255,0.7); display:none; align-items:center; justify-content:center; cursor:pointer;
-        box-shadow:0 2px 14px rgba(0,0,0,0.55);
-        transition:background .15s ease, color .15s ease;
+        position:fixed; left:35%; top:calc(var(--header-height) + 26px); z-index:25;
+        width:26px; height:54px; padding:0; margin-left:-1px;
+        border:1px solid rgba(255,255,255,0.12); border-left:0;
+        border-top-right-radius:13px; border-bottom-right-radius:13px;
+        background:rgba(17,17,19,0.92); -webkit-backdrop-filter:blur(16px); backdrop-filter:blur(16px);
+        color:rgba(255,255,255,0.82); display:none; align-items:center; justify-content:center; cursor:pointer;
+        box-shadow:2px 0 18px rgba(0,0,0,0.42);
+        transition:background .15s ease, transform .15s ease;
       }
-      #tmwDrawerClose svg{ width:15px; height:15px; }
-      #tmwDrawerClose:hover{ background:#1c1c1c; color:#fff; }
+      #tmwDrawerClose svg{ width:16px; height:16px; }
+      #tmwDrawerClose:hover{ background:rgba(30,30,34,0.96); transform:translateX(-2px); }
       body.ui-v2 #tmwDrawerClose{ display:flex; }
       /* Pull handle — a tab on the left edge, shown only while collapsed. */
       #tmwDrawerHandle{
@@ -11501,7 +11503,7 @@
          with the Discover/Watchlist tabs row. Kept OUTSIDE the sidebar so the
          overhanging half isn't clipped by its overflow. -->
     <button id="tmwDrawerClose" type="button" aria-label="Close panel" title="Close panel">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 6-6 6 6 6"/></svg>
     </button>
 
     <div id="desktopSidebar">
