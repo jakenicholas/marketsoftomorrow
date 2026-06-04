@@ -45,6 +45,11 @@ const DEFAULT_PROTOCOL = '2025-06-18';
 const PROJECTS_URL = 'https://www.oftmw.com/map/projects-flat.json';
 const ARTICLES_URL = 'https://www.oftmw.com/map/articles.json';
 
+// Project lifecycle order — status only ever advances along this path. Used by
+// the construction-update automation (list_projects_due / update_project_status).
+const STATUS_ORDER = ['announced', 'coming-soon', 'breaking-ground', 'construction', 'open'];
+function statusRank(s) { const i = STATUS_ORDER.indexOf(String(s || '').toLowerCase()); return i < 0 ? 0 : i; }
+
 // ── Tool catalog ────────────────────────────────────────────────────────────
 const TOOLS = [
   {
@@ -327,6 +332,34 @@ const TOOLS = [
     inputSchema: { type: 'object', properties: { limit: { type: 'integer', description: 'Max results (default 50)' } } },
   },
 
+  // ── Construction-update automation ───────────────────────────────────────────
+  {
+    name: 'list_projects_due',
+    description: 'Get the next rotating batch of ACTIVE Map of Tomorrow projects (status not yet "open") to check for construction updates — oldest-checked first, prioritizing those nearest a milestone (breaking-ground / construction). IMPORTANT: calling this MARKS the returned batch as checked right now, which is how the weekly sweep rotates through all ~360 projects over time — so only call it when you are about to actually web-search the batch you get back. For any project a credible source shows has advanced, call update_project_status.',
+    inputSchema: { type: 'object', properties: { limit: { type: 'integer', description: 'How many projects to pull this sweep (default 25, max 60)' } } },
+  },
+  {
+    name: 'update_project_status',
+    description: 'Advance a Map of Tomorrow project to a LATER lifecycle status based on a credible web source. Status order is announced → coming-soon → breaking-ground → construction → open; ONLY forward advances are allowed (regressions and no-ops are refused). mode "apply" changes the LIVE status (the public map rebuilds automatically within ~1h) and records the source in the project\'s status_history (git history = audit trail). mode "propose" does NOT change the live status — it queues the change for one-tap human review (use for ambiguous signals, thin/single sources, or multi-step jumps). Always pass source_url. This is the hybrid policy: apply clear well-sourced milestones, propose the rest.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        slug: { type: 'string', description: 'Project slug from list_projects_due / search_projects' },
+        new_status: { type: 'string', enum: STATUS_ORDER, description: 'The later status the source supports' },
+        source_url: { type: 'string', description: 'URL of the article / press release / permit showing the milestone (required)' },
+        source_published: { type: 'string', description: 'Publish date of the source (YYYY-MM-DD) if known' },
+        note: { type: 'string', description: 'One-line rationale, e.g. "Topped out per SFBJ, 2026-05-12"' },
+        mode: { type: 'string', enum: ['apply', 'propose'], description: 'apply = update the live map (confident, well-sourced single-step milestone). propose = queue for review (ambiguous, thin source, or a multi-step jump). Default apply.' },
+        confidence: { type: 'string', enum: ['high', 'low'], description: 'Your confidence in the call' },
+        start_date: { type: 'string', description: 'Confirmed construction start (year or ISO), if the source gives one' },
+        delivery_date: { type: 'string', description: 'Confirmed completion / opening date (year or ISO), if given' },
+        start_speculative: { type: 'boolean', description: 'True if start_date is a TMW estimate, not developer-committed' },
+        delivery_speculative: { type: 'boolean', description: 'True if delivery_date is a TMW estimate' },
+      },
+      required: ['slug', 'new_status', 'source_url'],
+    },
+  },
+
   // ── Analytics ──────────────────────────────────────────────────────────────
   {
     name: 'get_audience_stats',
@@ -510,6 +543,39 @@ async function ghPutFile(env, path, contentStr, sha, message) {
     throw e;
   }
   return await r.json();
+}
+
+// ── Project status automation (→ tmw-data/data/projects.json) ────────────────
+// The construction-update sweep advances a project's lifecycle status (and dates)
+// based on web findings. projects.json is the source of truth the hourly map
+// build (fetch_projects.py → projects-flat.json) reads, so a write here lands on
+// the live map automatically. The file is `JSON.stringify(data, null, 2)` with NO
+// trailing newline — match it exactly so each write is a surgical diff.
+const GH_PROJECTS_PATH = 'data/projects.json';
+const GH_PROPOSALS_PATH = 'data/status_proposals.json';
+function serializeProjects(arr) { return JSON.stringify(arr, null, 2); }
+async function readProjectsFile(env) {
+  const { sha, text } = await ghGetFile(env, GH_PROJECTS_PATH);
+  if (!text) throw new Error('projects.json not found in ' + ghRepo(env));
+  let projects;
+  try { projects = JSON.parse(text); } catch (_) { throw new Error('projects.json is not valid JSON — refusing to write'); }
+  if (!Array.isArray(projects)) throw new Error('projects.json is not an array');
+  return { sha, projects };
+}
+// Append an ambiguous status change to the review queue (status_proposals.json),
+// with the same optimistic-locking retry as the drafts writer.
+async function appendProposal(env, proposal) {
+  for (let attempt = 0; ; attempt++) {
+    const { sha, text } = await ghGetFile(env, GH_PROPOSALS_PATH);
+    let list = [];
+    if (text) { try { list = JSON.parse(text); } catch (_) { list = []; } }
+    if (!Array.isArray(list)) list = [];
+    list.push(proposal);
+    try {
+      await ghPutFile(env, GH_PROPOSALS_PATH, JSON.stringify(list, null, 2), sha, `Status proposal: ${proposal.name} ${proposal.from}→${proposal.to} (review)`);
+      return list.length;
+    } catch (e) { if (e && e.status === 409 && attempt < 4) continue; throw e; }
+  }
 }
 
 // ── Firm registry → resolve architect/developer names to canonical slugs ─────
@@ -1127,6 +1193,89 @@ const IMPL = {
         source_note: d.source_note, project: d.data,
       })),
     };
+  },
+
+  // ── Construction-update automation ───────────────────────────────────────────
+  async list_projects_due(args, env) {
+    requireGhToken(env);
+    const limit = Math.max(1, Math.min(60, Number(args.limit) || 25));
+    const { sha, projects } = await readProjectsFile(env);
+    const active = projects.filter((p) => p && p.slug && statusRank(p.status) < statusRank('open'));
+    // Oldest/never-checked first; tie-break toward projects nearest a milestone.
+    const pri = { 'breaking-ground': 0, 'construction': 1, 'coming-soon': 2, 'announced': 3 };
+    active.sort((a, b) => {
+      const ca = a.status_checked_at || '', cb = b.status_checked_at || '';
+      if (ca !== cb) return ca < cb ? -1 : 1;
+      return ((pri[a.status] != null ? pri[a.status] : 9) - (pri[b.status] != null ? pri[b.status] : 9));
+    });
+    const batch = active.slice(0, limit);
+    const slugs = new Set(batch.map((p) => p.slug));
+    const nowIso = new Date().toISOString();
+    for (const p of projects) if (slugs.has(p.slug)) p.status_checked_at = nowIso;
+    // One commit marks the whole batch checked, so the sweep rotates over time.
+    await ghPutFile(env, GH_PROJECTS_PATH, serializeProjects(projects), sha, `Status sweep: marked ${batch.length} checked (${nowIso.slice(0, 10)})`);
+    return {
+      checked_at: nowIso, batch_size: batch.length, active_total: active.length,
+      status_order: STATUS_ORDER,
+      instructions: 'Web-search each project for construction news (e.g. "<name> <city> construction / breaking ground / topped out / opening"). If a CREDIBLE source shows it reached a LATER status, call update_project_status (mode "apply" for a clear single-step milestone, "propose" if ambiguous/thin/multi-step). Forward-only; never regress. Skip ones with no news.',
+      projects: batch.map((p) => ({
+        slug: p.slug, name: p.name, city: p.city || '', status: p.status,
+        units: p.units || null, floors: p.floors || null,
+        start_date: p.start_date || null, delivery_date: p.delivery_date || null,
+        website: p.official_website || '',
+      })),
+    };
+  },
+
+  async update_project_status(args, env) {
+    requireGhToken(env);
+    const slug = String(args.slug || '').trim();
+    if (!slug) throw new Error('slug is required');
+    const newStatus = String(args.new_status || '').toLowerCase().trim();
+    if (!STATUS_ORDER.includes(newStatus)) throw new Error('new_status must be one of: ' + STATUS_ORDER.join(', '));
+    const sourceUrl = String(args.source_url || '').trim();
+    if (!sourceUrl) throw new Error('source_url is required — cite where the update came from');
+    const mode = (String(args.mode || 'apply').toLowerCase() === 'propose') ? 'propose' : 'apply';
+
+    for (let attempt = 0; ; attempt++) {
+      const { sha, projects } = await readProjectsFile(env);
+      const p = projects.find((x) => x && x.slug === slug);
+      if (!p) throw new Error('No project with slug "' + slug + '" in projects.json');
+      const from = String(p.status || '').toLowerCase();
+      const nowIso = new Date().toISOString();
+
+      if (statusRank(newStatus) <= statusRank(from)) {
+        return { ok: false, skipped: 'not-a-forward-advance', slug, current_status: from, requested: newStatus };
+      }
+
+      if (mode === 'propose') {
+        p.status_checked_at = nowIso;   // bump so it isn't re-flagged next sweep
+        try {
+          await ghPutFile(env, GH_PROJECTS_PATH, serializeProjects(projects), sha, `Status check: ${p.name} — ${from}→${newStatus} flagged for review`);
+        } catch (e) { if (e && e.status === 409 && attempt < 4) continue; throw e; }
+        const queued = await appendProposal(env, {
+          slug, name: p.name, from, to: newStatus, source_url: sourceUrl,
+          source_published: args.source_published || null, note: String(args.note || ''),
+          confidence: String(args.confidence || 'low'), proposed_at: nowIso,
+        });
+        return { ok: true, mode: 'proposed', slug, name: p.name, from, to: newStatus, review_queue: GH_PROPOSALS_PATH, queue_size: queued };
+      }
+
+      // mode apply — change the live status + record provenance.
+      p.status = newStatus;
+      p.status_checked_at = nowIso;
+      if (!Array.isArray(p.status_history)) p.status_history = [];
+      const h = { from, to: newStatus, at: nowIso, source_url: sourceUrl };
+      if (args.source_published) h.source_published = String(args.source_published);
+      if (args.note) h.note = String(args.note);
+      p.status_history.push(h);
+      if (args.start_date) { p.start_date = String(args.start_date); if (args.start_speculative) p.start_speculative = true; }
+      if (args.delivery_date) { p.delivery_date = String(args.delivery_date); if (args.delivery_speculative) p.delivery_speculative = true; }
+      try {
+        await ghPutFile(env, GH_PROJECTS_PATH, serializeProjects(projects), sha, `Status: ${p.name} ${from}→${newStatus} (auto)`);
+      } catch (e) { if (e && e.status === 409 && attempt < 4) continue; throw e; }
+      return { ok: true, mode: 'applied', slug, name: p.name, from, to: newStatus, source_url: sourceUrl, note: 'Live map rebuilds within ~1h; projects.json git history is the audit trail.' };
+    }
   },
 
   // ── Analytics ──────────────────────────────────────────────────────────────
