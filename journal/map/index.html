@@ -8889,12 +8889,15 @@
       width: 100% !important;
       max-width: 100% !important;
       padding: 0 !important;
+      /* Slightly transparent so the drawer's gradient glows through the tile. */
       background: rgba(255,255,255,0.04) !important;
+      opacity: 0.9;
       border: 1px solid rgba(255,255,255,0.08) !important;
       border-radius: 14px !important;
       overflow: hidden !important;
       position: relative;
     }
+    body.ui-v2 #gridMobile .grid-item:active { opacity: 1; }
     body.ui-v2 #gridMobile .grid-item .image-wrapper {
       width: 100% !important;
       height: 200px !important;
@@ -10410,7 +10413,10 @@
     body.ui-v2 #desktopSidebar .grid-item {
       display: flex !important;
       flex-direction: column !important;
-      background: #1f1f1f !important;
+      /* Slightly transparent glassy card so the drawer's gradient glows through
+         (was solid #1f1f1f). Hover lifts to full opacity. */
+      background: rgba(255,255,255,0.045) !important;
+      opacity: 0.9;
       border: 1px solid rgba(255,255,255,0.08) !important;
       border-radius: 14px !important;
       overflow: hidden !important;
@@ -10420,10 +10426,12 @@
       min-height: 0 !important;
       cursor: pointer;
       position: relative !important;
+      transition: opacity 0.15s ease, border-color 0.15s ease, background 0.15s ease;
     }
     body.ui-v2 #desktopSidebar .grid-item:hover {
       border-color: rgba(255,255,255,0.2) !important;
-      background: #232323 !important;
+      background: rgba(255,255,255,0.08) !important;
+      opacity: 1;
       transform: none !important;
       box-shadow: none !important;
     }
