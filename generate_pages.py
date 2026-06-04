@@ -1079,6 +1079,14 @@ def build_page(row, articles=None):
   <script type="application/ld+json">{jsonld}</script>
 
   <style>
+    /* Design tokens the shared chrome (header/dock/auth) expects. */
+    :root {{
+      --ink: #070807; --ink-2: #0d0f0e;
+      --hair: rgba(255,255,255,.08); --hair-2: rgba(255,255,255,.14);
+      --white: #fff; --cream: #ECEAE5; --mute: #9AA39C; --mute-2: #C2C9C3;
+      --green: #1FDF67; --gold: #e6c574; --gold-soft: #f0d68a;
+      --mono: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }}
     *, *::before, *::after {{ box-sizing: border-box; margin: 0; padding: 0; }}
     body {{ background: #0d0d0d; color: #fff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; min-height: 100vh; }}
     /* Belt-and-suspenders defense against iOS Safari Data Detectors:
@@ -1539,12 +1547,7 @@ def build_page(row, articles=None):
     {coverage_section_html(articles or [], title, image)}
   </div>
 
-  <!-- Footer logo — centered Markets of Tomorrow wordmark, shown on all viewports -->
-  <div class="footer-logo">
-    <a href="{SITE_URL}" aria-label="Markets of Tomorrow home">
-      <img src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/other/50822a-TMW_Logos-16.svg" alt="Markets of Tomorrow" />
-    </a>
-  </div>
+  <!-- Footer is injected by the shared chrome (journal-chrome.js) below. -->
 
   <script>
     // Share button — uses Web Share API on mobile/supported browsers,
@@ -1973,6 +1976,11 @@ def build_page(row, articles=None):
         .catch(function() {{ /* non-fatal */ }});
     }})();
   </script>
+
+  <!-- Universal site chrome: global header + footer + account cluster, the same
+       one injected on every journal page. -->
+  <script src="/_shared/journal-chrome.js" defer></script>
+  <script src="/_shared/journal-dock.js" defer></script>
 </body>
 </html>'''
     return html, slug
