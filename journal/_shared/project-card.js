@@ -165,6 +165,10 @@
   function renderCard(rec, slug, entry) {
     var ph = phaseIndex(rec.Delivery);
     var pct = progressPct(rec, entry);
+    // A delivered / now-open project is 100% by definition — the map modal
+    // pins it full, so do the same here instead of letting the start→delivery
+    // math land on ~97% (a completed project should never read as in-progress).
+    if (ph >= 4) pct = 100;
     var segs = PHASES.map(function (_, i) {
       return '<div class="pc-seg' + (i < ph ? ' done' : (i === ph ? ' cur' : '')) + '"></div>';
     }).join('');
@@ -187,7 +191,14 @@
     var delivSpec = String(rec.DeliverySpeculative) === '1' || !!(entry && entry.delivery_speculative);
     var dParts = [];
     if (startY) dParts.push(ph >= 1 ? ('Started ' + startY) : (startSpec ? ('Estimated to start ' + startY) : ('Starts ' + startY)));
-    if (delivY) dParts.push(delivSpec ? ('Estimated to deliver ' + delivY) : ('Est. delivery ' + delivY));
+    if (delivY) {
+      // A delivered / now-open project has already opened — show "Delivered
+      // <yr>", never an estimate. Mirrors the map modal and fixes completed
+      // projects (e.g. Nauka) incorrectly reading "Est. delivery 2026".
+      dParts.push(ph >= 4 ? ('Delivered ' + delivY)
+        : delivSpec ? ('Estimated to deliver ' + delivY)
+        : ('Est. delivery ' + delivY));
+    }
     var delivLine = dParts.join(' · ');
     var subline = [esc(rec.City)]; var t = firstType(rec); if (t) subline.push(esc(t));
 
