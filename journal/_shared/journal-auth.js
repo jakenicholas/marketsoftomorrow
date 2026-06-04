@@ -421,7 +421,15 @@
       '.tmw-auth .v2-profile-menu .v2-menu-signout{color:rgba(255,120,120,0.9)}',
       '.tmw-auth .v2-profile-menu .v2-menu-signout:hover{background:rgba(255,80,80,0.08);color:#ff6464}',
       '.tmw-auth .v2-menu-label{flex:0 1 auto}'
-    ].join('');
+    ]
+      // Make the shared account/Join cluster authoritative on EVERY surface:
+      // double the leading `.tmw-auth` class so these rules out-specify any
+      // page's own overrides (e.g. the map's legacy `body.ui-v2 .v2-profile-btn`
+      // / `.v2-go-pro-badge`, which used to hijack the GO PRO + profile styling
+      // there). Same element, just higher specificity — no visual change where
+      // there's nothing to override.
+      .map(function (r) { return r.replace(/(^|,|\{)(\s*)\.tmw-auth(?![\w-])/g, '$1$2.tmw-auth.tmw-auth'); })
+      .join('');
     var st = document.createElement('style'); st.id = 'tmw-auth-styles'; st.textContent = css; document.head.appendChild(st);
   }
 
