@@ -22262,24 +22262,24 @@
         try { if (window.updateMapPinFilters) window.updateMapPinFilters(); } catch (e) {}
         try { if (window.renderGrid) { window.renderGrid('gridDesktop'); window.renderGrid('gridMobile'); } } catch (e) {}
         try { if (window.updateResultCount) { window.updateResultCount('gridDesktop'); window.updateResultCount('gridMobile'); } } catch (e) {}
-        document.querySelectorAll('.adv-add-btn').forEach(updateBtn);
+        document.querySelectorAll('.adv-add-chip').forEach(updateBtn);
       }
       function updateBtn(btn) { if (!btn) return; const c = activeCount(); const b = btn.querySelector('.adv-add-n'); if (c) { btn.classList.add('on'); if (b) b.textContent = c; } else { btn.classList.remove('on'); if (b) b.textContent = ''; } }
 
       const st = document.createElement('style');
       st.textContent = `
-        .adv-add-host{display:flex;padding:2px 16px 8px}
-        .adv-add-host-d{padding:10px 16px 4px}
-        .adv-add-btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;flex:0 0 auto;height:36px;padding:0 16px;border-radius:999px;border:1px solid rgba(31,223,103,.4);background:rgba(31,223,103,.10);color:#1FDF67;font-family:'Inter',sans-serif;font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap}
-        .adv-add-host-d .adv-add-btn{width:100%}
-        .adv-add-btn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round}
-        .adv-add-btn .adv-add-n{min-width:16px;height:16px;padding:0 4px;border-radius:999px;background:#1FDF67;color:#06210f;font-size:10px;font-weight:800;display:inline-flex;align-items:center;justify-content:center}
-        .adv-add-btn .adv-add-n:empty{display:none}
+        /* "Add filter" chip — sized like a .v2-filter-pill so it sits inline in
+           the chip row (between All and Featured), green-accented. */
+        .adv-add-chip{flex-shrink:0;padding:6px 13px;border-radius:100px;font-size:12px;font-weight:700;white-space:nowrap;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-family:'Inter',sans-serif;border:1px solid rgba(31,223,103,.45);background:rgba(31,223,103,.12);color:#1FDF67}
+        .adv-add-chip svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round}
+        .adv-add-chip .adv-add-n{min-width:15px;height:15px;padding:0 4px;border-radius:999px;background:#1FDF67;color:#06210f;font-size:9px;font-weight:800;display:inline-flex;align-items:center;justify-content:center}
+        .adv-add-chip .adv-add-n:empty{display:none}
         /* Panel lives INSIDE the drawer: fixed + JS-sized to the active drawer's
-           rect, slides up over the tile list. No full-page backdrop. */
+           visible box (clamped below the universal header). Same flat dark as the
+           drawer, no green gradient, square corners on desktop. */
         #advFilterPanel{position:fixed;z-index:99991;display:flex;flex-direction:column;overflow:hidden;
-          background:radial-gradient(120% 28% at 50% 0%,rgba(31,223,103,.06),transparent 60%),linear-gradient(180deg,#12150f,#0b0c0b);
-          border-left:1px solid rgba(255,255,255,.08);transform:translateY(22px);opacity:0;visibility:hidden;
+          background:rgba(15,15,15,0.98);-webkit-backdrop-filter:blur(40px) saturate(1.2);backdrop-filter:blur(40px) saturate(1.2);
+          border-left:1px solid rgba(255,255,255,.06);transform:translateY(18px);opacity:0;visibility:hidden;
           transition:transform .26s cubic-bezier(.22,1,.36,1),opacity .22s;font-family:'Inter',sans-serif;color:#fff}
         #advFilterPanel.open{transform:translateY(0);opacity:1;visibility:visible}
         #advFilterPanel .afp-top{display:flex;align-items:center;justify-content:space-between;padding:18px 20px 14px;border-bottom:1px solid rgba(255,255,255,.08);flex:0 0 auto}
@@ -22395,10 +22395,17 @@
       function sizeToDrawer() {
         const d = activeDrawer(); if (!d) return;
         const r = d.getBoundingClientRect();
-        panel.style.left = r.left + 'px'; panel.style.top = r.top + 'px';
-        panel.style.width = r.width + 'px'; panel.style.height = r.height + 'px';
-        // match the drawer's rounded top on mobile (bottom sheet)
-        panel.style.borderRadius = (r.top > 10 ? '18px 18px 0 0' : '0');
+        // Clamp the top below the universal header so the panel never overlaps it
+        // (in fullscreen the drawer starts at y=0, under the fixed header).
+        const head = document.querySelector('.tmw-chrome-head');
+        const hb = head ? head.getBoundingClientRect().bottom : 0;
+        const top = Math.max(r.top, hb);
+        const desktop = window.matchMedia('(min-width:861px)').matches;
+        panel.style.left = r.left + 'px'; panel.style.top = top + 'px';
+        panel.style.width = r.width + 'px'; panel.style.height = (r.bottom - top) + 'px';
+        // Square corners on desktop (flush with the sidebar); rounded top on the
+        // mobile bottom sheet.
+        panel.style.borderRadius = desktop ? '0' : '18px 18px 0 0';
       }
       function close() { reRender(); panel.classList.remove('open'); window.removeEventListener('resize', sizeToDrawer); }
       function open() { buildChips(); syncInputs(); liveCount(); sizeToDrawer(); window.addEventListener('resize', sizeToDrawer); requestAnimationFrame(() => panel.classList.add('open')); }
@@ -22406,31 +22413,28 @@
       panel.querySelector('.afp-x').onclick = close;
       cta.onclick = close;
 
-      // Place the "Add filter" button in BOTH drawers: before the mobile chip
-      // row (#v2FilterPills inside #v2Sheet) and at the top of the desktop
-      // sidebar header (#desktopSidebar .sidebar-header).
-      function mkBtn() {
-        const btn = document.createElement('button'); btn.className = 'adv-add-btn';
+      // Place the "Add filter" chip INLINE in each filter-pill row, between the
+      // "All" chip (first) and "Featured" (second) — universal on desktop
+      // (.v2-desktop-filter-pills) and mobile (#v2FilterPills). The rows get
+      // rebuilt on tab change, so the observer re-inserts the chip.
+      function mkChip() {
+        const btn = document.createElement('button'); btn.type = 'button'; btn.className = 'adv-add-chip';
         btn.innerHTML = '<svg viewBox="0 0 24 24"><line x1="4" y1="6" x2="20" y2="6"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="10" y1="18" x2="14" y2="18"/></svg>Add filter<span class="adv-add-n"></span>';
-        btn.onclick = open; return btn;
+        btn.onclick = (e) => { e.stopPropagation(); open(); };
+        return btn;
+      }
+      function placeIn(container) {
+        if (!container || container.querySelector('.adv-add-chip')) return;
+        const chip = mkChip();
+        const first = container.firstElementChild; // the "All" chip
+        if (first && first.nextSibling) container.insertBefore(chip, first.nextSibling);
+        else if (first) container.appendChild(chip);
+        else container.appendChild(chip);
       }
       function placeBtn() {
-        // Mobile: before #v2FilterPills
-        const pills = document.getElementById('v2FilterPills');
-        if (pills) {
-          const prev = pills.previousElementSibling;
-          if (!(prev && prev.classList && prev.classList.contains('adv-add-host'))) {
-            const host = document.createElement('div'); host.className = 'adv-add-host';
-            host.appendChild(mkBtn()); pills.parentNode.insertBefore(host, pills);
-          }
-        }
-        // Desktop: top of the sidebar header
-        const hdr = document.querySelector('#desktopSidebar .sidebar-header');
-        if (hdr && !hdr.querySelector('.adv-add-host-d')) {
-          const host = document.createElement('div'); host.className = 'adv-add-host adv-add-host-d';
-          host.appendChild(mkBtn()); hdr.appendChild(host);
-        }
-        document.querySelectorAll('.adv-add-btn').forEach(updateBtn);
+        placeIn(document.getElementById('v2FilterPills'));
+        placeIn(document.querySelector('.v2-desktop-filter-pills'));
+        document.querySelectorAll('.adv-add-chip').forEach(updateBtn);
       }
       placeBtn();
       new MutationObserver(() => placeBtn()).observe(document.body, { childList: true, subtree: true });
