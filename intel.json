@@ -5427,39 +5427,21 @@
       "delivery_speculative": false
     },
     "malabar-residences": {
-      "estimate_years": 4.9,
-      "estimate_label": "~4.9 years",
-      "range_low": 4.9,
-      "range_high": 4.9,
-      "confidence": "low",
-      "comparable_count": 1,
-      "good_count": 1,
-      "exact_count": 1,
-      "used_relaxed": true,
-      "avg_match_score": 1.0,
-      "avg_distance_km": 7.8,
-      "avg_distance_mi": 4.9,
-      "scale_used": false,
-      "firm_signal": null,
-      "source": "comparables",
+      "estimate_years": 0.2,
+      "estimate_label": "~2 months",
+      "days_out": 72,
+      "delivery_date": "2026-08-15",
+      "source": "known_date",
+      "precision": "month",
+      "confidence": "medium",
       "project_type": "Residences",
       "metro": "New York",
-      "comparables": [
-        {
-          "name": "The Brooklyn Tower",
-          "slug": "the-brooklyn-tower",
-          "location": "Brooklyn",
-          "years": 4.9,
-          "score": 1.0,
-          "distance_km": 7.8,
-          "distance_mi": 4.9
-        }
-      ],
-      "pattern_summary": "Among 1 nearby residences project in TMW's data, the median build time is 4.9 years.",
-      "dates_speculative": false,
-      "start_speculative": false,
-      "delivery_speculative": false,
-      "is_mixed_use": false
+      "comparables": [],
+      "comparable_count": 0,
+      "pattern_summary": "TMW estimates an opening in ~2 months based on project type and current stage.",
+      "dates_speculative": true,
+      "start_speculative": true,
+      "delivery_speculative": true
     },
     "175-third-street": {
       "estimate_years": 0.6,
@@ -7789,13 +7771,13 @@
   "stats": {
     "high": 2,
     "medium": 26,
-    "low": 29,
-    "known_date": 252,
+    "low": 28,
+    "known_date": 253,
     "completed": 34,
     "skipped": 63,
     "no_type": 0,
     "firm_boosted": 35,
-    "speculative_softened": 23,
+    "speculative_softened": 24,
     "mixed_use_adjusted": 1
   }
 }
