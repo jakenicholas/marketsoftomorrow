@@ -312,9 +312,14 @@ function deriveFirmsFromProjects(projects){
 
 // ── data loading ─────────────────────────────────────────────────
 async function loadData(){
+  // Revalidate (no-cache) rather than force-cache: force-cache served a stale
+  // cached copy without checking the server, so projects added after the cache
+  // was first populated (e.g. Nauka) never appeared in search even though they
+  // were live. no-cache sends a conditional request → fresh data, cheap 304 when
+  // unchanged.
   const [p,f,intel] = await Promise.all([
-    fetch('https://www.oftmw.com/map/projects-flat.json',{cache:'force-cache'}).then(r=>r.ok?r.json():[]).catch(()=>[]),
-    fetch('/firms-flat.json',{cache:'force-cache'}).then(r=>r.ok?r.json():[]).catch(()=>[]),
+    fetch('https://www.oftmw.com/map/projects-flat.json',{cache:'no-cache'}).then(r=>r.ok?r.json():[]).catch(()=>[]),
+    fetch('/firms-flat.json',{cache:'no-cache'}).then(r=>r.ok?r.json():[]).catch(()=>[]),
     (window.TMWIntel ? TMWIntel.loadIntel() : Promise.resolve({}))
   ]);
   INTEL = intel || {};
