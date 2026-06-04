@@ -40,7 +40,8 @@ async function ensureGalleryTables(env) {
       visibility        TEXT NOT NULL DEFAULT 'unlisted',  -- 'public' | 'unlisted'
       category          TEXT,
       location          TEXT,
-      pin_hash          TEXT,                              -- null = no download PIN
+      pin_hash          TEXT,                              -- null = no PIN
+      pin               TEXT,                              -- plaintext PIN, admin-visible only
       download_enabled  INTEGER NOT NULL DEFAULT 1,
       sort_order        INTEGER NOT NULL DEFAULT 0,
       shot_date         INTEGER,
@@ -73,6 +74,8 @@ async function ensureGalleryTables(env) {
   `).run();
   await env.DB.prepare(`CREATE INDEX IF NOT EXISTS idx_gdl_created ON gallery_downloads(created_at DESC)`).run();
   await env.DB.prepare(`CREATE INDEX IF NOT EXISTS idx_gdl_slug ON gallery_downloads(gallery_slug, created_at DESC)`).run();
+  // Migration: add the plaintext PIN column to pre-existing galleries tables.
+  try { await env.DB.prepare(`ALTER TABLE galleries ADD COLUMN pin TEXT`).run(); } catch (_) { /* already exists */ }
   _galleryTablesReady = true;
 }
 
@@ -95,6 +98,39 @@ async function sha256hex(str) {
   return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
 }
 async function hashPin(pin, slug) { return sha256hex(`${slug}:${pin}`); }
+
+// Master PIN — unlocks (view + download) on EVERY gallery. Overridable via env.
+function masterPin(env) { return String(env.MASTER_GALLERY_PIN || '2332'); }
+// True when `input` satisfies a gallery's PIN: the gallery's own PIN or the
+// master PIN. (Only meaningful when the gallery has a PIN set.)
+async function pinOK(input, g, env) {
+  const pin = String(input || '').trim();
+  if (!pin) return false;
+  if (pin === masterPin(env)) return true;
+  if (!g.pin_hash) return true;
+  return (await hashPin(pin, g.slug)) === g.pin_hash;
+}
+
+// ── View grant — a signed cookie that lets a visitor SEE a PIN-gated gallery
+//    (separate from the download token). Minted by the /g/<slug> POST gate. ──
+function viewCookieName(slug) { return 'tmwgv_' + slug; }
+async function mintViewToken(slug, deps, env) {
+  return deps.signPayload({ g: slug, s: 'view', exp: nowSec() + 30 * 86400 }, pinSecret(env));
+}
+async function viewTokenValid(token, slug, deps, env) {
+  if (!token) return false;
+  const obj = await deps.verifyPayload(token, pinSecret(env));
+  return !!(obj && obj.s === 'view' && obj.g === slug);
+}
+function parseCookies(request) {
+  const out = {};
+  const raw = request.headers.get('Cookie') || '';
+  raw.split(';').forEach(p => {
+    const i = p.indexOf('='); if (i < 0) return;
+    out[p.slice(0, i).trim()] = decodeURIComponent(p.slice(i + 1).trim());
+  });
+  return out;
+}
 
 function htmlResponse(html, init = {}) {
   return new Response(html, {
@@ -631,8 +667,7 @@ async function apiUnlock(request, env, slug, deps, origin) {
   if (g.pin_hash) {
     const pin = String(body.pin || '').trim();
     if (!pin) return deps.json({ error: 'pin_required' }, { status: 403 }, env, origin);
-    const h = await hashPin(pin, slug);
-    if (h !== g.pin_hash) return deps.json({ error: 'wrong_pin' }, { status: 403 }, env, origin);
+    if (!(await pinOK(pin, g, env))) return deps.json({ error: 'wrong_pin' }, { status: 403 }, env, origin);
   }
 
   // Log the lead (best-effort; never block the download on a logging failure).
@@ -728,7 +763,9 @@ async function adminListGalleries(request, env, deps, origin) {
     SELECT g.*, (SELECT COUNT(*) FROM gallery_images gi WHERE gi.gallery_slug=g.slug) AS image_count
     FROM galleries g ORDER BY g.sort_order ASC, g.updated_at DESC
   `).all();
-  const items = (r.results || []).map(g => ({ ...g, has_pin: !!g.pin_hash, pin_hash: undefined }));
+  // Admin is token-gated, so the plaintext PIN is safe to return here (never on
+  // the public surface). `pin` lets the Studio keep the PIN visible/editable.
+  const items = (r.results || []).map(g => ({ ...g, has_pin: !!g.pin_hash, pin: g.pin || '', pin_hash: undefined }));
   return deps.json({ items }, {}, env, origin);
 }
 
@@ -736,7 +773,7 @@ async function adminGetGallery(request, env, slug, deps, origin) {
   const g = await getGallery(env, slug);
   if (!g) return deps.json({ error: 'not_found' }, { status: 404 }, env, origin);
   const images = await getGalleryImages(env, slug);
-  return deps.json({ gallery: { ...g, has_pin: !!g.pin_hash, pin_hash: undefined }, images }, {}, env, origin);
+  return deps.json({ gallery: { ...g, has_pin: !!g.pin_hash, pin: g.pin || '', pin_hash: undefined }, images }, {}, env, origin);
 }
 
 async function adminCreateOrUpdate(request, env, deps, origin, existingSlug) {
@@ -753,20 +790,22 @@ async function adminCreateOrUpdate(request, env, deps, origin, existingSlug) {
   const existing = await getGallery(env, slug);
 
   // PIN handling: b.pin === '' clears, undefined/null leaves as-is, a string sets.
+  // Store both the hash (for verification) and the plaintext (admin-visible).
   let pinHash = existing ? existing.pin_hash : null;
-  if (b.pin === '' || b.pin === null) pinHash = null;
-  else if (typeof b.pin === 'string' && b.pin.trim()) pinHash = await hashPin(b.pin.trim(), slug);
+  let pinPlain = existing ? (existing.pin || null) : null;
+  if (b.pin === '' || b.pin === null) { pinHash = null; pinPlain = null; }
+  else if (typeof b.pin === 'string' && b.pin.trim()) { pinPlain = b.pin.trim(); pinHash = await hashPin(pinPlain, slug); }
 
   await env.DB.prepare(`
-    INSERT INTO galleries (slug,title,subtitle,description,cover_key,visibility,category,location,pin_hash,download_enabled,sort_order,shot_date,created_at,updated_at)
-    VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?13)
+    INSERT INTO galleries (slug,title,subtitle,description,cover_key,visibility,category,location,pin_hash,pin,download_enabled,sort_order,shot_date,created_at,updated_at)
+    VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?14)
     ON CONFLICT(slug) DO UPDATE SET
       title=?2, subtitle=?3, description=?4, cover_key=?5, visibility=?6,
-      category=?7, location=?8, pin_hash=?9, download_enabled=?10,
-      sort_order=?11, shot_date=?12, updated_at=?13
+      category=?7, location=?8, pin_hash=?9, pin=?10, download_enabled=?11,
+      sort_order=?12, shot_date=?13, updated_at=?14
   `).bind(
     slug, title, b.subtitle || null, b.description || null, b.cover_key || (existing && existing.cover_key) || null,
-    visibility, b.category || null, b.location || null, pinHash, downloadEnabled,
+    visibility, b.category || null, b.location || null, pinHash, pinPlain, downloadEnabled,
     Number.isFinite(b.sort_order) ? b.sort_order : (existing ? existing.sort_order : 0),
     Number.isFinite(b.shot_date) ? b.shot_date : (existing ? existing.shot_date : null),
     now,
@@ -950,14 +989,74 @@ export async function handleGallery(request, env, url, origin, deps) {
     if (m && method === 'GET') {
       const g = await getGallery(env, m[1]);
       if (!g) return htmlResponse(render404(base), { status: 404, cache: 'no-store' });
+      // PIN gate: a gallery with a PIN must be unlocked (valid view cookie) before
+      // any photos are rendered. Keeps the gate page free of image keys.
+      if (g.pin_hash) {
+        const tok = parseCookies(request)[viewCookieName(m[1])];
+        if (!(await viewTokenValid(tok, m[1], deps, env))) {
+          return htmlResponse(renderGateHTML(g, base, { error: url.searchParams.get('e') === '1' }),
+            { status: 200, cache: 'private, no-store' });
+        }
+      }
       const images = await getGalleryImages(env, m[1]);
       return htmlResponse(renderGalleryHTML(g, images, base), {
-        cache: g.visibility === 'public' ? 'public, max-age=120' : 'private, no-store',
+        cache: (g.visibility === 'public' && !g.pin_hash) ? 'public, max-age=120' : 'private, no-store',
       });
+    }
+    if (m && method === 'POST') {
+      // Gate submission: verify the PIN (gallery PIN or master), set a signed
+      // view cookie, and redirect back to the gallery. Wrong PIN → ?e=1.
+      const slug = m[1];
+      const g = await getGallery(env, slug);
+      if (!g || !g.pin_hash) return new Response(null, { status: 303, headers: { Location: `${base}/g/${slug}` } });
+      let pin = '';
+      try { const form = await request.formData(); pin = String(form.get('pin') || '').trim(); } catch (_) {}
+      if (!(await pinOK(pin, g, env))) {
+        return new Response(null, { status: 303, headers: { Location: `${base}/g/${slug}?e=1`, 'Cache-Control': 'no-store' } });
+      }
+      const tok = await mintViewToken(slug, deps, env);
+      const cookie = `${viewCookieName(slug)}=${encodeURIComponent(tok)}; Path=/; Max-Age=${30 * 86400}; HttpOnly; Secure; SameSite=Lax`;
+      return new Response(null, { status: 303, headers: { Location: `${base}/g/${slug}`, 'Set-Cookie': cookie, 'Cache-Control': 'no-store' } });
     }
   }
 
   return null; // not a gallery route → fall through to the main dispatcher
+}
+
+// PIN entry gate — shown instead of the gallery when a PIN is set and the
+// visitor hasn't unlocked it yet. Deliberately renders NO image keys. Submits
+// a plain form POST to the same URL; the server sets the view cookie.
+function renderGateHTML(g, base, opts = {}) {
+  const meta = [g.category, g.location].filter(Boolean).map(esc).join(' &middot; ');
+  const err = opts.error ? `<div class="gate-err">Incorrect PIN — try again.</div>` : '';
+  return `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive"><title>${esc(g.title)} — Private gallery</title>${FONTS}
+<style>${BASE_CSS}
+.gate{min-height:82vh;display:flex;align-items:center;justify-content:center;padding:24px}
+.gate-card{background:var(--panel);border:1px solid var(--hair2);border-radius:18px;padding:34px 30px;max-width:380px;width:100%;text-align:center;box-shadow:0 30px 90px rgba(0,0,0,.6)}
+.gate-card .lock{display:flex;justify-content:center;margin-bottom:14px;color:var(--green)}
+.gate-card h1{font-size:23px;margin-bottom:6px}
+.gate-card .meta{color:var(--mute2);font-size:12.5px;font-family:var(--mono);letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px}
+.gate-card p{color:var(--mute2);font-size:14px;margin-bottom:20px}
+.gate-card input{width:100%;text-align:center;font-family:var(--mono);font-size:22px;letter-spacing:.3em;padding:14px;border-radius:12px;border:1px solid var(--hair2);background:var(--ink);color:#fff;outline:none}
+.gate-card input:focus{border-color:var(--green)}
+.gate-err{color:#ff6b6b;font-size:12.5px;font-family:var(--mono);min-height:18px;margin-top:10px}
+.gate-card button{width:100%;margin-top:16px;padding:14px;border-radius:12px;border:none;background:var(--green);color:#04210f;font-family:var(--mono);font-weight:700;letter-spacing:.1em;text-transform:uppercase;font-size:13px;cursor:pointer}
+.gate-card button:hover{filter:brightness(1.05)}
+.gate-card .home{display:inline-block;margin-top:16px;color:var(--mute2);text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase}
+</style></head><body>${navHTML(base || '')}
+<div class="gate"><div class="gate-card">
+  <div class="lock">${LOCK_SVG}</div>
+  ${meta ? `<div class="meta">${meta}</div>` : ''}
+  <h1>${esc(g.title)}</h1>
+  <p>This gallery is private. Enter the PIN shared with you to view it.</p>
+  <form method="POST" action="${base}/g/${esc(g.slug)}" novalidate>
+    <input name="pin" inputmode="numeric" autocomplete="off" autofocus placeholder="Gallery PIN" maxlength="12" aria-label="Gallery PIN">
+    ${err}
+    <button type="submit">View gallery</button>
+  </form>
+  <a class="home" href="${base || ''}/">&larr; All galleries</a>
+</div></div></body></html>`;
 }
 
 function render404(base) {
