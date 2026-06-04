@@ -1050,17 +1050,17 @@
       const max = data[0].count || 1;
       const limit = lbState[key].showAll ? data.length : (isMobileNow() ? TOP_N_MOBILE : TOP_N_DESKTOP);
       const visible = data.slice(0, limit);
-      // Developers/architects with slugs link to their firm pages. Those pages
-      // live on map.oftmw.com (they 404 on www), so we emit absolute URLs.
-      const role = (key === 'developers' || key === 'architects') ? key : null;
+      // Developers/architects with slugs link to their unified firm page at
+      // https://www.oftmw.com/firm/<slug>/ (a firm that is both shares one page).
+      const isFirmKey = (key === 'developers' || key === 'architects');
       return visible.map((row, i) => {
         const pct = (row.count / max) * 100;
         const rankClass = i < 3 ? 'top' : '';
-        const linkable = role && row.slug;
+        const linkable = isFirmKey && row.slug;
         const nameInner = `<div class="atlas-lb-name">${escapeHtml(row.name)}</div>
               <div class="atlas-lb-sub">${escapeHtml(row.sub || '')}</div>`;
         const rowInner = linkable
-          ? `<a class="atlas-lb-link" href="${MAP_ORIGIN}/${role}/${encodeURIComponent(row.slug)}/">${nameInner}</a>`
+          ? `<a class="atlas-lb-link" href="https://www.oftmw.com/firm/${encodeURIComponent(row.slug)}/">${nameInner}</a>`
           : `<div>${nameInner}</div>`;
         return `
           <div class="atlas-lb-row${linkable ? ' is-linkable' : ''}">

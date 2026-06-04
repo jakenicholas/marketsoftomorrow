@@ -498,9 +498,10 @@ function firmEntityHtml(f){
   const roleLbl = f.role==='architect' ? 'Architect' : (f.role==='developer' ? 'Developer' : 'Firm');
   const pc = +f.project_count||0;
   const sub = esc(roleLbl) + (pc>0 ? ' · '+pc+' project'+(pc===1?'':'s') : '') + (f.hq ? ' · '+esc(f.hq) : '');
-  // Slugged firms open their firm page (currently served at /map/developers|architects/;
-  // will move to /firm/<slug>/). Unslugged firms fall back to re-searching the name.
-  const href = f.slug ? ('/map/' + (f.role==='architect'?'architects':'developers') + '/' + encodeURIComponent(f.slug) + '/')
+  // Slugged firms open their unified firm page at /firm/<slug>/ (a firm that is
+  // both developer + architect shares one page). Unslugged firms fall back to
+  // re-searching the name.
+  const href = f.slug ? ('/firm/' + encodeURIComponent(f.slug) + '/')
                       : ('/search/?q='+encodeURIComponent(f.name));
   return '<a class="entity" href="'+href+'"><span class="ico">'+ICO_FIRM+'</span>'+
     '<span><span class="nm">'+esc(f.name)+'</span><br><span class="sub">'+sub+'</span></span></a>';

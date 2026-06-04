@@ -5,10 +5,12 @@ generate_firm_pages.py -- Firm profile page generator.
 Reads firms-flat.json (architects + developers, written by fetch_projects.py),
 projects-flat.json (the canonical project list with ArchitectSlugs/DeveloperSlugs
 columns), and articles.json (per-project coverage archive from generate_pulse.py).
-Writes one static HTML page per firm:
+Writes one static HTML page per firm, flat by slug:
 
-  /architects/<slug>/index.html
-  /developers/<slug>/index.html
+  journal/firm/<slug>/index.html   (served at https://www.oftmw.com/firm/<slug>/)
+
+A firm that is both an architect and a developer (e.g. Gensler) is merged into a
+single page showing both roles and the union of its projects.
 
 Each page renders:
   - Hero with firm name, role, founded year, HQ, active markets
@@ -45,7 +47,13 @@ PROJECTS_FLAT = 'projects-flat.json'
 FIRMS_FLAT    = 'firms-flat.json'
 ARTICLES_JSON = 'articles.json'
 
-OUTPUT_ROOT = 'journal/map'  # writes architects/<slug>/index.html, developers/<slug>/index.html
+OUTPUT_ROOT = 'journal/firm'  # writes <slug>/index.html — one flat page per firm,
+                              # merging a firm that is both architect + developer.
+
+# Where the firm pages are served (used for canonical/og URLs).
+SITE_ORIGIN = 'https://www.oftmw.com'
+# Where the live interactive map lives (the "Open on Map" CTA target).
+MAP_URL = 'https://www.oftmw.com/map/'
 
 # Date sanity: durations outside [0.25, 15] years are likely bad data
 DURATION_MIN_YEARS = 0.25
@@ -487,7 +495,7 @@ def render_stats(stats):
     </div>"""
 
 
-def render_map_cta(firm_projects, markets, firm_slug, role):
+def render_map_cta(firm_projects, markets):
     """Lightweight CTA pointing back to the live map. On the live site, the
     firm sheet opens over the actual map so a snippet here is redundant; for
     the standalone static page it's a clear path back to the full view."""
@@ -503,7 +511,7 @@ def render_map_cta(firm_projects, markets, firm_slug, role):
         <strong>{e(sub_text)}</strong>
         {f'· {", ".join(e(m) for m in markets[:5])}{"+" if market_count > 5 else ""}' if markets else ''}
       </div>
-      <a href="/{role}/{e(firm_slug)}/" class="btn">Open on Map ↗</a>
+      <a href="{MAP_URL}" class="btn">Open on Map ↗</a>
     </div>"""
 
 
@@ -572,10 +580,26 @@ def render_coverage_section(coverage_items):
     </section>"""
 
 
-def render_page(firm, role, firm_projects, stats, coverage_items):
-    """Render the full HTML for one firm page."""
-    role_label = 'Architecture firm' if role == 'architects' else 'Development firm'
-    role_breadcrumb = 'Architects' if role == 'architects' else 'Developers'
+def role_label_for(roles):
+    """Human label for a firm that may be an architect, a developer, or both."""
+    is_arch = 'architects' in roles
+    is_dev = 'developers' in roles
+    if is_arch and is_dev:
+        return 'Architecture & development firm'
+    if is_arch:
+        return 'Architecture firm'
+    return 'Development firm'
+
+
+def render_page(firm, firm_projects, stats, coverage_items):
+    """Render the full HTML for one firm page.
+
+    `firm` is a merged entry: {slug, name, founded, hq, roles:[...]} where
+    `roles` is a subset of {'architects','developers'} — a firm that is both
+    renders one unified page.
+    """
+    roles = firm.get('roles') or []
+    role_label = role_label_for(roles)
     title = firm.get('name', firm.get('slug', 'Firm'))
 
     # Page <title> + meta description for SEO
@@ -604,10 +628,10 @@ def render_page(firm, role, firm_projects, stats, coverage_items):
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="description" content="{e(description)}">
 <title>{e(title)} · Map of Tomorrow</title>
-<link rel="canonical" href="https://www.oftmw.com/map/{role}/{e(firm['slug'])}/">
+<link rel="canonical" href="{SITE_ORIGIN}/firm/{e(firm['slug'])}/">
 <meta property="og:title" content="{e(title)} on Map of Tomorrow">
 <meta property="og:description" content="{e(description)}">
-<meta property="og:url" content="https://www.oftmw.com/map/{role}/{e(firm['slug'])}/">
+<meta property="og:url" content="{SITE_ORIGIN}/firm/{e(firm['slug'])}/">
 <meta property="og:type" content="profile">
 <style>{CSS}</style>
 </head>
@@ -633,7 +657,7 @@ def render_page(firm, role, firm_projects, stats, coverage_items):
 
   {render_stats(stats)}
 
-  {render_map_cta(firm_projects, stats['markets'], firm['slug'], role)}
+  {render_map_cta(firm_projects, stats['markets'])}
 
   <div class="tabs">
     <button class="tab active" data-tab="all">All projects <span class="count">{stats['total']}</span></button>
@@ -668,6 +692,51 @@ def render_page(firm, role, firm_projects, stats, coverage_items):
 # Main pipeline
 # ---------------------------------------------------------------------------
 
+ROLE_SLUG_FIELD = {'architects': 'ArchitectSlugs', 'developers': 'DeveloperSlugs'}
+
+
+def build_merged_firms(firms):
+    """Collapse the architects[] + developers[] lists into one registry keyed by
+    slug. A firm that appears under both roles (e.g. Gensler) becomes a single
+    entry with roles=['architects','developers'] so it renders one unified page
+    instead of overwriting itself. Slug is the merge key — verified collision-
+    free across roles (no two distinct firms share a slug)."""
+    merged = {}  # slug -> {slug, name, founded, hq, roles:[...]}
+    for role in ('architects', 'developers'):
+        for firm in firms.get(role) or []:
+            slug = (firm.get('slug') or '').strip()
+            if not slug:
+                continue
+            entry = merged.get(slug)
+            if entry is None:
+                entry = {'slug': slug, 'name': '', 'founded': None, 'hq': None, 'roles': []}
+                merged[slug] = entry
+            if role not in entry['roles']:
+                entry['roles'].append(role)
+            # Fill metadata from whichever role first carries it.
+            if not entry['name'] and firm.get('name'):
+                entry['name'] = firm.get('name')
+            if not entry['founded'] and firm.get('founded'):
+                entry['founded'] = firm.get('founded')
+            if not entry['hq'] and firm.get('hq'):
+                entry['hq'] = firm.get('hq')
+    return merged
+
+
+def projects_for_merged_firm(entry, projects):
+    """Union of projects across all of the firm's roles, deduped by title slug."""
+    seen = set()
+    out = []
+    for role in entry['roles']:
+        for p in projects_for_firm(entry['slug'], ROLE_SLUG_FIELD[role], projects):
+            key = slugify(p.get('Title', '')) or id(p)
+            if key in seen:
+                continue
+            seen.add(key)
+            out.append(p)
+    return out
+
+
 def main():
     print("Loading inputs...")
     projects = load_json(PROJECTS_FLAT)
@@ -680,38 +749,33 @@ def main():
           f"{len(firms.get('developers', []))} developers, "
           f"{sum(len(v) for v in articles_archive.values() if isinstance(v, list))} article archive entries")
 
-    stats_per_role = {'architects': 0, 'developers': 0, 'skipped_no_projects': 0}
+    merged = build_merged_firms(firms)
+    dual = [s for s, e in merged.items() if len(e['roles']) > 1]
+    print(f"  ✓ {len(merged)} unique firms ({len(dual)} are both architect + developer)")
 
-    for role, slug_field, dir_name in [
-        ('architects', 'ArchitectSlugs', 'architects'),
-        ('developers', 'DeveloperSlugs', 'developers'),
-    ]:
-        print(f"\nGenerating {role} pages...")
-        firm_list = firms.get(role) or []
-        for firm in firm_list:
-            firm_slug = (firm.get('slug') or '').strip()
-            if not firm_slug:
-                continue
-            firm_projects = projects_for_firm(firm_slug, slug_field, projects)
-            if not firm_projects:
-                stats_per_role['skipped_no_projects'] += 1
-                continue
-            agg = aggregate_stats(firm_projects)
-            coverage = coverage_for_firm(firm_projects, articles_archive)
-            page_html = render_page(firm, role, firm_projects, agg, coverage)
+    written = 0
+    skipped = 0
+    dual_written = 0
+    print("\nGenerating firm pages → journal/firm/<slug>/ ...")
+    for slug, entry in merged.items():
+        firm_projects = projects_for_merged_firm(entry, projects)
+        if not firm_projects:
+            skipped += 1
+            continue
+        agg = aggregate_stats(firm_projects)
+        coverage = coverage_for_firm(firm_projects, articles_archive)
+        page_html = render_page(entry, firm_projects, agg, coverage)
 
-            out_dir = os.path.join(OUTPUT_ROOT, dir_name, firm_slug)
-            os.makedirs(out_dir, exist_ok=True)
-            out_path = os.path.join(out_dir, 'index.html')
-            with open(out_path, 'w', encoding='utf-8') as f:
-                f.write(page_html)
-            stats_per_role[role] += 1
+        out_dir = os.path.join(OUTPUT_ROOT, slug)
+        os.makedirs(out_dir, exist_ok=True)
+        with open(os.path.join(out_dir, 'index.html'), 'w', encoding='utf-8') as f:
+            f.write(page_html)
+        written += 1
+        if len(entry['roles']) > 1:
+            dual_written += 1
 
-        print(f"  ✓ Wrote {stats_per_role[role]} {role} pages")
-
-    print(f"\nSkipped {stats_per_role['skipped_no_projects']} firms with zero referenced projects.")
-    total = stats_per_role['architects'] + stats_per_role['developers']
-    print(f"Total firm pages: {total}")
+    print(f"  ✓ Wrote {written} firm pages ({dual_written} unified dual-role)")
+    print(f"Skipped {skipped} firms with zero referenced projects.")
 
 
 if __name__ == '__main__':
