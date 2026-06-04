@@ -648,11 +648,22 @@ def build_page(row, articles=None, nearby=None):
     stats += stat_card('Market', city)
     stats_section = f'<div class="stats-grid">{stats}</div>' if stats.strip() else ''
 
-    # Website button + share button
+    # Primary CTA — gold-glow "Dive Deeper" → opens this project on the map.
+    dive_btn = (
+        f'<a class="btn-dive" href="{map_url}">Dive Deeper '
+        '<svg viewBox="0 0 24 24" aria-hidden="true">'
+        '<polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/>'
+        '<line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg></a>'
+    )
+    # Subtle "Official Website" text link placed below the description paragraph.
+    # Only shown when a website exists (no disabled placeholder).
+    website_subtle = ''
     if website:
-        website_btn = f'<a class="btn-primary" href="{website}" target="_blank" rel="noopener">Official Website <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></a>'
-    else:
-        website_btn = '<span class="btn-primary btn-disabled">No Website Listed</span>'
+        website_subtle = (
+            f'<a class="btn-website" href="{website}" target="_blank" rel="noopener">Official Website '
+            '<svg viewBox="0 0 24 24" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/>'
+            '<polyline points="7 7 17 7 17 17"/></svg></a>'
+        )
 
     # Share button — uses Web Share API on mobile/supported browsers, falls back to clipboard
     share_btn = (
@@ -1375,6 +1386,39 @@ def build_page(row, articles=None, nearby=None):
     .btn-primary:hover {{ background: #18c75a; }}
     .btn-disabled {{ background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.3); cursor: default; }}
 
+    /* Primary CTA — gold-glow "Dive Deeper" → opens this project on the map */
+    .btn-dive {{
+      flex: 0 1 auto;
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      background: linear-gradient(135deg, #f3dc93, #e3bf63);
+      color: #1c1606; border: none; border-radius: 11px;
+      padding: 14px 24px; font-size: 14px; font-weight: 800; letter-spacing: 0.01em;
+      text-decoration: none; cursor: pointer;
+      box-shadow: 0 0 0 1px rgba(230,197,116,0.45), 0 6px 22px rgba(230,197,116,0.34), 0 0 34px rgba(230,197,116,0.26);
+      animation: diveGlow 3.2s ease-in-out infinite;
+      transition: box-shadow 0.2s, transform 0.12s;
+    }}
+    .btn-dive:hover {{ transform: translateY(-1px); animation: none;
+      box-shadow: 0 0 0 1px rgba(243,220,147,0.75), 0 8px 28px rgba(230,197,116,0.5), 0 0 48px rgba(230,197,116,0.45); }}
+    .btn-dive:active {{ transform: translateY(0); }}
+    .btn-dive svg {{ width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }}
+    @keyframes diveGlow {{
+      0%, 100% {{ box-shadow: 0 0 0 1px rgba(230,197,116,0.45), 0 6px 22px rgba(230,197,116,0.30), 0 0 30px rgba(230,197,116,0.22); }}
+      50%      {{ box-shadow: 0 0 0 1px rgba(243,220,147,0.6), 0 6px 24px rgba(230,197,116,0.45), 0 0 44px rgba(230,197,116,0.4); }}
+    }}
+    @media (prefers-reduced-motion: reduce) {{ .btn-dive {{ animation: none; }} }}
+
+    /* Subtle "Official Website" text link below the description — no bg, white,
+       white arrow, far less prominent than the gold CTA */
+    .btn-website {{
+      display: inline-flex; align-items: center; gap: 6px;
+      margin: 14px 0 4px; color: #fff; opacity: 0.82;
+      font-size: 13px; font-weight: 500; text-decoration: none;
+      transition: opacity 0.15s, gap 0.15s;
+    }}
+    .btn-website:hover {{ opacity: 1; gap: 9px; }}
+    .btn-website svg {{ width: 13px; height: 13px; stroke: #fff; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }}
+
     /* Watch button (Phase 4) - hydrated client-side by Memberstack script.
        Default state is the same dark "Watch" pill as the modal; .watching
        turns it green-tinted; .has-unread shows a pulsing green dot. Mobile
@@ -1737,7 +1781,8 @@ def build_page(row, articles=None, nearby=None):
           <!-- Bio FIRST in the DOM (after the head) so search engines build the
                snippet from the project description, not the timeline labels. -->
           <p class="pp-lede description">{lede}</p>
-          <div class="cta-row">{website_btn}{share_btn}{watch_btn}</div>
+          {website_subtle}
+          <div class="cta-row">{dive_btn}{share_btn}{watch_btn}</div>
         </div>
         <div class="pp-panel">
           {progress_bar_html(delivery, delivery_date, start_date)}
