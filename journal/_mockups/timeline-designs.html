@@ -93,6 +93,26 @@
   .c2-tick.on{color:var(--green);font-weight:700}
   .c2-tick.done{color:rgba(255,255,255,.5)}
 
+  /* ===== Concept 2 COLORWAYS — gradient lives on the full track; an overlay
+     hides the unfilled remainder, so green only ever shows at completion ===== */
+  .mw{position:relative;height:13px;border-radius:999px;overflow:hidden;box-shadow:inset 0 1px 2px rgba(0,0,0,.55)}
+  .mw-grad{position:absolute;inset:0}
+  .mw-grad::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.4),transparent);background-size:200% 100%;animation:c2shine 2.6s linear infinite;mix-blend-mode:overlay}
+  .mw-empty{position:absolute;top:0;bottom:0;right:0;background:#0d0f0e;box-shadow:inset 2px 0 3px rgba(0,0,0,.6)}
+  .mw-knob{position:absolute;top:50%;transform:translate(-50%,-50%);background:#fff;color:#0a0a0a;font-size:11px;font-weight:800;padding:4px 9px;border-radius:999px;white-space:nowrap;z-index:3}
+  .mw-knob::after{content:'';position:absolute;left:50%;top:100%;transform:translateX(-50%);border:5px solid transparent;border-top-color:#fff}
+  /* gradients: brand colour → … → green (complete) */
+  .g-purple{background:linear-gradient(90deg,#3a2f6b,#7C5CE0 38%,#A78BFA 64%,var(--green))}
+  .g-gold{background:linear-gradient(90deg,#6e5320,#caa64e 38%,#f0d68a 64%,var(--green))}
+  .g-ocean{background:linear-gradient(90deg,#163a8a,#4DABFF 38%,#22D3EE 64%,var(--green))}
+  /* knob glow */
+  .k-green{box-shadow:0 4px 14px rgba(0,0,0,.5),0 0 0 3px rgba(31,223,103,.35),0 0 18px rgba(31,223,103,.55)}
+  .k-purple{box-shadow:0 4px 14px rgba(0,0,0,.5),0 0 0 3px rgba(167,139,250,.42),0 0 18px rgba(167,139,250,.6)}
+  .k-gold{box-shadow:0 4px 14px rgba(0,0,0,.5),0 0 0 3px rgba(230,197,116,.46),0 0 18px rgba(230,197,116,.6)}
+  .k-blue{box-shadow:0 4px 14px rgba(0,0,0,.5),0 0 0 3px rgba(77,171,255,.42),0 0 18px rgba(77,171,255,.6)}
+  .cw-sub{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);margin:26px 0 10px;font-weight:700}
+  .cw-sub b{color:var(--white)}
+
   /* ============== CONCEPT 3 — PHASE CHIPS ============== */
   .c3-row{display:flex;gap:6px}
   .c3-chip{flex:1;border-radius:11px;border:1px solid var(--line);background:rgba(255,255,255,.02);
@@ -121,6 +141,57 @@
 <div class="wrap">
   <h1>Project Timeline · Design Concepts</h1>
   <p class="sub">Three fresh takes on the construction timeline, each shown two ways: a <b style="color:#fff">completed</b> project (Nauka — Now Open) and an <b style="color:#fff">in-progress</b> one (Construction · 55%). Pick one (or mix-and-match) and I'll wire it into the live modal across map, search &amp; articles.</p>
+
+  <!-- ============ CONCEPT 2 — COLOURWAYS ============ -->
+  <div class="concept">
+    <div class="concept-head"><span class="concept-num">02·C</span><span class="concept-name">Gradient Meter — Colourways</span></div>
+    <p class="concept-desc">The Gradient Meter re-skinned in three brand directions. Each is shown <b style="color:#fff">complete</b> (green — finished) and <b style="color:#fff">in-progress</b> (the brand colour). Green now lives only at the far right, so it reads as "done" — an in-progress bar never shows green.</p>
+
+    <!-- PURPLE / INTELLIGENCE -->
+    <div class="cw-sub"><b>A — Purple</b> · ties the timeline to TMW Intelligence</div>
+    <div class="card">
+      <div class="card-eyebrow"><span>NAUKA · RIVIERA NAYARIT</span><b>Now Open</b></div>
+      <div class="c2-top"><span class="c2-status" style="color:var(--green)"><span class="d"></span>Now Open</span><span class="c2-eta">Delivered May '26</span></div>
+      <div class="mw"><div class="mw-grad g-purple"></div><div class="mw-empty" style="left:100%"></div><div class="mw-knob k-green" style="left:calc(100% - 22px)">100%</div></div>
+      <div class="c2-ticks"><span class="c2-tick done">Announced</span><span class="c2-tick done">Breaking Ground</span><span class="c2-tick done">Construction</span><span class="c2-tick done">Opening Soon</span><span class="c2-tick on">Now Open</span></div>
+    </div>
+    <div class="card">
+      <div class="card-eyebrow"><span>ATELIER RESIDENCES · MIAMI</span><b>Construction</b></div>
+      <div class="c2-top"><span class="c2-status" style="color:#B9A6FF"><span class="d"></span>Under Construction</span><span class="c2-eta">Est. delivery 2028</span></div>
+      <div class="mw"><div class="mw-grad g-purple"></div><div class="mw-empty" style="left:55%"></div><div class="mw-knob k-purple" style="left:55%">55%</div></div>
+      <div class="c2-ticks"><span class="c2-tick done">Announced</span><span class="c2-tick done">Breaking Ground</span><span class="c2-tick on" style="color:#B9A6FF">Construction</span><span class="c2-tick">Opening Soon</span><span class="c2-tick">Now Open</span></div>
+    </div>
+
+    <!-- GOLD -->
+    <div class="cw-sub"><b>B — Gold glow</b> · luxury / editorial</div>
+    <div class="card">
+      <div class="card-eyebrow"><span>NAUKA · RIVIERA NAYARIT</span><b>Now Open</b></div>
+      <div class="c2-top"><span class="c2-status" style="color:var(--green)"><span class="d"></span>Now Open</span><span class="c2-eta">Delivered May '26</span></div>
+      <div class="mw"><div class="mw-grad g-gold"></div><div class="mw-empty" style="left:100%"></div><div class="mw-knob k-green" style="left:calc(100% - 22px)">100%</div></div>
+      <div class="c2-ticks"><span class="c2-tick done">Announced</span><span class="c2-tick done">Breaking Ground</span><span class="c2-tick done">Construction</span><span class="c2-tick done">Opening Soon</span><span class="c2-tick on">Now Open</span></div>
+    </div>
+    <div class="card">
+      <div class="card-eyebrow"><span>ATELIER RESIDENCES · MIAMI</span><b>Construction</b></div>
+      <div class="c2-top"><span class="c2-status" style="color:#f0d68a"><span class="d"></span>Under Construction</span><span class="c2-eta">Est. delivery 2028</span></div>
+      <div class="mw"><div class="mw-grad g-gold"></div><div class="mw-empty" style="left:55%"></div><div class="mw-knob k-gold" style="left:55%">55%</div></div>
+      <div class="c2-ticks"><span class="c2-tick done">Announced</span><span class="c2-tick done">Breaking Ground</span><span class="c2-tick on" style="color:#f0d68a">Construction</span><span class="c2-tick">Opening Soon</span><span class="c2-tick">Now Open</span></div>
+    </div>
+
+    <!-- OCEAN / ELECTRIC -->
+    <div class="cw-sub"><b>C — Ocean</b> · cool blue → cyan, a different feel</div>
+    <div class="card">
+      <div class="card-eyebrow"><span>NAUKA · RIVIERA NAYARIT</span><b>Now Open</b></div>
+      <div class="c2-top"><span class="c2-status" style="color:var(--green)"><span class="d"></span>Now Open</span><span class="c2-eta">Delivered May '26</span></div>
+      <div class="mw"><div class="mw-grad g-ocean"></div><div class="mw-empty" style="left:100%"></div><div class="mw-knob k-green" style="left:calc(100% - 22px)">100%</div></div>
+      <div class="c2-ticks"><span class="c2-tick done">Announced</span><span class="c2-tick done">Breaking Ground</span><span class="c2-tick done">Construction</span><span class="c2-tick done">Opening Soon</span><span class="c2-tick on">Now Open</span></div>
+    </div>
+    <div class="card">
+      <div class="card-eyebrow"><span>ATELIER RESIDENCES · MIAMI</span><b>Construction</b></div>
+      <div class="c2-top"><span class="c2-status" style="color:#7CC6FF"><span class="d"></span>Under Construction</span><span class="c2-eta">Est. delivery 2028</span></div>
+      <div class="mw"><div class="mw-grad g-ocean"></div><div class="mw-empty" style="left:55%"></div><div class="mw-knob k-blue" style="left:55%">55%</div></div>
+      <div class="c2-ticks"><span class="c2-tick done">Announced</span><span class="c2-tick done">Breaking Ground</span><span class="c2-tick on" style="color:#7CC6FF">Construction</span><span class="c2-tick">Opening Soon</span><span class="c2-tick">Now Open</span></div>
+    </div>
+  </div>
 
   <!-- reference -->
   <div class="concept">
