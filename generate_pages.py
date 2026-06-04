@@ -597,7 +597,7 @@ def coverage_section_html(articles, project_title, default_image):
 '''
 
 
-def build_page(row, articles=None):
+def build_page(row, articles=None, nearby=None):
     title = row.get('Title','').strip()
     city  = row.get('City','').strip()
     # Subtitle prefers the sheet's "PreferredType" column when set (a single curated
@@ -789,6 +789,33 @@ def build_page(row, articles=None):
     )
 
     proj_type_sep = f' · {proj_type}' if proj_type else ''
+
+    # Nearby Projects — up to 3 same-market projects (passed in by main()).
+    def _near_card(r):
+        nt = (r.get('Title', '') or '').strip()
+        if not nt:
+            return ''
+        ns = slugify(nt)
+        nimg = (r.get('ImageURL', '') or '').strip() or DEFAULT_IMAGE
+        ncity = (r.get('City', '') or '').strip()
+        nstatus = (r.get('Delivery', '') or '').strip()
+        ntype = ((r.get('PreferredType', '') or r.get('ProjectType', '') or '').split(',')[0]).strip()
+        nmeta = ' · '.join([x for x in [ncity, ntype] if x])
+        status_pill = f'<span class="pp-near-status">{_escape_text(nstatus)}</span>' if nstatus else ''
+        return (
+            f'<a class="pp-near-card" href="/map/projects/{ns}/">'
+            f'<div class="pp-near-img" style="background-image:url(\'{_escape_attr(nimg)}\')">{status_pill}</div>'
+            f'<div class="pp-near-b"><div class="pp-near-t">{_escape_text(nt)}</div>'
+            f'<div class="pp-near-m">{_escape_text(nmeta)}</div></div></a>'
+        )
+    nearby_section = ''
+    if nearby:
+        near_cards = ''.join(_near_card(r) for r in nearby)
+        if near_cards.strip():
+            nearby_section = (
+                f'<div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div>'
+                f'<div class="pp-near-grid">{near_cards}</div></div>'
+            )
 
     html = f'''<!DOCTYPE html>
 <html lang="en">
@@ -1621,17 +1648,6 @@ def build_page(row, articles=None):
     .pp-gal-dots i.on {{ background: #fff; width: 20px; border-radius: 3px; }}
     .pp-gal-cnt {{ font-size: 10px; letter-spacing: .06em; color: rgba(255,255,255,.7); font-variant-numeric: tabular-nums; min-width: 30px; text-align: center; }}
 
-    /* random-project edge arrows */
-    .pp-arrow {{ position: absolute; z-index: 8; top: 50%; transform: translateY(-50%); width: 56px; height: 56px; border-radius: 50%; background: rgba(12,14,13,.6); border: 1px solid rgba(255,255,255,.14); color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); transition: transform .18s, background .18s, border-color .18s; }}
-    .pp-arrow:hover {{ background: #1FDF67; color: #000; border-color: #1FDF67; transform: translateY(-50%) scale(1.07); }}
-    .pp-arrow svg {{ width: 24px; height: 24px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }}
-    .pp-arrow.l {{ left: 22px; }} .pp-arrow.r {{ right: 22px; }}
-    .pp-arrow .peek {{ position: absolute; top: 50%; transform: translateY(-50%); width: 0; height: 54px; border-radius: 12px; background-size: cover; background-position: center; opacity: 0; overflow: hidden; transition: width .22s ease, opacity .22s ease; box-shadow: 0 10px 30px rgba(0,0,0,.6); border: 1px solid rgba(255,255,255,.14); pointer-events: none; }}
-    .pp-arrow.l .peek {{ left: calc(100% + 10px); }} .pp-arrow.r .peek {{ right: calc(100% + 10px); }}
-    .pp-arrow:hover .peek {{ width: 88px; opacity: 1; }}
-    .pp-arrow .lab {{ position: absolute; top: calc(100% + 8px); left: 50%; transform: translateX(-50%); font-size: 8.5px; letter-spacing: .12em; text-transform: uppercase; color: rgba(255,255,255,.4); white-space: nowrap; opacity: 0; transition: opacity .2s; }}
-    .pp-arrow:hover .lab {{ opacity: 1; color: #1FDF67; }}
-
     .pp-scrollcue {{ position: absolute; z-index: 5; left: 50%; bottom: 72px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 5px; font-size: 8.5px; letter-spacing: .18em; text-transform: uppercase; color: rgba(255,255,255,.4); animation: ppbob 1.8s ease-in-out infinite; pointer-events: none; }}
     .pp-scrollcue svg {{ width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; }}
     @keyframes ppbob {{ 0%, 100% {{ transform: translate(-50%, 0); }} 50% {{ transform: translate(-50%, 5px); }} }}
@@ -1651,44 +1667,74 @@ def build_page(row, articles=None):
     .pp-firm .go {{ font-size: 11px; color: #1FDF67; margin-top: 7px; display: inline-block; }}
     @media (max-width: 540px) {{ .pp-firms {{ grid-template-columns: 1fr; }} }}
 
+    /* Nearby Projects — 3 same-market cards (like the article "read more" rail) */
+    .pp-near-grid {{ display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }}
+    .pp-near-card {{ background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 12px; overflow: hidden; text-decoration: none; color: inherit; transition: border-color .15s, transform .15s; }}
+    .pp-near-card:hover {{ border-color: rgba(31,223,103,.35); transform: translateY(-2px); }}
+    .pp-near-img {{ aspect-ratio: 16/10; background-size: cover; background-position: center; background-color: #111; position: relative; }}
+    .pp-near-status {{ position: absolute; top: 8px; left: 8px; background: rgba(0,0,0,.6); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); color: #fff; font-size: 8.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; padding: 3px 7px; border-radius: 5px; }}
+    .pp-near-b {{ padding: 11px 12px 13px; }}
+    .pp-near-t {{ font-size: 13.5px; font-weight: 600; line-height: 1.3; color: #fff; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }}
+    .pp-near-m {{ font-size: 11px; color: rgba(255,255,255,.45); margin-top: 4px; }}
+
     @media (max-width: 860px) {{
-      .pp-hero {{ min-height: calc(100svh - 52px); }}
-      .pp-hero-inner {{ grid-template-columns: 1fr; padding: 0 20px 92px; gap: 22px; }}
-      .pp-h1 {{ font-size: 40px; }}
-      .pp-arrow {{ width: 44px; height: 44px; }} .pp-arrow.l {{ left: 10px; }} .pp-arrow.r {{ right: 10px; }}
-      .pp-arrow .peek {{ display: none; }}
+      /* MOBILE HERO REFLOW — only phase + title + location overlap the image;
+         the gallery scroller, description and everything else push down below.
+         The head stays in normal flow (no absolute/transform) so the white text
+         composites cleanly over the photo on every device. */
+      .pp-hero {{ min-height: 0; display: block; position: relative; }}
+      /* Image occupies the top of the hero only */
+      .pp-bg {{ inset: auto; top: 0; left: 0; right: 0; height: 60vh; will-change: auto; }}
+      .pp-hero::after {{ inset: auto; top: 0; left: 0; right: 0; height: 60vh;
+        background: linear-gradient(180deg, rgba(7,8,7,.10), rgba(7,8,7,0) 24%, rgba(7,8,7,.42) 56%, rgba(7,8,7,.8) 82%, rgba(7,8,7,.97)); }}
+      /* keep a stacking context (like desktop) so hero text composites cleanly
+         ABOVE the image layer — without this the white title renders see-through
+         over the GPU-promoted background. */
+      .pp-hero-inner {{ position: relative; z-index: 3; display: block; padding: 0 20px 0; }}
+      .pp-hero-main {{ display: block; }}
+      /* phase + title + location sit over the bottom of the image via padding,
+         pushed down so they land on the darkened lower third of the photo. */
+      .pp-hero-head {{ position: relative; z-index: 2; padding-top: calc(60vh - 176px); }}
+      .pp-h1 {{ font-size: 38px; text-shadow: 0 2px 10px rgba(0,0,0,.8), 0 1px 3px rgba(0,0,0,.75); }}
+      .pp-loc {{ text-shadow: 0 1px 6px rgba(0,0,0,.75); }}
+      /* gallery scroller sits right under the image, before the description */
+      .pp-gal {{ position: static; transform: none; left: auto; bottom: auto; margin: 16px auto 18px; width: max-content; }}
+      .pp-lede {{ max-width: none; margin-top: 0; }}
       .pp-hero .cta-row {{ max-width: none; }}
+      .pp-panel {{ margin-top: 18px; }}
+      .pp-scrollcue {{ display: none; }}
+      /* Nearby: horizontal scroll-snap rail on phones */
+      .pp-near-grid {{ display: flex; overflow-x: auto; gap: 10px; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; padding-bottom: 4px; margin: 0 -20px; padding-left: 20px; padding-right: 20px; }}
+      .pp-near-grid::-webkit-scrollbar {{ display: none; }}
+      .pp-near-card {{ flex: 0 0 78%; scroll-snap-align: start; }}
     }}
   </style>
 </head>
 <body>
 
   <!-- ════ Cinematic project page ════
-       #pp carries the per-page data the shuffle engine needs (data-slug + the
-       gallery image list). The hero + below fragments are server-rendered for
-       SEO; project-shuffle.js swaps these two fragments in/out on shuffle. -->
+       #pp carries the per-page data the gallery needs (data-slug + the gallery
+       image list). Everything is server-rendered for SEO; project-shuffle.js
+       only drives the photo gallery (the hero background).
+
+       DOM order is the MOBILE order (phase/title/location, then the gallery
+       scroller, then description, then the rest). On desktop CSS lifts the head
+       group + gallery + panel into the bottom overlay grid. -->
   <main class="pp" id="pp" data-slug="{slug}" data-images="{images_attr}">
     <section class="pp-hero" id="ppHero">
       <div class="pp-bg" data-l="0" style="background-image:url('{hero_bg0}')"></div>
       <div class="pp-bg" data-l="1" style="opacity:0"></div>
 
-      <!-- random-project arrows (same-market-first; keys [ ]) -->
-      <button class="pp-arrow l" id="ppPrev" type="button" aria-label="Another project" title="Another project">
-        <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
-        <span class="peek" id="ppPeekL"></span><span class="lab">Another &#8634;</span>
-      </button>
-      <button class="pp-arrow r" id="ppNext" type="button" aria-label="Another project" title="Another project">
-        <svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>
-        <span class="peek" id="ppPeekR"></span><span class="lab">Another &#8635;</span>
-      </button>
-
       <div class="pp-hero-inner" id="ppHeroInner">
         <div class="pp-hero-main">
-          {eyebrow_html}
-          <h1 class="pp-h1">{title}</h1>
-          <div class="pp-loc">{city}{proj_type_sep}</div>
-          <!-- Bio FIRST in the DOM so search engines build the snippet from the
-               project description, not the timeline's stage labels. -->
+          <div class="pp-hero-head">
+            {eyebrow_html}
+            <h1 class="pp-h1">{title}</h1>
+            <div class="pp-loc">{city}{proj_type_sep}</div>
+          </div>
+          {gallery_cluster}
+          <!-- Bio FIRST in the DOM (after the head) so search engines build the
+               snippet from the project description, not the timeline labels. -->
           <p class="pp-lede description">{lede}</p>
           <div class="cta-row">{website_btn}{share_btn}{watch_btn}</div>
         </div>
@@ -1698,7 +1744,6 @@ def build_page(row, articles=None):
         </div>
       </div>
 
-      {gallery_cluster}
       <div class="pp-scrollcue">Scroll for details<svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
     </section>
 
@@ -1710,6 +1755,7 @@ def build_page(row, articles=None):
       <div class="pp-sec"><div class="pp-sec-h">Location</div>{map_preview_html(lat, lng, map_url)}</div>
       {updates_section_html}
       {coverage_section_html(articles or [], title, image)}
+      {nearby_section}
     </div>
   </main>
 
@@ -2835,6 +2881,15 @@ def main():
 
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
+    # Build a market -> projects index so each page can show "Nearby Projects"
+    # (up to 3 other projects in the same city).
+    from collections import defaultdict as _dd
+    city_index = _dd(list)
+    for _r in rows:
+        _t = (_r.get('Title', '') or '').strip()
+        if _t:
+            city_index[(_r.get('City', '') or '').strip()].append(_r)
+
     # Generate index page
     index_items = []
     generated = 0
@@ -2850,7 +2905,11 @@ def main():
             page_articles = articles_archive.get(slug_for_lookup, [])
             if page_articles:
                 pages_with_coverage += 1
-            html, slug = build_page(row, articles=page_articles)
+            # Nearby = up to 3 other projects in the same city.
+            _city = (row.get('City', '') or '').strip()
+            nearby_rows = [r for r in city_index.get(_city, [])
+                           if (r.get('Title', '') or '').strip() != title][:3]
+            html, slug = build_page(row, articles=page_articles, nearby=nearby_rows)
             page_dir = os.path.join(OUTPUT_DIR, slug)
             os.makedirs(page_dir, exist_ok=True)
             with open(os.path.join(page_dir, 'index.html'), 'w', encoding='utf-8') as f:
