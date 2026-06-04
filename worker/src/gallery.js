@@ -487,13 +487,15 @@ ${footerHTML()}
     <span class="eyebrow">Download</span>
     <h3>Enter your email to download</h3>
     <p>Add your email to download${pinRequired ? ', plus the gallery PIN shared with you' : ''}. We'll remember it on this device.</p>
-    <input id="emailInput" class="email" type="email" inputmode="email" autocomplete="email" placeholder="you@email.com">
-    ${pinRequired ? `<input id="pinInput" inputmode="numeric" autocomplete="off" placeholder="Gallery PIN" maxlength="12" style="margin-top:10px">` : ''}
-    <div class="err" id="dlErr"></div>
-    <div class="row">
-      <button class="btn" id="dlCancel">Cancel</button>
-      <button class="btn primary" id="dlGo">Download</button>
-    </div>
+    <form id="dlForm" novalidate style="margin:0">
+      <input id="emailInput" class="email" type="email" name="email" inputmode="email" autocomplete="email" placeholder="you@email.com">
+      ${pinRequired ? `<input id="pinInput" name="pin" inputmode="numeric" autocomplete="off" placeholder="Gallery PIN" maxlength="12" style="margin-top:10px">` : ''}
+      <div class="err" id="dlErr"></div>
+      <div class="row">
+        <button class="btn" id="dlCancel" type="button">Cancel</button>
+        <button class="btn primary" id="dlGo" type="submit">Download</button>
+      </div>
+    </form>
   </div>
 </div>
 <div class="toast" id="toast"></div>
@@ -584,13 +586,18 @@ function openDl(){ dlErr.textContent=''; emailInput.value=getEmail(); if(pinInpu
 function closeDl(){ modal.classList.remove('open'); }
 document.getElementById('dlCancel').onclick=closeDl;
 modal.addEventListener('click',e=>{ if(e.target===modal)closeDl(); });
-function onEnter(e){ if(e.key==='Enter')submitDl(); }
-emailInput.addEventListener('keydown',onEnter); if(pinInput)pinInput.addEventListener('keydown',onEnter);
-document.getElementById('dlGo').onclick=submitDl;
+// Submit via the <form> so Enter and the Download button both go through native
+// form submission. On iOS Safari, an autofilled value isn't exposed to JS until
+// the field gets a gesture — but a real form submit commits it, and FormData
+// then reads it reliably. (A button .onclick read .value too early → empty →
+// the "Enter a valid email" false negative on autofilled emails.)
+document.getElementById('dlForm').addEventListener('submit',e=>{ e.preventDefault(); submitDl(); });
 async function submitDl(){
-  const email=emailInput.value.trim();
+  let email='', pin='';
+  try{ const fd=new FormData(document.getElementById('dlForm')); email=String(fd.get('email')||''); pin=String(fd.get('pin')||''); }catch(_){}
+  email=(email||emailInput.value||'').trim();
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ dlErr.textContent='Enter a valid email'; emailInput.focus(); return; }
-  const pin=pinInput?pinInput.value.trim():'';
+  pin=(pin||(pinInput?pinInput.value:'')||'').trim();
   if(G.pinRequired && !pin){ dlErr.textContent='Enter the gallery PIN'; pinInput.focus(); return; }
   dlErr.textContent='Checking…';
   try{
