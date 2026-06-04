@@ -10563,6 +10563,84 @@
       text-overflow: ellipsis;
       white-space: nowrap;
     }
+
+    /* ════════════════════════════════════════════════════════════════════
+       OPTION A drawer tiles — linked-card look: Fraunces serif title,
+       gradient-meter timeline, serif stats. Scoped to BOTH grids with
+       :is(#gridMobile,#desktopSidebar) so it carries id-level specificity
+       and beats the legacy per-grid tile rules above.
+       ════════════════════════════════════════════════════════════════════ */
+    body.ui-v2 :is(#gridMobile, #desktopSidebar) .grid-item .grid-item-content {
+      padding: 14px 16px 2px !important;
+    }
+    body.ui-v2 :is(#gridMobile, #desktopSidebar) .grid-item .grid-item-content h3 {
+      font-family: 'Fraunces', Georgia, serif !important;
+      font-weight: 600 !important;
+      font-size: 23px !important;
+      letter-spacing: -0.02em !important;
+      line-height: 1.04 !important;
+      color: #fff !important;
+      white-space: normal !important;
+      -webkit-line-clamp: 2 !important;
+    }
+    body.ui-v2 #desktopSidebar .grid-item .grid-item-content h3 { font-size: 20px !important; }
+    body.ui-v2 :is(#gridMobile, #desktopSidebar) .grid-item .grid-item-content p.city {
+      font-family: 'Inter', -apple-system, sans-serif !important;
+      font-size: 10px !important;
+      letter-spacing: 0.12em !important;
+      text-transform: uppercase !important;
+      color: rgba(255,255,255,0.6) !important;
+      margin: 7px 0 0 !important;
+      padding: 0 !important;
+    }
+    /* Status pill + legacy delivery bar removed — status now reads off the meter. */
+    body.ui-v2 :is(#gridMobile, #desktopSidebar) .grid-item .v2-status-pill,
+    body.ui-v2 :is(#gridMobile, #desktopSidebar) .grid-item .delivery-bar { display: none !important; }
+
+    /* Foot: gradient meter + serif stats */
+    body.ui-v2 :is(#gridMobile, #desktopSidebar) .grid-item .v2-tile-meter {
+      padding: 13px 16px 16px !important;
+      border-top: none !important;
+      margin: 0 !important;
+    }
+    body.ui-v2 :is(#gridMobile, #desktopSidebar) .grid-item .tmw-tile-pm { margin: 0; }
+    body.ui-v2 :is(#gridMobile, #desktopSidebar) .grid-item .tmw-tile-pm .pm-tl-date {
+      text-align: right; font-family: 'Inter', sans-serif; font-size: 8.5px;
+      letter-spacing: .05em; text-transform: uppercase; color: rgba(255,255,255,0.45); margin-bottom: 7px;
+    }
+    body.ui-v2 :is(#gridMobile, #desktopSidebar) .grid-item .tmw-tile-pm .pm-tl-meter {
+      position: relative; height: 8px; border-radius: 999px; overflow: hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,0.5);
+    }
+    body.ui-v2 :is(#gridMobile, #desktopSidebar) .grid-item .tmw-tile-pm .pm-tl-grad {
+      position: absolute; inset: 0; background: linear-gradient(90deg,#3a2f6b,#7C5CE0 38%,#A78BFA 64%,#1FDF67);
+    }
+    body.ui-v2 :is(#gridMobile, #desktopSidebar) .grid-item .tmw-tile-pm .pm-tl-empty {
+      position: absolute; top: 0; bottom: 0; right: 0; background: #0e0f0e;
+    }
+    body.ui-v2 :is(#gridMobile, #desktopSidebar) .grid-item .tmw-tile-pm .pm-tl-knob {
+      position: absolute; top: 50%; transform: translate(-50%,-50%); background: #fff; color: #0a0a0a;
+      font-family: 'Inter', sans-serif; font-size: 8px; font-weight: 800; padding: 1px 5px; border-radius: 999px; white-space: nowrap;
+    }
+    body.ui-v2 :is(#gridMobile, #desktopSidebar) .grid-item .tmw-tile-pm .pm-tl-stages {
+      display: flex; gap: 2px; margin-top: 8px;
+    }
+    body.ui-v2 :is(#gridMobile, #desktopSidebar) .grid-item .tmw-tile-pm .pm-tl-stage {
+      flex: 1; font-family: 'Inter', sans-serif; font-size: 6.5px; letter-spacing: .03em; text-transform: uppercase;
+      color: rgba(255,255,255,0.22); text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    body.ui-v2 :is(#gridMobile, #desktopSidebar) .grid-item .tmw-tile-pm .pm-tl-stage:first-child { text-align: left; }
+    body.ui-v2 :is(#gridMobile, #desktopSidebar) .grid-item .tmw-tile-pm .pm-tl-stage:last-child { text-align: right; }
+    body.ui-v2 :is(#gridMobile, #desktopSidebar) .grid-item .tmw-tile-pm .pm-tl-stage.done { color: rgba(255,255,255,0.45); }
+
+    body.ui-v2 :is(#gridMobile, #desktopSidebar) .grid-item .v2-tile-stats {
+      display: flex; gap: 20px; margin-top: 13px;
+    }
+    body.ui-v2 :is(#gridMobile, #desktopSidebar) .grid-item .v2-tstat .n {
+      font-family: 'Fraunces', Georgia, serif; font-size: 20px; font-weight: 600; letter-spacing: -.01em; line-height: 1; color: #fff; display: block;
+    }
+    body.ui-v2 :is(#gridMobile, #desktopSidebar) .grid-item .v2-tstat .l {
+      font-family: 'Inter', sans-serif; font-size: 8px; letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,0.4); margin-top: 3px; display: block;
+    }
     /* Re-jig the tile so the body content can host both grid-item-content
        (name + city + divider) and the appended v2-tile-info below it. */
     body.ui-v2 #desktopSidebar .grid-item .image-wrapper {
@@ -13458,10 +13536,16 @@
         const complete = pct >= 100 || /now open|complete|delivered/i.test(delivery || '');
         const glow = complete ? '31,223,103' : '167,139,250';
         const accent = complete ? '#1FDF67' : '#B9A6FF';
+        // Active STAGE LABEL turns green once the project reaches Opening Soon /
+        // Now Open (the green end of the meter); purple for the earlier stages.
+        // (The knob glow still uses `complete` so it only goes green at 100%.)
+        const lateActive = ai >= 3;
+        const labelAccent = (complete || lateActive) ? '#1FDF67' : '#B9A6FF';
+        const labelGlow = (complete || lateActive) ? '31,223,103' : '167,139,250';
         const stagesHtml = segments.map(seg => {
           const on = seg.state === 'active';
           const cls = on ? 'on' : (seg.state === 'done' ? 'done' : '');
-          const st = on ? ` style="color:${accent};font-weight:800;text-shadow:0 0 12px rgba(${glow},.5)"` : '';
+          const st = on ? ` style="color:${labelAccent};font-weight:800;text-shadow:0 0 12px rgba(${labelGlow},.5)"` : '';
           return `<span class="pm-tl-stage ${cls}"${st}>${seg.label}</span>`;
         }).join('');
         const date = subtitle ? `<div class="pm-tl-date">${subtitle}</div>` : '';
@@ -13473,6 +13557,8 @@
           </div>
           <div class="pm-tl-stages">${stagesHtml}</div>`;
       }
+      // Expose so decorateTiles() (different scope) can reuse the exact meter.
+      window.buildProgress = buildProgress;
 
       // Last-resort segment builder if computeProgress isn't loaded (defensive).
       // Active segment is halfway filled; earlier done, later future.
@@ -15072,14 +15158,17 @@
         const makeTile = (f, index) => {
           const d = document.createElement('div');
           d.className = 'grid-item visible';
+          const _type = (f.properties.preferredType && f.properties.preferredType.trim())
+            ? f.properties.preferredType.trim()
+            : (f.properties.projectType ? f.properties.projectType.split(',')[0].trim() : '');
           d.innerHTML = `
             <div class="image-wrapper">
               <img src="${f.properties.image}" loading="lazy" alt="${f.properties.title}"  />
             </div>
             ${f.properties.featured ? `<div class="featured-badge"><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>Featured</div>` : ''}
             <div class="grid-item-content">
-              <h3 style="color:#fff!important;margin:0 0 4px;font-size:16px;">${f.properties.title}</h3>
-              <p class="city" style="color:#ccc!important;margin:0 0 auto;font-size:12px;padding-bottom:8px;">${f.properties.city}</p>
+              <h3 style="color:#fff!important;margin:0 0 4px;">${f.properties.title}</h3>
+              <p class="city" style="color:#ccc!important;margin:0 0 auto;">${f.properties.city}${_type ? ' · ' + _type : ''}</p>
             </div>${deliveryBarHTML(f.properties.delivery)}`;
           d.onclick = () => {
             if (window.gridRendering[targetId]) return;
@@ -23796,26 +23885,22 @@
             }
           }
 
-          // ‚îÄ‚îÄ Tile foot: Delivery (left) + Intel (right) ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
-          if (!tile.querySelector('.v2-tile-info')) {
-            const deliveryDisplay = formatDeliveryLabel(props.deliveryDate || props.delivery || '');
-            let intelHtml = '';
-            if (intelEntry && intelEntry.estimate_label) {
-              const tail = intelEntry.source === 'completed' ? 'to complete' : 'to completion';
-              // Wrap the short estimate (e.g. "~2.5 years") and the tail
-              // ("to completion") in separate spans so we can hide just
-              // the tail on desktop where horizontal space is tight.
-              intelHtml = `<span class="v2-tile-intel">
-                <svg viewBox="0 0 24 24"><path d="M12 2L4 7v10l8 5 8-5V7l-8-5zm0 2.5L18 8v8l-6 3.75L6 16V8l6-3.5z"/></svg>
-                <span class="v2-tile-intel-val">${escapeText(intelEntry.estimate_label)}</span><span class="v2-tile-intel-tail"> ${tail}</span>
-              </span>`;
-            }
+          // ‚îÄ‚îÄ Tile foot (Option A): gradient-meter timeline + serif stats ‚îÄ‚îÄ
+          if (!tile.querySelector('.v2-tile-meter')) {
+            const meterHtml = (typeof window.buildProgress === 'function')
+              ? window.buildProgress(props.delivery, props.deliveryDate, props.startDate)
+              : '';
+            const statRows = [];
+            if (props.units)  statRows.push(['Units',  props.units]);
+            if (props.floors) statRows.push(['Floors', props.floors]);
+            if (props.keys)   statRows.push(['Keys',   props.keys]);
+            const statsHtml = statRows.length
+              ? `<div class="v2-tile-stats">${statRows.map(s =>
+                  `<div class="v2-tstat"><span class="n">${escapeText(s[1])}</span><span class="l">${s[0]}</span></div>`).join('')}</div>`
+              : '';
             const info = document.createElement('div');
-            info.className = 'v2-tile-info';
-            info.innerHTML = `
-              ${deliveryDisplay ? `<span class="v2-tile-delivery">Delivery<b>${escapeText(deliveryDisplay)}</b></span>` : '<span></span>'}
-              ${intelHtml}
-            `.trim();
+            info.className = 'v2-tile-meter';
+            info.innerHTML = `<div class="pm-tl tmw-tile-pm">${meterHtml}</div>${statsHtml}`;
             tile.appendChild(info);
           }
         });
