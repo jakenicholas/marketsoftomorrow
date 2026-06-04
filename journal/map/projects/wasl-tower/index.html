@@ -888,26 +888,27 @@
 
     @media (max-width: 860px) {
       /* MOBILE HERO REFLOW — only phase + title + location overlap the image;
-         the gallery scroller, description and everything else push down below.
-         The head stays in normal flow (no absolute/transform) so the white text
-         composites cleanly over the photo on every device. */
+         the gallery scroller, description and everything else push down below. */
       .pp-hero { min-height: 0; display: block; position: relative; }
       /* Image occupies the top of the hero only */
-      .pp-bg { inset: auto; top: 0; left: 0; right: 0; height: 60vh; will-change: auto; }
-      .pp-hero::after { inset: auto; top: 0; left: 0; right: 0; height: 60vh;
-        background: linear-gradient(180deg, rgba(7,8,7,.10), rgba(7,8,7,0) 24%, rgba(7,8,7,.42) 56%, rgba(7,8,7,.8) 82%, rgba(7,8,7,.97)); }
+      .pp-bg { inset: auto; top: 0; left: 0; right: 0; height: 58vh; will-change: auto; }
+      /* Gradient is TALLER than the image so it also covers the ken-burns
+         scale(1.06) overflow, and fades into the page colour (#0d0d0d) so there's
+         no bright sliver of photo between the image and the content below it. */
+      .pp-hero::after { inset: auto; top: 0; left: 0; right: 0; height: 61vh; z-index: 1;
+        background: linear-gradient(180deg, rgba(13,13,13,.12), rgba(13,13,13,0) 24%, rgba(13,13,13,.5) 54%, rgba(13,13,13,.9) 80%, #0d0d0d 99%); }
       /* keep a stacking context (like desktop) so hero text composites cleanly
          ABOVE the image layer — without this the white title renders see-through
-         over the GPU-promoted background. */
-      .pp-hero-inner { position: relative; z-index: 3; display: block; padding: 0 20px 0; }
+         over the GPU-promoted background. The padding-top reserves the image
+         height so the gallery + description flow BELOW the photo with breathing room. */
+      .pp-hero-inner { position: relative; z-index: 3; display: block; padding: calc(58vh + 26px) 20px 0; }
       .pp-hero-main { display: block; }
-      /* phase + title + location sit over the bottom of the image via padding,
-         pushed down so they land on the darkened lower third of the photo. */
-      .pp-hero-head { position: relative; z-index: 2; padding-top: calc(60vh - 176px); }
+      /* phase + title + location pinned to the bottom edge of the image */
+      .pp-hero-head { position: absolute; left: 20px; right: 20px; top: 58vh; transform: translateY(-100%); z-index: 2; }
       .pp-h1 { font-size: 38px; text-shadow: 0 2px 10px rgba(0,0,0,.8), 0 1px 3px rgba(0,0,0,.75); }
       .pp-loc { text-shadow: 0 1px 6px rgba(0,0,0,.75); }
-      /* gallery scroller sits right under the image, before the description */
-      .pp-gal { position: static; transform: none; left: auto; bottom: auto; margin: 16px auto 18px; width: max-content; }
+      /* gallery scroller sits just under the image, before the description */
+      .pp-gal { position: static; transform: none; left: auto; bottom: auto; margin: 0 auto 20px; width: max-content; }
       .pp-lede { max-width: none; margin-top: 0; }
       .pp-hero .cta-row { max-width: none; }
       .pp-panel { margin-top: 18px; }
@@ -967,19 +968,6 @@
       <div class="watching-card" id="watchingCard" hidden><div class="watching-card-eyebrow"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> You're watching</div><div class="watching-card-body" id="watchingCardBody"></div></div>
       
       <div class="pp-sec"><div class="pp-sec-h">Developer &amp; design</div><div class="pp-firms"><a class="pp-firm" href="/firm/wasl-asset-management-group/"><div class="k">Developer</div><div class="v">Wasl Asset Management Group</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="/firm/unstudio/"><div class="k">Architect</div><div class="v">UNStudio</div><span class="go">View firm profile →</span></a></div></div>
-      <div class="pp-sec"><div class="pp-sec-h">Project details</div><div class="stats-grid"><div class="stat-card">
-      <div class="stat-label">Developer</div>
-      <div class="stat-val">Wasl Asset Management Group</div>
-    </div><div class="stat-card">
-      <div class="stat-label">Architect</div>
-      <div class="stat-val">UNStudio</div>
-    </div><div class="stat-card">
-      <div class="stat-label">Delivery</div>
-      <div class="stat-val">2026</div>
-    </div><div class="stat-card">
-      <div class="stat-label">Market</div>
-      <div class="stat-val">Dubai</div>
-    </div></div></div>
       <div class="pp-sec"><div class="pp-sec-h">Location</div>
     <a class="map-preview" href="https://www.oftmw.com/map/?project=wasltower" aria-label="View on map">
       <img src="https://api.mapbox.com/styles/v1/floridaoftomorrow/clkbk4qlw000a01qw94rj0xa7/static/pin-l+1FDF67(55.2702,25.209)/55.2702,25.209,14,0/720x320@2x?access_token=pk.eyJ1IjoiZmxvcmlkYW9mdG9tb3Jyb3ciLCJhIjoiY2xrYmpmdGQ2MGdibTNzcXZjMnA4aXh3ZiJ9.uBeYS7jmKwWS6xAgY-R1UA" alt="Map location" loading="lazy" />
