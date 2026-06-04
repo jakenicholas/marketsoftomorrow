@@ -684,6 +684,112 @@ def build_page(row, articles=None):
         ]
     }, indent=2)
 
+    # ── Cinematic layout fragments ──────────────────────────────────────────
+    # Status eyebrow (colored dot + raw status word, e.g. "Now Open").
+    status_label, _status_pct, status_color = delivery_info(delivery)
+    status_text = delivery or status_label
+    star = '★ ' if featured else ''
+    eyebrow_html = (f'<span class="pp-eyebrow"><span class="d" style="color:{status_color}"></span>'
+                    f'{star}{status_text}</span>')
+
+    # Hero lede (short bio) vs. below "About" (long bio, only if it differs).
+    lede = (row.get('Description', '').strip() or row.get('DescriptionLong', '').strip())
+    about_long = row.get('DescriptionLong', '').strip()
+    about_section = ''
+    if about_long and about_long != lede:
+        about_section = (f'<div class="pp-sec"><div class="pp-sec-h">About the project</div>'
+                         f'<p class="pp-about">{about_long}</p></div>')
+
+    # Gallery images — hero background cycles through these (ImageURL + Image2..5).
+    gallery_imgs = []
+    for _k in ('ImageURL', 'Image2', 'Image3', 'Image4', 'Image5'):
+        _v = (row.get(_k, '') or '').strip()
+        if _v and _v not in gallery_imgs:
+            gallery_imgs.append(_v)
+    if not gallery_imgs:
+        gallery_imgs = [image]
+    hero_bg0 = gallery_imgs[0]
+    images_attr = _escape_attr(json.dumps(gallery_imgs))
+
+    gallery_cluster = ''
+    if len(gallery_imgs) > 1:
+        gallery_cluster = (
+            '<div class="pp-gal" id="ppGal">'
+            '<button class="pp-gal-prev" type="button" aria-label="Previous photo">'
+            '<svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button>'
+            '<div class="pp-gal-dots"></div><span class="pp-gal-cnt"></span>'
+            '<button class="pp-gal-next" type="button" aria-label="Next photo">'
+            '<svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button></div>'
+        )
+
+    # Hero mini-stats (panel) — pick up to 3 of Units / Keys / Floors, backfill
+    # with Delivery + Market so the panel never looks empty.
+    mini_items = []
+    for _v, _l in [(row.get('Units', ''), 'Units'), (row.get('Keys', ''), 'Keys'),
+                   (row.get('Floors', ''), 'Floors')]:
+        if (_v or '').strip():
+            mini_items.append((_v.strip(), _l))
+    if len(mini_items) < 2:
+        _dv = format_delivery_display(delivery_date or delivery)
+        if _dv:
+            mini_items.append((_dv, 'Delivery'))
+        if city:
+            mini_items.append((city, 'Market'))
+    mini_items = mini_items[:3]
+    minis_html = ''
+    if mini_items:
+        minis_html = '<div class="pp-minis">' + ''.join(
+            f'<div class="pp-mini"><div class="v">{_v}</div><div class="k">{_l}</div></div>'
+            for _v, _l in mini_items) + '</div>'
+
+    # Developer & design firm cards (link to /firm/<slug>/ when a slug exists).
+    def _firm_card(name, fslug, role):
+        if not name:
+            return ''
+        if fslug:
+            return (f'<a class="pp-firm" href="/firm/{fslug}/"><div class="k">{role}</div>'
+                    f'<div class="v">{name}</div><span class="go">View firm profile →</span></a>')
+        return (f'<div class="pp-firm"><div class="k">{role}</div><div class="v">{name}</div></div>')
+
+    _dev_names = [n.strip() for n in (row.get('Developer', '') or '').split(',') if n.strip()]
+    _dev_slugs = [s.strip() for s in (row.get('DeveloperSlugs', '') or '').split(',') if s.strip()]
+    _arch_names = [n.strip() for n in (row.get('Architect', '') or '').split(',') if n.strip()]
+    _arch_slugs = [s.strip() for s in (row.get('ArchitectSlugs', '') or '').split(',') if s.strip()]
+    dev_card = _firm_card(_dev_names[0] if _dev_names else '',
+                          _dev_slugs[0] if _dev_slugs else '', 'Developer')
+    arch_card = _firm_card(_arch_names[0] if _arch_names else '',
+                           _arch_slugs[0] if _arch_slugs else '', 'Architect')
+    firms_section = ''
+    if dev_card or arch_card:
+        firms_section = (f'<div class="pp-sec"><div class="pp-sec-h">Developer &amp; design</div>'
+                         f'<div class="pp-firms">{dev_card}{arch_card}</div></div>')
+
+    # Watch button (moved out of the template so it can live inside the hero).
+    watch_btn = (
+        f'<button class="btn-watch" id="watchBtn" type="button" aria-label="Watch this project" '
+        f'data-slug="{slug}" data-title="{esc_attr_title}">'
+        '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>'
+        '<circle cx="12" cy="12" r="3"/></svg>'
+        '<span class="btn-watch-label" id="watchBtnLabel">Watch</span>'
+        '<span class="btn-watch-dot" aria-hidden="true"></span></button>'
+    )
+
+    # Static (JS-hydrated) blocks that now live inside #ppBelow.
+    watching_card_html = (
+        '<div class="watching-card" id="watchingCard" hidden>'
+        '<div class="watching-card-eyebrow"><svg viewBox="0 0 24 24" aria-hidden="true">'
+        '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>'
+        ' You\'re watching</div><div class="watching-card-body" id="watchingCardBody"></div></div>'
+    )
+    updates_section_html = (
+        '<div class="updates-section" id="updatesSection" hidden>'
+        '<div class="updates-header"><div class="updates-title">Project Updates '
+        '<span class="updates-count" id="updatesCount"></span></div></div>'
+        '<div id="updatesBody"></div></div>'
+    )
+
+    proj_type_sep = f' · {proj_type}' if proj_type else ''
+
     html = f'''<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1485,67 +1591,127 @@ def build_page(row, articles=None):
     .cv-view-all {{ display: flex; align-items: center; justify-content: center; gap: 6px; padding: 12px; margin-top: 12px; border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; font-size: 12px; color: rgba(255,255,255,0.55); font-weight: 600; text-decoration: none; transition: color 0.15s, border-color 0.15s; }}
     .cv-view-all:hover {{ color: #fff; border-color: rgba(255,255,255,0.18); }}
     .cv-view-all svg {{ stroke: currentColor; fill: none; }}
+
+    /* ============ Cinematic project layout ============ */
+    .pp {{ position: relative; }}
+    .pp-hero {{ position: relative; min-height: calc(100svh - 56px); display: flex; align-items: flex-end; overflow: hidden; }}
+    .pp-bg {{ position: absolute; inset: 0; background-size: cover; background-position: center; transition: opacity .55s ease, transform 7s ease; will-change: opacity, transform; }}
+    .pp-hero::after {{ content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none; background: linear-gradient(180deg, rgba(7,8,7,.30), rgba(7,8,7,.12) 30%, rgba(7,8,7,.60) 64%, rgba(13,13,13,.98)); }}
+    .pp-hero-inner {{ position: relative; z-index: 3; max-width: 1240px; margin: 0 auto; width: 100%; padding: 0 64px 54px; display: grid; grid-template-columns: 1.5fr 1fr; gap: 42px; align-items: end; transition: transform .34s ease, opacity .34s ease; will-change: transform, opacity; }}
+    .pp-eyebrow {{ display: inline-flex; align-items: center; gap: 8px; font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: #f0d68a; border: 1px solid rgba(230,197,116,.32); border-radius: 999px; padding: 5px 12px; background: rgba(0,0,0,.28); }}
+    .pp-eyebrow .d {{ width: 6px; height: 6px; border-radius: 50%; background: currentColor; box-shadow: 0 0 8px currentColor; }}
+    .pp-h1 {{ font-size: 60px; font-weight: 800; letter-spacing: -.03em; line-height: 1.0; margin-top: 14px; text-shadow: 0 2px 40px rgba(0,0,0,.55); }}
+    .pp-loc {{ font-size: 13px; letter-spacing: .06em; text-transform: uppercase; color: rgba(255,255,255,.62); margin-top: 12px; }}
+    .pp-lede {{ font-size: 14.5px; color: rgba(255,255,255,.84); line-height: 1.62; margin-top: 16px; max-width: 60ch; }}
+    .pp-hero .cta-row {{ max-width: 440px; margin-top: 22px; margin-bottom: 0; }}
+    .pp-hero .btn-primary {{ flex: 0 1 auto; padding: 13px 20px; }}
+    .pp-panel {{ background: rgba(15,17,16,.60); backdrop-filter: blur(22px); -webkit-backdrop-filter: blur(22px); border: 1px solid rgba(255,255,255,.14); border-radius: 18px; padding: 20px 22px; box-shadow: 0 30px 80px -30px rgba(0,0,0,.9); }}
+    .pp-panel .pm-tl {{ margin-bottom: 0; }}
+    .pp-minis {{ display: flex; gap: 22px; margin-top: 16px; flex-wrap: wrap; }}
+    .pp-mini .v {{ font-size: 21px; font-weight: 800; letter-spacing: -.01em; }}
+    .pp-mini .k {{ font-size: 8.5px; letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,.4); margin-top: 3px; }}
+
+    /* gallery cluster (this project's photos) */
+    .pp-gal {{ position: absolute; z-index: 6; left: 50%; bottom: 20px; transform: translateX(-50%); display: flex; align-items: center; gap: 13px; background: rgba(0,0,0,.42); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,.1); border-radius: 999px; padding: 7px 10px; }}
+    .pp-gal button {{ width: 30px; height: 30px; border-radius: 50%; border: 1px solid rgba(255,255,255,.18); background: rgba(0,0,0,.35); color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: .15s; padding: 0; }}
+    .pp-gal button:hover {{ background: #fff; color: #000; }}
+    .pp-gal button svg {{ width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }}
+    .pp-gal-dots {{ display: flex; gap: 6px; align-items: center; }}
+    .pp-gal-dots i {{ width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,.4); transition: .2s; cursor: pointer; }}
+    .pp-gal-dots i.on {{ background: #fff; width: 20px; border-radius: 3px; }}
+    .pp-gal-cnt {{ font-size: 10px; letter-spacing: .06em; color: rgba(255,255,255,.7); font-variant-numeric: tabular-nums; min-width: 30px; text-align: center; }}
+
+    /* random-project edge arrows */
+    .pp-arrow {{ position: absolute; z-index: 8; top: 50%; transform: translateY(-50%); width: 56px; height: 56px; border-radius: 50%; background: rgba(12,14,13,.6); border: 1px solid rgba(255,255,255,.14); color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); transition: transform .18s, background .18s, border-color .18s; }}
+    .pp-arrow:hover {{ background: #1FDF67; color: #000; border-color: #1FDF67; transform: translateY(-50%) scale(1.07); }}
+    .pp-arrow svg {{ width: 24px; height: 24px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }}
+    .pp-arrow.l {{ left: 22px; }} .pp-arrow.r {{ right: 22px; }}
+    .pp-arrow .peek {{ position: absolute; top: 50%; transform: translateY(-50%); width: 0; height: 54px; border-radius: 12px; background-size: cover; background-position: center; opacity: 0; overflow: hidden; transition: width .22s ease, opacity .22s ease; box-shadow: 0 10px 30px rgba(0,0,0,.6); border: 1px solid rgba(255,255,255,.14); pointer-events: none; }}
+    .pp-arrow.l .peek {{ left: calc(100% + 10px); }} .pp-arrow.r .peek {{ right: calc(100% + 10px); }}
+    .pp-arrow:hover .peek {{ width: 88px; opacity: 1; }}
+    .pp-arrow .lab {{ position: absolute; top: calc(100% + 8px); left: 50%; transform: translateX(-50%); font-size: 8.5px; letter-spacing: .12em; text-transform: uppercase; color: rgba(255,255,255,.4); white-space: nowrap; opacity: 0; transition: opacity .2s; }}
+    .pp-arrow:hover .lab {{ opacity: 1; color: #1FDF67; }}
+
+    .pp-scrollcue {{ position: absolute; z-index: 5; left: 50%; bottom: 72px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 5px; font-size: 8.5px; letter-spacing: .18em; text-transform: uppercase; color: rgba(255,255,255,.4); animation: ppbob 1.8s ease-in-out infinite; pointer-events: none; }}
+    .pp-scrollcue svg {{ width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; }}
+    @keyframes ppbob {{ 0%, 100% {{ transform: translate(-50%, 0); }} 50% {{ transform: translate(-50%, 5px); }} }}
+    @media (prefers-reduced-motion: reduce) {{ .pp-scrollcue {{ animation: none; }} }}
+
+    /* below-the-fold */
+    .pp-below {{ max-width: 620px; margin: 0 auto; padding: 50px 20px 70px; transition: opacity .34s ease; }}
+    .pp-sec {{ margin-top: 30px; }}
+    .pp-sec:first-child {{ margin-top: 0; }}
+    .pp-sec-h {{ font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: #fff; font-weight: 800; margin-bottom: 14px; display: flex; align-items: center; gap: 9px; }}
+    .pp-about {{ font-size: 15px; color: rgba(255,255,255,.66); line-height: 1.75; }}
+    .pp-firms {{ display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }}
+    .pp-firm {{ background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 12px; padding: 14px 16px; text-decoration: none; color: inherit; display: block; transition: border-color .15s; }}
+    .pp-firm:hover {{ border-color: rgba(31,223,103,.35); }}
+    .pp-firm .k {{ font-size: 8.5px; letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,.4); }}
+    .pp-firm .v {{ font-size: 15px; font-weight: 600; margin-top: 5px; color: #fff; }}
+    .pp-firm .go {{ font-size: 11px; color: #1FDF67; margin-top: 7px; display: inline-block; }}
+    @media (max-width: 540px) {{ .pp-firms {{ grid-template-columns: 1fr; }} }}
+
+    @media (max-width: 860px) {{
+      .pp-hero {{ min-height: calc(100svh - 52px); }}
+      .pp-hero-inner {{ grid-template-columns: 1fr; padding: 0 20px 92px; gap: 22px; }}
+      .pp-h1 {{ font-size: 40px; }}
+      .pp-arrow {{ width: 44px; height: 44px; }} .pp-arrow.l {{ left: 10px; }} .pp-arrow.r {{ right: 10px; }}
+      .pp-arrow .peek {{ display: none; }}
+      .pp-hero .cta-row {{ max-width: none; }}
+    }}
   </style>
 </head>
 <body>
 
-  {gallery_html(row)}
+  <!-- ════ Cinematic project page ════
+       #pp carries the per-page data the shuffle engine needs (data-slug + the
+       gallery image list). The hero + below fragments are server-rendered for
+       SEO; project-shuffle.js swaps these two fragments in/out on shuffle. -->
+  <main class="pp" id="pp" data-slug="{slug}" data-images="{images_attr}">
+    <section class="pp-hero" id="ppHero">
+      <div class="pp-bg" data-l="0" style="background-image:url('{hero_bg0}')"></div>
+      <div class="pp-bg" data-l="1" style="opacity:0"></div>
 
-  <div class="content">
-    {pills_section}
-    <h1 class="project-title">{title}</h1>
-    <p class="project-city">{city}{' • ' + proj_type if proj_type else ''}</p>
-    <!-- "You're watching" summary card. Hidden by default; the inline
-         Memberstack hydration script below reveals it when the user is
-         signed in, watching this project, and has unread pulse events. -->
-    <div class="watching-card" id="watchingCard" hidden>
-      <div class="watching-card-eyebrow">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-        You're watching
-      </div>
-      <div class="watching-card-body" id="watchingCardBody"></div>
-    </div>
-    <!-- Bio FIRST in the DOM so search engines build the result snippet from the
-         project description, not the timeline's stage labels (which used to leak
-         into Google's auto-generated description). -->
-    <p class="description">{description}</p>
-    <div class="divider"></div>
-    {progress_bar_html(delivery, delivery_date, start_date)}
-    <div class="divider"></div>
-    {stats_section}
-    <div class="cta-row">
-      {website_btn}
-      {share_btn}
-      <!-- Watch button: stays "Watch" until the page-load script hydrates
-           the actual signed-in + watching state from Memberstack. Click is
-           bound by the script too; the bare button is non-functional until
-           Memberstack loads (which is fine, the share/website buttons are
-           the primary CTAs). -->
-      <button class="btn-watch" id="watchBtn" type="button" aria-label="Watch this project" data-slug="{slug}" data-title="{esc_attr_title}">
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-          <circle cx="12" cy="12" r="3"/>
-        </svg>
-        <span class="btn-watch-label" id="watchBtnLabel">Watch</span>
-        <span class="btn-watch-dot" aria-hidden="true"></span>
+      <!-- random-project arrows (same-market-first; keys [ ]) -->
+      <button class="pp-arrow l" id="ppPrev" type="button" aria-label="Another project" title="Another project">
+        <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+        <span class="peek" id="ppPeekL"></span><span class="lab">Another &#8634;</span>
       </button>
-    </div>
-    {map_preview_html(lat, lng, map_url)}
-    <!-- Project Updates (Phase X): client-side hydrated from pulse.json on
-         page load. Lists status_change + new_project events tied to this
-         slug. Hidden by default; the hydration script reveals it if any
-         pulse events match. -->
-    <div class="updates-section" id="updatesSection" hidden>
-      <div class="updates-header">
-        <div class="updates-title">
-          Project Updates
-          <span class="updates-count" id="updatesCount"></span>
+      <button class="pp-arrow r" id="ppNext" type="button" aria-label="Another project" title="Another project">
+        <svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>
+        <span class="peek" id="ppPeekR"></span><span class="lab">Another &#8635;</span>
+      </button>
+
+      <div class="pp-hero-inner" id="ppHeroInner">
+        <div class="pp-hero-main">
+          {eyebrow_html}
+          <h1 class="pp-h1">{title}</h1>
+          <div class="pp-loc">{city}{proj_type_sep}</div>
+          <!-- Bio FIRST in the DOM so search engines build the snippet from the
+               project description, not the timeline's stage labels. -->
+          <p class="pp-lede description">{lede}</p>
+          <div class="cta-row">{website_btn}{share_btn}{watch_btn}</div>
+        </div>
+        <div class="pp-panel">
+          {progress_bar_html(delivery, delivery_date, start_date)}
+          {minis_html}
         </div>
       </div>
-      <div id="updatesBody"></div>
+
+      {gallery_cluster}
+      <div class="pp-scrollcue">Scroll for details<svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+    </section>
+
+    <div class="pp-below" id="ppBelow">
+      {watching_card_html}
+      {about_section}
+      {firms_section}
+      <div class="pp-sec"><div class="pp-sec-h">Project details</div>{stats_section}</div>
+      <div class="pp-sec"><div class="pp-sec-h">Location</div>{map_preview_html(lat, lng, map_url)}</div>
+      {updates_section_html}
+      {coverage_section_html(articles or [], title, image)}
     </div>
-    {coverage_section_html(articles or [], title, image)}
-  </div>
+  </main>
 
   <!-- Footer is injected by the shared chrome (journal-chrome.js) below. -->
 
@@ -1733,8 +1899,12 @@ def build_page(row, articles=None):
             to avoid clobbering sibling JSON keys) + update UI
 
        Anonymous users see a stable "Watch" button. Clicking it sends them
-       to the map's signup wall via the standard map URL. */
-    (function watchBtnHydrate() {{
+       to the map's signup wall via the standard map URL.
+
+       Exposed as window.ppInitWatch so project-shuffle.js can re-hydrate the
+       freshly swapped-in Watch button after a shuffle (it reads slug/title
+       from the button's own data-* attributes, so re-running is safe). */
+    window.ppInitWatch = function watchBtnHydrate() {{
       var btn      = document.getElementById('watchBtn');
       var labelEl  = document.getElementById('watchBtnLabel');
       var card     = document.getElementById('watchingCard');
@@ -1917,19 +2087,25 @@ def build_page(row, articles=None):
           await saveMemberJson({{ favorites: favs }});
         }});
       }});
-    }})();
+    }};
+    window.ppInitWatch();
 
     /* ─── Project Updates hydration ─────────────────────────────────────
        Fetches /pulse.json on page load and surfaces any status_change or
        new_project events for THIS project as a compact timeline. Section
        stays hidden if no matching events exist. Mirrors the modal's
-       Project Updates section. */
-    (function updatesHydrate() {{
+       Project Updates section.
+
+       Exposed as window.ppInitUpdates and reads the slug from #pp's data-slug
+       (kept current by project-shuffle.js) so it re-hydrates correctly after a
+       shuffle swap. */
+    window.ppInitUpdates = function updatesHydrate() {{
       var section = document.getElementById('updatesSection');
       var body    = document.getElementById('updatesBody');
       var countEl = document.getElementById('updatesCount');
       if (!section || !body) return;
-      var pageSlug = '{slug}';
+      var ppRoot   = document.getElementById('pp');
+      var pageSlug = ppRoot ? (ppRoot.getAttribute('data-slug') || '') : '';
       if (!pageSlug) return;
 
       function escapeHtml(s) {{
@@ -1974,8 +2150,13 @@ def build_page(row, articles=None):
           section.removeAttribute('hidden');
         }})
         .catch(function() {{ /* non-fatal */ }});
-    }})();
+    }};
+    window.ppInitUpdates();
   </script>
+
+  <!-- Cinematic gallery + same-market shuffle engine (gallery photos, edge
+       arrows → another project via pjax fragment swap + pushState). -->
+  <script src="/_shared/project-shuffle.js" defer></script>
 
   <!-- Universal site chrome: global header + footer + account cluster, the same
        one injected on every journal page. -->
