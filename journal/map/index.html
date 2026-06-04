@@ -4151,16 +4151,50 @@
   #projectModal .pm-intel[hidden] + .pm-stats {
     margin-top: 18px;
   }
-  /* Facts block sits right under the timeline (units / floors / delivery / market) */
-  #projectModal .pm-facts { margin-top: 14px; margin-bottom: 0; }
-  /* Developer & Design — its own titled section */
-  #projectModal .pm-firms-section[hidden] { display: none; }
-  #projectModal .pm-firms-section { margin: 2px 0 14px; }
-  #projectModal .pm-section-title {
-    font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
-    font-weight: 700; color: #fff; margin-bottom: 10px;
+  /* ── Timeline + facts panel — mirrors the project page hero panel ── */
+  #projectModal .pm-panel {
+    background: rgba(255,255,255,0.035);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 16px;
+    padding: 16px 18px 18px;
+    margin-bottom: 16px;
   }
-  #projectModal .pm-firms-grid { margin-bottom: 0; }
+  #projectModal .pm-panel .pm-progress { margin-bottom: 0; }
+  /* Facts (units / floors / delivery / market) as big-value minis */
+  #projectModal .pm-facts {
+    display: flex; flex-wrap: wrap; gap: 18px 26px; margin-top: 16px;
+  }
+  #projectModal .pm-facts .pm-mini .v {
+    font-size: 21px; font-weight: 800; letter-spacing: -0.01em; color: #fff; line-height: 1.05;
+  }
+  #projectModal .pm-facts .pm-mini .k {
+    font-size: 8.5px; letter-spacing: 0.08em; text-transform: uppercase;
+    color: rgba(255,255,255,0.4); margin-top: 4px;
+  }
+  /* ── Developer & Design — titled section + bordered firm cards ── */
+  #projectModal .pm-firms-section[hidden] { display: none; }
+  #projectModal .pm-firms-section { margin: 2px 0 16px; }
+  #projectModal .pm-section-title {
+    font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase;
+    font-weight: 800; color: #fff; margin-bottom: 14px;
+  }
+  #projectModal .pm-firms-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  #projectModal .pm-firm-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px; padding: 14px 16px;
+    text-decoration: none; color: inherit; display: block;
+    transition: border-color 0.15s;
+  }
+  #projectModal .pm-firm-card:hover { border-color: rgba(31,223,103,0.35); }
+  #projectModal .pm-firm-card .k {
+    font-size: 8.5px; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255,255,255,0.4);
+  }
+  #projectModal .pm-firm-card .v {
+    font-size: 15px; font-weight: 600; margin-top: 5px; color: #fff; line-height: 1.25;
+  }
+  #projectModal .pm-firm-card .go { font-size: 11px; color: #1FDF67; margin-top: 7px; display: inline-block; }
+  @media (max-width: 540px) { #projectModal .pm-firms-grid { grid-template-columns: 1fr; } }
   #projectModal .pm-stat {
     background: rgba(255,255,255,0.04);
     border-radius: 8px; padding: 9px 11px;
@@ -11717,11 +11751,13 @@
             </div>
             <div class="pm-watching-card-body" id="pmWatchingCardBody"></div>
           </div>
-          <div class="pm-progress" id="pmProgress"></div>
-          <!-- Standardized facts shown WITH the timeline: units / floors /
-               delivery / market (+ keys for hotels), whichever are available.
-               Same set every time so the block reads consistently. -->
-          <div class="pm-stats pm-facts" id="pmFacts"></div>
+          <!-- Timeline + facts share a glass panel, exactly like the project
+               page hero panel. Facts (units / floors / delivery / market, +keys
+               for hotels) render as big-value minis below the timeline. -->
+          <div class="pm-panel">
+            <div class="pm-progress" id="pmProgress"></div>
+            <div class="pm-facts" id="pmFacts"></div>
+          </div>
           <div class="pm-div"></div>
           <p class="pm-desc" id="pmDesc"></p>
           <!-- TMW Intelligence block: time-to-completion estimate based on
@@ -11729,10 +11765,11 @@
                Hidden by default; renderIntelBlock() populates and reveals
                this when intel.json has an entry for the open project's slug. -->
           <div class="pm-intel" id="pmIntel" hidden></div>
-          <!-- Developer & Design — its own titled section (mirrors the project page). -->
+          <!-- Developer & Design — its own titled section with bordered firm
+               cards (mirrors the project page's "Developer & design"). -->
           <div class="pm-firms-section" id="pmFirmsSection" hidden>
             <div class="pm-section-title">Developer &amp; Design</div>
-            <div class="pm-stats pm-firms-grid" id="pmFirms"></div>
+            <div class="pm-firms-grid" id="pmFirms"></div>
           </div>
           <div class="pm-cta">
             <a class="pm-btn-learn" id="pmLearnBtn" href="#" target="_blank">
@@ -14023,23 +14060,9 @@
         const desc = p.descriptionLong || p.description || '';
         document.getElementById('pmDesc').textContent = desc;
 
-        // ── Render helper shared by both blocks below ──────────────────────
-        const renderStatCards = (el, items) => {
-          el.innerHTML = items.map(s => {
-            // htmlVal renders trusted HTML (firm links); plain val is shown
-            // verbatim and is also the tooltip text for both paths.
-            const display = (s.htmlVal !== undefined) ? s.htmlVal : s.val;
-            const title = (s.val || '').toString().replace(/"/g, '&quot;');
-            return `<div class="pm-stat">
-              <div class="pm-stat-label">${s.label}</div>
-              <div class="pm-stat-val" title="${title}">${display}</div>
-            </div>`;
-          }).join('');
-        };
-
-        // ── FACTS (shown WITH the timeline): units / floors / delivery / market.
-        //    Always the same set when available, so the block reads consistently
-        //    across every project (keys included for hotels). ─────────────────
+        // ── FACTS (shown WITH the timeline, as big-value minis like the project
+        //    page panel): units / floors / delivery / market (+keys for hotels).
+        //    Always the same set when available, so it reads consistently. ────
         const deliveryRaw = p.deliveryDate || p.delivery || '';
         // Formatter handles ISO-like inputs; passes through pretty strings.
         const deliveryDisplay = (typeof window.formatDeliveryDisplay === 'function')
@@ -14049,6 +14072,7 @@
         const keysVal = fmtNum(p.keys);
         const unitsVal = fmtNum(p.units);
         const floorsVal = fmtNum(p.floors);
+        const escTxt = (s) => (s || '').toString().replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
         const factItems = [];
         if (unitsVal)        factItems.push({ label: 'Units',    val: unitsVal });
@@ -14059,49 +14083,39 @@
 
         const factsEl = document.getElementById('pmFacts');
         if (factsEl) {
-          renderStatCards(factsEl, factItems);
-          factsEl.style.gridTemplateColumns = factItems.length <= 1 ? '1fr' : '1fr 1fr';
-          factsEl.style.display = factItems.length ? 'grid' : 'none';
+          factsEl.innerHTML = factItems.map(s =>
+            `<div class="pm-mini"><div class="v">${escTxt(s.val)}</div><div class="k">${escTxt(s.label)}</div></div>`
+          ).join('');
+          factsEl.style.display = factItems.length ? 'flex' : 'none';
         }
 
-        // ── DEVELOPER & DESIGN (its own titled section) ─────────────────────
-        // Linked-firm renderer: every firm in the array becomes its own
-        // clickable chip linking to /architects/<slug>/ or /developers/<slug>/.
-        function escapeHtmlAttr(s) {
-          return (s || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        // ── DEVELOPER & DESIGN — bordered firm cards (project-page style). Shows
+        //    the lead firm per role + a "View firm profile →" link; the whole
+        //    card is a firm-link so a click opens the firm sheet (cmd-click the
+        //    static /developers|architects/<slug>/ page). ─────────────────────
+        const escAttr = (s) => (s || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        function firmCard(label, role, firmsArr, fallbackName) {
+          let name = '', slug = '';
+          if (firmsArr && firmsArr.length) { name = firmsArr[0].name || ''; slug = firmsArr[0].slug || ''; }
+          else if (fallbackName) { name = fallbackName; }
+          if (!name) return '';
+          const nameEsc = escAttr(name);
+          const inner = `<div class="k">${label}</div><div class="v">${nameEsc}</div>` +
+                        (slug ? `<span class="go">View firm profile &#8594;</span>` : '');
+          if (slug) {
+            return `<a class="pm-firm-card firm-link" href="/${role}/${encodeURIComponent(slug)}/" data-firm-role="${role}" data-firm-slug="${escAttr(slug)}" title="View ${nameEsc} on TMW">${inner}</a>`;
+          }
+          return `<div class="pm-firm-card">${inner}</div>`;
         }
-        function renderFirmLink(firms, role) {
-          if (!firms || !firms.length) return null;
-          const parts = firms.map(f => {
-            const name = escapeHtmlAttr(f.name);
-            if (!f.slug) return name;
-            return `<a class="firm-link" href="/${role}/${encodeURIComponent(f.slug)}/" data-firm-role="${role}" data-firm-slug="${escapeHtmlAttr(f.slug)}" title="View ${name} on TMW">${name}</a>`;
-          });
-          const html = parts.join(', ');
-          const plain = firms.map(f => f.name).join(', ');
-          return { label: role === 'architects' ? 'Architect' : 'Developer', val: plain, htmlVal: html };
-        }
-
-        const firmItems = [];
-        const devItem = renderFirmLink(p.developers, 'developers');
-        if (devItem) firmItems.push(devItem);
-        else if (p.developer) firmItems.push({ label: 'Developer', val: truncateDeveloper(p.developer) });
-
-        const archItem = renderFirmLink(p.architects, 'architects');
-        if (archItem) firmItems.push(archItem);
-        else if (p.architect) firmItems.push({ label: 'Architect', val: p.architect.split(',')[0].trim() });
+        const devCard  = firmCard('Developer', 'developers', p.developers, p.developer ? truncateDeveloper(p.developer) : '');
+        const archCard = firmCard('Architect', 'architects', p.architects, p.architect ? p.architect.split(',')[0].trim() : '');
 
         const firmsEl = document.getElementById('pmFirms');
         const firmsSection = document.getElementById('pmFirmsSection');
         if (firmsEl && firmsSection) {
-          if (firmItems.length) {
-            renderStatCards(firmsEl, firmItems);
-            firmsEl.style.gridTemplateColumns = firmItems.length <= 1 ? '1fr' : '1fr 1fr';
-            firmsSection.hidden = false;
-          } else {
-            firmsEl.innerHTML = '';
-            firmsSection.hidden = true;
-          }
+          const cards = devCard + archCard;
+          if (cards) { firmsEl.innerHTML = cards; firmsSection.hidden = false; }
+          else { firmsEl.innerHTML = ''; firmsSection.hidden = true; }
         }
 
         // Learn More button
