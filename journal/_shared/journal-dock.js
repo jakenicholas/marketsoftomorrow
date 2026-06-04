@@ -601,9 +601,9 @@
   var SK = ['Followers', 'Mo. Views', 'Mo. Web', 'Interactions'];
   var FOCUS_MARKETS = [
     { key: 'florida',   name: 'Florida of Tomorrow',   h: 'floridaoftomorrow',   img: '/media/img/9998de3ca8af.jpg', flag: true,  s: ['150,000', '3.5M', '1.2M', '150K'] },
-    // TODO(jake): replace the placeholder stats + image below with the real
-    // Hotels of Tomorrow media-kit numbers and a branded banner image.
-    { key: 'hotels',    name: 'Hotels of Tomorrow',    h: 'hotelsoftomorrow',    img: 'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_07e4600c7eb745c28897b90cbab6d7ff~mv2.jpeg', flag: false, s: ['10,000', '350K', '60K', '12K'] },
+    // TODO(jake): stats below are placeholders — swap for the real Hotels of
+    // Tomorrow media-kit numbers when available.
+    { key: 'hotels',    name: 'Hotels of Tomorrow',    h: 'hotelsoftomorrow',    img: 'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_d7cb537f27f14e05b15e4787e1fa7d29~mv2.jpg', flag: false, s: ['10,000', '350K', '60K', '12K'] },
     { key: 'new-york',  name: 'New York of Tomorrow',  h: 'newyorkoftomorrow',   img: '/media/img/e3c8a4e4ff38.jpg', flag: false, s: ['9,000', '297K', '22K', '19K'] },
     { key: 'tennessee', name: 'Tennessee of Tomorrow', h: 'tennesseeoftomorrow', img: '/media/img/d3ce63b84f46.jpg', flag: false, s: ['11,000', '305K', '41K', '32K'] },
     { key: 'caribbean', name: 'Caribbean of Tomorrow', h: 'caribbeanoftomorrow', img: '/media/img/5d9804404207.jpg', flag: false, s: ['2,500', '88K', '12K', '5.7K'] },
