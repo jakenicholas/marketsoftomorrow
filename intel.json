@@ -6324,49 +6324,6 @@
       "start_speculative": false,
       "delivery_speculative": false
     },
-    "hudson-yards-phase-2": {
-      "estimate_years": 5.6,
-      "estimate_label": "~5.6 years",
-      "range_low": 4.9,
-      "range_high": 6.7,
-      "confidence": "low",
-      "comparable_count": 1,
-      "good_count": 1,
-      "exact_count": 1,
-      "used_relaxed": true,
-      "avg_match_score": 1.0,
-      "avg_distance_km": 6.7,
-      "avg_distance_mi": 4.2,
-      "scale_used": false,
-      "firm_signal": {
-        "firm": "Owings & Merrill",
-        "count": 1,
-        "median_years": 6.74,
-        "stddev_years": 0.0,
-        "role": "architect",
-        "consistent": false,
-        "blend_weight": 0.4
-      },
-      "source": "comparables",
-      "project_type": "Residences",
-      "metro": "New York",
-      "comparables": [
-        {
-          "name": "The Brooklyn Tower",
-          "slug": "the-brooklyn-tower",
-          "location": "Brooklyn",
-          "years": 4.9,
-          "score": 1.0,
-          "distance_km": 6.7,
-          "distance_mi": 4.2
-        }
-      ],
-      "pattern_summary": "Among 1 nearby residences project in TMW's data, the median build time is 4.9 years (range 4.9–6.7). Adjusted to ~5.6 years for Owings & Merrill's own track record (~6.7-year typical pace across 1 prior project).",
-      "dates_speculative": false,
-      "start_speculative": false,
-      "delivery_speculative": false,
-      "is_mixed_use": false
-    },
     "sofi-stadium-district": {
       "estimate_years": 0.6,
       "estimate_label": "~7 months",
@@ -7771,12 +7728,12 @@
   "stats": {
     "high": 2,
     "medium": 26,
-    "low": 28,
+    "low": 27,
     "known_date": 253,
     "completed": 34,
-    "skipped": 63,
+    "skipped": 64,
     "no_type": 0,
-    "firm_boosted": 35,
+    "firm_boosted": 34,
     "speculative_softened": 24,
     "mixed_use_adjusted": 1
   }
