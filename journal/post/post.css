@@ -205,10 +205,10 @@ nav.main .wrap{display:flex; align-items:center; justify-content:space-between; 
 .tmw-gallery-slide{flex:0 0 100%; width:100%; height:100%; position:relative; scroll-snap-align:start}
 .tmw-gallery-slide img{width:100%; height:100%; object-fit:cover; border-radius:0; display:block; margin:0}
 .tmw-gallery-caption{position:absolute; left:0; right:0; bottom:0; padding:30px 22px 18px; background:linear-gradient(transparent, rgba(7,8,7,.78) 60%, rgba(7,8,7,.92)); color:var(--white); font-family:var(--mono); font-size:11.5px; letter-spacing:.08em; line-height:1.5; pointer-events:none}
-.tmw-gallery-arrow{position:absolute; top:50%; transform:translateY(-50%); width:44px; height:44px; border-radius:999px; background:rgba(7,8,7,.65); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); border:1px solid var(--hair-2); color:var(--white); display:flex; align-items:center; justify-content:center; cursor:pointer; opacity:0; transition:opacity .2s, background .2s, border-color .2s, transform .2s; z-index:3; padding:0}
+.tmw-gallery-arrow{position:absolute; top:50%; transform:translateY(-50%); width:44px; height:44px; border-radius:999px; background:none; border:none; backdrop-filter:none; -webkit-backdrop-filter:none; color:var(--white); display:flex; align-items:center; justify-content:center; cursor:pointer; opacity:0; transition:opacity .2s, color .2s, filter .2s, transform .2s; z-index:3; padding:0; filter:drop-shadow(0 1px 3px rgba(0,0,0,.55))}
 .tmw-gallery:hover .tmw-gallery-arrow{opacity:1}
 .tmw-gallery-arrow.prev{left:14px} .tmw-gallery-arrow.next{right:14px}
-.tmw-gallery-arrow:hover{background:var(--green); color:var(--ink); border-color:var(--green); transform:translateY(-50%) scale(1.05)}
+.tmw-gallery-arrow:hover,.tmw-gallery-arrow:active{color:var(--gold); filter:drop-shadow(0 0 6px rgba(230,197,116,.75)) drop-shadow(0 0 13px rgba(230,197,116,.45)); transform:translateY(-50%) scale(1.12)}
 .tmw-gallery-arrow:disabled{opacity:0 !important; cursor:default}
 .tmw-gallery-arrow svg{width:16px; height:16px}
 .tmw-gallery-counter{position:absolute; top:14px; right:14px; font-family:var(--mono); font-size:10.5px; letter-spacing:.1em; color:var(--white); background:rgba(7,8,7,.65); backdrop-filter:blur(10px); padding:5px 10px; border-radius:999px; z-index:3; font-weight:700}
