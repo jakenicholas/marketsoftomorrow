@@ -8531,22 +8531,26 @@
       display: flex; align-items: center; justify-content: center; gap: 6px;
       position: relative;
     }
+    /* Active tab — green "on" state matching the new design system (watch
+       button / gradient meter), replacing the old gold fill. */
     body.ui-v2 .v2-tab.active {
-      background: var(--warn, #FFD300);
-      color: #0a0a0a;
+      background: rgba(31,223,103,0.14);
+      color: #1FDF67;
       font-weight: 700;
+      box-shadow: inset 0 0 0 1px rgba(31,223,103,0.32);
     }
-    /* Tab num bubble: GOLD by default (notification feel), BLACK when active */
+    /* Tab num bubble (the "# results"): neutral glass by default, green when
+       its tab is active. */
     body.ui-v2 .v2-tab .v2-tab-num {
-      background: var(--warn, #FFD300);
-      color: #0a0a0a;
+      background: rgba(255,255,255,0.12);
+      color: rgba(255,255,255,0.75);
       font-size: 10px; font-weight: 800;
       padding: 1px 7px; border-radius: 100px; line-height: 1.3;
       min-width: 18px; text-align: center;
     }
     body.ui-v2 .v2-tab.active .v2-tab-num {
-      background: #0a0a0a;
-      color: var(--warn, #FFD300);
+      background: rgba(31,223,103,0.22);
+      color: #1FDF67;
     }
 
     /* ‚îÄ‚îÄ Search state: gold search tab + tab deactivation ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
@@ -8569,8 +8573,8 @@
       align-items: center; justify-content: center;
       width: 0; overflow: hidden;
       padding: 9px 0;
-      background: var(--warn, #FFD300);
-      color: #0a0a0a;
+      background: rgba(167,139,250,0.18);
+      color: #C9B8FF;
       border: none;
       border-radius: 9px;
       font-family: inherit;
@@ -10831,6 +10835,22 @@
     .desktop-search-pill > :not(#sidebarAutocomplete){ position:relative; z-index:1; }
     #desktopSearchPill{ overflow:visible; }
     #desktopSearchPill > *{ position:relative; z-index:1; }
+    /* ── Mobile drawer search: same universal purple-glow chase border + green
+       focus as the dock / desktop sidebar search, so the drawer search reads as
+       the universal pinned search bar. Reuses --tmw-ang + tmwChase (journal-dock). */
+    .mobile-search-pill{ position:relative; overflow:visible; transition:border-color .18s, background .18s; }
+    .mobile-search-pill::before{
+      content:""; position:absolute; inset:-1.5px; border-radius:inherit; padding:1.5px;
+      z-index:0; pointer-events:none;
+      background:conic-gradient(from var(--tmw-ang,0deg), rgba(167,139,250,0) 0deg, rgba(167,139,250,0) 205deg, #A78BFA 300deg, #E9DEFF 338deg, rgba(167,139,250,0) 360deg);
+      -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite:xor; mask-composite:exclude;
+      filter:drop-shadow(0 0 5px rgba(167,139,250,.7));
+      animation:tmwChase 3s linear infinite;
+    }
+    @media(prefers-reduced-motion:reduce){ .mobile-search-pill::before{animation:none} }
+    .mobile-search-pill > *{ position:relative; z-index:1; }
+    .mobile-search-pill:focus-within{ border-color:rgba(31,223,103,.45); background:rgba(255,255,255,.08); }
     /* ── Desktop: bottom-center dock search replaces the top-left searches ──
        The universal dock search now hovers bottom-center (like atlas/journal).
        Hide the old top-left in-sidebar search row AND the collapsed-state pill.
