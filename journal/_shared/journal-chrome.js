@@ -176,6 +176,22 @@
       document.body.insertBefore(headerEl, document.body.firstChild);
     }
 
+    // If the page has a pulse ticker (the journal home + article pages do), pull
+    // it INTO the header's sticky stack so the nav + ticker stick together as one
+    // block — exactly like the home — instead of two sticky elements fighting for
+    // top:0. Then drop the now-empty legacy .sticky-stack the ticker came from.
+    // This lets every page use the one injected header without losing its ticker.
+    try {
+      var ticker = document.querySelector('.ticker');
+      if (ticker && !headerEl.contains(ticker)) {
+        var legacy = ticker.closest('.sticky-stack');
+        headerEl.appendChild(ticker);
+        if (legacy && legacy !== headerEl && legacy.children.length === 0) {
+          legacy.parentNode && legacy.parentNode.removeChild(legacy);
+        }
+      }
+    } catch (e) { /* ticker is optional; header still works without it */ }
+
     var f = document.createElement('div');
     f.innerHTML = footerHtml;
     document.body.appendChild(f.firstChild);
