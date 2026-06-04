@@ -882,6 +882,34 @@
     for (var i = 0; i < navs.length; i++) navs[i].classList.add('tmw-nav-ready');
   }
 
+  // Robust body-scroll lock for the open mobile drawer. Setting only
+  // documentElement.style.overflow='hidden' leaves iOS Safari able to rubber-
+  // band scroll the page behind the menu; pinning the body with position:fixed
+  // (and restoring the exact scroll offset on close) stops that on every engine.
+  // The drawer is its own scroll container (overflow-y:auto) so it still scrolls
+  // internally while the page underneath stays frozen.
+  var __tmwLockedY = 0;
+  function lockBodyScroll() {
+    __tmwLockedY = window.pageYOffset || document.documentElement.scrollTop || 0;
+    var b = document.body;
+    b.style.top = (-__tmwLockedY) + 'px';
+    b.style.position = 'fixed';
+    b.style.left = '0';
+    b.style.right = '0';
+    b.style.width = '100%';
+    document.documentElement.style.overflow = 'hidden';
+  }
+  function unlockBodyScroll() {
+    var b = document.body;
+    b.style.position = '';
+    b.style.top = '';
+    b.style.left = '';
+    b.style.right = '';
+    b.style.width = '';
+    document.documentElement.style.overflow = '';
+    window.scrollTo(0, __tmwLockedY);
+  }
+
   // Wire the mobile hamburger(s) to open/close the nav dropdown. Works for both
   // the inline page headers and the shared chrome header (both use .nav-burger +
   // .nav-links inside nav.main). Single source of truth — the chrome component
@@ -903,11 +931,11 @@
           btn.setAttribute('aria-expanded', open ? 'true' : 'false');
           // Lock the page behind the open drawer so scrolling the menu doesn't
           // scroll the article underneath (drawer itself stays overflow-y:auto).
-          document.documentElement.style.overflow = open ? 'hidden' : '';
+          if (open) lockBodyScroll(); else unlockBodyScroll();
         });
         // Close the menu after tapping a link
         list.addEventListener('click', function (e) {
-          if (e.target.closest('a')) { list.classList.remove('open'); btn.classList.remove('is-open'); btn.setAttribute('aria-expanded', 'false'); document.documentElement.style.overflow = ''; }
+          if (e.target.closest('a')) { list.classList.remove('open'); btn.classList.remove('is-open'); btn.setAttribute('aria-expanded', 'false'); unlockBodyScroll(); }
         });
       })(b, links);
     }
