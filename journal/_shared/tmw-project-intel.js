@@ -169,22 +169,33 @@
   }
 
   // ── Construction timeline (segmented bar) ──────────────────────────
+  // Purple "Gradient Meter": one rounded track carrying a fixed purple→green
+  // gradient, an overlay that hides the unfilled remainder (so green only shows
+  // at completion), a floating % knob, and a 5-stage legend where only the
+  // CURRENT stage is bold + brand-coloured + glowing. Green = complete.
   function renderTimeline(project) {
     var status = project.Delivery || '';
     var cp = computeProgress(project.DeliveryDate || '', status, project.StartDate || '');
     if (!cp) return '';
-    var segHtml = cp.segments.map(function (seg) {
-      var c = seg.state === 'future' ? 'rgba(255,255,255,0.08)' : seg.color;
-      return '<div class="pm-seg pm-seg-' + seg.state + '" style="flex:' + seg.widthPct + ' 0 0;--seg-c:' + c + ';"><div class="pm-seg-fill" style="width:' + seg.fillPct + '%"></div></div>';
+    var pct = Math.max(0, Math.min(100, Math.round(cp.pct)));
+    var complete = pct >= 100 || /now open|complete|delivered/i.test(status);
+    var glow = complete ? '31,223,103' : '167,139,250';          // green when done, purple in progress
+    var accent = complete ? '#1FDF67' : '#B9A6FF';
+    var stages = cp.segments.map(function (seg) {
+      var on = seg.state === 'active';
+      var cls = on ? 'on' : (seg.state === 'done' ? 'done' : '');
+      var st = on ? ' style="color:' + accent + ';font-weight:800;text-shadow:0 0 12px rgba(' + glow + ',.5)"' : '';
+      return '<span class="pm-tl-stage ' + cls + '"' + st + '>' + esc(seg.label) + '</span>';
     }).join('');
-    var labels = cp.segments.map(function (seg) {
-      return '<span class="pm-step-label' + (seg.state === 'active' ? ' cur' : '') + '" style="flex:' + seg.widthPct + ' 0 0;' + (seg.state === 'active' ? '--stage-color:' + seg.color : '') + '">' + seg.label + '</span>';
-    }).join('');
-    var sub = cp.subtitle ? '<div class="pm-progress-sub">' + esc(cp.subtitle) + '</div>' : '';
-    return '<div class="tmw-pm"><div class="pm-progress">' +
-      '<div class="pm-progress-top"><span class="pm-stage" style="color:' + cp.color + '">' + esc(cp.label) + '</span><span class="pm-pct">' + cp.pct + '%</span></div>' +
-      '<div class="pm-segments">' + segHtml + '</div>' +
-      '<div class="pm-step-labels">' + labels + '</div>' + sub + '</div></div>';
+    var date = cp.subtitle ? '<div class="pm-tl-date">' + esc(cp.subtitle) + '</div>' : '';
+    var knobLeft = pct >= 98 ? 'calc(100% - 18px)' : pct + '%';
+    return '<div class="tmw-pm"><div class="pm-tl">' + date +
+      '<div class="pm-tl-meter"><div class="pm-tl-grad"></div>' +
+        '<div class="pm-tl-empty" style="left:' + pct + '%"></div>' +
+        '<div class="pm-tl-knob" style="left:' + knobLeft + ';box-shadow:0 2px 8px rgba(0,0,0,.5),0 0 0 2px rgba(' + glow + ',.42),0 0 12px rgba(' + glow + ',.55)">' + pct + '%</div>' +
+      '</div>' +
+      '<div class="pm-tl-stages">' + stages + '</div>' +
+    '</div></div>';
   }
 
   // ── TMW Intelligence panel ─────────────────────────────────────────
@@ -259,20 +270,21 @@
 
   // ── CSS (ported, re-scoped from #projectModal → .tmw-pm) ───────────
   var css = [
-    '.tmw-pm .pm-progress{margin-bottom:0}',
-    '.tmw-pm .pm-progress-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}',
-    '.tmw-pm .pm-stage{font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}',
-    '.tmw-pm .pm-pct{font-size:10px;color:rgba(255,255,255,.25)}',
-    '.tmw-pm .pm-segments{display:flex;gap:3px;margin-bottom:5px;height:5px}',
-    '.tmw-pm .pm-seg{height:100%;border-radius:2px;background:rgba(255,255,255,.08);overflow:hidden;position:relative}',
-    '.tmw-pm .pm-seg-fill{height:100%;background:var(--seg-c,#FF9500);border-radius:2px;transition:width .4s ease}',
-    '.tmw-pm .pm-seg-done .pm-seg-fill{width:100%!important}',
-    '.tmw-pm .pm-seg-active{box-shadow:0 0 0 1px rgba(255,255,255,.04)}',
-    '.tmw-pm .pm-seg-future .pm-seg-fill{width:0!important}',
-    '.tmw-pm .pm-step-labels{display:flex;gap:3px}',
-    '.tmw-pm .pm-step-label{font-size:7.5px;color:rgba(255,255,255,.2);letter-spacing:.02em;padding-right:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
-    '.tmw-pm .pm-step-label.cur{color:var(--stage-color,#FF9500);font-weight:600}',
-    '.tmw-pm .pm-progress-sub{margin-top:6px;font-family:"Inter",-apple-system,BlinkMacSystemFont,sans-serif;font-size:9px;letter-spacing:.06em;color:rgba(255,255,255,.5)}',
+    // ── Gradient Meter timeline (purple → green; green only at completion) ──
+    '.tmw-pm .pm-tl{margin-bottom:0}',
+    '.tmw-pm .pm-tl-date{text-align:right;font-family:"Inter",-apple-system,BlinkMacSystemFont,sans-serif;font-size:9px;letter-spacing:.04em;color:rgba(255,255,255,.55);margin-bottom:7px}',
+    '.tmw-pm .pm-tl-meter{position:relative;height:10px;border-radius:999px;overflow:hidden;box-shadow:inset 0 1px 2px rgba(0,0,0,.55)}',
+    '.tmw-pm .pm-tl-grad{position:absolute;inset:0;background:linear-gradient(90deg,#3a2f6b,#7C5CE0 38%,#A78BFA 64%,#1FDF67)}',
+    '.tmw-pm .pm-tl-grad::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.4),transparent);background-size:200% 100%;animation:pmtlShine 2.6s linear infinite;mix-blend-mode:overlay}',
+    '@keyframes pmtlShine{0%{background-position:200% 0}100%{background-position:-60% 0}}',
+    '@media (prefers-reduced-motion:reduce){.tmw-pm .pm-tl-grad::after{animation:none}}',
+    '.tmw-pm .pm-tl-empty{position:absolute;top:0;bottom:0;right:0;background:#0d0f0e;box-shadow:inset 2px 0 3px rgba(0,0,0,.6)}',
+    '.tmw-pm .pm-tl-knob{position:absolute;top:50%;transform:translate(-50%,-50%);background:#fff;color:#0a0a0a;font-size:9px;font-weight:800;padding:2px 7px;border-radius:999px;white-space:nowrap;z-index:2;font-family:"Inter",-apple-system,BlinkMacSystemFont,sans-serif}',
+    '.tmw-pm .pm-tl-stages{display:flex;gap:3px;margin-top:11px}',
+    '.tmw-pm .pm-tl-stage{flex:1;font-size:7.5px;letter-spacing:.02em;text-transform:uppercase;color:rgba(255,255,255,.2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center;font-family:"Inter",-apple-system,BlinkMacSystemFont,sans-serif}',
+    '.tmw-pm .pm-tl-stage:first-child{text-align:left}',
+    '.tmw-pm .pm-tl-stage:last-child{text-align:right}',
+    '.tmw-pm .pm-tl-stage.done{color:rgba(255,255,255,.5)}',
     '.tmw-pm .pm-intel{margin:0;padding:18px;background:rgba(167,139,250,.06);border:1px solid rgba(167,139,250,.18);border-radius:12px}',
     '.tmw-pm .pm-intel-head{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}',
     '.tmw-pm .pm-intel-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(167,139,250,.14);border:1px solid rgba(167,139,250,.32);color:#A78BFA;padding:4px 10px;border-radius:12px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em}',
