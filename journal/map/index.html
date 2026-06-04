@@ -15425,6 +15425,8 @@
       const { type: typeFilter, status: statusFilter } = activeFilters[platform];
       if (typeFilter !== 'all') features = features.filter(f => f.properties.projectTypes?.includes(typeFilter.toLowerCase()) || f._projectTypes?.includes(typeFilter.toLowerCase()));
       if (statusFilter !== 'all') features = features.filter(f => f.properties.delivery === statusFilter);
+      // Advanced "Add filter" panel must apply here too (search-results grid).
+      if (typeof window.advMatches === 'function') features = features.filter(window.advMatches);
 
       const mapCenter = map.getCenter();
       const mapBounds = getVisibleBounds();
@@ -15864,7 +15866,13 @@
     // 1. Same type + same status  2. Same type only  3. Closest projects
     function getFallbackFeatures(mapCenter, typeFilter, statusFilter, excludeInBounds) {
       const NEARBY_RADIUS_MILES = 300;
-      const allF = (window.allProjectFeatures || []).map(f => {
+      // STRICT: the advanced "Add filter" panel must constrain the Nearby
+      // fallback too. Without this, the tier-3 "ignore filter entirely" branch
+      // below would backfill the grid with projects that don't match the user's
+      // filters (e.g. an Education project leaking into an "Opening Soon + Hotel"
+      // result). Pre-filter the pool so no tier can ever return a non-match.
+      const advOK = (typeof window.advMatches === 'function') ? window.advMatches : null;
+      const allF = (window.allProjectFeatures || []).filter(f => !advOK || advOK(f)).map(f => {
         const coords = f.geometry.coordinates;
         return { ...f, distance: calculateDistance(mapCenter.lat, mapCenter.lng, coords[1], coords[0]) };
       });
