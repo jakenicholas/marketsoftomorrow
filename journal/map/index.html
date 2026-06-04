@@ -11014,16 +11014,16 @@
          drawer (slides it out left). Replaces the old overhanging X circle. */
       #tmwDrawerClose{
         position:fixed; left:35%; top:calc(var(--header-height) + 26px); z-index:25;
-        width:26px; height:54px; padding:0; margin-left:-1px;
-        border:1px solid rgba(255,255,255,0.12); border-left:0;
+        width:21px; height:54px; padding:0; margin-left:-1px;
+        border:0;
         border-top-right-radius:13px; border-bottom-right-radius:13px;
-        background:rgba(17,17,19,0.92); -webkit-backdrop-filter:blur(16px); backdrop-filter:blur(16px);
+        background:rgba(15,15,15,0.96); -webkit-backdrop-filter:blur(16px); backdrop-filter:blur(16px);
         color:rgba(255,255,255,0.82); display:none; align-items:center; justify-content:center; cursor:pointer;
         box-shadow:2px 0 18px rgba(0,0,0,0.42);
-        transition:background .15s ease, transform .15s ease;
+        transition:transform .15s ease;
       }
       #tmwDrawerClose svg{ width:16px; height:16px; }
-      #tmwDrawerClose:hover{ background:rgba(30,30,34,0.96); transform:translateX(-2px); }
+      #tmwDrawerClose:hover{ transform:translateX(-2px); }
       body.ui-v2 #tmwDrawerClose{ display:flex; }
       /* Pull handle — a tab on the left edge, shown only while collapsed. */
       #tmwDrawerHandle{
