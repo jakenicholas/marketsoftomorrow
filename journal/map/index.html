@@ -24525,6 +24525,13 @@
   <!-- still works. We pre-seed the dock's guard markers below (no src,   -->
   <!-- so no request, no 404) to suppress those relative injections and   -->
   <!-- keep the map's existing auth modals untouched. -->
+  <!-- The shared journal-auth.js renders the GO PRO pill in the header (same as
+       every other page). Retire the map's legacy corner-pinned #v2GoProBtn so
+       there's exactly ONE go-pro button, and route the shared pill's click into
+       the map's existing paywall (the map doesn't define window.tmwShowPaywall,
+       so without this the shared pill would be a no-op here). -->
+  <style>body.ui-v2 #v2GoProBtn{display:none !important}</style>
+  <script>window.tmwShowPaywall=function(src){if(typeof window.showSubscriptionPaywall==='function'){window.showSubscriptionPaywall(src||'upgrade:badge');}};</script>
   <script data-tmw-authui-loader></script>
   <script data-tmw-paywall-loader></script>
   <script src="/_shared/journal-auth.js" defer data-tmw-auth-loader></script>
