@@ -4151,6 +4151,16 @@
   #projectModal .pm-intel[hidden] + .pm-stats {
     margin-top: 18px;
   }
+  /* Facts block sits right under the timeline (units / floors / delivery / market) */
+  #projectModal .pm-facts { margin-top: 14px; margin-bottom: 0; }
+  /* Developer & Design — its own titled section */
+  #projectModal .pm-firms-section[hidden] { display: none; }
+  #projectModal .pm-firms-section { margin: 2px 0 14px; }
+  #projectModal .pm-section-title {
+    font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
+    font-weight: 700; color: #fff; margin-bottom: 10px;
+  }
+  #projectModal .pm-firms-grid { margin-bottom: 0; }
   #projectModal .pm-stat {
     background: rgba(255,255,255,0.04);
     border-radius: 8px; padding: 9px 11px;
@@ -11708,6 +11718,10 @@
             <div class="pm-watching-card-body" id="pmWatchingCardBody"></div>
           </div>
           <div class="pm-progress" id="pmProgress"></div>
+          <!-- Standardized facts shown WITH the timeline: units / floors /
+               delivery / market (+ keys for hotels), whichever are available.
+               Same set every time so the block reads consistently. -->
+          <div class="pm-stats pm-facts" id="pmFacts"></div>
           <div class="pm-div"></div>
           <p class="pm-desc" id="pmDesc"></p>
           <!-- TMW Intelligence block: time-to-completion estimate based on
@@ -11715,8 +11729,11 @@
                Hidden by default; renderIntelBlock() populates and reveals
                this when intel.json has an entry for the open project's slug. -->
           <div class="pm-intel" id="pmIntel" hidden></div>
-          <div class="pm-div pm-div-pre-stats"></div>
-          <div class="pm-stats" id="pmStats"></div>
+          <!-- Developer & Design — its own titled section (mirrors the project page). -->
+          <div class="pm-firms-section" id="pmFirmsSection" hidden>
+            <div class="pm-section-title">Developer &amp; Design</div>
+            <div class="pm-stats pm-firms-grid" id="pmFirms"></div>
+          </div>
           <div class="pm-cta">
             <a class="pm-btn-learn" id="pmLearnBtn" href="#" target="_blank">
                 Official Website&nbsp;<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;flex-shrink:0;"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
@@ -14006,14 +14023,50 @@
         const desc = p.descriptionLong || p.description || '';
         document.getElementById('pmDesc').textContent = desc;
 
-        // Stats
-        const stats = document.getElementById('pmStats');
-        const statItems = [];
+        // ── Render helper shared by both blocks below ──────────────────────
+        const renderStatCards = (el, items) => {
+          el.innerHTML = items.map(s => {
+            // htmlVal renders trusted HTML (firm links); plain val is shown
+            // verbatim and is also the tooltip text for both paths.
+            const display = (s.htmlVal !== undefined) ? s.htmlVal : s.val;
+            const title = (s.val || '').toString().replace(/"/g, '&quot;');
+            return `<div class="pm-stat">
+              <div class="pm-stat-label">${s.label}</div>
+              <div class="pm-stat-val" title="${title}">${display}</div>
+            </div>`;
+          }).join('');
+        };
 
+        // ── FACTS (shown WITH the timeline): units / floors / delivery / market.
+        //    Always the same set when available, so the block reads consistently
+        //    across every project (keys included for hotels). ─────────────────
+        const deliveryRaw = p.deliveryDate || p.delivery || '';
+        // Formatter handles ISO-like inputs; passes through pretty strings.
+        const deliveryDisplay = (typeof window.formatDeliveryDisplay === 'function')
+          ? window.formatDeliveryDisplay(deliveryRaw)
+          : deliveryRaw;
+        const fmtNum = (v) => { const n = parseInt(v, 10); return isNaN(n) ? null : n.toLocaleString(); };
+        const keysVal = fmtNum(p.keys);
+        const unitsVal = fmtNum(p.units);
+        const floorsVal = fmtNum(p.floors);
+
+        const factItems = [];
+        if (unitsVal)        factItems.push({ label: 'Units',    val: unitsVal });
+        if (keysVal)         factItems.push({ label: 'Keys',     val: keysVal });
+        if (floorsVal)       factItems.push({ label: 'Floors',   val: floorsVal });
+        if (deliveryDisplay) factItems.push({ label: 'Delivery', val: deliveryDisplay });
+        if (p.city)          factItems.push({ label: 'Market',   val: p.city });
+
+        const factsEl = document.getElementById('pmFacts');
+        if (factsEl) {
+          renderStatCards(factsEl, factItems);
+          factsEl.style.gridTemplateColumns = factItems.length <= 1 ? '1fr' : '1fr 1fr';
+          factsEl.style.display = factItems.length ? 'grid' : 'none';
+        }
+
+        // ── DEVELOPER & DESIGN (its own titled section) ─────────────────────
         // Linked-firm renderer: every firm in the array becomes its own
         // clickable chip linking to /architects/<slug>/ or /developers/<slug>/.
-        // Separated by ', '. Falls back to plain text when slug is missing
-        // (legacy data with names only).
         function escapeHtmlAttr(s) {
           return (s || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
         }
@@ -14029,42 +14082,27 @@
           return { label: role === 'architects' ? 'Architect' : 'Developer', val: plain, htmlVal: html };
         }
 
+        const firmItems = [];
         const devItem = renderFirmLink(p.developers, 'developers');
-        if (devItem) statItems.push(devItem);
-        else if (p.developer) statItems.push({ label: 'Developer', val: truncateDeveloper(p.developer) });
+        if (devItem) firmItems.push(devItem);
+        else if (p.developer) firmItems.push({ label: 'Developer', val: truncateDeveloper(p.developer) });
 
         const archItem = renderFirmLink(p.architects, 'architects');
-        if (archItem) statItems.push(archItem);
-        else if (p.architect) statItems.push({ label: 'Architect', val: p.architect.split(',')[0].trim() });
-        const deliveryRaw = p.deliveryDate || p.delivery || '';
-        // Formatter handles ISO-like inputs; passes through pretty strings.
-        const deliveryDisplay = (typeof window.formatDeliveryDisplay === 'function')
-          ? window.formatDeliveryDisplay(deliveryRaw)
-          : deliveryRaw;
-        if (deliveryDisplay) statItems.push({ label: 'Delivery', val: deliveryDisplay });
-        if (p.city) statItems.push({ label: 'Market', val: p.city });
-        // Scale stats ‚Äî only render when present. Formatted with thousands separator.
-        const fmtNum = (v) => { const n = parseInt(v, 10); return isNaN(n) ? null : n.toLocaleString(); };
-        const keysVal = fmtNum(p.keys);
-        const unitsVal = fmtNum(p.units);
-        const floorsVal = fmtNum(p.floors);
-        if (keysVal)   statItems.push({ label: 'Keys',   val: keysVal });
-        if (unitsVal)  statItems.push({ label: 'Units',  val: unitsVal });
-        if (floorsVal) statItems.push({ label: 'Floors', val: floorsVal });
+        if (archItem) firmItems.push(archItem);
+        else if (p.architect) firmItems.push({ label: 'Architect', val: p.architect.split(',')[0].trim() });
 
-        stats.innerHTML = statItems.map(s => {
-          // htmlVal renders trusted HTML (used by firm-link items); plain val
-          // gets shown verbatim and is also the tooltip text for both paths.
-          const display = (s.htmlVal !== undefined) ? s.htmlVal : s.val;
-          const title = (s.val || '').toString().replace(/"/g, '&quot;');
-          return `<div class="pm-stat">
-            <div class="pm-stat-label">${s.label}</div>
-            <div class="pm-stat-val" title="${title}">${display}</div>
-          </div>`;
-        }).join('');
-
-        // Adjust stats grid ‚Äî 1 col if only 1-2 items, 2 col otherwise
-        stats.style.gridTemplateColumns = statItems.length <= 2 ? '1fr' : '1fr 1fr';
+        const firmsEl = document.getElementById('pmFirms');
+        const firmsSection = document.getElementById('pmFirmsSection');
+        if (firmsEl && firmsSection) {
+          if (firmItems.length) {
+            renderStatCards(firmsEl, firmItems);
+            firmsEl.style.gridTemplateColumns = firmItems.length <= 1 ? '1fr' : '1fr 1fr';
+            firmsSection.hidden = false;
+          } else {
+            firmsEl.innerHTML = '';
+            firmsSection.hidden = true;
+          }
+        }
 
         // Learn More button
         // Sanitize the website value: strip whitespace + zero-width/invisible chars
