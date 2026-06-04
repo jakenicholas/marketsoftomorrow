@@ -12761,6 +12761,11 @@
         filtered = window.filterByFavoritesIfActive(filtered);
       }
 
+      // Advanced "Add filter" panel (sliders + multi-select chips + firm search).
+      if (typeof window.advMatches === 'function') {
+        filtered = filtered.filter(window.advMatches);
+      }
+
       const toGeo = (f) => {
         const slug = (window.projectSlugify && f.properties && f.properties.title)
           ? window.projectSlugify(f.properties.title) : '';
@@ -12790,6 +12795,7 @@
       if (typeFilter !== 'all') filteredFeatures = filteredFeatures.filter(f => f._projectTypes?.includes(typeFilter.toLowerCase()));
       if (statusFilter !== 'all') filteredFeatures = filteredFeatures.filter(f => f.properties.delivery === statusFilter);
       if (window.filterByFavoritesIfActive) filteredFeatures = window.filterByFavoritesIfActive(filteredFeatures);
+      if (typeof window.advMatches === 'function') filteredFeatures = filteredFeatures.filter(window.advMatches);
 
       const inFrame = mapBounds ? filteredFeatures.filter(f =>
         mapBounds.contains([f.geometry.coordinates[0], f.geometry.coordinates[1]])
@@ -15131,6 +15137,8 @@
       if (projectTypeFilter !== 'all') features = features.filter(f => f.properties.projectTypes?.includes(projectTypeFilter.toLowerCase()));
       if (statusFilter !== 'all') features = features.filter(f => f.properties.delivery === statusFilter);
       if (window.filterByFavoritesIfActive) features = window.filterByFavoritesIfActive(features);
+      // Advanced "Add filter" panel.
+      if (typeof window.advMatches === 'function') features = features.filter(window.advMatches);
 
       // Always compute inBounds so section headers work regardless of sort mode
       const mapBounds = getVisibleBounds();
@@ -22208,6 +22216,192 @@
         }
       `;
       (document.body || document.documentElement).appendChild(s);
+    })();
+
+    // ‚îÄ‚îÄ Supercharged "Add filter" panel ‚Äî sliders + multi-select chips + firm
+    // search. window.advMatches() is consulted by updateMapPinFilters(),
+    // renderGrid() and updateResultCount(), so applying re-filters map + drawer.
+    (function buildAdvFilterSystem() {
+      if (document.getElementById('advFilterPanel')) return;
+      const YMIN = 2024, YMAX = 2036, UMAX = 4000, FMAX = 131;
+      const AF = window.advFilters = { yMin:YMIN, yMax:YMAX, uMin:0, uMax:UMAX, flMin:1, flMax:FMAX, status:new Set(), types:new Set(), market:'', developer:'', architect:'' };
+      const STATUS = [['Now Open','#1FDF67'],['Opening Soon','#1FDF67'],['Under Construction','#FF9500'],['Breaking Ground','#FFD300'],['Announced','#9aa39c']];
+      const PRESETS = [
+        ['Opening within 12 months', () => { AF.status = new Set(['Opening Soon','Under Construction']); AF.yMin = YMIN; AF.yMax = 2026; }],
+        ['Supertall (50+ floors)', () => { AF.flMin = 50; }],
+        ['Mega (500+ units)', () => { AF.uMin = 500; }],
+        ['Just announced', () => { AF.status = new Set(['Announced']); }],
+        ['Hotels', () => { AF.types = new Set(['Hotel']); }],
+      ];
+      const typeOf = (p) => (((p.preferredType || '') || (p.projectType || '').split(',')[0]) || '').trim();
+
+      window.advMatches = function (f) {
+        const p = (f && f.properties) || {};
+        const ym = (p.deliveryDate || '').match(/^(\d{4})/); const y = ym ? +ym[1] : null;
+        if (y != null) { if (y < AF.yMin || (AF.yMax < YMAX && y > AF.yMax)) return false; }
+        const u = parseInt(p.units, 10); if (!isNaN(u)) { if (u < AF.uMin || (AF.uMax < UMAX && u > AF.uMax)) return false; } else if (AF.uMin > 0) return false;
+        const fl = parseInt(p.floors, 10); if (!isNaN(fl)) { if (fl < AF.flMin || (AF.flMax < FMAX && fl > AF.flMax)) return false; } else if (AF.flMin > 1) return false;
+        if (AF.status.size && !AF.status.has((p.delivery || '').trim())) return false;
+        if (AF.types.size && !AF.types.has(typeOf(p))) return false;
+        if (AF.market && !((p.city || '').toLowerCase().includes(AF.market.toLowerCase()))) return false;
+        if (AF.developer && !((p.developer || '').toLowerCase().includes(AF.developer.toLowerCase()))) return false;
+        if (AF.architect && !((p.architect || '').toLowerCase().includes(AF.architect.toLowerCase()))) return false;
+        return true;
+      };
+      function activeCount() {
+        let c = 0;
+        if (AF.yMin > YMIN || AF.yMax < YMAX) c++;
+        if (AF.uMin > 0 || AF.uMax < UMAX) c++;
+        if (AF.flMin > 1 || AF.flMax < FMAX) c++;
+        if (AF.status.size) c++; if (AF.types.size) c++;
+        if (AF.market) c++; if (AF.developer) c++; if (AF.architect) c++;
+        return c;
+      }
+      function matchCount() { return (window.allProjectFeatures || []).filter(window.advMatches).length; }
+      function reRender() {
+        try { if (window.updateMapPinFilters) window.updateMapPinFilters(); } catch (e) {}
+        try { if (window.renderGrid) { window.renderGrid('gridDesktop'); window.renderGrid('gridMobile'); } } catch (e) {}
+        try { if (window.updateResultCount) { window.updateResultCount('gridDesktop'); window.updateResultCount('gridMobile'); } } catch (e) {}
+        document.querySelectorAll('.adv-add-btn').forEach(updateBtn);
+      }
+      function updateBtn(btn) { if (!btn) return; const c = activeCount(); const b = btn.querySelector('.adv-add-n'); if (c) { btn.classList.add('on'); if (b) b.textContent = c; } else { btn.classList.remove('on'); if (b) b.textContent = ''; } }
+
+      const st = document.createElement('style');
+      st.textContent = `
+        .adv-add-host{display:flex;padding:2px 16px 6px}
+        .adv-add-btn{display:inline-flex;align-items:center;gap:7px;flex:0 0 auto;height:34px;padding:0 14px;border-radius:999px;border:1px solid rgba(31,223,103,.4);background:rgba(31,223,103,.10);color:#1FDF67;font-family:'Inter',sans-serif;font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap}
+        .adv-add-btn svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round}
+        .adv-add-btn .adv-add-n{min-width:16px;height:16px;padding:0 4px;border-radius:999px;background:#1FDF67;color:#06210f;font-size:10px;font-weight:800;display:inline-flex;align-items:center;justify-content:center}
+        .adv-add-btn .adv-add-n:empty{display:none}
+        #advFilterOverlay{position:fixed;inset:0;z-index:99990;background:rgba(0,0,0,.55);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);opacity:0;visibility:hidden;transition:opacity .25s}
+        #advFilterOverlay.open{opacity:1;visibility:visible}
+        #advFilterPanel{position:fixed;left:50%;bottom:0;transform:translate(-50%,100%);width:min(560px,100%);max-height:90vh;z-index:99991;display:flex;flex-direction:column;
+          background:radial-gradient(120% 40% at 50% 0%,rgba(31,223,103,.05),transparent 60%),linear-gradient(180deg,#11140f,#0c0d0c);
+          border:1px solid rgba(255,255,255,.1);border-radius:22px 22px 0 0;box-shadow:0 -20px 60px rgba(0,0,0,.6);transition:transform .3s cubic-bezier(.22,1,.36,1);font-family:'Inter',sans-serif;color:#fff}
+        @media(min-width:861px){#advFilterPanel{bottom:auto;top:50%;transform:translate(-50%,-46%) scale(.97);border-radius:22px;max-height:86vh;opacity:0;transition:transform .28s,opacity .2s}}
+        #advFilterPanel.open{transform:translate(-50%,0)}
+        @media(min-width:861px){#advFilterPanel.open{transform:translate(-50%,-50%) scale(1);opacity:1}}
+        #advFilterPanel .afp-top{display:flex;align-items:center;justify-content:space-between;padding:18px 20px 14px;border-bottom:1px solid rgba(255,255,255,.08);flex:0 0 auto}
+        #advFilterPanel .afp-top h2{font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:21px}
+        #advFilterPanel .afp-x{background:none;border:none;color:rgba(255,255,255,.5);font-size:26px;cursor:pointer;line-height:1}
+        #advFilterPanel .afp-body{overflow-y:auto;flex:1 1 auto}
+        #advFilterPanel .afp-sec{padding:16px 20px;border-bottom:1px solid rgba(255,255,255,.07)}
+        #advFilterPanel .afp-h{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.6);font-weight:700;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
+        #advFilterPanel .afp-h .v{color:#1FDF67;font-weight:700;font-size:12px;text-transform:none;letter-spacing:0}
+        #advFilterPanel .afp-chips{display:flex;flex-wrap:wrap;gap:8px}
+        #advFilterPanel .afp-chip{font-size:12px;font-weight:600;padding:8px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.03);color:rgba(255,255,255,.6);cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+        #advFilterPanel .afp-chip .dot{width:7px;height:7px;border-radius:50%;background:var(--c,#888)}
+        #advFilterPanel .afp-chip.on{background:rgba(31,223,103,.14);border-color:rgba(31,223,103,.5);color:#1FDF67}
+        #advFilterPanel .afp-chip .n{font-size:10px;opacity:.55;font-weight:700}
+        #advFilterPanel .afp-presets{display:flex;flex-wrap:wrap;gap:8px}
+        #advFilterPanel .afp-preset{font-size:11.5px;font-weight:600;padding:7px 12px;border-radius:10px;border:1px dashed rgba(255,255,255,.18);background:none;color:rgba(255,255,255,.6);cursor:pointer;font-family:inherit}
+        #advFilterPanel .afp-preset:hover{border-color:#1FDF67;color:#1FDF67;border-style:solid}
+        #advFilterPanel .afp-rng{position:relative;height:34px}
+        #advFilterPanel .afp-rng .tk{position:absolute;top:50%;left:8px;right:8px;height:4px;transform:translateY(-50%);background:rgba(255,255,255,.12);border-radius:999px}
+        #advFilterPanel .afp-rng .fl{position:absolute;top:50%;height:4px;transform:translateY(-50%);background:linear-gradient(90deg,#7C5CE0,#1FDF67);border-radius:999px}
+        #advFilterPanel .afp-rng input{position:absolute;top:0;left:0;width:100%;height:34px;margin:0;background:none;pointer-events:none;-webkit-appearance:none;appearance:none}
+        #advFilterPanel .afp-rng input::-webkit-slider-thumb{-webkit-appearance:none;pointer-events:auto;width:18px;height:18px;border-radius:50%;background:#fff;border:2px solid #1FDF67;box-shadow:0 2px 8px rgba(0,0,0,.5);cursor:grab}
+        #advFilterPanel .afp-rng input::-moz-range-thumb{pointer-events:auto;width:18px;height:18px;border-radius:50%;background:#fff;border:2px solid #1FDF67;box-shadow:0 2px 8px rgba(0,0,0,.5);cursor:grab}
+        #advFilterPanel .afp-lbl{display:flex;justify-content:space-between;font-size:11px;color:rgba(255,255,255,.4);margin-top:2px}
+        #advFilterPanel .afp-in{width:100%;height:40px;padding:0 14px;border-radius:11px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.14);color:#fff;font-family:inherit;font-size:13px}
+        #advFilterPanel .afp-in::placeholder{color:rgba(255,255,255,.4)} #advFilterPanel .afp-in:focus{outline:none;border-color:rgba(31,223,103,.5)}
+        #advFilterPanel .afp-in+.afp-in{margin-top:8px}
+        #advFilterPanel .afp-foot{background:rgba(12,13,12,.96);border-top:1px solid rgba(255,255,255,.08);padding:14px 20px;display:flex;gap:10px;flex:0 0 auto}
+        #advFilterPanel .afp-reset{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);color:#fff;border-radius:12px;padding:14px 16px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit}
+        #advFilterPanel .afp-cta{flex:1;background:#1FDF67;color:#062b13;border:none;border-radius:12px;padding:14px;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit}
+      `;
+      document.head.appendChild(st);
+
+      const overlay = document.createElement('div'); overlay.id = 'advFilterOverlay';
+      const panel = document.createElement('div'); panel.id = 'advFilterPanel';
+      panel.innerHTML =
+        '<div class="afp-top"><h2>Build your filter</h2><button class="afp-x" aria-label="Close">&times;</button></div>' +
+        '<div class="afp-body">' +
+          '<div class="afp-sec"><div class="afp-h">Quick presets</div><div class="afp-presets" id="afpPresets"></div></div>' +
+          '<div class="afp-sec"><div class="afp-h"><span>Delivering between</span><span class="v" id="afpYV"></span></div><div class="afp-rng" id="afpYR"></div><div class="afp-lbl"><span>Now</span><span>2035+</span></div></div>' +
+          '<div class="afp-sec"><div class="afp-h"><span>Units / Residences</span><span class="v" id="afpUV"></span></div><div class="afp-rng" id="afpUR"></div><div class="afp-lbl"><span>0</span><span>4,000+</span></div></div>' +
+          '<div class="afp-sec"><div class="afp-h"><span>Floors / Height</span><span class="v" id="afpFV"></span></div><div class="afp-rng" id="afpFR"></div><div class="afp-lbl"><span>1</span><span>131+</span></div></div>' +
+          '<div class="afp-sec"><div class="afp-h">Stage</div><div class="afp-chips" id="afpStatus"></div></div>' +
+          '<div class="afp-sec"><div class="afp-h">Asset type</div><div class="afp-chips" id="afpTypes"></div></div>' +
+          '<div class="afp-sec"><div class="afp-h">Market &middot; Developer &middot; Architect</div>' +
+            '<input class="afp-in" id="afpMarket" placeholder="City or region…">' +
+            '<input class="afp-in" id="afpDev" placeholder="Developer…">' +
+            '<input class="afp-in" id="afpArch" placeholder="Architect…"></div>' +
+        '</div>' +
+        '<div class="afp-foot"><button class="afp-reset" id="afpReset">Reset</button><button class="afp-cta" id="afpCta">Show all</button></div>';
+      document.body.appendChild(overlay); document.body.appendChild(panel);
+
+      function dualRange(host, min, max, getLo, getHi, setLo, setHi) {
+        host.innerHTML = '<div class="tk"></div><div class="fl"></div><input type="range" class="lo"><input type="range" class="hi">';
+        const lo = host.querySelector('.lo'), hi = host.querySelector('.hi'), fl = host.querySelector('.fl');
+        [lo, hi].forEach(i => { i.min = min; i.max = max; });
+        function paint() { const a = +lo.value, b = +hi.value, pa = (a - min) / (max - min) * 100, pb = (b - min) / (max - min) * 100; fl.style.left = pa + '%'; fl.style.width = (pb - pa) + '%'; }
+        function sync() { lo.value = getLo(); hi.value = getHi(); paint(); }
+        lo.oninput = () => { let a = Math.min(+lo.value, +hi.value - 1); setLo(a); lo.value = a; paint(); liveCount(); };
+        hi.oninput = () => { let b = Math.max(+hi.value, +lo.value + 1); setHi(b); hi.value = b; paint(); liveCount(); };
+        sync(); return sync;
+      }
+      const yV = panel.querySelector('#afpYV'), uV = panel.querySelector('#afpUV'), fV = panel.querySelector('#afpFV'), cta = panel.querySelector('#afpCta');
+      function liveCount() {
+        yV.textContent = (AF.yMin <= YMIN ? 'Now' : AF.yMin) + ' – ' + (AF.yMax >= YMAX ? '2035+' : AF.yMax);
+        uV.textContent = (AF.uMin || 0) + ' – ' + (AF.uMax >= UMAX ? '4,000+' : AF.uMax.toLocaleString());
+        fV.textContent = (AF.flMin || 1) + ' – ' + (AF.flMax >= FMAX ? '131+' : AF.flMax);
+        const n = matchCount(); cta.textContent = 'Show ' + n.toLocaleString() + ' project' + (n === 1 ? '' : 's');
+      }
+      const syncY = dualRange(panel.querySelector('#afpYR'), YMIN, YMAX, () => AF.yMin, () => AF.yMax, v => AF.yMin = v, v => AF.yMax = v);
+      const syncU = dualRange(panel.querySelector('#afpUR'), 0, UMAX, () => AF.uMin, () => AF.uMax, v => AF.uMin = v, v => AF.uMax = v);
+      const syncF = dualRange(panel.querySelector('#afpFR'), 1, FMAX, () => AF.flMin, () => AF.flMax, v => AF.flMin = v, v => AF.flMax = v);
+      const mkt = panel.querySelector('#afpMarket'), dev = panel.querySelector('#afpDev'), arch = panel.querySelector('#afpArch');
+
+      function buildChips() {
+        const data = window.allProjectFeatures || [];
+        const cnt = (pred) => data.filter(pred).length;
+        panel.querySelector('#afpStatus').innerHTML = STATUS.map(([s, c]) => `<button class="afp-chip" data-v="${s}" style="--c:${c}"><span class="dot"></span>${s}<span class="n">${cnt(f => (f.properties.delivery || '').trim() === s)}</span></button>`).join('');
+        const tc = {}; data.forEach(f => { const t = typeOf(f.properties); if (t) tc[t] = (tc[t] || 0) + 1; });
+        const types = Object.keys(tc).sort((a, b) => tc[b] - tc[a]).slice(0, 12);
+        panel.querySelector('#afpTypes').innerHTML = types.map(t => `<button class="afp-chip" data-v="${t}">${t}<span class="n">${tc[t]}</span></button>`).join('');
+        repaintChips();
+      }
+      function repaintChips() {
+        panel.querySelectorAll('#afpStatus .afp-chip').forEach(c => c.classList.toggle('on', AF.status.has(c.dataset.v)));
+        panel.querySelectorAll('#afpTypes .afp-chip').forEach(c => c.classList.toggle('on', AF.types.has(c.dataset.v)));
+      }
+      function syncInputs() { mkt.value = AF.market; dev.value = AF.developer; arch.value = AF.architect; }
+      panel.querySelector('#afpStatus').onclick = (e) => { const c = e.target.closest('.afp-chip'); if (!c) return; AF.status.has(c.dataset.v) ? AF.status.delete(c.dataset.v) : AF.status.add(c.dataset.v); repaintChips(); liveCount(); };
+      panel.querySelector('#afpTypes').onclick = (e) => { const c = e.target.closest('.afp-chip'); if (!c) return; AF.types.has(c.dataset.v) ? AF.types.delete(c.dataset.v) : AF.types.add(c.dataset.v); repaintChips(); liveCount(); };
+      mkt.oninput = () => { AF.market = mkt.value.trim(); liveCount(); };
+      dev.oninput = () => { AF.developer = dev.value.trim(); liveCount(); };
+      arch.oninput = () => { AF.architect = arch.value.trim(); liveCount(); };
+      panel.querySelector('#afpPresets').innerHTML = PRESETS.map((p, i) => `<button class="afp-preset" data-i="${i}">${p[0]}</button>`).join('');
+      panel.querySelector('#afpPresets').onclick = (e) => { const b = e.target.closest('.afp-preset'); if (!b) return; doReset(true); PRESETS[+b.dataset.i][1](); syncY(); syncU(); syncF(); repaintChips(); syncInputs(); liveCount(); };
+      function doReset(skip) {
+        AF.yMin = YMIN; AF.yMax = YMAX; AF.uMin = 0; AF.uMax = UMAX; AF.flMin = 1; AF.flMax = FMAX; AF.status = new Set(); AF.types = new Set(); AF.market = ''; AF.developer = ''; AF.architect = '';
+        syncY(); syncU(); syncF(); repaintChips(); syncInputs();
+        if (!skip) liveCount();
+      }
+      panel.querySelector('#afpReset').onclick = () => doReset();
+      function close() { reRender(); overlay.classList.remove('open'); panel.classList.remove('open'); }
+      function open() { buildChips(); syncInputs(); liveCount(); overlay.classList.add('open'); panel.classList.add('open'); }
+      window.openAdvFilters = open;
+      overlay.onclick = close;
+      panel.querySelector('.afp-x').onclick = close;
+      cta.onclick = close;
+
+      function placeBtn() {
+        const pills = document.getElementById('v2FilterPills');
+        if (!pills) return;
+        const prev = pills.previousElementSibling;
+        if (prev && prev.classList.contains('adv-add-host')) { updateBtn(prev.querySelector('.adv-add-btn')); return; }
+        document.querySelectorAll('.adv-add-host').forEach(h => h.remove());
+        const host = document.createElement('div'); host.className = 'adv-add-host';
+        const btn = document.createElement('button'); btn.className = 'adv-add-btn';
+        btn.innerHTML = '<svg viewBox="0 0 24 24"><line x1="4" y1="6" x2="20" y2="6"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="10" y1="18" x2="14" y2="18"/></svg>Add filter<span class="adv-add-n"></span>';
+        btn.onclick = open; host.appendChild(btn);
+        pills.parentNode.insertBefore(host, pills);
+        updateBtn(btn);
+      }
+      placeBtn();
+      new MutationObserver(() => placeBtn()).observe(document.body, { childList: true, subtree: true });
     })();
 
     // ‚îÄ‚îÄ Desktop v2: brute-force 1-column tile layout via inline styles.
