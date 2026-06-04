@@ -13363,7 +13363,14 @@
           ? window.computeProgress(deliveryDate || '', delivery || '', startDate || '')
           : null);
         const segments = (cp && cp.segments) ? cp.segments : buildFallbackSegments(stages.indexOf(si));
-        const pct = Math.max(0, Math.min(100, Math.round(cp ? cp.pct : si.pct)));
+        // Knob sits within the ACTIVE stage's even zone (20% each) so it aligns
+        // with the highlighted stage. Announced = 5%; never below 5%.
+        let ai = -1;
+        for (let _i = 0; _i < segments.length; _i++) { if (segments[_i].state === 'active') { ai = _i; break; } }
+        let pctRaw = ai < 0 ? (segments.every(s => s.state === 'done') ? 100 : 5)
+                   : ai === 0 ? 5
+                   : (ai + (segments[ai].fillPct || 0) / 100) * 20;
+        const pct = Math.max(5, Math.min(100, Math.round(pctRaw)));
         const subtitle = cp ? cp.subtitle : '';
         const complete = pct >= 100 || /now open|complete|delivered/i.test(delivery || '');
         const glow = complete ? '31,223,103' : '167,139,250';

@@ -383,8 +383,17 @@ def progress_bar_html(delivery, delivery_date='', start_date=''):
     """Render the Gradient Meter timeline (purple→green, with an overlay so green
     only shows at completion). Shared verbatim with tmw-project-intel.js
     renderTimeline (search/articles) and the map modal's buildProgress()."""
-    pct, _, _, subtitle, segments = compute_progress(delivery_date, delivery, start_date)
-    pct = max(0, min(100, round(pct)))
+    _pct, _, _, subtitle, segments = compute_progress(delivery_date, delivery, start_date)
+    # Knob sits within the ACTIVE stage's even zone (20% each) so it aligns with
+    # the highlighted stage. Announced = 5%; never below 5%.
+    ai = next((i for i, s in enumerate(segments) if s['state'] == 'active'), -1)
+    if ai < 0:
+        pct = 100 if all(s['state'] == 'done' for s in segments) else 5
+    elif ai == 0:
+        pct = 5
+    else:
+        pct = (ai + (segments[ai].get('fill_pct', 0) or 0) / 100) * 20
+    pct = max(5, min(100, round(pct)))
     d = (delivery or '').lower()
     complete = pct >= 100 or 'now open' in d or 'complete' in d or 'delivered' in d
     glow = '31,223,103' if complete else '167,139,250'   # green when done, purple in progress
@@ -1488,9 +1497,12 @@ def build_page(row, articles=None):
       </div>
       <div class="watching-card-body" id="watchingCardBody"></div>
     </div>
-    {progress_bar_html(delivery, delivery_date, start_date)}
-    <div class="divider"></div>
+    <!-- Bio FIRST in the DOM so search engines build the result snippet from the
+         project description, not the timeline's stage labels (which used to leak
+         into Google's auto-generated description). -->
     <p class="description">{description}</p>
+    <div class="divider"></div>
+    {progress_bar_html(delivery, delivery_date, start_date)}
     <div class="divider"></div>
     {stats_section}
     <div class="cta-row">

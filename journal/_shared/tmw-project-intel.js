@@ -177,7 +177,16 @@
     var status = project.Delivery || '';
     var cp = computeProgress(project.DeliveryDate || '', status, project.StartDate || '');
     if (!cp) return '';
-    var pct = Math.max(0, Math.min(100, Math.round(cp.pct)));
+    // Place the knob within the ACTIVE stage's zone (5 evenly-spaced stages =
+    // 20% each) so it sits under the highlighted stage rather than where raw
+    // elapsed time lands. Announced reads as a minimal 5%; never below 5% so the
+    // knob stays visible even at the very start.
+    var segs = cp.segments, ai = -1;
+    for (var _i = 0; _i < segs.length; _i++) { if (segs[_i].state === 'active') { ai = _i; break; } }
+    var pct = ai < 0 ? (segs.every(function (s) { return s.state === 'done'; }) ? 100 : 5)
+            : ai === 0 ? 5
+            : (ai + (segs[ai].fillPct || 0) / 100) * 20;
+    pct = Math.max(5, Math.min(100, Math.round(pct)));
     var complete = pct >= 100 || /now open|complete|delivered/i.test(status);
     var glow = complete ? '31,223,103' : '167,139,250';          // green when done, purple in progress
     var accent = complete ? '#1FDF67' : '#B9A6FF';

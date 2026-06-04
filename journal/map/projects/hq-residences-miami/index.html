@@ -844,6 +844,11 @@
       </div>
       <div class="watching-card-body" id="watchingCardBody"></div>
     </div>
+    <!-- Bio FIRST in the DOM so search engines build the result snippet from the
+         project description, not the timeline's stage labels (which used to leak
+         into Google's auto-generated description). -->
+    <p class="description">HQ Hotels & Residences introduces its first residential tower, 229 one- to three-bedroom residences.</p>
+    <div class="divider"></div>
     
     <div class="pm-tl">
       <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
@@ -852,8 +857,6 @@
       </div>
       <div class="pm-tl-stages"><span class="pm-tl-stage on" style="color:#B9A6FF;font-weight:800;text-shadow:0 0 12px rgba(167,139,250,.5)">Announced</span><span class="pm-tl-stage ">Breaking Ground</span><span class="pm-tl-stage ">Construction</span><span class="pm-tl-stage ">Opening Soon</span><span class="pm-tl-stage ">Now Open</span></div>
     </div>
-    <div class="divider"></div>
-    <p class="description">HQ Hotels & Residences introduces its first residential tower, 229 one- to three-bedroom residences.</p>
     <div class="divider"></div>
     <div class="stats-grid"><div class="stat-card">
       <div class="stat-label">Developer</div>
