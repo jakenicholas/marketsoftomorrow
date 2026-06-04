@@ -53,7 +53,11 @@
   .gm-stages{display:flex;gap:2px;margin-top:8px}
   .gm-stages span{flex:1;font-size:6.5px;letter-spacing:.03em;text-transform:uppercase;color:rgba(255,255,255,.22);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .gm-stages span:first-child{text-align:left}.gm-stages span:last-child{text-align:right}
-  .gm-stages span.on{color:var(--green);font-weight:800}.gm-stages span.done{color:rgba(255,255,255,.45)}
+  .gm-stages span.done{color:rgba(255,255,255,.45)}
+  /* active stage label: purple (matches the meter) until it reaches Opening Soon / Now Open → green */
+  .gm-stages span.on{font-weight:800}
+  .gm-stages span.on.purple{color:#B9A6FF;text-shadow:0 0 10px rgba(167,139,250,.45)}
+  .gm-stages span.on.green{color:var(--green);text-shadow:0 0 10px rgba(31,223,103,.45)}
 
   /* stats (bold n + label) */
   .stats{display:flex;gap:20px;margin-top:13px}
@@ -144,7 +148,8 @@ const P=[
 
 function meter(p,withDate){
   const ai=aiFor(p.status),pct=pctFor(ai);
-  const stages=STAGES.map((n,i)=>`<span class="${i<ai?'done':(i===ai?'on':'')}">${n}</span>`).join('');
+  const activeCls = 'on ' + (ai>=3 ? 'green' : 'purple');   // green only at Opening Soon / Now Open
+  const stages=STAGES.map((n,i)=>`<span class="${i<ai?'done':(i===ai?activeCls:'')}">${n}</span>`).join('');
   const knobL=pct>=97?'calc(100% - 14px)':pct+'%';
   const date=withDate?`<div class="gm-date">${ai>=4?'Delivered '+fmtD(p.delivery):'Est. '+fmtD(p.delivery)}</div>`:'';
   return `<div class="gm">${date}<div class="gm-track"><div class="gm-grad"></div><div class="gm-empty" style="left:${pct}%"></div><div class="gm-knob" style="left:${knobL}">${pct}%</div></div><div class="gm-stages">${stages}</div></div>`;
@@ -157,7 +162,7 @@ const EYE='<span class="eye"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11
 
 document.getElementById('listA').innerHTML=P.map(p=>`
  <a class="ca">
-   <div class="media" style="background-image:url('${p.img}')">${TRK}${EYE}</div>
+   <div class="media" style="background-image:url('${p.img}')">${EYE}</div>
    <div class="body"><div class="title">${p.title}</div><div class="loc">${p.city} · ${p.type}</div>${meter(p,true)}${stats(p)}</div>
  </a>`).join('');
 
