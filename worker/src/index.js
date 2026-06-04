@@ -554,6 +554,8 @@ async function fetchStripeIncome(env) {
   // transaction to read the processing fee Stripe took on each charge.
   const yearStart = Math.floor(Date.UTC(new Date().getUTCFullYear(), 0, 1) / 1000);
   let allTime = 0, allFee = 0, yearInc = 0, yearFee = 0, after2 = null, cg = 0, truncated = false;
+  const purchases = [];                 // most-recent succeeded charges (who + when)
+  const PURCHASES_MAX = 25;
   do {
     const page = await stripeGet(env, '/charges?limit=100&expand[]=data.balance_transaction' + (after2 ? '&starting_after=' + after2 : ''));
     for (const c of (page.data || [])) {
@@ -562,6 +564,21 @@ async function fetchStripeIncome(env) {
       const fee = ((c.balance_transaction && c.balance_transaction.fee) || 0) / 100;
       allTime += gross; allFee += fee;
       if (c.created >= yearStart) { yearInc += gross; yearFee += fee; }
+      // Activity feed: capture who paid + when, newest first (charges list is
+      // already date-desc). Name/email come from billing_details + receipt_email,
+      // which are default charge fields — no `expand` needed, so this adds no
+      // latency to the existing charge pull.
+      if (purchases.length < PURCHASES_MAX) {
+        const bd = c.billing_details || {};
+        purchases.push({
+          name: (bd.name || '').trim(),
+          email: (bd.email || c.receipt_email || '').trim(),
+          amount: Math.round((c.amount || 0) / 100 * 100) / 100,
+          refunded: !!c.refunded || (c.amount_refunded || 0) > 0,
+          currency: (c.currency || 'usd').toLowerCase(),
+          created: c.created,
+        });
+      }
     }
     after2 = page.has_more ? page.data[page.data.length - 1].id : null;
     if (++cg >= 30) { truncated = !!after2; break; }
@@ -584,6 +601,7 @@ async function fetchStripeIncome(env) {
     other_subscriptions: other,
     currency: currencies.size === 1 ? [...currencies][0] : (currencies.size ? 'mixed' : 'usd'),
     income_truncated: truncated,
+    recent_purchases: purchases,
   };
 }
 
@@ -680,6 +698,7 @@ async function handleSubscriptions(env, origin, url) {
       resp.currency = s.currency;
       resp.income_source = 'stripe';
       resp.income_truncated = s.income_truncated;
+      resp.recent_purchases = s.recent_purchases;
     } catch (e) {
       resp.stripe_error = String(e.message || e);   // keep Memberstack estimates as fallback
     }
