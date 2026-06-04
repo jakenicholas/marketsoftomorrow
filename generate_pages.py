@@ -352,6 +352,40 @@ def compute_progress(delivery_date_str, status, start_date_str=''):
 _MONTH_NAMES = ['January','February','March','April','May','June',
                 'July','August','September','October','November','December']
 
+def format_fact_date(raw):
+    """Compact date format for the Start / Completion fact tiles:
+      'YYYY-MM-DD' -> 'MM.DD.YY'   e.g. '2024-02-15' -> '02.15.24'
+      'YYYY-MM'    -> 'MM.YY'      e.g. '2024-02'    -> '02.24'
+      'Month YYYY' -> 'MM.YY'      e.g. 'February 2024' -> '02.24'
+      'YYYY'       -> 'YYYY'       (unchanged)
+    Anything else: extract a 4-digit year if present, else pass through.
+    Keep in sync with fmtFactDate() in index.html (map modal)."""
+    if not raw:
+        return ''
+    import re as _re
+    s = str(raw).strip()
+    m = _re.match(r'^(\d{4})-(\d{2})-(\d{2})$', s)
+    if m:
+        return f'{m.group(2)}.{m.group(3)}.{m.group(1)[2:]}'
+    m = _re.match(r'^(\d{4})-(\d{2})$', s)
+    if m:
+        return f'{m.group(2)}.{m.group(1)[2:]}'
+    _MON = {'january':'01','jan':'01','february':'02','feb':'02','march':'03','mar':'03',
+            'april':'04','apr':'04','may':'05','june':'06','jun':'06','july':'07','jul':'07',
+            'august':'08','aug':'08','september':'09','sep':'09','sept':'09','october':'10','oct':'10',
+            'november':'11','nov':'11','december':'12','dec':'12'}
+    m = _re.match(r'^([A-Za-z]+)\.?\s+(\d{4})$', s)
+    if m and _MON.get(m.group(1).lower()):
+        return f'{_MON[m.group(1).lower()]}.{m.group(2)[2:]}'
+    m = _re.match(r'^(\d{4})$', s)
+    if m:
+        return m.group(1)
+    m = _re.search(r'(\d{4})', s)
+    if m:
+        return m.group(1)
+    return s
+
+
 def format_delivery_display(raw):
     """Display-formatter for delivery values shown on static project pages.
     Server-side mirror of window.formatDeliveryDisplay in index.html.
@@ -394,6 +428,9 @@ def progress_bar_html(delivery, delivery_date='', start_date=''):
     else:
         pct = (ai + (segments[ai].get('fill_pct', 0) or 0) / 100) * 20
     pct = max(5, min(100, round(pct)))
+    # "Opening Soon" means imminent — always read near-complete (>=78%).
+    if ai == 3:
+        pct = max(pct, 78)
     d = (delivery or '').lower()
     complete = pct >= 100 or 'now open' in d or 'complete' in d or 'delivered' in d
     glow = '31,223,103' if complete else '167,139,250'   # green when done, purple in progress
@@ -742,15 +779,16 @@ def build_page(row, articles=None, nearby=None):
         _v = (_v or '').strip()
         if _v:
             mini_items.append((_v, _l))
-    _add_mini(row.get('Units', ''), 'Units')
-    _add_mini(row.get('Floors', ''), 'Floors')
-    _add_mini(row.get('Keys', ''), 'Keys')
+    # Order: Start · Completion · Keys · Units · Floors (Market removed; dates
+    # in compact MM.DD.YY / MM.YY / YYYY form). Start only when non-speculative.
     _start_raw = (row.get('StartDate', '') or '').strip()
     _start_spec = (row.get('StartSpeculative', '') or '').strip() in ('1', 'true', 'True')
     if _start_raw and not _start_spec:
-        _add_mini(format_delivery_display(_start_raw), 'Start')
-    _add_mini(format_delivery_display(delivery_date or delivery), 'Delivery')
-    _add_mini(city, 'Market')
+        _add_mini(format_fact_date(_start_raw), 'Start')
+    _add_mini(format_fact_date(delivery_date), 'Completion')
+    _add_mini(row.get('Keys', ''), 'Keys')
+    _add_mini(row.get('Units', ''), 'Units')
+    _add_mini(row.get('Floors', ''), 'Floors')
     minis_html = ''
     if mini_items:
         minis_html = '<div class="pp-minis">' + ''.join(

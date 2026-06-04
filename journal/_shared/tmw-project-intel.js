@@ -187,6 +187,8 @@
             : ai === 0 ? 5
             : (ai + (segs[ai].fillPct || 0) / 100) * 20;
     pct = Math.max(5, Math.min(100, Math.round(pct)));
+    // "Opening Soon" means imminent — always read near-complete (>=78%).
+    if (ai === 3) pct = Math.max(pct, 78);
     var complete = pct >= 100 || /now open|complete|delivered/i.test(status);
     var glow = complete ? '31,223,103' : '167,139,250';          // green when done, purple in progress
     var accent = complete ? '#1FDF67' : '#B9A6FF';

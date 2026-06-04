@@ -13586,7 +13586,10 @@
         let pctRaw = ai < 0 ? (segments.every(s => s.state === 'done') ? 100 : 5)
                    : ai === 0 ? 5
                    : (ai + (segments[ai].fillPct || 0) / 100) * 20;
-        const pct = Math.max(5, Math.min(100, Math.round(pctRaw)));
+        let pct = Math.max(5, Math.min(100, Math.round(pctRaw)));
+        // "Opening Soon" means imminent — always read near-complete (>=78%),
+        // never stuck mid-bar just because the date math lags the status.
+        if (ai === 3) pct = Math.max(pct, 78);
         const subtitle = cp ? cp.subtitle : '';
         const complete = pct >= 100 || /now open|complete|delivered/i.test(delivery || '');
         const glow = complete ? '31,223,103' : '167,139,250';
@@ -14233,30 +14236,36 @@
         // ── FACTS (shown WITH the timeline, as big-value minis like the project
         //    page panel): units / floors / delivery / market (+keys for hotels).
         //    Always the same set when available, so it reads consistently. ────
-        const deliveryRaw = p.deliveryDate || p.delivery || '';
-        // Formatter handles ISO-like inputs; passes through pretty strings.
-        const deliveryDisplay = (typeof window.formatDeliveryDisplay === 'function')
-          ? window.formatDeliveryDisplay(deliveryRaw)
-          : deliveryRaw;
+        // Compact date format: MM.DD.YY (full date) · MM.YY (month+year) · YYYY (year).
+        const fmtFactDate = (raw) => {
+          if (!raw) return '';
+          const s = String(raw).trim();
+          let m;
+          if ((m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/))) return `${m[2]}.${m[3]}.${m[1].slice(2)}`;
+          if ((m = s.match(/^(\d{4})-(\d{2})$/)))          return `${m[2]}.${m[1].slice(2)}`;
+          const MON = {january:'01',jan:'01',february:'02',feb:'02',march:'03',mar:'03',april:'04',apr:'04',may:'05',june:'06',jun:'06',july:'07',jul:'07',august:'08',aug:'08',september:'09',sep:'09',sept:'09',october:'10',oct:'10',november:'11',nov:'11',december:'12',dec:'12'};
+          if ((m = s.match(/^([A-Za-z]+)\.?\s+(\d{4})$/)) && MON[m[1].toLowerCase()]) return `${MON[m[1].toLowerCase()]}.${m[2].slice(2)}`;
+          if ((m = s.match(/^(\d{4})$/)))                  return m[1];
+          if ((m = s.match(/(\d{4})/)))                    return m[1];
+          return s;
+        };
         const fmtNum = (v) => { const n = parseInt(v, 10); return isNaN(n) ? null : n.toLocaleString(); };
         const keysVal = fmtNum(p.keys);
         const unitsVal = fmtNum(p.units);
         const floorsVal = fmtNum(p.floors);
         const escTxt = (s) => (s || '').toString().replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-        // Start date — only when a real (non-speculative) start date exists; sits
-        // just before Delivery (the two timeline bookends).
+        // Start date — only when a real (non-speculative) start date exists.
         const startRaw = (p.startDate || '').trim();
-        const startDisplay = (startRaw && !p.startSpeculative)
-          ? ((typeof window.formatDeliveryDisplay === 'function') ? window.formatDeliveryDisplay(startRaw) : startRaw)
-          : '';
+        const startFmt = (startRaw && !p.startSpeculative) ? fmtFactDate(startRaw) : '';
+        const completionFmt = fmtFactDate((p.deliveryDate || '').trim());
 
+        // Order: Start · Completion · Keys · Units · Floors (Market removed).
         const factItems = [];
-        if (unitsVal)        factItems.push({ label: 'Units',    val: unitsVal });
-        if (floorsVal)       factItems.push({ label: 'Floors',   val: floorsVal });
-        if (keysVal)         factItems.push({ label: 'Keys',     val: keysVal });
-        if (startDisplay)    factItems.push({ label: 'Start',    val: startDisplay });
-        if (deliveryDisplay) factItems.push({ label: 'Delivery', val: deliveryDisplay });
-        if (p.city)          factItems.push({ label: 'Market',   val: p.city });
+        if (startFmt)      factItems.push({ label: 'Start',      val: startFmt });
+        if (completionFmt) factItems.push({ label: 'Completion', val: completionFmt });
+        if (keysVal)       factItems.push({ label: 'Keys',       val: keysVal });
+        if (unitsVal)      factItems.push({ label: 'Units',      val: unitsVal });
+        if (floorsVal)     factItems.push({ label: 'Floors',     val: floorsVal });
 
         const factsEl = document.getElementById('pmFacts');
         if (factsEl) {
