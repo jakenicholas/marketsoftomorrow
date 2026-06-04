@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Project Page — Design Concepts</title>
+<style>
+  :root{
+    --bg:#070807; --surface:#121413; --surface-2:#181b19; --line:rgba(255,255,255,.08);
+    --line-2:rgba(255,255,255,.14); --white:#fff; --mute:rgba(255,255,255,.62); --faint:rgba(255,255,255,.4);
+    --green:#1FDF67; --gold:#e6c574; --gold-soft:#f0d68a;
+    --mono:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    --serif:'Fraunces',Georgia,serif;
+    --img:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/ec8073af2305-Nauka14_no-tracks_DJI_20251106185407_0405-.jpeg');
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-font-smoothing:antialiased}
+  body{background:var(--bg);color:var(--white);font-family:var(--mono);line-height:1.5}
+  .intro{max-width:900px;margin:0 auto;padding:48px 24px 8px}
+  .intro h1{font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:var(--green);font-weight:700}
+  .intro p{color:var(--mute);font-size:14px;margin-top:8px}
+  .lbl{max-width:1240px;margin:54px auto 0;padding:0 24px;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+  .lbl .n{font-size:11px;font-weight:800;letter-spacing:.1em;color:#0a0a0a;background:var(--green);border-radius:6px;padding:3px 8px}
+  .lbl .t{font-family:var(--serif);font-size:24px;font-weight:600}
+  .lbl .d{color:var(--faint);font-size:13px;width:100%;max-width:70ch;margin-top:2px}
+
+  /* ── shared bits ── */
+  .topbar{height:58px;display:flex;align-items:center;justify-content:space-between;padding:0 26px;border-bottom:1px solid var(--line);background:rgba(7,8,7,.7);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--mute)}
+  .topbar .logo{font-weight:800;color:#fff;letter-spacing:.02em}
+  .topbar .right{display:flex;gap:18px;align-items:center}
+  .arrow{position:absolute;top:50%;transform:translateY(-50%);width:54px;height:54px;border-radius:50%;
+    background:rgba(18,20,19,.8);border:1px solid var(--line-2);color:#fff;display:flex;align-items:center;justify-content:center;
+    cursor:pointer;backdrop-filter:blur(12px);transition:transform .18s,background .18s,border-color .18s;z-index:20}
+  .arrow:hover{background:var(--green);color:#000;border-color:var(--green);transform:translateY(-50%) scale(1.08)}
+  .arrow svg{width:24px;height:24px}
+  .arrow .hint{position:absolute;top:calc(100% + 8px);left:50%;transform:translateX(-50%);font-size:8.5px;letter-spacing:.12em;
+    text-transform:uppercase;color:var(--faint);white-space:nowrap;opacity:0;transition:opacity .2s}
+  .arrow:hover .hint{opacity:1;color:var(--green)}
+  .arrow.l{left:22px}.arrow.r{right:22px}
+
+  /* timeline (gradient meter) */
+  .tl-date{text-align:right;font-size:9px;letter-spacing:.05em;text-transform:uppercase;color:var(--mute);margin-bottom:8px}
+  .tl-meter{position:relative;height:11px;border-radius:999px;overflow:hidden;box-shadow:inset 0 1px 2px rgba(0,0,0,.55)}
+  .tl-grad{position:absolute;inset:0;background:linear-gradient(90deg,#3a2f6b,#7C5CE0 38%,#A78BFA 64%,var(--green))}
+  .tl-empty{position:absolute;top:0;bottom:0;right:0;background:#0d0f0e;box-shadow:inset 2px 0 3px rgba(0,0,0,.6)}
+  .tl-knob{position:absolute;top:50%;transform:translate(-50%,-50%);background:#fff;color:#0a0a0a;font-size:9.5px;font-weight:800;padding:2px 8px;border-radius:999px;z-index:2;box-shadow:0 2px 8px rgba(0,0,0,.5),0 0 0 2px rgba(31,223,103,.4),0 0 12px rgba(31,223,103,.55)}
+  .tl-stages{display:flex;gap:3px;margin-top:12px}
+  .tl-stages span{flex:1;font-size:7.5px;letter-spacing:.02em;text-transform:uppercase;color:rgba(255,255,255,.2);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .tl-stages span:first-child{text-align:left}.tl-stages span:last-child{text-align:right}
+  .tl-stages span.done{color:rgba(255,255,255,.5)}
+  .tl-stages span.on{color:var(--green);font-weight:800;text-shadow:0 0 12px rgba(31,223,103,.5)}
+
+  /* CTA buttons */
+  .ctas{display:flex;gap:10px;margin-top:20px}
+  .btn{padding:12px 22px;border-radius:11px;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;border:1px solid var(--line-2);background:transparent;color:#fff;display:inline-flex;align-items:center;gap:8px}
+  .btn.gold{background:var(--gold-soft);color:#0a0a0a;border-color:var(--gold-soft)}
+  .eyebrow{display:inline-flex;align-items:center;gap:7px;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold-soft);border:1px solid rgba(230,197,116,.3);border-radius:999px;padding:5px 11px}
+
+  /* ================= CONCEPT A — SPOTLIGHT CARD ================= */
+  .stageA{position:relative;background:radial-gradient(ellipse at top,#0e1a14,#050505 60%);padding:40px 90px;min-height:88vh;display:flex;align-items:center;justify-content:center}
+  .cardA{display:grid;grid-template-columns:1.05fr 1fr;max-width:1040px;width:100%;background:var(--surface);border:1px solid var(--line);border-radius:22px;overflow:hidden;box-shadow:0 40px 100px -30px rgba(0,0,0,.8)}
+  .cardA .media{position:relative;background:var(--img) center/cover;min-height:560px}
+  .cardA .media .badge{position:absolute;top:16px;left:16px;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;background:rgba(0,0,0,.55);border:1px solid var(--line-2);padding:5px 11px;border-radius:999px;color:#fff;backdrop-filter:blur(6px)}
+  .cardA .media .dots{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);display:flex;gap:6px}
+  .cardA .media .dots i{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.4)}
+  .cardA .media .dots i.on{background:#fff;width:18px;border-radius:3px}
+  .cardA .body{padding:34px 36px;display:flex;flex-direction:column}
+  .cardA h2{font-family:var(--serif);font-size:40px;font-weight:600;letter-spacing:-.02em;line-height:1.02;margin:14px 0 4px}
+  .cardA .loc{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--mute)}
+  .cardA .desc{font-size:14px;color:var(--mute);line-height:1.65;margin:18px 0 22px}
+  .cardA .firms{font-size:12px;color:var(--faint);margin-top:18px}.cardA .firms b{color:#fff;font-weight:600}
+
+  /* ================= CONCEPT B — CINEMATIC ================= */
+  .stageB{position:relative;min-height:88vh;background:var(--img) center/cover;display:flex;align-items:flex-end;padding:0}
+  .stageB::before{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(7,8,7,.2) 0%,rgba(7,8,7,.55) 45%,rgba(7,8,7,.96) 100%)}
+  .cardB{position:relative;z-index:2;max-width:1240px;margin:0 auto;width:100%;padding:0 70px 56px;display:grid;grid-template-columns:1.4fr 1fr;gap:40px;align-items:end}
+  .cardB h2{font-family:var(--serif);font-size:64px;font-weight:600;letter-spacing:-.025em;line-height:.98}
+  .cardB .loc{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--mute);margin-top:10px}
+  .cardB .desc{font-size:14.5px;color:rgba(255,255,255,.78);line-height:1.6;margin-top:16px;max-width:60ch}
+  .cardB .panel{background:rgba(18,20,19,.66);backdrop-filter:blur(20px);border:1px solid var(--line-2);border-radius:18px;padding:22px 24px}
+
+  /* ================= CONCEPT C — EDITORIAL SPLIT ================= */
+  .stageC{position:relative;min-height:88vh;display:grid;grid-template-columns:1fr 1fr}
+  .stageC .imgcol{background:var(--img) center/cover;position:relative}
+  .stageC .imgcol .eb{position:absolute;top:22px;left:22px}
+  .stageC .txtcol{padding:60px 70px;display:flex;flex-direction:column;justify-content:center;background:var(--surface)}
+  .stageC h2{font-family:var(--serif);font-size:52px;font-weight:600;letter-spacing:-.02em;line-height:1;margin:12px 0 6px}
+  .stageC .loc{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--mute)}
+  .stageC .desc{font-size:14.5px;color:var(--mute);line-height:1.65;margin:20px 0 26px;max-width:54ch}
+
+  .stats{display:flex;gap:26px;margin-top:22px}
+  .stat .v{font-size:24px;font-weight:800;letter-spacing:-.01em}
+  .stat .k{font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);margin-top:2px}
+
+  @media(max-width:820px){
+    .cardA{grid-template-columns:1fr}.cardA .media{min-height:280px}
+    .cardB{grid-template-columns:1fr;padding:0 20px 40px}.cardB h2{font-size:40px}
+    .stageC{grid-template-columns:1fr}.stageC .imgcol{min-height:280px}.stageC .txtcol{padding:34px 22px}
+    .stageA{padding:24px 64px}.arrow{width:44px;height:44px}.arrow.l{left:10px}.arrow.r{right:10px}
+  }
+</style>
+</head>
+<body>
+  <div class="intro">
+    <h1>Project Page · Design Concepts</h1>
+    <p>Three takes on rebuilding the individual project page as <b style="color:#fff">one big project card</b> — like the cards in articles &amp; search — under the global header, with <b style="color:#fff">‹ ›</b> arrows on each edge that jump to a random project. All shown with real Nauka data. Hover an arrow to see the "random project" hint.</p>
+  </div>
+
+  <!-- ============ CONCEPT A ============ -->
+  <div class="lbl"><span class="n">01</span><span class="t">Spotlight Card</span><span class="d">The project page IS the card — image left, details right — floating centred over a dark stage. Closest to the article/search card. Side arrows shuffle to a random project.</span></div>
+  <div class="topbar"><span class="logo">MARKETS OF TMW</span><span class="right"><span>Global</span><span>Focus Markets</span><span style="color:var(--gold-soft)">Database</span><span>The Lists</span></span></div>
+  <div class="stageA">
+    <button class="arrow l" title="Random project"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg><span class="hint">Random ↺</span></button>
+    <div class="cardA">
+      <div class="media"><span class="badge">● Now Open</span><div class="dots"><i class="on"></i><i></i><i></i><i></i><i></i></div></div>
+      <div class="body">
+        <span class="eyebrow" style="align-self:flex-start">★ Featured</span>
+        <h2>Nauka</h2>
+        <div class="loc">Riviera Nayarit · Residences</div>
+        <p class="desc">A private 920-acre community on Mexico's Pacific coast built around a Tom Fazio championship golf course with three oceanfront holes you can swim mid-round, anchored by a Ritz-Carlton Reserve and limited to just 395 residences.</p>
+        <div class="tl-date">Delivered May '26</div>
+        <div class="tl-meter"><div class="tl-grad"></div><div class="tl-empty" style="left:100%"></div><div class="tl-knob" style="left:calc(100% - 20px)">100%</div></div>
+        <div class="tl-stages"><span class="done">Announced</span><span class="done">Breaking Ground</span><span class="done">Construction</span><span class="done">Opening Soon</span><span class="on">Now Open</span></div>
+        <div class="firms">Developed by <b>LIFE Properties International</b> · Architecture by <b>Olson Kundig</b></div>
+        <div class="ctas"><button class="btn gold">Visit site ↗</button><button class="btn">View on map</button></div>
+      </div>
+    </div>
+    <button class="arrow r" title="Random project"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg><span class="hint">Random ↻</span></button>
+  </div>
+
+  <!-- ============ CONCEPT B ============ -->
+  <div class="lbl"><span class="n">02</span><span class="t">Cinematic</span><span class="d">Full-bleed hero with the project title huge over the image; details sit in a glass panel bottom-right. Dramatic and immersive. Arrows float over the image edges.</span></div>
+  <div class="topbar"><span class="logo">MARKETS OF TMW</span><span class="right"><span>Global</span><span>Focus Markets</span><span style="color:var(--gold-soft)">Database</span><span>The Lists</span></span></div>
+  <div class="stageB">
+    <button class="arrow l" title="Random project"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg><span class="hint">Random ↺</span></button>
+    <div class="cardB">
+      <div>
+        <span class="eyebrow">● Now Open · Riviera Nayarit</span>
+        <h2>Nauka</h2>
+        <p class="desc">A private 920-acre community on Mexico's Pacific coast built around a Tom Fazio championship golf course with three oceanfront holes you can swim mid-round, anchored by a Ritz-Carlton Reserve.</p>
+        <div class="ctas"><button class="btn gold">Visit site ↗</button><button class="btn">View on map</button></div>
+      </div>
+      <div class="panel">
+        <div class="tl-date">Delivered May '26</div>
+        <div class="tl-meter"><div class="tl-grad"></div><div class="tl-empty" style="left:100%"></div><div class="tl-knob" style="left:calc(100% - 20px)">100%</div></div>
+        <div class="tl-stages"><span class="done">Announced</span><span class="done">Breaking Ground</span><span class="done">Construction</span><span class="done">Opening Soon</span><span class="on">Now Open</span></div>
+        <div class="stats"><div class="stat"><div class="v">395</div><div class="k">Units</div></div><div class="stat"><div class="v">91</div><div class="k">Keys</div></div></div>
+      </div>
+    </div>
+    <button class="arrow r" title="Random project"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg><span class="hint">Random ↻</span></button>
+  </div>
+
+  <!-- ============ CONCEPT C ============ -->
+  <div class="lbl"><span class="n">03</span><span class="t">Editorial Split</span><span class="d">A clean 50/50 — image one side, content the other, full height. Magazine-like and very readable. Arrows live over the image / at the outer edges.</span></div>
+  <div class="topbar"><span class="logo">MARKETS OF TMW</span><span class="right"><span>Global</span><span>Focus Markets</span><span style="color:var(--gold-soft)">Database</span><span>The Lists</span></span></div>
+  <div class="stageC">
+    <button class="arrow l" title="Random project"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg><span class="hint">Random ↺</span></button>
+    <div class="imgcol"><span class="eb eyebrow">● Now Open</span></div>
+    <div class="txtcol">
+      <div class="loc">Riviera Nayarit · Residences</div>
+      <h2>Nauka</h2>
+      <p class="desc">A private 920-acre community on Mexico's Pacific coast built around a Tom Fazio championship golf course with three oceanfront holes you can swim mid-round, anchored by a Ritz-Carlton Reserve and limited to just 395 residences.</p>
+      <div class="tl-date">Delivered May '26</div>
+      <div class="tl-meter"><div class="tl-grad"></div><div class="tl-empty" style="left:100%"></div><div class="tl-knob" style="left:calc(100% - 20px)">100%</div></div>
+      <div class="tl-stages"><span class="done">Announced</span><span class="done">Breaking Ground</span><span class="done">Construction</span><span class="done">Opening Soon</span><span class="on">Now Open</span></div>
+      <div class="stats"><div class="stat"><div class="v">395</div><div class="k">Units</div></div><div class="stat"><div class="v">91</div><div class="k">Keys</div></div><div class="stat"><div class="v">Olson Kundig</div><div class="k">Architect</div></div></div>
+      <div class="ctas"><button class="btn gold">Visit site ↗</button><button class="btn">View on map</button></div>
+    </div>
+    <button class="arrow r" title="Random project"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg><span class="hint">Random ↻</span></button>
+  </div>
+
+  <div class="intro" style="padding-top:54px"><p style="color:var(--mute);font-size:13px"><b style="color:#fff">On the arrows:</b> they'd pick a random project (optionally same-market or same-status) and slide it in — a fun way to browse the pipeline. We can make it a smooth horizontal slide, keyboard ← →, and swipe on mobile. Tell me which concept and I'll build it for real into the project-page template (it'll also keep the SEO-baked content for crawlers).</p></div>
+</body>
+</html>
