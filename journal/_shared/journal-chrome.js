@@ -141,8 +141,13 @@
     '.tmw-chrome-head .nav-burger{display:flex}',
     '.tmw-chrome-head .nav-links{position:absolute; top:100%; left:0; right:0; display:none; flex-direction:column; gap:0; align-items:stretch; background:rgba(7,8,7,.97); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); border-bottom:1px solid var(--hair); padding:6px 28px 16px}',
     '.tmw-chrome-head .nav-links.open{display:flex}',
-    '.tmw-chrome-head .nav-links a{padding:13px 0; border-bottom:1px solid var(--hair); font-size:12px}',
-    '.tmw-chrome-head .nav-links a.active::after{display:none}',
+    // DIRECT children only (the flat region/section links). The rich dropdown
+    // cards (.tmw-oc / .tmw-mm-item / .tmw-mm-cta) are also <a>s nested deeper in
+    // .nav-links — a descendant `a` selector here gave them 13px top padding +
+    // a border, which showed as a blank strip above every Focus Markets image
+    // and crowded the Go-Pro pill. Scope to `> a` so only the flat links match.
+    '.tmw-chrome-head .nav-links > a{padding:13px 0; border-bottom:1px solid var(--hair); font-size:12px}',
+    '.tmw-chrome-head .nav-links > a.active::after{display:none}',
     '}',
     '.tmw-chrome-foot{background:var(--ink-2); color:var(--mute-2); padding:60px 0 30px; border-top:1px solid var(--hair); margin-top:40px}',
     '.tmw-chrome-foot .wrap{max-width:1240px; margin:0 auto; padding:0 28px}',
