@@ -475,10 +475,20 @@
     // Load on any post page (so the coverage auto-link can run) or when a post
     // already has a manual project embed / legacy map iframe.
     if (!document.querySelector('.article-body-content, .tmw-project-card[data-project], iframe.tmw-map-embed')) return;
+    // Load the shared timeline/intelligence engine FIRST so project-card.js can
+    // render the IDENTICAL construction timeline the map uses (same segment
+    // widths, per-stage colours, %, and "Delivered" subtitle) — single source of
+    // truth, no per-page drift. It self-injects its CSS and exposes window.TMWIntel.
+    if (!document.querySelector('script[src*="tmw-project-intel.js"]')) {
+      var pi = document.createElement('script');
+      pi.src = '/_shared/tmw-project-intel.js';
+      pi.async = false;  // run before project-card.js (insertion order)
+      document.head.appendChild(pi);
+    }
     if (document.querySelector('script[src*="project-card.js"]')) return;
     var s = document.createElement('script');
     s.src = '/_shared/project-card.js';
-    s.defer = true;
+    s.async = false;  // wait for tmw-project-intel.js so window.TMWIntel is ready
     document.head.appendChild(s);
   }
 

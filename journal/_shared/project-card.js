@@ -213,12 +213,19 @@
       '<h3 class="pc-name">' + esc(rec.Title) + '</h3>' +
       '<div class="pc-loc">' + subline.join(' · ') + '</div>' +
       (rec.Description ? '<p class="pc-desc">' + esc(rec.Description) + '</p>' : '') +
-      '<div class="pc-status">' +
-        '<div class="pc-status-top"><span class="pc-phase">' + esc(rec.Delivery || PHASES[ph]) + '</span>' + (pct != null ? '<span class="pc-pct">' + pct + '%</span>' : '') + '</div>' +
-        '<div class="pc-track">' + segs + '</div>' +
-        '<div class="pc-phases">' + phaseLabels + '</div>' +
-        (delivLine ? '<div class="pc-delivery">' + delivLine + '</div>' : '') +
-      '</div>' +
+      // Construction timeline — render the SHARED engine (window.TMWIntel) so it
+      // is byte-identical to the map modal: same weighted segments, per-stage
+      // colours, %, and the "Delivered <mon> '<yy>" subtitle for completed
+      // projects. journal-dock.js loads tmw-project-intel.js ahead of this card.
+      // Fall back to the card's own bar only if the engine somehow isn't present.
+      (window.TMWIntel && typeof window.TMWIntel.renderTimeline === 'function'
+        ? window.TMWIntel.renderTimeline(rec)
+        : '<div class="pc-status">' +
+            '<div class="pc-status-top"><span class="pc-phase">' + esc(rec.Delivery || PHASES[ph]) + '</span>' + (pct != null ? '<span class="pc-pct">' + pct + '%</span>' : '') + '</div>' +
+            '<div class="pc-track">' + segs + '</div>' +
+            '<div class="pc-phases">' + phaseLabels + '</div>' +
+            (delivLine ? '<div class="pc-delivery">' + delivLine + '</div>' : '') +
+          '</div>') +
       (stats.length ? '<div class="pc-stats">' + stats.join('') + '</div>' : '') +
       (firms.length ? '<div class="pc-firms">' + firms.join(' · ') + '</div>' : '') +
       renderIntel(entry) +
@@ -264,6 +271,8 @@
       // inside .pc-body, so it inherits the giant first letter. Reset it.
       '.tmw-pcard .pc-desc::first-letter{font-size:inherit !important; float:none !important; font-family:inherit !important; font-weight:inherit !important; padding:0 !important; line-height:inherit !important; color:inherit !important}',
       '.tmw-pcard .pc-status{margin-top:22px}',
+      // Shared timeline (window.TMWIntel) sits where .pc-status used to.
+      '.tmw-pcard .tmw-pm{margin-top:22px}',
       '.tmw-pcard .pc-status-top{display:flex; align-items:center; justify-content:space-between; margin-bottom:9px}',
       '.tmw-pcard .pc-phase{font-family:"Inter",-apple-system,BlinkMacSystemFont,sans-serif; font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; font-weight:700; color:var(--or)}',
       '.tmw-pcard .pc-pct{font-family:"Inter",-apple-system,BlinkMacSystemFont,sans-serif; font-size:10.5px; color:var(--mute2)}',
