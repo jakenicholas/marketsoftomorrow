@@ -10641,6 +10641,61 @@
     body.ui-v2 :is(#gridMobile, #desktopSidebar) .grid-item .v2-tstat .l {
       font-family: 'Inter', sans-serif; font-size: 8px; letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,0.4); margin-top: 3px; display: block;
     }
+
+    /* ── #gridMobile re-declaration ──────────────────────────────────────
+       The :is(#gridMobile,#desktopSidebar) rules above lose the cascade to the
+       legacy per-grid #gridMobile tile rules on mobile, so re-declare the same
+       Option-A styling with an explicit #gridMobile id selector (proper id
+       specificity + later in source + !important) so it wins on phones. */
+    body.ui-v2 #gridMobile .grid-item .grid-item-content { padding: 14px 16px 2px !important; }
+    body.ui-v2 #gridMobile .grid-item .grid-item-content h3 {
+      font-family: 'Fraunces', Georgia, serif !important; font-weight: 600 !important;
+      font-size: 22px !important; letter-spacing: -0.02em !important; line-height: 1.04 !important;
+      color: #fff !important; white-space: normal !important;
+    }
+    body.ui-v2 #gridMobile .grid-item .grid-item-content p.city,
+    body.ui-v2 #gridMobile .grid-item .grid-item-content .city {
+      font-family: 'Inter', -apple-system, sans-serif !important; font-size: 10px !important;
+      letter-spacing: 0.12em !important; text-transform: uppercase !important;
+      color: rgba(255,255,255,0.6) !important; margin: 7px 0 0 !important; padding: 0 !important;
+    }
+    body.ui-v2 #gridMobile .grid-item .v2-status-pill,
+    body.ui-v2 #gridMobile .grid-item .delivery-bar { display: none !important; }
+    body.ui-v2 #gridMobile .grid-item .v2-tile-meter { padding: 13px 16px 16px !important; border-top: none !important; margin: 0 !important; }
+    body.ui-v2 #gridMobile .grid-item .tmw-tile-pm { margin: 0 !important; }
+    body.ui-v2 #gridMobile .grid-item .tmw-tile-pm .pm-tl-date {
+      text-align: right !important; font-family: 'Inter', sans-serif !important; font-size: 8.5px !important;
+      letter-spacing: .05em !important; text-transform: uppercase !important; color: rgba(255,255,255,0.45) !important; margin-bottom: 7px !important;
+    }
+    body.ui-v2 #gridMobile .grid-item .tmw-tile-pm .pm-tl-meter {
+      position: relative !important; height: 8px !important; border-radius: 999px !important; overflow: hidden !important; box-shadow: inset 0 1px 2px rgba(0,0,0,0.5) !important;
+    }
+    body.ui-v2 #gridMobile .grid-item .tmw-tile-pm .pm-tl-grad {
+      position: absolute !important; inset: 0 !important; background: linear-gradient(90deg,#3a2f6b,#7C5CE0 38%,#A78BFA 64%,#1FDF67) !important;
+    }
+    body.ui-v2 #gridMobile .grid-item .tmw-tile-pm .pm-tl-empty {
+      position: absolute !important; top: 0 !important; bottom: 0 !important; right: 0 !important; left: auto !important; background: #0e0f0e !important; width: auto !important;
+    }
+    body.ui-v2 #gridMobile .grid-item .tmw-tile-pm .pm-tl-knob {
+      position: absolute !important; top: 50% !important; transform: translate(-50%,-50%) !important; background: #fff !important; color: #0a0a0a !important;
+      font-family: 'Inter', sans-serif !important; font-size: 8px !important; font-weight: 800 !important; padding: 1px 5px !important; border-radius: 999px !important; white-space: nowrap !important;
+    }
+    body.ui-v2 #gridMobile .grid-item .tmw-tile-pm .pm-tl-stages { display: flex !important; gap: 2px !important; margin-top: 8px !important; }
+    body.ui-v2 #gridMobile .grid-item .tmw-tile-pm .pm-tl-stage {
+      flex: 1 !important; font-family: 'Inter', sans-serif !important; font-size: 6.5px !important; letter-spacing: .03em !important;
+      text-transform: uppercase !important; color: rgba(255,255,255,0.22) !important; text-align: center !important; white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important;
+    }
+    body.ui-v2 #gridMobile .grid-item .tmw-tile-pm .pm-tl-stage:first-child { text-align: left !important; }
+    body.ui-v2 #gridMobile .grid-item .tmw-tile-pm .pm-tl-stage:last-child { text-align: right !important; }
+    body.ui-v2 #gridMobile .grid-item .tmw-tile-pm .pm-tl-stage.done { color: rgba(255,255,255,0.45) !important; }
+    body.ui-v2 #gridMobile .grid-item .v2-tile-stats { display: flex !important; gap: 20px !important; margin-top: 13px !important; }
+    body.ui-v2 #gridMobile .grid-item .v2-tstat .n {
+      font-family: 'Fraunces', Georgia, serif !important; font-size: 20px !important; font-weight: 600 !important; letter-spacing: -.01em !important; line-height: 1 !important; color: #fff !important; display: block !important;
+    }
+    body.ui-v2 #gridMobile .grid-item .v2-tstat .l {
+      font-family: 'Inter', sans-serif !important; font-size: 8px !important; letter-spacing: .08em !important; text-transform: uppercase !important; color: rgba(255,255,255,0.4) !important; margin-top: 3px !important; display: block !important;
+    }
+
     /* Re-jig the tile so the body content can host both grid-item-content
        (name + city + divider) and the appended v2-tile-info below it. */
     body.ui-v2 #desktopSidebar .grid-item .image-wrapper {
@@ -22082,6 +22137,65 @@
         }
       `;
       (document.body || document.documentElement).appendChild(style);
+    })();
+
+    // ‚îÄ‚îÄ Option A drawer tiles ‚Äî inject at END of body (last in the cascade,
+    // like the nuclear grid CSS) so it beats the legacy per-grid tile rules on
+    // BOTH grids. The static in-<head> rules lose to a late high-specificity
+    // override on #gridMobile; this guarantees the linked-card look on phones.
+    (function injectOptionATileCss() {
+      if (document.getElementById('v2OptionATileCss')) return;
+      const G = 'html body.ui-v2 #gridMobile .grid-item', D = 'html body.ui-v2 #desktopSidebar .grid-item';
+      const s = document.createElement('style');
+      s.id = 'v2OptionATileCss';
+      s.textContent = `
+        ${G} .grid-item-content, ${D} .grid-item-content { padding:14px 16px 2px !important; }
+        ${G} .grid-item-content h3, ${D} .grid-item-content h3 {
+          font-family:'Fraunces',Georgia,serif !important; font-weight:600 !important; font-size:22px !important;
+          letter-spacing:-.02em !important; line-height:1.04 !important; color:#fff !important; white-space:normal !important;
+        }
+        ${D} .grid-item-content h3 { font-size:20px !important; }
+        ${G} .grid-item-content p.city, ${G} .grid-item-content .city, ${D} .grid-item-content p.city, ${D} .grid-item-content .city {
+          font-family:'Inter',-apple-system,sans-serif !important; font-size:10px !important; letter-spacing:.12em !important;
+          text-transform:uppercase !important; color:rgba(255,255,255,.6) !important; margin:7px 0 0 !important; padding:0 !important;
+        }
+        ${G} .v2-status-pill, ${G} .delivery-bar, ${D} .v2-status-pill, ${D} .delivery-bar { display:none !important; }
+        ${G} .v2-tile-meter, ${D} .v2-tile-meter { padding:13px 16px 16px !important; border-top:none !important; margin:0 !important; }
+        ${G} .tmw-tile-pm, ${D} .tmw-tile-pm { margin:0 !important; }
+        ${G} .tmw-tile-pm .pm-tl-date, ${D} .tmw-tile-pm .pm-tl-date {
+          text-align:right !important; font-family:'Inter',sans-serif !important; font-size:8.5px !important;
+          letter-spacing:.05em !important; text-transform:uppercase !important; color:rgba(255,255,255,.45) !important; margin-bottom:7px !important;
+        }
+        ${G} .tmw-tile-pm .pm-tl-meter, ${D} .tmw-tile-pm .pm-tl-meter {
+          position:relative !important; height:8px !important; border-radius:999px !important; overflow:hidden !important; box-shadow:inset 0 1px 2px rgba(0,0,0,.5) !important;
+        }
+        ${G} .tmw-tile-pm .pm-tl-grad, ${D} .tmw-tile-pm .pm-tl-grad {
+          position:absolute !important; inset:0 !important; background:linear-gradient(90deg,#3a2f6b,#7C5CE0 38%,#A78BFA 64%,#1FDF67) !important;
+        }
+        ${G} .tmw-tile-pm .pm-tl-empty, ${D} .tmw-tile-pm .pm-tl-empty {
+          position:absolute !important; top:0 !important; bottom:0 !important; right:0 !important; left:auto !important; width:auto !important; background:#0e0f0e !important;
+        }
+        ${G} .tmw-tile-pm .pm-tl-knob, ${D} .tmw-tile-pm .pm-tl-knob {
+          position:absolute !important; top:50% !important; transform:translate(-50%,-50%) !important; background:#fff !important; color:#0a0a0a !important;
+          font-family:'Inter',sans-serif !important; font-size:8px !important; font-weight:800 !important; padding:1px 5px !important; border-radius:999px !important; white-space:nowrap !important;
+        }
+        ${G} .tmw-tile-pm .pm-tl-stages, ${D} .tmw-tile-pm .pm-tl-stages { display:flex !important; gap:2px !important; margin-top:8px !important; }
+        ${G} .tmw-tile-pm .pm-tl-stage, ${D} .tmw-tile-pm .pm-tl-stage {
+          flex:1 !important; font-family:'Inter',sans-serif !important; font-size:6.5px !important; letter-spacing:.03em !important;
+          text-transform:uppercase !important; color:rgba(255,255,255,.22) !important; text-align:center !important; white-space:nowrap !important; overflow:hidden !important; text-overflow:ellipsis !important;
+        }
+        ${G} .tmw-tile-pm .pm-tl-stage:first-child, ${D} .tmw-tile-pm .pm-tl-stage:first-child { text-align:left !important; }
+        ${G} .tmw-tile-pm .pm-tl-stage:last-child, ${D} .tmw-tile-pm .pm-tl-stage:last-child { text-align:right !important; }
+        ${G} .tmw-tile-pm .pm-tl-stage.done, ${D} .tmw-tile-pm .pm-tl-stage.done { color:rgba(255,255,255,.45) !important; }
+        ${G} .v2-tile-stats, ${D} .v2-tile-stats { display:flex !important; gap:20px !important; margin-top:13px !important; }
+        ${G} .v2-tstat .n, ${D} .v2-tstat .n {
+          font-family:'Fraunces',Georgia,serif !important; font-size:20px !important; font-weight:600 !important; letter-spacing:-.01em !important; line-height:1 !important; color:#fff !important; display:block !important;
+        }
+        ${G} .v2-tstat .l, ${D} .v2-tstat .l {
+          font-family:'Inter',sans-serif !important; font-size:8px !important; letter-spacing:.08em !important; text-transform:uppercase !important; color:rgba(255,255,255,.4) !important; margin-top:3px !important; display:block !important;
+        }
+      `;
+      (document.body || document.documentElement).appendChild(s);
     })();
 
     // ‚îÄ‚îÄ Desktop v2: brute-force 1-column tile layout via inline styles.
