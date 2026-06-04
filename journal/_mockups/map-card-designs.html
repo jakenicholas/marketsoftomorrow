@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Map Drawer — Card Concepts</title>
+<style>
+  :root{
+    --bg:#070807; --line:rgba(255,255,255,.08); --line-2:rgba(255,255,255,.14);
+    --white:#fff; --mute:rgba(255,255,255,.62); --faint:rgba(255,255,255,.4);
+    --green:#1FDF67; --gold:#e6c574; --purple:#A78BFA;
+    --mono:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-font-smoothing:antialiased}
+  body{background:#0a0a0a;color:var(--white);font-family:var(--mono);line-height:1.5}
+  a{color:inherit;text-decoration:none}
+
+  .intro{max-width:1200px;margin:0 auto;padding:40px 24px 6px}
+  .intro h1{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--green);font-weight:800}
+  .intro p{color:var(--mute);font-size:13.5px;margin-top:8px;max-width:80ch}
+  .intro b{color:#fff}
+
+  .row{max-width:1200px;margin:0 auto;padding:6px 24px;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-top:34px}
+  .row .n{font-size:11px;font-weight:800;letter-spacing:.1em;color:#0a0a0a;background:var(--green);border-radius:6px;padding:3px 8px}
+  .row .t{font-size:19px;font-weight:700}
+  .row .d{color:var(--faint);font-size:12.5px;width:100%;max-width:74ch;margin-top:2px}
+
+  /* ── the drawer shell with the new SUBTLE GRADIENT background ── */
+  .drawer{max-width:430px;margin:14px auto 0;border:1px solid var(--line);border-radius:20px;overflow:hidden;
+    background:
+      radial-gradient(120% 55% at 50% 0%, rgba(31,223,103,.06), rgba(31,223,103,0) 58%),
+      radial-gradient(100% 50% at 50% 100%, rgba(167,139,250,.05), rgba(167,139,250,0) 60%),
+      linear-gradient(180deg,#0e110f 0%,#0a0b0a 50%,#070807 100%);
+    box-shadow:0 30px 80px -30px rgba(0,0,0,.9)}
+  .drawer-top{padding:16px 16px 10px}
+  .drawer-search{display:flex;align-items:center;gap:10px;height:44px;padding:0 16px;border-radius:999px;
+    background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:var(--faint);font-size:13px}
+  .drawer-search svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2}
+  .drawer-count{display:flex;align-items:center;gap:7px;padding:12px 18px 8px;font-size:11px;letter-spacing:.04em;color:var(--mute)}
+  .drawer-count b{color:#fff;font-weight:700}
+  .drawer-count .pulse{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green)}
+  .drawer-list{padding:4px 12px 18px;display:flex;flex-direction:column;gap:10px}
+  .drawer-list.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+  /* status pill */
+  .stp{display:inline-flex;align-items:center;gap:5px;font-size:9px;font-weight:700;letter-spacing:.05em;text-transform:uppercase}
+  .stp .dot{width:6px;height:6px;border-radius:50%;background:var(--c,#999)}
+  .stp{color:var(--c,#999)}
+
+  /* gradient meter (mini) */
+  .gm{margin-top:9px}
+  .gm-track{position:relative;height:7px;border-radius:999px;overflow:hidden}
+  .gm-grad{position:absolute;inset:0;background:linear-gradient(90deg,#3a2f6b,#7C5CE0 38%,#A78BFA 64%,var(--green))}
+  .gm-empty{position:absolute;top:0;bottom:0;right:0;background:#0c0e0d}
+  .gm-knob{position:absolute;top:50%;transform:translate(-50%,-50%);background:#fff;color:#0a0a0a;font-size:8px;font-weight:800;
+    padding:1px 5px;border-radius:999px;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,.5)}
+  .gm-stages{display:flex;gap:2px;margin-top:7px}
+  .gm-stages span{flex:1;font-size:6.5px;letter-spacing:.02em;text-transform:uppercase;color:rgba(255,255,255,.22);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .gm-stages span:first-child{text-align:left}.gm-stages span:last-child{text-align:right}
+  .gm-stages span.on{color:var(--green);font-weight:800}
+  .gm-stages span.done{color:rgba(255,255,255,.45)}
+
+  /* ════ CONCEPT A — COMPACT ROW (image left) ════ */
+  .ca{display:flex;gap:12px;background:rgba(255,255,255,.035);border:1px solid var(--line);border-radius:14px;
+    padding:10px;transition:border-color .15s,transform .15s,background .15s}
+  .ca:hover{border-color:rgba(31,223,103,.35);transform:translateY(-1px);background:rgba(255,255,255,.05)}
+  .ca .img{width:96px;height:96px;flex-shrink:0;border-radius:10px;background-size:cover;background-position:center;background-color:#111;position:relative;overflow:hidden}
+  .ca .body{flex:1;min-width:0;display:flex;flex-direction:column}
+  .ca .title{font-size:15px;font-weight:700;line-height:1.2;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ca .loc{font-size:11px;color:var(--mute);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+  /* ════ CONCEPT B — VERTICAL TILE (image top) ════ */
+  .cb{background:rgba(255,255,255,.035);border:1px solid var(--line);border-radius:14px;overflow:hidden;transition:border-color .15s,transform .15s}
+  .cb:hover{border-color:rgba(31,223,103,.35);transform:translateY(-2px)}
+  .cb .img{position:relative;aspect-ratio:16/11;background-size:cover;background-position:center;background-color:#111}
+  .cb .img .stp{position:absolute;left:9px;bottom:9px;z-index:2;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);padding:4px 8px;border-radius:999px}
+  .cb .img::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,transparent 45%,rgba(7,8,7,.75))}
+  .cb .body{padding:11px 12px 13px}
+  .cb .title{font-size:14px;font-weight:700;line-height:1.22;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+  .cb .loc{font-size:10.5px;color:var(--mute);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+  /* ════ CONCEPT C — CINEMATIC MINI (full-bleed image) ════ */
+  .cc{position:relative;border-radius:16px;overflow:hidden;border:1px solid var(--line);min-height:150px;display:flex;align-items:flex-end;
+    background-size:cover;background-position:center;background-color:#111;transition:transform .15s,border-color .15s}
+  .cc:hover{transform:translateY(-2px);border-color:rgba(31,223,103,.4)}
+  .cc::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(7,8,7,.05) 30%,rgba(7,8,7,.5) 60%,rgba(7,8,7,.95))}
+  .cc .body{position:relative;z-index:2;width:100%;padding:14px 15px}
+  .cc .stp{margin-bottom:7px}
+  .cc .title{font-size:18px;font-weight:800;letter-spacing:-.02em;line-height:1.05;text-shadow:0 2px 14px rgba(0,0,0,.6)}
+  .cc .loc{font-size:11px;color:rgba(255,255,255,.7);margin-top:4px}
+  .cc .gm-stages span{color:rgba(255,255,255,.35)}
+
+  .foot{max-width:1200px;margin:0 auto;padding:40px 24px 70px}
+  .foot p{color:var(--mute);font-size:13px;max-width:78ch}
+</style>
+</head>
+<body>
+  <div class="intro">
+    <h1>Map Drawer · Card Concepts + New Background</h1>
+    <p>Three card directions for the map list drawer, each shown inside a drawer shell with the proposed <b>subtle gradient background</b> (a faint green glow up top → near-black, with a whisper of purple at the base) instead of the flat dark. All use the <b>gradient-meter timeline</b> from the new project pages &amp; linked cards. Real projects, real images.</p>
+  </div>
+
+  <!-- A -->
+  <div class="row"><span class="n">A</span><span class="t">Compact Row</span><span class="d">Image left, details right. Dense and scannable — best for a single-column list. The gradient meter sits compactly under the title.</span></div>
+  <div class="drawer">
+    <div class="drawer-top"><div class="drawer-search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg> Search projects, cities, firms…</div></div>
+    <div class="drawer-count"><span class="pulse"></span><b>312</b>&nbsp;projects in view</div>
+    <div class="drawer-list" id="listA"></div>
+  </div>
+
+  <!-- B -->
+  <div class="row"><span class="n">B</span><span class="t">Vertical Tile</span><span class="d">Image on top with the status pill floating over it, details below. Works as a 2-up grid — more visual, closest to the search tiles.</span></div>
+  <div class="drawer">
+    <div class="drawer-top"><div class="drawer-search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg> Search projects, cities, firms…</div></div>
+    <div class="drawer-count"><span class="pulse"></span><b>312</b>&nbsp;projects in view</div>
+    <div class="drawer-list grid" id="listB"></div>
+  </div>
+
+  <!-- C -->
+  <div class="row"><span class="n">C</span><span class="t">Cinematic Mini</span><span class="d">Full-bleed image with the title &amp; status over the bottom, meter underneath. The most dramatic — matches the cinematic project pages. Single column.</span></div>
+  <div class="drawer">
+    <div class="drawer-top"><div class="drawer-search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg> Search projects, cities, firms…</div></div>
+    <div class="drawer-count"><span class="pulse"></span><b>312</b>&nbsp;projects in view</div>
+    <div class="drawer-list" id="listC"></div>
+  </div>
+
+  <div class="foot"><p><b style="color:#fff">On the background:</b> the gradient is subtle by design so it reads as “premium dark,” not a loud wash — the cards still sit clearly on top. Tell me which card (A / B / C) you like and any background tweak (more/less glow, different tint), and I’ll wire it into the live drawers.</p></div>
+
+<script>
+const STAGES=["Announced","Breaking Ground","Construction","Opening Soon","Now Open"];
+const SC={ "Announced":"#9aa39c","Breaking Ground":"#FFD300","Under Construction":"#FF9500","Construction":"#FF9500","Opening Soon":"#1FDF67","Now Open":"#1FDF67" };
+function aiFor(status){ const s=(status||'').toLowerCase();
+  if(s.includes('now open'))return 4; if(s.includes('opening'))return 3;
+  if(s.includes('construction')||s.includes('topping'))return 2; if(s.includes('breaking'))return 1; return 0; }
+function pctFor(ai){ if(ai>=4)return 100; if(ai<=0)return 5; return Math.round((ai+0.45)*20); }
+function fmtDate(d){ if(!d)return ''; const m=d.match(/^(\d{4})-(\d{2})/); if(m){const M=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];return M[+m[2]-1]+" "+m[1];} return d; }
+
+const P=[
+ {title:"Nauka",city:"Riviera Nayarit",type:"Residences",status:"Now Open",delivery:"2026-05",img:"https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/ec8073af2305-Nauka14_no-tracks_DJI_20251106185407_0405-.jpeg"},
+ {title:"Four Seasons Private Residences Coconut Grove",city:"Miami",type:"Residences",status:"Under Construction",delivery:"2028-11",img:"https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/ce4fee4804e4-2-Four-Seasons-Coconut-Grove-Exterior-crop.jpg"},
+ {title:"Eden Residences",city:"Miami",type:"Residences",status:"Breaking Ground",delivery:"2027-11",img:"https://residencesateden.com/images/EDEN/optimized/north-east-aerial-1440.webp"},
+ {title:"The Ritz-Carlton Residences, Palm Beach Gardens",city:"Palm Beach Gardens",type:"Residences",status:"Opening Soon",delivery:"2026-10",img:"https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_9cfeee3a4f254c028e6c47123d926656~mv2.jpeg"},
+ {title:"346 Madison Avenue",city:"New York",type:"Office",status:"Announced",delivery:"2031",img:"https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/9523d42a9025-260528_4.jpeg"},
+ {title:"Siari, a Ritz-Carlton Reserve",city:"Riviera Nayarit",type:"Hotel",status:"Now Open",delivery:"2025-11",img:"https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_742cc54924654f5b8a235289414205de~mv2.jpeg"},
+];
+
+function meter(p,light){
+  const ai=aiFor(p.status), pct=pctFor(ai);
+  const stages=STAGES.map((n,i)=>`<span class="${i<ai?'done':(i===ai?'on':'')}">${n}</span>`).join('');
+  const knobL=pct>=97?'calc(100% - 14px)':pct+'%';
+  return `<div class="gm"><div class="gm-track"><div class="gm-grad"></div><div class="gm-empty" style="left:${pct}%"></div>
+    <div class="gm-knob" style="left:${knobL}">${pct}%</div></div><div class="gm-stages">${stages}</div></div>`;
+}
+function pill(p){ const c=SC[p.status]||'#999'; return `<span class="stp" style="--c:${c}"><span class="dot"></span>${p.status}</span>`; }
+function loc(p){ return `${p.city} · ${p.type}`; }
+
+document.getElementById('listA').innerHTML = P.map(p=>`
+  <a class="ca">
+    <div class="img" style="background-image:url('${p.img}')"></div>
+    <div class="body">${pill(p)}<div class="title">${p.title}</div><div class="loc">${loc(p)}</div>${meter(p)}</div>
+  </a>`).join('');
+
+document.getElementById('listB').innerHTML = P.map(p=>`
+  <a class="cb">
+    <div class="img" style="background-image:url('${p.img}')">${pill(p)}</div>
+    <div class="body"><div class="title">${p.title}</div><div class="loc">${loc(p)}</div>${meter(p)}</div>
+  </a>`).join('');
+
+document.getElementById('listC').innerHTML = P.map(p=>`
+  <a class="cc" style="background-image:url('${p.img}')">
+    <div class="body">${pill(p)}<div class="title">${p.title}</div><div class="loc">${loc(p)}</div>${meter(p,true)}</div>
+  </a>`).join('');
+</script>
+</body>
+</html>
