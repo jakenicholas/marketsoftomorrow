@@ -3665,9 +3665,9 @@
     .popup-content .delivery-bar.open         .delivery-bar-fill {
       background-color: transparent;
       background-image: linear-gradient(90deg,
-        rgba(255,255,255,0.5) 0%,
-        #FFD300 30%,
-        #FF9500 60%,
+        #3a2f6b 0%,
+        #7C5CE0 38%,
+        #A78BFA 64%,
         #1FDF67 95%);
       background-size: calc(10000% / var(--fill-pct, 60)) 100%;
       background-position: left center;
@@ -3694,6 +3694,9 @@
       letter-spacing: 0.08em;
       margin-bottom: 1px;
     }
+    /* Status label picks up the colourway: purple in-progress, green complete. */
+    .popup-content .delivery-bar:not(.open) .delivery-bar-label { color: #B9A6FF !important; }
+    .popup-content .delivery-bar.open .delivery-bar-label { color: #1FDF67 !important; }
     .popup-content .delivery-bar-track {
       flex: 0 0 4px;
       width: 100%;
@@ -3719,9 +3722,9 @@
       height: 100%;
       border-radius: 2px;
       background-image: linear-gradient(90deg,
-        rgba(255,255,255,0.5) 0%,
-        #FFD300 30%,
-        #FF9500 60%,
+        #3a2f6b 0%,
+        #7C5CE0 38%,
+        #A78BFA 64%,
         #1FDF67 95%);
       background-size: calc(10000% / var(--fill-pct, 60)) 100%;
       background-position: left center;
@@ -4070,76 +4073,51 @@
   #projectModal .pm-phases-text { font-weight: 500; }
   /* Progress tracker */
   #projectModal .pm-progress { margin-bottom: 14px; }
-  #projectModal .pm-progress-top {
-    display: flex; justify-content: space-between; align-items: center;
-    margin-bottom: 6px;
+  /* ── Gradient Meter timeline (purple → green; green only at completion).
+     One track carrying a fixed purple→green gradient, an overlay hiding the
+     unfilled remainder, a floating % knob, and a 5-stage legend where only the
+     current stage is bold + brand-coloured + glowing. Shared verbatim with
+     tmw-project-intel.js (search hero / article cards) and generate_pages.py. */
+  #projectModal .pm-tl-date {
+    text-align: right; font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 9px; letter-spacing: 0.06em; text-transform: uppercase;
+    color: rgba(255,255,255,0.5); margin-bottom: 8px;
   }
-  #projectModal .pm-stage {
-    font-size: 10px; font-weight: 700;
-    letter-spacing: 0.04em; text-transform: uppercase;
+  #projectModal .pm-tl-meter {
+    position: relative; height: 11px; border-radius: 999px; overflow: hidden;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.55);
   }
-  #projectModal .pm-pct {
-    font-size: 10px; color: rgba(255,255,255,0.25);
+  #projectModal .pm-tl-grad {
+    position: absolute; inset: 0;
+    background: linear-gradient(90deg, #3a2f6b, #7C5CE0 38%, #A78BFA 64%, #1FDF67);
   }
-  /* ‚îÄ‚îÄ Segmented progress bar ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
-     Five proportionally-sized segments (10/10/60/10/10) that fill
-     independently. The active segment's fill grows automatically each
-     day as elapsed time advances within its time budget. Replaces the
-     previous evenly-spaced step dots, which made all Construction-stage
-     projects look identical regardless of how close to delivery they
-     actually were. */
-  #projectModal .pm-segments {
-    display: flex; gap: 3px; margin-bottom: 5px;
-    height: 5px;
+  #projectModal .pm-tl-grad::after {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+    background-size: 200% 100%; animation: pmtlShine 2.6s linear infinite; mix-blend-mode: overlay;
   }
-  #projectModal .pm-seg {
-    /* width is set inline via flex: <widthPct> 0 0 */
-    height: 100%;
-    border-radius: 2px;
-    background: rgba(255,255,255,0.08);
-    overflow: hidden;
-    position: relative;
+  @keyframes pmtlShine { 0% { background-position: 200% 0; } 100% { background-position: -60% 0; } }
+  @media (prefers-reduced-motion: reduce) { #projectModal .pm-tl-grad::after { animation: none; } }
+  #projectModal .pm-tl-empty {
+    position: absolute; top: 0; bottom: 0; right: 0;
+    background: #0d0f0e; box-shadow: inset 2px 0 3px rgba(0,0,0,0.6);
   }
-  #projectModal .pm-seg-fill {
-    height: 100%;
-    background: var(--seg-c, #FF9500);
-    border-radius: 2px;
-    transition: width 0.4s ease;
+  #projectModal .pm-tl-knob {
+    position: absolute; top: 50%; transform: translate(-50%,-50%);
+    background: #fff; color: #0a0a0a; font-size: 9.5px; font-weight: 800;
+    padding: 2px 8px; border-radius: 999px; white-space: nowrap; z-index: 2;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   }
-  /* Done segments: fully filled with their stage color */
-  #projectModal .pm-seg-done .pm-seg-fill { width: 100% !important; }
-  /* Active segment: width comes from inline style, slight glow */
-  #projectModal .pm-seg-active {
-    box-shadow: 0 0 0 1px rgba(255,255,255,0.04);
+  #projectModal .pm-tl-stages { display: flex; gap: 3px; margin-top: 12px; }
+  #projectModal .pm-tl-stage {
+    flex: 1; font-size: 7.5px; letter-spacing: 0.02em; text-transform: uppercase;
+    color: rgba(255,255,255,0.2); white-space: nowrap; overflow: hidden;
+    text-overflow: ellipsis; text-align: center;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   }
-  /* Future segments: fill stays at 0% so only the ghost background shows */
-  #projectModal .pm-seg-future .pm-seg-fill { width: 0 !important; }
-
-  #projectModal .pm-step-labels {
-    display: flex; gap: 3px;
-  }
-  #projectModal .pm-step-label {
-    font-size: 7px; color: rgba(255,255,255,0.2);
-    letter-spacing: 0.02em;
-    /* width matches segment via inline flex; align to the start of each
-       segment so labels sit under their own block, not centered between */
-    padding-right: 2px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  #projectModal .pm-step-label.cur { color: var(--stage-color, #FF9500); font-weight: 600; }
-  /* Date-driven subtitle: "18 months to delivery", "Delivered Sep '23".
-     Reads like a tiny mono-spaced timestamp under the step labels.
-     Pulled from window.computeProgress(deliveryDate, status, startDate). */
-  #projectModal .pm-progress-sub {
-    margin-top: 6px;
-    font-family: 'JetBrains Mono', ui-monospace, monospace;
-    font-size: 9px;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: rgba(255,255,255,0.4);
-  }
+  #projectModal .pm-tl-stage:first-child { text-align: left; }
+  #projectModal .pm-tl-stage:last-child { text-align: right; }
+  #projectModal .pm-tl-stage.done { color: rgba(255,255,255,0.5); }
   /* Divider ‚Äî removed for the firm stat row (the thin line above
      architect/developer/etc tiles is suppressed; the cards stand on
      their own). Other .pm-div uses keep the line. */
@@ -13375,45 +13353,35 @@
         return stages.find(s => d.includes(s.key)) || stages[0];
       }
 
+      // Gradient Meter timeline — shared verbatim with tmw-project-intel.js
+      // (search hero / article cards) and generate_pages.py. Purple→green track,
+      // overlay hides the unfilled remainder (green only at completion), floating
+      // % knob, 5-stage legend with only the current stage bold/coloured/glowing.
       function buildProgress(delivery, deliveryDate, startDate) {
         const si = getStageInfo(delivery);
-        const color = si.color;
-        // window.computeProgress returns the date-driven percent + an array
-        // of segment objects ({label, color, widthPct, fillPct, state}).
-        // The active segment's fill grows automatically each day as elapsed
-        // time advances within its time budget. Done segments paint solid,
-        // future segments paint empty.
         const cp = (window.computeProgress
           ? window.computeProgress(deliveryDate || '', delivery || '', startDate || '')
           : null);
         const segments = (cp && cp.segments) ? cp.segments : buildFallbackSegments(stages.indexOf(si));
-        const pct = cp ? cp.pct : si.pct;
+        const pct = Math.max(0, Math.min(100, Math.round(cp ? cp.pct : si.pct)));
         const subtitle = cp ? cp.subtitle : '';
-
-        // Each segment is a flex item whose width matches widthPct, with an
-        // inner fill div whose width matches fillPct (within that segment).
-        // Thin gaps between segments make the structure legible without
-        // overwhelming the bar.
-        const segHtml = segments.map(seg => {
-          const c = seg.state === 'future' ? 'rgba(255,255,255,0.08)' : seg.color;
-          return `
-            <div class="pm-seg pm-seg-${seg.state}" style="flex: ${seg.widthPct} 0 0; --seg-c:${c};">
-              <div class="pm-seg-fill" style="width:${seg.fillPct}%"></div>
-            </div>
-          `;
+        const complete = pct >= 100 || /now open|complete|delivered/i.test(delivery || '');
+        const glow = complete ? '31,223,103' : '167,139,250';
+        const accent = complete ? '#1FDF67' : '#B9A6FF';
+        const stagesHtml = segments.map(seg => {
+          const on = seg.state === 'active';
+          const cls = on ? 'on' : (seg.state === 'done' ? 'done' : '');
+          const st = on ? ` style="color:${accent};font-weight:800;text-shadow:0 0 12px rgba(${glow},.5)"` : '';
+          return `<span class="pm-tl-stage ${cls}"${st}>${seg.label}</span>`;
         }).join('');
-        const labels = segments.map(seg =>
-          `<span class="pm-step-label${seg.state === 'active' ? ' cur' : ''}" style="flex: ${seg.widthPct} 0 0;${seg.state === 'active' ? '--stage-color:'+seg.color : ''}">${seg.label}</span>`
-        ).join('');
-        const sub = subtitle ? `<div class="pm-progress-sub">${subtitle}</div>` : '';
-        return `
-          <div class="pm-progress-top">
-            <span class="pm-stage" style="color:${color}">${si.label}</span>
-            <span class="pm-pct">${pct}%</span>
+        const date = subtitle ? `<div class="pm-tl-date">${subtitle}</div>` : '';
+        const knobLeft = pct >= 98 ? 'calc(100% - 18px)' : pct + '%';
+        return `${date}
+          <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
+            <div class="pm-tl-empty" style="left:${pct}%"></div>
+            <div class="pm-tl-knob" style="left:${knobLeft};box-shadow:0 2px 8px rgba(0,0,0,.5),0 0 0 2px rgba(${glow},.42),0 0 12px rgba(${glow},.55)">${pct}%</div>
           </div>
-          <div class="pm-segments">${segHtml}</div>
-          <div class="pm-step-labels">${labels}</div>
-          ${sub}`;
+          <div class="pm-tl-stages">${stagesHtml}</div>`;
       }
 
       // Last-resort segment builder if computeProgress isn't loaded (defensive).
