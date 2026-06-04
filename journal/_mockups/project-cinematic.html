@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cinematic Project Page — Interactive Prototype</title>
+<style>
+  :root{
+    --bg:#070807; --surface:#121413; --surface-2:#181b19; --line:rgba(255,255,255,.08);
+    --line-2:rgba(255,255,255,.14); --white:#fff; --mute:rgba(255,255,255,.62); --faint:rgba(255,255,255,.4);
+    --green:#1FDF67; --gold:#e6c574; --gold-soft:#f0d68a; --purple:#A78BFA;
+    --mono:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    --serif:'Fraunces',Georgia,serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-font-smoothing:antialiased}
+  body{background:var(--bg);color:var(--white);font-family:var(--mono);line-height:1.5}
+  a{color:inherit;text-decoration:none}
+
+  /* explainer banner (mockup only) */
+  .note{max-width:1100px;margin:0 auto;padding:34px 24px 6px}
+  .note h1{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--green);font-weight:800}
+  .note p{color:var(--mute);font-size:13.5px;margin-top:8px;max-width:78ch}
+  .note b{color:#fff}
+  .legend{display:flex;gap:22px;flex-wrap:wrap;margin-top:14px}
+  .legend div{display:flex;align-items:center;gap:9px;font-size:12px;color:var(--mute)}
+  .legend .sw{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .legend .sw.proj{background:rgba(18,20,19,.9);border:1px solid var(--line-2)}
+  .legend .sw.gal{background:rgba(0,0,0,.5);border:1px solid var(--line-2);width:24px;height:24px}
+  .legend svg{width:15px;height:15px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+  /* global header placeholder */
+  .topbar{position:sticky;top:0;z-index:40;height:56px;display:flex;align-items:center;justify-content:space-between;
+    padding:0 26px;border-bottom:1px solid var(--line);background:rgba(7,8,7,.82);backdrop-filter:blur(14px);
+    font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--mute)}
+  .topbar .logo{font-weight:800;color:#fff;letter-spacing:.02em}
+  .topbar .right{display:flex;gap:18px;align-items:center}
+  .topbar .right span{cursor:pointer}
+  .topbar .gp{color:#0a0a0a;background:var(--gold-soft);padding:5px 11px;border-radius:7px;font-weight:800}
+
+  /* ============ CINEMATIC HERO ============ */
+  .stage{position:relative;overflow:hidden}
+  .hero{position:relative;min-height:calc(100vh - 56px);display:flex;align-items:flex-end;overflow:hidden}
+  .hero-bg{position:absolute;inset:0;background-size:cover;background-position:center;transition:opacity .5s ease,transform 6s ease}
+  .hero-bg.b{opacity:0}
+  .hero::after{content:'';position:absolute;inset:0;z-index:1;pointer-events:none;
+    background:linear-gradient(180deg,rgba(7,8,7,.28) 0%,rgba(7,8,7,.12) 32%,rgba(7,8,7,.6) 66%,rgba(7,8,7,.97) 100%)}
+  .hero.swap .heroInner{opacity:0;transform:translateY(14px)}
+
+  .heroInner{position:relative;z-index:3;max-width:1240px;margin:0 auto;width:100%;
+    padding:0 72px 52px;display:grid;grid-template-columns:1.45fr 1fr;gap:44px;align-items:end;
+    transition:opacity .35s ease,transform .35s ease}
+  .eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:10px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--gold-soft);border:1px solid rgba(230,197,116,.32);border-radius:999px;padding:5px 12px;background:rgba(0,0,0,.25)}
+  .eyebrow .dot{width:6px;height:6px;border-radius:50%;background:currentColor;box-shadow:0 0 8px currentColor}
+  .h-title{font-family:var(--serif);font-size:66px;font-weight:600;letter-spacing:-.025em;line-height:.96;margin-top:14px;
+    text-shadow:0 2px 40px rgba(0,0,0,.5)}
+  .h-loc{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--mute);margin-top:12px}
+  .h-desc{font-size:14.5px;color:rgba(255,255,255,.82);line-height:1.62;margin-top:16px;max-width:58ch}
+  .h-ctas{display:flex;gap:10px;margin-top:22px;flex-wrap:wrap}
+  .btn{padding:12px 22px;border-radius:11px;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
+    cursor:pointer;border:1px solid var(--line-2);background:rgba(0,0,0,.25);color:#fff;display:inline-flex;align-items:center;gap:8px;transition:.16s}
+  .btn:hover{background:rgba(255,255,255,.1)}
+  .btn.gold{background:var(--gold-soft);color:#0a0a0a;border-color:var(--gold-soft)}
+  .btn.gold:hover{background:#fff}
+
+  .panel{background:rgba(15,17,16,.62);backdrop-filter:blur(22px);border:1px solid var(--line-2);
+    border-radius:18px;padding:22px 24px;box-shadow:0 30px 80px -30px rgba(0,0,0,.9)}
+
+  /* gradient meter timeline */
+  .tl-date{text-align:right;font-size:9px;letter-spacing:.05em;text-transform:uppercase;color:var(--mute);margin-bottom:8px}
+  .tl-meter{position:relative;height:11px;border-radius:999px;overflow:hidden;box-shadow:inset 0 1px 2px rgba(0,0,0,.55)}
+  .tl-grad{position:absolute;inset:0;background:linear-gradient(90deg,#3a2f6b,#7C5CE0 38%,#A78BFA 64%,var(--green))}
+  .tl-empty{position:absolute;top:0;bottom:0;right:0;background:#0d0f0e;box-shadow:inset 2px 0 3px rgba(0,0,0,.6);transition:left .5s ease}
+  .tl-knob{position:absolute;top:50%;transform:translate(-50%,-50%);background:#fff;color:#0a0a0a;font-size:9.5px;font-weight:800;
+    padding:2px 8px;border-radius:999px;z-index:2;white-space:nowrap;transition:left .5s ease}
+  .tl-stages{display:flex;gap:3px;margin-top:12px}
+  .tl-stages span{flex:1;font-size:7.5px;letter-spacing:.02em;text-transform:uppercase;color:rgba(255,255,255,.2);
+    text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .tl-stages span:first-child{text-align:left}.tl-stages span:last-child{text-align:right}
+  .tl-stages span.done{color:rgba(255,255,255,.5)}
+  .tl-stages span.on{color:var(--green);font-weight:800;text-shadow:0 0 12px rgba(31,223,103,.5)}
+  .pstats{display:flex;gap:26px;margin-top:18px}
+  .pstat .v{font-size:23px;font-weight:800;letter-spacing:-.01em}
+  .pstat .k{font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);margin-top:2px}
+
+  /* ---- GALLERY controls (this project's photos) — bottom-center cluster ---- */
+  .gal{position:absolute;z-index:6;left:50%;bottom:22px;transform:translateX(-50%);
+    display:flex;align-items:center;gap:14px;background:rgba(0,0,0,.42);backdrop-filter:blur(10px);
+    border:1px solid var(--line);border-radius:999px;padding:7px 10px}
+  .gal button{width:30px;height:30px;border-radius:50%;border:1px solid var(--line-2);background:rgba(0,0,0,.35);
+    color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.15s}
+  .gal button:hover{background:#fff;color:#000}
+  .gal button svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+  .gal .dots{display:flex;gap:6px;align-items:center}
+  .gal .dots i{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.4);transition:.2s;cursor:pointer}
+  .gal .dots i.on{background:#fff;width:20px;border-radius:3px}
+  .gal .cnt{font-size:10px;letter-spacing:.08em;color:var(--mute);font-variant-numeric:tabular-nums;min-width:30px;text-align:center}
+
+  /* ---- RANDOM-PROJECT arrows — far screen edges, vertically centred ---- */
+  .pArrow{position:absolute;z-index:8;top:calc(50% - 10px);transform:translateY(-50%);
+    width:58px;height:58px;border-radius:50%;background:rgba(12,14,13,.62);border:1px solid var(--line-2);
+    color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;backdrop-filter:blur(12px);
+    transition:transform .18s,background .18s,border-color .18s}
+  .pArrow:hover{background:var(--green);color:#000;border-color:var(--green);transform:translateY(-50%) scale(1.07)}
+  .pArrow svg{width:25px;height:25px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .pArrow.l{left:22px}.pArrow.r{right:22px}
+  .pArrow .peek{position:absolute;top:50%;transform:translateY(-50%);width:0;height:54px;border-radius:12px;
+    background-size:cover;background-position:center;opacity:0;overflow:hidden;transition:width .22s ease,opacity .22s ease;
+    box-shadow:0 10px 30px rgba(0,0,0,.6);border:1px solid var(--line-2);pointer-events:none}
+  .pArrow.l .peek{left:calc(100% + 10px)}.pArrow.r .peek{right:calc(100% + 10px)}
+  .pArrow:hover .peek{width:92px;opacity:1}
+  .pArrow .lab{position:absolute;top:calc(100% + 8px);left:50%;transform:translateX(-50%);font-size:8.5px;
+    letter-spacing:.12em;text-transform:uppercase;color:var(--faint);white-space:nowrap;opacity:0;transition:opacity .2s}
+  .pArrow:hover .lab{opacity:1;color:var(--green)}
+
+  /* scroll cue */
+  .scrollcue{position:absolute;z-index:5;left:50%;bottom:74px;transform:translateX(-50%);display:flex;flex-direction:column;
+    align-items:center;gap:5px;font-size:8.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--faint);
+    animation:bob 1.8s ease-in-out infinite;pointer-events:none}
+  .scrollcue svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2}
+  @keyframes bob{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,5px)}}
+
+  /* ============ BELOW-THE-FOLD ============ */
+  .below{max-width:1080px;margin:0 auto;padding:54px 24px 90px}
+  .sec{margin-top:42px}
+  .sec:first-child{margin-top:0}
+  .sec h3{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:#fff;font-weight:800;display:flex;align-items:center;gap:9px;margin-bottom:16px}
+  .sec h3 .c{font-size:10px;background:rgba(31,223,103,.12);color:var(--green);padding:2px 8px;border-radius:10px;font-weight:700}
+  .longdesc{font-size:15px;color:var(--mute);line-height:1.75;max-width:70ch}
+
+  .detail{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+  .dcard{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+  .dcard .k{font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
+  .dcard .v{font-size:16px;font-weight:600;margin-top:6px}
+  .dcard .sub{font-size:12px;color:var(--mute);margin-top:3px}
+
+  .maprow{display:grid;grid-template-columns:1.4fr 1fr;gap:16px}
+  .mapprev{position:relative;display:block;height:230px;border-radius:14px;overflow:hidden;border:1px solid var(--line)}
+  .mapprev img{width:100%;height:100%;object-fit:cover;display:block}
+  .mapprev .cta{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);display:flex;align-items:center;gap:7px;
+    background:rgba(0,0,0,.6);backdrop-filter:blur(8px);border:1px solid var(--line-2);padding:9px 15px;border-radius:22px;font-size:12px}
+  .mapprev .cta svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2}
+  .firmcol{display:flex;flex-direction:column;gap:12px}
+  .firmcard{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px;flex:1;display:flex;flex-direction:column;justify-content:center}
+  .firmcard .k{font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
+  .firmcard .v{font-size:17px;font-weight:600;margin-top:6px}
+  .firmcard a{color:var(--green);font-size:12px;margin-top:8px;display:inline-flex;align-items:center;gap:5px}
+
+  .cv-feat{display:block;background:#000;border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-bottom:12px;transition:.15s}
+  .cv-feat:hover{border-color:rgba(31,223,103,.3)}
+  .cv-feat .img{height:200px;background-size:cover;background-position:center;position:relative}
+  .cv-feat .tag{position:absolute;top:12px;left:12px;background:rgba(0,0,0,.6);backdrop-filter:blur(8px);color:var(--green);
+    padding:3px 9px;border-radius:5px;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.08em}
+  .cv-feat .body{padding:15px 17px}
+  .cv-feat .t{font-size:16px;font-weight:600;line-height:1.35}.cv-feat .m{font-size:11px;color:var(--faint);margin-top:6px}
+  .cv-row{display:flex;align-items:center;gap:13px;background:var(--surface);border:1px solid var(--line);border-radius:12px;
+    padding:12px 14px;margin-top:8px;transition:.15s}
+  .cv-row:hover{border-color:var(--line-2)}
+  .cv-row .th{width:54px;height:54px;border-radius:9px;background-size:cover;background-position:center;flex-shrink:0}
+  .cv-row .t{font-size:13.5px;font-weight:600;line-height:1.35}.cv-row .m{font-size:11px;color:var(--faint);margin-top:3px}
+
+  @media(max-width:860px){
+    .heroInner{grid-template-columns:1fr;padding:0 20px 96px;gap:24px}
+    .h-title{font-size:42px}
+    .pArrow{width:46px;height:46px}.pArrow.l{left:10px}.pArrow.r{right:10px}.pArrow .peek{display:none}
+    .maprow{grid-template-columns:1fr}
+    .topbar .right span:not(.gp){display:none}
+  }
+</style>
+</head>
+<body>
+  <div class="note">
+    <h1>Cinematic Project Page · Interactive Prototype</h1>
+    <p>This is concept&nbsp;<b>#2</b> built for real — try it. The two arrow systems are deliberately separated so they never get confused:</p>
+    <div class="legend">
+      <div><span class="sw proj"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></span><b style="color:#fff">Big edge arrows</b>&nbsp;= jump to a <b style="color:#fff">random project</b> &nbsp;<span style="color:var(--faint)">(keys&nbsp;[&nbsp;]&nbsp;· hover for a peek)</span></div>
+      <div><span class="sw gal"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></span><b style="color:#fff">Bottom-centre cluster</b>&nbsp;= flip through <b style="color:#fff">this project's photos</b> &nbsp;<span style="color:var(--faint)">(keys&nbsp;←&nbsp;→&nbsp;· swipe)</span></div>
+    </div>
+  </div>
+
+  <div class="topbar">
+    <span class="logo">MARKETS OF TMW</span>
+    <span class="right"><span>Global</span><span>Focus Markets</span><span style="color:var(--gold-soft)">Database</span><span>The Lists</span><span class="gp">Go Pro</span></span>
+  </div>
+
+  <div class="stage">
+    <section class="hero" id="hero">
+      <div class="hero-bg a" id="bgA"></div>
+      <div class="hero-bg b" id="bgB"></div>
+
+      <!-- random-project arrows -->
+      <button class="pArrow l" id="prevProj" title="Random project">
+        <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+        <span class="peek" id="peekL"></span><span class="lab">Random ↺</span>
+      </button>
+      <button class="pArrow r" id="nextProj" title="Random project">
+        <svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>
+        <span class="peek" id="peekR"></span><span class="lab">Random ↻</span>
+      </button>
+
+      <div class="heroInner" id="heroInner"><!-- filled by JS --></div>
+
+      <!-- gallery cluster -->
+      <div class="gal" id="gal">
+        <button id="galPrev" aria-label="Previous photo"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button>
+        <div class="dots" id="galDots"></div>
+        <span class="cnt" id="galCnt">1 / 1</span>
+        <button id="galNext" aria-label="Next photo"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
+      </div>
+
+      <div class="scrollcue">Scroll for details<svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+    </section>
+
+    <div class="below" id="below"><!-- filled by JS --></div>
+  </div>
+
+<script>
+const MAPBOX="pk.eyJ1IjoiZmxvcmlkYW9mdG9tb3Jyb3ciLCJhIjoiY2xrYmpmdGQ2MGdibTNzcXZjMnA4aXh3ZiJ9.uBeYS7jmKwWS6xAgY-R1UA";
+const MAPSTYLE="floridaoftomorrow/clkbk4qlw000a01qw94rj0xa7";
+const U=(id,w)=>`https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=${w||1700}&q=72`;
+function mapImg(lat,lng){return `https://api.mapbox.com/styles/v1/${MAPSTYLE}/static/pin-l+1FDF67(${lng},${lat})/${lng},${lat},13,0/640x300@2x?access_token=${MAPBOX}`;}
+
+// stages: index 0..4 active; fill within active stage 0..1
+const STAGE_NAMES=["Announced","Breaking Ground","Construction","Opening Soon","Now Open"];
+function knobPct(ai,fill){ if(ai>=4)return 100; if(ai<=0)return 5; return Math.max(5,Math.min(100,Math.round((ai+(fill||0))*20))); }
+
+const PROJECTS=[
+ {title:"Nauka",loc:"Riviera Nayarit · Residences",status:"Now Open",ai:4,fill:1,
+  desc:"A private 920-acre community on Mexico's Pacific coast built around a Tom Fazio championship golf course with three oceanfront holes you can swim mid-round, anchored by a Ritz-Carlton Reserve and limited to just 395 residences.",
+  long:"Nauka reimagines the destination resort as a year-round community. The masterplan threads 395 residences through protected coastal dunes, a working agave farm, and a beach club designed by Olson Kundig. Phase one delivered the golf course, the Reserve hotel, and the first 120 villas; the remaining residences release through 2027. Buyers receive founding membership to the club, the marina, and the wellness sanctuary.",
+  dev:"LIFE Properties International",arch:"Olson Kundig",delivery:"Delivered May '26",market:"Riviera Nayarit",units:"395",keys:"91",site:"#",lat:20.79,lng:-105.43,
+  imgs:[U("1545324418-cc1a3fa10c00"),U("1582407947304-fd86f028f716"),U("1493809842364-78817add7ffb"),U("1512917774080-9991f1c4c750")],
+  feat:{t:"Nauka opens its Ritz-Carlton Reserve on the Riviera Nayarit",m:"Mar 2, 2026",img:U("1571896349842-33c89424de2d",900)},
+  rows:[{t:"Inside the three swimmable golf holes at Nauka",m:"Jan 18, 2026",img:U("1535131749006-b7f58c99034b",400)},
+        {t:"LIFE Properties closes $480M construction loan",m:"Sep 4, 2025",img:U("1486406146926-c627a92ad1ab",400)}]},
+
+ {title:"Aera Tower",loc:"Brickell, Miami · Mixed-Use",status:"Under Construction",ai:2,fill:.55,
+  desc:"An 82-story supertall reshaping the Brickell skyline — 560 condos stacked above a sky-lobby hotel, with a 40,000-sq-ft amenity deck cantilevered over the bay at level 60.",
+  long:"Aera Tower is the tallest residential project to break ground in Miami's 2020s cycle. The tapering glass form is engineered for Category 5 wind loads while keeping a column-free corner in every unit. Construction topped the podium in late 2025 and is climbing roughly one floor every six days, with delivery targeted for early 2028.",
+  dev:"OKO Group & Cain International",arch:"Foster + Partners",delivery:"Est. early 2028",market:"Miami, FL",units:"560",keys:"120",site:"#",lat:25.762,lng:-80.193,
+  imgs:[U("1486325212027-8081e485255e"),U("1496307653780-42ee777d4833"),U("1449824913935-59a10b8d2000")],
+  feat:{t:"Foster + Partners tops out Brickell's tallest tower",m:"Feb 12, 2026",img:U("1470723710355-95304d8aece4",900)},
+  rows:[{t:"Aera's level-60 sky deck takes shape over Biscayne Bay",m:"Dec 1, 2025",img:U("1493246507139-91e8fad9978e",400)}]},
+
+ {title:"Pacifica Dunes",loc:"Cabo San Lucas · Resort & Residences",status:"Breaking Ground",ai:1,fill:.4,
+  desc:"A 1,100-acre Baja peninsula resort — a Robert Trent Jones II course, a 60-key boutique hotel, and 210 dune-set villas wrapping a half-mile of swimmable cove.",
+  long:"Pacifica Dunes broke ground in spring 2026 on the last large undeveloped cove in the Cabo corridor. The plan keeps 70% of the land as protected open space, with villas pressed low into the dunes to preserve sightlines. Infrastructure and the golf routing come first; vertical villa construction begins in 2027 toward a 2029 opening.",
+  dev:"Ohana Real Estate Investors",arch:"Studio Rick Joy",delivery:"Est. 2029",market:"Los Cabos",units:"210",keys:"60",site:"#",lat:22.89,lng:-109.91,
+  imgs:[U("1507525428034-b723cf961d3e"),U("1518684079-3c830dcef090"),U("1505228395891-9a51e7e86bf6")],
+  feat:{t:"Ohana breaks ground on Pacifica Dunes in Baja",m:"Apr 9, 2026",img:U("1439066615861-d1af74d74000",900)},
+  rows:[{t:"Rick Joy's dune villas revealed for Cabo resort",m:"Feb 20, 2026",img:U("1502920917128-1aa500764cbd",400)}]},
+
+ {title:"The Helix",loc:"Austin, TX · Office & Lab",status:"Announced",ai:0,fill:1,
+  desc:"A 1.2M-sq-ft life-sciences campus spiraling around a central atrium — Austin's bid to anchor a Texas biotech corridor, announced with Dell Medical as lead tenant.",
+  long:"The Helix was announced in 2026 as a public-private campus pairing wet-lab space with university research. The double-helix massing wraps shared core labs in a daylit atrium, with ground-floor incubator space for spinouts. Entitlements are underway; the developer expects to break ground in 2027.",
+  dev:"Trammell Crow Company",arch:"BIG — Bjarke Ingels Group",delivery:"Announced 2026",market:"Austin, TX",units:"—",keys:"—",site:"#",lat:30.275,lng:-97.74,
+  imgs:[U("1497366216548-37526070297c"),U("1488972685288-c3fd157d7c7a"),U("1431576901776-e539bd916ba2")],
+  feat:{t:"BIG unveils The Helix life-sciences campus for Austin",m:"May 28, 2026",img:U("1460472178825-e5240623afd5",900)},
+  rows:[{t:"Dell Medical signs as anchor tenant at The Helix",m:"May 28, 2026",img:U("1518005020951-eccb494ad742",400)}]},
+];
+
+let p=0, g=0, bgTop='a';
+
+function tlHtml(pr){
+  const pct=knobPct(pr.ai,pr.fill), done=pct>=100;
+  const stages=STAGE_NAMES.map((n,i)=>{
+    const cls=i<pr.ai?'done':(i===pr.ai?'on':'');
+    return `<span class="${cls}">${n}</span>`;
+  }).join('');
+  return `<div class="tl-date">${pr.delivery}</div>
+   <div class="tl-meter"><div class="tl-grad"></div>
+     <div class="tl-empty" style="left:${pct}%"></div>
+     <div class="tl-knob" style="left:${pct>=98?'calc(100% - 20px)':pct+'%'}">${pct}%</div></div>
+   <div class="tl-stages">${stages}</div>`;
+}
+
+function heroHtml(pr){
+  const u1=pr.keys&&pr.keys!=='—'?`<div class="pstat"><div class="v">${pr.keys}</div><div class="k">Hotel keys</div></div>`:'';
+  const u0=pr.units&&pr.units!=='—'?`<div class="pstat"><div class="v">${pr.units}</div><div class="k">Residences</div></div>`:'';
+  return `<div>
+      <span class="eyebrow"><span class="dot"></span>${pr.status} · ${pr.loc.split(' · ')[0]}</span>
+      <h2 class="h-title">${pr.title}</h2>
+      <div class="h-loc">${pr.loc}</div>
+      <p class="h-desc">${pr.desc}</p>
+      <div class="h-ctas"><a class="btn gold" href="${pr.site}">Visit site ↗</a><button class="btn">View on map</button><button class="btn">♡ Watch</button></div>
+    </div>
+    <div class="panel">${tlHtml(pr)}<div class="pstats">${u0}${u1}<div class="pstat"><div class="v" style="font-size:15px;line-height:1.7">${pr.arch.split(' ')[0]}</div><div class="k">Architect</div></div></div></div>`;
+}
+
+function belowHtml(pr){
+  const rows=pr.rows.map(r=>`<a class="cv-row"><div class="th" style="background-image:url('${r.img}')"></div><div><div class="t">${r.t}</div><div class="m">${r.m}</div></div></a>`).join('');
+  return `
+   <div class="sec"><h3>About the project</h3><p class="longdesc">${pr.long}</p></div>
+
+   <div class="sec"><h3>Project details</h3>
+     <div class="detail">
+       <div class="dcard"><div class="k">Status</div><div class="v">${pr.status}</div><div class="sub">${pr.delivery}</div></div>
+       <div class="dcard"><div class="k">Market</div><div class="v">${pr.market}</div></div>
+       <div class="dcard"><div class="k">Residences</div><div class="v">${pr.units}</div></div>
+       <div class="dcard"><div class="k">Hotel keys</div><div class="v">${pr.keys}</div></div>
+     </div>
+   </div>
+
+   <div class="sec"><h3>Developer &amp; design</h3>
+     <div class="detail">
+       <div class="firmcard"><div class="k">Developer</div><div class="v">${pr.dev}</div><a>View firm profile →</a></div>
+       <div class="firmcard"><div class="k">Architect</div><div class="v">${pr.arch}</div><a>View firm profile →</a></div>
+     </div>
+   </div>
+
+   <div class="sec"><h3>Location</h3>
+     <div class="maprow">
+       <a class="mapprev"><img src="${mapImg(pr.lat,pr.lng)}" alt="Map"><span class="cta"><svg viewBox="0 0 24 24"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>View on the Map of Tomorrow</span></a>
+       <div class="firmcol">
+         <div class="firmcard"><div class="k">Coordinates</div><div class="v" style="font-size:14px">${pr.lat.toFixed(3)}, ${pr.lng.toFixed(3)}</div></div>
+         <div class="firmcard"><div class="k">Market</div><div class="v">${pr.market}</div><a>See all projects here →</a></div>
+       </div>
+     </div>
+   </div>
+
+   <div class="sec"><h3>Coverage on TMW <span class="c">${pr.rows.length+1}</span></h3>
+     <a class="cv-feat"><div class="img" style="background-image:url('${pr.feat.img}')"><span class="tag">Latest</span></div><div class="body"><div class="t">${pr.feat.t}</div><div class="m">${pr.feat.m}</div></div></a>
+     ${rows}
+   </div>`;
+}
+
+function setBg(url){
+  const top=bgTop==='a'?document.getElementById('bgA'):document.getElementById('bgB');
+  const bot=bgTop==='a'?document.getElementById('bgB'):document.getElementById('bgA');
+  bot.style.backgroundImage=`url('${url}')`;
+  bot.style.opacity=1; top.style.opacity=0;
+  // subtle ken-burns
+  bot.style.transform='scale(1.06)'; top.style.transform='scale(1)';
+  bgTop=bgTop==='a'?'b':'a';
+}
+
+function renderGallery(){
+  const pr=PROJECTS[p];
+  setBg(pr.imgs[g]);
+  document.getElementById('galCnt').textContent=`${g+1} / ${pr.imgs.length}`;
+  document.getElementById('galDots').innerHTML=pr.imgs.map((_,i)=>`<i class="${i===g?'on':''}" data-i="${i}"></i>`).join('');
+  document.getElementById('gal').style.display=pr.imgs.length>1?'flex':'none';
+}
+
+function renderProject(dir){
+  const pr=PROJECTS[p]; g=0;
+  const hi=document.getElementById('heroInner');
+  hi.parentElement.classList.add('swap');
+  setTimeout(()=>{
+    hi.innerHTML=heroHtml(pr);
+    document.getElementById('below').innerHTML=belowHtml(pr);
+    renderGallery();
+    hi.parentElement.classList.remove('swap');
+    updatePeeks();
+  },180);
+}
+
+function updatePeeks(){
+  const L=PROJECTS[(p-1+PROJECTS.length)%PROJECTS.length];
+  const R=PROJECTS[(p+1)%PROJECTS.length];
+  // "random" — but peek shows a real candidate so the affordance reads
+  document.getElementById('peekL').style.backgroundImage=`url('${L.imgs[0]}')`;
+  document.getElementById('peekR').style.backgroundImage=`url('${R.imgs[0]}')`;
+}
+
+function randProject(){ let n; do{ n=Math.floor(Math.random()*PROJECTS.length);}while(n===p&&PROJECTS.length>1); return n; }
+function goProject(dir){ p = PROJECTS.length>2 ? randProject() : (p+dir+PROJECTS.length)%PROJECTS.length; renderProject(dir); }
+function goGallery(d){ const pr=PROJECTS[p]; g=(g+d+pr.imgs.length)%pr.imgs.length; renderGallery(); }
+
+document.getElementById('prevProj').onclick=()=>goProject(-1);
+document.getElementById('nextProj').onclick=()=>goProject(1);
+document.getElementById('galPrev').onclick=()=>goGallery(-1);
+document.getElementById('galNext').onclick=()=>goGallery(1);
+document.getElementById('galDots').onclick=e=>{const i=e.target.dataset.i; if(i!=null){g=+i;renderGallery();}};
+
+document.addEventListener('keydown',e=>{
+  if(/INPUT|TEXTAREA/.test(e.target.tagName))return;
+  if(e.key==='ArrowLeft')goGallery(-1);
+  if(e.key==='ArrowRight')goGallery(1);
+  if(e.key==='[')goProject(-1);
+  if(e.key===']')goProject(1);
+});
+
+// swipe on hero = gallery
+let sx=0,sy=0;
+const hero=document.getElementById('hero');
+hero.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY;},{passive:true});
+hero.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;
+  if(Math.abs(dx)>45&&Math.abs(dx)>Math.abs(dy))goGallery(dx<0?1:-1);},{passive:true});
+
+// init
+document.getElementById('heroInner').innerHTML=heroHtml(PROJECTS[0]);
+document.getElementById('below').innerHTML=belowHtml(PROJECTS[0]);
+renderGallery();
+updatePeeks();
+</script>
+</body>
+</html>
