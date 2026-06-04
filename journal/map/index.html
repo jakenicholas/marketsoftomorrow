@@ -11017,9 +11017,9 @@
         width:21px; height:54px; padding:0; margin-left:-1px;
         border:0;
         border-top-right-radius:13px; border-bottom-right-radius:13px;
-        /* Solid + opaque (no backdrop blur) so it doesn't pick up the lighter
-           map behind it — keeps it matched to the drawer's dark tone. */
-        background:#0f0f0f;
+        /* Solid + opaque (NO backdrop blur) so it never picks up the map behind
+           it. Near-black to match the drawer's stacked dark layers at its edge. */
+        background:#0a0a0a;
         color:rgba(255,255,255,0.82); display:none; align-items:center; justify-content:center; cursor:pointer;
         box-shadow:2px 0 18px rgba(0,0,0,0.42);
         transition:transform .15s ease;
