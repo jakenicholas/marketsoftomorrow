@@ -94,7 +94,7 @@
 
   var css = [
     '.tmw-chrome-head{position:sticky; top:0; z-index:60}',
-    '.tmw-chrome-head nav.main{position:relative; background:rgba(7,8,7,.82); backdrop-filter:blur(16px) saturate(1.4); -webkit-backdrop-filter:blur(16px) saturate(1.4); border-bottom:1px solid var(--hair)}',
+    '.tmw-chrome-head nav.main{position:relative; background:rgba(7,8,7,.78); backdrop-filter:blur(16px) saturate(1.4); -webkit-backdrop-filter:blur(16px) saturate(1.4); border-bottom:1px solid var(--hair)}',
     '.tmw-chrome-head nav.main .wrap{display:flex; align-items:center; justify-content:space-between; padding-top:14px; padding-bottom:14px; gap:24px; max-width:1240px; margin:0 auto; padding-left:28px; padding-right:28px}',
     // Hide the raw nav (flat region links + Open Map CTA) + hex until journal-dock
     // consolidates them into the universal menu, so the un-transformed chrome
@@ -125,7 +125,7 @@
     '.tmw-chrome-head .nav-burger{display:none; width:28px; height:28px; flex-direction:column; gap:5px; padding:6px 0; align-items:flex-end; justify-content:center; background:none; border:0; cursor:pointer}',
     '.tmw-chrome-head .nav-burger span{display:block; width:22px; height:1.5px; background:var(--cream); transition:transform .2s}',
     '.tmw-chrome-head .tmw-logo-lockup{display:flex; align-items:center; gap:10px; text-decoration:none}',
-    '.tmw-hex-badge{flex:0 0 auto; width:18px; height:18px}',
+    '.tmw-hex-badge{flex:0 0 auto; width:22px; height:22px}',
     '.tmw-hex-badge svg{width:100%; height:100%; display:block; overflow:visible}',
     '.tmw-hex-spinner{transform-origin:50% 50%; animation:tmwHardspin 4.2s cubic-bezier(.16,1,.3,1) infinite}',
     '@keyframes tmwHardspin{0%{transform:rotate(0)}55%{transform:rotate(810deg)}70%{transform:rotate(900deg)}100%{transform:rotate(1080deg)}}',
@@ -133,7 +133,7 @@
     '@keyframes tmwHexpulse{0%,45%{stroke:#A78BFA; filter:drop-shadow(0 0 0 rgba(167,139,250,0))}70%{stroke:#B9A6FF; filter:drop-shadow(0 0 6px rgba(185,166,255,.9))}100%{stroke:#A78BFA; filter:drop-shadow(0 0 0 rgba(167,139,250,0))}}',
     '.tmw-hex-ring{transform-origin:50% 50%; animation:tmwRing 4.2s ease-out infinite}',
     '@keyframes tmwRing{0%,60%{transform:scale(1);opacity:0}72%{opacity:.55}100%{transform:scale(1.7);opacity:0}}',
-    '.tmw-wordmark{flex:0 1 auto; width:88px}',
+    '.tmw-wordmark{flex:0 1 auto; width:108px}',
     '.tmw-wordmark svg{width:100%; height:auto; display:block}',
     '.tmw-wordmark .wm-fill{fill:#fff}',
     '@media (prefers-reduced-motion: reduce){.tmw-hex-spinner,.tmw-hex-ring,.tmw-chrome-head .nav-cta .mc-pin::after,.tmw-chrome-head .nav-cta .mc-count .mc-dot{animation:none}.tmw-hex-ring{opacity:0}}',
