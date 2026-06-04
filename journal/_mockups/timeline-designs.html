@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Project Timeline — Design Concepts</title>
+<style>
+  :root{
+    --bg:#070807; --surface:#121413; --surface-2:#181b19; --line:rgba(255,255,255,.08);
+    --line-2:rgba(255,255,255,.14); --white:#fff; --mute:rgba(255,255,255,.62); --faint:rgba(255,255,255,.4);
+    --gray:#9CA3AF; --yellow:#FFD300; --orange:#FF9500; --green:#1FDF67; --green-soft:#42EB81;
+    --mono:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    --serif:'Fraunces',Georgia,serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:radial-gradient(ellipse at top,#0e1a14 0%,#050505 55%);color:var(--white);
+    font-family:var(--mono);-webkit-font-smoothing:antialiased;line-height:1.5;padding:48px 20px 120px}
+  .wrap{max-width:880px;margin:0 auto}
+  h1{font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:var(--green);font-weight:700}
+  .sub{color:var(--mute);font-size:14px;margin:8px 0 4px}
+  .concept{margin-top:52px}
+  .concept-head{display:flex;align-items:baseline;gap:12px;margin-bottom:6px;flex-wrap:wrap}
+  .concept-num{font-size:11px;font-weight:800;letter-spacing:.1em;color:#0a0a0a;background:var(--green);
+    border-radius:6px;padding:3px 8px}
+  .concept-name{font-family:var(--serif);font-size:24px;font-weight:600;letter-spacing:-.01em}
+  .concept-desc{color:var(--faint);font-size:13px;margin-bottom:18px;max-width:62ch}
+  /* the "modal" container the timeline lives in, to mimic the real project card */
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:22px 24px;margin-bottom:14px}
+  .card-eyebrow{font-size:11px;letter-spacing:.06em;color:var(--faint);text-transform:uppercase;margin-bottom:16px;
+    display:flex;justify-content:space-between}
+  .card-eyebrow b{color:var(--white);font-weight:600}
+
+  /* ============== CURRENT (reference) ============== */
+  .cur-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px}
+  .cur-stage{font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+  .cur-pct{font-size:11px;color:rgba(255,255,255,.28)}
+  .cur-segs{display:flex;gap:3px;height:5px;margin-bottom:6px}
+  .cur-seg{flex:1;height:100%;border-radius:2px;background:rgba(255,255,255,.08);overflow:hidden}
+  .cur-seg i{display:block;height:100%;border-radius:2px}
+  .cur-labels{display:flex;gap:3px}
+  .cur-labels span{flex:1;font-size:7.5px;color:rgba(255,255,255,.2);letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .cur-labels span.on{color:var(--green);font-weight:600}
+  .cur-sub{margin-top:7px;font-size:9px;letter-spacing:.06em;color:rgba(255,255,255,.5)}
+
+  /* ============== CONCEPT 1 — MILESTONE RAIL ============== */
+  .c1{padding:6px 4px 2px}
+  .c1-top{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:18px}
+  .c1-status{display:flex;align-items:center;gap:9px}
+  .c1-dot{width:8px;height:8px;border-radius:50%;box-shadow:0 0 10px currentColor}
+  .c1-status b{font-size:14px;font-weight:700;letter-spacing:.01em}
+  .c1-eta{font-size:11px;color:var(--mute);font-variant-numeric:tabular-nums}
+  .c1-rail{position:relative;display:flex;justify-content:space-between;padding:0 4px}
+  .c1-track{position:absolute;left:14px;right:14px;top:7px;height:2px;background:rgba(255,255,255,.1);border-radius:2px}
+  .c1-fill{position:absolute;left:14px;top:7px;height:2px;border-radius:2px;
+    background:linear-gradient(90deg,var(--gray),var(--yellow) 28%,var(--orange) 55%,var(--green));box-shadow:0 0 10px rgba(31,223,103,.35)}
+  .c1-node{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;width:0;flex:1}
+  .c1-node:first-child{align-items:flex-start}.c1-node:last-child{align-items:flex-end}
+  .c1-bub{width:16px;height:16px;border-radius:50%;background:var(--bg);border:2px solid rgba(255,255,255,.22);
+    display:flex;align-items:center;justify-content:center;transition:.2s}
+  .c1-bub.done{border-color:var(--green);background:var(--green)}
+  .c1-bub.done::after{content:'';width:5px;height:5px;border-radius:50%;background:#0a0a0a}
+  .c1-bub.cur{width:22px;height:22px;border-color:var(--green);background:rgba(31,223,103,.14);
+    box-shadow:0 0 0 4px rgba(31,223,103,.12),0 0 18px rgba(31,223,103,.5)}
+  .c1-bub.cur::after{content:'';width:8px;height:8px;border-radius:50%;background:var(--green);animation:c1pulse 1.8s ease-in-out infinite}
+  @keyframes c1pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.55;transform:scale(.7)}}
+  .c1-lbl{margin-top:11px;font-size:8.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--faint);white-space:nowrap}
+  .c1-node.is-cur .c1-lbl{color:var(--white);font-weight:700}
+  .c1-node.is-done .c1-lbl{color:rgba(255,255,255,.55)}
+
+  /* ============== CONCEPT 2 — GRADIENT METER ============== */
+  .c2-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+  .c2-status{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+  .c2-status .d{width:7px;height:7px;border-radius:50%;box-shadow:0 0 9px currentColor}
+  .c2-eta{font-size:11px;color:var(--mute)}
+  .c2-meter{position:relative;height:12px;border-radius:999px;background:rgba(255,255,255,.07);
+    box-shadow:inset 0 1px 2px rgba(0,0,0,.5);overflow:visible}
+  .c2-fill{position:absolute;left:0;top:0;bottom:0;border-radius:999px;
+    background:linear-gradient(90deg,#6b7280,var(--yellow) 30%,var(--orange) 58%,var(--green));
+    box-shadow:0 0 16px rgba(31,223,103,.45)}
+  .c2-fill::after{content:'';position:absolute;inset:0;border-radius:999px;
+    background:linear-gradient(90deg,transparent,rgba(255,255,255,.45),transparent);
+    background-size:200% 100%;animation:c2shine 2.6s linear infinite;mix-blend-mode:overlay}
+  @keyframes c2shine{0%{background-position:200% 0}100%{background-position:-60% 0}}
+  .c2-knob{position:absolute;top:50%;transform:translate(-50%,-50%);background:#fff;color:#0a0a0a;
+    font-size:11px;font-weight:800;padding:4px 9px;border-radius:999px;white-space:nowrap;
+    box-shadow:0 4px 14px rgba(0,0,0,.5),0 0 0 3px rgba(31,223,103,.25)}
+  .c2-knob::after{content:'';position:absolute;left:50%;top:100%;transform:translateX(-50%);
+    border:5px solid transparent;border-top-color:#fff}
+  .c2-ticks{display:flex;justify-content:space-between;margin-top:18px}
+  .c2-tick{font-size:8px;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.26);
+    position:relative;flex:1;text-align:center}
+  .c2-tick:first-child{text-align:left}.c2-tick:last-child{text-align:right}
+  .c2-tick.on{color:var(--green);font-weight:700}
+  .c2-tick.done{color:rgba(255,255,255,.5)}
+
+  /* ============== CONCEPT 3 — PHASE CHIPS ============== */
+  .c3-row{display:flex;gap:6px}
+  .c3-chip{flex:1;border-radius:11px;border:1px solid var(--line);background:rgba(255,255,255,.02);
+    padding:11px 8px 10px;text-align:center;transition:.2s;position:relative;overflow:hidden}
+  .c3-chip .n{font-size:8px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);display:block}
+  .c3-chip .bar{height:3px;border-radius:2px;background:rgba(255,255,255,.1);margin-top:9px}
+  .c3-chip.done{background:rgba(31,223,103,.06);border-color:rgba(31,223,103,.2)}
+  .c3-chip.done .n{color:rgba(255,255,255,.6)}
+  .c3-chip.done .bar{background:var(--c)}
+  .c3-chip.cur{border-color:var(--green);background:linear-gradient(180deg,rgba(31,223,103,.14),rgba(31,223,103,.03));
+    box-shadow:0 6px 22px -8px rgba(31,223,103,.5),inset 0 1px 0 rgba(255,255,255,.08);transform:translateY(-3px)}
+  .c3-chip.cur .n{color:var(--white);font-weight:800}
+  .c3-chip.cur .bar{background:var(--green);box-shadow:0 0 10px rgba(31,223,103,.7)}
+  .c3-chip .ic{font-size:13px;line-height:1;margin-bottom:7px;display:block;opacity:.5}
+  .c3-chip.done .ic,.c3-chip.cur .ic{opacity:1}
+  .c3-foot{display:flex;justify-content:space-between;margin-top:13px;align-items:center}
+  .c3-now{font-size:12px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;display:inline-flex;gap:8px;align-items:center}
+  .c3-now .d{width:7px;height:7px;border-radius:50%;box-shadow:0 0 9px currentColor}
+  .c3-meta{font-size:11px;color:var(--mute);font-variant-numeric:tabular-nums}
+
+  .note{margin-top:64px;padding:18px 20px;border:1px dashed var(--line-2);border-radius:12px;color:var(--mute);font-size:13px;line-height:1.6}
+  .note b{color:var(--white)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Project Timeline · Design Concepts</h1>
+  <p class="sub">Three fresh takes on the construction timeline, each shown two ways: a <b style="color:#fff">completed</b> project (Nauka — Now Open) and an <b style="color:#fff">in-progress</b> one (Construction · 55%). Pick one (or mix-and-match) and I'll wire it into the live modal across map, search &amp; articles.</p>
+
+  <!-- reference -->
+  <div class="concept">
+    <div class="concept-head"><span class="concept-num" style="background:#3a3d42;color:#fff">NOW</span><span class="concept-name" style="color:var(--mute)">Current design (for reference)</span></div>
+    <div class="card">
+      <div class="card-eyebrow"><span>NAUKA · RIVIERA NAYARIT</span><b>Now Open</b></div>
+      <div class="cur-top"><span class="cur-stage" style="color:var(--green)">Now Open</span><span class="cur-pct">100%</span></div>
+      <div class="cur-segs">
+        <div class="cur-seg"><i style="width:100%;background:var(--gray)"></i></div>
+        <div class="cur-seg"><i style="width:100%;background:var(--yellow)"></i></div>
+        <div class="cur-seg"><i style="width:100%;background:var(--orange)"></i></div>
+        <div class="cur-seg"><i style="width:100%;background:var(--green)"></i></div>
+        <div class="cur-seg"><i style="width:100%;background:var(--green)"></i></div>
+      </div>
+      <div class="cur-labels"><span>Announced</span><span>Breaking Ground</span><span>Construction</span><span>Opening Soon</span><span class="on">Now Open</span></div>
+      <div class="cur-sub">Delivered May '26</div>
+    </div>
+  </div>
+
+  <!-- ============ CONCEPT 1 ============ -->
+  <div class="concept">
+    <div class="concept-head"><span class="concept-num">01</span><span class="concept-name">Milestone Rail</span></div>
+    <p class="concept-desc">A journey of connected milestones. Completed stages are filled green checks, the current stage is a glowing, pulsing node, and a colour-graded line traces the progress. Reads like a premium delivery tracker.</p>
+    <div class="card">
+      <div class="card-eyebrow"><span>NAUKA · RIVIERA NAYARIT</span><b>Now Open</b></div>
+      <div class="c1">
+        <div class="c1-top">
+          <div class="c1-status" style="color:var(--green)"><span class="c1-dot"></span><b>Now Open</b></div>
+          <span class="c1-eta">Delivered May '26 · 100%</span>
+        </div>
+        <div class="c1-rail">
+          <div class="c1-track"></div><div class="c1-fill" style="right:14px;left:14px;width:auto"></div>
+          <div class="c1-node is-done"><div class="c1-bub done"></div><div class="c1-lbl">Announced</div></div>
+          <div class="c1-node is-done"><div class="c1-bub done"></div><div class="c1-lbl">Breaking Ground</div></div>
+          <div class="c1-node is-done"><div class="c1-bub done"></div><div class="c1-lbl">Construction</div></div>
+          <div class="c1-node is-done"><div class="c1-bub done"></div><div class="c1-lbl">Opening Soon</div></div>
+          <div class="c1-node is-cur"><div class="c1-bub cur"></div><div class="c1-lbl">Now Open</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-eyebrow"><span>ATELIER RESIDENCES · MIAMI</span><b>Construction</b></div>
+      <div class="c1">
+        <div class="c1-top">
+          <div class="c1-status" style="color:var(--orange)"><span class="c1-dot"></span><b>Under Construction</b></div>
+          <span class="c1-eta">Est. delivery 2028 · 55%</span>
+        </div>
+        <div class="c1-rail">
+          <div class="c1-track"></div><div class="c1-fill" style="width:50%"></div>
+          <div class="c1-node is-done"><div class="c1-bub done"></div><div class="c1-lbl">Announced</div></div>
+          <div class="c1-node is-done"><div class="c1-bub done"></div><div class="c1-lbl">Breaking Ground</div></div>
+          <div class="c1-node is-cur"><div class="c1-bub cur" style="border-color:var(--orange);background:rgba(255,149,0,.14);box-shadow:0 0 0 4px rgba(255,149,0,.12),0 0 18px rgba(255,149,0,.5)"><span style="display:none"></span></div><div class="c1-lbl">Construction</div></div>
+          <div class="c1-node"><div class="c1-bub"></div><div class="c1-lbl">Opening Soon</div></div>
+          <div class="c1-node"><div class="c1-bub"></div><div class="c1-lbl">Now Open</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ CONCEPT 2 ============ -->
+  <div class="concept">
+    <div class="concept-head"><span class="concept-num">02</span><span class="concept-name">Gradient Meter</span></div>
+    <p class="concept-desc">One smooth, glowing track that flows through the stage colours, with a floating percentage knob at the live position and a subtle moving shimmer. Modern, app-like, and instantly legible.</p>
+    <div class="card">
+      <div class="card-eyebrow"><span>NAUKA · RIVIERA NAYARIT</span><b>Now Open</b></div>
+      <div class="c2-top">
+        <span class="c2-status" style="color:var(--green)"><span class="d"></span>Now Open</span>
+        <span class="c2-eta">Delivered May '26</span>
+      </div>
+      <div class="c2-meter">
+        <div class="c2-fill" style="width:100%"></div>
+        <div class="c2-knob" style="left:calc(100% - 22px)">100%</div>
+      </div>
+      <div class="c2-ticks">
+        <span class="c2-tick done">Announced</span><span class="c2-tick done">Breaking Ground</span>
+        <span class="c2-tick done">Construction</span><span class="c2-tick done">Opening Soon</span><span class="c2-tick on">Now Open</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-eyebrow"><span>ATELIER RESIDENCES · MIAMI</span><b>Construction</b></div>
+      <div class="c2-top">
+        <span class="c2-status" style="color:var(--orange)"><span class="d"></span>Under Construction</span>
+        <span class="c2-eta">Est. delivery 2028</span>
+      </div>
+      <div class="c2-meter">
+        <div class="c2-fill" style="width:55%"></div>
+        <div class="c2-knob" style="left:55%">55%</div>
+      </div>
+      <div class="c2-ticks">
+        <span class="c2-tick done">Announced</span><span class="c2-tick done">Breaking Ground</span>
+        <span class="c2-tick on">Construction</span><span class="c2-tick">Opening Soon</span><span class="c2-tick">Now Open</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ CONCEPT 3 ============ -->
+  <div class="concept">
+    <div class="concept-head"><span class="concept-num">03</span><span class="concept-name">Phase Chips</span></div>
+    <p class="concept-desc">Each stage is its own chip. Completed chips carry their stage colour, the current chip lifts off the surface with a glow and bold label, and a status line anchors the bottom. Structured and dashboard-clean.</p>
+    <div class="card">
+      <div class="card-eyebrow"><span>NAUKA · RIVIERA NAYARIT</span><b>Now Open</b></div>
+      <div class="c3-row">
+        <div class="c3-chip done" style="--c:var(--gray)"><span class="ic">📣</span><span class="n">Announced</span><div class="bar"></div></div>
+        <div class="c3-chip done" style="--c:var(--yellow)"><span class="ic">⛏️</span><span class="n">Breaking Ground</span><div class="bar"></div></div>
+        <div class="c3-chip done" style="--c:var(--orange)"><span class="ic">🏗️</span><span class="n">Construction</span><div class="bar"></div></div>
+        <div class="c3-chip done" style="--c:var(--green)"><span class="ic">🔑</span><span class="n">Opening Soon</span><div class="bar"></div></div>
+        <div class="c3-chip cur"><span class="ic">✨</span><span class="n">Now Open</span><div class="bar"></div></div>
+      </div>
+      <div class="c3-foot"><span class="c3-now" style="color:var(--green)"><span class="d"></span>Now Open · 100%</span><span class="c3-meta">Delivered May '26</span></div>
+    </div>
+    <div class="card">
+      <div class="card-eyebrow"><span>ATELIER RESIDENCES · MIAMI</span><b>Construction</b></div>
+      <div class="c3-row">
+        <div class="c3-chip done" style="--c:var(--gray)"><span class="ic">📣</span><span class="n">Announced</span><div class="bar"></div></div>
+        <div class="c3-chip done" style="--c:var(--yellow)"><span class="ic">⛏️</span><span class="n">Breaking Ground</span><div class="bar"></div></div>
+        <div class="c3-chip cur" style="border-color:var(--orange);background:linear-gradient(180deg,rgba(255,149,0,.16),rgba(255,149,0,.03));box-shadow:0 6px 22px -8px rgba(255,149,0,.5),inset 0 1px 0 rgba(255,255,255,.08)"><span class="ic">🏗️</span><span class="n">Construction</span><div class="bar" style="background:var(--orange);box-shadow:0 0 10px rgba(255,149,0,.7)"></div></div>
+        <div class="c3-chip"><span class="ic">🔑</span><span class="n">Opening Soon</span><div class="bar"></div></div>
+        <div class="c3-chip"><span class="ic">✨</span><span class="n">Now Open</span><div class="bar"></div></div>
+      </div>
+      <div class="c3-foot"><span class="c3-now" style="color:var(--orange)"><span class="d"></span>Under Construction · 55%</span><span class="c3-meta">Est. delivery 2028</span></div>
+    </div>
+  </div>
+
+  <div class="note"><b>Next step:</b> tell me which concept (or a blend — e.g. Concept 2's meter with Concept 1's milestone labels) and I'll build it into <b>tmw-project-intel.js</b> so it ships everywhere the timeline appears — map modal, search hero, and article cards — in one change. The icons in Concept 3 are placeholders; I'd swap them for clean line-SVGs to match the brand.</div>
+</div>
+</body>
+</html>
