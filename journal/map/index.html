@@ -22264,7 +22264,19 @@
         try { if (window.updateResultCount) { window.updateResultCount('gridDesktop'); window.updateResultCount('gridMobile'); } } catch (e) {}
         document.querySelectorAll('.adv-add-chip').forEach(updateBtn);
       }
-      function updateBtn(btn) { if (!btn) return; const c = activeCount(); const b = btn.querySelector('.adv-add-n'); if (c) { btn.classList.add('on'); if (b) b.textContent = c; } else { btn.classList.remove('on'); if (b) b.textContent = ''; } }
+      // IMPORTANT: keep this idempotent. It can run from inside a
+      // MutationObserver, so any unconditional DOM write (e.g. always
+      // re-setting textContent) creates a new mutation -> the observer fires
+      // again -> infinite loop that freezes the page. Only touch the DOM when a
+      // value actually changed.
+      function updateBtn(btn) {
+        if (!btn) return;
+        const c = activeCount();
+        const on = c > 0;
+        if (btn.classList.contains('on') !== on) btn.classList.toggle('on', on);
+        const b = btn.querySelector('.adv-add-n');
+        if (b) { const t = c ? String(c) : ''; if (b.textContent !== t) b.textContent = t; }
+      }
 
       const st = document.createElement('style');
       st.textContent = `
@@ -22347,6 +22359,8 @@
         uV.textContent = (AF.uMin || 0) + ' – ' + (AF.uMax >= UMAX ? '4,000+' : AF.uMax.toLocaleString());
         fV.textContent = (AF.flMin || 1) + ' – ' + (AF.flMax >= FMAX ? '131+' : AF.flMax);
         const n = matchCount(); cta.textContent = 'Show ' + n.toLocaleString() + ' project' + (n === 1 ? '' : 's');
+        // Reflect the live active-filter count on the chip badge (idempotent).
+        document.querySelectorAll('.adv-add-chip').forEach(updateBtn);
       }
       const syncY = dualRange(panel.querySelector('#afpYR'), YMIN, YMAX, () => AF.yMin, () => AF.yMax, v => AF.yMin = v, v => AF.yMax = v);
       const syncU = dualRange(panel.querySelector('#afpUR'), 0, UMAX, () => AF.uMin, () => AF.uMax, v => AF.uMin = v, v => AF.uMax = v);
@@ -22428,16 +22442,27 @@
         const chip = mkChip();
         const first = container.firstElementChild; // the "All" chip
         if (first && first.nextSibling) container.insertBefore(chip, first.nextSibling);
-        else if (first) container.appendChild(chip);
         else container.appendChild(chip);
+        updateBtn(chip); // set the badge once, on insert (idempotent)
       }
+      // Only (re)insert the chip when a filter row rebuilt. Do NOT update badges
+      // here — that would write the DOM from inside the observer and risk a loop.
       function placeBtn() {
         placeIn(document.getElementById('v2FilterPills'));
         placeIn(document.querySelector('.v2-desktop-filter-pills'));
-        document.querySelectorAll('.adv-add-chip').forEach(updateBtn);
       }
       placeBtn();
-      new MutationObserver(() => placeBtn()).observe(document.body, { childList: true, subtree: true });
+      // The filter-pill rows are built asynchronously; retry a few times after
+      // init so the chip appears even if the page goes idle before the rows
+      // exist (the observer below only fires on subsequent DOM changes).
+      [200, 600, 1200, 2500].forEach(ms => setTimeout(placeBtn, ms));
+      // Throttle to one run per frame so heavy map mutations don't thrash this.
+      let _pbScheduled = false;
+      const _schedulePlace = () => {
+        if (_pbScheduled) return; _pbScheduled = true;
+        requestAnimationFrame(() => { _pbScheduled = false; placeBtn(); });
+      };
+      new MutationObserver(_schedulePlace).observe(document.body, { childList: true, subtree: true });
     })();
 
     // ‚îÄ‚îÄ Desktop v2: brute-force 1-column tile layout via inline styles.
