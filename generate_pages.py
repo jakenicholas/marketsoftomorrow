@@ -352,6 +352,21 @@ def compute_progress(delivery_date_str, status, start_date_str=''):
 _MONTH_NAMES = ['January','February','March','April','May','June',
                 'July','August','September','October','November','December']
 
+def _hero_teaser(text, target=230):
+    """Short hero lede derived from a long bio when no dedicated short
+    Description exists. Returns the whole text if already short; otherwise a
+    word-boundary cut near `target` chars with an ellipsis. Avoids splitting on
+    abbreviation periods (e.g. '120 S. Dixie') by cutting on whitespace rather
+    than sentence punctuation."""
+    text = (text or '').strip()
+    if len(text) <= target + 40:
+        return text
+    cut = text[:target]
+    if ' ' in cut:
+        cut = cut[:cut.rfind(' ')]
+    return cut.rstrip(' ,;:—–-') + '…'
+
+
 def format_fact_date(raw):
     """Compact date format for the Start / Completion fact tiles:
       'YYYY-MM-DD' -> 'MM.DD.YY'   e.g. '2024-02-15' -> '02.15.24'
@@ -741,8 +756,13 @@ def build_page(row, articles=None, nearby=None):
                     f'{star}{status_text}</span>')
 
     # Hero lede (short bio) vs. below "About" (long bio, only if it differs).
-    lede = (row.get('Description', '').strip() or row.get('DescriptionLong', '').strip())
+    # Prefer the dedicated short Description for the hero. When a project has
+    # ONLY a long DescriptionLong (no short bio), don't dump the whole essay in
+    # the hero — derive a short teaser and keep the full text for the About
+    # section below, like every other project.
     about_long = row.get('DescriptionLong', '').strip()
+    short_desc = row.get('Description', '').strip()
+    lede = short_desc or _hero_teaser(about_long)
     about_section = ''
     if about_long and about_long != lede:
         about_section = (f'<div class="pp-sec"><div class="pp-sec-h">About the project</div>'
