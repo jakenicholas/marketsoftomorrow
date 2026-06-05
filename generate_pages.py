@@ -1021,8 +1021,7 @@ def build_page(row, articles=None, nearby=None):
     # button hydration script reads this to pass back to the favorites API).
     esc_attr_title = _escape_attr(title)
     page_url = f"{ROOT_URL}/projects/{slug}/"
-    # Deep-link to map: omit fullscreen=true so the map opens with a small popup
-    # preview hovering over the pin (not the full modal). Per UX spec.
+    # Deep-link to the map: ?project=<slug> opens the project's modal there.
     map_url  = f"{SITE_URL}/?project={mslug}"
 
     seo_title = f"{title}, {city} | Markets of Tomorrow"

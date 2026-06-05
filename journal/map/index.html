@@ -13154,7 +13154,7 @@
 
     // ‚îÄ‚îÄ Deep-link: open project from ?project= URL param ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
     // - ?project=slug                  ‚Üí fly to pin + show small popup preview
-    // - ?fullscreen=true&project=slug  ‚Üí fly to pin + open full project modal
+    // - ?project=slug  → fly to pin + open the full project modal
     function handleDeepLink() {
       const params = new URLSearchParams(window.location.search);
       const slug = params.get('project');
@@ -13166,9 +13166,9 @@
         return s === slug;
       });
       if (!match) return;
-      // Embed mode behaves like fullscreen (open the modal + center the
-      // pin) but with the embed-specific modal width and mobile layout.
-      if (fullscreen || embed) {
+      // Any project deep-link (?project=slug) opens the full project modal +
+      // centers the pin. (`embed` just tweaks the modal width / mobile layout.)
+      {
         // Without zoomToPinOnly the pin doesn't turn pink and the camera
         // doesn't move. We call it first so the pink-pin paint takes
         // effect, then issue a layout-aware flyTo to push the pin into
@@ -13217,23 +13217,6 @@
           } catch (_) { /* fall through */ }
         }
         setTimeout(() => { window.openProjectModal(match, embed ? 'embed' : 'deeplink'); }, 600);
-      } else {
-        // Default: zoom to pin + show small popup preview.
-        // Use zoomToPinOnly so the camera flight uses the universal
-        // mobile offset (computeMobilePinOffset) -- matches the tile-click
-        // flow exactly. Previously this branch did a raw flyTo with no
-        // offset, leaving the pin at viewport center on mobile while the
-        // tile-click flow put it at 70% -- causing visible inconsistency
-        // when a user opened a project from a pulse notification.
-        if (typeof zoomToPinOnly === 'function') {
-          zoomToPinOnly(match);
-        } else {
-          // Defensive fallback (shouldn't happen in normal load order)
-          const co = match.geometry.coordinates;
-          const targetZoom = Math.max(map.getZoom(), 13);
-          map.flyTo({ center: co, zoom: targetZoom, duration: 1400, essential: true });
-        }
-        setTimeout(() => { showPopup(match, { skipPaywall: true }); }, 1500);
       }
     }
     // Expose so the Pulse drawer's click interceptor can call this directly
@@ -14383,7 +14366,7 @@
           const el = document.getElementById('pmDossier');
           if (!el) return;
           try {
-            const slug = (p.title || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+            const slug = (p.title || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
             el.dataset.slug = slug;
             el.style.display = 'none';
             el.innerHTML = '';
@@ -14518,7 +14501,7 @@
 
         // Show modal ‚Äî push URL + update SEO meta for sharing
         const slug = projectSlug(p.title);
-        history.pushState({ project: slug }, '', `?fullscreen=true&project=${slug}`);
+        history.pushState({ project: slug }, '', `?project=${slug}`);
         const seoTitle = `${p.title}, ${p.city} | Markets of Tomorrow`;
         const seoDesc = p.descriptionLong || p.description || `Explore ${p.title} on the Map of Tomorrow ‚Äî Markets of Tomorrow's interactive development map.`;
         const seoImg = p.image || 'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_93ffb2f000f94a12aa874fe44153be18~mv2.jpg';
@@ -14641,7 +14624,7 @@
           // complete and the modal is hidden.
           modal.classList.remove('closing');
         }, 350);
-        history.pushState({}, '', `?fullscreen=true`);
+        history.pushState({}, '', window.location.pathname);
         // Restore SEO meta to defaults
         document.title = 'Map of Tomorrow | Interactive Future Development Map | Markets of Tomorrow';
         document.querySelector('meta[property="og:title"]')?.setAttribute('content', 'Map of Tomorrow | Interactive Future Development Map | Markets of Tomorrow');
