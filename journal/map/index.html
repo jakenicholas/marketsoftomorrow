@@ -2152,6 +2152,20 @@
       color: rgba(255,255,255,0.35);
     }
 
+    /* Dossier-style source link in a milestone's meta row (domain + NE arrow),
+       mirroring the project dossier's .dos-src. Green, opens the source in a
+       new tab. Lives inside the row anchor but behaves as its own link. */
+    .pulse-ev-src {
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+      color: var(--accent, #1FDF67);
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .pulse-ev-src:hover { text-decoration: underline; }
+    .pulse-ev-src svg { flex-shrink: 0; }
+
     /* Per-event dismiss button. Top-right of each row, visible only on
        hover so the rows look clean at rest. */
     .pulse-ev-close {
@@ -19926,14 +19940,39 @@
         var tsPart = ts ? '<span class="pulse-ev-ts">' + escapeHtml(ts) + '</span>' : '';
         var sep = (locPart && tsPart) ? '<span class="pulse-ev-sep">&middot;</span>' : '';
         var tagLabel = e.tag || tagLabelFor(e);
-        var bottomMeta = tagLabel ? '<div class="pulse-ev-bottom">' + escapeHtml(tagLabel) + '</div>' : '';
+        var sepDot = '<span class="pulse-ev-sep">&middot;</span>';
+
+        // For a status milestone, lead the title with just the PROJECT NAME
+        // (the phase is shown in the meta row) so the row mirrors the dossier
+        // "story so far" — which is per-project and never repeats the name.
+        var titleText = (e.type === 'status_change' && e.project_title) ? e.project_title : (e.title || '');
+
+        // Dossier-style source link: a milestone carries the same source_url the
+        // dossier cites. Render the domain + the dossier's NE arrow. It sits
+        // inside the row anchor, so it's a <span> (not a nested <a>) and its
+        // click is intercepted below to open the source without deep-linking.
+        var srcHtml = '';
+        if (e.type === 'status_change' && e.source_url) {
+          var sdom = '';
+          try { sdom = new URL(e.source_url).hostname.replace(/^www\./, ''); } catch (_) {}
+          srcHtml = '<span class="pulse-ev-src" data-src="' + escapeHtml(e.source_url) + '" role="link" tabindex="0" title="View source' + (sdom ? ': ' + escapeHtml(sdom) : '') + '">'
+            + escapeHtml(sdom || 'source')
+            + '<svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></span>';
+        }
 
         // V2: tsrow = TYPE ¬∑ city ¬∑ time  (type label colored, rest muted)
         // Legacy: tsrow = time ¬∑ city  (time colored, bottom = tag label)
         var tsrowHtml;
-        if (isV2) {
+        var bottomMeta = '';
+        if (e.type === 'status_change') {
+          // Dossier "story so far" cadence: PHASE · event date · city · source ↗
+          var parts = ['<span class="pulse-ev-type-lbl">' + escapeHtml(isV2 ? tagLabel.toUpperCase() : tagLabel) + '</span>'];
+          if (ts) parts.push('<span class="pulse-ev-ts">' + escapeHtml(ts) + '</span>');
+          if (e.city) parts.push('<span class="pulse-ev-loc">' + escapeHtml(e.city) + '</span>');
+          if (srcHtml) parts.push(srcHtml);
+          tsrowHtml = '<div class="pulse-ev-tsrow">' + parts.join(sepDot) + '</div>';
+        } else if (isV2) {
           var typeLbl = escapeHtml((e.tag || tagLabelFor(e)).toUpperCase());
-          var sepDot = '<span class="pulse-ev-sep">&middot;</span>';
           tsrowHtml = '<div class="pulse-ev-tsrow">'
             + '<span class="pulse-ev-type-lbl">' + typeLbl + '</span>'
             + (e.city ? sepDot + '<span class="pulse-ev-loc">' + escapeHtml(e.city) + '</span>' : '')
@@ -19941,6 +19980,7 @@
             + '</div>';
         } else {
           tsrowHtml = '<div class="pulse-ev-tsrow">' + tsPart + sep + locPart + '</div>';
+          bottomMeta = tagLabel ? '<div class="pulse-ev-bottom">' + escapeHtml(tagLabel) + '</div>' : '';
         }
 
         // Article events ("on tmw" coverage) open in a new tab ‚Äî append
@@ -19957,7 +19997,7 @@
         html += '<div class="pulse-ev-wrap pulse-ev-type-' + tagCls + '" data-event-type="' + escapeHtml(e.type || '') + '">'
               +   '<a class="pulse-ev" href="' + escapeHtml(e.link || '#') + '"' + target + eventTypeAttr + '>'
               +     tsrowHtml
-              +     '<div class="pulse-ev-title">' + eyeIcon + escapeHtml(e.title || '') + extIcon + '</div>'
+              +     '<div class="pulse-ev-title">' + eyeIcon + escapeHtml(titleText) + extIcon + '</div>'
               +     (isV2 ? '' : bottomMeta)
               +   '</a>'
               +   '<button type="button" class="pulse-ev-close" data-dismiss="' + safeId + '" aria-label="Dismiss">'
@@ -20032,6 +20072,19 @@
           renderEvents();
           updateHeader();
           updateBadge();
+        });
+      }
+
+      // Wire dossier-style source links (inside the row anchor). preventDefault
+      // stops the anchor from navigating; stopPropagation stops the row's
+      // deep-link handler — the source opens in a new tab instead.
+      var srcEls = listEl.querySelectorAll('.pulse-ev-src[data-src]');
+      for (var s = 0; s < srcEls.length; s++) {
+        srcEls[s].addEventListener('click', function (ev) {
+          ev.preventDefault();
+          ev.stopPropagation();
+          var url = ev.currentTarget.getAttribute('data-src');
+          if (url) window.open(url, '_blank', 'noopener');
         });
       }
     }
