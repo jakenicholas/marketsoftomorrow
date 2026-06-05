@@ -849,20 +849,31 @@ def build_milestones(row, articles=None):
     if delivery_date and 'grand-opening' not in found:
         consider(entry('grand-opening', delivery_date, estimated=(row.get('DeliverySpeculative', '') == '1')))
 
-    # 3) announced proxy (earliest article) — only when it predates everything
-    # else, so late coverage can't invert the timeline.
-    if articles and 'announced' not in found:
+    # 3) ANNOUNCED = the FIRST public reveal. Anchor it to the EARLIEST article
+    # (usually our own coverage) — that's the best evidence of when it was
+    # announced. This must beat a later status transition / correction: when a
+    # status is walked back to "announced" with no effective_date, build_milestones
+    # would otherwise date it to the record (today) with that correction's source.
+    # Guard: the article must predate the OTHER phases so late coverage can't
+    # invert the timeline. We override the existing 'announced' whenever the
+    # earliest article is earlier than its date (or it has no real date).
+    if articles:
         dated = [a for a in articles if (a.get('published_at', '') or '').strip()]
         if dated:
             first = min(dated, key=lambda a: (a.get('published_at', '') or '')[:10])
             adate = (first.get('published_at', '') or '')[:10]
-            others = [e['date'][:10] for e in found.values() if e['date']]
+            # Compare against the OTHER milestones (exclude the current announced,
+            # whose date may just be a record/correction date we don't trust).
+            others = [e['date'][:10] for ph, e in found.items() if ph != 'announced' and e['date']]
             if start_date:
                 others.append(start_date[:10])
             if delivery_date:
                 others.append(delivery_date[:10])
-            if adate and (not others or adate < min(others)):
-                consider(entry('announced', adate, first.get('link', ''), sourced=bool(first.get('link'))))
+            ex = found.get('announced')
+            if adate and (not others or adate < min(others)) \
+                    and (ex is None or not ex.get('date') or adate < ex['date'][:10]):
+                found['announced'] = entry('announced', adate, first.get('link', ''),
+                                           sourced=bool(first.get('link')))
 
     # Prefer TMW's own coverage (oftmw.com) as the source when we published about
     # a milestone the same month (or year, for year-grain dates) it happened —
