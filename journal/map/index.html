@@ -12457,9 +12457,33 @@
       const _blurStyle = document.createElement('style');
       _blurStyle.textContent = 'body.map-busy *{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}';
       document.head.appendChild(_blurStyle);
+
+      // The GL "glow" layers (featured-glow has circle-blur:0.8; watched-ring is
+      // a soft stroke) are GPU-blurred and re-render every frame while the map
+      // moves — at low zoom many are visible at once, which is the lag you feel
+      // (it clears as you zoom in and fewer remain). Hide them during the
+      // gesture and restore each to its PRIOR visibility after it settles, so we
+      // don't fight the filter/Completed-toggle logic that also owns these.
+      const GLOW_LAYERS = ['featured-glow', 'watched-ring'];
+      const _glowPrev = {};
+      const setGlowHidden = (hide) => {
+        GLOW_LAYERS.forEach(id => {
+          if (!map.getLayer(id)) return;
+          try {
+            if (hide) {
+              if (!(id in _glowPrev)) _glowPrev[id] = map.getLayoutProperty(id, 'visibility') || 'visible';
+              map.setLayoutProperty(id, 'visibility', 'none');
+            } else if (id in _glowPrev) {
+              map.setLayoutProperty(id, 'visibility', _glowPrev[id]);
+              delete _glowPrev[id];
+            }
+          } catch (_) {}
+        });
+      };
+
       let _blurIdle;
-      const blurSuspend = () => { clearTimeout(_blurIdle); document.body.classList.add('map-busy'); };
-      const blurRestore = () => { clearTimeout(_blurIdle); _blurIdle = setTimeout(() => document.body.classList.remove('map-busy'), 160); };
+      const blurSuspend = () => { clearTimeout(_blurIdle); document.body.classList.add('map-busy'); setGlowHidden(true); };
+      const blurRestore = () => { clearTimeout(_blurIdle); _blurIdle = setTimeout(() => { document.body.classList.remove('map-busy'); setGlowHidden(false); }, 160); };
       map.on('movestart', blurSuspend);
       map.on('zoomstart', blurSuspend);
       map.on('moveend', blurRestore);
