@@ -4785,71 +4785,7 @@
     font-size: 10px; color: rgba(255,255,255,0.6);
   }
 
-  /* ‚îÄ‚îÄ‚îÄ Project Updates (status changes + new-on-map events) ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
-     Lives above Coverage in the modal. Each row is a single-line timeline
-     entry: dot + descriptive text + relative time. Subtler than Coverage
-     since these are TMW-tracked, not third-party news. */
-  #projectModal .pm-updates[hidden] { display: none; }
-  #projectModal .pm-updates {
-    margin-top: 24px;
-    padding-top: 20px;
-    border-top: 0.5px solid rgba(255,255,255,0.07);
-  }
-  #projectModal .pm-updates-header {
-    display: flex; align-items: center; justify-content: space-between;
-    margin-bottom: 14px;
-  }
-  #projectModal .pm-updates-title {
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    font-weight: 700;
-    color: #fff;
-    display: flex; align-items: center; gap: 8px;
-  }
-  #projectModal .pm-updates-count {
-    font-size: 10px;
-    background: rgba(31,223,103,0.12);
-    color: #1FDF67;
-    padding: 2px 7px;
-    border-radius: 10px;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-  }
-  #projectModal .pm-update-row {
-    display: flex;
-    gap: 12px;
-    padding: 10px 0;
-    border-bottom: 0.5px solid rgba(255,255,255,0.04);
-  }
-  #projectModal .pm-update-row:last-child { border-bottom: none; }
-  #projectModal .pm-update-dot {
-    flex-shrink: 0;
-    width: 8px; height: 8px;
-    margin-top: 6px;
-    border-radius: 50%;
-    background: #FF9500;
-  }
-  #projectModal .pm-update-dot.map { background: #6FA8FF; }
-  #projectModal .pm-update-body {
-    flex: 1; min-width: 0;
-  }
-  #projectModal .pm-update-text {
-    font-size: 13px;
-    color: #fff;
-    line-height: 1.4;
-  }
-  #projectModal .pm-update-meta {
-    font-size: 10px;
-    color: rgba(255,255,255,0.45);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    margin-top: 2px;
-  }
-
-  /* ‚îÄ‚îÄ‚îÄ Coverage on TMW (article history for the current project) ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ */
-  /* Hidden until articles are loaded; the section reveals itself only when
-     the project has at least one matching article in articles.json. */
+  /* Coverage on TMW — article history for the current project. */
   #projectModal .pm-coverage[hidden] { display: none; }
   #projectModal .pm-coverage {
     margin-top: 24px;
@@ -13910,71 +13846,9 @@
         });
       }
 
-      // ‚îÄ‚îÄ‚îÄ Project Updates (status_change + new_project events) ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
-      // Pulls all events from window._pulseEvents matching this project's
-      // slug and types in {status_change, new_project}, then renders them
-      // as a compact timeline. Hidden if no such events exist.
-      //
-      // Pulse only retains the last ~50 site-wide events so this is
-      // recent-history only -- a project with year-old status changes
-      // won't see them here once they've aged out of pulse.json. That's
-      // an acceptable MVP limitation; durable history would need a
-      // separate per-project store.
-      function renderUpdatesSection(projectTitle) {
-        const wrap = document.getElementById('pmUpdates');
-        const body = document.getElementById('pmUpdatesBody');
-        const countEl = document.getElementById('pmUpdatesCount');
-        if (!wrap || !body) return;
-        // Hide while loading so a stale section from the previous project
-        // doesn't flash on screen.
-        wrap.setAttribute('hidden', '');
-        body.innerHTML = '';
-        const slug = pyStyleSlug(projectTitle);
-        if (!slug) return;
-        // pulse.json may not have loaded yet if the modal opens early.
-        // The pulse drawer always fetches it on first open, but if the
-        // user goes straight to a project we kick off a fetch here too.
-        const ensure = (window._pulseEvents && window._pulseEvents.length)
-          ? Promise.resolve(window._pulseEvents)
-          : fetch('pulse.json', { cache: 'no-store' })
-              .then(r => r.ok ? r.json() : { events: [] })
-              .then(d => {
-                const events = (d && Array.isArray(d.events)) ? d.events : [];
-                window._pulseEvents = events;
-                return events;
-              })
-              .catch(() => []);
-        ensure.then(events => {
-          const matches = (events || []).filter(ev =>
-            ev.project_slug === slug &&
-            (ev.type === 'status_change' || ev.type === 'new_project')
-          );
-          if (!matches.length) {
-            wrap.setAttribute('hidden', '');
-            return;
-          }
-          let html = '';
-          matches.forEach(ev => {
-            const dotCls = (ev.type === 'new_project') ? 'map' : '';
-            // Title for status_change events is built upstream as the new
-            // status label (e.g. "Now Under Construction"). For new_project
-            // it's "Added to the map" or similar. Just print as-is.
-            const text = ev.title_full || ev.title || 'Project update';
-            html += `
-              <div class="pm-update-row">
-                <div class="pm-update-dot ${dotCls}"></div>
-                <div class="pm-update-body">
-                  <div class="pm-update-text">${escapeArticleHtml(text)}</div>
-                  <div class="pm-update-meta">${formatArticleDate(ev.timestamp)}</div>
-                </div>
-              </div>
-            `;
-          });
-          body.innerHTML = html;
-          if (countEl) countEl.textContent = matches.length;
-          wrap.removeAttribute('hidden');
-        });
-      }
+      // Project Updates (pulse-hydrated) retired — superseded by the "story so far"
+      // dossier. Kept as a no-op so any caller doesn't error.
+      function renderUpdatesSection() {}
       window.renderUpdatesSection = renderUpdatesSection;
 
       // ‚îÄ‚îÄ‚îÄ TMW Intelligence block (project modal) ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
