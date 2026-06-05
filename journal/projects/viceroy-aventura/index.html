@@ -823,20 +823,6 @@
       .map-preview { height: 180px; }
     }
 
-    /* ── Project Updates: timeline of status_change + new_project events ── */
-    .updates-section[hidden] { display: none; }
-    .updates-section { margin-top: 28px; padding-top: 22px; border-top: 1px solid rgba(255,255,255,0.08); }
-    .updates-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
-    .updates-title { font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; color: #fff; margin: 0; display: flex; align-items: center; gap: 8px; }
-    .updates-count { font-size: 10px; background: rgba(31,223,103,0.12); color: #1FDF67; padding: 2px 7px; border-radius: 10px; font-weight: 700; letter-spacing: 0.04em; }
-    .update-row { display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
-    .update-row:last-child { border-bottom: none; }
-    .update-dot { flex-shrink: 0; width: 8px; height: 8px; margin-top: 6px; border-radius: 50%; background: #FF9500; }
-    .update-dot.map { background: #6FA8FF; }
-    .update-body { flex: 1; min-width: 0; }
-    .update-text { font-size: 13px; color: #fff; line-height: 1.4; }
-    .update-meta { font-size: 10px; color: rgba(255,255,255,0.45); text-transform: uppercase; letter-spacing: 0.06em; margin-top: 2px; }
-
     /* ── Living dossier: sourced, event-dated milestone timeline ── */
     .pp-dossier .pp-sec-h { color: var(--purple-soft, #B9A6FF); }
     .dos-tl { position: relative; margin-top: 4px; }
@@ -1065,7 +1051,7 @@
     </a></div>
       
       
-      <div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div><div class="pp-near-grid"><a class="pp-near-card" href="/projects/flow-at-aventura-corporate-center/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/0758e0d93883-aventura-flow-2.jpeg')"><span class="pp-near-status">Announced</span></div><div class="pp-near-b"><div class="pp-near-t">Flow at Aventura Corporate Center</div><div class="pp-near-m">Aventura · Residences</div></div></a></div></div>
+      <div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div><div class="pp-near-grid"><a class="pp-near-card" href="/projects/flow-at-aventura-corporate-center/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/0758e0d93883-aventura-flow-2.jpeg')"><span class="pp-near-status">Announced</span></div><div class="pp-near-b"><div class="pp-near-t">Flow at Aventura Corporate Center</div><div class="pp-near-m">Aventura · Residences</div></div></a><a class="pp-near-card" href="/projects/canal-by-iq-concept-aventura/"><div class="pp-near-img" style="background-image:url('https://miamipre.com/wp-content/uploads/2025/07/cms_13f3bf94-cf87-4965-a773-dd4cc4636b7d-1-scaled-1.jpg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">Canal by IQ Concept Aventura</div><div class="pp-near-m">Aventura · Residences</div></div></a></div></div>
     </div>
   </main>
 
@@ -1446,68 +1432,10 @@
     };
     window.ppInitWatch();
 
-    /* ─── Project Updates hydration ─────────────────────────────────────
-       Fetches /pulse.json on page load and surfaces any status_change or
-       new_project events for THIS project as a compact timeline. Section
-       stays hidden if no matching events exist. Mirrors the modal's
-       Project Updates section.
-
-       Exposed as window.ppInitUpdates and reads the slug from #pp's data-slug
-       (kept current by project-shuffle.js) so it re-hydrates correctly after a
-       shuffle swap. */
-    window.ppInitUpdates = function updatesHydrate() {
-      var section = document.getElementById('updatesSection');
-      var body    = document.getElementById('updatesBody');
-      var countEl = document.getElementById('updatesCount');
-      if (!section || !body) return;
-      var ppRoot   = document.getElementById('pp');
-      var pageSlug = ppRoot ? (ppRoot.getAttribute('data-slug') || '') : '';
-      if (!pageSlug) return;
-
-      function escapeHtml(s) {
-        return String(s || '').replace(/[&<>"']/g, function(ch) {
-          return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[ch];
-        });
-      }
-      function formatDate(iso) {
-        if (!iso) return '';
-        try {
-          var d = new Date(iso);
-          return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
-        } catch (e) { return ''; }
-      }
-
-      fetch('/map/pulse.json', { cache: 'no-store' })
-        .then(function(r) { return r.ok ? r.json() : { events: [] }; })
-        .then(function(data) {
-          var events = (data && Array.isArray(data.events)) ? data.events : [];
-          var matches = events.filter(function(ev) {
-            return ev.project_slug === pageSlug &&
-                   (ev.type === 'status_change' || ev.type === 'new_project');
-          });
-          if (!matches.length) {
-            section.setAttribute('hidden', '');
-            return;
-          }
-          var html = '';
-          matches.forEach(function(ev) {
-            var dotCls = (ev.type === 'new_project') ? 'map' : '';
-            var text = ev.title_full || ev.title || 'Project update';
-            html += '<div class="update-row">' +
-                      '<div class="update-dot ' + dotCls + '"></div>' +
-                      '<div class="update-body">' +
-                        '<div class="update-text">' + escapeHtml(text) + '</div>' +
-                        '<div class="update-meta">' + escapeHtml(formatDate(ev.timestamp)) + '</div>' +
-                      '</div>' +
-                    '</div>';
-          });
-          body.innerHTML = html;
-          if (countEl) countEl.textContent = matches.length;
-          section.removeAttribute('hidden');
-        })
-        .catch(function() { /* non-fatal */ });
-    };
-    window.ppInitUpdates();
+    /* The pulse-hydrated "Project Updates" section was retired (superseded by the
+       "story so far" dossier). Kept as a no-op so project-shuffle.js can still call
+       window.ppInitUpdates() after a swap without erroring. */
+    window.ppInitUpdates = function updatesHydrate() {};
   </script>
 
   <!-- Cinematic gallery + same-market shuffle engine (gallery photos, edge
