@@ -324,7 +324,7 @@
   .atlas-mover .md{width:8px;height:8px;border-radius:50%;margin-top:6px;flex:0 0 auto}
   .atlas-mover .mname{font-size:14px;color:#fff;font-weight:600}
   .atlas-mover .mchg{font-family:var(--mono);font-size:11px;color:var(--mute-2);margin-top:4px;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
-  .atlas-mover .mchg .to{color:var(--orange);font-weight:700;text-transform:capitalize}
+  .atlas-mover .mchg .to{color:var(--purple);font-weight:700;text-transform:capitalize}
   .atlas-mover .mchg .marrow{color:var(--mute);font-weight:400}
   .atlas-mover .msrc{font-family:var(--mono);font-size:10px;color:var(--mute);margin-top:4px;line-height:1.5}
   .atlas-mover .msrc a{color:var(--green-soft);text-decoration:none}
@@ -385,9 +385,9 @@
     background: rgba(255,255,255,0.3);
   }
   .v2-pulse-content .pulse-ev-wrap:hover { background: rgba(255,255,255,0.04); }
-  .v2-pulse-content .pulse-ev-wrap[data-event-type="status_change"]::before { background: var(--orange, #FF9500); box-shadow: 0 0 0 3px rgba(255,149,0,0.18); }
+  .v2-pulse-content .pulse-ev-wrap[data-event-type="status_change"]::before { background: var(--purple, #A78BFA); box-shadow: 0 0 0 3px rgba(167,139,250,0.18); }
   .v2-pulse-content .pulse-ev-wrap[data-event-type="article"]::before      { background: var(--accent, #1FDF67); box-shadow: 0 0 0 3px rgba(31,223,103,0.18); }
-  .v2-pulse-content .pulse-ev-wrap[data-event-type="new_project"]::before  { background: var(--blue, #6FA8FF); box-shadow: 0 0 0 3px rgba(111,168,255,0.18); }
+  .v2-pulse-content .pulse-ev-wrap[data-event-type="new_project"]::before  { background: #8b93a7; box-shadow: 0 0 0 3px rgba(139,147,167,0.18); }
   .v2-pulse-content .pulse-ev {
     display: block;
     text-decoration: none;
@@ -406,10 +406,10 @@
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    color: var(--orange, #FF9500);
+    color: var(--purple, #A78BFA);
   }
   .v2-pulse-content .pulse-ev-wrap[data-event-type="article"]     .pulse-ev-type-lbl { color: var(--accent, #1FDF67); }
-  .v2-pulse-content .pulse-ev-wrap[data-event-type="new_project"] .pulse-ev-type-lbl { color: var(--blue, #6FA8FF); }
+  .v2-pulse-content .pulse-ev-wrap[data-event-type="new_project"] .pulse-ev-type-lbl { color: #8b93a7; }
   .v2-pulse-content .pulse-ev-loc,
   .v2-pulse-content .pulse-ev-ts {
     color: rgba(255,255,255,0.55);
@@ -1414,7 +1414,8 @@
       const rows = evs.map(e => {
         const isNew = e.type === 'new_project';
         const tag = e.tag || (isNew ? 'Added to the map' : '');
-        const dot = isNew ? 'var(--purple)' : (TAGDOT[tag] || 'var(--purple)');
+        // Uniform dossier purple for milestone movers — matches the Pulse drawer.
+        const dot = 'var(--purple)';
         const name = escapeHtml(e.project_title || e.title || '');
         const href = e.link || '#';
         const nameInner = `<div class="mname">${name}</div>`;
@@ -1505,14 +1506,14 @@
       };
       const atlasTagLabel = (ev) => {
         if (ev.type === 'article')     return 'News';
-        if (ev.type === 'new_project') return 'Map';
-        return 'Update';
+        if (ev.type === 'new_project' || ev.type === 'tracking') return 'Tracking';
+        return '';  // milestones use their own phase tag; no generic "Update"
       };
       const sepDot = '<span class="pulse-ev-sep">&middot;</span>';
       const cards = events.slice(0, 10).map(ev => {
         const type = ev.type || 'article';
         const tag = ev.tag || atlasTagLabel(ev);
-        const typeLbl = escapeHtml(tag.toUpperCase());
+        const typeLblHtml = tag ? '<span class="pulse-ev-type-lbl">' + escapeHtml(tag.toUpperCase()) + '</span>' : '';
         // Article rows always open in a new tab; map events (new_project /
         // status_change) deep-link into the map, so they also open there.
         const target = ' target="_blank" rel="noopener"';
@@ -1535,7 +1536,7 @@
           <div class="pulse-ev-wrap pulse-ev-type-${atlasTagClass(ev)}" data-event-type="${escapeHtml(type)}">
             <a class="pulse-ev" href="${escapeHtml(href)}"${target}>
               <div class="pulse-ev-tsrow">
-                <span class="pulse-ev-type-lbl">${typeLbl}</span>
+                ${typeLblHtml}
                 ${locPart}
                 ${tsPart}
               </div>
