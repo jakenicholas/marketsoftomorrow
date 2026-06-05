@@ -47,7 +47,9 @@ const ARTICLES_URL = 'https://www.oftmw.com/map/articles.json';
 
 // Project lifecycle order — status only ever advances along this path. Used by
 // the construction-update automation (list_projects_due / update_project_status).
-const STATUS_ORDER = ['announced', 'coming-soon', 'breaking-ground', 'construction', 'open'];
+// "coming-soon" sits just before "open" = under construction and opening within
+// ~6–7 months (TMW's definition of "soon"), NOT a pre-construction sales phase.
+const STATUS_ORDER = ['announced', 'breaking-ground', 'construction', 'coming-soon', 'open'];
 function statusRank(s) { const i = STATUS_ORDER.indexOf(String(s || '').toLowerCase()); return i < 0 ? 0 : i; }
 
 // ── Tool catalog ────────────────────────────────────────────────────────────
