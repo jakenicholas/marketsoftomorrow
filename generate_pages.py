@@ -8,8 +8,12 @@ Run: python3 generate_pages.py
 import csv, io, os, re, json, time, urllib.request, urllib.parse, sys
 
 SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1qwU7ykIDUrtPlIQu-qk2FIJwiz-WWg5caq02ja30sgM/export?format=csv&gid=0"
-OUTPUT_DIR = "journal/map/projects"
+OUTPUT_DIR = "journal/projects"
 SITE_URL = "https://www.oftmw.com/map"
+# Project detail pages live at the site ROOT (/projects/<slug>/), not under the
+# map (/map/...). SITE_URL stays the map base for "View Map" links + ?project=
+# modal deep-links; ROOT_URL is the base for the project pages themselves.
+ROOT_URL = "https://www.oftmw.com"
 DEFAULT_IMAGE = "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_93ffb2f000f94a12aa874fe44153be18~mv2.jpg"
 LOGO_URL = "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_71f3cd2ef61049028b2daf4e2ff71d52~mv2.png"
 
@@ -718,6 +722,183 @@ def coverage_section_html(articles, project_title, default_image):
 '''
 
 
+# ── Living dossier: the sourced, event-dated milestone timeline ───────────────
+# Canonical (tight) milestone set, aligned 1:1 to the project lifecycle. We
+# deliberately do NOT track financing/permit/loan noise here — those belong in a
+# separate updates feed, not the dossier spine.
+DOSSIER_ORDER = ['announced', 'breaking-ground', 'construction', 'coming-soon', 'open']
+DOSSIER_RANK = {k: i for i, k in enumerate(DOSSIER_ORDER)}
+DOSSIER_LABEL = {
+    'announced': 'Announced',
+    'breaking-ground': 'Broke ground',
+    'construction': 'Under construction',
+    'coming-soon': 'Coming soon',
+    'open': 'Opened',
+}
+
+
+def _url_domain(u):
+    try:
+        from urllib.parse import urlparse
+        host = (urlparse(u or '').netloc or '').lower()
+        return host[4:] if host.startswith('www.') else host
+    except Exception:
+        return ''
+
+
+def _dossier_status_code(raw):
+    s = (raw or '').strip().lower()
+    if not s:
+        return 'announced'
+    if 'open' in s or 'complete' in s:
+        return 'open'
+    if 'coming' in s or 'opening' in s:
+        return 'coming-soon'
+    if 'construction' in s or 'topping' in s or 'vertical' in s:
+        return 'construction'
+    if 'breaking' in s or 'ground' in s:
+        return 'breaking-ground'
+    return 'announced'
+
+
+def _fmt_event_date(s):
+    """YYYY / YYYY-MM / YYYY-MM-DD (or an ISO datetime) -> 'Sep 3, 2025' /
+    'Sep 2025' / '2025'. '' when unparseable."""
+    s = (s or '').strip()
+    m = re.match(r'^(\d{4})(?:-(\d{2}))?(?:-(\d{2}))?', s)
+    if not m:
+        return ''
+    MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+    y, mo, d = m.group(1), m.group(2), m.group(3)
+    if mo and d:
+        return f"{MONTHS[int(mo) - 1]} {int(d)}, {y}"
+    if mo:
+        return f"{MONTHS[int(mo) - 1]} {y}"
+    return y
+
+
+def build_milestones(row, articles=None):
+    """Assemble the canonical, event-dated, sourced milestone timeline for a
+    project from: status_history (effective_date + source), StartDate /
+    DeliveryDate fields, and the earliest article date as an "announced" proxy.
+    Returns {'milestones': [...], 'current': code}. Honest about gaps — a
+    milestone is only included if we have it, it's the current status, or it's
+    the (projected) opening."""
+    cur_code = _dossier_status_code(row.get('Delivery', ''))
+    cur_rank = DOSSIER_RANK.get(cur_code, 0)
+
+    # Best (latest) sourced status transition per target code.
+    by_code = {}
+    for h in (row.get('StatusHistory') or []):
+        if not isinstance(h, dict) or h.get('type') in ('date', 'field'):
+            continue
+        to = (h.get('to') or '').strip().lower()
+        if to not in DOSSIER_RANK:
+            continue
+        prev = by_code.get(to)
+        if prev is None or str(h.get('at') or '') > str(prev.get('at') or ''):
+            by_code[to] = h
+
+    # Announced proxy = earliest article date (+ that article as the source).
+    announced_date, announced_src = '', ''
+    if articles:
+        dated = [a for a in articles if (a.get('published_at', '') or '').strip()]
+        if dated:
+            first = min(dated, key=lambda a: (a.get('published_at', '') or '')[:10])
+            announced_date = (first.get('published_at', '') or '')[:10]
+            announced_src = first.get('link', '') or ''
+
+    start_date = (row.get('StartDate', '') or '').strip()
+    delivery_date = (row.get('DeliveryDate', '') or '').strip()
+    start_spec = (row.get('StartSpeculative', '') or '') == '1'
+    delivery_spec = (row.get('DeliverySpeculative', '') or '') == '1'
+
+    def entry(code, date_str='', source_url='', estimated=False, recorded_at=''):
+        return {
+            'code': code, 'rank': DOSSIER_RANK.get(code, 0),
+            'label': DOSSIER_LABEL.get(code, code.title()),
+            'date': date_str or '', 'date_display': _fmt_event_date(date_str),
+            'source_url': source_url or '', 'source_domain': _url_domain(source_url),
+            'estimated': bool(estimated), 'recorded_at': recorded_at or '',
+        }
+
+    found = {}
+    # 1) status_history — most authoritative + sourced.
+    for code, h in by_code.items():
+        ev = (h.get('effective_date') or '').strip()
+        rec = (h.get('at') or '').strip()
+        found[code] = entry(code, ev or rec[:10], h.get('source_url', ''),
+                            estimated=not ev, recorded_at=rec)
+    # 2) field-derived dates fill any gaps.
+    # The "announced" proxy is the earliest article date — but coverage often
+    # postdates the real announcement, which would invert the timeline (announced
+    # AFTER groundbreaking). Only trust it when it predates every other known
+    # milestone date; otherwise drop it rather than show a wrong date.
+    if announced_date and 'announced' not in found:
+        other_dates = [m['date'][:10] for c, m in found.items() if m.get('date')]
+        if start_date:
+            other_dates.append(start_date[:10])
+        if delivery_date:
+            other_dates.append(delivery_date[:10])
+        if not other_dates or announced_date < min(other_dates):
+            found['announced'] = entry('announced', announced_date, announced_src)
+    if start_date and 'breaking-ground' not in found:
+        found['breaking-ground'] = entry('breaking-ground', start_date, estimated=start_spec)
+    if delivery_date and 'open' not in found:
+        found['open'] = entry('open', delivery_date, estimated=delivery_spec)
+
+    out = []
+    for code in DOSSIER_ORDER:
+        rank = DOSSIER_RANK[code]
+        m = found.get(code)
+        is_current = (code == cur_code)
+        if not m and not is_current and code != 'open':
+            continue  # honest: don't invent dateless past milestones
+        if not m:
+            m = entry(code)
+        m['state'] = 'past' if rank < cur_rank else ('now' if rank == cur_rank else 'future')
+        if code == 'open' and cur_rank < DOSSIER_RANK['open']:
+            m['label'] = 'Expected opening'
+            m['state'] = 'future'
+        out.append(m)
+    return {'milestones': out, 'current': cur_code}
+
+
+def dossier_section_html(row, articles=None):
+    data = build_milestones(row, articles)
+    ms = data['milestones']
+    # Only render when there's a real story to tell (≥2 milestones with substance).
+    if len([m for m in ms if m['date_display'] or m['state'] != 'future']) < 2:
+        return ''
+    rows = []
+    for m in ms:
+        state = m['state']
+        dot = f'<span class="dos-dot dos-{state}"></span>'
+        if m['date_display']:
+            est = '<span class="dos-est">est.</span>' if m['estimated'] else ''
+            date_html = f'<span class="dos-date">{_escape_text(m["date_display"])}{est}</span>'
+        elif state == 'future':
+            date_html = '<span class="dos-date dos-tbd">date TBD</span>'
+        else:
+            date_html = ''
+        src_html = ''
+        if m['source_url'] and m['source_domain']:
+            src_html = (f'<a class="dos-src" href="{_escape_attr(m["source_url"])}" '
+                        f'target="_blank" rel="noopener">{_escape_text(m["source_domain"])} ↗</a>')
+        rows.append(
+            f'<div class="dos-row dos-row-{state}">{dot}'
+            f'<div class="dos-body"><div class="dos-line">'
+            f'<span class="dos-label">{_escape_text(m["label"])}</span>{date_html}</div>'
+            f'{src_html}</div></div>'
+        )
+    return (
+        f'<div class="pp-sec pp-dossier"><div class="pp-sec-h">{TMW_UPD_ICON} The story so far</div>'
+        f'<div class="dos-tl">{"".join(rows)}</div>'
+        f'<div class="dos-note">Milestones are dated to when they actually happened and linked to '
+        f'their source. This record fills in over time as TMW tracks the project.</div></div>'
+    )
+
+
 def build_page(row, articles=None, nearby=None):
     title = row.get('Title','').strip()
     city  = row.get('City','').strip()
@@ -747,7 +928,7 @@ def build_page(row, articles=None, nearby=None):
     # Attribute-safe title for embedding in data-* attributes (the Watch
     # button hydration script reads this to pass back to the favorites API).
     esc_attr_title = _escape_attr(title)
-    page_url = f"{SITE_URL}/projects/{slug}/"
+    page_url = f"{ROOT_URL}/projects/{slug}/"
     # Deep-link to map: omit fullscreen=true so the map opens with a small popup
     # preview hovering over the pin (not the full modal). Per UX spec.
     map_url  = f"{SITE_URL}/?project={mslug}"
@@ -943,6 +1124,11 @@ def build_page(row, articles=None, nearby=None):
         '<div id="updatesBody"></div></div>'
     )
 
+    # The living dossier — sourced, event-dated milestone timeline. Server-rendered
+    # (not pulse-hydrated) so it shows the real event dates, full history, and
+    # never depends on a rolling feed window.
+    dossier_html = dossier_section_html(row, articles)
+
     proj_type_sep = f' · {proj_type}' if proj_type else ''
 
     # Nearby Projects — up to 3 same-market projects (passed in by main()).
@@ -958,7 +1144,7 @@ def build_page(row, articles=None, nearby=None):
         nmeta = ' · '.join([x for x in [ncity, ntype] if x])
         status_pill = f'<span class="pp-near-status">{_escape_text(nstatus)}</span>' if nstatus else ''
         return (
-            f'<a class="pp-near-card" href="/map/projects/{ns}/">'
+            f'<a class="pp-near-card" href="/projects/{ns}/">'
             f'<div class="pp-near-img" style="background-image:url(\'{_escape_attr(nimg)}\')">{status_pill}</div>'
             f'<div class="pp-near-b"><div class="pp-near-t">{_escape_text(nt)}</div>'
             f'<div class="pp-near-m">{_escape_text(nmeta)}</div></div></a>'
@@ -1782,6 +1968,26 @@ def build_page(row, articles=None, nearby=None):
     .update-text {{ font-size: 13px; color: #fff; line-height: 1.4; }}
     .update-meta {{ font-size: 10px; color: rgba(255,255,255,0.45); text-transform: uppercase; letter-spacing: 0.06em; margin-top: 2px; }}
 
+    /* ── Living dossier: sourced, event-dated milestone timeline ── */
+    .pp-dossier .pp-sec-h {{ color: var(--purple-soft, #B9A6FF); }}
+    .dos-tl {{ position: relative; margin-top: 4px; }}
+    .dos-row {{ position: relative; display: flex; gap: 14px; padding: 11px 0 13px 2px; }}
+    .dos-row:not(:last-child)::before {{ content: ""; position: absolute; left: 7px; top: 19px; bottom: -7px; width: 1px; background: rgba(255,255,255,.13); }}
+    .dos-dot {{ position: relative; z-index: 1; flex: 0 0 auto; width: 11px; height: 11px; border-radius: 50%; margin-top: 4px; box-sizing: border-box; }}
+    .dos-past {{ background: #1FDF67; }}
+    .dos-now {{ background: #A78BFA; box-shadow: 0 0 0 4px rgba(167,139,250,.18); }}
+    .dos-future {{ background: transparent; border: 1.5px solid rgba(255,255,255,.30); }}
+    .dos-body {{ flex: 1; min-width: 0; }}
+    .dos-line {{ display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }}
+    .dos-label {{ font-size: 14.5px; font-weight: 600; color: #fff; }}
+    .dos-row-future .dos-label {{ color: rgba(255,255,255,.58); font-weight: 500; }}
+    .dos-date {{ font-size: 12px; color: rgba(255,255,255,.6); font-variant-numeric: tabular-nums; }}
+    .dos-date.dos-tbd {{ color: rgba(255,255,255,.35); }}
+    .dos-est {{ font-size: 9.5px; color: rgba(255,255,255,.4); margin-left: 5px; text-transform: uppercase; letter-spacing: .05em; }}
+    .dos-src {{ display: inline-block; margin-top: 3px; font-size: 11px; color: #42EB81; text-decoration: none; }}
+    .dos-src:hover {{ text-decoration: underline; }}
+    .dos-note {{ margin-top: 13px; font-size: 11px; color: rgba(255,255,255,.42); line-height: 1.55; }}
+
     /* ── Coverage on TMW: list of articles mentioning this project ── */
     .coverage-section {{ margin-top: 28px; padding-top: 22px; border-top: 1px solid rgba(255,255,255,0.08); }}
     .cv-header {{ display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }}
@@ -1955,6 +2161,7 @@ def build_page(row, articles=None, nearby=None):
 
     <div class="pp-below" id="ppBelow">
       {watching_card_html}
+      {dossier_html}
       {about_section}
       {firms_section}
       <div class="pp-sec"><div class="pp-sec-h">Location</div>{map_preview_html(lat, lng, map_url)}</div>
@@ -3292,11 +3499,11 @@ def write_sitemap_and_robots(items):
     # Map root (highest priority)
     urls.append({'loc': SITE_URL + '/', 'priority': '1.0', 'changefreq': 'daily'})
     # Projects index
-    urls.append({'loc': SITE_URL + '/projects/', 'priority': '0.9', 'changefreq': 'daily'})
+    urls.append({'loc': ROOT_URL + '/projects/', 'priority': '0.9', 'changefreq': 'daily'})
     # Each individual project page
     for slug, title, city, delivery, image in items:
         urls.append({
-            'loc': f"{SITE_URL}/projects/{slug}/",
+            'loc': f"{ROOT_URL}/projects/{slug}/",
             'priority': '0.8',
             'changefreq': 'weekly',
         })
