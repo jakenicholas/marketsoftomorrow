@@ -230,7 +230,7 @@
       (firms.length ? '<div class="pc-firms">' + firms.join(' · ') + '</div>' : '') +
       renderIntel(entry) +
       '<div class="pc-actions">' +
-        '<a class="pc-btn primary" href="' + projectUrl(slug) + '" target="_blank" rel="noopener">Learn more</a>' +
+        '<a class="pc-btn primary" href="' + projectUrl(slug) + '" target="_blank" rel="noopener">Explore</a>' +
         (rec.OfficialWebsite ? '<a class="pc-btn ghost" href="' + esc(rec.OfficialWebsite) + '" target="_blank" rel="noopener">Visit site <svg viewBox="0 0 24 24"><path d="M7 17 17 7M9 7h8v8"/></svg></a>' : '') +
       '</div>' +
     '</div>';
