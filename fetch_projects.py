@@ -176,6 +176,12 @@ def flatten(record: dict, architect_names: dict, developer_names: dict) -> dict:
 
     return {
         'Title':           record.get('name', '') or '',
+        # Canonical slug straight from projects.json — do NOT re-derive it from
+        # the title downstream. ~6% of projects (and most RENAMED ones) carry a
+        # slug unrelated to their current name (e.g. "Dutchman's Pipe" →
+        # "inscription-west-palm-beach"). Carrying it lets the worker's
+        # match_project / propose_project_edit reference the exact live record.
+        'Slug':            record.get('slug', '') or '',
         'City':            record.get('city', '') or '',
         'Latitude':        lat_str,
         'Longitude':       lng_str,

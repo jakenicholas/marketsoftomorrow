@@ -117,6 +117,23 @@ const TOOLS = [
     },
   },
   {
+    name: 'match_project',
+    description: 'Check whether a candidate project is ALREADY on the live Map of Tomorrow — even under a renamed or variant title (e.g. "Kempinski Design Residences" vs an existing "Kempinski Residences"). Deterministically scores the candidate against every live project on website-host equality, geo distance, brand-name overlap, and developer/city agreement, and returns ranked matches each with explicit reasons plus an overall verdict: "strong" (it IS already in the database — propose an EDIT with propose_project_edit, do NOT create a new draft), "possible" (ambiguous — do nothing automated, report it for a human), or "none" (genuinely new — safe to create_map_draft). ALWAYS call this for every candidate before create_map_draft. Pass latitude/longitude (geocode the address first) and the official website when you have them — those make the match decisive.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        name: { type: 'string', description: 'Candidate project name (required)' },
+        website: { type: 'string', description: 'Official website URL, if known — a matching host is the strongest signal' },
+        city: { type: 'string' },
+        developer: { type: 'string', description: 'Developer name(s)' },
+        latitude: { type: 'number', description: 'Geocoded latitude — pass it; proximity is a decisive signal' },
+        longitude: { type: 'number', description: 'Geocoded longitude' },
+        limit: { type: 'integer', description: 'Max ranked matches to return (default 5, max 20)' },
+      },
+      required: ['name'],
+    },
+  },
+  {
     name: 'list_project_types',
     description: 'List the distinct Map of Tomorrow project types in use, with a count of projects per type.',
     inputSchema: { type: 'object', properties: {} },
@@ -363,6 +380,25 @@ const TOOLS = [
       },
     },
   },
+  {
+    name: 'propose_project_edit',
+    description: 'Propose an EDIT to an EXISTING live Map of Tomorrow project as a reviewable proposal — it does NOT touch the live map. Use this (NOT create_map_draft) when match_project returns verdict "strong": the project is already in the database but a source shows a field is wrong or outdated (e.g. it was renamed, units/floors changed, the official website moved, a date shifted). Queues a field-level old→new diff in the TMW Studio map admin → "Proposals" tab, where a human reviews each change and applies it to the live project. Identify the project by target_slug (from match_project / search_projects). NEVER use this to add a brand-new project — that is create_map_draft.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        target_slug: { type: 'string', description: 'Canonical slug of the live project to edit (matches[0].slug from match_project)' },
+        target_name: { type: 'string', description: 'The current name of that project, for display' },
+        changes: {
+          type: 'object',
+          description: 'Map of field → NEW value. Only include fields that should change. Allowed keys: name, status, city, latitude, longitude, website, units, floors, start_date, delivery_date, description, description_long.',
+        },
+        proposal_note: { type: 'string', description: 'Human-readable rationale, e.g. \'"name" needs to be changed per this article I found\'' },
+        source_note: { type: 'string', description: 'Source URL / where this came from' },
+        match: { type: 'object', description: 'Optional: the match_project result {score, verdict, reasons} for reviewer context' },
+      },
+      required: ['target_slug', 'changes'],
+    },
+  },
 
   // ── Construction-update automation ───────────────────────────────────────────
   {
@@ -498,9 +534,15 @@ async function loadArticles() {
 }
 
 function projectSummary(p) {
+  const n = (v) => (v == null || v === '' || isNaN(Number(v)) ? null : Number(v));
   return {
-    title: p.Title, city: p.City, type: p.ProjectType || p.PreferredType || '',
+    // Canonical slug from the feed (projects.json). Never re-derive from the
+    // title — renamed projects carry a slug unrelated to their current name.
+    // Fallback to slugify only until projects-flat.json is regenerated with Slug.
+    title: p.Title, slug: p.Slug || slugify(p.Title),
+    city: p.City, type: p.ProjectType || p.PreferredType || '',
     architect: p.Architect || '', developer: p.Developer || '',
+    lat: n(p.Latitude), lng: n(p.Longitude),
     delivery: p.Delivery || p.DeliveryDate || '', units: p.Units || '', floors: p.Floors || '',
     website: p.OfficialWebsite || '', description: p.Description || '',
   };
@@ -509,6 +551,134 @@ function projectSummary(p) {
 // Split a comma/semicolon/"&"-joined firm or type list into clean tokens.
 function splitList(s) {
   return String(s || '').split(/\s*[,;]\s*|\s+&\s+/).map((x) => x.trim()).filter(Boolean);
+}
+
+// ── Duplicate detection ─────────────────────────────────────────────────────
+// Deterministic matching so the discovery routine reliably recognizes a project
+// that is ALREADY on the live map even under a renamed/variant title (e.g.
+// "Kempinski Design Residences" vs an existing "Kempinski Residences"). Powers
+// the match_project tool. Conservative by design — never declares "strong"
+// (i.e. it IS already in the DB) without a decisive corroborator (same website
+// host, or geo proximity + a name/brand match). Name overlap alone caps at
+// "possible" so two genuinely distinct projects are never auto-merged.
+
+// Hostname of a URL, lowercased, www-stripped. '' when unparseable/empty.
+function hostOf(url) {
+  let u = String(url || '').trim();
+  if (!u) return '';
+  if (!/^https?:\/\//i.test(u)) u = 'http://' + u;
+  try { return new URL(u).hostname.toLowerCase().replace(/^www\./, ''); } catch (_) { return ''; }
+}
+
+// Hosts that legitimately serve MANY different projects, so a host match here is
+// NOT evidence the two are the same development. Keeps a shared brokerage/social
+// link from falsely merging distinct projects.
+const GENERIC_HOSTS = new Set([
+  'instagram.com', 'facebook.com', 'twitter.com', 'x.com', 'youtube.com',
+  'linkedin.com', 'tiktok.com', 'vimeo.com', 'linktr.ee', 'compass.com',
+  'douglaselliman.com', 'zillow.com', 'realtor.com', 'sites.google.com',
+  'wixsite.com', 'squarespace.com', 'godaddysites.com',
+]);
+
+// Normalize a name: lowercase, strip diacritics + punctuation, collapse spaces.
+function normName(s) {
+  return String(s || '').toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9]+/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+// Generic real-estate / geography words that carry no brand identity. Stripping
+// them leaves the "brand core" — "kempinski design residences" and "kempinski
+// residences" both reduce to {kempinski}.
+const NAME_STOPWORDS = new Set([
+  'the', 'at', 'by', 'of', 'and', 'a', 'an',
+  'residences', 'residence', 'condos', 'condo', 'condominium', 'condominiums',
+  'tower', 'towers', 'hotel', 'resort', 'club', 'spa', 'suites', 'lofts',
+  'design', 'designed', 'collection', 'estates', 'villas', 'apartments',
+  'project', 'phase', 'building', 'house', 'place', 'park', 'plaza', 'center',
+  'north', 'south', 'east', 'west', 'downtown', 'district', 'beach', 'bay',
+  'miami', 'palm', 'fort', 'lauderdale', 'boca', 'raton', 'orlando', 'tampa',
+  'new', 'expansion', 'renovation',
+]);
+
+function nameTokens(s) { return normName(s).split(' ').filter(Boolean); }
+function brandTokens(s) {
+  return new Set(nameTokens(s).filter((t) => t.length > 1 && !NAME_STOPWORDS.has(t)));
+}
+
+// Is set A a non-empty subset of set B (or vice-versa)?
+function subsetEither(a, b) {
+  if (!a.size || !b.size) return false;
+  const [small, big] = a.size <= b.size ? [a, b] : [b, a];
+  for (const t of small) if (!big.has(t)) return false;
+  return true;
+}
+
+function jaccard(aTokens, bTokens) {
+  const a = new Set(aTokens), b = new Set(bTokens);
+  if (!a.size || !b.size) return 0;
+  let inter = 0; for (const t of a) if (b.has(t)) inter++;
+  return inter / (a.size + b.size - inter);
+}
+
+function haversineM(lat1, lng1, lat2, lng2) {
+  const toRad = (d) => (d * Math.PI) / 180;
+  const R = 6371000;
+  const dLat = toRad(lat2 - lat1), dLng = toRad(lng2 - lng1);
+  const s = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.min(1, Math.sqrt(s)));
+}
+
+// Score a candidate {name, website, city, developer, lat, lng} against one live
+// project p (TitleCase flat-feed record). Returns {score, verdict, reasons[]}.
+function scoreMatch(cand, p) {
+  let score = 0; const reasons = [];
+  let decisive = false; // a signal strong enough to anchor a "strong" verdict
+
+  // Website host equality (the single most decisive signal).
+  const ch = hostOf(cand.website), ph = hostOf(p.OfficialWebsite);
+  if (ch && ph && ch === ph) {
+    if (GENERIC_HOSTS.has(ch)) { score += 1; reasons.push(`shared (generic) host ${ch}`); }
+    else { score += 5; decisive = true; reasons.push(`same website host ${ch}`); }
+  }
+
+  // Geo proximity.
+  const clat = cand.lat, clng = cand.lng;
+  const plat = (p.Latitude == null || p.Latitude === '') ? NaN : Number(p.Latitude);
+  const plng = (p.Longitude == null || p.Longitude === '') ? NaN : Number(p.Longitude);
+  let near = false;
+  if (clat != null && clng != null && !isNaN(clat) && !isNaN(clng) && !isNaN(plat) && !isNaN(plng)) {
+    const d = haversineM(clat, clng, plat, plng);
+    if (d < 150) { score += 4; near = true; reasons.push(`${Math.round(d)}m apart`); }
+    else if (d < 400) { score += 2; reasons.push(`${Math.round(d)}m apart`); }
+  }
+
+  // Brand-core containment.
+  const cb = brandTokens(cand.name), pb = brandTokens(p.Title);
+  const brandMatch = subsetEither(cb, pb);
+  if (brandMatch) { score += 3; reasons.push(`brand core "${[...(cb.size <= pb.size ? cb : pb)].join(' ')}" matches`); }
+
+  // Name-token Jaccard.
+  const jac = jaccard(nameTokens(cand.name), nameTokens(p.Title));
+  if (jac >= 0.6) { score += 2; reasons.push('name closely matches'); }
+  else if (jac >= 0.4) { score += 1; }
+
+  // Developer overlap.
+  const cDev = new Set(splitList(cand.developer).flatMap((d) => nameTokens(d)).filter((t) => t.length > 2 && !NAME_STOPWORDS.has(t)));
+  const pDev = new Set(splitList(p.Developer).flatMap((d) => nameTokens(d)).filter((t) => t.length > 2 && !NAME_STOPWORDS.has(t)));
+  if (cDev.size && pDev.size) { for (const t of cDev) if (pDev.has(t)) { score += 2; reasons.push('same developer'); break; } }
+
+  // City agreement.
+  if (cand.city && p.City) {
+    const cc = normName(cand.city), pc = normName(p.City);
+    if (cc && pc && (cc === pc || cc.includes(pc) || pc.includes(cc))) { score += 1; reasons.push('same city'); }
+  }
+
+  // Verdict (conservative): "strong" needs host equality OR (near AND a name match).
+  let verdict;
+  if (decisive || (near && (brandMatch || jac >= 0.6))) verdict = 'strong';
+  else if (score >= 4) verdict = 'possible';
+  else verdict = 'none';
+  return { score, verdict, reasons };
 }
 
 // Must match index.js's list-slug guard so MCP writes hit the same rows the
@@ -545,6 +715,7 @@ async function ensureBrandNotesTable(env) {
 // overridable via env.
 const MAP_ADMIN_URL = 'https://admin.oftmw.com/map/';
 const GH_DRAFTS_PATH = 'data/drafts.json';
+const GH_EDIT_PROPOSALS_PATH = 'data/edit_proposals.json';
 function ghRepo(env)   { return env.GH_DRAFTS_REPO || 'jakenicholas/tmw-data'; }
 function ghBranch(env) { return env.GH_DRAFTS_BRANCH || 'main'; }
 function ghHeaders(env) {
@@ -811,6 +982,43 @@ const IMPL = {
       return true;
     });
     return { count: hit.length, showing: Math.min(hit.length, limit), projects: hit.slice(0, limit).map(projectSummary) };
+  },
+
+  async match_project(args, env) {
+    const name = String(args.name || '').trim();
+    if (!name) throw new Error('name is required');
+    const cand = {
+      name,
+      website: String(args.website || ''),
+      city: String(args.city || ''),
+      developer: String(args.developer || ''),
+      lat: args.latitude != null && args.latitude !== '' ? Number(args.latitude) : null,
+      lng: args.longitude != null && args.longitude !== '' ? Number(args.longitude) : null,
+    };
+    const all = await loadProjects();
+    const scored = all
+      .map((p) => ({ p, ...scoreMatch(cand, p) }))
+      .filter((x) => x.score > 0)
+      .sort((a, b) => b.score - a.score);
+    const limit = Math.min(Math.max(parseInt(args.limit, 10) || 5, 1), 20);
+    const matches = scored.slice(0, limit).map(({ p, score, verdict, reasons }) => ({
+      ...projectSummary(p), score, verdict, reasons,
+    }));
+
+    // Headline verdict = the top match's verdict, with one guard: if the top
+    // two are BOTH "strong" and within 2 points, we can't confidently say which
+    // existing record it is → downgrade to "possible" so a human decides.
+    let verdict = matches.length ? matches[0].verdict : 'none';
+    if (verdict === 'strong' && matches.length >= 2
+        && matches[1].verdict === 'strong' && (matches[0].score - matches[1].score) <= 2) {
+      verdict = 'possible';
+    }
+    const advice = verdict === 'strong'
+      ? 'Already in the database — call propose_project_edit against matches[0].slug for any fields the source corrects; do NOT create_map_draft.'
+      : verdict === 'possible'
+        ? 'Ambiguous — do NOT create a draft or an edit. Report it in the run digest for a human to check.'
+        : 'No live match — safe to create_map_draft.';
+    return { candidate: cand, verdict, advice, count: scored.length, matches };
   },
 
   async list_project_types() {
@@ -1281,6 +1489,84 @@ const IMPL = {
       } catch (e) { if (e && e.status === 409 && attempt < 4) continue; throw e; }
       return { ok: true, draft_id: d.draft_id, slug: data.slug, name: data.name, changed, start_date: data.start_date || null, status: data.status };
     }
+  },
+
+  async propose_project_edit(args, env) {
+    requireGhToken(env);
+    const slug = String(args.target_slug || '').trim();
+    if (!slug) throw new Error('target_slug is required');
+    const changesIn = (args.changes && typeof args.changes === 'object' && !Array.isArray(args.changes)) ? args.changes : null;
+    if (!changesIn) throw new Error('changes is required (a map of field → new value)');
+
+    // MCP-facing names → canonical project.json field names.
+    const KEYMAP = { latitude: 'lat', longitude: 'lng', website: 'official_website' };
+    const ALLOWED = new Set(['name', 'status', 'city', 'lat', 'lng', 'official_website',
+      'units', 'floors', 'start_date', 'delivery_date', 'description', 'description_long']);
+
+    // Resolve the live record (best-effort) to populate each change's `from`.
+    // Display-only — the admin re-reads live projects.json when applying.
+    const all = await loadProjects();
+    const live = all.find((p) => (p.Slug || slugify(p.Title)) === slug);
+    const fromVal = (k) => {
+      if (!live) return null;
+      const m = {
+        name: live.Title, status: live.Status || live.Delivery || '', city: live.City,
+        lat: live.Latitude, lng: live.Longitude, official_website: live.OfficialWebsite,
+        units: live.Units, floors: live.Floors, start_date: live.StartDate,
+        delivery_date: live.DeliveryDate, description: live.Description, description_long: live.DescriptionLong,
+      };
+      const v = m[k];
+      return (v === undefined || v === '') ? null : v;
+    };
+
+    const changes = {};
+    for (const [rawK, v] of Object.entries(changesIn)) {
+      const k = KEYMAP[rawK] || rawK;
+      if (!ALLOWED.has(k)) continue;
+      let to = v;
+      if (k === 'lat' || k === 'lng') to = (v == null || v === '' || isNaN(Number(v))) ? null : Number(v);
+      else if (k === 'units' || k === 'floors') to = (v == null || v === '' || isNaN(parseInt(v, 10))) ? null : parseInt(v, 10);
+      else to = (v == null) ? null : String(v);
+      changes[k] = { from: fromVal(k), to };
+    }
+    if (!Object.keys(changes).length) throw new Error('no valid fields in changes (allowed: ' + [...ALLOWED].join(', ') + ')');
+
+    const isoNow = new Date().toISOString();
+    const stamp = isoNow.slice(0, 10);
+    const match = (args.match && typeof args.match === 'object') ? args.match : undefined;
+    const target_name = String(args.target_name || (live && live.Title) || slug);
+
+    let proposal_id, entry;
+    for (let attempt = 0; ; attempt++) {
+      const { sha, text } = await ghGetFile(env, GH_EDIT_PROPOSALS_PATH);
+      let proposals = [];
+      if (text) { try { proposals = JSON.parse(text); } catch (_) { throw new Error('edit_proposals.json is not valid JSON — refusing to overwrite'); } }
+      if (!Array.isArray(proposals)) proposals = [];
+      const seq = String(proposals.filter((p) => String(p && p.proposal_id || '').startsWith(stamp)).length + 1).padStart(3, '0');
+      proposal_id = `${stamp}-${seq}`;
+      entry = {
+        proposal_id, kind: 'edit', created_at: isoNow, created_by: 'claude-studio',
+        target_slug: slug, target_name, match, changes,
+        proposal_note: String(args.proposal_note || ''),
+        source_note: String(args.source_note || ''),
+      };
+      proposals.push(entry);
+      try {
+        await ghPutFile(env, GH_EDIT_PROPOSALS_PATH, JSON.stringify(proposals, null, 2) + '\n', sha, `Edit proposal: ${target_name} (${proposal_id})`);
+        break;
+      } catch (e) {
+        if (e && e.status === 409 && attempt < 4) continue;
+        throw e;
+      }
+    }
+
+    return {
+      ok: true, proposal_id, target_slug: slug, target_name,
+      fields: Object.keys(changes), admin_url: MAP_ADMIN_URL,
+      found_live: !!live,
+      note: 'Queued in the TMW Studio map admin → "Proposals" tab as an EDIT proposal for "' + target_name + '". A human reviews the old→new diff and applies it to the live project — it is NOT live yet. (Stored in ' + ghRepo(env) + '/' + GH_EDIT_PROPOSALS_PATH + ', which that admin reads directly.)'
+        + (live ? '' : ' NOTE: no live project currently resolves to slug "' + slug + '" — double-check target_slug from match_project.'),
+    };
   },
 
   // ── Construction-update automation ───────────────────────────────────────────
