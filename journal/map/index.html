@@ -1835,6 +1835,20 @@
       70%  { box-shadow: 0 0 0 6px rgba(31,223,103,0); }
       100% { box-shadow: 0 0 0 0 rgba(31,223,103,0); }
     }
+    /* Live "pulse" indicator sitting inline directly in front of the word
+       "Pulse" in the drawer header — same expanding-ring animation as .pulse-dot. */
+    .pulse-title-dot {
+      display: inline-block;
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      margin-right: 7px;
+      vertical-align: middle;
+      position: relative;
+      top: -1px;
+      box-shadow: 0 0 0 0 rgba(31,223,103,0.6);
+      animation: pulseDotRing 2s infinite;
+    }
     /* Subtle scale+opacity pulse used by the Watch button's unread dot.
        Distinct from pulseDotRing (which animates a ring shadow) -- this one
        animates the dot itself so it reads as "live activity" not "ripple". */
@@ -11404,9 +11418,8 @@
       <div class="pulse-sheet-handle" id="pulseSheetHandle" aria-label="Drag to peek or close" role="button" tabindex="0"></div>
       <div class="pulse-stack-header">
         <div class="pulse-stack-header-left">
-          <div class="pulse-dot" aria-hidden="true"></div>
           <div>
-            <div class="pulse-stack-title">Pulse</div>
+            <div class="pulse-stack-title"><span class="pulse-title-dot" aria-hidden="true"></span>Pulse</div>
             <div class="pulse-stack-sub" id="pulseStackSub">Loading...</div>
           </div>
         </div>
@@ -19881,7 +19894,9 @@
     function tagLabelFor(ev) {
       if (ev.type === 'article')     return 'News';
       if (ev.type === 'tracking' || ev.type === 'new_project') return 'Tracking';
-      return 'Update';
+      // Milestones carry their own phase tag ("Topped out", "Financing secured");
+      // never fall back to a generic "Update" word — it's wasted space.
+      return '';
     }
 
     function pinIconSvg() {
@@ -19980,18 +19995,20 @@
         var bottomMeta = '';
         if (e.type === 'status_change') {
           // Dossier "story so far" cadence: PHASE · event date · city · source ↗
-          var parts = ['<span class="pulse-ev-type-lbl">' + escapeHtml(isV2 ? tagLabel.toUpperCase() : tagLabel) + '</span>'];
+          // The phase tag is the label; never a generic "Update" word.
+          var parts = [];
+          if (tagLabel) parts.push('<span class="pulse-ev-type-lbl">' + escapeHtml(isV2 ? tagLabel.toUpperCase() : tagLabel) + '</span>');
           if (ts) parts.push('<span class="pulse-ev-ts">' + escapeHtml(ts) + '</span>');
           if (e.city) parts.push('<span class="pulse-ev-loc">' + escapeHtml(e.city) + '</span>');
           if (srcHtml) parts.push(srcHtml);
           tsrowHtml = '<div class="pulse-ev-tsrow">' + parts.join(sepDot) + '</div>';
         } else if (isV2) {
-          var typeLbl = escapeHtml((e.tag || tagLabelFor(e)).toUpperCase());
-          tsrowHtml = '<div class="pulse-ev-tsrow">'
-            + '<span class="pulse-ev-type-lbl">' + typeLbl + '</span>'
-            + (e.city ? sepDot + '<span class="pulse-ev-loc">' + escapeHtml(e.city) + '</span>' : '')
-            + (ts ? sepDot + '<span class="pulse-ev-ts">' + escapeHtml(ts) + '</span>' : '')
-            + '</div>';
+          var typeLbl = (e.tag || tagLabelFor(e));
+          var v2parts = [];
+          if (typeLbl) v2parts.push('<span class="pulse-ev-type-lbl">' + escapeHtml(typeLbl.toUpperCase()) + '</span>');
+          if (e.city) v2parts.push('<span class="pulse-ev-loc">' + escapeHtml(e.city) + '</span>');
+          if (ts) v2parts.push('<span class="pulse-ev-ts">' + escapeHtml(ts) + '</span>');
+          tsrowHtml = '<div class="pulse-ev-tsrow">' + v2parts.join(sepDot) + '</div>';
         } else {
           tsrowHtml = '<div class="pulse-ev-tsrow">' + tsPart + sep + locPart + '</div>';
           bottomMeta = tagLabel ? '<div class="pulse-ev-bottom">' + escapeHtml(tagLabel) + '</div>' : '';
@@ -20813,15 +20830,15 @@
       };
       const atlasTagLabel = (ev) => {
         if (ev.type === 'article')     return 'News';
-        if (ev.type === 'new_project') return 'Map';
-        return 'Update';
+        if (ev.type === 'new_project' || ev.type === 'tracking') return 'Tracking';
+        return '';  // milestones use their own phase tag; no generic "Update"
       };
       const sepDot = '<span class="pulse-ev-sep">&middot;</span>';
       const cards = events.slice(0, 10).map(ev => {
         const type = ev.type || 'article';
         const tagCls = atlasTagClass(ev);
         const tag = ev.tag || atlasTagLabel(ev);
-        const typeLbl = escapeHtml(tag.toUpperCase());
+        const typeLblHtml = tag ? '<span class="pulse-ev-type-lbl">' + escapeHtml(tag.toUpperCase()) + '</span>' : '';
         const target = type === 'article' ? ' target="_blank" rel="noopener"' : '';
         const locPart = ev.city
           ? sepDot + '<span class="pulse-ev-loc">' + escapeHtml(ev.city) + '</span>'
@@ -20838,7 +20855,7 @@
           <div class="pulse-ev-wrap pulse-ev-type-${tagCls}" data-event-type="${escapeHtml(type)}">
             <a class="pulse-ev" href="${escapeHtml(ev.link || '#')}"${target} data-event-type="${escapeHtml(type)}">
               <div class="pulse-ev-tsrow">
-                <span class="pulse-ev-type-lbl">${typeLbl}</span>
+                ${typeLblHtml}
                 ${locPart}
                 ${tsPart}
               </div>
