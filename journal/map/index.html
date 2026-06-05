@@ -19813,6 +19813,33 @@
       return months + 'mo ago';
     }
 
+    // Format a real-world event date (the milestone's effective_date, which
+    // may be year-only "2025", year-month "2025-11", or full "2025-11-03")
+    // into a human label like "Nov 2025". Used for status_change/milestone
+    // events where the meaningful time is WHEN IT HAPPENED per the source,
+    // not when we logged it — so we show the event date instead of a
+    // "Nd ago" relative to the record timestamp. Matches atlas Movers.
+    function fmtEv(s) {
+      s = (s || '').toString().trim();
+      var m = s.match(/^(\d{4})(?:-(\d{2}))?(?:-(\d{2}))?/);
+      if (!m) return '';
+      var MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      if (m[2] && m[3]) return MON[+m[2]-1] + ' ' + (+m[3]) + ', ' + m[1];
+      if (m[2]) return MON[+m[2]-1] + ' ' + m[1];
+      return m[1];
+    }
+
+    // Time/date label for a pulse event: milestone-style events carry a real
+    // event_date (when it happened per the source) — prefer that. Everything
+    // else falls back to a relative "Nd ago" off the record timestamp.
+    function pulseTimeLabel(e) {
+      if (e && e.event_date) {
+        var ev = fmtEv(e.event_date);
+        if (ev) return ev;
+      }
+      return timeAgo(e ? e.timestamp : '');
+    }
+
     // Map an event to a CSS class that controls the tag pill color.
     // article       -> green pill   "News"
     // status_change -> orange pill  "Update"
@@ -19885,7 +19912,7 @@
         var safeId = escapeHtml(e.id || '');
         var eventTypeAttr = ' data-event-type="' + escapeHtml(e.type || '') + '"';
         var locPart = e.city ? '<span class="pulse-ev-loc">' + escapeHtml(e.city) + '</span>' : '';
-        var ts = timeAgo(e.timestamp);
+        var ts = pulseTimeLabel(e);
         var tsPart = ts ? '<span class="pulse-ev-ts">' + escapeHtml(ts) + '</span>' : '';
         var sep = (locPart && tsPart) ? '<span class="pulse-ev-sep">&middot;</span>' : '';
         var tagLabel = e.tag || tagLabelFor(e);

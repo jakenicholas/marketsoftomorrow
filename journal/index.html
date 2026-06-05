@@ -1105,7 +1105,11 @@ window.addEventListener('resize', () => {
 
 function pulseItemHtml(e) {
   const kind = e.type === 'article' ? 'article' : (e.type === 'status_change' ? 'status' : 'new');
-  const age = e.timestamp ? relativeAge(e.timestamp) : '';
+  // Milestone-style events carry a real event_date (when it happened per the
+  // source) — show that as a "Nov 2025" label rather than a relative age off
+  // the record timestamp. Falls back to relative age for everything else.
+  const age = e.event_date ? (fmtEvDate(e.event_date) || (e.timestamp ? relativeAge(e.timestamp) : ''))
+                           : (e.timestamp ? relativeAge(e.timestamp) : '');
   const title = pulseTitle(e);
   return `<a class="ticker-item" href="${escapeAttr(e.link)}" target="_blank" rel="noopener">
     <span class="pdot ${kind}"></span>
@@ -1120,6 +1124,19 @@ function setPulseNewBadge(n) {
   if (n === null || n === undefined) { el.textContent = 'Live'; el.classList.remove('has'); return; }
   el.textContent = n + ' NEW';
   el.classList.toggle('has', n > 0);
+}
+
+// Format a real-world event date (year "2025", year-month "2025-11", or full
+// "2025-11-03") into a compact "Nov 2025" label for the ticker. Matches the
+// map drawer + atlas Movers formatting.
+function fmtEvDate(s) {
+  s = (s || '').toString().trim();
+  const m = s.match(/^(\d{4})(?:-(\d{2}))?(?:-(\d{2}))?/);
+  if (!m) return '';
+  const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  if (m[2] && m[3]) return `${MON[+m[2]-1]} ${+m[3]}, ${m[1]}`;
+  if (m[2]) return `${MON[+m[2]-1]} ${m[1]}`;
+  return m[1];
 }
 
 function relativeAge(iso) {
