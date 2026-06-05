@@ -340,7 +340,7 @@ const TOOLS = [
   },
   {
     name: 'update_project_status',
-    description: 'Update a Map of Tomorrow project from a credible web source — advance its lifecycle status AND/OR update its construction-start / completion dates. Status order is announced → coming-soon → breaking-ground → construction → open; status only ever moves FORWARD (regressions refused). Dates can change in either direction (delays are common) and auto-apply when a source states a new one — even with NO status change (e.g. a project still "construction" whose opening slips a year). mode "apply" writes to the LIVE map (rebuilds within ~1h) and records the source in status_history (git history = audit trail). mode "propose" queues a STATUS change for one-tap human review (ambiguous/thin/multi-step) — dates always auto-apply regardless of mode. Always pass source_url. Pass new_status only when the status actually advances; omit it for a date-only update.',
+    description: 'Update a Map of Tomorrow project from a credible web source — advance its lifecycle status AND/OR update its construction-start / completion dates. Status order is announced → coming-soon → breaking-ground → construction → open; status only ever moves FORWARD (regressions refused). Dates can change in either direction (delays are common) and auto-apply when a source states a new one — even with NO status change (e.g. a project still "construction" whose opening slips a year). mode "apply" writes to the LIVE map (rebuilds within ~1h) and records the source in status_history (git history = audit trail). mode "propose" queues a STATUS change for one-tap human review (ambiguous/thin/multi-step) — dates always auto-apply regardless of mode. It also fills/corrects factual SPEC fields — units (residential count), floors (stories), and keys (hotel rooms) — which auto-apply like dates (many projects are missing these). Always pass source_url. Pass new_status only when the status actually advances; omit it for a date-only or spec-only update.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -355,6 +355,9 @@ const TOOLS = [
         delivery_date: { type: 'string', description: 'New/confirmed completion/opening date (year or ISO) — updates the date even if status is unchanged (catches delays)' },
         start_speculative: { type: 'boolean', description: 'True if start_date is a TMW estimate, not developer-committed' },
         delivery_speculative: { type: 'boolean', description: 'True if delivery_date is a TMW estimate' },
+        units: { type: 'integer', description: 'Residential unit count — fill/correct when a credible source states it (auto-applies; many projects are missing this)' },
+        floors: { type: 'integer', description: 'Floor / story count — fill/correct from a credible source (auto-applies)' },
+        keys: { type: 'integer', description: 'Hotel key (room) count — fill/correct from a credible source for hotels/resorts (auto-applies)' },
       },
       required: ['slug', 'source_url'],
     },
@@ -1239,6 +1242,14 @@ const IMPL = {
     const clean = (v) => (v == null ? '' : String(v).trim());
     const newStart = clean(args.start_date);
     const newDelivery = clean(args.delivery_date);
+    // Factual spec fields the agent fills/corrects when it finds them (auto-apply).
+    const numOrNull = (v) => { if (v == null || v === '') return null; const n = parseInt(v, 10); return isNaN(n) ? null : n; };
+    const NUM_FIELDS = [
+      { arg: 'units',  field: 'units',  label: 'units' },
+      { arg: 'floors', field: 'floors', label: 'floors (stories)' },
+      { arg: 'keys',   field: 'keys',   label: 'keys' },
+    ];
+    const numWanted = NUM_FIELDS.map((f) => ({ ...f, val: numOrNull(args[f.arg]) })).filter((f) => f.val != null);
 
     for (let attempt = 0; ; attempt++) {
       const { sha, projects } = await readProjectsFile(env);
@@ -1250,13 +1261,15 @@ const IMPL = {
       const statusAdvances = !!newStatus && statusRank(newStatus) > statusRank(from);
       const startChanged = !!newStart && newStart !== clean(p.start_date);
       const deliveryChanged = !!newDelivery && newDelivery !== clean(p.delivery_date);
+      const numChanged = numWanted.filter((u) => u.val !== numOrNull(p[u.field]));
+      const anyExtra = startChanged || deliveryChanged || numChanged.length > 0;
 
-      // A status that isn't a forward advance is refused — but only when no date
-      // change rides with it (a date-only update on an unchanged status is fine).
-      if (newStatus && !statusAdvances && !startChanged && !deliveryChanged) {
+      // A status that isn't a forward advance is refused — but only when no other
+      // change rides with it (a date/spec-only update on an unchanged status is fine).
+      if (newStatus && !statusAdvances && !anyExtra) {
         return { ok: false, skipped: 'not-a-forward-advance', slug, current_status: from, requested: newStatus };
       }
-      if (!statusAdvances && !startChanged && !deliveryChanged) {
+      if (!statusAdvances && !anyExtra) {
         return { ok: false, skipped: 'no-change', slug, current_status: from };
       }
 
@@ -1298,6 +1311,12 @@ const IMPL = {
         if (args.delivery_speculative) p.delivery_speculative = true;
         p.status_history.push({ ...base, type: 'date', field: 'delivery_date', from: old, to: newDelivery });
         changes.push(`delivery ${old || '—'}→${newDelivery}`);
+      }
+      for (const u of numChanged) {
+        const old = numOrNull(p[u.field]);
+        p[u.field] = u.val;
+        p.status_history.push({ ...base, type: 'field', field: u.field, from: old, to: u.val });
+        changes.push(`${u.label} ${old == null ? '—' : old}→${u.val}`);
       }
       p.status_checked_at = nowIso;
       try {
