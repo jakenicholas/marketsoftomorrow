@@ -581,8 +581,8 @@
       "delivery_speculative": false
     },
     "palm-tree-residences-miami": {
-      "estimate_years": 3.2,
-      "estimate_label": "~3.2 years",
+      "estimate_years": 2.7,
+      "estimate_label": "~2.7 years",
       "range_low": 2.0,
       "range_high": 3.8,
       "confidence": "low",
@@ -594,7 +594,15 @@
       "avg_distance_km": 165.7,
       "avg_distance_mi": 102.9,
       "scale_used": true,
-      "firm_signal": null,
+      "firm_signal": {
+        "firm": "Kobi Karp",
+        "count": 1,
+        "median_years": 2.0,
+        "stddev_years": 0.0,
+        "role": "architect",
+        "consistent": false,
+        "blend_weight": 0.4
+      },
       "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
@@ -627,7 +635,7 @@
           "distance_mi": 64.1
         }
       ],
-      "pattern_summary": "Among 5 regional residences projects in TMW's data, the median build time is 3.2 years (range 2–3.8).",
+      "pattern_summary": "Among 5 regional residences projects in TMW's data, the median build time is 3.2 years (range 2–3.8). Adjusted to ~2.7 years for Kobi Karp's own track record (~2-year typical pace across 1 prior project).",
       "dates_speculative": true,
       "start_speculative": true,
       "delivery_speculative": true,
@@ -1444,10 +1452,10 @@
       "delivery_speculative": true
     },
     "waldorf-astoria-residences-miami": {
-      "estimate_years": 2.0,
-      "estimate_label": "~2 years",
-      "days_out": 741,
-      "delivery_date": "2028-06-15",
+      "estimate_years": 1.5,
+      "estimate_label": "~1.5 years",
+      "days_out": 589,
+      "delivery_date": "2028-01-15",
       "source": "known_date",
       "precision": "month",
       "confidence": "high",
@@ -1455,7 +1463,7 @@
       "metro": "South Florida",
       "comparables": [],
       "comparable_count": 0,
-      "pattern_summary": "Targeted for opening in ~2 years.",
+      "pattern_summary": "Targeted for opening in ~1.5 years.",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false
@@ -2447,58 +2455,6 @@
       "start_speculative": false,
       "delivery_speculative": false
     },
-    "st-regis-bahia-mar": {
-      "estimate_years": 2.8,
-      "estimate_label": "~2.8 years",
-      "range_low": 2.6,
-      "range_high": 3.0,
-      "confidence": "medium",
-      "comparable_count": 2,
-      "good_count": 2,
-      "exact_count": 2,
-      "used_relaxed": false,
-      "avg_match_score": 0.7,
-      "avg_distance_km": 53.3,
-      "avg_distance_mi": 33.1,
-      "scale_used": false,
-      "firm_signal": {
-        "firm": "Related Group",
-        "count": 2,
-        "median_years": 2.73,
-        "stddev_years": 0.27,
-        "role": "developer",
-        "consistent": false,
-        "blend_weight": 0.55
-      },
-      "source": "comparables",
-      "project_type": "Entertainment",
-      "metro": "South Florida",
-      "comparables": [
-        {
-          "name": "Glazer Hall",
-          "slug": "glazer-hall",
-          "location": "Palm Beach",
-          "years": 2.6,
-          "score": 0.7,
-          "distance_km": 67.2,
-          "distance_mi": 41.8
-        },
-        {
-          "name": "Nu Stadium at Miami Freedom Park",
-          "slug": "nu-stadium-at-miami-freedom-park",
-          "location": "Miami",
-          "years": 3.0,
-          "score": 0.7,
-          "distance_km": 39.5,
-          "distance_mi": 24.5
-        }
-      ],
-      "pattern_summary": "Among 2 same-metro entertainment projects in TMW's data, the median build time is 2.8 years (range 2.6–3). Adjusted to ~2.8 years for Related Group's own track record (~2.7-year typical pace across 2 prior projects).",
-      "dates_speculative": true,
-      "start_speculative": true,
-      "delivery_speculative": true,
-      "is_mixed_use": false
-    },
     "rosewood-hillsboro-beach": {
       "estimate_years": 1.5,
       "estimate_label": "~1.5 years",
@@ -2551,65 +2507,21 @@
       "delivery_speculative": false
     },
     "riva-residences": {
-      "estimate_years": 3.1,
-      "estimate_label": "~3.1 years",
-      "range_low": 2.0,
-      "range_high": 8.4,
+      "estimate_years": 0.6,
+      "estimate_label": "~7 months",
+      "days_out": 209,
+      "delivery_date": "2026-12-31",
+      "source": "known_date",
+      "precision": "year",
       "confidence": "high",
-      "comparable_count": 9,
-      "good_count": 8,
-      "exact_count": 8,
-      "used_relaxed": false,
-      "avg_match_score": 0.7,
-      "avg_distance_km": 61.0,
-      "avg_distance_mi": 37.9,
-      "scale_used": false,
-      "firm_signal": {
-        "firm": "Arquitectonica",
-        "count": 10,
-        "median_years": 3.07,
-        "stddev_years": 1.78,
-        "role": "architect",
-        "consistent": false,
-        "blend_weight": 0.65
-      },
-      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
-      "comparables": [
-        {
-          "name": "Pier Sixty-Six",
-          "slug": "pier-sixty-six",
-          "location": "Fort Lauderdale",
-          "years": 4.8,
-          "score": 1.0,
-          "distance_km": 1.3,
-          "distance_mi": 0.8
-        },
-        {
-          "name": "Inscription",
-          "slug": "inscription",
-          "location": "West Palm Beach",
-          "years": 2.0,
-          "score": 0.7,
-          "distance_km": 69.3,
-          "distance_mi": 43.0
-        },
-        {
-          "name": "Viceroy Brickell Residences",
-          "slug": "viceroy-brickell-residences",
-          "location": "Miami",
-          "years": 3.0,
-          "score": 0.7,
-          "distance_km": 38.8,
-          "distance_mi": 24.1
-        }
-      ],
-      "pattern_summary": "Among 9 same-metro residences projects in TMW's data, the median build time is 3.2 years (range 2–8.4). Adjusted to ~3.1 years for Arquitectonica's own track record (~3.1-year typical pace across 10 prior projects).",
+      "comparables": [],
+      "comparable_count": 0,
+      "pattern_summary": "Targeted for opening in ~7 months.",
       "dates_speculative": false,
       "start_speculative": false,
-      "delivery_speculative": false,
-      "is_mixed_use": false
+      "delivery_speculative": false
     },
     "shell-bay-residences": {
       "estimate_years": 1.5,
@@ -3074,10 +2986,10 @@
       "delivery_speculative": false
     },
     "the-huehub": {
-      "estimate_years": 0.6,
-      "estimate_label": "~7 months",
-      "days_out": 209,
-      "delivery_date": "2026-12-31",
+      "estimate_years": 2.5,
+      "estimate_label": "~2.5 years",
+      "days_out": 940,
+      "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
       "confidence": "high",
@@ -3085,7 +2997,7 @@
       "metro": "South Florida",
       "comparables": [],
       "comparable_count": 0,
-      "pattern_summary": "Targeted for opening in ~7 months.",
+      "pattern_summary": "Targeted for opening in ~2.5 years.",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false
@@ -3109,21 +3021,21 @@
       "delivery_speculative": false
     },
     "elle-residences": {
-      "estimate_years": 1.5,
-      "estimate_label": "~1.5 years",
-      "days_out": 574,
-      "delivery_date": "2027-12-31",
+      "estimate_years": 2.5,
+      "estimate_label": "~2.5 years",
+      "days_out": 940,
+      "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
-      "confidence": "high",
+      "confidence": "medium",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [],
       "comparable_count": 0,
-      "pattern_summary": "Targeted for opening in ~1.5 years.",
-      "dates_speculative": false,
-      "start_speculative": false,
-      "delivery_speculative": false
+      "pattern_summary": "TMW estimates an opening in ~2.5 years based on project type and current stage.",
+      "dates_speculative": true,
+      "start_speculative": true,
+      "delivery_speculative": true
     },
     "ponce-8": {
       "estimate_years": 2.5,
@@ -3467,9 +3379,9 @@
       "scale_used": false,
       "firm_signal": {
         "firm": "Arquitectonica",
-        "count": 10,
-        "median_years": 3.07,
-        "stddev_years": 1.78,
+        "count": 12,
+        "median_years": 3.0,
+        "stddev_years": 1.8,
         "role": "architect",
         "consistent": false,
         "blend_weight": 0.65
@@ -3506,7 +3418,7 @@
           "distance_mi": 115.9
         }
       ],
-      "pattern_summary": "Among 3 same-metro hotel projects in TMW's data, the median build time is 3 years (range 2.8–8.1). Adjusted to ~3 years for Arquitectonica's own track record (~3.1-year typical pace across 10 prior projects).",
+      "pattern_summary": "Among 3 same-metro hotel projects in TMW's data, the median build time is 3 years (range 2.8–8.1). Adjusted to ~3 years for Arquitectonica's own track record (~3-year typical pace across 12 prior projects).",
       "dates_speculative": true,
       "start_speculative": true,
       "delivery_speculative": true,
@@ -3761,9 +3673,9 @@
       "scale_used": true,
       "firm_signal": {
         "firm": "Arquitectonica",
-        "count": 10,
-        "median_years": 3.07,
-        "stddev_years": 1.78,
+        "count": 12,
+        "median_years": 3.0,
+        "stddev_years": 1.8,
         "role": "architect",
         "consistent": false,
         "blend_weight": 0.65
@@ -3800,7 +3712,7 @@
           "distance_mi": 4.5
         }
       ],
-      "pattern_summary": "Among 4 regional residences projects in TMW's data, the median build time is 3.2 years (range 2–3.5). Adjusted to ~3.1 years for Arquitectonica's own track record (~3.1-year typical pace across 10 prior projects).",
+      "pattern_summary": "Among 4 regional residences projects in TMW's data, the median build time is 3.2 years (range 2–3.5). Adjusted to ~3.1 years for Arquitectonica's own track record (~3-year typical pace across 12 prior projects).",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false,
@@ -4217,9 +4129,9 @@
       "scale_used": true,
       "firm_signal": {
         "firm": "Arquitectonica",
-        "count": 10,
-        "median_years": 3.07,
-        "stddev_years": 1.78,
+        "count": 12,
+        "median_years": 3.0,
+        "stddev_years": 1.8,
         "role": "architect",
         "consistent": false,
         "blend_weight": 0.65
@@ -4256,7 +4168,7 @@
           "distance_mi": 58.5
         }
       ],
-      "pattern_summary": "Among 7 regional residences projects in TMW's data, the median build time is 3.2 years (range 2–8.4). Adjusted to ~3.1 years for Arquitectonica's own track record (~3.1-year typical pace across 10 prior projects).",
+      "pattern_summary": "Among 7 regional residences projects in TMW's data, the median build time is 3.2 years (range 2–8.4). Adjusted to ~3.1 years for Arquitectonica's own track record (~3-year typical pace across 12 prior projects).",
       "dates_speculative": true,
       "start_speculative": true,
       "delivery_speculative": true,
@@ -4418,10 +4330,10 @@
       "delivery_speculative": false
     },
     "miami-international-airport-expansion": {
-      "estimate_years": 1.5,
-      "estimate_label": "~1.5 years",
+      "estimate_years": 2.0,
+      "estimate_label": "~2 years",
       "range_low": 1.5,
-      "range_high": 1.5,
+      "range_high": 2.9,
       "confidence": "low",
       "comparable_count": 1,
       "good_count": 1,
@@ -4431,7 +4343,15 @@
       "avg_distance_km": 1.9,
       "avg_distance_mi": 1.2,
       "scale_used": false,
-      "firm_signal": null,
+      "firm_signal": {
+        "firm": "HOK",
+        "count": 1,
+        "median_years": 2.91,
+        "stddev_years": 0.0,
+        "role": "architect",
+        "consistent": false,
+        "blend_weight": 0.4
+      },
       "source": "comparables",
       "project_type": "Travel",
       "metro": "South Florida",
@@ -4446,7 +4366,7 @@
           "distance_mi": 1.2
         }
       ],
-      "pattern_summary": "Among 1 nearby travel project in TMW's data, the median build time is 1.5 years.",
+      "pattern_summary": "Among 1 nearby travel project in TMW's data, the median build time is 1.5 years (range 1.5–2.9). Adjusted to ~2 years for HOK's own track record (~2.9-year typical pace across 1 prior project).",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false,
@@ -5477,8 +5397,8 @@
       "is_mixed_use": false
     },
     "hb-capital-group-tower": {
-      "estimate_years": 3.2,
-      "estimate_label": "~3.2 years",
+      "estimate_years": 2.7,
+      "estimate_label": "~2.7 years",
       "range_low": 2.0,
       "range_high": 3.8,
       "confidence": "low",
@@ -5490,7 +5410,15 @@
       "avg_distance_km": 221.7,
       "avg_distance_mi": 137.7,
       "scale_used": true,
-      "firm_signal": null,
+      "firm_signal": {
+        "firm": "Kobi Karp",
+        "count": 1,
+        "median_years": 2.0,
+        "stddev_years": 0.0,
+        "role": "architect",
+        "consistent": false,
+        "blend_weight": 0.4
+      },
       "source": "comparables",
       "project_type": "Residences",
       "metro": "Orlando",
@@ -5523,7 +5451,7 @@
           "distance_mi": 150.8
         }
       ],
-      "pattern_summary": "Among 5 residences projects in TMW's data, the median build time is 3.2 years (range 2–3.8).",
+      "pattern_summary": "Among 5 residences projects in TMW's data, the median build time is 3.2 years (range 2–3.8). Adjusted to ~2.7 years for Kobi Karp's own track record (~2-year typical pace across 1 prior project).",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false,
@@ -7704,15 +7632,15 @@
     }
   },
   "stats": {
-    "high": 6,
-    "medium": 14,
+    "high": 5,
+    "medium": 13,
     "low": 21,
-    "known_date": 273,
+    "known_date": 274,
     "completed": 47,
-    "skipped": 51,
+    "skipped": 52,
     "no_type": 0,
-    "firm_boosted": 23,
-    "speculative_softened": 49,
+    "firm_boosted": 24,
+    "speculative_softened": 50,
     "mixed_use_adjusted": 1
   }
 }
