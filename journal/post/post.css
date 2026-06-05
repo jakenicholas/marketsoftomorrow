@@ -168,7 +168,7 @@ nav.main .wrap{display:flex; align-items:center; justify-content:space-between; 
 .article-body-content li{margin:.4em 0}
 .article-body-content figure{margin:2em 0 !important; position:relative; border-radius:12px; overflow:hidden}
 .article-body-content figure img{border-radius:0; display:block; margin:0}
-.article-body-content figcaption{position:absolute; left:0; right:0; bottom:0; margin:0; padding:36px 22px 16px; background:linear-gradient(transparent, rgba(7,8,7,.55) 35%, rgba(7,8,7,.9)); color:var(--white); font-family:var(--mono); font-size:11.5px; letter-spacing:.06em; line-height:1.5; text-align:left; pointer-events:none}
+.article-body-content figcaption{position:absolute; left:0; right:0; bottom:0; margin:0; padding:36px 22px 16px; background:linear-gradient(transparent, rgba(7,8,7,.55) 35%, rgba(7,8,7,.9)); color:rgba(255,255,255,.7); font-family:var(--mono); font-size:11.5px; letter-spacing:.06em; line-height:1.5; text-align:left; pointer-events:none}
 .article-body-content figcaption:empty{display:none}
 .article-body-content img{max-width:100%; height:auto; border-radius:12px; background:var(--panel-2)}
 /* Single body images auto-crop to the hero's 16/9 (object-fit:cover). The
@@ -204,7 +204,7 @@ nav.main .wrap{display:flex; align-items:center; justify-content:space-between; 
 .tmw-gallery-track::-webkit-scrollbar{display:none}
 .tmw-gallery-slide{flex:0 0 100%; width:100%; height:100%; position:relative; scroll-snap-align:start}
 .tmw-gallery-slide img{width:100%; height:100%; object-fit:cover; border-radius:0; display:block; margin:0}
-.tmw-gallery-caption{position:absolute; left:0; right:0; bottom:0; padding:30px 22px 18px; background:linear-gradient(transparent, rgba(7,8,7,.78) 60%, rgba(7,8,7,.92)); color:var(--white); font-family:var(--mono); font-size:11.5px; letter-spacing:.08em; line-height:1.5; pointer-events:none}
+.tmw-gallery-caption{position:absolute; left:0; right:0; bottom:0; padding:30px 22px 18px; background:linear-gradient(transparent, rgba(7,8,7,.78) 60%, rgba(7,8,7,.92)); color:rgba(255,255,255,.7); font-family:var(--mono); font-size:11.5px; letter-spacing:.08em; line-height:1.5; pointer-events:none}
 .tmw-gallery-arrow{position:absolute; top:50%; transform:translateY(-50%); width:44px; height:44px; border-radius:999px; background:none; border:none; backdrop-filter:none; -webkit-backdrop-filter:none; color:var(--white); display:flex; align-items:center; justify-content:center; cursor:pointer; opacity:0; transition:opacity .2s, color .2s, filter .2s, transform .2s; z-index:3; padding:0; filter:drop-shadow(0 1px 3px rgba(0,0,0,.55))}
 .tmw-gallery:hover .tmw-gallery-arrow{opacity:1}
 .tmw-gallery-arrow.prev{left:14px} .tmw-gallery-arrow.next{right:14px}
@@ -223,8 +223,35 @@ nav.main .wrap{display:flex; align-items:center; justify-content:space-between; 
    beat that rule — so the cells hug the images. */
 .article-body-content .tmw-gallery-grid-item{margin:0 !important}
 .tmw-gallery-grid-item img{width:100%; height:100%; object-fit:cover; display:block; aspect-ratio:2/3; margin:0; border-radius:0}
-.tmw-gallery-grid-item figcaption{position:absolute; left:0; right:0; bottom:0; padding:26px 16px 12px; background:linear-gradient(transparent, rgba(7,8,7,.85) 70%); color:var(--white); font-family:var(--mono); font-size:11px; letter-spacing:.06em; line-height:1.45; pointer-events:none}
+.tmw-gallery-grid-item figcaption{position:absolute; left:0; right:0; bottom:0; padding:26px 16px 12px; background:linear-gradient(transparent, rgba(7,8,7,.85) 70%); color:rgba(255,255,255,.7); font-family:var(--mono); font-size:11px; letter-spacing:.06em; line-height:1.45; pointer-events:none}
 @media(max-width:560px){.tmw-gallery-grid{gap:6px} .tmw-gallery-grid-item figcaption{font-size:9.5px; padding:18px 10px 9px}}
+
+/* Mobile: smaller caption text + a lighter (less dark) gradient overlay so the
+   captions feel airier on phones. */
+@media(max-width:600px){
+  .article-body-content figcaption{font-size:10px; padding:28px 16px 13px; background:linear-gradient(transparent, rgba(7,8,7,.34) 40%, rgba(7,8,7,.68))}
+  .tmw-gallery-caption{font-size:10px; padding:24px 16px 14px; background:linear-gradient(transparent, rgba(7,8,7,.5) 60%, rgba(7,8,7,.72))}
+  .tmw-gallery-grid-item figcaption{background:linear-gradient(transparent, rgba(7,8,7,.62) 70%)}
+}
+
+/* ─── Image lightbox (click any article image to view full-screen) ─── */
+.tmw-lb{position:fixed; inset:0; z-index:9999; display:none; align-items:center; justify-content:center; background:rgba(5,6,5,.95); -webkit-backdrop-filter:blur(3px); backdrop-filter:blur(3px); overscroll-behavior:contain}
+.tmw-lb.open{display:flex}
+.tmw-lb-img{max-width:92vw; max-height:88vh; object-fit:contain; border-radius:6px; box-shadow:0 24px 90px rgba(0,0,0,.65); user-select:none}
+.tmw-lb-close{position:absolute; top:16px; right:18px; width:42px; height:42px; border:0; border-radius:50%; background:rgba(255,255,255,.1); color:#fff; font-size:25px; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background .15s; z-index:2}
+.tmw-lb-close:hover{background:rgba(255,255,255,.22)}
+.tmw-lb-arrow{position:absolute; top:50%; transform:translateY(-50%); width:50px; height:50px; border:0; border-radius:50%; background:rgba(255,255,255,.08); color:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background .15s; z-index:2}
+.tmw-lb-arrow:hover{background:rgba(255,255,255,.2)}
+.tmw-lb-arrow svg{width:24px; height:24px}
+.tmw-lb-arrow.prev{left:16px} .tmw-lb-arrow.next{right:16px}
+.tmw-lb-counter{position:absolute; top:22px; left:50%; transform:translateX(-50%); color:rgba(255,255,255,.7); font-family:var(--mono); font-size:12px; letter-spacing:.1em}
+.tmw-lb-cap{position:absolute; bottom:22px; left:50%; transform:translateX(-50%); max-width:80vw; text-align:center; color:rgba(255,255,255,.72); font-family:var(--mono); font-size:12px; line-height:1.5; pointer-events:none}
+@media(max-width:600px){
+  .tmw-lb-arrow{width:40px; height:40px} .tmw-lb-arrow svg{width:20px; height:20px}
+  .tmw-lb-arrow.prev{left:8px} .tmw-lb-arrow.next{right:8px}
+  .tmw-lb-img{max-width:96vw; max-height:80vh}
+  .tmw-lb-cap{font-size:10.5px; max-width:90vw}
+}
 .article-body-content code{background:rgba(255,255,255,.06); padding:2px 6px; border-radius:4px; font-family:var(--mono); font-size:.9em}
 .article-body-content pre{background:var(--panel); border:1px solid var(--hair); border-radius:10px; padding:18px; overflow-x:auto; font-family:var(--mono); font-size:13.5px; line-height:1.6}
 

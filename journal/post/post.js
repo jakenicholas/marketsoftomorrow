@@ -32,7 +32,7 @@ document.getElementById('yr').textContent = new Date().getFullYear();
   if (window.__PRERENDERED__ && window.__POST__) {
     const post = window.__POST__;
     const bodyEl = document.getElementById('article-body-content');
-    if (bodyEl) { try { upgradeBodyImages(bodyEl); hookGalleries(bodyEl); } catch (e) {} }
+    if (bodyEl) { try { upgradeBodyImages(bodyEl); hookGalleries(bodyEl); hookLightbox(bodyEl); } catch (e) {} }
     try { loadReadNext(post, post.slug); } catch (e) {}
     trackView(post.slug);
     return;
@@ -293,6 +293,7 @@ function renderArticle(post) {
     bodyEl.innerHTML = sanitizeHtml(bodyHtml);
     upgradeBodyImages(bodyEl);
     hookGalleries(bodyEl);
+    hookLightbox(bodyEl);
   }
   // The body (incl. any tmw-project-card embed) is now in the DOM — tell
   // project-card.js to (re)hydrate, since it likely ran before this injection.
@@ -461,6 +462,107 @@ function hookGalleries(root) {
     // Initial sync after layout settles
     requestAnimationFrame(sync);
     setTimeout(sync, 200);
+  });
+}
+
+// ===================================================================
+// LIGHTBOX — click any article image (single or gallery) to view it
+// full-screen on a dark backdrop. Gallery images get prev/next arrows +
+// a counter; single images just get the close (×). Esc / backdrop / × close.
+// ===================================================================
+const LB = { items: [], idx: 0, el: null };
+
+function ensureLightbox() {
+  if (LB.el) return;
+  const el = document.createElement('div');
+  el.className = 'tmw-lb';
+  el.setAttribute('role', 'dialog');
+  el.setAttribute('aria-modal', 'true');
+  el.innerHTML =
+    '<button class="tmw-lb-close" aria-label="Close">×</button>' +
+    '<button class="tmw-lb-arrow prev" aria-label="Previous image"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>' +
+    '<img class="tmw-lb-img" alt="">' +
+    '<button class="tmw-lb-arrow next" aria-label="Next image"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button>' +
+    '<div class="tmw-lb-counter"></div>' +
+    '<div class="tmw-lb-cap"></div>';
+  document.body.appendChild(el);
+  LB.el = el;
+  LB.img = el.querySelector('.tmw-lb-img');
+  LB.prevBtn = el.querySelector('.tmw-lb-arrow.prev');
+  LB.nextBtn = el.querySelector('.tmw-lb-arrow.next');
+  LB.counter = el.querySelector('.tmw-lb-counter');
+  LB.cap = el.querySelector('.tmw-lb-cap');
+  el.querySelector('.tmw-lb-close').addEventListener('click', closeLightbox);
+  LB.prevBtn.addEventListener('click', (e) => { e.stopPropagation(); stepLightbox(-1); });
+  LB.nextBtn.addEventListener('click', (e) => { e.stopPropagation(); stepLightbox(1); });
+  // Click the dark backdrop (not the image / controls) to close.
+  el.addEventListener('click', (e) => { if (e.target === el) closeLightbox(); });
+  document.addEventListener('keydown', (e) => {
+    if (!LB.el || !LB.el.classList.contains('open')) return;
+    if (e.key === 'Escape') closeLightbox();
+    else if (e.key === 'ArrowLeft') stepLightbox(-1);
+    else if (e.key === 'ArrowRight') stepLightbox(1);
+  });
+}
+
+function lbCaptionFor(img) {
+  const fig = img.closest('figure');
+  if (fig) { const fc = fig.querySelector('figcaption'); if (fc) return (fc.textContent || '').trim(); }
+  const slide = img.closest('.tmw-gallery-track > *, .tmw-gallery-grid-item');
+  if (slide) { const c = slide.querySelector('.tmw-gallery-caption, figcaption'); if (c) return (c.textContent || '').trim(); }
+  return '';
+}
+
+function stepLightbox(dir) {
+  if (!LB.items.length) return;
+  LB.idx = (LB.idx + dir + LB.items.length) % LB.items.length;
+  renderLightbox();
+}
+
+function renderLightbox() {
+  const it = LB.items[LB.idx]; if (!it) return;
+  LB.img.src = it.src;
+  LB.img.alt = it.caption || '';
+  LB.cap.textContent = it.caption || '';
+  LB.cap.style.display = it.caption ? '' : 'none';
+  const multi = LB.items.length > 1;
+  LB.prevBtn.style.display = LB.nextBtn.style.display = LB.counter.style.display = multi ? '' : 'none';
+  if (multi) LB.counter.textContent = (LB.idx + 1) + ' / ' + LB.items.length;
+}
+
+function openLightbox(items, idx) {
+  ensureLightbox();
+  LB.items = items; LB.idx = idx;
+  renderLightbox();
+  LB.el.classList.add('open');
+  document.documentElement.style.overflow = 'hidden';
+}
+
+function closeLightbox() {
+  if (!LB.el) return;
+  LB.el.classList.remove('open');
+  document.documentElement.style.overflow = '';
+}
+
+function hookLightbox(root) {
+  if (!root) return;
+  const imgs = [...root.querySelectorAll('img')];
+  // Include the article cover image too (it lives outside the body).
+  const cover = document.getElementById('article-cover-img');
+  if (cover && cover.getAttribute('src')) imgs.unshift(cover);
+  imgs.forEach((img) => {
+    if (img.__lbHooked) return;
+    img.__lbHooked = true;
+    img.style.cursor = 'zoom-in';
+    img.addEventListener('click', (e) => {
+      e.preventDefault();
+      // Group: all images in the same gallery (slideshow track or grid); else solo.
+      const gal = img.closest('.tmw-gallery-track, .tmw-gallery-grid');
+      const group = gal ? [...gal.querySelectorAll('img')] : [img];
+      const items = group.map((g) => ({ src: g.currentSrc || g.src, caption: lbCaptionFor(g) }));
+      const idx = Math.max(0, group.indexOf(img));
+      openLightbox(items, idx);
+    });
   });
 }
 
