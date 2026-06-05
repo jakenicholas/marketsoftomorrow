@@ -362,6 +362,15 @@ const TOOLS = [
       required: ['slug', 'source_url'],
     },
   },
+  {
+    name: 'geocode_address',
+    description: 'Geocode a street address to precise latitude/longitude (~6–7 decimals) for placing a project on the map, via OpenStreetMap. Pass the fullest address you have (street, city, state, zip). Returns { ok, latitude, longitude, display_name } or { ok:false } if no match — then retry with a simpler address.',
+    inputSchema: {
+      type: 'object',
+      properties: { address: { type: 'string', description: 'Full address, e.g. "555 NW South River Dr, Miami, FL 33136"' } },
+      required: ['address'],
+    },
+  },
 
   // ── Analytics ──────────────────────────────────────────────────────────────
   {
@@ -1324,6 +1333,20 @@ const IMPL = {
       } catch (e) { if (e && e.status === 409 && attempt < 4) continue; throw e; }
       return { ok: true, mode: 'applied', slug, name: p.name, status: p.status, changes, source_url: sourceUrl, note: 'Live map rebuilds within ~1h; projects.json git history is the audit trail.' };
     }
+  },
+
+  // Geocode an address (OpenStreetMap Nominatim) — lets discovery place new
+  // projects without the agent shelling out to curl (so no Bash approval).
+  async geocode_address(args, env) {
+    const q = String(args.address || '').trim();
+    if (!q) throw new Error('address is required');
+    const url = 'https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' + encodeURIComponent(q);
+    const r = await fetch(url, { headers: { 'User-Agent': 'tmw-map-discovery/1.0 (admin@oftmw.com)', 'Accept': 'application/json' } });
+    if (!r.ok) throw new Error('geocoder HTTP ' + r.status);
+    let arr; try { arr = await r.json(); } catch (_) { arr = []; }
+    if (!Array.isArray(arr) || !arr.length) return { ok: false, address: q, note: 'no match — retry with a simpler address (drop unit/suite, or just street + city)' };
+    const hit = arr[0];
+    return { ok: true, address: q, latitude: Number(hit.lat), longitude: Number(hit.lon), display_name: hit.display_name };
   },
 
   // ── Analytics ──────────────────────────────────────────────────────────────
