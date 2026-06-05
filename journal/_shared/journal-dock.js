@@ -1012,19 +1012,40 @@
     try { return new Date(ts).toLocaleDateString(undefined, { month:'short', day:'numeric' }); } catch(e){ return ''; }
   }
   function byTime(a,b){ return new Date(b.timestamp) - new Date(a.timestamp); }
+  // Format a real event date (YYYY / YYYY-MM / YYYY-MM-DD) → "Nov 2025".
+  function fmtEv(s){
+    var m = String(s || '').match(/^(\d{4})(?:-(\d{2}))?(?:-(\d{2}))?/);
+    if (!m) return '';
+    var MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    if (m[2] && m[3]) return MON[+m[2]-1] + ' ' + (+m[3]) + ', ' + m[1];
+    if (m[2]) return MON[+m[2]-1] + ' ' + m[1];
+    return m[1];
+  }
+  // Chip TEXT: a milestone shows its own phase tag (Topped out, Financing
+  // secured); never the generic "Update" word. Additions read "Tracking".
   function label(e){
     var t = (e.type || '').toLowerCase();
-    if (t === 'new_project')   return 'Addition';
     if (t === 'article')       return 'Article';
-    if (t === 'status_change') return 'Update';
+    if (t === 'new_project' || t === 'tracking') return 'Tracking';
+    if (t === 'status_change') return e.tag || '';
     var tag = (e.tag || '').toLowerCase();
     if (tag.indexOf('on tmw') > -1 || tag.indexOf('article') > -1) return 'Article';
-    if (tag.indexOf('new on map') > -1 || tag.indexOf('added') > -1) return 'Addition';
-    return 'Update';
+    if (tag.indexOf('new on map') > -1 || tag.indexOf('added') > -1) return 'Tracking';
+    return e.tag || '';
+  }
+  // Chip COLOR class by type (so the text can be a multi-word phase).
+  function labelClass(e){
+    var t = (e.type || '').toLowerCase();
+    if (t === 'article') return 'article';
+    if (t === 'new_project' || t === 'tracking') return 'tracking';
+    return 'update'; // status_change → dossier purple
   }
   function title(e){
-    var s = (label(e) === 'Addition') ? (e.project_title || e.title || '')
-                                      : (e.title || e.project_title || '');
+    var t = (e.type || '').toLowerCase();
+    var s;
+    if (t === 'status_change')   s = e.project_title || e.title || '';
+    else if (t === 'new_project') s = 'Now tracking ' + (e.project_title || (e.title || '').replace(/\s+added to the map$/i, ''));
+    else                          s = e.title || e.project_title || ''; // tracking already "Now tracking X"; article = headline
     return String(s).replace(/\s+/g, ' ').trim();
   }
   function eid(e){ return e.id != null ? String(e.id) : (e.type + '|' + e.timestamp + '|' + (e.project_slug || e.title || '')); }
@@ -1038,9 +1059,13 @@
     return list.map(function(e){
       var lab = label(e);
       var img = e.image ? '<img class="pi-img" src="' + esc(e.image) + '" alt="" loading="lazy">' : '<div class="pi-img"></div>';
-      var meta = (e.city ? esc(e.city) + ' · ' : '') + rel(e.timestamp);
+      // Milestones show the real EVENT date (when it happened), not when we
+      // tracked it; everything else falls back to relative "Nm ago".
+      var when = ((e.type || '').toLowerCase() === 'status_change' && e.event_date) ? fmtEv(e.event_date) : rel(e.timestamp);
+      var meta = (e.city ? esc(e.city) + ' · ' : '') + esc(when);
+      var chip = lab ? '<span class="pi-tag pi-' + labelClass(e) + '">' + esc(lab) + '</span>' : '';
       return '<a class="tmw-pulse-item" href="' + esc(e.link || '#') + '" data-eid="' + esc(eid(e)) + '">' + img +
-        '<div class="pi-body"><span class="pi-tag pi-' + lab.toLowerCase() + '">' + esc(lab) + '</span>' +
+        '<div class="pi-body">' + chip +
         '<div class="pi-title">' + esc(title(e)) + '</div>' +
         '<div class="pi-meta">' + meta + '</div></div>' +
         '<span class="pi-x" role="button" aria-label="Clear notification" tabindex="0"><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></span></a>';
@@ -1066,6 +1091,8 @@
       '.tmw-pulse-pop[hidden]{display:none}',
       '.tmw-pulse-head{padding:12px 12px 12px 16px;border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;gap:8px;flex:0 0 auto}',
       '.tmw-pulse-head b{font-size:14px;font-weight:800;color:#fff;letter-spacing:.02em}',
+      '.tmw-pulse-livedot{display:inline-block;width:6px;height:6px;border-radius:50%;background:#1FDF67;margin-right:7px;vertical-align:middle;position:relative;top:-1px;box-shadow:0 0 0 0 rgba(31,223,103,.6);animation:tmwPulseLivedot 2s infinite}',
+      '@keyframes tmwPulseLivedot{0%{box-shadow:0 0 0 0 rgba(31,223,103,.6)}70%{box-shadow:0 0 0 6px rgba(31,223,103,0)}100%{box-shadow:0 0 0 0 rgba(31,223,103,0)}}',
       '.tmw-pulse-head .tmw-pulse-sub{font-size:11px;color:rgba(255,255,255,.4)}',
       '.tmw-pulse-refresh{margin-left:auto;width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.6);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;flex:0 0 auto;transition:background .15s,color .15s,border-color .15s,transform .45s ease}',
       '.tmw-pulse-refresh:hover{background:rgba(255,211,0,.14);color:#FFD300;border-color:rgba(255,211,0,.4)}',
@@ -1077,9 +1104,10 @@
       '.tmw-pulse-item .pi-img{width:52px;height:52px;border-radius:9px;flex:0 0 auto;object-fit:cover;background:rgba(255,255,255,.06)}',
       '.tmw-pulse-item .pi-body{min-width:0;flex:1}',
       '.tmw-pulse-item .pi-tag{display:inline-block;font-size:9px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;margin-bottom:3px;color:#1FDF67}',
-      '.tmw-pulse-item .pi-tag.pi-update{color:#FFD300}',
+      '.tmw-pulse-item .pi-tag.pi-update{color:#A78BFA}',
+      '.tmw-pulse-item .pi-tag.pi-tracking{color:#8b93a7}',
       '.tmw-pulse-item .pi-tag.pi-article{color:#8FB8FF}',
-      '.tmw-pulse-item .pi-title{font-size:13px;font-weight:600;color:#ECEAE5;line-height:1.3;max-width:80%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+      '.tmw-pulse-item .pi-title{font-size:13px;font-weight:600;color:#ECEAE5;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}',
       '.tmw-pulse-item .pi-meta{font-size:11px;color:rgba(255,255,255,.4);margin-top:3px}',
       '.tmw-pulse-item .pi-x{position:absolute;top:50%;right:8px;transform:translateY(-50%);width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,.06);color:rgba(255,255,255,.45);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;transition:background .14s,color .14s,transform .12s}',
       '.tmw-pulse-item .pi-x:hover{background:#E5484D;color:#fff;transform:translateY(-50%) scale(1.12)}',
@@ -1102,7 +1130,7 @@
     popEl = document.createElement('div');
     popEl.id = 'tmw-pulse-pop'; popEl.className = 'tmw-pulse-pop'; popEl.hidden = true;
     popEl.innerHTML =
-      '<div class="tmw-pulse-head"><b>Pulse</b><span class="tmw-pulse-sub">Latest across the network</span>' +
+      '<div class="tmw-pulse-head"><b><span class="tmw-pulse-livedot" aria-hidden="true"></span>Pulse</b><span class="tmw-pulse-sub">Latest across the network</span>' +
         '<button class="tmw-pulse-refresh" type="button" aria-label="Refresh" title="Refresh">' +
           '<svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>' +
         '</button></div>' +
