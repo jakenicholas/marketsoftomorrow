@@ -2115,6 +2115,15 @@
     .pulse-ev-ts { color: var(--accent); }
     .pulse-ev-wrap[data-event-type="status_change"] .pulse-ev-ts { color: #FF9500; }
     .pulse-ev-wrap[data-event-type="new_project"]   .pulse-ev-ts { color: #6FA8FF; }
+    /* Tracking ("Now tracking …") — a calmer violet so it sits quietly below
+       the orange story milestones; only ever shown under the All filter. */
+    .pulse-ev-wrap[data-event-type="tracking"]::before { background: #9b8fd1; }
+    .pulse-ev-wrap[data-event-type="tracking"] .pulse-ev-ts { color: #9b8fd1; }
+    .pulse-ev-eye-icon { color: #9b8fd1; vertical-align: -2px; margin-right: 1px; flex-shrink: 0; }
+    body.ui-v2 .v2-pulse-content .pulse-ev-wrap[data-event-type="tracking"] .pulse-ev-type-lbl,
+    body.ui-v2 #desktopSidebar .v2-pulse-content .pulse-ev-wrap[data-event-type="tracking"] .pulse-ev-type-lbl { color: #9b8fd1 !important; }
+    body.ui-v2 .v2-pulse-content .pulse-ev-wrap[data-event-type="tracking"]::before,
+    body.ui-v2 #desktopSidebar .v2-pulse-content .pulse-ev-wrap[data-event-type="tracking"]::before { background: #9b8fd1; box-shadow: 0 0 0 3px rgba(155,143,209,0.18); }
     .pulse-ev-sep { color: rgba(255,255,255,0.3); }
     .pulse-ev-loc { color: rgba(255,255,255,0.55); }
 
@@ -19034,12 +19043,10 @@
             const ev = row.lastEvent;
             const tagClass = (ev.type === 'article') ? 'article'
                           : (ev.type === 'status_change') ? 'status'
-                          : (ev.type === 'new_project') ? 'map' : 'article';
-            // "Map" reads as "added to the map" -- clearer than "New" which
-            // could be confused for a new article or general novelty marker.
+                          : (ev.type === 'tracking' || ev.type === 'new_project') ? 'map' : 'article';
             const tagText  = (ev.type === 'article') ? 'Article'
                           : (ev.type === 'status_change') ? 'Status'
-                          : (ev.type === 'new_project') ? 'Map' : 'Update';
+                          : (ev.type === 'tracking' || ev.type === 'new_project') ? 'Tracking' : 'Update';
             const evTitle = ev.title_full || ev.title || '';
             updateHtml = `
               <div class="wl-row-update">
@@ -19846,14 +19853,15 @@
     // new_project   -> blue pill    "Map"   (newly added to the map)
     function tagClassFor(ev) {
       if (ev.type === 'article')     return 'news';
-      if (ev.type === 'new_project') return 'map';
+      // 'new_project' kept as an alias for any pre-existing cached pulse.json.
+      if (ev.type === 'tracking' || ev.type === 'new_project') return 'track';
       return 'update';
     }
 
     // Human-readable label for the tag bubble
     function tagLabelFor(ev) {
       if (ev.type === 'article')     return 'News';
-      if (ev.type === 'new_project') return 'Map';
+      if (ev.type === 'tracking' || ev.type === 'new_project') return 'Tracking';
       return 'Update';
     }
 
@@ -19867,8 +19875,10 @@
     function applyActiveFilter(events) {
       if (activeFilter === 'all') return events.slice();
       return events.filter(function (e) {
+        // "Updates" is the project STORY — milestones only. Tracking ("Now
+        // tracking …") is a quieter meta class that lives only under "All".
         if (activeFilter === 'updates') {
-          return e.type === 'status_change' || e.type === 'new_project';
+          return e.type === 'status_change';
         }
         return e.type === activeFilter;
       });
@@ -19939,10 +19949,15 @@
         var extIcon = (e.type === 'article')
           ? '<svg class="pulse-ev-ext-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="11" height="11" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>'
           : '';
+        // Tracking rows lead with a small eye (matching the Watch language) so
+        // they read as "we're now watching this", not a project status change.
+        var eyeIcon = (e.type === 'tracking' || e.type === 'new_project')
+          ? '<svg class="pulse-ev-eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="12" height="12" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> '
+          : '';
         html += '<div class="pulse-ev-wrap pulse-ev-type-' + tagCls + '" data-event-type="' + escapeHtml(e.type || '') + '">'
               +   '<a class="pulse-ev" href="' + escapeHtml(e.link || '#') + '"' + target + eventTypeAttr + '>'
               +     tsrowHtml
-              +     '<div class="pulse-ev-title">' + escapeHtml(e.title || '') + extIcon + '</div>'
+              +     '<div class="pulse-ev-title">' + eyeIcon + escapeHtml(e.title || '') + extIcon + '</div>'
               +     (isV2 ? '' : bottomMeta)
               +   '</a>'
               +   '<button type="button" class="pulse-ev-close" data-dismiss="' + safeId + '" aria-label="Dismiss">'

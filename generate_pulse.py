@@ -689,18 +689,64 @@ def build_status_change_event(slug, project, prev_status, new_status):
         'timestamp': datetime.now(timezone.utc).isoformat(),
     }
 
-def build_new_project_event(slug, project):
+# Phases that don't count as "movement" — being announced/planned ≈ just being
+# newly tracked, so they neither suppress a tracking event nor emit a milestone.
+_NON_STORY_PHASES = {'', 'announced', 'planned', 'proposed', 'pre-construction', 'preconstruction'}
+
+
+def _has_emittable_story(slug, project, seen_history_keys):
+    """Will the milestone pass emit a real PROGRESS milestone for this project?
+    Used to suppress a redundant 'Now tracking' event when the project's story IS
+    the news (e.g. it lands already under construction with a sourced milestone)."""
+    for entry in (project.get('status_history') or []):
+        if not isinstance(entry, dict) or entry.get('type') in ('date', 'field'):
+            continue
+        phase = (entry.get('phase') or entry.get('to') or '').lower()
+        if phase in _NON_STORY_PHASES:
+            continue
+        if history_key(slug, entry) in seen_history_keys:
+            continue
+        if not _event_within_months(entry.get('effective_date'), 12):
+            continue
+        return True
+    return False
+
+
+def build_tracking_event(slug, project):
+    """'Now tracking X' — TMW started covering this project. A meta event,
+    distinct from the project's own progress milestones."""
     return {
-        'id': f"new-{slug}",
-        'type': 'new_project',
-        'tag': 'New on Map',
-        'title': f"{project['title']} added to the map",
+        'id': f"track-{slug}",
+        'type': 'tracking',
+        'tag': 'Tracking',
+        'title': f"Now tracking {project['title']}",
         'project_slug': slug,
         'project_title': project['title'],
         'city': project['city'],
         'image': project.get('image') or '',
         'link': f"{SITE_URL}/?project={re.sub(r'[^a-z0-9]', '', project['title'].lower())}",
         'timestamp': datetime.now(timezone.utc).isoformat(),
+    }
+
+
+def build_grouped_tracking_event(items):
+    """One row for a batch of newly-tracked projects (e.g. after a bulk publish)
+    so they don't bury the story feed. `items` is a list of (slug, project)."""
+    names = [p['title'] for _, p in items]
+    n = len(names)
+    shown = names[:3]
+    subtitle = ', '.join(shown) + (f" +{n - len(shown)} more" if n > len(shown) else '')
+    first_img = next((p.get('image') for _, p in items if p.get('image')), '')
+    stamp = datetime.now(timezone.utc)
+    return {
+        'id': f"track-group-{stamp.strftime('%Y%m%dT%H%M')}-{n}",
+        'type': 'tracking',
+        'tag': 'Tracking',
+        'title': f"Now tracking {n} new projects",
+        'city': subtitle,            # the names list renders in the location slot
+        'image': first_img,
+        'link': f"{SITE_URL}/",      # the map itself (no single project)
+        'timestamp': stamp.isoformat(),
     }
 
 def build_article_event(article, matched_slug):
@@ -843,6 +889,11 @@ def main():
         if norm:
             orphan_by_title.setdefault(norm, []).append((orphan_slug, orphan_prev))
 
+    # Newly-tracked projects collected here, then emitted as a single "Now
+    # tracking X" row (or one grouped "Now tracking N new projects" row when a
+    # batch lands together, e.g. after a bulk publish) AFTER the loop.
+    new_tracking = []
+
     # Skip diff events on first run -- would generate noise (every project would be "new")
     if not is_first_run:
         for slug, project in current_projects.items():
@@ -880,13 +931,29 @@ def main():
                     _, orphan_prev = rename_match
                     print(f"   RENAME (silent): {orphan_prev.get('title','?')} -> {project['title']}")
                 else:
-                    # Truly new project
-                    new_events.append(build_new_project_event(slug, project))
-                    print(f"  + NEW: {project['title']}")
+                    # Truly new project. If it arrives WITH a real progress
+                    # milestone, let that milestone be the news (the story); only
+                    # emit a "Now tracking" event when there's no story yet, so we
+                    # never double up "added to map" + "reached construction".
+                    if _has_emittable_story(slug, project, seen_history_keys):
+                        print(f"  + NEW (story leads, no tracking row): {project['title']}")
+                    else:
+                        new_tracking.append((slug, project))
+                        print(f"  + NEW (tracking): {project['title']}")
             # else: existing project — its status/milestone changes are emitted by
             # the status_history pass below (event-dated + sourced), not a status diff.
     else:
         print("  ! First run -- skipping project diff (would generate noise)")
+
+    # Emit the tracking event(s): one row when several land at once, individual
+    # rows otherwise. (history_seeded gates the cutover seed run, same as below.)
+    if history_seeded and new_tracking:
+        if len(new_tracking) >= 3:
+            new_events.append(build_grouped_tracking_event(new_tracking))
+            print(f"   TRACKING (grouped): {len(new_tracking)} new projects")
+        else:
+            for slug, project in new_tracking:
+                new_events.append(build_tracking_event(slug, project))
 
     # 4b. Dossier-based status/milestone events. The real, event-dated activity now
     # comes from each project's status_history (the same sourced log the dossier
@@ -904,6 +971,12 @@ def main():
             seen_history_keys.add(key)
             if not history_seeded:
                 continue  # cutover run: seed only, don't emit
+            # Skip non-movement phases (announced/planned/etc.) — those aren't a
+            # "story" update; the project being newly tracked already covers it,
+            # so emitting "X Announced" here would just duplicate the tracking row.
+            phase = (entry.get('phase') or entry.get('to') or '').lower()
+            if phase in _NON_STORY_PHASES:
+                continue
             if not _event_within_months(entry.get('effective_date'), 12):
                 continue  # undated or older-than-a-year → keep the ticker current
             new_events.append(build_milestone_event(slug, project, entry))
