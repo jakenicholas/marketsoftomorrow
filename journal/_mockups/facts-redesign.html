@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Facts row — redesign options</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root { font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif; }
+  body { margin:0; background:#070707; color:#fff; padding:40px; }
+  .wrap { max-width:430px; margin:0 auto 46px; }
+  .lab { font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:#1FDF67; margin:0 0 12px 2px; font-weight:700; }
+  .note { font-size:12px; color:rgba(255,255,255,.4); margin:8px 0 0 2px; }
+
+  /* shared panel + timeline (context) */
+  .panel { background:rgba(255,255,255,0.035); border:1px solid rgba(255,255,255,0.12); border-radius:16px; padding:16px 18px 18px; }
+  .pm-prog-top { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:9px; }
+  .pm-prog-top .d { font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:rgba(255,255,255,.35); }
+  .pm-prog-top .s { font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:#1FDF67; font-weight:700; }
+  .meter { position:relative; height:8px; border-radius:5px; overflow:hidden; background:#0d0f0e; }
+  .meter .g { position:absolute; inset:0; background:linear-gradient(90deg,#3a2f6b,#7C5CE0 38%,#A78BFA 64%,#1FDF67); }
+  .stages { display:flex; gap:3px; margin-top:11px; }
+  .stages span { flex:1; font-size:7.5px; letter-spacing:.02em; text-transform:uppercase; color:rgba(255,255,255,.2); text-align:center; }
+  .stages span:first-child{text-align:left;} .stages span:last-child{text-align:right;} .stages span.done{color:rgba(255,255,255,.5);}
+
+  /* ============ CHOSEN — boxed minis ============ */
+  .boxed { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin-top:16px; }
+  .boxed .box { padding:11px 13px; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.09); border-radius:11px; }
+  .boxed .v { font-size:18px; font-weight:800; letter-spacing:-.01em; line-height:1.05; }
+  .boxed .k { font-size:8.5px; letter-spacing:.08em; text-transform:uppercase; color:rgba(255,255,255,.4); margin-top:5px; }
+  .boxed2 { grid-template-columns:repeat(4,1fr); }
+  .boxed2 .box { background:rgba(255,255,255,.035); border-color:rgba(255,255,255,.07); padding:11px 11px; }
+  .boxed2 .v { font-size:16px; }
+
+  /* ============ CURRENT (for reference) ============ */
+  .cur { display:flex; flex-wrap:wrap; gap:18px 26px; margin-top:16px; }
+  .cur .v { font-size:21px; font-weight:800; letter-spacing:-.01em; line-height:1.05; }
+  .cur .k { font-size:8.5px; letter-spacing:.08em; text-transform:uppercase; color:rgba(255,255,255,.4); margin-top:4px; }
+
+  /* ============ OPTION A — spec list (label left / value right) ============ */
+  .optA { margin-top:16px; border-top:1px solid rgba(255,255,255,.08); }
+  .optA .row { display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px solid rgba(255,255,255,.06); }
+  .optA .row:last-child { border-bottom:0; }
+  .optA .k { font-size:11px; letter-spacing:.04em; color:rgba(255,255,255,.45); text-transform:uppercase; }
+  .optA .v { font-family:'Fraunces',serif; font-size:16px; font-weight:600; color:#fff; }
+  .optA .v small { font-family:'Inter'; font-size:11px; font-weight:500; color:rgba(255,255,255,.5); letter-spacing:.02em; }
+
+  /* ============ OPTION B — divider strip (value over label, hairline separators) ============ */
+  .optB { display:flex; margin-top:18px; }
+  .optB .cell { flex:1; padding:0 14px; border-left:1px solid rgba(255,255,255,.1); }
+  .optB .cell:first-child { padding-left:0; border-left:0; }
+  .optB .v { font-family:'Fraunces',serif; font-size:19px; font-weight:600; line-height:1; color:#fff; }
+  .optB .k { font-size:8.5px; letter-spacing:.09em; text-transform:uppercase; color:rgba(255,255,255,.38); margin-top:7px; }
+
+  /* ============ OPTION C — timeline-anchored dates + scale chips ============ */
+  .optC { margin-top:16px; }
+  .optC .dates { display:flex; justify-content:space-between; font-size:11px; }
+  .optC .dates .start .v, .optC .dates .end .v { font-family:'Fraunces',serif; font-size:15px; font-weight:600; }
+  .optC .dates .k { font-size:8px; letter-spacing:.09em; text-transform:uppercase; color:rgba(255,255,255,.35); margin-bottom:3px; }
+  .optC .dates .end { text-align:right; }
+  .optC .chips { display:flex; gap:8px; margin-top:16px; }
+  .optC .chip { display:flex; align-items:baseline; gap:6px; padding:7px 12px; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.09); border-radius:10px; }
+  .optC .chip .v { font-family:'Fraunces',serif; font-size:15px; font-weight:600; }
+  .optC .chip .k { font-size:9px; letter-spacing:.05em; text-transform:uppercase; color:rgba(255,255,255,.4); }
+</style>
+</head>
+<body>
+
+  <div class="wrap">
+    <p class="lab">Chosen — current values, each in a box</p>
+    <div class="panel">
+      <div class="pm-prog-top"><span class="d">Delivered Dec '25</span><span class="s">Now Open</span></div>
+      <div class="meter"><div class="g"></div></div>
+      <div class="stages"><span class="done">Announced</span><span class="done">Breaking Ground</span><span class="done">Construction</span><span class="done">Opening Soon</span><span class="done">Now Open</span></div>
+      <div class="boxed">
+        <div class="box"><div class="v">10.22</div><div class="k">Start</div></div>
+        <div class="box"><div class="v">12.03.25</div><div class="k">Completion</div></div>
+        <div class="box"><div class="v">301</div><div class="k">Units</div></div>
+        <div class="box"><div class="v">46</div><div class="k">Floors</div></div>
+      </div>
+    </div>
+    <p class="note">Variant 1: 4 across, value 18px bold.</p>
+    <div class="panel" style="margin-top:18px;">
+      <div class="pm-prog-top"><span class="d">Delivered Dec '25</span><span class="s">Now Open</span></div>
+      <div class="meter"><div class="g"></div></div>
+      <div class="stages"><span class="done">Announced</span><span class="done">Breaking Ground</span><span class="done">Construction</span><span class="done">Opening Soon</span><span class="done">Now Open</span></div>
+      <div class="boxed boxed2">
+        <div class="box"><div class="v">10.22</div><div class="k">Start</div></div>
+        <div class="box"><div class="v">12.03.25</div><div class="k">Completion</div></div>
+        <div class="box"><div class="v">301</div><div class="k">Units</div></div>
+        <div class="box"><div class="v">46</div><div class="k">Floors</div></div>
+      </div>
+    </div>
+    <p class="note">Variant 2: serif values, slightly softer boxes.</p>
+  </div>
+
+  <div class="wrap">
+    <p class="lab">Current</p>
+    <div class="panel">
+      <div class="pm-prog-top"><span class="d">Delivered Dec '25</span><span class="s">Now Open</span></div>
+      <div class="meter"><div class="g"></div></div>
+      <div class="stages"><span class="done">Announced</span><span class="done">Breaking Ground</span><span class="done">Construction</span><span class="done">Opening Soon</span><span class="done">Now Open</span></div>
+      <div class="cur">
+        <div><div class="v">10.22</div><div class="k">Start</div></div>
+        <div><div class="v">12.03.25</div><div class="k">Completion</div></div>
+        <div><div class="v">301</div><div class="k">Units</div></div>
+        <div><div class="v">46</div><div class="k">Floors</div></div>
+      </div>
+    </div>
+    <p class="note">4 heavy bold numbers + dotted dates = number soup.</p>
+  </div>
+
+  <div class="wrap">
+    <p class="lab">Option A — spec list</p>
+    <div class="panel">
+      <div class="pm-prog-top"><span class="d">Delivered Dec '25</span><span class="s">Now Open</span></div>
+      <div class="meter"><div class="g"></div></div>
+      <div class="stages"><span class="done">Announced</span><span class="done">Breaking Ground</span><span class="done">Construction</span><span class="done">Opening Soon</span><span class="done">Now Open</span></div>
+      <div class="optA">
+        <div class="row"><span class="k">Start</span><span class="v">Oct <small>2022</small></span></div>
+        <div class="row"><span class="k">Completion</span><span class="v">Dec <small>2025</small></span></div>
+        <div class="row"><span class="k">Units</span><span class="v">301</span></div>
+        <div class="row"><span class="k">Floors</span><span class="v">46</span></div>
+      </div>
+    </div>
+    <p class="note">Clean two-column ledger. Dates in plain English. Serif values feel editorial.</p>
+  </div>
+
+  <div class="wrap">
+    <p class="lab">Option B — divider strip</p>
+    <div class="panel">
+      <div class="pm-prog-top"><span class="d">Delivered Dec '25</span><span class="s">Now Open</span></div>
+      <div class="meter"><div class="g"></div></div>
+      <div class="stages"><span class="done">Announced</span><span class="done">Breaking Ground</span><span class="done">Construction</span><span class="done">Opening Soon</span><span class="done">Now Open</span></div>
+      <div class="optB">
+        <div class="cell"><div class="v">Oct ’22</div><div class="k">Start</div></div>
+        <div class="cell"><div class="v">Dec ’25</div><div class="k">Completion</div></div>
+        <div class="cell"><div class="v">301</div><div class="k">Units</div></div>
+        <div class="cell"><div class="v">46</div><div class="k">Floors</div></div>
+      </div>
+    </div>
+    <p class="note">Same 4-up layout but lighter: serif values, hairline separators, short dates.</p>
+  </div>
+
+  <div class="wrap">
+    <p class="lab">Option C — dates anchor the timeline, scale as chips</p>
+    <div class="panel">
+      <div class="pm-prog-top"><span class="d">3 yrs to deliver</span><span class="s">Now Open</span></div>
+      <div class="meter"><div class="g"></div></div>
+      <div class="optC">
+        <div class="dates">
+          <div class="start"><div class="k">Start</div><div class="v">Oct 2022</div></div>
+          <div class="end"><div class="k">Completion</div><div class="v">Dec 2025</div></div>
+        </div>
+        <div class="chips">
+          <div class="chip"><span class="v">301</span><span class="k">Units</span></div>
+          <div class="chip"><span class="v">46</span><span class="k">Floors</span></div>
+        </div>
+      </div>
+    </div>
+    <p class="note">Dates sit under the bar ends (where they belong on a timeline); scale facts become small chips.</p>
+  </div>
+
+</body>
+</html>

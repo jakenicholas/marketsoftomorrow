@@ -1720,9 +1720,10 @@ def build_page(row, articles=None, nearby=None):
     .pp-hero .btn-primary {{ flex: 0 1 auto; padding: 13px 20px; }}
     .pp-panel {{ background: rgba(15,17,16,.60); backdrop-filter: blur(22px); -webkit-backdrop-filter: blur(22px); border: 1px solid rgba(255,255,255,.14); border-radius: 18px; padding: 20px 22px; box-shadow: 0 30px 80px -30px rgba(0,0,0,.9); }}
     .pp-panel .pm-tl {{ margin-bottom: 0; }}
-    .pp-minis {{ display: flex; gap: 22px; margin-top: 16px; flex-wrap: wrap; }}
-    .pp-mini .v {{ font-size: 21px; font-weight: 800; letter-spacing: -.01em; }}
-    .pp-mini .k {{ font-size: 8.5px; letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,.4); margin-top: 3px; }}
+    .pp-minis {{ display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 16px; }}
+    .pp-mini {{ padding: 11px 13px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.09); border-radius: 11px; }}
+    .pp-mini .v {{ font-size: 18px; font-weight: 800; letter-spacing: -.01em; }}
+    .pp-mini .k {{ font-size: 8.5px; letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,.4); margin-top: 5px; }}
 
     /* gallery cluster (this project's photos) */
     .pp-gal {{ position: absolute; z-index: 6; left: 50%; bottom: 20px; transform: translateX(-50%); display: flex; align-items: center; gap: 13px; background: rgba(0,0,0,.42); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,.1); border-radius: 999px; padding: 7px 10px; }}
