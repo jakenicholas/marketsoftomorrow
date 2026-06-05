@@ -761,10 +761,14 @@ def _dossier_status_code(raw):
     s = (raw or '').strip().lower()
     if not s:
         return 'announced'
-    if 'open' in s or 'complete' in s:
-        return 'open'
+    # Check coming/opening-soon FIRST — "Opening Soon" contains the substring
+    # "open" and must NOT be read as a completed opening (that misorders the
+    # dossier so "coming soon" appears after a phantom "Opened"). "Now Open" /
+    # "Completed" fall through to the open check below.
     if 'coming' in s or 'opening' in s:
         return 'coming-soon'
+    if 'open' in s or 'complete' in s:
+        return 'open'
     if 'construction' in s or 'topping' in s or 'vertical' in s:
         return 'construction'
     if 'breaking' in s or 'ground' in s:
@@ -916,6 +920,12 @@ def build_milestones(row, articles=None):
     def _sort_key(m):
         mm = re.match(r'^(\d{4})(?:-(\d{2}))?(?:-(\d{2}))?', (m['date'] or '')[:10])
         nd = f"{mm.group(1)}-{mm.group(2) or '01'}-{mm.group(3) or '01'}" if mm else ''
+        # The grand opening is the TERMINAL step on every project — always sort
+        # it last so a coming-soon (or any pre-open phase) can never render after
+        # it, regardless of the raw dates. (Phased openings, where a later phase
+        # follows an "Open — Phase 1", are not yet modeled in the taxonomy.)
+        if m['phase'] == 'grand-opening':
+            return (3, nd or '9999-99-99', m['rank'])
         if m['projected']:
             return (2, nd or '9999-99-99', m['rank'])
         return (0, nd, m['rank']) if nd else (1, '', m['rank'])
