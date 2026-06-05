@@ -352,19 +352,54 @@ def compute_progress(delivery_date_str, status, start_date_str=''):
 _MONTH_NAMES = ['January','February','March','April','May','June',
                 'July','August','September','October','November','December']
 
-def _hero_teaser(text, target=230):
-    """Short hero lede derived from a long bio when no dedicated short
-    Description exists. Returns the whole text if already short; otherwise a
-    word-boundary cut near `target` chars with an ellipsis. Avoids splitting on
-    abbreviation periods (e.g. '120 S. Dixie') by cutting on whitespace rather
-    than sentence punctuation."""
+# Abbreviations whose trailing period should NOT be treated as a sentence end
+# when auto-generating hero mini-bios (otherwise "120 S. Dixie" splits at "S.").
+_TEASER_ABBREV = {
+    's', 'st', 'ave', 'blvd', 'rd', 'dr', 'mr', 'mrs', 'ms', 'jr', 'sr',
+    'inc', 'co', 'ltd', 'corp', 'no', 'vs', 'dept', 'fig', 'approx',
+    'etc', 'ft', 'sq', 'mt', 'mts', 'u.s', 'u.k', 'e.g', 'i.e', 'p.m', 'a.m',
+}
+
+
+def _split_sentences(text):
+    """Split prose into sentences, but don't break on abbreviation periods
+    (e.g. 'S.', 'St.', 'Inc.') or single-letter initials, and not on decimals
+    like '0.87' (the period isn't followed by whitespace + a capital there)."""
+    sentences, start = [], 0
+    for m in re.finditer(r'([.!?])\s+(?=[A-Z0-9"\'“])', text):
+        end = m.start()
+        prev = text[max(0, end - 14):end]
+        last_word = re.split(r'[\s(]', prev)[-1].lower().rstrip('.')
+        if last_word in _TEASER_ABBREV or (len(last_word) == 1 and last_word.isalpha()):
+            continue
+        sentences.append(text[start:end + 1].strip())
+        start = m.end()
+    tail = text[start:].strip()
+    if tail:
+        sentences.append(tail)
+    return [s for s in sentences if s]
+
+
+def _hero_teaser(text, target=190, cap=300):
+    """Auto-generate a short hero mini-bio from a project's full description.
+    Uses the first sentence (adding a second only if the first is very short),
+    so the hero stays a tight teaser while the full text lives in About below.
+    Falls back to a word-boundary cut + ellipsis if a single sentence is huge."""
     text = (text or '').strip()
-    if len(text) <= target + 40:
-        return text
-    cut = text[:target]
-    if ' ' in cut:
-        cut = cut[:cut.rfind(' ')]
-    return cut.rstrip(' ,;:—–-') + '…'
+    if not text:
+        return ''
+    sents = _split_sentences(text) or [text]
+    out = sents[0]
+    i = 1
+    while len(out) < 110 and i < len(sents) and len(out) + 1 + len(sents[i]) <= cap:
+        out += ' ' + sents[i]
+        i += 1
+    if len(out) > cap:
+        cut = out[:cap]
+        if ' ' in cut:
+            cut = cut[:cut.rfind(' ')]
+        out = cut.rstrip(' ,;:—–-') + '…'
+    return out
 
 
 def format_fact_date(raw):
@@ -755,14 +790,14 @@ def build_page(row, articles=None, nearby=None):
     eyebrow_html = (f'<span class="pp-eyebrow"><span class="d" style="color:{status_color}"></span>'
                     f'{star}{status_text}</span>')
 
-    # Hero lede (short bio) vs. below "About" (long bio, only if it differs).
-    # Prefer the dedicated short Description for the hero. When a project has
-    # ONLY a long DescriptionLong (no short bio), don't dump the whole essay in
-    # the hero — derive a short teaser and keep the full text for the About
-    # section below, like every other project.
-    about_long = row.get('DescriptionLong', '').strip()
-    short_desc = row.get('Description', '').strip()
-    lede = short_desc or _hero_teaser(about_long)
+    # Hero lede (auto-generated mini-bio) vs. below "About" (full bio).
+    # Short descriptions are no longer authored in the backend, so we always
+    # derive a tight hero teaser from the full description and keep the complete
+    # text in the About section below. Source the full bio from DescriptionLong,
+    # falling back to the legacy Description field.
+    about_long = (row.get('DescriptionLong', '').strip()
+                  or row.get('Description', '').strip())
+    lede = _hero_teaser(about_long)
     about_section = ''
     if about_long and about_long != lede:
         about_section = (f'<div class="pp-sec"><div class="pp-sec-h">About the project</div>'
