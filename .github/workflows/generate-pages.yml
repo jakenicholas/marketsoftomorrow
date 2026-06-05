@@ -162,7 +162,7 @@ jobs:
           # retired. Keep this list matched to the map's fetch()es.
           mkdir -p journal/map
           cp pulse.json articles.json atlas.json intel.json projects-flat.json firms-flat.json cityStateMap.json sitemap.xml journal/map/ 2>/dev/null || true
-          git add journal/post/ journal/firm/ journal/sitemap.xml journal/robots.txt sitemap.xml robots.txt pulse.json articles.json atlas.json intel.json projects-flat.json firms-flat.json cityStateMap.json sitemap.xml journal/map/ .pulse-snapshot.json 2>/dev/null || true
+          git add journal/post/ journal/firm/ journal/projects/ journal/sitemap.xml journal/robots.txt sitemap.xml robots.txt pulse.json articles.json atlas.json intel.json projects-flat.json firms-flat.json cityStateMap.json sitemap.xml journal/map/ .pulse-snapshot.json 2>/dev/null || true
           if git diff --staged --quiet; then
             echo "changed=false" >> $GITHUB_OUTPUT
             echo "No changes detected."
