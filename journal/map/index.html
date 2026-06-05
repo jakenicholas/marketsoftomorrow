@@ -4161,6 +4161,32 @@
     margin-bottom: 16px;
   }
   #projectModal .pm-panel .pm-progress { margin-bottom: 0; }
+  /* ── The story so far — living dossier timeline (mirrors the project page) ── */
+  #projectModal .pm-dossier { margin: 20px 0 6px; }
+  #projectModal .pm-dossier-h {
+    display: flex; align-items: center; gap: 9px; margin-bottom: 13px;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
+    color: #B9A6FF; font-weight: 700;
+  }
+  #projectModal .pm-dossier-h .tmw-upd-ico { width: 15px; height: 15px; flex: none; }
+  #projectModal .pm-dossier-h .tmw-upd-ico svg { width: 100%; height: 100%; display: block; overflow: visible; }
+  #projectModal .dos-tl { position: relative; }
+  #projectModal .dos-row { position: relative; display: flex; gap: 13px; padding: 10px 0 12px 2px; }
+  #projectModal .dos-row:not(:last-child)::before { content: ""; position: absolute; left: 6px; top: 18px; bottom: -6px; width: 1px; background: rgba(255,255,255,.13); }
+  #projectModal .dos-dot { position: relative; z-index: 1; flex: 0 0 auto; width: 11px; height: 11px; border-radius: 50%; margin-top: 3px; box-sizing: border-box; }
+  #projectModal .dos-past { background: #1FDF67; }
+  #projectModal .dos-now { background: #A78BFA; box-shadow: 0 0 0 4px rgba(167,139,250,.18); }
+  #projectModal .dos-future { background: transparent; border: 1.5px solid rgba(255,255,255,.30); }
+  #projectModal .dos-body { flex: 1; min-width: 0; }
+  #projectModal .dos-line { display: flex; align-items: baseline; gap: 9px; flex-wrap: wrap; }
+  #projectModal .dos-label { font-size: 14px; font-weight: 600; color: #fff; }
+  #projectModal .dos-row-future .dos-label { color: rgba(255,255,255,.58); font-weight: 500; }
+  #projectModal .dos-date { font-size: 12px; color: rgba(255,255,255,.6); }
+  #projectModal .dos-date.dos-tbd { color: rgba(255,255,255,.35); }
+  #projectModal .dos-est { font-size: 9.5px; color: rgba(255,255,255,.4); margin-left: 5px; text-transform: uppercase; letter-spacing: .05em; }
+  #projectModal .dos-src { display: inline-block; margin-top: 3px; font-size: 11px; color: #42EB81; text-decoration: none; }
+  #projectModal .dos-src:hover { text-decoration: underline; }
   /* "Last verified" row above the timeline + the spinning TMW hexagon. */
   #projectModal .pm-updated {
     display: flex; align-items: center; gap: 7px; margin-bottom: 14px;
@@ -11007,6 +11033,11 @@
     /* In full screen the header is gone, so pin the sidebar to the very top —
        otherwise its top:60px (header height) leaves a gap that shows the map. */
     body.tmw-mapfs.ui-v2 #desktopSidebar{top:0!important;height:100%!important;}
+    /* Same fix for the open project panel — without the header it must extend to
+       the very top like the sidebar (desktop only; mobile is already top:0). */
+    @media (min-width: 768px) {
+      body.tmw-mapfs #projectModal{top:0!important;height:100dvh!important;}
+    }
     /* Embed mode has no header, so no button. */
     body.embed-mode #tmwMapFsBtn{display:none!important;}
     /* ── Desktop universal search (#3/#4) ─────────────────────────────
@@ -11980,6 +12011,10 @@
           </div>
           <div class="pm-div"></div>
           <p class="pm-desc" id="pmDesc"></p>
+          <!-- The story so far — sourced, event-dated milestone timeline (same
+               "living dossier" as the project page). Populated by JS from the
+               project's statusHistory + start/delivery dates; hidden when thin. -->
+          <div class="pm-dossier" id="pmDossier" style="display:none"></div>
           <!-- TMW Intelligence block: time-to-completion estimate based on
                comparable completed projects (same type + same metro).
                Hidden by default; renderIntelBlock() populates and reveals
@@ -14319,6 +14354,84 @@
         // Description ‚Äî prefer long, fall back to short
         const desc = p.descriptionLong || p.description || '';
         document.getElementById('pmDesc').textContent = desc;
+
+        // ── The story so far — sourced, event-dated milestone timeline ──
+        // Mirrors the project page's living dossier. Built from statusHistory
+        // (effective_date + source) + start/delivery dates. Wrapped in try/catch
+        // so a data hiccup can never break the rest of the modal.
+        (function () {
+          const el = document.getElementById('pmDossier');
+          if (!el) return;
+          try {
+            const RANK = { 'announced': 0, 'breaking-ground': 1, 'construction': 2, 'coming-soon': 3, 'open': 4 };
+            const ORDER = ['announced', 'breaking-ground', 'construction', 'coming-soon', 'open'];
+            const LABEL = { 'announced': 'Announced', 'breaking-ground': 'Broke ground', 'construction': 'Under construction', 'coming-soon': 'Coming soon', 'open': 'Opened' };
+            const norm = (raw) => {
+              const s = (raw || '').toString().toLowerCase();
+              if (!s) return 'announced';
+              if (s.indexOf('open') >= 0 || s.indexOf('complete') >= 0) return 'open';
+              if (s.indexOf('coming') >= 0 || s.indexOf('opening') >= 0) return 'coming-soon';
+              if (s.indexOf('construction') >= 0 || s.indexOf('topping') >= 0 || s.indexOf('vertical') >= 0) return 'construction';
+              if (s.indexOf('breaking') >= 0 || s.indexOf('ground') >= 0) return 'breaking-ground';
+              return 'announced';
+            };
+            const fmt = (s) => {
+              s = (s || '').toString().trim();
+              const m = s.match(/^(\d{4})(?:-(\d{2}))?(?:-(\d{2}))?/);
+              if (!m) return '';
+              const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+              if (m[2] && m[3]) return MON[+m[2]-1] + ' ' + (+m[3]) + ', ' + m[1];
+              if (m[2]) return MON[+m[2]-1] + ' ' + m[1];
+              return m[1];
+            };
+            const dom = (u) => { try { const h = new URL(u).hostname.toLowerCase(); return h.indexOf('www.') === 0 ? h.slice(4) : h; } catch (e) { return ''; } };
+            const esc = (s) => (s || '').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+            let hist = p.statusHistory;
+            if (typeof hist === 'string') { try { hist = JSON.parse(hist); } catch (e) { hist = []; } }
+            if (!Array.isArray(hist)) hist = [];
+            const cur = norm(p.delivery), curRank = RANK[cur] || 0;
+            const entry = (code, date, src, est) => ({ code, rank: RANK[code], label: LABEL[code] || code, date: date || '', disp: fmt(date), src: src || '', dom: dom(src), est: !!est });
+            const found = {};
+            hist.forEach((h) => {
+              if (!h || h.type === 'date' || h.type === 'field') return;
+              const to = (h.to || '').toString().toLowerCase();
+              if (!(to in RANK)) return;
+              const prev = found[to];
+              if (!prev || String(h.at || '') > String(prev.at || '')) found[to] = h;
+            });
+            const ms = {};
+            Object.keys(found).forEach((code) => {
+              const h = found[code], ev = (h.effective_date || '').toString().trim(), rec = (h.at || '').toString().slice(0, 10);
+              ms[code] = entry(code, ev || rec, h.source_url, !ev);
+            });
+            const sd = (p.startDate || '').toString().trim(), dd = (p.deliveryDate || '').toString().trim();
+            if (sd && !ms['breaking-ground']) ms['breaking-ground'] = entry('breaking-ground', sd, '', p.startSpeculative);
+            if (dd && !ms['open']) ms['open'] = entry('open', dd, '', p.deliverySpeculative);
+            const out = [];
+            ORDER.forEach((code) => {
+              let m = ms[code]; const rank = RANK[code]; const isCur = (code === cur);
+              if (!m && !isCur && code !== 'open') return;
+              if (!m) m = entry(code, '', '', false);
+              m.state = rank < curRank ? 'past' : (rank === curRank ? 'now' : 'future');
+              if (code === 'open' && curRank < RANK['open']) { m.label = 'Expected opening'; m.state = 'future'; }
+              out.push(m);
+            });
+            if (out.filter(m => m.disp || m.state !== 'future').length < 2) { el.style.display = 'none'; el.innerHTML = ''; return; }
+            const rows = out.map((m) => {
+              const date = m.disp
+                ? '<span class="dos-date">' + esc(m.disp) + (m.est ? '<span class="dos-est">est.</span>' : '') + '</span>'
+                : (m.state === 'future' ? '<span class="dos-date dos-tbd">date TBD</span>' : '');
+              const src = (m.src && m.dom) ? '<a class="dos-src" href="' + esc(m.src) + '" target="_blank" rel="noopener">' + esc(m.dom) + ' ↗</a>' : '';
+              return '<div class="dos-row dos-row-' + m.state + '"><span class="dos-dot dos-' + m.state + '"></span>'
+                + '<div class="dos-body"><div class="dos-line"><span class="dos-label">' + esc(m.label) + '</span>' + date + '</div>' + src + '</div></div>';
+            }).join('');
+            const hex = '<span class="tmw-upd-ico" aria-hidden="true"><svg viewBox="0 0 100 100">'
+              + '<polygon class="tmw-upd-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/>'
+              + '<g class="tmw-upd-spin"><polygon class="tmw-upd-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g></svg></span>';
+            el.innerHTML = '<div class="pm-dossier-h">' + hex + 'The story so far</div><div class="dos-tl">' + rows + '</div>';
+            el.style.display = 'block';
+          } catch (e) { el.style.display = 'none'; el.innerHTML = ''; }
+        })();
 
         // ── FACTS (shown WITH the timeline, as big-value minis like the project
         //    page panel): units / floors / delivery / market (+keys for hotels).
@@ -17369,6 +17482,9 @@
                 // assumption used by computeProgress(). Empty/missing rows
                 // fall back to: status -> assumed years-before-delivery.
                 startDate: p.StartDate || '',
+                // Sourced change log (status/date/spec) — powers the "story so far"
+                // dossier timeline in the modal. Array of {at,from,to,effective_date,source_url,...}.
+                statusHistory: p.StatusHistory || [],
                 descriptionLong: p.DescriptionLong || '',
                 image2: p.Image2 || '',
                 image3: p.Image3 || '',
