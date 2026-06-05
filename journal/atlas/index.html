@@ -1393,7 +1393,23 @@
         return m[1];
       };
       const dom = (u) => { try { const h = new URL(u).hostname.toLowerCase(); return h.indexOf('www.') === 0 ? h.slice(4) : h; } catch (e) { return ''; } };
-      const evs = (atlasData.recent_activity || []).filter(e => e.type === 'status_change' || e.type === 'new_project').slice(0, 6);
+      // Parse a milestone event date (YYYY / YYYY-MM / YYYY-MM-DD) to a Date.
+      const parseEv = (s) => {
+        const m = (s || '').toString().match(/^(\d{4})(?:-(\d{2}))?(?:-(\d{2}))?/);
+        return m ? new Date(+m[1], (+m[2] || 1) - 1, +m[3] || 1) : null;
+      };
+      // "Movers" = real, event-dated milestones that happened RECENTLY — sorted
+      // by the event date (newest first) and limited to the last ~90 days, so a
+      // backfilled milestone with an old event date never shows up as a current
+      // mover. (Additions/tracking are not movers — they have no event date.)
+      const RECENT_MS = 90 * 86400000, FUTURE_SLACK = 14 * 86400000, nowT = Date.now();
+      const evs = (atlasData.recent_activity || [])
+        .filter(e => e.type === 'status_change' && e.event_date)
+        .map(e => { const d = parseEv(e.event_date); return { e, t: d ? d.getTime() : NaN }; })
+        .filter(x => !isNaN(x.t) && (nowT - x.t) <= RECENT_MS && (nowT - x.t) >= -FUTURE_SLACK)
+        .sort((a, b) => b.t - a.t)
+        .slice(0, 6)
+        .map(x => x.e);
       if (!evs.length) return '';
       const rows = evs.map(e => {
         const isNew = e.type === 'new_project';
@@ -1415,7 +1431,7 @@
           + `<div>${nm}<div class="mchg"><span class="to">${escapeHtml(tag)}</span> ${hexMarker(11)}</div>`
           + `${meta ? `<div class="msrc">${meta}</div>` : ''}</div></div>`;
       }).join('');
-      return `<div class="atlas-panel"><h3 class="atlas-ph"><span class="lbl">Movers this week</span><span class="hint">tracked milestones</span></h3>${rows}</div>`;
+      return `<div class="atlas-panel"><h3 class="atlas-ph"><span class="lbl">Recent movers</span><span class="hint">last 90 days</span></h3>${rows}</div>`;
     }
 
     function renderIndexPanel() {

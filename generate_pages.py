@@ -3126,7 +3126,11 @@ def build_atlas_json(rows, pulse_path='pulse.json', articles_archive=None):
         with open(pulse_path, 'r', encoding='utf-8') as f:
             pulse_data = json.load(f)
         events = pulse_data.get('events', []) if isinstance(pulse_data, dict) else pulse_data
-        recent_activity = events[:6] if isinstance(events, list) else []
+        # Carry more than the panels render so the atlas "Movers" feed can filter
+        # to genuinely-recent EVENT dates + sort, while "This week on the map"
+        # still takes its own first-N in log order. Pulse is log-ordered (newest
+        # tracked first), so this is the 30 most-recently-logged events.
+        recent_activity = events[:30] if isinstance(events, list) else []
     except (FileNotFoundError, json.JSONDecodeError, Exception):
         pass
 
