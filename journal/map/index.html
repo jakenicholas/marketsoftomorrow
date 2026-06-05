@@ -22174,6 +22174,13 @@
       // Expose a sync getter for cached firm data so search results can
       // resolve name ‚Üí {role, slug} without an async round-trip.
       window._firmDataCache = () => _firmData;
+      // Also expose the async loader and PRELOAD it now: ~39 firms have a
+      // canonical slug that isn't slugify(name) (e.g. "Robert A.M. Stern
+      // Architects" -> robert-am-stern-architects), so a search click that
+      // falls back to a guessed slug opens "Firm not found". Preloading means
+      // the canonical slug is ready by the time anyone searches.
+      window._loadFirms = ensureFirmsLoaded;
+      ensureFirmsLoaded();
       window.closeFirmSheet = closeFirmSheet;
       window.openProjectFromSheet = openProjectFromSheet;
     })();
@@ -22855,31 +22862,31 @@
           });
         });
         bodyEl.querySelectorAll('[data-firm]').forEach(row => {
-          row.addEventListener('click', () => {
-            // openFirmSheet expects (role, slug). Derive both from the
-            // firm name by walking project features ‚Äî same lookup the
-            // mobile search uses below.
+          row.addEventListener('click', async () => {
             const name = row.dataset.firm;
             if (!window.openFirmSheet) return;
-            const features = window.allProjectFeatures || [];
-            // Decide role first ‚Äî if a developer matches this name, route
-            // to /developers/<slug>/; otherwise default to /architects/.
+            // Resolve role + CANONICAL slug from the firm directory (await it
+            // if it hasn't preloaded). Iterating both roles finds the firm by
+            // name and yields the real slug — many firm slugs aren't
+            // slugify(name), so the derived fallback can miss.
+            let firmData = window._firmDataCache && window._firmDataCache();
+            if ((!firmData || (!firmData.architects && !firmData.developers)) && window._loadFirms) {
+              try { firmData = await window._loadFirms(); } catch (_) {}
+            }
+            if (firmData) {
+              for (const role of ['developers', 'architects']) {
+                const firm = (firmData[role] || []).find(f => f.name === name);
+                if (firm) { close(); window.openFirmSheet(role, firm.slug); return; }
+              }
+            }
+            // Fallback: guess role from project data + derive a slug.
             let role = 'architects';
+            const features = window.allProjectFeatures || [];
             for (const f of features) {
               const devs = (f.properties.developer || '').split(',').map(s => s.trim());
               if (devs.includes(name)) { role = 'developers'; break; }
             }
-            // Try the cached firm directory for the canonical slug first.
-            let slug = null;
-            const firmData = window._firmDataCache && window._firmDataCache();
-            if (firmData) {
-              const firm = (firmData[role] || []).find(f => f.name === name);
-              if (firm) slug = firm.slug;
-            }
-            // Fallback: derive a slug from the name.
-            if (!slug) {
-              slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-            }
+            const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
             close();
             window.openFirmSheet(role, slug);
           });
@@ -24937,12 +24944,17 @@
           });
         });
         so.querySelectorAll('[data-firm]').forEach(btn => {
-          addResultTap(btn, () => {
+          addResultTap(btn, async () => {
             const firmName = btn.dataset.firm;
             saveRecent({ label: firmName, type: 'firm' });
             dismissSearch();
-            // Look up role + slug in cached firms data, then open firm sheet
-            const firmData = window._firmDataCache && window._firmDataCache();
+            // Look up role + slug in cached firms data, then open firm sheet.
+            // Await the directory if it hasn't preloaded so we always use the
+            // CANONICAL slug (some firm slugs aren't slugify(name)).
+            let firmData = window._firmDataCache && window._firmDataCache();
+            if ((!firmData || (!firmData.architects && !firmData.developers)) && window._loadFirms) {
+              try { firmData = await window._loadFirms(); } catch (_) {}
+            }
             if (firmData) {
               for (const role of ['architects', 'developers']) {
                 const firm = (firmData[role] || []).find(f => f.name === firmName);
