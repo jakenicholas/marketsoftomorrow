@@ -4,13 +4,13 @@
     "total_projects": 415,
     "total_dollars_short": "$0",
     "total_dollars_raw": 0,
-    "under_construction": 224,
+    "under_construction": 223,
     "opening_this_year": 68
   },
   "scale": {
-    "units": 171274,
+    "units": 171421,
     "keys": 25842,
-    "floors": 6144
+    "floors": 6187
   },
   "leaderboards": {
     "developers": [
@@ -3895,12 +3895,12 @@
     "FL": {
       "hero_stats": {
         "total_projects": 261,
-        "under_construction": 133
+        "under_construction": 132
       },
       "scale": {
-        "units": 54533,
+        "units": 54680,
         "keys": 8264,
-        "floors": 4603
+        "floors": 4616
       },
       "status_distribution": [
         {
@@ -3913,11 +3913,11 @@
         },
         {
           "label": "Construction",
-          "count": 133
+          "count": 132
         },
         {
           "label": "Opening Soon",
-          "count": 22
+          "count": 23
         },
         {
           "label": "Now Open",
@@ -3953,7 +3953,7 @@
         {
           "month": "Dec",
           "year": 2025,
-          "count": 17
+          "count": 16
         },
         {
           "month": "Jan",
@@ -3995,7 +3995,7 @@
       "scale": {
         "units": 1970,
         "keys": 1129,
-        "floors": 92
+        "floors": 122
       },
       "status_distribution": [
         {
@@ -4706,6 +4706,19 @@
   },
   "movers": [
     {
+      "slug": "la-baia-north",
+      "title": "La Baia North",
+      "city": "Bay Harbour Islands",
+      "state": "FL",
+      "from": "Construction",
+      "to": "Coming Soon",
+      "to_code": "coming-soon",
+      "source_url": "https://floridayimby.com/2026/04/la-baia-north-tops-off-at-9481-east-bay-harbor-drive-in-bay-harbor-islands.html",
+      "source_domain": "floridayimby.com",
+      "at": "2026-06-05T05:29:56.227Z",
+      "link": "https://www.oftmw.com/map/?project=labaianorth"
+    },
+    {
       "slug": "21-hollywood",
       "title": "21 Hollywood",
       "city": "Hollywood",
@@ -4847,19 +4860,6 @@
       "source_domain": "thevillageatcoralgables.com",
       "at": "2026-06-05T04:55:28.525Z",
       "link": "https://www.oftmw.com/map/?project=thevillageatcoralgables"
-    },
-    {
-      "slug": "2200-brickell",
-      "title": "2200 Brickell",
-      "city": "Miami",
-      "state": "FL",
-      "from": "Construction",
-      "to": "Coming Soon",
-      "to_code": "coming-soon",
-      "source_url": "https://www.miamicondoinvestments.com/2200-brickell-condos",
-      "source_domain": "miamicondoinvestments.com",
-      "at": "2026-06-05T04:55:11.544Z",
-      "link": "https://www.oftmw.com/map/?project=2200brickell"
     }
   ],
   "city_state_map": {
@@ -4990,11 +4990,11 @@
     },
     {
       "label": "Construction",
-      "count": 224
+      "count": 223
     },
     {
       "label": "Opening Soon",
-      "count": 38
+      "count": 39
     },
     {
       "label": "Now Open",
@@ -5030,7 +5030,7 @@
     {
       "month": "Dec",
       "year": 2025,
-      "count": 25
+      "count": 24
     },
     {
       "month": "Jan",
@@ -5070,7 +5070,7 @@
     },
     {
       "year": 2027,
-      "count": 90
+      "count": 89
     },
     {
       "year": 2028,
@@ -5078,7 +5078,7 @@
     },
     {
       "year": 2029,
-      "count": 31
+      "count": 32
     },
     {
       "year": 2030,
@@ -5133,6 +5133,18 @@
     }
   ],
   "recent_activity": [
+    {
+      "id": "status-la-baia-north-opening-soon",
+      "type": "status_change",
+      "tag": "Opening Soon",
+      "title": "La Baia North  Opening Soon",
+      "project_slug": "la-baia-north",
+      "project_title": "La Baia North",
+      "city": "Bay Harbour Islands",
+      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_1145c38adbe44ed19876aee1a4918ce5~mv2.jpeg",
+      "link": "https://www.oftmw.com/map/?project=labaianorth",
+      "timestamp": "2026-06-05T05:30:54.770293+00:00"
+    },
     {
       "id": "status-court-club-opening-soon",
       "type": "status_change",
@@ -5192,18 +5204,6 @@
       "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_2ed0a8db310f4956a7b0a7c1c4dc85de~mv2.webp",
       "link": "https://www.oftmw.com/map/?project=aquaatwestshoreyachtclub",
       "timestamp": "2026-06-05T05:27:26.417886+00:00"
-    },
-    {
-      "id": "status-fort-luxe-opening-soon",
-      "type": "status_change",
-      "tag": "Opening Soon",
-      "title": "Fort\u00e9 Luxe  Opening Soon",
-      "project_slug": "fort-luxe",
-      "project_title": "Fort\u00e9 Luxe",
-      "city": "Jupiter",
-      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_1db56fe92f2444ba811bb7ae12e3ef8b~mv2.jpg",
-      "link": "https://www.oftmw.com/map/?project=fortluxe",
-      "timestamp": "2026-06-05T05:27:26.417866+00:00"
     }
   ],
   "most_covered": [
