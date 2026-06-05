@@ -367,7 +367,7 @@ const TOOLS = [
   },
   {
     name: 'update_project_status',
-    description: 'Update a Map of Tomorrow project from a credible web source — advance its lifecycle status AND/OR update its construction-start / completion dates. Status order is announced → coming-soon → breaking-ground → construction → open; status only ever moves FORWARD (regressions refused). Dates can change in either direction (delays are common) and auto-apply when a source states a new one — even with NO status change (e.g. a project still "construction" whose opening slips a year). mode "apply" writes to the LIVE map (rebuilds within ~1h) and records the source in status_history (git history = audit trail). mode "propose" queues a STATUS change for one-tap human review (ambiguous/thin/multi-step) — dates always auto-apply regardless of mode. It also fills/corrects factual SPEC fields — units (residential count), floors (stories), and keys (hotel rooms) — which auto-apply like dates (many projects are missing these). Always pass source_url. Pass new_status only when the status actually advances; omit it for a date-only or spec-only update.',
+    description: 'Update a Map of Tomorrow project from a credible web source — advance its lifecycle status AND/OR update its construction-start / completion dates. Status order is announced → coming-soon → breaking-ground → construction → open; status normally moves FORWARD only — the ONE exception is correction:true, which walks an OVER-STATED status back when credible current sources show the recorded phase is wrong (e.g. wrongly marked under-construction but it has not broken ground → set new_status "announced" + correction:true). Dates can change in either direction (delays are common) and auto-apply when a source states a new one — even with NO status change (e.g. a project still "construction" whose opening slips a year). mode "apply" writes to the LIVE map (rebuilds within ~1h) and records the source in status_history (git history = audit trail). mode "propose" queues a STATUS change for one-tap human review (ambiguous/thin/multi-step) — dates always auto-apply regardless of mode. It also fills/corrects factual SPEC fields — units (residential count), floors (stories), and keys (hotel rooms) — which auto-apply like dates (many projects are missing these). Always pass source_url. Pass new_status only when the status actually advances; omit it for a date-only or spec-only update.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -385,6 +385,7 @@ const TOOLS = [
         units: { type: 'integer', description: 'Residential unit count — fill/correct when a credible source states it (auto-applies; many projects are missing this)' },
         floors: { type: 'integer', description: 'Floor / story count — fill/correct from a credible source (auto-applies)' },
         keys: { type: 'integer', description: 'Hotel key (room) count — fill/correct from a credible source for hotels/resorts (auto-applies)' },
+        correction: { type: 'boolean', description: 'Set TRUE only to CORRECT an over-stated status BACKWARD — i.e. the project is recorded at a LATER phase than reality and credible, current sources show it has not reached it (e.g. marked "construction" or "breaking-ground" but it has NOT broken ground → set new_status "announced", correction:true). This is the ONLY case status may move backward. Requires a credible source_url and a note explaining why. Omit/false for all normal forward sweeps.' },
       },
       required: ['slug', 'source_url'],
     },
@@ -586,7 +587,9 @@ async function ghPutFile(env, path, contentStr, sha, message) {
 
 // ── Project status automation (→ tmw-data/data/projects.json) ────────────────
 // The construction-update sweep advances a project's lifecycle status (and dates)
-// based on web findings. projects.json is the source of truth the hourly map
+// based on web findings — and can walk an over-stated status BACK via correction:true
+// (the one sanctioned regression) when sources show the recorded phase is wrong.
+// projects.json is the source of truth the hourly map
 // build (fetch_projects.py → projects-flat.json) reads, so a write here lands on
 // the live map automatically. The file is `JSON.stringify(data, null, 2)` with NO
 // trailing newline — match it exactly so each write is a surgical diff.
@@ -1295,7 +1298,7 @@ const IMPL = {
     return {
       checked_at: nowIso, batch_size: batch.length, active_total: active.length,
       status_order: STATUS_ORDER,
-      instructions: 'Web-search each project for construction news (e.g. "<name> <city> construction / breaking ground / topped out / opening"). If a CREDIBLE source shows it reached a LATER status, call update_project_status (mode "apply" for a clear single-step milestone, "propose" if ambiguous/thin/multi-step). Forward-only; never regress. Skip ones with no news.',
+      instructions: 'Web-search each project for construction news (e.g. "<name> <city> construction / breaking ground / topped out / opening"). If a CREDIBLE source shows it reached a LATER status, call update_project_status (mode "apply" for a clear single-step milestone, "propose" if ambiguous/thin/multi-step). Normally forward-only. BUT also sanity-check the CURRENT status against reality: if a project is recorded at a later phase than credible current sources support — e.g. marked "construction" or "breaking-ground" yet nothing shows it has broken ground (still just announced/planned/in approvals) — CORRECT it by calling update_project_status with the earlier new_status and correction:true (cite the source + note why). Skip ones with no news and whose recorded status looks right.',
       projects: batch.map((p) => ({
         slug: p.slug, name: p.name, city: p.city || '', status: p.status,
         units: p.units || null, floors: p.floors || null,
@@ -1334,17 +1337,27 @@ const IMPL = {
       const nowIso = new Date().toISOString();
 
       const statusAdvances = !!newStatus && statusRank(newStatus) > statusRank(from);
+      const statusRegresses = !!newStatus && statusRank(newStatus) < statusRank(from);
+      // The one sanctioned backward move: an EXPLICIT correction of an over-stated
+      // status (e.g. wrongly marked "construction" but it hasn't broken ground).
+      const isCorrection = statusRegresses && args.correction === true;
+      const statusChanges = statusAdvances || isCorrection;
       const startChanged = !!newStart && newStart !== clean(p.start_date);
       const deliveryChanged = !!newDelivery && newDelivery !== clean(p.delivery_date);
       const numChanged = numWanted.filter((u) => u.val !== numOrNull(p[u.field]));
       const anyExtra = startChanged || deliveryChanged || numChanged.length > 0;
 
-      // A status that isn't a forward advance is refused — but only when no other
-      // change rides with it (a date/spec-only update on an unchanged status is fine).
-      if (newStatus && !statusAdvances && !anyExtra) {
+      // A backward status WITHOUT the correction flag is refused — guards against
+      // accidental regressions during a normal forward sweep.
+      if (statusRegresses && !isCorrection && !anyExtra) {
+        return { ok: false, skipped: 'regression-needs-correction-flag', slug, current_status: from, requested: newStatus, hint: 'To walk a wrongly over-stated status back, pass correction:true with a credible source_url + note.' };
+      }
+      // A status that neither advances nor is a sanctioned correction is refused —
+      // but only when no other change rides with it (date/spec-only updates are fine).
+      if (newStatus && !statusChanges && !anyExtra) {
         return { ok: false, skipped: 'not-a-forward-advance', slug, current_status: from, requested: newStatus };
       }
-      if (!statusAdvances && !anyExtra) {
+      if (!statusChanges && !anyExtra) {
         return { ok: false, skipped: 'no-change', slug, current_status: from };
       }
 
@@ -1368,10 +1381,10 @@ const IMPL = {
       const base = { at: nowIso, source_url: sourceUrl };
       if (args.source_published) base.source_published = String(args.source_published);
       if (args.note) base.note = String(args.note);
-      if (statusAdvances) {
+      if (statusChanges) {
         p.status = newStatus;
-        p.status_history.push({ ...base, from, to: newStatus });
-        changes.push(`${from}→${newStatus}`);
+        p.status_history.push({ ...base, from, to: newStatus, ...(isCorrection ? { correction: true } : {}) });
+        changes.push(`${from}→${newStatus}${isCorrection ? ' (correction)' : ''}`);
       }
       if (startChanged) {
         const old = clean(p.start_date) || null;
