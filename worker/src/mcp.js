@@ -331,6 +331,31 @@ const TOOLS = [
     description: 'List the pending Map of Tomorrow project drafts awaiting review in the TMW Studio map admin (https://admin.oftmw.com/map/ → "Drafts" tab), newest first. (Source: tmw-data/data/drafts.json, which that admin reads directly — same queue, not a legacy file.)',
     inputSchema: { type: 'object', properties: { limit: { type: 'integer', description: 'Max results (default 50)' } } },
   },
+  {
+    name: 'update_map_draft',
+    description: 'Update fields on an EXISTING Map of Tomorrow project DRAFT (in the Drafts queue) — e.g. backfill a missing construction start date, fix a status, or add units/floors. Identify the draft by draft_id (from list_map_drafts) or by its slug. Only the fields you pass are changed; everything else is left as-is. Does NOT publish — the draft stays in the Drafts tab for review.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        draft_id: { type: 'string', description: 'Draft id from list_map_drafts (preferred)' },
+        slug: { type: 'string', description: 'Project slug (alternative to draft_id)' },
+        status: { type: 'string', enum: ['announced', 'breaking-ground', 'construction', 'coming-soon', 'open'] },
+        start_date: { type: 'string', description: 'Construction-start / groundbreaking year or date' },
+        start_speculative: { type: 'boolean', description: 'True if start_date is an estimate' },
+        delivery_date: { type: 'string', description: 'Completion / delivery year or date' },
+        delivery_speculative: { type: 'boolean', description: 'True if delivery_date is an estimate' },
+        units: { type: 'integer' },
+        floors: { type: 'integer' },
+        keys: { type: 'integer' },
+        latitude: { type: 'number' },
+        longitude: { type: 'number' },
+        website: { type: 'string' },
+        description: { type: 'string' },
+        description_long: { type: 'string' },
+        note: { type: 'string', description: 'Optional note appended to the draft source_note' },
+      },
+    },
+  },
 
   // ── Construction-update automation ───────────────────────────────────────────
   {
@@ -1205,6 +1230,45 @@ const IMPL = {
         source_note: d.source_note, project: d.data,
       })),
     };
+  },
+
+  async update_map_draft(args, env) {
+    requireGhToken(env);
+    const draftId = String(args.draft_id || '').trim();
+    const slug = String(args.slug || '').trim();
+    if (!draftId && !slug) throw new Error('pass draft_id or slug to identify the draft');
+    const num = (v) => { const n = parseInt(v, 10); return isNaN(n) ? null : n; };
+    for (let attempt = 0; ; attempt++) {
+      const { sha, text } = await ghGetFile(env, GH_DRAFTS_PATH);
+      let drafts = [];
+      if (text) { try { drafts = JSON.parse(text); } catch (_) { throw new Error('drafts.json is not valid JSON — refusing to write'); } }
+      if (!Array.isArray(drafts)) drafts = [];
+      const idx = drafts.findIndex((d) => d && (draftId ? d.draft_id === draftId : (d.data && d.data.slug === slug)));
+      if (idx < 0) throw new Error('no draft found for ' + (draftId || slug));
+      const d = drafts[idx];
+      const data = d.data || (d.data = {});
+      const changed = [];
+      if (args.status) { data.status = String(args.status); changed.push('status'); }
+      if (args.start_date != null && String(args.start_date) !== '') { data.start_date = String(args.start_date); changed.push('start_date'); }
+      if (args.start_speculative != null) data.start_speculative = !!args.start_speculative;
+      if (args.delivery_date != null && String(args.delivery_date) !== '') { data.delivery_date = String(args.delivery_date); changed.push('delivery_date'); }
+      if (args.delivery_speculative != null) data.delivery_speculative = !!args.delivery_speculative;
+      if (args.units != null && num(args.units) != null) { data.units = num(args.units); changed.push('units'); }
+      if (args.floors != null && num(args.floors) != null) { data.floors = num(args.floors); changed.push('floors'); }
+      if (args.keys != null && num(args.keys) != null) { data.keys = num(args.keys); changed.push('keys'); }
+      if (args.latitude != null) { data.lat = Number(args.latitude); changed.push('lat'); }
+      if (args.longitude != null) { data.lng = Number(args.longitude); changed.push('lng'); }
+      if (args.website) { data.official_website = String(args.website); changed.push('website'); }
+      if (args.description) { data.description = String(args.description); changed.push('description'); }
+      if (args.description_long) { data.description_long = String(args.description_long); changed.push('description_long'); }
+      if (!changed.length && args.note == null) return { ok: false, skipped: 'nothing-to-update', draft_id: d.draft_id, slug: data.slug };
+      d.updated_at = new Date().toISOString();
+      if (args.note) d.source_note = (d.source_note ? d.source_note + ' — ' : '') + String(args.note);
+      try {
+        await ghPutFile(env, GH_DRAFTS_PATH, JSON.stringify(drafts, null, 2) + '\n', sha, `Update draft: ${data.name || d.draft_id} (${changed.join(', ') || 'note'})`);
+      } catch (e) { if (e && e.status === 409 && attempt < 4) continue; throw e; }
+      return { ok: true, draft_id: d.draft_id, slug: data.slug, name: data.name, changed, start_date: data.start_date || null, status: data.status };
+    }
   },
 
   // ── Construction-update automation ───────────────────────────────────────────
