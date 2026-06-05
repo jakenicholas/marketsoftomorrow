@@ -14419,12 +14419,21 @@
               let m = found[phase]; const rank = RANK[phase]; const isCur = (phase === curPhase);
               if (!m && !isCur && phase !== 'grand-opening') return;
               if (!m) m = entry(phase, '', '', false, false);
-              const projected = (!m.sourced) && ((phase === 'grand-opening' && curStatus !== 'open') || (rank > curRank));
-              m.state = projected ? 'future' : 'past';
-              if (phase === 'grand-opening' && projected) m.label = 'Expected opening';
+              m.projected = (!m.sourced) && ((phase === 'grand-opening' && curStatus !== 'open') || (rank > curRank));
+              if (phase === 'grand-opening' && m.projected) m.label = 'Expected opening';
               out.push(m);
             });
-            const done = out.filter(m => m.state !== 'future');
+            // Chronological order (by event date) — a financing/tenant milestone
+            // can land mid-build. Date-less confirmed slot after dated; future last.
+            const skey = (m) => {
+              const mm = (m.date || '').slice(0, 10).match(/^(\d{4})(?:-(\d{2}))?(?:-(\d{2}))?/);
+              const nd = mm ? (mm[1] + '-' + (mm[2] || '01') + '-' + (mm[3] || '01')) : '';
+              if (m.projected) return [2, nd || '9999-99-99', m.rank];
+              return nd ? [0, nd, m.rank] : [1, '', m.rank];
+            };
+            out.sort((a, b) => { const ka = skey(a), kb = skey(b); return ka[0] - kb[0] || (ka[1] < kb[1] ? -1 : ka[1] > kb[1] ? 1 : 0) || ka[2] - kb[2]; });
+            out.forEach(m => { m.state = m.projected ? 'future' : 'past'; });
+            const done = out.filter(m => !m.projected);
             if (done.length) done[done.length - 1].state = 'now';
             if (out.filter(m => m.disp || m.state !== 'future').length < 2) { el.style.display = 'none'; el.innerHTML = ''; return; }
             const rows = out.map((m) => {

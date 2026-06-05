@@ -871,7 +871,7 @@ def build_milestones(row, articles=None):
             cur_phase = next((p for p in DOSSIER_FINE_NEAROPEN if p in found), cur_phase)
     cur_rank = DOSSIER_RANK.get(cur_phase, 0)
 
-    out = []
+    entries = []
     for phase in DOSSIER_ORDER:
         m = found.get(phase)
         rank = DOSSIER_RANK[phase]
@@ -882,18 +882,30 @@ def build_milestones(row, articles=None):
             m = entry(phase)
         # Projected (future, hollow) when it hasn't happened: the opening before
         # the project is open, or an un-sourced phase beyond the current point.
-        projected = (not m['sourced']) and (
+        m['projected'] = (not m['sourced']) and (
             (phase == 'grand-opening' and cur_status != 'open') or (rank > cur_rank)
         )
-        m['state'] = 'future' if projected else 'past'
-        if phase == 'grand-opening' and projected:
+        if phase == 'grand-opening' and m['projected']:
             m['label'] = 'Expected opening'
-        out.append(m)
-    # The latest non-future entry is "now".
-    done = [m for m in out if m['state'] != 'future']
+        entries.append(m)
+
+    # Order CHRONOLOGICALLY (by event date), not by phase rank — a financing or
+    # tenant milestone can legitimately land mid-build. Date-less confirmed
+    # entries slot after the dated ones (by rank); projected (future) always last.
+    def _sort_key(m):
+        mm = re.match(r'^(\d{4})(?:-(\d{2}))?(?:-(\d{2}))?', (m['date'] or '')[:10])
+        nd = f"{mm.group(1)}-{mm.group(2) or '01'}-{mm.group(3) or '01'}" if mm else ''
+        if m['projected']:
+            return (2, nd or '9999-99-99', m['rank'])
+        return (0, nd, m['rank']) if nd else (1, '', m['rank'])
+    entries.sort(key=_sort_key)
+
+    for m in entries:
+        m['state'] = 'future' if m['projected'] else 'past'
+    done = [m for m in entries if not m['projected']]
     if done:
-        done[-1]['state'] = 'now'
-    return {'milestones': out, 'current': cur_phase}
+        done[-1]['state'] = 'now'  # latest confirmed (chronological) = now
+    return {'milestones': entries, 'current': cur_phase}
 
 
 def dossier_section_html(row, articles=None):
