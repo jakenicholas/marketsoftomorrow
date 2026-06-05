@@ -800,13 +800,14 @@ def build_milestones(row, articles=None):
     cur_status = _dossier_status_code(row.get('Delivery', ''))
     cur_phase = DOSSIER_STATUS_TO_PHASE.get(cur_status, 'announced')
 
-    def entry(phase, date_str='', source_url='', estimated=False, sourced=False):
+    def entry(phase, date_str='', source_url='', estimated=False, sourced=False, note=''):
         return {
             'phase': phase, 'rank': DOSSIER_RANK.get(phase, 0),
             'label': DOSSIER_LABEL.get(phase, phase),
             'date': date_str or '', 'date_display': _fmt_event_date(date_str),
             'source_url': source_url or '', 'source_domain': _url_domain(source_url),
             'estimated': bool(estimated), 'sourced': bool(sourced),
+            'note': (note or '').strip(),
         }
 
     found = {}
@@ -830,11 +831,11 @@ def build_milestones(row, articles=None):
         if t == 'milestone':
             ph = (h.get('phase') or '').strip().lower()
             if ph in DOSSIER_RANK:
-                consider(entry(ph, ev or rec[:10], h.get('source_url', ''), estimated=not ev, sourced=True))
+                consider(entry(ph, ev or rec[:10], h.get('source_url', ''), estimated=not ev, sourced=True, note=h.get('note', '')))
         else:
             ph = DOSSIER_STATUS_TO_PHASE.get((h.get('to') or '').strip().lower())
             if ph:
-                consider(entry(ph, ev or rec[:10], h.get('source_url', ''), estimated=not ev, sourced=True))
+                consider(entry(ph, ev or rec[:10], h.get('source_url', ''), estimated=not ev, sourced=True, note=h.get('note', '')))
 
     # 2) field anchors.
     start_date = (row.get('StartDate', '') or '').strip()
@@ -928,12 +929,16 @@ def dossier_section_html(row, articles=None):
         src_html = ''
         if m['source_url'] and m['source_domain']:
             src_html = (f'<a class="dos-src" href="{_escape_attr(m["source_url"])}" '
-                        f'target="_blank" rel="noopener">{_escape_text(m["source_domain"])} ↗</a>')
+                        f'target="_blank" rel="noopener">{_escape_text(m["source_domain"])}'
+                        f'<svg class="dos-arr" viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" '
+                        f'stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+                        f'<line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a>')
+        detail_html = f'<div class="dos-detail">{_escape_text(m["note"])}</div>' if m.get('note') else ''
         rows.append(
             f'<div class="dos-row dos-row-{state}">{dot}'
             f'<div class="dos-body"><div class="dos-line">'
             f'<span class="dos-label">{_escape_text(m["label"])}</span>{date_html}</div>'
-            f'{src_html}</div></div>'
+            f'{detail_html}{src_html}</div></div>'
         )
     return (
         f'<div class="pp-sec pp-dossier"><div class="pp-sec-h">{TMW_UPD_ICON} The story so far</div>'
@@ -2028,7 +2033,9 @@ def build_page(row, articles=None, nearby=None):
     .dos-date {{ font-size: 12px; color: rgba(255,255,255,.6); font-variant-numeric: tabular-nums; }}
     .dos-date.dos-tbd {{ color: rgba(255,255,255,.35); }}
     .dos-est {{ font-size: 9.5px; color: rgba(255,255,255,.4); margin-left: 5px; text-transform: uppercase; letter-spacing: .05em; }}
-    .dos-src {{ display: inline-block; margin-top: 3px; font-size: 11px; color: #42EB81; text-decoration: none; }}
+    .dos-detail {{ font-size: 12.5px; color: rgba(255,255,255,.62); line-height: 1.4; margin-top: 3px; }}
+    .dos-src {{ display: inline-flex; align-items: center; gap: 3px; margin-top: 4px; font-size: 11px; color: #42EB81; text-decoration: none; }}
+    .dos-src .dos-arr {{ flex: none; }}
     .dos-src:hover {{ text-decoration: underline; }}
     .dos-note {{ margin-top: 13px; font-size: 11px; color: rgba(255,255,255,.42); line-height: 1.55; }}
 
