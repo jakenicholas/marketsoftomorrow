@@ -367,7 +367,7 @@ const TOOLS = [
   },
   {
     name: 'update_project_status',
-    description: 'Update a Map of Tomorrow project from a credible web source — advance its lifecycle status AND/OR update its construction-start / completion dates. Status order is announced → coming-soon → breaking-ground → construction → open; status normally moves FORWARD only — the ONE exception is correction:true, which walks an OVER-STATED status back when credible current sources show the recorded phase is wrong (e.g. wrongly marked under-construction but it has not broken ground → set new_status "announced" + correction:true). Dates can change in either direction (delays are common) and auto-apply when a source states a new one — even with NO status change (e.g. a project still "construction" whose opening slips a year). mode "apply" writes to the LIVE map (rebuilds within ~1h) and records the source in status_history (git history = audit trail). mode "propose" queues a STATUS change for one-tap human review (ambiguous/thin/multi-step) — dates always auto-apply regardless of mode. It also fills/corrects factual SPEC fields — units (residential count), floors (stories), and keys (hotel rooms) — which auto-apply like dates (many projects are missing these). Always pass source_url. Pass new_status only when the status actually advances; omit it for a date-only or spec-only update.',
+    description: 'Update a Map of Tomorrow project from a credible web source — advance its lifecycle status AND/OR update its construction-start / completion dates. Status order is announced → coming-soon → breaking-ground → construction → open; status normally moves FORWARD only — the ONE exception is correction:true, which walks an OVER-STATED status back when credible current sources show the recorded phase is wrong (e.g. wrongly marked under-construction but it has not broken ground → set new_status "announced" + correction:true). Dates can change in either direction (delays are common) and auto-apply when a source states a new one — even with NO status change (e.g. a project still "construction" whose opening slips a year). mode "apply" writes to the LIVE map (rebuilds within ~1h) and records the source in status_history (git history = audit trail). ALWAYS pass effective_date when a source states WHEN a milestone happened (e.g. "broke ground Sept 3 2025") — it dates the dossier timeline to the real event, not our discovery date. mode "propose" queues a STATUS change for one-tap human review (ambiguous/thin/multi-step) — dates always auto-apply regardless of mode. It also fills/corrects factual SPEC fields — units (residential count), floors (stories), and keys (hotel rooms) — which auto-apply like dates (many projects are missing these). Always pass source_url. Pass new_status only when the status actually advances; omit it for a date-only or spec-only update.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -382,6 +382,7 @@ const TOOLS = [
         delivery_date: { type: 'string', description: 'New/confirmed completion/opening date (year or ISO) — updates the date even if status is unchanged (catches delays)' },
         start_speculative: { type: 'boolean', description: 'True if start_date is a TMW estimate, not developer-committed' },
         delivery_speculative: { type: 'boolean', description: 'True if delivery_date is a TMW estimate' },
+        effective_date: { type: 'string', description: 'When the milestone ACTUALLY happened in the real world (YYYY, YYYY-MM, or YYYY-MM-DD) — NOT today. e.g. a source saying "broke ground Sept 3, 2025" → effective_date "2025-09-03". Powers the project dossier timeline, which must show the event date, not our discovery date. If omitted on a status advance, it falls back to start_date (for breaking-ground/construction) or delivery_date (for coming-soon/open) when those are given.' },
         units: { type: 'integer', description: 'Residential unit count — fill/correct when a credible source states it (auto-applies; many projects are missing this)' },
         floors: { type: 'integer', description: 'Floor / story count — fill/correct from a credible source (auto-applies)' },
         keys: { type: 'integer', description: 'Hotel key (room) count — fill/correct from a credible source for hotels/resorts (auto-applies)' },
@@ -1320,6 +1321,12 @@ const IMPL = {
     const clean = (v) => (v == null ? '' : String(v).trim());
     const newStart = clean(args.start_date);
     const newDelivery = clean(args.delivery_date);
+    // The real-world date a milestone occurred (event date), distinct from the
+    // `at` record/discovery timestamp. Drives the dossier timeline.
+    const effectiveDate = clean(args.effective_date);
+    if (effectiveDate && !/^\d{4}(-\d{2}(-\d{2})?)?$/.test(effectiveDate)) {
+      throw new Error('effective_date must be YYYY, YYYY-MM, or YYYY-MM-DD (the real-world date the milestone occurred)');
+    }
     // Factual spec fields the agent fills/corrects when it finds them (auto-apply).
     const numOrNull = (v) => { if (v == null || v === '') return null; const n = parseInt(v, 10); return isNaN(n) ? null : n; };
     const NUM_FIELDS = [
@@ -1382,8 +1389,16 @@ const IMPL = {
       if (args.source_published) base.source_published = String(args.source_published);
       if (args.note) base.note = String(args.note);
       if (statusChanges) {
+        // Event date for this transition: explicit effective_date wins; else
+        // fall back to the relevant date riding with the advance so the dossier
+        // timeline is still correctly dated.
+        let statusEffective = effectiveDate;
+        if (!statusEffective) {
+          if ((newStatus === 'breaking-ground' || newStatus === 'construction') && newStart) statusEffective = newStart;
+          else if ((newStatus === 'coming-soon' || newStatus === 'open') && newDelivery) statusEffective = newDelivery;
+        }
         p.status = newStatus;
-        p.status_history.push({ ...base, from, to: newStatus, ...(isCorrection ? { correction: true } : {}) });
+        p.status_history.push({ ...base, from, to: newStatus, ...(statusEffective ? { effective_date: statusEffective } : {}), ...(isCorrection ? { correction: true } : {}) });
         changes.push(`${from}→${newStatus}${isCorrection ? ' (correction)' : ''}`);
       }
       if (startChanged) {

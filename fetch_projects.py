@@ -267,6 +267,10 @@ def flatten(record: dict, architect_names: dict, developer_names: dict) -> dict:
         'LastChangeTo':     (_lsc.get('to') or '') if _lsc else '',
         'LastChangeSource': (_lsc.get('source_url') or '') if _lsc else '',
         'LastChangeAt':     (_lsc.get('at') or '') if _lsc else '',
+        # Full sourced change log (status + date/spec edits). Carries each
+        # entry's effective_date (when the milestone actually happened) so the
+        # project-page dossier timeline can show event dates, not discovery dates.
+        'StatusHistory':    record.get('status_history') or [],
     }
 
 
