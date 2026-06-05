@@ -739,6 +739,17 @@ DOSSIER_LABEL = {
     'coming-soon': 'Coming soon', 'move-in': 'Resident move-in', 'bookings': 'Bookings open',
     'grand-opening': 'Opened',
 }
+# Future/projected forms — a milestone that hasn't happened yet reads as
+# "Expected …" rather than the past-tense done label ("Broke ground 2027" on a
+# project that hasn't broken ground is wrong).
+DOSSIER_EXPECTED_LABEL = {
+    'financing': 'Expected financing', 'breaking-ground': 'Expected groundbreaking',
+    'construction': 'Expected construction', 'going-vertical': 'Expected to go vertical',
+    'halfway': 'Expected halfway point', 'topping-out': 'Expected topping out',
+    'tenant': 'Expected anchor tenant', 'tco': 'Expected TCO',
+    'coming-soon': 'Coming soon', 'move-in': 'Expected move-in',
+    'bookings': 'Expected bookings', 'grand-opening': 'Expected opening',
+}
 # Lifecycle status → its phase in the timeline.
 DOSSIER_STATUS_TO_PHASE = {
     'announced': 'announced', 'breaking-ground': 'breaking-ground', 'construction': 'construction',
@@ -921,8 +932,8 @@ def build_milestones(row, articles=None):
         m['projected'] = (not m['sourced']) and (
             (phase == 'grand-opening' and cur_status != 'open') or (rank > cur_rank)
         )
-        if phase == 'grand-opening' and m['projected']:
-            m['label'] = 'Expected opening'
+        if m['projected'] and phase in DOSSIER_EXPECTED_LABEL:
+            m['label'] = DOSSIER_EXPECTED_LABEL[phase]
         entries.append(m)
 
     # Order CHRONOLOGICALLY (by event date), not by phase rank — a financing or
