@@ -889,15 +889,15 @@
       "delivery_date": "2029-12-31",
       "source": "known_date",
       "precision": "year",
-      "confidence": "high",
+      "confidence": "medium",
       "project_type": "Residences",
       "metro": "Palm Beach",
       "comparables": [],
       "comparable_count": 0,
-      "pattern_summary": "Targeted for opening in ~3.5 years.",
-      "dates_speculative": false,
-      "start_speculative": false,
-      "delivery_speculative": false
+      "pattern_summary": "TMW estimates an opening in ~3.5 years based on project type and current stage.",
+      "dates_speculative": true,
+      "start_speculative": true,
+      "delivery_speculative": true
     },
     "1040-s-miami": {
       "estimate_years": 3.2,
@@ -1673,23 +1673,6 @@
       "start_speculative": false,
       "delivery_speculative": false
     },
-    "ybor-harbor": {
-      "estimate_years": 2.5,
-      "estimate_label": "~2.5 years",
-      "days_out": 940,
-      "delivery_date": "2028-12-31",
-      "source": "known_date",
-      "precision": "year",
-      "confidence": "high",
-      "project_type": "Entertainment",
-      "metro": "Tampa Bay",
-      "comparables": [],
-      "comparable_count": 0,
-      "pattern_summary": "Targeted for opening in ~2.5 years.",
-      "dates_speculative": false,
-      "start_speculative": false,
-      "delivery_speculative": false
-    },
     "lake-eola-expansion": {
       "estimate_years": 6.0,
       "estimate_label": "~6 years",
@@ -2163,10 +2146,10 @@
       "delivery_speculative": false
     },
     "the-dynasty": {
-      "estimate_years": 0.6,
-      "estimate_label": "~7 months",
-      "days_out": 209,
-      "delivery_date": "2026-12-31",
+      "estimate_years": 1.5,
+      "estimate_label": "~1.5 years",
+      "days_out": 574,
+      "delivery_date": "2027-12-31",
       "source": "known_date",
       "precision": "year",
       "confidence": "high",
@@ -2174,7 +2157,7 @@
       "metro": "Orlando",
       "comparables": [],
       "comparable_count": 0,
-      "pattern_summary": "Targeted for opening in ~7 months.",
+      "pattern_summary": "Targeted for opening in ~1.5 years.",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false
@@ -2422,21 +2405,21 @@
       "delivery_speculative": false
     },
     "viceroy-residences-fort-lauderdale": {
-      "estimate_years": 1.5,
-      "estimate_label": "~1.5 years",
-      "days_out": 574,
-      "delivery_date": "2027-12-31",
+      "estimate_years": 2.5,
+      "estimate_label": "~2.5 years",
+      "days_out": 940,
+      "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
-      "confidence": "high",
+      "confidence": "medium",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [],
       "comparable_count": 0,
-      "pattern_summary": "Targeted for opening in ~1.5 years.",
-      "dates_speculative": false,
-      "start_speculative": false,
-      "delivery_speculative": false
+      "pattern_summary": "TMW estimates an opening in ~2.5 years based on project type and current stage.",
+      "dates_speculative": true,
+      "start_speculative": true,
+      "delivery_speculative": true
     },
     "icon-beach": {
       "estimate_years": 2.5,
@@ -8135,12 +8118,12 @@
     "high": 1,
     "medium": 14,
     "low": 26,
-    "known_date": 291,
+    "known_date": 290,
     "completed": 52,
-    "skipped": 47,
+    "skipped": 48,
     "no_type": 0,
     "firm_boosted": 27,
-    "speculative_softened": 65,
+    "speculative_softened": 67,
     "mixed_use_adjusted": 1
   }
 }
