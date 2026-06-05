@@ -12,7 +12,7 @@
 <meta name="robots" content="index, follow">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preconnect" href="https://map.oftmw.com">
+<link rel="preconnect" href="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
   /* CSS vars the shared journal chrome + dock expect (mirrors the journal pages). */
@@ -20,7 +20,7 @@
     --ink:#070807; --ink-2:#0c0e0c; --panel:#131613;
     --hair:rgba(255,255,255,.08); --hair-2:rgba(255,255,255,.14);
     --white:#fff; --cream:#ECEAE5; --mute:#9AA39C; --mute-2:#C2C9C3;
-    --green:#1FDF67; --green-soft:#42EB81; --gold:#e6c574; --gold-soft:#f0d68a; --purple:#A78BFA;
+    --green:#1FDF67; --green-soft:#42EB81; --gold:#e6c574; --gold-soft:#f0d68a; --purple:#A78BFA; --purple-soft:#B9A6FF; --purple-bright:#A78BFA;
     --accent:#1FDF67; --orange:#FF9500; --blue:#6FA8FF; --warn:#FFD300;
     --sans:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
     --mono:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
@@ -278,6 +278,79 @@
   .atlas-type-bar-wrap{background:rgba(255,255,255,0.05);height:8px;border-radius:4px;overflow:hidden}
   .atlas-type-bar{height:100%;border-radius:4px;background:linear-gradient(90deg,#7c63d6,#A78BFA);transition:width .3s}
   .atlas-type-count{font-family:var(--mono);font-size:12px;color:var(--mute-2);text-align:right}
+
+  /* ── TMW intelligence hexagon spinner (used wherever the page surfaces
+     autonomous / intelligence-driven data) ── */
+  .tmw-hex{display:inline-block;vertical-align:middle;flex:0 0 auto;line-height:0}
+  .tmw-hex svg{display:block;overflow:visible}
+  .tmw-hex .hx-spin{transform-origin:50% 50%;animation:tmwHexSpin 4.2s cubic-bezier(.16,1,.3,1) infinite}
+  .tmw-hex .hx-core{transform-origin:50% 50%;animation:tmwHexPulse 4.2s ease-in-out infinite}
+  @keyframes tmwHexSpin{0%{transform:rotate(0)}55%{transform:rotate(810deg)}70%{transform:rotate(900deg)}100%{transform:rotate(1080deg)}}
+  @keyframes tmwHexPulse{0%,45%{stroke:var(--purple-bright);filter:drop-shadow(0 0 0 rgba(167,139,250,0))}70%{stroke:var(--purple-soft);filter:drop-shadow(0 0 5px rgba(185,166,255,.9))}100%{stroke:var(--purple-bright);filter:drop-shadow(0 0 0 rgba(167,139,250,0))}}
+  @media (prefers-reduced-motion: reduce){.tmw-hex .hx-spin{animation:tmwHexSlow 6s ease-in-out infinite}@keyframes tmwHexSlow{0%,100%{transform:rotate(0)}50%{transform:rotate(180deg)}}}
+
+  /* ── Intelligence dashboard header ── */
+  .atlas-intel-header{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:16px;padding:8px 0 22px;border-bottom:1px solid var(--hair);margin-bottom:26px}
+  .atlas-intel-header .ihb-eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--purple-soft);display:flex;align-items:center;gap:9px;margin-bottom:12px}
+  .atlas-intel-header h1{font-family:var(--serif);font-weight:600;font-size:clamp(26px,3.6vw,38px);letter-spacing:-.02em;color:#fff;margin:0}
+  .atlas-intel-header .ihb-sub{color:var(--mute-2);font-size:14px;margin-top:8px;max-width:540px;line-height:1.5}
+  .atlas-live{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--green-soft);display:flex;align-items:center;gap:7px;white-space:nowrap}
+  .atlas-live .dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:atlasLivePulse 1.8s ease-in-out infinite}
+  @keyframes atlasLivePulse{0%,100%{opacity:1}50%{opacity:.35}}
+
+  /* ── Headline tiles (moved to top) ── */
+  .atlas-tiles{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:26px}
+  @media(max-width:900px){.atlas-tiles{grid-template-columns:repeat(3,1fr)}}
+  @media(max-width:520px){.atlas-tiles{grid-template-columns:repeat(2,1fr)}}
+  .atlas-tile{background:rgba(255,255,255,.03);border:1px solid var(--hair);border-radius:13px;padding:16px}
+  .atlas-tile .n{font-family:var(--serif);font-weight:600;font-size:clamp(23px,2.3vw,30px);color:#fff;line-height:1;letter-spacing:-.01em}
+  .atlas-tile .l{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);margin-top:8px}
+  .atlas-tile.accent .n{color:var(--orange)}
+  .atlas-tile.green .n{color:var(--green-soft)}
+  .atlas-tile.purple .n{color:var(--purple-soft)}
+
+  /* ── Dashboard 2-col grid + panel headers ── */
+  .atlas-dash{display:grid;grid-template-columns:1.4fr 1fr;gap:18px;align-items:start}
+  @media(max-width:900px){.atlas-dash{grid-template-columns:1fr}}
+  .atlas-dash .atlas-panel{margin-bottom:18px}
+  .atlas-ph{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--mute);margin:0 0 16px;display:flex;align-items:center;gap:9px;justify-content:space-between;font-weight:600}
+  .atlas-ph .lbl{display:flex;align-items:center;gap:9px}
+  .atlas-ph .hint{font-size:9px;letter-spacing:.06em;color:var(--mute);font-weight:400;text-transform:none}
+  .atlas-panel.intel .atlas-ph{color:var(--purple-soft)}
+
+  /* movers */
+  .atlas-mover{display:flex;gap:12px;padding:11px 0;border-bottom:1px solid var(--hair)}
+  .atlas-mover:last-child{border-bottom:0}
+  .atlas-mover .md{width:8px;height:8px;border-radius:50%;margin-top:6px;flex:0 0 auto}
+  .atlas-mover .mname{font-size:14px;color:#fff;font-weight:600}
+  .atlas-mover .mchg{font-family:var(--mono);font-size:11px;color:var(--mute-2);margin-top:4px;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+  .atlas-mover .mchg .to{color:var(--orange);font-weight:700;text-transform:capitalize}
+  .atlas-mover .msrc{font-family:var(--mono);font-size:10px;color:var(--mute);margin-top:4px}
+
+  /* index chart */
+  .atlas-indexrow{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;gap:10px}
+  .atlas-indexrow .iv{font-family:var(--serif);font-size:26px;color:#fff;font-weight:600;line-height:1}
+  .atlas-indexrow .ich{font-family:var(--mono);font-size:11px;color:var(--purple-soft);white-space:nowrap}
+  .atlas-idxchart{width:100%;height:88px;display:block}
+  .atlas-idxchart-x{display:flex;justify-content:space-between;font-family:var(--mono);font-size:9px;color:var(--mute);letter-spacing:.06em;margin-top:7px}
+
+  /* stage bars (full lifecycle colors) */
+  .atlas-stage{display:grid;grid-template-columns:124px 1fr 46px;align-items:center;gap:12px;padding:6px 0}
+  @media(max-width:800px){.atlas-stage{grid-template-columns:104px 1fr 40px;gap:10px}}
+  .atlas-stage .lab{font-size:12.5px;color:var(--cream);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .atlas-stage .track{height:9px;border-radius:99px;background:rgba(255,255,255,.05);overflow:hidden}
+  .atlas-stage .fill{height:100%;border-radius:99px}
+  .atlas-stage .val{font-family:var(--mono);font-size:11.5px;color:var(--mute-2);text-align:right}
+  .st-announced{background:linear-gradient(90deg,#6b726c,#8b938c)}
+  .st-breaking{background:linear-gradient(90deg,#caa24a,var(--gold))}
+  .st-construction{background:linear-gradient(90deg,#d98a4a,var(--orange))}
+  .st-coming{background:linear-gradient(90deg,#4a86d9,#6CA8FF)}
+  .st-open{background:linear-gradient(90deg,#1aa84f,var(--green))}
+
+  /* "how this stays current" footnote */
+  .atlas-foot-note{margin:6px 0 30px;padding:16px 18px;border:1px dashed var(--hair-2);border-radius:12px;font-family:var(--mono);font-size:11.5px;color:var(--mute);line-height:1.65}
+  .atlas-foot-note b{color:var(--purple-soft)}
+  .atlas-foot-note .fn-lbl{display:flex;align-items:center;gap:9px;margin-bottom:9px;color:var(--purple-soft);font-weight:700;letter-spacing:.04em;text-transform:uppercase;font-size:10.5px}
   .atlas-trend-labels {
     display: flex; justify-content: space-between;
     padding: 0 6px; font-size: 11px; color: rgba(255,255,255,0.4);
@@ -960,9 +1033,11 @@
   (function() {
     'use strict';
 
-    // Cross-origin asset bases. This page lives at www.oftmw.com/atlas; the
-    // atlas data + firm/project pages are served from map.oftmw.com.
-    const MAP_ORIGIN = 'https://map.oftmw.com';
+    // Same-origin asset base. This page lives at www.oftmw.com/atlas; the
+    // atlas data + native map now live at www.oftmw.com/map (map.oftmw.com is
+    // retired). atlas.json/projects-flat.json are mirrored into /map by the
+    // generate-pages workflow, so all fetches + deep-links resolve here.
+    const MAP_ORIGIN = 'https://www.oftmw.com/map';
 
     // Keep --atlas-head in sync with the live journal-chrome header height so the
     // pinned sub-header (tabs + filters) parks exactly below the nav on every
@@ -1180,7 +1255,7 @@
       };
       return `
         <section class="atlas-section">
-          <div class="atlas-intel-eyebrow"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 0l1.1 4.6L13.5 2l-2 4.4 4.5-1.1-3.7 2.7 4.5.9-4.5.9 3.7 2.7-4.5-1.1 2 4.4-4.4-2.6L8 16l-1.1-4.6L2.5 14l2-4.4L0 10.7 3.7 8-.8 7.1l4.5-.9L0 3.4 4.5 4.5 2.5 0l4.4 2.6z"/></svg>The pipeline at scale</div>
+          <div class="atlas-intel-eyebrow">${hexMarker(14)} The pipeline at scale</div>
           <div class="atlas-scale-grid">
             ${tile(s.units, 'Units in pipeline')}
             ${tile(s.keys, 'Hotel keys')}
@@ -1221,6 +1296,145 @@
             ${renderMomentum()}
           </div>
         </section>`;
+    }
+
+    // ── Intelligence-dashboard reskin (mockup parity) ───────────────────
+    // The spinning purple hexagon is the TMW intelligence marker — used
+    // wherever the page surfaces autonomous / continuously-updated data.
+    function hexMarker(size) {
+      const s = size || 15;
+      return `<span class="tmw-hex" aria-hidden="true" style="width:${s}px;height:${s}px">`
+        + `<svg viewBox="0 0 100 100" width="${s}" height="${s}">`
+        + `<g class="hx-spin"><polygon class="hx-core" points="50,15 80.3,32.5 80.3,67.5 50,85 19.7,67.5 19.7,32.5" `
+        + `fill="none" stroke="#A78BFA" stroke-width="9" stroke-linejoin="round"/></g></svg></span>`;
+    }
+
+    function statusDistCount(label) {
+      const d = (atlasData.status_distribution || []).find(x => x.label === label);
+      return d ? d.count : 0;
+    }
+
+    function renderIntelHeader() {
+      return `
+        <div class="atlas-intel-header">
+          <div>
+            <div class="ihb-eyebrow">${hexMarker(15)} Markets of Tomorrow · Intelligence</div>
+            <h1>The Atlas</h1>
+            <div class="ihb-sub">A live, sourced read on what's being built across our coverage markets — every status, date and count tracked and updated automatically.</div>
+          </div>
+          <div class="atlas-live"><span class="dot"></span>Live · updated continuously</div>
+        </div>`;
+    }
+
+    function renderHeadlineTiles() {
+      const h = atlasData.hero_stats || {};
+      const s = atlasData.scale || {};
+      const fmt = n => Number(n || 0).toLocaleString();
+      const tiles = [
+        { n: fmt(h.total_projects), l: 'Projects tracked', c: '' },
+        { n: fmt(h.under_construction), l: 'Under construction', c: 'accent' },
+        { n: fmt(statusDistCount('Opening Soon')), l: 'Opening soon', c: '' },
+        { n: fmt(statusDistCount('Now Open')), l: 'Now open', c: 'green' },
+        { n: fmt(s.units), l: 'Units in pipeline', c: 'purple' },
+        { n: fmt(s.keys), l: 'Hotel keys', c: '' },
+      ];
+      return `<div class="atlas-tiles">${tiles.map(t =>
+        `<div class="atlas-tile ${t.c}"><div class="n">${t.n}</div><div class="l">${t.l}</div></div>`).join('')}</div>`;
+    }
+
+    function renderStageBars() {
+      const dist = atlasData.status_distribution || [];
+      if (!dist.length) return '';
+      const max = Math.max(...dist.map(d => d.count), 1);
+      const total = dist.reduce((a, d) => a + d.count, 0);
+      const cls = { 'Announced': 'st-announced', 'Breaking Ground': 'st-breaking', 'Construction': 'st-construction', 'Opening Soon': 'st-coming', 'Now Open': 'st-open' };
+      const rows = dist.map(d =>
+        `<div class="atlas-stage"><span class="lab">${escapeHtml(d.label)}</span>`
+        + `<div class="track"><div class="fill ${cls[d.label] || 'st-announced'}" style="width:${(d.count / max) * 100}%"></div></div>`
+        + `<span class="val">${d.count}</span></div>`).join('');
+      return `<div class="atlas-panel"><h3 class="atlas-ph"><span class="lbl">Pipeline by stage</span><span class="hint">${total} projects</span></h3>${rows}</div>`;
+    }
+
+    function renderMovers() {
+      const evs = (atlasData.recent_activity || []).filter(e => e.type === 'status_change' || e.type === 'new_project').slice(0, 5);
+      if (!evs.length) return '';
+      const dotColor = { 'Now Open': 'var(--green)', 'Opening Soon': '#6CA8FF', 'Construction': 'var(--orange)', 'Breaking Ground': 'var(--gold)', 'Announced': 'var(--mute)' };
+      const rows = evs.map(e => {
+        const isNew = e.type === 'new_project';
+        const tag = e.tag || (isNew ? 'Added to the map' : '');
+        const dot = isNew ? 'var(--purple)' : (dotColor[tag] || 'var(--purple)');
+        const name = escapeHtml(e.project_title || e.title || '');
+        const href = e.link || '#';
+        const city = e.city ? `<div class="msrc">${escapeHtml(e.city)}</div>` : '';
+        const inner = `<span class="md" style="background:${dot}"></span>`
+          + `<div><div class="mname">${name}</div>`
+          + `<div class="mchg"><span class="to">${escapeHtml(tag)}</span> ${hexMarker(11)}</div>${city}</div>`;
+        return href && href !== '#'
+          ? `<a class="atlas-mover" href="${escapeHtml(href)}" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">${inner}</a>`
+          : `<div class="atlas-mover">${inner}</div>`;
+      }).join('');
+      return `<div class="atlas-panel"><h3 class="atlas-ph"><span class="lbl">Movers this week</span><span class="hint">auto-detected</span></h3>${rows}</div>`;
+    }
+
+    function renderIndexPanel() {
+      const m = atlasData.momentum || [];
+      if (m.length < 2) return '';
+      let cum = 0; const pts = m.map(x => (cum += (x.count || 0)));
+      const W = 300, H = 88, max = Math.max(...pts, 1), min = Math.min(...pts, 0);
+      const span = (max - min) || 1;
+      const coords = pts.map((v, i) => {
+        const x = (i / (pts.length - 1)) * W;
+        const y = H - ((v - min) / span) * (H - 14) - 7;
+        return `${x.toFixed(0)},${y.toFixed(0)}`;
+      });
+      const poly = coords.join(' ');
+      const area = `0,${H} ${poly} ${W},${H}`;
+      const half = Math.floor(m.length / 2);
+      const recent = m.slice(half).reduce((a, x) => a + (x.count || 0), 0);
+      const prior = m.slice(0, half).reduce((a, x) => a + (x.count || 0), 0) || 1;
+      const chg = Math.round((recent - prior) / prior * 100);
+      const idx = [0, Math.floor(m.length / 4), Math.floor(m.length / 2), Math.floor(3 * m.length / 4), m.length - 1];
+      const xl = [...new Set(idx)].map(i => m[i]).filter(Boolean);
+      const yr = x => x.year ? " '" + String(x.year).slice(2) : '';
+      return `<div class="atlas-panel intel">
+        <h3 class="atlas-ph"><span class="lbl">${hexMarker(13)} TMW Development Index</span><span class="hint">12-mo momentum</span></h3>
+        <div class="atlas-indexrow"><span class="iv">${cum.toLocaleString()}</span><span class="ich">${chg >= 0 ? '▲' : '▼'} ${Math.abs(chg)}% vs prior 6 mo</span></div>
+        <svg class="atlas-idxchart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true">
+          <defs><linearGradient id="atlasIdxG" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="rgba(167,139,250,.35)"/><stop offset="100%" stop-color="rgba(167,139,250,0)"/></linearGradient></defs>
+          <polygon fill="url(#atlasIdxG)" points="${area}"/>
+          <polyline fill="none" stroke="#A78BFA" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" points="${poly}"/>
+        </svg>
+        <div class="atlas-idxchart-x">${xl.map(x => `<span>${escapeHtml(x.month)}${yr(x)}</span>`).join('')}</div>
+      </div>`;
+    }
+
+    function renderPurpleBars(key, title, hint) {
+      const data = leaderboardSource(key).slice(0, 7);
+      if (!data.length) return '';
+      const max = Math.max(...data.map(d => d.count || 0), 1);
+      const rows = data.map(d =>
+        `<div class="atlas-type-row"><div class="atlas-type-label">${escapeHtml(d.name)}</div>`
+        + `<div class="atlas-type-bar-wrap"><div class="atlas-type-bar" style="width:${((d.count || 0) / max) * 100}%"></div></div>`
+        + `<div class="atlas-type-count">${d.count || 0}</div></div>`).join('');
+      return `<div class="atlas-panel intel"><h3 class="atlas-ph"><span class="lbl">${escapeHtml(title)}</span><span class="hint">${escapeHtml(hint)}</span></h3>${rows}</div>`;
+    }
+
+    function renderDashGrid() {
+      return `
+        <section class="atlas-section">
+          <div class="atlas-dash">
+            <div>${renderStageBars()}${renderMovers()}</div>
+            <div>${renderIndexPanel()}${renderPurpleBars('cities', 'By metro', 'top markets')}${renderPurpleBars('types', 'By type', 'projects span types')}</div>
+          </div>
+        </section>`;
+    }
+
+    function renderFootnote() {
+      const total = (atlasData.hero_stats && atlasData.hero_stats.total_projects) || '';
+      return `<div class="atlas-foot-note">
+        <div class="fn-lbl">${hexMarker(13)} How this stays current</div>
+        This dashboard reads straight from the live Map of Tomorrow database${total ? ` — the same ${total} projects` : ''} the autonomous routines keep current. The <b>construction sweep</b> updates statuses, dates and unit counts each week from sourced news; <b>discovery</b> adds new projects with photos and coordinates. Every tile, bar and mover above refreshes on its own — the longer it runs, the deeper the history gets.
+      </div>`;
     }
 
     function renderRecentActivity() {
@@ -1714,21 +1928,21 @@
       const root = document.getElementById('atlasRoot');
       if (!root) return;
       syncHeadOffset();
-      const sections = [
-        '<div class="atlas-stickyhead">' + renderViewTabs() + renderStateFilter() + '</div>',
-      ];
+      const stickyhead = '<div class="atlas-stickyhead">' + renderViewTabs() + renderStateFilter() + '</div>';
+      const sections = [];
       if (currentAtlasView === 'timeline') {
-        sections.push(renderTimelineSection());
+        sections.push(stickyhead, renderTimelineSection());
       } else {
-        const byType = renderByType();
         sections.push(
+          renderIntelHeader(),
+          stickyhead,
+          renderHeadlineTiles(),
+          renderDashGrid(),
           renderScale(),
           renderLeaderboardSection(),
-          byType ? '<section class="atlas-section">' + byType + '</section>' : '',
           renderOpeningsByYear(),
-          renderDistributionAndMomentum(),
           renderCoverageAndComing(),
-          renderRecentActivity()
+          renderFootnote()
         );
       }
       sections.push(renderFooter());
