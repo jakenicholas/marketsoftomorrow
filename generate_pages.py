@@ -840,7 +840,12 @@ def build_page(row, articles=None, nearby=None):
     _start_spec = (row.get('StartSpeculative', '') or '').strip() in ('1', 'true', 'True')
     if _start_raw and not _start_spec:
         _add_mini(format_fact_date(_start_raw), 'Start')
-    _add_mini(format_fact_date(delivery_date), 'Completion')
+    # Completion — prefix "Est" when the delivery date is a TMW estimate.
+    _delivery_spec = (row.get('DeliverySpeculative', '') or '').strip() in ('1', 'true', 'True')
+    _completion = format_fact_date(delivery_date)
+    if _completion and _delivery_spec:
+        _completion = 'Est ' + _completion
+    _add_mini(_completion, 'Completion')
     _add_mini(row.get('Keys', ''), 'Keys')
     _add_mini(row.get('Units', ''), 'Units')
     _add_mini(row.get('Floors', ''), 'Floors')
@@ -1775,8 +1780,8 @@ def build_page(row, articles=None, nearby=None):
     .pp-hero .btn-primary {{ flex: 0 1 auto; padding: 13px 20px; }}
     .pp-panel {{ background: rgba(15,17,16,.60); backdrop-filter: blur(22px); -webkit-backdrop-filter: blur(22px); border: 1px solid rgba(255,255,255,.14); border-radius: 18px; padding: 20px 22px; box-shadow: 0 30px 80px -30px rgba(0,0,0,.9); }}
     .pp-panel .pm-tl {{ margin-bottom: 0; }}
-    .pp-minis {{ display: flex; flex-wrap: wrap; gap: 6px; margin-top: 16px; }}
-    .pp-mini {{ flex: 1 0 auto; padding: 10px 11px; background: rgba(0,0,0,.30); border: 1px solid rgba(255,255,255,.07); border-radius: 10px; }}
+    .pp-minis {{ display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 16px; }}
+    .pp-mini {{ padding: 10px 11px; background: rgba(0,0,0,.30); border: 1px solid rgba(255,255,255,.07); border-radius: 10px; }}
     .pp-mini .v {{ font-size: 15px; font-weight: 800; letter-spacing: -.02em; white-space: nowrap; }}
     .pp-mini .k {{ font-size: 8px; letter-spacing: .07em; text-transform: uppercase; color: rgba(255,255,255,.4); margin-top: 5px; white-space: nowrap; }}
 

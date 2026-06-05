@@ -4164,11 +4164,13 @@
   /* Facts (start / completion / units / floors …) — each in its own boxed
      mini-card, laid out 2-up so it reads as a clean spec grid instead of a
      dense run of bold numbers. */
+  /* Always quarter-width tiles: a 4-column grid so 1-3 facts keep their size
+     (left-aligned, never stretched to fill) and a 5th wraps to a new row. */
   #projectModal .pm-facts {
-    display: flex; flex-wrap: wrap; gap: 6px; margin-top: 16px;
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 16px;
   }
   #projectModal .pm-facts .pm-mini {
-    flex: 1 0 auto; padding: 10px 11px;
+    padding: 10px 11px;
     background: rgba(0,0,0,0.30);
     border: 1px solid rgba(255,255,255,0.07);
     border-radius: 10px;
@@ -14277,7 +14279,9 @@
         // Start date — only when a real (non-speculative) start date exists.
         const startRaw = (p.startDate || '').trim();
         const startFmt = (startRaw && !p.startSpeculative) ? fmtFactDate(startRaw) : '';
-        const completionFmt = fmtFactDate((p.deliveryDate || '').trim());
+        let completionFmt = fmtFactDate((p.deliveryDate || '').trim());
+        // Prefix "Est" when the completion date is a TMW estimate (speculative).
+        if (completionFmt && p.deliverySpeculative) completionFmt = 'Est ' + completionFmt;
 
         // Order: Start · Completion · Keys · Units · Floors (Market removed).
         const factItems = [];
@@ -14292,7 +14296,7 @@
           factsEl.innerHTML = factItems.map(s =>
             `<div class="pm-mini"><div class="v">${escTxt(s.val)}</div><div class="k">${escTxt(s.label)}</div></div>`
           ).join('');
-          factsEl.style.display = factItems.length ? 'flex' : 'none';
+          factsEl.style.display = factItems.length ? 'grid' : 'none';
         }
 
         // ── DEVELOPER & DESIGN — bordered firm cards (project-page style). Shows
