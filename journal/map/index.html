@@ -3877,6 +3877,7 @@
       flex: 1;
       min-height: 0;
       overflow-y: auto;
+      overflow-x: hidden;
       -webkit-overflow-scrolling: touch;
       overscroll-behavior: contain;
       padding-bottom: 0;
@@ -3884,6 +3885,8 @@
     #projectModal .pm-body {
       display: flex;
       flex-direction: column;
+      max-width: 100%;
+      min-width: 0;
     }
     #projectModal .pm-cta {
       position: sticky;
@@ -3898,6 +3901,7 @@
   #projectModal .pm-scroll {
     height: 100%;
     overflow-y: auto;
+    overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
   }
@@ -17154,10 +17158,15 @@
           { name:'Dubai',           lng:55.2708,   lat:25.2048 },
         ];
         const pingEls = [];
+        // Mobile: one ring per city instead of three — ~10 animating
+        // radial-gradient DOM layers instead of ~30, a big GPU saving on the
+        // initial low-zoom load (where they all sit on screen at once).
+        const _pingMobile = window.innerWidth <= 800;
+        const RING_DELAYS = _pingMobile ? [0] : [0, 1333, 2666];
         cities.forEach((city) => {
           const el = document.createElement('div');
           el.style.cssText = 'position:relative;width:0;height:0;pointer-events:none;';
-          [0, 1333, 2666].forEach(delay => {
+          RING_DELAYS.forEach(delay => {
             const ring = document.createElement('div');
             ring.style.cssText = `
               position: absolute;
@@ -17179,12 +17188,20 @@
 
         // Hide pings when zoomed in past cluster breakpoint (clusterMaxZoom=16, pins separate ~z10+)
         const HIDE_ZOOM = 10;
+        let _pingMoving = false;
         function updatePingVisibility() {
-          const hidden = map.getZoom() >= HIDE_ZOOM;
+          const hidden = _pingMoving || map.getZoom() >= HIDE_ZOOM;
           pingEls.forEach(el => el.classList.toggle('city-ping-hidden', hidden));
         }
         map.on('zoom', updatePingVisibility);
         updatePingVisibility();
+        // Mobile: these are DOM markers Mapbox repositions every frame — hide
+        // them while the map is moving so pan/zoom stays smooth, then restore
+        // (per the zoom rule) once the gesture settles.
+        if (_pingMobile) {
+          map.on('movestart', () => { _pingMoving = true; updatePingVisibility(); });
+          map.on('moveend', () => { _pingMoving = false; updatePingVisibility(); });
+        }
 
         // Remove old GL line layers if they exist from previous version
         ['focus-city-glow-outer','focus-city-glow-mid','focus-city-line'].forEach(id => {
