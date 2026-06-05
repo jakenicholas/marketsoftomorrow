@@ -333,15 +333,16 @@ const TOOLS = [
         longitude: { type: 'number' },
         description: { type: 'string', description: 'Short 1–2 sentence summary' },
         description_long: { type: 'string', description: 'Full descriptive paragraph' },
-        types: { type: 'array', items: { type: 'string' }, description: 'Project types from the controlled vocab: Residences, Hotel, Mixed-Use, Entertainment, Eateries, Retail, Office, Park, Marina, Golf, Resort, Cultural, Museum, Stadium, Education, Healthcare, Spa, Travel, Airport, Opera House, Hospital' },
-        preferred_type: { type: 'string', description: 'The single primary type (defaults to the first of types)' },
+        types: { type: 'array', items: { type: 'string' }, description: 'Project types — use ONLY the EXISTING TMW vocabulary (call list_project_types to see it; e.g. Residences, Hotel, Mixed-Use, Entertainment, Eateries, Retail, Office, Park, Marina, Golf, Cultural, Museum, Stadium, Education, Healthcare, Spa, Airport). Do NOT invent new tags: a hotel/resort is "Hotel" (NOT "Resort"), condos/apartments are "Residences", restaurants are "Eateries". Common synonyms are auto-mapped; anything unrecognized is dropped and reported back.' },
+        preferred_type: { type: 'string', description: 'The single primary type (must be from the same existing vocabulary; defaults to the first of types).' },
         architects: { type: 'array', items: { type: 'string' }, description: 'Architect firm names. Each is matched against the firm registry (punctuation-insensitive) and bound to the canonical slug so established firms attach in the admin picker; names with no match are CREATED as new registry records (so they bind too). Use the real firm name (e.g. "Spina O\'Rourke + Partners"); search_firms can confirm existing ones first.' },
         developers: { type: 'array', items: { type: 'string' }, description: 'Developer firm names — matched to the firm registry like architects; existing firms bind to the picker and brand-new ones are created as registry records automatically.' },
         website: { type: 'string', description: 'Official project website' },
-        units: { type: 'integer' },
-        floors: { type: 'integer' },
-        start_date: { type: 'string', description: 'Construction start date — year ("2027") or ISO ("2027-06"). Set start_speculative when it is a TMW estimate rather than developer-committed.' },
-        delivery_date: { type: 'string', description: 'Expected completion/delivery date — year or ISO. Set delivery_speculative when it is a TMW estimate.' },
+        units: { type: 'integer', description: 'RESIDENTIAL unit count (condos / apartments / townhomes). Use for residential & mixed-use — NOT for hotel rooms (use keys for those).' },
+        keys: { type: 'integer', description: 'HOTEL/RESORT room (key) count. Use for hotels & resorts — NOT residential units. A property with both (branded residences over a hotel) can set both units AND keys.' },
+        floors: { type: 'integer', description: 'Floor / story count (tower height proxy).' },
+        start_date: { type: 'string', description: 'Construction start / GROUNDBREAKING date — year ("2027") or ISO ("2027-06"). Capture it whenever a source gives it (e.g. "broke ground in 2025"). Set start_speculative when it is a TMW estimate rather than developer-committed.' },
+        delivery_date: { type: 'string', description: 'Completion / OPENING date (when it delivers or opens) — year or ISO. Capture it whenever a source gives it (e.g. "opening 2027", "completed 2026"). Set delivery_speculative when it is a TMW estimate.' },
         start_speculative: { type: 'boolean', description: 'True if start_date is a TMW estimate (not developer-committed) — checks the "TMW estimate" box on the start date.' },
         delivery_speculative: { type: 'boolean', description: 'True if delivery_date is a TMW estimate — checks the "TMW estimate" box on the delivery date.' },
         images: { type: 'array', items: { type: 'string' }, description: 'Image URLs (hero / renders)' },
@@ -366,11 +367,11 @@ const TOOLS = [
         status: { type: 'string', enum: ['announced', 'breaking-ground', 'construction', 'coming-soon', 'open'] },
         start_date: { type: 'string', description: 'Construction-start / groundbreaking year or date' },
         start_speculative: { type: 'boolean', description: 'True if start_date is an estimate' },
-        delivery_date: { type: 'string', description: 'Completion / delivery year or date' },
+        delivery_date: { type: 'string', description: 'Completion / OPENING year or date' },
         delivery_speculative: { type: 'boolean', description: 'True if delivery_date is an estimate' },
-        units: { type: 'integer' },
-        floors: { type: 'integer' },
-        keys: { type: 'integer' },
+        units: { type: 'integer', description: 'RESIDENTIAL unit count (condos/apartments) — NOT hotel rooms' },
+        floors: { type: 'integer', description: 'Floor / story count' },
+        keys: { type: 'integer', description: 'HOTEL/RESORT room (key) count — NOT residential units' },
         latitude: { type: 'number' },
         longitude: { type: 'number' },
         website: { type: 'string' },
@@ -893,6 +894,61 @@ async function ensureFirms(env, role, report) {
   }
 }
 
+// ── Project-type vocabulary → keep the connector on the EXISTING tag set ─────
+// New projects must reuse the tags already on the live map, not invent new ones
+// (e.g. a resort is "Hotel", not "Resort"). The canonical set is whatever's
+// in use on the live map (same source as list_project_types), seeded with the
+// core vocab so common tags are always valid. Synonyms fold variants in.
+const TYPE_SYNONYMS = {
+  resort: 'Hotel', resorts: 'Hotel', hotels: 'Hotel', 'boutique-hotel': 'Hotel', inn: 'Hotel',
+  condominium: 'Residences', condominiums: 'Residences', condo: 'Residences', condos: 'Residences',
+  apartment: 'Residences', apartments: 'Residences', residence: 'Residences', residential: 'Residences',
+  multifamily: 'Residences', townhomes: 'Residences', townhouse: 'Residences', housing: 'Residences',
+  restaurant: 'Eateries', restaurants: 'Eateries', dining: 'Eateries', eatery: 'Eateries', 'food-hall': 'Eateries',
+  shopping: 'Retail', mall: 'Retail', shops: 'Retail', store: 'Retail', stores: 'Retail',
+  offices: 'Office', commercial: 'Office', workplace: 'Office',
+  parks: 'Park', 'green-space': 'Park', 'public-space': 'Park', plaza: 'Park',
+  marinas: 'Marina',
+  'golf-course': 'Golf', golfing: 'Golf',
+  museums: 'Museum', gallery: 'Cultural', galleries: 'Cultural', arts: 'Cultural', 'arts-center': 'Cultural', 'cultural-center': 'Cultural',
+  arena: 'Stadium', stadiums: 'Stadium', sports: 'Stadium', 'sports-complex': 'Stadium',
+  school: 'Education', schools: 'Education', university: 'Education', college: 'Education', academy: 'Education',
+  hospital: 'Healthcare', hospitals: 'Healthcare', medical: 'Healthcare', clinic: 'Healthcare',
+  wellness: 'Spa', spas: 'Spa',
+  airports: 'Airport',
+  entertainment: 'Entertainment',
+  'mixed use': 'Mixed-Use', mixeduse: 'Mixed-Use', 'mixed-use-development': 'Mixed-Use',
+};
+async function loadCanonTypes() {
+  const canon = new Map(); // lowercase -> canonical casing
+  for (const v of new Set(Object.values(TYPE_SYNONYMS))) canon.set(v.toLowerCase(), v);
+  try {
+    const all = await loadProjects();
+    for (const p of all) for (const t of splitList(p.ProjectType)) {
+      const k = String(t).trim();
+      if (k && !canon.has(k.toLowerCase())) canon.set(k.toLowerCase(), k);
+    }
+  } catch (_) { /* fall back to the seeded core vocab */ }
+  return canon;
+}
+// Normalize ONE type to its canonical tag, or null if unrecognized (→ dropped).
+function normType(raw, canon) {
+  const t = String(raw || '').trim(); if (!t) return null;
+  const key = t.toLowerCase();
+  const syn = TYPE_SYNONYMS[key] || TYPE_SYNONYMS[key.replace(/[\s_]+/g, '-')] || TYPE_SYNONYMS[key.replace(/-/g, ' ')];
+  const target = (syn || t).toLowerCase();
+  return canon.get(target) || canon.get(key) || null;
+}
+function resolveTypes(inputTypes, canon) {
+  const out = [], dropped = [], seen = new Set();
+  for (const raw of (Array.isArray(inputTypes) ? inputTypes : [])) {
+    const c = normType(raw, canon);
+    if (c) { if (!seen.has(c.toLowerCase())) { seen.add(c.toLowerCase()); out.push(c); } }
+    else if (String(raw || '').trim()) dropped.push(String(raw).trim());
+  }
+  return { types: out, dropped };
+}
+
 // ── Tool implementations ────────────────────────────────────────────────────
 const IMPL = {
   async search_posts(args, env) {
@@ -1366,7 +1422,12 @@ const IMPL = {
     const title = String(args.title || '').trim();
     if (!title) throw new Error('title is required');
     const num = (v) => (v == null || v === '' || isNaN(Number(v)) ? null : Number(v));
-    const types = Array.isArray(args.types) ? args.types.map((t) => String(t).trim()).filter(Boolean) : [];
+    // Normalize project types against the EXISTING tag vocabulary (resort→Hotel,
+    // condos→Residences, …) and drop anything unrecognized — never coin new tags.
+    const canonTypes = await loadCanonTypes();
+    const typeRes = resolveTypes(args.types, canonTypes);
+    const types = typeRes.types;
+    const preferred = (args.preferred_type ? normType(args.preferred_type, canonTypes) : null) || types[0] || '';
 
     // Resolve architect/developer names to the registry's canonical slugs so
     // established firms attach in the admin picker (not duplicate slugs), and
@@ -1389,13 +1450,14 @@ const IMPL = {
       lat: num(args.latitude),
       lng: num(args.longitude),
       types,
-      preferred_type: String(args.preferred_type || types[0] || ''),
+      preferred_type: preferred,
       description: String(args.description || ''),
       description_long: String(args.description_long || args.description || ''),
       architect_slugs: archRes.slugs,
       developer_slugs: devRes.slugs,
       official_website: String(args.website || ''),
       units: num(args.units),
+      keys: num(args.keys),
       floors: num(args.floors),
     };
     if (Array.isArray(args.images) && args.images.length) data.images = args.images.map(String);
@@ -1445,7 +1507,12 @@ const IMPL = {
       admin_url: MAP_ADMIN_URL,
       firms: { architects: archRes.report, developers: devRes.report },
       firms_created: createdFirms,
+      types: data.types,
+      types_dropped: typeRes.dropped,
       note: 'Queued for review — open the TMW Studio map admin at ' + MAP_ADMIN_URL + ' and click the "Drafts" tab; "' + data.name + '" is there now as a CLAUDE DRAFT. Review and promote it from that tab to put it on the live map — it is NOT live yet. (Stored in ' + ghRepo(env) + '/' + GH_DRAFTS_PATH + ', which that admin reads directly.)'
+        + (typeRes.dropped.length
+            ? ' Note: dropped unrecognized type tag(s) [' + typeRes.dropped.join(', ') + '] — only existing TMW tags are kept (e.g. use "Hotel" not "Resort"). Recorded types: ' + (data.types.join(', ') || '(none)') + '.'
+            : '')
         + (archRes.report.length || devRes.report.length
             ? ' All architects/developers are now real registry records, so they bind in the admin picker'
               + (createdFirms.length ? ' (newly created firms: ' + createdFirms.join(', ') + ')' : ' (all matched existing firms)') + '.'
