@@ -325,7 +325,11 @@
   .atlas-mover .mname{font-size:14px;color:#fff;font-weight:600}
   .atlas-mover .mchg{font-family:var(--mono);font-size:11px;color:var(--mute-2);margin-top:4px;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
   .atlas-mover .mchg .to{color:var(--orange);font-weight:700;text-transform:capitalize}
-  .atlas-mover .msrc{font-family:var(--mono);font-size:10px;color:var(--mute);margin-top:4px}
+  .atlas-mover .mchg .marrow{color:var(--mute);font-weight:400}
+  .atlas-mover .msrc{font-family:var(--mono);font-size:10px;color:var(--mute);margin-top:4px;line-height:1.5}
+  .atlas-mover .msrc a{color:var(--green-soft);text-decoration:none}
+  .atlas-mover .msrc a:hover{text-decoration:underline}
+  .atlas-mover .msrc .sdot{opacity:.55;margin:0 1px}
 
   /* index chart */
   .atlas-indexrow{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;gap:10px}
@@ -1125,6 +1129,7 @@
     // atlas.json alone (no projects-flat.json dependency), so the page is
     // never stuck on a loading state.
     let currentAtlasView = 'stats';
+    let currentLbKey = 'developers'; // active leaderboard tab — preserved across re-renders
     let currentTimelineStatus = 'all';
     let currentTimelineFeatured = false;
 
@@ -1168,6 +1173,12 @@
     }
 
     function renderLeaderboardSection() {
+      const tabs = [
+        ['developers', 'Top developers'], ['architects', 'Top architects'],
+        ['cities', 'Top cities'], ['types', 'Top product types'],
+      ];
+      const tabBtns = tabs.map(([k, label]) =>
+        `<button class="atlas-lb-tab ${currentLbKey === k ? 'active' : ''}" data-lb-tab="${k}" role="tab">${label}</button>`).join('');
       return `
         <section class="atlas-section">
           <div class="atlas-section-head">
@@ -1177,13 +1188,8 @@
             </div>
           </div>
           <div class="atlas-lb-wrap">
-            <div class="atlas-lb-tabs" role="tablist">
-              <button class="atlas-lb-tab active" data-lb-tab="developers" role="tab">Top developers</button>
-              <button class="atlas-lb-tab" data-lb-tab="architects" role="tab">Top architects</button>
-              <button class="atlas-lb-tab" data-lb-tab="cities" role="tab">Top cities</button>
-              <button class="atlas-lb-tab" data-lb-tab="types" role="tab">Top product types</button>
-            </div>
-            <div class="atlas-lb-content" id="atlasLbContent">${renderLeaderboardRows('developers')}</div>
+            <div class="atlas-lb-tabs" role="tablist">${tabBtns}</div>
+            <div class="atlas-lb-content" id="atlasLbContent">${renderLeaderboardRows(currentLbKey)}</div>
             <button class="atlas-load-more" id="atlasLoadMore">Load more &darr;</button>
           </div>
         </section>`;
@@ -1309,8 +1315,19 @@
         + `fill="none" stroke="#A78BFA" stroke-width="9" stroke-linejoin="round"/></g></svg></span>`;
     }
 
+    // Core dashboard payload (tiles / stage bars / momentum index) for the
+    // active state filter. Falls back to the global top-level fields. This is
+    // what makes the new modules respond to the filter like the leaderboards do.
+    function activeCore() {
+      if (currentStateFilter && currentStateFilter !== 'ALL') {
+        const bs = (atlasData.by_state || {})[currentStateFilter];
+        if (bs) return bs;
+      }
+      return atlasData;
+    }
+
     function statusDistCount(label) {
-      const d = (atlasData.status_distribution || []).find(x => x.label === label);
+      const d = (activeCore().status_distribution || []).find(x => x.label === label);
       return d ? d.count : 0;
     }
 
@@ -1327,8 +1344,9 @@
     }
 
     function renderHeadlineTiles() {
-      const h = atlasData.hero_stats || {};
-      const s = atlasData.scale || {};
+      const core = activeCore();
+      const h = core.hero_stats || {};
+      const s = core.scale || {};
       const fmt = n => Number(n || 0).toLocaleString();
       const tiles = [
         { n: fmt(h.total_projects), l: 'Projects tracked', c: '' },
@@ -1343,7 +1361,7 @@
     }
 
     function renderStageBars() {
-      const dist = atlasData.status_distribution || [];
+      const dist = activeCore().status_distribution || [];
       if (!dist.length) return '';
       const max = Math.max(...dist.map(d => d.count), 1);
       const total = dist.reduce((a, d) => a + d.count, 0);
@@ -1356,28 +1374,63 @@
     }
 
     function renderMovers() {
-      const evs = (atlasData.recent_activity || []).filter(e => e.type === 'status_change' || e.type === 'new_project').slice(0, 5);
-      if (!evs.length) return '';
-      const dotColor = { 'Now Open': 'var(--green)', 'Opening Soon': '#6CA8FF', 'Construction': 'var(--orange)', 'Breaking Ground': 'var(--gold)', 'Announced': 'var(--mute)' };
-      const rows = evs.map(e => {
-        const isNew = e.type === 'new_project';
-        const tag = e.tag || (isNew ? 'Added to the map' : '');
-        const dot = isNew ? 'var(--purple)' : (dotColor[tag] || 'var(--purple)');
-        const name = escapeHtml(e.project_title || e.title || '');
-        const href = e.link || '#';
-        const city = e.city ? `<div class="msrc">${escapeHtml(e.city)}</div>` : '';
-        const inner = `<span class="md" style="background:${dot}"></span>`
-          + `<div><div class="mname">${name}</div>`
-          + `<div class="mchg"><span class="to">${escapeHtml(tag)}</span> ${hexMarker(11)}</div>${city}</div>`;
-        return href && href !== '#'
-          ? `<a class="atlas-mover" href="${escapeHtml(href)}" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">${inner}</a>`
-          : `<div class="atlas-mover">${inner}</div>`;
-      }).join('');
-      return `<div class="atlas-panel"><h3 class="atlas-ph"><span class="lbl">Movers this week</span><span class="hint">auto-detected</span></h3>${rows}</div>`;
+      const DOT = { 'open': 'var(--green)', 'coming-soon': '#6CA8FF', 'construction': 'var(--orange)', 'breaking-ground': 'var(--gold)', 'announced': 'var(--mute)' };
+      const NOTE = { 'open': 'Now open', 'coming-soon': 'Opening soon', 'construction': 'Now under construction', 'breaking-ground': 'Broke ground', 'announced': 'Announced on the map' };
+      const stateFilter = (currentStateFilter && currentStateFilter !== 'ALL') ? currentStateFilter : null;
+      const arrow = ' <span class="marrow">→</span> ';
+
+      // Preferred: the rich `movers` feed (from → to + sourcing). Filterable by state.
+      let list = (atlasData.movers || []);
+      if (stateFilter) list = list.filter(m => m.state === stateFilter);
+      list = list.slice(0, 6);
+      let rows = '';
+
+      if (list.length) {
+        rows = list.map(m => {
+          const dot = DOT[m.to_code] || 'var(--purple)';
+          const trans = m.from
+            ? `${escapeHtml(m.from)}${arrow}<span class="to">${escapeHtml(m.to)}</span>`
+            : `<span class="to">${escapeHtml(m.to)}</span>`;
+          const note = NOTE[m.to_code] || m.to || '';
+          const src = (m.source_url && m.source_domain)
+            ? ` <span class="sdot">·</span> <a href="${escapeHtml(m.source_url)}" target="_blank" rel="noopener">${escapeHtml(m.source_domain)} ↗</a>`
+            : (m.city ? ` <span class="sdot">·</span> ${escapeHtml(m.city)}` : '');
+          const nameInner = `<div class="mname">${escapeHtml(m.title)}</div>`;
+          const name = m.link
+            ? `<a href="${escapeHtml(m.link)}" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">${nameInner}</a>`
+            : nameInner;
+          return `<div class="atlas-mover"><span class="md" style="background:${dot}"></span>`
+            + `<div>${name}<div class="mchg">${trans} ${hexMarker(11)}</div>`
+            + `<div class="msrc">${escapeHtml(note)}${src}</div></div></div>`;
+        }).join('');
+      } else {
+        // Under a state filter with no recent movers, hide the panel entirely.
+        if (stateFilter) return '';
+        // Fallback (e.g. before the first post-deploy regen populates `movers`):
+        // render the pulse activity feed in the same style.
+        const evs = (atlasData.recent_activity || []).filter(e => e.type === 'status_change' || e.type === 'new_project').slice(0, 5);
+        if (!evs.length) return '';
+        const TAGDOT = { 'Now Open': 'var(--green)', 'Opening Soon': '#6CA8FF', 'Construction': 'var(--orange)', 'Breaking Ground': 'var(--gold)', 'Announced': 'var(--mute)' };
+        rows = evs.map(e => {
+          const isNew = e.type === 'new_project';
+          const tag = e.tag || (isNew ? 'Added to the map' : '');
+          const dot = isNew ? 'var(--purple)' : (TAGDOT[tag] || 'var(--purple)');
+          const name = escapeHtml(e.project_title || e.title || '');
+          const href = e.link || '#';
+          const nameInner = `<div class="mname">${name}</div>`;
+          const nm = (href && href !== '#')
+            ? `<a href="${escapeHtml(href)}" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">${nameInner}</a>`
+            : nameInner;
+          return `<div class="atlas-mover"><span class="md" style="background:${dot}"></span>`
+            + `<div>${nm}<div class="mchg"><span class="to">${escapeHtml(tag)}</span> ${hexMarker(11)}</div>`
+            + `${e.city ? `<div class="msrc">${escapeHtml(e.city)}</div>` : ''}</div></div>`;
+        }).join('');
+      }
+      return `<div class="atlas-panel"><h3 class="atlas-ph"><span class="lbl">Movers this week</span><span class="hint">auto-detected status changes</span></h3>${rows}</div>`;
     }
 
     function renderIndexPanel() {
-      const m = atlasData.momentum || [];
+      const m = activeCore().momentum || [];
       if (m.length < 2) return '';
       let cum = 0; const pts = m.map(x => (cum += (x.count || 0)));
       const W = 300, H = 88, max = Math.max(...pts, 1), min = Math.min(...pts, 0);
@@ -1948,7 +2001,7 @@
       sections.push(renderFooter());
       root.innerHTML = sections.join('');
       wireInteractions();
-      updateLoadMoreBtn('developers');
+      updateLoadMoreBtn(currentLbKey);
       // Land the user at the "Today" boundary in timeline view. On the native
       // page the scroll container is the window (not a fixed overlay), so we
       // scroll the boundary element into view just below the sticky header.
@@ -2015,16 +2068,14 @@
           document.querySelectorAll('.atlas-filter-pill').forEach(p => p.classList.remove('active'));
           this.classList.add('active');
           currentStateFilter = this.dataset.state;
-          if (currentAtlasView === 'timeline') {
-            renderAll();
-            return;
-          }
           Object.keys(lbState).forEach(k => { lbState[k].showAll = false; });
-          const activeTab = document.querySelector('.atlas-lb-tab.active');
-          const key = activeTab ? activeTab.dataset.lbTab : 'developers';
-          const content = document.getElementById('atlasLbContent');
-          if (content) content.innerHTML = renderLeaderboardRows(key);
-          updateLoadMoreBtn(key);
+          // Full re-render so EVERY module (tiles, stage bars, movers, index,
+          // by-metro, by-type and the leaderboards) reflects the filter. The
+          // active leaderboard tab is preserved via currentLbKey; restore scroll
+          // so the page doesn't jump to the top on a filter tap.
+          const y = window.pageYOffset;
+          renderAll();
+          window.scrollTo({ top: y, behavior: 'auto' });
         });
       });
       // Leaderboard tab switching
@@ -2033,6 +2084,7 @@
           document.querySelectorAll('.atlas-lb-tab').forEach(b => b.classList.remove('active'));
           this.classList.add('active');
           const key = this.dataset.lbTab;
+          currentLbKey = key;
           const content = document.getElementById('atlasLbContent');
           if (content) content.innerHTML = renderLeaderboardRows(key);
           updateLoadMoreBtn(key);

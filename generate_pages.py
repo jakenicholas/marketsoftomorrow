@@ -3005,6 +3005,114 @@ def build_atlas_json(rows, pulse_path='pulse.json', articles_archive=None):
         'floors': _sum_int('Floors'),
     }
 
+    # --- Per-state core aggregates ---------------------------------------
+    # The new dashboard modules (headline tiles, pipeline-by-stage, the
+    # momentum index) read top-level fields by default, but must respond to
+    # the state filter exactly like the leaderboards do. Pre-compute the same
+    # four payloads for each available state so the client can swap them in.
+    def _core_aggregates(subset):
+        sc = Counter()
+        uc = 0
+        units = keys = floors = 0
+        mon = Counter()
+        for r in subset:
+            sraw = (r.get('Delivery', '') or '').strip()
+            slabel, _, _ = delivery_info(sraw)
+            sc[slabel] += 1
+            if slabel == 'Construction' or 'construction' in sraw.lower() or 'topping' in sraw.lower():
+                uc += 1
+            for fld in ('Units', 'Keys', 'Floors'):
+                v = (r.get(fld, '') or '').strip()
+                try:
+                    iv = int(float(v))
+                except (ValueError, TypeError):
+                    iv = 0
+                if fld == 'Units':
+                    units += iv
+                elif fld == 'Keys':
+                    keys += iv
+                else:
+                    floors += iv
+            sd = _parse_iso_date((r.get('StartDate', '') or '').strip())
+            if sd:
+                mon[f'{sd.year:04d}-{sd.month:02d}'] += 1
+        dist = []
+        for label in canonical_status_order:
+            c = sc.get(label, 0)
+            if c > 0 or label in ('Announced', 'Construction', 'Now Open'):
+                dist.append({'label': label, 'count': c})
+        mom = []
+        yy, mm = now.year, now.month
+        for _ in range(12):
+            k = f'{yy:04d}-{mm:02d}'
+            mom.append({'month': date(yy, mm, 1).strftime('%b'), 'year': yy, 'count': mon.get(k, 0)})
+            mm -= 1
+            if mm == 0:
+                mm = 12
+                yy -= 1
+        mom.reverse()
+        return {
+            'hero_stats': {'total_projects': len(subset), 'under_construction': uc},
+            'scale': {'units': units, 'keys': keys, 'floors': floors},
+            'status_distribution': dist,
+            'momentum': mom,
+        }
+
+    rows_by_state = defaultdict(list)
+    for r in rows:
+        rows_by_state[_state_for_city((r.get('City', '') or '').strip())].append(r)
+    by_state = {st['code']: _core_aggregates(rows_by_state[st['code']]) for st in available_states}
+
+    # --- Movers: most recent lifecycle status transitions ----------------
+    # Built from the LastChange* fields fetch_projects.py carries off each
+    # project's status_history (from → to + the source the sweep cited).
+    _STATUS_DISPLAY = {
+        'announced': 'Announced', 'breaking-ground': 'Breaking Ground',
+        'construction': 'Construction', 'coming-soon': 'Coming Soon', 'open': 'Now Open',
+    }
+
+    def _status_label(code):
+        if not code:
+            return ''
+        return _STATUS_DISPLAY.get(code, code.replace('-', ' ').title())
+
+    def _source_domain(u):
+        try:
+            from urllib.parse import urlparse
+            host = (urlparse(u).netloc or '').lower()
+            return host[4:] if host.startswith('www.') else host
+        except Exception:
+            return ''
+
+    movers = []
+    for r in rows:
+        to_code = (r.get('LastChangeTo', '') or '').strip()
+        at = (r.get('LastChangeAt', '') or '').strip()
+        title = (r.get('Title', '') or '').strip()
+        if not to_code or not at or not title:
+            continue
+        city = (r.get('City', '') or '').strip()
+        src = (r.get('LastChangeSource', '') or '').strip()
+        try:
+            slug = slugify(title)
+        except Exception:
+            slug = ''
+        movers.append({
+            'slug': slug,
+            'title': title,
+            'city': city,
+            'state': _state_for_city(city),
+            'from': _status_label((r.get('LastChangeFrom', '') or '').strip()),
+            'to': _status_label(to_code),
+            'to_code': to_code,
+            'source_url': src,
+            'source_domain': _source_domain(src),
+            'at': at,
+            'link': f"{SITE_URL}/?project=" + re.sub(r'[^a-z0-9]', '', title.lower()),
+        })
+    movers.sort(key=lambda x: x['at'], reverse=True)
+    movers = movers[:12]
+
     return {
         'generated_at': now.isoformat(),
         'hero_stats': {
@@ -3022,6 +3130,11 @@ def build_atlas_json(rows, pulse_path='pulse.json', articles_archive=None):
             'types': _lb_types(),
         },
         'leaderboards_by_state': leaderboards_by_state,
+        # Per-state core aggregates for the dashboard tiles / stage bars /
+        # momentum index, so they filter like the leaderboards do.
+        'by_state': by_state,
+        # Recent lifecycle status transitions for the "Movers this week" feed.
+        'movers': movers,
         # Full city → state map so the atlas pipeline-timeline view can filter
         # by state without being limited to the top-30-per-state leaderboard
         # subset. Each city maps to exactly one state code (cities live in
