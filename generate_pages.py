@@ -1654,7 +1654,8 @@ def build_page(row, articles=None, nearby=None):
       --mono: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     }}
     *, *::before, *::after {{ box-sizing: border-box; margin: 0; padding: 0; }}
-    body {{ background: #0d0d0d; color: #fff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; min-height: 100vh; }}
+    html {{ overflow-x: hidden; }}
+    body {{ background: #0d0d0d; color: #fff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; min-height: 100vh; overflow-x: hidden; max-width: 100%; }}
     /* Belt-and-suspenders defense against iOS Safari Data Detectors:
        even when the format-detection meta tag is set, iOS sometimes still auto-links
        addresses/phones/dates inside body copy. Neutralize any that slip through. */
@@ -2140,10 +2141,17 @@ def build_page(row, articles=None, nearby=None):
       .tmw-upd-spin, .tmw-upd-core, .tmw-upd-ring {{ animation: none; }}
       .tmw-upd-ring {{ opacity: 0; }}
     }}
-    .pp-minis {{ display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 16px; }}
-    .pp-mini {{ padding: 10px 11px; background: rgba(0,0,0,.30); border: 1px solid rgba(255,255,255,.07); border-radius: 10px; }}
+    .pp-minis {{ display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin-top: 16px; }}
+    .pp-mini {{ padding: 10px 11px; background: rgba(0,0,0,.30); border: 1px solid rgba(255,255,255,.07); border-radius: 10px; min-width: 0; overflow: hidden; }}
     .pp-mini .v {{ font-size: 15px; font-weight: 800; letter-spacing: -.02em; white-space: nowrap; }}
     .pp-mini .k {{ font-size: 8px; letter-spacing: .07em; text-transform: uppercase; color: rgba(255,255,255,.4); margin-top: 5px; white-space: nowrap; }}
+    /* Narrow phones: shrink the fact tiles a touch so the full date fits in a
+       quarter-column instead of overflowing the row (which caused the page to
+       scroll sideways). */
+    @media (max-width: 480px) {{
+      .pp-mini {{ padding: 9px 7px; }}
+      .pp-mini .v {{ font-size: 12.5px; letter-spacing: -.03em; }}
+    }}
 
     /* gallery cluster (this project's photos) */
     .pp-gal {{ position: absolute; z-index: 6; left: 50%; bottom: 20px; transform: translateX(-50%); display: flex; align-items: center; gap: 13px; background: rgba(0,0,0,.42); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,.1); border-radius: 999px; padding: 7px 10px; }}
@@ -3556,10 +3564,12 @@ def main():
             nearby_rows = [r for r in city_index.get(_city, [])
                            if (r.get('Title', '') or '').strip() != title][:3]
             html, slug = build_page(row, articles=page_articles, nearby=nearby_rows)
-            # Stash the SAME rows HTML the page just rendered for the map sidecar.
+            # Stash the SAME rows HTML the page just rendered for the map sidecar,
+            # keyed by the MAP slug (no hyphens, strip non-alnum) — the map computes
+            # this identically from the title, so unicode titles (e.g. "Kōloa") match.
             _drows = dossier_rows_html(row.get('Milestones') or [])
             if _drows:
-                dossiers[slug] = _drows
+                dossiers[map_slug(title)] = _drows
             page_dir = os.path.join(OUTPUT_DIR, slug)
             os.makedirs(page_dir, exist_ok=True)
             with open(os.path.join(page_dir, 'index.html'), 'w', encoding='utf-8') as f:
