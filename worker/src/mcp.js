@@ -51,6 +51,11 @@ const ARTICLES_URL = 'https://www.oftmw.com/map/articles.json';
 // ~6–7 months (TMW's definition of "soon"), NOT a pre-construction sales phase.
 const STATUS_ORDER = ['announced', 'breaking-ground', 'construction', 'coming-soon', 'open'];
 function statusRank(s) { const i = STATUS_ORDER.indexOf(String(s || '').toLowerCase()); return i < 0 ? 0 : i; }
+// Finer construction-phase milestones — logged to status_history as dated,
+// sourced events (type:'milestone') that enrich the dossier WITHOUT changing the
+// coarse lifecycle `status`. (announced / breaking-ground / open are captured as
+// status transitions via new_status, so they're not repeated here.)
+const MILESTONE_PHASES = ['financing', 'going-vertical', 'halfway', 'topping-out', 'tenant', 'tco', 'move-in', 'bookings'];
 
 // ── Tool catalog ────────────────────────────────────────────────────────────
 const TOOLS = [
@@ -367,7 +372,7 @@ const TOOLS = [
   },
   {
     name: 'update_project_status',
-    description: 'Update a Map of Tomorrow project from a credible web source — advance its lifecycle status AND/OR update its construction-start / completion dates. Status order is announced → coming-soon → breaking-ground → construction → open; status normally moves FORWARD only — the ONE exception is correction:true, which walks an OVER-STATED status back when credible current sources show the recorded phase is wrong (e.g. wrongly marked under-construction but it has not broken ground → set new_status "announced" + correction:true). Dates can change in either direction (delays are common) and auto-apply when a source states a new one — even with NO status change (e.g. a project still "construction" whose opening slips a year). mode "apply" writes to the LIVE map (rebuilds within ~1h) and records the source in status_history (git history = audit trail). ALWAYS pass effective_date when a source states WHEN a milestone happened (e.g. "broke ground Sept 3 2025") — it dates the dossier timeline to the real event, not our discovery date. mode "propose" queues a STATUS change for one-tap human review (ambiguous/thin/multi-step) — dates always auto-apply regardless of mode. It also fills/corrects factual SPEC fields — units (residential count), floors (stories), and keys (hotel rooms) — which auto-apply like dates (many projects are missing these). Always pass source_url. Pass new_status only when the status actually advances; omit it for a date-only or spec-only update.',
+    description: 'Update a Map of Tomorrow project from a credible web source — advance its lifecycle status AND/OR update its construction-start / completion dates. Status order is announced → coming-soon → breaking-ground → construction → open; status normally moves FORWARD only — the ONE exception is correction:true, which walks an OVER-STATED status back when credible current sources show the recorded phase is wrong (e.g. wrongly marked under-construction but it has not broken ground → set new_status "announced" + correction:true). Dates can change in either direction (delays are common) and auto-apply when a source states a new one — even with NO status change (e.g. a project still "construction" whose opening slips a year). mode "apply" writes to the LIVE map (rebuilds within ~1h) and records the source in status_history (git history = audit trail). ALWAYS pass effective_date when a source states WHEN a milestone happened (e.g. "broke ground Sept 3 2025") — it dates the dossier timeline to the real event, not our discovery date. For FINER phases between the coarse statuses (financing/loan closed, going vertical, halfway, topped out, tenant announced, TCO, resident move-in, hotel bookings open) pass `milestone` (with effective_date + source_url) to log them to the dossier WITHOUT changing status. mode "propose" queues a STATUS change for one-tap human review (ambiguous/thin/multi-step) — dates always auto-apply regardless of mode. It also fills/corrects factual SPEC fields — units (residential count), floors (stories), and keys (hotel rooms) — which auto-apply like dates (many projects are missing these). Always pass source_url. Pass new_status only when the status actually advances; omit it for a date-only or spec-only update.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -382,7 +387,8 @@ const TOOLS = [
         delivery_date: { type: 'string', description: 'New/confirmed completion/opening date (year or ISO) — updates the date even if status is unchanged (catches delays)' },
         start_speculative: { type: 'boolean', description: 'True if start_date is a TMW estimate, not developer-committed' },
         delivery_speculative: { type: 'boolean', description: 'True if delivery_date is a TMW estimate' },
-        effective_date: { type: 'string', description: 'When the milestone ACTUALLY happened in the real world (YYYY, YYYY-MM, or YYYY-MM-DD) — NOT today. e.g. a source saying "broke ground Sept 3, 2025" → effective_date "2025-09-03". Powers the project dossier timeline, which must show the event date, not our discovery date. If omitted on a status advance, it falls back to start_date (for breaking-ground/construction) or delivery_date (for coming-soon/open) when those are given.' },
+        effective_date: { type: 'string', description: 'When the milestone ACTUALLY happened in the real world (YYYY, YYYY-MM, or YYYY-MM-DD) — NOT today. e.g. a source saying "broke ground Sept 3, 2025" → effective_date "2025-09-03". Powers the project dossier timeline, which must show the event date, not our discovery date. If omitted on a status advance, it falls back to start_date (for breaking-ground/construction) or delivery_date (for coming-soon/open) when those are given. ALSO pass it with `milestone`.' },
+        milestone: { type: 'string', enum: MILESTONE_PHASES, description: 'Log a FINER construction-phase event to the dossier timeline WITHOUT changing the lifecycle status. Use for phases between the coarse statuses: financing (loan/construction financing closed), going-vertical (superstructure rising above grade), halfway (≈50% complete), topping-out (final beam/roof structure complete), tenant (an anchor/retail/office tenant announced), tco (Temporary Certificate of Occupancy issued), move-in (residents begin moving in), bookings (hotel reservations open). Pair with effective_date (when it happened) + source_url. The coarse statuses themselves — announced, broke ground, grand opening — go via new_status, not here. A milestone-only call is valid (omit new_status).' },
         units: { type: 'integer', description: 'Residential unit count — fill/correct when a credible source states it (auto-applies; many projects are missing this)' },
         floors: { type: 'integer', description: 'Floor / story count — fill/correct from a credible source (auto-applies)' },
         keys: { type: 'integer', description: 'Hotel key (room) count — fill/correct from a credible source for hotels/resorts (auto-applies)' },
@@ -1299,7 +1305,7 @@ const IMPL = {
     return {
       checked_at: nowIso, batch_size: batch.length, active_total: active.length,
       status_order: STATUS_ORDER,
-      instructions: 'Web-search each project for construction news (e.g. "<name> <city> construction / breaking ground / topped out / opening"). If a CREDIBLE source shows it reached a LATER status, call update_project_status (mode "apply" for a clear single-step milestone, "propose" if ambiguous/thin/multi-step). ALWAYS pass effective_date = the real-world date the milestone happened, exactly as the source states it (e.g. "broke ground Sept 3 2025" → effective_date "2025-09-03"; "topped out in Q2 2026" → "2026-04"; "opened May 2025" → "2025-05"). This dates the project dossier timeline to the EVENT, never to today\'s discovery date — getting it right is the whole point. Use the most precise grain the source supports (day > month > year). Normally forward-only. BUT also sanity-check the CURRENT status against reality: if a project is recorded at a later phase than credible current sources support — e.g. marked "construction" or "breaking-ground" yet nothing shows it has broken ground (still just announced/planned/in approvals) — CORRECT it by calling update_project_status with the earlier new_status and correction:true (cite the source + note why). When you find a PAST milestone date you can source (groundbreaking, topping-out) even if it doesn\'t change the current status, still record it via effective_date so the timeline backfills. Skip ones with no news and whose recorded status looks right.',
+      instructions: 'Web-search each project for construction news (e.g. "<name> <city> construction / breaking ground / topped out / opening"). If a CREDIBLE source shows it reached a LATER status, call update_project_status (mode "apply" for a clear single-step milestone, "propose" if ambiguous/thin/multi-step). ALWAYS pass effective_date = the real-world date the milestone happened, exactly as the source states it (e.g. "broke ground Sept 3 2025" → effective_date "2025-09-03"; "topped out in Q2 2026" → "2026-04"; "opened May 2025" → "2025-05"). This dates the project dossier timeline to the EVENT, never to today\'s discovery date — getting it right is the whole point. Use the most precise grain the source supports (day > month > year). Normally forward-only. BUT also sanity-check the CURRENT status against reality: if a project is recorded at a later phase than credible current sources support — e.g. marked "construction" or "breaking-ground" yet nothing shows it has broken ground (still just announced/planned/in approvals) — CORRECT it by calling update_project_status with the earlier new_status and correction:true (cite the source + note why). When you find a PAST milestone date you can source (groundbreaking, topping-out) even if it doesn\'t change the current status, still record it via effective_date so the timeline backfills. PHASE MILESTONES: beyond the 5 coarse statuses, also log finer construction phases when a credible source reports them — pass `milestone` = one of financing (construction loan/financing closed), going-vertical (superstructure rising above grade), halfway (~50% complete), topping-out (final beam/roof structure done), tenant (anchor/retail/office tenant announced), tco (Temporary Certificate of Occupancy issued), move-in (residents begin moving in), bookings (hotel reservations open) — ALWAYS with effective_date (when it happened) + source_url. A milestone logs to the dossier timeline WITHOUT changing status (omit new_status). The coarse anchors — announced, broke ground, grand opening — go via new_status instead. Skip ones with no news and whose recorded status looks right.',
       projects: batch.map((p) => ({
         slug: p.slug, name: p.name, city: p.city || '', status: p.status,
         units: p.units || null, floors: p.floors || null,
@@ -1327,6 +1333,12 @@ const IMPL = {
     if (effectiveDate && !/^\d{4}(-\d{2}(-\d{2})?)?$/.test(effectiveDate)) {
       throw new Error('effective_date must be YYYY, YYYY-MM, or YYYY-MM-DD (the real-world date the milestone occurred)');
     }
+    // Finer construction-phase milestone (logged to the dossier timeline; does
+    // NOT change the lifecycle status). Pass effective_date for its event date.
+    const milestone = String(args.milestone || '').toLowerCase().trim();
+    if (milestone && !MILESTONE_PHASES.includes(milestone)) {
+      throw new Error('milestone must be one of: ' + MILESTONE_PHASES.join(', '));
+    }
     // Factual spec fields the agent fills/corrects when it finds them (auto-apply).
     const numOrNull = (v) => { if (v == null || v === '') return null; const n = parseInt(v, 10); return isNaN(n) ? null : n; };
     const NUM_FIELDS = [
@@ -1352,7 +1364,11 @@ const IMPL = {
       const startChanged = !!newStart && newStart !== clean(p.start_date);
       const deliveryChanged = !!newDelivery && newDelivery !== clean(p.delivery_date);
       const numChanged = numWanted.filter((u) => u.val !== numOrNull(p[u.field]));
-      const anyExtra = startChanged || deliveryChanged || numChanged.length > 0;
+      // A milestone is always a new dated event to log (idempotency isn't
+      // enforced — the same phase can legitimately recur with a corrected date;
+      // humans can prune dupes in the Studio milestones editor).
+      const milestoneAdded = !!milestone;
+      const anyExtra = startChanged || deliveryChanged || numChanged.length > 0 || milestoneAdded;
 
       // A backward status WITHOUT the correction flag is refused — guards against
       // accidental regressions during a normal forward sweep.
@@ -1420,6 +1436,11 @@ const IMPL = {
         p[u.field] = u.val;
         p.status_history.push({ ...base, type: 'field', field: u.field, from: old, to: u.val });
         changes.push(`${u.label} ${old == null ? '—' : old}→${u.val}`);
+      }
+      if (milestoneAdded) {
+        // A finer construction-phase event for the dossier (does not touch status).
+        p.status_history.push({ ...base, type: 'milestone', phase: milestone, ...(effectiveDate ? { effective_date: effectiveDate } : {}) });
+        changes.push(`milestone: ${milestone}${effectiveDate ? ' @ ' + effectiveDate : ''}`);
       }
       p.status_checked_at = nowIso;
       try {

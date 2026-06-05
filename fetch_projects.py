@@ -128,7 +128,7 @@ def _last_status_change(record: dict) -> dict:
     for h in (record.get('status_history') or []):
         if not isinstance(h, dict):
             continue
-        if h.get('type') in ('date', 'field'):
+        if h.get('type') in ('date', 'field', 'milestone'):
             continue
         if not h.get('to'):
             continue

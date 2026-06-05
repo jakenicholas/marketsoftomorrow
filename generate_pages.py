@@ -723,18 +723,29 @@ def coverage_section_html(articles, project_title, default_image):
 
 
 # ── Living dossier: the sourced, event-dated milestone timeline ───────────────
-# Canonical (tight) milestone set, aligned 1:1 to the project lifecycle. We
-# deliberately do NOT track financing/permit/loan noise here — those belong in a
-# separate updates feed, not the dossier spine.
-DOSSIER_ORDER = ['announced', 'breaking-ground', 'construction', 'coming-soon', 'open']
+# Full construction-phase taxonomy. Two coarse phases ('construction',
+# 'coming-soon') come straight from the lifecycle `status`; the finer ones are
+# logged by the sweep as type:'milestone' status_history events. The generic
+# coarse phases are suppressed when a finer phase in their band is present.
+DOSSIER_ORDER = [
+    'announced', 'financing', 'breaking-ground', 'construction', 'going-vertical',
+    'halfway', 'topping-out', 'tenant', 'tco', 'coming-soon', 'move-in', 'bookings', 'grand-opening',
+]
 DOSSIER_RANK = {k: i for i, k in enumerate(DOSSIER_ORDER)}
 DOSSIER_LABEL = {
-    'announced': 'Announced',
-    'breaking-ground': 'Broke ground',
-    'construction': 'Under construction',
-    'coming-soon': 'Coming soon',
-    'open': 'Opened',
+    'announced': 'Announced', 'financing': 'Financing secured', 'breaking-ground': 'Broke ground',
+    'construction': 'Under construction', 'going-vertical': 'Going vertical', 'halfway': 'Halfway there',
+    'topping-out': 'Topped out', 'tenant': 'Tenant announced', 'tco': 'TCO received',
+    'coming-soon': 'Coming soon', 'move-in': 'Resident move-in', 'bookings': 'Bookings open',
+    'grand-opening': 'Opened',
 }
+# Lifecycle status → its phase in the timeline.
+DOSSIER_STATUS_TO_PHASE = {
+    'announced': 'announced', 'breaking-ground': 'breaking-ground', 'construction': 'construction',
+    'coming-soon': 'coming-soon', 'open': 'grand-opening',
+}
+DOSSIER_FINE_CONSTRUCTION = ['topping-out', 'halfway', 'going-vertical']  # highest-rank first
+DOSSIER_FINE_NEAROPEN = ['bookings', 'move-in', 'tco']                    # highest-rank first
 
 
 def _url_domain(u):
@@ -778,90 +789,111 @@ def _fmt_event_date(s):
 
 
 def build_milestones(row, articles=None):
-    """Assemble the canonical, event-dated, sourced milestone timeline for a
-    project from: status_history (effective_date + source), StartDate /
-    DeliveryDate fields, and the earliest article date as an "announced" proxy.
-    Returns {'milestones': [...], 'current': code}. Honest about gaps — a
-    milestone is only included if we have it, it's the current status, or it's
-    the (projected) opening."""
-    cur_code = _dossier_status_code(row.get('Delivery', ''))
-    cur_rank = DOSSIER_RANK.get(cur_code, 0)
+    """Assemble the event-dated, sourced milestone timeline for a project over the
+    full construction-phase taxonomy. Sources, in order of authority:
+      1. status_history type:'milestone' events (fine phases) + status transitions
+         (coarse phases) — both carry effective_date + source.
+      2. StartDate -> broke ground, DeliveryDate -> opening (field anchors).
+      3. earliest article date -> 'announced' proxy (guarded against inversion).
+    Generic 'construction'/'coming-soon' are suppressed when a finer phase in
+    their band exists. Returns {'milestones': [...], 'current': phase}."""
+    cur_status = _dossier_status_code(row.get('Delivery', ''))
+    cur_phase = DOSSIER_STATUS_TO_PHASE.get(cur_status, 'announced')
 
-    # Best (latest) sourced status transition per target code.
-    by_code = {}
-    for h in (row.get('StatusHistory') or []):
-        if not isinstance(h, dict) or h.get('type') in ('date', 'field'):
-            continue
-        to = (h.get('to') or '').strip().lower()
-        if to not in DOSSIER_RANK:
-            continue
-        prev = by_code.get(to)
-        if prev is None or str(h.get('at') or '') > str(prev.get('at') or ''):
-            by_code[to] = h
-
-    # Announced proxy = earliest article date (+ that article as the source).
-    announced_date, announced_src = '', ''
-    if articles:
-        dated = [a for a in articles if (a.get('published_at', '') or '').strip()]
-        if dated:
-            first = min(dated, key=lambda a: (a.get('published_at', '') or '')[:10])
-            announced_date = (first.get('published_at', '') or '')[:10]
-            announced_src = first.get('link', '') or ''
-
-    start_date = (row.get('StartDate', '') or '').strip()
-    delivery_date = (row.get('DeliveryDate', '') or '').strip()
-    start_spec = (row.get('StartSpeculative', '') or '') == '1'
-    delivery_spec = (row.get('DeliverySpeculative', '') or '') == '1'
-
-    def entry(code, date_str='', source_url='', estimated=False, recorded_at=''):
+    def entry(phase, date_str='', source_url='', estimated=False, sourced=False):
         return {
-            'code': code, 'rank': DOSSIER_RANK.get(code, 0),
-            'label': DOSSIER_LABEL.get(code, code.title()),
+            'phase': phase, 'rank': DOSSIER_RANK.get(phase, 0),
+            'label': DOSSIER_LABEL.get(phase, phase),
             'date': date_str or '', 'date_display': _fmt_event_date(date_str),
             'source_url': source_url or '', 'source_domain': _url_domain(source_url),
-            'estimated': bool(estimated), 'recorded_at': recorded_at or '',
+            'estimated': bool(estimated), 'sourced': bool(sourced),
         }
 
     found = {}
-    # 1) status_history — most authoritative + sourced.
-    for code, h in by_code.items():
+    def consider(e):
+        prev = found.get(e['phase'])
+        # Prefer a sourced entry, then one carrying a date.
+        if (prev is None
+                or (e['sourced'] and not prev['sourced'])
+                or (e['date'] and not prev['date'] and e['sourced'] == prev['sourced'])):
+            found[e['phase']] = e
+
+    # 1) status_history: milestone events + status transitions.
+    for h in (row.get('StatusHistory') or []):
+        if not isinstance(h, dict):
+            continue
+        t = h.get('type')
+        if t in ('date', 'field'):
+            continue
         ev = (h.get('effective_date') or '').strip()
         rec = (h.get('at') or '').strip()
-        found[code] = entry(code, ev or rec[:10], h.get('source_url', ''),
-                            estimated=not ev, recorded_at=rec)
-    # 2) field-derived dates fill any gaps.
-    # The "announced" proxy is the earliest article date — but coverage often
-    # postdates the real announcement, which would invert the timeline (announced
-    # AFTER groundbreaking). Only trust it when it predates every other known
-    # milestone date; otherwise drop it rather than show a wrong date.
-    if announced_date and 'announced' not in found:
-        other_dates = [m['date'][:10] for c, m in found.items() if m.get('date')]
-        if start_date:
-            other_dates.append(start_date[:10])
-        if delivery_date:
-            other_dates.append(delivery_date[:10])
-        if not other_dates or announced_date < min(other_dates):
-            found['announced'] = entry('announced', announced_date, announced_src)
+        if t == 'milestone':
+            ph = (h.get('phase') or '').strip().lower()
+            if ph in DOSSIER_RANK:
+                consider(entry(ph, ev or rec[:10], h.get('source_url', ''), estimated=not ev, sourced=True))
+        else:
+            ph = DOSSIER_STATUS_TO_PHASE.get((h.get('to') or '').strip().lower())
+            if ph:
+                consider(entry(ph, ev or rec[:10], h.get('source_url', ''), estimated=not ev, sourced=True))
+
+    # 2) field anchors.
+    start_date = (row.get('StartDate', '') or '').strip()
+    delivery_date = (row.get('DeliveryDate', '') or '').strip()
     if start_date and 'breaking-ground' not in found:
-        found['breaking-ground'] = entry('breaking-ground', start_date, estimated=start_spec)
-    if delivery_date and 'open' not in found:
-        found['open'] = entry('open', delivery_date, estimated=delivery_spec)
+        consider(entry('breaking-ground', start_date, estimated=(row.get('StartSpeculative', '') == '1')))
+    if delivery_date and 'grand-opening' not in found:
+        consider(entry('grand-opening', delivery_date, estimated=(row.get('DeliverySpeculative', '') == '1')))
+
+    # 3) announced proxy (earliest article) — only when it predates everything
+    # else, so late coverage can't invert the timeline.
+    if articles and 'announced' not in found:
+        dated = [a for a in articles if (a.get('published_at', '') or '').strip()]
+        if dated:
+            first = min(dated, key=lambda a: (a.get('published_at', '') or '')[:10])
+            adate = (first.get('published_at', '') or '')[:10]
+            others = [e['date'][:10] for e in found.values() if e['date']]
+            if start_date:
+                others.append(start_date[:10])
+            if delivery_date:
+                others.append(delivery_date[:10])
+            if adate and (not others or adate < min(others)):
+                consider(entry('announced', adate, first.get('link', ''), sourced=bool(first.get('link'))))
+
+    # Suppress the generic coarse phase when a finer one in its band is present,
+    # and move the "current" marker to the finest present phase in that band.
+    if any(p in found for p in DOSSIER_FINE_CONSTRUCTION):
+        found.pop('construction', None)
+        if cur_phase == 'construction':
+            cur_phase = next((p for p in DOSSIER_FINE_CONSTRUCTION if p in found), cur_phase)
+    if any(p in found for p in DOSSIER_FINE_NEAROPEN):
+        found.pop('coming-soon', None)
+        if cur_phase == 'coming-soon':
+            cur_phase = next((p for p in DOSSIER_FINE_NEAROPEN if p in found), cur_phase)
+    cur_rank = DOSSIER_RANK.get(cur_phase, 0)
 
     out = []
-    for code in DOSSIER_ORDER:
-        rank = DOSSIER_RANK[code]
-        m = found.get(code)
-        is_current = (code == cur_code)
-        if not m and not is_current and code != 'open':
-            continue  # honest: don't invent dateless past milestones
-        if not m:
-            m = entry(code)
-        m['state'] = 'past' if rank < cur_rank else ('now' if rank == cur_rank else 'future')
-        if code == 'open' and cur_rank < DOSSIER_RANK['open']:
+    for phase in DOSSIER_ORDER:
+        m = found.get(phase)
+        rank = DOSSIER_RANK[phase]
+        is_current = (phase == cur_phase)
+        if m is None and not is_current and phase != 'grand-opening':
+            continue  # honest: don't invent dateless milestones
+        if m is None:
+            m = entry(phase)
+        # Projected (future, hollow) when it hasn't happened: the opening before
+        # the project is open, or an un-sourced phase beyond the current point.
+        projected = (not m['sourced']) and (
+            (phase == 'grand-opening' and cur_status != 'open') or (rank > cur_rank)
+        )
+        m['state'] = 'future' if projected else 'past'
+        if phase == 'grand-opening' and projected:
             m['label'] = 'Expected opening'
-            m['state'] = 'future'
         out.append(m)
-    return {'milestones': out, 'current': cur_code}
+    # The latest non-future entry is "now".
+    done = [m for m in out if m['state'] != 'future']
+    if done:
+        done[-1]['state'] = 'now'
+    return {'milestones': out, 'current': cur_phase}
 
 
 def dossier_section_html(row, articles=None):

@@ -14363,10 +14363,13 @@
           const el = document.getElementById('pmDossier');
           if (!el) return;
           try {
-            const RANK = { 'announced': 0, 'breaking-ground': 1, 'construction': 2, 'coming-soon': 3, 'open': 4 };
-            const ORDER = ['announced', 'breaking-ground', 'construction', 'coming-soon', 'open'];
-            const LABEL = { 'announced': 'Announced', 'breaking-ground': 'Broke ground', 'construction': 'Under construction', 'coming-soon': 'Coming soon', 'open': 'Opened' };
-            const norm = (raw) => {
+            const ORDER = ['announced','financing','breaking-ground','construction','going-vertical','halfway','topping-out','tenant','tco','coming-soon','move-in','bookings','grand-opening'];
+            const RANK = {}; ORDER.forEach((k, i) => { RANK[k] = i; });
+            const LABEL = { announced:'Announced', financing:'Financing secured', 'breaking-ground':'Broke ground', construction:'Under construction', 'going-vertical':'Going vertical', halfway:'Halfway there', 'topping-out':'Topped out', tenant:'Tenant announced', tco:'TCO received', 'coming-soon':'Coming soon', 'move-in':'Resident move-in', bookings:'Bookings open', 'grand-opening':'Opened' };
+            const STATUS_TO_PHASE = { announced:'announced', 'breaking-ground':'breaking-ground', construction:'construction', 'coming-soon':'coming-soon', open:'grand-opening' };
+            const FINE_CONSTR = ['topping-out','halfway','going-vertical'];
+            const FINE_OPEN = ['bookings','move-in','tco'];
+            const normStatus = (raw) => {
               const s = (raw || '').toString().toLowerCase();
               if (!s) return 'announced';
               if (s.indexOf('open') >= 0 || s.indexOf('complete') >= 0) return 'open';
@@ -14389,33 +14392,40 @@
             let hist = p.statusHistory;
             if (typeof hist === 'string') { try { hist = JSON.parse(hist); } catch (e) { hist = []; } }
             if (!Array.isArray(hist)) hist = [];
-            const cur = norm(p.delivery), curRank = RANK[cur] || 0;
-            const entry = (code, date, src, est) => ({ code, rank: RANK[code], label: LABEL[code] || code, date: date || '', disp: fmt(date), src: src || '', dom: dom(src), est: !!est });
+            const curStatus = normStatus(p.delivery);
+            let curPhase = STATUS_TO_PHASE[curStatus] || 'announced';
+            const entry = (phase, date, src, est, sourced) => ({ phase, rank: RANK[phase], label: LABEL[phase] || phase, date: date || '', disp: fmt(date), src: src || '', dom: dom(src), est: !!est, sourced: !!sourced });
             const found = {};
+            const consider = (e) => { const prev = found[e.phase]; if (!prev || (e.sourced && !prev.sourced) || (e.date && !prev.date && e.sourced === prev.sourced)) found[e.phase] = e; };
             hist.forEach((h) => {
               if (!h || h.type === 'date' || h.type === 'field') return;
-              const to = (h.to || '').toString().toLowerCase();
-              if (!(to in RANK)) return;
-              const prev = found[to];
-              if (!prev || String(h.at || '') > String(prev.at || '')) found[to] = h;
-            });
-            const ms = {};
-            Object.keys(found).forEach((code) => {
-              const h = found[code], ev = (h.effective_date || '').toString().trim(), rec = (h.at || '').toString().slice(0, 10);
-              ms[code] = entry(code, ev || rec, h.source_url, !ev);
+              const ev = (h.effective_date || '').toString().trim(), rec = (h.at || '').toString().slice(0, 10);
+              if (h.type === 'milestone') {
+                const ph = (h.phase || '').toString().toLowerCase();
+                if (ph in RANK) consider(entry(ph, ev || rec, h.source_url, !ev, true));
+              } else {
+                const ph = STATUS_TO_PHASE[(h.to || '').toString().toLowerCase()];
+                if (ph) consider(entry(ph, ev || rec, h.source_url, !ev, true));
+              }
             });
             const sd = (p.startDate || '').toString().trim(), dd = (p.deliveryDate || '').toString().trim();
-            if (sd && !ms['breaking-ground']) ms['breaking-ground'] = entry('breaking-ground', sd, '', p.startSpeculative);
-            if (dd && !ms['open']) ms['open'] = entry('open', dd, '', p.deliverySpeculative);
+            if (sd && !found['breaking-ground']) consider(entry('breaking-ground', sd, '', !!p.startSpeculative, false));
+            if (dd && !found['grand-opening']) consider(entry('grand-opening', dd, '', !!p.deliverySpeculative, false));
+            if (FINE_CONSTR.some(x => found[x])) { delete found['construction']; if (curPhase === 'construction') curPhase = FINE_CONSTR.find(x => found[x]) || curPhase; }
+            if (FINE_OPEN.some(x => found[x])) { delete found['coming-soon']; if (curPhase === 'coming-soon') curPhase = FINE_OPEN.find(x => found[x]) || curPhase; }
+            const curRank = RANK[curPhase] || 0;
             const out = [];
-            ORDER.forEach((code) => {
-              let m = ms[code]; const rank = RANK[code]; const isCur = (code === cur);
-              if (!m && !isCur && code !== 'open') return;
-              if (!m) m = entry(code, '', '', false);
-              m.state = rank < curRank ? 'past' : (rank === curRank ? 'now' : 'future');
-              if (code === 'open' && curRank < RANK['open']) { m.label = 'Expected opening'; m.state = 'future'; }
+            ORDER.forEach((phase) => {
+              let m = found[phase]; const rank = RANK[phase]; const isCur = (phase === curPhase);
+              if (!m && !isCur && phase !== 'grand-opening') return;
+              if (!m) m = entry(phase, '', '', false, false);
+              const projected = (!m.sourced) && ((phase === 'grand-opening' && curStatus !== 'open') || (rank > curRank));
+              m.state = projected ? 'future' : 'past';
+              if (phase === 'grand-opening' && projected) m.label = 'Expected opening';
               out.push(m);
             });
+            const done = out.filter(m => m.state !== 'future');
+            if (done.length) done[done.length - 1].state = 'now';
             if (out.filter(m => m.disp || m.state !== 'future').length < 2) { el.style.display = 'none'; el.innerHTML = ''; return; }
             const rows = out.map((m) => {
               const date = m.disp
