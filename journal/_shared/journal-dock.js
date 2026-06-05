@@ -1074,8 +1074,9 @@
   function paintCircle(){
     if (!circleEl) return;
     var n = countNew();
-    if (n > 0){ circleEl.textContent = String(n); circleEl.classList.remove('is-zero'); }
-    else      { circleEl.textContent = '';                       circleEl.classList.add('is-zero'); }
+    var dot = '<span class="lbd" aria-hidden="true"></span>';
+    if (n > 0){ circleEl.innerHTML = dot + '<span class="lbn">' + n + '</span>'; circleEl.classList.remove('is-zero'); }
+    else      { circleEl.innerHTML = dot;                                         circleEl.classList.add('is-zero'); }
   }
   function repaint(){ paintCircle(); if (feedEl) feedEl.innerHTML = feedHtml(); }
 
@@ -1083,10 +1084,15 @@
     if (document.getElementById('tmw-pulse-css')) return;
     var st = document.createElement('style'); st.id = 'tmw-pulse-css';
     st.textContent = [
-      '.tmw-pulse-bell{position:relative;min-width:24px;height:24px;padding:0 6px;border-radius:999px;background:#FFD300;color:#0a0a0a;border:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font:800 11px/1 "Inter",-apple-system,BlinkMacSystemFont,sans-serif;flex:0 0 auto;box-shadow:0 0 10px rgba(255,211,0,.45);transition:transform .12s,box-shadow .15s,width .15s,opacity .15s}',
-      '.tmw-pulse-bell:hover{transform:scale(1.08);box-shadow:0 0 15px rgba(255,211,0,.75)}',
-      '.tmw-pulse-bell.is-zero{min-width:0;width:16px;height:16px;padding:0;opacity:.6;box-shadow:0 0 6px rgba(255,211,0,.3)}',
-      '.tmw-pulse-bell.is-zero:hover{opacity:1;box-shadow:0 0 12px rgba(255,211,0,.6)}',
+      '.tmw-pulse-bell{position:relative;min-width:24px;height:24px;padding:0 9px 0 7px;border-radius:999px;background:#A78BFA;color:#16102b;border:none;cursor:pointer;display:inline-flex;align-items:center;gap:5px;justify-content:center;font:800 11px/1 "Inter",-apple-system,BlinkMacSystemFont,sans-serif;flex:0 0 auto;box-shadow:0 0 12px rgba(167,139,250,.5);transition:transform .12s,box-shadow .15s,width .15s,opacity .15s}',
+      '.tmw-pulse-bell:hover{transform:scale(1.08);box-shadow:0 0 18px rgba(167,139,250,.8)}',
+      '.tmw-pulse-bell.is-zero{padding:0 7px;opacity:.72;box-shadow:0 0 8px rgba(167,139,250,.35)}',
+      '.tmw-pulse-bell.is-zero:hover{opacity:1;box-shadow:0 0 14px rgba(167,139,250,.65)}',
+      /* intelligence "live" dot — pulsing ring, sits left of the count */
+      '.tmw-pulse-bell .lbd{width:6px;height:6px;border-radius:50%;background:#16102b;flex:0 0 auto;box-shadow:0 0 0 0 rgba(22,16,43,.6);animation:tmwBellLive 1.9s ease-out infinite}',
+      '.tmw-pulse-bell .lbn{line-height:1}',
+      '@keyframes tmwBellLive{0%{box-shadow:0 0 0 0 rgba(22,16,43,.55)}70%{box-shadow:0 0 0 5px rgba(22,16,43,0)}100%{box-shadow:0 0 0 0 rgba(22,16,43,0)}}',
+      '@media (prefers-reduced-motion:reduce){.tmw-pulse-bell .lbd{animation:none}}',
       '.tmw-pulse-pop{position:absolute;top:calc(100% + 14px);right:0;width:372px;max-width:92vw;max-height:72vh;display:flex;flex-direction:column;background:rgba(16,16,18,.97);-webkit-backdrop-filter:blur(24px);backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,.1);border-radius:16px;box-shadow:0 22px 60px rgba(0,0,0,.6);z-index:200;overflow:hidden}',
       '.tmw-pulse-pop[hidden]{display:none}',
       '.tmw-pulse-head{padding:12px 12px 12px 16px;border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;gap:8px;flex:0 0 auto}',

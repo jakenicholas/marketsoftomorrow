@@ -12447,6 +12447,25 @@
     // <div id="map"> element via id-named-globals.
     window._tmwMap = map;
 
+    // ── Mobile map perf ────────────────────────────────────────────────────
+    // backdrop-filter: blur() is cheap on desktop but brutally expensive on
+    // mobile GPUs — every blurred element over the map re-blurs the moving map
+    // EVERY frame, which is why pan/zoom crawls on phones but is smooth on
+    // desktop. Suspend all blur while the map is moving and restore it a beat
+    // after the gesture settles. Mobile only; desktop keeps the glass look live.
+    if (isMobile) {
+      const _blurStyle = document.createElement('style');
+      _blurStyle.textContent = 'body.map-busy *{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}';
+      document.head.appendChild(_blurStyle);
+      let _blurIdle;
+      const blurSuspend = () => { clearTimeout(_blurIdle); document.body.classList.add('map-busy'); };
+      const blurRestore = () => { clearTimeout(_blurIdle); _blurIdle = setTimeout(() => document.body.classList.remove('map-busy'), 160); };
+      map.on('movestart', blurSuspend);
+      map.on('zoomstart', blurSuspend);
+      map.on('moveend', blurRestore);
+      map.on('zoomend', blurRestore);
+    }
+
     let activePopup, stationPopup, fullscreenMap;
 
     const stations = [
