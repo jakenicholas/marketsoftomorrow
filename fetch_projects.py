@@ -108,6 +108,18 @@ def lookup_name(slug: str, name_map: dict) -> str:
 
 
 # --- TRANSFORMATION ---------------------------------------------------------
+def _latest_update(record: dict) -> str:
+    """Most-recent data-change timestamp (ISO string) for a project, surfaced
+    as the public "Updated" stamp. Prefers the newest status_history[].at
+    (actual changes logged by the Studio/Claude changes flow); falls back to
+    status_checked_at (last verified) when nothing has changed yet. '' if none."""
+    changes = [str(h['at']) for h in (record.get('status_history') or [])
+               if isinstance(h, dict) and h.get('at')]
+    if changes:
+        return max(changes)
+    return str(record.get('status_checked_at') or '')
+
+
 def flatten(record: dict, architect_names: dict, developer_names: dict) -> dict:
     """
     Convert a single tmw-data JSON record into the CSV-shape dict the
@@ -227,6 +239,9 @@ def flatten(record: dict, architect_names: dict, developer_names: dict) -> dict:
         # handles blank values gracefully (returns 0), so emitting '' is
         # safe. When tmw-data adds a price field, map it here.
         'Price':           '',
+        # Public "Updated" stamp — latest change/verify time (ISO 8601 UTC).
+        # Rendered above the timeline on project pages + the map modal.
+        'UpdatedAt':       _latest_update(record),
     }
 
 

@@ -876,6 +876,23 @@
     .pp-hero .btn-primary { flex: 0 1 auto; padding: 13px 20px; }
     .pp-panel { background: rgba(15,17,16,.60); backdrop-filter: blur(22px); -webkit-backdrop-filter: blur(22px); border: 1px solid rgba(255,255,255,.14); border-radius: 18px; padding: 20px 22px; box-shadow: 0 30px 80px -30px rgba(0,0,0,.9); }
     .pp-panel .pm-tl { margin-bottom: 0; }
+    /* "Updated" row above the timeline + the looping TMW Intelligence mark. */
+    .pp-updated { display: flex; align-items: center; gap: 7px; margin-bottom: 14px; font-size: 10px; letter-spacing: .07em; text-transform: uppercase; color: rgba(255,255,255,.42); font-family: 'JetBrains Mono', ui-monospace, monospace; }
+    .pp-updated .tmw-upd-ico { width: 15px; height: 15px; flex: none; }
+    .pp-updated .tmw-upd-ico svg { width: 100%; height: 100%; display: block; overflow: visible; }
+    .tmw-upd-spin { transform-origin: 50% 50%; animation: tmwUpdSpin 3.2s ease-in-out infinite alternate; }
+    @keyframes tmwUpdSpin { from { transform: rotate(0) scale(1); } to { transform: rotate(540deg) scale(.8); } }
+    .tmw-upd-core { stroke: #A78BFA; animation: tmwUpdHex 3.2s ease-in-out infinite alternate; }
+    @keyframes tmwUpdHex { 0% { opacity: 1; } 70%,100% { opacity: 0; } }
+    .tmw-upd-circle { opacity: 0; stroke: #A78BFA; animation: tmwUpdCirc 3.2s ease-in-out infinite alternate; }
+    @keyframes tmwUpdCirc { 0% { opacity: 0; } 70%,100% { opacity: 1; } }
+    .tmw-upd-handle { stroke-linecap: round; stroke-dasharray: 30; stroke-dashoffset: 30; opacity: 0; stroke: #A78BFA; animation: tmwUpdHandle 3.2s ease-in-out infinite alternate; }
+    @keyframes tmwUpdHandle { 0% { opacity: 0; stroke-dashoffset: 30; } 70%,100% { opacity: 1; stroke-dashoffset: 0; } }
+    @media (prefers-reduced-motion: reduce) {
+      .tmw-upd-spin, .tmw-upd-core, .tmw-upd-circle, .tmw-upd-handle { animation: none; }
+      .tmw-upd-spin { transform: rotate(540deg) scale(.8); }
+      .tmw-upd-core { opacity: 0; } .tmw-upd-circle, .tmw-upd-handle { opacity: 1; stroke-dashoffset: 0; }
+    }
     .pp-minis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 16px; }
     .pp-mini { padding: 10px 11px; background: rgba(0,0,0,.30); border: 1px solid rgba(255,255,255,.07); border-radius: 10px; }
     .pp-mini .v { font-size: 15px; font-weight: 800; letter-spacing: -.02em; white-space: nowrap; }
@@ -984,6 +1001,7 @@
           <div class="cta-row"><a class="btn-dive" href="https://www.oftmw.com/map/?project=onebeverlyhills">Dive Deeper <svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg></a><button class="btn-share" type="button" aria-label="Share project" onclick="window.shareProject &amp;&amp; window.shareProject(this)"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg><span class="btn-share-tooltip" aria-live="polite"></span></button><button class="btn-watch" id="watchBtn" type="button" aria-label="Watch this project" data-slug="one-beverly-hills" data-title="One Beverly Hills"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><span class="btn-watch-label" id="watchBtnLabel">Watch</span><span class="btn-watch-dot" aria-hidden="true"></span></button></div>
         </div>
         <div class="pp-panel">
+          
           
     <div class="pm-tl"><div class="pm-tl-date">2.6 yrs to delivery</div>
       <div class="pm-tl-meter"><div class="pm-tl-grad"></div>

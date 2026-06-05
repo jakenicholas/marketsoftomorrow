@@ -4161,6 +4161,28 @@
     margin-bottom: 16px;
   }
   #projectModal .pm-panel .pm-progress { margin-bottom: 0; }
+  /* "Updated" row above the timeline + the looping TMW Intelligence mark. */
+  #projectModal .pm-updated {
+    display: flex; align-items: center; gap: 7px; margin-bottom: 14px;
+    font-size: 10px; letter-spacing: .07em; text-transform: uppercase;
+    color: rgba(255,255,255,.42);
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+  }
+  #projectModal .pm-updated .tmw-upd-ico { width: 15px; height: 15px; flex: none; }
+  #projectModal .pm-updated .tmw-upd-ico svg { width: 100%; height: 100%; display: block; overflow: visible; }
+  .tmw-upd-spin { transform-origin: 50% 50%; animation: tmwUpdSpin 3.2s ease-in-out infinite alternate; }
+  @keyframes tmwUpdSpin { from { transform: rotate(0) scale(1); } to { transform: rotate(540deg) scale(.8); } }
+  .tmw-upd-core { stroke: #A78BFA; animation: tmwUpdHex 3.2s ease-in-out infinite alternate; }
+  @keyframes tmwUpdHex { 0% { opacity: 1; } 70%,100% { opacity: 0; } }
+  .tmw-upd-circle { opacity: 0; stroke: #A78BFA; animation: tmwUpdCirc 3.2s ease-in-out infinite alternate; }
+  @keyframes tmwUpdCirc { 0% { opacity: 0; } 70%,100% { opacity: 1; } }
+  .tmw-upd-handle { stroke-linecap: round; stroke-dasharray: 30; stroke-dashoffset: 30; opacity: 0; stroke: #A78BFA; animation: tmwUpdHandle 3.2s ease-in-out infinite alternate; }
+  @keyframes tmwUpdHandle { 0% { opacity: 0; stroke-dashoffset: 30; } 70%,100% { opacity: 1; stroke-dashoffset: 0; } }
+  @media (prefers-reduced-motion: reduce) {
+    .tmw-upd-spin, .tmw-upd-core, .tmw-upd-circle, .tmw-upd-handle { animation: none; }
+    .tmw-upd-spin { transform: rotate(540deg) scale(.8); }
+    .tmw-upd-core { opacity: 0; } .tmw-upd-circle, .tmw-upd-handle { opacity: 1; stroke-dashoffset: 0; }
+  }
   /* Facts (start / completion / units / floors …) — each in its own boxed
      mini-card, laid out 2-up so it reads as a clean spec grid instead of a
      dense run of bold numbers. */
@@ -11933,6 +11955,7 @@
                page hero panel. Facts (units / floors / delivery / market, +keys
                for hotels) render as big-value minis below the timeline. -->
           <div class="pm-panel">
+            <div class="pm-updated" id="pmUpdated" style="display:none"></div>
             <div class="pm-progress" id="pmProgress"></div>
             <div class="pm-facts" id="pmFacts"></div>
           </div>
@@ -14246,6 +14269,33 @@
             ${phs ? `<div class="pm-phases"><span class="pm-phases-pill">PHASED</span><span class="pm-phases-text">${escA(phs)}</span></div>` : ''}
           `;
           cfgEl.hidden = false;
+        })();
+
+        // "Updated <date · time>" row with the animated TMW Intelligence mark,
+        // above the timeline. Hidden when the project has no update stamp.
+        (function () {
+          const el = document.getElementById('pmUpdated');
+          if (!el) return;
+          const fmt = (raw) => {
+            raw = (raw || '').trim(); if (!raw) return '';
+            const hasTime = raw.indexOf('T') >= 0 || raw.indexOf(':') >= 0;
+            const d = new Date(raw); if (isNaN(d)) return '';
+            const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+            const date = `${MON[d.getUTCMonth()]} ${d.getUTCDate()}, ${d.getUTCFullYear()}`;
+            if (!hasTime) return date;
+            let h = d.getUTCHours(); const ap = h < 12 ? 'AM' : 'PM'; h = h % 12 || 12;
+            return `${date} · ${h}:${String(d.getUTCMinutes()).padStart(2,'0')} ${ap}`;
+          };
+          const t = fmt(p.updatedAt);
+          if (!t) { el.style.display = 'none'; el.innerHTML = ''; return; }
+          el.innerHTML = '<span class="tmw-upd-ico" aria-hidden="true"><svg viewBox="0 0 100 100">'
+            + '<g class="tmw-upd-spin">'
+            + '<polygon class="tmw-upd-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="8" stroke-linejoin="round"/>'
+            + '<circle class="tmw-upd-circle" cx="50" cy="50" r="28" fill="none" stroke-width="9.3"/>'
+            + '</g>'
+            + '<line class="tmw-upd-handle" x1="65" y1="65" x2="84" y2="84" stroke-width="8"/>'
+            + '</svg></span><span class="pm-updated-t">Updated ' + t + '</span>';
+          el.style.display = 'flex';
         })();
 
         // Progress (date-driven via shared computeProgress helper)
@@ -17279,6 +17329,8 @@
                   return names.map((name, i) => ({ name, slug: slugs[i] || '' }));
                 })(),
                 deliveryDate: p.DeliveryDate || '',
+                // Public "Updated" stamp (ISO 8601) — rendered above the modal timeline.
+                updatedAt: p.UpdatedAt || '',
                 // Scale signals for TMW Intelligence comp matching + popup display
                 keys: p.Keys || '',
                 units: p.Units || '',
