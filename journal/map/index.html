@@ -4165,20 +4165,20 @@
      mini-card, laid out 2-up so it reads as a clean spec grid instead of a
      dense run of bold numbers. */
   #projectModal .pm-facts {
-    display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 16px;
+    display: flex; flex-wrap: wrap; gap: 6px; margin-top: 16px;
   }
   #projectModal .pm-facts .pm-mini {
-    padding: 11px 13px;
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.09);
-    border-radius: 11px;
+    flex: 1 0 auto; padding: 10px 11px;
+    background: rgba(0,0,0,0.30);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 10px;
   }
   #projectModal .pm-facts .pm-mini .v {
-    font-size: 18px; font-weight: 800; letter-spacing: -0.01em; color: #fff; line-height: 1.05;
+    font-size: 15px; font-weight: 800; letter-spacing: -0.02em; color: #fff; line-height: 1.05; white-space: nowrap;
   }
   #projectModal .pm-facts .pm-mini .k {
-    font-size: 8.5px; letter-spacing: 0.08em; text-transform: uppercase;
-    color: rgba(255,255,255,0.4); margin-top: 5px;
+    font-size: 8px; letter-spacing: 0.07em; text-transform: uppercase;
+    color: rgba(255,255,255,0.4); margin-top: 5px; white-space: nowrap;
   }
   /* ── Developer & Design — titled section + bordered firm cards ── */
   #projectModal .pm-firms-section[hidden] { display: none; }
@@ -14292,7 +14292,7 @@
           factsEl.innerHTML = factItems.map(s =>
             `<div class="pm-mini"><div class="v">${escTxt(s.val)}</div><div class="k">${escTxt(s.label)}</div></div>`
           ).join('');
-          factsEl.style.display = factItems.length ? 'grid' : 'none';
+          factsEl.style.display = factItems.length ? 'flex' : 'none';
         }
 
         // ── DEVELOPER & DESIGN — bordered firm cards (project-page style). Shows

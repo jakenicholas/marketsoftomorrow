@@ -25,13 +25,11 @@
   .stages span:first-child{text-align:left;} .stages span:last-child{text-align:right;} .stages span.done{color:rgba(255,255,255,.5);}
 
   /* ============ CHOSEN — boxed minis ============ */
-  .boxed { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin-top:16px; }
-  .boxed .box { padding:11px 13px; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.09); border-radius:11px; }
-  .boxed .v { font-size:18px; font-weight:800; letter-spacing:-.01em; line-height:1.05; }
-  .boxed .k { font-size:8.5px; letter-spacing:.08em; text-transform:uppercase; color:rgba(255,255,255,.4); margin-top:5px; }
-  .boxed2 { grid-template-columns:repeat(4,1fr); }
-  .boxed2 .box { background:rgba(255,255,255,.035); border-color:rgba(255,255,255,.07); padding:11px 11px; }
-  .boxed2 .v { font-size:16px; }
+  .boxed { display:flex; flex-wrap:wrap; gap:6px; margin-top:16px; }
+  .boxed .box { flex:1 0 auto; padding:10px 11px; background:rgba(0,0,0,.30); border:1px solid rgba(255,255,255,.07); border-radius:10px; }
+  .boxed .v { font-size:15px; font-weight:800; letter-spacing:-.02em; line-height:1.05; white-space:nowrap; }
+  .boxed .k { font-size:8px; letter-spacing:.07em; text-transform:uppercase; color:rgba(255,255,255,.4); margin-top:5px; white-space:nowrap; }
+  .boxed2 .box { background:rgba(0,0,0,.45); }
 
   /* ============ CURRENT (for reference) ============ */
   .cur { display:flex; flex-wrap:wrap; gap:18px 26px; margin-top:16px; }
@@ -80,7 +78,7 @@
         <div class="box"><div class="v">46</div><div class="k">Floors</div></div>
       </div>
     </div>
-    <p class="note">Variant 1: 4 across, value 18px bold.</p>
+    <p class="note">Variant 1: 4 facts, one row, darker boxes (rgba(0,0,0,.30)).</p>
     <div class="panel" style="margin-top:18px;">
       <div class="pm-prog-top"><span class="d">Delivered Dec '25</span><span class="s">Now Open</span></div>
       <div class="meter"><div class="g"></div></div>
@@ -88,11 +86,12 @@
       <div class="boxed boxed2">
         <div class="box"><div class="v">10.22</div><div class="k">Start</div></div>
         <div class="box"><div class="v">12.03.25</div><div class="k">Completion</div></div>
+        <div class="box"><div class="v">540</div><div class="k">Keys</div></div>
         <div class="box"><div class="v">301</div><div class="k">Units</div></div>
         <div class="box"><div class="v">46</div><div class="k">Floors</div></div>
       </div>
     </div>
-    <p class="note">Variant 2: serif values, slightly softer boxes.</p>
+    <p class="note">Variant 2: tightest case — 5 facts (hotel w/ Keys), even darker boxes.</p>
   </div>
 
   <div class="wrap">

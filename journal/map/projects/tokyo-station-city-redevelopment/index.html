@@ -876,10 +876,10 @@
     .pp-hero .btn-primary { flex: 0 1 auto; padding: 13px 20px; }
     .pp-panel { background: rgba(15,17,16,.60); backdrop-filter: blur(22px); -webkit-backdrop-filter: blur(22px); border: 1px solid rgba(255,255,255,.14); border-radius: 18px; padding: 20px 22px; box-shadow: 0 30px 80px -30px rgba(0,0,0,.9); }
     .pp-panel .pm-tl { margin-bottom: 0; }
-    .pp-minis { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 16px; }
-    .pp-mini { padding: 11px 13px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.09); border-radius: 11px; }
-    .pp-mini .v { font-size: 18px; font-weight: 800; letter-spacing: -.01em; }
-    .pp-mini .k { font-size: 8.5px; letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,.4); margin-top: 5px; }
+    .pp-minis { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 16px; }
+    .pp-mini { flex: 1 0 auto; padding: 10px 11px; background: rgba(0,0,0,.30); border: 1px solid rgba(255,255,255,.07); border-radius: 10px; }
+    .pp-mini .v { font-size: 15px; font-weight: 800; letter-spacing: -.02em; white-space: nowrap; }
+    .pp-mini .k { font-size: 8px; letter-spacing: .07em; text-transform: uppercase; color: rgba(255,255,255,.4); margin-top: 5px; white-space: nowrap; }
 
     /* gallery cluster (this project's photos) */
     .pp-gal { position: absolute; z-index: 6; left: 50%; bottom: 20px; transform: translateX(-50%); display: flex; align-items: center; gap: 13px; background: rgba(0,0,0,.42); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,.1); border-radius: 999px; padding: 7px 10px; }
@@ -987,8 +987,8 @@
           
     <div class="pm-tl"><div class="pm-tl-date">4.6 yrs to delivery</div>
       <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
-        <div class="pm-tl-empty" style="left:44%"></div>
-        <div class="pm-tl-knob" style="left:44%;box-shadow:0 2px 8px rgba(0,0,0,.5),0 0 0 2px rgba(167,139,250,.42),0 0 12px rgba(167,139,250,.55)">44%</div>
+        <div class="pm-tl-empty" style="left:43%"></div>
+        <div class="pm-tl-knob" style="left:43%;box-shadow:0 2px 8px rgba(0,0,0,.5),0 0 0 2px rgba(167,139,250,.42),0 0 12px rgba(167,139,250,.55)">43%</div>
       </div>
       <div class="pm-tl-stages"><span class="pm-tl-stage done">Announced</span><span class="pm-tl-stage done">Breaking Ground</span><span class="pm-tl-stage on" style="color:#B9A6FF;font-weight:800;text-shadow:0 0 12px rgba(167,139,250,.5)">Construction</span><span class="pm-tl-stage ">Opening Soon</span><span class="pm-tl-stage ">Now Open</span></div>
     </div>
