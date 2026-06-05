@@ -1005,6 +1005,17 @@ def main():
     for e in new_events:
         by_id[e['id']] = e
 
+    # Pulse is the REAL dated story — the same sourced milestones as the dossier.
+    # Drop legacy status_change rows that carry no event_date: those are the old
+    # snapshot-diff "Now <status>" events (pre-dossier) with no real date/source,
+    # which read as generic "Update" noise. Milestone events from status_history
+    # (build_milestone_event) keep their effective_date, so they survive; tracking
+    # and article events are untouched. The feed self-heals as those age out.
+    by_id = {
+        eid: e for eid, e in by_id.items()
+        if not (e.get('type') == 'status_change' and not (e.get('event_date') or '').strip())
+    }
+
     # Backfill: any existing event missing an image gets one filled in from
     # the current project data (if available). This handles events that were
     # emitted before the ImageURL column lookup was fixed -- without this they
