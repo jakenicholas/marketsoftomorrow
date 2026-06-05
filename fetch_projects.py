@@ -109,15 +109,14 @@ def lookup_name(slug: str, name_map: dict) -> str:
 
 # --- TRANSFORMATION ---------------------------------------------------------
 def _latest_update(record: dict) -> str:
-    """Most-recent data-change timestamp (ISO string) for a project, surfaced
-    as the public "Updated" stamp. Prefers the newest status_history[].at
-    (actual changes logged by the Studio/Claude changes flow); falls back to
-    status_checked_at (last verified) when nothing has changed yet. '' if none."""
-    changes = [str(h['at']) for h in (record.get('status_history') or [])
-               if isinstance(h, dict) and h.get('at')]
-    if changes:
-        return max(changes)
-    return str(record.get('status_checked_at') or '')
+    """Public "Last verified" stamp (ISO string) — the most recent time the
+    project's data was checked or changed by the Studio/Claude flow. Takes the
+    newest of status_checked_at and any status_history[].at. '' if none."""
+    times = [str(record.get('status_checked_at') or '')]
+    times += [str(h['at']) for h in (record.get('status_history') or [])
+              if isinstance(h, dict) and h.get('at')]
+    times = [t for t in times if t]
+    return max(times) if times else ''
 
 
 def flatten(record: dict, architect_names: dict, developer_names: dict) -> dict:

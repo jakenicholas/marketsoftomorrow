@@ -876,22 +876,19 @@
     .pp-hero .btn-primary { flex: 0 1 auto; padding: 13px 20px; }
     .pp-panel { background: rgba(15,17,16,.60); backdrop-filter: blur(22px); -webkit-backdrop-filter: blur(22px); border: 1px solid rgba(255,255,255,.14); border-radius: 18px; padding: 20px 22px; box-shadow: 0 30px 80px -30px rgba(0,0,0,.9); }
     .pp-panel .pm-tl { margin-bottom: 0; }
-    /* "Updated" row above the timeline + the looping TMW Intelligence mark. */
+    /* "Last verified" row above the timeline + the spinning TMW hexagon. */
     .pp-updated { display: flex; align-items: center; gap: 7px; margin-bottom: 14px; font-size: 10px; letter-spacing: .07em; text-transform: uppercase; color: rgba(255,255,255,.42); font-family: 'JetBrains Mono', ui-monospace, monospace; }
     .pp-updated .tmw-upd-ico { width: 15px; height: 15px; flex: none; }
     .pp-updated .tmw-upd-ico svg { width: 100%; height: 100%; display: block; overflow: visible; }
-    .tmw-upd-spin { transform-origin: 50% 50%; animation: tmwUpdSpin 3.2s ease-in-out infinite alternate; }
-    @keyframes tmwUpdSpin { from { transform: rotate(0) scale(1); } to { transform: rotate(540deg) scale(.8); } }
-    .tmw-upd-core { stroke: #A78BFA; animation: tmwUpdHex 3.2s ease-in-out infinite alternate; }
-    @keyframes tmwUpdHex { 0% { opacity: 1; } 70%,100% { opacity: 0; } }
-    .tmw-upd-circle { opacity: 0; stroke: #A78BFA; animation: tmwUpdCirc 3.2s ease-in-out infinite alternate; }
-    @keyframes tmwUpdCirc { 0% { opacity: 0; } 70%,100% { opacity: 1; } }
-    .tmw-upd-handle { stroke-linecap: round; stroke-dasharray: 30; stroke-dashoffset: 30; opacity: 0; stroke: #A78BFA; animation: tmwUpdHandle 3.2s ease-in-out infinite alternate; }
-    @keyframes tmwUpdHandle { 0% { opacity: 0; stroke-dashoffset: 30; } 70%,100% { opacity: 1; stroke-dashoffset: 0; } }
+    .tmw-upd-spin { transform-origin: 50% 50%; animation: tmwUpdSpin 4.2s cubic-bezier(.16,1,.3,1) infinite; }
+    @keyframes tmwUpdSpin { 0% { transform: rotate(0deg); } 55% { transform: rotate(810deg); } 70% { transform: rotate(900deg); } 100% { transform: rotate(1080deg); } }
+    .tmw-upd-core { transform-origin: 50% 50%; animation: tmwUpdPulse 4.2s ease-in-out infinite; }
+    @keyframes tmwUpdPulse { 0%,45% { stroke: #A78BFA; filter: drop-shadow(0 0 0 rgba(167,139,250,0)); } 70% { stroke: #B9A6FF; filter: drop-shadow(0 0 8px rgba(185,166,255,.9)); } 100% { stroke: #A78BFA; filter: drop-shadow(0 0 0 rgba(167,139,250,0)); } }
+    .tmw-upd-ring { transform-origin: 50% 50%; animation: tmwUpdRing 4.2s ease-out infinite; }
+    @keyframes tmwUpdRing { 0%,60% { transform: scale(1); opacity: 0; } 72% { opacity: .55; } 100% { transform: scale(1.7); opacity: 0; } }
     @media (prefers-reduced-motion: reduce) {
-      .tmw-upd-spin, .tmw-upd-core, .tmw-upd-circle, .tmw-upd-handle { animation: none; }
-      .tmw-upd-spin { transform: rotate(540deg) scale(.8); }
-      .tmw-upd-core { opacity: 0; } .tmw-upd-circle, .tmw-upd-handle { opacity: 1; stroke-dashoffset: 0; }
+      .tmw-upd-spin, .tmw-upd-core, .tmw-upd-ring { animation: none; }
+      .tmw-upd-ring { opacity: 0; }
     }
     .pp-minis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 16px; }
     .pp-mini { padding: 10px 11px; background: rgba(0,0,0,.30); border: 1px solid rgba(255,255,255,.07); border-radius: 10px; }

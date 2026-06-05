@@ -402,46 +402,38 @@ def _hero_teaser(text, target=190, cap=300):
     return out
 
 
-# Inline TMW-Intelligence mark — the loading-screen hexagon→magnifier, looping
-# (alternate) so it morphs back and forth. Sits in front of the "Updated" line.
+# Inline TMW Intelligence mark — the spinning hexagon (pulse-glow + expanding
+# ring), no wordmark. Sits in front of the "Last verified" line.
 TMW_UPD_ICON = (
     '<span class="tmw-upd-ico" aria-hidden="true"><svg viewBox="0 0 100 100">'
+    '<polygon class="tmw-upd-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" '
+    'fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/>'
     '<g class="tmw-upd-spin">'
     '<polygon class="tmw-upd-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" '
-    'fill="none" stroke="#A78BFA" stroke-width="8" stroke-linejoin="round"/>'
-    '<circle class="tmw-upd-circle" cx="50" cy="50" r="28" fill="none" stroke-width="9.3"/>'
+    'fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/>'
     '</g>'
-    '<line class="tmw-upd-handle" x1="65" y1="65" x2="84" y2="84" stroke-width="8"/>'
     '</svg></span>'
 )
 
 
 def format_updated(raw):
-    """ISO 8601 timestamp -> 'Jun 1, 2026 · 2:23 PM' (or date-only when the
-    source has no time component). '' when blank/unparseable."""
+    """ISO 8601 timestamp -> 'Jun 1, 2026' (date only — time intentionally
+    dropped). '' when blank/unparseable."""
     raw = (raw or '').strip()
     if not raw:
         return ''
     from datetime import datetime, timezone
-    has_time = 'T' in raw or (':' in raw)
     s = raw.replace('Z', '+00:00')
-    dt = None
     try:
         dt = datetime.fromisoformat(s)
     except ValueError:
         try:
             dt = datetime.strptime(raw[:10], '%Y-%m-%d')
-            has_time = False
         except ValueError:
             return ''
     if dt.tzinfo is not None:
         dt = dt.astimezone(timezone.utc).replace(tzinfo=None)
-    date_str = f'{dt.strftime("%b")} {dt.day}, {dt.year}'
-    if not has_time:
-        return date_str
-    hour = dt.hour % 12 or 12
-    ampm = 'AM' if dt.hour < 12 else 'PM'
-    return f'{date_str} · {hour}:{dt.minute:02d} {ampm}'
+    return f'{dt.strftime("%b")} {dt.day}, {dt.year}'
 
 
 def format_fact_date(raw):
@@ -897,13 +889,13 @@ def build_page(row, articles=None, nearby=None):
             f'<div class="pp-mini"><div class="v">{_v}</div><div class="k">{_l}</div></div>'
             for _v, _l in mini_items) + '</div>'
 
-    # "Updated <date · time>" row with the animated TMW Intelligence mark —
+    # "Last verified <date>" row with the spinning TMW Intelligence hexagon —
     # sits at the top of the panel, above the timeline. Hidden when no stamp.
     _updated_fmt = format_updated(row.get('UpdatedAt', ''))
     updated_html = ''
     if _updated_fmt:
         updated_html = (f'<div class="pp-updated">{TMW_UPD_ICON}'
-                        f'<span class="pp-updated-t">Updated {_updated_fmt}</span></div>')
+                        f'<span class="pp-updated-t">Last verified {_updated_fmt}</span></div>')
 
     # Developer & design firm cards (link to /firm/<slug>/ when a slug exists).
     def _firm_card(name, fslug, role):
@@ -1830,22 +1822,19 @@ def build_page(row, articles=None, nearby=None):
     .pp-hero .btn-primary {{ flex: 0 1 auto; padding: 13px 20px; }}
     .pp-panel {{ background: rgba(15,17,16,.60); backdrop-filter: blur(22px); -webkit-backdrop-filter: blur(22px); border: 1px solid rgba(255,255,255,.14); border-radius: 18px; padding: 20px 22px; box-shadow: 0 30px 80px -30px rgba(0,0,0,.9); }}
     .pp-panel .pm-tl {{ margin-bottom: 0; }}
-    /* "Updated" row above the timeline + the looping TMW Intelligence mark. */
+    /* "Last verified" row above the timeline + the spinning TMW hexagon. */
     .pp-updated {{ display: flex; align-items: center; gap: 7px; margin-bottom: 14px; font-size: 10px; letter-spacing: .07em; text-transform: uppercase; color: rgba(255,255,255,.42); font-family: 'JetBrains Mono', ui-monospace, monospace; }}
     .pp-updated .tmw-upd-ico {{ width: 15px; height: 15px; flex: none; }}
     .pp-updated .tmw-upd-ico svg {{ width: 100%; height: 100%; display: block; overflow: visible; }}
-    .tmw-upd-spin {{ transform-origin: 50% 50%; animation: tmwUpdSpin 3.2s ease-in-out infinite alternate; }}
-    @keyframes tmwUpdSpin {{ from {{ transform: rotate(0) scale(1); }} to {{ transform: rotate(540deg) scale(.8); }} }}
-    .tmw-upd-core {{ stroke: #A78BFA; animation: tmwUpdHex 3.2s ease-in-out infinite alternate; }}
-    @keyframes tmwUpdHex {{ 0% {{ opacity: 1; }} 70%,100% {{ opacity: 0; }} }}
-    .tmw-upd-circle {{ opacity: 0; stroke: #A78BFA; animation: tmwUpdCirc 3.2s ease-in-out infinite alternate; }}
-    @keyframes tmwUpdCirc {{ 0% {{ opacity: 0; }} 70%,100% {{ opacity: 1; }} }}
-    .tmw-upd-handle {{ stroke-linecap: round; stroke-dasharray: 30; stroke-dashoffset: 30; opacity: 0; stroke: #A78BFA; animation: tmwUpdHandle 3.2s ease-in-out infinite alternate; }}
-    @keyframes tmwUpdHandle {{ 0% {{ opacity: 0; stroke-dashoffset: 30; }} 70%,100% {{ opacity: 1; stroke-dashoffset: 0; }} }}
+    .tmw-upd-spin {{ transform-origin: 50% 50%; animation: tmwUpdSpin 4.2s cubic-bezier(.16,1,.3,1) infinite; }}
+    @keyframes tmwUpdSpin {{ 0% {{ transform: rotate(0deg); }} 55% {{ transform: rotate(810deg); }} 70% {{ transform: rotate(900deg); }} 100% {{ transform: rotate(1080deg); }} }}
+    .tmw-upd-core {{ transform-origin: 50% 50%; animation: tmwUpdPulse 4.2s ease-in-out infinite; }}
+    @keyframes tmwUpdPulse {{ 0%,45% {{ stroke: #A78BFA; filter: drop-shadow(0 0 0 rgba(167,139,250,0)); }} 70% {{ stroke: #B9A6FF; filter: drop-shadow(0 0 8px rgba(185,166,255,.9)); }} 100% {{ stroke: #A78BFA; filter: drop-shadow(0 0 0 rgba(167,139,250,0)); }} }}
+    .tmw-upd-ring {{ transform-origin: 50% 50%; animation: tmwUpdRing 4.2s ease-out infinite; }}
+    @keyframes tmwUpdRing {{ 0%,60% {{ transform: scale(1); opacity: 0; }} 72% {{ opacity: .55; }} 100% {{ transform: scale(1.7); opacity: 0; }} }}
     @media (prefers-reduced-motion: reduce) {{
-      .tmw-upd-spin, .tmw-upd-core, .tmw-upd-circle, .tmw-upd-handle {{ animation: none; }}
-      .tmw-upd-spin {{ transform: rotate(540deg) scale(.8); }}
-      .tmw-upd-core {{ opacity: 0; }} .tmw-upd-circle, .tmw-upd-handle {{ opacity: 1; stroke-dashoffset: 0; }}
+      .tmw-upd-spin, .tmw-upd-core, .tmw-upd-ring {{ animation: none; }}
+      .tmw-upd-ring {{ opacity: 0; }}
     }}
     .pp-minis {{ display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 16px; }}
     .pp-mini {{ padding: 10px 11px; background: rgba(0,0,0,.30); border: 1px solid rgba(255,255,255,.07); border-radius: 10px; }}
