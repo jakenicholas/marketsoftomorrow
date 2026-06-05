@@ -2624,21 +2624,56 @@
       "delivery_speculative": false
     },
     "st-regis-bahia-mar": {
-      "estimate_years": 1.5,
-      "estimate_label": "~1.5 years",
-      "days_out": 574,
-      "delivery_date": "2027-12-31",
-      "source": "known_date",
-      "precision": "year",
-      "confidence": "high",
+      "estimate_years": 2.9,
+      "estimate_label": "~2.9 years",
+      "range_low": 2.6,
+      "range_high": 3.0,
+      "confidence": "medium",
+      "comparable_count": 2,
+      "good_count": 2,
+      "exact_count": 2,
+      "used_relaxed": false,
+      "avg_match_score": 0.7,
+      "avg_distance_km": 53.3,
+      "avg_distance_mi": 33.1,
+      "scale_used": false,
+      "firm_signal": {
+        "firm": "Related Group",
+        "count": 1,
+        "median_years": 3.0,
+        "stddev_years": 0.0,
+        "role": "developer",
+        "consistent": false,
+        "blend_weight": 0.4
+      },
+      "source": "comparables",
       "project_type": "Entertainment",
       "metro": "South Florida",
-      "comparables": [],
-      "comparable_count": 0,
-      "pattern_summary": "Targeted for opening in ~1.5 years.",
-      "dates_speculative": false,
-      "start_speculative": false,
-      "delivery_speculative": false
+      "comparables": [
+        {
+          "name": "Glazer Hall",
+          "slug": "glazer-hall",
+          "location": "Palm Beach",
+          "years": 2.6,
+          "score": 0.7,
+          "distance_km": 67.2,
+          "distance_mi": 41.8
+        },
+        {
+          "name": "Nu Stadium at Miami Freedom Park",
+          "slug": "nu-stadium-at-miami-freedom-park",
+          "location": "Miami",
+          "years": 3.0,
+          "score": 0.7,
+          "distance_km": 39.5,
+          "distance_mi": 24.5
+        }
+      ],
+      "pattern_summary": "Among 2 same-metro entertainment projects in TMW's data, the median build time is 2.8 years (range 2.6–3). Adjusted to ~2.9 years for Related Group's own track record (~3-year typical pace across 1 prior project).",
+      "dates_speculative": true,
+      "start_speculative": true,
+      "delivery_speculative": true,
+      "is_mixed_use": false
     },
     "rosewood-hillsboro-beach": {
       "estimate_years": 0.6,
@@ -7941,13 +7976,13 @@
   },
   "stats": {
     "high": 2,
-    "medium": 25,
+    "medium": 26,
     "low": 26,
-    "known_date": 260,
+    "known_date": 259,
     "completed": 39,
     "skipped": 60,
     "no_type": 0,
-    "firm_boosted": 31,
+    "firm_boosted": 32,
     "speculative_softened": 28,
     "mixed_use_adjusted": 1
   }
