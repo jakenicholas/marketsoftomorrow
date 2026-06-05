@@ -860,6 +860,26 @@ def build_milestones(row, articles=None):
             if adate and (not others or adate < min(others)):
                 consider(entry('announced', adate, first.get('link', ''), sourced=bool(first.get('link'))))
 
+    # Prefer TMW's own coverage (oftmw.com) as the source when we published about
+    # a milestone the same month (or year, for year-grain dates) it happened —
+    # keep readers in our ecosystem when we covered the event.
+    if articles:
+        tmw_by_key = {}
+        for a in sorted(articles, key=lambda x: (x.get('published_at', '') or '')):
+            link = (a.get('link', '') or '')
+            pa = (a.get('published_at', '') or '')[:10]
+            if 'oftmw.com' not in link or not pa:
+                continue
+            tmw_by_key.setdefault(pa[:7], link)   # YYYY-MM (first/earliest that month)
+            tmw_by_key.setdefault(pa[:4], link)   # YYYY
+        if tmw_by_key:
+            for e in found.values():
+                d = e['date'] or ''
+                key = d[:7] if len(d) >= 7 else d[:4]
+                if key and key in tmw_by_key and 'oftmw.com' not in (e['source_url'] or ''):
+                    e['source_url'] = tmw_by_key[key]
+                    e['source_domain'] = _url_domain(tmw_by_key[key])
+
     # Suppress the generic coarse phase when a finer one in its band is present,
     # and move the "current" marker to the finest present phase in that band.
     if any(p in found for p in DOSSIER_FINE_CONSTRUCTION):
@@ -910,8 +930,11 @@ def build_milestones(row, articles=None):
 
 
 def dossier_section_html(row, articles=None):
-    data = build_milestones(row, articles)
-    ms = data['milestones']
+    # Reuse the precomputed list (set in main()) so the page + map are identical;
+    # fall back to computing for standalone/local renders.
+    ms = row.get('Milestones')
+    if ms is None:
+        ms = build_milestones(row, articles)['milestones']
     # Only render when there's a real story to tell (≥2 milestones with substance).
     if len([m for m in ms if m['date_display'] or m['state'] != 'future']) < 2:
         return ''
@@ -933,12 +956,21 @@ def dossier_section_html(row, articles=None):
                         f'<svg class="dos-arr" viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" '
                         f'stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
                         f'<line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a>')
-        detail_html = f'<div class="dos-detail">{_escape_text(m["note"])}</div>' if m.get('note') else ''
+        info_html = ''
+        if m.get('note'):
+            info_html = (
+                '<span class="dos-info" tabindex="0">'
+                '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" '
+                'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+                '<circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/>'
+                '<line x1="12" y1="8" x2="12.01" y2="8"/></svg>'
+                f'<span class="dos-tip">{_escape_text(m["note"])}</span></span>'
+            )
         rows.append(
             f'<div class="dos-row dos-row-{state}">{dot}'
             f'<div class="dos-body"><div class="dos-line">'
-            f'<span class="dos-label">{_escape_text(m["label"])}</span>{date_html}</div>'
-            f'{detail_html}{src_html}</div></div>'
+            f'<span class="dos-label">{_escape_text(m["label"])}</span>{date_html}{info_html}</div>'
+            f'{src_html}</div></div>'
         )
     return (
         f'<div class="pp-sec pp-dossier"><div class="pp-sec-h">{TMW_UPD_ICON} The story so far</div>'
@@ -2033,7 +2065,11 @@ def build_page(row, articles=None, nearby=None):
     .dos-date {{ font-size: 12px; color: rgba(255,255,255,.6); font-variant-numeric: tabular-nums; }}
     .dos-date.dos-tbd {{ color: rgba(255,255,255,.35); }}
     .dos-est {{ font-size: 9.5px; color: rgba(255,255,255,.4); margin-left: 5px; text-transform: uppercase; letter-spacing: .05em; }}
-    .dos-detail {{ font-size: 12.5px; color: rgba(255,255,255,.62); line-height: 1.4; margin-top: 3px; }}
+    .dos-info {{ position: relative; display: inline-flex; align-items: center; margin-left: 7px; color: rgba(255,255,255,.34); cursor: help; vertical-align: middle; }}
+    .dos-info:hover, .dos-info:focus {{ color: rgba(255,255,255,.72); outline: none; }}
+    .dos-info > svg {{ width: 13px; height: 13px; display: block; }}
+    .dos-tip {{ position: absolute; left: 0; bottom: calc(100% + 8px); width: max-content; max-width: 260px; background: #15110f; border: 1px solid rgba(255,255,255,.14); color: #ECEAE5; font-size: 12px; line-height: 1.45; padding: 8px 11px; border-radius: 9px; box-shadow: 0 14px 38px -12px rgba(0,0,0,.85); opacity: 0; visibility: hidden; transition: opacity .14s; z-index: 30; pointer-events: none; white-space: normal; font-weight: 400; }}
+    .dos-info:hover .dos-tip, .dos-info:focus .dos-tip {{ opacity: 1; visibility: visible; }}
     .dos-src {{ display: inline-flex; align-items: center; gap: 3px; margin-top: 4px; font-size: 11px; color: #42EB81; text-decoration: none; }}
     .dos-src .dos-arr {{ flex: none; }}
     .dos-src:hover {{ text-decoration: underline; }}
@@ -3498,6 +3534,11 @@ def main():
             page_articles = articles_archive.get(slug_for_lookup, [])
             if page_articles:
                 pages_with_coverage += 1
+            # Precompute the dossier milestone timeline ONCE (with articles, for the
+            # "Announced" proxy + oftmw source preference) and stash it on the row,
+            # so the page render reuses it AND it gets embedded in projects-flat.json
+            # for the map — guaranteeing the page + map dossiers are identical.
+            row['Milestones'] = build_milestones(row, page_articles)['milestones']
             # Nearby = up to 3 other projects in the same city.
             _city = (row.get('City', '') or '').strip()
             nearby_rows = [r for r in city_index.get(_city, [])
@@ -3514,6 +3555,16 @@ def main():
             skipped += 1
 
     print(f"  Coverage diagnostic: {pages_with_coverage}/{generated} pages have a Coverage section")
+
+    # Re-write projects-flat.json with the precomputed `Milestones` embedded so the
+    # map renders the exact same dossier timeline as the project pages. (fetch_projects
+    # regenerates this file fresh each run, so this augmentation is recomputed every time.)
+    try:
+        with open('projects-flat.json', 'w', encoding='utf-8') as f:
+            json.dump(rows, f, indent=2, ensure_ascii=False)
+        print(f"  ✓ Embedded dossier Milestones into projects-flat.json ({generated} projects)")
+    except Exception as e:
+        print(f"  ✗ Could not write Milestones into projects-flat.json: {e}")
 
     # --- Atlas aggregates: developers/architects/cities leaderboards + hero stats ---
     # Pre-computed at build time so the Atlas view in index.html just fetches a

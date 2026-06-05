@@ -4185,7 +4185,11 @@
   #projectModal .dos-date { font-size: 12px; color: rgba(255,255,255,.6); }
   #projectModal .dos-date.dos-tbd { color: rgba(255,255,255,.35); }
   #projectModal .dos-est { font-size: 9.5px; color: rgba(255,255,255,.4); margin-left: 5px; text-transform: uppercase; letter-spacing: .05em; }
-  #projectModal .dos-detail { font-size: 12.5px; color: rgba(255,255,255,.62); line-height: 1.4; margin-top: 3px; }
+  #projectModal .dos-info { position: relative; display: inline-flex; align-items: center; margin-left: 7px; color: rgba(255,255,255,.34); cursor: help; vertical-align: middle; }
+  #projectModal .dos-info:hover, #projectModal .dos-info:focus { color: rgba(255,255,255,.72); outline: none; }
+  #projectModal .dos-info > svg { width: 13px; height: 13px; display: block; }
+  #projectModal .dos-tip { position: absolute; left: 0; bottom: calc(100% + 8px); width: max-content; max-width: 240px; background: #15110f; border: 1px solid rgba(255,255,255,.14); color: #ECEAE5; font-size: 12px; line-height: 1.45; padding: 8px 11px; border-radius: 9px; box-shadow: 0 14px 38px -12px rgba(0,0,0,.85); opacity: 0; visibility: hidden; transition: opacity .14s; z-index: 30; pointer-events: none; white-space: normal; }
+  #projectModal .dos-info:hover .dos-tip, #projectModal .dos-info:focus .dos-tip { opacity: 1; visibility: visible; }
   #projectModal .dos-src { display: inline-flex; align-items: center; gap: 3px; margin-top: 4px; font-size: 11px; color: #42EB81; text-decoration: none; }
   #projectModal .dos-src .dos-arr { flex: none; }
   #projectModal .dos-src:hover { text-decoration: underline; }
@@ -14365,32 +14369,41 @@
           const el = document.getElementById('pmDossier');
           if (!el) return;
           try {
+            const esc = (s) => (s || '').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+            const ARR = '<svg class="dos-arr" viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>';
+            const INFO = (note) => note ? '<span class="dos-info" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span class="dos-tip">' + esc(note) + '</span></span>' : '';
+            const HEX = '<span class="tmw-upd-ico" aria-hidden="true"><svg viewBox="0 0 100 100"><polygon class="tmw-upd-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/><g class="tmw-upd-spin"><polygon class="tmw-upd-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g></svg></span>';
+            const finish = (list) => {
+              if (!Array.isArray(list) || list.filter(m => m.disp || m.state !== 'future').length < 2) { el.style.display = 'none'; el.innerHTML = ''; return; }
+              const rows = list.map((m) => {
+                const date = m.disp ? '<span class="dos-date">' + esc(m.disp) + (m.est ? '<span class="dos-est">est.</span>' : '') + '</span>' : (m.state === 'future' ? '<span class="dos-date dos-tbd">date TBD</span>' : '');
+                const src = (m.src && m.dom) ? '<a class="dos-src" href="' + esc(m.src) + '" target="_blank" rel="noopener">' + esc(m.dom) + ARR + '</a>' : '';
+                return '<div class="dos-row dos-row-' + m.state + '"><span class="dos-dot dos-' + m.state + '"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">' + esc(m.label) + '</span>' + date + INFO(m.note) + '</div>' + src + '</div></div>';
+              }).join('');
+              el.innerHTML = '<div class="pm-dossier-h">' + HEX + 'The story so far</div><div class="dos-tl">' + rows + '</div>';
+              el.style.display = 'block';
+            };
+
+            // Preferred: the precomputed list baked by generate_pages (identical to the
+            // project page — includes the Announced proxy + oftmw source preference).
+            let pre = p.milestones;
+            if (typeof pre === 'string') { try { pre = JSON.parse(pre); } catch (e) { pre = null; } }
+            if (Array.isArray(pre) && pre.length) {
+              finish(pre.map(m => ({ label: m.label, disp: m.date_display, src: m.source_url, dom: m.source_domain, note: m.note, state: m.state, est: m.estimated })));
+              return;
+            }
+
+            // Fallback: build client-side from statusHistory + dates (until the next
+            // generate-pages run embeds Milestones). No Announced/oftmw, but renders.
             const ORDER = ['announced','financing','breaking-ground','construction','going-vertical','halfway','topping-out','tenant','tco','coming-soon','move-in','bookings','grand-opening'];
             const RANK = {}; ORDER.forEach((k, i) => { RANK[k] = i; });
             const LABEL = { announced:'Announced', financing:'Financing secured', 'breaking-ground':'Broke ground', construction:'Under construction', 'going-vertical':'Going vertical', halfway:'Halfway there', 'topping-out':'Topped out', tenant:'Tenant announced', tco:'TCO received', 'coming-soon':'Coming soon', 'move-in':'Resident move-in', bookings:'Bookings open', 'grand-opening':'Opened' };
             const STATUS_TO_PHASE = { announced:'announced', 'breaking-ground':'breaking-ground', construction:'construction', 'coming-soon':'coming-soon', open:'grand-opening' };
             const FINE_CONSTR = ['topping-out','halfway','going-vertical'];
             const FINE_OPEN = ['bookings','move-in','tco'];
-            const normStatus = (raw) => {
-              const s = (raw || '').toString().toLowerCase();
-              if (!s) return 'announced';
-              if (s.indexOf('open') >= 0 || s.indexOf('complete') >= 0) return 'open';
-              if (s.indexOf('coming') >= 0 || s.indexOf('opening') >= 0) return 'coming-soon';
-              if (s.indexOf('construction') >= 0 || s.indexOf('topping') >= 0 || s.indexOf('vertical') >= 0) return 'construction';
-              if (s.indexOf('breaking') >= 0 || s.indexOf('ground') >= 0) return 'breaking-ground';
-              return 'announced';
-            };
-            const fmt = (s) => {
-              s = (s || '').toString().trim();
-              const m = s.match(/^(\d{4})(?:-(\d{2}))?(?:-(\d{2}))?/);
-              if (!m) return '';
-              const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-              if (m[2] && m[3]) return MON[+m[2]-1] + ' ' + (+m[3]) + ', ' + m[1];
-              if (m[2]) return MON[+m[2]-1] + ' ' + m[1];
-              return m[1];
-            };
-            const dom = (u) => { try { const h = new URL(u).hostname.toLowerCase(); return h.indexOf('www.') === 0 ? h.slice(4) : h; } catch (e) { return ''; } };
-            const esc = (s) => (s || '').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+            const normStatus = (raw) => { const s=(raw||'').toString().toLowerCase(); if(!s)return'announced'; if(s.indexOf('open')>=0||s.indexOf('complete')>=0)return'open'; if(s.indexOf('coming')>=0||s.indexOf('opening')>=0)return'coming-soon'; if(s.indexOf('construction')>=0||s.indexOf('topping')>=0||s.indexOf('vertical')>=0)return'construction'; if(s.indexOf('breaking')>=0||s.indexOf('ground')>=0)return'breaking-ground'; return'announced'; };
+            const fmt = (s) => { s=(s||'').toString().trim(); const m=s.match(/^(\d{4})(?:-(\d{2}))?(?:-(\d{2}))?/); if(!m)return''; const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']; if(m[2]&&m[3])return MON[+m[2]-1]+' '+(+m[3])+', '+m[1]; if(m[2])return MON[+m[2]-1]+' '+m[1]; return m[1]; };
+            const dom = (u) => { try { const h=new URL(u).hostname.toLowerCase(); return h.indexOf('www.')===0?h.slice(4):h; } catch(e){ return ''; } };
             let hist = p.statusHistory;
             if (typeof hist === 'string') { try { hist = JSON.parse(hist); } catch (e) { hist = []; } }
             if (!Array.isArray(hist)) hist = [];
@@ -14402,13 +14415,8 @@
             hist.forEach((h) => {
               if (!h || h.type === 'date' || h.type === 'field') return;
               const ev = (h.effective_date || '').toString().trim(), rec = (h.at || '').toString().slice(0, 10);
-              if (h.type === 'milestone') {
-                const ph = (h.phase || '').toString().toLowerCase();
-                if (ph in RANK) consider(entry(ph, ev || rec, h.source_url, !ev, true, h.note));
-              } else {
-                const ph = STATUS_TO_PHASE[(h.to || '').toString().toLowerCase()];
-                if (ph) consider(entry(ph, ev || rec, h.source_url, !ev, true, h.note));
-              }
+              if (h.type === 'milestone') { const ph = (h.phase || '').toString().toLowerCase(); if (ph in RANK) consider(entry(ph, ev || rec, h.source_url, !ev, true, h.note)); }
+              else { const ph = STATUS_TO_PHASE[(h.to || '').toString().toLowerCase()]; if (ph) consider(entry(ph, ev || rec, h.source_url, !ev, true, h.note)); }
             });
             const sd = (p.startDate || '').toString().trim(), dd = (p.deliveryDate || '').toString().trim();
             if (sd && !found['breaking-ground']) consider(entry('breaking-ground', sd, '', !!p.startSpeculative, false));
@@ -14425,33 +14433,12 @@
               if (phase === 'grand-opening' && m.projected) m.label = 'Expected opening';
               out.push(m);
             });
-            // Chronological order (by event date) — a financing/tenant milestone
-            // can land mid-build. Date-less confirmed slot after dated; future last.
-            const skey = (m) => {
-              const mm = (m.date || '').slice(0, 10).match(/^(\d{4})(?:-(\d{2}))?(?:-(\d{2}))?/);
-              const nd = mm ? (mm[1] + '-' + (mm[2] || '01') + '-' + (mm[3] || '01')) : '';
-              if (m.projected) return [2, nd || '9999-99-99', m.rank];
-              return nd ? [0, nd, m.rank] : [1, '', m.rank];
-            };
-            out.sort((a, b) => { const ka = skey(a), kb = skey(b); return ka[0] - kb[0] || (ka[1] < kb[1] ? -1 : ka[1] > kb[1] ? 1 : 0) || ka[2] - kb[2]; });
+            const skey = (m) => { const mm=(m.date||'').slice(0,10).match(/^(\d{4})(?:-(\d{2}))?(?:-(\d{2}))?/); const nd=mm?(mm[1]+'-'+(mm[2]||'01')+'-'+(mm[3]||'01')):''; if(m.projected)return[2,nd||'9999-99-99',m.rank]; return nd?[0,nd,m.rank]:[1,'',m.rank]; };
+            out.sort((a,b) => { const ka=skey(a),kb=skey(b); return ka[0]-kb[0] || (ka[1]<kb[1]?-1:ka[1]>kb[1]?1:0) || ka[2]-kb[2]; });
             out.forEach(m => { m.state = m.projected ? 'future' : 'past'; });
             const done = out.filter(m => !m.projected);
             if (done.length) done[done.length - 1].state = 'now';
-            if (out.filter(m => m.disp || m.state !== 'future').length < 2) { el.style.display = 'none'; el.innerHTML = ''; return; }
-            const rows = out.map((m) => {
-              const date = m.disp
-                ? '<span class="dos-date">' + esc(m.disp) + (m.est ? '<span class="dos-est">est.</span>' : '') + '</span>'
-                : (m.state === 'future' ? '<span class="dos-date dos-tbd">date TBD</span>' : '');
-              const src = (m.src && m.dom) ? '<a class="dos-src" href="' + esc(m.src) + '" target="_blank" rel="noopener">' + esc(m.dom) + '<svg class="dos-arr" viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a>' : '';
-              const detail = m.note ? '<div class="dos-detail">' + esc(m.note) + '</div>' : '';
-              return '<div class="dos-row dos-row-' + m.state + '"><span class="dos-dot dos-' + m.state + '"></span>'
-                + '<div class="dos-body"><div class="dos-line"><span class="dos-label">' + esc(m.label) + '</span>' + date + '</div>' + detail + src + '</div></div>';
-            }).join('');
-            const hex = '<span class="tmw-upd-ico" aria-hidden="true"><svg viewBox="0 0 100 100">'
-              + '<polygon class="tmw-upd-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/>'
-              + '<g class="tmw-upd-spin"><polygon class="tmw-upd-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g></svg></span>';
-            el.innerHTML = '<div class="pm-dossier-h">' + hex + 'The story so far</div><div class="dos-tl">' + rows + '</div>';
-            el.style.display = 'block';
+            finish(out);
           } catch (e) { el.style.display = 'none'; el.innerHTML = ''; }
         })();
 
@@ -17507,6 +17494,10 @@
                 // Sourced change log (status/date/spec) — powers the "story so far"
                 // dossier timeline in the modal. Array of {at,from,to,effective_date,source_url,...}.
                 statusHistory: p.StatusHistory || [],
+                // Precomputed dossier milestone timeline (generate_pages bakes this in
+                // WITH articles, so the map renders the EXACT same rows as the project
+                // page — incl. the "Announced" proxy + oftmw source preference).
+                milestones: p.Milestones || null,
                 descriptionLong: p.DescriptionLong || '',
                 image2: p.Image2 || '',
                 image3: p.Image3 || '',
