@@ -2087,8 +2087,8 @@
       box-shadow: 0 0 0 3px #0f0f0f;
       z-index: 1;
     }
-    .pulse-ev-wrap[data-event-type="status_change"]::before { background: #FF9500; }
-    .pulse-ev-wrap[data-event-type="new_project"]::before   { background: #6FA8FF; }
+    .pulse-ev-wrap[data-event-type="status_change"]::before { background: #A78BFA; }
+    .pulse-ev-wrap[data-event-type="new_project"]::before   { background: #8b93a7; }
 
     .pulse-ev {
       display: block;
@@ -2113,17 +2113,22 @@
       text-transform: uppercase;
     }
     .pulse-ev-ts { color: var(--accent); }
-    .pulse-ev-wrap[data-event-type="status_change"] .pulse-ev-ts { color: #FF9500; }
-    .pulse-ev-wrap[data-event-type="new_project"]   .pulse-ev-ts { color: #6FA8FF; }
-    /* Tracking ("Now tracking …") — a calmer violet so it sits quietly below
-       the orange story milestones; only ever shown under the All filter. */
-    .pulse-ev-wrap[data-event-type="tracking"]::before { background: #9b8fd1; }
-    .pulse-ev-wrap[data-event-type="tracking"] .pulse-ev-ts { color: #9b8fd1; }
-    .pulse-ev-eye-icon { color: #9b8fd1; vertical-align: -2px; margin-right: 1px; flex-shrink: 0; }
+    /* Story milestones — PURPLE, matching the project dossier "story so far"
+       (--purple #A78BFA). The Pulse milestone IS that same dated, sourced row. */
+    .pulse-ev-wrap[data-event-type="status_change"] .pulse-ev-ts { color: #A78BFA; }
+    .pulse-ev-wrap[data-event-type="status_change"] .pulse-ev-type-lbl { color: #A78BFA; }
+    /* Tracking + legacy additions ("Now tracking …") — a quiet slate so they sit
+       below the purple story milestones; tracking shows only under the All filter. */
+    .pulse-ev-wrap[data-event-type="new_project"]   .pulse-ev-ts { color: #8b93a7; }
+    .pulse-ev-wrap[data-event-type="new_project"]   .pulse-ev-type-lbl { color: #8b93a7; }
+    .pulse-ev-wrap[data-event-type="tracking"]::before { background: #8b93a7; }
+    .pulse-ev-wrap[data-event-type="tracking"] .pulse-ev-ts { color: #8b93a7; }
+    .pulse-ev-wrap[data-event-type="tracking"] .pulse-ev-type-lbl { color: #8b93a7; }
+    .pulse-ev-eye-icon { color: #8b93a7; vertical-align: -2px; margin-right: 1px; flex-shrink: 0; }
     body.ui-v2 .v2-pulse-content .pulse-ev-wrap[data-event-type="tracking"] .pulse-ev-type-lbl,
-    body.ui-v2 #desktopSidebar .v2-pulse-content .pulse-ev-wrap[data-event-type="tracking"] .pulse-ev-type-lbl { color: #9b8fd1 !important; }
+    body.ui-v2 #desktopSidebar .v2-pulse-content .pulse-ev-wrap[data-event-type="tracking"] .pulse-ev-type-lbl { color: #8b93a7 !important; }
     body.ui-v2 .v2-pulse-content .pulse-ev-wrap[data-event-type="tracking"]::before,
-    body.ui-v2 #desktopSidebar .v2-pulse-content .pulse-ev-wrap[data-event-type="tracking"]::before { background: #9b8fd1; box-shadow: 0 0 0 3px rgba(155,143,209,0.18); }
+    body.ui-v2 #desktopSidebar .v2-pulse-content .pulse-ev-wrap[data-event-type="tracking"]::before { background: #8b93a7; box-shadow: 0 0 0 3px rgba(139,147,167,0.18); }
     .pulse-ev-sep { color: rgba(255,255,255,0.3); }
     .pulse-ev-loc { color: rgba(255,255,255,0.55); }
 
@@ -9149,10 +9154,10 @@
       font-weight: 800 !important;
       text-transform: uppercase !important;
       letter-spacing: 0.06em !important;
-      color: var(--orange, #FF9500);
+      color: #A78BFA;
     }
     body.ui-v2 .v2-pulse-content .pulse-ev-wrap[data-event-type="article"]     .pulse-ev-type-lbl { color: var(--accent, #1FDF67) !important; }
-    body.ui-v2 .v2-pulse-content .pulse-ev-wrap[data-event-type="new_project"] .pulse-ev-type-lbl { color: var(--blue, #6FA8FF) !important; }
+    body.ui-v2 .v2-pulse-content .pulse-ev-wrap[data-event-type="new_project"] .pulse-ev-type-lbl { color: #8b93a7 !important; }
     /* Location + time ‚Äî muted, mixed-case (not all caps), lighter
        weight so only the colored TYPE label carries the eyebrow look. */
     body.ui-v2 .v2-pulse-content .pulse-ev-loc,
@@ -9206,7 +9211,7 @@
     body.ui-v2 .v2-pulse-content .pulse-ev:hover {
       background: transparent !important;
     }
-    body.ui-v2 .v2-pulse-content .pulse-ev-wrap[data-event-type="status_change"]::before { background: var(--orange, #FF9500); box-shadow: 0 0 0 3px rgba(255,149,0,0.18); }
+    body.ui-v2 .v2-pulse-content .pulse-ev-wrap[data-event-type="status_change"]::before { background: #A78BFA; box-shadow: 0 0 0 3px rgba(167,139,250,0.18); }
     body.ui-v2 .v2-pulse-content .pulse-ev-wrap[data-event-type="article"]::before      { background: var(--accent, #1FDF67); box-shadow: 0 0 0 3px rgba(31,223,103,0.18); }
     body.ui-v2 .v2-pulse-content .pulse-ev-wrap[data-event-type="new_project"]::before  { background: var(--blue, #6FA8FF); box-shadow: 0 0 0 3px rgba(111,168,255,0.18); }
     body.ui-v2 .v2-pulse-content .pulse-ev {
@@ -10059,7 +10064,7 @@
       border-radius: 50%;
       background: rgba(255,255,255,0.3);
     }
-    body.ui-v2 #desktopSidebar .v2-pulse-content .pulse-ev-wrap[data-event-type="status_change"]::before { background: #FF9500; box-shadow: 0 0 0 3px rgba(255,149,0,0.18); }
+    body.ui-v2 #desktopSidebar .v2-pulse-content .pulse-ev-wrap[data-event-type="status_change"]::before { background: #A78BFA; box-shadow: 0 0 0 3px rgba(167,139,250,0.18); }
     body.ui-v2 #desktopSidebar .v2-pulse-content .pulse-ev-wrap[data-event-type="article"]::before      { background: var(--accent, #1FDF67); box-shadow: 0 0 0 3px rgba(31,223,103,0.18); }
     body.ui-v2 #desktopSidebar .v2-pulse-content .pulse-ev-wrap[data-event-type="new_project"]::before  { background: #6FA8FF; box-shadow: 0 0 0 3px rgba(111,168,255,0.18); }
     /* Full-width hover affordance on desktop. The base desktop rule
@@ -10110,7 +10115,7 @@
       color: var(--orange, #FF9500);
     }
     body.ui-v2 #desktopSidebar .v2-pulse-content .pulse-ev-wrap[data-event-type="article"]     .pulse-ev-type-lbl { color: var(--accent, #1FDF67) !important; }
-    body.ui-v2 #desktopSidebar .v2-pulse-content .pulse-ev-wrap[data-event-type="new_project"] .pulse-ev-type-lbl { color: var(--blue, #6FA8FF) !important; }
+    body.ui-v2 #desktopSidebar .v2-pulse-content .pulse-ev-wrap[data-event-type="new_project"] .pulse-ev-type-lbl { color: #8b93a7 !important; }
     body.ui-v2 #desktopSidebar .v2-pulse-content .pulse-ev-loc,
     body.ui-v2 #desktopSidebar .v2-pulse-content .pulse-ev-ts {
       color: rgba(255,255,255,0.55) !important;
@@ -19945,7 +19950,16 @@
         // For a status milestone, lead the title with just the PROJECT NAME
         // (the phase is shown in the meta row) so the row mirrors the dossier
         // "story so far" — which is per-project and never repeats the name.
-        var titleText = (e.type === 'status_change' && e.project_title) ? e.project_title : (e.title || '');
+        // Legacy "X added to the map" additions read as "Now tracking X" so they
+        // match the grouped/individual tracking events.
+        var titleText;
+        if (e.type === 'status_change' && e.project_title) {
+          titleText = e.project_title;
+        } else if (e.type === 'new_project') {
+          titleText = 'Now tracking ' + (e.project_title || (e.title || '').replace(/\s+added to the map$/i, ''));
+        } else {
+          titleText = e.title || '';
+        }
 
         // Dossier-style source link: a milestone carries the same source_url the
         // dossier cites. Render the domain + the dossier's NE arrow. It sits
