@@ -119,25 +119,6 @@ def _latest_update(record: dict) -> str:
     return max(times) if times else ''
 
 
-def _last_status_change(record: dict) -> dict:
-    """Most recent lifecycle status transition from status_history. Returns {}
-    if none. Status entries carry from/to and NO 'type' key; date/field updates
-    carry type='date'/'field' (see worker update_project_status). Used to surface
-    the "Movers this week" feed (from → to + sourcing) on the Atlas dashboard."""
-    best = None
-    for h in (record.get('status_history') or []):
-        if not isinstance(h, dict):
-            continue
-        if h.get('type') in ('date', 'field', 'milestone'):
-            continue
-        if not h.get('to'):
-            continue
-        at = str(h.get('at') or '')
-        if best is None or at > str(best.get('at') or ''):
-            best = h
-    return best or {}
-
-
 def flatten(record: dict, architect_names: dict, developer_names: dict) -> dict:
     """
     Convert a single tmw-data JSON record into the CSV-shape dict the
@@ -173,7 +154,6 @@ def flatten(record: dict, architect_names: dict, developer_names: dict) -> dict:
     types = record.get('types') or []
     arch_slugs = record.get('architect_slugs') or []
     dev_slugs = record.get('developer_slugs') or []
-    _lsc = _last_status_change(record)
 
     # Coordinate fields: existing code reads them as strings and coerces
     # with `+p.Longitude` in JS / similar in Python. Stringify defensively
@@ -261,12 +241,6 @@ def flatten(record: dict, architect_names: dict, developer_names: dict) -> dict:
         # Public "Updated" stamp — latest change/verify time (ISO 8601 UTC).
         # Rendered above the timeline on project pages + the map modal.
         'UpdatedAt':       _latest_update(record),
-        # Most recent lifecycle status transition (from → to + the source the
-        # autonomous sweep cited). Powers the Atlas "Movers this week" feed.
-        'LastChangeFrom':   (_lsc.get('from') or '') if _lsc else '',
-        'LastChangeTo':     (_lsc.get('to') or '') if _lsc else '',
-        'LastChangeSource': (_lsc.get('source_url') or '') if _lsc else '',
-        'LastChangeAt':     (_lsc.get('at') or '') if _lsc else '',
         # Full sourced change log (status + date/spec edits). Carries each
         # entry's effective_date (when the milestone actually happened) so the
         # project-page dossier timeline can show event dates, not discovery dates.

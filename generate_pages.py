@@ -3373,55 +3373,9 @@ def build_atlas_json(rows, pulse_path='pulse.json', articles_archive=None):
         rows_by_state[_state_for_city((r.get('City', '') or '').strip())].append(r)
     by_state = {st['code']: _core_aggregates(rows_by_state[st['code']]) for st in available_states}
 
-    # --- Movers: most recent lifecycle status transitions ----------------
-    # Built from the LastChange* fields fetch_projects.py carries off each
-    # project's status_history (from → to + the source the sweep cited).
-    _STATUS_DISPLAY = {
-        'announced': 'Announced', 'breaking-ground': 'Breaking Ground',
-        'construction': 'Construction', 'coming-soon': 'Coming Soon', 'open': 'Now Open',
-    }
-
-    def _status_label(code):
-        if not code:
-            return ''
-        return _STATUS_DISPLAY.get(code, code.replace('-', ' ').title())
-
-    def _source_domain(u):
-        try:
-            from urllib.parse import urlparse
-            host = (urlparse(u).netloc or '').lower()
-            return host[4:] if host.startswith('www.') else host
-        except Exception:
-            return ''
-
-    movers = []
-    for r in rows:
-        to_code = (r.get('LastChangeTo', '') or '').strip()
-        at = (r.get('LastChangeAt', '') or '').strip()
-        title = (r.get('Title', '') or '').strip()
-        if not to_code or not at or not title:
-            continue
-        city = (r.get('City', '') or '').strip()
-        src = (r.get('LastChangeSource', '') or '').strip()
-        try:
-            slug = slugify(title)
-        except Exception:
-            slug = ''
-        movers.append({
-            'slug': slug,
-            'title': title,
-            'city': city,
-            'state': _state_for_city(city),
-            'from': _status_label((r.get('LastChangeFrom', '') or '').strip()),
-            'to': _status_label(to_code),
-            'to_code': to_code,
-            'source_url': src,
-            'source_domain': _source_domain(src),
-            'at': at,
-            'link': f"{SITE_URL}/?project=" + re.sub(r'[^a-z0-9]', '', title.lower()),
-        })
-    movers.sort(key=lambda x: x['at'], reverse=True)
-    movers = movers[:12]
+    # (The atlas "Movers" panel now reads recent_activity — the Pulse feed of real
+    # event-dated milestones — so it stays in sync with the project dossiers. The
+    # old LastChange-based `movers` array is retired.)
 
     return {
         'generated_at': now.isoformat(),
@@ -3443,8 +3397,6 @@ def build_atlas_json(rows, pulse_path='pulse.json', articles_archive=None):
         # Per-state core aggregates for the dashboard tiles / stage bars /
         # momentum index, so they filter like the leaderboards do.
         'by_state': by_state,
-        # Recent lifecycle status transitions for the "Movers this week" feed.
-        'movers': movers,
         # Full city → state map so the atlas pipeline-timeline view can filter
         # by state without being limited to the top-30-per-state leaderboard
         # subset. Each city maps to exactly one state code (cities live in

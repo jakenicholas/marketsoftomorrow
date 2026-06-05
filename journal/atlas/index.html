@@ -1374,59 +1374,48 @@
     }
 
     function renderMovers() {
-      const DOT = { 'open': 'var(--green)', 'coming-soon': '#6CA8FF', 'construction': 'var(--orange)', 'breaking-ground': 'var(--gold)', 'announced': 'var(--mute)' };
-      const NOTE = { 'open': 'Now open', 'coming-soon': 'Opening soon', 'construction': 'Now under construction', 'breaking-ground': 'Broke ground', 'announced': 'Announced on the map' };
-      const stateFilter = (currentStateFilter && currentStateFilter !== 'ALL') ? currentStateFilter : null;
-      const arrow = ' <span class="marrow">→</span> ';
-
-      // Preferred: the rich `movers` feed (from → to + sourcing). Filterable by state.
-      let list = (atlasData.movers || []);
-      if (stateFilter) list = list.filter(m => m.state === stateFilter);
-      list = list.slice(0, 6);
-      let rows = '';
-
-      if (list.length) {
-        rows = list.map(m => {
-          const dot = DOT[m.to_code] || 'var(--purple)';
-          const trans = m.from
-            ? `${escapeHtml(m.from)}${arrow}<span class="to">${escapeHtml(m.to)}</span>`
-            : `<span class="to">${escapeHtml(m.to)}</span>`;
-          const note = NOTE[m.to_code] || m.to || '';
-          const src = (m.source_url && m.source_domain)
-            ? ` <span class="sdot">·</span> <a href="${escapeHtml(m.source_url)}" target="_blank" rel="noopener">${escapeHtml(m.source_domain)} ↗</a>`
-            : (m.city ? ` <span class="sdot">·</span> ${escapeHtml(m.city)}` : '');
-          const nameInner = `<div class="mname">${escapeHtml(m.title)}</div>`;
-          const name = m.link
-            ? `<a href="${escapeHtml(m.link)}" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">${nameInner}</a>`
-            : nameInner;
-          return `<div class="atlas-mover"><span class="md" style="background:${dot}"></span>`
-            + `<div>${name}<div class="mchg">${trans} ${hexMarker(11)}</div>`
-            + `<div class="msrc">${escapeHtml(note)}${src}</div></div></div>`;
-        }).join('');
-      } else {
-        // Under a state filter with no recent movers, hide the panel entirely.
-        if (stateFilter) return '';
-        // Fallback (e.g. before the first post-deploy regen populates `movers`):
-        // render the pulse activity feed in the same style.
-        const evs = (atlasData.recent_activity || []).filter(e => e.type === 'status_change' || e.type === 'new_project').slice(0, 5);
-        if (!evs.length) return '';
-        const TAGDOT = { 'Now Open': 'var(--green)', 'Opening Soon': '#6CA8FF', 'Construction': 'var(--orange)', 'Breaking Ground': 'var(--gold)', 'Announced': 'var(--mute)' };
-        rows = evs.map(e => {
-          const isNew = e.type === 'new_project';
-          const tag = e.tag || (isNew ? 'Added to the map' : '');
-          const dot = isNew ? 'var(--purple)' : (TAGDOT[tag] || 'var(--purple)');
-          const name = escapeHtml(e.project_title || e.title || '');
-          const href = e.link || '#';
-          const nameInner = `<div class="mname">${name}</div>`;
-          const nm = (href && href !== '#')
-            ? `<a href="${escapeHtml(href)}" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">${nameInner}</a>`
-            : nameInner;
-          return `<div class="atlas-mover"><span class="md" style="background:${dot}"></span>`
-            + `<div>${nm}<div class="mchg"><span class="to">${escapeHtml(tag)}</span> ${hexMarker(11)}</div>`
-            + `${e.city ? `<div class="msrc">${escapeHtml(e.city)}</div>` : ''}</div></div>`;
-        }).join('');
-      }
-      return `<div class="atlas-panel"><h3 class="atlas-ph"><span class="lbl">Movers this week</span><span class="hint">auto-detected status changes</span></h3>${rows}</div>`;
+      // Sourced from the Pulse feed (recent_activity) — the SAME event-dated, sourced
+      // milestones the project dossiers use. (Pulse events are global; the state
+      // filter doesn't apply to this "what's happening across the map" feed.)
+      const TAGDOT = {
+        'Now Open': 'var(--green)', 'Opened': 'var(--green)', 'Coming soon': '#6CA8FF', 'Opening Soon': '#6CA8FF',
+        'Under construction': 'var(--orange)', 'Going vertical': 'var(--orange)', 'Topped out': 'var(--orange)', 'Halfway there': 'var(--orange)',
+        'Broke ground': 'var(--gold)', 'Breaking Ground': 'var(--gold)', 'Financing secured': 'var(--purple-soft)',
+        'Tenant announced': 'var(--purple-soft)', 'TCO received': '#6CA8FF', 'Resident move-in': 'var(--green)', 'Bookings open': 'var(--green)', 'Announced': 'var(--mute)',
+      };
+      const fmtEv = (s) => {
+        s = (s || '').toString().trim();
+        const m = s.match(/^(\d{4})(?:-(\d{2}))?(?:-(\d{2}))?/);
+        if (!m) return '';
+        const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        if (m[2] && m[3]) return `${MON[+m[2]-1]} ${+m[3]}, ${m[1]}`;
+        if (m[2]) return `${MON[+m[2]-1]} ${m[1]}`;
+        return m[1];
+      };
+      const dom = (u) => { try { const h = new URL(u).hostname.toLowerCase(); return h.indexOf('www.') === 0 ? h.slice(4) : h; } catch (e) { return ''; } };
+      const evs = (atlasData.recent_activity || []).filter(e => e.type === 'status_change' || e.type === 'new_project').slice(0, 6);
+      if (!evs.length) return '';
+      const rows = evs.map(e => {
+        const isNew = e.type === 'new_project';
+        const tag = e.tag || (isNew ? 'Added to the map' : '');
+        const dot = isNew ? 'var(--purple)' : (TAGDOT[tag] || 'var(--purple)');
+        const name = escapeHtml(e.project_title || e.title || '');
+        const href = e.link || '#';
+        const nameInner = `<div class="mname">${name}</div>`;
+        const nm = (href && href !== '#')
+          ? `<a href="${escapeHtml(href)}" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">${nameInner}</a>`
+          : nameInner;
+        const ev = e.event_date ? fmtEv(e.event_date) : '';
+        const srcDom = e.source_url ? dom(e.source_url) : '';
+        const srcHtml = srcDom
+          ? `<a href="${escapeHtml(e.source_url)}" target="_blank" rel="noopener" style="color:var(--green-soft);text-decoration:none">${escapeHtml(srcDom)} ↗</a>`
+          : (e.city ? escapeHtml(e.city) : '');
+        const meta = [ev, srcHtml].filter(Boolean).join(' <span class="sdot">·</span> ');
+        return `<div class="atlas-mover"><span class="md" style="background:${dot}"></span>`
+          + `<div>${nm}<div class="mchg"><span class="to">${escapeHtml(tag)}</span> ${hexMarker(11)}</div>`
+          + `${meta ? `<div class="msrc">${meta}</div>` : ''}</div></div>`;
+      }).join('');
+      return `<div class="atlas-panel"><h3 class="atlas-ph"><span class="lbl">Movers this week</span><span class="hint">tracked milestones</span></h3>${rows}</div>`;
     }
 
     function renderIndexPanel() {
