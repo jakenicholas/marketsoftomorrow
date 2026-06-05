@@ -4090,18 +4090,18 @@
       "delivery_speculative": false
     },
     "curio-by-hilton": {
-      "estimate_years": 2.7,
-      "estimate_label": "~2.7 years",
-      "range_low": 1.6,
+      "estimate_years": 1.8,
+      "estimate_label": "~1.8 years",
+      "range_low": 1.5,
       "range_high": 8.1,
-      "confidence": "low",
-      "comparable_count": 2,
-      "good_count": 1,
-      "exact_count": 1,
-      "used_relaxed": true,
-      "avg_match_score": 0.67,
-      "avg_distance_km": 1334.9,
-      "avg_distance_mi": 829.4,
+      "confidence": "medium",
+      "comparable_count": 3,
+      "good_count": 2,
+      "exact_count": 2,
+      "used_relaxed": false,
+      "avg_match_score": 0.7,
+      "avg_distance_km": 951.6,
+      "avg_distance_mi": 591.3,
       "scale_used": true,
       "firm_signal": {
         "firm": "Related Ross",
@@ -4126,6 +4126,15 @@
           "distance_mi": 2.8
         },
         {
+          "name": "Naples Beach Club, A Four Seasons Resort",
+          "slug": "naples-beach-club-a-four-seasons-resort",
+          "location": "Naples",
+          "years": 3.0,
+          "score": 0.76,
+          "distance_km": 185.1,
+          "distance_mi": 115.0
+        },
+        {
           "name": "Siari, a Ritz-Carlton Reserve",
           "slug": "siari-a-ritz-carlton-reserve",
           "location": "Riviera Nayarit",
@@ -4135,7 +4144,7 @@
           "distance_mi": 1656.1
         }
       ],
-      "pattern_summary": "Among 2 hotel projects in TMW's data, the median build time is 4.8 years (range 1.6–8.1). Adjusted to ~2.7 years for Related Ross's own track record (~0.9-year typical pace across 2 prior projects).",
+      "pattern_summary": "Among 3 hotel projects in TMW's data, the median build time is 3 years (range 1.5–8.1). Adjusted to ~1.8 years for Related Ross's own track record (~0.9-year typical pace across 2 prior projects).",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false,
@@ -7968,8 +7977,8 @@
   },
   "stats": {
     "high": 2,
-    "medium": 26,
-    "low": 27,
+    "medium": 27,
+    "low": 26,
     "known_date": 256,
     "completed": 39,
     "skipped": 62,
