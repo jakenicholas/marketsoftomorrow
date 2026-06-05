@@ -405,7 +405,7 @@
     {
       "@type": "PropertyValue",
       "name": "Status",
-      "value": "Under Construction"
+      "value": "Opening Soon"
     },
     {
       "@type": "PropertyValue",
@@ -852,7 +852,13 @@
     .dos-date { font-size: 12px; color: rgba(255,255,255,.6); font-variant-numeric: tabular-nums; }
     .dos-date.dos-tbd { color: rgba(255,255,255,.35); }
     .dos-est { font-size: 9.5px; color: rgba(255,255,255,.4); margin-left: 5px; text-transform: uppercase; letter-spacing: .05em; }
-    .dos-src { display: inline-block; margin-top: 3px; font-size: 11px; color: #42EB81; text-decoration: none; }
+    .dos-info { position: relative; display: inline-flex; align-items: center; margin-left: 7px; color: rgba(255,255,255,.34); cursor: help; vertical-align: middle; }
+    .dos-info:hover, .dos-info:focus { color: rgba(255,255,255,.72); outline: none; }
+    .dos-info > svg { width: 13px; height: 13px; display: block; }
+    .dos-tip { position: absolute; left: 0; bottom: calc(100% + 8px); width: max-content; max-width: 260px; background: #15110f; border: 1px solid rgba(255,255,255,.14); color: #ECEAE5; font-size: 12px; line-height: 1.45; padding: 8px 11px; border-radius: 9px; box-shadow: 0 14px 38px -12px rgba(0,0,0,.85); opacity: 0; visibility: hidden; transition: opacity .14s; z-index: 30; pointer-events: none; white-space: normal; font-weight: 400; }
+    .dos-info:hover .dos-tip, .dos-info:focus .dos-tip { opacity: 1; visibility: visible; }
+    .dos-src { display: inline-flex; align-items: center; gap: 3px; margin-top: 4px; font-size: 11px; color: #42EB81; text-decoration: none; }
+    .dos-src .dos-arr { flex: none; }
     .dos-src:hover { text-decoration: underline; }
     .dos-note { margin-top: 13px; font-size: 11px; color: rgba(255,255,255,.42); line-height: 1.55; }
 
@@ -1006,7 +1012,7 @@
       <div class="pp-hero-inner" id="ppHeroInner">
         <div class="pp-hero-main">
           <div class="pp-hero-head">
-            <span class="pp-eyebrow"><span class="d" style="color:#FF9500"></span>Under Construction</span>
+            <span class="pp-eyebrow"><span class="d" style="color:#1FDF67"></span>Opening Soon</span>
             <h1 class="pp-h1">New Highmark Stadium</h1>
             <div class="pp-loc">Orchard Park · Stadium</div>
           </div>
@@ -1020,14 +1026,14 @@
         <div class="pp-panel">
           <div class="pp-updated"><span class="tmw-upd-ico" aria-hidden="true"><svg viewBox="0 0 100 100"><polygon class="tmw-upd-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/><g class="tmw-upd-spin"><polygon class="tmw-upd-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g></svg></span><span class="pp-updated-t">Last verified Jun 5, 2026</span></div>
           
-    <div class="pm-tl"><div class="pm-tl-date">7 months to delivery</div>
+    <div class="pm-tl"><div class="pm-tl-date">3 months to delivery</div>
       <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
-        <div class="pm-tl-empty" style="left:59%"></div>
-        <div class="pm-tl-knob" style="left:59%;box-shadow:0 2px 8px rgba(0,0,0,.5),0 0 0 2px rgba(167,139,250,.42),0 0 12px rgba(167,139,250,.55)">59%</div>
+        <div class="pm-tl-empty" style="left:78%"></div>
+        <div class="pm-tl-knob" style="left:78%;box-shadow:0 2px 8px rgba(0,0,0,.5),0 0 0 2px rgba(167,139,250,.42),0 0 12px rgba(167,139,250,.55)">78%</div>
       </div>
-      <div class="pm-tl-stages"><span class="pm-tl-stage done">Announced</span><span class="pm-tl-stage done">Breaking Ground</span><span class="pm-tl-stage on" style="color:#B9A6FF;font-weight:800;text-shadow:0 0 12px rgba(167,139,250,.5)">Construction</span><span class="pm-tl-stage ">Opening Soon</span><span class="pm-tl-stage ">Now Open</span></div>
+      <div class="pm-tl-stages"><span class="pm-tl-stage done">Announced</span><span class="pm-tl-stage done">Breaking Ground</span><span class="pm-tl-stage done">Construction</span><span class="pm-tl-stage on" style="color:#B9A6FF;font-weight:800;text-shadow:0 0 12px rgba(167,139,250,.5)">Opening Soon</span><span class="pm-tl-stage ">Now Open</span></div>
     </div>
-          <div class="pp-minis"><div class="pp-mini"><div class="v">06.05.23</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2026</div><div class="k">Completion</div></div></div>
+          <div class="pp-minis"><div class="pp-mini"><div class="v">06.05.23</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">09.26</div><div class="k">Completion</div></div></div>
         </div>
       </div>
 
@@ -1036,7 +1042,7 @@
 
     <div class="pp-below" id="ppBelow">
       <div class="watching-card" id="watchingCard" hidden><div class="watching-card-eyebrow"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> You're watching</div><div class="watching-card-body" id="watchingCardBody"></div></div>
-      <div class="pp-sec pp-dossier"><div class="pp-sec-h"><span class="tmw-upd-ico" aria-hidden="true"><svg viewBox="0 0 100 100"><polygon class="tmw-upd-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/><g class="tmw-upd-spin"><polygon class="tmw-upd-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g></svg></span> The story so far</div><div class="dos-tl"><div class="dos-row dos-row-past"><span class="dos-dot dos-past"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Broke ground</span><span class="dos-date">Jun 5, 2023</span></div></div></div><div class="dos-row dos-row-now"><span class="dos-dot dos-now"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Under construction</span></div></div></div><div class="dos-row dos-row-future"><span class="dos-dot dos-future"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Expected opening</span><span class="dos-date">2026</span></div></div></div></div><div class="dos-note">Milestones are dated to when they actually happened and linked to their source. This record fills in over time as TMW tracks the project.</div></div>
+      <div class="pp-sec pp-dossier"><div class="pp-sec-h"><span class="tmw-upd-ico" aria-hidden="true"><svg viewBox="0 0 100 100"><polygon class="tmw-upd-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/><g class="tmw-upd-spin"><polygon class="tmw-upd-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g></svg></span> The story so far</div><div class="dos-tl"><div class="dos-row dos-row-past"><span class="dos-dot dos-past"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Broke ground</span><span class="dos-date">Jun 5, 2023</span></div></div></div><div class="dos-row dos-row-past"><span class="dos-dot dos-past"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">TCO received</span><span class="dos-date">Jun 1, 2026</span><span class="dos-info" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span class="dos-tip">Temporary certificate of occupancy issued; Bills received the keys and began moving staff into the building</span></span></div><a class="dos-src" href="https://spectrumlocalnews.com/nys/buffalo/news/2026/06/01/buffalo-bills-to-begin-moving-into-new-highmark-stadium-monday" target="_blank" rel="noopener">spectrumlocalnews.com<svg class="dos-arr" viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a></div></div><div class="dos-row dos-row-now"><span class="dos-dot dos-now"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Opened</span><span class="dos-date">Sep 2026</span></div></div></div></div><div class="dos-note">Milestones are dated to when they actually happened and linked to their source. This record fills in over time as TMW tracks the project.</div></div>
       
       <div class="pp-sec"><div class="pp-sec-h">Developer &amp; design</div><div class="pp-firms"><a class="pp-firm" href="/firm/pegula-sports-entertainment/"><div class="k">Developer</div><div class="v">Pegula Sports & Entertainment</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="/firm/populous/"><div class="k">Architect</div><div class="v">Populous</div><span class="go">View firm profile →</span></a></div></div>
       <div class="pp-sec"><div class="pp-sec-h">Location</div>
