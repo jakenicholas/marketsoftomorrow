@@ -2265,27 +2265,26 @@
   </script>
 
   <!-- ───────────────────────────────────────────────────────────────────
-       ATLAS PAYWALL GATE — the atlas is free to browse for 10 seconds, then a
-       hard (non-dismissable) Pro paywall blocks it. localStorage marks the free
-       view as used, so refreshing can't reset the 10s. Paid members are never
-       gated (Memberstack/_isPaidMember resolves via journal-auth).
+       ATLAS PAYWALL GATE — 24-hour preview for non-Pro users, shared with the
+       map (same `mot_trial_start` localStorage key) so the whole product is one
+       24h trial. After 24h, a Pro paywall nudges (soft — dismissible). Paid
+       members are never gated (Memberstack/_isPaidMember via journal-auth).
        ─────────────────────────────────────────────────────────────────── -->
   <script>
   (function () {
-    var KEY = 'tmw_atlas_gate', GRACE = 10000;
-    var used = false; try { used = !!localStorage.getItem(KEY); } catch (e) {}
-    function fire() {
-      if (window._isPaidMember) return;                       // never gate Pro members
-      try { localStorage.setItem(KEY, String(Date.now())); } catch (e) {}
-      if (typeof window.tmwShowPaywall === 'function') {
-        window.tmwShowPaywall('atlas', { hard: true });
-      }
+    var TRIAL_MS = 24 * 60 * 60 * 1000, KEY = 'mot_trial_start';
+    function trialStart() {
+      var t = parseInt(localStorage.getItem(KEY) || '0', 10);
+      if (!t) { t = Date.now(); try { localStorage.setItem(KEY, String(t)); } catch (e) {} }
+      return t;
     }
+    function expired() { return (Date.now() - trialStart()) >= TRIAL_MS; }
     function start() {
-      if (window._isPaidMember) return;
-      // First visit → 10s free preview. Returning (free view already used) → block
-      // straight away so a refresh can't buy another 10 seconds.
-      setTimeout(function () { if (!window._isPaidMember) fire(); }, used ? 0 : GRACE);
+      if (window._isPaidMember) return;          // never gate Pro members
+      trialStart();                              // stamp the 24h clock on first visit
+      if (expired() && typeof window.tmwShowPaywall === 'function') {
+        window.tmwShowPaywall('atlas', { hard: false });
+      }
     }
     // Wait for Memberstack to resolve _isPaidMember first (so a Pro member is
     // never briefly blocked), capped at ~4s in case it never loads.

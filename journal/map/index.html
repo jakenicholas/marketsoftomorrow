@@ -5639,6 +5639,16 @@
     text-align: center;
     animation: paywallPop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
+  /* Dismiss (X) — only on the soft 24h-trial paywall, not the hard ones. */
+  .paywall-close { display: none; }
+  .paywall-modal.paywall-soft .paywall-close {
+    display: flex; align-items: center; justify-content: center;
+    position: absolute; top: 10px; right: 10px; width: 32px; height: 32px;
+    border-radius: 50%; border: none; padding: 0; z-index: 6; cursor: pointer;
+    background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.7);
+    font-size: 24px; line-height: 1; transition: background 0.15s, color 0.15s;
+  }
+  .paywall-modal.paywall-soft .paywall-close:hover { background: rgba(255,255,255,0.2); color: #fff; }
   @keyframes paywallPop {
     from { opacity: 0; transform: scale(0.9) translateY(20px); }
     to   { opacity: 1; transform: scale(1) translateY(0); }
@@ -17650,6 +17660,23 @@
       const PRICE_ID_ANNUAL  = 'prc_annual-9i2e0eab';
       const MEMBER_FIELD = 'clickCount';  // Memberstack custom field name
 
+      // ── 24-hour preview window (replaces the old click-count gating) ──────
+      // Everyone who is NOT a paid (Pro) member gets 24 hours of full access
+      // from their first visit on this device; after that, opening a project
+      // triggers the Pro paywall (soft lock — panning the map stays free). A
+      // free account does NOT extend the window — it's per-device (localStorage),
+      // independent of sign-in, so the only thing that removes the gate is Pro.
+      const TRIAL_MS = 24 * 60 * 60 * 1000;
+      const TRIAL_START_KEY = 'mot_trial_start';
+      function getTrialStart() {
+        let t = parseInt(localStorage.getItem(TRIAL_START_KEY) || '0', 10);
+        if (!t) { t = Date.now(); try { localStorage.setItem(TRIAL_START_KEY, String(t)); } catch (e) {} }
+        return t;
+      }
+      function trialExpired() {
+        return (Date.now() - getTrialStart()) >= TRIAL_MS;
+      }
+
       let isPaidMember = false;
       let isSignedIn = false;
       let memberClickCount = 0;  // mirrors the value on the member record
@@ -17949,6 +17976,7 @@
         modal.innerHTML = `
           <div class="paywall-backdrop"></div>
           <div class="paywall-card">
+            <button class="paywall-close" id="subPaywallClose" type="button" aria-label="Close">&times;</button>
             <div class="paywall-icon">
               <img src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/other/50822a-TMW_Logos-16.svg" alt="Markets of Tomorrow" />
             </div>
@@ -17999,6 +18027,12 @@
           e.preventDefault();
           openSignIn();
         });
+        // Soft (24h-trial) dismiss: close button + backdrop click hide the
+        // paywall so the user can keep panning. Only active in soft mode (set
+        // by showSubscriptionPaywall for trigger 'trial_ended').
+        const _softHide = () => { if (modal.classList.contains('paywall-soft')) hideAllPaywalls(); };
+        modal.querySelector('#subPaywallClose').addEventListener('click', _softHide);
+        modal.querySelector('.paywall-backdrop').addEventListener('click', _softHide);
       }
 
       // ‚îÄ‚îÄ‚îÄ Email signup wall (lighter modal) ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
@@ -18115,6 +18149,9 @@
         buildSubscriptionPaywall();
         const modal = document.getElementById('paywallModal');
         modal.classList.add('active');
+        // 24h-trial paywall is soft (dismissible) so the user keeps browsing
+        // the map; feature/other paywalls stay hard-blocking.
+        modal.classList.toggle('paywall-soft', triggerCtx === 'trial_ended');
         // If already signed in, "Already a subscriber? Sign in" doesn't apply
         const wrap = document.getElementById('subPaywallSigninWrap');
         if (wrap) wrap.style.display = isSignedIn ? 'none' : '';
@@ -18135,8 +18172,10 @@
           } else if (triggerCtx === 'feature:share') {
             titleEl.textContent = 'Share with friends';
             subEl.textContent = 'Sharing projects is a Pro feature. Upgrade to send any development to your network.';
+          } else if (triggerCtx === 'trial_ended') {
+            titleEl.textContent = 'Your 24-hour preview has ended';
+            subEl.textContent = 'Go Pro for unlimited access to every development on the Map of Tomorrow.';
           } else {
-            // Default: click-limit overflow framing.
             titleEl.textContent = 'Unlock the full Map';
             subEl.textContent = 'Subscribe for unlimited access to every development on the Map of Tomorrow.';
           }
@@ -18180,7 +18219,7 @@
         try {
           await window.$memberstackDom.openModal('LOGIN');
           await refreshMemberStatus();
-          if (isPaidMember || (isSignedIn && memberClickCount < FREE_MEMBER_CLICK_LIMIT)) {
+          if (isPaidMember || (isSignedIn && !trialExpired())) {
             hideAllPaywalls();
           }
         } catch (e) {
@@ -19723,44 +19762,19 @@
       // ‚îÄ‚îÄ‚îÄ Public API: gate every project interaction ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
       // Returns true if interaction is allowed, false if blocked
       window.paywallCheck = function() {
-        // Paid ‚Üí unlimited
+        // Pro (paid) gets unlimited access.
         if (isPaidMember) return true;
-
-        // If our cached auth hint says this browser belongs to a signed-in user
-        // but Memberstack hasn't resolved auth yet, we MUST gate via the member
-        // counter (not the anon counter). Otherwise refreshing the page lets the
-        // user burn a fresh batch of anon clicks during the load window.
-        const hint = getAuthHint();
-        const treatAsSignedIn = isSignedIn || hint === 'free' || hint === 'paid';
-
-        if (!treatAsSignedIn) {
-          // Truly anonymous user ‚Üí use localStorage counter
-          const count = getAnonClicks();
-          if (count >= ANON_CLICK_LIMIT) {
-            showSignupWall();
-            return false;
-          }
-          setAnonClicks(count + 1);
-          return true;
-        }
-
-        // Signed-in (or hinted-signed-in) free user ‚Üí use member-record counter.
-        // Use the higher of in-memory and locally-cached count so that even if
-        // refreshMemberStatus hasn't returned yet, we don't reset the count.
-        const effectiveCount = Math.max(memberClickCount, getCachedMemberCount());
-        if (effectiveCount >= FREE_MEMBER_CLICK_LIMIT) {
-          memberClickCount = effectiveCount;
-          showSubscriptionPaywall();
+        // Everyone else (anonymous OR free signed-in) gets a 24-hour preview;
+        // after that, opening a project shows the Pro paywall. Signing up free
+        // does NOT extend the window (it's per-device, independent of sign-in).
+        if (trialExpired()) {
+          showSubscriptionPaywall('trial_ended');
           return false;
         }
-        memberClickCount = effectiveCount + 1;
-        // Persist locally immediately (synchronous) so a refresh can never
-        // roll the counter backward.
-        setCachedMemberCount(memberClickCount);
-        // Async save to Memberstack (don't await ‚Äî let the click proceed instantly)
-        if (isSignedIn) saveMemberClickCount(memberClickCount);
         return true;
       };
+      // Stamp the trial start on first visit so the 24h begins even with no clicks.
+      getTrialStart();
 
       // ‚îÄ‚îÄ‚îÄ Init ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
       waitForMemberstack(async (ms) => {
@@ -19778,7 +19792,7 @@
                 try { await ms.hideModal(); } catch (e) { /* modal might not be open */ }
               }
               await refreshMemberStatus();
-              if (isPaidMember || (isSignedIn && memberClickCount < FREE_MEMBER_CLICK_LIMIT)) {
+              if (isPaidMember || (isSignedIn && !trialExpired())) {
                 hideAllPaywalls();
               }
             }, 0);
