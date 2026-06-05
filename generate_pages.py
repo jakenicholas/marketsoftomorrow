@@ -1208,12 +1208,10 @@ def build_page(row, articles=None, nearby=None):
         '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>'
         ' You\'re watching</div><div class="watching-card-body" id="watchingCardBody"></div></div>'
     )
-    updates_section_html = (
-        '<div class="updates-section" id="updatesSection" hidden>'
-        '<div class="updates-header"><div class="updates-title">Project Updates '
-        '<span class="updates-count" id="updatesCount"></span></div></div>'
-        '<div id="updatesBody"></div></div>'
-    )
+    # "Project Updates" (pulse-hydrated, showed the LOGGED date) is removed — the
+    # dossier "story so far" supersedes it (event-dated + sourced). Empty string so
+    # the #ppBelow template + the harmless ppInitUpdates no-op stay intact.
+    updates_section_html = ''
 
     # The living dossier — sourced, event-dated milestone timeline. Server-rendered
     # (not pulse-hydrated) so it shows the real event dates, full history, and

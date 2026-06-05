@@ -12055,19 +12055,8 @@
               <span class="pm-watch-btn-dot" aria-hidden="true"></span>
             </button>
           </div>
-          <!-- Project Updates: status changes + new-on-map events for this
-               project, derived from pulse.json. Surfaces the TMW-tracked
-               activity timeline (separate from third-party Coverage below).
-               Hidden when there's no activity for this slug. -->
-          <div class="pm-updates" id="pmUpdates" hidden>
-            <div class="pm-updates-header">
-              <div class="pm-updates-title">
-                Project Updates
-                <span class="pm-updates-count" id="pmUpdatesCount"></span>
-              </div>
-            </div>
-            <div id="pmUpdatesBody"></div>
-          </div>
+          <!-- (Project Updates removed — superseded by the "story so far" dossier
+               above, which is event-dated + sourced.) -->
           <!-- Coverage on TMW: list of articles from oftmw.com that mention
                this project. Hidden by default; populated by JS when articles.json
                is fetched and the project has at least one matching article. -->
@@ -14548,11 +14537,7 @@
         // section stays hidden if no articles match this project, so the
         // modal doesn't show an empty section for projects without press.
         renderCoverageSection(p.title, p.image || '');
-        // Project Updates section: TMW-tracked status changes + new-on-map
-        // events for this project, pulled from pulse.json. Hidden when
-        // there's no activity. Sits above Coverage so users see status
-        // history before press.
-        renderUpdatesSection(p.title);
+        // (Project Updates removed — the "story so far" dossier supersedes it.)
         // TMW Intelligence block: time-to-completion estimate from comparable
         // completed projects. Hidden when intel.json has no entry for this slug.
         // Stamp the modal with the open slug so the async intel render can
