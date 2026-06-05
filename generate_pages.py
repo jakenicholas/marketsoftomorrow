@@ -2989,6 +2989,22 @@ def build_atlas_json(rows, pulse_path='pulse.json', articles_archive=None):
             'types':      _lb_types(code),
         }
 
+    # --- Scale: total units / hotel keys / floors across the tracked pipeline ---
+    def _sum_int(field):
+        tot = 0
+        for r in rows:
+            v = (r.get(field, '') or '').strip()
+            try:
+                tot += int(float(v))
+            except (ValueError, TypeError):
+                pass
+        return tot
+    scale = {
+        'units': _sum_int('Units'),
+        'keys': _sum_int('Keys'),
+        'floors': _sum_int('Floors'),
+    }
+
     return {
         'generated_at': now.isoformat(),
         'hero_stats': {
@@ -2998,6 +3014,7 @@ def build_atlas_json(rows, pulse_path='pulse.json', articles_archive=None):
             'under_construction': under_construction,
             'opening_this_year': opening_this_year,
         },
+        'scale': scale,
         'leaderboards': {
             'developers': _lb_developers(),
             'architects': _lb_architects(),

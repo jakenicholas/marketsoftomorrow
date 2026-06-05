@@ -253,11 +253,31 @@
   .atlas-trend-chart { height: 180px; display: flex; align-items: end; gap: 5px; padding: 14px 0; }
   .atlas-trend-bar {
     flex: 1;
-    background: linear-gradient(180deg, #1FDF67 0%, rgba(31,223,103,0.3) 100%);
+    background: linear-gradient(180deg, #A78BFA 0%, rgba(167,139,250,0.25) 100%);
     border-radius: 3px 3px 0 0;
     min-height: 4px;
   }
   .atlas-trend-bar[data-count="0"] { background: rgba(255,255,255,0.05); min-height: 4px; }
+
+  /* ── Intelligence beef-up: purple identity + scale tiles + by-type ── */
+  .atlas-intel-eyebrow{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--purple);margin-bottom:16px}
+  .atlas-intel-eyebrow svg{width:13px;height:13px}
+  .atlas-panel.intel{border-color:rgba(167,139,250,.26);background:linear-gradient(180deg,rgba(167,139,250,.06),rgba(167,139,250,.015))}
+  .atlas-panel.intel .atlas-panel-title{color:var(--purple-soft,#B9A6FF)}
+  /* Scale tiles */
+  .atlas-scale-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  @media(max-width:640px){.atlas-scale-grid{grid-template-columns:1fr}}
+  .atlas-scale-tile{background:linear-gradient(180deg,rgba(167,139,250,.10),rgba(167,139,250,.02));border:1px solid rgba(167,139,250,.24);border-radius:14px;padding:18px 18px 16px}
+  .atlas-scale-tile .n{font-family:var(--serif);font-weight:600;font-size:clamp(26px,3vw,34px);color:#fff;line-height:1;letter-spacing:-.01em}
+  .atlas-scale-tile .n .suf{color:var(--purple-soft,#B9A6FF);font-size:.55em;font-weight:600;margin-left:4px;font-family:var(--mono);letter-spacing:.02em}
+  .atlas-scale-tile .l{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--mute);margin-top:9px}
+  /* By-type bars (purple) */
+  .atlas-type-row{display:grid;grid-template-columns:128px 1fr 46px;align-items:center;gap:12px;padding:6px 0}
+  @media(max-width:800px){.atlas-type-row{grid-template-columns:104px 1fr 40px;gap:10px}}
+  .atlas-type-label{font-size:13px;color:rgba(255,255,255,0.78);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .atlas-type-bar-wrap{background:rgba(255,255,255,0.05);height:8px;border-radius:4px;overflow:hidden}
+  .atlas-type-bar{height:100%;border-radius:4px;background:linear-gradient(90deg,#7c63d6,#A78BFA);transition:width .3s}
+  .atlas-type-count{font-family:var(--mono);font-size:12px;color:var(--mute-2);text-align:right}
   .atlas-trend-labels {
     display: flex; justify-content: space-between;
     padding: 0 6px; font-size: 11px; color: rgba(255,255,255,0.4);
@@ -1137,11 +1157,59 @@
       }).join('');
       const labels = m.map(b => `<span>${escapeHtml(b.month)}</span>`).join('');
       return `
-        <div class="atlas-panel">
-          <div class="atlas-panel-title">Announcement momentum</div>
-          <div class="atlas-panel-sub">New projects added to the map, by month.</div>
+        <div class="atlas-panel intel">
+          <div class="atlas-panel-title">◆ TMW Momentum Index</div>
+          <div class="atlas-panel-sub">New projects entering the pipeline each month.</div>
           <div class="atlas-trend-chart">${bars}</div>
           <div class="atlas-trend-labels">${labels}</div>
+        </div>`;
+    }
+
+    // Scale of the tracked pipeline — total units / hotel keys / floors.
+    function renderScale() {
+      const s = atlasData.scale;
+      if (!s || (!s.units && !s.keys && !s.floors)) return '';
+      const fmt = (n) => {
+        n = Number(n) || 0;
+        if (n >= 1000) return { v: (n / 1000).toFixed(n >= 10000 ? 0 : 1).replace(/\.0$/, ''), suf: 'k' };
+        return { v: String(n), suf: '' };
+      };
+      const tile = (n, label) => {
+        const f = fmt(n);
+        return `<div class="atlas-scale-tile"><div class="n">${f.v}${f.suf ? `<span class="suf">${f.suf}</span>` : ''}</div><div class="l">${label}</div></div>`;
+      };
+      return `
+        <section class="atlas-section">
+          <div class="atlas-intel-eyebrow"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 0l1.1 4.6L13.5 2l-2 4.4 4.5-1.1-3.7 2.7 4.5.9-4.5.9 3.7 2.7-4.5-1.1 2 4.4-4.4-2.6L8 16l-1.1-4.6L2.5 14l2-4.4L0 10.7 3.7 8-.8 7.1l4.5-.9L0 3.4 4.5 4.5 2.5 0l4.4 2.6z"/></svg>The pipeline at scale</div>
+          <div class="atlas-scale-grid">
+            ${tile(s.units, 'Units in pipeline')}
+            ${tile(s.keys, 'Hotel keys')}
+            ${tile(s.floors, 'Floors planned')}
+          </div>
+        </section>`;
+    }
+
+    // What's being built, by project type (purple bars).
+    function renderByType() {
+      const types = (atlasData.leaderboards && atlasData.leaderboards.types) || [];
+      if (!types.length) return '';
+      const top = types.slice(0, 8);
+      const max = Math.max(...top.map(t => t.count || 0), 1);
+      const rows = top.map(t => {
+        const name = t.name || t.label || t.entity || '';
+        const pct = ((t.count || 0) / max) * 100;
+        return `
+          <div class="atlas-type-row">
+            <div class="atlas-type-label">${escapeHtml(name)}</div>
+            <div class="atlas-type-bar-wrap"><div class="atlas-type-bar" style="width:${pct}%"></div></div>
+            <div class="atlas-type-count">${t.count || 0}</div>
+          </div>`;
+      }).join('');
+      return `
+        <div class="atlas-panel intel">
+          <div class="atlas-panel-title">◆ By project type</div>
+          <div class="atlas-panel-sub">What the pipeline is made of.</div>
+          ${rows}
         </div>`;
     }
 
@@ -1652,8 +1720,11 @@
       if (currentAtlasView === 'timeline') {
         sections.push(renderTimelineSection());
       } else {
+        const byType = renderByType();
         sections.push(
+          renderScale(),
           renderLeaderboardSection(),
+          byType ? '<section class="atlas-section">' + byType + '</section>' : '',
           renderOpeningsByYear(),
           renderDistributionAndMomentum(),
           renderCoverageAndComing(),
