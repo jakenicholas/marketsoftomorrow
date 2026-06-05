@@ -808,15 +808,31 @@ async function appendProposal(env, proposal) {
 // back to slugify() only for genuinely new firms.
 let _firmRegCache = null;
 function normFirmName(s) { return String(s || '').toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g, ''); }
+// A slug-like input ("estudio-lamela") → a readable firm name ("Estudio Lamela");
+// proper names (with spaces/caps/punctuation) pass through untouched. Keeps new
+// registry records from being created with a "weird slug" as their name.
+function deslugName(s) {
+  const v = String(s || '').trim();
+  if (!v) return v;
+  if (/^[a-z0-9]+(?:-[a-z0-9]+)+$/.test(v)) {
+    return v.split('-').map((w) => (w ? w[0].toUpperCase() + w.slice(1) : w)).join(' ');
+  }
+  return v;
+}
 async function loadFirmRegistry(env) {
   if (_firmRegCache) return _firmRegCache;
-  const reg = { architects: new Map(), developers: new Map() };
+  const mk = () => ({ byName: new Map(), bySlug: new Map() });
+  const reg = { architects: mk(), developers: mk() };
   for (const [role, path] of [['architects', 'data/architects.json'], ['developers', 'data/developers.json']]) {
     try {
       const { text } = await ghGetFile(env, path);
       const arr = text ? JSON.parse(text) : [];
       for (const f of (Array.isArray(arr) ? arr : [])) {
-        if (f && f.slug && f.name) reg[role].set(normFirmName(f.name), { slug: f.slug, name: f.name });
+        if (f && f.slug && f.name) {
+          const rec = { slug: f.slug, name: f.name };
+          reg[role].byName.set(normFirmName(f.name), rec);
+          reg[role].bySlug.set(String(f.slug).toLowerCase(), rec);
+        }
       }
     } catch (_) { /* registry unavailable — resolveFirms will fall back to slugify */ }
   }
@@ -824,14 +840,21 @@ async function loadFirmRegistry(env) {
   return _firmRegCache;
 }
 // Resolve firm names to canonical slugs; report which matched an existing firm.
-function resolveFirms(names, regMap) {
+// Matches an existing firm by normalized NAME or by exact SLUG (agents sometimes
+// pass a slug) — either way binds to the canonical record. Brand-new firms get a
+// cleaned-up name so they're created as proper records, not slug-named junk.
+function resolveFirms(names, reg) {
+  const byName = (reg && reg.byName) || new Map();
+  const bySlug = (reg && reg.bySlug) || new Map();
   const slugs = [], report = [];
   for (const raw of (Array.isArray(names) ? names : [])) {
     const name = String(raw || '').trim();
     if (!name) continue;
-    const hit = regMap.get(normFirmName(name));
-    const slug = hit ? hit.slug : slugify(name);
-    if (slug) { slugs.push(slug); report.push({ name, slug, existing: !!hit }); }
+    const hit = byName.get(normFirmName(name)) || bySlug.get(slugify(name)) || bySlug.get(name.toLowerCase());
+    if (hit) { slugs.push(hit.slug); report.push({ name: hit.name, slug: hit.slug, existing: true }); continue; }
+    const cleanName = deslugName(name);
+    const slug = slugify(cleanName);
+    if (slug) { slugs.push(slug); report.push({ name: cleanName, slug, existing: false }); }
   }
   return { slugs, report };
 }
