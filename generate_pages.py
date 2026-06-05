@@ -929,14 +929,13 @@ def build_milestones(row, articles=None):
     return {'milestones': entries, 'current': cur_phase}
 
 
-def dossier_section_html(row, articles=None):
-    # Reuse the precomputed list (set in main()) so the page + map are identical;
-    # fall back to computing for standalone/local renders.
-    ms = row.get('Milestones')
-    if ms is None:
-        ms = build_milestones(row, articles)['milestones']
-    # Only render when there's a real story to tell (≥2 milestones with substance).
-    if len([m for m in ms if m['date_display'] or m['state'] != 'future']) < 2:
+def dossier_rows_html(ms):
+    """The SHARED inner `.dos-row` markup for the dossier timeline. Generated once
+    (here, server-side) and used by BOTH the project page (wrapped in a section)
+    and the map (injected into the panel via dossiers.json) — so the two are
+    byte-identical with a single renderer. Returns '' when there's no real story
+    to tell (< 2 substantive milestones)."""
+    if not ms or len([m for m in ms if m.get('date_display') or m.get('state') != 'future']) < 2:
         return ''
     rows = []
     for m in ms:
@@ -972,9 +971,21 @@ def dossier_section_html(row, articles=None):
             f'<span class="dos-label">{_escape_text(m["label"])}</span>{date_html}{info_html}</div>'
             f'{src_html}</div></div>'
         )
+    return ''.join(rows)
+
+
+def dossier_section_html(row, articles=None):
+    # Reuse the precomputed list (set in main()); fall back to computing for
+    # standalone/local renders.
+    ms = row.get('Milestones')
+    if ms is None:
+        ms = build_milestones(row, articles)['milestones']
+    rows = dossier_rows_html(ms)
+    if not rows:
+        return ''
     return (
         f'<div class="pp-sec pp-dossier"><div class="pp-sec-h">{TMW_UPD_ICON} The story so far</div>'
-        f'<div class="dos-tl">{"".join(rows)}</div>'
+        f'<div class="dos-tl">{rows}</div>'
         f'<div class="dos-note">Milestones are dated to when they actually happened and linked to '
         f'their source. This record fills in over time as TMW tracks the project.</div></div>'
     )
@@ -3524,6 +3535,7 @@ def main():
     generated = 0
     skipped = 0
     pages_with_coverage = 0  # diagnostic: how many pages got a Coverage section
+    dossiers = {}  # slug -> precomputed dossier rows HTML (for the map, identical to the page)
 
     for row in rows:
         title = row.get('Title','').strip()
@@ -3544,6 +3556,10 @@ def main():
             nearby_rows = [r for r in city_index.get(_city, [])
                            if (r.get('Title', '') or '').strip() != title][:3]
             html, slug = build_page(row, articles=page_articles, nearby=nearby_rows)
+            # Stash the SAME rows HTML the page just rendered for the map sidecar.
+            _drows = dossier_rows_html(row.get('Milestones') or [])
+            if _drows:
+                dossiers[slug] = _drows
             page_dir = os.path.join(OUTPUT_DIR, slug)
             os.makedirs(page_dir, exist_ok=True)
             with open(os.path.join(page_dir, 'index.html'), 'w', encoding='utf-8') as f:
@@ -3556,15 +3572,15 @@ def main():
 
     print(f"  Coverage diagnostic: {pages_with_coverage}/{generated} pages have a Coverage section")
 
-    # Re-write projects-flat.json with the precomputed `Milestones` embedded so the
-    # map renders the exact same dossier timeline as the project pages. (fetch_projects
-    # regenerates this file fresh each run, so this augmentation is recomputed every time.)
+    # dossiers.json — the precomputed dossier rows HTML keyed by slug. The map
+    # injects this EXACT string, so the map + project-page timelines are rendered
+    # by a single renderer (this file) and can never drift or differ.
     try:
-        with open('projects-flat.json', 'w', encoding='utf-8') as f:
-            json.dump(rows, f, indent=2, ensure_ascii=False)
-        print(f"  ✓ Embedded dossier Milestones into projects-flat.json ({generated} projects)")
+        with open('dossiers.json', 'w', encoding='utf-8') as f:
+            json.dump(dossiers, f, ensure_ascii=False, separators=(',', ':'))
+        print(f"  ✓ dossiers.json ({len(dossiers)} project timelines)")
     except Exception as e:
-        print(f"  ✗ Could not write Milestones into projects-flat.json: {e}")
+        print(f"  ✗ Could not write dossiers.json: {e}")
 
     # --- Atlas aggregates: developers/architects/cities leaderboards + hero stats ---
     # Pre-computed at build time so the Atlas view in index.html just fetches a
