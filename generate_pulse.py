@@ -315,6 +315,9 @@ def fetch_csv_projects():
             # The flat schema's image column is "ImageURL" (matching
             # generate_pages.py). Fall back to lowercase variants for safety.
             'image': (row.get('ImageURL') or row.get('Image') or row.get('image') or '').strip(),
+            # Sourced, event-dated change log — the Pulse now surfaces these real
+            # milestones (financing, topped out, etc.) instead of bare status diffs.
+            'status_history': row.get('StatusHistory') or [],
         }
     return projects
 
@@ -611,6 +614,67 @@ def save_articles_archive(archive: dict):
         json.dump(archive, f, indent=2, ensure_ascii=False)
 
 # --- EVENT BUILDERS ---------------------------------------------------------
+# ── Dossier-based Pulse: real, event-dated construction milestones ───────────
+# The Pulse now surfaces the same sourced events as the project dossier, dated to
+# when they ACTUALLY happened (effective_date), ordered by when TMW logged them.
+# Both fine phases (financing, topped out…) and coarse status transitions flow in.
+DOSSIER_PHASE_LABEL = {
+    'financing': 'Financing secured', 'going-vertical': 'Going vertical', 'halfway': 'Halfway there',
+    'topping-out': 'Topped out', 'tenant': 'Tenant announced', 'tco': 'TCO received',
+    'move-in': 'Resident move-in', 'bookings': 'Bookings open',
+}
+DOSSIER_STATUS_LABEL = {
+    'announced': 'Announced', 'breaking-ground': 'Broke ground', 'construction': 'Under construction',
+    'coming-soon': 'Coming soon', 'open': 'Now Open',
+}
+
+def _event_within_months(effective_date, months=12):
+    """True if effective_date (YYYY / YYYY-MM / YYYY-MM-DD) is in the PAST ~N months
+    — so the Pulse stays 'current happenings' and ancient backfills don't flood it."""
+    s = (effective_date or '').strip()
+    m = re.match(r'^(\d{4})(?:-(\d{2}))?(?:-(\d{2}))?', s)
+    if not m:
+        return False
+    from datetime import date
+    try:
+        d = date(int(m.group(1)), int(m.group(2) or 1), int(m.group(3) or 1))
+    except ValueError:
+        return False
+    today = datetime.now(timezone.utc).date()
+    if d > today:
+        return False  # future / projected — not a "happened" event
+    return (today - d).days <= months * 31
+
+def history_key(slug, entry):
+    """Stable identity for a status_history entry, for de-dup across pulse runs."""
+    ekey = (entry.get('phase') if entry.get('type') == 'milestone' else entry.get('to')) or ''
+    return f"{slug}|{(entry.get('at') or '')[:19]}|{str(ekey).lower()}"
+
+def build_milestone_event(slug, project, entry):
+    """A Pulse event from a sourced status_history milestone/transition — dated to
+    the EVENT (effective_date), ordered by when we logged it (at)."""
+    if entry.get('type') == 'milestone':
+        ekey = (entry.get('phase') or '').lower()
+        label = DOSSIER_PHASE_LABEL.get(ekey, ekey.replace('-', ' ').title() or 'Milestone')
+    else:
+        ekey = (entry.get('to') or '').lower()
+        label = DOSSIER_STATUS_LABEL.get(ekey, ekey.replace('-', ' ').title() or 'Update')
+    at = entry.get('at') or datetime.now(timezone.utc).isoformat()
+    return {
+        'id': f"ms-{slug}-{ekey}-{at[:10]}",
+        'type': 'status_change',
+        'tag': label,
+        'title': f"{project['title']}  {label}",
+        'project_slug': slug,
+        'project_title': project['title'],
+        'city': project['city'],
+        'image': project.get('image') or '',
+        'event_date': (entry.get('effective_date') or '').strip(),  # the REAL date (for display)
+        'source_url': entry.get('source_url') or '',
+        'link': f"{SITE_URL}/?project=" + re.sub(r'[^a-z0-9]', '', project['title'].lower()),
+        'timestamp': at,  # feed order = when TMW tracked it
+    }
+
 def build_status_change_event(slug, project, prev_status, new_status):
     return {
         'id': f"status-{slug}-{new_status.replace(' ', '-')}",
@@ -684,7 +748,7 @@ def load_snapshot():
         print(f"  ! Snapshot read error (treating as empty): {e}", file=sys.stderr)
         return {'projects': {}, 'seen_article_guids': []}
 
-def save_snapshot(projects, seen_article_guids):
+def save_snapshot(projects, seen_article_guids, seen_history_keys=None):
     """Persist current state for the next run to diff against."""
     snapshot = {
         'projects': {
@@ -692,6 +756,8 @@ def save_snapshot(projects, seen_article_guids):
             for slug, p in projects.items()
         },
         'seen_article_guids': list(seen_article_guids)[-200:],  # cap memory
+        # Status_history entries already surfaced to the Pulse (so we never re-emit).
+        'seen_history_keys': list(seen_history_keys or [])[-4000:],
         'last_run': datetime.now(timezone.utc).isoformat(),
     }
     with open(SNAPSHOT_JSON, 'w', encoding='utf-8') as f:
@@ -717,6 +783,11 @@ def main():
     prev_projects = snapshot.get('projects', {})
     seen_guids = set(snapshot.get('seen_article_guids', []))
     is_first_run = len(prev_projects) == 0
+    # De-dup set for status_history-derived milestone events. `history_seeded` is
+    # False the first time this new code runs against an old snapshot → we seed the
+    # set without emitting, so existing history doesn't flood the feed on cutover.
+    seen_history_keys = set(snapshot.get('seen_history_keys', []))
+    history_seeded = 'seen_history_keys' in snapshot
 
     # 2. Fetch current map data
     print(" Loading map data from projects-flat.json...")
@@ -804,28 +875,44 @@ def main():
                             break
 
                 if rename_match is not None:
-                    # Rename detected. Treat as if the slug existed all
-                    # along, with the orphan's previous status. Emit a
-                    # status-change event ONLY if the status actually
-                    # changed; otherwise emit nothing (silent rename).
+                    # Rename detected — silent. (Status changes now come from the
+                    # status_history pass below, dated to the real event.)
                     _, orphan_prev = rename_match
-                    prev_status = orphan_prev.get('status', 'announced')
-                    if new_status != prev_status:
-                        new_events.append(build_status_change_event(slug, project, prev_status, new_status))
-                        print(f"   STATUS (via rename): {project['title']}: {prev_status} {new_status}")
-                    else:
-                        print(f"   RENAME (silent): {orphan_prev.get('title','?')} -> {project['title']}")
+                    print(f"   RENAME (silent): {orphan_prev.get('title','?')} -> {project['title']}")
                 else:
                     # Truly new project
                     new_events.append(build_new_project_event(slug, project))
                     print(f"  + NEW: {project['title']}")
-            else:
-                prev_status = prev.get('status', 'announced')
-                if new_status != prev_status:
-                    new_events.append(build_status_change_event(slug, project, prev_status, new_status))
-                    print(f"   STATUS: {project['title']}: {prev_status}  {new_status}")
+            # else: existing project — its status/milestone changes are emitted by
+            # the status_history pass below (event-dated + sourced), not a status diff.
     else:
         print("  ! First run -- skipping project diff (would generate noise)")
+
+    # 4b. Dossier-based status/milestone events. The real, event-dated activity now
+    # comes from each project's status_history (the same sourced log the dossier
+    # uses) — not a bare status snapshot diff. New entries (vs the seen set) whose
+    # EVENT date is within the last ~12 months become Pulse events. On first
+    # exposure we only seed the seen set (no flood of historical milestones).
+    ms_emitted = 0
+    for slug, project in current_projects.items():
+        for entry in (project.get('status_history') or []):
+            if not isinstance(entry, dict) or entry.get('type') in ('date', 'field'):
+                continue
+            key = history_key(slug, entry)
+            if key in seen_history_keys:
+                continue
+            seen_history_keys.add(key)
+            if not history_seeded:
+                continue  # cutover run: seed only, don't emit
+            if not _event_within_months(entry.get('effective_date'), 12):
+                continue  # undated or older-than-a-year → keep the ticker current
+            new_events.append(build_milestone_event(slug, project, entry))
+            ms_emitted += 1
+            print(f"   MILESTONE: {project['title']} — {entry.get('phase') or entry.get('to')} @ {entry.get('effective_date')}")
+    if not history_seeded:
+        print(f"   (status_history seed run: recorded {len(seen_history_keys)} entries, emitted 0)")
+    else:
+        print(f"   {ms_emitted} milestone events from status_history")
 
     # 5. Add unseen articles
     for article in articles:
@@ -931,7 +1018,7 @@ def main():
     print(f"   Wrote {ARTICLES_JSON} ({coverage_total} article entries across {len(archive)} projects)")
 
     # 9. Save snapshot for next run
-    save_snapshot(current_projects, seen_guids)
+    save_snapshot(current_projects, seen_guids, seen_history_keys)
     print(f"   Wrote {SNAPSHOT_JSON}")
 
     print(" Done.")
