@@ -182,7 +182,7 @@
              '<span class="tdt-qt">' + acEsc(q) + '</span><span class="tdt-ent">&#8629;</span></a>';
     }).join('');
     return '<div class="tmw-dock-teach">' +
-      '<div class="tdt-h">' + HEX_SPIN + '<span class="tdt-ttl">Ask the Map</span>' +
+      '<div class="tdt-h">' + HEX_SPIN + '<span class="tdt-ttl">TMW Intelligence</span>' +
       '<span class="tdt-sub">search in plain English</span><span class="tdt-tag">NEW</span></div>' +
       '<div class="tdt-sec">Try asking</div>' + rows +
       '<div class="tdt-foot">Type a name for instant results, or ask a full question.</div>' +

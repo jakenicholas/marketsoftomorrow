@@ -4,6 +4,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <!-- Show the map loading splash only on the FIRST map view per browser session.
+       This runs before the body paints, so repeat visits never flash the overlay. -->
+  <script>try{if(sessionStorage.getItem('tmwMapLoaderSeen'))document.documentElement.classList.add('skip-maploader');}catch(e){}</script>
 
   <link rel="icon" href="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_71f3cd2ef61049028b2daf4e2ff71d52~mv2.png" type="image/png">
   <link rel="apple-touch-icon" href="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_71f3cd2ef61049028b2daf4e2ff71d52~mv2.png">
@@ -3337,6 +3340,8 @@
       z-index: 90; transition: opacity 0.5s ease;
     }
     #loadingOverlay.fade-out { opacity: 0; pointer-events: none; }
+    /* Repeat map view in the same session: never paint the splash at all. */
+    html.skip-maploader #loadingOverlay { display: none !important; }
     .loading-content { text-align: center; color: #fff; }
     /* Loading mark: the TMW hex spins up, then crossfades into a search icon
        over one 3s loop and holds on the search icon. Sourced from
@@ -12243,9 +12248,18 @@
     // If window.load is slower than 3s, wait for it (so the map never reveals
     // half-painted); hard-cap at 6s so a stalled load never traps the user.
     (function(){
+      var lo = document.getElementById('loadingOverlay');
+      // Already shown once this session → skip the splash entirely (CSS in <head>
+      // has already hidden it; just make sure it's gone and don't run timers).
+      if (document.documentElement.classList.contains('skip-maploader')) {
+        if (lo) lo.style.display = 'none';
+        return;
+      }
+      // First map view this session — show it, then remember so the next map
+      // load in this session goes straight to the map.
+      try { sessionStorage.setItem('tmwMapLoaderSeen', '1'); } catch (e) {}
       var MIN_MS = 3000, started = Date.now();
       function hideLoader(){
-        var lo = document.getElementById('loadingOverlay');
         if (!lo || lo.classList.contains('fade-out')) return;
         lo.classList.add('fade-out');
         setTimeout(function(){ if (lo) lo.style.display = 'none'; }, 500);
