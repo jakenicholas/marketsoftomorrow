@@ -12509,7 +12509,13 @@
     // after the gesture settles. Mobile only; desktop keeps the glass look live.
     if (isMobile) {
       const _blurStyle = document.createElement('style');
-      _blurStyle.textContent = 'body.map-busy *{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}';
+      // While the map is moving: kill backdrop-filter AND pause every CSS
+      // animation. The page runs many infinite animations (pulse bell, dock glow,
+      // LIVE dot, hex spinners, shimmers) that keep the mobile compositor busy
+      // each frame; pausing them for the duration of a pan/zoom frees the GPU for
+      // the map and stops the low-zoom lag. They resume the instant the gesture
+      // settles — invisible to the user mid-gesture.
+      _blurStyle.textContent = 'body.map-busy *{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;animation-play-state:paused!important;-webkit-animation-play-state:paused!important}';
       document.head.appendChild(_blurStyle);
 
       // The GL "glow" layers (featured-glow has circle-blur:0.8; watched-ring is
