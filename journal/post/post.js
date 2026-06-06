@@ -11,6 +11,10 @@ const PULSE_NEW_DAYS = 7;
 const PULSE_MAX     = 8;
 const PLACEMENT     = 'article';
 const POST_URL_BASE = '/post/?slug=';
+// Signed client-preview token (?pt=…). When present we ask the worker for the
+// draft, mark the page noindex, show a DRAFT pill, and — once the post is
+// published — redirect to the canonical live article.
+const PREVIEW_TOKEN = new URLSearchParams(location.search).get('pt') || '';
 
 document.getElementById('yr').textContent = new Date().getFullYear();
 
@@ -69,7 +73,14 @@ function trackView(slug) {
 async function loadArticle(slug) {
   try {
     const post = await fetchPost(slug);
+    // A client preview link whose post is now published → bounce to the live
+    // article (the preview link "clears" itself once the piece goes live).
+    if (PREVIEW_TOKEN && post && post.status === 'published') {
+      location.replace('/post/' + encodeURIComponent(slug) + '/');
+      return;
+    }
     renderArticle(post);
+    if (post && post.status && post.status !== 'published') markDraftPreview();
     loadReadNext(post, slug);
   } catch (err) {
     console.error('[article] load failed:', err);
@@ -84,11 +95,33 @@ async function loadArticle(slug) {
   }
 }
 
+// Inject a "DRAFT" gold pill at the top of the article + make the preview page
+// non-indexable. Only runs for an unpublished post viewed via a preview link.
+function markDraftPreview() {
+  try {
+    var r = document.querySelector('meta[name="robots"]');
+    if (r) r.setAttribute('content', 'noindex, nofollow');
+    else { var m = document.createElement('meta'); m.name = 'robots'; m.content = 'noindex, nofollow'; document.head.appendChild(m); }
+  } catch (e) {}
+  try {
+    if (!document.getElementById('draft-pill')) {
+      var pill = document.createElement('div');
+      pill.id = 'draft-pill';
+      pill.innerHTML = '<span class="draft-pill-badge">● Draft</span>' +
+        '<span class="draft-pill-note">Private preview — not published. Visible only to people with this link.</span>';
+      var catRow = document.getElementById('cat-row');
+      if (catRow && catRow.parentNode) catRow.parentNode.insertBefore(pill, catRow);
+      else { var root = document.getElementById('article-root'); if (root) root.insertBefore(pill, root.firstChild); }
+    }
+    if (document.title.indexOf('[DRAFT]') < 0) document.title = '[DRAFT] ' + document.title;
+  } catch (e) {}
+}
+
 async function fetchPost(slug) {
   // 1. Primary source: D1-backed /posts/by-slug/:slug (1,377 posts migrated
   //    from Wix). Returns a clean canonical record.
   try {
-    const res = await fetch(WORKER_URL + '/posts/by-slug/' + encodeURIComponent(slug), { cache: 'no-store' });
+    const res = await fetch(WORKER_URL + '/posts/by-slug/' + encodeURIComponent(slug) + (PREVIEW_TOKEN ? '?preview=' + encodeURIComponent(PREVIEW_TOKEN) : ''), { cache: 'no-store' });
     if (res.ok) {
       const data = await res.json();
       if (data && data.post) {
@@ -160,6 +193,7 @@ function adaptD1PostShape(p) {
     content_html: p.body_html || '',
     source_url:   p.wix_url || '',
     body_source:  p.body_source || 'd1',
+    status:       p.status || '',
   };
 }
 

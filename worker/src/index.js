@@ -1279,6 +1279,21 @@ async function handlePostsList(req, env, origin, url) {
   );
 }
 
+// Secret for signing draft-preview tokens (reuses the gallery/session secret).
+function previewSecret(env) { return env.SESSION_SECRET || env.ADMIN_TOKEN || 'tmw-preview-fallback'; }
+
+// GET /preview-token?slug=<slug> (admin) → a signed, 60-day, slug-scoped token
+// the Studio embeds in the client preview link (/post/?slug=…&pt=<token>).
+async function handlePreviewToken(req, env, origin, url) {
+  const slug = fullyDecodeSlug(url.searchParams.get('slug') || '');
+  if (!slug) return json({ error: 'slug required' }, { status: 400 }, env, origin);
+  const token = await signPayload(
+    { slug, t: 'preview', exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 60 },
+    previewSecret(env),
+  );
+  return json({ token, url: 'https://www.oftmw.com/post/?slug=' + encodeURIComponent(slug) + '&pt=' + encodeURIComponent(token) }, {}, env, origin);
+}
+
 async function handlePostsBySlug(req, env, origin, slug) {
   if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
   // Idempotently decode URL-encoded chars. Some inbound URLs are
@@ -1294,14 +1309,26 @@ async function handlePostsBySlug(req, env, origin, slug) {
     .prepare(`SELECT * FROM posts WHERE slug = ?1 LIMIT 1`)
     .bind(slug).first();
   if (!row) return json({ error: 'post not found in DB', slug }, { status: 404 }, env, origin);
-  // Drafts only visible to an authenticated admin
+  // Drafts are visible to (a) an authenticated admin, or (b) anyone holding a
+  // valid signed preview token for this slug — the "send to a client" link.
+  // The token is unguessable, slug-scoped, and expiring → link-only, not indexable.
   if (row.status !== 'published') {
-    const denied = await requireAdminToken(req, env, origin);
-    if (denied) return json({ error: 'post not yet published' }, { status: 404 }, env, origin);
+    let previewOk = false;
+    try {
+      const pt = new URL(req.url).searchParams.get('preview') || '';
+      if (pt) {
+        const obj = await verifyPayload(pt, previewSecret(env));
+        previewOk = !!(obj && obj.t === 'preview' && obj.slug === slug);
+      }
+    } catch (_) {}
+    if (!previewOk) {
+      const denied = await requireAdminToken(req, env, origin);
+      if (denied) return json({ error: 'post not yet published' }, { status: 404 }, env, origin);
+    }
   }
   return json(
     { post: rowToPostFull(row) },
-    { headers: { 'Cache-Control': 'public, max-age=60, s-maxage=120' } },
+    { headers: { 'Cache-Control': row.status === 'published' ? 'public, max-age=60, s-maxage=120' : 'no-store' } },
     env, origin,
   );
 }
@@ -3980,6 +4007,12 @@ export default {
       {
         const m = url.pathname.match(/^\/posts\/by-slug\/([^/]+)\/?$/);
         if (m && request.method === 'GET') return await handlePostsBySlug(request, env, origin, m[1]);
+      }
+      // /preview-token — admin mints a signed client-preview link for a draft.
+      if (request.method === 'GET' && url.pathname === '/preview-token') {
+        const denied = await requireAdminToken(request, env, origin);
+        if (denied) return denied;
+        return await handlePreviewToken(request, env, origin, url);
       }
       // /admin/sync-wix — batched migration importer (admin-only)
       if (request.method === 'POST' && url.pathname === '/admin/sync-wix') {
