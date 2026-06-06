@@ -3694,6 +3694,121 @@ async function handleJournalActive(env, origin) {
 }
 
 // ---------------------------------------------------------------------------
+// TMW Intelligence — smart-search answer synthesis (Phase 2 of smart search)
+// ---------------------------------------------------------------------------
+// The /search/ page parses a natural-language query into structured criteria
+// and resolves it against the project DB *client-side* (deterministic, no LLM).
+// It then POSTs the resolved, VERIFIED facts here; we ask Claude to turn them
+// into a 1-2 sentence editorial answer. Claude is told to use ONLY the facts
+// given — every number/name stays DB-derived, so the prose can't hallucinate.
+// Answers are cached per normalized query signature (24h) so repeats are free.
+// Graceful degradation: any failure (no key, API error, bad input) returns
+// { answer: null } with 200, and the page keeps its deterministic answer.
+const SMART_ANSWER_MODEL = 'claude-sonnet-4-6';   // chosen for cost/quality balance on this public endpoint
+
+async function sha256Hex(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function handleSmartAnswer(request, env, origin) {
+  const fail = (reason) => json({ answer: null, reason }, {}, env, origin);
+  let body;
+  try { body = await request.json(); } catch { return fail('bad_json'); }
+  if (!body || typeof body !== 'object') return fail('bad_body');
+
+  // Minimal validation — this endpoint spends money, so reject anything that
+  // isn't a real resolved smart query coming from the search page.
+  const q = String(body.q || '').slice(0, 200).trim();
+  const facts = (body.facts && typeof body.facts === 'object') ? body.facts : null;
+  const count = Number(facts && facts.count);
+  if (!q || !facts || !Number.isFinite(count) || count < 1) return fail('no_facts');
+  if (!Array.isArray(facts.top) || !facts.top.length) return fail('no_results');
+
+  if (!env.ANTHROPIC_API_KEY) return fail('no_key');
+
+  // Compact + cap the facts so the prompt stays small and the cache key stable.
+  const compact = {
+    query: q,
+    criteria: facts.criteria || {},
+    count: count,
+    sort: facts.sort || null,
+    place: facts.place || null,
+    tallest: facts.tallest || null,
+    largest: facts.largest || null,
+    residences_total: facts.residencesTotal || null,
+    first_delivery: facts.firstDelivery || null,
+    top: facts.top.slice(0, 8).map(p => ({
+      name: String(p.name || '').slice(0, 80),
+      city: String(p.city || '').slice(0, 60),
+      status: String(p.status || '').slice(0, 40),
+      floors: p.floors || null,
+      units: p.units || null,
+      delivery: String(p.delivery || '').slice(0, 16),
+    })),
+  };
+
+  const sig = await sha256Hex(SMART_ANSWER_MODEL + '|' + JSON.stringify(compact));
+  const cache = caches.default;
+  const cacheKey = new Request('https://smart-answer.tmw.internal/' + sig, { method: 'GET' });
+  try {
+    const hit = await cache.match(cacheKey);
+    if (hit) {
+      const data = await hit.json();
+      return json({ answer: data.answer, cached: true }, {}, env, origin);
+    }
+  } catch { /* cache miss path */ }
+
+  const system =
+    'You are TMW Intelligence, the analyst voice of Markets of Tomorrow, a real-estate development ' +
+    'intelligence publication. You are given a user search query and a set of VERIFIED facts pulled ' +
+    'from our project database. Write a single tight answer of 1-2 sentences that directly answers the ' +
+    'query and surfaces the most notable result.\n\n' +
+    'Rules:\n' +
+    '- Use ONLY the facts provided. Never invent or infer a number, project name, date, or place that ' +
+    'is not in the facts.\n' +
+    '- Lead with the headline the query is asking for (how many match, the tallest, the largest, where ' +
+    'they cluster) — do not list every item.\n' +
+    '- Confident, editorial, concrete. No hype words, no preamble like "Based on", no markdown, no bullets.\n' +
+    '- Refer to projects by name exactly as given.\n' +
+    '- Output only the sentence(s), nothing else.';
+
+  let answer = null;
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'x-api-key': env.ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01',
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: SMART_ANSWER_MODEL,
+        max_tokens: 220,
+        system,
+        messages: [{ role: 'user', content: 'Query and verified facts (JSON):\n' + JSON.stringify(compact) }],
+      }),
+    });
+    if (!resp.ok) return fail('api_' + resp.status);
+    const data = await resp.json();
+    const block = Array.isArray(data.content) ? data.content.find(b => b.type === 'text') : null;
+    answer = block && typeof block.text === 'string' ? block.text.trim() : null;
+  } catch {
+    return fail('fetch_error');
+  }
+  if (!answer) return fail('empty');
+
+  // Cache the synthesized answer for 24h, keyed by the fact signature.
+  try {
+    await cache.put(cacheKey, new Response(JSON.stringify({ answer }), {
+      headers: { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=86400' },
+    }));
+  } catch { /* caching is best-effort */ }
+
+  return json({ answer }, {}, env, origin);
+}
+
+// ---------------------------------------------------------------------------
 // Main fetch handler
 // ---------------------------------------------------------------------------
 
@@ -3805,6 +3920,12 @@ export default {
       // /posts — D1-backed canonical posts table (post-migration source).
       if (request.method === 'GET' && url.pathname === '/posts') {
         return await handlePostsList(request, env, origin, url);
+      }
+      // /smart-answer — TMW Intelligence prose for the smart-search page.
+      // POST { q, facts } → { answer }. Always 200; { answer: null } on any
+      // failure so the page falls back to its deterministic answer.
+      if (request.method === 'POST' && url.pathname === '/smart-answer') {
+        return await handleSmartAnswer(request, env, origin);
       }
       if (request.method === 'GET' && url.pathname === '/post-categories') {
         return await handlePostCategories(env, origin);

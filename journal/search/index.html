@@ -805,6 +805,42 @@ function renderSmart(q, s){
     html += '<div class="smart-foot"><span class="ai">TMW Intelligence</span> · answer synthesized from the project database · figures verified, not generated</div>';
   }
   document.getElementById('smartSection').innerHTML = html;
+  // Phase 2: upgrade the deterministic answer to LLM-written prose (figures stay
+  // DB-derived). Best-effort — the deterministic answer already shows.
+  if (rows.length) upgradeSmartAnswer(q, buildSmartFacts(s, rows));
+}
+
+// Build the VERIFIED facts payload the Worker turns into prose. Numbers come
+// straight from the resolved rows — the LLM is told to use only these.
+function buildSmartFacts(s, rows){
+  const maxF = Math.max(0, ...rows.map(floorsOf)), maxU = Math.max(0, ...rows.map(unitsOf));
+  const tallest = maxF ? rows.find(p=>floorsOf(p)===maxF) : null;
+  const largest = maxU ? rows.find(p=>unitsOf(p)===maxU) : null;
+  const yrs = rows.map(yearOf).filter(Boolean);
+  const place = s.cities.length ? s.cities.join(' & ') : (s.region || null);
+  return {
+    count: rows.length,
+    criteria: { status: s.statusLabels.join(' / ') || null, type: s.typeLabel || null, place: place, year: s.yearLabel || null },
+    sort: s.sort ? s.sort.label : null,
+    place: place,
+    tallest: tallest ? { name: tallest.Title, floors: maxF } : null,
+    largest: largest ? { name: largest.Title, units: maxU } : null,
+    residencesTotal: rows.reduce((a,p)=>a+unitsOf(p),0) || null,
+    firstDelivery: yrs.length ? Math.min(...yrs) : null,
+    top: rows.slice(0,8).map(p=>({ name: p.Title, city: p.City||'', status: p.Delivery||'', floors: floorsOf(p)||null, units: unitsOf(p)||null, delivery: fmtDelivery(p)||'' })),
+  };
+}
+let _smartAnsToken = 0;
+function upgradeSmartAnswer(q, facts){
+  const token = ++_smartAnsToken;
+  fetch(WORKER_URL + '/smart-answer', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ q, facts }) })
+    .then(r => r.ok ? r.json() : null)
+    .then(d => {
+      if (token !== _smartAnsToken || !d || !d.answer) return;   // superseded, or keep deterministic
+      const el = document.querySelector('#smartSection .intel-ans');
+      if (el) el.textContent = d.answer;
+    })
+    .catch(()=>{});
 }
 
 function runSearch(q){
