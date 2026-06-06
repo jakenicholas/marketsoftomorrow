@@ -17,6 +17,7 @@
   --white:#fff; --cream:#ECEAE5; --mute:#9AA39C; --mute-2:#C2C9C3;
   --green:#1FDF67; --green-soft:#42EB81; --green-deep:#18c75a;
   --gold:#e6c574; --gold-soft:#f0d68a; --gold-deep:#c9a558;
+  --purple:#A78BFA; --purple-glow:#B9A6FF;
   --danger:#ff5d5d;
   --sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
   --serif:'Fraunces',Georgia,serif;
@@ -192,6 +193,67 @@ main{padding:54px 0 40px}
   .pcard-body .loc{font-size:9.5px}
   .pcard-body .meta{font-size:9px;padding-top:6px}
 }
+
+/* ══════════ TMW INTELLIGENCE — smart-query answer ══════════ */
+.understood{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin:2px 0 26px}
+.understood .lead{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);font-weight:700}
+.uchip{display:inline-flex;align-items:center;gap:7px;padding:6px 12px;border-radius:999px;background:rgba(167,139,250,.10);border:1px solid rgba(167,139,250,.30);font-size:12.5px;color:var(--cream)}
+.uchip .ck{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--purple-glow);font-weight:700}
+.uchip b{color:#fff;font-weight:600}
+.uchip.sort{background:rgba(31,223,103,.08);border-color:rgba(31,223,103,.30)}
+.uchip.sort .ck{color:var(--green)}
+
+.intel{position:relative;border:1px solid rgba(167,139,250,.30);border-radius:18px;padding:22px 24px 20px;margin-bottom:30px;
+  background:radial-gradient(130% 150% at 0% 0%,rgba(167,139,250,.12),transparent 55%),linear-gradient(180deg,var(--panel-2),var(--panel));
+  box-shadow:0 18px 50px rgba(0,0,0,.45)}
+.intel::before{content:"";position:absolute;inset:-1px;border-radius:18px;padding:1px;pointer-events:none;
+  background:conic-gradient(from 210deg,rgba(167,139,250,0) 0deg,rgba(167,139,250,0) 250deg,#A78BFA 320deg,#E9DEFF 350deg,rgba(167,139,250,0) 360deg);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
+.intel-h{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.intel-spark{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:rgba(167,139,250,.16);color:var(--purple-glow);box-shadow:0 0 16px rgba(167,139,250,.45);flex:0 0 auto}
+.intel-spark svg{width:16px;height:16px}
+.intel-h .lbl{font-size:11px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--purple-glow)}
+.intel-h .live{margin-left:auto;display:flex;align-items:center;gap:7px;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute)}
+.intel-h .live i{width:6px;height:6px;border-radius:50%;background:var(--purple-glow);box-shadow:0 0 8px var(--purple-glow);font-style:normal}
+.intel-ans{font-family:var(--serif);font-size:18.5px;line-height:1.52;color:#fff;font-weight:400;max-width:66ch}
+.intel-ans .hl{color:var(--purple-glow);font-weight:600}
+.intel-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:20px;padding-top:18px;border-top:1px solid rgba(167,139,250,.18)}
+.istat .v{font-family:var(--serif);font-size:23px;font-weight:600;color:#fff;letter-spacing:-.02em;line-height:1.1}
+.istat .v .u{font-size:13px;color:var(--purple-glow)}
+.istat .k{font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--mute);margin-top:6px}
+@media(max-width:620px){.intel-stats{grid-template-columns:repeat(2,1fr)}}
+
+.smart-reshead{display:flex;align-items:baseline;gap:9px;margin:0 2px 14px}
+.smart-reshead h2{font-family:var(--serif);font-size:18px;color:#fff;font-weight:600}
+.smart-reshead .sub{font-size:12px;color:var(--mute)}
+.smart-reshead .map{margin-left:auto;display:inline-flex;align-items:center;gap:7px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--green);font-weight:700;padding:8px 13px;border:1px solid rgba(31,223,103,.3);border-radius:999px}
+.smart-reshead .map svg{width:13px;height:13px}
+.smart-reshead .map:hover{background:rgba(31,223,103,.1)}
+
+.srows{display:flex;flex-direction:column;gap:9px}
+.srow{display:flex;align-items:center;gap:16px;padding:13px 16px;background:var(--panel);border:1px solid var(--hair);border-radius:13px;transition:border-color .2s,transform .2s}
+.srow:hover{border-color:var(--hair-2);transform:translateY(-1px)}
+.srow .rank{flex:0 0 auto;width:24px;font-family:var(--serif);font-size:16px;font-weight:700;color:var(--mute);text-align:center}
+.srow.lead .rank{color:var(--purple-glow)}
+.srow .r-main{flex:1;min-width:0}
+.srow .r-name{font-family:var(--serif);font-size:16px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.srow .r-sub{display:flex;align-items:center;gap:9px;margin-top:4px;font-size:11.5px;color:var(--mute);flex-wrap:wrap}
+.srow .sbadge{display:inline-flex;align-items:center;gap:6px;font-weight:600;letter-spacing:.02em}
+.srow .sbadge i{width:5px;height:5px;border-radius:50%;font-style:normal}
+.srow .sb-construction i,.srow .sb-breaking i{background:var(--gold-soft)} .srow .sb-construction,.srow .sb-breaking{color:var(--gold-soft)}
+.srow .sb-soon i{background:#FF9F45} .srow .sb-soon{color:#FFB86b}
+.srow .sb-open i{background:var(--green)} .srow .sb-open{color:var(--green-soft)}
+.srow .sb-announced i{background:var(--mute-2)} .srow .sb-announced{color:var(--mute-2)}
+.srow .dot{width:3px;height:3px;border-radius:50%;background:var(--mute);opacity:.6}
+.srow .r-bar{flex:0 0 130px;height:8px;border-radius:999px;background:rgba(255,255,255,.06);overflow:hidden}
+.srow .r-bar span{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#7c5cf0,var(--purple-glow))}
+.srow .r-metric{flex:0 0 auto;text-align:right;min-width:64px}
+.srow .r-metric .n{font-family:var(--serif);font-size:20px;font-weight:700;color:#fff;line-height:1}
+.srow .r-metric .l{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);margin-top:3px}
+.smart-foot{display:flex;align-items:center;gap:9px;margin-top:22px;justify-content:center;font-size:11px;color:var(--mute)}
+.smart-foot .ai{color:var(--purple-glow);font-weight:600}
+.smart-more{margin:14px auto 0}
+@media(max-width:620px){.srow .r-bar{display:none}}
 </style>
 </head>
 <body>
@@ -226,6 +288,9 @@ main{padding:54px 0 40px}
 
 <main class="wrap">
   <div class="loading" id="loading">Loading the index…</div>
+
+  <!-- TMW Intelligence smart-query answer (natural-language queries) -->
+  <section class="section hidden" id="smartSection"></section>
 
   <section class="section hidden" id="heroSection">
     <div id="hero"></div>
@@ -532,15 +597,231 @@ function acardHtml(a){
 // ── search orchestration ─────────────────────────────────────────
 function show(id, on){ document.getElementById(id).classList.toggle('hidden', !on); }
 
+// ═══════════════════ TMW INTELLIGENCE — smart query engine ═══════════════════
+// Deterministic (no LLM): parse a natural-language query into structured
+// criteria, then filter + rank the project database and synthesize an answer.
+const THIS_YEAR = 2026;
+function hasWord(text, phrase){
+  const p = String(phrase).replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+  return new RegExp('\\b' + p + 's?\\b', 'i').test(text);
+}
+function floorsOf(p){ const n = parseInt(String(p.Floors||'').split('.')[0], 10); return Number.isFinite(n) ? n : 0; }
+function unitsOf(p){ const n = parseInt(String(p.Units||'').replace(/[^0-9]/g,''), 10); return Number.isFinite(n) ? n : 0; }
+function yearOf(p){ const m = String(p.DeliveryDate||'').match(/(20\d{2})/); return m ? +m[1] : null; }
+function inFlorida(p){ const la=parseFloat(p.Latitude), ln=parseFloat(p.Longitude); return la>=24.3 && la<=31.1 && ln>=-87.8 && ln<=-79.8; }
+
+const STATUS_GROUPS = [
+  { value:'Under Construction', label:'Under construction', syn:['under construction','construction','being built','underway','rising','vertical'] },
+  { value:'Under Construction', label:'Topped out', toppedOut:true, syn:['topped out','topping out','top off','topped'] },
+  { value:'Breaking Ground',    label:'Breaking ground', syn:['breaking ground','broke ground','groundbreaking','breaks ground'] },
+  { value:'Opening Soon',       label:'Opening soon', syn:['opening soon','coming soon','opening','opens','set to open'] },
+  { value:'Now Open',           label:'Open', syn:['now open','open','opened','completed','complete','delivered','finished'] },
+  { value:'Announced',          label:'Announced', syn:['announced','planned','proposed','pre-construction','preconstruction','unveiled'] },
+];
+const TYPE_GROUPS = [
+  { token:'Residences', label:'Condo / Residences', noun:'condo',     syn:['condo','condominium'] },
+  { token:'Residences', label:'Tower / High-rise',  noun:'tower',     syn:['tower','high-rise','highrise','skyscraper'] },
+  { token:'Residences', label:'Residences',         noun:'residence', syn:['residence','residential','apartment','home'] },
+  { token:'Hotel',      label:'Hotel',              noun:'hotel',     syn:['hotel'] },
+  { token:'Resort',     label:'Resort',             noun:'resort',    syn:['resort'] },
+  { token:'Office',     label:'Office',             noun:'office',    syn:['office'] },
+  { token:'Retail',     label:'Retail',             noun:'retail project', syn:['retail','shopping','mall','shops'] },
+  { token:'Eateries',   label:'Dining',             noun:'eatery',    syn:['restaurant','eatery','dining','food hall'] },
+  { token:'Park',       label:'Park',               noun:'park',      syn:['park'] },
+  { token:'Marina',     label:'Marina',             noun:'marina',    syn:['marina'] },
+  { token:'Museum',     label:'Museum',             noun:'museum',    syn:['museum'] },
+  { token:'Entertainment', label:'Entertainment',   noun:'venue',     syn:['entertainment'] },
+];
+const SORT_GROUPS = [
+  { key:'floors', dir:'desc', label:'Tallest first',   unit:'Stories', stat:'Tallest',     syn:['tallest','highest','tall'] },
+  { key:'floors', dir:'asc',  label:'Shortest first',  unit:'Stories', stat:'Shortest',    syn:['shortest','lowest'] },
+  { key:'units',  dir:'desc', label:'Most units',      unit:'Units',   stat:'Most units',  syn:['biggest','largest','most units','most residences','most homes'] },
+  { key:'date',   dir:'asc',  label:'Opening soonest', unit:'Delivers',stat:'Opens first', syn:['soonest','earliest','opening first','next to open','delivering first'] },
+  { key:'date',   dir:'desc', label:'Furthest out',    unit:'Delivers',stat:'Latest',      syn:['furthest out','latest delivery','last to open'] },
+  { key:'updated',dir:'desc', label:'Newest',          unit:'Updated', stat:'Newest',      syn:['newest','latest','most recent'] },
+];
+
+let _citySet = null;
+function citySet(){
+  if (_citySet) return _citySet;
+  const m = new Map();
+  PROJECTS.forEach(p=>{ const c=(p.City||'').trim(); if(c && c.length>=4) m.set(norm(c), c); });
+  _citySet = m; return m;
+}
+
+function parseSmartQuery(q){
+  const full = norm(q);
+  if (full.split(/\s+/).filter(Boolean).length < 2) return null;   // bare names → normal search
+
+  // status
+  const statuses = new Set(); const statusLabels = []; let toppedOut = false;
+  STATUS_GROUPS.forEach(g=>{ if (g.syn.some(s=>hasWord(full,s))){ statuses.add(g.value); if(!statusLabels.includes(g.label)) statusLabels.push(g.label); if(g.toppedOut) toppedOut=true; } });
+  // type
+  const types = new Set(); let typeLabel='', typeNoun='';
+  TYPE_GROUPS.forEach(g=>{ if (g.syn.some(s=>hasWord(full,s))){ types.add(g.token); if(!typeLabel){ typeLabel=g.label; typeNoun=g.noun; } } });
+  // region + cities
+  let region = (hasWord(full,'florida') || /\bfl\b/.test(full)) ? 'Florida' : '';
+  let cities = [];
+  citySet().forEach((disp, nc)=>{ if (full.includes(nc)) cities.push(disp); });
+  // drop a city that's a substring of another matched (keep "West Palm Beach" over "Palm Beach")
+  cities = cities.filter(c => !cities.some(o => o!==c && norm(o).includes(norm(c))));
+  // year
+  let yearMin=null, yearMax=null, yearLabel='';
+  const yrs = (full.match(/20\d{2}/g)||[]).map(Number);
+  if (yrs.length){ yearMin=Math.min(...yrs); yearMax=Math.max(...yrs); yearLabel = yearMin===yearMax ? ''+yearMin : yearMin+'–'+yearMax; }
+  else if (hasWord(full,'this year')){ yearMin=yearMax=THIS_YEAR; yearLabel='this year'; }
+  else if (hasWord(full,'next year')){ yearMin=yearMax=THIS_YEAR+1; yearLabel=''+(THIS_YEAR+1); }
+  // sort / superlative
+  let sort=null;
+  for (const g of SORT_GROUPS){ if (g.syn.some(s=>hasWord(full,s))){ sort=g; break; } }
+
+  const place = region || cities.length;
+  const count = (statuses.size?1:0)+(types.size?1:0)+(place?1:0)+(yearMin!=null?1:0)+(sort?1:0);
+  if (count < 2) return null;   // not enough structure → fall through to normal search
+
+  return { statuses, statusLabels, toppedOut, types, typeLabel, typeNoun,
+           region, cities, yearMin, yearMax, yearLabel, sort };
+}
+
+function smartFilter(s){
+  return PROJECTS.filter(p=>{
+    if (s.statuses.size && !s.statuses.has(p.Delivery)) return false;
+    if (s.types.size){ const pt=norm(firstField(p,['ProjectType','PreferredType'])); if(![...s.types].some(t=>pt.includes(norm(t)))) return false; }
+    if (s.cities.length){ if(!s.cities.some(c=>norm(p.City)===norm(c))) return false; }
+    if (s.region==='Florida' && !inFlorida(p)) return false;
+    if (s.yearMin!=null){ const y=yearOf(p); if(y==null || y<s.yearMin || y>s.yearMax) return false; }
+    return true;
+  });
+}
+function smartRank(rows, s){
+  const big = 1e9;
+  if (s.sort && s.sort.key==='floors'){ const d=s.sort.dir==='asc'?1:-1; rows.sort((a,b)=>{const fa=floorsOf(a)||(d>0?big:-1), fb=floorsOf(b)||(d>0?big:-1); return (fa-fb)*d || floorsOf(b)-floorsOf(a);}); }
+  else if (s.sort && s.sort.key==='units'){ rows.sort((a,b)=>unitsOf(b)-unitsOf(a)); }
+  else if (s.sort && s.sort.key==='date'){ const d=s.sort.dir==='asc'?1:-1; rows.sort((a,b)=>{const da=(a.DeliveryDate||'9999'), db=(b.DeliveryDate||'9999'); return da<db?-1*d:da>db?1*d:0;}); }
+  else if (s.sort && s.sort.key==='updated'){ rows.sort((a,b)=>String(b.UpdatedAt||'').localeCompare(String(a.UpdatedAt||''))); }
+  else { rows.sort((a,b)=>{ if(a.Featured&&!b.Featured)return -1; if(!a.Featured&&b.Featured)return 1; return floorsOf(b)-floorsOf(a); }); }
+  return rows;
+}
+
+const STATUS_BADGE = {
+  'Under Construction': {cls:'sb-construction', label:'Under construction'},
+  'Breaking Ground':    {cls:'sb-breaking',     label:'Breaking ground'},
+  'Opening Soon':       {cls:'sb-soon',         label:'Opening soon'},
+  'Now Open':           {cls:'sb-open',         label:'Now open'},
+  'Announced':          {cls:'sb-announced',    label:'Announced'},
+};
+function fmtDelivery(p){ const m=String(p.DeliveryDate||'').match(/(20\d{2})-(\d{2})/); if(m){ const M=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][+m[2]-1]; return (M?M+' ':'')+m[1]; } return yearOf(p)?(''+yearOf(p)):''; }
+
+function buildSmartAnswer(s, rows){
+  const n = rows.length;
+  const noun = s.typeNoun || 'project';
+  const subj = '<b>' + n + ' ' + noun + (n!==1?'s':'') + '</b>';
+  const statusPhrase = s.statusLabels.length ? ' ' + s.statusLabels.map(l=>l.toLowerCase()).join(' / ') : '';
+  const placePhrase = s.cities.length ? ' in ' + s.cities.join(' & ') : (s.region ? ' in ' + s.region : '');
+  const yearPhrase = s.yearLabel ? (s.statuses.size ? ', delivering ' + s.yearLabel : ' delivering ' + s.yearLabel) : '';
+  let sentence;
+  if (n === 0){
+    sentence = 'No tracked ' + noun + 's match' + (statusPhrase?(' ' + s.statusLabels.map(l=>l.toLowerCase()).join('/')):'') + placePhrase + yearPhrase + ' yet — try removing a filter.';
+    return { html: sentence, stats: [] };
+  }
+  const be = (n===1 ? 'is' : 'are');
+  sentence = s.statuses.size
+    ? subj + ' ' + be + statusPhrase + placePhrase + yearPhrase + '.'
+    : subj + placePhrase + yearPhrase + ' ' + be + ' tracked on the map.';
+  // sort highlight
+  const top = rows[0];
+  if (s.sort && s.sort.key==='floors' && s.sort.dir==='desc' && floorsOf(top)){
+    sentence += ' The tallest is <span class="hl">' + esc(top.Title) + '</span> at <span class="hl">' + floorsOf(top) + ' stories</span>.';
+  } else if (s.sort && s.sort.key==='units' && unitsOf(top)){
+    sentence += ' The largest is <span class="hl">' + esc(top.Title) + '</span> with <span class="hl">' + unitsOf(top).toLocaleString() + ' residences</span>.';
+  } else if (s.sort && s.sort.key==='date' && s.sort.dir==='asc' && fmtDelivery(top)){
+    sentence += ' Next to open: <span class="hl">' + esc(top.Title) + '</span> (' + fmtDelivery(top) + ').';
+  }
+  // stats
+  const stats = [];
+  stats.push({ v: '' + n, k: 'Results' });
+  const maxF = Math.max(0, ...rows.map(floorsOf)), maxU = Math.max(0, ...rows.map(unitsOf));
+  if (s.sort && s.sort.key==='floors' && maxF) stats.push({ v: maxF + '<span class="u"> fl</span>', k: 'Tallest' });
+  else if (s.sort && s.sort.key==='units' && maxU) stats.push({ v: maxU.toLocaleString(), k: 'Most units' });
+  else { const uc = rows.filter(p=>p.Delivery==='Under Construction').length; if(uc) stats.push({ v: ''+uc, k: 'Under construction' }); }
+  const sumU = rows.reduce((a,p)=>a+unitsOf(p),0); if (sumU>0) stats.push({ v: '~' + sumU.toLocaleString(), k: 'Residences total' });
+  const yrs = rows.map(yearOf).filter(Boolean); if (yrs.length) stats.push({ v: '' + Math.min(...yrs), k: 'First delivery' });
+  return { html: sentence, stats: stats.slice(0,4) };
+}
+
+const SMART_CAP = 40;
+function renderSmart(q, s){
+  let rows = smartRank(smartFilter(s), s);
+  const ans = buildSmartAnswer(s, rows);
+  // understood-as chips
+  const chips = [];
+  if (s.statusLabels.length) chips.push('<span class="uchip"><span class="ck">Status</span> <b>'+esc(s.statusLabels.join(' / '))+'</b></span>');
+  if (s.typeLabel)           chips.push('<span class="uchip"><span class="ck">Type</span> <b>'+esc(s.typeLabel)+'</b></span>');
+  if (s.cities.length)       chips.push('<span class="uchip"><span class="ck">City</span> <b>'+esc(s.cities.join(' & '))+'</b></span>');
+  else if (s.region)         chips.push('<span class="uchip"><span class="ck">Region</span> <b>'+esc(s.region)+'</b></span>');
+  if (s.yearLabel)           chips.push('<span class="uchip"><span class="ck">Delivery</span> <b>'+esc(s.yearLabel)+'</b></span>');
+  if (s.sort)                chips.push('<span class="uchip sort"><span class="ck">Sort</span> <b>'+esc(s.sort.label)+'</b></span>');
+
+  const SPARK = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.9 5.1L19 9l-5.1 1.9L12 16l-1.9-5.1L5 9l5.1-1.9L12 2z"/></svg>';
+  let html = '<div class="understood"><span class="lead">Understood as</span>' + chips.join('') + '</div>';
+  html += '<section class="intel"><div class="intel-h"><span class="intel-spark">'+SPARK+'</span>'+
+          '<span class="lbl">TMW Intelligence</span><span class="live"><i></i>Live answer</span></div>'+
+          '<p class="intel-ans">'+ans.html+'</p>';
+  if (ans.stats.length){
+    html += '<div class="intel-stats" style="grid-template-columns:repeat('+ans.stats.length+',1fr)">';
+    ans.stats.forEach(st=>{ html += '<div class="istat"><div class="v">'+st.v+'</div><div class="k">'+esc(st.k)+'</div></div>'; });
+    html += '</div>';
+  }
+  html += '</section>';
+
+  if (rows.length){
+    const metricSort = s.sort && (s.sort.key==='floors'||s.sort.key==='units'||s.sort.key==='date');
+    const maxMetric = s.sort && s.sort.key==='floors' ? Math.max(1,...rows.map(floorsOf)) : (s.sort && s.sort.key==='units' ? Math.max(1,...rows.map(unitsOf)) : 1);
+    const shown = rows.slice(0, SMART_CAP);
+    html += '<div class="smart-reshead"><h2>'+ (rows.length===1?'1 project':rows.length+' projects') +'</h2>'+
+            (s.sort?'<span class="sub">· '+esc(s.sort.label.toLowerCase())+'</span>':'')+
+            '<a class="map" href="'+esc(s.cities.length===1 ? MAP_URL+'/?city='+encodeURIComponent(s.cities[0]) : MAP_URL)+'">'+
+            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l-6 3V6l6-3 6 3 6-3v15l-6 3-6-3z"/><path d="M9 3v15M15 6v15"/></svg> Show on map</a></div>';
+    html += '<div class="srows">';
+    shown.forEach((p,i)=>{
+      const b = STATUS_BADGE[p.Delivery] || {cls:'sb-announced', label:p.Delivery||''};
+      let metric='';
+      if (metricSort){
+        if (s.sort.key==='floors'){ const f=floorsOf(p); metric = '<div class="r-bar"><span style="width:'+Math.round((f/maxMetric)*100)+'%"></span></div><div class="r-metric"><div class="n">'+(f||'—')+'</div><div class="l">Stories</div></div>'; }
+        else if (s.sort.key==='units'){ const u=unitsOf(p); metric = '<div class="r-bar"><span style="width:'+Math.round((u/maxMetric)*100)+'%"></span></div><div class="r-metric"><div class="n">'+(u?u.toLocaleString():'—')+'</div><div class="l">Units</div></div>'; }
+        else if (s.sort.key==='date'){ metric = '<div class="r-metric"><div class="n" style="font-size:15px">'+(fmtDelivery(p)||'—')+'</div><div class="l">Delivers</div></div>'; }
+      }
+      const sub = '<span class="sbadge '+b.cls+'"><i></i>'+esc(b.label)+'</span>'+
+                  (p.City?'<span class="dot"></span>'+esc(p.City):'')+
+                  (!metricSort && fmtDelivery(p)?'<span class="dot"></span>Delivers '+esc(fmtDelivery(p)):'');
+      html += '<a class="srow'+(i===0&&metricSort?' lead':'')+'" href="'+esc(mapLink(p.Title,false))+'">'+
+                (metricSort?'<div class="rank">'+(i+1)+'</div>':'')+
+                '<div class="r-main"><div class="r-name">'+esc(p.Title)+'</div><div class="r-sub">'+sub+'</div></div>'+
+                metric+
+              '</a>';
+    });
+    html += '</div>';
+    if (rows.length > SMART_CAP) html += '<div class="smart-foot">Showing top '+SMART_CAP+' of '+rows.length+' — refine your question to narrow it.</div>';
+    html += '<div class="smart-foot"><span class="ai">TMW Intelligence</span> · answer synthesized from the project database · figures verified, not generated</div>';
+  }
+  document.getElementById('smartSection').innerHTML = html;
+}
+
 function runSearch(q){
   const summary = document.getElementById('summary');
-  ['heroSection','projectsSection','entitiesSection','articlesSection','empty','prompt'].forEach(id=>show(id,false));
+  ['smartSection','heroSection','projectsSection','entitiesSection','articlesSection','empty','prompt'].forEach(id=>show(id,false));
 
   if(!q){
     summary.innerHTML = '';
     show('prompt', true);
     return;
   }
+
+  // ── TMW Intelligence: natural-language queries get a synthesized answer +
+  // ranked results instead of the plain name-match sections. Falls through to
+  // normal search when the query is just a name/keyword.
+  const smart = parseSmartQuery(q);
+  if (smart) { summary.innerHTML = ''; renderSmart(q, smart); show('smartSection', true); return; }
 
   const toks = tokenize(q), full = norm(q);
 
