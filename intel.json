@@ -2848,53 +2848,53 @@
       "delivery_speculative": false
     },
     "the-residences-at-boca-raton": {
-      "estimate_years": 3.2,
-      "estimate_label": "~3.2 years",
+      "estimate_years": 3.3,
+      "estimate_label": "~3.3 years",
       "range_low": 2.0,
       "range_high": 8.4,
-      "confidence": "high",
-      "comparable_count": 9,
-      "good_count": 8,
-      "exact_count": 8,
-      "used_relaxed": false,
-      "avg_match_score": 0.67,
-      "avg_distance_km": 66.7,
-      "avg_distance_mi": 41.4,
-      "scale_used": false,
+      "confidence": "low",
+      "comparable_count": 8,
+      "good_count": 1,
+      "exact_count": 1,
+      "used_relaxed": true,
+      "avg_match_score": 0.54,
+      "avg_distance_km": 481.1,
+      "avg_distance_mi": 298.9,
+      "scale_used": true,
       "firm_signal": null,
       "source": "comparables",
       "project_type": "Residences",
       "metro": "Palm Beach",
       "comparables": [
         {
+          "name": "Vita at Grove Isle",
+          "slug": "vita-at-grove-isle",
+          "location": "Coconut Grove",
+          "years": 2.0,
+          "score": 0.88,
+          "distance_km": 69.2,
+          "distance_mi": 43.0
+        },
+        {
+          "name": "200 East 83rd",
+          "slug": "200-east-83rd",
+          "location": "New York",
+          "years": 4.0,
+          "score": 0.64,
+          "distance_km": 1700.9,
+          "distance_mi": 1056.9
+        },
+        {
           "name": "Inscription",
           "slug": "inscription",
           "location": "West Palm Beach",
           "years": 2.0,
-          "score": 0.7,
+          "score": 0.58,
           "distance_km": 43.0,
           "distance_mi": 26.7
-        },
-        {
-          "name": "Viceroy Brickell Residences",
-          "slug": "viceroy-brickell-residences",
-          "location": "Miami",
-          "years": 3.0,
-          "score": 0.7,
-          "distance_km": 65.0,
-          "distance_mi": 40.4
-        },
-        {
-          "name": "Forté on Flagler",
-          "slug": "fort-on-flagler",
-          "location": "West Palm Beach",
-          "years": 3.8,
-          "score": 0.7,
-          "distance_km": 39.7,
-          "distance_mi": 24.7
         }
       ],
-      "pattern_summary": "Among 9 same-metro residences projects in TMW's data, the median build time is 3.2 years (range 2–8.4).",
+      "pattern_summary": "Among 8 residences projects in TMW's data, the median build time is 3.3 years (range 2–8.4).",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false,
@@ -3124,21 +3124,21 @@
       "delivery_speculative": false
     },
     "edition-residences-miami-edgewater": {
-      "estimate_years": 0.6,
-      "estimate_label": "~7 months",
-      "days_out": 208,
-      "delivery_date": "2026-12-31",
+      "estimate_years": 3.5,
+      "estimate_label": "~3.5 years",
+      "days_out": 1304,
+      "delivery_date": "2029-12-31",
       "source": "known_date",
       "precision": "year",
-      "confidence": "high",
+      "confidence": "medium",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [],
       "comparable_count": 0,
-      "pattern_summary": "Targeted for opening in ~7 months.",
-      "dates_speculative": false,
-      "start_speculative": false,
-      "delivery_speculative": false
+      "pattern_summary": "TMW estimates an opening in ~3.5 years based on project type and current stage.",
+      "dates_speculative": true,
+      "start_speculative": true,
+      "delivery_speculative": true
     },
     "miami-worldcenter": {
       "estimate_years": 9.2,
@@ -3210,10 +3210,10 @@
       "delivery_speculative": false
     },
     "domus-brickell-center": {
-      "estimate_years": 1.5,
-      "estimate_label": "~1.5 years",
-      "days_out": 573,
-      "delivery_date": "2027-12-31",
+      "estimate_years": 2.5,
+      "estimate_label": "~2.5 years",
+      "days_out": 939,
+      "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
       "confidence": "high",
@@ -3221,7 +3221,7 @@
       "metro": "South Florida",
       "comparables": [],
       "comparable_count": 0,
-      "pattern_summary": "Targeted for opening in ~1.5 years.",
+      "pattern_summary": "Targeted for opening in ~2.5 years.",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false
@@ -8115,15 +8115,15 @@
     }
   },
   "stats": {
-    "high": 1,
+    "high": 0,
     "medium": 14,
-    "low": 26,
+    "low": 27,
     "known_date": 290,
     "completed": 52,
     "skipped": 48,
     "no_type": 0,
     "firm_boosted": 27,
-    "speculative_softened": 67,
+    "speculative_softened": 68,
     "mixed_use_adjusted": 1
   }
 }
