@@ -161,16 +161,16 @@
   // dock force-hides on the logo lockup.
   var HEX_SPIN =
     '<span class="tmw-hexspin"><svg viewBox="0 0 100 100">' +
-    '<polygon class="tmw-hex-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/>' +
-    '<g class="tmw-hex-spinner"><polygon class="tmw-hex-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g>' +
+    '<polygon class="hxs-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/>' +
+    '<g class="hxs-spin"><polygon class="hxs-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g>' +
     '</svg></span>';
   // "Ask the Map" starter questions — chosen so the smart-search parser resolves
   // each one cleanly (status/type/place/year/sort).
   var TEACH_Q = [
     'Tallest towers under construction in Florida',
-    'Hotels opening in Miami this year',
-    'Topped-out condos in West Palm Beach delivering 2026',
-    'Biggest residential projects in Florida'
+    'Hotels opening around the world this year',
+    'New condos coming to West Palm Beach',
+    'Recent golf course openings'
   ];
   var TEACH_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M6 21V8l6-4 6 4v13"/></svg>';
   // Builds the teaching pop-up markup. Exposed so the map (which wires its own
@@ -429,13 +429,14 @@
     '.tmw-dock-teach .tdt-h{display:flex;align-items:center;gap:9px;padding:6px 8px 10px}',
     '.tmw-hexspin{display:inline-flex;width:22px;height:22px;flex:0 0 auto}',
     '.tmw-hexspin svg{width:100%;height:100%;display:block;overflow:visible}',
-    '.tmw-hex-spinner{transform-origin:50% 50%;animation:tmwHardspin 4.2s cubic-bezier(.16,1,.3,1) infinite}',
-    '.tmw-hex-core{transform-origin:50% 50%;animation:tmwHexpulse 4.2s ease-in-out infinite}',
-    '.tmw-hex-ring{transform-origin:50% 50%;animation:tmwRing 4.2s ease-out infinite}',
-    '@keyframes tmwHardspin{0%{transform:rotate(0)}55%{transform:rotate(810deg)}70%{transform:rotate(900deg)}100%{transform:rotate(1080deg)}}',
-    '@keyframes tmwHexpulse{0%,45%{stroke:#A78BFA;filter:drop-shadow(0 0 0 rgba(167,139,250,0))}70%{stroke:#B9A6FF;filter:drop-shadow(0 0 6px rgba(185,166,255,.9))}100%{stroke:#A78BFA;filter:drop-shadow(0 0 0 rgba(167,139,250,0))}}',
-    '@keyframes tmwRing{0%,60%{transform:scale(1);opacity:0}72%{opacity:.55}100%{transform:scale(1.7);opacity:0}}',
-    '@media(prefers-reduced-motion:reduce){.tmw-hex-spinner,.tmw-hex-ring{animation:none}.tmw-hex-ring{opacity:0}}',
+    // hxs-* = isolated, filter-free hexagon (no animated drop-shadow → no GPU jitter)
+    '.hxs-spin{transform-origin:50% 50%;animation:hxsSpin 4.2s cubic-bezier(.16,1,.3,1) infinite}',
+    '.hxs-core{transform-origin:50% 50%;animation:hxsPulse 4.2s ease-in-out infinite}',
+    '.hxs-ring{transform-origin:50% 50%;animation:hxsRing 4.2s ease-out infinite}',
+    '@keyframes hxsSpin{0%{transform:rotate(0)}55%{transform:rotate(810deg)}70%{transform:rotate(900deg)}100%{transform:rotate(1080deg)}}',
+    '@keyframes hxsPulse{0%,45%{stroke:#A78BFA}70%{stroke:#E9DEFF}100%{stroke:#A78BFA}}',
+    '@keyframes hxsRing{0%,60%{transform:scale(1);opacity:0}72%{opacity:.5}100%{transform:scale(1.7);opacity:0}}',
+    '@media(prefers-reduced-motion:reduce){.hxs-spin,.hxs-ring{animation:none}.hxs-ring{opacity:0}}',
     '.tmw-dock-teach .tdt-ttl{font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#C2A8FF}',
     '.tmw-dock-teach .tdt-sub{font-size:11.5px;color:#9AA39C}',
     '.tmw-dock-teach .tdt-tag{margin-left:auto;font-size:9px;font-weight:800;letter-spacing:.1em;color:#0b0a14;background:#C2A8FF;padding:3px 7px;border-radius:5px}',
@@ -614,7 +615,10 @@
     '.tmw-dock-search{border-radius:999px}',
     '.tmw-dock-search input{position:relative; z-index:1}',
     '.tmw-dock-search .ds-ico{z-index:2}',
-    '.tmw-dock-search::before{content:""; position:absolute; inset:-1.5px; border-radius:999px; padding:1.5px; z-index:0; pointer-events:none; background:conic-gradient(from var(--tmw-ang,0deg), rgba(167,139,250,0) 0deg, rgba(167,139,250,0) 205deg, #A78BFA 300deg, #E9DEFF 338deg, rgba(167,139,250,0) 360deg); -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite:xor; mask-composite:exclude; filter:drop-shadow(0 0 5px rgba(167,139,250,.7)); animation:tmwChase 3s linear infinite}',
+    // No animated filter:drop-shadow here — repainting a filter every frame on
+    // this backdrop-filtered fixed dock caused whole-page GPU jitter. The conic
+    // chase alone (rotating --tmw-ang) keeps the effect, cheaply.
+    '.tmw-dock-search::before{content:""; position:absolute; inset:-1.5px; border-radius:999px; padding:1.5px; z-index:0; pointer-events:none; background:conic-gradient(from var(--tmw-ang,0deg), rgba(167,139,250,0) 0deg, rgba(167,139,250,0) 205deg, #A78BFA 300deg, #E9DEFF 338deg, rgba(167,139,250,0) 360deg); -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite:xor; mask-composite:exclude; animation:tmwChase 3s linear infinite}',
     '@media(prefers-reduced-motion:reduce){.tmw-dock-search::before{animation:none}}',
 
     // ── Focus Markets dropdown (header): replaces the per-region links with a

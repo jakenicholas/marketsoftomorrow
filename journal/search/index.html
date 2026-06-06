@@ -212,15 +212,18 @@ main{padding:54px 0 40px}
 .intel-h{display:flex;align-items:center;gap:10px;margin-bottom:14px}
 .intel-spark{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:rgba(167,139,250,.16);color:var(--purple-glow);box-shadow:0 0 16px rgba(167,139,250,.45);flex:0 0 auto}
 .intel-spark svg{width:18px;height:18px}
-/* TMW spinning-hexagon "intelligence" mark (shared with the header lockup) */
-.hexspin{overflow:visible}
-.tmw-hex-spinner{transform-origin:50% 50%;animation:tmwHardspin 4.2s cubic-bezier(.16,1,.3,1) infinite}
-.tmw-hex-core{transform-origin:50% 50%;animation:tmwHexpulse 4.2s ease-in-out infinite}
-.tmw-hex-ring{transform-origin:50% 50%;animation:tmwRing 4.2s ease-out infinite}
-@keyframes tmwHardspin{0%{transform:rotate(0)}55%{transform:rotate(810deg)}70%{transform:rotate(900deg)}100%{transform:rotate(1080deg)}}
-@keyframes tmwHexpulse{0%,45%{stroke:#A78BFA;filter:drop-shadow(0 0 0 rgba(167,139,250,0))}70%{stroke:#B9A6FF;filter:drop-shadow(0 0 6px rgba(185,166,255,.9))}100%{stroke:#A78BFA;filter:drop-shadow(0 0 0 rgba(167,139,250,0))}}
-@keyframes tmwRing{0%,60%{transform:scale(1);opacity:0}72%{opacity:.55}100%{transform:scale(1.7);opacity:0}}
-@media(prefers-reduced-motion:reduce){.tmw-hex-spinner,.tmw-hex-ring{animation:none}.tmw-hex-ring{opacity:0}}
+/* TMW spinning-hexagon "intelligence" mark. Unique classes (hxs-*) so the
+   chrome's filter-animated .tmw-hex-* rules can't reach it, and NO animated
+   filter — only transform/opacity/stroke, which are GPU-clean (an animated
+   drop-shadow here caused whole-page sub-pixel jitter). */
+.hxs{overflow:visible}
+.hxs-spin{transform-origin:50% 50%;animation:hxsSpin 4.2s cubic-bezier(.16,1,.3,1) infinite}
+.hxs-core{transform-origin:50% 50%;animation:hxsPulse 4.2s ease-in-out infinite}
+.hxs-ring{transform-origin:50% 50%;animation:hxsRing 4.2s ease-out infinite}
+@keyframes hxsSpin{0%{transform:rotate(0)}55%{transform:rotate(810deg)}70%{transform:rotate(900deg)}100%{transform:rotate(1080deg)}}
+@keyframes hxsPulse{0%,45%{stroke:#A78BFA}70%{stroke:#E9DEFF}100%{stroke:#A78BFA}}
+@keyframes hxsRing{0%,60%{transform:scale(1);opacity:0}72%{opacity:.5}100%{transform:scale(1.7);opacity:0}}
+@media(prefers-reduced-motion:reduce){.hxs-spin,.hxs-ring{animation:none}.hxs-ring{opacity:0}}
 .intel-h .lbl{font-size:11px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--purple-glow)}
 .intel-h .live{margin-left:auto;display:flex;align-items:center;gap:7px;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute)}
 .intel-h .live i{width:6px;height:6px;border-radius:50%;background:var(--purple-glow);box-shadow:0 0 8px var(--purple-glow);font-style:normal}
@@ -668,7 +671,7 @@ const SORT_GROUPS = [
   { key:'units',  dir:'desc', label:'Most units',      unit:'Units',   stat:'Most units',  syn:['biggest','largest','most units','most residences','most homes'] },
   { key:'date',   dir:'asc',  label:'Opening soonest', unit:'Delivers',stat:'Opens first', syn:['soonest','earliest','opening first','next to open','delivering first'] },
   { key:'date',   dir:'desc', label:'Furthest out',    unit:'Delivers',stat:'Latest',      syn:['furthest out','latest delivery','last to open'] },
-  { key:'updated',dir:'desc', label:'Newest',          unit:'Updated', stat:'Newest',      syn:['newest','newly','new','latest','most recent','recently','just announced'] },
+  { key:'updated',dir:'desc', label:'Newest',          unit:'Updated', stat:'Newest',      syn:['newest','newly','new','latest','most recent','recent','recently','just announced'] },
 ];
 
 let _citySet = null;
@@ -707,6 +710,18 @@ function parseSmartQuery(q){
   // sort / superlative
   let sort=null;
   for (const g of SORT_GROUPS){ if (g.syn.some(s=>hasWord(full,s))){ sort=g; break; } }
+
+  // "recent(ly) ... opened / openings" means recently COMPLETED (Now Open),
+  // not about-to-open. Flip Opening Soon → Now Open in that case so e.g.
+  // "recent golf course openings" lists courses that have actually opened.
+  const openish = hasWord(full,'opening') || hasWord(full,'opened') || hasWord(full,'openings');
+  const recentish = hasWord(full,'recent') || hasWord(full,'recently') || hasWord(full,'just opened') || hasWord(full,'newly opened');
+  if (openish && recentish){
+    statuses.delete('Opening Soon');
+    const i = statusLabels.indexOf('Opening soon'); if (i>=0) statusLabels.splice(i,1);
+    statuses.add('Now Open');
+    if (!statusLabels.includes('Open')) statusLabels.push('Open');
+  }
 
   const place = region || cities.length;
   const count = (statuses.size?1:0)+(phases.size?1:0)+(types.size?1:0)+(place?1:0)+(yearMin!=null?1:0)+(sort?1:0);
@@ -807,7 +822,7 @@ function renderSmart(q, s){
   if (s.yearLabel)           chips.push('<span class="uchip"><span class="ck">Delivery</span> <b>'+esc(s.yearLabel)+'</b></span>');
   if (s.sort)                chips.push('<span class="uchip sort"><span class="ck">Sort</span> <b>'+esc(s.sort.label)+'</b></span>');
 
-  const SPARK = '<svg class="hexspin" viewBox="0 0 100 100"><polygon class="tmw-hex-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/><g class="tmw-hex-spinner"><polygon class="tmw-hex-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g></svg>';
+  const SPARK = '<svg class="hxs" viewBox="0 0 100 100"><polygon class="hxs-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/><g class="hxs-spin"><polygon class="hxs-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g></svg>';
   let html = '<div class="understood"><span class="lead">Understood as</span>' + chips.join('') + '</div>';
   html += '<section class="intel"><div class="intel-h"><span class="intel-spark">'+SPARK+'</span>'+
           '<span class="lbl">TMW Intelligence</span><span class="live"><i></i>Live answer</span></div>'+
