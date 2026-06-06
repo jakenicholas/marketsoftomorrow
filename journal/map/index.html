@@ -12299,6 +12299,14 @@
         else { input.readOnly = true; input.setAttribute('inputmode', 'none'); }
       }
       function hideDockAC(){ var ac=document.getElementById('tmwDockAC'); if(ac) ac.classList.add('hidden'); }
+      // Empty search box → show the shared "Ask the Map" teaching panel (the same
+      // starter-questions pop-up journal-dock.js renders on every other surface).
+      function showDockTeach(){
+        var ac = document.getElementById('tmwDockAC');
+        if (!ac || typeof window.tmwAskTeachHTML !== 'function') return;
+        ac.innerHTML = window.tmwAskTeachHTML();
+        ac.classList.remove('hidden');
+      }
       // Click a CITY (or geocoded place) in the floating results → open the sidebar
       // on Discover with the whole city in frame; the grid fills with its projects
       // (works whether the sidebar was collapsed, on Discover, or on a project page).
@@ -12339,7 +12347,8 @@
         var ac = document.getElementById('tmwDockAC');
         if (!ac) return;
         q = (q||'').trim();
-        if (!q || typeof map==='undefined' || !map.getSource){ hideDockAC(); return; }
+        if (!q){ showDockTeach(); return; }   // empty → teaching panel, not hidden
+        if (typeof map==='undefined' || !map.getSource){ hideDockAC(); return; }
         var src = map.getSource('projects');
         if (!src || !src._data){ hideDockAC(); return; }
         try {
@@ -12381,8 +12390,9 @@
         input.addEventListener('focus', function(e){
           if (!isDesktop()){ input.blur(); openMobileDrawer(e); return; }
           // Desktop: the floating results drive everything — no need to touch the
-          // sidebar. Re-show suggestions if there's already a query.
+          // sidebar. Re-show suggestions if there's a query, else the teaching panel.
           if (input.value.trim()) dockAutocomplete(input.value);
+          else showDockTeach();
         });
         ['mousedown','click','touchstart'].forEach(function(ev){
           input.addEventListener(ev, function(e){ if (!isDesktop()){ input.blur(); openMobileDrawer(e); } }, ev === 'touchstart' ? {passive:false} : false);

@@ -156,6 +156,40 @@
   var AC_PIN  = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5S10.62 6.5 12 6.5s2.5 1.12 2.5 2.5S13.38 11.5 12 11.5z"/></svg>';
   var AC_FIRM = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 1 2 6v2h20V6L12 1zM4 10v8H3v3h18v-3h-1v-8h-2v8h-3v-8h-2v8h-2v-8H7v8H6v-8H4z"/></svg>';
 
+  // The TMW spinning-hexagon "intelligence" mark (matches the header lockup).
+  // NOTE: a custom wrapper class (.tmw-hexspin) — NOT .tmw-hex-badge, which the
+  // dock force-hides on the logo lockup.
+  var HEX_SPIN =
+    '<span class="tmw-hexspin"><svg viewBox="0 0 100 100">' +
+    '<polygon class="tmw-hex-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/>' +
+    '<g class="tmw-hex-spinner"><polygon class="tmw-hex-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g>' +
+    '</svg></span>';
+  // "Ask the Map" starter questions — chosen so the smart-search parser resolves
+  // each one cleanly (status/type/place/year/sort).
+  var TEACH_Q = [
+    'Tallest towers under construction in Florida',
+    'Hotels opening in Miami this year',
+    'Topped-out condos in West Palm Beach delivering 2026',
+    'Biggest residential projects in Florida'
+  ];
+  var TEACH_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M6 21V8l6-4 6 4v13"/></svg>';
+  // Builds the teaching pop-up markup. Exposed so the map (which wires its own
+  // dock autocomplete) can render the IDENTICAL panel on empty focus.
+  function tmwAskTeachHTML() {
+    var rows = TEACH_Q.map(function (q) {
+      return '<a class="tdt-ex" href="' + HOME_URL + '/search/?q=' + encodeURIComponent(q) + '">' +
+             '<span class="tdt-i">' + TEACH_ICON + '</span>' +
+             '<span class="tdt-qt">' + acEsc(q) + '</span><span class="tdt-ent">&#8629;</span></a>';
+    }).join('');
+    return '<div class="tmw-dock-teach">' +
+      '<div class="tdt-h">' + HEX_SPIN + '<span class="tdt-ttl">Ask the Map</span>' +
+      '<span class="tdt-sub">search in plain English</span><span class="tdt-tag">NEW</span></div>' +
+      '<div class="tdt-sec">Try asking</div>' + rows +
+      '<div class="tdt-foot">Type a name for instant results, or ask a full question.</div>' +
+    '</div>';
+  }
+  window.tmwAskTeachHTML = tmwAskTeachHTML;
+
   var _dockData = null, _dockDataPromise = null;
   function acNorm(s){ return String(s == null ? '' : s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''); }
   // Mirror the map's handleDeepLink() slug EXACTLY (lowercase + strip non-alnum,
@@ -227,6 +261,8 @@
 
     function hide(){ ac.classList.remove('open'); activeIdx = -1; }
     function msg(text){ ac.innerHTML = '<div class="tmw-dock-ac-msg">' + acEsc(text) + '</div>'; ac.classList.add('open'); }
+    // Empty box → show the "Ask the Map" starter-questions teaching panel.
+    function showTeach(){ ac.innerHTML = tmwAskTeachHTML(); ac.classList.add('open'); activeIdx = -1; }
     function hrefFor(kind, d){
       if (kind === 'project') return MAP_URL + '/?project=' + acSlug(d.Title);
       if (kind === 'firm')    return '/firm/' + encodeURIComponent(d.slug) + '/';
@@ -286,7 +322,7 @@
     }
     function onType(){
       var q = (input.value || '').trim();
-      if (q.length < 2){ hide(); return; }
+      if (q.length < 2){ showTeach(); return; }   // empty/short → teaching panel
       if (!_dockData){
         msg('Loading…');
         loadDockData().then(function (){ if ((input.value || '').trim() === q) render(q); });
@@ -295,7 +331,7 @@
       render(q);
     }
     input.addEventListener('input', function (){ clearTimeout(debounce); debounce = setTimeout(onType, 110); });
-    input.addEventListener('focus', function (){ loadDockData(); if ((input.value || '').trim().length >= 2) onType(); });
+    input.addEventListener('focus', function (){ loadDockData(); var v = (input.value || '').trim(); if (v.length >= 2) onType(); else showTeach(); });
     input.addEventListener('blur',  function (){ setTimeout(hide, 160); });
     input.addEventListener('keydown', function (e){
       if (!ac.classList.contains('open')) return;
@@ -388,6 +424,30 @@
     '.tmw-dock-ac-txt span{display:block;font-size:11px;color:rgba(255,255,255,.42);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
     '.tmw-dock-ac-msg{padding:15px 16px;text-align:center;color:rgba(255,255,255,.5);font-size:13px}',
     '@media(max-width:560px){.tmw-dock-ac{width:92vw;bottom:calc(100% + 10px)}}',
+    // ── "Ask the Map" teaching panel (shown on focus when the box is empty) ──
+    '.tmw-dock-teach{padding:4px 4px 6px}',
+    '.tmw-dock-teach .tdt-h{display:flex;align-items:center;gap:9px;padding:6px 8px 10px}',
+    '.tmw-hexspin{display:inline-flex;width:22px;height:22px;flex:0 0 auto}',
+    '.tmw-hexspin svg{width:100%;height:100%;display:block;overflow:visible}',
+    '.tmw-hex-spinner{transform-origin:50% 50%;animation:tmwHardspin 4.2s cubic-bezier(.16,1,.3,1) infinite}',
+    '.tmw-hex-core{transform-origin:50% 50%;animation:tmwHexpulse 4.2s ease-in-out infinite}',
+    '.tmw-hex-ring{transform-origin:50% 50%;animation:tmwRing 4.2s ease-out infinite}',
+    '@keyframes tmwHardspin{0%{transform:rotate(0)}55%{transform:rotate(810deg)}70%{transform:rotate(900deg)}100%{transform:rotate(1080deg)}}',
+    '@keyframes tmwHexpulse{0%,45%{stroke:#A78BFA;filter:drop-shadow(0 0 0 rgba(167,139,250,0))}70%{stroke:#B9A6FF;filter:drop-shadow(0 0 6px rgba(185,166,255,.9))}100%{stroke:#A78BFA;filter:drop-shadow(0 0 0 rgba(167,139,250,0))}}',
+    '@keyframes tmwRing{0%,60%{transform:scale(1);opacity:0}72%{opacity:.55}100%{transform:scale(1.7);opacity:0}}',
+    '@media(prefers-reduced-motion:reduce){.tmw-hex-spinner,.tmw-hex-ring{animation:none}.tmw-hex-ring{opacity:0}}',
+    '.tmw-dock-teach .tdt-ttl{font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#C2A8FF}',
+    '.tmw-dock-teach .tdt-sub{font-size:11.5px;color:#9AA39C}',
+    '.tmw-dock-teach .tdt-tag{margin-left:auto;font-size:9px;font-weight:800;letter-spacing:.1em;color:#0b0a14;background:#C2A8FF;padding:3px 7px;border-radius:5px}',
+    '.tmw-dock-teach .tdt-sec{font-size:9.5px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:rgba(255,255,255,.3);padding:6px 10px 4px}',
+    '.tmw-dock-teach .tdt-ex{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;text-decoration:none;cursor:pointer}',
+    '.tmw-dock-teach .tdt-ex:hover{background:rgba(167,139,250,.10)}',
+    '.tmw-dock-teach .tdt-ex .tdt-i{width:24px;height:24px;flex:0 0 auto;border-radius:7px;background:rgba(167,139,250,.12);color:#C2A8FF;display:flex;align-items:center;justify-content:center}',
+    '.tmw-dock-teach .tdt-ex .tdt-i svg{width:13px;height:13px}',
+    '.tmw-dock-teach .tdt-qt{flex:1;font-family:"Fraunces",Georgia,serif;font-size:14px;color:#ECEAE5;line-height:1.25}',
+    '.tmw-dock-teach .tdt-ent{font-size:11px;color:#9AA39C}',
+    '.tmw-dock-teach .tdt-ex:hover .tdt-ent{color:#C2A8FF}',
+    '.tmw-dock-teach .tdt-foot{padding:9px 10px 2px;margin-top:6px;border-top:1px solid rgba(255,255,255,.08);font-size:11px;color:#9AA39C}',
     // Map · Atlas · Journal toggle inside the dock (icon-only). Shown on mobile;
     // hidden >=981px because the header already carries the labelled toggle there.
     '.tmw-dock .tmw-st{display:inline-flex;align-items:center;gap:2px;flex:0 0 auto;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.10);border-radius:999px;padding:3px}',

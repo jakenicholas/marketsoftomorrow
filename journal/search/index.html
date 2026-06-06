@@ -211,7 +211,16 @@ main{padding:54px 0 40px}
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
 .intel-h{display:flex;align-items:center;gap:10px;margin-bottom:14px}
 .intel-spark{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:rgba(167,139,250,.16);color:var(--purple-glow);box-shadow:0 0 16px rgba(167,139,250,.45);flex:0 0 auto}
-.intel-spark svg{width:16px;height:16px}
+.intel-spark svg{width:18px;height:18px}
+/* TMW spinning-hexagon "intelligence" mark (shared with the header lockup) */
+.hexspin{overflow:visible}
+.tmw-hex-spinner{transform-origin:50% 50%;animation:tmwHardspin 4.2s cubic-bezier(.16,1,.3,1) infinite}
+.tmw-hex-core{transform-origin:50% 50%;animation:tmwHexpulse 4.2s ease-in-out infinite}
+.tmw-hex-ring{transform-origin:50% 50%;animation:tmwRing 4.2s ease-out infinite}
+@keyframes tmwHardspin{0%{transform:rotate(0)}55%{transform:rotate(810deg)}70%{transform:rotate(900deg)}100%{transform:rotate(1080deg)}}
+@keyframes tmwHexpulse{0%,45%{stroke:#A78BFA;filter:drop-shadow(0 0 0 rgba(167,139,250,0))}70%{stroke:#B9A6FF;filter:drop-shadow(0 0 6px rgba(185,166,255,.9))}100%{stroke:#A78BFA;filter:drop-shadow(0 0 0 rgba(167,139,250,0))}}
+@keyframes tmwRing{0%,60%{transform:scale(1);opacity:0}72%{opacity:.55}100%{transform:scale(1.7);opacity:0}}
+@media(prefers-reduced-motion:reduce){.tmw-hex-spinner,.tmw-hex-ring{animation:none}.tmw-hex-ring{opacity:0}}
 .intel-h .lbl{font-size:11px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--purple-glow)}
 .intel-h .live{margin-left:auto;display:flex;align-items:center;gap:7px;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute)}
 .intel-h .live i{width:6px;height:6px;border-radius:50%;background:var(--purple-glow);box-shadow:0 0 8px var(--purple-glow);font-style:normal}
@@ -762,7 +771,7 @@ function renderSmart(q, s){
   if (s.yearLabel)           chips.push('<span class="uchip"><span class="ck">Delivery</span> <b>'+esc(s.yearLabel)+'</b></span>');
   if (s.sort)                chips.push('<span class="uchip sort"><span class="ck">Sort</span> <b>'+esc(s.sort.label)+'</b></span>');
 
-  const SPARK = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.9 5.1L19 9l-5.1 1.9L12 16l-1.9-5.1L5 9l5.1-1.9L12 2z"/></svg>';
+  const SPARK = '<svg class="hexspin" viewBox="0 0 100 100"><polygon class="tmw-hex-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/><g class="tmw-hex-spinner"><polygon class="tmw-hex-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g></svg>';
   let html = '<div class="understood"><span class="lead">Understood as</span>' + chips.join('') + '</div>';
   html += '<section class="intel"><div class="intel-h"><span class="intel-spark">'+SPARK+'</span>'+
           '<span class="lbl">TMW Intelligence</span><span class="live"><i></i>Live answer</span></div>'+
@@ -830,17 +839,24 @@ function buildSmartFacts(s, rows){
     top: rows.slice(0,8).map(p=>({ name: p.Title, city: p.City||'', status: p.Delivery||'', floors: floorsOf(p)||null, units: unitsOf(p)||null, delivery: fmtDelivery(p)||'' })),
   };
 }
-let _smartAnsToken = 0;
+let _smartAnsToken = 0, _smartAnsTimer = null;
 function upgradeSmartAnswer(q, facts){
   const token = ++_smartAnsToken;
-  fetch(WORKER_URL + '/smart-answer', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ q, facts }) })
-    .then(r => r.ok ? r.json() : null)
-    .then(d => {
-      if (token !== _smartAnsToken || !d || !d.answer) return;   // superseded, or keep deterministic
-      const el = document.querySelector('#smartSection .intel-ans');
-      if (el) el.textContent = d.answer;
-    })
-    .catch(()=>{});
+  // The page re-runs search on EVERY keystroke, so fire the paid LLM call only
+  // once the query settles (~700ms idle). Without this we'd send one request per
+  // character and trip the API rate limit after a couple of questions.
+  clearTimeout(_smartAnsTimer);
+  _smartAnsTimer = setTimeout(() => {
+    if (token !== _smartAnsToken) return;   // a newer query superseded this one
+    fetch(WORKER_URL + '/smart-answer', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ q, facts }) })
+      .then(r => r.ok ? r.json() : null)
+      .then(d => {
+        if (token !== _smartAnsToken || !d || !d.answer) return;   // superseded, or keep deterministic
+        const el = document.querySelector('#smartSection .intel-ans');
+        if (el) el.textContent = d.answer;
+      })
+      .catch(()=>{});
+  }, 700);
 }
 
 function runSearch(q){
