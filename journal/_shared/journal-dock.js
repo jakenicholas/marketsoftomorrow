@@ -242,7 +242,7 @@
     }).join('');
     return '<div class="tmw-dock-teach">' +
       '<div class="tdt-h">' + HEX_SPIN + '<span class="tdt-ttl">TMW Intelligence</span>' +
-      '<span class="tdt-sub">search in plain English</span>' + tmwIntelPillHTML() + '</div>' +
+      tmwIntelPillHTML() + '</div>' +
       '<div class="tdt-sec">Try asking</div>' + rows +
       '<div class="tdt-foot">Type a name for instant results, or ask a full question.</div>' +
     '</div>';
@@ -463,6 +463,8 @@
     '.tmw-dock-search input{height:46px;width:min(46vw,300px);padding:0 18px 0 42px;',
     'background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.10);border-radius:999px;',
     'color:#fff;font-size:14px;font-family:inherit;outline:none;transition:border-color .2s,background .2s,width .25s ease}',
+    // Purple clear (×) glyph in place of the browser default
+    '.tmw-dock-search input::-webkit-search-cancel-button{-webkit-appearance:none;appearance:none;height:14px;width:14px;cursor:pointer;background:url(data:image/svg+xml,%3Csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20viewBox=%270%200%2024%2024%27%3E%3Cpath%20d=%27M6%206l12%2012M18%206L6%2018%27%20stroke=%27%23B9A6FF%27%20stroke-width=%272.4%27%20stroke-linecap=%27round%27/%3E%3C/svg%3E) center/contain no-repeat}',
     '.tmw-dock-search input::placeholder{color:#9AA39C}',
     '.tmw-dock-search input:focus{border-color:rgba(31,223,103,.55);background:rgba(255,255,255,.08);width:min(52vw,344px)}',
     // ── Live autocomplete pop-up (opens ABOVE the bottom dock) ──
