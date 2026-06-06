@@ -640,6 +640,14 @@ const TYPE_GROUPS = [
   { token:'Marina',     label:'Marina',             noun:'marina',    syn:['marina'] },
   { token:'Museum',     label:'Museum',             noun:'museum',    syn:['museum'] },
   { token:'Entertainment', label:'Entertainment',   noun:'venue',     syn:['entertainment'] },
+  { token:'Golf',       label:'Golf',               noun:'golf course', syn:['golf','golf course','country club'] },
+  { token:'Stadium',    label:'Stadium',            noun:'stadium',   syn:['stadium','arena','ballpark'] },
+  { token:'Education',  label:'Education',          noun:'school',    syn:['school','university','college','campus'] },
+  { token:'Cultural',   label:'Cultural',           noun:'cultural project', syn:['cultural'] },
+  { token:'Spa',        label:'Spa',                noun:'spa',       syn:['spa','wellness'] },
+  { token:'Mixed-Use',  label:'Mixed-use',          noun:'mixed-use project', syn:['mixed-use','mixed use'] },
+  { token:'Hospital',   label:'Hospital',           noun:'hospital',  syn:['hospital','medical center'] },
+  { token:'Airport',    label:'Airport',            noun:'airport',   syn:['airport'] },
 ];
 const SORT_GROUPS = [
   { key:'floors', dir:'desc', label:'Tallest first',   unit:'Stories', stat:'Tallest',     syn:['tallest','highest','tall'] },
@@ -647,7 +655,7 @@ const SORT_GROUPS = [
   { key:'units',  dir:'desc', label:'Most units',      unit:'Units',   stat:'Most units',  syn:['biggest','largest','most units','most residences','most homes'] },
   { key:'date',   dir:'asc',  label:'Opening soonest', unit:'Delivers',stat:'Opens first', syn:['soonest','earliest','opening first','next to open','delivering first'] },
   { key:'date',   dir:'desc', label:'Furthest out',    unit:'Delivers',stat:'Latest',      syn:['furthest out','latest delivery','last to open'] },
-  { key:'updated',dir:'desc', label:'Newest',          unit:'Updated', stat:'Newest',      syn:['newest','latest','most recent'] },
+  { key:'updated',dir:'desc', label:'Newest',          unit:'Updated', stat:'Newest',      syn:['newest','newly','new','latest','most recent','recently','just announced'] },
 ];
 
 let _citySet = null;
