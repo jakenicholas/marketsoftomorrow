@@ -388,6 +388,17 @@ body::after {
 }
 .section-body { padding: var(--space-3) 0; }
 
+/* TMW Intelligence query log (Pro tab) */
+.iq-row { padding: 11px 2px; border-bottom: 1px solid var(--hair); }
+.iq-row:last-child { border-bottom: 0; }
+.iq-q { color: var(--white); font-size: 14px; font-weight: 500; }
+.iq-meta { color: var(--mute2); font-size: 11.5px; margin-top: 4px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.iq-plan { display: inline-block; font-size: 9.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; padding: 2px 7px; border-radius: 999px; }
+.iq-plan.iq-pro  { color: #f0d68a; border: 1px solid rgba(240,214,138,.55); }
+.iq-plan.iq-free { color: var(--mute2); border: 1px solid var(--hair2); }
+.iq-plan.iq-anon { color: var(--mute2); border: 1px solid var(--hair); }
+.iq-pager { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 16px; }
+
 /* Filter chips */
 .chips { display: flex; gap: 6px; }
 .chip-btn {
@@ -1159,6 +1170,7 @@ body::after {
     <div class="tabs" role="tablist">
       <button class="tab-btn active" role="tab" data-tab="map">Map</button>
       <button class="tab-btn" role="tab" data-tab="media">Media Kit</button>
+      <button class="tab-btn" role="tab" data-tab="pro">Pro</button>
     </div>
 
     <!-- ════════ MAP TAB ════════ -->
@@ -1426,6 +1438,28 @@ body::after {
 
     </div><!-- /tab-content [media] -->
 
+    <!-- ════════ PRO TAB ════════ -->
+    <div class="tab-content" data-tab="pro">
+      <div class="section">
+        <div class="section-head">
+          <div class="section-title">TMW Intelligence Queries</div>
+          <div class="section-meta" id="iqMeta">—</div>
+        </div>
+        <div class="section-body">
+          <div id="iqList">
+            <div class="skeleton"></div>
+            <div class="skeleton" style="width:80%"></div>
+            <div class="skeleton" style="width:65%"></div>
+          </div>
+          <div class="iq-pager">
+            <button class="chip-btn" id="iqPrev" disabled>← Newer</button>
+            <span class="section-meta" id="iqPageInfo">—</span>
+            <button class="chip-btn" id="iqNext" disabled>Older →</button>
+          </div>
+        </div>
+      </div>
+    </div><!-- /tab-content [pro] -->
+
   </div>
 
 </div>
@@ -1602,6 +1636,7 @@ let _state = {
   lastFeedTs: 0,
   activeTab: (typeof localStorage !== 'undefined' && localStorage.getItem('tmwAnalyticsTab')) || 'map',
   mediaLoadedOnce: false,
+  proLoadedOnce: false,
 };
 
 function setTab(name) {
@@ -1616,7 +1651,54 @@ function setTab(name) {
     _state.mediaLoadedOnce = true;
     loadMediaTab();
   }
+  if (name === 'pro' && !_state.proLoadedOnce) {
+    _state.proLoadedOnce = true;
+    loadIntelQueries(0);
+  }
 }
+
+/* ── Pro tab: TMW Intelligence query log (paginated) ── */
+const IQ_PAGE = 25;
+let _iqOffset = 0, _iqTotal = 0;
+async function loadIntelQueries(offset) {
+  _iqOffset = Math.max(0, offset || 0);
+  const list = document.getElementById('iqList');
+  if (!list) return;
+  try {
+    const d = await workerGet('/intel-queries?limit=' + IQ_PAGE + '&offset=' + _iqOffset);
+    _iqTotal = d.total || 0;
+    const items = d.items || [];
+    if (!items.length) {
+      list.innerHTML = '<div style="padding:18px 2px;color:var(--mute2);font-size:13px">No TMW Intelligence queries logged yet.</div>';
+    } else {
+      list.innerHTML = items.map(function (it) {
+        const who = escapeHTML(it.member_name || (String(it.member_id || '').indexOf('anon:') === 0 ? 'Anonymous visitor' : (it.member_id || '—')));
+        const plan = (it.pro || it.plan === 'paid') ? 'pro' : (it.plan || 'free');
+        const res = (it.results != null) ? (it.results + ' result' + (it.results === 1 ? '' : 's')) : '';
+        return '<div class="iq-row"><div class="iq-q">' + escapeHTML(it.query || '—') + '</div>' +
+          '<div class="iq-meta">' + who +
+          ' <span class="iq-plan iq-' + plan + '">' + plan + '</span>' +
+          (res ? ' · ' + res : '') + ' · ' + escapeHTML(relTime(it.ts)) + '</div></div>';
+      }).join('');
+    }
+    const meta = document.getElementById('iqMeta');
+    if (meta) meta.textContent = _iqTotal.toLocaleString() + ' total';
+    const from = _iqTotal ? (_iqOffset + 1) : 0;
+    const to = Math.min(_iqOffset + IQ_PAGE, _iqTotal);
+    const info = document.getElementById('iqPageInfo');
+    if (info) info.textContent = from + '–' + to + ' of ' + _iqTotal.toLocaleString();
+    const prev = document.getElementById('iqPrev'); if (prev) prev.disabled = _iqOffset <= 0;
+    const next = document.getElementById('iqNext'); if (next) next.disabled = (_iqOffset + IQ_PAGE) >= _iqTotal;
+  } catch (e) {
+    list.innerHTML = '<div style="padding:18px 2px;color:#ff5d5d;font-size:13px">Could not load queries.</div>';
+  }
+}
+(function () {
+  const prev = document.getElementById('iqPrev');
+  const next = document.getElementById('iqNext');
+  if (prev) prev.addEventListener('click', function () { loadIntelQueries(_iqOffset - IQ_PAGE); });
+  if (next) next.addEventListener('click', function () { loadIntelQueries(_iqOffset + IQ_PAGE); });
+})();
 
 document.addEventListener('click', (e) => {
   const tab = e.target.closest('.tab-btn[data-tab]');

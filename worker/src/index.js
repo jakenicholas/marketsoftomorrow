@@ -949,6 +949,36 @@ async function handleActivity(env, origin, url) {
   return json({ rows: rs.results || [] }, {}, env, origin);
 }
 
+// GET /intel-queries — paginated log of TMW Intelligence searches (event_name
+// 'intel_query'), newest first. Returns total + the requested page so the Studio
+// can page through without losing history. props_json carries { q, results, pro }.
+async function handleIntelQueries(env, origin, url) {
+  const limit  = clampInt(url.searchParams.get('limit'), 25, 1, 100);
+  const offset = clampInt(url.searchParams.get('offset'), 0, 0, 1000000);
+  const tot = await env.DB.prepare(
+    `SELECT COUNT(*) AS n FROM events WHERE event_name = 'intel_query'`
+  ).first();
+  const rs = await env.DB.prepare(
+    `SELECT ts, member_id, member_name, plan, props_json
+     FROM events WHERE event_name = 'intel_query'
+     ORDER BY ts DESC LIMIT ? OFFSET ?`
+  ).bind(limit, offset).all();
+  const items = (rs.results || []).map(row => {
+    let p = {};
+    try { if (row.props_json) p = JSON.parse(row.props_json); } catch {}
+    return {
+      ts: row.ts,
+      member_id: row.member_id,
+      member_name: row.member_name || null,
+      plan: row.plan || null,
+      query: p.q || '',
+      results: (p.results != null ? p.results : null),
+      pro: !!p.pro,
+    };
+  });
+  return json({ total: (tot && tot.n) || 0, limit, offset, items }, {}, env, origin);
+}
+
 // GET /projects — most-clicked projects across multiple time windows.
 // Aggregates `project_click` events from identified members (the only ones
 // stored in D1). For each project we return click counts for today, 7d,
@@ -3863,7 +3893,7 @@ export default {
       // already enforce the token inside their own handlers.
       const ADMIN_READ_PATHS = new Set([
         '/people', '/stats', '/member', '/timeline',
-        '/watchlist', '/projects', '/activity', '/subscriptions',
+        '/watchlist', '/projects', '/activity', '/subscriptions', '/intel-queries',
       ]);
       if (request.method === 'GET' && ADMIN_READ_PATHS.has(url.pathname)) {
         const denied = await requireAdminToken(request, env, origin);
@@ -3917,6 +3947,9 @@ export default {
       }
       if (request.method === 'GET' && url.pathname === '/activity') {
         return await handleActivity(env, origin, url);
+      }
+      if (request.method === 'GET' && url.pathname === '/intel-queries') {
+        return await handleIntelQueries(env, origin, url);
       }
       if (request.method === 'GET' && url.pathname === '/blog') {
         return await handleBlog(env, origin, url);
