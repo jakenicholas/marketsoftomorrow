@@ -12328,6 +12328,9 @@
         } catch(e){ map.flyTo({ center: cityFeats[0].geometry.coordinates, zoom: 11 }); }
         map.once('moveend', paint);
       }
+      // Expose so a ?city=<name> deep-link (from the universal dock search on
+      // journal/atlas pages) can open the same city overview on arrival.
+      window.openCityInSidebar = openCityInSidebar;
       // The floating results are the ONLY desktop search UI now (no in-sidebar
       // list), so they show no matter what's on screen — Discover, a project page,
       // or a collapsed sidebar. Picking a project flies to it; a city opens the
@@ -13181,9 +13184,18 @@
     function handleDeepLink() {
       const params = new URLSearchParams(window.location.search);
       const slug = params.get('project');
+      const cityParam = params.get('city');
       const fullscreen = params.get('fullscreen') === 'true';
       const embed = params.get('embed') === 'true';
-      if (!slug || !window.allProjectFeatures) return;
+      if (!window.allProjectFeatures) return;
+      if (!slug) {
+        // ?city=<name> → open the city overview (fit bounds + sidebar grid),
+        // no project modal. Used by the universal dock search "Places" results.
+        if (cityParam && typeof window.openCityInSidebar === 'function') {
+          try { window.openCityInSidebar(decodeURIComponent(cityParam), null); } catch (e) {}
+        }
+        return;
+      }
       const match = window.allProjectFeatures.find(f => {
         const s = (f.properties.title || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
         return s === slug;

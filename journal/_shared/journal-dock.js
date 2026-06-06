@@ -145,6 +145,171 @@
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
     '<rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.3" cy="6.7" r="1.2" fill="currentColor" stroke="none"/></svg>';
 
+  // ── Dock live-search autocomplete ────────────────────────────────────────
+  // Mirrors the map's dock pop-up on every NON-map surface (journal, atlas,
+  // article, firm pages…). Each result navigates DIRECT:
+  //   • project → the map's project page  (MAP_URL/?project=<slug>)
+  //   • firm    → the firm's page         (/firm/<slug>/)
+  //   • city    → the map's city overview (MAP_URL/?city=<name>)
+  // Pressing Enter without picking a result still goes to the full /search/ page.
+  var AC_BLDG = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17 11V3H7v4H3v14h8v-4h2v4h8V11h-4zM7 19H5v-2h2v2zm0-4H5v-2h2v2zm0-4H5V9h2v2zm4 4H9v-2h2v2zm0-4H9V9h2v2zm0-4H9V5h2v2zm4 12h-2v-2h2v2zm0-4h-2v-2h2v2zm0-4h-2V9h2v2zm0-4h-2V5h2v2zm4 12h-2v-2h2v2zm0-4h-2v-2h2v2z"/></svg>';
+  var AC_PIN  = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5S10.62 6.5 12 6.5s2.5 1.12 2.5 2.5S13.38 11.5 12 11.5z"/></svg>';
+  var AC_FIRM = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 1 2 6v2h20V6L12 1zM4 10v8H3v3h18v-3h-1v-8h-2v8h-3v-8h-2v8h-2v-8H7v8H6v-8H4z"/></svg>';
+
+  var _dockData = null, _dockDataPromise = null;
+  function acNorm(s){ return String(s == null ? '' : s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''); }
+  // Mirror the map's handleDeepLink() slug EXACTLY (lowercase + strip non-alnum,
+  // NO diacritic folding) so ?project=<slug> resolves the same pin there.
+  function acSlug(t){ return String(t == null ? '' : t).toLowerCase().replace(/[^a-z0-9]+/g, ''); }
+  function acEsc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function (c){ return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]; }); }
+  function acHi(text, ql){
+    var t = String(text == null ? '' : text);
+    if (!ql) return acEsc(t);
+    var i = acNorm(t).indexOf(ql);
+    if (i < 0) return acEsc(t);
+    return acEsc(t.slice(0, i)) + '<em>' + acEsc(t.slice(i, i + ql.length)) + '</em>' + acEsc(t.slice(i + ql.length));
+  }
+  function loadDockData(){
+    if (_dockDataPromise) return _dockDataPromise;
+    _dockDataPromise = Promise.all([
+      fetch('https://www.oftmw.com/map/projects-flat.json', { cache: 'no-cache' }).then(function (r){ return r.ok ? r.json() : []; }).catch(function (){ return []; }),
+      fetch('https://www.oftmw.com/map/firms-flat.json',    { cache: 'no-cache' }).then(function (r){ return r.ok ? r.json() : null; }).catch(function (){ return null; })
+    ]).then(function (res){
+      var p = res[0], f = res[1];
+      var projects = Array.isArray(p) ? p : (p.projects || p.items || []);
+      var firms = [];
+      if (f && (f.architects || f.developers)){
+        firms = [].concat(
+          (f.architects || []).map(function (x){ return { name: x.name, slug: x.slug, role: 'architect', count: +x.project_count || 0 }; }),
+          (f.developers || []).map(function (x){ return { name: x.name, slug: x.slug, role: 'developer', count: +x.project_count || 0 }; })
+        );
+      }
+      var cmap = {};
+      projects.forEach(function (pr){ var c = (pr.City || '').trim(); if (c) cmap[c] = (cmap[c] || 0) + 1; });
+      var cities = Object.keys(cmap).map(function (c){ return { name: c, count: cmap[c] }; });
+      _dockData = { projects: projects, firms: firms, cities: cities };
+      return _dockData;
+    });
+    return _dockDataPromise;
+  }
+  function dockMatches(q){
+    if (!_dockData) return null;
+    var ql = acNorm(q).trim();
+    if (!ql) return { projects: [], firms: [], cities: [] };
+    var toks = ql.split(/[^a-z0-9]+/).filter(Boolean);
+    var projects = _dockData.projects.map(function (p){
+      var title = acNorm(p.Title), city = acNorm(p.City || ''), s = 0;
+      if (title === ql) s += 100; else if (title.indexOf(ql) === 0) s += 50; else if (title.indexOf(ql) >= 0) s += 26;
+      toks.forEach(function (t){ if (title.indexOf(t) >= 0) s += 10; if (city.indexOf(t) >= 0) s += 4; });
+      return { p: p, s: s };
+    }).filter(function (x){ return x.s > 0; }).sort(function (a, b){ return b.s - a.s; }).slice(0, 4).map(function (x){ return x.p; });
+    var firms = _dockData.firms.map(function (f){
+      var name = acNorm(f.name), s = 0;
+      if (name === ql) s += 100; else if (name.indexOf(ql) === 0) s += 50; else if (name.indexOf(ql) >= 0) s += 24;
+      toks.forEach(function (t){ if (name.indexOf(t) >= 0) s += 8; });
+      if (s > 0) s += Math.min(6, (f.count || 0) * 0.3);
+      return { f: f, s: s };
+    }).filter(function (x){ return x.s > 0 && x.f.slug; }).sort(function (a, b){ return b.s - a.s; }).slice(0, 3).map(function (x){ return x.f; });
+    var cities = _dockData.cities.filter(function (c){
+      var nc = acNorm(c.name);
+      return nc.indexOf(ql) >= 0 || toks.some(function (t){ return nc.indexOf(t) >= 0; });
+    }).sort(function (a, b){ return b.count - a.count; }).slice(0, 3);
+    return { projects: projects, firms: firms, cities: cities };
+  }
+  function setupDockAC(form, input){
+    if (typeof tmwSurface === 'function' && tmwSurface() === 'map') return; // map owns its own dock AC
+    var ac = document.createElement('div');
+    ac.className = 'tmw-dock-ac';
+    ac.setAttribute('role', 'listbox');
+    ac.setAttribute('aria-label', 'Search suggestions');
+    form.appendChild(ac);
+    var activeIdx = -1, debounce = null;
+
+    function hide(){ ac.classList.remove('open'); activeIdx = -1; }
+    function msg(text){ ac.innerHTML = '<div class="tmw-dock-ac-msg">' + acEsc(text) + '</div>'; ac.classList.add('open'); }
+    function hrefFor(kind, d){
+      if (kind === 'project') return MAP_URL + '/?project=' + acSlug(d.Title);
+      if (kind === 'firm')    return '/firm/' + encodeURIComponent(d.slug) + '/';
+      if (kind === 'city')    return MAP_URL + '/?city=' + encodeURIComponent(d.name);
+      return '#';
+    }
+    function navTo(href){ if (href && href !== '#'){ hide(); window.location.href = href; } }
+    function setActive(i){
+      var els = ac.querySelectorAll('.tmw-dock-ac-item');
+      if (!els.length) return;
+      activeIdx = (i + els.length) % els.length;
+      for (var k = 0; k < els.length; k++) els[k].classList.toggle('active', k === activeIdx);
+      els[activeIdx].scrollIntoView({ block: 'nearest' });
+    }
+    function render(q){
+      var m = dockMatches(q);
+      if (!m){ msg('Loading…'); return; }
+      var ql = acNorm(q), html = '';
+      if (m.projects.length){
+        html += '<div class="tmw-dock-ac-sec">Projects</div>';
+        m.projects.forEach(function (p){
+          html += '<a class="tmw-dock-ac-item" tabindex="-1" href="' + acEsc(hrefFor('project', p)) +
+            '"><span class="tmw-dock-ac-ico project">' + AC_BLDG + '</span><span class="tmw-dock-ac-txt"><strong>' +
+            acHi(p.Title, ql) + '</strong><span>' + acEsc(p.City || '') + '</span></span></a>';
+        });
+      }
+      if (m.firms.length){
+        if (html) html += '<div class="tmw-dock-ac-div"></div>';
+        html += '<div class="tmw-dock-ac-sec">Firms</div>';
+        m.firms.forEach(function (f){
+          var sub = (f.role === 'architect' ? 'Architect' : 'Developer') + (f.count ? (' · ' + f.count + ' project' + (f.count !== 1 ? 's' : '')) : '');
+          html += '<a class="tmw-dock-ac-item" tabindex="-1" href="' + acEsc(hrefFor('firm', f)) +
+            '"><span class="tmw-dock-ac-ico firm">' + AC_FIRM + '</span><span class="tmw-dock-ac-txt"><strong>' +
+            acHi(f.name, ql) + '</strong><span>' + acEsc(sub) + '</span></span></a>';
+        });
+      }
+      if (m.cities.length){
+        if (html) html += '<div class="tmw-dock-ac-div"></div>';
+        html += '<div class="tmw-dock-ac-sec">Places</div>';
+        m.cities.forEach(function (c){
+          html += '<a class="tmw-dock-ac-item" tabindex="-1" href="' + acEsc(hrefFor('city', c)) +
+            '"><span class="tmw-dock-ac-ico place">' + AC_PIN + '</span><span class="tmw-dock-ac-txt"><strong>' +
+            acHi(c.name, ql) + '</strong><span>' + c.count + ' project' + (c.count !== 1 ? 's' : '') + '</span></span></a>';
+        });
+      }
+      if (!html){ msg('No matches — press Enter to search'); return; }
+      ac.innerHTML = html;
+      ac.classList.add('open');
+      activeIdx = -1;
+      var els = ac.querySelectorAll('.tmw-dock-ac-item');
+      for (var i = 0; i < els.length; i++){
+        (function (el){
+          // mousedown fires before the input's blur, so the nav isn't cancelled.
+          el.addEventListener('mousedown', function (e){ e.preventDefault(); navTo(el.getAttribute('href')); });
+        })(els[i]);
+      }
+    }
+    function onType(){
+      var q = (input.value || '').trim();
+      if (q.length < 2){ hide(); return; }
+      if (!_dockData){
+        msg('Loading…');
+        loadDockData().then(function (){ if ((input.value || '').trim() === q) render(q); });
+        return;
+      }
+      render(q);
+    }
+    input.addEventListener('input', function (){ clearTimeout(debounce); debounce = setTimeout(onType, 110); });
+    input.addEventListener('focus', function (){ loadDockData(); if ((input.value || '').trim().length >= 2) onType(); });
+    input.addEventListener('blur',  function (){ setTimeout(hide, 160); });
+    input.addEventListener('keydown', function (e){
+      if (!ac.classList.contains('open')) return;
+      if (e.key === 'ArrowDown'){ e.preventDefault(); setActive(activeIdx + 1); }
+      else if (e.key === 'ArrowUp'){ e.preventDefault(); setActive(activeIdx - 1); }
+      else if (e.key === 'Enter'){
+        var els = ac.querySelectorAll('.tmw-dock-ac-item');
+        if (activeIdx >= 0 && els[activeIdx]){ e.preventDefault(); navTo(els[activeIdx].getAttribute('href')); }
+        // else: fall through → the form submit navigates to /search/?q=
+      }
+      else if (e.key === 'Escape'){ hide(); }
+    });
+  }
+
   // ── Surface toggle (Journal · Map · Atlas) — icon-only variant for the dock ──
   var ST_ICON = {
     journal: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5.2A1.2 1.2 0 0 1 4.2 4H10a2 2 0 0 1 2 2 2 2 0 0 1 2-2h5.8A1.2 1.2 0 0 1 21 5.2v12.6a1 1 0 0 1-1 1h-6a2 2 0 0 0-2 2 2 2 0 0 0-2-2H4a1 1 0 0 1-1-1z"/><path d="M12 6v14"/></svg>',
@@ -205,6 +370,24 @@
     'color:#fff;font-size:14px;font-family:inherit;outline:none;transition:border-color .2s,background .2s,width .25s ease}',
     '.tmw-dock-search input::placeholder{color:#9AA39C}',
     '.tmw-dock-search input:focus{border-color:rgba(31,223,103,.55);background:rgba(255,255,255,.08);width:min(52vw,344px)}',
+    // ── Live autocomplete pop-up (opens ABOVE the bottom dock) ──
+    '.tmw-dock-ac{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(100% + 12px);width:min(440px,86vw);max-height:46vh;overflow-y:auto;background:rgba(13,13,15,.96);-webkit-backdrop-filter:blur(22px) saturate(1.3);backdrop-filter:blur(22px) saturate(1.3);border:1px solid rgba(255,255,255,.12);border-radius:16px;box-shadow:0 16px 48px rgba(0,0,0,.6);padding:6px;z-index:9001;opacity:0;pointer-events:none;transform-origin:bottom center;transition:opacity .14s ease}',
+    '.tmw-dock-ac.open{opacity:1;pointer-events:auto}',
+    '.tmw-dock-ac-sec{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.32);padding:8px 12px 4px}',
+    '.tmw-dock-ac-div{height:1px;background:rgba(255,255,255,.06);margin:4px 0}',
+    '.tmw-dock-ac-item{display:flex;align-items:center;gap:10px;padding:9px 11px;cursor:pointer;border-radius:10px;transition:background .15s ease;text-decoration:none}',
+    '.tmw-dock-ac-item:hover,.tmw-dock-ac-item.active{background:rgba(255,255,255,.08)}',
+    '.tmw-dock-ac-ico{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}',
+    '.tmw-dock-ac-ico svg{width:15px;height:15px}',
+    '.tmw-dock-ac-ico.project{background:rgba(255,211,0,.12);color:#FFD300}',
+    '.tmw-dock-ac-ico.firm{background:rgba(167,139,250,.15);color:#C2A8FF}',
+    '.tmw-dock-ac-ico.place{background:rgba(31,223,103,.12);color:#1FDF67}',
+    '.tmw-dock-ac-txt{flex:1;min-width:0}',
+    '.tmw-dock-ac-txt strong{display:block;font-size:13px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+    '.tmw-dock-ac-txt strong em{font-style:normal;color:#1FDF67}',
+    '.tmw-dock-ac-txt span{display:block;font-size:11px;color:rgba(255,255,255,.42);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+    '.tmw-dock-ac-msg{padding:15px 16px;text-align:center;color:rgba(255,255,255,.5);font-size:13px}',
+    '@media(max-width:560px){.tmw-dock-ac{width:92vw;bottom:calc(100% + 10px)}}',
     // Map · Atlas · Journal toggle inside the dock (icon-only). Shown on mobile;
     // hidden >=981px because the header already carries the labelled toggle there.
     '.tmw-dock .tmw-st{display:inline-flex;align-items:center;gap:2px;flex:0 0 auto;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.10);border-radius:999px;padding:3px}',
@@ -449,6 +632,10 @@
       var q = (input.value || '').trim();
       window.location.href = SEARCH_PAGE + (q ? '?q=' + encodeURIComponent(q) : '');
     });
+
+    // Live result pop-up (projects/firms/cities). Skipped on the map surface,
+    // which wires its own dock autocomplete onto the same input.
+    setupDockAC(form, input);
 
     document.body.appendChild(dock);
     requestAnimationFrame(function () { dock.classList.add('ready'); });
