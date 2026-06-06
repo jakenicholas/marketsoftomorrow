@@ -3340,8 +3340,11 @@
       z-index: 90; transition: opacity 0.5s ease;
     }
     #loadingOverlay.fade-out { opacity: 0; pointer-events: none; }
-    /* Repeat map view in the same session: never paint the splash at all. */
-    html.skip-maploader #loadingOverlay { display: none !important; }
+    /* Repeat map view in the same session: no branded splash — just a plain dark
+       cover (the overlay's own bg) held briefly until the pins paint, so they
+       don't pop into a blank map. The JS reveals it on 'tmw:map-ready'. */
+    html.skip-maploader #loadingOverlay .loading-content,
+    html.skip-maploader #loadingOverlay .loading-presented { display: none !important; }
     .loading-content { text-align: center; color: #fff; }
     /* Loading mark: the TMW hex spins up, then crossfades into a search icon
        over one 3s loop and holds on the search icon. Sourced from
@@ -12249,10 +12252,20 @@
     // half-painted); hard-cap at 6s so a stalled load never traps the user.
     (function(){
       var lo = document.getElementById('loadingOverlay');
-      // Already shown once this session → skip the splash entirely (CSS in <head>
-      // has already hidden it; just make sure it's gone and don't run timers).
+      // Already shown once this session → no branded splash. But hold a plain
+      // dark cover (logo/text hidden via the skip-maploader CSS) just until the
+      // map's first idle actually paints the pins, so they don't pop into a blank
+      // map. Fades fast; hard-capped so it can never get stuck.
       if (document.documentElement.classList.contains('skip-maploader')) {
-        if (lo) lo.style.display = 'none';
+        if (!lo) return;
+        var revealed = false;
+        var reveal = function(){
+          if (revealed) return; revealed = true;
+          lo.classList.add('fade-out');
+          setTimeout(function(){ if (lo) lo.style.display = 'none'; }, 300);
+        };
+        window.addEventListener('tmw:map-ready', reveal, { once: true });
+        setTimeout(reveal, 4500);
         return;
       }
       // First map view this session — show it, then remember so the next map
@@ -17590,6 +17603,8 @@
             updateResultCount('gridMobile');
             // Handle deep-link URL after everything is ready
             handleDeepLink();
+            // Pins are painted — let the returning-visitor dark cover reveal.
+            try { window.dispatchEvent(new Event('tmw:map-ready')); } catch (e) {}
           });
 
           // ‚îÄ‚îÄ Build city‚Üístate map via Mapbox reverse geocoding ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
@@ -22313,7 +22328,14 @@
     const params = new URLSearchParams(window.location.search);
     // Legacy escape hatch: ?ui=v1 keeps the old mobile UI.
     if (params.get('ui') === 'v1') return;
+    // Suppress the desktop sidebar's one-time slide-in: ui-v2 flips its transform
+    // from translateX(-100%) → 0, which animates on every load. The splash used to
+    // hide it; returning visitors (no splash) saw it slide. Kill the transition
+    // for this flip, then restore it next frame so collapse/expand still animate.
+    var _sb0 = document.getElementById('desktopSidebar');
+    if (_sb0) _sb0.style.transition = 'none';
     document.body.classList.add('ui-v2');
+    if (_sb0) { void _sb0.offsetWidth; requestAnimationFrame(function(){ _sb0.style.transition = ''; }); }
 
     // ‚îÄ‚îÄ Desktop v2: NUCLEAR CSS ‚Äî inject a <style> at the END of body so
     // it's the very last rule in the cascade. ONLY targets .grid-item ‚Äî NOT
