@@ -920,13 +920,13 @@
   var JOURNAL_HOME = '/';
   var SK = ['Followers', 'Mo. Views', 'Mo. Web', 'Interactions'];
   var FOCUS_MARKETS = [
-    { key: 'florida',   name: 'Florida of Tomorrow',   h: 'floridaoftomorrow',   img: '/media/img/9998de3ca8af.jpg', flag: true,  s: ['150,000', '3.5M', '1.2M', '150K'] },
+    { key: 'florida',   name: 'Florida of Tomorrow',   h: 'floridaoftomorrow',   img: '/media/img/9998de3ca8af.jpg', flag: true,  s: ['160K', '3.5M', '1.2M', '150K'] },
     // TODO(jake): stats below are placeholders — swap for the real Hotels of
     // Tomorrow media-kit numbers when available.
-    { key: 'hotels',    name: 'Hotels of Tomorrow',    h: 'hotelsoftomorrow',    img: 'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_d7cb537f27f14e05b15e4787e1fa7d29~mv2.jpg', flag: false, s: ['10,000', '350K', '60K', '12K'] },
-    { key: 'new-york',  name: 'New York of Tomorrow',  h: 'newyorkoftomorrow',   img: '/media/img/e3c8a4e4ff38.jpg', flag: false, s: ['9,000', '297K', '22K', '19K'] },
-    { key: 'tennessee', name: 'Tennessee of Tomorrow', h: 'tennesseeoftomorrow', img: '/media/img/d3ce63b84f46.jpg', flag: false, s: ['11,000', '305K', '41K', '32K'] },
-    { key: 'caribbean', name: 'Caribbean of Tomorrow', h: 'caribbeanoftomorrow', img: '/media/img/5d9804404207.jpg', flag: false, s: ['2,500', '88K', '12K', '5.7K'] },
+    { key: 'hotels',    name: 'Hotels of Tomorrow',    h: 'hotelsoftomorrow',    img: 'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_d7cb537f27f14e05b15e4787e1fa7d29~mv2.jpg', flag: false, s: ['20K', '1.1M', '60K', '12K'] },
+    { key: 'new-york',  name: 'New York of Tomorrow',  h: 'newyorkoftomorrow',   img: '/media/img/e3c8a4e4ff38.jpg', flag: false, s: ['10K', '297K', '22K', '19K'] },
+    { key: 'tennessee', name: 'Tennessee of Tomorrow', h: 'tennesseeoftomorrow', img: '/media/img/d3ce63b84f46.jpg', flag: false, s: ['12K', '305K', '41K', '32K'] },
+    { key: 'caribbean', name: 'Caribbean of Tomorrow', h: 'caribbeanoftomorrow', img: '/media/img/5d9804404207.jpg', flag: false, s: ['2.5K', '88K', '12K', '5.7K'] },
     { key: 'rockies',   name: 'Rockies of Tomorrow',   h: 'rockiesoftomorrow',   img: '/media/img/35b59ff84cf5.jpg', flag: false, s: ['400', '12K', '4.1K', '1.1K'] }
   ];
   // Flat region/list link labels we pull OUT of the header (matched on visible
