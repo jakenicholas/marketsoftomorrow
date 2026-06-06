@@ -291,7 +291,7 @@
 
   /* ── Intelligence dashboard header ── */
   .atlas-intel-header{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:16px;padding:8px 0 22px;border-bottom:1px solid var(--hair);margin-bottom:26px}
-  .atlas-intel-header .ihb-eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--purple-soft);display:flex;align-items:center;gap:9px;margin-bottom:12px}
+  .atlas-intel-header .ihb-eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--purple-soft);display:flex;align-items:center;gap:9px;margin:10px 0 14px}
   .atlas-intel-header h1{font-family:var(--serif);font-weight:600;font-size:clamp(26px,3.6vw,38px);letter-spacing:-.02em;color:#fff;margin:0}
   .atlas-intel-header .ihb-sub{color:var(--mute-2);font-size:14px;margin-top:8px;max-width:540px;line-height:1.5}
   .atlas-live{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--green-soft);display:flex;align-items:center;gap:7px;white-space:nowrap}
@@ -1335,8 +1335,8 @@
       return `
         <div class="atlas-intel-header">
           <div>
-            <div class="ihb-eyebrow">${hexMarker(15)} Markets of Tomorrow · Intelligence</div>
             <h1>The Atlas</h1>
+            <div class="ihb-eyebrow">${hexMarker(15)} Markets of Tomorrow · Intelligence</div>
             <div class="ihb-sub">A live, sourced read on what's being built across our coverage markets — every status, date and count tracked and updated automatically.</div>
           </div>
           <div class="atlas-live"><span class="dot"></span>Live · updated continuously</div>

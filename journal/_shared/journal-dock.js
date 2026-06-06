@@ -468,7 +468,9 @@
     '.tmw-dock-search input::placeholder{color:#9AA39C}',
     '.tmw-dock-search input:focus{border-color:rgba(31,223,103,.55);background:rgba(255,255,255,.08);width:min(52vw,344px)}',
     // ── Live autocomplete pop-up (opens ABOVE the bottom dock) ──
-    '.tmw-dock-ac{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(100% + 12px);width:min(440px,86vw);max-height:46vh;overflow-y:auto;background:rgba(13,13,15,.96);-webkit-backdrop-filter:blur(22px) saturate(1.3);backdrop-filter:blur(22px) saturate(1.3);border:1px solid rgba(255,255,255,.12);border-radius:16px;box-shadow:0 16px 48px rgba(0,0,0,.6);padding:6px;z-index:9001;opacity:0;pointer-events:none;transform-origin:bottom center;transition:opacity .14s ease}',
+    // position:FIXED + viewport-centered (not absolute-to-the-form, which sits
+    // off-centre once the mobile toggle pushes the search field to one side).
+    '.tmw-dock-ac{position:fixed;left:50%;transform:translateX(-50%);bottom:92px;width:min(440px,92vw);max-height:46vh;overflow-y:auto;background:rgba(13,13,15,.96);-webkit-backdrop-filter:blur(22px) saturate(1.3);backdrop-filter:blur(22px) saturate(1.3);border:1px solid rgba(255,255,255,.12);border-radius:16px;box-shadow:0 16px 48px rgba(0,0,0,.6);padding:6px;z-index:9001;opacity:0;pointer-events:none;transform-origin:bottom center;transition:opacity .14s ease}',
     '.tmw-dock-ac.open{opacity:1;pointer-events:auto}',
     '.tmw-dock-ac-sec{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.32);padding:8px 12px 4px}',
     '.tmw-dock-ac-div{height:1px;background:rgba(255,255,255,.06);margin:4px 0}',
@@ -484,7 +486,7 @@
     '.tmw-dock-ac-txt strong em{font-style:normal;color:#1FDF67}',
     '.tmw-dock-ac-txt span{display:block;font-size:11px;color:rgba(255,255,255,.42);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
     '.tmw-dock-ac-msg{padding:15px 16px;text-align:center;color:rgba(255,255,255,.5);font-size:13px}',
-    '@media(max-width:560px){.tmw-dock-ac{width:92vw;bottom:calc(100% + 10px)}}',
+    '@media(max-width:560px){.tmw-dock-ac{width:92vw;bottom:78px}}',
     // ── "Ask the Map" teaching panel (shown on focus when the box is empty) ──
     '.tmw-dock-teach{padding:4px 4px 6px}',
     '.tmw-dock-teach .tdt-h{display:flex;align-items:center;gap:9px;padding:6px 8px 10px}',
