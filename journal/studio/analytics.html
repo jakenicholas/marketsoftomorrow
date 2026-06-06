@@ -1651,7 +1651,9 @@ function setTab(name) {
     _state.mediaLoadedOnce = true;
     loadMediaTab();
   }
-  if (name === 'pro' && !_state.proLoadedOnce) {
+  // Reload the query log every time the Pro tab is opened (not just once) so it
+  // never shows a stale empty snapshot.
+  if (name === 'pro') {
     _state.proLoadedOnce = true;
     loadIntelQueries(0);
   }
@@ -1756,6 +1758,8 @@ async function refreshAll(showRefreshSpinner) {
   ];
   // Refresh media tab data too if the user has visited it this session.
   if (_state.mediaLoadedOnce) tasks.push(loadMediaTab());
+  // Keep the Pro query log fresh while it's open (preserve the current page).
+  if (_state.activeTab === 'pro') tasks.push(loadIntelQueries(_iqOffset));
   await Promise.allSettled(tasks);
 
   document.getElementById('lastUpdated').textContent = 'Updated ' + new Date().toLocaleTimeString();
