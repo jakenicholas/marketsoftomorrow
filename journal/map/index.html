@@ -17217,12 +17217,14 @@
           { name:'Dubai',           lng:55.2708,   lat:25.2048 },
         ];
         const pingEls = [];
-        // Mobile: one ring per city instead of three — ~10 animating
-        // radial-gradient DOM layers instead of ~30, a big GPU saving on the
-        // initial low-zoom load (where they all sit on screen at once).
+        // MOBILE: skip the pulsing city pings entirely. They're continuously
+        // animating radial-gradient DOM markers that Mapbox re-composites on
+        // EVERY frame, which was the main cause of pan/zoom lag at low zoom
+        // (the lag vanished the moment you zoomed past where the glows hide).
+        // Desktop has no such lag, so it keeps the glow.
         const _pingMobile = window.innerWidth <= 800;
-        const RING_DELAYS = _pingMobile ? [0] : [0, 1333, 2666];
-        cities.forEach((city) => {
+        const RING_DELAYS = [0, 1333, 2666];
+        if (!_pingMobile) cities.forEach((city) => {
           const el = document.createElement('div');
           el.style.cssText = 'position:relative;width:0;height:0;pointer-events:none;';
           RING_DELAYS.forEach(delay => {
