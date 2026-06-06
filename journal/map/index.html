@@ -12524,7 +12524,12 @@
       // (it clears as you zoom in and fewer remain). Hide them during the
       // gesture and restore each to its PRIOR visibility after it settles, so we
       // don't fight the filter/Completed-toggle logic that also owns these.
-      const GLOW_LAYERS = ['featured-glow', 'watched-ring'];
+      // featured-glow/watched-ring are GPU-blurred; cluster-count/-completed are
+      // symbol (text) layers that re-run label collision on the main thread every
+      // frame the camera moves — the dominant low-zoom cost (it clears the moment
+      // clusters split and the counts disappear). Hide all of them during a
+      // gesture and restore each to its prior visibility once it settles.
+      const GLOW_LAYERS = ['featured-glow', 'watched-ring', 'cluster-count', 'cluster-count-completed'];
       const _glowPrev = {};
       const setGlowHidden = (hide) => {
         GLOW_LAYERS.forEach(id => {
@@ -17327,7 +17332,7 @@
           map.addSource('projects-completed', { type:'geojson', data:{ type:'FeatureCollection', features:completedRestoreFeatures }, cluster:true, clusterMaxZoom:16, clusterRadius:35 });
         }
         if (!map.getLayer('clusters'))          map.addLayer({ id:'clusters',          type:'circle', source:'projects', filter:['has','point_count'], paint:{'circle-color':'#1FDF67','circle-radius':['step',['get','point_count'],20,100,30,750,40],'circle-stroke-width':2,'circle-stroke-color':'#fff'} });
-        if (!map.getLayer('cluster-count'))     map.addLayer({ id:'cluster-count',     type:'symbol', source:'projects', filter:['has','point_count'], layout:{'text-field':'{point_count_abbreviated}','text-size':12}, paint:{'text-color':'#ffffff'} });
+        if (!map.getLayer('cluster-count'))     map.addLayer({ id:'cluster-count',     type:'symbol', source:'projects', filter:['has','point_count'], layout:{'text-field':'{point_count_abbreviated}','text-size':12,'text-allow-overlap':true,'text-ignore-placement':true}, paint:{'text-color':'#ffffff'} });
         if (!map.getLayer('unclustered-point')) map.addLayer({ id:'unclustered-point', type:'circle', source:'projects', filter:['!',['has','point_count']], paint:{'circle-color':'#1FDF67','circle-radius':8,'circle-stroke-width':2,'circle-stroke-color':'#fff'} });
 
         // Completed cluster stack ‚Äî pine-green palette. Visibility tracks
@@ -17338,7 +17343,7 @@
           map.addLayer({ id:'clusters-completed', type:'circle', source:'projects-completed', filter:['has','point_count'], layout:{visibility:completedRestoreVis}, paint:{'circle-color':'#01796F','circle-radius':['step',['get','point_count'],18,100,28,750,38],'circle-stroke-width':2,'circle-stroke-color':'rgba(255,255,255,0.7)'} });
         }
         if (!map.getLayer('cluster-count-completed')) {
-          map.addLayer({ id:'cluster-count-completed', type:'symbol', source:'projects-completed', filter:['has','point_count'], layout:{visibility:completedRestoreVis,'text-field':'{point_count_abbreviated}','text-size':12}, paint:{'text-color':'#ffffff'} });
+          map.addLayer({ id:'cluster-count-completed', type:'symbol', source:'projects-completed', filter:['has','point_count'], layout:{visibility:completedRestoreVis,'text-field':'{point_count_abbreviated}','text-size':12,'text-allow-overlap':true,'text-ignore-placement':true}, paint:{'text-color':'#ffffff'} });
         }
         if (!map.getLayer('unclustered-point-completed')) {
           map.addLayer({ id:'unclustered-point-completed', type:'circle', source:'projects-completed',
@@ -17527,7 +17532,7 @@
           // Pipeline (active) cluster stack ‚Äî visible by default, the headline
           // green pins users see.
           map.addLayer({ id:'clusters', type:'circle', source:'projects', filter:['has','point_count'], paint:{'circle-color':'#1FDF67','circle-radius':['step',['get','point_count'],20,100,30,750,40],'circle-stroke-width':2,'circle-stroke-color':'#fff'} });
-          map.addLayer({ id:'cluster-count', type:'symbol', source:'projects', filter:['has','point_count'], layout:{'text-field':'{point_count_abbreviated}','text-size':12}, paint:{'text-color':'#ffffff'} });
+          map.addLayer({ id:'cluster-count', type:'symbol', source:'projects', filter:['has','point_count'], layout:{'text-field':'{point_count_abbreviated}','text-size':12,'text-allow-overlap':true,'text-ignore-placement':true}, paint:{'text-color':'#ffffff'} });
           map.addLayer({ id:'unclustered-point', type:'circle', source:'projects', filter:['!',['has','point_count']], paint:{'circle-color':'#1FDF67','circle-radius':8,'circle-stroke-width':2,'circle-stroke-color':'#fff'} });
 
           // Completed cluster stack ‚Äî pine-green palette, hidden by default.
@@ -17535,7 +17540,7 @@
           // layers together (cluster, count, unclustered point).
           const completedVis = (window._completedVisible ? 'visible' : 'none');
           map.addLayer({ id:'clusters-completed', type:'circle', source:'projects-completed', filter:['has','point_count'], layout:{visibility:completedVis}, paint:{'circle-color':'#01796F','circle-radius':['step',['get','point_count'],18,100,28,750,38],'circle-stroke-width':2,'circle-stroke-color':'rgba(255,255,255,0.7)'} });
-          map.addLayer({ id:'cluster-count-completed', type:'symbol', source:'projects-completed', filter:['has','point_count'], layout:{visibility:completedVis,'text-field':'{point_count_abbreviated}','text-size':12}, paint:{'text-color':'#ffffff'} });
+          map.addLayer({ id:'cluster-count-completed', type:'symbol', source:'projects-completed', filter:['has','point_count'], layout:{visibility:completedVis,'text-field':'{point_count_abbreviated}','text-size':12,'text-allow-overlap':true,'text-ignore-placement':true}, paint:{'text-color':'#ffffff'} });
           map.addLayer({ id:'unclustered-point-completed', type:'circle', source:'projects-completed', filter:['!',['has','point_count']], layout:{visibility:completedVis}, paint:{'circle-color':'#01796F','circle-radius':7,'circle-stroke-width':1.5,'circle-stroke-color':'rgba(255,255,255,0.6)'} });
 
           // Featured/watched accents ‚Äî pipeline only (completed don't get
