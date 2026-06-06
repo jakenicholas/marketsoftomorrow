@@ -620,12 +620,25 @@ function yearOf(p){ const m = String(p.DeliveryDate||'').match(/(20\d{2})/); ret
 function inFlorida(p){ const la=parseFloat(p.Latitude), ln=parseFloat(p.Longitude); return la>=24.3 && la<=31.1 && ln>=-87.8 && ln<=-79.8; }
 
 const STATUS_GROUPS = [
-  { value:'Under Construction', label:'Under construction', syn:['under construction','construction','being built','underway','rising','vertical'] },
-  { value:'Under Construction', label:'Topped out', toppedOut:true, syn:['topped out','topping out','top off','topped'] },
+  { value:'Under Construction', label:'Under construction', syn:['under construction','construction','being built','underway','rising'] },
   { value:'Breaking Ground',    label:'Breaking ground', syn:['breaking ground','broke ground','groundbreaking','breaks ground'] },
   { value:'Opening Soon',       label:'Opening soon', syn:['opening soon','coming soon','opening','opens','set to open'] },
   { value:'Now Open',           label:'Open', syn:['now open','open','opened','completed','complete','delivered','finished'] },
   { value:'Announced',          label:'Announced', syn:['announced','planned','proposed','pre-construction','preconstruction','unveiled'] },
+];
+// Fine construction MILESTONES (not coarse statuses). These filter STRICTLY
+// against each project's logged StatusHistory `phase` — so "topped out" means a
+// project we've actually recorded as topped out, never a guess. label/verb feed
+// the chip + answer; if nothing has the milestone logged, the answer says so.
+const PHASE_GROUPS = [
+  { phase:'topping-out',   label:'Topped out',       verb:'topped out',            syn:['topped out','topping out','top off','topped'] },
+  { phase:'financing',     label:'Financing closed', verb:'secured financing',     syn:['secured financing','closed financing','construction loan','got financing'] },
+  { phase:'going-vertical',label:'Going vertical',   verb:'gone vertical',         syn:['going vertical','gone vertical','vertical construction'] },
+  { phase:'halfway',       label:'Halfway',          verb:'reached the halfway mark', syn:['halfway','half complete','50% complete','fifty percent'] },
+  { phase:'tco',           label:'TCO issued',       verb:'received a TCO',         syn:['tco','certificate of occupancy'] },
+  { phase:'move-in',       label:'Move-ins started', verb:'started move-ins',       syn:['move-in','move in','moving in','residents moving'] },
+  { phase:'tenant',        label:'Tenant signed',    verb:'signed a tenant',        syn:['anchor tenant','tenant signed','signed a lease'] },
+  { phase:'bookings',      label:'Bookings open',    verb:'opened bookings',        syn:['bookings open','taking reservations','reservations open'] },
 ];
 const TYPE_GROUPS = [
   { token:'Residences', label:'Condo / Residences', noun:'condo',     syn:['condo','condominium'] },
@@ -671,8 +684,11 @@ function parseSmartQuery(q){
   if (full.split(/\s+/).filter(Boolean).length < 2) return null;   // bare names → normal search
 
   // status
-  const statuses = new Set(); const statusLabels = []; let toppedOut = false;
-  STATUS_GROUPS.forEach(g=>{ if (g.syn.some(s=>hasWord(full,s))){ statuses.add(g.value); if(!statusLabels.includes(g.label)) statusLabels.push(g.label); if(g.toppedOut) toppedOut=true; } });
+  const statuses = new Set(); const statusLabels = [];
+  STATUS_GROUPS.forEach(g=>{ if (g.syn.some(s=>hasWord(full,s))){ statuses.add(g.value); if(!statusLabels.includes(g.label)) statusLabels.push(g.label); } });
+  // construction milestones (filter against logged StatusHistory phases)
+  const phases = new Set(); const phaseLabels = []; const phaseVerbs = [];
+  PHASE_GROUPS.forEach(g=>{ if (g.syn.some(s=>hasWord(full,s))){ phases.add(g.phase); phaseLabels.push(g.label); phaseVerbs.push(g.verb); } });
   // type
   const types = new Set(); let typeLabel='', typeNoun='';
   TYPE_GROUPS.forEach(g=>{ if (g.syn.some(s=>hasWord(full,s))){ types.add(g.token); if(!typeLabel){ typeLabel=g.label; typeNoun=g.noun; } } });
@@ -693,16 +709,19 @@ function parseSmartQuery(q){
   for (const g of SORT_GROUPS){ if (g.syn.some(s=>hasWord(full,s))){ sort=g; break; } }
 
   const place = region || cities.length;
-  const count = (statuses.size?1:0)+(types.size?1:0)+(place?1:0)+(yearMin!=null?1:0)+(sort?1:0);
+  const count = (statuses.size?1:0)+(phases.size?1:0)+(types.size?1:0)+(place?1:0)+(yearMin!=null?1:0)+(sort?1:0);
   if (count < 2) return null;   // not enough structure → fall through to normal search
 
-  return { statuses, statusLabels, toppedOut, types, typeLabel, typeNoun,
+  return { statuses, statusLabels, phases, phaseLabels, phaseVerbs, types, typeLabel, typeNoun,
            region, cities, yearMin, yearMax, yearLabel, sort };
 }
+function phasesOf(p){ return (p.StatusHistory||[]).map(h=>String((h&&h.phase)||'').toLowerCase()).filter(Boolean); }
 
 function smartFilter(s){
   return PROJECTS.filter(p=>{
     if (s.statuses.size && !s.statuses.has(p.Delivery)) return false;
+    // Milestone filter — STRICT: the project must have actually logged this phase.
+    if (s.phases && s.phases.size){ const ph=phasesOf(p); if(![...s.phases].some(x=>ph.includes(x))) return false; }
     if (s.types.size){ const pt=norm(firstField(p,['ProjectType','PreferredType'])); if(![...s.types].some(t=>pt.includes(norm(t)))) return false; }
     if (s.cities.length){ if(!s.cities.some(c=>norm(p.City)===norm(c))) return false; }
     if (s.region==='Florida' && !inFlorida(p)) return false;
@@ -736,22 +755,30 @@ function buildSmartAnswer(s, rows){
   const statusPhrase = s.statusLabels.length ? ' ' + s.statusLabels.map(l=>l.toLowerCase()).join(' / ') : '';
   const placePhrase = s.cities.length ? ' in ' + s.cities.join(' & ') : (s.region ? ' in ' + s.region : '');
   const yearPhrase = s.yearLabel ? (s.statuses.size ? ', delivering ' + s.yearLabel : ' delivering ' + s.yearLabel) : '';
+  const hasPhase = !!(s.phases && s.phases.size);
+  const phaseVerbs = (s.phaseVerbs || []);
   let sentence;
   if (n === 0){
-    sentence = 'No tracked ' + noun + 's match' + (statusPhrase?(' ' + s.statusLabels.map(l=>l.toLowerCase()).join('/')):'') + placePhrase + yearPhrase + ' yet — try removing a filter.';
+    var lead = hasPhase ? ' have ' + phaseVerbs.join(' / ')
+             : (s.statusLabels.length ? ' are ' + s.statusLabels.map(l=>l.toLowerCase()).join('/') : ' match');
+    sentence = 'No tracked ' + noun + 's' + lead + placePhrase + yearPhrase + ' yet.';
     return { html: sentence, stats: [] };
   }
   const be = (n===1 ? 'is' : 'are');
-  sentence = s.statuses.size
-    ? subj + ' ' + be + statusPhrase + placePhrase + yearPhrase + '.'
-    : subj + placePhrase + yearPhrase + ' ' + be + ' tracked on the map.';
-  // sort highlight
+  if (hasPhase){
+    sentence = subj + ' ' + (n===1 ? 'has' : 'have') + ' ' + phaseVerbs.join(' and ') + placePhrase + yearPhrase + '.';
+  } else if (s.statuses.size){
+    sentence = subj + ' ' + be + statusPhrase + placePhrase + yearPhrase + '.';
+  } else {
+    sentence = subj + placePhrase + yearPhrase + ' ' + be + ' tracked on the map.';
+  }
+  // sort highlight — only with 2+ results (a single result isn't "the tallest")
   const top = rows[0];
-  if (s.sort && s.sort.key==='floors' && s.sort.dir==='desc' && floorsOf(top)){
+  if (n >= 2 && s.sort && s.sort.key==='floors' && s.sort.dir==='desc' && floorsOf(top)){
     sentence += ' The tallest is <span class="hl">' + esc(top.Title) + '</span> at <span class="hl">' + floorsOf(top) + ' stories</span>.';
-  } else if (s.sort && s.sort.key==='units' && unitsOf(top)){
+  } else if (n >= 2 && s.sort && s.sort.key==='units' && unitsOf(top)){
     sentence += ' The largest is <span class="hl">' + esc(top.Title) + '</span> with <span class="hl">' + unitsOf(top).toLocaleString() + ' residences</span>.';
-  } else if (s.sort && s.sort.key==='date' && s.sort.dir==='asc' && fmtDelivery(top)){
+  } else if (n >= 2 && s.sort && s.sort.key==='date' && s.sort.dir==='asc' && fmtDelivery(top)){
     sentence += ' Next to open: <span class="hl">' + esc(top.Title) + '</span> (' + fmtDelivery(top) + ').';
   }
   // stats
@@ -772,6 +799,7 @@ function renderSmart(q, s){
   const ans = buildSmartAnswer(s, rows);
   // understood-as chips
   const chips = [];
+  if (s.phaseLabels && s.phaseLabels.length) chips.push('<span class="uchip"><span class="ck">Milestone</span> <b>'+esc(s.phaseLabels.join(' / '))+'</b></span>');
   if (s.statusLabels.length) chips.push('<span class="uchip"><span class="ck">Status</span> <b>'+esc(s.statusLabels.join(' / '))+'</b></span>');
   if (s.typeLabel)           chips.push('<span class="uchip"><span class="ck">Type</span> <b>'+esc(s.typeLabel)+'</b></span>');
   if (s.cities.length)       chips.push('<span class="uchip"><span class="ck">City</span> <b>'+esc(s.cities.join(' & '))+'</b></span>');
@@ -835,13 +863,14 @@ function buildSmartFacts(s, rows){
   const largest = maxU ? rows.find(p=>unitsOf(p)===maxU) : null;
   const yrs = rows.map(yearOf).filter(Boolean);
   const place = s.cities.length ? s.cities.join(' & ') : (s.region || null);
+  const many = rows.length >= 2;   // never hand the model a superlative for a single result
   return {
     count: rows.length,
-    criteria: { status: s.statusLabels.join(' / ') || null, type: s.typeLabel || null, place: place, year: s.yearLabel || null },
+    criteria: { milestone: (s.phaseLabels && s.phaseLabels.join(' / ')) || null, status: s.statusLabels.join(' / ') || null, type: s.typeLabel || null, place: place, year: s.yearLabel || null },
     sort: s.sort ? s.sort.label : null,
     place: place,
-    tallest: tallest ? { name: tallest.Title, floors: maxF } : null,
-    largest: largest ? { name: largest.Title, units: maxU } : null,
+    tallest: (many && tallest) ? { name: tallest.Title, floors: maxF } : null,
+    largest: (many && largest) ? { name: largest.Title, units: maxU } : null,
     residencesTotal: rows.reduce((a,p)=>a+unitsOf(p),0) || null,
     firstDelivery: yrs.length ? Math.min(...yrs) : null,
     top: rows.slice(0,8).map(p=>({ name: p.Title, city: p.City||'', status: p.Delivery||'', floors: floorsOf(p)||null, units: unitsOf(p)||null, delivery: fmtDelivery(p)||'' })),

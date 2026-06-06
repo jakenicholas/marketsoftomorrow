@@ -3769,6 +3769,10 @@ async function handleSmartAnswer(request, env, origin) {
     'is not in the facts.\n' +
     '- Lead with the headline the query is asking for (how many match, the tallest, the largest, where ' +
     'they cluster) — do not list every item.\n' +
+    '- If there is only ONE result, do NOT use superlatives like "tallest", "largest", or "stands as" — ' +
+    'a single project is not the most or least of anything. Just state it plainly.\n' +
+    '- Only say a project hit a milestone (topped out, secured financing, went vertical, etc.) if the ' +
+    'facts explicitly say so. Never assert a construction status the facts do not state.\n' +
     '- Confident, editorial, concrete. No hype words, no preamble like "Based on", no markdown, no bullets.\n' +
     '- Refer to projects by name exactly as given.\n' +
     '- Output only the sentence(s), nothing else.';
