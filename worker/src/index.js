@@ -938,15 +938,25 @@ async function handleWatchlist(env, origin, url) {
 // Excludes 'watchlist_snapshot' (fires every page load, would flood the feed)
 // since it's a state-sync mechanism, not a user-visible action.
 async function handleActivity(env, origin, url) {
-  const limit = clampInt(url.searchParams.get('limit'), 50, 1, 500);
+  const limit  = clampInt(url.searchParams.get('limit'), 50, 1, 500);
+  const offset = clampInt(url.searchParams.get('offset'), 0, 0, 5000000);
   const rs = await env.DB.prepare(
     `SELECT ts, member_id, email, member_name, plan, event_name, path, props_json
      FROM events
      WHERE event_name != 'watchlist_snapshot'
      ORDER BY ts DESC
-     LIMIT ?`
-  ).bind(limit).all();
-  return json({ rows: rs.results || [] }, {}, env, origin);
+     LIMIT ? OFFSET ?`
+  ).bind(limit, offset).all();
+  // Total only when asked (the paginated "All Activity" view) — keeps the live
+  // feed's cheap query unchanged.
+  let total = null;
+  if (url.searchParams.get('total') === '1') {
+    const t = await env.DB.prepare(
+      `SELECT COUNT(*) AS n FROM events WHERE event_name != 'watchlist_snapshot'`
+    ).first();
+    total = (t && t.n) || 0;
+  }
+  return json({ rows: rs.results || [], total }, {}, env, origin);
 }
 
 // GET /intel-queries — paginated log of TMW Intelligence searches (event_name
