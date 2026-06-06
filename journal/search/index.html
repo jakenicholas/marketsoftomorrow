@@ -63,13 +63,22 @@ h1,h2,h3{font-family:var(--serif);font-weight:600;letter-spacing:-.015em;color:v
 .brand-dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 10px rgba(31,223,103,.6)}
 .hdr-links{display:flex;align-items:center;gap:18px;font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--mute-2)}
 .hdr-links a{transition:color .2s}.hdr-links a:hover{color:var(--white)}
+@property --tmw-ang{syntax:"<angle>";inherits:false;initial-value:0deg}
+@keyframes tmwChase{to{--tmw-ang:360deg}}
 .searchbox{position:relative;display:flex;align-items:center}
-.searchbox .mag{position:absolute;left:22px;width:22px;height:22px;color:var(--mute);pointer-events:none}
-.searchbox input{width:100%;height:68px;padding:0 64px 0 58px;background:var(--panel);border:1px solid var(--hair-2);border-radius:16px;
-  color:var(--white);font-family:var(--serif);font-size:24px;outline:none;transition:border-color .2s,background .2s}
+/* Purple "intelligence" glow: a rotating accent arc over a static purple border
+   plus a soft purple box-shadow (box-shadow, not an animated filter → jitter-safe). */
+.searchbox::before{content:"";position:absolute;inset:-2px;border-radius:18px;padding:2px;z-index:0;pointer-events:none;
+  background:conic-gradient(from var(--tmw-ang,0deg), rgba(167,139,250,0) 0deg, rgba(167,139,250,0) 200deg, #A78BFA 300deg, #E9DEFF 340deg, rgba(167,139,250,0) 360deg);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;
+  animation:tmwChase 3.4s linear infinite}
+@media(prefers-reduced-motion:reduce){.searchbox::before{animation:none}}
+.searchbox .mag{position:absolute;left:22px;width:22px;height:22px;color:var(--purple-glow);pointer-events:none;z-index:2}
+.searchbox input{position:relative;z-index:1;width:100%;height:68px;padding:0 64px 0 58px;background:var(--panel);border:1px solid rgba(167,139,250,.30);border-radius:16px;
+  color:var(--white);font-family:var(--serif);font-size:24px;outline:none;box-shadow:0 0 26px rgba(167,139,250,.16);transition:border-color .2s,background .2s,box-shadow .2s}
 .searchbox input::placeholder{color:var(--mute);font-family:var(--serif)}
-.searchbox input:focus{border-color:rgba(31,223,103,.5);background:var(--panel-2)}
-.searchbox .go{position:absolute;right:16px;height:48px;width:48px;padding:0;border:none;background:transparent;color:var(--gold);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:color .2s,transform .2s}
+.searchbox input:focus{border-color:rgba(167,139,250,.6);background:var(--panel-2);box-shadow:0 0 34px rgba(167,139,250,.28)}
+.searchbox .go{position:absolute;right:16px;height:48px;width:48px;padding:0;border:none;background:transparent;color:var(--gold);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:color .2s,transform .2s;z-index:2}
 .searchbox .go:hover{color:var(--gold-soft);transform:translateX(3px)}
 .searchbox .go svg{width:26px;height:26px;filter:drop-shadow(0 0 8px rgba(230,197,116,.4))}
 .summary{margin-top:14px;font-family:var(--mono);font-size:12px;letter-spacing:.04em;color:var(--mute)}
@@ -234,6 +243,11 @@ main{padding:54px 0 40px}
 .istat .v .u{font-size:13px;color:var(--purple-glow)}
 .istat .k{font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--mute);margin-top:6px}
 @media(max-width:620px){.intel-stats{grid-template-columns:repeat(2,1fr)}}
+/* Out-of-free-queries upgrade panel — gold accent instead of purple */
+.intel-gate{border-color:rgba(240,214,138,.4);background:radial-gradient(130% 150% at 0% 0%,rgba(240,214,138,.10),transparent 55%),linear-gradient(180deg,var(--panel-2),var(--panel))}
+.intel-gate::before{background:conic-gradient(from 210deg,rgba(240,214,138,0) 0deg,rgba(240,214,138,0) 250deg,#e6c574 320deg,#f0d68a 350deg,rgba(240,214,138,0) 360deg)}
+.intel-pro-btn{display:inline-flex;align-items:center;gap:8px;margin-top:18px;padding:12px 22px;border-radius:12px;background:linear-gradient(180deg,#f0d68a,#e6c574);color:#0b0a08;font-family:var(--sans);font-weight:700;font-size:13px;letter-spacing:.03em;text-decoration:none;box-shadow:0 0 24px rgba(230,197,116,.3);transition:filter .15s}
+.intel-pro-btn:hover{filter:brightness(1.07)}
 
 .smart-reshead{display:flex;align-items:baseline;gap:9px;margin:0 2px 14px}
 .smart-reshead h2{font-family:var(--serif);font-size:18px;color:#fff;font-weight:600}
@@ -808,9 +822,32 @@ function buildSmartAnswer(s, rows){
   return { html: sentence, stats: stats.slice(0,4) };
 }
 
+const HEX_SVG = '<svg class="hxs" viewBox="0 0 100 100"><polygon class="hxs-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/><g class="hxs-spin"><polygon class="hxs-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g></svg>';
+let _smartLastCount = 0, _smartLastSort = null, _intelCommitTimer = null;
+// Count + log a TMW Intelligence query once it settles (debounced so a query
+// isn't counted per keystroke; tmwIntel.count dedupes repeats and skips Pro).
+function commitIntelQuery(q){
+  if (!window.tmwIntel) return;
+  clearTimeout(_intelCommitTimer);
+  _intelCommitTimer = setTimeout(function(){
+    const nq = (q||'').trim(); if(!nq) return;
+    window.tmwIntel.count(nq);
+    window.tmwIntel.track(nq, { results: _smartLastCount, sort: _smartLastSort });
+  }, 800);
+}
+// Out of free queries (non-Pro) → upgrade panel instead of an answer.
+function renderIntelGate(){
+  const html = '<section class="intel intel-gate"><div class="intel-h"><span class="intel-spark">'+HEX_SVG+'</span>'+
+    '<span class="lbl" style="color:var(--gold-soft)">TMW Intelligence</span></div>'+
+    '<p class="intel-ans">You’ve used all <b>10 free</b> TMW Intelligence searches. Go <b>Pro</b> for unlimited natural-language search across the entire development pipeline — every project, firm, and milestone.</p>'+
+    '<a class="intel-pro-btn" href="https://www.oftmw.com/pro">Go Pro — unlimited intelligence</a></section>';
+  document.getElementById('smartSection').innerHTML = html;
+}
+
 const SMART_CAP = 40;
 function renderSmart(q, s){
   let rows = smartRank(smartFilter(s), s);
+  _smartLastCount = rows.length; _smartLastSort = s.sort ? s.sort.label : null;
   const ans = buildSmartAnswer(s, rows);
   // understood-as chips
   const chips = [];
@@ -822,7 +859,7 @@ function renderSmart(q, s){
   if (s.yearLabel)           chips.push('<span class="uchip"><span class="ck">Delivery</span> <b>'+esc(s.yearLabel)+'</b></span>');
   if (s.sort)                chips.push('<span class="uchip sort"><span class="ck">Sort</span> <b>'+esc(s.sort.label)+'</b></span>');
 
-  const SPARK = '<svg class="hxs" viewBox="0 0 100 100"><polygon class="hxs-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/><g class="hxs-spin"><polygon class="hxs-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g></svg>';
+  const SPARK = HEX_SVG;
   let html = '<div class="understood"><span class="lead">Understood as</span>' + chips.join('') + '</div>';
   html += '<section class="intel"><div class="intel-h"><span class="intel-spark">'+SPARK+'</span>'+
           '<span class="lbl">TMW Intelligence</span><span class="live"><i></i>Live answer</span></div>'+
@@ -925,7 +962,13 @@ function runSearch(q){
   // ranked results instead of the plain name-match sections. Falls through to
   // normal search when the query is just a name/keyword.
   const smart = parseSmartQuery(q);
-  if (smart) { summary.innerHTML = ''; renderSmart(q, smart); show('smartSection', true); return; }
+  if (smart) {
+    summary.innerHTML = '';
+    if (window.tmwIntel && !window.tmwIntel.allowed(q)) { renderIntelGate(); show('smartSection', true); return; }
+    renderSmart(q, smart); show('smartSection', true);
+    commitIntelQuery(q);   // count + track once the query settles
+    return;
+  }
 
   const toks = tokenize(q), full = norm(q);
 

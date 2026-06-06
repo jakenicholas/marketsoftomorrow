@@ -173,6 +173,65 @@
     'Recent golf course openings'
   ];
   var TEACH_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M6 21V8l6-4 6 4v13"/></svg>';
+  // ── TMW Intelligence quota (shared) ─────────────────────────────────────
+  // Non-Pro members get 10 free natural-language searches (per device); Pro is
+  // unlimited and never sees a count. Exposed on window so the /search/ page can
+  // count + gate + track against the same state.
+  window.tmwIntel = {
+    FREE: 10,
+    isPro: function () {
+      try { return window._isPaidMember === true
+        || (window.__tmwMember && window.__tmwMember.plan === 'paid')
+        || localStorage.getItem('tmw_auth_state') === 'pro'; } catch (e) { return false; }
+    },
+    _norm: function (q) { return String(q || '').toLowerCase().replace(/\s+/g, ' ').trim(); },
+    _used: function () { try { return parseInt(localStorage.getItem('tmw_intel_used') || '0', 10) || 0; } catch (e) { return 0; } },
+    _seen: function () { try { return JSON.parse(localStorage.getItem('tmw_intel_seen') || '[]'); } catch (e) { return []; } },
+    used: function () { return this._used(); },
+    left: function () { return this.isPro() ? Infinity : Math.max(0, this.FREE - this._used()); },
+    seen: function (q) { return this._seen().indexOf(this._norm(q)) >= 0; },
+    // Allowed to run? Pro, under the cap, or a query already counted before.
+    allowed: function (q) { return this.isPro() || this._used() < this.FREE || this.seen(q); },
+    // Count a NEW distinct query (no-op for Pro / repeats). Returns queries left.
+    count: function (q) {
+      if (this.isPro()) return Infinity;
+      var nq = this._norm(q); if (!nq) return this.left();
+      var seen = this._seen();
+      if (seen.indexOf(nq) < 0) {
+        seen.push(nq);
+        try { localStorage.setItem('tmw_intel_seen', JSON.stringify(seen.slice(-300))); } catch (e) {}
+        try { localStorage.setItem('tmw_intel_used', String(this._used() + 1)); } catch (e) {}
+      }
+      return this.left();
+    },
+    _did: function () { try { var d = localStorage.getItem('tmw_did'); if (!d) { d = 'd' + Math.random().toString(36).slice(2) + Date.now().toString(36); localStorage.setItem('tmw_did', d); } return d; } catch (e) { return 'anon'; } },
+    // Log usage to the analytics store (who + what), first-party beacon.
+    track: function (q, extra) {
+      try {
+        var m = window.__tmwMember || null;
+        var payload = JSON.stringify({
+          member_id: (m && m.id) || ('anon:' + this._did()),
+          member_name: (m && m.name) || null,
+          plan: this.isPro() ? 'paid' : (m ? 'free' : 'anon'),
+          event_name: 'intel_query', path: '/search/',
+          referrer: document.referrer || null,
+          client_ts: Math.floor(Date.now() / 1000),
+          props: Object.assign({ q: String(q || '').slice(0, 200), used: this._used(), pro: this.isPro() }, extra || {}),
+        });
+        var url = 'https://tmw.jake-ab7.workers.dev/event';
+        if (navigator.sendBeacon) navigator.sendBeacon(url, new Blob([payload], { type: 'text/plain' }));
+        else fetch(url, { method: 'POST', body: payload, keepalive: true, headers: { 'Content-Type': 'text/plain' } }).catch(function () {});
+      } catch (e) {}
+    },
+  };
+  function tmwIntelPillHTML() {
+    var pro = window.tmwIntel.isPro();
+    var proBadge = '<a class="tdt-pro' + (pro ? ' on' : '') + '" href="' + HOME_URL + '/pro">PRO</a>';
+    if (pro) return '<span class="tdt-right">' + proBadge + '</span>';
+    var left = window.tmwIntel.left();
+    return '<span class="tdt-right"><span class="tdt-quota' + (left <= 3 ? ' low' : '') + '">' + left + ' / 10 left</span>' + proBadge + '</span>';
+  }
+
   // Builds the teaching pop-up markup. Exposed so the map (which wires its own
   // dock autocomplete) can render the IDENTICAL panel on empty focus.
   function tmwAskTeachHTML() {
@@ -183,7 +242,7 @@
     }).join('');
     return '<div class="tmw-dock-teach">' +
       '<div class="tdt-h">' + HEX_SPIN + '<span class="tdt-ttl">TMW Intelligence</span>' +
-      '<span class="tdt-sub">search in plain English</span><span class="tdt-tag">NEW</span></div>' +
+      '<span class="tdt-sub">search in plain English</span>' + tmwIntelPillHTML() + '</div>' +
       '<div class="tdt-sec">Try asking</div>' + rows +
       '<div class="tdt-foot">Type a name for instant results, or ask a full question.</div>' +
     '</div>';
@@ -440,6 +499,12 @@
     '.tmw-dock-teach .tdt-ttl{font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#C2A8FF}',
     '.tmw-dock-teach .tdt-sub{font-size:11.5px;color:#9AA39C}',
     '.tmw-dock-teach .tdt-tag{margin-left:auto;font-size:9px;font-weight:800;letter-spacing:.1em;color:#0b0a14;background:#C2A8FF;padding:3px 7px;border-radius:5px}',
+    '.tmw-dock-teach .tdt-right{margin-left:auto;display:flex;align-items:center;gap:8px}',
+    '.tmw-dock-teach .tdt-quota{font-size:10px;font-weight:700;letter-spacing:.03em;color:#9AA39C;white-space:nowrap}',
+    '.tmw-dock-teach .tdt-quota.low{color:#f0d68a}',
+    '.tmw-dock-teach .tdt-pro{font-size:9px;font-weight:800;letter-spacing:.12em;color:#f0d68a;border:1px solid rgba(240,214,138,.6);border-radius:5px;padding:3px 7px;text-decoration:none;box-shadow:0 0 10px rgba(230,197,116,.22);transition:background .15s}',
+    '.tmw-dock-teach .tdt-pro:hover{background:rgba(240,214,138,.14)}',
+    '.tmw-dock-teach .tdt-pro.on{cursor:default}',
     '.tmw-dock-teach .tdt-sec{font-size:9.5px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:rgba(255,255,255,.3);padding:6px 10px 4px}',
     '.tmw-dock-teach .tdt-ex{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;text-decoration:none;cursor:pointer}',
     '.tmw-dock-teach .tdt-ex:hover{background:rgba(167,139,250,.10)}',
