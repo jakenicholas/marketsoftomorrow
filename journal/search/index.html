@@ -100,6 +100,16 @@ main{padding:54px 0 40px}
 .hero-media img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
 .hero-media .ph{position:absolute;inset:0;background:radial-gradient(120% 120% at 30% 0%,#1d231d,#0a0c0a)}
 .hero-media .scrim{position:absolute;inset:0;background:linear-gradient(90deg,transparent 55%,rgba(20,23,20,.85))}
+/* Hero-stack variants: article and firm. Same geometry as the project hero
+   (image left, body right, "Top match" ribbon) but visually lighter so the
+   project hero stays the headline. Stack them in source order. */
+.hero + .hero{margin-top:14px}
+.hero-article .hero-media,.hero-firm .hero-media{min-height:260px}
+.hero-eyebrow{font-family:var(--mono);font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--mute-2);margin-bottom:-4px}
+.hero-article h2,.hero-firm h2{font-family:var(--serif,Fraunces),Georgia,serif;font-weight:600;letter-spacing:-.015em;line-height:1.04;color:#fff;font-size:clamp(22px,2.4vw,30px);margin:0}
+/* Firm hero has no cover image -- a soft gradient + the firm initial as a mark */
+.hero-firm .hero-media{background:radial-gradient(120% 100% at 20% 20%,#1d231d,#0a0c0a 70%)}
+.hero-firmmark{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--serif,Fraunces),Georgia,serif;font-weight:600;font-size:clamp(80px,12vw,160px);color:rgba(255,255,255,.08);letter-spacing:-.04em;line-height:1}
 .hero-media .besttag{position:absolute;top:16px;left:16px;display:inline-flex;align-items:center;gap:7px;font-family:var(--mono);font-size:10px;
   letter-spacing:.2em;text-transform:uppercase;font-weight:700;color:var(--gold-soft);background:rgba(230,197,116,.1);border:1px solid rgba(230,197,116,.5);padding:6px 13px;border-radius:999px;z-index:2;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);box-shadow:0 0 18px rgba(230,197,116,.45),inset 0 0 10px rgba(230,197,116,.12);animation:bestGlow 2.6s ease-in-out infinite}
 @keyframes bestGlow{0%,100%{box-shadow:0 0 14px rgba(230,197,116,.32),inset 0 0 8px rgba(230,197,116,.1)}50%{box-shadow:0 0 28px rgba(230,197,116,.7),inset 0 0 13px rgba(230,197,116,.2)}}
@@ -574,6 +584,51 @@ function heroHtml(p){
     '</div>'+
   '</article>';
 }
+// Top-match hero for an ARTICLE. Slightly less weight than the project hero
+// (no timeline / spec strip), but the same image-left, body-right layout so
+// the stack reads as one consistent column of "best of each type" cards.
+function heroArticleHtml(a){
+  const img = a.cover_image || '';
+  const media = img
+    ? '<img src="'+esc(img)+'" alt="'+esc(a.title)+'" loading="eager" onerror="this.style.display=\'none\'">'
+    : '<div class="ph"></div>';
+  const date = a.published_iso ? new Date(a.published_iso).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
+  const excerpt = a.excerpt || a.description || '';
+  return '<article class="hero hero-article">'+
+    '<div class="hero-media">'+media+'<div class="scrim"></div>'+
+      '<span class="besttag">Top story</span></div>'+
+    '<div class="hero-body">'+
+      '<div class="hero-eyebrow">From the journal</div>'+
+      '<h2>'+esc(a.title)+'</h2>'+
+      (date?'<div class="loc">'+esc(date)+'</div>':'')+
+      (excerpt?'<p class="hero-desc">'+esc(excerpt)+'</p>':'')+
+      '<div class="hero-cta">'+
+        '<a class="btn gold" href="/post/'+encodeURIComponent(a.slug||'')+'/">Read story</a>'+
+      '</div>'+
+    '</div>'+
+  '</article>';
+}
+// Top-match hero for a FIRM. No cover image -- we use a soft gradient panel
+// with the firm initial as the visual mark. Same hero geometry as above.
+function heroFirmHtml(f){
+  const roleLbl = f.role==='architect' ? 'Architect of Tomorrow' : (f.role==='developer' ? 'Developer of Tomorrow' : 'Firm of Tomorrow');
+  const pc = +f.project_count || 0;
+  const initial = (f.name || '?').trim().charAt(0).toUpperCase();
+  const href = f.slug ? ('/firm/' + encodeURIComponent(f.slug) + '/') : ('/search/?q='+encodeURIComponent(f.name));
+  return '<article class="hero hero-firm">'+
+    '<div class="hero-media"><div class="hero-firmmark">'+esc(initial)+'</div><div class="scrim"></div>'+
+      '<span class="besttag">Top firm</span></div>'+
+    '<div class="hero-body">'+
+      '<div class="hero-eyebrow">'+esc(roleLbl)+'</div>'+
+      '<h2>'+esc(f.name)+'</h2>'+
+      (f.hq?'<div class="loc">'+esc(f.hq)+'</div>':'')+
+      (pc>0?'<p class="hero-desc">'+pc+' project'+(pc===1?'':'s')+' tracked in the Markets of Tomorrow network.</p>':'')+
+      '<div class="hero-cta">'+
+        '<a class="btn gold" href="'+esc(href)+'">View profile</a>'+
+      '</div>'+
+    '</div>'+
+  '</article>';
+}
 function pcardHtml(p){
   const img = firstField(p,['ImageURL','Image2']);
   const type = firstField(p,['ProjectType','PreferredType']);
@@ -721,6 +776,19 @@ function detectFirm(full){
     if (score && (score > bestScore || (score === bestScore && n.length > bestLen))){ best=f; bestScore=score; bestLen=n.length; }
   }
   return best;
+}
+// Detect natural-language QUESTIONS that don't match parseSmartQuery's
+// structured criteria but still warrant a TMW Intelligence response. Anything
+// with a "?", or that starts with a question word, qualifies. These get
+// routed to the LLM with whatever the text-match search surfaced as facts —
+// the answer may still be "no verified info", but at least we tried rather
+// than silently falling back to a plain keyword search.
+function isQuestion(q) {
+  const t = String(q || '').trim();
+  if (!t) return false;
+  if (t.indexOf('?') !== -1) return true;
+  if (/^(what|why|how|when|where|who|which|whose|is|are|does|do|did|can|could|will|would|should|has|have|had)\s/i.test(t)) return true;
+  return false;
 }
 function parseSmartQuery(q){
   const full = norm(q);
@@ -934,6 +1002,83 @@ function renderPartnerSpotlight(spot){
 }
 
 const SMART_CAP = 40;
+// Free-form natural-language question handler. parseSmartQuery only fires
+// for queries with structured criteria (status + place + type, etc.) -- it
+// misses pure questions like "What happened to Juliana's Pizza in the Nora
+// District?". When that happens but the query IS a question, we still want
+// Intelligence to take a shot. Renders the same intel-section shell as
+// renderSmart, fires /smart-answer asynchronously with whatever the text-
+// match search surfaced as facts, and swaps in the LLM answer when it
+// arrives (with a fallback if the model has nothing verified to say).
+function renderQuestionIntel(q, topProjects, topArticles){
+  const SPARK = HEX_SVG;
+  // Initial loading shell -- looks identical to renderSmart's intel block
+  // so the user doesn't get a flash of "no smart answer" before the LLM call.
+  let html = '<section class="intel"><div class="intel-h"><span class="intel-spark">'+SPARK+'</span>'+
+             '<span class="lbl">TMW Intelligence</span><span class="live"><i></i>Thinking…</span></div>'+
+             '<p class="intel-ans intel-loading">Looking through projects and stories for an answer…</p>'+
+             '</section>';
+  document.getElementById('smartSection').innerHTML = html;
+  // Build minimal facts the worker's /smart-answer accepts (project shape only).
+  // We mix in the top articles as synthetic "project rows" with status=Article so
+  // the LLM at least sees the journal coverage that may be the real answer.
+  const facts = {
+    count: (topProjects.length + topArticles.length) || 1,
+    criteria: {},
+    sort: null,
+    place: null,
+    tallest: null,
+    largest: null,
+    residencesTotal: null,
+    firstDelivery: null,
+    top: []
+      .concat(topProjects.slice(0,5).map(p => ({
+        name: p.Title || '',
+        city: p.City || '',
+        status: p.Delivery || '',
+        floors: floorsOf(p) || null,
+        units: unitsOf(p) || null,
+        delivery: fmtDelivery(p) || '',
+      })))
+      .concat(topArticles.slice(0,3).map(a => ({
+        name: a.title || '',
+        city: '',
+        status: 'Article',
+        floors: null,
+        units: null,
+        delivery: a.published_iso ? new Date(a.published_iso).toISOString().slice(0,10) : '',
+      })))
+      .slice(0, 8),
+  };
+  if (!facts.top.length) return;   // nothing to seed the LLM with
+  // Debounce the API call -- the search re-fires on every keystroke; we only
+  // want to spend on /smart-answer once the user settles.
+  const token = ++_smartAnsToken;
+  clearTimeout(_smartAnsTimer);
+  _smartAnsTimer = setTimeout(function () {
+    if (token !== _smartAnsToken) return;
+    fetch(WORKER_URL + '/smart-answer', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ q: q, facts: facts }) })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (data) {
+        if (token !== _smartAnsToken) return;
+        const section = document.querySelector('#smartSection .intel');
+        if (!section) return;
+        const ansEl = section.querySelector('.intel-ans');
+        const live  = section.querySelector('.live');
+        if (data && data.answer) {
+          if (ansEl) { ansEl.classList.remove('intel-loading'); ansEl.textContent = data.answer; }
+          if (live)  live.innerHTML = '<i></i>Live answer';
+        } else {
+          if (ansEl) { ansEl.classList.remove('intel-loading'); ansEl.textContent = 'No verified answer in our database for that question -- the top match below is the closest we have.'; }
+          if (live)  live.innerHTML = '<i></i>No verified answer';
+        }
+      })
+      .catch(function () {
+        const ansEl = document.querySelector('#smartSection .intel .intel-ans');
+        if (ansEl) { ansEl.classList.remove('intel-loading'); ansEl.textContent = 'Could not reach Intelligence right now -- showing the closest matches below.'; }
+      });
+  }, 700);
+}
 function renderSmart(q, s){
   let rows = smartRank(smartFilter(s), s);
   _smartLastCount = rows.length; _smartLastSort = s.sort ? s.sort.label : null;
@@ -1078,6 +1223,13 @@ function runSearch(q){
   }
 
   const toks = tokenize(q), full = norm(q);
+  // Free-form natural-language question? parseSmartQuery missed it (no
+  // structured criteria), but Intelligence should still take a shot --
+  // a question about "What happened to Juliana's Pizza..." should at
+  // least try to answer rather than silently fall back to keyword search.
+  // We compute the text-match results below first, then route them to
+  // the LLM as facts via renderQuestionIntel further down.
+  const _isQuestion = isQuestion(q);
 
   // projects
   const pScored = PROJECTS.map(p=>({p, s:scoreProject(p,toks,full)})).filter(x=>x.s>0).sort((a,b)=>b.s-a.s);
@@ -1113,11 +1265,25 @@ function runSearch(q){
   summary.innerHTML = 'Showing results for <b>“'+esc(q)+'”</b> · '+pScored.length+' project'+(pScored.length===1?'':'s')+
     ', '+fScored.length+' firm'+(fScored.length===1?'':'s')+', '+aScored.length+' stor'+(aScored.length===1?'y':'ies');
 
-  // hero = top project, but ONLY when it's an obvious match — the full query
-  // phrase is in the title, or most query words land in the title. Otherwise
-  // show no hero, so a weak partial ("four seasons palm beach" → "YMCA Palm
-  // Beaches") never masquerades as the top result.
-  const heroEligible = (p)=>{
+  // If the query is a question, fire TMW Intelligence with the text-match
+  // results as facts. Sits ABOVE the hero stack in priority order so the
+  // synthesized answer reads first.
+  if (_isQuestion) {
+    if (window.tmwIntel && !window.tmwIntel.allowed(q)) { renderIntelGate(); show('smartSection', true); }
+    else {
+      renderQuestionIntel(q, pScored.slice(0,5).map(x=>x.p), aScored.slice(0,3).map(x=>x.a));
+      show('smartSection', true);
+      commitIntelQuery(q);
+    }
+  }
+
+  // ── HERO STACK ─────────────────────────────────────────────────────────
+  // Always show the single most-relevant result of each type, stacked in
+  // priority order: project → article → firm. Each goes through its own
+  // tight relevance check so a weak partial match never masquerades as a
+  // "top" pick. Stack-only items are then excluded from the grid sections
+  // below so we don't double-render the same result.
+  const heroProjectEligible = (p)=>{
     const title = norm(p.Title);
     if(full && title.includes(full)) return true;
     const meaningful = toks.filter(t=>t.length>=3);
@@ -1125,23 +1291,44 @@ function runSearch(q){
     const inTitle = meaningful.filter(t=>title.includes(t)).length;
     return inTitle >= Math.ceil(meaningful.length * 0.6);
   };
-  const rest = pScored.slice();
-  if(pScored.length && heroEligible(pScored[0].p)){
-    const hero = rest.shift().p;
-    document.getElementById('hero').innerHTML = heroHtml(hero);
+  const heroArticleEligible = (a)=>{
+    const title = norm(a.title || '');
+    const meaningful = toks.filter(t=>t.length>=3);
+    if(!meaningful.length) return false;
+    const inTitle = meaningful.filter(t=>title.includes(t)).length;
+    // Article hero is more forgiving than project hero: questions are often
+    // semantic and the article that answers may have only some terms in title.
+    return inTitle >= 1;
+  };
+  const heroFirmEligible = (f)=>{
+    const nm = norm(f.name || '');
+    return full && (nm === full || nm.startsWith(full));
+  };
+  let heroProject = null, heroArticle = null, heroFirm = null;
+  if (pScored.length && heroProjectEligible(pScored[0].p)) heroProject = pScored[0].p;
+  if (aScored.length && heroArticleEligible(aScored[0].a)) heroArticle = aScored[0].a;
+  if (fScored.length && heroFirmEligible(fScored[0].f))    heroFirm    = fScored[0].f;
+  const heroParts = [];
+  if (heroProject) heroParts.push(heroHtml(heroProject));
+  if (heroArticle) heroParts.push(heroArticleHtml(heroArticle));
+  if (heroFirm)    heroParts.push(heroFirmHtml(heroFirm));
+  if (heroParts.length) {
+    document.getElementById('hero').innerHTML = heroParts.join('');
     show('heroSection', true);
   }
 
-  // project grid — "Nearby Projects": up to 4, no total pill
-  const gridItems = rest.slice(0, 4);
+  // project grid -- "Nearby Projects": up to 4, skipping the hero project
+  const restProjects = pScored.slice(heroProject ? 1 : 0);
+  const gridItems = restProjects.slice(0, 4);
   if(gridItems.length){
     document.getElementById('projects').innerHTML = gridItems.map(x=>pcardHtml(x.p)).join('');
     show('projectsSection', true);
   }
 
-  // firms + cities
+  // firms + cities (skip the hero firm so it doesn't render twice)
   const ent = [];
-  fScored.slice(0, MAX_FIRMS).forEach(x=>ent.push(firmEntityHtml(x.f)));
+  const restFirms = fScored.slice(heroFirm ? 1 : 0, MAX_FIRMS + (heroFirm ? 1 : 0));
+  restFirms.forEach(x=>ent.push(firmEntityHtml(x.f)));
   cities.slice(0, MAX_CITIES).forEach(c=>ent.push(cityEntityHtml(c)));
   if(ent.length){
     document.getElementById('entities').innerHTML = ent.join('');
@@ -1149,8 +1336,9 @@ function runSearch(q){
     show('entitiesSection', true);
   }
 
-  // articles (batched, with a Load-more button)
-  ARTS_ALL = aScored.map(x=>x.a);
+  // articles (batched, with a Load-more button). Skip the hero article so the
+  // user doesn't see the same story twice.
+  ARTS_ALL = aScored.map(x=>x.a).filter(a => a !== heroArticle);
   ARTS_SHOWN = 0;
   if(ARTS_ALL.length){
     document.getElementById('articles').innerHTML = '';
