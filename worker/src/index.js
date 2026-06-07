@@ -249,6 +249,18 @@ async function handleEventIngest(req, env, origin) {
     return json({ error: 'member_id and event_name are required' }, { status: 400 }, env, origin);
   }
 
+  // Cloudflare auto-populates request.cf on incoming requests with the visitor's
+  // edge-derived geography. Merge those into the event's props so the Studio
+  // can display "Brooklyn, NY, US" on each activity row without a separate IP
+  // lookup. Best-effort: cf can be absent during local dev / preview.
+  const cf = req.cf || {};
+  const geoProps = {};
+  if (cf.city) geoProps.city = String(cf.city).slice(0, 60);
+  if (cf.region) geoProps.region = String(cf.region).slice(0, 60);
+  if (cf.regionCode) geoProps.regionCode = String(cf.regionCode).slice(0, 8);
+  if (cf.country) geoProps.country = String(cf.country).slice(0, 4);
+  const mergedProps = (body.props || Object.keys(geoProps).length) ? { ...(body.props || {}), ...geoProps } : null;
+
   const nowSec = Math.floor(Date.now() / 1000);
   try {
     await env.DB.prepare(
@@ -268,7 +280,7 @@ async function handleEventIngest(req, env, origin) {
       body.path || null,
       body.referrer || null,
       req.headers.get('User-Agent') || null,
-      body.props ? JSON.stringify(body.props) : null,
+      mergedProps ? JSON.stringify(mergedProps) : null,
     ).run();
   } catch (e) {
     return json({ error: 'DB insert failed: ' + e.message }, { status: 500 }, env, origin);
@@ -3768,6 +3780,11 @@ async function ensureJournalActiveTable(env) {
   try { await env.DB.prepare('ALTER TABLE journal_active ADD COLUMN title TEXT').run(); } catch (_) {}
   try { await env.DB.prepare('ALTER TABLE journal_active ADD COLUMN member_id TEXT').run(); } catch (_) {}
   try { await env.DB.prepare('ALTER TABLE journal_active ADD COLUMN member_name TEXT').run(); } catch (_) {}
+  // Geo columns, derived from request.cf on each ping. Lets the Studio render
+  // "Brooklyn, NY, US" on each live presence row.
+  try { await env.DB.prepare('ALTER TABLE journal_active ADD COLUMN city TEXT').run(); } catch (_) {}
+  try { await env.DB.prepare('ALTER TABLE journal_active ADD COLUMN region TEXT').run(); } catch (_) {}
+  try { await env.DB.prepare('ALTER TABLE journal_active ADD COLUMN country TEXT').run(); } catch (_) {}
 }
 
 async function handleJournalPing(req, env, origin) {
@@ -3782,12 +3799,29 @@ async function handleJournalPing(req, env, origin) {
   } catch (_) {}
   sid = sid.replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 40);
   if (!sid) return ok();
+  // Cloudflare auto-populates request.cf with edge-derived geography.
+  const cf = req.cf || {};
+  const city    = cf.city       ? String(cf.city).slice(0, 60)    : '';
+  const region  = cf.regionCode ? String(cf.regionCode).slice(0, 8)
+                                : (cf.region ? String(cf.region).slice(0, 60) : '');
+  const country = cf.country    ? String(cf.country).slice(0, 4)  : '';
   try {
     await ensureJournalActiveTable(env);
     const now = Math.floor(Date.now() / 1000);
     // Keep an existing member identity if a later ping arrives without one (the
-    // member resolves a beat after the first anonymous ping).
-    await env.DB.prepare('INSERT INTO journal_active (sid, ts, path, title, member_id, member_name) VALUES (?1, ?2, ?3, ?4, ?5, ?6) ON CONFLICT(sid) DO UPDATE SET ts = ?2, path = ?3, title = ?4, member_id = COALESCE(NULLIF(?5, \'\'), member_id), member_name = COALESCE(NULLIF(?6, \'\'), member_name)').bind(sid, now, path, title, memberId || null, memberName || null).run();
+    // member resolves a beat after the first anonymous ping). Same idea for geo:
+    // if cf is somehow blank on this ping, don't clobber the previously-stored
+    // geo for the session.
+    await env.DB.prepare(
+      'INSERT INTO journal_active (sid, ts, path, title, member_id, member_name, city, region, country) ' +
+      'VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9) ' +
+      'ON CONFLICT(sid) DO UPDATE SET ts = ?2, path = ?3, title = ?4, ' +
+      'member_id = COALESCE(NULLIF(?5, \'\'), member_id), ' +
+      'member_name = COALESCE(NULLIF(?6, \'\'), member_name), ' +
+      'city = COALESCE(NULLIF(?7, \'\'), city), ' +
+      'region = COALESCE(NULLIF(?8, \'\'), region), ' +
+      'country = COALESCE(NULLIF(?9, \'\'), country)'
+    ).bind(sid, now, path, title, memberId || null, memberName || null, city || null, region || null, country || null).run();
   } catch (_) {}
   return ok();
 }
@@ -3799,12 +3833,22 @@ async function handleJournalActive(env, origin) {
     const now = Math.floor(Date.now() / 1000);
     const cut = now - 300;
     const cnt = await env.DB.prepare('SELECT COUNT(*) AS c FROM journal_active WHERE ts > ?1').bind(cut).first();
-    const rows = await env.DB.prepare('SELECT ts, path, title, member_name FROM journal_active WHERE ts > ?1 ORDER BY ts DESC LIMIT 40').bind(cut).all();
-    const reads = (rows.results || []).map(r => ({ path: r.path || '', title: r.title || '', member_name: r.member_name || null, ago: Math.max(0, now - (r.ts || now)) }));
+    const rows = await env.DB.prepare('SELECT ts, path, title, member_name, city, region, country FROM journal_active WHERE ts > ?1 ORDER BY ts DESC LIMIT 40').bind(cut).all();
+    const reads = (rows.results || []).map(r => ({
+      path: r.path || '',
+      title: r.title || '',
+      member_name: r.member_name || null,
+      city: r.city || null,
+      region: r.region || null,
+      country: r.country || null,
+      ago: Math.max(0, now - (r.ts || now)),
+    }));
     // Fold in the last-5-min interaction events (searches, TMW Intelligence
     // queries, project opens, subscribes…) so the live feed reflects EVERYTHING
     // happening now, not just page reads. page_view is excluded — reads already
     // come from journal_active above, so including it would double-list them.
+    // Event rows carry geo inside props_json (merged at /event ingest), so we
+    // hoist those keys onto the feed item for symmetry with the reads rows.
     let evItems = [];
     try {
       const ev = await env.DB.prepare(
@@ -3813,13 +3857,19 @@ async function handleJournalActive(env, origin) {
          WHERE ts > ?1 AND event_name NOT IN ('page_view','watchlist_snapshot')
          ORDER BY ts DESC LIMIT 40`
       ).bind(cut).all();
-      evItems = (ev.results || []).map(r => ({
-        event_name: r.event_name,
-        props_json: r.props_json || null,
-        path: r.path || '',
-        member_name: r.member_name || null,
-        ago: Math.max(0, now - (r.ts || now)),
-      }));
+      evItems = (ev.results || []).map(r => {
+        let p = {}; try { if (r.props_json) p = JSON.parse(r.props_json); } catch (_) {}
+        return {
+          event_name: r.event_name,
+          props_json: r.props_json || null,
+          path: r.path || '',
+          member_name: r.member_name || null,
+          city: p.city || null,
+          region: p.regionCode || p.region || null,
+          country: p.country || null,
+          ago: Math.max(0, now - (r.ts || now)),
+        };
+      });
     } catch (_) {}
     const feed = reads.concat(evItems).sort((a, b) => a.ago - b.ago).slice(0, 40);
     try { await env.DB.prepare('DELETE FROM journal_active WHERE ts < ?1').bind(now - 3600).run(); } catch (_) {}
