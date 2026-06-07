@@ -11828,12 +11828,12 @@
 
     <!-- Right-rail action buttons (slide up with sheet) -->
     <div class="v2-right-rail" id="v2RightRail" aria-hidden="true">
+      <button class="v2-action-btn" id="v2LayersBtn" aria-label="Map layers">
+        <svg viewBox="0 0 24 24"><path d="M12 2 2 7l10 5 10-5-10-5z"/><path d="m2 17 10 5 10-5"/><path d="m2 12 10 5 10-5"/></svg>
+      </button>
       <button class="v2-action-btn" id="v2PulseQuickBtn" aria-label="Pulse">
         <span class="v2-num-badge" id="v2PulseQuickBadge" hidden>0</span>
         <svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
-      </button>
-      <button class="v2-action-btn" id="v2LayersBtn" aria-label="Map layers">
-        <svg viewBox="0 0 24 24"><path d="M12 2 2 7l10 5 10-5-10-5z"/><path d="m2 17 10 5 10-5"/><path d="m2 12 10 5 10-5"/></svg>
       </button>
       <div class="v2-zoom-stack">
         <button id="v2ZoomInBtn" aria-label="Zoom in">
@@ -13005,7 +13005,7 @@
 
         const st = document.createElement('style'); st.id = 'tmw-il-css';
         st.textContent =
-          ".tmw-il-panel{position:fixed;bottom:24px;right:72px;z-index:10;width:248px;background:rgba(14,14,18,.88);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.12);border-radius:15px;padding:13px 15px;box-shadow:0 18px 50px rgba(0,0,0,.55);font-family:'Inter',sans-serif;color:#fff;transition:opacity .16s,transform .16s}" +
+          ".tmw-il-panel{position:fixed;bottom:262px;right:18px;z-index:10;width:248px;background:rgba(14,14,18,.88);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.12);border-radius:15px;padding:13px 15px;box-shadow:0 18px 50px rgba(0,0,0,.55);font-family:'Inter',sans-serif;color:#fff;transition:opacity .16s,transform .16s}" +
           ".tmw-il-panel.tmw-il-closed{opacity:0;transform:translateY(10px) scale(.97);pointer-events:none}" +
           ".tmw-il-ph{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}" +
           ".tmw-il-panel h4{font-size:14px;font-weight:800;margin:0}" +
@@ -13016,8 +13016,8 @@
           ".tmw-il-seg button{flex:1;border:none;background:transparent;color:rgba(255,255,255,.6);font:600 10.5px/1 'Inter',sans-serif;padding:6px 3px;border-radius:7px;cursor:pointer;white-space:nowrap}" +
           ".tmw-il-seg button.on{background:rgba(167,139,250,.92);color:#16102b}" +
           ".tmw-il-rule{height:1px;background:rgba(255,255,255,.09);margin:11px 0 10px}" +
-          ".tmw-il-legend .d.tmw-il-rail{width:15px;height:0;border-radius:0;background:none;box-shadow:none;border-top:2px dashed #FFD300}" +
-          "#layersButton{background:rgba(167,139,250,.18)!important;border-color:rgba(167,139,250,.55)!important;box-shadow:0 0 12px rgba(167,139,250,.35)!important}#layersButton svg{color:#C9BBFF}#layersButton.active{background:rgba(167,139,250,.34)!important}" +
+          ".tmw-il-legend .d.tmw-il-rail{height:2px;border-radius:0;background:repeating-linear-gradient(90deg,#FFD300 0 2.5px,transparent 2.5px 4.5px);box-shadow:none}" +
+          "body.ui-v2 #v2LayersBtn{background:rgba(167,139,250,.2)!important;border:1px solid rgba(167,139,250,.6)!important;box-shadow:0 0 13px rgba(167,139,250,.45)!important;color:#C9BBFF!important}body.ui-v2 #v2LayersBtn.active{background:rgba(167,139,250,.38)!important;color:#fff!important}" +
           ".tmw-il-toggle{display:flex;align-items:center;gap:10px;cursor:pointer;padding:8px 9px;border-radius:10px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.03);transition:.15s}" +
           ".tmw-il-toggle:hover{background:rgba(255,255,255,.06)}" +
           ".tmw-il-toggle.on{border-color:rgba(167,139,250,.5);background:rgba(167,139,250,.1)}" +
@@ -13047,16 +13047,16 @@
 
         const panel = document.createElement('div'); panel.className = 'tmw-il-panel';
         panel.innerHTML =
-          '<div class="tmw-il-ph"><h4>Interactive layers</h4><button class="tmw-il-x" aria-label="Close layers"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>' +
-          '<div class="tmw-il-toggle"><span class="tmw-il-sw"></span><span><b>What’s moving</b><i>Pulse recent milestones</i></span></div>' +
-          '<div class="tmw-il-seg-row"><span>Map view</span><div class="tmw-il-seg" data-seg="view"><button data-v="default" class="on">Default</button><button data-v="satellite">Satellite</button></div></div>' +
-          '<div class="tmw-il-seg-row"><span>Projects</span><div class="tmw-il-seg" data-seg="proj"><button data-v="dev" class="on">In&nbsp;dev</button><button data-v="completed">Completed</button><button data-v="both">Both</button></div></div>' +
+          '<div class="tmw-il-ph"><h4>Interactive Layers</h4><button class="tmw-il-x" aria-label="Close layers"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>' +
+          '<div class="tmw-il-toggle"><span class="tmw-il-sw"></span><span><b>What’s Moving</b><i>Pulse Recent Milestones</i></span></div>' +
+          '<div class="tmw-il-seg-row"><span>Map View</span><div class="tmw-il-seg" data-seg="view"><button data-v="default" class="on">Default</button><button data-v="satellite">Satellite</button></div></div>' +
+          '<div class="tmw-il-seg-row"><span>Projects</span><div class="tmw-il-seg" data-seg="proj"><button data-v="dev" class="on">Pipeline</button><button data-v="completed">Completed</button><button data-v="both">Both</button></div></div>' +
           '<div class="tmw-il-rule"></div>' +
           '<div class="tmw-il-legend">' +
-            '<div><span class="d" style="background:#B9A6FF"></span>Moved in the last 2 weeks</div>' +
-            '<div><span class="d" style="background:#1FDF67"></span>Under construction</div>' +
-            '<div><span class="d" style="background:#3FA9F5"></span>Announced / breaking ground</div>' +
-            '<div><span class="d" style="background:#8AA0B5"></span>Now open</div>' +
+            '<div><span class="d" style="background:#B9A6FF"></span>Moved In The Last 2 Weeks</div>' +
+            '<div><span class="d" style="background:#1FDF67"></span>Under Construction</div>' +
+            '<div><span class="d" style="background:#3FA9F5"></span>Announced / Breaking Ground</div>' +
+            '<div><span class="d" style="background:#8AA0B5"></span>Now Open</div>' +
             '<div><span class="d" style="background:transparent;box-shadow:0 0 0 1.5px #E6C574"></span>Featured</div>' +
             '<div><span class="d tmw-il-rail"></span>Future Rail</div>' +
           '</div>';
@@ -13107,7 +13107,7 @@
         if (!(window._pulseEvents||[]).length) setTimeout(buildMoving, 2500);
 
         // ---- Open/close (X collapses into the now-purple layers button) ----
-        const layersBtnEl = document.getElementById('layersButton');
+        const layersBtnEl = document.getElementById('v2LayersBtn') || document.getElementById('layersButton');
         window._tmwLayersOpen = true;
         function setPanelOpen(open){ panel.classList.toggle('tmw-il-closed', !open); window._tmwLayersOpen = open; if (layersBtnEl) layersBtnEl.classList.toggle('active', open); }
         window._tmwToggleLayers = ()=> setPanelOpen(panel.classList.contains('tmw-il-closed'));
@@ -24457,12 +24457,14 @@
       // works because it watches the panel itself.
       if (v2Layers) v2Layers.addEventListener('click', (e) => {
         e.stopPropagation();
-        const panel = document.getElementById('layersPanel');
-        const legacyBtn = document.getElementById('layersButton');
-        if (panel) {
-          const willOpen = !panel.classList.contains('open');
-          panel.classList.toggle('open', willOpen);
-          if (legacyBtn) legacyBtn.classList.toggle('active', willOpen);
+        // Open the new Interactive Layers panel. Fall back to the legacy
+        // #layersPanel only if the new one hasn't booted.
+        if (window._tmwToggleLayers) {
+          window._tmwToggleLayers();
+          v2Layers.classList.toggle('active', !!window._tmwLayersOpen);
+        } else {
+          const panel = document.getElementById('layersPanel');
+          if (panel) { const willOpen = !panel.classList.contains('open'); panel.classList.toggle('open', willOpen); v2Layers.classList.toggle('active', willOpen); }
         }
       });
       if (v2Pulse) v2Pulse.addEventListener('click', () => {
