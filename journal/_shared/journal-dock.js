@@ -532,7 +532,7 @@
     '.tmw-dock-search:focus-within .ds-search-icon{stroke:#9AA39C}',
     '.tmw-dock-search:focus-within .ds-search-circle{opacity:1}',
     '.tmw-dock-search:focus-within .ds-search-wand{opacity:1;stroke-dashoffset:0}',
-    '@keyframes ds-pill-grow{0%,40%{width:30px;opacity:0}47.5%{width:30px;opacity:1}52.5%{width:122px;opacity:1}82.5%{width:122px;opacity:1}87.5%{width:30px;opacity:1}90%{width:30px;opacity:0}100%{width:30px;opacity:0}}',
+    '@keyframes ds-pill-grow{0%,40%{width:30px;opacity:0}47.5%{width:30px;opacity:1}52.5%{width:148px;opacity:1}82.5%{width:148px;opacity:1}87.5%{width:30px;opacity:1}90%{width:30px;opacity:0}100%{width:30px;opacity:0}}',
     '@keyframes ds-ask-clip{0%,47.5%{max-width:0}52.5%{max-width:78px}82.5%{max-width:78px}87.5%{max-width:0}100%{max-width:0}}',
     '@keyframes ds-hard-spin{0%{transform:rotate(1440deg)}25%{transform:rotate(1440deg)}42.5%{transform:rotate(720deg)}87.5%{transform:rotate(720deg)}100%{transform:rotate(1440deg)}}',
     '@keyframes ds-hex-fade{0%,33%{opacity:0}40%{opacity:1}87.5%{opacity:1}94%{opacity:0}100%{opacity:0}}',
