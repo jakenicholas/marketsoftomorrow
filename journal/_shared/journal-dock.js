@@ -435,6 +435,15 @@
       }
       else if (e.key === 'Escape'){ hide(); }
     });
+    // Plain Enter with no suggestion highlighted submits the form → /search/.
+    // That's still a "normal search" typed into the bar, so log the text (the
+    // /search/ page separately logs the intelligence answer it produces).
+    form.addEventListener('submit', function (){
+      try {
+        var q = (input.value || '').trim();
+        if (q.length >= 2 && window.tmwIntel && window.tmwIntel.trackSearch) window.tmwIntel.trackSearch(q, {});
+      } catch (e) {}
+    });
   }
 
   // ── Surface toggle (Journal · Map · Atlas) — icon-only variant for the dock ──
