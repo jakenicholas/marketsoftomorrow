@@ -258,8 +258,12 @@
   };
   function tmwIntelPillHTML() {
     var pro = window.tmwIntel.isPro();
-    var proBadge = '<a class="tdt-pro' + (pro ? ' on' : '') + '" href="' + HOME_URL + '/pro">PRO</a>';
-    if (pro) return '<span class="tdt-right">' + proBadge + '</span>';
+    // Pro members: static badge, no action (they already have it).
+    if (pro) return '<span class="tdt-right"><span class="tdt-pro on">PRO</span></span>';
+    // Non-pro: the PRO badge opens the in-page paywall (delegated handler below).
+    // href is a working no-JS fallback (the map upgrade flow), never the old
+    // /pro 404. data-tmw-paywall carries the paywall context.
+    var proBadge = '<a class="tdt-pro" href="https://www.oftmw.com/map/?upgrade=1" data-tmw-paywall="feature:intelligence">PRO</a>';
     var left = window.tmwIntel.left();
     return '<span class="tdt-right"><span class="tdt-quota' + (left <= 3 ? ' low' : '') + '">' + left + ' / 10 left</span>' + proBadge + '</span>';
   }
@@ -280,6 +284,23 @@
     '</div>';
   }
   window.tmwAskTeachHTML = tmwAskTeachHTML;
+
+  // The PRO badge (and any [data-tmw-paywall] trigger) opens the native in-page
+  // paywall instead of navigating to a /pro page. Delegated + once, so it works
+  // for every dynamically-rendered intel pop-up (dock, map drawer, search gate)
+  // regardless of when the markup is injected. If the paywall module hasn't
+  // loaded yet, the element's href (map upgrade flow) handles it as a fallback.
+  if (!window.__tmwPaywallDelegated) {
+    window.__tmwPaywallDelegated = true;
+    document.addEventListener('click', function (e) {
+      var el = e.target && e.target.closest ? e.target.closest('[data-tmw-paywall]') : null;
+      if (!el) return;
+      if (typeof window.tmwShowPaywall === 'function') {
+        e.preventDefault();
+        window.tmwShowPaywall(el.getAttribute('data-tmw-paywall') || 'feature:intelligence');
+      }
+    }, false);
+  }
 
   var _dockData = null, _dockDataPromise = null;
   function acNorm(s){ return String(s == null ? '' : s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''); }
