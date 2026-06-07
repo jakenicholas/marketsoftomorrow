@@ -510,6 +510,11 @@
     // Ask TMW teaser pill -- a translucent purple capsule that grows out of the icon, briefly reveals "Ask TMW", then retracts.
     '.tmw-dock-search .ds-ask-pill{position:absolute;top:50%;left:8px;height:30px;width:30px;transform:translateY(-50%);border-radius:999px;background:rgba(167,139,250,.14);border:1px solid rgba(167,139,250,.55);box-shadow:0 0 14px rgba(167,139,250,.18);z-index:1;opacity:0;pointer-events:none;animation:ds-pill-grow 8s ease-in-out infinite;will-change:width,opacity}',
     '.tmw-dock-search .ds-ask-text{position:absolute;top:50%;left:40px;transform:translateY(-50%);height:22px;max-width:0;overflow:hidden;white-space:nowrap;color:#fff;font-size:13px;font-weight:600;letter-spacing:.3px;line-height:22px;z-index:2;pointer-events:none;animation:ds-ask-clip 8s ease-in-out infinite;will-change:max-width}',
+    // Caterpillar dots ride just to the right of "Ask TMW" inside the purple pill.
+    '.tmw-dock-search .ds-ask-dots{position:absolute;top:50%;left:108px;transform:translateY(-50%);display:flex;align-items:center;gap:4px;height:22px;opacity:0;z-index:2;pointer-events:none;animation:ds-dots-show 8s linear infinite}',
+    '.tmw-dock-search .ds-dot{width:5px;height:5px;background:rgba(255,255,255,.85);border-radius:50%;box-shadow:0 0 6px rgba(167,139,250,.55);animation:ds-dot-wave 1.1s ease-in-out infinite}',
+    '.tmw-dock-search .ds-ask-dots .ds-dot:nth-child(2){animation-delay:.16s}',
+    '.tmw-dock-search .ds-ask-dots .ds-dot:nth-child(3){animation-delay:.32s}',
     // Spin/show choreography matches tmw_search_to_hex_ask_final.html, rescaled for 24x24 viewBox.
     '.tmw-dock-search .ds-hex-spinner{transform-origin:50% 50%;animation:ds-hard-spin 8s ease-in-out infinite}',
     '.tmw-dock-search .ds-hex-core{animation:ds-hex-fade 8s linear infinite}',
@@ -517,7 +522,9 @@
     '.tmw-dock-search .ds-search-circle{animation:ds-circle-show 8s linear infinite}',
     '.tmw-dock-search .ds-search-wand{stroke-dasharray:6;stroke-dashoffset:0;animation:ds-wand-show 8s linear infinite}',
     // Pause the animation entirely while the user is interacting with the search.
-    '.tmw-dock-search:focus-within .ds-ask-pill,.tmw-dock-search:focus-within .ds-ask-text,.tmw-dock-search:focus-within .ds-hex-spinner,.tmw-dock-search:focus-within .ds-hex-core,.tmw-dock-search:focus-within .ds-search-icon,.tmw-dock-search:focus-within .ds-search-circle,.tmw-dock-search:focus-within .ds-search-wand{animation:none}',
+    '.tmw-dock-search:focus-within .ds-ask-pill,.tmw-dock-search:focus-within .ds-ask-text,.tmw-dock-search:focus-within .ds-ask-dots,.tmw-dock-search:focus-within .ds-dot,.tmw-dock-search:focus-within .ds-hex-spinner,.tmw-dock-search:focus-within .ds-hex-core,.tmw-dock-search:focus-within .ds-search-icon,.tmw-dock-search:focus-within .ds-search-circle,.tmw-dock-search:focus-within .ds-search-wand{animation:none}',
+    '.tmw-dock-search:focus-within .ds-ask-dots{opacity:0}',
+    '.tmw-dock-search:focus-within input::placeholder{animation:none;color:#9AA39C}',
     '.tmw-dock-search:focus-within .ds-ask-pill{opacity:0}',
     '.tmw-dock-search:focus-within .ds-ask-text{max-width:0}',
     '.tmw-dock-search:focus-within .ds-hex-spinner{transform:rotate(0)}',
@@ -532,16 +539,24 @@
     '@keyframes ds-icon-color{0%,18%{stroke:#9AA39C}24%{stroke:#A78BFA}96%{stroke:#A78BFA}100%{stroke:#9AA39C}}',
     '@keyframes ds-circle-show{0%,33%{opacity:1}40%{opacity:0}87.5%{opacity:0}94%{opacity:1}100%{opacity:1}}',
     '@keyframes ds-wand-show{0%{opacity:1;stroke-dashoffset:0}25%{opacity:1;stroke-dashoffset:0}30%{opacity:1;stroke-dashoffset:6}31%{opacity:0;stroke-dashoffset:6}93%{opacity:0;stroke-dashoffset:6}94%{opacity:1;stroke-dashoffset:6}99%{opacity:1;stroke-dashoffset:0}100%{opacity:1;stroke-dashoffset:0}}',
-    '@media (prefers-reduced-motion:reduce){.tmw-dock-search .ds-hex-spinner,.tmw-dock-search .ds-hex-core,.tmw-dock-search .ds-search-icon,.tmw-dock-search .ds-search-circle,.tmw-dock-search .ds-search-wand,.tmw-dock-search .ds-ask-pill,.tmw-dock-search .ds-ask-text{animation:none}',
+    '@keyframes ds-dots-show{0%,55%{opacity:0}62%{opacity:1}82%{opacity:1}87%{opacity:0}100%{opacity:0}}',
+    '@keyframes ds-dot-wave{0%,60%,100%{transform:translateY(0);opacity:.45}30%{transform:translateY(-4px);opacity:1}}',
+    '@media (prefers-reduced-motion:reduce){.tmw-dock-search .ds-hex-spinner,.tmw-dock-search .ds-hex-core,.tmw-dock-search .ds-search-icon,.tmw-dock-search .ds-search-circle,.tmw-dock-search .ds-search-wand,.tmw-dock-search .ds-ask-pill,.tmw-dock-search .ds-ask-text,.tmw-dock-search .ds-ask-dots,.tmw-dock-search .ds-dot,.tmw-dock-search input::placeholder{animation:none}',
     '.tmw-dock-search .ds-hex-core{opacity:0}',
     '.tmw-dock-search .ds-search-circle,.tmw-dock-search .ds-search-wand{opacity:1;stroke:#9AA39C}',
-    '.tmw-dock-search .ds-ask-pill{opacity:0}.tmw-dock-search .ds-ask-text{max-width:0}}',
+    '.tmw-dock-search .ds-ask-pill{opacity:0}.tmw-dock-search .ds-ask-text{max-width:0}',
+    '.tmw-dock-search .ds-ask-dots{opacity:0}.tmw-dock-search input::placeholder{color:#9AA39C}}',
     '.tmw-dock-search input{height:46px;width:min(46vw,300px);padding:0 18px 0 42px;',
     'background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.10);border-radius:999px;',
     'color:#fff;font-size:14px;font-family:inherit;outline:none;transition:border-color .2s,background .2s,width .25s ease}',
     // Purple clear (×) glyph in place of the browser default
     '.tmw-dock-search input::-webkit-search-cancel-button{-webkit-appearance:none;appearance:none;height:14px;width:14px;cursor:pointer;background:url(data:image/svg+xml,%3Csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20viewBox=%270%200%2024%2024%27%3E%3Cpath%20d=%27M6%206l12%2012M18%206L6%2018%27%20stroke=%27%23B9A6FF%27%20stroke-width=%272.4%27%20stroke-linecap=%27round%27/%3E%3C/svg%3E) center/contain no-repeat}',
-    '.tmw-dock-search input::placeholder{color:#9AA39C}',
+    // Placeholder fades to transparent while the Ask TMW pill is expanded so the
+    // existing "Search projects, firms, cities..." text doesn't bleed through the
+    // purple capsule. Reverts to normal gray for the rest of the loop and any
+    // time the user focuses the input.
+    '.tmw-dock-search input::placeholder{color:#9AA39C;animation:ds-placeholder-fade 8s linear infinite}',
+    '@keyframes ds-placeholder-fade{0%,47.5%{color:#9AA39C}52.5%{color:transparent}82.5%{color:transparent}87.5%{color:#9AA39C}100%{color:#9AA39C}}',
     '.tmw-dock-search input:focus{border-color:rgba(31,223,103,.55);background:rgba(255,255,255,.08);width:min(52vw,344px)}',
     // ── Live autocomplete pop-up (opens ABOVE the bottom dock) ──
     // position:FIXED + viewport-centered (not absolute-to-the-form, which sits
@@ -832,6 +847,9 @@
         '<span class="ds-ask-pill" aria-hidden="true"></span>' +
         '<span class="ds-ico">' + ICON_SEARCH + '</span>' +
         '<span class="ds-ask-text" aria-hidden="true">Ask TMW</span>' +
+        '<span class="ds-ask-dots" aria-hidden="true">' +
+          '<span class="ds-dot"></span><span class="ds-dot"></span><span class="ds-dot"></span>' +
+        '</span>' +
         '<input name="q" type="search" autocomplete="off" placeholder="Search projects, firms, cities…" aria-label="Search">' +
       '</form>';
 
