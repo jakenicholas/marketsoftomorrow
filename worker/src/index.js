@@ -1013,6 +1013,30 @@ async function handleIntelQueries(env, origin, url) {
   return json({ total: (tot && tot.n) || 0, limit, offset, items }, {}, env, origin);
 }
 
+// GET /search-gaps — demand-ranked queries that returned ZERO results: the
+// natural-language intel queries and on-page searches people ran where we had
+// nothing to show. This is a content/data roadmap — what firms, projects, and
+// places to add next. Grouped by normalized query, most-searched first. Partner
+// spotlights (which carry a `partner` prop) are excluded — they aren't gaps.
+async function handleSearchGaps(env, origin, url) {
+  const limit = clampInt(url.searchParams.get('limit'), 50, 1, 200);
+  const rs = await env.DB.prepare(
+    `SELECT TRIM(LOWER(json_extract(props_json,'$.q'))) AS q,
+            COUNT(*) AS n, MAX(ts) AS last_ts
+     FROM events
+     WHERE event_name IN ('intel_query','search')
+       AND json_extract(props_json,'$.results') = 0
+       AND json_extract(props_json,'$.partner') IS NULL
+       AND json_extract(props_json,'$.q') IS NOT NULL
+       AND TRIM(json_extract(props_json,'$.q')) <> ''
+     GROUP BY q
+     ORDER BY n DESC, last_ts DESC
+     LIMIT ?`
+  ).bind(limit).all();
+  const items = (rs.results || []).map(r => ({ query: r.q, count: r.n, last_ts: r.last_ts }));
+  return json({ items }, {}, env, origin);
+}
+
 // GET /projects — most-clicked projects across multiple time windows.
 // Aggregates `project_click` events from identified members (the only ones
 // stored in D1). For each project we return click counts for today, 7d,
@@ -3975,7 +3999,7 @@ export default {
       // already enforce the token inside their own handlers.
       const ADMIN_READ_PATHS = new Set([
         '/people', '/stats', '/member', '/timeline',
-        '/watchlist', '/projects', '/activity', '/subscriptions', '/intel-queries',
+        '/watchlist', '/projects', '/activity', '/subscriptions', '/intel-queries', '/search-gaps',
       ]);
       if (request.method === 'GET' && ADMIN_READ_PATHS.has(url.pathname)) {
         const denied = await requireAdminToken(request, env, origin);
@@ -4029,6 +4053,9 @@ export default {
       }
       if (request.method === 'GET' && url.pathname === '/activity') {
         return await handleActivity(env, origin, url);
+      }
+      if (request.method === 'GET' && url.pathname === '/search-gaps') {
+        return await handleSearchGaps(env, origin, url);
       }
       if (request.method === 'GET' && url.pathname === '/intel-queries') {
         return await handleIntelQueries(env, origin, url);

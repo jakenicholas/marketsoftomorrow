@@ -1511,23 +1511,34 @@
       .slice(0, FEED_MAX);
   }
   function countNew(){ return active().length; }
+  function itemHtml(e){
+    var lab = label(e);
+    var img = e.image ? '<img class="pi-img" src="' + esc(e.image) + '" alt="" loading="lazy">' : '<div class="pi-img"></div>';
+    // Milestones show the real EVENT date (when it happened), not when we
+    // tracked it; everything else falls back to relative "Nm ago".
+    var when = ((e.type || '').toLowerCase() === 'status_change' && e.event_date) ? fmtEv(e.event_date) : rel(e.timestamp);
+    var meta = (e.city ? esc(e.city) + ' · ' : '') + esc(when);
+    var chip = lab ? '<span class="pi-tag pi-' + labelClass(e) + '">' + esc(lab) + '</span>' : '';
+    return '<a class="tmw-pulse-item" href="' + esc(e.link || '#') + '" data-eid="' + esc(eid(e)) + '">' + img +
+      '<div class="pi-body">' + chip +
+      '<div class="pi-title">' + esc(title(e)) + '</div>' +
+      '<div class="pi-meta">' + meta + '</div></div>' +
+      '<span class="pi-x" role="button" aria-label="Clear notification" tabindex="0"><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></span></a>';
+  }
+  // Fallback when the 2-week window is empty: the most recent few (by event date),
+  // ignoring the window, so the dropdown is never blank in a quiet stretch.
+  function recentFallback(){
+    var d = getDismissed();
+    return events.filter(function(e){ return !d.has(eid(e)); }).slice(0, 5);
+  }
   function feedHtml(){
     var list = active();
-    if (!list.length) return '<div class="tmw-pulse-empty">You’re all caught up</div>';
-    return list.map(function(e){
-      var lab = label(e);
-      var img = e.image ? '<img class="pi-img" src="' + esc(e.image) + '" alt="" loading="lazy">' : '<div class="pi-img"></div>';
-      // Milestones show the real EVENT date (when it happened), not when we
-      // tracked it; everything else falls back to relative "Nm ago".
-      var when = ((e.type || '').toLowerCase() === 'status_change' && e.event_date) ? fmtEv(e.event_date) : rel(e.timestamp);
-      var meta = (e.city ? esc(e.city) + ' · ' : '') + esc(when);
-      var chip = lab ? '<span class="pi-tag pi-' + labelClass(e) + '">' + esc(lab) + '</span>' : '';
-      return '<a class="tmw-pulse-item" href="' + esc(e.link || '#') + '" data-eid="' + esc(eid(e)) + '">' + img +
-        '<div class="pi-body">' + chip +
-        '<div class="pi-title">' + esc(title(e)) + '</div>' +
-        '<div class="pi-meta">' + meta + '</div></div>' +
-        '<span class="pi-x" role="button" aria-label="Clear notification" tabindex="0"><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></span></a>';
-    }).join('');
+    if (!list.length){
+      var fb = recentFallback();
+      if (!fb.length) return '<div class="tmw-pulse-empty">You’re all caught up</div>';
+      return '<div class="tmw-pulse-note">Nothing new in the last two weeks — here’s the latest</div>' + fb.map(itemHtml).join('');
+    }
+    return list.map(itemHtml).join('');
   }
   function paintCircle(){
     if (!circleEl) return;
@@ -1577,6 +1588,7 @@
       '.tmw-pulse-item .pi-x:hover{background:#E5484D;color:#fff;transform:translateY(-50%) scale(1.12)}',
       '.tmw-pulse-item .pi-x svg{width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}',
       '.tmw-pulse-empty{padding:28px 16px;text-align:center;color:rgba(255,255,255,.4);font-size:13px}',
+      '.tmw-pulse-note{padding:10px 16px 6px;color:rgba(255,255,255,.45);font-size:11.5px;letter-spacing:.02em}',
       '@media(max-width:980px){.tmw-pulse-pop{position:fixed!important;top:62px!important;bottom:auto!important;left:12px!important;right:12px!important;width:auto!important;max-width:none!important;max-height:74vh!important}}'
     ].join('');
     document.head.appendChild(st);

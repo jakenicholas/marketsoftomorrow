@@ -889,27 +889,47 @@ function renderIntelGate(){
   document.getElementById('smartSection').innerHTML = html;
 }
 
-// Curated brand answer: any query about TREMBLE or pilates returns TREMBLE's
-// expansion story (hardcoded — no LLM, never gated) instead of generic results.
-function renderTrembleIntel(){
-  _smartLastCount = 4; _smartLastSort = null;
-  const cities = ['Wellington','Boca Raton','West Palm Beach','Jupiter'];
+// Partner-of-Tomorrow spotlights: a query naming an experiential partner returns
+// a curated answer instead of generic results (hardcoded — no LLM, never gated).
+// Real-estate partners (South Flagler House, Spina O'Rourke) are intentionally
+// NOT here — they live in the project/firm data and resolve through that path.
+const PARTNER_SPOTLIGHTS = [
+  { name:'TREMBLE', triggers:['tremble','pilates'], region:'Miami & The Palm Beaches', catShort:'Pilates · Reformer',
+    ctaUrl:'https://2ly.link/24Be5', ctaLabel:'Join TREMBLE',
+    prose:'<b>TREMBLE</b> is one of South Florida’s most talked-about fitness concepts — a high-intensity, low-impact studio blending strength, cardio, and <b>Pilates-inspired</b> movement on precision-engineered reformers. It’s scaling fast across <span class="hl">Miami</span> and <span class="hl">The Palm Beaches</span>, most recently opening its <b>fourth Palm Beach County studio</b> in <span class="hl">Wellington</span> — a single-row reformer layout that gives every client an unobstructed view — joining Boca Raton, West Palm Beach, and Jupiter.',
+    items:[{name:'TREMBLE Wellington',city:'Wellington, FL'},{name:'TREMBLE Boca Raton',city:'Boca Raton, FL'},{name:'TREMBLE West Palm Beach',city:'West Palm Beach, FL'},{name:'TREMBLE Jupiter',city:'Jupiter, FL'}] },
+  { name:'MedHouse', triggers:['medhouse'], catShort:'Biohack of Tomorrow', tagline:'Longevity, by membership.', ctaUrl:'https://linkly.link/2GbpS', ctaLabel:'Become a member' },
+  { name:'Higher Order', triggers:['higher order'], catShort:'Club of Tomorrow', tagline:'Membership for the few.', ctaUrl:'https://linkly.link/2HfAG', ctaLabel:'Request Invitation' },
+  { name:'TRAPHOUSE', triggers:['traphouse'], catShort:'Sweat of Tomorrow', tagline:'Grit, made glamorous.', ctaUrl:'https://linkly.link/2WiJd', ctaLabel:'Learn More' },
+  { name:'Humanaut Health', triggers:['humanaut'], catShort:'Medicine of Tomorrow', tagline:'Concierge medicine, reimagined.', ctaUrl:'https://linkly.link/2FdrC', ctaLabel:'Schedule a consult' },
+  { name:'PUR-FORM', triggers:['pur-form','pur form','purform'], catShort:'Biohack of Tomorrow', tagline:'Recovery for the relentless.', ctaUrl:'https://linkly.link/2FdrO', ctaLabel:'Become a member' },
+];
+function matchSpotlight(q){
+  const full = norm(q);
+  for (const s of PARTNER_SPOTLIGHTS){ for (const t of s.triggers){ if (hasWord(full, t)) return s; } }
+  return null;
+}
+function renderPartnerSpotlight(spot){
+  _smartLastCount = spot.items ? spot.items.length : 0; _smartLastSort = null;
+  const arrow = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
+  const prose = spot.prose || ('<b>'+esc(spot.name)+'</b> is a <b>Partner of Tomorrow</b> — '+esc(spot.catShort||'')+'. <span class="hl">'+esc(spot.tagline||'')+'</span>');
   let html = '<div class="understood"><span class="lead">Understood as</span>'+
-    '<span class="uchip"><span class="ck">Partner</span> <b>TREMBLE</b></span>'+
-    '<span class="uchip"><span class="ck">Region</span> <b>Miami &amp; The Palm Beaches</b></span>'+
-    '<span class="uchip"><span class="ck">Category</span> <b>Pilates · Reformer</b></span>'+
+    '<span class="uchip"><span class="ck">Partner</span> <b>'+esc(spot.name)+'</b></span>'+
+    (spot.region?'<span class="uchip"><span class="ck">Region</span> <b>'+esc(spot.region)+'</b></span>':'')+
+    (spot.catShort?'<span class="uchip"><span class="ck">Category</span> <b>'+esc(spot.catShort)+'</b></span>':'')+
   '</div>';
   html += '<section class="intel"><div class="intel-h"><span class="intel-spark">'+HEX_SVG+'</span>'+
     '<span class="lbl">TMW Intelligence</span><span class="live"><i></i>Live answer</span></div>'+
-    '<p class="intel-ans"><b>TREMBLE</b> is one of South Florida’s most talked-about fitness concepts — a high-intensity, low-impact studio blending strength, cardio, and <b>Pilates-inspired</b> movement on precision-engineered reformers. It’s scaling fast across <span class="hl">Miami</span> and <span class="hl">The Palm Beaches</span>, most recently opening its <b>fourth Palm Beach County studio</b> in <span class="hl">Wellington</span> — a single-row reformer layout that gives every client an unobstructed view — joining Boca Raton, West Palm Beach, and Jupiter.</p>'+
-  '</section>';
-  html += '<div class="smart-reshead"><h2>TREMBLE · The Palm Beaches</h2>'+
-    '<a class="map" href="https://2ly.link/24Be5" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg> Join TREMBLE</a></div>';
-  html += '<div class="srows">'+ cities.map(c=>
-    '<div class="srow"><div class="r-main"><div class="r-name">TREMBLE '+esc(c)+'</div>'+
-    '<div class="r-sub"><span class="sbadge sb-open"><i></i>Now open</span><span class="dot"></span>'+esc(c)+', FL</div></div></div>'
-  ).join('') +'</div>';
-  html += '<div class="smart-foot"><span class="ai">TMW Intelligence</span> · TREMBLE is a Partner of Tomorrow</div>';
+    '<p class="intel-ans">'+prose+'</p></section>';
+  const cta = spot.ctaUrl ? '<a class="map" href="'+esc(spot.ctaUrl)+'" target="_blank" rel="noopener">'+arrow+' '+esc(spot.ctaLabel||'Learn more')+'</a>' : '';
+  html += '<div class="smart-reshead"><h2>'+esc(spot.name)+(spot.region?' · '+esc(spot.region):'')+'</h2>'+cta+'</div>';
+  if (spot.items && spot.items.length){
+    html += '<div class="srows">'+ spot.items.map(it=>
+      '<div class="srow"><div class="r-main"><div class="r-name">'+esc(it.name)+'</div>'+
+      '<div class="r-sub"><span class="sbadge sb-open"><i></i>'+esc(it.badge||'Now open')+'</span>'+(it.city?'<span class="dot"></span>'+esc(it.city):'')+'</div></div></div>'
+    ).join('') +'</div>';
+  }
+  html += '<div class="smart-foot"><span class="ai">TMW Intelligence</span> · '+esc(spot.name)+' is a Partner of Tomorrow</div>';
   document.getElementById('smartSection').innerHTML = html;
 }
 
@@ -945,8 +965,13 @@ function renderSmart(q, s){
     const metricSort = s.sort && (s.sort.key==='floors'||s.sort.key==='units'||s.sort.key==='date');
     const maxMetric = s.sort && s.sort.key==='floors' ? Math.max(1,...rows.map(floorsOf)) : (s.sort && s.sort.key==='units' ? Math.max(1,...rows.map(unitsOf)) : 1);
     const shown = rows.slice(0, SMART_CAP);
+    const firmLink = (s.firm && s.firm.slug)
+      ? '<a class="map" href="/firm/'+encodeURIComponent(s.firm.slug)+'/">'+
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M6 21V8l5-3 5 3v13M10 12h2M10 16h2"/></svg> View '+esc(s.firm.name)+'</a>'
+      : '';
     html += '<div class="smart-reshead"><h2>'+ (rows.length===1?'1 project':rows.length+' projects') +'</h2>'+
             (s.sort?'<span class="sub">· '+esc(s.sort.label.toLowerCase())+'</span>':'')+
+            firmLink+
             '<a class="map" href="'+esc(s.cities.length===1 ? MAP_URL+'/?city='+encodeURIComponent(s.cities[0]) : MAP_URL)+'">'+
             '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l-6 3V6l6-3 6 3 6-3v15l-6 3-6-3z"/><path d="M9 3v15M15 6v15"/></svg> Show on map</a></div>';
     html += '<div class="srows">';
@@ -1018,9 +1043,11 @@ function upgradeSmartAnswer(q, facts){
   }, 700);
 }
 
+let _searchGapTimer = null;
 function runSearch(q){
   const summary = document.getElementById('summary');
   ['smartSection','heroSection','projectsSection','entitiesSection','articlesSection','empty','prompt'].forEach(id=>show(id,false));
+  clearTimeout(_searchGapTimer);   // only the settled query logs a gap
 
   if(!q){
     summary.innerHTML = '';
@@ -1028,12 +1055,13 @@ function runSearch(q){
     return;
   }
 
-  // Special case: anything about TREMBLE or pilates → curated TREMBLE answer.
+  // Partner-of-Tomorrow spotlight (TREMBLE/pilates, MedHouse, Higher Order, …).
   // Always shown (no free-query gate), tracked but doesn't consume the quota.
-  if (/\btremble\b/i.test(q) || /\bpilates\b/i.test(q)){
+  const spot = matchSpotlight(q);
+  if (spot){
     summary.innerHTML = '';
-    renderTrembleIntel(); show('smartSection', true);
-    try { if (window.tmwIntel && window.tmwIntel.track) window.tmwIntel.track(q, { results: 4, tremble: true }); } catch(e){}
+    renderPartnerSpotlight(spot); show('smartSection', true);
+    try { if (window.tmwIntel && window.tmwIntel.track) window.tmwIntel.track(q, { results: _smartLastCount, partner: spot.name }); } catch(e){}
     return;
   }
 
@@ -1074,6 +1102,11 @@ function runSearch(q){
     summary.innerHTML = '';
     document.getElementById('emptyTerm').textContent = q;
     show('empty', true);
+    // Log the miss (debounced) — demand for a firm/project/place we don't track
+    // yet. Surfaces in the Studio "Search Gaps" tile as a content/data roadmap.
+    _searchGapTimer = setTimeout(function(){
+      try { var nq=(q||'').trim(); if(nq.length>=2 && window.tmwIntel && window.tmwIntel.trackSearch) window.tmwIntel.trackSearch(nq, { results: 0, search_location: 'results_page' }); } catch(e){}
+    }, 800);
     return;
   }
 
