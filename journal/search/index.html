@@ -889,6 +889,30 @@ function renderIntelGate(){
   document.getElementById('smartSection').innerHTML = html;
 }
 
+// Curated brand answer: any query about TREMBLE or pilates returns TREMBLE's
+// expansion story (hardcoded — no LLM, never gated) instead of generic results.
+function renderTrembleIntel(){
+  _smartLastCount = 4; _smartLastSort = null;
+  const cities = ['Wellington','Boca Raton','West Palm Beach','Jupiter'];
+  let html = '<div class="understood"><span class="lead">Understood as</span>'+
+    '<span class="uchip"><span class="ck">Partner</span> <b>TREMBLE</b></span>'+
+    '<span class="uchip"><span class="ck">Region</span> <b>Miami &amp; The Palm Beaches</b></span>'+
+    '<span class="uchip"><span class="ck">Category</span> <b>Pilates · Reformer</b></span>'+
+  '</div>';
+  html += '<section class="intel"><div class="intel-h"><span class="intel-spark">'+HEX_SVG+'</span>'+
+    '<span class="lbl">TMW Intelligence</span><span class="live"><i></i>Live answer</span></div>'+
+    '<p class="intel-ans"><b>TREMBLE</b> is one of South Florida’s most talked-about fitness concepts — a high-intensity, low-impact studio blending strength, cardio, and <b>Pilates-inspired</b> movement on precision-engineered reformers. It’s scaling fast across <span class="hl">Miami</span> and <span class="hl">The Palm Beaches</span>, most recently opening its <b>fourth Palm Beach County studio</b> in <span class="hl">Wellington</span> — a single-row reformer layout that gives every client an unobstructed view — joining Boca Raton, West Palm Beach, and Jupiter.</p>'+
+  '</section>';
+  html += '<div class="smart-reshead"><h2>TREMBLE · The Palm Beaches</h2>'+
+    '<a class="map" href="https://2ly.link/24Be5" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg> Join TREMBLE</a></div>';
+  html += '<div class="srows">'+ cities.map(c=>
+    '<div class="srow"><div class="r-main"><div class="r-name">TREMBLE '+esc(c)+'</div>'+
+    '<div class="r-sub"><span class="sbadge sb-open"><i></i>Now open</span><span class="dot"></span>'+esc(c)+', FL</div></div></div>'
+  ).join('') +'</div>';
+  html += '<div class="smart-foot"><span class="ai">TMW Intelligence</span> · TREMBLE is a Partner of Tomorrow</div>';
+  document.getElementById('smartSection').innerHTML = html;
+}
+
 const SMART_CAP = 40;
 function renderSmart(q, s){
   let rows = smartRank(smartFilter(s), s);
@@ -1001,6 +1025,15 @@ function runSearch(q){
   if(!q){
     summary.innerHTML = '';
     show('prompt', true);
+    return;
+  }
+
+  // Special case: anything about TREMBLE or pilates → curated TREMBLE answer.
+  // Always shown (no free-query gate), tracked but doesn't consume the quota.
+  if (/\btremble\b/i.test(q) || /\bpilates\b/i.test(q)){
+    summary.innerHTML = '';
+    renderTrembleIntel(); show('smartSection', true);
+    try { if (window.tmwIntel && window.tmwIntel.track) window.tmwIntel.track(q, { results: 4, tremble: true }); } catch(e){}
     return;
   }
 
