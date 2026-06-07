@@ -566,7 +566,7 @@
     '.tmw-dock-search .ds-hex-core{opacity:0}',
     '.tmw-dock-search .ds-search-circle,.tmw-dock-search .ds-search-wand{opacity:1;stroke:#9AA39C}',
     '.tmw-dock-search .ds-ask-pill{opacity:0}.tmw-dock-search .ds-ask-text{max-width:0}',
-    '.tmw-dock-search .ds-ask-dots{opacity:0}.tmw-dock-search input::placeholder{color:#9AA39C}}',
+    '.tmw-dock-search .ds-ask-dots{opacity:0}.tmw-dock-search .ds-ph{animation:none;opacity:1}}',
     '.tmw-dock-search input{height:46px;width:min(46vw,300px);padding:0 18px 0 42px;',
     'background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.10);border-radius:999px;',
     'color:#fff;font-size:14px;font-family:inherit;outline:none;transition:border-color .2s,background .2s,width .25s ease}',
@@ -576,8 +576,16 @@
     // existing "Search projects, firms, cities..." text doesn't bleed through the
     // purple capsule. Reverts to normal gray for the rest of the loop and any
     // time the user focuses the input.
-    '.tmw-dock-search input::placeholder{color:#9AA39C;animation:ds-placeholder-fade 8s linear infinite}',
-    '@keyframes ds-placeholder-fade{0%,47.5%{color:#9AA39C}52.5%{color:transparent}82.5%{color:transparent}87.5%{color:#9AA39C}100%{color:#9AA39C}}',
+    '.tmw-dock-search input::placeholder{color:transparent}',
+    // Placeholder text now lives in this overlay span, on the SAME 8s timeline as
+    // the Ask TMW pulse — so the two can never drift out of sync (the old native
+    // placeholder ran its own animation that desynced on focus/typing/pause).
+    '.tmw-dock-search .ds-ph{position:absolute;top:50%;left:42px;transform:translateY(-50%);white-space:nowrap;color:#9AA39C;font-size:14px;line-height:1;z-index:1;pointer-events:none;animation:ds-ph-fade 8s linear infinite}',
+    '@keyframes ds-ph-fade{0%,47.5%{opacity:1}52.5%{opacity:0}82.5%{opacity:0}87.5%{opacity:1}100%{opacity:1}}',
+    // On focus (empty field) freeze the placeholder in view like a normal placeholder…
+    '.tmw-dock-search:focus-within .ds-ph{animation:none;opacity:1}',
+    // …and once the field has text, drop the whole animated overlay (icon stays).
+    '.tmw-dock-search.ds-filled .ds-ph,.tmw-dock-search.ds-filled .ds-ask-pill,.tmw-dock-search.ds-filled .ds-ask-text,.tmw-dock-search.ds-filled .ds-ask-dots{opacity:0;animation:none}',
     '.tmw-dock-search input:focus{border-color:rgba(31,223,103,.55);background:rgba(255,255,255,.08);width:min(52vw,344px)}',
     // ── Live autocomplete pop-up (opens ABOVE the bottom dock) ──
     // position:FIXED + viewport-centered (not absolute-to-the-form, which sits
@@ -660,7 +668,7 @@
     '@media(min-width:981px){.nav-cta.tmw-ig{display:none !important}}',
     '@media(max-width:980px){nav.main .tmw-st{display:none}}',
     '@media(max-width:560px){.tmw-dock{bottom:14px;gap:6px;padding:6px}.tmw-dock-btn{width:42px;height:42px}',
-    '.tmw-dock-btn svg{width:18px;height:18px}.tmw-dock-search input{width:46vw;height:42px;font-size:13px}',
+    '.tmw-dock-btn svg{width:18px;height:18px}.tmw-dock-search input{width:46vw;height:42px;font-size:13px}.tmw-dock-search .ds-ph{font-size:13px}',
     '.tmw-dock-search input:focus{width:50vw}}',
     // Dock clearance lives on the FOOTER (not the body) so the footer's own
     // background fills the reserved strip — no black gap below the footer.
@@ -871,12 +879,20 @@
         '<span class="ds-ask-dots" aria-hidden="true">' +
           '<span class="ds-dot"></span><span class="ds-dot"></span><span class="ds-dot"></span>' +
         '</span>' +
-        '<input name="q" type="search" autocomplete="off" placeholder="Search projects, firms, cities…" aria-label="Search">' +
+        // The placeholder text now lives in the overlay (same timeline as the Ask
+        // TMW pulse) so the two can never drift out of sync. Hidden when the field
+        // has text (.ds-filled, toggled in JS) or on focus.
+        '<span class="ds-ph" aria-hidden="true">Search projects, firms, cities…</span>' +
+        '<input name="q" type="search" autocomplete="off" placeholder="" aria-label="Search projects, firms, cities">' +
       '</form>';
 
     // Submit → navigate to the search page with ?q=
     var form  = dock.querySelector('form');
     var input = dock.querySelector('input');
+    // Toggle the animated overlay (placeholder + Ask TMW) off while the field has
+    // text — the native placeholder used to do this for free; now JS does it.
+    var syncFilled = function(){ form.classList.toggle('ds-filled', !!input.value); };
+    input.addEventListener('input', syncFilled); syncFilled();
     form.addEventListener('submit', function (e) {
       e.preventDefault();
       var q = (input.value || '').trim();
