@@ -49,12 +49,13 @@
       /* Spotlight carousel -- breaks out of .tmw-partners-wrap to full 100vw */
       .tmw-spot-viewport{position:relative; overflow:hidden; padding:36px 0; margin-top:-36px; margin-bottom:0; width:100vw; margin-left:calc(50% - 50vw)}
       .tmw-spot-track{display:flex; gap:16px; transition:transform .75s cubic-bezier(.22,1,.36,1); will-change:transform; padding:0}
-      .tmw-spot-card{flex:0 0 72%; display:grid; grid-template-columns:1.05fr 1fr; overflow:hidden; padding:0; min-height:620px;
+      .tmw-spot-card{flex:0 0 72%; display:grid; grid-template-columns:1.05fr 1fr; overflow:hidden; padding:0; height:620px;
         background:rgba(255,255,255,.025); border:1px solid rgba(255,255,255,.08); border-radius:20px;
         box-shadow:0 24px 64px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.05);
         backdrop-filter:blur(16px) saturate(1.4); -webkit-backdrop-filter:blur(16px) saturate(1.4);
         transform:scale(.92); opacity:.5; filter:brightness(.5) saturate(.75); cursor:pointer;
         transition:transform .65s cubic-bezier(.22,1,.36,1), opacity .55s ease, filter .55s ease, border-color .25s, box-shadow .25s}
+      .tmw-spot-body{overflow:hidden}
       .tmw-spot-card:not(.is-active):hover{opacity:.7; filter:brightness(.7) saturate(.9)}
       .tmw-spot-card.is-active{transform:scale(1); opacity:1; filter:none; cursor:default; z-index:2; box-shadow:0 32px 80px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.05)}
       .tmw-spot-card.is-active:hover{border-color:rgba(255,255,255,.14)}
@@ -103,13 +104,13 @@
       .tmw-spot-dot.is-active{background:#42EB81; width:46px; box-shadow:0 0 12px rgba(31,223,103,.4)}
 
       @media(max-width:1100px){
-        .tmw-spot-card{flex:0 0 82%; min-height:540px}
+        .tmw-spot-card{flex:0 0 82%; height:560px}
         .tmw-spot-track{gap:12px}
       }
       @media(max-width:880px){
-        .tmw-spot-card{flex:0 0 92%; grid-template-columns:1fr; min-height:auto; transform:scale(.94)}
+        .tmw-spot-card{flex:0 0 92%; grid-template-columns:1fr; height:auto; min-height:auto; transform:scale(.94)}
         .tmw-spot-img{aspect-ratio:16/10}
-        .tmw-spot-body{padding:30px 26px 26px}
+        .tmw-spot-body{padding:30px 26px 26px; overflow:visible}
         .tmw-spot-viewport{padding:18px 0; margin-top:-18px; margin-bottom:0; width:100vw; margin-left:calc(50% - 50vw)}
       }
 
@@ -249,46 +250,96 @@
     if (partners.length) setupSpotlight(mount);
   }
 
-  // Coverflow-style carousel: center the active card, dim + shrink neighbors.
+  // Coverflow-style carousel with seamless infinite loop. We clone the first and
+  // last cards onto opposite ends so the user can scroll forward off the end and
+  // backward off the start without ever seeing a hard jump. After the transition
+  // settles on a clone, we teleport to the real card at the same visual position
+  // (transition disabled), making the loop look continuous.
+  //
+  // Track layout after setup:  [last']  card0  card1 .. cardN-1  [first']
+  // Active index starts at 1 (real card0), so [last'] is visible as the dimmed
+  // peek on the left -- giving users an immediate sense of the carousel wrapping.
   function setupSpotlight(mount) {
     const track = mount.querySelector('.tmw-spot-track');
     const viewport = mount.querySelector('.tmw-spot-viewport');
     const dotsBox = mount.querySelector('.tmw-spot-dots');
     if (!track || !viewport || !dotsBox) return;
-    const cards = [].slice.call(track.querySelectorAll('.tmw-spot-card'));
-    if (!cards.length) return;
+    const realCards = [].slice.call(track.querySelectorAll('.tmw-spot-card'));
+    if (!realCards.length) return;
+    const totalReal = realCards.length;
 
-    let currentIndex = 0;
+    // Single card -- skip the loop machinery, just show it.
+    if (totalReal === 1) {
+      realCards[0].classList.add('is-active');
+      track.style.transform = 'translateX(0)';
+      return;
+    }
 
-    cards.forEach(function (_, i) {
+    // Clone first and last for the wrap illusion.
+    const firstClone = realCards[0].cloneNode(true);
+    const lastClone = realCards[totalReal - 1].cloneNode(true);
+    firstClone.classList.add('is-clone');
+    lastClone.classList.add('is-clone');
+    track.insertBefore(lastClone, realCards[0]);
+    track.appendChild(firstClone);
+
+    const allCards = [].slice.call(track.querySelectorAll('.tmw-spot-card'));
+    // [lastClone, real0, real1, ..., realN-1, firstClone] -- N+2 total.
+    // Real cards live at positions 1..N; clones at 0 and N+1.
+    let currentIndex = 1;
+    let isTeleporting = false;
+    const TRANSITION_MS = 700;  // matches CSS transition duration with a small buffer
+
+    // Build dots -- one per real card only.
+    realCards.forEach(function (_, i) {
       const b = document.createElement('button');
       b.className = 'tmw-spot-dot' + (i === 0 ? ' is-active' : '');
       b.setAttribute('aria-label', 'Go to partner ' + (i + 1));
-      b.addEventListener('click', function () { goTo(i); resume(); });
+      b.addEventListener('click', function () {
+        if (isTeleporting) return;
+        goTo(i + 1);  // dot i maps to position i+1 (after the lastClone at 0)
+        resume();
+      });
       dotsBox.appendChild(b);
     });
     const dots = [].slice.call(dotsBox.children);
 
-    function step() {
-      const cs = getComputedStyle(track);
-      const gap = parseFloat(cs.columnGap || cs.gap || 32) || 32;
-      return cards[0].offsetWidth + gap;
-    }
-
-    function update() {
-      const card = cards[currentIndex];
+    function update(animate) {
+      const card = allCards[currentIndex];
       const cardWidth = card.offsetWidth;
       const containerWidth = viewport.offsetWidth;
       const targetX = (containerWidth / 2) - (cardWidth / 2) - card.offsetLeft;
-      track.style.transform = 'translateX(' + targetX + 'px)';
-      cards.forEach(function (c, i) { c.classList.toggle('is-active', i === currentIndex); });
-      dots.forEach(function (d, i) { d.classList.toggle('is-active', i === currentIndex); });
+      if (animate === false) {
+        track.style.transition = 'none';
+        track.style.transform = 'translateX(' + targetX + 'px)';
+        // Force reflow so the next transition reinstatement doesn't batch with the jump.
+        void track.offsetWidth;
+        track.style.transition = '';
+      } else {
+        track.style.transform = 'translateX(' + targetX + 'px)';
+      }
+      allCards.forEach(function (c, i) { c.classList.toggle('is-active', i === currentIndex); });
+      // Dot follows the visible real card -- clones map back to their originals.
+      let dotIndex;
+      if (currentIndex === 0) dotIndex = totalReal - 1;       // lastClone -> last
+      else if (currentIndex === totalReal + 1) dotIndex = 0;  // firstClone -> first
+      else dotIndex = currentIndex - 1;
+      dots.forEach(function (d, i) { d.classList.toggle('is-active', i === dotIndex); });
     }
 
     function goTo(i) {
-      const total = cards.length;
-      currentIndex = ((i % total) + total) % total;
-      update();
+      if (isTeleporting) return;
+      currentIndex = i;
+      update(true);
+      // If we just landed on a clone, schedule a snap to the real twin.
+      if (currentIndex === 0 || currentIndex === totalReal + 1) {
+        isTeleporting = true;
+        setTimeout(function () {
+          currentIndex = (currentIndex === 0) ? totalReal : 1;
+          update(false);
+          isTeleporting = false;
+        }, TRANSITION_MS);
+      }
     }
     function next() { goTo(currentIndex + 1); }
     function prev() { goTo(currentIndex - 1); }
@@ -304,13 +355,18 @@
     if (prevBtn) prevBtn.addEventListener('click', function () { prev(); resume(); });
     if (nextBtn) nextBtn.addEventListener('click', function () { next(); resume(); });
 
-    // Click a dimmed side card to jump to it.
-    cards.forEach(function (card, i) {
+    // Click a dimmed side card to jump to it. Clones snap to their real twins.
+    allCards.forEach(function (card, i) {
       card.addEventListener('click', function (e) {
-        if (i === currentIndex) return;
+        if (i === currentIndex || isTeleporting) return;
         e.preventDefault();
         e.stopPropagation();
-        goTo(i);
+        // Clicking a clone -> jump straight to its real counterpart without the teleport hop.
+        if (card.classList.contains('is-clone')) {
+          goTo(i === 0 ? totalReal : 1);
+        } else {
+          goTo(i);
+        }
         resume();
       });
     });
@@ -318,11 +374,11 @@
     let rt;
     window.addEventListener('resize', function () {
       clearTimeout(rt);
-      rt = setTimeout(update, 120);
+      rt = setTimeout(function () { update(false); }, 120);
     });
 
-    // Initial layout — RAF so images/fonts settle before measuring offsetLeft.
-    requestAnimationFrame(update);
+    // Initial position -- center the real first card, no animation.
+    requestAnimationFrame(function () { update(false); });
   }
 
   function toPartnersShape(data) {
