@@ -12532,12 +12532,11 @@
       // (it clears as you zoom in and fewer remain). Hide them during the
       // gesture and restore each to its PRIOR visibility after it settles, so we
       // don't fight the filter/Completed-toggle logic that also owns these.
-      // featured-glow/watched-ring are GPU-blurred; cluster-count/-completed are
-      // symbol (text) layers that re-run label collision on the main thread every
-      // frame the camera moves — the dominant low-zoom cost (it clears the moment
-      // clusters split and the counts disappear). Hide all of them during a
-      // gesture and restore each to its prior visibility once it settles.
-      const GLOW_LAYERS = ['featured-glow', 'watched-ring', 'cluster-count', 'cluster-count-completed'];
+      // Only the GPU-blurred glow layers are hidden during movement. The cluster
+      // COUNT labels are NOT hidden here — text-ignore-placement/-allow-overlap
+      // already make them collision-free, so toggling their visibility mid-gesture
+      // only made them blink/detach from the bubbles. Leave them rendered.
+      const GLOW_LAYERS = ['featured-glow', 'watched-ring'];
       const _glowPrev = {};
       const setGlowHidden = (hide) => {
         GLOW_LAYERS.forEach(id => {

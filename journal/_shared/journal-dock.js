@@ -580,7 +580,7 @@
     // Placeholder text now lives in this overlay span, on the SAME 8s timeline as
     // the Ask TMW pulse — so the two can never drift out of sync (the old native
     // placeholder ran its own animation that desynced on focus/typing/pause).
-    '.tmw-dock-search .ds-ph{position:absolute;top:50%;left:42px;transform:translateY(-50%);white-space:nowrap;color:#9AA39C;font-size:14px;line-height:1;z-index:1;pointer-events:none;animation:ds-ph-fade 8s linear infinite}',
+    '.tmw-dock-search .ds-ph{position:absolute;top:50%;left:42px;right:16px;transform:translateY(-50%);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#9AA39C;font-size:14px;line-height:1;z-index:1;pointer-events:none;animation:ds-ph-fade 8s linear infinite}',
     '@keyframes ds-ph-fade{0%,47.5%{opacity:1}52.5%{opacity:0}82.5%{opacity:0}87.5%{opacity:1}100%{opacity:1}}',
     // On focus (empty field) freeze the placeholder in view like a normal placeholder…
     '.tmw-dock-search:focus-within .ds-ph{animation:none;opacity:1}',
