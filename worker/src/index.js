@@ -940,20 +940,33 @@ async function handleWatchlist(env, origin, url) {
 async function handleActivity(env, origin, url) {
   const limit  = clampInt(url.searchParams.get('limit'), 50, 1, 500);
   const offset = clampInt(url.searchParams.get('offset'), 0, 0, 5000000);
+  // Optional event-type filter (the Studio "All Activity" chips). Comma list,
+  // e.g. ?events=search,intel_query. Filtering server-side keeps pagination and
+  // totals correct. Default: everything except the noisy watchlist snapshots.
+  const evParam = (url.searchParams.get('events') || '')
+    .split(',').map(s => s.trim()).filter(Boolean).slice(0, 12);
+  let where, binds;
+  if (evParam.length) {
+    where = `event_name IN (${evParam.map(() => '?').join(',')})`;
+    binds = evParam.slice();
+  } else {
+    where = `event_name != 'watchlist_snapshot'`;
+    binds = [];
+  }
   const rs = await env.DB.prepare(
     `SELECT ts, member_id, email, member_name, plan, event_name, path, props_json
      FROM events
-     WHERE event_name != 'watchlist_snapshot'
+     WHERE ${where}
      ORDER BY ts DESC
      LIMIT ? OFFSET ?`
-  ).bind(limit, offset).all();
+  ).bind(...binds, limit, offset).all();
   // Total only when asked (the paginated "All Activity" view) — keeps the live
   // feed's cheap query unchanged.
   let total = null;
   if (url.searchParams.get('total') === '1') {
     const t = await env.DB.prepare(
-      `SELECT COUNT(*) AS n FROM events WHERE event_name != 'watchlist_snapshot'`
-    ).first();
+      `SELECT COUNT(*) AS n FROM events WHERE ${where}`
+    ).bind(...binds).first();
     total = (t && t.n) || 0;
   }
   return json({ rows: rs.results || [], total }, {}, env, origin);
