@@ -435,15 +435,9 @@
       }
       else if (e.key === 'Escape'){ hide(); }
     });
-    // Plain Enter with no suggestion highlighted submits the form → /search/.
-    // That's still a "normal search" typed into the bar, so log the text (the
-    // /search/ page separately logs the intelligence answer it produces).
-    form.addEventListener('submit', function (){
-      try {
-        var q = (input.value || '').trim();
-        if (q.length >= 2 && window.tmwIntel && window.tmwIntel.trackSearch) window.tmwIntel.trackSearch(q, {});
-      } catch (e) {}
-    });
+    // NOTE: Enter-submit logging lives in the canonical form 'submit' handler in
+    // mount() (it preventDefaults + navigates synchronously, so a second submit
+    // listener registered here would never run). See trackSearch there.
   }
 
   // ── Surface toggle (Journal · Map · Atlas) — icon-only variant for the dock ──
@@ -804,6 +798,10 @@
     form.addEventListener('submit', function (e) {
       e.preventDefault();
       var q = (input.value || '').trim();
+      // Log the typed text as a "normal search" BEFORE navigating — this handler
+      // synchronously sets location.href, so anything after the assignment (or in
+      // a separate later-registered listener) may never run.
+      try { if (q.length >= 2 && window.tmwIntel && window.tmwIntel.trackSearch) window.tmwIntel.trackSearch(q, {}); } catch (_) {}
       window.location.href = SEARCH_PAGE + (q ? '?q=' + encodeURIComponent(q) : '');
     });
 
