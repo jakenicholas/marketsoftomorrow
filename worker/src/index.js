@@ -1025,27 +1025,71 @@ async function handleIntelQueries(env, origin, url) {
   return json({ total: (tot && tot.n) || 0, limit, offset, items }, {}, env, origin);
 }
 
-// GET /search-gaps — demand-ranked queries that returned ZERO results: the
-// natural-language intel queries and on-page searches people ran where we had
-// nothing to show. This is a content/data roadmap — what firms, projects, and
-// places to add next. Grouped by normalized query, most-searched first. Partner
+// GET /search-gaps — demand-ranked queries the search/intel system probably
+// failed on. Three buckets, all rolled up into one feed:
+//
+//   • no_results   — events where the client explicitly logged results = 0.
+//                    The cleanest signal: we had nothing to show. Firms,
+//                    projects, and places to add next.
+//   • question     — natural-language queries (start with what/why/how/who/
+//                    when/where/which OR contain "?"). Basic text search
+//                    isn't built for these; even if it returned something,
+//                    the user probably wanted Ask TMW. Worth surfacing
+//                    regardless of result count.
+//   • low_results  — queries with 1-2 marginal matches. Likely-but-not-
+//                    definite gaps. Surfaced last.
+//
+// Each item carries a `kind` so the Studio can label the row. Partner
 // spotlights (which carry a `partner` prop) are excluded — they aren't gaps.
 async function handleSearchGaps(env, origin, url) {
   const limit = clampInt(url.searchParams.get('limit'), 50, 1, 200);
   const rs = await env.DB.prepare(
     `SELECT TRIM(LOWER(json_extract(props_json,'$.q'))) AS q,
-            COUNT(*) AS n, MAX(ts) AS last_ts
+            COUNT(*) AS n,
+            MAX(ts) AS last_ts,
+            MIN(CAST(json_extract(props_json,'$.results') AS INTEGER)) AS min_results,
+            MAX(CAST(json_extract(props_json,'$.results') AS INTEGER)) AS max_results
      FROM events
      WHERE event_name IN ('intel_query','search')
-       AND json_extract(props_json,'$.results') = 0
        AND json_extract(props_json,'$.partner') IS NULL
        AND json_extract(props_json,'$.q') IS NOT NULL
        AND TRIM(json_extract(props_json,'$.q')) <> ''
+       AND (
+         json_extract(props_json,'$.results') = 0
+         OR INSTR(json_extract(props_json,'$.q'), '?') > 0
+         OR LOWER(TRIM(json_extract(props_json,'$.q'))) GLOB 'what *'
+         OR LOWER(TRIM(json_extract(props_json,'$.q'))) GLOB 'why *'
+         OR LOWER(TRIM(json_extract(props_json,'$.q'))) GLOB 'how *'
+         OR LOWER(TRIM(json_extract(props_json,'$.q'))) GLOB 'when *'
+         OR LOWER(TRIM(json_extract(props_json,'$.q'))) GLOB 'where *'
+         OR LOWER(TRIM(json_extract(props_json,'$.q'))) GLOB 'who *'
+         OR LOWER(TRIM(json_extract(props_json,'$.q'))) GLOB 'which *'
+         OR LOWER(TRIM(json_extract(props_json,'$.q'))) GLOB 'whose *'
+         OR (CAST(json_extract(props_json,'$.results') AS INTEGER) > 0
+             AND CAST(json_extract(props_json,'$.results') AS INTEGER) <= 2)
+       )
      GROUP BY q
-     ORDER BY n DESC, last_ts DESC
      LIMIT ?`
   ).bind(limit).all();
-  const items = (rs.results || []).map(r => ({ query: r.q, count: r.n, last_ts: r.last_ts }));
+  const QUESTION_RE = /^(what|why|how|when|where|who|which|whose)\s|\?/i;
+  const items = (rs.results || []).map(r => {
+    const isZero = (r.min_results === 0 || r.max_results === 0);
+    const isQuestion = QUESTION_RE.test(String(r.q || ''));
+    let kind = 'low_results';
+    if (isZero) kind = 'no_results';
+    else if (isQuestion) kind = 'question';
+    return { query: r.q, count: r.n, last_ts: r.last_ts, kind, min_results: r.min_results, max_results: r.max_results };
+  });
+  // Rank: no_results first (highest-confidence gap), then questions
+  // (natural-language demand), then low_results. Within each bucket, more
+  // popular first, then most recent.
+  const kindRank = { no_results: 0, question: 1, low_results: 2 };
+  items.sort((a, b) => {
+    const k = (kindRank[a.kind] || 9) - (kindRank[b.kind] || 9);
+    if (k) return k;
+    if (b.count !== a.count) return b.count - a.count;
+    return (b.last_ts || 0) - (a.last_ts || 0);
+  });
   return json({ items }, {}, env, origin);
 }
 
