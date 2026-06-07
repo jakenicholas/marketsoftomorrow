@@ -159,16 +159,26 @@
     const descHtml = p.description
       ? '<p class="tmw-spot-desc">' + esc(p.description) + '</p>'
       : '';
-    // offerBody intentionally allows <em> for emphasis on key phrases; the studio
-    // editor controls the markup, so we treat it as trusted HTML rather than esc'ing.
-    const offerHtml = p.offerBody
-      ? '<div class="tmw-spot-offer">' +
-          '<div class="tmw-spot-offer-head">' + SPARK_SVG + 'Exclusive for our readers</div>' +
-          '<div class="tmw-spot-offer-body">' + p.offerBody + '</div>' +
-          (p.offerFootnote ? '<div class="tmw-spot-offer-foot">' + esc(p.offerFootnote) + '</div>' : '') +
-        '</div>'
-      : '<div class="tmw-spot-spacer"></div>';
-    const ctaClass = p.offerBody ? 'tmw-spot-cta' : 'tmw-spot-cta neutral';
+    // Every card carries the gold deal tile. offerBody is the rich case (trusted
+    // HTML so studio editors can emphasize with <em>); otherwise fall back through
+    // the offer-label and then a generic invitation, so a card never renders
+    // without the gold treatment.
+    let offerBodyHtml;
+    if (p.offerBody) {
+      offerBodyHtml = p.offerBody;
+    } else if (p.offer) {
+      offerBodyHtml = 'Reach out to claim our <em>' + esc(String(p.offer).toLowerCase()) + '</em> for our readers.';
+    } else {
+      offerBodyHtml = 'Exclusive perks available for our readers &mdash; <em>get in touch</em>.';
+    }
+    const offerHtml =
+      '<div class="tmw-spot-offer">' +
+        '<div class="tmw-spot-offer-head">' + SPARK_SVG + 'Exclusive for our readers</div>' +
+        '<div class="tmw-spot-offer-body">' + offerBodyHtml + '</div>' +
+        (p.offerFootnote ? '<div class="tmw-spot-offer-foot">' + esc(p.offerFootnote) + '</div>' : '') +
+      '</div>';
+    // Always pair the gold tile with a gold CTA -- visual language stays consistent.
+    const ctaClass = 'tmw-spot-cta';
     const ctaHtml = p.ctaUrl
       ? '<a class="' + ctaClass + '" href="' + esc(p.ctaUrl) + '" target="_blank" rel="noopener">' + esc(p.ctaLabel || 'Learn More') + ' ' + ARROW_SVG + '</a>'
       : '';
