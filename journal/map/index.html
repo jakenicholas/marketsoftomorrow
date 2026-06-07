@@ -1074,8 +1074,16 @@
     }
     /* While the drawer is moving (drag or open/close) drop the full-screen
        backdrop blur — re-blurring the whole viewport every frame is the main
-       cause of drawer lag on mobile. The glass returns the instant it settles. */
-    #mobileDrawer.is-animating { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
+       cause of drawer lag on mobile. The glass returns the instant it settles.
+       We extend the kill to all descendants too: any child with its own
+       backdrop-filter still has to recompute against the moving viewport,
+       which is just as expensive. */
+    #mobileDrawer.is-animating,
+    #mobileDrawer.is-animating * { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
+    /* Promote the drawer to its own GPU layer so the slide transform runs on
+       the compositor thread and isn't blocked when the main thread is busy
+       building the project tile grid. */
+    #mobileDrawer { will-change: transform; transform: translateZ(0); -webkit-transform: translateZ(0); contain: layout style; }
     #mobileDrawer.scrolled-drawer {
       background: linear-gradient(to bottom, rgba(11,11,11,0) 0px, rgba(11,11,11,0) 140px, rgba(11,11,11,0.80) 220px, rgba(11,11,11,0.80) 100%);
     }
@@ -16723,24 +16731,37 @@
           setTimeout(() => { mobileMapBtn.classList.add('ready'); mobileMapBtn.style.opacity = '1.0'; }, 150);
         }
 
-        // Restore search results if search was active, using stored features for reliability
+        // Restore search results if search was active, using stored features for reliability.
+        // KEY PERF FIX: defer the heavy grid render by ~50ms so the drawer's
+        // CSS transform transition gets dedicated compositor frames before the
+        // main thread is blocked by iterating + sorting ~1000 features. The
+        // user sees the drawer slide in smoothly; tiles appear ~50ms after the
+        // slide settles. Combined with the will-change/contain promotion of
+        // the drawer above, the slide animation runs entirely on the compositor
+        // and doesn't stutter even when the JS work below takes 200-300ms.
         const mobileSearch = document.getElementById('mobileSearchBar');
         const searchQuery = mobileSearch ? mobileSearch.value.trim() : '';
-        if (searchQuery) {
-          if (window.mobileSearchFeatures) {
-            // Use the exactly stored result set ‚Äî most reliable
-            renderFilteredGrid('gridMobile', window.mobileSearchFeatures);
-          } else if (window.allProjectFeatures) {
-            const ql = normalizeForSearch(searchQuery);
-            const filtered = window.allProjectFeatures.filter(f =>
-              normalizeForSearch(f.properties.title).includes(ql) ||
-              normalizeForSearch(f.properties.city).includes(ql)
-            );
-            renderFilteredGrid('gridMobile', filtered);
+        const renderDeferred = () => {
+          if (searchQuery) {
+            if (window.mobileSearchFeatures) {
+              // Use the exactly stored result set ‚Äî most reliable
+              renderFilteredGrid('gridMobile', window.mobileSearchFeatures);
+            } else if (window.allProjectFeatures) {
+              const ql = normalizeForSearch(searchQuery);
+              const filtered = window.allProjectFeatures.filter(f =>
+                normalizeForSearch(f.properties.title).includes(ql) ||
+                normalizeForSearch(f.properties.city).includes(ql)
+              );
+              renderFilteredGrid('gridMobile', filtered);
+            }
+          } else {
+            renderGrid('gridMobile');
           }
-        } else {
-          renderGrid('gridMobile');
-        }
+        };
+        // Two rAFs ensure the transition has actually started compositing
+        // (one rAF promotes, the second one is on the compositor's next frame)
+        // before we hand the main thread back to JS for the grid build.
+        requestAnimationFrame(() => requestAnimationFrame(renderDeferred));
         // Render pills after grid pointer-events are restored (100ms delay in renderGrid)
         setTimeout(() => {
           renderPills('mobile'); updateFilterBadge('mobile');
@@ -17668,12 +17689,25 @@
               if (isMobile) {
                 const mobileSearch = document.getElementById('mobileSearchBar');
                 const hasActiveSearch = mobileSearch && mobileSearch.value.trim().length > 0;
-                // Always update mobile grid on move (not just when expanded)
-                window.mobileLoadedCount = 12;
-                if (hasActiveSearch && (window.mobileSearchFeatures || window.allProjectFeatures)) {
-                  renderFilteredGrid('gridMobile', window.mobileSearchFeatures || window.allProjectFeatures);
+                // KEY PERF FIX: only refresh the mobile grid on moveend when the
+                // drawer is actually open. The previous behavior re-rendered the
+                // hidden tiles on every pan-end -- ~200-300ms of synchronous
+                // work over ~1000 features, fired exactly when Mapbox is
+                // animating clusters splitting, which surfaces as the visible
+                // pan lag. When the drawer reopens we already render fresh
+                // via expandDrawer's deferred renderGrid.
+                const mobileDrawerEl = document.getElementById('mobileDrawer');
+                const drawerOpen = mobileDrawerEl && mobileDrawerEl.classList.contains('expanded');
+                if (drawerOpen) {
+                  window.mobileLoadedCount = 12;
+                  if (hasActiveSearch && (window.mobileSearchFeatures || window.allProjectFeatures)) {
+                    renderFilteredGrid('gridMobile', window.mobileSearchFeatures || window.allProjectFeatures);
+                  } else {
+                    renderGrid('gridMobile');
+                  }
                 } else {
-                  renderGrid('gridMobile');
+                  // Mark grid stale so the next expand re-renders fresh; cheap.
+                  window._mobileGridStale = true;
                 }
               }
             }, 400);
