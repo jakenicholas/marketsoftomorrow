@@ -1453,6 +1453,16 @@
     try { return new Date(ts).toLocaleDateString(undefined, { month:'short', day:'numeric' }); } catch(e){ return ''; }
   }
   function byTime(a,b){ return new Date(b.timestamp) - new Date(a.timestamp); }
+  // The feed is ordered + windowed by the REAL event date (when it actually
+  // happened, from the article), not the logged timestamp. Falls back to the
+  // logged timestamp only when an item has no event_date.
+  function evTime(e){
+    var d = (e && e.event_date) ? e.event_date : (e && e.timestamp);
+    var t = new Date(d).getTime();
+    return isNaN(t) ? 0 : t;
+  }
+  function byEvent(a,b){ return evTime(b) - evTime(a); }
+  var PULSE_WINDOW_MS = 14 * 24 * 60 * 60 * 1000;   // last 2 weeks only
   // Format a real event date (YYYY / YYYY-MM / YYYY-MM-DD) → "Nov 2025".
   function fmtEv(s){
     var m = String(s || '').match(/^(\d{4})(?:-(\d{2}))?(?:-(\d{2}))?/);
@@ -1492,7 +1502,14 @@
   function eid(e){ return e.id != null ? String(e.id) : (e.type + '|' + e.timestamp + '|' + (e.project_slug || e.title || '')); }
   function getDismissed(){ try { return new Set(JSON.parse(localStorage.getItem(DISMISS_KEY) || '[]')); } catch(e){ return new Set(); } }
   function saveDismissed(set){ try { localStorage.setItem(DISMISS_KEY, JSON.stringify(Array.from(set))); } catch(e){} }
-  function active(){ var d = getDismissed(); return events.slice(0, FEED_MAX).filter(function(e){ return !d.has(eid(e)); }); }
+  function active(){
+    var d = getDismissed();
+    var now = Date.now(), cutoff = now - PULSE_WINDOW_MS, upper = now + 2 * 24 * 60 * 60 * 1000;
+    return events
+      .filter(function(e){ var t = evTime(e); return t >= cutoff && t <= upper; })   // last 2 weeks by event date
+      .filter(function(e){ return !d.has(eid(e)); })
+      .slice(0, FEED_MAX);
+  }
   function countNew(){ return active().length; }
   function feedHtml(){
     var list = active();
@@ -1604,7 +1621,7 @@
       var btn = this; btn.classList.add('spin'); setTimeout(function(){ btn.classList.remove('spin'); }, 480);
       localStorage.removeItem(DISMISS_KEY);   // un-dismiss all → the count returns
       fetch(PULSE_URL, { cache: 'no-store' }).then(function(r){ return r.ok ? r.json() : null; })
-        .then(function(d){ if (d && d.events) events = d.events.slice().sort(byTime); repaint(); })
+        .then(function(d){ if (d && d.events) events = d.events.slice().sort(byEvent); repaint(); })
         .catch(function(){ repaint(); });
     });
     document.addEventListener('click', function(ev){
@@ -1617,7 +1634,7 @@
     fetch(PULSE_URL, { cache: 'no-store' })
       .then(function(r){ return r.ok ? r.json() : null; })
       .then(function(d){
-        events = ((d && d.events) || []).slice().sort(byTime);
+        events = ((d && d.events) || []).slice().sort(byEvent);
         if (!attach()){ var n = 0, iv = setInterval(function(){ if (attach() || ++n > 80) clearInterval(iv); }, 150); }
       })
       .catch(function(){});
