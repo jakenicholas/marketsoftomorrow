@@ -697,6 +697,31 @@ function citySet(){
   _citySet = m; return m;
 }
 
+// Detect a firm / architect / developer entity named in the query (e.g.
+// "what is kengo kuma project", "Foster + Partners towers"). Matches against the
+// loaded FIRMS list; prefers the most specific (longest) name. Generic words in
+// firm names ("group", "partners", "studio"…) don't count toward a token match.
+const FIRM_STOP = new Set(['the','of','and','group','partners','studio','architects','architecture','development','developments','developers','design','company','co','llc','inc','associates','international','global','real','estate','properties','holdings','capital','ventures','collective','residential','residences','tower','towers','project','projects','building','buildings','condo','condos','hotel','hotels','tallest','newest']);
+function detectFirm(full){
+  if (typeof FIRMS === 'undefined' || !FIRMS || !FIRMS.length) return null;
+  // Rank candidates by match quality (exact phrase > all distinctive tokens >
+  // one long token), then by specificity (longer name). So "related ross" picks
+  // Related Ross over Related Group, and "kengo kuma" picks Kengo Kuma.
+  let best=null, bestScore=0, bestLen=0;
+  for (const f of FIRMS){
+    const n = norm(f.name || '');
+    if (n.length < 4) continue;
+    const sig = n.split(/\s+/).filter(t => t.length>2 && !FIRM_STOP.has(t));
+    if (!sig.length) continue;
+    let score = 0;
+    if (n.length >= 6 && (' '+full+' ').includes(' '+n+' ')) score = 3;                  // whole name, word-bounded
+    else if (n.length >= 6 && full.includes(n)) score = 2;                               // whole name, substring
+    else if (sig.length >= 2 && sig.every(t => hasWord(full, t))) score = 2;             // all distinctive tokens
+    else if (sig.length === 1 && sig[0].length >= 6 && hasWord(full, sig[0])) score = 1; // one distinctive long token
+    if (score && (score > bestScore || (score === bestScore && n.length > bestLen))){ best=f; bestScore=score; bestLen=n.length; }
+  }
+  return best;
+}
 function parseSmartQuery(q){
   const full = norm(q);
   if (full.split(/\s+/).filter(Boolean).length < 2) return null;   // bare names → normal search
@@ -739,11 +764,14 @@ function parseSmartQuery(q){
   }
 
   const place = region || cities.length;
-  const count = (statuses.size?1:0)+(phases.size?1:0)+(types.size?1:0)+(place?1:0)+(yearMin!=null?1:0)+(sort?1:0);
-  if (count < 2) return null;   // not enough structure → fall through to normal search
+  // Firm / architect / developer entity. A firm match alone qualifies as an
+  // intelligence query — we answer with that firm's tracked projects.
+  const firm = detectFirm(full);
+  const count = (statuses.size?1:0)+(phases.size?1:0)+(types.size?1:0)+(place?1:0)+(yearMin!=null?1:0)+(sort?1:0)+(firm?1:0);
+  if (!firm && count < 2) return null;   // no firm + too little structure → normal search
 
   return { statuses, statusLabels, phases, phaseLabels, phaseVerbs, types, typeLabel, typeNoun,
-           region, cities, yearMin, yearMax, yearLabel, sort };
+           region, cities, yearMin, yearMax, yearLabel, sort, firm };
 }
 function phasesOf(p){ return (p.StatusHistory||[]).map(h=>String((h&&h.phase)||'').toLowerCase()).filter(Boolean); }
 
@@ -756,6 +784,14 @@ function smartFilter(s){
     if (s.cities.length){ if(!s.cities.some(c=>norm(p.City)===norm(c))) return false; }
     if (s.region==='Florida' && !inFlorida(p)) return false;
     if (s.yearMin!=null){ const y=yearOf(p); if(y==null || y<s.yearMin || y>s.yearMax) return false; }
+    if (s.firm){
+      // Match by the firm's distinctive tokens (not full-name substring): credits
+      // vary ("Kengo Kuma" vs "Kengo Kuma and Associates"), so all-tokens-present
+      // catches every project tied to the studio.
+      const sig = norm(s.firm.name).split(/\s+/).filter(t=>t.length>2 && !FIRM_STOP.has(t));
+      const a=norm(p.Architect||''), d=norm(p.Developer||'');
+      if (!(sig.length && (sig.every(t=>a.includes(t)) || sig.every(t=>d.includes(t))))) return false;
+    }
     return true;
   });
 }
@@ -789,13 +825,21 @@ function buildSmartAnswer(s, rows){
   const phaseVerbs = (s.phaseVerbs || []);
   let sentence;
   if (n === 0){
+    if (s.firm) return { html: 'We don’t track any ' + noun + 's tied to <b>' + esc(s.firm.name) + '</b>' + placePhrase + yearPhrase + ' yet.', stats: [] };
     var lead = hasPhase ? ' have ' + phaseVerbs.join(' / ')
              : (s.statusLabels.length ? ' are ' + s.statusLabels.map(l=>l.toLowerCase()).join('/') : ' match');
     sentence = 'No tracked ' + noun + 's' + lead + placePhrase + yearPhrase + ' yet.';
     return { html: sentence, stats: [] };
   }
   const be = (n===1 ? 'is' : 'are');
-  if (hasPhase){
+  if (s.firm){
+    const rv = s.firm.role==='developer' ? 'is the developer behind' : (s.firm.role==='architect' ? 'is the architect on' : 'is behind');
+    const cntPhrase = '<b>' + n + ' tracked ' + noun + (n!==1?'s':'') + '</b>';
+    const names = rows.slice(0,3).map(p=>'<span class="hl">'+esc(p.Title)+'</span>'+(p.City?' ('+esc(p.City)+')':''));
+    const list = names.length===1 ? names[0] : names.slice(0,-1).join(', ') + ' and ' + names[names.length-1];
+    const more = n>3 ? ', plus ' + (n-3) + ' more' : '';
+    sentence = '<b>' + esc(s.firm.name) + '</b> ' + rv + ' ' + cntPhrase + statusPhrase + placePhrase + yearPhrase + ' — ' + list + more + '.';
+  } else if (hasPhase){
     sentence = subj + ' ' + (n===1 ? 'has' : 'have') + ' ' + phaseVerbs.join(' and ') + placePhrase + yearPhrase + '.';
   } else if (s.statuses.size){
     sentence = subj + ' ' + be + statusPhrase + placePhrase + yearPhrase + '.';
@@ -852,6 +896,7 @@ function renderSmart(q, s){
   const ans = buildSmartAnswer(s, rows);
   // understood-as chips
   const chips = [];
+  if (s.firm) chips.push('<span class="uchip"><span class="ck">'+(s.firm.role==='developer'?'Developer':s.firm.role==='architect'?'Architect':'Firm')+'</span> <b>'+esc(s.firm.name)+'</b></span>');
   if (s.phaseLabels && s.phaseLabels.length) chips.push('<span class="uchip"><span class="ck">Milestone</span> <b>'+esc(s.phaseLabels.join(' / '))+'</b></span>');
   if (s.statusLabels.length) chips.push('<span class="uchip"><span class="ck">Status</span> <b>'+esc(s.statusLabels.join(' / '))+'</b></span>');
   if (s.typeLabel)           chips.push('<span class="uchip"><span class="ck">Type</span> <b>'+esc(s.typeLabel)+'</b></span>');
@@ -919,7 +964,7 @@ function buildSmartFacts(s, rows){
   const many = rows.length >= 2;   // never hand the model a superlative for a single result
   return {
     count: rows.length,
-    criteria: { milestone: (s.phaseLabels && s.phaseLabels.join(' / ')) || null, status: s.statusLabels.join(' / ') || null, type: s.typeLabel || null, place: place, year: s.yearLabel || null },
+    criteria: { firm: s.firm ? s.firm.name : null, firmRole: s.firm ? s.firm.role : null, milestone: (s.phaseLabels && s.phaseLabels.join(' / ')) || null, status: s.statusLabels.join(' / ') || null, type: s.typeLabel || null, place: place, year: s.yearLabel || null },
     sort: s.sort ? s.sort.label : null,
     place: place,
     tallest: (many && tallest) ? { name: tallest.Title, floors: maxF } : null,
