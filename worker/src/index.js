@@ -959,31 +959,42 @@ async function handleActivity(env, origin, url) {
   return json({ rows: rs.results || [], total }, {}, env, origin);
 }
 
-// GET /intel-queries — paginated log of TMW Intelligence searches (event_name
-// 'intel_query'), newest first. Returns total + the requested page so the Studio
-// can page through without losing history. props_json carries { q, results, pro }.
+// GET /intel-queries — paginated log of searches across the network, newest
+// first: TMW Intelligence smart-answer queries (event_name 'intel_query') AND
+// plain "normal" searches (event_name 'search' — the universal nav search bar
+// and the map search). Returns total + the requested page so the Studio can
+// page through without losing history. props_json carries { q | search_term,
+// results, pro, kind, target, search_location }. Each item gets a `type`
+// ('intel' | 'search') so the Studio can label them.
 async function handleIntelQueries(env, origin, url) {
   const limit  = clampInt(url.searchParams.get('limit'), 25, 1, 100);
   const offset = clampInt(url.searchParams.get('offset'), 0, 0, 1000000);
   const tot = await env.DB.prepare(
-    `SELECT COUNT(*) AS n FROM events WHERE event_name = 'intel_query'`
+    `SELECT COUNT(*) AS n FROM events WHERE event_name IN ('intel_query','search')`
   ).first();
   const rs = await env.DB.prepare(
-    `SELECT ts, member_id, member_name, plan, props_json
-     FROM events WHERE event_name = 'intel_query'
+    `SELECT ts, member_id, member_name, plan, event_name, props_json
+     FROM events WHERE event_name IN ('intel_query','search')
      ORDER BY ts DESC LIMIT ? OFFSET ?`
   ).bind(limit, offset).all();
   const items = (rs.results || []).map(row => {
     let p = {};
     try { if (row.props_json) p = JSON.parse(row.props_json); } catch {}
+    const isIntel = row.event_name === 'intel_query';
     return {
       ts: row.ts,
       member_id: row.member_id,
       member_name: row.member_name || null,
       plan: row.plan || null,
-      query: p.q || '',
+      type: isIntel ? 'intel' : 'search',
+      // normal searches store the typed text as q (nav bar) or search_term (map)
+      query: p.q || p.search_term || '',
       results: (p.results != null ? p.results : null),
       pro: !!p.pro,
+      // search-only context: what they jumped to + where they searched from
+      target: p.target || null,
+      target_kind: p.kind || null,
+      source: p.search_location || null,
     };
   });
   return json({ total: (tot && tot.n) || 0, limit, offset, items }, {}, env, origin);

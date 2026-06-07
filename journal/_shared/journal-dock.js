@@ -223,6 +223,27 @@
         else fetch(url, { method: 'POST', body: payload, keepalive: true, headers: { 'Content-Type': 'text/plain' } }).catch(function () {});
       } catch (e) {}
     },
+    // Log a plain "normal" search (the universal nav search bar) to the same
+    // analytics store as intel queries, but as event_name 'search' so the Studio
+    // can tell them apart. extra carries { kind, target } — what the searcher
+    // jumped to. Doesn't count against the intel quota.
+    trackSearch: function (q, extra) {
+      try {
+        var m = window.__tmwMember || null;
+        var payload = JSON.stringify({
+          member_id: (m && m.id) || ('anon:' + this._did()),
+          member_name: (m && m.name) || null,
+          plan: this.isPro() ? 'paid' : (m ? 'free' : 'anon'),
+          event_name: 'search', path: location.pathname,
+          referrer: document.referrer || null,
+          client_ts: Math.floor(Date.now() / 1000),
+          props: Object.assign({ q: String(q || '').slice(0, 200), search_location: 'nav_bar' }, extra || {}),
+        });
+        var url = 'https://tmw.jake-ab7.workers.dev/event';
+        if (navigator.sendBeacon) navigator.sendBeacon(url, new Blob([payload], { type: 'text/plain' }));
+        else fetch(url, { method: 'POST', body: payload, keepalive: true, headers: { 'Content-Type': 'text/plain' } }).catch(function () {});
+      } catch (e) {}
+    },
   };
   function tmwIntelPillHTML() {
     var pro = window.tmwIntel.isPro();
@@ -329,6 +350,17 @@
       return '#';
     }
     function navTo(href){ if (href && href !== '#'){ hide(); window.location.href = href; } }
+    // A committed pick from the live results IS a "normal search" — log who +
+    // what they typed + what they jumped to (event_name 'search'), so it shows
+    // alongside intel queries in the Studio. Plain Enter (no pick) instead lands
+    // on /search/, which logs an intel_query, so we never double-count.
+    function logSel(el){
+      try {
+        if (!el || !window.tmwIntel || !window.tmwIntel.trackSearch) return;
+        var q = (input.value || '').trim(); if (!q) return;
+        window.tmwIntel.trackSearch(q, { kind: el.getAttribute('data-kind') || null, target: el.getAttribute('data-label') || null });
+      } catch (e) {}
+    }
     function setActive(i){
       var els = ac.querySelectorAll('.tmw-dock-ac-item');
       if (!els.length) return;
@@ -343,7 +375,7 @@
       if (m.projects.length){
         html += '<div class="tmw-dock-ac-sec">Projects</div>';
         m.projects.forEach(function (p){
-          html += '<a class="tmw-dock-ac-item" tabindex="-1" href="' + acEsc(hrefFor('project', p)) +
+          html += '<a class="tmw-dock-ac-item" tabindex="-1" data-kind="project" data-label="' + acEsc(p.Title) + '" href="' + acEsc(hrefFor('project', p)) +
             '"><span class="tmw-dock-ac-ico project">' + AC_BLDG + '</span><span class="tmw-dock-ac-txt"><strong>' +
             acHi(p.Title, ql) + '</strong><span>' + acEsc(p.City || '') + '</span></span></a>';
         });
@@ -353,7 +385,7 @@
         html += '<div class="tmw-dock-ac-sec">Firms</div>';
         m.firms.forEach(function (f){
           var sub = (f.role === 'architect' ? 'Architect' : 'Developer') + (f.count ? (' · ' + f.count + ' project' + (f.count !== 1 ? 's' : '')) : '');
-          html += '<a class="tmw-dock-ac-item" tabindex="-1" href="' + acEsc(hrefFor('firm', f)) +
+          html += '<a class="tmw-dock-ac-item" tabindex="-1" data-kind="firm" data-label="' + acEsc(f.name) + '" href="' + acEsc(hrefFor('firm', f)) +
             '"><span class="tmw-dock-ac-ico firm">' + AC_FIRM + '</span><span class="tmw-dock-ac-txt"><strong>' +
             acHi(f.name, ql) + '</strong><span>' + acEsc(sub) + '</span></span></a>';
         });
@@ -362,7 +394,7 @@
         if (html) html += '<div class="tmw-dock-ac-div"></div>';
         html += '<div class="tmw-dock-ac-sec">Places</div>';
         m.cities.forEach(function (c){
-          html += '<a class="tmw-dock-ac-item" tabindex="-1" href="' + acEsc(hrefFor('city', c)) +
+          html += '<a class="tmw-dock-ac-item" tabindex="-1" data-kind="city" data-label="' + acEsc(c.name) + '" href="' + acEsc(hrefFor('city', c)) +
             '"><span class="tmw-dock-ac-ico place">' + AC_PIN + '</span><span class="tmw-dock-ac-txt"><strong>' +
             acHi(c.name, ql) + '</strong><span>' + c.count + ' project' + (c.count !== 1 ? 's' : '') + '</span></span></a>';
         });
@@ -375,7 +407,7 @@
       for (var i = 0; i < els.length; i++){
         (function (el){
           // mousedown fires before the input's blur, so the nav isn't cancelled.
-          el.addEventListener('mousedown', function (e){ e.preventDefault(); navTo(el.getAttribute('href')); });
+          el.addEventListener('mousedown', function (e){ e.preventDefault(); logSel(el); navTo(el.getAttribute('href')); });
         })(els[i]);
       }
     }
@@ -398,7 +430,7 @@
       else if (e.key === 'ArrowUp'){ e.preventDefault(); setActive(activeIdx - 1); }
       else if (e.key === 'Enter'){
         var els = ac.querySelectorAll('.tmw-dock-ac-item');
-        if (activeIdx >= 0 && els[activeIdx]){ e.preventDefault(); navTo(els[activeIdx].getAttribute('href')); }
+        if (activeIdx >= 0 && els[activeIdx]){ e.preventDefault(); logSel(els[activeIdx]); navTo(els[activeIdx].getAttribute('href')); }
         // else: fall through → the form submit navigates to /search/?q=
       }
       else if (e.key === 'Escape'){ hide(); }
