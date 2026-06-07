@@ -161,10 +161,16 @@ const ICONIC_COLS=[
 ];
 const ICONIC_FIELDS=['name','location','region','architect','year','image','credit','description','recommendations','officialUrl','ctaLabel','ctaUrl'];
 const PARTNER_COLS=[
-  {l:'#',f:'rank',t:'rank'},{l:'Name',f:'name',t:'text'},{l:'Logo (SVG)',f:'logo',t:'img'},{l:'Image',f:'image',t:'img'},
-  {l:'Category',f:'category',t:'text'},{l:'CTA Label',f:'ctaLabel',t:'text'},{l:'CTA URL',f:'ctaUrl',t:'text'},{l:'Offer',f:'offer',t:'text'},{l:'',f:'tools',t:'tools'}
+  {l:'#',f:'rank',t:'rank'},{l:'Name',f:'name',t:'text'},{l:'Subtitle',f:'subtitle',t:'text'},
+  {l:'Logo (SVG)',f:'logo',t:'img'},{l:'Image',f:'image',t:'img'},
+  {l:'Description',f:'description',t:'textarea'},
+  {l:'Category',f:'category',t:'text'},{l:'CTA Label',f:'ctaLabel',t:'text'},{l:'CTA URL',f:'ctaUrl',t:'text'},
+  {l:'Offer',f:'offer',t:'text'},
+  {l:'Offer Body',f:'offerBody',t:'textarea'},{l:'Offer Footnote',f:'offerFootnote',t:'text'},
+  {l:'Secondary Label',f:'secondaryLabel',t:'text'},{l:'Secondary URL',f:'secondaryUrl',t:'text'},
+  {l:'',f:'tools',t:'tools'}
 ];
-const PARTNER_FIELDS=['name','logo','image','category','ctaLabel','ctaUrl','offer'];
+const PARTNER_FIELDS=['name','subtitle','logo','image','description','category','ctaLabel','ctaUrl','offer','offerBody','offerFootnote','secondaryLabel','secondaryUrl'];
 const LISTS=[
   {slug:'golf',label:'Golf',meta1:'Level',meta2:'Availability',noun:'course',kind:'iconic',cols:ICONIC_COLS,fields:ICONIC_FIELDS},
   {slug:'restaurants',label:'Restaurants',meta1:'Cuisine',meta2:'Price',noun:'restaurant',kind:'iconic',cols:ICONIC_COLS,fields:ICONIC_FIELDS},
