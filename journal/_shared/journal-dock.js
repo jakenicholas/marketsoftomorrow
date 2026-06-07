@@ -581,7 +581,8 @@
     // the Ask TMW pulse — so the two can never drift out of sync (the old native
     // placeholder ran its own animation that desynced on focus/typing/pause).
     '.tmw-dock-search .ds-ph{position:absolute;top:50%;left:42px;right:16px;transform:translateY(-50%);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#9AA39C;font-size:14px;line-height:1;z-index:1;pointer-events:none;animation:ds-ph-fade 8s linear infinite}',
-    '@keyframes ds-ph-fade{0%,47.5%{opacity:1}52.5%{opacity:0}82.5%{opacity:0}87.5%{opacity:1}100%{opacity:1}}',
+    '@keyframes ds-ph-fade{0%,42%{opacity:1}46%{opacity:0}88%{opacity:0}92%{opacity:1}100%{opacity:1}}',
+    '.tmw-dock-search .dph-sm{display:none}',
     // On focus (empty field) freeze the placeholder in view like a normal placeholder…
     '.tmw-dock-search:focus-within .ds-ph{animation:none;opacity:1}',
     // …and once the field has text, drop the whole animated overlay (icon stays).
@@ -668,7 +669,13 @@
     '@media(min-width:981px){.nav-cta.tmw-ig{display:none !important}}',
     '@media(max-width:980px){nav.main .tmw-st{display:none}}',
     '@media(max-width:560px){.tmw-dock{bottom:14px;gap:6px;padding:6px}.tmw-dock-btn{width:42px;height:42px}',
-    '.tmw-dock-btn svg{width:18px;height:18px}.tmw-dock-search input{width:46vw;height:42px;font-size:13px}.tmw-dock-search .ds-ph{font-size:13px}',
+    '.tmw-dock-btn svg{width:18px;height:18px}.tmw-dock-search input{width:46vw;height:42px;font-size:13px}',
+    // Mobile: the box is too narrow for the Ask-TMW text reveal to morph cleanly,
+    // so drop it and show a short, STATIC placeholder (no animation to desync, no
+    // long text to overflow). Desktop keeps the full animated version.
+    '.tmw-dock-search .ds-ph{font-size:13px;animation:none;opacity:1}',
+    '.tmw-dock-search .ds-ask-pill,.tmw-dock-search .ds-ask-text,.tmw-dock-search .ds-ask-dots{display:none}',
+    '.tmw-dock-search .dph-lg{display:none}.tmw-dock-search .dph-sm{display:inline}',
     '.tmw-dock-search input:focus{width:50vw}}',
     // Dock clearance lives on the FOOTER (not the body) so the footer's own
     // background fills the reserved strip — no black gap below the footer.
@@ -882,7 +889,7 @@
         // The placeholder text now lives in the overlay (same timeline as the Ask
         // TMW pulse) so the two can never drift out of sync. Hidden when the field
         // has text (.ds-filled, toggled in JS) or on focus.
-        '<span class="ds-ph" aria-hidden="true">Search projects, firms, cities…</span>' +
+        '<span class="ds-ph" aria-hidden="true"><span class="dph-lg">Search projects, firms, cities…</span><span class="dph-sm">Search projects…</span></span>' +
         '<input name="q" type="search" autocomplete="off" placeholder="" aria-label="Search projects, firms, cities">' +
       '</form>';
 
