@@ -670,11 +670,10 @@
     '@media(max-width:980px){nav.main .tmw-st{display:none}}',
     '@media(max-width:560px){.tmw-dock{bottom:14px;gap:6px;padding:6px}.tmw-dock-btn{width:42px;height:42px}',
     '.tmw-dock-btn svg{width:18px;height:18px}.tmw-dock-search input{width:46vw;height:42px;font-size:13px}',
-    // Mobile: the box is too narrow for the Ask-TMW text reveal to morph cleanly,
-    // so drop it and show a short, STATIC placeholder (no animation to desync, no
-    // long text to overflow). Desktop keeps the full animated version.
-    '.tmw-dock-search .ds-ph{font-size:13px;animation:none;opacity:1}',
-    '.tmw-dock-search .ds-ask-pill,.tmw-dock-search .ds-ask-text,.tmw-dock-search .ds-ask-dots{display:none}',
+    // Mobile: keep the full Ask-TMW animation (the placeholder + reveal share one
+    // timeline now, so no desync) but use the SHORT placeholder text so it can't
+    // overflow the narrow box; the widened ds-ph gap keeps it clear of "Ask TMW".
+    '.tmw-dock-search .ds-ph{font-size:13px}',
     '.tmw-dock-search .dph-lg{display:none}.tmw-dock-search .dph-sm{display:inline}',
     '.tmw-dock-search input:focus{width:50vw}}',
     // Dock clearance lives on the FOOTER (not the body) so the footer's own

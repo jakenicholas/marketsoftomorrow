@@ -12497,6 +12497,14 @@
 
     // ‚îÄ‚îÄ‚îÄ MAP SETUP ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
     mapboxgl.accessToken = 'pk.eyJ1IjoiZmxvcmlkYW9mdG9tb3Jyb3ciLCJhIjoiY2xrYmpmdGQ2MGdibTNzcXZjMnA4aXh3ZiJ9.uBeYS7jmKwWS6xAgY-R1UA';
+    // Status-colored pins: project circles tinted by delivery stage (legend in
+    // the Intelligence panel). Used as the default pin color everywhere the map
+    // used to hard-code green (#1FDF67) for unclustered points.
+    window.TMW_STATUS_COLOR = ['match', ['get', 'delivery'],
+      'Under Construction', '#1FDF67',
+      'Now Open', '#8AA0B5',
+      'Announced', '#F5A623', 'Breaking Ground', '#F5A623', 'Opening Soon', '#F5A623',
+      '#A78BFA'];
     const map = new mapboxgl.Map({
       container: 'map',
       style: 'mapbox://styles/floridaoftomorrow/clkbk4qlw000a01qw94rj0xa7',
@@ -12995,7 +13003,7 @@
 
         const st = document.createElement('style'); st.id = 'tmw-il-css';
         st.textContent =
-          ".tmw-il-panel{position:fixed;top:74px;right:14px;z-index:55;width:248px;background:rgba(14,14,18,.86);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.1);border-radius:15px;padding:13px 15px;box-shadow:0 16px 44px rgba(0,0,0,.5);font-family:'Inter',sans-serif;color:#fff}" +
+          ".tmw-il-panel{position:fixed;top:74px;right:14px;z-index:10;width:248px;background:rgba(14,14,18,.86);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.1);border-radius:15px;padding:13px 15px;box-shadow:0 16px 44px rgba(0,0,0,.5);font-family:'Inter',sans-serif;color:#fff}" +
           ".tmw-il-eye{font-family:ui-monospace,monospace;font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;color:#B9A6FF}" +
           ".tmw-il-panel h4{font-size:14px;font-weight:800;margin:3px 0 10px}" +
           ".tmw-il-toggle{display:flex;align-items:center;gap:10px;cursor:pointer;padding:8px 9px;border-radius:10px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.03);transition:.15s}" +
@@ -13008,7 +13016,7 @@
           ".tmw-il-legend{margin-top:11px;display:flex;flex-direction:column;gap:6px;font-size:11px;color:rgba(255,255,255,.62)}" +
           ".tmw-il-legend>div{display:flex;align-items:center;gap:8px}" +
           ".tmw-il-legend .d{width:9px;height:9px;border-radius:50%;flex:0 0 auto;box-shadow:0 0 0 1.5px rgba(255,255,255,.45)}" +
-          ".tmw-il-scrub{position:fixed;left:50%;transform:translateX(-50%);bottom:96px;z-index:55;width:min(560px,86vw);background:rgba(14,14,18,.88);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.1);border-radius:15px;padding:12px 16px 14px;box-shadow:0 16px 44px rgba(0,0,0,.5);font-family:'Inter',sans-serif;color:#fff}" +
+          ".tmw-il-scrub{position:fixed;left:50%;transform:translateX(-50%);bottom:96px;z-index:10;width:min(440px,92vw);background:rgba(14,14,18,.88);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.1);border-radius:15px;padding:12px 16px 14px;box-shadow:0 16px 44px rgba(0,0,0,.5);font-family:'Inter',sans-serif;color:#fff}" +
           ".tmw-il-scrub-top{display:flex;align-items:center;gap:12px;margin-bottom:9px}" +
           ".tmw-il-play{width:36px;height:36px;border-radius:50%;border:1px solid rgba(167,139,250,.5);background:rgba(167,139,250,.14);color:#fff;cursor:pointer;display:grid;place-items:center;flex:0 0 auto;transition:.15s}" +
           ".tmw-il-play:hover{background:rgba(167,139,250,.26)}.tmw-il-play svg{width:15px;height:15px}" +
@@ -13023,7 +13031,7 @@
           ".tmw-il-pulse::before,.tmw-il-pulse::after{content:'';position:absolute;inset:50%;width:13px;height:13px;border-radius:50%;border:2px solid #A78BFA;transform:translate(-50%,-50%);animation:tmwIlHalo 2.2s ease-out infinite}" +
           ".tmw-il-pulse::after{animation-delay:1.1s}" +
           "@keyframes tmwIlHalo{0%{width:13px;height:13px;opacity:.85}100%{width:58px;height:58px;opacity:0}}" +
-          "@media(max-width:820px){.tmw-il-panel,.tmw-il-scrub{display:none!important}}";
+          "@media(max-width:820px){.tmw-il-panel{top:58px;right:10px;width:190px;padding:10px 12px}.tmw-il-panel h4{font-size:13px;margin-bottom:8px}.tmw-il-toggle i{display:none}.tmw-il-legend{font-size:10px}.tmw-il-scrub{bottom:84px;width:92vw;padding:10px 13px 12px}.tmw-il-yr{font-size:21px}}";
         document.head.appendChild(st);
 
         const panel = document.createElement('div'); panel.className = 'tmw-il-panel';
@@ -13032,8 +13040,9 @@
           '<div class="tmw-il-toggle"><span class="tmw-il-sw"></span><span><b>What’s moving</b><i>Pulse recent milestones</i></span></div>' +
           '<div class="tmw-il-legend">' +
             '<div><span class="d" style="background:#B9A6FF"></span>Moved in the last 2 weeks</div>' +
-            '<div><span class="d" style="background:#1FDF67"></span>Tracked project</div>' +
-            '<div><span class="d" style="background:#1FDF67"></span>Cluster &middot; multiple projects</div>' +
+            '<div><span class="d" style="background:#1FDF67"></span>Under construction</div>' +
+            '<div><span class="d" style="background:#F5A623"></span>Announced / breaking ground</div>' +
+            '<div><span class="d" style="background:#8AA0B5"></span>Now open</div>' +
             '<div><span class="d" style="background:transparent;box-shadow:0 0 0 1.5px #E6C574"></span>Featured</div>' +
           '</div>';
         document.body.appendChild(panel);
@@ -13053,7 +13062,7 @@
 
         // ---- What's Moving (off by default; opt-in intelligence view) ----
         const slugify = window.projectSlugify || (s => String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''));
-        let markers = [], movingOn = false;
+        let markers = [], movingOn = true;
         function buildMoving(){
           markers.forEach(m=>m.remove()); markers = [];
           const now = Date.now(), WIN = 14*24*60*60*1000, movingSet = new Set();
@@ -13077,6 +13086,7 @@
             if (map.getLayer(id)) { try { map.setPaintProperty(id, 'circle-opacity', on ? 0.5 : 0.92); } catch(e){} } });
         }
         const tog = panel.querySelector('.tmw-il-toggle');
+        tog.classList.toggle('on', movingOn);   // reflect the default-on state
         tog.addEventListener('click', ()=>{ setMoving(!movingOn); tog.classList.toggle('on', movingOn); });
         buildMoving();
         if (!(window._pulseEvents||[]).length) setTimeout(buildMoving, 2500);
@@ -13330,7 +13340,7 @@
       const selectedTitle = f.properties.title;
       // Selected pin gets the TMW intel purple (#A78BFA) -- visually
       // consistent with the intel block on the modal/popup.
-      const pinkPinExpr = ['case', ['==', ['get', 'title'], selectedTitle], '#A78BFA', '#1FDF67'];
+      const pinkPinExpr = ['case', ['==', ['get', 'title'], selectedTitle], '#A78BFA', window.TMW_STATUS_COLOR];
       const pinkRadiusExpr = ['case', ['==', ['get', 'title'], selectedTitle], 11, 8];
       if (map.getLayer('unclustered-point')) {
         map.setPaintProperty('unclustered-point', 'circle-color', pinkPinExpr);
@@ -14415,7 +14425,7 @@
         try {
           if (p && p.title && map && map.getLayer && map.getLayer('unclustered-point')) {
             const _selTitle = p.title;
-            const _pinkPin = ['case', ['==', ['get', 'title'], _selTitle], '#A78BFA', '#1FDF67'];
+            const _pinkPin = ['case', ['==', ['get', 'title'], _selTitle], '#A78BFA', window.TMW_STATUS_COLOR];
             const _pinkRad = ['case', ['==', ['get', 'title'], _selTitle], 11, 8];
             map.setPaintProperty('unclustered-point', 'circle-color', _pinkPin);
             map.setPaintProperty('unclustered-point', 'circle-radius', _pinkRad);
@@ -14804,7 +14814,7 @@
         // Restore default green pin if opened from tile or deeplink (no popup to handle cleanup)
         if (fromSource === 'tile' || fromSource === 'deeplink') {
           if (map.getLayer('unclustered-point')) {
-            map.setPaintProperty('unclustered-point', 'circle-color', '#1FDF67');
+            map.setPaintProperty('unclustered-point', 'circle-color', window.TMW_STATUS_COLOR);
             map.setPaintProperty('unclustered-point', 'circle-radius', 8);
           }
           if (window._selectedPinMarker) { window._selectedPinMarker.remove(); window._selectedPinMarker = null; }
@@ -15045,7 +15055,7 @@
       const selectedTitle = f.properties.title;
 
       // Change selected pin to TMW intel purple using Mapbox paint expression
-      const pinkPinExpr = ['case', ['==', ['get', 'title'], selectedTitle], '#A78BFA', '#1FDF67'];
+      const pinkPinExpr = ['case', ['==', ['get', 'title'], selectedTitle], '#A78BFA', window.TMW_STATUS_COLOR];
       const pinkRadiusExpr = ['case', ['==', ['get', 'title'], selectedTitle], 11, 8];
       if (map.getLayer('unclustered-point')) {
         map.setPaintProperty('unclustered-point', 'circle-color', pinkPinExpr);
@@ -15227,7 +15237,7 @@
       // Restore default green pin and remove pulse when popup closes
       activePopup.on('close', () => {
         if (map.getLayer('unclustered-point')) {
-          map.setPaintProperty('unclustered-point', 'circle-color', '#1FDF67');
+          map.setPaintProperty('unclustered-point', 'circle-color', window.TMW_STATUS_COLOR);
           map.setPaintProperty('unclustered-point', 'circle-radius', 8);
         }
         if (window._selectedPinMarker) { window._selectedPinMarker.remove(); window._selectedPinMarker = null; }
@@ -16637,7 +16647,7 @@
       if (window._selectedPinMarker) { window._selectedPinMarker.remove(); window._selectedPinMarker = null; }
       // Reset selected-pin paint so all pins go back to default green
       if (map.getLayer('unclustered-point')) {
-        map.setPaintProperty('unclustered-point', 'circle-color', '#1FDF67');
+        map.setPaintProperty('unclustered-point', 'circle-color', window.TMW_STATUS_COLOR);
         map.setPaintProperty('unclustered-point', 'circle-radius', 8);
       }
       window._selectedPinTitle = null;
@@ -17491,14 +17501,14 @@
         const pipelineRestoreFeatures  = geoFeatures.filter(f => !f.properties.completed);
         const completedRestoreFeatures = geoFeatures.filter(f =>  f.properties.completed);
         if (!map.getSource('projects')) {
-          map.addSource('projects', { type:'geojson', data:{ type:'FeatureCollection', features:pipelineRestoreFeatures }, cluster:true, clusterMaxZoom:16, clusterRadius:35 });
+          map.addSource('projects', { type:'geojson', data:{ type:'FeatureCollection', features:pipelineRestoreFeatures }, cluster:false });
         }
         if (!map.getSource('projects-completed')) {
-          map.addSource('projects-completed', { type:'geojson', data:{ type:'FeatureCollection', features:completedRestoreFeatures }, cluster:true, clusterMaxZoom:16, clusterRadius:35 });
+          map.addSource('projects-completed', { type:'geojson', data:{ type:'FeatureCollection', features:completedRestoreFeatures }, cluster:false });
         }
         if (!map.getLayer('clusters'))          map.addLayer({ id:'clusters',          type:'circle', source:'projects', filter:['has','point_count'], paint:{'circle-color':'#1FDF67','circle-radius':['step',['get','point_count'],20,100,30,750,40],'circle-stroke-width':2,'circle-stroke-color':'#fff'} });
         if (!map.getLayer('cluster-count'))     map.addLayer({ id:'cluster-count',     type:'symbol', source:'projects', filter:['has','point_count'], layout:{'text-field':'{point_count_abbreviated}','text-size':12,'text-allow-overlap':true,'text-ignore-placement':true}, paint:{'text-color':'#ffffff'} });
-        if (!map.getLayer('unclustered-point')) map.addLayer({ id:'unclustered-point', type:'circle', source:'projects', filter:['!',['has','point_count']], paint:{'circle-color':'#1FDF67','circle-radius':8,'circle-stroke-width':2,'circle-stroke-color':'#fff'} });
+        if (!map.getLayer('unclustered-point')) map.addLayer({ id:'unclustered-point', type:'circle', source:'projects', filter:['!',['has','point_count']], paint:{'circle-color':window.TMW_STATUS_COLOR,'circle-radius':8,'circle-stroke-width':2,'circle-stroke-color':'#fff'} });
 
         // Completed cluster stack ‚Äî pine-green palette. Visibility tracks
         // window._completedVisible (set by the Completed Projects toggle in
@@ -17691,14 +17701,14 @@
           //    source regardless of which layers reference it.
           const pipelineFeatures  = geoFeatures.filter(f => !f.properties.completed);
           const completedFeatures = geoFeatures.filter(f =>  f.properties.completed);
-          map.addSource('projects',          { type:'geojson', data:{ type:'FeatureCollection', features:pipelineFeatures  }, cluster:true, clusterMaxZoom:16, clusterRadius:35 });
-          map.addSource('projects-completed',{ type:'geojson', data:{ type:'FeatureCollection', features:completedFeatures }, cluster:true, clusterMaxZoom:16, clusterRadius:35 });
+          map.addSource('projects',          { type:'geojson', data:{ type:'FeatureCollection', features:pipelineFeatures  }, cluster:false });
+          map.addSource('projects-completed',{ type:'geojson', data:{ type:'FeatureCollection', features:completedFeatures }, cluster:false });
 
           // Pipeline (active) cluster stack ‚Äî visible by default, the headline
           // green pins users see.
           map.addLayer({ id:'clusters', type:'circle', source:'projects', filter:['has','point_count'], paint:{'circle-color':'#1FDF67','circle-radius':['step',['get','point_count'],20,100,30,750,40],'circle-stroke-width':2,'circle-stroke-color':'#fff'} });
           map.addLayer({ id:'cluster-count', type:'symbol', source:'projects', filter:['has','point_count'], layout:{'text-field':'{point_count_abbreviated}','text-size':12,'text-allow-overlap':true,'text-ignore-placement':true}, paint:{'text-color':'#ffffff'} });
-          map.addLayer({ id:'unclustered-point', type:'circle', source:'projects', filter:['!',['has','point_count']], paint:{'circle-color':'#1FDF67','circle-radius':8,'circle-stroke-width':2,'circle-stroke-color':'#fff'} });
+          map.addLayer({ id:'unclustered-point', type:'circle', source:'projects', filter:['!',['has','point_count']], paint:{'circle-color':window.TMW_STATUS_COLOR,'circle-radius':8,'circle-stroke-width':2,'circle-stroke-color':'#fff'} });
 
           // Completed cluster stack ‚Äî pine-green palette, hidden by default.
           // Toggle in layers panel flips visibility on ALL THREE completed
