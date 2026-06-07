@@ -46,16 +46,16 @@
       .tmw-partners-arrow:hover{background:rgba(255,255,255,.06); border-color:rgba(255,255,255,.14); color:#fff; transform:translateY(-1px)}
       .tmw-partners-arrow svg{width:16px; height:16px}
 
-      /* Spotlight carousel */
-      .tmw-spot-viewport{overflow:hidden; padding:30px 0; margin:-30px -28px 0; width:calc(100% + 56px)}
-      .tmw-spot-track{display:flex; gap:32px; transition:transform .75s cubic-bezier(.22,1,.36,1); will-change:transform; padding:0 28px}
-      .tmw-spot-card{flex:0 0 72%; display:grid; grid-template-columns:1.05fr 1fr; overflow:hidden; padding:0; min-height:520px;
+      /* Spotlight carousel -- breaks out of .tmw-partners-wrap to full 100vw */
+      .tmw-spot-viewport{position:relative; overflow:hidden; padding:36px 0; margin-top:-36px; margin-bottom:0; width:100vw; margin-left:calc(50% - 50vw)}
+      .tmw-spot-track{display:flex; gap:16px; transition:transform .75s cubic-bezier(.22,1,.36,1); will-change:transform; padding:0}
+      .tmw-spot-card{flex:0 0 72%; display:grid; grid-template-columns:1.05fr 1fr; overflow:hidden; padding:0; min-height:620px;
         background:rgba(255,255,255,.025); border:1px solid rgba(255,255,255,.08); border-radius:20px;
         box-shadow:0 24px 64px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.05);
         backdrop-filter:blur(16px) saturate(1.4); -webkit-backdrop-filter:blur(16px) saturate(1.4);
-        transform:scale(.85); opacity:.42; filter:brightness(.45) saturate(.7); cursor:pointer;
+        transform:scale(.92); opacity:.5; filter:brightness(.5) saturate(.75); cursor:pointer;
         transition:transform .65s cubic-bezier(.22,1,.36,1), opacity .55s ease, filter .55s ease, border-color .25s, box-shadow .25s}
-      .tmw-spot-card:not(.is-active):hover{opacity:.65; filter:brightness(.65) saturate(.85)}
+      .tmw-spot-card:not(.is-active):hover{opacity:.7; filter:brightness(.7) saturate(.9)}
       .tmw-spot-card.is-active{transform:scale(1); opacity:1; filter:none; cursor:default; z-index:2; box-shadow:0 32px 80px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.05)}
       .tmw-spot-card.is-active:hover{border-color:rgba(255,255,255,.14)}
       .tmw-spot-card .tmw-spot-cta, .tmw-spot-card .tmw-spot-sec{pointer-events:auto}
@@ -103,14 +103,14 @@
       .tmw-spot-dot.is-active{background:#42EB81; width:46px; box-shadow:0 0 12px rgba(31,223,103,.4)}
 
       @media(max-width:1100px){
-        .tmw-spot-card{flex:0 0 82%}
-        .tmw-spot-track{gap:24px}
+        .tmw-spot-card{flex:0 0 82%; min-height:540px}
+        .tmw-spot-track{gap:12px}
       }
       @media(max-width:880px){
-        .tmw-spot-card{flex:0 0 92%; grid-template-columns:1fr; min-height:auto; transform:scale(.92)}
+        .tmw-spot-card{flex:0 0 92%; grid-template-columns:1fr; min-height:auto; transform:scale(.94)}
         .tmw-spot-img{aspect-ratio:16/10}
         .tmw-spot-body{padding:30px 26px 26px}
-        .tmw-spot-viewport{padding:14px 0; margin:-14px -28px 0; width:calc(100% + 56px)}
+        .tmw-spot-viewport{padding:18px 0; margin-top:-18px; margin-bottom:0; width:100vw; margin-left:calc(50% - 50vw)}
       }
 
       /* Client wall (unchanged) */
