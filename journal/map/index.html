@@ -12503,7 +12503,7 @@
     window.TMW_STATUS_COLOR = ['match', ['get', 'delivery'],
       'Under Construction', '#1FDF67',
       'Now Open', '#8AA0B5',
-      'Announced', '#F5A623', 'Breaking Ground', '#F5A623', 'Opening Soon', '#F5A623',
+      'Announced', '#3FA9F5', 'Breaking Ground', '#3FA9F5', 'Opening Soon', '#3FA9F5',
       '#A78BFA'];
     const map = new mapboxgl.Map({
       container: 'map',
@@ -13016,7 +13016,8 @@
           ".tmw-il-legend{margin-top:11px;display:flex;flex-direction:column;gap:6px;font-size:11px;color:rgba(255,255,255,.62)}" +
           ".tmw-il-legend>div{display:flex;align-items:center;gap:8px}" +
           ".tmw-il-legend .d{width:9px;height:9px;border-radius:50%;flex:0 0 auto;box-shadow:0 0 0 1.5px rgba(255,255,255,.45)}" +
-          ".tmw-il-scrub{position:fixed;left:50%;transform:translateX(-50%);bottom:96px;z-index:10;width:min(440px,92vw);background:rgba(14,14,18,.88);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.1);border-radius:15px;padding:12px 16px 14px;box-shadow:0 16px 44px rgba(0,0,0,.5);font-family:'Inter',sans-serif;color:#fff}" +
+          ".tmw-il-scrub{position:fixed;left:50%;transform:translateX(-50%);bottom:96px;z-index:2;width:min(440px,92vw);background:rgba(14,14,18,.88);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.1);border-radius:15px;padding:12px 16px 14px;box-shadow:0 16px 44px rgba(0,0,0,.5);font-family:'Inter',sans-serif;color:#fff;transition:opacity .15s}" +
+          ".tmw-il-scrub.tmw-il-hidden{opacity:0;pointer-events:none}" +
           ".tmw-il-scrub-top{display:flex;align-items:center;gap:12px;margin-bottom:9px}" +
           ".tmw-il-play{width:36px;height:36px;border-radius:50%;border:1px solid rgba(167,139,250,.5);background:rgba(167,139,250,.14);color:#fff;cursor:pointer;display:grid;place-items:center;flex:0 0 auto;transition:.15s}" +
           ".tmw-il-play:hover{background:rgba(167,139,250,.26)}.tmw-il-play svg{width:15px;height:15px}" +
@@ -13036,12 +13037,12 @@
 
         const panel = document.createElement('div'); panel.className = 'tmw-il-panel';
         panel.innerHTML =
-          '<div class="tmw-il-eye">Map of Tomorrow &middot; Intelligence</div><h4>Interactive layers</h4>' +
+          '<h4>Interactive layers</h4>' +
           '<div class="tmw-il-toggle"><span class="tmw-il-sw"></span><span><b>What’s moving</b><i>Pulse recent milestones</i></span></div>' +
           '<div class="tmw-il-legend">' +
             '<div><span class="d" style="background:#B9A6FF"></span>Moved in the last 2 weeks</div>' +
             '<div><span class="d" style="background:#1FDF67"></span>Under construction</div>' +
-            '<div><span class="d" style="background:#F5A623"></span>Announced / breaking ground</div>' +
+            '<div><span class="d" style="background:#3FA9F5"></span>Announced / breaking ground</div>' +
             '<div><span class="d" style="background:#8AA0B5"></span>Now open</div>' +
             '<div><span class="d" style="background:transparent;box-shadow:0 0 0 1.5px #E6C574"></span>Featured</div>' +
           '</div>';
@@ -13109,6 +13110,11 @@
           timer=setInterval(()=>{ y++; if (y>MAX){ slider.value=100; applyYear(MAX,true); stopPlay(); return; } slider.value=((y-MIN)/(MAX-MIN))*100; applyYear(y,false); }, 850); }
         function stopPlay(){ playing=false; clearInterval(timer); playBtn.innerHTML=I_PLAY; }
         playBtn.addEventListener('click', ()=>{ playing ? stopPlay() : startPlay(); });
+        // Get the scrubber out of the way while any search field is focused, so
+        // the results pop-up is never covered by it. Returns when focus leaves.
+        const SEARCH_SEL = '.tmw-dock-search, #sidebarSearchBar, #mobileSearchBar';
+        document.addEventListener('focusin', e=>{ if (e.target && e.target.closest && e.target.closest(SEARCH_SEL)) scrub.classList.add('tmw-il-hidden'); });
+        document.addEventListener('focusout', ()=>{ setTimeout(()=>{ const a=document.activeElement; if (!a || !a.closest || !a.closest(SEARCH_SEL)) scrub.classList.remove('tmw-il-hidden'); }, 120); });
         // Initial "All" state — set the labels without forcing a redundant re-render.
         window._scrubYear = null;
         cntEl.textContent = feats.length.toLocaleString();
@@ -13341,7 +13347,7 @@
       // Selected pin gets the TMW intel purple (#A78BFA) -- visually
       // consistent with the intel block on the modal/popup.
       const pinkPinExpr = ['case', ['==', ['get', 'title'], selectedTitle], '#A78BFA', window.TMW_STATUS_COLOR];
-      const pinkRadiusExpr = ['case', ['==', ['get', 'title'], selectedTitle], 11, 8];
+      const pinkRadiusExpr = ['case', ['==', ['get', 'title'], selectedTitle], 9, 6];
       if (map.getLayer('unclustered-point')) {
         map.setPaintProperty('unclustered-point', 'circle-color', pinkPinExpr);
         map.setPaintProperty('unclustered-point', 'circle-radius', pinkRadiusExpr);
@@ -14426,7 +14432,7 @@
           if (p && p.title && map && map.getLayer && map.getLayer('unclustered-point')) {
             const _selTitle = p.title;
             const _pinkPin = ['case', ['==', ['get', 'title'], _selTitle], '#A78BFA', window.TMW_STATUS_COLOR];
-            const _pinkRad = ['case', ['==', ['get', 'title'], _selTitle], 11, 8];
+            const _pinkRad = ['case', ['==', ['get', 'title'], _selTitle], 9, 6];
             map.setPaintProperty('unclustered-point', 'circle-color', _pinkPin);
             map.setPaintProperty('unclustered-point', 'circle-radius', _pinkRad);
             window._selectedPinTitle = _selTitle;
@@ -15056,7 +15062,7 @@
 
       // Change selected pin to TMW intel purple using Mapbox paint expression
       const pinkPinExpr = ['case', ['==', ['get', 'title'], selectedTitle], '#A78BFA', window.TMW_STATUS_COLOR];
-      const pinkRadiusExpr = ['case', ['==', ['get', 'title'], selectedTitle], 11, 8];
+      const pinkRadiusExpr = ['case', ['==', ['get', 'title'], selectedTitle], 9, 6];
       if (map.getLayer('unclustered-point')) {
         map.setPaintProperty('unclustered-point', 'circle-color', pinkPinExpr);
         map.setPaintProperty('unclustered-point', 'circle-radius', pinkRadiusExpr);
@@ -17508,7 +17514,7 @@
         }
         if (!map.getLayer('clusters'))          map.addLayer({ id:'clusters',          type:'circle', source:'projects', filter:['has','point_count'], paint:{'circle-color':'#1FDF67','circle-radius':['step',['get','point_count'],20,100,30,750,40],'circle-stroke-width':2,'circle-stroke-color':'#fff'} });
         if (!map.getLayer('cluster-count'))     map.addLayer({ id:'cluster-count',     type:'symbol', source:'projects', filter:['has','point_count'], layout:{'text-field':'{point_count_abbreviated}','text-size':12,'text-allow-overlap':true,'text-ignore-placement':true}, paint:{'text-color':'#ffffff'} });
-        if (!map.getLayer('unclustered-point')) map.addLayer({ id:'unclustered-point', type:'circle', source:'projects', filter:['!',['has','point_count']], paint:{'circle-color':window.TMW_STATUS_COLOR,'circle-radius':8,'circle-stroke-width':2,'circle-stroke-color':'#fff'} });
+        if (!map.getLayer('unclustered-point')) map.addLayer({ id:'unclustered-point', type:'circle', source:'projects', filter:['!',['has','point_count']], paint:{'circle-color':window.TMW_STATUS_COLOR,'circle-radius':6,'circle-stroke-width':2,'circle-stroke-color':'#fff'} });
 
         // Completed cluster stack ‚Äî pine-green palette. Visibility tracks
         // window._completedVisible (set by the Completed Projects toggle in
@@ -17524,7 +17530,7 @@
           map.addLayer({ id:'unclustered-point-completed', type:'circle', source:'projects-completed',
             filter:['!',['has','point_count']],
             layout:{visibility:completedRestoreVis},
-            paint:{'circle-color':'#01796F','circle-radius':7,'circle-stroke-width':1.5,'circle-stroke-color':'rgba(255,255,255,0.6)'}
+            paint:{'circle-color':'#01796F','circle-radius':5.5,'circle-stroke-width':1.5,'circle-stroke-color':'rgba(255,255,255,0.6)'}
           });
         }
 
@@ -17544,7 +17550,7 @@
             filter:['all',['!',['has','point_count']],['==',['get','watched'],true]],
             paint:{'circle-color':'transparent','circle-radius':14,
                    'circle-stroke-width':2.5,'circle-stroke-color':'#1FDF67',
-                   'circle-stroke-opacity':0.9}
+                   'circle-stroke-opacity':0}
           }, 'unclustered-point');
         }
           // Re-apply any active filters
@@ -17708,7 +17714,7 @@
           // green pins users see.
           map.addLayer({ id:'clusters', type:'circle', source:'projects', filter:['has','point_count'], paint:{'circle-color':'#1FDF67','circle-radius':['step',['get','point_count'],20,100,30,750,40],'circle-stroke-width':2,'circle-stroke-color':'#fff'} });
           map.addLayer({ id:'cluster-count', type:'symbol', source:'projects', filter:['has','point_count'], layout:{'text-field':'{point_count_abbreviated}','text-size':12,'text-allow-overlap':true,'text-ignore-placement':true}, paint:{'text-color':'#ffffff'} });
-          map.addLayer({ id:'unclustered-point', type:'circle', source:'projects', filter:['!',['has','point_count']], paint:{'circle-color':window.TMW_STATUS_COLOR,'circle-radius':8,'circle-stroke-width':2,'circle-stroke-color':'#fff'} });
+          map.addLayer({ id:'unclustered-point', type:'circle', source:'projects', filter:['!',['has','point_count']], paint:{'circle-color':window.TMW_STATUS_COLOR,'circle-radius':6,'circle-stroke-width':2,'circle-stroke-color':'#fff'} });
 
           // Completed cluster stack ‚Äî pine-green palette, hidden by default.
           // Toggle in layers panel flips visibility on ALL THREE completed
@@ -17716,12 +17722,12 @@
           const completedVis = (window._completedVisible ? 'visible' : 'none');
           map.addLayer({ id:'clusters-completed', type:'circle', source:'projects-completed', filter:['has','point_count'], layout:{visibility:completedVis}, paint:{'circle-color':'#01796F','circle-radius':['step',['get','point_count'],18,100,28,750,38],'circle-stroke-width':2,'circle-stroke-color':'rgba(255,255,255,0.7)'} });
           map.addLayer({ id:'cluster-count-completed', type:'symbol', source:'projects-completed', filter:['has','point_count'], layout:{visibility:completedVis,'text-field':'{point_count_abbreviated}','text-size':12,'text-allow-overlap':true,'text-ignore-placement':true}, paint:{'text-color':'#ffffff'} });
-          map.addLayer({ id:'unclustered-point-completed', type:'circle', source:'projects-completed', filter:['!',['has','point_count']], layout:{visibility:completedVis}, paint:{'circle-color':'#01796F','circle-radius':7,'circle-stroke-width':1.5,'circle-stroke-color':'rgba(255,255,255,0.6)'} });
+          map.addLayer({ id:'unclustered-point-completed', type:'circle', source:'projects-completed', filter:['!',['has','point_count']], layout:{visibility:completedVis}, paint:{'circle-color':'#01796F','circle-radius':5.5,'circle-stroke-width':1.5,'circle-stroke-color':'rgba(255,255,255,0.6)'} });
 
           // Featured/watched accents ‚Äî pipeline only (completed don't get
           // featured glow or watch ring; they're archive state).
           map.addLayer({ id:'featured-glow', type:'circle', source:'projects', filter:['all',['!',['has','point_count']],['==',['get','featured'],true]], paint:{'circle-color':'transparent','circle-radius':16,'circle-blur':0.8,'circle-stroke-width':3,'circle-stroke-color':'#FFD300','circle-stroke-opacity':0.6} }, 'unclustered-point');
-          map.addLayer({ id:'watched-ring', type:'circle', source:'projects', filter:['all',['!',['has','point_count']],['==',['get','watched'],true]], paint:{'circle-color':'transparent','circle-radius':14,'circle-stroke-width':2.5,'circle-stroke-color':'#1FDF67','circle-stroke-opacity':0.9} }, 'unclustered-point');
+          map.addLayer({ id:'watched-ring', type:'circle', source:'projects', filter:['all',['!',['has','point_count']],['==',['get','watched'],true]], paint:{'circle-color':'transparent','circle-radius':14,'circle-stroke-width':2.5,'circle-stroke-color':'#1FDF67','circle-stroke-opacity':0} }, 'unclustered-point');
 
           // Cluster zoom-expand handlers ‚Äî same pattern for both stacks, just
           // different source names.
