@@ -3763,7 +3763,28 @@ async function handleJournalActive(env, origin) {
     const cut = now - 300;
     const cnt = await env.DB.prepare('SELECT COUNT(*) AS c FROM journal_active WHERE ts > ?1').bind(cut).first();
     const rows = await env.DB.prepare('SELECT ts, path, title, member_name FROM journal_active WHERE ts > ?1 ORDER BY ts DESC LIMIT 40').bind(cut).all();
-    const feed = (rows.results || []).map(r => ({ path: r.path || '', title: r.title || '', member_name: r.member_name || null, ago: Math.max(0, now - (r.ts || now)) }));
+    const reads = (rows.results || []).map(r => ({ path: r.path || '', title: r.title || '', member_name: r.member_name || null, ago: Math.max(0, now - (r.ts || now)) }));
+    // Fold in the last-5-min interaction events (searches, TMW Intelligence
+    // queries, project opens, subscribes…) so the live feed reflects EVERYTHING
+    // happening now, not just page reads. page_view is excluded — reads already
+    // come from journal_active above, so including it would double-list them.
+    let evItems = [];
+    try {
+      const ev = await env.DB.prepare(
+        `SELECT ts, member_name, event_name, path, props_json
+         FROM events
+         WHERE ts > ?1 AND event_name NOT IN ('page_view','watchlist_snapshot')
+         ORDER BY ts DESC LIMIT 40`
+      ).bind(cut).all();
+      evItems = (ev.results || []).map(r => ({
+        event_name: r.event_name,
+        props_json: r.props_json || null,
+        path: r.path || '',
+        member_name: r.member_name || null,
+        ago: Math.max(0, now - (r.ts || now)),
+      }));
+    } catch (_) {}
+    const feed = reads.concat(evItems).sort((a, b) => a.ago - b.ago).slice(0, 40);
     try { await env.DB.prepare('DELETE FROM journal_active WHERE ts < ?1').bind(now - 3600).run(); } catch (_) {}
     return json({ active: cnt ? cnt.c : 0, feed }, { headers: { 'Cache-Control': 'no-store' } }, env, origin);
   } catch (e) {
