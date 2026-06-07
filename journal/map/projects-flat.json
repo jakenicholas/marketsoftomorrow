@@ -2238,10 +2238,10 @@
     "City": "West Palm Beach",
     "Latitude": "26.7094465",
     "Longitude": "-80.063716",
-    "Description": "A large-format waterfront condominium designed by Al Adelson, the visionary developer behind The Bristol, boasting the largest private terraces in the city.",
-    "DescriptionLong": "A large-format waterfront condominium designed by Al Adelson, the visionary developer behind The Bristol, boasting the largest private terraces in the city.",
-    "Delivery": "Announced",
-    "DeliveryDate": "2029",
+    "Description": "A 25-story Arquitectonica-designed condominium overlooking Clear Lake, with 193 residences including four penthouses and interiors by founding principal Bernardo Fort-Brescia.",
+    "DescriptionLong": "The Berkeley Palm Beach is a 25-story residential tower rising at 550 South Australian Avenue in downtown West Palm Beach's Clear Lake District, set just west of the Intracoastal and the CityPlace open-air complex. The building will introduce 193 luxury residences — including four penthouses — ranging from two to five bedrooms across roughly 2,500 to 4,800 square feet, with 9- to 11-foot ceilings, east- and west-facing flow-through layouts capturing sunrise and sunset exposures, oversized private terraces, Italian-crafted Snaidero kitchens, spa-style bathrooms, and integrated smart-home systems. Amenities are distributed across multiple levels: a 7th-floor family deck with pool, spa, fitness center, teen lounge, and children's play area, and a rooftop retreat with adult pool and jacuzzi, private dining, cigar lounge, nightclub, and panoramic views toward Palm Beach Island. Additional building features include wellness studios, a golf simulator, co-working spaces, indoor lounges, a gourmet resident market, full-time concierge and valet, UPLIN Health's in-home health services, and a building-wide emergency standby generator. Architecture is by Arquitectonica with interiors by founding principal Bernardo Fort-Brescia. The project is developed by Australian Property Group — led by Al Adelson, the developer behind The Bristol, the 2019 building widely credited with establishing West Palm Beach's modern luxury high-rise market — in partnership with Sympatico Real Estate, with exclusive sales by Douglas Elliman Development Marketing. Pricing runs from approximately $2 million to $10 million, with an average price of about $3.5 million, and the project has surpassed $100 million in pre-construction sales. Groundbreaking is anticipated for June 2026, with delivery targeted for 2028.",
+    "Delivery": "Opening Soon",
+    "DeliveryDate": "2028",
     "StartDate": "2026-06",
     "ProjectType": "Residences",
     "PreferredType": "Residences",
@@ -2266,7 +2266,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "1",
     "Price": "",
-    "UpdatedAt": "2026-06-05T22:44:01.386Z",
+    "UpdatedAt": "2026-06-07T23:38:46.456Z",
     "StatusHistory": [
       {
         "at": "2026-06-05T01:33:30.673Z",
@@ -2306,6 +2306,22 @@
         "field": "start_date",
         "from": "2024-12-11",
         "to": "2026-06"
+      },
+      {
+        "from": "announced",
+        "to": "breaking-ground",
+        "at": "2026-06-07T23:38:35.015Z",
+        "source_url": "https://floridayimby.com/2025/07/construction-moves-forward-on-the-berkeley-palm-beach-at-500-s-australian-avenue-in-west-palm-beach.html + PRWeb May 2026 \"$100M in sales\" release",
+        "note": "Correction to proposal 2026-06-07-002 — that one set status to \"coming-soon,\" which is wrong (that bucket is for projects about to deliver/open, not ones about to start vertical). The right status as of June 2026 is \"breaking-ground\": vertical groundbreaking was anticipated for June 2026 per PRWeb May 2026, so they're either breaking ground now or just have. Use this status, not the one in 2026-06-07-002.",
+        "via": "admin-edit-proposal"
+      },
+      {
+        "from": "breaking-ground",
+        "to": "coming-soon",
+        "at": "2026-06-07T23:38:46.456Z",
+        "source_url": "Primary: https://floridayimby.com/2025/07/construction-moves-forward-on-the-berkeley-palm-beach-at-500-s-australian-avenue-in-west-palm-beach.html (FloridaYIMBY, July 2025). Cross-referenced with: PRWeb \"$100M in sales\" release (~May 2026), FloridaYIMBY $62.5M loan article (Sept 2025), Homes.com (Nov 2025), BLDUP / Douglas Elliman Development Marketing partnership announcement (Dec 2025), citybiz (Sept 2025).",
+        "note": "Per Jake, refreshing the live Berkeley record with current 2026 info. Five fields to update: (1) status — \"Announced\" → \"coming-soon\" (vertical groundbreaking anticipated June 2026 per PRWeb May 2026); (2) start_date → \"2026-06\" (treat as speculative — see manual flag below); (3) delivery_date → \"2028\" (per Homes.com Nov 2025; PRWeb said 2029, but Homes.com 2028 is the more widely cited delivery); (4) short description — CURRENT version says \"designed by Al Adelson,\" which is factually incorrect (Adelson is the developer; Arquitectonica is the architect, with interiors by founding principal Bernardo Fort-Brescia) — proposed replacement corrects that and surfaces the four-penthouse and Fort-Brescia interiors detail; (5) description_long — fresh full descriptor with current 193-units / 4-penthouses / 2-5BR / $2M-$10M pricing / $100M+ in pre-sales / full amenity stack (family deck + rooftop with cigar lounge/nightclub, UPLIN in-home health, golf simulator, co-working, gourmet market, emergency generator) / Australian Property Group + Sympatico developer team / Douglas Elliman sales. Three follow-up manual touches I can't do via this tool: (a) flip start_speculative to TRUE — \"anticipated June 2026\" is not yet developer-confirmed groundbreaking, so the speculative flag should be on; (b) add Bernardo Fort-Brescia to the architects firm-registry slot as interior designer (live record currently lists Arquitectonica only); (c) update the address to \"550 S Australian Avenue\" (note: original FloridaYIMBY July 2025 piece used \"500\" but every source since — PRWeb $100M sales release, FloridaYIMBY Sept 2025, Homes.com, BLDUP, citybiz — uses 550, so that is canonical). Also: cleanup needed — there is a redundant draft 2026-06-07-001 (\"The Berkeley Palm Beach\") in the Drafts queue from earlier today that should be deleted; I created it before discovering propose_project_edit. Per brain rule: deliberately omitted construction-loan details ($62.5M JVP pre-construction loan Sept 2025 + $30M WPC US site-prep loan May 2025) from public descriptor; the $100M+ pre-construction sales milestone IS included as sales velocity, not lender financing.",
+        "via": "admin-edit-proposal"
       }
     ]
   },
@@ -3311,10 +3327,10 @@
     "Latitude": "26.70619",
     "Longitude": "-80.053088",
     "Description": "Hospitality‑focused hotel and residences, bringing the Mr. C brand’s European service to West Palm Beach for the first time.",
-    "DescriptionLong": "Hospitality‑focused hotel and residences, bringing the Mr. C brand’s European service to West Palm Beach for the first time.",
+    "DescriptionLong": "Mr. C Hotel & Residences West Palm Beach broke ground in August 2025 as the first Mr. C property in Palm Beach County, rising in the heart of downtown West Palm Beach as a 27-story tower combining 110 hotel suites and 146 branded condominium residences. Designed by Arquitectonica with interiors by Meyer Davis, the building draws on the Italian Riviera of the 1950s and the city's sailing culture, with refined finishes, expansive layouts, and large windows framing views of the Intracoastal Waterway and downtown skyline; select residences include corner exposures and generous terraces. The amenity program centers on a garden-level lap pool with private cabanas and a poolside bar and lounge, alongside a fitness center with dedicated rooms for yoga, pilates, and Peloton workouts, and a spa with steam and sauna facilities. Residents also share a library, business lounge, children's play area, curated art installations, and a private members' lounge, all supported by a custom Mr. C Hotel & Residences digital app for building services and concierge requests. The project is developed by Miami-based Terra in partnership with Sympatico Real Estate, with exclusive sales by Douglas Elliman Florida; pre-sales had crossed 70 percent at groundbreaking. The Mr. C brand was founded by the Cipriani family in 2011 with its first hotel in Beverly Hills, later expanding to New York, Miami, and Dubai, and West Palm Beach extends that European-inspired hospitality program into Palm Beach County for the first time.",
     "Delivery": "Under Construction",
     "DeliveryDate": "2027",
-    "StartDate": "2025-08-21",
+    "StartDate": "2025-08",
     "ProjectType": "Residences",
     "PreferredType": "Residences",
     "Architect": "Arquitectonica",
@@ -3338,7 +3354,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-06-06T19:55:59.175Z",
+    "UpdatedAt": "2026-06-07T23:38:53.612Z",
     "StatusHistory": [
       {
         "at": "2026-06-05T01:32:31.692Z",
@@ -3403,6 +3419,14 @@
         "type": "milestone",
         "phase": "going-vertical",
         "effective_date": "2026-05-12"
+      },
+      {
+        "from": "construction",
+        "to": "construction",
+        "at": "2026-06-07T23:38:53.612Z",
+        "source_url": "https://floridayimby.com/2025/08/terra-secures-285-million-construction-loan-and-breaks-ground-on-mr-c-hotel-residences-in-west-palm-beach.html",
+        "note": "Per Jake: live record currently shows \"going vertical May 12\" — that's incorrect. Mr. C actually broke ground in August 2025 (per Terra + Sympatico announcement Aug 22, 2025 with $285M construction loan from TYKO Capital). Updating start_date to \"2025-08\" and refreshing description_long with the correct groundbreaking language. Also surfacing additional facts since the original record: interiors by Meyer Davis (not previously credited), 110 hotel suites in addition to the 146 residences already on file, full amenity stack (lap pool with cabanas, fitness rooms for yoga/pilates/Peloton, spa, library, business lounge, kids area, art installations, members' lounge, custom app), Mr. C/Cipriani brand history (BH 2011 → NY → Miami → Dubai → WPB), and the 70%-presold-at-groundbreaking milestone. Two follow-up tweaks I can't do via this tool: (1) flip start_speculative from true to false (it's developer-committed, not a TMW estimate); (2) add keys=110 (residential units already = 146; project total is now 110 keys + 146 residences). Both worth a manual touch in admin. Per brain rule: omitted $285M construction loan from TYKO Capital + Aztec Group advisor from public-facing description.",
+        "via": "admin-edit-proposal"
       }
     ]
   },
@@ -10854,7 +10878,7 @@
     "Longitude": "-80.053679",
     "Description": "A transformation of a historic property into a private, members-driven social and hospitality destination.",
     "DescriptionLong": "A transformation of a historic property into a private, members-driven social and hospitality destination.",
-    "Delivery": "Under Construction",
+    "Delivery": "Opening Soon",
     "DeliveryDate": "2026-10",
     "StartDate": "",
     "ProjectType": "Hotel, Eateries",
@@ -10880,7 +10904,7 @@
     "DeliverySpeculative": "1",
     "DatesSpeculative": "1",
     "Price": "",
-    "UpdatedAt": "2026-06-06T16:57:40.057Z",
+    "UpdatedAt": "2026-06-07T23:39:27.941Z",
     "StatusHistory": [
       {
         "at": "2026-06-05T02:05:10.352Z",
@@ -10899,6 +10923,14 @@
         "field": "delivery_date",
         "from": "2026",
         "to": "2026-10"
+      },
+      {
+        "from": "construction",
+        "to": "coming-soon",
+        "at": "2026-06-07T23:39:27.941Z",
+        "source_url": "https://www.travelandtourworld.com/news/article/biba-social-club-in-west-palm-beach-faces-legal-hurdles-and-delays-pushing-back-highly-anticipated-opening-date/",
+        "note": "Now targeting a fall 2026 opening (within the coming-soon window), but repeatedly delayed from 2024 then 2025 amid legal/foreclosure disputes — flagging for review",
+        "via": "admin-approved"
       }
     ]
   },
@@ -17379,7 +17411,7 @@
     "Longitude": "-80.054216",
     "Description": "A multi-phase, 12-acre mixed-use waterfront redevelopment aimed at transforming the Broadway corridor into a premier tourist destination and residential hub.",
     "DescriptionLong": "A multi-phase, 12-acre mixed-use waterfront redevelopment aimed at transforming the Broadway corridor into a premier tourist destination and residential hub.",
-    "Delivery": "Breaking Ground",
+    "Delivery": "Under Construction",
     "DeliveryDate": "TBD",
     "StartDate": "2025-09-29",
     "ProjectType": "Residences, Hotel, Park, Marina, Entertainment, Eateries",
@@ -17405,7 +17437,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-06-05T21:31:31.083Z",
+    "UpdatedAt": "2026-06-07T23:39:00.699Z",
     "StatusHistory": [
       {
         "at": "2026-06-05T04:52:06.864Z",
@@ -17414,6 +17446,14 @@
         "note": "Groundbreaking Sept 29 2025 launched the $375M Marina Village redevelopment (Residences at Marina Village now rising) per Riviera Beach CRA/CBS12",
         "from": "announced",
         "to": "breaking-ground"
+      },
+      {
+        "from": "breaking-ground",
+        "to": "construction",
+        "at": "2026-06-07T23:39:00.699Z",
+        "source_url": "https://hoodline.com/2025/09/riviera-beach-breaks-ground-on-new-workforce-housing-development-palm-beach-county-invests-4-7m/",
+        "note": "Residences at Marina Village broke ground Sept 29, 2025; 8-story, 149-unit workforce building targeted for late-2026 completion — likely under construction now (no current site-progress source)",
+        "via": "admin-approved"
       }
     ]
   },
@@ -17852,7 +17892,7 @@
     "Longitude": "-74",
     "Description": "The second phase of New York's massive Far West Side development, adding more towers, cultural venues, and park space to Manhattan's newest neighborhood.",
     "DescriptionLong": "The second phase of New York's massive Far West Side development, adding more towers, cultural venues, and park space to Manhattan's newest neighborhood.",
-    "Delivery": "Breaking Ground",
+    "Delivery": "Under Construction",
     "DeliveryDate": "2032",
     "StartDate": "2025",
     "ProjectType": "Residences, Hotel, Park, Entertainment, Eateries",
@@ -17878,7 +17918,7 @@
     "DeliverySpeculative": "1",
     "DatesSpeculative": "1",
     "Price": "",
-    "UpdatedAt": "2026-06-05T21:31:39.991Z",
+    "UpdatedAt": "2026-06-07T23:39:11.715Z",
     "StatusHistory": [
       {
         "at": "2026-06-05T04:51:18.243Z",
@@ -17897,6 +17937,14 @@
         "field": "start_date",
         "from": "2027",
         "to": "2025"
+      },
+      {
+        "from": "breaking-ground",
+        "to": "construction",
+        "at": "2026-06-07T23:39:11.715Z",
+        "source_url": "https://www.multihousingnews.com/12b-plan-revealed-for-manhattans-hudson-yards/",
+        "note": "Construction of the Western Yard platform over the active LIRR rail yard reported underway since June 2025",
+        "via": "admin-approved"
       }
     ]
   },
@@ -23859,5 +23907,89 @@
     "Price": "",
     "UpdatedAt": "",
     "StatusHistory": []
+  },
+  {
+    "Title": "Ónix Delray Beach",
+    "Slug": "onix-delray-beach",
+    "City": "Delray Beach",
+    "Latitude": "26.455848",
+    "Longitude": "-80.068066",
+    "Description": "A boutique four-story condominium of just 26 residences three blocks from Atlantic Avenue, inspired by white onyx with interiors by Paris-based designer Tristan Auer.",
+    "DescriptionLong": "Ónix Delray Beach is a four-story boutique condominium of just 26 two- and three-bedroom residences rising at 318 SE 5th Avenue, three blocks from the heart of Atlantic Avenue in downtown Delray Beach. The roughly $50 million project takes its name and aesthetic cue from white onyx — a semi-precious stone prized for its soft iridescence and translucency — carried through the façade, lobby, and interior accents alongside fluted natural wood, glass balconies, and a contemporary palette of light tones and clean lines. Residences range from approximately 1,400 to 2,200 square feet across five floor plans (named for South Florida cities — Aventura, Boca Raton, Coral Gables, Palm Beach, and Delray Beach), with 10.5-foot ceilings, floor-to-ceiling impact windows and sliders, expansive glass-railed terraces, GE Monogram kitchens, and spa bathrooms with Porcelanosa tile. Architecture is by Arch 4 Design under principal Norberto Loianno, with interiors by Paris-based Tristan Auer — the celebrated French interior architect known for the Hotel de Crillon, Carlton Cannes, and Le Scribe Paris. Amenities include a pool with cabanas, summer kitchen, fire pit, clubroom, and fitness center, alongside roughly 5,000 square feet of ground-floor commercial space. Developed by 1112 Development Group (Mike Bokzam, Boca Raton-based) with general contractor Black Star Construction Group, and backed in part by Wellington-based investors August \"Gussie\" and Haley Busch, great-great-grandchildren of Anheuser-Busch co-founder Adolphus Busch. Vertical construction began in May 2025 with completion targeted for summer 2026.",
+    "Delivery": "Under Construction",
+    "DeliveryDate": "2026",
+    "StartDate": "2025-05",
+    "ProjectType": "Residences, Retail",
+    "PreferredType": "Residences",
+    "Architect": "Arch 4 Design, Tristan Auer",
+    "ArchitectSlugs": "arch-4-design, tristan-auer",
+    "Developer": "1112 Development Group, Black Star Construction Group",
+    "DeveloperSlugs": "1112-development-group, black-star-construction-group",
+    "Featured": "",
+    "OfficialWebsite": "",
+    "ImageURL": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_82fcc157297e4f78b56215a90d42a1d5~mv2.jpeg",
+    "Image2": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c8f8d1aeefc44b68a5052055f44c7aa8~mv2.jpeg",
+    "Image3": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_93e9da1dda654ebc8efcd6ff9e844596~mv2.jpeg",
+    "Image4": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_579da619ad86441c957478c8552217ef~mv2.jpeg",
+    "Image5": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_2a3d5c041c7141fab0ce7aa44fd6a62a~mv2.jpeg",
+    "Keys": "",
+    "Units": "26",
+    "Floors": "4",
+    "ConfigSummary": "",
+    "DeliveryPhases": "",
+    "IsDistrict": "",
+    "StartSpeculative": "",
+    "DeliverySpeculative": "",
+    "DatesSpeculative": "",
+    "Price": "",
+    "UpdatedAt": "",
+    "StatusHistory": []
+  },
+  {
+    "Title": "Four Seasons Hotel Sevilla",
+    "Slug": "four-seasons-hotel-sevilla",
+    "City": "Sevilla",
+    "Latitude": "37.3886108",
+    "Longitude": "-5.9951145",
+    "Description": "Four Seasons' debut hotel in Sevilla, a 55-room landmark conversion on Plaza Nueva in the Arenal Quarter, opening in 2028.",
+    "DescriptionLong": "Four Seasons Hotel Sevilla will occupy a landmark mid-20th-century building on Plaza Nueva in the city's Arenal Quarter, developed in partnership with Spanish real estate investment firm Blasson. The five-story hotel will offer approximately 55 guest rooms ranging from 430 to 1,260 square feet, including a Presidential Suite, with architecture led by Madrid-based Estudio Lamela and interiors by AD100 honoree Belén Domecq. Plans include three dining and gathering outlets — a street-level restaurant on Plaza Nueva, a rooftop restaurant and bar, and a ground-floor lounge — alongside a spa, fitness center and a rooftop swimming pool. The hotel builds on Four Seasons' existing properties in Madrid and Mallorca and is slated to open in 2028.",
+    "Delivery": "Announced",
+    "DeliveryDate": "2028",
+    "StartDate": "",
+    "ProjectType": "Hotel",
+    "PreferredType": "Hotel",
+    "Architect": "Estudio Lamela",
+    "ArchitectSlugs": "estudio-lamela",
+    "Developer": "Blasson",
+    "DeveloperSlugs": "blasson",
+    "Featured": "",
+    "OfficialWebsite": "https://press.fourseasons.com/news-releases/2026/new-four-seasons-in-sevilla/",
+    "ImageURL": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/473adf21196b-SEV_001_aspect16x9-gigapixel.jpeg",
+    "Image2": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/af102df379f3-pexels-javierbalseiro-22191978.jpg",
+    "Image3": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/16ed54d1b8fc-emilio-sanchez-hernandez.jpg",
+    "Image4": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/33575feb58d0-SEV_002_aspect16x9-gigapixel.jpeg",
+    "Image5": "",
+    "Keys": "",
+    "Units": "55",
+    "Floors": "5",
+    "ConfigSummary": "",
+    "DeliveryPhases": "",
+    "IsDistrict": "",
+    "StartSpeculative": "",
+    "DeliverySpeculative": "",
+    "DatesSpeculative": "",
+    "Price": "",
+    "UpdatedAt": "2026-06-07T23:43:36.093Z",
+    "StatusHistory": [
+      {
+        "at": "2026-06-07T23:43:36.093Z",
+        "from": "",
+        "to": "announced",
+        "via": "admin-manual",
+        "effective_date": "2026-06-04",
+        "source_url": "https://www.oftmw.com/post/four-seasons-announces-a-new-hotel-in-sevilla-opening-2028-on-plaza-nueva/",
+        "note": "Four Seasons announces a new hotel in Sevilla, opening 2028 on Plaza Nueva"
+      }
+    ]
   }
 ]
