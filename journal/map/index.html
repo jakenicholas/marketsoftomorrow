@@ -8635,14 +8635,21 @@
       /* Fly-to-pin toggle removed from the mobile drawer (fly stays on by default). */
       body.ui-v2 #v2FlyToToggle { display: none !important; }
       /* Back-to-map pill in the drawer search bar. */
+      /* Floating "Back to map" pill: pinned to the drawer (position:absolute
+         relative to .v2-sheet), bottom-right, stays put while the project list
+         scrolls. Gray (not black) so it reads as a control, not a void. */
       body.ui-v2 .v2-map-pill {
-        display: inline-flex; align-items: center; gap: 5px; flex: 0 0 auto;
-        margin-left: 6px; padding: 6px 11px; border-radius: 999px;
-        background: rgba(0,0,0,0.55); border: 1px solid rgba(255,255,255,0.16);
-        color: #fff; font-size: 12.5px; font-weight: 600; cursor: pointer; white-space: nowrap;
+        position: absolute; z-index: 30;
+        right: 16px; bottom: calc(env(safe-area-inset-bottom, 0px) + 18px);
+        display: inline-flex; align-items: center; gap: 6px; flex: 0 0 auto;
+        padding: 9px 15px; border-radius: 999px;
+        background: rgba(92,94,98,0.94); border: 1px solid rgba(255,255,255,0.20);
+        color: #fff; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.38);
+        -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
       }
-      body.ui-v2 .v2-map-pill svg { width: 15px; height: 15px; flex: 0 0 auto; }
-      body.ui-v2 .v2-map-pill:active { background: rgba(0,0,0,0.78); }
+      body.ui-v2 .v2-map-pill svg { width: 16px; height: 16px; flex: 0 0 auto; }
+      body.ui-v2 .v2-map-pill:active { background: rgba(72,74,78,0.98); }
     }
 
     /* Ask TMW pill attached to the bottom-center journal dock on the map.
@@ -12115,13 +12122,15 @@
                from mobile; one affordance per surface is enough. -->
           <span class="v2-results-divider"></span>
           <span class="v2-results-count" id="v2SearchResults">‚Äî results</span>
-          <!-- Back-to-map pill: dark pill, white globe + "Map". Pinned in the
-               search bar; tapping closes the drawer back to the full map. -->
-          <button class="v2-map-pill" id="v2MapPill" type="button" aria-label="Back to map">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a15 15 0 0 1 0 18"/><path d="M12 3a15 15 0 0 0 0 18"/></svg>
-            <span>Map</span>
-          </button>
         </div>
+
+        <!-- Back-to-map pill: floating + pinned to the drawer (bottom-right),
+             stays put as the project list scrolls. White globe + "Map";
+             tapping closes the drawer back to the full map. -->
+        <button class="v2-map-pill" id="v2MapPill" type="button" aria-label="Back to map">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a15 15 0 0 1 0 18"/><path d="M12 3a15 15 0 0 0 0 18"/></svg>
+          <span>Map</span>
+        </button>
 
         <!-- Segmented tabs -->
         <div class="v2-segmented" role="tablist">
