@@ -1944,6 +1944,30 @@
 
   // ── open / close ──────────────────────────────────────────────────
   var _savedScrollY = 0;
+  // URL hash we push while the spotlight is open. Lets the Studio analytics
+  // distinguish "user is reading /post/abc/" from "user is searching from
+  // /post/abc/" — heartbeat reports the hash, so the activity feed shows
+  // "/post/abc/#search" while the lightbox is up. Also gives a deep-link
+  // affordance: visiting any-page#search auto-opens the spotlight.
+  var TMW_HASH = '#search';
+  function pushHash(){
+    try {
+      if (location.hash === TMW_HASH) return;
+      var url = location.pathname + location.search + TMW_HASH;
+      history.pushState({ tmwOv: true }, '', url);
+    } catch(_){}
+  }
+  function popHash(){
+    try {
+      // Only undo if we're the ones who pushed it (history.state set above).
+      // Avoids stepping on a user's own hash if they navigated here manually.
+      if (location.hash === TMW_HASH && history.state && history.state.tmwOv){
+        history.back();
+      } else if (location.hash === TMW_HASH){
+        history.replaceState(null, '', location.pathname + location.search);
+      }
+    } catch(_){}
+  }
   function open(initialQuery){
     if (root.classList.contains('open')) return;
     _savedScrollY = window.scrollY || window.pageYOffset || 0;
@@ -1965,6 +1989,11 @@
     setTimeout(function(){ try { input.focus({ preventScroll:true }); } catch(_){ input.focus(); } }, 180);
     // Kick off data load now so by the time they type results are ready
     loadData();
+    // Update the URL so the Studio sees this user is in the spotlight, then
+    // fire a heartbeat ping right away so the activity feed updates without
+    // waiting for the 60s interval.
+    pushHash();
+    try { if (window.__tmwPing) window.__tmwPing(); } catch(_){}
   }
   function close(){
     if (!root.classList.contains('open')) return;
@@ -1984,6 +2013,26 @@
       _articlesShown = 0;
       _renderToken++;
     }, 320);
+    // Roll back the URL + ping so the activity feed flips back to the page
+    // the user came from.
+    popHash();
+    try { if (window.__tmwPing) window.__tmwPing(); } catch(_){}
+  }
+
+  // Back-button / hashchange handling: if the user presses Back while the
+  // spotlight is open, treat it as "close the spotlight" rather than
+  // navigating off the page. Same for any explicit hash flip away from
+  // #search (e.g. clicking an in-page anchor while overlay is up).
+  window.addEventListener('popstate', function(){
+    if (root.classList.contains('open') && location.hash !== TMW_HASH){
+      close();
+    }
+  });
+  // Deep link: if the page loads with #search already in the URL (someone
+  // shared a spotlight link), open the lightbox automatically once the
+  // module is mounted.
+  if (location.hash === TMW_HASH){
+    setTimeout(function(){ open(''); }, 0);
   }
 
   scrim.addEventListener('click', close);

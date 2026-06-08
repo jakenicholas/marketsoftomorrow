@@ -110,8 +110,14 @@
           // member-track.js sets window.__tmwMember once it resolves the logged-in
           // member, so the "reading now" feed can show a name instead of anon.
           var mem = window.__tmwMember || null;
+          // Path includes location.hash so the Studio's activity feed shows
+          // "/post/abc/#search" while the spotlight lightbox is up (vs
+          // "/post/abc/" while the user is reading the page). The overlay
+          // pushes #search on open and rolls it back on close, then calls
+          // __tmwPing() to flush an immediate heartbeat -- no waiting for
+          // the 60s interval to reflect the state change.
           var p = JSON.stringify({
-            sid: sid, path: location.pathname, title: (document.title || '').slice(0, 200),
+            sid: sid, path: location.pathname + location.hash, title: (document.title || '').slice(0, 200),
             member_id: (mem && mem.id) || null, member_name: (mem && mem.name) || null,
           });
           if (navigator.sendBeacon) navigator.sendBeacon(PING, p);
@@ -240,7 +246,7 @@
           member_id: (m && m.id) || ('anon:' + this._did()),
           member_name: (m && m.name) || null,
           plan: this.isPro() ? 'paid' : (m ? 'free' : 'anon'),
-          event_name: 'search', path: location.pathname,
+          event_name: 'search', path: location.pathname + location.hash,
           referrer: document.referrer || null,
           client_ts: Math.floor(Date.now() / 1000),
           props: Object.assign({ q: String(q || '').slice(0, 200), search_location: 'nav_bar' }, extra || {}),
