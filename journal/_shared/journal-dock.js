@@ -929,6 +929,22 @@
     loadAuth();
     linkifyArticle();
     loadProjectCards();
+    loadSearchOverlay();
+  }
+
+  // Lazy-load the universal search & Intelligence overlay. Self-contained
+  // module that mounts a bottom-pinned purple search lightbox available
+  // on every journal page via "/" hotkey or [data-tmw-overlay] elements.
+  // Deliberately does NOT touch the dock's existing search input/AC —
+  // both surfaces coexist (dock = quick autocomplete + submit, overlay =
+  // immersive search + handoff to /search/ Intelligence).
+  function loadSearchOverlay() {
+    if (document.querySelector('script[data-tmw-search-overlay]')) return;
+    var s = document.createElement('script');
+    s.src = '/_shared/journal-search-overlay.js';
+    s.defer = true;
+    s.setAttribute('data-tmw-search-overlay', '1');
+    document.head.appendChild(s);
   }
 
   // Render inline project cards (journal ↔ database bridge). Only loads the
