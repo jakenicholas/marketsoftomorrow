@@ -18395,24 +18395,12 @@
         catch (e) { return 'anon'; }
       }
       function setAuthHint(hint) {
+        // Map-local cache only (used by seedFromCache to gate the paywall during the
+        // load window). The shared Intelligence quota signals — window._isPaidMember
+        // and localStorage.tmw_auth_state — are now owned SOLELY by journal-auth.js
+        // (window.tmwAuth / publishAuth), so the map no longer bridges them here. Its
+        // persisted tmw_auth_state covers the early-load window for returning members.
         try { localStorage.setItem(AUTH_HINT_KEY, hint); } catch (e) {}
-        bridgeIntelPro(hint);
-      }
-      // Bridge the map's auth hint into the three signals tmwIntel.isPro() reads
-      // (journal-dock.js): window._isPaidMember, window.__tmwMember.plan, and the
-      // 'tmw_auth_state' localStorage key. The map's own refreshMemberStatus only
-      // sets _isPaidMember AFTER a long await chain (favorites/comparisons hydrate),
-      // so without this a paid member is briefly treated as free on the map — and
-      // if they'd already used their 10 free Intelligence queries elsewhere, the
-      // shared overlay locks them out. setAuthHint('paid') fires right after the
-      // plan check, well before that await chain, so isPro() is correct immediately.
-      function bridgeIntelPro(hint) {
-        try {
-          var paid = hint === 'paid', signedIn = paid || hint === 'free';
-          window._isPaidMember = paid;
-          window.__tmwMember = { plan: paid ? 'paid' : (signedIn ? 'free' : 'anon') };
-          localStorage.setItem('tmw_auth_state', paid ? 'pro' : (signedIn ? 'in' : 'out'));
-        } catch (e) {}
       }
       function getCachedMemberCount() {
         return parseInt(localStorage.getItem(MEMBER_COUNT_CACHE_KEY) || '0', 10) || 0;
@@ -18435,13 +18423,11 @@
           isSignedIn = true;
           isPaidMember = true;
           window._memberstackSignedIn = true;
-          bridgeIntelPro('paid');   // unlock Intelligence instantly for a returning Pro
         } else if (hint === 'free') {
           isSignedIn = true;
           isPaidMember = false;
           window._memberstackSignedIn = true;
           memberClickCount = getCachedMemberCount();
-          bridgeIntelPro('free');
         }
         // hint 'anon' is the DEFAULT (unknown), not a confirmed sign-out — don't
         // downgrade tmwIntel state here, or we'd clobber a Pro flag set by
