@@ -8549,6 +8549,43 @@
     }
     body.ui-v2 .v2-capsule .v2-ask-tmw-btn .label { display: none; }
 
+    /* MAP-ONLY: kill the dock\'s built-in "Ask TMW" pulse animation -- the
+       new dock-ask-tmw-btn sibling (injected by the IIFE below) is now
+       the permanent, always-clickable Ask TMW affordance, so we don\'t
+       need the search bar pulsing the SAME label on its own 8s loop
+       too (it would just look like two competing Ask TMW prompts).
+
+       What gets killed:
+         .ds-ask-pill      purple grow capsule
+         .ds-ask-text      "Ask TMW" reveal text
+         .ds-ask-dots      caterpillar dots inside the search bar
+         .ds-hex-spinner   hex-spin morph on the search icon
+         .ds-hex-core      hex outline that fades in
+         .ds-ph fade       placeholder fade on the 8s loop
+       What\'s LEFT in the search bar: just the static search-icon
+       (circle + wand) and the always-visible placeholder text. */
+    .tmw-dock-search .ds-ask-pill,
+    .tmw-dock-search .ds-ask-text,
+    .tmw-dock-search .ds-ask-dots {
+      display: none !important;
+    }
+    .tmw-dock-search .ds-hex-spinner,
+    .tmw-dock-search .ds-hex-core,
+    .tmw-dock-search .ds-search-icon,
+    .tmw-dock-search .ds-search-circle,
+    .tmw-dock-search .ds-search-wand,
+    .tmw-dock-search .ds-ph {
+      animation: none !important;
+    }
+    .tmw-dock-search .ds-hex-core { opacity: 0 !important; }
+    .tmw-dock-search .ds-search-circle,
+    .tmw-dock-search .ds-search-wand {
+      opacity: 1 !important;
+      stroke: #9AA39C !important;
+      stroke-dashoffset: 0 !important;
+    }
+    .tmw-dock-search .ds-ph { opacity: 1 !important; }
+
     /* Ask TMW pill attached to the bottom-center journal dock on the map.
        Visual treatment COPIED VERBATIM from journal-dock.js's existing
        .ds-ask-pill + .ds-ask-text rules so this button looks like the
@@ -12623,7 +12660,20 @@
     // spotlight (window.tmwOverlay.open) with whatever the user has
     // already typed.
     (function(){
-      var SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:14px;height:14px;display:block;flex:0 0 auto"><polygon points="12,3 21,8.5 21,15.5 12,21 3,15.5 3,8.5"/></svg>';
+      // Hex icon: uses the EXACT same polygon coords as journal-dock.js\'s
+      // .ds-hex-core (points="12,4 18.93,8 18.93,16 12,20 5.07,16 5.07,8")
+      // so the silhouette matches the pulse animation\'s hex 1:1.
+      var SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="#A78BFA" stroke-width="1.7" style="width:14px;height:14px;display:block;flex:0 0 auto"><polygon points="12,4 18.93,8 18.93,16 12,20 5.07,16 5.07,8" stroke-linejoin="round"/></svg>';
+      // Three caterpillar dots reusing journal-dock.js\'s @keyframes ds-dot-wave
+      // (already loaded into the document by the dock\'s injected stylesheet,
+      // so referencing it by name here just works -- same 1.1s wave, same
+      // 5px size, same staggered .16s / .32s animation-delay pattern).
+      var DOT_STYLE = 'width:5px;height:5px;background:rgba(255,255,255,.85);border-radius:50%;box-shadow:0 0 6px rgba(167,139,250,.55);animation:ds-dot-wave 1.1s ease-in-out infinite;display:inline-block';
+      var DOTS = '<span style="display:inline-flex;align-items:center;gap:4px;margin-left:2px;flex:0 0 auto">' +
+        '<span style="' + DOT_STYLE + '"></span>' +
+        '<span style="' + DOT_STYLE + ';animation-delay:.16s"></span>' +
+        '<span style="' + DOT_STYLE + ';animation-delay:.32s"></span>' +
+      '</span>';
       // Inline styles win against EVERYTHING (including journal-dock.js\'s
       // runtime-injected stylesheet + browser UA button defaults) without
       // needing !important wars. Verbatim copy of the existing .ds-ask-pill
@@ -12663,7 +12713,7 @@
         btn.className = 'dock-ask-tmw-btn';
         btn.setAttribute('aria-label', 'Ask TMW Intelligence');
         btn.style.cssText = BTN_CSS;
-        btn.innerHTML = SVG + '<span class="label" style="display:inline">Ask TMW</span>';
+        btn.innerHTML = SVG + '<span class="label" style="display:inline">Ask TMW</span>' + DOTS;
         btn.addEventListener('mouseenter', function(){
           btn.style.background = 'rgba(167,139,250,.22)';
           btn.style.borderColor = 'rgba(167,139,250,.75)';
