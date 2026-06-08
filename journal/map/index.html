@@ -8548,6 +8548,47 @@
       padding: 0 9px;
     }
     body.ui-v2 .v2-capsule .v2-ask-tmw-btn .label { display: none; }
+
+    /* DESKTOP sidebar version -- lives in the .v2-sheet-right slot next
+       to the "Fly to pin" toggle, rendered by updateDesktopTitle() on
+       every tab. Same purple Intelligence aesthetic as the mobile
+       v2-ask-tmw-btn but sized for the desktop header (32px tall,
+       slightly bigger type). Click reads whatever the user typed in
+       the desktop sidebar's search bar (if any) and opens the
+       spotlight overlay with that text pre-filled. */
+    body.ui-v2 .desktop-ask-tmw-btn {
+      display: inline-flex;
+      align-items: center; justify-content: center;
+      gap: 7px;
+      background: rgba(167,139,250,0.12);
+      border: 1px solid rgba(167,139,250,0.35);
+      border-radius: 999px;
+      padding: 0 13px;
+      height: 32px;
+      flex-shrink: 0;
+      cursor: pointer;
+      color: #C2A8FF;
+      font-family: inherit;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      line-height: 1;
+      transition: background 0.15s, border-color 0.15s, color 0.15s, transform 0.15s;
+      box-shadow: 0 0 14px rgba(167,139,250,0.20);
+      margin-right: 8px;
+    }
+    body.ui-v2 .desktop-ask-tmw-btn:hover {
+      background: rgba(167,139,250,0.22);
+      border-color: rgba(167,139,250,0.6);
+      color: #fff;
+      transform: translateY(-1px);
+      box-shadow: 0 0 20px rgba(167,139,250,0.35);
+    }
+    body.ui-v2 .desktop-ask-tmw-btn svg {
+      width: 14px; height: 14px;
+      stroke: currentColor; fill: none;
+    }
     body.ui-v2 .v2-filter-btn .badge-icon svg {
       width: 15px; height: 15px;
       stroke: rgba(255,255,255,0.7); fill: none; stroke-width: 1.8;
@@ -23526,12 +23567,23 @@
         }
         if (ttl) ttl.textContent = DESKTOP_TITLES[target] || 'Discover';
         if (!right) return;
+        // Always-visible purple "Ask TMW" pill -- prepended to the right
+        // slot on every desktop sidebar tab so users have a discoverable
+        // entry to the Intelligence spotlight. The sidebar's own search
+        // (when expanded) stays the spatial Explore tool; this pill
+        // opens window.tmwOverlay.open() in parallel.
+        var askTmwHtml = `
+          <button class="desktop-ask-tmw-btn" id="desktopAskTmwBtn" type="button" aria-label="Ask TMW Intelligence">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="12,3 21,8.5 21,15.5 12,21 3,15.5 3,8.5"/></svg>
+            <span>Ask TMW</span>
+          </button>
+        `;
         if (target === 'discover') {
           // "Fly to pin" glow switch replaces the old in-view indicator.
           // Same markup as the mobile button (id="v2DFlyToToggle" so we
           // can distinguish from the mobile one); JS init wires both
           // surfaces to the shared localStorage flag.
-          right.innerHTML = `
+          right.innerHTML = askTmwHtml + `
             <button class="v2-flyto-toggle" id="v2DFlyToToggle" type="button"
                     aria-pressed="true" aria-label="Toggle fly to pin">
               <span class="v2-flyto-label">Fly to pin</span>
@@ -23541,9 +23593,25 @@
             </button>
           `;
         } else if (target === 'watchlist') {
-          right.innerHTML = `<span class="v2-sheet-sub">${getDesktopWatchlistSubtitle()}</span>`;
+          right.innerHTML = askTmwHtml + `<span class="v2-sheet-sub">${getDesktopWatchlistSubtitle()}</span>`;
         } else if (target === 'pulse') {
-          right.innerHTML = `<span class="v2-sheet-sub">${getDesktopPulseSubtitle()}</span>`;
+          right.innerHTML = askTmwHtml + `<span class="v2-sheet-sub">${getDesktopPulseSubtitle()}</span>`;
+        }
+        // Wire the button after innerHTML replaces it. Delegate via
+        // closest() so reflows from updateDesktopTitle's MutationObserver
+        // don't drop the listener.
+        var askBtn = right.querySelector('#desktopAskTmwBtn');
+        if (askBtn) {
+          askBtn.addEventListener('click', function(e){
+            e.preventDefault(); e.stopPropagation();
+            // Carry over whatever is in the desktop sidebar's search input
+            // (if visible / has value) -- otherwise just open empty.
+            var sb = document.getElementById('sidebarSearchBar');
+            var q = (sb && sb.value || '').trim();
+            if (window.tmwOverlay && typeof window.tmwOverlay.open === 'function') {
+              window.tmwOverlay.open(q);
+            }
+          });
         }
       }
       window._v2RefreshDesktopTitle = updateDesktopTitle;
