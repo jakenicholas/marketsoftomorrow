@@ -1412,17 +1412,30 @@
     var panelHtml = renderSmartIntelPanel(ans);
     slotIntel.innerHTML = chipsHtml + panelHtml;
 
-    // No hero in the smart layout — the intel panel IS the hero.
-    slotHero.innerHTML = '';
+    // Promote the top smart-filtered project to a hero card -- same rich
+    // /search/-style layout the text-match path uses (timeline, specs,
+    // byline, Learn more / Visit site CTAs). The smart rows section
+    // below skips this hero so the same project doesn't render twice.
+    // When there's only one match (e.g. "pine crest school"), the hero
+    // IS the result -- the rows section gets hidden so we don't show
+    // an awkward empty "0 projects" header.
+    var heroProject = rows.length ? rows[0] : null;
+    var restRows = rows.length > 1 ? rows.slice(1) : [];
+    if (heroProject) {
+      slotHero.innerHTML = '<div class="tmw-ov-sec">' + renderProjectHero(heroProject) + '</div>';
+    } else {
+      slotHero.innerHTML = '';
+    }
 
-    if (rows.length){
+    if (restRows.length){
       var maxMetric = 1;
-      if (s.sort && s.sort.key === 'floors') maxMetric = Math.max.apply(null, rows.map(Core.floorsOf).concat([1]));
-      else if (s.sort && s.sort.key === 'units') maxMetric = Math.max.apply(null, rows.map(Core.unitsOf).concat([1]));
+      if (s.sort && s.sort.key === 'floors') maxMetric = Math.max.apply(null, restRows.map(Core.floorsOf).concat([1]));
+      else if (s.sort && s.sort.key === 'units') maxMetric = Math.max.apply(null, restRows.map(Core.unitsOf).concat([1]));
       var SMART_CAP = 40;
-      var shown = rows.slice(0, SMART_CAP);
-      var rowsHtml = shown.map(function(p, i){ return renderSmartRow(p, i + 1, s, maxMetric); }).join('');
-      var foot = (rows.length > SMART_CAP)
+      var shown = restRows.slice(0, SMART_CAP);
+      // Ranks start at 2 since rank 1 is the hero card above.
+      var rowsHtml = shown.map(function(p, i){ return renderSmartRow(p, i + 2, s, maxMetric); }).join('');
+      var foot = (restRows.length > SMART_CAP)
         ? '<div class="tmw-ov-smart-foot">Showing top '+SMART_CAP+' of '+rows.length+' — refine your question to narrow it.</div>'
         : '';
       foot += '<div class="tmw-ov-smart-foot"><span class="ai">TMW Intelligence</span> · answer synthesized from the project database · figures verified, not generated</div>';
