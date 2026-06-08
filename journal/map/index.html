@@ -26042,8 +26042,40 @@
        there's exactly ONE go-pro button, and route the shared pill's click into
        the map's existing paywall (the map doesn't define window.tmwShowPaywall,
        so without this the shared pill would be a no-op here). -->
-  <style>body.ui-v2 #v2GoProBtn{display:none !important}</style>
+  <style>body.ui-v2 #v2GoProBtn{display:none !important}
+    /* Profile-menu unification: retire the map's LEGACY profile button + dropdown
+       (the logo in .v2-tmw-profile-widget stays). The shared journal-auth widget
+       is the single profile control; its menu carries the map's Watchlist/Compare
+       via window.tmwAuth.addMenuItem (registered below). The hidden #v2ProfileMenu
+       stays in the DOM so its already-wired handlers can be delegated to. */
+    body.ui-v2 #v2ProfileBtn,
+    body.ui-v2 #v2ProfileMenu,
+    body.ui-v2 .v2-tmw-profile-widget .v2-widget-divider { display:none !important }</style>
   <script>window.tmwShowPaywall=function(src){if(typeof window.showSubscriptionPaywall==='function'){window.showSubscriptionPaywall(src||'upgrade:badge');}};</script>
+  <script>
+    // Inject the map-specific Watchlist + Comparisons items into the ONE shared
+    // profile dropdown (journal-auth's window.tmwAuth.addMenuItem). onClick
+    // delegates to the existing (now-hidden) map menu buttons so their wired
+    // handlers are reused unchanged. Retries until journal-auth (deferred) loads.
+    (function registerMapMenuItems(tries){
+      tries = tries || 0;
+      if (!(window.tmwAuth && typeof window.tmwAuth.addMenuItem === 'function')) {
+        if (tries < 80) setTimeout(function(){ registerMapMenuItems(tries + 1); }, 100);
+        return;
+      }
+      var click = function(id){ var el = document.getElementById(id); if (el) el.click(); };
+      window.tmwAuth.addMenuItem({
+        id: 'map-watchlist', label: 'Watchlist',
+        icon: '<svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>',
+        onClick: function(){ click('v2MenuWatchlist'); }
+      });
+      window.tmwAuth.addMenuItem({
+        id: 'map-compare', label: 'Comparisons',
+        icon: '<svg viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h12"/></svg>',
+        onClick: function(){ click('v2MenuCompare'); }
+      });
+    })();
+  </script>
   <script src="https://www.oftmw.com/_shared/tmw-auth-modal.js" defer data-tmw-authui-loader></script>
   <script data-tmw-paywall-loader></script>
   <script src="/_shared/journal-auth.js" defer data-tmw-auth-loader></script>
