@@ -18394,6 +18394,23 @@
       }
       function setAuthHint(hint) {
         try { localStorage.setItem(AUTH_HINT_KEY, hint); } catch (e) {}
+        bridgeIntelPro(hint);
+      }
+      // Bridge the map's auth hint into the three signals tmwIntel.isPro() reads
+      // (journal-dock.js): window._isPaidMember, window.__tmwMember.plan, and the
+      // 'tmw_auth_state' localStorage key. The map's own refreshMemberStatus only
+      // sets _isPaidMember AFTER a long await chain (favorites/comparisons hydrate),
+      // so without this a paid member is briefly treated as free on the map — and
+      // if they'd already used their 10 free Intelligence queries elsewhere, the
+      // shared overlay locks them out. setAuthHint('paid') fires right after the
+      // plan check, well before that await chain, so isPro() is correct immediately.
+      function bridgeIntelPro(hint) {
+        try {
+          var paid = hint === 'paid', signedIn = paid || hint === 'free';
+          window._isPaidMember = paid;
+          window.__tmwMember = { plan: paid ? 'paid' : (signedIn ? 'free' : 'anon') };
+          localStorage.setItem('tmw_auth_state', paid ? 'pro' : (signedIn ? 'in' : 'out'));
+        } catch (e) {}
       }
       function getCachedMemberCount() {
         return parseInt(localStorage.getItem(MEMBER_COUNT_CACHE_KEY) || '0', 10) || 0;
@@ -18416,12 +18433,17 @@
           isSignedIn = true;
           isPaidMember = true;
           window._memberstackSignedIn = true;
+          bridgeIntelPro('paid');   // unlock Intelligence instantly for a returning Pro
         } else if (hint === 'free') {
           isSignedIn = true;
           isPaidMember = false;
           window._memberstackSignedIn = true;
           memberClickCount = getCachedMemberCount();
+          bridgeIntelPro('free');
         }
+        // hint 'anon' is the DEFAULT (unknown), not a confirmed sign-out — don't
+        // downgrade tmwIntel state here, or we'd clobber a Pro flag set by
+        // journal-auth.js on a prior page. refreshMemberStatus resolves it.
       })();
 
       // ‚îÄ‚îÄ‚îÄ Member click counter (server-side via Memberstack) ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
@@ -19208,6 +19230,11 @@
             //   - paid users: live dot + Cancel Plan link to Stripe portal
             //   - non-paid users: Subscribe CTA opens our paywall
             //   - both: lets them edit email / change password
+            // Prefer the custom TMW account modal — same as the rest of the site
+            // (edit profile, Manage plan → Stripe portal for paid / Go Pro → for
+            // free, log out). Fall back to Memberstack's native PROFILE modal only
+            // if the custom UI didn't load.
+            if (typeof window.tmwAuthModal === 'function') { window.tmwAuthModal('profile'); return; }
             const ms = window.$memberstackDom;
             if (!ms) { console.warn('[Account] Memberstack not loaded'); return; }
             try {
@@ -24974,6 +25001,8 @@
         // visually (display:none), but Memberstack v2 exposes a
         // programmatic API we can call directly.
         try {
+          // Prefer the custom TMW account modal (same as the rest of the site).
+          if (typeof window.tmwAuthModal === 'function') { window.tmwAuthModal('profile'); return; }
           if (window.$memberstackDom && window.$memberstackDom.openModal) {
             window.$memberstackDom.openModal('PROFILE');
             return;
@@ -25980,15 +26009,20 @@
   <!-- double-load. The data-tmw-auth-loader marker matches the dock's    -->
   <!-- guard selector exactly. -->
   <!--                                                                    -->
-  <!-- The dock also injects two journal-article-only scripts relative:   -->
-  <!-- tmw-auth-modal.js (custom login/signup UI) and journal-paywall.js  -->
-  <!-- (Go Pro paywall). Both would 404 on map.oftmw.com, and the map     -->
-  <!-- already has its OWN Memberstack login/signup modals + paywall      -->
-  <!-- flow. journal-auth.js gracefully falls back to Memberstack's own   -->
-  <!-- openModal() when window.tmwAuthModal is absent, so account/Join    -->
-  <!-- still works. We pre-seed the dock's guard markers below (no src,   -->
-  <!-- so no request, no 404) to suppress those relative injections and   -->
-  <!-- keep the map's existing auth modals untouched. -->
+  <!-- The dock would otherwise inject two scripts with a RELATIVE src:     -->
+  <!-- tmw-auth-modal.js (custom login/signup UI) and journal-paywall.js    -->
+  <!-- (Go Pro paywall) — both of which could 404 on map.oftmw.com.         -->
+  <!--                                                                      -->
+  <!-- AUTH MODAL: we now load tmw-auth-modal.js explicitly from the        -->
+  <!-- ABSOLUTE www origin (works on both www/map hosts, no 404) so the     -->
+  <!-- map uses the SAME custom TMW login/signup modal as the rest of the   -->
+  <!-- site. Without it, journal-auth.js fell back to Memberstack's native  -->
+  <!-- openModal(). The data-tmw-authui-loader attr also satisfies the      -->
+  <!-- dock's guard selector so it won't double-inject the relative copy.   -->
+  <!--                                                                      -->
+  <!-- PAYWALL: still suppressed (empty guard marker, no src/request) — the -->
+  <!-- map has its OWN paywall flow (window.showSubscriptionPaywall, wired  -->
+  <!-- to tmwShowPaywall below). -->
   <!-- The shared journal-auth.js renders the GO PRO pill in the header (same as
        every other page). Retire the map's legacy corner-pinned #v2GoProBtn so
        there's exactly ONE go-pro button, and route the shared pill's click into
@@ -25996,7 +26030,7 @@
        so without this the shared pill would be a no-op here). -->
   <style>body.ui-v2 #v2GoProBtn{display:none !important}</style>
   <script>window.tmwShowPaywall=function(src){if(typeof window.showSubscriptionPaywall==='function'){window.showSubscriptionPaywall(src||'upgrade:badge');}};</script>
-  <script data-tmw-authui-loader></script>
+  <script src="https://www.oftmw.com/_shared/tmw-auth-modal.js" defer data-tmw-authui-loader></script>
   <script data-tmw-paywall-loader></script>
   <script src="/_shared/journal-auth.js" defer data-tmw-auth-loader></script>
   <script src="/_shared/journal-chrome.js" defer></script>
