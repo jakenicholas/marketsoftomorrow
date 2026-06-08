@@ -14454,8 +14454,10 @@
 
       // ‚îÄ‚îÄ‚îÄ TMW Intelligence: intel.json loader ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
       // intel.json shape: { generated_at, projects: { slug: {...} }, stats }
-      // Lazily loaded once per session, cached. Exposed via window.tmwIntel
-      // so the map popup builder (which runs in a different scope) can use it.
+      // Lazily loaded once per session, cached. Exposed via window.tmwProjectIntel
+      // (NOT window.tmwIntel — that's the dock's Intelligence quota/gating object;
+      // reusing the name clobbered isPro/allowed and locked Pro users out) so the
+      // map popup builder (which runs in a different scope) can use it.
       let intelData = null;
       let intelPromise = null;
 
@@ -14468,12 +14470,12 @@
             intelData = (data && data.projects && typeof data.projects === 'object')
               ? data.projects
               : {};
-            window.tmwIntel = intelData;
+            window.tmwProjectIntel = intelData;
             return intelData;
           })
           .catch(() => {
             intelData = {};
-            window.tmwIntel = intelData;
+            window.tmwProjectIntel = intelData;
             return intelData;
           });
         return intelPromise;
@@ -25131,7 +25133,7 @@
         ].filter(Boolean);
         if (!grids.length) return;
         const features = window.allProjectFeatures || [];
-        const intel = window.tmwIntel || {};
+        const intel = window.tmwProjectIntel || {};
         const tiles = grids.flatMap(g => Array.from(g.querySelectorAll('.grid-item')));
         tiles.forEach(tile => {
           if (tile.dataset.v2Decorated === '1') return;
