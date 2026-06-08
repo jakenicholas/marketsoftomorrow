@@ -65,6 +65,14 @@
 
     + '.tmw-ov-scrim{position:absolute;inset:0;background:rgba(7,8,7,.82);'
     + '-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}'
+    /* On the /map/ surface the scrim sits over a LIVE Mapbox WebGL canvas that
+       keeps repainting (pulsing pins/glows). A full-screen backdrop blur over a
+       constantly-changing canvas is re-composited every frame — that's the lag
+       on open + scroll the spotlight only has on the map. Drop the blur there and
+       lean on a near-opaque fill instead (the map behind doesn't need to show
+       through a search lightbox). Other surfaces keep the blurred glass look. */
+    + 'html.tmw-surf-map .tmw-ov-scrim{-webkit-backdrop-filter:none;backdrop-filter:none;background:rgba(6,7,6,.97)}'
+    + 'html.tmw-surf-map .tmw-ov-close{-webkit-backdrop-filter:none;backdrop-filter:none}'
 
     + '.tmw-ov-lb{position:absolute;inset:0;display:flex;flex-direction:column}'
 
