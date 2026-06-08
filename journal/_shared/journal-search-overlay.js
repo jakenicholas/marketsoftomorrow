@@ -141,6 +141,7 @@
     + 'font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:rgba(255,255,255,.32);font-weight:700}'
     + '.tmw-ov-chip-sep::before,.tmw-ov-chip-sep::after{content:"";flex:1;height:1px;background:rgba(255,255,255,.08)}'
     + '.tmw-ov-chips{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;max-width:700px;margin:0 auto}'
+    + '.tmw-ov-chip-break{flex-basis:100%;width:100%;height:0;margin:0}'
     + '.tmw-ov-chip{font-family:inherit;font-size:12px;color:#ECEAE5;'
     + 'background:rgba(167,139,250,.08);border:1px solid rgba(167,139,250,.25);'
     + 'padding:9px 10px;border-radius:999px;cursor:pointer;transition:all .15s;line-height:1.2;'
@@ -678,19 +679,16 @@
   // wants to surface as one-click entry points below the question chips.
   // Same data-q click handler as the teach rows: typing in the value and
   // running runQuery inline. Order matters (firms first, places second).
-  var QUICK_CHIPS = [
-    'Related Ross',
-    'Naftali Group',
-    'Allen Morris Co',
-    'Property Markets Group',
-    'West Palm Beach',
-    'Miami',
-    'Manhattan',
-    'Nashville'
-  ];
-  var QUICK_CHIPS_HTML = QUICK_CHIPS.map(function(q){
+  // Firms first, then places on their OWN row — the flex break below forces the
+  // places (starting with West Palm Beach) to wrap onto the next line.
+  var QUICK_CHIP_FIRMS  = ['Related Ross', 'Naftali Group', 'Allen Morris Co', 'Property Markets Group'];
+  var QUICK_CHIP_PLACES = ['West Palm Beach', 'Miami', 'Manhattan', 'Nashville'];
+  function quickChipBtn(q){
     return '<button class="tmw-ov-chip" type="button" data-q="' + esc(q) + '">' + esc(q) + '</button>';
-  }).join('');
+  }
+  var QUICK_CHIPS_HTML = QUICK_CHIP_FIRMS.map(quickChipBtn).join('')
+    + '<span class="tmw-ov-chip-break" aria-hidden="true"></span>'
+    + QUICK_CHIP_PLACES.map(quickChipBtn).join('');
 
   // Pro / quota pill — mirrors journal-dock.js's tmwIntelPillHTML so the
   // overlay's teach card shows the SAME PRO state + free-queries-left
