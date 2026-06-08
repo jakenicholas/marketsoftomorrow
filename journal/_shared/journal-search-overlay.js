@@ -1486,13 +1486,34 @@
     }
 
     // ── Firms & places ──────────────────────────────────────────────
-    var firms  = fScored.filter(function(x){ return x.f !== heroFirm; }).slice(0, MAX_FIRMS).map(function(x){ return x.f; });
-    var cities = cScored.slice(0, MAX_CITIES).map(function(x){ return x.c; });
+    // Same multi-token filter as the projects grid: common single words
+    // ("city", "park", "lake") create huge false-positive sets when used
+    // alone -- e.g. "salt lake city" matched "City of WPB", "Park City",
+    // "Lake Worth Beach" purely via one shared token. For multi-token
+    // queries we now require the full phrase OR all meaningful tokens
+    // (>=3 chars) in the name. Singletons skip the filter -- relevance
+    // score handles them.
+    var restFirms  = fScored.filter(function(x){ return x.f !== heroFirm; });
+    var restCities = cScored.slice();
+    if (meaningful.length >= 2) {
+      restFirms = restFirms.filter(function(x){
+        var t = norm(x.f.name);
+        if (full && t.indexOf(full) >= 0) return true;
+        return meaningful.every(function(tok){ return t.indexOf(tok) >= 0; });
+      });
+      restCities = restCities.filter(function(x){
+        var t = norm(x.c.name);
+        if (full && t.indexOf(full) >= 0) return true;
+        return meaningful.every(function(tok){ return t.indexOf(tok) >= 0; });
+      });
+    }
+    var firms  = restFirms.slice(0, MAX_FIRMS).map(function(x){ return x.f; });
+    var cities = restCities.slice(0, MAX_CITIES).map(function(x){ return x.c; });
     if (firms.length || cities.length){
       var entityHtml = firms.map(renderFirmEntity).join('') + cities.map(renderCityEntity).join('');
       slotEntities.innerHTML = ''
         + '<div class="tmw-ov-sec">'
-        +   '<div class="tmw-ov-sec-head"><h3>Firms &amp; places</h3><span class="count">'+(fScored.length + cScored.length)+' total</span></div>'
+        +   '<div class="tmw-ov-sec-head"><h3>Firms &amp; places</h3><span class="count">'+(restFirms.length + restCities.length)+' total</span></div>'
         +   '<div class="tmw-ov-chiprow">'+entityHtml+'</div>'
         + '</div>';
     } else {
