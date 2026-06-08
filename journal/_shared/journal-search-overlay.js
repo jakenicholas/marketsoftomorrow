@@ -66,10 +66,14 @@
        starter content. */
     + '.tmw-ov-close{position:absolute;top:18px;right:22px;width:38px;height:38px;border-radius:50%;'
     + 'background:rgba(20,20,25,.6);border:1px solid rgba(255,255,255,.10);color:#C2C9C3;'
-    + 'display:flex;align-items:center;justify-content:center;font-size:22px;line-height:1;'
+    + 'display:flex;align-items:center;justify-content:center;padding:0;'
     + 'cursor:pointer;transition:all .2s;font-family:inherit;z-index:3;'
     + '-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}'
     + '.tmw-ov-close:hover{color:#fff;border-color:rgba(255,255,255,.22);background:rgba(20,20,25,.85)}'
+    /* SVG × instead of the &times; glyph -- that character is slightly off-
+       baseline in most fonts (looks ~2px low and 1px right of the circle
+       center). SVG geometry is symmetric so it sits dead-center. */
+    + '.tmw-ov-close svg{width:14px;height:14px;display:block}'
     /* Hex animations kept under .tmw-ov-hxs-* because the spotlight teach
        card still renders the small spinning hexagon next to the label. */
     + '.tmw-ov-hxs-spin{transform-origin:50% 50%;animation:tmwOvHxsSpin 4.2s cubic-bezier(.16,1,.3,1) infinite}'
@@ -174,6 +178,33 @@
     + '.tmw-ov-intel-cta .q{font-family:"Fraunces",Georgia,serif;font-size:17px;color:#fff;font-weight:500;line-height:1.35;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}'
     + '.tmw-ov-intel-cta .arrow{flex:0 0 auto;color:#B9A6FF;transition:transform .2s}'
     + '.tmw-ov-intel-cta:hover .arrow{transform:translateX(3px)}'
+
+    /* ─── Filter pills (purple) — appear above results, let the user
+       filter the body by category. Pills are purple-tinted at rest and
+       go solid-purple-with-ink-text when active. The count subscript is
+       slightly muted so the label reads first. */
+    + '.tmw-ov-fp-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px;'
+    + 'padding-bottom:18px;border-bottom:1px solid rgba(255,255,255,.06);'
+    + 'animation:tmwOvFadeIn .3s ease both}'
+    + '.tmw-ov-fp{display:inline-flex;align-items:center;gap:6px;'
+    + 'background:rgba(167,139,250,.08);border:1px solid rgba(167,139,250,.25);'
+    + 'color:#ECEAE5;padding:7px 13px;border-radius:999px;'
+    + 'font-family:inherit;font-size:12px;font-weight:500;line-height:1.2;'
+    + 'cursor:pointer;transition:all .15s}'
+    + '.tmw-ov-fp:hover{background:rgba(167,139,250,.16);border-color:#A78BFA;color:#fff}'
+    + '.tmw-ov-fp.active{background:#A78BFA;border-color:#A78BFA;color:#1a1408;font-weight:600}'
+    + '.tmw-ov-fp-n{font-size:10.5px;opacity:.7;font-variant-numeric:tabular-nums}'
+    + '.tmw-ov-fp.active .tmw-ov-fp-n{opacity:.85}'
+
+    /* Filter visibility. Every section that should respect the filter
+       carries data-cat="<category>" on its outer .tmw-ov-sec. Filter
+       pills set data-filter on the results state; CSS hides anything
+       whose data-cat doesn\'t match (sections without data-cat are
+       always visible -- filter-pills, intel-cta). */
+    + '[data-state="results"][data-filter="intel"] [data-cat]{display:none}'
+    + '[data-state="results"][data-filter="projects"] [data-cat]:not([data-cat="projects"]){display:none}'
+    + '[data-state="results"][data-filter="firms"] [data-cat]:not([data-cat="firms"]){display:none}'
+    + '[data-state="results"][data-filter="articles"] [data-cat]:not([data-cat="articles"]){display:none}'
 
     /* Section heading */
     + '.tmw-ov-sec{margin-bottom:30px;animation:tmwOvFadeIn .35s ease both}'
@@ -300,11 +331,18 @@
     + 'color:#9AA39C;opacity:0;transition:opacity .3s ease;pointer-events:none;white-space:nowrap}'
     + '.tmw-ov-feedback.voted .tmw-ov-fb-thanks{opacity:1}'
     + '@media(max-width:560px){'
-    +   '.tmw-ov-dock{padding:0 0 18px;gap:10px}'
+    /* Mobile: bump the dock padding-bottom + gap so the thumbs sit higher
+       above the search bar (was visually too low / close to the bar). */
+    +   '.tmw-ov-dock{padding:0 0 22px;gap:14px}'
     +   '.tmw-ov-feedback{gap:8px}'
     +   '.tmw-ov-fb-btn{width:34px;height:34px}'
     +   '.tmw-ov-fb-btn svg{width:16px;height:16px}'
-    +   '.tmw-ov-fb-thanks{font-size:10.5px}'
+    /* Mobile: anchor "Noted" inline to the RIGHT of the buttons rather
+       than below them. Still position:absolute (so the two thumb buttons
+       stay perfectly centered on the dock axis), but the anchor point
+       moves from top:100% (below) to left:100% (beside). */
+    +   '.tmw-ov-fb-thanks{font-size:10.5px;top:50%;left:100%;'
+    +     'transform:translateY(-50%);margin-left:8px;margin-top:0}'
     + '}'
 
     + '.tmw-ov-bar{position:relative;width:min(820px, calc(100vw - 32px));z-index:2}'
@@ -670,7 +708,7 @@
   root.innerHTML = ''
     + '<div class="tmw-ov-scrim"></div>'
     + '<div class="tmw-ov-lb">'
-    +   '<button class="tmw-ov-close" type="button" aria-label="Close">&times;</button>'
+    +   '<button class="tmw-ov-close" type="button" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>'
     +   '<div class="tmw-ov-body">'
     +     '<div class="tmw-ov-wrap">'
 
@@ -695,6 +733,7 @@
     +       '</div>'
 
     +       '<div data-state="results" class="tmw-ov-hidden">'
+    +         '<div data-slot="filter-pills"></div>'
     +         '<div data-slot="intel-cta"></div>'
     +         '<div data-slot="hero"></div>'
     +         '<div data-slot="rows"></div>'
@@ -752,6 +791,7 @@
   var sThinking= root.querySelector('[data-state="thinking"]');
   var sResults = root.querySelector('[data-state="results"]');
   var sEmpty   = root.querySelector('[data-state="empty"]');
+  var slotFilterPills = root.querySelector('[data-slot="filter-pills"]');
   var slotIntel= root.querySelector('[data-slot="intel-cta"]');
   var slotHero = root.querySelector('[data-slot="hero"]');
   var slotRows = root.querySelector('[data-slot="rows"]');
@@ -1523,6 +1563,8 @@
       slotProjGrid.innerHTML = '';
       slotEntities.innerHTML = '';
       slotArticles.innerHTML = '';
+      slotFilterPills.innerHTML = '';
+      sResults.removeAttribute('data-filter');
       sEmpty.classList.add('tmw-ov-hidden');
       _lastResultsTotal = 1;
       _lastResultKind = 'spotlight';
@@ -1591,7 +1633,7 @@
     var heroProject = rows.length ? rows[0] : null;
     var restRows = rows.length > 1 ? rows.slice(1) : [];
     if (heroProject) {
-      slotHero.innerHTML = '<div class="tmw-ov-sec">' + renderProjectHero(heroProject) + '</div>';
+      slotHero.innerHTML = '<div class="tmw-ov-sec" data-cat="projects">' + renderProjectHero(heroProject) + '</div>';
     } else {
       slotHero.innerHTML = '';
     }
@@ -1608,7 +1650,7 @@
         ? '<div class="tmw-ov-smart-foot">Showing top '+SMART_CAP+' of '+rows.length+' — refine your question to narrow it.</div>'
         : '';
       foot += '<div class="tmw-ov-smart-foot"><span class="ai">TMW Intelligence</span> · answer synthesized from the project database · figures verified, not generated</div>';
-      slotRows.innerHTML = '<div class="tmw-ov-sec">'
+      slotRows.innerHTML = '<div class="tmw-ov-sec" data-cat="projects">'
         + renderSmartHeader(s, shown)
         + '<div class="tmw-ov-rows">' + rowsHtml + '</div>'
         + foot
@@ -1616,6 +1658,17 @@
     } else {
       slotRows.innerHTML = '';
     }
+
+    // Filter pills above the results -- "Intel" is always there (smart
+    // query always produces an Intelligence answer), "Projects" appears
+    // if we have any hits.
+    sResults.removeAttribute('data-filter');
+    slotFilterPills.innerHTML = renderFilterPills({
+      intel: true,
+      projects: rows.length,
+      firms: 0,
+      articles: 0,
+    });
 
     // LLM upgrade: replace the deterministic sentence with prose (stats stay).
     if (rows.length) fireSmartIntelUpgrade(q, s, rows);
@@ -1728,6 +1781,8 @@
       slotProjGrid.innerHTML = '';
       slotEntities.innerHTML = '';
       slotArticles.innerHTML = '';
+      slotFilterPills.innerHTML = '';
+      sResults.removeAttribute('data-filter');
       _lastResultsTotal = 0;
       _lastResultKind = 'empty';
       setState('empty');
@@ -1739,6 +1794,8 @@
       slotProjGrid.innerHTML = '';
       slotEntities.innerHTML = '';
       slotArticles.innerHTML = '';
+      slotFilterPills.innerHTML = '';
+      sResults.removeAttribute('data-filter');
       _lastResultsTotal = 0;
       _lastResultKind = 'question';
       setState('results');
@@ -1760,10 +1817,11 @@
     var hero = heroCandidates[0] || null;
     if (hero){
       var heroHtml = '';
-      if      (hero.kind === 'project') { heroProject = hero.item; heroHtml = renderProjectHero(heroProject); }
-      else if (hero.kind === 'article') { heroArticle = hero.item; heroHtml = renderArticleHero(heroArticle); }
-      else if (hero.kind === 'firm')    { heroFirm    = hero.item; heroHtml = renderFirmHero(heroFirm); }
-      slotHero.innerHTML = '<div class="tmw-ov-sec">' + heroHtml + '</div>';
+      var heroCat = 'projects';
+      if      (hero.kind === 'project') { heroProject = hero.item; heroHtml = renderProjectHero(heroProject); heroCat = 'projects'; }
+      else if (hero.kind === 'article') { heroArticle = hero.item; heroHtml = renderArticleHero(heroArticle); heroCat = 'articles'; }
+      else if (hero.kind === 'firm')    { heroFirm    = hero.item; heroHtml = renderFirmHero(heroFirm);       heroCat = 'firms'; }
+      slotHero.innerHTML = '<div class="tmw-ov-sec" data-cat="'+heroCat+'">' + heroHtml + '</div>';
     } else {
       slotHero.innerHTML = '';
     }
@@ -1794,7 +1852,7 @@
       // misleading. Count reflects the filtered set, not the raw text-
       // match total.
       slotProjGrid.innerHTML = ''
-        + '<div class="tmw-ov-sec">'
+        + '<div class="tmw-ov-sec" data-cat="projects">'
         +   '<div class="tmw-ov-sec-head"><h3>Projects</h3><span class="count">'+restProjects.length+' total</span></div>'
         +   '<div class="tmw-ov-grid">' + gridProjects.map(renderProjectCard).join('') + '</div>'
         + '</div>';
@@ -1829,7 +1887,7 @@
     if (firms.length || cities.length){
       var entityHtml = firms.map(renderFirmEntity).join('') + cities.map(renderCityEntity).join('');
       slotEntities.innerHTML = ''
-        + '<div class="tmw-ov-sec">'
+        + '<div class="tmw-ov-sec" data-cat="firms">'
         +   '<div class="tmw-ov-sec-head"><h3>Firms &amp; places</h3><span class="count">'+(restFirms.length + restCities.length)+' total</span></div>'
         +   '<div class="tmw-ov-chiprow">'+entityHtml+'</div>'
         + '</div>';
@@ -1842,7 +1900,7 @@
     _articlesShown = 0;
     if (_articlesAll.length){
       slotArticles.innerHTML = ''
-        + '<div class="tmw-ov-sec">'
+        + '<div class="tmw-ov-sec" data-cat="articles">'
         +   '<div class="tmw-ov-sec-head"><h3>From the journal</h3><span class="count">'+aScored.length+' total</span></div>'
         +   '<div class="tmw-ov-alist"></div>'
         + '</div>';
@@ -1850,6 +1908,17 @@
     } else {
       slotArticles.innerHTML = '';
     }
+
+    // Filter pills above the results. "intel" pill appears only when the
+    // query was actually question-shaped (Intelligence answer rendered);
+    // category pills appear with their counts when there are matches.
+    sResults.removeAttribute('data-filter');
+    slotFilterPills.innerHTML = renderFilterPills({
+      intel: question,
+      projects: pScored.length,
+      firms: restFirms.length + restCities.length,
+      articles: aScored.length,
+    });
 
     _lastResultsTotal = totalHits;
     _lastResultKind = question ? 'question' : 'text';
@@ -1870,6 +1939,32 @@
   // Append the next batch of articles + manage the load-more button.
   // Idempotent: a final batch removes the button; called from runTextMatch
   // for the first batch and from the button click for each subsequent.
+  // ─── Filter pills ──────────────────────────────────────────────────
+  // Render purple-themed filter pills at the top of the results state so
+  // the user can narrow the body to a single category. Counts come from
+  // the calling render path (text-match or smart) -- pills only appear
+  // for categories that actually have results. "All" + "Intelligence"
+  // never carry counts; the rest do (Projects 12, Firms & Places 4 etc).
+  function renderFilterPills(counts){
+    var pills = [];
+    pills.push('<button class="tmw-ov-fp active" type="button" data-filter="all">All</button>');
+    if (counts.intel) {
+      pills.push('<button class="tmw-ov-fp" type="button" data-filter="intel">Intelligence</button>');
+    }
+    if (counts.projects > 0) {
+      pills.push('<button class="tmw-ov-fp" type="button" data-filter="projects">Projects <span class="tmw-ov-fp-n">'+counts.projects+'</span></button>');
+    }
+    if (counts.firms > 0) {
+      pills.push('<button class="tmw-ov-fp" type="button" data-filter="firms">Firms &amp; Places <span class="tmw-ov-fp-n">'+counts.firms+'</span></button>');
+    }
+    if (counts.articles > 0) {
+      pills.push('<button class="tmw-ov-fp" type="button" data-filter="articles">Articles <span class="tmw-ov-fp-n">'+counts.articles+'</span></button>');
+    }
+    // Don't render the row if there's only "All" (no categories to filter to)
+    if (pills.length < 2) return '';
+    return '<div class="tmw-ov-fp-row">' + pills.join('') + '</div>';
+  }
+
   function appendArticles(){
     var listEl = slotArticles.querySelector('.tmw-ov-alist');
     if (!listEl) return;
@@ -2009,6 +2104,8 @@
       slotProjGrid.innerHTML = '';
       slotEntities.innerHTML = '';
       slotArticles.innerHTML = '';
+      slotFilterPills.innerHTML = '';
+      sResults.removeAttribute('data-filter');
       _articlesAll = [];
       _articlesShown = 0;
       _renderToken++;
@@ -2072,6 +2169,22 @@
     if (more) {
       e.preventDefault();
       appendArticles();
+      return;
+    }
+    // Filter pill click: swap the active pill's class + write the new
+    // filter to the results state's data-filter attribute. CSS hides
+    // sections whose data-cat doesn\'t match. data-filter="all" clears
+    // the attribute so every category shows again.
+    var pill = e.target.closest && e.target.closest('.tmw-ov-fp');
+    if (pill) {
+      e.preventDefault();
+      var filter = pill.getAttribute('data-filter') || 'all';
+      var allPills = pill.parentNode ? pill.parentNode.querySelectorAll('.tmw-ov-fp') : [];
+      for (var i = 0; i < allPills.length; i++) {
+        allPills[i].classList.toggle('active', allPills[i] === pill);
+      }
+      if (filter === 'all') sResults.removeAttribute('data-filter');
+      else sResults.setAttribute('data-filter', filter);
       return;
     }
   });
