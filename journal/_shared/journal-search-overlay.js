@@ -250,13 +250,21 @@
        flex-column container so they're guaranteed-centered and move as a
        unit. The dock itself is absolute-positioned at the bottom; the
        children sit naturally centered via align-items:center -- no more
-       trying to manually transform individual elements. The bar's own
-       absolute positioning is overridden inside the dock so it flows
-       normally. */
+       trying to manually transform individual elements.
+
+       CRITICAL: the `> * pointer-events:auto` rule is SCOPED to
+       .tmw-ov-root.open. Without that scope, the dock children were
+       intercepting clicks even when the overlay was closed (parent
+       pointer-events:none on .tmw-ov-root normally cascades to block
+       descendant click handling, but our explicit auto override on the
+       dock children defeated that protection). That broke the dock-
+       trigger flow -- the user could no longer click the journal dock
+       search bar to OPEN the spotlight, because the (invisible) overlay
+       bar was eating the click first. */
     + '.tmw-ov-dock{position:absolute;left:0;right:0;bottom:0;z-index:2;'
     + 'display:flex;flex-direction:column;align-items:center;gap:12px;'
     + 'padding:0 0 24px;pointer-events:none}'
-    + '.tmw-ov-dock > *{pointer-events:auto}'
+    + '.tmw-ov-root.open .tmw-ov-dock > *{pointer-events:auto}'
     /* Thumbs feedback row -- hidden by default via visibility (lets the
        opacity transition actually fire, unlike display:none). Centered
        automatically by the dock's flex layout. The buttons match the
