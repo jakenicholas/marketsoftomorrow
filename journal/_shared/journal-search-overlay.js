@@ -375,8 +375,11 @@
     /* Width override: dock input is min(46vw,300px) and grows to min(52vw,344px)
        on focus. Overlay bar already fills the spotlight container so we lock
        it at 100% in both states and disable the width transition. */
-    + '.tmw-ov-bar .tmw-dock-search input{width:100%;padding-right:50px}'
-    + '.tmw-ov-bar .tmw-dock-search input:focus{width:100%;'
+    /* !important so a host page's own .tmw-dock-search width rules (e.g. the map
+       trims the bottom dock input to ~36-42vw) can NEVER leak in and squish the
+       lightbox input — the spotlight must look identical on every page. */
+    + '.tmw-ov-bar .tmw-dock-search input{width:100%!important;padding-right:50px}'
+    + '.tmw-ov-bar .tmw-dock-search input:focus{width:100%!important;'
     /* Override the dock\'s green focus state -- the overlay is the
        Intelligence surface, so it keeps the purple aesthetic everywhere. */
     + 'border-color:rgba(167,139,250,.55)}'
@@ -687,16 +690,14 @@
   // wants to surface as one-click entry points below the question chips.
   // Same data-q click handler as the teach rows: typing in the value and
   // running runQuery inline. Order matters (firms first, places second).
-  // Firms first, then places on their OWN row — the flex break below forces the
-  // places (starting with West Palm Beach) to wrap onto the next line.
-  var QUICK_CHIP_FIRMS  = ['Related Ross', 'Naftali Group', 'Allen Morris Co', 'Property Markets Group'];
-  var QUICK_CHIP_PLACES = ['West Palm Beach', 'Miami', 'Manhattan', 'Nashville'];
+  // Firms then places — one continuous flow so the chips wrap naturally and FILL
+  // each row (no forced break that orphans a single chip on its own line). On
+  // mobile this lands as ~3 filled rows.
+  var QUICK_CHIPS = ['Related Ross', 'Naftali Group', 'Allen Morris Co', 'Property Markets Group', 'West Palm Beach', 'Miami', 'Manhattan', 'Nashville'];
   function quickChipBtn(q){
     return '<button class="tmw-ov-chip" type="button" data-q="' + esc(q) + '">' + esc(q) + '</button>';
   }
-  var QUICK_CHIPS_HTML = QUICK_CHIP_FIRMS.map(quickChipBtn).join('')
-    + '<span class="tmw-ov-chip-break" aria-hidden="true"></span>'
-    + QUICK_CHIP_PLACES.map(quickChipBtn).join('');
+  var QUICK_CHIPS_HTML = QUICK_CHIPS.map(quickChipBtn).join('');
 
   // Pro / quota pill — mirrors journal-dock.js's tmwIntelPillHTML so the
   // overlay's teach card shows the SAME PRO state + free-queries-left
