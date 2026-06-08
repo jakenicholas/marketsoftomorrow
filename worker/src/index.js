@@ -2927,8 +2927,11 @@ function renderCarouselHtml(c) {
   const avatarHtml = avatar
     ? `<img class="avatar" src="${escHtml(avatar)}" alt="">`
     : `<div class="avatar avatar-fallback">${escHtml((handle[0] || 'F').toUpperCase())}</div>`;
-  // Truncate caption visually to 2 lines with "more" toggle.
+  // Render the full caption verbatim — newlines become <br>.
   const captionEscaped = escHtml(caption).replace(/\n/g, '<br>');
+  // Profile chrome: handle links out to the real Instagram profile, and the
+  // top-right glyph is the Instagram logo (was three "more" dots).
+  const igProfileUrl = `https://instagram.com/${encodeURIComponent(handle)}`;
   // The page is intentionally minimal — just the post card, centered on a
   // dark backdrop so the carousel itself reads exactly like an Instagram post.
   return `<!doctype html>
@@ -2954,13 +2957,17 @@ function renderCarouselHtml(c) {
     background:linear-gradient(135deg,#fbbf24 0%,#ec4899 35%,#a855f7 65%,#3b82f6 100%); padding:2px; }
   .avatar.avatar-fallback { display:flex; align-items:center; justify-content:center;
     font-weight:700; font-size:14px; color:#fff; padding:0 }
-  .head-meta { flex:1; min-width:0; display:flex; flex-direction:column; line-height:1.2 }
-  .head-name { font-weight:700; font-size:13.5px; letter-spacing:.02em }
-  .head-sub  { font-size:11.5px; color:var(--mute); margin-top:2px }
-  .more { color:var(--fg); padding:6px; line-height:0; opacity:.85 }
-  .more svg { width:18px; height:18px; fill:currentColor }
-  /* Carousel */
-  .carousel { position:relative; aspect-ratio:1/1; background:#000; overflow:hidden; }
+  .head-meta { flex:1; min-width:0; display:flex; align-items:center; line-height:1.2 }
+  .head-name { font-weight:700; font-size:14px; letter-spacing:.02em; color:var(--fg); text-decoration:none }
+  .head-name:hover { text-decoration:underline }
+  /* Top-right Instagram glyph — links to the real profile at instagram.com/<handle>. */
+  .ig-link { color:var(--fg); padding:6px; line-height:0; opacity:.95; display:flex; transition:opacity .15s }
+  .ig-link:hover { opacity:1 }
+  .ig-link svg { width:22px; height:22px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+  /* Carousel — 4:5 portrait (Instagram's tallest supported ratio) so 1500x1883
+     source images fill the frame without cropping. Square images get a small
+     vertical crop, same as Instagram does. */
+  .carousel { position:relative; aspect-ratio:4/5; background:#000; overflow:hidden; }
   .track { display:flex; height:100%; transition:transform .35s cubic-bezier(.4,.2,.2,1); will-change:transform; }
   .slide { flex:0 0 100%; width:100%; height:100%; display:flex; align-items:center; justify-content:center; background:#000 }
   .slide img, .slide video { width:100%; height:100%; object-fit:cover; display:block; }
@@ -2983,13 +2990,10 @@ function renderCarouselHtml(c) {
   .actions .icon { color:var(--fg); padding:4px 0; line-height:0 }
   .actions .icon svg { width:24px; height:24px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
   .actions .spacer { flex:1 }
-  /* Caption */
-  .body { padding:4px 14px 14px; font-size:13.5px; line-height:1.45; color:var(--fg); }
-  .body .h { font-weight:700; margin-right:6px }
-  .body .more-toggle { color:var(--mute); cursor:pointer; user-select:none; margin-left:4px }
-  .body.collapsed .text { display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden }
-  .body.collapsed .more-toggle::after { content:'more' }
-  .body:not(.collapsed) .more-toggle { display:none }
+  /* Caption -- full text, no truncation. */
+  .body { padding:4px 14px 16px; font-size:13.5px; line-height:1.45; color:var(--fg); white-space:normal; word-wrap:break-word; }
+  .body .h { font-weight:700; margin-right:6px; color:var(--fg); text-decoration:none }
+  .body .h:hover { text-decoration:underline }
   /* Empty state */
   .empty { display:flex; align-items:center; justify-content:center; color:var(--mute); font-size:13px; padding:40px 16px; text-align:center }
   @media (max-width:520px) { .wrap { padding:18px 12px 60px } .card { border-radius:10px } }
@@ -3000,14 +3004,13 @@ function renderCarouselHtml(c) {
   <div class="tmw-badge">A <b>MARKETS OF TOMORROW</b> CAROUSEL PREVIEW</div>
   <div class="card">
     <div class="head">
-      ${avatarHtml}
+      <a href="${escHtml(igProfileUrl)}" target="_blank" rel="noopener" aria-label="Open ${escHtml(handle)} on Instagram" style="display:flex; text-decoration:none">${avatarHtml}</a>
       <div class="head-meta">
-        <span class="head-name">${escHtml(handle)}</span>
-        <span class="head-sub">Sponsored</span>
+        <a class="head-name" href="${escHtml(igProfileUrl)}" target="_blank" rel="noopener">${escHtml(handle)}</a>
       </div>
-      <button class="more" type="button" aria-label="More" tabindex="-1">
-        <svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg>
-      </button>
+      <a class="ig-link" href="${escHtml(igProfileUrl)}" target="_blank" rel="noopener" aria-label="Open ${escHtml(handle)} on Instagram">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+      </a>
     </div>
     <div class="carousel">
       ${slides.length === 0 ? '<div class="empty">No slides yet — add media in the Studio editor.</div>' : ''}
@@ -3024,7 +3027,7 @@ function renderCarouselHtml(c) {
       <span class="spacer"></span>
       <span class="icon" aria-label="Save"><svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></span>
     </div>
-    ${caption ? `<div class="body collapsed"><span class="text"><span class="h">${escHtml(handle)}</span>${captionEscaped}</span><span class="more-toggle" role="button" tabindex="0"></span></div>` : ''}
+    ${caption ? `<div class="body"><a class="h" href="${escHtml(igProfileUrl)}" target="_blank" rel="noopener">${escHtml(handle)}</a>${captionEscaped}</div>` : ''}
   </div>
 </div>
 <script>
@@ -3070,16 +3073,10 @@ function renderCarouselHtml(c) {
       x0 = null;
     }, {passive:true});
   }
-  // Caption "more" toggle.
-  var body = document.querySelector('.body');
-  if (body) {
-    var t = body.querySelector('.more-toggle');
-    if (t) t.addEventListener('click', function(){ body.classList.remove('collapsed'); });
-    // If caption is short enough to fit, drop the collapsed state so "more" doesn't show.
-    requestAnimationFrame(function(){
-      var text = body.querySelector('.text');
-      if (text && text.scrollHeight <= text.clientHeight + 2) body.classList.remove('collapsed');
-    });
+  // (Full caption is rendered verbatim — no truncation/more-toggle.)
+  // The empty no-op block below is kept so the surrounding script structure
+  // stays unchanged; remove on next refactor.
+  {
   }
 })();
 </script>
