@@ -81,18 +81,51 @@
     + '.tmw-ov-body::-webkit-scrollbar-thumb{background:rgba(255,255,255,.08);border-radius:4px}'
     + '.tmw-ov-wrap{max-width:1080px;margin:0 auto;padding:0 22px}'
 
-    /* Starter (empty) state */
-    + '.tmw-ov-starter{padding:40px 0 24px;text-align:center;animation:tmwOvFadeIn .35s ease both}'
-    + '.tmw-ov-starter .eyebrow{font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:#B9A6FF;margin-bottom:14px;font-weight:700}'
-    + '.tmw-ov-starter h2{font-family:"Fraunces",Georgia,serif;font-size:30px;color:#fff;max-width:18ch;margin:0 auto 8px;font-weight:600;letter-spacing:-.015em;line-height:1.08}'
-    + '.tmw-ov-starter p{color:#9AA39C;font-size:14px;max-width:42ch;margin:0 auto 28px}'
-    + '.tmw-ov-chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;max-width:680px;margin:0 auto}'
-    + '.tmw-ov-chip{font-family:inherit;font-size:12.5px;color:#ECEAE5;background:rgba(167,139,250,.08);'
-    + 'border:1px solid rgba(167,139,250,.25);padding:9px 14px;border-radius:999px;cursor:pointer;transition:all .2s;line-height:1.2}'
-    + '.tmw-ov-chip:hover{background:rgba(167,139,250,.16);border-color:#A78BFA;color:#fff}'
-    + '.tmw-ov-chip-sep{display:flex;align-items:center;gap:14px;margin:32px auto 16px;max-width:300px;'
-    + 'font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:#9AA39C}'
-    + '.tmw-ov-chip-sep::before,.tmw-ov-chip-sep::after{content:"";flex:1;height:1px;background:rgba(255,255,255,.08)}'
+    /* Starter (empty) state — replaces the legacy chip layout with the
+       original "Ask the Map" teaching card (mirrors journal-dock.js's
+       .tmw-dock-teach panel, scaled up + centered on the overlay page).
+       Hex mark + TMW INTELLIGENCE label + PRO/quota pill in the header,
+       building-icon rows for each TEACH_Q suggestion, footer caption. */
+    + '.tmw-ov-starter{padding:0;animation:tmwOvFadeIn .35s ease both;'
+    + 'min-height:calc(100vh - 240px);display:flex;align-items:center;justify-content:center}'
+    + '.tmw-ov-teach{width:100%;max-width:720px;margin:0 auto;padding:22px 26px;'
+    + 'background:linear-gradient(180deg,rgba(20,18,30,.55),rgba(13,12,20,.55));'
+    + 'border:1px solid rgba(167,139,250,.25);border-radius:22px;'
+    + '-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);'
+    + 'box-shadow:0 30px 80px rgba(0,0,0,.55), 0 0 0 1px rgba(167,139,250,.04)}'
+    + '.tmw-ov-teach-h{display:flex;align-items:center;gap:12px;padding:4px 6px 18px;'
+    + 'border-bottom:1px solid rgba(255,255,255,.06);margin-bottom:4px}'
+    + '.tmw-ov-teach-hex{width:32px;height:32px;flex:0 0 auto;display:flex;align-items:center;justify-content:center}'
+    + '.tmw-ov-teach-hex svg{width:100%;height:100%;overflow:visible}'
+    + '.tmw-ov-teach-ttl{font-size:13px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:#C2A8FF}'
+    + '.tmw-ov-pill{margin-left:auto;display:flex;align-items:center;gap:8px}'
+    + '.tmw-ov-quota{font-size:11px;font-weight:700;letter-spacing:.04em;color:#9AA39C;white-space:nowrap}'
+    + '.tmw-ov-quota.low{color:#f0d68a}'
+    + '.tmw-ov-pro{font-size:10px;font-weight:800;letter-spacing:.14em;color:#f0d68a;'
+    + 'border:1px solid rgba(240,214,138,.6);border-radius:6px;padding:4px 9px;text-decoration:none;'
+    + 'box-shadow:0 0 10px rgba(230,197,116,.22);transition:background .15s}'
+    + '.tmw-ov-pro:hover{background:rgba(240,214,138,.14)}'
+    + '.tmw-ov-pro.on{cursor:default}'
+    + '.tmw-ov-teach-sec{font-size:10.5px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;'
+    + 'color:rgba(255,255,255,.3);padding:14px 10px 8px}'
+    + '.tmw-ov-teach-ex{display:flex;align-items:center;gap:14px;padding:13px 14px;border-radius:12px;'
+    + 'background:transparent;border:0;width:100%;text-align:left;cursor:pointer;'
+    + 'transition:background .15s;font-family:inherit;color:inherit}'
+    + '.tmw-ov-teach-ex:hover{background:rgba(167,139,250,.10)}'
+    + '.tmw-ov-teach-ex .tmw-ov-teach-i{width:32px;height:32px;flex:0 0 auto;border-radius:9px;'
+    + 'background:rgba(167,139,250,.12);color:#C2A8FF;display:flex;align-items:center;justify-content:center}'
+    + '.tmw-ov-teach-ex .tmw-ov-teach-i svg{width:16px;height:16px}'
+    + '.tmw-ov-teach-qt{flex:1;font-family:"Fraunces",Georgia,serif;font-size:17px;color:#ECEAE5;line-height:1.3}'
+    + '.tmw-ov-teach-ent{font-size:13px;color:#9AA39C;font-family:"SF Mono","Menlo",monospace}'
+    + '.tmw-ov-teach-ex:hover .tmw-ov-teach-ent{color:#C2A8FF}'
+    + '.tmw-ov-teach-foot{padding:14px 10px 4px;margin-top:8px;border-top:1px solid rgba(255,255,255,.08);'
+    + 'font-size:12px;color:#9AA39C}'
+
+    + '@media(max-width:640px){'
+    +   '.tmw-ov-teach{padding:18px 18px;margin:0 12px}'
+    +   '.tmw-ov-teach-qt{font-size:15px}'
+    +   '.tmw-ov-teach-ttl{font-size:11px;letter-spacing:.18em}'
+    + '}'
 
     /* Thinking spinner */
     + '.tmw-ov-thinking{display:none;align-items:center;gap:12px;padding:24px 0;justify-content:center;'
@@ -448,6 +481,9 @@
     + '</svg>';
 
   var ICON_BLDG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V6.5L12 3l8 3.5V21"/><path d="M9 21v-6h6v6"/><path d="M9 10h.01M15 10h.01M9 14h.01M15 14h.01"/></svg>';
+  // Building icon used in the teach-card rows — matches journal-dock.js's TEACH_ICON
+  // for visual consistency with the original Ask the Map pop-up.
+  var ICON_TEACH = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M6 21V8l6-4 6 4v13"/></svg>';
   var ICON_FIRM = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>';
   var ICON_ARTICLE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h14v16H6a2 2 0 0 1-2-2z"/><line x1="8" y1="9" x2="14" y2="9"/><line x1="8" y1="13" x2="14" y2="13"/></svg>';
   var ICON_PIN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s7-7.5 7-13a7 7 0 1 0-14 0c0 5.5 7 13 7 13z"/><circle cx="12" cy="9" r="2.5"/></svg>';
@@ -465,12 +501,34 @@
     'Recent golf course openings'
   ];
 
-  var QUICK_CHIPS = [
-    { q:'1428 Brickell',     k:'project' },
-    { q:'Foster + Partners', k:'firm' },
-    { q:'Wynwood',           k:'place' },
-    { q:'Currie Park',       k:'place' }
-  ];
+  // Pre-rendered teach-row HTML. Built once at module load (the questions
+  // never change at runtime) so the big DOM-template string concat stays
+  // a simple list of static strings instead of mixing a .map() in.
+  var STARTER_CHIPS_HTML = STARTER_CHIPS.map(function(q){
+    return '<button class="tmw-ov-teach-ex" type="button" data-q="' + esc(q) + '">'
+      +    '<span class="tmw-ov-teach-i">' + ICON_TEACH + '</span>'
+      +    '<span class="tmw-ov-teach-qt">' + esc(q) + '</span>'
+      +    '<span class="tmw-ov-teach-ent">&#8629;</span>'
+      +  '</button>';
+  }).join('');
+
+  // Pro / quota pill — mirrors journal-dock.js's tmwIntelPillHTML so the
+  // overlay's teach card shows the SAME PRO state + free-queries-left
+  // count the dock teach panel does. Recomputed on every overlay open
+  // since the quota can change between sessions.
+  function renderProPill(){
+    if (!window.tmwIntel) return '';
+    var pro = window.tmwIntel.isPro && window.tmwIntel.isPro();
+    if (pro) return '<span class="tmw-ov-pro on">PRO</span>';
+    var left = window.tmwIntel.left ? window.tmwIntel.left() : 10;
+    var lowCls = left <= 3 ? ' low' : '';
+    return '<span class="tmw-ov-quota'+lowCls+'">' + left + ' / 10 left</span>'
+      + '<a class="tmw-ov-pro" href="https://www.oftmw.com/map/?upgrade=1" data-tmw-paywall="feature:intelligence">PRO</a>';
+  }
+  function refreshProPill(){
+    var slot = root.querySelector('[data-pill-slot]');
+    if (slot) slot.innerHTML = renderProPill();
+  }
 
   var root = document.createElement('div');
   root.className = 'tmw-ov-root';
@@ -489,15 +547,15 @@
     +     '<div class="tmw-ov-wrap">'
 
     +       '<div class="tmw-ov-starter" data-state="starter">'
-    +         '<div class="eyebrow">Search · Ask · Explore</div>'
-    +         '<h2>What do you want to know about the urban South?</h2>'
-    +         '<p>Find any project, firm, or city — or ask TMW Intelligence a question in plain English.</p>'
-    +         '<div class="tmw-ov-chips" data-chips="questions">'
-    +           STARTER_CHIPS.map(function(q){ return '<button class="tmw-ov-chip" type="button" data-q="'+esc(q)+'">'+esc(q)+'</button>'; }).join('')
-    +         '</div>'
-    +         '<div class="tmw-ov-chip-sep">Or jump to</div>'
-    +         '<div class="tmw-ov-chips" data-chips="quick">'
-    +           QUICK_CHIPS.map(function(c){ return '<button class="tmw-ov-chip" type="button" data-q="'+esc(c.q)+'">'+esc(c.q)+'</button>'; }).join('')
+    +         '<div class="tmw-ov-teach" role="region" aria-label="TMW Intelligence — try asking">'
+    +           '<div class="tmw-ov-teach-h">'
+    +             '<div class="tmw-ov-teach-hex">' + ICON_HEX + '</div>'
+    +             '<span class="tmw-ov-teach-ttl">TMW Intelligence</span>'
+    +             '<span class="tmw-ov-pill" data-pill-slot></span>'
+    +           '</div>'
+    +           '<div class="tmw-ov-teach-sec">Try asking</div>'
+    +           STARTER_CHIPS_HTML
+    +           '<div class="tmw-ov-teach-foot">Type a name for instant results, or ask a full question.</div>'
     +         '</div>'
     +       '</div>'
 
@@ -1535,6 +1593,17 @@
     }
 
     setState('results');
+
+    // Log plain text-match queries to the Studio analytics tab. Question
+    // + structured-smart paths log via tmwIntel.count/track elsewhere;
+    // plain searches (e.g. "1428 Brickell", "Wynwood") never reach those
+    // paths, so without this branch the Studio would lose visibility on
+    // every typed query that didn't trigger Intelligence.
+    try {
+      if (!question && window.tmwIntel && window.tmwIntel.trackSearch) {
+        window.tmwIntel.trackSearch(q, { source: 'overlay', results: totalHits });
+      }
+    } catch(_){}
   }
 
   // Append the next batch of articles + manage the load-more button.
@@ -1602,13 +1671,15 @@
     _debounce = setTimeout(function(){ runQuery(v); }, 180);
   }
 
-  function navigateToSearch(q){
-    var t = String(q||'').trim();
-    if (!t) return;
-    // Reuse the analytics hook the dock uses for normal-search logging
-    try { if (window.tmwIntel && window.tmwIntel.trackSearch) window.tmwIntel.trackSearch(t, { source:'overlay' }); } catch(_){}
-    window.location.href = SEARCH_URL + '?q=' + encodeURIComponent(t);
-  }
+  // navigateToSearch removed: the overlay IS the search experience now
+  // (Enter / arrow click run runQuery inline instead of redirecting to
+  // /search/?q=). The /search/ page remains as the canonical deep-link
+  // target for share URLs, but no UI path navigates to it.
+  //
+  // Plain text-match queries are logged once per settled query via
+  // window.tmwIntel.trackSearch from runTextMatch so the Studio's
+  // analytics tab still sees what people type in the overlay alongside
+  // the structured-smart + LLM queries fired by the Intelligence paths.
 
   // ── open / close ──────────────────────────────────────────────────
   var _savedScrollY = 0;
@@ -1618,6 +1689,9 @@
     document.documentElement.style.overflow = 'hidden';
     root.classList.add('open');
     setState('starter');
+    // Refresh the PRO / quota badge in the teach card -- the user may have
+    // burned queries since the last time the overlay was opened.
+    refreshProPill();
     if (initialQuery) {
       input.value = initialQuery;
       onInput();
@@ -1658,25 +1732,29 @@
     if (e.key === 'Enter') {
       e.preventDefault();
       var v = (input.value || '').trim();
-      if (v) navigateToSearch(v);
+      // The overlay IS the search experience now -- Enter runs the query
+      // inline instead of redirecting to /search/. /search/ remains as a
+      // canonical deep-link target for share URLs (?q=... permalinks) but
+      // isn't a destination anyone needs to navigate to from the UI.
+      if (v) runQuery(v);
     } else if (e.key === 'Escape') {
       close();
     }
   });
   go.addEventListener('click', function(){
     var v = (input.value || '').trim();
-    if (v) navigateToSearch(v);
+    if (v) runQuery(v);
   });
 
-  // Starter chip click → fill bar + run inline. Phase 2 brought
-  // Intelligence inline, so question chips no longer need to hand off
-  // to /search/ -- both quick-jump and question chips run via runQuery.
-  // Also wires the "Load more stories" button — single delegated handler
-  // for everything inside the overlay so the wiring is one place.
+  // Suggestion click (teach-card row OR legacy starter chip) → fill the
+  // bar + run inline. Also wires the "Load more stories" button -- single
+  // delegated handler for everything inside the overlay so the wiring
+  // lives in one place. Match-by-data-q so any future suggestion variant
+  // (different markup, same intent) just needs to carry the attribute.
   root.addEventListener('click', function(e){
-    var chip = e.target.closest && e.target.closest('.tmw-ov-chip');
-    if (chip) {
-      var q = chip.getAttribute('data-q');
+    var sug = e.target.closest && e.target.closest('[data-q]');
+    if (sug) {
+      var q = sug.getAttribute('data-q');
       if (q) { input.value = q; runQuery(q); }
       return;
     }
