@@ -18555,10 +18555,24 @@
       async function refreshMemberStatus() {
         if (!window.$memberstackDom) return;
         try {
-          const result = await window.$memberstackDom.getCurrentMember();
-          const member = result?.data;
+          // Source auth from the shared single source of truth (journal-auth's
+          // window.tmwAuth, which detects Memberstack once and publishes). Fall
+          // back to a direct fetch only if it isn't ready yet, so the map never
+          // depends on script load order. All map-specific work below (click
+          // metering, favorites, GA, paywall UI) is unchanged.
+          let member, signedIn, paid;
+          if (window.tmwAuth && window.tmwAuth.ready) {
+            member = window.tmwAuth.member;
+            signedIn = window.tmwAuth.signedIn;
+            paid = window.tmwAuth.paid;
+          } else {
+            const result = await window.$memberstackDom.getCurrentMember();
+            member = result && result.data;
+            signedIn = !!member;
+            paid = signedIn && (member.planConnections || []).some(p => p.active === true || p.status === 'ACTIVE');
+          }
 
-          if (!member) {
+          if (!signedIn || !member) {
             isSignedIn = false;
             isPaidMember = false;
             memberClickCount = 0;
@@ -18581,8 +18595,7 @@
 
           isSignedIn = true;
           window._memberstackSignedIn = true;
-          const plans = member.planConnections || [];
-          isPaidMember = plans.some(p => p.active === true || p.status === 'ACTIVE');
+          isPaidMember = paid;
 
           // Wire GA4 identity AS SOON AS we have the member object, before any
           // downstream events fire (loadFavoritesFromMember, paywall checks, etc.)
@@ -20513,22 +20526,25 @@
         memberstackReady = true;
         await refreshMemberStatus();
 
-        // Listen for any auth state change (login, signup, logout).
-        // CRITICAL: keep this callback synchronous and defer work to a microtask.
-        // Memberstack's internal dispatcher can mishandle async callbacks (manifests
-        // as a "c(...) is not a function" toast), so we schedule and return immediately.
-        if (typeof ms.onAuthChange === 'function') {
-          ms.onAuthChange((member) => {
-            setTimeout(async () => {
-              if (member) {
-                try { await ms.hideModal(); } catch (e) { /* modal might not be open */ }
-              }
-              await refreshMemberStatus();
-              if (isPaidMember || (isSignedIn && !trialExpired())) {
-                hideAllPaywalls();
-              }
-            }, 0);
-          });
+        // Refresh whenever auth changes. Prefer the shared source of truth
+        // (window.tmwAuth, published by journal-auth AFTER it detects Memberstack)
+        // so refreshMemberStatus reads fresh shared state and we don't race
+        // Memberstack's own dispatcher. Fall back to ms.onAuthChange if the shared
+        // API is absent. Defer to a microtask either way (Memberstack's dispatcher
+        // can mishandle a synchronous async callback -> "c(...) is not a function").
+        var onAuthChanged = function () {
+          setTimeout(async () => {
+            try { if (ms.hideModal) await ms.hideModal(); } catch (e) { /* modal might not be open */ }
+            await refreshMemberStatus();
+            if (isPaidMember || (isSignedIn && !trialExpired())) {
+              hideAllPaywalls();
+            }
+          }, 0);
+        };
+        if (window.tmwAuth && typeof window.tmwAuth.onChange === 'function') {
+          window.tmwAuth.onChange(onAuthChanged);
+        } else if (typeof ms.onAuthChange === 'function') {
+          ms.onAuthChange(onAuthChanged);
         }
 
         // If returning from successful checkout, refresh after Stripe webhook lands
