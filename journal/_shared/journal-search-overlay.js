@@ -273,7 +273,11 @@
        rating intent reads at a glance. After the user votes, both buttons
        get .voted (pointer-events:none locks the rating in) and the
        .voted button itself gets a colored fill matching its rating. */
-    + '.tmw-ov-feedback{display:flex;align-items:center;gap:10px;'
+    /* position:relative anchors the absolutely-positioned thanks message so
+       it can sit below the buttons WITHOUT taking flex space -- otherwise
+       the (invisible) text reserves room on the right and the two buttons
+       end up visually offset left of the dock's actual center. */
+    + '.tmw-ov-feedback{position:relative;display:flex;align-items:center;gap:10px;'
     + 'visibility:hidden;opacity:0;transition:opacity .25s ease,visibility 0s linear .25s}'
     + '.tmw-ov-feedback.show{visibility:visible;opacity:1;transition:opacity .25s ease}'
     + '.tmw-ov-fb-btn{width:38px;height:38px;border-radius:999px;padding:0;'
@@ -288,8 +292,12 @@
     + '.tmw-ov-fb-btn.voted[data-rating="up"]{background:rgba(31,223,103,.16);border-color:#1FDF67;color:#42EB81}'
     + '.tmw-ov-fb-btn.voted[data-rating="down"]{background:rgba(255,93,93,.16);border-color:#ff5d5d;color:#ff7676}'
     + '.tmw-ov-fb-btn.dimmed{opacity:.35}'
-    + '.tmw-ov-fb-thanks{font-size:11.5px;letter-spacing:.02em;color:#9AA39C;'
-    + 'opacity:0;transition:opacity .3s ease;pointer-events:none;margin-left:4px}'
+    /* Absolutely positioned below the buttons, centered on the feedback
+       row's center axis. Out of the flex flow so the two thumb buttons
+       stay perfectly centered both before AND after voting. */
+    + '.tmw-ov-fb-thanks{position:absolute;left:50%;top:100%;transform:translateX(-50%);'
+    + 'margin-top:6px;font-size:11px;letter-spacing:.04em;text-transform:uppercase;font-weight:600;'
+    + 'color:#9AA39C;opacity:0;transition:opacity .3s ease;pointer-events:none;white-space:nowrap}'
     + '.tmw-ov-feedback.voted .tmw-ov-fb-thanks{opacity:1}'
     + '@media(max-width:560px){'
     +   '.tmw-ov-dock{padding:0 0 18px;gap:10px}'
@@ -714,7 +722,7 @@
     +       '<button class="tmw-ov-fb-btn" type="button" data-rating="down" aria-label="Not helpful">'
     +         '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 13V4h4v9zM3 15c0 1.1.9 2 2 2h5l-1 3.5c-.1.4 0 .8.3 1.1l.7.7 7-7V6H6L3 13v2z"/></svg>'
     +       '</button>'
-    +       '<span class="tmw-ov-fb-thanks">Thanks — TMW will look into it</span>'
+    +       '<span class="tmw-ov-fb-thanks">Noted</span>'
     +     '</div>'
 
     +     '<div class="tmw-ov-bar">'
