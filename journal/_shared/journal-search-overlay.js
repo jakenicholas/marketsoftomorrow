@@ -177,14 +177,6 @@
     + '.tmw-ov-row .arrow{flex:0 0 auto;color:#9AA39C;transition:transform .2s, color .2s}'
     + '.tmw-ov-row:hover .arrow{color:#B9A6FF;transform:translateX(3px)}'
 
-    /* "View all results" CTA */
-    + '.tmw-ov-viewall{display:flex;align-items:center;justify-content:center;gap:8px;margin:8px 0 0;'
-    + 'padding:14px 20px;border-radius:12px;background:transparent;border:1px solid rgba(255,255,255,.14);'
-    + 'color:#ECEAE5;font-size:12px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;'
-    + 'cursor:pointer;transition:all .2s;text-decoration:none;width:100%;font-family:inherit}'
-    + '.tmw-ov-viewall:hover{border-color:#e6c574;color:#fff;background:rgba(230,197,116,.06)}'
-    + '.tmw-ov-viewall svg{width:14px;height:14px}'
-
     /* Empty result state */
     + '.tmw-ov-empty{padding:40px 0;text-align:center;color:#9AA39C;animation:tmwOvFadeIn .3s}'
     + '.tmw-ov-empty h3{font-family:"Fraunces",Georgia,serif;font-size:22px;color:#ECEAE5;margin-bottom:8px;font-weight:600}'
@@ -312,6 +304,62 @@
     + '.tmw-ov-uchip.sort{background:rgba(31,223,103,.08);border-color:rgba(31,223,103,.30)}'
     + '.tmw-ov-uchip.sort .ck{color:#42EB81}'
 
+    /* ─── PHASE 2 (complete): full /search/-style result sections ─── */
+    /* Hero stack gap (project → article → firm) */
+    + '.tmw-ov-hero + .tmw-ov-hero{margin-top:14px}'
+    + '.tmw-ov-hero.article .media,.tmw-ov-hero.firm .media{min-height:200px}'
+
+    /* Nearby Projects grid — cards link straight to map.oftmw.com/?project=… */
+    + '.tmw-ov-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(248px,1fr));gap:14px}'
+    + '.tmw-ov-pcard{display:flex;flex-direction:column;background:#141714;border:1px solid rgba(255,255,255,.08);'
+    + 'border-radius:14px;overflow:hidden;text-decoration:none;color:inherit;transition:border-color .2s,transform .2s}'
+    + '.tmw-ov-pcard:hover{border-color:rgba(255,255,255,.22);transform:translateY(-2px)}'
+    + '.tmw-ov-pcard-media{position:relative;height:148px;background:#0a0c0a;overflow:hidden}'
+    + '.tmw-ov-pcard-media img{width:100%;height:100%;object-fit:cover;display:block}'
+    + '.tmw-ov-pcard-media .ph{position:absolute;inset:0;background:radial-gradient(120% 120% at 30% 0%,#1d231d,#0a0c0a)}'
+    + '.tmw-ov-pcard-media .ptype{position:absolute;left:10px;bottom:10px;font-size:9.5px;letter-spacing:.12em;'
+    + 'text-transform:uppercase;color:#f0d68a;background:rgba(7,8,7,.7);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);padding:4px 9px;border-radius:999px}'
+    + '.tmw-ov-pcard-body{padding:13px 14px 15px;display:flex;flex-direction:column;gap:5px;flex:1}'
+    + '.tmw-ov-pcard-body h4{font-family:"Fraunces",Georgia,serif;font-size:16px;line-height:1.15;color:#fff;font-weight:600;letter-spacing:-.015em}'
+    + '.tmw-ov-pcard-body .loc{font-size:10.5px;letter-spacing:.06em;color:#9AA39C;text-transform:uppercase}'
+    + '.tmw-ov-pcard-body .meta{margin-top:auto;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#C2C9C3;'
+    + 'display:flex;align-items:center;justify-content:space-between;gap:6px;padding-top:8px}'
+    + '.tmw-ov-pcard-body .meta .openmap{color:#1FDF67;font-size:15px;line-height:1;transition:transform .2s}'
+    + '.tmw-ov-pcard:hover .meta .openmap{transform:translateX(2px)}'
+
+    /* Firms & places chiprow */
+    + '.tmw-ov-chiprow{display:flex;flex-wrap:wrap;gap:10px}'
+    + '.tmw-ov-entity{display:inline-flex;align-items:center;gap:10px;background:#141714;'
+    + 'border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:11px 15px;'
+    + 'text-decoration:none;color:inherit;transition:border-color .2s}'
+    + '.tmw-ov-entity:hover{border-color:rgba(255,255,255,.22)}'
+    + '.tmw-ov-entity .icn{width:30px;height:30px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;'
+    + 'border-radius:8px;background:#222622;color:#C2C9C3}'
+    + '.tmw-ov-entity .icn svg{width:15px;height:15px}'
+    + '.tmw-ov-entity .nm{font-size:14px;color:#fff;font-weight:500}'
+    + '.tmw-ov-entity .sub{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#9AA39C;margin-top:2px}'
+
+    /* From the journal — article cards in a 3-col grid with load-more */
+    + '.tmw-ov-alist{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}'
+    + '@media(max-width:880px){.tmw-ov-alist{grid-template-columns:repeat(2,1fr)}}'
+    + '@media(max-width:560px){.tmw-ov-alist{grid-template-columns:1fr}}'
+    + '.tmw-ov-acard{display:block;background:#141714;border:1px solid rgba(255,255,255,.08);border-radius:14px;'
+    + 'overflow:hidden;text-decoration:none;color:inherit;transition:transform .25s ease,border-color .25s ease}'
+    + '.tmw-ov-acard:hover{transform:translateY(-3px);border-color:rgba(255,255,255,.14)}'
+    + '.tmw-ov-acard-media{aspect-ratio:16/10;background:#1a1d1a;overflow:hidden}'
+    + '.tmw-ov-acard-media img{width:100%;height:100%;object-fit:cover;transition:transform .6s ease;display:block}'
+    + '.tmw-ov-acard:hover .tmw-ov-acard-media img{transform:scale(1.04)}'
+    + '.tmw-ov-acard-media .ph{width:100%;height:100%;background:radial-gradient(120% 120% at 30% 0%,#23201a,#0a0c0a)}'
+    + '.tmw-ov-acard-body{padding:18px 20px 20px}'
+    + '.tmw-ov-acard-body .adate{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:#9AA39C;margin-bottom:8px}'
+    + '.tmw-ov-acard-body h4{font-family:"Fraunces",Georgia,serif;font-weight:600;font-size:18px;line-height:1.22;color:#fff;letter-spacing:-.015em}'
+
+    /* Load-more button (matches /search/'s .loadmore) */
+    + '.tmw-ov-loadmore{margin:20px auto 0;display:block;font-family:inherit;font-size:12px;letter-spacing:.14em;'
+    + 'text-transform:uppercase;font-weight:700;color:#ECEAE5;background:#141714;border:1px solid rgba(255,255,255,.14);'
+    + 'border-radius:999px;padding:13px 26px;cursor:pointer;transition:border-color .2s,background .2s,color .2s}'
+    + '.tmw-ov-loadmore:hover{border-color:#1FDF67;color:#fff;background:#1a1d1a}'
+
     + '.tmw-ov-hidden{display:none!important}'
 
     + '@media(max-width:760px){'
@@ -399,7 +447,9 @@
     +         '<div data-slot="intel-cta"></div>'
     +         '<div data-slot="hero"></div>'
     +         '<div data-slot="rows"></div>'
-    +         '<div data-slot="viewall"></div>'
+    +         '<div data-slot="projects-grid"></div>'
+    +         '<div data-slot="entities"></div>'
+    +         '<div data-slot="articles-grid"></div>'
     +       '</div>'
 
     +       '<div data-state="empty" class="tmw-ov-empty tmw-ov-hidden">'
@@ -439,7 +489,9 @@
   var slotIntel= root.querySelector('[data-slot="intel-cta"]');
   var slotHero = root.querySelector('[data-slot="hero"]');
   var slotRows = root.querySelector('[data-slot="rows"]');
-  var slotView = root.querySelector('[data-slot="viewall"]');
+  var slotProjGrid  = root.querySelector('[data-slot="projects-grid"]');
+  var slotEntities  = root.querySelector('[data-slot="entities"]');
+  var slotArticles  = root.querySelector('[data-slot="articles-grid"]');
   var bodyEl   = root.querySelector('.tmw-ov-body');
 
   // ── data loading (mirrors /search/) ────────────────────────────────
@@ -765,11 +817,107 @@
     return chips + panel + head + rows;
   }
 
-  function renderViewAll(q, totalHits){
-    return '<a class="tmw-ov-viewall" href="'+SEARCH_URL+'?q='+encodeURIComponent(q)+'">'
-      + 'View all '+totalHits+' results on search'
-      + ICON_ARROW
+  // ─── PHASE 2 (complete): /search/-style result sections ─────────────
+  // The "View all results on search" CTA is gone — the overlay IS the
+  // search page now, with full hero stack + grids + articles + load-more
+  // rendered inline. /search/ remains canonical for direct deep links
+  // (?q=… URLs from analytics, share links) but isn't a destination
+  // anyone needs to navigate to.
+
+  // Hero eligibility — each kind has its own gate so a weak partial match
+  // never gets promoted to "Top match". Mirrors /search/index.html.
+  function heroProjectEligible(p, full, toks){
+    var title = norm(p.Title);
+    if (full && title.indexOf(full) >= 0) return true;
+    var meaningful = toks.filter(function(t){ return t.length >= 3; });
+    if (!meaningful.length) return false;
+    var inTitle = meaningful.filter(function(t){ return title.indexOf(t) >= 0; }).length;
+    return inTitle >= Math.ceil(meaningful.length * 0.6);
+  }
+  function heroArticleEligible(a, full, toks){
+    var title = norm(a.title || '');
+    var meaningful = toks.filter(function(t){ return t.length >= 3; });
+    if (!meaningful.length) return false;
+    var inTitle = meaningful.filter(function(t){ return title.indexOf(t) >= 0; }).length;
+    return inTitle >= 1;
+  }
+  function heroFirmEligible(f, full){
+    var nm = norm(f.name || '');
+    return full && (nm === full || nm.indexOf(full) === 0);
+  }
+
+  // Build cities-with-counts from the PROJECTS array. Same shape /search/
+  // uses for the chiprow: { name, count }.
+  function deriveCitiesFromProjects(projects){
+    var by = {};
+    for (var i = 0; i < projects.length; i++){
+      var c = (projects[i].City || '').trim();
+      if (c) by[c] = (by[c] || 0) + 1;
+    }
+    return Object.keys(by).map(function(c){ return { name: c, count: by[c] }; });
+  }
+  function scoreCity(c, toks, full){
+    var nc = norm(c.name);
+    var s = 0;
+    if (nc === full) s += 60;
+    else if (nc.indexOf(full) === 0) s += 30;
+    else if (full && nc.indexOf(full) >= 0) s += 18;
+    for (var i = 0; i < toks.length; i++){ if (nc.indexOf(toks[i]) >= 0) s += 10; }
+    if (s > 0) s += Math.min(6, (c.count || 0) * 0.3);
+    return s;
+  }
+
+  // Compact "Nearby Project" card (for the grid section). Image-on-top
+  // layout matches /search/'s .pcard exactly. Links open the map deeplink
+  // with fullscreen so the user lands directly on the marker + drawer.
+  function renderProjectCard(p){
+    var img = firstField(p, ['ImageURL','Image2','Image3']);
+    var type = firstField(p, ['ProjectType','PreferredType']);
+    var media = img
+      ? '<img src="'+esc(img)+'" alt="'+esc(p.Title)+'" loading="lazy" onerror="this.style.display=\'none\'">'
+      : '<div class="ph"></div>';
+    var status = p.Delivery || '';
+    return '<a class="tmw-ov-pcard" href="'+esc(mapLink(p.Title, true))+'">'
+      + '<div class="tmw-ov-pcard-media">'+media+(type?'<span class="ptype">'+esc(type)+'</span>':'')+'</div>'
+      + '<div class="tmw-ov-pcard-body">'
+      +   '<h4>'+esc(p.Title)+'</h4>'
+      +   (p.City ? '<div class="loc">'+esc(p.City)+'</div>' : '')
+      +   '<div class="meta"><span>'+esc(status)+'</span><span class="openmap">→</span></div>'
+      + '</div></a>';
+  }
+
+  function renderFirmEntity(f){
+    var sub = (f.role === 'architect' ? 'Architect' : (f.role === 'developer' ? 'Developer' : 'Firm'))
+            + (f.project_count ? (' · ' + f.project_count + ' project' + (f.project_count === 1 ? '' : 's')) : '');
+    var href = f.slug
+      ? ('https://www.oftmw.com/firm/' + encodeURIComponent(f.slug) + '/')
+      : (SEARCH_URL + '?q=' + encodeURIComponent(f.name));
+    return '<a class="tmw-ov-entity" href="'+esc(href)+'">'
+      + '<div class="icn">'+ICON_FIRM+'</div>'
+      + '<div><div class="nm">'+esc(f.name)+'</div><div class="sub">'+esc(sub)+'</div></div>'
       + '</a>';
+  }
+  function renderCityEntity(c){
+    return '<a class="tmw-ov-entity" href="'+MAP_URL+'/?city='+encodeURIComponent(c.name)+'">'
+      + '<div class="icn">'+ICON_PIN+'</div>'
+      + '<div><div class="nm">'+esc(c.name)+'</div><div class="sub">'+c.count+' project'+(c.count === 1 ? '' : 's')+'</div></div>'
+      + '</a>';
+  }
+
+  function renderArticleCard(a){
+    var img = a.cover_image || '';
+    var media = img
+      ? '<img src="'+esc(img)+'" alt="'+esc(a.title)+'" loading="lazy" onerror="this.style.display=\'none\'">'
+      : '<div class="ph"></div>';
+    var date = a.published_iso
+      ? new Date(a.published_iso).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})
+      : '';
+    return '<a class="tmw-ov-acard" href="https://www.oftmw.com/post/'+encodeURIComponent(a.slug||'')+'/">'
+      + '<div class="tmw-ov-acard-media">'+media+'</div>'
+      + '<div class="tmw-ov-acard-body">'
+      +   (date ? '<div class="adate">'+esc(date)+'</div>' : '')
+      +   '<h4>'+esc(a.title)+'</h4>'
+      + '</div></a>';
   }
 
   // ─── PHASE 2B: structured smart query renderers ──────────────────────
@@ -902,7 +1050,9 @@
       slotIntel.innerHTML = '';
       slotHero.innerHTML = '<div class="tmw-ov-sec">' + spotlightHtml(spot) + '</div>';
       slotRows.innerHTML = '';
-      slotView.innerHTML = '';
+      slotProjGrid.innerHTML = '';
+      slotEntities.innerHTML = '';
+      slotArticles.innerHTML = '';
       sEmpty.classList.add('tmw-ov-hidden');
       setState('results');
       return;
@@ -936,13 +1086,17 @@
   // with prose (figures stay DB-derived).
   function renderStructuredSmart(q, s, token){
     var Core = window.TmwSearchCore;
+    // Clear sections owned by other paths so a previous text-match
+    // render doesn't bleed through (grid / firms / articles).
+    slotProjGrid.innerHTML = '';
+    slotEntities.innerHTML = '';
+    slotArticles.innerHTML = '';
     var allowed = !window.tmwIntel || (typeof window.tmwIntel.allowed === 'function' && window.tmwIntel.allowed(q));
     if (!allowed) {
       // Out of free queries → gate panel (no DB query, no LLM call).
       slotIntel.innerHTML = intelGateHtml();
       slotHero.innerHTML = '';
       slotRows.innerHTML = '';
-      slotView.innerHTML = '';
       setState('results');
       return;
     }
@@ -977,7 +1131,6 @@
     } else {
       slotRows.innerHTML = '';
     }
-    slotView.innerHTML = renderViewAll(q, rows.length);
 
     // LLM upgrade: replace the deterministic sentence with prose (stats stay).
     if (rows.length) fireSmartIntelUpgrade(q, s, rows);
@@ -1016,6 +1169,16 @@
   // before: spotlight already handled above, smart already tried; this
   // is the fallback for queries that are neither (e.g. typing a name or
   // a free-form question without structured criteria).
+  // Render-state for the load-more articles button. Reset on every new
+  // text-match query so we always start from the top of the new result
+  // set instead of carrying a stale "10 already shown" pointer over.
+  var _articlesAll = [];
+  var _articlesShown = 0;
+  var ARTICLES_BATCH = 10;
+  var MAX_PROJECTS_GRID = 12;  // mirror /search/'s MAX_PROJECTS
+  var MAX_FIRMS  = 6;
+  var MAX_CITIES = 6;
+
   function runTextMatch(q, token){
     if (token !== _renderToken) return;
     var Core = window.TmwSearchCore;
@@ -1036,110 +1199,145 @@
     var aScored = ARTICLES.map(function(a){ return { a:a, s:scoreArticle(a, toks, full) }; })
                           .filter(function(x){ return x.s > 0; })
                           .sort(function(a,b){ return b.s - a.s; });
+    // Cities aren't a separate index — derive from projects on first use
+    // per session. Same pattern as /search/.
+    if (!PROJECTS._tmwOvCities) PROJECTS._tmwOvCities = deriveCitiesFromProjects(PROJECTS);
+    var cScored = PROJECTS._tmwOvCities.map(function(c){ return { c:c, s:scoreCity(c, toks, full) }; })
+                                       .filter(function(x){ return x.s > 0; })
+                                       .sort(function(a,b){ return b.s - a.s; });
 
-      var totalHits = pScored.length + fScored.length + aScored.length;
+    var totalHits = pScored.length + fScored.length + aScored.length;
 
-      // ── Intelligence panel (inline LLM answer) ──────────────────────
-      // Decide before paint so the panel slot is correct from the first
-      // frame -- prevents a flash of a hero-only layout that then jumps
-      // when the LLM loading shell appears above it.
-      var allowed = !window.tmwIntel || (typeof window.tmwIntel.allowed === 'function' && window.tmwIntel.allowed(q));
-      if (question){
-        if (!allowed){
-          // Out of free queries → gold gate panel (no LLM call).
-          slotIntel.innerHTML = intelGateHtml();
-        } else if (Core && totalHits > 0){
-          // We have facts to seed the model with → fire it. Render the
-          // loading shell first so the user sees instant feedback while
-          // the worker round-trips (~600-1200ms typical).
-          slotIntel.innerHTML = intelPanelHtml('loading', q);
-          fireIntelligence(q,
-            pScored.slice(0,5).map(function(x){ return x.p; }),
-            aScored.slice(0,3).map(function(x){ return x.a; })
-          );
-        } else if (Core){
-          // Question with zero text-match hits — still fire the LLM with
-          // the empty fact set. It may have indexed coverage we don't,
-          // or it'll politely tell us it doesn't know.
-          slotIntel.innerHTML = intelPanelHtml('loading', q);
-          fireIntelligence(q, [], []);
-        } else {
-          // Core hasn't loaded yet — fall back to the link-out CTA so
-          // the user can still get Intelligence via /search/.
-          slotIntel.innerHTML = renderIntelCTA(q);
-        }
+    // ── Intelligence panel (inline LLM answer) ──────────────────────
+    // Decide before paint so the panel slot is correct from the first
+    // frame -- prevents a flash of a hero-only layout that then jumps
+    // when the LLM loading shell appears above it.
+    var allowed = !window.tmwIntel || (typeof window.tmwIntel.allowed === 'function' && window.tmwIntel.allowed(q));
+    if (question){
+      if (!allowed){
+        slotIntel.innerHTML = intelGateHtml();
+      } else if (Core && totalHits > 0){
+        slotIntel.innerHTML = intelPanelHtml('loading', q);
+        fireIntelligence(q,
+          pScored.slice(0,5).map(function(x){ return x.p; }),
+          aScored.slice(0,3).map(function(x){ return x.a; })
+        );
+      } else if (Core){
+        slotIntel.innerHTML = intelPanelHtml('loading', q);
+        fireIntelligence(q, [], []);
       } else {
-        slotIntel.innerHTML = '';
+        slotIntel.innerHTML = renderIntelCTA(q);
       }
+    } else {
+      slotIntel.innerHTML = '';
+    }
 
-      // Empty state: if not a question and nothing matched, the empty
-      // panel is the right UX. Question + empty already rendered an
-      // Intelligence panel above so the user is never stranded.
-      if (!totalHits && !question){
-        slotHero.innerHTML = '';
-        slotRows.innerHTML = '';
-        slotView.innerHTML = '';
-        setState('empty');
-        return;
-      }
-      if (!totalHits){
-        slotHero.innerHTML = '';
-        slotRows.innerHTML = '';
-        slotView.innerHTML = '';
-        setState('results');
-        return;
-      }
+    // Clear smart-rows slot (it's only populated by parseSmartQuery path)
+    slotRows.innerHTML = '';
 
-      // Hero: most-relevant of (project, firm, article) by raw score
-      var heroCandidates = [];
-      if (pScored.length) heroCandidates.push({ kind:'project',  s:pScored[0].s * 1.05, item:pScored[0].p });  // small bias toward projects since they're the database core
-      if (fScored.length) heroCandidates.push({ kind:'firm',     s:fScored[0].s,        item:fScored[0].f });
-      if (aScored.length) heroCandidates.push({ kind:'article',  s:aScored[0].s,        item:aScored[0].a });
-      heroCandidates.sort(function(a,b){ return b.s - a.s; });
-      var hero = heroCandidates[0];
-      if (hero){
-        if (hero.kind === 'project') slotHero.innerHTML = '<div class="tmw-ov-sec">' + renderProjectHero(hero.item) + '</div>';
-        else if (hero.kind === 'firm') slotHero.innerHTML = '<div class="tmw-ov-sec">' + renderFirmHero(hero.item) + '</div>';
-        else slotHero.innerHTML = '<div class="tmw-ov-sec">' + renderArticleHero(hero.item) + '</div>';
-      } else {
-        slotHero.innerHTML = '';
-      }
-
-      // Smart-rows: mix top remaining projects + firms + articles, ranked
-      // by score so the overlay reads as "here's the best 6-8 things in
-      // the database for this query" regardless of type.
-      var topScore = Math.max(
-        pScored.length ? pScored[0].s : 0,
-        fScored.length ? fScored[0].s : 0,
-        aScored.length ? aScored[0].s : 0
-      ) || 1;
-
-      var rowItems = [];
-      var skip = hero ? hero.item : null;
-      pScored.slice(0, 6).forEach(function(x){ if (x.p !== skip) rowItems.push({ kind:'project', s:x.s, item:x.p }); });
-      fScored.slice(0, 4).forEach(function(x){ if (x.f !== skip) rowItems.push({ kind:'firm',    s:x.s, item:x.f }); });
-      aScored.slice(0, 4).forEach(function(x){ if (x.a !== skip) rowItems.push({ kind:'article', s:x.s, item:x.a }); });
-      rowItems.sort(function(a,b){ return b.s - a.s; });
-      rowItems = rowItems.slice(0, 7);
-
-      if (rowItems.length){
-        var rowsHtml = rowItems.map(function(r, i){
-          var pct = Math.round((r.s / topScore) * 100);
-          if (r.kind === 'project') return renderProjectRow(r.item, i+1, i===0 && !hero, pct);
-          if (r.kind === 'firm')    return renderFirmRow(r.item, i+1, i===0 && !hero, pct);
-          return renderArticleRow(r.item, i+1, i===0 && !hero, pct);
-        }).join('');
-        slotRows.innerHTML = ''
-          + '<div class="tmw-ov-sec">'
-          +   '<div class="tmw-ov-sec-head"><h3>Top matches</h3><span class="count">'+totalHits+' total</span></div>'
-          +   '<div class="tmw-ov-rows">'+rowsHtml+'</div>'
-          + '</div>';
-      } else {
-        slotRows.innerHTML = '';
-      }
-
-      slotView.innerHTML = renderViewAll(q, totalHits);
+    // Empty state: not a question, nothing matched, nothing to show.
+    if (!totalHits && !question){
+      slotHero.innerHTML = '';
+      slotProjGrid.innerHTML = '';
+      slotEntities.innerHTML = '';
+      slotArticles.innerHTML = '';
+      setState('empty');
+      return;
+    }
+    if (!totalHits){
+      // Question with no DB hits — Intelligence panel above is the answer.
+      slotHero.innerHTML = '';
+      slotProjGrid.innerHTML = '';
+      slotEntities.innerHTML = '';
+      slotArticles.innerHTML = '';
       setState('results');
+      return;
+    }
+
+    // ── Hero stack ──────────────────────────────────────────────────
+    // Always promote the most-relevant of each type that passes its
+    // eligibility gate. Stack in priority order: project → article →
+    // firm. Items shown as heroes are excluded from the grid sections
+    // below so nothing renders twice.
+    var heroProject = null, heroArticle = null, heroFirm = null;
+    if (pScored.length && heroProjectEligible(pScored[0].p, full, toks)) heroProject = pScored[0].p;
+    if (aScored.length && heroArticleEligible(aScored[0].a, full, toks)) heroArticle = aScored[0].a;
+    if (fScored.length && heroFirmEligible(fScored[0].f, full))           heroFirm    = fScored[0].f;
+    var heroParts = [];
+    if (heroProject) heroParts.push(renderProjectHero(heroProject));
+    if (heroArticle) heroParts.push(renderArticleHero(heroArticle));
+    if (heroFirm)    heroParts.push(renderFirmHero(heroFirm));
+    slotHero.innerHTML = heroParts.length
+      ? '<div class="tmw-ov-sec">'+heroParts.join('')+'</div>'
+      : '';
+
+    // ── Nearby Projects grid ────────────────────────────────────────
+    // Skip the hero project so it doesn't render twice. Cap at 12.
+    var restProjects = pScored.filter(function(x){ return x.p !== heroProject; });
+    var gridProjects = restProjects.slice(0, MAX_PROJECTS_GRID).map(function(x){ return x.p; });
+    if (gridProjects.length){
+      slotProjGrid.innerHTML = ''
+        + '<div class="tmw-ov-sec">'
+        +   '<div class="tmw-ov-sec-head"><h3>Nearby Projects</h3><span class="count">'+pScored.length+' total</span></div>'
+        +   '<div class="tmw-ov-grid">' + gridProjects.map(renderProjectCard).join('') + '</div>'
+        + '</div>';
+    } else {
+      slotProjGrid.innerHTML = '';
+    }
+
+    // ── Firms & places ──────────────────────────────────────────────
+    var firms  = fScored.filter(function(x){ return x.f !== heroFirm; }).slice(0, MAX_FIRMS).map(function(x){ return x.f; });
+    var cities = cScored.slice(0, MAX_CITIES).map(function(x){ return x.c; });
+    if (firms.length || cities.length){
+      var entityHtml = firms.map(renderFirmEntity).join('') + cities.map(renderCityEntity).join('');
+      slotEntities.innerHTML = ''
+        + '<div class="tmw-ov-sec">'
+        +   '<div class="tmw-ov-sec-head"><h3>Firms &amp; places</h3><span class="count">'+(fScored.length + cScored.length)+' total</span></div>'
+        +   '<div class="tmw-ov-chiprow">'+entityHtml+'</div>'
+        + '</div>';
+    } else {
+      slotEntities.innerHTML = '';
+    }
+
+    // ── From the journal (batched with load-more) ───────────────────
+    _articlesAll = aScored.map(function(x){ return x.a; }).filter(function(a){ return a !== heroArticle; });
+    _articlesShown = 0;
+    if (_articlesAll.length){
+      slotArticles.innerHTML = ''
+        + '<div class="tmw-ov-sec">'
+        +   '<div class="tmw-ov-sec-head"><h3>From the journal</h3><span class="count">'+aScored.length+' total</span></div>'
+        +   '<div class="tmw-ov-alist"></div>'
+        + '</div>';
+      appendArticles();
+    } else {
+      slotArticles.innerHTML = '';
+    }
+
+    setState('results');
+  }
+
+  // Append the next batch of articles + manage the load-more button.
+  // Idempotent: a final batch removes the button; called from runTextMatch
+  // for the first batch and from the button click for each subsequent.
+  function appendArticles(){
+    var listEl = slotArticles.querySelector('.tmw-ov-alist');
+    if (!listEl) return;
+    var batch = _articlesAll.slice(_articlesShown, _articlesShown + ARTICLES_BATCH);
+    if (!batch.length) return;
+    listEl.insertAdjacentHTML('beforeend', batch.map(renderArticleCard).join(''));
+    _articlesShown += batch.length;
+    // Re-render the load-more button (remove existing, add a fresh one
+    // if anything remains). Simpler than mutating in place.
+    var existing = slotArticles.querySelector('.tmw-ov-loadmore');
+    if (existing) existing.remove();
+    if (_articlesShown < _articlesAll.length){
+      var remaining = _articlesAll.length - _articlesShown;
+      var nextBatch = Math.min(ARTICLES_BATCH, remaining);
+      var sec = slotArticles.querySelector('.tmw-ov-sec');
+      if (sec) sec.insertAdjacentHTML('beforeend',
+        '<button class="tmw-ov-loadmore" type="button" data-action="more-articles">Load '+nextBatch+' more stor'+(nextBatch===1?'y':'ies')+'</button>'
+      );
+    }
   }
 
   // ── fire /smart-answer with debounce + stale-token guard ──────────
@@ -1216,16 +1414,18 @@
     if (!root.classList.contains('open')) return;
     root.classList.remove('open');
     document.documentElement.style.overflow = '';
-    // Restore scroll just in case
     setTimeout(function(){ window.scrollTo(0, _savedScrollY); }, 0);
-    // Reset after fade-out
     setTimeout(function(){
       input.value = '';
       setState('starter');
       slotIntel.innerHTML = '';
       slotHero.innerHTML = '';
       slotRows.innerHTML = '';
-      slotView.innerHTML = '';
+      slotProjGrid.innerHTML = '';
+      slotEntities.innerHTML = '';
+      slotArticles.innerHTML = '';
+      _articlesAll = [];
+      _articlesShown = 0;
       _renderToken++;
     }, 320);
   }
@@ -1250,13 +1450,21 @@
   // Starter chip click → fill bar + run inline. Phase 2 brought
   // Intelligence inline, so question chips no longer need to hand off
   // to /search/ -- both quick-jump and question chips run via runQuery.
+  // Also wires the "Load more stories" button — single delegated handler
+  // for everything inside the overlay so the wiring is one place.
   root.addEventListener('click', function(e){
     var chip = e.target.closest && e.target.closest('.tmw-ov-chip');
-    if (!chip) return;
-    var q = chip.getAttribute('data-q');
-    if (!q) return;
-    input.value = q;
-    runQuery(q);
+    if (chip) {
+      var q = chip.getAttribute('data-q');
+      if (q) { input.value = q; runQuery(q); }
+      return;
+    }
+    var more = e.target.closest && e.target.closest('[data-action="more-articles"]');
+    if (more) {
+      e.preventDefault();
+      appendArticles();
+      return;
+    }
   });
 
   // ── Wire the dock's existing search bar to open the overlay ─────────
