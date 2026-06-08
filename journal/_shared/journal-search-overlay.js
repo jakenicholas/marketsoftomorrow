@@ -1010,7 +1010,7 @@
       +   '<h2>'+esc(p.Title)+'</h2>'
       +   (city ? '<div class="loc">'+esc(city)+'</div>' : '')
       +   (desc ? '<p class="desc">'+esc(desc)+'</p>' : '')
-      +   heroTimelineHtml(p)
+      +   (window.TMWIntel && window.TMWIntel.renderTimeline ? window.TMWIntel.renderTimeline(p) : heroTimelineHtml(p))
       +   heroSpecHtml(p)
       +   byline
       +   '<div class="tmw-ov-hero-cta">'
@@ -1296,13 +1296,12 @@
   // with fullscreen so the user lands directly on the marker + drawer.
   function renderProjectCard(p){
     var img = firstField(p, ['ImageURL','Image2','Image3']);
-    var type = firstField(p, ['ProjectType','PreferredType']);
     var media = img
       ? '<img src="'+esc(img)+'" alt="'+esc(p.Title)+'" loading="lazy" onerror="this.style.display=\'none\'">'
       : '<div class="ph"></div>';
     var status = p.Delivery || '';
     return '<a class="tmw-ov-pcard" href="'+esc(mapLink(p.Title, true))+'">'
-      + '<div class="tmw-ov-pcard-media">'+media+(type?'<span class="ptype">'+esc(type)+'</span>':'')+'</div>'
+      + '<div class="tmw-ov-pcard-media">'+media+'</div>'
       + '<div class="tmw-ov-pcard-body">'
       +   '<h4>'+esc(p.Title)+'</h4>'
       +   (p.City ? '<div class="loc">'+esc(p.City)+'</div>' : '')
@@ -1725,24 +1724,30 @@
 
     var full = norm(q);
     var toks = tokenize(q);
+    // Scoring tokens: drop 1-char noise tokens so a possessive/plural stray
+    // (e.g. "Fouquet's" → ["fouquet","s"]) doesn't let the single letter "s"
+    // match nearly every project/firm/article via a substring hit — which
+    // previously inflated the result set to the entire catalog ("436 total").
+    // Hero eligibility + the meaningful-token filter still use the full `toks`.
+    var stoks = toks.filter(function(t){ return t.length >= 2; });
     // Use the shared isQuestion so /search/ and the overlay always agree
     // on what counts as a question (the local fallback runs only during
     // the brief window before journal-search-core.js finishes loading).
     var question = (Core ? Core.isQuestion : isQuestion)(q);
 
-    var pScored = PROJECTS.map(function(p){ return { p:p, s:scoreProject(p, toks, full) }; })
+    var pScored = PROJECTS.map(function(p){ return { p:p, s:scoreProject(p, stoks, full) }; })
                           .filter(function(x){ return x.s > 0; })
                           .sort(function(a,b){ return b.s - a.s; });
-    var fScored = FIRMS.map(function(f){ return { f:f, s:scoreFirm(f, toks, full) }; })
+    var fScored = FIRMS.map(function(f){ return { f:f, s:scoreFirm(f, stoks, full) }; })
                        .filter(function(x){ return x.s > 0; })
                        .sort(function(a,b){ return b.s - a.s; });
-    var aScored = ARTICLES.map(function(a){ return { a:a, s:scoreArticle(a, toks, full) }; })
+    var aScored = ARTICLES.map(function(a){ return { a:a, s:scoreArticle(a, stoks, full) }; })
                           .filter(function(x){ return x.s > 0; })
                           .sort(function(a,b){ return b.s - a.s; });
     // Cities aren't a separate index — derive from projects on first use
     // per session. Same pattern as /search/.
     if (!PROJECTS._tmwOvCities) PROJECTS._tmwOvCities = deriveCitiesFromProjects(PROJECTS);
-    var cScored = PROJECTS._tmwOvCities.map(function(c){ return { c:c, s:scoreCity(c, toks, full) }; })
+    var cScored = PROJECTS._tmwOvCities.map(function(c){ return { c:c, s:scoreCity(c, stoks, full) }; })
                                        .filter(function(x){ return x.s > 0; })
                                        .sort(function(a,b){ return b.s - a.s; });
 
