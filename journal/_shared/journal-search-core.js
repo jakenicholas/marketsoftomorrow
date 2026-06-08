@@ -306,11 +306,24 @@
   // Caller passes projects in (rather than a stale module-cached copy)
   // so different surfaces with different filtered project sets stay
   // consistent with what they actually have.
+  //
+  // Each city is also indexed by its FIRST comma-separated part so the
+  // query parser can match "nashville" against projects stored as
+  // "Nashville, TN" or "Nashville, Tennessee". Without this, the same
+  // place is silently treated as different cities depending on which
+  // editor entered it. The first-part variant is added only if it's
+  // long enough to be meaningful (>= 4 chars).
   function buildCitySet(projects) {
     var m = new Map();
     (projects || []).forEach(function (p) {
       var c = (p.City || '').trim();
-      if (c && c.length >= 4) m.set(norm(c), c);
+      if (!c || c.length < 4) return;
+      m.set(norm(c), c);
+      var first = c.split(',')[0].trim();
+      if (first.length >= 4 && first !== c) {
+        var firstNorm = norm(first);
+        if (!m.has(firstNorm)) m.set(firstNorm, first);
+      }
     });
     return m;
   }
@@ -462,7 +475,20 @@
         if (!typeMatch) return false;
       }
       if (s.cities.length) {
-        if (!s.cities.some(function (c) { return norm(p.City) === norm(c); })) return false;
+        // Match against both the full city string AND the first comma-
+        // separated part. Projects in the database use mixed formats --
+        // "Nashville", "Nashville, TN", "Nashville, Tennessee" all exist.
+        // Without this, a city criterion of "Nashville" only catches the
+        // exact-string variant and silently drops the rest, so a query
+        // like "projects coming to nashville" surfaces 4 results instead
+        // of all of them. Comparing the first comma-part normalizes
+        // these variants without touching the underlying data.
+        var pCityFull = norm(p.City || '');
+        var pCityFirst = pCityFull.split(',')[0].trim();
+        if (!s.cities.some(function (c) {
+          var cNorm = norm(c);
+          return pCityFull === cNorm || pCityFirst === cNorm;
+        })) return false;
       }
       if (s.region === 'Florida' && !inFlorida(p)) return false;
       if (s.yearMin != null) {

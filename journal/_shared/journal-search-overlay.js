@@ -246,17 +246,28 @@
          - width: fills the overlay container (not the dock's min(46vw,300px))
          - go button: dock has none -- we add a small gold arrow because the
            overlay no longer redirects to /search/. */
-    /* Thumbs feedback row -- positioned just above the bar, hidden by
-       default (no .show class). The buttons match the dock's pill
-       aesthetic: subtle white-overlay bg, neutral border at rest, color
-       coding on hover (green for up, red for down) so the rating
-       intent reads at a glance. After the user votes, both buttons get
-       .voted (pointer-events:none locks the rating in) and the .voted
-       button itself gets a colored fill matching its rating. */
-    + '.tmw-ov-feedback{position:absolute;left:50%;bottom:108px;transform:translateX(-50%);'
-    + 'display:none;align-items:center;gap:10px;z-index:2;opacity:0;'
-    + 'transition:opacity .3s ease}'
-    + '.tmw-ov-feedback.show{display:flex;opacity:1}'
+    /* Bottom dock: wraps the thumbs feedback row + the search bar in one
+       flex-column container so they're guaranteed-centered and move as a
+       unit. The dock itself is absolute-positioned at the bottom; the
+       children sit naturally centered via align-items:center -- no more
+       trying to manually transform individual elements. The bar's own
+       absolute positioning is overridden inside the dock so it flows
+       normally. */
+    + '.tmw-ov-dock{position:absolute;left:0;right:0;bottom:0;z-index:2;'
+    + 'display:flex;flex-direction:column;align-items:center;gap:12px;'
+    + 'padding:0 0 24px;pointer-events:none}'
+    + '.tmw-ov-dock > *{pointer-events:auto}'
+    /* Thumbs feedback row -- hidden by default via visibility (lets the
+       opacity transition actually fire, unlike display:none). Centered
+       automatically by the dock's flex layout. The buttons match the
+       dock's pill aesthetic: subtle white-overlay bg, neutral border at
+       rest, color coding on hover (green for up, red for down) so the
+       rating intent reads at a glance. After the user votes, both buttons
+       get .voted (pointer-events:none locks the rating in) and the
+       .voted button itself gets a colored fill matching its rating. */
+    + '.tmw-ov-feedback{display:flex;align-items:center;gap:10px;'
+    + 'visibility:hidden;opacity:0;transition:opacity .25s ease,visibility 0s linear .25s}'
+    + '.tmw-ov-feedback.show{visibility:visible;opacity:1;transition:opacity .25s ease}'
     + '.tmw-ov-fb-btn{width:38px;height:38px;border-radius:999px;padding:0;'
     + 'background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.10);'
     + 'color:#C2C9C3;cursor:pointer;display:flex;align-items:center;justify-content:center;'
@@ -272,14 +283,15 @@
     + '.tmw-ov-fb-thanks{font-size:11.5px;letter-spacing:.02em;color:#9AA39C;'
     + 'opacity:0;transition:opacity .3s ease;pointer-events:none;margin-left:4px}'
     + '.tmw-ov-feedback.voted .tmw-ov-fb-thanks{opacity:1}'
-    + '@media(max-width:560px){.tmw-ov-feedback{bottom:90px;gap:8px}'
+    + '@media(max-width:560px){'
+    +   '.tmw-ov-dock{padding:0 0 18px;gap:10px}'
+    +   '.tmw-ov-feedback{gap:8px}'
     +   '.tmw-ov-fb-btn{width:34px;height:34px}'
     +   '.tmw-ov-fb-btn svg{width:16px;height:16px}'
     +   '.tmw-ov-fb-thanks{font-size:10.5px}'
     + '}'
 
-    + '.tmw-ov-bar{position:absolute;left:50%;bottom:28px;transform:translateX(-50%);'
-    + 'width:min(820px, calc(100vw - 32px));z-index:2}'
+    + '.tmw-ov-bar{position:relative;width:min(820px, calc(100vw - 32px));z-index:2}'
     /* Dark-purple gradient backdrop fades content scrolling behind the bar
        so the input stays legible against busy hero images / row text. The
        gradient sits on .tmw-ov-lb as a pseudo-element so it follows the
@@ -682,32 +694,32 @@
 
     +     '</div>'
     +   '</div>'
-    /* Thumbs feedback row -- centered above the search bar. Visible only
-       on the results state (hidden during starter / thinking / empty).
-       Two buttons (up / down) and a tiny "Thanks" confirmation that
-       fades in after the user votes. Click POSTs a search_feedback
-       event to the worker; rating + query text drive the discovery
-       pipeline downstream. */
-    +   '<div class="tmw-ov-feedback" data-feedback>'
-    +     '<button class="tmw-ov-fb-btn" type="button" data-rating="up" aria-label="Helpful">'
-    +       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 11v9H3v-9zM21 9c0-1.1-.9-2-2-2h-5l1-3.5c.1-.4 0-.8-.3-1.1l-.7-.7-7 7v9h11l3-7V9z"/></svg>'
-    +     '</button>'
-    +     '<button class="tmw-ov-fb-btn" type="button" data-rating="down" aria-label="Not helpful">'
-    +       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 13V4h4v9zM3 15c0 1.1.9 2 2 2h5l-1 3.5c-.1.4 0 .8.3 1.1l.7.7 7-7V6H6L3 13v2z"/></svg>'
-    +     '</button>'
-    +     '<span class="tmw-ov-fb-thanks">Thanks — TMW will look into it</span>'
-    +   '</div>'
-
-    +   '<div class="tmw-ov-bar">'
-    +     '<form class="tmw-ov-bar-inner tmw-dock-search" role="search">'
-    +       '<span class="ds-ico">' + ICON_SEARCH_DOCK + '</span>'
-    +       '<input type="search" autocomplete="off" placeholder="Search projects, firms, cities…" aria-label="Search projects, firms, cities">'
-    +       '<button class="go" type="button" aria-label="Search">'
-    +         '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>'
+    /* Bottom dock wraps the thumbs feedback row + the search bar in a
+       single flex-column container. Both children sit centered via
+       align-items:center -- no more manual transforms. Order is feedback
+       on top, bar below, with a small gap. */
+    +   '<div class="tmw-ov-dock">'
+    +     '<div class="tmw-ov-feedback" data-feedback>'
+    +       '<button class="tmw-ov-fb-btn" type="button" data-rating="up" aria-label="Helpful">'
+    +         '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 11v9H3v-9zM21 9c0-1.1-.9-2-2-2h-5l1-3.5c.1-.4 0-.8-.3-1.1l-.7-.7-7 7v9h11l3-7V9z"/></svg>'
     +       '</button>'
-    +     '</form>'
-    +   '</div>'
-    + '</div>';
+    +       '<button class="tmw-ov-fb-btn" type="button" data-rating="down" aria-label="Not helpful">'
+    +         '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 13V4h4v9zM3 15c0 1.1.9 2 2 2h5l-1 3.5c-.1.4 0 .8.3 1.1l.7.7 7-7V6H6L3 13v2z"/></svg>'
+    +       '</button>'
+    +       '<span class="tmw-ov-fb-thanks">Thanks — TMW will look into it</span>'
+    +     '</div>'
+
+    +     '<div class="tmw-ov-bar">'
+    +       '<form class="tmw-ov-bar-inner tmw-dock-search" role="search">'
+    +         '<span class="ds-ico">' + ICON_SEARCH_DOCK + '</span>'
+    +         '<input type="search" autocomplete="off" placeholder="Search projects, firms, cities…" aria-label="Search projects, firms, cities">'
+    +         '<button class="go" type="button" aria-label="Search">'
+    +           '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>'
+    +         '</button>'
+    +       '</form>'
+    +     '</div>'  /* close .tmw-ov-bar */
+    +   '</div>'    /* close .tmw-ov-dock */
+    + '</div>';    /* close .tmw-ov-lb */
 
   // Mount when body is available
   function mountRoot(){
