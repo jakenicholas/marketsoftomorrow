@@ -134,7 +134,10 @@
   // ── Destinations (single source of truth; update when domain moves) ──
   var MAP_URL     = 'https://www.oftmw.com/map';
   var HOME_URL    = 'https://www.oftmw.com';
-  var SEARCH_PAGE = '/search/';
+  // The standalone /search/ page was retired; Enter-to-submit now opens the
+  // in-page Intelligence overlay. This fallback only fires if the overlay
+  // script somehow isn't present — '/' (homepage) reads ?q= and opens it there.
+  var SEARCH_PAGE = '/';
 
   // ── Icons (inline SVG, currentColor) ──
   var ICON_MAP =
@@ -864,7 +867,10 @@
       // synchronously sets location.href, so anything after the assignment (or in
       // a separate later-registered listener) may never run.
       try { if (q.length >= 2 && window.tmwIntel && window.tmwIntel.trackSearch) window.tmwIntel.trackSearch(q, {}); } catch (_) {}
-      window.location.href = SEARCH_PAGE + (q ? '?q=' + encodeURIComponent(q) : '');
+      // Prefer the in-page Intelligence overlay (loaded alongside this dock);
+      // only navigate as a last resort if it's unavailable.
+      if (window.tmwOverlay && window.tmwOverlay.open) { window.tmwOverlay.open(q); }
+      else { window.location.href = SEARCH_PAGE + (q ? '?q=' + encodeURIComponent(q) : ''); }
     });
 
     // Live result pop-up (projects/firms/cities). Skipped on the map surface,

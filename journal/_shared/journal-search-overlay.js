@@ -23,7 +23,10 @@
   window.__tmwOverlay = true;
 
   var WORKER_URL = 'https://tmw.jake-ab7.workers.dev';
-  var SEARCH_URL = 'https://www.oftmw.com/search/';
+  // The standalone /search/ page was retired — the overlay IS the full
+  // search now. Deep-links use the homepage with ?q=, which auto-opens this
+  // overlay (see the ?q= bootstrap at the bottom of this IIFE).
+  var SEARCH_URL = 'https://www.oftmw.com/';
   var MAP_URL    = 'https://www.oftmw.com/map';
 
   // ── helpers (mirror /search/index.html so scoring stays in sync) ──
@@ -1176,7 +1179,6 @@
       +   '<p class="tmw-ov-intel-ans '+ansClass+'">'+ansHtml+'</p>'
       +   '<div class="tmw-ov-intel-foot">'
       +     '<span class="ai">TMW Intelligence</span> · synthesized from the journal &amp; database'
-      +     '<a href="'+SEARCH_URL+'?q='+encodeURIComponent(q||'')+'">Open in full search '+ICON_ARROW+'</a>'
       +   '</div>'
       + '</section>';
   }
@@ -2274,4 +2276,15 @@
     close: close,
     isOpen: function(){ return root.classList.contains('open'); }
   };
+
+  // ── ?q= deep-link bootstrap ─────────────────────────────────────────
+  // Now that the standalone /search/ page is gone, "https://www.oftmw.com/?q=X"
+  // is the canonical search deep-link: any page that loads this overlay opens
+  // the spotlight pre-loaded with X. Powers the homepage SearchAction, the
+  // dock submit fallback, slug-less firm cards, and the map's coverage /
+  // recent-search links — all of which point at /?q=… instead of /search/.
+  try {
+    var _bootQ = new URLSearchParams(location.search).get('q');
+    if (_bootQ && _bootQ.trim()) open(_bootQ.trim());
+  } catch(_){}
 })();
