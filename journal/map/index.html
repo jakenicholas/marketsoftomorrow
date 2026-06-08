@@ -2890,6 +2890,12 @@
       70%  { transform: translate(-50%,-50%) scale(2.8); opacity: 0; }
       100% { transform: translate(-50%,-50%) scale(1);   opacity: 0; }
     }
+    /* Selected-pin pulse — centered via margins, so scale() alone (no translate). */
+    @keyframes tmwSelPulse {
+      0%   { transform: scale(1);   opacity: 0.55; }
+      70%  { transform: scale(2.6); opacity: 0; }
+      100% { transform: scale(1);   opacity: 0; }
+    }
     /* ‚îÄ‚îÄ‚îÄ LAYERS PANEL ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ */
     #layersPanel {
       position: fixed;
@@ -8355,12 +8361,13 @@
       gap: 8px;
       position: fixed;
       right: 14px;
-      /* lifted so the time scrubber (bottom-center, full-width on mobile) no
-         longer overlaps the geo/zoom/layers buttons */
-      bottom: calc(env(safe-area-inset-bottom, 0px) + 178px);
+      /* top-right on mobile (alongside the fullscreen control) so the
+         bottom-center time scrubber no longer overlaps these buttons */
+      top: calc(env(safe-area-inset-top, 0px) + 58px);
+      bottom: auto;
       z-index: 85;
       color: #fff;
-      transition: bottom 0.32s cubic-bezier(0.2, 0.8, 0.2, 1);
+      transition: top 0.32s cubic-bezier(0.2, 0.8, 0.2, 1);
     }
     /* When sheet is fully expanded, the right-rail is too tall to fit
        above the sheet ‚Äî collapse to just the geolocate button, top-
@@ -13005,7 +13012,7 @@
 
         const st = document.createElement('style'); st.id = 'tmw-il-css';
         st.textContent =
-          ".tmw-il-panel{position:fixed;bottom:262px;right:18px;z-index:10;width:248px;background:rgba(14,14,18,.88);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.12);border-radius:15px;padding:13px 15px;box-shadow:0 18px 50px rgba(0,0,0,.55);font-family:'Inter',sans-serif;color:#fff;transition:opacity .16s,transform .16s}" +
+          ".tmw-il-panel{position:fixed;bottom:340px;right:18px;z-index:10;width:248px;background:rgba(14,14,18,.88);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.12);border-radius:15px;padding:13px 15px;box-shadow:0 18px 50px rgba(0,0,0,.55);font-family:'Inter',sans-serif;color:#fff;transition:opacity .16s,transform .16s}" +
           ".tmw-il-panel.tmw-il-closed{opacity:0;transform:translateY(10px) scale(.97);pointer-events:none}" +
           ".tmw-il-ph{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}" +
           ".tmw-il-panel h4{font-size:14px;font-weight:800;margin:0}" +
@@ -13013,12 +13020,12 @@
           ".tmw-il-x:hover{color:#fff;background:rgba(255,255,255,.1)}.tmw-il-x svg{width:12px;height:12px}" +
           ".tmw-il-seg-row{display:flex;align-items:center;gap:10px;margin-bottom:9px}.tmw-il-seg-row>span{font-size:11px;color:rgba(255,255,255,.55);width:52px;flex:0 0 auto}" +
           ".tmw-il-seg{display:flex;flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:2px;gap:2px}" +
-          ".tmw-il-seg button{flex:1;border:none;background:transparent;color:rgba(255,255,255,.6);font:600 10.5px/1 'Inter',sans-serif;padding:6px 3px;border-radius:7px;cursor:pointer;white-space:nowrap}" +
+          ".tmw-il-seg button{flex:1;border:none;background:transparent;color:rgba(255,255,255,.62);font:600 11.5px/1 'Inter',sans-serif;padding:7px 3px;border-radius:7px;cursor:pointer;white-space:nowrap}" +
           ".tmw-il-seg button.on{background:rgba(167,139,250,.92);color:#16102b}" +
           ".tmw-il-rule{height:1px;background:rgba(255,255,255,.09);margin:11px 0 10px}" +
           ".tmw-il-legend .d.tmw-il-rail{height:2px;border-radius:0;background:repeating-linear-gradient(90deg,#FFD300 0 2.5px,transparent 2.5px 4.5px);box-shadow:none}" +
           "body.ui-v2 #v2LayersBtn{background:rgba(167,139,250,.2)!important;border:1px solid rgba(167,139,250,.6)!important;box-shadow:0 0 13px rgba(167,139,250,.45)!important;color:#C9BBFF!important}body.ui-v2 #v2LayersBtn.active{background:rgba(167,139,250,.38)!important;color:#fff!important}" +
-          ".tmw-il-toggle{display:flex;align-items:center;gap:10px;cursor:pointer;padding:8px 9px;border-radius:10px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.03);transition:.15s}" +
+          ".tmw-il-toggle{display:flex;align-items:center;gap:10px;cursor:pointer;padding:8px 9px;border-radius:10px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.03);transition:.15s;margin-bottom:15px}" +
           ".tmw-il-toggle:hover{background:rgba(255,255,255,.06)}" +
           ".tmw-il-toggle.on{border-color:rgba(167,139,250,.5);background:rgba(167,139,250,.1)}" +
           ".tmw-il-sw{width:32px;height:19px;border-radius:999px;background:rgba(255,255,255,.15);position:relative;flex:0 0 auto;transition:.2s}" +
@@ -13038,19 +13045,17 @@
           ".tmw-il-scrub input[type=range]{-webkit-appearance:none;width:100%;height:5px;border-radius:999px;background:linear-gradient(90deg,#A78BFA var(--pct,100%),rgba(255,255,255,.12) var(--pct,100%));outline:none}" +
           ".tmw-il-scrub input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 0 0 4px rgba(167,139,250,.3),0 2px 6px rgba(0,0,0,.5);cursor:pointer}" +
           ".tmw-il-ticks{display:flex;justify-content:space-between;margin-top:3px;font-size:8.5px;color:rgba(255,255,255,.4);font-variant-numeric:tabular-nums}" +
-          ".tmw-il-pulse{width:13px;height:13px;border-radius:50%;background:#B9A6FF;box-shadow:0 0 0 2px rgba(255,255,255,.9),0 0 11px rgba(167,139,250,.9);cursor:pointer;position:relative}" +
-          ".tmw-il-pulse::before,.tmw-il-pulse::after{content:'';position:absolute;inset:50%;width:13px;height:13px;border-radius:50%;border:2px solid #A78BFA;transform:translate(-50%,-50%);animation:tmwIlHalo 2.2s ease-out infinite}" +
-          ".tmw-il-pulse::after{animation-delay:1.1s}" +
-          "@keyframes tmwIlHalo{0%{width:13px;height:13px;opacity:.85}100%{width:58px;height:58px;opacity:0}}" +
-          "@media(max-width:820px){.tmw-il-panel{top:58px;left:10px;right:auto;bottom:auto;width:212px;padding:10px 12px}.tmw-il-ph{margin-bottom:8px}.tmw-il-panel h4{font-size:13px}.tmw-il-toggle i{display:none}.tmw-il-legend{font-size:10px}.tmw-il-scrub{bottom:84px;width:92vw;padding:7px 12px 9px}.tmw-il-yr{font-size:14px}}";
+          ".tmw-il-pulse{width:13px;height:13px;border-radius:50%;background:#B9A6FF;cursor:pointer;position:relative;animation:tmwIlGlow 1.9s ease-in-out infinite}" +
+          "@keyframes tmwIlGlow{0%,100%{box-shadow:0 0 0 2px rgba(255,255,255,.92),0 0 7px 2px rgba(167,139,250,.55)}50%{box-shadow:0 0 0 2px rgba(255,255,255,.92),0 0 17px 6px rgba(167,139,250,.95)}}" +
+          "@media(max-width:820px){.tmw-il-panel{top:68px;left:12px;right:auto;bottom:auto;width:212px;padding:10px 12px}.tmw-il-ph{margin-bottom:8px}.tmw-il-panel h4{font-size:13px}.tmw-il-toggle i{display:none}.tmw-il-legend{font-size:10px}.tmw-il-scrub{bottom:84px;width:92vw;padding:7px 12px 9px}.tmw-il-yr{font-size:14px}}";
         document.head.appendChild(st);
 
         const panel = document.createElement('div'); panel.className = 'tmw-il-panel';
         panel.innerHTML =
           '<div class="tmw-il-ph"><h4>Interactive Layers</h4><button class="tmw-il-x" aria-label="Close layers"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>' +
           '<div class="tmw-il-toggle"><span class="tmw-il-sw"></span><span><b>What’s Moving</b><i>Pulse Recent Milestones</i></span></div>' +
-          '<div class="tmw-il-seg-row"><span>Map View</span><div class="tmw-il-seg" data-seg="view"><button data-v="default" class="on">Default</button><button data-v="satellite">Satellite</button></div></div>' +
-          '<div class="tmw-il-seg-row"><span>Projects</span><div class="tmw-il-seg" data-seg="proj"><button data-v="dev" class="on">Pipeline</button><button data-v="completed">Completed</button><button data-v="both">Both</button></div></div>' +
+          '<div class="tmw-il-seg-row"><div class="tmw-il-seg" data-seg="view"><button data-v="default" class="on">Default</button><button data-v="satellite">Satellite</button></div></div>' +
+          '<div class="tmw-il-seg-row"><div class="tmw-il-seg" data-seg="proj"><button data-v="dev" class="on">Pipeline</button><button data-v="completed">Completed</button><button data-v="both">Both</button></div></div>' +
           '<div class="tmw-il-rule"></div>' +
           '<div class="tmw-il-legend">' +
             '<div><span class="d" style="background:#B9A6FF"></span>Moved In The Last 2 Weeks</div>' +
@@ -13154,10 +13159,10 @@
         const SEARCH_SEL = '.tmw-dock-search, #sidebarSearchBar, #mobileSearchBar';
         document.addEventListener('focusin', e=>{ if (e.target && e.target.closest && e.target.closest(SEARCH_SEL)) scrub.classList.add('tmw-il-hidden'); });
         document.addEventListener('focusout', ()=>{ setTimeout(()=>{ const a=document.activeElement; if (!a || !a.closest || !a.closest(SEARCH_SEL)) scrub.classList.remove('tmw-il-hidden'); }, 120); });
-        // Initial "All" state — set the labels without forcing a redundant re-render.
-        window._scrubYear = null;
-        yrEl.textContent = MAX;
-        slider.style.setProperty('--pct','100%');
+        // Start the scrubber at 2026 (this year) rather than the max.
+        const START_YEAR = Math.max(MIN, Math.min(MAX, 2026));
+        slider.value = Math.round(((START_YEAR - MIN) / (MAX - MIN)) * 100);
+        applyYear(START_YEAR, START_YEAR >= MAX);
       }
       const _iv = setInterval(()=>{ if (ready()){ clearInterval(_iv); boot(); } }, 300);
       setTimeout(()=>clearInterval(_iv), 30000);
@@ -13385,8 +13390,8 @@
       const selectedTitle = f.properties.title;
       // Selected pin gets the TMW intel purple (#A78BFA) -- visually
       // consistent with the intel block on the modal/popup.
-      const pinkPinExpr = ['case', ['==', ['get', 'title'], selectedTitle], '#A78BFA', window.TMW_STATUS_COLOR];
-      const pinkRadiusExpr = ['case', ['==', ['get', 'title'], selectedTitle], 9, 6];
+      const pinkPinExpr = ['case', ['==', ['get', 'title'], selectedTitle], '#FF3D9A', window.TMW_STATUS_COLOR];
+      const pinkRadiusExpr = ['case', ['==', ['get', 'title'], selectedTitle], 13, 6];
       if (map.getLayer('unclustered-point')) {
         map.setPaintProperty('unclustered-point', 'circle-color', pinkPinExpr);
         map.setPaintProperty('unclustered-point', 'circle-radius', pinkRadiusExpr);
@@ -14470,8 +14475,8 @@
         try {
           if (p && p.title && map && map.getLayer && map.getLayer('unclustered-point')) {
             const _selTitle = p.title;
-            const _pinkPin = ['case', ['==', ['get', 'title'], _selTitle], '#A78BFA', window.TMW_STATUS_COLOR];
-            const _pinkRad = ['case', ['==', ['get', 'title'], _selTitle], 9, 6];
+            const _pinkPin = ['case', ['==', ['get', 'title'], _selTitle], '#FF3D9A', window.TMW_STATUS_COLOR];
+            const _pinkRad = ['case', ['==', ['get', 'title'], _selTitle], 13, 6];
             map.setPaintProperty('unclustered-point', 'circle-color', _pinkPin);
             map.setPaintProperty('unclustered-point', 'circle-radius', _pinkRad);
             window._selectedPinTitle = _selTitle;
@@ -15100,8 +15105,8 @@
       const selectedTitle = f.properties.title;
 
       // Change selected pin to TMW intel purple using Mapbox paint expression
-      const pinkPinExpr = ['case', ['==', ['get', 'title'], selectedTitle], '#A78BFA', window.TMW_STATUS_COLOR];
-      const pinkRadiusExpr = ['case', ['==', ['get', 'title'], selectedTitle], 9, 6];
+      const pinkPinExpr = ['case', ['==', ['get', 'title'], selectedTitle], '#FF3D9A', window.TMW_STATUS_COLOR];
+      const pinkRadiusExpr = ['case', ['==', ['get', 'title'], selectedTitle], 13, 6];
       if (map.getLayer('unclustered-point')) {
         map.setPaintProperty('unclustered-point', 'circle-color', pinkPinExpr);
         map.setPaintProperty('unclustered-point', 'circle-radius', pinkRadiusExpr);
@@ -15116,11 +15121,12 @@
         const pulseRing = document.createElement('div');
         pulseRing.style.cssText = `
           position:absolute;
-          width:28px;height:28px;
+          width:34px;height:34px;
           border-radius:50%;
-          background:rgba(167,139,250,0.4);
-          top:0;left:0;
-          animation:locationPulse 1.8s ease-out infinite;
+          background:rgba(255,61,154,0.42);
+          top:50%;left:50%;
+          margin:-17px 0 0 -17px;
+          animation:tmwSelPulse 1.8s ease-out infinite;
         `;
         pulseEl.appendChild(pulseRing);
         if (window._selectedPinMarker) window._selectedPinMarker.remove();
