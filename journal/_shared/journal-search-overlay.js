@@ -128,13 +128,15 @@
     + '.tmw-ov-chip-sep{display:flex;align-items:center;gap:14px;margin:22px auto 14px;max-width:340px;'
     + 'font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:rgba(255,255,255,.32);font-weight:700}'
     + '.tmw-ov-chip-sep::before,.tmw-ov-chip-sep::after{content:"";flex:1;height:1px;background:rgba(255,255,255,.08)}'
-    + '.tmw-ov-chips{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:520px;margin:0 auto}'
-    + '.tmw-ov-chip{font-family:inherit;font-size:12.5px;color:#ECEAE5;'
+    + '.tmw-ov-chips{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:700px;margin:0 auto}'
+    + '.tmw-ov-chip{font-family:inherit;font-size:12px;color:#ECEAE5;'
     + 'background:rgba(167,139,250,.08);border:1px solid rgba(167,139,250,.25);'
-    + 'padding:9px 13px;border-radius:999px;cursor:pointer;transition:all .15s;line-height:1.2;'
+    + 'padding:9px 10px;border-radius:999px;cursor:pointer;transition:all .15s;line-height:1.2;'
     + 'text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}'
     + '.tmw-ov-chip:hover{background:rgba(167,139,250,.18);border-color:#A78BFA;color:#fff}'
-    + '@media(max-width:560px){.tmw-ov-chips{grid-template-columns:repeat(2,1fr);max-width:380px}}'
+    + '@media(max-width:560px){.tmw-ov-chips{grid-template-columns:repeat(2,1fr);max-width:420px}'
+    +   '.tmw-ov-chip{font-size:11.5px}'
+    + '}'
 
     + '@media(max-width:640px){'
     +   '.tmw-ov-starter{padding:16px 16px 28px;min-height:calc(100vh - 200px)}'
@@ -233,50 +235,33 @@
     + '.tmw-ov-empty h3{font-family:"Fraunces",Georgia,serif;font-size:22px;color:#ECEAE5;margin-bottom:8px;font-weight:600}'
     + '.tmw-ov-empty p{font-size:14px;max-width:40ch;margin:0 auto 18px}'
 
-    /* Bottom-pinned search bar — VERBATIM COPY of journal-dock.js's
-       .tmw-dock-search input + .ds-ico CSS. The values below are byte-
-       for-byte the dock's (lines 506 + 547-567 of journal-dock.js):
-         - background: rgba(255,255,255,.05)        (line 548)
-         - border:     1px solid rgba(255,255,255,.10)  (line 548)
-         - border-radius: 999px                     (line 548) <- pill
-         - height:     46px                         (line 547)
-         - font-size:  14px                         (line 549)
-         - font-family: inherit (Inter)             (line 549)
-         - padding:    0 18px 0 42px                (line 547)
-         - focus border-color: rgba(31,223,103,.55) (line 567) <- green
-         - focus background:   rgba(255,255,255,.08)(line 567)
-         - cancel-btn:  14x14 purple × (line 551)
-         - .mag: left:13px, 20x20, color:#9AA39C    (line 506)
-       Only deviations: width is the overlay container width (not the
-       dock's min(46vw,300px)) and the rotating conic gradient + go-button
-       are gone -- neither exists on the dock. Width grows on focus the
-       same way dock does: by 14% (min(46vw,300px) -> min(52vw,344px)
-       =~ 14.5% bump). The overlay width is fixed since it already fills
-       the spotlight container, so we drop that transition. */
+    /* Bottom-pinned search bar — INHERITS journal-dock.js's .tmw-dock-search
+       CSS by tagging the form with that class alongside .tmw-ov-bar-inner.
+       Every dock animation (ds-ask-pill grow, ds-ask-text reveal, ds-ask-
+       dots caterpillar, ds-hex-spinner spin, ds-search-icon morph, ds-ph
+       placeholder fade) fires here on the same 8s timeline, the magnifier
+       has the same #9AA39C color + left:13px, the pill border + background
+       + green focus state are all the dock's. We only override what's
+       overlay-specific:
+         - width: fills the overlay container (not the dock's min(46vw,300px))
+         - go button: dock has none -- we add a small gold arrow because the
+           overlay no longer redirects to /search/. */
     + '.tmw-ov-bar{position:absolute;left:50%;bottom:28px;transform:translateX(-50%);'
     + 'width:min(820px, calc(100vw - 32px));z-index:2}'
-    + '.tmw-ov-bar-inner{position:relative;display:flex;align-items:center;margin:0}'
-    + '.tmw-ov-bar .mag{position:absolute;left:13px;top:50%;width:20px;height:20px;color:#9AA39C;'
-    + 'pointer-events:none;transform:translateY(-50%);z-index:2;overflow:visible}'
-    + '.tmw-ov-bar .mag svg{width:100%;height:100%;overflow:visible}'
-    + '.tmw-ov-bar input{height:46px;width:100%;padding:0 50px 0 42px;'
-    + 'background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.10);border-radius:999px;'
-    + 'color:#fff;font-size:14px;font-family:inherit;outline:none;'
-    + 'transition:border-color .2s,background .2s}'
-    + '.tmw-ov-bar input::placeholder{color:#9AA39C}'
-    + '.tmw-ov-bar input:focus{border-color:rgba(31,223,103,.55);background:rgba(255,255,255,.08)}'
-    + '.tmw-ov-bar input::-webkit-search-cancel-button{-webkit-appearance:none;appearance:none;'
-    + 'height:14px;width:14px;cursor:pointer;'
-    + 'background:url(data:image/svg+xml,%3Csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20viewBox=%270%200%2024%2024%27%3E%3Cpath%20d=%27M6%206l12%2012M18%206L6%2018%27%20stroke=%27%23B9A6FF%27%20stroke-width=%272.4%27%20stroke-linecap=%27round%27/%3E%3C/svg%3E) center/contain no-repeat}'
-    /* Tiny gold submit arrow on the right -- absent from the dock bar but
-       kept here as the explicit "run query" affordance now that the
-       overlay doesn't redirect to /search/. Same 14px sizing as the
-       cancel button so it doesn't compete with the input visually. */
-    + '.tmw-ov-bar .go{position:absolute;right:12px;top:50%;transform:translateY(-50%);'
+    /* Width override: dock input is min(46vw,300px) and grows to min(52vw,344px)
+       on focus. Overlay bar already fills the spotlight container so we lock
+       it at 100% in both states and disable the width transition. */
+    + '.tmw-ov-bar .tmw-dock-search input{width:100%;padding-right:50px}'
+    + '.tmw-ov-bar .tmw-dock-search input:focus{width:100%}'
+    /* Tiny gold submit arrow on the right -- the dock bar doesn\'t have one,
+       but the overlay needs an explicit "run query" affordance now that it
+       no longer redirects to /search/. Sized so it sits inside the dock\'s
+       46px pill height. */
+    + '.tmw-ov-bar .go{position:absolute;right:8px;top:50%;transform:translateY(-50%);'
     + 'height:30px;width:30px;padding:0;border:0;background:transparent;color:#e6c574;'
-    + 'display:flex;align-items:center;justify-content:center;z-index:2;border-radius:999px;cursor:pointer;'
+    + 'display:flex;align-items:center;justify-content:center;z-index:3;border-radius:999px;cursor:pointer;'
     + 'transition:color .2s,transform .2s,background .2s}'
-    + '.tmw-ov-bar .go:hover{color:#f0d68a;background:rgba(230,197,116,.10);transform:translateY(-50%) translateX(2px)}'
+    + '.tmw-ov-bar .go:hover{color:#f0d68a;background:rgba(230,197,116,.12);transform:translateY(-50%) translateX(2px)}'
     + '.tmw-ov-bar .go svg{width:16px;height:16px;filter:drop-shadow(0 0 6px rgba(230,197,116,.4))}'
 
     /* ─── PHASE 2: inline TMW Intelligence panel ─────────────────── */
@@ -519,6 +504,22 @@
     +   '<circle class="tmw-ov-hxs-ring" cx="50" cy="50" r="28" fill="none" stroke="#A78BFA" stroke-width="2" opacity="0"/>'
     + '</svg>';
 
+  // Identical SVG to journal-dock.js's ICON_SEARCH (line 141). Pairs with
+  // the .ds-hex-spinner / .ds-hex-core / .ds-search-icon / .ds-search-circle
+  // / .ds-search-wand CSS animations the dock already defines globally,
+  // so reusing the SAME class names here gives us the exact same morph
+  // (search icon -> spinning hexagon -> back) on the same 8s timeline.
+  var ICON_SEARCH_DOCK = ''
+    + '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true" overflow="visible">'
+    +   '<g class="ds-hex-spinner">'
+    +     '<polygon class="ds-hex-core" points="12,4 18.93,8 18.93,16 12,20 5.07,16 5.07,8" fill="none" stroke="#A78BFA" stroke-width="1.7" stroke-linejoin="round"/>'
+    +   '</g>'
+    +   '<g class="ds-search-icon" stroke-linecap="round" stroke-linejoin="round">'
+    +     '<circle class="ds-search-circle" cx="11" cy="11" r="6.5" fill="none" stroke-width="1.7"/>'
+    +     '<line class="ds-search-wand" x1="16" y1="16" x2="20" y2="20" stroke-width="1.7"/>'
+    +   '</g>'
+    + '</svg>';
+
   var ICON_BLDG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V6.5L12 3l8 3.5V21"/><path d="M9 21v-6h6v6"/><path d="M9 10h.01M15 10h.01M9 14h.01M15 14h.01"/></svg>';
   // Building icon used in the teach-card rows — matches journal-dock.js's TEACH_ICON
   // for visual consistency with the original Ask the Map pop-up.
@@ -634,13 +635,19 @@
     +     '</div>'
     +   '</div>'
     +   '<div class="tmw-ov-bar">'
-    +     '<div class="tmw-ov-bar-inner">'
-    +       '<svg class="mag" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg>'
-    +       '<input type="search" autocomplete="off" placeholder="Search projects, firms, cities…" aria-label="Search">'
+    +     '<form class="tmw-ov-bar-inner tmw-dock-search" role="search">'
+    +       '<span class="ds-ask-pill" aria-hidden="true"></span>'
+    +       '<span class="ds-ico">' + ICON_SEARCH_DOCK + '</span>'
+    +       '<span class="ds-ask-text" aria-hidden="true">Ask TMW</span>'
+    +       '<span class="ds-ask-dots" aria-hidden="true">'
+    +         '<span class="ds-dot"></span><span class="ds-dot"></span><span class="ds-dot"></span>'
+    +       '</span>'
+    +       '<span class="ds-ph" aria-hidden="true"><span class="dph-lg">Search projects, firms, cities…</span><span class="dph-sm">Search projects…</span></span>'
+    +       '<input type="search" autocomplete="off" placeholder="" aria-label="Search projects, firms, cities">'
     +       '<button class="go" type="button" aria-label="Search">'
     +         '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>'
     +       '</button>'
-    +     '</div>'
+    +     '</form>'
     +   '</div>'
     + '</div>';
 
