@@ -8504,6 +8504,50 @@
       cursor: pointer;
     }
     body.ui-v2 .v2-filter-btn.visible { display: inline-flex; }
+
+    /* "Ask TMW" Intelligence shortcut inside the map search bars.
+       The bar itself stays the spatial explore tool (filter pins + fly
+       camera); this purple pill opens the Intelligence spotlight overlay
+       with whatever text is currently in the search box. Same visual
+       treatment as the filter button so it reads as part of the bar
+       chrome, but tinted purple to mark it as the Intelligence affordance. */
+    body.ui-v2 .v2-ask-tmw-btn {
+      display: inline-flex;
+      align-items: center; justify-content: center;
+      gap: 6px;
+      background: rgba(167,139,250,0.12);
+      border: 1px solid rgba(167,139,250,0.35);
+      border-radius: 20px;
+      padding: 0 11px;
+      height: 28px;
+      flex-shrink: 0;
+      cursor: pointer;
+      color: #C2A8FF;
+      font-family: inherit;
+      font-size: 10.5px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      line-height: 1;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+      box-shadow: 0 0 12px rgba(167,139,250,0.18);
+    }
+    body.ui-v2 .v2-ask-tmw-btn:hover {
+      background: rgba(167,139,250,0.22);
+      border-color: rgba(167,139,250,0.6);
+      color: #fff;
+      box-shadow: 0 0 18px rgba(167,139,250,0.32);
+    }
+    body.ui-v2 .v2-ask-tmw-btn svg {
+      width: 13px; height: 13px;
+      stroke: currentColor; fill: none; stroke-width: 1.8;
+    }
+    /* Collapsed capsule version: icon-only (no text) so it doesn't crowd
+       the narrow pill. Same purple aesthetic. */
+    body.ui-v2 .v2-capsule .v2-ask-tmw-btn {
+      padding: 0 9px;
+    }
+    body.ui-v2 .v2-capsule .v2-ask-tmw-btn .label { display: none; }
     body.ui-v2 .v2-filter-btn .badge-icon svg {
       width: 15px; height: 15px;
       stroke: rgba(255,255,255,0.7); fill: none; stroke-width: 1.8;
@@ -11868,6 +11912,10 @@
           <span class="badge-icon"><svg viewBox="0 0 24 24"><circle cx="6" cy="5" r="2"/><line x1="2" y1="5" x2="4" y2="5"/><line x1="8" y1="5" x2="22" y2="5"/><circle cx="16" cy="12" r="2"/><line x1="2" y1="12" x2="14" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><circle cx="9" cy="19" r="2"/><line x1="2" y1="19" x2="7" y2="19"/><line x1="11" y1="19" x2="22" y2="19"/></svg></span>
           <span class="badge-count" id="v2CapsuleFilterCount">0</span>
         </div>
+        <span class="v2-ask-tmw-btn" id="v2CapsuleAskTmwBtn" role="button" aria-label="Ask TMW Intelligence">
+          <svg viewBox="0 0 24 24"><polygon points="12,3 21,8.5 21,15.5 12,21 3,15.5 3,8.5"/></svg>
+          <span class="label">Ask TMW</span>
+        </span>
         <span class="v2-results-divider"></span>
         <span class="v2-results-count" id="v2CapsuleResults">‚Äî results</span>
       </button>
@@ -11891,6 +11939,10 @@
             <span class="badge-icon"><svg viewBox="0 0 24 24"><circle cx="6" cy="5" r="2"/><line x1="2" y1="5" x2="4" y2="5"/><line x1="8" y1="5" x2="22" y2="5"/><circle cx="16" cy="12" r="2"/><line x1="2" y1="12" x2="14" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><circle cx="9" cy="19" r="2"/><line x1="2" y1="19" x2="7" y2="19"/><line x1="11" y1="19" x2="22" y2="19"/></svg></span>
             <span class="badge-count" id="v2SearchFilterCount">0</span>
           </div>
+          <button class="v2-ask-tmw-btn" id="v2SearchAskTmwBtn" type="button" aria-label="Ask TMW Intelligence">
+            <svg viewBox="0 0 24 24"><polygon points="12,3 21,8.5 21,15.5 12,21 3,15.5 3,8.5"/></svg>
+            <span class="label">Ask TMW</span>
+          </button>
           <span class="v2-results-divider"></span>
           <span class="v2-results-count" id="v2SearchResults">‚Äî results</span>
         </div>
@@ -12475,6 +12527,32 @@
       var h = document.getElementById('tmwDrawerHandle');
       if (x) x.addEventListener('click', collapse);
       if (h) h.addEventListener('click', expand);
+    })();
+
+    // Ask TMW Intelligence: bridges the map\'s spatial search bar to the
+    // Intelligence spotlight overlay. The map\'s search input is the
+    // EXPLORE tool (filters pins + flies the camera) and stays that way.
+    // The purple "Ask TMW" pill next to it opens the Intelligence
+    // spotlight (window.tmwOverlay.open) and carries over whatever the
+    // user has already typed -- so a half-finished spatial query
+    // becomes the starting text of the Intelligence query without
+    // retyping. Wired on BOTH the expanded #v2SearchAskTmwBtn and the
+    // collapsed-capsule #v2CapsuleAskTmwBtn; the capsule click also
+    // needs stopPropagation so it doesn\'t trigger the wrapping
+    // <button class="v2-capsule"> that expands the sheet.
+    (function(){
+      function askTmw(e){
+        if (e) { e.stopPropagation(); e.preventDefault(); }
+        var input = document.getElementById('v2SearchInput');
+        var q = (input && input.value || '').trim();
+        if (window.tmwOverlay && typeof window.tmwOverlay.open === 'function') {
+          window.tmwOverlay.open(q);
+        }
+      }
+      var pinnedBtn = document.getElementById('v2SearchAskTmwBtn');
+      var capsuleBtn = document.getElementById('v2CapsuleAskTmwBtn');
+      if (pinnedBtn) pinnedBtn.addEventListener('click', askTmw);
+      if (capsuleBtn) capsuleBtn.addEventListener('click', askTmw);
     })();
 
     document.addEventListener('gesturestart', e => e.preventDefault());
