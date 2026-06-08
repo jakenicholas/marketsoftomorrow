@@ -305,9 +305,68 @@
     + '.tmw-ov-uchip.sort .ck{color:#42EB81}'
 
     /* ─── PHASE 2 (complete): full /search/-style result sections ─── */
-    /* Hero stack gap (project → article → firm) */
-    + '.tmw-ov-hero + .tmw-ov-hero{margin-top:14px}'
-    + '.tmw-ov-hero.article .media,.tmw-ov-hero.firm .media{min-height:200px}'
+    /* Rich hero card — image-left, body-right, full /search/ heroHtml parity.
+       Single hero only (not a stack); all variants (project / article / firm)
+       use the same geometry + min-height. Chips row, timeline, specs grid,
+       byline, gold + ghost CTAs.  */
+    + '.tmw-ov-hero .media{min-height:340px}'
+    + '.tmw-ov-hero .body{padding:28px 30px 26px;gap:14px}'
+    + '.tmw-ov-hero .body h2{font-size:30px;line-height:1.06}'
+
+    /* Hero chips row (Type, Status) */
+    + '.tmw-ov-hero-chips{display:flex;flex-wrap:wrap;gap:8px}'
+    + '.tmw-ov-hero-chip{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;'
+    + 'color:#C2C9C3;background:#1a1d1a;border:1px solid rgba(255,255,255,.08);border-radius:999px;padding:6px 11px}'
+    + '.tmw-ov-hero-chip.type{color:#f0d68a;border-color:rgba(230,197,116,.3)}'
+    + '.tmw-ov-hero-chip.status{color:#42EB81;border-color:rgba(31,223,103,.3)}'
+
+    /* Timeline (construction progress bar) */
+    + '.tmw-ov-tl{margin-top:4px}'
+    + '.tmw-ov-tl-row{display:flex;align-items:center;justify-content:space-between;'
+    + 'font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:#9AA39C;margin-bottom:8px}'
+    + '.tmw-ov-tl-status{color:#1FDF67;font-weight:700}'
+    + '.tmw-ov-tl-track{position:relative;height:6px;border-radius:999px;background:#222622;overflow:visible}'
+    + '.tmw-ov-tl-fill{position:absolute;left:0;top:0;bottom:0;border-radius:999px;background:linear-gradient(90deg,#18c75a,#1FDF67)}'
+    + '.tmw-ov-tl-dot{position:absolute;top:50%;width:13px;height:13px;border-radius:50%;background:#fff;'
+    + 'border:3px solid #1FDF67;transform:translate(-50%,-50%);box-shadow:0 0 0 4px rgba(31,223,103,.18)}'
+    + '.tmw-ov-tl-ends{display:flex;align-items:center;justify-content:space-between;margin-top:8px;'
+    + 'font-size:11px;color:#C2C9C3}'
+
+    /* Specs strip (Units / Keys / Floors / Price) */
+    + '.tmw-ov-specs{display:flex;flex-wrap:wrap;gap:18px;padding-top:4px}'
+    + '.tmw-ov-spec{display:flex;flex-direction:column;gap:2px}'
+    + '.tmw-ov-spec .v{font-family:"Fraunces",Georgia,serif;font-size:20px;color:#fff;line-height:1;font-weight:600}'
+    + '.tmw-ov-spec .k{font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:#9AA39C}'
+
+    /* Byline (Developer / Architect) */
+    + '.tmw-ov-byline{font-size:13px;color:#C2C9C3}'
+    + '.tmw-ov-byline b{color:#ECEAE5;font-weight:600}'
+
+    /* CTA buttons (gold primary + ghost secondary) — matches /search/'s .btn */
+    + '.tmw-ov-hero-cta{display:flex;flex-wrap:wrap;gap:10px;margin-top:auto;padding-top:8px}'
+    + '.tmw-ov-btn{display:inline-flex;align-items:center;gap:9px;font-family:inherit;font-size:11px;'
+    + 'letter-spacing:.12em;text-transform:uppercase;font-weight:700;padding:12px 18px;border-radius:11px;'
+    + 'border:1px solid transparent;text-decoration:none;transition:all .2s;cursor:pointer}'
+    + '.tmw-ov-btn.gold{background:#e6c574;color:#070807;box-shadow:0 0 22px rgba(230,197,116,.5),0 0 6px rgba(230,197,116,.35)}'
+    + '.tmw-ov-btn.gold:hover{background:#f0d68a;transform:translateY(-1px);box-shadow:0 0 28px rgba(230,197,116,.62),0 0 8px rgba(230,197,116,.4)}'
+    + '.tmw-ov-btn.ghost{background:transparent;color:#ECEAE5;border-color:rgba(255,255,255,.14)}'
+    + '.tmw-ov-btn.ghost:hover{border-color:rgba(255,255,255,.22);color:#fff}'
+    + '.tmw-ov-btn svg{width:15px;height:15px}'
+    + '.tmw-ov-btn.ghost svg{color:#fff}'
+
+    + '@media(max-width:760px){'
+    +   '.tmw-ov-hero .media{min-height:220px}'
+    +   '.tmw-ov-hero .body h2{font-size:24px}'
+    +   '.tmw-ov-specs{gap:12px}'
+    +   '.tmw-ov-spec .v{font-size:17px}'
+    + '}'
+
+    /* Article-card CTA inside the grid (small "Read story" pill at the bottom) */
+    + '.tmw-ov-acard-body .acta{margin-top:12px;font-size:10.5px;letter-spacing:.12em;'
+    + 'text-transform:uppercase;font-weight:700;color:#1FDF67;display:inline-flex;align-items:center;gap:6px}'
+    + '.tmw-ov-acard:hover .acta{color:#42EB81}'
+    + '.tmw-ov-acard:hover .acta svg{transform:translateX(2px)}'
+    + '.tmw-ov-acard-body .acta svg{width:11px;height:11px;transition:transform .2s}'
 
     /* Nearby Projects grid — cards link straight to map.oftmw.com/?project=… */
     + '.tmw-ov-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(248px,1fr));gap:14px}'
@@ -395,11 +454,15 @@
   var ICON_SPARK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><polygon points="12,3 21,8.5 21,15.5 12,21 3,15.5 3,8.5"/></svg>';
   var ICON_ARROW = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
 
+  // Original "Ask the Map" starter questions — chosen so the structured
+  // smart-query parser resolves each one cleanly into status/type/place/
+  // year/sort criteria. Source of truth lives in journal-dock.js's TEACH_Q;
+  // mirrored here so the overlay keeps the brand's curated phrasing.
   var STARTER_CHIPS = [
-    "What's happening in Wynwood right now?",
-    "Tallest towers under construction in the Carolinas",
-    "Which Arquitectonica projects break ground in 2026?",
-    "What did MoT cover last month in St. Louis?"
+    'Tallest towers under construction in Florida',
+    'Hotels opening around the world this year',
+    'New condos coming to West Palm Beach',
+    'Recent golf course openings'
   ];
 
   var QUICK_CHIPS = [
@@ -622,37 +685,108 @@
   }
 
   // ── renderers ─────────────────────────────────────────────────────
+  // Date / timeline helpers — ported from /search/'s parseYM + fmtMon +
+  // timelineHtml so the overlay's hero matches the search page's hero
+  // pixel-close (construction progress bar with start/end labels).
+  function parseYM(s){
+    var m = String(s||'').match(/(\d{4})-(\d{1,2})(?:-(\d{1,2}))?/);
+    if (!m) return null;
+    return new Date(+m[1], (+m[2])-1, m[3] ? +m[3] : 1);
+  }
+  function fmtMon(d){ return d ? d.toLocaleString('en-US',{month:'short',year:'numeric'}) : ''; }
+
+  function heroTimelineHtml(p){
+    var start = parseYM(p.StartDate);
+    var end   = parseYM(p.DeliveryDate);
+    var status = firstField(p, ['Delivery']) || (end ? 'Expected ' + fmtMon(end) : '');
+    if (!start && !end){
+      return status
+        ? '<div class="tmw-ov-tl"><div class="tmw-ov-tl-row"><span>Timeline</span><span class="tmw-ov-tl-status">'+esc(status)+'</span></div></div>'
+        : '';
+    }
+    var pct;
+    if (start && end){
+      var nowTs = Date.now();
+      pct = Math.max(0, Math.min(1, (nowTs - start.getTime()) / Math.max(1, (end.getTime() - start.getTime()))));
+    } else {
+      pct = end ? (Date.now() >= end.getTime() ? 1 : 0.5) : 0.05;
+    }
+    var pc = Math.round(pct * 100);
+    var startLbl = start ? fmtMon(start) : '—';
+    var endLbl   = end   ? fmtMon(end)   : 'TBA';
+    return '<div class="tmw-ov-tl">'
+      + '<div class="tmw-ov-tl-row"><span>Construction timeline</span>'+(status?'<span class="tmw-ov-tl-status">'+esc(status)+'</span>':'')+'</div>'
+      + '<div class="tmw-ov-tl-track"><div class="tmw-ov-tl-fill" style="width:'+pc+'%"></div><div class="tmw-ov-tl-dot" style="left:'+pc+'%"></div></div>'
+      + '<div class="tmw-ov-tl-ends"><span>'+esc(startLbl)+'</span><span>'+esc(endLbl)+'</span></div>'
+    + '</div>';
+  }
+
+  function heroSpecHtml(p){
+    var parts = [];
+    function add(v, k){
+      if (v == null) return;
+      var s = String(v).trim();
+      if (!s || s === '0') return;
+      parts.push('<div class="tmw-ov-spec"><span class="v">'+esc(s)+'</span><span class="k">'+esc(k)+'</span></div>');
+    }
+    add(p.Units,  'Units');
+    add(p.Keys,   'Keys');
+    add(p.Floors, 'Floors');
+    if (p.Price && String(p.Price).trim()) parts.push('<div class="tmw-ov-spec"><span class="v">'+esc(p.Price)+'</span><span class="k">From</span></div>');
+    return parts.length ? '<div class="tmw-ov-specs">'+parts.join('')+'</div>' : '';
+  }
+
+  function commaFirstField(s){ return String(s||'').split(',')[0].trim(); }
+
+  // Rich project hero — ports /search/'s heroHtml exactly. Image-left,
+  // body-right. Body: h1 → loc → desc → timeline → specs → byline →
+  // gold "Learn more" + ghost "Visit site" CTAs.
   function renderProjectHero(p){
-    var img = firstField(p,['ImageURL','Image2','Image3']);
-    var type = firstField(p,['ProjectType','PreferredType']);
+    var img = firstField(p, ['ImageURL','Image2','Image3']);
     var city = p.City || '';
-    var desc = firstField(p,['DescriptionLong','Description']);
+    var desc = firstField(p, ['DescriptionLong','Description']);
+    var dev  = commaFirstField(p.Developer);
+    var arch = commaFirstField(p.Architect);
+    var site = p.OfficialWebsite;
     var media = img
       ? '<img src="'+esc(img)+'" alt="'+esc(p.Title)+'" loading="eager" onerror="this.style.display=\'none\'">'
       : '<div class="ph"></div>';
-    return '<a class="tmw-ov-hero" href="'+esc(mapLink(p.Title, true))+'">'
+    var byline = '';
+    if (dev || arch){
+      byline = '<div class="tmw-ov-byline">'
+        + (dev  ? 'Developed by <b>'+esc(dev)+'</b>'      : '')
+        + (dev && arch ? ' · ' : '')
+        + (arch ? 'Architecture by <b>'+esc(arch)+'</b>' : '')
+        + '</div>';
+    }
+    return '<article class="tmw-ov-hero">'
       + '<div class="media">'+media+'<div class="scrim"></div><span class="besttag">Top match</span></div>'
       + '<div class="body">'
-      +   '<div class="eyebrow">'+esc(type || 'Project')+'</div>'
       +   '<h2>'+esc(p.Title)+'</h2>'
       +   (city ? '<div class="loc">'+esc(city)+'</div>' : '')
       +   (desc ? '<p class="desc">'+esc(desc)+'</p>' : '')
-      + '</div></a>';
+      +   heroTimelineHtml(p)
+      +   heroSpecHtml(p)
+      +   byline
+      +   '<div class="tmw-ov-hero-cta">'
+      +     '<a class="tmw-ov-btn gold" href="'+esc(mapLink(p.Title, true))+'">'
+      +       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>'
+      +       'Learn more'
+      +     '</a>'
+      +     (site
+              ? '<a class="tmw-ov-btn ghost" href="'+esc(site)+'" target="_blank" rel="noopener">Visit site'
+                + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg>'
+                + '</a>'
+              : '')
+      +   '</div>'
+      + '</div>'
+      + '</article>';
   }
-  function renderFirmHero(f){
-    var roleLbl = f.role==='architect' ? 'Architect of Tomorrow' : (f.role==='developer' ? 'Developer of Tomorrow' : 'Firm of Tomorrow');
-    var pc = +f.project_count || 0;
-    var initial = (f.name || '?').trim().charAt(0).toUpperCase();
-    var href = f.slug ? ('https://www.oftmw.com/firm/' + encodeURIComponent(f.slug) + '/') : (SEARCH_URL + '?q=' + encodeURIComponent(f.name));
-    return '<a class="tmw-ov-hero" href="'+esc(href)+'">'
-      + '<div class="media"><div class="tmw-ov-firmmark">'+esc(initial)+'</div><div class="scrim"></div><span class="besttag">Top firm</span></div>'
-      + '<div class="body">'
-      +   '<div class="eyebrow">'+esc(roleLbl)+'</div>'
-      +   '<h2>'+esc(f.name)+'</h2>'
-      +   (f.hq ? '<div class="loc">'+esc(f.hq)+'</div>' : '')
-      +   (pc>0 ? '<p class="desc">'+pc+' project'+(pc===1?'':'s')+' tracked in the Markets of Tomorrow network.</p>' : '')
-      + '</div></a>';
-  }
+
+  // Article hero — same image-left/body-right geometry as the project
+  // hero, with the rich design treatment (eyebrow, big serif headline,
+  // date, excerpt) PLUS the gold "Read story" CTA + ghost-link byline
+  // for parity with the project hero's button row.
   function renderArticleHero(a){
     var img = a.cover_image || '';
     var media = img
@@ -660,14 +794,55 @@
       : '<div class="ph"></div>';
     var date = a.published_iso ? new Date(a.published_iso).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
     var excerpt = a.excerpt || a.description || '';
-    return '<a class="tmw-ov-hero" href="https://www.oftmw.com/post/'+encodeURIComponent(a.slug||'')+'/">'
+    var author = a.author_name || '';
+    var byline = author
+      ? '<div class="tmw-ov-byline">By <b>'+esc(author)+'</b></div>'
+      : '';
+    var href = 'https://www.oftmw.com/post/'+encodeURIComponent(a.slug||'')+'/';
+    return '<article class="tmw-ov-hero">'
       + '<div class="media">'+media+'<div class="scrim"></div><span class="besttag">Top story</span></div>'
       + '<div class="body">'
-      +   '<div class="eyebrow">From the journal</div>'
+      +   '<div class="tmw-ov-hero-chips"><span class="tmw-ov-hero-chip type">From the journal</span>'+(date?'<span class="tmw-ov-hero-chip">'+esc(date)+'</span>':'')+'</div>'
       +   '<h2>'+esc(a.title)+'</h2>'
-      +   (date ? '<div class="loc">'+esc(date)+'</div>' : '')
       +   (excerpt ? '<p class="desc">'+esc(excerpt)+'</p>' : '')
-      + '</div></a>';
+      +   byline
+      +   '<div class="tmw-ov-hero-cta">'
+      +     '<a class="tmw-ov-btn gold" href="'+esc(href)+'">'
+      +       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>'
+      +       'Read story'
+      +     '</a>'
+      +   '</div>'
+      + '</div>'
+      + '</article>';
+  }
+
+  // Firm hero — gradient-panel media (no cover image) with the firm
+  // initial as a soft mark. Same body geometry + CTA row as the project
+  // and article heroes.
+  function renderFirmHero(f){
+    var roleLbl = f.role === 'architect' ? 'Architect of Tomorrow'
+               : f.role === 'developer' ? 'Developer of Tomorrow'
+               : 'Firm of Tomorrow';
+    var pc = +f.project_count || 0;
+    var initial = (f.name || '?').trim().charAt(0).toUpperCase();
+    var href = f.slug
+      ? ('https://www.oftmw.com/firm/' + encodeURIComponent(f.slug) + '/')
+      : (SEARCH_URL + '?q=' + encodeURIComponent(f.name));
+    return '<article class="tmw-ov-hero">'
+      + '<div class="media"><div class="tmw-ov-firmmark">'+esc(initial)+'</div><div class="scrim"></div><span class="besttag">Top firm</span></div>'
+      + '<div class="body">'
+      +   '<div class="tmw-ov-hero-chips"><span class="tmw-ov-hero-chip type">'+esc(roleLbl)+'</span></div>'
+      +   '<h2>'+esc(f.name)+'</h2>'
+      +   (f.hq ? '<div class="loc">'+esc(f.hq)+'</div>' : '')
+      +   (pc > 0 ? '<p class="desc">'+pc+' project'+(pc===1?'':'s')+' tracked in the Markets of Tomorrow network.</p>' : '')
+      +   '<div class="tmw-ov-hero-cta">'
+      +     '<a class="tmw-ov-btn gold" href="'+esc(href)+'">'
+      +       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>'
+      +       'View profile'
+      +     '</a>'
+      +   '</div>'
+      + '</div>'
+      + '</article>';
   }
 
   function renderProjectRow(p, rank, lead, scorePct){
@@ -917,6 +1092,7 @@
       + '<div class="tmw-ov-acard-body">'
       +   (date ? '<div class="adate">'+esc(date)+'</div>' : '')
       +   '<h4>'+esc(a.title)+'</h4>'
+      +   '<div class="acta">Read story <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>'
       + '</div></a>';
   }
 
@@ -1254,31 +1430,55 @@
       return;
     }
 
-    // ── Hero stack ──────────────────────────────────────────────────
-    // Always promote the most-relevant of each type that passes its
-    // eligibility gate. Stack in priority order: project → article →
-    // firm. Items shown as heroes are excluded from the grid sections
-    // below so nothing renders twice.
+    // ── Single hero ─────────────────────────────────────────────────
+    // Promote ONE result as the hero — the highest-scoring across all
+    // three types that passes its eligibility gate. The other types
+    // still appear in their grid sections below, just without a "Top
+    // match" treatment. Small score bias toward projects since they're
+    // the database core and the most common search target.
     var heroProject = null, heroArticle = null, heroFirm = null;
-    if (pScored.length && heroProjectEligible(pScored[0].p, full, toks)) heroProject = pScored[0].p;
-    if (aScored.length && heroArticleEligible(aScored[0].a, full, toks)) heroArticle = aScored[0].a;
-    if (fScored.length && heroFirmEligible(fScored[0].f, full))           heroFirm    = fScored[0].f;
-    var heroParts = [];
-    if (heroProject) heroParts.push(renderProjectHero(heroProject));
-    if (heroArticle) heroParts.push(renderArticleHero(heroArticle));
-    if (heroFirm)    heroParts.push(renderFirmHero(heroFirm));
-    slotHero.innerHTML = heroParts.length
-      ? '<div class="tmw-ov-sec">'+heroParts.join('')+'</div>'
-      : '';
+    var heroCandidates = [];
+    if (pScored.length && heroProjectEligible(pScored[0].p, full, toks)) heroCandidates.push({ kind:'project', s: pScored[0].s * 1.05, item: pScored[0].p });
+    if (aScored.length && heroArticleEligible(aScored[0].a, full, toks)) heroCandidates.push({ kind:'article', s: aScored[0].s,        item: aScored[0].a });
+    if (fScored.length && heroFirmEligible(fScored[0].f, full))          heroCandidates.push({ kind:'firm',    s: fScored[0].s,        item: fScored[0].f });
+    heroCandidates.sort(function(a,b){ return b.s - a.s; });
+    var hero = heroCandidates[0] || null;
+    if (hero){
+      var heroHtml = '';
+      if      (hero.kind === 'project') { heroProject = hero.item; heroHtml = renderProjectHero(heroProject); }
+      else if (hero.kind === 'article') { heroArticle = hero.item; heroHtml = renderArticleHero(heroArticle); }
+      else if (hero.kind === 'firm')    { heroFirm    = hero.item; heroHtml = renderFirmHero(heroFirm); }
+      slotHero.innerHTML = '<div class="tmw-ov-sec">' + heroHtml + '</div>';
+    } else {
+      slotHero.innerHTML = '';
+    }
 
-    // ── Nearby Projects grid ────────────────────────────────────────
-    // Skip the hero project so it doesn't render twice. Cap at 12.
+    // ── Projects ────────────────────────────────────────────────────
+    // Tightened relevance filter for multi-token queries: a result must
+    // either contain the full phrase OR all meaningful tokens (≥3 chars)
+    // in its title. Without this, "Currie Park" pulls anything matching
+    // just "park" — Saudi Arabia, Las Vegas etc. — and the section reads
+    // as a false-positive dump. Single-token queries skip the filter
+    // (relevance score already handles it).
+    var meaningful = toks.filter(function(t){ return t.length >= 3; });
     var restProjects = pScored.filter(function(x){ return x.p !== heroProject; });
+    if (meaningful.length >= 2) {
+      restProjects = restProjects.filter(function(x){
+        var t = norm(x.p.Title);
+        if (full && t.indexOf(full) >= 0) return true;
+        return meaningful.every(function(tok){ return t.indexOf(tok) >= 0; });
+      });
+    }
     var gridProjects = restProjects.slice(0, MAX_PROJECTS_GRID).map(function(x){ return x.p; });
     if (gridProjects.length){
+      // Section label changed from "Nearby Projects" -> "Projects" — the
+      // grid wasn't geographically nearby (the rest of the result set
+      // can include any matching city), so the spatial framing was
+      // misleading. Count reflects the filtered set, not the raw text-
+      // match total.
       slotProjGrid.innerHTML = ''
         + '<div class="tmw-ov-sec">'
-        +   '<div class="tmw-ov-sec-head"><h3>Nearby Projects</h3><span class="count">'+pScored.length+' total</span></div>'
+        +   '<div class="tmw-ov-sec-head"><h3>Projects</h3><span class="count">'+restProjects.length+' total</span></div>'
         +   '<div class="tmw-ov-grid">' + gridProjects.map(renderProjectCard).join('') + '</div>'
         + '</div>';
     } else {
