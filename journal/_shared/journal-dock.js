@@ -504,7 +504,11 @@
     'border:1px solid rgba(255,255,255,.13);border-radius:999px;',
     'box-shadow:0 16px 50px rgba(0,0,0,.55),0 0 0 1px rgba(0,0,0,.25);',
     'font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;max-width:calc(100vw - 24px);',
-    'opacity:0;transform:translateX(-50%) translateY(10px);transition:opacity .4s ease,transform .4s cubic-bezier(.22,1,.36,1)}',
+    'opacity:0;transform:translateX(-50%) translateY(10px);transition:opacity .4s ease}',
+    /* Only opacity transitions. The dock centers via translateX(-50%), which
+       recomputes whenever its width changes as content (search / Ask pill) loads
+       in — if `transform` were transitioned, each recompute would animate, making
+       the dock visibly slide in from the side on a (cached) load. Fade only. */
     '.tmw-dock.ready{opacity:1;transform:translateX(-50%) translateY(0)}',
     '.tmw-dock-btn{width:46px;height:46px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;',
     'border-radius:999px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.10);',
