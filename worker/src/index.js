@@ -1093,6 +1093,115 @@ async function handleSearchGaps(env, origin, url) {
   return json({ items }, {}, env, origin);
 }
 
+// GET /search-feedback — rolls up the thumbs up/down votes the lightbox
+// overlay collects (event_name = 'search_feedback'). Returns three things
+// the admin tile needs:
+//
+//   • totals: total up + down across the lookback window, plus a
+//     promoter-style sentiment score (up - down)
+//   • by_query: each distinct query with up/down counts, last vote ts,
+//     average result size, dominant result_kind. Sorted: thumbs-down
+//     queries first (highest priority for editorial follow-up), then
+//     thumbs-up by count, then alphabetic. Queries that explicitly
+//     signal a database gap (down vote + 0 results) are flagged with
+//     needs_discovery=true so the dashboard can call them out.
+//   • recent: the 50 most-recent feedback rows, raw — for an inline
+//     audit feed under the rollup. Includes member_name where set so
+//     editors can DM follow-up questions.
+//
+// 30-day default window; ?days=N to widen or narrow.
+async function handleSearchFeedback(env, origin, url) {
+  const days = clampInt(url.searchParams.get('days'), 30, 1, 365);
+  const sinceTs = Math.floor(Date.now() / 1000) - days * 86400;
+
+  const rs = await env.DB.prepare(
+    `SELECT ts, member_id, member_name, plan, props_json
+     FROM events
+     WHERE event_name = 'search_feedback'
+       AND ts >= ?
+     ORDER BY ts DESC`
+  ).bind(sinceTs).all();
+
+  const rows = rs.results || [];
+  const byQuery = new Map(); // q-lower -> aggregate row
+  const recent = [];
+  let totalUp = 0, totalDown = 0;
+
+  for (const r of rows) {
+    let props = {};
+    try { if (r.props_json) props = JSON.parse(r.props_json); } catch {}
+    const q = String(props.q || '').trim();
+    if (!q) continue;
+    const rating = props.rating === 'up' ? 'up' : props.rating === 'down' ? 'down' : null;
+    if (!rating) continue;
+    const results = +props.results || 0;
+    const kind = String(props.result_kind || '').slice(0, 20);
+
+    if (rating === 'up') totalUp++; else totalDown++;
+
+    const key = q.toLowerCase();
+    let agg = byQuery.get(key);
+    if (!agg) {
+      agg = {
+        query: q, up: 0, down: 0, last_ts: 0,
+        result_sum: 0, result_n: 0, kinds: {},
+      };
+      byQuery.set(key, agg);
+    }
+    agg[rating]++;
+    if (r.ts > agg.last_ts) agg.last_ts = r.ts;
+    agg.result_sum += results;
+    agg.result_n++;
+    agg.kinds[kind] = (agg.kinds[kind] || 0) + 1;
+
+    if (recent.length < 50) {
+      recent.push({
+        ts: r.ts, member_id: r.member_id, member_name: r.member_name,
+        plan: r.plan, query: q, rating, results, result_kind: kind,
+      });
+    }
+  }
+
+  const by_query = Array.from(byQuery.values()).map(a => {
+    // Pick the most common result_kind for this query (its "typical" shape).
+    let dominantKind = '', dominantN = 0;
+    for (const k in a.kinds) { if (a.kinds[k] > dominantN) { dominantKind = k; dominantN = a.kinds[k]; } }
+    const avgResults = a.result_n ? Math.round(a.result_sum / a.result_n) : 0;
+    // Discovery candidate: at least one thumbs-down AND the dominant
+    // outcome was empty (zero results, or 'empty'/'question' kind with
+    // avg=0). These are the gaps worth handing to project discovery.
+    const needsDiscovery = a.down >= 1 && (avgResults === 0 || dominantKind === 'empty');
+    return {
+      query: a.query,
+      up: a.up, down: a.down,
+      net: a.up - a.down,
+      last_ts: a.last_ts,
+      avg_results: avgResults,
+      dominant_kind: dominantKind,
+      needs_discovery: needsDiscovery,
+    };
+  });
+  // Sort: needs_discovery first, then by total volume desc, then alpha.
+  by_query.sort((a, b) => {
+    if (a.needs_discovery !== b.needs_discovery) return a.needs_discovery ? -1 : 1;
+    const va = a.up + a.down, vb = b.up + b.down;
+    if (vb !== va) return vb - va;
+    return a.query.localeCompare(b.query);
+  });
+
+  return json({
+    totals: {
+      up: totalUp,
+      down: totalDown,
+      net: totalUp - totalDown,
+      total: totalUp + totalDown,
+      days,
+    },
+    by_query,
+    recent,
+  }, {}, env, origin);
+}
+
 // GET /projects — most-clicked projects across multiple time windows.
 // Aggregates `project_click` events from identified members (the only ones
 // stored in D1). For each project we return click counts for today, 7d,
@@ -4094,6 +4203,7 @@ export default {
       const ADMIN_READ_PATHS = new Set([
         '/people', '/stats', '/member', '/timeline',
         '/watchlist', '/projects', '/activity', '/subscriptions', '/intel-queries', '/search-gaps',
+        '/search-feedback',
       ]);
       if (request.method === 'GET' && ADMIN_READ_PATHS.has(url.pathname)) {
         const denied = await requireAdminToken(request, env, origin);
@@ -4150,6 +4260,9 @@ export default {
       }
       if (request.method === 'GET' && url.pathname === '/search-gaps') {
         return await handleSearchGaps(env, origin, url);
+      }
+      if (request.method === 'GET' && url.pathname === '/search-feedback') {
+        return await handleSearchFeedback(env, origin, url);
       }
       if (request.method === 'GET' && url.pathname === '/intel-queries') {
         return await handleIntelQueries(env, origin, url);

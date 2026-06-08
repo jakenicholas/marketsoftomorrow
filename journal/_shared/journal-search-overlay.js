@@ -246,6 +246,38 @@
          - width: fills the overlay container (not the dock's min(46vw,300px))
          - go button: dock has none -- we add a small gold arrow because the
            overlay no longer redirects to /search/. */
+    /* Thumbs feedback row -- positioned just above the bar, hidden by
+       default (no .show class). The buttons match the dock's pill
+       aesthetic: subtle white-overlay bg, neutral border at rest, color
+       coding on hover (green for up, red for down) so the rating
+       intent reads at a glance. After the user votes, both buttons get
+       .voted (pointer-events:none locks the rating in) and the .voted
+       button itself gets a colored fill matching its rating. */
+    + '.tmw-ov-feedback{position:absolute;left:50%;bottom:108px;transform:translateX(-50%);'
+    + 'display:none;align-items:center;gap:10px;z-index:2;opacity:0;'
+    + 'transition:opacity .3s ease}'
+    + '.tmw-ov-feedback.show{display:flex;opacity:1}'
+    + '.tmw-ov-fb-btn{width:38px;height:38px;border-radius:999px;padding:0;'
+    + 'background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.10);'
+    + 'color:#C2C9C3;cursor:pointer;display:flex;align-items:center;justify-content:center;'
+    + 'transition:all .2s;font-family:inherit}'
+    + '.tmw-ov-fb-btn svg{width:18px;height:18px}'
+    + '.tmw-ov-fb-btn:hover{background:rgba(255,255,255,.10);border-color:rgba(255,255,255,.22);transform:translateY(-2px)}'
+    + '.tmw-ov-fb-btn[data-rating="up"]:hover{color:#42EB81;border-color:rgba(31,223,103,.40);background:rgba(31,223,103,.08)}'
+    + '.tmw-ov-fb-btn[data-rating="down"]:hover{color:#ff7676;border-color:rgba(255,93,93,.40);background:rgba(255,93,93,.08)}'
+    + '.tmw-ov-fb-btn.voted{pointer-events:none}'
+    + '.tmw-ov-fb-btn.voted[data-rating="up"]{background:rgba(31,223,103,.16);border-color:#1FDF67;color:#42EB81}'
+    + '.tmw-ov-fb-btn.voted[data-rating="down"]{background:rgba(255,93,93,.16);border-color:#ff5d5d;color:#ff7676}'
+    + '.tmw-ov-fb-btn.dimmed{opacity:.35}'
+    + '.tmw-ov-fb-thanks{font-size:11.5px;letter-spacing:.02em;color:#9AA39C;'
+    + 'opacity:0;transition:opacity .3s ease;pointer-events:none;margin-left:4px}'
+    + '.tmw-ov-feedback.voted .tmw-ov-fb-thanks{opacity:1}'
+    + '@media(max-width:560px){.tmw-ov-feedback{bottom:90px;gap:8px}'
+    +   '.tmw-ov-fb-btn{width:34px;height:34px}'
+    +   '.tmw-ov-fb-btn svg{width:16px;height:16px}'
+    +   '.tmw-ov-fb-thanks{font-size:10.5px}'
+    + '}'
+
     + '.tmw-ov-bar{position:absolute;left:50%;bottom:28px;transform:translateX(-50%);'
     + 'width:min(820px, calc(100vw - 32px));z-index:2}'
     /* Dark-purple gradient backdrop fades content scrolling behind the bar
@@ -650,6 +682,22 @@
 
     +     '</div>'
     +   '</div>'
+    /* Thumbs feedback row -- centered above the search bar. Visible only
+       on the results state (hidden during starter / thinking / empty).
+       Two buttons (up / down) and a tiny "Thanks" confirmation that
+       fades in after the user votes. Click POSTs a search_feedback
+       event to the worker; rating + query text drive the discovery
+       pipeline downstream. */
+    +   '<div class="tmw-ov-feedback" data-feedback>'
+    +     '<button class="tmw-ov-fb-btn" type="button" data-rating="up" aria-label="Helpful">'
+    +       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 11v9H3v-9zM21 9c0-1.1-.9-2-2-2h-5l1-3.5c.1-.4 0-.8-.3-1.1l-.7-.7-7 7v9h11l3-7V9z"/></svg>'
+    +     '</button>'
+    +     '<button class="tmw-ov-fb-btn" type="button" data-rating="down" aria-label="Not helpful">'
+    +       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 13V4h4v9zM3 15c0 1.1.9 2 2 2h5l-1 3.5c-.1.4 0 .8.3 1.1l.7.7 7-7V6H6L3 13v2z"/></svg>'
+    +     '</button>'
+    +     '<span class="tmw-ov-fb-thanks">Thanks — TMW will look into it</span>'
+    +   '</div>'
+
     +   '<div class="tmw-ov-bar">'
     +     '<form class="tmw-ov-bar-inner tmw-dock-search" role="search">'
     +       '<span class="ds-ico">' + ICON_SEARCH_DOCK + '</span>'
@@ -1328,6 +1376,12 @@
     sThinking.classList.toggle('show', name === 'thinking');
     sResults.classList.toggle('tmw-ov-hidden', name !== 'results');
     sEmpty.classList.toggle('tmw-ov-hidden', name !== 'empty');
+    // Thumbs feedback row only makes sense when actual results are on
+    // screen -- show on 'results' and 'empty' (a thumbs-down on an empty
+    // result page is the highest-signal feedback we can capture), hide
+    // everywhere else.
+    var fbEl = root.querySelector('.tmw-ov-feedback');
+    if (fbEl) fbEl.classList.toggle('show', name === 'results' || name === 'empty');
     bodyEl.scrollTop = 0;
   }
 
@@ -1336,6 +1390,78 @@
   // for query N doesn't paint over the loading shell of query N+1.
   var _intelToken = 0;
   var _intelDebounce = null;
+  // Latest settled query + its result kind/count — used by the thumbs
+  // feedback POST. Reset on every new query so a vote always describes
+  // the result set currently on screen.
+  var _lastQuery = '';
+  var _lastResultsTotal = 0;
+  var _lastResultKind = ''; // 'text' | 'smart' | 'spotlight' | 'question' | 'empty'
+
+  // ── Thumbs feedback ─────────────────────────────────────────────────
+  // Reset the feedback row to its unvoted, dim state. Called at the top
+  // of every runQuery so a previous vote doesn\'t bleed across queries.
+  function resetFeedback(){
+    var fbEl = root.querySelector('.tmw-ov-feedback');
+    if (!fbEl) return;
+    fbEl.classList.remove('voted');
+    var btns = fbEl.querySelectorAll('.tmw-ov-fb-btn');
+    for (var i = 0; i < btns.length; i++){
+      btns[i].classList.remove('voted', 'dimmed');
+    }
+  }
+  // POST the user\'s vote to the worker as a search_feedback event.
+  // Uses the same ingest path as window.tmwIntel.track (so it lands in
+  // the same `events` D1 table) but with event_name="search_feedback"
+  // so the admin can roll up these specifically. Best-effort -- a
+  // dropped beacon shouldn\'t affect the user\'s flow.
+  function sendFeedback(rating){
+    try {
+      if (!_lastQuery) return;
+      var m = window.__tmwMember || null;
+      var pro = !!(window.tmwIntel && window.tmwIntel.isPro && window.tmwIntel.isPro());
+      var did = '';
+      try { did = localStorage.getItem('tmw_did') || ''; } catch(_){}
+      var payload = JSON.stringify({
+        member_id: (m && m.id) || ('anon:' + (did || 'unknown')),
+        member_name: (m && m.name) || null,
+        plan: pro ? 'paid' : (m ? 'free' : 'anon'),
+        event_name: 'search_feedback',
+        path: location.pathname,
+        referrer: document.referrer || null,
+        client_ts: Math.floor(Date.now() / 1000),
+        props: {
+          q: String(_lastQuery).slice(0, 200),
+          rating: rating, // 'up' or 'down'
+          results: _lastResultsTotal,
+          result_kind: _lastResultKind,
+          source: 'overlay'
+        }
+      });
+      var url = 'https://tmw.jake-ab7.workers.dev/event';
+      if (navigator.sendBeacon) navigator.sendBeacon(url, new Blob([payload], { type: 'text/plain' }));
+      else fetch(url, { method:'POST', body:payload, keepalive:true, headers:{ 'Content-Type':'text/plain' } }).catch(function(){});
+    } catch(_){}
+  }
+  // Single delegated click handler for the two thumbs buttons. Voting
+  // locks both buttons (pointer-events:none) so the user can\'t double-
+  // vote on the same query; the chosen rating gets the colored fill,
+  // the other goes dim. The .voted class on the parent fades in the
+  // "Thanks" confirmation text.
+  root.addEventListener('click', function(e){
+    var btn = e.target.closest && e.target.closest('.tmw-ov-fb-btn');
+    if (!btn) return;
+    var fbEl = btn.closest('.tmw-ov-feedback');
+    if (!fbEl || fbEl.classList.contains('voted')) return;
+    var rating = btn.getAttribute('data-rating');
+    if (rating !== 'up' && rating !== 'down') return;
+    sendFeedback(rating);
+    fbEl.classList.add('voted');
+    var btns = fbEl.querySelectorAll('.tmw-ov-fb-btn');
+    for (var i = 0; i < btns.length; i++){
+      btns[i].classList.add('voted');
+      if (btns[i] !== btn) btns[i].classList.add('dimmed');
+    }
+  });
 
   function runQuery(rawQ){
     var q = String(rawQ||'').trim();
@@ -1343,6 +1469,13 @@
 
     var token = ++_renderToken;
     setState('thinking');
+    // Reset the thumbs row for the incoming query so a previous vote
+    // doesn't bleed across. _lastQuery / _lastResultsTotal / _lastResultKind
+    // are repopulated by whichever render path handles this query.
+    _lastQuery = q;
+    _lastResultsTotal = 0;
+    _lastResultKind = '';
+    resetFeedback();
 
     // ── Partner-of-Tomorrow spotlight (curated, no LLM, never gated) ──
     // Has to render BEFORE we touch the LLM or hit the database — typing
@@ -1357,6 +1490,8 @@
       slotEntities.innerHTML = '';
       slotArticles.innerHTML = '';
       sEmpty.classList.add('tmw-ov-hidden');
+      _lastResultsTotal = 1;
+      _lastResultKind = 'spotlight';
       setState('results');
       return;
     }
@@ -1457,6 +1592,8 @@
       if (window.tmwIntel && window.tmwIntel.track) window.tmwIntel.track(q, { results: rows.length, sort: s.sort ? s.sort.label : null, source: 'overlay' });
     } catch(_){}
 
+    _lastResultsTotal = rows.length;
+    _lastResultKind = 'smart';
     setState('results');
   }
 
@@ -1557,6 +1694,8 @@
       slotProjGrid.innerHTML = '';
       slotEntities.innerHTML = '';
       slotArticles.innerHTML = '';
+      _lastResultsTotal = 0;
+      _lastResultKind = 'empty';
       setState('empty');
       return;
     }
@@ -1566,6 +1705,8 @@
       slotProjGrid.innerHTML = '';
       slotEntities.innerHTML = '';
       slotArticles.innerHTML = '';
+      _lastResultsTotal = 0;
+      _lastResultKind = 'question';
       setState('results');
       return;
     }
@@ -1674,6 +1815,8 @@
       slotArticles.innerHTML = '';
     }
 
+    _lastResultsTotal = totalHits;
+    _lastResultKind = question ? 'question' : 'text';
     setState('results');
 
     // Log plain text-match queries to the Studio analytics tab. Question
