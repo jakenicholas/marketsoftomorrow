@@ -481,7 +481,6 @@
       '<button class="v2-go-pro-badge" type="button" aria-label="Upgrade to TMW Pro">GO PRO</button>' +
       '<div class="v2-profile-menu" role="menu">' +
         '<button class="v2-menu-item" data-act="account" role="menuitem"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-7 8-7s8 3 8 7"/></svg>Account</button>' +
-        '<a class="v2-menu-item" data-act="map" href="' + MAP_URL + '" role="menuitem"><svg viewBox="0 0 24 24"><path d="M12 2 2 7l10 5 10-5-10-5z"/><path d="m2 17 10 5 10-5"/><path d="m2 12 10 5 10-5"/></svg><span class="v2-menu-label">Open the Map</span></a>' +
         '<div class="v2-menu-divider"></div>' +
         '<button class="v2-menu-item v2-menu-signout" data-act="signout" role="menuitem"><svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>Sign out</button>' +
       '</div>';
@@ -557,7 +556,6 @@
         if (m) m.openModal('PROFILE').then(function () { try { m.hideModal(); } catch (_) {} refresh(); }).catch(function () {});
       } catch (_) {}
     });
-    host.querySelector('[data-act="map"]').addEventListener('click', function () { menu.classList.remove('open'); });
     host.querySelector('[data-act="signout"]').addEventListener('click', function (e) {
       e.stopPropagation(); menu.classList.remove('open');
       try {
