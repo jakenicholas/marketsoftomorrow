@@ -86,7 +86,15 @@
     var t = String(q || '').trim();
     if (!t) return false;
     if (t.indexOf('?') !== -1) return true;
-    return /^(what|why|how|when|where|who|which|whose|is|are|does|do|did|can|could|will|would|should|has|have|had)\s/i.test(t);
+    // Interrogative / auxiliary-led questions ("what is…", "does…").
+    if (/^(what|why|how|when|where|who|which|whose|is|are|does|do|did|can|could|will|would|should|has|have|had)\s/i.test(t)) return true;
+    // Imperative information-requests — complete asks that aren't phrased as a
+    // grammatical question but clearly want a synthesized answer:
+    //   "tell me about The Berkeley", "describe Olara",
+    //   "give me the rundown on Currie Park", "explain Currie Park".
+    if (/^(tell|describe|explain|summar(?:ize|ise|y)|walk|brief|overview|compare)\b/i.test(t)) return true;
+    if (/\b(tell me|more about|everything about|info(?:rmation)?\s+(?:on|about)|details?\s+(?:on|about)|rundown on|overview of|story\s+(?:of|behind|on)|the deal with|the scoop on)\b/i.test(t)) return true;
+    return false;
   }
 
   // ── Partner-of-Tomorrow spotlights ────────────────────────────────
@@ -280,6 +288,10 @@
     'projects','project','things','stuff','one','ones',
     // intent verbs
     'show','find','give','tell','list','see','look','check','search','want','need',
+    'describe','explain','summarize','summarise','share','walk','compare','learn','know',
+    // info-request nouns + pure function words ("tell me about THE berkeley")
+    'the','and','for','with','from','its','you','your','our','please',
+    'overview','rundown','info','information','details','detail','everything','anything','story','scoop','deal',
     // intent adjectives + status-y generics
     'new','newest','latest','recent','upcoming','next','previous','past','old','coming','going','happening','planned','expected','set','about',
     // question + connector words

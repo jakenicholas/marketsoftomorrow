@@ -41,7 +41,12 @@
     var t = String(q||'').trim();
     if (!t) return false;
     if (t.indexOf('?') !== -1) return true;
-    return /^(what|why|how|when|where|who|which|whose|is|are|does|do|did|can|could|will|would|should|has|have|had)\s/i.test(t);
+    if (/^(what|why|how|when|where|who|which|whose|is|are|does|do|did|can|could|will|would|should|has|have|had)\s/i.test(t)) return true;
+    // Imperative info-requests ("tell me about X", "describe X") — mirrors
+    // TmwSearchCore.isQuestion; this local copy only runs before core loads.
+    if (/^(tell|describe|explain|summar(?:ize|ise|y)|walk|brief|overview|compare)\b/i.test(t)) return true;
+    if (/\b(tell me|more about|everything about|info(?:rmation)?\s+(?:on|about)|details?\s+(?:on|about)|rundown on|overview of|story\s+(?:of|behind|on)|the deal with|the scoop on)\b/i.test(t)) return true;
+    return false;
   }
 
   // ── inline styles (namespaced under .tmw-ov-* so we never collide) ──
@@ -1726,12 +1731,18 @@
 
     var full = norm(q);
     var toks = tokenize(q);
-    // Scoring tokens: drop 1-char noise tokens so a possessive/plural stray
-    // (e.g. "Fouquet's" → ["fouquet","s"]) doesn't let the single letter "s"
-    // match nearly every project/firm/article via a substring hit — which
-    // previously inflated the result set to the entire catalog ("436 total").
-    // Hero eligibility + the meaningful-token filter still use the full `toks`.
-    var stoks = toks.filter(function(t){ return t.length >= 2; });
+    // Scoring tokens: the meaningful tokens only (drop 1-char noise AND generic
+    // stopwords like "the"/"tell"/"about"). Two reasons:
+    //  · "Fouquet's" → ["fouquet","s"]: the stray "s" used to substring-match
+    //    nearly every record and inflate results to the whole catalog ("436").
+    //  · Natural-language questions — "tell me about Olara" → ["tell","me",
+    //    "about","olara"] — would otherwise let "tell"/"about" pollute the grid
+    //    with every project whose description happens to contain those words.
+    // Falls back to the length filter if stripping leaves nothing (e.g. a query
+    // that is purely short/stopwords). Hero eligibility still uses raw `toks`.
+    var stoks = (Core && Core.filterMeaningfulTokens) ? Core.filterMeaningfulTokens(toks)
+                                                      : toks.filter(function(t){ return t.length >= 3; });
+    if (!stoks.length) stoks = toks.filter(function(t){ return t.length >= 2; });
     // Use the shared isQuestion so /search/ and the overlay always agree
     // on what counts as a question (the local fallback runs only during
     // the brief window before journal-search-core.js finishes loading).
