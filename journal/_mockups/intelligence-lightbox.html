@@ -1,0 +1,674 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>TMW Intelligence — universal lightbox mockup</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<style>
+  :root{
+    --bg:#0b0b0d;
+    --bg2:#111114;
+    --ink:#f4efe4;
+    --ink-soft:#a8a39a;
+    --ink-dim:#6c6860;
+    --gold:#c9a86a;
+    --gold-soft:#e9d9b8;
+    --rule:#1d1d22;
+    --rule-soft:#26262d;
+    --green:#7bb37a;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Inter',system-ui,sans-serif;font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  h1,h2,h3,h4{font-family:'New York','Iowan Old Style','Georgia',serif;font-weight:500;letter-spacing:-.01em;margin:0}
+
+  /* ─── Mockup chrome (not part of real product) ───────────────────── */
+  .chrome{
+    position:fixed;top:0;left:0;right:0;z-index:200;
+    display:flex;align-items:center;gap:18px;
+    padding:10px 18px;background:rgba(11,11,13,.85);
+    backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+    border-bottom:1px solid var(--rule);
+  }
+  .chrome .logo{font-family:'New York',serif;font-size:14px;letter-spacing:.04em}
+  .chrome .logo b{color:var(--gold)}
+  .chrome .seg{display:flex;gap:2px;background:var(--bg2);border:1px solid var(--rule);border-radius:10px;padding:3px}
+  .chrome .seg button{background:transparent;border:0;color:var(--ink-soft);font:inherit;font-size:13px;padding:6px 12px;border-radius:7px;cursor:pointer;letter-spacing:.02em}
+  .chrome .seg button.on{background:var(--gold);color:#1a1408;font-weight:600}
+  .chrome .note{margin-left:auto;font-size:12px;color:var(--ink-dim);letter-spacing:.04em;text-transform:uppercase}
+
+  /* ─── Stage (fake page underneath) ───────────────────────────────── */
+  .stage{position:relative;min-height:100vh;padding-top:54px}
+  .stage::after{content:'';position:absolute;inset:54px 0 0 0;background:linear-gradient(180deg,transparent,rgba(0,0,0,.4) 80%);pointer-events:none}
+
+  /* JOURNAL fake */
+  .ctx-journal .page{max-width:780px;margin:48px auto 0;padding:0 24px}
+  .ctx-journal h1.lede{font-size:46px;line-height:1.05;margin-bottom:14px}
+  .ctx-journal .kicker{color:var(--gold);font-size:12px;letter-spacing:.18em;text-transform:uppercase;margin-bottom:18px}
+  .ctx-journal .byline{color:var(--ink-dim);font-size:13px;margin-bottom:30px;border-bottom:1px solid var(--rule);padding-bottom:18px}
+  .ctx-journal p{color:var(--ink-soft);font-size:17px;line-height:1.7;margin:0 0 18px}
+  .ctx-journal .pull{font-family:'New York',serif;font-size:24px;line-height:1.35;color:var(--ink);border-left:2px solid var(--gold);padding-left:18px;margin:28px 0}
+
+  /* ATLAS fake */
+  .ctx-atlas .page{max-width:1180px;margin:48px auto 0;padding:0 24px}
+  .ctx-atlas h1.lede{font-size:38px;margin-bottom:8px}
+  .ctx-atlas .sub{color:var(--ink-dim);margin-bottom:28px}
+  .ctx-atlas .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
+  .ctx-atlas .card{background:var(--bg2);border:1px solid var(--rule);border-radius:14px;padding:16px;min-height:160px;display:flex;flex-direction:column;justify-content:space-between}
+  .ctx-atlas .card .firm{font-family:'New York',serif;font-size:18px;margin-bottom:6px}
+  .ctx-atlas .card .meta{color:var(--ink-dim);font-size:12px;letter-spacing:.06em;text-transform:uppercase}
+  .ctx-atlas .card .pc{color:var(--gold);font-size:13px;margin-top:auto}
+
+  /* MAP fake */
+  .ctx-map{padding-top:54px}
+  .ctx-map .mapwrap{position:fixed;top:54px;left:340px;right:0;bottom:0;background:#13141a;overflow:hidden}
+  .ctx-map .mapwrap svg{width:100%;height:100%;display:block}
+  .ctx-map .sidebar{position:fixed;top:54px;left:0;bottom:0;width:340px;background:var(--bg2);border-right:1px solid var(--rule);padding:18px;overflow-y:auto;z-index:50}
+  .ctx-map .sidebar .label{font-size:11px;letter-spacing:.16em;color:var(--ink-dim);text-transform:uppercase;margin-bottom:8px}
+  .ctx-map .sidebar .findbar{position:relative;margin-bottom:10px}
+  .ctx-map .sidebar .findbar input{
+    width:100%;padding:11px 14px 11px 38px;background:#0e0e12;border:1px solid var(--rule-soft);
+    color:var(--ink);border-radius:10px;font:inherit;font-size:14px;
+  }
+  .ctx-map .sidebar .findbar svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:var(--ink-dim)}
+  .ctx-map .sidebar .helper{font-size:11px;color:var(--ink-dim);margin-bottom:18px;padding:8px 10px;background:rgba(201,168,106,.06);border:1px solid rgba(201,168,106,.18);border-radius:8px;line-height:1.4}
+  .ctx-map .sidebar .helper b{color:var(--gold-soft);font-weight:600}
+  .ctx-map .sidebar .filter{padding:10px 0;border-bottom:1px solid var(--rule);font-size:13px;color:var(--ink-soft);display:flex;justify-content:space-between;cursor:pointer}
+  .ctx-map .sidebar .filter:hover{color:var(--ink)}
+  .ctx-map .sidebar .filter span:last-child{color:var(--ink-dim);font-size:12px}
+
+  /* ─── DOCK (real component, mocked) ──────────────────────────────── */
+  .dock{
+    position:fixed;left:50%;bottom:22px;transform:translateX(-50%);
+    display:flex;align-items:center;gap:10px;padding:8px;
+    background:rgba(20,20,25,.72);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+    border:1px solid rgba(255,255,255,.08);border-radius:999px;z-index:80;
+    box-shadow:0 18px 40px rgba(0,0,0,.5);
+  }
+  .dock .ico{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--ink-soft);cursor:pointer;transition:background .2s,color .2s}
+  .dock .ico:hover{background:rgba(255,255,255,.05);color:var(--ink)}
+  .dock .ico svg{width:18px;height:18px}
+  .dock .ask{
+    display:flex;align-items:center;gap:8px;padding:0 16px 0 12px;height:38px;
+    background:linear-gradient(180deg,var(--gold),#a8884b);color:#1a1408;
+    border-radius:999px;font:inherit;font-size:13px;font-weight:600;letter-spacing:.02em;
+    cursor:pointer;border:0;
+  }
+  .dock .ask:hover{filter:brightness(1.08)}
+  .dock .ask svg{width:16px;height:16px}
+  .dock .ask::after{
+    content:'';display:inline-block;width:4px;height:4px;background:#1a1408;border-radius:50%;
+    margin-left:2px;animation:cat 1.4s infinite;
+    box-shadow:8px 0 0 #1a1408, 16px 0 0 #1a1408;
+    opacity:.4;
+  }
+  @keyframes cat{
+    0%,100%{opacity:.2}
+    50%{opacity:.9}
+  }
+
+  /* ─── LIGHTBOX ───────────────────────────────────────────────────── */
+  .scrim{
+    position:fixed;inset:0;background:rgba(8,8,11,.5);backdrop-filter:blur(2px);
+    z-index:90;opacity:0;pointer-events:none;transition:opacity .35s ease;
+  }
+  .scrim.open{opacity:1;pointer-events:auto}
+  /* on map context, scrim is more transparent so cited markers shine through */
+  .ctx-map .scrim{background:rgba(8,8,11,.35)}
+
+  .lightbox{
+    position:fixed;left:50%;bottom:80px;transform:translate(-50%, 30px);
+    width:min(720px, calc(100vw - 32px));max-height:min(78vh, 720px);
+    background:linear-gradient(180deg, rgba(22,22,28,.96), rgba(14,14,18,.96));
+    backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);
+    border:1px solid rgba(201,168,106,.25);border-radius:22px;
+    box-shadow:0 40px 80px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.02) inset;
+    z-index:100;opacity:0;pointer-events:none;
+    transition:opacity .35s ease, transform .4s cubic-bezier(.2,.9,.3,1.05);
+    display:flex;flex-direction:column;overflow:hidden;
+  }
+  .lightbox.open{opacity:1;pointer-events:auto;transform:translate(-50%, 0)}
+
+  .lb-head{
+    display:flex;align-items:center;gap:10px;padding:18px 22px 0;
+  }
+  .lb-head .hex{
+    width:28px;height:28px;display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(180deg,var(--gold),#a8884b);clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%);
+  }
+  .lb-head .hex svg{width:14px;height:14px;color:#1a1408}
+  .lb-head .title{font-family:'New York',serif;font-size:15px;letter-spacing:.04em}
+  .lb-head .title b{color:var(--gold)}
+  .lb-head .ctx-pill{
+    margin-left:auto;font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--ink-dim);background:rgba(255,255,255,.04);padding:4px 10px;border-radius:999px;
+    border:1px solid var(--rule);
+  }
+  .lb-head .close{background:transparent;border:0;color:var(--ink-dim);font-size:22px;cursor:pointer;padding:4px 8px;line-height:1}
+  .lb-head .close:hover{color:var(--ink)}
+
+  .lb-input{padding:14px 22px 18px;position:relative}
+  .lb-input input{
+    width:100%;background:transparent;border:0;border-bottom:1px solid var(--rule-soft);
+    color:var(--ink);font:inherit;font-family:'New York',serif;font-size:24px;
+    padding:8px 0;outline:none;
+  }
+  .lb-input input::placeholder{color:var(--ink-dim);font-style:italic}
+  .lb-input input:focus{border-bottom-color:var(--gold)}
+
+  .lb-suggest{padding:0 22px 18px;display:flex;flex-wrap:wrap;gap:6px}
+  .lb-suggest .chip{
+    font-size:12px;color:var(--ink-soft);background:rgba(255,255,255,.03);
+    border:1px solid var(--rule-soft);padding:6px 10px;border-radius:999px;cursor:pointer;
+  }
+  .lb-suggest .chip:hover{border-color:var(--gold);color:var(--ink)}
+
+  .lb-body{padding:4px 22px 22px;overflow-y:auto;flex:1;display:none}
+  .lb-body.show{display:block}
+
+  /* loading caterpillar */
+  .lb-loading{display:flex;align-items:center;gap:10px;padding:10px 0;color:var(--ink-dim);font-size:13px;letter-spacing:.06em;text-transform:uppercase}
+  .lb-loading .dots{display:inline-flex;gap:4px}
+  .lb-loading .dots span{width:6px;height:6px;border-radius:50%;background:var(--gold);animation:bounce 1.2s infinite}
+  .lb-loading .dots span:nth-child(2){animation-delay:.15s}
+  .lb-loading .dots span:nth-child(3){animation-delay:.3s}
+  @keyframes bounce{0%,100%{transform:translateY(0);opacity:.4}50%{transform:translateY(-4px);opacity:1}}
+
+  .lb-answer{
+    font-family:'New York',serif;font-size:18px;line-height:1.55;color:var(--ink);
+    border-left:2px solid var(--gold);padding:2px 0 2px 16px;margin:8px 0 16px;
+  }
+  .lb-answer mark{background:rgba(201,168,106,.18);color:var(--gold-soft);padding:0 3px;border-radius:3px}
+
+  .lb-cites{margin-top:10px}
+  .lb-cites .cite-label{font-size:11px;color:var(--ink-dim);letter-spacing:.14em;text-transform:uppercase;margin-bottom:8px}
+  .lb-cites .cite-row{
+    display:flex;align-items:center;gap:10px;padding:10px 12px;
+    border:1px solid var(--rule);border-radius:10px;margin-bottom:6px;background:rgba(255,255,255,.015);
+    cursor:pointer;transition:border-color .2s, background .2s;
+  }
+  .lb-cites .cite-row:hover{border-color:var(--gold);background:rgba(201,168,106,.04)}
+  .lb-cites .cite-row .num{
+    width:22px;height:22px;flex-shrink:0;font-size:11px;font-weight:700;
+    display:flex;align-items:center;justify-content:center;color:#1a1408;
+    background:var(--gold);border-radius:50%;
+  }
+  .lb-cites .cite-row .meta{flex:1;min-width:0}
+  .lb-cites .cite-row .meta .t{font-size:14px;color:var(--ink);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .lb-cites .cite-row .meta .s{font-size:11px;color:var(--ink-dim);letter-spacing:.04em;margin-top:2px}
+  .lb-cites .cite-row .arrow{color:var(--ink-dim);transition:color .2s, transform .2s}
+  .lb-cites .cite-row:hover .arrow{color:var(--gold);transform:translateX(2px)}
+
+  .lb-foot{
+    padding:14px 22px;border-top:1px solid var(--rule);
+    display:flex;align-items:center;gap:10px;background:rgba(0,0,0,.2);
+  }
+  .lb-foot .ctx-action{font-size:12px;color:var(--ink-dim);margin-right:auto;letter-spacing:.04em}
+  .lb-foot .ctx-action b{color:var(--gold-soft);font-weight:600}
+  .lb-foot .btn{
+    font:inherit;font-size:13px;font-weight:500;padding:8px 14px;border-radius:999px;cursor:pointer;
+    background:transparent;color:var(--ink-soft);border:1px solid var(--rule-soft);
+  }
+  .lb-foot .btn:hover{color:var(--ink);border-color:var(--ink-dim)}
+  .lb-foot .btn.gold{background:var(--gold);color:#1a1408;border-color:var(--gold);font-weight:600}
+  .lb-foot .btn.gold:hover{filter:brightness(1.08)}
+
+  /* ─── MAP marker pulses (cited projects light up) ────────────────── */
+  .marker{transition:all .6s ease}
+  .marker.cited circle:first-child{
+    fill:#c9a86a;
+    filter:drop-shadow(0 0 8px rgba(201,168,106,.9));
+    animation:pulseGold 2s ease-in-out infinite;
+  }
+  .marker.cited circle:last-child{stroke:#c9a86a;stroke-width:2;fill:none;opacity:0}
+  .marker.cited circle:last-child{animation:ring 2s ease-out infinite}
+  @keyframes pulseGold{0%,100%{r:7}50%{r:9}}
+  @keyframes ring{
+    0%{r:6;opacity:.9}
+    100%{r:24;opacity:0}
+  }
+
+  /* ─── Annotation tooltips (mock-only education layer) ────────────── */
+  .anno{
+    position:fixed;background:rgba(20,16,8,.95);border:1px solid var(--gold);
+    color:var(--gold-soft);font-size:11px;letter-spacing:.06em;text-transform:uppercase;
+    padding:6px 10px;border-radius:6px;z-index:150;pointer-events:none;
+    display:none;
+  }
+  .anno.show{display:block;animation:fadeIn .4s}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+  .anno::before{content:'';position:absolute;width:0;height:0;border:6px solid transparent}
+  .anno.up::before{border-top-color:var(--gold);bottom:-12px;left:20px}
+  .anno.down::before{border-bottom-color:var(--gold);top:-12px;left:20px}
+
+  /* ─── Sidebar education callout (visible in map ctx) ─────────────── */
+  .role-callout{
+    position:fixed;left:18px;bottom:84px;width:304px;
+    background:linear-gradient(180deg,rgba(20,16,8,.95),rgba(14,11,5,.95));
+    border:1px solid rgba(201,168,106,.4);border-radius:14px;padding:14px 16px;
+    z-index:90;font-size:12px;
+    transition:opacity .3s;
+  }
+  .role-callout.hide{opacity:0;pointer-events:none}
+  .role-callout h4{font-size:13px;color:var(--gold);margin-bottom:10px;letter-spacing:.04em}
+  .role-callout .row{display:flex;gap:10px;padding:8px 0;border-top:1px solid rgba(201,168,106,.15)}
+  .role-callout .row:first-of-type{border-top:0}
+  .role-callout .row .icon{width:20px;height:20px;flex-shrink:0;color:var(--gold-soft)}
+  .role-callout .row .text{color:var(--ink-soft);line-height:1.4}
+  .role-callout .row .text b{color:var(--ink);display:block;font-size:12px;letter-spacing:.04em;margin-bottom:2px}
+
+</style>
+</head>
+<body>
+
+<!-- Mockup chrome (not in real product) -->
+<div class="chrome">
+  <div class="logo"><b>TMW</b> Intelligence Lightbox</div>
+  <div class="seg" id="ctxSeg">
+    <button data-ctx="journal" class="on">Journal article</button>
+    <button data-ctx="map">Map</button>
+    <button data-ctx="atlas">Atlas</button>
+  </div>
+  <div class="note">Click "Ask TMW" pill below to trigger</div>
+</div>
+
+<!-- Stage: fake page underneath -->
+<div class="stage" id="stage">
+
+  <!-- JOURNAL FAKE PAGE -->
+  <div class="page-journal page" data-page="journal">
+    <div class="kicker">Field Note · Miami · June 7, 2026</div>
+    <h1 class="lede">Wynwood's quiet pivot from murals to mixed-use</h1>
+    <div class="byline">Markets of Tomorrow — Editorial</div>
+    <p>Four years after the neighborhood's mural boom drew global attention, Wynwood is in the middle of a less photogenic but more durable transformation. Developers who once optioned single lots for low-rise galleries are now stitching together half-block assemblages for residential towers in the 12-to-25-story range.</p>
+    <p>The shift is partly mechanical — Miami 21 zoning rewards density along the corridor — and partly cultural. Tenants who came for studios are staying for headquarters. The buildings going up reflect that: ground-floor retail tuned for daytime traffic, amenity decks tuned for hybrid workers, and unit mixes weighted toward two-bedrooms instead of pied-à-terres.</p>
+    <p class="pull">The block between NW 24th and 25th Streets has changed hands three times since 2022, each transaction trading a smaller floorplate for taller entitlements.</p>
+    <p>What's harder to read from the renderings is which of these projects will actually break ground in 2026. Capital costs have softened plans elsewhere in Miami; Wynwood's land basis has not.</p>
+  </div>
+
+  <!-- ATLAS FAKE PAGE -->
+  <div class="page-atlas page" data-page="atlas" style="display:none">
+    <div class="kicker" style="color:var(--gold);font-size:12px;letter-spacing:.18em;text-transform:uppercase;margin-bottom:10px">The Atlas</div>
+    <h1 class="lede">Firms of Tomorrow</h1>
+    <div class="sub">Architects, developers, and operators building the next decade of the urban South.</div>
+    <div class="grid">
+      <div class="card"><div><div class="firm">Arquitectonica</div><div class="meta">Architect · Miami, FL</div></div><div class="pc">28 projects tracked</div></div>
+      <div class="card"><div><div class="firm">Related Group</div><div class="meta">Developer · Miami, FL</div></div><div class="pc">41 projects tracked</div></div>
+      <div class="card"><div><div class="firm">Kobi Karp</div><div class="meta">Architect · Miami, FL</div></div><div class="pc">19 projects tracked</div></div>
+      <div class="card"><div><div class="firm">Terra Group</div><div class="meta">Developer · Coconut Grove, FL</div></div><div class="pc">14 projects tracked</div></div>
+      <div class="card"><div><div class="firm">Cooper Carry</div><div class="meta">Architect · Atlanta, GA</div></div><div class="pc">22 projects tracked</div></div>
+      <div class="card"><div><div class="firm">Portman Holdings</div><div class="meta">Developer · Atlanta, GA</div></div><div class="pc">17 projects tracked</div></div>
+      <div class="card"><div><div class="firm">Selldorf Architects</div><div class="meta">Architect · New York, NY</div></div><div class="pc">8 projects tracked</div></div>
+      <div class="card"><div><div class="firm">Genesis Capital</div><div class="meta">Developer · Charlotte, NC</div></div><div class="pc">11 projects tracked</div></div>
+    </div>
+  </div>
+
+  <!-- MAP FAKE PAGE -->
+  <div class="page-map" data-page="map" style="display:none">
+    <div class="sidebar">
+      <div class="label">Find on map</div>
+      <div class="findbar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+        <input type="text" placeholder="towers in Wynwood…">
+      </div>
+      <div class="helper"><b>Find / Explore</b> — filters markers and flies the camera. For semantic questions (<i>"what happened to…"</i>), tap <b>Ask TMW</b> in the dock instead.</div>
+      <div class="label" style="margin-top:18px">Filters</div>
+      <div class="filter"><span>Status</span><span>All</span></div>
+      <div class="filter"><span>Type</span><span>All</span></div>
+      <div class="filter"><span>Market</span><span>Miami</span></div>
+      <div class="filter"><span>Architect</span><span>Any</span></div>
+      <div class="filter"><span>Developer</span><span>Any</span></div>
+    </div>
+
+    <div class="mapwrap">
+      <!-- Fake Mapbox-style canvas -->
+      <svg viewBox="0 0 1000 700" preserveAspectRatio="xMidYMid slice">
+        <defs>
+          <pattern id="grid" width="80" height="80" patternUnits="userSpaceOnUse">
+            <path d="M 80 0 L 0 0 0 80" fill="none" stroke="#1a1c24" stroke-width="1"/>
+          </pattern>
+          <radialGradient id="hoodGlow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#2a2820" stop-opacity=".5"/>
+            <stop offset="100%" stop-color="#13141a" stop-opacity="0"/>
+          </radialGradient>
+        </defs>
+        <rect width="1000" height="700" fill="#13141a"/>
+        <rect width="1000" height="700" fill="url(#grid)"/>
+
+        <!-- Fake road grid (Wynwood-ish) -->
+        <g stroke="#1f2230" stroke-width="2" opacity=".7">
+          <line x1="0" y1="180" x2="1000" y2="200"/>
+          <line x1="0" y1="340" x2="1000" y2="360"/>
+          <line x1="0" y1="500" x2="1000" y2="520"/>
+          <line x1="220" y1="0" x2="240" y2="700"/>
+          <line x1="440" y1="0" x2="460" y2="700"/>
+          <line x1="660" y1="0" x2="680" y2="700"/>
+          <line x1="860" y1="0" x2="880" y2="700"/>
+        </g>
+
+        <!-- Neighborhood blob -->
+        <ellipse cx="500" cy="340" rx="380" ry="220" fill="url(#hoodGlow)"/>
+        <text x="500" y="120" text-anchor="middle" fill="#3a3a44" font-family="New York,serif" font-size="32" letter-spacing="6">WYNWOOD</text>
+
+        <!-- Project markers -->
+        <g id="markers">
+          <g class="marker" data-id="p1" transform="translate(310,260)">
+            <circle r="7" fill="#888da0"/>
+            <circle r="6" fill="none"/>
+          </g>
+          <g class="marker" data-id="p2" transform="translate(420,310)">
+            <circle r="7" fill="#888da0"/>
+            <circle r="6" fill="none"/>
+          </g>
+          <g class="marker" data-id="p3" transform="translate(490,290)">
+            <circle r="7" fill="#888da0"/>
+            <circle r="6" fill="none"/>
+          </g>
+          <g class="marker" data-id="p4" transform="translate(560,360)">
+            <circle r="7" fill="#888da0"/>
+            <circle r="6" fill="none"/>
+          </g>
+          <g class="marker" data-id="p5" transform="translate(640,300)">
+            <circle r="7" fill="#888da0"/>
+            <circle r="6" fill="none"/>
+          </g>
+          <g class="marker" data-id="p6" transform="translate(700,420)">
+            <circle r="7" fill="#888da0"/>
+            <circle r="6" fill="none"/>
+          </g>
+          <g class="marker" data-id="p7" transform="translate(380,440)">
+            <circle r="7" fill="#888da0"/>
+            <circle r="6" fill="none"/>
+          </g>
+          <g class="marker" data-id="p8" transform="translate(540,460)">
+            <circle r="7" fill="#888da0"/>
+            <circle r="6" fill="none"/>
+          </g>
+          <g class="marker" data-id="p9" transform="translate(800,260)">
+            <circle r="7" fill="#888da0"/>
+            <circle r="6" fill="none"/>
+          </g>
+          <g class="marker" data-id="p10" transform="translate(250,500)">
+            <circle r="7" fill="#888da0"/>
+            <circle r="6" fill="none"/>
+          </g>
+        </g>
+      </svg>
+    </div>
+
+    <div class="role-callout" id="roleCallout">
+      <h4>Two searches, two jobs</h4>
+      <div class="row">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+        <div class="text"><b>Sidebar search · Explore</b>Filter markers, fly the camera. Stays as-is.</div>
+      </div>
+      <div class="row">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 22 8 22 16 12 22 2 16 2 8 12 2"/></svg>
+        <div class="text"><b>Ask TMW pill · Intelligence</b>Universal Q&amp;A. On map, cited projects glow.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Dock (real component, lightly mocked) -->
+<div class="dock">
+  <div class="ico" title="Home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8v10a2 2 0 0 1-2 2h-4v-7h-6v7H5a2 2 0 0 1-2-2z"/></svg></div>
+  <div class="ico" title="Map"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21 3 6"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg></div>
+  <div class="ico" title="Atlas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h12a4 4 0 0 1 4 4v12H8a4 4 0 0 1-4-4z"/><path d="M4 4v12a4 4 0 0 0 4 4"/></svg></div>
+  <button class="ask" id="askPill">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 22 8 22 16 12 22 2 16 2 8 12 2"/></svg>
+    Ask TMW
+  </button>
+  <div class="ico" title="Journal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h14v16H6a2 2 0 0 1-2-2z"/><line x1="8" y1="9" x2="14" y2="9"/><line x1="8" y1="13" x2="14" y2="13"/></svg></div>
+  <div class="ico" title="Profile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></div>
+</div>
+
+<!-- Scrim -->
+<div class="scrim" id="scrim"></div>
+
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox" role="dialog" aria-label="TMW Intelligence">
+  <div class="lb-head">
+    <div class="hex"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="6"/><path d="M20 20l-3.5-3.5"/></svg></div>
+    <div class="title"><b>TMW</b> Intelligence</div>
+    <div class="ctx-pill" id="ctxPill">on Journal</div>
+    <button class="close" id="closeLb" aria-label="Close">×</button>
+  </div>
+
+  <div class="lb-input">
+    <input type="text" id="lbInput" placeholder="Ask about the urban South…" autocomplete="off">
+  </div>
+
+  <div class="lb-suggest" id="lbSuggest">
+    <div class="chip">What happened to Juliana's Pizza in the Nora District?</div>
+    <div class="chip">Tallest towers under construction in the Carolinas</div>
+    <div class="chip">Which Arquitectonica projects break ground in 2026?</div>
+    <div class="chip">Wynwood projects with ground-floor retail</div>
+  </div>
+
+  <div class="lb-body" id="lbBody">
+    <div class="lb-loading" id="lbLoading">
+      <div class="dots"><span></span><span></span><span></span></div>
+      <div>TMW is thinking</div>
+    </div>
+
+    <div id="lbAnswer" style="display:none">
+      <div class="lb-answer" id="answerText"></div>
+
+      <div class="lb-cites" id="lbCites">
+        <div class="cite-label">Sources <span id="citeCount"></span></div>
+        <div id="citeRows"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="lb-foot">
+    <div class="ctx-action" id="ctxAction">8 results across the journal &amp; map</div>
+    <button class="btn" id="openSearch">Full search</button>
+    <button class="btn gold" id="openMap">Show on map</button>
+  </div>
+</div>
+
+<!-- Annotation -->
+<div class="anno up" id="anno">Cited projects glow on the map behind</div>
+
+<script>
+  // ─── State ─────────────────────────────────────────────────────────
+  let ctx = 'journal';
+
+  const ANSWERS = {
+    "juliana": {
+      text: "Juliana's Pizza closed its <mark>Nora District</mark> location in March 2025 after the building's owner declined to renew the lease. Markets of Tomorrow covered the closure as part of a wider piece on the district's quiet shift from independent F&amp;B toward national operators backed by Sansone Group's mixed-use plans.",
+      cites: [
+        {n:1, t:"Juliana's exits Nora as Sansone reshapes the district", s:"Journal · Mar 2025", id:"p3"},
+        {n:2, t:"Sansone Group · Developer of Tomorrow", s:"Atlas · Firm profile", id:"p3"},
+        {n:3, t:"Nora District revitalization plan", s:"Map · Mixed-use · St. Louis", id:"p4"}
+      ],
+      results: "3 results — 1 article, 1 firm, 1 project"
+    },
+    "carolinas": {
+      text: "Markets of Tomorrow currently tracks <mark>no supertall projects under construction in the Carolinas.</mark> The tallest active builds are <mark>The Ellis (35 floors, Charlotte uptown)</mark> and <mark>Innovation Quarter Tower (28 floors, Winston-Salem)</mark>. Both are mixed-use; neither has topped out.",
+      cites: [
+        {n:1, t:"The Ellis · Charlotte, NC", s:"Project · Under construction · 35 floors", id:"p5"},
+        {n:2, t:"Innovation Quarter Tower · Winston-Salem", s:"Project · Under construction · 28 floors", id:"p6"},
+        {n:3, t:"Crescent Communities · Developer of Tomorrow", s:"Atlas · Firm profile", id:"p9"}
+      ],
+      results: "2 projects, 1 firm — gap flagged for editorial"
+    },
+    "arquitectonica": {
+      text: "Five Arquitectonica projects are slated to break ground in 2026 across Miami: <mark>1428 Brickell, Aria Reserve North Tower, Wynwood 27, Park Grove Phase III,</mark> and a still-unnamed Edgewater assemblage on the 600 block of NE 26th Street.",
+      cites: [
+        {n:1, t:"1428 Brickell · Miami, FL", s:"Project · Permitting · 70 floors", id:"p2"},
+        {n:2, t:"Aria Reserve North Tower · Miami, FL", s:"Project · Pre-construction · 62 floors", id:"p5"},
+        {n:3, t:"Wynwood 27 · Miami, FL", s:"Project · Permitting · 27 floors", id:"p3"},
+        {n:4, t:"Park Grove Phase III · Coconut Grove, FL", s:"Project · Pre-construction · 22 floors", id:"p7"},
+        {n:5, t:"Arquitectonica · Architect of Tomorrow", s:"Atlas · 28 projects tracked", id:"p4"}
+      ],
+      results: "5 projects, 1 firm"
+    },
+    "wynwood": {
+      text: "Six Wynwood projects in the pipeline include retail on the ground floor: <mark>Wynwood 27, Cube Wynwd, The Gateway, 545wyn, Wynwood Square,</mark> and the as-yet-unnamed NW 25th Street tower. Together they add ~84,000 sf of street-level retail by 2027.",
+      cites: [
+        {n:1, t:"Wynwood 27", s:"Project · Permitting · Mixed-use", id:"p3"},
+        {n:2, t:"Cube Wynwd", s:"Project · Complete · Office + Retail", id:"p2"},
+        {n:3, t:"The Gateway at Wynwood", s:"Project · Under construction", id:"p4"},
+        {n:4, t:"545wyn", s:"Project · Complete · Office", id:"p5"},
+        {n:5, t:"Wynwood Square", s:"Project · Under construction", id:"p1"}
+      ],
+      results: "6 projects, 2 firms"
+    }
+  };
+
+  // ─── Context switcher ──────────────────────────────────────────────
+  document.getElementById('ctxSeg').addEventListener('click', e => {
+    const btn = e.target.closest('button[data-ctx]');
+    if (!btn) return;
+    [...e.currentTarget.children].forEach(b => b.classList.toggle('on', b === btn));
+    ctx = btn.dataset.ctx;
+    document.getElementById('stage').className = 'stage ctx-' + ctx;
+    document.querySelectorAll('[data-page]').forEach(el => {
+      el.style.display = (el.dataset.page === ctx) ? '' : 'none';
+    });
+    document.getElementById('ctxPill').textContent = 'on ' + ctx.charAt(0).toUpperCase() + ctx.slice(1);
+    // Pre-fill a sensible suggestion based on context
+    const inp = document.getElementById('lbInput');
+    if (ctx === 'map') inp.placeholder = 'Ask about Wynwood…';
+    else if (ctx === 'atlas') inp.placeholder = 'Ask about a firm…';
+    else inp.placeholder = 'Ask about the urban South…';
+    // Show/hide "Show on map" CTA appropriately
+    document.getElementById('openMap').textContent = (ctx === 'map') ? 'Highlight on map' : 'Show on map';
+  });
+  // Initialize
+  document.getElementById('stage').className = 'stage ctx-' + ctx;
+
+  // ─── Lightbox open/close ───────────────────────────────────────────
+  const lb = document.getElementById('lightbox');
+  const scrim = document.getElementById('scrim');
+  function openLb(){
+    lb.classList.add('open'); scrim.classList.add('open');
+    setTimeout(() => document.getElementById('lbInput').focus(), 100);
+  }
+  function closeLb(){
+    lb.classList.remove('open'); scrim.classList.remove('open');
+    // Citations linger on the map for a few seconds
+    if (ctx === 'map') {
+      document.getElementById('anno').classList.remove('show');
+      setTimeout(() => {
+        document.querySelectorAll('.marker.cited').forEach(m => m.classList.remove('cited'));
+      }, 8000);
+    } else {
+      document.querySelectorAll('.marker.cited').forEach(m => m.classList.remove('cited'));
+    }
+    // Reset
+    setTimeout(() => {
+      document.getElementById('lbBody').classList.remove('show');
+      document.getElementById('lbAnswer').style.display = 'none';
+      document.getElementById('lbLoading').style.display = '';
+      document.getElementById('lbInput').value = '';
+      document.getElementById('lbSuggest').style.display = '';
+    }, 350);
+  }
+  document.getElementById('askPill').addEventListener('click', openLb);
+  document.getElementById('closeLb').addEventListener('click', closeLb);
+  scrim.addEventListener('click', closeLb);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLb(); });
+
+  // ─── Suggest chips → fill input and run ────────────────────────────
+  document.getElementById('lbSuggest').addEventListener('click', e => {
+    const chip = e.target.closest('.chip');
+    if (!chip) return;
+    document.getElementById('lbInput').value = chip.textContent;
+    runQuery(chip.textContent);
+  });
+
+  // ─── Input enter → run ─────────────────────────────────────────────
+  document.getElementById('lbInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') runQuery(e.target.value);
+  });
+
+  // ─── The query runner (mocked) ─────────────────────────────────────
+  function pickAnswer(q){
+    const t = q.toLowerCase();
+    if (t.includes('juliana')) return ANSWERS.juliana;
+    if (t.includes('carolina')) return ANSWERS.carolinas;
+    if (t.includes('arquitectonica') || t.includes('2026')) return ANSWERS.arquitectonica;
+    if (t.includes('wynwood')) return ANSWERS.wynwood;
+    return ANSWERS.juliana; // default
+  }
+
+  function runQuery(q){
+    if (!q || !q.trim()) return;
+    document.getElementById('lbSuggest').style.display = 'none';
+    document.getElementById('lbBody').classList.add('show');
+    document.getElementById('lbLoading').style.display = '';
+    document.getElementById('lbAnswer').style.display = 'none';
+
+    // Highlight cited markers on map immediately (fly-to feel)
+    setTimeout(() => {
+      const data = pickAnswer(q);
+      renderAnswer(data);
+    }, 1200);
+  }
+
+  function renderAnswer(data){
+    document.getElementById('lbLoading').style.display = 'none';
+    document.getElementById('lbAnswer').style.display = '';
+    document.getElementById('answerText').innerHTML = data.text;
+    document.getElementById('citeCount').textContent = '· ' + data.cites.length;
+    document.getElementById('citeRows').innerHTML = data.cites.map(c =>
+      '<div class="cite-row" data-id="'+c.id+'">'+
+        '<div class="num">'+c.n+'</div>'+
+        '<div class="meta"><div class="t">'+c.t+'</div><div class="s">'+c.s+'</div></div>'+
+        '<svg class="arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M9 7h8v8"/></svg>'+
+      '</div>'
+    ).join('');
+    document.getElementById('ctxAction').innerHTML = data.results;
+
+    // Light up the cited markers on the map
+    document.querySelectorAll('.marker.cited').forEach(m => m.classList.remove('cited'));
+    data.cites.forEach(c => {
+      const m = document.querySelector('.marker[data-id="'+c.id+'"]');
+      if (m) m.classList.add('cited');
+    });
+
+    // Show "look at the map" annotation if we're on map context
+    if (ctx === 'map') {
+      const anno = document.getElementById('anno');
+      const lbRect = document.getElementById('lightbox').getBoundingClientRect();
+      anno.style.left = (lbRect.left + lbRect.width / 2 - 100) + 'px';
+      anno.style.top = (lbRect.top - 40) + 'px';
+      anno.className = 'anno down show';
+      setTimeout(() => anno.classList.remove('show'), 4500);
+    }
+  }
+
+  // Citation row click — in real product, would fly map to marker and open drawer
+  document.getElementById('citeRows').addEventListener('click', e => {
+    const row = e.target.closest('.cite-row');
+    if (!row) return;
+    if (ctx === 'map') {
+      closeLb();
+    } else {
+      // pretend we navigate
+      alert('In production: navigates to /project/' + row.dataset.id + '/ or opens map drawer.');
+    }
+  });
+
+  // Show-on-map button: close lightbox, jump to map view if not there
+  document.getElementById('openMap').addEventListener('click', () => {
+    if (ctx !== 'map') {
+      // simulate context switch to map
+      document.querySelector('#ctxSeg button[data-ctx="map"]').click();
+      setTimeout(closeLb, 200);
+    } else {
+      closeLb();
+    }
+  });
+  document.getElementById('openSearch').addEventListener('click', () => {
+    alert('In production: navigates to /search/?q=' + encodeURIComponent(document.getElementById('lbInput').value));
+  });
+</script>
+
+</body>
+</html>
