@@ -21,7 +21,7 @@
 */
 
 import { isAuthorized } from './oauth.js';
-import { getGoogleAccessToken } from './index.js';
+import { getGoogleAccessToken, signPayload, previewSecret, ensureCarouselTable } from './index.js';
 
 // serverInfo per the MCP `Implementation` shape. `title`/`websiteUrl`/`icons`
 // were added in spec 2025-11-25 (SEP-973). Clients that support icons (e.g.
@@ -228,6 +228,75 @@ const TOOLS = [
         category: { type: 'string' },
         cover_image: { type: 'string' },
         linked_project: { type: 'string', description: 'Slug of the Map of Tomorrow project to link — embeds the live project card (added once if not already present). Use to connect an existing draft to its project.' },
+      },
+      required: ['slug'],
+    },
+  },
+
+  // ── Social-media carousels ────────────────────────────────────────────────
+  // Instagram-style post DRAFTS staged in the Studio for client review. Same
+  // "copy client link" pattern as article drafts — drafts have a signed
+  // preview URL the human shares with clients; nothing publishes from here.
+  {
+    name: 'list_carousel_drafts',
+    description: 'List the social-media carousel DRAFTS staged in the Studio. Each one is a private Instagram-style post the team is reviewing with a client via a signed preview link. Returns slug, caption, account handle, slide count, and last-updated time.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        limit:  { type: 'integer', description: 'Max results (default 30, max 100)' },
+        status: { type: 'string',  description: 'Filter by status: "draft" (default) or "archived"' },
+      },
+    },
+  },
+  {
+    name: 'get_carousel',
+    description: 'Get one social-media carousel DRAFT by its slug. Returns the full caption, account handle/name/avatar, and the ordered slides array (each slide is { type:"image"|"video", url, poster?, alt? }). Use this to read what is staged before update_carousel_draft.',
+    inputSchema: {
+      type: 'object',
+      properties: { slug: { type: 'string', description: 'Carousel slug' } },
+      required: ['slug'],
+    },
+  },
+  {
+    name: 'create_carousel_draft',
+    description: 'Create a NEW Instagram-style carousel DRAFT in the Studio (status=draft — it does NOT publish anywhere). Returns the carousel id, slug, the Studio edit URL, and a public client-preview URL (signed, 60-day) you can share with a client. Account defaults to "floridaoftomorrow" / "FLORIDAOFTOMORROW" — override if the post belongs to a different brand. Slide media URLs must already be in R2 (upload via upload_photo first, or upload through the Studio editor).',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        caption:        { type: 'string',  description: 'Instagram-style caption (supports newlines, hashtags, @mentions as plain text)' },
+        slides: {
+          type: 'array',
+          description: 'Ordered list of slides. Each entry: { type:"image"|"video", url, poster?, alt? }. URLs must be publicly fetchable (R2 or other CDN).',
+          items: {
+            type: 'object',
+            properties: {
+              type:   { type: 'string', enum: ['image', 'video'] },
+              url:    { type: 'string' },
+              poster: { type: 'string', description: 'Optional poster image URL for video slides' },
+              alt:    { type: 'string' },
+            },
+            required: ['type', 'url'],
+          },
+        },
+        account_handle: { type: 'string', description: 'Account handle without @, default "floridaoftomorrow"' },
+        account_name:   { type: 'string', description: 'Bold display name, default "FLORIDAOFTOMORROW"' },
+        account_avatar: { type: 'string', description: 'Avatar image URL (R2). Optional — a gradient fallback is shown if omitted.' },
+        slug:           { type: 'string', description: 'Custom slug (lowercase a-z 0-9 -). Optional — derived from the caption otherwise.' },
+      },
+    },
+  },
+  {
+    name: 'update_carousel_draft',
+    description: 'Edit an existing carousel DRAFT by slug. Any field passed is replaced (slides is a full replacement of the ordered array). Returns the updated carousel plus the Studio edit URL.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        slug:           { type: 'string', description: 'Slug of the carousel to edit' },
+        caption:        { type: 'string' },
+        slides:         { type: 'array', description: 'Full replacement of the slides array (omit to leave unchanged). Each: { type, url, poster?, alt? }.', items: { type: 'object' } },
+        account_handle: { type: 'string' },
+        account_name:   { type: 'string' },
+        account_avatar: { type: 'string' },
       },
       required: ['slug'],
     },
@@ -1029,6 +1098,136 @@ const IMPL = {
       `SELECT slug, title, excerpt, updated_at FROM posts WHERE status='draft' ORDER BY updated_at DESC LIMIT ${limit}`
     ).all()).results || [];
     return { count: rows.length, drafts: rows.map((r) => ({ slug: r.slug, title: r.title, excerpt: r.excerpt || '', updated: iso(r.updated_at), edit_url: 'https://admin.oftmw.com/post.html?id=&slug=' + r.slug })) };
+  },
+
+  // ── Social-media carousels ───────────────────────────────────────────────
+  // V1 stores slides as a JSON column on the `carousels` table (auto-created
+  // on first request). Preview URLs are signed with the same secret as
+  // article drafts but use a distinct t:'carousel' tag so the two token
+  // types aren't swappable. The worker host is hardcoded as a fallback — set
+  // env.CAROUSEL_PUBLIC_HOST in wrangler.toml if you point a custom domain.
+  async list_carousel_drafts(args, env) {
+    await ensureCarouselTable(env);
+    const limit  = Math.min(Math.max(parseInt(args.limit, 10) || 30, 1), 100);
+    const status = (args.status === 'archived') ? 'archived' : 'draft';
+    const rows = (await env.DB.prepare(
+      `SELECT slug, caption, account_handle, slides, updated_at FROM carousels WHERE status=?1 ORDER BY updated_at DESC LIMIT ?2`
+    ).bind(status, limit).all()).results || [];
+    return {
+      count: rows.length,
+      drafts: rows.map((r) => {
+        let slides = []; try { slides = JSON.parse(r.slides || '[]'); } catch (_) {}
+        return {
+          slug: r.slug,
+          caption_preview: (r.caption || '').slice(0, 140),
+          account_handle: r.account_handle || 'floridaoftomorrow',
+          slide_count: Array.isArray(slides) ? slides.length : 0,
+          updated: iso(r.updated_at),
+          edit_url: 'https://admin.oftmw.com/carousel.html?slug=' + encodeURIComponent(r.slug),
+        };
+      }),
+    };
+  },
+
+  async get_carousel(args, env) {
+    if (!args.slug) throw new Error('slug is required');
+    await ensureCarouselTable(env);
+    const slug = String(args.slug).trim().toLowerCase();
+    const row = await env.DB.prepare(`SELECT * FROM carousels WHERE slug = ?1`).bind(slug).first();
+    if (!row) throw new Error('no carousel with slug "' + slug + '"');
+    let slides = []; try { slides = JSON.parse(row.slides || '[]'); } catch (_) {}
+    return {
+      slug: row.slug,
+      caption: row.caption || '',
+      account_handle: row.account_handle || 'floridaoftomorrow',
+      account_name:   row.account_name   || 'FLORIDAOFTOMORROW',
+      account_avatar: row.account_avatar || null,
+      slides: Array.isArray(slides) ? slides : [],
+      status: row.status || 'draft',
+      edit_url: 'https://admin.oftmw.com/carousel.html?slug=' + encodeURIComponent(row.slug),
+    };
+  },
+
+  async create_carousel_draft(args, env) {
+    await ensureCarouselTable(env);
+    const caption = String(args.caption || '').slice(0, 4000);
+    // Slug derives from explicit slug → caption → fallback "carousel-XXXX".
+    const baseSlug = args.slug ? slugify(String(args.slug)) : (caption ? slugify(caption) : '');
+    let slug = (baseSlug || ('carousel-' + Math.random().toString(36).slice(2, 6))).slice(0, 100);
+    const exists = await env.DB.prepare(`SELECT 1 FROM carousels WHERE slug = ?1 LIMIT 1`).bind(slug).first();
+    if (exists) slug = (slug + '-' + Math.random().toString(36).slice(2, 6)).slice(0, 100);
+    const id  = 'crsl-' + (crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2));
+    const now = Math.floor(Date.now() / 1000);
+    // Normalize slides — defense against the model sending half-formed entries.
+    const slides = JSON.stringify((Array.isArray(args.slides) ? args.slides : [])
+      .filter((s) => s && typeof s === 'object' && s.url)
+      .slice(0, 20)
+      .map((s) => {
+        const out = { type: s.type === 'video' ? 'video' : 'image', url: String(s.url) };
+        if (s.poster) out.poster = String(s.poster);
+        if (s.alt)    out.alt    = String(s.alt).slice(0, 500);
+        return out;
+      }));
+    const accountHandle = (args.account_handle || 'floridaoftomorrow').toString().replace(/^@/, '').slice(0, 64);
+    const accountName   = (args.account_name   || 'FLORIDAOFTOMORROW').toString().slice(0, 80);
+    const accountAvatar = args.account_avatar ? String(args.account_avatar) : null;
+    await env.DB.prepare(
+      `INSERT INTO carousels (id, slug, caption, account_handle, account_name, account_avatar, slides, status, created_at, updated_at)
+       VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, 'draft', ?8, ?8)`
+    ).bind(id, slug, caption, accountHandle, accountName, accountAvatar, slides, now).run();
+    const previewHost = (env.CAROUSEL_PUBLIC_HOST || 'https://tmw.jake-ab7.workers.dev').replace(/\/$/, '');
+    const token = await signPayload(
+      { slug, t: 'carousel', exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 60 },
+      previewSecret(env),
+    );
+    return {
+      ok: true, id, slug, status: 'draft',
+      slide_count: JSON.parse(slides).length,
+      account_handle: accountHandle,
+      edit_url:    'https://admin.oftmw.com/carousel.html?slug=' + encodeURIComponent(slug),
+      preview_url: `${previewHost}/c/${encodeURIComponent(slug)}?preview=${encodeURIComponent(token)}`,
+      note: 'Saved as a carousel DRAFT. The preview_url is a private signed link (60-day TTL) you can share with a client to review the post. Nothing publishes — only humans push it to Instagram.',
+    };
+  },
+
+  async update_carousel_draft(args, env) {
+    await ensureCarouselTable(env);
+    const slug = String(args.slug || '').trim().toLowerCase();
+    if (!slug) throw new Error('slug is required');
+    const row = await env.DB.prepare(`SELECT id, status FROM carousels WHERE slug = ?1`).bind(slug).first();
+    if (!row) throw new Error('no carousel with slug "' + slug + '"');
+    if (row.status !== 'draft') throw new Error('refusing to edit a ' + row.status + ' carousel via MCP — only drafts are editable remotely');
+    const sets = [], params = []; let p = 1;
+    if (args.caption        != null) { sets.push(`caption = ?${p++}`);        params.push(String(args.caption).slice(0, 4000)); }
+    if (args.account_handle != null) { sets.push(`account_handle = ?${p++}`); params.push(String(args.account_handle).replace(/^@/, '').slice(0, 64)); }
+    if (args.account_name   != null) { sets.push(`account_name   = ?${p++}`); params.push(String(args.account_name).slice(0, 80)); }
+    if (args.account_avatar != null) { sets.push(`account_avatar = ?${p++}`); params.push(args.account_avatar ? String(args.account_avatar) : null); }
+    if (Array.isArray(args.slides)) {
+      const normalized = args.slides
+        .filter((s) => s && typeof s === 'object' && s.url)
+        .slice(0, 20)
+        .map((s) => {
+          const out = { type: s.type === 'video' ? 'video' : 'image', url: String(s.url) };
+          if (s.poster) out.poster = String(s.poster);
+          if (s.alt)    out.alt    = String(s.alt).slice(0, 500);
+          return out;
+        });
+      sets.push(`slides = ?${p++}`); params.push(JSON.stringify(normalized));
+    }
+    if (!sets.length) throw new Error('nothing to update — pass at least one of caption/slides/account_handle/account_name/account_avatar');
+    sets.push(`updated_at = ?${p++}`); params.push(Math.floor(Date.now() / 1000));
+    params.push(slug);
+    await env.DB.prepare(`UPDATE carousels SET ${sets.join(', ')} WHERE slug = ?${p}`).bind(...params).run();
+    const previewHost = (env.CAROUSEL_PUBLIC_HOST || 'https://tmw.jake-ab7.workers.dev').replace(/\/$/, '');
+    const token = await signPayload(
+      { slug, t: 'carousel', exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 60 },
+      previewSecret(env),
+    );
+    return {
+      ok: true, slug, status: 'draft',
+      edit_url:    'https://admin.oftmw.com/carousel.html?slug=' + encodeURIComponent(slug),
+      preview_url: `${previewHost}/c/${encodeURIComponent(slug)}?preview=${encodeURIComponent(token)}`,
+    };
   },
 
   async get_post_views(args, env) {
@@ -1984,7 +2183,7 @@ async function dispatch(msg, env) {
       protocolVersion: (params && params.protocolVersion) || DEFAULT_PROTOCOL,
       capabilities: { tools: { listChanged: false } },
       serverInfo: SERVER_INFO,
-      instructions: 'Markets of Tomorrow Studio — run the studio remotely. Before writing or critiquing any post, carousel, caption, headline, or article, call get_brand_brain to load the shared house style; record new likes/dislikes/rules with record_preference so taste stays in sync across every connected account. Read journal posts/drafts/views, Map of Tomorrow projects, media, lists, and analytics. Write only reviewable artifacts: create/edit article DRAFTS, upload photos into media folders, create folders, add to or replace studio lists (e.g. the client wall), and stage MAP DRAFTS for review (they appear in the TMW Studio map admin at https://admin.oftmw.com/map/ under the "Drafts" tab — that admin reads the draft queue directly, so a created map draft is immediately visible there for a human to review and promote). Nothing here publishes to the live journal or live map — drafts wait for a human to promote.',
+      instructions: 'Markets of Tomorrow Studio — run the studio remotely. Before writing or critiquing any post, carousel, caption, headline, or article, call get_brand_brain to load the shared house style; record new likes/dislikes/rules with record_preference so taste stays in sync across every connected account. Read journal posts/drafts/views, Map of Tomorrow projects, media, lists, and analytics. Write only reviewable artifacts: create/edit article DRAFTS, upload photos into media folders, create folders, add to or replace studio lists (e.g. the client wall), stage MAP DRAFTS for review (they appear in the TMW Studio map admin at https://admin.oftmw.com/map/ under the "Drafts" tab), and stage SOCIAL CAROUSEL DRAFTS (Instagram-style posts the team reviews with clients via a signed preview link — create_carousel_draft returns a private preview_url to share). Nothing here publishes to the live journal, live map, or any social account — drafts wait for a human to promote.',
     });
   }
   if (method === 'ping') return rpcResult(id, {});

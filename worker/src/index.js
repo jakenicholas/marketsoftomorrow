@@ -1636,7 +1636,8 @@ async function handlePostsList(req, env, origin, url) {
 }
 
 // Secret for signing draft-preview tokens (reuses the gallery/session secret).
-function previewSecret(env) { return env.SESSION_SECRET || env.ADMIN_TOKEN || 'tmw-preview-fallback'; }
+// Exported so mcp.js can mint carousel preview URLs without re-implementing the JWT.
+export function previewSecret(env) { return env.SESSION_SECRET || env.ADMIN_TOKEN || 'tmw-preview-fallback'; }
 
 // GET /preview-token?slug=<slug> (admin) → a signed, 60-day, slug-scoped token
 // the Studio embeds in the client preview link (/post/?slug=…&pt=<token>).
@@ -2663,6 +2664,429 @@ async function handlePostsPublish(req, env, origin, id) {
   return json({ ok: true, post: rowToPostFull(updated) }, {}, env, origin);
 }
 
+// ─── Social-media carousels ─────────────────────────────────────────────────
+// Instagram-style post drafts you stage in the Studio, then share with a
+// client via a signed preview URL (https://tmw.<worker>/c/<slug>?preview=<jwt>).
+// Same shape as the article-draft "Copy client link" flow, but the public
+// preview page is Worker-rendered (no separate static site) so a fresh
+// deploy works immediately. Slides are stored as a JSON array; media is
+// uploaded through the existing /admin/upload (images) and
+// /admin/upload-multipart (large videos) endpoints, so this feature reuses
+// the existing R2 + media-table indexing.
+// Exported so mcp.js can lazily ensure the carousels table before its tools run.
+export async function ensureCarouselTable(env) {
+  if (!env.DB) return;
+  // Idempotent — first request after deploy creates the table.
+  await env.DB.batch([
+    env.DB.prepare(`CREATE TABLE IF NOT EXISTS carousels (
+      id              TEXT    PRIMARY KEY,
+      slug            TEXT    NOT NULL UNIQUE,
+      caption         TEXT,
+      account_handle  TEXT    NOT NULL DEFAULT 'floridaoftomorrow',
+      account_name    TEXT    NOT NULL DEFAULT 'FLORIDAOFTOMORROW',
+      account_avatar  TEXT,
+      slides          TEXT    NOT NULL DEFAULT '[]',
+      status          TEXT    NOT NULL DEFAULT 'draft',
+      created_at      INTEGER NOT NULL,
+      updated_at      INTEGER NOT NULL
+    )`),
+    env.DB.prepare(`CREATE INDEX IF NOT EXISTS idx_carousels_slug    ON carousels(slug)`),
+    env.DB.prepare(`CREATE INDEX IF NOT EXISTS idx_carousels_updated ON carousels(updated_at DESC)`),
+  ]);
+}
+
+function rowToCarousel(r) {
+  if (!r) return null;
+  let slides = [];
+  try { slides = JSON.parse(r.slides || '[]'); if (!Array.isArray(slides)) slides = []; } catch { slides = []; }
+  return {
+    id: r.id,
+    slug: r.slug,
+    caption: r.caption || '',
+    account_handle: r.account_handle || 'floridaoftomorrow',
+    account_name:   r.account_name   || 'FLORIDAOFTOMORROW',
+    account_avatar: r.account_avatar || null,
+    slides,
+    status: r.status || 'draft',
+    created_at: r.created_at,
+    updated_at: r.updated_at,
+  };
+}
+
+function normalizeSlides(input) {
+  if (!Array.isArray(input)) return [];
+  const out = [];
+  for (const s of input) {
+    if (!s || typeof s !== 'object') continue;
+    const url = String(s.url || '').trim();
+    if (!url) continue;
+    const type = (s.type === 'video') ? 'video' : 'image';
+    const slide = { type, url };
+    if (s.poster) slide.poster = String(s.poster);
+    if (s.alt)    slide.alt    = String(s.alt).slice(0, 500);
+    out.push(slide);
+    if (out.length >= 20) break; // Instagram caps at 10; we allow 20 for staging headroom
+  }
+  return out;
+}
+
+async function ensureUniqueCarouselSlug(env, base, ignoreId) {
+  let slug = (slugify(base || 'carousel') || 'carousel').slice(0, 100);
+  let n = 0;
+  while (true) {
+    const candidate = n === 0 ? slug : `${slug}-${n}`;
+    const row = await env.DB.prepare(`SELECT id FROM carousels WHERE slug = ?1 LIMIT 1`).bind(candidate).first();
+    if (!row || (ignoreId && row.id === ignoreId)) return candidate;
+    n++;
+    if (n > 50) return `${slug}-${cryptoRandomId(4)}`;
+  }
+}
+
+async function handleCarouselsList(req, env, origin, url) {
+  const authCheck = await requireAdminToken(req, env, origin);
+  if (authCheck) return authCheck;
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  await ensureCarouselTable(env);
+  const limit  = Math.min(Math.max(parseInt(url.searchParams.get('limit')  || '50', 10), 1), 200);
+  const status = url.searchParams.get('status'); // optional filter
+  const sql = status
+    ? `SELECT * FROM carousels WHERE status = ?1 ORDER BY updated_at DESC LIMIT ?2`
+    : `SELECT * FROM carousels ORDER BY updated_at DESC LIMIT ?1`;
+  const stmt = status
+    ? env.DB.prepare(sql).bind(status, limit)
+    : env.DB.prepare(sql).bind(limit);
+  const { results } = await stmt.all();
+  return json({ items: (results || []).map(rowToCarousel), count: (results || []).length }, {}, env, origin);
+}
+
+async function handleCarouselsCreate(req, env, origin) {
+  const authCheck = await requireAdminToken(req, env, origin);
+  if (authCheck) return authCheck;
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  await ensureCarouselTable(env);
+  let body;
+  try { body = await req.json(); } catch { return json({ error: 'invalid JSON' }, { status: 400 }, env, origin); }
+  const id   = 'crsl-' + cryptoRandomId(12);
+  const now  = Math.floor(Date.now() / 1000);
+  const slug = await ensureUniqueCarouselSlug(env, body.slug || body.caption || ('carousel-' + cryptoRandomId(4)), null);
+  const slides  = JSON.stringify(normalizeSlides(body.slides || []));
+  const caption = (body.caption || '').toString().slice(0, 4000);
+  const accountHandle = (body.account_handle || 'floridaoftomorrow').toString().replace(/^@/, '').slice(0, 64);
+  const accountName   = (body.account_name   || 'FLORIDAOFTOMORROW').toString().slice(0, 80);
+  const accountAvatar = body.account_avatar ? String(body.account_avatar) : null;
+  try {
+    await env.DB.prepare(
+      `INSERT INTO carousels (id, slug, caption, account_handle, account_name, account_avatar, slides, status, created_at, updated_at)
+       VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, 'draft', ?8, ?8)`
+    ).bind(id, slug, caption, accountHandle, accountName, accountAvatar, slides, now).run();
+  } catch (e) {
+    return json({ error: 'insert failed', detail: e.message || String(e) }, { status: 500 }, env, origin);
+  }
+  const row = await env.DB.prepare(`SELECT * FROM carousels WHERE id = ?1`).bind(id).first();
+  return json({ ok: true, carousel: rowToCarousel(row) }, {}, env, origin);
+}
+
+async function handleCarouselsBySlug(req, env, origin, slug) {
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  await ensureCarouselTable(env);
+  slug = fullyDecodeSlug(slug);
+  const row = await env.DB.prepare(`SELECT * FROM carousels WHERE slug = ?1 LIMIT 1`).bind(slug).first();
+  if (!row) return json({ error: 'carousel not found', slug }, { status: 404 }, env, origin);
+  // Drafts visible to (a) admin OR (b) holder of a valid signed preview token.
+  let previewOk = false;
+  try {
+    const pt = new URL(req.url).searchParams.get('preview') || '';
+    if (pt) {
+      const obj = await verifyPayload(pt, previewSecret(env));
+      previewOk = !!(obj && obj.t === 'carousel' && obj.slug === slug);
+    }
+  } catch (_) {}
+  if (!previewOk) {
+    const denied = await requireAdminToken(req, env, origin);
+    if (denied) return denied;
+  }
+  return json({ carousel: rowToCarousel(row) }, { headers: { 'Cache-Control': 'no-store' } }, env, origin);
+}
+
+async function handleCarouselsUpdate(req, env, origin, slug) {
+  const authCheck = await requireAdminToken(req, env, origin);
+  if (authCheck) return authCheck;
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  await ensureCarouselTable(env);
+  slug = fullyDecodeSlug(slug);
+  let body;
+  try { body = await req.json(); } catch { return json({ error: 'invalid JSON' }, { status: 400 }, env, origin); }
+  const existing = await env.DB.prepare(`SELECT * FROM carousels WHERE slug = ?1`).bind(slug).first();
+  if (!existing) return json({ error: 'carousel not found', slug }, { status: 404 }, env, origin);
+
+  const sets = [], params = []; let p = 1;
+  if ('caption'        in body) { sets.push(`caption = ?${p++}`);        params.push(String(body.caption || '').slice(0, 4000)); }
+  if ('account_handle' in body) { sets.push(`account_handle = ?${p++}`); params.push(String(body.account_handle || 'floridaoftomorrow').replace(/^@/, '').slice(0, 64)); }
+  if ('account_name'   in body) { sets.push(`account_name   = ?${p++}`); params.push(String(body.account_name   || 'FLORIDAOFTOMORROW').slice(0, 80)); }
+  if ('account_avatar' in body) { sets.push(`account_avatar = ?${p++}`); params.push(body.account_avatar ? String(body.account_avatar) : null); }
+  if ('slides'         in body) { sets.push(`slides         = ?${p++}`); params.push(JSON.stringify(normalizeSlides(body.slides))); }
+  if ('status'         in body) { sets.push(`status         = ?${p++}`); params.push(body.status === 'archived' ? 'archived' : 'draft'); }
+  if ('slug'           in body && body.slug && body.slug !== existing.slug) {
+    const newSlug = await ensureUniqueCarouselSlug(env, body.slug, existing.id);
+    sets.push(`slug = ?${p++}`); params.push(newSlug);
+  }
+  if (!sets.length) return json({ ok: true, carousel: rowToCarousel(existing), note: 'no changes' }, {}, env, origin);
+  sets.push(`updated_at = ?${p++}`); params.push(Math.floor(Date.now() / 1000));
+  params.push(existing.id);
+  await env.DB.prepare(`UPDATE carousels SET ${sets.join(', ')} WHERE id = ?${p}`).bind(...params).run();
+  const updated = await env.DB.prepare(`SELECT * FROM carousels WHERE id = ?1`).bind(existing.id).first();
+  return json({ ok: true, carousel: rowToCarousel(updated) }, {}, env, origin);
+}
+
+async function handleCarouselsDelete(req, env, origin, slug) {
+  const authCheck = await requireAdminToken(req, env, origin);
+  if (authCheck) return authCheck;
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  await ensureCarouselTable(env);
+  slug = fullyDecodeSlug(slug);
+  const r = await env.DB.prepare(`DELETE FROM carousels WHERE slug = ?1`).bind(slug).run();
+  return json({ ok: true, slug, deleted: r.meta && r.meta.changes ? r.meta.changes : 0 }, {}, env, origin);
+}
+
+// GET /carousel-preview-token?slug=<slug> (admin) → signed 60-day token used
+// in the public share URL (/c/<slug>?preview=<token>). Same pattern as the
+// article-draft /preview-token endpoint, just with t:'carousel' so the two
+// token types aren't interchangeable.
+async function handleCarouselPreviewToken(req, env, origin, url) {
+  const slug = fullyDecodeSlug(url.searchParams.get('slug') || '');
+  if (!slug) return json({ error: 'slug required' }, { status: 400 }, env, origin);
+  const token = await signPayload(
+    { slug, t: 'carousel', exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 60 },
+    previewSecret(env),
+  );
+  const workerHost = new URL(req.url).origin;
+  return json({
+    token,
+    url: `${workerHost}/c/${encodeURIComponent(slug)}?preview=${encodeURIComponent(token)}`,
+  }, {}, env, origin);
+}
+
+// GET /c/<slug>?preview=<token> — public Instagram-style preview page.
+// Self-contained HTML+CSS+JS so a deploy needs no extra static assets.
+async function handleCarouselPublic(req, env, slug) {
+  if (!env.DB) return new Response('not configured', { status: 500 });
+  await ensureCarouselTable(env);
+  slug = fullyDecodeSlug(slug);
+  const row = await env.DB.prepare(`SELECT * FROM carousels WHERE slug = ?1`).bind(slug).first();
+  if (!row) return new Response('not found', { status: 404, headers: { 'Content-Type': 'text/plain' } });
+  // Same gate as the JSON endpoint: admin OR valid preview token.
+  let previewOk = false;
+  try {
+    const pt = new URL(req.url).searchParams.get('preview') || '';
+    if (pt) {
+      const obj = await verifyPayload(pt, previewSecret(env));
+      previewOk = !!(obj && obj.t === 'carousel' && obj.slug === slug);
+    }
+  } catch (_) {}
+  if (!previewOk) {
+    // Admins viewing without a token should be allowed too (so the Studio
+    // editor's "Open preview" button works without minting a token first).
+    const admin = await requireAdminToken(req, env, '');
+    if (admin) {
+      return new Response(
+        'This carousel preview link is private. Re-open it from the Studio "Copy client link" button.',
+        { status: 403, headers: { 'Content-Type': 'text/plain; charset=utf-8' } },
+      );
+    }
+  }
+  const c = rowToCarousel(row);
+  return new Response(renderCarouselHtml(c), {
+    status: 200,
+    headers: {
+      'Content-Type':  'text/html; charset=utf-8',
+      'Cache-Control': 'no-store',
+      // noindex/nofollow — these are private client previews, not public posts.
+      'X-Robots-Tag':  'noindex, nofollow, noarchive',
+    },
+  });
+}
+
+function renderCarouselHtml(c) {
+  const escHtml = (s) => String(s || '').replace(/[&<>"']/g, ch => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[ch]));
+  const slides = c.slides || [];
+  const handle = c.account_handle || 'floridaoftomorrow';
+  const name   = c.account_name   || handle.toUpperCase();
+  const avatar = c.account_avatar || '';
+  const caption = c.caption || '';
+  // Build slide HTML — each slide is a square (1:1) tile.
+  const slideHtml = slides.map((s, i) => {
+    if (s.type === 'video') {
+      const poster = s.poster ? ` poster="${escHtml(s.poster)}"` : '';
+      return `<div class="slide" data-i="${i}"><video src="${escHtml(s.url)}"${poster} muted playsinline loop ${i===0?'autoplay':''}></video></div>`;
+    }
+    return `<div class="slide" data-i="${i}"><img src="${escHtml(s.url)}" alt="${escHtml(s.alt || '')}" loading="${i===0?'eager':'lazy'}"></div>`;
+  }).join('');
+  const dots = slides.length > 1
+    ? `<div class="dots">${slides.map((_, i) => `<span class="dot${i===0?' on':''}" data-i="${i}"></span>`).join('')}</div>`
+    : '';
+  const avatarHtml = avatar
+    ? `<img class="avatar" src="${escHtml(avatar)}" alt="">`
+    : `<div class="avatar avatar-fallback">${escHtml((handle[0] || 'F').toUpperCase())}</div>`;
+  // Truncate caption visually to 2 lines with "more" toggle.
+  const captionEscaped = escHtml(caption).replace(/\n/g, '<br>');
+  // The page is intentionally minimal — just the post card, centered on a
+  // dark backdrop so the carousel itself reads exactly like an Instagram post.
+  return `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>${escHtml(name)} — carousel preview</title>
+<style>
+  :root { --fg:#fff; --mute:rgba(255,255,255,.62); --line:rgba(255,255,255,.10); --bg:#0b0e0c; --card:#000; --accent:#A78BFA; }
+  *,*::before,*::after { box-sizing:border-box }
+  html,body { margin:0; padding:0; background:var(--bg); color:var(--fg);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif;
+    -webkit-font-smoothing:antialiased; min-height:100vh }
+  .wrap { display:flex; flex-direction:column; align-items:center; padding:40px 16px 80px; gap:24px }
+  .tmw-badge { font-size:11px; font-weight:600; letter-spacing:.18em; color:var(--mute); text-transform:uppercase }
+  .tmw-badge b { color:var(--fg) }
+  .card { width:100%; max-width:470px; background:var(--card); border:1px solid var(--line); border-radius:14px; overflow:hidden; }
+  /* Header */
+  .head { display:flex; align-items:center; gap:11px; padding:12px 14px; }
+  .avatar { width:36px; height:36px; border-radius:50%; flex:0 0 auto; object-fit:cover;
+    background:linear-gradient(135deg,#fbbf24 0%,#ec4899 35%,#a855f7 65%,#3b82f6 100%); padding:2px; }
+  .avatar.avatar-fallback { display:flex; align-items:center; justify-content:center;
+    font-weight:700; font-size:14px; color:#fff; padding:0 }
+  .head-meta { flex:1; min-width:0; display:flex; flex-direction:column; line-height:1.2 }
+  .head-name { font-weight:700; font-size:13.5px; letter-spacing:.02em }
+  .head-sub  { font-size:11.5px; color:var(--mute); margin-top:2px }
+  .more { color:var(--fg); padding:6px; line-height:0; opacity:.85 }
+  .more svg { width:18px; height:18px; fill:currentColor }
+  /* Carousel */
+  .carousel { position:relative; aspect-ratio:1/1; background:#000; overflow:hidden; }
+  .track { display:flex; height:100%; transition:transform .35s cubic-bezier(.4,.2,.2,1); will-change:transform; }
+  .slide { flex:0 0 100%; width:100%; height:100%; display:flex; align-items:center; justify-content:center; background:#000 }
+  .slide img, .slide video { width:100%; height:100%; object-fit:cover; display:block; }
+  .arrow { position:absolute; top:50%; transform:translateY(-50%); width:30px; height:30px; border-radius:50%;
+    background:rgba(0,0,0,.55); border:none; color:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center;
+    backdrop-filter:blur(8px); transition:opacity .15s, background .15s; z-index:3; }
+  .arrow:hover { background:rgba(0,0,0,.75) }
+  .arrow.left  { left:10px }
+  .arrow.right { right:10px }
+  .arrow:disabled { opacity:0; pointer-events:none }
+  .arrow svg { width:14px; height:14px; fill:none; stroke:currentColor; stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round; }
+  .count { position:absolute; top:12px; right:12px; padding:4px 9px; border-radius:999px;
+    background:rgba(0,0,0,.55); color:#fff; font-size:12px; font-weight:600; backdrop-filter:blur(8px); z-index:3; }
+  /* Dots */
+  .dots { display:flex; justify-content:center; gap:4px; padding:9px 0 4px; }
+  .dot { width:6px; height:6px; border-radius:50%; background:rgba(255,255,255,.32); transition:background .2s, transform .2s }
+  .dot.on { background:var(--accent); transform:scale(1.15) }
+  /* Action row */
+  .actions { display:flex; align-items:center; gap:14px; padding:6px 14px 4px; }
+  .actions .icon { color:var(--fg); padding:4px 0; line-height:0 }
+  .actions .icon svg { width:24px; height:24px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+  .actions .spacer { flex:1 }
+  /* Caption */
+  .body { padding:4px 14px 14px; font-size:13.5px; line-height:1.45; color:var(--fg); }
+  .body .h { font-weight:700; margin-right:6px }
+  .body .more-toggle { color:var(--mute); cursor:pointer; user-select:none; margin-left:4px }
+  .body.collapsed .text { display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden }
+  .body.collapsed .more-toggle::after { content:'more' }
+  .body:not(.collapsed) .more-toggle { display:none }
+  /* Empty state */
+  .empty { display:flex; align-items:center; justify-content:center; color:var(--mute); font-size:13px; padding:40px 16px; text-align:center }
+  @media (max-width:520px) { .wrap { padding:18px 12px 60px } .card { border-radius:10px } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="tmw-badge">A <b>MARKETS OF TOMORROW</b> CAROUSEL PREVIEW</div>
+  <div class="card">
+    <div class="head">
+      ${avatarHtml}
+      <div class="head-meta">
+        <span class="head-name">${escHtml(handle)}</span>
+        <span class="head-sub">Sponsored</span>
+      </div>
+      <button class="more" type="button" aria-label="More" tabindex="-1">
+        <svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg>
+      </button>
+    </div>
+    <div class="carousel">
+      ${slides.length === 0 ? '<div class="empty">No slides yet — add media in the Studio editor.</div>' : ''}
+      ${slides.length > 0 ? `<div class="track" style="width:${slides.length*100}%; transform:translateX(0)">${slideHtml}</div>` : ''}
+      ${slides.length > 1 ? `<div class="count"><span id="count-now">1</span>/${slides.length}</div>` : ''}
+      ${slides.length > 1 ? '<button class="arrow left"  type="button" aria-label="Previous" disabled><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>' : ''}
+      ${slides.length > 1 ? '<button class="arrow right" type="button" aria-label="Next"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button>' : ''}
+    </div>
+    ${dots}
+    <div class="actions">
+      <span class="icon" aria-label="Like"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
+      <span class="icon" aria-label="Comment"><svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></span>
+      <span class="icon" aria-label="Share"><svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></span>
+      <span class="spacer"></span>
+      <span class="icon" aria-label="Save"><svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></span>
+    </div>
+    ${caption ? `<div class="body collapsed"><span class="text"><span class="h">${escHtml(handle)}</span>${captionEscaped}</span><span class="more-toggle" role="button" tabindex="0"></span></div>` : ''}
+  </div>
+</div>
+<script>
+(function(){
+  var track = document.querySelector('.track');
+  var slides = track ? track.querySelectorAll('.slide') : [];
+  var n = slides.length;
+  var i = 0;
+  var dotsEls = document.querySelectorAll('.dot');
+  var countNow = document.getElementById('count-now');
+  var left  = document.querySelector('.arrow.left');
+  var right = document.querySelector('.arrow.right');
+  function go(k){
+    i = Math.max(0, Math.min(n-1, k));
+    if (track) track.style.transform = 'translateX(' + (-i * (100/n)) + '%)';
+    dotsEls.forEach(function(d, j){ d.classList.toggle('on', j===i); });
+    if (countNow) countNow.textContent = String(i+1);
+    if (left)  left.disabled  = (i === 0);
+    if (right) right.disabled = (i === n-1);
+    // Pause non-active videos to save bandwidth.
+    slides.forEach(function(s, j){
+      var v = s.querySelector('video'); if (!v) return;
+      if (j === i) { try { v.play(); } catch(_){} } else { try { v.pause(); } catch(_){} }
+    });
+  }
+  if (left)  left.addEventListener('click', function(){ go(i-1); });
+  if (right) right.addEventListener('click', function(){ go(i+1); });
+  dotsEls.forEach(function(d){ d.addEventListener('click', function(){ go(parseInt(d.dataset.i,10)||0); }); });
+  // Keyboard nav (arrow keys).
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'ArrowLeft')  go(i-1);
+    if (e.key === 'ArrowRight') go(i+1);
+  });
+  // Touch swipe.
+  var x0 = null;
+  var car = document.querySelector('.carousel');
+  if (car) {
+    car.addEventListener('touchstart', function(e){ x0 = e.touches[0].clientX; }, {passive:true});
+    car.addEventListener('touchend',   function(e){
+      if (x0 == null) return;
+      var dx = (e.changedTouches[0].clientX - x0);
+      if (Math.abs(dx) > 30) go(i + (dx < 0 ? 1 : -1));
+      x0 = null;
+    }, {passive:true});
+  }
+  // Caption "more" toggle.
+  var body = document.querySelector('.body');
+  if (body) {
+    var t = body.querySelector('.more-toggle');
+    if (t) t.addEventListener('click', function(){ body.classList.remove('collapsed'); });
+    // If caption is short enough to fit, drop the collapsed state so "more" doesn't show.
+    requestAnimationFrame(function(){
+      var text = body.querySelector('.text');
+      if (text && text.scrollHeight <= text.clientHeight + 2) body.classList.remove('collapsed');
+    });
+  }
+})();
+</script>
+</body>
+</html>`;
+}
+
 // --- helpers for posts CRUD ---
 
 function slugify(s) {
@@ -3652,7 +4076,8 @@ function b64urlDecode(s) {
 async function hmacKey(secret) {
   return crypto.subtle.importKey('raw', new TextEncoder().encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign', 'verify']);
 }
-async function signPayload(obj, secret) {
+// Exported so mcp.js can mint carousel preview URLs alongside the worker routes.
+export async function signPayload(obj, secret) {
   const payload = b64url(new TextEncoder().encode(JSON.stringify(obj)));
   const sig = await crypto.subtle.sign('HMAC', await hmacKey(secret), new TextEncoder().encode(payload));
   return payload + '.' + b64url(sig);
@@ -4445,6 +4870,31 @@ export default {
         const denied = await requireAdminToken(request, env, origin);
         if (denied) return denied;
         return await handlePreviewToken(request, env, origin, url);
+      }
+      // ── Social carousels ─────────────────────────────────────────────
+      // Admin CRUD (gated), token-minting endpoint, and the public
+      // Instagram-style /c/<slug> share page (which is gated INSIDE the
+      // handler so an unauthenticated client can hit it with a valid
+      // preview token — same flow as article-draft previews).
+      if (request.method === 'GET'  && url.pathname === '/carousels') return await handleCarouselsList(request, env, origin, url);
+      if (request.method === 'POST' && url.pathname === '/carousels') return await handleCarouselsCreate(request, env, origin);
+      if (request.method === 'GET'  && url.pathname === '/carousel-preview-token') {
+        const denied = await requireAdminToken(request, env, origin);
+        if (denied) return denied;
+        return await handleCarouselPreviewToken(request, env, origin, url);
+      }
+      {
+        const m = url.pathname.match(/^\/carousels\/by-slug\/([^/]+)\/?$/);
+        if (m) {
+          if (request.method === 'GET')    return await handleCarouselsBySlug (request, env, origin, m[1]);
+          if (request.method === 'PATCH')  return await handleCarouselsUpdate (request, env, origin, m[1]);
+          if (request.method === 'DELETE') return await handleCarouselsDelete (request, env, origin, m[1]);
+        }
+      }
+      // Public preview page — /c/<slug>?preview=<token>
+      {
+        const m = url.pathname.match(/^\/c\/([^/]+)\/?$/);
+        if (m && request.method === 'GET') return await handleCarouselPublic(request, env, m[1]);
       }
       // /admin/sync-wix — batched migration importer (admin-only)
       if (request.method === 'POST' && url.pathname === '/admin/sync-wix') {

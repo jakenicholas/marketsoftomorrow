@@ -127,6 +127,33 @@ CREATE TABLE IF NOT EXISTS media_map (
 CREATE INDEX IF NOT EXISTS idx_media_map_migrated ON media_map(migrated_at DESC);
 
 -- ---------------------------------------------------------------------------
+-- carousels: Instagram-style social-post DRAFTS you stage in the Studio and
+-- share with clients via a signed preview link. Same "copy client link"
+-- pattern as article drafts (/preview-token), just for social carousels.
+-- Slides are a JSON array — each entry is { type:'image'|'video', url, poster? }
+-- pointing at media already uploaded to R2 via /admin/upload.
+--
+-- This table also self-bootstraps (ensureCarouselTable runs CREATE TABLE IF
+-- NOT EXISTS on first request), so a fresh deploy needs no manual migration —
+-- this block just documents the shape.
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS carousels (
+  id              TEXT    PRIMARY KEY,                              -- 'crsl-<uuid>'
+  slug            TEXT    NOT NULL UNIQUE,                           -- short slug for the share URL
+  caption         TEXT,                                              -- Instagram-style caption
+  account_handle  TEXT    NOT NULL DEFAULT 'floridaoftomorrow',      -- e.g. floridaoftomorrow
+  account_name    TEXT    NOT NULL DEFAULT 'FLORIDAOFTOMORROW',      -- bold display name
+  account_avatar  TEXT,                                              -- avatar URL (R2)
+  slides          TEXT    NOT NULL DEFAULT '[]',                     -- JSON [{type,url,poster?,alt?}]
+  status          TEXT    NOT NULL DEFAULT 'draft',                  -- 'draft' | 'archived'
+  created_at      INTEGER NOT NULL,
+  updated_at      INTEGER NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_carousels_slug    ON carousels(slug);
+CREATE INDEX IF NOT EXISTS idx_carousels_updated ON carousels(updated_at DESC);
+
+-- ---------------------------------------------------------------------------
 -- galleries / gallery_images: the in-house image-gallery system that serves
 -- gallery.oftmw.com (the Pixieset replacement). See src/gallery.js.
 --
