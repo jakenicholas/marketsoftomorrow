@@ -3730,15 +3730,15 @@
       "estimate_years": 3.2,
       "estimate_label": "~3.2 years",
       "range_low": 2.0,
-      "range_high": 3.5,
+      "range_high": 4.0,
       "confidence": "medium",
-      "comparable_count": 4,
+      "comparable_count": 7,
       "good_count": 3,
       "exact_count": 3,
       "used_relaxed": false,
-      "avg_match_score": 0.78,
-      "avg_distance_km": 118.1,
-      "avg_distance_mi": 73.4,
+      "avg_match_score": 0.6,
+      "avg_distance_km": 541.1,
+      "avg_distance_mi": 336.2,
       "scale_used": true,
       "firm_signal": {
         "firm": "Continuum Company",
@@ -3772,16 +3772,16 @@
           "distance_mi": 114.2
         },
         {
-          "name": "Inscription",
-          "slug": "inscription",
+          "name": "Forté on Flagler",
+          "slug": "fort-on-flagler",
           "location": "West Palm Beach",
-          "years": 2.0,
+          "years": 3.8,
           "score": 0.7,
-          "distance_km": 7.2,
-          "distance_mi": 4.5
+          "distance_km": 9.1,
+          "distance_mi": 5.7
         }
       ],
-      "pattern_summary": "Among 4 regional residences projects in TMW's data, the median build time is 3.2 years (range 2–3.5). Adjusted to ~3.2 years for Continuum Company's own track record (~3.2-year typical pace across 1 prior project).",
+      "pattern_summary": "Among 7 residences projects in TMW's data, the median build time is 3.2 years (range 2–4). Adjusted to ~3.2 years for Continuum Company's own track record (~3.2-year typical pace across 1 prior project).",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false,
@@ -5078,21 +5078,21 @@
       "delivery_speculative": false
     },
     "tampa-bay-rays-stadium": {
-      "estimate_years": 2.5,
-      "estimate_label": "~2.5 years",
-      "days_out": 937,
-      "delivery_date": "2028-12-31",
+      "estimate_years": 3.0,
+      "estimate_label": "~3 years",
+      "days_out": 1011,
+      "delivery_date": "2029-03-15",
       "source": "known_date",
-      "precision": "year",
-      "confidence": "high",
+      "precision": "month",
+      "confidence": "medium",
       "project_type": "Entertainment",
       "metro": "Tampa Bay",
       "comparables": [],
       "comparable_count": 0,
-      "pattern_summary": "Targeted for opening in ~2.5 years.",
-      "dates_speculative": false,
-      "start_speculative": false,
-      "delivery_speculative": false
+      "pattern_summary": "TMW estimates an opening in ~3 years based on project type and current stage.",
+      "dates_speculative": true,
+      "start_speculative": true,
+      "delivery_speculative": true
     },
     "roche-bobois-st-pete-tower": {
       "estimate_years": 2.5,
@@ -8203,7 +8203,7 @@
     "skipped": 48,
     "no_type": 0,
     "firm_boosted": 28,
-    "speculative_softened": 69,
+    "speculative_softened": 70,
     "mixed_use_adjusted": 1
   }
 }
