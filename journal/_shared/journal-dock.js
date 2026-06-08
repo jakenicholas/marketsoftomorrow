@@ -175,15 +175,10 @@
     '<polygon class="hxs-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/>' +
     '<g class="hxs-spin"><polygon class="hxs-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g>' +
     '</svg></span>';
-  // "Ask the Map" starter questions — chosen so the smart-search parser resolves
-  // each one cleanly (status/type/place/year/sort).
-  var TEACH_Q = [
-    'Tallest towers under construction in Florida',
-    'Hotels opening around the world this year',
-    'New condos coming to West Palm Beach',
-    'Recent golf course openings'
-  ];
-  var TEACH_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M6 21V8l6-4 6 4v13"/></svg>';
+  // (TEACH_Q + TEACH_ICON removed: the "Ask the Map" teach pop-up is gone --
+   // the lightbox overlay now owns the starter-questions UI on every page
+   // that opens it. The questions list lives in journal-search-overlay.js's
+   // STARTER_CHIPS now, mirrored from the original wording here.)
   // ── TMW Intelligence quota (shared) ─────────────────────────────────────
   // Non-Pro members get 10 free natural-language searches (per device); Pro is
   // unlimited and never sees a count. Exposed on window so the /search/ page can
@@ -256,34 +251,13 @@
       } catch (e) {}
     },
   };
-  function tmwIntelPillHTML() {
-    var pro = window.tmwIntel.isPro();
-    // Pro members: static badge, no action (they already have it).
-    if (pro) return '<span class="tdt-right"><span class="tdt-pro on">PRO</span></span>';
-    // Non-pro: the PRO badge opens the in-page paywall (delegated handler below).
-    // href is a working no-JS fallback (the map upgrade flow), never the old
-    // /pro 404. data-tmw-paywall carries the paywall context.
-    var proBadge = '<a class="tdt-pro" href="https://www.oftmw.com/map/?upgrade=1" data-tmw-paywall="feature:intelligence">PRO</a>';
-    var left = window.tmwIntel.left();
-    return '<span class="tdt-right"><span class="tdt-quota' + (left <= 3 ? ' low' : '') + '">' + left + ' / 10 left</span>' + proBadge + '</span>';
-  }
-
-  // Builds the teaching pop-up markup. Exposed so the map (which wires its own
-  // dock autocomplete) can render the IDENTICAL panel on empty focus.
-  function tmwAskTeachHTML() {
-    var rows = TEACH_Q.map(function (q) {
-      return '<a class="tdt-ex" href="' + HOME_URL + '/search/?q=' + encodeURIComponent(q) + '">' +
-             '<span class="tdt-i">' + TEACH_ICON + '</span>' +
-             '<span class="tdt-qt">' + acEsc(q) + '</span><span class="tdt-ent">&#8629;</span></a>';
-    }).join('');
-    return '<div class="tmw-dock-teach">' +
-      '<div class="tdt-h">' + HEX_SPIN + '<span class="tdt-ttl">TMW Intelligence</span>' +
-      tmwIntelPillHTML() + '</div>' +
-      '<div class="tdt-sec">Try asking</div>' + rows +
-      '<div class="tdt-foot">Type a name for instant results, or ask a full question.</div>' +
-    '</div>';
-  }
-  window.tmwAskTeachHTML = tmwAskTeachHTML;
+  // (tmwIntelPillHTML + tmwAskTeachHTML removed: the teach pop-up now lives
+   // inside the lightbox overlay /_shared/journal-search-overlay.js, which
+   // renders its own spotlight-style PRO pill + starter rows. window.tmwIntel
+   // -- the quota / count / track API above -- is still exposed and shared
+   // between the overlay, the /search/ page, and any future search surface.
+   // The map's /map/ floating dock checks `typeof window.tmwAskTeachHTML`
+   // before calling it, so it gracefully no-ops when this is absent.)
 
   // The PRO badge (and any [data-tmw-paywall] trigger) opens the native in-page
   // paywall instead of navigating to a /pro page. Delegated + once, so it works
@@ -373,8 +347,11 @@
 
     function hide(){ ac.classList.remove('open'); activeIdx = -1; }
     function msg(text){ ac.innerHTML = '<div class="tmw-dock-ac-msg">' + acEsc(text) + '</div>'; ac.classList.add('open'); }
-    // Empty box → show the "Ask the Map" starter-questions teaching panel.
-    function showTeach(){ ac.innerHTML = tmwAskTeachHTML(); ac.classList.add('open'); activeIdx = -1; }
+    // Empty box → no-op. The lightbox overlay's focus listener opens
+    // immediately when the dock input gets focus, so the legacy teach
+    // panel never had a chance to render here anyway. Kept as a stub so
+    // existing call sites (focus, short-query early return) don't error.
+    function showTeach(){ hide(); }
     function hrefFor(kind, d){
       if (kind === 'project') return MAP_URL + '/?project=' + acSlug(d.Title);
       if (kind === 'firm')    return '/firm/' + encodeURIComponent(d.slug) + '/';
@@ -608,37 +585,12 @@
     '.tmw-dock-ac-txt span{display:block;font-size:11px;color:rgba(255,255,255,.42);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
     '.tmw-dock-ac-msg{padding:15px 16px;text-align:center;color:rgba(255,255,255,.5);font-size:13px}',
     '@media(max-width:560px){.tmw-dock-ac{width:92vw;bottom:78px}}',
-    // ── "Ask the Map" teaching panel (shown on focus when the box is empty) ──
-    '.tmw-dock-teach{padding:4px 4px 6px}',
-    '.tmw-dock-teach .tdt-h{display:flex;align-items:center;gap:9px;padding:6px 8px 10px}',
-    '.tmw-hexspin{display:inline-flex;width:22px;height:22px;flex:0 0 auto}',
-    '.tmw-hexspin svg{width:100%;height:100%;display:block;overflow:visible}',
-    // hxs-* = isolated, filter-free hexagon (no animated drop-shadow → no GPU jitter)
-    '.hxs-spin{transform-origin:50% 50%;animation:hxsSpin 4.2s cubic-bezier(.16,1,.3,1) infinite}',
-    '.hxs-core{transform-origin:50% 50%;animation:hxsPulse 4.2s ease-in-out infinite}',
-    '.hxs-ring{transform-origin:50% 50%;animation:hxsRing 4.2s ease-out infinite}',
-    '@keyframes hxsSpin{0%{transform:rotate(0)}55%{transform:rotate(810deg)}70%{transform:rotate(900deg)}100%{transform:rotate(1080deg)}}',
-    '@keyframes hxsPulse{0%,45%{stroke:#A78BFA}70%{stroke:#E9DEFF}100%{stroke:#A78BFA}}',
-    '@keyframes hxsRing{0%,60%{transform:scale(1);opacity:0}72%{opacity:.5}100%{transform:scale(1.7);opacity:0}}',
-    '@media(prefers-reduced-motion:reduce){.hxs-spin,.hxs-ring{animation:none}.hxs-ring{opacity:0}}',
-    '.tmw-dock-teach .tdt-ttl{font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#C2A8FF}',
-    '.tmw-dock-teach .tdt-sub{font-size:11.5px;color:#9AA39C}',
-    '.tmw-dock-teach .tdt-tag{margin-left:auto;font-size:9px;font-weight:800;letter-spacing:.1em;color:#0b0a14;background:#C2A8FF;padding:3px 7px;border-radius:5px}',
-    '.tmw-dock-teach .tdt-right{margin-left:auto;display:flex;align-items:center;gap:8px}',
-    '.tmw-dock-teach .tdt-quota{font-size:10px;font-weight:700;letter-spacing:.03em;color:#9AA39C;white-space:nowrap}',
-    '.tmw-dock-teach .tdt-quota.low{color:#f0d68a}',
-    '.tmw-dock-teach .tdt-pro{font-size:9px;font-weight:800;letter-spacing:.12em;color:#f0d68a;border:1px solid rgba(240,214,138,.6);border-radius:5px;padding:3px 7px;text-decoration:none;box-shadow:0 0 10px rgba(230,197,116,.22);transition:background .15s}',
-    '.tmw-dock-teach .tdt-pro:hover{background:rgba(240,214,138,.14)}',
-    '.tmw-dock-teach .tdt-pro.on{cursor:default}',
-    '.tmw-dock-teach .tdt-sec{font-size:9.5px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:rgba(255,255,255,.3);padding:6px 10px 4px}',
-    '.tmw-dock-teach .tdt-ex{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;text-decoration:none;cursor:pointer}',
-    '.tmw-dock-teach .tdt-ex:hover{background:rgba(167,139,250,.10)}',
-    '.tmw-dock-teach .tdt-ex .tdt-i{width:24px;height:24px;flex:0 0 auto;border-radius:7px;background:rgba(167,139,250,.12);color:#C2A8FF;display:flex;align-items:center;justify-content:center}',
-    '.tmw-dock-teach .tdt-ex .tdt-i svg{width:13px;height:13px}',
-    '.tmw-dock-teach .tdt-qt{flex:1;font-family:"Fraunces",Georgia,serif;font-size:14px;color:#ECEAE5;line-height:1.25}',
-    '.tmw-dock-teach .tdt-ent{font-size:11px;color:#9AA39C}',
-    '.tmw-dock-teach .tdt-ex:hover .tdt-ent{color:#C2A8FF}',
-    '.tmw-dock-teach .tdt-foot{padding:9px 10px 2px;margin-top:6px;border-top:1px solid rgba(255,255,255,.08);font-size:11px;color:#9AA39C}',
+    // ".tmw-dock-teach / .tdt-* / .tmw-hexspin / .hxs-* CSS removed (Phase 2C+).
+    //  The teach pop-up that used to render inside the dock AC is gone; the
+    //  lightbox overlay owns the spotlight starter view now. The hxs-* spin
+    //  keyframes have a private namespaced copy inside journal-search-overlay.js
+    //  (as .tmw-ov-hxs-*) so the overlay's spinning hexagon still works
+    //  without depending on these rules."
     // Map · Atlas · Journal toggle inside the dock (icon-only). Shown on mobile;
     // hidden >=981px because the header already carries the labelled toggle there.
     '.tmw-dock .tmw-st{display:inline-flex;align-items:center;gap:2px;flex:0 0 auto;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.10);border-radius:999px;padding:3px}',

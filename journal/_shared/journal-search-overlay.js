@@ -60,20 +60,22 @@
 
     + '.tmw-ov-lb{position:absolute;inset:0;display:flex;flex-direction:column}'
 
-    + '.tmw-ov-top{display:flex;align-items:center;gap:12px;padding:18px 26px;'
-    + 'background:linear-gradient(180deg,rgba(7,8,7,.55),transparent)}'
-    + '.tmw-ov-top .hexmark{width:30px;height:30px;display:flex;align-items:center;justify-content:center}'
-    + '.tmw-ov-top .hexmark svg{width:100%;height:100%;overflow:visible}'
+    /* The header bar (hex + "TMW Intelligence & Search" + close) is gone --
+       the spotlight layout uses a floating close button in the top-right
+       corner instead so nothing chrome-y competes with the centered
+       starter content. */
+    + '.tmw-ov-close{position:absolute;top:18px;right:22px;width:38px;height:38px;border-radius:50%;'
+    + 'background:rgba(20,20,25,.6);border:1px solid rgba(255,255,255,.10);color:#C2C9C3;'
+    + 'display:flex;align-items:center;justify-content:center;font-size:22px;line-height:1;'
+    + 'cursor:pointer;transition:all .2s;font-family:inherit;z-index:3;'
+    + '-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}'
+    + '.tmw-ov-close:hover{color:#fff;border-color:rgba(255,255,255,.22);background:rgba(20,20,25,.85)}'
+    /* Hex animations kept under .tmw-ov-hxs-* because the spotlight teach
+       card still renders the small spinning hexagon next to the label. */
     + '.tmw-ov-hxs-spin{transform-origin:50% 50%;animation:tmwOvHxsSpin 4.2s cubic-bezier(.16,1,.3,1) infinite}'
     + '.tmw-ov-hxs-core{transform-origin:50% 50%;animation:tmwOvHxsPulse 4.2s ease-in-out infinite}'
     + '.tmw-ov-hxs-ring{transform-origin:50% 50%;animation:tmwOvHxsRing 4.2s ease-out infinite}'
     + '@media(prefers-reduced-motion:reduce){.tmw-ov-hxs-spin,.tmw-ov-hxs-ring{animation:none}.tmw-ov-hxs-ring{opacity:0}}'
-    + '.tmw-ov-top .title{font-family:"Fraunces",Georgia,serif;font-size:15px;color:#B9A6FF;letter-spacing:.04em;font-weight:500}'
-    + '.tmw-ov-top .title b{color:#fff;font-weight:600}'
-    + '.tmw-ov-top .close{margin-left:auto;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.04);'
-    + 'border:1px solid rgba(255,255,255,.14);color:#C2C9C3;display:flex;align-items:center;justify-content:center;'
-    + 'font-size:22px;line-height:1;cursor:pointer;transition:all .2s;font-family:inherit}'
-    + '.tmw-ov-top .close:hover{color:#fff;border-color:rgba(255,255,255,.22);background:rgba(255,255,255,.08)}'
 
     + '.tmw-ov-body{flex:1;overflow-y:auto;padding:8px 0 220px;-webkit-overflow-scrolling:touch}'
     + '.tmw-ov-body::-webkit-scrollbar{width:8px}'
@@ -81,36 +83,33 @@
     + '.tmw-ov-body::-webkit-scrollbar-thumb{background:rgba(255,255,255,.08);border-radius:4px}'
     + '.tmw-ov-wrap{max-width:1080px;margin:0 auto;padding:0 22px}'
 
-    /* Starter (empty) state — replaces the legacy chip layout with the
-       original "Ask the Map" teaching card (mirrors journal-dock.js's
-       .tmw-dock-teach panel, scaled up + centered on the overlay page).
-       Hex mark + TMW INTELLIGENCE label + PRO/quota pill in the header,
-       building-icon rows for each TEACH_Q suggestion, footer caption. */
-    + '.tmw-ov-starter{padding:0;animation:tmwOvFadeIn .35s ease both;'
-    + 'min-height:calc(100vh - 240px);display:flex;align-items:center;justify-content:center}'
-    + '.tmw-ov-teach{width:100%;max-width:720px;margin:0 auto;padding:22px 26px;'
-    + 'background:linear-gradient(180deg,rgba(20,18,30,.55),rgba(13,12,20,.55));'
-    + 'border:1px solid rgba(167,139,250,.25);border-radius:22px;'
-    + '-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);'
-    + 'box-shadow:0 30px 80px rgba(0,0,0,.55), 0 0 0 1px rgba(167,139,250,.04)}'
-    + '.tmw-ov-teach-h{display:flex;align-items:center;gap:12px;padding:4px 6px 18px;'
-    + 'border-bottom:1px solid rgba(255,255,255,.06);margin-bottom:4px}'
-    + '.tmw-ov-teach-hex{width:32px;height:32px;flex:0 0 auto;display:flex;align-items:center;justify-content:center}'
+    /* Starter (empty) state — spotlight layout: centered on page, no
+       card / box around it. Just the small TMW Intelligence label + Pro
+       pill, the "Try asking" eyebrow, and the four teach-line rows
+       (building icon + Fraunces text + return arrow), then the footer
+       caption. The rows themselves keep the original "Ask the Map"
+       look-and-feel; only the surrounding card chrome is gone. */
+    + '.tmw-ov-starter{padding:24px 22px 40px;animation:tmwOvFadeIn .35s ease both;'
+    + 'min-height:calc(100vh - 230px);display:flex;flex-direction:column;align-items:center;justify-content:center}'
+    + '.tmw-ov-teach{width:100%;max-width:620px;margin:0 auto}'
+    + '.tmw-ov-teach-h{display:flex;align-items:center;justify-content:center;gap:10px;'
+    + 'padding:0 0 8px;margin-bottom:6px}'
+    + '.tmw-ov-teach-hex{width:24px;height:24px;flex:0 0 auto;display:flex;align-items:center;justify-content:center}'
     + '.tmw-ov-teach-hex svg{width:100%;height:100%;overflow:visible}'
-    + '.tmw-ov-teach-ttl{font-size:13px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:#C2A8FF}'
-    + '.tmw-ov-pill{margin-left:auto;display:flex;align-items:center;gap:8px}'
-    + '.tmw-ov-quota{font-size:11px;font-weight:700;letter-spacing:.04em;color:#9AA39C;white-space:nowrap}'
+    + '.tmw-ov-teach-ttl{font-size:12px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:#C2A8FF}'
+    + '.tmw-ov-pill{display:flex;align-items:center;gap:8px;margin-left:14px}'
+    + '.tmw-ov-quota{font-size:10.5px;font-weight:700;letter-spacing:.04em;color:#9AA39C;white-space:nowrap}'
     + '.tmw-ov-quota.low{color:#f0d68a}'
-    + '.tmw-ov-pro{font-size:10px;font-weight:800;letter-spacing:.14em;color:#f0d68a;'
-    + 'border:1px solid rgba(240,214,138,.6);border-radius:6px;padding:4px 9px;text-decoration:none;'
+    + '.tmw-ov-pro{font-size:9.5px;font-weight:800;letter-spacing:.14em;color:#f0d68a;'
+    + 'border:1px solid rgba(240,214,138,.6);border-radius:6px;padding:3px 8px;text-decoration:none;'
     + 'box-shadow:0 0 10px rgba(230,197,116,.22);transition:background .15s}'
     + '.tmw-ov-pro:hover{background:rgba(240,214,138,.14)}'
     + '.tmw-ov-pro.on{cursor:default}'
-    + '.tmw-ov-teach-sec{font-size:10.5px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;'
-    + 'color:rgba(255,255,255,.3);padding:14px 10px 8px}'
-    + '.tmw-ov-teach-ex{display:flex;align-items:center;gap:14px;padding:13px 14px;border-radius:12px;'
+    + '.tmw-ov-teach-sec{font-size:10px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;'
+    + 'color:rgba(255,255,255,.32);text-align:center;padding:8px 0 14px}'
+    + '.tmw-ov-teach-ex{display:flex;align-items:center;gap:14px;padding:12px 14px;border-radius:12px;'
     + 'background:transparent;border:0;width:100%;text-align:left;cursor:pointer;'
-    + 'transition:background .15s;font-family:inherit;color:inherit}'
+    + 'transition:background .15s;font-family:inherit;color:inherit;margin-bottom:2px}'
     + '.tmw-ov-teach-ex:hover{background:rgba(167,139,250,.10)}'
     + '.tmw-ov-teach-ex .tmw-ov-teach-i{width:32px;height:32px;flex:0 0 auto;border-radius:9px;'
     + 'background:rgba(167,139,250,.12);color:#C2A8FF;display:flex;align-items:center;justify-content:center}'
@@ -118,13 +117,16 @@
     + '.tmw-ov-teach-qt{flex:1;font-family:"Fraunces",Georgia,serif;font-size:17px;color:#ECEAE5;line-height:1.3}'
     + '.tmw-ov-teach-ent{font-size:13px;color:#9AA39C;font-family:"SF Mono","Menlo",monospace}'
     + '.tmw-ov-teach-ex:hover .tmw-ov-teach-ent{color:#C2A8FF}'
-    + '.tmw-ov-teach-foot{padding:14px 10px 4px;margin-top:8px;border-top:1px solid rgba(255,255,255,.08);'
-    + 'font-size:12px;color:#9AA39C}'
+    + '.tmw-ov-teach-foot{padding:16px 14px 0;margin-top:10px;'
+    + 'font-size:12px;color:#9AA39C;text-align:center}'
 
     + '@media(max-width:640px){'
-    +   '.tmw-ov-teach{padding:18px 18px;margin:0 12px}'
-    +   '.tmw-ov-teach-qt{font-size:15px}'
+    +   '.tmw-ov-starter{padding:16px 16px 28px;min-height:calc(100vh - 200px)}'
+    +   '.tmw-ov-teach-qt{font-size:15px;line-height:1.3}'
     +   '.tmw-ov-teach-ttl{font-size:11px;letter-spacing:.18em}'
+    +   '.tmw-ov-teach-ex{padding:11px 12px;gap:12px}'
+    +   '.tmw-ov-teach-ex .tmw-ov-teach-i{width:30px;height:30px}'
+    +   '.tmw-ov-teach-foot{font-size:11px;padding:12px 10px 0}'
     + '}'
 
     /* Thinking spinner */
@@ -215,8 +217,13 @@
     + '.tmw-ov-empty h3{font-family:"Fraunces",Georgia,serif;font-size:22px;color:#ECEAE5;margin-bottom:8px;font-weight:600}'
     + '.tmw-ov-empty p{font-size:14px;max-width:40ch;margin:0 auto 18px}'
 
-    /* The bottom-pinned search bar (mirrors /search/'s .searchbox treatment) */
-    + '.tmw-ov-bar{position:absolute;left:50%;bottom:24px;transform:translateX(-50%);'
+    /* Bottom-pinned search bar — COPY of /search/'s .searchbox treatment,
+       just sized bigger so it reads as the primary input. Same rotating
+       purple conic-gradient border via @property --tmw-ov-ang, same
+       --panel background (no backdrop blur), same magnifier + gold arrow
+       proportions scaled up. Consistency with /search/ is the rule here:
+       any future tweak to the search-page bar should propagate here too. */
+    + '.tmw-ov-bar{position:absolute;left:50%;bottom:28px;transform:translateX(-50%);'
     + 'width:min(820px, calc(100vw - 32px));z-index:2}'
     + '.tmw-ov-bar-inner{position:relative;display:flex;align-items:center}'
     + '.tmw-ov-bar-inner::before{content:"";position:absolute;inset:-2px;border-radius:20px;padding:2px;z-index:0;pointer-events:none;'
@@ -224,22 +231,23 @@
     + '-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;'
     + 'animation:tmwOvChase 3.4s linear infinite}'
     + '@media(prefers-reduced-motion:reduce){.tmw-ov-bar-inner::before{animation:none}}'
-    + '.tmw-ov-bar .mag{position:absolute;left:22px;width:22px;height:22px;color:#B9A6FF;pointer-events:none;z-index:2}'
-    + '.tmw-ov-bar input{position:relative;z-index:1;width:100%;height:70px;padding:0 130px 0 58px;'
-    + 'background:rgba(15,17,15,.92);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);'
-    + 'border:1px solid rgba(167,139,250,.35);border-radius:18px;color:#fff;font-family:"Fraunces",Georgia,serif;font-size:23px;outline:none;'
-    + 'box-shadow:0 0 38px rgba(167,139,250,.22), 0 22px 60px rgba(0,0,0,.6);transition:border-color .2s,box-shadow .2s}'
+    + '.tmw-ov-bar .mag{position:absolute;left:26px;width:26px;height:26px;color:#B9A6FF;pointer-events:none;z-index:2}'
+    + '.tmw-ov-bar input{position:relative;z-index:1;width:100%;height:84px;padding:0 78px 0 70px;'
+    + 'background:#141714;border:1px solid rgba(167,139,250,.30);border-radius:18px;color:#fff;'
+    + 'font-family:"Fraunces",Georgia,serif;font-size:28px;outline:none;'
+    + 'box-shadow:0 0 32px rgba(167,139,250,.18),0 24px 60px rgba(0,0,0,.55);'
+    + 'transition:border-color .2s,background .2s,box-shadow .2s}'
     + '.tmw-ov-bar input::placeholder{color:#9AA39C;font-family:"Fraunces",Georgia,serif;font-style:italic}'
-    + '.tmw-ov-bar input:focus{border-color:rgba(167,139,250,.65);box-shadow:0 0 48px rgba(167,139,250,.34), 0 22px 60px rgba(0,0,0,.6)}'
-    + '.tmw-ov-bar input::-webkit-search-cancel-button{-webkit-appearance:none;appearance:none}'
-    + '.tmw-ov-bar .hint{position:absolute;right:74px;font-size:10px;letter-spacing:.16em;'
-    + 'text-transform:uppercase;color:#9AA39C;padding:4px 9px;border:1px solid rgba(255,255,255,.14);'
-    + 'border-radius:6px;z-index:2;pointer-events:none}'
-    + '.tmw-ov-bar .go{position:absolute;right:16px;height:46px;width:46px;padding:0;border:0;background:transparent;'
+    + '.tmw-ov-bar input:focus{border-color:rgba(167,139,250,.6);background:#1a1d1a;'
+    + 'box-shadow:0 0 42px rgba(167,139,250,.32),0 24px 60px rgba(0,0,0,.55)}'
+    + '.tmw-ov-bar input::-webkit-search-cancel-button{-webkit-appearance:none;appearance:none;'
+    + 'height:20px;width:20px;cursor:pointer;'
+    + 'background:url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\'%3E%3Cpath d=\'M6 6l12 12M18 6L6 18\' stroke=\'%23B9A6FF\' stroke-width=\'2.2\' stroke-linecap=\'round\'/%3E%3C/svg%3E") center/contain no-repeat}'
+    + '.tmw-ov-bar .go{position:absolute;right:18px;height:56px;width:56px;padding:0;border:0;background:transparent;'
     + 'color:#e6c574;display:flex;align-items:center;justify-content:center;z-index:2;border-radius:50%;cursor:pointer;'
-    + 'transition:transform .2s, background .2s}'
-    + '.tmw-ov-bar .go:hover{background:rgba(230,197,116,.12);transform:translateX(2px)}'
-    + '.tmw-ov-bar .go svg{width:24px;height:24px;filter:drop-shadow(0 0 8px rgba(230,197,116,.45))}'
+    + 'transition:transform .2s, background .2s, color .2s}'
+    + '.tmw-ov-bar .go:hover{background:rgba(230,197,116,.12);color:#f0d68a;transform:translateX(3px)}'
+    + '.tmw-ov-bar .go svg{width:28px;height:28px;filter:drop-shadow(0 0 8px rgba(230,197,116,.4))}'
 
     /* ─── PHASE 2: inline TMW Intelligence panel ─────────────────── */
     /* Purple-bordered card that renders the LLM /smart-answer response
@@ -457,10 +465,15 @@
     + '@media(max-width:760px){'
     +   '.tmw-ov-hero{grid-template-columns:1fr}'
     +   '.tmw-ov-hero .media{min-height:180px}'
-    +   '.tmw-ov-bar input{font-size:18px;height:62px;padding-right:64px}'
-    +   '.tmw-ov-bar .hint{display:none}'
+    +   '.tmw-ov-bar{bottom:18px;width:calc(100vw - 22px)}'
+    +   '.tmw-ov-bar input{font-size:20px;height:66px;padding:0 60px 0 54px;border-radius:14px}'
+    +   '.tmw-ov-bar .mag{left:20px;width:20px;height:20px}'
+    +   '.tmw-ov-bar .go{right:12px;height:46px;width:46px}'
+    +   '.tmw-ov-bar .go svg{width:22px;height:22px}'
     +   '.tmw-ov-row .r-bar{display:none}'
-    +   '.tmw-ov-top{padding:14px 18px}'
+    +   '.tmw-ov-close{top:14px;right:14px;width:34px;height:34px}'
+    +   '.tmw-ov-body{padding:8px 0 180px}'
+    +   '.tmw-ov-wrap{padding:0 16px}'
     + '}';
 
   // Inject styles once
@@ -538,11 +551,7 @@
   root.innerHTML = ''
     + '<div class="tmw-ov-scrim"></div>'
     + '<div class="tmw-ov-lb">'
-    +   '<div class="tmw-ov-top">'
-    +     '<div class="hexmark">' + ICON_HEX + '</div>'
-    +     '<div class="title"><b>TMW</b> Intelligence &amp; Search</div>'
-    +     '<button class="close" type="button" aria-label="Close">&times;</button>'
-    +   '</div>'
+    +   '<button class="tmw-ov-close" type="button" aria-label="Close">&times;</button>'
     +   '<div class="tmw-ov-body">'
     +     '<div class="tmw-ov-wrap">'
 
@@ -583,8 +592,7 @@
     +   '<div class="tmw-ov-bar">'
     +     '<div class="tmw-ov-bar-inner">'
     +       '<svg class="mag" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg>'
-    +       '<input type="search" autocomplete="off" placeholder="Ask TMW Intelligence or search projects, firms, cities…" aria-label="Search">'
-    +       '<span class="hint">Esc to close</span>'
+    +       '<input type="search" autocomplete="off" placeholder="Search projects, firms, cities…" aria-label="Search">'
     +       '<button class="go" type="button" aria-label="Search">'
     +         '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>'
     +       '</button>'
@@ -602,7 +610,7 @@
   var scrim  = root.querySelector('.tmw-ov-scrim');
   var input  = root.querySelector('.tmw-ov-bar input');
   var go     = root.querySelector('.tmw-ov-bar .go');
-  var closeBtn = root.querySelector('.tmw-ov-top .close');
+  var closeBtn = root.querySelector('.tmw-ov-close');
   var sStarter = root.querySelector('[data-state="starter"]');
   var sThinking= root.querySelector('[data-state="thinking"]');
   var sResults = root.querySelector('[data-state="results"]');
@@ -1785,9 +1793,13 @@
     if (!ds) return;
     if (root.classList.contains('open')) return;
     var existing = (ds.value || '').trim();
+    // Transfer focus to the overlay input INSIDE the user gesture (click /
+    // focusin) so iOS keeps the keyboard up through the transition. If we
+    // wait until after the open() animation starts, Safari dismisses the
+    // keyboard and pops it back when we focus 180ms later -- jarring.
+    input.value = existing;
+    try { input.focus({ preventScroll: true }); } catch(_){ try { input.focus(); } catch(__){} }
     open(existing);
-    // Blur after focus has settled so the dock's AC dropdown also closes
-    // (its blur handler hides the AC after a small timeout).
     setTimeout(function(){ try { ds.blur(); } catch(_){} }, 0);
   }
   document.addEventListener('focusin', handleDockTrigger);
