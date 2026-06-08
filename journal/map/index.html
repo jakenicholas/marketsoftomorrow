@@ -13171,8 +13171,8 @@
         playBtn.addEventListener('click', ()=>{ playing ? stopPlay() : startPlay(); });
         // (The scrubber sits at z:2, below every search pop-up, so no focus-hide
         // is needed — and an opacity:0 hide left a backdrop-filter "glass block".)
-        // Start the scrubber at 2026 (this year) rather than the max.
-        const START_YEAR = Math.max(MIN, Math.min(MAX, 2026));
+        // Default-load at the last year (max) so the whole pipeline shows.
+        const START_YEAR = MAX;
         slider.value = Math.round(((START_YEAR - MIN) / (MAX - MIN)) * 100);
         applyYear(START_YEAR, START_YEAR >= MAX);
       }
