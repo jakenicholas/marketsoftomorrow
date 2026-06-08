@@ -1420,7 +1420,7 @@
         const href = e.link || '#';
         const nameInner = `<div class="mname">${name}</div>`;
         const nm = (href && href !== '#')
-          ? `<a href="${escapeHtml(href)}" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">${nameInner}</a>`
+          ? `<a href="${escapeHtml(href)}" style="text-decoration:none;color:inherit">${nameInner}</a>`
           : nameInner;
         const ev = e.event_date ? fmtEv(e.event_date) : '';
         const srcDom = e.source_url ? dom(e.source_url) : '';
@@ -1641,10 +1641,9 @@
     }
 
     function renderCoverageAndComing() {
-      const left = renderMostCovered();
-      const right = renderComingSoon();
-      if (!left && !right) return '';
-      return `<div class="atlas-coverage-coming-grid">${left}${right}</div>`;
+      // "Most covered on Tomorrow" (TMW coverage) section removed per request;
+      // Coming Soon now renders full-width on its own.
+      return renderComingSoon();
     }
 
     function renderFooter() {
