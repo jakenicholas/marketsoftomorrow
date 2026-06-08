@@ -449,6 +449,7 @@
   var _authSubs = [];
   window.tmwAuth = window.tmwAuth || {
     signedIn: false, paid: false, member: null, ready: false,
+    _menuItems: [],
     // Subscribe to auth changes. Fires immediately if state is already known.
     onChange: function (cb) {
       if (typeof cb !== 'function') return function () {};
@@ -459,6 +460,16 @@
     // Force a fresh Memberstack re-detect (e.g. after a plan change).
     refresh: function () {
       try { var m = window.$memberstackDom; if (m) m.getCurrentMember().then(function (r) { publishAuth(r && r.data); }); } catch (e) {}
+    },
+    // Inject an item into the SHARED profile dropdown so a surface (the map)
+    // extends the ONE universal menu instead of maintaining a parallel widget.
+    //   item = { id, label, icon (svg html), onClick(fn), proOnly(bool) }
+    // Items render between "Account" and the divider, above "Sign out".
+    addMenuItem: function (item) {
+      if (!item || !item.id) return;
+      if (!this._menuItems.some(function (m) { return m.id === item.id; })) this._menuItems.push(item);
+      var menus = document.querySelectorAll('.tmw-auth .v2-profile-menu');
+      for (var i = 0; i < menus.length; i++) renderExtraMenuItems(menus[i]);
     }
   };
   function publishAuth(member) {
@@ -473,6 +484,35 @@
     var a = window.tmwAuth;
     a.signedIn = signedIn; a.paid = paid; a.member = member || null; a.ready = true;
     for (var i = 0; i < _authSubs.length; i++) { try { _authSubs[i](a); } catch (e) {} }
+  }
+
+  // Render registered extension items into a profile menu (between Account and
+  // the divider), wire their handlers, and reflect proOnly visibility. Idempotent.
+  function renderExtraMenuItems(menu) {
+    if (!menu || !window.tmwAuth || !window.tmwAuth._menuItems) return;
+    var divider = menu.querySelector('.v2-menu-divider');
+    window.tmwAuth._menuItems.forEach(function (it) {
+      if (menu.querySelector('[data-tmw-ext="' + it.id + '"]')) return; // already present
+      var b = document.createElement('button');
+      b.className = 'v2-menu-item';
+      b.setAttribute('role', 'menuitem');
+      b.setAttribute('data-tmw-ext', it.id);
+      if (it.proOnly) b.setAttribute('data-pro-only', '');
+      b.innerHTML = (it.icon || '') + esc(it.label || '');
+      b.addEventListener('click', function (e) {
+        e.stopPropagation();
+        menu.classList.remove('open');
+        try { it.onClick && it.onClick(e); } catch (err) {}
+      });
+      if (divider && divider.parentNode === menu) menu.insertBefore(b, divider);
+      else menu.appendChild(b);
+    });
+    syncExtraMenuVisibility(menu);
+  }
+  function syncExtraMenuVisibility(menu) {
+    var paid = !!(window.tmwAuth && window.tmwAuth.paid);
+    var items = (menu || document).querySelectorAll('[data-tmw-ext][data-pro-only]');
+    for (var i = 0; i < items.length; i++) items[i].style.display = paid ? '' : 'none';
   }
 
   // Person icon (signed-in) + gold star (Pro) + "Join" pill (signed-out): one
@@ -524,6 +564,9 @@
     var btn = host.querySelector('.v2-profile-btn');
     var menu = host.querySelector('.v2-profile-menu');
     var goPro = host.querySelector('.v2-go-pro-badge');
+    // Inject any extension items a surface registered (the map's Watchlist/Compare)
+    // so this ONE shared menu carries them too.
+    renderExtraMenuItems(menu);
 
     // Pre-paint from the cached auth state (written by applyState on the last
     // load) so a returning member sees their avatar immediately instead of a
@@ -548,6 +591,7 @@
       btn.classList.toggle('is-pro', paid);
       btn.setAttribute('aria-label', signedIn ? 'Profile menu' : 'Join');
       if (!signedIn) menu.classList.remove('open');
+      syncExtraMenuVisibility(menu);   // proOnly extension items follow paid state
       // Publish to the single source of truth: writes window._tmwSignedIn /
       // window._isPaidMember / localStorage.tmw_auth_state (read by the dock's
       // Intelligence quota, compare.js, the map paywall) and the window.tmwAuth
