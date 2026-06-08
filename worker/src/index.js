@@ -1202,6 +1202,149 @@ async function handleSearchFeedback(env, origin, url) {
   }, {}, env, origin);
 }
 
+// GET /search-feedback/discoveries — the tmw-project-discovery Claude
+// Code routine reads this. Returns the queries that need discovery work
+// and HAVEN'T been processed yet, in a format the routine can directly
+// loop over: { query, down, up, last_ts, hint } where hint is a short
+// natural-language brief the routine can drop straight into its prompt
+// ("the database is missing projects in X").
+//
+// "Not processed" = no `discovery_processed` event has been logged for
+// that exact query (case-insensitive). Lookback window matches the
+// rollup endpoint (?days=30 default). Pending count caps at 50 so a
+// single routine run can finish in a reasonable time.
+async function handleDiscoveryQueue(env, origin, url) {
+  const days = clampInt(url.searchParams.get('days'), 30, 1, 365);
+  const limit = clampInt(url.searchParams.get('limit'), 50, 1, 200);
+  const sinceTs = Math.floor(Date.now() / 1000) - days * 86400;
+
+  // Pull all search_feedback rows in the window.
+  const fb = await env.DB.prepare(
+    `SELECT ts, member_id, props_json
+     FROM events
+     WHERE event_name = 'search_feedback' AND ts >= ?
+     ORDER BY ts DESC`
+  ).bind(sinceTs).all();
+
+  // Pull every discovery_processed query so we can exclude them.
+  const proc = await env.DB.prepare(
+    `SELECT LOWER(TRIM(json_extract(props_json,'$.q'))) AS q
+     FROM events
+     WHERE event_name = 'discovery_processed'`
+  ).all();
+  const processed = new Set();
+  for (const r of (proc.results || [])) {
+    if (r.q) processed.add(r.q);
+  }
+
+  // Aggregate by query, same logic as /search-feedback rollup but tighter:
+  // we only care about queries flagged needs_discovery.
+  const byQuery = new Map();
+  for (const r of (fb.results || [])) {
+    let p = {};
+    try { if (r.props_json) p = JSON.parse(r.props_json); } catch {}
+    const q = String(p.q || '').trim();
+    if (!q) continue;
+    if (processed.has(q.toLowerCase())) continue;
+    const rating = p.rating === 'up' ? 'up' : p.rating === 'down' ? 'down' : null;
+    if (!rating) continue;
+    const results = +p.results || 0;
+    const kind = String(p.result_kind || '');
+    const key = q.toLowerCase();
+    let a = byQuery.get(key);
+    if (!a) {
+      a = { query: q, up: 0, down: 0, last_ts: 0, result_sum: 0, result_n: 0, kinds: {} };
+      byQuery.set(key, a);
+    }
+    a[rating]++;
+    if (r.ts > a.last_ts) a.last_ts = r.ts;
+    a.result_sum += results;
+    a.result_n++;
+    a.kinds[kind] = (a.kinds[kind] || 0) + 1;
+  }
+
+  // Discovery candidates: at least one thumbs-down AND avg results == 0
+  // OR dominant kind == 'empty'. Same heuristic as the rollup endpoint's
+  // needs_discovery flag.
+  const items = [];
+  byQuery.forEach(function (a) {
+    let dom = '', domN = 0;
+    for (const k in a.kinds) { if (a.kinds[k] > domN) { dom = k; domN = a.kinds[k]; } }
+    const avg = a.result_n ? Math.round(a.result_sum / a.result_n) : 0;
+    const needs = a.down >= 1 && (avg === 0 || dom === 'empty');
+    if (!needs) return;
+    // Hint: a plain-English brief the discovery routine drops into its
+    // prompt. Built from the query + signal so the LLM has context
+    // without re-deriving it.
+    const hint = 'A reader searched "' + a.query + '" and got '
+      + (avg === 0 ? 'zero results' : ('only ' + avg + ' marginal result' + (avg === 1 ? '' : 's')))
+      + '. Their thumbs-down suggests the project database is missing coverage. '
+      + 'Identify the place + project type in the query, then research candidate '
+      + 'projects to add as map drafts.';
+    items.push({
+      query: a.query,
+      up: a.up,
+      down: a.down,
+      last_ts: a.last_ts,
+      avg_results: avg,
+      dominant_kind: dom,
+      hint: hint,
+    });
+  });
+  // Newest-first within the discovery queue so the routine works the
+  // freshest signals first.
+  items.sort(function (a, b) { return (b.last_ts || 0) - (a.last_ts || 0); });
+
+  return json({
+    items: items.slice(0, limit),
+    total_pending: items.length,
+    days: days,
+  }, {}, env, origin);
+}
+
+// POST /search-feedback/discoveries/mark — the tmw-project-discovery
+// routine calls this when it's done working a query so it doesn't get
+// returned again on the next poll. Body: { queries: ["query 1", ...] }.
+// We log one `discovery_processed` event per query (so /discoveries can
+// exclude them on subsequent reads) plus the optional `result` field
+// for an audit trail of what the routine did.
+async function handleDiscoveryMark(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin);
+  if (denied) return denied;
+
+  let body;
+  try { body = await req.json(); } catch { return json({ error: 'Invalid JSON body' }, { status: 400 }, env, origin); }
+  const queries = Array.isArray(body && body.queries) ? body.queries : [];
+  if (!queries.length) return json({ error: 'queries[] required' }, { status: 400 }, env, origin);
+
+  const result = body && typeof body.result === 'string' ? body.result.slice(0, 600) : null;
+  const draftsCreated = body && Array.isArray(body.drafts_created) ? body.drafts_created : null;
+  const nowSec = Math.floor(Date.now() / 1000);
+  let marked = 0;
+
+  for (const raw of queries) {
+    const q = String(raw || '').trim();
+    if (!q) continue;
+    try {
+      await env.DB.prepare(
+        `INSERT INTO events (ts, member_id, event_name, props_json)
+         VALUES (?, ?, ?, ?)`
+      ).bind(
+        nowSec,
+        'system:tmw-project-discovery',
+        'discovery_processed',
+        JSON.stringify({
+          q: q.slice(0, 200),
+          result: result,
+          drafts_created: draftsCreated,
+        })
+      ).run();
+      marked++;
+    } catch (e) { /* keep going on per-row failure */ }
+  }
+  return json({ ok: true, marked }, {}, env, origin);
+}
+
 // GET /projects — most-clicked projects across multiple time windows.
 // Aggregates `project_click` events from identified members (the only ones
 // stored in D1). For each project we return click counts for today, 7d,
@@ -4203,7 +4346,7 @@ export default {
       const ADMIN_READ_PATHS = new Set([
         '/people', '/stats', '/member', '/timeline',
         '/watchlist', '/projects', '/activity', '/subscriptions', '/intel-queries', '/search-gaps',
-        '/search-feedback',
+        '/search-feedback', '/search-feedback/discoveries',
       ]);
       if (request.method === 'GET' && ADMIN_READ_PATHS.has(url.pathname)) {
         const denied = await requireAdminToken(request, env, origin);
@@ -4263,6 +4406,16 @@ export default {
       }
       if (request.method === 'GET' && url.pathname === '/search-feedback') {
         return await handleSearchFeedback(env, origin, url);
+      }
+      // GET /search-feedback/discoveries — pending discovery queue for the
+      // tmw-project-discovery Claude Code routine. Admin-only.
+      if (request.method === 'GET' && url.pathname === '/search-feedback/discoveries') {
+        return await handleDiscoveryQueue(env, origin, url);
+      }
+      // POST /search-feedback/discoveries/mark — mark queries as processed
+      // so the routine doesn't re-run them. Admin-only (token in header).
+      if (request.method === 'POST' && url.pathname === '/search-feedback/discoveries/mark') {
+        return await handleDiscoveryMark(request, env, origin);
       }
       if (request.method === 'GET' && url.pathname === '/intel-queries') {
         return await handleIntelQueries(env, origin, url);

@@ -266,6 +266,37 @@
   // match. "Related Group" is just "Related"; "Foster + Partners" is "Foster".
   var FIRM_STOP = new Set(['the','of','and','group','partners','studio','architects','architecture','development','developments','developers','design','company','co','llc','inc','associates','international','global','real','estate','properties','holdings','capital','ventures','collective','residential','residences','tower','towers','project','projects','building','buildings','condo','condos','hotel','hotels','tallest','newest']);
 
+  // Words that should NOT count as "meaningful tokens" in the multi-token
+  // strict-filter that excludes weak matches from the grid. These are
+  // generic intent/question words that almost never appear in a project,
+  // firm, or city name. Without this list, "projects coming to nashville"
+  // requires every project title to contain "projects" AND "coming" AND
+  // "nashville" -- so the grid collapses to ~4 marginal matches instead
+  // of all Nashville projects. Place-y nouns (park, city, lake, river,
+  // beach, springs, north, south, etc.) are deliberately NOT here -- they
+  // can be part of legitimate project / city names.
+  var QUERY_STOPWORDS = new Set([
+    // intent nouns
+    'projects','project','things','stuff','one','ones',
+    // intent verbs
+    'show','find','give','tell','list','see','look','check','search','want','need',
+    // intent adjectives + status-y generics
+    'new','newest','latest','recent','upcoming','next','previous','past','old','coming','going','happening','planned','expected','set','about',
+    // question + connector words
+    'what','why','how','when','where','which','who','whom','whose',
+    'around','near','into','throughout','some','any','all','every','each','more','less','most',
+    'this','that','these','those','here','there',
+    'can','will','would','could','should','may','might','must',
+    'just','really','very','maybe','perhaps','still','also'
+  ]);
+  // Build the meaningful-tokens list a surface uses for its strict relevance
+  // filter -- length >= 3 AND not a generic stopword. Exposed so the overlay
+  // (and any future search surface) applies the SAME filter logic. The
+  // function takes the already-tokenized array so callers don't re-split.
+  function filterMeaningfulTokens(toks) {
+    return (toks || []).filter(function(t){ return t.length >= 3 && !QUERY_STOPWORDS.has(t); });
+  }
+
   function inFlorida(p) {
     var la = parseFloat(p.Latitude), ln = parseFloat(p.Longitude);
     return la >= 24.3 && la <= 31.1 && ln >= -87.8 && ln <= -79.8;
@@ -381,7 +412,22 @@
     var place = region || cities.length;
     var firm = detectFirm(full, opts.firms || []);
     var count = (statuses.size ? 1 : 0) + (phases.size ? 1 : 0) + (types.size ? 1 : 0) + (place ? 1 : 0) + (yearMin != null ? 1 : 0) + (sort ? 1 : 0) + (firm ? 1 : 0);
-    if (!firm && count < 2) return null;  // no firm + too little structure → normal search
+    // Geographic / firm anchor alone is enough to trigger smart. "projects
+    // coming to nashville", "deals in florida", "show me kengo kuma" all
+    // converge to the same city/region/firm view rather than getting
+    // punished by the strict count check + falling into a text-match that
+    // requires every generic word ("projects", "coming") in each title.
+    if (firm || place) {
+      return {
+        statuses: statuses, statusLabels: statusLabels,
+        phases: phases, phaseLabels: phaseLabels, phaseVerbs: phaseVerbs,
+        types: types, typeLabel: typeLabel, typeNoun: typeNoun,
+        region: region, cities: cities,
+        yearMin: yearMin, yearMax: yearMax, yearLabel: yearLabel,
+        sort: sort, firm: firm
+      };
+    }
+    if (count < 2) return null;  // no anchor + too little structure → normal search
 
     return {
       statuses: statuses, statusLabels: statusLabels,
@@ -599,6 +645,8 @@
     SORT_GROUPS: SORT_GROUPS,
     STATUS_BADGE: STATUS_BADGE,
     FIRM_STOP: FIRM_STOP,
+    QUERY_STOPWORDS: QUERY_STOPWORDS,
+    filterMeaningfulTokens: filterMeaningfulTokens,
     parseSmartQuery: parseSmartQuery,
     smartFilter: smartFilter,
     smartRank: smartRank,

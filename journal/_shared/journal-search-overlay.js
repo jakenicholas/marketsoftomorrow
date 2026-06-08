@@ -823,7 +823,9 @@
   function scoreArticle(a, toks, full){
     var title=norm(a.title), exc=norm(a.excerpt), cats=norm((a.categories||[]).join(' ')), tags=norm((a.tags||[]).join(' '));
     var hay = title+' '+exc+' '+cats+' '+tags;
-    var meaningful = toks.filter(function(t){ return t.length>=3; });
+    var meaningful = (window.TmwSearchCore && window.TmwSearchCore.filterMeaningfulTokens)
+      ? window.TmwSearchCore.filterMeaningfulTokens(toks)
+      : toks.filter(function(t){ return t.length>=3; });
     if (meaningful.length>=2){
       var need = Math.ceil(meaningful.length*0.6);
       var havePhrase = full && hay.indexOf(full)>=0;
@@ -1179,14 +1181,18 @@
   function heroProjectEligible(p, full, toks){
     var title = norm(p.Title);
     if (full && title.indexOf(full) >= 0) return true;
-    var meaningful = toks.filter(function(t){ return t.length >= 3; });
+    var meaningful = (window.TmwSearchCore && window.TmwSearchCore.filterMeaningfulTokens)
+      ? window.TmwSearchCore.filterMeaningfulTokens(toks)
+      : toks.filter(function(t){ return t.length >= 3; });
     if (!meaningful.length) return false;
     var inTitle = meaningful.filter(function(t){ return title.indexOf(t) >= 0; }).length;
     return inTitle >= Math.ceil(meaningful.length * 0.6);
   }
   function heroArticleEligible(a, full, toks){
     var title = norm(a.title || '');
-    var meaningful = toks.filter(function(t){ return t.length >= 3; });
+    var meaningful = (window.TmwSearchCore && window.TmwSearchCore.filterMeaningfulTokens)
+      ? window.TmwSearchCore.filterMeaningfulTokens(toks)
+      : toks.filter(function(t){ return t.length >= 3; });
     if (!meaningful.length) return false;
     var inTitle = meaningful.filter(function(t){ return title.indexOf(t) >= 0; }).length;
     return inTitle >= 1;
@@ -1741,7 +1747,9 @@
     // just "park" — Saudi Arabia, Las Vegas etc. — and the section reads
     // as a false-positive dump. Single-token queries skip the filter
     // (relevance score already handles it).
-    var meaningful = toks.filter(function(t){ return t.length >= 3; });
+    var meaningful = (window.TmwSearchCore && window.TmwSearchCore.filterMeaningfulTokens)
+      ? window.TmwSearchCore.filterMeaningfulTokens(toks)
+      : toks.filter(function(t){ return t.length >= 3; });
     var restProjects = pScored.filter(function(x){ return x.p !== heroProject; });
     if (meaningful.length >= 2) {
       restProjects = restProjects.filter(function(x){
