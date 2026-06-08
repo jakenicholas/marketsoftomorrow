@@ -2,673 +2,832 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>TMW Intelligence — universal lightbox mockup</title>
+<title>TMW Search Lightbox — universal overlay mockup</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&display=swap" rel="stylesheet">
+
 <style>
-  :root{
-    --bg:#0b0b0d;
-    --bg2:#111114;
-    --ink:#f4efe4;
-    --ink-soft:#a8a39a;
-    --ink-dim:#6c6860;
-    --gold:#c9a86a;
-    --gold-soft:#e9d9b8;
-    --rule:#1d1d22;
-    --rule-soft:#26262d;
-    --green:#7bb37a;
-  }
-  *{box-sizing:border-box}
-  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Inter',system-ui,sans-serif;font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
-  h1,h2,h3,h4{font-family:'New York','Iowan Old Style','Georgia',serif;font-weight:500;letter-spacing:-.01em;margin:0}
+/* ─── BRAND TOKENS (copied verbatim from /search/index.html so the
+       overlay matches the live search page pixel-for-pixel) ──────── */
+:root{
+  --ink:#070807; --ink-2:#0d0f0e;
+  --panel:#141714; --panel-2:#1a1d1a; --panel-3:#222622;
+  --hair:rgba(255,255,255,.08); --hair-2:rgba(255,255,255,.14); --hair-3:rgba(255,255,255,.22);
+  --white:#fff; --cream:#ECEAE5; --mute:#9AA39C; --mute-2:#C2C9C3;
+  --green:#1FDF67; --green-soft:#42EB81;
+  --gold:#e6c574; --gold-soft:#f0d68a;
+  --purple:#A78BFA; --purple-glow:#B9A6FF;
+  --sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --serif:'Fraunces',Georgia,serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{background:var(--ink);color:var(--cream);font-family:var(--sans);
+  -webkit-font-smoothing:antialiased;line-height:1.55;min-height:100vh;overflow-x:hidden}
+h1,h2,h3{font-family:var(--serif);font-weight:600;letter-spacing:-.015em;color:var(--white);line-height:1.08}
+a{color:inherit;text-decoration:none}
+button{font:inherit;cursor:pointer}
 
-  /* ─── Mockup chrome (not part of real product) ───────────────────── */
-  .chrome{
-    position:fixed;top:0;left:0;right:0;z-index:200;
-    display:flex;align-items:center;gap:18px;
-    padding:10px 18px;background:rgba(11,11,13,.85);
-    backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
-    border-bottom:1px solid var(--rule);
-  }
-  .chrome .logo{font-family:'New York',serif;font-size:14px;letter-spacing:.04em}
-  .chrome .logo b{color:var(--gold)}
-  .chrome .seg{display:flex;gap:2px;background:var(--bg2);border:1px solid var(--rule);border-radius:10px;padding:3px}
-  .chrome .seg button{background:transparent;border:0;color:var(--ink-soft);font:inherit;font-size:13px;padding:6px 12px;border-radius:7px;cursor:pointer;letter-spacing:.02em}
-  .chrome .seg button.on{background:var(--gold);color:#1a1408;font-weight:600}
-  .chrome .note{margin-left:auto;font-size:12px;color:var(--ink-dim);letter-spacing:.04em;text-transform:uppercase}
+/* ═══ MOCKUP CHROME (delete in production — tiny top-right strip
+       so you can sample the overlay on Journal / Map / Atlas) ══════ */
+.mock-chrome{position:fixed;top:14px;right:14px;z-index:300;
+  display:flex;gap:2px;padding:3px;background:rgba(7,8,7,.85);
+  border:1px solid var(--hair-2);border-radius:10px;backdrop-filter:blur(10px)}
+.mock-chrome button{background:transparent;border:0;color:var(--mute);
+  font-family:var(--sans);font-size:10px;letter-spacing:.18em;
+  text-transform:uppercase;font-weight:700;padding:7px 12px;border-radius:7px}
+.mock-chrome button.on{background:var(--purple);color:var(--ink)}
+.mock-tip{position:fixed;top:14px;left:14px;z-index:300;
+  font-family:var(--sans);font-size:11px;letter-spacing:.04em;
+  color:var(--mute);background:rgba(7,8,7,.85);padding:8px 12px;
+  border:1px solid var(--hair);border-radius:10px;backdrop-filter:blur(10px)}
+.mock-tip b{color:var(--purple-glow)}
 
-  /* ─── Stage (fake page underneath) ───────────────────────────────── */
-  .stage{position:relative;min-height:100vh;padding-top:54px}
-  .stage::after{content:'';position:absolute;inset:54px 0 0 0;background:linear-gradient(180deg,transparent,rgba(0,0,0,.4) 80%);pointer-events:none}
+/* ═══ FAKE PAGES underneath (so we can see the overlay in context) ═══ */
+.stage{min-height:100vh;position:relative}
 
-  /* JOURNAL fake */
-  .ctx-journal .page{max-width:780px;margin:48px auto 0;padding:0 24px}
-  .ctx-journal h1.lede{font-size:46px;line-height:1.05;margin-bottom:14px}
-  .ctx-journal .kicker{color:var(--gold);font-size:12px;letter-spacing:.18em;text-transform:uppercase;margin-bottom:18px}
-  .ctx-journal .byline{color:var(--ink-dim);font-size:13px;margin-bottom:30px;border-bottom:1px solid var(--rule);padding-bottom:18px}
-  .ctx-journal p{color:var(--ink-soft);font-size:17px;line-height:1.7;margin:0 0 18px}
-  .ctx-journal .pull{font-family:'New York',serif;font-size:24px;line-height:1.35;color:var(--ink);border-left:2px solid var(--gold);padding-left:18px;margin:28px 0}
+/* — Journal article stage — */
+.j-page{max-width:760px;margin:0 auto;padding:64px 24px 200px}
+.j-page .kicker{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--green);margin-bottom:18px}
+.j-page h1{font-size:46px;line-height:1.04;margin-bottom:14px}
+.j-page .byl{font-size:13px;color:var(--mute);margin-bottom:32px;padding-bottom:18px;border-bottom:1px solid var(--hair)}
+.j-page p{color:var(--mute-2);font-size:17px;line-height:1.72;margin:0 0 20px}
+.j-page .pull{font-family:var(--serif);font-size:24px;line-height:1.36;color:var(--white);
+  border-left:2px solid var(--purple);padding:6px 0 6px 20px;margin:28px 0}
 
-  /* ATLAS fake */
-  .ctx-atlas .page{max-width:1180px;margin:48px auto 0;padding:0 24px}
-  .ctx-atlas h1.lede{font-size:38px;margin-bottom:8px}
-  .ctx-atlas .sub{color:var(--ink-dim);margin-bottom:28px}
-  .ctx-atlas .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
-  .ctx-atlas .card{background:var(--bg2);border:1px solid var(--rule);border-radius:14px;padding:16px;min-height:160px;display:flex;flex-direction:column;justify-content:space-between}
-  .ctx-atlas .card .firm{font-family:'New York',serif;font-size:18px;margin-bottom:6px}
-  .ctx-atlas .card .meta{color:var(--ink-dim);font-size:12px;letter-spacing:.06em;text-transform:uppercase}
-  .ctx-atlas .card .pc{color:var(--gold);font-size:13px;margin-top:auto}
+/* — Map stage — */
+.m-stage{position:fixed;inset:0;background:#11131a}
+.m-stage svg{width:100%;height:100%;display:block}
+.m-side{position:fixed;left:0;top:0;bottom:0;width:340px;background:var(--panel);
+  border-right:1px solid var(--hair);padding:24px 20px;z-index:5;overflow-y:auto}
+.m-side .lbl{font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--mute);margin-bottom:10px}
+.m-side .findbar{position:relative;margin-bottom:10px}
+.m-side .findbar svg{position:absolute;left:14px;top:50%;transform:translateY(-50%);
+  width:16px;height:16px;color:var(--mute)}
+.m-side .findbar input{width:100%;background:var(--panel-2);border:1px solid var(--hair);
+  color:var(--cream);padding:12px 14px 12px 40px;border-radius:10px;
+  font-family:var(--sans);font-size:14px;outline:none}
+.m-side .findbar input:focus{border-color:var(--green);background:var(--panel-3)}
+.m-side .helper{font-size:11px;color:var(--mute);line-height:1.5;
+  background:rgba(31,223,103,.06);border:1px solid rgba(31,223,103,.18);
+  padding:9px 11px;border-radius:8px;margin-bottom:24px}
+.m-side .helper b{color:var(--green-soft);font-weight:700}
+.m-side .filt{display:flex;justify-content:space-between;padding:11px 0;
+  border-top:1px solid var(--hair);font-size:13px;color:var(--cream)}
+.m-side .filt span:last-child{color:var(--mute);font-size:12px}
 
-  /* MAP fake */
-  .ctx-map{padding-top:54px}
-  .ctx-map .mapwrap{position:fixed;top:54px;left:340px;right:0;bottom:0;background:#13141a;overflow:hidden}
-  .ctx-map .mapwrap svg{width:100%;height:100%;display:block}
-  .ctx-map .sidebar{position:fixed;top:54px;left:0;bottom:0;width:340px;background:var(--bg2);border-right:1px solid var(--rule);padding:18px;overflow-y:auto;z-index:50}
-  .ctx-map .sidebar .label{font-size:11px;letter-spacing:.16em;color:var(--ink-dim);text-transform:uppercase;margin-bottom:8px}
-  .ctx-map .sidebar .findbar{position:relative;margin-bottom:10px}
-  .ctx-map .sidebar .findbar input{
-    width:100%;padding:11px 14px 11px 38px;background:#0e0e12;border:1px solid var(--rule-soft);
-    color:var(--ink);border-radius:10px;font:inherit;font-size:14px;
-  }
-  .ctx-map .sidebar .findbar svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:var(--ink-dim)}
-  .ctx-map .sidebar .helper{font-size:11px;color:var(--ink-dim);margin-bottom:18px;padding:8px 10px;background:rgba(201,168,106,.06);border:1px solid rgba(201,168,106,.18);border-radius:8px;line-height:1.4}
-  .ctx-map .sidebar .helper b{color:var(--gold-soft);font-weight:600}
-  .ctx-map .sidebar .filter{padding:10px 0;border-bottom:1px solid var(--rule);font-size:13px;color:var(--ink-soft);display:flex;justify-content:space-between;cursor:pointer}
-  .ctx-map .sidebar .filter:hover{color:var(--ink)}
-  .ctx-map .sidebar .filter span:last-child{color:var(--ink-dim);font-size:12px}
+/* — Atlas stage — */
+.a-page{max-width:1120px;margin:0 auto;padding:64px 24px 200px}
+.a-page .kicker{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--green);margin-bottom:12px}
+.a-page h1{font-size:38px;margin-bottom:8px}
+.a-page .sub{color:var(--mute);margin-bottom:30px;font-size:14px}
+.a-page .agrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(248px,1fr));gap:14px}
+.a-card{background:var(--panel);border:1px solid var(--hair);border-radius:14px;padding:18px;min-height:148px;display:flex;flex-direction:column;justify-content:space-between}
+.a-card .nm{font-family:var(--serif);font-size:19px;font-weight:600;color:var(--white);margin-bottom:6px}
+.a-card .meta{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute)}
+.a-card .pc{font-size:12px;color:var(--purple-glow);margin-top:auto}
 
-  /* ─── DOCK (real component, mocked) ──────────────────────────────── */
-  .dock{
-    position:fixed;left:50%;bottom:22px;transform:translateX(-50%);
-    display:flex;align-items:center;gap:10px;padding:8px;
-    background:rgba(20,20,25,.72);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
-    border:1px solid rgba(255,255,255,.08);border-radius:999px;z-index:80;
-    box-shadow:0 18px 40px rgba(0,0,0,.5);
-  }
-  .dock .ico{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--ink-soft);cursor:pointer;transition:background .2s,color .2s}
-  .dock .ico:hover{background:rgba(255,255,255,.05);color:var(--ink)}
-  .dock .ico svg{width:18px;height:18px}
-  .dock .ask{
-    display:flex;align-items:center;gap:8px;padding:0 16px 0 12px;height:38px;
-    background:linear-gradient(180deg,var(--gold),#a8884b);color:#1a1408;
-    border-radius:999px;font:inherit;font-size:13px;font-weight:600;letter-spacing:.02em;
-    cursor:pointer;border:0;
-  }
-  .dock .ask:hover{filter:brightness(1.08)}
-  .dock .ask svg{width:16px;height:16px}
-  .dock .ask::after{
-    content:'';display:inline-block;width:4px;height:4px;background:#1a1408;border-radius:50%;
-    margin-left:2px;animation:cat 1.4s infinite;
-    box-shadow:8px 0 0 #1a1408, 16px 0 0 #1a1408;
-    opacity:.4;
-  }
-  @keyframes cat{
-    0%,100%{opacity:.2}
-    50%{opacity:.9}
-  }
+/* ═══ DOCK (real component, simulated — the entry point) ═══════════ */
+.tmw-dock{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:80;
+  display:flex;align-items:center;gap:8px;padding:7px 10px 7px 7px;
+  background:rgba(13,15,14,.78);backdrop-filter:blur(20px);
+  border:1px solid var(--hair-2);border-radius:999px;
+  box-shadow:0 20px 50px rgba(0,0,0,.55);transition:opacity .25s, transform .25s}
+.tmw-dock.hide{opacity:0;pointer-events:none;transform:translateX(-50%) translateY(20px)}
+.tmw-dock .ico{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;color:var(--mute-2);transition:background .2s, color .2s}
+.tmw-dock .ico:hover{background:rgba(255,255,255,.06);color:var(--white)}
+.tmw-dock .ico svg{width:18px;height:18px}
+.tmw-dock .ds-search-input{width:240px;background:transparent;border:0;color:var(--cream);
+  font:inherit;font-size:13px;padding:0 8px;outline:none}
+.tmw-dock .ds-search-input::placeholder{color:var(--mute)}
+.tmw-dock .ds-search-btn{width:36px;height:36px;border:0;background:transparent;
+  color:var(--purple-glow);border-radius:50%;display:flex;align-items:center;justify-content:center;
+  transition:background .2s}
+.tmw-dock .ds-search-btn:hover{background:rgba(167,139,250,.14)}
+.tmw-dock .ds-search-btn svg{width:18px;height:18px}
 
-  /* ─── LIGHTBOX ───────────────────────────────────────────────────── */
-  .scrim{
-    position:fixed;inset:0;background:rgba(8,8,11,.5);backdrop-filter:blur(2px);
-    z-index:90;opacity:0;pointer-events:none;transition:opacity .35s ease;
-  }
-  .scrim.open{opacity:1;pointer-events:auto}
-  /* on map context, scrim is more transparent so cited markers shine through */
-  .ctx-map .scrim{background:rgba(8,8,11,.35)}
+/* ═══ THE LIGHTBOX ═══════════════════════════════════════════════════ */
+.lb-scrim{position:fixed;inset:0;background:rgba(7,8,7,.82);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  z-index:90;opacity:0;pointer-events:none;transition:opacity .35s ease}
+.lb-scrim.open{opacity:1;pointer-events:auto}
 
-  .lightbox{
-    position:fixed;left:50%;bottom:80px;transform:translate(-50%, 30px);
-    width:min(720px, calc(100vw - 32px));max-height:min(78vh, 720px);
-    background:linear-gradient(180deg, rgba(22,22,28,.96), rgba(14,14,18,.96));
-    backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);
-    border:1px solid rgba(201,168,106,.25);border-radius:22px;
-    box-shadow:0 40px 80px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.02) inset;
-    z-index:100;opacity:0;pointer-events:none;
-    transition:opacity .35s ease, transform .4s cubic-bezier(.2,.9,.3,1.05);
-    display:flex;flex-direction:column;overflow:hidden;
-  }
-  .lightbox.open{opacity:1;pointer-events:auto;transform:translate(-50%, 0)}
+.lb{position:fixed;inset:0;z-index:100;display:flex;flex-direction:column;
+  pointer-events:none;opacity:0;transition:opacity .3s ease}
+.lb.open{opacity:1;pointer-events:auto}
 
-  .lb-head{
-    display:flex;align-items:center;gap:10px;padding:18px 22px 0;
-  }
-  .lb-head .hex{
-    width:28px;height:28px;display:flex;align-items:center;justify-content:center;
-    background:linear-gradient(180deg,var(--gold),#a8884b);clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%);
-  }
-  .lb-head .hex svg{width:14px;height:14px;color:#1a1408}
-  .lb-head .title{font-family:'New York',serif;font-size:15px;letter-spacing:.04em}
-  .lb-head .title b{color:var(--gold)}
-  .lb-head .ctx-pill{
-    margin-left:auto;font-size:11px;letter-spacing:.14em;text-transform:uppercase;
-    color:var(--ink-dim);background:rgba(255,255,255,.04);padding:4px 10px;border-radius:999px;
-    border:1px solid var(--rule);
-  }
-  .lb-head .close{background:transparent;border:0;color:var(--ink-dim);font-size:22px;cursor:pointer;padding:4px 8px;line-height:1}
-  .lb-head .close:hover{color:var(--ink)}
+/* Top bar inside the overlay: hex mark, label, close — keeps you oriented */
+.lb-top{display:flex;align-items:center;gap:12px;padding:18px 26px;
+  background:linear-gradient(180deg,rgba(7,8,7,.5),transparent);}
+.lb-top .hexmark{width:30px;height:30px;display:flex;align-items:center;justify-content:center}
+.lb-top .hexmark svg{width:100%;height:100%;overflow:visible}
+.lb-top .title{font-family:var(--serif);font-size:15px;color:var(--purple-glow);letter-spacing:.04em}
+.lb-top .title b{color:var(--white);font-weight:600}
+.lb-top .ctx{margin-left:auto;font-family:var(--sans);font-size:10px;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--mute);padding:5px 11px;background:rgba(255,255,255,.04);
+  border:1px solid var(--hair);border-radius:999px}
+.lb-top .close{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.04);
+  border:1px solid var(--hair);color:var(--mute-2);display:flex;align-items:center;justify-content:center;
+  font-size:20px;line-height:1;transition:all .2s}
+.lb-top .close:hover{color:var(--white);border-color:var(--hair-3);background:rgba(255,255,255,.08)}
 
-  .lb-input{padding:14px 22px 18px;position:relative}
-  .lb-input input{
-    width:100%;background:transparent;border:0;border-bottom:1px solid var(--rule-soft);
-    color:var(--ink);font:inherit;font-family:'New York',serif;font-size:24px;
-    padding:8px 0;outline:none;
-  }
-  .lb-input input::placeholder{color:var(--ink-dim);font-style:italic}
-  .lb-input input:focus{border-bottom-color:var(--gold)}
+/* Hexagon spin — exact copy of /search/index.html .hxs animations
+   so the mark feels identical to the live Intelligence panel */
+.hxs{overflow:visible}
+.hxs-spin{transform-origin:50% 50%;animation:hxsSpin 4.2s cubic-bezier(.16,1,.3,1) infinite}
+.hxs-core{transform-origin:50% 50%;animation:hxsPulse 4.2s ease-in-out infinite}
+.hxs-ring{transform-origin:50% 50%;animation:hxsRing 4.2s ease-out infinite}
+@keyframes hxsSpin{0%{transform:rotate(0)}55%{transform:rotate(810deg)}70%{transform:rotate(900deg)}100%{transform:rotate(1080deg)}}
+@keyframes hxsPulse{0%,45%{stroke:#A78BFA}70%{stroke:#E9DEFF}100%{stroke:#A78BFA}}
+@keyframes hxsRing{0%,60%{transform:scale(1);opacity:0}72%{opacity:.5}100%{transform:scale(1.7);opacity:0}}
 
-  .lb-suggest{padding:0 22px 18px;display:flex;flex-wrap:wrap;gap:6px}
-  .lb-suggest .chip{
-    font-size:12px;color:var(--ink-soft);background:rgba(255,255,255,.03);
-    border:1px solid var(--rule-soft);padding:6px 10px;border-radius:999px;cursor:pointer;
-  }
-  .lb-suggest .chip:hover{border-color:var(--gold);color:var(--ink)}
+/* Results scroll region — fills the space between top bar and search bar */
+.lb-body{flex:1;overflow-y:auto;padding:8px 0 200px;-webkit-overflow-scrolling:touch}
+.lb-body::-webkit-scrollbar{width:8px}
+.lb-body::-webkit-scrollbar-track{background:transparent}
+.lb-body::-webkit-scrollbar-thumb{background:rgba(255,255,255,.08);border-radius:4px}
 
-  .lb-body{padding:4px 22px 22px;overflow-y:auto;flex:1;display:none}
-  .lb-body.show{display:block}
+.lb-wrap{max-width:1080px;margin:0 auto;padding:0 22px}
 
-  /* loading caterpillar */
-  .lb-loading{display:flex;align-items:center;gap:10px;padding:10px 0;color:var(--ink-dim);font-size:13px;letter-spacing:.06em;text-transform:uppercase}
-  .lb-loading .dots{display:inline-flex;gap:4px}
-  .lb-loading .dots span{width:6px;height:6px;border-radius:50%;background:var(--gold);animation:bounce 1.2s infinite}
-  .lb-loading .dots span:nth-child(2){animation-delay:.15s}
-  .lb-loading .dots span:nth-child(3){animation-delay:.3s}
-  @keyframes bounce{0%,100%{transform:translateY(0);opacity:.4}50%{transform:translateY(-4px);opacity:1}}
+/* — Empty / starter state (before any query) — */
+.lb-starter{padding:48px 0 24px;text-align:center}
+.lb-starter .eyebrow{font-family:var(--sans);font-size:10px;letter-spacing:.22em;
+  text-transform:uppercase;color:var(--purple-glow);margin-bottom:14px;font-weight:700}
+.lb-starter h2{font-family:var(--serif);font-size:32px;color:var(--white);max-width:18ch;margin:0 auto 8px}
+.lb-starter p{color:var(--mute);font-size:14px;max-width:42ch;margin:0 auto 32px}
+.lb-chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;max-width:680px;margin:0 auto}
+.lb-chip{font-family:var(--sans);font-size:12.5px;color:var(--cream);
+  background:rgba(167,139,250,.08);border:1px solid rgba(167,139,250,.25);
+  padding:9px 14px;border-radius:999px;cursor:pointer;transition:all .2s}
+.lb-chip:hover{background:rgba(167,139,250,.16);border-color:var(--purple);color:var(--white)}
+.lb-chip-sep{display:flex;align-items:center;gap:14px;margin:36px auto 18px;max-width:300px;
+  font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--mute)}
+.lb-chip-sep::before,.lb-chip-sep::after{content:'';flex:1;height:1px;background:var(--hair)}
 
-  .lb-answer{
-    font-family:'New York',serif;font-size:18px;line-height:1.55;color:var(--ink);
-    border-left:2px solid var(--gold);padding:2px 0 2px 16px;margin:8px 0 16px;
-  }
-  .lb-answer mark{background:rgba(201,168,106,.18);color:var(--gold-soft);padding:0 3px;border-radius:3px}
+/* ─── TMW INTELLIGENCE panel (matches .intel in /search/ exactly) ─── */
+.section{margin-bottom:34px}
+.intel{position:relative;border:1px solid rgba(167,139,250,.30);border-radius:18px;
+  padding:24px 26px 22px;
+  background:radial-gradient(130% 150% at 0% 0%,rgba(167,139,250,.14),transparent 55%),
+             linear-gradient(180deg,var(--panel-2),var(--panel));
+  box-shadow:0 22px 60px rgba(0,0,0,.5)}
+.intel::before{content:"";position:absolute;inset:-1px;border-radius:18px;padding:1px;pointer-events:none;
+  background:conic-gradient(from 210deg,rgba(167,139,250,0) 0deg,rgba(167,139,250,0) 250deg,#A78BFA 320deg,#E9DEFF 350deg,rgba(167,139,250,0) 360deg);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;mask-composite:exclude}
+.intel-h{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.intel-spark{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;
+  background:rgba(167,139,250,.16);color:var(--purple-glow);box-shadow:0 0 16px rgba(167,139,250,.45)}
+.intel-spark svg{width:18px;height:18px}
+.intel-h .lbl{font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:.22em;
+  text-transform:uppercase;color:var(--purple-glow)}
+.intel-h .live{margin-left:auto;display:flex;align-items:center;gap:7px;font-size:10px;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--mute)}
+.intel-h .live i{width:6px;height:6px;border-radius:50%;background:var(--purple-glow);
+  box-shadow:0 0 8px var(--purple-glow);font-style:normal}
+.intel-ans{font-family:var(--serif);font-size:19px;line-height:1.55;color:#fff;font-weight:400;max-width:68ch}
+.intel-ans .hl{color:var(--purple-glow);font-weight:600}
+.intel-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:22px;
+  padding-top:20px;border-top:1px solid rgba(167,139,250,.18)}
+.istat .v{font-family:var(--serif);font-size:24px;font-weight:600;color:#fff;letter-spacing:-.02em;line-height:1.1}
+.istat .v .u{font-size:13px;color:var(--purple-glow)}
+.istat .k{font-family:var(--sans);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);margin-top:6px}
 
-  .lb-cites{margin-top:10px}
-  .lb-cites .cite-label{font-size:11px;color:var(--ink-dim);letter-spacing:.14em;text-transform:uppercase;margin-bottom:8px}
-  .lb-cites .cite-row{
-    display:flex;align-items:center;gap:10px;padding:10px 12px;
-    border:1px solid var(--rule);border-radius:10px;margin-bottom:6px;background:rgba(255,255,255,.015);
-    cursor:pointer;transition:border-color .2s, background .2s;
-  }
-  .lb-cites .cite-row:hover{border-color:var(--gold);background:rgba(201,168,106,.04)}
-  .lb-cites .cite-row .num{
-    width:22px;height:22px;flex-shrink:0;font-size:11px;font-weight:700;
-    display:flex;align-items:center;justify-content:center;color:#1a1408;
-    background:var(--gold);border-radius:50%;
-  }
-  .lb-cites .cite-row .meta{flex:1;min-width:0}
-  .lb-cites .cite-row .meta .t{font-size:14px;color:var(--ink);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .lb-cites .cite-row .meta .s{font-size:11px;color:var(--ink-dim);letter-spacing:.04em;margin-top:2px}
-  .lb-cites .cite-row .arrow{color:var(--ink-dim);transition:color .2s, transform .2s}
-  .lb-cites .cite-row:hover .arrow{color:var(--gold);transform:translateX(2px)}
+/* ─── HERO project tile (matches .hero in /search/ exactly) ───────── */
+.section-head{display:flex;align-items:baseline;gap:12px;margin-bottom:16px}
+.section-head h2{font-family:var(--serif);font-size:20px}
+.section-head .count{font-family:var(--sans);font-size:11px;letter-spacing:.1em;color:var(--mute);
+  padding:3px 9px;background:var(--panel);border:1px solid var(--hair);border-radius:999px}
 
-  .lb-foot{
-    padding:14px 22px;border-top:1px solid var(--rule);
-    display:flex;align-items:center;gap:10px;background:rgba(0,0,0,.2);
-  }
-  .lb-foot .ctx-action{font-size:12px;color:var(--ink-dim);margin-right:auto;letter-spacing:.04em}
-  .lb-foot .ctx-action b{color:var(--gold-soft);font-weight:600}
-  .lb-foot .btn{
-    font:inherit;font-size:13px;font-weight:500;padding:8px 14px;border-radius:999px;cursor:pointer;
-    background:transparent;color:var(--ink-soft);border:1px solid var(--rule-soft);
-  }
-  .lb-foot .btn:hover{color:var(--ink);border-color:var(--ink-dim)}
-  .lb-foot .btn.gold{background:var(--gold);color:#1a1408;border-color:var(--gold);font-weight:600}
-  .lb-foot .btn.gold:hover{filter:brightness(1.08)}
+.hero{position:relative;display:grid;grid-template-columns:1.05fr 1fr;background:var(--panel);
+  border:1px solid var(--hair-2);border-radius:20px;overflow:hidden;
+  box-shadow:0 24px 70px rgba(0,0,0,.5)}
+.hero-media{position:relative;min-height:320px;
+  background:linear-gradient(135deg,#1a2018 0%,#0a0c0a 50%,#1a1a20 100%)}
+.hero-media .ph{position:absolute;inset:0;
+  background:radial-gradient(120% 120% at 30% 0%,#23291f,#0a0c0a),
+             linear-gradient(135deg,transparent 40%,rgba(167,139,250,.05) 100%)}
+.hero-media .scrim{position:absolute;inset:0;background:linear-gradient(90deg,transparent 55%,rgba(20,23,20,.85))}
+.hero-media .besttag{position:absolute;top:16px;left:16px;display:inline-flex;align-items:center;gap:7px;
+  font-family:var(--sans);font-size:10px;letter-spacing:.2em;text-transform:uppercase;font-weight:700;
+  color:var(--gold-soft);background:rgba(230,197,116,.1);border:1px solid rgba(230,197,116,.5);
+  padding:6px 13px;border-radius:999px;backdrop-filter:blur(6px);
+  box-shadow:0 0 18px rgba(230,197,116,.45)}
+.hero-body{padding:28px 30px 26px;display:flex;flex-direction:column;gap:14px}
+.hero-chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font-family:var(--sans);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--mute-2);background:var(--panel-2);border:1px solid var(--hair);border-radius:999px;padding:6px 11px}
+.chip.type{color:var(--gold-soft);border-color:rgba(230,197,116,.3)}
+.hero-body h1{font-family:var(--serif);font-size:30px;color:var(--white)}
+.hero-body .loc{font-family:var(--sans);font-size:12px;letter-spacing:.06em;color:var(--mute-2)}
+.hero-desc{color:var(--mute-2);font-size:14px;font-weight:300;line-height:1.55;max-width:48ch}
+.tl-row{display:flex;justify-content:space-between;font-family:var(--sans);font-size:10.5px;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--mute);margin-bottom:8px}
+.tl-status{color:var(--green);font-weight:700}
+.tl-track{position:relative;height:6px;border-radius:999px;background:var(--panel-3)}
+.tl-fill{position:absolute;left:0;top:0;bottom:0;width:62%;border-radius:999px;
+  background:linear-gradient(90deg,#18c75a,var(--green))}
+.tl-dot{position:absolute;top:50%;left:62%;width:13px;height:13px;border-radius:50%;
+  background:#fff;border:3px solid var(--green);transform:translate(-50%,-50%);
+  box-shadow:0 0 0 4px rgba(31,223,103,.2)}
+.hero-cta{display:flex;flex-wrap:wrap;gap:10px;margin-top:auto}
+.btn{display:inline-flex;align-items:center;gap:9px;font-family:var(--sans);font-size:11px;
+  letter-spacing:.12em;text-transform:uppercase;font-weight:700;padding:12px 18px;border-radius:11px;
+  border:1px solid transparent;transition:all .2s}
+.btn.gold{background:var(--gold);color:var(--ink);box-shadow:0 0 22px rgba(230,197,116,.5)}
+.btn.gold:hover{background:var(--gold-soft);transform:translateY(-1px)}
+.btn.ghost{background:transparent;color:var(--cream);border-color:var(--hair-2)}
+.btn.ghost:hover{border-color:var(--hair-3);color:var(--white)}
+.btn svg{width:15px;height:15px}
 
-  /* ─── MAP marker pulses (cited projects light up) ────────────────── */
-  .marker{transition:all .6s ease}
-  .marker.cited circle:first-child{
-    fill:#c9a86a;
-    filter:drop-shadow(0 0 8px rgba(201,168,106,.9));
-    animation:pulseGold 2s ease-in-out infinite;
-  }
-  .marker.cited circle:last-child{stroke:#c9a86a;stroke-width:2;fill:none;opacity:0}
-  .marker.cited circle:last-child{animation:ring 2s ease-out infinite}
-  @keyframes pulseGold{0%,100%{r:7}50%{r:9}}
-  @keyframes ring{
-    0%{r:6;opacity:.9}
-    100%{r:24;opacity:0}
-  }
+/* ─── Smart rows (matches .srow in /search/ exactly) ──────────────── */
+.srows{display:flex;flex-direction:column;gap:9px}
+.srow{display:flex;align-items:center;gap:16px;padding:14px 18px;background:var(--panel);
+  border:1px solid var(--hair);border-radius:13px;transition:border-color .2s, transform .2s;cursor:pointer}
+.srow:hover{border-color:var(--hair-2);transform:translateY(-1px)}
+.srow .rank{flex:0 0 auto;width:24px;font-family:var(--serif);font-size:16px;font-weight:700;color:var(--mute);text-align:center}
+.srow.lead .rank{color:var(--purple-glow)}
+.srow .r-main{flex:1;min-width:0}
+.srow .r-name{font-family:var(--serif);font-size:16px;font-weight:600;color:#fff}
+.srow .r-sub{display:flex;align-items:center;gap:9px;margin-top:4px;font-size:11.5px;color:var(--mute);flex-wrap:wrap}
+.srow .sbadge{display:inline-flex;align-items:center;gap:6px;font-weight:600}
+.srow .sbadge i{width:5px;height:5px;border-radius:50%;font-style:normal}
+.srow .sb-construction{color:var(--gold-soft)}.srow .sb-construction i{background:var(--gold-soft)}
+.srow .sb-soon{color:#FFB86b}.srow .sb-soon i{background:#FF9F45}
+.srow .sb-open{color:var(--green-soft)}.srow .sb-open i{background:var(--green)}
+.srow .dot{width:3px;height:3px;border-radius:50%;background:var(--mute);opacity:.6}
+.srow .r-bar{flex:0 0 130px;height:8px;border-radius:999px;background:rgba(255,255,255,.06);overflow:hidden}
+.srow .r-bar span{display:block;height:100%;background:linear-gradient(90deg,#7c5cf0,var(--purple-glow))}
+.srow .r-metric{flex:0 0 auto;text-align:right;min-width:64px}
+.srow .r-metric .n{font-family:var(--serif);font-size:20px;font-weight:700;color:#fff;line-height:1}
+.srow .r-metric .l{font-family:var(--sans);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);margin-top:3px}
 
-  /* ─── Annotation tooltips (mock-only education layer) ────────────── */
-  .anno{
-    position:fixed;background:rgba(20,16,8,.95);border:1px solid var(--gold);
-    color:var(--gold-soft);font-size:11px;letter-spacing:.06em;text-transform:uppercase;
-    padding:6px 10px;border-radius:6px;z-index:150;pointer-events:none;
-    display:none;
-  }
-  .anno.show{display:block;animation:fadeIn .4s}
-  @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
-  .anno::before{content:'';position:absolute;width:0;height:0;border:6px solid transparent}
-  .anno.up::before{border-top-color:var(--gold);bottom:-12px;left:20px}
-  .anno.down::before{border-bottom-color:var(--gold);top:-12px;left:20px}
+/* ─── BOTTOM-PINNED SEARCH BAR (the marquee element) ──────────────── */
+@property --tmw-ang{syntax:"<angle>";inherits:false;initial-value:0deg}
+@keyframes tmwChase{to{--tmw-ang:360deg}}
 
-  /* ─── Sidebar education callout (visible in map ctx) ─────────────── */
-  .role-callout{
-    position:fixed;left:18px;bottom:84px;width:304px;
-    background:linear-gradient(180deg,rgba(20,16,8,.95),rgba(14,11,5,.95));
-    border:1px solid rgba(201,168,106,.4);border-radius:14px;padding:14px 16px;
-    z-index:90;font-size:12px;
-    transition:opacity .3s;
-  }
-  .role-callout.hide{opacity:0;pointer-events:none}
-  .role-callout h4{font-size:13px;color:var(--gold);margin-bottom:10px;letter-spacing:.04em}
-  .role-callout .row{display:flex;gap:10px;padding:8px 0;border-top:1px solid rgba(201,168,106,.15)}
-  .role-callout .row:first-of-type{border-top:0}
-  .role-callout .row .icon{width:20px;height:20px;flex-shrink:0;color:var(--gold-soft)}
-  .role-callout .row .text{color:var(--ink-soft);line-height:1.4}
-  .role-callout .row .text b{color:var(--ink);display:block;font-size:12px;letter-spacing:.04em;margin-bottom:2px}
+.lb-bar{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);
+  width:min(820px, calc(100vw - 32px));z-index:110}
+.lb-bar-inner{position:relative;display:flex;align-items:center}
+.lb-bar-inner::before{content:"";position:absolute;inset:-2px;border-radius:20px;padding:2px;z-index:0;pointer-events:none;
+  background:conic-gradient(from var(--tmw-ang,0deg),rgba(167,139,250,0) 0deg,rgba(167,139,250,0) 200deg,#A78BFA 300deg,#E9DEFF 340deg,rgba(167,139,250,0) 360deg);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;mask-composite:exclude;
+  animation:tmwChase 3.4s linear infinite}
+.lb-bar .mag{position:absolute;left:24px;width:22px;height:22px;color:var(--purple-glow);pointer-events:none;z-index:2}
+.lb-bar input{position:relative;z-index:1;width:100%;height:72px;padding:0 130px 0 60px;
+  background:rgba(15,17,15,.92);backdrop-filter:blur(20px);
+  border:1px solid rgba(167,139,250,.35);border-radius:18px;color:var(--white);
+  font-family:var(--serif);font-size:24px;outline:none;
+  box-shadow:0 0 38px rgba(167,139,250,.22), 0 22px 60px rgba(0,0,0,.6)}
+.lb-bar input::placeholder{color:var(--mute);font-family:var(--serif);font-style:italic}
+.lb-bar input:focus{border-color:rgba(167,139,250,.65);box-shadow:0 0 48px rgba(167,139,250,.34), 0 22px 60px rgba(0,0,0,.6)}
+.lb-bar .hint{position:absolute;right:74px;font-family:var(--sans);font-size:10px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--mute);padding:4px 9px;border:1px solid var(--hair-2);
+  border-radius:6px;z-index:2;pointer-events:none}
+.lb-bar .go{position:absolute;right:18px;height:48px;width:48px;padding:0;border:0;background:transparent;
+  color:var(--gold);display:flex;align-items:center;justify-content:center;z-index:2;
+  border-radius:50%;transition:transform .2s, background .2s}
+.lb-bar .go:hover{background:rgba(230,197,116,.12);transform:translateX(2px)}
+.lb-bar .go svg{width:24px;height:24px;filter:drop-shadow(0 0 8px rgba(230,197,116,.45))}
 
+/* Loading caterpillar above the bar while smart-answer is thinking */
+.lb-thinking{display:none;align-items:center;gap:12px;padding:18px 0;justify-content:center;
+  font-family:var(--sans);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--mute)}
+.lb-thinking.show{display:flex}
+.lb-thinking .dots{display:inline-flex;gap:5px}
+.lb-thinking .dots span{width:6px;height:6px;border-radius:50%;background:var(--purple-glow);animation:bnc 1.2s infinite}
+.lb-thinking .dots span:nth-child(2){animation-delay:.15s}.lb-thinking .dots span:nth-child(3){animation-delay:.3s}
+@keyframes bnc{0%,100%{transform:translateY(0);opacity:.4}50%{transform:translateY(-4px);opacity:1}}
+
+/* Hide all post-query sections until a query fires */
+.hidden{display:none!important}
+
+/* — Footer scrim under the search bar so input legibility never drops — */
+.lb-bar-shadow{position:fixed;left:0;right:0;bottom:0;height:200px;z-index:99;
+  background:linear-gradient(180deg,transparent,rgba(7,8,7,.6) 30%,rgba(7,8,7,.9));
+  pointer-events:none;opacity:0;transition:opacity .35s}
+.lb-bar-shadow.show{opacity:1}
+
+@media(max-width:760px){
+  .hero{grid-template-columns:1fr}
+  .hero-media{min-height:200px}
+  .lb-bar input{font-size:18px;height:62px;padding-right:64px}
+  .lb-bar .hint{display:none}
+  .srow .r-bar{display:none}
+  .intel-stats{grid-template-columns:repeat(2,1fr)}
+}
 </style>
 </head>
 <body>
 
-<!-- Mockup chrome (not in real product) -->
-<div class="chrome">
-  <div class="logo"><b>TMW</b> Intelligence Lightbox</div>
-  <div class="seg" id="ctxSeg">
-    <button data-ctx="journal" class="on">Journal article</button>
-    <button data-ctx="map">Map</button>
-    <button data-ctx="atlas">Atlas</button>
-  </div>
-  <div class="note">Click "Ask TMW" pill below to trigger</div>
+<!-- Mockup chrome (delete in production) -->
+<div class="mock-tip">Click <b>Ask TMW</b> in the dock, or press <b>/</b></div>
+<div class="mock-chrome" id="ctxSeg">
+  <button data-ctx="journal" class="on">Journal</button>
+  <button data-ctx="map">Map</button>
+  <button data-ctx="atlas">Atlas</button>
 </div>
 
-<!-- Stage: fake page underneath -->
+<!-- ─── FAKE PAGES (stage underneath) ──────────────────────────────── -->
 <div class="stage" id="stage">
 
-  <!-- JOURNAL FAKE PAGE -->
-  <div class="page-journal page" data-page="journal">
+  <!-- Journal article fake -->
+  <div data-page="journal" class="j-page">
     <div class="kicker">Field Note · Miami · June 7, 2026</div>
-    <h1 class="lede">Wynwood's quiet pivot from murals to mixed-use</h1>
-    <div class="byline">Markets of Tomorrow — Editorial</div>
+    <h1>Wynwood's quiet pivot from murals to mixed-use</h1>
+    <div class="byl">Markets of Tomorrow — Editorial</div>
     <p>Four years after the neighborhood's mural boom drew global attention, Wynwood is in the middle of a less photogenic but more durable transformation. Developers who once optioned single lots for low-rise galleries are now stitching together half-block assemblages for residential towers in the 12-to-25-story range.</p>
-    <p>The shift is partly mechanical — Miami 21 zoning rewards density along the corridor — and partly cultural. Tenants who came for studios are staying for headquarters. The buildings going up reflect that: ground-floor retail tuned for daytime traffic, amenity decks tuned for hybrid workers, and unit mixes weighted toward two-bedrooms instead of pied-à-terres.</p>
+    <p>The shift is partly mechanical — Miami 21 zoning rewards density along the corridor — and partly cultural. Tenants who came for studios are staying for headquarters. The buildings going up reflect that: ground-floor retail tuned for daytime traffic, amenity decks tuned for hybrid workers, and unit mixes weighted toward two-bedrooms.</p>
     <p class="pull">The block between NW 24th and 25th Streets has changed hands three times since 2022, each transaction trading a smaller floorplate for taller entitlements.</p>
     <p>What's harder to read from the renderings is which of these projects will actually break ground in 2026. Capital costs have softened plans elsewhere in Miami; Wynwood's land basis has not.</p>
   </div>
 
-  <!-- ATLAS FAKE PAGE -->
-  <div class="page-atlas page" data-page="atlas" style="display:none">
-    <div class="kicker" style="color:var(--gold);font-size:12px;letter-spacing:.18em;text-transform:uppercase;margin-bottom:10px">The Atlas</div>
-    <h1 class="lede">Firms of Tomorrow</h1>
-    <div class="sub">Architects, developers, and operators building the next decade of the urban South.</div>
-    <div class="grid">
-      <div class="card"><div><div class="firm">Arquitectonica</div><div class="meta">Architect · Miami, FL</div></div><div class="pc">28 projects tracked</div></div>
-      <div class="card"><div><div class="firm">Related Group</div><div class="meta">Developer · Miami, FL</div></div><div class="pc">41 projects tracked</div></div>
-      <div class="card"><div><div class="firm">Kobi Karp</div><div class="meta">Architect · Miami, FL</div></div><div class="pc">19 projects tracked</div></div>
-      <div class="card"><div><div class="firm">Terra Group</div><div class="meta">Developer · Coconut Grove, FL</div></div><div class="pc">14 projects tracked</div></div>
-      <div class="card"><div><div class="firm">Cooper Carry</div><div class="meta">Architect · Atlanta, GA</div></div><div class="pc">22 projects tracked</div></div>
-      <div class="card"><div><div class="firm">Portman Holdings</div><div class="meta">Developer · Atlanta, GA</div></div><div class="pc">17 projects tracked</div></div>
-      <div class="card"><div><div class="firm">Selldorf Architects</div><div class="meta">Architect · New York, NY</div></div><div class="pc">8 projects tracked</div></div>
-      <div class="card"><div><div class="firm">Genesis Capital</div><div class="meta">Developer · Charlotte, NC</div></div><div class="pc">11 projects tracked</div></div>
+  <!-- Map fake -->
+  <div data-page="map" class="hidden">
+    <div class="m-stage">
+      <svg viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice">
+        <defs>
+          <pattern id="g" width="80" height="80" patternUnits="userSpaceOnUse">
+            <path d="M80 0 L0 0 0 80" fill="none" stroke="#181b22" stroke-width="1"/>
+          </pattern>
+        </defs>
+        <rect width="1600" height="900" fill="#11131a"/>
+        <rect width="1600" height="900" fill="url(#g)"/>
+        <g stroke="#1e2230" stroke-width="2" opacity=".8">
+          <line x1="0" y1="260" x2="1600" y2="270"/>
+          <line x1="0" y1="440" x2="1600" y2="460"/>
+          <line x1="0" y1="640" x2="1600" y2="660"/>
+          <line x1="380" y1="0" x2="400" y2="900"/>
+          <line x1="700" y1="0" x2="720" y2="900"/>
+          <line x1="1020" y1="0" x2="1040" y2="900"/>
+          <line x1="1340" y1="0" x2="1360" y2="900"/>
+        </g>
+        <text x="800" y="200" text-anchor="middle" fill="#2a2d38" font-family="Fraunces,serif" font-size="38" letter-spacing="8">MIAMI · WYNWOOD</text>
+        <!-- Markers -->
+        <g fill="#1FDF67" stroke="#0d1812" stroke-width="2">
+          <circle cx="540" cy="380" r="8"/>
+          <circle cx="680" cy="420" r="8"/>
+          <circle cx="780" cy="360" r="8"/>
+          <circle cx="900" cy="480" r="8"/>
+          <circle cx="1020" cy="440" r="8"/>
+          <circle cx="1160" cy="500" r="8"/>
+          <circle cx="620" cy="560" r="8"/>
+          <circle cx="860" cy="620" r="8"/>
+          <circle cx="1080" cy="640" r="8"/>
+        </g>
+      </svg>
     </div>
-  </div>
-
-  <!-- MAP FAKE PAGE -->
-  <div class="page-map" data-page="map" style="display:none">
-    <div class="sidebar">
-      <div class="label">Find on map</div>
+    <div class="m-side">
+      <div class="lbl">Find on map</div>
       <div class="findbar">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
         <input type="text" placeholder="towers in Wynwood…">
       </div>
-      <div class="helper"><b>Find / Explore</b> — filters markers and flies the camera. For semantic questions (<i>"what happened to…"</i>), tap <b>Ask TMW</b> in the dock instead.</div>
-      <div class="label" style="margin-top:18px">Filters</div>
-      <div class="filter"><span>Status</span><span>All</span></div>
-      <div class="filter"><span>Type</span><span>All</span></div>
-      <div class="filter"><span>Market</span><span>Miami</span></div>
-      <div class="filter"><span>Architect</span><span>Any</span></div>
-      <div class="filter"><span>Developer</span><span>Any</span></div>
+      <div class="helper"><b>Explore</b> — filters pins and flies the camera. For "what / why / how" questions, use <b>Ask TMW</b> in the dock.</div>
+      <div class="filt"><span>Status</span><span>All</span></div>
+      <div class="filt"><span>Type</span><span>All</span></div>
+      <div class="filt"><span>Market</span><span>Miami</span></div>
+      <div class="filt"><span>Architect</span><span>Any</span></div>
     </div>
+  </div>
 
-    <div class="mapwrap">
-      <!-- Fake Mapbox-style canvas -->
-      <svg viewBox="0 0 1000 700" preserveAspectRatio="xMidYMid slice">
-        <defs>
-          <pattern id="grid" width="80" height="80" patternUnits="userSpaceOnUse">
-            <path d="M 80 0 L 0 0 0 80" fill="none" stroke="#1a1c24" stroke-width="1"/>
-          </pattern>
-          <radialGradient id="hoodGlow" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stop-color="#2a2820" stop-opacity=".5"/>
-            <stop offset="100%" stop-color="#13141a" stop-opacity="0"/>
-          </radialGradient>
-        </defs>
-        <rect width="1000" height="700" fill="#13141a"/>
-        <rect width="1000" height="700" fill="url(#grid)"/>
+  <!-- Atlas fake -->
+  <div data-page="atlas" class="a-page hidden">
+    <div class="kicker">The Atlas</div>
+    <h1>Firms of Tomorrow</h1>
+    <div class="sub">Architects, developers, and operators building the next decade of the urban South.</div>
+    <div class="agrid">
+      <div class="a-card"><div><div class="nm">Arquitectonica</div><div class="meta">Architect · Miami, FL</div></div><div class="pc">28 projects tracked</div></div>
+      <div class="a-card"><div><div class="nm">Related Group</div><div class="meta">Developer · Miami, FL</div></div><div class="pc">41 projects tracked</div></div>
+      <div class="a-card"><div><div class="nm">Kobi Karp</div><div class="meta">Architect · Miami, FL</div></div><div class="pc">19 projects tracked</div></div>
+      <div class="a-card"><div><div class="nm">Terra Group</div><div class="meta">Developer · Coconut Grove, FL</div></div><div class="pc">14 projects tracked</div></div>
+      <div class="a-card"><div><div class="nm">Cooper Carry</div><div class="meta">Architect · Atlanta, GA</div></div><div class="pc">22 projects tracked</div></div>
+      <div class="a-card"><div><div class="nm">Portman Holdings</div><div class="meta">Developer · Atlanta, GA</div></div><div class="pc">17 projects tracked</div></div>
+      <div class="a-card"><div><div class="nm">Sansone Group</div><div class="meta">Developer · St. Louis, MO</div></div><div class="pc">9 projects tracked</div></div>
+      <div class="a-card"><div><div class="nm">Crescent Communities</div><div class="meta">Developer · Charlotte, NC</div></div><div class="pc">11 projects tracked</div></div>
+    </div>
+  </div>
+</div>
 
-        <!-- Fake road grid (Wynwood-ish) -->
-        <g stroke="#1f2230" stroke-width="2" opacity=".7">
-          <line x1="0" y1="180" x2="1000" y2="200"/>
-          <line x1="0" y1="340" x2="1000" y2="360"/>
-          <line x1="0" y1="500" x2="1000" y2="520"/>
-          <line x1="220" y1="0" x2="240" y2="700"/>
-          <line x1="440" y1="0" x2="460" y2="700"/>
-          <line x1="660" y1="0" x2="680" y2="700"/>
-          <line x1="860" y1="0" x2="880" y2="700"/>
+<!-- ─── DOCK (entry point) ─────────────────────────────────────────── -->
+<div class="tmw-dock" id="dock">
+  <div class="ico" title="Map"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l-6 3V6l6-3 6 3 6-3v15l-6 3-6-3z"/><path d="M9 3v15M15 6v15"/></svg></div>
+  <input type="text" class="ds-search-input" id="dockInput" placeholder="Search or ask TMW…" autocomplete="off">
+  <button class="ds-search-btn" id="dockOpen" title="Open TMW Intelligence">
+    <!-- hex spinner mark -->
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+      <polygon points="12,4 18.93,8 18.93,16 12,20 5.07,16 5.07,8"/>
+      <circle cx="12" cy="12" r="2.5" fill="currentColor"/>
+    </svg>
+  </button>
+  <div class="ico" title="Journal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5.2A1.2 1.2 0 0 1 4.2 4H10a2 2 0 0 1 2 2 2 2 0 0 1 2-2h5.8A1.2 1.2 0 0 1 21 5.2v12.6a1 1 0 0 1-1 1h-6a2 2 0 0 0-2 2 2 2 0 0 0-2-2H4a1 1 0 0 1-1-1z"/><path d="M12 6v14"/></svg></div>
+</div>
+
+<!-- ─── LIGHTBOX OVERLAY ───────────────────────────────────────────── -->
+<div class="lb-scrim" id="scrim"></div>
+<div class="lb-bar-shadow" id="barShadow"></div>
+
+<div class="lb" id="lb" role="dialog" aria-label="TMW Search">
+  <div class="lb-top">
+    <div class="hexmark">
+      <svg class="hxs" viewBox="0 0 100 100">
+        <g class="hxs-spin">
+          <polygon class="hxs-core" points="50,8 86,29 86,71 50,92 14,71 14,29" fill="none" stroke="#A78BFA" stroke-width="3" stroke-linejoin="round"/>
         </g>
-
-        <!-- Neighborhood blob -->
-        <ellipse cx="500" cy="340" rx="380" ry="220" fill="url(#hoodGlow)"/>
-        <text x="500" y="120" text-anchor="middle" fill="#3a3a44" font-family="New York,serif" font-size="32" letter-spacing="6">WYNWOOD</text>
-
-        <!-- Project markers -->
-        <g id="markers">
-          <g class="marker" data-id="p1" transform="translate(310,260)">
-            <circle r="7" fill="#888da0"/>
-            <circle r="6" fill="none"/>
-          </g>
-          <g class="marker" data-id="p2" transform="translate(420,310)">
-            <circle r="7" fill="#888da0"/>
-            <circle r="6" fill="none"/>
-          </g>
-          <g class="marker" data-id="p3" transform="translate(490,290)">
-            <circle r="7" fill="#888da0"/>
-            <circle r="6" fill="none"/>
-          </g>
-          <g class="marker" data-id="p4" transform="translate(560,360)">
-            <circle r="7" fill="#888da0"/>
-            <circle r="6" fill="none"/>
-          </g>
-          <g class="marker" data-id="p5" transform="translate(640,300)">
-            <circle r="7" fill="#888da0"/>
-            <circle r="6" fill="none"/>
-          </g>
-          <g class="marker" data-id="p6" transform="translate(700,420)">
-            <circle r="7" fill="#888da0"/>
-            <circle r="6" fill="none"/>
-          </g>
-          <g class="marker" data-id="p7" transform="translate(380,440)">
-            <circle r="7" fill="#888da0"/>
-            <circle r="6" fill="none"/>
-          </g>
-          <g class="marker" data-id="p8" transform="translate(540,460)">
-            <circle r="7" fill="#888da0"/>
-            <circle r="6" fill="none"/>
-          </g>
-          <g class="marker" data-id="p9" transform="translate(800,260)">
-            <circle r="7" fill="#888da0"/>
-            <circle r="6" fill="none"/>
-          </g>
-          <g class="marker" data-id="p10" transform="translate(250,500)">
-            <circle r="7" fill="#888da0"/>
-            <circle r="6" fill="none"/>
-          </g>
-        </g>
+        <circle class="hxs-ring" cx="50" cy="50" r="28" fill="none" stroke="#A78BFA" stroke-width="2" opacity="0"/>
       </svg>
     </div>
-
-    <div class="role-callout" id="roleCallout">
-      <h4>Two searches, two jobs</h4>
-      <div class="row">
-        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
-        <div class="text"><b>Sidebar search · Explore</b>Filter markers, fly the camera. Stays as-is.</div>
-      </div>
-      <div class="row">
-        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 22 8 22 16 12 22 2 16 2 8 12 2"/></svg>
-        <div class="text"><b>Ask TMW pill · Intelligence</b>Universal Q&amp;A. On map, cited projects glow.</div>
-      </div>
-    </div>
-  </div>
-
-</div>
-
-<!-- Dock (real component, lightly mocked) -->
-<div class="dock">
-  <div class="ico" title="Home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8v10a2 2 0 0 1-2 2h-4v-7h-6v7H5a2 2 0 0 1-2-2z"/></svg></div>
-  <div class="ico" title="Map"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21 3 6"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg></div>
-  <div class="ico" title="Atlas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h12a4 4 0 0 1 4 4v12H8a4 4 0 0 1-4-4z"/><path d="M4 4v12a4 4 0 0 0 4 4"/></svg></div>
-  <button class="ask" id="askPill">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 22 8 22 16 12 22 2 16 2 8 12 2"/></svg>
-    Ask TMW
-  </button>
-  <div class="ico" title="Journal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h14v16H6a2 2 0 0 1-2-2z"/><line x1="8" y1="9" x2="14" y2="9"/><line x1="8" y1="13" x2="14" y2="13"/></svg></div>
-  <div class="ico" title="Profile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></div>
-</div>
-
-<!-- Scrim -->
-<div class="scrim" id="scrim"></div>
-
-<!-- Lightbox -->
-<div class="lightbox" id="lightbox" role="dialog" aria-label="TMW Intelligence">
-  <div class="lb-head">
-    <div class="hex"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="6"/><path d="M20 20l-3.5-3.5"/></svg></div>
-    <div class="title"><b>TMW</b> Intelligence</div>
-    <div class="ctx-pill" id="ctxPill">on Journal</div>
-    <button class="close" id="closeLb" aria-label="Close">×</button>
-  </div>
-
-  <div class="lb-input">
-    <input type="text" id="lbInput" placeholder="Ask about the urban South…" autocomplete="off">
-  </div>
-
-  <div class="lb-suggest" id="lbSuggest">
-    <div class="chip">What happened to Juliana's Pizza in the Nora District?</div>
-    <div class="chip">Tallest towers under construction in the Carolinas</div>
-    <div class="chip">Which Arquitectonica projects break ground in 2026?</div>
-    <div class="chip">Wynwood projects with ground-floor retail</div>
+    <div class="title"><b>TMW</b> Intelligence &amp; Search</div>
+    <div class="ctx" id="ctxPill">on Journal</div>
+    <button class="close" id="lbClose" aria-label="Close">×</button>
   </div>
 
   <div class="lb-body" id="lbBody">
-    <div class="lb-loading" id="lbLoading">
-      <div class="dots"><span></span><span></span><span></span></div>
-      <div>TMW is thinking</div>
-    </div>
+    <div class="lb-wrap">
 
-    <div id="lbAnswer" style="display:none">
-      <div class="lb-answer" id="answerText"></div>
-
-      <div class="lb-cites" id="lbCites">
-        <div class="cite-label">Sources <span id="citeCount"></span></div>
-        <div id="citeRows"></div>
+      <!-- STARTER state: shown before any query is entered -->
+      <div class="lb-starter" id="starter">
+        <div class="eyebrow">Search · Ask · Explore</div>
+        <h2>What do you want to know about the urban South?</h2>
+        <p>Find any project, firm, or city — or ask TMW Intelligence a question in plain English.</p>
+        <div class="lb-chips">
+          <button class="lb-chip" data-q="What happened to Juliana's Pizza in the Nora District?">What happened to Juliana's Pizza in the Nora District?</button>
+          <button class="lb-chip" data-q="Tallest towers under construction in the Carolinas">Tallest towers under construction in the Carolinas</button>
+          <button class="lb-chip" data-q="Which Arquitectonica projects break ground in 2026?">Which Arquitectonica projects break ground in 2026?</button>
+        </div>
+        <div class="lb-chip-sep">Or jump to</div>
+        <div class="lb-chips">
+          <button class="lb-chip" data-q="1428 Brickell">1428 Brickell</button>
+          <button class="lb-chip" data-q="Foster + Partners">Foster + Partners</button>
+          <button class="lb-chip" data-q="Wynwood">Wynwood</button>
+          <button class="lb-chip" data-q="Sansone Group">Sansone Group</button>
+        </div>
       </div>
-    </div>
-  </div>
 
-  <div class="lb-foot">
-    <div class="ctx-action" id="ctxAction">8 results across the journal &amp; map</div>
-    <button class="btn" id="openSearch">Full search</button>
-    <button class="btn gold" id="openMap">Show on map</button>
+      <!-- Thinking state -->
+      <div class="lb-thinking" id="thinking">
+        <div class="dots"><span></span><span></span><span></span></div>
+        <span>TMW Intelligence is reading the journal</span>
+      </div>
+
+      <!-- INTELLIGENCE answer panel -->
+      <section class="section hidden" id="intelSection">
+        <div class="intel">
+          <div class="intel-h">
+            <div class="intel-spark">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12,3 21,8.5 21,15.5 12,21 3,15.5 3,8.5"/></svg>
+            </div>
+            <div class="lbl">TMW Intelligence</div>
+            <div class="live"><i></i> Reading the journal</div>
+          </div>
+          <div class="intel-ans" id="intelAns"></div>
+          <div class="intel-stats" id="intelStats"></div>
+        </div>
+      </section>
+
+      <!-- HERO project card -->
+      <section class="section hidden" id="heroSection">
+        <div class="hero" id="heroCard"></div>
+      </section>
+
+      <!-- Smart rows: ranked matches -->
+      <section class="section hidden" id="rowsSection">
+        <div class="section-head"><h2 id="rowsTitle">Top matches</h2><span class="count" id="rowsCount"></span></div>
+        <div class="srows" id="rows"></div>
+      </section>
+
+    </div>
   </div>
 </div>
 
-<!-- Annotation -->
-<div class="anno up" id="anno">Cited projects glow on the map behind</div>
+<!-- ─── BOTTOM-PINNED SEARCH BAR (always at the bottom of the overlay) ── -->
+<div class="lb-bar hidden" id="lbBar">
+  <div class="lb-bar-inner">
+    <svg class="mag" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/>
+    </svg>
+    <input id="lbInput" type="search" autocomplete="off" placeholder="Ask TMW Intelligence…">
+    <span class="hint">Esc to close</span>
+    <button class="go" id="lbGo" aria-label="Search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+    </button>
+  </div>
+</div>
 
 <script>
-  // ─── State ─────────────────────────────────────────────────────────
-  let ctx = 'journal';
+'use strict';
 
-  const ANSWERS = {
-    "juliana": {
-      text: "Juliana's Pizza closed its <mark>Nora District</mark> location in March 2025 after the building's owner declined to renew the lease. Markets of Tomorrow covered the closure as part of a wider piece on the district's quiet shift from independent F&amp;B toward national operators backed by Sansone Group's mixed-use plans.",
-      cites: [
-        {n:1, t:"Juliana's exits Nora as Sansone reshapes the district", s:"Journal · Mar 2025", id:"p3"},
-        {n:2, t:"Sansone Group · Developer of Tomorrow", s:"Atlas · Firm profile", id:"p3"},
-        {n:3, t:"Nora District revitalization plan", s:"Map · Mixed-use · St. Louis", id:"p4"}
-      ],
-      results: "3 results — 1 article, 1 firm, 1 project"
+// ─── Context (journal / map / atlas) ────────────────────────────────
+let ctx = 'journal';
+document.getElementById('ctxSeg').addEventListener('click', e => {
+  const b = e.target.closest('button[data-ctx]');
+  if (!b) return;
+  [...e.currentTarget.children].forEach(x => x.classList.toggle('on', x === b));
+  ctx = b.dataset.ctx;
+  document.querySelectorAll('[data-page]').forEach(el => el.classList.toggle('hidden', el.dataset.page !== ctx));
+  document.getElementById('ctxPill').textContent = 'on ' + ctx.charAt(0).toUpperCase() + ctx.slice(1);
+  // Bar placeholder shifts per context (subtle but it tells the user this surface is aware)
+  const ph = {journal:'Ask TMW Intelligence…', map:'Ask about what you\'re looking at…', atlas:'Ask about a firm or city…'};
+  document.getElementById('lbInput').placeholder = ph[ctx];
+});
+
+// ─── Open / close ──────────────────────────────────────────────────
+const lb = document.getElementById('lb'), scrim = document.getElementById('scrim'),
+      bar = document.getElementById('lbBar'), shadow = document.getElementById('barShadow'),
+      dock = document.getElementById('dock'), inp = document.getElementById('lbInput');
+
+function open(){
+  lb.classList.add('open'); scrim.classList.add('open');
+  bar.classList.remove('hidden'); shadow.classList.add('show');
+  dock.classList.add('hide');
+  setTimeout(() => inp.focus(), 150);
+}
+function close(){
+  lb.classList.remove('open'); scrim.classList.remove('open');
+  bar.classList.add('hidden'); shadow.classList.remove('show');
+  dock.classList.remove('hide');
+  // Reset
+  setTimeout(() => {
+    inp.value = '';
+    document.getElementById('starter').classList.remove('hidden');
+    document.getElementById('thinking').classList.remove('show');
+    document.getElementById('intelSection').classList.add('hidden');
+    document.getElementById('heroSection').classList.add('hidden');
+    document.getElementById('rowsSection').classList.add('hidden');
+    document.getElementById('lbBody').scrollTop = 0;
+  }, 350);
+}
+document.getElementById('dockOpen').addEventListener('click', open);
+document.getElementById('dockInput').addEventListener('focus', open);
+document.getElementById('lbClose').addEventListener('click', close);
+scrim.addEventListener('click', close);
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && lb.classList.contains('open')) close();
+  else if (e.key === '/' && !lb.classList.contains('open') && document.activeElement.tagName !== 'INPUT') {
+    e.preventDefault(); open();
+  }
+});
+
+// ─── Canned answers (replace with /smart-answer worker call) ───────
+const ANSWERS = {
+  juliana: {
+    isQuestion: true,
+    answer: 'Juliana\'s Pizza closed its <span class="hl">Nora District</span> location in March 2025 after the building\'s owner declined to renew the lease — first reported by Markets of Tomorrow as part of broader coverage on Sansone Group\'s mixed-use plans for the corridor.',
+    stats: [
+      {v:'1', k:'Journal story'},
+      {v:'1', k:'Developer profile'},
+      {v:'3', k:'Adjacent projects'},
+      {v:'<span class="u">Mar</span> 2025', k:'Event date'}
+    ],
+    hero: {
+      type:'Article', tag:'Top match',
+      title:'Juliana\'s exits Nora as Sansone reshapes the district',
+      loc:'St. Louis · Nora District · Published Mar 2025',
+      desc:'After fourteen years on the corner of Page and Skinker, Juliana\'s Pizza closes ahead of Sansone Group\'s mixed-use redevelopment of the half-block parcel.',
+      status:'Published', statusColor:'green', timelineLabel:'Story', timelineEnds:['Mar 2025','Now']
     },
-    "carolinas": {
-      text: "Markets of Tomorrow currently tracks <mark>no supertall projects under construction in the Carolinas.</mark> The tallest active builds are <mark>The Ellis (35 floors, Charlotte uptown)</mark> and <mark>Innovation Quarter Tower (28 floors, Winston-Salem)</mark>. Both are mixed-use; neither has topped out.",
-      cites: [
-        {n:1, t:"The Ellis · Charlotte, NC", s:"Project · Under construction · 35 floors", id:"p5"},
-        {n:2, t:"Innovation Quarter Tower · Winston-Salem", s:"Project · Under construction · 28 floors", id:"p6"},
-        {n:3, t:"Crescent Communities · Developer of Tomorrow", s:"Atlas · Firm profile", id:"p9"}
-      ],
-      results: "2 projects, 1 firm — gap flagged for editorial"
+    rows: [
+      {rank:1, lead:true, name:'Sansone Group · Nora Corridor Redevelopment', sub:[{cls:'sb-soon',label:'Pre-construction'},'Mixed-use','3 phases'], score:96, metric:{n:'1.2M', l:'SF planned'}},
+      {rank:2, name:'Juliana\'s Pizza · former Nora location', sub:[{cls:'sb-open',label:'Closed'},'F&B','Independent'], score:62, metric:{n:'2010', l:'Opened'}},
+      {rank:3, name:'Nora District · area page', sub:['Neighborhood','St. Louis, MO','11 projects'], score:48, metric:{n:'11', l:'Projects'}}
+    ],
+    rowsTitle:'Sources & related',
+    count:'5 results · 1 article · 1 firm · 3 projects'
+  },
+  carolinas: {
+    isQuestion: true,
+    answer: 'Markets of Tomorrow currently tracks <span class="hl">no supertall projects under construction in the Carolinas.</span> The tallest active builds are <span class="hl">The Ellis</span> (35 floors, Charlotte uptown) and <span class="hl">Innovation Quarter Tower</span> (28 floors, Winston-Salem). Both are mixed-use; neither has topped out.',
+    stats: [
+      {v:'2', k:'Tallest active'},
+      {v:'35', k:'Top floors'},
+      {v:'<span class="u">~</span>410', k:'Top height ft'},
+      {v:'0', k:'Supertalls'}
+    ],
+    hero: {
+      type:'Project', tag:'Tallest active',
+      title:'The Ellis · Uptown Charlotte',
+      loc:'Charlotte, NC · 35 floors · Mixed-use',
+      desc:'Crescent Communities\' uptown tower combines 312 residences with 28K sf of street-level retail, slated to top out in late 2026.',
+      status:'Under Construction', statusColor:'gold', timelineLabel:'Construction', timelineEnds:['Jul 2024','Q4 2026']
     },
-    "arquitectonica": {
-      text: "Five Arquitectonica projects are slated to break ground in 2026 across Miami: <mark>1428 Brickell, Aria Reserve North Tower, Wynwood 27, Park Grove Phase III,</mark> and a still-unnamed Edgewater assemblage on the 600 block of NE 26th Street.",
-      cites: [
-        {n:1, t:"1428 Brickell · Miami, FL", s:"Project · Permitting · 70 floors", id:"p2"},
-        {n:2, t:"Aria Reserve North Tower · Miami, FL", s:"Project · Pre-construction · 62 floors", id:"p5"},
-        {n:3, t:"Wynwood 27 · Miami, FL", s:"Project · Permitting · 27 floors", id:"p3"},
-        {n:4, t:"Park Grove Phase III · Coconut Grove, FL", s:"Project · Pre-construction · 22 floors", id:"p7"},
-        {n:5, t:"Arquitectonica · Architect of Tomorrow", s:"Atlas · 28 projects tracked", id:"p4"}
-      ],
-      results: "5 projects, 1 firm"
+    rows: [
+      {rank:1, lead:true, name:'The Ellis · Charlotte, NC', sub:[{cls:'sb-construction',label:'Under construction'},'35 floors','Mixed-use'], score:100, metric:{n:'35', l:'Floors'}},
+      {rank:2, name:'Innovation Quarter Tower · Winston-Salem, NC', sub:[{cls:'sb-construction',label:'Under construction'},'28 floors','Mixed-use'], score:84, metric:{n:'28', l:'Floors'}},
+      {rank:3, name:'410 South Tryon · Charlotte, NC', sub:[{cls:'sb-soon',label:'Pre-construction'},'24 floors','Residential'], score:62, metric:{n:'24', l:'Floors'}},
+      {rank:4, name:'Optimist Hall Phase II · Charlotte, NC', sub:[{cls:'sb-soon',label:'Pre-construction'},'18 floors','Office'], score:48, metric:{n:'18', l:'Floors'}},
+      {rank:5, name:'Crescent Communities · Developer of Tomorrow', sub:['Developer','Charlotte, NC','11 projects tracked'], score:40, metric:{n:'11', l:'Projects'}}
+    ],
+    rowsTitle:'Active Carolina builds',
+    count:'4 projects · 1 firm · gap flagged for editorial'
+  },
+  arquitectonica: {
+    isQuestion: true,
+    answer: 'Five Arquitectonica projects are slated to break ground in 2026: <span class="hl">1428 Brickell</span>, <span class="hl">Aria Reserve North Tower</span>, <span class="hl">Wynwood 27</span>, <span class="hl">Park Grove Phase III</span>, and an unnamed Edgewater assemblage on the 600 block of NE 26th.',
+    stats: [
+      {v:'5', k:'Groundbreakings'},
+      {v:'<span class="u">~</span>2.1K', k:'Units total'},
+      {v:'<span class="u">~</span>180', k:'Avg floors total'},
+      {v:'<span class="u">$</span>2.8B', k:'Combined cost'}
+    ],
+    hero: {
+      type:'Project', tag:'Largest groundbreaking',
+      title:'1428 Brickell · Miami, FL',
+      loc:'Miami, FL · 70 floors · Residential',
+      desc:'Arquitectonica\'s 70-story luxury tower at the south end of Brickell Avenue, with photovoltaic-glass-clad amenity podium and 189 ultra-luxe residences.',
+      status:'Permitting', statusColor:'gold', timelineLabel:'Permitting', timelineEnds:['Mar 2025','Q2 2026']
     },
-    "wynwood": {
-      text: "Six Wynwood projects in the pipeline include retail on the ground floor: <mark>Wynwood 27, Cube Wynwd, The Gateway, 545wyn, Wynwood Square,</mark> and the as-yet-unnamed NW 25th Street tower. Together they add ~84,000 sf of street-level retail by 2027.",
-      cites: [
-        {n:1, t:"Wynwood 27", s:"Project · Permitting · Mixed-use", id:"p3"},
-        {n:2, t:"Cube Wynwd", s:"Project · Complete · Office + Retail", id:"p2"},
-        {n:3, t:"The Gateway at Wynwood", s:"Project · Under construction", id:"p4"},
-        {n:4, t:"545wyn", s:"Project · Complete · Office", id:"p5"},
-        {n:5, t:"Wynwood Square", s:"Project · Under construction", id:"p1"}
-      ],
-      results: "6 projects, 2 firms"
-    }
-  };
-
-  // ─── Context switcher ──────────────────────────────────────────────
-  document.getElementById('ctxSeg').addEventListener('click', e => {
-    const btn = e.target.closest('button[data-ctx]');
-    if (!btn) return;
-    [...e.currentTarget.children].forEach(b => b.classList.toggle('on', b === btn));
-    ctx = btn.dataset.ctx;
-    document.getElementById('stage').className = 'stage ctx-' + ctx;
-    document.querySelectorAll('[data-page]').forEach(el => {
-      el.style.display = (el.dataset.page === ctx) ? '' : 'none';
-    });
-    document.getElementById('ctxPill').textContent = 'on ' + ctx.charAt(0).toUpperCase() + ctx.slice(1);
-    // Pre-fill a sensible suggestion based on context
-    const inp = document.getElementById('lbInput');
-    if (ctx === 'map') inp.placeholder = 'Ask about Wynwood…';
-    else if (ctx === 'atlas') inp.placeholder = 'Ask about a firm…';
-    else inp.placeholder = 'Ask about the urban South…';
-    // Show/hide "Show on map" CTA appropriately
-    document.getElementById('openMap').textContent = (ctx === 'map') ? 'Highlight on map' : 'Show on map';
-  });
-  // Initialize
-  document.getElementById('stage').className = 'stage ctx-' + ctx;
-
-  // ─── Lightbox open/close ───────────────────────────────────────────
-  const lb = document.getElementById('lightbox');
-  const scrim = document.getElementById('scrim');
-  function openLb(){
-    lb.classList.add('open'); scrim.classList.add('open');
-    setTimeout(() => document.getElementById('lbInput').focus(), 100);
+    rows: [
+      {rank:1, lead:true, name:'1428 Brickell · Miami, FL', sub:[{cls:'sb-soon',label:'Permitting'},'70 floors','Residential'], score:100, metric:{n:'70', l:'Floors'}},
+      {rank:2, name:'Aria Reserve North Tower · Miami, FL', sub:[{cls:'sb-soon',label:'Pre-construction'},'62 floors','Residential'], score:88, metric:{n:'62', l:'Floors'}},
+      {rank:3, name:'Wynwood 27 · Miami, FL', sub:[{cls:'sb-soon',label:'Permitting'},'27 floors','Mixed-use'], score:72, metric:{n:'27', l:'Floors'}},
+      {rank:4, name:'Park Grove Phase III · Coconut Grove, FL', sub:[{cls:'sb-soon',label:'Pre-construction'},'22 floors','Residential'], score:60, metric:{n:'22', l:'Floors'}},
+      {rank:5, name:'Arquitectonica · Architect of Tomorrow', sub:['Architect','Miami, FL','28 projects tracked'], score:54, metric:{n:'28', l:'Projects'}}
+    ],
+    rowsTitle:'2026 groundbreakings',
+    count:'5 projects · 1 firm'
+  },
+  brickell: {
+    isQuestion: false,
+    hero: {
+      type:'Project', tag:'Exact match',
+      title:'1428 Brickell · Miami, FL',
+      loc:'Miami, FL · 70 floors · Residential',
+      desc:'Arquitectonica\'s 70-story luxury tower at the south end of Brickell Avenue. Photovoltaic-glass-clad amenity podium, 189 ultra-luxe residences.',
+      status:'Permitting', statusColor:'gold', timelineLabel:'Permitting', timelineEnds:['Mar 2025','Q2 2026']
+    },
+    rows: [
+      {rank:1, lead:true, name:'1428 Brickell · Miami, FL', sub:[{cls:'sb-soon',label:'Permitting'},'70 floors','Residential'], score:100, metric:{n:'70', l:'Floors'}},
+      {rank:2, name:'888 Brickell · Miami, FL', sub:[{cls:'sb-soon',label:'Pre-construction'},'82 floors','Mixed-use'], score:74, metric:{n:'82', l:'Floors'}},
+      {rank:3, name:'Brickell Flatiron · Miami, FL', sub:[{cls:'sb-open',label:'Complete'},'64 floors','Residential'], score:58, metric:{n:'64', l:'Floors'}}
+    ],
+    rowsTitle:'Brickell projects',
+    count:'3 projects'
+  },
+  foster: {
+    isQuestion: false,
+    hero: {
+      type:'Firm', tag:'Architect of Tomorrow',
+      title:'Foster + Partners',
+      loc:'London · 14 projects tracked in the urban South',
+      desc:'British architectural studio founded by Norman Foster. Markets of Tomorrow tracks fourteen active projects, anchored by the Miami Riverbridge masterplan.',
+      status:'Active', statusColor:'green', timelineLabel:'Earliest project tracked', timelineEnds:['2018','Now']
+    },
+    rows: [
+      {rank:1, lead:true, name:'Miami Riverbridge · Miami, FL', sub:[{cls:'sb-soon',label:'Pre-construction'},'4 towers','Mixed-use'], score:100, metric:{n:'4', l:'Towers'}},
+      {rank:2, name:'CityPlace Doral Phase II · Doral, FL', sub:[{cls:'sb-construction',label:'Under construction'},'12 floors','Office'], score:78, metric:{n:'12', l:'Floors'}},
+      {rank:3, name:'Una Residences · Miami, FL', sub:[{cls:'sb-open',label:'Complete'},'47 floors','Residential'], score:64, metric:{n:'47', l:'Floors'}}
+    ],
+    rowsTitle:'Foster + Partners projects',
+    count:'14 projects'
+  },
+  wynwood: {
+    isQuestion: false,
+    hero: {
+      type:'Place', tag:'Neighborhood',
+      title:'Wynwood · Miami',
+      loc:'Miami, FL · 23 projects tracked',
+      desc:'Miami\'s former arts district now densifying along NW 2nd Avenue. Twenty-three projects in the TMW database span gallery conversions, mid-rise mixed-use, and the first wave of 25-story residential.',
+      status:'Active', statusColor:'green', timelineLabel:'Earliest project tracked', timelineEnds:['2020','Now']
+    },
+    rows: [
+      {rank:1, lead:true, name:'Wynwood 27 · Miami, FL', sub:[{cls:'sb-soon',label:'Permitting'},'27 floors','Mixed-use'], score:100, metric:{n:'27', l:'Floors'}},
+      {rank:2, name:'Cube Wynwd · Miami, FL', sub:[{cls:'sb-open',label:'Complete'},'9 floors','Office + Retail'], score:78, metric:{n:'9', l:'Floors'}},
+      {rank:3, name:'The Gateway at Wynwood · Miami, FL', sub:[{cls:'sb-construction',label:'Under construction'},'12 floors','Mixed-use'], score:68, metric:{n:'12', l:'Floors'}},
+      {rank:4, name:'545wyn · Miami, FL', sub:[{cls:'sb-open',label:'Complete'},'10 floors','Office'], score:60, metric:{n:'10', l:'Floors'}}
+    ],
+    rowsTitle:'Wynwood projects',
+    count:'23 projects · 6 firms'
+  },
+  sansone: {
+    isQuestion: false,
+    hero: {
+      type:'Firm', tag:'Developer of Tomorrow',
+      title:'Sansone Group',
+      loc:'St. Louis, MO · 9 projects tracked',
+      desc:'St. Louis-based developer with active redevelopment plans in the Nora corridor and Cortex Innovation Community. Featured in MoT\'s Mar 2025 piece on Nora\'s F&B turnover.',
+      status:'Active', statusColor:'green', timelineLabel:'Earliest project tracked', timelineEnds:['2019','Now']
+    },
+    rows: [
+      {rank:1, lead:true, name:'Nora Corridor Redevelopment · St. Louis, MO', sub:[{cls:'sb-soon',label:'Pre-construction'},'3 phases','Mixed-use'], score:100, metric:{n:'1.2M', l:'SF'}},
+      {rank:2, name:'Cortex District Phase IV · St. Louis, MO', sub:[{cls:'sb-construction',label:'Under construction'},'8 floors','Office'], score:78, metric:{n:'8', l:'Floors'}}
+    ],
+    rowsTitle:'Sansone Group projects',
+    count:'9 projects'
   }
-  function closeLb(){
-    lb.classList.remove('open'); scrim.classList.remove('open');
-    // Citations linger on the map for a few seconds
-    if (ctx === 'map') {
-      document.getElementById('anno').classList.remove('show');
-      setTimeout(() => {
-        document.querySelectorAll('.marker.cited').forEach(m => m.classList.remove('cited'));
-      }, 8000);
-    } else {
-      document.querySelectorAll('.marker.cited').forEach(m => m.classList.remove('cited'));
+};
+
+function pick(q){
+  const t = q.toLowerCase();
+  if (/juliana/.test(t)) return ANSWERS.juliana;
+  if (/carolina/.test(t)) return ANSWERS.carolinas;
+  if (/arquitectonica|2026/.test(t)) return ANSWERS.arquitectonica;
+  if (/1428|brickell/.test(t)) return ANSWERS.brickell;
+  if (/foster/.test(t)) return ANSWERS.foster;
+  if (/wynwood/.test(t)) return ANSWERS.wynwood;
+  if (/sansone/.test(t)) return ANSWERS.sansone;
+  return ANSWERS.juliana;
+}
+
+// ─── Render helpers ────────────────────────────────────────────────
+function esc(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+
+function renderHero(h){
+  const statusCls = h.statusColor === 'green' ? 'color:var(--green)' : 'color:var(--gold-soft)';
+  return `
+    <div class="hero-media"><div class="ph"></div><div class="scrim"></div>
+      <span class="besttag">${esc(h.tag)}</span>
+    </div>
+    <div class="hero-body">
+      <div class="hero-chips"><span class="chip">${esc(h.type)}</span><span class="chip type">${esc(h.status)}</span></div>
+      <h1>${esc(h.title)}</h1>
+      <div class="loc">${esc(h.loc)}</div>
+      <p class="hero-desc">${esc(h.desc)}</p>
+      <div class="tl">
+        <div class="tl-row"><span>${esc(h.timelineLabel)}</span><span class="tl-status" style="${statusCls}">${esc(h.status)}</span></div>
+        <div class="tl-track"><div class="tl-fill"></div><div class="tl-dot"></div></div>
+        <div class="tl-row" style="margin-top:8px"><span>${esc(h.timelineEnds[0])}</span><span>${esc(h.timelineEnds[1])}</span></div>
+      </div>
+      <div class="hero-cta">
+        <a class="btn gold" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>Open in map</a>
+        <a class="btn ghost" href="#">Full profile</a>
+      </div>
+    </div>`;
+}
+
+function renderRow(r){
+  const subParts = r.sub.map(s => {
+    if (typeof s === 'string') return `<span>${esc(s)}</span>`;
+    return `<span class="sbadge ${s.cls}"><i></i>${esc(s.label)}</span>`;
+  }).join('<span class="dot"></span>');
+  return `
+    <div class="srow ${r.lead?'lead':''}">
+      <div class="rank">${r.rank}</div>
+      <div class="r-main">
+        <div class="r-name">${esc(r.name)}</div>
+        <div class="r-sub">${subParts}</div>
+      </div>
+      <div class="r-bar"><span style="width:${r.score}%"></span></div>
+      <div class="r-metric"><div class="n">${r.metric.n}</div><div class="l">${esc(r.metric.l)}</div></div>
+    </div>`;
+}
+
+function renderStat(s){
+  return `<div class="istat"><div class="v">${s.v}</div><div class="k">${esc(s.k)}</div></div>`;
+}
+
+// ─── The query runner ──────────────────────────────────────────────
+function runQuery(q){
+  if (!q || !q.trim()) return;
+  document.getElementById('starter').classList.add('hidden');
+  document.getElementById('intelSection').classList.add('hidden');
+  document.getElementById('heroSection').classList.add('hidden');
+  document.getElementById('rowsSection').classList.add('hidden');
+  document.getElementById('thinking').classList.add('show');
+  document.getElementById('lbBody').scrollTop = 0;
+
+  // Simulate the 700ms debounce + ~600ms LLM round-trip
+  setTimeout(() => {
+    const data = pick(q);
+    document.getElementById('thinking').classList.remove('show');
+
+    if (data.isQuestion) {
+      document.getElementById('intelAns').innerHTML = data.answer;
+      document.getElementById('intelStats').innerHTML = data.stats.map(renderStat).join('');
+      document.getElementById('intelSection').classList.remove('hidden');
     }
-    // Reset
-    setTimeout(() => {
-      document.getElementById('lbBody').classList.remove('show');
-      document.getElementById('lbAnswer').style.display = 'none';
-      document.getElementById('lbLoading').style.display = '';
-      document.getElementById('lbInput').value = '';
-      document.getElementById('lbSuggest').style.display = '';
-    }, 350);
+    document.getElementById('heroCard').innerHTML = renderHero(data.hero);
+    document.getElementById('heroSection').classList.remove('hidden');
+    document.getElementById('rowsTitle').textContent = data.rowsTitle;
+    document.getElementById('rowsCount').textContent = data.count;
+    document.getElementById('rows').innerHTML = data.rows.map(renderRow).join('');
+    document.getElementById('rowsSection').classList.remove('hidden');
+  }, 1100);
+}
+
+// Suggestion chips → fill bar + run
+document.addEventListener('click', e => {
+  const chip = e.target.closest('.lb-chip');
+  if (!chip) return;
+  inp.value = chip.dataset.q;
+  runQuery(chip.dataset.q);
+});
+
+// Bar input
+inp.addEventListener('keydown', e => { if (e.key === 'Enter') runQuery(inp.value); });
+document.getElementById('lbGo').addEventListener('click', () => runQuery(inp.value));
+
+// Mirror dock input → open + carry value
+document.getElementById('dockInput').addEventListener('input', e => {
+  if (e.target.value.length >= 2) {
+    open();
+    inp.value = e.target.value;
+    e.target.value = '';
   }
-  document.getElementById('askPill').addEventListener('click', openLb);
-  document.getElementById('closeLb').addEventListener('click', closeLb);
-  scrim.addEventListener('click', closeLb);
-  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLb(); });
-
-  // ─── Suggest chips → fill input and run ────────────────────────────
-  document.getElementById('lbSuggest').addEventListener('click', e => {
-    const chip = e.target.closest('.chip');
-    if (!chip) return;
-    document.getElementById('lbInput').value = chip.textContent;
-    runQuery(chip.textContent);
-  });
-
-  // ─── Input enter → run ─────────────────────────────────────────────
-  document.getElementById('lbInput').addEventListener('keydown', e => {
-    if (e.key === 'Enter') runQuery(e.target.value);
-  });
-
-  // ─── The query runner (mocked) ─────────────────────────────────────
-  function pickAnswer(q){
-    const t = q.toLowerCase();
-    if (t.includes('juliana')) return ANSWERS.juliana;
-    if (t.includes('carolina')) return ANSWERS.carolinas;
-    if (t.includes('arquitectonica') || t.includes('2026')) return ANSWERS.arquitectonica;
-    if (t.includes('wynwood')) return ANSWERS.wynwood;
-    return ANSWERS.juliana; // default
-  }
-
-  function runQuery(q){
-    if (!q || !q.trim()) return;
-    document.getElementById('lbSuggest').style.display = 'none';
-    document.getElementById('lbBody').classList.add('show');
-    document.getElementById('lbLoading').style.display = '';
-    document.getElementById('lbAnswer').style.display = 'none';
-
-    // Highlight cited markers on map immediately (fly-to feel)
-    setTimeout(() => {
-      const data = pickAnswer(q);
-      renderAnswer(data);
-    }, 1200);
-  }
-
-  function renderAnswer(data){
-    document.getElementById('lbLoading').style.display = 'none';
-    document.getElementById('lbAnswer').style.display = '';
-    document.getElementById('answerText').innerHTML = data.text;
-    document.getElementById('citeCount').textContent = '· ' + data.cites.length;
-    document.getElementById('citeRows').innerHTML = data.cites.map(c =>
-      '<div class="cite-row" data-id="'+c.id+'">'+
-        '<div class="num">'+c.n+'</div>'+
-        '<div class="meta"><div class="t">'+c.t+'</div><div class="s">'+c.s+'</div></div>'+
-        '<svg class="arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M9 7h8v8"/></svg>'+
-      '</div>'
-    ).join('');
-    document.getElementById('ctxAction').innerHTML = data.results;
-
-    // Light up the cited markers on the map
-    document.querySelectorAll('.marker.cited').forEach(m => m.classList.remove('cited'));
-    data.cites.forEach(c => {
-      const m = document.querySelector('.marker[data-id="'+c.id+'"]');
-      if (m) m.classList.add('cited');
-    });
-
-    // Show "look at the map" annotation if we're on map context
-    if (ctx === 'map') {
-      const anno = document.getElementById('anno');
-      const lbRect = document.getElementById('lightbox').getBoundingClientRect();
-      anno.style.left = (lbRect.left + lbRect.width / 2 - 100) + 'px';
-      anno.style.top = (lbRect.top - 40) + 'px';
-      anno.className = 'anno down show';
-      setTimeout(() => anno.classList.remove('show'), 4500);
-    }
-  }
-
-  // Citation row click — in real product, would fly map to marker and open drawer
-  document.getElementById('citeRows').addEventListener('click', e => {
-    const row = e.target.closest('.cite-row');
-    if (!row) return;
-    if (ctx === 'map') {
-      closeLb();
-    } else {
-      // pretend we navigate
-      alert('In production: navigates to /project/' + row.dataset.id + '/ or opens map drawer.');
-    }
-  });
-
-  // Show-on-map button: close lightbox, jump to map view if not there
-  document.getElementById('openMap').addEventListener('click', () => {
-    if (ctx !== 'map') {
-      // simulate context switch to map
-      document.querySelector('#ctxSeg button[data-ctx="map"]').click();
-      setTimeout(closeLb, 200);
-    } else {
-      closeLb();
-    }
-  });
-  document.getElementById('openSearch').addEventListener('click', () => {
-    alert('In production: navigates to /search/?q=' + encodeURIComponent(document.getElementById('lbInput').value));
-  });
+});
 </script>
-
 </body>
 </html>
