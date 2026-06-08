@@ -8360,10 +8360,11 @@
       flex-direction: column;
       gap: 8px;
       position: fixed;
-      right: 14px;
-      /* top-right on mobile (alongside the fullscreen control) so the
-         bottom-center time scrubber no longer overlaps these buttons */
-      top: calc(env(safe-area-inset-top, 0px) + 58px);
+      right: 12px;
+      /* top-right on mobile, stacked directly under the fullscreen button
+         (#tmwMapFsBtn at safe+header+12, 44px tall) with an 8px gap so the
+         fullscreen + action buttons read as one evenly-spaced column */
+      top: calc(var(--safe-area-top, 0px) + var(--header-height) + 64px);
       bottom: auto;
       z-index: 85;
       color: #fff;
@@ -13007,7 +13008,7 @@
         const feats = window.allProjectFeatures;
         const yrOf = f => { const m = String((f.properties && f.properties.deliveryDate) || '').match(/20\d{2}/); return m ? +m[0] : 0; };
         const ys = feats.map(yrOf).filter(Boolean);
-        const MIN = ys.length ? Math.min(...ys) : 2024;
+        const MIN = 2025;   // scrubber range starts at 2025 (earlier deliveries still pass the <= filter)
         const MAX = ys.length ? Math.max(...ys) : 2030;
 
         const st = document.createElement('style'); st.id = 'tmw-il-css';
@@ -13037,6 +13038,9 @@
           ".tmw-il-legend .d{width:9px;height:9px;border-radius:50%;flex:0 0 auto;box-shadow:0 0 0 1.5px rgba(255,255,255,.45)}" +
           ".tmw-il-scrub{position:fixed;left:50%;transform:translateX(-50%);bottom:96px;z-index:2;width:min(440px,92vw);background:rgba(14,14,18,.88);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:8px 14px 10px;box-shadow:0 16px 44px rgba(0,0,0,.5);font-family:'Inter',sans-serif;color:#fff;transition:opacity .15s}" +
           ".tmw-il-scrub.tmw-il-hidden{opacity:0;pointer-events:none}" +
+          // Mobile: when the project/filter drawer is open, get the panel + scrubber
+          // out of the way so the drawer is unobstructed (drawer renders above them).
+          "body.v2-sheet-open .tmw-il-panel,body.v2-sheet-open .tmw-il-scrub,body:has(#mobileDrawer.expanded) .tmw-il-panel,body:has(#mobileDrawer.expanded) .tmw-il-scrub{opacity:0!important;pointer-events:none!important}" +
           ".tmw-il-scrub-top{display:flex;align-items:center;gap:11px;margin-bottom:5px}" +
           ".tmw-il-play{width:30px;height:30px;border-radius:50%;border:1px solid rgba(167,139,250,.5);background:rgba(167,139,250,.14);color:#fff;cursor:pointer;display:grid;place-items:center;flex:0 0 auto;transition:.15s}" +
           ".tmw-il-play:hover{background:rgba(167,139,250,.26)}.tmw-il-play svg{width:13px;height:13px}" +
@@ -13118,6 +13122,16 @@
         window._tmwToggleLayers = ()=> setPanelOpen(panel.classList.contains('tmw-il-closed'));
         const xBtn = panel.querySelector('.tmw-il-x'); if (xBtn) xBtn.addEventListener('click', ()=> setPanelOpen(false));
         if (layersBtnEl) layersBtnEl.classList.add('active');
+        // Desktop: sit the panel exactly 8px above the layers button (same gap as
+        // between the rail buttons). Re-measure after the rail builds + on resize.
+        function positionPanelDesktop(){
+          if (!layersBtnEl || !window.matchMedia('(min-width:821px)').matches) return;
+          const r = layersBtnEl.getBoundingClientRect();
+          if (r.top > 0) panel.style.bottom = Math.round(window.innerHeight - r.top + 8) + 'px';
+        }
+        setTimeout(positionPanelDesktop, 600);
+        setTimeout(positionPanelDesktop, 1800);
+        window.addEventListener('resize', positionPanelDesktop);
 
         // ---- Map view (Default/Satellite) + Projects (In-dev/Completed/Both) ----
         function setProjects(mode){
