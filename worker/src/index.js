@@ -2966,10 +2966,17 @@ function renderCarouselHtml(c) {
   .ig-link svg { width:22px; height:22px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
   /* Carousel — 4:5 portrait (Instagram's tallest supported ratio) so 1500x1883
      source images fill the frame without cropping. Square images get a small
-     vertical crop, same as Instagram does. */
+     vertical crop, same as Instagram does.
+
+     Layout: track stays at 100% of the carousel. Each slide is flex-basis
+     100% with no shrink, so they line up at 0%, 100%, 200% … and overflow
+     horizontally; the carousel's overflow:hidden clips the ones off-screen.
+     Advancing is translateX(-i * 100%) on the track. (Earlier we made the
+     track n*100% wide and slides flex 100% — that made each slide n* the
+     carousel width and the carousel just showed slivers of the first image.) */
   .carousel { position:relative; aspect-ratio:4/5; background:#000; overflow:hidden; }
-  .track { display:flex; height:100%; transition:transform .35s cubic-bezier(.4,.2,.2,1); will-change:transform; }
-  .slide { flex:0 0 100%; width:100%; height:100%; display:flex; align-items:center; justify-content:center; background:#000 }
+  .track { display:flex; height:100%; width:100%; transition:transform .35s cubic-bezier(.4,.2,.2,1); will-change:transform; }
+  .slide { flex:0 0 100%; min-width:100%; width:100%; height:100%; display:flex; align-items:center; justify-content:center; background:#000 }
   .slide img, .slide video { width:100%; height:100%; object-fit:cover; display:block; }
   .arrow { position:absolute; top:50%; transform:translateY(-50%); width:30px; height:30px; border-radius:50%;
     background:rgba(0,0,0,.55); border:none; color:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center;
@@ -3014,7 +3021,7 @@ function renderCarouselHtml(c) {
     </div>
     <div class="carousel">
       ${slides.length === 0 ? '<div class="empty">No slides yet — add media in the Studio editor.</div>' : ''}
-      ${slides.length > 0 ? `<div class="track" style="width:${slides.length*100}%; transform:translateX(0)">${slideHtml}</div>` : ''}
+      ${slides.length > 0 ? `<div class="track">${slideHtml}</div>` : ''}
       ${slides.length > 1 ? `<div class="count"><span id="count-now">1</span>/${slides.length}</div>` : ''}
       ${slides.length > 1 ? '<button class="arrow left"  type="button" aria-label="Previous" disabled><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>' : ''}
       ${slides.length > 1 ? '<button class="arrow right" type="button" aria-label="Next"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button>' : ''}
@@ -3042,7 +3049,10 @@ function renderCarouselHtml(c) {
   var right = document.querySelector('.arrow.right');
   function go(k){
     i = Math.max(0, Math.min(n-1, k));
-    if (track) track.style.transform = 'translateX(' + (-i * (100/n)) + '%)';
+    // Track is one carousel-width wide; each slide is the same width and
+    // overflows to the right. Advance by full carousel-widths -> translate
+    // the track by -i*100%. (Matches the slide layout in the CSS comment.)
+    if (track) track.style.transform = 'translateX(' + (-i * 100) + '%)';
     dotsEls.forEach(function(d, j){ d.classList.toggle('on', j===i); });
     if (countNow) countNow.textContent = String(i+1);
     if (left)  left.disabled  = (i === 0);
