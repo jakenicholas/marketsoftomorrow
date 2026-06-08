@@ -368,6 +368,13 @@ main{padding:54px 0 40px}
 <script src="/_shared/partners.js" defer></script>
 <!-- TMW project intelligence — identical timeline + intel panel as the map -->
 <script src="/_shared/tmw-project-intel.js"></script>
+<!-- Shared search core (Phase 2C). Loaded synchronously BEFORE the inline
+     script below so window.TmwSearchCore is available when parse / filter
+     / spotlight / Intelligence pipelines run. The overlay loads it via
+     defer through the dock — for /search/ we need it ready immediately.
+     The data-tmw-search-core marker dedupes the dock's loadSearchOverlay
+     so it doesn't add a second redundant <script> tag. -->
+<script src="/_shared/journal-search-core.js" data-tmw-search-core="1"></script>
 <script>
 'use strict';
 const WORKER_URL = 'https://tmw.jake-ab7.workers.dev';
@@ -682,260 +689,44 @@ function show(id, on){ document.getElementById(id).classList.toggle('hidden', !o
 // ═══════════════════ TMW INTELLIGENCE — smart query engine ═══════════════════
 // Deterministic (no LLM): parse a natural-language query into structured
 // criteria, then filter + rank the project database and synthesize an answer.
-const THIS_YEAR = 2026;
-function hasWord(text, phrase){
-  const p = String(phrase).replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-  return new RegExp('\\b' + p + 's?\\b', 'i').test(text);
-}
-function floorsOf(p){ const n = parseInt(String(p.Floors||'').split('.')[0], 10); return Number.isFinite(n) ? n : 0; }
-function unitsOf(p){ const n = parseInt(String(p.Units||'').replace(/[^0-9]/g,''), 10); return Number.isFinite(n) ? n : 0; }
-function yearOf(p){ const m = String(p.DeliveryDate||'').match(/(20\d{2})/); return m ? +m[1] : null; }
-function inFlorida(p){ const la=parseFloat(p.Latitude), ln=parseFloat(p.Longitude); return la>=24.3 && la<=31.1 && ln>=-87.8 && ln<=-79.8; }
+//
+// PHASE 2C: the pipeline now lives in /_shared/journal-search-core.js
+// (window.TmwSearchCore). The functions below are thin wrappers that pass
+// /search/'s module-scope FIRMS/PROJECTS arrays into the core's pure
+// functions. Same signatures, same behavior — call sites unchanged.
+const TmwSC = window.TmwSearchCore;  // shorter alias; available before this script runs
+const hasWord    = TmwSC.hasWord;
+const floorsOf   = TmwSC.floorsOf;
+const unitsOf    = TmwSC.unitsOf;
+const yearOf     = TmwSC.yearOf;
+const inFlorida  = TmwSC.inFlorida;
+const fmtDelivery = TmwSC.fmtDelivery;
+const isQuestion = TmwSC.isQuestion;
+const matchSpotlight = TmwSC.matchSpotlight;
+const smartRank        = TmwSC.smartRank;
+const buildSmartAnswer = TmwSC.buildSmartAnswer;
+const buildSmartFacts  = TmwSC.buildSmartFacts;
+const STATUS_BADGE = TmwSC.STATUS_BADGE;  // used directly in renderSmart for badge cls/label
+const HEX_SVG = TmwSC.HEX_SVG;            // used by renderQuestionIntel / renderIntelGate / renderPartnerSpotlight
 
-const STATUS_GROUPS = [
-  { value:'Under Construction', label:'Under construction', syn:['under construction','construction','being built','underway','rising'] },
-  { value:'Breaking Ground',    label:'Breaking ground', syn:['breaking ground','broke ground','groundbreaking','breaks ground'] },
-  { value:'Opening Soon',       label:'Opening soon', syn:['opening soon','coming soon','opening','opens','set to open'] },
-  { value:'Now Open',           label:'Open', syn:['now open','open','opened','completed','complete','delivered','finished'] },
-  { value:'Announced',          label:'Announced', syn:['announced','planned','proposed','pre-construction','preconstruction','unveiled'] },
-];
-// Fine construction MILESTONES (not coarse statuses). These filter STRICTLY
-// against each project's logged StatusHistory `phase` — so "topped out" means a
-// project we've actually recorded as topped out, never a guess. label/verb feed
-// the chip + answer; if nothing has the milestone logged, the answer says so.
-const PHASE_GROUPS = [
-  { phase:'topping-out',   label:'Topped out',       verb:'topped out',            syn:['topped out','topping out','top off','topped'] },
-  { phase:'financing',     label:'Financing closed', verb:'secured financing',     syn:['secured financing','closed financing','construction loan','got financing'] },
-  { phase:'going-vertical',label:'Going vertical',   verb:'gone vertical',         syn:['going vertical','gone vertical','vertical construction'] },
-  { phase:'halfway',       label:'Halfway',          verb:'reached the halfway mark', syn:['halfway','half complete','50% complete','fifty percent'] },
-  { phase:'tco',           label:'TCO issued',       verb:'received a TCO',         syn:['tco','certificate of occupancy'] },
-  { phase:'move-in',       label:'Move-ins started', verb:'started move-ins',       syn:['move-in','move in','moving in','residents moving'] },
-  { phase:'tenant',        label:'Tenant signed',    verb:'signed a tenant',        syn:['anchor tenant','tenant signed','signed a lease'] },
-  { phase:'bookings',      label:'Bookings open',    verb:'opened bookings',        syn:['bookings open','taking reservations','reservations open'] },
-];
-const TYPE_GROUPS = [
-  { token:'Residences', label:'Condo / Residences', noun:'condo',     syn:['condo','condominium'] },
-  { token:'Residences', label:'Tower / High-rise',  noun:'tower',     syn:['tower','high-rise','highrise','skyscraper'] },
-  { token:'Residences', label:'Residences',         noun:'residence', syn:['residence','residential','apartment','home'] },
-  { token:'Hotel',      label:'Hotel',              noun:'hotel',     syn:['hotel'] },
-  { token:'Resort',     label:'Resort',             noun:'resort',    syn:['resort'] },
-  { token:'Office',     label:'Office',             noun:'office',    syn:['office'] },
-  { token:'Retail',     label:'Retail',             noun:'retail project', syn:['retail','shopping','mall','shops'] },
-  { token:'Eateries',   label:'Dining',             noun:'eatery',    syn:['restaurant','eatery','dining','food hall'] },
-  { token:'Park',       label:'Park',               noun:'park',      syn:['park'] },
-  { token:'Marina',     label:'Marina',             noun:'marina',    syn:['marina'] },
-  { token:'Museum',     label:'Museum',             noun:'museum',    syn:['museum'] },
-  { token:'Entertainment', label:'Entertainment',   noun:'venue',     syn:['entertainment'] },
-  { token:'Golf',       label:'Golf',               noun:'golf course', syn:['golf','golf course','country club'] },
-  { token:'Stadium',    label:'Stadium',            noun:'stadium',   syn:['stadium','arena','ballpark'] },
-  { token:'Education',  label:'Education',          noun:'school',    syn:['school','university','college','campus'] },
-  { token:'Cultural',   label:'Cultural',           noun:'cultural project', syn:['cultural'] },
-  { token:'Spa',        label:'Spa',                noun:'spa',       syn:['spa','wellness'] },
-  { token:'Mixed-Use',  label:'Mixed-use',          noun:'mixed-use project', syn:['mixed-use','mixed use'] },
-  { token:'Hospital',   label:'Hospital',           noun:'hospital',  syn:['hospital','medical center'] },
-  { token:'Airport',    label:'Airport',            noun:'airport',   syn:['airport'] },
-];
-const SORT_GROUPS = [
-  { key:'floors', dir:'desc', label:'Tallest first',   unit:'Stories', stat:'Tallest',     syn:['tallest','highest','tall'] },
-  { key:'floors', dir:'asc',  label:'Shortest first',  unit:'Stories', stat:'Shortest',    syn:['shortest','lowest'] },
-  { key:'units',  dir:'desc', label:'Most units',      unit:'Units',   stat:'Most units',  syn:['biggest','largest','most units','most residences','most homes'] },
-  { key:'date',   dir:'asc',  label:'Opening soonest', unit:'Delivers',stat:'Opens first', syn:['soonest','earliest','opening first','next to open','delivering first'] },
-  { key:'date',   dir:'desc', label:'Furthest out',    unit:'Delivers',stat:'Latest',      syn:['furthest out','latest delivery','last to open'] },
-  { key:'updated',dir:'desc', label:'Newest',          unit:'Updated', stat:'Newest',      syn:['newest','newly','new','latest','most recent','recent','recently','just announced'] },
-];
-
-let _citySet = null;
-function citySet(){
-  if (_citySet) return _citySet;
-  const m = new Map();
-  PROJECTS.forEach(p=>{ const c=(p.City||'').trim(); if(c && c.length>=4) m.set(norm(c), c); });
-  _citySet = m; return m;
-}
-
-// Detect a firm / architect / developer entity named in the query (e.g.
-// "what is kengo kuma project", "Foster + Partners towers"). Matches against the
-// loaded FIRMS list; prefers the most specific (longest) name. Generic words in
-// firm names ("group", "partners", "studio"…) don't count toward a token match.
-const FIRM_STOP = new Set(['the','of','and','group','partners','studio','architects','architecture','development','developments','developers','design','company','co','llc','inc','associates','international','global','real','estate','properties','holdings','capital','ventures','collective','residential','residences','tower','towers','project','projects','building','buildings','condo','condos','hotel','hotels','tallest','newest']);
+// Wrappers — pass /search/'s FIRMS/PROJECTS module-scope arrays in.
+// Same signatures as the pre-2C versions so existing call sites work
+// without modification.
 function detectFirm(full){
   if (typeof FIRMS === 'undefined' || !FIRMS || !FIRMS.length) return null;
-  // Rank candidates by match quality (exact phrase > all distinctive tokens >
-  // one long token), then by specificity (longer name). So "related ross" picks
-  // Related Ross over Related Group, and "kengo kuma" picks Kengo Kuma.
-  let best=null, bestScore=0, bestLen=0;
-  for (const f of FIRMS){
-    const n = norm(f.name || '');
-    if (n.length < 4) continue;
-    const sig = n.split(/\s+/).filter(t => t.length>2 && !FIRM_STOP.has(t));
-    if (!sig.length) continue;
-    let score = 0;
-    if (n.length >= 6 && (' '+full+' ').includes(' '+n+' ')) score = 3;                  // whole name, word-bounded
-    else if (n.length >= 6 && full.includes(n)) score = 2;                               // whole name, substring
-    else if (sig.length >= 2 && sig.every(t => hasWord(full, t))) score = 2;             // all distinctive tokens
-    else if (sig.length === 1 && sig[0].length >= 6 && hasWord(full, sig[0])) score = 1; // one distinctive long token
-    if (score && (score > bestScore || (score === bestScore && n.length > bestLen))){ best=f; bestScore=score; bestLen=n.length; }
-  }
-  return best;
+  return TmwSC.detectFirm(full, FIRMS);
 }
-// Detect natural-language QUESTIONS that don't match parseSmartQuery's
-// structured criteria but still warrant a TMW Intelligence response. Anything
-// with a "?", or that starts with a question word, qualifies. These get
-// routed to the LLM with whatever the text-match search surfaced as facts —
-// the answer may still be "no verified info", but at least we tried rather
-// than silently falling back to a plain keyword search.
-function isQuestion(q) {
-  const t = String(q || '').trim();
-  if (!t) return false;
-  if (t.indexOf('?') !== -1) return true;
-  if (/^(what|why|how|when|where|who|which|whose|is|are|does|do|did|can|could|will|would|should|has|have|had)\s/i.test(t)) return true;
-  return false;
-}
+// parseSmartQuery + smartFilter are now in TmwSearchCore. Thin wrappers
+// pass FIRMS/PROJECTS in so existing call sites stay unchanged.
 function parseSmartQuery(q){
-  const full = norm(q);
-  if (full.split(/\s+/).filter(Boolean).length < 2) return null;   // bare names → normal search
-
-  // status
-  const statuses = new Set(); const statusLabels = [];
-  STATUS_GROUPS.forEach(g=>{ if (g.syn.some(s=>hasWord(full,s))){ statuses.add(g.value); if(!statusLabels.includes(g.label)) statusLabels.push(g.label); } });
-  // construction milestones (filter against logged StatusHistory phases)
-  const phases = new Set(); const phaseLabels = []; const phaseVerbs = [];
-  PHASE_GROUPS.forEach(g=>{ if (g.syn.some(s=>hasWord(full,s))){ phases.add(g.phase); phaseLabels.push(g.label); phaseVerbs.push(g.verb); } });
-  // type
-  const types = new Set(); let typeLabel='', typeNoun='';
-  TYPE_GROUPS.forEach(g=>{ if (g.syn.some(s=>hasWord(full,s))){ types.add(g.token); if(!typeLabel){ typeLabel=g.label; typeNoun=g.noun; } } });
-  // region + cities
-  let region = (hasWord(full,'florida') || /\bfl\b/.test(full)) ? 'Florida' : '';
-  let cities = [];
-  citySet().forEach((disp, nc)=>{ if (full.includes(nc)) cities.push(disp); });
-  // drop a city that's a substring of another matched (keep "West Palm Beach" over "Palm Beach")
-  cities = cities.filter(c => !cities.some(o => o!==c && norm(o).includes(norm(c))));
-  // year
-  let yearMin=null, yearMax=null, yearLabel='';
-  const yrs = (full.match(/20\d{2}/g)||[]).map(Number);
-  if (yrs.length){ yearMin=Math.min(...yrs); yearMax=Math.max(...yrs); yearLabel = yearMin===yearMax ? ''+yearMin : yearMin+'–'+yearMax; }
-  else if (hasWord(full,'this year')){ yearMin=yearMax=THIS_YEAR; yearLabel='this year'; }
-  else if (hasWord(full,'next year')){ yearMin=yearMax=THIS_YEAR+1; yearLabel=''+(THIS_YEAR+1); }
-  // sort / superlative
-  let sort=null;
-  for (const g of SORT_GROUPS){ if (g.syn.some(s=>hasWord(full,s))){ sort=g; break; } }
-
-  // "recent(ly) ... opened / openings" means recently COMPLETED (Now Open),
-  // not about-to-open. Flip Opening Soon → Now Open in that case so e.g.
-  // "recent golf course openings" lists courses that have actually opened.
-  const openish = hasWord(full,'opening') || hasWord(full,'opened') || hasWord(full,'openings');
-  const recentish = hasWord(full,'recent') || hasWord(full,'recently') || hasWord(full,'just opened') || hasWord(full,'newly opened');
-  if (openish && recentish){
-    statuses.delete('Opening Soon');
-    const i = statusLabels.indexOf('Opening soon'); if (i>=0) statusLabels.splice(i,1);
-    statuses.add('Now Open');
-    if (!statusLabels.includes('Open')) statusLabels.push('Open');
-  }
-
-  const place = region || cities.length;
-  // Firm / architect / developer entity. A firm match alone qualifies as an
-  // intelligence query — we answer with that firm's tracked projects.
-  const firm = detectFirm(full);
-  const count = (statuses.size?1:0)+(phases.size?1:0)+(types.size?1:0)+(place?1:0)+(yearMin!=null?1:0)+(sort?1:0)+(firm?1:0);
-  if (!firm && count < 2) return null;   // no firm + too little structure → normal search
-
-  return { statuses, statusLabels, phases, phaseLabels, phaseVerbs, types, typeLabel, typeNoun,
-           region, cities, yearMin, yearMax, yearLabel, sort, firm };
+  return TmwSC.parseSmartQuery(q, { firms: FIRMS, projects: PROJECTS, thisYear: 2026 });
 }
-function phasesOf(p){ return (p.StatusHistory||[]).map(h=>String((h&&h.phase)||'').toLowerCase()).filter(Boolean); }
-
-function smartFilter(s){
-  return PROJECTS.filter(p=>{
-    if (s.statuses.size && !s.statuses.has(p.Delivery)) return false;
-    // Milestone filter — STRICT: the project must have actually logged this phase.
-    if (s.phases && s.phases.size){ const ph=phasesOf(p); if(![...s.phases].some(x=>ph.includes(x))) return false; }
-    if (s.types.size){ const pt=norm(firstField(p,['ProjectType','PreferredType'])); if(![...s.types].some(t=>pt.includes(norm(t)))) return false; }
-    if (s.cities.length){ if(!s.cities.some(c=>norm(p.City)===norm(c))) return false; }
-    if (s.region==='Florida' && !inFlorida(p)) return false;
-    if (s.yearMin!=null){ const y=yearOf(p); if(y==null || y<s.yearMin || y>s.yearMax) return false; }
-    if (s.firm){
-      // Match by the firm's distinctive tokens (not full-name substring): credits
-      // vary ("Kengo Kuma" vs "Kengo Kuma and Associates"), so all-tokens-present
-      // catches every project tied to the studio.
-      const sig = norm(s.firm.name).split(/\s+/).filter(t=>t.length>2 && !FIRM_STOP.has(t));
-      const a=norm(p.Architect||''), d=norm(p.Developer||'');
-      if (!(sig.length && (sig.every(t=>a.includes(t)) || sig.every(t=>d.includes(t))))) return false;
-    }
-    return true;
-  });
-}
-function smartRank(rows, s){
-  const big = 1e9;
-  if (s.sort && s.sort.key==='floors'){ const d=s.sort.dir==='asc'?1:-1; rows.sort((a,b)=>{const fa=floorsOf(a)||(d>0?big:-1), fb=floorsOf(b)||(d>0?big:-1); return (fa-fb)*d || floorsOf(b)-floorsOf(a);}); }
-  else if (s.sort && s.sort.key==='units'){ rows.sort((a,b)=>unitsOf(b)-unitsOf(a)); }
-  else if (s.sort && s.sort.key==='date'){ const d=s.sort.dir==='asc'?1:-1; rows.sort((a,b)=>{const da=(a.DeliveryDate||'9999'), db=(b.DeliveryDate||'9999'); return da<db?-1*d:da>db?1*d:0;}); }
-  else if (s.sort && s.sort.key==='updated'){ rows.sort((a,b)=>String(b.UpdatedAt||'').localeCompare(String(a.UpdatedAt||''))); }
-  else { rows.sort((a,b)=>{ if(a.Featured&&!b.Featured)return -1; if(!a.Featured&&b.Featured)return 1; return floorsOf(b)-floorsOf(a); }); }
-  return rows;
-}
-
-const STATUS_BADGE = {
-  'Under Construction': {cls:'sb-construction', label:'Under construction'},
-  'Breaking Ground':    {cls:'sb-breaking',     label:'Breaking ground'},
-  'Opening Soon':       {cls:'sb-soon',         label:'Opening soon'},
-  'Now Open':           {cls:'sb-open',         label:'Now open'},
-  'Announced':          {cls:'sb-announced',    label:'Announced'},
-};
-function fmtDelivery(p){ const m=String(p.DeliveryDate||'').match(/(20\d{2})-(\d{2})/); if(m){ const M=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][+m[2]-1]; return (M?M+' ':'')+m[1]; } return yearOf(p)?(''+yearOf(p)):''; }
-
-function buildSmartAnswer(s, rows){
-  const n = rows.length;
-  const noun = s.typeNoun || 'project';
-  const subj = '<b>' + n + ' ' + noun + (n!==1?'s':'') + '</b>';
-  const statusPhrase = s.statusLabels.length ? ' ' + s.statusLabels.map(l=>l.toLowerCase()).join(' / ') : '';
-  const placePhrase = s.cities.length ? ' in ' + s.cities.join(' & ') : (s.region ? ' in ' + s.region : '');
-  const yearPhrase = s.yearLabel ? (s.statuses.size ? ', delivering ' + s.yearLabel : ' delivering ' + s.yearLabel) : '';
-  const hasPhase = !!(s.phases && s.phases.size);
-  const phaseVerbs = (s.phaseVerbs || []);
-  let sentence;
-  if (n === 0){
-    if (s.firm) return { html: 'We don’t track any ' + noun + 's tied to <b>' + esc(s.firm.name) + '</b>' + placePhrase + yearPhrase + ' yet.', stats: [] };
-    var lead = hasPhase ? ' have ' + phaseVerbs.join(' / ')
-             : (s.statusLabels.length ? ' are ' + s.statusLabels.map(l=>l.toLowerCase()).join('/') : ' match');
-    sentence = 'No tracked ' + noun + 's' + lead + placePhrase + yearPhrase + ' yet.';
-    return { html: sentence, stats: [] };
-  }
-  const be = (n===1 ? 'is' : 'are');
-  if (s.firm){
-    const rv = s.firm.role==='developer' ? 'is the developer behind' : (s.firm.role==='architect' ? 'is the architect on' : 'is behind');
-    const cntPhrase = '<b>' + n + ' tracked ' + noun + (n!==1?'s':'') + '</b>';
-    const names = rows.slice(0,3).map(p=>'<span class="hl">'+esc(p.Title)+'</span>'+(p.City?' ('+esc(p.City)+')':''));
-    const list = names.length===1 ? names[0] : names.slice(0,-1).join(', ') + ' and ' + names[names.length-1];
-    const more = n>3 ? ', plus ' + (n-3) + ' more' : '';
-    sentence = '<b>' + esc(s.firm.name) + '</b> ' + rv + ' ' + cntPhrase + statusPhrase + placePhrase + yearPhrase + ' — ' + list + more + '.';
-  } else if (hasPhase){
-    sentence = subj + ' ' + (n===1 ? 'has' : 'have') + ' ' + phaseVerbs.join(' and ') + placePhrase + yearPhrase + '.';
-  } else if (s.statuses.size){
-    sentence = subj + ' ' + be + statusPhrase + placePhrase + yearPhrase + '.';
-  } else {
-    sentence = subj + placePhrase + yearPhrase + ' ' + be + ' tracked on the map.';
-  }
-  // sort highlight — only with 2+ results (a single result isn't "the tallest")
-  const top = rows[0];
-  if (n >= 2 && s.sort && s.sort.key==='floors' && s.sort.dir==='desc' && floorsOf(top)){
-    sentence += ' The tallest is <span class="hl">' + esc(top.Title) + '</span> at <span class="hl">' + floorsOf(top) + ' stories</span>.';
-  } else if (n >= 2 && s.sort && s.sort.key==='units' && unitsOf(top)){
-    sentence += ' The largest is <span class="hl">' + esc(top.Title) + '</span> with <span class="hl">' + unitsOf(top).toLocaleString() + ' residences</span>.';
-  } else if (n >= 2 && s.sort && s.sort.key==='date' && s.sort.dir==='asc' && fmtDelivery(top)){
-    sentence += ' Next to open: <span class="hl">' + esc(top.Title) + '</span> (' + fmtDelivery(top) + ').';
-  }
-  // stats
-  const stats = [];
-  stats.push({ v: '' + n, k: 'Results' });
-  const maxF = Math.max(0, ...rows.map(floorsOf)), maxU = Math.max(0, ...rows.map(unitsOf));
-  if (s.sort && s.sort.key==='floors' && maxF) stats.push({ v: maxF + '<span class="u"> fl</span>', k: 'Tallest' });
-  else if (s.sort && s.sort.key==='units' && maxU) stats.push({ v: maxU.toLocaleString(), k: 'Most units' });
-  else { const uc = rows.filter(p=>p.Delivery==='Under Construction').length; if(uc) stats.push({ v: ''+uc, k: 'Under construction' }); }
-  const sumU = rows.reduce((a,p)=>a+unitsOf(p),0); if (sumU>0) stats.push({ v: '~' + sumU.toLocaleString(), k: 'Residences total' });
-  const yrs = rows.map(yearOf).filter(Boolean); if (yrs.length) stats.push({ v: '' + Math.min(...yrs), k: 'First delivery' });
-  return { html: sentence, stats: stats.slice(0,4) };
-}
-
-const HEX_SVG = '<svg class="hxs" viewBox="0 0 100 100"><polygon class="hxs-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/><g class="hxs-spin"><polygon class="hxs-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g></svg>';
+function smartFilter(s){ return TmwSC.smartFilter(s, PROJECTS); }
+// smartRank, buildSmartAnswer, STATUS_BADGE, fmtDelivery, HEX_SVG — all
+// destructured from TmwSearchCore at the top of this script. The original
+// inline definitions used to live here; Phase 2C moved them into
+// /_shared/journal-search-core.js so the overlay (and any future search
+// surface) shares the same implementation.
 let _smartLastCount = 0, _smartLastSort = null, _intelCommitTimer = null;
 // Count + log a TMW Intelligence query once it settles (debounced so a query
 // isn't counted per keystroke; tmwIntel.count dedupes repeats and skips Pro).
@@ -957,26 +748,9 @@ function renderIntelGate(){
   document.getElementById('smartSection').innerHTML = html;
 }
 
-// Partner-of-Tomorrow spotlights: a query naming an experiential partner returns
-// a curated answer instead of generic results (hardcoded — no LLM, never gated).
-// Real-estate partners (South Flagler House, Spina O'Rourke) are intentionally
-// NOT here — they live in the project/firm data and resolve through that path.
-const PARTNER_SPOTLIGHTS = [
-  { name:'TREMBLE', triggers:['tremble','pilates'], region:'Miami & The Palm Beaches', catShort:'Pilates · Reformer',
-    ctaUrl:'https://2ly.link/24Be5', ctaLabel:'Join TREMBLE',
-    prose:'<b>TREMBLE</b> is one of South Florida’s most talked-about fitness concepts — a high-intensity, low-impact studio blending strength, cardio, and <b>Pilates-inspired</b> movement on precision-engineered reformers. It’s scaling fast across <span class="hl">Miami</span> and <span class="hl">The Palm Beaches</span>, most recently opening its <b>fourth Palm Beach County studio</b> in <span class="hl">Wellington</span> — a single-row reformer layout that gives every client an unobstructed view — joining Boca Raton, West Palm Beach, and Jupiter.',
-    items:[{name:'TREMBLE Wellington',city:'Wellington, FL'},{name:'TREMBLE Boca Raton',city:'Boca Raton, FL'},{name:'TREMBLE West Palm Beach',city:'West Palm Beach, FL'},{name:'TREMBLE Jupiter',city:'Jupiter, FL'}] },
-  { name:'MedHouse', triggers:['medhouse'], catShort:'Biohack of Tomorrow', tagline:'Longevity, by membership.', ctaUrl:'https://linkly.link/2GbpS', ctaLabel:'Become a member' },
-  { name:'Higher Order', triggers:['higher order'], catShort:'Club of Tomorrow', tagline:'Membership for the few.', ctaUrl:'https://linkly.link/2HfAG', ctaLabel:'Request Invitation' },
-  { name:'TRAPHOUSE', triggers:['traphouse'], catShort:'Sweat of Tomorrow', tagline:'Grit, made glamorous.', ctaUrl:'https://linkly.link/2WiJd', ctaLabel:'Learn More' },
-  { name:'Humanaut Health', triggers:['humanaut'], catShort:'Medicine of Tomorrow', tagline:'Concierge medicine, reimagined.', ctaUrl:'https://linkly.link/2FdrC', ctaLabel:'Schedule a consult' },
-  { name:'PUR-FORM', triggers:['pur-form','pur form','purform'], catShort:'Biohack of Tomorrow', tagline:'Recovery for the relentless.', ctaUrl:'https://linkly.link/2FdrO', ctaLabel:'Become a member' },
-];
-function matchSpotlight(q){
-  const full = norm(q);
-  for (const s of PARTNER_SPOTLIGHTS){ for (const t of s.triggers){ if (hasWord(full, t)) return s; } }
-  return null;
-}
+// Partner-of-Tomorrow spotlights: data + matchSpotlight() are in TmwSearchCore.
+// renderPartnerSpotlight is page-specific (touches #smartSection) so it stays
+// here. The spotlights table is shared with the overlay via the core.
 function renderPartnerSpotlight(spot){
   _smartLastCount = spot.items ? spot.items.length : 0; _smartLastSort = null;
   const arrow = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
@@ -1147,27 +921,9 @@ function renderSmart(q, s){
   if (rows.length) upgradeSmartAnswer(q, buildSmartFacts(s, rows));
 }
 
-// Build the VERIFIED facts payload the Worker turns into prose. Numbers come
-// straight from the resolved rows — the LLM is told to use only these.
-function buildSmartFacts(s, rows){
-  const maxF = Math.max(0, ...rows.map(floorsOf)), maxU = Math.max(0, ...rows.map(unitsOf));
-  const tallest = maxF ? rows.find(p=>floorsOf(p)===maxF) : null;
-  const largest = maxU ? rows.find(p=>unitsOf(p)===maxU) : null;
-  const yrs = rows.map(yearOf).filter(Boolean);
-  const place = s.cities.length ? s.cities.join(' & ') : (s.region || null);
-  const many = rows.length >= 2;   // never hand the model a superlative for a single result
-  return {
-    count: rows.length,
-    criteria: { firm: s.firm ? s.firm.name : null, firmRole: s.firm ? s.firm.role : null, milestone: (s.phaseLabels && s.phaseLabels.join(' / ')) || null, status: s.statusLabels.join(' / ') || null, type: s.typeLabel || null, place: place, year: s.yearLabel || null },
-    sort: s.sort ? s.sort.label : null,
-    place: place,
-    tallest: (many && tallest) ? { name: tallest.Title, floors: maxF } : null,
-    largest: (many && largest) ? { name: largest.Title, units: maxU } : null,
-    residencesTotal: rows.reduce((a,p)=>a+unitsOf(p),0) || null,
-    firstDelivery: yrs.length ? Math.min(...yrs) : null,
-    top: rows.slice(0,8).map(p=>({ name: p.Title, city: p.City||'', status: p.Delivery||'', floors: floorsOf(p)||null, units: unitsOf(p)||null, delivery: fmtDelivery(p)||'' })),
-  };
-}
+// buildSmartFacts is destructured from TmwSearchCore at the top of this
+// script (Phase 2C). Same shape, same numbers — DB-derived; the LLM is
+// told to use only these.
 let _smartAnsToken = 0, _smartAnsTimer = null;
 function upgradeSmartAnswer(q, facts){
   const token = ++_smartAnsToken;

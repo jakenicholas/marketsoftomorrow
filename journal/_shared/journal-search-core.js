@@ -27,12 +27,17 @@
     return String(s == null ? '' : s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
   }
   function hasWord(haystack, word) {
-    // Word-boundary match on the already-normalized haystack. Multi-word
-    // "words" (e.g. "this year") are treated as a phrase substring.
+    // Word-boundary match with an OPTIONAL trailing 's' for plurals
+    // ("tower" matches "towers", "office" matches "offices"). Multi-word
+    // phrases ("this year", "broke ground") are treated as substring so
+    // we don't need to escape inner spaces or compose a multi-word regex.
+    // Mirrors /search/'s hasWord so structured-query parsing produces
+    // identical criteria on both surfaces.
     var w = norm(word);
     if (!w) return false;
     if (w.indexOf(' ') >= 0) return haystack.indexOf(w) >= 0;
-    var re = new RegExp('(^|[^a-z0-9])' + w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '($|[^a-z0-9])');
+    var escaped = w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    var re = new RegExp('(^|[^a-z0-9])' + escaped + 's?($|[^a-z0-9])');
     return re.test(haystack);
   }
   function esc(s) {
