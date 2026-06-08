@@ -120,6 +120,16 @@
     + '.tmw-ov-teach-foot{padding:16px 14px 0;margin-top:10px;'
     + 'font-size:12px;color:#9AA39C;text-align:center}'
 
+    /* "Or jump to" quick-jump pill row beneath the teach lines */
+    + '.tmw-ov-chip-sep{display:flex;align-items:center;gap:14px;margin:22px auto 14px;max-width:340px;'
+    + 'font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:rgba(255,255,255,.32);font-weight:700}'
+    + '.tmw-ov-chip-sep::before,.tmw-ov-chip-sep::after{content:"";flex:1;height:1px;background:rgba(255,255,255,.08)}'
+    + '.tmw-ov-chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}'
+    + '.tmw-ov-chip{font-family:inherit;font-size:12.5px;color:#ECEAE5;'
+    + 'background:rgba(167,139,250,.08);border:1px solid rgba(167,139,250,.25);'
+    + 'padding:8px 13px;border-radius:999px;cursor:pointer;transition:all .15s;line-height:1.2}'
+    + '.tmw-ov-chip:hover{background:rgba(167,139,250,.18);border-color:#A78BFA;color:#fff}'
+
     + '@media(max-width:640px){'
     +   '.tmw-ov-starter{padding:16px 16px 28px;min-height:calc(100vh - 200px)}'
     +   '.tmw-ov-teach-qt{font-size:15px;line-height:1.3}'
@@ -217,37 +227,41 @@
     + '.tmw-ov-empty h3{font-family:"Fraunces",Georgia,serif;font-size:22px;color:#ECEAE5;margin-bottom:8px;font-weight:600}'
     + '.tmw-ov-empty p{font-size:14px;max-width:40ch;margin:0 auto 18px}'
 
-    /* Bottom-pinned search bar — COPY of /search/'s .searchbox treatment,
-       just sized bigger so it reads as the primary input. Same rotating
-       purple conic-gradient border via @property --tmw-ov-ang, same
-       --panel background (no backdrop blur), same magnifier + gold arrow
-       proportions scaled up. Consistency with /search/ is the rule here:
-       any future tweak to the search-page bar should propagate here too. */
+    /* Bottom-pinned search bar — IDENTICAL to /search/'s .searchbox.
+       Same height (68px), same Fraunces 24px, same #141714 panel bg,
+       same rgba(167,139,250,.30) border, same box-shadow magnitude,
+       same magnifier + gold arrow dimensions. Any tweak to /search/'s
+       .searchbox must be ported here verbatim. No scaling, no extras.
+       The only difference from the source is position (fixed-bottom in
+       overlay vs in-flow on /search/) and the conic-gradient border via
+       @property --tmw-ov-ang (functionally identical to /search/'s
+       @property --tmw-ang, only the variable name differs so the two
+       custom-prop registrations don't clash if both load on one page). */
     + '.tmw-ov-bar{position:absolute;left:50%;bottom:28px;transform:translateX(-50%);'
     + 'width:min(820px, calc(100vw - 32px));z-index:2}'
     + '.tmw-ov-bar-inner{position:relative;display:flex;align-items:center}'
-    + '.tmw-ov-bar-inner::before{content:"";position:absolute;inset:-2px;border-radius:20px;padding:2px;z-index:0;pointer-events:none;'
+    + '.tmw-ov-bar-inner::before{content:"";position:absolute;inset:-2px;border-radius:18px;padding:2px;z-index:0;pointer-events:none;'
     + 'background:conic-gradient(from var(--tmw-ov-ang,0deg),rgba(167,139,250,0) 0deg,rgba(167,139,250,0) 200deg,#A78BFA 300deg,#E9DEFF 340deg,rgba(167,139,250,0) 360deg);'
     + '-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;'
     + 'animation:tmwOvChase 3.4s linear infinite}'
     + '@media(prefers-reduced-motion:reduce){.tmw-ov-bar-inner::before{animation:none}}'
-    + '.tmw-ov-bar .mag{position:absolute;left:26px;width:26px;height:26px;color:#B9A6FF;pointer-events:none;z-index:2}'
-    + '.tmw-ov-bar input{position:relative;z-index:1;width:100%;height:84px;padding:0 78px 0 70px;'
-    + 'background:#141714;border:1px solid rgba(167,139,250,.30);border-radius:18px;color:#fff;'
-    + 'font-family:"Fraunces",Georgia,serif;font-size:28px;outline:none;'
-    + 'box-shadow:0 0 32px rgba(167,139,250,.18),0 24px 60px rgba(0,0,0,.55);'
+    + '.tmw-ov-bar .mag{position:absolute;left:22px;width:22px;height:22px;color:#B9A6FF;pointer-events:none;z-index:2}'
+    + '.tmw-ov-bar input{position:relative;z-index:1;width:100%;height:68px;padding:0 64px 0 58px;'
+    + 'background:#141714;border:1px solid rgba(167,139,250,.30);border-radius:16px;color:#fff;'
+    + 'font-family:"Fraunces",Georgia,serif;font-size:24px;outline:none;'
+    + 'box-shadow:0 0 26px rgba(167,139,250,.16);'
     + 'transition:border-color .2s,background .2s,box-shadow .2s}'
-    + '.tmw-ov-bar input::placeholder{color:#9AA39C;font-family:"Fraunces",Georgia,serif;font-style:italic}'
+    + '.tmw-ov-bar input::placeholder{color:#9AA39C;font-family:"Fraunces",Georgia,serif}'
     + '.tmw-ov-bar input:focus{border-color:rgba(167,139,250,.6);background:#1a1d1a;'
-    + 'box-shadow:0 0 42px rgba(167,139,250,.32),0 24px 60px rgba(0,0,0,.55)}'
+    + 'box-shadow:0 0 34px rgba(167,139,250,.28)}'
     + '.tmw-ov-bar input::-webkit-search-cancel-button{-webkit-appearance:none;appearance:none;'
-    + 'height:20px;width:20px;cursor:pointer;'
+    + 'height:18px;width:18px;cursor:pointer;'
     + 'background:url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\'%3E%3Cpath d=\'M6 6l12 12M18 6L6 18\' stroke=\'%23B9A6FF\' stroke-width=\'2.2\' stroke-linecap=\'round\'/%3E%3C/svg%3E") center/contain no-repeat}'
-    + '.tmw-ov-bar .go{position:absolute;right:18px;height:56px;width:56px;padding:0;border:0;background:transparent;'
-    + 'color:#e6c574;display:flex;align-items:center;justify-content:center;z-index:2;border-radius:50%;cursor:pointer;'
-    + 'transition:transform .2s, background .2s, color .2s}'
-    + '.tmw-ov-bar .go:hover{background:rgba(230,197,116,.12);color:#f0d68a;transform:translateX(3px)}'
-    + '.tmw-ov-bar .go svg{width:28px;height:28px;filter:drop-shadow(0 0 8px rgba(230,197,116,.4))}'
+    + '.tmw-ov-bar .go{position:absolute;right:16px;height:48px;width:48px;padding:0;border:0;background:transparent;'
+    + 'color:#e6c574;display:flex;align-items:center;justify-content:center;z-index:2;cursor:pointer;'
+    + 'transition:color .2s,transform .2s}'
+    + '.tmw-ov-bar .go:hover{color:#f0d68a;transform:translateX(3px)}'
+    + '.tmw-ov-bar .go svg{width:26px;height:26px;filter:drop-shadow(0 0 8px rgba(230,197,116,.4))}'
 
     /* ─── PHASE 2: inline TMW Intelligence panel ─────────────────── */
     /* Purple-bordered card that renders the LLM /smart-answer response
@@ -466,13 +480,13 @@
     +   '.tmw-ov-hero{grid-template-columns:1fr}'
     +   '.tmw-ov-hero .media{min-height:180px}'
     +   '.tmw-ov-bar{bottom:18px;width:calc(100vw - 22px)}'
-    +   '.tmw-ov-bar input{font-size:20px;height:66px;padding:0 60px 0 54px;border-radius:14px}'
-    +   '.tmw-ov-bar .mag{left:20px;width:20px;height:20px}'
-    +   '.tmw-ov-bar .go{right:12px;height:46px;width:46px}'
+    +   '.tmw-ov-bar input{font-size:19px;height:60px;padding:0 56px 0 54px;border-radius:14px}'
+    +   '.tmw-ov-bar .mag{left:18px;width:20px;height:20px}'
+    +   '.tmw-ov-bar .go{right:12px;height:44px;width:44px}'
     +   '.tmw-ov-bar .go svg{width:22px;height:22px}'
     +   '.tmw-ov-row .r-bar{display:none}'
     +   '.tmw-ov-close{top:14px;right:14px;width:34px;height:34px}'
-    +   '.tmw-ov-body{padding:8px 0 180px}'
+    +   '.tmw-ov-body{padding:8px 0 160px}'
     +   '.tmw-ov-wrap{padding:0 16px}'
     + '}';
 
@@ -525,6 +539,22 @@
       +  '</button>';
   }).join('');
 
+  // "Or jump to" quick-jump pills — curated firm names + cities the user
+  // wants to surface as one-click entry points below the question chips.
+  // Same data-q click handler as the teach rows: typing in the value and
+  // running runQuery inline. Order matters (firms first, places second).
+  var QUICK_CHIPS = [
+    'Related Ross',
+    'Allen Morris Co',
+    'Property Markets Group',
+    'West Palm Beach',
+    'Miami',
+    'Nashville'
+  ];
+  var QUICK_CHIPS_HTML = QUICK_CHIPS.map(function(q){
+    return '<button class="tmw-ov-chip" type="button" data-q="' + esc(q) + '">' + esc(q) + '</button>';
+  }).join('');
+
   // Pro / quota pill — mirrors journal-dock.js's tmwIntelPillHTML so the
   // overlay's teach card shows the SAME PRO state + free-queries-left
   // count the dock teach panel does. Recomputed on every overlay open
@@ -564,6 +594,8 @@
     +           '</div>'
     +           '<div class="tmw-ov-teach-sec">Try asking</div>'
     +           STARTER_CHIPS_HTML
+    +           '<div class="tmw-ov-chip-sep">Or jump to</div>'
+    +           '<div class="tmw-ov-chips">' + QUICK_CHIPS_HTML + '</div>'
     +           '<div class="tmw-ov-teach-foot">Type a name for instant results, or ask a full question.</div>'
     +         '</div>'
     +       '</div>'
