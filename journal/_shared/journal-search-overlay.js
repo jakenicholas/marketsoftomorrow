@@ -281,6 +281,37 @@
     + '.tmw-ov-spot-head{display:flex;align-items:baseline;gap:12px;margin:0 2px 14px}'
     + '.tmw-ov-spot-head h3{font-family:"Fraunces",Georgia,serif;font-size:18px;color:#fff;font-weight:600;flex:1}'
 
+    /* ─── PHASE 2B: structured smart query (parseSmartQuery results) ─── */
+    /* Stats grid inside the intel panel — 4 columns of DB-derived numbers */
+    + '.tmw-ov-intel-stats{display:grid;gap:14px;margin-top:18px;padding-top:16px;border-top:1px solid rgba(167,139,250,.18)}'
+    + '.tmw-ov-istat .v{font-family:"Fraunces",Georgia,serif;font-size:22px;font-weight:600;color:#fff;letter-spacing:-.02em;line-height:1.1}'
+    + '.tmw-ov-istat .v .u{font-size:13px;color:#B9A6FF;font-weight:500}'
+    + '.tmw-ov-istat .k{font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:#9AA39C;margin-top:6px}'
+
+    /* Header above the smart result rows (count, sort, map link) */
+    + '.tmw-ov-smart-head{display:flex;align-items:baseline;gap:10px;margin:0 2px 14px}'
+    + '.tmw-ov-smart-head h3{font-family:"Fraunces",Georgia,serif;font-size:18px;color:#fff;font-weight:600}'
+    + '.tmw-ov-smart-head .sub{font-size:12px;color:#9AA39C}'
+    + '.tmw-ov-smart-head .map-link{margin-left:auto;display:inline-flex;align-items:center;gap:7px;font-size:11px;'
+    + 'letter-spacing:.08em;text-transform:uppercase;color:#42EB81;font-weight:700;padding:8px 13px;'
+    + 'border:1px solid rgba(31,223,103,.3);border-radius:999px;text-decoration:none}'
+    + '.tmw-ov-smart-head .map-link:hover{background:rgba(31,223,103,.1);color:#fff}'
+    + '.tmw-ov-smart-head .map-link svg{width:13px;height:13px}'
+
+    /* Smart row metric column (replaces relevance bar for sorted queries) */
+    + '.tmw-ov-row .r-metric{flex:0 0 auto;text-align:right;min-width:64px;margin-left:6px}'
+    + '.tmw-ov-row .r-metric .n{font-family:"Fraunces",Georgia,serif;font-size:18px;font-weight:700;color:#fff;line-height:1}'
+    + '.tmw-ov-row .r-metric .l{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#9AA39C;margin-top:3px}'
+
+    /* Smart-foot caption ("answer synthesized from the project database…") */
+    + '.tmw-ov-smart-foot{display:flex;align-items:center;gap:8px;margin-top:18px;justify-content:center;'
+    + 'font-size:11px;color:#9AA39C;text-align:center;flex-wrap:wrap}'
+    + '.tmw-ov-smart-foot .ai{color:#B9A6FF;font-weight:600}'
+
+    /* Sort-flavored "understood as" chip — green pip for sort, purple for the rest */
+    + '.tmw-ov-uchip.sort{background:rgba(31,223,103,.08);border-color:rgba(31,223,103,.30)}'
+    + '.tmw-ov-uchip.sort .ck{color:#42EB81}'
+
     + '.tmw-ov-hidden{display:none!important}'
 
     + '@media(max-width:760px){'
@@ -741,6 +772,105 @@
       + '</a>';
   }
 
+  // ─── PHASE 2B: structured smart query renderers ──────────────────────
+  // When parseSmartQuery returns non-null criteria, the overlay renders
+  // the "deterministic Intelligence" layout: understood-as chips, purple
+  // panel with synthesized sentence + stats grid, header with map link,
+  // ranked rows with metric column. Same shape as /search/'s renderSmart.
+
+  function renderUnderstoodChips(s){
+    var chips = [];
+    if (s.firm) {
+      var roleLbl = s.firm.role === 'developer' ? 'Developer' : (s.firm.role === 'architect' ? 'Architect' : 'Firm');
+      chips.push('<span class="tmw-ov-uchip"><span class="ck">'+roleLbl+'</span> <b>'+esc(s.firm.name)+'</b></span>');
+    }
+    if (s.phaseLabels && s.phaseLabels.length) chips.push('<span class="tmw-ov-uchip"><span class="ck">Milestone</span> <b>'+esc(s.phaseLabels.join(' / '))+'</b></span>');
+    if (s.statusLabels.length)                 chips.push('<span class="tmw-ov-uchip"><span class="ck">Status</span> <b>'+esc(s.statusLabels.join(' / '))+'</b></span>');
+    if (s.typeLabel)                           chips.push('<span class="tmw-ov-uchip"><span class="ck">Type</span> <b>'+esc(s.typeLabel)+'</b></span>');
+    if (s.cities.length)                       chips.push('<span class="tmw-ov-uchip"><span class="ck">City</span> <b>'+esc(s.cities.join(' & '))+'</b></span>');
+    else if (s.region)                         chips.push('<span class="tmw-ov-uchip"><span class="ck">Region</span> <b>'+esc(s.region)+'</b></span>');
+    if (s.yearLabel)                           chips.push('<span class="tmw-ov-uchip"><span class="ck">Delivery</span> <b>'+esc(s.yearLabel)+'</b></span>');
+    if (s.sort)                                chips.push('<span class="tmw-ov-uchip sort"><span class="ck">Sort</span> <b>'+esc(s.sort.label)+'</b></span>');
+    if (!chips.length) return '';
+    return '<div class="tmw-ov-understood"><span class="lead">Understood as</span>' + chips.join('') + '</div>';
+  }
+
+  // The intel panel with the deterministic answer + DB-derived stats grid.
+  // After this renders, fireSmartIntelUpgrade() may replace the sentence
+  // with an LLM-written version (figures stay; only the prose softens).
+  function renderSmartIntelPanel(ans){
+    var stats = '';
+    if (ans.stats && ans.stats.length){
+      stats = '<div class="tmw-ov-intel-stats" style="grid-template-columns:repeat('+ans.stats.length+',1fr)">'
+        + ans.stats.map(function(st){
+            return '<div class="tmw-ov-istat"><div class="v">'+st.v+'</div><div class="k">'+esc(st.k)+'</div></div>';
+          }).join('')
+        + '</div>';
+    }
+    return '<section class="tmw-ov-intel-panel">'
+      +   '<div class="tmw-ov-intel-h">'
+      +     '<span class="tmw-ov-intel-spark">'+ICON_SPARK+'</span>'
+      +     '<span class="lbl">TMW Intelligence</span>'
+      +     '<span class="live"><i></i>Live answer</span>'
+      +   '</div>'
+      +   '<p class="tmw-ov-intel-ans">'+ans.html+'</p>'
+      +   stats
+      + '</section>';
+  }
+
+  function renderSmartHeader(s, rows){
+    var n = rows.length;
+    var title = n === 1 ? '1 project' : (n + ' projects');
+    var sub = s.sort ? ' · ' + esc(s.sort.label.toLowerCase()) : '';
+    var firmLink = (s.firm && s.firm.slug)
+      ? '<a class="map-link" href="https://www.oftmw.com/firm/'+encodeURIComponent(s.firm.slug)+'/">'
+        + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M6 21V8l5-3 5 3v13M10 12h2M10 16h2"/></svg> View ' + esc(s.firm.name)
+        + '</a>'
+      : '';
+    var mapHref = (s.cities.length === 1) ? (MAP_URL + '/?city=' + encodeURIComponent(s.cities[0])) : MAP_URL;
+    var mapLink = '<a class="map-link" href="' + esc(mapHref) + '">'
+      + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l-6 3V6l6-3 6 3 6-3v15l-6 3-6-3z"/><path d="M9 3v15M15 6v15"/></svg> Show on map'
+      + '</a>';
+    return '<div class="tmw-ov-smart-head"><h3>' + title + '</h3>'
+      + (sub ? '<span class="sub">' + sub + '</span>' : '')
+      + firmLink + mapLink
+      + '</div>';
+  }
+
+  // A single sorted result row. When the query has a numeric sort
+  // (floors / units / date), the relevance bar is replaced with a
+  // metric column on the right that visualizes the sort dimension.
+  function renderSmartRow(p, rank, s, maxMetric){
+    var Core = window.TmwSearchCore;
+    var badge = Core.STATUS_BADGE[p.Delivery] || { cls: 'sb-announced', label: p.Delivery || '' };
+    var sortKey = s.sort && s.sort.key;
+    var metric = '';
+    var bar = '';
+    if (sortKey === 'floors') {
+      var f = Core.floorsOf(p);
+      bar = '<div class="r-bar"><span style="width:' + (maxMetric > 0 ? Math.round((f / maxMetric) * 100) : 0) + '%"></span></div>';
+      metric = '<div class="r-metric"><div class="n">' + (f || '—') + '</div><div class="l">Stories</div></div>';
+    } else if (sortKey === 'units') {
+      var u = Core.unitsOf(p);
+      bar = '<div class="r-bar"><span style="width:' + (maxMetric > 0 ? Math.round((u / maxMetric) * 100) : 0) + '%"></span></div>';
+      metric = '<div class="r-metric"><div class="n">' + (u ? u.toLocaleString() : '—') + '</div><div class="l">Units</div></div>';
+    } else if (sortKey === 'date') {
+      metric = '<div class="r-metric"><div class="n" style="font-size:14px">' + (esc(Core.fmtDelivery(p) || '—')) + '</div><div class="l">Delivers</div></div>';
+    }
+    var deliveryNote = (!sortKey && Core.fmtDelivery(p)) ? ('<span class="dot"></span><span>Delivers ' + esc(Core.fmtDelivery(p)) + '</span>') : '';
+    var sub = '<span class="sb '+badge.cls+'"><i></i>'+esc(badge.label)+'</span>'
+            + (p.City ? '<span class="dot"></span><span>'+esc(p.City)+'</span>' : '')
+            + deliveryNote;
+    return '<a class="tmw-ov-row '+(rank === 1 && sortKey ? 'lead' : '')+'" href="'+esc(mapLink(p.Title, true))+'">'
+      + '<div class="rank">'+rank+'</div>'
+      + '<div class="r-ico">'+ICON_BLDG+'</div>'
+      + '<div class="r-main"><div class="r-name">'+esc(p.Title)+'</div><div class="r-sub">'+sub+'</div></div>'
+      + bar
+      + metric
+      + '<div class="arrow">'+ICON_ARROW+'</div>'
+      + '</a>';
+  }
+
   // ── orchestration ─────────────────────────────────────────────────
   function setState(name){
     sStarter.classList.toggle('tmw-ov-hidden', name !== 'starter');
@@ -779,25 +909,133 @@
     }
 
     loadData().then(function(){
-      if (token !== _renderToken) return; // a newer query superseded us
+      if (token !== _renderToken) return;
 
-      var full = norm(q);
-      var toks = tokenize(q);
-      // Use the shared isQuestion so /search/ and the overlay always
-      // agree on what counts as a question (the local isQuestion is a
-      // fallback for the brief window before journal-search-core.js
-      // finishes loading).
-      var question = (Core ? Core.isQuestion : isQuestion)(q);
+      // ── PHASE 2B: structured smart query ─────────────────────────────
+      // Try parseSmartQuery FIRST — if the query has enough structure
+      // (status + place + type, sort + place, firm + anything, etc.) we
+      // skip text-match scoring entirely and render the deterministic
+      // Intelligence layout. This is the "tallest towers under
+      // construction in the Carolinas" path.
+      var smart = Core && Core.parseSmartQuery
+        ? Core.parseSmartQuery(q, { firms: FIRMS, projects: PROJECTS })
+        : null;
+      if (smart) {
+        renderStructuredSmart(q, smart, token);
+        return;
+      }
+      // Otherwise fall through to text-match scoring + the question /
+      // LLM path. Token re-checked inside runTextMatch.
+      runTextMatch(q, token);
+    });
+  }
 
-      var pScored = PROJECTS.map(function(p){ return { p:p, s:scoreProject(p, toks, full) }; })
-                            .filter(function(x){ return x.s > 0; })
-                            .sort(function(a,b){ return b.s - a.s; });
-      var fScored = FIRMS.map(function(f){ return { f:f, s:scoreFirm(f, toks, full) }; })
-                         .filter(function(x){ return x.s > 0; })
-                         .sort(function(a,b){ return b.s - a.s; });
-      var aScored = ARTICLES.map(function(a){ return { a:a, s:scoreArticle(a, toks, full) }; })
-                            .filter(function(x){ return x.s > 0; })
-                            .sort(function(a,b){ return b.s - a.s; });
+  // The structured-smart-query render. Mirrors /search/'s renderSmart:
+  // chips → intel panel (answer + stats) → header → ranked rows → foot.
+  // Also fires the LLM upgrade to replace the deterministic sentence
+  // with prose (figures stay DB-derived).
+  function renderStructuredSmart(q, s, token){
+    var Core = window.TmwSearchCore;
+    var allowed = !window.tmwIntel || (typeof window.tmwIntel.allowed === 'function' && window.tmwIntel.allowed(q));
+    if (!allowed) {
+      // Out of free queries → gate panel (no DB query, no LLM call).
+      slotIntel.innerHTML = intelGateHtml();
+      slotHero.innerHTML = '';
+      slotRows.innerHTML = '';
+      slotView.innerHTML = '';
+      setState('results');
+      return;
+    }
+
+    var rows = Core.smartRank(Core.smartFilter(s, PROJECTS), s);
+    var ans = Core.buildSmartAnswer(s, rows);
+
+    // Header slot carries the "understood as" chips
+    var chipsHtml = renderUnderstoodChips(s);
+    var panelHtml = renderSmartIntelPanel(ans);
+    slotIntel.innerHTML = chipsHtml + panelHtml;
+
+    // No hero in the smart layout — the intel panel IS the hero.
+    slotHero.innerHTML = '';
+
+    if (rows.length){
+      var maxMetric = 1;
+      if (s.sort && s.sort.key === 'floors') maxMetric = Math.max.apply(null, rows.map(Core.floorsOf).concat([1]));
+      else if (s.sort && s.sort.key === 'units') maxMetric = Math.max.apply(null, rows.map(Core.unitsOf).concat([1]));
+      var SMART_CAP = 40;
+      var shown = rows.slice(0, SMART_CAP);
+      var rowsHtml = shown.map(function(p, i){ return renderSmartRow(p, i + 1, s, maxMetric); }).join('');
+      var foot = (rows.length > SMART_CAP)
+        ? '<div class="tmw-ov-smart-foot">Showing top '+SMART_CAP+' of '+rows.length+' — refine your question to narrow it.</div>'
+        : '';
+      foot += '<div class="tmw-ov-smart-foot"><span class="ai">TMW Intelligence</span> · answer synthesized from the project database · figures verified, not generated</div>';
+      slotRows.innerHTML = '<div class="tmw-ov-sec">'
+        + renderSmartHeader(s, shown)
+        + '<div class="tmw-ov-rows">' + rowsHtml + '</div>'
+        + foot
+        + '</div>';
+    } else {
+      slotRows.innerHTML = '';
+    }
+    slotView.innerHTML = renderViewAll(q, rows.length);
+
+    // LLM upgrade: replace the deterministic sentence with prose (stats stay).
+    if (rows.length) fireSmartIntelUpgrade(q, s, rows);
+
+    // Count this query against the user's 10 free (intelligence.js gate)
+    try {
+      if (window.tmwIntel && window.tmwIntel.count) window.tmwIntel.count(q);
+      if (window.tmwIntel && window.tmwIntel.track) window.tmwIntel.track(q, { results: rows.length, sort: s.sort ? s.sort.label : null, source: 'overlay' });
+    } catch(_){}
+
+    setState('results');
+  }
+
+  // Debounced LLM rewrite of the structured-smart sentence. Same 700ms
+  // settle as /search/. Stale-token guarded so a late response for
+  // query N doesn't paint over query N+1.
+  function fireSmartIntelUpgrade(q, s, rows){
+    var Core = window.TmwSearchCore;
+    if (!Core) return;
+    var facts = Core.buildSmartFacts(s, rows);
+    var myToken = ++_intelToken;
+    clearTimeout(_intelDebounce);
+    _intelDebounce = setTimeout(function(){
+      if (myToken !== _intelToken) return;
+      Core.askIntelligence(q, facts).then(function(res){
+        if (myToken !== _intelToken) return;
+        if (!res || !res.ok || !res.answer) return; // deterministic answer already shown
+        var ansEl = slotIntel.querySelector('.tmw-ov-intel-ans');
+        if (ansEl) ansEl.textContent = res.answer;
+      });
+    }, 700);
+  }
+
+  // Original text-match path -- extracted from runQuery body so the new
+  // structured-smart branch can early-return cleanly. Same behavior as
+  // before: spotlight already handled above, smart already tried; this
+  // is the fallback for queries that are neither (e.g. typing a name or
+  // a free-form question without structured criteria).
+  function runTextMatch(q, token){
+    if (token !== _renderToken) return;
+    var Core = window.TmwSearchCore;
+
+    var full = norm(q);
+    var toks = tokenize(q);
+    // Use the shared isQuestion so /search/ and the overlay always agree
+    // on what counts as a question (the local fallback runs only during
+    // the brief window before journal-search-core.js finishes loading).
+    var question = (Core ? Core.isQuestion : isQuestion)(q);
+
+    var pScored = PROJECTS.map(function(p){ return { p:p, s:scoreProject(p, toks, full) }; })
+                          .filter(function(x){ return x.s > 0; })
+                          .sort(function(a,b){ return b.s - a.s; });
+    var fScored = FIRMS.map(function(f){ return { f:f, s:scoreFirm(f, toks, full) }; })
+                       .filter(function(x){ return x.s > 0; })
+                       .sort(function(a,b){ return b.s - a.s; });
+    var aScored = ARTICLES.map(function(a){ return { a:a, s:scoreArticle(a, toks, full) }; })
+                          .filter(function(x){ return x.s > 0; })
+                          .sort(function(a,b){ return b.s - a.s; });
 
       var totalHits = pScored.length + fScored.length + aScored.length;
 
@@ -902,7 +1140,6 @@
 
       slotView.innerHTML = renderViewAll(q, totalHits);
       setState('results');
-    });
   }
 
   // ── fire /smart-answer with debounce + stale-token guard ──────────
@@ -1010,24 +1247,44 @@
     if (v) navigateToSearch(v);
   });
 
-  // Starter chip click → fill bar + run inline; intel chips DO navigate
-  // straight to /search/?q= since they're explicitly questions.
+  // Starter chip click → fill bar + run inline. Phase 2 brought
+  // Intelligence inline, so question chips no longer need to hand off
+  // to /search/ -- both quick-jump and question chips run via runQuery.
   root.addEventListener('click', function(e){
     var chip = e.target.closest && e.target.closest('.tmw-ov-chip');
     if (!chip) return;
     var q = chip.getAttribute('data-q');
     if (!q) return;
-    // If it's a starter "question" chip, hand off to /search/ for the
-    // full Intelligence flow. Quick-jump chips run inline preview.
-    var sec = chip.closest('[data-chips]');
-    var isQ = sec && sec.getAttribute('data-chips') === 'questions';
-    if (isQ) {
-      navigateToSearch(q);
-    } else {
-      input.value = q;
-      runQuery(q);
-    }
+    input.value = q;
+    runQuery(q);
   });
+
+  // ── Wire the dock's existing search bar to open the overlay ─────────
+  // The dock bar (look + behavior at rest) is unchanged; focusing or
+  // clicking it now opens the lightbox and carries over any text the
+  // user already started typing. The dock input is blurred so its own
+  // autocomplete dropdown doesn't pop up alongside the overlay.
+  //
+  // EXCEPTION: on the /map/ surface the dock search bar is the spatial
+  // explorer (filter pins + fly to) — that role can't be hijacked. Map
+  // users still get the overlay via the "/" hotkey, just not via the
+  // dock click. This mirrors the user's "two-jobs" decision: sidebar/
+  // dock-on-map = Explore, dock-on-journal + "/" = Ask.
+  function handleDockTrigger(e){
+    if (typeof window.tmwSurface === 'function' && window.tmwSurface() === 'map') return;
+    var t = e.target;
+    if (!t || !t.closest) return;
+    var ds = t.closest('.tmw-dock input[type="search"][name="q"]');
+    if (!ds) return;
+    if (root.classList.contains('open')) return;
+    var existing = (ds.value || '').trim();
+    open(existing);
+    // Blur after focus has settled so the dock's AC dropdown also closes
+    // (its blur handler hides the AC after a small timeout).
+    setTimeout(function(){ try { ds.blur(); } catch(_){} }, 0);
+  }
+  document.addEventListener('focusin', handleDockTrigger);
+  document.addEventListener('click',  handleDockTrigger);
 
   // ── global hotkey: "/" opens, Esc closes ──────────────────────────
   document.addEventListener('keydown', function(e){
