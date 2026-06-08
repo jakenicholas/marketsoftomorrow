@@ -13038,9 +13038,10 @@
           ".tmw-il-legend .d{width:9px;height:9px;border-radius:50%;flex:0 0 auto;box-shadow:0 0 0 1.5px rgba(255,255,255,.45)}" +
           ".tmw-il-scrub{position:fixed;left:50%;transform:translateX(-50%);bottom:96px;z-index:2;width:min(440px,92vw);background:rgba(14,14,18,.88);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:8px 14px 10px;box-shadow:0 16px 44px rgba(0,0,0,.5);font-family:'Inter',sans-serif;color:#fff;transition:opacity .15s}" +
           ".tmw-il-scrub.tmw-il-hidden{opacity:0;pointer-events:none}" +
-          // Mobile: when the project/filter drawer is open, get the panel + scrubber
-          // out of the way so the drawer is unobstructed (drawer renders above them).
-          "body.v2-sheet-open .tmw-il-panel,body.v2-sheet-open .tmw-il-scrub,body:has(#mobileDrawer.expanded) .tmw-il-panel,body:has(#mobileDrawer.expanded) .tmw-il-scrub{opacity:0!important;pointer-events:none!important}" +
+          // Mobile: when the project/filter drawer is open, fully remove the panel
+          // + scrubber (display:none, not opacity — opacity:0 left a backdrop-filter
+          // glass block) so the drawer is unobstructed; they return on close.
+          "body.v2-sheet-open .tmw-il-panel,body.v2-sheet-open .tmw-il-scrub{display:none!important}" +
           ".tmw-il-scrub-top{display:flex;align-items:center;gap:11px;margin-bottom:5px}" +
           ".tmw-il-play{width:30px;height:30px;border-radius:50%;border:1px solid rgba(167,139,250,.5);background:rgba(167,139,250,.14);color:#fff;cursor:pointer;display:grid;place-items:center;flex:0 0 auto;transition:.15s}" +
           ".tmw-il-play:hover{background:rgba(167,139,250,.26)}.tmw-il-play svg{width:13px;height:13px}" +
@@ -13168,11 +13169,8 @@
           timer=setInterval(()=>{ y++; if (y>MAX){ slider.value=100; applyYear(MAX,true); stopPlay(); return; } slider.value=((y-MIN)/(MAX-MIN))*100; applyYear(y,false); }, 850); }
         function stopPlay(){ playing=false; clearInterval(timer); playBtn.innerHTML=I_PLAY; }
         playBtn.addEventListener('click', ()=>{ playing ? stopPlay() : startPlay(); });
-        // Get the scrubber out of the way while any search field is focused, so
-        // the results pop-up is never covered by it. Returns when focus leaves.
-        const SEARCH_SEL = '.tmw-dock-search, #sidebarSearchBar, #mobileSearchBar';
-        document.addEventListener('focusin', e=>{ if (e.target && e.target.closest && e.target.closest(SEARCH_SEL)) scrub.classList.add('tmw-il-hidden'); });
-        document.addEventListener('focusout', ()=>{ setTimeout(()=>{ const a=document.activeElement; if (!a || !a.closest || !a.closest(SEARCH_SEL)) scrub.classList.remove('tmw-il-hidden'); }, 120); });
+        // (The scrubber sits at z:2, below every search pop-up, so no focus-hide
+        // is needed — and an opacity:0 hide left a backdrop-filter "glass block".)
         // Start the scrubber at 2026 (this year) rather than the max.
         const START_YEAR = Math.max(MIN, Math.min(MAX, 2026));
         slider.value = Math.round(((START_YEAR - MIN) / (MAX - MIN)) * 100);
