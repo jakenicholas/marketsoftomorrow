@@ -937,8 +937,22 @@
   // on every journal page via "/" hotkey or [data-tmw-overlay] elements.
   // Deliberately does NOT touch the dock's existing search input/AC —
   // both surfaces coexist (dock = quick autocomplete + submit, overlay =
-  // immersive search + handoff to /search/ Intelligence).
+  // immersive search + inline TMW Intelligence via /smart-answer).
+  //
+  // Two scripts load together:
+  //   - journal-search-core.js: pure-functions module exposing TmwSearchCore
+  //     (isQuestion, askIntelligence, partner spotlights, fact-building).
+  //     The overlay calls into it; safe to load in either order since the
+  //     overlay defensively checks for window.TmwSearchCore on each query.
+  //   - journal-search-overlay.js: the overlay UI itself.
   function loadSearchOverlay() {
+    if (!document.querySelector('script[data-tmw-search-core]')) {
+      var c = document.createElement('script');
+      c.src = '/_shared/journal-search-core.js';
+      c.defer = true;
+      c.setAttribute('data-tmw-search-core', '1');
+      document.head.appendChild(c);
+    }
     if (document.querySelector('script[data-tmw-search-overlay]')) return;
     var s = document.createElement('script');
     s.src = '/_shared/journal-search-overlay.js';

@@ -216,6 +216,71 @@
     + '.tmw-ov-bar .go:hover{background:rgba(230,197,116,.12);transform:translateX(2px)}'
     + '.tmw-ov-bar .go svg{width:24px;height:24px;filter:drop-shadow(0 0 8px rgba(230,197,116,.45))}'
 
+    /* ─── PHASE 2: inline TMW Intelligence panel ─────────────────── */
+    /* Purple-bordered card that renders the LLM /smart-answer response
+       directly inside the overlay (no /search/ handoff). Three visual
+       states: loading (caterpillar dots + "Thinking"), answer (serif
+       prose + "Live answer" pip), no-answer (muted text + soft pip). */
+    + '.tmw-ov-intel-panel{position:relative;padding:22px 24px 20px;margin-bottom:26px;'
+    + 'border:1px solid rgba(167,139,250,.30);border-radius:18px;'
+    + 'background:radial-gradient(130% 150% at 0% 0%,rgba(167,139,250,.14),transparent 55%),linear-gradient(180deg,#1a1d1a,#141714);'
+    + 'box-shadow:0 18px 50px rgba(0,0,0,.45);animation:tmwOvFadeIn .35s ease both}'
+    + '.tmw-ov-intel-panel::before{content:"";position:absolute;inset:-1px;border-radius:18px;padding:1px;pointer-events:none;'
+    + 'background:conic-gradient(from 210deg,rgba(167,139,250,0) 0deg,rgba(167,139,250,0) 250deg,#A78BFA 320deg,#E9DEFF 350deg,rgba(167,139,250,0) 360deg);'
+    + '-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}'
+    + '.tmw-ov-intel-h{display:flex;align-items:center;gap:10px;margin-bottom:14px}'
+    + '.tmw-ov-intel-spark{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;'
+    + 'background:rgba(167,139,250,.16);color:#B9A6FF;box-shadow:0 0 16px rgba(167,139,250,.45);flex:0 0 auto}'
+    + '.tmw-ov-intel-spark svg{width:18px;height:18px}'
+    + '.tmw-ov-intel-h .lbl{font-size:11px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:#B9A6FF}'
+    + '.tmw-ov-intel-h .live{margin-left:auto;display:flex;align-items:center;gap:7px;font-size:10px;'
+    + 'letter-spacing:.12em;text-transform:uppercase;color:#9AA39C}'
+    + '.tmw-ov-intel-h .live i{width:6px;height:6px;border-radius:50%;background:#B9A6FF;box-shadow:0 0 8px #B9A6FF;font-style:normal}'
+    + '.tmw-ov-intel-h .live.dim i{background:#6c706c;box-shadow:none}'
+    + '.tmw-ov-intel-ans{font-family:"Fraunces",Georgia,serif;font-size:18px;line-height:1.55;color:#fff;font-weight:400;max-width:68ch}'
+    + '.tmw-ov-intel-ans.loading{color:#9AA39C;font-style:italic}'
+    + '.tmw-ov-intel-ans .hl{color:#B9A6FF;font-weight:600}'
+    + '.tmw-ov-intel-foot{display:flex;align-items:center;gap:10px;margin-top:14px;padding-top:14px;border-top:1px solid rgba(167,139,250,.18);'
+    + 'font-size:11px;color:#9AA39C}'
+    + '.tmw-ov-intel-foot .ai{color:#B9A6FF;font-weight:600}'
+    + '.tmw-ov-intel-foot a{margin-left:auto;color:#e6c574;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:5px}'
+    + '.tmw-ov-intel-foot a:hover{color:#f0d68a}'
+    + '.tmw-ov-intel-foot a svg{width:13px;height:13px}'
+
+    /* Gate variant — gold accent for the "out of free queries" upgrade panel */
+    + '.tmw-ov-intel-panel.gate{border-color:rgba(240,214,138,.4);'
+    + 'background:radial-gradient(130% 150% at 0% 0%,rgba(240,214,138,.10),transparent 55%),linear-gradient(180deg,#1a1d1a,#141714)}'
+    + '.tmw-ov-intel-panel.gate::before{background:conic-gradient(from 210deg,rgba(240,214,138,0) 0deg,rgba(240,214,138,0) 250deg,#e6c574 320deg,#f0d68a 350deg,rgba(240,214,138,0) 360deg)}'
+    + '.tmw-ov-intel-panel.gate .lbl{color:#f0d68a}'
+    + '.tmw-ov-intel-panel.gate .tmw-ov-intel-spark{color:#f0d68a;background:rgba(240,214,138,.16);box-shadow:0 0 16px rgba(240,214,138,.4)}'
+    + '.tmw-ov-pro-btn{display:inline-flex;align-items:center;gap:8px;margin-top:14px;padding:12px 20px;border-radius:11px;'
+    + 'background:linear-gradient(180deg,#f0d68a,#e6c574);color:#0b0a08;font-family:inherit;font-weight:700;font-size:12px;'
+    + 'letter-spacing:.06em;text-transform:uppercase;text-decoration:none;box-shadow:0 0 24px rgba(230,197,116,.3);transition:filter .15s}'
+    + '.tmw-ov-pro-btn:hover{filter:brightness(1.07)}'
+
+    /* Caterpillar dots inside the panel while LLM is thinking */
+    + '.tmw-ov-intel-loader{display:inline-flex;align-items:center;gap:6px;margin-right:10px;vertical-align:-2px}'
+    + '.tmw-ov-intel-loader span{width:5px;height:5px;border-radius:50%;background:#B9A6FF;animation:tmwOvBnc 1.2s infinite}'
+    + '.tmw-ov-intel-loader span:nth-child(2){animation-delay:.15s}'
+    + '.tmw-ov-intel-loader span:nth-child(3){animation-delay:.3s}'
+
+    /* "Understood as" chips above a spotlight result */
+    + '.tmw-ov-understood{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 18px}'
+    + '.tmw-ov-understood .lead{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#9AA39C;font-weight:700}'
+    + '.tmw-ov-uchip{display:inline-flex;align-items:center;gap:7px;padding:5px 11px;border-radius:999px;'
+    + 'background:rgba(167,139,250,.10);border:1px solid rgba(167,139,250,.30);font-size:12px;color:#ECEAE5}'
+    + '.tmw-ov-uchip .ck{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#B9A6FF;font-weight:700}'
+    + '.tmw-ov-uchip b{color:#fff;font-weight:600}'
+
+    /* Partner spotlight CTA + item rows */
+    + '.tmw-ov-spot-cta{display:inline-flex;align-items:center;gap:7px;margin-left:auto;padding:8px 14px;border-radius:999px;'
+    + 'border:1px solid rgba(31,223,103,.3);background:rgba(31,223,103,.06);'
+    + 'color:#42EB81;font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;text-decoration:none}'
+    + '.tmw-ov-spot-cta:hover{background:rgba(31,223,103,.12)}'
+    + '.tmw-ov-spot-cta svg{width:13px;height:13px}'
+    + '.tmw-ov-spot-head{display:flex;align-items:baseline;gap:12px;margin:0 2px 14px}'
+    + '.tmw-ov-spot-head h3{font-family:"Fraunces",Georgia,serif;font-size:18px;color:#fff;font-weight:600;flex:1}'
+
     + '.tmw-ov-hidden{display:none!important}'
 
     + '@media(max-width:760px){'
@@ -572,6 +637,103 @@
       + '<div class="arrow">'+ICON_ARROW+'</div>'
       + '</a>';
   }
+
+  // ─── PHASE 2: inline TMW Intelligence panel ─────────────────────────
+  // Replaces the previous link-to-/search/ CTA with a real, in-overlay
+  // panel that renders the LLM answer. Three states share the same shell
+  // so the swap from loading → answer doesn't shift layout.
+  function intelPanelHtml(state, q, answer){
+    var live, ansClass, ansHtml;
+    if (state === 'loading'){
+      live = '<i></i>Thinking';
+      ansClass = 'loading';
+      ansHtml = '<span class="tmw-ov-intel-loader" aria-hidden="true"><span></span><span></span><span></span></span>'
+              + 'Looking through projects and stories for an answer…';
+    } else if (state === 'answer'){
+      live = '<i></i>Live answer';
+      ansClass = '';
+      // LLM responses are plain text; render as textContent equivalent
+      // (escaped) so a stray "<" can't break the panel.
+      ansHtml = esc(answer || '');
+    } else if (state === 'no-answer'){
+      live = '<span class="live dim"><i></i></span>No verified answer';
+      ansClass = '';
+      ansHtml = 'No verified answer in our database for that question — the top match below is the closest we have.';
+    } else { // error
+      live = '<span class="live dim"><i></i></span>Intelligence unreachable';
+      ansClass = '';
+      ansHtml = 'Could not reach TMW Intelligence right now — showing the closest matches below.';
+    }
+    return '<section class="tmw-ov-intel-panel">'
+      +   '<div class="tmw-ov-intel-h">'
+      +     '<span class="tmw-ov-intel-spark">'+ICON_SPARK+'</span>'
+      +     '<span class="lbl">TMW Intelligence</span>'
+      +     '<span class="live">'+live+'</span>'
+      +   '</div>'
+      +   '<p class="tmw-ov-intel-ans '+ansClass+'">'+ansHtml+'</p>'
+      +   '<div class="tmw-ov-intel-foot">'
+      +     '<span class="ai">TMW Intelligence</span> · synthesized from the journal &amp; database'
+      +     '<a href="'+SEARCH_URL+'?q='+encodeURIComponent(q||'')+'">Open in full search '+ICON_ARROW+'</a>'
+      +   '</div>'
+      + '</section>';
+  }
+
+  // Out-of-free-queries upgrade panel (gold accent) — mirrors /search/'s
+  // intel-gate; opens the native in-page paywall via [data-tmw-paywall].
+  function intelGateHtml(){
+    return '<section class="tmw-ov-intel-panel gate">'
+      +   '<div class="tmw-ov-intel-h">'
+      +     '<span class="tmw-ov-intel-spark">'+ICON_SPARK+'</span>'
+      +     '<span class="lbl">TMW Intelligence</span>'
+      +   '</div>'
+      +   '<p class="tmw-ov-intel-ans">You’ve used all <b>10 free</b> TMW Intelligence searches. Go <b>Pro</b> for unlimited natural-language search across the entire development pipeline — every project, firm, and milestone.</p>'
+      +   '<a class="tmw-ov-pro-btn" href="https://www.oftmw.com/map/?upgrade=1" data-tmw-paywall="feature:intelligence">Go Pro — unlimited intelligence</a>'
+      + '</section>';
+  }
+
+  // Partner-of-Tomorrow spotlight — curated answer for queries naming an
+  // experiential partner (TREMBLE, Humanaut, etc.). NEVER gated and never
+  // calls the LLM; the prose comes from the spotlight table.
+  function spotlightHtml(spot){
+    var chips = '<div class="tmw-ov-understood">'
+      +   '<span class="lead">Understood as</span>'
+      +   '<span class="tmw-ov-uchip"><span class="ck">Partner</span> <b>'+esc(spot.name)+'</b></span>'
+      +   (spot.region    ? '<span class="tmw-ov-uchip"><span class="ck">Region</span> <b>'+esc(spot.region)+'</b></span>'    : '')
+      +   (spot.catShort  ? '<span class="tmw-ov-uchip"><span class="ck">Category</span> <b>'+esc(spot.catShort)+'</b></span>': '')
+      + '</div>';
+    var prose = spot.prose
+      ? spot.prose
+      : '<b>'+esc(spot.name)+'</b> is a <b>Partner of Tomorrow</b> — '+esc(spot.catShort||'')+'. <span class="hl">'+esc(spot.tagline||'')+'</span>';
+    var panel = '<section class="tmw-ov-intel-panel">'
+      +   '<div class="tmw-ov-intel-h">'
+      +     '<span class="tmw-ov-intel-spark">'+ICON_SPARK+'</span>'
+      +     '<span class="lbl">TMW Intelligence</span>'
+      +     '<span class="live"><i></i>Live answer</span>'
+      +   '</div>'
+      +   '<p class="tmw-ov-intel-ans">'+prose+'</p>'
+      + '</section>';
+    var cta = spot.ctaUrl
+      ? '<a class="tmw-ov-spot-cta" href="'+esc(spot.ctaUrl)+'" target="_blank" rel="noopener">'+esc(spot.ctaLabel||'Learn more')+ICON_ARROW+'</a>'
+      : '';
+    var head = '<div class="tmw-ov-spot-head"><h3>'+esc(spot.name)+(spot.region?' · '+esc(spot.region):'')+'</h3>'+cta+'</div>';
+    var rows = '';
+    if (spot.items && spot.items.length){
+      rows = '<div class="tmw-ov-rows">' + spot.items.map(function(it, i){
+        return '<div class="tmw-ov-row '+(i===0?'lead':'')+'">'
+          +   '<div class="rank">'+(i+1)+'</div>'
+          +   '<div class="r-ico">'+ICON_PIN+'</div>'
+          +   '<div class="r-main">'
+          +     '<div class="r-name">'+esc(it.name)+'</div>'
+          +     '<div class="r-sub"><span class="sb sb-open"><i></i>'+esc(it.badge||'Now open')+'</span>'
+          +       (it.city?'<span class="dot"></span><span>'+esc(it.city)+'</span>':'')
+          +     '</div>'
+          +   '</div>'
+          + '</div>';
+      }).join('') + '</div>';
+    }
+    return chips + panel + head + rows;
+  }
+
   function renderViewAll(q, totalHits){
     return '<a class="tmw-ov-viewall" href="'+SEARCH_URL+'?q='+encodeURIComponent(q)+'">'
       + 'View all '+totalHits+' results on search'
@@ -589,6 +751,11 @@
   }
 
   var _renderToken = 0;
+  // Separate token for the LLM call so a slow /smart-answer response
+  // for query N doesn't paint over the loading shell of query N+1.
+  var _intelToken = 0;
+  var _intelDebounce = null;
+
   function runQuery(rawQ){
     var q = String(rawQ||'').trim();
     if (!q) { setState('starter'); return; }
@@ -596,12 +763,31 @@
     var token = ++_renderToken;
     setState('thinking');
 
+    // ── Partner-of-Tomorrow spotlight (curated, no LLM, never gated) ──
+    // Has to render BEFORE we touch the LLM or hit the database — typing
+    // "tremble" should land on the spotlight card, not a generic search.
+    var Core = window.TmwSearchCore;
+    var spot = Core ? Core.matchSpotlight(q) : null;
+    if (spot){
+      slotIntel.innerHTML = '';
+      slotHero.innerHTML = '<div class="tmw-ov-sec">' + spotlightHtml(spot) + '</div>';
+      slotRows.innerHTML = '';
+      slotView.innerHTML = '';
+      sEmpty.classList.add('tmw-ov-hidden');
+      setState('results');
+      return;
+    }
+
     loadData().then(function(){
       if (token !== _renderToken) return; // a newer query superseded us
 
       var full = norm(q);
       var toks = tokenize(q);
-      var question = isQuestion(q);
+      // Use the shared isQuestion so /search/ and the overlay always
+      // agree on what counts as a question (the local isQuestion is a
+      // fallback for the brief window before journal-search-core.js
+      // finishes loading).
+      var question = (Core ? Core.isQuestion : isQuestion)(q);
 
       var pScored = PROJECTS.map(function(p){ return { p:p, s:scoreProject(p, toks, full) }; })
                             .filter(function(x){ return x.s > 0; })
@@ -615,24 +801,56 @@
 
       var totalHits = pScored.length + fScored.length + aScored.length;
 
-      // Empty state: still offer the Intelligence CTA — the LLM may know
-      // what the structured database doesn't.
-      if (!totalHits) {
-        if (question) {
-          slotIntel.innerHTML = renderIntelCTA(q);
-          slotHero.innerHTML = '';
-          slotRows.innerHTML = '';
-          slotView.innerHTML = '';
-          sEmpty.classList.add('tmw-ov-hidden');
-          setState('results');
+      // ── Intelligence panel (inline LLM answer) ──────────────────────
+      // Decide before paint so the panel slot is correct from the first
+      // frame -- prevents a flash of a hero-only layout that then jumps
+      // when the LLM loading shell appears above it.
+      var allowed = !window.tmwIntel || (typeof window.tmwIntel.allowed === 'function' && window.tmwIntel.allowed(q));
+      if (question){
+        if (!allowed){
+          // Out of free queries → gold gate panel (no LLM call).
+          slotIntel.innerHTML = intelGateHtml();
+        } else if (Core && totalHits > 0){
+          // We have facts to seed the model with → fire it. Render the
+          // loading shell first so the user sees instant feedback while
+          // the worker round-trips (~600-1200ms typical).
+          slotIntel.innerHTML = intelPanelHtml('loading', q);
+          fireIntelligence(q,
+            pScored.slice(0,5).map(function(x){ return x.p; }),
+            aScored.slice(0,3).map(function(x){ return x.a; })
+          );
+        } else if (Core){
+          // Question with zero text-match hits — still fire the LLM with
+          // the empty fact set. It may have indexed coverage we don't,
+          // or it'll politely tell us it doesn't know.
+          slotIntel.innerHTML = intelPanelHtml('loading', q);
+          fireIntelligence(q, [], []);
         } else {
-          setState('empty');
+          // Core hasn't loaded yet — fall back to the link-out CTA so
+          // the user can still get Intelligence via /search/.
+          slotIntel.innerHTML = renderIntelCTA(q);
         }
-        return;
+      } else {
+        slotIntel.innerHTML = '';
       }
 
-      // Intelligence CTA at the top when the query reads like a question
-      slotIntel.innerHTML = question ? renderIntelCTA(q) : '';
+      // Empty state: if not a question and nothing matched, the empty
+      // panel is the right UX. Question + empty already rendered an
+      // Intelligence panel above so the user is never stranded.
+      if (!totalHits && !question){
+        slotHero.innerHTML = '';
+        slotRows.innerHTML = '';
+        slotView.innerHTML = '';
+        setState('empty');
+        return;
+      }
+      if (!totalHits){
+        slotHero.innerHTML = '';
+        slotRows.innerHTML = '';
+        slotView.innerHTML = '';
+        setState('results');
+        return;
+      }
 
       // Hero: most-relevant of (project, firm, article) by raw score
       var heroCandidates = [];
@@ -685,6 +903,37 @@
       slotView.innerHTML = renderViewAll(q, totalHits);
       setState('results');
     });
+  }
+
+  // ── fire /smart-answer with debounce + stale-token guard ──────────
+  // Called from runQuery once per settled query. Bumps _intelToken so a
+  // late-returning response for a stale query doesn't paint over the
+  // current loading shell.
+  function fireIntelligence(q, topProjects, topArticles){
+    var Core = window.TmwSearchCore;
+    if (!Core) return;
+    var facts = Core.buildIntelFacts(topProjects, topArticles);
+    var myToken = ++_intelToken;
+    clearTimeout(_intelDebounce);
+    _intelDebounce = setTimeout(function(){
+      if (myToken !== _intelToken) return;
+      Core.askIntelligence(q, facts).then(function(res){
+        if (myToken !== _intelToken) return;
+        if (res && res.ok && res.answer){
+          slotIntel.innerHTML = intelPanelHtml('answer', q, res.answer);
+          // Count this against the user's 10 free queries (intelligence.js
+          // gate; Pro users are uncounted). Mirrors /search/.
+          try {
+            if (window.tmwIntel && window.tmwIntel.count) window.tmwIntel.count(q);
+            if (window.tmwIntel && window.tmwIntel.track) window.tmwIntel.track(q, { results: facts.top.length, source: 'overlay' });
+          } catch(_){}
+        } else if (res && res.error){
+          slotIntel.innerHTML = intelPanelHtml('error', q);
+        } else {
+          slotIntel.innerHTML = intelPanelHtml('no-answer', q);
+        }
+      });
+    }, 700);
   }
 
   // Debounced live-as-you-type. Short queries (1 char) just wait.
