@@ -680,10 +680,12 @@
   // running runQuery inline. Order matters (firms first, places second).
   var QUICK_CHIPS = [
     'Related Ross',
+    'Naftali Group',
     'Allen Morris Co',
     'Property Markets Group',
     'West Palm Beach',
     'Miami',
+    'Manhattan',
     'Nashville'
   ];
   var QUICK_CHIPS_HTML = QUICK_CHIPS.map(function(q){

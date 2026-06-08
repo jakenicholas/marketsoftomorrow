@@ -18914,6 +18914,14 @@
 
       // ‚îÄ‚îÄ‚îÄ Memberstack actions ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
       async function openSignup() {
+        // Universal header: use the SAME custom TMW modal as the rest of the site.
+        // On success Memberstack fires onAuthChange (init) → refreshMemberStatus +
+        // hideAllPaywalls, so the post-login refresh is handled there, not inline.
+        if (typeof window.tmwAuthModal === 'function') {
+          try { if (window.gtag) gtag('event', 'signup_modal_opened'); } catch (_) {}
+          window.tmwAuthModal('signup');
+          return;
+        }
         if (!window.$memberstackDom) return;
         try {
           if (window.gtag) gtag('event', 'signup_modal_opened');
@@ -18930,6 +18938,8 @@
       }
 
       async function openSignIn() {
+        // Universal header: same custom TMW modal as the rest of the site.
+        if (typeof window.tmwAuthModal === 'function') { window.tmwAuthModal('login'); return; }
         if (!window.$memberstackDom) return;
         try {
           await window.$memberstackDom.openModal('LOGIN');
