@@ -13516,6 +13516,9 @@
           ['clusters-completed','cluster-count-completed','unclustered-point-completed'].forEach(id=>{ if(map.getLayer(id)){ try{ map.setLayoutProperty(id,'visibility', done?'visible':'none'); }catch(e){} } });
           const cc=document.getElementById('completedCheckbox'), dc=document.getElementById('developmentsCheckbox');
           if(cc) cc.classList.toggle('checked', done); if(dc) dc.classList.toggle('checked', dev);
+          // Keep the folder/list in sync with the toggle — the renderGrid filter
+          // shows completed only when Completed/Both is selected (matches the map).
+          try { if (typeof renderGrid === 'function') { renderGrid('gridDesktop'); renderGrid('gridMobile'); } } catch(e){}
         }
         panel.querySelectorAll('.tmw-il-seg').forEach(seg=>{
           seg.addEventListener('click', e=>{
@@ -13777,7 +13780,7 @@
       // Selected pin gets the TMW intel purple (#A78BFA) -- visually
       // consistent with the intel block on the modal/popup.
       const pinkPinExpr = ['case', ['==', ['get', 'title'], selectedTitle], '#FF3D9A', window.TMW_STATUS_COLOR];
-      const pinkRadiusExpr = ['case', ['==', ['get', 'title'], selectedTitle], 13, 6];
+      const pinkRadiusExpr = ['case', ['==', ['get', 'title'], selectedTitle], 10, 4.5];
       if (map.getLayer('unclustered-point')) {
         map.setPaintProperty('unclustered-point', 'circle-color', pinkPinExpr);
         map.setPaintProperty('unclustered-point', 'circle-radius', pinkRadiusExpr);
@@ -14865,7 +14868,7 @@
           if (p && p.title && map && map.getLayer && map.getLayer('unclustered-point')) {
             const _selTitle = p.title;
             const _pinkPin = ['case', ['==', ['get', 'title'], _selTitle], '#FF3D9A', window.TMW_STATUS_COLOR];
-            const _pinkRad = ['case', ['==', ['get', 'title'], _selTitle], 13, 6];
+            const _pinkRad = ['case', ['==', ['get', 'title'], _selTitle], 10, 4.5];
             map.setPaintProperty('unclustered-point', 'circle-color', _pinkPin);
             map.setPaintProperty('unclustered-point', 'circle-radius', _pinkRad);
             window._selectedPinTitle = _selTitle;
@@ -15254,7 +15257,7 @@
         if (fromSource === 'tile' || fromSource === 'deeplink') {
           if (map.getLayer('unclustered-point')) {
             map.setPaintProperty('unclustered-point', 'circle-color', window.TMW_STATUS_COLOR);
-            map.setPaintProperty('unclustered-point', 'circle-radius', 8);
+            map.setPaintProperty('unclustered-point', 'circle-radius', 4.5);
           }
           if (window._selectedPinMarker) { window._selectedPinMarker.remove(); window._selectedPinMarker = null; }
           window._selectedPinTitle = null;
@@ -15495,34 +15498,15 @@
 
       // Change selected pin to TMW intel purple using Mapbox paint expression
       const pinkPinExpr = ['case', ['==', ['get', 'title'], selectedTitle], '#FF3D9A', window.TMW_STATUS_COLOR];
-      const pinkRadiusExpr = ['case', ['==', ['get', 'title'], selectedTitle], 13, 6];
+      const pinkRadiusExpr = ['case', ['==', ['get', 'title'], selectedTitle], 10, 4.5];
       if (map.getLayer('unclustered-point')) {
         map.setPaintProperty('unclustered-point', 'circle-color', pinkPinExpr);
         map.setPaintProperty('unclustered-point', 'circle-radius', pinkRadiusExpr);
       }
       window._selectedPinTitle = selectedTitle;
 
-      // Purple pulse ring around selected pin ‚Äî delayed so pin color sets first
-      setTimeout(() => {
-        if (window._selectedPinTitle !== selectedTitle) return;
-        const pulseEl = document.createElement('div');
-        pulseEl.style.cssText = 'position:relative;width:0;height:0;pointer-events:none;';
-        const pulseRing = document.createElement('div');
-        pulseRing.style.cssText = `
-          position:absolute;
-          width:34px;height:34px;
-          border-radius:50%;
-          background:rgba(255,61,154,0.42);
-          top:50%;left:50%;
-          margin:-17px 0 0 -17px;
-          animation:tmwSelPulse 1.8s ease-out infinite;
-        `;
-        pulseEl.appendChild(pulseRing);
-        if (window._selectedPinMarker) window._selectedPinMarker.remove();
-        window._selectedPinMarker = new mapboxgl.Marker({ element: pulseEl, anchor: 'center' })
-          .setLngLat(co)
-          .addTo(map);
-      }, 80);
+      // No pulse ring — the selected pin is a solid, fully-opaque pink dot
+      // (circle-color #FF3D9A set above). The pulsing glow was removed per design.
 
       activePopup = new mapboxgl.Popup({ closeButton: false, anchor: 'bottom', offset: [0, -12] })
         .setLngLat(co)
@@ -15678,7 +15662,7 @@
       activePopup.on('close', () => {
         if (map.getLayer('unclustered-point')) {
           map.setPaintProperty('unclustered-point', 'circle-color', window.TMW_STATUS_COLOR);
-          map.setPaintProperty('unclustered-point', 'circle-radius', 8);
+          map.setPaintProperty('unclustered-point', 'circle-radius', 4.5);
         }
         if (window._selectedPinMarker) { window._selectedPinMarker.remove(); window._selectedPinMarker = null; }
         window._selectedPinTitle = null;
@@ -15886,6 +15870,14 @@
       }
       // Use JS master list so _projectTypes arrays are intact for type filtering
       let features = [...(window.allProjectFeatures || map.getSource('projects')._data.features)];
+      // Mirror the Interactive Layers "Projects" toggle (Pipeline / Completed / Both):
+      // the folder shows completed projects ONLY when Completed or Both is selected.
+      // Default is Pipeline, so completed are hidden from the list until the user
+      // switches. _developmentsVisible / _completedVisible are set by setProjects().
+      features = features.filter(f =>
+        f.properties.completed ? (window._completedVisible === true)
+                               : (window._developmentsVisible !== false)
+      );
       const mapCenter = map.getCenter();
       features = features.map(f => {
         const coords = f.geometry.coordinates;
@@ -17091,7 +17083,7 @@
       // Reset selected-pin paint so all pins go back to default green
       if (map.getLayer('unclustered-point')) {
         map.setPaintProperty('unclustered-point', 'circle-color', window.TMW_STATUS_COLOR);
-        map.setPaintProperty('unclustered-point', 'circle-radius', 8);
+        map.setPaintProperty('unclustered-point', 'circle-radius', 4.5);
       }
       window._selectedPinTitle = null;
       // Fly to the original load view + reset orientation to north-up, no tilt
@@ -17951,7 +17943,7 @@
         }
         if (!map.getLayer('clusters'))          map.addLayer({ id:'clusters',          type:'circle', source:'projects', filter:['has','point_count'], paint:{'circle-color':'#1FDF67','circle-radius':['step',['get','point_count'],20,100,30,750,40],'circle-stroke-width':2,'circle-stroke-color':'#fff'} });
         if (!map.getLayer('cluster-count'))     map.addLayer({ id:'cluster-count',     type:'symbol', source:'projects', filter:['has','point_count'], layout:{'text-field':'{point_count_abbreviated}','text-size':12,'text-allow-overlap':true,'text-ignore-placement':true}, paint:{'text-color':'#ffffff'} });
-        if (!map.getLayer('unclustered-point')) map.addLayer({ id:'unclustered-point', type:'circle', source:'projects', filter:['!',['has','point_count']], paint:{'circle-color':window.TMW_STATUS_COLOR,'circle-radius':6,'circle-stroke-width':2,'circle-stroke-color':'#fff'} });
+        if (!map.getLayer('unclustered-point')) map.addLayer({ id:'unclustered-point', type:'circle', source:'projects', filter:['!',['has','point_count']], paint:{'circle-color':window.TMW_STATUS_COLOR,'circle-radius':4.5,'circle-stroke-width':2,'circle-stroke-color':'#fff'} });
 
         // Completed cluster stack ‚Äî pine-green palette. Visibility tracks
         // window._completedVisible (set by the Completed Projects toggle in
@@ -17967,7 +17959,7 @@
           map.addLayer({ id:'unclustered-point-completed', type:'circle', source:'projects-completed',
             filter:['!',['has','point_count']],
             layout:{visibility:completedRestoreVis},
-            paint:{'circle-color':'#01796F','circle-radius':5.5,'circle-stroke-width':1.5,'circle-stroke-color':'rgba(255,255,255,0.6)'}
+            paint:{'circle-color':'#01796F','circle-radius':4.5,'circle-stroke-width':1.5,'circle-stroke-color':'rgba(255,255,255,0.6)'}
           });
         }
 
@@ -18151,7 +18143,7 @@
           // green pins users see.
           map.addLayer({ id:'clusters', type:'circle', source:'projects', filter:['has','point_count'], paint:{'circle-color':'#1FDF67','circle-radius':['step',['get','point_count'],20,100,30,750,40],'circle-stroke-width':2,'circle-stroke-color':'#fff'} });
           map.addLayer({ id:'cluster-count', type:'symbol', source:'projects', filter:['has','point_count'], layout:{'text-field':'{point_count_abbreviated}','text-size':12,'text-allow-overlap':true,'text-ignore-placement':true}, paint:{'text-color':'#ffffff'} });
-          map.addLayer({ id:'unclustered-point', type:'circle', source:'projects', filter:['!',['has','point_count']], paint:{'circle-color':window.TMW_STATUS_COLOR,'circle-radius':6,'circle-stroke-width':2,'circle-stroke-color':'#fff'} });
+          map.addLayer({ id:'unclustered-point', type:'circle', source:'projects', filter:['!',['has','point_count']], paint:{'circle-color':window.TMW_STATUS_COLOR,'circle-radius':4.5,'circle-stroke-width':2,'circle-stroke-color':'#fff'} });
 
           // Completed cluster stack ‚Äî pine-green palette, hidden by default.
           // Toggle in layers panel flips visibility on ALL THREE completed
@@ -18159,7 +18151,7 @@
           const completedVis = (window._completedVisible ? 'visible' : 'none');
           map.addLayer({ id:'clusters-completed', type:'circle', source:'projects-completed', filter:['has','point_count'], layout:{visibility:completedVis}, paint:{'circle-color':'#01796F','circle-radius':['step',['get','point_count'],18,100,28,750,38],'circle-stroke-width':2,'circle-stroke-color':'rgba(255,255,255,0.7)'} });
           map.addLayer({ id:'cluster-count-completed', type:'symbol', source:'projects-completed', filter:['has','point_count'], layout:{visibility:completedVis,'text-field':'{point_count_abbreviated}','text-size':12,'text-allow-overlap':true,'text-ignore-placement':true}, paint:{'text-color':'#ffffff'} });
-          map.addLayer({ id:'unclustered-point-completed', type:'circle', source:'projects-completed', filter:['!',['has','point_count']], layout:{visibility:completedVis}, paint:{'circle-color':'#01796F','circle-radius':5.5,'circle-stroke-width':1.5,'circle-stroke-color':'rgba(255,255,255,0.6)'} });
+          map.addLayer({ id:'unclustered-point-completed', type:'circle', source:'projects-completed', filter:['!',['has','point_count']], layout:{visibility:completedVis}, paint:{'circle-color':'#01796F','circle-radius':4.5,'circle-stroke-width':1.5,'circle-stroke-color':'rgba(255,255,255,0.6)'} });
 
           // Featured/watched accents ‚Äî pipeline only (completed don't get
           // featured glow or watch ring; they're archive state).
@@ -18294,7 +18286,8 @@
                 // pan lag. When the drawer reopens we already render fresh
                 // via expandDrawer's deferred renderGrid.
                 const mobileDrawerEl = document.getElementById('mobileDrawer');
-                const drawerOpen = mobileDrawerEl && mobileDrawerEl.classList.contains('expanded');
+                const drawerOpen = (mobileDrawerEl && mobileDrawerEl.classList.contains('expanded'))
+                                 || document.body.classList.contains('v2-sheet-open');
                 if (drawerOpen) {
                   window.mobileLoadedCount = 12;
                   if (hasActiveSearch && (window.mobileSearchFeatures || window.allProjectFeatures)) {
@@ -24499,6 +24492,14 @@
       // ReferenceError if the body class mutates before this line.
       function openSheet() {
         document.body.classList.add('v2-sheet-open');
+        // Re-render the project list against the CURRENT map frame so the drawer
+        // reflects wherever the user zoomed/panned before opening it (in-frame
+        // first). Without this the list stayed stale from the last render.
+        try {
+          window.mobileLoadedCount = 12;
+          if (typeof renderGrid === 'function') renderGrid('gridMobile');
+          if (typeof updateResultCount === 'function') updateResultCount('gridMobile');
+        } catch (e) {}
       }
       function closeSheet() {
         document.body.classList.remove('v2-sheet-open');
