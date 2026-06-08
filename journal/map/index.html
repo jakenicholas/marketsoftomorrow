@@ -8659,11 +8659,28 @@
     .tmw-dock .dock-ask-tmw-btn .label {
       display: inline !important;
     }
-    /* Mobile: collapse to icon-only so the dock pill doesn\'t blow out
-       horizontally on phones. */
-    @media (max-width: 560px) {
-      .tmw-dock .dock-ask-tmw-btn { padding: 0 10px !important; gap: 0 !important; }
-      .tmw-dock .dock-ask-tmw-btn .label { display: none !important; }
+    /* Mobile: keep the full "Ask TMW" label visible -- the pill should
+       look identical to the desktop pulse animation, just sized to match
+       the mobile dock-search input (42px tall per journal-dock.js line
+       630). Search input is also trimmed below so the pair fits without
+       eating the full row. */
+    @media (max-width: 780px) {
+      .tmw-dock .dock-ask-tmw-btn {
+        height: 42px !important;
+        padding: 0 12px !important;
+        gap: 6px !important;
+        font-size: 12.5px !important;
+      }
+      .tmw-dock .dock-ask-tmw-btn .label { display: inline !important; }
+      .tmw-dock .dock-ask-tmw-btn svg { width: 13px !important; height: 13px !important; }
+      /* Trim dock search input width on mobile -- baseline is 46vw
+         (journal-dock.js line 630). Drop to ~36vw so the placeholder
+         "Search projects..." doesn't have a long trailing blank that
+         crowds the Ask TMW pill into the right edge. */
+      body .tmw-dock-search input {
+        width: 36vw !important;
+        min-width: 150px !important;
+      }
     }
     body.ui-v2 .v2-filter-btn .badge-icon svg {
       width: 15px; height: 15px;
