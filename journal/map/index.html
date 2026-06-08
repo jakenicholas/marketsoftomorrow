@@ -8630,8 +8630,19 @@
        the bar is narrow and the full-size 14px placeholder was running
        up against the right-side filter badge on phones. */
     @media (max-width: 780px) {
-      body.ui-v2 .v2-search-text { font-size: 12.5px; }
-      body.ui-v2 .v2-search-text::placeholder { font-size: 12.5px; }
+      body.ui-v2 .v2-search-text { font-size: 15px; }
+      body.ui-v2 .v2-search-text::placeholder { font-size: 15px; }
+      /* Fly-to-pin toggle removed from the mobile drawer (fly stays on by default). */
+      body.ui-v2 #v2FlyToToggle { display: none !important; }
+      /* Back-to-map pill in the drawer search bar. */
+      body.ui-v2 .v2-map-pill {
+        display: inline-flex; align-items: center; gap: 5px; flex: 0 0 auto;
+        margin-left: 6px; padding: 6px 11px; border-radius: 999px;
+        background: rgba(0,0,0,0.55); border: 1px solid rgba(255,255,255,0.16);
+        color: #fff; font-size: 12.5px; font-weight: 600; cursor: pointer; white-space: nowrap;
+      }
+      body.ui-v2 .v2-map-pill svg { width: 15px; height: 15px; flex: 0 0 auto; }
+      body.ui-v2 .v2-map-pill:active { background: rgba(0,0,0,0.78); }
     }
 
     /* Ask TMW pill attached to the bottom-center journal dock on the map.
@@ -8678,8 +8689,8 @@
     /* Size the branded animated hex (its inner SVG fills the span and keeps its
        own purple strokes — do NOT force width/stroke on the svg here). */
     .tmw-dock .dock-ask-tmw-btn .v2-tmw-hex {
-      width: 24px !important;
-      height: 24px !important;
+      width: 20px !important;
+      height: 20px !important;
       flex: 0 0 auto !important;
     }
     .tmw-dock .dock-ask-tmw-btn .label {
@@ -8698,7 +8709,7 @@
         font-size: 12.5px !important;
       }
       .tmw-dock .dock-ask-tmw-btn .label { display: inline !important; }
-      .tmw-dock .dock-ask-tmw-btn .v2-tmw-hex { width: 24px !important; height: 24px !important; }
+      .tmw-dock .dock-ask-tmw-btn .v2-tmw-hex { width: 20px !important; height: 20px !important; }
       /* Trim dock search input width on mobile -- baseline is 46vw
          (journal-dock.js line 630). Drop to ~36vw so the placeholder
          "Search projects..." doesn't have a long trailing blank that
@@ -12104,6 +12115,12 @@
                from mobile; one affordance per surface is enough. -->
           <span class="v2-results-divider"></span>
           <span class="v2-results-count" id="v2SearchResults">‚Äî results</span>
+          <!-- Back-to-map pill: dark pill, white globe + "Map". Pinned in the
+               search bar; tapping closes the drawer back to the full map. -->
+          <button class="v2-map-pill" id="v2MapPill" type="button" aria-label="Back to map">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a15 15 0 0 1 0 18"/><path d="M12 3a15 15 0 0 0 0 18"/></svg>
+            <span>Map</span>
+          </button>
         </div>
 
         <!-- Segmented tabs -->
@@ -12848,17 +12865,15 @@
         console.log('[Ask TMW] injected into', dock);
         return true;
       }
-      // Try immediately + on a few timed retries so we catch the dock
-      // whenever it mounts, then stop polling once injected.
+      // Inject the moment the dock mounts (MutationObserver fires before the
+      // dock's rAF fade-in), so the Ask pill is present on the dock's FIRST
+      // paint. The old 200ms poll injected it AFTER the dock had faded in,
+      // causing a late pop-in + recenter that read as the bar "sliding in from
+      // the right". Try immediately first in case the dock already exists.
       if (inject()) return;
-      var tries = 0;
-      var iv = setInterval(function(){
-        tries++;
-        if (inject() || tries > 50) {
-          clearInterval(iv);
-          if (tries > 50) console.warn('[Ask TMW] gave up -- no .tmw-dock found after 10s');
-        }
-      }, 200);
+      var mo = new MutationObserver(function(){ if (inject()) mo.disconnect(); });
+      mo.observe(document.documentElement, { childList: true, subtree: true });
+      setTimeout(function(){ try { mo.disconnect(); } catch(e){} }, 10000);
     })();
 
     document.addEventListener('gesturestart', e => e.preventDefault());
@@ -13491,10 +13506,14 @@
           });
           setMoving(movingOn);
         }
-        function setMoving(on){ movingOn = on;
+        function setMoving(on){ movingOn = on; window._whatsMovingOn = on;
           markers.forEach(m=>{ m.getElement().style.display = on ? '' : 'none'; });
+          // Dim the field while What's Moving is on — but keep the SELECTED pin
+          // fully opaque (solid pink) via a per-feature case on its title.
+          const baseOp = on ? 0.5 : 0.92;
+          const opExpr = ['case', ['==', ['get','title'], window._selectedPinTitle || '__none__'], 1, baseOp];
           ['unclustered-point','clusters','unclustered-point-completed','clusters-completed'].forEach(id=>{
-            if (map.getLayer(id)) { try { map.setPaintProperty(id, 'circle-opacity', on ? 0.5 : 0.92); } catch(e){} } });
+            if (map.getLayer(id)) { try { map.setPaintProperty(id, 'circle-opacity', opExpr); } catch(e){} } });
         }
         const tog = panel.querySelector('.tmw-il-toggle');
         tog.classList.toggle('on', movingOn);   // reflect the default-on state
@@ -13796,6 +13815,8 @@
       if (map.getLayer('unclustered-point')) {
         map.setPaintProperty('unclustered-point', 'circle-color', pinkPinExpr);
         map.setPaintProperty('unclustered-point', 'circle-radius', pinkRadiusExpr);
+        // Selected pin = 100% solid pink even while What's Moving dims the field.
+        map.setPaintProperty('unclustered-point', 'circle-opacity', ['case', ['==', ['get','title'], selectedTitle], 1, (window._whatsMovingOn ? 0.5 : 0.92)]);
       }
       window._selectedPinTitle = selectedTitle;
 
@@ -14883,6 +14904,7 @@
             const _pinkRad = ['case', ['==', ['get', 'title'], _selTitle], 10, 4.5];
             map.setPaintProperty('unclustered-point', 'circle-color', _pinkPin);
             map.setPaintProperty('unclustered-point', 'circle-radius', _pinkRad);
+            map.setPaintProperty('unclustered-point', 'circle-opacity', ['case', ['==', ['get','title'], _selTitle], 1, (window._whatsMovingOn ? 0.5 : 0.92)]);
             window._selectedPinTitle = _selTitle;
           }
         } catch(_) {}
@@ -15514,6 +15536,8 @@
       if (map.getLayer('unclustered-point')) {
         map.setPaintProperty('unclustered-point', 'circle-color', pinkPinExpr);
         map.setPaintProperty('unclustered-point', 'circle-radius', pinkRadiusExpr);
+        // Selected pin = 100% solid pink even while What's Moving dims the field.
+        map.setPaintProperty('unclustered-point', 'circle-opacity', ['case', ['==', ['get','title'], selectedTitle], 1, (window._whatsMovingOn ? 0.5 : 0.92)]);
       }
       window._selectedPinTitle = selectedTitle;
 
@@ -24509,8 +24533,15 @@
         // first). Without this the list stayed stale from the last render.
         try {
           window.mobileLoadedCount = 12;
-          if (typeof renderGrid === 'function') renderGrid('gridMobile');
-          if (typeof updateResultCount === 'function') updateResultCount('gridMobile');
+          // Defer the (heavy ~200-300ms) grid render two frames so the drawer
+          // SLIDES UP smoothly first instead of janking on a synchronous render
+          // over ~140 in-view projects. The list fills in just after the open.
+          requestAnimationFrame(function(){ requestAnimationFrame(function(){
+            try {
+              if (typeof renderGrid === 'function') renderGrid('gridMobile');
+              if (typeof updateResultCount === 'function') updateResultCount('gridMobile');
+            } catch (e) {}
+          }); });
         } catch (e) {}
       }
       function closeSheet() {
@@ -24519,6 +24550,9 @@
       // Expose globally so other contexts (View on Map, Map return btn) can
       // close the sheet without needing to duplicate class-removal logic.
       window.v2CloseSheet = closeSheet;
+      // Back-to-map pill in the drawer search bar → close the drawer.
+      var mapPill = document.getElementById('v2MapPill');
+      if (mapPill) mapPill.addEventListener('click', function(e){ e.stopPropagation(); closeSheet(); });
       if (capsule) {
         capsule.addEventListener('click', () => {
           openSheet();
