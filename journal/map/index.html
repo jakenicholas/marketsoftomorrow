@@ -12623,7 +12623,38 @@
     // spotlight (window.tmwOverlay.open) with whatever the user has
     // already typed.
     (function(){
-      var SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="12,3 21,8.5 21,15.5 12,21 3,15.5 3,8.5"/></svg>';
+      var SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:14px;height:14px;display:block;flex:0 0 auto"><polygon points="12,3 21,8.5 21,15.5 12,21 3,15.5 3,8.5"/></svg>';
+      // Inline styles win against EVERYTHING (including journal-dock.js\'s
+      // runtime-injected stylesheet + browser UA button defaults) without
+      // needing !important wars. Verbatim copy of the existing .ds-ask-pill
+      // visual treatment so the new permanent button matches the pulse
+      // animation pixel-for-pixel.
+      var BTN_CSS = [
+        'display:inline-flex',
+        'align-items:center',
+        'justify-content:center',
+        'gap:7px',
+        'background:rgba(167,139,250,.14)',
+        'border:1px solid rgba(167,139,250,.55)',
+        'color:#fff',
+        'border-radius:999px',
+        'padding:0 14px',
+        'height:32px',
+        'font-family:inherit',
+        'font-size:13px',
+        'font-weight:600',
+        'letter-spacing:.3px',
+        'line-height:1',
+        'cursor:pointer',
+        'margin-left:6px',
+        'flex-shrink:0',
+        'box-shadow:0 0 14px rgba(167,139,250,.18)',
+        'white-space:nowrap',
+        'appearance:none',
+        '-webkit-appearance:none',
+        'outline:none',
+        'transition:background .15s, border-color .15s, box-shadow .15s'
+      ].join(';');
       function inject(){
         var dock = document.querySelector('.tmw-dock');
         if (!dock || dock.querySelector('.dock-ask-tmw-btn')) return !!dock;
@@ -12631,7 +12662,18 @@
         btn.type = 'button';
         btn.className = 'dock-ask-tmw-btn';
         btn.setAttribute('aria-label', 'Ask TMW Intelligence');
-        btn.innerHTML = SVG + '<span class="label">Ask TMW</span>';
+        btn.style.cssText = BTN_CSS;
+        btn.innerHTML = SVG + '<span class="label" style="display:inline">Ask TMW</span>';
+        btn.addEventListener('mouseenter', function(){
+          btn.style.background = 'rgba(167,139,250,.22)';
+          btn.style.borderColor = 'rgba(167,139,250,.75)';
+          btn.style.boxShadow = '0 0 22px rgba(167,139,250,.32)';
+        });
+        btn.addEventListener('mouseleave', function(){
+          btn.style.background = 'rgba(167,139,250,.14)';
+          btn.style.borderColor = 'rgba(167,139,250,.55)';
+          btn.style.boxShadow = '0 0 14px rgba(167,139,250,.18)';
+        });
         btn.addEventListener('click', function(e){
           e.preventDefault(); e.stopPropagation();
           var input = dock.querySelector('input[name="q"]') || dock.querySelector('input[type="search"]');
@@ -12641,6 +12683,7 @@
           }
         });
         dock.appendChild(btn);
+        console.log('[Ask TMW] injected into', dock);
         return true;
       }
       // Try immediately + on a few timed retries so we catch the dock
@@ -12649,7 +12692,10 @@
       var tries = 0;
       var iv = setInterval(function(){
         tries++;
-        if (inject() || tries > 30) clearInterval(iv);
+        if (inject() || tries > 50) {
+          clearInterval(iv);
+          if (tries > 50) console.warn('[Ask TMW] gave up -- no .tmw-dock found after 10s');
+        }
       }, 200);
     })();
 
