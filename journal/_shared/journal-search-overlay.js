@@ -1838,10 +1838,21 @@
       : toks.filter(function(t){ return t.length >= 3; });
     var restProjects = pScored.filter(function(x){ return x.p !== heroProject; });
     if (meaningful.length >= 2) {
+      // Expanded strict filter: check the FULL haystack (title + city +
+      // developer + architect), not just the title. Previously "projects
+      // in west palm" (meaningful tokens "west" + "palm") matched only
+      // projects with both words in their title -- so a query for WPB
+      // projects pulled ~7 results instead of all 50+ projects actually
+      // in West Palm Beach (most have "west palm beach" in their City
+      // field, not their title). The expanded haystack catches those
+      // too. Currie Park / Salt Lake City / etc. still filter correctly
+      // because the all-tokens-required rule is preserved -- we just
+      // check more places for each token.
       restProjects = restProjects.filter(function(x){
-        var t = norm(x.p.Title);
-        if (full && t.indexOf(full) >= 0) return true;
-        return meaningful.every(function(tok){ return t.indexOf(tok) >= 0; });
+        var hay = norm(x.p.Title) + ' | ' + norm(x.p.City || '') + ' | '
+                + norm(x.p.Developer || '') + ' | ' + norm(x.p.Architect || '');
+        if (full && hay.indexOf(full) >= 0) return true;
+        return meaningful.every(function(tok){ return hay.indexOf(tok) >= 0; });
       });
     }
     var gridProjects = restProjects.slice(0, MAX_PROJECTS_GRID).map(function(x){ return x.p; });
@@ -1871,10 +1882,12 @@
     var restFirms  = fScored.filter(function(x){ return x.f !== heroFirm; });
     var restCities = cScored.slice();
     if (meaningful.length >= 2) {
+      // Firms: check name + HQ so "miami firms" catches studios with hq in
+      // Miami even when the firm name doesn't include "miami".
       restFirms = restFirms.filter(function(x){
-        var t = norm(x.f.name);
-        if (full && t.indexOf(full) >= 0) return true;
-        return meaningful.every(function(tok){ return t.indexOf(tok) >= 0; });
+        var hay = norm(x.f.name) + ' | ' + norm(x.f.hq || '');
+        if (full && hay.indexOf(full) >= 0) return true;
+        return meaningful.every(function(tok){ return hay.indexOf(tok) >= 0; });
       });
       restCities = restCities.filter(function(x){
         var t = norm(x.c.name);
@@ -1909,15 +1922,21 @@
       slotArticles.innerHTML = '';
     }
 
-    // Filter pills above the results. "intel" pill appears only when the
-    // query was actually question-shaped (Intelligence answer rendered);
-    // category pills appear with their counts when there are matches.
+    // Filter pills above the results. Counts represent ACTUALLY-VISIBLE
+    // matches (post-strict-filter, including the hero if it's of that
+    // category) -- NOT pScored.length / fScored.length, which were the
+    // raw scoring totals. Previously "projects in west palm" showed
+    // "Projects 423" in the pill while only 7 were rendered because the
+    // raw score counts every project with any keyword overlap. The pill
+    // is supposed to reflect what the user sees, not what the scoring
+    // pass touched. Hero is counted in whichever category it belongs to
+    // so the totals match "hero + section grid".
     sResults.removeAttribute('data-filter');
     slotFilterPills.innerHTML = renderFilterPills({
       intel: question,
-      projects: pScored.length,
-      firms: restFirms.length + restCities.length,
-      articles: aScored.length,
+      projects: restProjects.length + (heroProject ? 1 : 0),
+      firms:    restFirms.length + restCities.length + (heroFirm ? 1 : 0),
+      articles: aScored.length, // already includes heroArticle in the count
     });
 
     _lastResultsTotal = totalHits;
