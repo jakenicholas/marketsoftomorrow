@@ -8550,52 +8550,62 @@
     body.ui-v2 .v2-capsule .v2-ask-tmw-btn .label { display: none; }
 
     /* Ask TMW pill attached to the bottom-center journal dock on the map.
-       The dock (.tmw-dock) is a fixed pill at viewport bottom-center.
-       This pill appends to it as a sibling button -- purple Intelligence
-       theming so it pairs visually with the search bar without
-       competing. Click opens window.tmwOverlay.open() carrying over the
-       dock input's value (if any) so a half-typed query becomes the
-       starting text in the spotlight. NOT scoped to body.ui-v2 since
-       the dock is the same on every map UI variant. */
+       Visual treatment COPIED VERBATIM from journal-dock.js's existing
+       .ds-ask-pill + .ds-ask-text rules so this button looks like the
+       same pulse animation, just made click-target permanent:
+         background: rgba(167,139,250,.14)
+         border:     1px solid rgba(167,139,250,.55)
+         box-shadow: 0 0 14px rgba(167,139,250,.18)
+         color:      #fff
+         font:       Inter 13px / weight 600 / letter-spacing .3px
+       !important everywhere because journal-dock.js injects its OWN
+       <style> block at runtime AFTER this CSS is parsed, and any
+       generic descendant rules (e.g. .tmw-dock *) could otherwise
+       override the styling we set here. */
     .tmw-dock .dock-ask-tmw-btn {
-      display: inline-flex;
-      align-items: center; justify-content: center;
-      gap: 7px;
-      background: rgba(167,139,250,0.18);
-      border: 1px solid rgba(167,139,250,0.45);
-      color: #C2A8FF;
-      border-radius: 999px;
-      padding: 0 14px;
-      height: 38px;
-      font-family: inherit;
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      line-height: 1;
-      cursor: pointer;
-      margin-left: 4px;
-      flex-shrink: 0;
-      transition: background 0.15s, border-color 0.15s, color 0.15s, box-shadow 0.15s;
-      box-shadow: 0 0 14px rgba(167,139,250,0.22);
-      white-space: nowrap;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      gap: 7px !important;
+      background: rgba(167,139,250,.14) !important;
+      border: 1px solid rgba(167,139,250,.55) !important;
+      color: #fff !important;
+      border-radius: 999px !important;
+      padding: 0 14px !important;
+      height: 32px !important;
+      font-family: inherit !important;
+      font-size: 13px !important;
+      font-weight: 600 !important;
+      letter-spacing: .3px !important;
+      line-height: 1 !important;
+      cursor: pointer !important;
+      margin-left: 6px !important;
+      flex-shrink: 0 !important;
+      box-shadow: 0 0 14px rgba(167,139,250,.18) !important;
+      white-space: nowrap !important;
+      transition: background .15s, border-color .15s, box-shadow .15s !important;
     }
     .tmw-dock .dock-ask-tmw-btn:hover {
-      background: rgba(167,139,250,0.28);
-      border-color: rgba(167,139,250,0.7);
-      color: #fff;
-      box-shadow: 0 0 22px rgba(167,139,250,0.45);
+      background: rgba(167,139,250,.22) !important;
+      border-color: rgba(167,139,250,.75) !important;
+      box-shadow: 0 0 22px rgba(167,139,250,.32) !important;
     }
     .tmw-dock .dock-ask-tmw-btn svg {
-      width: 14px; height: 14px;
-      stroke: currentColor; fill: none;
+      width: 14px !important;
+      height: 14px !important;
+      stroke: currentColor !important;
+      fill: none !important;
+      display: block !important;
+      flex: 0 0 auto !important;
     }
-    /* Hide the label on narrow screens so the dock pill doesn't blow out
-       horizontally on phones. The hex icon alone communicates well enough
-       once a user has seen the labeled version once. */
+    .tmw-dock .dock-ask-tmw-btn .label {
+      display: inline !important;
+    }
+    /* Mobile: collapse to icon-only so the dock pill doesn\'t blow out
+       horizontally on phones. */
     @media (max-width: 560px) {
-      .tmw-dock .dock-ask-tmw-btn { padding: 0 10px; gap: 0; }
-      .tmw-dock .dock-ask-tmw-btn .label { display: none; }
+      .tmw-dock .dock-ask-tmw-btn { padding: 0 10px !important; gap: 0 !important; }
+      .tmw-dock .dock-ask-tmw-btn .label { display: none !important; }
     }
     body.ui-v2 .v2-filter-btn .badge-icon svg {
       width: 15px; height: 15px;
