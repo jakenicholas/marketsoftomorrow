@@ -8603,7 +8603,11 @@
     body .tmw-dock-search .ds-search-wand {
       opacity: 0 !important;
     }
-    body .tmw-dock-search .ds-ph { opacity: 1 !important; }
+    /* Keep the placeholder pinned visible at rest / when focused-empty, but let
+       it disappear once the field has text (.ds-filled, toggled by journal-dock.js).
+       Without the :not() guard the !important here defeated the dock's hide rule,
+       so the placeholder stayed on top of the user's typed text. */
+    body .tmw-dock-search:not(.ds-filled) .ds-ph { opacity: 1 !important; }
 
     /* Slightly narrower dock search bar on the map -- baseline from
        journal-dock.js (line 553) is min(46vw,300px) / focus 344px. The
@@ -12547,14 +12551,18 @@
         if (isDesktop()){ input.readOnly = false; input.removeAttribute('inputmode'); }
         else { input.readOnly = true; input.setAttribute('inputmode', 'none'); }
       }
-      function hideDockAC(){ var ac=document.getElementById('tmwDockAC'); if(ac) ac.classList.add('hidden'); }
+      function hideDockAC(){ var ac=document.getElementById('tmwDockAC'); if(ac) ac.classList.add('hidden'); document.body.classList.remove('tmw-dock-ac-open'); }
+      // The floating results sit bottom-center, directly over the timeline
+      // scrubber. Flag the body while they're open so CSS can hide the scrubber
+      // and the results read cleanly on top.
+      function showDockAC(){ var ac=document.getElementById('tmwDockAC'); if(ac) ac.classList.remove('hidden'); document.body.classList.add('tmw-dock-ac-open'); }
       // Empty search box → show the shared "Ask the Map" teaching panel (the same
       // starter-questions pop-up journal-dock.js renders on every other surface).
       function showDockTeach(){
         var ac = document.getElementById('tmwDockAC');
         if (!ac || typeof window.tmwAskTeachHTML !== 'function') return;
         ac.innerHTML = window.tmwAskTeachHTML();
-        ac.classList.remove('hidden');
+        showDockAC();
       }
       // Click a CITY (or geocoded place) in the floating results → open the sidebar
       // on Discover with the whole city in frame; the grid fills with its projects
@@ -12623,7 +12631,7 @@
           if (!ac.querySelector('.autocomplete-item')){
             ac.innerHTML = '<div class="tmw-dock-ac-empty">No results</div>';
           }
-          ac.classList.remove('hidden');
+          showDockAC();
         } catch(e){ hideDockAC(); }
       }
       function wire(){
@@ -12796,7 +12804,10 @@
         setStyle('.ds-search-icon', { animation: 'none', stroke: '#9AA39C' });
         setStyle('.ds-search-circle', { animation: 'none', opacity: '1' });
         setStyle('.ds-search-wand', { animation: 'none', opacity: '1', strokeDashoffset: '0' });
-        setStyle('.ds-ph', { animation: 'none', opacity: '1' });
+        // Kill the 8s fade only — do NOT pin opacity inline, or the placeholder
+        // can't hide when the field is filled (.ds-filled). Rest visibility is
+        // handled by the `:not(.ds-filled) .ds-ph { opacity:1 !important }` rule.
+        setStyle('.ds-ph', { animation: 'none' });
 
         var btn = document.createElement('button');
         btn.type = 'button';
@@ -13404,6 +13415,7 @@
           // + scrubber (display:none, not opacity — opacity:0 left a backdrop-filter
           // glass block) so the drawer is unobstructed; they return on close.
           "body.v2-sheet-open .tmw-il-panel,body.v2-sheet-open .tmw-il-scrub{display:none!important}" +
+          "body.tmw-dock-ac-open .tmw-il-scrub{display:none!important}" +
           ".tmw-il-scrub-top{display:flex;align-items:center;gap:11px;margin-bottom:5px}" +
           ".tmw-il-play{width:30px;height:30px;border-radius:50%;border:1px solid rgba(167,139,250,.5);background:rgba(167,139,250,.14);color:#fff;cursor:pointer;display:grid;place-items:center;flex:0 0 auto;transition:.15s}" +
           ".tmw-il-play:hover{background:rgba(167,139,250,.26)}.tmw-il-play svg{width:13px;height:13px}" +

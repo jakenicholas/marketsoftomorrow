@@ -867,6 +867,10 @@
       // synchronously sets location.href, so anything after the assignment (or in
       // a separate later-registered listener) may never run.
       try { if (q.length >= 2 && window.tmwIntel && window.tmwIntel.trackSearch) window.tmwIntel.trackSearch(q, {}); } catch (_) {}
+      // On the /map/ surface the dock IS the spatial search — it drives the map's
+      // own floating results + Enter handling. Never hand off to the Intelligence
+      // overlay there (the map wires its own submit handler, which preventDefaults).
+      if (typeof tmwSurface === 'function' && tmwSurface() === 'map') return;
       // Prefer the in-page Intelligence overlay (loaded alongside this dock);
       // only navigate as a last resort if it's unavailable.
       if (window.tmwOverlay && window.tmwOverlay.open) { window.tmwOverlay.open(q); }
