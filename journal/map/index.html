@@ -12714,6 +12714,34 @@
       function inject(){
         var dock = document.querySelector('.tmw-dock');
         if (!dock || dock.querySelector('.dock-ask-tmw-btn')) return !!dock;
+
+        // Kill the dock\'s built-in Ask TMW pulse + hex morph DIRECTLY via
+        // inline styles. The CSS rules above were getting overridden by
+        // something in the cascade -- inline styles win against
+        // everything (browser UA defaults, runtime-injected stylesheets,
+        // even !important external rules). User screenshot showed BOTH
+        // the pulse pill AND the new permanent pill rendering side-by-
+        // side. Doing it here guarantees only ONE Ask TMW shows on map.
+        var killElems = [
+          dock.querySelector('.ds-ask-pill'),
+          dock.querySelector('.ds-ask-text'),
+          dock.querySelector('.ds-ask-dots')
+        ];
+        killElems.forEach(function(el){ if (el) el.style.display = 'none'; });
+        // Pin the search icon (circle + wand) to its always-visible state
+        // and stop the hex morph + placeholder fade.
+        function setStyle(sel, styles){
+          var el = dock.querySelector(sel);
+          if (!el) return;
+          Object.keys(styles).forEach(function(k){ el.style[k] = styles[k]; });
+        }
+        setStyle('.ds-hex-spinner', { animation: 'none' });
+        setStyle('.ds-hex-core', { animation: 'none', opacity: '0' });
+        setStyle('.ds-search-icon', { animation: 'none', stroke: '#9AA39C' });
+        setStyle('.ds-search-circle', { animation: 'none', opacity: '1' });
+        setStyle('.ds-search-wand', { animation: 'none', opacity: '1', strokeDashoffset: '0' });
+        setStyle('.ds-ph', { animation: 'none', opacity: '1' });
+
         var btn = document.createElement('button');
         btn.type = 'button';
         btn.className = 'dock-ask-tmw-btn';
