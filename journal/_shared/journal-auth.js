@@ -439,6 +439,42 @@
     return plans.some(function (p) { return p.active === true || p.status === 'ACTIVE'; });
   }
 
+  // ── Single source of truth for auth across every surface ────────────────
+  // journal-auth is the authoritative Memberstack detector and mounts on every
+  // page (including /map/). Other surfaces (the map's paywall, the dock's
+  // Intelligence quota via window.tmwIntel.isPro) should READ this rather than
+  // re-detecting Memberstack themselves — that duplication is what caused the
+  // Pro-lockout / wrong-modal collisions. publishAuth() is the ONE place that
+  // writes the legacy globals AND the clean window.tmwAuth API + notifies subs.
+  var _authSubs = [];
+  window.tmwAuth = window.tmwAuth || {
+    signedIn: false, paid: false, member: null, ready: false,
+    // Subscribe to auth changes. Fires immediately if state is already known.
+    onChange: function (cb) {
+      if (typeof cb !== 'function') return function () {};
+      _authSubs.push(cb);
+      if (this.ready) { try { cb(this); } catch (e) {} }
+      return function () { var i = _authSubs.indexOf(cb); if (i >= 0) _authSubs.splice(i, 1); };
+    },
+    // Force a fresh Memberstack re-detect (e.g. after a plan change).
+    refresh: function () {
+      try { var m = window.$memberstackDom; if (m) m.getCurrentMember().then(function (r) { publishAuth(r && r.data); }); } catch (e) {}
+    }
+  };
+  function publishAuth(member) {
+    var signedIn = !!member;
+    var paid = signedIn && isPaid(member);
+    // Legacy globals other code already reads (tmwIntel.isPro, compare.js,
+    // the map paywall, cross-page pre-paint). Unchanged values/keys.
+    window._tmwSignedIn = signedIn;
+    window._isPaidMember = paid;
+    try { localStorage.setItem('tmw_auth_state', paid ? 'pro' : signedIn ? 'in' : 'out'); } catch (_) {}
+    // Clean shared API for new consumers.
+    var a = window.tmwAuth;
+    a.signedIn = signedIn; a.paid = paid; a.member = member || null; a.ready = true;
+    for (var i = 0; i < _authSubs.length; i++) { try { _authSubs[i](a); } catch (e) {} }
+  }
+
   // Person icon (signed-in) + gold star (Pro) + "Join" pill (signed-out): one
   // button, state driven by .signed-in / .is-pro — exactly like the map.
   var PROFILE_ICON = '<svg class="profile-icon" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-7 8-7s8 3 8 7"/></svg>';
@@ -512,13 +548,11 @@
       btn.classList.toggle('is-pro', paid);
       btn.setAttribute('aria-label', signedIn ? 'Profile menu' : 'Join');
       if (!signedIn) menu.classList.remove('open');
-      // Expose for the dock's paywall interceptor: paid members follow Pro
-      // links straight to the map feature; everyone else gets the paywall.
-      window._tmwSignedIn = signedIn;
-      window._isPaidMember = paid;
-      // Cache for the next page load so buildUI() can pre-paint the right state
-      // and skip the "Join"-pill flash (see buildUI).
-      try { localStorage.setItem('tmw_auth_state', paid ? 'pro' : signedIn ? 'in' : 'out'); } catch (_) {}
+      // Publish to the single source of truth: writes window._tmwSignedIn /
+      // window._isPaidMember / localStorage.tmw_auth_state (read by the dock's
+      // Intelligence quota, compare.js, the map paywall) and the window.tmwAuth
+      // API + notifies subscribers.
+      publishAuth(member);
     }
     // Re-fetch the member and repaint (after login / plan change).
     function refresh() {
