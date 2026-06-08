@@ -248,11 +248,27 @@
            overlay no longer redirects to /search/. */
     + '.tmw-ov-bar{position:absolute;left:50%;bottom:28px;transform:translateX(-50%);'
     + 'width:min(820px, calc(100vw - 32px));z-index:2}'
+    /* Dark-purple gradient backdrop fades content scrolling behind the bar
+       so the input stays legible against busy hero images / row text. The
+       gradient sits on .tmw-ov-lb as a pseudo-element so it follows the
+       lightbox (not the page), and uses pointer-events:none so it doesn\'t
+       block clicks on the bar or anything below it. Same height on
+       desktop and mobile -- the user asked for the two views to match. */
+    + '.tmw-ov-lb::after{content:"";position:absolute;left:0;right:0;bottom:0;height:170px;'
+    + 'pointer-events:none;z-index:1;'
+    + 'background:linear-gradient(180deg,transparent 0%,rgba(20,12,42,.45) 38%,rgba(7,8,7,.92) 100%)}'
     /* Width override: dock input is min(46vw,300px) and grows to min(52vw,344px)
        on focus. Overlay bar already fills the spotlight container so we lock
        it at 100% in both states and disable the width transition. */
     + '.tmw-ov-bar .tmw-dock-search input{width:100%;padding-right:50px}'
-    + '.tmw-ov-bar .tmw-dock-search input:focus{width:100%}'
+    + '.tmw-ov-bar .tmw-dock-search input:focus{width:100%;'
+    /* Override the dock\'s green focus state -- the overlay is the
+       Intelligence surface, so it keeps the purple aesthetic everywhere. */
+    + 'border-color:rgba(167,139,250,.55)}'
+    /* The dock hides the native placeholder (transparent) because it uses
+       a .ds-ph overlay span for the animated text. We dropped that span,
+       so restore a normal visible muted-gray placeholder. */
+    + '.tmw-ov-bar .tmw-dock-search input::placeholder{color:#9AA39C}'
     /* Tiny gold submit arrow on the right -- the dock bar doesn\'t have one,
        but the overlay needs an explicit "run query" affordance now that it
        no longer redirects to /search/. Sized so it sits inside the dock\'s
@@ -636,14 +652,8 @@
     +   '</div>'
     +   '<div class="tmw-ov-bar">'
     +     '<form class="tmw-ov-bar-inner tmw-dock-search" role="search">'
-    +       '<span class="ds-ask-pill" aria-hidden="true"></span>'
     +       '<span class="ds-ico">' + ICON_SEARCH_DOCK + '</span>'
-    +       '<span class="ds-ask-text" aria-hidden="true">Ask TMW</span>'
-    +       '<span class="ds-ask-dots" aria-hidden="true">'
-    +         '<span class="ds-dot"></span><span class="ds-dot"></span><span class="ds-dot"></span>'
-    +       '</span>'
-    +       '<span class="ds-ph" aria-hidden="true"><span class="dph-lg">Search projects, firms, cities…</span><span class="dph-sm">Search projects…</span></span>'
-    +       '<input type="search" autocomplete="off" placeholder="" aria-label="Search projects, firms, cities">'
+    +       '<input type="search" autocomplete="off" placeholder="Search projects, firms, cities…" aria-label="Search projects, firms, cities">'
     +       '<button class="go" type="button" aria-label="Search">'
     +         '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>'
     +       '</button>'
