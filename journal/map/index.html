@@ -8557,34 +8557,53 @@
 
        What gets killed:
          .ds-ask-pill      purple grow capsule
-         .ds-ask-text      "Ask TMW" reveal text
+         .ds-ask-text      "Ask TMW" reveal text (the literal word "TMW")
          .ds-ask-dots      caterpillar dots inside the search bar
-         .ds-hex-spinner   hex-spin morph on the search icon
-         .ds-hex-core      hex outline that fades in
+         .ds-hex-spinner   hex-spin morph
+         .ds-search-icon   magnifying-glass icon (we want the static hex)
          .ds-ph fade       placeholder fade on the 8s loop
-       What\'s LEFT in the search bar: just the static search-icon
-       (circle + wand) and the always-visible placeholder text. */
-    .tmw-dock-search .ds-ask-pill,
-    .tmw-dock-search .ds-ask-text,
-    .tmw-dock-search .ds-ask-dots {
+       What\'s LEFT in the search bar: just the static hex outline
+       (.ds-hex-core) and the always-visible placeholder text -- the
+       same hex the dock uses elsewhere on the site, no animation.
+
+       Selectors are prefixed with `body` for an extra specificity bump
+       over journal-dock.js's runtime-injected stylesheet (which loads
+       AFTER this block), and `visibility:hidden` is layered on the
+       Ask-TMW elements as a belt+suspenders guard against any
+       animation-driven `display`/`opacity` override that might fight
+       `display:none` on touch builds. */
+    body .tmw-dock-search .ds-ask-pill,
+    body .tmw-dock-search .ds-ask-text,
+    body .tmw-dock-search .ds-ask-dots,
+    body .tmw-dock-search .ds-dot {
       display: none !important;
+      visibility: hidden !important;
+      opacity: 0 !important;
+      animation: none !important;
+      max-width: 0 !important;
     }
-    .tmw-dock-search .ds-hex-spinner,
-    .tmw-dock-search .ds-hex-core,
-    .tmw-dock-search .ds-search-icon,
-    .tmw-dock-search .ds-search-circle,
-    .tmw-dock-search .ds-search-wand,
-    .tmw-dock-search .ds-ph {
+    body .tmw-dock-search .ds-hex-spinner,
+    body .tmw-dock-search .ds-hex-core,
+    body .tmw-dock-search .ds-search-icon,
+    body .tmw-dock-search .ds-search-circle,
+    body .tmw-dock-search .ds-search-wand,
+    body .tmw-dock-search .ds-ph {
       animation: none !important;
     }
-    .tmw-dock-search .ds-hex-core { opacity: 0 !important; }
-    .tmw-dock-search .ds-search-circle,
-    .tmw-dock-search .ds-search-wand {
+    /* Show the static hex, hide the magnifying glass -- this is the
+       "same hexagon as desktop and rest of site" callout from the user;
+       the dock's hex outline is the icon we want visible at rest. */
+    body .tmw-dock-search .ds-hex-spinner { transform: none !important; }
+    body .tmw-dock-search .ds-hex-core {
       opacity: 1 !important;
-      stroke: #9AA39C !important;
-      stroke-dashoffset: 0 !important;
+      stroke: #A78BFA !important;
     }
-    .tmw-dock-search .ds-ph { opacity: 1 !important; }
+    body .tmw-dock-search .ds-search-icon,
+    body .tmw-dock-search .ds-search-circle,
+    body .tmw-dock-search .ds-search-wand {
+      opacity: 0 !important;
+    }
+    body .tmw-dock-search .ds-ph { opacity: 1 !important; }
 
     /* Slightly narrower dock search bar on the map -- baseline from
        journal-dock.js (line 553) is min(46vw,300px) / focus 344px. The
