@@ -366,20 +366,76 @@
     }).catch(function () { el.innerHTML = '<div class="tmw-am-msg err">Couldn’t load your watchlist.</div>'; });
   }
 
+  // Articles tab — saved journal articles. FREE for everyone (unlike
+  // watchlist which is Pro-only). Reads slugs from memberJSON.article_favorites
+  // (written by post.js's heart button), fetches each post's metadata in
+  // parallel from the worker, and renders an image+title card grid.
+  function articlesSection(el, host) {
+    el.innerHTML = '<div class="tmw-am-msg">Loading your saved articles…</div>';
+    var m = ms();
+    if (!m || !m.getMemberJSON) { el.innerHTML = '<div class="tmw-am-msg err">Couldn’t load your saved articles.</div>'; return; }
+    m.getMemberJSON().then(function (r) {
+      var json = (r && r.data) || {};
+      var favs = Array.isArray(json.article_favorites)
+        ? json.article_favorites.filter(function (s) { return typeof s === 'string' && s; })
+        : [];
+      if (!favs.length) {
+        el.innerHTML =
+          '<div class="tmw-am-wl-empty">' +
+            '<b>No saved articles yet</b>' +
+            '<i>Tap the heart on any journal article to save it for later — it lands here for one-tap return.</i>' +
+            '<a class="tmw-am-primary" href="https://www.oftmw.com/journal" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;text-decoration:none">Browse the journal →</a>' +
+          '</div>';
+        return;
+      }
+      // Fetch each article's metadata in parallel. The worker endpoint
+      // is the same one post.js already uses (CORS-open, public posts).
+      var WORKER = 'https://tmw.jake-ab7.workers.dev';
+      var requests = favs.map(function (slug) {
+        return fetch(WORKER + '/posts/by-slug/' + encodeURIComponent(slug), { cache: 'no-store' })
+          .then(function (resp) { return resp.ok ? resp.json() : null; })
+          .then(function (j) { return j && j.post ? j.post : null; })
+          .catch(function () { return null; });
+      });
+      Promise.all(requests).then(function (posts) {
+        el.innerHTML = '';
+        var grid = document.createElement('div'); grid.className = 'tmw-am-wl';
+        favs.forEach(function (slug, i) {
+          var p = posts[i] || null;
+          var a = document.createElement('a'); a.className = 'tmw-am-wlc';
+          a.href = 'https://www.oftmw.com/post/' + encodeURIComponent(slug) + '/';
+          a.target = '_blank'; a.rel = 'noopener';
+          var img = p && (p.cover_image || p.image);
+          if (img) { var im = document.createElement('img'); im.src = img; im.loading = 'lazy'; im.alt = ''; a.appendChild(im); }
+          var meta = document.createElement('div'); meta.className = 'tmw-am-wlc-meta';
+          var cat = p && ((p.main_category) || (Array.isArray(p.categories) && p.categories[0]));
+          if (cat) { var c = document.createElement('div'); c.className = 'tmw-am-wlc-city'; c.textContent = cat; meta.appendChild(c); }
+          var t = document.createElement('div'); t.className = 'tmw-am-wlc-ttl';
+          t.textContent = (p && p.title) || unslug(slug);
+          meta.appendChild(t); a.appendChild(meta); grid.appendChild(a);
+        });
+        el.appendChild(grid);
+      });
+    }).catch(function () { el.innerHTML = '<div class="tmw-am-msg err">Couldn’t load your saved articles.</div>'; });
+  }
+
   function renderAccount(host, section, cf, email, paid) {
     var logo = paid ? LOGO.replace('</div>', '<span class="tmw-am-pro-pill">PRO</span></div>') : LOGO;
     host.innerHTML = logo +
-      '<div class="tmw-am-tabs"><button class="tmw-am-tab" data-sec="profile">Profile</button><button class="tmw-am-tab" data-sec="security">Security</button><button class="tmw-am-tab" data-sec="watchlist">Watchlist' + (paid ? '' : '<em class="tmw-am-tab-pro">PRO</em>') + '</button></div>' +
+      '<div class="tmw-am-tabs"><button class="tmw-am-tab" data-sec="profile">Profile</button><button class="tmw-am-tab" data-sec="security">Security</button><button class="tmw-am-tab" data-sec="articles">Articles</button><button class="tmw-am-tab" data-sec="watchlist">Watchlist' + (paid ? '' : '<em class="tmw-am-tab-pro">PRO</em>') + '</button></div>' +
       '<div class="tmw-am-sec"></div>' +
       '<div class="tmw-am-msg" aria-live="polite"></div>' +
       '<div class="tmw-am-foot"><button class="tmw-am-logout" data-act="logout">Log out</button><button class="tmw-am-plans" data-act="plans">' + (paid ? 'Manage plan →' : 'Go Pro →') + '</button></div>';
     var sec = host.querySelector('.tmw-am-sec'), tabs = host.querySelectorAll('.tmw-am-tab');
     function show(s) {
       tabs.forEach(function (t) { t.classList.toggle('on', t.getAttribute('data-sec') === s); });
-      sec.classList.toggle('tmw-am-sec-wl', s === 'watchlist');
+      // The wide-grid-card class is shared by Watchlist + Articles — both
+      // render with the same .tmw-am-wl grid.
+      sec.classList.toggle('tmw-am-sec-wl', s === 'watchlist' || s === 'articles');
       setMsg(host, '', '');
       if (s === 'security') securitySection(sec, email, host);
       else if (s === 'watchlist') watchlistSection(sec, paid, host);
+      else if (s === 'articles') articlesSection(sec, host);
       else profileSection(sec, cf, email, host);
     }
     tabs.forEach(function (t) { t.addEventListener('click', function () { show(t.getAttribute('data-sec')); }); });

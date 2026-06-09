@@ -137,6 +137,23 @@ nav.main .wrap{display:flex; align-items:center; justify-content:space-between; 
 .article-hero .byline .share .share-ico svg{width:16px; height:16px}
 .article-hero .byline .share .share-ico:hover{border-color:var(--green); color:var(--green); transform:translateY(-1px)}
 .article-hero .byline .share .share-ico.copied{border-color:var(--green); color:var(--green)}
+/* Favorite (heart) — sits to the left of Share. Reuses .share-ico
+   sizing/shape so the row stays visually consistent. */
+.article-hero .byline .share .fav-ico{transition:all .2s, transform .15s}
+.article-hero .byline .share .fav-ico svg{fill:none; transition:fill .18s}
+.article-hero .byline .share .fav-ico:hover{border-color:#FF3D6E; color:#FF3D6E; transform:translateY(-1px)}
+.article-hero .byline .share .fav-ico.saved{border-color:#FF3D6E; color:#FF3D6E}
+.article-hero .byline .share .fav-ico.saved svg{fill:#FF3D6E}
+/* Click-burst: a quick pulse so the save action FEELS like the heart
+   "filled". Triggered automatically on .saved transitions via CSS only. */
+.article-hero .byline .share .fav-ico.saved svg{animation:fav-pop .26s ease-out}
+@keyframes fav-pop{0%{transform:scale(1)}45%{transform:scale(1.32)}100%{transform:scale(1)}}
+
+/* "Saved to favorites" toast — bottom-center, brief slide-in. */
+.fav-toast{position:fixed; left:50%; bottom:32px; transform:translateX(-50%) translateY(8px); padding:11px 18px; border-radius:999px; background:rgba(20,20,22,.96); color:#fff; font-family:var(--mono); font-size:12px; letter-spacing:.08em; text-transform:uppercase; border:1px solid rgba(255,255,255,.12); box-shadow:0 12px 36px rgba(0,0,0,.5); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); z-index:10010; opacity:0; pointer-events:none; transition:opacity .22s ease, transform .22s ease}
+.fav-toast.show{opacity:1; transform:translateX(-50%) translateY(0)}
+.fav-toast.err{border-color:rgba(255,75,75,.5); color:#ffb1b1}
+@media (max-width:560px){.fav-toast{bottom:24px; padding:10px 14px; font-size:11px}}
 @media(max-width:560px){
   .article-hero .byline{margin-top:16px; padding-top:14px; gap:10px}
   .article-hero .byline .share .share-ico{width:34px; height:34px}

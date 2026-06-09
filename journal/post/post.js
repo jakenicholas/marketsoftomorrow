@@ -27,6 +27,7 @@ document.getElementById('yr').textContent = new Date().getFullYear();
   loadPulse();
   updateMapCounter();
   hookCopyLink();
+  hookFavorite();
   // ── Pre-rendered static page (generate_articles.py) ───────────────
   // For path-based article URLs (/post/<slug>/) the body + SEO
   // <head> are already baked into the HTML so crawlers + social scrapers
@@ -837,6 +838,136 @@ function hookCopyLink() {
 }
 
 // ===================================================================
+// FAVORITE button — heart next to Share. Signed-in: saves the article
+// slug into Memberstack memberJSON.article_favorites and shows a brief
+// "Saved to your favorites" toast; the saved article then appears in
+// the new "Articles" tab of the account modal (tmw-auth-modal.js).
+// Signed-out: opens the article sign-up modal (the same flow that
+// auto-pops after 3s on every article), so the user can create a free
+// account before saving anything.
+// ===================================================================
+function hookFavorite() {
+  const shareWrap = document.querySelector('.article-hero .byline .share');
+  if (!shareWrap) return;
+  // Don't double-inject if init() runs twice (defensive).
+  if (shareWrap.querySelector('#fav-btn')) return;
+
+  const btn = document.createElement('button');
+  btn.id = 'fav-btn';
+  btn.className = 'share-ico fav-ico';
+  btn.type = 'button';
+  btn.title = 'Save to favorites';
+  btn.setAttribute('aria-label', 'Save this article to your favorites');
+  btn.innerHTML =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+      '<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>' +
+    '</svg>';
+  // Heart sits BEFORE the share button in the row.
+  const shareBtn = shareWrap.querySelector('#share-btn');
+  if (shareBtn) shareWrap.insertBefore(btn, shareBtn);
+  else shareWrap.appendChild(btn);
+
+  // Article slug = last meaningful path segment of /post/<slug>/. Falls
+  // back to ?slug= for the SPA case (legacy path).
+  function currentSlug() {
+    const m = location.pathname.match(/^\/post\/([^\/]+)\/?$/);
+    if (m && m[1]) return decodeURIComponent(m[1]);
+    const qs = new URLSearchParams(location.search);
+    return (qs.get('slug') || '').trim();
+  }
+  const slug = currentSlug();
+  if (!slug) return;
+
+  // Tiny in-page toast. We position it INSIDE .share so it floats above
+  // the byline row without needing a fixed-position container.
+  function showToast(msg, kind) {
+    let host = document.getElementById('fav-toast');
+    if (host) host.remove();
+    host = document.createElement('div');
+    host.id = 'fav-toast';
+    host.className = 'fav-toast' + (kind === 'err' ? ' err' : '');
+    host.textContent = msg;
+    document.body.appendChild(host);
+    requestAnimationFrame(() => host.classList.add('show'));
+    setTimeout(() => {
+      host.classList.remove('show');
+      setTimeout(() => { if (host.parentNode) host.parentNode.removeChild(host); }, 260);
+    }, 1800);
+  }
+
+  // Merge-fetch-write (Memberstack updateMemberJSON REPLACES the blob).
+  async function saveMemberJson(patch) {
+    const ms = window.$memberstackDom;
+    if (!ms) return;
+    const cur = await ms.getMemberJSON();
+    const json = (cur && cur.data && typeof cur.data === 'object') ? cur.data : {};
+    for (const k in patch) json[k] = patch[k];
+    await ms.updateMemberJSON({ json });
+  }
+
+  // Read current saved state once, so the heart loads filled if the
+  // article is already a favorite. Non-blocking; on failure we just
+  // leave the heart empty.
+  let saved = false;
+  function paint() { btn.classList.toggle('saved', saved); btn.title = saved ? 'Saved — click to remove' : 'Save to favorites'; }
+  (async () => {
+    const ms = window.$memberstackDom;
+    if (!ms || !ms.getCurrentMember) return;
+    try {
+      const r = await ms.getCurrentMember();
+      if (!r || !r.data) return;
+      const got = await ms.getMemberJSON();
+      const json = (got && got.data && typeof got.data === 'object') ? got.data : {};
+      const favs = Array.isArray(json.article_favorites) ? json.article_favorites : [];
+      saved = favs.indexOf(slug) !== -1;
+      paint();
+    } catch (e) {}
+  })();
+
+  btn.addEventListener('click', async () => {
+    const ms = window.$memberstackDom;
+    // Signed-out -> open the article sign-up modal (same one that auto-
+    // pops at 3s). It's a global helper installed by tmw-auth-modal.js.
+    let member = null;
+    if (ms && ms.getCurrentMember) {
+      try { const r = await ms.getCurrentMember(); member = r && r.data; } catch (e) {}
+    }
+    if (!member) {
+      // Prefer the inline article sign-up flow (the same lightbox that
+      // auto-pops on every article at 3s — email then password). Falls
+      // back to the full account modal, and finally Memberstack's own
+      // signup modal if neither is installed.
+      if (typeof window.tmwArticleSignup === 'function') {
+        window.tmwArticleSignup();
+      } else if (typeof window.tmwAuthModal === 'function') {
+        window.tmwAuthModal('signup');
+      } else if (ms && typeof ms.openModal === 'function') {
+        try { ms.openModal('SIGNUP'); } catch (e) {}
+      }
+      return;
+    }
+    // Signed-in -> toggle save. Optimistic UI, revert on error.
+    const wasSaved = saved;
+    saved = !wasSaved;
+    paint();
+    try {
+      const got = await ms.getMemberJSON();
+      const json = (got && got.data && typeof got.data === 'object') ? got.data : {};
+      const favs = Array.isArray(json.article_favorites) ? json.article_favorites.slice() : [];
+      const idx = favs.indexOf(slug);
+      if (saved && idx === -1) favs.unshift(slug);   // newest first
+      else if (!saved && idx !== -1) favs.splice(idx, 1);
+      await saveMemberJson({ article_favorites: favs });
+      showToast(saved ? 'Saved to your favorites' : 'Removed from favorites');
+      try { if (window.gtag) window.gtag('event', saved ? 'article_favorite' : 'article_unfavorite', { slug }); } catch (_) {}
+    } catch (e) {
+      saved = wasSaved; paint();
+      showToast('Couldn’t save — try again', 'err');
+    }
+  });
+}
+
+// ===================================================================
 // Helpers
 // ===================================================================
 function setMeta(id, attr, val) { const el = document.getElementById(id); if (el && val) el.setAttribute(attr, val); }
@@ -911,6 +1042,21 @@ function escapeAttr(s) { return escapeHtml(s); }
 
     requestAnimationFrame(function () { el.classList.add('show'); });
   }
+
+  // Exposed so the heart-button handler in hookFavorite() can invoke the
+  // SAME subscribe + free-account flow that auto-pops at 3s. Anon users
+  // who tap the heart get this flow instead of the heavier full-account
+  // modal -- it matches the rest of the article experience (email then
+  // password). Returning subscribers get the password-only step.
+  window.tmwArticleSignup = function () {
+    var subEmail = subscribedEmail();
+    if (subEmail) {
+      try { sessionStorage.removeItem('tmw-acct-skip'); } catch (e) {}
+      buildAccountMode(subEmail);
+    } else {
+      build();
+    }
+  };
 
   // "Account mode" — a returning subscriber who hasn't made an account yet gets
   // the "add a password" step directly (we already know their email), instead
