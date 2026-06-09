@@ -64,7 +64,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="color-scheme" content="dark only">
 <meta name="supported-color-schemes" content="dark only">
-<title>{{ subject }}</title>
+<!-- <title> intentionally generic. Gmail web renders the <title>
+     tag as a visible heading at the very top of the email body, so
+     a dynamic "50 new projects on the map" title leaked through as a
+     stray line above the brand logo. The real email subject is set in
+     Resend per-send, and the OG/Twitter title tags below still carry
+     the dynamic subject for share previews. -->
+<title>Markets of Tomorrow</title>
 
 <!-- Favicon (browser-tab icon for the web preview / archive) -->
 <link rel="icon" type="image/png" href="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_71f3cd2ef61049028b2daf4e2ff71d52~mv2.png">
