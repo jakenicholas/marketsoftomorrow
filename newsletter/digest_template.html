@@ -468,38 +468,24 @@
           </td></tr>
         </table>
 
-        <!-- Connected body — purple feature tiles, 2-col grid (1-col on mobile). -->
+        <!-- Connected body — purple feature tiles, single column (each
+             tile gets the full email width so titles + body breathe).
+             Per-tile height auto-sizes to its content now that they don't
+             share a row with a neighbor that has to match. -->
         <div class="cta-block-connected force-dark-panel force-border" style="background-color: #0E0B17;">
           <div class="cta-headline force-light-text">{{ app_updates.headline }}</div>
-          {%- for row in app_updates.tiles|batch(2) %}
-          <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 0 0 12px 0;">
-            <tr>
-              {%- for t in row %}
-              {#- Tiles in a row all match the tallest one. We do this by giving
-                  every inner content cell a fixed height (200px comfortably
-                  fits the longest body in the current copy at 13px/1.5 line
-                  height in a ~280px column), then valign="top" pins the
-                  content to the top so short tiles get padding at the bottom
-                  instead of vertically centering. -#}
-              <td class="two-col-cell" valign="top" width="50%" style="width: 50%; padding: 0 {% if loop.first %}6px 0 0{% else %}0 0 6px{% endif %};">
-                <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" height="200" style="background: rgba(167, 139, 250, 0.06); border: 1px solid rgba(167, 139, 250, 0.28); border-radius: 10px; height: 200px;">
-                  <tr><td valign="top" height="200" style="height: 200px; padding: 16px 16px 18px 16px;">
-                    <div class="feature-hex" style="color:#A78BFA;font-size:16px;font-weight:700;letter-spacing:0.04em;line-height:1;margin:0 0 8px 0;">⬡</div>
-                    <div class="feature-title" style="color:#ffffff;font-size:15px;font-weight:700;line-height:1.3;margin:0 0 6px 0;">{{ t.title }}</div>
-                    {%- if t.body %}
-                    <div class="feature-body" style="color:#B6B0C4;font-size:13px;line-height:1.5;margin:0;">{{ t.body }}</div>
-                    {%- endif %}
-                  </td></tr>
-                </table>
-              </td>
-              {%- endfor %}
-              {%- if row|length == 1 %}
-              <td class="two-col-cell" width="50%" style="width: 50%;">&nbsp;</td>
+          {%- for t in app_updates.tiles %}
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 0 0 10px 0; background: rgba(167, 139, 250, 0.06); border: 1px solid rgba(167, 139, 250, 0.28); border-radius: 10px;">
+            <tr><td valign="top" style="padding: 16px 18px 18px 18px;">
+              <div class="feature-hex" style="color:#A78BFA;font-size:16px;font-weight:700;letter-spacing:0.04em;line-height:1;margin:0 0 8px 0;">⬡</div>
+              <div class="feature-title" style="color:#ffffff;font-size:16px;font-weight:700;line-height:1.3;margin:0 0 6px 0;">{{ t.title }}</div>
+              {%- if t.body %}
+              <div class="feature-body" style="color:#B6B0C4;font-size:14px;line-height:1.55;margin:0;">{{ t.body }}</div>
               {%- endif %}
-            </tr>
+            </td></tr>
           </table>
           {%- endfor %}
-          <div><a href="{{ site_url }}" class="cta-button">Open the map →</a></div>
+          <div style="margin-top: 4px;"><a href="{{ site_url }}" class="cta-button">Open the map →</a></div>
         </div>
       </td></tr>
       {%- endif %}
