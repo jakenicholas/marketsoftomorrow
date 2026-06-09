@@ -137,6 +137,13 @@ nav.main .wrap{display:flex; align-items:center; justify-content:space-between; 
 .article-hero .byline .share .share-ico svg{width:16px; height:16px}
 .article-hero .byline .share .share-ico:hover{border-color:var(--green); color:var(--green); transform:translateY(-1px)}
 .article-hero .byline .share .share-ico.copied{border-color:var(--green); color:var(--green)}
+/* Follow on Google (+) — sits LEFT of the heart. Same .share-ico
+   shape, hover uses the brand green so it reads as a positive
+   subscribe action. */
+.article-hero .byline .share .follow-ico{display:inline-flex; align-items:center; justify-content:center; text-decoration:none; transition:all .2s}
+.article-hero .byline .share .follow-ico svg{width:18px; height:18px}
+.article-hero .byline .share .follow-ico:hover{border-color:var(--green); color:var(--green); transform:translateY(-1px)}
+
 /* Favorite (heart) — sits to the left of Share. Reuses .share-ico
    sizing/shape so the row stays visually consistent. */
 .article-hero .byline .share .fav-ico{transition:all .2s, transform .15s}
