@@ -8308,18 +8308,35 @@
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false
+    },
+    "one-lady-bird-lake": {
+      "estimate_years": 1.5,
+      "estimate_label": "~1.5 years",
+      "days_out": 616,
+      "delivery_date": "2028-02-15",
+      "source": "known_date",
+      "precision": "month",
+      "confidence": "medium",
+      "project_type": "Residences",
+      "metro": "Austin",
+      "comparables": [],
+      "comparable_count": 0,
+      "pattern_summary": "TMW estimates an opening in ~1.5 years based on project type and current stage.",
+      "dates_speculative": true,
+      "start_speculative": true,
+      "delivery_speculative": true
     }
   },
   "stats": {
     "high": 1,
     "medium": 17,
     "low": 25,
-    "known_date": 289,
+    "known_date": 290,
     "completed": 57,
     "skipped": 49,
     "no_type": 0,
     "firm_boosted": 28,
-    "speculative_softened": 71,
+    "speculative_softened": 72,
     "mixed_use_adjusted": 1
   }
 }
