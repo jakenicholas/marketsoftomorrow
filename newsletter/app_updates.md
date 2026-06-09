@@ -1,12 +1,16 @@
-# A better Markets of Tomorrow
+# TMW Intelligence is Here
 image: https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/060f97cafdd8-june-2-newsletter.gif
 
-• A brand-new Journal — faster, cleaner, and built to support a better experience
+• TMW Intelligence (Beta 3.1) — AI-powered timeline forecasts, site search, project research, and comparable-project analysis across every page
 
-• One account now unlocks everything — the journal, the database, your watchlist, and Pulse. If you haven't already, create yours
+• A Brand-New Map — faster, timeline scrubber, advanced filtering, interactive layers, 'what's moving' pins, and more
+
+• One Account Now Unlocks Everything — the journal, the database, your watchlist, and Pulse. If you haven't already, create yours
+
+• Journal - you can now favorite articles to revisit later, linked project cards, and more
 
 • Pulse — our live activity feed that shows new projects hitting the map and fresh stories publishing in real time, the moment they happen
 
-• TMW Intelligence (Beta 2.1) — AI-powered timeline forecasts and comparable-project analysis on every development we track, so you can see where a project is headed before it gets there
-
 • New Architect, Developer & Firm pages — every project, collaboration, and timeline behind the names shaping each skyline, gathered into one profile you can explore
+
+• Atlas - deeper data and timeline tracking
