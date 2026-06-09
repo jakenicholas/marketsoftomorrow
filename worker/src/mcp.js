@@ -206,7 +206,7 @@ const TOOLS = [
       type: 'object',
       properties: {
         title: { type: 'string', description: 'Article headline' },
-        body_markdown: { type: 'string', description: 'Article body in Markdown (headings, paragraphs, **bold**, *italic*, [links](url), - lists)' },
+        body_markdown: { type: 'string', description: 'Article body in Markdown. Supports: # / ## / ### headings, paragraphs, **bold**, *italic*, [links](url), `- ` bullet lists, and IMAGES via ![alt](url) -- a paragraph that is JUST an image becomes a <figure>, and ![alt](url "caption text") adds a <figcaption>. Use real image URLs (R2 / official press kit URLs), never link a website as if it were an image.' },
         excerpt: { type: 'string', description: '1–2 sentence summary (optional; auto-derived if omitted)' },
         category: { type: 'string', description: 'Primary category label (optional)' },
         cover_image: { type: 'string', description: 'Absolute cover image URL (optional)' },
@@ -223,7 +223,7 @@ const TOOLS = [
       properties: {
         slug: { type: 'string', description: 'Slug of the draft to edit' },
         title: { type: 'string' },
-        body_markdown: { type: 'string', description: 'Replacement body in Markdown' },
+        body_markdown: { type: 'string', description: 'Replacement body in Markdown. Same syntax as create_post_draft: headings, **bold**, *italic*, [links](url), `- ` lists, and IMAGES via ![alt](url) (or ![alt](url "caption") for a captioned figure). Use real image URLs, not website links.' },
         excerpt: { type: 'string' },
         category: { type: 'string' },
         cover_image: { type: 'string' },
@@ -564,15 +564,39 @@ function slugify(s) {
 
 function mdToHtml(md) {
   if (!md) return '<p></p>';
-  const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const esc    = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const escAttr = (s) => s.replace(/"/g, '&quot;');
+
+  // Markdown image syntax: ![alt](url) or ![alt](url "caption text").
+  // Was missing from the original converter -- so when the MCP wrote
+  // article drafts with images the link regex below would consume the
+  // `[alt](url)` portion and leave a bare `!` orphan in front of the
+  // resulting <a>. The fix runs this replacement BEFORE the link regex,
+  // so images are taken off the table before links are matched.
+  const IMG_RE = /!\[([^\]]*)\]\(([^)\s]+)(?:\s+"([^"]*)")?\)/g;
+
   const inline = (s) => esc(s)
+    .replace(IMG_RE, (m, alt, url) =>
+      `<img src="${escAttr(url)}" alt="${escAttr(alt)}" loading="lazy">`)
     .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
     .replace(/\*([^*]+)\*/g, '<em>$1</em>')
-    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, (m, t, u) => `<a href="${u.replace(/"/g, '&quot;')}">${t}</a>`);
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, (m, t, u) => `<a href="${escAttr(u)}">${t}</a>`);
+
   return String(md).replace(/\r\n/g, '\n').split(/\n{2,}/).map((b) => {
     b = b.trim(); if (!b) return '';
     const h = b.match(/^(#{1,3})\s+(.*)$/);
     if (h) return `<h${h[1].length}>${inline(h[2])}</h${h[1].length}>`;
+    // Block-level image: a paragraph that is JUST one markdown image
+    // (no surrounding text). Render as <figure> matching the same
+    // shape published posts already use, so the existing post.css
+    // styling (margin, max-width, caption) Just Works.
+    const singleImg = b.match(/^!\[([^\]]*)\]\(([^)\s]+)(?:\s+"([^"]*)")?\)\s*$/);
+    if (singleImg) {
+      const alt = escAttr(esc(singleImg[1] || ''));
+      const url = escAttr(singleImg[2]);
+      const cap = singleImg[3] ? esc(singleImg[3]) : '';
+      return `<figure><img src="${url}" alt="${alt}" loading="lazy">${cap ? `<figcaption>${cap}</figcaption>` : ''}</figure>`;
+    }
     if (/^[-*]\s+/.test(b)) {
       const items = b.split('\n').map((l) => l.replace(/^[-*]\s+/, '').trim()).filter(Boolean);
       return '<ul>' + items.map((i) => `<li>${inline(i)}</li>`).join('') + '</ul>';
