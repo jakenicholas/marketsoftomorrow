@@ -13,7 +13,7 @@ Writes:
   - newsletter/digest-archive/YYYY-MM-DD.html
 """
 
-import json, os, re, sys, urllib.request
+import json, os, re, sys, time, urllib.request
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -305,11 +305,26 @@ def load_app_updates():
         elif line and line[0] in "-*•–—":  # accept dash, asterisk, bullet, en/em dash
             bullets.append(line[1:].strip())
     if not bullets: return None
+    # Pre-split each bullet on the FIRST em-dash, en-dash, or " - " hyphen
+    # into (title, body). This lets the template render each bullet as a
+    # purple tile with a bold "feature name" header on top of the
+    # supporting copy, instead of a flat white text bullet. Authors don't
+    # have to change app_updates.md -- both "X — Y" and "X - Y" work.
+    tiles = []
+    for b in bullets:
+        title, body = b, ""
+        for sep in (" — ", " – ", " - "):
+            if sep in b:
+                parts = b.split(sep, 1)
+                title, body = parts[0].strip(), parts[1].strip()
+                break
+        tiles.append({"title": title, "body": body})
     # Image + bullets both come from this one file so a generate always uses the
     # latest of both; fall back to the module default if no image line is given.
     return {"headline": headline or "What's new in the app",
             "image":    image or APP_IMAGE_URL,
-            "bullets":  bullets}
+            "bullets":  bullets,
+            "tiles":    tiles}
 
 def load_ads():
     slots = {f"slot{i}": None for i in range(1, 7)}
@@ -422,6 +437,18 @@ def main():
         loader=FileSystemLoader(os.path.dirname(TEMPLATE_PATH) or "."),
         autoescape=select_autoescape(["html", "xml"]),
     )
+    # Cache-bust the What's-new gif so R2 / CDN edges don't serve a stale
+    # copy if the file behind the same URL was just replaced. The user's
+    # June 9 issue showed the previous week's gif because the URL hadn't
+    # changed but the bytes had -- email clients and the R2 CDN both
+    # cached aggressively. A unique ?v= per generate forces a fresh fetch.
+    base_image = (app_updates or {}).get("image") or APP_IMAGE_URL
+    if base_image:
+        sep = '&' if '?' in base_image else '?'
+        cache_bust_image = f"{base_image}{sep}v={int(time.time())}"
+    else:
+        cache_bust_image = base_image
+
     template = env.get_template(os.path.basename(TEMPLATE_PATH))
     raw_html = template.render(
         subject=subject, preheader=preheader, week_label=week_label,
@@ -430,7 +457,7 @@ def main():
         more_markets_articles=more_markets_articles,
         app_updates=app_updates, ads=ads,
         site_url=SITE_URL, tmw_url=TMW_URL, logo_url=LOGO_URL,
-        app_image_url=(app_updates or {}).get("image") or APP_IMAGE_URL,
+        app_image_url=cache_bust_image,
     )
 
     inlined = Premailer(

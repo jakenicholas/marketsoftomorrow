@@ -239,47 +239,82 @@
     margin-bottom: 6px;
   }
 
-  /* App updates: connected image + body */
+  /* App updates: connected image + tile grid + button.
+     The hero gif image still anchors the section; below it the bullets
+     render as PURPLE feature tiles instead of a flat white bulleted
+     list, so the section reads more like the website's "TMW Intelligence
+     is Here" card (radial purple highlight, hex glyph, bold feature
+     names). Bullets are pre-split into {title, body} server-side so the
+     template just lays them out. */
   .app-image-wrap {
     width: 100%;
     height: 360px;
     overflow: hidden;
     border-radius: 12px 12px 0 0;
-    background-color: #222222;
+    background-color: #0F0A18;
     background-size: contain;
     background-position: center center;
     background-repeat: no-repeat;
   }
+  /* Body wrapper -- dark purple-tinted panel that visually connects to
+     the gif above (no top radius, no top border). The radial bg + hex
+     pattern echoes the website's promo card without a real image. */
   .cta-block-connected {
-    background-color: #222222;
-    border: 1px solid #262626;
+    background: linear-gradient(180deg, #14101E 0%, #0E0B17 100%);
+    border: 1px solid #2D2440;
     border-top: 0;
     border-radius: 0 0 12px 12px;
-    padding: 24px;
+    padding: 26px 22px 28px 22px;
   }
   .cta-headline {
-    font-size: 18px;
-    font-weight: 700;
+    font-size: 22px;
+    font-weight: 800;
     color: #ffffff;
-    margin-bottom: 14px;
+    margin: 0 0 18px 0;
+    letter-spacing: -0.01em;
   }
-  .cta-list { margin: 0; padding: 0 0 0 20px; }
-  .cta-list li {
+  /* Purple feature tile -- one per bullet. Renders as a table-row cell
+     so Outlook + Gmail both handle the layout. The 32px hex glyph in
+     the top-left mirrors the TMW dot used elsewhere in the brand. */
+  .feature-tile {
+    background: rgba(167, 139, 250, 0.06);
+    border: 1px solid rgba(167, 139, 250, 0.28);
+    border-radius: 10px;
+    padding: 16px 16px 18px 16px;
+    margin: 0;
+  }
+  .feature-hex {
+    color: #A78BFA;
+    font-size: 16px;
+    line-height: 1;
+    margin: 0 0 8px 0;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+  }
+  .feature-title {
     color: #ffffff;
     font-size: 15px;
-    line-height: 1.6;
-    margin-bottom: 8px;
+    font-weight: 700;
+    line-height: 1.3;
+    margin: 0 0 6px 0;
+  }
+  .feature-body {
+    color: #B6B0C4;
+    font-size: 13px;
+    line-height: 1.5;
+    margin: 0;
   }
   .cta-button {
     display: inline-block;
-    background-color: #1FDF67;
-    color: #000000;
-    padding: 12px 22px;
+    background-color: #A78BFA;
+    color: #0E0B17;
+    padding: 13px 24px;
     border-radius: 8px;
     text-decoration: none;
     font-weight: 700;
     font-size: 14px;
-    margin-top: 18px;
+    margin-top: 22px;
+    letter-spacing: 0.01em;
   }
 
   /* Ad banner */
@@ -362,7 +397,7 @@
       <!-- NEW ON THE MAP — combined, 2-col grid -->
       {%- if map_items %}
       <tr><td>
-        <div class="section-header force-accent-text">New on the map ({{ map_items|length }})</div>
+        <div class="section-header force-accent-text">What's new in the database ({{ map_items|length }})</div>
 
         {%- set first_batch = map_items[:4] %}
         {%- for row in first_batch|batch(2) %}
@@ -404,7 +439,7 @@
         {%- endfor %}
         {%- if map_items|length > 8 %}
         <div style="text-align: center; margin: 8px 0 16px 0;">
-          <a href="{{ site_url }}" class="read-more force-accent-text">+ {{ map_items|length - 8 }} more on the map →</a>
+          <a href="{{ site_url }}" class="read-more force-accent-text">+ {{ map_items|length - 8 }} more in the database →</a>
         </div>
         {%- endif %}
       </td></tr>
@@ -433,14 +468,31 @@
           </td></tr>
         </table>
 
-        <!-- Connected body — no top border or radius -->
-        <div class="cta-block-connected force-dark-panel force-border" style="background-color: #222222;">
+        <!-- Connected body — purple feature tiles, 2-col grid (1-col on mobile). -->
+        <div class="cta-block-connected force-dark-panel force-border" style="background-color: #0E0B17;">
           <div class="cta-headline force-light-text">{{ app_updates.headline }}</div>
-          <ul class="cta-list">
-            {%- for bullet in app_updates.bullets %}
-            <li class="force-light-text" style="color: #ffffff;">{{ bullet }}</li>
-            {%- endfor %}
-          </ul>
+          {%- for row in app_updates.tiles|batch(2) %}
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 0 0 12px 0;">
+            <tr>
+              {%- for t in row %}
+              <td class="two-col-cell" valign="top" width="50%" style="width: 50%; padding: 0 {% if loop.first %}6px 0 0{% else %}0 0 6px{% endif %};">
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background: rgba(167, 139, 250, 0.06); border: 1px solid rgba(167, 139, 250, 0.28); border-radius: 10px;">
+                  <tr><td style="padding: 16px 16px 18px 16px;">
+                    <div class="feature-hex" style="color:#A78BFA;font-size:16px;font-weight:700;letter-spacing:0.04em;line-height:1;margin:0 0 8px 0;">⬡</div>
+                    <div class="feature-title" style="color:#ffffff;font-size:15px;font-weight:700;line-height:1.3;margin:0 0 6px 0;">{{ t.title }}</div>
+                    {%- if t.body %}
+                    <div class="feature-body" style="color:#B6B0C4;font-size:13px;line-height:1.5;margin:0;">{{ t.body }}</div>
+                    {%- endif %}
+                  </td></tr>
+                </table>
+              </td>
+              {%- endfor %}
+              {%- if row|length == 1 %}
+              <td class="two-col-cell" width="50%" style="width: 50%;">&nbsp;</td>
+              {%- endif %}
+            </tr>
+          </table>
+          {%- endfor %}
           <div><a href="{{ site_url }}" class="cta-button">Open the map →</a></div>
         </div>
       </td></tr>
