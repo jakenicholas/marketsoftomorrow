@@ -8760,23 +8760,40 @@
     body.ui-v2 .v2-sheet {
       position: absolute;
       left: 0; right: 0; bottom: 0;
-      background: rgba(20,20,20,0.96);
-      backdrop-filter: blur(40px);
-      -webkit-backdrop-filter: blur(40px);
+      /* Solid fill during the slide — backdrop-filter only kicks in after
+         the sheet finishes opening (see body.v2-sheet-settled rule below).
+         Animating a blurred surface against the Mapbox WebGL canvas was
+         the entire source of the mobile open-lag; blur(40px) had to be
+         recomputed each frame as the height grew. */
+      background: rgba(14,14,18,0.98);
       border-top-left-radius: 24px;
       border-top-right-radius: 24px;
       border-top: 1px solid rgba(255,255,255,0.08);
       box-shadow: 0 -8px 32px rgba(0,0,0,0.4);
       padding-bottom: env(safe-area-inset-bottom, 0px);
-      height: 0;
-      overflow: hidden;
-      transition: height 0.32s cubic-bezier(0.2, 0.8, 0.2, 1);
+      /* Sheet now ALWAYS holds its full height and slides in/out via a
+         GPU-composited translate. Animating `height` triggered layout on
+         every frame; transform is composited and ~10x cheaper on mobile. */
+      height: calc(90vh - var(--header-height) - var(--safe-area-top, 0px));
+      transform: translateY(100%);
+      will-change: transform;
+      transition: transform 0.32s cubic-bezier(0.2, 0.8, 0.2, 1);
       display: flex; flex-direction: column;
+      /* Pre-warm the GPU layer so the first open doesn't pay the layer-
+         promotion cost mid-animation (which used to add ~50-80ms of jank
+         to the first tap). */
+      backface-visibility: hidden;
     }
-    /* Drawer opens to 85vh, minus the universal header (+ safe-area) so it
-       clears the journal chrome that now sits at the top — without it the
-       sheet rose right up under the header and felt too tall. */
-    body.v2-sheet-open .v2-sheet { height: calc(90vh - var(--header-height) - var(--safe-area-top, 0px)); }
+    /* Drawer opens to 90vh, minus the universal header (+ safe-area). */
+    body.v2-sheet-open .v2-sheet { transform: translateY(0); }
+    /* The blur only renders AFTER the slide-in finishes. JS adds the
+       `v2-sheet-settled` class on transitionend (and removes it on close
+       BEFORE the slide-out so the close is also cheap). */
+    body.v2-sheet-settled .v2-sheet {
+      background: rgba(20,20,20,0.96);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+    }
     /* Bigger handle target. The full top strip of the sheet (down to the
        search bar) is also draggable via JS, so users can grab anywhere
        in that zone to dismiss. */
@@ -12917,12 +12934,19 @@
     // ‚îÄ‚îÄ‚îÄ MAP SETUP ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
     mapboxgl.accessToken = 'pk.eyJ1IjoiZmxvcmlkYW9mdG9tb3Jyb3ciLCJhIjoiY2xrYmpmdGQ2MGdibTNzcXZjMnA4aXh3ZiJ9.uBeYS7jmKwWS6xAgY-R1UA';
     // Status-colored pins: project circles tinted by delivery stage (legend in
-    // the Intelligence panel). Used as the default pin color everywhere the map
-    // used to hard-code green (#1FDF67) for unclustered points.
+    // the Intelligence panel). New color scheme (June 2026):
+    //   PURPLE #A78BFA -- moved-in-last-2-weeks (the default branch — pins
+    //     that don't match a delivery bucket fall through to TMW accent
+    //     purple, which doubles as the "new on the map" highlight)
+    //   YELLOW #FFD300 -- Announced + Breaking Ground (combined "pre-construction")
+    //   BLUE   #3FA9F5 -- Under Construction
+    //   GREEN  #1FDF67 -- Now Open + Opening Soon (combined "open / opening")
     window.TMW_STATUS_COLOR = ['match', ['get', 'delivery'],
-      'Under Construction', '#1FDF67',
-      'Now Open', '#8AA0B5',
-      'Announced', '#3FA9F5', 'Breaking Ground', '#3FA9F5', 'Opening Soon', '#3FA9F5',
+      'Announced',         '#FFD300',
+      'Breaking Ground',   '#FFD300',
+      'Under Construction','#3FA9F5',
+      'Opening Soon',      '#1FDF67',
+      'Now Open',          '#1FDF67',
       '#A78BFA'];
     const map = new mapboxgl.Map({
       container: 'map',
@@ -13474,11 +13498,10 @@
           '<div class="tmw-il-seg-row"><div class="tmw-il-seg" data-seg="proj"><button data-v="dev" class="on">Pipeline</button><button data-v="completed">Completed</button><button data-v="both">Both</button></div></div>' +
           '<div class="tmw-il-rule"></div>' +
           '<div class="tmw-il-legend">' +
-            '<div><span class="d" style="background:#B9A6FF"></span>Moved In The Last 2 Weeks</div>' +
-            '<div><span class="d" style="background:#1FDF67"></span>Under Construction</div>' +
-            '<div><span class="d" style="background:#3FA9F5"></span>Announced / Breaking Ground</div>' +
-            '<div><span class="d" style="background:#8AA0B5"></span>Now Open</div>' +
-            '<div><span class="d" style="background:transparent;box-shadow:0 0 0 1.5px #E6C574"></span>Featured</div>' +
+            '<div><span class="d" style="background:#A78BFA"></span>Moved In The Last 2 Weeks</div>' +
+            '<div><span class="d" style="background:#FFD300"></span>Announced / Breaking Ground</div>' +
+            '<div><span class="d" style="background:#3FA9F5"></span>Under Construction</div>' +
+            '<div><span class="d" style="background:#1FDF67"></span>Now Open / Opening Soon</div>' +
             '<div><span class="d tmw-il-rail"></span>Future Rail</div>' +
           '</div>';
         document.body.appendChild(panel);
@@ -14143,16 +14166,20 @@
         // Resolve label + color from status word. Mirrors the stages map
         // in the project modal but doesn't share state, since this helper
         // runs before the modal IIFE.
+        // June-2026 status palette (matches TMW_STATUS_COLOR + STATUS_INFO):
+        //   yellow #FFD300 = Announced + Breaking Ground
+        //   blue   #3FA9F5 = Topping Out + Construction
+        //   green  #1FDF67 = Opening Soon + Now Open
         let label = 'Announced';
-        let color = 'rgba(255,255,255,0.55)';
+        let color = '#FFD300';
         if (s.includes('now open')) {
           label = 'Now Open'; color = '#1FDF67';
         } else if (s.includes('opening')) {
           label = 'Opening Soon'; color = '#1FDF67';
         } else if (s.includes('topping')) {
-          label = 'Topping Out'; color = '#FF9500';
+          label = 'Topping Out'; color = '#3FA9F5';
         } else if (s.includes('construction')) {
-          label = 'Construction'; color = '#FF9500';
+          label = 'Construction'; color = '#3FA9F5';
         } else if (s.includes('breaking ground') || s.includes('groundbreak')) {
           label = 'Breaking Ground'; color = '#FFD300';
         }
@@ -14303,10 +14330,12 @@
       // Build the segment array given which one is active and how full it is.
       // Earlier segments paint as done (100% fill), later as future (0% fill).
       function buildSegments(activeIdx, activeFillPct) {
+        // June-2026 palette: yellow pre-construction, blue construction,
+        // green opening / open.
         const stages = [
-          { label: 'Announced',       color: 'rgba(255,255,255,0.55)', widthPct: 15 },
+          { label: 'Announced',       color: '#FFD300', widthPct: 15 },
           { label: 'Breaking Ground', color: '#FFD300', widthPct: 15 },
-          { label: 'Construction',    color: '#FF9500', widthPct: 40 },
+          { label: 'Construction',    color: '#3FA9F5', widthPct: 40 },
           { label: 'Opening Soon',    color: '#1FDF67', widthPct: 15 },
           { label: 'Now Open',        color: '#1FDF67', widthPct: 15 },
         ];
@@ -14371,11 +14400,12 @@
       let currentFeature = null;
       let fromSource = null; // 'tile' | 'popup'
 
-      // Delivery stage config
+      // Delivery stage config -- June-2026 palette
+      // (yellow pre-construction, blue construction, green opening / open).
       const stages = [
-        { key: 'announced',     label: 'Announced',       pct: 10,  color: 'rgba(255,255,255,0.4)' },
+        { key: 'announced',     label: 'Announced',       pct: 10,  color: '#FFD300' },
         { key: 'breaking ground', label: 'Breaking Ground', pct: 30, color: '#FFD300' },
-        { key: 'under construction', label: 'Construction', pct: 60, color: '#FF9500' },
+        { key: 'under construction', label: 'Construction', pct: 60, color: '#3FA9F5' },
         { key: 'opening soon',  label: 'Opening Soon',    pct: 85,  color: '#1FDF67' },
         { key: 'now open',      label: 'Now Open',        pct: 100, color: '#1FDF67' },
       ];
@@ -14437,10 +14467,11 @@
       // Last-resort segment builder if computeProgress isn't loaded (defensive).
       // Active segment is halfway filled; earlier done, later future.
       function buildFallbackSegments(activeIdx) {
+        // June-2026 palette (mirrors buildSegments above).
         const data = [
-          { label: 'Announced',       color: 'rgba(255,255,255,0.55)', widthPct: 15 },
+          { label: 'Announced',       color: '#FFD300', widthPct: 15 },
           { label: 'Breaking Ground', color: '#FFD300', widthPct: 15 },
-          { label: 'Construction',    color: '#FF9500', widthPct: 40 },
+          { label: 'Construction',    color: '#3FA9F5', widthPct: 40 },
           { label: 'Opening Soon',    color: '#1FDF67', widthPct: 15 },
           { label: 'Now Open',        color: '#1FDF67', widthPct: 15 },
         ];
@@ -14897,6 +14928,23 @@
         // hitting the paywall. Inverted check fixes that.
         const skipGate = source === 'popup' || source === 'deeplink' || source === 'embed';
         if (!skipGate && window.paywallCheck && !window.paywallCheck()) return;
+
+        // Dismiss any TMW Intelligence chrome (Interactive Layers panel +
+        // year scrubber) that's still on screen — otherwise on desktop they
+        // float ABOVE the project modal because the modal isn't
+        // .v2-sheet-open (the class the IL CSS hides itself behind on
+        // mobile). Also close the spotlight overlay if the click originated
+        // from there, so the user lands cleanly on the project page.
+        try {
+          if (window._tmwLayersOpen && typeof window._tmwToggleLayers === 'function') {
+            window._tmwToggleLayers();
+          }
+          var _ilScrub = document.querySelector('.tmw-il-scrub');
+          if (_ilScrub) _ilScrub.classList.add('tmw-il-hidden');
+          if (window.tmwOverlay && typeof window.tmwOverlay.close === 'function') {
+            window.tmwOverlay.close();
+          }
+        } catch (e) { /* non-fatal — the modal still opens */ }
         currentFeature = f;
         fromSource = source || 'tile';
         const p = f.properties;
@@ -18009,14 +18057,10 @@
           });
         }
 
-        // Featured glow ‚Äî static, behind unclustered pins. Pipeline projects only.
-        if (!map.getLayer('featured-glow')) {
-          map.addLayer({ id:'featured-glow', type:'circle', source:'projects',
-            filter:['all',['!',['has','point_count']],['==',['get','featured'],true]],
-            paint:{'circle-color':'transparent','circle-radius':16,'circle-blur':0.8,
-                   'circle-stroke-width':3,'circle-stroke-color':'#FFD300','circle-stroke-opacity':0.6}
-          }, 'unclustered-point');
-        }
+        // Featured glow removed per design — was a #FFD300 stroke around
+        // featured pins. Kill the layer if a prior render created it so a
+        // hot-reload doesn't leave a stale gold ring on the map.
+        if (map.getLayer('featured-glow')) { try { map.removeLayer('featured-glow'); } catch(e){} }
         // Watchlist ring (Phase 2) ‚Äî green outer ring on watched pins. Sits
         // ABOVE the featured-glow but BELOW unclustered-point so the inner
         // status-colored pin stays visible. Pipeline projects only.
@@ -18199,9 +18243,11 @@
           map.addLayer({ id:'cluster-count-completed', type:'symbol', source:'projects-completed', filter:['has','point_count'], layout:{visibility:completedVis,'text-field':'{point_count_abbreviated}','text-size':12,'text-allow-overlap':true,'text-ignore-placement':true}, paint:{'text-color':'#ffffff'} });
           map.addLayer({ id:'unclustered-point-completed', type:'circle', source:'projects-completed', filter:['!',['has','point_count']], layout:{visibility:completedVis}, paint:{'circle-color':'#01796F','circle-radius':4.5,'circle-stroke-width':1.5,'circle-stroke-color':'rgba(255,255,255,0.6)'} });
 
-          // Featured/watched accents ‚Äî pipeline only (completed don't get
-          // featured glow or watch ring; they're archive state).
-          map.addLayer({ id:'featured-glow', type:'circle', source:'projects', filter:['all',['!',['has','point_count']],['==',['get','featured'],true]], paint:{'circle-color':'transparent','circle-radius':16,'circle-blur':0.8,'circle-stroke-width':3,'circle-stroke-color':'#FFD300','circle-stroke-opacity':0.6} }, 'unclustered-point');
+          // Featured/watched accents — pipeline only (completed don't get
+          // featured glow or watch ring; they're archive state). Featured
+          // glow REMOVED per design — was a #FFD300 stroke that read as
+          // "yellow halo on featured pins". Only the green watched ring
+          // is added back here on re-init.
           map.addLayer({ id:'watched-ring', type:'circle', source:'projects', filter:['all',['!',['has','point_count']],['==',['get','watched'],true]], paint:{'circle-color':'transparent','circle-radius':14,'circle-stroke-width':2.5,'circle-stroke-color':'#1FDF67','circle-stroke-opacity':0} }, 'unclustered-point');
 
           // Cluster zoom-expand handlers ‚Äî same pattern for both stacks, just
@@ -21878,20 +21924,34 @@
       const cityToState = buildCityStateMap();
       const stateFilter = (currentStateFilter && currentStateFilter !== 'ALL') ? currentStateFilter : null;
 
+      // STATUS_INFO -- keeps the 5 internal keys (so individual project cards
+      // can still say "Breaking Ground" vs "Announced"), but every key is now
+      // colored per the June-2026 4-bucket palette:
+      //   yellow #FFD300 = announced + breaking-ground (pre-construction)
+      //   blue   #3FA9F5 = construction
+      //   green  #1FDF67 = open + coming-soon (opening / open)
       const STATUS_INFO = {
-        'announced':       { label: 'Announced',       color: '#9CA3AF' },
+        'announced':       { label: 'Announced',       color: '#FFD300' },
         'breaking-ground': { label: 'Breaking Ground', color: '#FFD300' },
-        'construction':    { label: 'Construction',    color: '#FF9500' },
-        'coming-soon':     { label: 'Coming Soon',     color: '#4DABFF' },
+        'construction':    { label: 'Construction',    color: '#3FA9F5' },
+        'coming-soon':     { label: 'Opening Soon',    color: '#1FDF67' },
         'open':            { label: 'Now Open',        color: '#1FDF67' },
       };
+      // STATUS_FILTERS -- the visible pill row. Per user request, "now open"
+      // and "opening soon" merge into ONE green pill, and "announced" +
+      // "breaking ground" merge into ONE yellow pill. The `matches` array
+      // tells the filter check which normStatus keys this pill represents.
       const STATUS_FILTERS = [
-        { id: 'all',              label: 'All' },
-        { id: 'breaking-ground',  label: 'Breaking ground', color: '#FFD300' },
-        { id: 'construction',     label: 'Construction',    color: '#FF9500' },
-        { id: 'coming-soon',      label: 'Coming soon',     color: '#4DABFF' },
-        { id: 'open',             label: 'Now open',        color: '#1FDF67' },
+        { id: 'all',          label: 'All' },
+        { id: 'pre',          label: 'Pre-construction', color: '#FFD300', matches: ['announced', 'breaking-ground'] },
+        { id: 'construction', label: 'Under construction', color: '#3FA9F5', matches: ['construction'] },
+        { id: 'open',         label: 'Open / opening soon', color: '#1FDF67', matches: ['open', 'coming-soon'] },
       ];
+      function statusMatchesFilter(normStatusKey, filterId) {
+        if (!filterId || filterId === 'all') return true;
+        const f = STATUS_FILTERS.find(s => s.id === filterId);
+        return !!(f && f.matches && f.matches.includes(normStatusKey));
+      }
       function normStatus(raw) {
         const s = (raw || '').toString().toLowerCase();
         if (s.includes('now open') || s === 'open' || s.includes('complete')) return 'open';
@@ -21969,13 +22029,16 @@
       // that still have a stale "Construction" tag don't pollute the
       // "Now open" archive view.
       const statusFilter = currentTimelineStatus;
+      // Filter pill -> set of normStatus keys it represents. The combined
+      // pills ('pre' and 'open') match TWO keys each, so a project tagged
+      // "Opening Soon" matches both the 'open' pill and the 'all' option.
       const showCompleted = (statusFilter === 'all' || statusFilter === 'open');
       const showPipeline  = (statusFilter !== 'open');
       const pipelineShown = showPipeline
-        ? pipelineBase.filter(p => statusFilter === 'all' || normStatus(p.delivery) === statusFilter)
+        ? pipelineBase.filter(p => statusMatchesFilter(normStatus(p.delivery), statusFilter))
         : [];
       const completedShown = showCompleted
-        ? completedBase.filter(p => statusFilter === 'all' || normStatus(p.delivery) === statusFilter)
+        ? completedBase.filter(p => statusMatchesFilter(normStatus(p.delivery), statusFilter))
         : [];
 
       // Hero stats reflect the currently-rendered set (pipeline only ‚Äî
@@ -22518,11 +22581,13 @@
       const FIRM_PATH_RE = /^\/(architects|developers)\/([^\/]+)\/?$/;
       const ROLE_LABEL = { architects: 'Architecture firm', developers: 'Development firm' };
       const ROLE_FIELD = { architects: 'architects', developers: 'developers' };
+      // Firm-sheet status palette -- mirrors the atlas STATUS_INFO above
+      // (yellow pre-construction / blue construction / green opening or open).
       const STATUS_INFO = {
-        'announced':        { label: 'Announced',       color: '#9CA3AF' },
+        'announced':        { label: 'Announced',       color: '#FFD300' },
         'breaking-ground':  { label: 'Breaking Ground', color: '#FFD300' },
-        'construction':     { label: 'Construction',    color: '#FF9500' },
-        'coming-soon':      { label: 'Coming Soon',     color: '#4DABFF' },
+        'construction':     { label: 'Construction',    color: '#3FA9F5' },
+        'coming-soon':      { label: 'Opening Soon',    color: '#1FDF67' },
         'open':             { label: 'Now Open',        color: '#1FDF67' },
       };
       let _firmData = null;       // cached firms-flat.json (lazy-loaded)
@@ -24555,8 +24620,33 @@
         } catch (e) {}
       }
       function closeSheet() {
+        // Drop the blur BEFORE the slide-out so the close animation is
+        // composited (same reason as openSheet — the blur is the killer
+        // when paired with a moving frame over the WebGL map).
+        document.body.classList.remove('v2-sheet-settled');
         document.body.classList.remove('v2-sheet-open');
       }
+      // Once the slide-in transition finishes, layer in the backdrop blur.
+      // The blur is essentially free when the sheet is static (one paint),
+      // catastrophically expensive while it's moving (per-frame recompute
+      // over the changing Mapbox canvas). transitionend fires per-property,
+      // so we filter on `transform` to avoid firing on child transitions.
+      try {
+        var _sheetEl = document.querySelector('.v2-sheet');
+        if (_sheetEl) {
+          _sheetEl.addEventListener('transitionend', function(e){
+            if (e.target !== _sheetEl || e.propertyName !== 'transform') return;
+            // Settled = blur on. Only when the sheet is OPEN (not after a
+            // close completes — closing removes v2-sheet-open synchronously,
+            // so this guard keeps the blur from flickering back in).
+            if (document.body.classList.contains('v2-sheet-open')) {
+              document.body.classList.add('v2-sheet-settled');
+            } else {
+              document.body.classList.remove('v2-sheet-settled');
+            }
+          });
+        }
+      } catch (e) { /* sheet element not present yet — fine */ }
       // Expose globally so other contexts (View on Map, Map return btn) can
       // close the sheet without needing to duplicate class-removal logic.
       window.v2CloseSheet = closeSheet;
