@@ -984,6 +984,40 @@ async function handleActivity(env, origin, url) {
   return json({ rows: rs.results || [], total }, {}, env, origin);
 }
 
+// GET /journal-event-trend — daily counts of journal engagement events over the
+// last N days (default 28), zero-filled, for the Studio's trend sparklines.
+// search + intel_query live ONLY in this D1 store (they beacon /event, not GA4),
+// so the analytics page can't chart them via GA — this is their data source.
+// Returns { days: ['YYYY-MM-DD', …], search: [n…], intel: [n…], total: [n…] }
+// with one entry per calendar day (UTC), oldest → newest, so the client can
+// render bars directly without filling gaps.
+async function handleJournalEventTrend(env, origin, url) {
+  const days = clampInt(url.searchParams.get('days'), 28, 1, 90);
+  const since = Math.floor(Date.now() / 1000) - days * 86400;
+  const rs = await env.DB.prepare(
+    `SELECT date(ts, 'unixepoch') AS day, event_name AS ev, COUNT(*) AS n
+     FROM events
+     WHERE event_name IN ('search', 'intel_query') AND ts >= ?
+     GROUP BY day, ev`
+  ).bind(since).all();
+  // Build the zero-filled day axis (UTC) ending today, then fold counts in.
+  const byDay = new Map(); // 'YYYY-MM-DD' -> { search, intel }
+  const axis = [];
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date((Math.floor(Date.now() / 1000) - i * 86400) * 1000);
+    const key = d.toISOString().slice(0, 10);
+    axis.push(key); byDay.set(key, { search: 0, intel: 0 });
+  }
+  for (const row of (rs.results || [])) {
+    const slot = byDay.get(row.day); if (!slot) continue;
+    if (row.ev === 'search') slot.search = row.n; else if (row.ev === 'intel_query') slot.intel = row.n;
+  }
+  const search = axis.map(k => byDay.get(k).search);
+  const intel  = axis.map(k => byDay.get(k).intel);
+  const total  = axis.map((k, i) => search[i] + intel[i]);
+  return json({ days: axis, search, intel, total }, {}, env, origin);
+}
+
 // GET /intel-queries — paginated log of searches across the network, newest
 // first: TMW Intelligence smart-answer queries (event_name 'intel_query') AND
 // plain "normal" searches (event_name 'search' — the universal nav search bar
@@ -4834,6 +4868,9 @@ export default {
       }
       if (request.method === 'GET' && url.pathname === '/activity') {
         return await handleActivity(env, origin, url);
+      }
+      if (request.method === 'GET' && url.pathname === '/journal-event-trend') {
+        return await handleJournalEventTrend(env, origin, url);
       }
       if (request.method === 'GET' && url.pathname === '/search-gaps') {
         return await handleSearchGaps(env, origin, url);
