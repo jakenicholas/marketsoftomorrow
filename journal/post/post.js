@@ -992,6 +992,12 @@ function escapeAttr(s) { return escapeHtml(s); }
   function subscribedEmail() { try { return localStorage.getItem(SUB_EMAIL_KEY); } catch (e) { return null; } }
 
   function build() {
+    // Singleton guard: if a subscribe/account lightbox is already on screen
+    // (auto-popped at 3s, or opened by an earlier heart click) just return.
+    // Without this, tapping the heart while the 3s auto-pop is already
+    // visible stacked a second identical lightbox on top -- two close-X
+    // buttons, same content. We always want max-1 of these in the DOM.
+    if (document.querySelector('.tmw-sub')) return;
     var el = document.createElement('div');
     el.className = 'tmw-sub';
     el.innerHTML =
@@ -1063,6 +1069,9 @@ function escapeAttr(s) { return escapeHtml(s); }
   // of being re-asked to subscribe. Skipping it stops the nudge for the session.
   function buildAccountMode(email) {
     if (window._tmwSignedIn === true) return false;
+    // Singleton guard (see build() above) -- account-mode is the same
+    // lightbox shell, so the same one-at-a-time rule applies.
+    if (document.querySelector('.tmw-sub')) return false;
     var el = document.createElement('div');
     el.className = 'tmw-sub';
     el.innerHTML =
