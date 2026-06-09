@@ -817,9 +817,27 @@ async function ghGetFile(env, path) {
   if (r.status === 404) return { sha: null, text: null };
   if (!r.ok) throw new Error('GitHub read failed (HTTP ' + r.status + '): ' + (await r.text()).slice(0, 200));
   const data = await r.json();
-  return { sha: data.sha, text: b64decodeUtf8(data.content) };
+  // The Contents API only inlines base64 `content` for files up to 1 MiB; for
+  // larger files it returns metadata with empty content and encoding "none".
+  // projects.json crossed 1 MiB in 2026 — fall back to the Git Blobs API,
+  // which serves blobs up to 100 MB. (`data.sha` IS the blob sha for a file.)
+  if (data.content && data.encoding === 'base64') {
+    return { sha: data.sha, text: b64decodeUtf8(data.content) };
+  }
+  if (data.sha) {
+    const b = await fetch(`https://api.github.com/repos/${ghRepo(env)}/git/blobs/${data.sha}`, { headers: ghHeaders(env) });
+    if (!b.ok) throw new Error('GitHub blob read failed (HTTP ' + b.status + '): ' + (await b.text()).slice(0, 200));
+    const bd = await b.json();
+    return { sha: data.sha, text: b64decodeUtf8(bd.content) };
+  }
+  return { sha: data.sha || null, text: null };
 }
 async function ghPutFile(env, path, contentStr, sha, message) {
+  // The Contents API write endpoint only reliably handles blobs up to ~1 MiB.
+  // For larger files (projects.json) commit via the Git Data API instead.
+  if (new TextEncoder().encode(contentStr).length > 1000000) {
+    return await ghPutFileLarge(env, path, contentStr, message);
+  }
   const body = { message, content: b64encodeUtf8(contentStr), branch: ghBranch(env) };
   if (sha) body.sha = sha;
   const r = await fetch(`https://api.github.com/repos/${ghRepo(env)}/contents/${path}`, {
@@ -831,6 +849,42 @@ async function ghPutFile(env, path, contentStr, sha, message) {
     throw e;
   }
   return await r.json();
+}
+// Large-file write (>1 MiB) via the Git Data API: create blob → tree → commit →
+// fast-forward the branch ref. The non-forced ref update gives the same
+// concurrency safety as the Contents API's sha check — a concurrent commit
+// makes the update non-fast-forward (422), surfaced as a 409 for retry parity.
+async function ghPutFileLarge(env, path, contentStr, message) {
+  const api = `https://api.github.com/repos/${ghRepo(env)}`;
+  const branch = ghBranch(env);
+  const H = ghHeaders(env);
+  const HJ = { ...H, 'Content-Type': 'application/json' };
+  const fail = async (label, resp) => {
+    const e = new Error('GitHub ' + label + ' failed (HTTP ' + resp.status + '): ' + (await resp.text()).slice(0, 200));
+    e.status = resp.status; throw e;
+  };
+  let resp = await fetch(`${api}/git/ref/heads/${encodeURIComponent(branch)}`, { headers: H });
+  if (!resp.ok) await fail('ref read', resp);
+  const parentCommit = (await resp.json()).object.sha;
+  resp = await fetch(`${api}/git/commits/${parentCommit}`, { headers: H });
+  if (!resp.ok) await fail('commit read', resp);
+  const baseTree = (await resp.json()).tree.sha;
+  resp = await fetch(`${api}/git/blobs`, { method: 'POST', headers: HJ, body: JSON.stringify({ content: b64encodeUtf8(contentStr), encoding: 'base64' }) });
+  if (!resp.ok) await fail('blob create', resp);
+  const blobSha = (await resp.json()).sha;
+  resp = await fetch(`${api}/git/trees`, { method: 'POST', headers: HJ, body: JSON.stringify({ base_tree: baseTree, tree: [{ path, mode: '100644', type: 'blob', sha: blobSha }] }) });
+  if (!resp.ok) await fail('tree create', resp);
+  const newTree = (await resp.json()).sha;
+  resp = await fetch(`${api}/git/commits`, { method: 'POST', headers: HJ, body: JSON.stringify({ message, tree: newTree, parents: [parentCommit] }) });
+  if (!resp.ok) await fail('commit create', resp);
+  const newCommit = (await resp.json()).sha;
+  resp = await fetch(`${api}/git/refs/heads/${encodeURIComponent(branch)}`, { method: 'PATCH', headers: HJ, body: JSON.stringify({ sha: newCommit, force: false }) });
+  if (!resp.ok) {
+    const e = new Error('GitHub ref update failed (HTTP ' + resp.status + '): ' + (await resp.text()).slice(0, 200));
+    e.status = resp.status === 422 ? 409 : resp.status; // non-fast-forward ≈ stale (concurrent write)
+    throw e;
+  }
+  return await resp.json();
 }
 
 // ── Project status automation (→ tmw-data/data/projects.json) ────────────────
