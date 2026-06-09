@@ -46,7 +46,25 @@ MIN_MAP_ITEMS    = 8   # Keep the "New on the map" grid full (4+4) so banner ads
                        # don't stack; backfill older events on quiet weeks.
 FLORIDA_LIMIT    = 5   # Articles in Florida section
 MORE_MKTS_LIMIT  = 3   # Articles in More Markets section
+# Legacy single-tag check, kept as one of several signals below.
 FLORIDA_CATEGORY = "Florida of Tomorrow"
+# main_category values that identify a Florida region. Newer articles
+# carry a region name here (e.g. "The Palm Beaches", "Broward") and
+# DON'T necessarily tag the "Florida of Tomorrow" brand category in
+# their categories array, so the old single-tag check missed them and
+# dumped Florida news into "More Markets". Match on these too.
+FLORIDA_REGION_MAINS = {
+    "Florida", "Florida of Tomorrow",
+    "The Palm Beaches", "Palm Beach", "Palm Beaches",
+    "Broward", "Fort Lauderdale", "Greater Fort Lauderdale",
+    "Miami", "Miami-Dade", "Miami Dade",
+    "Tampa", "Tampa Bay",
+    "Orlando", "Central Florida",
+    "Jacksonville", "Northeast Florida",
+    "Naples", "Sarasota", "Southwest Florida",
+    "Treasure Coast", "Space Coast", "Florida Keys",
+    "St. Petersburg", "Saint Petersburg",
+}
 
 # ─── HELPERS ─────────────────────────────────────────────────────────────────
 def slugify(title):
@@ -236,21 +254,37 @@ def parse_articles_from_api():
             "link":  link,
             "image": image,
             "summary": summary,
-            "categories": it.get("categories") or [],
+            "categories":   it.get("categories") or [],
+            "main_category": (it.get("main_category") or "").strip(),
         })
     return out
 
-def split_articles(articles):
-    """Split articles into (florida, more_markets) lists.
-    Florida = articles tagged 'Florida of Tomorrow'
-    More Markets = articles NOT tagged 'Florida of Tomorrow'
+def is_florida_article(a):
+    """A Florida article is one whose main_category names a Florida
+    region (Palm Beaches, Broward, Tampa Bay, ...) OR any tag in its
+    categories list contains the word 'florida' (case-insensitive) OR
+    it carries the legacy 'Florida of Tomorrow' brand tag.
+
+    Previously we only checked the legacy brand tag, so newer Florida
+    coverage tagged ['Broward', 'Florida'] (no brand tag) silently
+    fell into the More Markets bucket. This is the fix for that.
     """
+    if a.get("main_category") in FLORIDA_REGION_MAINS:
+        return True
+    cats = a.get("categories") or []
+    for c in cats:
+        cl = (c or "").strip().lower()
+        if cl == "florida of tomorrow":
+            return True
+        if "florida" in cl:
+            return True
+    return False
+
+def split_articles(articles):
+    """Split articles into (florida, more_markets) lists."""
     florida, others = [], []
     for a in articles:
-        if FLORIDA_CATEGORY in a.get("categories", []):
-            florida.append(a)
-        else:
-            others.append(a)
+        (florida if is_florida_article(a) else others).append(a)
     return florida[:FLORIDA_LIMIT], others[:MORE_MKTS_LIMIT]
 
 def load_app_updates():
