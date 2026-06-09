@@ -12,7 +12,7 @@
 {%- endmacro -%}
 {#- Reusable article card macro -#}
 {%- macro render_article(a) -%}
-<table role="presentation" class="article-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#222222" style="background-color: #222222;">
+<table role="presentation" class="article-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#1A1325" style="background-color: #1A1325;">
   {%- if a.image %}
   <tr><td>
     <a href="{{ a.link }}" style="display: block;">
@@ -33,7 +33,7 @@
 {%- endmacro -%}
 {#- Reusable grid card macro for map items -#}
 {%- macro render_grid_card(p) -%}
-<table role="presentation" class="grid-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" height="300" bgcolor="#222222" style="background-color: #222222; height: 300px;">
+<table role="presentation" class="grid-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" height="300" bgcolor="#1A1325" style="background-color: #1A1325; height: 300px;">
   {%- if p.image %}
   <tr><td height="180" style="height: 180px;">
     <a href="{{ p.url }}" style="display: block;">
@@ -95,20 +95,27 @@
     supported-color-schemes: dark only;
   }
 
+  /* TMW Intelligence purple palette (June 2026 trial). Mobile Gmail
+     forces a light theme on the user even when their device is in dark
+     mode -- the existing #1a1a1a near-black was getting auto-inverted
+     to an off-white card that lost all the TMW Intelligence feel. The
+     deep purple-black below (#0E0B17) keeps mobile Gmail's auto-light
+     conversion from kicking in (it's a strong PURPLE, not a gray) AND
+     reads as the TMW Intelligence theme on desktop dark + web. */
   @media (prefers-color-scheme: dark) {
-    .force-dark-bg { background-color: #1a1a1a !important; }
-    .force-dark-panel { background-color: #222222 !important; }
+    .force-dark-bg { background-color: #0E0B17 !important; }
+    .force-dark-panel { background-color: #1A1325 !important; }
     .force-light-text { color: #ffffff !important; }
-    .force-muted-text { color: #888888 !important; }
+    .force-muted-text { color: #9c95ad !important; }
     .force-accent-text { color: #1FDF67 !important; }
-    .force-border { border-color: #262626 !important; }
-    body, .wrapper { background-color: #1a1a1a !important; }
+    .force-border { border-color: rgba(167,139,250,.18) !important; }
+    body, .wrapper { background-color: #0E0B17 !important; }
   }
 
   body {
     margin: 0;
     padding: 0;
-    background-color: #1a1a1a;
+    background-color: #0E0B17;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   }
 
@@ -130,11 +137,21 @@
     display: none;
     max-height: 0;
     overflow: hidden;
-    color: #1a1a1a;
+    color: #0E0B17;
     visibility: hidden;
   }
-  .wrapper { background-color: #1a1a1a; width: 100%; }
-  .container { max-width: 600px; width: 100%; }
+  .wrapper { background-color: #0E0B17; width: 100%; }
+  /* TMW Intelligence glow on the container: an outer purple aura plus
+     a subtle INSET highlight at the top. Gmail web + Outlook.com
+     render box-shadow well; Apple Mail honors it; mobile Gmail strips
+     box-shadow but the purple bg already carries the dark feel, so
+     even the stripped fallback reads as "TMW Intelligence theme" not
+     "auto-light email". */
+  .container {
+    max-width: 600px; width: 100%;
+    border-radius: 16px;
+    box-shadow: 0 0 64px rgba(167,139,250,.32), inset 0 1px 0 rgba(167,139,250,.18);
+  }
 
   .hero { padding: 0 0 24px 0; text-align: center; }
   .hero img { display: inline-block; max-width: 200px; height: auto; border: 0; }
@@ -153,13 +170,13 @@
     letter-spacing: 1.5px;
     text-transform: uppercase;
     padding: 32px 0 16px 0;
-    border-top: 1px solid #262626;
+    border-top: 1px solid #2D2440;
   }
 
   /* Article cards (full-width, single column) */
   .article-card {
-    background-color: #222222;
-    border: 1px solid #262626;
+    background-color: #1A1325;
+    border: 1px solid #2D2440;
     border-radius: 12px;
     margin: 0 0 16px 0;
   }
@@ -168,7 +185,7 @@
     height: 240px;
     overflow: hidden;
     border-radius: 12px 12px 0 0;
-    background-color: #262626;
+    background-color: #2D2440;
     background-size: cover;
     background-position: center center;
     background-repeat: no-repeat;
@@ -199,8 +216,8 @@
 
   /* 2-column grid cards — TIGHTER, fixed height */
   .grid-card {
-    background-color: #222222;
-    border: 1px solid #262626;
+    background-color: #1A1325;
+    border: 1px solid #2D2440;
     border-radius: 12px;
     height: 300px;
   }
@@ -209,7 +226,7 @@
     height: 180px;
     overflow: hidden;
     border-radius: 12px 12px 0 0;
-    background-color: #262626;
+    background-color: #2D2440;
     background-size: cover;
     background-position: center center;
     background-repeat: no-repeat;
@@ -344,7 +361,7 @@
 
   .footer {
     padding: 40px 0 20px 0;
-    border-top: 1px solid #262626;
+    border-top: 1px solid #2D2440;
     text-align: center;
   }
   .footer-text { color: #888888; font-size: 13px; line-height: 1.6; }
@@ -353,14 +370,21 @@
   a { color: #1FDF67; }
 </style>
 </head>
-<body class="force-dark-bg" style="margin: 0; padding: 0; background-color: #1a1a1a;">
+<body class="force-dark-bg" style="margin: 0; padding: 0; background-color: #0E0B17;">
 
 <div class="preheader">{{ preheader }}</div>
 <div style="display: none; max-height: 0; overflow: hidden;">&#847;&zwnj;&nbsp;&#847; &#847;&zwnj;&nbsp;&#847; &#847;&zwnj;&nbsp;&#847; &#847;&zwnj;&nbsp;&#847; &#847;&zwnj;&nbsp;&#847; &#847;&zwnj;&nbsp;&#847; &#847;&zwnj;&nbsp;&#847;</div>
 
-<table role="presentation" class="wrapper force-dark-bg" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#1a1a1a" style="background-color: #1a1a1a;">
-  <tr><td align="center" style="padding: 32px 16px; background-color: #1a1a1a;">
-    <table role="presentation" class="container" cellpadding="0" cellspacing="0" border="0" width="600">
+<table role="presentation" class="wrapper force-dark-bg" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#0E0B17" style="background-color: #0E0B17;">
+  <tr><td align="center" style="padding: 32px 16px; background-color: #0E0B17; background-image: radial-gradient(120% 60% at 50% 0%, rgba(167,139,250,0.22) 0%, rgba(167,139,250,0.08) 35%, rgba(167,139,250,0) 70%);">
+    <!-- Outer purple aura: a 1px-thick purple ring with bg of slightly
+         lighter purple sits behind the container. Combined with the
+         radial gradient on the wrapper td above, this produces the TMW
+         Intelligence "glow" effect even on clients that strip box-shadow.
+         The actual container nests inside this wrapper. -->
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" style="background-color: #0E0B17; border: 1px solid rgba(167,139,250,0.20); border-radius: 18px;">
+    <tr><td style="padding: 0; background-color: #0E0B17; border-radius: 18px;">
+    <table role="presentation" class="container" cellpadding="0" cellspacing="0" border="0" width="600" style="background-color: #0E0B17;">
 
       <!-- HERO -->
       <tr><td class="hero">
@@ -513,6 +537,8 @@
         </div>
       </td></tr>
 
+    </table>
+    </td></tr>
     </table>
   </td></tr>
 </table>

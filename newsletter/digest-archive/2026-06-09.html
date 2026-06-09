@@ -36,20 +36,27 @@
     supported-color-schemes: dark only;
   }
 
+  /* TMW Intelligence purple palette (June 2026 trial). Mobile Gmail
+     forces a light theme on the user even when their device is in dark
+     mode -- the existing #1a1a1a near-black was getting auto-inverted
+     to an off-white card that lost all the TMW Intelligence feel. The
+     deep purple-black below (#0E0B17) keeps mobile Gmail's auto-light
+     conversion from kicking in (it's a strong PURPLE, not a gray) AND
+     reads as the TMW Intelligence theme on desktop dark + web. */
   @media (prefers-color-scheme: dark) {
-    .force-dark-bg { background-color: #1a1a1a !important; }
-    .force-dark-panel { background-color: #222222 !important; }
+    .force-dark-bg { background-color: #0E0B17 !important; }
+    .force-dark-panel { background-color: #1A1325 !important; }
     .force-light-text { color: #ffffff !important; }
-    .force-muted-text { color: #888888 !important; }
+    .force-muted-text { color: #9c95ad !important; }
     .force-accent-text { color: #1FDF67 !important; }
-    .force-border { border-color: #262626 !important; }
-    body, .wrapper { background-color: #1a1a1a !important; }
+    .force-border { border-color: rgba(167,139,250,.18) !important; }
+    body, .wrapper { background-color: #0E0B17 !important; }
   }
 
   body {
     margin: 0;
     padding: 0;
-    background-color: #1a1a1a;
+    background-color: #0E0B17;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   }
 
@@ -71,11 +78,21 @@
     display: none;
     max-height: 0;
     overflow: hidden;
-    color: #1a1a1a;
+    color: #0E0B17;
     visibility: hidden;
   }
-  .wrapper { background-color: #1a1a1a; width: 100%; }
-  .container { max-width: 600px; width: 100%; }
+  .wrapper { background-color: #0E0B17; width: 100%; }
+  /* TMW Intelligence glow on the container: an outer purple aura plus
+     a subtle INSET highlight at the top. Gmail web + Outlook.com
+     render box-shadow well; Apple Mail honors it; mobile Gmail strips
+     box-shadow but the purple bg already carries the dark feel, so
+     even the stripped fallback reads as "TMW Intelligence theme" not
+     "auto-light email". */
+  .container {
+    max-width: 600px; width: 100%;
+    border-radius: 16px;
+    box-shadow: 0 0 64px rgba(167,139,250,.32), inset 0 1px 0 rgba(167,139,250,.18);
+  }
 
   .hero { padding: 0 0 24px 0; text-align: center; }
   .hero img { display: inline-block; max-width: 200px; height: auto; border: 0; }
@@ -94,13 +111,13 @@
     letter-spacing: 1.5px;
     text-transform: uppercase;
     padding: 32px 0 16px 0;
-    border-top: 1px solid #262626;
+    border-top: 1px solid #2D2440;
   }
 
   /* Article cards (full-width, single column) */
   .article-card {
-    background-color: #222222;
-    border: 1px solid #262626;
+    background-color: #1A1325;
+    border: 1px solid #2D2440;
     border-radius: 12px;
     margin: 0 0 16px 0;
   }
@@ -109,7 +126,7 @@
     height: 240px;
     overflow: hidden;
     border-radius: 12px 12px 0 0;
-    background-color: #262626;
+    background-color: #2D2440;
     background-size: cover;
     background-position: center center;
     background-repeat: no-repeat;
@@ -140,8 +157,8 @@
 
   /* 2-column grid cards — TIGHTER, fixed height */
   .grid-card {
-    background-color: #222222;
-    border: 1px solid #262626;
+    background-color: #1A1325;
+    border: 1px solid #2D2440;
     border-radius: 12px;
     height: 300px;
   }
@@ -150,7 +167,7 @@
     height: 180px;
     overflow: hidden;
     border-radius: 12px 12px 0 0;
-    background-color: #262626;
+    background-color: #2D2440;
     background-size: cover;
     background-position: center center;
     background-repeat: no-repeat;
@@ -285,7 +302,7 @@
 
   .footer {
     padding: 40px 0 20px 0;
-    border-top: 1px solid #262626;
+    border-top: 1px solid #2D2440;
     text-align: center;
   }
   .footer-text { color: #888888; font-size: 13px; line-height: 1.6; }
@@ -294,14 +311,21 @@
   a { color: #1FDF67; }
 </style>
 </head>
-<body class="force-dark-bg" style='margin:0; padding:0; background-color:#1a1a1a; font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' bgcolor="#1a1a1a">
+<body class="force-dark-bg" style='margin:0; padding:0; background-color:#0E0B17; font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' bgcolor="#0E0B17">
 
-<div class="preheader" style="display:none; max-height:0; overflow:hidden; color:#1a1a1a; visibility:hidden">50 updates this week.</div>
+<div class="preheader" style="display:none; max-height:0; overflow:hidden; color:#0E0B17; visibility:hidden">50 updates this week.</div>
 <div style="display: none; max-height: 0; overflow: hidden;">͏‌ ͏ ͏‌ ͏ ͏‌ ͏ ͏‌ ͏ ͏‌ ͏ ͏‌ ͏ ͏‌ ͏</div>
 
-<table role="presentation" class="wrapper force-dark-bg" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#1a1a1a" style="background-color:#1a1a1a; width:100%">
-  <tr><td align="center" style="padding: 32px 16px; background-color: #1a1a1a;">
-    <table role="presentation" class="container" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width:600px; width:100%">
+<table role="presentation" class="wrapper force-dark-bg" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#0E0B17" style="background-color:#0E0B17; width:100%">
+  <tr><td align="center" style="padding: 32px 16px; background-color: #0E0B17; background-image: radial-gradient(120% 60% at 50% 0%, rgba(167,139,250,0.22) 0%, rgba(167,139,250,0.08) 35%, rgba(167,139,250,0) 70%);">
+    <!-- Outer purple aura: a 1px-thick purple ring with bg of slightly
+         lighter purple sits behind the container. Combined with the
+         radial gradient on the wrapper td above, this produces the TMW
+         Intelligence "glow" effect even on clients that strip box-shadow.
+         The actual container nests inside this wrapper. -->
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" style="background-color: #0E0B17; border: 1px solid rgba(167,139,250,0.20); border-radius: 18px;">
+    <tr><td style="padding: 0; background-color: #0E0B17; border-radius: 18px;">
+    <table role="presentation" class="container" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width:600px; width:100%; border-radius:16px; box-shadow:0 0 64px rgba(167, 139, 250, 0.32), inset 0 1px 0 rgba(167, 139, 250, 0.18); background-color:#0E0B17" bgcolor="#0E0B17">
 
       <!-- HERO -->
       <tr><td class="hero" style="padding:0 0 24px 0; text-align:center" align="center">
@@ -339,14 +363,14 @@
 
       <!-- NEW ON THE MAP — combined, 2-col grid -->
       <tr><td>
-        <div class="section-header force-accent-text" style="color:#1FDF67; font-size:11px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; padding:32px 0 16px 0; border-top:1px solid #262626">What's new in the database (50)</div>
+        <div class="section-header force-accent-text" style="color:#1FDF67; font-size:11px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; padding:32px 0 16px 0; border-top:1px solid #2D2440">What's new in the database (50)</div>
         <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 0 0 16px 0;">
           <tr>
             <td class="two-col-cell" valign="top" width="290" style="width: 290px; padding: 0 8px 0 0;">
-              <table role="presentation" class="grid-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" height="300" bgcolor="#222222" style="background-color:#222; border:1px solid #262626; border-radius:12px; height:300px">
+              <table role="presentation" class="grid-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" height="300" bgcolor="#1A1325" style="background-color:#1A1325; border:1px solid #2D2440; border-radius:12px; height:300px">
   <tr><td height="180" style="height: 180px;">
     <a href="https://www.oftmw.com/map/?project=oneladybirdlake&amp;fullscreen=true" style="color:#1FDF67; display:block">
-      <div class="grid-card-image-wrap" style="width:100%; height:180px; overflow:hidden; border-radius:12px 12px 0 0; background-color:#262626; background-size:cover; background-position:center center; background-repeat:no-repeat; background-image:url(https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/ff0d39c0dad0-3338_OneLadyBirdLake_1x1.webp)" width="100%" height="180" bgcolor="#262626">
+      <div class="grid-card-image-wrap" style="width:100%; height:180px; overflow:hidden; border-radius:12px 12px 0 0; background-color:#2D2440; background-size:cover; background-position:center center; background-repeat:no-repeat; background-image:url(https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/ff0d39c0dad0-3338_OneLadyBirdLake_1x1.webp)" width="100%" height="180" bgcolor="#2D2440">
         <!--[if mso]>
         <img src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/ff0d39c0dad0-3338_OneLadyBirdLake_1x1.webp" alt="One Lady Bird Lake" width="290" height="180" style="display:block;width:100%;height:180px;border:0;" />
         <![endif]-->
@@ -361,10 +385,10 @@
 </table>
             </td>
             <td class="two-col-cell" valign="top" width="290" style="width: 290px; padding: 0 0 0 8px;">
-              <table role="presentation" class="grid-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" height="300" bgcolor="#222222" style="background-color:#222; border:1px solid #262626; border-radius:12px; height:300px">
+              <table role="presentation" class="grid-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" height="300" bgcolor="#1A1325" style="background-color:#1A1325; border:1px solid #2D2440; border-radius:12px; height:300px">
   <tr><td height="180" style="height: 180px;">
     <a href="https://www.oftmw.com/map/?project=1irislanetheresidencesatbellemeadevillage&amp;fullscreen=true" style="color:#1FDF67; display:block">
-      <div class="grid-card-image-wrap" style="width:100%; height:180px; overflow:hidden; border-radius:12px 12px 0 0; background-color:#262626; background-size:cover; background-position:center center; background-repeat:no-repeat; background-image:url(https://cdn.sanity.io/images/9mpasezg/development/756cd4045f0b99542c73fff1a24b063fc8ad1cd9-5000x3125.jpg)" width="100%" height="180" bgcolor="#262626">
+      <div class="grid-card-image-wrap" style="width:100%; height:180px; overflow:hidden; border-radius:12px 12px 0 0; background-color:#2D2440; background-size:cover; background-position:center center; background-repeat:no-repeat; background-image:url(https://cdn.sanity.io/images/9mpasezg/development/756cd4045f0b99542c73fff1a24b063fc8ad1cd9-5000x3125.jpg)" width="100%" height="180" bgcolor="#2D2440">
         <!--[if mso]>
         <img src="https://cdn.sanity.io/images/9mpasezg/development/756cd4045f0b99542c73fff1a24b063fc8ad1cd9-5000x3125.jpg" alt="1 Iris Lane, The Residences at Belle Meade Village" width="290" height="180" style="display:block;width:100%;height:180px;border:0;" />
         <![endif]-->
@@ -383,10 +407,10 @@
         <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 0 0 16px 0;">
           <tr>
             <td class="two-col-cell" valign="top" width="290" style="width: 290px; padding: 0 8px 0 0;">
-              <table role="presentation" class="grid-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" height="300" bgcolor="#222222" style="background-color:#222; border:1px solid #262626; border-radius:12px; height:300px">
+              <table role="presentation" class="grid-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" height="300" bgcolor="#1A1325" style="background-color:#1A1325; border:1px solid #2D2440; border-radius:12px; height:300px">
   <tr><td height="180" style="height: 180px;">
     <a href="https://www.oftmw.com/map/?project=bellemeadevillage&amp;fullscreen=true" style="color:#1FDF67; display:block">
-      <div class="grid-card-image-wrap" style="width:100%; height:180px; overflow:hidden; border-radius:12px 12px 0 0; background-color:#262626; background-size:cover; background-position:center center; background-repeat:no-repeat; background-image:url(https://cdn.sanity.io/images/ooqsuexs/production/2c923bdd022273c3e89513a979a21262414b9006-3948x2778.jpg?w=2500&amp;auto=format)" width="100%" height="180" bgcolor="#262626">
+      <div class="grid-card-image-wrap" style="width:100%; height:180px; overflow:hidden; border-radius:12px 12px 0 0; background-color:#2D2440; background-size:cover; background-position:center center; background-repeat:no-repeat; background-image:url(https://cdn.sanity.io/images/ooqsuexs/production/2c923bdd022273c3e89513a979a21262414b9006-3948x2778.jpg?w=2500&amp;auto=format)" width="100%" height="180" bgcolor="#2D2440">
         <!--[if mso]>
         <img src="https://cdn.sanity.io/images/ooqsuexs/production/2c923bdd022273c3e89513a979a21262414b9006-3948x2778.jpg?w=2500&amp;auto=format" alt="Belle Meade Village" width="290" height="180" style="display:block;width:100%;height:180px;border:0;" />
         <![endif]-->
@@ -401,10 +425,10 @@
 </table>
             </td>
             <td class="two-col-cell" valign="top" width="290" style="width: 290px; padding: 0 0 0 8px;">
-              <table role="presentation" class="grid-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" height="300" bgcolor="#222222" style="background-color:#222; border:1px solid #262626; border-radius:12px; height:300px">
+              <table role="presentation" class="grid-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" height="300" bgcolor="#1A1325" style="background-color:#1A1325; border:1px solid #2D2440; border-radius:12px; height:300px">
   <tr><td height="180" style="height: 180px;">
     <a href="https://www.oftmw.com/map/?project=bellemeadevillage&amp;fullscreen=true" style="color:#1FDF67; display:block">
-      <div class="grid-card-image-wrap" style="width:100%; height:180px; overflow:hidden; border-radius:12px 12px 0 0; background-color:#262626; background-size:cover; background-position:center center; background-repeat:no-repeat; background-image:url(https://cdn.sanity.io/images/ooqsuexs/production/2c923bdd022273c3e89513a979a21262414b9006-3948x2778.jpg?w=2500&amp;auto=format)" width="100%" height="180" bgcolor="#262626">
+      <div class="grid-card-image-wrap" style="width:100%; height:180px; overflow:hidden; border-radius:12px 12px 0 0; background-color:#2D2440; background-size:cover; background-position:center center; background-repeat:no-repeat; background-image:url(https://cdn.sanity.io/images/ooqsuexs/production/2c923bdd022273c3e89513a979a21262414b9006-3948x2778.jpg?w=2500&amp;auto=format)" width="100%" height="180" bgcolor="#2D2440">
         <!--[if mso]>
         <img src="https://cdn.sanity.io/images/ooqsuexs/production/2c923bdd022273c3e89513a979a21262414b9006-3948x2778.jpg?w=2500&amp;auto=format" alt="Belle Meade Village" width="290" height="180" style="display:block;width:100%;height:180px;border:0;" />
         <![endif]-->
@@ -433,10 +457,10 @@
         <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 0 0 16px 0;">
           <tr>
             <td class="two-col-cell" valign="top" width="290" style="width: 290px; padding: 0 8px 0 0;">
-              <table role="presentation" class="grid-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" height="300" bgcolor="#222222" style="background-color:#222; border:1px solid #262626; border-radius:12px; height:300px">
+              <table role="presentation" class="grid-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" height="300" bgcolor="#1A1325" style="background-color:#1A1325; border:1px solid #2D2440; border-radius:12px; height:300px">
   <tr><td height="180" style="height: 180px;">
     <a href="https://www.oftmw.com/map/?project=seventeengables&amp;fullscreen=true" style="color:#1FDF67; display:block">
-      <div class="grid-card-image-wrap" style="width:100%; height:180px; overflow:hidden; border-radius:12px 12px 0 0; background-color:#262626; background-size:cover; background-position:center center; background-repeat:no-repeat; background-image:url(https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_50dffa92369741729f7e4ca1f0f764b7~mv2.jpg)" width="100%" height="180" bgcolor="#262626">
+      <div class="grid-card-image-wrap" style="width:100%; height:180px; overflow:hidden; border-radius:12px 12px 0 0; background-color:#2D2440; background-size:cover; background-position:center center; background-repeat:no-repeat; background-image:url(https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_50dffa92369741729f7e4ca1f0f764b7~mv2.jpg)" width="100%" height="180" bgcolor="#2D2440">
         <!--[if mso]>
         <img src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_50dffa92369741729f7e4ca1f0f764b7~mv2.jpg" alt="Seventeen Gables" width="290" height="180" style="display:block;width:100%;height:180px;border:0;" />
         <![endif]-->
@@ -451,10 +475,10 @@
 </table>
             </td>
             <td class="two-col-cell" valign="top" width="290" style="width: 290px; padding: 0 0 0 8px;">
-              <table role="presentation" class="grid-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" height="300" bgcolor="#222222" style="background-color:#222; border:1px solid #262626; border-radius:12px; height:300px">
+              <table role="presentation" class="grid-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" height="300" bgcolor="#1A1325" style="background-color:#1A1325; border:1px solid #2D2440; border-radius:12px; height:300px">
   <tr><td height="180" style="height: 180px;">
     <a href="https://www.oftmw.com/map/?project=thestandardresidencesbrickell&amp;fullscreen=true" style="color:#1FDF67; display:block">
-      <div class="grid-card-image-wrap" style="width:100%; height:180px; overflow:hidden; border-radius:12px 12px 0 0; background-color:#262626; background-size:cover; background-position:center center; background-repeat:no-repeat; background-image:url(https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_86c2ab554740437b9d3984d9560f62db~mv2.jpg)" width="100%" height="180" bgcolor="#262626">
+      <div class="grid-card-image-wrap" style="width:100%; height:180px; overflow:hidden; border-radius:12px 12px 0 0; background-color:#2D2440; background-size:cover; background-position:center center; background-repeat:no-repeat; background-image:url(https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_86c2ab554740437b9d3984d9560f62db~mv2.jpg)" width="100%" height="180" bgcolor="#2D2440">
         <!--[if mso]>
         <img src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_86c2ab554740437b9d3984d9560f62db~mv2.jpg" alt="The Standard Residences Brickell" width="290" height="180" style="display:block;width:100%;height:180px;border:0;" />
         <![endif]-->
@@ -473,10 +497,10 @@
         <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 0 0 16px 0;">
           <tr>
             <td class="two-col-cell" valign="top" width="290" style="width: 290px; padding: 0 8px 0 0;">
-              <table role="presentation" class="grid-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" height="300" bgcolor="#222222" style="background-color:#222; border:1px solid #262626; border-radius:12px; height:300px">
+              <table role="presentation" class="grid-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" height="300" bgcolor="#1A1325" style="background-color:#1A1325; border:1px solid #2D2440; border-radius:12px; height:300px">
   <tr><td height="180" style="height: 180px;">
     <a href="https://www.oftmw.com/map/?project=loftybrickell&amp;fullscreen=true" style="color:#1FDF67; display:block">
-      <div class="grid-card-image-wrap" style="width:100%; height:180px; overflow:hidden; border-radius:12px 12px 0 0; background-color:#262626; background-size:cover; background-position:center center; background-repeat:no-repeat; background-image:url(https://i0.wp.com/loftybrickell.com/wp-content/uploads/Lofty_VPExterior02_rev06-standard-scale-2_00x-gigapixel-1-scaled.jpg?fit=2560%2C1600&amp;quality=89&amp;ssl=1)" width="100%" height="180" bgcolor="#262626">
+      <div class="grid-card-image-wrap" style="width:100%; height:180px; overflow:hidden; border-radius:12px 12px 0 0; background-color:#2D2440; background-size:cover; background-position:center center; background-repeat:no-repeat; background-image:url(https://i0.wp.com/loftybrickell.com/wp-content/uploads/Lofty_VPExterior02_rev06-standard-scale-2_00x-gigapixel-1-scaled.jpg?fit=2560%2C1600&amp;quality=89&amp;ssl=1)" width="100%" height="180" bgcolor="#2D2440">
         <!--[if mso]>
         <img src="https://i0.wp.com/loftybrickell.com/wp-content/uploads/Lofty_VPExterior02_rev06-standard-scale-2_00x-gigapixel-1-scaled.jpg?fit=2560%2C1600&amp;quality=89&amp;ssl=1" alt="Lofty Brickell" width="290" height="180" style="display:block;width:100%;height:180px;border:0;" />
         <![endif]-->
@@ -491,10 +515,10 @@
 </table>
             </td>
             <td class="two-col-cell" valign="top" width="290" style="width: 290px; padding: 0 0 0 8px;">
-              <table role="presentation" class="grid-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" height="300" bgcolor="#222222" style="background-color:#222; border:1px solid #262626; border-radius:12px; height:300px">
+              <table role="presentation" class="grid-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" height="300" bgcolor="#1A1325" style="background-color:#1A1325; border:1px solid #2D2440; border-radius:12px; height:300px">
   <tr><td height="180" style="height: 180px;">
     <a href="https://www.oftmw.com/map/?project=theritzcarltonresidencesnaples&amp;fullscreen=true" style="color:#1FDF67; display:block">
-      <div class="grid-card-image-wrap" style="width:100%; height:180px; overflow:hidden; border-radius:12px 12px 0 0; background-color:#262626; background-size:cover; background-position:center center; background-repeat:no-repeat; background-image:url(https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/b5598344ef72-Aerial_The-Ritz-Carlton-Residences-Naples-at-Dusk-scaled.jpg)" width="100%" height="180" bgcolor="#262626">
+      <div class="grid-card-image-wrap" style="width:100%; height:180px; overflow:hidden; border-radius:12px 12px 0 0; background-color:#2D2440; background-size:cover; background-position:center center; background-repeat:no-repeat; background-image:url(https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/b5598344ef72-Aerial_The-Ritz-Carlton-Residences-Naples-at-Dusk-scaled.jpg)" width="100%" height="180" bgcolor="#2D2440">
         <!--[if mso]>
         <img src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/b5598344ef72-Aerial_The-Ritz-Carlton-Residences-Naples-at-Dusk-scaled.jpg" alt="The Ritz-Carlton Residences, Naples" width="290" height="180" style="display:block;width:100%;height:180px;border:0;" />
         <![endif]-->
@@ -525,15 +549,15 @@
 
       <!-- WHAT'S NEW IN THE APP — connected image + body -->
       <tr><td>
-        <div class="section-header force-accent-text" style="color:#1FDF67; font-size:11px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; padding:32px 0 16px 0; border-top:1px solid #262626">What's new in the app</div>
+        <div class="section-header force-accent-text" style="color:#1FDF67; font-size:11px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; padding:32px 0 16px 0; border-top:1px solid #2D2440">What's new in the app</div>
 
         <!-- Image with rounded top corners only, no bottom corners -->
         <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 0;">
           <tr><td style="padding: 0; line-height: 0; font-size: 0;">
             <a href="https://map.oftmw.com" style="color:#1FDF67; display:block">
-              <div class="app-image-wrap" style="width:100%; height:360px; overflow:hidden; border-radius:12px 12px 0 0; background-color:#0F0A18; background-size:contain; background-position:center center; background-repeat:no-repeat; background-image:url(https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/c67f4529eec9-map-of-tomorrow-june-9.gif?v=1781028689)" width="100%" height="360" bgcolor="#0F0A18">
+              <div class="app-image-wrap" style="width:100%; height:360px; overflow:hidden; border-radius:12px 12px 0 0; background-color:#0F0A18; background-size:contain; background-position:center center; background-repeat:no-repeat; background-image:url(https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/c67f4529eec9-map-of-tomorrow-june-9.gif?v=1781028947)" width="100%" height="360" bgcolor="#0F0A18">
                 <!--[if mso]>
-                <img src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/c67f4529eec9-map-of-tomorrow-june-9.gif?v=1781028689" alt="Map of Tomorrow" width="600" height="360" style="display:block;width:100%;height:360px;border:0;" />
+                <img src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/c67f4529eec9-map-of-tomorrow-june-9.gif?v=1781028947" alt="Map of Tomorrow" width="600" height="360" style="display:block;width:100%;height:360px;border:0;" />
                 <![endif]-->
               </div>
             </a>
@@ -608,7 +632,7 @@
 </td></tr>
 
       <!-- FOOTER -->
-      <tr><td class="footer" style="padding:40px 0 20px 0; border-top:1px solid #262626; text-align:center" align="center">
+      <tr><td class="footer" style="padding:40px 0 20px 0; border-top:1px solid #2D2440; text-align:center" align="center">
         <div class="footer-text force-muted-text" style="color:#888; font-size:13px; line-height:1.6">
           You're getting this from <strong>media@marketsoftomorrow.com</strong> because you subscribed at
           <a href="https://www.oftmw.com" class="force-accent-text" style="color:#1FDF67">oftmw.com</a>.
@@ -620,6 +644,8 @@
         </div>
       </td></tr>
 
+    </table>
+    </td></tr>
     </table>
   </td></tr>
 </table>
