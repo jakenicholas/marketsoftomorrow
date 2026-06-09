@@ -318,6 +318,13 @@ def load_app_updates():
                 parts = b.split(sep, 1)
                 title, body = parts[0].strip(), parts[1].strip()
                 break
+        # Capitalize the body's first letter so descriptions read like
+        # proper sentences ("Faster, timeline scrubber..." not "faster,
+        # timeline scrubber..."). Only flips alphabetic lowercase — leaves
+        # "iPhone"-style intentional lowercase first letters alone (those
+        # don't appear in our copy today, but the guard is cheap).
+        if body and body[0].islower():
+            body = body[0].upper() + body[1:]
         tiles.append({"title": title, "body": body})
     # Image + bullets both come from this one file so a generate always uses the
     # latest of both; fall back to the module default if no image line is given.
