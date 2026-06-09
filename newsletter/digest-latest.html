@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="color-scheme" content="dark only">
-<meta name="supported-color-schemes" content="dark only">
+<meta name="color-scheme" content="light only">
+<meta name="supported-color-schemes" content="light only">
 <!-- <title> intentionally OMITTED. Gmail (web + iOS + Android) renders
      the <title> tag as a visible heading at the top of the email body,
      so even a generic "Markets of Tomorrow" leaks as a stray line above
@@ -31,24 +31,24 @@
 
 <style>
   :root {
-    color-scheme: dark only;
-    supported-color-schemes: dark only;
+    color-scheme: light only;
+    supported-color-schemes: light only;
   }
 
   @media (prefers-color-scheme: dark) {
-    .force-dark-bg { background-color: #1a1a1a !important; }
-    .force-dark-panel { background-color: #222222 !important; }
-    .force-light-text { color: #ffffff !important; }
-    .force-muted-text { color: #888888 !important; }
-    .force-accent-text { color: #1FDF67 !important; }
-    .force-border { border-color: #262626 !important; }
-    body, .wrapper { background-color: #1a1a1a !important; }
+    .force-dark-bg { background-color: #ede9fe !important; }
+    .force-dark-panel { background-color: #ffffff !important; }
+    .force-light-text { color: #1e0a3c !important; }
+    .force-muted-text { color: #6b5b8a !important; }
+    .force-accent-text { color: #1e0a3c !important; }
+    .force-border { border-color: #d8cef0 !important; }
+    body, .wrapper { background-color: #ede9fe !important; }
   }
 
   body {
     margin: 0;
     padding: 0;
-    background-color: #1a1a1a;
+    background-color: #ede9fe;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   }
 
@@ -70,16 +70,16 @@
     display: none;
     max-height: 0;
     overflow: hidden;
-    color: #1a1a1a;
+    color: #ede9fe;
     visibility: hidden;
   }
-  .wrapper { background-color: #1a1a1a; width: 100%; }
+  .wrapper { background-color: #ede9fe; width: 100%; }
   .container { max-width: 600px; width: 100%; }
 
   .hero { padding: 0 0 24px 0; text-align: center; }
   .hero img { display: inline-block; max-width: 200px; height: auto; border: 0; }
   .hero-label {
-    color: #888888;
+    color: #6b5b8a;
     font-size: 12px;
     letter-spacing: 1.5px;
     text-transform: uppercase;
@@ -87,19 +87,19 @@
     font-weight: 600;
   }
   .section-header {
-    color: #1FDF67;
+    color: #1e0a3c;
     font-size: 11px;
     font-weight: 700;
     letter-spacing: 1.5px;
     text-transform: uppercase;
     padding: 32px 0 16px 0;
-    border-top: 1px solid #262626;
+    border-top: 1px solid #d8cef0;
   }
 
   /* Article cards (full-width, single column) */
   .article-card {
-    background-color: #222222;
-    border: 1px solid #262626;
+    background-color: #ffffff;
+    border: 1px solid #d8cef0;
     border-radius: 12px;
     margin: 0 0 16px 0;
   }
@@ -108,7 +108,7 @@
     height: 240px;
     overflow: hidden;
     border-radius: 12px 12px 0 0;
-    background-color: #262626;
+    background-color: #d8cef0;
     background-size: cover;
     background-position: center center;
     background-repeat: no-repeat;
@@ -118,18 +118,18 @@
     font-size: 18px;
     font-weight: 700;
     line-height: 1.3;
-    color: #ffffff;
+    color: #1e0a3c;
     text-decoration: none;
     margin: 0 0 6px 0;
     display: block;
   }
   .article-card-summary {
-    color: #888888;
+    color: #6b5b8a;
     font-size: 14px;
     line-height: 1.5;
   }
   .read-more {
-    color: #1FDF67;
+    color: #1e0a3c;
     text-decoration: none;
     font-size: 13px;
     font-weight: 600;
@@ -139,8 +139,8 @@
 
   /* 2-column grid cards — TIGHTER, fixed height */
   .grid-card {
-    background-color: #222222;
-    border: 1px solid #262626;
+    background-color: #ffffff;
+    border: 1px solid #d8cef0;
     border-radius: 12px;
     height: 300px;
   }
@@ -149,7 +149,7 @@
     height: 180px;
     overflow: hidden;
     border-radius: 12px 12px 0 0;
-    background-color: #262626;
+    background-color: #d8cef0;
     background-size: cover;
     background-position: center center;
     background-repeat: no-repeat;
@@ -164,7 +164,7 @@
     font-size: 15px;
     font-weight: 700;
     line-height: 1.3;
-    color: #ffffff;
+    color: #1e0a3c;
     text-decoration: none;
     margin: 0 0 4px 0;
     display: -webkit-box;
@@ -173,7 +173,7 @@
     overflow: hidden;
   }
   .grid-card-meta {
-    color: #888888;
+    color: #6b5b8a;
     font-size: 12px;
     white-space: nowrap;
     overflow: hidden;
@@ -197,7 +197,7 @@
     height: 360px;
     overflow: hidden;
     border-radius: 12px 12px 0 0;
-    background-color: #0F0A18;
+    background-color: #ede9fe;
     background-size: contain;
     background-position: center center;
     background-repeat: no-repeat;
@@ -206,8 +206,8 @@
      the gif above (no top radius, no top border). The radial bg + hex
      pattern echoes the website's promo card without a real image. */
   .cta-block-connected {
-    background: linear-gradient(180deg, #14101E 0%, #0E0B17 100%);
-    border: 1px solid #2D2440;
+    background: linear-gradient(180deg, #ffffff 0%, #ffffff 100%);
+    border: 1px solid #d8cef0;
     border-top: 0;
     border-radius: 0 0 12px 12px;
     padding: 26px 22px 28px 22px;
@@ -215,7 +215,7 @@
   .cta-headline {
     font-size: 22px;
     font-weight: 800;
-    color: #ffffff;
+    color: #1e0a3c;
     margin: 0 0 18px 0;
     letter-spacing: -0.01em;
   }
@@ -238,14 +238,14 @@
     letter-spacing: 0.04em;
   }
   .feature-title {
-    color: #ffffff;
+    color: #1e0a3c;
     font-size: 15px;
     font-weight: 700;
     line-height: 1.3;
     margin: 0 0 6px 0;
   }
   .feature-body {
-    color: #B6B0C4;
+    color: #6b5b8a;
     font-size: 13px;
     line-height: 1.5;
     margin: 0;
@@ -253,7 +253,7 @@
   .cta-button {
     display: inline-block;
     background-color: #A78BFA;
-    color: #0E0B17;
+    color: #ffffff;
     padding: 13px 24px;
     border-radius: 8px;
     text-decoration: none;
@@ -266,7 +266,7 @@
   /* Ad banner */
   .ad-wrap { padding: 24px 0; text-align: center; }
   .ad-label {
-    color: #555555;
+    color: #7d6f9c;
     font-size: 10px;
     letter-spacing: 1.5px;
     text-transform: uppercase;
@@ -284,33 +284,33 @@
 
   .footer {
     padding: 40px 0 20px 0;
-    border-top: 1px solid #262626;
+    border-top: 1px solid #d8cef0;
     text-align: center;
   }
-  .footer-text { color: #888888; font-size: 13px; line-height: 1.6; }
-  .footer-links { color: #888888; font-size: 12px; margin-top: 12px; }
-  .footer-links a { color: #888888; text-decoration: none; }
-  a { color: #1FDF67; }
+  .footer-text { color: #6b5b8a; font-size: 13px; line-height: 1.6; }
+  .footer-links { color: #6b5b8a; font-size: 12px; margin-top: 12px; }
+  .footer-links a { color: #6b5b8a; text-decoration: none; }
+  a { color: #1e0a3c; }
 </style>
 </head>
-<body class="force-dark-bg" style='margin:0; padding:0; background-color:#1a1a1a; font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' bgcolor="#1a1a1a">
+<body class="force-dark-bg" style='margin:0; padding:0; background-color:#ede9fe; font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' bgcolor="#ede9fe">
 
-<div class="preheader" style="display:none; max-height:0; overflow:hidden; color:#1a1a1a; visibility:hidden">50 updates this week.</div>
+<div class="preheader" style="display:none; max-height:0; overflow:hidden; color:#ede9fe; visibility:hidden">50 updates this week.</div>
 <div style="display: none; max-height: 0; overflow: hidden;">͏‌ ͏ ͏‌ ͏ ͏‌ ͏ ͏‌ ͏ ͏‌ ͏ ͏‌ ͏ ͏‌ ͏</div>
 
-<table role="presentation" class="wrapper force-dark-bg" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#1a1a1a" style="background-color:#1a1a1a; width:100%">
-  <tr><td align="center" style="padding: 32px 16px; background-color: #1a1a1a;">
+<table role="presentation" class="wrapper force-dark-bg" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#ede9fe" style="background-color:#ede9fe; width:100%">
+  <tr><td align="center" style="padding: 32px 16px; background-color: #ede9fe;">
     <table role="presentation" class="container" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width:600px; width:100%">
 
       <!-- HERO -->
       <tr><td class="hero" style="padding:0 0 24px 0; text-align:center" align="center">
-        <a href="https://www.oftmw.com" style="color:#1FDF67"><img src="https://static.wixstatic.com/media/ca3b83_e80e88810ca942459bfaa140e9fc2267~mv2.png" alt="Markets of Tomorrow" width="200" style="display:inline-block; max-width:200px; height:auto; border:0" height="auto"></a>
-        <div class="hero-label force-muted-text" style="color:#888; font-size:12px; letter-spacing:1.5px; text-transform:uppercase; margin-top:18px; font-weight:600">The Weekly · June 09, 2026</div>
+        <a href="https://www.oftmw.com" style="color:#1e0a3c"><img src="https://static.wixstatic.com/media/ca3b83_e80e88810ca942459bfaa140e9fc2267~mv2.png" alt="Markets of Tomorrow" width="200" style="display:inline-block; max-width:200px; height:auto; border:0" height="auto"></a>
+        <div class="hero-label force-muted-text" style="color:#6b5b8a; font-size:12px; letter-spacing:1.5px; text-transform:uppercase; margin-top:18px; font-weight:600">The Weekly · June 09, 2026</div>
       </td></tr>
       <tr><td>
   <div class="ad-wrap" style="padding:24px 0; text-align:center" align="center">
-    <div class="ad-label force-muted-text" style="color:#555; font-size:10px; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:8px; font-weight:600">Sponsored</div>
-    <a href="https://linkly.link/2jZ1I" target="_blank" rel="noopener" style="color:#1FDF67">
+    <div class="ad-label force-muted-text" style="color:#7d6f9c; font-size:10px; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:8px; font-weight:600">Sponsored</div>
+    <a href="https://linkly.link/2jZ1I" target="_blank" rel="noopener" style="color:#1e0a3c">
       <img src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/1048a02173c6-MandarinOriental_WPB1-ezgif.com-video-to-gif-converter.gif" alt="Mandarin Oriental" class="ad-banner" width="100%" style="display:block; max-width:600px; width:100%; height:auto; border-radius:8px; border:0; margin:0 auto" height="auto">
     </a>
   </div>
@@ -319,8 +319,8 @@
       <!-- FROM THE JOURNAL: FLORIDA -->
       <tr><td>
   <div class="ad-wrap" style="padding:24px 0; text-align:center" align="center">
-    <div class="ad-label force-muted-text" style="color:#555; font-size:10px; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:8px; font-weight:600">Sponsored</div>
-    <a href="https://linkly.link/2HeDO" target="_blank" rel="noopener" style="color:#1FDF67">
+    <div class="ad-label force-muted-text" style="color:#7d6f9c; font-size:10px; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:8px; font-weight:600">Sponsored</div>
+    <a href="https://linkly.link/2HeDO" target="_blank" rel="noopener" style="color:#1e0a3c">
       <img src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_e72132e0118b4facbea0faf135eb7f2d~mv2.gif" alt="Ponce Park" class="ad-banner" width="100%" style="display:block; max-width:600px; width:100%; height:auto; border-radius:8px; border:0; margin:0 auto" height="auto">
     </a>
   </div>
@@ -329,8 +329,8 @@
       <!-- FROM THE JOURNAL: MORE MARKETS -->
       <tr><td>
   <div class="ad-wrap" style="padding:24px 0; text-align:center" align="center">
-    <div class="ad-label force-muted-text" style="color:#555; font-size:10px; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:8px; font-weight:600">Sponsored</div>
-    <a href="https://linkly.link/2EtNq" target="_blank" rel="noopener" style="color:#1FDF67">
+    <div class="ad-label force-muted-text" style="color:#7d6f9c; font-size:10px; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:8px; font-weight:600">Sponsored</div>
+    <a href="https://linkly.link/2EtNq" target="_blank" rel="noopener" style="color:#1e0a3c">
       <img src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_7bc06d1b5e1b44fbada78cb379b40bdb~mv2.gif" alt="Eudemonia" class="ad-banner" width="100%" style="display:block; max-width:600px; width:100%; height:auto; border-radius:8px; border:0; margin:0 auto" height="auto">
     </a>
   </div>
@@ -338,14 +338,14 @@
 
       <!-- NEW ON THE MAP — combined, 2-col grid -->
       <tr><td>
-        <div class="section-header force-accent-text" style="color:#1FDF67; font-size:11px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; padding:32px 0 16px 0; border-top:1px solid #262626">What's new in the database (50)</div>
+        <div class="section-header force-accent-text" style="color:#1e0a3c; font-size:11px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; padding:32px 0 16px 0; border-top:1px solid #d8cef0">What's new in the database (50)</div>
         <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 0 0 16px 0;">
           <tr>
             <td class="two-col-cell" valign="top" width="290" style="width: 290px; padding: 0 8px 0 0;">
-              <table role="presentation" class="grid-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" height="300" bgcolor="#222222" style="background-color:#222; border:1px solid #262626; border-radius:12px; height:300px">
+              <table role="presentation" class="grid-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" height="300" bgcolor="#ffffff" style="background-color:#fff; border:1px solid #d8cef0; border-radius:12px; height:300px">
   <tr><td height="180" style="height: 180px;">
-    <a href="https://www.oftmw.com/map/?project=oneladybirdlake&amp;fullscreen=true" style="color:#1FDF67; display:block">
-      <div class="grid-card-image-wrap" style="width:100%; height:180px; overflow:hidden; border-radius:12px 12px 0 0; background-color:#262626; background-size:cover; background-position:center center; background-repeat:no-repeat; background-image:url(https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/ff0d39c0dad0-3338_OneLadyBirdLake_1x1.webp)" width="100%" height="180" bgcolor="#262626">
+    <a href="https://www.oftmw.com/map/?project=oneladybirdlake&amp;fullscreen=true" style="color:#1e0a3c; display:block">
+      <div class="grid-card-image-wrap" style="width:100%; height:180px; overflow:hidden; border-radius:12px 12px 0 0; background-color:#d8cef0; background-size:cover; background-position:center center; background-repeat:no-repeat; background-image:url(https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/ff0d39c0dad0-3338_OneLadyBirdLake_1x1.webp)" width="100%" height="180" bgcolor="#d8cef0">
         <!--[if mso]>
         <img src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/ff0d39c0dad0-3338_OneLadyBirdLake_1x1.webp" alt="One Lady Bird Lake" width="290" height="180" style="display:block;width:100%;height:180px;border:0;" />
         <![endif]-->
@@ -354,16 +354,16 @@
   </td></tr>
   <tr><td class="grid-card-body" valign="top" height="120" style="padding:12px 14px; height:120px; box-sizing:border-box; overflow:hidden">
     <div class="stage-pill" style="font-size:11px; font-weight:600; margin-bottom:6px; color:#999">Tracking</div>
-    <a href="https://www.oftmw.com/map/?project=oneladybirdlake&amp;fullscreen=true" class="grid-card-title force-light-text" style="color:#fff; font-size:15px; font-weight:700; line-height:1.3; text-decoration:none; margin:0 0 4px 0; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden">One Lady Bird Lake</a>
-    <div class="grid-card-meta force-muted-text" style="color:#888; font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">Austin</div>
+    <a href="https://www.oftmw.com/map/?project=oneladybirdlake&amp;fullscreen=true" class="grid-card-title force-light-text" style="color:#1e0a3c; font-size:15px; font-weight:700; line-height:1.3; text-decoration:none; margin:0 0 4px 0; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden">One Lady Bird Lake</a>
+    <div class="grid-card-meta force-muted-text" style="color:#6b5b8a; font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">Austin</div>
   </td></tr>
 </table>
             </td>
             <td class="two-col-cell" valign="top" width="290" style="width: 290px; padding: 0 0 0 8px;">
-              <table role="presentation" class="grid-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" height="300" bgcolor="#222222" style="background-color:#222; border:1px solid #262626; border-radius:12px; height:300px">
+              <table role="presentation" class="grid-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" height="300" bgcolor="#ffffff" style="background-color:#fff; border:1px solid #d8cef0; border-radius:12px; height:300px">
   <tr><td height="180" style="height: 180px;">
-    <a href="https://www.oftmw.com/map/?project=1irislanetheresidencesatbellemeadevillage&amp;fullscreen=true" style="color:#1FDF67; display:block">
-      <div class="grid-card-image-wrap" style="width:100%; height:180px; overflow:hidden; border-radius:12px 12px 0 0; background-color:#262626; background-size:cover; background-position:center center; background-repeat:no-repeat; background-image:url(https://cdn.sanity.io/images/9mpasezg/development/756cd4045f0b99542c73fff1a24b063fc8ad1cd9-5000x3125.jpg)" width="100%" height="180" bgcolor="#262626">
+    <a href="https://www.oftmw.com/map/?project=1irislanetheresidencesatbellemeadevillage&amp;fullscreen=true" style="color:#1e0a3c; display:block">
+      <div class="grid-card-image-wrap" style="width:100%; height:180px; overflow:hidden; border-radius:12px 12px 0 0; background-color:#d8cef0; background-size:cover; background-position:center center; background-repeat:no-repeat; background-image:url(https://cdn.sanity.io/images/9mpasezg/development/756cd4045f0b99542c73fff1a24b063fc8ad1cd9-5000x3125.jpg)" width="100%" height="180" bgcolor="#d8cef0">
         <!--[if mso]>
         <img src="https://cdn.sanity.io/images/9mpasezg/development/756cd4045f0b99542c73fff1a24b063fc8ad1cd9-5000x3125.jpg" alt="1 Iris Lane, The Residences at Belle Meade Village" width="290" height="180" style="display:block;width:100%;height:180px;border:0;" />
         <![endif]-->
@@ -372,8 +372,8 @@
   </td></tr>
   <tr><td class="grid-card-body" valign="top" height="120" style="padding:12px 14px; height:120px; box-sizing:border-box; overflow:hidden">
     <div class="stage-pill" style="font-size:11px; font-weight:600; margin-bottom:6px; color:#999">Going vertical</div>
-    <a href="https://www.oftmw.com/map/?project=1irislanetheresidencesatbellemeadevillage&amp;fullscreen=true" class="grid-card-title force-light-text" style="color:#fff; font-size:15px; font-weight:700; line-height:1.3; text-decoration:none; margin:0 0 4px 0; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden">1 Iris Lane, The Residences at Belle Meade Village</a>
-    <div class="grid-card-meta force-muted-text" style="color:#888; font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">Nashville</div>
+    <a href="https://www.oftmw.com/map/?project=1irislanetheresidencesatbellemeadevillage&amp;fullscreen=true" class="grid-card-title force-light-text" style="color:#1e0a3c; font-size:15px; font-weight:700; line-height:1.3; text-decoration:none; margin:0 0 4px 0; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden">1 Iris Lane, The Residences at Belle Meade Village</a>
+    <div class="grid-card-meta force-muted-text" style="color:#6b5b8a; font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">Nashville</div>
   </td></tr>
 </table>
             </td>
@@ -382,10 +382,10 @@
         <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 0 0 16px 0;">
           <tr>
             <td class="two-col-cell" valign="top" width="290" style="width: 290px; padding: 0 8px 0 0;">
-              <table role="presentation" class="grid-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" height="300" bgcolor="#222222" style="background-color:#222; border:1px solid #262626; border-radius:12px; height:300px">
+              <table role="presentation" class="grid-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" height="300" bgcolor="#ffffff" style="background-color:#fff; border:1px solid #d8cef0; border-radius:12px; height:300px">
   <tr><td height="180" style="height: 180px;">
-    <a href="https://www.oftmw.com/map/?project=bellemeadevillage&amp;fullscreen=true" style="color:#1FDF67; display:block">
-      <div class="grid-card-image-wrap" style="width:100%; height:180px; overflow:hidden; border-radius:12px 12px 0 0; background-color:#262626; background-size:cover; background-position:center center; background-repeat:no-repeat; background-image:url(https://cdn.sanity.io/images/ooqsuexs/production/2c923bdd022273c3e89513a979a21262414b9006-3948x2778.jpg?w=2500&amp;auto=format)" width="100%" height="180" bgcolor="#262626">
+    <a href="https://www.oftmw.com/map/?project=bellemeadevillage&amp;fullscreen=true" style="color:#1e0a3c; display:block">
+      <div class="grid-card-image-wrap" style="width:100%; height:180px; overflow:hidden; border-radius:12px 12px 0 0; background-color:#d8cef0; background-size:cover; background-position:center center; background-repeat:no-repeat; background-image:url(https://cdn.sanity.io/images/ooqsuexs/production/2c923bdd022273c3e89513a979a21262414b9006-3948x2778.jpg?w=2500&amp;auto=format)" width="100%" height="180" bgcolor="#d8cef0">
         <!--[if mso]>
         <img src="https://cdn.sanity.io/images/ooqsuexs/production/2c923bdd022273c3e89513a979a21262414b9006-3948x2778.jpg?w=2500&amp;auto=format" alt="Belle Meade Village" width="290" height="180" style="display:block;width:100%;height:180px;border:0;" />
         <![endif]-->
@@ -394,16 +394,16 @@
   </td></tr>
   <tr><td class="grid-card-body" valign="top" height="120" style="padding:12px 14px; height:120px; box-sizing:border-box; overflow:hidden">
     <div class="stage-pill" style="font-size:11px; font-weight:600; margin-bottom:6px; color:#999">Financing secured</div>
-    <a href="https://www.oftmw.com/map/?project=bellemeadevillage&amp;fullscreen=true" class="grid-card-title force-light-text" style="color:#fff; font-size:15px; font-weight:700; line-height:1.3; text-decoration:none; margin:0 0 4px 0; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden">Belle Meade Village</a>
-    <div class="grid-card-meta force-muted-text" style="color:#888; font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">Nashville</div>
+    <a href="https://www.oftmw.com/map/?project=bellemeadevillage&amp;fullscreen=true" class="grid-card-title force-light-text" style="color:#1e0a3c; font-size:15px; font-weight:700; line-height:1.3; text-decoration:none; margin:0 0 4px 0; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden">Belle Meade Village</a>
+    <div class="grid-card-meta force-muted-text" style="color:#6b5b8a; font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">Nashville</div>
   </td></tr>
 </table>
             </td>
             <td class="two-col-cell" valign="top" width="290" style="width: 290px; padding: 0 0 0 8px;">
-              <table role="presentation" class="grid-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" height="300" bgcolor="#222222" style="background-color:#222; border:1px solid #262626; border-radius:12px; height:300px">
+              <table role="presentation" class="grid-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" height="300" bgcolor="#ffffff" style="background-color:#fff; border:1px solid #d8cef0; border-radius:12px; height:300px">
   <tr><td height="180" style="height: 180px;">
-    <a href="https://www.oftmw.com/map/?project=bellemeadevillage&amp;fullscreen=true" style="color:#1FDF67; display:block">
-      <div class="grid-card-image-wrap" style="width:100%; height:180px; overflow:hidden; border-radius:12px 12px 0 0; background-color:#262626; background-size:cover; background-position:center center; background-repeat:no-repeat; background-image:url(https://cdn.sanity.io/images/ooqsuexs/production/2c923bdd022273c3e89513a979a21262414b9006-3948x2778.jpg?w=2500&amp;auto=format)" width="100%" height="180" bgcolor="#262626">
+    <a href="https://www.oftmw.com/map/?project=bellemeadevillage&amp;fullscreen=true" style="color:#1e0a3c; display:block">
+      <div class="grid-card-image-wrap" style="width:100%; height:180px; overflow:hidden; border-radius:12px 12px 0 0; background-color:#d8cef0; background-size:cover; background-position:center center; background-repeat:no-repeat; background-image:url(https://cdn.sanity.io/images/ooqsuexs/production/2c923bdd022273c3e89513a979a21262414b9006-3948x2778.jpg?w=2500&amp;auto=format)" width="100%" height="180" bgcolor="#d8cef0">
         <!--[if mso]>
         <img src="https://cdn.sanity.io/images/ooqsuexs/production/2c923bdd022273c3e89513a979a21262414b9006-3948x2778.jpg?w=2500&amp;auto=format" alt="Belle Meade Village" width="290" height="180" style="display:block;width:100%;height:180px;border:0;" />
         <![endif]-->
@@ -412,8 +412,8 @@
   </td></tr>
   <tr><td class="grid-card-body" valign="top" height="120" style="padding:12px 14px; height:120px; box-sizing:border-box; overflow:hidden">
     <div class="stage-pill" style="font-size:11px; font-weight:600; margin-bottom:6px; color:#999">Going vertical</div>
-    <a href="https://www.oftmw.com/map/?project=bellemeadevillage&amp;fullscreen=true" class="grid-card-title force-light-text" style="color:#fff; font-size:15px; font-weight:700; line-height:1.3; text-decoration:none; margin:0 0 4px 0; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden">Belle Meade Village</a>
-    <div class="grid-card-meta force-muted-text" style="color:#888; font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">Nashville</div>
+    <a href="https://www.oftmw.com/map/?project=bellemeadevillage&amp;fullscreen=true" class="grid-card-title force-light-text" style="color:#1e0a3c; font-size:15px; font-weight:700; line-height:1.3; text-decoration:none; margin:0 0 4px 0; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden">Belle Meade Village</a>
+    <div class="grid-card-meta force-muted-text" style="color:#6b5b8a; font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">Nashville</div>
   </td></tr>
 </table>
             </td>
@@ -422,8 +422,8 @@
       </td></tr>
       <tr><td>
   <div class="ad-wrap" style="padding:24px 0; text-align:center" align="center">
-    <div class="ad-label force-muted-text" style="color:#555; font-size:10px; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:8px; font-weight:600">Sponsored</div>
-    <a href="https://linkly.link/26wPJ" target="_blank" rel="noopener" style="color:#1FDF67">
+    <div class="ad-label force-muted-text" style="color:#7d6f9c; font-size:10px; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:8px; font-weight:600">Sponsored</div>
+    <a href="https://linkly.link/26wPJ" target="_blank" rel="noopener" style="color:#1e0a3c">
       <img src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/49c03212a2ac-WASTP_260608_1886x383.gif" alt="Waldorf Astoria Residences, St. Petersburg" class="ad-banner" width="100%" style="display:block; max-width:600px; width:100%; height:auto; border-radius:8px; border:0; margin:0 auto" height="auto">
     </a>
   </div>
@@ -432,10 +432,10 @@
         <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 0 0 16px 0;">
           <tr>
             <td class="two-col-cell" valign="top" width="290" style="width: 290px; padding: 0 8px 0 0;">
-              <table role="presentation" class="grid-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" height="300" bgcolor="#222222" style="background-color:#222; border:1px solid #262626; border-radius:12px; height:300px">
+              <table role="presentation" class="grid-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" height="300" bgcolor="#ffffff" style="background-color:#fff; border:1px solid #d8cef0; border-radius:12px; height:300px">
   <tr><td height="180" style="height: 180px;">
-    <a href="https://www.oftmw.com/map/?project=seventeengables&amp;fullscreen=true" style="color:#1FDF67; display:block">
-      <div class="grid-card-image-wrap" style="width:100%; height:180px; overflow:hidden; border-radius:12px 12px 0 0; background-color:#262626; background-size:cover; background-position:center center; background-repeat:no-repeat; background-image:url(https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_50dffa92369741729f7e4ca1f0f764b7~mv2.jpg)" width="100%" height="180" bgcolor="#262626">
+    <a href="https://www.oftmw.com/map/?project=seventeengables&amp;fullscreen=true" style="color:#1e0a3c; display:block">
+      <div class="grid-card-image-wrap" style="width:100%; height:180px; overflow:hidden; border-radius:12px 12px 0 0; background-color:#d8cef0; background-size:cover; background-position:center center; background-repeat:no-repeat; background-image:url(https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_50dffa92369741729f7e4ca1f0f764b7~mv2.jpg)" width="100%" height="180" bgcolor="#d8cef0">
         <!--[if mso]>
         <img src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_50dffa92369741729f7e4ca1f0f764b7~mv2.jpg" alt="Seventeen Gables" width="290" height="180" style="display:block;width:100%;height:180px;border:0;" />
         <![endif]-->
@@ -444,16 +444,16 @@
   </td></tr>
   <tr><td class="grid-card-body" valign="top" height="120" style="padding:12px 14px; height:120px; box-sizing:border-box; overflow:hidden">
     <div class="stage-pill" style="font-size:11px; font-weight:600; margin-bottom:6px; color:#999">Financing secured</div>
-    <a href="https://www.oftmw.com/map/?project=seventeengables&amp;fullscreen=true" class="grid-card-title force-light-text" style="color:#fff; font-size:15px; font-weight:700; line-height:1.3; text-decoration:none; margin:0 0 4px 0; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden">Seventeen Gables</a>
-    <div class="grid-card-meta force-muted-text" style="color:#888; font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">Miami</div>
+    <a href="https://www.oftmw.com/map/?project=seventeengables&amp;fullscreen=true" class="grid-card-title force-light-text" style="color:#1e0a3c; font-size:15px; font-weight:700; line-height:1.3; text-decoration:none; margin:0 0 4px 0; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden">Seventeen Gables</a>
+    <div class="grid-card-meta force-muted-text" style="color:#6b5b8a; font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">Miami</div>
   </td></tr>
 </table>
             </td>
             <td class="two-col-cell" valign="top" width="290" style="width: 290px; padding: 0 0 0 8px;">
-              <table role="presentation" class="grid-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" height="300" bgcolor="#222222" style="background-color:#222; border:1px solid #262626; border-radius:12px; height:300px">
+              <table role="presentation" class="grid-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" height="300" bgcolor="#ffffff" style="background-color:#fff; border:1px solid #d8cef0; border-radius:12px; height:300px">
   <tr><td height="180" style="height: 180px;">
-    <a href="https://www.oftmw.com/map/?project=thestandardresidencesbrickell&amp;fullscreen=true" style="color:#1FDF67; display:block">
-      <div class="grid-card-image-wrap" style="width:100%; height:180px; overflow:hidden; border-radius:12px 12px 0 0; background-color:#262626; background-size:cover; background-position:center center; background-repeat:no-repeat; background-image:url(https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_86c2ab554740437b9d3984d9560f62db~mv2.jpg)" width="100%" height="180" bgcolor="#262626">
+    <a href="https://www.oftmw.com/map/?project=thestandardresidencesbrickell&amp;fullscreen=true" style="color:#1e0a3c; display:block">
+      <div class="grid-card-image-wrap" style="width:100%; height:180px; overflow:hidden; border-radius:12px 12px 0 0; background-color:#d8cef0; background-size:cover; background-position:center center; background-repeat:no-repeat; background-image:url(https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_86c2ab554740437b9d3984d9560f62db~mv2.jpg)" width="100%" height="180" bgcolor="#d8cef0">
         <!--[if mso]>
         <img src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_86c2ab554740437b9d3984d9560f62db~mv2.jpg" alt="The Standard Residences Brickell" width="290" height="180" style="display:block;width:100%;height:180px;border:0;" />
         <![endif]-->
@@ -462,8 +462,8 @@
   </td></tr>
   <tr><td class="grid-card-body" valign="top" height="120" style="padding:12px 14px; height:120px; box-sizing:border-box; overflow:hidden">
     <div class="stage-pill" style="font-size:11px; font-weight:600; margin-bottom:6px; color:#999">Topped out</div>
-    <a href="https://www.oftmw.com/map/?project=thestandardresidencesbrickell&amp;fullscreen=true" class="grid-card-title force-light-text" style="color:#fff; font-size:15px; font-weight:700; line-height:1.3; text-decoration:none; margin:0 0 4px 0; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden">The Standard Residences Brickell</a>
-    <div class="grid-card-meta force-muted-text" style="color:#888; font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">Miami</div>
+    <a href="https://www.oftmw.com/map/?project=thestandardresidencesbrickell&amp;fullscreen=true" class="grid-card-title force-light-text" style="color:#1e0a3c; font-size:15px; font-weight:700; line-height:1.3; text-decoration:none; margin:0 0 4px 0; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden">The Standard Residences Brickell</a>
+    <div class="grid-card-meta force-muted-text" style="color:#6b5b8a; font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">Miami</div>
   </td></tr>
 </table>
             </td>
@@ -472,10 +472,10 @@
         <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 0 0 16px 0;">
           <tr>
             <td class="two-col-cell" valign="top" width="290" style="width: 290px; padding: 0 8px 0 0;">
-              <table role="presentation" class="grid-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" height="300" bgcolor="#222222" style="background-color:#222; border:1px solid #262626; border-radius:12px; height:300px">
+              <table role="presentation" class="grid-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" height="300" bgcolor="#ffffff" style="background-color:#fff; border:1px solid #d8cef0; border-radius:12px; height:300px">
   <tr><td height="180" style="height: 180px;">
-    <a href="https://www.oftmw.com/map/?project=loftybrickell&amp;fullscreen=true" style="color:#1FDF67; display:block">
-      <div class="grid-card-image-wrap" style="width:100%; height:180px; overflow:hidden; border-radius:12px 12px 0 0; background-color:#262626; background-size:cover; background-position:center center; background-repeat:no-repeat; background-image:url(https://i0.wp.com/loftybrickell.com/wp-content/uploads/Lofty_VPExterior02_rev06-standard-scale-2_00x-gigapixel-1-scaled.jpg?fit=2560%2C1600&amp;quality=89&amp;ssl=1)" width="100%" height="180" bgcolor="#262626">
+    <a href="https://www.oftmw.com/map/?project=loftybrickell&amp;fullscreen=true" style="color:#1e0a3c; display:block">
+      <div class="grid-card-image-wrap" style="width:100%; height:180px; overflow:hidden; border-radius:12px 12px 0 0; background-color:#d8cef0; background-size:cover; background-position:center center; background-repeat:no-repeat; background-image:url(https://i0.wp.com/loftybrickell.com/wp-content/uploads/Lofty_VPExterior02_rev06-standard-scale-2_00x-gigapixel-1-scaled.jpg?fit=2560%2C1600&amp;quality=89&amp;ssl=1)" width="100%" height="180" bgcolor="#d8cef0">
         <!--[if mso]>
         <img src="https://i0.wp.com/loftybrickell.com/wp-content/uploads/Lofty_VPExterior02_rev06-standard-scale-2_00x-gigapixel-1-scaled.jpg?fit=2560%2C1600&amp;quality=89&amp;ssl=1" alt="Lofty Brickell" width="290" height="180" style="display:block;width:100%;height:180px;border:0;" />
         <![endif]-->
@@ -484,16 +484,16 @@
   </td></tr>
   <tr><td class="grid-card-body" valign="top" height="120" style="padding:12px 14px; height:120px; box-sizing:border-box; overflow:hidden">
     <div class="stage-pill" style="font-size:11px; font-weight:600; margin-bottom:6px; color:#999">Topped out</div>
-    <a href="https://www.oftmw.com/map/?project=loftybrickell&amp;fullscreen=true" class="grid-card-title force-light-text" style="color:#fff; font-size:15px; font-weight:700; line-height:1.3; text-decoration:none; margin:0 0 4px 0; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden">Lofty Brickell</a>
-    <div class="grid-card-meta force-muted-text" style="color:#888; font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">Miami</div>
+    <a href="https://www.oftmw.com/map/?project=loftybrickell&amp;fullscreen=true" class="grid-card-title force-light-text" style="color:#1e0a3c; font-size:15px; font-weight:700; line-height:1.3; text-decoration:none; margin:0 0 4px 0; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden">Lofty Brickell</a>
+    <div class="grid-card-meta force-muted-text" style="color:#6b5b8a; font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">Miami</div>
   </td></tr>
 </table>
             </td>
             <td class="two-col-cell" valign="top" width="290" style="width: 290px; padding: 0 0 0 8px;">
-              <table role="presentation" class="grid-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" height="300" bgcolor="#222222" style="background-color:#222; border:1px solid #262626; border-radius:12px; height:300px">
+              <table role="presentation" class="grid-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" height="300" bgcolor="#ffffff" style="background-color:#fff; border:1px solid #d8cef0; border-radius:12px; height:300px">
   <tr><td height="180" style="height: 180px;">
-    <a href="https://www.oftmw.com/map/?project=theritzcarltonresidencesnaples&amp;fullscreen=true" style="color:#1FDF67; display:block">
-      <div class="grid-card-image-wrap" style="width:100%; height:180px; overflow:hidden; border-radius:12px 12px 0 0; background-color:#262626; background-size:cover; background-position:center center; background-repeat:no-repeat; background-image:url(https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/b5598344ef72-Aerial_The-Ritz-Carlton-Residences-Naples-at-Dusk-scaled.jpg)" width="100%" height="180" bgcolor="#262626">
+    <a href="https://www.oftmw.com/map/?project=theritzcarltonresidencesnaples&amp;fullscreen=true" style="color:#1e0a3c; display:block">
+      <div class="grid-card-image-wrap" style="width:100%; height:180px; overflow:hidden; border-radius:12px 12px 0 0; background-color:#d8cef0; background-size:cover; background-position:center center; background-repeat:no-repeat; background-image:url(https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/b5598344ef72-Aerial_The-Ritz-Carlton-Residences-Naples-at-Dusk-scaled.jpg)" width="100%" height="180" bgcolor="#d8cef0">
         <!--[if mso]>
         <img src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/b5598344ef72-Aerial_The-Ritz-Carlton-Residences-Naples-at-Dusk-scaled.jpg" alt="The Ritz-Carlton Residences, Naples" width="290" height="180" style="display:block;width:100%;height:180px;border:0;" />
         <![endif]-->
@@ -502,21 +502,21 @@
   </td></tr>
   <tr><td class="grid-card-body" valign="top" height="120" style="padding:12px 14px; height:120px; box-sizing:border-box; overflow:hidden">
     <div class="stage-pill" style="font-size:11px; font-weight:600; margin-bottom:6px; color:#999">Tracking</div>
-    <a href="https://www.oftmw.com/map/?project=theritzcarltonresidencesnaples&amp;fullscreen=true" class="grid-card-title force-light-text" style="color:#fff; font-size:15px; font-weight:700; line-height:1.3; text-decoration:none; margin:0 0 4px 0; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden">The Ritz-Carlton Residences, Naples</a>
-    <div class="grid-card-meta force-muted-text" style="color:#888; font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">Naples</div>
+    <a href="https://www.oftmw.com/map/?project=theritzcarltonresidencesnaples&amp;fullscreen=true" class="grid-card-title force-light-text" style="color:#1e0a3c; font-size:15px; font-weight:700; line-height:1.3; text-decoration:none; margin:0 0 4px 0; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden">The Ritz-Carlton Residences, Naples</a>
+    <div class="grid-card-meta force-muted-text" style="color:#6b5b8a; font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">Naples</div>
   </td></tr>
 </table>
             </td>
           </tr>
         </table>
         <div style="text-align: center; margin: 8px 0 16px 0;">
-          <a href="https://map.oftmw.com" class="read-more force-accent-text" style="color:#1FDF67; text-decoration:none; font-size:13px; font-weight:600; margin-top:10px; display:inline-block">+ 42 more in the database →</a>
+          <a href="https://map.oftmw.com" class="read-more force-accent-text" style="color:#1e0a3c; text-decoration:none; font-size:13px; font-weight:600; margin-top:10px; display:inline-block">+ 42 more in the database →</a>
         </div>
       </td></tr>
       <tr><td>
   <div class="ad-wrap" style="padding:24px 0; text-align:center" align="center">
-    <div class="ad-label force-muted-text" style="color:#555; font-size:10px; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:8px; font-weight:600">Sponsored</div>
-    <a href="https://linkly.link/2183i" target="_blank" rel="noopener" style="color:#1FDF67">
+    <div class="ad-label force-muted-text" style="color:#7d6f9c; font-size:10px; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:8px; font-weight:600">Sponsored</div>
+    <a href="https://linkly.link/2183i" target="_blank" rel="noopener" style="color:#1e0a3c">
       <img src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_69f04f4a96074f19aa342d237e4a4090~mv2.gif" alt="Marina Pointe" class="ad-banner" width="100%" style="display:block; max-width:600px; width:100%; height:auto; border-radius:8px; border:0; margin:0 auto" height="auto">
     </a>
   </div>
@@ -524,7 +524,7 @@
 
       <!-- WHAT'S NEW IN THE APP — connected image + body -->
       <tr><td>
-        <div class="section-header force-accent-text" style="color:#1FDF67; font-size:11px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; padding:32px 0 16px 0; border-top:1px solid #262626">What's new in the app</div>
+        <div class="section-header force-accent-text" style="color:#1e0a3c; font-size:11px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; padding:32px 0 16px 0; border-top:1px solid #d8cef0">What's new in the app</div>
 
         <!-- Image with rounded top corners only, no bottom corners.
              Was a div with background-image + MSO-conditional <img>,
@@ -536,8 +536,8 @@
              work. -->
         <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 0;">
           <tr><td style="padding: 0; line-height: 0; font-size: 0;">
-            <a href="https://map.oftmw.com" style="color:#1FDF67; display:block">
-              <img src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/c67f4529eec9-map-of-tomorrow-june-9.gif?v=1781029486" alt="Map of Tomorrow" width="600" style="display:block; width:100%; max-width:600px; height:auto; border:0; border-radius:12px 12px 0 0;">
+            <a href="https://map.oftmw.com" style="color:#1e0a3c; display:block">
+              <img src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/c67f4529eec9-map-of-tomorrow-june-9.gif?v=1781043271" alt="Map of Tomorrow" width="600" style="display:block; width:100%; max-width:600px; height:auto; border:0; border-radius:12px 12px 0 0;">
             </a>
           </td></tr>
         </table>
@@ -546,79 +546,79 @@
              tile gets the full email width so titles + body breathe).
              Per-tile height auto-sizes to its content now that they don't
              share a row with a neighbor that has to match. -->
-        <div class="cta-block-connected force-dark-panel force-border" style="background:linear-gradient(180deg, #14101E 0%, #0E0B17 100%); border:1px solid #2D2440; border-top:0; border-radius:0 0 12px 12px; padding:26px 22px 28px 22px; background-color:#0E0B17" bgcolor="#0E0B17">
-          <div class="cta-headline force-light-text" style="font-size:22px; font-weight:800; color:#fff; margin:0 0 18px 0; letter-spacing:-0.01em">TMW Intelligence is Here</div>
+        <div class="cta-block-connected force-dark-panel force-border" style="background:linear-gradient(180deg, #fff 0%, #fff 100%); border:1px solid #d8cef0; border-top:0; border-radius:0 0 12px 12px; padding:26px 22px 28px 22px; background-color:#fff" bgcolor="#ffffff">
+          <div class="cta-headline force-light-text" style="font-size:22px; font-weight:800; color:#1e0a3c; margin:0 0 18px 0; letter-spacing:-0.01em">TMW Intelligence is Here</div>
           <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 0 0 10px 0; background: rgba(167, 139, 250, 0.06); border: 1px solid rgba(167, 139, 250, 0.28); border-radius: 10px;">
             <tr><td valign="top" style="padding: 16px 18px 18px 18px;">
               <div class="feature-hex" style="color:#A78BFA; font-size:16px; line-height:1; margin:0 0 8px 0; font-weight:700; letter-spacing:0.04em">⬡</div>
-              <div class="feature-title" style="color:#fff; font-size:16px; font-weight:700; line-height:1.3; margin:0 0 6px 0">TMW Intelligence (Beta 3.1)</div>
-              <div class="feature-body" style="color:#B6B0C4; font-size:14px; line-height:1.55; margin:0">AI-powered timeline forecasts, site search, project research, and comparable-project analysis across every page</div>
+              <div class="feature-title" style="color:#1e0a3c; font-size:16px; font-weight:700; line-height:1.3; margin:0 0 6px 0">TMW Intelligence (Beta 3.1)</div>
+              <div class="feature-body" style="color:#6b5b8a; font-size:14px; line-height:1.55; margin:0">AI-powered timeline forecasts, site search, project research, and comparable-project analysis across every page</div>
             </td></tr>
           </table>
           <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 0 0 10px 0; background: rgba(167, 139, 250, 0.06); border: 1px solid rgba(167, 139, 250, 0.28); border-radius: 10px;">
             <tr><td valign="top" style="padding: 16px 18px 18px 18px;">
               <div class="feature-hex" style="color:#A78BFA; font-size:16px; line-height:1; margin:0 0 8px 0; font-weight:700; letter-spacing:0.04em">⬡</div>
-              <div class="feature-title" style="color:#fff; font-size:16px; font-weight:700; line-height:1.3; margin:0 0 6px 0">A Brand-New Map</div>
-              <div class="feature-body" style="color:#B6B0C4; font-size:14px; line-height:1.55; margin:0">Faster, timeline scrubber, advanced filtering, interactive layers, 'what's moving' pins, and more</div>
+              <div class="feature-title" style="color:#1e0a3c; font-size:16px; font-weight:700; line-height:1.3; margin:0 0 6px 0">A Brand-New Map</div>
+              <div class="feature-body" style="color:#6b5b8a; font-size:14px; line-height:1.55; margin:0">Faster, timeline scrubber, advanced filtering, interactive layers, 'what's moving' pins, and more</div>
             </td></tr>
           </table>
           <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 0 0 10px 0; background: rgba(167, 139, 250, 0.06); border: 1px solid rgba(167, 139, 250, 0.28); border-radius: 10px;">
             <tr><td valign="top" style="padding: 16px 18px 18px 18px;">
               <div class="feature-hex" style="color:#A78BFA; font-size:16px; line-height:1; margin:0 0 8px 0; font-weight:700; letter-spacing:0.04em">⬡</div>
-              <div class="feature-title" style="color:#fff; font-size:16px; font-weight:700; line-height:1.3; margin:0 0 6px 0">One Account Now Unlocks Everything</div>
-              <div class="feature-body" style="color:#B6B0C4; font-size:14px; line-height:1.55; margin:0">The journal, the database, your watchlist, and Pulse. If you haven't already, create yours</div>
+              <div class="feature-title" style="color:#1e0a3c; font-size:16px; font-weight:700; line-height:1.3; margin:0 0 6px 0">One Account Now Unlocks Everything</div>
+              <div class="feature-body" style="color:#6b5b8a; font-size:14px; line-height:1.55; margin:0">The journal, the database, your watchlist, and Pulse. If you haven't already, create yours</div>
             </td></tr>
           </table>
           <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 0 0 10px 0; background: rgba(167, 139, 250, 0.06); border: 1px solid rgba(167, 139, 250, 0.28); border-radius: 10px;">
             <tr><td valign="top" style="padding: 16px 18px 18px 18px;">
               <div class="feature-hex" style="color:#A78BFA; font-size:16px; line-height:1; margin:0 0 8px 0; font-weight:700; letter-spacing:0.04em">⬡</div>
-              <div class="feature-title" style="color:#fff; font-size:16px; font-weight:700; line-height:1.3; margin:0 0 6px 0">Journal</div>
-              <div class="feature-body" style="color:#B6B0C4; font-size:14px; line-height:1.55; margin:0">You can now favorite articles to revisit later, linked project cards, and more</div>
+              <div class="feature-title" style="color:#1e0a3c; font-size:16px; font-weight:700; line-height:1.3; margin:0 0 6px 0">Journal</div>
+              <div class="feature-body" style="color:#6b5b8a; font-size:14px; line-height:1.55; margin:0">You can now favorite articles to revisit later, linked project cards, and more</div>
             </td></tr>
           </table>
           <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 0 0 10px 0; background: rgba(167, 139, 250, 0.06); border: 1px solid rgba(167, 139, 250, 0.28); border-radius: 10px;">
             <tr><td valign="top" style="padding: 16px 18px 18px 18px;">
               <div class="feature-hex" style="color:#A78BFA; font-size:16px; line-height:1; margin:0 0 8px 0; font-weight:700; letter-spacing:0.04em">⬡</div>
-              <div class="feature-title" style="color:#fff; font-size:16px; font-weight:700; line-height:1.3; margin:0 0 6px 0">Pulse</div>
-              <div class="feature-body" style="color:#B6B0C4; font-size:14px; line-height:1.55; margin:0">Our live activity feed that shows new projects hitting the map and fresh stories publishing in real time, the moment they happen</div>
+              <div class="feature-title" style="color:#1e0a3c; font-size:16px; font-weight:700; line-height:1.3; margin:0 0 6px 0">Pulse</div>
+              <div class="feature-body" style="color:#6b5b8a; font-size:14px; line-height:1.55; margin:0">Our live activity feed that shows new projects hitting the map and fresh stories publishing in real time, the moment they happen</div>
             </td></tr>
           </table>
           <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 0 0 10px 0; background: rgba(167, 139, 250, 0.06); border: 1px solid rgba(167, 139, 250, 0.28); border-radius: 10px;">
             <tr><td valign="top" style="padding: 16px 18px 18px 18px;">
               <div class="feature-hex" style="color:#A78BFA; font-size:16px; line-height:1; margin:0 0 8px 0; font-weight:700; letter-spacing:0.04em">⬡</div>
-              <div class="feature-title" style="color:#fff; font-size:16px; font-weight:700; line-height:1.3; margin:0 0 6px 0">New Architect, Developer &amp; Firm pages</div>
-              <div class="feature-body" style="color:#B6B0C4; font-size:14px; line-height:1.55; margin:0">Every project, collaboration, and timeline behind the names shaping each skyline, gathered into one profile you can explore</div>
+              <div class="feature-title" style="color:#1e0a3c; font-size:16px; font-weight:700; line-height:1.3; margin:0 0 6px 0">New Architect, Developer &amp; Firm pages</div>
+              <div class="feature-body" style="color:#6b5b8a; font-size:14px; line-height:1.55; margin:0">Every project, collaboration, and timeline behind the names shaping each skyline, gathered into one profile you can explore</div>
             </td></tr>
           </table>
           <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 0 0 10px 0; background: rgba(167, 139, 250, 0.06); border: 1px solid rgba(167, 139, 250, 0.28); border-radius: 10px;">
             <tr><td valign="top" style="padding: 16px 18px 18px 18px;">
               <div class="feature-hex" style="color:#A78BFA; font-size:16px; line-height:1; margin:0 0 8px 0; font-weight:700; letter-spacing:0.04em">⬡</div>
-              <div class="feature-title" style="color:#fff; font-size:16px; font-weight:700; line-height:1.3; margin:0 0 6px 0">Atlas</div>
-              <div class="feature-body" style="color:#B6B0C4; font-size:14px; line-height:1.55; margin:0">Deeper data and timeline tracking</div>
+              <div class="feature-title" style="color:#1e0a3c; font-size:16px; font-weight:700; line-height:1.3; margin:0 0 6px 0">Atlas</div>
+              <div class="feature-body" style="color:#6b5b8a; font-size:14px; line-height:1.55; margin:0">Deeper data and timeline tracking</div>
             </td></tr>
           </table>
-          <div style="margin-top: 4px;"><a href="https://map.oftmw.com" class="cta-button" style="color:#0E0B17; display:inline-block; background-color:#A78BFA; padding:13px 24px; border-radius:8px; text-decoration:none; font-weight:700; font-size:14px; margin-top:22px; letter-spacing:0.01em" bgcolor="#A78BFA">Open the map →</a></div>
+          <div style="margin-top: 4px;"><a href="https://map.oftmw.com" class="cta-button" style="color:#fff; display:inline-block; background-color:#A78BFA; padding:13px 24px; border-radius:8px; text-decoration:none; font-weight:700; font-size:14px; margin-top:22px; letter-spacing:0.01em" bgcolor="#A78BFA">Open the map →</a></div>
         </div>
       </td></tr>
       <tr><td>
   <div class="ad-wrap" style="padding:24px 0; text-align:center" align="center">
-    <div class="ad-label force-muted-text" style="color:#555; font-size:10px; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:8px; font-weight:600">Sponsored</div>
-    <a href="https://linkly.link/2FdrC" target="_blank" rel="noopener" style="color:#1FDF67">
+    <div class="ad-label force-muted-text" style="color:#7d6f9c; font-size:10px; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:8px; font-weight:600">Sponsored</div>
+    <a href="https://linkly.link/2FdrC" target="_blank" rel="noopener" style="color:#1e0a3c">
       <img src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_76b3fd4a07644bc8841a69e5d57c835b~mv2.gif" alt="Humanaut Health" class="ad-banner" width="100%" style="display:block; max-width:600px; width:100%; height:auto; border-radius:8px; border:0; margin:0 auto" height="auto">
     </a>
   </div>
 </td></tr>
 
       <!-- FOOTER -->
-      <tr><td class="footer" style="padding:40px 0 20px 0; border-top:1px solid #262626; text-align:center" align="center">
-        <div class="footer-text force-muted-text" style="color:#888; font-size:13px; line-height:1.6">
+      <tr><td class="footer" style="padding:40px 0 20px 0; border-top:1px solid #d8cef0; text-align:center" align="center">
+        <div class="footer-text force-muted-text" style="color:#6b5b8a; font-size:13px; line-height:1.6">
           You're getting this from <strong>media@marketsoftomorrow.com</strong> because you subscribed at
-          <a href="https://www.oftmw.com" class="force-accent-text" style="color:#1FDF67">oftmw.com</a>.
+          <a href="https://www.oftmw.com" class="force-accent-text" style="color:#1e0a3c">oftmw.com</a>.
         </div>
-        <div class="footer-links" style="color:#888; font-size:12px; margin-top:12px">
-          <a href="https://map.oftmw.com" class="force-muted-text" style="color:#888; text-decoration:none">Map</a> ·
-          <a href="https://www.oftmw.com" class="force-muted-text" style="color:#888; text-decoration:none">Journal</a> ·
-          <a href="{{{RESEND_UNSUBSCRIBE_URL}}}" class="force-muted-text" style="color:#888; text-decoration:none">Unsubscribe</a>
+        <div class="footer-links" style="color:#6b5b8a; font-size:12px; margin-top:12px">
+          <a href="https://map.oftmw.com" class="force-muted-text" style="color:#6b5b8a; text-decoration:none">Map</a> ·
+          <a href="https://www.oftmw.com" class="force-muted-text" style="color:#6b5b8a; text-decoration:none">Journal</a> ·
+          <a href="{{{RESEND_UNSUBSCRIBE_URL}}}" class="force-muted-text" style="color:#6b5b8a; text-decoration:none">Unsubscribe</a>
         </div>
       </td></tr>
 
