@@ -26,7 +26,7 @@
   {%- endif %}
   <tr><td class="article-card-body">
     <a href="{{ a.link }}" class="article-card-title force-light-text" style="color: #1e0a3c;">{{ a.title }}</a>
-    <div class="article-card-summary force-muted-text">{{ a.summary }}</div>
+    {#- summary intentionally removed per design: title + "Read on TMW" only. -#}
     <div><a href="{{ a.link }}" class="read-more force-accent-text">Read on TMW →</a></div>
   </td></tr>
 </table>
@@ -121,7 +121,12 @@
     .two-col-spacer { display: none !important; }
     .ad-banner { width: 100% !important; }
     .grid-card-image-wrap { height: 180px !important; }
-    .grid-card-body { height: auto !important; min-height: 0 !important; }
+    /* On mobile, lock the body cell to a fixed min-height so cards with
+       1-line titles and cards with 2-line titles render the same size.
+       The previous `height: auto` made every card grow to its own
+       content, which is why "Glass House Boca Raton" (title wraps) was
+       visibly taller than "Ponce Park" (1-line title) in the same row. */
+    .grid-card-body { min-height: 130px !important; height: auto !important; }
     .grid-card { height: auto !important; }
   }
 
@@ -261,15 +266,14 @@
     background-position: center center;
     background-repeat: no-repeat;
   }
-  /* Body wrapper -- dark purple-tinted panel that visually connects to
-     the gif above (no top radius, no top border). The radial bg + hex
-     pattern echoes the website's promo card without a real image. */
+  /* Body wrapper -- no panel, just transparent. Feature tiles sit on
+     the page bg directly so the section reads as continuous with the
+     rest of the newsletter. (Was a white card with rounded bottom
+     corners that visually connected to the gif image above.) */
   .cta-block-connected {
-    background: linear-gradient(180deg, #ffffff 0%, #ffffff 100%);
-    border: 1px solid #d8cef0;
-    border-top: 0;
-    border-radius: 0 0 12px 12px;
-    padding: 26px 22px 28px 22px;
+    background: transparent;
+    border: 0;
+    padding: 0;
   }
   .cta-headline {
     font-size: 22px;
@@ -460,27 +464,23 @@
       <tr><td>
         <div class="section-header force-accent-text">What's new in the app</div>
 
-        <!-- Image with rounded top corners only, no bottom corners.
-             Was a div with background-image + MSO-conditional <img>,
-             which mobile Gmail (iOS + Android) strips silently --
-             leaving a 360px dark void where the gif should be. Now a
-             real <img> tag for ALL clients so the animation always
-             renders. width:100% on inline style + width="600" attr so
-             responsive scaling + Outlook's fixed-width sizing both
-             work. -->
-        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 0;">
+        <!-- Image FULLY rounded (was 12px 12px 0 0 only for the connected
+             white card below; per user feedback the section now blends
+             with the page bg, so the image rounds on all corners). -->
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 0 0 16px 0;">
           <tr><td style="padding: 0; line-height: 0; font-size: 0;">
             <a href="{{ site_url }}" style="display: block;">
-              <img src="{{ app_image_url }}" alt="Map of Tomorrow" width="600" style="display:block; width:100%; max-width:600px; height:auto; border:0; border-radius:12px 12px 0 0;" />
+              <img src="{{ app_image_url }}" alt="Map of Tomorrow" width="600" style="display:block; width:100%; max-width:600px; height:auto; border:0; border-radius:12px;" />
             </a>
           </td></tr>
         </table>
 
-        <!-- Connected body — purple feature tiles, single column (each
-             tile gets the full email width so titles + body breathe).
-             Per-tile height auto-sizes to its content now that they don't
-             share a row with a neighbor that has to match. -->
-        <div class="cta-block-connected force-dark-panel force-border" style="background-color: #ffffff;">
+        <!-- Body: feature tiles sit DIRECTLY on the page bg (no white
+             card panel). The section now reads as a continuation of the
+             newsletter -- same lavender backdrop as everything else --
+             instead of an awkward white-card-on-lavender block. Tiles
+             still carry their own subtle lavender wash + border. -->
+        <div class="cta-block-connected" style="background: transparent; border: 0; padding: 0;">
           <div class="cta-headline force-light-text">{{ app_updates.headline }}</div>
           {%- for t in app_updates.tiles %}
           <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 0 0 10px 0; background: rgba(167, 139, 250, 0.06); border: 1px solid rgba(167, 139, 250, 0.28); border-radius: 10px;">
