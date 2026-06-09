@@ -13469,7 +13469,7 @@
           ".tmw-il-toggle b{font-size:12.5px;font-weight:700;display:block}.tmw-il-toggle i{font-size:10.5px;color:rgba(255,255,255,.5);font-style:normal}" +
           ".tmw-il-legend{margin-top:11px;display:flex;flex-direction:column;gap:6px;font-size:11px;color:rgba(255,255,255,.62)}" +
           ".tmw-il-legend>div{display:flex;align-items:center;gap:8px}" +
-          ".tmw-il-legend .d{width:9px;height:9px;border-radius:50%;flex:0 0 auto;box-shadow:0 0 0 1.5px rgba(255,255,255,.45)}" +
+          ".tmw-il-legend .d{width:10px;height:10px;border-radius:50%;flex:0 0 auto;box-shadow:0 0 0 1px rgba(255,255,255,.18)}" +
           ".tmw-il-scrub{position:fixed;left:50%;transform:translateX(-50%);bottom:96px;z-index:2;width:min(440px,92vw);background:rgba(14,14,18,.88);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:8px 14px 10px;box-shadow:0 16px 44px rgba(0,0,0,.5);font-family:'Inter',sans-serif;color:#fff;transition:opacity .15s}" +
           ".tmw-il-scrub.tmw-il-hidden{opacity:0;pointer-events:none}" +
           // Mobile: when the project/filter drawer is open, fully remove the panel
@@ -13849,7 +13849,7 @@
         map.setPaintProperty('unclustered-point', 'circle-color', pinkPinExpr);
         map.setPaintProperty('unclustered-point', 'circle-radius', pinkRadiusExpr);
         // Selected pin = 100% solid pink even while What's Moving dims the field.
-        map.setPaintProperty('unclustered-point', 'circle-opacity', ['case', ['==', ['get','title'], selectedTitle], 1, (window._whatsMovingOn ? 0.5 : 0.92)]);
+        map.setPaintProperty('unclustered-point', 'circle-opacity', ['case', ['==', ['get','title'], selectedTitle], 1, (window._whatsMovingOn ? 0.5 : 1)]);
       }
       window._selectedPinTitle = selectedTitle;
 
@@ -14962,7 +14962,7 @@
             const _pinkRad = ['case', ['==', ['get', 'title'], _selTitle], 10, 4.5];
             map.setPaintProperty('unclustered-point', 'circle-color', _pinkPin);
             map.setPaintProperty('unclustered-point', 'circle-radius', _pinkRad);
-            map.setPaintProperty('unclustered-point', 'circle-opacity', ['case', ['==', ['get','title'], _selTitle], 1, (window._whatsMovingOn ? 0.5 : 0.92)]);
+            map.setPaintProperty('unclustered-point', 'circle-opacity', ['case', ['==', ['get','title'], _selTitle], 1, (window._whatsMovingOn ? 0.5 : 1)]);
             window._selectedPinTitle = _selTitle;
           }
         } catch(_) {}
@@ -15595,7 +15595,7 @@
         map.setPaintProperty('unclustered-point', 'circle-color', pinkPinExpr);
         map.setPaintProperty('unclustered-point', 'circle-radius', pinkRadiusExpr);
         // Selected pin = 100% solid pink even while What's Moving dims the field.
-        map.setPaintProperty('unclustered-point', 'circle-opacity', ['case', ['==', ['get','title'], selectedTitle], 1, (window._whatsMovingOn ? 0.5 : 0.92)]);
+        map.setPaintProperty('unclustered-point', 'circle-opacity', ['case', ['==', ['get','title'], selectedTitle], 1, (window._whatsMovingOn ? 0.5 : 1)]);
       }
       window._selectedPinTitle = selectedTitle;
 
