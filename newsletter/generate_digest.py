@@ -39,7 +39,7 @@ LOGO_URL      = "https://static.wixstatic.com/media/ca3b83_e80e88810ca942459bfaa
 # Fallback only — the real image is set per-issue via an `image:` line in
 # app_updates.md. Served from R2 (not the Worker) to avoid its request limit
 # on a mass send.
-APP_IMAGE_URL = "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/060f97cafdd8-june-2-newsletter.gif"
+APP_IMAGE_URL = "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/c67f4529eec9-map-of-tomorrow-june-9.gif"
 
 LOOKBACK_DAYS    = 7
 MIN_MAP_ITEMS    = 8   # Keep the "New on the map" grid full (4+4) so banner ads

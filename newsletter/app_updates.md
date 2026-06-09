@@ -1,5 +1,5 @@
 # TMW Intelligence is Here
-image: https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/060f97cafdd8-june-2-newsletter.gif
+image: https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/c67f4529eec9-map-of-tomorrow-june-9.gif
 
 • TMW Intelligence (Beta 3.1) — AI-powered timeline forecasts, site search, project research, and comparable-project analysis across every page
 
