@@ -12,7 +12,7 @@
 {%- endmacro -%}
 {#- Reusable article card macro -#}
 {%- macro render_article(a) -%}
-<table role="presentation" class="article-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#1A1325" style="background-color: #1A1325;">
+<table role="presentation" class="article-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#222222" style="background-color: #222222;">
   {%- if a.image %}
   <tr><td>
     <a href="{{ a.link }}" style="display: block;">
@@ -33,7 +33,7 @@
 {%- endmacro -%}
 {#- Reusable grid card macro for map items -#}
 {%- macro render_grid_card(p) -%}
-<table role="presentation" class="grid-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" height="300" bgcolor="#1A1325" style="background-color: #1A1325; height: 300px;">
+<table role="presentation" class="grid-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" height="300" bgcolor="#222222" style="background-color: #222222; height: 300px;">
   {%- if p.image %}
   <tr><td height="180" style="height: 180px;">
     <a href="{{ p.url }}" style="display: block;">
@@ -64,13 +64,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="color-scheme" content="dark only">
 <meta name="supported-color-schemes" content="dark only">
-<!-- <title> intentionally generic. Gmail web renders the <title>
-     tag as a visible heading at the very top of the email body, so
-     a dynamic "50 new projects on the map" title leaked through as a
-     stray line above the brand logo. The real email subject is set in
-     Resend per-send, and the OG/Twitter title tags below still carry
-     the dynamic subject for share previews. -->
-<title>Markets of Tomorrow</title>
+<!-- <title> intentionally OMITTED. Gmail (web + iOS + Android) renders
+     the <title> tag as a visible heading at the top of the email body,
+     so even a generic "Markets of Tomorrow" leaks as a stray line above
+     the brand logo. The real email subject is set in Resend per-send,
+     and the OG/Twitter title tags below still carry the dynamic subject
+     for share previews. -->
 
 <!-- Favicon (browser-tab icon for the web preview / archive) -->
 <link rel="icon" type="image/png" href="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_71f3cd2ef61049028b2daf4e2ff71d52~mv2.png">
@@ -95,27 +94,20 @@
     supported-color-schemes: dark only;
   }
 
-  /* TMW Intelligence purple palette (June 2026 trial). Mobile Gmail
-     forces a light theme on the user even when their device is in dark
-     mode -- the existing #1a1a1a near-black was getting auto-inverted
-     to an off-white card that lost all the TMW Intelligence feel. The
-     deep purple-black below (#0E0B17) keeps mobile Gmail's auto-light
-     conversion from kicking in (it's a strong PURPLE, not a gray) AND
-     reads as the TMW Intelligence theme on desktop dark + web. */
   @media (prefers-color-scheme: dark) {
-    .force-dark-bg { background-color: #0E0B17 !important; }
-    .force-dark-panel { background-color: #1A1325 !important; }
+    .force-dark-bg { background-color: #1a1a1a !important; }
+    .force-dark-panel { background-color: #222222 !important; }
     .force-light-text { color: #ffffff !important; }
-    .force-muted-text { color: #9c95ad !important; }
+    .force-muted-text { color: #888888 !important; }
     .force-accent-text { color: #1FDF67 !important; }
-    .force-border { border-color: rgba(167,139,250,.18) !important; }
-    body, .wrapper { background-color: #0E0B17 !important; }
+    .force-border { border-color: #262626 !important; }
+    body, .wrapper { background-color: #1a1a1a !important; }
   }
 
   body {
     margin: 0;
     padding: 0;
-    background-color: #0E0B17;
+    background-color: #1a1a1a;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   }
 
@@ -137,21 +129,11 @@
     display: none;
     max-height: 0;
     overflow: hidden;
-    color: #0E0B17;
+    color: #1a1a1a;
     visibility: hidden;
   }
-  .wrapper { background-color: #0E0B17; width: 100%; }
-  /* TMW Intelligence glow on the container: an outer purple aura plus
-     a subtle INSET highlight at the top. Gmail web + Outlook.com
-     render box-shadow well; Apple Mail honors it; mobile Gmail strips
-     box-shadow but the purple bg already carries the dark feel, so
-     even the stripped fallback reads as "TMW Intelligence theme" not
-     "auto-light email". */
-  .container {
-    max-width: 600px; width: 100%;
-    border-radius: 16px;
-    box-shadow: 0 0 64px rgba(167,139,250,.32), inset 0 1px 0 rgba(167,139,250,.18);
-  }
+  .wrapper { background-color: #1a1a1a; width: 100%; }
+  .container { max-width: 600px; width: 100%; }
 
   .hero { padding: 0 0 24px 0; text-align: center; }
   .hero img { display: inline-block; max-width: 200px; height: auto; border: 0; }
@@ -170,13 +152,13 @@
     letter-spacing: 1.5px;
     text-transform: uppercase;
     padding: 32px 0 16px 0;
-    border-top: 1px solid #2D2440;
+    border-top: 1px solid #262626;
   }
 
   /* Article cards (full-width, single column) */
   .article-card {
-    background-color: #1A1325;
-    border: 1px solid #2D2440;
+    background-color: #222222;
+    border: 1px solid #262626;
     border-radius: 12px;
     margin: 0 0 16px 0;
   }
@@ -185,7 +167,7 @@
     height: 240px;
     overflow: hidden;
     border-radius: 12px 12px 0 0;
-    background-color: #2D2440;
+    background-color: #262626;
     background-size: cover;
     background-position: center center;
     background-repeat: no-repeat;
@@ -216,8 +198,8 @@
 
   /* 2-column grid cards — TIGHTER, fixed height */
   .grid-card {
-    background-color: #1A1325;
-    border: 1px solid #2D2440;
+    background-color: #222222;
+    border: 1px solid #262626;
     border-radius: 12px;
     height: 300px;
   }
@@ -226,7 +208,7 @@
     height: 180px;
     overflow: hidden;
     border-radius: 12px 12px 0 0;
-    background-color: #2D2440;
+    background-color: #262626;
     background-size: cover;
     background-position: center center;
     background-repeat: no-repeat;
@@ -361,7 +343,7 @@
 
   .footer {
     padding: 40px 0 20px 0;
-    border-top: 1px solid #2D2440;
+    border-top: 1px solid #262626;
     text-align: center;
   }
   .footer-text { color: #888888; font-size: 13px; line-height: 1.6; }
@@ -370,21 +352,14 @@
   a { color: #1FDF67; }
 </style>
 </head>
-<body class="force-dark-bg" style="margin: 0; padding: 0; background-color: #0E0B17;">
+<body class="force-dark-bg" style="margin: 0; padding: 0; background-color: #1a1a1a;">
 
 <div class="preheader">{{ preheader }}</div>
 <div style="display: none; max-height: 0; overflow: hidden;">&#847;&zwnj;&nbsp;&#847; &#847;&zwnj;&nbsp;&#847; &#847;&zwnj;&nbsp;&#847; &#847;&zwnj;&nbsp;&#847; &#847;&zwnj;&nbsp;&#847; &#847;&zwnj;&nbsp;&#847; &#847;&zwnj;&nbsp;&#847;</div>
 
-<table role="presentation" class="wrapper force-dark-bg" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#0E0B17" style="background-color: #0E0B17;">
-  <tr><td align="center" style="padding: 32px 16px; background-color: #0E0B17; background-image: radial-gradient(120% 60% at 50% 0%, rgba(167,139,250,0.22) 0%, rgba(167,139,250,0.08) 35%, rgba(167,139,250,0) 70%);">
-    <!-- Outer purple aura: a 1px-thick purple ring with bg of slightly
-         lighter purple sits behind the container. Combined with the
-         radial gradient on the wrapper td above, this produces the TMW
-         Intelligence "glow" effect even on clients that strip box-shadow.
-         The actual container nests inside this wrapper. -->
-    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" style="background-color: #0E0B17; border: 1px solid rgba(167,139,250,0.20); border-radius: 18px;">
-    <tr><td style="padding: 0; background-color: #0E0B17; border-radius: 18px;">
-    <table role="presentation" class="container" cellpadding="0" cellspacing="0" border="0" width="600" style="background-color: #0E0B17;">
+<table role="presentation" class="wrapper force-dark-bg" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#1a1a1a" style="background-color: #1a1a1a;">
+  <tr><td align="center" style="padding: 32px 16px; background-color: #1a1a1a;">
+    <table role="presentation" class="container" cellpadding="0" cellspacing="0" border="0" width="600">
 
       <!-- HERO -->
       <tr><td class="hero">
@@ -485,15 +460,18 @@
       <tr><td>
         <div class="section-header force-accent-text">What's new in the app</div>
 
-        <!-- Image with rounded top corners only, no bottom corners -->
+        <!-- Image with rounded top corners only, no bottom corners.
+             Was a div with background-image + MSO-conditional <img>,
+             which mobile Gmail (iOS + Android) strips silently --
+             leaving a 360px dark void where the gif should be. Now a
+             real <img> tag for ALL clients so the animation always
+             renders. width:100% on inline style + width="600" attr so
+             responsive scaling + Outlook's fixed-width sizing both
+             work. -->
         <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 0;">
           <tr><td style="padding: 0; line-height: 0; font-size: 0;">
             <a href="{{ site_url }}" style="display: block;">
-              <div class="app-image-wrap" style="background-image: url('{{ app_image_url }}');">
-                <!--[if mso]>
-                <img src="{{ app_image_url }}" alt="Map of Tomorrow" width="600" height="360" style="display:block;width:100%;height:360px;border:0;" />
-                <![endif]-->
-              </div>
+              <img src="{{ app_image_url }}" alt="Map of Tomorrow" width="600" style="display:block; width:100%; max-width:600px; height:auto; border:0; border-radius:12px 12px 0 0;" />
             </a>
           </td></tr>
         </table>
@@ -537,8 +515,6 @@
         </div>
       </td></tr>
 
-    </table>
-    </td></tr>
     </table>
   </td></tr>
 </table>
