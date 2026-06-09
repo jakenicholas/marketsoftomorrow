@@ -3,7 +3,7 @@
 {%- macro render_ad(ad) -%}
 <tr><td>
   <div class="ad-wrap">
-    <div class="ad-label force-muted-text" style="color: #7d6f9c;">Sponsored</div>
+    <div class="ad-label force-muted-text" style="color: #555555;">Sponsored</div>
     <a href="{{ ad.click_url }}" target="_blank" rel="noopener">
       <img src="{{ ad.image_url }}" alt="{{ ad.alt_text }}" class="ad-banner" width="600" style="max-width:600px;width:100%;height:auto;border:0;border-radius:8px;display:block;margin:0 auto;">
     </a>
@@ -12,7 +12,7 @@
 {%- endmacro -%}
 {#- Reusable article card macro -#}
 {%- macro render_article(a) -%}
-<table role="presentation" class="article-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#ffffff" style="background-color: #ffffff;">
+<table role="presentation" class="article-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#222222" style="background-color: #222222;">
   {%- if a.image %}
   <tr><td>
     <a href="{{ a.link }}" style="display: block;">
@@ -25,7 +25,7 @@
   </td></tr>
   {%- endif %}
   <tr><td class="article-card-body">
-    <a href="{{ a.link }}" class="article-card-title force-light-text" style="color: #1e0a3c;">{{ a.title }}</a>
+    <a href="{{ a.link }}" class="article-card-title force-light-text" style="color: #ffffff;">{{ a.title }}</a>
     <div class="article-card-summary force-muted-text">{{ a.summary }}</div>
     <div><a href="{{ a.link }}" class="read-more force-accent-text">Read on TMW →</a></div>
   </td></tr>
@@ -33,7 +33,7 @@
 {%- endmacro -%}
 {#- Reusable grid card macro for map items -#}
 {%- macro render_grid_card(p) -%}
-<table role="presentation" class="grid-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" height="300" bgcolor="#ffffff" style="background-color: #ffffff; height: 300px;">
+<table role="presentation" class="grid-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" height="300" bgcolor="#222222" style="background-color: #222222; height: 300px;">
   {%- if p.image %}
   <tr><td height="180" style="height: 180px;">
     <a href="{{ p.url }}" style="display: block;">
@@ -48,12 +48,12 @@
   <tr><td class="grid-card-body" valign="top" height="120" style="height: 120px;">
     <div class="stage-pill" style="color: {{ p.stage_color }};">
       {%- if p.from_stage -%}
-        <span style="color: #6b5b8a;">{{ p.from_stage }} → </span>{{ p.to_stage }}
+        <span style="color: #888888;">{{ p.from_stage }} → </span>{{ p.to_stage }}
       {%- else -%}
         {{ p.stage_label }}
       {%- endif -%}
     </div>
-    <a href="{{ p.url }}" class="grid-card-title force-light-text" style="color: #1e0a3c;">{{ p.title }}</a>
+    <a href="{{ p.url }}" class="grid-card-title force-light-text" style="color: #ffffff;">{{ p.title }}</a>
     <div class="grid-card-meta force-muted-text">{{ p.city }}</div>
   </td></tr>
 </table>
@@ -62,8 +62,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="color-scheme" content="light only">
-<meta name="supported-color-schemes" content="light only">
+<meta name="color-scheme" content="dark only">
+<meta name="supported-color-schemes" content="dark only">
 <!-- <title> intentionally OMITTED. Gmail (web + iOS + Android) renders
      the <title> tag as a visible heading at the top of the email body,
      so even a generic "Markets of Tomorrow" leaks as a stray line above
@@ -90,24 +90,24 @@
 
 <style>
   :root {
-    color-scheme: light only;
-    supported-color-schemes: light only;
+    color-scheme: dark only;
+    supported-color-schemes: dark only;
   }
 
   @media (prefers-color-scheme: dark) {
-    .force-dark-bg { background-color: #ede9fe !important; }
-    .force-dark-panel { background-color: #ffffff !important; }
-    .force-light-text { color: #1e0a3c !important; }
-    .force-muted-text { color: #6b5b8a !important; }
-    .force-accent-text { color: #1e0a3c !important; }
-    .force-border { border-color: #d8cef0 !important; }
-    body, .wrapper { background-color: #ede9fe !important; }
+    .force-dark-bg { background-color: #1a1a1a !important; }
+    .force-dark-panel { background-color: #222222 !important; }
+    .force-light-text { color: #ffffff !important; }
+    .force-muted-text { color: #888888 !important; }
+    .force-accent-text { color: #1FDF67 !important; }
+    .force-border { border-color: #262626 !important; }
+    body, .wrapper { background-color: #1a1a1a !important; }
   }
 
   body {
     margin: 0;
     padding: 0;
-    background-color: #ede9fe;
+    background-color: #1a1a1a;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   }
 
@@ -129,16 +129,16 @@
     display: none;
     max-height: 0;
     overflow: hidden;
-    color: #ede9fe;
+    color: #1a1a1a;
     visibility: hidden;
   }
-  .wrapper { background-color: #ede9fe; width: 100%; }
+  .wrapper { background-color: #1a1a1a; width: 100%; }
   .container { max-width: 600px; width: 100%; }
 
   .hero { padding: 0 0 24px 0; text-align: center; }
   .hero img { display: inline-block; max-width: 200px; height: auto; border: 0; }
   .hero-label {
-    color: #6b5b8a;
+    color: #888888;
     font-size: 12px;
     letter-spacing: 1.5px;
     text-transform: uppercase;
@@ -146,19 +146,19 @@
     font-weight: 600;
   }
   .section-header {
-    color: #1e0a3c;
+    color: #1FDF67;
     font-size: 11px;
     font-weight: 700;
     letter-spacing: 1.5px;
     text-transform: uppercase;
     padding: 32px 0 16px 0;
-    border-top: 1px solid #d8cef0;
+    border-top: 1px solid #262626;
   }
 
   /* Article cards (full-width, single column) */
   .article-card {
-    background-color: #ffffff;
-    border: 1px solid #d8cef0;
+    background-color: #222222;
+    border: 1px solid #262626;
     border-radius: 12px;
     margin: 0 0 16px 0;
   }
@@ -167,7 +167,7 @@
     height: 240px;
     overflow: hidden;
     border-radius: 12px 12px 0 0;
-    background-color: #d8cef0;
+    background-color: #262626;
     background-size: cover;
     background-position: center center;
     background-repeat: no-repeat;
@@ -177,18 +177,18 @@
     font-size: 18px;
     font-weight: 700;
     line-height: 1.3;
-    color: #1e0a3c;
+    color: #ffffff;
     text-decoration: none;
     margin: 0 0 6px 0;
     display: block;
   }
   .article-card-summary {
-    color: #6b5b8a;
+    color: #888888;
     font-size: 14px;
     line-height: 1.5;
   }
   .read-more {
-    color: #1e0a3c;
+    color: #1FDF67;
     text-decoration: none;
     font-size: 13px;
     font-weight: 600;
@@ -198,8 +198,8 @@
 
   /* 2-column grid cards — TIGHTER, fixed height */
   .grid-card {
-    background-color: #ffffff;
-    border: 1px solid #d8cef0;
+    background-color: #222222;
+    border: 1px solid #262626;
     border-radius: 12px;
     height: 300px;
   }
@@ -208,7 +208,7 @@
     height: 180px;
     overflow: hidden;
     border-radius: 12px 12px 0 0;
-    background-color: #d8cef0;
+    background-color: #262626;
     background-size: cover;
     background-position: center center;
     background-repeat: no-repeat;
@@ -223,7 +223,7 @@
     font-size: 15px;
     font-weight: 700;
     line-height: 1.3;
-    color: #1e0a3c;
+    color: #ffffff;
     text-decoration: none;
     margin: 0 0 4px 0;
     display: -webkit-box;
@@ -232,7 +232,7 @@
     overflow: hidden;
   }
   .grid-card-meta {
-    color: #6b5b8a;
+    color: #888888;
     font-size: 12px;
     white-space: nowrap;
     overflow: hidden;
@@ -256,7 +256,7 @@
     height: 360px;
     overflow: hidden;
     border-radius: 12px 12px 0 0;
-    background-color: #ede9fe;
+    background-color: #0F0A18;
     background-size: contain;
     background-position: center center;
     background-repeat: no-repeat;
@@ -265,8 +265,8 @@
      the gif above (no top radius, no top border). The radial bg + hex
      pattern echoes the website's promo card without a real image. */
   .cta-block-connected {
-    background: linear-gradient(180deg, #ffffff 0%, #ffffff 100%);
-    border: 1px solid #d8cef0;
+    background: linear-gradient(180deg, #14101E 0%, #0E0B17 100%);
+    border: 1px solid #2D2440;
     border-top: 0;
     border-radius: 0 0 12px 12px;
     padding: 26px 22px 28px 22px;
@@ -274,7 +274,7 @@
   .cta-headline {
     font-size: 22px;
     font-weight: 800;
-    color: #1e0a3c;
+    color: #ffffff;
     margin: 0 0 18px 0;
     letter-spacing: -0.01em;
   }
@@ -297,14 +297,14 @@
     letter-spacing: 0.04em;
   }
   .feature-title {
-    color: #1e0a3c;
+    color: #ffffff;
     font-size: 15px;
     font-weight: 700;
     line-height: 1.3;
     margin: 0 0 6px 0;
   }
   .feature-body {
-    color: #6b5b8a;
+    color: #B6B0C4;
     font-size: 13px;
     line-height: 1.5;
     margin: 0;
@@ -312,7 +312,7 @@
   .cta-button {
     display: inline-block;
     background-color: #A78BFA;
-    color: #ffffff;
+    color: #0E0B17;
     padding: 13px 24px;
     border-radius: 8px;
     text-decoration: none;
@@ -325,7 +325,7 @@
   /* Ad banner */
   .ad-wrap { padding: 24px 0; text-align: center; }
   .ad-label {
-    color: #7d6f9c;
+    color: #555555;
     font-size: 10px;
     letter-spacing: 1.5px;
     text-transform: uppercase;
@@ -343,22 +343,22 @@
 
   .footer {
     padding: 40px 0 20px 0;
-    border-top: 1px solid #d8cef0;
+    border-top: 1px solid #262626;
     text-align: center;
   }
-  .footer-text { color: #6b5b8a; font-size: 13px; line-height: 1.6; }
-  .footer-links { color: #6b5b8a; font-size: 12px; margin-top: 12px; }
-  .footer-links a { color: #6b5b8a; text-decoration: none; }
-  a { color: #1e0a3c; }
+  .footer-text { color: #888888; font-size: 13px; line-height: 1.6; }
+  .footer-links { color: #888888; font-size: 12px; margin-top: 12px; }
+  .footer-links a { color: #888888; text-decoration: none; }
+  a { color: #1FDF67; }
 </style>
 </head>
-<body class="force-dark-bg" style="margin: 0; padding: 0; background-color: #ede9fe;">
+<body class="force-dark-bg" style="margin: 0; padding: 0; background-color: #1a1a1a;">
 
 <div class="preheader">{{ preheader }}</div>
 <div style="display: none; max-height: 0; overflow: hidden;">&#847;&zwnj;&nbsp;&#847; &#847;&zwnj;&nbsp;&#847; &#847;&zwnj;&nbsp;&#847; &#847;&zwnj;&nbsp;&#847; &#847;&zwnj;&nbsp;&#847; &#847;&zwnj;&nbsp;&#847; &#847;&zwnj;&nbsp;&#847;</div>
 
-<table role="presentation" class="wrapper force-dark-bg" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#ede9fe" style="background-color: #ede9fe;">
-  <tr><td align="center" style="padding: 32px 16px; background-color: #ede9fe;">
+<table role="presentation" class="wrapper force-dark-bg" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#1a1a1a" style="background-color: #1a1a1a;">
+  <tr><td align="center" style="padding: 32px 16px; background-color: #1a1a1a;">
     <table role="presentation" class="container" cellpadding="0" cellspacing="0" border="0" width="600">
 
       <!-- HERO -->
@@ -480,15 +480,15 @@
              tile gets the full email width so titles + body breathe).
              Per-tile height auto-sizes to its content now that they don't
              share a row with a neighbor that has to match. -->
-        <div class="cta-block-connected force-dark-panel force-border" style="background-color: #ffffff;">
+        <div class="cta-block-connected force-dark-panel force-border" style="background-color: #0E0B17;">
           <div class="cta-headline force-light-text">{{ app_updates.headline }}</div>
           {%- for t in app_updates.tiles %}
           <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 0 0 10px 0; background: rgba(167, 139, 250, 0.06); border: 1px solid rgba(167, 139, 250, 0.28); border-radius: 10px;">
             <tr><td valign="top" style="padding: 16px 18px 18px 18px;">
               <div class="feature-hex" style="color:#A78BFA;font-size:16px;font-weight:700;letter-spacing:0.04em;line-height:1;margin:0 0 8px 0;">⬡</div>
-              <div class="feature-title" style="color:#1e0a3c;font-size:16px;font-weight:700;line-height:1.3;margin:0 0 6px 0;">{{ t.title }}</div>
+              <div class="feature-title" style="color:#ffffff;font-size:16px;font-weight:700;line-height:1.3;margin:0 0 6px 0;">{{ t.title }}</div>
               {%- if t.body %}
-              <div class="feature-body" style="color:#6b5b8a;font-size:14px;line-height:1.55;margin:0;">{{ t.body }}</div>
+              <div class="feature-body" style="color:#B6B0C4;font-size:14px;line-height:1.55;margin:0;">{{ t.body }}</div>
               {%- endif %}
             </td></tr>
           </table>
