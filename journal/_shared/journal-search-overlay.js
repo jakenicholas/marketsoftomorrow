@@ -1645,8 +1645,33 @@
     // When there's only one match (e.g. "pine crest school"), the hero
     // IS the result -- the rows section gets hidden so we don't show
     // an awkward empty "0 projects" header.
-    var heroProject = rows.length ? rows[0] : null;
-    var restRows = rows.length > 1 ? rows.slice(1) : [];
+    //
+    // Hero picker: when a TYPE filter is active, scan rows in their
+    // already-sorted order and prefer the FIRST one whose PreferredType
+    // (the editor's PRIMARY type) actually matches the type filter --
+    // not just its multi-tag ProjectType list. This is what keeps an
+    // Altamira-by-Lennar (ProjectType="Residences, Golf",
+    // PreferredType="Residences") from grabbing the "Top match" slot on
+    // a "golf course openings" query even though it's the most recently
+    // updated row. Falls back to rows[0] when no row's PreferredType
+    // matches (e.g. every match is a mixed-use project) so we never
+    // silently show NO hero.
+    function pickHero(rs, sm) {
+      if (!rs.length) return null;
+      if (sm && sm.types && sm.types.size) {
+        var typeList = [];
+        sm.types.forEach(function (t) { typeList.push(String(t).toLowerCase()); });
+        for (var i = 0; i < rs.length; i++) {
+          var pt = String(rs[i].PreferredType || '').toLowerCase();
+          for (var j = 0; j < typeList.length; j++) {
+            if (pt.indexOf(typeList[j]) >= 0) return rs[i];
+          }
+        }
+      }
+      return rs[0];
+    }
+    var heroProject = pickHero(rows, s);
+    var restRows = rows.filter(function (r) { return r !== heroProject; });
     if (heroProject) {
       slotHero.innerHTML = '<div class="tmw-ov-sec" data-cat="projects">' + renderProjectHero(heroProject) + '</div>';
     } else {

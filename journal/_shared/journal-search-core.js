@@ -481,6 +481,14 @@
         if (!hasAny) return false;
       }
       if (s.types.size) {
+        // Filter is intentionally broad here: ProjectType is the multi-tag
+        // list, so a mixed-use project like Nauka (Residences + Golf +
+        // Hotel) IS a legit hit for a "golf course" query. The HERO
+        // selection in the overlay handles the false-positive case
+        // separately by preferring candidates whose PreferredType (the
+        // editor's PRIMARY type) actually matches the type filter --
+        // that's what keeps an Altamira-style residential community
+        // tagged "Residences, Golf" from grabbing the top slot.
         var pt = norm(firstField(p, ['ProjectType', 'PreferredType']));
         var typeMatch = false;
         s.types.forEach(function (t) { if (pt.indexOf(norm(t)) >= 0) typeMatch = true; });
