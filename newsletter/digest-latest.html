@@ -62,7 +62,12 @@
     .two-col-spacer { display: none !important; }
     .ad-banner { width: 100% !important; }
     .grid-card-image-wrap { height: 180px !important; }
-    .grid-card-body { height: auto !important; min-height: 0 !important; }
+    /* On mobile, lock the body cell to a fixed min-height so cards with
+       1-line titles and cards with 2-line titles render the same size.
+       The previous `height: auto` made every card grow to its own
+       content, which is why "Glass House Boca Raton" (title wraps) was
+       visibly taller than "Ponce Park" (1-line title) in the same row. */
+    .grid-card-body { min-height: 130px !important; height: auto !important; }
     .grid-card { height: auto !important; }
   }
 
@@ -202,15 +207,14 @@
     background-position: center center;
     background-repeat: no-repeat;
   }
-  /* Body wrapper -- dark purple-tinted panel that visually connects to
-     the gif above (no top radius, no top border). The radial bg + hex
-     pattern echoes the website's promo card without a real image. */
+  /* Body wrapper -- no panel, just transparent. Feature tiles sit on
+     the page bg directly so the section reads as continuous with the
+     rest of the newsletter. (Was a white card with rounded bottom
+     corners that visually connected to the gif image above.) */
   .cta-block-connected {
-    background: linear-gradient(180deg, #ffffff 0%, #ffffff 100%);
-    border: 1px solid #d8cef0;
-    border-top: 0;
-    border-radius: 0 0 12px 12px;
-    padding: 26px 22px 28px 22px;
+    background: transparent;
+    border: 0;
+    padding: 0;
   }
   .cta-headline {
     font-size: 22px;
@@ -330,9 +334,7 @@
     </a>
   </td></tr>
   <tr><td class="article-card-body" style="padding:18px 20px 20px 20px">
-    <a href="https://www.oftmw.com/post/inside-harmony-the-brazilian-craftsmanship-furniture-house-quietly-outfitting-south-florida-s-luxury-interiors/" class="article-card-title force-light-text" style="color:#1e0a3c; font-size:18px; font-weight:700; line-height:1.3; text-decoration:none; margin:0 0 6px 0; display:block">Inside Harmony, the Brazilian-craftsmanship furniture house quietly outfitting South Florida's luxury interiors</a>
-    <div class="article-card-summary force-muted-text" style="color:#6b5b8a; font-size:14px; line-height:1.5">Harmony Luxury Furniture brings Brazilian craft tradition and semi-custom design to South Florida from showrooms in Miami, Delray Beach, and West Palm Beach.</div>
-    <div><a href="https://www.oftmw.com/post/inside-harmony-the-brazilian-craftsmanship-furniture-house-quietly-outfitting-south-florida-s-luxury-interiors/" class="read-more force-accent-text" style="color:#1e0a3c; text-decoration:none; font-size:13px; font-weight:600; margin-top:10px; display:inline-block">Read on TMW →</a></div>
+    <a href="https://www.oftmw.com/post/inside-harmony-the-brazilian-craftsmanship-furniture-house-quietly-outfitting-south-florida-s-luxury-interiors/" class="article-card-title force-light-text" style="color:#1e0a3c; font-size:18px; font-weight:700; line-height:1.3; text-decoration:none; margin:0 0 6px 0; display:block">Inside Harmony, the Brazilian-craftsmanship furniture house quietly outfitting South Florida's luxury interiors</a><div><a href="https://www.oftmw.com/post/inside-harmony-the-brazilian-craftsmanship-furniture-house-quietly-outfitting-south-florida-s-luxury-interiors/" class="read-more force-accent-text" style="color:#1e0a3c; text-decoration:none; font-size:13px; font-weight:600; margin-top:10px; display:inline-block">Read on TMW →</a></div>
   </td></tr>
 </table>
         <table role="presentation" class="article-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#ffffff" style="background-color:#fff; border:1px solid #d8cef0; border-radius:12px; margin:0 0 16px 0">
@@ -346,9 +348,7 @@
     </a>
   </td></tr>
   <tr><td class="article-card-body" style="padding:18px 20px 20px 20px">
-    <a href="https://www.oftmw.com/post/the-paris-born-group-behind-pink-mamma-is-opening-its-first-u-s-restaurant-in-juno-beach/" class="article-card-title force-light-text" style="color:#1e0a3c; font-size:18px; font-weight:700; line-height:1.3; text-decoration:none; margin:0 0 6px 0; display:block">The group behind Pink Mamma, Carlotta, and Gloria Osteria is opening its first U.S. restaurant in Juno Beach</a>
-    <div class="article-card-summary force-muted-text" style="color:#6b5b8a; font-size:14px; line-height:1.5">Big Mamma Group — the Paris-born collective behind Pink Mamma, Gloria Osteria, and Carlotta — is opening its first U.S. restaurant in Juno Beach in late 2026.</div>
-    <div><a href="https://www.oftmw.com/post/the-paris-born-group-behind-pink-mamma-is-opening-its-first-u-s-restaurant-in-juno-beach/" class="read-more force-accent-text" style="color:#1e0a3c; text-decoration:none; font-size:13px; font-weight:600; margin-top:10px; display:inline-block">Read on TMW →</a></div>
+    <a href="https://www.oftmw.com/post/the-paris-born-group-behind-pink-mamma-is-opening-its-first-u-s-restaurant-in-juno-beach/" class="article-card-title force-light-text" style="color:#1e0a3c; font-size:18px; font-weight:700; line-height:1.3; text-decoration:none; margin:0 0 6px 0; display:block">The group behind Pink Mamma, Carlotta, and Gloria Osteria is opening its first U.S. restaurant in Juno Beach</a><div><a href="https://www.oftmw.com/post/the-paris-born-group-behind-pink-mamma-is-opening-its-first-u-s-restaurant-in-juno-beach/" class="read-more force-accent-text" style="color:#1e0a3c; text-decoration:none; font-size:13px; font-weight:600; margin-top:10px; display:inline-block">Read on TMW →</a></div>
   </td></tr>
 </table>
         <table role="presentation" class="article-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#ffffff" style="background-color:#fff; border:1px solid #d8cef0; border-radius:12px; margin:0 0 16px 0">
@@ -362,9 +362,7 @@
     </a>
   </td></tr>
   <tr><td class="article-card-body" style="padding:18px 20px 20px 20px">
-    <a href="https://www.oftmw.com/post/brazilian-football-legend-roberto-carlos-buys-two-units-at-fort-lauderdale-s-first-viceroy-tower/" class="article-card-title force-light-text" style="color:#1e0a3c; font-size:18px; font-weight:700; line-height:1.3; text-decoration:none; margin:0 0 6px 0; display:block">Brazilian football legend Roberto Carlos buys two units at Fort Lauderdale's first Viceroy tower</a>
-    <div class="article-card-summary force-muted-text" style="color:#6b5b8a; font-size:14px; line-height:1.5">Brazilian football legend Roberto Carlos has purchased two residences at Naftali Group's Viceroy Residences Fort Lauderdale, the city's first Viceroy-branded to…</div>
-    <div><a href="https://www.oftmw.com/post/brazilian-football-legend-roberto-carlos-buys-two-units-at-fort-lauderdale-s-first-viceroy-tower/" class="read-more force-accent-text" style="color:#1e0a3c; text-decoration:none; font-size:13px; font-weight:600; margin-top:10px; display:inline-block">Read on TMW →</a></div>
+    <a href="https://www.oftmw.com/post/brazilian-football-legend-roberto-carlos-buys-two-units-at-fort-lauderdale-s-first-viceroy-tower/" class="article-card-title force-light-text" style="color:#1e0a3c; font-size:18px; font-weight:700; line-height:1.3; text-decoration:none; margin:0 0 6px 0; display:block">Brazilian football legend Roberto Carlos buys two units at Fort Lauderdale's first Viceroy tower</a><div><a href="https://www.oftmw.com/post/brazilian-football-legend-roberto-carlos-buys-two-units-at-fort-lauderdale-s-first-viceroy-tower/" class="read-more force-accent-text" style="color:#1e0a3c; text-decoration:none; font-size:13px; font-weight:600; margin-top:10px; display:inline-block">Read on TMW →</a></div>
   </td></tr>
 </table>
         <table role="presentation" class="article-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#ffffff" style="background-color:#fff; border:1px solid #d8cef0; border-radius:12px; margin:0 0 16px 0">
@@ -378,9 +376,7 @@
     </a>
   </td></tr>
   <tr><td class="article-card-body" style="padding:18px 20px 20px 20px">
-    <a href="https://www.oftmw.com/post/inside-traphouse-the-invitation-only-gym-taking-over-west-palm-beach/" class="article-card-title force-light-text" style="color:#1e0a3c; font-size:18px; font-weight:700; line-height:1.3; text-decoration:none; margin:0 0 6px 0; display:block">Inside TRAPHOUSE, the invitation-only gym taking over West Palm Beach</a>
-    <div class="article-card-summary force-muted-text" style="color:#6b5b8a; font-size:14px; line-height:1.5">Inside TRAPHOUSE, the invitation-only West Palm Beach training, recovery, and performance house capped at 300 members, with a new $250-a-month class membership …</div>
-    <div><a href="https://www.oftmw.com/post/inside-traphouse-the-invitation-only-gym-taking-over-west-palm-beach/" class="read-more force-accent-text" style="color:#1e0a3c; text-decoration:none; font-size:13px; font-weight:600; margin-top:10px; display:inline-block">Read on TMW →</a></div>
+    <a href="https://www.oftmw.com/post/inside-traphouse-the-invitation-only-gym-taking-over-west-palm-beach/" class="article-card-title force-light-text" style="color:#1e0a3c; font-size:18px; font-weight:700; line-height:1.3; text-decoration:none; margin:0 0 6px 0; display:block">Inside TRAPHOUSE, the invitation-only gym taking over West Palm Beach</a><div><a href="https://www.oftmw.com/post/inside-traphouse-the-invitation-only-gym-taking-over-west-palm-beach/" class="read-more force-accent-text" style="color:#1e0a3c; text-decoration:none; font-size:13px; font-weight:600; margin-top:10px; display:inline-block">Read on TMW →</a></div>
   </td></tr>
 </table>
         <table role="presentation" class="article-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#ffffff" style="background-color:#fff; border:1px solid #d8cef0; border-radius:12px; margin:0 0 16px 0">
@@ -394,9 +390,7 @@
     </a>
   </td></tr>
   <tr><td class="article-card-body" style="padding:18px 20px 20px 20px">
-    <a href="https://www.oftmw.com/post/inside-dutchman-s-pipe-the-ultra-private-jack-nicklaus-club-bringing-no-tee-time-golf-to-the-heart-of-west-palm-beach/" class="article-card-title force-light-text" style="color:#1e0a3c; font-size:18px; font-weight:700; line-height:1.3; text-decoration:none; margin:0 0 6px 0; display:block">Inside Dutchman's Pipe, the ultra-private Jack Nicklaus club in West Palm Beach</a>
-    <div class="article-card-summary force-muted-text" style="color:#6b5b8a; font-size:14px; line-height:1.5">Inside the gates of a 220-acre enclave east of I-95, there are no tee times. At Dutchman's Pipe , the new ultra-private club in the heart of West</div>
-    <div><a href="https://www.oftmw.com/post/inside-dutchman-s-pipe-the-ultra-private-jack-nicklaus-club-bringing-no-tee-time-golf-to-the-heart-of-west-palm-beach/" class="read-more force-accent-text" style="color:#1e0a3c; text-decoration:none; font-size:13px; font-weight:600; margin-top:10px; display:inline-block">Read on TMW →</a></div>
+    <a href="https://www.oftmw.com/post/inside-dutchman-s-pipe-the-ultra-private-jack-nicklaus-club-bringing-no-tee-time-golf-to-the-heart-of-west-palm-beach/" class="article-card-title force-light-text" style="color:#1e0a3c; font-size:18px; font-weight:700; line-height:1.3; text-decoration:none; margin:0 0 6px 0; display:block">Inside Dutchman's Pipe, the ultra-private Jack Nicklaus club in West Palm Beach</a><div><a href="https://www.oftmw.com/post/inside-dutchman-s-pipe-the-ultra-private-jack-nicklaus-club-bringing-no-tee-time-golf-to-the-heart-of-west-palm-beach/" class="read-more force-accent-text" style="color:#1e0a3c; text-decoration:none; font-size:13px; font-weight:600; margin-top:10px; display:inline-block">Read on TMW →</a></div>
   </td></tr>
 </table>
       </td></tr>
@@ -423,9 +417,7 @@
     </a>
   </td></tr>
   <tr><td class="article-card-body" style="padding:18px 20px 20px 20px">
-    <a href="https://www.oftmw.com/post/thon-hotel-vasa-opens-in-a-renovated-19th-century-building-in-central-stockholm/" class="article-card-title force-light-text" style="color:#1e0a3c; font-size:18px; font-weight:700; line-height:1.3; text-decoration:none; margin:0 0 6px 0; display:block">Thon Hotel Vasa opens in a renovated 19th-century building in central Stockholm</a>
-    <div class="article-card-summary force-muted-text" style="color:#6b5b8a; font-size:14px; line-height:1.5">Thon Hotel Vasa has opened in a restored late-1800s building on Vasagatan, bringing 144 rooms, a brasserie and a cocktail bar to central Stockholm.</div>
-    <div><a href="https://www.oftmw.com/post/thon-hotel-vasa-opens-in-a-renovated-19th-century-building-in-central-stockholm/" class="read-more force-accent-text" style="color:#1e0a3c; text-decoration:none; font-size:13px; font-weight:600; margin-top:10px; display:inline-block">Read on TMW →</a></div>
+    <a href="https://www.oftmw.com/post/thon-hotel-vasa-opens-in-a-renovated-19th-century-building-in-central-stockholm/" class="article-card-title force-light-text" style="color:#1e0a3c; font-size:18px; font-weight:700; line-height:1.3; text-decoration:none; margin:0 0 6px 0; display:block">Thon Hotel Vasa opens in a renovated 19th-century building in central Stockholm</a><div><a href="https://www.oftmw.com/post/thon-hotel-vasa-opens-in-a-renovated-19th-century-building-in-central-stockholm/" class="read-more force-accent-text" style="color:#1e0a3c; text-decoration:none; font-size:13px; font-weight:600; margin-top:10px; display:inline-block">Read on TMW →</a></div>
   </td></tr>
 </table>
         <table role="presentation" class="article-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#ffffff" style="background-color:#fff; border:1px solid #d8cef0; border-radius:12px; margin:0 0 16px 0">
@@ -439,9 +431,7 @@
     </a>
   </td></tr>
   <tr><td class="article-card-body" style="padding:18px 20px 20px 20px">
-    <a href="https://www.oftmw.com/post/related-texas-just-released-a-rendering-for-one-lady-bird-lake-an-18-story-waterfront-tower-coming-to-austin/" class="article-card-title force-light-text" style="color:#1e0a3c; font-size:18px; font-weight:700; line-height:1.3; text-decoration:none; margin:0 0 6px 0; display:block">Related Texas unveils One Lady Bird Lake — an 18-story waterfront tower coming to Austin</a>
-    <div class="article-card-summary force-muted-text" style="color:#6b5b8a; font-size:14px; line-height:1.5">Related Texas unveiled the rendering for One Lady Bird Lake, an 18-story, 298-residence waterfront tower in Austin's South Central Waterfront District.</div>
-    <div><a href="https://www.oftmw.com/post/related-texas-just-released-a-rendering-for-one-lady-bird-lake-an-18-story-waterfront-tower-coming-to-austin/" class="read-more force-accent-text" style="color:#1e0a3c; text-decoration:none; font-size:13px; font-weight:600; margin-top:10px; display:inline-block">Read on TMW →</a></div>
+    <a href="https://www.oftmw.com/post/related-texas-just-released-a-rendering-for-one-lady-bird-lake-an-18-story-waterfront-tower-coming-to-austin/" class="article-card-title force-light-text" style="color:#1e0a3c; font-size:18px; font-weight:700; line-height:1.3; text-decoration:none; margin:0 0 6px 0; display:block">Related Texas unveils One Lady Bird Lake — an 18-story waterfront tower coming to Austin</a><div><a href="https://www.oftmw.com/post/related-texas-just-released-a-rendering-for-one-lady-bird-lake-an-18-story-waterfront-tower-coming-to-austin/" class="read-more force-accent-text" style="color:#1e0a3c; text-decoration:none; font-size:13px; font-weight:600; margin-top:10px; display:inline-block">Read on TMW →</a></div>
   </td></tr>
 </table>
         <table role="presentation" class="article-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#ffffff" style="background-color:#fff; border:1px solid #d8cef0; border-radius:12px; margin:0 0 16px 0">
@@ -455,9 +445,7 @@
     </a>
   </td></tr>
   <tr><td class="article-card-body" style="padding:18px 20px 20px 20px">
-    <a href="https://www.oftmw.com/post/ytri-island-retreat-opens-as-one-of-norway-s-most-remote-luxury-hotels/" class="article-card-title force-light-text" style="color:#1e0a3c; font-size:18px; font-weight:700; line-height:1.3; text-decoration:none; margin:0 0 6px 0; display:block">Ytrí Island Retreat opens as one of Norway's most remote luxury hotels</a>
-    <div class="article-card-summary force-muted-text" style="color:#6b5b8a; font-size:14px; line-height:1.5">Ytrí Island Retreat has opened on Træna, an archipelago 37 miles off Norway's coast — 38 rooms, a seafood restaurant, and architecture by Vardehaugen, among the…</div>
-    <div><a href="https://www.oftmw.com/post/ytri-island-retreat-opens-as-one-of-norway-s-most-remote-luxury-hotels/" class="read-more force-accent-text" style="color:#1e0a3c; text-decoration:none; font-size:13px; font-weight:600; margin-top:10px; display:inline-block">Read on TMW →</a></div>
+    <a href="https://www.oftmw.com/post/ytri-island-retreat-opens-as-one-of-norway-s-most-remote-luxury-hotels/" class="article-card-title force-light-text" style="color:#1e0a3c; font-size:18px; font-weight:700; line-height:1.3; text-decoration:none; margin:0 0 6px 0; display:block">Ytrí Island Retreat opens as one of Norway's most remote luxury hotels</a><div><a href="https://www.oftmw.com/post/ytri-island-retreat-opens-as-one-of-norway-s-most-remote-luxury-hotels/" class="read-more force-accent-text" style="color:#1e0a3c; text-decoration:none; font-size:13px; font-weight:600; margin-top:10px; display:inline-block">Read on TMW →</a></div>
   </td></tr>
 </table>
       </td></tr>
@@ -660,27 +648,23 @@
       <tr><td>
         <div class="section-header force-accent-text" style="color:#1e0a3c; font-size:11px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; padding:32px 0 16px 0; border-top:1px solid #d8cef0">What's new in the app</div>
 
-        <!-- Image with rounded top corners only, no bottom corners.
-             Was a div with background-image + MSO-conditional <img>,
-             which mobile Gmail (iOS + Android) strips silently --
-             leaving a 360px dark void where the gif should be. Now a
-             real <img> tag for ALL clients so the animation always
-             renders. width:100% on inline style + width="600" attr so
-             responsive scaling + Outlook's fixed-width sizing both
-             work. -->
-        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 0;">
+        <!-- Image FULLY rounded (was 12px 12px 0 0 only for the connected
+             white card below; per user feedback the section now blends
+             with the page bg, so the image rounds on all corners). -->
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 0 0 16px 0;">
           <tr><td style="padding: 0; line-height: 0; font-size: 0;">
             <a href="https://map.oftmw.com" style="color:#1e0a3c; display:block">
-              <img src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/c67f4529eec9-map-of-tomorrow-june-9.gif?v=1781045535" alt="Map of Tomorrow" width="600" style="display:block; width:100%; max-width:600px; height:auto; border:0; border-radius:12px 12px 0 0;">
+              <img src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/c67f4529eec9-map-of-tomorrow-june-9.gif?v=1781046243" alt="Map of Tomorrow" width="600" style="display:block; width:100%; max-width:600px; height:auto; border:0; border-radius:12px;">
             </a>
           </td></tr>
         </table>
 
-        <!-- Connected body — purple feature tiles, single column (each
-             tile gets the full email width so titles + body breathe).
-             Per-tile height auto-sizes to its content now that they don't
-             share a row with a neighbor that has to match. -->
-        <div class="cta-block-connected force-dark-panel force-border" style="background:linear-gradient(180deg, #fff 0%, #fff 100%); border:1px solid #d8cef0; border-top:0; border-radius:0 0 12px 12px; padding:26px 22px 28px 22px; background-color:#fff" bgcolor="#ffffff">
+        <!-- Body: feature tiles sit DIRECTLY on the page bg (no white
+             card panel). The section now reads as a continuation of the
+             newsletter -- same lavender backdrop as everything else --
+             instead of an awkward white-card-on-lavender block. Tiles
+             still carry their own subtle lavender wash + border. -->
+        <div class="cta-block-connected" style="background:transparent; border:0; padding:0">
           <div class="cta-headline force-light-text" style="font-size:22px; font-weight:800; color:#1e0a3c; margin:0 0 18px 0; letter-spacing:-0.01em">TMW Intelligence is Here</div>
           <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 0 0 10px 0; background: rgba(167, 139, 250, 0.06); border: 1px solid rgba(167, 139, 250, 0.28); border-radius: 10px;">
             <tr><td valign="top" style="padding: 16px 18px 18px 18px;">
