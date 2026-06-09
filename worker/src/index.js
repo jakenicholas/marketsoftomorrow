@@ -2940,6 +2940,8 @@ function renderCarouselHtml(c) {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
+<link rel="icon" type="image/png" href="https://tmw.jake-ab7.workers.dev/media/wix/ca3b83_71f3cd2ef61049028b2daf4e2ff71d52~mv2.png">
+<link rel="apple-touch-icon" href="https://tmw.jake-ab7.workers.dev/media/wix/ca3b83_71f3cd2ef61049028b2daf4e2ff71d52~mv2.png">
 <title>${escHtml(name)} — carousel preview</title>
 <style>
   :root { --fg:#fff; --mute:rgba(255,255,255,.62); --line:rgba(255,255,255,.10); --bg:#0b0e0c; --card:#000; --accent:#A78BFA; }
