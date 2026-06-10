@@ -2120,7 +2120,19 @@ function hookCarousel() {
 function startCarouselTimer() {
   if (CAROUSEL.slides.length < 2) return;
   stopCarouselTimer();
-  CAROUSEL.timer = setInterval(() => { if (!CAROUSEL.hover) setSlide(CAROUSEL.idx + 1); }, CAROUSEL.intervalMs);
+  // If the current slide is a VIDEO, let its natural 'ended' event
+  // advance the carousel (so the video plays in full -- this is what
+  // fixes the 8s Waldorf St. Pete getting cut off mid-playback). The
+  // setTimeout below is a safety ceiling: if a video errors out and
+  // never fires 'ended' (network stall, decoder failure, etc.) the
+  // carousel won't freeze on a single ad forever.
+  // IMAGE slides keep the configured rotateSeconds dwell.
+  var cur = CAROUSEL.slides[CAROUSEL.idx];
+  var isVideo = !!(cur && cur.video);
+  var ms = isVideo ? 60000 : CAROUSEL.intervalMs;
+  CAROUSEL.timer = setTimeout(function () {
+    if (!CAROUSEL.hover) { setSlide(CAROUSEL.idx + 1); startCarouselTimer(); }
+  }, ms);
 }
 function stopCarouselTimer() { if (CAROUSEL.timer) { clearInterval(CAROUSEL.timer); CAROUSEL.timer = null; } }
 function restartTimer()      { startCarouselTimer(); }
