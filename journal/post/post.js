@@ -1160,17 +1160,55 @@ function escapeAttr(s) { return escapeHtml(s); }
     return true;
   }
 
-  // Signed-in members (free or pro) never see the lightbox.
-  function checkSignedIn(cb) {
-    if (window._tmwSignedIn === true) { cb(true); return; }
-    if (window._tmwSignedIn === false) { cb(false); return; }
+  // Resolve signed-in + paid status. Free members still see the funnel
+  // (the new Step 4 Go Pro pitch); Pro members are done with us.
+  function checkAuth(cb) {
+    function answer() {
+      var signedIn = window._tmwSignedIn === true;
+      var paid = window._isPaidMember === true;
+      cb(signedIn, paid);
+    }
+    if (window._tmwSignedIn === true || window._tmwSignedIn === false) { answer(); return; }
     var m = window.$memberstackDom;
-    if (m && m.getCurrentMember) { m.getCurrentMember().then(function (r) { cb(!!(r && r.data)); }).catch(function () { cb(false); }); return; }
-    cb(false); // Memberstack not up yet → treat as logged-out
+    if (m && m.getCurrentMember) { m.getCurrentMember().then(function () { answer(); }).catch(function () { cb(false, false); }); return; }
+    cb(false, false); // Memberstack not up yet → treat as logged-out
   }
+
+  // Standalone Step 4 lightbox -- shown to ALREADY-signed-in free members
+  // who already completed Steps 1-3 in a past visit. Uses the same panel
+  // shell as build()/buildAccountMode() so it slides up the same way.
+  // sessionStorage gate so it pops at most once per browser session.
+  function buildGoProMode() {
+    if (document.querySelector('.tmw-sub')) return false;
+    try { if (sessionStorage.getItem('tmw-gopro-shown')) return false; } catch (e) {}
+    try { sessionStorage.setItem('tmw-gopro-shown', '1'); } catch (e) {}
+    var el = document.createElement('div');
+    el.className = 'tmw-sub';
+    el.innerHTML =
+      '<div class="tmw-sub-panel" role="dialog" aria-label="Unlock TMW Pro">' +
+        '<button class="tmw-sub-x" aria-label="Close">&times;</button>' +
+        '<div class="tmw-sub-acct"></div>' +
+      '</div>';
+    document.body.appendChild(el);
+    function close() { el.classList.remove('show'); setTimeout(function () { el.remove(); }, 350); }
+    el.querySelector('.tmw-sub-x').addEventListener('click', close);
+    el.addEventListener('click', function (e) { if (e.target === el) close(); });
+    var host = el.querySelector('.tmw-sub-acct');
+    if (typeof window.tmwGoProStep !== 'function') { el.remove(); return false; }
+    window.tmwGoProStep(host, close);
+    requestAnimationFrame(function () { el.classList.add('show'); });
+    return true;
+  }
+
   var t = setTimeout(function () {
-    checkSignedIn(function (signedIn) {
-      if (signedIn) return;
+    checkAuth(function (signedIn, paid) {
+      // Pro members are done with us.
+      if (paid) return;
+      // Signed-in free members: skip the subscribe/account funnel entirely
+      // (they already did all that) and jump straight to the Step 4 pitch.
+      // Once-per-session via sessionStorage so it isn't annoying.
+      if (signedIn) { buildGoProMode(); return; }
+      // Anon visitors fall through to the original 3-step funnel.
       var subEmail = subscribedEmail();
       if (subEmail) {
         // Already subscribed, no account → push the password step (not the email
