@@ -222,6 +222,13 @@
     + '[data-state="results"][data-filter="projects"] [data-cat]:not([data-cat="projects"]){display:none}'
     + '[data-state="results"][data-filter="firms"] [data-cat]:not([data-cat="firms"]){display:none}'
     + '[data-state="results"][data-filter="articles"] [data-cat]:not([data-cat="articles"]){display:none}'
+    /* The Intelligence answer (+ "understood as" chips) lives in the intel-cta
+       slot, which has no data-cat — so the rules above never touch it. Hide it
+       explicitly whenever a non-Intelligence category filter is active, so
+       clicking "Projects"/"Firms"/"Articles" hides the answer as expected. */
+    + '[data-state="results"][data-filter="projects"] [data-slot="intel-cta"],'
+    + '[data-state="results"][data-filter="firms"] [data-slot="intel-cta"],'
+    + '[data-state="results"][data-filter="articles"] [data-slot="intel-cta"]{display:none}'
 
     /* Section heading */
     + '.tmw-ov-sec{margin-bottom:30px;animation:tmwOvFadeIn .35s ease both}'
@@ -1759,7 +1766,35 @@
   var MAX_FIRMS  = 6;
   var MAX_CITIES = 6;
 
-  function runTextMatch(q, token){
+  // ── Server-side body search ───────────────────────────────────────
+  // The overlay loads only article summaries (title/excerpt/categories/tags),
+  // so a term that lives only in an article BODY (e.g. "miami design district")
+  // would never match client-side. For each settled query we ask the worker to
+  // scan post bodies (/posts?q=…, which now searches body_html) and merge any
+  // new hits into ARTICLES, then re-render — without re-firing Intelligence.
+  var _bodyMatchFor = null;
+  function fetchBodyMatches(q, stoks, token){
+    _bodyMatchFor = q; // mark up front so we fire at most once per query
+    var terms = stoks.filter(function(t){ return t.length >= 4; });
+    if (!terms.length) return;
+    var url = WORKER_URL + '/posts?status=published&limit=25&q=' + encodeURIComponent(stoks.join(' '));
+    fetch(url, { cache:'no-store' })
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(d){
+        if (token !== _renderToken) return; // user moved on
+        var items = (d && Array.isArray(d.items)) ? d.items : [];
+        if (!items.length) return;
+        var seen = {};
+        ARTICLES.forEach(function(a){ var k = a.slug || a.id; if (k) seen[k] = 1; });
+        var added = 0;
+        items.forEach(function(a){ var k = a.slug || a.id; if (k && !seen[k]){ seen[k] = 1; ARTICLES.push(a); added++; } });
+        if (added) runTextMatch(q, token, { fromBodyMerge: true });
+      })
+      .catch(function(){});
+  }
+
+  function runTextMatch(q, token, opts){
+    opts = opts || {};
     if (token !== _renderToken) return;
     var Core = window.TmwSearchCore;
 
@@ -1777,6 +1812,9 @@
     var stoks = (Core && Core.filterMeaningfulTokens) ? Core.filterMeaningfulTokens(toks)
                                                       : toks.filter(function(t){ return t.length >= 3; });
     if (!stoks.length) stoks = toks.filter(function(t){ return t.length >= 2; });
+    // Kick off the worker body-scan once per query (skipped on the re-render
+    // that the merge itself triggers).
+    if (!opts.fromBodyMerge && _bodyMatchFor !== q) fetchBodyMatches(q, stoks, token);
     // Use the shared isQuestion so /search/ and the overlay always agree
     // on what counts as a question (the local fallback runs only during
     // the brief window before journal-search-core.js finishes loading).
@@ -1804,24 +1842,29 @@
     // Decide before paint so the panel slot is correct from the first
     // frame -- prevents a flash of a hero-only layout that then jumps
     // when the LLM loading shell appears above it.
-    var allowed = !window.tmwIntel || (typeof window.tmwIntel.allowed === 'function' && window.tmwIntel.allowed(q));
-    if (question){
-      if (!allowed){
-        slotIntel.innerHTML = intelGateHtml();
-      } else if (Core && totalHits > 0){
-        slotIntel.innerHTML = intelPanelHtml('loading', q);
-        fireIntelligence(q,
-          pScored.slice(0,5).map(function(x){ return x.p; }),
-          aScored.slice(0,3).map(function(x){ return x.a; })
-        );
-      } else if (Core){
-        slotIntel.innerHTML = intelPanelHtml('loading', q);
-        fireIntelligence(q, [], []);
+    // Skip all Intelligence painting on the body-merge re-render — the panel
+    // is already loading/answered for this query; re-touching it would flicker
+    // and double-count the quota.
+    if (!opts.fromBodyMerge) {
+      var allowed = !window.tmwIntel || (typeof window.tmwIntel.allowed === 'function' && window.tmwIntel.allowed(q));
+      if (question){
+        if (!allowed){
+          slotIntel.innerHTML = intelGateHtml();
+        } else if (Core && totalHits > 0){
+          slotIntel.innerHTML = intelPanelHtml('loading', q);
+          fireIntelligence(q,
+            pScored.slice(0,5).map(function(x){ return x.p; }),
+            aScored.slice(0,3).map(function(x){ return x.a; })
+          );
+        } else if (Core){
+          slotIntel.innerHTML = intelPanelHtml('loading', q);
+          fireIntelligence(q, [], []);
+        } else {
+          slotIntel.innerHTML = renderIntelCTA(q);
+        }
       } else {
-        slotIntel.innerHTML = renderIntelCTA(q);
+        slotIntel.innerHTML = '';
       }
-    } else {
-      slotIntel.innerHTML = '';
     }
 
     // Clear smart-rows slot (it's only populated by parseSmartQuery path)

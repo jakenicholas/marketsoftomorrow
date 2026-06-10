@@ -1649,7 +1649,22 @@ async function handlePostsList(req, env, origin, url) {
   const params = [status];
   let p = 2;
   if (category) { where.push(`categories LIKE ?${p}`); params.push('%"' + category + '"%'); p++; }
-  if (q)        { where.push(`(title LIKE ?${p} OR excerpt LIKE ?${p})`); params.push('%' + q + '%'); p++; }
+  if (q) {
+    // Tokenized search: each meaningful word (>=3 chars, max 8) must appear in
+    // the title, excerpt, OR body. Searching body_html lets the spotlight
+    // overlay surface articles that only mention a term deep in the body
+    // (e.g. "miami design district" -> the Kengo Kuma piece), not just ones
+    // with it in the title/excerpt. Callers should pass already-cleaned terms.
+    const words = q.toLowerCase().split(/[^a-z0-9]+/).filter(w => w.length >= 3).slice(0, 8);
+    if (words.length) {
+      for (const w of words) {
+        where.push(`(LOWER(title) LIKE ?${p} OR LOWER(excerpt) LIKE ?${p} OR LOWER(body_html) LIKE ?${p})`);
+        params.push('%' + w + '%'); p++;
+      }
+    } else {
+      where.push(`(title LIKE ?${p} OR excerpt LIKE ?${p})`); params.push('%' + q + '%'); p++;
+    }
+  }
   const whereSql = where.join(' AND ');
 
   const total = await env.DB.prepare(`SELECT COUNT(*) AS c FROM posts WHERE ${whereSql}`).bind(...params).first();
