@@ -394,10 +394,10 @@
       '.tmw-auth .nav-cta.tmw-ig{width:34px;min-width:34px;height:34px;margin:0}',
       '.tmw-auth .nav-cta.tmw-ig svg{width:23px;height:23px}',
       /* Mobile: hide the Instagram icon entirely (desktop keeps it, left of the
-         profile). Also shrink the GO PRO pill so the cluster doesn't crowd the
-         centered TMW logo on narrow screens. */
+         profile). The old "GO PRO" pill that sat next to the profile icon is
+         GONE -- the CTA is now the top item inside the account dropdown
+         (.v2-menu-pro below), so it no longer crowds the cluster at any width. */
       '@media(max-width:980px){.tmw-auth .nav-cta.tmw-ig, .tmw-auth-ig{display:none !important}}',
-      '@media(max-width:980px){.tmw-auth .v2-go-pro-badge{height:21px;padding:0 7px;font-size:8.5px;letter-spacing:.04em;box-shadow:0 0 0 1px rgba(255,211,0,0.4) inset,0 0 7px rgba(255,211,0,0.3)}}',
       '.tmw-auth .v2-profile-btn{width:30px;height:30px;border-radius:50%;background:transparent;border:none;position:relative;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;color:#fff;padding:0;transition:width .15s,border-radius .15s,background .15s,padding .15s}',
       '.tmw-auth .v2-profile-btn svg.profile-icon{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}',
       '.tmw-auth .v2-profile-btn .v2-premium-star{position:absolute;bottom:-3px;right:-3px;width:14px;height:14px;background:#FFD300;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid rgba(15,15,15,0.85)}',
@@ -409,9 +409,16 @@
       '.tmw-auth .v2-profile-btn:not(.signed-in) .v2-premium-star{display:none!important}',
       '.tmw-auth .v2-profile-btn.signed-in .v2-login-text{display:none}',
       '.tmw-auth .v2-profile-btn:not(.is-pro) .v2-premium-star{display:none!important}',
-      '.tmw-auth .v2-go-pro-badge{display:none;align-items:center;height:26px;padding:0 10px;margin-left:0;background:#FFD300;color:#0a0a0a;border:none;border-radius:999px;font-family:inherit;font-size:10.5px;font-weight:800;letter-spacing:.06em;cursor:pointer;flex-shrink:0;transition:filter .15s,box-shadow .15s;box-shadow:0 0 0 1px rgba(255,211,0,0.4) inset,0 0 10px rgba(255,211,0,0.3)}',
-      '.tmw-auth .v2-go-pro-badge:hover{filter:brightness(1.08);box-shadow:0 0 0 1px rgba(255,211,0,0.6) inset,0 0 14px rgba(255,211,0,0.4)}',
-      '.tmw-auth:has(.v2-profile-btn.signed-in:not(.is-pro)) .v2-go-pro-badge{display:inline-flex}',
+      /* Go Pro = the first dropdown item, gold-accented so it reads as the
+         conversion CTA. Hidden by default; the :has() rule below reveals it
+         ONLY when the profile is signed-in-but-not-Pro. Pro members never
+         see it. Signed-out users see it too (they hit the Join modal
+         first; once they sign up free we want the upgrade nudge available
+         in their dropdown next session). */
+      '.tmw-auth .v2-profile-menu .v2-menu-pro{display:none;color:#FFD300;font-weight:700;background:rgba(255,211,0,0.06)}',
+      '.tmw-auth .v2-profile-menu .v2-menu-pro svg{opacity:1;color:#FFD300;fill:none;stroke:#FFD300}',
+      '.tmw-auth .v2-profile-menu .v2-menu-pro:hover{background:rgba(255,211,0,0.14);color:#FFE266}',
+      '.tmw-auth:has(.v2-profile-btn.signed-in:not(.is-pro)) .v2-profile-menu .v2-menu-pro{display:flex}',
       '.tmw-auth .v2-profile-menu{position:absolute;top:calc(100% + 8px);right:0;left:auto;min-width:220px;background:rgba(20,20,20,0.96);backdrop-filter:blur(28px) saturate(1.4);-webkit-backdrop-filter:blur(28px) saturate(1.4);border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:6px;box-shadow:0 16px 40px rgba(0,0,0,0.5);display:none;z-index:10000}',
       '.tmw-auth .v2-profile-menu.open{display:block}',
       '.tmw-auth .v2-profile-menu .v2-menu-item{display:flex;align-items:center;gap:12px;padding:10px 12px;color:rgba(255,255,255,0.85);font-size:14px;font-weight:500;cursor:pointer;border-radius:8px;background:transparent;border:none;width:100%;text-align:left;font-family:inherit;text-decoration:none}',
@@ -554,8 +561,16 @@
         '<span class="v2-login-text">Join</span>' + PROFILE_ICON +
         '<span class="v2-premium-star">' + STAR_ICON + '</span>' +
       '</button>' +
-      '<button class="v2-go-pro-badge" type="button" aria-label="Upgrade to TMW Pro">GO PRO</button>' +
+      // GO PRO pill removed from the header per design -- it was crowding
+      // the pulse + profile cluster on non-Pro accounts. The CTA now lives
+      // INSIDE the account dropdown below as the gold first item, only
+      // visible to signed-in non-Pro members (CSS :has() rule below the
+      // markup gates visibility against .v2-profile-btn.signed-in:not(.is-pro)).
       '<div class="v2-profile-menu" role="menu">' +
+        '<button class="v2-menu-item v2-menu-pro" data-act="go-pro" role="menuitem">' +
+          '<svg viewBox="0 0 24 24"><polygon points="13 2 4 14 11 14 9 22 20 10 13 10 15 2"/></svg>' +
+          'Go Pro' +
+        '</button>' +
         '<button class="v2-menu-item" data-act="account" role="menuitem"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-7 8-7s8 3 8 7"/></svg>Account</button>' +
         '<div class="v2-menu-divider"></div>' +
         '<button class="v2-menu-item v2-menu-signout" data-act="signout" role="menuitem"><svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>Sign out</button>' +
@@ -563,7 +578,7 @@
 
     var btn = host.querySelector('.v2-profile-btn');
     var menu = host.querySelector('.v2-profile-menu');
-    var goPro = host.querySelector('.v2-go-pro-badge');
+    var goPro = host.querySelector('[data-act="go-pro"]');
     // Inject any extension items a surface registered (the map's Watchlist/Compare)
     // so this ONE shared menu carries them too.
     renderExtraMenuItems(menu);
@@ -622,6 +637,7 @@
     });
     goPro.addEventListener('click', function (e) {
       e.stopPropagation(); e.preventDefault();
+      menu.classList.remove('open');
       // Native in-page paywall; fall back to the map deep-link if it hasn't loaded.
       if (typeof window.tmwShowPaywall === 'function') window.tmwShowPaywall('go-pro');
       else location.href = MAP_URL + '/?upgrade=1';
