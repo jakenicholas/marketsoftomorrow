@@ -602,14 +602,18 @@ function hookLightbox(root) {
 }
 
 // ===================================================================
-// READ NEXT — show 3 most-recent other posts
+// READ NEXT — show 3 most-recent OTHER posts, preferring those in the
+// SAME category/market (Florida, Hotels, Golf, etc.) as the current
+// article. Falls back to any-recent if same-market yields < 3.
 // ===================================================================
 async function loadReadNext(currentPost, currentSlug) {
   try {
     let items = [];
-    // 1. Prefer D1 posts table (migrated articles)
+    // 1. Prefer D1 posts table (migrated articles). Bumped from 10 to 30
+    //    so there's enough pool to find 3 same-category matches without
+    //    re-querying.
     try {
-      const r = await fetch(WORKER_URL + '/posts?limit=10&status=published', { cache: 'no-store' });
+      const r = await fetch(WORKER_URL + '/posts?limit=30&status=published', { cache: 'no-store' });
       if (r.ok) {
         const d = await r.json();
         items = (d.items || []).map(it => ({
@@ -617,12 +621,14 @@ async function loadReadNext(currentPost, currentSlug) {
           title: it.title,
           image: it.cover_image,
           pubDate: it.published_iso || (it.published_at ? new Date(it.published_at * 1000).toUTCString() : ''),
+          categories: it.categories || [],
+          main_category: it.main_category || '',
         }));
       }
     } catch {}
     // 2. Fall back to RSS-backed /blog if D1 empty (pre-migration)
     if (!items.length) {
-      const r = await fetch(WORKER_URL + '/blog?limit=20', { cache: 'no-store' });
+      const r = await fetch(WORKER_URL + '/blog?limit=30', { cache: 'no-store' });
       if (r.ok) {
         const d = await r.json();
         items = d.items || [];
@@ -633,7 +639,33 @@ async function loadReadNext(currentPost, currentSlug) {
       const px = await fetch(CORS_PROXY + encodeURIComponent(WIX_RSS_URL), { cache: 'no-store' });
       if (px.ok) items = parseRssXmlFull(await px.text());
     }
-    const others = items.filter(it => it.slug && it.slug !== currentSlug).slice(0, 3);
+    // Pull everything that isn't the current article first, NEWEST FIRST.
+    const pool = items.filter(it => it.slug && it.slug !== currentSlug);
+
+    // Build the set of category tokens that mark the current article.
+    // Anything an article carries -- main_category OR each tag in
+    // categories -- counts as a match signal.
+    const curTokens = new Set();
+    if (currentPost && currentPost.main_category) curTokens.add(String(currentPost.main_category).toLowerCase());
+    if (currentPost && Array.isArray(currentPost.categories)) {
+      currentPost.categories.forEach(c => { if (c) curTokens.add(String(c).toLowerCase()); });
+    }
+    function shareCategory(it) {
+      if (!curTokens.size) return false;
+      const itTokens = new Set();
+      if (it.main_category) itTokens.add(String(it.main_category).toLowerCase());
+      (it.categories || []).forEach(c => { if (c) itTokens.add(String(c).toLowerCase()); });
+      for (const t of curTokens) if (itTokens.has(t)) return true;
+      return false;
+    }
+
+    // Same-category first (newest first by pool order), then top up with
+    // any other recent post so the section is always full when possible.
+    const sameCat = pool.filter(shareCategory).slice(0, 3);
+    const others = sameCat.length >= 3
+      ? sameCat
+      : sameCat.concat(pool.filter(it => !sameCat.includes(it)).slice(0, 3 - sameCat.length));
+
     if (!others.length) return;
     document.getElementById('read-next').style.display = '';
     document.getElementById('rn-grid').innerHTML = others.map(it => `<a class="rn-card" href="/post/${escapeAttr(it.slug)}/">

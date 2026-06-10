@@ -110,7 +110,18 @@
       @media(max-width:880px){
         .tmw-spot-card{flex:0 0 92%; grid-template-columns:1fr; height:auto; min-height:auto; transform:scale(.94)}
         .tmw-spot-img{aspect-ratio:16/10}
-        .tmw-spot-body{padding:30px 26px 26px; overflow:visible}
+        /* Trim mobile body padding 30/26 -> 22/20, drop the bottom margin
+           on the offer panel + spacer that previously pushed CTAs to a
+           fixed 620px height. On mobile the card is height:auto, so the
+           "margin-top:auto" spacers were just adding empty space below
+           the content. Also tighten the per-section bottom margins so
+           the card breathes without sprawling. */
+        .tmw-spot-body{padding:22px 20px 20px; overflow:visible}
+        .tmw-spot-cat{margin-bottom:12px}
+        .tmw-spot-sub{margin-bottom:14px}
+        .tmw-spot-desc{margin-bottom:18px}
+        .tmw-spot-offer{margin-top:0; margin-bottom:16px; padding:16px 18px}
+        .tmw-spot-spacer{margin-top:0}
         .tmw-spot-viewport{padding:18px 0; margin-top:-18px; margin-bottom:0; width:100vw; margin-left:calc(50% - 50vw)}
       }
 

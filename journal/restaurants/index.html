@@ -75,7 +75,8 @@ h1,h2,h3,h4{font-family:var(--serif); font-weight:600; letter-spacing:-.015em; c
 .fc-sponsor{font-family:var(--mono); font-size:9.5px; letter-spacing:.22em; text-transform:uppercase; color:rgba(255,255,255,.45); background:rgba(0,0,0,.35); backdrop-filter:blur(6px); padding:5px 10px; border-radius:4px; pointer-events:auto}
 @media(max-width:640px){.fc-bottom{padding:0 18px}.fc-arrow{display:none}.fc-slide .fc-content{padding:0 22px}.fc-eyebrow{font-size:10px}}
 
-.sticky-stack{position:sticky; top:0; z-index:60}
+/* GPU-layer promotion to prevent iOS Safari sticky-jitter on scroll direction reversal -- same fix as the homepage + post.css. */
+.sticky-stack{position:sticky; top:0; z-index:60; transform:translateZ(0); -webkit-transform:translateZ(0); will-change:transform; backface-visibility:hidden; -webkit-backface-visibility:hidden}
 nav.main{background:rgba(7,8,7,.78); backdrop-filter:var(--glass); -webkit-backdrop-filter:var(--glass); border-bottom:1px solid var(--hair)}
 nav.main .wrap{display:flex; align-items:center; justify-content:space-between; padding-top:14px; padding-bottom:14px; gap:24px}
 .nav-links{display:flex; gap:20px; align-items:center}
@@ -1471,9 +1472,43 @@ async function loadList() {
     if (vis) vis.textContent = 'Seed';
   }
   DATA = doc;
+  seedSyntheticHearts(DATA.items || []);
   applyDocToHeader();
   buildRegionPills();
   renderRanking();
+}
+
+// Per-item synthetic heart count for the .like-count badge. Monotone
+// descending by rank (rank 1 ~135 hearts, drifting down) with a small
+// deterministic jitter so the numbers don't read as a perfect linear
+// series. Hash-based jitter is keyed off the item id so refreshing the
+// page shows the same numbers (and so the order is reproducible across
+// devices). The 'monotone' guarantee is enforced by Math.min against
+// the previous rank's value -- a jitter that would push rank N above
+// rank N-1 gets clamped, never the reverse.
+function seedSyntheticHearts(items) {
+  if (!Array.isArray(items) || !items.length) return;
+  function hash(s) {
+    let h = 0;
+    s = String(s || '');
+    for (let i = 0; i < s.length; i++) h = ((h << 5) - h + s.charCodeAt(i)) | 0;
+    return Math.abs(h);
+  }
+  const START = 135;          // rank 1 count
+  const STEP  = 6;            // average drop per rank
+  const FLOOR = 8;            // never go below this
+  let prev = START + 99;      // sentinel above any real value
+  items.forEach((it, idx) => {
+    const rank   = idx + 1;
+    const ideal  = START - (rank - 1) * STEP;
+    const seed   = hash(it.id || it.name || ('r' + rank));
+    const jitter = (seed % 5) - 2;        // -2..+2
+    let v = ideal + jitter;
+    v = Math.min(v, prev - 1);            // strict monotone descending
+    v = Math.max(v, FLOOR);
+    it.likes = v;
+    prev = v;
+  });
 }
 
 function applyDocToHeader() {

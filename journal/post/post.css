@@ -43,7 +43,11 @@ h1,h2,h3,h4,h5,h6{font-family:var(--serif); font-weight:600; letter-spacing:-.01
 .fc-dot.on{background:var(--white); width:20px}
 .fc-sponsor{font-family:var(--mono); font-size:9.5px; letter-spacing:.22em; text-transform:uppercase; color:rgba(255,255,255,.45); background:rgba(0,0,0,.35); backdrop-filter:blur(6px); padding:5px 10px; border-radius:4px; pointer-events:auto}
 
-.sticky-stack{position:sticky; top:0; z-index:60}
+/* Force the sticky stack onto its own GPU layer so iOS Safari can't catch
+   it mid-repaint when scroll direction reverses (the backdrop-filter on
+   nav + the .ticker mask-image cause a one-frame glitch at the same scroll
+   position on every up/down change without this hint). */
+.sticky-stack{position:sticky; top:0; z-index:60; transform:translateZ(0); -webkit-transform:translateZ(0); will-change:transform; backface-visibility:hidden; -webkit-backface-visibility:hidden}
 nav.main{background:rgba(7,8,7,.78); backdrop-filter:var(--glass); -webkit-backdrop-filter:var(--glass); border-bottom:1px solid var(--hair)}
 nav.main .wrap{display:flex; align-items:center; justify-content:space-between; padding-top:14px; padding-bottom:14px; gap:24px}
 .nav-links{display:flex; gap:20px; align-items:center}

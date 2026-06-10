@@ -154,7 +154,14 @@ h1,h2,h3,h4{font-family:var(--serif); font-weight:600; letter-spacing:-.015em; c
 /* =================================================================== */
 /* STICKY HEADER ASSEMBLY — nav + ticker stay together                  */
 /* =================================================================== */
-.sticky-stack{position:sticky; top:0; z-index:60}
+/* Force the sticky stack (nav + pulse ticker) onto its own GPU layer.
+   Without this, iOS Safari can repaint the sticky element at the moment
+   scroll direction reverses -- the backdrop-filter:blur in nav.main
+   combined with the .ticker mask-image causes a one-frame glitch at the
+   same scroll position on every up/down direction change. translateZ(0)
+   + will-change keeps the layer pre-composited so the direction reverse
+   is a pure transform swap. */
+.sticky-stack{position:sticky; top:0; z-index:60; transform:translateZ(0); -webkit-transform:translateZ(0); will-change:transform; backface-visibility:hidden; -webkit-backface-visibility:hidden}
 
 /* ---- Main nav ---- */
 nav.main{
@@ -869,6 +876,7 @@ footer .ft-logo .tmw-wordmark{width:118px}
           <li><a href="/?market=florida">Florida</a></li>
           <li><a href="/?market=new-york">New York</a></li>
           <li><a href="/?market=tennessee">Tennessee</a></li>
+          <li><a href="/?market=hotels">Hotels</a></li>
           <li><a href="/?market=caribbean">Caribbean</a></li>
           <li><a href="/?market=rockies">Rockies</a></li>
         </ul>
@@ -1434,6 +1442,13 @@ function buildPills() {
       ACTIVE_CAT = bucket.key;
       VISIBLE_N = PAGE_SIZE;
       document.querySelectorAll('.pill').forEach(p => p.classList.toggle('on', p.dataset.cat === ACTIVE_CAT));
+      // Keep the just-selected pill IN the viewport. The pill row is
+      // horizontally scrollable on mobile (overflow-x:auto), so a pill
+      // farther down the row gets cut off the right edge -- the user
+      // would see an "Active" state on a pill they can't see. inline:
+      // 'center' nudges the row so the active pill is centered (or as
+      // close as the row's scroll bounds allow).
+      try { btn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' }); } catch (e) {}
       applyFilters();
     });
     pillEl.appendChild(btn);
