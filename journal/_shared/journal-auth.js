@@ -96,17 +96,32 @@
       '.tmw-fa-geo-item{padding:10px 14px; font-family:var(--sans,"Inter",sans-serif); font-size:13px; color:#e8e8e8; cursor:pointer; border-bottom:1px solid rgba(255,255,255,.06)}',
       '.tmw-fa-geo-item:last-child{border-bottom:0}',
       '.tmw-fa-geo-item:hover{background:rgba(31,223,103,.12); color:#fff}',
-      // Fourth step — the Go Pro pitch (non-Pro users only). Mirrors the
-      // .tmw-fa shell so it fits inside the same lightbox host, but the
-      // CTA + glyphs are gold instead of the funnel's green to mark the
-      // upgrade-action surface area.
-      '.tmw-fa-pro-list{list-style:none; margin:0 0 14px 0; padding:0; display:flex; flex-direction:column; gap:9px}',
-      '.tmw-fa-pro-list li{display:grid; grid-template-columns:24px 1fr; column-gap:11px; row-gap:2px; padding:11px 13px; background:rgba(255,211,0,.05); border:1px solid rgba(255,211,0,.18); border-radius:10px}',
-      '.tmw-fa-pro-list li b{grid-column:2; grid-row:1; font-family:var(--sans,"Inter",sans-serif); font-size:13px; font-weight:700; color:#fff; line-height:1.2}',
-      '.tmw-fa-pro-list li i{grid-column:2; grid-row:2; font-family:var(--sans,"Inter",sans-serif); font-size:12px; font-style:normal; color:rgba(255,255,255,.62); line-height:1.4}',
-      '.tmw-fa-pro-list li .tmw-fa-pro-i{grid-column:1; grid-row:1 / span 2; align-self:center; display:flex; align-items:center; justify-content:center; width:24px; height:24px; color:#FFD300; font-size:13px}',
-      '.tmw-fa-pro-cta{box-sizing:border-box; width:100%; height:46px; border:0; border-radius:10px; background:#FFD300; color:#0a0a0a; font-family:var(--mono,monospace); font-size:11.5px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; cursor:pointer; transition:filter .15s, box-shadow .15s; box-shadow:0 0 0 1px rgba(255,211,0,.5) inset, 0 0 18px rgba(255,211,0,.32)}',
-      '.tmw-fa-pro-cta:hover{filter:brightness(1.06); box-shadow:0 0 0 1px rgba(255,211,0,.7) inset, 0 0 26px rgba(255,211,0,.45)}'
+      // Fourth step — the Go Pro pitch. Restyled to mirror the database
+      // (.tmw-mm) dropdown's feature-row design language: round purple
+      // icon containers + clean white title + muted gray description, no
+      // boxy gold tiles. Title gets an animated TMW hex glyph in front
+      // pulsing in purple.
+      '.tmw-fa-pro-title{display:flex; align-items:center; gap:11px; margin-bottom:14px}',
+      '.tmw-fa-pro-hex{flex:0 0 auto; width:30px; height:30px; display:flex; align-items:center; justify-content:center; color:#A78BFA; transform-origin:center; animation:tmwFaProHexPulse 2.8s ease-in-out infinite}',
+      '.tmw-fa-pro-hex svg{width:100%; height:100%; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linejoin:round}',
+      '@keyframes tmwFaProHexPulse{0%,100%{filter:drop-shadow(0 0 3px rgba(167,139,250,.45)); transform:rotate(0deg)} 50%{filter:drop-shadow(0 0 12px rgba(167,139,250,.95)); transform:rotate(180deg)}}',
+      '.tmw-fa-pro-title-tx{font-family:var(--sans,"Inter",sans-serif); font-size:16.5px; font-weight:700; color:#fff; line-height:1.2; letter-spacing:-.005em}',
+      '.tmw-fa-pro-list{list-style:none; margin:0 0 14px 0; padding:0; display:flex; flex-direction:column; gap:2px}',
+      '.tmw-fa-pro-list li{display:flex; gap:12px; padding:9px 10px; border-radius:12px; transition:background .18s}',
+      '.tmw-fa-pro-list li:hover{background:rgba(255,255,255,.04)}',
+      '.tmw-fa-pro-i{flex:0 0 auto; width:34px; height:34px; border-radius:10px; display:flex; align-items:center; justify-content:center; background:rgba(167,139,250,.12); border:1px solid rgba(167,139,250,.3); color:#C4B5FD}',
+      '.tmw-fa-pro-i svg{width:16px; height:16px; stroke:currentColor; fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round}',
+      '.tmw-fa-pro-tx{flex:1; min-width:0}',
+      '.tmw-fa-pro-tx b{display:block; font-size:12.5px; font-weight:600; color:#fff; line-height:1.2}',
+      '.tmw-fa-pro-tx i{font-style:normal; display:block; font-size:11px; color:#9AA39C; margin-top:3px; line-height:1.4}',
+      // CTA: purple-violet gradient background to read as the same family
+      // as the icon tiles, with a yellow "Go Pro" chip embedded (mirrors
+      // the dropdown CTA pattern at .tmw-mm-cta).
+      '.tmw-fa-pro-cta{box-sizing:border-box; width:100%; padding:13px 16px; border:1px solid rgba(167,139,250,.32); border-radius:12px; background:linear-gradient(120deg,rgba(167,139,250,.18),rgba(31,223,103,.06)); color:#fff; font-family:var(--sans,"Inter",sans-serif); font-size:13.5px; font-weight:500; cursor:pointer; display:flex; align-items:center; justify-content:space-between; gap:12px; transition:filter .15s, border-color .15s}',
+      '.tmw-fa-pro-cta:hover{filter:brightness(1.08); border-color:rgba(167,139,250,.5)}',
+      '.tmw-fa-pro-cta .t{flex:1; text-align:left; font-family:var(--serif,Georgia,serif); font-weight:400; font-size:14.5px; line-height:1.25; color:#fff}',
+      '.tmw-fa-pro-cta .t em{font-style:italic; color:#B9A6FF}',
+      '.tmw-fa-pro-cta .go{flex:0 0 auto; font-family:var(--mono,monospace); font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; font-weight:700; padding:9px 14px; border-radius:8px; background:#FFD300; color:#0a0a0a; white-space:nowrap}'
     ].join('');
     document.head.appendChild(st);
   }
@@ -269,17 +284,37 @@
     if (!host) { if (typeof onClose === 'function') onClose(true); return; }
     if (window._isPaidMember === true) { if (typeof onClose === 'function') onClose(true); return; }
     injectFaCss();
+    // SVGs reused from the universal header's Map/Database dropdown so
+    // each feature row reads as the same thing the user can see in the
+    // nav. Stroke + size are inherited from .tmw-fa-pro-i svg.
+    var SVG_HEX  = '<svg viewBox="0 0 24 24"><polygon points="12,4.3 18.65,8.16 18.65,15.84 12,19.68 5.35,15.84 5.35,8.16"/></svg>';
+    var SVG_EYE  = '<svg viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>';
+    var SVG_CMP  = '<svg viewBox="0 0 24 24"><rect x="3" y="4" width="7" height="16" rx="1"/><rect x="14" y="4" width="7" height="16" rx="1"/></svg>';
+    var SVG_PUL  = '<svg viewBox="0 0 24 24"><path d="M3 12h4l2 6 4-14 2 8h6"/></svg>';
+    var SVG_MAP  = '<svg viewBox="0 0 24 24"><path d="M9 18l-6 3V6l6-3 6 3 6-3v15l-6 3-6-3z"/><path d="M9 3v15M15 6v15"/></svg>';
+    var SVG_ATL  = '<svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>';
+    function row(svg, title, desc) {
+      return '<li><span class="tmw-fa-pro-i">' + svg + '</span>' +
+        '<span class="tmw-fa-pro-tx"><b>' + title + '</b><i>' + desc + '</i></span></li>';
+    }
     host.innerHTML =
       '<div class="tmw-fa tmw-fa-pro">' +
-        '<div class="tmw-fa-h">One more thing — unlock TMW Pro</div>' +
-        '<div class="tmw-fa-sub">Free gets you the journal + map exploration. Pro is the intelligence most members are here for.</div>' +
+        '<div class="tmw-fa-pro-title">' +
+          '<span class="tmw-fa-pro-hex">' + SVG_HEX + '</span>' +
+          '<span class="tmw-fa-pro-title-tx">Unlock TMW Pro + Intelligence</span>' +
+        '</div>' +
         '<ul class="tmw-fa-pro-list">' +
-          '<li><span class="tmw-fa-pro-i">⚡</span><b>TMW Intelligence</b><i>Completion forecasts + AI project research on every page.</i></li>' +
-          '<li><span class="tmw-fa-pro-i">★</span><b>Watchlist</b><i>Track projects, get notified the moment they move.</i></li>' +
-          '<li><span class="tmw-fa-pro-i">⇄</span><b>Compare</b><i>Stack any projects side-by-side — units, timeline, firms.</i></li>' +
-          '<li><span class="tmw-fa-pro-i">●</span><b>Pulse</b><i>Live feed of every new project hitting the database.</i></li>' +
+          row(SVG_HEX, 'TMW Intelligence', 'Completion forecasts, unlimited AI-powered search, and project research on every page.') +
+          row(SVG_EYE, 'Watchlist',        'Track projects, get notified the moment they move.') +
+          row(SVG_CMP, 'Compare',          'Stack any projects side-by-side &mdash; units, timeline, firms.') +
+          row(SVG_PUL, 'Pulse',            'Live feed of every new project hitting the database.') +
+          row(SVG_MAP, 'Interactive Map',  '396 projects across 40+ markets.') +
+          row(SVG_ATL, 'The Atlas',        'Every tracked project on one canvas.') +
         '</ul>' +
-        '<button class="tmw-fa-pro-cta" type="button">Go Pro →</button>' +
+        '<button class="tmw-fa-pro-cta" type="button">' +
+          '<span class="t">Explore the journal free. <em>Go Pro for the intelligence.</em></span>' +
+          '<span class="go">Go Pro →</span>' +
+        '</button>' +
         '<button class="tmw-fa-skip" type="button">Continue with free</button>' +
       '</div>';
     var cta = host.querySelector('.tmw-fa-pro-cta');
