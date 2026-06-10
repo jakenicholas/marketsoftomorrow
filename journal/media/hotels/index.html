@@ -141,6 +141,10 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
 .dlist li b{color:var(--cream); font-weight:600}
 .tag{display:inline-flex; align-items:center; gap:5px; font-family:var(--mono); font-size:9.5px; letter-spacing:.08em; text-transform:uppercase; padding:3px 8px; border-radius:999px; border:1px solid var(--hair2); color:var(--mute); margin-left:6px; vertical-align:middle; white-space:nowrap}
 .tag.soft{border-color:rgba(230,197,116,.32); color:var(--gold-soft); background:rgba(230,197,116,.05)}
+a.tag{text-decoration:none; cursor:pointer; transition:border-color .2s, background .2s, transform .2s}
+a.tag svg{width:11px; height:11px; flex:0 0 auto; transition:transform .2s}
+a.tag:hover{border-color:var(--gold); background:rgba(230,197,116,.14)}
+a.tag:hover svg{transform:translateX(2px)}
 .dcard .dlink{margin-top:20px}
 
 /* focus-market toggle */
@@ -394,11 +398,11 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
         <h3>Original Photo &amp; Video</h3>
         <div class="dsub">Captured by our team</div>
         <ul class="dlist">
-          <li><svg class="ck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg><span><b>Photography &amp; videography</b> showcasing the hotel, dining, and rooms.</span></li>
+          <li><svg class="ck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg><span><b>Photography &amp; videography</b> showcasing the hotel, dining, and rooms.<a class="tag soft" href="https://www.oftmw.com/media/licensing">Photo &amp; Video Rights <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a></span></li>
           <li><svg class="ck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg><span><b>5&ndash;10 aerial photos</b> for your own use<span class="tag">location dependent</span></span></li>
         </ul>
         <div class="dlink">
-          <a class="btn btn-ghost" href="https://www.oftmw.com/media/licensing">Photo &amp; video rights <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
+          <a class="btn btn-ghost" href="https://gallery.oftmw.com">View our portfolio <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
         </div>
       </div>
 
@@ -481,10 +485,11 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
       <div class="mcard you glass reveal">
         <div class="mh">What your property gains</div>
         <ul>
-          <li><svg class="ck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg><span><b>10M+ monthly impressions &amp; 200K+ followers</b> across a highly targeted, affluent audience.</span></li>
+          <li><svg class="ck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg><span>Access to a highly targeted, affluent audience generating <b>8+ million monthly impressions</b>.</span></li>
           <li><svg class="ck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg><span><b>Collaborative social posts</b> across our channels.</span></li>
           <li><svg class="ck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg><span><b>Brand-story articles</b> that boost your visibility on Google and drive organic traffic from travel enthusiasts.</span></li>
           <li><svg class="ck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg><span>Consideration for our <b>Iconic Hotels</b> &amp; <b>Iconic Restaurants</b> lists.</span></li>
+          <li><svg class="ck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg><span><b>Photography &amp; videography</b> showcasing the hotel, dining, and rooms.</span></li>
         </ul>
       </div>
       <div class="mcard us glass reveal d1">
