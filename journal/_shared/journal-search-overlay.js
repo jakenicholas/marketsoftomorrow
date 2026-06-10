@@ -229,6 +229,12 @@
     + '[data-state="results"][data-filter="projects"] [data-slot="intel-cta"],'
     + '[data-state="results"][data-filter="firms"] [data-slot="intel-cta"],'
     + '[data-state="results"][data-filter="articles"] [data-slot="intel-cta"]{display:none}'
+    /* The Journal tab is always present. When the query matched no articles it
+       renders a "latest stories" browse fallback — hidden in the All view (so
+       it doesn\'t clutter project searches) and revealed only under the Journal
+       filter, so the tab is never a dead end. */
+    + '.tmw-ov-jfallback{display:none}'
+    + '[data-state="results"][data-filter="articles"] .tmw-ov-jfallback{display:block}'
 
     /* Section heading */
     + '.tmw-ov-sec{margin-bottom:30px;animation:tmwOvFadeIn .35s ease both}'
@@ -1885,11 +1891,19 @@
     }
     if (!totalHits){
       // Question with no DB hits — Intelligence panel above is the answer.
+      // Still expose the always-on Journal tab + latest-stories fallback so
+      // the user can pivot to browsing the archive.
       slotHero.innerHTML = '';
       slotProjGrid.innerHTML = '';
       slotEntities.innerHTML = '';
-      slotArticles.innerHTML = '';
-      slotFilterPills.innerHTML = '';
+      var recentQ = ARTICLES.slice(0, 9);
+      slotArticles.innerHTML = recentQ.length
+        ? ('<div class="tmw-ov-sec tmw-ov-jfallback" data-cat="articles">'
+            + '<div class="tmw-ov-sec-head"><h3>Latest from the journal</h3><span class="count">browse all</span></div>'
+            + '<div class="tmw-ov-alist">' + recentQ.map(renderArticleCard).join('') + '</div>'
+            + '</div>')
+        : '';
+      slotFilterPills.innerHTML = renderFilterPills({ intel: question, projects: 0, firms: 0, articles: 0 });
       sResults.removeAttribute('data-filter');
       _lastResultsTotal = 0;
       _lastResultKind = 'question';
@@ -2014,7 +2028,16 @@
         + '</div>';
       appendArticles();
     } else {
-      slotArticles.innerHTML = '';
+      // No article matches — populate the always-on Journal tab with the
+      // latest stories so it's a real browse surface, not a dead end. Hidden
+      // in the All view via .tmw-ov-jfallback; shown under the Journal filter.
+      var recent = ARTICLES.slice(0, 9);
+      slotArticles.innerHTML = recent.length
+        ? ('<div class="tmw-ov-sec tmw-ov-jfallback" data-cat="articles">'
+            + '<div class="tmw-ov-sec-head"><h3>Latest from the journal</h3><span class="count">browse all</span></div>'
+            + '<div class="tmw-ov-alist">' + recent.map(renderArticleCard).join('') + '</div>'
+            + '</div>')
+        : '';
     }
 
     // Filter pills above the results. Counts represent ACTUALLY-VISIBLE
@@ -2071,9 +2094,12 @@
     if (counts.firms > 0) {
       pills.push('<button class="tmw-ov-fp" type="button" data-filter="firms">Firms &amp; Places <span class="tmw-ov-fp-n">'+counts.firms+'</span></button>');
     }
-    if (counts.articles > 0) {
-      pills.push('<button class="tmw-ov-fp" type="button" data-filter="articles">Articles <span class="tmw-ov-fp-n">'+counts.articles+'</span></button>');
-    }
+    // Journal is ALWAYS present — it's the way to isolate/browse stories even
+    // when the query matched none (the section then shows the latest posts as
+    // a browse fallback). Count shown only when there are matches.
+    pills.push('<button class="tmw-ov-fp" type="button" data-filter="articles">Journal'
+      + (counts.articles > 0 ? ' <span class="tmw-ov-fp-n">'+counts.articles+'</span>' : '')
+      + '</button>');
     // Don't render the row if there's only "All" (no categories to filter to)
     if (pills.length < 2) return '';
     return '<div class="tmw-ov-fp-row">' + pills.join('') + '</div>';
