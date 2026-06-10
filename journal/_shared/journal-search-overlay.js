@@ -31,7 +31,20 @@
 
   // ── helpers (mirror /search/index.html so scoring stays in sync) ──
   function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
-  function norm(s){ return String(s==null?'':s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,''); }
+  // Normalize for matching: lowercase, strip accents, and collapse apostrophes
+  // so possessives/special punctuation don't block matches —
+  //   "Miami's Design District" -> "miami design district"
+  //   "Spina O'Rourke"          -> "spina orourke"
+  // (curly ' / modifier ' folded to straight first, possessive 's dropped,
+  // remaining apostrophes removed). Lets a "Miami Design District" query match
+  // an article that says "Miami's Design District", both as tokens and phrase.
+  function norm(s){
+    return String(s==null?'':s).toLowerCase()
+      .normalize('NFD').replace(/[̀-ͯ]/g,'')
+      .replace(/[‘’ʼ]/g,"'")
+      .replace(/'s\b/g,'')
+      .replace(/'/g,'');
+  }
   function mapSlug(t){ return norm(t).replace(/[^a-z0-9]+/g,''); }
   function mapLink(t, full){ return MAP_URL + '/?project=' + mapSlug(t) + (full ? '&fullscreen=true' : ''); }
   function firstField(o, keys){ for (var i=0;i<keys.length;i++){ var k=keys[i]; if (o[k]!=null && String(o[k]).trim()!=='') return o[k]; } return ''; }

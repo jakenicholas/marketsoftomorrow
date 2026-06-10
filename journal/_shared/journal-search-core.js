@@ -23,8 +23,17 @@
   var WORKER_URL = 'https://tmw.jake-ab7.workers.dev';
 
   // ── pure string helpers ───────────────────────────────────────────
+  // Normalize for matching: lowercase, strip accents, and collapse apostrophes
+  // so possessives/special punctuation don't block matches —
+  //   "Miami's Design District" -> "miami design district"
+  //   "Spina O'Rourke"          -> "spina orourke"
+  // Applied to BOTH query and data, so matching stays symmetric.
   function norm(s) {
-    return String(s == null ? '' : s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+    return String(s == null ? '' : s).toLowerCase()
+      .normalize('NFD').replace(/[̀-ͯ]/g, '')
+      .replace(/[‘’ʼ]/g, "'")
+      .replace(/'s\b/g, '')
+      .replace(/'/g, '');
   }
   function hasWord(haystack, word) {
     // Word-boundary match with an OPTIONAL trailing 's' for plurals
