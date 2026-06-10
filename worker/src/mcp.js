@@ -88,8 +88,8 @@ const TOOLS = [
   },
   {
     name: 'get_post',
-    description: 'Get one journal article in full by its slug — title, excerpt, status, categories, SEO, view count, and the article HTML body.',
-    inputSchema: { type: 'object', properties: { slug: { type: 'string' } }, required: ['slug'] },
+    description: 'Get one journal article in full by its slug — title, excerpt, status, categories, SEO, view count, and the article HTML body. Pass full:true to get the COMPLETE, untruncated body HTML — do this before making precision edits with edit_post_draft so you can copy the exact substrings to target.',
+    inputSchema: { type: 'object', properties: { slug: { type: 'string' }, full: { type: 'boolean', description: 'Return the complete body_html untruncated (needed to copy verbatim substrings for edit_post_draft). Default false truncates very long bodies.' } }, required: ['slug'] },
   },
   {
     name: 'list_post_drafts',
@@ -217,7 +217,7 @@ const TOOLS = [
   },
   {
     name: 'update_post_draft',
-    description: 'Edit an existing journal article DRAFT (only status=draft — refuses to touch published/scheduled posts). Update any of title, body, excerpt, category, cover image. Returns the Studio edit URL.',
+    description: 'Edit an existing journal article DRAFT (only status=draft — refuses to touch published/scheduled posts). Update any of title, excerpt, category, cover image, and/or FULL-REPLACE the body from Markdown. ⚠️ body_markdown does a COMPLETE rewrite of the HTML body via Markdown conversion — it FLATTENS rich HTML (embedded <figure>/<figcaption> images, slideshow/grid GALLERIES, project-card embeds) that Markdown cannot represent. For ANY change to a body that contains images/galleries, do NOT pass body_markdown — use edit_post_draft (surgical find/replace) instead. Reserve body_markdown here for plain-text drafts or a deliberate full rewrite. Returns the Studio edit URL.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -228,6 +228,32 @@ const TOOLS = [
         category: { type: 'string' },
         cover_image: { type: 'string' },
         linked_project: { type: 'string', description: 'Slug of the Map of Tomorrow project to link — embeds the live project card (added once if not already present). Use to connect an existing draft to its project.' },
+      },
+      required: ['slug'],
+    },
+  },
+  {
+    name: 'edit_post_draft',
+    description: 'Make PRECISION, surgical edits to a journal article DRAFT\'s HTML body via literal find/replace — without re-sending or re-rendering the whole article. USE THIS (not update_post_draft) whenever the body has rich HTML to preserve: embedded <figure>/<figcaption> images, slideshow/grid GALLERIES, project-card embeds, custom markup. Everything you don\'t touch stays byte-for-byte intact. Workflow: (1) call get_post {slug, full:true} to read the exact current HTML; (2) copy the precise substring you want to change — verbatim, including tags and whitespace — into `find`; (3) put the new text in `replace`. Each `find` must match EXACTLY ONE place (add surrounding context to disambiguate) or set all:true to replace every occurrence. If any find does NOT match, the ENTIRE call aborts with no write — so a typo can never silently corrupt the post. Multiple edits + append/prepend are applied atomically in order. Drafts only.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        slug: { type: 'string', description: 'Slug of the draft to edit' },
+        edits: {
+          type: 'array',
+          description: 'Ordered literal find/replace operations on the body HTML; each applies to the result of the previous one. Operate on HTML, not Markdown.',
+          items: {
+            type: 'object',
+            properties: {
+              find: { type: 'string', description: 'Exact substring of the CURRENT body HTML to replace — copy it verbatim from get_post {full:true}, with enough surrounding text/tags to be unique.' },
+              replace: { type: 'string', description: 'Replacement HTML. Use an empty string to delete the matched text.' },
+              all: { type: 'boolean', description: 'Replace EVERY occurrence of find. Default false = find must match exactly once (else the call aborts as ambiguous).' },
+            },
+            required: ['find', 'replace'],
+          },
+        },
+        append_html: { type: 'string', description: 'Optional raw HTML appended to the END of the body, after all find/replace edits (e.g. a new closing paragraph or figure).' },
+        prepend_html: { type: 'string', description: 'Optional raw HTML inserted at the START of the body.' },
       },
       required: ['slug'],
     },
@@ -1161,8 +1187,13 @@ const IMPL = {
     if (!r) throw new Error('no post with slug "' + args.slug + '"');
     const views = await viewsForSlugs(env, [r.slug]);
     let body = r.body_html || '';
-    const truncated = body.length > 24000;
-    if (truncated) body = body.slice(0, 24000) + '\n<!-- …truncated… -->';
+    // full:true returns the complete body (capped high to avoid pathological
+    // payloads) so the model can copy exact substrings for edit_post_draft;
+    // the default keeps responses light by truncating long bodies.
+    const wantFull = args.full === true || args.full === 'true';
+    const LIMIT = wantFull ? 600000 : 24000;
+    const truncated = body.length > LIMIT;
+    if (truncated) body = body.slice(0, LIMIT) + '\n<!-- …truncated… -->';
     return {
       slug: r.slug, title: r.title, status: r.status, date: iso(r.published_at),
       excerpt: r.excerpt || '', categories: parseJSON(r.categories, []), tags: parseJSON(r.tags, []),
@@ -1540,6 +1571,60 @@ const IMPL = {
     params.push(slug);
     await env.DB.prepare(`UPDATE posts SET ${sets.join(', ')} WHERE slug = ?${p}`).bind(...params).run();
     return { ok: true, slug, status: 'draft', linked_project: linkedSlug || undefined, edit_url: 'https://admin.oftmw.com/post.html?id=' + row.id };
+  },
+
+  // Surgical find/replace on a draft's HTML body — preserves galleries/figures
+  // that a Markdown round-trip (update_post_draft) would flatten. Validates
+  // every `find` against the running body BEFORE writing; any miss aborts the
+  // whole call with no DB write, so a bad target never silently corrupts a post.
+  async edit_post_draft(args, env) {
+    const slug = String(args.slug || '').trim().toLowerCase();
+    if (!slug) throw new Error('slug is required');
+    const row = await env.DB.prepare('SELECT id, status, body_html FROM posts WHERE slug = ?1').bind(slug).first();
+    if (!row) throw new Error('no post with slug "' + slug + '"');
+    if (row.status !== 'draft') throw new Error('refusing to edit a ' + row.status + ' post via MCP — only drafts are editable remotely');
+
+    const edits = Array.isArray(args.edits) ? args.edits : [];
+    const hasAppend = args.append_html != null && String(args.append_html) !== '';
+    const hasPrepend = args.prepend_html != null && String(args.prepend_html) !== '';
+    if (!edits.length && !hasAppend && !hasPrepend) {
+      throw new Error('nothing to do — pass `edits` (find/replace ops) and/or append_html / prepend_html');
+    }
+
+    let body = row.body_html || '';
+    const report = [];
+    for (let i = 0; i < edits.length; i++) {
+      const e = edits[i] || {};
+      const find = e.find == null ? '' : String(e.find);
+      if (!find) throw new Error('edits[' + i + ']: "find" is required and must be non-empty');
+      const replace = e.replace == null ? '' : String(e.replace);
+      let count = 0, idx = 0;
+      while ((idx = body.indexOf(find, idx)) !== -1) { count++; idx += find.length; }
+      if (count === 0) throw new Error('edits[' + i + ']: find text not found in the draft body (no changes written). Read the exact HTML with get_post {full:true} and copy the substring verbatim, including tags/whitespace.');
+      if (count > 1 && !e.all) throw new Error('edits[' + i + ']: find matches ' + count + ' places (ambiguous). Add surrounding context to make it unique, or set "all": true to replace every occurrence.');
+      // Literal replace (NOT String.replace, which would interpret $&/$$ etc.
+      // in the replacement — article HTML/prices routinely contain "$").
+      if (e.all) {
+        body = body.split(find).join(replace);
+      } else {
+        const at = body.indexOf(find);
+        body = body.slice(0, at) + replace + body.slice(at + find.length);
+      }
+      report.push({ find_preview: find.slice(0, 60) + (find.length > 60 ? '…' : ''), replaced: e.all ? count : 1 });
+    }
+    if (hasPrepend) body = String(args.prepend_html) + body;
+    if (hasAppend) body = body + String(args.append_html);
+
+    const readingTime = Math.max(1, Math.round(stripHtml(body).split(/\s+/).filter(Boolean).length / 200));
+    await env.DB.prepare('UPDATE posts SET body_html = ?1, reading_time_min = ?2, updated_at = ?3 WHERE slug = ?4')
+      .bind(body, readingTime, Math.floor(Date.now() / 1000), slug).run();
+    return {
+      ok: true, slug, status: 'draft',
+      edits_applied: report,
+      prepended: hasPrepend || undefined, appended: hasAppend || undefined,
+      body_length: body.length,
+      edit_url: 'https://admin.oftmw.com/post.html?id=' + row.id,
+    };
   },
 
   // ── Media ──────────────────────────────────────────────────────────────────
