@@ -1177,11 +1177,11 @@ function escapeAttr(s) { return escapeHtml(s); }
   // Standalone Step 4 lightbox -- shown to ALREADY-signed-in free members
   // who already completed Steps 1-3 in a past visit. Uses the same panel
   // shell as build()/buildAccountMode() so it slides up the same way.
-  // sessionStorage gate so it pops at most once per browser session.
+  // Per user request the pitch fires on EVERY article load (no session
+  // dedupe); the only guard is the singleton check below so two
+  // copies can't stack if something double-fires.
   function buildGoProMode() {
     if (document.querySelector('.tmw-sub')) return false;
-    try { if (sessionStorage.getItem('tmw-gopro-shown')) return false; } catch (e) {}
-    try { sessionStorage.setItem('tmw-gopro-shown', '1'); } catch (e) {}
     var el = document.createElement('div');
     el.className = 'tmw-sub';
     el.innerHTML =
