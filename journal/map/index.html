@@ -4,9 +4,12 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-  <!-- Show the map loading splash only on the FIRST map view per browser session.
-       This runs before the body paints, so repeat visits never flash the overlay. -->
-  <script>try{if(sessionStorage.getItem('tmwMapLoaderSeen'))document.documentElement.classList.add('skip-maploader');}catch(e){}</script>
+  <!-- Map loading splash ALWAYS shows (every visit, regardless of session
+       state). Timing locked to 2s; the hex-to-search animation below is
+       also 2s so the full mark plays before the overlay fades. The
+       previous skip-on-repeat-visit logic + sessionStorage flag are
+       deliberately gone -- per design we want the brand splash on
+       every map view, not just first-of-session. -->
 
   <link rel="icon" href="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_71f3cd2ef61049028b2daf4e2ff71d52~mv2.png" type="image/png">
   <link rel="apple-touch-icon" href="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_71f3cd2ef61049028b2daf4e2ff71d52~mv2.png">
@@ -3354,14 +3357,6 @@
       z-index: 90; transition: opacity 0.5s ease;
     }
     #loadingOverlay.fade-out { opacity: 0; pointer-events: none; }
-    /* Repeat map view in the same session: skip the overlay ENTIRELY. The
-       previous behavior held a #070807 cover until 'tmw:map-ready' fired,
-       which read as a 1-2s "black screen" on revisits because no logo or
-       text was shown -- just opaque black. Hiding the overlay immediately
-       lets Mapbox paint into #map directly; the soft dark map water color
-       below (#0a131c on #map) bridges the brief pre-paint moment so the
-       transition feels like loading a map, not staring at a black void. */
-    html.skip-maploader #loadingOverlay { display: none !important; }
     /* Give the map container a Mapbox-water-like base color so the brief
        window between page load and the first tile paint reads as "dark
        map" rather than the body's near-black. Only matters on revisits
@@ -3376,13 +3371,17 @@
     .tmwload-icon svg { width: 100%; height: 100%; display: block; overflow: visible; }
     /* Smaller mark; fewer turns + a smooth accel→settle ease so it doesn't
        feel jittery (the old cubic-bezier dipped below the line mid-spin). */
-    .tmwload-spinner { transform-origin: 50% 50%; animation: tmwload-spin 3s cubic-bezier(0.45,0,0.25,1) forwards; }
+    /* Duration changed 3s -> 2s so the full mark animation completes
+       within the overlay's new 2s dwell. Keyframe percentages are
+       unchanged -- same hex-spin -> hex-fade -> search-icon-draw arc,
+       just compressed 33% in wall-clock time. */
+    .tmwload-spinner { transform-origin: 50% 50%; animation: tmwload-spin 2s cubic-bezier(0.45,0,0.25,1) forwards; }
     @keyframes tmwload-spin { 0%{transform:rotate(0deg) scale(1)} 67%{transform:rotate(1080deg) scale(0.75)} 100%{transform:rotate(1080deg) scale(0.75)} }
-    .tmwload-core { stroke: #A78BFA; animation: tmwload-hexfade 3s linear forwards; }
+    .tmwload-core { stroke: #A78BFA; animation: tmwload-hexfade 2s linear forwards; }
     @keyframes tmwload-hexfade { 0%,60%{opacity:1} 67%{opacity:0} 100%{opacity:0} }
-    .tmwload-circle { stroke-linejoin: round; opacity: 0; animation: tmwload-circlein 3s linear forwards; }
+    .tmwload-circle { stroke-linejoin: round; opacity: 0; animation: tmwload-circlein 2s linear forwards; }
     @keyframes tmwload-circlein { 0%,60%{opacity:0;stroke:#A78BFA} 67%{opacity:1;stroke:#A78BFA} 74%{stroke:#A78BFA} 100%{opacity:1;stroke:#8e8e93} }
-    .tmwload-handle { stroke-linecap: round; stroke-dasharray: 30; stroke-dashoffset: 30; opacity: 0; stroke: #A78BFA; animation: tmwload-handlein 3s linear forwards; }
+    .tmwload-handle { stroke-linecap: round; stroke-dasharray: 30; stroke-dashoffset: 30; opacity: 0; stroke: #A78BFA; animation: tmwload-handlein 2s linear forwards; }
     @keyframes tmwload-handlein { 0%,68%{opacity:0;stroke-dashoffset:30;stroke:#A78BFA} 70%{opacity:1;stroke-dashoffset:30;stroke:#A78BFA} 80%{opacity:1;stroke-dashoffset:0;stroke:#A78BFA} 100%{opacity:1;stroke-dashoffset:0;stroke:#8e8e93} }
     @media (prefers-reduced-motion: reduce){ .tmwload-spinner{animation:none} .tmwload-core{animation:none;opacity:0} .tmwload-circle,.tmwload-handle{animation:none;opacity:1;stroke:#8e8e93} }
     .loading-text { font-size: 18px; font-weight: 300; opacity: 0.8; }
@@ -12527,24 +12526,15 @@
       window.history.replaceState({}, '', url);
     };
 
-    // Loading overlay: show for a fixed ~3s so the hex→search animation
-    // completes its full loop and lands on the search icon, then fade out.
-    // If window.load is slower than 3s, wait for it (so the map never reveals
-    // half-painted); hard-cap at 6s so a stalled load never traps the user.
+    // Loading overlay: ALWAYS show for a fixed 2s on every map view so the
+    // hex→search animation completes its full loop and lands on the search
+    // icon, then fade out. If window.load is slower than 2s, wait for it
+    // (so the map never reveals half-painted); hard-cap at 6s so a stalled
+    // load never traps the user. The hex→search CSS keyframes below are
+    // also scaled to 2s so the mark finishes in step with the dwell.
     (function(){
       var lo = document.getElementById('loadingOverlay');
-      // Already shown once this session → no overlay at all. CSS above
-      // (html.skip-maploader #loadingOverlay{display:none}) hid it before
-      // first paint; nothing left to fade in/out. Mapbox paints directly
-      // into the #map container, which now has a dark map-water bg color
-      // so the brief pre-paint window doesn't read as "black screen".
-      if (document.documentElement.classList.contains('skip-maploader')) {
-        return;
-      }
-      // First map view this session — show it, then remember so the next map
-      // load in this session goes straight to the map.
-      try { sessionStorage.setItem('tmwMapLoaderSeen', '1'); } catch (e) {}
-      var MIN_MS = 3000, started = Date.now();
+      var MIN_MS = 2000, started = Date.now();
       function hideLoader(){
         if (!lo || lo.classList.contains('fade-out')) return;
         lo.classList.add('fade-out');
