@@ -1712,16 +1712,14 @@
       slotRows.innerHTML = '';
     }
 
-    // Filter pills above the results -- "Intel" is always there (smart
-    // query always produces an Intelligence answer), "Projects" appears
-    // if we have any hits.
+    // Journal + filter pills via the shared renderer, so architect/city/status
+    // queries (e.g. "kengo kuma") also surface journal entries — both from the
+    // loaded set and the worker body-scan. "Intel" is always present (a smart
+    // query always produces an answer); the Journal tab is always present too.
+    _heroArticleRef = null; // structured hero is always a project
+    _lastFilterCounts = { intel: true, projects: rows.length, firms: 0 };
     sResults.removeAttribute('data-filter');
-    slotFilterPills.innerHTML = renderFilterPills({
-      intel: true,
-      projects: rows.length,
-      firms: 0,
-      articles: 0,
-    });
+    renderArticleSection(q, token);
 
     // LLM upgrade: replace the deterministic sentence with prose (stats stay).
     if (rows.length) fireSmartIntelUpgrade(q, s, rows);
@@ -1779,6 +1777,11 @@
   // scan post bodies (/posts?q=…, which now searches body_html) and merge any
   // new hits into ARTICLES, then re-render — without re-firing Intelligence.
   var _bodyMatchFor = null;
+  // Counts/state shared with the article-section renderer so it can (re)build
+  // the filter-pill row (incl. the live Journal count) for whichever path —
+  // text-match or structured-smart — produced the projects/firms/intel counts.
+  var _lastFilterCounts = { intel: false, projects: 0, firms: 0 };
+  var _heroArticleRef = null; // article promoted to hero (text path), excluded from the journal list
   function fetchBodyMatches(q, stoks, token){
     _bodyMatchFor = q; // mark up front so we fire at most once per query
     var terms = stoks.filter(function(t){ return t.length >= 4; });
@@ -1794,7 +1797,7 @@
         ARTICLES.forEach(function(a){ var k = a.slug || a.id; if (k) seen[k] = 1; });
         var added = 0;
         items.forEach(function(a){ var k = a.slug || a.id; if (k && !seen[k]){ seen[k] = 1; ARTICLES.push(a); added++; } });
-        if (added) runTextMatch(q, token, { fromBodyMerge: true });
+        if (added) renderArticleSection(q, token, { fromBodyMerge: true });
       })
       .catch(function(){});
   }
@@ -1818,9 +1821,8 @@
     var stoks = (Core && Core.filterMeaningfulTokens) ? Core.filterMeaningfulTokens(toks)
                                                       : toks.filter(function(t){ return t.length >= 3; });
     if (!stoks.length) stoks = toks.filter(function(t){ return t.length >= 2; });
-    // Kick off the worker body-scan once per query (skipped on the re-render
-    // that the merge itself triggers).
-    if (!opts.fromBodyMerge && _bodyMatchFor !== q) fetchBodyMatches(q, stoks, token);
+    // (The worker body-scan + journal rendering are handled by
+    // renderArticleSection at the tail of this function.)
     // Use the shared isQuestion so /search/ and the overlay always agree
     // on what counts as a question (the local fallback runs only during
     // the brief window before journal-search-core.js finishes loading).
@@ -1891,20 +1893,15 @@
     }
     if (!totalHits){
       // Question with no DB hits — Intelligence panel above is the answer.
-      // Still expose the always-on Journal tab + latest-stories fallback so
-      // the user can pivot to browsing the archive.
+      // Still run the journal search (incl. worker body-scan) so a matching
+      // article surfaces, and expose the always-on Journal tab + fallback.
       slotHero.innerHTML = '';
       slotProjGrid.innerHTML = '';
       slotEntities.innerHTML = '';
-      var recentQ = ARTICLES.slice(0, 9);
-      slotArticles.innerHTML = recentQ.length
-        ? ('<div class="tmw-ov-sec tmw-ov-jfallback" data-cat="articles">'
-            + '<div class="tmw-ov-sec-head"><h3>Latest from the journal</h3><span class="count">browse all</span></div>'
-            + '<div class="tmw-ov-alist">' + recentQ.map(renderArticleCard).join('') + '</div>'
-            + '</div>')
-        : '';
-      slotFilterPills.innerHTML = renderFilterPills({ intel: question, projects: 0, firms: 0, articles: 0 });
+      _heroArticleRef = null;
+      _lastFilterCounts = { intel: question, projects: 0, firms: 0 };
       sResults.removeAttribute('data-filter');
+      renderArticleSection(q, token);
       _lastResultsTotal = 0;
       _lastResultKind = 'question';
       setState('results');
@@ -2017,45 +2014,19 @@
       slotEntities.innerHTML = '';
     }
 
-    // ── From the journal (batched with load-more) ───────────────────
-    _articlesAll = aScored.map(function(x){ return x.a; }).filter(function(a){ return a !== heroArticle; });
-    _articlesShown = 0;
-    if (_articlesAll.length){
-      slotArticles.innerHTML = ''
-        + '<div class="tmw-ov-sec" data-cat="articles">'
-        +   '<div class="tmw-ov-sec-head"><h3>From the journal</h3><span class="count">'+aScored.length+' total</span></div>'
-        +   '<div class="tmw-ov-alist"></div>'
-        + '</div>';
-      appendArticles();
-    } else {
-      // No article matches — populate the always-on Journal tab with the
-      // latest stories so it's a real browse surface, not a dead end. Hidden
-      // in the All view via .tmw-ov-jfallback; shown under the Journal filter.
-      var recent = ARTICLES.slice(0, 9);
-      slotArticles.innerHTML = recent.length
-        ? ('<div class="tmw-ov-sec tmw-ov-jfallback" data-cat="articles">'
-            + '<div class="tmw-ov-sec-head"><h3>Latest from the journal</h3><span class="count">browse all</span></div>'
-            + '<div class="tmw-ov-alist">' + recent.map(renderArticleCard).join('') + '</div>'
-            + '</div>')
-        : '';
-    }
-
-    // Filter pills above the results. Counts represent ACTUALLY-VISIBLE
-    // matches (post-strict-filter, including the hero if it's of that
-    // category) -- NOT pScored.length / fScored.length, which were the
-    // raw scoring totals. Previously "projects in west palm" showed
-    // "Projects 423" in the pill while only 7 were rendered because the
-    // raw score counts every project with any keyword overlap. The pill
-    // is supposed to reflect what the user sees, not what the scoring
-    // pass touched. Hero is counted in whichever category it belongs to
-    // so the totals match "hero + section grid".
-    sResults.removeAttribute('data-filter');
-    slotFilterPills.innerHTML = renderFilterPills({
+    // ── Journal + filter pills (shared renderer) ────────────────────
+    // renderArticleSection scores ARTICLES, paints the journal section (matches
+    // or the latest-stories browse fallback), fires the worker body-scan, and
+    // builds the filter-pill row — including the always-on Journal tab. The
+    // hero article (if any) is excluded from the list but counted.
+    _heroArticleRef = heroArticle;
+    _lastFilterCounts = {
       intel: question,
       projects: restProjects.length + (heroProject ? 1 : 0),
       firms:    restFirms.length + restCities.length + (heroFirm ? 1 : 0),
-      articles: aScored.length, // already includes heroArticle in the count
-    });
+    };
+    sResults.removeAttribute('data-filter');
+    renderArticleSection(q, token);
 
     _lastResultsTotal = totalHits;
     _lastResultKind = question ? 'question' : 'text';
@@ -2082,6 +2053,67 @@
   // the calling render path (text-match or smart) -- pills only appear
   // for categories that actually have results. "All" + "Intelligence"
   // never carry counts; the rest do (Projects 12, Firms & Places 4 etc).
+  // Journal search + render, shared by BOTH the text-match and the structured-
+  // smart paths — so journal entries surface for architect/city/status queries
+  // (e.g. "kengo kuma" → ARCHITECT) too, not just free-text. Scores ARTICLES,
+  // fires the worker body-scan (full-archive), paints the journal section
+  // (matches, or the latest-stories browse fallback), and rebuilds the filter-
+  // pill row with the live Journal count. Touches only the articles slot + the
+  // pill row, so the body-merge re-render never disturbs hero/projects/intel.
+  function renderArticleSection(q, token, opts){
+    opts = opts || {};
+    if (token !== _renderToken) return 0;
+    var Core = window.TmwSearchCore;
+    var full = norm(q);
+    var toks = tokenize(q);
+    var stoks = (Core && Core.filterMeaningfulTokens) ? Core.filterMeaningfulTokens(toks)
+                                                      : toks.filter(function(t){ return t.length >= 3; });
+    if (!stoks.length) stoks = toks.filter(function(t){ return t.length >= 2; });
+
+    // Full-archive body-scan once per query (skipped on the merge re-render).
+    if (!opts.fromBodyMerge && _bodyMatchFor !== q) fetchBodyMatches(q, stoks, token);
+
+    var hero = _heroArticleRef;
+    var aScored = ARTICLES.map(function(a){ return { a:a, s:scoreArticle(a, stoks, full) }; })
+                          .filter(function(x){ return x.s > 0 && x.a !== hero; })
+                          .sort(function(a,b){ return b.s - a.s; });
+    var count = aScored.length + (hero ? 1 : 0);
+
+    _articlesAll = aScored.map(function(x){ return x.a; });
+    _articlesShown = 0;
+    if (_articlesAll.length){
+      slotArticles.innerHTML = ''
+        + '<div class="tmw-ov-sec" data-cat="articles">'
+        +   '<div class="tmw-ov-sec-head"><h3>From the journal</h3><span class="count">'+count+' total</span></div>'
+        +   '<div class="tmw-ov-alist"></div>'
+        + '</div>';
+      appendArticles();
+    } else {
+      // No matches — the always-on Journal tab still gets the latest stories as
+      // a browse fallback (hidden in All, shown under the Journal filter).
+      var recent = ARTICLES.slice(0, 9);
+      slotArticles.innerHTML = recent.length
+        ? ('<div class="tmw-ov-sec tmw-ov-jfallback" data-cat="articles">'
+            + '<div class="tmw-ov-sec-head"><h3>Latest from the journal</h3><span class="count">browse all</span></div>'
+            + '<div class="tmw-ov-alist">' + recent.map(renderArticleCard).join('') + '</div>'
+            + '</div>')
+        : '';
+    }
+
+    // (Re)build the filter pills with the live article count, preserving the
+    // active filter so a body-merge re-render doesn't snap back to "All".
+    var active = sResults.getAttribute('data-filter') || 'all';
+    slotFilterPills.innerHTML = renderFilterPills({
+      intel: _lastFilterCounts.intel,
+      projects: _lastFilterCounts.projects,
+      firms: _lastFilterCounts.firms,
+      articles: count,
+    });
+    var ap = slotFilterPills.querySelector('.tmw-ov-fp[data-filter="'+active+'"]');
+    if (ap){ var ps = slotFilterPills.querySelectorAll('.tmw-ov-fp'); for (var i=0;i<ps.length;i++) ps[i].classList.toggle('active', ps[i]===ap); }
+    return count;
+  }
+
   function renderFilterPills(counts){
     var pills = [];
     pills.push('<button class="tmw-ov-fp active" type="button" data-filter="all">All</button>');
