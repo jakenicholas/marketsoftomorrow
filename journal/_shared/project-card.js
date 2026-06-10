@@ -230,7 +230,7 @@
       (firms.length ? '<div class="pc-firms">' + firms.join(' · ') + '</div>' : '') +
       renderIntel(entry) +
       '<div class="pc-actions">' +
-        '<a class="pc-btn primary" href="' + projectUrl(slug) + '" target="_blank" rel="noopener">Explore</a>' +
+        '<a class="pc-btn primary" href="' + projectUrl(slug) + '">Explore</a>' +
         (rec.OfficialWebsite ? '<a class="pc-btn ghost" href="' + esc(rec.OfficialWebsite) + '" target="_blank" rel="noopener">Visit site <svg viewBox="0 0 24 24"><path d="M7 17 17 7M9 7h8v8"/></svg></a>' : '') +
       '</div>' +
     '</div>';
@@ -318,8 +318,8 @@
       '.tmw-pcard .pc-btn svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2.2}',
       '.tmw-pcard .pc-btn.primary{background:linear-gradient(180deg,var(--gs),var(--g)); color:#2a1f06; box-shadow:0 8px 26px rgba(230,197,116,.4)}',
       '.tmw-pcard .pc-btn.primary:hover{transform:translateY(-2px); box-shadow:0 12px 34px rgba(240,214,138,.55)}',
-      '.tmw-pcard .pc-btn.ghost{background:rgba(255,255,255,.04); color:var(--cream); border:1px solid rgba(255,255,255,.16)}',
-      '.tmw-pcard .pc-btn.ghost:hover{border-color:var(--g); color:#fff}',
+      '.tmw-pcard .pc-btn.ghost{background:transparent; color:var(--cream); border:1px solid transparent; padding-left:8px; padding-right:8px}',
+      '.tmw-pcard .pc-btn.ghost:hover{color:#fff}',
       // Tighter vertical rhythm so the card stays wide & shallow, not tall.
       '.tmw-pcard .pc-body{padding:24px 30px}.tmw-pcard .pc-desc{margin-top:11px}.tmw-pcard .pc-status{margin-top:14px}.tmw-pcard .pc-stats{margin-top:14px}.tmw-pcard .pc-firms{margin-top:12px}.tmw-pcard .pm-intel{margin-top:14px;padding:15px 16px}.tmw-pcard .pm-intel-head{margin-bottom:10px}.tmw-pcard .pm-intel-estimate{margin-bottom:9px}.tmw-pcard .pc-actions{margin-top:15px}',
       '@media(max-width:720px){.tmw-pcard{grid-template-columns:1fr}.tmw-pcard .pc-media{min-height:240px}.tmw-pcard .pc-media::after{background:linear-gradient(180deg, transparent 55%, rgba(10,12,10,.5))}.tmw-pcard .pc-body{padding:24px 22px}.tmw-pcard .pm-intel-similars{grid-template-columns:1fr}}'
