@@ -561,7 +561,7 @@ addEventListener('scroll',()=>{const y=scrollY; if(nav){ nav.style.transform = (
   if(!pills||!out) return;
   function render(m){
     var handle=m.toLowerCase().replace(/\s+/g,'')+'oftomorrow';
-    out.innerHTML='Your collab runs across <a class="at" href="https://www.instagram.com/hotelsoftomorrow" target="_blank" rel="noopener">instagram.com/hotelsoftomorrow</a> &amp; <a class="at" href="https://www.instagram.com/'+handle+'" target="_blank" rel="noopener">instagram.com/'+handle+'</a> &mdash; reaching travelers planning their next <b>'+m+'</b> trip.';
+    out.innerHTML='Your collab runs across <a class="at" href="https://www.instagram.com/hotelsoftomorrow" target="_blank" rel="noopener">@hotelsoftomorrow</a> &amp; <a class="at" href="https://www.instagram.com/'+handle+'" target="_blank" rel="noopener">@'+handle+'</a> &mdash; reaching travelers planning their next <b>'+m+'</b> trip.';
   }
   pills.addEventListener('click',e=>{
     const b=e.target.closest('.mkt-pill'); if(!b) return;
