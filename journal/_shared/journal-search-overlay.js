@@ -1640,7 +1640,11 @@
   var RESIDUAL_STOP = { tower:1,towers:1,condo:1,condos:1,residence:1,residences:1,
     project:1,projects:1,building:1,buildings:1,development:1,developments:1,
     apartment:1,apartments:1,new:1,luxury:1,upcoming:1,recent:1,newest:1,
-    tallest:1,biggest:1,largest:1,happening:1,activity:1 };
+    tallest:1,biggest:1,largest:1,happening:1,activity:1,
+    // Geographic filler words — keep the actual place name as the residual.
+    // (NB: "district" is intentionally NOT here — it's part of "design district".)
+    neighborhood:1,neighbourhood:1,neighborhoods:1,area:1,areas:1,submarket:1,
+    hood:1,zone:1,section:1,vibe:1,scene:1,located:1 };
 
   // When the structured parse consumes a city/firm/etc. but leaves a residual
   // qualifier the engine ignored — most importantly a NEIGHBORHOOD like "design
