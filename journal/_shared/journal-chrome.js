@@ -80,9 +80,10 @@
       '<div>' + '<a href="/" class="tmw-logo-lockup">' + HEX + WORDMARK + '</a>' +
         '<p class="blurb">A powerhouse news network covering the brands shaping the future of hospitality, real estate, and lifestyle.</p></div>' +
       '<div><h4>Focus Markets</h4><ul>' +
-        '<li><a href="/">Global</a></li><li><a href="/?market=florida">Florida</a></li>' +
-        '<li><a href="/?market=new-york">New York</a></li><li><a href="/?market=tennessee">Tennessee</a></li>' +
-        '<li><a href="/?market=caribbean">Caribbean</a></li><li><a href="/?market=rockies">Rockies</a></li></ul></div>' +
+        '<li><a href="/">Global</a></li><li><a href="/?market=hotels">Hotels</a></li>' +
+        '<li><a href="/?market=florida">Florida</a></li><li><a href="/?market=new-york">New York</a></li>' +
+        '<li><a href="/?market=tennessee">Tennessee</a></li><li><a href="/?market=caribbean">Caribbean</a></li>' +
+        '<li><a href="/?market=rockies">Rockies</a></li></ul></div>' +
       '<div><h4>Iconic Lists</h4><ul>' +
         '<li><a href="/golf/">Golf</a></li><li><a href="/restaurants/">Restaurants</a></li>' +
         '<li><a href="/hotels/">Hotels</a></li></ul></div>' +
