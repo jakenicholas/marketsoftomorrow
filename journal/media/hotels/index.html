@@ -130,7 +130,7 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
 .shead h2{margin:6px 0 16px}
 
 /* deliverable cards */
-.dgrid{display:grid; grid-template-columns:repeat(2,1fr); gap:18px}
+.dgrid{display:grid; grid-template-columns:1fr; gap:18px}
 .dcard{padding:32px; position:relative; display:flex; flex-direction:column}
 .dcard .dnum{font-family:var(--mono); font-size:12px; font-weight:700; letter-spacing:.1em; color:var(--gold); width:34px; height:34px; display:flex; align-items:center; justify-content:center; border:1px solid rgba(230,197,116,.4); border-radius:50%; margin-bottom:18px; box-shadow:0 0 16px rgba(230,197,116,.16)}
 .dcard h3{font-size:23px; font-weight:600; color:var(--white); margin-bottom:6px}
@@ -152,7 +152,8 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
 .mkt-pill.on{background:var(--gold); color:var(--ink); border-color:var(--gold); font-weight:700; box-shadow:0 0 20px rgba(230,197,116,.4)}
 .mkt-out{margin-top:16px; font-size:15px; color:var(--mute2); line-height:1.55; font-weight:300}
 .mkt-out b{color:var(--cream); font-weight:600}
-.mkt-out .at{color:var(--gold-soft); font-weight:600}
+.mkt-out .at{color:var(--gold-soft); font-weight:600; text-decoration:none; border-bottom:1px solid rgba(230,197,116,.32); transition:border-color .2s}
+.mkt-out a.at:hover{border-color:var(--gold-soft)}
 
 /* "what we ask" + F&B switch */
 .ask-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:18px; align-items:stretch}
@@ -423,7 +424,7 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
   <div class="wrap">
     <div class="shead reveal">
       <div class="eyebrow">What We Ask In Return</div>
-      <h2>Simple &amp; founder-friendly</h2>
+      <h2>We keep things simple</h2>
       <p class="lede">No invoice, no media spend &mdash; just a place to stay and a small travel fee so our team can show up and create.</p>
     </div>
 
@@ -449,7 +450,7 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
     <div class="fnb glass reveal d1" id="fnb">
       <div class="fnb-head">
         <div>
-          <div class="ft">Add an F&amp;B Experience <span class="tag">optional</span></div>
+          <div class="ft">Add a media dine and/or media experience <span class="tag">optional</span></div>
           <div class="fd">Want to host us for a meal during our stay? Flip this on to see the extra coverage your dining program earns.</div>
         </div>
         <label class="switch" for="fnbToggle">
@@ -537,15 +538,10 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
         <div class="name">Jake Nicholas</div>
         <div class="det"><a href="mailto:jake@oftmw.com">jake@oftmw.com</a></div>
       </div>
-      <div class="c reveal d3">
-        <div class="role">Media Inquiries</div>
-        <div class="name">Markets of Tomorrow</div>
-        <div class="det"><a href="mailto:media@oftmw.com">media@oftmw.com</a></div>
-      </div>
     </div>
     <div class="foot reveal">
       <div>Markets of Tomorrow &middot; Based in West Palm Beach, FL</div>
-      <div><a href="https://oftmw.com">oftmw.com</a> &middot; <a href="https://www.oftmw.com/media">oftmw.com/media</a> &middot; <a href="https://www.instagram.com/marketsoftomorrow" target="_blank" rel="noopener">@marketsoftomorrow</a></div>
+      <div><a href="https://oftmw.com">oftmw.com</a> &middot; <a href="https://www.oftmw.com/media">oftmw.com/media</a> &middot; <a href="https://www.instagram.com/hotelsoftomorrow" target="_blank" rel="noopener">@hotelsoftomorrow</a></div>
     </div>
   </div>
 </section>
@@ -564,7 +560,8 @@ addEventListener('scroll',()=>{const y=scrollY; if(nav){ nav.style.transform = (
   const pills=document.getElementById('mktPills'), out=document.getElementById('mktOut');
   if(!pills||!out) return;
   function render(m){
-    out.innerHTML='Your collab runs across <span class="at">@hotelsoftomorrow</span> &amp; our <b>'+m+'</b> focus-market channel &mdash; reaching travelers planning their next '+m+' trip.';
+    var handle=m.toLowerCase().replace(/\s+/g,'')+'oftomorrow';
+    out.innerHTML='Your collab runs across <a class="at" href="https://www.instagram.com/hotelsoftomorrow" target="_blank" rel="noopener">instagram.com/hotelsoftomorrow</a> &amp; <a class="at" href="https://www.instagram.com/'+handle+'" target="_blank" rel="noopener">instagram.com/'+handle+'</a> &mdash; reaching travelers planning their next <b>'+m+'</b> trip.';
   }
   pills.addEventListener('click',e=>{
     const b=e.target.closest('.mkt-pill'); if(!b) return;
