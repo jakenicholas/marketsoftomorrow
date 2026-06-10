@@ -183,6 +183,7 @@ def flatten(record: dict, architect_names: dict, developer_names: dict) -> dict:
         # match_project / propose_project_edit reference the exact live record.
         'Slug':            record.get('slug', '') or '',
         'City':            record.get('city', '') or '',
+        'Neighborhood':    record.get('neighborhood', '') or '',
         'Latitude':        lat_str,
         'Longitude':       lng_str,
         'Description':     record.get('description', '') or '',

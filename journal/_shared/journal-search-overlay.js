@@ -298,6 +298,9 @@
     + '.tmw-ov-row .sb-construction i,.tmw-ov-row .sb-breaking i{background:#f0d68a}'
     + '.tmw-ov-row .sb-soon{color:#FFB86b}.tmw-ov-row .sb-soon i{background:#FF9F45}'
     + '.tmw-ov-row .sb-open{color:#42EB81}.tmw-ov-row .sb-open i{background:#1FDF67}'
+    // Announced has no colored dot — give it a muted gray one so the status
+    // text left-aligns with the colored-dot rows instead of looking indented.
+    + '.tmw-ov-row .sb-announced{color:#9AA39C}.tmw-ov-row .sb-announced i{background:#9AA39C}'
     + '.tmw-ov-row .dot{width:3px;height:3px;border-radius:50%;background:#9AA39C;opacity:.6}'
     + '.tmw-ov-row .r-bar{flex:0 0 110px;height:7px;border-radius:999px;background:rgba(255,255,255,.06);overflow:hidden}'
     + '.tmw-ov-row .r-bar span{display:block;height:100%;background:linear-gradient(90deg,#7c5cf0,#B9A6FF)}'
@@ -904,17 +907,20 @@
   //   the overlay should be re-synced) ───────────────────────────────
   function scoreProject(p, toks, full){
     var title=norm(p.Title), city=norm(p.City), type=norm(firstField(p,['ProjectType','PreferredType']));
-    var arch=norm(p.Architect), dev=norm(p.Developer);
+    var arch=norm(p.Architect), dev=norm(p.Developer), nbhd=norm(p.Neighborhood);
     var desc=norm(firstField(p,['DescriptionLong','Description']));
     var s = 0;
     if (title===full) s+=120;
     else if (title.indexOf(full)===0) s+=50;
     else if (full && title.indexOf(full)>=0) s+=28;
     if (full && city===full) s+=22;
+    if (full && nbhd && nbhd===full) s+=24;          // exact neighborhood match
+    else if (full && nbhd && nbhd.indexOf(full)>=0) s+=16;
     for (var i=0;i<toks.length;i++){
       var t = toks[i];
       if (title.indexOf(t)>=0) s+=12;
       if (city.indexOf(t)>=0)  s+=8;
+      if (nbhd && nbhd.indexOf(t)>=0) s+=9;          // neighborhood token match
       if (type.indexOf(t)>=0)  s+=6;
       if (arch.indexOf(t)>=0)  s+=5;
       if (dev.indexOf(t)>=0)   s+=5;
@@ -1665,7 +1671,7 @@
     var residual = toks.filter(function(t){ return consumed.indexOf(t) < 0 && !RESIDUAL_STOP[t]; });
     if (!residual.length) return { rows: rows };
     var phrase = residual.join(' ');
-    function blob(p){ return norm((p.Title||'')+' '+(p.DescriptionLong||'')+' '+(p.Description||'')); }
+    function blob(p){ return norm((p.Title||'')+' '+(p.Neighborhood||'')+' '+(p.DescriptionLong||'')+' '+(p.Description||'')); }
     var byPhrase = rows.filter(function(p){ return blob(p).indexOf(phrase) >= 0; });
     var hit = byPhrase.length ? byPhrase
       : rows.filter(function(p){ var b=blob(p); return residual.every(function(t){ return b.indexOf(t)>=0; }); });

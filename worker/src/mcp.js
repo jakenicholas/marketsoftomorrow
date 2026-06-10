@@ -397,6 +397,7 @@ const TOOLS = [
         title: { type: 'string', description: 'Project name (stored as "name"; slug is derived from it)' },
         status: { type: 'string', enum: ['announced', 'breaking-ground', 'construction', 'coming-soon', 'open'], description: 'Project status (default "announced")' },
         city: { type: 'string' },
+        neighborhood: { type: 'string', description: 'Neighborhood / submarket / district (e.g. "Design District", "Northwood", "Brickell", "Wynwood"). Powers neighborhood-level search & filtering — set it whenever the source names one.' },
         address: { type: 'string', description: 'Street address — captured in source_note to help geocoding' },
         latitude: { type: 'number' },
         longitude: { type: 'number' },
@@ -434,6 +435,7 @@ const TOOLS = [
         draft_id: { type: 'string', description: 'Draft id from list_map_drafts (preferred)' },
         slug: { type: 'string', description: 'Project slug (alternative to draft_id)' },
         status: { type: 'string', enum: ['announced', 'breaking-ground', 'construction', 'coming-soon', 'open'] },
+        neighborhood: { type: 'string', description: 'Neighborhood / submarket / district (e.g. "Design District", "Northwood", "Brickell"). Powers neighborhood search & filtering.' },
         start_date: { type: 'string', description: 'Construction-start / groundbreaking year or date' },
         start_speculative: { type: 'boolean', description: 'True if start_date is an estimate' },
         delivery_date: { type: 'string', description: 'Completion / OPENING year or date' },
@@ -460,7 +462,7 @@ const TOOLS = [
         target_name: { type: 'string', description: 'The current name of that project, for display' },
         changes: {
           type: 'object',
-          description: 'Map of field → NEW value. Only include fields that should change. Allowed keys: name, status, city, latitude, longitude, website, units, floors, start_date, delivery_date, description, description_long.',
+          description: 'Map of field → NEW value. Only include fields that should change. Allowed keys: name, status, city, neighborhood, latitude, longitude, website, units, floors, start_date, delivery_date, description, description_long.',
         },
         proposal_note: { type: 'string', description: 'Human-readable rationale, e.g. \'"name" needs to be changed per this article I found\'' },
         source_note: { type: 'string', description: 'Source URL / where this came from' },
@@ -498,6 +500,7 @@ const TOOLS = [
         units: { type: 'integer', description: 'Residential unit count — fill/correct when a credible source states it (auto-applies; many projects are missing this)' },
         floors: { type: 'integer', description: 'Floor / story count — fill/correct from a credible source (auto-applies)' },
         keys: { type: 'integer', description: 'Hotel key (room) count — fill/correct from a credible source for hotels/resorts (auto-applies)' },
+        neighborhood: { type: 'string', description: 'Neighborhood / submarket / district the project sits in (e.g. "Design District", "Northwood", "Brickell", "Wynwood", "Edgewater"). Auto-applies like specs. Fill it whenever you can identify it from the source/address — it powers neighborhood-level search & filtering. Use the canonical local name, not a street.' },
         correction: { type: 'boolean', description: 'Set TRUE only to CORRECT an over-stated status BACKWARD — i.e. the project is recorded at a LATER phase than reality and credible, current sources show it has not reached it (e.g. marked "construction" or "breaking-ground" but it has NOT broken ground → set new_status "announced", correction:true). This is the ONLY case status may move backward. Requires a credible source_url and a note explaining why. Omit/false for all normal forward sweeps.' },
       },
       required: ['slug', 'source_url'],
@@ -1724,6 +1727,7 @@ const IMPL = {
       name: title,
       status: String(args.status || 'announced'),
       city: String(args.city || ''),
+      neighborhood: String(args.neighborhood || ''),
       lat: num(args.latitude),
       lng: num(args.longitude),
       types,
@@ -1836,6 +1840,7 @@ const IMPL = {
       const data = d.data || (d.data = {});
       const changed = [];
       if (args.status) { data.status = String(args.status); changed.push('status'); }
+      if (args.neighborhood != null && String(args.neighborhood).trim() !== '') { data.neighborhood = String(args.neighborhood).trim(); changed.push('neighborhood'); }
       if (args.start_date != null && String(args.start_date) !== '') { data.start_date = String(args.start_date); changed.push('start_date'); }
       if (args.start_speculative != null) data.start_speculative = !!args.start_speculative;
       if (args.delivery_date != null && String(args.delivery_date) !== '') { data.delivery_date = String(args.delivery_date); changed.push('delivery_date'); }
@@ -1867,7 +1872,7 @@ const IMPL = {
 
     // MCP-facing names → canonical project.json field names.
     const KEYMAP = { latitude: 'lat', longitude: 'lng', website: 'official_website' };
-    const ALLOWED = new Set(['name', 'status', 'city', 'lat', 'lng', 'official_website',
+    const ALLOWED = new Set(['name', 'status', 'city', 'neighborhood', 'lat', 'lng', 'official_website',
       'units', 'floors', 'start_date', 'delivery_date', 'description', 'description_long']);
 
     // Resolve the live record (best-effort) to populate each change's `from`.
@@ -1878,7 +1883,7 @@ const IMPL = {
       if (!live) return null;
       const m = {
         name: live.Title, status: live.Status || live.Delivery || '', city: live.City,
-        lat: live.Latitude, lng: live.Longitude, official_website: live.OfficialWebsite,
+        neighborhood: live.Neighborhood, lat: live.Latitude, lng: live.Longitude, official_website: live.OfficialWebsite,
         units: live.Units, floors: live.Floors, start_date: live.StartDate,
         delivery_date: live.DeliveryDate, description: live.Description, description_long: live.DescriptionLong,
       };
@@ -2000,6 +2005,9 @@ const IMPL = {
       { arg: 'keys',   field: 'keys',   label: 'keys' },
     ];
     const numWanted = NUM_FIELDS.map((f) => ({ ...f, val: numOrNull(args[f.arg]) })).filter((f) => f.val != null);
+    // Neighborhood / submarket — a free-text spec field that auto-applies like
+    // units/floors (many projects are missing it; it powers neighborhood search).
+    const nbhdWanted = (args.neighborhood != null && String(args.neighborhood).trim() !== '') ? String(args.neighborhood).trim() : null;
 
     for (let attempt = 0; ; attempt++) {
       const { sha, projects } = await readProjectsFile(env);
@@ -2017,11 +2025,12 @@ const IMPL = {
       const startChanged = !!newStart && newStart !== clean(p.start_date);
       const deliveryChanged = !!newDelivery && newDelivery !== clean(p.delivery_date);
       const numChanged = numWanted.filter((u) => u.val !== numOrNull(p[u.field]));
+      const nbhdChanged = nbhdWanted != null && nbhdWanted !== String(p.neighborhood || '');
       // A milestone is always a new dated event to log (idempotency isn't
       // enforced — the same phase can legitimately recur with a corrected date;
       // humans can prune dupes in the Studio milestones editor).
       const milestoneAdded = !!milestone;
-      const anyExtra = startChanged || deliveryChanged || numChanged.length > 0 || milestoneAdded;
+      const anyExtra = startChanged || deliveryChanged || numChanged.length > 0 || nbhdChanged || milestoneAdded;
 
       // A backward status WITHOUT the correction flag is refused — guards against
       // accidental regressions during a normal forward sweep.
@@ -2089,6 +2098,12 @@ const IMPL = {
         p[u.field] = u.val;
         p.status_history.push({ ...base, type: 'field', field: u.field, from: old, to: u.val });
         changes.push(`${u.label} ${old == null ? '—' : old}→${u.val}`);
+      }
+      if (nbhdChanged) {
+        const old = String(p.neighborhood || '') || null;
+        p.neighborhood = nbhdWanted;
+        p.status_history.push({ ...base, type: 'field', field: 'neighborhood', from: old, to: nbhdWanted });
+        changes.push(`neighborhood ${old || '—'}→${nbhdWanted}`);
       }
       if (milestoneAdded) {
         // A finer construction-phase event for the dossier (does not touch status).
