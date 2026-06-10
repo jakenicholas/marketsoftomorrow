@@ -208,6 +208,30 @@ a.tag:hover svg{transform:translateX(2px)}
 .xcard:hover .xarrow{background:rgba(230,197,116,.14); border-color:var(--gold); transform:translateX(3px)}
 .xcard .xarrow svg{width:17px; height:17px}
 
+/* recent collaborations */
+.collab-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:18px}
+.collab{padding:28px 30px; display:flex; flex-direction:column}
+.collab-head{display:flex; align-items:baseline; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:18px}
+.collab-head .ct{font-family:var(--serif); font-size:23px; font-weight:600; color:var(--white); line-height:1.1}
+.collab-head .cl{font-family:var(--mono); font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--mute); white-space:nowrap}
+.collab-tiles{display:flex; flex-direction:column; gap:10px}
+.ctile{display:flex; align-items:center; gap:13px; padding:12px 14px; border-radius:13px; border:1px solid var(--hair); background:rgba(255,255,255,.03); text-decoration:none; color:inherit; transition:border-color .2s, background .2s, transform .2s}
+.ctile:hover{border-color:rgba(230,197,116,.4); background:rgba(255,255,255,.06); transform:translateY(-1px)}
+.ctile .ci{flex:0 0 auto; width:34px; height:34px; border-radius:9px; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,.05); border:1px solid var(--hair2); color:var(--gold-soft)}
+.ctile .ci svg{width:17px; height:17px}
+.ctile .cb{flex:1; min-width:0}
+.ctile .cbt{font-size:14px; font-weight:600; color:var(--cream)}
+.ctile .cbd{font-size:12.5px; color:var(--mute); margin-top:2px; font-weight:300; line-height:1.4}
+.ctile .cgo{flex:0 0 auto; color:var(--mute2); transition:transform .2s}
+.ctile:hover .cgo{transform:translate(2px,-2px)}
+.ctile .cgo svg{width:15px; height:15px; display:block}
+.ctile.soon{opacity:.5; cursor:default}
+.ctile.soon:hover{transform:none; border-color:var(--hair); background:rgba(255,255,255,.03)}
+.ctile.soon .cbd{font-style:italic}
+.collab-iconic{margin-top:18px; width:100%; justify-content:center}
+.collab-iconic svg{width:16px; height:16px}
+@media(max-width:880px){ .collab-grid{grid-template-columns:1fr} }
+
 /* CTA */
 .cta{min-height:70vh; display:flex; align-items:center; overflow:hidden; position:relative}
 .cta-pattern{overflow:hidden; background:var(--ink)}
@@ -419,6 +443,62 @@ a.tag:hover svg{transform:translateX(2px)}
           <a class="btn btn-ghost" href="https://www.oftmw.com/hotels">See the Iconic Hotel List <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
         </div>
       </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Recent collaborations ─────────────────────────────────────────────── -->
+<section id="collabs" style="padding-top:0">
+  <div class="wrap">
+    <div class="shead reveal">
+      <div class="eyebrow">Recent Collaborations</div>
+      <h2>Stays we&rsquo;ve told the story of</h2>
+      <p class="lede">A look at recent hotel partners &mdash; the article, the social moment, the photo set, and where they landed on our editorial lists.</p>
+    </div>
+    <div class="collab-grid">
+
+      <!-- Four Seasons Fort Lauderdale -->
+      <div class="collab glass reveal">
+        <div class="collab-head"><div class="ct">Four Seasons</div><div class="cl">Fort Lauderdale, FL</div></div>
+        <div class="collab-tiles">
+          <span class="ctile soon"><span class="ci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h9l5 5v13H5z"/><path d="M14 3v5h5"/><path d="M8.5 13h7M8.5 17h7"/></svg></span><span class="cb"><span class="cbt">Website article</span><span class="cbd">Link coming soon</span></span></span>
+          <span class="ctile soon"><span class="ci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="3.6"/><circle cx="17.4" cy="6.6" r="1.1" fill="currentColor" stroke="none"/></svg></span><span class="cb"><span class="cbt">On Instagram</span><span class="cbd">Link coming soon</span></span></span>
+          <a class="ctile" href="https://gallery.oftmw.com/g/four-seasons-fort-lauderdale" target="_blank" rel="noopener"><span class="ci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="8.5" cy="9.5" r="1.6"/><path d="m4 18 5-5 4 3.5 3-2.5 4 4"/></svg></span><span class="cb"><span class="cbt">Photo gallery</span><span class="cbd">4 photos from our stay</span></span><span class="cgo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7"/><path d="M9 7h8v8"/></svg></span></a>
+        </div>
+        <a class="btn btn-gold collab-iconic" href="https://www.oftmw.com/hotels"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 3 19.5 7.5 19.5 16.5 12 21 4.5 16.5 4.5 7.5"/><path d="M12 8.6l1.05 2.12 2.35.34-1.7 1.66.4 2.33L12 15.4l-2.1 1.65.4-2.33-1.7-1.66 2.35-.34z"/></svg> Iconic Hotels List</a>
+      </div>
+
+      <!-- Ko'a Kea -->
+      <div class="collab glass reveal d1">
+        <div class="collab-head"><div class="ct">Ko&rsquo;a Kea</div><div class="cl">Kaua&rsquo;i, Hawai&rsquo;i</div></div>
+        <div class="collab-tiles">
+          <a class="ctile" href="https://www.oftmw.com/post/inside-ko%CA%BBa-kea-the-kaua%CA%BBi-stay-built-around-one-of-hawaii-s-best-restaurants/"><span class="ci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h9l5 5v13H5z"/><path d="M14 3v5h5"/><path d="M8.5 13h7M8.5 17h7"/></svg></span><span class="cb"><span class="cbt">Website article</span><span class="cbd">Inside the Kaua&rsquo;i stay built around one of Hawai&rsquo;i&rsquo;s best restaurants</span></span><span class="cgo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></a>
+          <a class="ctile" href="https://www.instagram.com/p/DYw6SOMlmmQ/" target="_blank" rel="noopener"><span class="ci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="3.6"/><circle cx="17.4" cy="6.6" r="1.1" fill="currentColor" stroke="none"/></svg></span><span class="cb"><span class="cbt">On Instagram</span><span class="cbd">See the post</span></span><span class="cgo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7"/><path d="M9 7h8v8"/></svg></span></a>
+          <a class="ctile" href="https://gallery.oftmw.com/g/ko-a-kea" target="_blank" rel="noopener"><span class="ci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="8.5" cy="9.5" r="1.6"/><path d="m4 18 5-5 4 3.5 3-2.5 4 4"/></svg></span><span class="cb"><span class="cbt">Photo gallery</span><span class="cbd">4 photos from our stay</span></span><span class="cgo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7"/><path d="M9 7h8v8"/></svg></span></a>
+        </div>
+        <a class="btn btn-gold collab-iconic" href="https://www.oftmw.com/hotels"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 3 19.5 7.5 19.5 16.5 12 21 4.5 16.5 4.5 7.5"/><path d="M12 8.6l1.05 2.12 2.35.34-1.7 1.66.4 2.33L12 15.4l-2.1 1.65.4-2.33-1.7-1.66 2.35-.34z"/></svg> Iconic Hotels List</a>
+      </div>
+
+      <!-- One Aldwych -->
+      <div class="collab glass reveal">
+        <div class="collab-head"><div class="ct">One Aldwych</div><div class="cl">London, UK</div></div>
+        <div class="collab-tiles">
+          <a class="ctile" href="https://www.oftmw.com/post/inside-one-aldwych-the-kind-of-hotel-you-start-planning-your-return-to/"><span class="ci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h9l5 5v13H5z"/><path d="M14 3v5h5"/><path d="M8.5 13h7M8.5 17h7"/></svg></span><span class="cb"><span class="cbt">Website article</span><span class="cbd">The London hotel you start planning your return to</span></span><span class="cgo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></a>
+          <a class="ctile" href="https://www.instagram.com/reel/DS5oa_EEs3i/" target="_blank" rel="noopener"><span class="ci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="3.6"/><circle cx="17.4" cy="6.6" r="1.1" fill="currentColor" stroke="none"/></svg></span><span class="cb"><span class="cbt">On Instagram</span><span class="cbd">Watch the reel</span></span><span class="cgo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7"/><path d="M9 7h8v8"/></svg></span></a>
+        </div>
+        <a class="btn btn-gold collab-iconic" href="https://www.oftmw.com/hotels"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 3 19.5 7.5 19.5 16.5 12 21 4.5 16.5 4.5 7.5"/><path d="M12 8.6l1.05 2.12 2.35.34-1.7 1.66.4 2.33L12 15.4l-2.1 1.65.4-2.33-1.7-1.66 2.35-.34z"/></svg> Iconic Hotels List</a>
+      </div>
+
+      <!-- Little Palm Island -->
+      <div class="collab glass reveal d1">
+        <div class="collab-head"><div class="ct">Little Palm Island</div><div class="cl">Florida Keys</div></div>
+        <div class="collab-tiles">
+          <a class="ctile" href="https://www.oftmw.com/post/america-s-only-private-island-resort-unveils-a-four-day-michelin-wine-retreat/"><span class="ci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h9l5 5v13H5z"/><path d="M14 3v5h5"/><path d="M8.5 13h7M8.5 17h7"/></svg></span><span class="cb"><span class="cbt">Website article</span><span class="cbd">America&rsquo;s only private-island resort unveils a 4-day Michelin wine retreat</span></span><span class="cgo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></a>
+          <a class="ctile" href="https://www.instagram.com/reel/DT-eoiBAEYY/" target="_blank" rel="noopener"><span class="ci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="3.6"/><circle cx="17.4" cy="6.6" r="1.1" fill="currentColor" stroke="none"/></svg></span><span class="cb"><span class="cbt">On Instagram</span><span class="cbd">Watch the reel</span></span><span class="cgo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7"/><path d="M9 7h8v8"/></svg></span></a>
+        </div>
+        <a class="btn btn-gold collab-iconic" href="https://www.oftmw.com/hotels"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 3 19.5 7.5 19.5 16.5 12 21 4.5 16.5 4.5 7.5"/><path d="M12 8.6l1.05 2.12 2.35.34-1.7 1.66.4 2.33L12 15.4l-2.1 1.65.4-2.33-1.7-1.66 2.35-.34z"/></svg> Iconic Hotels List</a>
+      </div>
+
     </div>
   </div>
 </section>
