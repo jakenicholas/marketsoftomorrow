@@ -95,7 +95,18 @@
       '.tmw-fa-geo-list[hidden]{display:none}',
       '.tmw-fa-geo-item{padding:10px 14px; font-family:var(--sans,"Inter",sans-serif); font-size:13px; color:#e8e8e8; cursor:pointer; border-bottom:1px solid rgba(255,255,255,.06)}',
       '.tmw-fa-geo-item:last-child{border-bottom:0}',
-      '.tmw-fa-geo-item:hover{background:rgba(31,223,103,.12); color:#fff}'
+      '.tmw-fa-geo-item:hover{background:rgba(31,223,103,.12); color:#fff}',
+      // Fourth step — the Go Pro pitch (non-Pro users only). Mirrors the
+      // .tmw-fa shell so it fits inside the same lightbox host, but the
+      // CTA + glyphs are gold instead of the funnel's green to mark the
+      // upgrade-action surface area.
+      '.tmw-fa-pro-list{list-style:none; margin:0 0 14px 0; padding:0; display:flex; flex-direction:column; gap:9px}',
+      '.tmw-fa-pro-list li{display:grid; grid-template-columns:24px 1fr; column-gap:11px; row-gap:2px; padding:11px 13px; background:rgba(255,211,0,.05); border:1px solid rgba(255,211,0,.18); border-radius:10px}',
+      '.tmw-fa-pro-list li b{grid-column:2; grid-row:1; font-family:var(--sans,"Inter",sans-serif); font-size:13px; font-weight:700; color:#fff; line-height:1.2}',
+      '.tmw-fa-pro-list li i{grid-column:2; grid-row:2; font-family:var(--sans,"Inter",sans-serif); font-size:12px; font-style:normal; color:rgba(255,255,255,.62); line-height:1.4}',
+      '.tmw-fa-pro-list li .tmw-fa-pro-i{grid-column:1; grid-row:1 / span 2; align-self:center; display:flex; align-items:center; justify-content:center; width:24px; height:24px; color:#FFD300; font-size:13px}',
+      '.tmw-fa-pro-cta{box-sizing:border-box; width:100%; height:46px; border:0; border-radius:10px; background:#FFD300; color:#0a0a0a; font-family:var(--mono,monospace); font-size:11.5px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; cursor:pointer; transition:filter .15s, box-shadow .15s; box-shadow:0 0 0 1px rgba(255,211,0,.5) inset, 0 0 18px rgba(255,211,0,.32)}',
+      '.tmw-fa-pro-cta:hover{filter:brightness(1.06); box-shadow:0 0 0 1px rgba(255,211,0,.7) inset, 0 0 26px rgba(255,211,0,.45)}'
     ].join('');
     document.head.appendChild(st);
   }
@@ -170,7 +181,11 @@
     var form = host.querySelector('.tmw-fa-prof');
     var msg = host.querySelector('.tmw-fa-msg');
     var skip = host.querySelector('.tmw-fa-skip');
-    function finish() { if (typeof onClose === 'function') onClose(true); }
+    // "Finish" or "Skip for now" both chain into Step 4 (Go Pro pitch)
+    // -- the upgrade nudge should fire whether or not the user filled in
+    // their profile details. tmwGoProStep is responsible for the final
+    // onClose, so this function is just the bridge from this step to it.
+    function finish() { window.tmwGoProStep(host, onClose); }
     skip.addEventListener('click', finish);
 
     // "Based" — live place suggestions via Mapbox geocoding (public token).
@@ -237,8 +252,53 @@
         try { if (window.gtag) window.gtag('event', 'profile_completed', { source: 'newsletter' }); } catch (_) {}
         form.style.display = 'none'; skip.style.display = 'none';
         msg.className = 'tmw-fa-msg ok'; msg.textContent = '✓ You’re all set. Welcome to Markets of Tomorrow.';
-        setTimeout(finish, 1700);
+        // Step 4: Go Pro pitch (non-Pro only). After the welcome message
+        // sits for a beat, swap the host's content for the upgrade
+        // pitch instead of closing -- tmwGoProStep is responsible for
+        // calling onClose when the user accepts or skips.
+        setTimeout(function () { window.tmwGoProStep(host, onClose); }, 1500);
       });
+    });
+  };
+
+  // Step 4 (final): the Go Pro pitch. Always runs for fresh signups since
+  // the funnel reaches here right after free-account creation. A safety
+  // check for _isPaidMember short-circuits in the unlikely case the user
+  // is somehow already Pro by this point.
+  window.tmwGoProStep = function (host, onClose) {
+    if (!host) { if (typeof onClose === 'function') onClose(true); return; }
+    if (window._isPaidMember === true) { if (typeof onClose === 'function') onClose(true); return; }
+    injectFaCss();
+    host.innerHTML =
+      '<div class="tmw-fa tmw-fa-pro">' +
+        '<div class="tmw-fa-h">One more thing — unlock TMW Pro</div>' +
+        '<div class="tmw-fa-sub">Free gets you the journal + map exploration. Pro is the intelligence most members are here for.</div>' +
+        '<ul class="tmw-fa-pro-list">' +
+          '<li><span class="tmw-fa-pro-i">⚡</span><b>TMW Intelligence</b><i>Completion forecasts + AI project research on every page.</i></li>' +
+          '<li><span class="tmw-fa-pro-i">★</span><b>Watchlist</b><i>Track projects, get notified the moment they move.</i></li>' +
+          '<li><span class="tmw-fa-pro-i">⇄</span><b>Compare</b><i>Stack any projects side-by-side — units, timeline, firms.</i></li>' +
+          '<li><span class="tmw-fa-pro-i">●</span><b>Pulse</b><i>Live feed of every new project hitting the database.</i></li>' +
+        '</ul>' +
+        '<button class="tmw-fa-pro-cta" type="button">Go Pro →</button>' +
+        '<button class="tmw-fa-skip" type="button">Continue with free</button>' +
+      '</div>';
+    var cta = host.querySelector('.tmw-fa-pro-cta');
+    var skip = host.querySelector('.tmw-fa-skip');
+    function done() { if (typeof onClose === 'function') onClose(true); }
+    skip.addEventListener('click', function () {
+      try { if (window.gtag) window.gtag('event', 'go_pro_skipped', { source: 'article_funnel' }); } catch (_) {}
+      done();
+    });
+    cta.addEventListener('click', function () {
+      try { if (window.gtag) window.gtag('event', 'go_pro_clicked', { source: 'article_funnel' }); } catch (_) {}
+      // Close the funnel host FIRST so the paywall doesn't stack on top
+      // of the article lightbox; then trigger the in-page paywall (or
+      // deep-link to the map upgrade flow as a fallback).
+      done();
+      setTimeout(function () {
+        if (typeof window.tmwShowPaywall === 'function') window.tmwShowPaywall('go-pro');
+        else location.href = 'https://www.oftmw.com/map/?upgrade=1';
+      }, 120);
     });
   };
 
