@@ -1403,6 +1403,7 @@
     if (s.typeLabel)                           chips.push('<span class="tmw-ov-uchip"><span class="ck">Type</span> <b>'+esc(s.typeLabel)+'</b></span>');
     if (s.cities.length)                       chips.push('<span class="tmw-ov-uchip"><span class="ck">City</span> <b>'+esc(s.cities.join(' & '))+'</b></span>');
     else if (s.region)                         chips.push('<span class="tmw-ov-uchip"><span class="ck">Region</span> <b>'+esc(s.region)+'</b></span>');
+    if (s._areaLabel)                          chips.push('<span class="tmw-ov-uchip"><span class="ck">Area</span> <b>'+esc(s._areaLabel)+'</b></span>');
     if (s.yearLabel)                           chips.push('<span class="tmw-ov-uchip"><span class="ck">Delivery</span> <b>'+esc(s.yearLabel)+'</b></span>');
     if (s.sort)                                chips.push('<span class="tmw-ov-uchip sort"><span class="ck">Sort</span> <b>'+esc(s.sort.label)+'</b></span>');
     if (!chips.length) return '';
@@ -1635,6 +1636,40 @@
     });
   }
 
+  // Generic nouns that should NOT drive neighborhood/submarket narrowing.
+  var RESIDUAL_STOP = { tower:1,towers:1,condo:1,condos:1,residence:1,residences:1,
+    project:1,projects:1,building:1,buildings:1,development:1,developments:1,
+    apartment:1,apartments:1,new:1,luxury:1,upcoming:1,recent:1,newest:1,
+    tallest:1,biggest:1,largest:1,happening:1,activity:1 };
+
+  // When the structured parse consumes a city/firm/etc. but leaves a residual
+  // qualifier the engine ignored — most importantly a NEIGHBORHOOD like "design
+  // district" (there's no neighborhood field, so it lives in Title/Description)
+  // — narrow the result set to projects whose text actually mentions it. This
+  // is what makes "miami design district" surface MIRAI / Fouquet's /
+  // Jean-Georges instead of all 88 Miami projects. Never empties the set, and
+  // only narrows on a meaningful (non-generic) residual.
+  function applyResidualText(q, s, rows){
+    var Core = window.TmwSearchCore;
+    var toks = (Core && Core.filterMeaningfulTokens) ? Core.filterMeaningfulTokens(tokenize(q)) : tokenize(q);
+    if (!toks.length || !rows.length) return { rows: rows };
+    var consumed = norm([
+      (s.cities||[]).join(' '), s.region||'', (s.firm&&s.firm.name)||'',
+      s.typeLabel||'', (s.statusLabels||[]).join(' '), (s.phaseLabels||[]).join(' '),
+      s.yearLabel||'', (s.sort&&s.sort.label)||''
+    ].join(' '));
+    var residual = toks.filter(function(t){ return consumed.indexOf(t) < 0 && !RESIDUAL_STOP[t]; });
+    if (!residual.length) return { rows: rows };
+    var phrase = residual.join(' ');
+    function blob(p){ return norm((p.Title||'')+' '+(p.DescriptionLong||'')+' '+(p.Description||'')); }
+    var byPhrase = rows.filter(function(p){ return blob(p).indexOf(phrase) >= 0; });
+    var hit = byPhrase.length ? byPhrase
+      : rows.filter(function(p){ var b=blob(p); return residual.every(function(t){ return b.indexOf(t)>=0; }); });
+    if (!hit.length || hit.length === rows.length) return { rows: rows };
+    var label = residual.map(function(w){ return w.charAt(0).toUpperCase()+w.slice(1); }).join(' ');
+    return { rows: hit, label: label };
+  }
+
   // The structured-smart-query render. Mirrors /search/'s renderSmart:
   // chips → intel panel (answer + stats) → header → ranked rows → foot.
   // Also fires the LLM upgrade to replace the deterministic sentence
@@ -1657,6 +1692,11 @@
     }
 
     var rows = Core.smartRank(Core.smartFilter(s, PROJECTS), s);
+    // Narrow to a residual neighborhood/qualifier ("design district") the
+    // structured parse ignored, and surface it as an "Area" chip.
+    var resid = applyResidualText(q, s, rows);
+    rows = resid.rows;
+    if (resid.label) s._areaLabel = resid.label;
     var ans = Core.buildSmartAnswer(s, rows);
 
     // Header slot carries the "understood as" chips
