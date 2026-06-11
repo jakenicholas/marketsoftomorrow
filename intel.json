@@ -2936,8 +2936,8 @@
       "delivery_speculative": false
     },
     "the-residences-at-boca-raton": {
-      "estimate_years": 3.3,
-      "estimate_label": "~3.3 years",
+      "estimate_years": 4.8,
+      "estimate_label": "~4.8 years",
       "range_low": 2.0,
       "range_high": 8.4,
       "confidence": "medium",
@@ -2949,7 +2949,15 @@
       "avg_distance_km": 392.0,
       "avg_distance_mi": 243.6,
       "scale_used": true,
-      "firm_signal": null,
+      "firm_signal": {
+        "firm": "SB Architects",
+        "count": 1,
+        "median_years": 6.96,
+        "stddev_years": 0.0,
+        "role": "architect",
+        "consistent": false,
+        "blend_weight": 0.4
+      },
       "source": "comparables",
       "project_type": "Residences",
       "metro": "Palm Beach",
@@ -2982,7 +2990,7 @@
           "distance_mi": 1056.9
         }
       ],
-      "pattern_summary": "Among 10 residences projects in TMW's data, the median build time is 3.3 years (range 2–8.4).",
+      "pattern_summary": "Among 10 residences projects in TMW's data, the median build time is 3.3 years (range 2–8.4). Adjusted to ~4.8 years for SB Architects's own track record (~7-year typical pace across 1 prior project).",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false,
@@ -8463,17 +8471,112 @@
       "dates_speculative": true,
       "start_speculative": true,
       "delivery_speculative": true
+    },
+    "the-residences-at-the-st-regis-los-cabos": {
+      "estimate_years": 0.6,
+      "estimate_label": "~7 months",
+      "days_out": 203,
+      "delivery_date": "2026-12-31",
+      "source": "known_date",
+      "precision": "year",
+      "confidence": "high",
+      "project_type": "Residences",
+      "metro": "Other",
+      "comparables": [],
+      "comparable_count": 0,
+      "pattern_summary": "Targeted for opening in ~7 months.",
+      "dates_speculative": false,
+      "start_speculative": false,
+      "delivery_speculative": false
+    },
+    "montage-cay": {
+      "estimate_years": 4.0,
+      "estimate_label": "~4 years",
+      "range_low": 2.0,
+      "range_high": 8.4,
+      "confidence": "low",
+      "comparable_count": 6,
+      "good_count": 0,
+      "exact_count": 0,
+      "used_relaxed": true,
+      "avg_match_score": 0.54,
+      "avg_distance_km": 749.1,
+      "avg_distance_mi": 465.5,
+      "scale_used": true,
+      "firm_signal": {
+        "firm": "Gensler",
+        "count": 1,
+        "median_years": 4.21,
+        "stddev_years": 0.0,
+        "role": "architect",
+        "consistent": false,
+        "blend_weight": 0.4
+      },
+      "source": "comparables",
+      "project_type": "Residences",
+      "metro": "Other",
+      "comparables": [
+        {
+          "name": "Forté on Flagler",
+          "slug": "fort-on-flagler",
+          "location": "West Palm Beach",
+          "years": 3.8,
+          "score": 0.64,
+          "distance_km": 302.2,
+          "distance_mi": 187.8
+        },
+        {
+          "name": "Vita at Grove Isle",
+          "slug": "vita-at-grove-isle",
+          "location": "Coconut Grove",
+          "years": 2.0,
+          "score": 0.64,
+          "distance_km": 332.9,
+          "distance_mi": 206.8
+        },
+        {
+          "name": "Arbor Coconut Grove",
+          "slug": "arbor-coconut-grove",
+          "location": "Miami",
+          "years": 8.4,
+          "score": 0.64,
+          "distance_km": 335.2,
+          "distance_mi": 208.3
+        }
+      ],
+      "pattern_summary": "Among 6 residences projects in TMW's data, the median build time is 3.9 years (range 2–8.4). Adjusted to ~4 years for Gensler's own track record (~4.2-year typical pace across 1 prior project).",
+      "dates_speculative": false,
+      "start_speculative": false,
+      "delivery_speculative": false,
+      "is_mixed_use": false
+    },
+    "hyatt-centric-grand-cayman": {
+      "estimate_years": 2.5,
+      "estimate_label": "~2.5 years",
+      "days_out": 934,
+      "delivery_date": "2028-12-31",
+      "source": "known_date",
+      "precision": "year",
+      "confidence": "high",
+      "project_type": "Hotel",
+      "metro": "Other",
+      "comparables": [],
+      "comparable_count": 0,
+      "pattern_summary": "Targeted for opening in ~2.5 years.",
+      "dates_speculative": false,
+      "start_speculative": false,
+      "delivery_speculative": false
     }
   },
   "stats": {
     "high": 1,
     "medium": 18,
-    "low": 26,
-    "known_date": 292,
+    "low": 27,
+    "known_date": 294,
     "completed": 57,
     "skipped": 49,
     "no_type": 0,
-    "firm_boosted": 30,
+    "firm_boosted": 32,
     "speculative_softened": 73,
     "mixed_use_adjusted": 1
   }
