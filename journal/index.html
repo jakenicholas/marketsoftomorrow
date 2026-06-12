@@ -83,7 +83,12 @@ h1,h2,h3,h4{font-family:var(--serif); font-weight:600; letter-spacing:-.015em; c
   background:var(--ink-2);
   border-bottom:1px solid var(--hair);
   overflow:hidden;
-  max-height:320px;
+  /* max-height bumped from 320px -> 720px so it doesn't clip the
+     newly-proportional carousel on wide displays. On any viewport
+     up to ~3540px wide the natural aspect ratio (1886/383 ≈ 4.92)
+     keeps the section below this cap; the cap only exists so the
+     .collapsed transition has a defined target to animate to/from. */
+  max-height:720px;
   opacity:1;
   transition:max-height .35s cubic-bezier(.22,1,.36,1), opacity .25s ease, border-color .35s ease;
   position:relative;
@@ -91,7 +96,13 @@ h1,h2,h3,h4{font-family:var(--serif); font-weight:600; letter-spacing:-.015em; c
 .banner-ad.collapsed{max-height:0; opacity:0; border-bottom-color:transparent; pointer-events:none}
 .featured-carousel{
   position:relative;
-  height:clamp(180px, 22vw, 280px);
+  /* Aspect ratio matches the canonical ad creative dimensions
+     (1886x383) so the WHOLE section scales proportionally with
+     viewport width -- no fixed height ceiling, no cropping. Was
+     clamp(180px, 22vw, 280px) which capped at 280px and combined
+     with object-fit:cover meant ads got their top/bottom shaved
+     off above ~1273px viewport. */
+  aspect-ratio: 1886 / 383;
   overflow:hidden;
 }
 .fc-track{position:absolute; inset:0; background:#000}

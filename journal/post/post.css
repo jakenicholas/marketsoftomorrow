@@ -25,9 +25,9 @@ body::before{content:""; position:fixed; inset:0; z-index:0; pointer-events:none
 h1,h2,h3,h4,h5,h6{font-family:var(--serif); font-weight:600; letter-spacing:-.015em; color:var(--white); line-height:1.12}
 
 /* ============== BANNER + STICKY HEADER (shared shell) ============== */
-.banner-ad{background:var(--ink-2); border-bottom:1px solid var(--hair); overflow:hidden; max-height:320px; opacity:1; transition:max-height .35s cubic-bezier(.22,1,.36,1), opacity .25s ease, border-color .35s ease; position:relative}
+.banner-ad{background:var(--ink-2); border-bottom:1px solid var(--hair); overflow:hidden; max-height:720px; opacity:1; transition:max-height .35s cubic-bezier(.22,1,.36,1), opacity .25s ease, border-color .35s ease; position:relative}
 .banner-ad.collapsed{max-height:0; opacity:0; border-bottom-color:transparent; pointer-events:none}
-.featured-carousel{position:relative; height:clamp(180px, 22vw, 280px); overflow:hidden}
+.featured-carousel{position:relative; aspect-ratio: 1886 / 383; overflow:hidden}
 .fc-track{position:absolute; inset:0; background:#000}
 .fc-slide{position:absolute; inset:0; display:block; text-decoration:none; opacity:0; visibility:hidden; transition:opacity .55s cubic-bezier(.22,1,.36,1), visibility 0s linear .55s; background:#000}
 .fc-slide.on{opacity:1; visibility:visible; transition:opacity .55s cubic-bezier(.22,1,.36,1), visibility 0s linear 0s}
