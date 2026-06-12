@@ -1909,6 +1909,46 @@
 
     var totalHits = pScored.length + fScored.length + aScored.length;
 
+    // STRONG LITERAL PROJECT-NAME MATCH? When the user typed the full
+    // name (or a substantial substring) of a tracked project, treat
+    // that project as the "anchor" and surface its connected siblings
+    // -- same developer in the same city PLUS any project whose
+    // description literally mentions the anchor's title or developer.
+    // This is what turns a "oracle campus" query into "Oracle Campus
+    // + Oracle Pedestrian Bridge + Nobu Hotel Nashville (description
+    // mentions 'Oracle campus')". Then Intelligence is fired with the
+    // anchor + connected so the LLM can write the East-Bank-style
+    // synthesis the user asked for.
+    var strongAnchor = null;
+    var connectedProjects = [];
+    if (pScored.length && full.length >= 4) {
+      var topTitle = norm(pScored[0].p.Title || '');
+      if (topTitle.indexOf(full) >= 0) {
+        strongAnchor = pScored[0].p;
+        var anchorTitle = norm(strongAnchor.Title || '');
+        var anchorCity  = norm(strongAnchor.City  || '');
+        var anchorDevTokens = (strongAnchor.Developer || '').toLowerCase()
+          .split(/[,\s/&]+/).filter(function(t){ return t.length > 3; });
+        var seen = {}; seen[strongAnchor.Title] = true;
+        var scored = [];
+        PROJECTS.forEach(function (p) {
+          if (seen[p.Title]) return;
+          var sc = 0;
+          var pDev  = (p.Developer || '').toLowerCase();
+          var pCity = norm(p.City || '');
+          var pDesc = norm(firstField(p, ['DescriptionLong','Description']));
+          if (anchorDevTokens.length && pCity === anchorCity &&
+              anchorDevTokens.some(function (t) { return pDev.indexOf(t) >= 0; })) sc += 30;
+          if (anchorTitle.length >= 6 && pDesc.indexOf(anchorTitle) >= 0) sc += 20;
+          if (anchorDevTokens.length &&
+              anchorDevTokens.some(function (t) { return pDesc.indexOf(t) >= 0; })) sc += 8;
+          if (sc > 0) scored.push({ p: p, s: sc });
+        });
+        scored.sort(function(a,b){ return b.s - a.s; });
+        connectedProjects = scored.slice(0, 4).map(function (x) { return x.p; });
+      }
+    }
+
     // ── Intelligence panel (inline LLM answer) ──────────────────────
     // Decide before paint so the panel slot is correct from the first
     // frame -- prevents a flash of a hero-only layout that then jumps
@@ -1918,15 +1958,32 @@
     // and double-count the quota.
     if (!opts.fromBodyMerge) {
       var allowed = !window.tmwIntel || (typeof window.tmwIntel.allowed === 'function' && window.tmwIntel.allowed(q));
-      if (question){
+      // Fire Intelligence either when the query is phrased as a question
+      // OR when we found a strong project-name anchor with at least one
+      // connected sibling (so the LLM has real cross-project context to
+      // synthesize -- a single isolated project becomes the existing
+      // hero card and doesn't need a synthesized sentence).
+      var trigger = question || (strongAnchor && connectedProjects.length > 0);
+      if (trigger){
         if (!allowed){
           slotIntel.innerHTML = intelGateHtml();
         } else if (Core && totalHits > 0){
           slotIntel.innerHTML = intelPanelHtml('loading', q);
-          fireIntelligence(q,
-            pScored.slice(0,5).map(function(x){ return x.p; }),
-            aScored.slice(0,3).map(function(x){ return x.a; })
-          );
+          // For an anchor query, the projects we feed Intelligence are
+          // the anchor + connected ones (dedup'd, capped at 5). For a
+          // regular question we use the top-scored as before.
+          var intelProjects;
+          if (strongAnchor) {
+            intelProjects = [strongAnchor];
+            var seenT = {}; seenT[strongAnchor.Title] = true;
+            connectedProjects.forEach(function (p) {
+              if (!seenT[p.Title]) { intelProjects.push(p); seenT[p.Title] = true; }
+            });
+            intelProjects = intelProjects.slice(0, 5);
+          } else {
+            intelProjects = pScored.slice(0, 5).map(function(x){ return x.p; });
+          }
+          fireIntelligence(q, intelProjects, aScored.slice(0,3).map(function(x){ return x.a; }));
         } else if (Core){
           slotIntel.innerHTML = intelPanelHtml('loading', q);
           fireIntelligence(q, [], []);
