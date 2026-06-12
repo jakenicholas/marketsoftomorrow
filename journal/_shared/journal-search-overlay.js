@@ -2081,6 +2081,24 @@
         return meaningful.every(function(tok){ return hay.indexOf(tok) >= 0; });
       });
     }
+    // When a strong anchor + connected siblings were detected upstream,
+    // inject them into the grid AFTER the strict filter -- they came in
+    // via the description / same-developer signals that the title-based
+    // strict filter rejects (e.g. "oracle campus" anchor pulls in Nobu
+    // Hotel Nashville because its description mentions Oracle campus,
+    // even though Nobu's title contains neither "oracle" nor "campus").
+    // Dedup against the hero and already-listed restProjects.
+    if (strongAnchor && connectedProjects.length) {
+      var alreadyIn = {};
+      if (heroProject) alreadyIn[heroProject.Title] = true;
+      restProjects.forEach(function (x) { alreadyIn[x.p.Title] = true; });
+      connectedProjects.forEach(function (p) {
+        if (!alreadyIn[p.Title]) {
+          restProjects.push({ p: p, s: 0.5 }); // tiny synthetic score so they sort after real hits
+          alreadyIn[p.Title] = true;
+        }
+      });
+    }
     var gridProjects = restProjects.slice(0, MAX_PROJECTS_GRID).map(function(x){ return x.p; });
     if (gridProjects.length){
       // Section label changed from "Nearby Projects" -> "Projects" — the
