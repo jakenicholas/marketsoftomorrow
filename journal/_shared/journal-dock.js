@@ -699,10 +699,13 @@
     '.nav-cta.tmw-ig:hover svg{color:#fff}',
     '@media(max-width:980px){.nav-cta.tmw-ig{display:none !important}}',
 
-    // ── Top featured ad banner: explicit heights per device, full width, no
-    //    sponsor chip. (Inline page rule is clamp(180px,22vw,280px).)
-    '.banner-ad{max-height:360px; width:100%; max-width:100vw}',
-    '.featured-carousel{height:340px; width:100%}',
+    // ── Top featured ad banner: the WHOLE section scales proportionally
+    //    with viewport width so the ad creative is never cropped (was
+    //    height:340px which capped on wide screens and let object-fit:
+    //    cover shave the top/bottom). Now matches the page-CSS aspect
+    //    ratio of 1886/383 -- the ad creatives' native ratio.
+    '.banner-ad{max-height:720px; width:100%; max-width:100vw}',
+    '.featured-carousel{aspect-ratio: 1886 / 383; height:auto; width:100%}',
     '.fc-track,.fc-slide{width:100%; left:0; right:0}',
     '.fc-slide video,.fc-slide img{width:100%; height:100%; object-fit:cover; object-position:center}',
     '.fc-sponsor{display:none !important}',
