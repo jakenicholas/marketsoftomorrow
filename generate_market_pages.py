@@ -157,16 +157,34 @@ def sort_projects(projects: list[dict]) -> list[dict]:
     )
 
 # ─── Bucket builders ──────────────────────────────────────────────────
+def _project_tags(p: dict) -> list[str]:
+    """Return the canonical category tags for a project. Uses ProjectType
+    (the comma-separated multi-tag field) so a mixed-use project like
+    Cabot Revelstoke (Resort + Hotel + Residences + Entertainment)
+    appears in EVERY category hub it actually belongs in, not just under
+    its lone PreferredType sub-label ('Golf Resort'). Falls back to
+    PreferredType only when ProjectType is empty."""
+    raw = (p.get('ProjectType') or '').strip()
+    tags = [t.strip() for t in raw.split(',') if t.strip()]
+    if not tags:
+        pt = (p.get('PreferredType') or '').strip()
+        if pt: tags = [pt]
+    return tags
+
 def bucket_projects(projects: list[dict]):
     by_city_type: dict[tuple[str,str], list[dict]] = collections.defaultdict(list)
     by_city:      dict[str, list[dict]]            = collections.defaultdict(list)
     by_type:      dict[str, list[dict]]            = collections.defaultdict(list)
     for p in projects:
         city = (p.get('City') or '').strip()
-        ptype = (p.get('PreferredType') or '').strip()
-        if city and ptype: by_city_type[(city, ptype)].append(p)
-        if city:           by_city[city].append(p)
-        if ptype:          by_type[ptype].append(p)
+        if city: by_city[city].append(p)
+        # A project with multiple tags appears in EVERY type and city×type
+        # bucket it belongs to. Dedup-by-reference happens naturally because
+        # each bucket gets its own append; downstream renderers don't need
+        # to know about multi-listing.
+        for tag in _project_tags(p):
+            by_type[tag].append(p)
+            if city: by_city_type[(city, tag)].append(p)
     return by_city_type, by_city, by_type
 
 # ─── Page render helpers ──────────────────────────────────────────────
