@@ -1098,6 +1098,7 @@ function escapeAttr(s) { return escapeHtml(s); }
         var d = await r.json().catch(function () { return {}; });
         if (d && d.success) {
           try { if (window.gtag) window.gtag('event', 'subscribe_article'); } catch (_) {}
+          try { window.tmwFunnelTrack && window.tmwFunnelTrack('subscribe_article', { email: email }); } catch (_) {}
           mark('subscribed');
           try { localStorage.setItem(SUB_EMAIL_KEY, email); } catch (_) {}
           // Logged-out → offer a free account (just add a password). Else thanks.

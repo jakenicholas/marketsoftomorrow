@@ -58,6 +58,43 @@
       });
   };
 
+  // ── 1c) Funnel telemetry beacon ─────────────────────────────────────────
+  //    Posts ONE funnel event to the worker's /event ingester so it lands
+  //    in the D1 `events` table the Studio analytics dashboard reads.
+  //    Mirrors the existing tmwTrack pattern from journal-dock.js (same
+  //    anon-id key, same beacon-or-fetch fallback, same payload shape) so
+  //    one query in the worker can union jrn_* + funnel events. Always
+  //    fires alongside the existing gtag() calls -- gtag goes to GA4 for
+  //    cross-cohort analysis, this goes to OUR D1 for the per-event
+  //    funnel view we own end-to-end.
+  function _tmwDid() {
+    try {
+      var d = localStorage.getItem('tmw_did');
+      if (!d) { d = 'd' + Math.random().toString(36).slice(2) + Date.now().toString(36); localStorage.setItem('tmw_did', d); }
+      return d;
+    } catch (e) { return 'anon'; }
+  }
+  window.tmwFunnelTrack = function (name, props) {
+    try {
+      var m = window.__tmwMember || null;
+      var plan = (window._isPaidMember === true) ? 'paid' : (window._tmwSignedIn === true ? 'free' : 'anon');
+      var payload = JSON.stringify({
+        member_id: (m && m.id) || ('anon:' + _tmwDid()),
+        member_name: (m && m.name) || null,
+        email: (m && m.auth && m.auth.email) || (m && m.email) || null,
+        plan: plan,
+        event_name: 'funnel:' + String(name).slice(0, 60),
+        path: location.pathname,
+        referrer: document.referrer || null,
+        client_ts: Math.floor(Date.now() / 1000),
+        props: Object.assign({}, props || {})
+      });
+      var url = 'https://tmw.jake-ab7.workers.dev/event';
+      if (navigator.sendBeacon) navigator.sendBeacon(url, new Blob([payload], { type: 'text/plain' }));
+      else fetch(url, { method: 'POST', body: payload, keepalive: true, headers: { 'Content-Type': 'text/plain' } }).catch(function () {});
+    } catch (e) {}
+  };
+
   var FA_CSS = false;
   function injectFaCss() {
     if (FA_CSS || document.getElementById('tmw-fa-css')) return; FA_CSS = true;
@@ -157,6 +194,7 @@
       window.tmwCreateFreeAccount(email, pw).then(function (res) {
         if (res.ok) {
           try { if (window.gtag) window.gtag('event', 'free_account_created', { source: 'newsletter' }); } catch (_) {}
+          try { window.tmwFunnelTrack && window.tmwFunnelTrack('free_account_created', { source: 'newsletter' }); } catch (_) {}
           // Step 3: collect profile info → Memberstack custom fields + the list.
           window.tmwProfileStep(host, email, onClose);
         } else if (res.code === 'exists') {
@@ -265,6 +303,7 @@
       }).catch(function () {}));
       Promise.all(jobs).then(function () {
         try { if (window.gtag) window.gtag('event', 'profile_completed', { source: 'newsletter' }); } catch (_) {}
+        try { window.tmwFunnelTrack && window.tmwFunnelTrack('profile_completed', { source: 'newsletter' }); } catch (_) {}
         form.style.display = 'none'; skip.style.display = 'none';
         msg.className = 'tmw-fa-msg ok'; msg.textContent = '✓ You’re all set. Welcome to Markets of Tomorrow.';
         // Step 4: Go Pro pitch (non-Pro only). After the welcome message
@@ -322,10 +361,12 @@
     function done() { if (typeof onClose === 'function') onClose(true); }
     skip.addEventListener('click', function () {
       try { if (window.gtag) window.gtag('event', 'go_pro_skipped', { source: 'article_funnel' }); } catch (_) {}
+      try { window.tmwFunnelTrack && window.tmwFunnelTrack('go_pro_skipped', { source: 'article_funnel' }); } catch (_) {}
       done();
     });
     cta.addEventListener('click', function () {
       try { if (window.gtag) window.gtag('event', 'go_pro_clicked', { source: 'article_funnel' }); } catch (_) {}
+      try { window.tmwFunnelTrack && window.tmwFunnelTrack('go_pro_clicked', { source: 'article_funnel' }); } catch (_) {}
       // Close the funnel host FIRST so the paywall doesn't stack on top
       // of the article lightbox; then trigger the in-page paywall (or
       // deep-link to the map upgrade flow as a fallback).

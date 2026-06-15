@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Slippage Report · Markets of Tomorrow Pro</title>
+<meta name="robots" content="noindex,nofollow">
+<style>
+  :root {
+    --ink:#070807; --ink-2:#0d0f0e;
+    --panel:#141714; --panel-2:#1a1d1a;
+    --hair:rgba(255,255,255,.08); --hair-2:rgba(255,255,255,.14);
+    --white:#fff; --cream:#ECEAE5; --mute:#9AA39C; --mute-2:#C2C9C3;
+    --green:#1FDF67; --gold:#e6c574; --gold-soft:#f0d68a;
+    --purple:#A78BFA; --purple-bright:#C4B5FD; --purple-glow:#B9A6FF;
+    --slip:#FF6B6B;       /* high slippage red */
+    --slip-med:#FFB45E;   /* medium slippage amber */
+    --slip-low:#69D58C;   /* low slippage green */
+    --sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    --serif:'Fraunces',Georgia,serif;
+    --mono:'JetBrains Mono','SF Mono',ui-monospace,monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--ink); color:var(--cream); font-family:var(--sans); -webkit-font-smoothing:antialiased; line-height:1.55;}
+  body::before{content:""; position:fixed; inset:0; z-index:0; pointer-events:none;
+    background:
+      radial-gradient(900px 600px at 78% -8%, rgba(167,139,250,.10), transparent 60%),
+      radial-gradient(720px 520px at 6% 62%, rgba(230,197,116,.04), transparent 60%);
+  }
+  a{color:inherit; text-decoration:none}
+  .wrap{position:relative; z-index:1; max-width:1080px; margin:0 auto; padding:0 32px}
+
+  /* ── Header / branding ───────────────────────────────────────────── */
+  .topbar{padding:28px 0 22px; border-bottom:1px solid var(--hair); display:flex; align-items:center; justify-content:space-between; gap:24px; flex-wrap:wrap}
+  .brand{display:flex; align-items:center; gap:13px}
+  .brand-hex{width:30px; height:30px; flex:0 0 auto; color:var(--purple); animation:hex-pulse 2.8s ease-in-out infinite}
+  .brand-hex svg{width:100%; height:100%; stroke:currentColor; fill:none; stroke-width:1.8; stroke-linejoin:round}
+  @keyframes hex-pulse{0%,100%{filter:drop-shadow(0 0 3px rgba(167,139,250,.4)); transform:rotate(0)} 50%{filter:drop-shadow(0 0 12px rgba(167,139,250,.95)); transform:rotate(180deg)}}
+  .brand-name{font-family:var(--serif); font-size:18px; font-weight:600; letter-spacing:-.01em; color:var(--white)}
+  .brand-pro{font-family:var(--mono); font-size:9px; letter-spacing:.18em; text-transform:uppercase; color:#0a0a0a; background:var(--gold); padding:3px 8px; border-radius:5px; margin-left:8px; font-weight:800; vertical-align:middle}
+  .topbar-date{font-family:var(--mono); font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--mute)}
+
+  /* ── Report title block ──────────────────────────────────────────── */
+  .hero{padding:64px 0 38px; border-bottom:1px solid var(--hair)}
+  .hero-eyebrow{font-family:var(--mono); font-size:10.5px; letter-spacing:.22em; text-transform:uppercase; color:var(--purple-bright); margin-bottom:18px; display:inline-flex; align-items:center; gap:9px}
+  .hero-eyebrow::before{content:""; width:6px; height:6px; border-radius:50%; background:var(--purple); box-shadow:0 0 10px var(--purple)}
+  .hero-title{font-family:var(--serif); font-size:clamp(38px, 5vw, 60px); line-height:1.05; font-weight:500; letter-spacing:-.022em; color:var(--white); max-width:18ch}
+  .hero-sub{font-family:var(--serif); font-style:italic; font-weight:300; font-size:20px; color:var(--mute-2); margin-top:18px; line-height:1.5; max-width:62ch}
+  .hero-meta{display:flex; gap:30px; margin-top:30px; flex-wrap:wrap}
+  .hero-meta div{font-family:var(--mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--mute)}
+  .hero-meta b{color:var(--cream); font-weight:600}
+
+  /* ── Single-stat finding block (the "hook") ───────────────────────── */
+  .finding{padding:56px 0 48px; border-bottom:1px solid var(--hair)}
+  .finding-lbl{font-family:var(--mono); font-size:10.5px; letter-spacing:.2em; text-transform:uppercase; color:var(--mute); margin-bottom:18px}
+  .finding-stat{font-family:var(--serif); font-size:clamp(52px, 7vw, 96px); line-height:1; font-weight:500; letter-spacing:-.03em; color:#fff; display:flex; align-items:baseline; gap:18px; flex-wrap:wrap}
+  .finding-stat .num{color:var(--slip)}
+  .finding-stat .unit{font-size:.4em; color:var(--mute-2); font-weight:400; font-style:italic}
+  .finding-body{font-family:var(--serif); font-weight:300; font-size:21px; color:var(--mute-2); line-height:1.5; margin-top:24px; max-width:64ch}
+  .finding-body b{color:var(--white); font-weight:500}
+
+  /* ── Section shell ────────────────────────────────────────────────── */
+  .section{padding:52px 0; border-bottom:1px solid var(--hair)}
+  .section-head{display:flex; align-items:baseline; justify-content:space-between; gap:24px; margin-bottom:30px; flex-wrap:wrap}
+  .section-title{font-family:var(--serif); font-size:32px; line-height:1.1; font-weight:500; letter-spacing:-.018em; color:var(--white)}
+  .section-eyebrow{font-family:var(--mono); font-size:10px; letter-spacing:.2em; text-transform:uppercase; color:var(--purple-bright); margin-bottom:10px; font-weight:600}
+  .section-meta{font-family:var(--mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--mute)}
+
+  /* ── Slippage table ───────────────────────────────────────────────── */
+  .slip-table{width:100%; border-collapse:collapse}
+  .slip-table th{font-family:var(--mono); font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--mute); font-weight:600; text-align:left; padding:10px 14px; border-bottom:1px solid var(--hair); white-space:nowrap}
+  .slip-table th.r{text-align:right}
+  .slip-table td{padding:18px 14px; border-bottom:1px solid var(--hair); vertical-align:middle}
+  .slip-table tbody tr{transition:background .15s}
+  .slip-table tbody tr:hover{background:rgba(255,255,255,.02)}
+  .slip-table td.market{font-family:var(--serif); font-size:18px; font-weight:500; color:var(--white); letter-spacing:-.01em}
+  .slip-table td.market i{font-style:normal; display:block; font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--mute); margin-top:4px; font-weight:500}
+  .slip-table td.r{text-align:right}
+  .slip-num{font-family:var(--serif); font-size:22px; font-weight:500; letter-spacing:-.015em}
+  .slip-num.bad{color:var(--slip)}
+  .slip-num.med{color:var(--slip-med)}
+  .slip-num.good{color:var(--slip-low)}
+  .slip-pct{font-family:var(--mono); font-size:11px; letter-spacing:.06em; color:var(--mute); margin-left:6px}
+  .slip-n{font-family:var(--mono); font-size:13px; color:var(--cream); font-weight:500}
+  .slip-conf{display:inline-flex; gap:3px; align-items:center; vertical-align:middle}
+  .slip-conf .dot{width:6px; height:6px; border-radius:50%; background:var(--hair-2)}
+  .slip-conf.high  .dot:nth-child(-n+3){background:var(--purple)}
+  .slip-conf.med   .dot:nth-child(-n+2){background:var(--purple)}
+  .slip-conf.low   .dot:nth-child(-n+1){background:var(--purple)}
+  .slip-spark{display:inline-flex; gap:2px; align-items:flex-end; height:24px; vertical-align:middle; margin-left:8px}
+  .slip-spark span{width:4px; background:rgba(167,139,250,.4); border-radius:1px; min-height:3px}
+  .slip-spark span.now{background:var(--purple); box-shadow:0 0 6px rgba(167,139,250,.7)}
+
+  /* ── This-week movers cards ───────────────────────────────────────── */
+  .movers{display:grid; grid-template-columns:1fr 1fr; gap:14px}
+  .mover{background:rgba(167,139,250,.04); border:1px solid rgba(167,139,250,.22); border-radius:14px; padding:22px 24px}
+  .mover-flag{font-family:var(--mono); font-size:10px; letter-spacing:.18em; text-transform:uppercase; font-weight:700; margin-bottom:12px; display:inline-flex; align-items:center; gap:7px; padding:5px 10px; border-radius:999px}
+  .mover-flag::before{content:""; width:5px; height:5px; border-radius:50%}
+  .mover-flag.slip{color:var(--slip); background:rgba(255,107,107,.08); border:1px solid rgba(255,107,107,.3)}
+  .mover-flag.slip::before{background:var(--slip); box-shadow:0 0 8px var(--slip)}
+  .mover-flag.gain{color:var(--slip-low); background:rgba(105,213,140,.08); border:1px solid rgba(105,213,140,.3)}
+  .mover-flag.gain::before{background:var(--slip-low); box-shadow:0 0 8px var(--slip-low)}
+  .mover-name{font-family:var(--serif); font-size:22px; font-weight:500; color:var(--white); letter-spacing:-.012em; line-height:1.2; margin-bottom:6px}
+  .mover-loc{font-family:var(--mono); font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--mute); margin-bottom:14px}
+  .mover-row{display:flex; justify-content:space-between; align-items:baseline; padding:8px 0; border-top:1px solid rgba(255,255,255,.05); font-size:13px}
+  .mover-row .k{font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--mute)}
+  .mover-row .v{font-family:var(--mono); font-size:13px; color:var(--cream); font-weight:500}
+  .mover-row .v.bad{color:var(--slip)}
+  .mover-row .v.good{color:var(--slip-low)}
+  .mover-foot{margin-top:14px; padding-top:14px; border-top:1px solid rgba(255,255,255,.05); font-style:italic; font-family:var(--serif); font-size:14px; line-height:1.45; color:var(--mute-2); font-weight:300}
+
+  /* ── Methodology / footer ─────────────────────────────────────────── */
+  .methodology{padding:42px 0 32px}
+  .methodology-h{font-family:var(--mono); font-size:10.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--purple-bright); margin-bottom:14px; font-weight:600}
+  .methodology-body{font-family:var(--serif); font-style:italic; font-weight:300; font-size:15px; line-height:1.65; color:var(--mute-2); max-width:68ch}
+  .methodology-body b{color:var(--cream); font-style:normal; font-weight:500}
+
+  .pro-cta{margin-top:38px; padding:32px 32px; background:linear-gradient(120deg, rgba(167,139,250,.13), rgba(31,223,103,.04)); border:1px solid rgba(167,139,250,.32); border-radius:18px; display:flex; align-items:center; justify-content:space-between; gap:24px; flex-wrap:wrap}
+  .pro-cta .l{font-family:var(--serif); font-size:18px; line-height:1.4; color:var(--white); max-width:42ch; font-weight:500}
+  .pro-cta .l em{font-style:italic; color:var(--purple-bright); font-weight:400}
+  .pro-cta .l i{display:block; font-style:normal; font-family:var(--mono); font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--mute); margin-top:6px; font-weight:600}
+  .pro-cta .go{font-family:var(--mono); font-size:12px; letter-spacing:.12em; text-transform:uppercase; font-weight:700; padding:13px 22px; border-radius:10px; background:var(--gold); color:#0a0a0a; white-space:nowrap}
+
+  .footer{padding:32px 0 60px; font-family:var(--mono); font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--mute); display:flex; justify-content:space-between; gap:16px; flex-wrap:wrap}
+
+  @media (max-width: 760px) {
+    .wrap{padding:0 20px}
+    .movers{grid-template-columns:1fr}
+    .hero{padding:42px 0 30px}
+    .hero-meta{gap:18px}
+    .slip-table th.hide-sm, .slip-table td.hide-sm{display:none}
+    .slip-spark{display:none}
+    .finding-stat{font-size:54px}
+  }
+</style>
+</head>
+<body>
+  <header class="wrap topbar">
+    <div class="brand">
+      <span class="brand-hex"><svg viewBox="0 0 24 24"><polygon points="12,4.3 18.65,8.16 18.65,15.84 12,19.68 5.35,15.84 5.35,8.16"/></svg></span>
+      <div>
+        <span class="brand-name">Markets of Tomorrow</span><span class="brand-pro">Pro</span>
+      </div>
+    </div>
+    <div class="topbar-date">Issue 014 · Week of June 9, 2026</div>
+  </header>
+
+  <div class="wrap hero">
+    <div class="hero-eyebrow">TMW Intelligence · Forecasts</div>
+    <h1 class="hero-title">The Slippage Report.</h1>
+    <p class="hero-sub">A weekly read on which markets are running late, which are catching up, and which projects just had their predicted delivery window quietly shift.</p>
+    <div class="hero-meta">
+      <div>Coverage <b>442 projects</b></div>
+      <div>Markets tracked <b>40+</b></div>
+      <div>Reading time <b>~4 min</b></div>
+    </div>
+  </div>
+
+  <section class="wrap finding">
+    <div class="finding-lbl">This week's headline</div>
+    <div class="finding-stat">
+      <span class="num">11.4</span>
+      <span class="unit">months late, on average</span>
+    </div>
+    <p class="finding-body">That's how much <b>Miami luxury condo deliveries</b> have slipped from announced timelines this quarter — the worst single-market reading in our dataset since we started tracking. <b>West Palm Beach</b> isn't far behind. <b>Nashville office</b>, meanwhile, is the only major US market still running roughly on time.</p>
+  </section>
+
+  <section class="wrap section">
+    <div>
+      <div class="section-eyebrow">Slippage by market</div>
+      <div class="section-head">
+        <h2 class="section-title">Where projects are falling behind.</h2>
+        <div class="section-meta">Ranked by average slip · this quarter</div>
+      </div>
+    </div>
+    <table class="slip-table">
+      <thead>
+        <tr>
+          <th>Market</th>
+          <th class="r">Avg slip</th>
+          <th class="r hide-sm">vs announced</th>
+          <th class="r hide-sm">Projects</th>
+          <th class="r">Trend</th>
+          <th class="r">Confidence</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="market">Miami<i>Luxury condo</i></td>
+          <td class="r"><span class="slip-num bad">+11.4 mo</span></td>
+          <td class="r hide-sm"><span class="slip-pct">+28%</span></td>
+          <td class="r hide-sm slip-n">38</td>
+          <td class="r"><span class="slip-spark"><span style="height:8px"></span><span style="height:11px"></span><span style="height:14px"></span><span style="height:18px"></span><span style="height:22px"></span><span class="now" style="height:24px"></span></span></td>
+          <td class="r"><span class="slip-conf high"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span></td>
+        </tr>
+        <tr>
+          <td class="market">West Palm Beach<i>Condo + hotel</i></td>
+          <td class="r"><span class="slip-num bad">+9.7 mo</span></td>
+          <td class="r hide-sm"><span class="slip-pct">+24%</span></td>
+          <td class="r hide-sm slip-n">27</td>
+          <td class="r"><span class="slip-spark"><span style="height:10px"></span><span style="height:13px"></span><span style="height:14px"></span><span style="height:17px"></span><span style="height:20px"></span><span class="now" style="height:22px"></span></span></td>
+          <td class="r"><span class="slip-conf high"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span></td>
+        </tr>
+        <tr>
+          <td class="market">Brickell<i>Mixed-use towers</i></td>
+          <td class="r"><span class="slip-num med">+6.3 mo</span></td>
+          <td class="r hide-sm"><span class="slip-pct">+14%</span></td>
+          <td class="r hide-sm slip-n">22</td>
+          <td class="r"><span class="slip-spark"><span style="height:14px"></span><span style="height:11px"></span><span style="height:9px"></span><span style="height:14px"></span><span style="height:17px"></span><span class="now" style="height:18px"></span></span></td>
+          <td class="r"><span class="slip-conf high"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span></td>
+        </tr>
+        <tr>
+          <td class="market">Austin<i>Office + lab</i></td>
+          <td class="r"><span class="slip-num med">+5.1 mo</span></td>
+          <td class="r hide-sm"><span class="slip-pct">+11%</span></td>
+          <td class="r hide-sm slip-n">16</td>
+          <td class="r"><span class="slip-spark"><span style="height:18px"></span><span style="height:14px"></span><span style="height:12px"></span><span style="height:14px"></span><span style="height:16px"></span><span class="now" style="height:18px"></span></span></td>
+          <td class="r"><span class="slip-conf med"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span></td>
+        </tr>
+        <tr>
+          <td class="market">Nashville<i>Mixed-use + office</i></td>
+          <td class="r"><span class="slip-num med">+4.2 mo</span></td>
+          <td class="r hide-sm"><span class="slip-pct">+8%</span></td>
+          <td class="r hide-sm slip-n">19</td>
+          <td class="r"><span class="slip-spark"><span style="height:13px"></span><span style="height:15px"></span><span style="height:11px"></span><span style="height:13px"></span><span style="height:14px"></span><span class="now" style="height:15px"></span></span></td>
+          <td class="r"><span class="slip-conf high"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span></td>
+        </tr>
+        <tr>
+          <td class="market">Tampa<i>Waterfront residences</i></td>
+          <td class="r"><span class="slip-num med">+3.6 mo</span></td>
+          <td class="r hide-sm"><span class="slip-pct">+7%</span></td>
+          <td class="r hide-sm slip-n">14</td>
+          <td class="r"><span class="slip-spark"><span style="height:18px"></span><span style="height:13px"></span><span style="height:12px"></span><span style="height:11px"></span><span style="height:13px"></span><span class="now" style="height:14px"></span></span></td>
+          <td class="r"><span class="slip-conf med"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span></td>
+        </tr>
+        <tr>
+          <td class="market">Salt Lake City<i>Resort + hospitality</i></td>
+          <td class="r"><span class="slip-num good">+1.8 mo</span></td>
+          <td class="r hide-sm"><span class="slip-pct">+3%</span></td>
+          <td class="r hide-sm slip-n">11</td>
+          <td class="r"><span class="slip-spark"><span style="height:10px"></span><span style="height:9px"></span><span style="height:8px"></span><span style="height:7px"></span><span style="height:8px"></span><span class="now" style="height:8px"></span></span></td>
+          <td class="r"><span class="slip-conf med"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span></td>
+        </tr>
+        <tr>
+          <td class="market">Nashville East Bank<i>Campus + bridge</i></td>
+          <td class="r"><span class="slip-num good">+0.4 mo</span></td>
+          <td class="r hide-sm"><span class="slip-pct">+1%</span></td>
+          <td class="r hide-sm slip-n">7</td>
+          <td class="r"><span class="slip-spark"><span style="height:5px"></span><span style="height:6px"></span><span style="height:4px"></span><span style="height:5px"></span><span style="height:6px"></span><span class="now" style="height:5px"></span></span></td>
+          <td class="r"><span class="slip-conf low"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span></td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="wrap section">
+    <div>
+      <div class="section-eyebrow">Forecast deltas this week</div>
+      <div class="section-head">
+        <h2 class="section-title">Projects whose predicted delivery just shifted.</h2>
+        <div class="section-meta">Updated June 9 · based on milestone cadence</div>
+      </div>
+    </div>
+    <div class="movers">
+      <div class="mover">
+        <span class="mover-flag slip">Forecast slipped +5 mo</span>
+        <div class="mover-name">Olara · West Palm Beach</div>
+        <div class="mover-loc">Related · Foster + Partners</div>
+        <div class="mover-row"><span class="k">Announced</span><span class="v">Q4 2027</span></div>
+        <div class="mover-row"><span class="k">TMW Forecast (prev)</span><span class="v">Q2 2028</span></div>
+        <div class="mover-row"><span class="k">TMW Forecast (now)</span><span class="v bad">Q3 2028 ± 5 mo</span></div>
+        <div class="mover-row"><span class="k">Driver</span><span class="v">Topping out missed Apr cadence</span></div>
+        <div class="mover-foot">Projects at construction stage in WPB have historically slipped a further 6.3 months from this milestone — Olara now sits in the middle of that distribution.</div>
+      </div>
+      <div class="mover">
+        <span class="mover-flag slip">Forecast slipped +8 mo</span>
+        <div class="mover-name">The Ritz-Carlton Residences, Naples</div>
+        <div class="mover-loc">Marquette Companies · Stantec</div>
+        <div class="mover-row"><span class="k">Announced</span><span class="v">Q1 2027</span></div>
+        <div class="mover-row"><span class="k">TMW Forecast (prev)</span><span class="v">Q4 2027</span></div>
+        <div class="mover-row"><span class="k">TMW Forecast (now)</span><span class="v bad">Q3 2028 ± 7 mo</span></div>
+        <div class="mover-row"><span class="k">Driver</span><span class="v">Permitting reset, financing rumor</span></div>
+        <div class="mover-foot">Six similar Naples luxury condos at the same milestone slipped an average of 14.2 months. Our model now puts this in the worst third of the distribution.</div>
+      </div>
+      <div class="mover">
+        <span class="mover-flag gain">Forecast tightened −2 mo</span>
+        <div class="mover-name">Oracle Pedestrian Bridge</div>
+        <div class="mover-loc">Oracle · Foster + Partners · Nashville</div>
+        <div class="mover-row"><span class="k">Announced</span><span class="v">2028</span></div>
+        <div class="mover-row"><span class="k">TMW Forecast (prev)</span><span class="v">Q4 2028</span></div>
+        <div class="mover-row"><span class="k">TMW Forecast (now)</span><span class="v good">Q2 2028 ± 3 mo</span></div>
+        <div class="mover-row"><span class="k">Driver</span><span class="v">Steel arrival ahead of plan</span></div>
+        <div class="mover-foot">Bridges of this scale in the dataset typically come in on time once steel is on site. The forecast confidence ring tightened with the milestone.</div>
+      </div>
+      <div class="mover">
+        <span class="mover-flag gain">Forecast tightened −1 mo</span>
+        <div class="mover-name">Seventeen Gables · Miami</div>
+        <div class="mover-loc">Constellation Group · Arquitectonica</div>
+        <div class="mover-row"><span class="k">Announced</span><span class="v">Q3 2026</span></div>
+        <div class="mover-row"><span class="k">TMW Forecast (prev)</span><span class="v">Q1 2027</span></div>
+        <div class="mover-row"><span class="k">TMW Forecast (now)</span><span class="v good">Dec 2026 ± 2 mo</span></div>
+        <div class="mover-row"><span class="k">Driver</span><span class="v">Financing closed, sales pacing</span></div>
+        <div class="mover-foot">A rare on-time read in Miami luxury condo. The model is now confident enough to give a month-level window, not just a quarter.</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap methodology">
+    <div class="methodology-h">A note on how we build the forecast</div>
+    <p class="methodology-body">The TMW Forecast is a statistical read on each project's predicted actual delivery, computed from the milestone cadence of comparable projects in our database — same city, same project type, same construction stage. <b>Confidence dots</b> reflect the sample size (3 = N≥10 comparables, 2 = 5-9, 1 = under 5). The window <b>± mo</b> is the 68% interval, not a point estimate. <b>Slippage</b> is measured against the project's announced delivery at first publication, not the most recent stated date — a project that has already been re-announced three times still counts as slipping.</p>
+  </section>
+
+  <div class="wrap">
+    <div class="pro-cta">
+      <div class="l">
+        Get The Slippage Report every Tuesday morning, plus the underlying forecast on every project page. <em>It's the part of Pro that pays for itself by Q2.</em>
+        <i>Markets of Tomorrow Pro · $24/mo</i>
+      </div>
+      <a href="https://www.oftmw.com/map/?upgrade=1" class="go">Go Pro →</a>
+    </div>
+  </div>
+
+  <footer class="wrap footer">
+    <div>Markets of Tomorrow · The Future is Here</div>
+    <div>oftmw.com · this is a Pro Preview</div>
+  </footer>
+</body>
+</html>

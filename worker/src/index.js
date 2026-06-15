@@ -617,6 +617,92 @@ async function fetchStripeIncome(env) {
   };
 }
 
+// GET /funnel-stats?weeks=12 — article-to-Pro funnel by week.
+// Reads the `events` table for event_name LIKE 'funnel:%' (the funnel
+// beacon prefix journal-auth.js writes), buckets by ISO week, and
+// returns per-week counts of each stage. Admin-gated via ADMIN_READ_PATHS
+// in the dispatcher. Powers the Funnel tile on admin.oftmw.com/analytics.
+//
+// Response shape:
+//   {
+//     weeks: [
+//       { week: "2026-23", week_start: "2026-06-08", events: {
+//           subscribe_article: 142, free_account_created: 58,
+//           profile_completed: 41, go_pro_clicked: 7, go_pro_skipped: 31
+//       } },
+//       ...
+//     ],
+//     totals: { ...same shape, summed across the window },
+//     window_days: 84
+//   }
+async function handleFunnelStats(env, origin, url) {
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  const weeks = Math.min(Math.max(parseInt(url.searchParams.get('weeks') || '12', 10), 1), 52);
+  const windowSec = weeks * 7 * 86400;
+  const cutoff = Math.floor(Date.now() / 1000) - windowSec;
+
+  // Pull only funnel:* events in the window. The events.ts is a unix
+  // seconds int; strftime('%Y-%W', ts, 'unixepoch') gives an ISO week
+  // bucket key ("2026-23"). Group server-side so we transfer a tiny
+  // result set instead of every raw event row.
+  const rs = await env.DB.prepare(
+    `SELECT strftime('%Y-%W', ts, 'unixepoch') AS wk,
+            event_name,
+            COUNT(*) AS c
+     FROM events
+     WHERE ts >= ?1 AND event_name LIKE 'funnel:%'
+     GROUP BY wk, event_name`
+  ).bind(cutoff).all();
+  const rows = rs.results || [];
+
+  // Pivot to { weekKey -> { stage -> count } }
+  const byWeek = new Map();
+  const stages = ['subscribe_article','free_account_created','profile_completed','go_pro_clicked','go_pro_skipped'];
+  const emptyBucket = () => stages.reduce((o, s) => (o[s] = 0, o), {});
+  const totals = emptyBucket();
+  for (const r of rows) {
+    const stage = String(r.event_name || '').replace(/^funnel:/, '');
+    if (!stages.includes(stage)) continue;
+    let bucket = byWeek.get(r.wk);
+    if (!bucket) { bucket = emptyBucket(); byWeek.set(r.wk, bucket); }
+    bucket[stage] += Number(r.c) || 0;
+    totals[stage] += Number(r.c) || 0;
+  }
+
+  // Build the contiguous weekly series (oldest -> newest) so the tile
+  // can plot bars without filling gaps client-side. Use Monday-of-week
+  // as the human-friendly week_start label.
+  function isoMondayOf(year, weekNum) {
+    // Jan 4 is always in ISO week 1 by definition; walk to the Monday.
+    const jan4 = new Date(Date.UTC(year, 0, 4));
+    const jan4Day = jan4.getUTCDay() || 7;
+    const week1Mon = new Date(jan4);
+    week1Mon.setUTCDate(jan4.getUTCDate() - (jan4Day - 1));
+    const monday = new Date(week1Mon);
+    monday.setUTCDate(week1Mon.getUTCDate() + (weekNum - 1) * 7);
+    return monday.toISOString().slice(0, 10);
+  }
+  const today = new Date();
+  const series = [];
+  for (let i = weeks - 1; i >= 0; i--) {
+    const d = new Date(today.getTime() - i * 7 * 86400 * 1000);
+    const year = d.getUTCFullYear();
+    const tmp = new Date(Date.UTC(year, d.getUTCMonth(), d.getUTCDate()));
+    const dayNum = (tmp.getUTCDay() + 6) % 7;
+    tmp.setUTCDate(tmp.getUTCDate() - dayNum + 3);
+    const firstThursday = new Date(Date.UTC(tmp.getUTCFullYear(), 0, 4));
+    const wkNum = 1 + Math.round(((tmp - firstThursday) / 86400000 - 3 + (firstThursday.getUTCDay() + 6) % 7) / 7);
+    const wkKey = `${tmp.getUTCFullYear()}-${String(wkNum).padStart(2, '0')}`;
+    series.push({
+      week: wkKey,
+      week_start: isoMondayOf(tmp.getUTCFullYear(), wkNum),
+      events: byWeek.get(wkKey) || emptyBucket(),
+    });
+  }
+
+  return json({ weeks: series, totals, window_days: weeks * 7 }, {}, env, origin);
+}
+
 async function handleSubscriptions(env, origin, url) {
   if (!env.MEMBERSTACK_SECRET_KEY) {
     return json({ configured: false, reason: 'MEMBERSTACK_SECRET_KEY not set' }, {}, env, origin);
@@ -4830,6 +4916,7 @@ export default {
         '/people', '/stats', '/member', '/timeline',
         '/watchlist', '/projects', '/activity', '/subscriptions', '/intel-queries', '/search-gaps',
         '/search-feedback', '/search-feedback/discoveries',
+        '/funnel-stats',
       ]);
       if (request.method === 'GET' && ADMIN_READ_PATHS.has(url.pathname)) {
         const denied = await requireAdminToken(request, env, origin);
@@ -4865,6 +4952,9 @@ export default {
       }
       if (request.method === 'GET' && url.pathname === '/stats') {
         return await handleStats(env, origin);
+      }
+      if (request.method === 'GET' && url.pathname === '/funnel-stats') {
+        return await handleFunnelStats(env, origin, url);
       }
       if (request.method === 'GET' && url.pathname === '/subscriptions') {
         return await handleSubscriptions(env, origin, url);
