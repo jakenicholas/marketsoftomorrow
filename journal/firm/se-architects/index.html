@@ -1,307 +1,365 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="S&amp;E Architects on Map of Tomorrow — 1 project tracked, including 0 in progress and 1 completed.">
-<title>S&amp;E Architects · Map of Tomorrow</title>
-<link rel="canonical" href="https://www.oftmw.com/firm/se-architects/">
-<meta property="og:title" content="S&amp;E Architects on Map of Tomorrow">
-<meta property="og:description" content="S&amp;E Architects on Map of Tomorrow — 1 project tracked, including 0 in progress and 1 completed.">
-<meta property="og:url" content="https://www.oftmw.com/firm/se-architects/">
-<meta property="og:type" content="profile">
-<style>
-  :root {
-    --accent: #1FDF67;
-    --warn: #FFD300;
-    --orange: #FF9500;
-    --blue: #4DABFF;
-    --intel: #A78BFA;
-    --bg: #0a0a0a;
-    --surface: #141414;
-    --surface-2: #1a1a1a;
-    --surface-3: #222;
-    --line: rgba(255,255,255,0.08);
-    --line-strong: rgba(255,255,255,0.14);
-    --text: #fff;
-    --text-mute: rgba(255,255,255,0.62);
-    --text-faint: rgba(255,255,255,0.4);
-    /* Tokens the shared chrome (header/dock/auth) expects. Mirrors the rest of
-       the journal so the universal header paints identically here. */
-    --ink: #070807; --ink-2: #0d0f0e;
-    --hair: rgba(255,255,255,.08); --hair-2: rgba(255,255,255,.14);
-    --white: #fff; --cream: #ECEAE5; --mute: #9AA39C; --mute-2: #C2C9C3;
-    --green: #1FDF67;
-    --gold: #e6c574; --gold-soft: #f0d68a;
-    --mono: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-  html, body { background: var(--ink); color: var(--text);
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
-    -webkit-font-smoothing: antialiased; min-height: 100vh; }
-  button, input, select { font-family: inherit; }
-  a { color: inherit; text-decoration: none; }
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Cache-Control" content="no-cache, must-revalidate">
+  <title>S&amp;E Architects | Markets of Tomorrow</title>
+  <meta name="description" content="S&amp;E Architects on Markets of Tomorrow — 1 project tracked, 0 active, 1 completed.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://www.oftmw.com/firm/se-architects/">
 
-  /* Full-page layout: the shared chrome header (journal-chrome.js) sits at the
-     top of <body> and stays visible; the firm content flows beneath it in a
-     centered column — no floating sheet, no "modal over the map" gradient. */
-  .firm-page { position: relative; max-width: 1200px; margin: 0 auto;
-    padding: 28px 40px 90px; }
-  @media (max-width: 700px) { .firm-page { padding: 18px 20px 70px; } }
+  <meta property="og:type" content="profile">
+  <meta property="og:title" content="S&amp;E Architects | Markets of Tomorrow">
+  <meta property="og:description" content="S&amp;E Architects on Markets of Tomorrow — 1 project tracked, 0 active, 1 completed.">
+  <meta property="og:url" content="https://www.oftmw.com/firm/se-architects/">
+  <meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_93ffb2f000f94a12aa874fe44153be18~mv2.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_71f3cd2ef61049028b2daf4e2ff71d52~mv2.png" type="image/png">
 
-  /* Close (×) — returns the visitor to the page they came from. Anchored to the
-     top-right of the content, just under the global header. */
-  .firm-close { position: absolute; top: 20px; right: 40px; z-index: 5;
-    width: 38px; height: 38px; background: var(--surface);
-    border: 1px solid var(--line-strong); border-radius: 11px; color: #fff;
-    font-size: 20px; line-height: 1; cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    transition: background 0.12s, border-color 0.12s; }
-  .firm-close:hover { background: var(--surface-3); border-color: rgba(255,255,255,0.3); }
-  @media (max-width: 700px) { .firm-close { top: 12px; right: 20px; width: 34px; height: 34px; } }
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
-  .firm-head { padding: 28px 0 28px; }
-  .firm-role { font-size: 11px; color: var(--text-faint); font-weight: 700;
-    text-transform: uppercase; letter-spacing: 0.1em; }
-  .firm-name { font-size: 56px; font-weight: 800; letter-spacing: -0.025em;
-    line-height: 1.0; margin: 8px 0 16px;
-    background: linear-gradient(180deg, #fff 0%, rgba(255,255,255,0.6) 100%);
-    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
-  .firm-meta { display: flex; gap: 18px; flex-wrap: wrap;
-    color: var(--text-mute); font-size: 13px; }
-  .firm-meta .item { display: flex; align-items: center; gap: 7px; }
-  .firm-meta .item-lbl { color: var(--text-faint); font-size: 11px; font-weight: 600;
-    text-transform: uppercase; letter-spacing: 0.06em; }
+  <style>
+    :root {
+      --ink:#0d0d0d; --panel:#141714;
+      --hair:rgba(255,255,255,.08); --hair-2:rgba(255,255,255,.14);
+      --white:#fff; --cream:#ECEAE5; --mute:#9AA39C; --mute2:#9AA39C; --mute-2:#C2C9C3;
+      --green:#1FDF67; --gold:#FFD300; --amber:#FFB45E;
+      --purple:#A78BFA; --purple-bright:#C4B5FD; --purple-glow:#B9A6FF;
+      --ink-2:#0d0f0e; --glass:rgba(20,23,20,.6);
+      --sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+      --serif:'Fraunces',Georgia,serif;
+      --mono:'JetBrains Mono','SF Mono',ui-monospace,monospace;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--ink); color: var(--cream); font-family: var(--sans); -webkit-font-smoothing:antialiased; line-height:1.55; }
+    body::before { content:""; position:fixed; inset:0; z-index:0; pointer-events:none;
+      background:
+        radial-gradient(820px 540px at 76% -6%, rgba(167,139,250,.10), transparent 60%),
+        radial-gradient(700px 480px at 4% 58%, rgba(255,211,0,.04), transparent 60%);
+    }
+    a { color: inherit; text-decoration: none; }
+    .wrap { position:relative; z-index:1; max-width: 1200px; margin: 0 auto; padding: 0 24px; }
 
-  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 12px; margin: 28px 0 40px; }
-  .stat-card { background: var(--surface); border: 1px solid var(--line);
-    border-radius: 14px; padding: 18px 20px; }
-  .stat-val { font-size: 32px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.05;
-    font-variant-numeric: tabular-nums; }
-  .stat-val.accent { color: var(--accent); }
-  .stat-lbl { font-size: 11px; color: var(--text-faint); font-weight: 700;
-    text-transform: uppercase; letter-spacing: 0.07em; margin-top: 8px; }
-  .stat-sub { font-size: 11px; color: var(--text-mute); margin-top: 2px; }
+    /* Breadcrumb */
+    .crumbs { padding: 22px 0 0; font-family: var(--mono); font-size: 11px; letter-spacing:.1em; text-transform:uppercase; color: var(--mute); }
+    .crumbs a:hover { color: var(--white); }
+    .crumbs .sep { opacity: .4; margin: 0 8px; }
+    .crumbs b { color: var(--purple-bright); font-weight: 500; }
 
-  .tabs { display: flex; gap: 0; border-bottom: 1px solid var(--line); margin-bottom: 28px; }
-  .tab { padding: 12px 18px; background: transparent; border: none;
-    color: var(--text-mute); font-size: 13px; font-weight: 600; cursor: pointer;
-    border-bottom: 2px solid transparent; display: flex; align-items: center; gap: 8px; }
-  .tab:hover { color: var(--text); }
-  .tab.active { color: var(--text); border-bottom-color: var(--accent); }
-  .tab .count { font-size: 10px; color: var(--text-faint); background: var(--surface-3);
-    padding: 1px 7px; border-radius: 100px; font-weight: 700; }
-  .tab.active .count { color: var(--accent); background: rgba(31,223,103,0.12); }
+    /* Hero */
+    .hero { padding: 30px 0 38px; border-bottom:1px solid var(--hair); }
+    .hero-eyebrow { font-family:var(--mono); font-size:10.5px; letter-spacing:.2em; text-transform:uppercase; color:var(--purple-bright); margin-bottom:18px; display:inline-flex; align-items:center; gap:9px; }
+    .hero-eyebrow::before { content:""; width:6px; height:6px; border-radius:50%; background:var(--purple); box-shadow:0 0 10px var(--purple); }
+    .hero h1 { font-family:var(--serif); font-size:clamp(40px, 5.6vw, 68px); line-height:1.04; font-weight:500; letter-spacing:-.022em; color:var(--white); max-width:20ch; }
+    .firm-pills { display:flex; gap:8px; flex-wrap:wrap; margin-top:18px; }
+    .firm-pills .meta-pill { font-family: var(--sans); font-size:12.5px; color:var(--mute-2); padding:6px 12px; background:rgba(255,255,255,.04); border:1px solid var(--hair); border-radius:999px; }
+    .firm-pills .meta-pill b { color:var(--white); font-weight:600; margin-right:6px; }
+    .hero .sub { font-family:var(--serif); font-style:italic; font-weight:300; font-size:20px; color:var(--mute-2); margin-top:18px; line-height:1.5; max-width:62ch; }
+    .hero .sub b { font-style:normal; font-weight:500; color:var(--white); }
+    .hero .sub a { color:var(--purple-bright); text-decoration:underline; text-underline-offset:3px; text-decoration-thickness:1px; }
 
-  /* "Open on Map" CTA — replaces the faux-map snippet (the real map is the
-     background on the live site; on the standalone page we just link out). */
-  .map-cta { background: var(--surface); border: 1px solid var(--line);
-    border-radius: 12px; padding: 16px 20px; margin-bottom: 28px;
-    display: flex; align-items: center; gap: 14px; }
-  .map-cta-icon { width: 36px; height: 36px; border-radius: 10px;
-    background: rgba(31,223,103,0.1); border: 1px solid rgba(31,223,103,0.25);
-    color: var(--accent); display: flex; align-items: center; justify-content: center;
-    font-size: 18px; flex-shrink: 0; }
-  .map-cta-body { flex: 1; font-size: 12.5px; color: var(--text-mute); line-height: 1.5; }
-  .map-cta .btn { padding: 8px 14px; background: var(--accent); color: #000;
-    font-size: 12px; font-weight: 700; border-radius: 8px; flex-shrink: 0; }
-  .map-cta .btn:hover { background: #2BE875; }
+    /* Stats strip */
+    .stats { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; padding: 32px 0; border-bottom:1px solid var(--hair); }
+    .stat { background: rgba(255,255,255,.02); border: 1px solid var(--hair); border-radius: 12px; padding: 18px; }
+    .stat .n { font-family:var(--serif); font-size: 32px; font-weight: 500; letter-spacing:-.018em; color: var(--white); line-height: 1; }
+    .stat .l { font-family:var(--mono); font-size:10px; letter-spacing:.14em; text-transform:uppercase; color: var(--mute); margin-top: 10px; }
+    .stat.uc .n { color: var(--amber); }
+    .stat.bg .n { color: var(--gold); }
+    .stat.os .n { color: var(--purple-bright); }
+    .stat.no .n { color: var(--green); }
 
-  .section-head { display: flex; align-items: baseline; justify-content: space-between;
-    margin-bottom: 14px; }
-  .section-title { font-size: 13px; font-weight: 700; text-transform: uppercase;
-    letter-spacing: 0.07em; color: var(--text-faint); }
+    /* Sections */
+    .section { padding: 46px 0; border-bottom:1px solid var(--hair); }
+    .section-head { display:flex; align-items:baseline; justify-content:space-between; gap:24px; margin-bottom: 22px; flex-wrap: wrap; }
+    .section-title { font-family:var(--serif); font-size: 28px; line-height: 1.15; font-weight: 500; letter-spacing:-.018em; color: var(--white); }
+    .section-eyebrow { font-family:var(--mono); font-size:10px; letter-spacing:.2em; text-transform:uppercase; color: var(--purple-bright); margin-bottom: 8px; font-weight:600; }
+    .section-meta { font-family:var(--mono); font-size: 11px; letter-spacing:.12em; text-transform:uppercase; color: var(--mute); }
+    .section-meta a { color: var(--purple-bright); text-decoration: underline; text-underline-offset:3px; }
+    .section-meta a.see-all-pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 14px; border-radius: 999px;
+      background: rgba(255,211,0,.06); color: var(--gold);
+      border: 1px solid rgba(255,211,0,.45);
+      box-shadow: 0 0 14px rgba(255,211,0,.18), inset 0 0 12px rgba(255,211,0,.05);
+      font-family: var(--mono); font-size: 10.5px; letter-spacing: .12em;
+      text-transform: uppercase; text-decoration: none; font-weight: 700;
+      transition: background .15s, box-shadow .15s, border-color .15s;
+    }
+    .section-meta a.see-all-pill:hover { background: rgba(255,211,0,.12); border-color: rgba(255,211,0,.7); box-shadow: 0 0 22px rgba(255,211,0,.32); }
 
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: 14px; margin-bottom: 40px; }
-  .proj-card { background: var(--surface); border: 1px solid var(--line);
-    border-radius: 12px; overflow: hidden; cursor: pointer; transition: all 0.18s;
-    display: block; color: inherit; text-decoration: none; }
-  .proj-card:hover { border-color: var(--line-strong); transform: translateY(-2px);
-    box-shadow: 0 12px 30px rgba(0,0,0,0.4); }
-  .proj-hero { aspect-ratio: 16/10;
-    background: linear-gradient(135deg, var(--surface-2), var(--surface-3));
-    background-size: cover; background-position: center; position: relative; }
-  .proj-status { position: absolute; bottom: 8px; left: 8px;
-    background: rgba(0,0,0,0.78); border: 1px solid rgba(255,255,255,0.15);
-    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-    padding: 3px 9px; border-radius: 100px; font-size: 9.5px; font-weight: 700;
-    text-transform: uppercase; letter-spacing: 0.05em; color: #fff;
-    display: flex; align-items: center; gap: 5px; }
-  .proj-status .dot { width: 6px; height: 6px; border-radius: 50%; }
-  .proj-featured { position: absolute; top: 8px; right: 8px;
-    background: rgba(255,211,0,0.18); border: 1px solid rgba(255,211,0,0.4);
-    width: 22px; height: 22px; border-radius: 6px; display: flex;
-    align-items: center; justify-content: center; color: var(--warn); font-size: 11px;
-    backdrop-filter: blur(8px); }
-  .proj-body { padding: 12px 14px 14px; }
-  .proj-title { font-size: 14px; font-weight: 700; line-height: 1.25;
-    overflow: hidden; text-overflow: ellipsis; display: -webkit-box;
-    -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
-  .proj-meta { font-size: 11.5px; color: var(--text-mute); margin-top: 4px;
-    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .proj-foot { font-size: 11px; color: var(--text-faint); margin-top: 7px;
-    padding-top: 7px; border-top: 1px solid var(--line); display: flex;
-    justify-content: space-between; }
-  .proj-foot .date { color: var(--text); font-weight: 600; }
+    /* Project grid — full-rich cards from market pages (timeline + firm bubbles) */
+    .grid.tmw-project-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(420px, 1fr)); gap: 14px; }
+    .card { display: flex; flex-direction: column; background:#111; border-radius:14px; overflow:hidden; transition: transform .15s, border-color .15s; border:1px solid transparent; position:relative; }
+    .card:hover { transform: translateY(-2px); border-color: rgba(167,139,250,.3); }
+    .card-link { display: block; text-decoration: none; color: inherit; }
+    .card-firms-wrap { padding: 0 20px 20px; }
+    .card-feat-badge { position:absolute; top:10px; right:10px; z-index:2; width:22px; height:22px; border-radius:5px; background:var(--gold); display:inline-flex; align-items:center; justify-content:center; box-shadow:0 2px 6px rgba(0,0,0,.4); }
+    .card-feat-badge svg { width:12px; height:12px; fill:#0a0a0a; }
+    .card-img { height: 220px; background-size: cover; background-position: center; position: relative; }
+    .card-img::after { content:""; position:absolute; inset:0; background:linear-gradient(180deg, transparent 60%, rgba(0,0,0,.45) 100%); }
+    .card-body { padding: 18px 20px 4px; }
+    .card-title { font-family: var(--serif); font-size: 22px; font-weight: 500; letter-spacing:-.014em; line-height: 1.2; color: var(--white); margin-bottom: 6px; }
+    .card-loc { font-family: var(--sans); font-size: 13px; color: var(--mute-2); margin-bottom: 14px; }
+    .card-verified { display:flex; align-items:center; gap:8px; font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,.5); margin-bottom: 12px; padding: 8px 0; border-top:1px solid var(--hair); border-bottom:1px solid var(--hair); }
+    .card-v-ico { width:14px; height:14px; display:inline-block; }
+    .card-v-ico svg { width:100%; height:100%; }
 
-  .coverage-section { margin: 40px 0 80px; }
-  .coverage-list { display: flex; flex-direction: column; gap: 8px; }
-  .coverage-item { display: grid; grid-template-columns: auto 1fr auto;
-    gap: 14px; padding: 14px 16px; background: var(--surface);
-    border: 1px solid var(--line); border-radius: 10px; align-items: center;
-    transition: border-color 0.15s; cursor: pointer; color: inherit;
-    text-decoration: none; }
-  .coverage-item:hover { border-color: var(--line-strong); }
-  .coverage-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
-  .coverage-info { min-width: 0; }
-  .coverage-title { font-size: 13px; font-weight: 600; overflow: hidden;
-    text-overflow: ellipsis; white-space: nowrap; }
-  .coverage-meta { font-size: 11px; color: var(--text-faint); margin-top: 3px; }
-  .coverage-meta b { color: var(--accent); font-weight: 700; }
-  .coverage-date { font-size: 11px; color: var(--text-faint); font-variant-numeric: tabular-nums;
-    white-space: nowrap; }
+    /* Timeline */
+    .pm-tl { margin-bottom: 14px; }
+    .pm-tl-date { text-align: right; font-family: var(--mono); font-size: 9px; letter-spacing: 0.06em; text-transform: uppercase; color: rgba(255,255,255,0.5); margin-bottom: 8px; }
+    .pm-tl-meter { position: relative; height: 11px; border-radius: 999px; overflow: hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,0.55); }
+    .pm-tl-grad { position: absolute; inset: 0; background: linear-gradient(90deg, #3a2f6b, #7C5CE0 38%, #A78BFA 64%, #1FDF67); }
+    .pm-tl-empty { position: absolute; top: 0; bottom: 0; right: 0; background: #0d0f0e; box-shadow: inset 2px 0 3px rgba(0,0,0,0.6); }
+    .pm-tl-knob { position: absolute; top: 50%; transform: translate(-50%,-50%); background: #fff; color: #0a0a0a; font-size: 9.5px; font-weight: 800; padding: 4px 9px; border-radius: 999px; white-space: nowrap; z-index: 2; font-family: var(--sans); box-shadow: 0 2px 6px rgba(0,0,0,.5); }
+    .pm-tl-stages { display: flex; gap: 3px; margin-top: 10px; }
+    .pm-tl-stage { flex: 1; font-size: 7.5px; letter-spacing: 0.02em; text-transform: uppercase; color: rgba(255,255,255,0.2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center; font-family: var(--sans); }
+    .pm-tl-stage:first-child { text-align: left; }
+    .pm-tl-stage:last-child { text-align: right; }
+    .pm-tl-stage.done { color: rgba(255,255,255,0.5); }
 
-  .empty { padding: 40px 20px; text-align: center; color: var(--text-faint); font-size: 12.5px;
-    background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
+    /* Mini stats */
+    .pp-minis { display: grid; grid-template-columns: repeat(auto-fit, minmax(72px, 1fr)); gap: 6px; margin-top: 14px; margin-bottom: 14px; }
+    .pp-mini { padding: 10px 11px; background: rgba(0,0,0,.3); border: 1px solid rgba(255,255,255,.07); border-radius: 10px; overflow: hidden; }
+    .pp-mini .v { font-family: var(--sans); font-size: 15px; font-weight: 800; letter-spacing: -.02em; color: var(--white); white-space: nowrap; }
+    .pp-mini .k { font-family: var(--mono); font-size: 8px; letter-spacing: .07em; text-transform: uppercase; color: rgba(255,255,255,.4); margin-top: 5px; white-space: nowrap; }
 
-  @media (max-width: 700px) {
-    .firm-name { font-size: 36px; }
-    .map-snippet { grid-template-columns: 1fr; }
-  }
+    /* Firm bubbles inside cards */
+    .pp-firms { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .pp-firm { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 12px; padding: 13px 14px; text-decoration: none; color: inherit; display: block; transition: border-color .15s; }
+    .pp-firm:hover { border-color: rgba(31,223,103,.35); }
+    .pp-firm .k { font-family: var(--mono); font-size: 8.5px; letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,.4); }
+    .pp-firm .v { font-family: var(--sans); font-size: 15px; font-weight: 700; color: var(--white); margin-top: 4px; line-height: 1.25; }
+    .pp-firm .go { display: inline-block; margin-top: 7px; font-family: var(--sans); font-size: 11px; color: var(--green); }
+    .pp-firm-empty { cursor: default; }
+
+    /* Top-markets + Frequent-collaborators panels */
+    .leads { display:grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .lead { background: rgba(167,139,250,.04); border: 1px solid rgba(167,139,250,.22); border-radius: 14px; padding: 22px 24px; }
+    .lead h3 { font-family: var(--mono); font-size: 10.5px; letter-spacing: .18em; text-transform: uppercase; color: var(--purple-bright); margin-bottom: 18px; font-weight: 700; }
+    .lead-row { display:flex; justify-content: space-between; align-items: baseline; padding: 12px 0; border-top: 1px solid rgba(255,255,255,.05); }
+    .lead-row:first-of-type { border-top: 0; padding-top: 4px; }
+    .lead-row .name { font-family: var(--serif); font-size: 19px; font-weight: 500; color: var(--white); letter-spacing:-.012em; }
+    .lead-row .name a { color: var(--white); }
+    .lead-row .name a:hover { color: var(--purple-bright); text-decoration: underline; text-underline-offset:3px; }
+    .lead-row .count { font-family: var(--mono); font-size: 12px; color: var(--mute); }
+
+    /* Intel ask */
+    .intel { background: linear-gradient(120deg, rgba(167,139,250,.10), rgba(255,211,0,.03)); border: 1px solid rgba(167,139,250,.32); border-radius: 18px; padding: 32px; }
+    .intel-eyebrow { font-family: var(--mono); font-size: 10.5px; letter-spacing: .2em; text-transform: uppercase; color: var(--purple-bright); margin-bottom: 14px; font-weight:600; display:inline-flex; align-items:center; gap:8px; }
+    .intel-eyebrow::before { content:""; width:6px; height:6px; border-radius:50%; background:var(--purple); box-shadow:0 0 10px var(--purple); }
+    .intel h2 { font-family: var(--serif); font-size: 28px; line-height: 1.2; font-weight: 500; letter-spacing:-.018em; color: var(--white); max-width: 28ch; }
+    .intel .ex { font-family:var(--mono); font-size: 11px; letter-spacing:.06em; color: var(--mute); margin-top: 16px; line-height: 1.9; }
+    .intel .ex span { display:inline-block; padding: 6px 12px; margin: 4px 6px 4px 0; background: rgba(255,255,255,.04); border: 1px solid var(--hair); border-radius: 999px; font-family: var(--sans); font-size: 13px; letter-spacing: 0; text-transform: none; color: var(--cream); }
+    .intel form { display:flex; gap: 10px; margin-top: 22px; }
+    .intel input { flex: 1; background: rgba(0,0,0,.4); border: 1px solid rgba(167,139,250,.32); border-radius: 10px; padding: 14px 18px; font-family: var(--sans); font-size: 15px; color: var(--white); cursor: pointer; }
+    .intel input:focus { outline: 0; border-color: var(--purple-bright); }
+    .intel button { font-family: var(--mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; padding: 0 24px; border-radius: 10px; background: var(--purple); color: #0a0a0a; border: 0; cursor:pointer; }
+    .intel .intel-chip { cursor: pointer; transition: background .15s, border-color .15s; }
+    .intel .intel-chip:hover { background: rgba(167,139,250,.12); border-color: rgba(167,139,250,.4); color: var(--white); }
+
+    /* Related */
+    .related { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+    .rel-card { background: rgba(255,255,255,.02); border: 1px solid var(--hair); border-radius: 12px; padding: 18px 20px; transition: border-color .15s, transform .15s; display:block; }
+    .rel-card:hover { border-color: rgba(167,139,250,.4); transform: translateY(-2px); }
+    .rel-card .city { font-family: var(--mono); font-size: 10px; letter-spacing:.14em; text-transform: uppercase; color: var(--mute); }
+    .rel-card .name { font-family: var(--serif); font-size: 20px; font-weight: 500; letter-spacing:-.015em; color: var(--white); margin-top: 6px; line-height: 1.2; }
+    .rel-card .count { font-family: var(--mono); font-size: 11px; color: var(--purple-bright); margin-top: 8px; }
+
+    /* Pro CTA */
+    .pro-cta { margin-top: 38px; padding: 32px; background: linear-gradient(120deg, rgba(255,211,0,.08), rgba(167,139,250,.04)); border: 1px solid rgba(255,211,0,.32); border-radius: 18px; display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+    .pro-cta .l { font-family: var(--serif); font-size: 19px; line-height: 1.4; color: var(--white); max-width: 50ch; font-weight: 500; }
+    .pro-cta .l em { font-style: italic; color: var(--gold); font-weight: 400; }
+    .pro-cta .l i { display:block; font-style:normal; font-family: var(--mono); font-size: 10.5px; letter-spacing:.16em; text-transform: uppercase; color: var(--mute); margin-top: 6px; font-weight: 600; }
+    .pro-cta .go { font-family: var(--mono); font-size: 12px; letter-spacing:.12em; text-transform: uppercase; font-weight: 700; padding: 14px 24px; border-radius: 10px; background: var(--gold); color: #0a0a0a; white-space:nowrap; border:0; cursor:pointer; }
+
+    /* Long-tail body */
+    .copy { padding: 46px 0; font-family: var(--serif); font-size: 17px; line-height: 1.7; color: var(--mute-2); max-width: 72ch; font-weight: 300; }
+    .copy h2 { font-size: 26px; font-weight: 500; letter-spacing:-.018em; color: var(--white); margin: 30px 0 12px; line-height: 1.2; }
+    .copy h2:first-child { margin-top: 0; }
+    .copy p { margin-bottom: 16px; }
+    .copy a { color: var(--purple-bright); text-decoration: underline; text-underline-offset:3px; }
+    .copy b { font-weight: 500; color: var(--cream); }
+
+    /* Coverage */
+    .coverage-list { display:flex; flex-direction:column; gap:8px; }
+    .coverage-item { display:grid; grid-template-columns:auto 1fr auto; gap:14px; padding:14px 16px; background:rgba(255,255,255,.03); border:1px solid var(--hair); border-radius:10px; align-items:center; transition:border-color .15s; color:inherit; }
+    .coverage-item:hover { border-color: rgba(167,139,250,.32); }
+    .coverage-dot { width:8px; height:8px; border-radius:50%; background:var(--purple); box-shadow:0 0 8px var(--purple); }
+    .coverage-title { font-family: var(--serif); font-size: 16px; font-weight: 500; color:var(--white); letter-spacing:-.01em; }
+    .coverage-meta { font-family: var(--sans); font-size: 12px; color:var(--mute); margin-top:3px; }
+    .coverage-meta b { color: var(--purple-bright); font-weight: 600; }
+    .coverage-date { font-family: var(--mono); font-size: 11px; color:var(--mute); letter-spacing:.04em; }
+
+    @media (max-width: 760px) {
+      .wrap { padding: 0 18px; }
+      .stats { grid-template-columns: repeat(2, 1fr); }
+      .leads { grid-template-columns: 1fr; }
+      .pro-cta { flex-direction: column; align-items: flex-start; }
+      .intel form { flex-direction: column; }
+      .intel button { padding: 14px 0; }
+    }
 </style>
 </head>
 <body>
+  <!-- Universal header injected by /_shared/journal-chrome.js -->
 
-<!-- The shared chrome (journal-chrome.js) injects the universal site header at
-     the top of <body> and the footer at the bottom; the firm content sits in a
-     full-width page between them. -->
-<div class="firm-page">
+  <div class="wrap">
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <a href="/">TMW</a><span class="sep">/</span>
+      <a href="/firm/">Firms</a><span class="sep">/</span>
+      <b>S&amp;E Architects</b>
+    </nav>
 
-  <!-- × returns the visitor to the page they came from (see tmwFirmBack). -->
-  <button class="firm-close" type="button" aria-label="Go back" onclick="tmwFirmBack()">×</button>
-
-  <div class="firm-head">
-    <div class="firm-role">Architecture firm</div>
-    <h1 class="firm-name">S&amp;E Architects</h1>
-    <div class="firm-meta">
-        
-        <div class="item"><span class="item-lbl">Active in</span><span>1 market</span></div>
-    </div>
-  </div>
-
-  
-    <div class="stats">
-      <div class="stat-card">
-        <div class="stat-val accent">1</div>
-        <div class="stat-lbl">Projects on TMW</div>
-        <div class="stat-sub">0 in progress · 1 completed</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-val">65</div>
-        <div class="stat-lbl">Residential units</div>
-        <div class="stat-sub">across all projects</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-val">—</div>
-        <div class="stat-lbl">Hotel keys</div>
-        <div class="stat-sub">across all projects</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-val">2.0 yr</div>
-        <div class="stat-lbl">Avg years to delivery</div>
-        <div class="stat-sub">from 1 project with start + delivery dates</div>
-      </div>
-    </div>
-
-  
-    <div class="map-cta">
-      <div class="map-cta-icon">◉</div>
-      <div class="map-cta-body">
-        <strong>1 pin across 1 market</strong>
-        · Coconut Grove
-      </div>
-      <a href="https://www.oftmw.com/map/" class="btn">Open on Map ↗</a>
-    </div>
-
-  <div class="tabs">
-    <button class="tab active" data-tab="all">All projects <span class="count">1</span></button>
-    <button class="tab" data-tab="in-progress">In progress <span class="count">0</span></button>
-    <button class="tab" data-tab="completed">Completed <span class="count">1</span></button>
-  </div>
-
-  <div class="section-head">
-    <div class="section-title">Portfolio</div>
-  </div>
-
-  <div class="grid">
-        <a class="proj-card" data-status="open" href="/projects/vita-at-grove-isle/">
-          <div class="proj-hero" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_8323855cd5704d689f6cfe5f9a0d95de~mv2.webp')">
-            
-            <div class="proj-status"><span class="dot" style="background:#1FDF67"></span>Now Open</div>
-          </div>
-          <div class="proj-body">
-            <div class="proj-title">Vita at Grove Isle</div>
-            <div class="proj-meta">Coconut Grove · Residences</div>
-            <div class="proj-foot">
-              <span>Delivery</span>
-              <span class="date">2025</span>
-            </div>
-          </div>
-        </a></div>
-
-  
-    <section class="coverage-section">
-      <div class="section-head">
-        <div class="section-title">Coverage mentioning this firm</div>
-      </div>
-      <div class="coverage-list">
-        <a class="coverage-item" href="https://www.oftmw.com/post/new-italian-waterfront-restaurant-plans-debut-in-coconut-grove" target="_blank" rel="noopener">
-          <div class="coverage-dot"></div>
-          <div class="coverage-info">
-            <div class="coverage-title">New Italian waterfront restaurant plans debut in Coconut Grove</div>
-            <div class="coverage-meta">Mentions <b>Vita at Grove Isle</b></div>
-          </div>
-          <div class="coverage-date">2025-08-11</div>
-        </a>
-        <a class="coverage-item" href="https://www.oftmw.com/post/vita-residences-at-grove-isle-located-on-21-acre-private-island-near-miami-expects-2024-completion" target="_blank" rel="noopener">
-          <div class="coverage-dot"></div>
-          <div class="coverage-info">
-            <div class="coverage-title">Vita Residences at Grove Isle, located on 20-acre private island near Miami, expects 2025 completion</div>
-            <div class="coverage-meta">Mentions <b>Vita at Grove Isle</b></div>
-          </div>
-          <div class="coverage-date">2023-11-14</div>
-        </a></div>
+    <section class="hero">
+      <div class="hero-eyebrow">Architecture firm · 1 project tracked</div>
+      <h1>S&amp;E Architects</h1>
+      
+      <p class="sub">We track <b>1 architecture firm project</b> by S&amp;E Architects — <b>0 under construction</b>. Active in <b>1 market</b>. Every project below links to a live status page with milestones, renderings, and our <a href="https://www.oftmw.com/journal/">journal coverage</a>.</p>
     </section>
 
-</div>
+    <div class="stats" aria-label="Status breakdown">
+<div class="stat "><div class="n">1</div><div class="l">Tracked</div></div>
+<div class="stat uc"><div class="n">0</div><div class="l">Under Construction</div></div>
+<div class="stat bg"><div class="n">0</div><div class="l">Breaking Ground</div></div>
+<div class="stat os"><div class="n">0</div><div class="l">Opening Soon</div></div>
+<div class="stat no"><div class="n">1</div><div class="l">Now Open</div></div>
+    </div>
 
-<script>
-  document.querySelectorAll('.tab').forEach(t => {
-    t.addEventListener('click', () => {
-      const active = t.dataset.tab;
-      document.querySelectorAll('.tab').forEach(x => x.classList.toggle('active', x === t));
-      document.querySelectorAll('.proj-card').forEach(c => {
-        const isOpen = c.dataset.status === 'open';
-        const show = active === 'all' || (active === 'in-progress' && !isOpen) || (active === 'completed' && isOpen);
-        c.style.display = show ? '' : 'none';
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <div class="section-eyebrow">Featured projects</div>
+          <h2 class="section-title">All 0 we&#x27;re watching</h2>
+        </div>
+        <div class="section-meta"><a class="see-all-pill" href="https://www.oftmw.com/map/?q=S&amp;E Architects">See all 1 on the map →</a></div>
+      </div>
+      <div class="grid tmw-project-grid">
+
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="leads">
+        <div class="lead"><h3>Most active markets</h3><div class="lead-row"><div class="name">Coconut Grove</div><div class="count">1 project</div></div></div>
+        <div class="lead"><h3>Frequent collaborators</h3><div class="lead-row"><div class="name"><a href="https://www.oftmw.com/firm/cmc-group/">CMC Group</a></div><div class="count">1 project</div></div>
+<div class="lead-row"><div class="name"><a href="https://www.oftmw.com/firm/arcadis/">Arcadis</a></div><div class="count">1 project</div></div>
+<div class="lead-row"><div class="name"><a href="https://www.oftmw.com/firm/a-architecture-carlo-paolo-colombo/">A++ Architecture</a></div><div class="count">1 project</div></div></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="intel" data-intel-firm="S&amp;E Architects">
+        <div class="intel-eyebrow">TMW Intelligence</div>
+        <h2>Ask anything about S&amp;E Architects.</h2>
+        <form id="firm-intel-form" autocomplete="off">
+          <input id="firm-intel-input" name="q" type="text" placeholder="e.g. S&amp;E Architects under construction in Miami" autocomplete="off" readonly>
+          <button type="submit">Ask</button>
+        </form>
+        <div class="ex">
+          Try:
+          <span class="intel-chip" data-q="what is breaking ground in 2026?">what's breaking ground in 2026?</span>
+          <span class="intel-chip" data-q="tallest tower in pipeline">tallest tower in pipeline</span>
+          <span class="intel-chip" data-q="most active city">most active city</span>
+        </div>
+      </div>
+    </section>
+
+    <article class="copy">
+<h2>S&amp;E Architects on Markets of Tomorrow</h2><p>We track <b>1 architecture firm project</b> by S&amp;E Architects — <b>0 under construction</b>. Most active markets: <b>Coconut Grove</b> (1). Specializing in: <b>Residences</b> (1).</p><h2>How we built this list</h2><p>Every project on this page is on the <a href="https://www.oftmw.com/map/">Map of Tomorrow</a> — our live database of new and under-construction developments worldwide. Project status, milestones (breaking ground, topping out, opening), and spec changes are sourced from public filings, official announcements, or independent reporting and timestamped. <a href="https://www.oftmw.com/map/?upgrade=1">Pro members</a> get our weekly Slippage Report, the TMW Forecast on every project, and the full firm dataset by city, neighborhood, and project type.</p>
+    </article>
+
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <div class="section-eyebrow">Where they're active</div>
+          <h2 class="section-title">Markets S&amp;E Architects is shaping</h2>
+        </div>
+        <div class="section-meta"><a href="https://www.oftmw.com/markets/">All markets →</a></div>
+      </div>
+      <div class="related">
+<a class="rel-card" href="https://www.oftmw.com/map/?q=Coconut Grove+S&amp;E Architects"><div class="city">City</div><div class="name">Coconut Grove</div><div class="count">1 project →</div></a>
+      </div>
+    </section>
+
+
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <div class="section-eyebrow">In our coverage</div>
+          <h2 class="section-title">Recent journal posts</h2>
+        </div>
+      </div>
+      <div class="coverage-list">
+<a class="coverage-item" href="https://www.oftmw.com/post/new-italian-waterfront-restaurant-plans-debut-in-coconut-grove" target="_blank" rel="noopener"><div class="coverage-dot"></div><div class="coverage-info"><div class="coverage-title">New Italian waterfront restaurant plans debut in Coconut Grove</div><div class="coverage-meta">Mentions <b>Vita at Grove Isle</b></div></div><div class="coverage-date">2025-08-11</div></a>
+<a class="coverage-item" href="https://www.oftmw.com/post/vita-residences-at-grove-isle-located-on-21-acre-private-island-near-miami-expects-2024-completion" target="_blank" rel="noopener"><div class="coverage-dot"></div><div class="coverage-info"><div class="coverage-title">Vita Residences at Grove Isle, located on 20-acre private island near Miami, expects 2025 completion</div><div class="coverage-meta">Mentions <b>Vita at Grove Isle</b></div></div><div class="coverage-date">2023-11-14</div></a>
+      </div>
+    </section>
+
+    <div class="pro-cta">
+      <div class="l">
+        Get the full S&amp;E Architects dataset, weekly Slippage Report, and the TMW Forecast on every project.
+        <em>The part of Pro that pays for itself.</em>
+        <i>Markets of Tomorrow Pro · $24/mo</i>
+      </div>
+      <button class="go" id="firm-pro-cta">Go Pro →</button>
+    </div>
+  </div>
+
+  <script src="/_shared/journal-chrome.js" defer></script>
+  <script src="/_shared/journal-dock.js" defer></script>
+  <script src="/_shared/journal-search-core.js" defer></script>
+  <script src="/_shared/journal-search-overlay.js" defer></script>
+  <script src="/_shared/tmw-lightbox.js" defer></script>
+  <script>
+    // Same Intel ask wiring as the market pages. The overlay opens with the
+    // firm name pre-filled so parseSmartQuery routes architect/developer
+    // filtering automatically — a search for "tallest tower in pipeline"
+    // from /firm/arquitectonica/ becomes "Arquitectonica tallest tower in
+    // pipeline" which the parser narrows to projects whose Architect contains
+    // "Arquitectonica".
+    document.addEventListener('DOMContentLoaded', function () {
+      var box = document.querySelector('.intel');
+      if (!box) return;
+      var firmName = box.getAttribute('data-intel-firm') || '';
+
+      function trackBeacon(q) {
+        try { window.tmwFunnelTrack && window.tmwFunnelTrack('intel_query', { source: 'firm_page', firm: firmName, q: (q || '').slice(0, 80) }); } catch (_){}
+      }
+      function openSuggestionsWith() {
+        trackBeacon('');
+        if (window.tmwOverlay && window.tmwOverlay.openWithPrefix) window.tmwOverlay.openWithPrefix(firmName);
+        else if (window.tmwOverlay) window.tmwOverlay.open(firmName);
+        else window.location = 'https://www.oftmw.com/?q=' + encodeURIComponent(firmName);
+      }
+      function openSearchWith(q) {
+        var full = firmName ? (firmName + (q ? ' ' + q : '')) : q;
+        trackBeacon(q);
+        if (window.tmwOverlay) window.tmwOverlay.open(full);
+        else window.location = 'https://www.oftmw.com/?q=' + encodeURIComponent(full);
+      }
+
+      var input = document.getElementById('firm-intel-input');
+      if (input) {
+        input.addEventListener('click', function (e) { e.preventDefault(); openSuggestionsWith(); });
+        input.addEventListener('focus', function (e) { e.preventDefault(); openSuggestionsWith(); input.blur(); });
+      }
+      var f = document.getElementById('firm-intel-form');
+      if (f) f.addEventListener('submit', function (e) { e.preventDefault(); openSearchWith(((input && input.value) || '').trim()); });
+      Array.prototype.forEach.call(document.querySelectorAll('.intel-chip'), function (chip) {
+        chip.style.cursor = 'pointer';
+        chip.addEventListener('click', function () { openSearchWith(chip.getAttribute('data-q') || chip.textContent.trim()); });
+      });
+
+      var go = document.getElementById('firm-pro-cta');
+      if (go) go.addEventListener('click', function () {
+        try { window.tmwFunnelTrack && window.tmwFunnelTrack('go_pro_clicked', { source: 'firm_page', firm: firmName, path: location.pathname }); } catch (_){}
+        if (window.tmwShowPaywall) window.tmwShowPaywall({ source: 'firm_page' });
+        else window.location = 'https://www.oftmw.com/map/?upgrade=1';
       });
     });
-  });
-
-// × → return to wherever the visitor came from (their last view). If the page
-// was opened directly (no in-site history, e.g. a Google result or fresh tab),
-// fall back to the live map.
-function tmwFirmBack(){
-  if (window.history.length > 1) { history.back(); }
-  else { window.location.href = 'https://www.oftmw.com/map/'; }
-}
-</script>
-
-<!-- Universal site chrome: header + footer + auth (same as every journal page). -->
-<script src="/_shared/journal-chrome.js" defer></script>
-<script src="/_shared/journal-dock.js" defer></script>
-
+  </script>
 </body>
 </html>
