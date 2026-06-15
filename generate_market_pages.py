@@ -343,6 +343,13 @@ def schema_jsonld(title: str, desc: str, url: str, items: list[dict], crumbs: li
     return json.dumps(payload, ensure_ascii=False)
 
 # ─── Page templates ───────────────────────────────────────────────────
+def _exclude_completed(projects: list[dict]) -> list[dict]:
+    """Drop Delivery='Now Open' from the bucket. Used everywhere we want
+    the 'projects we're tracking closely' framing — completed projects
+    are done; we're not watching them anymore. Stats strip + body copy
+    still get the full bucket so visitors can see total scope."""
+    return [p for p in projects if (p.get('Delivery') or '').strip() != 'Now Open']
+
 def render_page(
     *,
     h1: str,
@@ -352,8 +359,7 @@ def render_page(
     breadcrumbs: list[tuple[str, str|None]],
     eyebrow: str,
     intro_html: str,            # serif sub paragraph
-    projects: list[dict],       # sorted (featured-first)
-    total_count: int,           # total tracked in bucket (not just shown)
+    projects: list[dict],       # FULL bucket (all statuses, for stats + intel context)
     related_cities: list[tuple[str,str,int,str]],  # (eyebrow, name, count, href)
     more_types: list[tuple[str,str,int,str]],      # same shape, optional
     map_search: str,            # for the Intel ask form (query prefix)
@@ -368,7 +374,12 @@ def render_page(
         for name, link in breadcrumbs
     )
     ld = schema_jsonld(title_tag.split(' | ')[0], meta_desc, canonical, projects, breadcrumbs)
-    cards_html = '\n'.join(card_html(p) for p in projects[:FEATURED_GRID_TARGET])
+    # The featured "X of Y we're watching closely" grid hides Now Open —
+    # they're delivered, not being tracked. Stats strip + most-active-firm
+    # panels keep the full bucket so the total scope is still visible.
+    active_projects = _exclude_completed(projects)
+    total_count = len(active_projects)
+    cards_html = '\n'.join(card_html(p) for p in active_projects[:FEATURED_GRID_TARGET])
     firms_html = top_firms_html(projects)
     stats_html = stats_strip_html(projects)
     related_html = ''.join(
@@ -391,7 +402,12 @@ def render_page(
         f'      <div class="related">\n{more_types_html}\n      </div>\n'
         '    </section>\n'
     ) if more_types else ''
-    showing_note = f'12 of {total_count} we\'re watching closely' if total_count > FEATURED_GRID_TARGET else f'All {total_count} we\'re watching'
+    shown = min(FEATURED_GRID_TARGET, total_count)
+    showing_note = (
+        f'{shown} of {total_count} we\'re watching closely'
+        if total_count > FEATURED_GRID_TARGET
+        else f'All {total_count} we\'re watching'
+    )
     # Gold-bordered pill with a soft glow — the "go look at everything on
     # the map" CTA is the only chrome we want loud on the featured section,
     # so we promote it from a plain link to a button-style affordance.
@@ -1283,8 +1299,7 @@ def main():
             h1=h1, title_tag=title_tag, meta_desc=meta_desc,
             canonical_path=f'/markets/{slug}/',
             breadcrumbs=crumbs, eyebrow=f'Live · {len(bucket)} projects tracked',
-            intro_html=intro, projects=bucket, total_count=len(bucket),
-            related_cities=related_cities, more_types=more_types,
+            intro_html=intro, projects=bucket, related_cities=related_cities, more_types=more_types,
             map_search=f'{city} {ptype}',
             intel_city=city, intel_type=ptype,
             body_copy_html=long_copy,
@@ -1332,8 +1347,7 @@ def main():
             h1=h1, title_tag=title_tag, meta_desc=meta_desc,
             canonical_path=f'/markets/{slugify(city)}/',
             breadcrumbs=crumbs, eyebrow=f'Live · {len(bucket)} projects tracked',
-            intro_html=intro, projects=bucket_sorted, total_count=len(bucket),
-            related_cities=related_cities, more_types=more_types,
+            intro_html=intro, projects=bucket_sorted, related_cities=related_cities, more_types=more_types,
             map_search=city, intel_city=city, intel_type='',
             body_copy_html=long_copy,
         )
@@ -1374,8 +1388,7 @@ def main():
             h1=h1, title_tag=title_tag, meta_desc=meta_desc,
             canonical_path=f'/markets/by-type/{slugify(ptype)}/',
             breadcrumbs=crumbs, eyebrow=f'Live · {len(bucket)} projects worldwide',
-            intro_html=intro, projects=bucket_sorted, total_count=len(bucket),
-            related_cities=related_cities, more_types=[],
+            intro_html=intro, projects=bucket_sorted, related_cities=related_cities, more_types=[],
             map_search=ptype, intel_city='', intel_type=ptype,
             body_copy_html=long_copy,
         )
@@ -1399,7 +1412,45 @@ def main():
     with open(os.path.join(OUTPUT_DIR, '.urls.json'), 'w', encoding='utf-8') as f:
         json.dump({'urls': generated_paths, 'generated_at': datetime.datetime.now(datetime.timezone.utc).isoformat()}, f, indent=2)
 
-    # ─── 6. Featured Markets carousel feed for the journal home ─────
+    # ─── 6. Cleanup orphan pages from prior runs ─────────────────────
+    # When a city gets renamed/merged in the database (e.g. "New York" →
+    # "New York City"), the old slug's market page persists on disk
+    # because the generator only writes, never deletes. Walk every
+    # directory under /markets/ and remove anything not in the generated
+    # path set. Without this, search engines keep indexing a stale page
+    # and the page itself shows zero matching projects.
+    expected_dirs: set[str] = set()
+    for url_path in generated_paths:
+        # /markets/miami-residences/ → journal/markets/miami-residences
+        # /markets/by-type/hotel/    → journal/markets/by-type/hotel
+        if url_path.startswith('/markets/'):
+            rel = url_path.strip('/').split('/', 1)[1] if '/' in url_path.strip('/') else ''
+            if rel:
+                expected_dirs.add(os.path.normpath(os.path.join(OUTPUT_DIR, rel)))
+    expected_dirs.add(os.path.normpath(OUTPUT_DIR))                            # /markets/ root
+    expected_dirs.add(os.path.normpath(os.path.join(OUTPUT_DIR, 'by-type')))   # type hub parent
+
+    n_pruned = 0
+    pruned_paths: list[str] = []
+    for parent in [OUTPUT_DIR, os.path.join(OUTPUT_DIR, 'by-type')]:
+        if not os.path.isdir(parent): continue
+        for entry in os.listdir(parent):
+            sub = os.path.join(parent, entry)
+            if not os.path.isdir(sub): continue
+            if os.path.normpath(sub) in expected_dirs: continue
+            # Only delete leaves that look like our own output (contain index.html)
+            idx = os.path.join(sub, 'index.html')
+            if not os.path.isfile(idx): continue
+            try:
+                os.remove(idx)
+                # rmdir only succeeds on empty dirs — safe by design
+                os.rmdir(sub)
+                pruned_paths.append(sub)
+                n_pruned += 1
+            except OSError as e:
+                print(f'  ! could not prune {sub}: {e}')
+
+    # ─── 7. Featured Markets carousel feed for the journal home ─────
     n_fm = render_featured_markets_json(by_city, 'journal/featured-markets.json')
 
     print(f"  ✓ {n_ct} city×type pages")
@@ -1407,6 +1458,9 @@ def main():
     print(f"  ✓ {n_type} type hubs")
     print(f"  ✓ 1 markets/ index")
     print(f"  ✓ {n_fm} featured-market cards for the home carousel")
+    if n_pruned:
+        print(f"  ✗ pruned {n_pruned} orphan page(s):")
+        for p in pruned_paths: print(f"      - {p}")
     print(f"  → wrote .urls.json manifest with {len(generated_paths)} URLs")
 
 if __name__ == '__main__':
