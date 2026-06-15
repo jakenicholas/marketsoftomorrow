@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-14",
+  "generated_at": "2026-06-15",
   "projects": {
     "dutchmans-pipe": {
       "estimate_years": 0.8,
@@ -22,7 +22,7 @@
     "eden-residences": {
       "estimate_years": 1.5,
       "estimate_label": "~1.5 years",
-      "days_out": 519,
+      "days_out": 518,
       "delivery_date": "2027-11-15",
       "source": "known_date",
       "precision": "month",
@@ -57,7 +57,7 @@
     "four-seasons-private-residences-coconut-grove": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 885,
+      "days_out": 884,
       "delivery_date": "2028-11-15",
       "source": "known_date",
       "precision": "month",
@@ -73,8 +73,8 @@
     },
     "the-ritz-carlton-residences-palm-beach-gardens": {
       "estimate_years": 0.08,
-      "estimate_label": "31 days",
-      "days_out": 31,
+      "estimate_label": "30 days",
+      "days_out": 30,
       "delivery_date": "2026-07-15",
       "source": "known_date",
       "precision": "month",
@@ -83,7 +83,7 @@
       "metro": "Palm Beach",
       "comparables": [],
       "comparable_count": 0,
-      "pattern_summary": "TMW estimates an opening in 31 days based on project type and current stage.",
+      "pattern_summary": "TMW estimates an opening in 30 days based on project type and current stage.",
       "dates_speculative": true,
       "start_speculative": true,
       "delivery_speculative": true
@@ -109,7 +109,7 @@
     "mirai-design-district": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 931,
+      "days_out": 930,
       "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
@@ -179,7 +179,7 @@
     "pine-crest-school-west-palm-beach": {
       "estimate_years": 3.5,
       "estimate_label": "~3.5 years",
-      "days_out": 1296,
+      "days_out": 1295,
       "delivery_date": "2029-12-31",
       "source": "known_date",
       "precision": "year",
@@ -196,7 +196,7 @@
     "the-brook-tennis-and-pickleball": {
       "estimate_years": 0.3,
       "estimate_label": "~3 months",
-      "days_out": 93,
+      "days_out": 92,
       "delivery_date": "2026-09-15",
       "source": "known_date",
       "precision": "month",
@@ -213,7 +213,7 @@
     "atelier-residences-miami": {
       "estimate_years": 1.5,
       "estimate_label": "~1.5 years",
-      "days_out": 519,
+      "days_out": 518,
       "delivery_date": "2027-11-15",
       "source": "known_date",
       "precision": "month",
@@ -230,7 +230,7 @@
     "aston-martin-residences-daytona-beach-shores": {
       "estimate_years": 3.5,
       "estimate_label": "~3.5 years",
-      "days_out": 1250,
+      "days_out": 1249,
       "delivery_date": "2029-11-15",
       "source": "known_date",
       "precision": "month",
@@ -247,7 +247,7 @@
     "1-iris-lane-the-residences-at-belle-meade-village": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 931,
+      "days_out": 930,
       "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
@@ -262,26 +262,70 @@
       "delivery_speculative": true
     },
     "dolly-partons-songteller-hotel": {
-      "estimate_years": 0.0,
-      "estimate_label": "1 days",
-      "days_out": 1,
-      "delivery_date": "2026-06-15",
-      "source": "known_date",
-      "precision": "month",
-      "confidence": "high",
+      "estimate_years": 2.4,
+      "estimate_label": "~2.4 years",
+      "range_low": 1.6,
+      "range_high": 8.1,
+      "confidence": "low",
+      "comparable_count": 3,
+      "good_count": 0,
+      "exact_count": 0,
+      "used_relaxed": true,
+      "avg_match_score": 0.44,
+      "avg_distance_km": 1640.6,
+      "avg_distance_mi": 1019.4,
+      "scale_used": true,
+      "firm_signal": {
+        "firm": "The Dollywood Company",
+        "count": 1,
+        "median_years": 1.58,
+        "stddev_years": 0.0,
+        "role": "developer",
+        "consistent": false,
+        "blend_weight": 0.4
+      },
+      "source": "comparables",
       "project_type": "Hotel",
       "metro": "Nashville",
-      "comparables": [],
-      "comparable_count": 0,
-      "pattern_summary": "Targeted for opening in 1 days.",
+      "comparables": [
+        {
+          "name": "Naples Beach Club, A Four Seasons Resort",
+          "slug": "naples-beach-club-a-four-seasons-resort",
+          "location": "Naples",
+          "years": 3.0,
+          "score": 0.64,
+          "distance_km": 1210.1,
+          "distance_mi": 751.9
+        },
+        {
+          "name": "Siari, a Ritz-Carlton Reserve",
+          "slug": "siari-a-ritz-carlton-reserve",
+          "location": "Riviera Nayarit",
+          "years": 1.6,
+          "score": 0.34,
+          "distance_km": 2487.3,
+          "distance_mi": 1545.5
+        },
+        {
+          "name": "The Belgrove Resort & Spa",
+          "slug": "the-belgrove-resort-spa",
+          "location": "West Palm Beach",
+          "years": 8.1,
+          "score": 0.34,
+          "distance_km": 1224.4,
+          "distance_mi": 760.8
+        }
+      ],
+      "pattern_summary": "Among 3 hotel projects in TMW's data, the median build time is 3 years (range 1.6–8.1). Adjusted to ~2.4 years for The Dollywood Company's own track record (~1.6-year typical pace across 1 prior project).",
       "dates_speculative": false,
       "start_speculative": false,
-      "delivery_speculative": false
+      "delivery_speculative": false,
+      "is_mixed_use": false
     },
     "belle-meade-village": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 931,
+      "days_out": 930,
       "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
@@ -298,7 +342,7 @@
     "nobe-parc-miami-beach": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 915,
+      "days_out": 914,
       "delivery_date": "2028-12-15",
       "source": "known_date",
       "precision": "month",
@@ -315,7 +359,7 @@
     "the-breakers-family-entertainment-center": {
       "estimate_years": 2.0,
       "estimate_label": "~2 years",
-      "days_out": 701,
+      "days_out": 700,
       "delivery_date": "2028-05-15",
       "source": "known_date",
       "precision": "month",
@@ -330,9 +374,9 @@
       "delivery_speculative": false
     },
     "meli-residences-miami": {
-      "estimate_years": 0.8,
+      "estimate_years": 0.7,
       "estimate_label": "~9 months",
-      "days_out": 274,
+      "days_out": 273,
       "delivery_date": "2027-03-15",
       "source": "known_date",
       "precision": "month",
@@ -410,7 +454,7 @@
     "400-lake-shore-drive": {
       "estimate_years": 1.5,
       "estimate_label": "~1.5 years",
-      "days_out": 565,
+      "days_out": 564,
       "delivery_date": "2027-12-31",
       "source": "known_date",
       "precision": "year",
@@ -445,7 +489,7 @@
     "the-carnelian": {
       "estimate_years": 0.5,
       "estimate_label": "~6 months",
-      "days_out": 184,
+      "days_out": 183,
       "delivery_date": "2026-12-15",
       "source": "known_date",
       "precision": "month",
@@ -462,7 +506,7 @@
     "ymca-of-the-palm-beaches": {
       "estimate_years": 0.6,
       "estimate_label": "~7 months",
-      "days_out": 215,
+      "days_out": 214,
       "delivery_date": "2027-01-15",
       "source": "known_date",
       "precision": "month",
@@ -514,8 +558,8 @@
     },
     "amanvari": {
       "estimate_years": 0.13,
-      "estimate_label": "48 days",
-      "days_out": 48,
+      "estimate_label": "47 days",
+      "days_out": 47,
       "delivery_date": "2026-08-01",
       "source": "known_date",
       "precision": "day",
@@ -524,7 +568,7 @@
       "metro": "Other",
       "comparables": [],
       "comparable_count": 0,
-      "pattern_summary": "TMW estimates an opening in 48 days based on project type and current stage.",
+      "pattern_summary": "TMW estimates an opening in 47 days based on project type and current stage.",
       "dates_speculative": true,
       "start_speculative": true,
       "delivery_speculative": true
@@ -532,7 +576,7 @@
     "southbank-residences": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 977,
+      "days_out": 976,
       "delivery_date": "2029-02-15",
       "source": "known_date",
       "precision": "month",
@@ -549,7 +593,7 @@
     "the-society-of-the-four-arts": {
       "estimate_years": 1.5,
       "estimate_label": "~1.5 years",
-      "days_out": 519,
+      "days_out": 518,
       "delivery_date": "2027-11-15",
       "source": "known_date",
       "precision": "month",
@@ -566,7 +610,7 @@
     "one-west-twelve-residences": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 931,
+      "days_out": 930,
       "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
@@ -644,7 +688,7 @@
     "jean-georges-miami-tropic-residences": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 915,
+      "days_out": 914,
       "delivery_date": "2028-12-15",
       "source": "known_date",
       "precision": "month",
@@ -714,7 +758,7 @@
     "fulton-bond": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 931,
+      "days_out": 930,
       "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
@@ -731,7 +775,7 @@
     "dus-padel": {
       "estimate_years": 0.5,
       "estimate_label": "~7 months",
-      "days_out": 200,
+      "days_out": 199,
       "delivery_date": "2026-12-31",
       "source": "known_date",
       "precision": "year",
@@ -747,8 +791,8 @@
     },
     "soleste-on-the-trail": {
       "estimate_years": 1.0,
-      "estimate_label": "~1 years",
-      "days_out": 366,
+      "estimate_label": "~12 months",
+      "days_out": 365,
       "delivery_date": "2027-06-15",
       "source": "known_date",
       "precision": "month",
@@ -757,7 +801,7 @@
       "metro": "Palm Beach",
       "comparables": [],
       "comparable_count": 0,
-      "pattern_summary": "Targeted for opening in ~1 years.",
+      "pattern_summary": "Targeted for opening in ~12 months.",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false
@@ -765,7 +809,7 @@
     "the-avenue-naples": {
       "estimate_years": 2.0,
       "estimate_label": "~2 years",
-      "days_out": 732,
+      "days_out": 731,
       "delivery_date": "2028-06-15",
       "source": "known_date",
       "precision": "month",
@@ -782,7 +826,7 @@
     "15-cityplace": {
       "estimate_years": 1.5,
       "estimate_label": "~1.5 years",
-      "days_out": 549,
+      "days_out": 548,
       "delivery_date": "2027-12-15",
       "source": "known_date",
       "precision": "month",
@@ -799,7 +843,7 @@
     "south-flagler-house": {
       "estimate_years": 1.5,
       "estimate_label": "~1.5 years",
-      "days_out": 565,
+      "days_out": 564,
       "delivery_date": "2027-12-31",
       "source": "known_date",
       "precision": "year",
@@ -834,7 +878,7 @@
     "1428-brickell": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 931,
+      "days_out": 930,
       "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
@@ -912,7 +956,7 @@
     "olara": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 931,
+      "days_out": 930,
       "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
@@ -929,7 +973,7 @@
     "the-berkeley": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 931,
+      "days_out": 930,
       "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
@@ -999,7 +1043,7 @@
     "mercedes-benz-places": {
       "estimate_years": 3.5,
       "estimate_label": "~3.5 years",
-      "days_out": 1296,
+      "days_out": 1295,
       "delivery_date": "2029-12-31",
       "source": "known_date",
       "precision": "year",
@@ -1016,7 +1060,7 @@
     "lofty-brickell": {
       "estimate_years": 1.0,
       "estimate_label": "~1 years",
-      "days_out": 427,
+      "days_out": 426,
       "delivery_date": "2027-08-15",
       "source": "known_date",
       "precision": "month",
@@ -1033,7 +1077,7 @@
     "2200-brickell": {
       "estimate_years": 0.3,
       "estimate_label": "~3 months",
-      "days_out": 93,
+      "days_out": 92,
       "delivery_date": "2026-09-15",
       "source": "known_date",
       "precision": "month",
@@ -1050,7 +1094,7 @@
     "the-st-regis-residences-miami": {
       "estimate_years": 1.5,
       "estimate_label": "~1.5 years",
-      "days_out": 549,
+      "days_out": 548,
       "delivery_date": "2027-12-15",
       "source": "known_date",
       "precision": "month",
@@ -1067,7 +1111,7 @@
     "the-standard-residences-brickell": {
       "estimate_years": 1.0,
       "estimate_label": "~1 years",
-      "days_out": 427,
+      "days_out": 426,
       "delivery_date": "2027-08-15",
       "source": "known_date",
       "precision": "month",
@@ -1100,9 +1144,9 @@
       "delivery_speculative": false
     },
     "cipriani-residences-brickell": {
-      "estimate_years": 2.0,
-      "estimate_label": "~2 years",
-      "days_out": 640,
+      "estimate_years": 1.5,
+      "estimate_label": "~1.5 years",
+      "days_out": 639,
       "delivery_date": "2028-03-15",
       "source": "known_date",
       "precision": "month",
@@ -1111,7 +1155,7 @@
       "metro": "South Florida",
       "comparables": [],
       "comparable_count": 0,
-      "pattern_summary": "Targeted for opening in ~2 years.",
+      "pattern_summary": "Targeted for opening in ~1.5 years.",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false
@@ -1119,7 +1163,7 @@
     "ora-by-casa-tua": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 931,
+      "days_out": 930,
       "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
@@ -1136,7 +1180,7 @@
     "one-twenty-brickell-residences": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 931,
+      "days_out": 930,
       "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
@@ -1153,7 +1197,7 @@
     "marina-pointe-luna": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 915,
+      "days_out": 914,
       "delivery_date": "2028-12-15",
       "source": "known_date",
       "precision": "month",
@@ -1188,7 +1232,7 @@
     "seven-broadway": {
       "estimate_years": 1.5,
       "estimate_label": "~1.5 years",
-      "days_out": 565,
+      "days_out": 564,
       "delivery_date": "2027-12-31",
       "source": "known_date",
       "precision": "year",
@@ -1205,7 +1249,7 @@
     "shorecrest-flagler-drive": {
       "estimate_years": 1.5,
       "estimate_label": "~1.5 years",
-      "days_out": 565,
+      "days_out": 564,
       "delivery_date": "2027-12-31",
       "source": "known_date",
       "precision": "year",
@@ -1240,7 +1284,7 @@
     "the-ritz-carlton-residences-west-palm-beach": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 931,
+      "days_out": 930,
       "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
@@ -1257,7 +1301,7 @@
     "mr-c-residences-west-palm-beach": {
       "estimate_years": 1.5,
       "estimate_label": "~1.5 years",
-      "days_out": 565,
+      "days_out": 564,
       "delivery_date": "2027-12-31",
       "source": "known_date",
       "precision": "year",
@@ -1335,7 +1379,7 @@
     "apogee-residences": {
       "estimate_years": 1.5,
       "estimate_label": "~1.5 years",
-      "days_out": 565,
+      "days_out": 564,
       "delivery_date": "2027-12-31",
       "source": "known_date",
       "precision": "year",
@@ -1352,7 +1396,7 @@
     "viceroy-aventura": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 931,
+      "days_out": 930,
       "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
@@ -1369,7 +1413,7 @@
     "glass-house-boca-raton": {
       "estimate_years": 0.9,
       "estimate_label": "~11 months",
-      "days_out": 335,
+      "days_out": 334,
       "delivery_date": "2027-05-15",
       "source": "known_date",
       "precision": "month",
@@ -1386,7 +1430,7 @@
     "boca-raton-innovation-campus": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 931,
+      "days_out": 930,
       "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
@@ -1464,7 +1508,7 @@
     "the-well-coconut-grove": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 915,
+      "days_out": 914,
       "delivery_date": "2028-12-15",
       "source": "known_date",
       "precision": "month",
@@ -1481,7 +1525,7 @@
     "ziggurat-coconut-grove": {
       "estimate_years": 1.5,
       "estimate_label": "~1.5 years",
-      "days_out": 611,
+      "days_out": 610,
       "delivery_date": "2028-02-15",
       "source": "known_date",
       "precision": "month",
@@ -1498,7 +1542,7 @@
     "waldorf-astoria-residences-miami": {
       "estimate_years": 1.5,
       "estimate_label": "~1.5 years",
-      "days_out": 580,
+      "days_out": 579,
       "delivery_date": "2028-01-15",
       "source": "known_date",
       "precision": "month",
@@ -1513,26 +1557,70 @@
       "delivery_speculative": false
     },
     "casa-bella-residences-miami": {
-      "estimate_years": 0.0,
-      "estimate_label": "1 days",
-      "days_out": 1,
-      "delivery_date": "2026-06-15",
-      "source": "known_date",
-      "precision": "month",
-      "confidence": "high",
+      "estimate_years": 2.7,
+      "estimate_label": "~2.7 years",
+      "range_low": 2.0,
+      "range_high": 4.8,
+      "confidence": "low",
+      "comparable_count": 8,
+      "good_count": 0,
+      "exact_count": 0,
+      "used_relaxed": true,
+      "avg_match_score": 0.45,
+      "avg_distance_km": 121.9,
+      "avg_distance_mi": 75.7,
+      "scale_used": true,
+      "firm_signal": {
+        "firm": "Alta Developers",
+        "count": 2,
+        "median_years": 2.25,
+        "stddev_years": 0.21,
+        "role": "developer",
+        "consistent": false,
+        "blend_weight": 0.55
+      },
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
-      "comparables": [],
-      "comparable_count": 0,
-      "pattern_summary": "Targeted for opening in 1 days.",
+      "comparables": [
+        {
+          "name": "The Residence at 400 Central",
+          "slug": "the-residence-at-400-central",
+          "location": "St. Petersburg",
+          "years": 3.1,
+          "score": 0.64,
+          "distance_km": 328.2,
+          "distance_mi": 203.9
+        },
+        {
+          "name": "Nautilus 220",
+          "slug": "nautilus-220",
+          "location": "Lake Park",
+          "years": 3.2,
+          "score": 0.61,
+          "distance_km": 112.6,
+          "distance_mi": 70.0
+        },
+        {
+          "name": "The Ritz-Carlton Residences, Estero Bay",
+          "slug": "the-ritz-carlton-residences-estero-bay",
+          "location": "Bonita Springs",
+          "years": 3.5,
+          "score": 0.61,
+          "distance_km": 177.9,
+          "distance_mi": 110.6
+        }
+      ],
+      "pattern_summary": "Among 8 regional residences projects in TMW's data, the median build time is 3.2 years (range 2–4.8). Adjusted to ~2.7 years for Alta Developers's own track record (~2.2-year typical pace across 2 prior projects).",
       "dates_speculative": false,
       "start_speculative": false,
-      "delivery_speculative": false
+      "delivery_speculative": false,
+      "is_mixed_use": false
     },
     "888-brickell-miami-by-dolce-gabana": {
       "estimate_years": 3.5,
       "estimate_label": "~3.5 years",
-      "days_out": 1296,
+      "days_out": 1295,
       "delivery_date": "2029-12-31",
       "source": "known_date",
       "precision": "year",
@@ -1549,7 +1637,7 @@
     "jem-private-residences": {
       "estimate_years": 1.5,
       "estimate_label": "~1.5 years",
-      "days_out": 549,
+      "days_out": 548,
       "delivery_date": "2027-12-15",
       "source": "known_date",
       "precision": "month",
@@ -1566,7 +1654,7 @@
     "okan-tower": {
       "estimate_years": 1.5,
       "estimate_label": "~1.5 years",
-      "days_out": 565,
+      "days_out": 564,
       "delivery_date": "2027-12-31",
       "source": "known_date",
       "precision": "year",
@@ -1601,7 +1689,7 @@
     "14-roc": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 885,
+      "days_out": 884,
       "delivery_date": "2028-11-15",
       "source": "known_date",
       "precision": "month",
@@ -1618,7 +1706,7 @@
     "ponce-park": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 931,
+      "days_out": 930,
       "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
@@ -1635,7 +1723,7 @@
     "the-village-at-coral-gables": {
       "estimate_years": 0.5,
       "estimate_label": "~7 months",
-      "days_out": 200,
+      "days_out": 199,
       "delivery_date": "2026-12-31",
       "source": "known_date",
       "precision": "year",
@@ -1652,7 +1740,7 @@
     "the-pendry-tampa-and-residences": {
       "estimate_years": 1.5,
       "estimate_label": "~1.5 years",
-      "days_out": 565,
+      "days_out": 564,
       "delivery_date": "2027-12-31",
       "source": "known_date",
       "precision": "year",
@@ -1669,7 +1757,7 @@
     "one-tampa": {
       "estimate_years": 1.5,
       "estimate_label": "~1.5 years",
-      "days_out": 565,
+      "days_out": 564,
       "delivery_date": "2027-12-31",
       "source": "known_date",
       "precision": "year",
@@ -1686,7 +1774,7 @@
     "water-street-phase-two": {
       "estimate_years": 1.5,
       "estimate_label": "~1.5 years",
-      "days_out": 565,
+      "days_out": 564,
       "delivery_date": "2027-12-31",
       "source": "known_date",
       "precision": "year",
@@ -1703,7 +1791,7 @@
     "gasworx": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 931,
+      "days_out": 930,
       "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
@@ -1755,7 +1843,7 @@
     "westcourt-orlando": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 931,
+      "days_out": 930,
       "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
@@ -1772,7 +1860,7 @@
     "hotel-ora-private-residences": {
       "estimate_years": 1.5,
       "estimate_label": "~1.5 years",
-      "days_out": 565,
+      "days_out": 564,
       "delivery_date": "2027-12-31",
       "source": "known_date",
       "precision": "year",
@@ -1789,7 +1877,7 @@
     "caretta": {
       "estimate_years": 0.5,
       "estimate_label": "~7 months",
-      "days_out": 200,
+      "days_out": 199,
       "delivery_date": "2026-12-31",
       "source": "known_date",
       "precision": "year",
@@ -1806,7 +1894,7 @@
     "10-cityplace": {
       "estimate_years": 1.5,
       "estimate_label": "~1.5 years",
-      "days_out": 549,
+      "days_out": 548,
       "delivery_date": "2027-12-15",
       "source": "known_date",
       "precision": "month",
@@ -1841,7 +1929,7 @@
     "west-palm-point": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 931,
+      "days_out": 930,
       "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
@@ -1858,7 +1946,7 @@
     "the-marketplace-of-wellington": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 931,
+      "days_out": 930,
       "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
@@ -1875,7 +1963,7 @@
     "currie-park": {
       "estimate_years": 1.5,
       "estimate_label": "~1.5 years",
-      "days_out": 565,
+      "days_out": 564,
       "delivery_date": "2027-12-31",
       "source": "known_date",
       "precision": "year",
@@ -1953,7 +2041,7 @@
     "citadel-hq": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 931,
+      "days_out": 930,
       "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
@@ -1970,7 +2058,7 @@
     "safe-harbor-rybovich-district": {
       "estimate_years": 1.5,
       "estimate_label": "~1.5 years",
-      "days_out": 565,
+      "days_out": 564,
       "delivery_date": "2027-12-31",
       "source": "known_date",
       "precision": "year",
@@ -1987,7 +2075,7 @@
     "cleveland-clinic-hospital": {
       "estimate_years": 3.5,
       "estimate_label": "~3.5 years",
-      "days_out": 1280,
+      "days_out": 1279,
       "delivery_date": "2029-12-15",
       "source": "known_date",
       "precision": "month",
@@ -2022,7 +2110,7 @@
     "vanderbilt-university": {
       "estimate_years": 3.5,
       "estimate_label": "~3.5 years",
-      "days_out": 1250,
+      "days_out": 1249,
       "delivery_date": "2029-11-15",
       "source": "known_date",
       "precision": "month",
@@ -2039,7 +2127,7 @@
     "bath-and-racquet-residences": {
       "estimate_years": 0.5,
       "estimate_label": "~6 months",
-      "days_out": 184,
+      "days_out": 183,
       "delivery_date": "2026-12-15",
       "source": "known_date",
       "precision": "month",
@@ -2056,7 +2144,7 @@
     "ritz-carlton-residences-south-beach": {
       "estimate_years": 1.5,
       "estimate_label": "~1.5 years",
-      "days_out": 565,
+      "days_out": 564,
       "delivery_date": "2027-12-31",
       "source": "known_date",
       "precision": "year",
@@ -2073,7 +2161,7 @@
     "the-raleigh-rosewood-residences": {
       "estimate_years": 1.5,
       "estimate_label": "~1.5 years",
-      "days_out": 565,
+      "days_out": 564,
       "delivery_date": "2027-12-31",
       "source": "known_date",
       "precision": "year",
@@ -2090,7 +2178,7 @@
     "aman-miami-beach": {
       "estimate_years": 1.5,
       "estimate_label": "~1.5 years",
-      "days_out": 565,
+      "days_out": 564,
       "delivery_date": "2027-12-31",
       "source": "known_date",
       "precision": "year",
@@ -2107,7 +2195,7 @@
     "ella-miami-beach": {
       "estimate_years": 1.5,
       "estimate_label": "~1.5 years",
-      "days_out": 565,
+      "days_out": 564,
       "delivery_date": "2027-12-31",
       "source": "known_date",
       "precision": "year",
@@ -2124,7 +2212,7 @@
     "the-perigon-miami-beach": {
       "estimate_years": 1.5,
       "estimate_label": "~1.5 years",
-      "days_out": 565,
+      "days_out": 564,
       "delivery_date": "2027-12-31",
       "source": "known_date",
       "precision": "year",
@@ -2141,7 +2229,7 @@
     "grand-hyatt-convention-center-hotel": {
       "estimate_years": 1.5,
       "estimate_label": "~1.5 years",
-      "days_out": 565,
+      "days_out": 564,
       "delivery_date": "2027-12-31",
       "source": "known_date",
       "precision": "year",
@@ -2158,7 +2246,7 @@
     "the-alton-miami-beach": {
       "estimate_years": 1.5,
       "estimate_label": "~1.5 years",
-      "days_out": 565,
+      "days_out": 564,
       "delivery_date": "2027-12-31",
       "source": "known_date",
       "precision": "year",
@@ -2175,7 +2263,7 @@
     "the-shore-club-resort-residences": {
       "estimate_years": 1.5,
       "estimate_label": "~1.5 years",
-      "days_out": 565,
+      "days_out": 564,
       "delivery_date": "2027-12-31",
       "source": "known_date",
       "precision": "year",
@@ -2192,7 +2280,7 @@
     "the-dynasty": {
       "estimate_years": 1.5,
       "estimate_label": "~1.5 years",
-      "days_out": 565,
+      "days_out": 564,
       "delivery_date": "2027-12-31",
       "source": "known_date",
       "precision": "year",
@@ -2209,7 +2297,7 @@
     "cove-miami": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 931,
+      "days_out": 930,
       "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
@@ -2226,7 +2314,7 @@
     "continuum-waterfront-district": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 931,
+      "days_out": 930,
       "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
@@ -2243,7 +2331,7 @@
     "sereno": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 915,
+      "days_out": 914,
       "delivery_date": "2028-12-15",
       "source": "known_date",
       "precision": "month",
@@ -2313,7 +2401,7 @@
     "faena-residences-miami": {
       "estimate_years": 3.5,
       "estimate_label": "~3.5 years",
-      "days_out": 1296,
+      "days_out": 1295,
       "delivery_date": "2029-12-31",
       "source": "known_date",
       "precision": "year",
@@ -2383,7 +2471,7 @@
     "royal-caribbean-hq": {
       "estimate_years": 0.5,
       "estimate_label": "~7 months",
-      "days_out": 200,
+      "days_out": 199,
       "delivery_date": "2026-12-31",
       "source": "known_date",
       "precision": "year",
@@ -2400,7 +2488,7 @@
     "royal-caribbean-terminal-g": {
       "estimate_years": 1.5,
       "estimate_label": "~1.5 years",
-      "days_out": 565,
+      "days_out": 564,
       "delivery_date": "2027-12-31",
       "source": "known_date",
       "precision": "year",
@@ -2417,7 +2505,7 @@
     "fat-village": {
       "estimate_years": 0.5,
       "estimate_label": "~6 months",
-      "days_out": 184,
+      "days_out": 183,
       "delivery_date": "2026-12-15",
       "source": "known_date",
       "precision": "month",
@@ -2434,7 +2522,7 @@
     "ombelle": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 931,
+      "days_out": 930,
       "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
@@ -2451,7 +2539,7 @@
     "viceroy-residences-fort-lauderdale": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 931,
+      "days_out": 930,
       "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
@@ -2468,7 +2556,7 @@
     "icon-beach": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 931,
+      "days_out": 930,
       "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
@@ -2485,7 +2573,7 @@
     "w-pompano-beach": {
       "estimate_years": 3.5,
       "estimate_label": "~3.5 years",
-      "days_out": 1296,
+      "days_out": 1295,
       "delivery_date": "2029-12-31",
       "source": "known_date",
       "precision": "year",
@@ -2502,7 +2590,7 @@
     "rosewood-hillsboro-beach": {
       "estimate_years": 1.5,
       "estimate_label": "~1.5 years",
-      "days_out": 565,
+      "days_out": 564,
       "delivery_date": "2027-12-31",
       "source": "known_date",
       "precision": "year",
@@ -2519,7 +2607,7 @@
     "aileron-residences": {
       "estimate_years": 1.5,
       "estimate_label": "~1.5 years",
-      "days_out": 565,
+      "days_out": 564,
       "delivery_date": "2027-12-31",
       "source": "known_date",
       "precision": "year",
@@ -2536,7 +2624,7 @@
     "armanicasa-residences": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 915,
+      "days_out": 914,
       "delivery_date": "2028-12-15",
       "source": "known_date",
       "precision": "month",
@@ -2553,7 +2641,7 @@
     "riva-residences": {
       "estimate_years": 0.5,
       "estimate_label": "~7 months",
-      "days_out": 200,
+      "days_out": 199,
       "delivery_date": "2026-12-31",
       "source": "known_date",
       "precision": "year",
@@ -2570,7 +2658,7 @@
     "shell-bay-residences": {
       "estimate_years": 1.5,
       "estimate_label": "~1.5 years",
-      "days_out": 565,
+      "days_out": 564,
       "delivery_date": "2027-12-31",
       "source": "known_date",
       "precision": "year",
@@ -2587,7 +2675,7 @@
     "sage-intracoastal-residences": {
       "estimate_years": 1.5,
       "estimate_label": "~1.5 years",
-      "days_out": 565,
+      "days_out": 564,
       "delivery_date": "2027-12-31",
       "source": "known_date",
       "precision": "year",
@@ -2604,7 +2692,7 @@
     "natiivo-fort-lauderdale": {
       "estimate_years": 1.5,
       "estimate_label": "~1.5 years",
-      "days_out": 565,
+      "days_out": 564,
       "delivery_date": "2027-12-31",
       "source": "known_date",
       "precision": "year",
@@ -2621,7 +2709,7 @@
     "633-se-third-avenue": {
       "estimate_years": 0.5,
       "estimate_label": "~7 months",
-      "days_out": 200,
+      "days_out": 199,
       "delivery_date": "2026-12-31",
       "source": "known_date",
       "precision": "year",
@@ -2638,7 +2726,7 @@
     "waldorf-astoria-residences-st-petersburg": {
       "estimate_years": 3.5,
       "estimate_label": "~3.5 years",
-      "days_out": 1296,
+      "days_out": 1295,
       "delivery_date": "2029-12-31",
       "source": "known_date",
       "precision": "year",
@@ -2655,7 +2743,7 @@
     "tampa-international-airport-expansion": {
       "estimate_years": 3.5,
       "estimate_label": "~3.5 years",
-      "days_out": 1296,
+      "days_out": 1295,
       "delivery_date": "2029-12-31",
       "source": "known_date",
       "precision": "year",
@@ -2672,7 +2760,7 @@
     "1117-broadway": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 931,
+      "days_out": 930,
       "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
@@ -2689,7 +2777,7 @@
     "viceroy-residences-clearwater-beach": {
       "estimate_years": 1.5,
       "estimate_label": "~1.5 years",
-      "days_out": 565,
+      "days_out": 564,
       "delivery_date": "2027-12-31",
       "source": "known_date",
       "precision": "year",
@@ -2706,7 +2794,7 @@
     "wellington-sports-academy": {
       "estimate_years": 0.5,
       "estimate_label": "~7 months",
-      "days_out": 200,
+      "days_out": 199,
       "delivery_date": "2026-12-31",
       "source": "known_date",
       "precision": "year",
@@ -2723,7 +2811,7 @@
     "fort-luxe": {
       "estimate_years": 0.5,
       "estimate_label": "~7 months",
-      "days_out": 200,
+      "days_out": 199,
       "delivery_date": "2026-12-31",
       "source": "known_date",
       "precision": "year",
@@ -2740,7 +2828,7 @@
     "banyan-tree-bimini": {
       "estimate_years": 1.5,
       "estimate_label": "~1.5 years",
-      "days_out": 565,
+      "days_out": 564,
       "delivery_date": "2027-12-31",
       "source": "known_date",
       "precision": "year",
@@ -2757,7 +2845,7 @@
     "jacks-bay-club-resort": {
       "estimate_years": 0.5,
       "estimate_label": "~7 months",
-      "days_out": 200,
+      "days_out": 199,
       "delivery_date": "2026-12-31",
       "source": "known_date",
       "precision": "year",
@@ -2774,7 +2862,7 @@
     "ritz-carlton-reserve-at-cotton-bay": {
       "estimate_years": 1.5,
       "estimate_label": "~1.5 years",
-      "days_out": 565,
+      "days_out": 564,
       "delivery_date": "2027-12-31",
       "source": "known_date",
       "precision": "year",
@@ -2791,7 +2879,7 @@
     "the-ocean-club": {
       "estimate_years": 1.5,
       "estimate_label": "~1.5 years",
-      "days_out": 565,
+      "days_out": 564,
       "delivery_date": "2027-12-31",
       "source": "known_date",
       "precision": "year",
@@ -2887,7 +2975,7 @@
     "oasis-hallandale": {
       "estimate_years": 0.5,
       "estimate_label": "~7 months",
-      "days_out": 200,
+      "days_out": 199,
       "delivery_date": "2026-12-31",
       "source": "known_date",
       "precision": "year",
@@ -2904,7 +2992,7 @@
     "alhambra-parc": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 931,
+      "days_out": 930,
       "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
@@ -2921,7 +3009,7 @@
     "the-delmore": {
       "estimate_years": 3.5,
       "estimate_label": "~3.5 years",
-      "days_out": 1296,
+      "days_out": 1295,
       "delivery_date": "2029-12-31",
       "source": "known_date",
       "precision": "year",
@@ -2999,7 +3087,7 @@
     "fiori": {
       "estimate_years": 0.5,
       "estimate_label": "~7 months",
-      "days_out": 200,
+      "days_out": 199,
       "delivery_date": "2026-12-31",
       "source": "known_date",
       "precision": "year",
@@ -3016,7 +3104,7 @@
     "the-green-at-abaco-club": {
       "estimate_years": 0.5,
       "estimate_label": "~7 months",
-      "days_out": 200,
+      "days_out": 199,
       "delivery_date": "2026-12-31",
       "source": "known_date",
       "precision": "year",
@@ -3033,7 +3121,7 @@
     "edge-house": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 931,
+      "days_out": 930,
       "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
@@ -3050,7 +3138,7 @@
     "oculina": {
       "estimate_years": 0.5,
       "estimate_label": "~7 months",
-      "days_out": 200,
+      "days_out": 199,
       "delivery_date": "2026-12-31",
       "source": "known_date",
       "precision": "year",
@@ -3067,7 +3155,7 @@
     "21-hollywood": {
       "estimate_years": 0.5,
       "estimate_label": "~7 months",
-      "days_out": 200,
+      "days_out": 199,
       "delivery_date": "2026-12-31",
       "source": "known_date",
       "precision": "year",
@@ -3084,7 +3172,7 @@
     "the-huehub": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 931,
+      "days_out": 930,
       "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
@@ -3119,7 +3207,7 @@
     "elle-residences": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 931,
+      "days_out": 930,
       "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
@@ -3136,7 +3224,7 @@
     "ponce-8": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 931,
+      "days_out": 930,
       "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
@@ -3171,7 +3259,7 @@
     "midtown-park": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 915,
+      "days_out": 914,
       "delivery_date": "2028-12-15",
       "source": "known_date",
       "precision": "month",
@@ -3188,7 +3276,7 @@
     "the-dunes": {
       "estimate_years": 0.5,
       "estimate_label": "~7 months",
-      "days_out": 200,
+      "days_out": 199,
       "delivery_date": "2026-12-31",
       "source": "known_date",
       "precision": "year",
@@ -3205,7 +3293,7 @@
     "summit-brickell": {
       "estimate_years": 1.5,
       "estimate_label": "~1.5 years",
-      "days_out": 565,
+      "days_out": 564,
       "delivery_date": "2027-12-31",
       "source": "known_date",
       "precision": "year",
@@ -3222,7 +3310,7 @@
     "edition-residences-miami-edgewater": {
       "estimate_years": 3.5,
       "estimate_label": "~3.5 years",
-      "days_out": 1296,
+      "days_out": 1295,
       "delivery_date": "2029-12-31",
       "source": "known_date",
       "precision": "year",
@@ -3257,7 +3345,7 @@
     "hamilton-house": {
       "estimate_years": 1.5,
       "estimate_label": "~1.5 years",
-      "days_out": 565,
+      "days_out": 564,
       "delivery_date": "2027-12-31",
       "source": "known_date",
       "precision": "year",
@@ -3274,7 +3362,7 @@
     "wingrove-academy": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 931,
+      "days_out": 930,
       "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
@@ -3291,7 +3379,7 @@
     "la-baia-north": {
       "estimate_years": 1.5,
       "estimate_label": "~1.5 years",
-      "days_out": 565,
+      "days_out": 564,
       "delivery_date": "2027-12-31",
       "source": "known_date",
       "precision": "year",
@@ -3308,7 +3396,7 @@
     "domus-brickell-center": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 931,
+      "days_out": 930,
       "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
@@ -3325,7 +3413,7 @@
     "the-william": {
       "estimate_years": 3.5,
       "estimate_label": "~3.5 years",
-      "days_out": 1296,
+      "days_out": 1295,
       "delivery_date": "2029-12-31",
       "source": "known_date",
       "precision": "year",
@@ -3360,7 +3448,7 @@
     "colette-residences-by-meta-development": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 915,
+      "days_out": 914,
       "delivery_date": "2028-12-15",
       "source": "known_date",
       "precision": "month",
@@ -3377,7 +3465,7 @@
     "opus-coconut-grove": {
       "estimate_years": 1.5,
       "estimate_label": "~1.5 years",
-      "days_out": 565,
+      "days_out": 564,
       "delivery_date": "2027-12-31",
       "source": "known_date",
       "precision": "year",
@@ -3394,7 +3482,7 @@
     "edgeworth": {
       "estimate_years": 3.5,
       "estimate_label": "~3.5 years",
-      "days_out": 1296,
+      "days_out": 1295,
       "delivery_date": "2029-12-31",
       "source": "known_date",
       "precision": "year",
@@ -3411,7 +3499,7 @@
     "african-american-museum-and-research-library": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 931,
+      "days_out": 930,
       "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
@@ -3428,7 +3516,7 @@
     "banyan-tree-residences": {
       "estimate_years": 3.5,
       "estimate_label": "~3.5 years",
-      "days_out": 1296,
+      "days_out": 1295,
       "delivery_date": "2029-12-31",
       "source": "known_date",
       "precision": "year",
@@ -3445,7 +3533,7 @@
     "the-wellington": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 931,
+      "days_out": 930,
       "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
@@ -3523,7 +3611,7 @@
     "court-club": {
       "estimate_years": 0.4,
       "estimate_label": "~5 months",
-      "days_out": 154,
+      "days_out": 153,
       "delivery_date": "2026-11-15",
       "source": "known_date",
       "precision": "month",
@@ -3540,7 +3628,7 @@
     "the-ritz-carlton-residences-fort-lauderdale-beach": {
       "estimate_years": 3.5,
       "estimate_label": "~3.5 years",
-      "days_out": 1296,
+      "days_out": 1295,
       "delivery_date": "2029-12-31",
       "source": "known_date",
       "precision": "year",
@@ -3557,7 +3645,7 @@
     "bone-valley-at-streamsong": {
       "estimate_years": 0.6,
       "estimate_label": "~7 months",
-      "days_out": 226,
+      "days_out": 225,
       "delivery_date": "2027-01-26",
       "source": "known_date",
       "precision": "day",
@@ -3574,7 +3662,7 @@
     "nora-house": {
       "estimate_years": 3.5,
       "estimate_label": "~3.5 years",
-      "days_out": 1219,
+      "days_out": 1218,
       "delivery_date": "2029-10-15",
       "source": "known_date",
       "precision": "month",
@@ -3591,7 +3679,7 @@
     "frida-kahlo-wynwood-residences": {
       "estimate_years": 3.5,
       "estimate_label": "~3.5 years",
-      "days_out": 1296,
+      "days_out": 1295,
       "delivery_date": "2029-12-31",
       "source": "known_date",
       "precision": "year",
@@ -3669,7 +3757,7 @@
     "biba": {
       "estimate_years": 0.3,
       "estimate_label": "~4 months",
-      "days_out": 123,
+      "days_out": 122,
       "delivery_date": "2026-10-15",
       "source": "known_date",
       "precision": "month",
@@ -3686,7 +3774,7 @@
     "maison-dor": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 931,
+      "days_out": 930,
       "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
@@ -3703,7 +3791,7 @@
     "1830-n-dixie": {
       "estimate_years": 0.5,
       "estimate_label": "~7 months",
-      "days_out": 200,
+      "days_out": 199,
       "delivery_date": "2026-12-31",
       "source": "known_date",
       "precision": "year",
@@ -3842,7 +3930,7 @@
     "norton-museum-of-art-expansion": {
       "estimate_years": 3.5,
       "estimate_label": "~3.5 years",
-      "days_out": 1296,
+      "days_out": 1295,
       "delivery_date": "2029-12-31",
       "source": "known_date",
       "precision": "year",
@@ -3911,7 +3999,7 @@
     "metro-parc-south": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 931,
+      "days_out": 930,
       "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
@@ -3928,7 +4016,7 @@
     "riverside-wharf": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 931,
+      "days_out": 930,
       "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
@@ -3945,7 +4033,7 @@
     "the-lincoln": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 931,
+      "days_out": 930,
       "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
@@ -3962,7 +4050,7 @@
     "parkside-residences": {
       "estimate_years": 2.0,
       "estimate_label": "~2 years",
-      "days_out": 732,
+      "days_out": 731,
       "delivery_date": "2028-06-15",
       "source": "known_date",
       "precision": "month",
@@ -3979,7 +4067,7 @@
     "surf-row": {
       "estimate_years": 1.5,
       "estimate_label": "~1.5 years",
-      "days_out": 565,
+      "days_out": 564,
       "delivery_date": "2027-12-31",
       "source": "known_date",
       "precision": "year",
@@ -3996,7 +4084,7 @@
     "villa-17": {
       "estimate_years": 1.5,
       "estimate_label": "~1.5 years",
-      "days_out": 565,
+      "days_out": 564,
       "delivery_date": "2027-12-31",
       "source": "known_date",
       "precision": "year",
@@ -4031,7 +4119,7 @@
     "9900-west": {
       "estimate_years": 0.3,
       "estimate_label": "~3 months",
-      "days_out": 93,
+      "days_out": 92,
       "delivery_date": "2026-09-15",
       "source": "known_date",
       "precision": "month",
@@ -4066,7 +4154,7 @@
     "waldorf-astoria-residences-sarasota": {
       "estimate_years": 3.5,
       "estimate_label": "~3.5 years",
-      "days_out": 1296,
+      "days_out": 1295,
       "delivery_date": "2029-12-31",
       "source": "known_date",
       "precision": "year",
@@ -4082,8 +4170,8 @@
     },
     "the-george": {
       "estimate_years": 1.0,
-      "estimate_label": "~1 years",
-      "days_out": 366,
+      "estimate_label": "~12 months",
+      "days_out": 365,
       "delivery_date": "2027-06-15",
       "source": "known_date",
       "precision": "month",
@@ -4092,7 +4180,7 @@
       "metro": "South Florida",
       "comparables": [],
       "comparable_count": 0,
-      "pattern_summary": "TMW estimates an opening in ~1 years based on project type and current stage.",
+      "pattern_summary": "TMW estimates an opening in ~12 months based on project type and current stage.",
       "dates_speculative": true,
       "start_speculative": true,
       "delivery_speculative": true
@@ -4100,7 +4188,7 @@
     "one-kane": {
       "estimate_years": 0.5,
       "estimate_label": "~7 months",
-      "days_out": 200,
+      "days_out": 199,
       "delivery_date": "2026-12-31",
       "source": "known_date",
       "precision": "year",
@@ -4117,7 +4205,7 @@
     "live-nation-gasworx": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 931,
+      "days_out": 930,
       "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
@@ -4152,7 +4240,7 @@
     "cora-merrick-park": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 931,
+      "days_out": 930,
       "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
@@ -4169,7 +4257,7 @@
     "seventeen-gables": {
       "estimate_years": 1.5,
       "estimate_label": "~1.5 years",
-      "days_out": 549,
+      "days_out": 548,
       "delivery_date": "2027-12-15",
       "source": "known_date",
       "precision": "month",
@@ -4186,7 +4274,7 @@
     "pagani-residences": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 931,
+      "days_out": 930,
       "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
@@ -4203,7 +4291,7 @@
     "123-ocean": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 931,
+      "days_out": 930,
       "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
@@ -4220,7 +4308,7 @@
     "mr-c-residences-boca-raton": {
       "estimate_years": 3.5,
       "estimate_label": "~3.5 years",
-      "days_out": 1296,
+      "days_out": 1295,
       "delivery_date": "2029-12-31",
       "source": "known_date",
       "precision": "year",
@@ -4351,7 +4439,7 @@
     "kempinksi-residences": {
       "estimate_years": 3.5,
       "estimate_label": "~3.5 years",
-      "days_out": 1296,
+      "days_out": 1295,
       "delivery_date": "2029-12-31",
       "source": "known_date",
       "precision": "year",
@@ -4368,7 +4456,7 @@
     "hq-residences-miami": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 931,
+      "days_out": 930,
       "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
@@ -4385,7 +4473,7 @@
     "the-rider-residences": {
       "estimate_years": 1.5,
       "estimate_label": "~1.5 years",
-      "days_out": 565,
+      "days_out": 564,
       "delivery_date": "2027-12-31",
       "source": "known_date",
       "precision": "year",
@@ -4402,7 +4490,7 @@
     "ocean-house": {
       "estimate_years": 1.5,
       "estimate_label": "~1.5 years",
-      "days_out": 565,
+      "days_out": 564,
       "delivery_date": "2027-12-31",
       "source": "known_date",
       "precision": "year",
@@ -4419,7 +4507,7 @@
     "st-regis-residences-sunny-isles-beach": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 931,
+      "days_out": 930,
       "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
@@ -4436,7 +4524,7 @@
     "villa-miami": {
       "estimate_years": 1.5,
       "estimate_label": "~1.5 years",
-      "days_out": 549,
+      "days_out": 548,
       "delivery_date": "2027-12-15",
       "source": "known_date",
       "precision": "month",
@@ -4496,7 +4584,7 @@
     "nobu-hotel-nashville": {
       "estimate_years": 0.5,
       "estimate_label": "~7 months",
-      "days_out": 200,
+      "days_out": 199,
       "delivery_date": "2026-12-31",
       "source": "known_date",
       "precision": "year",
@@ -4513,7 +4601,7 @@
     "pendry-nashville": {
       "estimate_years": 1.5,
       "estimate_label": "~1.5 years",
-      "days_out": 565,
+      "days_out": 564,
       "delivery_date": "2027-12-31",
       "source": "known_date",
       "precision": "year",
@@ -4591,7 +4679,7 @@
     "firefly": {
       "estimate_years": 0.5,
       "estimate_label": "~7 months",
-      "days_out": 200,
+      "days_out": 199,
       "delivery_date": "2026-12-31",
       "source": "known_date",
       "precision": "year",
@@ -4608,7 +4696,7 @@
     "the-nashville-edition": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 931,
+      "days_out": 930,
       "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
@@ -4625,7 +4713,7 @@
     "tennessee-titans-stadium": {
       "estimate_years": 0.7,
       "estimate_label": "~8 months",
-      "days_out": 246,
+      "days_out": 245,
       "delivery_date": "2027-02-15",
       "source": "known_date",
       "precision": "month",
@@ -4642,7 +4730,7 @@
     "wedgewood-village": {
       "estimate_years": 0.3,
       "estimate_label": "~4 months",
-      "days_out": 123,
+      "days_out": 122,
       "delivery_date": "2026-10-15",
       "source": "known_date",
       "precision": "month",
@@ -4659,7 +4747,7 @@
     "baccarat-residences-miami": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 931,
+      "days_out": 930,
       "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
@@ -4675,8 +4763,8 @@
     },
     "coral-cay-waterpark": {
       "estimate_years": 0.08,
-      "estimate_label": "31 days",
-      "days_out": 31,
+      "estimate_label": "30 days",
+      "days_out": 30,
       "delivery_date": "2026-07-15",
       "source": "known_date",
       "precision": "month",
@@ -4685,7 +4773,7 @@
       "metro": "Other",
       "comparables": [],
       "comparable_count": 0,
-      "pattern_summary": "Targeted for opening in 31 days.",
+      "pattern_summary": "Targeted for opening in 30 days.",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false
@@ -4815,7 +4903,7 @@
     "the-sound": {
       "estimate_years": 0.3,
       "estimate_label": "~3 months",
-      "days_out": 93,
+      "days_out": 92,
       "delivery_date": "2026-09-15",
       "source": "known_date",
       "precision": "month",
@@ -4832,7 +4920,7 @@
     "pbkc-redevelopment": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 931,
+      "days_out": 930,
       "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
@@ -4849,7 +4937,7 @@
     "saks-fifth-redevelopment": {
       "estimate_years": 1.5,
       "estimate_label": "~1.5 years",
-      "days_out": 565,
+      "days_out": 564,
       "delivery_date": "2027-12-31",
       "source": "known_date",
       "precision": "year",
@@ -4866,7 +4954,7 @@
     "breakers-employee-housing-campus": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 931,
+      "days_out": 930,
       "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
@@ -4883,7 +4971,7 @@
     "the-modern": {
       "estimate_years": 1.5,
       "estimate_label": "~1.5 years",
-      "days_out": 565,
+      "days_out": 564,
       "delivery_date": "2027-12-31",
       "source": "known_date",
       "precision": "year",
@@ -4898,9 +4986,9 @@
       "delivery_speculative": true
     },
     "gardens-vista": {
-      "estimate_years": 0.8,
+      "estimate_years": 0.7,
       "estimate_label": "~9 months",
-      "days_out": 274,
+      "days_out": 273,
       "delivery_date": "2027-03-15",
       "source": "known_date",
       "precision": "month",
@@ -4917,7 +5005,7 @@
     "nora-apartments": {
       "estimate_years": 3.5,
       "estimate_label": "~3.5 years",
-      "days_out": 1296,
+      "days_out": 1295,
       "delivery_date": "2029-12-31",
       "source": "known_date",
       "precision": "year",
@@ -4934,7 +5022,7 @@
     "the-nora-hotel": {
       "estimate_years": 0.4,
       "estimate_label": "~5 months",
-      "days_out": 154,
+      "days_out": 153,
       "delivery_date": "2026-11-15",
       "source": "known_date",
       "precision": "month",
@@ -4951,7 +5039,7 @@
     "one-west-palm": {
       "estimate_years": 1.5,
       "estimate_label": "~1.5 years",
-      "days_out": 565,
+      "days_out": 564,
       "delivery_date": "2027-12-31",
       "source": "known_date",
       "precision": "year",
@@ -4968,7 +5056,7 @@
     "the-estates-at-nomar": {
       "estimate_years": 0.5,
       "estimate_label": "~7 months",
-      "days_out": 200,
+      "days_out": 199,
       "delivery_date": "2026-12-31",
       "source": "known_date",
       "precision": "year",
@@ -4985,7 +5073,7 @@
     "3rd-3rd": {
       "estimate_years": 0.5,
       "estimate_label": "~6 months",
-      "days_out": 184,
+      "days_out": 183,
       "delivery_date": "2026-12-15",
       "source": "known_date",
       "precision": "month",
@@ -5081,7 +5169,7 @@
     "miami-signature-bridge": {
       "estimate_years": 3.5,
       "estimate_label": "~3.5 years",
-      "days_out": 1296,
+      "days_out": 1295,
       "delivery_date": "2029-12-31",
       "source": "known_date",
       "precision": "year",
@@ -5098,7 +5186,7 @@
     "rivani-miami-beach": {
       "estimate_years": 0.3,
       "estimate_label": "~3 months",
-      "days_out": 93,
+      "days_out": 92,
       "delivery_date": "2026-09-15",
       "source": "known_date",
       "precision": "month",
@@ -5115,7 +5203,7 @@
     "santander-bank": {
       "estimate_years": 3.5,
       "estimate_label": "~3.5 years",
-      "days_out": 1296,
+      "days_out": 1295,
       "delivery_date": "2029-12-31",
       "source": "known_date",
       "precision": "year",
@@ -5130,9 +5218,9 @@
       "delivery_speculative": false
     },
     "tampa-bay-rays-stadium": {
-      "estimate_years": 3.0,
-      "estimate_label": "~3 years",
-      "days_out": 1005,
+      "estimate_years": 2.5,
+      "estimate_label": "~2.5 years",
+      "days_out": 1004,
       "delivery_date": "2029-03-15",
       "source": "known_date",
       "precision": "month",
@@ -5141,7 +5229,7 @@
       "metro": "Tampa Bay",
       "comparables": [],
       "comparable_count": 0,
-      "pattern_summary": "TMW estimates an opening in ~3 years based on project type and current stage.",
+      "pattern_summary": "TMW estimates an opening in ~2.5 years based on project type and current stage.",
       "dates_speculative": true,
       "start_speculative": true,
       "delivery_speculative": true
@@ -5149,7 +5237,7 @@
     "roche-bobois-st-pete-tower": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 931,
+      "days_out": 930,
       "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
@@ -5166,7 +5254,7 @@
     "mira-mar-residences": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 931,
+      "days_out": 930,
       "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
@@ -5183,7 +5271,7 @@
     "rolex-hq": {
       "estimate_years": 0.4,
       "estimate_label": "~5 months",
-      "days_out": 154,
+      "days_out": 153,
       "delivery_date": "2026-11-15",
       "source": "known_date",
       "precision": "month",
@@ -5200,7 +5288,7 @@
     "343-madison-ave": {
       "estimate_years": 3.5,
       "estimate_label": "~3.5 years",
-      "days_out": 1296,
+      "days_out": 1295,
       "delivery_date": "2029-12-31",
       "source": "known_date",
       "precision": "year",
@@ -5217,7 +5305,7 @@
     "candyroot-lodge": {
       "estimate_years": 1.5,
       "estimate_label": "~1.5 years",
-      "days_out": 565,
+      "days_out": 564,
       "delivery_date": "2027-12-31",
       "source": "known_date",
       "precision": "year",
@@ -5234,7 +5322,7 @@
     "e11even-club-hotel-residences": {
       "estimate_years": 0.5,
       "estimate_label": "~6 months",
-      "days_out": 184,
+      "days_out": 183,
       "delivery_date": "2026-12-15",
       "source": "known_date",
       "precision": "month",
@@ -5251,7 +5339,7 @@
     "nokosi-golf-club": {
       "estimate_years": 0.5,
       "estimate_label": "~7 months",
-      "days_out": 200,
+      "days_out": 199,
       "delivery_date": "2026-12-31",
       "source": "known_date",
       "precision": "year",
@@ -5322,7 +5410,7 @@
     "old-shores": {
       "estimate_years": 1.5,
       "estimate_label": "~1.5 years",
-      "days_out": 565,
+      "days_out": 564,
       "delivery_date": "2027-12-31",
       "source": "known_date",
       "precision": "year",
@@ -5339,7 +5427,7 @@
     "malabar-residences": {
       "estimate_years": 0.2,
       "estimate_label": "~2 months",
-      "days_out": 62,
+      "days_out": 61,
       "delivery_date": "2026-08-15",
       "source": "known_date",
       "precision": "month",
@@ -5356,7 +5444,7 @@
     "175-third-street": {
       "estimate_years": 0.5,
       "estimate_label": "~7 months",
-      "days_out": 200,
+      "days_out": 199,
       "delivery_date": "2026-12-31",
       "source": "known_date",
       "precision": "year",
@@ -5373,7 +5461,7 @@
     "70-hudson-yards": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 931,
+      "days_out": 930,
       "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
@@ -5390,7 +5478,7 @@
     "24-19-jackson-avenue": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 931,
+      "days_out": 930,
       "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
@@ -5407,7 +5495,7 @@
     "coral-mountain-desert-club": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 931,
+      "days_out": 930,
       "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
@@ -5424,7 +5512,7 @@
     "marcella-club": {
       "estimate_years": 0.5,
       "estimate_label": "~7 months",
-      "days_out": 200,
+      "days_out": 199,
       "delivery_date": "2026-12-31",
       "source": "known_date",
       "precision": "year",
@@ -5459,7 +5547,7 @@
     "the-ritz-carlton-residences-sarasota-bay": {
       "estimate_years": 0.5,
       "estimate_label": "~6 months",
-      "days_out": 184,
+      "days_out": 183,
       "delivery_date": "2026-12-15",
       "source": "known_date",
       "precision": "month",
@@ -5659,7 +5747,7 @@
     "district-at-northwood": {
       "estimate_years": 0.5,
       "estimate_label": "~6 months",
-      "days_out": 184,
+      "days_out": 183,
       "delivery_date": "2026-12-15",
       "source": "known_date",
       "precision": "month",
@@ -5676,7 +5764,7 @@
     "gaia-residences": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 931,
+      "days_out": 930,
       "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
@@ -5691,9 +5779,9 @@
       "delivery_speculative": true
     },
     "cassia-residences": {
-      "estimate_years": 0.8,
+      "estimate_years": 0.7,
       "estimate_label": "~9 months",
-      "days_out": 274,
+      "days_out": 273,
       "delivery_date": "2027-03-15",
       "source": "known_date",
       "precision": "month",
@@ -5709,8 +5797,8 @@
     },
     "four-seasons-hotel-and-residences-jacksonville": {
       "estimate_years": 1.0,
-      "estimate_label": "~1 years",
-      "days_out": 366,
+      "estimate_label": "~12 months",
+      "days_out": 365,
       "delivery_date": "2027-06-15",
       "source": "known_date",
       "precision": "month",
@@ -5719,7 +5807,7 @@
       "metro": "Northeast Florida",
       "comparables": [],
       "comparable_count": 0,
-      "pattern_summary": "Targeted for opening in ~1 years.",
+      "pattern_summary": "Targeted for opening in ~12 months.",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false
@@ -5727,7 +5815,7 @@
     "jacksonville-jaguars-stadium": {
       "estimate_years": 2.0,
       "estimate_label": "~2 years",
-      "days_out": 793,
+      "days_out": 792,
       "delivery_date": "2028-08-15",
       "source": "known_date",
       "precision": "month",
@@ -5814,7 +5902,7 @@
     "black-desert-resort-expansion": {
       "estimate_years": 0.5,
       "estimate_label": "~7 months",
-      "days_out": 200,
+      "days_out": 199,
       "delivery_date": "2026-12-31",
       "source": "known_date",
       "precision": "year",
@@ -5831,7 +5919,7 @@
     "the-waterfront-daniel-island": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 931,
+      "days_out": 930,
       "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
@@ -5866,7 +5954,7 @@
     "finale": {
       "estimate_years": 3.5,
       "estimate_label": "~3.5 years",
-      "days_out": 1296,
+      "days_out": 1295,
       "delivery_date": "2029-12-31",
       "source": "known_date",
       "precision": "year",
@@ -5883,7 +5971,7 @@
     "the-ritz-carlton-residences-houston": {
       "estimate_years": 3.5,
       "estimate_label": "~3.5 years",
-      "days_out": 1296,
+      "days_out": 1295,
       "delivery_date": "2029-12-31",
       "source": "known_date",
       "precision": "year",
@@ -5918,7 +6006,7 @@
     "waldorf-astoria-texas-hill-country": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 931,
+      "days_out": 930,
       "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
@@ -5935,7 +6023,7 @@
     "amansanu": {
       "estimate_years": 1.5,
       "estimate_label": "~1.5 years",
-      "days_out": 565,
+      "days_out": 564,
       "delivery_date": "2027-12-31",
       "source": "known_date",
       "precision": "year",
@@ -6023,7 +6111,7 @@
     "oracle-campus": {
       "estimate_years": 4.5,
       "estimate_label": "~4.5 years",
-      "days_out": 1676,
+      "days_out": 1675,
       "delivery_date": "2031-01-15",
       "source": "known_date",
       "precision": "month",
@@ -6040,7 +6128,7 @@
     "oracle-pedestrian-bridge": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 931,
+      "days_out": 930,
       "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
@@ -6075,7 +6163,7 @@
     "one-twenty-brickell-signature-residences": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 931,
+      "days_out": 930,
       "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
@@ -6153,7 +6241,7 @@
     "trojena": {
       "estimate_years": 3.5,
       "estimate_label": "~3.5 years",
-      "days_out": 1296,
+      "days_out": 1295,
       "delivery_date": "2029-12-31",
       "source": "known_date",
       "precision": "year",
@@ -6170,7 +6258,7 @@
     "king-salman-park": {
       "estimate_years": 1.5,
       "estimate_label": "~1.5 years",
-      "days_out": 565,
+      "days_out": 564,
       "delivery_date": "2027-12-31",
       "source": "known_date",
       "precision": "year",
@@ -6187,7 +6275,7 @@
     "jeddah-tower": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 931,
+      "days_out": 930,
       "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
@@ -6248,7 +6336,7 @@
     "dubai-urban-tech-district": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 931,
+      "days_out": 930,
       "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
@@ -6265,7 +6353,7 @@
     "the-avenues": {
       "estimate_years": 0.5,
       "estimate_label": "~7 months",
-      "days_out": 200,
+      "days_out": 199,
       "delivery_date": "2026-12-31",
       "source": "known_date",
       "precision": "year",
@@ -6343,7 +6431,7 @@
     "sofi-stadium-district": {
       "estimate_years": 0.5,
       "estimate_label": "~7 months",
-      "days_out": 200,
+      "days_out": 199,
       "delivery_date": "2026-12-31",
       "source": "known_date",
       "precision": "year",
@@ -6360,7 +6448,7 @@
     "shibuya-upper-west-project": {
       "estimate_years": 3.5,
       "estimate_label": "~3.5 years",
-      "days_out": 1296,
+      "days_out": 1295,
       "delivery_date": "2029-12-31",
       "source": "known_date",
       "precision": "year",
@@ -6411,9 +6499,9 @@
       "delivery_speculative": false
     },
     "aloha-stadium": {
-      "estimate_years": 3.0,
-      "estimate_label": "~3 years",
-      "days_out": 1005,
+      "estimate_years": 2.5,
+      "estimate_label": "~2.5 years",
+      "days_out": 1004,
       "delivery_date": "2029-03-15",
       "source": "known_date",
       "precision": "month",
@@ -6422,7 +6510,7 @@
       "metro": "Other",
       "comparables": [],
       "comparable_count": 0,
-      "pattern_summary": "Targeted for opening in ~3 years.",
+      "pattern_summary": "Targeted for opening in ~2.5 years.",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false
@@ -6430,7 +6518,7 @@
     "hale-hkala": {
       "estimate_years": 0.4,
       "estimate_label": "~5 months",
-      "days_out": 154,
+      "days_out": 153,
       "delivery_date": "2026-11-15",
       "source": "known_date",
       "precision": "month",
@@ -6447,7 +6535,7 @@
     "kauanoe-o-kloa-resort-condominiums": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 931,
+      "days_out": 930,
       "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
@@ -6464,7 +6552,7 @@
     "kimpton-coco-palms": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 931,
+      "days_out": 930,
       "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
@@ -6481,7 +6569,7 @@
     "aman-dubai": {
       "estimate_years": 1.5,
       "estimate_label": "~1.5 years",
-      "days_out": 565,
+      "days_out": 564,
       "delivery_date": "2027-12-31",
       "source": "known_date",
       "precision": "year",
@@ -6498,7 +6586,7 @@
     "litib-bay-club": {
       "estimate_years": 0.5,
       "estimate_label": "~7 months",
-      "days_out": 200,
+      "days_out": 199,
       "delivery_date": "2026-12-31",
       "source": "known_date",
       "precision": "year",
@@ -6515,7 +6603,7 @@
     "bentley-residences-miami": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 931,
+      "days_out": 930,
       "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
@@ -6646,7 +6734,7 @@
     "twenty-sixth-2nd-wynwood-residences": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 931,
+      "days_out": 930,
       "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
@@ -6663,7 +6751,7 @@
     "the-setai-st-maarten": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 931,
+      "days_out": 930,
       "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
@@ -6680,7 +6768,7 @@
     "rb-sports-center": {
       "estimate_years": 1.5,
       "estimate_label": "~1.5 years",
-      "days_out": 565,
+      "days_out": 564,
       "delivery_date": "2027-12-31",
       "source": "known_date",
       "precision": "year",
@@ -6776,7 +6864,7 @@
     "duos-wynwood": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 931,
+      "days_out": 930,
       "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
@@ -6811,7 +6899,7 @@
     "huntington-bank-field": {
       "estimate_years": 3.5,
       "estimate_label": "~3.5 years",
-      "days_out": 1296,
+      "days_out": 1295,
       "delivery_date": "2029-12-31",
       "source": "known_date",
       "precision": "year",
@@ -6828,7 +6916,7 @@
     "athletics-las-vegas-ballpark": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 931,
+      "days_out": 930,
       "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
@@ -6845,7 +6933,7 @@
     "one-beverly-hills": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 931,
+      "days_out": 930,
       "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
@@ -6880,7 +6968,7 @@
     "sharaan-resort-by-jean-nouvel": {
       "estimate_years": 0.5,
       "estimate_label": "~7 months",
-      "days_out": 200,
+      "days_out": 199,
       "delivery_date": "2026-12-31",
       "source": "known_date",
       "precision": "year",
@@ -6897,7 +6985,7 @@
     "wynn-al-marjan-island": {
       "estimate_years": 1.5,
       "estimate_label": "~1.5 years",
-      "days_out": 565,
+      "days_out": 564,
       "delivery_date": "2027-12-31",
       "source": "known_date",
       "precision": "year",
@@ -6914,7 +7002,7 @@
     "burj-binghatti-jacob-co-residences": {
       "estimate_years": 0.5,
       "estimate_label": "~7 months",
-      "days_out": 200,
+      "days_out": 199,
       "delivery_date": "2026-12-31",
       "source": "known_date",
       "precision": "year",
@@ -6931,7 +7019,7 @@
     "tour-triangle": {
       "estimate_years": 1.5,
       "estimate_label": "~1.5 years",
-      "days_out": 565,
+      "days_out": 564,
       "delivery_date": "2027-12-31",
       "source": "known_date",
       "precision": "year",
@@ -6948,7 +7036,7 @@
     "bear-lakes-country-club-expansion": {
       "estimate_years": 0.5,
       "estimate_label": "~7 months",
-      "days_out": 200,
+      "days_out": 199,
       "delivery_date": "2026-12-31",
       "source": "known_date",
       "precision": "year",
@@ -6965,7 +7053,7 @@
     "anantara-turks-caicos": {
       "estimate_years": 3.5,
       "estimate_label": "~3.5 years",
-      "days_out": 1296,
+      "days_out": 1295,
       "delivery_date": "2029-12-31",
       "source": "known_date",
       "precision": "year",
@@ -6982,7 +7070,7 @@
     "skywaters-residences": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 931,
+      "days_out": 930,
       "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
@@ -6999,7 +7087,7 @@
     "torch-tower": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 931,
+      "days_out": 930,
       "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
@@ -7034,7 +7122,7 @@
     "new-highmark-stadium": {
       "estimate_years": 0.3,
       "estimate_label": "~3 months",
-      "days_out": 93,
+      "days_out": 92,
       "delivery_date": "2026-09-15",
       "source": "known_date",
       "precision": "month",
@@ -7051,7 +7139,7 @@
     "aman-niseko": {
       "estimate_years": 1.5,
       "estimate_label": "~1.5 years",
-      "days_out": 565,
+      "days_out": 564,
       "delivery_date": "2027-12-31",
       "source": "known_date",
       "precision": "year",
@@ -7068,7 +7156,7 @@
     "rosewood-seoul": {
       "estimate_years": 1.5,
       "estimate_label": "~1.5 years",
-      "days_out": 565,
+      "days_out": 564,
       "delivery_date": "2027-12-31",
       "source": "known_date",
       "precision": "year",
@@ -7085,7 +7173,7 @@
     "amancaya": {
       "estimate_years": 3.5,
       "estimate_label": "~3.5 years",
-      "days_out": 1296,
+      "days_out": 1295,
       "delivery_date": "2029-12-31",
       "source": "known_date",
       "precision": "year",
@@ -7102,7 +7190,7 @@
     "six-senses-residences-belize": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 931,
+      "days_out": 930,
       "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
@@ -7180,7 +7268,7 @@
     "waldorf-astoria-deer-valley-resort-and-residences": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 931,
+      "days_out": 930,
       "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
@@ -7197,7 +7285,7 @@
     "1-hotel-austin": {
       "estimate_years": 0.2,
       "estimate_label": "~3 months",
-      "days_out": 78,
+      "days_out": 77,
       "delivery_date": "2026-08-31",
       "source": "known_date",
       "precision": "day",
@@ -7214,7 +7302,7 @@
     "one-bloor-west": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 931,
+      "days_out": 930,
       "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
@@ -7231,7 +7319,7 @@
     "the-standard-lisbon": {
       "estimate_years": 0.5,
       "estimate_label": "~7 months",
-      "days_out": 200,
+      "days_out": 199,
       "delivery_date": "2026-12-31",
       "source": "known_date",
       "precision": "year",
@@ -7248,7 +7336,7 @@
     "guggenheim-abu-dhabi": {
       "estimate_years": 0.5,
       "estimate_label": "~6 months",
-      "days_out": 184,
+      "days_out": 183,
       "delivery_date": "2026-12-15",
       "source": "known_date",
       "precision": "month",
@@ -7337,7 +7425,7 @@
     "cabot-revelstoke": {
       "estimate_years": 0.8,
       "estimate_label": "~10 months",
-      "days_out": 305,
+      "days_out": 304,
       "delivery_date": "2027-04-15",
       "source": "known_date",
       "precision": "month",
@@ -7354,7 +7442,7 @@
     "eastpoint": {
       "estimate_years": 3.5,
       "estimate_label": "~3.5 years",
-      "days_out": 1296,
+      "days_out": 1295,
       "delivery_date": "2029-12-31",
       "source": "known_date",
       "precision": "year",
@@ -7364,23 +7452,6 @@
       "comparables": [],
       "comparable_count": 0,
       "pattern_summary": "Targeted for opening in ~3.5 years.",
-      "dates_speculative": false,
-      "start_speculative": false,
-      "delivery_speculative": false
-    },
-    "520-fifth-avenue": {
-      "estimate_years": 0.0,
-      "estimate_label": "1 days",
-      "days_out": 1,
-      "delivery_date": "2026-06-15",
-      "source": "known_date",
-      "precision": "month",
-      "confidence": "high",
-      "project_type": "Mixed-Use",
-      "metro": "New York",
-      "comparables": [],
-      "comparable_count": 0,
-      "pattern_summary": "Targeted for opening in 1 days.",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false
@@ -7406,7 +7477,7 @@
     "six-senses-napa-valley": {
       "estimate_years": 0.5,
       "estimate_label": "~7 months",
-      "days_out": 200,
+      "days_out": 199,
       "delivery_date": "2026-12-31",
       "source": "known_date",
       "precision": "year",
@@ -7476,7 +7547,7 @@
     "lucas-museum-of-narrative-art": {
       "estimate_years": 0.3,
       "estimate_label": "~3 months",
-      "days_out": 100,
+      "days_out": 99,
       "delivery_date": "2026-09-22",
       "source": "known_date",
       "precision": "day",
@@ -7493,7 +7564,7 @@
     "hudsons-detroit": {
       "estimate_years": 1.5,
       "estimate_label": "~1.5 years",
-      "days_out": 565,
+      "days_out": 564,
       "delivery_date": "2027-12-31",
       "source": "known_date",
       "precision": "year",
@@ -7589,7 +7660,7 @@
     "suzhou-museum-of-contemporary-art": {
       "estimate_years": 0.5,
       "estimate_label": "~7 months",
-      "days_out": 200,
+      "days_out": 199,
       "delivery_date": "2026-12-31",
       "source": "known_date",
       "precision": "year",
@@ -7642,7 +7713,7 @@
     "kawonu-golf-club": {
       "estimate_years": 1.5,
       "estimate_label": "~1.5 years",
-      "days_out": 565,
+      "days_out": 564,
       "delivery_date": "2027-12-31",
       "source": "known_date",
       "precision": "year",
@@ -7766,7 +7837,7 @@
     "shanghai-grand-opera-house": {
       "estimate_years": 0.5,
       "estimate_label": "~7 months",
-      "days_out": 200,
+      "days_out": 199,
       "delivery_date": "2026-12-31",
       "source": "known_date",
       "precision": "year",
@@ -7783,7 +7854,7 @@
     "the-whale": {
       "estimate_years": 1.0,
       "estimate_label": "~12 months",
-      "days_out": 355,
+      "days_out": 354,
       "delivery_date": "2027-06-04",
       "source": "known_date",
       "precision": "day",
@@ -7800,7 +7871,7 @@
     "noli": {
       "estimate_years": 1.5,
       "estimate_label": "~1.5 years",
-      "days_out": 565,
+      "days_out": 564,
       "delivery_date": "2027-12-31",
       "source": "known_date",
       "precision": "year",
@@ -7924,7 +7995,7 @@
     "the-willow": {
       "estimate_years": 0.5,
       "estimate_label": "~7 months",
-      "days_out": 200,
+      "days_out": 199,
       "delivery_date": "2026-12-31",
       "source": "known_date",
       "precision": "year",
@@ -7941,7 +8012,7 @@
     "house-by-shigeru-ban": {
       "estimate_years": 3.5,
       "estimate_label": "~3.5 years",
-      "days_out": 1296,
+      "days_out": 1295,
       "delivery_date": "2029-12-31",
       "source": "known_date",
       "precision": "year",
@@ -7958,7 +8029,7 @@
     "eturna-beachside-residences": {
       "estimate_years": 0.5,
       "estimate_label": "~7 months",
-      "days_out": 200,
+      "days_out": 199,
       "delivery_date": "2026-12-31",
       "source": "known_date",
       "precision": "year",
@@ -7975,7 +8046,7 @@
     "vista-harbor-residences": {
       "estimate_years": 3.5,
       "estimate_label": "~3.5 years",
-      "days_out": 1296,
+      "days_out": 1295,
       "delivery_date": "2029-12-31",
       "source": "known_date",
       "precision": "year",
@@ -8053,7 +8124,7 @@
     "mila-residences-bay-harbor": {
       "estimate_years": 1.5,
       "estimate_label": "~1.5 years",
-      "days_out": 565,
+      "days_out": 564,
       "delivery_date": "2027-12-31",
       "source": "known_date",
       "precision": "year",
@@ -8070,7 +8141,7 @@
     "alma-residences-bay-harbor": {
       "estimate_years": 1.5,
       "estimate_label": "~1.5 years",
-      "days_out": 565,
+      "days_out": 564,
       "delivery_date": "2027-12-31",
       "source": "known_date",
       "precision": "year",
@@ -8087,7 +8158,7 @@
     "the-william-residences-north-miami-beach": {
       "estimate_years": 3.5,
       "estimate_label": "~3.5 years",
-      "days_out": 1296,
+      "days_out": 1295,
       "delivery_date": "2029-12-31",
       "source": "known_date",
       "precision": "year",
@@ -8104,7 +8175,7 @@
     "72-carlyle-miami-beach": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 931,
+      "days_out": 930,
       "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
@@ -8139,7 +8210,7 @@
     "botanic-residences-west-brickell": {
       "estimate_years": 1.5,
       "estimate_label": "~1.5 years",
-      "days_out": 565,
+      "days_out": 564,
       "delivery_date": "2027-12-31",
       "source": "known_date",
       "precision": "year",
@@ -8156,7 +8227,7 @@
     "canal-by-iq-concept-aventura": {
       "estimate_years": 0.5,
       "estimate_label": "~7 months",
-      "days_out": 200,
+      "days_out": 199,
       "delivery_date": "2026-12-31",
       "source": "known_date",
       "precision": "year",
@@ -8173,7 +8244,7 @@
     "7-park-residences-hallandale": {
       "estimate_years": 1.5,
       "estimate_label": "~1.5 years",
-      "days_out": 565,
+      "days_out": 564,
       "delivery_date": "2027-12-31",
       "source": "known_date",
       "precision": "year",
@@ -8190,7 +8261,7 @@
     "roble-one-coconut-grove": {
       "estimate_years": 0.5,
       "estimate_label": "~7 months",
-      "days_out": 200,
+      "days_out": 199,
       "delivery_date": "2026-12-31",
       "source": "known_date",
       "precision": "year",
@@ -8207,7 +8278,7 @@
     "255-east-77th-street": {
       "estimate_years": 0.5,
       "estimate_label": "~7 months",
-      "days_out": 200,
+      "days_out": 199,
       "delivery_date": "2026-12-31",
       "source": "known_date",
       "precision": "year",
@@ -8242,7 +8313,7 @@
     "nix-delray-beach": {
       "estimate_years": 0.5,
       "estimate_label": "~7 months",
-      "days_out": 200,
+      "days_out": 199,
       "delivery_date": "2026-12-31",
       "source": "known_date",
       "precision": "year",
@@ -8259,7 +8330,7 @@
     "four-seasons-hotel-sevilla": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 931,
+      "days_out": 930,
       "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
@@ -8347,7 +8418,7 @@
     "the-ritz-carlton-residences-naples": {
       "estimate_years": 0.5,
       "estimate_label": "~7 months",
-      "days_out": 200,
+      "days_out": 199,
       "delivery_date": "2026-12-31",
       "source": "known_date",
       "precision": "year",
@@ -8364,7 +8435,7 @@
     "one-lady-bird-lake": {
       "estimate_years": 1.5,
       "estimate_label": "~1.5 years",
-      "days_out": 611,
+      "days_out": 610,
       "delivery_date": "2028-02-15",
       "source": "known_date",
       "precision": "month",
@@ -8424,7 +8495,7 @@
     "port-32-palm-beach-gardens": {
       "estimate_years": 0.5,
       "estimate_label": "~6 months",
-      "days_out": 184,
+      "days_out": 183,
       "delivery_date": "2026-12-15",
       "source": "known_date",
       "precision": "month",
@@ -8441,7 +8512,7 @@
     "sweetens-cove-golf-club": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 931,
+      "days_out": 930,
       "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
@@ -8458,7 +8529,7 @@
     "bayside-north": {
       "estimate_years": 1.5,
       "estimate_label": "~1.5 years",
-      "days_out": 565,
+      "days_out": 564,
       "delivery_date": "2027-12-31",
       "source": "known_date",
       "precision": "year",
@@ -8475,7 +8546,7 @@
     "the-residences-at-the-st-regis-los-cabos": {
       "estimate_years": 0.5,
       "estimate_label": "~7 months",
-      "days_out": 200,
+      "days_out": 199,
       "delivery_date": "2026-12-31",
       "source": "known_date",
       "precision": "year",
@@ -8553,7 +8624,7 @@
     "hyatt-centric-grand-cayman": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 931,
+      "days_out": 930,
       "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
@@ -8570,7 +8641,7 @@
     "1000-boulevard-of-the-arts": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 931,
+      "days_out": 930,
       "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
@@ -8587,7 +8658,7 @@
     "grand-hyatt-grand-cayman": {
       "estimate_years": 0.5,
       "estimate_label": "~7 months",
-      "days_out": 200,
+      "days_out": 199,
       "delivery_date": "2026-12-31",
       "source": "known_date",
       "precision": "year",
@@ -8604,7 +8675,7 @@
     "the-wolseley-hotel-new-york": {
       "estimate_years": 1.5,
       "estimate_label": "~1.5 years",
-      "days_out": 565,
+      "days_out": 564,
       "delivery_date": "2027-12-31",
       "source": "known_date",
       "precision": "year",
@@ -8716,12 +8787,12 @@
   "stats": {
     "high": 1,
     "medium": 18,
-    "low": 29,
-    "known_date": 297,
+    "low": 31,
+    "known_date": 294,
     "completed": 57,
-    "skipped": 49,
+    "skipped": 50,
     "no_type": 0,
-    "firm_boosted": 33,
+    "firm_boosted": 35,
     "speculative_softened": 74,
     "mixed_use_adjusted": 1
   }
