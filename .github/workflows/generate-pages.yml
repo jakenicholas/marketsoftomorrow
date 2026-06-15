@@ -118,6 +118,16 @@ jobs:
         run: python3 generate_firm_pages.py
         continue-on-error: true
 
+      # SEO programmatic market pages: emit /markets/<city>-<type>/,
+      # /markets/<city>/, /markets/by-type/<type>/, and the /markets/ hub.
+      # Featured projects (Featured == "Featured" in the sheet) sort to the
+      # top of every grid. Pages auto-rebuild whenever projects-flat.json
+      # changes, so they always reflect the live map database. Non-blocking
+      # so a generator hiccup never holds up the project pages shipping.
+      - name: Generate SEO market pages
+        run: python3 generate_market_pages.py
+        continue-on-error: true
+
       # Pre-render one static HTML page per journal article
       # (/journal/post/<slug>/index.html) with baked SEO <head> + body so
       # social scrapers and non-JS crawlers see real content. Pulls bodies
@@ -162,7 +172,7 @@ jobs:
           # retired. Keep this list matched to the map's fetch()es.
           mkdir -p journal/map
           cp pulse.json articles.json atlas.json intel.json projects-flat.json firms-flat.json cityStateMap.json sitemap.xml dossiers.json journal/map/ 2>/dev/null || true
-          git add journal/post/ journal/firm/ journal/projects/ journal/sitemap.xml journal/robots.txt sitemap.xml robots.txt pulse.json articles.json atlas.json intel.json projects-flat.json firms-flat.json cityStateMap.json sitemap.xml dossiers.json journal/map/ .pulse-snapshot.json 2>/dev/null || true
+          git add journal/post/ journal/firm/ journal/projects/ journal/markets/ journal/sitemap.xml journal/robots.txt sitemap.xml robots.txt pulse.json articles.json atlas.json intel.json projects-flat.json firms-flat.json cityStateMap.json sitemap.xml dossiers.json journal/map/ .pulse-snapshot.json 2>/dev/null || true
           if git diff --staged --quiet; then
             echo "changed=false" >> $GITHUB_OUTPUT
             echo "No changes detected."

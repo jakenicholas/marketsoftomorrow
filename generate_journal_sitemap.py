@@ -8,7 +8,7 @@ deploy (publish dir = journal/).
 
   python3 generate_journal_sitemap.py
 """
-import json, subprocess, datetime, html
+import json, os, subprocess, datetime, html
 
 BASE   = "https://www.oftmw.com"
 WORKER = "https://tmw.jake-ab7.workers.dev"
@@ -51,12 +51,27 @@ def main():
         # back to first-publish if updated_at is somehow missing.
         lastmod = iso(it.get("updated_at") or it.get("published_at"))
         out.append(url_tag(f"{BASE}/post/{slug}/", lastmod, "0.7", "monthly"))
+
+    # SEO programmatic market pages: every URL written by
+    # generate_market_pages.py is listed in journal/markets/.urls.json so we
+    # don't have to re-scan the filesystem here. /markets/ itself gets a
+    # slightly higher priority than the leaves. All changefreq=weekly since
+    # the underlying project data updates hourly.
+    markets_count = 0
+    manifest_path = f"{OUT_DIR}/markets/.urls.json"
+    if os.path.exists(manifest_path):
+        with open(manifest_path, encoding="utf-8") as f:
+            mf = json.load(f)
+        for url_path in mf.get("urls", []):
+            prio = "0.7" if url_path == "/markets/" else "0.6"
+            out.append(url_tag(f"{BASE}{url_path}", today, prio, "weekly"))
+            markets_count += 1
     out.append('</urlset>\n')
     with open(f"{OUT_DIR}/sitemap.xml", "w", encoding="utf-8") as f:
         f.write("\n".join(out))
     with open(f"{OUT_DIR}/robots.txt", "w", encoding="utf-8") as f:
         f.write("User-agent: *\nAllow: /\n\nSitemap: " + BASE + "/sitemap.xml\n")
-    print(f"journal/sitemap.xml: {len(posts)} articles + 5 core pages")
+    print(f"journal/sitemap.xml: {len(posts)} articles + 5 core pages + {markets_count} market pages")
 
 if __name__ == "__main__":
     main()
