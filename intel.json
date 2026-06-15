@@ -3563,9 +3563,9 @@
       "scale_used": false,
       "firm_signal": {
         "firm": "Arquitectonica",
-        "count": 13,
+        "count": 14,
         "median_years": 3.0,
-        "stddev_years": 1.79,
+        "stddev_years": 1.76,
         "role": "architect",
         "consistent": false,
         "blend_weight": 0.65
@@ -3602,7 +3602,7 @@
           "distance_mi": 115.9
         }
       ],
-      "pattern_summary": "Among 3 same-metro hotel projects in TMW's data, the median build time is 3 years (range 2.8–8.1). Adjusted to ~3 years for Arquitectonica's own track record (~3-year typical pace across 13 prior projects).",
+      "pattern_summary": "Among 3 same-metro hotel projects in TMW's data, the median build time is 3 years (range 2.8–8.1). Adjusted to ~3 years for Arquitectonica's own track record (~3-year typical pace across 14 prior projects).",
       "dates_speculative": true,
       "start_speculative": true,
       "delivery_speculative": true,
@@ -8843,13 +8843,30 @@
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false
+    },
+    "aria-reserve": {
+      "estimate_years": 0.5,
+      "estimate_label": "~7 months",
+      "days_out": 199,
+      "delivery_date": "2026-12-31",
+      "source": "known_date",
+      "precision": "year",
+      "confidence": "high",
+      "project_type": "Residences",
+      "metro": "South Florida",
+      "comparables": [],
+      "comparable_count": 0,
+      "pattern_summary": "Targeted for opening in ~7 months.",
+      "dates_speculative": false,
+      "start_speculative": false,
+      "delivery_speculative": false
     }
   },
   "stats": {
     "high": 1,
     "medium": 18,
     "low": 32,
-    "known_date": 295,
+    "known_date": 296,
     "completed": 57,
     "skipped": 50,
     "no_type": 0,
