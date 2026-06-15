@@ -992,6 +992,265 @@ def projects_for_merged_firm(entry, projects):
     return out
 
 
+# ─── /firm/ index hub ──────────────────────────────────────────────
+# Mirrors the /markets/ hub: hero + 3-input firm calculator
+# (Role × City × Category → filtered firm count) + browse-by-architect
+# + browse-by-developer rails. Auto-syncs hourly with projects-flat.json
+# so firm pages get added/removed from the hub when projects shift.
+
+FIRM_HUB_BROWSE_MIN = 3       # firms with ≥3 projects get a rel-card
+
+def build_firm_hub_summaries(merged, projects):
+    """For every firm with >0 referenced projects, compute the summary the
+    /firm/ hub needs:
+      { slug, name, role, count, cities, types }
+    role is 'architect' / 'developer' / 'both'. cities + types are
+    lowercase-slug sets so the client-side filter can intersect quickly."""
+    summaries = []
+    for slug, entry in merged.items():
+        firm_projects = projects_for_merged_firm(entry, projects)
+        if not firm_projects: continue
+        roles = entry.get('roles') or []
+        if   'architects' in roles and 'developers' in roles: role = 'both'
+        elif 'architects' in roles:                            role = 'architect'
+        else:                                                  role = 'developer'
+        city_set = sorted({(p.get('City') or '').strip() for p in firm_projects if (p.get('City') or '').strip()})
+        type_set = sorted({(p.get('PreferredType') or '').strip() for p in firm_projects if (p.get('PreferredType') or '').strip()})
+        summaries.append({
+            'slug':   slug,
+            'name':   entry.get('name') or slug,
+            'role':   role,
+            'count':  len(firm_projects),
+            'cities': city_set,
+            'types':  type_set,
+        })
+    return summaries
+
+def render_firm_hub(summaries, out_path):
+    """Generate journal/firm/index.html. summaries is the list from
+    build_firm_hub_summaries()."""
+    # Split into architect + developer leaderboards (dual-role firms appear
+    # in both). Sort by project count desc.
+    architects  = sorted([s for s in summaries if s['role'] in ('architect', 'both')], key=lambda x: -x['count'])
+    developers  = sorted([s for s in summaries if s['role'] in ('developer', 'both')], key=lambda x: -x['count'])
+    arch_show = [s for s in architects  if s['count'] >= FIRM_HUB_BROWSE_MIN][:30]
+    dev_show  = [s for s in developers  if s['count'] >= FIRM_HUB_BROWSE_MIN][:30]
+
+    # Calculator option lists — only cities / types with a firm working there.
+    city_set: set[str] = set()
+    type_set: set[str] = set()
+    for s in summaries:
+        for c in s['cities']: city_set.add(c)
+        for t in s['types']:  type_set.add(t)
+    city_opts = sorted(city_set)
+    type_opts = sorted(type_set)
+
+    city_options_html = ''.join(f'<option value="{e(c)}">{e(c)}</option>' for c in city_opts)
+    type_options_html = ''.join(f'<option value="{e(t)}">{e(t)}</option>' for t in type_opts)
+
+    arch_html = ''.join(
+        f'<a class="rel-card" href="{MARKET_ROOT_URL}/firm/{e(s["slug"])}/">'
+        f'<div class="city">{"Architect" if s["role"] != "both" else "Architect + Developer"}</div>'
+        f'<div class="name">{e(s["name"])}</div>'
+        f'<div class="count">{s["count"]} project{"s" if s["count"] != 1 else ""} →</div></a>'
+        for s in arch_show
+    ) or '<div style="opacity:.55;font-family:var(--mono);font-size:11px">No tracked architects yet.</div>'
+    dev_html = ''.join(
+        f'<a class="rel-card" href="{MARKET_ROOT_URL}/firm/{e(s["slug"])}/">'
+        f'<div class="city">{"Developer" if s["role"] != "both" else "Architect + Developer"}</div>'
+        f'<div class="name">{e(s["name"])}</div>'
+        f'<div class="count">{s["count"]} project{"s" if s["count"] != 1 else ""} →</div></a>'
+        for s in dev_show
+    ) or '<div style="opacity:.55;font-family:var(--mono);font-size:11px">No tracked developers yet.</div>'
+
+    # Serialize the firm table for the client-side calculator. Keep it small
+    # — slug, name, role, count, cities, types only. Each firm is ~150 bytes
+    # → ~120 KB for 800 firms, well under what the page can comfortably
+    # ship inline.
+    lookups_json = json.dumps([
+        {'slug': s['slug'], 'name': s['name'], 'role': s['role'], 'count': s['count'], 'cities': s['cities'], 'types': s['types']}
+        for s in summaries
+    ], ensure_ascii=False)
+
+    total_firms = len(summaries)
+    total_arch  = len([s for s in summaries if s['role'] in ('architect', 'both')])
+    total_dev   = len([s for s in summaries if s['role'] in ('developer', 'both')])
+    crumbs = [('TMW', '/'), ('Firms', None)]
+    crumbs_html = ' <span class="sep">/</span> '.join(
+        f'<a href="{e(link)}">{e(name)}</a>' if link else f'<b>{e(name)}</b>'
+        for name, link in crumbs
+    )
+
+    page = f"""<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>All Firms | {SITE_NAME}</title>
+  <meta name="description" content="Every architect and developer we track on the Map of Tomorrow — filter by role, city, or category to find the firm shaping your market. {total_firms} firms with active projects.">
+  <link rel="canonical" href="{MARKET_ROOT_URL}/firm/">
+  <meta name="robots" content="index, follow">
+  <link rel="icon" href="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_71f3cd2ef61049028b2daf4e2ff71d52~mv2.png" type="image/png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {{ --ink:#0d0d0d; --hair:rgba(255,255,255,.08); --white:#fff; --cream:#ECEAE5; --mute:#9AA39C; --mute-2:#C2C9C3; --purple:#A78BFA; --purple-bright:#C4B5FD; --gold:#FFD300;
+      --sans:'Inter',-apple-system,sans-serif; --serif:'Fraunces',Georgia,serif; --mono:'JetBrains Mono',ui-monospace,monospace; }}
+    *,*::before,*::after {{ box-sizing:border-box; margin:0; padding:0; }}
+    body {{ background:var(--ink); color:var(--cream); font-family:var(--sans); line-height:1.55; }}
+    body::before {{ content:""; position:fixed; inset:0; z-index:0; pointer-events:none;
+      background: radial-gradient(820px 540px at 76% -6%, rgba(167,139,250,.10), transparent 60%); }}
+    a {{ color:inherit; text-decoration:none; }}
+    .wrap {{ position:relative; z-index:1; max-width:1200px; margin:0 auto; padding:0 24px; }}
+    .crumbs {{ padding:22px 0 0; font-family:var(--mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--mute); }}
+    .crumbs .sep {{ opacity:.4; margin:0 8px; }}
+    .crumbs b {{ color:var(--purple-bright); }}
+    .hero {{ padding:30px 0 38px; border-bottom:1px solid var(--hair); }}
+    .hero h1 {{ font-family:var(--serif); font-size:clamp(40px,5.4vw,64px); line-height:1.04; font-weight:500; letter-spacing:-.022em; color:var(--white); max-width:20ch; }}
+    .hero .sub {{ font-family:var(--serif); font-style:italic; font-weight:300; font-size:20px; color:var(--mute-2); margin-top:18px; line-height:1.5; max-width:62ch; }}
+    .section {{ padding:46px 0; border-bottom:1px solid var(--hair); }}
+    .section h2 {{ font-family:var(--serif); font-size:28px; font-weight:500; letter-spacing:-.018em; color:var(--white); margin-bottom:22px; }}
+    .section-eyebrow {{ font-family:var(--mono); font-size:10.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--purple-bright); margin-bottom:8px; font-weight:600; }}
+    .related {{ display:grid; grid-template-columns:repeat(auto-fill, minmax(240px, 1fr)); gap:10px; }}
+    .rel-card {{ background:rgba(255,255,255,.02); border:1px solid var(--hair); border-radius:12px; padding:18px 20px; display:block; transition:border-color .15s, transform .15s; }}
+    .rel-card:hover {{ border-color:rgba(167,139,250,.4); transform:translateY(-2px); }}
+    .rel-card .city {{ font-family:var(--mono); font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--mute); }}
+    .rel-card .name {{ font-family:var(--serif); font-size:18px; font-weight:500; color:var(--white); margin-top:6px; line-height:1.2; }}
+    .rel-card .count {{ font-family:var(--mono); font-size:11px; color:var(--purple-bright); margin-top:8px; }}
+
+    /* Calculator — identical pattern to /markets/ */
+    .mc-box {{ background: linear-gradient(120deg, rgba(167,139,250,.10), rgba(255,211,0,.03)); border: 1px solid rgba(167,139,250,.30); border-radius: 18px; padding: 28px 30px; }}
+    .mc-row {{ display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 12px; align-items: end; }}
+    .mc-field label {{ display:block; font-family: var(--mono); font-size: 10px; letter-spacing:.14em; text-transform: uppercase; color: var(--purple-bright); margin-bottom: 8px; font-weight: 600; }}
+    .mc-field select, .mc-field input {{ width: 100%; background: rgba(0,0,0,.45); border: 1px solid rgba(167,139,250,.32); border-radius: 10px; padding: 14px 16px; font-family: var(--sans); font-size: 15px; color: var(--white); appearance: none; cursor: pointer; }}
+    .mc-field select:focus, .mc-field input:focus {{ outline: 0; border-color: var(--purple-bright); }}
+    .mc-go {{ font-family: var(--mono); font-size: 11px; letter-spacing:.12em; text-transform: uppercase; font-weight: 700; padding: 14px 22px; border-radius: 10px; background: var(--purple); color: #0a0a0a; border: 0; cursor: pointer; white-space: nowrap; }}
+    .mc-result {{ margin-top: 22px; padding: 22px 24px; background: rgba(0,0,0,.35); border: 1px solid var(--hair); border-radius: 12px; display: none; }}
+    .mc-result.show {{ display: block; }}
+    .mc-result .head {{ font-family: var(--mono); font-size: 10px; letter-spacing:.18em; text-transform: uppercase; color: var(--mute); margin-bottom: 8px; }}
+    .mc-result .big {{ font-family: var(--serif); font-size: 28px; line-height: 1.2; color: var(--white); letter-spacing:-.018em; font-weight: 500; }}
+    .mc-result .big b {{ color: var(--gold); }}
+    .mc-result .top-firms {{ display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; }}
+    .mc-result .top-firms a {{ display:inline-flex; align-items:center; gap:8px; padding: 9px 14px; border-radius: 999px; background: rgba(167,139,250,.10); border: 1px solid rgba(167,139,250,.32); color: var(--white); font-family: var(--sans); font-size: 13.5px; font-weight: 500; transition: background .15s, border-color .15s; }}
+    .mc-result .top-firms a:hover {{ background: rgba(167,139,250,.20); border-color: var(--purple-bright); }}
+    .mc-result .top-firms a .n {{ font-family: var(--mono); font-size: 11px; color: var(--purple-bright); }}
+    .mc-result .more {{ display: inline-block; margin-top: 14px; padding: 10px 16px; background: var(--gold); color: #0a0a0a; font-family: var(--mono); font-size: 11px; letter-spacing:.12em; text-transform: uppercase; font-weight: 700; border-radius: 10px; }}
+    @media (max-width: 720px) {{ .mc-row {{ grid-template-columns: 1fr; }} }}
+  </style>
+</head><body>
+  <div class="wrap">
+    <nav class="crumbs">{crumbs_html}</nav>
+    <section class="hero">
+      <h1>Every firm we track.</h1>
+      <p class="sub">{total_firms} firms with active projects on {SITE_NAME} — {total_arch} architects and {total_dev} developers, by project count. Filter below or browse the leaderboards.</p>
+    </section>
+
+    <section class="section">
+      <div class="section-eyebrow">Firm calculator</div>
+      <h2>Find the firm shaping your market.</h2>
+      <div class="mc-box">
+        <form id="fc-form" class="mc-row">
+          <div class="mc-field">
+            <label for="fc-role">Role</label>
+            <select id="fc-role">
+              <option value="">Any role</option>
+              <option value="architect">Architect</option>
+              <option value="developer">Developer</option>
+              <option value="both">Both (architect + developer)</option>
+            </select>
+          </div>
+          <div class="mc-field">
+            <label for="fc-city">Active in city</label>
+            <select id="fc-city">
+              <option value="">Any city</option>
+              {city_options_html}
+            </select>
+          </div>
+          <div class="mc-field">
+            <label for="fc-type">Specializing in</label>
+            <select id="fc-type">
+              <option value="">Any category</option>
+              {type_options_html}
+            </select>
+          </div>
+          <button type="submit" class="mc-go" id="fc-go">Show me →</button>
+        </form>
+        <div id="fc-result" class="mc-result" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Most active architects</h2>
+      <div class="related">{arch_html}</div>
+    </section>
+    <section class="section">
+      <h2>Most active developers</h2>
+      <div class="related">{dev_html}</div>
+    </section>
+  </div>
+
+  <script id="fc-data" type="application/json">{lookups_json}</script>
+  <script>
+    (function() {{
+      var firms = JSON.parse(document.getElementById('fc-data').textContent);
+      var $role = document.getElementById('fc-role');
+      var $city = document.getElementById('fc-city');
+      var $type = document.getElementById('fc-type');
+      var $result = document.getElementById('fc-result');
+      var $form = document.getElementById('fc-form');
+
+      function matches(f, role, city, type) {{
+        if (role) {{
+          if (role === 'both' && f.role !== 'both') return false;
+          if (role !== 'both' && f.role !== role && f.role !== 'both') return false;
+        }}
+        if (city && (f.cities || []).indexOf(city) < 0) return false;
+        if (type && (f.types  || []).indexOf(type) < 0) return false;
+        return true;
+      }}
+
+      function render() {{
+        var role = $role.value, city = $city.value, type = $type.value;
+        if (!role && !city && !type) {{ $result.classList.remove('show'); return; }}
+        var hits = firms.filter(function(f) {{ return matches(f, role, city, type); }})
+                        .sort(function(a, b) {{ return b.count - a.count; }});
+        var n = hits.length;
+        var roleLabel = role === 'architect' ? 'architect' : role === 'developer' ? 'developer' : role === 'both' ? 'architect+developer' : 'firm';
+        var cityLabel = city ? (' active in <b>' + escapeHtml(city) + '</b>') : '';
+        var typeLabel = type ? (' specializing in <b>' + escapeHtml(type) + '</b>') : '';
+        var s = n === 1 ? '' : 's';
+        if (n === 0) {{
+          $result.classList.add('show');
+          $result.innerHTML =
+            '<div class="head">No match</div>' +
+            '<div class="big">We don\\'t track any ' + roleLabel + s + cityLabel + typeLabel + ' yet.</div>';
+          return;
+        }}
+        var top = hits.slice(0, 5).map(function(f) {{
+          return '<a href="/firm/' + encodeURIComponent(f.slug) + '/">' + escapeHtml(f.name) + ' <span class="n">' + f.count + '</span></a>';
+        }}).join('');
+        $result.classList.add('show');
+        $result.innerHTML =
+          '<div class="head">Found</div>' +
+          '<div class="big"><b>' + n + '</b> ' + roleLabel + s + cityLabel + typeLabel + '.</div>' +
+          '<div class="top-firms">' + top + '</div>' +
+          (n > 5 ? '<a class="more" href="/map/?q=' + encodeURIComponent([city, type].filter(Boolean).join(' ')) + '">Browse all ' + n + ' on the map →</a>' : '');
+      }}
+
+      function escapeHtml(s) {{ return String(s).replace(/[&<>"']/g, function(c) {{ return {{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\\'':'&#39;'}}[c]; }}); }}
+
+      [$role, $city, $type].forEach(function(el) {{ el.addEventListener('change', render); }});
+      $form.addEventListener('submit', function(e) {{ e.preventDefault(); render(); }});
+    }})();
+  </script>
+  <script src="/_shared/journal-chrome.js" defer></script>
+  <script src="/_shared/journal-dock.js" defer></script>
+</body></html>
+"""
+    with open(out_path, 'w', encoding='utf-8') as f:
+        f.write(page)
+    return total_firms
+
+
 def main():
     print("Loading inputs...")
     projects = load_json(PROJECTS_FLAT)
@@ -1031,6 +1290,12 @@ def main():
 
     print(f"  ✓ Wrote {written} firm pages ({dual_written} unified dual-role)")
     print(f"Skipped {skipped} firms with zero referenced projects.")
+
+    # /firm/ index hub — leaderboards + calculator (mirrors /markets/ hub)
+    summaries = build_firm_hub_summaries(merged, projects)
+    hub_path  = os.path.join(OUTPUT_ROOT, 'index.html')
+    n_hub     = render_firm_hub(summaries, hub_path)
+    print(f"  ✓ Wrote /firm/ index hub with {n_hub} firms")
 
 
 if __name__ == '__main__':
