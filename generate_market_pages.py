@@ -1126,6 +1126,39 @@ def render_hub(city_type_pairs, city_pages, type_pages):
 #   - Image is sourced from the highest-priority project in that city:
 #     featured first, then under-construction, then anything with an image
 #   - Title alternates between a few naturals so the carousel reads varied
+# State abbrev → display label. International "states" (Bahamas, Saudi
+# Arabia, etc.) we just label by country directly in cityStateMap.
+_STATE_FULL = {
+    'FL':'Florida','NY':'New York','TN':'Tennessee','CA':'California','TX':'Texas',
+    'IL':'Illinois','GA':'Georgia','NC':'North Carolina','MA':'Massachusetts','UT':'Utah',
+    'WA':'Washington','CO':'Colorado','NV':'Nevada','HI':'Hawaii','PA':'Pennsylvania',
+    'AZ':'Arizona','OH':'Ohio','MI':'Michigan','MO':'Missouri','OR':'Oregon','VA':'Virginia',
+    'MD':'Maryland','SC':'South Carolina','MN':'Minnesota','WI':'Wisconsin','KY':'Kentucky',
+    'OK':'Oklahoma','LA':'Louisiana','AL':'Alabama','AR':'Arkansas','MS':'Mississippi',
+    'NJ':'New Jersey','CT':'Connecticut','NM':'New Mexico','KS':'Kansas','IA':'Iowa',
+    'ME':'Maine','VT':'Vermont','NH':'New Hampshire','RI':'Rhode Island','DE':'Delaware',
+    'WV':'West Virginia','AK':'Alaska','MT':'Montana','WY':'Wyoming','ID':'Idaho',
+    'ND':'North Dakota','SD':'South Dakota','NE':'Nebraska','IN':'Indiana','DC':'District of Columbia',
+}
+
+def _city_region(city: str) -> str:
+    """Return a display label for the city's state/region/country, sourced
+    from cityStateMap.json. Used as the small subtitle below the city name
+    on the Browse-by-Market tiles. Falls back to empty string when the
+    city isn't mapped (international cities mostly map to country names
+    directly: 'Saudi Arabia' → 'Saudi Arabia')."""
+    try:
+        with open('cityStateMap.json', encoding='utf-8') as f:
+            m = json.load(f)
+        raw = (m.get(city) or '').strip()
+        if not raw: return ''
+        full = _STATE_FULL.get(raw, raw)
+        # US states get the country suffix to match the mockup language;
+        # everything else is already a country (or near enough) so stays bare.
+        return f'{full} · USA' if raw in _STATE_FULL else full
+    except (FileNotFoundError, json.JSONDecodeError):
+        return ''
+
 def render_featured_markets_json(by_city: dict[str, list[dict]], path: str) -> int:
     # Headline templates rotate by city hash so the same city always gets
     # the same headline (deterministic across runs). Avoids the carousel
@@ -1163,6 +1196,8 @@ def render_featured_markets_json(by_city: dict[str, list[dict]], path: str) -> i
             'title':    title_template.format(city=city),
             'image':    img,
             'location': city,
+            'region':   _city_region(city),    # state + country for the tile subtitle
+            'count':    n,                     # project count as a clean integer
             'ctaLabel': f'Browse {n} projects',
             'url':      f'/markets/{slugify(city)}/',
             'source':   'market_hub',          # lets the loader tag/track if needed
