@@ -79,26 +79,56 @@
     .section-meta { font-family:var(--mono); font-size: 11px; letter-spacing:.12em; text-transform:uppercase; color: var(--mute); }
     .section-meta a { color: var(--purple-bright); text-decoration: underline; text-underline-offset:3px; }
 
-    /* Project grid — same card system the article + projects pages use */
-    .grid.tmw-project-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
-    .card { display:block; background:#111; border-radius:12px; overflow:hidden; transition: transform .15s, border-color .15s; border:1px solid transparent; position:relative; }
+    /* Project grid — 2 columns desktop, 1 column mobile. Each card now
+       includes title, location, last-verified row, the full construction
+       timeline, mini stats, and developer/architect bubbles — matching the
+       project page hero panel so visitors get the same context inline. */
+    .grid.tmw-project-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(420px, 1fr)); gap: 14px; }
+    .card { display:block; background:#111; border-radius:14px; overflow:hidden; transition: transform .15s, border-color .15s; border:1px solid transparent; position:relative; }
     .card:hover { transform: translateY(-2px); border-color: rgba(167,139,250,.3); }
     .card.featured { box-shadow: 0 0 0 1px rgba(255,211,0,.32), 0 8px 24px rgba(255,211,0,.06); }
-    .card-feat-badge { position:absolute; top:10px; right:10px; z-index:2; width:28px; height:28px; border-radius:6px; background:var(--gold); display:inline-flex; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(0,0,0,.4); }
-    .card-feat-badge svg { width:16px; height:16px; fill:#0a0a0a; }
-    .card-img { height: 180px; background-size: cover; background-position: center; position: relative; }
-    .card-img::after { content:""; position:absolute; inset:0; background:linear-gradient(180deg, transparent 55%, rgba(0,0,0,.55) 100%); }
-    .card-status-pill { position: absolute; top: 10px; left: 10px; z-index:2; padding: 4px 9px; border-radius: 4px; font-family:var(--mono); font-size:9.5px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; background: rgba(0,0,0,.6); backdrop-filter: blur(6px); }
-    .pill-uc { color: var(--amber); }
-    .pill-bg { color: var(--gold); }
-    .pill-os { color: var(--purple-bright); }
-    .pill-no { color: var(--green); }
-    .pill-an { color: var(--mute); }
-    .card-body { padding: 14px 16px 16px; }
-    .card-title { font-family: var(--serif); font-size: 17px; font-weight: 500; letter-spacing:-.012em; line-height: 1.25; color: var(--white); margin-bottom: 4px; }
-    .card-neigh { font-family:var(--mono); font-size: 10.5px; letter-spacing:.1em; text-transform:uppercase; color: var(--mute); }
-    .card-meta { display:flex; gap:14px; margin-top:10px; padding-top:10px; border-top:1px solid rgba(255,255,255,.05); font-family:var(--mono); font-size:10px; letter-spacing:.04em; color: var(--mute); flex-wrap:wrap; }
-    .card-meta span b { color: var(--cream); font-weight: 500; }
+    /* Smaller, square gold badge with star — matches map marker style */
+    .card-feat-badge { position:absolute; top:10px; right:10px; z-index:2; width:22px; height:22px; border-radius:5px; background:var(--gold); display:inline-flex; align-items:center; justify-content:center; box-shadow:0 2px 6px rgba(0,0,0,.4); }
+    .card-feat-badge svg { width:12px; height:12px; fill:#0a0a0a; }
+    .card-img { height: 220px; background-size: cover; background-position: center; position: relative; }
+    .card-img::after { content:""; position:absolute; inset:0; background:linear-gradient(180deg, transparent 60%, rgba(0,0,0,.45) 100%); }
+    .card-body { padding: 18px 20px 20px; }
+    .card-title { font-family: var(--serif); font-size: 22px; font-weight: 500; letter-spacing:-.014em; line-height: 1.2; color: var(--white); margin-bottom: 6px; }
+    /* City/firm/location body font matches the map's body font (Inter regular) */
+    .card-loc { font-family: var(--sans); font-size: 13px; color: var(--mute-2); margin-bottom: 14px; }
+    .card-verified { display:flex; align-items:center; gap:8px; font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,.5); margin-bottom: 12px; padding: 8px 0; border-top:1px solid var(--hair); border-bottom:1px solid var(--hair); }
+    .card-v-ico { width:14px; height:14px; display:inline-block; }
+    .card-v-ico svg { width:100%; height:100%; }
+
+    /* Construction timeline (ported verbatim from generate_pages.py's
+       project page hero panel — same look, same data) */
+    .pm-tl { margin-bottom: 14px; }
+    .pm-tl-date { text-align: right; font-family: var(--mono); font-size: 9px; letter-spacing: 0.06em; text-transform: uppercase; color: rgba(255,255,255,0.5); margin-bottom: 8px; }
+    .pm-tl-meter { position: relative; height: 11px; border-radius: 999px; overflow: hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,0.55); }
+    .pm-tl-grad { position: absolute; inset: 0; background: linear-gradient(90deg, #3a2f6b, #7C5CE0 38%, #A78BFA 64%, #1FDF67); }
+    .pm-tl-empty { position: absolute; top: 0; bottom: 0; right: 0; background: #0d0f0e; box-shadow: inset 2px 0 3px rgba(0,0,0,0.6); }
+    .pm-tl-knob { position: absolute; top: 50%; transform: translate(-50%,-50%); background: #fff; color: #0a0a0a; font-size: 9.5px; font-weight: 800; padding: 4px 9px; border-radius: 999px; white-space: nowrap; z-index: 2; font-family: var(--sans); box-shadow: 0 2px 6px rgba(0,0,0,.5); }
+    .pm-tl-stages { display: flex; gap: 3px; margin-top: 10px; }
+    .pm-tl-stage { flex: 1; font-size: 7.5px; letter-spacing: 0.02em; text-transform: uppercase; color: rgba(255,255,255,0.2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center; font-family: var(--sans); }
+    .pm-tl-stage:first-child { text-align: left; }
+    .pm-tl-stage:last-child { text-align: right; }
+    .pm-tl-stage.done { color: rgba(255,255,255,0.5); }
+
+    /* Mini stats grid (Start / Completion / Units / Floors) */
+    .pp-minis { display: grid; grid-template-columns: repeat(auto-fit, minmax(72px, 1fr)); gap: 6px; margin-top: 14px; margin-bottom: 14px; }
+    .pp-mini { padding: 10px 11px; background: rgba(0,0,0,.3); border: 1px solid rgba(255,255,255,.07); border-radius: 10px; overflow: hidden; }
+    .pp-mini .v { font-family: var(--sans); font-size: 15px; font-weight: 800; letter-spacing: -.02em; color: var(--white); white-space: nowrap; }
+    .pp-mini .k { font-family: var(--mono); font-size: 8px; letter-spacing: .07em; text-transform: uppercase; color: rgba(255,255,255,.4); margin-top: 5px; white-space: nowrap; }
+
+    /* Developer & architect bubbles (mirrors project page .pp-firms) */
+    .pp-firms { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .pp-firm { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 12px; padding: 13px 14px; text-decoration: none; color: inherit; display: block; transition: border-color .15s; }
+    .pp-firm:hover { border-color: rgba(31,223,103,.35); }
+    .pp-firm .k { font-family: var(--mono); font-size: 8.5px; letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,.4); }
+    .pp-firm .v { font-family: var(--sans); font-size: 15px; font-weight: 700; color: var(--white); margin-top: 4px; line-height: 1.25; }
+    .pp-firm .go { display: inline-block; margin-top: 7px; font-family: var(--mono); font-size: 9.5px; letter-spacing: .07em; color: var(--green); font-weight: 600; }
+    .pp-firm-empty { cursor: default; }
+    .pp-firm-empty:hover { border-color: rgba(255,255,255,.08); }
 
     /* Firm panels */
     .leads { display:grid; grid-template-columns: 1fr 1fr; gap: 14px; }
@@ -116,8 +146,11 @@
     .intel-eyebrow { font-family: var(--mono); font-size: 10.5px; letter-spacing: .2em; text-transform: uppercase; color: var(--purple-bright); margin-bottom: 14px; font-weight:600; display:inline-flex; align-items:center; gap:8px; }
     .intel-eyebrow::before { content:""; width:6px; height:6px; border-radius:50%; background:var(--purple); box-shadow:0 0 10px var(--purple); }
     .intel h2 { font-family: var(--serif); font-size: 28px; line-height: 1.2; font-weight: 500; letter-spacing:-.018em; color: var(--white); max-width: 28ch; }
-    .intel .ex { font-family:var(--mono); font-size: 11px; letter-spacing:.06em; color: var(--mute); margin-top: 16px; line-height: 1.8; }
-    .intel .ex span { display:inline-block; padding: 5px 11px; margin: 4px 6px 4px 0; background: rgba(255,255,255,.04); border: 1px solid var(--hair); border-radius: 999px; }
+    .intel .ex { font-family:var(--mono); font-size: 11px; letter-spacing:.06em; color: var(--mute); margin-top: 16px; line-height: 1.9; }
+    /* Try-chip font matches the map's body font (Inter), per UX feedback —
+       the chip is a query the user might tap, not a label, so it shouldn't
+       read as monospaced metadata. */
+    .intel .ex span { display:inline-block; padding: 6px 12px; margin: 4px 6px 4px 0; background: rgba(255,255,255,.04); border: 1px solid var(--hair); border-radius: 999px; font-family: var(--sans); font-size: 13px; letter-spacing: 0; text-transform: none; color: var(--cream); }
     .intel form { display:flex; gap: 10px; margin-top: 22px; }
     .intel input { flex: 1; background: rgba(0,0,0,.4); border: 1px solid rgba(167,139,250,.32); border-radius: 10px; padding: 14px 18px; font-family: var(--sans); font-size: 15px; color: var(--white); cursor: pointer; }
     .intel input:focus { outline: 0; border-color: var(--purple-bright); }
@@ -189,99 +222,147 @@
       </div>
       <div class="grid tmw-project-grid">
 <a class="card featured" href="https://www.oftmw.com/projects/viceroy-residences-fort-lauderdale/" data-featured="1">
-  <div class="card-img" data-lightbox-src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_7a910ddcdb574a909344aafcaca1f9ff~mv2.jpeg" data-lightbox-caption="Viceroy Residences Fort Lauderdale · Fort Lauderdale" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_7a910ddcdb574a909344aafcaca1f9ff~mv2.jpeg')"><span class="card-status-pill pill-an">Announced</span><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span></div>
+  <div class="card-img" data-lightbox-src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_7a910ddcdb574a909344aafcaca1f9ff~mv2.jpeg" data-lightbox-caption="Viceroy Residences Fort Lauderdale · Fort Lauderdale" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_7a910ddcdb574a909344aafcaca1f9ff~mv2.jpeg')"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span></div>
   <div class="card-body">
     <div class="card-title">Viceroy Residences Fort Lauderdale</div>
-    <div class="card-neigh">Fort Lauderdale</div>
-    <div class="card-meta"><span>By <b>Naftali Group</b></span><span>·</span><span>Arquitectonica</span></div>
+    <div class="card-loc">Fort Lauderdale</div>
+    <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 10, 2026</span></div>
+    
+    <div class="pm-tl"><div class="pm-tl-date">2.5 yrs to delivery</div>
+      <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
+        <div class="pm-tl-empty" style="left:5%"></div>
+        <div class="pm-tl-knob" style="left:5%;box-shadow:0 2px 8px rgba(0,0,0,.5),0 0 0 2px rgba(167,139,250,.42),0 0 12px rgba(167,139,250,.55)">5%</div>
+      </div>
+      <div class="pm-tl-stages"><span class="pm-tl-stage on" style="color:#B9A6FF;font-weight:800;text-shadow:0 0 12px rgba(167,139,250,.5)">Announced</span><span class="pm-tl-stage ">Breaking Ground</span><span class="pm-tl-stage ">Construction</span><span class="pm-tl-stage ">Opening Soon</span><span class="pm-tl-stage ">Now Open</span></div>
+    </div>
+    <div class="pp-minis"><div class="pp-mini"><div class="v">2028</div><div class="k">Completion</div></div><div class="pp-mini"><div class="v">370</div><div class="k">Units</div></div><div class="pp-mini"><div class="v">45</div><div class="k">Floors</div></div></div>
+    <div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/naftali-group/"><div class="k">Developer</div><div class="v">Naftali Group</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/arquitectonica/"><div class="k">Architect</div><div class="v">Arquitectonica</div><span class="go">View firm profile →</span></a></div>
   </div>
 </a>
 <a class="card" href="https://www.oftmw.com/projects/sage-intracoastal-residences/">
-  <div class="card-img" data-lightbox-src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_cac1a51df0034a18b4deea5f4329b35a~mv2.webp" data-lightbox-caption="Sage Intracoastal Residences · Fort Lauderdale" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_cac1a51df0034a18b4deea5f4329b35a~mv2.webp')"><span class="card-status-pill pill-uc">Under Construction</span></div>
+  <div class="card-img" data-lightbox-src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_cac1a51df0034a18b4deea5f4329b35a~mv2.webp" data-lightbox-caption="Sage Intracoastal Residences · Fort Lauderdale" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_cac1a51df0034a18b4deea5f4329b35a~mv2.webp')"></div>
   <div class="card-body">
     <div class="card-title">Sage Intracoastal Residences</div>
-    <div class="card-neigh">Fort Lauderdale</div>
-    <div class="card-meta"><span>By <b>Property Markets Group</b></span><span>·</span><span>FSMY Architects + Planners</span></div>
+    <div class="card-loc">Fort Lauderdale</div>
+    <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 10, 2026</span></div>
+    
+    <div class="pm-tl"><div class="pm-tl-date">19 months to delivery</div>
+      <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
+        <div class="pm-tl-empty" style="left:43%"></div>
+        <div class="pm-tl-knob" style="left:43%;box-shadow:0 2px 8px rgba(0,0,0,.5),0 0 0 2px rgba(167,139,250,.42),0 0 12px rgba(167,139,250,.55)">43%</div>
+      </div>
+      <div class="pm-tl-stages"><span class="pm-tl-stage done">Announced</span><span class="pm-tl-stage done">Breaking Ground</span><span class="pm-tl-stage on" style="color:#B9A6FF;font-weight:800;text-shadow:0 0 12px rgba(167,139,250,.5)">Construction</span><span class="pm-tl-stage ">Opening Soon</span><span class="pm-tl-stage ">Now Open</span></div>
+    </div>
+    <div class="pp-minis"><div class="pp-mini"><div class="v">2025</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2027</div><div class="k">Completion</div></div><div class="pp-mini"><div class="v">44</div><div class="k">Units</div></div><div class="pp-mini"><div class="v">28</div><div class="k">Floors</div></div></div>
+    <div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/property-markets-group/"><div class="k">Developer</div><div class="v">Property Markets Group</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/fsmy-architects-planners/"><div class="k">Architect</div><div class="v">FSMY Architects + Planners</div><span class="go">View firm profile →</span></a></div>
   </div>
 </a>
 <a class="card" href="https://www.oftmw.com/projects/the-dunes/">
-  <div class="card-img" data-lightbox-src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_9384d4d7e86449e1bcc1620eac53b534~mv2.jpg" data-lightbox-caption="The Dunes · Fort Lauderdale" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_9384d4d7e86449e1bcc1620eac53b534~mv2.jpg')"><span class="card-status-pill pill-uc">Under Construction</span></div>
+  <div class="card-img" data-lightbox-src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_9384d4d7e86449e1bcc1620eac53b534~mv2.jpg" data-lightbox-caption="The Dunes · Fort Lauderdale" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_9384d4d7e86449e1bcc1620eac53b534~mv2.jpg')"></div>
   <div class="card-body">
     <div class="card-title">The Dunes</div>
-    <div class="card-neigh">Fort Lauderdale</div>
-    <div class="card-meta"><span>By <b>G. Holdings Group</b></span><span>·</span><span>FSMY Architects + Planners</span></div>
+    <div class="card-loc">Fort Lauderdale</div>
+    <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 10, 2026</span></div>
+    
+    <div class="pm-tl"><div class="pm-tl-date">7 months to delivery</div>
+      <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
+        <div class="pm-tl-empty" style="left:48%"></div>
+        <div class="pm-tl-knob" style="left:48%;box-shadow:0 2px 8px rgba(0,0,0,.5),0 0 0 2px rgba(167,139,250,.42),0 0 12px rgba(167,139,250,.55)">48%</div>
+      </div>
+      <div class="pm-tl-stages"><span class="pm-tl-stage done">Announced</span><span class="pm-tl-stage done">Breaking Ground</span><span class="pm-tl-stage on" style="color:#B9A6FF;font-weight:800;text-shadow:0 0 12px rgba(167,139,250,.5)">Construction</span><span class="pm-tl-stage ">Opening Soon</span><span class="pm-tl-stage ">Now Open</span></div>
+    </div>
+    <div class="pp-minis"><div class="pp-mini"><div class="v">2025</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2026</div><div class="k">Completion</div></div><div class="pp-mini"><div class="v">16</div><div class="k">Floors</div></div></div>
+    <div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/granitefl-llc-g-holdings-group/"><div class="k">Developer</div><div class="v">G. Holdings Group</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/fsmy-architects-planners/"><div class="k">Architect</div><div class="v">FSMY Architects + Planners</div><span class="go">View firm profile →</span></a></div>
   </div>
 </a>
 <a class="card" href="https://www.oftmw.com/projects/ombelle/">
-  <div class="card-img" data-lightbox-src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_e6db71646c974187b7523c3d1a798ecb~mv2.jpeg" data-lightbox-caption="Ombelle · Fort Lauderdale" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_e6db71646c974187b7523c3d1a798ecb~mv2.jpeg')"><span class="card-status-pill pill-bg">Breaking Ground</span></div>
+  <div class="card-img" data-lightbox-src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_e6db71646c974187b7523c3d1a798ecb~mv2.jpeg" data-lightbox-caption="Ombelle · Fort Lauderdale" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_e6db71646c974187b7523c3d1a798ecb~mv2.jpeg')"></div>
   <div class="card-body">
     <div class="card-title">Ombelle</div>
-    <div class="card-neigh">Fort Lauderdale</div>
-    <div class="card-meta"><span>By <b>Dependable Equities</b></span><span>·</span><span>ODA Architecture</span></div>
+    <div class="card-loc">Fort Lauderdale</div>
+    <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 10, 2026</span></div>
+    
+    <div class="pm-tl"><div class="pm-tl-date">2.5 yrs to delivery</div>
+      <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
+        <div class="pm-tl-empty" style="left:20%"></div>
+        <div class="pm-tl-knob" style="left:20%;box-shadow:0 2px 8px rgba(0,0,0,.5),0 0 0 2px rgba(167,139,250,.42),0 0 12px rgba(167,139,250,.55)">20%</div>
+      </div>
+      <div class="pm-tl-stages"><span class="pm-tl-stage done">Announced</span><span class="pm-tl-stage on" style="color:#B9A6FF;font-weight:800;text-shadow:0 0 12px rgba(167,139,250,.5)">Breaking Ground</span><span class="pm-tl-stage ">Construction</span><span class="pm-tl-stage ">Opening Soon</span><span class="pm-tl-stage ">Now Open</span></div>
+    </div>
+    <div class="pp-minis"><div class="pp-mini"><div class="v">2028</div><div class="k">Completion</div></div><div class="pp-mini"><div class="v">754</div><div class="k">Units</div></div><div class="pp-mini"><div class="v">44</div><div class="k">Floors</div></div></div>
+    <div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/dependable-equities/"><div class="k">Developer</div><div class="v">Dependable Equities</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/oda-architecture/"><div class="k">Architect</div><div class="v">ODA Architecture</div><span class="go">View firm profile →</span></a></div>
   </div>
 </a>
 <a class="card" href="https://www.oftmw.com/projects/fat-village/">
-  <div class="card-img" data-lightbox-src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_1a84661c05b445edbdf9256361890cdc~mv2.webp" data-lightbox-caption="FAT Village · Fort Lauderdale" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_1a84661c05b445edbdf9256361890cdc~mv2.webp')"><span class="card-status-pill pill-os">Opening Soon</span></div>
+  <div class="card-img" data-lightbox-src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_1a84661c05b445edbdf9256361890cdc~mv2.webp" data-lightbox-caption="FAT Village · Fort Lauderdale" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_1a84661c05b445edbdf9256361890cdc~mv2.webp')"></div>
   <div class="card-body">
     <div class="card-title">FAT Village</div>
-    <div class="card-neigh">Fort Lauderdale</div>
-    <div class="card-meta"><span>By <b>Hines</b></span><span>·</span><span>SCB</span></div>
+    <div class="card-loc">Fort Lauderdale</div>
+    <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 10, 2026</span></div>
+    
+    <div class="pm-tl"><div class="pm-tl-date">6 months to delivery</div>
+      <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
+        <div class="pm-tl-empty" style="left:78%"></div>
+        <div class="pm-tl-knob" style="left:78%;box-shadow:0 2px 8px rgba(0,0,0,.5),0 0 0 2px rgba(167,139,250,.42),0 0 12px rgba(167,139,250,.55)">78%</div>
+      </div>
+      <div class="pm-tl-stages"><span class="pm-tl-stage done">Announced</span><span class="pm-tl-stage done">Breaking Ground</span><span class="pm-tl-stage done">Construction</span><span class="pm-tl-stage on" style="color:#B9A6FF;font-weight:800;text-shadow:0 0 12px rgba(167,139,250,.5)">Opening Soon</span><span class="pm-tl-stage ">Now Open</span></div>
+    </div>
+    <div class="pp-minis"><div class="pp-mini"><div class="v">2024</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2026</div><div class="k">Completion</div></div><div class="pp-mini"><div class="v">857</div><div class="k">Units</div></div><div class="pp-mini"><div class="v">25</div><div class="k">Floors</div></div></div>
+    <div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/hines/"><div class="k">Developer</div><div class="v">Hines</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/scb/"><div class="k">Architect</div><div class="v">SCB</div><span class="go">View firm profile →</span></a></div>
   </div>
 </a>
 <a class="card" href="https://www.oftmw.com/projects/riva-residences/">
-  <div class="card-img" data-lightbox-src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_5177bae1dfdd4c2b9730e684f86d6192~mv2.jpeg" data-lightbox-caption="Riva Residences · Fort Lauderdale" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_5177bae1dfdd4c2b9730e684f86d6192~mv2.jpeg')"><span class="card-status-pill pill-os">Opening Soon</span></div>
+  <div class="card-img" data-lightbox-src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_5177bae1dfdd4c2b9730e684f86d6192~mv2.jpeg" data-lightbox-caption="Riva Residences · Fort Lauderdale" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_5177bae1dfdd4c2b9730e684f86d6192~mv2.jpeg')"></div>
   <div class="card-body">
     <div class="card-title">Riva Residences</div>
-    <div class="card-neigh">Fort Lauderdale</div>
-    <div class="card-meta"><span>By <b>WellDuo</b></span><span>·</span><span>Arquitectonica</span></div>
+    <div class="card-loc">Fort Lauderdale</div>
+    <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 10, 2026</span></div>
+    
+    <div class="pm-tl"><div class="pm-tl-date">7 months to delivery</div>
+      <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
+        <div class="pm-tl-empty" style="left:78%"></div>
+        <div class="pm-tl-knob" style="left:78%;box-shadow:0 2px 8px rgba(0,0,0,.5),0 0 0 2px rgba(167,139,250,.42),0 0 12px rgba(167,139,250,.55)">78%</div>
+      </div>
+      <div class="pm-tl-stages"><span class="pm-tl-stage done">Announced</span><span class="pm-tl-stage done">Breaking Ground</span><span class="pm-tl-stage done">Construction</span><span class="pm-tl-stage on" style="color:#B9A6FF;font-weight:800;text-shadow:0 0 12px rgba(167,139,250,.5)">Opening Soon</span><span class="pm-tl-stage ">Now Open</span></div>
+    </div>
+    <div class="pp-minis"><div class="pp-mini"><div class="v">2025</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2026</div><div class="k">Completion</div></div><div class="pp-mini"><div class="v">100</div><div class="k">Units</div></div><div class="pp-mini"><div class="v">15</div><div class="k">Floors</div></div></div>
+    <div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/wellduo/"><div class="k">Developer</div><div class="v">WellDuo</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/arquitectonica/"><div class="k">Architect</div><div class="v">Arquitectonica</div><span class="go">View firm profile →</span></a></div>
   </div>
 </a>
 <a class="card" href="https://www.oftmw.com/projects/pier-sixty-six/">
-  <div class="card-img" data-lightbox-src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/e251b0be8a50-IMG_3554-2048x1382.jpeg" data-lightbox-caption="Pier Sixty-Six · Fort Lauderdale" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/e251b0be8a50-IMG_3554-2048x1382.jpeg')"><span class="card-status-pill pill-no">Now Open</span></div>
+  <div class="card-img" data-lightbox-src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/e251b0be8a50-IMG_3554-2048x1382.jpeg" data-lightbox-caption="Pier Sixty-Six · Fort Lauderdale" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/e251b0be8a50-IMG_3554-2048x1382.jpeg')"></div>
   <div class="card-body">
     <div class="card-title">Pier Sixty-Six</div>
-    <div class="card-neigh">Fort Lauderdale</div>
-    <div class="card-meta"><span>By <b>Tavistock Development</b></span><span>·</span><span>Arquitectonica</span></div>
+    <div class="card-loc">Fort Lauderdale</div>
+    
+    
+    <div class="pm-tl"><div class="pm-tl-date">Delivered Jan '25</div>
+      <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
+        <div class="pm-tl-empty" style="left:100%"></div>
+        <div class="pm-tl-knob" style="left:calc(100% - 18px);box-shadow:0 2px 8px rgba(0,0,0,.5),0 0 0 2px rgba(31,223,103,.42),0 0 12px rgba(31,223,103,.55)">100%</div>
+      </div>
+      <div class="pm-tl-stages"><span class="pm-tl-stage done">Announced</span><span class="pm-tl-stage done">Breaking Ground</span><span class="pm-tl-stage done">Construction</span><span class="pm-tl-stage done">Opening Soon</span><span class="pm-tl-stage on" style="color:#1FDF67;font-weight:800;text-shadow:0 0 12px rgba(31,223,103,.5)">Now Open</span></div>
+    </div>
+    <div class="pp-minis"><div class="pp-mini"><div class="v">2020</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2025</div><div class="k">Completion</div></div><div class="pp-mini"><div class="v">88</div><div class="k">Units</div></div></div>
+    <div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/tavistock-development/"><div class="k">Developer</div><div class="v">Tavistock Development</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/arquitectonica/"><div class="k">Architect</div><div class="v">Arquitectonica</div><span class="go">View firm profile →</span></a></div>
   </div>
 </a>
 <a class="card" href="https://www.oftmw.com/projects/633-se-third-avenue/">
-  <div class="card-img" data-lightbox-src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b030372c651c44c7a90245336e6a7822~mv2.webp" data-lightbox-caption="633 SE Third Avenue · Fort Lauderdale" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b030372c651c44c7a90245336e6a7822~mv2.webp')"><span class="card-status-pill pill-an">Announced</span></div>
+  <div class="card-img" data-lightbox-src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b030372c651c44c7a90245336e6a7822~mv2.webp" data-lightbox-caption="633 SE Third Avenue · Fort Lauderdale" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b030372c651c44c7a90245336e6a7822~mv2.webp')"></div>
   <div class="card-body">
     <div class="card-title">633 SE Third Avenue</div>
-    <div class="card-neigh">Fort Lauderdale</div>
-    <div class="card-meta"><span>By <b>Dependable Equities</b></span><span>·</span><span>ODA New York</span></div>
-  </div>
-</a>
-<a class="card" href="https://www.oftmw.com/projects/natiivo-fort-lauderdale/">
-  <div class="card-img" data-lightbox-src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_23943fe581ce4b12bf3f6f3a58940839~mv2.webp" data-lightbox-caption="Natiivo Fort Lauderdale · Fort Lauderdale" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_23943fe581ce4b12bf3f6f3a58940839~mv2.webp')"><span class="card-status-pill pill-an">Announced</span></div>
-  <div class="card-body">
-    <div class="card-title">Natiivo Fort Lauderdale</div>
-    <div class="card-neigh">Fort Lauderdale</div>
-    <div class="card-meta"><span>By <b>Newgard Development Group</b></span><span>·</span><span>Arquitectonica</span></div>
-  </div>
-</a>
-<a class="card" href="https://www.oftmw.com/projects/rolex-tower/">
-  <div class="card-img" data-lightbox-src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_a40bd061d72046cf8cf3e8ed1d65e818~mv2.webp" data-lightbox-caption="Rolex Tower · Fort Lauderdale" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_a40bd061d72046cf8cf3e8ed1d65e818~mv2.webp')"><span class="card-status-pill pill-an">Announced</span></div>
-  <div class="card-body">
-    <div class="card-title">Rolex Tower</div>
-    <div class="card-neigh">Fort Lauderdale</div>
-    <div class="card-meta"><span>By <b>Gensler</b></span><span>·</span><span>Gensler</span></div>
-  </div>
-</a>
-<a class="card" href="https://www.oftmw.com/projects/sereno/">
-  <div class="card-img" data-lightbox-src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_0ecd054f6656463daa85a049627ab83a~mv2.jpeg" data-lightbox-caption="Sereno · Fort Lauderdale" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_0ecd054f6656463daa85a049627ab83a~mv2.jpeg')"><span class="card-status-pill pill-an">Announced</span></div>
-  <div class="card-body">
-    <div class="card-title">Sereno</div>
-    <div class="card-neigh">Fort Lauderdale</div>
-    <div class="card-meta"><span>By <b>Integra Investments</b></span><span>·</span><span>FSMY Architects + Planners</span></div>
-  </div>
-</a>
-<a class="card" href="https://www.oftmw.com/projects/st-regis-bahia-mar/">
-  <div class="card-img" data-lightbox-src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_a5b400f808a84cc4b97ada6a454fe3e7~mv2.jpeg" data-lightbox-caption="St. Regis Bahia Mar · Fort Lauderdale" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_a5b400f808a84cc4b97ada6a454fe3e7~mv2.jpeg')"><span class="card-status-pill pill-an">Announced</span></div>
-  <div class="card-body">
-    <div class="card-title">St. Regis Bahia Mar</div>
-    <div class="card-neigh">Fort Lauderdale</div>
-    <div class="card-meta"><span>By <b>Related Group</b></span><span>·</span><span>Arquitectonica</span></div>
+    <div class="card-loc">Fort Lauderdale</div>
+    <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 10, 2026</span></div>
+    
+    <div class="pm-tl"><div class="pm-tl-date">7 months to delivery</div>
+      <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
+        <div class="pm-tl-empty" style="left:5%"></div>
+        <div class="pm-tl-knob" style="left:5%;box-shadow:0 2px 8px rgba(0,0,0,.5),0 0 0 2px rgba(167,139,250,.42),0 0 12px rgba(167,139,250,.55)">5%</div>
+      </div>
+      <div class="pm-tl-stages"><span class="pm-tl-stage on" style="color:#B9A6FF;font-weight:800;text-shadow:0 0 12px rgba(167,139,250,.5)">Announced</span><span class="pm-tl-stage ">Breaking Ground</span><span class="pm-tl-stage ">Construction</span><span class="pm-tl-stage ">Opening Soon</span><span class="pm-tl-stage ">Now Open</span></div>
+    </div>
+    <div class="pp-minis"><div class="pp-mini"><div class="v">2025</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2026</div><div class="k">Completion</div></div><div class="pp-mini"><div class="v">830</div><div class="k">Units</div></div><div class="pp-mini"><div class="v">47</div><div class="k">Floors</div></div></div>
+    <div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/dependable-equities/"><div class="k">Developer</div><div class="v">Dependable Equities</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/oda-new-york/"><div class="k">Architect</div><div class="v">ODA New York</div><span class="go">View firm profile →</span></a></div>
   </div>
 </a>
       </div>
@@ -312,7 +393,7 @@
     </section>
 
     <article class="copy">
-<h2>The Fort Lauderdale pipeline</h2><p>We're tracking <b>14 new developments</b> in Fort Lauderdale across every category — including <b>Residences</b> (9), <b>Mixed-Use</b> (2), <b>Entertainment</b> (1). Every project below links to a live status page with milestones, renderings, and our <a href="https://www.oftmw.com/journal/">journal coverage</a>.</p><h2>How we built this list</h2><p>Every project on this page is on the <a href="https://www.oftmw.com/map/">Map of Tomorrow</a> — our live database of new and under-construction developments worldwide. We add a project only after we can confirm it from a public filing, an official announcement, or independent reporting; status changes are sourced the same way and timestamped. <a href="https://www.oftmw.com/map/?upgrade=1">Pro members</a> get our weekly slippage forecasts and the full dataset by phase, neighborhood, architect, and developer.</p>
+<h2>The Fort Lauderdale pipeline</h2><p>We're tracking <b>14 new developments</b> in Fort Lauderdale across every category — including <b>Residences</b> (9), <b>Mixed-Use</b> (2), <b>Entertainment</b> (1). Every project below links to a live status page with milestones, renderings, and our <a href="https://www.oftmw.com/journal/">journal coverage</a>.</p><p>Right now: <b>2 under construction</b>, <b>1 breaking ground</b>, <b>2 opening soon</b>, and <b>8 newly announced</b>.</p><p>Most active developer across the Fort Lauderdale pipeline: <b>Dependable Equities</b> with <b>2 projects</b>.</p><h2>How we built this list</h2><p>Every project on this page is on the <a href="https://www.oftmw.com/map/">Map of Tomorrow</a> — our live database of new and under-construction developments worldwide. We add a project only after we can confirm it from a public filing, an official announcement, or independent reporting; status changes are sourced the same way and timestamped. <a href="https://www.oftmw.com/map/?upgrade=1">Pro members</a> get our weekly Slippage Report and the full dataset by phase, neighborhood, architect, and developer.</p>
     </article>
 
     <section class="section">
@@ -380,12 +461,30 @@
       var type = intelBox.getAttribute('data-intel-type') || '';
       var prefix = (city + ' ' + type).trim();
 
-      function openOverlayWith(q) {
-        var full = prefix ? (prefix + (q ? ' ' + q : '')) : q;
+      // Two ways to open the overlay from this page:
+      //   - openSuggestionsWith(): clicking the input drops the user into the
+      //     starter (suggestions) state with the market name pre-filled —
+      //     they can type their own question with the filter implicit.
+      //   - openSearchWith(q): submitting the form OR clicking a try-chip
+      //     fires a real search with the market + question both included.
+      // Both versions fall back to deep-linking /?q= if the overlay script
+      // hasn't booted yet (defer load + slow connections).
+      function trackBeacon(q) {
         try { window.tmwFunnelTrack && window.tmwFunnelTrack('intel_query', { source: 'market_page', city: city, type: type, q: (q || '').slice(0, 80) }); } catch (_){}
-        // tmwOverlay loads from /_shared/journal-search-overlay.js (defer).
-        // If it hasn't booted yet, fall back to deep-linking to the homepage
-        // which auto-opens the overlay from ?q=.
+      }
+      function openSuggestionsWith() {
+        trackBeacon('');
+        if (window.tmwOverlay && typeof window.tmwOverlay.openWithPrefix === 'function') {
+          window.tmwOverlay.openWithPrefix(prefix);
+        } else if (window.tmwOverlay && typeof window.tmwOverlay.open === 'function') {
+          window.tmwOverlay.open(prefix);
+        } else {
+          window.location = 'https://www.oftmw.com/?q=' + encodeURIComponent(prefix);
+        }
+      }
+      function openSearchWith(q) {
+        var full = prefix ? (prefix + (q ? ' ' + q : '')) : q;
+        trackBeacon(q);
         if (window.tmwOverlay && typeof window.tmwOverlay.open === 'function') {
           window.tmwOverlay.open(full);
         } else {
@@ -393,25 +492,22 @@
         }
       }
 
-      // Clicking the input box opens the overlay (filter pre-applied).
+      // Clicking / focusing the input → suggestions panel with prefix in box.
       var input = document.getElementById('market-intel-input');
       if (input) {
-        input.addEventListener('click',  function (e) { e.preventDefault(); openOverlayWith(''); });
-        input.addEventListener('focus',  function (e) { e.preventDefault(); openOverlayWith(''); input.blur(); });
+        input.addEventListener('click', function (e) { e.preventDefault(); openSuggestionsWith(); });
+        input.addEventListener('focus', function (e) { e.preventDefault(); openSuggestionsWith(); input.blur(); });
       }
-      // Submitting the form (Enter or "Ask" button) opens the overlay with
-      // whatever's in the input — even though it's readonly, autofill or
-      // paste can still populate it.
+      // Form submit (Enter or "Ask" button) — runs the search.
       var f = document.getElementById('market-intel-form');
       if (f) f.addEventListener('submit', function (e) {
         e.preventDefault();
-        openOverlayWith(((input && input.value) || '').trim());
+        openSearchWith(((input && input.value) || '').trim());
       });
-      // Suggestion chips: clicking one opens the overlay with that exact
-      // question AND the city/type prefix applied.
+      // Try-chip click → real search with the chip text + market prefix.
       Array.prototype.forEach.call(document.querySelectorAll('.intel-chip'), function (chip) {
         chip.style.cursor = 'pointer';
-        chip.addEventListener('click', function () { openOverlayWith(chip.getAttribute('data-q') || chip.textContent.trim()); });
+        chip.addEventListener('click', function () { openSearchWith(chip.getAttribute('data-q') || chip.textContent.trim()); });
       });
 
       // Pro CTA → fire funnel beacon, then open the paywall (or fall back to

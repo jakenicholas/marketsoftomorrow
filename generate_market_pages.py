@@ -37,6 +37,15 @@ Run locally:  python3 generate_market_pages.py
 from __future__ import annotations
 import json, os, re, html, collections, datetime, sys
 
+# Reuse the project page's timeline + delivery formatters so every card on a
+# market page mirrors the project page's hero panel exactly. generate_pages.py
+# guards its main() under __name__ == '__main__', so importing it here is safe.
+from generate_pages import (
+    progress_bar_html,
+    format_delivery_display,
+    _format_time_to_delivery,
+)
+
 ROOT_URL   = "https://www.oftmw.com"
 SITE_NAME  = "Markets of Tomorrow"
 OUTPUT_DIR = "journal/markets"
@@ -66,8 +75,8 @@ STATUS_CSS_CLASS = {
 }
 
 CITY_TYPE_MIN = 3
-CITY_MIN      = 5
-FEATURED_GRID_TARGET = 12   # how many cards we show in the featured grid
+CITY_MIN      = 3            # lowered from 5 so smaller-but-real cities (Aventura, Tokyo, etc.) get hubs
+FEATURED_GRID_TARGET = 8     # cards are now 2-column with full timelines, so fewer per page
 
 # ─── Type label tweaks for natural English SEO H1s ───────────────────
 TYPE_PHRASING = {
@@ -152,29 +161,103 @@ FEAT_STAR_SVG = (
     '</svg>'
 )
 
+# ─── Per-firm bubble (mirrors the project page's .pp-firm) ───────────
+def _firm_bubble(label: str, names_str: str, slugs_str: str) -> str:
+    """Render one firm card (DEVELOPER or ARCHITECT). Takes the comma-separated
+    names + slugs from the sheet, links to the first firm's /firm/<slug>/
+    page when a slug exists. Matches the project page's .pp-firm class so
+    the same CSS rules apply."""
+    name = (names_str or '').split(',')[0].strip()
+    if not name:
+        return (
+            f'<div class="pp-firm pp-firm-empty"><div class="k">{esc(label)}</div>'
+            f'<div class="v" style="opacity:.45">—</div></div>'
+        )
+    slug = (slugs_str or '').split(',')[0].strip()
+    inner = (
+        f'<div class="k">{esc(label)}</div>'
+        f'<div class="v">{esc(name)}</div>'
+        f'<span class="go">View firm profile →</span>'
+    )
+    if slug:
+        return f'<a class="pp-firm" href="{ROOT_URL}/firm/{esc(slug)}/">{inner}</a>'
+    # No slug — render as a non-link card to keep the visual grid intact.
+    return f'<div class="pp-firm">{inner}</div>'
+
+def _mini_stat(label: str, value: str) -> str:
+    if not value:
+        return ''
+    return f'<div class="pp-mini"><div class="v">{esc(value)}</div><div class="k">{esc(label)}</div></div>'
+
+def _last_verified(p: dict) -> str:
+    """Format the UpdatedAt timestamp as 'Jun 10, 2026'."""
+    raw = (p.get('UpdatedAt') or '').strip()
+    if not raw: return ''
+    try:
+        if raw.isdigit():
+            dt = datetime.datetime.fromtimestamp(int(raw), datetime.timezone.utc)
+        else:
+            dt = datetime.datetime.fromisoformat(raw.replace('Z', '+00:00'))
+        return dt.strftime('%b %-d, %Y')
+    except Exception:
+        return raw[:10]
+
 def card_html(p: dict) -> str:
     title = esc(p.get('Title') or '')
     slug  = (p.get('Slug') or slugify(p.get('Title') or '')).strip()
     img   = esc(project_image(p))
-    neigh = esc((p.get('Neighborhood') or p.get('City') or '').strip())
-    dev   = esc(short_developer(p))
-    arch  = esc(short_architect(p))
+    city  = esc((p.get('City') or '').strip())
+    neigh = (p.get('Neighborhood') or '').strip()
+    loc_line = f'{city} · {esc(neigh)}' if neigh else city
     cap   = esc(f"{p.get('Title','')} · {p.get('City','')}")
-    meta_parts = []
-    if dev and dev != '—': meta_parts.append(f'<span>By <b>{dev}</b></span>')
-    if arch: meta_parts.append(f'<span>·</span><span>{arch}</span>')
-    meta = ''.join(meta_parts) or '<span style="opacity:.6">Coming soon</span>'
-    pill = status_pill(p)
     featured = is_featured(p)
     featured_attrs = ' data-featured="1"' if featured else ''
     feat_badge = f'<span class="card-feat-badge" aria-label="Featured project">{FEAT_STAR_SVG}</span>' if featured else ''
+
+    # Construction timeline + mini stats — shape mirrors the project page hero
+    # panel exactly so the data presented here matches the source of truth.
+    delivery       = (p.get('Delivery') or '').strip()
+    delivery_date  = (p.get('DeliveryDate') or '').strip()
+    start_date     = (p.get('StartDate') or '').strip()
+    timeline_html  = progress_bar_html(delivery, delivery_date, start_date)
+    last_verified  = _last_verified(p)
+    last_v_html = (
+        '<div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span>'
+        f'<span>Last verified {esc(last_verified)}</span></div>'
+    ) if last_verified else ''
+
+    # Mini stats — start year / completion year / units / floors. Omit any
+    # missing field rather than render a "—" placeholder so cards with rich
+    # data feel rich and cards without don't shout about gaps.
+    def _year(s):
+        m = re.match(r'^(\d{4})', s or '')
+        return m.group(1) if m else ''
+    minis = ''.join([
+        _mini_stat('Start',      _year(start_date)),
+        _mini_stat('Completion', _year(delivery_date) or format_delivery_display(delivery_date or delivery)),
+        _mini_stat('Units',      str(p.get('Units') or '').strip()),
+        _mini_stat('Floors',     str(p.get('Floors') or '').strip()),
+    ])
+    minis_html = f'<div class="pp-minis">{minis}</div>' if minis else ''
+
+    # Developer + Architect bubbles
+    firms_html = (
+        '<div class="pp-firms">'
+        + _firm_bubble('Developer', p.get('Developer', ''), p.get('DeveloperSlugs', ''))
+        + _firm_bubble('Architect', p.get('Architect', ''), p.get('ArchitectSlugs', ''))
+        + '</div>'
+    )
+
     return (
         f'<a class="card{" featured" if featured else ""}" href="{ROOT_URL}/projects/{esc(slug)}/"{featured_attrs}>\n'
-        f'  <div class="card-img" data-lightbox-src="{img}" data-lightbox-caption="{cap}" style="background-image:url(\'{img}\')">{pill}{feat_badge}</div>\n'
+        f'  <div class="card-img" data-lightbox-src="{img}" data-lightbox-caption="{cap}" style="background-image:url(\'{img}\')">{feat_badge}</div>\n'
         f'  <div class="card-body">\n'
         f'    <div class="card-title">{title}</div>\n'
-        f'    <div class="card-neigh">{neigh}</div>\n'
-        f'    <div class="card-meta">{meta}</div>\n'
+        f'    <div class="card-loc">{loc_line}</div>\n'
+        f'    {last_v_html}\n'
+        f'    {timeline_html}\n'
+        f'    {minis_html}\n'
+        f'    {firms_html}\n'
         f'  </div>\n'
         f'</a>'
     )
@@ -384,26 +467,56 @@ def render_page(
     .section-meta {{ font-family:var(--mono); font-size: 11px; letter-spacing:.12em; text-transform:uppercase; color: var(--mute); }}
     .section-meta a {{ color: var(--purple-bright); text-decoration: underline; text-underline-offset:3px; }}
 
-    /* Project grid — same card system the article + projects pages use */
-    .grid.tmw-project-grid {{ display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }}
-    .card {{ display:block; background:#111; border-radius:12px; overflow:hidden; transition: transform .15s, border-color .15s; border:1px solid transparent; position:relative; }}
+    /* Project grid — 2 columns desktop, 1 column mobile. Each card now
+       includes title, location, last-verified row, the full construction
+       timeline, mini stats, and developer/architect bubbles — matching the
+       project page hero panel so visitors get the same context inline. */
+    .grid.tmw-project-grid {{ display: grid; grid-template-columns: repeat(auto-fill, minmax(420px, 1fr)); gap: 14px; }}
+    .card {{ display:block; background:#111; border-radius:14px; overflow:hidden; transition: transform .15s, border-color .15s; border:1px solid transparent; position:relative; }}
     .card:hover {{ transform: translateY(-2px); border-color: rgba(167,139,250,.3); }}
     .card.featured {{ box-shadow: 0 0 0 1px rgba(255,211,0,.32), 0 8px 24px rgba(255,211,0,.06); }}
-    .card-feat-badge {{ position:absolute; top:10px; right:10px; z-index:2; width:28px; height:28px; border-radius:6px; background:var(--gold); display:inline-flex; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(0,0,0,.4); }}
-    .card-feat-badge svg {{ width:16px; height:16px; fill:#0a0a0a; }}
-    .card-img {{ height: 180px; background-size: cover; background-position: center; position: relative; }}
-    .card-img::after {{ content:""; position:absolute; inset:0; background:linear-gradient(180deg, transparent 55%, rgba(0,0,0,.55) 100%); }}
-    .card-status-pill {{ position: absolute; top: 10px; left: 10px; z-index:2; padding: 4px 9px; border-radius: 4px; font-family:var(--mono); font-size:9.5px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; background: rgba(0,0,0,.6); backdrop-filter: blur(6px); }}
-    .pill-uc {{ color: var(--amber); }}
-    .pill-bg {{ color: var(--gold); }}
-    .pill-os {{ color: var(--purple-bright); }}
-    .pill-no {{ color: var(--green); }}
-    .pill-an {{ color: var(--mute); }}
-    .card-body {{ padding: 14px 16px 16px; }}
-    .card-title {{ font-family: var(--serif); font-size: 17px; font-weight: 500; letter-spacing:-.012em; line-height: 1.25; color: var(--white); margin-bottom: 4px; }}
-    .card-neigh {{ font-family:var(--mono); font-size: 10.5px; letter-spacing:.1em; text-transform:uppercase; color: var(--mute); }}
-    .card-meta {{ display:flex; gap:14px; margin-top:10px; padding-top:10px; border-top:1px solid rgba(255,255,255,.05); font-family:var(--mono); font-size:10px; letter-spacing:.04em; color: var(--mute); flex-wrap:wrap; }}
-    .card-meta span b {{ color: var(--cream); font-weight: 500; }}
+    /* Smaller, square gold badge with star — matches map marker style */
+    .card-feat-badge {{ position:absolute; top:10px; right:10px; z-index:2; width:22px; height:22px; border-radius:5px; background:var(--gold); display:inline-flex; align-items:center; justify-content:center; box-shadow:0 2px 6px rgba(0,0,0,.4); }}
+    .card-feat-badge svg {{ width:12px; height:12px; fill:#0a0a0a; }}
+    .card-img {{ height: 220px; background-size: cover; background-position: center; position: relative; }}
+    .card-img::after {{ content:""; position:absolute; inset:0; background:linear-gradient(180deg, transparent 60%, rgba(0,0,0,.45) 100%); }}
+    .card-body {{ padding: 18px 20px 20px; }}
+    .card-title {{ font-family: var(--serif); font-size: 22px; font-weight: 500; letter-spacing:-.014em; line-height: 1.2; color: var(--white); margin-bottom: 6px; }}
+    /* City/firm/location body font matches the map's body font (Inter regular) */
+    .card-loc {{ font-family: var(--sans); font-size: 13px; color: var(--mute-2); margin-bottom: 14px; }}
+    .card-verified {{ display:flex; align-items:center; gap:8px; font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,.5); margin-bottom: 12px; padding: 8px 0; border-top:1px solid var(--hair); border-bottom:1px solid var(--hair); }}
+    .card-v-ico {{ width:14px; height:14px; display:inline-block; }}
+    .card-v-ico svg {{ width:100%; height:100%; }}
+
+    /* Construction timeline (ported verbatim from generate_pages.py's
+       project page hero panel — same look, same data) */
+    .pm-tl {{ margin-bottom: 14px; }}
+    .pm-tl-date {{ text-align: right; font-family: var(--mono); font-size: 9px; letter-spacing: 0.06em; text-transform: uppercase; color: rgba(255,255,255,0.5); margin-bottom: 8px; }}
+    .pm-tl-meter {{ position: relative; height: 11px; border-radius: 999px; overflow: hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,0.55); }}
+    .pm-tl-grad {{ position: absolute; inset: 0; background: linear-gradient(90deg, #3a2f6b, #7C5CE0 38%, #A78BFA 64%, #1FDF67); }}
+    .pm-tl-empty {{ position: absolute; top: 0; bottom: 0; right: 0; background: #0d0f0e; box-shadow: inset 2px 0 3px rgba(0,0,0,0.6); }}
+    .pm-tl-knob {{ position: absolute; top: 50%; transform: translate(-50%,-50%); background: #fff; color: #0a0a0a; font-size: 9.5px; font-weight: 800; padding: 4px 9px; border-radius: 999px; white-space: nowrap; z-index: 2; font-family: var(--sans); box-shadow: 0 2px 6px rgba(0,0,0,.5); }}
+    .pm-tl-stages {{ display: flex; gap: 3px; margin-top: 10px; }}
+    .pm-tl-stage {{ flex: 1; font-size: 7.5px; letter-spacing: 0.02em; text-transform: uppercase; color: rgba(255,255,255,0.2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center; font-family: var(--sans); }}
+    .pm-tl-stage:first-child {{ text-align: left; }}
+    .pm-tl-stage:last-child {{ text-align: right; }}
+    .pm-tl-stage.done {{ color: rgba(255,255,255,0.5); }}
+
+    /* Mini stats grid (Start / Completion / Units / Floors) */
+    .pp-minis {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(72px, 1fr)); gap: 6px; margin-top: 14px; margin-bottom: 14px; }}
+    .pp-mini {{ padding: 10px 11px; background: rgba(0,0,0,.3); border: 1px solid rgba(255,255,255,.07); border-radius: 10px; overflow: hidden; }}
+    .pp-mini .v {{ font-family: var(--sans); font-size: 15px; font-weight: 800; letter-spacing: -.02em; color: var(--white); white-space: nowrap; }}
+    .pp-mini .k {{ font-family: var(--mono); font-size: 8px; letter-spacing: .07em; text-transform: uppercase; color: rgba(255,255,255,.4); margin-top: 5px; white-space: nowrap; }}
+
+    /* Developer & architect bubbles (mirrors project page .pp-firms) */
+    .pp-firms {{ display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }}
+    .pp-firm {{ background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 12px; padding: 13px 14px; text-decoration: none; color: inherit; display: block; transition: border-color .15s; }}
+    .pp-firm:hover {{ border-color: rgba(31,223,103,.35); }}
+    .pp-firm .k {{ font-family: var(--mono); font-size: 8.5px; letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,.4); }}
+    .pp-firm .v {{ font-family: var(--sans); font-size: 15px; font-weight: 700; color: var(--white); margin-top: 4px; line-height: 1.25; }}
+    .pp-firm .go {{ display: inline-block; margin-top: 7px; font-family: var(--mono); font-size: 9.5px; letter-spacing: .07em; color: var(--green); font-weight: 600; }}
+    .pp-firm-empty {{ cursor: default; }}
+    .pp-firm-empty:hover {{ border-color: rgba(255,255,255,.08); }}
 
     /* Firm panels */
     .leads {{ display:grid; grid-template-columns: 1fr 1fr; gap: 14px; }}
@@ -421,8 +534,11 @@ def render_page(
     .intel-eyebrow {{ font-family: var(--mono); font-size: 10.5px; letter-spacing: .2em; text-transform: uppercase; color: var(--purple-bright); margin-bottom: 14px; font-weight:600; display:inline-flex; align-items:center; gap:8px; }}
     .intel-eyebrow::before {{ content:""; width:6px; height:6px; border-radius:50%; background:var(--purple); box-shadow:0 0 10px var(--purple); }}
     .intel h2 {{ font-family: var(--serif); font-size: 28px; line-height: 1.2; font-weight: 500; letter-spacing:-.018em; color: var(--white); max-width: 28ch; }}
-    .intel .ex {{ font-family:var(--mono); font-size: 11px; letter-spacing:.06em; color: var(--mute); margin-top: 16px; line-height: 1.8; }}
-    .intel .ex span {{ display:inline-block; padding: 5px 11px; margin: 4px 6px 4px 0; background: rgba(255,255,255,.04); border: 1px solid var(--hair); border-radius: 999px; }}
+    .intel .ex {{ font-family:var(--mono); font-size: 11px; letter-spacing:.06em; color: var(--mute); margin-top: 16px; line-height: 1.9; }}
+    /* Try-chip font matches the map's body font (Inter), per UX feedback —
+       the chip is a query the user might tap, not a label, so it shouldn't
+       read as monospaced metadata. */
+    .intel .ex span {{ display:inline-block; padding: 6px 12px; margin: 4px 6px 4px 0; background: rgba(255,255,255,.04); border: 1px solid var(--hair); border-radius: 999px; font-family: var(--sans); font-size: 13px; letter-spacing: 0; text-transform: none; color: var(--cream); }}
     .intel form {{ display:flex; gap: 10px; margin-top: 22px; }}
     .intel input {{ flex: 1; background: rgba(0,0,0,.4); border: 1px solid rgba(167,139,250,.32); border-radius: 10px; padding: 14px 18px; font-family: var(--sans); font-size: 15px; color: var(--white); cursor: pointer; }}
     .intel input:focus {{ outline: 0; border-color: var(--purple-bright); }}
@@ -572,12 +688,30 @@ def render_page(
       var type = intelBox.getAttribute('data-intel-type') || '';
       var prefix = (city + ' ' + type).trim();
 
-      function openOverlayWith(q) {{
-        var full = prefix ? (prefix + (q ? ' ' + q : '')) : q;
+      // Two ways to open the overlay from this page:
+      //   - openSuggestionsWith(): clicking the input drops the user into the
+      //     starter (suggestions) state with the market name pre-filled —
+      //     they can type their own question with the filter implicit.
+      //   - openSearchWith(q): submitting the form OR clicking a try-chip
+      //     fires a real search with the market + question both included.
+      // Both versions fall back to deep-linking /?q= if the overlay script
+      // hasn't booted yet (defer load + slow connections).
+      function trackBeacon(q) {{
         try {{ window.tmwFunnelTrack && window.tmwFunnelTrack('intel_query', {{ source: 'market_page', city: city, type: type, q: (q || '').slice(0, 80) }}); }} catch (_){{}}
-        // tmwOverlay loads from /_shared/journal-search-overlay.js (defer).
-        // If it hasn't booted yet, fall back to deep-linking to the homepage
-        // which auto-opens the overlay from ?q=.
+      }}
+      function openSuggestionsWith() {{
+        trackBeacon('');
+        if (window.tmwOverlay && typeof window.tmwOverlay.openWithPrefix === 'function') {{
+          window.tmwOverlay.openWithPrefix(prefix);
+        }} else if (window.tmwOverlay && typeof window.tmwOverlay.open === 'function') {{
+          window.tmwOverlay.open(prefix);
+        }} else {{
+          window.location = '{ROOT_URL}/?q=' + encodeURIComponent(prefix);
+        }}
+      }}
+      function openSearchWith(q) {{
+        var full = prefix ? (prefix + (q ? ' ' + q : '')) : q;
+        trackBeacon(q);
         if (window.tmwOverlay && typeof window.tmwOverlay.open === 'function') {{
           window.tmwOverlay.open(full);
         }} else {{
@@ -585,25 +719,22 @@ def render_page(
         }}
       }}
 
-      // Clicking the input box opens the overlay (filter pre-applied).
+      // Clicking / focusing the input → suggestions panel with prefix in box.
       var input = document.getElementById('market-intel-input');
       if (input) {{
-        input.addEventListener('click',  function (e) {{ e.preventDefault(); openOverlayWith(''); }});
-        input.addEventListener('focus',  function (e) {{ e.preventDefault(); openOverlayWith(''); input.blur(); }});
+        input.addEventListener('click', function (e) {{ e.preventDefault(); openSuggestionsWith(); }});
+        input.addEventListener('focus', function (e) {{ e.preventDefault(); openSuggestionsWith(); input.blur(); }});
       }}
-      // Submitting the form (Enter or "Ask" button) opens the overlay with
-      // whatever's in the input — even though it's readonly, autofill or
-      // paste can still populate it.
+      // Form submit (Enter or "Ask" button) — runs the search.
       var f = document.getElementById('market-intel-form');
       if (f) f.addEventListener('submit', function (e) {{
         e.preventDefault();
-        openOverlayWith(((input && input.value) || '').trim());
+        openSearchWith(((input && input.value) || '').trim());
       }});
-      // Suggestion chips: clicking one opens the overlay with that exact
-      // question AND the city/type prefix applied.
+      // Try-chip click → real search with the chip text + market prefix.
       Array.prototype.forEach.call(document.querySelectorAll('.intel-chip'), function (chip) {{
         chip.style.cursor = 'pointer';
-        chip.addEventListener('click', function () {{ openOverlayWith(chip.getAttribute('data-q') || chip.textContent.trim()); }});
+        chip.addEventListener('click', function () {{ openSearchWith(chip.getAttribute('data-q') || chip.textContent.trim()); }});
       }});
 
       // Pro CTA → fire funnel beacon, then open the paywall (or fall back to
@@ -621,48 +752,100 @@ def render_page(
 """
 
 # ─── Page-specific copy generation ────────────────────────────────────
-def city_type_intro(city: str, ptype: str, n_total: int, n_uc: int, top_arch: str | None) -> tuple[str, str]:
-    type_label = TYPE_PHRASING.get(ptype, ptype + 's')
+def _status_breakdown(projects: list[dict]) -> dict[str, int]:
+    c = collections.Counter((p.get('Delivery') or '').strip() for p in projects)
+    return {
+        'uc': c.get('Under Construction', 0),
+        'bg': c.get('Breaking Ground', 0),
+        'os': c.get('Opening Soon', 0),
+        'no': c.get('Now Open', 0),
+        'an': c.get('Announced', 0),
+    }
+
+def _top_developer(projects: list[dict]) -> tuple[str|None, int]:
+    devs, _ = _count_firms(projects, 'Developer', 'DeveloperSlugs')
+    return devs.most_common(1)[0] if devs else (None, 0)
+
+def city_type_intro(city: str, ptype: str, projects: list[dict], top_arch: str|None) -> tuple[str, str]:
+    """ALL numbers in body copy are computed from the current `projects` slice
+    so a sheet edit (project added, status changed, etc.) refreshes them on
+    the next hourly generator run."""
+    s = _status_breakdown(projects)
+    n_total = len(projects)
     intro = (
         f'We\'re tracking <b>{n_total} new {ptype.lower()} developments</b> across {city} right now — '
-        f'with <b>{n_uc} under construction</b> and more breaking ground this cycle.'
+        f'with <b>{s["uc"]} under construction</b>'
     )
+    if s['bg']: intro += f', <b>{s["bg"]} breaking ground</b>'
+    if s['an']: intro += f', and <b>{s["an"]} just announced</b>'
+    intro += '.'
     if top_arch:
         intro += f' The cycle is anchored by <b>{esc(top_arch)}</b>, leading firm by project count in this market.'
     intro += f' Every project links to a live status page with milestones, renderings, and our <a href="{ROOT_URL}/journal/">journal coverage</a>.'
+
+    top_dev, top_dev_n = _top_developer(projects)
+    dev_line = (
+        f'Most active developer in this market: <b>{esc(top_dev)}</b> with <b>{top_dev_n} project{"s" if top_dev_n != 1 else ""}</b>.'
+        if top_dev else ''
+    )
+    open_count = s['os'] + s['no']
+    open_line = (
+        f'<b>{open_count} project{"s" if open_count != 1 else ""}</b> are at the finish line — opening soon or already delivered.'
+        if open_count else ''
+    )
     long_copy = (
         f'<h2>What\'s happening in {esc(city)} {ptype.lower()} right now</h2>'
         f'<p>{intro}</p>'
-        f'<h2>How we built this list</h2>'
-        f'<p>Every project on this page is on the <a href="{ROOT_URL}/map/">Map of Tomorrow</a> — our live database of new and under-construction developments worldwide. We add a project only after we can confirm it from a public filing, an official announcement, or independent reporting; status changes (breaking ground, topping out, opening) are sourced the same way and timestamped. <a href="{ROOT_URL}/map/?upgrade=1">Pro members</a> get our weekly slippage forecasts and the full dataset by phase, neighborhood, and architect.</p>'
+        + (f'<p>{dev_line} {open_line}</p>' if (dev_line or open_line) else '')
+        + f'<h2>How we built this list</h2>'
+          f'<p>Every project on this page is on the <a href="{ROOT_URL}/map/">Map of Tomorrow</a> — our live database of new and under-construction developments worldwide. We add a project only after we can confirm it from a public filing, an official announcement, or independent reporting; status changes (breaking ground, topping out, opening) are sourced the same way and timestamped. <a href="{ROOT_URL}/map/?upgrade=1">Pro members</a> get our weekly Slippage Report and the full dataset by phase, neighborhood, and architect.</p>'
     )
     return intro, long_copy
 
-def city_intro(city: str, n_total: int, top_types: list[tuple[str,int]]) -> tuple[str, str]:
+def city_intro(city: str, projects: list[dict], top_types: list[tuple[str,int]]) -> tuple[str, str]:
+    s = _status_breakdown(projects)
+    n_total = len(projects)
     types_phrase = ', '.join(f'<b>{esc(t)}</b> ({n})' for t, n in top_types[:3])
     intro = (
         f'We\'re tracking <b>{n_total} new developments</b> in {city} across every category — '
         f'including {types_phrase}. Every project below links to a live status page with milestones, renderings, '
         f'and our <a href="{ROOT_URL}/journal/">journal coverage</a>.'
     )
+    status_line = (
+        f'Right now: <b>{s["uc"]} under construction</b>, <b>{s["bg"]} breaking ground</b>, <b>{s["os"]} opening soon</b>, '
+        f'and <b>{s["an"]} newly announced</b>.'
+    )
+    top_dev, top_dev_n = _top_developer(projects)
+    dev_line = (
+        f'Most active developer across the {esc(city)} pipeline: <b>{esc(top_dev)}</b> with <b>{top_dev_n} project{"s" if top_dev_n != 1 else ""}</b>.'
+        if top_dev else ''
+    )
     long_copy = (
         f'<h2>The {esc(city)} pipeline</h2>'
         f'<p>{intro}</p>'
-        f'<h2>How we built this list</h2>'
-        f'<p>Every project on this page is on the <a href="{ROOT_URL}/map/">Map of Tomorrow</a> — our live database of new and under-construction developments worldwide. We add a project only after we can confirm it from a public filing, an official announcement, or independent reporting; status changes are sourced the same way and timestamped. <a href="{ROOT_URL}/map/?upgrade=1">Pro members</a> get our weekly slippage forecasts and the full dataset by phase, neighborhood, architect, and developer.</p>'
+        f'<p>{status_line}</p>'
+        + (f'<p>{dev_line}</p>' if dev_line else '')
+        + f'<h2>How we built this list</h2>'
+          f'<p>Every project on this page is on the <a href="{ROOT_URL}/map/">Map of Tomorrow</a> — our live database of new and under-construction developments worldwide. We add a project only after we can confirm it from a public filing, an official announcement, or independent reporting; status changes are sourced the same way and timestamped. <a href="{ROOT_URL}/map/?upgrade=1">Pro members</a> get our weekly Slippage Report and the full dataset by phase, neighborhood, architect, and developer.</p>'
     )
     return intro, long_copy
 
-def type_intro(ptype: str, n_total: int, top_cities: list[tuple[str,int]]) -> tuple[str, str]:
-    type_label = TYPE_PHRASING.get(ptype, ptype + 's')
+def type_intro(ptype: str, projects: list[dict], top_cities: list[tuple[str,int]]) -> tuple[str, str]:
+    s = _status_breakdown(projects)
+    n_total = len(projects)
     cities_phrase = ', '.join(f'<b>{esc(c)}</b> ({n})' for c, n in top_cities[:3])
     intro = (
         f'We\'re tracking <b>{n_total} new {ptype.lower()} developments</b> worldwide — '
         f'with the deepest pipelines in {cities_phrase}.'
     )
+    status_line = (
+        f'<b>{s["uc"]} under construction</b>, <b>{s["bg"]} breaking ground</b>, '
+        f'<b>{s["os"]} opening soon</b>, and <b>{s["no"]} already open</b> in the dataset.'
+    )
     long_copy = (
         f'<h2>The global {ptype.lower()} pipeline</h2>'
         f'<p>{intro}</p>'
+        f'<p>{status_line}</p>'
         f'<h2>How we built this list</h2>'
         f'<p>Every project on this page is on the <a href="{ROOT_URL}/map/">Map of Tomorrow</a>, our live database of new and under-construction developments worldwide. We add a project only after we can confirm it from a public filing, an official announcement, or independent reporting; status changes are sourced the same way and timestamped. <a href="{ROOT_URL}/map/?upgrade=1">Pro members</a> get our weekly Slippage Report and the full filterable dataset.</p>'
     )
@@ -670,11 +853,35 @@ def type_intro(ptype: str, n_total: int, top_cities: list[tuple[str,int]]) -> tu
 
 # ─── Build the index hub at /markets/ ────────────────────────────────
 def render_hub(city_type_pairs, city_pages, type_pages):
-    """Index page at /markets/index.html linking every generated market page."""
-    ct_html = ''.join(
-        f'<a class="rel-card" href="{ROOT_URL}/markets/{slugify(c)}-{slugify(t)}/"><div class="city">{esc(c)}</div><div class="name">{esc(t)}</div><div class="count">{n} tracked →</div></a>'
+    """Index page at /markets/index.html. The old "By city × category" section
+    is replaced by an in-page filter calculator — user picks a city + category
+    + status, the page hot-swaps to show what we track for that combination
+    (and links to the dedicated landing page when one exists). Falls back to
+    a flat city + category browse below for direct navigation.
+
+    All option lists + the city×type lookup table are baked into the page at
+    generation time, so the calculator runs entirely client-side with zero
+    fetches and stays accurate the moment the generator runs."""
+    # JSON lookup: { "miami|residences": { url: "/markets/...", n: 69 }, ... }
+    ct_lookup = {
+        f'{slugify(c)}|{slugify(t)}': {
+            'url':  f'/markets/{slugify(c)}-{slugify(t)}/',
+            'n':    n,
+            'city': c,
+            'type': t,
+        }
         for (c, t, n) in city_type_pairs
-    )
+    }
+    city_lookup = {slugify(c): {'url': f'/markets/{slugify(c)}/', 'n': n, 'city': c} for (c, n) in city_pages}
+    type_lookup = {slugify(t): {'url': f'/markets/by-type/{slugify(t)}/', 'n': n, 'type': t} for (t, n) in type_pages}
+
+    # Options sorted by project count (highest = most relevant first)
+    city_opts = sorted({c for (c, _, _) in city_type_pairs} | {c for (c, _) in city_pages})
+    type_opts = sorted({t for (_, t, _) in city_type_pairs} | {t for (t, _) in type_pages})
+
+    city_options_html = ''.join(f'<option value="{esc(slugify(c))}">{esc(c)}</option>' for c in city_opts)
+    type_options_html = ''.join(f'<option value="{esc(slugify(t))}">{esc(t)}</option>' for t in type_opts)
+
     city_html = ''.join(
         f'<a class="rel-card" href="{ROOT_URL}/markets/{slugify(c)}/"><div class="city">All categories</div><div class="name">{esc(c)}</div><div class="count">{n} tracked →</div></a>'
         for (c, n) in city_pages
@@ -690,19 +897,27 @@ def render_hub(city_type_pairs, city_pages, type_pages):
         for name, link in crumbs
     )
     total_links = len(city_type_pairs) + len(city_pages) + len(type_pages)
+
+    # Serialize lookups for the client-side filter
+    lookups_json = json.dumps({
+        'cityType': ct_lookup,
+        'city':     city_lookup,
+        'type':     type_lookup,
+    }, ensure_ascii=False)
+
     return f"""<!DOCTYPE html>
 <html lang="en"><head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
   <title>All Markets | {SITE_NAME}</title>
-  <meta name="description" content="Browse every market we track on the Map of Tomorrow — by city, by project type, or by city × category. {total_links} live landing pages.">
+  <meta name="description" content="Browse every market we track on the Map of Tomorrow — filter by city, category, or status to find the projects in your pipeline. {total_links} live landing pages.">
   <link rel="canonical" href="{canonical}">
   <meta name="robots" content="index, follow">
   <link rel="icon" href="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_71f3cd2ef61049028b2daf4e2ff71d52~mv2.png" type="image/png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
-    :root {{ --ink:#0d0d0d; --hair:rgba(255,255,255,.08); --white:#fff; --cream:#ECEAE5; --mute:#9AA39C; --mute-2:#C2C9C3; --purple:#A78BFA; --purple-bright:#C4B5FD;
+    :root {{ --ink:#0d0d0d; --hair:rgba(255,255,255,.08); --white:#fff; --cream:#ECEAE5; --mute:#9AA39C; --mute-2:#C2C9C3; --purple:#A78BFA; --purple-bright:#C4B5FD; --gold:#FFD300;
       --sans:'Inter',-apple-system,sans-serif; --serif:'Fraunces',Georgia,serif; --mono:'JetBrains Mono',ui-monospace,monospace; }}
     *,*::before,*::after {{ box-sizing:border-box; margin:0; padding:0; }}
     body {{ background:var(--ink); color:var(--cream); font-family:var(--sans); line-height:1.55; }}
@@ -718,33 +933,142 @@ def render_hub(city_type_pairs, city_pages, type_pages):
     .hero .sub {{ font-family:var(--serif); font-style:italic; font-weight:300; font-size:20px; color:var(--mute-2); margin-top:18px; line-height:1.5; max-width:62ch; }}
     .section {{ padding:46px 0; border-bottom:1px solid var(--hair); }}
     .section h2 {{ font-family:var(--serif); font-size:28px; font-weight:500; letter-spacing:-.018em; color:var(--white); margin-bottom:22px; }}
+    .section-eyebrow {{ font-family:var(--mono); font-size:10.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--purple-bright); margin-bottom:8px; font-weight:600; }}
     .related {{ display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:10px; }}
     .rel-card {{ background:rgba(255,255,255,.02); border:1px solid var(--hair); border-radius:12px; padding:18px 20px; display:block; transition:border-color .15s, transform .15s; }}
     .rel-card:hover {{ border-color:rgba(167,139,250,.4); transform:translateY(-2px); }}
     .rel-card .city {{ font-family:var(--mono); font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--mute); }}
     .rel-card .name {{ font-family:var(--serif); font-size:18px; font-weight:500; color:var(--white); margin-top:6px; line-height:1.2; }}
     .rel-card .count {{ font-family:var(--mono); font-size:11px; color:var(--purple-bright); margin-top:8px; }}
+
+    /* ── Filter calculator ───────────────────────────────────────── */
+    .mc-box {{ background: linear-gradient(120deg, rgba(167,139,250,.10), rgba(255,211,0,.03)); border: 1px solid rgba(167,139,250,.30); border-radius: 18px; padding: 28px 30px; }}
+    .mc-row {{ display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 12px; align-items: end; }}
+    .mc-field label {{ display:block; font-family: var(--mono); font-size: 10px; letter-spacing:.14em; text-transform: uppercase; color: var(--purple-bright); margin-bottom: 8px; font-weight: 600; }}
+    .mc-field select,
+    .mc-field input {{ width: 100%; background: rgba(0,0,0,.45); border: 1px solid rgba(167,139,250,.32); border-radius: 10px; padding: 14px 16px; font-family: var(--sans); font-size: 15px; color: var(--white); appearance: none; cursor: pointer; }}
+    .mc-field select:focus, .mc-field input:focus {{ outline: 0; border-color: var(--purple-bright); }}
+    .mc-go {{ font-family: var(--mono); font-size: 11px; letter-spacing:.12em; text-transform: uppercase; font-weight: 700; padding: 14px 22px; border-radius: 10px; background: var(--purple); color: #0a0a0a; border: 0; cursor: pointer; white-space: nowrap; }}
+    .mc-go[disabled] {{ background: rgba(255,255,255,.1); color: var(--mute); cursor: not-allowed; }}
+    .mc-result {{ margin-top: 22px; padding: 22px 24px; background: rgba(0,0,0,.35); border: 1px solid var(--hair); border-radius: 12px; display: none; }}
+    .mc-result.show {{ display: block; }}
+    .mc-result .head {{ font-family: var(--mono); font-size: 10px; letter-spacing:.18em; text-transform: uppercase; color: var(--mute); margin-bottom: 8px; }}
+    .mc-result .big {{ font-family: var(--serif); font-size: 32px; line-height: 1.15; color: var(--white); letter-spacing:-.018em; font-weight: 500; }}
+    .mc-result .big b {{ color: var(--gold); }}
+    .mc-result .cta {{ display: inline-block; margin-top: 14px; padding: 12px 20px; background: var(--gold); color: #0a0a0a; font-family: var(--mono); font-size: 11px; letter-spacing:.12em; text-transform: uppercase; font-weight: 700; border-radius: 10px; }}
+    .mc-result .ghost {{ display:inline-block; margin-left: 10px; font-family: var(--mono); font-size: 10.5px; letter-spacing:.12em; text-transform: uppercase; color: var(--purple-bright); }}
+    @media (max-width: 720px) {{ .mc-row {{ grid-template-columns: 1fr; }} }}
   </style>
 </head><body>
   <div class="wrap">
     <nav class="crumbs">{crumbs_html}</nav>
     <section class="hero">
       <h1>Every market we track.</h1>
-      <p class="sub">{total_links} live landing pages across {SITE_NAME}, built from our database of new developments — by city, by category, or by both.</p>
+      <p class="sub">{total_links} live landing pages across {SITE_NAME}, built from our database of new developments. Filter below or browse by city or category.</p>
     </section>
+
     <section class="section">
-      <h2>By city × category</h2>
-      <div class="related">{ct_html}</div>
+      <div class="section-eyebrow">Market calculator</div>
+      <h2>Build your own market view.</h2>
+      <div class="mc-box">
+        <form id="mc-form" class="mc-row">
+          <div class="mc-field">
+            <label for="mc-city">City</label>
+            <select id="mc-city">
+              <option value="">Any city</option>
+              {city_options_html}
+            </select>
+          </div>
+          <div class="mc-field">
+            <label for="mc-type">Category</label>
+            <select id="mc-type">
+              <option value="">Any category</option>
+              {type_options_html}
+            </select>
+          </div>
+          <div class="mc-field">
+            <label for="mc-year">Delivery by</label>
+            <select id="mc-year">
+              <option value="">Any time</option>
+              <option value="2026">By end of 2026</option>
+              <option value="2027">By end of 2027</option>
+              <option value="2028">By end of 2028</option>
+              <option value="2030">By end of 2030</option>
+            </select>
+          </div>
+          <button type="submit" class="mc-go" id="mc-go">Show me →</button>
+        </form>
+        <div id="mc-result" class="mc-result" aria-live="polite"></div>
+      </div>
     </section>
+
     <section class="section">
-      <h2>By city</h2>
+      <h2>Browse by city</h2>
       <div class="related">{city_html}</div>
     </section>
     <section class="section">
-      <h2>By category</h2>
+      <h2>Browse by category</h2>
       <div class="related">{type_html}</div>
     </section>
   </div>
+  <script id="mc-data" type="application/json">{lookups_json}</script>
+  <script>
+    (function() {{
+      var data = JSON.parse(document.getElementById('mc-data').textContent);
+      var $city = document.getElementById('mc-city');
+      var $type = document.getElementById('mc-type');
+      var $year = document.getElementById('mc-year');
+      var $result = document.getElementById('mc-result');
+      var $form = document.getElementById('mc-form');
+
+      function fmtYearTail(y) {{
+        return y ? ' delivering by end of ' + y : '';
+      }}
+
+      function compute() {{
+        var c = $city.value, t = $type.value, y = $year.value;
+        if (c && t) {{
+          var ent = data.cityType[c + '|' + t];
+          if (ent) return {{ found: true, n: ent.n, city: ent.city, type: ent.type, url: ent.url, label: ent.city + ' · ' + ent.type, hasPage: true }};
+          return {{ found: false, label: c + ' · ' + t, urlMap: '/map/?q=' + encodeURIComponent((data.city[c] && data.city[c].city || c) + ' ' + (data.type[t] && data.type[t].type || t)) }};
+        }}
+        if (c) {{
+          var ec = data.city[c];
+          if (ec) return {{ found: true, n: ec.n, city: ec.city, label: ec.city, url: ec.url, hasPage: true }};
+        }}
+        if (t) {{
+          var et = data.type[t];
+          if (et) return {{ found: true, n: et.n, type: et.type, label: et.type, url: et.url, hasPage: true }};
+        }}
+        return null;
+      }}
+
+      function render() {{
+        var r = compute();
+        if (!r) {{
+          $result.classList.remove('show');
+          return;
+        }}
+        $result.classList.add('show');
+        var y = $year.value;
+        if (r.found) {{
+          $result.innerHTML =
+            '<div class="head">Tracking</div>' +
+            '<div class="big"><b>' + r.n + '</b> project' + (r.n === 1 ? '' : 's') + ' in <b>' + r.label + '</b>' + fmtYearTail(y) + '.</div>' +
+            (r.hasPage ? '<a class="cta" href="' + r.url + '">Open ' + r.label + ' →</a>' : '') +
+            '<a class="ghost" href="/map/?q=' + encodeURIComponent(r.label + (y ? (' ' + y) : '')) + '">Refine on map →</a>';
+        }} else {{
+          $result.innerHTML =
+            '<div class="head">No landing page yet</div>' +
+            '<div class="big">We track fewer than 3 projects in <b>' + r.label + '</b> right now — not enough for a dedicated page.</div>' +
+            '<a class="cta" href="' + r.urlMap + '">See what we have on the map →</a>';
+        }}
+      }}
+
+      [$city, $type, $year].forEach(function(el) {{ el.addEventListener('change', render); }});
+      $form.addEventListener('submit', function(e) {{ e.preventDefault(); render(); }});
+    }})();
+  </script>
   <script src="/_shared/journal-chrome.js" defer></script>
   <script src="/_shared/journal-dock.js" defer></script>
 </body></html>
@@ -777,7 +1101,6 @@ def main():
         path = f"{OUTPUT_DIR}/{slug}/"
         os.makedirs(path, exist_ok=True)
 
-        n_uc = sum(1 for p in bucket if (p.get('Delivery') or '').strip() == 'Under Construction')
         # Top architect (excluding ties) for the intro paragraph
         arch_counter = collections.Counter()
         for p in bucket:
@@ -785,12 +1108,13 @@ def main():
                 a = a.strip()
                 if a: arch_counter[a] += 1
         top_arch = arch_counter.most_common(1)[0][0] if arch_counter else None
-        intro, long_copy = city_type_intro(city, ptype, len(bucket), n_uc, top_arch)
+        intro, long_copy = city_type_intro(city, ptype, bucket, top_arch)
 
         type_label = TYPE_PHRASING.get(ptype, ptype + 's')
         h1 = f"New {city} {type_label}"
         title_tag = f"{len(bucket)} New {city} {type_label} | {SITE_NAME}"
-        meta_desc = f"We're tracking {len(bucket)} new {ptype.lower()} developments in {city} — {n_uc} under construction, plus more breaking ground and announced. Live status, architects, developers."
+        _sb = _status_breakdown(bucket)
+        meta_desc = f"We're tracking {len(bucket)} new {ptype.lower()} developments in {city} — {_sb['uc']} under construction, plus {_sb['bg']} breaking ground and {_sb['an']} announced. Live status, architects, developers."
 
         crumbs = [('TMW','/'), ('Markets','/markets/'), (city, f'/markets/{slugify(city)}/' if len(by_city.get(city, [])) >= CITY_MIN else None), (ptype, None)]
 
@@ -841,7 +1165,7 @@ def main():
         bucket_sorted = sort_projects(bucket)
         # Top types in this city
         type_counter = collections.Counter((p.get('PreferredType') or '').strip() for p in bucket if (p.get('PreferredType') or '').strip())
-        intro, long_copy = city_intro(city, len(bucket), type_counter.most_common(3))
+        intro, long_copy = city_intro(city, bucket, type_counter.most_common(3))
         h1 = f"New Developments in {city}"
         title_tag = f"{len(bucket)} New Developments in {city} | {SITE_NAME}"
         meta_desc = f"Every new development we're tracking in {city} — {len(bucket)} projects across {len(type_counter)} categories."
@@ -890,7 +1214,7 @@ def main():
         if not ptype: continue
         bucket_sorted = sort_projects(bucket)
         city_counter = collections.Counter((p.get('City') or '').strip() for p in bucket if (p.get('City') or '').strip())
-        intro, long_copy = type_intro(ptype, len(bucket), city_counter.most_common(3))
+        intro, long_copy = type_intro(ptype, bucket, city_counter.most_common(3))
         type_label = TYPE_PHRASING.get(ptype, ptype + 's')
         h1 = f"New {type_label} Worldwide"
         title_tag = f"{len(bucket)} New {type_label} | {SITE_NAME}"

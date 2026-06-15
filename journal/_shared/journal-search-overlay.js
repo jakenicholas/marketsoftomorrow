@@ -1734,6 +1734,13 @@
     // silently show NO hero.
     function pickHero(rs, sm) {
       if (!rs.length) return null;
+      // When the user asked for a quantitative ranking ("tallest", "biggest",
+      // "most units"), buildSmartAnswer has already sorted rs and the intel
+      // panel will quote rs[0] as the headline answer. Promoting a different
+      // row to the hero just because its PreferredType matches the type
+      // filter desyncs the page (intel says one project, hero shows another).
+      // So when sort is active, trust the order.
+      if (sm && sm.sort && sm.sort.key) return rs[0];
       if (sm && sm.types && sm.types.size) {
         var typeList = [];
         sm.types.forEach(function (t) { typeList.push(String(t).toLowerCase()); });
@@ -2554,9 +2561,38 @@
     open(q);
   }, true);
 
+  // Open with a prefix populated but NO search fired — used by SEO market
+  // pages where the user lands at /markets/west-palm-beach-residences/ and
+  // clicks the "Ask anything about this market" input. We want to drop them
+  // into the starter/suggestions state with the market name already in the
+  // box so they can continue typing their question with the filter implicit.
+  function openWithPrefix(prefix) {
+    if (root.classList.contains('open')) return;
+    _savedScrollY = window.scrollY || window.pageYOffset || 0;
+    document.documentElement.style.overflow = 'hidden';
+    root.classList.add('open');
+    setState('starter');                     // stays in starter (no search run)
+    refreshProPill();
+    input.value = '';
+    if (prefix && prefix.trim()) {
+      var v = prefix.trim() + ' ';
+      input.value = v;
+    }
+    try { if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); } catch(_){}
+    setTimeout(function(){
+      try { input.focus({ preventScroll: true }); } catch(_) { input.focus(); }
+      // Drop cursor at the end so they can type immediately after the prefix.
+      try { input.setSelectionRange(input.value.length, input.value.length); } catch(_) {}
+    }, 180);
+    loadData();
+    pushHash();
+    try { if (window.__tmwPing) window.__tmwPing(); } catch(_){}
+  }
+
   // ── public API ────────────────────────────────────────────────────
   window.tmwOverlay = {
     open: open,
+    openWithPrefix: openWithPrefix,
     close: close,
     isOpen: function(){ return root.classList.contains('open'); }
   };

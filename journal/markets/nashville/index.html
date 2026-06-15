@@ -79,26 +79,56 @@
     .section-meta { font-family:var(--mono); font-size: 11px; letter-spacing:.12em; text-transform:uppercase; color: var(--mute); }
     .section-meta a { color: var(--purple-bright); text-decoration: underline; text-underline-offset:3px; }
 
-    /* Project grid — same card system the article + projects pages use */
-    .grid.tmw-project-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
-    .card { display:block; background:#111; border-radius:12px; overflow:hidden; transition: transform .15s, border-color .15s; border:1px solid transparent; position:relative; }
+    /* Project grid — 2 columns desktop, 1 column mobile. Each card now
+       includes title, location, last-verified row, the full construction
+       timeline, mini stats, and developer/architect bubbles — matching the
+       project page hero panel so visitors get the same context inline. */
+    .grid.tmw-project-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(420px, 1fr)); gap: 14px; }
+    .card { display:block; background:#111; border-radius:14px; overflow:hidden; transition: transform .15s, border-color .15s; border:1px solid transparent; position:relative; }
     .card:hover { transform: translateY(-2px); border-color: rgba(167,139,250,.3); }
     .card.featured { box-shadow: 0 0 0 1px rgba(255,211,0,.32), 0 8px 24px rgba(255,211,0,.06); }
-    .card-feat-badge { position:absolute; top:10px; right:10px; z-index:2; width:28px; height:28px; border-radius:6px; background:var(--gold); display:inline-flex; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(0,0,0,.4); }
-    .card-feat-badge svg { width:16px; height:16px; fill:#0a0a0a; }
-    .card-img { height: 180px; background-size: cover; background-position: center; position: relative; }
-    .card-img::after { content:""; position:absolute; inset:0; background:linear-gradient(180deg, transparent 55%, rgba(0,0,0,.55) 100%); }
-    .card-status-pill { position: absolute; top: 10px; left: 10px; z-index:2; padding: 4px 9px; border-radius: 4px; font-family:var(--mono); font-size:9.5px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; background: rgba(0,0,0,.6); backdrop-filter: blur(6px); }
-    .pill-uc { color: var(--amber); }
-    .pill-bg { color: var(--gold); }
-    .pill-os { color: var(--purple-bright); }
-    .pill-no { color: var(--green); }
-    .pill-an { color: var(--mute); }
-    .card-body { padding: 14px 16px 16px; }
-    .card-title { font-family: var(--serif); font-size: 17px; font-weight: 500; letter-spacing:-.012em; line-height: 1.25; color: var(--white); margin-bottom: 4px; }
-    .card-neigh { font-family:var(--mono); font-size: 10.5px; letter-spacing:.1em; text-transform:uppercase; color: var(--mute); }
-    .card-meta { display:flex; gap:14px; margin-top:10px; padding-top:10px; border-top:1px solid rgba(255,255,255,.05); font-family:var(--mono); font-size:10px; letter-spacing:.04em; color: var(--mute); flex-wrap:wrap; }
-    .card-meta span b { color: var(--cream); font-weight: 500; }
+    /* Smaller, square gold badge with star — matches map marker style */
+    .card-feat-badge { position:absolute; top:10px; right:10px; z-index:2; width:22px; height:22px; border-radius:5px; background:var(--gold); display:inline-flex; align-items:center; justify-content:center; box-shadow:0 2px 6px rgba(0,0,0,.4); }
+    .card-feat-badge svg { width:12px; height:12px; fill:#0a0a0a; }
+    .card-img { height: 220px; background-size: cover; background-position: center; position: relative; }
+    .card-img::after { content:""; position:absolute; inset:0; background:linear-gradient(180deg, transparent 60%, rgba(0,0,0,.45) 100%); }
+    .card-body { padding: 18px 20px 20px; }
+    .card-title { font-family: var(--serif); font-size: 22px; font-weight: 500; letter-spacing:-.014em; line-height: 1.2; color: var(--white); margin-bottom: 6px; }
+    /* City/firm/location body font matches the map's body font (Inter regular) */
+    .card-loc { font-family: var(--sans); font-size: 13px; color: var(--mute-2); margin-bottom: 14px; }
+    .card-verified { display:flex; align-items:center; gap:8px; font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,.5); margin-bottom: 12px; padding: 8px 0; border-top:1px solid var(--hair); border-bottom:1px solid var(--hair); }
+    .card-v-ico { width:14px; height:14px; display:inline-block; }
+    .card-v-ico svg { width:100%; height:100%; }
+
+    /* Construction timeline (ported verbatim from generate_pages.py's
+       project page hero panel — same look, same data) */
+    .pm-tl { margin-bottom: 14px; }
+    .pm-tl-date { text-align: right; font-family: var(--mono); font-size: 9px; letter-spacing: 0.06em; text-transform: uppercase; color: rgba(255,255,255,0.5); margin-bottom: 8px; }
+    .pm-tl-meter { position: relative; height: 11px; border-radius: 999px; overflow: hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,0.55); }
+    .pm-tl-grad { position: absolute; inset: 0; background: linear-gradient(90deg, #3a2f6b, #7C5CE0 38%, #A78BFA 64%, #1FDF67); }
+    .pm-tl-empty { position: absolute; top: 0; bottom: 0; right: 0; background: #0d0f0e; box-shadow: inset 2px 0 3px rgba(0,0,0,0.6); }
+    .pm-tl-knob { position: absolute; top: 50%; transform: translate(-50%,-50%); background: #fff; color: #0a0a0a; font-size: 9.5px; font-weight: 800; padding: 4px 9px; border-radius: 999px; white-space: nowrap; z-index: 2; font-family: var(--sans); box-shadow: 0 2px 6px rgba(0,0,0,.5); }
+    .pm-tl-stages { display: flex; gap: 3px; margin-top: 10px; }
+    .pm-tl-stage { flex: 1; font-size: 7.5px; letter-spacing: 0.02em; text-transform: uppercase; color: rgba(255,255,255,0.2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center; font-family: var(--sans); }
+    .pm-tl-stage:first-child { text-align: left; }
+    .pm-tl-stage:last-child { text-align: right; }
+    .pm-tl-stage.done { color: rgba(255,255,255,0.5); }
+
+    /* Mini stats grid (Start / Completion / Units / Floors) */
+    .pp-minis { display: grid; grid-template-columns: repeat(auto-fit, minmax(72px, 1fr)); gap: 6px; margin-top: 14px; margin-bottom: 14px; }
+    .pp-mini { padding: 10px 11px; background: rgba(0,0,0,.3); border: 1px solid rgba(255,255,255,.07); border-radius: 10px; overflow: hidden; }
+    .pp-mini .v { font-family: var(--sans); font-size: 15px; font-weight: 800; letter-spacing: -.02em; color: var(--white); white-space: nowrap; }
+    .pp-mini .k { font-family: var(--mono); font-size: 8px; letter-spacing: .07em; text-transform: uppercase; color: rgba(255,255,255,.4); margin-top: 5px; white-space: nowrap; }
+
+    /* Developer & architect bubbles (mirrors project page .pp-firms) */
+    .pp-firms { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .pp-firm { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 12px; padding: 13px 14px; text-decoration: none; color: inherit; display: block; transition: border-color .15s; }
+    .pp-firm:hover { border-color: rgba(31,223,103,.35); }
+    .pp-firm .k { font-family: var(--mono); font-size: 8.5px; letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,.4); }
+    .pp-firm .v { font-family: var(--sans); font-size: 15px; font-weight: 700; color: var(--white); margin-top: 4px; line-height: 1.25; }
+    .pp-firm .go { display: inline-block; margin-top: 7px; font-family: var(--mono); font-size: 9.5px; letter-spacing: .07em; color: var(--green); font-weight: 600; }
+    .pp-firm-empty { cursor: default; }
+    .pp-firm-empty:hover { border-color: rgba(255,255,255,.08); }
 
     /* Firm panels */
     .leads { display:grid; grid-template-columns: 1fr 1fr; gap: 14px; }
@@ -116,8 +146,11 @@
     .intel-eyebrow { font-family: var(--mono); font-size: 10.5px; letter-spacing: .2em; text-transform: uppercase; color: var(--purple-bright); margin-bottom: 14px; font-weight:600; display:inline-flex; align-items:center; gap:8px; }
     .intel-eyebrow::before { content:""; width:6px; height:6px; border-radius:50%; background:var(--purple); box-shadow:0 0 10px var(--purple); }
     .intel h2 { font-family: var(--serif); font-size: 28px; line-height: 1.2; font-weight: 500; letter-spacing:-.018em; color: var(--white); max-width: 28ch; }
-    .intel .ex { font-family:var(--mono); font-size: 11px; letter-spacing:.06em; color: var(--mute); margin-top: 16px; line-height: 1.8; }
-    .intel .ex span { display:inline-block; padding: 5px 11px; margin: 4px 6px 4px 0; background: rgba(255,255,255,.04); border: 1px solid var(--hair); border-radius: 999px; }
+    .intel .ex { font-family:var(--mono); font-size: 11px; letter-spacing:.06em; color: var(--mute); margin-top: 16px; line-height: 1.9; }
+    /* Try-chip font matches the map's body font (Inter), per UX feedback —
+       the chip is a query the user might tap, not a label, so it shouldn't
+       read as monospaced metadata. */
+    .intel .ex span { display:inline-block; padding: 6px 12px; margin: 4px 6px 4px 0; background: rgba(255,255,255,.04); border: 1px solid var(--hair); border-radius: 999px; font-family: var(--sans); font-size: 13px; letter-spacing: 0; text-transform: none; color: var(--cream); }
     .intel form { display:flex; gap: 10px; margin-top: 22px; }
     .intel input { flex: 1; background: rgba(0,0,0,.4); border: 1px solid rgba(167,139,250,.32); border-radius: 10px; padding: 14px 18px; font-family: var(--sans); font-size: 15px; color: var(--white); cursor: pointer; }
     .intel input:focus { outline: 0; border-color: var(--purple-bright); }
@@ -189,99 +222,147 @@
       </div>
       <div class="grid tmw-project-grid">
 <a class="card" href="https://www.oftmw.com/projects/1-iris-lane-the-residences-at-belle-meade-village/">
-  <div class="card-img" data-lightbox-src="https://cdn.sanity.io/images/9mpasezg/development/756cd4045f0b99542c73fff1a24b063fc8ad1cd9-5000x3125.jpg" data-lightbox-caption="1 Iris Lane, The Residences at Belle Meade Village · Nashville" style="background-image:url('https://cdn.sanity.io/images/9mpasezg/development/756cd4045f0b99542c73fff1a24b063fc8ad1cd9-5000x3125.jpg')"><span class="card-status-pill pill-uc">Under Construction</span></div>
+  <div class="card-img" data-lightbox-src="https://cdn.sanity.io/images/9mpasezg/development/756cd4045f0b99542c73fff1a24b063fc8ad1cd9-5000x3125.jpg" data-lightbox-caption="1 Iris Lane, The Residences at Belle Meade Village · Nashville" style="background-image:url('https://cdn.sanity.io/images/9mpasezg/development/756cd4045f0b99542c73fff1a24b063fc8ad1cd9-5000x3125.jpg')"></div>
   <div class="card-body">
     <div class="card-title">1 Iris Lane, The Residences at Belle Meade Village</div>
-    <div class="card-neigh">Nashville</div>
-    <div class="card-meta"><span>By <b>AJ Capital Partners</b></span><span>·</span><span>Hartshorne Plunkard Architecture</span></div>
+    <div class="card-loc">Nashville</div>
+    <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 9, 2026</span></div>
+    
+    <div class="pm-tl"><div class="pm-tl-date">2.5 yrs to delivery</div>
+      <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
+        <div class="pm-tl-empty" style="left:43%"></div>
+        <div class="pm-tl-knob" style="left:43%;box-shadow:0 2px 8px rgba(0,0,0,.5),0 0 0 2px rgba(167,139,250,.42),0 0 12px rgba(167,139,250,.55)">43%</div>
+      </div>
+      <div class="pm-tl-stages"><span class="pm-tl-stage done">Announced</span><span class="pm-tl-stage done">Breaking Ground</span><span class="pm-tl-stage on" style="color:#B9A6FF;font-weight:800;text-shadow:0 0 12px rgba(167,139,250,.5)">Construction</span><span class="pm-tl-stage ">Opening Soon</span><span class="pm-tl-stage ">Now Open</span></div>
+    </div>
+    <div class="pp-minis"><div class="pp-mini"><div class="v">2025</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2028</div><div class="k">Completion</div></div><div class="pp-mini"><div class="v">92</div><div class="k">Units</div></div><div class="pp-mini"><div class="v">8</div><div class="k">Floors</div></div></div>
+    <div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/aj-capital-partners/"><div class="k">Developer</div><div class="v">AJ Capital Partners</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/hartshorne-plunkard-architecture/"><div class="k">Architect</div><div class="v">Hartshorne Plunkard Architecture</div><span class="go">View firm profile →</span></a></div>
   </div>
 </a>
 <a class="card" href="https://www.oftmw.com/projects/belle-meade-village/">
-  <div class="card-img" data-lightbox-src="https://cdn.sanity.io/images/ooqsuexs/production/2c923bdd022273c3e89513a979a21262414b9006-3948x2778.jpg?w=2500&amp;auto=format" data-lightbox-caption="Belle Meade Village · Nashville" style="background-image:url('https://cdn.sanity.io/images/ooqsuexs/production/2c923bdd022273c3e89513a979a21262414b9006-3948x2778.jpg?w=2500&amp;auto=format')"><span class="card-status-pill pill-uc">Under Construction</span></div>
+  <div class="card-img" data-lightbox-src="https://cdn.sanity.io/images/ooqsuexs/production/2c923bdd022273c3e89513a979a21262414b9006-3948x2778.jpg?w=2500&amp;auto=format" data-lightbox-caption="Belle Meade Village · Nashville" style="background-image:url('https://cdn.sanity.io/images/ooqsuexs/production/2c923bdd022273c3e89513a979a21262414b9006-3948x2778.jpg?w=2500&amp;auto=format')"></div>
   <div class="card-body">
     <div class="card-title">Belle Meade Village</div>
-    <div class="card-neigh">Nashville</div>
-    <div class="card-meta"><span>By <b>AJ Capital Partners</b></span><span>·</span><span>Hastings Architecture</span></div>
+    <div class="card-loc">Nashville</div>
+    <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 9, 2026</span></div>
+    
+    <div class="pm-tl"><div class="pm-tl-date">2.5 yrs to delivery</div>
+      <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
+        <div class="pm-tl-empty" style="left:43%"></div>
+        <div class="pm-tl-knob" style="left:43%;box-shadow:0 2px 8px rgba(0,0,0,.5),0 0 0 2px rgba(167,139,250,.42),0 0 12px rgba(167,139,250,.55)">43%</div>
+      </div>
+      <div class="pm-tl-stages"><span class="pm-tl-stage done">Announced</span><span class="pm-tl-stage done">Breaking Ground</span><span class="pm-tl-stage on" style="color:#B9A6FF;font-weight:800;text-shadow:0 0 12px rgba(167,139,250,.5)">Construction</span><span class="pm-tl-stage ">Opening Soon</span><span class="pm-tl-stage ">Now Open</span></div>
+    </div>
+    <div class="pp-minis"><div class="pp-mini"><div class="v">2025</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2028</div><div class="k">Completion</div></div><div class="pp-mini"><div class="v">388</div><div class="k">Units</div></div><div class="pp-mini"><div class="v">8</div><div class="k">Floors</div></div></div>
+    <div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/aj-capital-partners/"><div class="k">Developer</div><div class="v">AJ Capital Partners</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/hastings-architecture/"><div class="k">Architect</div><div class="v">Hastings Architecture</div><span class="go">View firm profile →</span></a></div>
   </div>
 </a>
 <a class="card" href="https://www.oftmw.com/projects/bridgestone-arena/">
-  <div class="card-img" data-lightbox-src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_96a8647fcb594f13ad5ce7c913aa00b7~mv2.webp" data-lightbox-caption="Bridgestone Arena · Nashville" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_96a8647fcb594f13ad5ce7c913aa00b7~mv2.webp')"><span class="card-status-pill pill-uc">Under Construction</span></div>
+  <div class="card-img" data-lightbox-src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_96a8647fcb594f13ad5ce7c913aa00b7~mv2.webp" data-lightbox-caption="Bridgestone Arena · Nashville" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_96a8647fcb594f13ad5ce7c913aa00b7~mv2.webp')"></div>
   <div class="card-body">
     <div class="card-title">Bridgestone Arena</div>
-    <div class="card-neigh">Nashville</div>
-    <div class="card-meta"><span>By <b>The Nashville Predators</b></span><span>·</span><span>Populous</span></div>
+    <div class="card-loc">Nashville</div>
+    <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 6, 2026</span></div>
+    
+    <div class="pm-tl"><div class="pm-tl-date">4.5 yrs to delivery</div>
+      <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
+        <div class="pm-tl-empty" style="left:43%"></div>
+        <div class="pm-tl-knob" style="left:43%;box-shadow:0 2px 8px rgba(0,0,0,.5),0 0 0 2px rgba(167,139,250,.42),0 0 12px rgba(167,139,250,.55)">43%</div>
+      </div>
+      <div class="pm-tl-stages"><span class="pm-tl-stage done">Announced</span><span class="pm-tl-stage done">Breaking Ground</span><span class="pm-tl-stage on" style="color:#B9A6FF;font-weight:800;text-shadow:0 0 12px rgba(167,139,250,.5)">Construction</span><span class="pm-tl-stage ">Opening Soon</span><span class="pm-tl-stage ">Now Open</span></div>
+    </div>
+    <div class="pp-minis"><div class="pp-mini"><div class="v">2026</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2030</div><div class="k">Completion</div></div></div>
+    <div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/the-nashville-predators/"><div class="k">Developer</div><div class="v">The Nashville Predators</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/populous/"><div class="k">Architect</div><div class="v">Populous</div><span class="go">View firm profile →</span></a></div>
   </div>
 </a>
 <a class="card" href="https://www.oftmw.com/projects/pendry-nashville/">
-  <div class="card-img" data-lightbox-src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b34dde8ad572426c82d358ceafeb46c5~mv2.jpeg" data-lightbox-caption="Pendry Nashville · Nashville" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b34dde8ad572426c82d358ceafeb46c5~mv2.jpeg')"><span class="card-status-pill pill-uc">Under Construction</span></div>
+  <div class="card-img" data-lightbox-src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b34dde8ad572426c82d358ceafeb46c5~mv2.jpeg" data-lightbox-caption="Pendry Nashville · Nashville" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b34dde8ad572426c82d358ceafeb46c5~mv2.jpeg')"></div>
   <div class="card-body">
     <div class="card-title">Pendry Nashville</div>
-    <div class="card-neigh">Nashville</div>
-    <div class="card-meta"><span>By <b>SomeraRoad</b></span><span>·</span><span>ESa</span></div>
+    <div class="card-loc">Nashville</div>
+    <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 10, 2026</span></div>
+    
+    <div class="pm-tl"><div class="pm-tl-date">19 months to delivery</div>
+      <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
+        <div class="pm-tl-empty" style="left:44%"></div>
+        <div class="pm-tl-knob" style="left:44%;box-shadow:0 2px 8px rgba(0,0,0,.5),0 0 0 2px rgba(167,139,250,.42),0 0 12px rgba(167,139,250,.55)">44%</div>
+      </div>
+      <div class="pm-tl-stages"><span class="pm-tl-stage done">Announced</span><span class="pm-tl-stage done">Breaking Ground</span><span class="pm-tl-stage on" style="color:#B9A6FF;font-weight:800;text-shadow:0 0 12px rgba(167,139,250,.5)">Construction</span><span class="pm-tl-stage ">Opening Soon</span><span class="pm-tl-stage ">Now Open</span></div>
+    </div>
+    <div class="pp-minis"><div class="pp-mini"><div class="v">2025</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2027</div><div class="k">Completion</div></div><div class="pp-mini"><div class="v">146</div><div class="k">Units</div></div><div class="pp-mini"><div class="v">30</div><div class="k">Floors</div></div></div>
+    <div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/someraroad/"><div class="k">Developer</div><div class="v">SomeraRoad</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/esa/"><div class="k">Architect</div><div class="v">ESa</div><span class="go">View firm profile →</span></a></div>
   </div>
 </a>
 <a class="card" href="https://www.oftmw.com/projects/tennessee-titans-stadium/">
-  <div class="card-img" data-lightbox-src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b4312c8ac1a5487bb7b5c96b19bf55e4~mv2.webp" data-lightbox-caption="Tennessee Titans Stadium · Nashville" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b4312c8ac1a5487bb7b5c96b19bf55e4~mv2.webp')"><span class="card-status-pill pill-uc">Under Construction</span></div>
+  <div class="card-img" data-lightbox-src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b4312c8ac1a5487bb7b5c96b19bf55e4~mv2.webp" data-lightbox-caption="Tennessee Titans Stadium · Nashville" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b4312c8ac1a5487bb7b5c96b19bf55e4~mv2.webp')"></div>
   <div class="card-body">
     <div class="card-title">Tennessee Titans Stadium</div>
-    <div class="card-neigh">Nashville</div>
-    <div class="card-meta"><span>By <b>Metropolitan Government of Nashville</b></span><span>·</span><span>Manica Architecture</span></div>
+    <div class="card-loc">Nashville</div>
+    <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 13, 2026</span></div>
+    
+    <div class="pm-tl"><div class="pm-tl-date">8 months to delivery</div>
+      <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
+        <div class="pm-tl-empty" style="left:50%"></div>
+        <div class="pm-tl-knob" style="left:50%;box-shadow:0 2px 8px rgba(0,0,0,.5),0 0 0 2px rgba(167,139,250,.42),0 0 12px rgba(167,139,250,.55)">50%</div>
+      </div>
+      <div class="pm-tl-stages"><span class="pm-tl-stage done">Announced</span><span class="pm-tl-stage done">Breaking Ground</span><span class="pm-tl-stage on" style="color:#B9A6FF;font-weight:800;text-shadow:0 0 12px rgba(167,139,250,.5)">Construction</span><span class="pm-tl-stage ">Opening Soon</span><span class="pm-tl-stage ">Now Open</span></div>
+    </div>
+    <div class="pp-minis"><div class="pp-mini"><div class="v">2024</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2027</div><div class="k">Completion</div></div></div>
+    <div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/metropolitan-government-of-nashville/"><div class="k">Developer</div><div class="v">Metropolitan Government of Nashville</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/manica-architecture/"><div class="k">Architect</div><div class="v">Manica Architecture</div><span class="go">View firm profile →</span></a></div>
   </div>
 </a>
 <a class="card" href="https://www.oftmw.com/projects/the-nashville-edition/">
-  <div class="card-img" data-lightbox-src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c501612f57b94ac0a648a2e0e83b4aec~mv2.png" data-lightbox-caption="The Nashville EDITION · Nashville" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c501612f57b94ac0a648a2e0e83b4aec~mv2.png')"><span class="card-status-pill pill-uc">Under Construction</span></div>
+  <div class="card-img" data-lightbox-src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c501612f57b94ac0a648a2e0e83b4aec~mv2.png" data-lightbox-caption="The Nashville EDITION · Nashville" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c501612f57b94ac0a648a2e0e83b4aec~mv2.png')"></div>
   <div class="card-body">
     <div class="card-title">The Nashville EDITION</div>
-    <div class="card-neigh">Nashville</div>
-    <div class="card-meta"><span>By <b>Edgewood Hospitality</b></span><span>·</span><span>ESa</span></div>
+    <div class="card-loc">Nashville</div>
+    <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 10, 2026</span></div>
+    
+    <div class="pm-tl"><div class="pm-tl-date">2.5 yrs to delivery</div>
+      <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
+        <div class="pm-tl-empty" style="left:43%"></div>
+        <div class="pm-tl-knob" style="left:43%;box-shadow:0 2px 8px rgba(0,0,0,.5),0 0 0 2px rgba(167,139,250,.42),0 0 12px rgba(167,139,250,.55)">43%</div>
+      </div>
+      <div class="pm-tl-stages"><span class="pm-tl-stage done">Announced</span><span class="pm-tl-stage done">Breaking Ground</span><span class="pm-tl-stage on" style="color:#B9A6FF;font-weight:800;text-shadow:0 0 12px rgba(167,139,250,.5)">Construction</span><span class="pm-tl-stage ">Opening Soon</span><span class="pm-tl-stage ">Now Open</span></div>
+    </div>
+    <div class="pp-minis"><div class="pp-mini"><div class="v">2026</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2028</div><div class="k">Completion</div></div><div class="pp-mini"><div class="v">84</div><div class="k">Units</div></div><div class="pp-mini"><div class="v">28</div><div class="k">Floors</div></div></div>
+    <div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/edgewood-hospitality/"><div class="k">Developer</div><div class="v">Edgewood Hospitality</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/esa/"><div class="k">Architect</div><div class="v">ESa</div><span class="go">View firm profile →</span></a></div>
   </div>
 </a>
 <a class="card" href="https://www.oftmw.com/projects/east-bank-campus/">
-  <div class="card-img" data-lightbox-src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_73950ce472e34d47b77184f636ab9b13~mv2.jpeg" data-lightbox-caption="East Bank Campus · Nashville" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_73950ce472e34d47b77184f636ab9b13~mv2.jpeg')"><span class="card-status-pill pill-bg">Breaking Ground</span></div>
+  <div class="card-img" data-lightbox-src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_73950ce472e34d47b77184f636ab9b13~mv2.jpeg" data-lightbox-caption="East Bank Campus · Nashville" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_73950ce472e34d47b77184f636ab9b13~mv2.jpeg')"></div>
   <div class="card-body">
     <div class="card-title">East Bank Campus</div>
-    <div class="card-neigh">East Bank</div>
-    <div class="card-meta"><span>By <b>Metro Government of Nashville</b></span><span>·</span><span>Perkins Eastman</span></div>
+    <div class="card-loc">Nashville · East Bank</div>
+    <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 10, 2026</span></div>
+    
+    <div class="pm-tl"><div class="pm-tl-date">4.5 yrs to delivery</div>
+      <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
+        <div class="pm-tl-empty" style="left:23%"></div>
+        <div class="pm-tl-knob" style="left:23%;box-shadow:0 2px 8px rgba(0,0,0,.5),0 0 0 2px rgba(167,139,250,.42),0 0 12px rgba(167,139,250,.55)">23%</div>
+      </div>
+      <div class="pm-tl-stages"><span class="pm-tl-stage done">Announced</span><span class="pm-tl-stage on" style="color:#B9A6FF;font-weight:800;text-shadow:0 0 12px rgba(167,139,250,.5)">Breaking Ground</span><span class="pm-tl-stage ">Construction</span><span class="pm-tl-stage ">Opening Soon</span><span class="pm-tl-stage ">Now Open</span></div>
+    </div>
+    <div class="pp-minis"><div class="pp-mini"><div class="v">2026</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2030</div><div class="k">Completion</div></div></div>
+    <div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/metro-government-of-nashville-with-the-fallon-co-as-master-developer/"><div class="k">Developer</div><div class="v">Metro Government of Nashville</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/perkins-eastman/"><div class="k">Architect</div><div class="v">Perkins Eastman</div><span class="go">View firm profile →</span></a></div>
   </div>
 </a>
 <a class="card" href="https://www.oftmw.com/projects/eastpoint/">
-  <div class="card-img" data-lightbox-src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_60ab4d682fa94cec845ba26d912020a3~mv2.jpeg" data-lightbox-caption="Eastpoint · Nashville" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_60ab4d682fa94cec845ba26d912020a3~mv2.jpeg')"><span class="card-status-pill pill-bg">Breaking Ground</span></div>
+  <div class="card-img" data-lightbox-src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_60ab4d682fa94cec845ba26d912020a3~mv2.jpeg" data-lightbox-caption="Eastpoint · Nashville" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_60ab4d682fa94cec845ba26d912020a3~mv2.jpeg')"></div>
   <div class="card-body">
     <div class="card-title">Eastpoint</div>
-    <div class="card-neigh">Nashville</div>
-    <div class="card-meta"><span>By <b>The Fallon Company</b></span><span>·</span><span>HKS</span></div>
-  </div>
-</a>
-<a class="card" href="https://www.oftmw.com/projects/oracle-campus/">
-  <div class="card-img" data-lightbox-src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_6905822acd7344b892917a4d013673bc~mv2.jpeg" data-lightbox-caption="Oracle Campus · Nashville" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_6905822acd7344b892917a4d013673bc~mv2.jpeg')"><span class="card-status-pill pill-bg">Breaking Ground</span></div>
-  <div class="card-body">
-    <div class="card-title">Oracle Campus</div>
-    <div class="card-neigh">East Bank</div>
-    <div class="card-meta"><span>By <b>Oracle</b></span><span>·</span><span>Foster + Partners</span></div>
-  </div>
-</a>
-<a class="card" href="https://www.oftmw.com/projects/delux-weho/">
-  <div class="card-img" data-lightbox-src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_837da3a225394383a987ae9fac46a6e5~mv2.jpeg" data-lightbox-caption="DELUX WeHo · Nashville" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_837da3a225394383a987ae9fac46a6e5~mv2.jpeg')"><span class="card-status-pill pill-os">Opening Soon</span></div>
-  <div class="card-body">
-    <div class="card-title">DELUX WeHo</div>
-    <div class="card-neigh">Wedgewood-Houston</div>
-    <div class="card-meta"><span>By <b>The Bradley Projects</b></span><span>·</span><span>The Bradley Projects</span></div>
-  </div>
-</a>
-<a class="card" href="https://www.oftmw.com/projects/dolly-parton-s-songteller-hotel/">
-  <div class="card-img" data-lightbox-src="https://www.songtellerhotel.com/media/ydndqovi/sth25_songteller_exterior_social1.jpg" data-lightbox-caption="Dolly Parton&#x27;s SongTeller Hotel · Nashville" style="background-image:url('https://www.songtellerhotel.com/media/ydndqovi/sth25_songteller_exterior_social1.jpg')"><span class="card-status-pill pill-os">Opening Soon</span></div>
-  <div class="card-body">
-    <div class="card-title">Dolly Parton&#x27;s SongTeller Hotel</div>
-    <div class="card-neigh">Nashville</div>
-    <div class="card-meta"><span>By <b>The Dollywood Company</b></span><span>·</span><span>Pivot Studio</span></div>
-  </div>
-</a>
-<a class="card" href="https://www.oftmw.com/projects/firefly/">
-  <div class="card-img" data-lightbox-src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_f50d4e8a26804b06ae1778103f0d601c~mv2.jpg" data-lightbox-caption="Firefly · Nashville" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_f50d4e8a26804b06ae1778103f0d601c~mv2.jpg')"><span class="card-status-pill pill-os">Opening Soon</span></div>
-  <div class="card-body">
-    <div class="card-title">Firefly</div>
-    <div class="card-neigh">Nashville</div>
-    <div class="card-meta"><span>By <b>Storied Development</b></span><span>·</span><span>Andrew Green</span></div>
+    <div class="card-loc">Nashville</div>
+    <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 9, 2026</span></div>
+    
+    <div class="pm-tl"><div class="pm-tl-date">3.5 yrs to delivery</div>
+      <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
+        <div class="pm-tl-empty" style="left:23%"></div>
+        <div class="pm-tl-knob" style="left:23%;box-shadow:0 2px 8px rgba(0,0,0,.5),0 0 0 2px rgba(167,139,250,.42),0 0 12px rgba(167,139,250,.55)">23%</div>
+      </div>
+      <div class="pm-tl-stages"><span class="pm-tl-stage done">Announced</span><span class="pm-tl-stage on" style="color:#B9A6FF;font-weight:800;text-shadow:0 0 12px rgba(167,139,250,.5)">Breaking Ground</span><span class="pm-tl-stage ">Construction</span><span class="pm-tl-stage ">Opening Soon</span><span class="pm-tl-stage ">Now Open</span></div>
+    </div>
+    <div class="pp-minis"><div class="pp-mini"><div class="v">2026</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2029</div><div class="k">Completion</div></div></div>
+    <div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/the-fallon-company/"><div class="k">Developer</div><div class="v">The Fallon Company</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/hks/"><div class="k">Architect</div><div class="v">HKS</div><span class="go">View firm profile →</span></a></div>
   </div>
 </a>
       </div>
@@ -312,7 +393,7 @@
     </section>
 
     <article class="copy">
-<h2>The Nashville pipeline</h2><p>We're tracking <b>19 new developments</b> in Nashville across every category — including <b>Residences</b> (6), <b>Hotel</b> (4), <b>Mixed-Use</b> (3). Every project below links to a live status page with milestones, renderings, and our <a href="https://www.oftmw.com/journal/">journal coverage</a>.</p><h2>How we built this list</h2><p>Every project on this page is on the <a href="https://www.oftmw.com/map/">Map of Tomorrow</a> — our live database of new and under-construction developments worldwide. We add a project only after we can confirm it from a public filing, an official announcement, or independent reporting; status changes are sourced the same way and timestamped. <a href="https://www.oftmw.com/map/?upgrade=1">Pro members</a> get our weekly slippage forecasts and the full dataset by phase, neighborhood, architect, and developer.</p>
+<h2>The Nashville pipeline</h2><p>We're tracking <b>19 new developments</b> in Nashville across every category — including <b>Residences</b> (6), <b>Hotel</b> (4), <b>Mixed-Use</b> (3). Every project below links to a live status page with milestones, renderings, and our <a href="https://www.oftmw.com/journal/">journal coverage</a>.</p><p>Right now: <b>6 under construction</b>, <b>3 breaking ground</b>, <b>4 opening soon</b>, and <b>4 newly announced</b>.</p><p>Most active developer across the Nashville pipeline: <b>AJ Capital Partners</b> with <b>3 projects</b>.</p><h2>How we built this list</h2><p>Every project on this page is on the <a href="https://www.oftmw.com/map/">Map of Tomorrow</a> — our live database of new and under-construction developments worldwide. We add a project only after we can confirm it from a public filing, an official announcement, or independent reporting; status changes are sourced the same way and timestamped. <a href="https://www.oftmw.com/map/?upgrade=1">Pro members</a> get our weekly Slippage Report and the full dataset by phase, neighborhood, architect, and developer.</p>
     </article>
 
     <section class="section">
@@ -380,12 +461,30 @@
       var type = intelBox.getAttribute('data-intel-type') || '';
       var prefix = (city + ' ' + type).trim();
 
-      function openOverlayWith(q) {
-        var full = prefix ? (prefix + (q ? ' ' + q : '')) : q;
+      // Two ways to open the overlay from this page:
+      //   - openSuggestionsWith(): clicking the input drops the user into the
+      //     starter (suggestions) state with the market name pre-filled —
+      //     they can type their own question with the filter implicit.
+      //   - openSearchWith(q): submitting the form OR clicking a try-chip
+      //     fires a real search with the market + question both included.
+      // Both versions fall back to deep-linking /?q= if the overlay script
+      // hasn't booted yet (defer load + slow connections).
+      function trackBeacon(q) {
         try { window.tmwFunnelTrack && window.tmwFunnelTrack('intel_query', { source: 'market_page', city: city, type: type, q: (q || '').slice(0, 80) }); } catch (_){}
-        // tmwOverlay loads from /_shared/journal-search-overlay.js (defer).
-        // If it hasn't booted yet, fall back to deep-linking to the homepage
-        // which auto-opens the overlay from ?q=.
+      }
+      function openSuggestionsWith() {
+        trackBeacon('');
+        if (window.tmwOverlay && typeof window.tmwOverlay.openWithPrefix === 'function') {
+          window.tmwOverlay.openWithPrefix(prefix);
+        } else if (window.tmwOverlay && typeof window.tmwOverlay.open === 'function') {
+          window.tmwOverlay.open(prefix);
+        } else {
+          window.location = 'https://www.oftmw.com/?q=' + encodeURIComponent(prefix);
+        }
+      }
+      function openSearchWith(q) {
+        var full = prefix ? (prefix + (q ? ' ' + q : '')) : q;
+        trackBeacon(q);
         if (window.tmwOverlay && typeof window.tmwOverlay.open === 'function') {
           window.tmwOverlay.open(full);
         } else {
@@ -393,25 +492,22 @@
         }
       }
 
-      // Clicking the input box opens the overlay (filter pre-applied).
+      // Clicking / focusing the input → suggestions panel with prefix in box.
       var input = document.getElementById('market-intel-input');
       if (input) {
-        input.addEventListener('click',  function (e) { e.preventDefault(); openOverlayWith(''); });
-        input.addEventListener('focus',  function (e) { e.preventDefault(); openOverlayWith(''); input.blur(); });
+        input.addEventListener('click', function (e) { e.preventDefault(); openSuggestionsWith(); });
+        input.addEventListener('focus', function (e) { e.preventDefault(); openSuggestionsWith(); input.blur(); });
       }
-      // Submitting the form (Enter or "Ask" button) opens the overlay with
-      // whatever's in the input — even though it's readonly, autofill or
-      // paste can still populate it.
+      // Form submit (Enter or "Ask" button) — runs the search.
       var f = document.getElementById('market-intel-form');
       if (f) f.addEventListener('submit', function (e) {
         e.preventDefault();
-        openOverlayWith(((input && input.value) || '').trim());
+        openSearchWith(((input && input.value) || '').trim());
       });
-      // Suggestion chips: clicking one opens the overlay with that exact
-      // question AND the city/type prefix applied.
+      // Try-chip click → real search with the chip text + market prefix.
       Array.prototype.forEach.call(document.querySelectorAll('.intel-chip'), function (chip) {
         chip.style.cursor = 'pointer';
-        chip.addEventListener('click', function () { openOverlayWith(chip.getAttribute('data-q') || chip.textContent.trim()); });
+        chip.addEventListener('click', function () { openSearchWith(chip.getAttribute('data-q') || chip.textContent.trim()); });
       });
 
       // Pro CTA → fire funnel beacon, then open the paywall (or fall back to
