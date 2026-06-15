@@ -528,6 +528,7 @@ const TOOLS = [
         keys: { type: 'integer', description: 'Hotel key (room) count — fill/correct from a credible source for hotels/resorts (auto-applies)' },
         neighborhood: { type: 'string', description: 'Neighborhood / submarket / district the project sits in (e.g. "Design District", "Northwood", "Brickell", "Wynwood", "Edgewater"). Auto-applies like specs. Fill it whenever you can identify it from the source/address — it powers neighborhood-level search & filtering. Use the canonical local name, not a street.' },
         correction: { type: 'boolean', description: 'Set TRUE only to CORRECT an over-stated status BACKWARD — i.e. the project is recorded at a LATER phase than reality and credible, current sources show it has not reached it (e.g. marked "construction" or "breaking-ground" but it has NOT broken ground → set new_status "announced", correction:true). This is the ONLY case status may move backward. Requires a credible source_url and a note explaining why. Omit/false for all normal forward sweeps.' },
+        backfill: { type: 'boolean', description: 'Set TRUE to LOG A PAST status milestone to the dossier timeline WITHOUT changing current status. Used for empty-history projects — e.g. 14 ROC is currently at breaking-ground but its original 2024 announcement was never recorded → call with backfill:true, new_status:"announced", effective_date:"2024-XX-XX", source_url:<announcement source>, note:<headline-style summary>. Requires new_status (the past status being logged) + effective_date (when it actually happened). Append-only — does not modify p.status. The construction sweep uses this to fill in original announcements (and any other past anchors) on projects whose status_history is empty, so every project has at least one sourced entry.' },
       },
       required: ['slug', 'source_url'],
     },
@@ -2029,12 +2030,21 @@ const IMPL = {
   // ── Construction-update automation ───────────────────────────────────────────
   async list_projects_due(args, env) {
     requireGhToken(env);
-    const limit = Math.max(1, Math.min(60, Number(args.limit) || 25));
+    const limit = Math.max(1, Math.min(200, Number(args.limit) || 25));
     const { sha, projects } = await readProjectsFile(env);
     const active = projects.filter((p) => p && p.slug && statusRank(p.status) < statusRank('open'));
-    // Oldest/never-checked first; tie-break toward projects nearest a milestone.
+    // Sort priority:
+    //   1. EMPTY-HISTORY first — these projects have never had a sourced
+    //      milestone logged. They need backfill before any forward sweep
+    //      reaches them, otherwise their dossier timeline stays empty
+    //      forever even though the sweep keeps stamping status_checked_at.
+    //   2. Oldest status_checked_at (round-robin freshness)
+    //   3. Tie-break toward projects nearest a milestone (announced last)
     const pri = { 'breaking-ground': 0, 'construction': 1, 'coming-soon': 2, 'announced': 3 };
+    const histLen = (p) => (Array.isArray(p.status_history) ? p.status_history.length : 0);
     active.sort((a, b) => {
+      const ae = histLen(a) === 0, be = histLen(b) === 0;
+      if (ae !== be) return ae ? -1 : 1;
       const ca = a.status_checked_at || '', cb = b.status_checked_at || '';
       if (ca !== cb) return ca < cb ? -1 : 1;
       return ((pri[a.status] != null ? pri[a.status] : 9) - (pri[b.status] != null ? pri[b.status] : 9));
@@ -2043,17 +2053,19 @@ const IMPL = {
     const slugs = new Set(batch.map((p) => p.slug));
     const nowIso = new Date().toISOString();
     for (const p of projects) if (slugs.has(p.slug)) p.status_checked_at = nowIso;
-    // One commit marks the whole batch checked, so the sweep rotates over time.
-    await ghPutFile(env, GH_PROJECTS_PATH, serializeProjects(projects), sha, `Status sweep: marked ${batch.length} checked (${nowIso.slice(0, 10)})`);
+    const emptyCount = batch.filter((p) => histLen(p) === 0).length;
+    await ghPutFile(env, GH_PROJECTS_PATH, serializeProjects(projects), sha, `Status sweep: marked ${batch.length} checked (${emptyCount} empty-history) (${nowIso.slice(0, 10)})`);
     return {
       checked_at: nowIso, batch_size: batch.length, active_total: active.length,
+      empty_history_in_batch: emptyCount,
       status_order: STATUS_ORDER,
-      instructions: 'Web-search each project for construction news (e.g. "<name> <city> construction / breaking ground / topped out / opening"). If a CREDIBLE source shows it reached a LATER status, call update_project_status (mode "apply" for a clear single-step milestone, "propose" if ambiguous/thin/multi-step). ALWAYS pass effective_date = the real-world date the milestone happened, exactly as the source states it (e.g. "broke ground Sept 3 2025" → effective_date "2025-09-03"; "topped out in Q2 2026" → "2026-04"; "opened May 2025" → "2025-05"). This dates the project dossier timeline to the EVENT, never to today\'s discovery date — getting it right is the whole point. Use the most precise grain the source supports (day > month > year). Normally forward-only. BUT also sanity-check the CURRENT status against reality: if a project is recorded at a later phase than credible current sources support — e.g. marked "construction" or "breaking-ground" yet nothing shows it has broken ground (still just announced/planned/in approvals) — CORRECT it by calling update_project_status with the earlier new_status and correction:true (cite the source + note why). When you find a PAST milestone date you can source (groundbreaking, topping-out) even if it doesn\'t change the current status, still record it via effective_date so the timeline backfills. PHASE MILESTONES: beyond the 5 coarse statuses, also log finer construction phases when a credible source reports them — pass `milestone` = one of financing (construction loan/financing closed), going-vertical (superstructure rising above grade), halfway (~50% complete), topping-out (final beam/roof structure done), tenant (anchor/retail/office tenant announced), tco (Temporary Certificate of Occupancy issued), move-in (residents begin moving in), bookings (hotel reservations open) — ALWAYS with effective_date (when it happened) + source_url. A milestone logs to the dossier timeline WITHOUT changing status (omit new_status). The coarse anchors — announced, broke ground, grand opening — go via new_status instead. Skip ones with no news and whose recorded status looks right.',
+      instructions: 'BACKFILL FIRST. For any project in this batch with history_len:0 (the sweep has never logged a single sourced event for it), your FIRST job is to backfill at least one entry — the original announcement. Web-search "<name> <city> announced" / "<name> developer announces" / search_articles for our own coverage. Find the earliest credible source that announced the project (oftmw.com PREFERRED — call search_articles by slug first). Then call update_project_status with backfill:true, new_status:"announced", effective_date = the actual announcement date from the article body, source_url, note = a one-line headline-style summary. backfill:true logs the entry to status_history WITHOUT changing current status, so a 14 ROC currently at breaking-ground can still get its announcement entry filled in. After backfill, also look for any subsequent milestones (broke-ground, topped-out, etc.) that should be logged — same backfill:true pattern, one call per past milestone. THEN do the normal forward sweep: web-search for recent news (last 6 months) — if a CREDIBLE source shows it reached a LATER status, call update_project_status (no backfill flag) with mode "apply" for a clear single-step advance, "propose" if ambiguous/thin/multi-step. ALWAYS pass effective_date = the real-world date the milestone happened. Use the most precise grain (day > month > year). Sanity-check current status against reality: if a project is recorded at a later phase than credible sources support — e.g. marked "construction" yet nothing shows ground has broken — CORRECT it via update_project_status with the earlier new_status and correction:true (cite source + note why). PHASE MILESTONES: pass `milestone` = one of financing, going-vertical, halfway, topping-out, tenant, tco, move-in, bookings — ALWAYS with effective_date + source_url. The coarse anchors — announced, broke ground, grand opening — go via new_status (with backfill:true if past) instead. Never skip a project with history_len:0 even if you find no recent news — backfill its announcement first.',
       projects: batch.map((p) => ({
         slug: p.slug, name: p.name, city: p.city || '', status: p.status,
         units: p.units || null, floors: p.floors || null,
         start_date: p.start_date || null, delivery_date: p.delivery_date || null,
         website: p.official_website || '',
+        history_len: histLen(p),                                 // 0 → agent must backfill
       })),
     };
   },
@@ -2106,7 +2118,19 @@ const IMPL = {
       // The one sanctioned backward move: an EXPLICIT correction of an over-stated
       // status (e.g. wrongly marked "construction" but it hasn't broken ground).
       const isCorrection = statusRegresses && args.correction === true;
-      const statusChanges = statusAdvances || isCorrection;
+      // Backfill mode — log a PAST status event to the dossier timeline
+      // WITHOUT touching the current status. For projects whose history
+      // is empty: 14 ROC is at breaking-ground today, but its original
+      // announcement was never recorded. backfill:true lets the sweep
+      // append that past 'announced' entry (with the real announcement
+      // date + source_url) so the dossier timeline isn't blank.
+      // Requires new_status + effective_date so the entry is well-dated.
+      const isBackfill = args.backfill === true;
+      if (isBackfill) {
+        if (!newStatus) throw new Error('backfill:true requires new_status (the past milestone status)');
+        if (!effectiveDate) throw new Error('backfill:true requires effective_date (when the past event happened)');
+      }
+      const statusChanges = !isBackfill && (statusAdvances || isCorrection);
       const startChanged = !!newStart && newStart !== clean(p.start_date);
       const deliveryChanged = !!newDelivery && newDelivery !== clean(p.delivery_date);
       const numChanged = numWanted.filter((u) => u.val !== numOrNull(p[u.field]));
@@ -2115,16 +2139,17 @@ const IMPL = {
       // enforced — the same phase can legitimately recur with a corrected date;
       // humans can prune dupes in the Studio milestones editor).
       const milestoneAdded = !!milestone;
-      const anyExtra = startChanged || deliveryChanged || numChanged.length > 0 || nbhdChanged || milestoneAdded;
+      const anyExtra = startChanged || deliveryChanged || numChanged.length > 0 || nbhdChanged || milestoneAdded || isBackfill;
 
       // A backward status WITHOUT the correction flag is refused — guards against
-      // accidental regressions during a normal forward sweep.
-      if (statusRegresses && !isCorrection && !anyExtra) {
-        return { ok: false, skipped: 'regression-needs-correction-flag', slug, current_status: from, requested: newStatus, hint: 'To walk a wrongly over-stated status back, pass correction:true with a credible source_url + note.' };
+      // accidental regressions during a normal forward sweep. Backfill bypasses
+      // this guard because it doesn't change current status.
+      if (!isBackfill && statusRegresses && !isCorrection && !anyExtra) {
+        return { ok: false, skipped: 'regression-needs-correction-flag', slug, current_status: from, requested: newStatus, hint: 'To walk a wrongly over-stated status back, pass correction:true. To log a past milestone without changing current status, pass backfill:true with effective_date.' };
       }
       // A status that neither advances nor is a sanctioned correction is refused —
       // but only when no other change rides with it (date/spec-only updates are fine).
-      if (newStatus && !statusChanges && !anyExtra) {
+      if (!isBackfill && newStatus && !statusChanges && !anyExtra) {
         return { ok: false, skipped: 'not-a-forward-advance', slug, current_status: from, requested: newStatus };
       }
       if (!statusChanges && !anyExtra) {
@@ -2194,6 +2219,19 @@ const IMPL = {
         // A finer construction-phase event for the dossier (does not touch status).
         p.status_history.push({ ...base, type: 'milestone', phase: milestone, ...(effectiveDate ? { effective_date: effectiveDate } : {}) });
         changes.push(`milestone: ${milestone}${effectiveDate ? ' @ ' + effectiveDate : ''}`);
+      }
+      if (isBackfill) {
+        // Append a past status entry to the dossier timeline WITHOUT
+        // changing current status. Used by the sweep to fill in original
+        // announcements (and other past anchors) on projects whose
+        // status_history has been empty since they were created.
+        p.status_history.push({
+          ...base,
+          type: 'backfill',
+          to: newStatus,                  // the past milestone status being logged
+          effective_date: effectiveDate,
+        });
+        changes.push(`backfill: ${newStatus} @ ${effectiveDate}`);
       }
       p.status_checked_at = nowIso;
       try {

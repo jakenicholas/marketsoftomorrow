@@ -24,7 +24,7 @@ admin.oftmw.com/map/?drafts → human review → promote to live map
 
 ### `GET /search-feedback/discoveries`
 
-Admin-only (requires `X-Admin-Token` or GitHub session). Query params:
+Admin-only (requires `Authorization: Bearer <ADMIN_TOKEN>` header or a GitHub OAuth session). Query params:
 - `days=30` — feedback window to consider (1-365)
 - `limit=50` — cap on returned items per poll (1-200)
 
@@ -84,7 +84,7 @@ into map drafts.
 1. **Pull the queue.** Use `curl` with the admin token:
 
    ```bash
-   curl -s -H "X-Admin-Token: $ADMIN_TOKEN" \
+   curl -s -H "Authorization: Bearer $TMW_ADMIN_TOKEN" \
      https://tmw.jake-ab7.workers.dev/search-feedback/discoveries?days=14
    ```
 
@@ -106,7 +106,7 @@ into map drafts.
 3. **Mark every processed query** in one call:
 
    ```bash
-   curl -s -X POST -H "X-Admin-Token: $ADMIN_TOKEN" \
+   curl -s -X POST -H "Authorization: Bearer $TMW_ADMIN_TOKEN" \
      -H "Content-Type: application/json" \
      -d '{"queries": [...], "result": "...", "drafts_created": [...]}' \
      https://tmw.jake-ab7.workers.dev/search-feedback/discoveries/mark
@@ -119,9 +119,12 @@ into map drafts.
 
 - Drafts must include a source URL (news article, press release, official
   developer page) — not just a guess.
-- Skip queries that are obviously off-brand (TMW covers the urban South;
-  a query like "projects in fairbanks alaska" is fine to mark processed
-  with `result: "out of coverage area"`).
+- TMW has NO geographic coverage limit — it covers development stories
+  worldwide, so never skip a query for being in the "wrong" place (a query
+  for projects in Fairbanks, Jakarta, or Lagos is just as in-scope as one
+  for Charlotte). Only skip a query that is genuinely not about a
+  development/real-estate project at all; mark those processed with
+  `result: "not a project query"`.
 - A draft should be the same shape a human editor would create -- title,
   city, type, developer, architect, status, delivery date, hero image,
   one-sentence description.
