@@ -77,6 +77,20 @@ STATUS_CSS_CLASS = {
 CITY_TYPE_MIN = 3
 CITY_MIN      = 3            # lowered from 5 so smaller-but-real cities (Aventura, Tokyo, etc.) get hubs
 STATE_MIN     = 5            # threshold for /markets/<state>/ rollup pages — keeps SEO quality high
+
+# "Cities" whose value in the City field is actually a country name. These
+# get their own page like any other city hub (the threshold logic still
+# applies) but on the /markets/ hub they're surfaced under a separate
+# "Browse by country" rail rather than mixed in with real cities. Lets us
+# present Saudi Arabia next to Bahamas instead of next to Miami.
+COUNTRY_CITIES: set[str] = {
+    'Saudi Arabia',
+    'Bahamas',
+    'UAE',
+    'Belize',
+    'Singapore',
+    'Turks and Caicos',
+}
 FEATURED_GRID_TARGET = 8     # cards are now 2-column with full timelines, so fewer per page
 
 # ─── Type label tweaks for natural English SEO H1s ───────────────────
@@ -1830,7 +1844,7 @@ def render_state_page(state_label: str, state_code: str, bucket: list[dict],
     )
 
 
-def render_hub(city_type_pairs, city_pages, type_pages, state_pages=None):
+def render_hub(city_type_pairs, city_pages, type_pages, state_pages=None, country_pages=None):
     """Index page at /markets/index.html. The old "By city × category" section
     is replaced by an in-page filter calculator — user picks a city + category
     + status, the page hot-swaps to show what we track for that combination
@@ -1880,6 +1894,21 @@ def render_hub(city_type_pairs, city_pages, type_pages, state_pages=None):
         f'      <div class="related">{state_cards_html}</div>\n'
         '    </section>\n'
     ) if state_cards_html else ''
+
+    # Country links — same shape as cities but surfaced separately so
+    # Saudi Arabia / Bahamas / Singapore aren't sandwiched between
+    # Miami and Aventura.
+    country_pages = country_pages or []
+    country_cards_html = ''.join(
+        f'<a class="rel-card" href="{ROOT_URL}/markets/{slugify(c)}/"><div class="city">National pipeline</div><div class="name">{esc(c)}</div><div class="count">{n} tracked →</div></a>'
+        for (c, n) in country_pages
+    )
+    country_section_html = (
+        '    <section class="section">\n'
+        '      <h2>Browse by country</h2>\n'
+        f'      <div class="related">{country_cards_html}</div>\n'
+        '    </section>\n'
+    ) if country_cards_html else ''
     canonical = f'{ROOT_URL}/markets/'
     crumbs = [('TMW', '/'), ('Markets', None)]
     crumbs_html = ' <span class="sep">/</span> '.join(
@@ -2028,6 +2057,7 @@ def render_hub(city_type_pairs, city_pages, type_pages, state_pages=None):
     </section>
 
 {state_section_html}
+{country_section_html}
     <section class="section">
       <h2>Browse by city</h2>
       <div class="related">{city_html}</div>
@@ -2480,7 +2510,19 @@ def main():
     city_pages_for_hub.sort(key=lambda x: -x[1])
     type_pages_for_hub.sort(key=lambda x: -x[1])
     state_pages_for_hub.sort(key=lambda x: -x[1])
-    hub = render_hub(city_type_pairs_for_hub, city_pages_for_hub, type_pages_for_hub, state_pages_for_hub)
+    # Split: any "city" whose name is actually a country (Saudi Arabia,
+    # Bahamas, UAE, etc.) gets surfaced under "Browse by country" rather
+    # than mixed into the city rail. Each still gets its own /markets/
+    # <slug>/ page identically — only the hub presentation changes.
+    country_pages_for_hub = [(c, n) for c, n in city_pages_for_hub if c in COUNTRY_CITIES]
+    city_only_pages_for_hub = [(c, n) for c, n in city_pages_for_hub if c not in COUNTRY_CITIES]
+    hub = render_hub(
+        city_type_pairs_for_hub,
+        city_only_pages_for_hub,
+        type_pages_for_hub,
+        state_pages_for_hub,
+        country_pages=country_pages_for_hub,
+    )
     open(os.path.join(OUTPUT_DIR, 'index.html'), 'w', encoding='utf-8').write(hub)
     generated_paths.append('/markets/')
 
