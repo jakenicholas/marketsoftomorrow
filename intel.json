@@ -8588,65 +8588,21 @@
       "delivery_speculative": false
     },
     "montage-cay": {
-      "estimate_years": 4.0,
-      "estimate_label": "~4 years",
-      "range_low": 2.0,
-      "range_high": 8.4,
-      "confidence": "low",
-      "comparable_count": 6,
-      "good_count": 0,
-      "exact_count": 0,
-      "used_relaxed": true,
-      "avg_match_score": 0.54,
-      "avg_distance_km": 749.1,
-      "avg_distance_mi": 465.5,
-      "scale_used": true,
-      "firm_signal": {
-        "firm": "Gensler",
-        "count": 1,
-        "median_years": 4.21,
-        "stddev_years": 0.0,
-        "role": "architect",
-        "consistent": false,
-        "blend_weight": 0.4
-      },
-      "source": "comparables",
+      "estimate_years": 0.5,
+      "estimate_label": "~7 months",
+      "days_out": 199,
+      "delivery_date": "2026-12-31",
+      "source": "known_date",
+      "precision": "year",
+      "confidence": "high",
       "project_type": "Residences",
       "metro": "Other",
-      "comparables": [
-        {
-          "name": "Forté on Flagler",
-          "slug": "fort-on-flagler",
-          "location": "West Palm Beach",
-          "years": 3.8,
-          "score": 0.64,
-          "distance_km": 302.2,
-          "distance_mi": 187.8
-        },
-        {
-          "name": "Vita at Grove Isle",
-          "slug": "vita-at-grove-isle",
-          "location": "Coconut Grove",
-          "years": 2.0,
-          "score": 0.64,
-          "distance_km": 332.9,
-          "distance_mi": 206.8
-        },
-        {
-          "name": "Arbor Coconut Grove",
-          "slug": "arbor-coconut-grove",
-          "location": "Miami",
-          "years": 8.4,
-          "score": 0.64,
-          "distance_km": 335.2,
-          "distance_mi": 208.3
-        }
-      ],
-      "pattern_summary": "Among 6 residences projects in TMW's data, the median build time is 3.9 years (range 2–8.4). Adjusted to ~4 years for Gensler's own track record (~4.2-year typical pace across 1 prior project).",
+      "comparables": [],
+      "comparable_count": 0,
+      "pattern_summary": "Targeted for opening in ~7 months.",
       "dates_speculative": false,
       "start_speculative": false,
-      "delivery_speculative": false,
-      "is_mixed_use": false
+      "delivery_speculative": false
     },
     "hyatt-centric-grand-cayman": {
       "estimate_years": 2.5,
@@ -8672,15 +8628,15 @@
       "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
-      "confidence": "high",
+      "confidence": "medium",
       "project_type": "Mixed-Use",
       "metro": "Tampa Bay",
       "comparables": [],
       "comparable_count": 0,
-      "pattern_summary": "Targeted for opening in ~2.5 years.",
-      "dates_speculative": false,
-      "start_speculative": false,
-      "delivery_speculative": false
+      "pattern_summary": "TMW estimates an opening in ~2.5 years based on project type and current stage.",
+      "dates_speculative": true,
+      "start_speculative": true,
+      "delivery_speculative": true
     },
     "grand-hyatt-grand-cayman": {
       "estimate_years": 0.5,
@@ -8717,37 +8673,21 @@
       "delivery_speculative": false
     },
     "ruby-new-york-city": {
-      "estimate_years": 8.1,
-      "estimate_label": "~8.1 years",
-      "range_low": 8.1,
-      "range_high": 8.1,
-      "confidence": "low",
-      "comparable_count": 1,
-      "good_count": 0,
-      "exact_count": 0,
-      "used_relaxed": true,
-      "avg_match_score": 0.35,
-      "avg_distance_km": null,
-      "avg_distance_mi": null,
-      "scale_used": true,
-      "firm_signal": null,
-      "source": "comparables",
+      "estimate_years": 1.5,
+      "estimate_label": "~1.5 years",
+      "days_out": 564,
+      "delivery_date": "2027-12-31",
+      "source": "known_date",
+      "precision": "year",
+      "confidence": "medium",
       "project_type": "Hotel",
       "metro": "New York",
-      "comparables": [
-        {
-          "name": "The Belgrove Resort & Spa",
-          "slug": "the-belgrove-resort-spa",
-          "location": "West Palm Beach",
-          "years": 8.1,
-          "score": 0.35
-        }
-      ],
-      "pattern_summary": "Among 1 hotel project in TMW's data, the median build time is 8.1 years.",
+      "comparables": [],
+      "comparable_count": 0,
+      "pattern_summary": "TMW estimates an opening in ~1.5 years based on project type and current stage.",
       "dates_speculative": true,
       "start_speculative": true,
-      "delivery_speculative": true,
-      "is_mixed_use": false
+      "delivery_speculative": true
     },
     "olana-naples": {
       "estimate_years": 2.1,
@@ -8865,13 +8805,13 @@
   "stats": {
     "high": 1,
     "medium": 18,
-    "low": 32,
-    "known_date": 296,
+    "low": 30,
+    "known_date": 298,
     "completed": 57,
     "skipped": 50,
     "no_type": 0,
-    "firm_boosted": 35,
-    "speculative_softened": 75,
+    "firm_boosted": 34,
+    "speculative_softened": 77,
     "mixed_use_adjusted": 1
   }
 }
