@@ -1186,6 +1186,13 @@ def render_featured_markets_json(by_city: dict[str, list[dict]], path: str) -> i
         "The {city} development cycle",
         "Tracking {city}'s next chapter",
     ]
+    # Hand-picked tile images for specific markets (override the auto-pick).
+    # Keyed by city — use when a particular project's rendering is the one we
+    # want to lead with on the homepage tile.
+    MARKET_IMAGE_OVERRIDES = {
+        'Riviera Beach': 'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_445dcb51bfab4b5f97729a55a31eca71~mv2.jpg',  # 123 Ocean
+        'Palm Beach':    'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_297b07c045bc4d1a9b0fbb166b176dee~mv2.webp',  # Palm Beach Residences
+    }
     def pick_image(projects: list[dict]) -> str | None:
         # Featured > Under Construction > anything with an image. We want
         # the most photogenic + recognizable rendering, not just "first row".
@@ -1204,7 +1211,7 @@ def render_featured_markets_json(by_city: dict[str, list[dict]], path: str) -> i
 
     cards = []
     for i, (city, n, bucket) in enumerate(ranked):
-        img = pick_image(bucket)
+        img = MARKET_IMAGE_OVERRIDES.get(city) or pick_image(bucket)
         if not img: continue                    # don't ship a card without a real image
         title_template = TITLES[hash(city) % len(TITLES)]
         cards.append({
