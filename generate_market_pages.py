@@ -985,6 +985,15 @@ def render_page(
         if (window.tmwShowPaywall) window.tmwShowPaywall({{ source: 'market_page' }});
         else window.location = '{ROOT_URL}/map/?upgrade=1';
       }});
+      // Inline "Pro members" links (methodology copy) open the same paywall.
+      Array.prototype.forEach.call(document.querySelectorAll('a.pro-link'), function (el) {{
+        el.addEventListener('click', function (ev) {{
+          if (!window.tmwShowPaywall) return;   // paywall JS not loaded → href fallback
+          ev.preventDefault();
+          try {{ window.tmwFunnelTrack && window.tmwFunnelTrack('go_pro_clicked', {{ source: 'methodology_link', path: location.pathname }}); }} catch (_){{}}
+          window.tmwShowPaywall({{ source: 'methodology_link' }});
+        }});
+      }});
     }});
   </script>
 </body>
@@ -1006,6 +1015,163 @@ def _top_developer(projects: list[dict]) -> tuple[str|None, int]:
     devs, _ = _count_firms(projects, 'Developer', 'DeveloperSlugs')
     return devs.most_common(1)[0] if devs else (None, 0)
 
+# ─── Type-synonym vocabulary for SEO ──────────────────────────────────
+# Each PreferredType maps to natural-language variations real visitors
+# search ("Miami condos" + "Miami towers" + "Miami high-rises" + ...).
+# Generators sprinkle them across H2 headings, FAQ phrasing, and body
+# copy so the same page ranks for many variations of the same intent.
+TYPE_SYNONYMS: dict[str, list[tuple[str, str]]] = {
+    'Residences': [
+        ('condo',       'condos'),
+        ('tower',       'towers'),
+        ('high-rise',   'high-rises'),
+        ('residence',   'residences'),
+        ('luxury condo','luxury condos'),
+        ('residential development', 'residential developments'),
+        ('condominium', 'condominiums'),
+        ('apartment',   'apartments'),
+    ],
+    'Hotel': [
+        ('hotel',         'hotels'),
+        ('luxury hotel',  'luxury hotels'),
+        ('boutique hotel','boutique hotels'),
+        ('resort hotel',  'resort hotels'),
+    ],
+    'Mixed-Use': [
+        ('mixed-use development',  'mixed-use developments'),
+        ('mixed-use tower',        'mixed-use towers'),
+        ('mixed-use district',     'mixed-use districts'),
+    ],
+    'Office': [
+        ('office tower',     'office towers'),
+        ('office building',  'office buildings'),
+        ('office development','office developments'),
+        ('commercial tower', 'commercial towers'),
+    ],
+    'Entertainment': [
+        ('entertainment district','entertainment districts'),
+        ('entertainment venue',   'entertainment venues'),
+        ('arena',                 'arenas'),
+        ('theater',               'theaters'),
+    ],
+    'Stadium': [
+        ('stadium',         'stadiums'),
+        ('arena',           'arenas'),
+        ('sports venue',    'sports venues'),
+        ('ballpark',        'ballparks'),
+    ],
+    'Park': [
+        ('park',          'parks'),
+        ('public space',  'public spaces'),
+        ('green space',   'green spaces'),
+    ],
+    'Golf': [
+        ('golf club',     'golf clubs'),
+        ('golf course',   'golf courses'),
+        ('country club',  'country clubs'),
+        ('private club',  'private clubs'),
+    ],
+    'Museum': [
+        ('museum',          'museums'),
+        ('cultural venue',  'cultural venues'),
+        ('gallery',         'galleries'),
+        ('arts venue',      'arts venues'),
+    ],
+    'Education': [
+        ('school',          'schools'),
+        ('campus',          'campuses'),
+        ('university building','university buildings'),
+    ],
+    'Travel': [
+        ('airport',         'airports'),
+        ('transit hub',     'transit hubs'),
+        ('station',         'stations'),
+    ],
+    'Resort': [
+        ('resort',        'resorts'),
+        ('luxury resort', 'luxury resorts'),
+        ('beach resort',  'beach resorts'),
+        ('mountain resort','mountain resorts'),
+    ],
+}
+
+def _type_keywords(ptype: str) -> tuple[str, str, list[tuple[str,str]]]:
+    """Return (primary_singular, primary_plural, all_variations) for a type."""
+    variations = TYPE_SYNONYMS.get(ptype, [(ptype.lower().rstrip('s'), ptype.lower())])
+    primary_singular, primary_plural = variations[0]
+    return primary_singular, primary_plural, variations
+
+# ─── Status-grouped sub-section renderer ─────────────────────────────
+# Every market page now carries H2 sub-sections with exact-match search
+# phrases. Each section shows real projects so the heading isn't bare
+# keyword stuffing.
+STATUS_QUERY_VERBS = {
+    'Under Construction': 'under construction',
+    'Breaking Ground':    'breaking ground',
+    'Opening Soon':       'opening soon',
+    'Announced':          'announced',
+    'Now Open':           'now open',
+}
+
+def status_sections_html(projects: list[dict], type_plural: str, location_phrase: str,
+                        list_label: str = 'in') -> str:
+    by_status = collections.defaultdict(list)
+    for p in projects:
+        d = (p.get('Delivery') or '').strip()
+        if d in STATUS_QUERY_VERBS:
+            by_status[d].append(p)
+
+    for s in by_status:
+        by_status[s].sort(key=lambda p: (0 if is_featured(p) else 1, (p.get('Title') or '').lower()))
+
+    sections = []
+    order = ['Under Construction', 'Breaking Ground', 'Opening Soon', 'Announced', 'Now Open']
+    for status in order:
+        bucket = by_status.get(status, [])
+        if not bucket: continue
+        n = len(bucket)
+        verb = STATUS_QUERY_VERBS[status]
+        # H2 phrasing — these ARE the search queries we want to rank for
+        if status == 'Announced':
+            h2 = f'{n} {type_plural} just announced for {location_phrase}'
+        elif status == 'Now Open':
+            h2 = f'{n} {type_plural} now open in {location_phrase}'
+        else:
+            h2 = f'{n} {type_plural} {verb} {list_label} {location_phrase}'
+        sample = bucket[:5]
+        items = ''.join(
+            f'<li><a href="{ROOT_URL}/projects/{esc(p.get("Slug",""))}/"><b>{esc(p.get("Title",""))}</b></a>'
+            + (f' — {esc(p.get("City",""))}' if p.get('City') and list_label == 'worldwide' else '')
+            + (f' · {_safe_int(p.get("Floors"))} floors' if _safe_int(p.get('Floors')) else '')
+            + (f' · {_safe_int(p.get("Units")):,} units' if _safe_int(p.get('Units')) else '')
+            + '</li>'
+            for p in sample
+        )
+        more_link = ''
+        if n > 5:
+            more_link = f'<p class="status-more"><a href="{ROOT_URL}/map/?q={esc(location_phrase)}+{esc(verb)}">See all {n} → on the map</a></p>'
+        sections.append(
+            f'<section class="status-block">'
+            f'<h2 class="status-h">{esc(h2)}</h2>'
+            f'<ul class="status-list">{items}</ul>'
+            f'{more_link}'
+            f'</section>'
+        )
+    if not sections: return ''
+    return (
+        '    <section class="section status-pipeline">\n'
+        '      <div class="section-head">\n'
+        '        <div>\n'
+        '          <div class="section-eyebrow">Pipeline by status</div>\n'
+        f'          <h2 class="section-title">The {esc(location_phrase)} pipeline, status by status</h2>\n'
+        '        </div>\n'
+        '      </div>\n'
+        '      <div class="status-stack">\n'
+        + '\n'.join(sections) +
+        '      </div>\n'
+        '    </section>\n'
+    )
+
 # ─── FAQ generators ────────────────────────────────────────────────────
 # Q&A items are pulled directly from the data set so answers stay accurate
 # every hourly run. Each generator returns a list of (question, answer_html)
@@ -1013,14 +1179,24 @@ def _top_developer(projects: list[dict]) -> tuple[str|None, int]:
 # and the FAQPage JSON-LD.
 
 def faqs_city_type(city: str, ptype: str, projects: list[dict]) -> list[tuple[str, str]]:
+    """12+ Q&A items per page, covering every typical search-intent
+    variation: "what's coming to", "what's under construction in",
+    "what's opening soon in", "what's just announced for", "tallest X in",
+    "who is building", "where are the most X", "best new X", etc.
+    Synonyms (condos / towers / high-rises / residences) rotate through
+    so the page ranks for all of them."""
     sb = _status_breakdown(projects)
     btn = by_the_numbers(projects)
     devs, dev_slugs = _count_firms(projects, 'Developer', 'DeveloperSlugs')
     arches, arch_slugs = _count_firms(projects, 'Architect', 'ArchitectSlugs')
     n_total = len(projects)
+    sing, plur, variants = _type_keywords(ptype)
+    # Pull two more synonyms for variety in question phrasing
+    syn1 = variants[1] if len(variants) > 1 else (sing, plur)
+    syn2 = variants[2] if len(variants) > 2 else (sing, plur)
     qa: list[tuple[str, str]] = []
 
-    # Q1 — overall pipeline
+    # Q1 — overall pipeline (most common search intent)
     pipe_parts = []
     if sb['uc']:  pipe_parts.append(f'<b>{sb["uc"]} under construction</b>')
     if sb['bg']:  pipe_parts.append(f'<b>{sb["bg"]} breaking ground</b>')
@@ -1029,53 +1205,112 @@ def faqs_city_type(city: str, ptype: str, projects: list[dict]) -> list[tuple[st
     if sb['no']:  pipe_parts.append(f'<b>{sb["no"]} already delivered</b>')
     pipe_str = ', '.join(pipe_parts) or 'no active tracking right now'
     qa.append((
-        f'How many new {ptype.lower()} are being built in {city} right now?',
-        f'We track <b>{n_total} new {ptype.lower()} development{"s" if n_total != 1 else ""}</b> in {esc(city)} — {pipe_str}. Status is sourced from public filings, official announcements, and on-the-ground reporting; we update the live map within hours of confirming a change.',
+        f'What new {plur} are coming to {city}?',
+        f'We track <b>{n_total} new {plur} development{"s" if n_total != 1 else ""}</b> in {esc(city)} — {pipe_str}. Status is sourced from public filings, official announcements, and on-the-ground reporting; we update the live map within hours of confirming a change.',
     ))
 
-    # Q2 — tallest project
+    # Q2 — Under construction (high-value search)
+    if sb['uc']:
+        qa.append((
+            f'How many {syn1[1]} are under construction in {city}?',
+            f'<b>{sb["uc"]} {plur}</b> are currently under construction in {esc(city)}. View the live status on each in the pipeline grid above — every project links to a page with construction milestones, renderings, and our journal coverage.',
+        ))
+
+    # Q3 — Opening soon (high-intent buyer search)
+    if sb['os']:
+        qa.append((
+            f'What {plur} are opening soon in {city}?',
+            f'<b>{sb["os"]} {plur}</b> are flagged Opening Soon — meaning their expected opening is within ~7 months. Pro members get our weekly Slippage Report which flags every project whose forecast moved this week.',
+        ))
+
+    # Q4 — Just announced (early-stage research search)
+    if sb['an']:
+        qa.append((
+            f'What {plur} have just been announced for {city}?',
+            f'<b>{sb["an"]} {plur}</b> are in the announced phase in {esc(city)} — meaning a developer has publicly committed but construction has not yet begun. These are the earliest signals of where the next cycle is heading.',
+        ))
+
+    # Q5 — Breaking ground
+    if sb['bg']:
+        qa.append((
+            f'What {syn2[1]} are breaking ground in {city}?',
+            f'<b>{sb["bg"]} {plur}</b> are at the breaking-ground phase — site work and foundations have begun. This is the first visible signal of construction activity.',
+        ))
+
+    # Q6 — Tallest project
     if btn['tallest_project']:
         tp = btn['tallest_project']
         units_blurb = ''
         u = _safe_int(tp.get('Units'))
-        if u: units_blurb = f', with {u:,} residential units'
+        if u: units_blurb = f', with {u:,} units'
         qa.append((
-            f'What is the tallest {ptype.lower().rstrip("s")} project planned in {city}?',
+            f'What is the tallest new {sing} planned in {city}?',
             f'<b>{esc(tp["Title"])}</b> at <b>{btn["tallest_floors"]} floors</b>{units_blurb}. Status: {esc(tp.get("Delivery","Announced"))}. <a href="{ROOT_URL}/projects/{esc(tp.get("Slug",""))}/">See the full project page →</a>',
         ))
 
-    # Q3 — top developer
+    # Q7 — Top developer
     if devs:
         top_dev_name, top_dev_n = devs.most_common(1)[0]
         ds = dev_slugs.get(top_dev_name, '')
         link = f'<a href="{ROOT_URL}/firm/{esc(ds)}/">{esc(top_dev_name)}</a>' if ds else f'<b>{esc(top_dev_name)}</b>'
         qa.append((
-            f'Who is the most active developer building {ptype.lower()} in {city}?',
-            f'{link} leads {city} {ptype.lower()} with <b>{top_dev_n} active project{"s" if top_dev_n != 1 else ""}</b>. See every {esc(top_dev_name)} project on TMW for status, milestones, and renderings.',
+            f'Who is building the most new {plur} in {city}?',
+            f'{link} leads {city} {plur} with <b>{top_dev_n} active project{"s" if top_dev_n != 1 else ""}</b>. See every {esc(top_dev_name)} project on TMW for status, milestones, and renderings.',
         ))
 
-    # Q4 — top architect
+    # Q8 — Top architect
     if arches:
         top_arch_name, top_arch_n = arches.most_common(1)[0]
         as_ = arch_slugs.get(top_arch_name, '')
         link = f'<a href="{ROOT_URL}/firm/{esc(as_)}/">{esc(top_arch_name)}</a>' if as_ else f'<b>{esc(top_arch_name)}</b>'
         qa.append((
-            f'Which architects are designing the most new {ptype.lower()} in {city}?',
-            f'{link} is the architect of record on <b>{top_arch_n} {city} {ptype.lower()} project{"s" if top_arch_n != 1 else ""}</b> — the most of any firm in this market.',
+            f'Which architects are designing new {plur} in {city}?',
+            f'{link} is the architect of record on <b>{top_arch_n} {city} {plur.lower()} project{"s" if top_arch_n != 1 else ""}</b> — the most of any firm in this market.',
         ))
 
-    # Q5 — delivery window
+    # Q9 — Total residential scale
+    if btn['total_units']:
+        qa.append((
+            f'How many total new residential units are being added in {city}?',
+            f'Across the active {city} {plur.lower()} pipeline, the developments we track will add <b>{btn["total_units"]:,} units</b>. Pro members get unit counts by neighborhood and the per-project breakdown.',
+        ))
+
+    # Q10 — Delivery window
     if btn['earliest_delivery'] and btn['latest_delivery']:
         if btn['earliest_delivery'] == btn['latest_delivery']:
             window = f'all currently expected in <b>{btn["earliest_delivery"]}</b>'
         else:
             window = f'delivery dates run from <b>{btn["earliest_delivery"]}</b> through <b>{btn["latest_delivery"]}</b>'
         qa.append((
-            f'When will the next wave of {city} {ptype.lower()} deliver?',
+            f'When will the next wave of {city} {plur} deliver?',
             f'Across the active pipeline, {window}. Individual delivery dates shift constantly — Pro members get our weekly Slippage Report flagging which projects have slipped this week.',
         ))
 
-    return qa[:6]
+    # Q11 — Biggest by units
+    units_proj = max((p for p in projects), key=lambda p: _safe_int(p.get('Units')), default=None)
+    if units_proj and _safe_int(units_proj.get('Units')):
+        n_units = _safe_int(units_proj.get('Units'))
+        qa.append((
+            f'What is the biggest {sing} planned in {city} by unit count?',
+            f'<b>{esc(units_proj["Title"])}</b> with <b>{n_units:,} units</b> is the largest by residential unit count in our {city} dataset. <a href="{ROOT_URL}/projects/{esc(units_proj.get("Slug",""))}/">See the project →</a>',
+        ))
+
+    # Q12 — Featured / most-watched
+    featured = [p for p in projects if is_featured(p)]
+    if featured:
+        names = ', '.join(f'<b>{esc(p["Title"])}</b>' for p in featured[:5])
+        qa.append((
+            f'What are the most-watched new {plur} in {city}?',
+            f'Our editors flag the highest-profile projects as Featured. The current {city} Featured set: {names}. Each is marked with a gold star in the pipeline grid above.',
+        ))
+
+    # Q13 — Update cadence
+    qa.append((
+        f'How often is the {city} {plur} data updated?',
+        f'Hourly. Our cron pipeline pulls fresh project data every hour and regenerates this page (and every market and firm page) from the source-of-truth database. A status change confirmed today shows up within ~60 minutes.',
+    ))
+
+    return qa[:13]
 
 def faqs_city(city: str, projects: list[dict]) -> list[tuple[str, str]]:
     sb = _status_breakdown(projects)
@@ -1191,7 +1426,7 @@ def city_type_intro(city: str, ptype: str, projects: list[dict], top_arch: str|N
         f'<p>{intro}</p>'
         + (f'<p>{dev_line} {open_line}</p>' if (dev_line or open_line) else '')
         + f'<h2>How we built this list</h2>'
-          f'<p>Every project on this page is on the <a href="{ROOT_URL}/map/">Map of Tomorrow</a> — our live database of new and under-construction developments worldwide. We add a project only after we can confirm it from a public filing, an official announcement, or independent reporting; status changes (breaking ground, topping out, opening) are sourced the same way and timestamped. <a href="{ROOT_URL}/map/?upgrade=1">Pro members</a> get our weekly Slippage Report and the full dataset by phase, neighborhood, and architect.</p>'
+          f'<p>Every project on this page is from our live database of new and under-construction developments worldwide. We add a project only after we can confirm it from a public filing, an official announcement, or independent reporting; status changes (breaking ground, topping out, opening) are sourced the same way and timestamped. <a href="{ROOT_URL}/map/?upgrade=1" class="pro-link">Pro members</a> get full access to TMW Intelligence&rsquo;s prediction modeling, Atlas data compilation, Pulse notifications, personalized notifications, comparison view, watchlists, and more.</p>'
     )
     return intro, long_copy
 
@@ -1219,7 +1454,7 @@ def city_intro(city: str, projects: list[dict], top_types: list[tuple[str,int]])
         f'<p>{status_line}</p>'
         + (f'<p>{dev_line}</p>' if dev_line else '')
         + f'<h2>How we built this list</h2>'
-          f'<p>Every project on this page is on the <a href="{ROOT_URL}/map/">Map of Tomorrow</a> — our live database of new and under-construction developments worldwide. We add a project only after we can confirm it from a public filing, an official announcement, or independent reporting; status changes are sourced the same way and timestamped. <a href="{ROOT_URL}/map/?upgrade=1">Pro members</a> get our weekly Slippage Report and the full dataset by phase, neighborhood, architect, and developer.</p>'
+          f'<p>Every project on this page is from our live database of new and under-construction developments worldwide. We add a project only after we can confirm it from a public filing, an official announcement, or independent reporting; status changes (breaking ground, topping out, opening) are sourced the same way and timestamped. <a href="{ROOT_URL}/map/?upgrade=1" class="pro-link">Pro members</a> get full access to TMW Intelligence&rsquo;s prediction modeling, Atlas data compilation, Pulse notifications, personalized notifications, comparison view, watchlists, and more.</p>'
     )
     return intro, long_copy
 
@@ -1240,7 +1475,7 @@ def type_intro(ptype: str, projects: list[dict], top_cities: list[tuple[str,int]
         f'<p>{intro}</p>'
         f'<p>{status_line}</p>'
         f'<h2>How we built this list</h2>'
-        f'<p>Every project on this page is on the <a href="{ROOT_URL}/map/">Map of Tomorrow</a>, our live database of new and under-construction developments worldwide. We add a project only after we can confirm it from a public filing, an official announcement, or independent reporting; status changes are sourced the same way and timestamped. <a href="{ROOT_URL}/map/?upgrade=1">Pro members</a> get our weekly Slippage Report and the full filterable dataset.</p>'
+        f'<p>Every project on this page is from our live database of new and under-construction developments worldwide. We add a project only after we can confirm it from a public filing, an official announcement, or independent reporting; status changes (breaking ground, topping out, opening) are sourced the same way and timestamped. <a href="{ROOT_URL}/map/?upgrade=1" class="pro-link">Pro members</a> get full access to TMW Intelligence&rsquo;s prediction modeling, Atlas data compilation, Pulse notifications, personalized notifications, comparison view, watchlists, and more.</p>'
     )
     return intro, long_copy
 

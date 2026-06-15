@@ -759,7 +759,7 @@ def render_page(firm, firm_projects, stats, coverage_items):
         f'<h2>{e(title)} on {SITE_NAME}</h2>'
         f'<p>{intro} Most active markets: {top_city_phrase}. Specializing in: {top_type_phrase}.</p>'
         f'<h2>How we built this list</h2>'
-        f'<p>Every project on this page is on the <a href="{MARKET_ROOT_URL}/map/">Map of Tomorrow</a> — our live database of new and under-construction developments worldwide. Project status, milestones (breaking ground, topping out, opening), and spec changes are sourced from public filings, official announcements, or independent reporting and timestamped. <a href="{MARKET_ROOT_URL}/map/?upgrade=1">Pro members</a> get our weekly Slippage Report, the TMW Forecast on every project, and the full firm dataset by city, neighborhood, and project type.</p>'
+        f'<p>Every project on this page is from our live database of new and under-construction developments worldwide. We add a project only after we can confirm it from a public filing, an official announcement, or independent reporting; status changes (breaking ground, topping out, opening) are sourced the same way and timestamped. <a href="{MARKET_ROOT_URL}/map/?upgrade=1" class="pro-link">Pro members</a> get full access to TMW Intelligence&rsquo;s prediction modeling, Atlas data compilation, Pulse notifications, personalized notifications, comparison view, watchlists, and more.</p>'
     )
 
     canonical = f'{SITE_ORIGIN}/firm/{e(slug)}/'
@@ -1005,6 +1005,15 @@ def render_page(firm, firm_projects, stats, coverage_items):
         try {{ window.tmwFunnelTrack && window.tmwFunnelTrack('go_pro_clicked', {{ source: 'firm_page', firm: firmName, path: location.pathname }}); }} catch (_){{}}
         if (window.tmwShowPaywall) window.tmwShowPaywall({{ source: 'firm_page' }});
         else window.location = '{MARKET_ROOT_URL}/map/?upgrade=1';
+      }});
+      // Inline "Pro members" links (methodology copy) open the same paywall.
+      Array.prototype.forEach.call(document.querySelectorAll('a.pro-link'), function (el) {{
+        el.addEventListener('click', function (ev) {{
+          if (!window.tmwShowPaywall) return;   // paywall JS not loaded → href fallback
+          ev.preventDefault();
+          try {{ window.tmwFunnelTrack && window.tmwFunnelTrack('go_pro_clicked', {{ source: 'methodology_link', path: location.pathname }}); }} catch (_){{}}
+          window.tmwShowPaywall({{ source: 'methodology_link' }});
+        }});
       }});
     }});
   </script>
