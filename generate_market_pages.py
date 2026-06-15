@@ -392,7 +392,10 @@ def render_page(
         '    </section>\n'
     ) if more_types else ''
     showing_note = f'12 of {total_count} we\'re watching closely' if total_count > FEATURED_GRID_TARGET else f'All {total_count} we\'re watching'
-    see_all_link = f'<a href="{ROOT_URL}/map/?q={esc(map_search)}">See all {total_count} on the map →</a>'
+    # Gold-bordered pill with a soft glow — the "go look at everything on
+    # the map" CTA is the only chrome we want loud on the featured section,
+    # so we promote it from a plain link to a button-style affordance.
+    see_all_link = f'<a class="see-all-pill" href="{ROOT_URL}/map/?q={esc(map_search)}">See all {total_count} on the map →</a>'
 
     return f"""<!DOCTYPE html>
 <html lang="en">
@@ -474,6 +477,24 @@ def render_page(
     .section-eyebrow {{ font-family:var(--mono); font-size:10px; letter-spacing:.2em; text-transform:uppercase; color: var(--purple-bright); margin-bottom: 8px; font-weight:600; }}
     .section-meta {{ font-family:var(--mono); font-size: 11px; letter-spacing:.12em; text-transform:uppercase; color: var(--mute); }}
     .section-meta a {{ color: var(--purple-bright); text-decoration: underline; text-underline-offset:3px; }}
+    /* "See all # on the map" — gold-bordered pill with a soft glow, lifted
+       above the section-meta default underline. Matches the gold accent we
+       reserve for paid-tier signals so it reads as a Pro-quality affordance. */
+    .section-meta a.see-all-pill {{
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 14px; border-radius: 999px;
+      background: rgba(255,211,0,.06); color: var(--gold);
+      border: 1px solid rgba(255,211,0,.45);
+      box-shadow: 0 0 14px rgba(255,211,0,.18), inset 0 0 12px rgba(255,211,0,.05);
+      font-family: var(--mono); font-size: 10.5px; letter-spacing: .12em;
+      text-transform: uppercase; text-decoration: none; font-weight: 700;
+      transition: background .15s, box-shadow .15s, border-color .15s;
+    }}
+    .section-meta a.see-all-pill:hover {{
+      background: rgba(255,211,0,.12);
+      border-color: rgba(255,211,0,.7);
+      box-shadow: 0 0 22px rgba(255,211,0,.32), inset 0 0 14px rgba(255,211,0,.08);
+    }}
 
     /* Project grid — 2 columns desktop, 1 column mobile. Each card now
        includes title, location, last-verified row, the full construction
@@ -485,7 +506,9 @@ def render_page(
        below so the firm <a> tags don't get nested inside the card <a>. */
     .card {{ display: flex; flex-direction: column; background:#111; border-radius:14px; overflow:hidden; transition: transform .15s, border-color .15s; border:1px solid transparent; position:relative; }}
     .card:hover {{ transform: translateY(-2px); border-color: rgba(167,139,250,.3); }}
-    .card.featured {{ box-shadow: 0 0 0 1px rgba(255,211,0,.32), 0 8px 24px rgba(255,211,0,.06); }}
+    /* No gold-glow border on featured cards — the corner star badge is
+       the only featured cue. Border-only featured projects were reading
+       as the same visual weight as the active hover state. */
     .card-link {{ display: block; text-decoration: none; color: inherit; }}
     .card-firms-wrap {{ padding: 0 20px 20px; }}
     /* Smaller, square gold badge with star — matches map marker style */
@@ -527,7 +550,10 @@ def render_page(
     .pp-firm:hover {{ border-color: rgba(31,223,103,.35); }}
     .pp-firm .k {{ font-family: var(--mono); font-size: 8.5px; letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,.4); }}
     .pp-firm .v {{ font-family: var(--sans); font-size: 15px; font-weight: 700; color: var(--white); margin-top: 4px; line-height: 1.25; }}
-    .pp-firm .go {{ display: inline-block; margin-top: 7px; font-family: var(--mono); font-size: 9.5px; letter-spacing: .07em; color: var(--green); font-weight: 600; }}
+    /* "View firm profile" — matches the project page's .pp-firm .go
+       (Inter, default body font, not mono) so the bubble UI reads the
+       same here as on the project page itself. */
+    .pp-firm .go {{ display: inline-block; margin-top: 7px; font-family: var(--sans); font-size: 11px; color: var(--green); }}
     .pp-firm-empty {{ cursor: default; }}
     .pp-firm-empty:hover {{ border-color: rgba(255,255,255,.08); }}
 
