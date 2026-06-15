@@ -62,17 +62,25 @@
       '.iv-pin:hover{transform:translateY(-3px) scale(1.08); box-shadow:0 6px 20px rgba(230,197,116,.45), 0 0 0 1.5px rgba(0,0,0,.4)}' +
       '.iv-pin svg{width:14px; height:14px; fill:#0a0a0a}' +
       '.iv-pin-rank{position:absolute; top:-7px; right:-9px; min-width:18px; height:18px; padding:0 5px; border-radius:9px; background:var(--ink); color:var(--gold-soft); font-family:var(--mono); font-size:10px; font-weight:700; display:flex; align-items:center; justify-content:center; border:1px solid var(--gold); font-variant-numeric:tabular-nums; line-height:1}' +
-      /* Popup — dark theme, override Mapbox defaults */
-      '.mapboxgl-popup-content{background:rgba(13,15,14,.96)!important; color:var(--cream)!important; border:1px solid var(--hair-2); border-radius:12px; padding:14px 16px; font-family:var(--sans); box-shadow:0 12px 30px rgba(0,0,0,.6); max-width:280px}' +
+      /* Popup — dark theme. Inner padding zeroed on .mapboxgl-popup-content
+         so the hero photo can sit flush against the top + left + right
+         edges; .iv-pop-body re-adds padding under the photo for text. */
+      '.mapboxgl-popup-content{background:rgba(13,15,14,.96)!important; color:var(--cream)!important; border:1px solid var(--hair-2); border-radius:14px; padding:0!important; font-family:var(--sans); box-shadow:0 14px 36px rgba(0,0,0,.65); max-width:340px; overflow:hidden}' +
       '.mapboxgl-popup-tip{border-top-color:rgba(13,15,14,.96)!important}' +
-      '.mapboxgl-popup-close-button{color:var(--mute-2)!important; padding:4px 8px; font-size:18px}' +
-      '.mapboxgl-popup-close-button:hover{color:var(--white)!important; background:transparent!important}' +
-      '.iv-pop{font-family:var(--sans)}' +
+      '.mapboxgl-popup-close-button{color:var(--white)!important; padding:2px 9px; font-size:20px; background:rgba(7,8,7,.55)!important; border-radius:999px; width:28px; height:28px; margin:8px 8px 0 0; -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px); z-index:2}' +
+      '.mapboxgl-popup-close-button:hover{background:rgba(7,8,7,.78)!important}' +
+      '.iv-pop{font-family:var(--sans); width:320px; max-width:100%}' +
+      '.iv-pop-img{display:block; width:100%; height:170px; object-fit:cover; background:rgba(255,255,255,.04)}' +
+      '.iv-pop-img-fb{display:flex; align-items:center; justify-content:center; width:100%; height:170px; background:linear-gradient(135deg, rgba(230,197,116,.15), rgba(167,139,250,.10)); color:var(--gold-soft); font-family:var(--mono); font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; font-weight:600}' +
+      '.iv-pop-body{padding:14px 16px 16px}' +
       '.iv-pop .iv-pop-rk{font-family:var(--mono); font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--gold-soft); margin-bottom:6px; font-weight:700}' +
-      '.iv-pop .iv-pop-nm{font-family:var(--serif); font-size:19px; font-weight:600; color:var(--white); line-height:1.2; margin-bottom:6px; letter-spacing:-.01em}' +
-      '.iv-pop .iv-pop-lc{font-family:var(--mono); font-size:10.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--green); margin-bottom:10px}' +
-      '.iv-pop .iv-pop-go{display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--gold); font-weight:700; text-decoration:none; padding:8px 12px; border:1px solid rgba(230,197,116,.4); border-radius:999px; transition:background .15s}' +
-      '.iv-pop .iv-pop-go:hover{background:rgba(230,197,116,.12)}' +
+      '.iv-pop .iv-pop-nm{font-family:var(--serif); font-size:20px; font-weight:600; color:var(--white); line-height:1.2; margin-bottom:6px; letter-spacing:-.01em}' +
+      '.iv-pop .iv-pop-lc{font-family:var(--mono); font-size:10.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--green); margin-bottom:12px}' +
+      '.iv-pop .iv-pop-go{display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--gold); font-weight:700; text-decoration:none; padding:9px 14px; border:1px solid rgba(230,197,116,.4); border-radius:999px; transition:background .15s, border-color .15s; cursor:pointer}' +
+      '.iv-pop .iv-pop-go:hover{background:rgba(230,197,116,.14); border-color:var(--gold)}' +
+      /* Highlight pulse on the card we just scrolled to from a popup */
+      '.rank-item.iv-flash{animation:ivFlash 1.6s ease-out 1}' +
+      '@keyframes ivFlash{0%{box-shadow:0 0 0 0 rgba(230,197,116,.55)} 60%{box-shadow:0 0 0 14px rgba(230,197,116,0)} 100%{box-shadow:0 0 0 0 rgba(230,197,116,0)}}' +
       /* Mapbox control restyle to fit dark UI */
       '.mapboxgl-ctrl-bottom-right .mapboxgl-ctrl{margin:0 14px 14px 0!important}' +
       '.mapboxgl-ctrl-attrib{background:rgba(0,0,0,.5)!important}' +
@@ -192,11 +200,17 @@
       return cards.map(function (c) {
         function txt(sel) { var e = c.querySelector(sel); return e ? e.textContent.trim() : ''; }
         var cta = c.querySelector('.btn-cta');
+        // Pull the hero image straight out of the rendered card — same
+        // photo the card view shows, so the popup feels like a preview
+        // of where you're about to go.
+        var imgEl = c.querySelector('.ri-photo img, .ri-media img');
+        var image = imgEl ? (imgEl.currentSrc || imgEl.src || imgEl.getAttribute('data-src') || '') : '';
         return {
           id:       c.getAttribute('data-id') || '',
           rank:     txt('.ri-rank'),
           name:     txt('.ri-name'),
           location: txt('.ri-loc'),
+          image:    image,
           href:     cta ? (cta.getAttribute('href') || '') : '',
         };
       }).filter(function (it) { return it.name && it.location; });
@@ -222,13 +236,26 @@
     }
 
     function popupHtml(it) {
-      return '<div class="iv-pop">' +
-        (it.rank ? '<div class="iv-pop-rk">Rank ' + esc(it.rank) + '</div>' : '') +
-        '<div class="iv-pop-nm">' + esc(it.name) + '</div>' +
-        '<div class="iv-pop-lc">' + esc(it.location) + '</div>' +
-        (it.href && it.href !== '#'
-          ? '<a class="iv-pop-go" href="' + esc(it.href) + '" target="_blank" rel="noopener">Visit →</a>'
-          : '') +
+      // Hero photo sits flush to the popup's top + sides (no inner
+      // padding — .mapboxgl-popup-content padding is zeroed in CSS).
+      // Falls back to a gold-glow placeholder when the card has no
+      // photo so the layout stays consistent.
+      var hero = it.image
+        ? '<img class="iv-pop-img" src="' + esc(it.image) + '" alt="' + esc(it.name) + '" loading="lazy">'
+        : '<div class="iv-pop-img-fb">No photo</div>';
+      // CTA jumps to the card view + scrolls to the matching .rank-item.
+      // data-iv-jump carries the item id so the delegated click handler
+      // (bound on the document below) can find the right card.
+      var cta = it.id
+        ? '<a class="iv-pop-go" href="#item-' + esc(it.id) + '" data-iv-jump="' + esc(it.id) + '">View card →</a>'
+        : '';
+      return '<div class="iv-pop">' + hero +
+        '<div class="iv-pop-body">' +
+          (it.rank ? '<div class="iv-pop-rk">Rank ' + esc(it.rank) + '</div>' : '') +
+          '<div class="iv-pop-nm">' + esc(it.name) + '</div>' +
+          '<div class="iv-pop-lc">' + esc(it.location) + '</div>' +
+          cta +
+        '</div>' +
         '</div>';
     }
 
@@ -342,6 +369,33 @@
 
     tg.addEventListener('click', function (e) {
       var b = e.target.closest('.iv-btn'); if (b) setMode(b.getAttribute('data-v'));
+    });
+
+    // Delegated handler for "View card →" links in map popups. Mapbox
+    // popup elements live OUTSIDE the iconic ranking container, so a
+    // listener bound on .iv-pop-go directly wouldn't survive popup
+    // re-renders. Delegate at document level instead.
+    document.addEventListener('click', function (e) {
+      var go = e.target.closest('.iv-pop-go[data-iv-jump]');
+      if (!go) return;
+      var id = go.getAttribute('data-iv-jump');
+      if (!id) return;
+      e.preventDefault();
+      // Force Card view so the user actually sees the photo card they
+      // came from the popup to find.
+      setMode('card');
+      // Card view's container needs a render tick to become visible
+      // again before scrollIntoView fires, otherwise the offset math
+      // is computed against the hidden display:none box.
+      setTimeout(function () {
+        var card = document.querySelector('.rank-item[data-id="' + id + '"]');
+        if (!card) return;
+        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        card.classList.remove('iv-flash');
+        // Reflow so the animation can replay on subsequent clicks.
+        void card.offsetWidth;
+        card.classList.add('iv-flash');
+      }, 60);
     });
 
     // Keep the sheet AND the map current as the cards re-render
