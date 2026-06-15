@@ -84,7 +84,8 @@
     .card { display:block; background:#111; border-radius:12px; overflow:hidden; transition: transform .15s, border-color .15s; border:1px solid transparent; position:relative; }
     .card:hover { transform: translateY(-2px); border-color: rgba(167,139,250,.3); }
     .card.featured { box-shadow: 0 0 0 1px rgba(255,211,0,.32), 0 8px 24px rgba(255,211,0,.06); }
-    .card.featured::before { content:"⭐ Featured"; position:absolute; top:10px; right:10px; z-index:2; font-family:var(--mono); font-size:9.5px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:#0a0a0a; background:var(--gold); padding:4px 9px; border-radius:5px; }
+    .card-feat-badge { position:absolute; top:10px; right:10px; z-index:2; width:28px; height:28px; border-radius:6px; background:var(--gold); display:inline-flex; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(0,0,0,.4); }
+    .card-feat-badge svg { width:16px; height:16px; fill:#0a0a0a; }
     .card-img { height: 180px; background-size: cover; background-position: center; position: relative; }
     .card-img::after { content:""; position:absolute; inset:0; background:linear-gradient(180deg, transparent 55%, rgba(0,0,0,.55) 100%); }
     .card-status-pill { position: absolute; top: 10px; left: 10px; z-index:2; padding: 4px 9px; border-radius: 4px; font-family:var(--mono); font-size:9.5px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; background: rgba(0,0,0,.6); backdrop-filter: blur(6px); }
@@ -118,9 +119,12 @@
     .intel .ex { font-family:var(--mono); font-size: 11px; letter-spacing:.06em; color: var(--mute); margin-top: 16px; line-height: 1.8; }
     .intel .ex span { display:inline-block; padding: 5px 11px; margin: 4px 6px 4px 0; background: rgba(255,255,255,.04); border: 1px solid var(--hair); border-radius: 999px; }
     .intel form { display:flex; gap: 10px; margin-top: 22px; }
-    .intel input { flex: 1; background: rgba(0,0,0,.4); border: 1px solid rgba(167,139,250,.32); border-radius: 10px; padding: 14px 18px; font-family: var(--sans); font-size: 15px; color: var(--white); }
+    .intel input { flex: 1; background: rgba(0,0,0,.4); border: 1px solid rgba(167,139,250,.32); border-radius: 10px; padding: 14px 18px; font-family: var(--sans); font-size: 15px; color: var(--white); cursor: pointer; }
     .intel input:focus { outline: 0; border-color: var(--purple-bright); }
+    .intel input::placeholder { color: var(--mute); opacity: .9; }
     .intel button { font-family: var(--mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; padding: 0 24px; border-radius: 10px; background: var(--purple); color: #0a0a0a; border: 0; cursor:pointer; }
+    .intel .intel-chip { cursor: pointer; transition: background .15s, border-color .15s; }
+    .intel .intel-chip:hover { background: rgba(167,139,250,.12); border-color: rgba(167,139,250,.4); color: var(--white); }
 
     /* Related */
     .related { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
@@ -285,20 +289,25 @@
 
     <section class="section">
 <div class="leads">
-  <div class="lead"><h3>Most active developers</h3><div class="lead-row"><div class="name"><a href="https://www.oftmw.com/firm/e/">e</a></div><div class="count">66 projects</div></div><div class="lead-row"><div class="name"><a href="https://www.oftmw.com/firm/a/">a</a></div><div class="count">46 projects</div></div><div class="lead-row"><div class="name"><a href="https://www.oftmw.com/firm/r/">r</a></div><div class="count">45 projects</div></div><div class="lead-row"><div class="name"><a href="https://www.oftmw.com/firm/t/">t</a></div><div class="count">45 projects</div></div></div>
-  <div class="lead"><h3>Most active architects</h3><div class="lead-row"><div class="name"><a href="https://www.oftmw.com/firm/r/">r</a></div><div class="count">42 projects</div></div><div class="lead-row"><div class="name"><a href="https://www.oftmw.com/firm/e/">e</a></div><div class="count">42 projects</div></div><div class="lead-row"><div class="name"><a href="https://www.oftmw.com/firm/t/">t</a></div><div class="count">33 projects</div></div><div class="lead-row"><div class="name"><a href="https://www.oftmw.com/firm/c/">c</a></div><div class="count">25 projects</div></div></div>
+  <div class="lead"><h3>Most active developers</h3><div class="lead-row"><div class="name"><a href="https://www.oftmw.com/firm/kettler/">KETTLER</a></div><div class="count">2 projects</div></div><div class="lead-row"><div class="name"><a href="https://www.oftmw.com/firm/darryl-shaw/">Darryl Shaw</a></div><div class="count">2 projects</div></div><div class="lead-row"><div class="name"><a href="https://www.oftmw.com/firm/the-nashville-predators/">The Nashville Predators</a></div><div class="count">1 project</div></div><div class="lead-row"><div class="name"><a href="https://www.oftmw.com/firm/the-cordish-companies/">The Cordish Companies</a></div><div class="count">1 project</div></div></div>
+  <div class="lead"><h3>Most active architects</h3><div class="lead-row"><div class="name"><a href="https://www.oftmw.com/firm/populous/">Populous</a></div><div class="count">2 projects</div></div><div class="lead-row"><div class="name"><a href="https://www.oftmw.com/firm/arquitectonica/">Arquitectonica</a></div><div class="count">2 projects</div></div><div class="lead-row"><div class="name"><a href="https://www.oftmw.com/firm/morris-adjmi-architects/">Morris Adjmi Architects</a></div><div class="count">2 projects</div></div><div class="lead-row"><div class="name"><a href="https://www.oftmw.com/firm/olin/">OLIN</a></div><div class="count">1 project</div></div></div>
 </div>
     </section>
 
     <section class="section">
-      <div class="intel">
+      <div class="intel" data-intel-city="" data-intel-type="Entertainment">
         <div class="intel-eyebrow">TMW Intelligence</div>
         <h2>Ask anything about this market.</h2>
         <form id="market-intel-form" autocomplete="off">
-          <input name="q" type="text" placeholder="e.g. Entertainment under construction" autocomplete="off">
+          <input id="market-intel-input" name="q" type="text" placeholder="e.g. Entertainment under construction" autocomplete="off" readonly>
           <button type="submit">Ask</button>
         </form>
-        <div class="ex">Try: <span>what's breaking ground in 2026?</span> <span>tallest tower in pipeline</span> <span>most active firm</span></div>
+        <div class="ex">
+          Try:
+          <span class="intel-chip" data-q="what's breaking ground in 2026?">what's breaking ground in 2026?</span>
+          <span class="intel-chip" data-q="tallest tower in pipeline">tallest tower in pipeline</span>
+          <span class="intel-chip" data-q="most active firm">most active firm</span>
+        </div>
       </div>
     </section>
 
@@ -315,9 +324,11 @@
         <div class="section-meta"><a href="https://www.oftmw.com/markets/">All markets →</a></div>
       </div>
       <div class="related">
-<a class="rel-card" href="/markets/west-palm-beach-entertainment/"><div class="city">West Palm Beach</div><div class="name">Entertainment</div><div class="count">4 tracked →</div></a><a class="rel-card" href="/markets/tampa-entertainment/"><div class="city">Tampa</div><div class="name">Entertainment</div><div class="count">5 tracked →</div></a><a class="rel-card" href="/markets/orlando-entertainment/"><div class="city">Orlando</div><div class="name">Entertainment</div><div class="count">4 tracked →</div></a><a class="rel-card" href="/markets/nashville-entertainment/"><div class="city">Nashville</div><div class="name">Entertainment</div><div class="count">3 tracked →</div></a>
+<a class="rel-card" href="/markets/tampa-entertainment/"><div class="city">CITY</div><div class="name">Tampa · Entertainment</div><div class="count">5 tracked →</div></a><a class="rel-card" href="/markets/west-palm-beach-entertainment/"><div class="city">CITY</div><div class="name">West Palm Beach · Entertainment</div><div class="count">4 tracked →</div></a><a class="rel-card" href="/markets/orlando-entertainment/"><div class="city">CITY</div><div class="name">Orlando · Entertainment</div><div class="count">4 tracked →</div></a><a class="rel-card" href="/markets/nashville-entertainment/"><div class="city">CITY</div><div class="name">Nashville · Entertainment</div><div class="count">3 tracked →</div></a>
       </div>
     </section>
+
+
 
     <div class="pro-cta">
       <div class="l">
@@ -329,22 +340,71 @@
     </div>
   </div>
 
-  <!-- Auth modal + funnel beacon helper (journal-auth.js loads transitively via journal-chrome.js) -->
+  <!-- Auth modal + funnel beacon helper (journal-auth.js loads transitively via journal-chrome.js).
+       journal-search-core.js carries parseSmartQuery so the overlay can parse the
+       city/type prefix we feed it from this page. journal-search-overlay.js exposes
+       window.tmwOverlay.open(query) which the Intelligence ask box calls below. -->
   <script src="/_shared/journal-chrome.js" defer></script>
   <script src="/_shared/journal-dock.js" defer></script>
+  <script src="/_shared/journal-search-core.js" defer></script>
+  <script src="/_shared/journal-search-overlay.js" defer></script>
   <script src="/_shared/tmw-lightbox.js" defer></script>
   <script>
-    // Intel ask → fire intel_query funnel beacon, then redirect to /map/?q=…
+    // Wires the Intelligence ask box + suggestion chips to the universal
+    // overlay loaded by /_shared/journal-search-overlay.js. Every query is
+    // prefixed with the page's market context (city + type) so the overlay's
+    // parseSmartQuery picks them up as structured filters automatically —
+    // a search for "what's breaking ground in 2026" from West Palm Beach
+    // Residences becomes "West Palm Beach Residences what's breaking ground
+    // in 2026", which the parser routes to { city: WPB, type: Residences,
+    // milestone: BG, year: 2026 }.
+    //
+    // The input itself is readonly so the click handler always wins over
+    // text entry — the overlay IS the input. Closing the overlay returns
+    // the user to the same market page (no navigation happens).
     document.addEventListener('DOMContentLoaded', function () {
+      var intelBox = document.querySelector('.intel');
+      if (!intelBox) return;
+      var city = intelBox.getAttribute('data-intel-city') || '';
+      var type = intelBox.getAttribute('data-intel-type') || '';
+      var prefix = (city + ' ' + type).trim();
+
+      function openOverlayWith(q) {
+        var full = prefix ? (prefix + (q ? ' ' + q : '')) : q;
+        try { window.tmwFunnelTrack && window.tmwFunnelTrack('intel_query', { source: 'market_page', city: city, type: type, q: (q || '').slice(0, 80) }); } catch (_){}
+        // tmwOverlay loads from /_shared/journal-search-overlay.js (defer).
+        // If it hasn't booted yet, fall back to deep-linking to the homepage
+        // which auto-opens the overlay from ?q=.
+        if (window.tmwOverlay && typeof window.tmwOverlay.open === 'function') {
+          window.tmwOverlay.open(full);
+        } else {
+          window.location = 'https://www.oftmw.com/?q=' + encodeURIComponent(full);
+        }
+      }
+
+      // Clicking the input box opens the overlay (filter pre-applied).
+      var input = document.getElementById('market-intel-input');
+      if (input) {
+        input.addEventListener('click',  function (e) { e.preventDefault(); openOverlayWith(''); });
+        input.addEventListener('focus',  function (e) { e.preventDefault(); openOverlayWith(''); input.blur(); });
+      }
+      // Submitting the form (Enter or "Ask" button) opens the overlay with
+      // whatever's in the input — even though it's readonly, autofill or
+      // paste can still populate it.
       var f = document.getElementById('market-intel-form');
       if (f) f.addEventListener('submit', function (e) {
         e.preventDefault();
-        var q = (f.q.value || '').trim();
-        if (!q) return;
-        try { window.tmwFunnelTrack && window.tmwFunnelTrack('intel_query', { source: 'market_page', q: q.slice(0, 80) }); } catch (_){}
-        window.location = 'https://www.oftmw.com/map/?q=' + encodeURIComponent(q);
+        openOverlayWith(((input && input.value) || '').trim());
       });
-      // Pro CTA → fire go_pro_clicked beacon, then open the paywall (or fall back to upgrade URL).
+      // Suggestion chips: clicking one opens the overlay with that exact
+      // question AND the city/type prefix applied.
+      Array.prototype.forEach.call(document.querySelectorAll('.intel-chip'), function (chip) {
+        chip.style.cursor = 'pointer';
+        chip.addEventListener('click', function () { openOverlayWith(chip.getAttribute('data-q') || chip.textContent.trim()); });
+      });
+
+      // Pro CTA → fire funnel beacon, then open the paywall (or fall back to
+      // the upgrade URL if journal-paywall.js hasn't loaded yet).
       var go = document.getElementById('market-pro-cta');
       if (go) go.addEventListener('click', function () {
         try { window.tmwFunnelTrack && window.tmwFunnelTrack('go_pro_clicked', { source: 'market_page', path: location.pathname }); } catch (_){}

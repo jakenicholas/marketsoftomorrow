@@ -146,6 +146,12 @@ def bucket_projects(projects: list[dict]):
     return by_city_type, by_city, by_type
 
 # ─── Page render helpers ──────────────────────────────────────────────
+FEAT_STAR_SVG = (
+    '<svg viewBox="0 0 24 24" aria-hidden="true">'
+    '<path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/>'
+    '</svg>'
+)
+
 def card_html(p: dict) -> str:
     title = esc(p.get('Title') or '')
     slug  = (p.get('Slug') or slugify(p.get('Title') or '')).strip()
@@ -159,10 +165,12 @@ def card_html(p: dict) -> str:
     if arch: meta_parts.append(f'<span>·</span><span>{arch}</span>')
     meta = ''.join(meta_parts) or '<span style="opacity:.6">Coming soon</span>'
     pill = status_pill(p)
-    featured_flag = ' data-featured="1"' if is_featured(p) else ''
+    featured = is_featured(p)
+    featured_attrs = ' data-featured="1"' if featured else ''
+    feat_badge = f'<span class="card-feat-badge" aria-label="Featured project">{FEAT_STAR_SVG}</span>' if featured else ''
     return (
-        f'<a class="card{" featured" if is_featured(p) else ""}" href="{ROOT_URL}/projects/{esc(slug)}/"{featured_flag}>\n'
-        f'  <div class="card-img" data-lightbox-src="{img}" data-lightbox-caption="{cap}" style="background-image:url(\'{img}\')">{pill}</div>\n'
+        f'<a class="card{" featured" if featured else ""}" href="{ROOT_URL}/projects/{esc(slug)}/"{featured_attrs}>\n'
+        f'  <div class="card-img" data-lightbox-src="{img}" data-lightbox-caption="{cap}" style="background-image:url(\'{img}\')">{pill}{feat_badge}</div>\n'
         f'  <div class="card-body">\n'
         f'    <div class="card-title">{title}</div>\n'
         f'    <div class="card-neigh">{neigh}</div>\n'
@@ -181,30 +189,26 @@ def stats_strip_html(projects: list[dict]) -> str:
         for label, n, cls in cells
     )
 
-def top_firms_html(projects: list[dict]) -> str:
-    devs = collections.Counter()
-    arches = collections.Counter()
-    dev_slugs: dict[str,str] = {}
-    arch_slugs: dict[str,str] = {}
+def _count_firms(projects: list[dict], name_field: str, slug_field: str) -> tuple[collections.Counter, dict[str,str]]:
+    """Tally how many projects each firm appears on, and remember its slug.
+
+    `Developer` and `Architect` columns are comma-separated lists; `*Slugs`
+    are the matched slugs at the same indices. We pair them positionally so
+    the firm card can link straight to /firm/<slug>/."""
+    counts: collections.Counter = collections.Counter()
+    slug_map: dict[str, str] = {}
     for p in projects:
-        for nm, slug in zip(
-            [(p.get('Developer') or '').split(',')],
-            [(p.get('DeveloperSlugs') or '').split(',')]):
-            for i, n in enumerate(nm[0]):
-                n = n.strip()
-                if not n: continue
-                devs[n] += 1
-                if i < len(slug[0]) and slug[0][i].strip():
-                    dev_slugs.setdefault(n, slug[0][i].strip())
-        for nm, slug in zip(
-            [(p.get('Architect') or '').split(',')],
-            [(p.get('ArchitectSlugs') or '').split(',')]):
-            for i, n in enumerate(nm[0]):
-                n = n.strip()
-                if not n: continue
-                arches[n] += 1
-                if i < len(slug[0]) and slug[0][i].strip():
-                    arch_slugs.setdefault(n, slug[0][i].strip())
+        names = [n.strip() for n in (p.get(name_field) or '').split(',') if n.strip()]
+        slugs = [s.strip() for s in (p.get(slug_field) or '').split(',')]
+        for i, name in enumerate(names):
+            counts[name] += 1
+            if i < len(slugs) and slugs[i]:
+                slug_map.setdefault(name, slugs[i])
+    return counts, slug_map
+
+def top_firms_html(projects: list[dict]) -> str:
+    devs,   dev_slugs  = _count_firms(projects, 'Developer', 'DeveloperSlugs')
+    arches, arch_slugs = _count_firms(projects, 'Architect', 'ArchitectSlugs')
 
     def firm_row(name: str, slug_map: dict[str,str], n: int) -> str:
         slug = slug_map.get(name)
@@ -259,8 +263,11 @@ def render_page(
     intro_html: str,            # serif sub paragraph
     projects: list[dict],       # sorted (featured-first)
     total_count: int,           # total tracked in bucket (not just shown)
-    related_links: list[tuple[str,str,int,str]],  # (city, name, count, href)
-    map_search: str,            # for the Intel ask form
+    related_cities: list[tuple[str,str,int,str]],  # (eyebrow, name, count, href)
+    more_types: list[tuple[str,str,int,str]],      # same shape, optional
+    map_search: str,            # for the Intel ask form (query prefix)
+    intel_city: str,            # city to pre-filter overlay results
+    intel_type: str,            # type to pre-filter overlay results
     body_copy_html: str,        # long-tail SEO prose
 ) -> str:
     canonical = ROOT_URL + canonical_path
@@ -274,9 +281,25 @@ def render_page(
     firms_html = top_firms_html(projects)
     stats_html = stats_strip_html(projects)
     related_html = ''.join(
-        f'<a class="rel-card" href="{esc(href)}"><div class="city">{esc(city)}</div><div class="name">{esc(name)}</div><div class="count">{n} tracked →</div></a>'
-        for city, name, n, href in related_links
+        f'<a class="rel-card" href="{esc(href)}"><div class="city">{esc(eyebrow)}</div><div class="name">{esc(name)}</div><div class="count">{n} tracked →</div></a>'
+        for eyebrow, name, n, href in related_cities
     ) or '<div style="opacity:.55;font-family:var(--mono);font-size:11px">More markets coming.</div>'
+    more_types_html = ''.join(
+        f'<a class="rel-card" href="{esc(href)}"><div class="city">{esc(eyebrow)}</div><div class="name">{esc(name)}</div><div class="count">{n} tracked →</div></a>'
+        for eyebrow, name, n, href in more_types
+    )
+    # Only render the "More project types" section when we have something to put in it
+    more_types_section = (
+        '    <section class="section">\n'
+        '      <div class="section-head">\n'
+        '        <div>\n'
+        '          <div class="section-eyebrow">Same city, different category</div>\n'
+        f'          <h2 class="section-title">More project types{f" in {esc(intel_city)}" if intel_city else ""}</h2>\n'
+        '        </div>\n'
+        '      </div>\n'
+        f'      <div class="related">\n{more_types_html}\n      </div>\n'
+        '    </section>\n'
+    ) if more_types else ''
     showing_note = f'12 of {total_count} we\'re watching closely' if total_count > FEATURED_GRID_TARGET else f'All {total_count} we\'re watching'
     see_all_link = f'<a href="{ROOT_URL}/map/?q={esc(map_search)}">See all {total_count} on the map →</a>'
 
@@ -366,7 +389,8 @@ def render_page(
     .card {{ display:block; background:#111; border-radius:12px; overflow:hidden; transition: transform .15s, border-color .15s; border:1px solid transparent; position:relative; }}
     .card:hover {{ transform: translateY(-2px); border-color: rgba(167,139,250,.3); }}
     .card.featured {{ box-shadow: 0 0 0 1px rgba(255,211,0,.32), 0 8px 24px rgba(255,211,0,.06); }}
-    .card.featured::before {{ content:"⭐ Featured"; position:absolute; top:10px; right:10px; z-index:2; font-family:var(--mono); font-size:9.5px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:#0a0a0a; background:var(--gold); padding:4px 9px; border-radius:5px; }}
+    .card-feat-badge {{ position:absolute; top:10px; right:10px; z-index:2; width:28px; height:28px; border-radius:6px; background:var(--gold); display:inline-flex; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(0,0,0,.4); }}
+    .card-feat-badge svg {{ width:16px; height:16px; fill:#0a0a0a; }}
     .card-img {{ height: 180px; background-size: cover; background-position: center; position: relative; }}
     .card-img::after {{ content:""; position:absolute; inset:0; background:linear-gradient(180deg, transparent 55%, rgba(0,0,0,.55) 100%); }}
     .card-status-pill {{ position: absolute; top: 10px; left: 10px; z-index:2; padding: 4px 9px; border-radius: 4px; font-family:var(--mono); font-size:9.5px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; background: rgba(0,0,0,.6); backdrop-filter: blur(6px); }}
@@ -400,9 +424,12 @@ def render_page(
     .intel .ex {{ font-family:var(--mono); font-size: 11px; letter-spacing:.06em; color: var(--mute); margin-top: 16px; line-height: 1.8; }}
     .intel .ex span {{ display:inline-block; padding: 5px 11px; margin: 4px 6px 4px 0; background: rgba(255,255,255,.04); border: 1px solid var(--hair); border-radius: 999px; }}
     .intel form {{ display:flex; gap: 10px; margin-top: 22px; }}
-    .intel input {{ flex: 1; background: rgba(0,0,0,.4); border: 1px solid rgba(167,139,250,.32); border-radius: 10px; padding: 14px 18px; font-family: var(--sans); font-size: 15px; color: var(--white); }}
+    .intel input {{ flex: 1; background: rgba(0,0,0,.4); border: 1px solid rgba(167,139,250,.32); border-radius: 10px; padding: 14px 18px; font-family: var(--sans); font-size: 15px; color: var(--white); cursor: pointer; }}
     .intel input:focus {{ outline: 0; border-color: var(--purple-bright); }}
+    .intel input::placeholder {{ color: var(--mute); opacity: .9; }}
     .intel button {{ font-family: var(--mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; padding: 0 24px; border-radius: 10px; background: var(--purple); color: #0a0a0a; border: 0; cursor:pointer; }}
+    .intel .intel-chip {{ cursor: pointer; transition: background .15s, border-color .15s; }}
+    .intel .intel-chip:hover {{ background: rgba(167,139,250,.12); border-color: rgba(167,139,250,.4); color: var(--white); }}
 
     /* Related */
     .related {{ display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }}
@@ -471,14 +498,19 @@ def render_page(
     </section>
 
     <section class="section">
-      <div class="intel">
+      <div class="intel" data-intel-city="{esc(intel_city)}" data-intel-type="{esc(intel_type)}">
         <div class="intel-eyebrow">TMW Intelligence</div>
         <h2>Ask anything about this market.</h2>
         <form id="market-intel-form" autocomplete="off">
-          <input name="q" type="text" placeholder="e.g. {esc(map_search)} under construction" autocomplete="off">
+          <input id="market-intel-input" name="q" type="text" placeholder="e.g. {esc(map_search)} under construction" autocomplete="off" readonly>
           <button type="submit">Ask</button>
         </form>
-        <div class="ex">Try: <span>what's breaking ground in 2026?</span> <span>tallest tower in pipeline</span> <span>most active firm</span></div>
+        <div class="ex">
+          Try:
+          <span class="intel-chip" data-q="what's breaking ground in 2026?">what's breaking ground in 2026?</span>
+          <span class="intel-chip" data-q="tallest tower in pipeline">tallest tower in pipeline</span>
+          <span class="intel-chip" data-q="most active firm">most active firm</span>
+        </div>
       </div>
     </section>
 
@@ -499,6 +531,8 @@ def render_page(
       </div>
     </section>
 
+{more_types_section}
+
     <div class="pro-cta">
       <div class="l">
         Get the full dataset for this market, weekly Slippage Report, and the TMW Forecast on every project.
@@ -509,22 +543,71 @@ def render_page(
     </div>
   </div>
 
-  <!-- Auth modal + funnel beacon helper (journal-auth.js loads transitively via journal-chrome.js) -->
+  <!-- Auth modal + funnel beacon helper (journal-auth.js loads transitively via journal-chrome.js).
+       journal-search-core.js carries parseSmartQuery so the overlay can parse the
+       city/type prefix we feed it from this page. journal-search-overlay.js exposes
+       window.tmwOverlay.open(query) which the Intelligence ask box calls below. -->
   <script src="/_shared/journal-chrome.js" defer></script>
   <script src="/_shared/journal-dock.js" defer></script>
+  <script src="/_shared/journal-search-core.js" defer></script>
+  <script src="/_shared/journal-search-overlay.js" defer></script>
   <script src="/_shared/tmw-lightbox.js" defer></script>
   <script>
-    // Intel ask → fire intel_query funnel beacon, then redirect to /map/?q=…
+    // Wires the Intelligence ask box + suggestion chips to the universal
+    // overlay loaded by /_shared/journal-search-overlay.js. Every query is
+    // prefixed with the page's market context (city + type) so the overlay's
+    // parseSmartQuery picks them up as structured filters automatically —
+    // a search for "what's breaking ground in 2026" from West Palm Beach
+    // Residences becomes "West Palm Beach Residences what's breaking ground
+    // in 2026", which the parser routes to {{ city: WPB, type: Residences,
+    // milestone: BG, year: 2026 }}.
+    //
+    // The input itself is readonly so the click handler always wins over
+    // text entry — the overlay IS the input. Closing the overlay returns
+    // the user to the same market page (no navigation happens).
     document.addEventListener('DOMContentLoaded', function () {{
+      var intelBox = document.querySelector('.intel');
+      if (!intelBox) return;
+      var city = intelBox.getAttribute('data-intel-city') || '';
+      var type = intelBox.getAttribute('data-intel-type') || '';
+      var prefix = (city + ' ' + type).trim();
+
+      function openOverlayWith(q) {{
+        var full = prefix ? (prefix + (q ? ' ' + q : '')) : q;
+        try {{ window.tmwFunnelTrack && window.tmwFunnelTrack('intel_query', {{ source: 'market_page', city: city, type: type, q: (q || '').slice(0, 80) }}); }} catch (_){{}}
+        // tmwOverlay loads from /_shared/journal-search-overlay.js (defer).
+        // If it hasn't booted yet, fall back to deep-linking to the homepage
+        // which auto-opens the overlay from ?q=.
+        if (window.tmwOverlay && typeof window.tmwOverlay.open === 'function') {{
+          window.tmwOverlay.open(full);
+        }} else {{
+          window.location = '{ROOT_URL}/?q=' + encodeURIComponent(full);
+        }}
+      }}
+
+      // Clicking the input box opens the overlay (filter pre-applied).
+      var input = document.getElementById('market-intel-input');
+      if (input) {{
+        input.addEventListener('click',  function (e) {{ e.preventDefault(); openOverlayWith(''); }});
+        input.addEventListener('focus',  function (e) {{ e.preventDefault(); openOverlayWith(''); input.blur(); }});
+      }}
+      // Submitting the form (Enter or "Ask" button) opens the overlay with
+      // whatever's in the input — even though it's readonly, autofill or
+      // paste can still populate it.
       var f = document.getElementById('market-intel-form');
       if (f) f.addEventListener('submit', function (e) {{
         e.preventDefault();
-        var q = (f.q.value || '').trim();
-        if (!q) return;
-        try {{ window.tmwFunnelTrack && window.tmwFunnelTrack('intel_query', {{ source: 'market_page', q: q.slice(0, 80) }}); }} catch (_){{}}
-        window.location = '{ROOT_URL}/map/?q=' + encodeURIComponent(q);
+        openOverlayWith(((input && input.value) || '').trim());
       }});
-      // Pro CTA → fire go_pro_clicked beacon, then open the paywall (or fall back to upgrade URL).
+      // Suggestion chips: clicking one opens the overlay with that exact
+      // question AND the city/type prefix applied.
+      Array.prototype.forEach.call(document.querySelectorAll('.intel-chip'), function (chip) {{
+        chip.style.cursor = 'pointer';
+        chip.addEventListener('click', function () {{ openOverlayWith(chip.getAttribute('data-q') || chip.textContent.trim()); }});
+      }});
+
+      // Pro CTA → fire funnel beacon, then open the paywall (or fall back to
+      // the upgrade URL if journal-paywall.js hasn't loaded yet).
       var go = document.getElementById('market-pro-cta');
       if (go) go.addEventListener('click', function () {{
         try {{ window.tmwFunnelTrack && window.tmwFunnelTrack('go_pro_clicked', {{ source: 'market_page', path: location.pathname }}); }} catch (_){{}}
@@ -711,26 +794,38 @@ def main():
 
         crumbs = [('TMW','/'), ('Markets','/markets/'), (city, f'/markets/{slugify(city)}/' if len(by_city.get(city, [])) >= CITY_MIN else None), (ptype, None)]
 
-        # Related links: same city other types + same type other cities + city hub + type hub
-        rel: list[tuple[str,str,int,str]] = []
+        # "Related markets" = other CITIES with the SAME project type (these
+        # are the real comparables — Miami Residences ↔ WPB Residences ↔
+        # Fort Lauderdale Residences, etc.). Falls back to the top-N city
+        # hubs by total project count if too few same-type peers exist.
+        related_cities: list[tuple[str,str,int,str]] = []
         for (c, t), b in by_city_type.items():
-            if (c == city and t != ptype and len(b) >= CITY_TYPE_MIN):
-                rel.append((c, t, len(b), f'/markets/{slugify(c)}-{slugify(t)}/'))
+            if t == ptype and c != city and len(b) >= CITY_TYPE_MIN:
+                related_cities.append(('CITY', f'{c} · {t}', len(b), f'/markets/{slugify(c)}-{slugify(t)}/'))
+        related_cities.sort(key=lambda x: -x[2])
+        if len(by_type.get(ptype, [])) >= CITY_TYPE_MIN:
+            related_cities.append(('WORLDWIDE', ptype, len(by_type[ptype]), f'/markets/by-type/{slugify(ptype)}/'))
+        related_cities = related_cities[:6]
+
+        # "More project types in {city}" = same city, different category.
+        more_types: list[tuple[str,str,int,str]] = []
         for (c, t), b in by_city_type.items():
-            if (t == ptype and c != city and len(b) >= CITY_TYPE_MIN):
-                rel.append((c, t, len(b), f'/markets/{slugify(c)}-{slugify(t)}/'))
-        rel = rel[:5]
+            if c == city and t != ptype and len(b) >= CITY_TYPE_MIN:
+                more_types.append((city.upper(), t, len(b), f'/markets/{slugify(c)}-{slugify(t)}/'))
+        more_types.sort(key=lambda x: -x[2])
         if len(by_city.get(city, [])) >= CITY_MIN:
-            rel.append((city, 'All categories', len(by_city[city]), f'/markets/{slugify(city)}/'))
-        rel.append(('Worldwide', ptype, len(by_type.get(ptype, [])), f'/markets/by-type/{slugify(ptype)}/'))
+            more_types.append((city.upper(), 'All categories', len(by_city[city]), f'/markets/{slugify(city)}/'))
+        more_types = more_types[:6]
 
         html_out = render_page(
             h1=h1, title_tag=title_tag, meta_desc=meta_desc,
             canonical_path=f'/markets/{slug}/',
             breadcrumbs=crumbs, eyebrow=f'Live · {len(bucket)} projects tracked',
             intro_html=intro, projects=bucket, total_count=len(bucket),
-            related_links=rel,
-            map_search=f'{city} {ptype}', body_copy_html=long_copy,
+            related_cities=related_cities, more_types=more_types,
+            map_search=f'{city} {ptype}',
+            intel_city=city, intel_type=ptype,
+            body_copy_html=long_copy,
         )
         open(os.path.join(path, 'index.html'), 'w', encoding='utf-8').write(html_out)
         pages_written.append(f'{slug}/index.html')
@@ -751,17 +846,34 @@ def main():
         title_tag = f"{len(bucket)} New Developments in {city} | {SITE_NAME}"
         meta_desc = f"Every new development we're tracking in {city} — {len(bucket)} projects across {len(type_counter)} categories."
         crumbs = [('TMW','/'), ('Markets','/markets/'), (city, None)]
-        rel: list[tuple[str,str,int,str]] = []
+
+        # "Related markets" = OTHER CITIES, ranked by total project count.
+        # Other cities are the real peers when you're already viewing a
+        # whole-city hub. Capped at 6 — the strongest comparables.
+        related_cities: list[tuple[str,str,int,str]] = []
+        for other_city, other_bucket in by_city.items():
+            if other_city == city or len(other_bucket) < CITY_MIN: continue
+            related_cities.append(('CITY', other_city, len(other_bucket), f'/markets/{slugify(other_city)}/'))
+        related_cities.sort(key=lambda x: -x[2])
+        related_cities = related_cities[:6]
+
+        # "More project types in {city}" = the categories list that used
+        # to be the only related section.
+        more_types: list[tuple[str,str,int,str]] = []
         for (c, t), b in by_city_type.items():
             if c == city and len(b) >= CITY_TYPE_MIN:
-                rel.append((c, t, len(b), f'/markets/{slugify(c)}-{slugify(t)}/'))
-        rel = rel[:6]
+                more_types.append((city.upper(), t, len(b), f'/markets/{slugify(c)}-{slugify(t)}/'))
+        more_types.sort(key=lambda x: -x[2])
+        more_types = more_types[:6]
+
         html_out = render_page(
             h1=h1, title_tag=title_tag, meta_desc=meta_desc,
             canonical_path=f'/markets/{slugify(city)}/',
             breadcrumbs=crumbs, eyebrow=f'Live · {len(bucket)} projects tracked',
             intro_html=intro, projects=bucket_sorted, total_count=len(bucket),
-            related_links=rel, map_search=city, body_copy_html=long_copy,
+            related_cities=related_cities, more_types=more_types,
+            map_search=city, intel_city=city, intel_type='',
+            body_copy_html=long_copy,
         )
         path = f"{OUTPUT_DIR}/{slugify(city)}/"
         os.makedirs(path, exist_ok=True)
@@ -784,17 +896,26 @@ def main():
         title_tag = f"{len(bucket)} New {type_label} | {SITE_NAME}"
         meta_desc = f"Every {ptype.lower()} development we're tracking worldwide — {len(bucket)} projects across {len(city_counter)} cities."
         crumbs = [('TMW','/'), ('Markets','/markets/'), ('By type','/markets/'), (ptype, None)]
-        rel: list[tuple[str,str,int,str]] = []
+
+        # "Related markets" = the top CITIES for this type — these ARE the
+        # peer cities for a global-by-type page.
+        related_cities: list[tuple[str,str,int,str]] = []
         for (c, t), b in by_city_type.items():
             if t == ptype and len(b) >= CITY_TYPE_MIN:
-                rel.append((c, t, len(b), f'/markets/{slugify(c)}-{slugify(t)}/'))
-        rel = rel[:6]
+                related_cities.append(('CITY', f'{c} · {t}', len(b), f'/markets/{slugify(c)}-{slugify(t)}/'))
+        related_cities.sort(key=lambda x: -x[2])
+        related_cities = related_cities[:6]
+
+        # Type-only pages don't get a "More project types" section — they're
+        # already a single-type view, so passing [] hides that block.
         html_out = render_page(
             h1=h1, title_tag=title_tag, meta_desc=meta_desc,
             canonical_path=f'/markets/by-type/{slugify(ptype)}/',
             breadcrumbs=crumbs, eyebrow=f'Live · {len(bucket)} projects worldwide',
             intro_html=intro, projects=bucket_sorted, total_count=len(bucket),
-            related_links=rel, map_search=ptype, body_copy_html=long_copy,
+            related_cities=related_cities, more_types=[],
+            map_search=ptype, intel_city='', intel_type=ptype,
+            body_copy_html=long_copy,
         )
         path = f"{OUTPUT_DIR}/by-type/{slugify(ptype)}/"
         os.makedirs(path, exist_ok=True)
