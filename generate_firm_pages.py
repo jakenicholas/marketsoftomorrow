@@ -47,6 +47,13 @@ from generate_market_pages import (
     _status_breakdown,
     _count_firms,
     slugify as market_slugify,
+    by_the_numbers as market_by_the_numbers,
+    by_the_numbers_html as market_by_the_numbers_html,
+    faq_section_html as market_faq_section_html,
+    faq_jsonld as market_faq_jsonld,
+    website_jsonld as market_website_jsonld,
+    _safe_int as market_safe_int,
+    CURRENT_YEAR,
     FEAT_STAR_SVG,
     TYPE_PHRASING,
     ROOT_URL as MARKET_ROOT_URL,
@@ -432,6 +439,25 @@ FIRM_CSS = """
     .copy a { color: var(--purple-bright); text-decoration: underline; text-underline-offset:3px; }
     .copy b { font-weight: 500; color: var(--cream); }
 
+    /* By-the-numbers */
+    .btn-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; }
+    .btn-cell { background: rgba(255,255,255,.02); border: 1px solid var(--hair); border-radius: 12px; padding: 22px 22px; }
+    .btn-cell .btn-val { font-family: var(--serif); font-size: 30px; font-weight: 500; letter-spacing:-.018em; color: var(--white); line-height: 1; }
+    .btn-cell .btn-lbl { font-family: var(--mono); font-size: 10px; letter-spacing:.14em; text-transform: uppercase; color: var(--purple-bright); margin-top: 10px; font-weight: 600; }
+    .btn-cell .btn-sub { font-family: var(--sans); font-size: 12.5px; color: var(--mute); margin-top: 6px; line-height: 1.4; }
+
+    /* FAQ — collapsible Q&A for SERP capture */
+    .faq { display: flex; flex-direction: column; gap: 8px; max-width: 78ch; }
+    .faq-q { background: rgba(255,255,255,.02); border: 1px solid var(--hair); border-radius: 12px; transition: border-color .15s; }
+    .faq-q[open] { border-color: rgba(167,139,250,.32); background: rgba(167,139,250,.04); }
+    .faq-q summary { list-style: none; padding: 18px 22px; cursor: pointer; font-family: var(--serif); font-size: 18px; font-weight: 500; letter-spacing:-.01em; color: var(--white); display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+    .faq-q summary::after { content: "+"; font-family: var(--sans); font-size: 22px; color: var(--purple-bright); flex: 0 0 auto; transition: transform .2s; line-height: 1; }
+    .faq-q[open] summary::after { content: "−"; }
+    .faq-q summary::-webkit-details-marker { display: none; }
+    .faq-a { padding: 0 22px 22px; font-family: var(--sans); font-size: 14.5px; line-height: 1.6; color: var(--mute-2); }
+    .faq-a a { color: var(--purple-bright); text-decoration: underline; text-underline-offset:3px; }
+    .faq-a b { color: var(--cream); font-weight: 600; }
+
     /* Coverage */
     .coverage-list { display:flex; flex-direction:column; gap:8px; }
     .coverage-item { display:grid; grid-template-columns:auto 1fr auto; gap:14px; padding:14px 16px; background:rgba(255,255,255,.03); border:1px solid var(--hair); border-radius:10px; align-items:center; transition:border-color .15s; color:inherit; }
@@ -739,6 +765,70 @@ def render_page(firm, firm_projects, stats, coverage_items):
     canonical = f'{SITE_ORIGIN}/firm/{e(slug)}/'
     og_image = (active_sorted[0].get('ImageURL') if active_sorted else '') or 'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_93ffb2f000f94a12aa874fe44153be18~mv2.jpg'
 
+    # ─── SEO: Organization schema + FAQPage + enriched meta ──────
+    btn = market_by_the_numbers(firm_projects)
+    org_payload = {
+        '@context': 'https://schema.org',
+        '@type':    'Organization',
+        'name':     title,
+        'url':      canonical,
+        'logo':     og_image,
+    }
+    if firm.get('founded'): org_payload['foundingDate'] = str(firm['founded'])
+    if firm.get('hq'):       org_payload['address']     = {'@type': 'PostalAddress', 'addressLocality': firm['hq']}
+    org_jsonld = f'<script type="application/ld+json">{json.dumps(org_payload, ensure_ascii=False)}</script>'
+
+    # Page-specific FAQs — answers come straight from the firm's project data.
+    faq_items: list[tuple[str, str]] = []
+    if top_types:
+        types_phrase = ', '.join(f'<b>{e(t)}</b> ({n})' for t, n in top_types)
+        faq_items.append((
+            f'What does {title} build?',
+            f'{e(title)} works across {types_phrase}. See our full portfolio of {stats["total"]} tracked projects above.',
+        ))
+    if top_cities:
+        cities_phrase = ', '.join(f'<b>{e(c)}</b> ({n})' for c, n in top_cities[:3])
+        faq_items.append((
+            f'Where does {title} build?',
+            f'Active in <b>{len(stats["markets"])} market{"s" if len(stats["markets"]) != 1 else ""}</b> — most projects in {cities_phrase}. Each city links to a full local development map.',
+        ))
+    faq_items.append((
+        f'How many projects does {title} have on Markets of Tomorrow?',
+        f'<b>{stats["total"]} project{"s" if stats["total"] != 1 else ""}</b> tracked — <b>{stats["in_progress"]}</b> active and <b>{stats["completed"]}</b> already delivered. The list rebuilds hourly from our database.',
+    ))
+    if btn['tallest_project']:
+        tp = btn['tallest_project']
+        u = market_safe_int(tp.get('Units'))
+        units_blurb = f' with {u:,} residential units' if u else ''
+        faq_items.append((
+            f'What is the biggest project in the {title} pipeline?',
+            f'<b>{e(tp["Title"])}</b> at <b>{btn["tallest_floors"]} floors</b>{units_blurb}, in {e(tp.get("City", ""))}. Status: {e(tp.get("Delivery","Announced"))}. <a href="{MARKET_ROOT_URL}/projects/{e(tp.get("Slug",""))}/">See the project →</a>',
+        ))
+    if collabs:
+        clab_str = ', '.join(f'<b>{e(name)}</b>' for name, _, _ in collabs[:3])
+        opposite = 'architects' if 'developers' in roles else 'developers'
+        faq_items.append((
+            f'Who does {title} work with most often?',
+            f'Frequent {opposite}: {clab_str}. Each links to that firm\'s full project list across all markets.',
+        ))
+    if firm.get('founded'):
+        faq_items.append((
+            f'When was {title} founded?',
+            f'<b>{e(str(firm["founded"]))}</b>. The firm currently has {stats["total"]} active project{"s" if stats["total"] != 1 else ""} on our database — see the full list above.',
+        ))
+    faqs_html = market_faq_section_html(faq_items)
+    faqs_ld   = market_faq_jsonld(faq_items)
+    btn_html  = market_by_the_numbers_html(btn)
+
+    # Enriched title + meta description for SEO
+    desc_parts = [f'{stats["total"]} project{"s" if stats["total"] != 1 else ""} by {title} tracked on {SITE_NAME}']
+    if sb['uc']: desc_parts.append(f'{sb["uc"]} under construction')
+    if top_cities: desc_parts.append(f'active in {", ".join(c for c, _ in top_cities[:3])}')
+    if btn['total_units']: desc_parts.append(f'{btn["total_units"]:,} residential units')
+    if btn['tallest_floors'] >= 25: desc_parts.append(f'tallest at {btn["tallest_floors"]} floors')
+    description = ' · '.join(desc_parts)[:280]
+    seo_title = f'{title} — {stats["total"]} Projects ({CURRENT_YEAR}) | {SITE_NAME}'
+
     # Founded / HQ pill row (above the description) — only render if we have one
     meta_pills = []
     if firm.get('founded'): meta_pills.append(f'<span class="meta-pill"><b>Founded</b> {e(firm["founded"])}</span>')
@@ -753,9 +843,11 @@ def render_page(firm, firm_projects, stats, coverage_items):
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta http-equiv="Cache-Control" content="no-cache, must-revalidate">
-  <title>{e(title)} | {SITE_NAME}</title>
+  <title>{e(seo_title)}</title>
   <meta name="description" content="{e(description)}">
   <meta name="robots" content="index, follow">
+  {org_jsonld}
+  {faqs_ld}
   <link rel="canonical" href="{canonical}">
 
   <meta property="og:type" content="profile">
@@ -834,6 +926,8 @@ def render_page(firm, firm_projects, stats, coverage_items):
 {body_copy}
     </article>
 
+{btn_html}
+
     <section class="section">
       <div class="section-head">
         <div>
@@ -846,6 +940,8 @@ def render_page(firm, firm_projects, stats, coverage_items):
 {cities_html}
       </div>
     </section>
+
+{faqs_html}
 
 {render_coverage_section_new(coverage_items)}
 
@@ -1081,14 +1177,36 @@ def render_firm_hub(summaries, out_path):
         for name, link in crumbs
     )
 
+    # Hub-level FAQs
+    hub_faqs = [
+        (f'How many architecture firms does Markets of Tomorrow track?',
+         f'<b>{total_arch} architecture firms</b> with at least one active project on our database. Arquitectonica leads worldwide with {architects[0]["count"] if architects else 0} active projects.'),
+        (f'How many developers does Markets of Tomorrow track?',
+         f'<b>{total_dev} development firms</b> with at least one active project. Top tracked: Related Group, Related Ross, Property Markets Group, Naftali Group.'),
+        (f'Can I filter firms by city and project category?',
+         f'Yes — use the firm calculator above. Pick a role (architect / developer / both), a city where they\'re active, and a project category. The page hot-swaps to show matching firms with links to each firm\'s portfolio page.'),
+        (f'Are these firm pages updated automatically?',
+         f'Hourly. The same cron pipeline that updates our project pages regenerates every firm page (and the leaderboards above) from the source-of-truth database. Project status changes propagate to firm pages within ~60 minutes.'),
+        (f'What does each firm page show?',
+         f'Every firm page shows the firm\'s full project portfolio (with live construction timelines), most active markets, frequent collaborators, journal coverage, and a TMW Intelligence ask box pre-filtered to that firm.'),
+    ]
+    hub_faq_ld      = market_faq_jsonld(hub_faqs)
+    hub_faq_section = market_faq_section_html(hub_faqs)
+
     page = f"""<!DOCTYPE html>
 <html lang="en"><head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>All Firms | {SITE_NAME}</title>
-  <meta name="description" content="Every architect and developer we track on the Map of Tomorrow — filter by role, city, or category to find the firm shaping your market. {total_firms} firms with active projects.">
+  <title>All Firms ({CURRENT_YEAR}) — {total_firms} Architects + Developers | {SITE_NAME}</title>
+  <meta name="description" content="Every architect and developer we track on Markets of Tomorrow — {total_arch} architects, {total_dev} developers, {total_firms} total. Filter by role, city, or project category. Updated hourly from our live database.">
   <link rel="canonical" href="{MARKET_ROOT_URL}/firm/">
   <meta name="robots" content="index, follow">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="All Firms ({CURRENT_YEAR}) | {SITE_NAME}">
+  <meta property="og:description" content="{total_firms} firms with active projects worldwide. Filter, browse, find your firm.">
+  <meta property="og:url" content="{MARKET_ROOT_URL}/firm/">
   <link rel="icon" href="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_71f3cd2ef61049028b2daf4e2ff71d52~mv2.png" type="image/png">
+  {market_website_jsonld()}
+  {hub_faq_ld}
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -1135,6 +1253,19 @@ def render_firm_hub(summaries, out_path):
     .mc-result .top-firms a .n {{ font-family: var(--mono); font-size: 11px; color: var(--purple-bright); }}
     .mc-result .more {{ display: inline-block; margin-top: 14px; padding: 10px 16px; background: var(--gold); color: #0a0a0a; font-family: var(--mono); font-size: 11px; letter-spacing:.12em; text-transform: uppercase; font-weight: 700; border-radius: 10px; }}
     @media (max-width: 720px) {{ .mc-row {{ grid-template-columns: 1fr; }} }}
+
+    /* FAQ — collapsible Q&A on the hub for SERP capture */
+    .faq {{ display: flex; flex-direction: column; gap: 8px; max-width: 78ch; }}
+    .faq-q {{ background: rgba(255,255,255,.02); border: 1px solid var(--hair); border-radius: 12px; transition: border-color .15s; }}
+    .faq-q[open] {{ border-color: rgba(167,139,250,.32); background: rgba(167,139,250,.04); }}
+    .faq-q summary {{ list-style: none; padding: 18px 22px; cursor: pointer; font-family: var(--serif); font-size: 18px; font-weight: 500; color: var(--white); display: flex; justify-content: space-between; align-items: center; gap: 16px; letter-spacing:-.01em; }}
+    .faq-q summary::after {{ content: "+"; font-family: var(--sans); font-size: 22px; color: var(--purple-bright); flex: 0 0 auto; line-height: 1; }}
+    .faq-q[open] summary::after {{ content: "−"; }}
+    .faq-q summary::-webkit-details-marker {{ display: none; }}
+    .faq-a {{ padding: 0 22px 22px; font-family: var(--sans); font-size: 14.5px; line-height: 1.6; color: var(--mute-2); }}
+    .faq-a a {{ color: var(--purple-bright); text-decoration: underline; text-underline-offset:3px; }}
+    .faq-a b {{ color: var(--cream); font-weight: 600; }}
+    .section-eyebrow {{ font-family: var(--mono); font-size: 10.5px; letter-spacing:.2em; text-transform:uppercase; color: var(--purple-bright); margin-bottom: 8px; font-weight: 600; }}
   </style>
 </head><body>
   <div class="wrap">
@@ -1186,6 +1317,8 @@ def render_firm_hub(summaries, out_path):
       <h2>Most active developers</h2>
       <div class="related">{dev_html}</div>
     </section>
+
+{hub_faq_section}
   </div>
 
   <script id="fc-data" type="application/json">{lookups_json}</script>

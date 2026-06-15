@@ -315,6 +315,160 @@ def top_firms_html(projects: list[dict]) -> str:
         '</div>'
     )
 
+# ─── SEO helpers (used by both market pages and firm pages) ──────────
+# Common pattern: title tags + meta descriptions need year + scale to
+# rank for the long-tail ("new miami condos 2026", "luxury condos
+# under construction in miami"). Body copy needs FAQs to capture the
+# "People also ask" panel + featured snippets.
+
+CURRENT_YEAR = datetime.datetime.now(datetime.timezone.utc).year
+
+def _safe_int(v) -> int:
+    """Pull a clean integer out of the sheet's free-form Units/Floors fields."""
+    try:
+        return int(str(v).replace(',', '').strip().split()[0])
+    except (ValueError, AttributeError, IndexError):
+        return 0
+
+def by_the_numbers(projects: list[dict]) -> dict:
+    """Compute hard scale stats for the 'By the numbers' content block —
+    total units, hotel keys, tallest tower, total floors, average size,
+    earliest delivery year. Skips zero / missing values."""
+    units  = [_safe_int(p.get('Units'))  for p in projects]
+    keys   = [_safe_int(p.get('Keys'))   for p in projects]
+    floors = [_safe_int(p.get('Floors')) for p in projects]
+    units_nz  = [u for u in units  if u > 0]
+    keys_nz   = [k for k in keys   if k > 0]
+    floors_nz = [f for f in floors if f > 0]
+    delivery_years = sorted({int(m.group(1)) for p in projects if (m := re.match(r'^(\d{4})', (p.get('DeliveryDate') or '').strip()))})
+    return {
+        'total_units': sum(units_nz),
+        'total_keys':  sum(keys_nz),
+        'total_floors': sum(floors_nz),
+        'tallest_floors': max(floors_nz) if floors_nz else 0,
+        'tallest_project': max(projects, key=lambda p: _safe_int(p.get('Floors')), default=None) if floors_nz else None,
+        'avg_units': round(sum(units_nz) / len(units_nz)) if units_nz else 0,
+        'avg_floors': round(sum(floors_nz) / len(floors_nz), 1) if floors_nz else 0,
+        'earliest_delivery': delivery_years[0] if delivery_years else None,
+        'latest_delivery':   delivery_years[-1] if delivery_years else None,
+        'n_with_units': len(units_nz),
+        'n_with_floors': len(floors_nz),
+    }
+
+def faq_section_html(items: list[tuple[str, str]]) -> str:
+    """Visible FAQ section. items = [(question, answer_html), ...]."""
+    if not items: return ''
+    qa = ''.join(
+        f'<details class="faq-q"><summary>{esc(q)}</summary><div class="faq-a">{a}</div></details>'
+        for q, a in items
+    )
+    return (
+        '    <section class="section">\n'
+        '      <div class="section-head">\n'
+        '        <div>\n'
+        '          <div class="section-eyebrow">Common questions</div>\n'
+        '          <h2 class="section-title">Frequently asked</h2>\n'
+        '        </div>\n'
+        '      </div>\n'
+        f'      <div class="faq">{qa}</div>\n'
+        '    </section>\n'
+    )
+
+def faq_jsonld(items: list[tuple[str, str]]) -> str:
+    """FAQPage JSON-LD for SERP capture. items = [(q, a_html), ...].
+    Strips tags from answers since schema.org expects plain text."""
+    if not items: return ''
+    payload = {
+        '@context': 'https://schema.org',
+        '@type': 'FAQPage',
+        'mainEntity': [
+            {
+                '@type': 'Question',
+                'name': q,
+                'acceptedAnswer': {'@type': 'Answer', 'text': re.sub(r'<[^>]+>', '', a).strip()},
+            }
+            for q, a in items
+        ],
+    }
+    return f'<script type="application/ld+json">{json.dumps(payload, ensure_ascii=False)}</script>'
+
+def by_the_numbers_html(btn: dict, ptype: str|None = None) -> str:
+    """Visual 'By the numbers' block for the long-tail content area.
+    Skips cells whose underlying field is empty."""
+    cells = []
+    if btn['total_units']:
+        cells.append(('Total residential units', f'{btn["total_units"]:,}', f'across {btn["n_with_units"]} project{"s" if btn["n_with_units"] != 1 else ""} with unit data'))
+    if btn['total_keys']:
+        cells.append(('Total hotel keys', f'{btn["total_keys"]:,}', 'across tracked hotels'))
+    if btn['tallest_floors']:
+        tp = btn['tallest_project']
+        sub = f'{esc(tp["Title"])}, {esc(tp.get("City",""))}' if tp else ''
+        cells.append(('Tallest in pipeline', f'{btn["tallest_floors"]} floors', sub))
+    if btn['avg_floors']:
+        cells.append(('Avg height', f'{btn["avg_floors"]} floors', f'mean of {btn["n_with_floors"]} known'))
+    if btn['earliest_delivery'] and btn['latest_delivery']:
+        if btn['earliest_delivery'] == btn['latest_delivery']:
+            cells.append(('Delivery window', str(btn['earliest_delivery']), 'all projects same year'))
+        else:
+            cells.append(('Delivery window', f'{btn["earliest_delivery"]}–{btn["latest_delivery"]}', 'first to last expected delivery'))
+    if not cells: return ''
+    cells_html = '\n'.join(
+        f'<div class="btn-cell"><div class="btn-val">{val}</div><div class="btn-lbl">{esc(lbl)}</div><div class="btn-sub">{sub}</div></div>'
+        for lbl, val, sub in cells
+    )
+    return (
+        '    <section class="section">\n'
+        '      <div class="section-head">\n'
+        '        <div>\n'
+        '          <div class="section-eyebrow">By the numbers</div>\n'
+        f'          <h2 class="section-title">The scale of the pipeline</h2>\n'
+        '        </div>\n'
+        '      </div>\n'
+        f'      <div class="btn-grid">{cells_html}</div>\n'
+        '    </section>\n'
+    )
+
+def website_jsonld() -> str:
+    """WebSite JSON-LD with SearchAction so Google can grant a sitelinks
+    searchbox. Bind only on hub pages."""
+    payload = {
+        '@context': 'https://schema.org',
+        '@type': 'WebSite',
+        'name':   SITE_NAME,
+        'url':    ROOT_URL,
+        'potentialAction': {
+            '@type': 'SearchAction',
+            'target': {'@type': 'EntryPoint', 'urlTemplate': f'{ROOT_URL}/?q={{search_term_string}}'},
+            'query-input': 'required name=search_term_string',
+        },
+    }
+    return f'<script type="application/ld+json">{json.dumps(payload, ensure_ascii=False)}</script>'
+
+def place_jsonld(city: str, region: str|None = None) -> str:
+    """Place schema for city hubs — feeds the knowledge graph."""
+    payload = {
+        '@context': 'https://schema.org',
+        '@type':    'Place',
+        'name':     city,
+    }
+    if region:
+        payload['address'] = {'@type': 'PostalAddress', 'addressRegion': region}
+    return f'<script type="application/ld+json">{json.dumps(payload, ensure_ascii=False)}</script>'
+
+def _enriched_meta(base_desc: str, projects: list[dict], total_count: int) -> str:
+    """Enrich a meta description with concrete numbers so it pulls more
+    clicks from the SERP."""
+    btn = by_the_numbers(projects)
+    parts = [base_desc]
+    if btn['total_units']:
+        parts.append(f'{btn["total_units"]:,} total residential units')
+    if btn['tallest_floors'] >= 30:
+        parts.append(f'tallest at {btn["tallest_floors"]} floors')
+    if btn['earliest_delivery'] and btn['latest_delivery'] and btn['earliest_delivery'] != btn['latest_delivery']:
+        parts.append(f'delivering {btn["earliest_delivery"]}–{btn["latest_delivery"]}')
+    return '. '.join(parts) + '.' if not parts[-1].endswith('.') else ' '.join(parts)
+
+
 def schema_jsonld(title: str, desc: str, url: str, items: list[dict], crumbs: list[tuple[str,str|None]]) -> str:
     item_list = [
         {
@@ -366,7 +520,10 @@ def render_page(
     intel_city: str,            # city to pre-filter overlay results
     intel_type: str,            # type to pre-filter overlay results
     body_copy_html: str,        # long-tail SEO prose
+    faqs: list[tuple[str, str]] = None,  # [(question, answer_html), ...] — both displayed + emitted as FAQPage JSON-LD
+    extra_jsonld: str = '',     # additional schema.org blocks (Place, etc.)
 ) -> str:
+    faqs = faqs or []
     canonical = ROOT_URL + canonical_path
     og_image = project_image(projects[0]) if projects else DEFAULT_IMAGE
     crumbs_html = ' <span class="sep">/</span> '.join(
@@ -374,6 +531,10 @@ def render_page(
         for name, link in breadcrumbs
     )
     ld = schema_jsonld(title_tag.split(' | ')[0], meta_desc, canonical, projects, breadcrumbs)
+    faq_ld = faq_jsonld(faqs)
+    btn = by_the_numbers(projects)
+    btn_html = by_the_numbers_html(btn)
+    faq_html_section = faq_section_html(faqs)
     # The featured "X of Y we're watching closely" grid hides Now Open —
     # they're delivered, not being tracked. Stats strip + most-active-firm
     # panels keep the full bucket so the total scope is still visible.
@@ -438,6 +599,8 @@ def render_page(
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
   <script type="application/ld+json">{ld}</script>
+  {faq_ld}
+  {extra_jsonld}
 
   <style>
     :root {{
@@ -625,6 +788,25 @@ def render_page(
     .copy a {{ color: var(--purple-bright); text-decoration: underline; text-underline-offset:3px; }}
     .copy b {{ font-weight: 500; color: var(--cream); }}
 
+    /* By-the-numbers — concrete scale grid for SEO + at-a-glance scanning */
+    .btn-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; }}
+    .btn-cell {{ background: rgba(255,255,255,.02); border: 1px solid var(--hair); border-radius: 12px; padding: 22px 22px; }}
+    .btn-cell .btn-val {{ font-family: var(--serif); font-size: 30px; font-weight: 500; letter-spacing:-.018em; color: var(--white); line-height: 1; }}
+    .btn-cell .btn-lbl {{ font-family: var(--mono); font-size: 10px; letter-spacing:.14em; text-transform: uppercase; color: var(--purple-bright); margin-top: 10px; font-weight: 600; }}
+    .btn-cell .btn-sub {{ font-family: var(--sans); font-size: 12.5px; color: var(--mute); margin-top: 6px; line-height: 1.4; }}
+
+    /* FAQ — collapsible Q&A for SERP capture + on-page depth */
+    .faq {{ display: flex; flex-direction: column; gap: 8px; max-width: 78ch; }}
+    .faq-q {{ background: rgba(255,255,255,.02); border: 1px solid var(--hair); border-radius: 12px; transition: border-color .15s; }}
+    .faq-q[open] {{ border-color: rgba(167,139,250,.32); background: rgba(167,139,250,.04); }}
+    .faq-q summary {{ list-style: none; padding: 18px 22px; cursor: pointer; font-family: var(--serif); font-size: 18px; font-weight: 500; letter-spacing:-.01em; color: var(--white); display: flex; justify-content: space-between; align-items: center; gap: 16px; }}
+    .faq-q summary::after {{ content: "+"; font-family: var(--sans); font-size: 22px; color: var(--purple-bright); flex: 0 0 auto; transition: transform .2s; line-height: 1; }}
+    .faq-q[open] summary::after {{ content: "−"; }}
+    .faq-q summary::-webkit-details-marker {{ display: none; }}
+    .faq-a {{ padding: 0 22px 22px; font-family: var(--sans); font-size: 14.5px; line-height: 1.6; color: var(--mute-2); }}
+    .faq-a a {{ color: var(--purple-bright); text-decoration: underline; text-underline-offset:3px; }}
+    .faq-a b {{ color: var(--cream); font-weight: 600; }}
+
     @media (max-width: 760px) {{
       .wrap {{ padding: 0 18px; }}
       .stats {{ grid-template-columns: repeat(2, 1fr); }}
@@ -688,6 +870,9 @@ def render_page(
     <article class="copy">
 {body_copy_html}
     </article>
+
+{btn_html}
+{faq_html_section}
 
     <section class="section">
       <div class="section-head">
@@ -820,6 +1005,159 @@ def _status_breakdown(projects: list[dict]) -> dict[str, int]:
 def _top_developer(projects: list[dict]) -> tuple[str|None, int]:
     devs, _ = _count_firms(projects, 'Developer', 'DeveloperSlugs')
     return devs.most_common(1)[0] if devs else (None, 0)
+
+# ─── FAQ generators ────────────────────────────────────────────────────
+# Q&A items are pulled directly from the data set so answers stay accurate
+# every hourly run. Each generator returns a list of (question, answer_html)
+# tuples — page render code splats them into both the visible FAQ section
+# and the FAQPage JSON-LD.
+
+def faqs_city_type(city: str, ptype: str, projects: list[dict]) -> list[tuple[str, str]]:
+    sb = _status_breakdown(projects)
+    btn = by_the_numbers(projects)
+    devs, dev_slugs = _count_firms(projects, 'Developer', 'DeveloperSlugs')
+    arches, arch_slugs = _count_firms(projects, 'Architect', 'ArchitectSlugs')
+    n_total = len(projects)
+    qa: list[tuple[str, str]] = []
+
+    # Q1 — overall pipeline
+    pipe_parts = []
+    if sb['uc']:  pipe_parts.append(f'<b>{sb["uc"]} under construction</b>')
+    if sb['bg']:  pipe_parts.append(f'<b>{sb["bg"]} breaking ground</b>')
+    if sb['os']:  pipe_parts.append(f'<b>{sb["os"]} opening soon</b>')
+    if sb['an']:  pipe_parts.append(f'<b>{sb["an"]} announced</b>')
+    if sb['no']:  pipe_parts.append(f'<b>{sb["no"]} already delivered</b>')
+    pipe_str = ', '.join(pipe_parts) or 'no active tracking right now'
+    qa.append((
+        f'How many new {ptype.lower()} are being built in {city} right now?',
+        f'We track <b>{n_total} new {ptype.lower()} development{"s" if n_total != 1 else ""}</b> in {esc(city)} — {pipe_str}. Status is sourced from public filings, official announcements, and on-the-ground reporting; we update the live map within hours of confirming a change.',
+    ))
+
+    # Q2 — tallest project
+    if btn['tallest_project']:
+        tp = btn['tallest_project']
+        units_blurb = ''
+        u = _safe_int(tp.get('Units'))
+        if u: units_blurb = f', with {u:,} residential units'
+        qa.append((
+            f'What is the tallest {ptype.lower().rstrip("s")} project planned in {city}?',
+            f'<b>{esc(tp["Title"])}</b> at <b>{btn["tallest_floors"]} floors</b>{units_blurb}. Status: {esc(tp.get("Delivery","Announced"))}. <a href="{ROOT_URL}/projects/{esc(tp.get("Slug",""))}/">See the full project page →</a>',
+        ))
+
+    # Q3 — top developer
+    if devs:
+        top_dev_name, top_dev_n = devs.most_common(1)[0]
+        ds = dev_slugs.get(top_dev_name, '')
+        link = f'<a href="{ROOT_URL}/firm/{esc(ds)}/">{esc(top_dev_name)}</a>' if ds else f'<b>{esc(top_dev_name)}</b>'
+        qa.append((
+            f'Who is the most active developer building {ptype.lower()} in {city}?',
+            f'{link} leads {city} {ptype.lower()} with <b>{top_dev_n} active project{"s" if top_dev_n != 1 else ""}</b>. See every {esc(top_dev_name)} project on TMW for status, milestones, and renderings.',
+        ))
+
+    # Q4 — top architect
+    if arches:
+        top_arch_name, top_arch_n = arches.most_common(1)[0]
+        as_ = arch_slugs.get(top_arch_name, '')
+        link = f'<a href="{ROOT_URL}/firm/{esc(as_)}/">{esc(top_arch_name)}</a>' if as_ else f'<b>{esc(top_arch_name)}</b>'
+        qa.append((
+            f'Which architects are designing the most new {ptype.lower()} in {city}?',
+            f'{link} is the architect of record on <b>{top_arch_n} {city} {ptype.lower()} project{"s" if top_arch_n != 1 else ""}</b> — the most of any firm in this market.',
+        ))
+
+    # Q5 — delivery window
+    if btn['earliest_delivery'] and btn['latest_delivery']:
+        if btn['earliest_delivery'] == btn['latest_delivery']:
+            window = f'all currently expected in <b>{btn["earliest_delivery"]}</b>'
+        else:
+            window = f'delivery dates run from <b>{btn["earliest_delivery"]}</b> through <b>{btn["latest_delivery"]}</b>'
+        qa.append((
+            f'When will the next wave of {city} {ptype.lower()} deliver?',
+            f'Across the active pipeline, {window}. Individual delivery dates shift constantly — Pro members get our weekly Slippage Report flagging which projects have slipped this week.',
+        ))
+
+    return qa[:6]
+
+def faqs_city(city: str, projects: list[dict]) -> list[tuple[str, str]]:
+    sb = _status_breakdown(projects)
+    btn = by_the_numbers(projects)
+    devs, dev_slugs = _count_firms(projects, 'Developer', 'DeveloperSlugs')
+    type_counter = collections.Counter((p.get('PreferredType') or '').strip() for p in projects if (p.get('PreferredType') or '').strip())
+    n_total = len(projects)
+    qa: list[tuple[str, str]] = []
+
+    qa.append((
+        f'What is being built in {city} right now?',
+        f'<b>{n_total} new development{"s" if n_total != 1 else ""}</b> across <b>{len(type_counter)} categor{"ies" if len(type_counter) != 1 else "y"}</b> — {sb["uc"]} under construction, {sb["bg"]} breaking ground, {sb["os"]} opening soon, and {sb["an"]} just announced. See the live map for every project.',
+    ))
+
+    if type_counter:
+        types_phrase = ', '.join(f'<b>{esc(t)}</b> ({n})' for t, n in type_counter.most_common(3))
+        qa.append((
+            f'What kinds of projects are most common in {city}?',
+            f'The {city} pipeline is dominated by {types_phrase}. <a href="{ROOT_URL}/markets/{slugify(city)}/">See the full breakdown →</a>',
+        ))
+
+    if devs:
+        top_dev_name, top_dev_n = devs.most_common(1)[0]
+        ds = dev_slugs.get(top_dev_name, '')
+        link = f'<a href="{ROOT_URL}/firm/{esc(ds)}/">{esc(top_dev_name)}</a>' if ds else f'<b>{esc(top_dev_name)}</b>'
+        qa.append((
+            f'Who is the biggest developer in {city}?',
+            f'{link} leads {city} with <b>{top_dev_n} active project{"s" if top_dev_n != 1 else ""}</b> across categories. Their firm page shows every market they\'re building in.',
+        ))
+
+    if btn['tallest_project']:
+        tp = btn['tallest_project']
+        qa.append((
+            f'What is the tallest project in the {city} pipeline?',
+            f'<b>{esc(tp["Title"])}</b> at <b>{btn["tallest_floors"]} floors</b> — currently {esc(tp.get("Delivery", "Announced"))}. <a href="{ROOT_URL}/projects/{esc(tp.get("Slug", ""))}/">Open the project page →</a>',
+        ))
+
+    qa.append((
+        f'How often is the {city} development data updated?',
+        f'Hourly. Our map and every market page (including this one) rebuild from our database every hour, so a status change confirmed today shows up here within ~60 minutes. Editorial follow-ups land in the journal within the day.',
+    ))
+
+    return qa[:5]
+
+def faqs_type(ptype: str, projects: list[dict]) -> list[tuple[str, str]]:
+    sb = _status_breakdown(projects)
+    btn = by_the_numbers(projects)
+    city_counter = collections.Counter((p.get('City') or '').strip() for p in projects if (p.get('City') or '').strip())
+    devs, dev_slugs = _count_firms(projects, 'Developer', 'DeveloperSlugs')
+    n_total = len(projects)
+    qa: list[tuple[str, str]] = []
+
+    if city_counter:
+        cities_phrase = ', '.join(f'<b>{esc(c)}</b> ({n})' for c, n in city_counter.most_common(3))
+        qa.append((
+            f'Which cities have the most new {ptype.lower()} developments?',
+            f'The deepest {ptype.lower()} pipelines are in {cities_phrase}. We track <b>{n_total} {ptype.lower()} project{"s" if n_total != 1 else ""}</b> total across <b>{len(city_counter)} cities</b>.',
+        ))
+
+    qa.append((
+        f'How many new {ptype.lower()} are under construction right now?',
+        f'<b>{sb["uc"]} under construction</b>, <b>{sb["bg"]} breaking ground</b>, <b>{sb["os"]} opening soon</b>, and <b>{sb["an"]} just announced</b> across the {ptype.lower()} category worldwide.',
+    ))
+
+    if btn['tallest_project']:
+        tp = btn['tallest_project']
+        qa.append((
+            f'What is the tallest {ptype.lower().rstrip("s")} in the global pipeline?',
+            f'<b>{esc(tp["Title"])}</b> in <b>{esc(tp.get("City", ""))}</b> at <b>{btn["tallest_floors"]} floors</b>. <a href="{ROOT_URL}/projects/{esc(tp.get("Slug", ""))}/">See the project →</a>',
+        ))
+
+    if devs:
+        top_dev_name, top_dev_n = devs.most_common(1)[0]
+        ds = dev_slugs.get(top_dev_name, '')
+        link = f'<a href="{ROOT_URL}/firm/{esc(ds)}/">{esc(top_dev_name)}</a>' if ds else f'<b>{esc(top_dev_name)}</b>'
+        qa.append((
+            f'Who are the most active developers in {ptype.lower()} worldwide?',
+            f'{link} leads the {ptype.lower()} category with <b>{top_dev_n} active project{"s" if top_dev_n != 1 else ""}</b>. The full leaderboard is in the firm hub.',
+        ))
+
+    return qa[:5]
+
 
 def city_type_intro(city: str, ptype: str, projects: list[dict], top_arch: str|None) -> tuple[str, str]:
     """ALL numbers in body copy are computed from the current `projects` slice
@@ -960,14 +1298,36 @@ def render_hub(city_type_pairs, city_pages, type_pages):
         'type':     type_lookup,
     }, ensure_ascii=False)
 
+    # Hub-level FAQs — broader questions about the database itself.
+    hub_faqs = [
+        ('How many cities does Markets of Tomorrow track?',
+         f'We currently track active development projects across <b>{len(city_pages)}+ cities</b> worldwide, with <b>{len(type_pages)} project categories</b>. Every city with at least 3 projects gets its own dedicated landing page.'),
+        ('How often is the market data updated?',
+         f'Hourly. Our cron pipeline pulls fresh project data from the source-of-truth database every hour, regenerates every market and firm landing page, and updates the live map. A status change confirmed today shows up here within ~60 minutes.'),
+        ('Can I filter by city, category, and delivery year?',
+         f'Yes — use the calculator above. Pick a city + category + delivery window and we\'ll show you the matching project count and link straight to the dedicated landing page when one exists.'),
+        ('What does "Pro" unlock?',
+         f'<a href="{ROOT_URL}/map/?upgrade=1">Pro members</a> get our weekly Slippage Report, the TMW Forecast on every project (statistical delivery prediction with confidence interval), and the full filterable database by phase, neighborhood, architect, and developer.'),
+        ('Is the data sourced or speculative?',
+         f'Every project on every page is sourced — added only after we can confirm it from a public filing, an official announcement, or independent reporting. Status changes (breaking ground, topping out, opening) are timestamped to the real-world event date and citation-linked.'),
+    ]
+    hub_faq_ld = faq_jsonld(hub_faqs)
+    hub_faq_section = faq_section_html(hub_faqs)
+
     return f"""<!DOCTYPE html>
 <html lang="en"><head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>All Markets | {SITE_NAME}</title>
-  <meta name="description" content="Browse every market we track on the Map of Tomorrow — filter by city, category, or status to find the projects in your pipeline. {total_links} live landing pages.">
+  <title>All Markets ({CURRENT_YEAR}) — {total_links}+ Landing Pages | {SITE_NAME}</title>
+  <meta name="description" content="Browse every new development we track on the Map of Tomorrow — {len(city_pages)} cities, {len(type_pages)} categories, {total_links} live landing pages. Filter by city, category, or delivery year to find the projects in your pipeline.">
   <link rel="canonical" href="{canonical}">
   <meta name="robots" content="index, follow">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="All Markets ({CURRENT_YEAR}) | {SITE_NAME}">
+  <meta property="og:description" content="{total_links} live landing pages across {len(city_pages)} cities and {len(type_pages)} categories. Filter, browse, and ask anything.">
+  <meta property="og:url" content="{canonical}">
   <link rel="icon" href="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_71f3cd2ef61049028b2daf4e2ff71d52~mv2.png" type="image/png">
+  {website_jsonld()}
+  {hub_faq_ld}
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -1013,6 +1373,19 @@ def render_hub(city_type_pairs, city_pages, type_pages):
     .mc-result .cta {{ display: inline-block; margin-top: 14px; padding: 12px 20px; background: var(--gold); color: #0a0a0a; font-family: var(--mono); font-size: 11px; letter-spacing:.12em; text-transform: uppercase; font-weight: 700; border-radius: 10px; }}
     .mc-result .ghost {{ display:inline-block; margin-left: 10px; font-family: var(--mono); font-size: 10.5px; letter-spacing:.12em; text-transform: uppercase; color: var(--purple-bright); }}
     @media (max-width: 720px) {{ .mc-row {{ grid-template-columns: 1fr; }} }}
+
+    /* FAQ — same component as the per-page Q&A so SERP impact accrues to the hub too */
+    .faq {{ display: flex; flex-direction: column; gap: 8px; max-width: 78ch; }}
+    .faq-q {{ background: rgba(255,255,255,.02); border: 1px solid var(--hair); border-radius: 12px; transition: border-color .15s; }}
+    .faq-q[open] {{ border-color: rgba(167,139,250,.32); background: rgba(167,139,250,.04); }}
+    .faq-q summary {{ list-style: none; padding: 18px 22px; cursor: pointer; font-family: var(--serif); font-size: 18px; font-weight: 500; color: var(--white); display: flex; justify-content: space-between; align-items: center; gap: 16px; letter-spacing:-.01em; }}
+    .faq-q summary::after {{ content: "+"; font-family: var(--sans); font-size: 22px; color: var(--purple-bright); flex: 0 0 auto; line-height: 1; }}
+    .faq-q[open] summary::after {{ content: "−"; }}
+    .faq-q summary::-webkit-details-marker {{ display: none; }}
+    .faq-a {{ padding: 0 22px 22px; font-family: var(--sans); font-size: 14.5px; line-height: 1.6; color: var(--mute-2); }}
+    .faq-a a {{ color: var(--purple-bright); text-decoration: underline; text-underline-offset:3px; }}
+    .faq-a b {{ color: var(--cream); font-weight: 600; }}
+    .section-eyebrow {{ font-family: var(--mono); font-size: 10.5px; letter-spacing:.2em; text-transform:uppercase; color: var(--purple-bright); margin-bottom: 8px; font-weight: 600; }}
   </style>
 </head><body>
   <div class="wrap">
@@ -1065,6 +1438,8 @@ def render_hub(city_type_pairs, city_pages, type_pages):
       <h2>Browse by category</h2>
       <div class="related">{type_html}</div>
     </section>
+
+{hub_faq_section}
   </div>
   <script id="mc-data" type="application/json">{lookups_json}</script>
   <script>
@@ -1273,9 +1648,20 @@ def main():
 
         type_label = TYPE_PHRASING.get(ptype, ptype + 's')
         h1 = f"New {city} {type_label}"
-        title_tag = f"{len(bucket)} New {city} {type_label} | {SITE_NAME}"
+        # SEO title: lead with the COUNT (drives CTR), the location, the keyword,
+        # and the year so the SERP listing reads as freshly current.
+        title_tag = f"{len(bucket)} New {city} {type_label} ({CURRENT_YEAR}) | {SITE_NAME}"
         _sb = _status_breakdown(bucket)
-        meta_desc = f"We're tracking {len(bucket)} new {ptype.lower()} developments in {city} — {_sb['uc']} under construction, plus {_sb['bg']} breaking ground and {_sb['an']} announced. Live status, architects, developers."
+        _btn = by_the_numbers(bucket)
+        # Meta desc: stack the most search-relevant facts (count, status, units,
+        # height range, delivery window) so the 155-char window pulls more clicks.
+        meta_parts = [f"{len(bucket)} new {ptype.lower()} developments in {city}"]
+        if _sb['uc']: meta_parts.append(f"{_sb['uc']} under construction")
+        if _sb['bg']: meta_parts.append(f"{_sb['bg']} breaking ground")
+        if _sb['an']: meta_parts.append(f"{_sb['an']} announced")
+        if _btn['total_units']: meta_parts.append(f"{_btn['total_units']:,} total units")
+        if _btn['tallest_floors'] >= 25: meta_parts.append(f"tallest at {_btn['tallest_floors']} floors")
+        meta_desc = " · ".join(meta_parts)[:280]
 
         crumbs = [('TMW','/'), ('Markets','/markets/'), (city, f'/markets/{slugify(city)}/' if len(by_city.get(city, [])) >= CITY_MIN else None), (ptype, None)]
 
@@ -1310,6 +1696,8 @@ def main():
             map_search=f'{city} {ptype}',
             intel_city=city, intel_type=ptype,
             body_copy_html=long_copy,
+            faqs=faqs_city_type(city, ptype, bucket),
+            extra_jsonld=place_jsonld(city),
         )
         open(os.path.join(path, 'index.html'), 'w', encoding='utf-8').write(html_out)
         pages_written.append(f'{slug}/index.html')
@@ -1327,8 +1715,14 @@ def main():
         type_counter = collections.Counter((p.get('PreferredType') or '').strip() for p in bucket if (p.get('PreferredType') or '').strip())
         intro, long_copy = city_intro(city, bucket, type_counter.most_common(3))
         h1 = f"New Developments in {city}"
-        title_tag = f"{len(bucket)} New Developments in {city} | {SITE_NAME}"
-        meta_desc = f"Every new development we're tracking in {city} — {len(bucket)} projects across {len(type_counter)} categories."
+        title_tag = f"{len(bucket)} New Developments in {city} ({CURRENT_YEAR}) | {SITE_NAME}"
+        _sb = _status_breakdown(bucket)
+        _btn = by_the_numbers(bucket)
+        meta_parts = [f"{len(bucket)} new developments in {city} across {len(type_counter)} categories"]
+        if _sb['uc']: meta_parts.append(f"{_sb['uc']} under construction")
+        if _btn['total_units']: meta_parts.append(f"{_btn['total_units']:,} residential units")
+        if _btn['tallest_floors'] >= 25: meta_parts.append(f"tallest at {_btn['tallest_floors']} floors")
+        meta_desc = " · ".join(meta_parts)[:280]
         crumbs = [('TMW','/'), ('Markets','/markets/'), (city, None)]
 
         # "Related markets" = OTHER CITIES, ranked by total project count.
@@ -1357,6 +1751,8 @@ def main():
             intro_html=intro, projects=bucket_sorted, related_cities=related_cities, more_types=more_types,
             map_search=city, intel_city=city, intel_type='',
             body_copy_html=long_copy,
+            faqs=faqs_city(city, bucket),
+            extra_jsonld=place_jsonld(city),
         )
         path = f"{OUTPUT_DIR}/{slugify(city)}/"
         os.makedirs(path, exist_ok=True)
@@ -1376,8 +1772,14 @@ def main():
         intro, long_copy = type_intro(ptype, bucket, city_counter.most_common(3))
         type_label = TYPE_PHRASING.get(ptype, ptype + 's')
         h1 = f"New {type_label} Worldwide"
-        title_tag = f"{len(bucket)} New {type_label} | {SITE_NAME}"
-        meta_desc = f"Every {ptype.lower()} development we're tracking worldwide — {len(bucket)} projects across {len(city_counter)} cities."
+        title_tag = f"{len(bucket)} New {type_label} Worldwide ({CURRENT_YEAR}) | {SITE_NAME}"
+        _sb = _status_breakdown(bucket)
+        _btn = by_the_numbers(bucket)
+        meta_parts = [f"{len(bucket)} new {ptype.lower()} developments worldwide across {len(city_counter)} cities"]
+        if _sb['uc']: meta_parts.append(f"{_sb['uc']} under construction")
+        if _btn['total_units']: meta_parts.append(f"{_btn['total_units']:,} residential units")
+        if _btn['tallest_floors'] >= 30: meta_parts.append(f"tallest at {_btn['tallest_floors']} floors")
+        meta_desc = " · ".join(meta_parts)[:280]
         crumbs = [('TMW','/'), ('Markets','/markets/'), ('By type','/markets/'), (ptype, None)]
 
         # "Related markets" = the top CITIES for this type — these ARE the
@@ -1398,6 +1800,7 @@ def main():
             intro_html=intro, projects=bucket_sorted, related_cities=related_cities, more_types=[],
             map_search=ptype, intel_city='', intel_type=ptype,
             body_copy_html=long_copy,
+            faqs=faqs_type(ptype, bucket),
         )
         path = f"{OUTPUT_DIR}/by-type/{slugify(ptype)}/"
         os.makedirs(path, exist_ok=True)
