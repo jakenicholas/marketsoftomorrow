@@ -84,15 +84,20 @@
        timeline, mini stats, and developer/architect bubbles — matching the
        project page hero panel so visitors get the same context inline. */
     .grid.tmw-project-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(420px, 1fr)); gap: 14px; }
-    .card { display:block; background:#111; border-radius:14px; overflow:hidden; transition: transform .15s, border-color .15s; border:1px solid transparent; position:relative; }
+    /* Card is now a vertical-stack container <div>. The clickable area is
+       .card-link (image + body), with the firm-bubble row as a sibling
+       below so the firm <a> tags don't get nested inside the card <a>. */
+    .card { display: flex; flex-direction: column; background:#111; border-radius:14px; overflow:hidden; transition: transform .15s, border-color .15s; border:1px solid transparent; position:relative; }
     .card:hover { transform: translateY(-2px); border-color: rgba(167,139,250,.3); }
     .card.featured { box-shadow: 0 0 0 1px rgba(255,211,0,.32), 0 8px 24px rgba(255,211,0,.06); }
+    .card-link { display: block; text-decoration: none; color: inherit; }
+    .card-firms-wrap { padding: 0 20px 20px; }
     /* Smaller, square gold badge with star — matches map marker style */
     .card-feat-badge { position:absolute; top:10px; right:10px; z-index:2; width:22px; height:22px; border-radius:5px; background:var(--gold); display:inline-flex; align-items:center; justify-content:center; box-shadow:0 2px 6px rgba(0,0,0,.4); }
     .card-feat-badge svg { width:12px; height:12px; fill:#0a0a0a; }
     .card-img { height: 220px; background-size: cover; background-position: center; position: relative; }
     .card-img::after { content:""; position:absolute; inset:0; background:linear-gradient(180deg, transparent 60%, rgba(0,0,0,.45) 100%); }
-    .card-body { padding: 18px 20px 20px; }
+    .card-body { padding: 18px 20px 4px; }
     .card-title { font-family: var(--serif); font-size: 22px; font-weight: 500; letter-spacing:-.014em; line-height: 1.2; color: var(--white); margin-bottom: 6px; }
     /* City/firm/location body font matches the map's body font (Inter regular) */
     .card-loc { font-family: var(--sans); font-size: 13px; color: var(--mute-2); margin-bottom: 14px; }
@@ -221,13 +226,14 @@
         <div class="section-meta"><a href="https://www.oftmw.com/map/?q=Museum">See all 8 on the map →</a></div>
       </div>
       <div class="grid tmw-project-grid">
-<a class="card" href="https://www.oftmw.com/projects/the-whale/">
-  <div class="card-img" data-lightbox-src="https://images.adsttc.com/media/images/69fa/f8ce/754a/ba01/8bca/8504/large_jpg/dorte-mandrups-the-whale-advances-along-norways-arctic-coastline_2.jpg" data-lightbox-caption="The Whale · Andenes" style="background-image:url('https://images.adsttc.com/media/images/69fa/f8ce/754a/ba01/8bca/8504/large_jpg/dorte-mandrups-the-whale-advances-along-norways-arctic-coastline_2.jpg')"></div>
-  <div class="card-body">
-    <div class="card-title">The Whale</div>
-    <div class="card-loc">Andenes</div>
-    <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 7, 2026</span></div>
-    
+<div class="card">
+  <a class="card-link" href="https://www.oftmw.com/projects/the-whale/" aria-label="Open The Whale">
+    <div class="card-img" data-lightbox-src="https://images.adsttc.com/media/images/69fa/f8ce/754a/ba01/8bca/8504/large_jpg/dorte-mandrups-the-whale-advances-along-norways-arctic-coastline_2.jpg" data-lightbox-caption="The Whale · Andenes" style="background-image:url('https://images.adsttc.com/media/images/69fa/f8ce/754a/ba01/8bca/8504/large_jpg/dorte-mandrups-the-whale-advances-along-norways-arctic-coastline_2.jpg')"></div>
+    <div class="card-body">
+      <div class="card-title">The Whale</div>
+      <div class="card-loc">Andenes</div>
+      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 7, 2026</span></div>
+      
     <div class="pm-tl"><div class="pm-tl-date">12 months to delivery</div>
       <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
         <div class="pm-tl-empty" style="left:55%"></div>
@@ -235,17 +241,19 @@
       </div>
       <div class="pm-tl-stages"><span class="pm-tl-stage done">Announced</span><span class="pm-tl-stage done">Breaking Ground</span><span class="pm-tl-stage on" style="color:#B9A6FF;font-weight:800;text-shadow:0 0 12px rgba(167,139,250,.5)">Construction</span><span class="pm-tl-stage ">Opening Soon</span><span class="pm-tl-stage ">Now Open</span></div>
     </div>
-    <div class="pp-minis"><div class="pp-mini"><div class="v">2024</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2027</div><div class="k">Completion</div></div></div>
-    <div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/the-whale-as/"><div class="k">Developer</div><div class="v">The Whale AS</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/dorte-mandrup/"><div class="k">Architect</div><div class="v">Dorte Mandrup</div><span class="go">View firm profile →</span></a></div>
-  </div>
-</a>
-<a class="card" href="https://www.oftmw.com/projects/guggenheim-abu-dhabi/">
-  <div class="card-img" data-lightbox-src="https://static.dezeen.com/uploads/2019/05/guggenheim-abu-dhabi-frank-gehry_dezeen_936_hero4.jpg" data-lightbox-caption="Guggenheim Abu Dhabi · Abu Dhabi" style="background-image:url('https://static.dezeen.com/uploads/2019/05/guggenheim-abu-dhabi-frank-gehry_dezeen_936_hero4.jpg')"></div>
-  <div class="card-body">
-    <div class="card-title">Guggenheim Abu Dhabi</div>
-    <div class="card-loc">Abu Dhabi</div>
-    <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 6, 2026</span></div>
-    
+      <div class="pp-minis"><div class="pp-mini"><div class="v">2024</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2027</div><div class="k">Completion</div></div></div>
+    </div>
+  </a>
+  <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/the-whale-as/"><div class="k">Developer</div><div class="v">The Whale AS</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/dorte-mandrup/"><div class="k">Architect</div><div class="v">Dorte Mandrup</div><span class="go">View firm profile →</span></a></div></div>
+</div>
+<div class="card">
+  <a class="card-link" href="https://www.oftmw.com/projects/guggenheim-abu-dhabi/" aria-label="Open Guggenheim Abu Dhabi">
+    <div class="card-img" data-lightbox-src="https://static.dezeen.com/uploads/2019/05/guggenheim-abu-dhabi-frank-gehry_dezeen_936_hero4.jpg" data-lightbox-caption="Guggenheim Abu Dhabi · Abu Dhabi" style="background-image:url('https://static.dezeen.com/uploads/2019/05/guggenheim-abu-dhabi-frank-gehry_dezeen_936_hero4.jpg')"></div>
+    <div class="card-body">
+      <div class="card-title">Guggenheim Abu Dhabi</div>
+      <div class="card-loc">Abu Dhabi</div>
+      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 6, 2026</span></div>
+      
     <div class="pm-tl"><div class="pm-tl-date">6 months to delivery</div>
       <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
         <div class="pm-tl-empty" style="left:78%"></div>
@@ -253,17 +261,19 @@
       </div>
       <div class="pm-tl-stages"><span class="pm-tl-stage done">Announced</span><span class="pm-tl-stage done">Breaking Ground</span><span class="pm-tl-stage done">Construction</span><span class="pm-tl-stage on" style="color:#B9A6FF;font-weight:800;text-shadow:0 0 12px rgba(167,139,250,.5)">Opening Soon</span><span class="pm-tl-stage ">Now Open</span></div>
     </div>
-    <div class="pp-minis"><div class="pp-mini"><div class="v">2011</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2026</div><div class="k">Completion</div></div></div>
-    <div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/department-of-culture-and-tourism-abu-dhabi/"><div class="k">Developer</div><div class="v">Department of Culture and Tourism – Abu Dhabi</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/gehry-partners/"><div class="k">Architect</div><div class="v">Gehry Partners</div><span class="go">View firm profile →</span></a></div>
-  </div>
-</a>
-<a class="card" href="https://www.oftmw.com/projects/lucas-museum-of-narrative-art/">
-  <div class="card-img" data-lightbox-src="https://images.adsttc.com/media/images/6915/b4f2/9d4e/bd01/82e4/a73d/large_jpg/lucas-museum-of-narrative-art-by-mad-architects-to-open-in-los-angeles-in-september-2026_9.jpg" data-lightbox-caption="Lucas Museum of Narrative Art · Los Angeles" style="background-image:url('https://images.adsttc.com/media/images/6915/b4f2/9d4e/bd01/82e4/a73d/large_jpg/lucas-museum-of-narrative-art-by-mad-architects-to-open-in-los-angeles-in-september-2026_9.jpg')"></div>
-  <div class="card-body">
-    <div class="card-title">Lucas Museum of Narrative Art</div>
-    <div class="card-loc">Los Angeles</div>
-    <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 7, 2026</span></div>
-    
+      <div class="pp-minis"><div class="pp-mini"><div class="v">2011</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2026</div><div class="k">Completion</div></div></div>
+    </div>
+  </a>
+  <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/department-of-culture-and-tourism-abu-dhabi/"><div class="k">Developer</div><div class="v">Department of Culture and Tourism – Abu Dhabi</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/gehry-partners/"><div class="k">Architect</div><div class="v">Gehry Partners</div><span class="go">View firm profile →</span></a></div></div>
+</div>
+<div class="card">
+  <a class="card-link" href="https://www.oftmw.com/projects/lucas-museum-of-narrative-art/" aria-label="Open Lucas Museum of Narrative Art">
+    <div class="card-img" data-lightbox-src="https://images.adsttc.com/media/images/6915/b4f2/9d4e/bd01/82e4/a73d/large_jpg/lucas-museum-of-narrative-art-by-mad-architects-to-open-in-los-angeles-in-september-2026_9.jpg" data-lightbox-caption="Lucas Museum of Narrative Art · Los Angeles" style="background-image:url('https://images.adsttc.com/media/images/6915/b4f2/9d4e/bd01/82e4/a73d/large_jpg/lucas-museum-of-narrative-art-by-mad-architects-to-open-in-los-angeles-in-september-2026_9.jpg')"></div>
+    <div class="card-body">
+      <div class="card-title">Lucas Museum of Narrative Art</div>
+      <div class="card-loc">Los Angeles</div>
+      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 7, 2026</span></div>
+      
     <div class="pm-tl"><div class="pm-tl-date">3 months to delivery</div>
       <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
         <div class="pm-tl-empty" style="left:78%"></div>
@@ -271,17 +281,19 @@
       </div>
       <div class="pm-tl-stages"><span class="pm-tl-stage done">Announced</span><span class="pm-tl-stage done">Breaking Ground</span><span class="pm-tl-stage done">Construction</span><span class="pm-tl-stage on" style="color:#B9A6FF;font-weight:800;text-shadow:0 0 12px rgba(167,139,250,.5)">Opening Soon</span><span class="pm-tl-stage ">Now Open</span></div>
     </div>
-    <div class="pp-minis"><div class="pp-mini"><div class="v">2018</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2026</div><div class="k">Completion</div></div></div>
-    <div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/lucas-museum-of-narrative-art-george-lucas/"><div class="k">Developer</div><div class="v">Lucas Museum of Narrative Art</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/mad-architects/"><div class="k">Architect</div><div class="v">MAD Architects</div><span class="go">View firm profile →</span></a></div>
-  </div>
-</a>
-<a class="card" href="https://www.oftmw.com/projects/suzhou-museum-of-contemporary-art/">
-  <div class="card-img" data-lightbox-src="https://images.adsttc.com/media/images/6912/f914/11d9/5649/b6a2/6728/large_jpg/bigs-suzhou-museum-of-contemporary-art-in-china-nears-completion-with-materialism-exhibition_13.jpg" data-lightbox-caption="Suzhou Museum of Contemporary Art · Suzhou" style="background-image:url('https://images.adsttc.com/media/images/6912/f914/11d9/5649/b6a2/6728/large_jpg/bigs-suzhou-museum-of-contemporary-art-in-china-nears-completion-with-materialism-exhibition_13.jpg')"></div>
-  <div class="card-body">
-    <div class="card-title">Suzhou Museum of Contemporary Art</div>
-    <div class="card-loc">Suzhou</div>
-    <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 7, 2026</span></div>
-    
+      <div class="pp-minis"><div class="pp-mini"><div class="v">2018</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2026</div><div class="k">Completion</div></div></div>
+    </div>
+  </a>
+  <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/lucas-museum-of-narrative-art-george-lucas/"><div class="k">Developer</div><div class="v">Lucas Museum of Narrative Art</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/mad-architects/"><div class="k">Architect</div><div class="v">MAD Architects</div><span class="go">View firm profile →</span></a></div></div>
+</div>
+<div class="card">
+  <a class="card-link" href="https://www.oftmw.com/projects/suzhou-museum-of-contemporary-art/" aria-label="Open Suzhou Museum of Contemporary Art">
+    <div class="card-img" data-lightbox-src="https://images.adsttc.com/media/images/6912/f914/11d9/5649/b6a2/6728/large_jpg/bigs-suzhou-museum-of-contemporary-art-in-china-nears-completion-with-materialism-exhibition_13.jpg" data-lightbox-caption="Suzhou Museum of Contemporary Art · Suzhou" style="background-image:url('https://images.adsttc.com/media/images/6912/f914/11d9/5649/b6a2/6728/large_jpg/bigs-suzhou-museum-of-contemporary-art-in-china-nears-completion-with-materialism-exhibition_13.jpg')"></div>
+    <div class="card-body">
+      <div class="card-title">Suzhou Museum of Contemporary Art</div>
+      <div class="card-loc">Suzhou</div>
+      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 7, 2026</span></div>
+      
     <div class="pm-tl"><div class="pm-tl-date">7 months to delivery</div>
       <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
         <div class="pm-tl-empty" style="left:78%"></div>
@@ -289,17 +301,19 @@
       </div>
       <div class="pm-tl-stages"><span class="pm-tl-stage done">Announced</span><span class="pm-tl-stage done">Breaking Ground</span><span class="pm-tl-stage done">Construction</span><span class="pm-tl-stage on" style="color:#B9A6FF;font-weight:800;text-shadow:0 0 12px rgba(167,139,250,.5)">Opening Soon</span><span class="pm-tl-stage ">Now Open</span></div>
     </div>
-    <div class="pp-minis"><div class="pp-mini"><div class="v">2026</div><div class="k">Completion</div></div></div>
-    <div class="pp-firms"><div class="pp-firm pp-firm-empty"><div class="k">Developer</div><div class="v" style="opacity:.45">—</div></div><a class="pp-firm" href="https://www.oftmw.com/firm/bjarke-ingels-group/"><div class="k">Architect</div><div class="v">Bjarke Ingels Group</div><span class="go">View firm profile →</span></a></div>
-  </div>
-</a>
-<a class="card" href="https://www.oftmw.com/projects/david-geffen-galleries-at-lacma/">
-  <div class="card-img" data-lightbox-src="https://images.adsttc.com/media/images/6864/eb28/c677/4079/71d8/7db3/large_jpg/first-look-at-the-lacma-david-geffen-galleries-designed-by-peter-zumthor_12.jpg" data-lightbox-caption="David Geffen Galleries at LACMA · Los Angeles" style="background-image:url('https://images.adsttc.com/media/images/6864/eb28/c677/4079/71d8/7db3/large_jpg/first-look-at-the-lacma-david-geffen-galleries-designed-by-peter-zumthor_12.jpg')"></div>
-  <div class="card-body">
-    <div class="card-title">David Geffen Galleries at LACMA</div>
-    <div class="card-loc">Los Angeles</div>
-    <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 5, 2026</span></div>
-    
+      <div class="pp-minis"><div class="pp-mini"><div class="v">2026</div><div class="k">Completion</div></div></div>
+    </div>
+  </a>
+  <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm pp-firm-empty"><div class="k">Developer</div><div class="v" style="opacity:.45">—</div></div><a class="pp-firm" href="https://www.oftmw.com/firm/bjarke-ingels-group/"><div class="k">Architect</div><div class="v">Bjarke Ingels Group</div><span class="go">View firm profile →</span></a></div></div>
+</div>
+<div class="card">
+  <a class="card-link" href="https://www.oftmw.com/projects/david-geffen-galleries-at-lacma/" aria-label="Open David Geffen Galleries at LACMA">
+    <div class="card-img" data-lightbox-src="https://images.adsttc.com/media/images/6864/eb28/c677/4079/71d8/7db3/large_jpg/first-look-at-the-lacma-david-geffen-galleries-designed-by-peter-zumthor_12.jpg" data-lightbox-caption="David Geffen Galleries at LACMA · Los Angeles" style="background-image:url('https://images.adsttc.com/media/images/6864/eb28/c677/4079/71d8/7db3/large_jpg/first-look-at-the-lacma-david-geffen-galleries-designed-by-peter-zumthor_12.jpg')"></div>
+    <div class="card-body">
+      <div class="card-title">David Geffen Galleries at LACMA</div>
+      <div class="card-loc">Los Angeles</div>
+      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 5, 2026</span></div>
+      
     <div class="pm-tl"><div class="pm-tl-date">Now open</div>
       <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
         <div class="pm-tl-empty" style="left:100%"></div>
@@ -307,17 +321,19 @@
       </div>
       <div class="pm-tl-stages"><span class="pm-tl-stage done">Announced</span><span class="pm-tl-stage done">Breaking Ground</span><span class="pm-tl-stage done">Construction</span><span class="pm-tl-stage done">Opening Soon</span><span class="pm-tl-stage on" style="color:#1FDF67;font-weight:800;text-shadow:0 0 12px rgba(31,223,103,.5)">Now Open</span></div>
     </div>
-    <div class="pp-minis"><div class="pp-mini"><div class="v">2020</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2026</div><div class="k">Completion</div></div></div>
-    <div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/los-angeles-county-museum-of-art-lacma/"><div class="k">Developer</div><div class="v">Los Angeles County Museum of Art</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/peter-zumthor-with-skidmore/"><div class="k">Architect</div><div class="v">Peter Zumthor with Skidmore</div><span class="go">View firm profile →</span></a></div>
-  </div>
-</a>
-<a class="card" href="https://www.oftmw.com/projects/studio-museum-in-harlem/">
-  <div class="card-img" data-lightbox-src="https://images.adsttc.com/media/images/6911/ac46/1072/7b04/d2a3/f1ca/large_jpg/the-studio-museum-in-harlem-opens-its-first-purpose-built-home-by-adjaye-associates_2.jpg" data-lightbox-caption="Studio Museum · New York City" style="background-image:url('https://images.adsttc.com/media/images/6911/ac46/1072/7b04/d2a3/f1ca/large_jpg/the-studio-museum-in-harlem-opens-its-first-purpose-built-home-by-adjaye-associates_2.jpg')"></div>
-  <div class="card-body">
-    <div class="card-title">Studio Museum</div>
-    <div class="card-loc">New York City</div>
-    
-    
+      <div class="pp-minis"><div class="pp-mini"><div class="v">2020</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2026</div><div class="k">Completion</div></div></div>
+    </div>
+  </a>
+  <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/los-angeles-county-museum-of-art-lacma/"><div class="k">Developer</div><div class="v">Los Angeles County Museum of Art</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/peter-zumthor-with-skidmore/"><div class="k">Architect</div><div class="v">Peter Zumthor with Skidmore</div><span class="go">View firm profile →</span></a></div></div>
+</div>
+<div class="card">
+  <a class="card-link" href="https://www.oftmw.com/projects/studio-museum-in-harlem/" aria-label="Open Studio Museum">
+    <div class="card-img" data-lightbox-src="https://images.adsttc.com/media/images/6911/ac46/1072/7b04/d2a3/f1ca/large_jpg/the-studio-museum-in-harlem-opens-its-first-purpose-built-home-by-adjaye-associates_2.jpg" data-lightbox-caption="Studio Museum · New York City" style="background-image:url('https://images.adsttc.com/media/images/6911/ac46/1072/7b04/d2a3/f1ca/large_jpg/the-studio-museum-in-harlem-opens-its-first-purpose-built-home-by-adjaye-associates_2.jpg')"></div>
+    <div class="card-body">
+      <div class="card-title">Studio Museum</div>
+      <div class="card-loc">New York City</div>
+      
+      
     <div class="pm-tl"><div class="pm-tl-date">Delivered Dec '25</div>
       <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
         <div class="pm-tl-empty" style="left:100%"></div>
@@ -325,17 +341,19 @@
       </div>
       <div class="pm-tl-stages"><span class="pm-tl-stage done">Announced</span><span class="pm-tl-stage done">Breaking Ground</span><span class="pm-tl-stage done">Construction</span><span class="pm-tl-stage done">Opening Soon</span><span class="pm-tl-stage on" style="color:#1FDF67;font-weight:800;text-shadow:0 0 12px rgba(31,223,103,.5)">Now Open</span></div>
     </div>
-    <div class="pp-minis"><div class="pp-mini"><div class="v">2018</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2025</div><div class="k">Completion</div></div></div>
-    <div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/the-studio-museum-in-harlem/"><div class="k">Developer</div><div class="v">The Studio Museum in Harlem</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/adjaye-associates-with-cooper-robertson-studio-zewde-landscape/"><div class="k">Architect</div><div class="v">Adjaye Associates</div><span class="go">View firm profile →</span></a></div>
-  </div>
-</a>
-<a class="card" href="https://www.oftmw.com/projects/zayed-national-museum/">
-  <div class="card-img" data-lightbox-src="https://images.adsttc.com/media/images/55f8/011a/c84a/8a3e/7f00/0088/large_jpg/looking-south-to-zayed-national-museum-by-night.jpg?1442316559" data-lightbox-caption="Zayed National Museum · Abu Dhabi" style="background-image:url('https://images.adsttc.com/media/images/55f8/011a/c84a/8a3e/7f00/0088/large_jpg/looking-south-to-zayed-national-museum-by-night.jpg?1442316559')"></div>
-  <div class="card-body">
-    <div class="card-title">Zayed National Museum</div>
-    <div class="card-loc">Abu Dhabi</div>
-    
-    
+      <div class="pp-minis"><div class="pp-mini"><div class="v">2018</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2025</div><div class="k">Completion</div></div></div>
+    </div>
+  </a>
+  <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/the-studio-museum-in-harlem/"><div class="k">Developer</div><div class="v">The Studio Museum in Harlem</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/adjaye-associates-with-cooper-robertson-studio-zewde-landscape/"><div class="k">Architect</div><div class="v">Adjaye Associates</div><span class="go">View firm profile →</span></a></div></div>
+</div>
+<div class="card">
+  <a class="card-link" href="https://www.oftmw.com/projects/zayed-national-museum/" aria-label="Open Zayed National Museum">
+    <div class="card-img" data-lightbox-src="https://images.adsttc.com/media/images/55f8/011a/c84a/8a3e/7f00/0088/large_jpg/looking-south-to-zayed-national-museum-by-night.jpg?1442316559" data-lightbox-caption="Zayed National Museum · Abu Dhabi" style="background-image:url('https://images.adsttc.com/media/images/55f8/011a/c84a/8a3e/7f00/0088/large_jpg/looking-south-to-zayed-national-museum-by-night.jpg?1442316559')"></div>
+    <div class="card-body">
+      <div class="card-title">Zayed National Museum</div>
+      <div class="card-loc">Abu Dhabi</div>
+      
+      
     <div class="pm-tl"><div class="pm-tl-date">Delivered Dec '25</div>
       <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
         <div class="pm-tl-empty" style="left:100%"></div>
@@ -343,17 +361,19 @@
       </div>
       <div class="pm-tl-stages"><span class="pm-tl-stage done">Announced</span><span class="pm-tl-stage done">Breaking Ground</span><span class="pm-tl-stage done">Construction</span><span class="pm-tl-stage done">Opening Soon</span><span class="pm-tl-stage on" style="color:#1FDF67;font-weight:800;text-shadow:0 0 12px rgba(31,223,103,.5)">Now Open</span></div>
     </div>
-    <div class="pp-minis"><div class="pp-mini"><div class="v">2019</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2025</div><div class="k">Completion</div></div></div>
-    <div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/department-of-culture-and-tourism-abu-dhabi/"><div class="k">Developer</div><div class="v">Department of Culture and Tourism – Abu Dhabi</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/foster-partners/"><div class="k">Architect</div><div class="v">Foster + Partners</div><span class="go">View firm profile →</span></a></div>
-  </div>
-</a>
-<a class="card" href="https://www.oftmw.com/projects/navy-seal-museum-san-diego/">
-  <div class="card-img" data-lightbox-src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_20f4702d022240db9f2c5ea51cf48ef5~mv2.jpg" data-lightbox-caption="Navy SEAL Museum San Diego · San Diego" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_20f4702d022240db9f2c5ea51cf48ef5~mv2.jpg')"></div>
-  <div class="card-body">
-    <div class="card-title">Navy SEAL Museum San Diego</div>
-    <div class="card-loc">San Diego</div>
-    <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 9, 2026</span></div>
-    
+      <div class="pp-minis"><div class="pp-mini"><div class="v">2019</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2025</div><div class="k">Completion</div></div></div>
+    </div>
+  </a>
+  <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/department-of-culture-and-tourism-abu-dhabi/"><div class="k">Developer</div><div class="v">Department of Culture and Tourism – Abu Dhabi</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/foster-partners/"><div class="k">Architect</div><div class="v">Foster + Partners</div><span class="go">View firm profile →</span></a></div></div>
+</div>
+<div class="card">
+  <a class="card-link" href="https://www.oftmw.com/projects/navy-seal-museum-san-diego/" aria-label="Open Navy SEAL Museum San Diego">
+    <div class="card-img" data-lightbox-src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_20f4702d022240db9f2c5ea51cf48ef5~mv2.jpg" data-lightbox-caption="Navy SEAL Museum San Diego · San Diego" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_20f4702d022240db9f2c5ea51cf48ef5~mv2.jpg')"></div>
+    <div class="card-body">
+      <div class="card-title">Navy SEAL Museum San Diego</div>
+      <div class="card-loc">San Diego</div>
+      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 9, 2026</span></div>
+      
     <div class="pm-tl"><div class="pm-tl-date">5.5 yrs to delivery</div>
       <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
         <div class="pm-tl-empty" style="left:5%"></div>
@@ -361,10 +381,11 @@
       </div>
       <div class="pm-tl-stages"><span class="pm-tl-stage on" style="color:#B9A6FF;font-weight:800;text-shadow:0 0 12px rgba(167,139,250,.5)">Announced</span><span class="pm-tl-stage ">Breaking Ground</span><span class="pm-tl-stage ">Construction</span><span class="pm-tl-stage ">Opening Soon</span><span class="pm-tl-stage ">Now Open</span></div>
     </div>
-    <div class="pp-minis"><div class="pp-mini"><div class="v">2031</div><div class="k">Completion</div></div></div>
-    <div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/navy-seal-museum-san-diego/"><div class="k">Developer</div><div class="v">Navy SEAL Museum San Diego</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/zgf-architects/"><div class="k">Architect</div><div class="v">ZGF Architects</div><span class="go">View firm profile →</span></a></div>
-  </div>
-</a>
+      <div class="pp-minis"><div class="pp-mini"><div class="v">2031</div><div class="k">Completion</div></div></div>
+    </div>
+  </a>
+  <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/navy-seal-museum-san-diego/"><div class="k">Developer</div><div class="v">Navy SEAL Museum San Diego</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/zgf-architects/"><div class="k">Architect</div><div class="v">ZGF Architects</div><span class="go">View firm profile →</span></a></div></div>
+</div>
       </div>
     </section>
 

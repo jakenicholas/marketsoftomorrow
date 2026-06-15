@@ -248,18 +248,26 @@ def card_html(p: dict) -> str:
         + '</div>'
     )
 
+    # Card is a <div>, not <a> — because the firm bubbles inside are <a>
+    # tags (links to /firm/<slug>/), and HTML disallows nested interactive
+    # elements. Browsers silently break the outer <a> when they encounter
+    # the inner one, which collapses our whole card layout. Wrap just the
+    # image + title + meta + timeline in a single <a> (.card-link) and
+    # keep the firms as separate sibling links.
     return (
-        f'<a class="card{" featured" if featured else ""}" href="{ROOT_URL}/projects/{esc(slug)}/"{featured_attrs}>\n'
-        f'  <div class="card-img" data-lightbox-src="{img}" data-lightbox-caption="{cap}" style="background-image:url(\'{img}\')">{feat_badge}</div>\n'
-        f'  <div class="card-body">\n'
-        f'    <div class="card-title">{title}</div>\n'
-        f'    <div class="card-loc">{loc_line}</div>\n'
-        f'    {last_v_html}\n'
-        f'    {timeline_html}\n'
-        f'    {minis_html}\n'
-        f'    {firms_html}\n'
-        f'  </div>\n'
-        f'</a>'
+        f'<div class="card{" featured" if featured else ""}"{featured_attrs}>\n'
+        f'  <a class="card-link" href="{ROOT_URL}/projects/{esc(slug)}/" aria-label="Open {title}">\n'
+        f'    <div class="card-img" data-lightbox-src="{img}" data-lightbox-caption="{cap}" style="background-image:url(\'{img}\')">{feat_badge}</div>\n'
+        f'    <div class="card-body">\n'
+        f'      <div class="card-title">{title}</div>\n'
+        f'      <div class="card-loc">{loc_line}</div>\n'
+        f'      {last_v_html}\n'
+        f'      {timeline_html}\n'
+        f'      {minis_html}\n'
+        f'    </div>\n'
+        f'  </a>\n'
+        f'  <div class="card-firms-wrap">{firms_html}</div>\n'
+        f'</div>'
     )
 
 def stats_strip_html(projects: list[dict]) -> str:
@@ -472,15 +480,20 @@ def render_page(
        timeline, mini stats, and developer/architect bubbles — matching the
        project page hero panel so visitors get the same context inline. */
     .grid.tmw-project-grid {{ display: grid; grid-template-columns: repeat(auto-fill, minmax(420px, 1fr)); gap: 14px; }}
-    .card {{ display:block; background:#111; border-radius:14px; overflow:hidden; transition: transform .15s, border-color .15s; border:1px solid transparent; position:relative; }}
+    /* Card is now a vertical-stack container <div>. The clickable area is
+       .card-link (image + body), with the firm-bubble row as a sibling
+       below so the firm <a> tags don't get nested inside the card <a>. */
+    .card {{ display: flex; flex-direction: column; background:#111; border-radius:14px; overflow:hidden; transition: transform .15s, border-color .15s; border:1px solid transparent; position:relative; }}
     .card:hover {{ transform: translateY(-2px); border-color: rgba(167,139,250,.3); }}
     .card.featured {{ box-shadow: 0 0 0 1px rgba(255,211,0,.32), 0 8px 24px rgba(255,211,0,.06); }}
+    .card-link {{ display: block; text-decoration: none; color: inherit; }}
+    .card-firms-wrap {{ padding: 0 20px 20px; }}
     /* Smaller, square gold badge with star — matches map marker style */
     .card-feat-badge {{ position:absolute; top:10px; right:10px; z-index:2; width:22px; height:22px; border-radius:5px; background:var(--gold); display:inline-flex; align-items:center; justify-content:center; box-shadow:0 2px 6px rgba(0,0,0,.4); }}
     .card-feat-badge svg {{ width:12px; height:12px; fill:#0a0a0a; }}
     .card-img {{ height: 220px; background-size: cover; background-position: center; position: relative; }}
     .card-img::after {{ content:""; position:absolute; inset:0; background:linear-gradient(180deg, transparent 60%, rgba(0,0,0,.45) 100%); }}
-    .card-body {{ padding: 18px 20px 20px; }}
+    .card-body {{ padding: 18px 20px 4px; }}
     .card-title {{ font-family: var(--serif); font-size: 22px; font-weight: 500; letter-spacing:-.014em; line-height: 1.2; color: var(--white); margin-bottom: 6px; }}
     /* City/firm/location body font matches the map's body font (Inter regular) */
     .card-loc {{ font-family: var(--sans); font-size: 13px; color: var(--mute-2); margin-bottom: 14px; }}
