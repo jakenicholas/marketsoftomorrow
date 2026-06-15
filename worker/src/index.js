@@ -628,13 +628,19 @@ async function fetchStripeIncome(env) {
 //     weeks: [
 //       { week: "2026-23", week_start: "2026-06-08", events: {
 //           subscribe_article: 142, free_account_created: 58,
-//           profile_completed: 41, go_pro_clicked: 7, go_pro_skipped: 31
+//           profile_completed: 41, go_pro_clicked: 7, go_pro_skipped: 31,
+//           pro_upgrade_paid: 2
 //       } },
 //       ...
 //     ],
 //     totals: { ...same shape, summed across the window },
 //     window_days: 84
 //   }
+//
+// Note on pro_upgrade_paid: this is the only stage NOT sourced from the
+// /event beacons — it's pulled live from Stripe `/subscriptions` so we
+// can show historical Pro upgrades even before the beacons captured
+// anything. start_date (sub creation) is the "became Pro" timestamp.
 async function handleFunnelStats(env, origin, url) {
   if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
   const weeks = Math.min(Math.max(parseInt(url.searchParams.get('weeks') || '12', 10), 1), 52);
@@ -657,16 +663,49 @@ async function handleFunnelStats(env, origin, url) {
 
   // Pivot to { weekKey -> { stage -> count } }
   const byWeek = new Map();
-  const stages = ['subscribe_article','free_account_created','profile_completed','go_pro_clicked','go_pro_skipped'];
+  const beaconStages = ['subscribe_article','free_account_created','profile_completed','go_pro_clicked','go_pro_skipped'];
+  const stages = [...beaconStages, 'pro_upgrade_paid'];
   const emptyBucket = () => stages.reduce((o, s) => (o[s] = 0, o), {});
   const totals = emptyBucket();
   for (const r of rows) {
     const stage = String(r.event_name || '').replace(/^funnel:/, '');
-    if (!stages.includes(stage)) continue;
+    if (!beaconStages.includes(stage)) continue;
     let bucket = byWeek.get(r.wk);
     if (!bucket) { bucket = emptyBucket(); byWeek.set(r.wk, bucket); }
     bucket[stage] += Number(r.c) || 0;
     totals[stage] += Number(r.c) || 0;
+  }
+
+  // Backfill pro_upgrade_paid from Stripe. start_date (or created as fallback)
+  // is the authoritative "this customer activated a paid subscription"
+  // moment. We bucket by the same ISO-week math the series builder uses
+  // below so keys line up. Failure here is silent — funnel-stats still
+  // returns the beacon data with pro_upgrade_paid=0 if Stripe is down.
+  if (env.STRIPE_SECRET_KEY) {
+    try {
+      let after = null, guard = 0;
+      do {
+        const page = await stripeGet(env, '/subscriptions?status=all&limit=100' + (after ? '&starting_after=' + after : ''));
+        for (const sub of (page.data || [])) {
+          const created = sub.start_date || sub.created;
+          if (!created || created < cutoff) continue;
+          const d = new Date(created * 1000);
+          const tmp = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+          const dayNum = (tmp.getUTCDay() + 6) % 7;
+          tmp.setUTCDate(tmp.getUTCDate() - dayNum + 3);
+          const firstThursday = new Date(Date.UTC(tmp.getUTCFullYear(), 0, 4));
+          const wkNum = 1 + Math.round(((tmp - firstThursday) / 86400000 - 3 + (firstThursday.getUTCDay() + 6) % 7) / 7);
+          const wkKey = `${tmp.getUTCFullYear()}-${String(wkNum).padStart(2, '0')}`;
+          let bucket = byWeek.get(wkKey);
+          if (!bucket) { bucket = emptyBucket(); byWeek.set(wkKey, bucket); }
+          bucket.pro_upgrade_paid += 1;
+          totals.pro_upgrade_paid += 1;
+        }
+        after = page.has_more ? page.data[page.data.length - 1].id : null;
+      } while (after && ++guard < 50);
+    } catch (e) {
+      totals._stripe_error = String(e.message || e).slice(0, 120);
+    }
   }
 
   // Build the contiguous weekly series (oldest -> newest) so the tile
