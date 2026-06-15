@@ -458,7 +458,7 @@
     </section>
 
     <article class="copy">
-<h2>The New York City pipeline</h2><p>We're tracking <b>23 new developments</b> in New York City across every category — including <b>Residences</b> (10), <b>Office</b> (6), <b>Mixed-Use</b> (2). Every project below links to a live status page with milestones, renderings, and our <a href="https://www.oftmw.com/journal/">journal coverage</a>.</p><p>Right now: <b>6 under construction</b>, <b>1 breaking ground</b>, <b>5 opening soon</b>, and <b>6 newly announced</b>.</p><p>Most active developer across the New York City pipeline: <b>Naftali Group</b> with <b>6 projects</b>.</p><h2>How we built this list</h2><p>Every project on this page is on the <a href="https://www.oftmw.com/map/">Map of Tomorrow</a> — our live database of new and under-construction developments worldwide. We add a project only after we can confirm it from a public filing, an official announcement, or independent reporting; status changes are sourced the same way and timestamped. <a href="https://www.oftmw.com/map/?upgrade=1">Pro members</a> get our weekly Slippage Report and the full dataset by phase, neighborhood, architect, and developer.</p>
+<h2>The New York City pipeline</h2><p>We're tracking <b>23 new developments</b> in New York City across every category — including <b>Residences</b> (10), <b>Office</b> (6), <b>Mixed-Use</b> (2). Every project below links to a live status page with milestones, renderings, and our <a href="https://www.oftmw.com/journal/">journal coverage</a>.</p><p>Right now: <b>6 under construction</b>, <b>1 breaking ground</b>, <b>5 opening soon</b>, and <b>6 newly announced</b>.</p><p>Most active developer across the New York City pipeline: <b>Naftali Group</b> with <b>6 projects</b>.</p><h2>How we built this list</h2><p>Every project on this page is from our live database of new and under-construction developments worldwide. We add a project only after we can confirm it from a public filing, an official announcement, or independent reporting; status changes (breaking ground, topping out, opening) are sourced the same way and timestamped. <a href="https://www.oftmw.com/map/?upgrade=1" class="pro-link">Pro members</a> get full access to TMW Intelligence&rsquo;s prediction modeling, Atlas data compilation, Pulse notifications, personalized notifications, comparison view, watchlists, and more.</p>
     </article>
 
     <section class="section">
@@ -607,6 +607,15 @@
         try { window.tmwFunnelTrack && window.tmwFunnelTrack('go_pro_clicked', { source: 'market_page', path: location.pathname }); } catch (_){}
         if (window.tmwShowPaywall) window.tmwShowPaywall({ source: 'market_page' });
         else window.location = 'https://www.oftmw.com/map/?upgrade=1';
+      });
+      // Inline "Pro members" links (methodology copy) open the same paywall.
+      Array.prototype.forEach.call(document.querySelectorAll('a.pro-link'), function (el) {
+        el.addEventListener('click', function (ev) {
+          if (!window.tmwShowPaywall) return;   // paywall JS not loaded → href fallback
+          ev.preventDefault();
+          try { window.tmwFunnelTrack && window.tmwFunnelTrack('go_pro_clicked', { source: 'methodology_link', path: location.pathname }); } catch (_){}
+          window.tmwShowPaywall({ source: 'methodology_link' });
+        });
       });
     });
   </script>
