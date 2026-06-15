@@ -76,6 +76,7 @@ STATUS_CSS_CLASS = {
 
 CITY_TYPE_MIN = 3
 CITY_MIN      = 3            # lowered from 5 so smaller-but-real cities (Aventura, Tokyo, etc.) get hubs
+STATE_MIN     = 5            # threshold for /markets/<state>/ rollup pages — keeps SEO quality high
 FEATURED_GRID_TARGET = 8     # cards are now 2-column with full timelines, so fewer per page
 
 # ─── Type label tweaks for natural English SEO H1s ───────────────────
@@ -490,6 +491,8 @@ def schema_jsonld(title: str, desc: str, url: str, items: list[dict], crumbs: li
         "name": title,
         "description": desc,
         "url": url,
+        "datePublished": "2026-06-01",
+        "dateModified": datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%d'),
         "publisher": {"@type": "Organization", "name": SITE_NAME, "url": ROOT_URL},
         "mainEntity": {"@type": "ItemList", "numberOfItems": len(items), "itemListElement": item_list},
         "breadcrumb": {"@type": "BreadcrumbList", "itemListElement": crumb_list},
@@ -536,6 +539,10 @@ def render_page(
     btn = by_the_numbers(projects)
     btn_html = by_the_numbers_html(btn)
     faq_html_section = faq_section_html(faqs)
+    # Visible "Last updated" line — trust + freshness signal Google rewards.
+    # Date is the generation timestamp; pages rebuild hourly so this stays
+    # current to within the hour.
+    today = datetime.datetime.now(datetime.timezone.utc).strftime('%B %-d, %Y')
     # The featured "X of Y we're watching closely" grid hides Now Open —
     # they're delivered, not being tracked. Stats strip + most-active-firm
     # panels keep the full bucket so the total scope is still visible.
@@ -840,7 +847,7 @@ def render_page(
     <nav class="crumbs" aria-label="Breadcrumb">{crumbs_html}</nav>
 
     <section class="hero">
-      <div class="hero-eyebrow">{esc(eyebrow)}</div>
+      <div class="hero-eyebrow">{esc(eyebrow)} · <time datetime="{datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%d')}">Updated {today}</time></div>
       <h1>{esc(h1)}</h1>
       <p class="sub">{intro_html}</p>
     </section>
@@ -1607,7 +1614,223 @@ def type_intro(ptype: str, projects: list[dict], top_cities: list[tuple[str,int]
     return intro, long_copy
 
 # ─── Build the index hub at /markets/ ────────────────────────────────
-def render_hub(city_type_pairs, city_pages, type_pages):
+def render_html_sitemap(out_path: str, city_pages, type_pages, state_pages, city_type_pairs) -> None:
+    """User-facing sitemap at /sitemap/ — flat list of every market URL we
+    generate, grouped by category. Provides users an alternative way to
+    browse the site and gives Google one more in-graph path to every leaf
+    page (HTML sitemaps still help crawlability)."""
+    os.makedirs(os.path.dirname(out_path), exist_ok=True)
+    canonical = f'{ROOT_URL}/sitemap/'
+    def _section(title: str, items: list[tuple[str, str]]) -> str:
+        if not items: return ''
+        rows = ''.join(f'<li><a href="{esc(url)}">{esc(name)}</a></li>' for url, name in items)
+        return (
+            f'<section class="sitemap-section">'
+            f'<h2>{esc(title)}</h2>'
+            f'<ul class="sitemap-list">{rows}</ul>'
+            f'</section>'
+        )
+
+    state_items = [(f'/markets/{slugify(s)}/', f'{s} — {n} projects') for s, n in state_pages]
+    city_items  = [(f'/markets/{slugify(c)}/', f'{c} — {n} projects') for c, n in city_pages]
+    type_items  = [(f'/markets/by-type/{slugify(t)}/', f'{t} (worldwide) — {n} projects') for t, n in type_pages]
+    ct_items    = [(f'/markets/{slugify(c)}-{slugify(t)}/', f'{c} · {t} — {n} projects') for c, t, n in city_type_pairs]
+
+    page = f"""<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sitemap — Every Page on {SITE_NAME}</title>
+  <meta name="description" content="Full sitemap of every market, state, category, and city page on Markets of Tomorrow. {len(state_pages) + len(city_pages) + len(type_pages) + len(city_type_pairs)} landing pages — find what you need fast.">
+  <link rel="canonical" href="{canonical}">
+  <meta name="robots" content="index, follow">
+  <link rel="icon" href="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_71f3cd2ef61049028b2daf4e2ff71d52~mv2.png" type="image/png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {{ --ink:#0d0d0d; --hair:rgba(255,255,255,.08); --white:#fff; --cream:#ECEAE5; --mute:#9AA39C; --mute-2:#C2C9C3; --purple:#A78BFA; --purple-bright:#C4B5FD;
+      --sans:'Inter',-apple-system,sans-serif; --serif:'Fraunces',Georgia,serif; --mono:'JetBrains Mono',ui-monospace,monospace; }}
+    *,*::before,*::after {{ box-sizing:border-box; margin:0; padding:0; }}
+    body {{ background:var(--ink); color:var(--cream); font-family:var(--sans); line-height:1.55; }}
+    body::before {{ content:""; position:fixed; inset:0; z-index:0; pointer-events:none;
+      background: radial-gradient(820px 540px at 76% -6%, rgba(167,139,250,.10), transparent 60%); }}
+    a {{ color:inherit; text-decoration:none; }}
+    .wrap {{ position:relative; z-index:1; max-width:1200px; margin:0 auto; padding:0 24px 90px; }}
+    .crumbs {{ padding:22px 0 0; font-family:var(--mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--mute); }}
+    .crumbs .sep {{ opacity:.4; margin:0 8px; }}
+    .crumbs b {{ color:var(--purple-bright); }}
+    .hero {{ padding:30px 0 38px; border-bottom:1px solid var(--hair); }}
+    .hero h1 {{ font-family:var(--serif); font-size:clamp(40px,5.4vw,64px); line-height:1.04; font-weight:500; letter-spacing:-.022em; color:var(--white); max-width:20ch; }}
+    .hero .sub {{ font-family:var(--serif); font-style:italic; font-weight:300; font-size:18px; color:var(--mute-2); margin-top:18px; max-width:62ch; }}
+    .sitemap-section {{ padding:34px 0; border-bottom:1px solid var(--hair); }}
+    .sitemap-section h2 {{ font-family:var(--serif); font-size:26px; font-weight:500; letter-spacing:-.018em; color:var(--white); margin-bottom:18px; }}
+    .sitemap-list {{ list-style:none; padding:0; columns:2; column-gap:30px; }}
+    @media (max-width: 760px) {{ .sitemap-list {{ columns:1; }} }}
+    .sitemap-list li {{ font-family:var(--sans); font-size:14px; padding:5px 0; break-inside:avoid; }}
+    .sitemap-list a {{ color:var(--purple-bright); text-decoration:underline; text-underline-offset:3px; }}
+    .sitemap-list a:hover {{ color:var(--white); }}
+  </style>
+</head><body>
+  <div class="wrap">
+    <nav class="crumbs"><a href="/">TMW</a><span class="sep">/</span><b>Sitemap</b></nav>
+    <section class="hero">
+      <h1>Every page we publish.</h1>
+      <p class="sub">A flat index of every market, state, category, and city we generate. Use this to jump straight to any landing page — or to discover combinations you haven't seen yet.</p>
+    </section>
+{_section("By state / region", state_items)}
+{_section("By city", city_items)}
+{_section("By category (worldwide)", type_items)}
+{_section("By city × category", ct_items)}
+  </div>
+  <script src="/_shared/journal-chrome.js" defer></script>
+  <script src="/_shared/journal-dock.js" defer></script>
+</body></html>
+"""
+    with open(out_path, 'w', encoding='utf-8') as f:
+        f.write(page)
+
+
+def render_state_page(state_label: str, state_code: str, bucket: list[dict],
+                      by_city: dict, by_city_type: dict, city_to_state: dict) -> str:
+    """Generate a /markets/<state>/ rollup page. Aggregates every project
+    in the state into one mega-pipeline view, lists the cities with their
+    individual market pages, and computes top developers/architects at
+    the state level. H1 + FAQ + status-grouped sub-sections all target
+    "new developments in <state>" search variants."""
+    state_slug = slugify(state_label)
+    n_total = len(bucket)
+    sb = _status_breakdown(bucket)
+    btn = by_the_numbers(bucket)
+    # Group bucket into cities, sort by count desc
+    cities_in_state = collections.Counter()
+    for p in bucket:
+        c = (p.get('City') or '').strip()
+        if c: cities_in_state[c] += 1
+    # Build city cards for "Browse by city in <state>" section
+    city_cards: list[tuple[str,str,int,str]] = []
+    for city, n in cities_in_state.most_common():
+        if len(by_city.get(city, [])) >= CITY_MIN:
+            city_cards.append(('CITY', city, n, f'/markets/{slugify(city)}/'))
+    city_cards = city_cards[:24]
+    related_html = ''.join(
+        f'<a class="rel-card" href="{esc(href)}"><div class="city">{esc(label)}</div><div class="name">{esc(name)}</div><div class="count">{n} project{"s" if n != 1 else ""} →</div></a>'
+        for label, name, n, href in city_cards
+    )
+    # Top types in this state
+    type_counter = collections.Counter((p.get('PreferredType') or '').strip() for p in bucket if (p.get('PreferredType') or '').strip())
+    type_cards: list[tuple[str,str,int,str]] = []
+    for ptype, n in type_counter.most_common():
+        if n >= 5:
+            # Link to the global by-type page since per-state-by-type would dilute
+            type_cards.append(('CATEGORY', ptype, n, f'/markets/by-type/{slugify(ptype)}/'))
+    type_cards = type_cards[:12]
+    type_html = ''.join(
+        f'<a class="rel-card" href="{esc(href)}"><div class="city">{esc(label)}</div><div class="name">{esc(name)}</div><div class="count">{n} project{"s" if n != 1 else ""} →</div></a>'
+        for label, name, n, href in type_cards
+    )
+
+    # FAQs at state level
+    devs, dev_slugs = _count_firms(bucket, 'Developer', 'DeveloperSlugs')
+    arches, arch_slugs = _count_firms(bucket, 'Architect', 'ArchitectSlugs')
+    state_faqs: list[tuple[str, str]] = []
+    state_faqs.append((
+        f'What new developments are coming to {state_label}?',
+        f'We track <b>{n_total} active development{"s" if n_total != 1 else ""}</b> across {state_label} — {sb["uc"]} under construction, {sb["bg"]} breaking ground, {sb["os"]} opening soon, and {sb["an"]} announced. Every city with at least 3 projects has a dedicated landing page (see below).',
+    ))
+    if sb['uc']:
+        state_faqs.append((
+            f'How many projects are under construction in {state_label}?',
+            f'<b>{sb["uc"]} project{"s" if sb["uc"] != 1 else ""}</b> are currently under construction across {state_label}, ranging from luxury condos to mixed-use districts. Click any city below for the full local pipeline.',
+        ))
+    if sb['os']:
+        state_faqs.append((
+            f'What projects are opening soon in {state_label}?',
+            f'<b>{sb["os"]} project{"s" if sb["os"] != 1 else ""}</b> are flagged Opening Soon across {state_label} — expected to open within ~7 months.',
+        ))
+    if cities_in_state:
+        top_cities_phrase = ', '.join(f'<b>{esc(c)}</b> ({n})' for c, n in cities_in_state.most_common(3))
+        state_faqs.append((
+            f'Which {state_label} cities have the most new developments?',
+            f'The deepest pipelines are in {top_cities_phrase}. {state_label} has <b>{len(cities_in_state)} cities</b> with active projects in our database.',
+        ))
+    if devs:
+        top_dev_name, top_dev_n = devs.most_common(1)[0]
+        ds = dev_slugs.get(top_dev_name, '')
+        link = f'<a href="{ROOT_URL}/firm/{esc(ds)}/">{esc(top_dev_name)}</a>' if ds else f'<b>{esc(top_dev_name)}</b>'
+        state_faqs.append((
+            f'Who is the biggest developer building in {state_label}?',
+            f'{link} leads {state_label} with <b>{top_dev_n} active project{"s" if top_dev_n != 1 else ""}</b> across cities.',
+        ))
+    if arches:
+        top_arch_name, top_arch_n = arches.most_common(1)[0]
+        as_ = arch_slugs.get(top_arch_name, '')
+        link = f'<a href="{ROOT_URL}/firm/{esc(as_)}/">{esc(top_arch_name)}</a>' if as_ else f'<b>{esc(top_arch_name)}</b>'
+        state_faqs.append((
+            f'Which architects are designing the most new projects in {state_label}?',
+            f'{link} is the architect of record on <b>{top_arch_n} {state_label} project{"s" if top_arch_n != 1 else ""}</b> — the most of any firm in the state.',
+        ))
+    if btn['tallest_project']:
+        tp = btn['tallest_project']
+        state_faqs.append((
+            f'What is the tallest tower being built in {state_label}?',
+            f'<b>{esc(tp["Title"])}</b> in <b>{esc(tp.get("City",""))}</b> at <b>{btn["tallest_floors"]} floors</b>. <a href="{ROOT_URL}/projects/{esc(tp.get("Slug",""))}/">See the project →</a>',
+        ))
+    if btn['total_units']:
+        state_faqs.append((
+            f'How many new residential units are being added across {state_label}?',
+            f'Across the active {state_label} pipeline, the developments we track will add <b>{btn["total_units"]:,} residential units</b> across {n_total} projects.',
+        ))
+    if btn['earliest_delivery'] and btn['latest_delivery'] and btn['earliest_delivery'] != btn['latest_delivery']:
+        state_faqs.append((
+            f'When will the next wave of {state_label} projects deliver?',
+            f'Delivery dates across the active {state_label} pipeline run from <b>{btn["earliest_delivery"]}</b> through <b>{btn["latest_delivery"]}</b>. Individual delivery dates shift constantly — Pro members get our weekly Slippage Report.',
+        ))
+    state_faqs.append((
+        f'How often is the {state_label} development data updated?',
+        f'Hourly. Our cron pipeline pulls fresh data from the source-of-truth database every hour and regenerates this page (and every market and firm page).',
+    ))
+
+    # Long-tail body copy
+    types_phrase = ', '.join(f'<b>{esc(t)}</b> ({n})' for t, n in type_counter.most_common(3)) or '—'
+    cities_phrase_full = ', '.join(f'<a href="/markets/{slugify(c)}/"><b>{esc(c)}</b></a> ({n})' for c, n in cities_in_state.most_common(5)) or '—'
+    body_copy = (
+        f'<h2>The {esc(state_label)} pipeline</h2>'
+        f'<p>We track <b>{n_total} new development{"s" if n_total != 1 else ""}</b> across {state_label} — {sb["uc"]} under construction, {sb["bg"]} breaking ground, {sb["os"]} opening soon, and {sb["an"]} announced. Most active markets: {cities_phrase_full}. Specializing in: {types_phrase}.</p>'
+        f'<h2>How we built this list</h2>'
+        f'<p>Every project on this page is on the <a href="{ROOT_URL}/map/">Map of Tomorrow</a> — our live database of new and under-construction developments worldwide. Project status, milestones, and spec changes are sourced from public filings, official announcements, or independent reporting and timestamped. <a href="{ROOT_URL}/map/?upgrade=1">Pro members</a> get our weekly Slippage Report, the TMW Forecast on every project, and the full {state_label} dataset by phase, neighborhood, and developer.</p>'
+    )
+
+    intro_html = (
+        f'We\'re tracking <b>{n_total} new development{"s" if n_total != 1 else ""}</b> across <b>{state_label}</b> — '
+        f'spanning <b>{len(cities_in_state)} cities</b> and <b>{len(type_counter)} project categor{"ies" if len(type_counter) != 1 else "y"}</b>. '
+        f'Every city links to a dedicated local market page with the full pipeline.'
+    )
+
+    return render_page(
+        h1=f'New Developments in {state_label}',
+        title_tag=f'{n_total} New Developments in {state_label} ({CURRENT_YEAR}) | {SITE_NAME}',
+        meta_desc=' · '.join([
+            f'{n_total} new developments across {state_label}',
+            f'{sb["uc"]} under construction',
+            f'{btn["total_units"]:,} residential units' if btn['total_units'] else '',
+            f'tallest at {btn["tallest_floors"]} floors' if btn['tallest_floors'] >= 25 else '',
+        ]).replace(' ·  ·', ' ·').strip(' ·')[:280],
+        canonical_path=f'/markets/{state_slug}/',
+        breadcrumbs=[('TMW','/'), ('Markets','/markets/'), (state_label, None)],
+        eyebrow=f'Live · {n_total} projects across {len(cities_in_state)} {state_label} cities',
+        intro_html=intro_html,
+        projects=bucket,
+        related_cities=city_cards[:6],   # top cities as the related-markets section
+        more_types=type_cards[:6],       # top types in this state as "More" section
+        map_search=state_label,
+        intel_city='', intel_type='',     # state-level — no single city/type prefix
+        body_copy_html=body_copy,
+        faqs=state_faqs[:12],
+        status_sections=status_sections_html(bucket, type_plural='projects', location_phrase=state_label),
+    )
+
+
+def render_hub(city_type_pairs, city_pages, type_pages, state_pages=None):
     """Index page at /markets/index.html. The old "By city × category" section
     is replaced by an in-page filter calculator — user picks a city + category
     + status, the page hot-swaps to show what we track for that combination
@@ -1645,6 +1868,18 @@ def render_hub(city_type_pairs, city_pages, type_pages):
         f'<a class="rel-card" href="{ROOT_URL}/markets/by-type/{slugify(t)}/"><div class="city">Worldwide</div><div class="name">{esc(t)}</div><div class="count">{n} tracked →</div></a>'
         for (t, n) in type_pages
     )
+    # State rollup links — only if any state pages were generated.
+    state_pages = state_pages or []
+    state_cards_html = ''.join(
+        f'<a class="rel-card" href="{ROOT_URL}/markets/{slugify(s)}/"><div class="city">All cities + categories</div><div class="name">{esc(s)}</div><div class="count">{n} tracked →</div></a>'
+        for (s, n) in state_pages
+    )
+    state_section_html = (
+        '    <section class="section">\n'
+        '      <h2>Browse by state / region</h2>\n'
+        f'      <div class="related">{state_cards_html}</div>\n'
+        '    </section>\n'
+    ) if state_cards_html else ''
     canonical = f'{ROOT_URL}/markets/'
     crumbs = [('TMW', '/'), ('Markets', None)]
     crumbs_html = ' <span class="sep">/</span> '.join(
@@ -1792,6 +2027,7 @@ def render_hub(city_type_pairs, city_pages, type_pages):
       </div>
     </section>
 
+{state_section_html}
     <section class="section">
       <h2>Browse by city</h2>
       <div class="related">{city_html}</div>
@@ -2188,11 +2424,52 @@ def main():
         type_pages_for_hub.append((ptype, len(bucket)))
         n_type += 1
 
+    # ─── 3.5. State/region rollup pages ──────────────────────────────
+    # "/markets/<state>/" pages aggregate every city in a state — captures
+    # massive search volume that no single-city page can reach ("new
+    # developments in Florida", "California condos under construction").
+    # Threshold is ≥5 projects per state. International "states" (Bahamas,
+    # Saudi Arabia, etc.) get the same treatment since they're already
+    # mapped 1:1 to a region label by cityStateMap.json.
+    state_pages_written = 0
+    state_pages_for_hub: list[tuple[str,int]] = []
+    try:
+        with open('cityStateMap.json', encoding='utf-8') as f:
+            city_to_state = json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        city_to_state = {}
+    if city_to_state:
+        by_state: dict[str, list[dict]] = collections.defaultdict(list)
+        for p in projects:
+            c = (p.get('City') or '').strip()
+            st = city_to_state.get(c)
+            if st: by_state[st].append(p)
+        for state_code, bucket in by_state.items():
+            if len(bucket) < STATE_MIN: continue
+            state_label = _STATE_FULL.get(state_code, state_code)
+            state_slug  = slugify(state_label)
+            bucket_sorted = sort_projects(bucket)
+            html_out = render_state_page(
+                state_label=state_label,
+                state_code=state_code,
+                bucket=bucket_sorted,
+                by_city=by_city,
+                by_city_type=by_city_type,
+                city_to_state=city_to_state,
+            )
+            path = f"{OUTPUT_DIR}/{state_slug}/"
+            os.makedirs(path, exist_ok=True)
+            open(os.path.join(path, 'index.html'), 'w', encoding='utf-8').write(html_out)
+            generated_paths.append(f'/markets/{state_slug}/')
+            state_pages_written += 1
+            state_pages_for_hub.append((state_label, len(bucket)))
+
     # ─── 4. Hub /markets/index.html ──────────────────────────────────
     city_type_pairs_for_hub.sort(key=lambda x: -x[2])
     city_pages_for_hub.sort(key=lambda x: -x[1])
     type_pages_for_hub.sort(key=lambda x: -x[1])
-    hub = render_hub(city_type_pairs_for_hub, city_pages_for_hub, type_pages_for_hub)
+    state_pages_for_hub.sort(key=lambda x: -x[1])
+    hub = render_hub(city_type_pairs_for_hub, city_pages_for_hub, type_pages_for_hub, state_pages_for_hub)
     open(os.path.join(OUTPUT_DIR, 'index.html'), 'w', encoding='utf-8').write(hub)
     generated_paths.append('/markets/')
 
@@ -2241,9 +2518,23 @@ def main():
     # ─── 7. Featured Markets carousel feed for the journal home ─────
     n_fm = render_featured_markets_json(by_city, 'journal/featured-markets.json')
 
+    # ─── 8. HTML sitemap at /sitemap/ (user-facing + crawler hint) ────
+    # Single page listing every market, firm, city, state, and project
+    # category we generate. Lets users browse the full surface area and
+    # gives Google one extra in-graph crawl path to every leaf URL.
+    render_html_sitemap(
+        out_path='journal/sitemap/index.html',
+        city_pages=city_pages_for_hub,
+        type_pages=type_pages_for_hub,
+        state_pages=state_pages_for_hub,
+        city_type_pairs=city_type_pairs_for_hub,
+    )
+    generated_paths.append('/sitemap/')
+
     print(f"  ✓ {n_ct} city×type pages")
     print(f"  ✓ {n_city} city hubs")
     print(f"  ✓ {n_type} type hubs")
+    print(f"  ✓ {state_pages_written} state/region rollup pages")
     print(f"  ✓ 1 markets/ index")
     print(f"  ✓ {n_fm} featured-market cards for the home carousel")
     if n_pruned:

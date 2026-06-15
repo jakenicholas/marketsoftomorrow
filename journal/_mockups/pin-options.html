@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Pin Redesign — TMW Intelligence options</title>
+<style>
+  :root{
+    --purple:#A78BFA; --purple-light:#B9A6FF; --purple-bright:#E9DEFF; --ink:#0b0a12;
+    --gold:#E6C574;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif; color:#fff;
+    /* faux dark map */
+    background:
+      radial-gradient(1200px 600px at 20% -10%, rgba(167,139,250,.10), transparent 60%),
+      radial-gradient(900px 500px at 90% 110%, rgba(167,139,250,.08), transparent 60%),
+      repeating-linear-gradient(0deg, rgba(255,255,255,.02) 0 1px, transparent 1px 64px),
+      repeating-linear-gradient(90deg, rgba(255,255,255,.02) 0 1px, transparent 1px 64px),
+      #0c0e12;
+    padding:40px 28px 80px;
+  }
+  .head{max-width:1080px; margin:0 auto 8px}
+  .eyebrow{font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:11px; letter-spacing:.22em; text-transform:uppercase; color:var(--purple-light)}
+  h1{font-size:26px; font-weight:800; margin:6px 0 4px; letter-spacing:-.01em}
+  .sub{color:rgba(255,255,255,.55); font-size:14px; max-width:60ch; line-height:1.5}
+  .grid{max-width:1080px; margin:34px auto 0; display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:20px}
+  .opt{
+    background:rgba(255,255,255,.025); border:1px solid rgba(255,255,255,.08); border-radius:18px;
+    padding:22px 22px 26px; position:relative; overflow:hidden;
+  }
+  .opt-h{display:flex; align-items:baseline; gap:10px; margin-bottom:4px}
+  .opt-n{font-family:ui-monospace,monospace; font-size:11px; color:var(--purple); border:1px solid rgba(167,139,250,.4); border-radius:6px; padding:2px 7px}
+  .opt-t{font-size:16px; font-weight:700}
+  .opt-d{color:rgba(255,255,255,.5); font-size:12.5px; line-height:1.45; margin:6px 0 0; min-height:34px}
+  .stage{display:flex; align-items:center; gap:30px; justify-content:center; padding:34px 8px 14px; flex-wrap:wrap}
+  .cap{display:flex; flex-direction:column; align-items:center; gap:10px}
+  .cap span{font-size:10.5px; color:rgba(255,255,255,.4); letter-spacing:.04em}
+
+  /* ---- shared marker base ---- */
+  .mk{position:relative; display:grid; place-items:center; font-weight:800; color:#fff; line-height:1}
+  .hex{width:100%; height:100%; position:absolute; inset:0}
+  .hex polygon{stroke-linejoin:round}
+
+  /* ===== A · HEX GLOW (solid) ===== */
+  .A .dot{width:24px;height:24px;border-radius:50%;background:var(--purple);box-shadow:0 0 0 2px rgba(255,255,255,.85),0 0 14px 2px rgba(167,139,250,.7)}
+  .A .cl{width:var(--s);height:var(--s)}
+  .A .cl polygon{fill:var(--purple);stroke:#fff;stroke-width:5}
+  .A .cl .n{position:relative;z-index:2;font-size:var(--f)}
+  .A .cl{filter:drop-shadow(0 0 10px rgba(167,139,250,.55))}
+  .A .feat .dot{background:var(--purple);box-shadow:0 0 0 2px var(--gold),0 0 18px 3px rgba(167,139,250,.8)}
+
+  /* ===== B · GHOST HEX (outline) ===== */
+  .B .dot{width:22px;height:22px;border-radius:50%;background:rgba(167,139,250,.18);border:2px solid var(--purple-light);box-shadow:0 0 12px rgba(167,139,250,.5)}
+  .B .cl{width:var(--s);height:var(--s);filter:drop-shadow(0 0 8px rgba(167,139,250,.45))}
+  .B .cl polygon{fill:rgba(13,10,24,.72);stroke:var(--purple-light);stroke-width:3.5}
+  .B .cl .n{position:relative;z-index:2;color:var(--purple-bright);font-size:var(--f)}
+
+  /* ===== C · GRADIENT NODE (circle) ===== */
+  .C .dot{width:24px;height:24px;border-radius:50%;background:linear-gradient(150deg,var(--purple-bright),var(--purple) 55%,#7c5cf0);box-shadow:0 2px 8px rgba(0,0,0,.5),0 0 14px rgba(167,139,250,.6);border:1.5px solid rgba(255,255,255,.9)}
+  .C .cl{width:var(--s);height:var(--s);border-radius:50%;background:linear-gradient(150deg,var(--purple-bright),var(--purple) 55%,#7c5cf0);box-shadow:0 3px 12px rgba(0,0,0,.5),0 0 16px rgba(167,139,250,.55);border:2px solid rgba(255,255,255,.85)}
+  .C .cl .n{font-size:var(--f);color:#1a1130}
+  .C .feat .dot{box-shadow:0 2px 8px rgba(0,0,0,.5),0 0 16px rgba(230,197,116,.7);border-color:var(--gold)}
+
+  /* ===== D · PULSE NODE (live signal) ===== */
+  .D .dot{width:16px;height:16px;border-radius:50%;background:var(--purple-bright);box-shadow:0 0 0 2px rgba(255,255,255,.9),0 0 10px rgba(167,139,250,.8);position:relative}
+  .D .dot::after,.D .dot::before{content:"";position:absolute;inset:50%;width:16px;height:16px;border-radius:50%;border:1.5px solid var(--purple-light);transform:translate(-50%,-50%);animation:ring 2.4s ease-out infinite}
+  .D .dot::before{animation-delay:1.2s}
+  @keyframes ring{0%{width:16px;height:16px;opacity:.8}100%{width:54px;height:54px;opacity:0}}
+  .D .cl{width:var(--s);height:var(--s);border-radius:50%;background:radial-gradient(circle at 38% 32%, var(--purple-light), var(--purple) 70%);box-shadow:0 0 0 2px rgba(255,255,255,.5),0 0 18px rgba(167,139,250,.6)}
+  .D .cl .n{font-size:var(--f)}
+
+  /* ===== E · FROSTED HEX (glass) ===== */
+  .E .dot{width:23px;height:23px;border-radius:7px;background:rgba(167,139,250,.22);backdrop-filter:blur(6px);border:1px solid rgba(233,222,255,.7);box-shadow:0 0 14px rgba(167,139,250,.5),inset 0 1px 0 rgba(255,255,255,.5)}
+  .E .cl{width:var(--s);height:var(--s);filter:drop-shadow(0 4px 10px rgba(0,0,0,.4))}
+  .E .cl polygon{fill:rgba(167,139,250,.20);stroke:rgba(233,222,255,.85);stroke-width:2.5}
+  .E .cl .glass{position:absolute;inset:0}
+  .E .cl .n{position:relative;z-index:2;color:#fff;font-size:var(--f);text-shadow:0 1px 4px rgba(0,0,0,.4)}
+
+  .note{max-width:1080px;margin:30px auto 0;color:rgba(255,255,255,.45);font-size:12.5px;line-height:1.6;border-top:1px solid rgba(255,255,255,.08);padding-top:18px}
+  .note b{color:var(--purple-light)}
+</style>
+</head>
+<body>
+  <div class="head">
+    <div class="eyebrow">Map of Tomorrow · Pin redesign</div>
+    <h1>TMW Intelligence pin styles</h1>
+    <p class="sub">Five directions for the project pins &amp; cluster bubbles in the Intelligence palette (purple / hexagon / glow). Each shows a single project pin, a featured pin, and small + large cluster counts.</p>
+  </div>
+
+  <div class="grid" id="grid"></div>
+
+  <div class="note">
+    Every option keeps the <b>cluster count pinned dead-center</b> and collision-free (no fade/detach).
+    Hexagon options (A, B, E) lean hardest into the TMW symbol; C is the cleanest "modern map app" read; D adds a <b>live-signal pulse</b> that suits the real-time feel of the Pulse feed. Tell me a letter (or mix — e.g. "B pins + A clusters") and I'll wire it into the live Mapbox layers.
+  </div>
+
+<script>
+  const HEX = '<svg class="hex" viewBox="0 0 100 100" preserveAspectRatio="none"><polygon points="50,6 92,28 92,72 50,94 8,72 8,28"/></svg>';
+  const GLASS = '<svg class="hex glass" viewBox="0 0 100 100" preserveAspectRatio="none"><defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="rgba(255,255,255,.45)"/><stop offset="1" stop-color="rgba(255,255,255,0)"/></linearGradient></defs><polygon points="50,6 92,28 92,72 50,94 8,72 8,28" fill="url(#g)" stroke="none"/></svg>';
+  const OPTS = [
+    {k:'A', t:'Hex Glow', d:'Solid purple TMW hexagon with a soft outer glow + white ring. Boldest, most on-brand.'},
+    {k:'B', t:'Ghost Hex', d:'Translucent fill, bright purple outline, count in light purple. Minimal & elegant — reads clean at density.'},
+    {k:'C', t:'Gradient Node', d:'Glossy gradient circle, white border. The familiar "modern map app" read, in TMW purple.'},
+    {k:'D', t:'Pulse Node', d:'Small bright core with concentric pulse rings — a live-signal feel that matches the Pulse feed.'},
+    {k:'E', t:'Frosted Hex', d:'Glassmorphic frosted hexagon with inner highlight. The most premium / "intelligence" texture.'},
+  ];
+  const usesHex = k => ['A','B','E'].includes(k);
+  function cluster(k, count, size, font){
+    const inner = (usesHex(k) ? HEX : '') + (k==='E' ? GLASS : '') + '<span class="n">'+count+'</span>';
+    return '<div class="mk cl" style="--s:'+size+'px;--f:'+font+'px">'+inner+'</div>';
+  }
+  document.getElementById('grid').innerHTML = OPTS.map(o=>`
+    <div class="opt ${o.k}">
+      <div class="opt-h"><span class="opt-n">${o.k}</span><span class="opt-t">${o.t}</span></div>
+      <p class="opt-d">${o.d}</p>
+      <div class="stage">
+        <div class="cap"><div class="mk"><div class="dot"></div></div><span>Project</span></div>
+        <div class="cap"><div class="mk feat"><div class="dot"></div></div><span>Featured</span></div>
+        <div class="cap">${cluster(o.k,'7',38,15)}<span>Cluster · 7</span></div>
+        <div class="cap">${cluster(o.k,'124',54,17)}<span>Cluster · 124</span></div>
+      </div>
+    </div>`).join('');
+</script>
+</body>
+</html>

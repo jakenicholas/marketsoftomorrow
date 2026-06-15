@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Partners spotlight &mdash; mockup v2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,600;9..144,900&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --green:#1FDF67; --green-deep:#18c75a; --green-soft:#42EB81;
+  --gold:#e6c574; --gold-soft:#f0d68a; --gold-deep:#c9a558;
+  --purple:#A78BFA; --purple-glow:#B9A6FF;
+  --ink:#070807; --ink2:#0d0f0e;
+  --hair:rgba(255,255,255,.08); --hair2:rgba(255,255,255,.14);
+  --white:#ffffff; --cream:#ECEAE5; --mute:#9AA39C; --mute2:#C2C9C3;
+  --sans:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+  --serif:'Fraunces',Georgia,serif;
+  --mono:'JetBrains Mono',ui-monospace,monospace;
+  --glass:blur(16px) saturate(1.4);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--ink); color:var(--cream); font-family:var(--sans); -webkit-font-smoothing:antialiased; line-height:1.5; padding:80px 0}
+body::before{content:""; position:fixed; inset:0; z-index:0; pointer-events:none;
+  background:radial-gradient(900px 600px at 78% -8%, rgba(31,223,103,.10), transparent 60%),
+            radial-gradient(700px 600px at 110% 95%, rgba(230,197,116,.06), transparent 55%);}
+.wrap{position:relative; z-index:1; max-width:1280px; margin:0 auto; padding:0 32px}
+.eyebrow{font-family:var(--mono); font-size:12px; letter-spacing:.22em; text-transform:uppercase; color:var(--green); font-weight:500; margin-bottom:22px}
+h2{font-family:var(--serif); font-weight:600; letter-spacing:-.01em; line-height:1.04; color:var(--white); font-size:clamp(34px,4.6vw,52px)}
+.lede{font-size:clamp(15px,1.4vw,18px); color:var(--mute2); max-width:60ch; line-height:1.55; font-weight:300; margin-top:14px}
+.shead{margin-bottom:38px}
+.hl-gold{color:var(--gold-soft); text-shadow:0 0 14px rgba(230,197,116,.3)}
+.glass{background:rgba(255,255,255,.025); backdrop-filter:var(--glass); -webkit-backdrop-filter:var(--glass);
+  border:1px solid var(--hair); border-radius:20px; box-shadow:0 24px 64px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.05);}
+
+/* === partners spotlight carousel === */
+.spotlight{position:relative}
+.spot-shead{display:flex; align-items:flex-end; justify-content:space-between; gap:24px; flex-wrap:wrap; margin-bottom:30px}
+.spot-shead .shead{margin-bottom:0; flex:1 1 auto}
+.spot-controls{display:flex; align-items:center; gap:10px}
+.spot-arrow{width:46px; height:46px; border-radius:50%; background:rgba(255,255,255,.03); border:1px solid var(--hair); color:var(--cream); cursor:pointer; display:inline-flex; align-items:center; justify-content:center; transition:background .15s, border-color .15s, color .15s, transform .15s}
+.spot-arrow:hover{background:rgba(255,255,255,.06); border-color:var(--hair2); color:var(--white); transform:translateY(-1px)}
+.spot-arrow svg{width:17px; height:17px}
+
+.spot-viewport{overflow:hidden; padding:30px 0; margin:-30px 0}
+.spot-track{display:flex; gap:32px; transition:transform .75s cubic-bezier(.22,1,.36,1); will-change:transform}
+
+/* Coverflow-style: active card center+full, neighbors dimmed+shrunk */
+.spot-card{flex:0 0 72%; display:grid; grid-template-columns:1.05fr 1fr; overflow:hidden; padding:0; min-height:520px;
+  transform:scale(.85); opacity:.42; filter:brightness(.45) saturate(.7); cursor:pointer;
+  transition:transform .65s cubic-bezier(.22,1,.36,1), opacity .55s ease, filter .55s ease, border-color .25s ease, box-shadow .25s ease;
+}
+.spot-card:not(.active):hover{opacity:.65; filter:brightness(.65) saturate(.85)}
+.spot-card.active{transform:scale(1); opacity:1; filter:none; cursor:default; z-index:2; box-shadow:0 32px 80px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.05)}
+.spot-card.active:hover{border-color:var(--hair2)}
+.spot-card .spot-cta, .spot-card .spot-cta-secondary{pointer-events:auto}
+.spot-card:not(.active) .spot-cta, .spot-card:not(.active) .spot-cta-secondary{pointer-events:none}
+
+/* Hero image side */
+.spot-img{position:relative; overflow:hidden; background:#15171a}
+.spot-img img{width:100%; height:100%; object-fit:cover; transition:transform 1s ease}
+.spot-card:hover .spot-img img{transform:scale(1.03)}
+.spot-img::after{content:""; position:absolute; inset:0; background:linear-gradient(90deg, transparent 60%, rgba(7,8,7,.4) 100%); pointer-events:none}
+.spot-img-placeholder{width:100%; height:100%; display:flex; align-items:center; justify-content:center; text-align:center; background:radial-gradient(120% 80% at 30% 40%, #232830 0%, #15181d 60%, #0c0e12 100%); position:relative}
+.spot-img-placeholder::before{content:""; position:absolute; inset:0; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); opacity:.04; pointer-events:none}
+.spot-img-placeholder span{font-family:var(--serif); font-weight:600; font-size:clamp(28px,3vw,42px); color:rgba(255,255,255,.5); letter-spacing:-.015em; line-height:1.05; text-transform:uppercase}
+.spot-img-placeholder span i{font-style:normal; font-weight:300; font-size:.7em; opacity:.7; display:block; margin-top:6px}
+
+.spot-ribbon{position:absolute; top:22px; left:22px; z-index:2; font-family:var(--mono); font-size:10.5px; letter-spacing:.18em; text-transform:uppercase; font-weight:700; padding:6px 13px; border-radius:6px; line-height:1; background:var(--green); color:var(--ink); box-shadow:0 8px 22px rgba(31,223,103,.45)}
+.spot-ribbon.gold{background:var(--gold); box-shadow:0 8px 22px rgba(230,197,116,.45)}
+.spot-ribbon.dot{display:inline-flex; align-items:center; gap:7px}
+.spot-ribbon.dot::before{content:""; width:6px; height:6px; border-radius:50%; background:var(--ink); animation:rib-pulse 1.8s ease-in-out infinite}
+@keyframes rib-pulse{0%,100%{opacity:1}50%{opacity:.35}}
+
+/* Body / content side */
+.spot-body{padding:46px 50px 38px; display:flex; flex-direction:column}
+.spot-cat{font-family:var(--mono); font-size:11px; letter-spacing:.22em; text-transform:uppercase; color:var(--mute); margin-bottom:18px; display:inline-flex; align-items:center; gap:10px}
+.spot-cat .cat-dot{width:5px; height:5px; border-radius:50%; background:var(--green); display:inline-block; box-shadow:0 0 8px var(--green)}
+.spot-cat.gold .cat-dot{background:var(--gold); box-shadow:0 0 8px var(--gold)}
+
+.spot-logo{font-family:var(--serif); font-weight:600; font-size:clamp(34px,3.6vw,52px); color:var(--white); letter-spacing:-.025em; line-height:1; margin-bottom:8px}
+.spot-sub{font-family:var(--serif); font-style:italic; font-weight:300; font-size:clamp(18px,1.8vw,22px); color:var(--cream); margin-bottom:22px; line-height:1.25}
+
+.spot-desc{font-size:15px; color:var(--mute2); line-height:1.55; font-weight:300; margin-bottom:28px; max-width:48ch}
+
+.spot-stats{display:grid; grid-template-columns:repeat(3,1fr); gap:18px; padding:20px 0 26px; margin-top:auto; border-top:1px solid var(--hair); border-bottom:1px solid var(--hair); margin-bottom:26px}
+.spot-stat{display:flex; flex-direction:column; gap:5px}
+.spot-stat .val{font-family:var(--serif); font-weight:600; font-size:22px; color:var(--white); letter-spacing:-.015em; line-height:1}
+.spot-stat .val.green{color:var(--green-soft)}
+.spot-stat .val.gold{color:var(--gold-soft); text-shadow:0 0 12px rgba(230,197,116,.3)}
+.spot-stat .lab{font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--mute)}
+
+/* Offer-flavored stat row */
+.spot-offer{padding:22px 24px; border-radius:12px; background:linear-gradient(180deg,rgba(230,197,116,.07),rgba(230,197,116,.02)); border:1px solid rgba(230,197,116,.28); margin-top:auto; margin-bottom:26px}
+.spot-offer-head{display:flex; align-items:center; gap:10px; font-family:var(--mono); font-size:10.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--gold-soft); font-weight:600; margin-bottom:10px}
+.spot-offer-head svg{width:14px; height:14px}
+.spot-offer-body{font-family:var(--serif); font-weight:500; font-size:19px; color:var(--white); letter-spacing:-.01em; line-height:1.3; margin-bottom:8px}
+.spot-offer-body em{color:var(--gold-soft); font-style:normal; font-weight:600}
+.spot-offer-foot{font-family:var(--mono); font-size:10.5px; letter-spacing:.06em; color:var(--mute)}
+
+/* Service highlight */
+.spot-svc{margin-top:auto; margin-bottom:26px; padding:18px 0; border-top:1px solid var(--hair); border-bottom:1px solid var(--hair)}
+.spot-svc ul{list-style:none; padding:0; margin:0 0 14px; display:grid; grid-template-columns:1fr 1fr; gap:8px 18px}
+.spot-svc li{display:flex; gap:9px; align-items:flex-start; font-size:13.5px; color:var(--cream); line-height:1.35}
+.spot-svc li::before{content:""; width:4px; height:4px; border-radius:50%; background:var(--green); margin-top:7px; flex:none; box-shadow:0 0 6px var(--green)}
+.spot-svc .price-tag{font-family:var(--serif); font-weight:600; font-size:24px; color:var(--green-soft); letter-spacing:-.015em; display:flex; align-items:baseline; gap:6px}
+.spot-svc .price-tag .per{font-family:var(--sans); font-size:13px; color:var(--mute); font-weight:400}
+
+/* CTA row */
+.spot-cta-row{display:flex; gap:14px; align-items:center; flex-wrap:wrap}
+.spot-cta{display:inline-flex; align-items:center; gap:9px; padding:13px 22px; border:1px solid var(--hair2); border-radius:999px; background:rgba(255,255,255,.025); color:var(--cream); font-family:var(--mono); font-size:11.5px; letter-spacing:.1em; text-transform:uppercase; font-weight:500; text-decoration:none; transition:background .2s, border-color .2s, color .2s, transform .2s}
+.spot-cta:hover{background:rgba(255,255,255,.05); border-color:var(--hair2); transform:translateY(-1px)}
+.spot-cta svg{width:14px; height:14px; transition:transform .2s}
+.spot-cta:hover svg{transform:translateX(2px)}
+.spot-cta.green{border-color:rgba(31,223,103,.4); background:rgba(31,223,103,.08); color:var(--green-soft)}
+.spot-cta.green:hover{background:rgba(31,223,103,.16); border-color:var(--green); box-shadow:0 0 22px rgba(31,223,103,.22)}
+.spot-cta.gold{border-color:rgba(230,197,116,.45); background:rgba(230,197,116,.1); color:var(--gold-soft); text-shadow:0 0 10px rgba(230,197,116,.3); box-shadow:0 0 20px rgba(230,197,116,.16)}
+.spot-cta.gold:hover{background:rgba(230,197,116,.18); border-color:var(--gold); box-shadow:0 0 30px rgba(230,197,116,.35)}
+.spot-cta-secondary{font-family:var(--mono); font-size:11px; letter-spacing:.08em; color:var(--mute); text-decoration:none; transition:color .15s}
+.spot-cta-secondary:hover{color:var(--cream)}
+
+.spot-dots{display:flex; justify-content:center; gap:8px; margin-top:32px}
+.spot-dot{width:26px; height:6px; border-radius:3px; background:rgba(255,255,255,.1); border:none; cursor:pointer; transition:background .2s, width .25s ease}
+.spot-dot:hover{background:rgba(255,255,255,.2)}
+.spot-dot.active{background:var(--green-soft); width:46px; box-shadow:0 0 12px rgba(31,223,103,.4)}
+
+/* Auto-progress indicator on active dot */
+.spot-dot.active::after{content:""; display:block; height:100%; background:var(--green); border-radius:3px; transform-origin:left; animation:dot-progress 5s linear forwards}
+@keyframes dot-progress{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+
+@media(max-width:1100px){
+  .spot-card{flex:0 0 82%}
+  .spot-track{gap:24px}
+}
+@media(max-width:880px){
+  .spot-card{flex:0 0 92%; grid-template-columns:1fr; min-height:auto; transform:scale(.92)}
+  .spot-img{aspect-ratio:16/10}
+  .spot-body{padding:30px 26px 26px}
+  .spot-stats{grid-template-columns:repeat(3,1fr); gap:12px}
+  .spot-stat .val{font-size:18px}
+  .spot-svc ul{grid-template-columns:1fr}
+  .spot-viewport{padding:14px 0; margin:-14px 0}
+}
+
+</style>
+</head>
+<body>
+
+<section class="spotlight">
+  <div class="wrap">
+    <div class="spot-shead">
+      <div class="shead">
+        <div class="eyebrow">Partners Spotlight</div>
+        <h2>In good company.</h2>
+        <p class="lede">Brands we work with &mdash; each with an exclusive offer for our readers.</p>
+      </div>
+      <div class="spot-controls">
+        <button class="spot-arrow spot-prev" aria-label="Previous">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+        <button class="spot-arrow spot-next" aria-label="Next">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="spot-viewport">
+    <div class="spot-track" id="spotTrack">
+
+        <!-- FRIDAKAHLO -->
+        <article class="spot-card glass">
+          <div class="spot-img">
+            <span class="spot-ribbon gold dot">Reader Offer</span>
+            <img src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_bf878d5c43544aa2a7a4bee39ac8c3c7~mv2.jpeg" alt="Frida Kahlo Wynwood Residences">
+          </div>
+          <div class="spot-body">
+            <div class="spot-cat gold"><span class="cat-dot"></span>Residence of Tomorrow &middot; Wynwood, Miami</div>
+            <div class="spot-logo">Frida Kahlo</div>
+            <div class="spot-sub">Wynwood Residences &mdash; by PMG &amp; LNDMRK</div>
+            <p class="spot-desc">The world's first Frida Kahlo&ndash;inspired residential tower in Miami's Wynwood Arts District. 244 luxury residences with a Diary speakeasy in the lobby by Carlos Ott.</p>
+            <div class="spot-offer">
+              <div class="spot-offer-head">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2z"/></svg>
+                Exclusive for our readers
+              </div>
+              <div class="spot-offer-body">First look at <em>pre-launch pricing</em> on select units &mdash; before public release.</div>
+              <div class="spot-offer-foot">Limited availability &middot; expires Aug 31, 2026</div>
+            </div>
+            <div class="spot-cta-row">
+              <a class="spot-cta gold" href="https://fridakahlowynwood.com" target="_blank" rel="noopener">Claim Early Access <svg viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="square"/></svg></a>
+              <a class="spot-cta-secondary" href="/media/frida-kahlo/">View campaign analytics &nearr;</a>
+            </div>
+          </div>
+        </article>
+
+        <!-- PONCEPARK -->
+        <article class="spot-card glass">
+          <div class="spot-img">
+            <span class="spot-ribbon gold dot">Reader Offer</span>
+            <img src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_5ec133d43cdb4132b3ef9504da7842ad~mv2.jpeg" alt="Ponce Park Coral Gables">
+          </div>
+          <div class="spot-body">
+            <div class="spot-cat gold"><span class="cat-dot"></span>Residence of Tomorrow &middot; Coral Gables, FL</div>
+            <div class="spot-logo">Ponce Park</div>
+            <div class="spot-sub">Boutique residences by Allen Morris Company</div>
+            <p class="spot-desc">Park-side boutique condominium with Mediterranean-inspired design, rooftop pool, and ground-floor retail in the heart of Coral Gables.</p>
+            <div class="spot-offer">
+              <div class="spot-offer-head">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2z"/></svg>
+                Exclusive for our readers
+              </div>
+              <div class="spot-offer-body">Private <em>virtual sales gallery tour</em> before opening to the public.</div>
+              <div class="spot-offer-foot">By appointment &middot; available now</div>
+            </div>
+            <div class="spot-cta-row">
+              <a class="spot-cta gold" href="https://poncepark.com" target="_blank" rel="noopener">Schedule Private Tour <svg viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="square"/></svg></a>
+              <a class="spot-cta-secondary" href="/media/ponce-park/">View campaign analytics &nearr;</a>
+            </div>
+          </div>
+        </article>
+
+        <!-- BANYANTREE -->
+        <article class="spot-card glass">
+          <div class="spot-img">
+            <span class="spot-ribbon gold dot">Reader Offer</span>
+            <img src="/media/img/banyantree-hero.jpeg" alt="Banyan Tree Residences West Palm Beach">
+          </div>
+          <div class="spot-body">
+            <div class="spot-cat gold"><span class="cat-dot"></span>Residence of Tomorrow &middot; West Palm Beach, FL</div>
+            <div class="spot-logo">Banyan Tree</div>
+            <div class="spot-sub">Residences &mdash; first U.S. project</div>
+            <p class="spot-desc">The first Banyan Tree Residences in the U.S., bringing the resort brand's signature wellness-led design to downtown West Palm Beach.</p>
+            <div class="spot-offer">
+              <div class="spot-offer-head">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2z"/></svg>
+                Exclusive for our readers
+              </div>
+              <div class="spot-offer-body"><em>Founder-tier pricing</em> on remaining residences &mdash; reserved for our readers.</div>
+              <div class="spot-offer-foot">Limited inventory &middot; while available</div>
+            </div>
+            <div class="spot-cta-row">
+              <a class="spot-cta gold" href="https://banyantreewpb.com" target="_blank" rel="noopener">Get Founder Pricing <svg viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="square"/></svg></a>
+              <a class="spot-cta-secondary" href="/media/banyantree/">View case study &nearr;</a>
+            </div>
+          </div>
+        </article>
+
+        <!-- ALLENMORRIS -->
+        <article class="spot-card glass">
+          <div class="spot-img">
+            <span class="spot-ribbon gold dot">Reader Offer</span>
+            <img src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_76035e8728d8441496981acae59d1531~mv2.jpg" alt="Allen Morris Company">
+          </div>
+          <div class="spot-body">
+            <div class="spot-cat gold"><span class="cat-dot"></span>Developer of Tomorrow &middot; Miami, FL</div>
+            <div class="spot-logo">Allen Morris</div>
+            <div class="spot-sub">Company &mdash; Miami real estate since 1958</div>
+            <p class="spot-desc">One of Miami's most respected real estate firms, with 66+ years of operation and a portfolio that spans residential, commercial, and mixed-use across South Florida.</p>
+            <div class="spot-offer">
+              <div class="spot-offer-head">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2z"/></svg>
+                Exclusive for our readers
+              </div>
+              <div class="spot-offer-body"><em>Founder&rsquo;s circle</em> priority list for all upcoming project launches.</div>
+              <div class="spot-offer-foot">Reservations open &middot; year-round access</div>
+            </div>
+            <div class="spot-cta-row">
+              <a class="spot-cta gold" href="https://allenmorris.com" target="_blank" rel="noopener">Join Founder's Circle <svg viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="square"/></svg></a>
+              <a class="spot-cta-secondary" href="https://www.oftmw.com/developers/allen-morris-company">View developer profile &nearr;</a>
+            </div>
+          </div>
+        </article>
+
+        <!-- PMG -->
+        <article class="spot-card glass">
+          <div class="spot-img">
+            <span class="spot-ribbon gold dot">Reader Discount</span>
+            <img src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_5c4654ca957f476dae681ab852187979~mv2.jpg" alt="Property Markets Group">
+          </div>
+          <div class="spot-body">
+            <div class="spot-cat gold"><span class="cat-dot"></span>Developer of Tomorrow &middot; Miami, FL</div>
+            <div class="spot-logo">PMG</div>
+            <div class="spot-sub">Property Markets Group</div>
+            <p class="spot-desc">National development firm with 50+ active projects across major U.S. markets, including Waldorf Astoria Miami and the Frida Kahlo Wynwood Residences.</p>
+            <div class="spot-offer">
+              <div class="spot-offer-head">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2z"/></svg>
+                Exclusive for our readers
+              </div>
+              <div class="spot-offer-body"><em>Priority access to pre-sale pricing</em> across PMG&rsquo;s active Florida portfolio.</div>
+              <div class="spot-offer-foot">Available now &middot; while inventory lasts</div>
+            </div>
+            <div class="spot-cta-row">
+              <a class="spot-cta gold" href="https://propertymg.com" target="_blank" rel="noopener">Get the Discount <svg viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="square"/></svg></a>
+              <a class="spot-cta-secondary" href="https://www.oftmw.com/developers/pmg">View developer profile &nearr;</a>
+            </div>
+          </div>
+        </article>
+
+        <!-- NAFTALI -->
+        <article class="spot-card glass">
+          <div class="spot-img">
+            <span class="spot-ribbon gold dot">Reader Offer</span>
+            <div class="spot-img-placeholder"><span>NAFTALI<br><i>GROUP</i></span></div>
+          </div>
+          <div class="spot-body">
+            <div class="spot-cat gold"><span class="cat-dot"></span>Developer of Tomorrow &middot; New York, NY</div>
+            <div class="spot-logo">Naftali Group</div>
+            <div class="spot-sub">Luxury residential development since 2007</div>
+            <p class="spot-desc">New York&ndash;based luxury developer behind some of the most coveted residential addresses in Manhattan and Brooklyn, expanding into South Florida.</p>
+            <div class="spot-offer">
+              <div class="spot-offer-head">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2z"/></svg>
+                Exclusive for our readers
+              </div>
+              <div class="spot-offer-body"><em>Early reservation list</em> for upcoming Miami launch &mdash; ahead of public release.</div>
+              <div class="spot-offer-foot">Pre-construction &middot; reservations open</div>
+            </div>
+            <div class="spot-cta-row">
+              <a class="spot-cta gold" href="https://naftaligroup.com" target="_blank" rel="noopener">Reserve Early <svg viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="square"/></svg></a>
+              <a class="spot-cta-secondary" href="https://www.oftmw.com/developers/naftali-group">View developer profile &nearr;</a>
+            </div>
+          </div>
+        </article>
+
+        <!-- RELATEDROSS -->
+        <article class="spot-card glass">
+          <div class="spot-img">
+            <span class="spot-ribbon gold dot">Reader Offer</span>
+            <div class="spot-img-placeholder"><span>RELATED<br><i>ROSS</i></span></div>
+          </div>
+          <div class="spot-body">
+            <div class="spot-cat gold"><span class="cat-dot"></span>Developer of Tomorrow &middot; West Palm Beach, FL</div>
+            <div class="spot-logo">Related Ross</div>
+            <div class="spot-sub">Stephen Ross&rsquo; West Palm Beach platform</div>
+            <p class="spot-desc">Stephen Ross's locally-focused vehicle reshaping downtown West Palm Beach &mdash; Edgeworth, One Flagler, and the South Flagler House lineage.</p>
+            <div class="spot-offer">
+              <div class="spot-offer-head">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2z"/></svg>
+                Exclusive for our readers
+              </div>
+              <div class="spot-offer-body"><em>Private tour</em> of Edgeworth West Palm Beach sales gallery.</div>
+              <div class="spot-offer-foot">By appointment &middot; weekdays only</div>
+            </div>
+            <div class="spot-cta-row">
+              <a class="spot-cta gold" href="https://relatedross.com" target="_blank" rel="noopener">Book Private Tour <svg viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="square"/></svg></a>
+              <a class="spot-cta-secondary" href="https://www.oftmw.com/developers/related-ross">View developer profile &nearr;</a>
+            </div>
+          </div>
+        </article>
+
+        <!-- BERKELEY -->
+        <article class="spot-card glass">
+          <div class="spot-img">
+            <span class="spot-ribbon gold dot">Reader Offer</span>
+            <div class="spot-img-placeholder"><span>THE<br><i>BERKELEY</i></span></div>
+          </div>
+          <div class="spot-body">
+            <div class="spot-cat gold"><span class="cat-dot"></span>Residence of Tomorrow &middot; Miami Beach, FL</div>
+            <div class="spot-logo">The Berkeley</div>
+            <div class="spot-sub">Mid-Beach boutique condominium</div>
+            <p class="spot-desc">A boutique Mid-Beach condominium reimagining the historic Berkeley Shore Hotel as a curated residential experience steps from the ocean.</p>
+            <div class="spot-offer">
+              <div class="spot-offer-head">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2z"/></svg>
+                Exclusive for our readers
+              </div>
+              <div class="spot-offer-body"><em>Sales gallery preview</em> &mdash; first look reserved for our early-list buyers.</div>
+              <div class="spot-offer-foot">Limited spots &middot; by invitation</div>
+            </div>
+            <div class="spot-cta-row">
+              <a class="spot-cta gold" href="https://theberkeleymiami.com" target="_blank" rel="noopener">Get Early Access <svg viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="square"/></svg></a>
+              <a class="spot-cta-secondary" href="https://www.oftmw.com/projects/the-berkeley">View project page &nearr;</a>
+            </div>
+          </div>
+        </article>
+
+        <!-- FIELDOFGREENS -->
+        <article class="spot-card glass">
+          <div class="spot-img">
+            <span class="spot-ribbon gold dot">Service Offer</span>
+            <img src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_2e0943a14bc14c03b1c73af9ea4af442~mv2.jpeg" alt="Field of Greens">
+          </div>
+          <div class="spot-body">
+            <div class="spot-cat gold"><span class="cat-dot"></span>Service of Tomorrow &middot; Monthly Retainer</div>
+            <div class="spot-logo">Field of Greens</div>
+            <div class="spot-sub">Full social media management, ongoing</div>
+            <p class="spot-desc">A monthly retainer covering content creation, posting, photography, and editorial &mdash; managed end-to-end across the Markets of Tomorrow network.</p>
+            <div class="spot-offer">
+              <div class="spot-offer-head">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2z"/></svg>
+                Exclusive for our readers
+              </div>
+              <div class="spot-offer-body"><em>Free brand audit</em> and first-month consultation for new retainers.</div>
+              <div class="spot-offer-foot">Limited spots &middot; this quarter only</div>
+            </div>
+            <div class="spot-cta-row">
+              <a class="spot-cta gold" href="/media/field-of-greens/">Get Free Brand Audit <svg viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="square"/></svg></a>
+              <a class="spot-cta-secondary" href="/media/field-of-greens/">View service kit &nearr;</a>
+            </div>
+          </div>
+        </article>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="spot-dots" id="spotDots"></div>
+  </div>
+</section>
+
+<script>
+(function(){
+  const track = document.getElementById('spotTrack');
+  const viewport = track.parentElement;
+  const dotsBox = document.getElementById('spotDots');
+  const cards = [...track.querySelectorAll('.spot-card')];
+  if(!cards.length) return;
+  let currentIndex = 0;
+  const total = cards.length;
+
+  // Build dots — one per card
+  cards.forEach((_, i) => {
+    const b = document.createElement('button');
+    b.className = 'spot-dot' + (i === 0 ? ' active' : '');
+    b.setAttribute('aria-label', `Go to partner ${i+1}`);
+    b.addEventListener('click', () => { goTo(i); resume(); });
+    dotsBox.appendChild(b);
+  });
+  const dots = [...dotsBox.children];
+
+  function update(){
+    const card = cards[currentIndex];
+    const cardWidth = card.offsetWidth;
+    const containerWidth = viewport.offsetWidth;
+    // Center the active card in the viewport: viewport_center - card_center - card.offsetLeft
+    const targetX = (containerWidth / 2) - (cardWidth / 2) - card.offsetLeft;
+    track.style.transform = `translateX(${targetX}px)`;
+    cards.forEach((c, i) => c.classList.toggle('active', i === currentIndex));
+    dots.forEach((d, i) => d.classList.toggle('active', i === currentIndex));
+  }
+
+  function goTo(i){ currentIndex = ((i % total) + total) % total; update(); }
+  function nextCard(){ goTo(currentIndex + 1); }
+  function prevCard(){ goTo(currentIndex - 1); }
+
+  let timer = setInterval(nextCard, 6000);
+  const pause = () => clearInterval(timer);
+  const resume = () => { clearInterval(timer); timer = setInterval(nextCard, 6000); };
+  const wrap = document.querySelector('.spotlight');
+  wrap.addEventListener('mouseenter', pause);
+  wrap.addEventListener('mouseleave', resume);
+
+  document.querySelector('.spot-prev').addEventListener('click', () => { prevCard(); resume(); });
+  document.querySelector('.spot-next').addEventListener('click', () => { nextCard(); resume(); });
+
+  // Click a dimmed side card to jump to it
+  cards.forEach((c, i) => {
+    c.addEventListener('click', e => {
+      if(i === currentIndex) return;  // active card -- let inner links work
+      e.preventDefault(); e.stopPropagation();
+      goTo(i); resume();
+    });
+  });
+
+  // Recompute on resize (card widths change with responsive breakpoints)
+  let rt;
+  addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(update, 120); });
+
+  // Initial layout — wait a tick so fonts/images load and offsets are correct
+  requestAnimationFrame(update);
+})();
+</script>
+
+</body>
+</html>

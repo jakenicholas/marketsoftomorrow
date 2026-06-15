@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TMW Carousel Mockup — The Map</title>
+<style>
+  :root{
+    --green:#1FDF67; --green-soft:#42EB81; --purple:#A78BFA; --purple-soft:#B9A6FF;
+    --ink:#0a0b0c; --panel:#121316; --line:rgba(255,255,255,.10); --mute:rgba(255,255,255,.55);
+    --slate:#8b93a7; --gold:#e6c574;
+    --serif:Georgia,'Times New Roman',serif;
+    --sans:-apple-system,BlinkMacSystemFont,'Inter','Segoe UI',sans-serif;
+    --mono:'SF Mono',ui-monospace,'JetBrains Mono',monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#08090a;color:#fff;font-family:var(--sans);padding:40px 24px 80px;-webkit-font-smoothing:antialiased}
+  .doc-head{max-width:1100px;margin:0 auto 30px;text-align:center}
+  .doc-head h1{font-family:var(--serif);font-size:30px;font-weight:600;letter-spacing:-.01em}
+  .doc-head p{color:var(--mute);font-size:14px;margin-top:8px;line-height:1.5}
+  .doc-head .meta{margin-top:14px;font-family:var(--mono);font-size:11px;color:var(--green);letter-spacing:.08em;text-transform:uppercase}
+  .grid{display:flex;flex-wrap:wrap;gap:30px;justify-content:center;max-width:1300px;margin:0 auto}
+  .frame-wrap{width:360px}
+  .frame-num{font-family:var(--mono);font-size:11px;color:var(--mute);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;display:flex;justify-content:space-between}
+  .frame-num b{color:var(--green)}
+  /* 1080x1350 (4:5) scaled to 360 wide => 0.3333 */
+  .slide{width:1080px;height:1350px;transform:scale(.33333);transform-origin:top left;position:relative;overflow:hidden;border-radius:0;background:var(--ink)}
+  .slide-clip{width:360px;height:450px;overflow:hidden;border-radius:14px;border:1px solid var(--line);box-shadow:0 18px 50px rgba(0,0,0,.5)}
+  .cap{margin-top:10px;font-size:11.5px;color:var(--mute);line-height:1.45}
+  .cap b{color:#fff;font-weight:600}
+
+  /* ---- shared slide chrome ---- */
+  .masthead{position:absolute;top:54px;left:0;right:0;display:flex;align-items:center;justify-content:center;gap:14px;z-index:6}
+  .masthead .mh-line{height:1px;width:90px;background:rgba(255,255,255,.35)}
+  .masthead .mh-txt{font-family:var(--mono);font-size:22px;letter-spacing:.34em;color:#fff;font-weight:700;text-transform:uppercase}
+  .tmw-mark{width:46px;height:46px;border-radius:50%;border:2px solid rgba(255,255,255,.85);display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-weight:700;font-size:20px;color:#fff;letter-spacing:-.02em}
+  .kicker{font-family:var(--mono);font-size:18px;letter-spacing:.3em;text-transform:uppercase;color:var(--green);font-weight:700}
+  .pin{display:inline-flex;align-items:center;gap:10px;font-family:var(--mono);font-size:22px;letter-spacing:.18em;text-transform:uppercase;color:#fff;font-weight:700}
+  .pin svg{width:26px;height:26px;fill:none;stroke:var(--green);stroke-width:2.4}
+  .vignette{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.55) 0%,rgba(0,0,0,0) 28%,rgba(0,0,0,0) 45%,rgba(0,0,0,.85) 100%);z-index:4}
+
+  /* ---- S1 hero ---- */
+  .hero-bg{position:absolute;inset:0;background:
+      radial-gradient(120% 80% at 70% 20%, #20364a 0%, #0c1a26 55%, #070d13 100%);z-index:1}
+  .skyline{position:absolute;left:0;right:0;bottom:0;height:560px;z-index:2;opacity:.9}
+  .s1-head{position:absolute;left:70px;bottom:150px;z-index:6;width:760px}
+  .s1-head h2{font-family:var(--serif);font-size:78px;line-height:1.04;font-weight:600;letter-spacing:-.015em;color:#fff;text-shadow:0 2px 30px rgba(0,0,0,.5)}
+  .s1-pin{position:absolute;left:72px;bottom:92px;z-index:6}
+  .hook-tag{position:absolute;top:120px;left:50%;transform:translateX(-50%);z-index:6;font-family:var(--mono);font-size:12px;color:var(--mute);letter-spacing:.1em;text-transform:uppercase;white-space:nowrap}
+
+  /* ---- interior slide layout ---- */
+  .si{position:absolute;inset:0;background:radial-gradient(140% 100% at 50% -10%, #15171b 0%, #0a0b0c 60%);z-index:1}
+  .si-top{position:absolute;top:150px;left:80px;right:80px;text-align:center;z-index:6}
+  .si-kick{margin-bottom:18px;display:flex;align-items:center;justify-content:center;gap:14px}
+  .si-kick .tmw-mark{width:38px;height:38px;font-size:16px;border-width:1.5px}
+  .si-head{font-family:var(--serif);font-size:50px;line-height:1.12;font-weight:600;letter-spacing:-.01em;color:#fff}
+  .si-head .hl{color:var(--green)}
+  .stage{position:absolute;left:70px;right:70px;bottom:90px;top:430px;border-radius:26px;border:1px solid var(--line);background:linear-gradient(180deg,#0f1013,#0b0c0e);overflow:hidden;z-index:5;box-shadow:0 30px 60px rgba(0,0,0,.5)}
+  .browser-bar{height:62px;display:flex;align-items:center;gap:10px;padding:0 26px;border-bottom:1px solid var(--line);background:rgba(255,255,255,.02)}
+  .dot{width:13px;height:13px;border-radius:50%}
+  .url{margin-left:14px;font-family:var(--mono);font-size:18px;color:var(--mute)}
+  .url b{color:#fff}
+
+  /* faux map */
+  .map{position:absolute;inset:62px 0 0 0;background:
+      linear-gradient(135deg,#0c1418 0%,#0a1013 100%);}
+  .map::before{content:"";position:absolute;inset:0;background-image:
+      linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);
+      background-size:70px 70px}
+  .water{position:absolute;right:0;top:0;bottom:0;width:34%;background:linear-gradient(90deg,#0a1013,#0e1a24);opacity:.8}
+  .mpin{position:absolute;width:22px;height:22px;border-radius:50%;background:var(--green);box-shadow:0 0 0 6px rgba(31,223,103,.18),0 4px 14px rgba(0,0,0,.5);border:2px solid #fff}
+  .mpin.p{background:var(--purple);box-shadow:0 0 0 6px rgba(167,139,250,.18),0 4px 14px rgba(0,0,0,.5)}
+  .mpin.g{background:var(--gold)}
+  .mpin.big{width:30px;height:30px}
+  .chips{position:absolute;left:26px;right:26px;top:88px;display:flex;gap:12px;flex-wrap:wrap}
+  .chip{font-family:var(--sans);font-size:18px;font-weight:600;padding:11px 20px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.05);color:#fff}
+  .chip.on{background:var(--green);color:#062012;border-color:transparent}
+
+  /* project profile card */
+  .pp{position:absolute;inset:62px 30px 30px;display:flex;flex-direction:column;gap:18px}
+  .pp-img{height:300px;border-radius:18px;background:radial-gradient(120% 100% at 70% 10%,#26405a,#0e1c28);position:relative;overflow:hidden;border:1px solid var(--line)}
+  .pp-img .ph{position:absolute;left:0;right:0;bottom:0;height:230px;background:linear-gradient(180deg,transparent,#0a1622)}
+  .pp-img .status{position:absolute;top:18px;left:18px;font-family:var(--mono);font-size:16px;letter-spacing:.08em;text-transform:uppercase;color:#062012;background:var(--green);padding:7px 14px;border-radius:999px;font-weight:800}
+  .pp-name{font-family:var(--serif);font-size:40px;font-weight:600;letter-spacing:-.01em}
+  .pp-loc{font-family:var(--mono);font-size:17px;color:var(--mute);letter-spacing:.06em;text-transform:uppercase;margin-top:4px}
+  .pp-specs{display:flex;gap:12px;flex-wrap:wrap;margin-top:6px}
+  .spec{flex:1;min-width:150px;border:1px solid var(--line);border-radius:14px;padding:16px 18px;background:rgba(255,255,255,.02)}
+  .spec .n{font-family:var(--serif);font-size:34px;font-weight:600}
+  .spec .l{font-family:var(--mono);font-size:14px;color:var(--mute);text-transform:uppercase;letter-spacing:.06em;margin-top:4px}
+
+  /* story-so-far timeline */
+  .dos{position:absolute;inset:62px 0 0 0;padding:34px 40px}
+  .dos-h{font-family:var(--mono);font-size:16px;letter-spacing:.12em;text-transform:uppercase;color:var(--purple-soft);margin-bottom:26px}
+  .dos-tl{position:relative;padding-left:8px}
+  .dos-tl::before{content:"";position:absolute;left:15px;top:8px;bottom:18px;width:2px;background:linear-gradient(180deg,var(--purple),rgba(167,139,250,.15))}
+  .dos-row{position:relative;padding:0 0 34px 56px}
+  .dos-dot{position:absolute;left:6px;top:4px;width:20px;height:20px;border-radius:50%;background:var(--purple);box-shadow:0 0 0 5px rgba(167,139,250,.18)}
+  .dos-dot.done{background:var(--green);box-shadow:0 0 0 5px rgba(31,223,103,.18)}
+  .dos-lbl{font-family:var(--sans);font-size:30px;font-weight:700;color:#fff}
+  .dos-meta{font-family:var(--mono);font-size:18px;color:var(--mute);margin-top:6px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .dos-meta .date{color:var(--purple-soft)}
+  .dos-meta .src{color:var(--green-soft)}
+
+  /* pulse feed */
+  .pulse{position:absolute;inset:62px 0 0 0;padding:26px 30px}
+  .pulse-h{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+  .pulse-h .ld{width:13px;height:13px;border-radius:50%;background:var(--green);box-shadow:0 0 0 0 rgba(31,223,103,.6);animation:lp 2s infinite}
+  @keyframes lp{0%{box-shadow:0 0 0 0 rgba(31,223,103,.6)}70%{box-shadow:0 0 0 14px rgba(31,223,103,0)}100%{box-shadow:0 0 0 0 rgba(31,223,103,0)}}
+  .pulse-h b{font-size:30px;font-weight:800}
+  .pulse-h span{font-family:var(--mono);font-size:16px;color:var(--mute)}
+  .prow{display:flex;gap:18px;padding:20px 6px;border-bottom:1px solid var(--line)}
+  .prow .pimg{width:78px;height:78px;border-radius:14px;flex:0 0 auto;background:linear-gradient(135deg,#26405a,#0e1c28)}
+  .prow .ptag{font-family:var(--mono);font-size:16px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--purple)}
+  .prow .ptitle{font-size:27px;font-weight:600;margin-top:5px;line-height:1.2}
+  .prow .pmeta{font-family:var(--mono);font-size:16px;color:var(--mute);margin-top:6px}
+  .prow .pmeta .src{color:var(--green-soft)}
+
+  /* CTA slide */
+  .cta-head{position:absolute;left:0;right:0;bottom:300px;text-align:center;z-index:6;padding:0 70px}
+  .cta-head h2{font-family:var(--serif);font-size:64px;font-weight:600;line-height:1.08;letter-spacing:-.01em}
+  .cta-btn{position:absolute;left:50%;transform:translateX(-50%);bottom:190px;z-index:6;background:var(--green);color:#062012;font-weight:800;font-size:30px;padding:24px 50px;border-radius:999px;font-family:var(--sans)}
+  .cta-url{position:absolute;left:0;right:0;bottom:120px;text-align:center;z-index:6;font-family:var(--mono);font-size:24px;letter-spacing:.1em;color:#fff}
+
+  .legend{max-width:1100px;margin:50px auto 0;border-top:1px solid var(--line);padding-top:24px}
+  .legend h3{font-family:var(--serif);font-size:20px;margin-bottom:12px}
+  .legend p{color:var(--mute);font-size:13px;line-height:1.6;margin-bottom:8px}
+  .legend code{font-family:var(--mono);color:var(--green);font-size:12px}
+</style>
+</head>
+<body>
+  <div class="doc-head">
+    <h1>The Map — carousel mockup</h1>
+    <p>Feature spotlight #1 · 7 slides · Instagram 4:5 (1080×1350) · built to the TMW carousel template<br>
+       Each frame is shown at 1/3 scale — open this file and screenshot any slide at full size, or swap the placeholder heroes for real renders.</p>
+    <div class="meta">FLORIDA OF TMW · no periods · commas only · slide 1 shortest</div>
+  </div>
+
+  <div class="grid">
+
+    <!-- SLIDE 1 — HERO -->
+    <div class="frame-wrap">
+      <div class="frame-num"><span>Slide 1 · hook</span><b>44 chars</b></div>
+      <div class="slide-clip"><div class="slide">
+        <div class="hero-bg"></div>
+        <svg class="skyline" viewBox="0 0 1080 560" preserveAspectRatio="none">
+          <g fill="#0b1620">
+            <rect x="40" y="230" width="120" height="330"/><rect x="180" y="150" width="90" height="410"/>
+            <rect x="290" y="280" width="70" height="280"/><rect x="380" y="90" width="110" height="470"/>
+            <rect x="510" y="200" width="80" height="360"/><rect x="610" y="60" width="130" height="500"/>
+            <rect x="760" y="190" width="95" height="370"/><rect x="875" y="120" width="120" height="440"/>
+          </g>
+          <g fill="rgba(31,223,103,.5)"><rect x="412" y="120" width="8" height="8"/><rect x="440" y="160" width="8" height="8"/><rect x="650" y="100" width="8" height="8"/><rect x="690" y="150" width="8" height="8"/><rect x="905" y="160" width="8" height="8"/></g>
+        </svg>
+        <div class="vignette"></div>
+        <div class="masthead"><span class="mh-line"></span><span class="mh-txt">Florida of TMW</span><span class="mh-line"></span></div>
+        <div class="s1-head"><h2>Every future development in Florida, one map</h2></div>
+        <div class="s1-pin"><span class="pin"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>The Palm Beaches</span></div>
+      </div></div>
+      <div class="cap"><b>Visual:</b> full-bleed skyline render (swap for a real WPB/Miami hero) · masthead top · headline + city pin lower-left</div>
+    </div>
+
+    <!-- SLIDE 2 — differentiator -->
+    <div class="frame-wrap">
+      <div class="frame-num"><span>Slide 2 · the platform</span><b>~134</b></div>
+      <div class="slide-clip"><div class="slide">
+        <div class="si"></div>
+        <div class="si-top">
+          <div class="si-kick"><span class="tmw-mark">T</span><span class="kicker">Markets of Tomorrow</span></div>
+          <div class="si-head">Markets of Tomorrow tracks <span class="hl">380+ future developments</span> across Florida and beyond, every tower, hotel, stadium, and new neighborhood</div>
+        </div>
+        <div class="stage">
+          <div class="browser-bar"><span class="dot" style="background:#ff5f57"></span><span class="dot" style="background:#febc2e"></span><span class="dot" style="background:#28c840"></span><span class="url">map.<b>oftmw.com</b></span></div>
+          <div class="map">
+            <div class="water"></div>
+            <div class="mpin big" style="left:18%;top:30%"></div><div class="mpin p" style="left:33%;top:52%"></div>
+            <div class="mpin" style="left:26%;top:68%"></div><div class="mpin g" style="left:46%;top:38%"></div>
+            <div class="mpin p" style="left:40%;top:74%"></div><div class="mpin" style="left:55%;top:60%"></div>
+            <div class="mpin" style="left:60%;top:28%"></div><div class="mpin p big" style="left:50%;top:50%"></div>
+            <div class="mpin g" style="left:30%;top:40%"></div><div class="mpin" style="left:22%;top:55%"></div>
+          </div>
+        </div>
+      </div></div>
+      <div class="cap"><b>Visual:</b> the live map, green/purple pins scattered across the metro</div>
+    </div>
+
+    <!-- SLIDE 3 — filter -->
+    <div class="frame-wrap">
+      <div class="frame-num"><span>Slide 3 · filter</span><b>~120</b></div>
+      <div class="slide-clip"><div class="slide">
+        <div class="si"></div>
+        <div class="si-top">
+          <div class="si-kick"><span class="tmw-mark">T</span><span class="kicker">Markets of Tomorrow</span></div>
+          <div class="si-head">Filter by city, status, or type, and watch the next wave of what Florida is building appear <span class="hl">pin by pin</span></div>
+        </div>
+        <div class="stage">
+          <div class="browser-bar"><span class="dot" style="background:#ff5f57"></span><span class="dot" style="background:#febc2e"></span><span class="dot" style="background:#28c840"></span><span class="url">map.<b>oftmw.com</b></span></div>
+          <div class="map">
+            <div class="water"></div>
+            <div class="chips"><span class="chip on">Miami</span><span class="chip on">Towers</span><span class="chip">Hotels</span><span class="chip">Under construction</span></div>
+            <div class="mpin big" style="left:20%;top:55%"></div><div class="mpin" style="left:34%;top:48%"></div>
+            <div class="mpin" style="left:44%;top:64%"></div><div class="mpin" style="left:55%;top:52%"></div>
+            <div class="mpin" style="left:28%;top:72%"></div><div class="mpin" style="left:48%;top:78%"></div>
+          </div>
+        </div>
+      </div></div>
+      <div class="cap"><b>Visual:</b> filter chips active (Miami · Towers) narrowing the pins</div>
+    </div>
+
+    <!-- SLIDE 4 — project profile -->
+    <div class="frame-wrap">
+      <div class="frame-num"><span>Slide 4 · project profile</span><b>~128</b></div>
+      <div class="slide-clip"><div class="slide">
+        <div class="si"></div>
+        <div class="si-top">
+          <div class="si-kick"><span class="tmw-mark">T</span><span class="kicker">Markets of Tomorrow</span></div>
+          <div class="si-head">Tap any project to open the full profile, the renderings, the specs, the team, and <span class="hl">where it stands right now</span></div>
+        </div>
+        <div class="stage">
+          <div class="browser-bar"><span class="dot" style="background:#ff5f57"></span><span class="dot" style="background:#febc2e"></span><span class="dot" style="background:#28c840"></span><span class="url">oftmw.com/<b>south-flagler-house</b></span></div>
+          <div class="pp">
+            <div class="pp-img"><div class="ph"></div><span class="status">Under construction</span></div>
+            <div>
+              <div class="pp-name">South Flagler House</div>
+              <div class="pp-loc">◉ West Palm Beach · Robert A M Stern</div>
+            </div>
+            <div class="pp-specs">
+              <div class="spec"><div class="n">28</div><div class="l">Stories</div></div>
+              <div class="spec"><div class="n">108</div><div class="l">Residences</div></div>
+              <div class="spec"><div class="n">2</div><div class="l">Towers</div></div>
+            </div>
+          </div>
+        </div>
+      </div></div>
+      <div class="cap"><b>Visual:</b> a real project page — hero render, status pill, spec tiles</div>
+    </div>
+
+    <!-- SLIDE 5 — live (pulse) -->
+    <div class="frame-wrap">
+      <div class="frame-num"><span>Slide 5 · live</span><b>~126</b></div>
+      <div class="slide-clip"><div class="slide">
+        <div class="si"></div>
+        <div class="si-top">
+          <div class="si-kick"><span class="tmw-mark">T</span><span class="kicker">Markets of Tomorrow</span></div>
+          <div class="si-head">Our routines sweep the news every week, so the map you open is the <span class="hl">most current picture</span> of the pipeline anywhere</div>
+        </div>
+        <div class="stage">
+          <div class="browser-bar"><span class="dot" style="background:#ff5f57"></span><span class="dot" style="background:#febc2e"></span><span class="dot" style="background:#28c840"></span><span class="url">oftmw.com/<b>map</b> · Pulse</span></div>
+          <div class="pulse">
+            <div class="pulse-h"><span class="ld"></span><b>Pulse</b><span>latest across the network</span></div>
+            <div class="prow"><div class="pimg"></div><div><div class="ptag">Financing secured</div><div class="ptitle">15 CityPlace</div><div class="pmeta">Dec 2025 · West Palm Beach · <span class="src">oftmw.com ↗</span></div></div></div>
+            <div class="prow"><div class="pimg"></div><div><div class="ptag">Topped out</div><div class="ptitle">The Perigon Miami Beach</div><div class="pmeta">Mar 2026 · Miami Beach · <span class="src">floridayimby ↗</span></div></div></div>
+            <div class="prow"><div class="pimg"></div><div><div class="ptag">Halfway there</div><div class="ptitle">Waldorf Astoria Residences</div><div class="pmeta">Dec 2025 · Miami · <span class="src">floridayimby ↗</span></div></div></div>
+          </div>
+        </div>
+      </div></div>
+      <div class="cap"><b>Visual:</b> the live Pulse feed — purple milestone rows, real dates + sources</div>
+    </div>
+
+    <!-- SLIDE 6 — scope -->
+    <div class="frame-wrap">
+      <div class="frame-num"><span>Slide 6 · scope</span><b>~108</b></div>
+      <div class="slide-clip"><div class="slide">
+        <div class="si"></div>
+        <div class="si-top">
+          <div class="si-kick"><span class="tmw-mark">T</span><span class="kicker">Markets of Tomorrow</span></div>
+          <div class="si-head">From West Palm Beach towers to Miami supertalls to Tampa districts, the <span class="hl">whole future</span> lives in one place</div>
+        </div>
+        <div class="stage">
+          <div class="browser-bar"><span class="dot" style="background:#ff5f57"></span><span class="dot" style="background:#febc2e"></span><span class="dot" style="background:#28c840"></span><span class="url">map.<b>oftmw.com</b></span></div>
+          <div class="map">
+            <div class="water"></div>
+            <div class="mpin" style="left:14%;top:22%"></div><div class="mpin p" style="left:24%;top:30%"></div><div class="mpin" style="left:18%;top:44%"></div>
+            <div class="mpin g" style="left:30%;top:38%"></div><div class="mpin" style="left:40%;top:30%"></div><div class="mpin p" style="left:36%;top:52%"></div>
+            <div class="mpin" style="left:26%;top:60%"></div><div class="mpin big" style="left:46%;top:66%"></div><div class="mpin" style="left:55%;top:46%"></div>
+            <div class="mpin g" style="left:50%;top:34%"></div><div class="mpin p" style="left:60%;top:60%"></div><div class="mpin" style="left:33%;top:72%"></div>
+            <div class="mpin" style="left:20%;top:68%"></div><div class="mpin" style="left:44%;top:42%"></div><div class="mpin p big" style="left:38%;top:24%"></div>
+          </div>
+        </div>
+      </div></div>
+      <div class="cap"><b>Visual:</b> zoomed-out map, dense pins statewide</div>
+    </div>
+
+    <!-- SLIDE 7 — CTA -->
+    <div class="frame-wrap">
+      <div class="frame-num"><span>Slide 7 · CTA</span><b>48 chars</b></div>
+      <div class="slide-clip"><div class="slide">
+        <div class="hero-bg" style="background:radial-gradient(120% 90% at 50% 0%, #143025 0%, #0a1410 55%, #07090a 100%)"></div>
+        <div class="map" style="inset:0;opacity:.5"><div class="water"></div>
+          <div class="mpin" style="left:18%;top:30%"></div><div class="mpin p" style="left:33%;top:52%"></div><div class="mpin g" style="left:46%;top:38%"></div><div class="mpin" style="left:60%;top:28%"></div><div class="mpin p big" style="left:50%;top:60%"></div><div class="mpin" style="left:26%;top:68%"></div></div>
+        <div class="vignette" style="background:linear-gradient(180deg,rgba(0,0,0,.6),rgba(0,0,0,.2) 40%,rgba(0,0,0,.9))"></div>
+        <div class="masthead"><span class="mh-line"></span><span class="mh-txt">Florida of TMW</span><span class="mh-line"></span></div>
+        <div class="cta-head"><h2>Explore the Map of Tomorrow</h2></div>
+        <div class="cta-btn">Link in our bio</div>
+        <div class="cta-url">oftmw.com</div>
+      </div></div>
+      <div class="cap"><b>Visual:</b> full-bleed map, the single clear call to action</div>
+    </div>
+
+  </div>
+
+  <div class="legend">
+    <h3>Caption (paste with the carousel)</h3>
+    <p>You have seen the renderings, now see the whole map, Markets of Tomorrow tracks more than 380 future developments across Florida and beyond, each one plotted, sourced, and updated as it rises from announcement to opening</p>
+    <p>Filter by city, status, or project type and the next towers, hotels, stadiums, and master-planned neighborhoods appear in front of you, tap any pin and the full story opens, renderings, specs, the developer and architect, and exactly where construction stands today</p>
+    <p>This is the platform behind every post you save, built for the people moving to Florida, investing in it, and building it</p>
+    <p><b style="color:#fff">Explore the Map of Tomorrow — the link is in our bio</b></p>
+    <h3 style="margin-top:26px">Production notes</h3>
+    <p>· Slides 1 &amp; 7 use placeholder skyline/map art — drop in a real hero render (slide 1) and a live map screenshot (slide 7).</p>
+    <p>· Slides 2–6 recreate the actual product UI (map + pins, project page, Pulse feed) — these can be real screenshots or kept as these clean mocks.</p>
+    <p>· Type: <code>Georgia</code> display serif for headlines, mono for kickers/labels, accent <code>#1FDF67</code> green + <code>#A78BFA</code> milestone purple — matches the site.</p>
+    <p>· Export each <code>.slide</code> at 1080×1350 (set transform:scale(1) and screenshot, or render to PNG).</p>
+  </div>
+</body>
+</html>

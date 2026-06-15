@@ -31,6 +31,7 @@ Usage:
 """
 
 import collections
+import datetime
 import html
 import json
 import os
@@ -776,7 +777,20 @@ def render_page(firm, firm_projects, stats, coverage_items):
     }
     if firm.get('founded'): org_payload['foundingDate'] = str(firm['founded'])
     if firm.get('hq'):       org_payload['address']     = {'@type': 'PostalAddress', 'addressLocality': firm['hq']}
-    org_jsonld = f'<script type="application/ld+json">{json.dumps(org_payload, ensure_ascii=False)}</script>'
+    # Add a CollectionPage wrapper too so the firm page surfaces dateModified
+    # for Google's freshness scoring.
+    page_payload = {
+        '@context': 'https://schema.org',
+        '@type':    'CollectionPage',
+        'name':     f'{title} — {stats["total"]} Projects',
+        'url':      canonical,
+        'dateModified': datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%d'),
+        'about':    org_payload,
+    }
+    org_jsonld = (
+        f'<script type="application/ld+json">{json.dumps(org_payload, ensure_ascii=False)}</script>'
+        f'<script type="application/ld+json">{json.dumps(page_payload, ensure_ascii=False)}</script>'
+    )
 
     # Page-specific FAQs — 10-12 items per firm covering every typical
     # search-intent pattern: "what does X build", "where does X build",
@@ -906,7 +920,7 @@ def render_page(firm, firm_projects, stats, coverage_items):
     </nav>
 
     <section class="hero">
-      <div class="hero-eyebrow">{e(role_eyebrow)} · {stats['total']} project{'s' if stats['total'] != 1 else ''} tracked</div>
+      <div class="hero-eyebrow">{e(role_eyebrow)} · {stats['total']} project{'s' if stats['total'] != 1 else ''} tracked · <time datetime="{datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%d')}">Updated {datetime.datetime.now(datetime.timezone.utc).strftime('%B %-d, %Y')}</time></div>
       <h1>{e(title)}</h1>
       {meta_pills_html}
       <p class="sub">{intro} Active in <b>{len(stats["markets"])} market{"s" if len(stats["markets"]) != 1 else ""}</b>. Every project below links to a live status page with milestones, renderings, and our <a href="{MARKET_ROOT_URL}/journal/">journal coverage</a>.</p>
