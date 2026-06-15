@@ -2446,7 +2446,18 @@ def main():
             if st: by_state[st].append(p)
         for state_code, bucket in by_state.items():
             if len(bucket) < STATE_MIN: continue
-            state_label = _STATE_FULL.get(state_code, state_code)
+            # Skip ISO 3166-2 international subdivision codes ("SA-07",
+            # "GB-ENG", "AE-DU", "BS-BI", "CN-SH", etc.). The dominant
+            # cities in those regions (London, Dubai, Saudi Arabia,
+            # Bahamas, Shanghai) already have their own /markets/<city>/
+            # pages with the right SEO framing — a state rollup at this
+            # level would just compete with the existing city page
+            # without adding new ranking signal. US states (FL, NY,
+            # TN, etc.) get rollups because they aggregate many distinct
+            # well-known cities under one famous state name.
+            if '-' in state_code or state_code not in _STATE_FULL:
+                continue
+            state_label = _STATE_FULL[state_code]
             state_slug  = slugify(state_label)
             bucket_sorted = sort_projects(bucket)
             html_out = render_state_page(
