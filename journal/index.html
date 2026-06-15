@@ -573,7 +573,7 @@ section.grid-section{padding:60px 0 90px; position:relative}
 /* =================================================================== */
 /* BROWSE BY MARKET — sibling of Featured Lists                         */
 /* =================================================================== */
-.mkt-section{padding:30px 0 90px; background:var(--ink); position:relative; overflow:hidden}
+.mkt-section{padding:92px 0 90px; background:var(--ink); position:relative; overflow:hidden}
 .mkt-section::before{content:""; position:absolute; top:0; left:-10%; width:600px; height:600px; background:radial-gradient(closest-side, rgba(167,139,250,.05), transparent 70%); pointer-events:none}
 .mkt-wrap{position:relative; max-width:1320px; margin:0 auto; padding:0 28px}
 .mkt-head{display:flex; align-items:flex-end; justify-content:space-between; gap:24px; margin-bottom:28px; flex-wrap:wrap}
@@ -607,15 +607,17 @@ section.grid-section{padding:60px 0 90px; position:relative}
 .mkt-tile:hover .mkt-tile-img{transform:scale(1.04)}
 .mkt-tile-veil{position:absolute; inset:0; background:linear-gradient(180deg, rgba(7,8,7,.05) 0%, rgba(7,8,7,.5) 55%, rgba(7,8,7,.94) 100%); pointer-events:none}
 .mkt-tile-body{position:absolute; inset:auto 0 0 0; z-index:2; padding:18px 18px 16px; color:var(--white)}
-.mkt-tile-name{font-family:var(--serif); font-weight:600; font-size:22px; letter-spacing:-.015em; line-height:1.1; color:var(--white); margin:0 0 4px; text-wrap:balance}
-.mkt-tile-sub{font-family:var(--sans); font-size:12.5px; color:var(--mute-2); margin-bottom:10px; font-weight:400}
-.mkt-tile-count{display:inline-flex; align-items:center; gap:6px; font-family:var(--sans); font-size:11.5px; font-weight:600; padding:5px 10px; background:rgba(167,139,250,.16); color:var(--purple-glow); border:1px solid rgba(167,139,250,.4); border-radius:999px; backdrop-filter:blur(6px); transition:background .15s, border-color .15s}
-.mkt-tile:hover .mkt-tile-count{background:rgba(167,139,250,.26); border-color:var(--purple-bright)}
+.mkt-tile-top{display:flex; align-items:baseline; justify-content:space-between; gap:10px; margin-bottom:4px}
+.mkt-tile-name{font-family:var(--serif); font-weight:600; font-size:22px; letter-spacing:-.015em; line-height:1.1; color:var(--white); margin:0; min-width:0; text-wrap:balance}
+.mkt-tile-sub{font-family:var(--sans); font-size:12.5px; color:var(--mute-2); margin:0; font-weight:400}
+/* Count: plain purple text on the name line, right-aligned — no pill. */
+.mkt-tile-count{flex:0 0 auto; align-self:baseline; display:inline-flex; align-items:center; gap:4px; font-family:var(--sans); font-size:12px; font-weight:600; color:var(--purple-glow); white-space:nowrap; transition:color .15s}
+.mkt-tile:hover .mkt-tile-count{color:var(--purple-bright)}
 
 @media(max-width:480px){
   .mkt-tile-name{font-size:19px}
-  .mkt-tile-sub{font-size:11.5px; margin-bottom:8px}
-  .mkt-tile-count{font-size:11px; padding:4px 9px}
+  .mkt-tile-sub{font-size:11.5px}
+  .mkt-tile-count{font-size:11px}
   .mkt-tile-body{padding:14px 14px 12px}
 }
 
@@ -1728,9 +1730,11 @@ function marketTileHtml(m) {
     ${m.image ? `<div class="mkt-tile-img" style="background-image:url('${escapeAttr(m.image)}')"></div>` : ''}
     <div class="mkt-tile-veil"></div>
     <div class="mkt-tile-body">
-      <h3 class="mkt-tile-name">${escapeHtml(m.location || m.title)}</h3>
+      <div class="mkt-tile-top">
+        <h3 class="mkt-tile-name">${escapeHtml(m.location || m.title)}</h3>
+        ${count ? `<span class="mkt-tile-count">${count} projects →</span>` : ''}
+      </div>
       ${m.region ? `<div class="mkt-tile-sub">${escapeHtml(m.region)}</div>` : ''}
-      ${count ? `<span class="mkt-tile-count">${count} projects →</span>` : ''}
     </div>
   </a>`;
 }
