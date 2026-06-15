@@ -8,9 +8,9 @@
     "opening_this_year": 76
   },
   "scale": {
-    "units": 183539,
-    "keys": 29887,
-    "floors": 7313
+    "units": 194941,
+    "keys": 30185,
+    "floors": 7390
   },
   "leaderboards": {
     "developers": [
@@ -45,7 +45,7 @@
       {
         "name": "Naftali Group",
         "slug": "naftali-group",
-        "sub": "New York",
+        "sub": "New York City",
         "count": 8,
         "states": [
           "NY",
@@ -395,7 +395,7 @@
       {
         "name": "Robert A.M. Stern Architects",
         "slug": "robert-am-stern-architects",
-        "sub": "New York",
+        "sub": "New York City",
         "count": 8,
         "states": [
           "FL",
@@ -618,6 +618,14 @@
         ]
       },
       {
+        "name": "New York City",
+        "sub": "23 developments \u00b7 33 developers",
+        "count": 23,
+        "states": [
+          "NY"
+        ]
+      },
+      {
         "name": "Nashville",
         "sub": "19 developments \u00b7 24 developers",
         "count": 19,
@@ -647,22 +655,6 @@
         "count": 13,
         "states": [
           "FL"
-        ]
-      },
-      {
-        "name": "New York City",
-        "sub": "13 developments \u00b7 23 developers",
-        "count": 13,
-        "states": [
-          "NY"
-        ]
-      },
-      {
-        "name": "New York",
-        "sub": "10 developments \u00b7 10 developers",
-        "count": 10,
-        "states": [
-          "NY"
         ]
       },
       {
@@ -839,6 +831,14 @@
         "count": 3,
         "states": [
           "UK"
+        ]
+      },
+      {
+        "name": "Singapore",
+        "sub": "3 developments \u00b7 4 developers",
+        "count": 3,
+        "states": [
+          "Other"
         ]
       }
     ],
@@ -1452,7 +1452,7 @@
         {
           "name": "Robert A.M. Stern Architects",
           "slug": "robert-am-stern-architects",
-          "sub": "New York",
+          "sub": "New York City",
           "count": 4,
           "states": [
             "FL",
@@ -2018,7 +2018,7 @@
         {
           "name": "Naftali Group",
           "slug": "naftali-group",
-          "sub": "New York",
+          "sub": "New York City",
           "count": 6,
           "states": [
             "NY",
@@ -2073,7 +2073,7 @@
         {
           "name": "SL Green",
           "slug": "sl-green",
-          "sub": "New York",
+          "sub": "New York City",
           "count": 1,
           "states": [
             "NY"
@@ -2082,7 +2082,7 @@
         {
           "name": "Mori Building",
           "slug": "mori-building",
-          "sub": "New York",
+          "sub": "New York City",
           "count": 1,
           "states": [
             "NY"
@@ -2209,7 +2209,7 @@
         {
           "name": "The Peebles Corporation",
           "slug": "the-peebles-corporation",
-          "sub": "New York",
+          "sub": "New York City",
           "count": 1,
           "states": [
             "NY"
@@ -2228,7 +2228,7 @@
         {
           "name": "McKissack & McKissack",
           "slug": "mckissack-mckissack",
-          "sub": "New York",
+          "sub": "New York City",
           "count": 1,
           "states": [
             "NY"
@@ -2237,7 +2237,7 @@
         {
           "name": "Exact Capital Group",
           "slug": "exact-capital-group",
-          "sub": "New York",
+          "sub": "New York City",
           "count": 1,
           "states": [
             "NY"
@@ -2274,7 +2274,7 @@
         {
           "name": "Rockefeller Group",
           "slug": "rockefeller-group",
-          "sub": "New York",
+          "sub": "New York City",
           "count": 1,
           "states": [
             "NY"
@@ -2283,7 +2283,7 @@
         {
           "name": "BJGH",
           "slug": "bjgh",
-          "sub": "New York",
+          "sub": "New York City",
           "count": 1,
           "states": [
             "NY"
@@ -2294,7 +2294,7 @@
         {
           "name": "Robert A.M. Stern Architects",
           "slug": "robert-am-stern-architects",
-          "sub": "New York",
+          "sub": "New York City",
           "count": 4,
           "states": [
             "FL",
@@ -2329,7 +2329,7 @@
         {
           "name": "Hill West Architects",
           "slug": "hill-west-architects",
-          "sub": "New York",
+          "sub": "New York City",
           "count": 2,
           "states": [
             "NY"
@@ -2338,7 +2338,7 @@
         {
           "name": "KPF",
           "slug": "kpf",
-          "sub": "New York",
+          "sub": "New York City",
           "count": 1,
           "states": [
             "NY",
@@ -2482,7 +2482,7 @@
         {
           "name": "Peter Pennoyer Architects",
           "slug": "peter-pennoyer-architects",
-          "sub": "New York",
+          "sub": "New York City",
           "count": 1,
           "states": [
             "NY"
@@ -2491,7 +2491,7 @@
         {
           "name": "COOKFOX Architects",
           "slug": "cookfox-architects",
-          "sub": "New York",
+          "sub": "New York City",
           "count": 1,
           "states": [
             "NY"
@@ -2500,7 +2500,7 @@
         {
           "name": "Rockwell Group",
           "slug": "rockwell-group",
-          "sub": "New York",
+          "sub": "New York City",
           "count": 1,
           "states": [
             "NY"
@@ -2509,7 +2509,7 @@
         {
           "name": "SLCE Architects",
           "slug": "slce-architects",
-          "sub": "New York",
+          "sub": "New York City",
           "count": 1,
           "states": [
             "NY"
@@ -2519,16 +2519,8 @@
       "cities": [
         {
           "name": "New York City",
-          "sub": "13 developments \u00b7 23 developers",
-          "count": 13,
-          "states": [
-            "NY"
-          ]
-        },
-        {
-          "name": "New York",
-          "sub": "10 developments \u00b7 10 developers",
-          "count": 10,
+          "sub": "23 developments \u00b7 33 developers",
+          "count": 23,
           "states": [
             "NY"
           ]
@@ -3602,7 +3594,7 @@
         {
           "name": "KPF",
           "slug": "kpf",
-          "sub": "New York",
+          "sub": "New York City",
           "count": 1,
           "states": [
             "NY",
@@ -4509,8 +4501,8 @@
         "under_construction": 0
       },
       "scale": {
-        "units": 410,
-        "keys": 408,
+        "units": 412,
+        "keys": 406,
         "floors": 63
       },
       "status_distribution": [
@@ -4604,7 +4596,7 @@
         "under_construction": 2
       },
       "scale": {
-        "units": 0,
+        "units": 6700,
         "keys": 0,
         "floors": 0
       },
@@ -4865,7 +4857,7 @@
     "Miami": "FL",
     "Riviera Nayarit": "Other",
     "Palm Beach Gardens": "FL",
-    "New York": "NY",
+    "New York City": "NY",
     "Aventura": "FL",
     "Boynton Beach": "FL",
     "Daytona Beach Shores": "Other",
@@ -4902,7 +4894,6 @@
     "Bonita Springs": "FL",
     "Sunny Isles Beach": "FL",
     "Florida Keys": "Other",
-    "New York City": "NY",
     "South Carolina": "Other",
     "Central Florida": "Other",
     "Hobe Sound": "FL",
@@ -5049,7 +5040,7 @@
     {
       "month": "Jan",
       "year": 2026,
-      "count": 5
+      "count": 6
     },
     {
       "month": "Feb",
@@ -5147,6 +5138,48 @@
     }
   ],
   "recent_activity": [
+    {
+      "id": "ms-shenzhen-bay-super-headquarters-base-tenant-2026-06-15",
+      "type": "status_change",
+      "tag": "Tenant announced",
+      "title": "Shenzhen Bay Super Headquarters Base  Tenant announced",
+      "project_slug": "shenzhen-bay-super-headquarters-base",
+      "project_title": "Shenzhen Bay Super Headquarters Base",
+      "city": "Shenzhen",
+      "image": "https://arqa.com/wp-content/uploads/2021/08/01_zha_-shenzhen-tower-c_render-by-brick-visual.jpg",
+      "event_date": "2026-02",
+      "source_url": "https://www.szns.gov.cn/english/news/content/post_11263465.html",
+      "link": "https://www.oftmw.com/map/?project=shenzhenbaysuperheadquartersbase",
+      "timestamp": "2026-06-15T18:07:06.349Z"
+    },
+    {
+      "id": "ms-shenzhen-bay-super-headquarters-base-topping-out-2026-06-15",
+      "type": "status_change",
+      "tag": "Topped out",
+      "title": "Shenzhen Bay Super Headquarters Base  Topped out",
+      "project_slug": "shenzhen-bay-super-headquarters-base",
+      "project_title": "Shenzhen Bay Super Headquarters Base",
+      "city": "Shenzhen",
+      "image": "https://arqa.com/wp-content/uploads/2021/08/01_zha_-shenzhen-tower-c_render-by-brick-visual.jpg",
+      "event_date": "2025-12-19",
+      "source_url": "https://www.szns.gov.cn/english/news/content/post_11263465.html",
+      "link": "https://www.oftmw.com/map/?project=shenzhenbaysuperheadquartersbase",
+      "timestamp": "2026-06-15T18:06:51.996Z"
+    },
+    {
+      "id": "ms-madrid-nuevo-norte-bbva-tower-towers-financing-2026-06-15",
+      "type": "status_change",
+      "tag": "Financing secured",
+      "title": "Madrid Nuevo Norte \u2013 BBVA Tower & Towers  Financing secured",
+      "project_slug": "madrid-nuevo-norte-bbva-tower-towers",
+      "project_title": "Madrid Nuevo Norte \u2013 BBVA Tower & Towers",
+      "city": "Madrid",
+      "image": "https://www.bbva.com/wp-content/uploads/2018/07/Imagen-2.jpg",
+      "event_date": "2026-01",
+      "source_url": "https://www.idealista.com/news/inmobiliario/construccion/2026/01/14/879619-bbva-inyecta-50-millones-en-madrid-nuevo-norte-para-el-inicio-de-las-obras",
+      "link": "https://www.oftmw.com/map/?project=madridnuevonortebbvatowertowers",
+      "timestamp": "2026-06-15T18:06:32.928Z"
+    },
     {
       "id": "track-miramar-cove",
       "type": "tracking",
@@ -5514,44 +5547,6 @@
       "source_url": "https://www.businessobserverfl.com/news/2026/may/14/sarasota-apartment-construction-loan/",
       "link": "https://www.oftmw.com/map/?project=baysidenorth",
       "timestamp": "2026-06-10T12:22:09.039Z"
-    },
-    {
-      "id": "track-group-20260610T0204-4",
-      "type": "tracking",
-      "tag": "Tracking",
-      "title": "Now tracking 4 new projects",
-      "city": "Hilton Miami Airport Blue Lagoon Expansion, PORT 32 Palm Beach Gardens, Sweetens Cove Golf Club +1 more",
-      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/0c6af632f5f2-Screenshot-2026-06-07-at-10.29.04-PM.png",
-      "link": "https://www.oftmw.com/map/",
-      "timestamp": "2026-06-10T02:04:47.514394+00:00"
-    },
-    {
-      "id": "ms-ponce-park-financing-2026-06-09",
-      "type": "status_change",
-      "tag": "Financing secured",
-      "title": "Ponce Park  Financing secured",
-      "project_slug": "ponce-park",
-      "project_title": "Ponce Park",
-      "city": "Coral Gables",
-      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_2c6ddceba4764694a7cee3d77509282d~mv2.jpg",
-      "event_date": "2026-01",
-      "source_url": "https://floridayimby.com/2026/01/allen-morris-co-secures-132-5-million-construction-loan-from-bank-ozk-for-ponce-park-in-coral-gables.html",
-      "link": "https://www.oftmw.com/map/?project=poncepark",
-      "timestamp": "2026-06-09T17:55:17.710Z"
-    },
-    {
-      "id": "ms-glass-house-boca-raton-financing-2026-06-09",
-      "type": "status_change",
-      "tag": "Financing secured",
-      "title": "Glass House Boca Raton  Financing secured",
-      "project_slug": "glass-house-boca-raton",
-      "project_title": "Glass House Boca Raton",
-      "city": "Boca Raton",
-      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_1025440baf3a4b419916709139c39963~mv2.webp",
-      "event_date": "2026-03",
-      "source_url": "https://floridayimby.com/2026/03/developer-secures-financing-for-vertical-construction-of-glass-house-boca-raton-at-280-e-palmetto-park-road-boca-raton-florida.html",
-      "link": "https://www.oftmw.com/map/?project=glasshousebocaraton",
-      "timestamp": "2026-06-09T17:55:14.536Z"
     }
   ],
   "most_covered": [

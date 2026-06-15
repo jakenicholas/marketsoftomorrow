@@ -733,7 +733,7 @@
         {
           "name": "200 East 83rd",
           "slug": "200-east-83rd",
-          "location": "New York",
+          "location": "New York City",
           "years": 4.0,
           "score": 0.64,
           "distance_km": 1762.2,
@@ -940,7 +940,7 @@
         {
           "name": "The Henry",
           "slug": "the-henry",
-          "location": "New York",
+          "location": "New York City",
           "years": 3.0,
           "score": 0.64,
           "distance_km": 1657.2,
@@ -2376,7 +2376,7 @@
         {
           "name": "200 East 83rd",
           "slug": "200-east-83rd",
-          "location": "New York",
+          "location": "New York City",
           "years": 4.0,
           "score": 0.34,
           "distance_km": 1762.0,
@@ -3071,7 +3071,7 @@
         {
           "name": "200 East 83rd",
           "slug": "200-east-83rd",
-          "location": "New York",
+          "location": "New York City",
           "years": 4.0,
           "score": 0.64,
           "distance_km": 1700.9,
@@ -6059,7 +6059,7 @@
         {
           "name": "The Bellemont",
           "slug": "the-bellemont",
-          "location": "New York",
+          "location": "New York City",
           "years": 2.0,
           "score": 0.64,
           "distance_km": 1671.7,
@@ -6068,7 +6068,7 @@
         {
           "name": "The Benson",
           "slug": "the-benson",
-          "location": "New York",
+          "location": "New York City",
           "years": 3.0,
           "score": 0.64,
           "distance_km": 1671.3,
@@ -6397,7 +6397,7 @@
         {
           "name": "200 East 83rd",
           "slug": "200-east-83rd",
-          "location": "New York",
+          "location": "New York City",
           "years": 4.0,
           "score": 0.55,
           "distance_km": 4.7,
@@ -6406,7 +6406,7 @@
         {
           "name": "The Benson",
           "slug": "the-benson",
-          "location": "New York",
+          "location": "New York City",
           "years": 3.0,
           "score": 0.4,
           "distance_km": 4.2,
@@ -6415,7 +6415,7 @@
         {
           "name": "The Henry",
           "slug": "the-henry",
-          "location": "New York",
+          "location": "New York City",
           "years": 3.0,
           "score": 0.4,
           "distance_km": 4.6,
@@ -6479,6 +6479,50 @@
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false
+    },
+    "madrid-nuevo-norte-bbva-tower-towers": {
+      "estimate_years": 3.6,
+      "estimate_label": "~3.6 years",
+      "range_low": 3.1,
+      "range_high": 4.0,
+      "confidence": "low",
+      "comparable_count": 2,
+      "good_count": 0,
+      "exact_count": 0,
+      "used_relaxed": true,
+      "avg_match_score": 0.34,
+      "avg_distance_km": 6462.7,
+      "avg_distance_mi": 4015.7,
+      "scale_used": true,
+      "firm_signal": null,
+      "source": "comparables",
+      "project_type": "Residences",
+      "metro": "Other",
+      "comparables": [
+        {
+          "name": "The Residence at 400 Central",
+          "slug": "the-residence-at-400-central",
+          "location": "St. Petersburg",
+          "years": 3.1,
+          "score": 0.34,
+          "distance_km": 7165.5,
+          "distance_mi": 4452.5
+        },
+        {
+          "name": "200 East 83rd",
+          "slug": "200-east-83rd",
+          "location": "New York City",
+          "years": 4.0,
+          "score": 0.34,
+          "distance_km": 5759.8,
+          "distance_mi": 3579.0
+        }
+      ],
+      "pattern_summary": "Among 2 residences projects in TMW's data, the median build time is 3.6 years (range 3.1–4).",
+      "dates_speculative": false,
+      "start_speculative": false,
+      "delivery_speculative": false,
+      "is_mixed_use": false
     },
     "amaala": {
       "estimate_years": 11.0,
@@ -6648,7 +6692,7 @@
         {
           "name": "The Benson",
           "slug": "the-benson",
-          "location": "New York",
+          "location": "New York City",
           "years": 3.0,
           "score": 0.49,
           "distance_km": 9139.5,
@@ -8752,7 +8796,7 @@
         {
           "name": "The Bellemont",
           "slug": "the-bellemont",
-          "location": "New York",
+          "location": "New York City",
           "years": 2.0,
           "score": 0.49,
           "distance_km": 1779.2,
@@ -8804,10 +8848,10 @@
   "stats": {
     "high": 1,
     "medium": 18,
-    "low": 31,
+    "low": 32,
     "known_date": 295,
     "completed": 57,
-    "skipped": 50,
+    "skipped": 49,
     "no_type": 0,
     "firm_boosted": 35,
     "speculative_softened": 74,
