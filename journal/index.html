@@ -1604,15 +1604,47 @@ updateMapCounter();
 
 async function loadFeaturedLists() {
   try {
-    const res = await fetch('./featured-lists.json', { cache: 'no-store' });
-    if (!res.ok) throw new Error('featured-lists ' + res.status);
-    const data = await res.json();
+    // Pull both feeds in parallel:
+    //   featured-lists.json      → hand-curated journal lists (the source of truth)
+    //   featured-markets.json    → auto-generated city market hubs from
+    //                              generate_market_pages.py (top cities by
+    //                              project count, with the city's most
+    //                              prominent project rendering as the cover)
+    // featured-markets is best-effort: if it 404s or fails to parse we just
+    // render the curated list as before.
+    const [curRes, mktRes] = await Promise.all([
+      fetch('./featured-lists.json',  { cache: 'no-store' }),
+      fetch('./featured-markets.json',{ cache: 'no-store' }).catch(() => null),
+    ]);
+    if (!curRes.ok) throw new Error('featured-lists ' + curRes.status);
+    const data = await curRes.json();
     const head = data.header || {};
     if (head.title) document.getElementById('flists-title').textContent = head.title;
     if (head.sub)   document.getElementById('flists-sub').textContent   = head.sub;
-    const lists = (data.lists || []).filter(l => l && l.active !== false);
+    const curated = (data.lists || []).filter(l => l && l.active !== false);
+    let markets = [];
+    if (mktRes && mktRes.ok) {
+      try {
+        const mkt = await mktRes.json();
+        markets = (mkt.lists || []).filter(l => l && l.active !== false);
+        // Avoid duplicating any city already covered by a curated card.
+        // Curated entries that point at /markets/<city>/ win — we don't
+        // want two cards for the same destination side-by-side.
+        const seenUrls = new Set(curated.map(c => (c.url || '').replace(/\/$/, '')));
+        markets = markets.filter(m => !seenUrls.has((m.url || '').replace(/\/$/, '')));
+      } catch (e) { markets = []; }
+    }
+    // Interleave: alternate curated / market so the carousel reads varied,
+    // not "all curated, then a long market tail". Whichever pool is longer
+    // gets its remainder appended at the end.
+    const merged = [];
+    const max = Math.max(curated.length, markets.length);
+    for (let i = 0; i < max; i++) {
+      if (i < curated.length) merged.push(curated[i]);
+      if (i < markets.length) merged.push(markets[i]);
+    }
     const track = document.getElementById('flists-track');
-    track.innerHTML = lists.map(featuredListCardHtml).join('');
+    track.innerHTML = merged.map(featuredListCardHtml).join('');
   } catch (err) {
     console.warn('[featured-lists] failed', err);
     document.getElementById('featured-lists').style.display = 'none';
