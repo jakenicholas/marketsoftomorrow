@@ -736,10 +736,10 @@ def render_page(firm, firm_projects, stats, coverage_items):
     # Collaborators — links to /firm/<other-slug>/. Skip empty-slug entries.
     if collabs:
         collab_html = '\n'.join(
-            f'<div class="lead-row"><div class="name">'
-            f'{f"<a href=\"{MARKET_ROOT_URL}/firm/{e(s)}/\">{e(name)}</a>" if s else e(name)}'
-            f'</div><div class="count">{n} project{"s" if n != 1 else ""}</div></div>'
+            f'<div class="lead-row"><div class="name">{link}</div>'
+            f'<div class="count">{n} project{"s" if n != 1 else ""}</div></div>'
             for name, s, n in collabs
+            for link in (f'<a href="{MARKET_ROOT_URL}/firm/{e(s)}/">{e(name)}</a>' if s else e(name),)
         )
     else:
         collab_html = '<div class="lead-row" style="opacity:.6">No frequent collaborators yet</div>'
@@ -778,7 +778,9 @@ def render_page(firm, firm_projects, stats, coverage_items):
     if firm.get('hq'):       org_payload['address']     = {'@type': 'PostalAddress', 'addressLocality': firm['hq']}
     org_jsonld = f'<script type="application/ld+json">{json.dumps(org_payload, ensure_ascii=False)}</script>'
 
-    # Page-specific FAQs — answers come straight from the firm's project data.
+    # Page-specific FAQs — 10-12 items per firm covering every typical
+    # search-intent pattern: "what does X build", "where does X build",
+    # "X projects", "X under construction", "X opening", "X biggest", etc.
     faq_items: list[tuple[str, str]] = []
     if top_types:
         types_phrase = ', '.join(f'<b>{e(t)}</b> ({n})' for t, n in top_types)
@@ -796,6 +798,21 @@ def render_page(firm, firm_projects, stats, coverage_items):
         f'How many projects does {title} have on Markets of Tomorrow?',
         f'<b>{stats["total"]} project{"s" if stats["total"] != 1 else ""}</b> tracked — <b>{stats["in_progress"]}</b> active and <b>{stats["completed"]}</b> already delivered. The list rebuilds hourly from our database.',
     ))
+    if sb['uc']:
+        faq_items.append((
+            f'What {title} projects are under construction right now?',
+            f'<b>{sb["uc"]} project{"s" if sb["uc"] != 1 else ""}</b> by {e(title)} are currently under construction. Each links to a live status page with milestones, renderings, and our journal coverage.',
+        ))
+    if sb['os']:
+        faq_items.append((
+            f'What {title} projects are opening soon?',
+            f'<b>{sb["os"]} project{"s" if sb["os"] != 1 else ""}</b> by {e(title)} are flagged Opening Soon — expected to open within ~7 months. Pro members get our weekly Slippage Report flagging which forecasts have shifted.',
+        ))
+    if sb['an']:
+        faq_items.append((
+            f'What new {title} projects have been announced?',
+            f'<b>{sb["an"]} project{"s" if sb["an"] != 1 else ""}</b> by {e(title)} are in the announced phase — publicly committed but construction has not yet begun.',
+        ))
     if btn['tallest_project']:
         tp = btn['tallest_project']
         u = market_safe_int(tp.get('Units'))
@@ -803,6 +820,11 @@ def render_page(firm, firm_projects, stats, coverage_items):
         faq_items.append((
             f'What is the biggest project in the {title} pipeline?',
             f'<b>{e(tp["Title"])}</b> at <b>{btn["tallest_floors"]} floors</b>{units_blurb}, in {e(tp.get("City", ""))}. Status: {e(tp.get("Delivery","Announced"))}. <a href="{MARKET_ROOT_URL}/projects/{e(tp.get("Slug",""))}/">See the project →</a>',
+        ))
+    if btn['total_units']:
+        faq_items.append((
+            f'How many residential units is {title} adding?',
+            f'Across the active {e(title)} pipeline, the firm is adding <b>{btn["total_units"]:,} residential units</b> across {stats["in_progress"]} active project{"s" if stats["in_progress"] != 1 else ""}.',
         ))
     if collabs:
         clab_str = ', '.join(f'<b>{e(name)}</b>' for name, _, _ in collabs[:3])
@@ -816,6 +838,15 @@ def render_page(firm, firm_projects, stats, coverage_items):
             f'When was {title} founded?',
             f'<b>{e(str(firm["founded"]))}</b>. The firm currently has {stats["total"]} active project{"s" if stats["total"] != 1 else ""} on our database — see the full list above.',
         ))
+    if firm.get('hq'):
+        faq_items.append((
+            f'Where is {title} based?',
+            f'Headquartered in <b>{e(firm["hq"])}</b>. Their active project portfolio spans {len(stats["markets"])} market{"s" if len(stats["markets"]) != 1 else ""} worldwide.',
+        ))
+    faq_items.append((
+        f'How often is {e(title)}\'s project data updated?',
+        f'Hourly. Our cron pipeline rebuilds every firm and market page from the live database every hour. A status change confirmed today shows up within ~60 minutes.',
+    ))
     faqs_html = market_faq_section_html(faq_items)
     faqs_ld   = market_faq_jsonld(faq_items)
     btn_html  = market_by_the_numbers_html(btn)

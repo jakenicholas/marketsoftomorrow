@@ -219,6 +219,21 @@
     .btn-cell .btn-lbl { font-family: var(--mono); font-size: 10px; letter-spacing:.14em; text-transform: uppercase; color: var(--purple-bright); margin-top: 10px; font-weight: 600; }
     .btn-cell .btn-sub { font-family: var(--sans); font-size: 12.5px; color: var(--mute); margin-top: 6px; line-height: 1.4; }
 
+    /* Status-grouped sub-sections — H2 headings ARE the search queries we
+       want to rank for ("X condos under construction in Miami", etc.).
+       Each block lists 5 real projects to make the keyword phrase
+       substantive rather than spam. */
+    .status-stack { display: flex; flex-direction: column; gap: 28px; }
+    .status-block { background: rgba(255,255,255,.02); border: 1px solid var(--hair); border-radius: 14px; padding: 22px 26px; }
+    .status-block .status-h { font-family: var(--serif); font-size: 22px; font-weight: 500; letter-spacing:-.015em; color: var(--white); line-height: 1.2; margin-bottom: 14px; }
+    .status-block .status-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; }
+    .status-block .status-list li { font-family: var(--sans); font-size: 14.5px; color: var(--mute-2); line-height: 1.55; padding: 8px 0; border-top: 1px solid rgba(255,255,255,.05); }
+    .status-block .status-list li:first-child { border-top: 0; padding-top: 0; }
+    .status-block .status-list a { color: var(--white); text-decoration: none; transition: color .15s; }
+    .status-block .status-list a:hover { color: var(--purple-bright); text-decoration: underline; text-underline-offset: 3px; }
+    .status-block .status-more { font-family: var(--mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; margin-top: 14px; }
+    .status-block .status-more a { color: var(--purple-bright); text-decoration: underline; text-underline-offset: 3px; }
+
     /* FAQ — collapsible Q&A for SERP capture + on-page depth */
     .faq { display: flex; flex-direction: column; gap: 8px; max-width: 78ch; }
     .faq-q { background: rgba(255,255,255,.02); border: 1px solid var(--hair); border-radius: 12px; transition: border-color .15s; }
@@ -371,6 +386,18 @@
       <div class="btn-grid"><div class="btn-cell"><div class="btn-val">157 floors</div><div class="btn-lbl">Tallest in pipeline</div><div class="btn-sub">Jeddah Tower, Saudi Arabia</div></div>
 <div class="btn-cell"><div class="btn-val">157.0 floors</div><div class="btn-lbl">Avg height</div><div class="btn-sub">mean of 1 known</div></div>
 <div class="btn-cell"><div class="btn-val">2026–2030</div><div class="btn-lbl">Delivery window</div><div class="btn-sub">first to last expected delivery</div></div></div>
+    </section>
+
+    <section class="section status-pipeline">
+      <div class="section-head">
+        <div>
+          <div class="section-eyebrow">Pipeline by status</div>
+          <h2 class="section-title">The Saudi Arabia pipeline, status by status</h2>
+        </div>
+      </div>
+      <div class="status-stack">
+<section class="status-block"><h2 class="status-h">2 hotels under construction in Saudi Arabia</h2><ul class="status-list"><li><a href="https://www.oftmw.com/projects/jeddah-tower/"><b>Jeddah Tower</b></a> · 157 floors</li><li><a href="https://www.oftmw.com/projects/qiddiya/"><b>Qiddiya</b></a></li></ul></section>
+<section class="status-block"><h2 class="status-h">1 hotel opening soon in Saudi Arabia</h2><ul class="status-list"><li><a href="https://www.oftmw.com/projects/the-avenues/"><b>The Avenues</b></a></li></ul></section>      </div>
     </section>
 
     <section class="section">

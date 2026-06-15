@@ -522,6 +522,7 @@ def render_page(
     body_copy_html: str,        # long-tail SEO prose
     faqs: list[tuple[str, str]] = None,  # [(question, answer_html), ...] — both displayed + emitted as FAQPage JSON-LD
     extra_jsonld: str = '',     # additional schema.org blocks (Place, etc.)
+    status_sections: str = '',  # H2 sub-sections by status, exact-match search phrases
 ) -> str:
     faqs = faqs or []
     canonical = ROOT_URL + canonical_path
@@ -795,6 +796,21 @@ def render_page(
     .btn-cell .btn-lbl {{ font-family: var(--mono); font-size: 10px; letter-spacing:.14em; text-transform: uppercase; color: var(--purple-bright); margin-top: 10px; font-weight: 600; }}
     .btn-cell .btn-sub {{ font-family: var(--sans); font-size: 12.5px; color: var(--mute); margin-top: 6px; line-height: 1.4; }}
 
+    /* Status-grouped sub-sections — H2 headings ARE the search queries we
+       want to rank for ("X condos under construction in Miami", etc.).
+       Each block lists 5 real projects to make the keyword phrase
+       substantive rather than spam. */
+    .status-stack {{ display: flex; flex-direction: column; gap: 28px; }}
+    .status-block {{ background: rgba(255,255,255,.02); border: 1px solid var(--hair); border-radius: 14px; padding: 22px 26px; }}
+    .status-block .status-h {{ font-family: var(--serif); font-size: 22px; font-weight: 500; letter-spacing:-.015em; color: var(--white); line-height: 1.2; margin-bottom: 14px; }}
+    .status-block .status-list {{ list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; }}
+    .status-block .status-list li {{ font-family: var(--sans); font-size: 14.5px; color: var(--mute-2); line-height: 1.55; padding: 8px 0; border-top: 1px solid rgba(255,255,255,.05); }}
+    .status-block .status-list li:first-child {{ border-top: 0; padding-top: 0; }}
+    .status-block .status-list a {{ color: var(--white); text-decoration: none; transition: color .15s; }}
+    .status-block .status-list a:hover {{ color: var(--purple-bright); text-decoration: underline; text-underline-offset: 3px; }}
+    .status-block .status-more {{ font-family: var(--mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; margin-top: 14px; }}
+    .status-block .status-more a {{ color: var(--purple-bright); text-decoration: underline; text-underline-offset: 3px; }}
+
     /* FAQ — collapsible Q&A for SERP capture + on-page depth */
     .faq {{ display: flex; flex-direction: column; gap: 8px; max-width: 78ch; }}
     .faq-q {{ background: rgba(255,255,255,.02); border: 1px solid var(--hair); border-radius: 12px; transition: border-color .15s; }}
@@ -872,6 +888,7 @@ def render_page(
     </article>
 
 {btn_html}
+{status_sections}
 {faq_html_section}
 
     <section class="section">
@@ -1113,6 +1130,16 @@ STATUS_QUERY_VERBS = {
     'Now Open':           'now open',
 }
 
+def _singularize(plural: str) -> str:
+    """Best-effort singular form for counts of 1. Falls back to the plural
+    when no obvious singular exists (mixed-use developments → mixed-use
+    development; condos → condo; high-rises → high-rise)."""
+    for s, p in TYPE_SYNONYMS.get('Residences', []) + [(s, p) for variants in TYPE_SYNONYMS.values() for s, p in variants]:
+        if p == plural: return s
+    if plural.endswith('es') and plural[-3] in 'sxz': return plural[:-2]
+    if plural.endswith('s'): return plural[:-1]
+    return plural
+
 def status_sections_html(projects: list[dict], type_plural: str, location_phrase: str,
                         list_label: str = 'in') -> str:
     by_status = collections.defaultdict(list)
@@ -1126,18 +1153,32 @@ def status_sections_html(projects: list[dict], type_plural: str, location_phrase
 
     sections = []
     order = ['Under Construction', 'Breaking Ground', 'Opening Soon', 'Announced', 'Now Open']
+    is_worldwide = list_label == 'worldwide'
     for status in order:
         bucket = by_status.get(status, [])
         if not bucket: continue
         n = len(bucket)
+        # Singularize when n == 1 so the heading reads naturally
+        # ("1 condo under construction" not "1 condos under construction").
+        type_label = _singularize(type_plural) if n == 1 else type_plural
         verb = STATUS_QUERY_VERBS[status]
-        # H2 phrasing — these ARE the search queries we want to rank for
-        if status == 'Announced':
-            h2 = f'{n} {type_plural} just announced for {location_phrase}'
-        elif status == 'Now Open':
-            h2 = f'{n} {type_plural} now open in {location_phrase}'
+        # H2 phrasing — these ARE the search queries we want to rank for.
+        # When the page is the global by-type hub, the "location" is the
+        # word "worldwide" — used directly, NOT as a prepositional object.
+        if is_worldwide:
+            if status == 'Announced':
+                h2 = f'{n} {type_label} just announced worldwide'
+            elif status == 'Now Open':
+                h2 = f'{n} {type_label} now open worldwide'
+            else:
+                h2 = f'{n} {type_label} {verb} worldwide'
         else:
-            h2 = f'{n} {type_plural} {verb} {list_label} {location_phrase}'
+            if status == 'Announced':
+                h2 = f'{n} {type_label} just announced for {location_phrase}'
+            elif status == 'Now Open':
+                h2 = f'{n} {type_label} now open in {location_phrase}'
+            else:
+                h2 = f'{n} {type_label} {verb} {list_label} {location_phrase}'
         sample = bucket[:5]
         items = ''.join(
             f'<li><a href="{ROOT_URL}/projects/{esc(p.get("Slug",""))}/"><b>{esc(p.get("Title",""))}</b></a>'
@@ -1158,12 +1199,13 @@ def status_sections_html(projects: list[dict], type_plural: str, location_phrase
             f'</section>'
         )
     if not sections: return ''
+    pipeline_label = 'global' if is_worldwide else esc(location_phrase)
     return (
         '    <section class="section status-pipeline">\n'
         '      <div class="section-head">\n'
         '        <div>\n'
         '          <div class="section-eyebrow">Pipeline by status</div>\n'
-        f'          <h2 class="section-title">The {esc(location_phrase)} pipeline, status by status</h2>\n'
+        f'          <h2 class="section-title">The {pipeline_label} pipeline, status by status</h2>\n'
         '        </div>\n'
         '      </div>\n'
         '      <div class="status-stack">\n'
@@ -1313,6 +1355,9 @@ def faqs_city_type(city: str, ptype: str, projects: list[dict]) -> list[tuple[st
     return qa[:13]
 
 def faqs_city(city: str, projects: list[dict]) -> list[tuple[str, str]]:
+    """Same expanded coverage for whole-city pages — no type filter, so
+    questions hit broader patterns: 'new developments in X', 'projects
+    coming to X', 'best new construction in X', 'X biggest projects', etc."""
     sb = _status_breakdown(projects)
     btn = by_the_numbers(projects)
     devs, dev_slugs = _count_firms(projects, 'Developer', 'DeveloperSlugs')
@@ -1321,15 +1366,33 @@ def faqs_city(city: str, projects: list[dict]) -> list[tuple[str, str]]:
     qa: list[tuple[str, str]] = []
 
     qa.append((
-        f'What is being built in {city} right now?',
+        f'What new developments are coming to {city}?',
         f'<b>{n_total} new development{"s" if n_total != 1 else ""}</b> across <b>{len(type_counter)} categor{"ies" if len(type_counter) != 1 else "y"}</b> — {sb["uc"]} under construction, {sb["bg"]} breaking ground, {sb["os"]} opening soon, and {sb["an"]} just announced. See the live map for every project.',
     ))
+
+    if sb['uc']:
+        qa.append((
+            f'What is under construction in {city}?',
+            f'<b>{sb["uc"]} project{"s" if sb["uc"] != 1 else ""}</b> are currently under construction in {esc(city)} across every category we track. Each links to a live status page with milestones, renderings, and journal coverage.',
+        ))
+
+    if sb['os']:
+        qa.append((
+            f'What projects are opening soon in {city}?',
+            f'<b>{sb["os"]} project{"s" if sb["os"] != 1 else ""}</b> in the {city} pipeline are flagged Opening Soon — meaning expected opening within ~7 months. Pro members get weekly delivery updates on each.',
+        ))
+
+    if sb['an']:
+        qa.append((
+            f'What projects have just been announced for {city}?',
+            f'<b>{sb["an"]} project{"s" if sb["an"] != 1 else ""}</b> are in the announced phase for {esc(city)} — meaning a developer has publicly committed but construction has not yet begun.',
+        ))
 
     if type_counter:
         types_phrase = ', '.join(f'<b>{esc(t)}</b> ({n})' for t, n in type_counter.most_common(3))
         qa.append((
-            f'What kinds of projects are most common in {city}?',
-            f'The {city} pipeline is dominated by {types_phrase}. <a href="{ROOT_URL}/markets/{slugify(city)}/">See the full breakdown →</a>',
+            f'What kinds of new projects are being built in {city}?',
+            f'The {city} pipeline is dominated by {types_phrase}. Each category has its own dedicated landing page — explore the "More project types in {city}" section above.',
         ))
 
     if devs:
@@ -1344,8 +1407,29 @@ def faqs_city(city: str, projects: list[dict]) -> list[tuple[str, str]]:
     if btn['tallest_project']:
         tp = btn['tallest_project']
         qa.append((
-            f'What is the tallest project in the {city} pipeline?',
+            f'What is the tallest project planned in {city}?',
             f'<b>{esc(tp["Title"])}</b> at <b>{btn["tallest_floors"]} floors</b> — currently {esc(tp.get("Delivery", "Announced"))}. <a href="{ROOT_URL}/projects/{esc(tp.get("Slug", ""))}/">Open the project page →</a>',
+        ))
+
+    if btn['total_units']:
+        qa.append((
+            f'How many residential units are being added across {city}?',
+            f'Across the active {city} pipeline, the developments we track will add <b>{btn["total_units"]:,} residential units</b>. Pro members get the unit count by neighborhood and project type.',
+        ))
+
+    if btn['earliest_delivery'] and btn['latest_delivery']:
+        if btn['earliest_delivery'] != btn['latest_delivery']:
+            qa.append((
+                f'When will the next wave of {city} projects open?',
+                f'Delivery dates across the active {city} pipeline run from <b>{btn["earliest_delivery"]}</b> through <b>{btn["latest_delivery"]}</b>. Pro members get our weekly Slippage Report flagging which projects have slipped this week.',
+            ))
+
+    featured = [p for p in projects if is_featured(p)]
+    if featured:
+        names = ', '.join(f'<b>{esc(p["Title"])}</b>' for p in featured[:5])
+        qa.append((
+            f'What are the most-watched new projects in {city}?',
+            f'Our editors flag the highest-profile projects as Featured. The current {city} Featured set: {names}. Each is marked with a gold star in the pipeline grid above.',
         ))
 
     qa.append((
@@ -1353,32 +1437,49 @@ def faqs_city(city: str, projects: list[dict]) -> list[tuple[str, str]]:
         f'Hourly. Our map and every market page (including this one) rebuild from our database every hour, so a status change confirmed today shows up here within ~60 minutes. Editorial follow-ups land in the journal within the day.',
     ))
 
-    return qa[:5]
+    return qa[:13]
 
 def faqs_type(ptype: str, projects: list[dict]) -> list[tuple[str, str]]:
+    """Type-hub FAQs covering ALL global-by-type search variations:
+    'cities with the most condos', 'where are the most luxury hotels',
+    'tallest stadium', etc. Uses the same synonym vocabulary."""
     sb = _status_breakdown(projects)
     btn = by_the_numbers(projects)
     city_counter = collections.Counter((p.get('City') or '').strip() for p in projects if (p.get('City') or '').strip())
     devs, dev_slugs = _count_firms(projects, 'Developer', 'DeveloperSlugs')
+    arches, arch_slugs = _count_firms(projects, 'Architect', 'ArchitectSlugs')
     n_total = len(projects)
+    sing, plur, variants = _type_keywords(ptype)
     qa: list[tuple[str, str]] = []
 
     if city_counter:
-        cities_phrase = ', '.join(f'<b>{esc(c)}</b> ({n})' for c, n in city_counter.most_common(3))
+        cities_phrase = ', '.join(f'<b>{esc(c)}</b> ({n})' for c, n in city_counter.most_common(5))
         qa.append((
-            f'Which cities have the most new {ptype.lower()} developments?',
-            f'The deepest {ptype.lower()} pipelines are in {cities_phrase}. We track <b>{n_total} {ptype.lower()} project{"s" if n_total != 1 else ""}</b> total across <b>{len(city_counter)} cities</b>.',
+            f'Which cities have the most new {plur}?',
+            f'The deepest {plur.lower()} pipelines are in {cities_phrase}. We track <b>{n_total} {plur.lower()} project{"s" if n_total != 1 else ""}</b> total across <b>{len(city_counter)} cities</b>.',
         ))
 
     qa.append((
-        f'How many new {ptype.lower()} are under construction right now?',
-        f'<b>{sb["uc"]} under construction</b>, <b>{sb["bg"]} breaking ground</b>, <b>{sb["os"]} opening soon</b>, and <b>{sb["an"]} just announced</b> across the {ptype.lower()} category worldwide.',
+        f'How many new {plur} are under construction worldwide?',
+        f'<b>{sb["uc"]} {plur}</b> are currently under construction worldwide. Plus <b>{sb["bg"]} breaking ground</b>, <b>{sb["os"]} opening soon</b>, and <b>{sb["an"]} announced</b> in the global pipeline.',
     ))
+
+    if sb['os']:
+        qa.append((
+            f'What new {plur} are opening soon worldwide?',
+            f'<b>{sb["os"]} {plur}</b> are flagged Opening Soon — meaning expected opening within ~7 months. Browse each individually in the pipeline grid above.',
+        ))
+
+    if sb['an']:
+        qa.append((
+            f'What {plur} have just been announced for {CURRENT_YEAR}?',
+            f'<b>{sb["an"]} {plur}</b> are in the announced phase across our global dataset. Each links to a live status page that updates as construction begins.',
+        ))
 
     if btn['tallest_project']:
         tp = btn['tallest_project']
         qa.append((
-            f'What is the tallest {ptype.lower().rstrip("s")} in the global pipeline?',
+            f'What is the tallest new {sing} in the global pipeline?',
             f'<b>{esc(tp["Title"])}</b> in <b>{esc(tp.get("City", ""))}</b> at <b>{btn["tallest_floors"]} floors</b>. <a href="{ROOT_URL}/projects/{esc(tp.get("Slug", ""))}/">See the project →</a>',
         ))
 
@@ -1387,11 +1488,37 @@ def faqs_type(ptype: str, projects: list[dict]) -> list[tuple[str, str]]:
         ds = dev_slugs.get(top_dev_name, '')
         link = f'<a href="{ROOT_URL}/firm/{esc(ds)}/">{esc(top_dev_name)}</a>' if ds else f'<b>{esc(top_dev_name)}</b>'
         qa.append((
-            f'Who are the most active developers in {ptype.lower()} worldwide?',
-            f'{link} leads the {ptype.lower()} category with <b>{top_dev_n} active project{"s" if top_dev_n != 1 else ""}</b>. The full leaderboard is in the firm hub.',
+            f'Who is the most active developer in {plur} worldwide?',
+            f'{link} leads the {plur.lower()} category with <b>{top_dev_n} active project{"s" if top_dev_n != 1 else ""}</b>. Their firm page shows every market they\'re building in.',
         ))
 
-    return qa[:5]
+    if arches:
+        top_arch_name, top_arch_n = arches.most_common(1)[0]
+        as_ = arch_slugs.get(top_arch_name, '')
+        link = f'<a href="{ROOT_URL}/firm/{esc(as_)}/">{esc(top_arch_name)}</a>' if as_ else f'<b>{esc(top_arch_name)}</b>'
+        qa.append((
+            f'Who designs the most new {plur}?',
+            f'{link} is the architect of record on <b>{top_arch_n} {plur.lower()} project{"s" if top_arch_n != 1 else ""}</b> in our global dataset.',
+        ))
+
+    if btn['total_units']:
+        qa.append((
+            f'How many total residential units are coming online in new {plur}?',
+            f'Across the active global {plur.lower()} pipeline, the developments we track will add <b>{btn["total_units"]:,} residential units</b>.',
+        ))
+
+    if btn['earliest_delivery'] and btn['latest_delivery'] and btn['earliest_delivery'] != btn['latest_delivery']:
+        qa.append((
+            f'When will the next wave of new {plur} deliver?',
+            f'Delivery dates across the active global pipeline run from <b>{btn["earliest_delivery"]}</b> through <b>{btn["latest_delivery"]}</b>. Pro members get our weekly Slippage Report flagging which projects have slipped this week.',
+        ))
+
+    qa.append((
+        f'How often is the {plur} development data updated?',
+        f'Hourly. Our cron pipeline pulls fresh project data every hour and regenerates every market page. A status change confirmed today shows up within ~60 minutes.',
+    ))
+
+    return qa[:10]
 
 
 def city_type_intro(city: str, ptype: str, projects: list[dict], top_arch: str|None) -> tuple[str, str]:
@@ -1933,6 +2060,11 @@ def main():
             body_copy_html=long_copy,
             faqs=faqs_city_type(city, ptype, bucket),
             extra_jsonld=place_jsonld(city),
+            status_sections=status_sections_html(
+                bucket,
+                type_plural=_type_keywords(ptype)[1],
+                location_phrase=city,
+            ),
         )
         open(os.path.join(path, 'index.html'), 'w', encoding='utf-8').write(html_out)
         pages_written.append(f'{slug}/index.html')
@@ -1988,6 +2120,11 @@ def main():
             body_copy_html=long_copy,
             faqs=faqs_city(city, bucket),
             extra_jsonld=place_jsonld(city),
+            status_sections=status_sections_html(
+                bucket,
+                type_plural='projects',
+                location_phrase=city,
+            ),
         )
         path = f"{OUTPUT_DIR}/{slugify(city)}/"
         os.makedirs(path, exist_ok=True)
@@ -2036,6 +2173,12 @@ def main():
             map_search=ptype, intel_city='', intel_type=ptype,
             body_copy_html=long_copy,
             faqs=faqs_type(ptype, bucket),
+            status_sections=status_sections_html(
+                bucket,
+                type_plural=_type_keywords(ptype)[1],
+                location_phrase='worldwide',
+                list_label='worldwide',
+            ),
         )
         path = f"{OUTPUT_DIR}/by-type/{slugify(ptype)}/"
         os.makedirs(path, exist_ok=True)
