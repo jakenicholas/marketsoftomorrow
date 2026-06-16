@@ -1679,6 +1679,36 @@
     return { rows: hit, label: label };
   }
 
+  // Score each row by how many meaningful query tokens land in its
+  // title, with extra weight for tokens that are NOT part of the project's
+  // city name (a distinctive token like "viceroy" is stronger evidence
+  // than the generic "fort"). If one row's distinctive-hit count strictly
+  // dominates the runner-up, return it — the query is about that one
+  // project, not the city set. Otherwise return null and let the smart
+  // path render the full aggregate.
+  function pickTitleScopedProject(q, rows){
+    if (!rows || rows.length < 2) return null;
+    var Core = window.TmwSearchCore;
+    if (!Core || !Core.norm) return null;
+    var toks = Core.filterMeaningfulTokens
+      ? Core.filterMeaningfulTokens(tokenize(q))
+      : tokenize(q).filter(function(t){ return t.length >= 3; });
+    if (!toks.length) return null;
+    var scored = rows.map(function(r){
+      var t = Core.norm(r.Title || '');
+      var cityN = Core.norm(r.City || '');
+      var hits = 0, distinct = 0;
+      toks.forEach(function(tk){
+        if (t.indexOf(tk) >= 0) { hits++; if (cityN.indexOf(tk) < 0) distinct++; }
+      });
+      return { r:r, hits:hits, distinct:distinct };
+    });
+    scored.sort(function(a,b){ return (b.distinct - a.distinct) || (b.hits - a.hits); });
+    var top = scored[0], next = scored[1];
+    if (top.distinct >= 1 && top.distinct > next.distinct) return top.r;
+    return null;
+  }
+
   // The structured-smart-query render. Mirrors /search/'s renderSmart:
   // chips → intel panel (answer + stats) → header → ranked rows → foot.
   // Also fires the LLM upgrade to replace the deterministic sentence
@@ -1701,11 +1731,23 @@
     }
 
     var rows = Core.smartRank(Core.smartFilter(s, PROJECTS), s);
+    // If the query strongly identifies ONE specific project in the result
+    // set (e.g. "how many units does viceroy fort lauderdale have" picks
+    // Viceroy out of 14 Fort Lauderdale projects), narrow to just that
+    // project so the intel stats grid reflects IT — not the city aggregate.
+    // Without this, the sentence (LLM-upgraded to the specific project)
+    // and the "First delivery 2025" / "~7,144 residences total" stats grid
+    // contradict each other.
+    var titleHit = pickTitleScopedProject(q, rows);
+    if (titleHit) rows = [titleHit];
     // Narrow to a residual neighborhood/qualifier ("design district") the
-    // structured parse ignored, and surface it as an "Area" chip.
-    var resid = applyResidualText(q, s, rows);
-    rows = resid.rows;
-    if (resid.label) s._areaLabel = resid.label;
+    // structured parse ignored, and surface it as an "Area" chip. Skip
+    // when we've already narrowed to one project by title.
+    if (!titleHit) {
+      var resid = applyResidualText(q, s, rows);
+      rows = resid.rows;
+      if (resid.label) s._areaLabel = resid.label;
+    }
     var ans = Core.buildSmartAnswer(s, rows);
 
     // Header slot carries the "understood as" chips
