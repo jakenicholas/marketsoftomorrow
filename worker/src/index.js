@@ -667,8 +667,15 @@ async function handleFunnelStats(env, origin, url) {
   const stages = [...beaconStages, 'pro_upgrade_paid'];
   const emptyBucket = () => stages.reduce((o, s) => (o[s] = 0, o), {});
   const totals = emptyBucket();
+  // Track WHERE subscribes come from (article funnel vs the /markets/ funnel)
+  // so the analytics tile can show the market pages' contribution.
+  let subArticle = 0, subMarket = 0;
   for (const r of rows) {
-    const stage = String(r.event_name || '').replace(/^funnel:/, '');
+    let stage = String(r.event_name || '').replace(/^funnel:/, '');
+    if (stage === 'subscribe_article') subArticle += Number(r.c) || 0;
+    if (stage === 'subscribe_market')  subMarket  += Number(r.c) || 0;
+    // Market-page signups roll up into the same top-of-funnel Subscribe stage.
+    if (stage === 'subscribe_market') stage = 'subscribe_article';
     if (!beaconStages.includes(stage)) continue;
     let bucket = byWeek.get(r.wk);
     if (!bucket) { bucket = emptyBucket(); byWeek.set(r.wk, bucket); }
@@ -739,7 +746,12 @@ async function handleFunnelStats(env, origin, url) {
     });
   }
 
-  return json({ weeks: series, totals, window_days: weeks * 7 }, {}, env, origin);
+  return json({
+    weeks: series,
+    totals,
+    sources: { subscribe: { article: subArticle, market: subMarket } },
+    window_days: weeks * 7,
+  }, {}, env, origin);
 }
 
 async function handleSubscriptions(env, origin, url) {
