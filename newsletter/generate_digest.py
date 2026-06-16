@@ -256,6 +256,7 @@ def parse_articles_from_api():
             "summary": summary,
             "categories":   it.get("categories") or [],
             "main_category": (it.get("main_category") or "").strip(),
+            "published_at": it.get("published_at") or 0,   # unix epoch (seconds)
         })
     return out
 
@@ -408,16 +409,21 @@ def _join_clauses(items):
     if len(items) == 2: return f"{items[0]} and {items[1]}"
     return ", ".join(items[:-1]) + ", and " + items[-1]
 
-def build_intel_summary(map_items, florida_articles, more_markets_articles, app_updates):
+def build_intel_summary(map_items, weekly_articles, app_updates):
     """Build the 'TMW Intelligence' brief that summarizes the whole issue.
 
     Runs server-side with no LLM (this generator is invoked nightly in CI), so
-    the summary is assembled from the same data the rest of the digest renders:
-    article counts, project/database updates, and the distinct markets touched.
+    the summary is assembled from the same data the rest of the digest renders.
+
+    - story_count is the TRUE number of journal posts published in the lookback
+      window (not the 8 we trim down to as cards in the email).
+    - the body summarizes ALL of the week's stories by where they landed
+      (their regions), not just the single lead headline.
+    - the middle stat counts database "updates" (map item events).
     Returns {body, stats} or None when there's nothing to summarize.
     """
-    total_articles = len(florida_articles) + len(more_markets_articles)
-    new_projects   = len(map_items)
+    story_count = len(weekly_articles)
+    new_updates = len(map_items)
 
     # Distinct markets, in first-seen order, from the database updates.
     cities, seen = [], set()
@@ -429,39 +435,62 @@ def build_intel_summary(map_items, florida_articles, more_markets_articles, app_
 
     def pl(n, s, p): return s if n == 1 else p
 
-    clauses = []
-    if total_articles:
-        lead = (florida_articles or more_markets_articles)[0]["title"].strip()
-        clauses.append(
-            f"{total_articles} new {pl(total_articles, 'story', 'stories')} "
-            f"from the journal, led by “{lead}”"
-        )
-    if new_projects:
-        geo = ""
-        if market_count:
-            geo = f" across {market_count} {pl(market_count, 'market', 'markets')}"
-            if len(cities) >= 2:
-                geo += f", including {cities[0]} and {cities[1]}"
-            else:
-                geo += f", including {cities[0]}"
-        clauses.append(
-            f"{new_projects} project {pl(new_projects, 'update', 'updates')}{geo}"
-        )
+    # Summarize the whole set of stories by region (main_category), ranked by
+    # how many stories landed there. This represents every article, not just
+    # the top one, while staying compact.
+    region_counts = {}
+    region_order  = []
+    for a in weekly_articles:
+        r = (a.get("main_category") or "").strip()
+        if not r:
+            continue
+        if r not in region_counts:
+            region_counts[r] = 0
+            region_order.append(r)
+        region_counts[r] += 1
+    ranked = sorted(region_order, key=lambda r: (-region_counts[r], region_order.index(r)))
 
-    if clauses:
-        body = "This week's brief covers " + _join_clauses(clauses) + "."
+    region_phrase = ""
+    if ranked:
+        top  = ranked[:4]
+        rest = len(ranked) - len(top)
+        if rest > 0:
+            region_phrase = ", ".join(top) + f", and {rest} more {pl(rest, 'market', 'markets')}"
+        else:
+            region_phrase = _join_clauses(top)
+
+    clauses = []
+    if story_count:
+        if region_phrase:
+            clauses.append(f"{story_count} new {pl(story_count, 'story', 'stories')} across {region_phrase}")
+        else:
+            clauses.append(f"{story_count} new {pl(story_count, 'story', 'stories')} from the journal")
+    if new_updates:
+        clauses.append(f"{new_updates} new database {pl(new_updates, 'update', 'updates')}")
+
+    # The stories clause already contains its own "and" (the region list), so
+    # join the two top-level clauses with "alongside" rather than another "and".
+    if len(clauses) == 2:
+        core = f"{clauses[0]}, alongside {clauses[1]}"
+    elif clauses:
+        core = clauses[0]
+    else:
+        core = ""
+
+    if core:
+        body = "This week's brief covers " + core + "."
     else:
         body = "Here's what's moving across the map of tomorrow this week."
     if app_updates:
         body += " Plus the latest from TMW Pro."
 
-    if not (total_articles or new_projects):
+    if not (story_count or new_updates):
         return None
 
     stats = [
-        {"value": str(total_articles), "label": pl(total_articles, "Story", "Stories")},
-        {"value": str(new_projects),   "label": pl(new_projects, "Project", "Projects")},
-        {"value": str(market_count),   "label": pl(market_count, "Market", "Markets")},
+        {"value": str(story_count),  "label": pl(story_count, "Story", "Stories")},
+        {"value": str(new_updates),  "label": "Updates"},
+        {"value": str(market_count), "label": pl(market_count, "Market", "Markets")},
     ]
     return {"body": body, "stats": stats}
 
@@ -493,6 +522,12 @@ def main():
     florida_articles, more_markets_articles = split_articles(all_articles)
     print(f"[info]   florida={len(florida_articles)} more_markets={len(more_markets_articles)}")
 
+    # True count of journal stories published in the lookback window — used for
+    # the intel brief's "Stories" stat (independent of the 8 we render as cards).
+    week_cutoff_ts = (datetime.now(timezone.utc) - timedelta(days=LOOKBACK_DAYS)).timestamp()
+    weekly_articles = [a for a in all_articles if (a.get("published_at") or 0) >= week_cutoff_ts]
+    print(f"[info]   weekly_articles (last {LOOKBACK_DAYS}d) = {len(weekly_articles)}")
+
     app_updates = load_app_updates()
     ads         = load_ads()
 
@@ -504,7 +539,7 @@ def main():
 
     subject   = build_subject(map_items, florida_articles, more_markets_articles, app_updates)
     preheader = build_preheader(map_items, florida_articles, more_markets_articles)
-    intel     = build_intel_summary(map_items, florida_articles, more_markets_articles, app_updates)
+    intel     = build_intel_summary(map_items, weekly_articles, app_updates)
     print(f"[info] subject: {subject}")
     print(f"[info] intel summary: {'yes' if intel else 'no'}")
 
