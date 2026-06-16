@@ -737,7 +737,7 @@
     if (pro) return '<span class="tmw-ov-pro on">PRO</span>';
     var left = window.tmwIntel.left ? window.tmwIntel.left() : ((window.tmwIntel && window.tmwIntel.FREE) || 5);
     var lowCls = left <= 3 ? ' low' : '';
-    return '<span class="tmw-ov-quota'+lowCls+'">' + left + ' / 10 left</span>'
+    return '<span class="tmw-ov-quota'+lowCls+'">' + left + ' / ' + ((window.tmwIntel && window.tmwIntel.FREE) || 5) + ' left</span>'
       + '<a class="tmw-ov-pro" href="https://www.oftmw.com/map/?upgrade=1" data-tmw-paywall="feature:intelligence">PRO</a>';
   }
   function refreshProPill(){
