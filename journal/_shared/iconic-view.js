@@ -38,8 +38,7 @@
       '.iv-btn svg{width:16px; height:16px}' +
       '.iv-btn .iv-t{font-family:var(--serif); font-weight:700; font-size:16px; line-height:1}' +
       '.iv-sheet{margin-top:10px; border:1px solid var(--hair); border-radius:14px; overflow:hidden; background:rgba(255,255,255,.015)}' +
-      /* 5 columns now: rank · name · location · details · lat/lng */
-      '.iv-row{display:grid; grid-template-columns:56px 1.5fr 1fr 1fr 1.4fr; gap:18px; align-items:center; padding:13px 22px; border-top:1px solid var(--hair)}' +
+      '.iv-row{display:grid; grid-template-columns:56px 1.5fr 1fr 1fr; gap:18px; align-items:center; padding:13px 22px; border-top:1px solid var(--hair)}' +
       '.iv-row:first-child{border-top:0}' +
       '.iv-head{font-family:var(--mono); font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--mute); background:rgba(255,255,255,.025)}' +
       '.iv-row:not(.iv-head):hover{background:rgba(230,197,116,.05)}' +
@@ -49,17 +48,8 @@
       '.iv-nm a:hover{color:var(--gold-soft)}' +
       '.iv-lc{font-family:var(--mono); font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--green); min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}' +
       '.iv-dt{font-size:13px; color:var(--mute-2); min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}' +
-      /* Lat / Lng cell — clickable link to Google Maps so the user can
-         verify the geocoded coordinate is actually pointing at the right
-         place. Red "Missing" state surfaces items the geocoder couldn\'t
-         find — those are the ones that drop off the map view. */
-      '.iv-cd{font-family:var(--mono); font-size:11px; color:var(--gold-soft); min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-variant-numeric:tabular-nums}' +
-      '.iv-cd a{color:inherit; text-decoration:none; border-bottom:1px dashed rgba(230,197,116,.4); transition:border-color .15s, color .15s}' +
-      '.iv-cd a:hover{color:var(--gold); border-color:var(--gold)}' +
-      '.iv-cd.miss{color:var(--danger); opacity:.85; font-weight:600; letter-spacing:.08em; text-transform:uppercase}' +
       '.iv-empty{padding:50px 0; text-align:center; color:var(--mute); font-family:var(--mono); font-size:13px; letter-spacing:.1em}' +
-      /* Mobile: drop Details + Lat/Lng columns (still visible on the map view). */
-      '@media(max-width:760px){.iv-row{grid-template-columns:38px 1fr auto; gap:12px} .iv-row .iv-dt, .iv-row .iv-cd{display:none} .iv-head span:nth-child(4), .iv-head span:nth-child(5){display:none}}' +
+      '@media(max-width:760px){.iv-row{grid-template-columns:38px 1fr auto; gap:12px} .iv-row .iv-dt{display:none} .iv-head span:nth-child(4){display:none}}' +
       /* ── Map view ── */
       '.iv-map-wrap{margin-top:10px; border:1px solid var(--hair); border-radius:14px; overflow:hidden; background:#0a0c0a; position:relative}' +
       '.iv-map{width:100%; height:min(72vh, 720px); min-height:480px; background:#0a0c0a}' +
@@ -196,11 +186,8 @@
 
     function buildSheet() {
       var cards = [].slice.call(ranking.querySelectorAll('.rank-item'));
-      var head = '<div class="iv-row iv-head">' +
-        '<span>#</span><span>Name</span><span>Location</span><span>Details</span><span>Lat / Lng</span>' +
-        '</div>';
+      var head = '<div class="iv-row iv-head"><span>#</span><span>Name</span><span>Location</span><span>Details</span></div>';
       if (!cards.length) { sheet.innerHTML = head + '<div class="iv-empty">Nothing in this region yet.</div>'; return; }
-      var cache = loadCache();
       var body = cards.map(function (c) {
         function txt(sel) { var e = c.querySelector(sel); return e ? e.textContent.trim() : ''; }
         var arch = txt('.ri-chip.arch').replace(/^[^A-Za-z0-9]+/, '').trim();
@@ -209,56 +196,48 @@
         var cta = c.querySelector('.btn-cta');
         var href = cta ? (cta.getAttribute('href') || '') : '';
         var name = txt('.ri-name');
-        var loc  = txt('.ri-loc');
         var nm = (href && href !== '#') ? ('<a href="' + esc(href) + '" target="_blank" rel="noopener">' + esc(name) + '</a>') : esc(name);
-        // Lat/Lng cell — sourced from the cached geocode. Click opens
-        // Google Maps so the user can verify the point is actually
-        // pointing at the right place. Red "Missing" surfaces items
-        // the geocoder couldn\'t place (they\'re also absent from the
-        // Map view, so this lines them up for the user to fix the
-        // location string in the source data).
-        var coord = cache[loc];
-        var coordCell;
-        if (Array.isArray(coord) && coord.length === 2) {
-          var lng = Number(coord[0]).toFixed(4);
-          var lat = Number(coord[1]).toFixed(4);
-          coordCell = '<span class="iv-cd">' +
-            '<a href="https://www.google.com/maps?q=' + esc(lat + ',' + lng) +
-            '" target="_blank" rel="noopener" title="Verify on Google Maps">' +
-            esc(lat + ', ' + lng) + '</a></span>';
-        } else {
-          coordCell = '<span class="iv-cd miss">Missing</span>';
-        }
         return '<div class="iv-row">' +
           '<span class="iv-rk">' + esc(txt('.ri-rank')) + '</span>' +
           '<span class="iv-nm">' + nm + '</span>' +
-          '<span class="iv-lc">' + esc(loc) + '</span>' +
-          '<span class="iv-dt">' + esc(details) + '</span>' +
-          coordCell +
-          '</div>';
+          '<span class="iv-lc">' + esc(txt('.ri-loc')) + '</span>' +
+          '<span class="iv-dt">' + esc(details) + '</span></div>';
       }).join('');
       sheet.innerHTML = head + body;
     }
 
     // Extract items from the currently-rendered ranking cards. Stays in
     // sync with sort + region filters — same trick the text view uses.
+    // Also pulls lat/lng (manual map-pin overrides set in the admin
+    // list editor at admin.oftmw.com/lists) off window.DATA so the Map
+    // view can prefer them over Mapbox forward-geocoding.
     function collectItems() {
       var cards = [].slice.call(ranking.querySelectorAll('.rank-item'));
+      var bySeedId = {};
+      try {
+        var seed = window.DATA && Array.isArray(window.DATA.items) ? window.DATA.items : [];
+        for (var i = 0; i < seed.length; i++) {
+          if (seed[i] && seed[i].id) bySeedId[seed[i].id] = seed[i];
+        }
+      } catch (e) {}
       return cards.map(function (c) {
         function txt(sel) { var e = c.querySelector(sel); return e ? e.textContent.trim() : ''; }
         var cta = c.querySelector('.btn-cta');
-        // Pull the hero image straight out of the rendered card — same
-        // photo the card view shows, so the popup feels like a preview
-        // of where you're about to go.
         var imgEl = c.querySelector('.ri-photo img, .ri-media img');
         var image = imgEl ? (imgEl.currentSrc || imgEl.src || imgEl.getAttribute('data-src') || '') : '';
+        var id = c.getAttribute('data-id') || '';
+        var seedItem = bySeedId[id] || {};
+        var lat = parseFloat(seedItem.lat);
+        var lng = parseFloat(seedItem.lng);
         return {
-          id:       c.getAttribute('data-id') || '',
+          id:       id,
           rank:     txt('.ri-rank'),
           name:     txt('.ri-name'),
           location: txt('.ri-loc'),
           image:    image,
           href:     cta ? (cta.getAttribute('href') || '') : '',
+          lat:      isFinite(lat) ? lat : null,
+          lng:      isFinite(lng) ? lng : null,
         };
       }).filter(function (it) { return it.name && it.location; });
     }
@@ -306,19 +285,24 @@
         '</div>';
     }
 
-    function plotMarkers(mapboxgl, map, items, coords) {
+    function plotMarkers(mapboxgl, map, entries) {
+      // entries = [{ item, coord }] where coord is [lng, lat] or null.
+      // Switched from a location->coord lookup to a per-item coord
+      // attachment so admin-set lat/lng overrides (which are per-item)
+      // can\'t collide with the location-string cache when two items
+      // share a location text.
       clearMarkers();
       var bounds = new mapboxgl.LngLatBounds();
       var placed = 0;
-      items.forEach(function (it) {
-        var c = coords[it.location];
+      entries.forEach(function (e) {
+        var c = e.coord;
         if (!Array.isArray(c)) return;
         var el = document.createElement('div');
-        el.innerHTML = pinHtml(it.rank);
+        el.innerHTML = pinHtml(e.item.rank);
         var pinNode = el.firstChild;
         var marker = new mapboxgl.Marker({ element: pinNode, anchor: 'bottom' })
           .setLngLat(c)
-          .setPopup(new mapboxgl.Popup({ offset: 28, closeButton: true, maxWidth: '280px' }).setHTML(popupHtml(it)))
+          .setPopup(new mapboxgl.Popup({ offset: 28, closeButton: true, maxWidth: '280px' }).setHTML(popupHtml(e.item)))
           .addTo(map);
         mapMarkers.push(marker);
         bounds.extend(c);
@@ -363,26 +347,37 @@
         return;
       }
       var cache = loadCache();
-      var missing = items.filter(function (it) { return !Array.isArray(cache[it.location]); });
-      // Plot whatever we have cached IMMEDIATELY so the user sees pins
-      // dropping right away — uncached items get filled in as their
-      // geocoding completes.
-      var placed = plotMarkers(mapboxgl, map, items, cache);
+      // Resolution priority per item:
+      //   1) Manual lat/lng from the admin (item.lat + item.lng) — wins
+      //      outright; skips geocoding entirely.
+      //   2) Cached forward-geocode result keyed by location string.
+      //   3) Live Mapbox forward-geocode (cached on success).
+      function resolve(it) {
+        if (it.lat != null && it.lng != null) return [it.lng, it.lat];
+        var c = cache[it.location];
+        return Array.isArray(c) ? c : null;
+      }
+      var entries = items.map(function (it) { return { item: it, coord: resolve(it) }; });
+      var missing = entries.filter(function (e) { return e.coord === null; });
+      // Plot what we already have IMMEDIATELY so manual overrides and
+      // cached pins appear with no delay.
+      var placed = plotMarkers(mapboxgl, map, entries);
       if (missing.length === 0) {
         setStatus(placed + ' pins on the map', true);
         return;
       }
       setStatus('Locating ' + missing.length + ' more…', false);
       var pending = missing.length;
-      missing.forEach(function (it) {
-        geocodeLocation(it.location).then(function (lnglat) {
+      missing.forEach(function (e) {
+        geocodeLocation(e.item.location).then(function (lnglat) {
           if (lnglat) {
-            cache[it.location] = lnglat;
+            cache[e.item.location] = lnglat;
             saveCache(cache);
+            e.coord = lnglat;
           }
           pending--;
           if (pending === 0) {
-            var total = plotMarkers(mapboxgl, map, items, cache);
+            var total = plotMarkers(mapboxgl, map, entries);
             setStatus(total + ' pins on the map', true);
           }
         });
