@@ -233,6 +233,37 @@
       document.body.appendChild(authScript);
     }
 
+    // Go-Pro paywall popup — load it on every page so the "Go Pro" CTA and
+    // "Pro members" links work everywhere (the SEO market pages reference
+    // window.tmwShowPaywall but never loaded the script, so they used to just
+    // redirect). The script is a singleton; double-loading is a no-op.
+    if (!window.tmwShowPaywall && !document.querySelector('script[data-tmw-paywall-loader]')) {
+      var pwScript = document.createElement('script');
+      pwScript.src = '/_shared/journal-paywall.js';
+      pwScript.defer = true;
+      pwScript.setAttribute('data-tmw-paywall-loader', '');
+      document.body.appendChild(pwScript);
+    }
+
+    // Market pages: make EVERY Pro affordance open the popup. Most market pages
+    // already wire their #market-pro-cta button + a.pro-link, but some Pro-
+    // members links (e.g. on state rollups) and the /markets/ index are plain
+    // upgrade links. A single delegated handler, scoped to /markets/, catches
+    // them all without regenerating 140 static pages. defaultPrevented guard
+    // means a page's own handler (which preventDefaults) wins — no double-open.
+    if (location.pathname.indexOf('/markets/') === 0 || location.pathname === '/markets') {
+      document.addEventListener('click', function (e) {
+        if (e.defaultPrevented) return;
+        var t = e.target;
+        var a = t && t.closest && t.closest('a[href*="upgrade=1"], a.pro-link, [data-tmw-paywall]');
+        if (!a) return;
+        if (typeof window.tmwShowPaywall !== 'function') return;   // let the link navigate as fallback
+        e.preventDefault();
+        try { window.tmwFunnelTrack && window.tmwFunnelTrack('go_pro_clicked', { source: 'market_pro_link', path: location.pathname }); } catch (_) {}
+        window.tmwShowPaywall({ source: 'market_page' });
+      }, false);
+    }
+
     // NOTE: the mobile hamburger toggle + mobile header layout are handled
     // centrally by journal-dock.js (wireBurgers + nav.main mobile CSS), so every
     // page — inline headers and this chrome — behaves identically.
