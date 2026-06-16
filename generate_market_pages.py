@@ -515,7 +515,12 @@ def schema_jsonld(title: str, desc: str, url: str, items: list[dict], crumbs: li
     crumb_list = []
     for i, (name, link) in enumerate(crumbs):
         node = {"@type": "ListItem", "position": i + 1, "name": name}
-        if link: node["item"] = link
+        # Breadcrumb `item` MUST be an absolute URL — Google rejects relative
+        # paths with "Invalid URL in field id (in itemListElement.item)". The
+        # last crumb (current page, link=None) uses the page's own canonical.
+        item = link or (url if i == len(crumbs) - 1 else None)
+        if item:
+            node["item"] = item if item.startswith("http") else ROOT_URL + item
         crumb_list.append(node)
     payload = {
         "@context": "https://schema.org",
