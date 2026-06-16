@@ -57,7 +57,10 @@
     /* Hero */
     .hero { padding: 30px 0 38px; border-bottom:1px solid var(--hair); }
     .hero-eyebrow { font-family:var(--mono); font-size:10.5px; letter-spacing:.2em; text-transform:uppercase; color:var(--purple-bright); margin-bottom:18px; display:inline-flex; align-items:center; gap:9px; }
-    .hero-eyebrow::before { content:""; width:6px; height:6px; border-radius:50%; background:var(--purple); box-shadow:0 0 10px var(--purple); }
+    .hero-eyebrow::before { content:""; width:6px; height:6px; border-radius:50%; background:var(--purple); box-shadow:0 0 10px var(--purple); flex:none; }
+    /* Middot separator between the live count and the Updated date. On mobile
+       (see media query) the date drops to its own line and this is hidden. */
+    .hero-eyebrow .he-updated::before { content:"·"; margin-right:9px; }
     .hero h1 { font-family:var(--serif); font-size:clamp(36px, 5.4vw, 64px); line-height:1.04; font-weight:500; letter-spacing:-.022em; color:var(--white); max-width:20ch; }
     .hero .sub { font-family:var(--serif); font-style:italic; font-weight:300; font-size:20px; color:var(--mute-2); margin-top:18px; line-height:1.5; max-width:62ch; }
     .hero .sub b { font-style:normal; font-weight:500; color:var(--white); }
@@ -231,8 +234,24 @@
     .status-block .status-list li:first-child { border-top: 0; padding-top: 0; }
     .status-block .status-list a { color: var(--white); text-decoration: none; transition: color .15s; }
     .status-block .status-list a:hover { color: var(--purple-bright); text-decoration: underline; text-underline-offset: 3px; }
-    .status-block .status-more { font-family: var(--mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; margin-top: 14px; }
-    .status-block .status-more a { color: var(--purple-bright); text-decoration: underline; text-underline-offset: 3px; }
+    .status-block .status-more { font-family: var(--mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; margin-top: 16px; }
+    /* Purple twin of .see-all-pill (the gold hero pill) — same shape/glow,
+       purple accent. Arrow lives at the END of the label ("...on the map →"). */
+    .status-block .status-more a {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 14px; border-radius: 999px;
+      background: rgba(167,139,250,.07); color: var(--purple-bright);
+      border: 1px solid rgba(167,139,250,.45);
+      box-shadow: 0 0 14px rgba(167,139,250,.18), inset 0 0 12px rgba(167,139,250,.05);
+      font-family: var(--mono); font-size: 10.5px; letter-spacing: .12em;
+      text-transform: uppercase; text-decoration: none; font-weight: 700;
+      transition: background .15s, box-shadow .15s, border-color .15s;
+    }
+    .status-block .status-more a:hover {
+      background: rgba(167,139,250,.13);
+      border-color: rgba(167,139,250,.7);
+      box-shadow: 0 0 22px rgba(167,139,250,.32), inset 0 0 14px rgba(167,139,250,.08);
+    }
 
     /* FAQ — collapsible Q&A for SERP capture + on-page depth */
     .faq { display: flex; flex-direction: column; gap: 8px; max-width: 78ch; }
@@ -253,6 +272,11 @@
       .pro-cta { flex-direction: column; align-items: flex-start; }
       .intel form { flex-direction: column; }
       .intel button { padding: 14px 0; }
+      /* Keep "Live · # projects tracked" on one line and drop the Updated
+         date onto its own line below it. */
+      .hero-eyebrow { display: flex; flex-wrap: wrap; row-gap: 6px; }
+      .hero-eyebrow .he-updated { flex-basis: 100%; }
+      .hero-eyebrow .he-updated::before { content: none; margin-right: 0; }
     }
   </style>
 </head>
@@ -263,7 +287,7 @@
     <nav class="crumbs" aria-label="Breadcrumb"><a href="/">TMW</a> <span class="sep">/</span> <a href="/markets/">Markets</a> <span class="sep">/</span> <b>Palm Beach Gardens</b></nav>
 
     <section class="hero">
-      <div class="hero-eyebrow">Live · 5 projects tracked · <time datetime="2026-06-16">Updated June 16, 2026</time></div>
+      <div class="hero-eyebrow"><span class="he-live">Live · 5 projects tracked</span><time class="he-updated" datetime="2026-06-16">Updated June 16, 2026</time></div>
       <h1>New Developments in Palm Beach Gardens</h1>
       <p class="sub">We're tracking <b>5 new developments</b> in Palm Beach Gardens across every category — including <b>Residences</b> (2), <b>Office</b> (1), <b>Golf</b> (1). Every project below links to a live status page with milestones, renderings, and our <a href="https://www.oftmw.com/journal/">journal coverage</a>.</p>
     </section>

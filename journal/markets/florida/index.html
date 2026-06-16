@@ -57,7 +57,10 @@
     /* Hero */
     .hero { padding: 30px 0 38px; border-bottom:1px solid var(--hair); }
     .hero-eyebrow { font-family:var(--mono); font-size:10.5px; letter-spacing:.2em; text-transform:uppercase; color:var(--purple-bright); margin-bottom:18px; display:inline-flex; align-items:center; gap:9px; }
-    .hero-eyebrow::before { content:""; width:6px; height:6px; border-radius:50%; background:var(--purple); box-shadow:0 0 10px var(--purple); }
+    .hero-eyebrow::before { content:""; width:6px; height:6px; border-radius:50%; background:var(--purple); box-shadow:0 0 10px var(--purple); flex:none; }
+    /* Middot separator between the live count and the Updated date. On mobile
+       (see media query) the date drops to its own line and this is hidden. */
+    .hero-eyebrow .he-updated::before { content:"·"; margin-right:9px; }
     .hero h1 { font-family:var(--serif); font-size:clamp(36px, 5.4vw, 64px); line-height:1.04; font-weight:500; letter-spacing:-.022em; color:var(--white); max-width:20ch; }
     .hero .sub { font-family:var(--serif); font-style:italic; font-weight:300; font-size:20px; color:var(--mute-2); margin-top:18px; line-height:1.5; max-width:62ch; }
     .hero .sub b { font-style:normal; font-weight:500; color:var(--white); }
@@ -231,8 +234,24 @@
     .status-block .status-list li:first-child { border-top: 0; padding-top: 0; }
     .status-block .status-list a { color: var(--white); text-decoration: none; transition: color .15s; }
     .status-block .status-list a:hover { color: var(--purple-bright); text-decoration: underline; text-underline-offset: 3px; }
-    .status-block .status-more { font-family: var(--mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; margin-top: 14px; }
-    .status-block .status-more a { color: var(--purple-bright); text-decoration: underline; text-underline-offset: 3px; }
+    .status-block .status-more { font-family: var(--mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; margin-top: 16px; }
+    /* Purple twin of .see-all-pill (the gold hero pill) — same shape/glow,
+       purple accent. Arrow lives at the END of the label ("...on the map →"). */
+    .status-block .status-more a {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 14px; border-radius: 999px;
+      background: rgba(167,139,250,.07); color: var(--purple-bright);
+      border: 1px solid rgba(167,139,250,.45);
+      box-shadow: 0 0 14px rgba(167,139,250,.18), inset 0 0 12px rgba(167,139,250,.05);
+      font-family: var(--mono); font-size: 10.5px; letter-spacing: .12em;
+      text-transform: uppercase; text-decoration: none; font-weight: 700;
+      transition: background .15s, box-shadow .15s, border-color .15s;
+    }
+    .status-block .status-more a:hover {
+      background: rgba(167,139,250,.13);
+      border-color: rgba(167,139,250,.7);
+      box-shadow: 0 0 22px rgba(167,139,250,.32), inset 0 0 14px rgba(167,139,250,.08);
+    }
 
     /* FAQ — collapsible Q&A for SERP capture + on-page depth */
     .faq { display: flex; flex-direction: column; gap: 8px; max-width: 78ch; }
@@ -253,6 +272,11 @@
       .pro-cta { flex-direction: column; align-items: flex-start; }
       .intel form { flex-direction: column; }
       .intel button { padding: 14px 0; }
+      /* Keep "Live · # projects tracked" on one line and drop the Updated
+         date onto its own line below it. */
+      .hero-eyebrow { display: flex; flex-wrap: wrap; row-gap: 6px; }
+      .hero-eyebrow .he-updated { flex-basis: 100%; }
+      .hero-eyebrow .he-updated::before { content: none; margin-right: 0; }
     }
   </style>
 </head>
@@ -263,7 +287,7 @@
     <nav class="crumbs" aria-label="Breadcrumb"><a href="/">TMW</a> <span class="sep">/</span> <a href="/markets/">Markets</a> <span class="sep">/</span> <b>Florida</b></nav>
 
     <section class="hero">
-      <div class="hero-eyebrow">Live · 287 projects across 36 Florida cities · <time datetime="2026-06-16">Updated June 16, 2026</time></div>
+      <div class="hero-eyebrow"><span class="he-live">Live · 287 projects across 36 Florida cities</span><time class="he-updated" datetime="2026-06-16">Updated June 16, 2026</time></div>
       <h1>New Developments in Florida</h1>
       <p class="sub">We're tracking <b>287 new developments</b> across <b>Florida</b> — spanning <b>36 cities</b> and <b>18 project categories</b>. Every city links to a dedicated local market page with the full pipeline.</p>
     </section>
@@ -498,11 +522,11 @@
         </div>
       </div>
       <div class="status-stack">
-<section class="status-block"><h2 class="status-h">93 projects under construction in Florida</h2><ul class="status-list"><li><a href="https://www.oftmw.com/projects/10-cityplace/"><b>10 CityPlace</b></a> · 22 floors</li><li><a href="https://www.oftmw.com/projects/jem-private-residences/"><b>JEM Private Residences</b></a> · 67 floors · 273 units</li><li><a href="https://www.oftmw.com/projects/mr-c-residences-west-palm-beach/"><b>Mr. C Residences West Palm Beach</b></a> · 27 floors · 146 units</li><li><a href="https://www.oftmw.com/projects/olara/"><b>Olara</b></a> · 26 floors · 275 units</li><li><a href="https://www.oftmw.com/projects/ponce-park/"><b>Ponce Park</b></a> · 11 floors · 58 units</li></ul><p class="status-more"><a href="https://www.oftmw.com/map/?q=Florida+under construction">See all 93 → on the map</a></p></section>
-<section class="status-block"><h2 class="status-h">20 projects breaking ground in Florida</h2><ul class="status-list"><li><a href="https://www.oftmw.com/projects/1000-boulevard-of-the-arts/"><b>1000 Boulevard of the Arts</b></a> · 20 floors · 117 units</li><li><a href="https://www.oftmw.com/projects/14-roc/"><b>14 ROC</b></a> · 31 floors · 283 units</li><li><a href="https://www.oftmw.com/projects/7-park-residences-hallandale/"><b>7 Park Residences Hallandale</b></a> · 8 floors · 121 units</li><li><a href="https://www.oftmw.com/projects/888-brickell-miami-by-dolce-gabana/"><b>888 Brickell Miami by Dolce &amp; Gabana</b></a> · 90 floors · 259 units</li><li><a href="https://www.oftmw.com/projects/citadel-hq/"><b>Citadel HQ</b></a> · 54 floors</li></ul><p class="status-more"><a href="https://www.oftmw.com/map/?q=Florida+breaking ground">See all 20 → on the map</a></p></section>
-<section class="status-block"><h2 class="status-h">42 projects opening soon in Florida</h2><ul class="status-list"><li><a href="https://www.oftmw.com/projects/the-berkeley/"><b>The Berkeley</b></a> · 25 floors · 193 units</li><li><a href="https://www.oftmw.com/projects/the-nora-hotel/"><b>The Nora Hotel</b></a> · 201 units</li><li><a href="https://www.oftmw.com/projects/21-hollywood/"><b>21 Hollywood</b></a> · 14 floors · 200 units</li><li><a href="https://www.oftmw.com/projects/2200-brickell/"><b>2200 Brickell</b></a> · 5 floors · 103 units</li><li><a href="https://www.oftmw.com/projects/3rd-3rd/"><b>3rd &amp; 3rd</b></a> · 33 floors · 262 units</li></ul><p class="status-more"><a href="https://www.oftmw.com/map/?q=Florida+opening soon">See all 42 → on the map</a></p></section>
-<section class="status-block"><h2 class="status-h">103 projects just announced for Florida</h2><ul class="status-list"><li><a href="https://www.oftmw.com/projects/delano-residences-miami/"><b>Delano Residences Miami</b></a> · 90 floors · 421 units</li><li><a href="https://www.oftmw.com/projects/frida-kahlo-wynwood-residences/"><b>Frida Kahlo Wynwood Residences</b></a> · 14 floors · 244 units</li><li><a href="https://www.oftmw.com/projects/mandarin-oriental-residences-west-palm-beach/"><b>Mandarin Oriental Residences, West Palm Beach</b></a> · 31 floors · 87 units</li><li><a href="https://www.oftmw.com/projects/viceroy-residences-fort-lauderdale/"><b>Viceroy Residences Fort Lauderdale</b></a> · 45 floors · 370 units</li><li><a href="https://www.oftmw.com/projects/waldorf-astoria-residences-st-petersburg/"><b>Waldorf Astoria Residences St. Petersburg</b></a> · 50 floors · 163 units</li></ul><p class="status-more"><a href="https://www.oftmw.com/map/?q=Florida+announced">See all 103 → on the map</a></p></section>
-<section class="status-block"><h2 class="status-h">29 projects now open in Florida</h2><ul class="status-list"><li><a href="https://www.oftmw.com/projects/naples-beach-club-a-four-seasons-resort/"><b>Naples Beach Club, A Four Seasons Resort</b></a></li><li><a href="https://www.oftmw.com/projects/apogee-golf-club/"><b>Apogee Golf Club</b></a></li><li><a href="https://www.oftmw.com/projects/arbor-coconut-grove/"><b>Arbor Coconut Grove</b></a> · 5 floors · 45 units</li><li><a href="https://www.oftmw.com/projects/cabot-citrus-farms/"><b>Cabot Citrus Farms</b></a></li><li><a href="https://www.oftmw.com/projects/dutchman-s-pipe/"><b>Dutchman&#x27;s Pipe</b></a></li></ul><p class="status-more"><a href="https://www.oftmw.com/map/?q=Florida+now open">See all 29 → on the map</a></p></section>      </div>
+<section class="status-block"><h2 class="status-h">93 projects under construction in Florida</h2><ul class="status-list"><li><a href="https://www.oftmw.com/projects/10-cityplace/"><b>10 CityPlace</b></a> · 22 floors</li><li><a href="https://www.oftmw.com/projects/jem-private-residences/"><b>JEM Private Residences</b></a> · 67 floors · 273 units</li><li><a href="https://www.oftmw.com/projects/mr-c-residences-west-palm-beach/"><b>Mr. C Residences West Palm Beach</b></a> · 27 floors · 146 units</li><li><a href="https://www.oftmw.com/projects/olara/"><b>Olara</b></a> · 26 floors · 275 units</li><li><a href="https://www.oftmw.com/projects/ponce-park/"><b>Ponce Park</b></a> · 11 floors · 58 units</li></ul><p class="status-more"><a href="https://www.oftmw.com/map/?q=Florida+under construction">See all 93 on the map →</a></p></section>
+<section class="status-block"><h2 class="status-h">20 projects breaking ground in Florida</h2><ul class="status-list"><li><a href="https://www.oftmw.com/projects/1000-boulevard-of-the-arts/"><b>1000 Boulevard of the Arts</b></a> · 20 floors · 117 units</li><li><a href="https://www.oftmw.com/projects/14-roc/"><b>14 ROC</b></a> · 31 floors · 283 units</li><li><a href="https://www.oftmw.com/projects/7-park-residences-hallandale/"><b>7 Park Residences Hallandale</b></a> · 8 floors · 121 units</li><li><a href="https://www.oftmw.com/projects/888-brickell-miami-by-dolce-gabana/"><b>888 Brickell Miami by Dolce &amp; Gabana</b></a> · 90 floors · 259 units</li><li><a href="https://www.oftmw.com/projects/citadel-hq/"><b>Citadel HQ</b></a> · 54 floors</li></ul><p class="status-more"><a href="https://www.oftmw.com/map/?q=Florida+breaking ground">See all 20 on the map →</a></p></section>
+<section class="status-block"><h2 class="status-h">42 projects opening soon in Florida</h2><ul class="status-list"><li><a href="https://www.oftmw.com/projects/the-berkeley/"><b>The Berkeley</b></a> · 25 floors · 193 units</li><li><a href="https://www.oftmw.com/projects/the-nora-hotel/"><b>The Nora Hotel</b></a> · 201 units</li><li><a href="https://www.oftmw.com/projects/21-hollywood/"><b>21 Hollywood</b></a> · 14 floors · 200 units</li><li><a href="https://www.oftmw.com/projects/2200-brickell/"><b>2200 Brickell</b></a> · 5 floors · 103 units</li><li><a href="https://www.oftmw.com/projects/3rd-3rd/"><b>3rd &amp; 3rd</b></a> · 33 floors · 262 units</li></ul><p class="status-more"><a href="https://www.oftmw.com/map/?q=Florida+opening soon">See all 42 on the map →</a></p></section>
+<section class="status-block"><h2 class="status-h">103 projects just announced for Florida</h2><ul class="status-list"><li><a href="https://www.oftmw.com/projects/delano-residences-miami/"><b>Delano Residences Miami</b></a> · 90 floors · 421 units</li><li><a href="https://www.oftmw.com/projects/frida-kahlo-wynwood-residences/"><b>Frida Kahlo Wynwood Residences</b></a> · 14 floors · 244 units</li><li><a href="https://www.oftmw.com/projects/mandarin-oriental-residences-west-palm-beach/"><b>Mandarin Oriental Residences, West Palm Beach</b></a> · 31 floors · 87 units</li><li><a href="https://www.oftmw.com/projects/viceroy-residences-fort-lauderdale/"><b>Viceroy Residences Fort Lauderdale</b></a> · 45 floors · 370 units</li><li><a href="https://www.oftmw.com/projects/waldorf-astoria-residences-st-petersburg/"><b>Waldorf Astoria Residences St. Petersburg</b></a> · 50 floors · 163 units</li></ul><p class="status-more"><a href="https://www.oftmw.com/map/?q=Florida+announced">See all 103 on the map →</a></p></section>
+<section class="status-block"><h2 class="status-h">29 projects now open in Florida</h2><ul class="status-list"><li><a href="https://www.oftmw.com/projects/naples-beach-club-a-four-seasons-resort/"><b>Naples Beach Club, A Four Seasons Resort</b></a></li><li><a href="https://www.oftmw.com/projects/apogee-golf-club/"><b>Apogee Golf Club</b></a></li><li><a href="https://www.oftmw.com/projects/arbor-coconut-grove/"><b>Arbor Coconut Grove</b></a> · 5 floors · 45 units</li><li><a href="https://www.oftmw.com/projects/cabot-citrus-farms/"><b>Cabot Citrus Farms</b></a></li><li><a href="https://www.oftmw.com/projects/dutchman-s-pipe/"><b>Dutchman&#x27;s Pipe</b></a></li></ul><p class="status-more"><a href="https://www.oftmw.com/map/?q=Florida+now open">See all 29 on the map →</a></p></section>      </div>
     </section>
 
     <section class="section">
