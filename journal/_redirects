@@ -26,6 +26,21 @@
 /projects/kempinksi-residences/  /projects/kempinski-residences/  301
 /projects/kempinksi-residences   /projects/kempinski-residences/  301
 
+# "Eateries" type was retired — projects with multiple types are still
+# represented under their other category pages; the only project that
+# was Eateries-only (Eataly Food Hall) is now Retail. Funnel any old
+# indexed `-eateries` URL into the parent city's market page.
+/markets/boca-raton-eateries/         /markets/boca-raton/         301
+/markets/fort-lauderdale-eateries/    /markets/fort-lauderdale/    301
+/markets/jacksonville-eateries/       /markets/jacksonville/       301
+/markets/miami-eateries/              /markets/miami/              301
+/markets/nashville-eateries/          /markets/nashville/          301
+/markets/new-york-city-eateries/      /markets/new-york-city/      301
+/markets/riviera-beach-eateries/      /markets/riviera-beach/      301
+/markets/saudi-arabia-eateries/       /markets/saudi-arabia/       301
+/markets/tampa-eateries/              /markets/tampa/              301
+/markets/west-palm-beach-eateries/    /markets/west-palm-beach/    301
+
 # Firm pages moved to a flat /firm/<slug>/ structure (merging firms that are
 # both architect + developer into one page). Redirect every old shape:
 #   - the previous static location under /map/

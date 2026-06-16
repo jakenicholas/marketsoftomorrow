@@ -2321,7 +2321,10 @@ def main():
         top_arch = arch_counter.most_common(1)[0][0] if arch_counter else None
         intro, long_copy = city_type_intro(city, ptype, bucket, top_arch)
 
-        type_label = TYPE_PHRASING.get(ptype, ptype + 's')
+        # Default plural is `ptype + 's'`, but guard against types that already
+        # end in 's' (Residences, Eateries, etc.) — without this they render as
+        # "Residencess" / "Eateriess" wherever TYPE_PHRASING has no entry.
+        type_label = TYPE_PHRASING.get(ptype, ptype if ptype.endswith('s') else ptype + 's')
         h1 = f"New {city} {type_label}"
         # SEO title: lead with the COUNT (drives CTR), the location, the keyword,
         # and the year so the SERP listing reads as freshly current.
@@ -2455,7 +2458,10 @@ def main():
         bucket_sorted = sort_projects(bucket)
         city_counter = collections.Counter((p.get('City') or '').strip() for p in bucket if (p.get('City') or '').strip())
         intro, long_copy = type_intro(ptype, bucket, city_counter.most_common(3))
-        type_label = TYPE_PHRASING.get(ptype, ptype + 's')
+        # Default plural is `ptype + 's'`, but guard against types that already
+        # end in 's' (Residences, Eateries, etc.) — without this they render as
+        # "Residencess" / "Eateriess" wherever TYPE_PHRASING has no entry.
+        type_label = TYPE_PHRASING.get(ptype, ptype if ptype.endswith('s') else ptype + 's')
         h1 = f"New {type_label} Worldwide"
         title_tag = f"{len(bucket)} New {type_label} Worldwide ({CURRENT_YEAR}) | {SITE_NAME}"
         _sb = _status_breakdown(bucket)
