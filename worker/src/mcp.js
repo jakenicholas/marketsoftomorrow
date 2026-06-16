@@ -488,7 +488,7 @@ const TOOLS = [
         target_name: { type: 'string', description: 'The current name of that project, for display' },
         changes: {
           type: 'object',
-          description: 'Map of field → NEW value. Only include fields that should change. Allowed keys: name, status, city, neighborhood, latitude, longitude, website, units, floors, start_date, delivery_date, description, description_long.',
+          description: 'Map of field → NEW value. Only include fields that should change. Allowed keys: name, status, city, neighborhood, latitude, longitude, website, units, floors, start_date, delivery_date, description, description_long, types (array — FULL replacement list of type tags, normalized against the canonical vocabulary), preferred_type (single canonical tag — most often "Mixed-Use" when re-classifying multi-use projects).',
         },
         proposal_note: { type: 'string', description: 'Human-readable rationale, e.g. \'"name" needs to be changed per this article I found\'' },
         source_note: { type: 'string', description: 'Source URL / where this came from' },
@@ -527,6 +527,8 @@ const TOOLS = [
         floors: { type: 'integer', description: 'Floor / story count — fill/correct from a credible source (auto-applies)' },
         keys: { type: 'integer', description: 'Hotel key (room) count — fill/correct from a credible source for hotels/resorts (auto-applies)' },
         neighborhood: { type: 'string', description: 'Neighborhood / submarket / district the project sits in (e.g. "Design District", "Northwood", "Brickell", "Wynwood", "Edgewater"). Auto-applies like specs. Fill it whenever you can identify it from the source/address — it powers neighborhood-level search & filtering. Use the canonical local name, not a street.' },
+        types: { type: 'array', items: { type: 'string' }, description: 'FULL replacement list of project type tags (auto-applies). Use to re-classify — most commonly to promote a multi-use project to Mixed-Use, or to add a Retail tag to a project that had Eateries. Pass the WHOLE list (not a diff); pre-existing tags not in this array are removed. Tags are normalized against the existing vocabulary and unrecognized tags are dropped — never coin new ones. CLASSIFICATION RULE: Resort always wins (preferred_type=Resort, no Mixed-Use). Otherwise, if 2+ types from {Residences, Office, Hotel, Retail, Cultural, Education, Entertainment, Stadium, Hospital, Travel} are present, the project IS Mixed-Use (add "Mixed-Use" to types AND set preferred_type="Mixed-Use"). Hospitality with amenities only (Hotel + Eateries/Spa/Park/Marina) stays Hotel — restaurants and spas are amenities, not separate primary uses.' },
+        preferred_type: { type: 'string', description: 'Single primary type the dossier should treat as canonical. Auto-applies. Use alongside `types` when promoting to Mixed-Use (set preferred_type:"Mixed-Use"). Falls through if unrecognized.' },
         correction: { type: 'boolean', description: 'Set TRUE only to CORRECT an over-stated status BACKWARD — i.e. the project is recorded at a LATER phase than reality and credible, current sources show it has not reached it (e.g. marked "construction" or "breaking-ground" but it has NOT broken ground → set new_status "announced", correction:true). This is the ONLY case status may move backward. Requires a credible source_url and a note explaining why. Omit/false for all normal forward sweeps.' },
         backfill: { type: 'boolean', description: 'Set TRUE to LOG A PAST status milestone to the dossier timeline WITHOUT changing current status. Used for empty-history projects — e.g. 14 ROC is currently at breaking-ground but its original 2024 announcement was never recorded → call with backfill:true, new_status:"announced", effective_date:"2024-XX-XX", source_url:<announcement source>, note:<headline-style summary>. Requires new_status (the past status being logged) + effective_date (when it actually happened). Append-only — does not modify p.status. The construction sweep uses this to fill in original announcements (and any other past anchors) on projects whose status_history is empty, so every project has at least one sourced entry.' },
       },
@@ -1959,7 +1961,14 @@ const IMPL = {
     // MCP-facing names → canonical project.json field names.
     const KEYMAP = { latitude: 'lat', longitude: 'lng', website: 'official_website' };
     const ALLOWED = new Set(['name', 'status', 'city', 'neighborhood', 'lat', 'lng', 'official_website',
-      'units', 'floors', 'start_date', 'delivery_date', 'description', 'description_long']);
+      'units', 'floors', 'start_date', 'delivery_date', 'description', 'description_long',
+      'types', 'preferred_type']);
+    // Types / preferred_type need vocabulary normalization (drop unrecognized
+    // tags) before they land in the proposal — same canon as create_map_draft +
+    // update_project_status — so a reviewer doesn't see an out-of-vocab tag.
+    let canonTypes = null;
+    const needCanon = ('types' in changesIn) || ('preferred_type' in changesIn);
+    if (needCanon) canonTypes = await loadCanonTypes();
 
     // Resolve the live record (best-effort) to populate each change's `from`.
     // Display-only — the admin re-reads live projects.json when applying.
@@ -1972,6 +1981,7 @@ const IMPL = {
         neighborhood: live.Neighborhood, lat: live.Latitude, lng: live.Longitude, official_website: live.OfficialWebsite,
         units: live.Units, floors: live.Floors, start_date: live.StartDate,
         delivery_date: live.DeliveryDate, description: live.Description, description_long: live.DescriptionLong,
+        types: splitList(live.ProjectType), preferred_type: live.PreferredType,
       };
       const v = m[k];
       return (v === undefined || v === '') ? null : v;
@@ -1984,6 +1994,8 @@ const IMPL = {
       let to = v;
       if (k === 'lat' || k === 'lng') to = (v == null || v === '' || isNaN(Number(v))) ? null : Number(v);
       else if (k === 'units' || k === 'floors') to = (v == null || v === '' || isNaN(parseInt(v, 10))) ? null : parseInt(v, 10);
+      else if (k === 'types') to = (Array.isArray(v) ? resolveTypes(v, canonTypes).types : []);
+      else if (k === 'preferred_type') to = (v == null ? null : (normType(v, canonTypes) || null));
       else to = (v == null) ? null : String(v);
       changes[k] = { from: fromVal(k), to };
     }
@@ -2105,6 +2117,22 @@ const IMPL = {
     // Neighborhood / submarket — a free-text spec field that auto-applies like
     // units/floors (many projects are missing it; it powers neighborhood search).
     const nbhdWanted = (args.neighborhood != null && String(args.neighborhood).trim() !== '') ? String(args.neighborhood).trim() : null;
+    // Project types + preferred_type — re-classification (e.g. promoting
+    // multi-use hotels to Mixed-Use, or auto-tagging Mixed-Use when the sweep
+    // sees both Residences + Office on a record). Auto-applies like specs.
+    // Pass the FULL replacement list in `types`; null/omit leaves it unchanged.
+    const typesProvided = Array.isArray(args.types);
+    let typesWanted = null, preferredWanted = null;
+    if (typesProvided || args.preferred_type) {
+      const canonTypes = await loadCanonTypes();
+      if (typesProvided) {
+        const res = resolveTypes(args.types, canonTypes);
+        typesWanted = res.types;
+      }
+      if (args.preferred_type != null && String(args.preferred_type).trim() !== '') {
+        preferredWanted = normType(args.preferred_type, canonTypes);
+      }
+    }
 
     for (let attempt = 0; ; attempt++) {
       const { sha, projects } = await readProjectsFile(env);
@@ -2135,11 +2163,20 @@ const IMPL = {
       const deliveryChanged = !!newDelivery && newDelivery !== clean(p.delivery_date);
       const numChanged = numWanted.filter((u) => u.val !== numOrNull(p[u.field]));
       const nbhdChanged = nbhdWanted != null && nbhdWanted !== String(p.neighborhood || '');
+      // Types / preferred_type re-classification (e.g. promoting Hotel + Residences
+      // to Mixed-Use). Compare current vs requested as sets; only mark changed when
+      // the actual set differs so an idempotent re-call doesn't churn the timeline.
+      const currentTypes = Array.isArray(p.types) ? p.types.slice() : [];
+      const typesChanged = typesWanted != null && (
+        currentTypes.length !== typesWanted.length ||
+        !currentTypes.every((t) => typesWanted.indexOf(t) >= 0)
+      );
+      const preferredChanged = preferredWanted != null && preferredWanted !== String(p.preferred_type || '');
       // A milestone is always a new dated event to log (idempotency isn't
       // enforced — the same phase can legitimately recur with a corrected date;
       // humans can prune dupes in the Studio milestones editor).
       const milestoneAdded = !!milestone;
-      const anyExtra = startChanged || deliveryChanged || numChanged.length > 0 || nbhdChanged || milestoneAdded || isBackfill;
+      const anyExtra = startChanged || deliveryChanged || numChanged.length > 0 || nbhdChanged || typesChanged || preferredChanged || milestoneAdded || isBackfill;
 
       // A backward status WITHOUT the correction flag is refused — guards against
       // accidental regressions during a normal forward sweep. Backfill bypasses
@@ -2214,6 +2251,18 @@ const IMPL = {
         p.neighborhood = nbhdWanted;
         p.status_history.push({ ...base, type: 'field', field: 'neighborhood', from: old, to: nbhdWanted });
         changes.push(`neighborhood ${old || '—'}→${nbhdWanted}`);
+      }
+      if (typesChanged) {
+        const old = currentTypes;
+        p.types = typesWanted.slice();
+        p.status_history.push({ ...base, type: 'field', field: 'types', from: old, to: typesWanted });
+        changes.push(`types [${old.join(', ') || '—'}]→[${typesWanted.join(', ')}]`);
+      }
+      if (preferredChanged) {
+        const old = String(p.preferred_type || '') || null;
+        p.preferred_type = preferredWanted;
+        p.status_history.push({ ...base, type: 'field', field: 'preferred_type', from: old, to: preferredWanted });
+        changes.push(`preferred_type ${old || '—'}→${preferredWanted}`);
       }
       if (milestoneAdded) {
         // A finer construction-phase event for the dossier (does not touch status).
