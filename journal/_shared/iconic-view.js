@@ -38,7 +38,8 @@
       '.iv-btn svg{width:16px; height:16px}' +
       '.iv-btn .iv-t{font-family:var(--serif); font-weight:700; font-size:16px; line-height:1}' +
       '.iv-sheet{margin-top:10px; border:1px solid var(--hair); border-radius:14px; overflow:hidden; background:rgba(255,255,255,.015)}' +
-      '.iv-row{display:grid; grid-template-columns:56px 1.5fr 1fr 1fr; gap:18px; align-items:center; padding:13px 22px; border-top:1px solid var(--hair)}' +
+      /* 5 columns now: rank · name · location · details · lat/lng */
+      '.iv-row{display:grid; grid-template-columns:56px 1.5fr 1fr 1fr 1.4fr; gap:18px; align-items:center; padding:13px 22px; border-top:1px solid var(--hair)}' +
       '.iv-row:first-child{border-top:0}' +
       '.iv-head{font-family:var(--mono); font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--mute); background:rgba(255,255,255,.025)}' +
       '.iv-row:not(.iv-head):hover{background:rgba(230,197,116,.05)}' +
@@ -48,8 +49,17 @@
       '.iv-nm a:hover{color:var(--gold-soft)}' +
       '.iv-lc{font-family:var(--mono); font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--green); min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}' +
       '.iv-dt{font-size:13px; color:var(--mute-2); min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}' +
+      /* Lat / Lng cell — clickable link to Google Maps so the user can
+         verify the geocoded coordinate is actually pointing at the right
+         place. Red "Missing" state surfaces items the geocoder couldn\'t
+         find — those are the ones that drop off the map view. */
+      '.iv-cd{font-family:var(--mono); font-size:11px; color:var(--gold-soft); min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-variant-numeric:tabular-nums}' +
+      '.iv-cd a{color:inherit; text-decoration:none; border-bottom:1px dashed rgba(230,197,116,.4); transition:border-color .15s, color .15s}' +
+      '.iv-cd a:hover{color:var(--gold); border-color:var(--gold)}' +
+      '.iv-cd.miss{color:var(--danger); opacity:.85; font-weight:600; letter-spacing:.08em; text-transform:uppercase}' +
       '.iv-empty{padding:50px 0; text-align:center; color:var(--mute); font-family:var(--mono); font-size:13px; letter-spacing:.1em}' +
-      '@media(max-width:760px){.iv-row{grid-template-columns:38px 1fr auto; gap:12px} .iv-row .iv-dt{display:none} .iv-head span:nth-child(4){display:none}}' +
+      /* Mobile: drop Details + Lat/Lng columns (still visible on the map view). */
+      '@media(max-width:760px){.iv-row{grid-template-columns:38px 1fr auto; gap:12px} .iv-row .iv-dt, .iv-row .iv-cd{display:none} .iv-head span:nth-child(4), .iv-head span:nth-child(5){display:none}}' +
       /* ── Map view ── */
       '.iv-map-wrap{margin-top:10px; border:1px solid var(--hair); border-radius:14px; overflow:hidden; background:#0a0c0a; position:relative}' +
       '.iv-map{width:100%; height:min(72vh, 720px); min-height:480px; background:#0a0c0a}' +
@@ -186,8 +196,11 @@
 
     function buildSheet() {
       var cards = [].slice.call(ranking.querySelectorAll('.rank-item'));
-      var head = '<div class="iv-row iv-head"><span>#</span><span>Name</span><span>Location</span><span>Details</span></div>';
+      var head = '<div class="iv-row iv-head">' +
+        '<span>#</span><span>Name</span><span>Location</span><span>Details</span><span>Lat / Lng</span>' +
+        '</div>';
       if (!cards.length) { sheet.innerHTML = head + '<div class="iv-empty">Nothing in this region yet.</div>'; return; }
+      var cache = loadCache();
       var body = cards.map(function (c) {
         function txt(sel) { var e = c.querySelector(sel); return e ? e.textContent.trim() : ''; }
         var arch = txt('.ri-chip.arch').replace(/^[^A-Za-z0-9]+/, '').trim();
@@ -196,12 +209,33 @@
         var cta = c.querySelector('.btn-cta');
         var href = cta ? (cta.getAttribute('href') || '') : '';
         var name = txt('.ri-name');
+        var loc  = txt('.ri-loc');
         var nm = (href && href !== '#') ? ('<a href="' + esc(href) + '" target="_blank" rel="noopener">' + esc(name) + '</a>') : esc(name);
+        // Lat/Lng cell — sourced from the cached geocode. Click opens
+        // Google Maps so the user can verify the point is actually
+        // pointing at the right place. Red "Missing" surfaces items
+        // the geocoder couldn\'t place (they\'re also absent from the
+        // Map view, so this lines them up for the user to fix the
+        // location string in the source data).
+        var coord = cache[loc];
+        var coordCell;
+        if (Array.isArray(coord) && coord.length === 2) {
+          var lng = Number(coord[0]).toFixed(4);
+          var lat = Number(coord[1]).toFixed(4);
+          coordCell = '<span class="iv-cd">' +
+            '<a href="https://www.google.com/maps?q=' + esc(lat + ',' + lng) +
+            '" target="_blank" rel="noopener" title="Verify on Google Maps">' +
+            esc(lat + ', ' + lng) + '</a></span>';
+        } else {
+          coordCell = '<span class="iv-cd miss">Missing</span>';
+        }
         return '<div class="iv-row">' +
           '<span class="iv-rk">' + esc(txt('.ri-rank')) + '</span>' +
           '<span class="iv-nm">' + nm + '</span>' +
-          '<span class="iv-lc">' + esc(txt('.ri-loc')) + '</span>' +
-          '<span class="iv-dt">' + esc(details) + '</span></div>';
+          '<span class="iv-lc">' + esc(loc) + '</span>' +
+          '<span class="iv-dt">' + esc(details) + '</span>' +
+          coordCell +
+          '</div>';
       }).join('');
       sheet.innerHTML = head + body;
     }
@@ -355,7 +389,23 @@
       });
     }
 
+    // The view toggle sits in .tabs-bar, which is visible on every tab
+    // (Ranking, Latest News, About). If a user clicks a toggle while
+    // viewing About or News, nothing visible changes because the
+    // Ranking panel is hidden. Force the Ranking tab active first so
+    // the view-mode change actually lands somewhere the user can see.
+    function ensureRankingTabActive() {
+      var rankingBtn = document.querySelector('.tab-btn[data-tab="ranking"]');
+      if (rankingBtn && !rankingBtn.classList.contains('on')) {
+        // Page wires its own click handler that toggles .on classes on
+        // .tab-btn + .tab-panel — fire that instead of duplicating
+        // the logic here so any future per-page side effects keep working.
+        rankingBtn.click();
+      }
+    }
+
     function setMode(v) {
+      ensureRankingTabActive();
       if (v === mode) return;
       mode = v;
       var btns = tg.querySelectorAll('.iv-btn');
