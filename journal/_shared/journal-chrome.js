@@ -270,7 +270,7 @@
       // to ANY page — and vice versa. Headline is contextual to this market.
       (function () {
         // Place = the breadcrumb crumb right after "Markets" (city/state).
-        var place = '', count = '';
+        var place = '';
         try {
           var crumbNav = document.querySelector('nav.crumbs, .crumbs');
           if (crumbNav) {
@@ -279,16 +279,11 @@
             var cand = mi >= 0 ? (parts[mi + 1] || '') : '';
             if (cand && cand.toLowerCase() !== 'by type') place = cand;
           }
-          var live = document.querySelector('.he-live');
-          if (live) { var nm = live.textContent.match(/([\d,]+)/); if (nm) count = nm[1]; }
         } catch (e) {}
 
         var headline, eyebrow;
-        if (place && count) {
-          headline = 'Following ' + place + '? Get all ' + count + ' projects — and every new one — free in your inbox.';
-          eyebrow = place + ' · The Weekly';
-        } else if (place) {
-          headline = 'Following ' + place + '? Get every new project and milestone, free in your inbox.';
+        if (place) {
+          headline = 'Following ' + place + '? Get updates and more data with email sign-up.';
           eyebrow = place + ' · The Weekly';
         } else {
           headline = 'Separate yourself from millions of monthly readers and join our newsletter.';
