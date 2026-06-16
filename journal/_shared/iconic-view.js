@@ -57,21 +57,28 @@
       '.iv-map-status.hide{opacity:0}' +
       '.iv-map-status .dot{display:inline-block; width:6px; height:6px; border-radius:50%; background:var(--gold); margin-right:7px; vertical-align:1px; animation:ivPulse 1.6s ease-out infinite}' +
       '@keyframes ivPulse{0%,100%{opacity:.5} 50%{opacity:1; box-shadow:0 0 8px var(--gold)}}' +
-      /* Gold pin marker — square with star, matching the map page convention */
-      '.iv-pin{position:relative; width:26px; height:26px; border-radius:6px; background:var(--gold); display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 10px rgba(0,0,0,.5), 0 0 0 1.5px rgba(0,0,0,.4); transition:transform .15s, box-shadow .15s}' +
-      '.iv-pin:hover{transform:translateY(-3px) scale(1.08); box-shadow:0 6px 20px rgba(230,197,116,.45), 0 0 0 1.5px rgba(0,0,0,.4)}' +
-      '.iv-pin svg{width:14px; height:14px; fill:#0a0a0a}' +
-      '.iv-pin-rank{position:absolute; top:-7px; right:-9px; min-width:18px; height:18px; padding:0 5px; border-radius:9px; background:var(--ink); color:var(--gold-soft); font-family:var(--mono); font-size:10px; font-weight:700; display:flex; align-items:center; justify-content:center; border:1px solid var(--gold); font-variant-numeric:tabular-nums; line-height:1}' +
+      /* Gold pin marker — small circle with star. Smaller + round (per
+         feedback) so the map reads as a constellation of icons rather
+         than a grid of badges. */
+      '.iv-pin{position:relative; width:20px; height:20px; border-radius:50%; background:var(--gold); display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 8px rgba(0,0,0,.5), 0 0 0 1.5px rgba(0,0,0,.4); transition:transform .15s, box-shadow .15s}' +
+      '.iv-pin:hover{transform:translateY(-2px) scale(1.12); box-shadow:0 5px 16px rgba(230,197,116,.5), 0 0 0 1.5px rgba(0,0,0,.4)}' +
+      '.iv-pin svg{width:11px; height:11px; fill:#0a0a0a}' +
+      '.iv-pin-rank{position:absolute; top:-6px; right:-8px; min-width:16px; height:16px; padding:0 4px; border-radius:50%; background:var(--ink); color:var(--gold-soft); font-family:var(--mono); font-size:9px; font-weight:700; display:flex; align-items:center; justify-content:center; border:1px solid var(--gold); font-variant-numeric:tabular-nums; line-height:1}' +
       /* Popup — dark theme. Inner padding zeroed on .mapboxgl-popup-content
          so the hero photo can sit flush against the top + left + right
          edges; .iv-pop-body re-adds padding under the photo for text. */
-      '.mapboxgl-popup-content{background:rgba(13,15,14,.96)!important; color:var(--cream)!important; border:1px solid var(--hair-2); border-radius:14px; padding:0!important; font-family:var(--sans); box-shadow:0 14px 36px rgba(0,0,0,.65); max-width:340px; overflow:hidden}' +
+      '.mapboxgl-popup-content{background:rgba(13,15,14,.96)!important; color:var(--cream)!important; border:1px solid var(--hair-2); border-radius:16px; padding:0!important; font-family:var(--sans); box-shadow:0 14px 36px rgba(0,0,0,.65); max-width:340px; overflow:hidden}' +
       '.mapboxgl-popup-tip{border-top-color:rgba(13,15,14,.96)!important}' +
-      '.mapboxgl-popup-close-button{color:var(--white)!important; padding:2px 9px; font-size:20px; background:rgba(7,8,7,.55)!important; border-radius:999px; width:28px; height:28px; margin:8px 8px 0 0; -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px); z-index:2}' +
-      '.mapboxgl-popup-close-button:hover{background:rgba(7,8,7,.78)!important}' +
+      /* Centered X — flex-center the glyph inside a perfectly square dark
+         circle so it sits dead-middle on every browser. */
+      '.mapboxgl-popup-close-button{position:absolute; top:10px; right:10px; width:30px; height:30px; padding:0!important; margin:0; display:flex!important; align-items:center; justify-content:center; color:var(--white)!important; background:rgba(7,8,7,.6)!important; border-radius:50%; border:1px solid rgba(255,255,255,.16); font-size:18px; line-height:1; -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px); z-index:3; transition:background .15s, transform .15s}' +
+      '.mapboxgl-popup-close-button:hover{background:rgba(7,8,7,.85)!important; transform:scale(1.08)}' +
       '.iv-pop{font-family:var(--sans); width:320px; max-width:100%}' +
-      '.iv-pop-img{display:block; width:100%; height:170px; object-fit:cover; background:rgba(255,255,255,.04)}' +
-      '.iv-pop-img-fb{display:flex; align-items:center; justify-content:center; width:100%; height:170px; background:linear-gradient(135deg, rgba(230,197,116,.15), rgba(167,139,250,.10)); color:var(--gold-soft); font-family:var(--mono); font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; font-weight:600}' +
+      /* Rounded top corners on the hero photo to match the popup\'s
+         border-radius. Belt-and-suspenders with the parent\'s overflow
+         hidden so Safari + Firefox + Chrome all clip identically. */
+      '.iv-pop-img{display:block; width:100%; height:170px; object-fit:cover; background:rgba(255,255,255,.04); border-radius:15px 15px 0 0}' +
+      '.iv-pop-img-fb{display:flex; align-items:center; justify-content:center; width:100%; height:170px; background:linear-gradient(135deg, rgba(230,197,116,.15), rgba(167,139,250,.10)); color:var(--gold-soft); font-family:var(--mono); font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; font-weight:600; border-radius:15px 15px 0 0}' +
       '.iv-pop-body{padding:14px 16px 16px}' +
       '.iv-pop .iv-pop-rk{font-family:var(--mono); font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--gold-soft); margin-bottom:6px; font-weight:700}' +
       '.iv-pop .iv-pop-nm{font-family:var(--serif); font-size:20px; font-weight:600; color:var(--white); line-height:1.2; margin-bottom:6px; letter-spacing:-.01em}' +
