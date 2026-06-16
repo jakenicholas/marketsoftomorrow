@@ -735,7 +735,7 @@
     if (!window.tmwIntel) return '';
     var pro = window.tmwIntel.isPro && window.tmwIntel.isPro();
     if (pro) return '<span class="tmw-ov-pro on">PRO</span>';
-    var left = window.tmwIntel.left ? window.tmwIntel.left() : 10;
+    var left = window.tmwIntel.left ? window.tmwIntel.left() : ((window.tmwIntel && window.tmwIntel.FREE) || 5);
     var lowCls = left <= 3 ? ' low' : '';
     return '<span class="tmw-ov-quota'+lowCls+'">' + left + ' / 10 left</span>'
       + '<a class="tmw-ov-pro" href="https://www.oftmw.com/map/?upgrade=1" data-tmw-paywall="feature:intelligence">PRO</a>';
@@ -1236,7 +1236,7 @@
       +     '<span class="tmw-ov-intel-spark">'+ICON_SPARK+'</span>'
       +     '<span class="lbl">TMW Intelligence</span>'
       +   '</div>'
-      +   '<p class="tmw-ov-intel-ans">You’ve used all <b>10 free</b> TMW Intelligence searches. Go <b>Pro</b> for unlimited natural-language search across the entire development pipeline — every project, firm, and milestone.</p>'
+      +   '<p class="tmw-ov-intel-ans">You’ve used all <b>' + ((window.tmwIntel && window.tmwIntel.FREE) || 5) + ' free</b> TMW Intelligence searches. Go <b>Pro</b> for unlimited natural-language search across the entire development pipeline — every project, firm, and milestone.</p>'
       +   '<a class="tmw-ov-pro-btn" href="https://www.oftmw.com/map/?upgrade=1" data-tmw-paywall="feature:intelligence">Go Pro — unlimited intelligence</a>'
       + '</section>';
   }
@@ -1835,7 +1835,7 @@
     // LLM upgrade: replace the deterministic sentence with prose (stats stay).
     if (rows.length) fireSmartIntelUpgrade(q, s, rows);
 
-    // Count this query against the user's 10 free (intelligence.js gate)
+    // Count this query against the user's free quota (window.tmwIntel.FREE)
     try {
       if (window.tmwIntel && window.tmwIntel.count) window.tmwIntel.count(q);
       if (window.tmwIntel && window.tmwIntel.track) window.tmwIntel.track(q, { results: rows.length, sort: s.sort ? s.sort.label : null, source: 'overlay' });
@@ -2360,7 +2360,8 @@
         if (myToken !== _intelToken) return;
         if (res && res.ok && res.answer){
           slotIntel.innerHTML = intelPanelHtml('answer', q, res.answer);
-          // Count this against the user's 10 free queries (intelligence.js
+          // Count this against the user's free quota (window.tmwIntel.FREE)
+          // (intelligence.js
           // gate; Pro users are uncounted). Mirrors /search/.
           try {
             if (window.tmwIntel && window.tmwIntel.count) window.tmwIntel.count(q);

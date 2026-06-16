@@ -189,11 +189,11 @@
    // that opens it. The questions list lives in journal-search-overlay.js's
    // STARTER_CHIPS now, mirrored from the original wording here.)
   // ── TMW Intelligence quota (shared) ─────────────────────────────────────
-  // Non-Pro members get 10 free natural-language searches (per device); Pro is
+  // Non-Pro members get 5 free natural-language searches (per device); Pro is
   // unlimited and never sees a count. Exposed on window so the /search/ page can
   // count + gate + track against the same state.
   window.tmwIntel = {
-    FREE: 10,
+    FREE: 5,
     isPro: function () {
       try { return window._isPaidMember === true
         || (window.__tmwMember && window.__tmwMember.plan === 'paid')
