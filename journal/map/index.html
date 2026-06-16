@@ -13476,6 +13476,9 @@
           ".tmw-il-scrub input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 0 0 4px rgba(167,139,250,.3),0 2px 6px rgba(0,0,0,.5);cursor:pointer}" +
           ".tmw-il-ticks{display:flex;justify-content:space-between;margin-top:3px;font-size:8.5px;color:rgba(255,255,255,.4);font-variant-numeric:tabular-nums}" +
           ".tmw-il-pulse{width:13px;height:13px;border-radius:50%;background:#B9A6FF;cursor:pointer;animation:tmwIlGlow 1.9s ease-in-out infinite}" +
+          ".tmw-name-preview-popup .mapboxgl-popup-content{background:#0a0a0a;color:#B9A6FF;font:600 12px/1.2 Inter,system-ui,sans-serif;letter-spacing:.01em;padding:7px 11px;border-radius:7px;box-shadow:0 4px 14px rgba(0,0,0,.55);border:1px solid rgba(167,139,250,.4);max-width:240px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}" +
+          ".tmw-name-preview-popup .mapboxgl-popup-tip{border-top-color:#0a0a0a !important}" +
+          ".tmw-name-preview{color:#B9A6FF}" +
           "@keyframes tmwIlGlow{0%,100%{box-shadow:0 0 0 2px rgba(255,255,255,.92),0 0 7px 2px rgba(167,139,250,.55)}50%{box-shadow:0 0 0 2px rgba(255,255,255,.92),0 0 17px 6px rgba(167,139,250,.95)}}" +
           "@media(max-width:820px){.tmw-il-panel{top:68px;left:12px;right:auto;bottom:auto;width:212px;padding:10px 12px}.tmw-il-ph{margin-bottom:8px}.tmw-il-panel h4{font-size:13px}.tmw-il-toggle i{display:none}.tmw-il-legend{font-size:10px}.tmw-il-scrub{bottom:84px;width:92vw;padding:7px 12px 9px}.tmw-il-yr{font-size:14px}}";
         document.head.appendChild(st);
@@ -13522,6 +13525,12 @@
             const slug = f.properties && f.properties.title ? slugify(f.properties.title) : '';
             if (!slug || !movingSet.has(slug) || !f.geometry || !f.geometry.coordinates) return;
             const el = document.createElement('div'); el.className = 'tmw-il-pulse';
+            el.dataset.slug = slug;
+            // Already-selected project? Hide the pulse so it doesn't cover the pink pin.
+            if (window._selectedPinTitle && window.projectSlugify
+                && window.projectSlugify(window._selectedPinTitle) === slug) {
+              el.dataset.hiddenForSelection = '1'; el.style.display = 'none';
+            }
             const mk = new mapboxgl.Marker({ element: el }).setLngLat(f.geometry.coordinates).addTo(map);
             el.addEventListener('click', ()=>{ new mapboxgl.Popup({offset:14,closeButton:false}).setLngLat(f.geometry.coordinates)
               .setHTML('<div style="font:700 13px Inter,sans-serif;color:#fff">'+String(f.properties.title||'').replace(/</g,'&lt;')+'</div><div style="font:600 11px Inter,sans-serif;color:#B9A6FF;margin-top:3px">● Moving now</div>').addTo(map); });
@@ -13530,7 +13539,13 @@
           setMoving(movingOn);
         }
         function setMoving(on){ movingOn = on; window._whatsMovingOn = on;
-          markers.forEach(m=>{ m.getElement().style.display = on ? '' : 'none'; });
+          markers.forEach(m=>{
+            const el = m.getElement();
+            // A pulse hidden because its project is currently selected stays
+            // hidden regardless of the global What's Moving toggle.
+            if (el.dataset && el.dataset.hiddenForSelection) { el.style.display = 'none'; return; }
+            el.style.display = on ? '' : 'none';
+          });
           // Dim the field while What's Moving is on — but keep the SELECTED pin
           // fully opaque (solid pink) via a per-feature case on its title.
           const baseOp = on ? 0.5 : 0.92;
@@ -13828,6 +13843,71 @@
       });
     }
 
+    // ── Selection side-effects (bring-to-front + suppress conflicting pulse) ──
+    // The selected pin lives in the same `unclustered-point` circle layer as
+    // every other pin; without a sort-key it can render UNDER neighbors. And
+    // the "What's Moving" pulse marker (DOM overlay) for the same project
+    // sits on top of the pin, hiding the pink dot the user just clicked. This
+    // helper handles BOTH: data-driven circle-sort-key (selected→100, others→0)
+    // and a hide flag on the matching pulse element. Pass null to reset.
+    function applySelectionSideEffects(selectedTitle) {
+      const slug = (selectedTitle && window.projectSlugify) ? window.projectSlugify(selectedTitle) : '';
+      ['unclustered-point','unclustered-point-completed'].forEach(id => {
+        if (!map.getLayer(id)) return;
+        try {
+          const expr = selectedTitle
+            ? ['case', ['==', ['get','title'], selectedTitle], 100, 0]
+            : 0;
+          map.setLayoutProperty(id, 'circle-sort-key', expr);
+        } catch(e) {}
+      });
+      document.querySelectorAll('.tmw-il-pulse').forEach(el => {
+        const matches = slug && el.dataset && el.dataset.slug === slug;
+        if (matches) {
+          el.dataset.hiddenForSelection = '1';
+          el.style.display = 'none';
+        } else if (el.dataset && el.dataset.hiddenForSelection) {
+          delete el.dataset.hiddenForSelection;
+          if (window._whatsMovingOn) el.style.display = '';
+        }
+      });
+    }
+
+    // ── Two-stage popup: small "name only" preview ──────────────────────────
+    // When a pin is FIRST selected (click or deep-link) we show a tiny black
+    // popup with just the project name in purple. A second click on the pin
+    // OR a click on this preview promotes to the full popup card (showPopup).
+    function showSelectedPreview(f) {
+      clearSelectedPreview();
+      if (!f || !f.geometry || !f.geometry.coordinates) return;
+      const co = f.geometry.coordinates;
+      const title = (f.properties && f.properties.title) || '';
+      const escA = (s) => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      const popup = new mapboxgl.Popup({
+        closeButton: false, closeOnClick: false, anchor: 'bottom',
+        offset: [0, -14], className: 'tmw-name-preview-popup', maxWidth: 'none'
+      }).setLngLat(co).setHTML('<div class="tmw-name-preview">' + escA(title) + '</div>').addTo(map);
+      const el = popup.getElement();
+      if (el) {
+        el.style.cursor = 'pointer';
+        el.addEventListener('click', () => {
+          try { popup.remove(); } catch(e){}
+          window._tmwSelectedPreview = null;
+          window._tmwSelectedPreviewFeature = null;
+          showPopup(f);
+        });
+      }
+      window._tmwSelectedPreview = popup;
+      window._tmwSelectedPreviewFeature = f;
+    }
+    function clearSelectedPreview() {
+      if (window._tmwSelectedPreview) {
+        try { window._tmwSelectedPreview.remove(); } catch(e){}
+        window._tmwSelectedPreview = null;
+      }
+      window._tmwSelectedPreviewFeature = null;
+    }
+
     function zoomToPinOnly(f) {
       const co = f.geometry.coordinates;
       const selectedTitle = f.properties.title;
@@ -13842,6 +13922,7 @@
         map.setPaintProperty('unclustered-point', 'circle-opacity', ['case', ['==', ['get','title'], selectedTitle], 1, (window._whatsMovingOn ? 0.5 : 1)]);
       }
       window._selectedPinTitle = selectedTitle;
+      applySelectionSideEffects(selectedTitle);
 
       // Clear any previously-open popup before flying. Without this, the
       // last-clicked pin's popup lingers on screen while the camera moves
@@ -14954,6 +15035,7 @@
             map.setPaintProperty('unclustered-point', 'circle-radius', _pinkRad);
             map.setPaintProperty('unclustered-point', 'circle-opacity', ['case', ['==', ['get','title'], _selTitle], 1, (window._whatsMovingOn ? 0.5 : 1)]);
             window._selectedPinTitle = _selTitle;
+            if (typeof applySelectionSideEffects === 'function') applySelectionSideEffects(_selTitle);
           }
         } catch(_) {}
 
@@ -15343,6 +15425,8 @@
           }
           if (window._selectedPinMarker) { window._selectedPinMarker.remove(); window._selectedPinMarker = null; }
           window._selectedPinTitle = null;
+          applySelectionSideEffects(null);
+          clearSelectedPreview();
         }
 
         // On mobile: re-expand the drawer if we came from a tile
@@ -15588,6 +15672,9 @@
         map.setPaintProperty('unclustered-point', 'circle-opacity', ['case', ['==', ['get','title'], selectedTitle], 1, (window._whatsMovingOn ? 0.5 : 1)]);
       }
       window._selectedPinTitle = selectedTitle;
+      applySelectionSideEffects(selectedTitle);
+      // Full popup supersedes the small name-only preview if one is showing.
+      clearSelectedPreview();
 
       // No pulse ring — the selected pin is a solid, fully-opaque pink dot
       // (circle-color #FF3D9A set above). The pulsing glow was removed per design.
@@ -15750,6 +15837,8 @@
         }
         if (window._selectedPinMarker) { window._selectedPinMarker.remove(); window._selectedPinMarker = null; }
         window._selectedPinTitle = null;
+        applySelectionSideEffects(null);
+        clearSelectedPreview();
       });
 
       // Camera offset: shifts where the target pin lands relative to the
@@ -17170,6 +17259,8 @@
         map.setPaintProperty('unclustered-point', 'circle-radius', 4.5);
       }
       window._selectedPinTitle = null;
+      applySelectionSideEffects(null);
+      clearSelectedPreview();
       // Fly to the original load view + reset orientation to north-up, no tilt
       map.flyTo({
         center: isMobile ? [-90.0, 35.0] : [-95.0, 38.5],
@@ -18257,6 +18348,14 @@
               : raw;
             gtag('event','project_click',{'project_name':f.properties.title,'project_city':f.properties.city,'project_featured':f.properties.featured||false,'click_source':'map_pin','device_type':isMobile?'mobile':'desktop'});
 
+            // Two-stage popup: a first click on a fresh pin shows just a
+            // small name-only preview (selected state). Clicking the SAME
+            // pin again (or the preview itself) promotes to the full popup.
+            const prevFeature = window._tmwSelectedPreviewFeature;
+            const isReclick = !!(window._tmwSelectedPreview
+              && prevFeature && prevFeature.properties
+              && prevFeature.properties.title === f.properties.title);
+
             // Center the popup vertically: shift the camera so the pin
             // lands near the bottom of the screen on mobile (just above
             // the search bar) or ~150px below center on desktop. Popup
@@ -18274,12 +18373,30 @@
             }
             const tolerance = 30; // px
             const popupYDelta = Math.abs(screenPt.y - targetY);
+            const renderAfterEase = () => {
+              if (isReclick) {
+                clearSelectedPreview();
+                showPopup(f);
+              } else {
+                // Selection styling without the full popup card.
+                if (map.getLayer('unclustered-point')) {
+                  const pinkPinExpr = ['case', ['==', ['get','title'], f.properties.title], '#FF3D9A', window.TMW_STATUS_COLOR];
+                  const pinkRadExpr = ['case', ['==', ['get','title'], f.properties.title], 10, 4.5];
+                  map.setPaintProperty('unclustered-point', 'circle-color', pinkPinExpr);
+                  map.setPaintProperty('unclustered-point', 'circle-radius', pinkRadExpr);
+                  map.setPaintProperty('unclustered-point', 'circle-opacity', ['case', ['==', ['get','title'], f.properties.title], 1, (window._whatsMovingOn ? 0.5 : 1)]);
+                }
+                window._selectedPinTitle = f.properties.title;
+                applySelectionSideEffects(f.properties.title);
+                showSelectedPreview(f);
+              }
+            };
             if (popupYDelta > tolerance) {
               const yOffset = targetY - (window.innerHeight * 0.5);
               map.easeTo({ center: co, offset: [0, yOffset], duration: 350, essential: true });
-              map.once('moveend', () => { showPopup(f); });
+              map.once('moveend', renderAfterEase);
             } else {
-              showPopup(f);
+              renderAfterEase();
             }
           }
           map.on('click','unclustered-point',           handlePinClick);
