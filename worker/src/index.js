@@ -15,7 +15,7 @@
 //   account acts as a non-human principal granted read-only access to one
 //   specific GA4 property. The README walks through the GCP-side setup.
 
-import { handleMcp } from './mcp.js';
+import { handleMcp, autoPromoteOpenedProjects } from './mcp.js';
 import { handleOAuth } from './oauth.js';
 import { handleGallery } from './gallery.js';
 
@@ -4612,6 +4612,20 @@ async function maybeBackfillWixViews(env) {
   } catch (_) {}
 }
 
+// Daily sweep: flip Opening Soon → Now Open for any project whose stated
+// delivery date has fully passed. Same lock/claim pattern as the Wix view
+// backfill (24h throttle via metaGet/metaSet) — claim BEFORE running so
+// an overlapping tick can't double-write projects.json.
+async function maybeAutoPromoteOpenings(env) {
+  try {
+    const last = parseInt(await metaGet(env, 'auto_promote_openings_last') || '0', 10) || 0;
+    const now = Math.floor(Date.now() / 1000);
+    if (now - last < 86400) return;
+    await metaSet(env, 'auto_promote_openings_last', now);
+    await autoPromoteOpenedProjects(env);
+  } catch (_) {}
+}
+
 async function handleBackfillWixViews(req, env, origin) {
   const denied = await requireAdminToken(req, env, origin);
   if (denied) return denied;
@@ -5198,5 +5212,6 @@ export default {
   async scheduled(event, env, ctx) {
     ctx.waitUntil(migrationTick(env));
     ctx.waitUntil(maybeBackfillWixViews(env));   // refresh Wix view baseline ~daily
+    ctx.waitUntil(maybeAutoPromoteOpenings(env)); // flip Opening Soon → Now Open for past-due projects
   },
 };

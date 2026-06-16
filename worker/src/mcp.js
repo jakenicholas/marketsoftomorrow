@@ -2421,6 +2421,81 @@ async function dispatch(msg, env) {
   return rpcError(id, -32601, 'Method not found: ' + method);
 }
 
+// Compute the LAST day of a stored delivery_date period — YYYY-MM-DD stays as-is,
+// YYYY-MM expands to that month's last day, YYYY expands to Dec 31. Used by the
+// daily auto-promote tick to decide whether the stated delivery date has FULLY
+// passed (we don't flip a project to Now Open in the middle of a stated month
+// or year — we wait until the whole period has lapsed).
+function deliveryPeriodEnd(dd) {
+  const s = String(dd || '').trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  if (/^\d{4}-\d{2}$/.test(s)) {
+    const [y, m] = s.split('-').map(Number);
+    const last = new Date(Date.UTC(y, m, 0)).getUTCDate();
+    return s + '-' + String(last).padStart(2, '0');
+  }
+  if (/^\d{4}$/.test(s)) return s + '-12-31';
+  return null;
+}
+
+// Daily auto-promote: any project with status='coming-soon' whose delivery_date
+// period has fully passed gets flipped to 'open'. Mirrors what a human running
+// update_project_status would do — sets status, appends a status_history entry
+// (with effective_date = the stated delivery date so the dossier timeline lines
+// up), and writes projects.json back with one commit covering all promotions.
+// Skips projects flagged delivery_speculative=true (TMW estimate, not a
+// developer-committed date — never auto-promote on guesses).
+//
+// Called from the worker cron via maybeAutoPromoteOpenings() in index.js, which
+// throttles it to once per day using metaGet/metaSet (same pattern as the Wix
+// view backfill).
+export async function autoPromoteOpenedProjects(env) {
+  requireGhToken(env);
+  const todayIso = new Date().toISOString().slice(0, 10);
+
+  for (let attempt = 0; ; attempt++) {
+    const { sha, projects } = await readProjectsFile(env);
+    const nowIso = new Date().toISOString();
+    const promoted = [];
+
+    for (const p of projects) {
+      if (!p || String(p.status || '').toLowerCase() !== 'coming-soon') continue;
+      if (p.delivery_speculative === true) continue;
+      const dd = String(p.delivery_date || '').trim();
+      if (!dd) continue;
+      const cutoff = deliveryPeriodEnd(dd);
+      if (!cutoff || cutoff >= todayIso) continue;
+
+      const from = p.status;
+      p.status = 'open';
+      if (!Array.isArray(p.status_history)) p.status_history = [];
+      p.status_history.push({
+        at: nowIso,
+        source_url: 'tmw://auto-promote',
+        from, to: 'open',
+        effective_date: dd,
+        note: `Auto-promoted: delivery date ${dd} has passed`,
+      });
+      p.status_checked_at = nowIso;
+      promoted.push({ slug: p.slug, name: p.name, delivery_date: dd });
+    }
+
+    if (!promoted.length) return { ok: true, promoted: 0, slugs: [] };
+
+    const summary = promoted.length === 1
+      ? `Auto-promote: ${promoted[0].name} → open (delivery ${promoted[0].delivery_date} passed)`
+      : `Auto-promote: ${promoted.length} projects → open (delivery dates passed)`;
+
+    try {
+      await ghPutFile(env, GH_PROJECTS_PATH, serializeProjects(projects), sha, summary);
+    } catch (e) {
+      if (e && e.status === 409 && attempt < 4) continue;
+      throw e;
+    }
+    return { ok: true, promoted: promoted.length, slugs: promoted.map((p) => p.slug), date: todayIso };
+  }
+}
+
 const MCP_CORS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
