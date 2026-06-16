@@ -15039,6 +15039,18 @@
           }
         } catch(_) {}
 
+        // List-tile entry paths (drawer card, watchlist, firm-sheet, intel
+        // similar tile) "select" a project without a pin click. Attach the
+        // small name-only popup so the pink pin reads as labeled. Pin
+        // clicks ('popup'), search ('v2-search'), and deep-links keep
+        // their existing behavior (full popup or modal only).
+        try {
+          const _listSources = { tile:1, 'v2-tile':1, watchlist:1, 'firm-sheet':1, 'intel-similar':1 };
+          if (_listSources[source] && typeof showSelectedPreview === 'function') {
+            showSelectedPreview(f);
+          }
+        } catch(_) {}
+
         // Reset scroll
         scrollEl.scrollTop = 0;
 
@@ -18348,14 +18360,6 @@
               : raw;
             gtag('event','project_click',{'project_name':f.properties.title,'project_city':f.properties.city,'project_featured':f.properties.featured||false,'click_source':'map_pin','device_type':isMobile?'mobile':'desktop'});
 
-            // Two-stage popup: a first click on a fresh pin shows just a
-            // small name-only preview (selected state). Clicking the SAME
-            // pin again (or the preview itself) promotes to the full popup.
-            const prevFeature = window._tmwSelectedPreviewFeature;
-            const isReclick = !!(window._tmwSelectedPreview
-              && prevFeature && prevFeature.properties
-              && prevFeature.properties.title === f.properties.title);
-
             // Center the popup vertically: shift the camera so the pin
             // lands near the bottom of the screen on mobile (just above
             // the search bar) or ~150px below center on desktop. Popup
@@ -18373,30 +18377,12 @@
             }
             const tolerance = 30; // px
             const popupYDelta = Math.abs(screenPt.y - targetY);
-            const renderAfterEase = () => {
-              if (isReclick) {
-                clearSelectedPreview();
-                showPopup(f);
-              } else {
-                // Selection styling without the full popup card.
-                if (map.getLayer('unclustered-point')) {
-                  const pinkPinExpr = ['case', ['==', ['get','title'], f.properties.title], '#FF3D9A', window.TMW_STATUS_COLOR];
-                  const pinkRadExpr = ['case', ['==', ['get','title'], f.properties.title], 10, 4.5];
-                  map.setPaintProperty('unclustered-point', 'circle-color', pinkPinExpr);
-                  map.setPaintProperty('unclustered-point', 'circle-radius', pinkRadExpr);
-                  map.setPaintProperty('unclustered-point', 'circle-opacity', ['case', ['==', ['get','title'], f.properties.title], 1, (window._whatsMovingOn ? 0.5 : 1)]);
-                }
-                window._selectedPinTitle = f.properties.title;
-                applySelectionSideEffects(f.properties.title);
-                showSelectedPreview(f);
-              }
-            };
             if (popupYDelta > tolerance) {
               const yOffset = targetY - (window.innerHeight * 0.5);
               map.easeTo({ center: co, offset: [0, yOffset], duration: 350, essential: true });
-              map.once('moveend', renderAfterEase);
+              map.once('moveend', () => { showPopup(f); });
             } else {
-              renderAfterEase();
+              showPopup(f);
             }
           }
           map.on('click','unclustered-point',           handlePinClick);
