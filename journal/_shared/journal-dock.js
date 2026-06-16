@@ -1526,6 +1526,16 @@
     else                          s = e.title || e.project_title || ''; // tracking already "Now tracking X"; article = headline
     return String(s).replace(/\s+/g, ' ').trim();
   }
+  // "Now tracking …" (a project added to the map) events are excluded from the
+  // pulse notifications entirely, per product decision — the feed shows article
+  // + status-change activity only.
+  function notTracking(e){
+    var t = (e.type || '').toLowerCase();
+    if (t === 'new_project' || t === 'tracking') return false;
+    var tag = (e.tag || '').toLowerCase();
+    if (tag.indexOf('new on map') > -1 || tag.indexOf('added') > -1) return false;
+    return true;
+  }
   function eid(e){ return e.id != null ? String(e.id) : (e.type + '|' + e.timestamp + '|' + (e.project_slug || e.title || '')); }
   function getDismissed(){ try { return new Set(JSON.parse(localStorage.getItem(DISMISS_KEY) || '[]')); } catch(e){ return new Set(); } }
   function saveDismissed(set){ try { localStorage.setItem(DISMISS_KEY, JSON.stringify(Array.from(set))); } catch(e){} }
@@ -1660,7 +1670,7 @@
       var btn = this; btn.classList.add('spin'); setTimeout(function(){ btn.classList.remove('spin'); }, 480);
       localStorage.removeItem(DISMISS_KEY);   // un-dismiss all → the count returns
       fetch(PULSE_URL, { cache: 'no-store' }).then(function(r){ return r.ok ? r.json() : null; })
-        .then(function(d){ if (d && d.events) events = d.events.slice().sort(byEvent); repaint(); })
+        .then(function(d){ if (d && d.events) events = d.events.filter(notTracking).sort(byEvent); repaint(); })
         .catch(function(){ repaint(); });
     });
     document.addEventListener('click', function(ev){
@@ -1673,7 +1683,7 @@
     fetch(PULSE_URL, { cache: 'no-store' })
       .then(function(r){ return r.ok ? r.json() : null; })
       .then(function(d){
-        events = ((d && d.events) || []).slice().sort(byEvent);
+        events = ((d && d.events) || []).filter(notTracking).sort(byEvent);
         if (!attach()){ var n = 0, iv = setInterval(function(){ if (attach() || ++n > 80) clearInterval(iv); }, 150); }
       })
       .catch(function(){});

@@ -778,9 +778,17 @@ function stopCarouselTimer() { if (CAROUSEL.timer) { clearInterval(CAROUSEL.time
 // Match the Pulse bubble (journal-dock.js) exactly: same undismissed set, same
 // count, same titles (additions drop the "added to the map" suffix).
 function pulseEid(e) { return e.id != null ? String(e.id) : (e.type + '|' + e.timestamp + '|' + (e.project_slug || e.title || '')); }
+// "Now tracking …" (project-added-to-map) events are excluded from the pulse
+// ticker entirely — article + status-change activity only.
+function pulseNotTracking(e) {
+  const t = (e.type || '').toLowerCase();
+  if (t === 'new_project' || t === 'tracking') return false;
+  const tag = (e.tag || '').toLowerCase();
+  return tag.indexOf('new on map') === -1 && tag.indexOf('added') === -1;
+}
 function pulseActive(list) {
   let d; try { d = new Set(JSON.parse(localStorage.getItem('tmw_pulse_dismissed') || '[]')); } catch (_) { d = new Set(); }
-  return list.slice(0, 30).filter(e => !d.has(pulseEid(e)));
+  return list.filter(pulseNotTracking).slice(0, 30).filter(e => !d.has(pulseEid(e)));
 }
 function pulseTitle(e) {
   return String((e.type === 'new_project' ? (e.project_title || e.title) : (e.title || e.project_title)) || '').replace(/\s+/g, ' ').trim();
