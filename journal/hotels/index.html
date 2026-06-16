@@ -1459,10 +1459,10 @@ function rankItemHtml(it, originalIdx, visibleIdx) {
       </div>
       <p class="ri-desc" data-edit="description">${escapeHtml(it.description || '')}</p>
       <div class="ri-ctas">
-        ${it.ctaUrl ? `<a class="btn-cta" href="${escapeAttr(it.ctaUrl)}" target="_blank" rel="noopener" data-edit-url="ctaUrl">
-          <span data-edit="ctaLabel">${escapeHtml(it.ctaLabel || 'Book Now')}</span>
+        ${it.officialUrl ? `<a class="btn-cta" href="${escapeAttr(it.officialUrl)}" target="_blank" rel="noopener">
+          Visit Website
           <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
-        </a>` : `<a class="btn-cta" href="#" data-edit-url="ctaUrl"><span data-edit="ctaLabel">${escapeHtml(it.ctaLabel || 'Book Now')}</span></a>`}
+        </a>` : ''}
         <button class="like-btn" data-like>
           <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M8 14s-5-3.5-5-7a3 3 0 015-2.236A3 3 0 0113 7c0 3.5-5 7-5 7z"/></svg>
           <span class="like-count">${it.likes || 0}</span>
@@ -1588,7 +1588,6 @@ function makeFieldEditable(el, id) {
       else if (field === 'location')  item.location = val;
       else if (field === 'region')    { item.region = val; buildRegionPills(); }
       else if (field === 'description') item.description = val;
-      else if (field === 'ctaLabel')   item.ctaLabel = val;
       else if (field === 'architect')  item.architect = val;
       else if (field === 'year')       item.year = val;
     } else {
