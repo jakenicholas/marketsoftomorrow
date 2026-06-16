@@ -399,6 +399,72 @@ def build_preheader(map_items, florida_articles, more_markets_articles):
     if not bits:       return "This week on the map of tomorrow."
     return f"{', '.join(bits)} this week."
 
+def _join_clauses(items):
+    """Oxford-comma join: ['a'] -> 'a'; ['a','b'] -> 'a and b';
+    ['a','b','c'] -> 'a, b, and c'."""
+    items = [i for i in items if i]
+    if not items:      return ""
+    if len(items) == 1: return items[0]
+    if len(items) == 2: return f"{items[0]} and {items[1]}"
+    return ", ".join(items[:-1]) + ", and " + items[-1]
+
+def build_intel_summary(map_items, florida_articles, more_markets_articles, app_updates):
+    """Build the 'TMW Intelligence' brief that summarizes the whole issue.
+
+    Runs server-side with no LLM (this generator is invoked nightly in CI), so
+    the summary is assembled from the same data the rest of the digest renders:
+    article counts, project/database updates, and the distinct markets touched.
+    Returns {body, stats} or None when there's nothing to summarize.
+    """
+    total_articles = len(florida_articles) + len(more_markets_articles)
+    new_projects   = len(map_items)
+
+    # Distinct markets, in first-seen order, from the database updates.
+    cities, seen = [], set()
+    for m in map_items:
+        c = (m.get("city") or "").strip()
+        if c and c.lower() not in seen:
+            seen.add(c.lower()); cities.append(c)
+    market_count = len(cities)
+
+    def pl(n, s, p): return s if n == 1 else p
+
+    clauses = []
+    if total_articles:
+        lead = (florida_articles or more_markets_articles)[0]["title"].strip()
+        clauses.append(
+            f"{total_articles} new {pl(total_articles, 'story', 'stories')} "
+            f"from the journal, led by “{lead}”"
+        )
+    if new_projects:
+        geo = ""
+        if market_count:
+            geo = f" across {market_count} {pl(market_count, 'market', 'markets')}"
+            if len(cities) >= 2:
+                geo += f", including {cities[0]} and {cities[1]}"
+            else:
+                geo += f", including {cities[0]}"
+        clauses.append(
+            f"{new_projects} project {pl(new_projects, 'update', 'updates')}{geo}"
+        )
+
+    if clauses:
+        body = "This week's brief covers " + _join_clauses(clauses) + "."
+    else:
+        body = "Here's what's moving across the map of tomorrow this week."
+    if app_updates:
+        body += " Plus the latest from TMW Pro."
+
+    if not (total_articles or new_projects):
+        return None
+
+    stats = [
+        {"value": str(total_articles), "label": pl(total_articles, "Story", "Stories")},
+        {"value": str(new_projects),   "label": pl(new_projects, "Project", "Projects")},
+        {"value": str(market_count),   "label": pl(market_count, "Market", "Markets")},
+    ]
+    return {"body": body, "stats": stats}
+
 # ─── MAIN ────────────────────────────────────────────────────────────────────
 def main():
     today      = datetime.now(timezone.utc).strftime("%Y-%m-%d")
@@ -438,7 +504,9 @@ def main():
 
     subject   = build_subject(map_items, florida_articles, more_markets_articles, app_updates)
     preheader = build_preheader(map_items, florida_articles, more_markets_articles)
+    intel     = build_intel_summary(map_items, florida_articles, more_markets_articles, app_updates)
     print(f"[info] subject: {subject}")
+    print(f"[info] intel summary: {'yes' if intel else 'no'}")
 
     env = Environment(
         loader=FileSystemLoader(os.path.dirname(TEMPLATE_PATH) or "."),
@@ -462,6 +530,7 @@ def main():
         map_items=map_items,
         florida_articles=florida_articles,
         more_markets_articles=more_markets_articles,
+        intel=intel,
         app_updates=app_updates, ads=ads,
         site_url=SITE_URL, tmw_url=TMW_URL, logo_url=LOGO_URL,
         app_image_url=cache_bust_image,

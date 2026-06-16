@@ -399,6 +399,46 @@
       {{ render_ad(ads.slot1) }}
       {%- endif %}
 
+      <!-- TMW INTELLIGENCE — issue summary, styled like a journal article card.
+           Sits below the first ad and above the first journal section, under a
+           divider rule. The header mirrors the on-site TMW Intelligence panel
+           (hex glyph + label, pulsing-dot tag); the body is a server-built
+           summary of the whole issue and the three stats recap the counts. -->
+      {%- if intel %}
+      <tr><td style="padding: 28px 0 4px 0; border-top: 1px solid #d8cef0;">
+        <table role="presentation" class="intel-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#ffffff" style="background-color: #ffffff; border: 1px solid #d8cef0; border-radius: 12px;">
+          <tr><td style="padding: 22px 24px 6px 24px;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+              <tr>
+                <td align="left" style="font-size: 12px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #7C5CFC;">
+                  <span style="color:#A78BFA;">&#11041;</span>&nbsp; TMW Intelligence
+                </td>
+                <td align="right" style="font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;" class="force-muted-text">
+                  <span style="color:#A78BFA;">&bull;</span> This week
+                </td>
+              </tr>
+            </table>
+          </td></tr>
+          <tr><td style="padding: 6px 24px 20px 24px;">
+            <div class="intel-body force-light-text" style="color:#1e0a3c; font-family: Georgia, 'Times New Roman', serif; font-size: 17px; line-height: 1.55;">{{ intel.body }}</div>
+          </td></tr>
+          <tr><td style="padding: 0 24px;"><div style="border-top: 1px solid #ece6fb; font-size: 0; line-height: 0;">&nbsp;</div></td></tr>
+          <tr><td style="padding: 16px 24px 22px 24px;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="table-layout: fixed;">
+              <tr>
+              {%- for s in intel.stats %}
+                <td align="left" valign="top" width="33%" style="width: 33.33%;">
+                  <div class="intel-stat-value force-light-text" style="color:#1e0a3c; font-family: Georgia, 'Times New Roman', serif; font-size: 30px; font-weight: 700; line-height: 1;">{{ s.value }}</div>
+                  <div class="intel-stat-label force-muted-text" style="color:#6b5b8a; font-size: 11px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; margin-top: 8px;">{{ s.label }}</div>
+                </td>
+              {%- endfor %}
+              </tr>
+            </table>
+          </td></tr>
+        </table>
+      </td></tr>
+      {%- endif %}
+
       <!-- FROM THE JOURNAL: FLORIDA -->
       {%- if florida_articles %}
       <tr><td>
