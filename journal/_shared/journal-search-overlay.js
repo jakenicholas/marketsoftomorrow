@@ -475,13 +475,13 @@
     + '.tmw-ov-intel-loader span:nth-child(2){animation-delay:.15s}'
     + '.tmw-ov-intel-loader span:nth-child(3){animation-delay:.3s}'
 
-    /* "Understood as" chips above a spotlight result */
-    + '.tmw-ov-understood{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 18px}'
-    + '.tmw-ov-understood .lead{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#9AA39C;font-weight:700}'
-    + '.tmw-ov-uchip{display:inline-flex;align-items:center;gap:7px;padding:5px 11px;border-radius:999px;'
-    + 'background:rgba(167,139,250,.10);border:1px solid rgba(167,139,250,.30);font-size:12px;color:#ECEAE5}'
-    + '.tmw-ov-uchip .ck{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#B9A6FF;font-weight:700}'
+    /* "Understood as" — collapsed to a single inline text line (no boxed chips) */
+    + '.tmw-ov-understood{font-size:12px;color:#9AA39C;margin:0 0 14px;line-height:1.7}'
+    + '.tmw-ov-understood .lead{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#9AA39C;font-weight:700;margin-right:10px}'
+    + '.tmw-ov-uchip{display:inline;color:#ECEAE5}'
+    + '.tmw-ov-uchip .ck{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#B9A6FF;font-weight:700;margin-right:4px}'
     + '.tmw-ov-uchip b{color:#fff;font-weight:600}'
+    + '.tmw-ov-uchip + .tmw-ov-uchip::before{content:"·";color:#5E5C58;margin:0 8px}'
 
     /* Partner spotlight CTA + item rows */
     + '.tmw-ov-spot-cta{display:inline-flex;align-items:center;gap:7px;margin-left:auto;padding:8px 14px;border-radius:999px;'
@@ -519,8 +519,7 @@
     + 'font-size:11px;color:#9AA39C;text-align:center;flex-wrap:wrap}'
     + '.tmw-ov-smart-foot .ai{color:#B9A6FF;font-weight:600}'
 
-    /* Sort-flavored "understood as" chip — green pip for sort, purple for the rest */
-    + '.tmw-ov-uchip.sort{background:rgba(31,223,103,.08);border-color:rgba(31,223,103,.30)}'
+    /* Sort-flavored "understood as" chip — green label for sort, purple for the rest */
     + '.tmw-ov-uchip.sort .ck{color:#42EB81}'
 
     /* ─── PHASE 2 (complete): full /search/-style result sections ─── */
@@ -1410,7 +1409,7 @@
     if (s.cities.length)                       chips.push('<span class="tmw-ov-uchip"><span class="ck">City</span> <b>'+esc(s.cities.join(' & '))+'</b></span>');
     else if (s.region)                         chips.push('<span class="tmw-ov-uchip"><span class="ck">Region</span> <b>'+esc(s.region)+'</b></span>');
     if (s._areaLabel)                          chips.push('<span class="tmw-ov-uchip"><span class="ck">Area</span> <b>'+esc(s._areaLabel)+'</b></span>');
-    if (s.yearLabel)                           chips.push('<span class="tmw-ov-uchip"><span class="ck">Delivery</span> <b>'+esc(s.yearLabel)+'</b></span>');
+    if (s.yearLabel)                           chips.push('<span class="tmw-ov-uchip"><span class="ck">'+(s.yearMode === 'start' ? 'Groundbreak' : 'Delivery')+'</span> <b>'+esc(s.yearLabel)+'</b></span>');
     if (s.sort)                                chips.push('<span class="tmw-ov-uchip sort"><span class="ck">Sort</span> <b>'+esc(s.sort.label)+'</b></span>');
     if (!chips.length) return '';
     return '<div class="tmw-ov-understood"><span class="lead">Understood as</span>' + chips.join('') + '</div>';

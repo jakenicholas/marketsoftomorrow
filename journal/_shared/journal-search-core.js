@@ -77,6 +77,10 @@
     var m = String(p.DeliveryDate || '').match(/(20\d{2})/);
     return m ? +m[1] : null;
   }
+  function startYearOf(p) {
+    var m = String(p.StartDate || '').match(/(20\d{2})/);
+    return m ? +m[1] : null;
+  }
   function fmtDelivery(p) {
     var m = String(p.DeliveryDate || '').match(/(20\d{2})-(\d{2})/);
     if (m) {
@@ -432,12 +436,26 @@
       return !cities.some(function (o) { return o !== c && norm(o).indexOf(norm(c)) >= 0; });
     });
     // year
-    var yearMin = null, yearMax = null, yearLabel = '';
+    var yearMin = null, yearMax = null, yearLabel = '', yearMode = 'delivery';
     var TY = opts.thisYear || THIS_YEAR;
     var yrs = (full.match(/20\d{2}/g) || []).map(Number);
     if (yrs.length) { yearMin = Math.min.apply(null, yrs); yearMax = Math.max.apply(null, yrs); yearLabel = yearMin === yearMax ? ('' + yearMin) : (yearMin + '–' + yearMax); }
     else if (hasWord(full, 'this year')) { yearMin = yearMax = TY; yearLabel = 'this year'; }
     else if (hasWord(full, 'next year')) { yearMin = yearMax = TY + 1; yearLabel = '' + (TY + 1); }
+
+    // "breaking ground in 2026" is a phase-event query, not a delivery query.
+    // The Breaking Ground status above is a CURRENT-state filter; projects
+    // that broke ground earlier in the year have already advanced to Under
+    // Construction. Filter against StartDate (the groundbreak event) and
+    // drop the now-redundant current-status filter.
+    var GB_SYN = ['breaking ground','broke ground','groundbreaking','breaks ground','break ground'];
+    var hasGbPhrase = GB_SYN.some(function (s) { return hasWord(full, s); });
+    if (hasGbPhrase && yearMin != null) {
+      yearMode = 'start';
+      statuses.delete('Breaking Ground');
+      var bgi = statusLabels.indexOf('Breaking ground');
+      if (bgi >= 0) statusLabels.splice(bgi, 1);
+    }
     // sort / superlative
     var sort = null;
     for (var i = 0; i < SORT_GROUPS.length; i++) {
@@ -470,7 +488,7 @@
         phases: phases, phaseLabels: phaseLabels, phaseVerbs: phaseVerbs,
         types: types, typeLabel: typeLabel, typeNoun: typeNoun,
         region: region, cities: cities,
-        yearMin: yearMin, yearMax: yearMax, yearLabel: yearLabel,
+        yearMin: yearMin, yearMax: yearMax, yearLabel: yearLabel, yearMode: yearMode,
         sort: sort, firm: firm
       };
     }
@@ -534,7 +552,7 @@
       }
       if (s.region === 'Florida' && !inFlorida(p)) return false;
       if (s.yearMin != null) {
-        var y = yearOf(p);
+        var y = s.yearMode === 'start' ? startYearOf(p) : yearOf(p);
         if (y == null || y < s.yearMin || y > s.yearMax) return false;
       }
       if (s.firm) {
@@ -587,13 +605,17 @@
     var subj = '<b>' + n + ' ' + noun + (n !== 1 ? 's' : '') + '</b>';
     var statusPhrase = s.statusLabels.length ? ' ' + s.statusLabels.map(function (l) { return l.toLowerCase(); }).join(' / ') : '';
     var placePhrase = s.cities.length ? ' in ' + s.cities.join(' & ') : (s.region ? ' in ' + s.region : '');
-    var yearPhrase = s.yearLabel ? (s.statuses.size ? ', delivering ' + s.yearLabel : ' delivering ' + s.yearLabel) : '';
+    var yearVerb = s.yearMode === 'start' ? 'breaking ground in ' : 'delivering ';
+    var yearPhrase = s.yearLabel ? (s.statuses.size ? ', ' + yearVerb + s.yearLabel : ' ' + yearVerb + s.yearLabel) : '';
     var hasPhase = !!(s.phases && s.phases.size);
     var phaseVerbs = s.phaseVerbs || [];
     var sentence;
 
     if (n === 0) {
       if (s.firm) return { html: 'We don’t track any ' + noun + 's tied to <b>' + esc(s.firm.name) + '</b>' + placePhrase + yearPhrase + ' yet.', stats: [] };
+      if (s.yearMode === 'start') {
+        return { html: 'No tracked ' + noun + 's are breaking ground' + placePhrase + ' in ' + esc(s.yearLabel) + ' yet.', stats: [] };
+      }
       var lead = hasPhase ? ' have ' + phaseVerbs.join(' / ')
                : (s.statusLabels.length ? ' are ' + s.statusLabels.map(function (l) { return l.toLowerCase(); }).join('/') : ' match');
       sentence = 'No tracked ' + noun + 's' + lead + placePhrase + yearPhrase + ' yet.';
