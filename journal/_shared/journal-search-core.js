@@ -312,7 +312,12 @@
     'around','near','into','throughout','some','any','all','every','each','more','less','most',
     'this','that','these','those','here','there',
     'can','will','would','could','should','may','might','must',
-    'just','really','very','maybe','perhaps','still','also'
+    'just','really','very','maybe','perhaps','still','also',
+    // common auxiliary verbs + temporal qualifiers — without these "what
+    // projects ARE opening SOON" leaks "are" into the residual narrowing
+    // and surfaces as an Area chip.
+    'are','was','were','been','being','have','has','had','does','did',
+    'soon','already','yet'
   ]);
   // Build the meaningful-tokens list a surface uses for its strict relevance
   // filter -- length >= 3 AND not a generic stopword. Exposed so the overlay
@@ -586,6 +591,18 @@
       });
     } else if (s.sort && s.sort.key === 'updated') {
       rows.sort(function (a, b) { return String(b.UpdatedAt || '').localeCompare(String(a.UpdatedAt || '')); });
+    } else if (s.statuses && s.statuses.has && s.statuses.has('Opening Soon')) {
+      // "Opening soon" implies temporal urgency — what's actually arriving
+      // first. Sort by DeliveryDate asc; projects with no date (TBA / empty)
+      // sink to the end via the '9999' fallback so a tall TBA tower doesn't
+      // grab the hero slot ahead of a project that actually opens this year.
+      rows.sort(function (a, b) {
+        var da = (a.DeliveryDate || '9999'), db = (b.DeliveryDate || '9999');
+        if (da !== db) return da < db ? -1 : 1;
+        if (a.Featured && !b.Featured) return -1;
+        if (!a.Featured && b.Featured) return 1;
+        return floorsOf(b) - floorsOf(a);
+      });
     } else {
       rows.sort(function (a, b) {
         if (a.Featured && !b.Featured) return -1;
