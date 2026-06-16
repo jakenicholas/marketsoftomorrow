@@ -78,7 +78,7 @@
   var footerHtml =
     '<footer class="tmw-chrome-foot"><div class="wrap"><div class="ft-grid">' +
       '<div>' + '<a href="/" class="tmw-logo-lockup">' + HEX + WORDMARK + '</a>' +
-        '<p class="blurb">A powerhouse news network covering the brands shaping the future of hospitality, real estate, and lifestyle.</p></div>' +
+        '<p class="blurb">A powerhouse news network + data platform for hospitality, real estate, and lifestyle &mdash; powered by a real-time project database and TMW Intelligence, our AI for predictive forecasting.</p></div>' +
       '<div><h4>Focus Markets</h4><ul>' +
         '<li><a href="/">Global</a></li><li><a href="/?market=hotels">Hotels</a></li>' +
         '<li><a href="/?market=florida">Florida</a></li><li><a href="/?market=new-york">New York</a></li>' +
