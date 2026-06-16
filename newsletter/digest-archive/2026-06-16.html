@@ -67,8 +67,10 @@
        The previous `height: auto` made every card grow to its own
        content, which is why "Glass House Boca Raton" (title wraps) was
        visibly taller than "Ponce Park" (1-line title) in the same row. */
-    .grid-card-body { min-height: 130px !important; height: auto !important; }
-    .grid-card { height: auto !important; }
+    .grid-card-body { height: 120px !important; min-height: 120px !important; }
+    .grid-card { height: 300px !important; }
+    /* Feature tiles stack to one column on mobile. */
+    .feat-col { display: block !important; width: 100% !important; padding: 0 0 10px 0 !important; }
   }
 
   .preheader {
@@ -266,6 +268,28 @@
     margin-top: 22px;
     letter-spacing: 0.01em;
   }
+  /* "Open TMW Pro" — styled like a feature tile but with a purple glow on the
+     border, text, and arrow (vs the solid-fill .cta-button). */
+  .cta-button-pro {
+    display: block;
+    text-align: center;
+    background: rgba(167, 139, 250, 0.08);
+    border: 1.5px solid #A78BFA;
+    color: #A78BFA !important;
+    padding: 16px 22px;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 16px;
+    letter-spacing: 0.02em;
+    box-shadow: 0 0 18px rgba(167, 139, 250, 0.35);
+  }
+  /* Feature tiles: 2-up on desktop (stacks on mobile via the media query). */
+  .feat-col { vertical-align: top; }
+  /* Grid-card title: fixed 2-line height so 1-line and 2-line titles reserve
+     the same space and every card ends up the SAME total height. Gmail ignores
+     -webkit-line-clamp, so we pin the height + clip overflow here. */
+  .grid-card-title-wrap { height: 40px; overflow: hidden; margin: 0 0 4px 0; }
 
   /* Ad banner */
   .ad-wrap { padding: 24px 0; text-align: center; }
@@ -476,7 +500,7 @@
   </td></tr>
   <tr><td class="grid-card-body" valign="top" height="120" style="padding:12px 14px; height:120px; box-sizing:border-box; overflow:hidden">
     <div class="stage-pill" style="font-size:11px; font-weight:600; margin-bottom:6px; color:#999">Tracking</div>
-    <a href="https://www.oftmw.com/map/?project=magiccityinnovationdistrict&amp;fullscreen=true" class="grid-card-title force-light-text" style="color:#1e0a3c; font-size:15px; font-weight:700; line-height:1.3; text-decoration:none; margin:0 0 4px 0; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden">Magic City Innovation District</a>
+    <div class="grid-card-title-wrap" style="height:40px; overflow:hidden; margin:0 0 4px 0" height="40"><a href="https://www.oftmw.com/map/?project=magiccityinnovationdistrict&amp;fullscreen=true" class="grid-card-title force-light-text" style="color:#1e0a3c; font-size:15px; font-weight:700; line-height:1.3; text-decoration:none; margin:0 0 4px 0; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden">Magic City Innovation District</a></div>
     <div class="grid-card-meta force-muted-text" style="color:#6b5b8a; font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">Miami</div>
   </td></tr>
 </table>
@@ -494,7 +518,7 @@
   </td></tr>
   <tr><td class="grid-card-body" valign="top" height="120" style="padding:12px 14px; height:120px; box-sizing:border-box; overflow:hidden">
     <div class="stage-pill" style="font-size:11px; font-weight:600; margin-bottom:6px; color:#999">Broke ground</div>
-    <a href="https://www.oftmw.com/map/?project=1000boulevardofthearts&amp;fullscreen=true" class="grid-card-title force-light-text" style="color:#1e0a3c; font-size:15px; font-weight:700; line-height:1.3; text-decoration:none; margin:0 0 4px 0; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden">1000 Boulevard of the Arts</a>
+    <div class="grid-card-title-wrap" style="height:40px; overflow:hidden; margin:0 0 4px 0" height="40"><a href="https://www.oftmw.com/map/?project=1000boulevardofthearts&amp;fullscreen=true" class="grid-card-title force-light-text" style="color:#1e0a3c; font-size:15px; font-weight:700; line-height:1.3; text-decoration:none; margin:0 0 4px 0; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden">1000 Boulevard of the Arts</a></div>
     <div class="grid-card-meta force-muted-text" style="color:#6b5b8a; font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">Sarasota</div>
   </td></tr>
 </table>
@@ -516,7 +540,7 @@
   </td></tr>
   <tr><td class="grid-card-body" valign="top" height="120" style="padding:12px 14px; height:120px; box-sizing:border-box; overflow:hidden">
     <div class="stage-pill" style="font-size:11px; font-weight:600; margin-bottom:6px; color:#999">Bookings open</div>
-    <a href="https://www.oftmw.com/map/?project=amanvari&amp;fullscreen=true" class="grid-card-title force-light-text" style="color:#1e0a3c; font-size:15px; font-weight:700; line-height:1.3; text-decoration:none; margin:0 0 4px 0; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden">Amanvari</a>
+    <div class="grid-card-title-wrap" style="height:40px; overflow:hidden; margin:0 0 4px 0" height="40"><a href="https://www.oftmw.com/map/?project=amanvari&amp;fullscreen=true" class="grid-card-title force-light-text" style="color:#1e0a3c; font-size:15px; font-weight:700; line-height:1.3; text-decoration:none; margin:0 0 4px 0; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden">Amanvari</a></div>
     <div class="grid-card-meta force-muted-text" style="color:#6b5b8a; font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">Los Cabos</div>
   </td></tr>
 </table>
@@ -534,7 +558,7 @@
   </td></tr>
   <tr><td class="grid-card-body" valign="top" height="120" style="padding:12px 14px; height:120px; box-sizing:border-box; overflow:hidden">
     <div class="stage-pill" style="font-size:11px; font-weight:600; margin-bottom:6px; color:#999">Going vertical</div>
-    <a href="https://www.oftmw.com/map/?project=hs2eustonstationredevelopment&amp;fullscreen=true" class="grid-card-title force-light-text" style="color:#1e0a3c; font-size:15px; font-weight:700; line-height:1.3; text-decoration:none; margin:0 0 4px 0; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden">HS2 Euston Station Redevelopment</a>
+    <div class="grid-card-title-wrap" style="height:40px; overflow:hidden; margin:0 0 4px 0" height="40"><a href="https://www.oftmw.com/map/?project=hs2eustonstationredevelopment&amp;fullscreen=true" class="grid-card-title force-light-text" style="color:#1e0a3c; font-size:15px; font-weight:700; line-height:1.3; text-decoration:none; margin:0 0 4px 0; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden">HS2 Euston Station Redevelopment</a></div>
     <div class="grid-card-meta force-muted-text" style="color:#6b5b8a; font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">London</div>
   </td></tr>
 </table>
@@ -566,7 +590,7 @@
   </td></tr>
   <tr><td class="grid-card-body" valign="top" height="120" style="padding:12px 14px; height:120px; box-sizing:border-box; overflow:hidden">
     <div class="stage-pill" style="font-size:11px; font-weight:600; margin-bottom:6px; color:#999">Tracking</div>
-    <a href="https://www.oftmw.com/map/?project=whiteelephantaspen&amp;fullscreen=true" class="grid-card-title force-light-text" style="color:#1e0a3c; font-size:15px; font-weight:700; line-height:1.3; text-decoration:none; margin:0 0 4px 0; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden">White Elephant Aspen</a>
+    <div class="grid-card-title-wrap" style="height:40px; overflow:hidden; margin:0 0 4px 0" height="40"><a href="https://www.oftmw.com/map/?project=whiteelephantaspen&amp;fullscreen=true" class="grid-card-title force-light-text" style="color:#1e0a3c; font-size:15px; font-weight:700; line-height:1.3; text-decoration:none; margin:0 0 4px 0; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden">White Elephant Aspen</a></div>
     <div class="grid-card-meta force-muted-text" style="color:#6b5b8a; font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">Aspen</div>
   </td></tr>
 </table>
@@ -584,7 +608,7 @@
   </td></tr>
   <tr><td class="grid-card-body" valign="top" height="120" style="padding:12px 14px; height:120px; box-sizing:border-box; overflow:hidden">
     <div class="stage-pill" style="font-size:11px; font-weight:600; margin-bottom:6px; color:#999">Tracking</div>
-    <a href="https://www.oftmw.com/map/?project=ariareserve&amp;fullscreen=true" class="grid-card-title force-light-text" style="color:#1e0a3c; font-size:15px; font-weight:700; line-height:1.3; text-decoration:none; margin:0 0 4px 0; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden">Aria Reserve</a>
+    <div class="grid-card-title-wrap" style="height:40px; overflow:hidden; margin:0 0 4px 0" height="40"><a href="https://www.oftmw.com/map/?project=ariareserve&amp;fullscreen=true" class="grid-card-title force-light-text" style="color:#1e0a3c; font-size:15px; font-weight:700; line-height:1.3; text-decoration:none; margin:0 0 4px 0; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden">Aria Reserve</a></div>
     <div class="grid-card-meta force-muted-text" style="color:#6b5b8a; font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">Miami</div>
   </td></tr>
 </table>
@@ -606,7 +630,7 @@
   </td></tr>
   <tr><td class="grid-card-body" valign="top" height="120" style="padding:12px 14px; height:120px; box-sizing:border-box; overflow:hidden">
     <div class="stage-pill" style="font-size:11px; font-weight:600; margin-bottom:6px; color:#999">Tracking</div>
-    <a href="https://www.oftmw.com/map/?project=saravela&amp;fullscreen=true" class="grid-card-title force-light-text" style="color:#1e0a3c; font-size:15px; font-weight:700; line-height:1.3; text-decoration:none; margin:0 0 4px 0; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden">Saravela</a>
+    <div class="grid-card-title-wrap" style="height:40px; overflow:hidden; margin:0 0 4px 0" height="40"><a href="https://www.oftmw.com/map/?project=saravela&amp;fullscreen=true" class="grid-card-title force-light-text" style="color:#1e0a3c; font-size:15px; font-weight:700; line-height:1.3; text-decoration:none; margin:0 0 4px 0; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden">Saravela</a></div>
     <div class="grid-card-meta force-muted-text" style="color:#6b5b8a; font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">Sarasota</div>
   </td></tr>
 </table>
@@ -624,7 +648,7 @@
   </td></tr>
   <tr><td class="grid-card-body" valign="top" height="120" style="padding:12px 14px; height:120px; box-sizing:border-box; overflow:hidden">
     <div class="stage-pill" style="font-size:11px; font-weight:600; margin-bottom:6px; color:#999">Financing secured</div>
-    <a href="https://www.oftmw.com/map/?project=346madisonavenue&amp;fullscreen=true" class="grid-card-title force-light-text" style="color:#1e0a3c; font-size:15px; font-weight:700; line-height:1.3; text-decoration:none; margin:0 0 4px 0; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden">346 Madison Avenue</a>
+    <div class="grid-card-title-wrap" style="height:40px; overflow:hidden; margin:0 0 4px 0" height="40"><a href="https://www.oftmw.com/map/?project=346madisonavenue&amp;fullscreen=true" class="grid-card-title force-light-text" style="color:#1e0a3c; font-size:15px; font-weight:700; line-height:1.3; text-decoration:none; margin:0 0 4px 0; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden">346 Madison Avenue</a></div>
     <div class="grid-card-meta force-muted-text" style="color:#6b5b8a; font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">New York City</div>
   </td></tr>
 </table>
@@ -654,7 +678,7 @@
         <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 0 0 16px 0;">
           <tr><td style="padding: 0; line-height: 0; font-size: 0;">
             <a href="https://map.oftmw.com" style="color:#1e0a3c; display:block">
-              <img src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/c67f4529eec9-map-of-tomorrow-june-9.gif?v=1781611677" alt="Map of Tomorrow" width="600" style="display:block; width:100%; max-width:600px; height:auto; border:0; border-radius:12px;">
+              <img src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/c67f4529eec9-map-of-tomorrow-june-9.gif?v=1781613529" alt="Map of Tomorrow" width="600" style="display:block; width:100%; max-width:600px; height:auto; border:0; border-radius:12px;">
             </a>
           </td></tr>
         </table>
@@ -666,56 +690,95 @@
              still carry their own subtle lavender wash + border. -->
         <div class="cta-block-connected" style="background:transparent; border:0; padding:0">
           <div class="cta-headline force-light-text" style="font-size:22px; font-weight:800; color:#1e0a3c; margin:0 0 18px 0; letter-spacing:-0.01em">TMW Intelligence is Here</div>
-          <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 0 0 10px 0; background: rgba(167, 139, 250, 0.06); border: 1px solid rgba(167, 139, 250, 0.28); border-radius: 10px;">
-            <tr><td valign="top" style="padding: 16px 18px 18px 18px;">
-              <div class="feature-hex" style="color:#A78BFA; font-size:16px; line-height:1; margin:0 0 8px 0; font-weight:700; letter-spacing:0.04em">⬡</div>
-              <div class="feature-title" style="color:#1e0a3c; font-size:16px; font-weight:700; line-height:1.3; margin:0 0 6px 0">TMW Intelligence (Beta 3.1)</div>
-              <div class="feature-body" style="color:#6b5b8a; font-size:14px; line-height:1.55; margin:0">AI-powered timeline forecasts, site search, project research, and comparable-project analysis across every page</div>
-            </td></tr>
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 0 0 10px 0;">
+            <tr>
+              <td class="feat-col" valign="top" width="50%" style="vertical-align:top; width:50%; padding:0 5px 0 0">
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" height="100%" style="height: 100%; background: rgba(167, 139, 250, 0.06); border: 1px solid rgba(167, 139, 250, 0.28); border-radius: 10px;">
+                  <tr><td valign="top" style="padding: 16px 18px 18px 18px;">
+                    <div class="feature-hex" style="color:#A78BFA; font-size:16px; line-height:1; margin:0 0 8px 0; font-weight:700; letter-spacing:0.04em">⬡</div>
+                    <div class="feature-title" style="color:#1e0a3c; font-size:16px; font-weight:700; line-height:1.3; margin:0 0 6px 0">TMW Intelligence (Beta 3.3)</div>
+                    <div class="feature-body" style="color:#6b5b8a; font-size:14px; line-height:1.55; margin:0">AI-powered timeline forecasts, site search, project research, and comparable-project analysis across every page</div>
+                  </td></tr>
+                </table>
+              </td>
+              <td class="feat-col" valign="top" width="50%" style="vertical-align:top; width:50%; padding:0 0 0 5px">
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" height="100%" style="height: 100%; background: rgba(167, 139, 250, 0.06); border: 1px solid rgba(167, 139, 250, 0.28); border-radius: 10px;">
+                  <tr><td valign="top" style="padding: 16px 18px 18px 18px;">
+                    <div class="feature-hex" style="color:#A78BFA; font-size:16px; line-height:1; margin:0 0 8px 0; font-weight:700; letter-spacing:0.04em">⬡</div>
+                    <div class="feature-title" style="color:#1e0a3c; font-size:16px; font-weight:700; line-height:1.3; margin:0 0 6px 0">A Brand-New Map</div>
+                    <div class="feature-body" style="color:#6b5b8a; font-size:14px; line-height:1.55; margin:0">Faster, timeline scrubber, advanced filtering, interactive layers, 'what's moving' pins, and more</div>
+                  </td></tr>
+                </table>
+              </td>
+            </tr>
           </table>
-          <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 0 0 10px 0; background: rgba(167, 139, 250, 0.06); border: 1px solid rgba(167, 139, 250, 0.28); border-radius: 10px;">
-            <tr><td valign="top" style="padding: 16px 18px 18px 18px;">
-              <div class="feature-hex" style="color:#A78BFA; font-size:16px; line-height:1; margin:0 0 8px 0; font-weight:700; letter-spacing:0.04em">⬡</div>
-              <div class="feature-title" style="color:#1e0a3c; font-size:16px; font-weight:700; line-height:1.3; margin:0 0 6px 0">A Brand-New Map</div>
-              <div class="feature-body" style="color:#6b5b8a; font-size:14px; line-height:1.55; margin:0">Faster, timeline scrubber, advanced filtering, interactive layers, 'what's moving' pins, and more</div>
-            </td></tr>
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 0 0 10px 0;">
+            <tr>
+              <td class="feat-col" valign="top" width="50%" style="vertical-align:top; width:50%; padding:0 5px 0 0">
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" height="100%" style="height: 100%; background: rgba(167, 139, 250, 0.06); border: 1px solid rgba(167, 139, 250, 0.28); border-radius: 10px;">
+                  <tr><td valign="top" style="padding: 16px 18px 18px 18px;">
+                    <div class="feature-hex" style="color:#A78BFA; font-size:16px; line-height:1; margin:0 0 8px 0; font-weight:700; letter-spacing:0.04em">⬡</div>
+                    <div class="feature-title" style="color:#1e0a3c; font-size:16px; font-weight:700; line-height:1.3; margin:0 0 6px 0">One Account Now Unlocks Everything</div>
+                    <div class="feature-body" style="color:#6b5b8a; font-size:14px; line-height:1.55; margin:0">The journal, the database, your watchlist, and Pulse. If you haven't already, create yours</div>
+                  </td></tr>
+                </table>
+              </td>
+              <td class="feat-col" valign="top" width="50%" style="vertical-align:top; width:50%; padding:0 0 0 5px">
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" height="100%" style="height: 100%; background: rgba(167, 139, 250, 0.06); border: 1px solid rgba(167, 139, 250, 0.28); border-radius: 10px;">
+                  <tr><td valign="top" style="padding: 16px 18px 18px 18px;">
+                    <div class="feature-hex" style="color:#A78BFA; font-size:16px; line-height:1; margin:0 0 8px 0; font-weight:700; letter-spacing:0.04em">⬡</div>
+                    <div class="feature-title" style="color:#1e0a3c; font-size:16px; font-weight:700; line-height:1.3; margin:0 0 6px 0">Journal</div>
+                    <div class="feature-body" style="color:#6b5b8a; font-size:14px; line-height:1.55; margin:0">You can now favorite articles to revisit later, linked project cards, and more</div>
+                  </td></tr>
+                </table>
+              </td>
+            </tr>
           </table>
-          <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 0 0 10px 0; background: rgba(167, 139, 250, 0.06); border: 1px solid rgba(167, 139, 250, 0.28); border-radius: 10px;">
-            <tr><td valign="top" style="padding: 16px 18px 18px 18px;">
-              <div class="feature-hex" style="color:#A78BFA; font-size:16px; line-height:1; margin:0 0 8px 0; font-weight:700; letter-spacing:0.04em">⬡</div>
-              <div class="feature-title" style="color:#1e0a3c; font-size:16px; font-weight:700; line-height:1.3; margin:0 0 6px 0">One Account Now Unlocks Everything</div>
-              <div class="feature-body" style="color:#6b5b8a; font-size:14px; line-height:1.55; margin:0">The journal, the database, your watchlist, and Pulse. If you haven't already, create yours</div>
-            </td></tr>
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 0 0 10px 0;">
+            <tr>
+              <td class="feat-col" valign="top" width="50%" style="vertical-align:top; width:50%; padding:0 5px 0 0">
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" height="100%" style="height: 100%; background: rgba(167, 139, 250, 0.06); border: 1px solid rgba(167, 139, 250, 0.28); border-radius: 10px;">
+                  <tr><td valign="top" style="padding: 16px 18px 18px 18px;">
+                    <div class="feature-hex" style="color:#A78BFA; font-size:16px; line-height:1; margin:0 0 8px 0; font-weight:700; letter-spacing:0.04em">⬡</div>
+                    <div class="feature-title" style="color:#1e0a3c; font-size:16px; font-weight:700; line-height:1.3; margin:0 0 6px 0">Pulse</div>
+                    <div class="feature-body" style="color:#6b5b8a; font-size:14px; line-height:1.55; margin:0">Our live activity feed that shows new projects hitting the map and fresh stories publishing in real time, the moment they happen</div>
+                  </td></tr>
+                </table>
+              </td>
+              <td class="feat-col" valign="top" width="50%" style="vertical-align:top; width:50%; padding:0 0 0 5px">
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" height="100%" style="height: 100%; background: rgba(167, 139, 250, 0.06); border: 1px solid rgba(167, 139, 250, 0.28); border-radius: 10px;">
+                  <tr><td valign="top" style="padding: 16px 18px 18px 18px;">
+                    <div class="feature-hex" style="color:#A78BFA; font-size:16px; line-height:1; margin:0 0 8px 0; font-weight:700; letter-spacing:0.04em">⬡</div>
+                    <div class="feature-title" style="color:#1e0a3c; font-size:16px; font-weight:700; line-height:1.3; margin:0 0 6px 0">New Architect, Developer &amp; Firm pages</div>
+                    <div class="feature-body" style="color:#6b5b8a; font-size:14px; line-height:1.55; margin:0">Every project, collaboration, and timeline behind the names shaping each skyline, gathered into one profile you can explore</div>
+                  </td></tr>
+                </table>
+              </td>
+            </tr>
           </table>
-          <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 0 0 10px 0; background: rgba(167, 139, 250, 0.06); border: 1px solid rgba(167, 139, 250, 0.28); border-radius: 10px;">
-            <tr><td valign="top" style="padding: 16px 18px 18px 18px;">
-              <div class="feature-hex" style="color:#A78BFA; font-size:16px; line-height:1; margin:0 0 8px 0; font-weight:700; letter-spacing:0.04em">⬡</div>
-              <div class="feature-title" style="color:#1e0a3c; font-size:16px; font-weight:700; line-height:1.3; margin:0 0 6px 0">Journal</div>
-              <div class="feature-body" style="color:#6b5b8a; font-size:14px; line-height:1.55; margin:0">You can now favorite articles to revisit later, linked project cards, and more</div>
-            </td></tr>
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 0 0 10px 0;">
+            <tr>
+              <td class="feat-col" valign="top" width="50%" style="vertical-align:top; width:50%; padding:0 5px 0 0">
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" height="100%" style="height: 100%; background: rgba(167, 139, 250, 0.06); border: 1px solid rgba(167, 139, 250, 0.28); border-radius: 10px;">
+                  <tr><td valign="top" style="padding: 16px 18px 18px 18px;">
+                    <div class="feature-hex" style="color:#A78BFA; font-size:16px; line-height:1; margin:0 0 8px 0; font-weight:700; letter-spacing:0.04em">⬡</div>
+                    <div class="feature-title" style="color:#1e0a3c; font-size:16px; font-weight:700; line-height:1.3; margin:0 0 6px 0">New City, State, and Country Pages</div>
+                    <div class="feature-body" style="color:#6b5b8a; font-size:14px; line-height:1.55; margin:0">Explore every project, pipeline figure, developer, and timeline across radii of any size</div>
+                  </td></tr>
+                </table>
+              </td>
+              <td class="feat-col" valign="top" width="50%" style="vertical-align:top; width:50%; padding:0 0 0 5px">
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" height="100%" style="height: 100%; background: rgba(167, 139, 250, 0.06); border: 1px solid rgba(167, 139, 250, 0.28); border-radius: 10px;">
+                  <tr><td valign="top" style="padding: 16px 18px 18px 18px;">
+                    <div class="feature-hex" style="color:#A78BFA; font-size:16px; line-height:1; margin:0 0 8px 0; font-weight:700; letter-spacing:0.04em">⬡</div>
+                    <div class="feature-title" style="color:#1e0a3c; font-size:16px; font-weight:700; line-height:1.3; margin:0 0 6px 0">Atlas</div>
+                    <div class="feature-body" style="color:#6b5b8a; font-size:14px; line-height:1.55; margin:0">Deeper data and timeline tracking</div>
+                  </td></tr>
+                </table>
+              </td>
+            </tr>
           </table>
-          <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 0 0 10px 0; background: rgba(167, 139, 250, 0.06); border: 1px solid rgba(167, 139, 250, 0.28); border-radius: 10px;">
-            <tr><td valign="top" style="padding: 16px 18px 18px 18px;">
-              <div class="feature-hex" style="color:#A78BFA; font-size:16px; line-height:1; margin:0 0 8px 0; font-weight:700; letter-spacing:0.04em">⬡</div>
-              <div class="feature-title" style="color:#1e0a3c; font-size:16px; font-weight:700; line-height:1.3; margin:0 0 6px 0">Pulse</div>
-              <div class="feature-body" style="color:#6b5b8a; font-size:14px; line-height:1.55; margin:0">Our live activity feed that shows new projects hitting the map and fresh stories publishing in real time, the moment they happen</div>
-            </td></tr>
-          </table>
-          <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 0 0 10px 0; background: rgba(167, 139, 250, 0.06); border: 1px solid rgba(167, 139, 250, 0.28); border-radius: 10px;">
-            <tr><td valign="top" style="padding: 16px 18px 18px 18px;">
-              <div class="feature-hex" style="color:#A78BFA; font-size:16px; line-height:1; margin:0 0 8px 0; font-weight:700; letter-spacing:0.04em">⬡</div>
-              <div class="feature-title" style="color:#1e0a3c; font-size:16px; font-weight:700; line-height:1.3; margin:0 0 6px 0">New Architect, Developer &amp; Firm pages</div>
-              <div class="feature-body" style="color:#6b5b8a; font-size:14px; line-height:1.55; margin:0">Every project, collaboration, and timeline behind the names shaping each skyline, gathered into one profile you can explore</div>
-            </td></tr>
-          </table>
-          <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 0 0 10px 0; background: rgba(167, 139, 250, 0.06); border: 1px solid rgba(167, 139, 250, 0.28); border-radius: 10px;">
-            <tr><td valign="top" style="padding: 16px 18px 18px 18px;">
-              <div class="feature-hex" style="color:#A78BFA; font-size:16px; line-height:1; margin:0 0 8px 0; font-weight:700; letter-spacing:0.04em">⬡</div>
-              <div class="feature-title" style="color:#1e0a3c; font-size:16px; font-weight:700; line-height:1.3; margin:0 0 6px 0">Atlas</div>
-              <div class="feature-body" style="color:#6b5b8a; font-size:14px; line-height:1.55; margin:0">Deeper data and timeline tracking</div>
-            </td></tr>
-          </table>
-          <div style="margin-top: 4px;"><a href="https://map.oftmw.com" class="cta-button" style="color:#fff; display:inline-block; background-color:#A78BFA; padding:13px 24px; border-radius:8px; text-decoration:none; font-weight:700; font-size:14px; margin-top:22px; letter-spacing:0.01em" bgcolor="#A78BFA">Open the map →</a></div>
+          <div style="margin-top: 8px;"><a href="https://map.oftmw.com" class="cta-button-pro" style="color:#A78BFA !important; display:block; text-align:center; background:rgba(167, 139, 250, 0.08); border:1.5px solid #A78BFA; padding:16px 22px; border-radius:10px; text-decoration:none; font-weight:700; font-size:16px; letter-spacing:0.02em; box-shadow:0 0 18px rgba(167, 139, 250, 0.35)" align="center">Open TMW Pro →</a></div>
         </div>
       </td></tr>
       <tr><td>
