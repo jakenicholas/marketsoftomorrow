@@ -4279,67 +4279,6 @@
       "start_speculative": true,
       "delivery_speculative": true
     },
-    "continuum-12000": {
-      "estimate_years": 3.1,
-      "estimate_label": "~3.1 years",
-      "range_low": 2.0,
-      "range_high": 4.8,
-      "confidence": "medium",
-      "comparable_count": 12,
-      "good_count": 3,
-      "exact_count": 3,
-      "used_relaxed": false,
-      "avg_match_score": 0.54,
-      "avg_distance_km": 378.7,
-      "avg_distance_mi": 235.3,
-      "scale_used": true,
-      "firm_signal": {
-        "firm": "Continuum Company",
-        "count": 1,
-        "median_years": 3.25,
-        "stddev_years": 0.0,
-        "role": "developer",
-        "consistent": false,
-        "blend_weight": 0.4
-      },
-      "source": "comparables",
-      "project_type": "Residences",
-      "metro": "South Florida",
-      "comparables": [
-        {
-          "name": "Nautilus 220",
-          "slug": "nautilus-220",
-          "location": "Lake Park",
-          "years": 3.2,
-          "score": 0.76,
-          "distance_km": 101.3,
-          "distance_mi": 63.0
-        },
-        {
-          "name": "The Ritz-Carlton Residences, Estero Bay",
-          "slug": "the-ritz-carlton-residences-estero-bay",
-          "location": "Bonita Springs",
-          "years": 3.5,
-          "score": 0.76,
-          "distance_km": 177.5,
-          "distance_mi": 110.3
-        },
-        {
-          "name": "Pier Sixty-Six",
-          "slug": "pier-sixty-six",
-          "location": "Fort Lauderdale",
-          "years": 4.8,
-          "score": 0.7,
-          "distance_km": 23.9,
-          "distance_mi": 14.9
-        }
-      ],
-      "pattern_summary": "Among 12 residences projects in TMW's data, the median build time is 3.1 years (range 2–4.8). Adjusted to ~3.1 years for Continuum Company's own track record (~3.2-year typical pace across 1 prior project).",
-      "dates_speculative": true,
-      "start_speculative": true,
-      "delivery_speculative": true,
-      "is_mixed_use": false
-    },
     "house-of-wellness-brickell": {
       "estimate_years": 3.2,
       "estimate_label": "~3.2 years",
@@ -8761,13 +8700,13 @@
   },
   "stats": {
     "high": 5,
-    "medium": 13,
+    "medium": 12,
     "low": 30,
     "known_date": 298,
     "completed": 58,
     "skipped": 51,
     "no_type": 0,
-    "firm_boosted": 33,
+    "firm_boosted": 32,
     "speculative_softened": 77,
     "mixed_use_adjusted": 1
   }
