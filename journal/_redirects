@@ -22,6 +22,10 @@
 # /projects/<slug>/. 301 the old (indexed) paths so links + SEO carry over.
 /map/projects/*      /projects/:splat    301
 
+# One-off slug typo fix — old indexed URL stays alive via 301.
+/projects/kempinksi-residences/  /projects/kempinski-residences/  301
+/projects/kempinksi-residences   /projects/kempinski-residences/  301
+
 # Firm pages moved to a flat /firm/<slug>/ structure (merging firms that are
 # both architect + developer into one page). Redirect every old shape:
 #   - the previous static location under /map/
