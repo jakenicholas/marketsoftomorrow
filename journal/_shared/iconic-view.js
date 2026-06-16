@@ -67,18 +67,24 @@
       /* Popup — dark theme. Inner padding zeroed on .mapboxgl-popup-content
          so the hero photo can sit flush against the top + left + right
          edges; .iv-pop-body re-adds padding under the photo for text. */
-      '.mapboxgl-popup-content{background:rgba(13,15,14,.96)!important; color:var(--cream)!important; border:1px solid var(--hair-2); border-radius:16px; padding:0!important; font-family:var(--sans); box-shadow:0 14px 36px rgba(0,0,0,.65); max-width:340px; overflow:hidden}' +
+      /* Strip ALL of Mapbox's default popup chrome so .iv-pop can be the
+         one true rounded container. background/border/border-radius/
+         padding/box-shadow all forced to nothing here — the styling
+         moves down to .iv-pop where we control the clip. */
+      '.mapboxgl-popup-content{background:transparent!important; color:var(--cream)!important; border:0!important; border-radius:0!important; padding:0!important; box-shadow:none!important; font-family:var(--sans); max-width:none!important; overflow:visible}' +
       '.mapboxgl-popup-tip{border-top-color:rgba(13,15,14,.96)!important}' +
       /* Centered X — flex-center the glyph inside a perfectly square dark
-         circle so it sits dead-middle on every browser. */
-      '.mapboxgl-popup-close-button{position:absolute; top:10px; right:10px; width:30px; height:30px; padding:0!important; margin:0; display:flex!important; align-items:center; justify-content:center; color:var(--white)!important; background:rgba(7,8,7,.6)!important; border-radius:50%; border:1px solid rgba(255,255,255,.16); font-size:18px; line-height:1; -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px); z-index:3; transition:background .15s, transform .15s}' +
-      '.mapboxgl-popup-close-button:hover{background:rgba(7,8,7,.85)!important; transform:scale(1.08)}' +
-      '.iv-pop{font-family:var(--sans); width:320px; max-width:100%}' +
-      /* Rounded top corners on the hero photo to match the popup\'s
-         border-radius. Belt-and-suspenders with the parent\'s overflow
-         hidden so Safari + Firefox + Chrome all clip identically. */
-      '.iv-pop-img{display:block; width:100%; height:170px; object-fit:cover; background:rgba(255,255,255,.04); border-radius:15px 15px 0 0}' +
-      '.iv-pop-img-fb{display:flex; align-items:center; justify-content:center; width:100%; height:170px; background:linear-gradient(135deg, rgba(230,197,116,.15), rgba(167,139,250,.10)); color:var(--gold-soft); font-family:var(--mono); font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; font-weight:600; border-radius:15px 15px 0 0}' +
+         circle so it sits dead-middle on every browser. Floated over the
+         hero photo at the popup\'s top-right. */
+      '.mapboxgl-popup-close-button{position:absolute!important; top:10px!important; right:10px!important; width:30px!important; height:30px!important; padding:0!important; margin:0!important; display:flex!important; align-items:center!important; justify-content:center!important; color:var(--white)!important; background:rgba(7,8,7,.62)!important; border-radius:50%!important; border:1px solid rgba(255,255,255,.18)!important; font-size:18px!important; line-height:1!important; -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px); z-index:5; transition:background .15s, transform .15s}' +
+      '.mapboxgl-popup-close-button:hover{background:rgba(7,8,7,.88)!important; transform:scale(1.08)}' +
+      /* THE rounded container — every child (photo + body) is clipped to
+         this radius by overflow:hidden, so corners are guaranteed to
+         match on every browser regardless of how Mapbox restyles its
+         inner wrapper. */
+      '.iv-pop{position:relative; font-family:var(--sans); width:320px; max-width:100%; background:rgba(13,15,14,.96); border:1px solid var(--hair-2); border-radius:16px; overflow:hidden; box-shadow:0 14px 36px rgba(0,0,0,.65)}' +
+      '.iv-pop-img{display:block; width:100%; height:170px; object-fit:cover; background:rgba(255,255,255,.04)}' +
+      '.iv-pop-img-fb{display:flex; align-items:center; justify-content:center; width:100%; height:170px; background:linear-gradient(135deg, rgba(230,197,116,.15), rgba(167,139,250,.10)); color:var(--gold-soft); font-family:var(--mono); font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; font-weight:600}' +
       '.iv-pop-body{padding:14px 16px 16px}' +
       '.iv-pop .iv-pop-rk{font-family:var(--mono); font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--gold-soft); margin-bottom:6px; font-weight:700}' +
       '.iv-pop .iv-pop-nm{font-family:var(--serif); font-size:20px; font-weight:600; color:var(--white); line-height:1.2; margin-bottom:6px; letter-spacing:-.01em}' +
