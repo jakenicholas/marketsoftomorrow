@@ -1864,6 +1864,29 @@ async function handlePostsBySlug(req, env, origin, slug) {
   );
 }
 
+// Resolve a single post by its primary id (e.g. "wix-7656dd47-..."). The admin
+// post editor needs this: there are 1400+ posts, so listing-and-matching by id
+// can't reliably reach old ones. Same auth model as by-slug — published is
+// public; drafts require an admin token.
+async function handlePostsById(req, env, origin, id) {
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  id = fullyDecodeSlug(id);
+  if (!id || id.length > 250 || /[<>"'`\s]/.test(id)) {
+    return json({ error: 'invalid id' }, { status: 400 }, env, origin);
+  }
+  const row = await env.DB.prepare(`SELECT * FROM posts WHERE id = ?1 LIMIT 1`).bind(id).first();
+  if (!row) return json({ error: 'post not found in DB', id }, { status: 404 }, env, origin);
+  if (row.status !== 'published') {
+    const denied = await requireAdminToken(req, env, origin);
+    if (denied) return json({ error: 'post not yet published' }, { status: 404 }, env, origin);
+  }
+  return json(
+    { post: rowToPostFull(row) },
+    { headers: { 'Cache-Control': row.status === 'published' ? 'public, max-age=60, s-maxage=120' : 'no-store' } },
+    env, origin,
+  );
+}
+
 // Wix categories were not migrated, so the posts table has none. Derive a
 // primary "category" (a region/location first, then a vertical) from the
 // title + excerpt at read-time so every consumer — the gold tile label, the
@@ -5068,6 +5091,10 @@ export default {
       {
         const m = url.pathname.match(/^\/posts\/by-slug\/([^/]+)\/?$/);
         if (m && request.method === 'GET') return await handlePostsBySlug(request, env, origin, m[1]);
+      }
+      {
+        const m = url.pathname.match(/^\/posts\/by-id\/([^/]+)\/?$/);
+        if (m && request.method === 'GET') return await handlePostsById(request, env, origin, m[1]);
       }
       // /preview-token — admin mints a signed client-preview link for a draft.
       if (request.method === 'GET' && url.pathname === '/preview-token') {
