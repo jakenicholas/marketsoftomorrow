@@ -13976,10 +13976,22 @@
       const embed = params.get('embed') === 'true';
       if (!window.allProjectFeatures) return;
       if (!slug) {
-        // ?city=<name> → open the city overview (fit bounds + sidebar grid),
-        // no project modal. Used by the universal dock search "Places" results.
-        if (cityParam && typeof window.openCityInSidebar === 'function') {
-          try { window.openCityInSidebar(decodeURIComponent(cityParam), null); } catch (e) {}
+        // ?city=<name> → frame the place (no project modal, no search overlay).
+        // Exact city match → city overview (fit bounds to its pins + sidebar
+        // grid). Otherwise — states/regions like "Florida", which match no
+        // single city — geocode the name and fly there. This powers the market
+        // pages' "See all on the map" buttons (and the dock "Places" results).
+        if (cityParam) {
+          var nm = decodeURIComponent(cityParam);
+          var feats = window.allProjectFeatures || [];
+          var hasCity = feats.some(function (p) { return p.properties && p.properties.city === nm; });
+          if (hasCity && typeof window.openCityInSidebar === 'function') {
+            try { window.openCityInSidebar(nm, null); } catch (e) {}
+          } else if (typeof geocodeAndFly === 'function') {
+            try { geocodeAndFly(nm, function () {}); } catch (e) {}
+          } else if (typeof window.openCityInSidebar === 'function') {
+            try { window.openCityInSidebar(nm, null); } catch (e) {}
+          }
         }
         return;
       }

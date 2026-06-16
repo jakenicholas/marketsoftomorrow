@@ -291,6 +291,19 @@
         }
         window.TMW_FUNNEL_OPTS = { headline: headline, eyebrow: eyebrow, source: 'market_page' };
 
+        // Point the "See all on the map" buttons (the gold hero pill + the
+        // per-status links) at a FRAMED map view instead of /map/?q= — the ?q=
+        // form makes the map auto-open its search overlay on top of itself,
+        // which is the weird double-popup. ?city=<place> frames the location
+        // (exact city → pins overview; state/region → geocoded). Uses the same
+        // clean breadcrumb place; type/index pages (no place) just open the map.
+        try {
+          var mapBtns = document.querySelectorAll('a[href*="/map/?q="]');
+          for (var k = 0; k < mapBtns.length; k++) {
+            mapBtns[k].setAttribute('href', place ? ('/map/?city=' + encodeURIComponent(place)) : '/map/');
+          }
+        } catch (e) {}
+
         if (!window.tmwSignupFunnel && !document.querySelector('script[data-tmw-funnel-loader]')) {
           var fScript = document.createElement('script');
           fScript.src = '/_shared/journal-signup-funnel.js';
