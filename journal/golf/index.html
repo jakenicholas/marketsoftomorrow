@@ -1128,6 +1128,10 @@ async function loadList() {
     if (vis) vis.textContent = 'Seed';
   }
   DATA = doc;
+  // `let DATA` at module scope DOES NOT attach to window (unlike `var`),
+  // so /_shared/iconic-view.js's Map view can't see it when looking up
+  // manual lat/lng overrides. Expose it explicitly.
+  window.DATA = doc;
   seedSyntheticHearts(DATA.items || []);
   applyDocToHeader();
   buildRegionPills();

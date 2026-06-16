@@ -1472,6 +1472,10 @@ async function loadList() {
     if (vis) vis.textContent = 'Seed';
   }
   DATA = doc;
+  // `let DATA` at module scope doesn't attach to window (unlike `var`),
+  // so iconic-view.js's Map view can't read manual lat/lng overrides
+  // off it. Explicit assignment fixes that.
+  window.DATA = doc;
   seedSyntheticHearts(DATA.items || []);
   applyDocToHeader();
   buildRegionPills();
