@@ -262,6 +262,48 @@
         try { window.tmwFunnelTrack && window.tmwFunnelTrack('go_pro_clicked', { source: 'market_pro_link', path: location.pathname }); } catch (_) {}
         window.tmwShowPaywall({ source: 'market_page' });
       }, false);
+
+      // Auto-triggering email→password→profile→Go-Pro funnel, same as the
+      // article pages. It shares localStorage (tmw-sub-email / tmw-acct-skip)
+      // with post.js, so a visitor who enters their email here and leaves
+      // without a password gets the "add a password" step on their next visit
+      // to ANY page — and vice versa. Headline is contextual to this market.
+      (function () {
+        // Place = the breadcrumb crumb right after "Markets" (city/state).
+        var place = '', count = '';
+        try {
+          var crumbNav = document.querySelector('nav.crumbs, .crumbs');
+          if (crumbNav) {
+            var parts = crumbNav.textContent.split('/').map(function (s) { return s.trim(); }).filter(Boolean);
+            var mi = parts.indexOf('Markets');
+            var cand = mi >= 0 ? (parts[mi + 1] || '') : '';
+            if (cand && cand.toLowerCase() !== 'by type') place = cand;
+          }
+          var live = document.querySelector('.he-live');
+          if (live) { var nm = live.textContent.match(/([\d,]+)/); if (nm) count = nm[1]; }
+        } catch (e) {}
+
+        var headline, eyebrow;
+        if (place && count) {
+          headline = 'Following ' + place + '? Get all ' + count + ' projects — and every new one — free in your inbox.';
+          eyebrow = place + ' · The Weekly';
+        } else if (place) {
+          headline = 'Following ' + place + '? Get every new project and milestone, free in your inbox.';
+          eyebrow = place + ' · The Weekly';
+        } else {
+          headline = 'Separate yourself from millions of monthly readers and join our newsletter.';
+          eyebrow = 'The Future Is Here';
+        }
+        window.TMW_FUNNEL_OPTS = { headline: headline, eyebrow: eyebrow, source: 'market_page' };
+
+        if (!window.tmwSignupFunnel && !document.querySelector('script[data-tmw-funnel-loader]')) {
+          var fScript = document.createElement('script');
+          fScript.src = '/_shared/journal-signup-funnel.js';
+          fScript.defer = true;
+          fScript.setAttribute('data-tmw-funnel-loader', '');
+          document.body.appendChild(fScript);
+        }
+      })();
     }
 
     // NOTE: the mobile hamburger toggle + mobile header layout are handled
