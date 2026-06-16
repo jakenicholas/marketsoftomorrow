@@ -560,34 +560,40 @@ def main():
         cache_bust_image = base_image
 
     template = env.get_template(os.path.basename(TEMPLATE_PATH))
-    raw_html = template.render(
-        subject=subject, preheader=preheader, week_label=week_label,
-        map_items=map_items,
-        florida_articles=florida_articles,
-        more_markets_articles=more_markets_articles,
-        intel=intel,
-        app_updates=app_updates, ads=ads,
-        site_url=SITE_URL, tmw_url=TMW_URL, logo_url=LOGO_URL,
-        app_image_url=cache_bust_image,
-    )
 
-    inlined = Premailer(
-        raw_html,
-        keep_style_tags=True,
-        remove_classes=False,
-        strip_important=False,
-    ).transform()
+    def render_inlined(archive):
+        raw = template.render(
+            subject=subject, preheader=preheader, week_label=week_label,
+            map_items=map_items,
+            florida_articles=florida_articles,
+            more_markets_articles=more_markets_articles,
+            intel=intel,
+            app_updates=app_updates, ads=ads,
+            site_url=SITE_URL, tmw_url=TMW_URL, logo_url=LOGO_URL,
+            app_image_url=cache_bust_image,
+            archive=archive,
+        )
+        return Premailer(raw, keep_style_tags=True, remove_classes=False, strip_important=False).transform()
+
+    # Two builds from the same content:
+    #  • EMAIL (archive=False) — what we upload/send via Resend; keeps the dark-
+    #    mode media query so it adapts in readers' inboxes.
+    #  • ARCHIVE (archive=True) — the web copy we send clients; pinned to the
+    #    polished LIGHT/branded design so it looks identical on every device
+    #    (the partial dark-mode flip rendered broken in a browser).
+    email_html   = render_inlined(archive=False)
+    archive_html = render_inlined(archive=True)
 
     os.makedirs(os.path.dirname(OUT_HTML), exist_ok=True)
     os.makedirs(ARCHIVE_DIR, exist_ok=True)
 
-    with open(OUT_HTML, "w") as f:    f.write(inlined)
+    with open(OUT_HTML, "w") as f:    f.write(email_html)
     with open(OUT_SUBJECT, "w") as f: f.write(subject)
-    with open(f"{ARCHIVE_DIR}/{today}.html", "w") as f: f.write(inlined)
+    with open(f"{ARCHIVE_DIR}/{today}.html", "w") as f: f.write(archive_html)
 
-    print(f"[ok] wrote {OUT_HTML}")
+    print(f"[ok] wrote {OUT_HTML} (email — dark-mode aware)")
     print(f"[ok] wrote {OUT_SUBJECT}")
-    print(f"[ok] archived to {ARCHIVE_DIR}/{today}.html")
+    print(f"[ok] archived to {ARCHIVE_DIR}/{today}.html (client copy — always light)")
     print("[done]")
 
 if __name__ == "__main__":
