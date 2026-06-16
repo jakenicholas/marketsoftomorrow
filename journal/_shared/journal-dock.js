@@ -1480,11 +1480,15 @@
     try { return new Date(ts).toLocaleDateString(undefined, { month:'short', day:'numeric' }); } catch(e){ return ''; }
   }
   function byTime(a,b){ return new Date(b.timestamp) - new Date(a.timestamp); }
-  // The feed is ordered + windowed by the REAL event date (when it actually
-  // happened, from the article), not the logged timestamp. Falls back to the
-  // logged timestamp only when an item has no event_date.
+  // The feed is ordered + windowed by PUBLISH time — when we logged the pulse
+  // item (e.timestamp) — NOT the historical milestone date. A milestone we
+  // tracked this week is recent activity even if it happened months ago (e.g.
+  // "broke ground · Sep 2025" confirmed today). Using event_date hid almost
+  // everything because most milestone dates fall outside the 2-week window.
+  // The milestone date is still SHOWN in each item's meta; it just no longer
+  // gates recency.
   function evTime(e){
-    var d = (e && e.event_date) ? e.event_date : (e && e.timestamp);
+    var d = (e && e.timestamp) ? e.timestamp : (e && e.event_date);
     var t = new Date(d).getTime();
     return isNaN(t) ? 0 : t;
   }
@@ -1543,7 +1547,7 @@
     var d = getDismissed();
     var now = Date.now(), cutoff = now - PULSE_WINDOW_MS, upper = now + 2 * 24 * 60 * 60 * 1000;
     return events
-      .filter(function(e){ var t = evTime(e); return t >= cutoff && t <= upper; })   // last 2 weeks by event date
+      .filter(function(e){ var t = evTime(e); return t >= cutoff && t <= upper; })   // last 2 weeks by publish time
       .filter(function(e){ return !d.has(eid(e)); })
       .slice(0, FEED_MAX);
   }

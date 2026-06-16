@@ -786,9 +786,19 @@ function pulseNotTracking(e) {
   const tag = (e.tag || '').toLowerCase();
   return tag.indexOf('new on map') === -1 && tag.indexOf('added') === -1;
 }
+// Recency window + order match the header bell exactly (journal-dock.js): by
+// PUBLISH time (when we logged the item), not the historical milestone date.
+const PULSE_WINDOW_MS = 14 * 24 * 60 * 60 * 1000;
+function pulsePub(e) { const t = new Date(e.timestamp || e.event_date || 0).getTime(); return isNaN(t) ? 0 : t; }
 function pulseActive(list) {
   let d; try { d = new Set(JSON.parse(localStorage.getItem('tmw_pulse_dismissed') || '[]')); } catch (_) { d = new Set(); }
-  return list.filter(pulseNotTracking).slice(0, 30).filter(e => !d.has(pulseEid(e)));
+  const now = Date.now(), cutoff = now - PULSE_WINDOW_MS, upper = now + 2 * 24 * 60 * 60 * 1000;
+  return list
+    .filter(pulseNotTracking)
+    .filter(e => { const t = pulsePub(e); return t >= cutoff && t <= upper; })
+    .sort((a, b) => pulsePub(b) - pulsePub(a))
+    .slice(0, 30)
+    .filter(e => !d.has(pulseEid(e)));
 }
 function pulseTitle(e) {
   return String((e.type === 'new_project' ? (e.project_title || e.title) : (e.title || e.project_title)) || '').replace(/\s+/g, ' ').trim();
