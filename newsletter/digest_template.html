@@ -512,11 +512,12 @@
             {%- for t in prow %}
               <td class="feat-col" valign="top" width="50%" style="width: 50%; padding: 0 {% if loop.first %}5px 0 0{% else %}0 0 5px{% endif %};">
                 <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background: rgba(167, 139, 250, 0.06); border: 1px solid rgba(167, 139, 250, 0.28); border-radius: 10px;">
-                  <tr><td valign="top" style="padding: 16px 18px;">
-                    <!-- Fixed-height content box → every tile is the SAME height
-                         regardless of body length (Gmail ignores height:100% on
-                         nested tables, so we pin a content height + clip). -->
-                    <div class="feat-card-inner" style="height: 168px; overflow: hidden;">
+                  <tr><td class="feat-card-cell" valign="top" height="200" style="height: 200px; padding: 16px 18px;">
+                    <!-- Equal-height tiles: pin the CELL height via the HTML
+                         height attribute (Gmail/Apple Mail honor td height
+                         reliably, but collapse height on a <div>), and clip the
+                         inner box so a long body can't grow the cell past it. -->
+                    <div class="feat-card-inner" style="max-height: 168px; overflow: hidden;">
                       <div class="feature-hex" style="color:#A78BFA;font-size:16px;font-weight:700;letter-spacing:0.04em;line-height:1;margin:0 0 8px 0;">⬡</div>
                       <div class="feature-title" style="color:#1e0a3c;font-size:16px;font-weight:700;line-height:1.3;margin:0 0 6px 0;">{{ t.title }}</div>
                       {%- if t.body %}
