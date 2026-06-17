@@ -3034,13 +3034,16 @@ async function handleContactsList(req, env, origin, url) {
      FROM contacts ${whereSql} ORDER BY LOWER(name) ASC LIMIT ${limit} OFFSET ${offset}`
   ).bind(...params).all()).results || [];
   // Bulk post-count lookup so the list view can show "12 posts" per contact
-  // without N+1 queries. One IN-list query is cheap even for 1000 contacts.
+  // without N+1 queries. D1 caps a prepared statement at ~100 placeholders,
+  // so chunk the IN clause when callers paginate beyond that.
   let counts = {};
-  if (rows.length) {
-    const placeholders = rows.map((_, i) => `?${i+1}`).join(',');
+  const CHUNK = 90;
+  for (let i = 0; i < rows.length; i += CHUNK) {
+    const slice = rows.slice(i, i + CHUNK);
+    const placeholders = slice.map((_, j) => `?${j+1}`).join(',');
     const cRows = (await env.DB.prepare(
       `SELECT contact_id, COUNT(*) AS c FROM posts WHERE contact_id IN (${placeholders}) GROUP BY contact_id`
-    ).bind(...rows.map(r => r.id)).all()).results || [];
+    ).bind(...slice.map(r => r.id)).all()).results || [];
     for (const cr of cRows) counts[cr.contact_id] = cr.c;
   }
   return json(

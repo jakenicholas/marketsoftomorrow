@@ -40,18 +40,24 @@ WORKER = 'https://tmw.jake-ab7.workers.dev'
 XLSX   = os.environ.get('MIGRATE_XLSX', '/Users/jakenicholas/Downloads/Paid_Editorial_1781701593.xlsx')
 PROJECTS_FLAT = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'projects-flat.json')
 
-# Two-pass matching:
+# Two-pass matching (date fallback retired — it produced too many wrong
+# assignments where two Monday rows happened to share a calendar day):
 #   Pass 1 — strong title match: for every (Monday row, post) pair within
 #            ±TITLE_PASS_WINDOW days where the brand string appears in the
 #            title (or every brand token does), claim greedily by score so
 #            confident matches win first.
-#   Pass 2 — date fallback: every Monday row IS a real post in the journal,
-#            so unmatched rows from pass 1 then claim ANY unclaimed post
-#            within widening date windows (the user's "they should all match
-#            by date" rule). Each post still claimed only once.
+#   Pass 2 — body-content match: query GET /posts?q=<brand> against the
+#            worker (which scans title/excerpt/body_html), filter to a
+#            BODY_PASS_WINDOW around the Launch Date, and claim the closest
+#            unclaimed post by date proximity. If no post mentions the brand
+#            anywhere in body text, the row stays UNMATCHED — better than a
+#            random date assignment.
+# Reconciliation: after computing the new authoritative assignments, every
+# post in DB that doesn't match the new target state is reset (so wrong
+# entries from the old run are cleared back to Editorial / NULL).
 TITLE_PASS_WINDOW = 14
 TITLE_PASS_MIN    = 0.45    # ≥ "every brand token in title" hits this floor
-DATE_FALLBACK_WINDOWS = [1, 2, 3, 5, 7, 14, 21]
+BODY_PASS_WINDOW  = 14      # ± days searched for a brand-in-body match
 HTTP_PAUSE_S = 0.04   # gentle pacing on the worker (~25 req/s)
 
 # Accept the five canonical post types; map a handful of stray Monday values
@@ -216,8 +222,10 @@ def load_all_posts():
                 all_posts.append({
                     'id': p['id'], 'slug': p['slug'], 'title': p['title'],
                     'published_at': p.get('published_at'),
-                    'post_type': p.get('post_type'),
-                    'contact_id': p.get('contact_id'),
+                    'post_type':    p.get('post_type'),
+                    'income':       p.get('income'),
+                    'contact_id':   p.get('contact_id'),
+                    'project_slug': p.get('project_slug'),
                 })
             if not items: break
             offset += len(items)
@@ -281,31 +289,40 @@ def title_pass(rows_with_dates, by_day, claimed):
     return out
 
 
-def date_fallback(row, by_day, claimed):
-    """Pass 2: for a row still unmatched, claim ANY unclaimed post in the
-       smallest date window it fits. Picks title-best when multiple are in
-       the same window, but title score doesn't gate acceptance — the user's
-       rule is 'every Posted row IS a post on or near that date.'"""
+def body_pass(row, posts_by_id, claimed):
+    """Pass 2: search the worker for posts whose body_html mentions the brand,
+       within ±BODY_PASS_WINDOW days of the Launch Date. The worker's `q=`
+       query handles all the LIKE plumbing. Picks the candidate closest by
+       date when multiple posts hit; gives up cleanly if nothing in body."""
+    brand = (row['brand'] or '').strip()
+    if not brand:
+        return None, 0.0, 'no-brand-in-row'
+    if len(brand) < 4:
+        return None, 0.0, 'brand-too-short'
+    # The worker tokenizes q and only keeps tokens ≥3 chars. If every brand
+    # token is shorter than that, the query degenerates to noise — bail.
+    if not any(len(t) >= 3 for t in tokens(brand)):
+        return None, 0.0, 'brand-tokens-too-short'
     target = row['launch_date'].date()
-    for window in DATE_FALLBACK_WINDOWS:
-        pool = []
-        for delta in range(-window, window + 1):
-            d = target + datetime.timedelta(days=delta)
-            for p in by_day.get(d, []):
-                if p['id'] not in claimed:
-                    pool.append(p)
-        if not pool:
-            continue
-        best, best_score = None, -1e9
-        for p in pool:
-            s = score_title_match(row, p)
-            dd = abs((datetime.date.fromtimestamp(p['published_at']) - target).days)
-            s -= 0.005 * dd
-            if s > best_score:
-                best, best_score = p, s
-        claimed.add(best['id'])
-        return best, best_score, f'date±{window}'
-    return None, 0.0, 'no-posts-within-21-days'
+    try:
+        d = api('GET', '/posts?status=published&limit=30&q=' + urllib.parse.quote(brand))
+    except Exception:
+        return None, 0.0, 'q-search-failed'
+    candidates = []
+    for stub in (d.get('items') or []):
+        pid = stub.get('id')
+        if not pid or pid in claimed: continue
+        p = posts_by_id.get(pid)
+        if not p or not p.get('published_at'): continue
+        delta = abs((datetime.date.fromtimestamp(p['published_at']) - target).days)
+        if delta > BODY_PASS_WINDOW: continue
+        candidates.append((delta, p))
+    if not candidates:
+        return None, 0.0, 'no-body-match-in-window'
+    candidates.sort(key=lambda x: x[0])
+    best = candidates[0][1]
+    claimed.add(best['id'])
+    return best, 1.0, 'body-match'
 
 
 # ─── Contact resolution ────────────────────────────────────────────────────
@@ -318,7 +335,9 @@ def load_existing_contacts():
     contacts = []
     offset, total = 0, 1
     while offset < total:
-        d = api('GET', f'/contacts?limit=1000&offset={offset}')
+        # 100 = D1's hard cap on placeholders for the worker's IN-clause
+        # post-count subquery.
+        d = api('GET', f'/contacts?limit=100&offset={offset}')
         items = d.get('items', [])
         total = d.get('total', 0)
         contacts.extend(items)
@@ -355,6 +374,7 @@ def main():
     print("Loading all live posts from D1...")
     all_posts = load_all_posts()
     by_day = index_posts_by_date(all_posts)
+    posts_by_id = {p['id']: p for p in all_posts}
     print(f"  ✓ {len(all_posts)} posts ({sum(len(v) for v in by_day.values())} dated)")
 
     print("Loading existing contacts...")
@@ -368,7 +388,8 @@ def main():
 
     matched = []
     unmatched = []
-    stats = {'created_contacts': 0, 'reused_contacts': 0, 'updates': 0, 'project_links': 0}
+    target_by_post = {}   # post_id → {post_type, income, contact_id, project_slug}
+    stats = {'created_contacts': 0, 'reused_contacts': 0, 'project_links': 0, 'matched': 0}
 
     # Slice the row set per --start / --limit BEFORE the two-pass matching,
     # so a partial run still gets correct attribution.
@@ -439,52 +460,106 @@ def main():
             if slug:
                 stats['project_links'] += 1
 
-        # ── find matching post (pass-1 result if any, else pass-2 fallback)
+        # ── find matching post (pass-1 title or pass-2 body content)
         if i in title_assignments:
             post, score = title_assignments[i]
             reason = 'title-match'
         elif isinstance(row['launch_date'], datetime.datetime):
-            post, score, reason = date_fallback(row, by_day, claimed)
+            post, score, reason = body_pass(row, posts_by_id, claimed)
         else:
             post, score, reason = None, 0.0, 'no-launch-date'
         if not post:
             unmatched.append({**row, 'reason': reason, 'best_score': round(score, 3)})
             continue
 
-        # ── build PATCH payload (only fields we actually want to set)
-        patch = {'post_type': post_type}
+        # ── build the FULL target state for this post — every assignment goes
+        # through the reconcile step so old-run rows we no longer match get
+        # cleared too.
+        target = {
+            'post_type':    post_type,
+            'income':       None,
+            'contact_id':   contact['id'] if contact else None,
+            'project_slug': slug,
+        }
         if row['income'] not in (None, ''):
-            try: patch['income'] = float(row['income'])
+            try: target['income'] = float(row['income'])
             except (TypeError, ValueError): pass
-        if contact: patch['contact_id'] = contact['id']
-        if slug:    patch['project_slug'] = slug
-
+        target_by_post[post['id']] = target
         matched.append({
             'monday_id': row['monday_id'],
             'monday_name': row['name'],
+            'post_id':    post['id'],
             'post_slug':  post['slug'],
             'post_title': post['title'],
             'score':      round(score, 3),
-            'patch':      patch,
+            'reason':     reason,
+            'patch':      target,
         })
-
-        if not args.dry_run:
-            api('PATCH', f"/posts/{urllib.parse.quote(post['id'])}", patch)
-            time.sleep(HTTP_PAUSE_S)
-        stats['updates'] += 1
+        stats['matched'] = stats.get('matched', 0) + 1
 
         # Progress every 50
         if (i + 1) % 50 == 0:
             print(f"  [{i+1}/{end}] matched {len(matched)}, unmatched {len(unmatched)}")
 
+    # ── Reconciliation ──────────────────────────────────────────────────────
+    # For every post in DB:
+    #   • if it's in target_by_post → diff against current state, PATCH if differs
+    #   • else if it currently has non-default migration values → CLEAR back to
+    #     Editorial / null  (cleans up wrong assignments from the prior run)
+    # Posts the user manually edited in the editor still get reset if they're
+    # not in target_by_post — that's the trade-off for replacing the bad
+    # date-fallback data wholesale. The user has explicitly asked for a redo.
+    DEFAULT_STATE = {'post_type': 'Editorial', 'income': None, 'contact_id': None, 'project_slug': None}
+    def state_diff(target, current):
+        diff = {}
+        for k in DEFAULT_STATE:
+            tv = target.get(k)
+            cv = current.get(k)
+            # Normalize income type for comparison (DB returns float, target may be int)
+            if k == 'income':
+                tv = None if tv is None else float(tv)
+                cv = None if cv is None else float(cv)
+            if tv != cv:
+                diff[k] = tv
+        return diff
+
+    print()
+    print(f"Reconciling against {len(all_posts)} live posts...")
+    writes, clears = 0, 0
+    for p in all_posts:
+        current = {
+            'post_type':    p.get('post_type') or 'Editorial',
+            'income':       p.get('income'),
+            'contact_id':   p.get('contact_id'),
+            'project_slug': p.get('project_slug'),
+        }
+        target = target_by_post.get(p['id'])
+        if target is None:
+            # Should be at defaults; clear if anything is set.
+            diff = state_diff(DEFAULT_STATE, current)
+            if diff:
+                clears += 1
+                if not args.dry_run:
+                    api('PATCH', f"/posts/{urllib.parse.quote(p['id'])}", diff)
+                    time.sleep(HTTP_PAUSE_S)
+            continue
+        diff = state_diff(target, current)
+        if diff:
+            writes += 1
+            if not args.dry_run:
+                api('PATCH', f"/posts/{urllib.parse.quote(p['id'])}", diff)
+                time.sleep(HTTP_PAUSE_S)
+
     print()
     print("── Summary " + "─" * 50)
     print(f"  Posted rows considered: {end - args.start}")
-    print(f"  Matched & {'(would) ' if args.dry_run else ''}updated posts: {len(matched)}")
+    print(f"  Matched posts (title or body): {len(matched)}")
     print(f"  Unmatched rows:        {len(unmatched)}")
     print(f"  Contacts created:      {stats['created_contacts']}")
     print(f"  Contacts reused:       {stats['reused_contacts']}")
     print(f"  Project links resolved: {stats['project_links']}")
+    print(f"  Reconciled writes:     {writes}")
+    print(f"  Reconciled clears (old wrong assignments removed): {clears}")
     if args.dry_run:
         print("  (dry-run — no writes)")
 
