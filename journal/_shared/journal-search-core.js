@@ -343,18 +343,54 @@
   // place is silently treated as different cities depending on which
   // editor entered it. The first-part variant is added only if it's
   // long enough to be meaningful (>= 4 chars).
+  // Common short forms / aliases for cities a user is likely to type. Only
+  // include UNAMBIGUOUS short forms — e.g. "west palm" maps only to West Palm
+  // Beach (no other city in the DB matches), but bare "palm beach" is left
+  // out because it conflicts with Palm Beach Gardens, North Palm Beach, etc.
+  // Aliases only apply when the corresponding canonical city is present in
+  // the project set, so they auto-disable in test data without that city.
+  var CITY_ALIASES = {
+    'west palm':       'West Palm Beach',
+    'wpb':             'West Palm Beach',
+    'nyc':             'New York City',
+    'new york':        'New York City',
+    'la':              'Los Angeles',
+    'sf':              'San Francisco',
+    'sd':              'San Diego',
+    'ftl':             'Fort Lauderdale',
+    'ft lauderdale':   'Fort Lauderdale',
+    'fort myers':      'Fort Myers',
+    'st pete':         'St. Petersburg',
+    'st petersburg':   'St. Petersburg',
+    'park city':       'Park City',
+    'dc':              'Washington',
+    'big apple':       'New York City',
+    'south beach':     'Miami Beach',
+  };
   function buildCitySet(projects) {
     var m = new Map();
+    var canonical = new Set();  // canonical city names present in the DB
     (projects || []).forEach(function (p) {
       var c = (p.City || '').trim();
       if (!c || c.length < 4) return;
       m.set(norm(c), c);
+      canonical.add(c);
       var first = c.split(',')[0].trim();
       if (first.length >= 4 && first !== c) {
         var firstNorm = norm(first);
         if (!m.has(firstNorm)) m.set(firstNorm, first);
+        canonical.add(first);
       }
     });
+    // Layer aliases on top, but only when the canonical city is actually in
+    // the project set — keeps the map honest if a city ever leaves the DB.
+    for (var aliasKey in CITY_ALIASES) {
+      if (!CITY_ALIASES.hasOwnProperty(aliasKey)) continue;
+      var canon = CITY_ALIASES[aliasKey];
+      if (!canonical.has(canon)) continue;
+      var aliasNorm = norm(aliasKey);
+      if (!m.has(aliasNorm)) m.set(aliasNorm, canon);
+    }
     return m;
   }
 
@@ -438,7 +474,20 @@
     var region = (hasWord(full, 'florida') || /\bfl\b/.test(full)) ? 'Florida' : '';
     var cities = [];
     var citySet = buildCitySet(opts.projects || []);
-    citySet.forEach(function (disp, nc) { if (full.indexOf(nc) >= 0) cities.push(disp); });
+    // Short aliases (≤ 4 chars: "la", "sf", "ftl", "nyc", etc.) MUST match as
+    // a whole word — substring matching would false-trigger inside longer
+    // place names ("la" finding LA inside "fort lauderdale", "sf" inside
+    // "san francisco bay area", etc.). Longer city names stay substring-
+    // matched since they're distinctive enough.
+    citySet.forEach(function (disp, nc) {
+      var matched = nc.length <= 4 ? hasWord(full, nc) : full.indexOf(nc) >= 0;
+      if (matched) cities.push(disp);
+    });
+    // Dedup exact duplicates (an alias and its canonical entry both hit, e.g.
+    // "office west palm beach" matches both "west palm" → WPB and "west palm
+    // beach" → WPB) before the substring filter.
+    var seenCity = {};
+    cities = cities.filter(function (c) { return seenCity[c] ? false : (seenCity[c] = true); });
     // drop a city that's a substring of another matched (keep "West Palm Beach" over "Palm Beach")
     cities = cities.filter(function (c) {
       return !cities.some(function (o) { return o !== c && norm(o).indexOf(norm(c)) >= 0; });
