@@ -261,7 +261,6 @@
     { token:'Stadium',    label:'Stadium',            noun:'stadium',   syn:['stadium','arena','ballpark'] },
     { token:'Education',  label:'Education',          noun:'school',    syn:['school','university','college','campus'] },
     { token:'Cultural',   label:'Cultural',           noun:'cultural project', syn:['cultural'] },
-    { token:'Spa',        label:'Spa',                noun:'spa',       syn:['spa','wellness'] },
     { token:'Mixed-Use',  label:'Mixed-use',          noun:'mixed-use project', syn:['mixed-use','mixed use'] },
     { token:'Hospital',   label:'Hospital',           noun:'hospital',  syn:['hospital','medical center'] },
     { token:'Airport',    label:'Airport',            noun:'airport',   syn:['airport'] }
