@@ -416,16 +416,26 @@
        a .ds-ph overlay span for the animated text. We dropped that span,
        so restore a normal visible muted-gray placeholder. */
     + '.tmw-ov-bar .tmw-dock-search input::placeholder{color:#9AA39C}'
-    /* Tiny gold submit arrow on the right -- the dock bar doesn\'t have one,
-       but the overlay needs an explicit "run query" affordance now that it
-       no longer redirects to /search/. Sized so it sits inside the dock\'s
-       46px pill height. */
-    + '.tmw-ov-bar .go{position:absolute;right:8px;top:50%;transform:translateY(-50%);'
-    + 'height:30px;width:30px;padding:0;border:0;background:transparent;color:#e6c574;'
-    + 'display:flex;align-items:center;justify-content:center;z-index:3;border-radius:999px;cursor:pointer;'
-    + 'transition:color .2s,transform .2s,background .2s}'
-    + '.tmw-ov-bar .go:hover{color:#f0d68a;background:rgba(230,197,116,.12);transform:translateY(-50%) translateX(2px)}'
-    + '.tmw-ov-bar .go svg{width:16px;height:16px;filter:drop-shadow(0 0 6px rgba(230,197,116,.4))}'
+    /* Submit affordance — Claude-style: idle = muted glyph, "ready" (text in
+       the input) = filled gold pill with a glow + gentle pulse so users see
+       they must hit Enter / click here to run a query. Search no longer fires
+       on every keystroke; this button is the only path to results besides
+       Enter. Sized so it sits inside the dock\'s 46px pill height. */
+    + '.tmw-ov-bar .go{position:absolute;right:7px;top:50%;transform:translateY(-50%);'
+    + 'height:36px;min-width:36px;padding:0 8px;border:1px solid rgba(255,255,255,.10);'
+    + 'background:rgba(255,255,255,.04);color:rgba(255,255,255,.45);'
+    + 'display:flex;align-items:center;justify-content:center;gap:6px;z-index:3;border-radius:10px;cursor:pointer;'
+    + 'font-family:"JetBrains Mono",ui-monospace,monospace;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;'
+    + 'transition:color .2s,transform .2s,background .2s,border-color .2s,box-shadow .2s}'
+    + '.tmw-ov-bar .go .kbd{display:none;color:#0a0a0a;background:rgba(0,0,0,.20);padding:2px 6px;border-radius:5px;font-size:9.5px;letter-spacing:.02em;line-height:1}'
+    + '.tmw-ov-bar .go svg{width:15px;height:15px;transition:filter .2s,transform .2s}'
+    + '.tmw-ov-bar .go.ready{background:linear-gradient(135deg,#e6c574,#f0d68a);border-color:#f0d68a;color:#0a0a0a;'
+    + 'box-shadow:0 0 18px rgba(230,197,116,.45),0 0 4px rgba(230,197,116,.3);animation:tmwOvGoPulse 2s ease-in-out infinite}'
+    + '.tmw-ov-bar .go.ready .kbd{display:inline-flex;align-items:center}'
+    + '.tmw-ov-bar .go.ready svg{filter:drop-shadow(0 0 4px rgba(230,197,116,.6))}'
+    + '.tmw-ov-bar .go.ready:hover{background:linear-gradient(135deg,#f0d68a,#f7e6a8);transform:translateY(-50%) translateX(1px);box-shadow:0 0 24px rgba(230,197,116,.6),0 0 6px rgba(230,197,116,.4)}'
+    + '.tmw-ov-bar .go:not(.ready):hover{color:#ECEAE5;border-color:rgba(255,255,255,.22);background:rgba(255,255,255,.07)}'
+    + '@keyframes tmwOvGoPulse{0%,100%{box-shadow:0 0 18px rgba(230,197,116,.45),0 0 4px rgba(230,197,116,.3)}50%{box-shadow:0 0 28px rgba(230,197,116,.65),0 0 8px rgba(230,197,116,.45)}}'
 
     /* ─── PHASE 2: inline TMW Intelligence panel ─────────────────── */
     /* Purple-bordered card that renders the LLM /smart-answer response
@@ -812,9 +822,10 @@
     +     '<div class="tmw-ov-bar">'
     +       '<form class="tmw-ov-bar-inner tmw-dock-search" role="search">'
     +         '<span class="ds-ico">' + ICON_SEARCH_DOCK + '</span>'
-    +         '<input type="search" autocomplete="off" placeholder="Search projects, firms, cities…" aria-label="Search projects, firms, cities">'
-    +         '<button class="go" type="button" aria-label="Search">'
+    +         '<input type="search" autocomplete="off" placeholder="Search projects, firms, cities — press Enter…" aria-label="Search projects, firms, cities">'
+    +         '<button class="go" type="button" aria-label="Run search (press Enter)" title="Run search">'
     +           '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>'
+    +           '<span class="kbd" aria-hidden="true">Enter</span>'
     +         '</button>'
     +       '</form>'
     +     '</div>'  /* close .tmw-ov-bar */
@@ -2425,14 +2436,16 @@
     }, 700);
   }
 
-  // Debounced live-as-you-type. Short queries (1 char) just wait.
-  var _debounce = null;
+  // Wait for explicit submit (Enter / arrow click) before running a query —
+  // the prior debounced live-as-you-type approach flooded the Studio
+  // analytics with every keystroke and burned LLM credits on half-words. The
+  // input handler now only toggles the visual state so the user can SEE the
+  // submit affordance light up when they have enough typed to search.
   function onInput(){
     var v = (input.value || '').trim();
-    clearTimeout(_debounce);
-    if (!v) { setState('starter'); return; }
-    if (v.length < 2) { setState('starter'); return; }
-    _debounce = setTimeout(function(){ runQuery(v); }, 180);
+    // .ready makes the submit button light up gold + show the Enter kbd hint.
+    if (go) go.classList.toggle('ready', v.length >= 2);
+    if (!v) setState('starter');
   }
 
   // navigateToSearch removed: the overlay IS the search experience now
