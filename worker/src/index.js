@@ -1982,6 +1982,7 @@ function rowToPostSummary(r) {
     income:       r.income == null ? null : Number(r.income),
     contact_id:   r.contact_id   || null,
     project_slug: r.project_slug || null,
+    campaign_id:  r.campaign_id  || null,
   };
 }
 // Serve every migrated Wix image from our own R2 (the originals were copied to
@@ -2872,6 +2873,20 @@ async function handlePostsUpdate(req, env, origin, id) {
   if ('income'       in body) patch.income       = body.income === '' || body.income == null ? null : Number(body.income);
   if ('contact_id'   in body) patch.contact_id   = body.contact_id || null;
   if ('project_slug' in body) patch.project_slug = body.project_slug ? String(body.project_slug).toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 160) : null;
+  if ('campaign_id'  in body) {
+    await ensureCampaignsTable(env);
+    patch.campaign_id = body.campaign_id || null;
+    // When linking via PATCH (and the caller didn't supply an explicit income),
+    // derive the per-post split from the campaign so the link flow is
+    // single-step. Caller can still send income to override.
+    if (patch.campaign_id && !('income' in body)) {
+      const c = await env.DB.prepare(`SELECT total_income, planned_posts FROM campaigns WHERE id = ?1`).bind(patch.campaign_id).first();
+      const per = campaignIncomePerPost(c);
+      if (per != null) patch.income = per;
+    }
+    // Unlinking clears any campaign-derived income unless caller overrides.
+    if (patch.campaign_id == null && !('income' in body)) patch.income = null;
+  }
   if ('slug'       in body && body.slug && body.slug !== existing.slug) {
     patch.slug = await ensureUniqueSlug(env, slugify(body.slug), id);
   }
@@ -2990,6 +3005,230 @@ export async function ensureContactsTable(env) {
   ]) {
     try { await env.DB.prepare(sql).run(); } catch (_) {}
   }
+}
+
+// ─── Campaigns ──────────────────────────────────────────────────────────
+// Multi-month commitments with a client (e.g. "Ponce Park Coral Gables —
+// 10-month Gold campaign, $18,750, 5 deliverables"). Each post can link to
+// one campaign via posts.campaign_id; income is auto-derived from
+// total_income / planned_posts on link/unlink.
+//
+// status: 'live' (in progress) | 'ended' (wrapped). Tier is free-form to
+// accept Gold / Platinum / Custom / future tiers without schema churn.
+// monthly_income is the recurring rate for "$/mo" campaigns; total_income
+// is the lump-sum value (use whichever was negotiated).
+export async function ensureCampaignsTable(env) {
+  if (!env.DB) return;
+  await env.DB.batch([
+    env.DB.prepare(`CREATE TABLE IF NOT EXISTS campaigns (
+      id              TEXT    PRIMARY KEY,
+      slug            TEXT,
+      name            TEXT    NOT NULL,
+      contact_id      TEXT,
+      project_slug    TEXT,
+      tier            TEXT,
+      status          TEXT    NOT NULL DEFAULT 'live',
+      start_date      INTEGER,
+      end_date        INTEGER,
+      total_income    REAL,
+      monthly_income  REAL,
+      planned_posts   INTEGER,
+      notes           TEXT,
+      created_at      INTEGER NOT NULL,
+      updated_at      INTEGER NOT NULL
+    )`),
+    env.DB.prepare(`CREATE INDEX IF NOT EXISTS idx_campaigns_status      ON campaigns(status, start_date DESC)`),
+    env.DB.prepare(`CREATE INDEX IF NOT EXISTS idx_campaigns_contact     ON campaigns(contact_id)   WHERE contact_id IS NOT NULL`),
+    env.DB.prepare(`CREATE INDEX IF NOT EXISTS idx_campaigns_project     ON campaigns(project_slug) WHERE project_slug IS NOT NULL`),
+    env.DB.prepare(`CREATE INDEX IF NOT EXISTS idx_campaigns_name        ON campaigns(name)`),
+  ]);
+  // Extend posts with campaign_id (idempotent — silently no-ops after first run).
+  try { await env.DB.prepare(`ALTER TABLE posts ADD COLUMN campaign_id TEXT`).run(); } catch (_) {}
+  try { await env.DB.prepare(`CREATE INDEX IF NOT EXISTS idx_posts_campaign ON posts(campaign_id) WHERE campaign_id IS NOT NULL`).run(); } catch (_) {}
+}
+
+function rowToCampaign(r, postCount) {
+  if (!r) return null;
+  return {
+    id: r.id,
+    slug: r.slug || '',
+    name: r.name || '',
+    contact_id:   r.contact_id   || null,
+    project_slug: r.project_slug || null,
+    tier:   r.tier   || null,
+    status: r.status || 'live',
+    start_date: r.start_date || null,
+    end_date:   r.end_date   || null,
+    total_income:   r.total_income   == null ? null : Number(r.total_income),
+    monthly_income: r.monthly_income == null ? null : Number(r.monthly_income),
+    planned_posts:  r.planned_posts  == null ? null : Number(r.planned_posts),
+    notes: r.notes || '',
+    post_count: typeof postCount === 'number' ? postCount : null,
+    income_per_post: (r.total_income != null && r.planned_posts ? Number(r.total_income) / Number(r.planned_posts) : null),
+    created_at: r.created_at,
+    updated_at: r.updated_at,
+  };
+}
+
+// Income math runs both on /campaigns mutation (re-spread the income across
+// linked posts when total_income or planned_posts changes) and on link/unlink.
+function campaignIncomePerPost(c) {
+  if (!c) return null;
+  const total = c.total_income == null ? null : Number(c.total_income);
+  const n = c.planned_posts == null ? null : Number(c.planned_posts);
+  if (total == null || !n || n <= 0) return null;
+  // Round to cents to avoid 0.000000001 drift across many splits.
+  return Math.round((total / n) * 100) / 100;
+}
+
+async function recalcCampaignPostIncomes(env, campaignId) {
+  const c = await env.DB.prepare(`SELECT * FROM campaigns WHERE id = ?1`).bind(campaignId).first();
+  const per = campaignIncomePerPost(c);
+  // When per is null we still PATCH so removing planned_posts clears income
+  // on linked posts. Null splits clear the income field.
+  await env.DB.prepare(`UPDATE posts SET income = ?1, updated_at = ?2 WHERE campaign_id = ?3`)
+    .bind(per, Math.floor(Date.now() / 1000), campaignId).run();
+}
+
+async function handleCampaignsList(req, env, origin, url) {
+  const authCheck = await requireAdminToken(req, env, origin);
+  if (authCheck) return authCheck;
+  await ensureCampaignsTable(env);
+  const limit  = clampInt(url.searchParams.get('limit'), 100, 1, 500);
+  const offset = clampInt(url.searchParams.get('offset'), 0, 0, 100000);
+  const status = url.searchParams.get('status');
+  const q      = (url.searchParams.get('q') || '').trim().toLowerCase();
+  const where = []; const params = []; let p = 1;
+  if (status) { where.push(`status = ?${p}`); params.push(status); p++; }
+  if (q)      { where.push(`(LOWER(name) LIKE ?${p} OR LOWER(notes) LIKE ?${p})`); params.push('%'+q+'%'); p++; }
+  const whereSql = where.length ? 'WHERE ' + where.join(' AND ') : '';
+  const total = await env.DB.prepare(`SELECT COUNT(*) AS c FROM campaigns ${whereSql}`).bind(...params).first();
+  // Sort: live first (by most-recent start), then ended (also recent-first).
+  const rows = (await env.DB.prepare(
+    `SELECT * FROM campaigns ${whereSql}
+     ORDER BY CASE WHEN status='live' THEN 0 ELSE 1 END, COALESCE(start_date, created_at) DESC
+     LIMIT ${limit} OFFSET ${offset}`
+  ).bind(...params).all()).results || [];
+  // Bulk post-count lookup (chunk to avoid D1's 100-placeholder cap).
+  let counts = {};
+  const CHUNK = 90;
+  for (let i = 0; i < rows.length; i += CHUNK) {
+    const slice = rows.slice(i, i + CHUNK);
+    const placeholders = slice.map((_, j) => `?${j+1}`).join(',');
+    const cRows = (await env.DB.prepare(
+      `SELECT campaign_id, COUNT(*) AS c FROM posts WHERE campaign_id IN (${placeholders}) GROUP BY campaign_id`
+    ).bind(...slice.map(r => r.id)).all()).results || [];
+    for (const cr of cRows) counts[cr.campaign_id] = cr.c;
+  }
+  return json(
+    { items: rows.map(r => rowToCampaign(r, counts[r.id] || 0)), total: total ? total.c : 0, limit, offset, hasMore: offset + rows.length < (total ? total.c : 0) },
+    {}, env, origin,
+  );
+}
+
+async function handleCampaignGet(req, env, origin, id) {
+  const authCheck = await requireAdminToken(req, env, origin);
+  if (authCheck) return authCheck;
+  await ensureCampaignsTable(env);
+  const row = await env.DB.prepare(`SELECT * FROM campaigns WHERE id = ?1`).bind(id).first();
+  if (!row) return json({ error: 'campaign not found' }, { status: 404 }, env, origin);
+  const posts = (await env.DB.prepare(
+    `SELECT id, slug, title, post_type, income, published_at, status
+     FROM posts WHERE campaign_id = ?1 ORDER BY COALESCE(published_at, updated_at) DESC LIMIT 500`
+  ).bind(id).all()).results || [];
+  return json({ campaign: rowToCampaign(row, posts.length), posts }, {}, env, origin);
+}
+
+const CAMPAIGN_WRITABLE = ['name','contact_id','project_slug','tier','status','start_date','end_date','total_income','monthly_income','planned_posts','notes','slug'];
+
+async function handleCampaignsCreate(req, env, origin) {
+  const authCheck = await requireAdminToken(req, env, origin);
+  if (authCheck) return authCheck;
+  await ensureCampaignsTable(env);
+  let body; try { body = await req.json(); } catch { return json({ error: 'invalid JSON' }, { status: 400 }, env, origin); }
+  const name = (body.name || '').toString().trim();
+  if (!name) return json({ error: 'name is required' }, { status: 400 }, env, origin);
+  const now = Math.floor(Date.now() / 1000);
+  const id = body.id || ('cmp-' + cryptoRandomId(12));
+  const cols = ['id', 'name', 'status', 'created_at', 'updated_at'];
+  const vals = [id, name, body.status === 'ended' ? 'ended' : 'live', now, now];
+  for (const k of CAMPAIGN_WRITABLE) {
+    if (k === 'name' || k === 'status') continue;
+    if (k in body) { cols.push(k); vals.push(body[k] === '' ? null : body[k]); }
+  }
+  const placeholders = vals.map((_, i) => `?${i+1}`).join(',');
+  try {
+    await env.DB.prepare(`INSERT INTO campaigns (${cols.join(', ')}) VALUES (${placeholders})`).bind(...vals).run();
+  } catch (e) {
+    return json({ error: 'insert failed', detail: e.message || String(e) }, { status: 500 }, env, origin);
+  }
+  const row = await env.DB.prepare(`SELECT * FROM campaigns WHERE id = ?1`).bind(id).first();
+  return json({ ok: true, campaign: rowToCampaign(row, 0) }, {}, env, origin);
+}
+
+async function handleCampaignsUpdate(req, env, origin, id) {
+  const authCheck = await requireAdminToken(req, env, origin);
+  if (authCheck) return authCheck;
+  await ensureCampaignsTable(env);
+  const existing = await env.DB.prepare(`SELECT * FROM campaigns WHERE id = ?1`).bind(id).first();
+  if (!existing) return json({ error: 'campaign not found' }, { status: 404 }, env, origin);
+  let body; try { body = await req.json(); } catch { return json({ error: 'invalid JSON' }, { status: 400 }, env, origin); }
+  const patch = {};
+  for (const k of CAMPAIGN_WRITABLE) {
+    if (k in body) patch[k] = body[k] === '' ? null : body[k];
+  }
+  if (!Object.keys(patch).length) return json({ ok: true, campaign: rowToCampaign(existing), note: 'no changes' }, {}, env, origin);
+  patch.updated_at = Math.floor(Date.now() / 1000);
+  const keys = Object.keys(patch);
+  const setSql = keys.map((k, i) => `${k} = ?${i+1}`).join(', ');
+  const args = keys.map(k => patch[k]); args.push(id);
+  await env.DB.prepare(`UPDATE campaigns SET ${setSql} WHERE id = ?${keys.length+1}`).bind(...args).run();
+  // If income or split-count changed, re-spread across linked posts.
+  if ('total_income' in patch || 'planned_posts' in patch) {
+    await recalcCampaignPostIncomes(env, id);
+  }
+  const updated = await env.DB.prepare(`SELECT * FROM campaigns WHERE id = ?1`).bind(id).first();
+  return json({ ok: true, campaign: rowToCampaign(updated) }, {}, env, origin);
+}
+
+async function handleCampaignsDelete(req, env, origin, id) {
+  const authCheck = await requireAdminToken(req, env, origin);
+  if (authCheck) return authCheck;
+  await ensureCampaignsTable(env);
+  // Detach posts first — keeps the posts intact, just clears the campaign
+  // link + per-split income.
+  await env.DB.prepare(`UPDATE posts SET campaign_id = NULL, income = NULL WHERE campaign_id = ?1`).bind(id).run();
+  const r = await env.DB.prepare(`DELETE FROM campaigns WHERE id = ?1`).bind(id).run();
+  return json({ ok: true, id, deleted: r.meta && r.meta.changes ? r.meta.changes : 0 }, {}, env, origin);
+}
+
+async function handleCampaignLinkPost(req, env, origin, id) {
+  const authCheck = await requireAdminToken(req, env, origin);
+  if (authCheck) return authCheck;
+  await ensureCampaignsTable(env);
+  let body; try { body = await req.json(); } catch { return json({ error: 'invalid JSON' }, { status: 400 }, env, origin); }
+  const postId = (body.post_id || '').toString().trim();
+  if (!postId) return json({ error: 'post_id is required' }, { status: 400 }, env, origin);
+  const campaign = await env.DB.prepare(`SELECT * FROM campaigns WHERE id = ?1`).bind(id).first();
+  if (!campaign) return json({ error: 'campaign not found' }, { status: 404 }, env, origin);
+  const post = await env.DB.prepare(`SELECT id FROM posts WHERE id = ?1`).bind(postId).first();
+  if (!post) return json({ error: 'post not found' }, { status: 404 }, env, origin);
+  const per = campaignIncomePerPost(campaign);
+  await env.DB.prepare(`UPDATE posts SET campaign_id = ?1, income = ?2, updated_at = ?3 WHERE id = ?4`)
+    .bind(id, per, Math.floor(Date.now() / 1000), postId).run();
+  return json({ ok: true, post_id: postId, campaign_id: id, income_per_post: per }, {}, env, origin);
+}
+
+async function handleCampaignUnlinkPost(req, env, origin, id) {
+  const authCheck = await requireAdminToken(req, env, origin);
+  if (authCheck) return authCheck;
+  await ensureCampaignsTable(env);
+  let body; try { body = await req.json(); } catch { return json({ error: 'invalid JSON' }, { status: 400 }, env, origin); }
+  const postId = (body.post_id || '').toString().trim();
+  if (!postId) return json({ error: 'post_id is required' }, { status: 400 }, env, origin);
+  await env.DB.prepare(`UPDATE posts SET campaign_id = NULL, income = NULL, updated_at = ?1 WHERE id = ?2 AND campaign_id = ?3`)
+    .bind(Math.floor(Date.now() / 1000), postId, id).run();
+  return json({ ok: true, post_id: postId, campaign_id: id }, {}, env, origin);
 }
 
 function rowToContact(r, postCount) {
@@ -5435,6 +5674,28 @@ export default {
           if (request.method === 'GET')    return await handleContactGet(request, env, origin, m[1]);
           if (request.method === 'PATCH')  return await handleContactsUpdate(request, env, origin, m[1]);
           if (request.method === 'DELETE') return await handleContactsDelete(request, env, origin, m[1]);
+        }
+      }
+      // /campaigns — multi-month commitments. CRUD + link/unlink-post for the
+      // editor sidebar. Admin-only on every verb.
+      if (url.pathname === '/campaigns' || url.pathname === '/campaigns/') {
+        if (request.method === 'GET')  return await handleCampaignsList(request, env, origin, url);
+        if (request.method === 'POST') return await handleCampaignsCreate(request, env, origin);
+      }
+      {
+        const m = url.pathname.match(/^\/campaigns\/([^/]+)\/link-post\/?$/);
+        if (m && request.method === 'POST') return await handleCampaignLinkPost(request, env, origin, m[1]);
+      }
+      {
+        const m = url.pathname.match(/^\/campaigns\/([^/]+)\/unlink-post\/?$/);
+        if (m && request.method === 'POST') return await handleCampaignUnlinkPost(request, env, origin, m[1]);
+      }
+      {
+        const m = url.pathname.match(/^\/campaigns\/([^/]+)\/?$/);
+        if (m) {
+          if (request.method === 'GET')    return await handleCampaignGet(request, env, origin, m[1]);
+          if (request.method === 'PATCH')  return await handleCampaignsUpdate(request, env, origin, m[1]);
+          if (request.method === 'DELETE') return await handleCampaignsDelete(request, env, origin, m[1]);
         }
       }
       // /post/:slug — LEGACY scrape fallback (kept for backwards compat

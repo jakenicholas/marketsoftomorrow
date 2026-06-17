@@ -21,7 +21,7 @@
 */
 
 import { isAuthorized } from './oauth.js';
-import { getGoogleAccessToken, signPayload, previewSecret, ensureCarouselTable, ensureContactsTable } from './index.js';
+import { getGoogleAccessToken, signPayload, previewSecret, ensureCarouselTable, ensureContactsTable, ensureCampaignsTable } from './index.js';
 
 // serverInfo per the MCP `Implementation` shape. `title`/`websiteUrl`/`icons`
 // were added in spec 2025-11-25 (SEP-973). Clients that support icons (e.g.
@@ -212,9 +212,10 @@ const TOOLS = [
         cover_image: { type: 'string', description: 'Absolute cover image URL (optional)' },
         linked_project: { type: 'string', description: 'Slug of the Map of Tomorrow project this article covers — embeds the live project card (status, intel, stats) in the post, exactly like the Studio "linked project" picker. Use the slug from search_projects. Always set this when the article is about a tracked project.' },
         post_type:   { type: 'string', enum: ['Editorial', 'Barter', 'Potential Barter', 'Partner', 'Paid'], description: 'Editorial/commercial classification (Monday-replacement). Default Editorial.' },
-        income:      { type: 'number', description: 'Dollar amount captured for the post (paid/barter/partner). Omit for Editorial.' },
+        income:      { type: 'number', description: 'Dollar amount captured for the post (paid/barter/partner). Omit for Editorial. When campaign_id is set the worker auto-fills this from the campaign math.' },
         contact_id:  { type: 'string', description: 'Studio contact id (from list_contacts) — the PR/brand contact tied to this post.' },
         project_slug:{ type: 'string', description: 'Map of Tomorrow project slug this post should be linked to in the dashboard (separate from the in-body embed — `linked_project` controls the embed; `project_slug` is the structured link the dashboard groups posts by).' },
+        campaign_id: { type: 'string', description: 'Campaign id (from list_campaigns) — links this post to a multi-month commitment. When set, income is auto-derived from the campaign\'s total_income / planned_posts unless an explicit `income` is also passed.' },
       },
       required: ['title'],
     },
@@ -236,6 +237,7 @@ const TOOLS = [
         income:      { type: 'number' },
         contact_id:  { type: 'string' },
         project_slug:{ type: 'string' },
+        campaign_id: { type: 'string', description: 'Campaign id to link this draft to. Auto-fills income from campaign split unless explicit `income` is passed.' },
       },
       required: ['slug'],
     },
@@ -664,6 +666,89 @@ const TOOLS = [
     name: 'delete_contact',
     description: 'Delete a Studio contact. Any posts that reference this contact_id are detached (their contact_id is set to NULL — the post itself is untouched). Cannot be undone; use only when the contact was a duplicate or was created in error.',
     inputSchema: { type: 'object', properties: { id: { type: 'string' } }, required: ['id'] },
+  },
+
+  // ── Campaigns ───────────────────────────────────────────────────────────────
+  // Multi-month commitments with a client (e.g. "Ponce Park Coral Gables — 10-
+  // month Gold campaign, $18,750, 5 deliverables"). Each post can link to a
+  // campaign; income on the post is auto-derived from the campaign math.
+  {
+    name: 'list_campaigns',
+    description: 'List Studio campaigns (multi-month client commitments — paid editorial, partnership packages). Returns id, name, tier (Gold/Platinum/Custom), status (live/ended), start/end dates, total income, monthly recurring income, planned post count, live post count, and the contact id behind each. Filter by status to see only live deals; free-text q matches on name + notes.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        status: { type: 'string', enum: ['live','ended'], description: 'Only return campaigns at this lifecycle' },
+        query:  { type: 'string', description: 'Free-text match against campaign name/notes' },
+        limit:  { type: 'integer', description: 'Max results (default 50, max 200)' },
+        offset: { type: 'integer' },
+      },
+    },
+  },
+  {
+    name: 'get_campaign',
+    description: 'Get one Studio campaign by id, including every post linked to it (campaigns.campaign_id reverse lookup). Returns the campaign record + the connected-posts list ({slug, title, post_type, income, date, status}) — same data the admin Campaigns page renders.',
+    inputSchema: { type: 'object', properties: { id: { type: 'string' } }, required: ['id'] },
+  },
+  {
+    name: 'create_campaign',
+    description: 'Create a new Studio campaign. Name is required; everything else is optional and editable later. When total_income and planned_posts are both set, linking a post to this campaign auto-fills the post.income to total_income / planned_posts.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        name:            { type: 'string', description: 'Display name, e.g. "Ponce Park Coral Gables"' },
+        contact_id:      { type: 'string', description: 'Lead PR/brand contact (from list_contacts)' },
+        project_slug:    { type: 'string', description: 'Optional Map of Tomorrow project the campaign promotes' },
+        tier:            { type: 'string', description: 'Gold / Platinum / Custom / etc — free-form so new tiers don\'t need schema changes' },
+        status:          { type: 'string', enum: ['live','ended'], description: 'Default "live"' },
+        start_date:      { type: 'integer', description: 'Campaign start (unix seconds)' },
+        end_date:        { type: 'integer', description: 'Campaign end (unix seconds). Omit for ongoing.' },
+        total_income:    { type: 'number',  description: 'Lump-sum value for the whole campaign' },
+        monthly_income:  { type: 'number',  description: 'Recurring rate for "$/mo" campaigns' },
+        planned_posts:   { type: 'integer', description: 'Deliverable count — used to split total_income across posts on link' },
+        notes:           { type: 'string' },
+      },
+      required: ['name'],
+    },
+  },
+  {
+    name: 'update_campaign',
+    description: 'Update fields on an existing campaign. Only the keys you pass change. If total_income or planned_posts changes, the worker re-spreads income across every linked post.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        id:             { type: 'string' },
+        name:           { type: 'string' },
+        contact_id:     { type: 'string' },
+        project_slug:   { type: 'string' },
+        tier:           { type: 'string' },
+        status:         { type: 'string', enum: ['live','ended'] },
+        start_date:     { type: 'integer' },
+        end_date:       { type: 'integer' },
+        total_income:   { type: 'number' },
+        monthly_income: { type: 'number' },
+        planned_posts:  { type: 'integer' },
+        notes:          { type: 'string' },
+      },
+      required: ['id'],
+    },
+  },
+  {
+    name: 'delete_campaign',
+    description: 'Delete a Studio campaign. Any posts linked to it are detached (campaign_id set NULL and income cleared) but the posts themselves stay. Cannot be undone.',
+    inputSchema: { type: 'object', properties: { id: { type: 'string' } }, required: ['id'] },
+  },
+  {
+    name: 'link_post_to_campaign',
+    description: 'Link an existing post to a campaign. Sets posts.campaign_id and, if the campaign has total_income + planned_posts, auto-fills the post.income to total_income / planned_posts. Use this when a published article is part of a paid editorial commitment.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        campaign_id: { type: 'string' },
+        post_id:     { type: 'string', description: 'The post id (from list_posts / search_posts)' },
+      },
+      required: ['campaign_id', 'post_id'],
+    },
   },
 ];
 
@@ -1266,7 +1351,7 @@ const IMPL = {
     const r = await env.DB.prepare(
       `SELECT slug, title, excerpt, status, published_at, categories, tags, author_name,
               cover_image, seo_title, seo_description, body_html, reading_time_min,
-              post_type, income, contact_id, project_slug
+              post_type, income, contact_id, project_slug, campaign_id
        FROM posts WHERE slug = ?1 LIMIT 1`
     ).bind(String(args.slug).toLowerCase()).first();
     if (!r) throw new Error('no post with slug "' + args.slug + '"');
@@ -1286,6 +1371,7 @@ const IMPL = {
       income:       r.income == null ? null : Number(r.income),
       contact_id:   r.contact_id   || null,
       project_slug: r.project_slug || null,
+      campaign_id:  r.campaign_id  || null,
       body_html: body, body_truncated: truncated,
     };
   },
@@ -1614,16 +1700,24 @@ const IMPL = {
     const reading = Math.max(1, Math.round(text.split(/\s+/).filter(Boolean).length / 200));
     const now = Math.floor(Date.now() / 1000);
     await ensureContactsTable(env);
+    await ensureCampaignsTable(env);
     const postType    = normalizePostTypeMcp(args.post_type);
-    const income      = args.income == null || args.income === '' ? null : Number(args.income);
+    let   income      = args.income == null || args.income === '' ? null : Number(args.income);
     const contactId   = args.contact_id || null;
     const projSlugMcp = args.project_slug ? String(args.project_slug).toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 160) : null;
+    const campaignId  = args.campaign_id || null;
+    // If linking to a campaign and no explicit income given, auto-derive split.
+    if (campaignId && income == null) {
+      const c = await env.DB.prepare(`SELECT total_income, planned_posts FROM campaigns WHERE id = ?1`).bind(campaignId).first();
+      const per = mcpCampaignIncomePerPost(c);
+      if (per != null) income = per;
+    }
     await env.DB.prepare(
       `INSERT INTO posts (id, slug, title, excerpt, body_html, cover_image, categories, tags,
                           author_name, status, published_at, reading_time_min, body_source,
-                          post_type, income, contact_id, project_slug, created_at, updated_at)
-       VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, '[]', ?8, 'draft', NULL, ?9, 'studio-mcp', ?10, ?11, ?12, ?13, ?14, ?14)`
-    ).bind(id, slug, title, excerpt, bodyHtml, args.cover_image || null, categories, 'Jake Nicholas', reading, postType, income, contactId, projSlugMcp, now).run();
+                          post_type, income, contact_id, project_slug, campaign_id, created_at, updated_at)
+       VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, '[]', ?8, 'draft', NULL, ?9, 'studio-mcp', ?10, ?11, ?12, ?13, ?14, ?15, ?15)`
+    ).bind(id, slug, title, excerpt, bodyHtml, args.cover_image || null, categories, 'Jake Nicholas', reading, postType, income, contactId, projSlugMcp, campaignId, now).run();
     return {
       ok: true, id, slug, status: 'draft', linked_project: linkedSlug || undefined,
       edit_url: 'https://admin.oftmw.com/post.html?id=' + id,
@@ -1662,7 +1756,20 @@ const IMPL = {
     if ('income'      in args)     { sets.push(`income = ?${p++}`);       params.push(args.income == null || args.income === '' ? null : Number(args.income)); }
     if ('contact_id'  in args)     { sets.push(`contact_id = ?${p++}`);   params.push(args.contact_id || null); }
     if ('project_slug' in args)    { sets.push(`project_slug = ?${p++}`); params.push(args.project_slug ? String(args.project_slug).toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 160) : null); }
-    if (!sets.length) throw new Error('nothing to update — pass at least one of title/body_markdown/excerpt/category/cover_image/linked_project/post_type/income/contact_id/project_slug');
+    if ('campaign_id' in args)     {
+      await ensureCampaignsTable(env);
+      const cid = args.campaign_id || null;
+      sets.push(`campaign_id = ?${p++}`); params.push(cid);
+      // Auto-fill income from campaign math when linking and no explicit income was passed.
+      if (cid && !('income' in args)) {
+        const c = await env.DB.prepare(`SELECT total_income, planned_posts FROM campaigns WHERE id = ?1`).bind(cid).first();
+        const per = mcpCampaignIncomePerPost(c);
+        if (per != null) { sets.push(`income = ?${p++}`); params.push(per); }
+      }
+      // Unlink → clear income unless caller overrode.
+      if (cid == null && !('income' in args)) { sets.push(`income = ?${p++}`); params.push(null); }
+    }
+    if (!sets.length) throw new Error('nothing to update — pass at least one of title/body_markdown/excerpt/category/cover_image/linked_project/post_type/income/contact_id/project_slug/campaign_id');
     sets.push(`updated_at = ?${p++}`); params.push(Math.floor(Date.now() / 1000));
     params.push(slug);
     await env.DB.prepare(`UPDATE posts SET ${sets.join(', ')} WHERE slug = ?${p}`).bind(...params).run();
@@ -2572,7 +2679,157 @@ const IMPL = {
     const r = await env.DB.prepare(`DELETE FROM contacts WHERE id = ?1`).bind(id).run();
     return { ok: true, id, deleted: r.meta && r.meta.changes ? r.meta.changes : 0 };
   },
+
+  // ── Campaigns ────────────────────────────────────────────────────────────
+  async list_campaigns(args, env) {
+    if (!env.DB) throw new Error('D1 not configured');
+    await ensureCampaignsTable(env);
+    const limit  = Math.min(Math.max(parseInt(args.limit, 10) || 50, 1), 200);
+    const offset = Math.max(parseInt(args.offset, 10) || 0, 0);
+    const q      = (args.query || '').trim().toLowerCase();
+    const status = (args.status || '').trim();
+    const where = []; const params = []; let p = 1;
+    if (status) { where.push(`status = ?${p}`); params.push(status); p++; }
+    if (q)      { where.push(`(LOWER(name) LIKE ?${p} OR LOWER(notes) LIKE ?${p})`); params.push('%'+q+'%'); p++; }
+    const whereSql = where.length ? 'WHERE ' + where.join(' AND ') : '';
+    const total = await env.DB.prepare(`SELECT COUNT(*) c FROM campaigns ${whereSql}`).bind(...params).first();
+    const rows = (await env.DB.prepare(
+      `SELECT * FROM campaigns ${whereSql}
+       ORDER BY CASE WHEN status='live' THEN 0 ELSE 1 END, COALESCE(start_date, created_at) DESC
+       LIMIT ${limit} OFFSET ${offset}`
+    ).bind(...params).all()).results || [];
+    let counts = {};
+    if (rows.length) {
+      const placeholders = rows.map((_, i) => `?${i+1}`).join(',');
+      const cRows = (await env.DB.prepare(
+        `SELECT campaign_id, COUNT(*) c FROM posts WHERE campaign_id IN (${placeholders}) GROUP BY campaign_id`
+      ).bind(...rows.map(r => r.id)).all()).results || [];
+      for (const cr of cRows) counts[cr.campaign_id] = cr.c;
+    }
+    return {
+      count: rows.length,
+      total: total ? total.c : 0,
+      campaigns: rows.map((r) => mcpCampaignRow(r, counts[r.id] || 0)),
+    };
+  },
+  async get_campaign(args, env) {
+    if (!env.DB) throw new Error('D1 not configured');
+    await ensureCampaignsTable(env);
+    const id = String(args.id || '').trim();
+    if (!id) throw new Error('id is required');
+    const row = await env.DB.prepare(`SELECT * FROM campaigns WHERE id = ?1`).bind(id).first();
+    if (!row) throw new Error('no campaign with id "' + id + '"');
+    const posts = (await env.DB.prepare(
+      `SELECT slug, title, post_type, income, published_at, status
+       FROM posts WHERE campaign_id = ?1 ORDER BY COALESCE(published_at, updated_at) DESC LIMIT 500`
+    ).bind(id).all()).results || [];
+    return { campaign: mcpCampaignRow(row, posts.length), posts: posts.map((p) => ({
+      slug: p.slug, title: p.title, post_type: p.post_type || 'Editorial',
+      income: p.income == null ? null : Number(p.income),
+      date: iso(p.published_at), status: p.status,
+    })) };
+  },
+  async create_campaign(args, env) {
+    if (!env.DB) throw new Error('D1 not configured');
+    await ensureCampaignsTable(env);
+    const name = String(args.name || '').trim();
+    if (!name) throw new Error('name is required');
+    const id = 'cmp-' + (crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2));
+    const now = Math.floor(Date.now() / 1000);
+    await env.DB.prepare(
+      `INSERT INTO campaigns (id, name, contact_id, project_slug, tier, status,
+                              start_date, end_date, total_income, monthly_income,
+                              planned_posts, notes, created_at, updated_at)
+       VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?13)`
+    ).bind(
+      id, name,
+      args.contact_id || null, args.project_slug || null,
+      args.tier || null, args.status === 'ended' ? 'ended' : 'live',
+      args.start_date == null ? null : Math.floor(Number(args.start_date)),
+      args.end_date   == null ? null : Math.floor(Number(args.end_date)),
+      args.total_income   == null ? null : Number(args.total_income),
+      args.monthly_income == null ? null : Number(args.monthly_income),
+      args.planned_posts  == null ? null : Math.floor(Number(args.planned_posts)),
+      args.notes || null, now,
+    ).run();
+    const row = await env.DB.prepare(`SELECT * FROM campaigns WHERE id = ?1`).bind(id).first();
+    return { ok: true, campaign: mcpCampaignRow(row, 0) };
+  },
+  async update_campaign(args, env) {
+    if (!env.DB) throw new Error('D1 not configured');
+    await ensureCampaignsTable(env);
+    const id = String(args.id || '').trim();
+    if (!id) throw new Error('id is required');
+    const existing = await env.DB.prepare(`SELECT * FROM campaigns WHERE id = ?1`).bind(id).first();
+    if (!existing) throw new Error('no campaign with id "' + id + '"');
+    const sets = []; const params = []; let p = 1;
+    const fields = ['name','contact_id','project_slug','tier','status','start_date','end_date','total_income','monthly_income','planned_posts','notes'];
+    for (const k of fields) {
+      if (args[k] != null) { sets.push(`${k} = ?${p++}`); params.push(args[k] === '' ? null : args[k]); }
+    }
+    if (!sets.length) throw new Error('nothing to update');
+    sets.push(`updated_at = ?${p++}`); params.push(Math.floor(Date.now() / 1000));
+    params.push(id);
+    await env.DB.prepare(`UPDATE campaigns SET ${sets.join(', ')} WHERE id = ?${p}`).bind(...params).run();
+    // Income reshuffles if either of these changed.
+    if ('total_income' in args || 'planned_posts' in args) {
+      const fresh = await env.DB.prepare(`SELECT * FROM campaigns WHERE id = ?1`).bind(id).first();
+      const per = mcpCampaignIncomePerPost(fresh);
+      await env.DB.prepare(`UPDATE posts SET income = ?1, updated_at = ?2 WHERE campaign_id = ?3`)
+        .bind(per, Math.floor(Date.now() / 1000), id).run();
+    }
+    const updated = await env.DB.prepare(`SELECT * FROM campaigns WHERE id = ?1`).bind(id).first();
+    return { ok: true, campaign: mcpCampaignRow(updated) };
+  },
+  async delete_campaign(args, env) {
+    if (!env.DB) throw new Error('D1 not configured');
+    await ensureCampaignsTable(env);
+    const id = String(args.id || '').trim();
+    if (!id) throw new Error('id is required');
+    await env.DB.prepare(`UPDATE posts SET campaign_id = NULL, income = NULL WHERE campaign_id = ?1`).bind(id).run();
+    const r = await env.DB.prepare(`DELETE FROM campaigns WHERE id = ?1`).bind(id).run();
+    return { ok: true, id, deleted: r.meta && r.meta.changes ? r.meta.changes : 0 };
+  },
+  async link_post_to_campaign(args, env) {
+    if (!env.DB) throw new Error('D1 not configured');
+    await ensureCampaignsTable(env);
+    const campaignId = String(args.campaign_id || '').trim();
+    const postId     = String(args.post_id     || '').trim();
+    if (!campaignId || !postId) throw new Error('campaign_id and post_id are required');
+    const campaign = await env.DB.prepare(`SELECT * FROM campaigns WHERE id = ?1`).bind(campaignId).first();
+    if (!campaign) throw new Error('no campaign with id "' + campaignId + '"');
+    const post = await env.DB.prepare(`SELECT id FROM posts WHERE id = ?1`).bind(postId).first();
+    if (!post) throw new Error('no post with id "' + postId + '"');
+    const per = mcpCampaignIncomePerPost(campaign);
+    await env.DB.prepare(`UPDATE posts SET campaign_id = ?1, income = ?2, updated_at = ?3 WHERE id = ?4`)
+      .bind(campaignId, per, Math.floor(Date.now() / 1000), postId).run();
+    return { ok: true, campaign_id: campaignId, post_id: postId, income_per_post: per };
+  },
 };
+
+function mcpCampaignIncomePerPost(c) {
+  if (!c) return null;
+  const total = c.total_income == null ? null : Number(c.total_income);
+  const n = c.planned_posts == null ? null : Number(c.planned_posts);
+  if (total == null || !n || n <= 0) return null;
+  return Math.round((total / n) * 100) / 100;
+}
+function mcpCampaignRow(r, postCount) {
+  return {
+    id: r.id, name: r.name || '',
+    contact_id: r.contact_id || null, project_slug: r.project_slug || null,
+    tier: r.tier || null, status: r.status || 'live',
+    start_date: r.start_date || null, end_date: r.end_date || null,
+    start: iso(r.start_date), end: iso(r.end_date),
+    total_income:   r.total_income   == null ? null : Number(r.total_income),
+    monthly_income: r.monthly_income == null ? null : Number(r.monthly_income),
+    planned_posts:  r.planned_posts  == null ? null : Number(r.planned_posts),
+    notes: r.notes || '',
+    post_count: typeof postCount === 'number' ? postCount : null,
+    income_per_post: mcpCampaignIncomePerPost(r),
+    created: iso(r.created_at), updated: iso(r.updated_at),
+  };
+}
 
 // ── Post-type normalization (Monday.com replacement vocabulary) ──────────
 const POST_TYPE_ENUM_MCP = new Set(['Editorial','Barter','Potential Barter','Partner','Paid']);
