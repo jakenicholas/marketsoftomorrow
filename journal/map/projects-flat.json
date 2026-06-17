@@ -1235,7 +1235,7 @@
     "Delivery": "Under Construction",
     "DeliveryDate": "2026-12",
     "StartDate": "2026-01-28",
-    "ProjectType": "Hotel, Spa, Entertainment, Retail",
+    "ProjectType": "Hotel, Entertainment, Retail",
     "PreferredType": "Hotel",
     "Architect": "Smallwood",
     "ArchitectSlugs": "smallwood",
@@ -1258,7 +1258,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-06-09T12:00:21.367Z",
+    "UpdatedAt": "2026-06-17T12:52:03.869Z",
     "StatusHistory": [
       {
         "at": "2026-06-05T01:03:06.591Z",
@@ -1286,6 +1286,24 @@
         "field": "floors",
         "from": 7,
         "to": 6
+      },
+      {
+        "at": "2026-06-17T12:52:03.869Z",
+        "source_url": "https://www.oftmw.com/markets/",
+        "note": "Vocabulary cleanup: removing the 'Spa' tag from the TMW type registry (spas are an amenity, not a primary use). Stripping Spa from types[] across all affected projects.",
+        "type": "field",
+        "field": "types",
+        "from": [
+          "Hotel",
+          "Spa",
+          "Entertainment",
+          "Retail"
+        ],
+        "to": [
+          "Hotel",
+          "Entertainment",
+          "Retail"
+        ]
       }
     ]
   },
@@ -1533,7 +1551,7 @@
     "Delivery": "Now Open",
     "DeliveryDate": "2024-12-18",
     "StartDate": "2016-11-29",
-    "ProjectType": "Resort, Hotel, Spa, Golf, Residences, Retail",
+    "ProjectType": "Resort, Hotel, Golf, Residences, Retail",
     "PreferredType": "Resort",
     "Architect": "Randall Stofft Architects",
     "ArchitectSlugs": "randall-stofft-architects",
@@ -1556,8 +1574,50 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "",
-    "StatusHistory": []
+    "UpdatedAt": "2026-06-17T13:02:17.620Z",
+    "StatusHistory": [
+      {
+        "at": "2026-06-17T12:52:08.022Z",
+        "source_url": "https://www.oftmw.com/markets/",
+        "note": "Vocabulary cleanup: removing the 'Spa' tag from the TMW type registry (spas are an amenity, not a primary use). Stripping Spa from types[] across all affected projects.",
+        "type": "field",
+        "field": "types",
+        "from": [
+          "Resort",
+          "Hotel",
+          "Spa",
+          "Golf",
+          "Residences",
+          "Retail"
+        ],
+        "to": [
+          "Hotel",
+          "Golf",
+          "Residences",
+          "Retail"
+        ]
+      },
+      {
+        "at": "2026-06-17T13:02:17.620Z",
+        "source_url": "https://www.oftmw.com/markets/by-type/resort/",
+        "note": "Restore Resort tag stripped by deprecated resort→Hotel worker synonym (fixed in worker/src/mcp.js, deployed 2026-06-17).",
+        "type": "field",
+        "field": "types",
+        "from": [
+          "Hotel",
+          "Golf",
+          "Residences",
+          "Retail"
+        ],
+        "to": [
+          "Resort",
+          "Hotel",
+          "Golf",
+          "Residences",
+          "Retail"
+        ]
+      }
+    ]
   },
   {
     "Title": "Amanvari",
@@ -1571,7 +1631,7 @@
     "Delivery": "Opening Soon",
     "DeliveryDate": "2026-08-01",
     "StartDate": "2021-06",
-    "ProjectType": "Resort, Hotel, Residences, Spa, Golf, Marina, Retail",
+    "ProjectType": "Resort, Hotel, Residences, Golf, Marina, Retail",
     "PreferredType": "Resort",
     "Architect": "Elastic Architects",
     "ArchitectSlugs": "elastic-architects",
@@ -1594,7 +1654,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "1",
     "Price": "",
-    "UpdatedAt": "2026-06-15T21:36:29.123Z",
+    "UpdatedAt": "2026-06-17T13:02:21.870Z",
     "StatusHistory": [
       {
         "at": "2026-06-15T21:36:29.123Z",
@@ -1612,6 +1672,51 @@
         "type": "milestone",
         "phase": "bookings",
         "effective_date": "2026"
+      },
+      {
+        "at": "2026-06-17T12:52:11.820Z",
+        "source_url": "https://www.oftmw.com/markets/",
+        "note": "Vocabulary cleanup: removing the 'Spa' tag from the TMW type registry (spas are an amenity, not a primary use). Stripping Spa from types[] across all affected projects.",
+        "type": "field",
+        "field": "types",
+        "from": [
+          "Resort",
+          "Hotel",
+          "Residences",
+          "Spa",
+          "Golf",
+          "Marina",
+          "Retail"
+        ],
+        "to": [
+          "Hotel",
+          "Residences",
+          "Golf",
+          "Marina",
+          "Retail"
+        ]
+      },
+      {
+        "at": "2026-06-17T13:02:21.870Z",
+        "source_url": "https://www.oftmw.com/markets/by-type/resort/",
+        "note": "Restore Resort tag stripped by deprecated resort→Hotel worker synonym (fixed in worker/src/mcp.js, deployed 2026-06-17).",
+        "type": "field",
+        "field": "types",
+        "from": [
+          "Hotel",
+          "Residences",
+          "Golf",
+          "Marina",
+          "Retail"
+        ],
+        "to": [
+          "Resort",
+          "Hotel",
+          "Residences",
+          "Golf",
+          "Marina",
+          "Retail"
+        ]
       }
     ]
   },
@@ -1627,7 +1732,7 @@
     "Delivery": "Breaking Ground",
     "DeliveryDate": "2029-02",
     "StartDate": "2026-05-20",
-    "ProjectType": "Residences, Marina, Spa, Retail",
+    "ProjectType": "Residences, Marina, Retail",
     "PreferredType": "Residences",
     "Architect": "Carlos Ott, MSA Architects, ID & Design International",
     "ArchitectSlugs": "carlos-ott, msa-architects, id-design-international",
@@ -1650,7 +1755,7 @@
     "DeliverySpeculative": "1",
     "DatesSpeculative": "1",
     "Price": "",
-    "UpdatedAt": "2026-06-15T19:03:33.241Z",
+    "UpdatedAt": "2026-06-17T12:52:23.041Z",
     "StatusHistory": [
       {
         "at": "2026-06-15T19:03:33.241Z",
@@ -1661,6 +1766,24 @@
         "field": "neighborhood",
         "from": null,
         "to": "Southbank"
+      },
+      {
+        "at": "2026-06-17T12:52:23.041Z",
+        "source_url": "https://www.oftmw.com/markets/",
+        "note": "Vocabulary cleanup: removing the 'Spa' tag from the TMW type registry (spas are an amenity, not a primary use). Stripping Spa from types[] across all affected projects.",
+        "type": "field",
+        "field": "types",
+        "from": [
+          "Residences",
+          "Marina",
+          "Spa",
+          "Retail"
+        ],
+        "to": [
+          "Residences",
+          "Marina",
+          "Retail"
+        ]
       }
     ]
   },
@@ -26431,7 +26554,7 @@
     "Delivery": "Announced",
     "DeliveryDate": "2030",
     "StartDate": "2027",
-    "ProjectType": "Residences, Marina, Spa",
+    "ProjectType": "Residences, Marina",
     "PreferredType": "Residences",
     "Architect": "Kobi Karp, Paul Duesing Partners",
     "ArchitectSlugs": "kobi-karp-architecture, paul-duesing-partners",
@@ -26454,8 +26577,25 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "1",
     "Price": "",
-    "UpdatedAt": "2026-06-15T21:32:41.155Z",
-    "StatusHistory": []
+    "UpdatedAt": "2026-06-17T12:52:26.756Z",
+    "StatusHistory": [
+      {
+        "at": "2026-06-17T12:52:26.756Z",
+        "source_url": "https://www.oftmw.com/markets/",
+        "note": "Vocabulary cleanup: removing the 'Spa' tag from the TMW type registry (spas are an amenity, not a primary use). Stripping Spa from types[] across all affected projects.",
+        "type": "field",
+        "field": "types",
+        "from": [
+          "Residences",
+          "Marina",
+          "Spa"
+        ],
+        "to": [
+          "Residences",
+          "Marina"
+        ]
+      }
+    ]
   },
   {
     "Title": "Mila Residences Bay Harbor",
@@ -27036,7 +27176,7 @@
     "Delivery": "Now Open",
     "DeliveryDate": "2026-06-01",
     "StartDate": "",
-    "ProjectType": "Hotel, Spa, Retail",
+    "ProjectType": "Hotel, Retail",
     "PreferredType": "Resort",
     "Architect": "HKS, Estudio Lamela, Laura Gonzalez",
     "ArchitectSlugs": "hks, estudio-lamela, laura-gonzalez",
@@ -27059,8 +27199,25 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "",
-    "StatusHistory": []
+    "UpdatedAt": "2026-06-17T12:52:30.654Z",
+    "StatusHistory": [
+      {
+        "at": "2026-06-17T12:52:30.654Z",
+        "source_url": "https://www.oftmw.com/markets/",
+        "note": "Vocabulary cleanup: removing the 'Spa' tag from the TMW type registry (spas are an amenity, not a primary use). Stripping Spa from types[] across all affected projects.",
+        "type": "field",
+        "field": "types",
+        "from": [
+          "Hotel",
+          "Spa",
+          "Retail"
+        ],
+        "to": [
+          "Hotel",
+          "Retail"
+        ]
+      }
+    ]
   },
   {
     "Title": "Ónix Delray Beach",
@@ -27658,7 +27815,7 @@
     "Delivery": "Opening Soon",
     "DeliveryDate": "2026",
     "StartDate": "2020-01",
-    "ProjectType": "Residences, Hotel, Spa, Retail",
+    "ProjectType": "Residences, Hotel, Retail",
     "PreferredType": "Residences",
     "Architect": "SB Architects, Gomez Vazquez International, Hirsch Bedner Associates",
     "ArchitectSlugs": "sb-architects, gomez-vazquez-international, hirsch-bedner-associates",
@@ -27681,7 +27838,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-06-15T20:58:58.429Z",
+    "UpdatedAt": "2026-06-17T12:52:34.426Z",
     "StatusHistory": [
       {
         "at": "2026-06-15T20:58:58.429Z",
@@ -27691,6 +27848,24 @@
         "field": "neighborhood",
         "from": null,
         "to": "Quivira"
+      },
+      {
+        "at": "2026-06-17T12:52:34.426Z",
+        "source_url": "https://www.oftmw.com/markets/",
+        "note": "Vocabulary cleanup: removing the 'Spa' tag from the TMW type registry (spas are an amenity, not a primary use). Stripping Spa from types[] across all affected projects.",
+        "type": "field",
+        "field": "types",
+        "from": [
+          "Residences",
+          "Hotel",
+          "Spa",
+          "Retail"
+        ],
+        "to": [
+          "Residences",
+          "Hotel",
+          "Retail"
+        ]
       }
     ]
   },
@@ -27706,7 +27881,7 @@
     "Delivery": "Opening Soon",
     "DeliveryDate": "2026",
     "StartDate": "",
-    "ProjectType": "Residences, Hotel, Marina, Spa",
+    "ProjectType": "Residences, Hotel, Marina",
     "PreferredType": "Residences",
     "Architect": "Robert C. Glazier, Gensler, SKS Studio",
     "ArchitectSlugs": "robert-c-glazier, gensler, sks-studio",
@@ -27729,7 +27904,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-06-15T20:59:22.736Z",
+    "UpdatedAt": "2026-06-17T12:53:41.891Z",
     "StatusHistory": [
       {
         "at": "2026-06-15T20:59:07.525Z",
@@ -27757,6 +27932,24 @@
         "field": "keys",
         "from": 30,
         "to": 50
+      },
+      {
+        "at": "2026-06-17T12:53:41.891Z",
+        "source_url": "https://www.oftmw.com/markets/",
+        "note": "Vocabulary cleanup: removing the 'Spa' tag from the TMW type registry (spas are an amenity, not a primary use). Stripping Spa from types[] across all affected projects.",
+        "type": "field",
+        "field": "types",
+        "from": [
+          "Residences",
+          "Hotel",
+          "Marina",
+          "Spa"
+        ],
+        "to": [
+          "Residences",
+          "Hotel",
+          "Marina"
+        ]
       }
     ]
   },
@@ -27867,7 +28060,7 @@
     "Delivery": "Now Open",
     "DeliveryDate": "",
     "StartDate": "",
-    "ProjectType": "Residences, Marina, Hotel, Spa, Retail",
+    "ProjectType": "Residences, Marina, Hotel, Retail",
     "PreferredType": "Residences",
     "Architect": "CMA Design Studio, Bunny Williams",
     "ArchitectSlugs": "cma-design-studio, bunny-williams",
@@ -27890,8 +28083,29 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "",
-    "StatusHistory": []
+    "UpdatedAt": "2026-06-17T12:53:46.149Z",
+    "StatusHistory": [
+      {
+        "at": "2026-06-17T12:53:46.149Z",
+        "source_url": "https://www.oftmw.com/markets/",
+        "note": "Vocabulary cleanup: removing the 'Spa' tag from the TMW type registry (spas are an amenity, not a primary use). Stripping Spa from types[] across all affected projects.",
+        "type": "field",
+        "field": "types",
+        "from": [
+          "Residences",
+          "Marina",
+          "Hotel",
+          "Spa",
+          "Retail"
+        ],
+        "to": [
+          "Residences",
+          "Marina",
+          "Hotel",
+          "Retail"
+        ]
+      }
+    ]
   },
   {
     "Title": "1000 Boulevard of the Arts",
@@ -28038,7 +28252,7 @@
     "Delivery": "Opening Soon",
     "DeliveryDate": "2026",
     "StartDate": "",
-    "ProjectType": "Hotel, Residences, Spa, Retail",
+    "ProjectType": "Hotel, Residences, Retail",
     "PreferredType": "Hotel",
     "Architect": "",
     "ArchitectSlugs": "",
@@ -28061,7 +28275,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-06-15T21:33:50.196Z",
+    "UpdatedAt": "2026-06-17T12:53:49.966Z",
     "StatusHistory": [
       {
         "at": "2026-06-15T21:33:50.196Z",
@@ -28080,6 +28294,24 @@
         "field": "neighborhood",
         "from": null,
         "to": "Seven Mile Beach"
+      },
+      {
+        "at": "2026-06-17T12:53:49.966Z",
+        "source_url": "https://www.oftmw.com/markets/",
+        "note": "Vocabulary cleanup: removing the 'Spa' tag from the TMW type registry (spas are an amenity, not a primary use). Stripping Spa from types[] across all affected projects.",
+        "type": "field",
+        "field": "types",
+        "from": [
+          "Hotel",
+          "Residences",
+          "Spa",
+          "Retail"
+        ],
+        "to": [
+          "Hotel",
+          "Residences",
+          "Retail"
+        ]
       }
     ]
   },
@@ -28218,7 +28450,7 @@
     "Delivery": "Now Open",
     "DeliveryDate": "",
     "StartDate": "",
-    "ProjectType": "Hotel, Resort, Spa, Residences",
+    "ProjectType": "Hotel, Resort, Residences",
     "PreferredType": "Hotel",
     "Architect": "Kerry Hill Architects",
     "ArchitectSlugs": "kerry-hill-architects",
@@ -28241,8 +28473,42 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "",
-    "StatusHistory": []
+    "UpdatedAt": "2026-06-17T13:02:27.349Z",
+    "StatusHistory": [
+      {
+        "at": "2026-06-17T12:53:53.461Z",
+        "source_url": "https://www.oftmw.com/markets/",
+        "note": "Vocabulary cleanup: removing the 'Spa' tag from the TMW type registry (spas are an amenity, not a primary use). Stripping Spa from types[] across all affected projects.",
+        "type": "field",
+        "field": "types",
+        "from": [
+          "Hotel",
+          "Resort",
+          "Spa",
+          "Residences"
+        ],
+        "to": [
+          "Hotel",
+          "Residences"
+        ]
+      },
+      {
+        "at": "2026-06-17T13:02:27.349Z",
+        "source_url": "https://www.oftmw.com/markets/by-type/resort/",
+        "note": "Restore Resort tag stripped by deprecated resort→Hotel worker synonym (fixed in worker/src/mcp.js, deployed 2026-06-17).",
+        "type": "field",
+        "field": "types",
+        "from": [
+          "Hotel",
+          "Residences"
+        ],
+        "to": [
+          "Hotel",
+          "Resort",
+          "Residences"
+        ]
+      }
+    ]
   },
   {
     "Title": "Olana Naples",
@@ -29911,7 +30177,7 @@
     "Delivery": "Opening Soon",
     "DeliveryDate": "2027-01",
     "StartDate": "",
-    "ProjectType": "Hotel, Residences, Spa, Mixed-Use",
+    "ProjectType": "Hotel, Residences, Mixed-Use",
     "PreferredType": "Mixed-Use",
     "Architect": "",
     "ArchitectSlugs": "",
@@ -29934,8 +30200,27 @@
     "DeliverySpeculative": "1",
     "DatesSpeculative": "1",
     "Price": "",
-    "UpdatedAt": "",
-    "StatusHistory": []
+    "UpdatedAt": "2026-06-17T12:53:57.130Z",
+    "StatusHistory": [
+      {
+        "at": "2026-06-17T12:53:57.130Z",
+        "source_url": "https://www.oftmw.com/markets/",
+        "note": "Vocabulary cleanup: removing the 'Spa' tag from the TMW type registry (spas are an amenity, not a primary use). Stripping Spa from types[] across all affected projects.",
+        "type": "field",
+        "field": "types",
+        "from": [
+          "Hotel",
+          "Residences",
+          "Spa",
+          "Mixed-Use"
+        ],
+        "to": [
+          "Hotel",
+          "Residences",
+          "Mixed-Use"
+        ]
+      }
+    ]
   },
   {
     "Title": "One&Only Hudson Valley",
@@ -30101,7 +30386,7 @@
     "Delivery": "Announced",
     "DeliveryDate": "",
     "StartDate": "",
-    "ProjectType": "Hotel, Spa",
+    "ProjectType": "Hotel",
     "PreferredType": "Hotel",
     "Architect": "Hayri Atak Architectural Design Studio",
     "ArchitectSlugs": "hayri-atak-architectural-design-studio",
@@ -30124,8 +30409,23 @@
     "DeliverySpeculative": "1",
     "DatesSpeculative": "1",
     "Price": "",
-    "UpdatedAt": "",
-    "StatusHistory": []
+    "UpdatedAt": "2026-06-17T12:54:01.062Z",
+    "StatusHistory": [
+      {
+        "at": "2026-06-17T12:54:01.062Z",
+        "source_url": "https://www.oftmw.com/markets/",
+        "note": "Vocabulary cleanup: removing the 'Spa' tag from the TMW type registry (spas are an amenity, not a primary use). Stripping Spa from types[] across all affected projects.",
+        "type": "field",
+        "field": "types",
+        "from": [
+          "Hotel",
+          "Spa"
+        ],
+        "to": [
+          "Hotel"
+        ]
+      }
+    ]
   },
   {
     "Title": "The Barai Hua Hin",
@@ -30139,7 +30439,7 @@
     "Delivery": "Opening Soon",
     "DeliveryDate": "2026-12",
     "StartDate": "",
-    "ProjectType": "Hotel, Spa",
+    "ProjectType": "Hotel",
     "PreferredType": "Hotel",
     "Architect": "Lek Bunnag",
     "ArchitectSlugs": "lek-bunnag",
@@ -30162,8 +30462,23 @@
     "DeliverySpeculative": "1",
     "DatesSpeculative": "1",
     "Price": "",
-    "UpdatedAt": "",
-    "StatusHistory": []
+    "UpdatedAt": "2026-06-17T12:54:04.627Z",
+    "StatusHistory": [
+      {
+        "at": "2026-06-17T12:54:04.627Z",
+        "source_url": "https://www.oftmw.com/markets/",
+        "note": "Vocabulary cleanup: removing the 'Spa' tag from the TMW type registry (spas are an amenity, not a primary use). Stripping Spa from types[] across all affected projects.",
+        "type": "field",
+        "field": "types",
+        "from": [
+          "Hotel",
+          "Spa"
+        ],
+        "to": [
+          "Hotel"
+        ]
+      }
+    ]
   },
   {
     "Title": "Gaylord Opryland Expansion",
@@ -30533,6 +30848,196 @@
     "Image4": "",
     "Image5": "",
     "Keys": "54",
+    "Units": "",
+    "Floors": "",
+    "ConfigSummary": "",
+    "DeliveryPhases": "",
+    "IsDistrict": "",
+    "StartSpeculative": "",
+    "DeliverySpeculative": "",
+    "DatesSpeculative": "",
+    "Price": "",
+    "UpdatedAt": "",
+    "StatusHistory": []
+  },
+  {
+    "Title": "Orient Express Palazzo Donà Giovannelli",
+    "Slug": "orient-express-palazzo-dona-giovannelli",
+    "City": "Venice",
+    "Neighborhood": "Cannaregio",
+    "Latitude": "45.4459",
+    "Longitude": "12.3318",
+    "Description": "Orient Express debuts in Venice — a 47-room restoration of the 1436 Palazzo Donà Giovannelli by Filippo Calendario (architect of the Doge's Palace), in the Cannaregio sestiere. Opened April 2026.",
+    "DescriptionLong": "Orient Express Palazzo Donà Giovannelli marks Orient Express' second hotel and Venice debut, welcomed first guests in April 2026. The hotel occupies the historic noble Palazzo Donà Giovannelli, built in 1436 to a design by master architect Filippo Calendario (the visionary mind behind the Doge's Palace), at the intersection of two canals in Cannaregio — one of Venice's most authentic sestieri. The 47-room property includes 29 rooms, 16 suites (including 6 Signature Suites), and 2 Orient Express Apartments, ranging from 30 to 148 square meters. Rates start at €1,320 for a superior room with breakfast included; Signature Suites and Apartments from €4,400 up to €20,000. Part of Accor's Orient Express brand expansion.",
+    "Delivery": "Now Open",
+    "DeliveryDate": "2026-04",
+    "StartDate": "",
+    "ProjectType": "Hotel",
+    "PreferredType": "Hotel",
+    "Architect": "Filippo Calendario",
+    "ArchitectSlugs": "filippo-calendario",
+    "Developer": "Accor, Orient Express",
+    "DeveloperSlugs": "accor, orient-express",
+    "Featured": "",
+    "OfficialWebsite": "https://www.orient-express.com/hotels-trains/palazzo-dona-giovannelli",
+    "ImageURL": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/68dd32_698c0a209395443a984251a9aa1c5112~mv2.jpg",
+    "Image2": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/68dd32_94de55002b374af89c25b78bd99327d4~mv2.jpeg",
+    "Image3": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/68dd32_6e9a193493e54bc5b6612b8d2c46a24c~mv2.jpeg",
+    "Image4": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/68dd32_31c6568209324fd6adbc6c21074cbff0~mv2.jpeg",
+    "Image5": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/68dd32_861471aaa5644b64b8916bfff0b06772~mv2.jpeg",
+    "Keys": "47",
+    "Units": "",
+    "Floors": "",
+    "ConfigSummary": "",
+    "DeliveryPhases": "",
+    "IsDistrict": "",
+    "StartSpeculative": "",
+    "DeliverySpeculative": "",
+    "DatesSpeculative": "",
+    "Price": "",
+    "UpdatedAt": "",
+    "StatusHistory": []
+  },
+  {
+    "Title": "COMO Le Beauvallon",
+    "Slug": "como-le-beauvallon",
+    "City": "Sainte-Maxime",
+    "Neighborhood": "Gulf of Saint-Tropez",
+    "Latitude": "43.3372",
+    "Longitude": "6.6322",
+    "Description": "A Belle Époque icon reborn on the French Riviera — COMO's 42-room reopening on a 10-acre estate above the Gulf of Saint-Tropez, with chef Yannick Alléno's culinary direction. Opened April 24, 2026.",
+    "DescriptionLong": "COMO Le Beauvallon marks COMO Hotels and Resorts' restoration of a Belle Époque landmark above the Gulf of Saint-Tropez, opened April 24, 2026. Originally opened in 1914, the property occupies a 10-acre (4-hectare) elevated estate combining Mediterranean gardens, umbrella pines, and palm-lined terraces overlooking the bay. The reopened hotel includes 42 rooms and suites (with 25 sea-view suites), a beach club, private pontoon for yachts, proximity to the Golf Club de Beauvallon, and a culinary program led by chef Yannick Alléno (who holds 17 Michelin stars across his portfolio). The 2026 reopening continues COMO's European expansion alongside its London, Bhutan, Bali, and Dolomites properties.",
+    "Delivery": "Now Open",
+    "DeliveryDate": "2026-04-24",
+    "StartDate": "",
+    "ProjectType": "Hotel, Spa",
+    "PreferredType": "Hotel",
+    "Architect": "",
+    "ArchitectSlugs": "",
+    "Developer": "COMO Hotels and Resorts",
+    "DeveloperSlugs": "como-hotels-and-resorts",
+    "Featured": "",
+    "OfficialWebsite": "https://www.comohotels.com/france/como-le-beauvallon",
+    "ImageURL": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/23004cae3b6e-pool-lounge.jpeg",
+    "Image2": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/a1f84edab0be-como-dining-4.jpeg",
+    "Image3": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/c2a6026285c9-Serpentine-Gallery-Summer-Pavilion-.jpeg",
+    "Image4": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/9c7d9b19f74e-property-aerial.jpeg",
+    "Image5": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/7792d18f7522-aerial-pool.jpeg",
+    "Keys": "42",
+    "Units": "",
+    "Floors": "",
+    "ConfigSummary": "",
+    "DeliveryPhases": "",
+    "IsDistrict": "",
+    "StartSpeculative": "",
+    "DeliverySpeculative": "",
+    "DatesSpeculative": "",
+    "Price": "",
+    "UpdatedAt": "",
+    "StatusHistory": []
+  },
+  {
+    "Title": "Villa San Michele, A Belmond Hotel",
+    "Slug": "villa-san-michele-a-belmond-hotel",
+    "City": "Fiesole",
+    "Neighborhood": "Fiesole Hills",
+    "Latitude": "43.8067",
+    "Longitude": "11.2967",
+    "Description": "Belmond's legendary Renaissance retreat in the Fiesole hills overlooking Florence reopened April 28, 2026 after an 18-month renovation — 39 reimagined rooms, a Spa by Guerlain, and Michelangelo-attributed façade preserved.",
+    "DescriptionLong": "Villa San Michele, A Belmond Hotel reopened April 28, 2026 after an 18-month renovation — a former 15th-century Franciscan monastery perched in the Fiesole hills overlooking Florence, attributed in part to Michelangelo. The reimagined property introduces 39 reimagined rooms and suites, a Spa by Guerlain, revitalized gardens and woodlands, a new gastronomic offering, and a curated program of energy-raising experiences in collaboration with La DoubleJ. Redesign was led by Luigi Fragola Architects in collaboration with Belmond's design team and Luca Ghezzi Garden Design, preserving the villa's Michelangelo-inspired façade, arched terrace, and original chapel, cloister, and loggias.",
+    "Delivery": "Now Open",
+    "DeliveryDate": "2026-04-28",
+    "StartDate": "",
+    "ProjectType": "Hotel, Spa",
+    "PreferredType": "Hotel",
+    "Architect": "Luigi Fragola Architects, Luca Ghezzi Garden Design",
+    "ArchitectSlugs": "luigi-fragola-architects, luca-ghezzi-garden-design",
+    "Developer": "Belmond",
+    "DeveloperSlugs": "belmond",
+    "Featured": "",
+    "OfficialWebsite": "https://www.belmond.com/hotels/europe/italy/florence/villa-san-michele/",
+    "ImageURL": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/9d845fd47af0-vsm-ext13.avif",
+    "Image2": "",
+    "Image3": "",
+    "Image4": "",
+    "Image5": "",
+    "Keys": "39",
+    "Units": "",
+    "Floors": "",
+    "ConfigSummary": "",
+    "DeliveryPhases": "",
+    "IsDistrict": "",
+    "StartSpeculative": "",
+    "DeliverySpeculative": "",
+    "DatesSpeculative": "",
+    "Price": "",
+    "UpdatedAt": "",
+    "StatusHistory": []
+  },
+  {
+    "Title": "Delano Miami Beach",
+    "Slug": "delano-miami-beach",
+    "City": "Miami Beach",
+    "Neighborhood": "South Beach",
+    "Latitude": "25.7889",
+    "Longitude": "-80.1303",
+    "Description": "The historic 1947 Delano Hotel reopened May 1, 2026 after a six-year renovation — 171 keys on Collins Avenue, reimagined by Elastic Architects with Ennismore + Cain International, including a revived Rose Bar.",
+    "DescriptionLong": "Delano Miami Beach reopened May 1, 2026 after a six-year renovation — the original 1947 Robert Swartburg-designed Art Deco landmark at 1685 Collins Avenue, restored under Ennismore in partnership with Cain International (who took a minority stake in the brand in 2024). The 171-key property includes guestrooms, suites, signature Poolside Bungalows, and Penthouse Suites with views of both the Miami skyline and the Atlantic Ocean. Renovation design led by Elastic Architects with Ennismore's lifestyle team, leaning minimalist and airy with organic furniture. Four signature restaurant and bar concepts include a revival of the legendary Rose Bar, once a gathering place for Hollywood luminaries and Miami's creative elite.",
+    "Delivery": "Now Open",
+    "DeliveryDate": "2026-05-01",
+    "StartDate": "",
+    "ProjectType": "Hotel",
+    "PreferredType": "Hotel",
+    "Architect": "Elastic Architects, Robert Swartburg",
+    "ArchitectSlugs": "elastic-architects, robert-swartburg",
+    "Developer": "Ennismore, Cain International",
+    "DeveloperSlugs": "ennismore, cain-international",
+    "Featured": "",
+    "OfficialWebsite": "https://www.delano.com/miami-beach",
+    "ImageURL": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_aa000fd16f004ce8b333ad8f5bcbca35~mv2.jpg",
+    "Image2": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_33e82f3b022e4e8ab66f8f5c4711e116~mv2.jpg",
+    "Image3": "",
+    "Image4": "",
+    "Image5": "",
+    "Keys": "171",
+    "Units": "",
+    "Floors": "",
+    "ConfigSummary": "",
+    "DeliveryPhases": "",
+    "IsDistrict": "",
+    "StartSpeculative": "",
+    "DeliverySpeculative": "",
+    "DatesSpeculative": "",
+    "Price": "",
+    "UpdatedAt": "",
+    "StatusHistory": []
+  },
+  {
+    "Title": "Capella Kyoto",
+    "Slug": "capella-kyoto",
+    "City": "Kyoto",
+    "Neighborhood": "Miyagawa-cho (Gion)",
+    "Latitude": "35.0019",
+    "Longitude": "135.7716",
+    "Description": "Capella's debut in Japan — an 89-key hotel in Kyoto's historic Miyagawa-cho geisha district, designed by Kengo Kuma & Associates with Brewin Design Office. Opened March 22, 2026.",
+    "DescriptionLong": "Capella Kyoto marks the first Capella Hotels & Resorts property in Japan, opened March 22, 2026. The 89-key hotel reimagines Kyoto's traditional machiya (townhouse) typology in the city's historic Miyagawa-cho kagai (geisha district), steps from Kenninji temple and the Kamo river. Designed by Kengo Kuma & Associates with Singapore-based Brewin Design Office, the building reinterprets Kyoto's characteristic spatial composition — layered sequences of narrow alleys, hidden gardens, and interior thresholds. Room types span Deluxe City Rooms, Premier Theatre Rooms, two Gion Suites with direct Kenninji temple views, six Onsen Suites with private hot spring baths, and the 206-sqm top-floor Capella Suite.",
+    "Delivery": "Now Open",
+    "DeliveryDate": "2026-03-22",
+    "StartDate": "",
+    "ProjectType": "Hotel, Spa",
+    "PreferredType": "Hotel",
+    "Architect": "Kengo Kuma & Associates, Brewin Design Office",
+    "ArchitectSlugs": "kengo-kuma-associates, brewin-design-office",
+    "Developer": "Capella Hotels & Resorts",
+    "DeveloperSlugs": "capella-hotels-resorts",
+    "Featured": "",
+    "OfficialWebsite": "https://capellahotels.com/en/capella-kyoto",
+    "ImageURL": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/5e6308_da60fc45373b4c0d888d58d3090f34bb~mv2.jpeg",
+    "Image2": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/5e6308_26c106680c2a4c729f96e648e1fa8a4f~mv2.jpeg",
+    "Image3": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/5e6308_813f015c189f4d18af5107d201c8884f~mv2.jpeg",
+    "Image4": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/5e6308_dc3877f2be4b43e0b60cb76be5e9afb8~mv2.jpeg",
+    "Image5": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/5e6308_c3d23db51a1e401c99f869a422cddc41~mv2.jpeg",
+    "Keys": "89",
     "Units": "",
     "Floors": "",
     "ConfigSummary": "",
