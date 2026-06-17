@@ -3372,6 +3372,29 @@ async function handleContactsDelete(req, env, origin, id) {
   return json({ ok: true, id, deleted: r.meta && r.meta.changes ? r.meta.changes : 0 }, {}, env, origin);
 }
 
+// /companies — distinct company values across the contacts table with a
+// per-company contact count. Drives the autocomplete on every company input
+// in the admin so people don't fork "LDPR" vs "LD PR" vs "Ldpr" on every
+// new contact.
+async function handleCompaniesList(req, env, origin, url) {
+  const authCheck = await requireAdminToken(req, env, origin);
+  if (authCheck) return authCheck;
+  await ensureContactsTable(env);
+  const q     = (url.searchParams.get('q') || '').trim().toLowerCase();
+  const limit = clampInt(url.searchParams.get('limit'), 20, 1, 200);
+  const where = ['company IS NOT NULL AND company != \'\''];
+  const params = []; let p = 1;
+  if (q) { where.push(`LOWER(company) LIKE ?${p}`); params.push('%' + q + '%'); p++; }
+  const rows = (await env.DB.prepare(
+    `SELECT company, COUNT(*) AS c FROM contacts WHERE ${where.join(' AND ')}
+     GROUP BY LOWER(company) ORDER BY c DESC, LOWER(company) ASC LIMIT ${limit}`
+  ).bind(...params).all()).results || [];
+  return json(
+    { items: rows.map(r => ({ company: r.company, contact_count: r.c })) },
+    {}, env, origin,
+  );
+}
+
 function rowToCarousel(r) {
   if (!r) return null;
   let slides = [];
@@ -5682,6 +5705,11 @@ export default {
       if (url.pathname === '/contacts' || url.pathname === '/contacts/') {
         if (request.method === 'GET')  return await handleContactsList(request, env, origin, url);
         if (request.method === 'POST') return await handleContactsCreate(request, env, origin);
+      }
+      // /companies — distinct company values across contacts (with counts),
+      // for the company-field autocomplete on every contact form.
+      if (url.pathname === '/companies' || url.pathname === '/companies/') {
+        if (request.method === 'GET') return await handleCompaniesList(request, env, origin, url);
       }
       {
         const m = url.pathname.match(/^\/contacts\/([^/]+)\/?$/);
