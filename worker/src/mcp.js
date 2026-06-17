@@ -641,6 +641,7 @@ const TOOLS = [
         phone:   { type: 'string', description: 'Optional phone number' },
         tags:    { type: 'array', items: { type: 'string' }, description: 'Free-form tags — seed chips are Travel, Real Estate, Hospitality, Wellness. Pass as a string array (or a comma-separated string).' },
         notes:   { type: 'string', description: 'Optional free-form notes about the relationship' },
+        featured:{ type: 'boolean', description: 'Mark as a featured contact (gold star, pinned to the top of the rolodex).' },
       },
       required: ['name'],
     },
@@ -658,6 +659,7 @@ const TOOLS = [
         phone:   { type: 'string' },
         tags:    { type: 'array', items: { type: 'string' }, description: 'FULL replacement list of tags' },
         notes:   { type: 'string' },
+        featured:{ type: 'boolean', description: 'Toggle the featured-contact (gold star) flag.' },
       },
       required: ['id'],
     },
@@ -2642,9 +2644,9 @@ const IMPL = {
     const tagsJson = JSON.stringify(mcpNormalizeContactTags(args.tags));
     const now = Math.floor(Date.now() / 1000);
     await env.DB.prepare(
-      `INSERT INTO contacts (id, name, email, company, phone, tags, notes, created_at, updated_at)
-       VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?8)`
-    ).bind(id, name, args.email || null, args.company || null, args.phone || null, tagsJson, args.notes || null, now).run();
+      `INSERT INTO contacts (id, name, email, company, phone, tags, notes, featured, created_at, updated_at)
+       VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?9)`
+    ).bind(id, name, args.email || null, args.company || null, args.phone || null, tagsJson, args.notes || null, args.featured ? 1 : 0, now).run();
     const row = await env.DB.prepare(`SELECT * FROM contacts WHERE id = ?1`).bind(id).first();
     return { ok: true, contact: mcpContactRow(row, 0), note: 'Wire this contact to a post by setting contact_id="' + id + '" on update_post_draft.' };
   },
@@ -2662,7 +2664,10 @@ const IMPL = {
     if (Array.isArray(args.tags) || typeof args.tags === 'string') {
       sets.push(`tags = ?${p++}`); params.push(JSON.stringify(mcpNormalizeContactTags(args.tags)));
     }
-    if (!sets.length) throw new Error('nothing to update — pass at least one of name/email/company/phone/tags/notes');
+    if (typeof args.featured === 'boolean') {
+      sets.push(`featured = ?${p++}`); params.push(args.featured ? 1 : 0);
+    }
+    if (!sets.length) throw new Error('nothing to update — pass at least one of name/email/company/phone/tags/notes/featured');
     sets.push(`updated_at = ?${p++}`); params.push(Math.floor(Date.now() / 1000));
     params.push(id);
     await env.DB.prepare(`UPDATE contacts SET ${sets.join(', ')} WHERE id = ?${p}`).bind(...params).run();
@@ -2853,6 +2858,7 @@ function mcpContactRow(r, postCount) {
   return {
     id: r.id, name: r.name || '', email: r.email || '', company: r.company || '',
     phone: r.phone || '', tags, notes: r.notes || '',
+    featured: r.featured ? 1 : 0,
     post_count: typeof postCount === 'number' ? postCount : null,
     created: iso(r.created_at), updated: iso(r.updated_at),
   };

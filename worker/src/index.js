@@ -2987,6 +2987,10 @@ export async function ensureContactsTable(env) {
     env.DB.prepare(`CREATE INDEX IF NOT EXISTS idx_contacts_email   ON contacts(email)   WHERE email IS NOT NULL`),
     env.DB.prepare(`CREATE INDEX IF NOT EXISTS idx_contacts_company ON contacts(company) WHERE company IS NOT NULL`),
   ]);
+  // Add the "featured" column (top-of-rolodex marker). Idempotent — duplicate
+  // ADD throws on D1 and we silently swallow it.
+  try { await env.DB.prepare(`ALTER TABLE contacts ADD COLUMN featured INTEGER DEFAULT 0`).run(); } catch (_) {}
+  try { await env.DB.prepare(`CREATE INDEX IF NOT EXISTS idx_contacts_featured ON contacts(featured) WHERE featured = 1`).run(); } catch (_) {}
   // Posts table extensions — Monday.com sheet replacement fields. Try/catch
   // each so a re-run silently no-ops once the column exists (D1 returns an
   // error on duplicate-column ADD).
@@ -3243,6 +3247,7 @@ function rowToContact(r, postCount) {
     phone: r.phone || '',
     tags,
     notes: r.notes || '',
+    featured: r.featured ? 1 : 0,
     post_count: typeof postCount === 'number' ? postCount : null,
     created_at: r.created_at,
     updated_at: r.updated_at,
@@ -3261,16 +3266,24 @@ async function handleContactsList(req, env, origin, url) {
   await ensureContactsTable(env);
   const limit  = clampInt(url.searchParams.get('limit'), 200, 1, 1000);
   const offset = clampInt(url.searchParams.get('offset'), 0, 0, 100000);
-  const q     = (url.searchParams.get('q') || '').trim().toLowerCase();
-  const tag   = (url.searchParams.get('tag') || '').trim();
+  const q        = (url.searchParams.get('q') || '').trim().toLowerCase();
+  const tag      = (url.searchParams.get('tag') || '').trim();
+  const featured = url.searchParams.get('featured');
+  const sort     = (url.searchParams.get('sort') || '').trim();   // 'name' | 'featured' | 'recent'
   const where = []; const params = []; let p = 1;
   if (q)   { where.push(`(LOWER(name) LIKE ?${p} OR LOWER(email) LIKE ?${p} OR LOWER(company) LIKE ?${p})`); params.push('%'+q+'%'); p++; }
   if (tag) { where.push(`tags LIKE ?${p}`); params.push('%"'+tag+'"%'); p++; }
+  if (featured === '1' || featured === 'true') where.push(`featured = 1`);
   const whereSql = where.length ? 'WHERE ' + where.join(' AND ') : '';
+  // Default sort: featured at top, then alphabetical. Callers can override
+  // with sort=name (purely alphabetical) or sort=recent.
+  let orderSql = 'featured DESC, LOWER(name) ASC';
+  if (sort === 'name')    orderSql = 'LOWER(name) ASC';
+  if (sort === 'recent')  orderSql = 'updated_at DESC';
   const total = await env.DB.prepare(`SELECT COUNT(*) AS c FROM contacts ${whereSql}`).bind(...params).first();
   const rows  = (await env.DB.prepare(
-    `SELECT id, name, email, company, phone, tags, notes, created_at, updated_at
-     FROM contacts ${whereSql} ORDER BY LOWER(name) ASC LIMIT ${limit} OFFSET ${offset}`
+    `SELECT id, name, email, company, phone, tags, notes, featured, created_at, updated_at
+     FROM contacts ${whereSql} ORDER BY ${orderSql} LIMIT ${limit} OFFSET ${offset}`
   ).bind(...params).all()).results || [];
   // Bulk post-count lookup so the list view can show "12 posts" per contact
   // without N+1 queries. D1 caps a prepared statement at ~100 placeholders,
@@ -3314,11 +3327,12 @@ async function handleContactsCreate(req, env, origin) {
   const now = Math.floor(Date.now() / 1000);
   const id = body.id || ('cnt-' + cryptoRandomId(12));
   const tagsJson = JSON.stringify(normalizeContactTags(body.tags));
+  const featured = body.featured ? 1 : 0;
   try {
     await env.DB.prepare(
-      `INSERT INTO contacts (id, name, email, company, phone, tags, notes, created_at, updated_at)
-       VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?8)`
-    ).bind(id, name, body.email || null, body.company || null, body.phone || null, tagsJson, body.notes || null, now).run();
+      `INSERT INTO contacts (id, name, email, company, phone, tags, notes, featured, created_at, updated_at)
+       VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?9)`
+    ).bind(id, name, body.email || null, body.company || null, body.phone || null, tagsJson, body.notes || null, featured, now).run();
   } catch (e) {
     return json({ error: 'insert failed', detail: e.message || String(e) }, { status: 500 }, env, origin);
   }
@@ -3336,6 +3350,7 @@ async function handleContactsUpdate(req, env, origin, id) {
   const patch = {};
   for (const k of ['name','email','company','phone','notes']) if (k in body) patch[k] = body[k];
   if ('tags' in body) patch.tags = JSON.stringify(normalizeContactTags(body.tags));
+  if ('featured' in body) patch.featured = body.featured ? 1 : 0;
   if (!Object.keys(patch).length) return json({ ok: true, contact: rowToContact(existing), note: 'no changes' }, {}, env, origin);
   patch.updated_at = Math.floor(Date.now() / 1000);
   const keys = Object.keys(patch);
