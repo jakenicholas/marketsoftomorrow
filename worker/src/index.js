@@ -1775,17 +1775,29 @@ async function handlePostsList(req, env, origin, url) {
   const status = url.searchParams.get('status') || 'published';
   const category = url.searchParams.get('category');
   const q = (url.searchParams.get('q') || '').trim();
+  const postType   = url.searchParams.get('post_type');
+  const contactId  = url.searchParams.get('contact_id');
+  const projectSlug = url.searchParams.get('project_slug');
 
   // status=published is public; anything else requires admin auth
   if (status !== 'published') {
     const denied = await requireAdminToken(req, env, origin);
     if (denied) return denied;
   }
+  // The Monday-replacement filters are admin-only — they expose paid/income data.
+  if (postType || contactId || projectSlug) {
+    const denied = await requireAdminToken(req, env, origin);
+    if (denied) return denied;
+    await ensureContactsTable(env);
+  }
 
   const where = ['status = ?1'];
   const params = [status];
   let p = 2;
   if (category) { where.push(`categories LIKE ?${p}`); params.push('%"' + category + '"%'); p++; }
+  if (postType)   { where.push(`post_type    = ?${p}`); params.push(postType);    p++; }
+  if (contactId)  { where.push(`contact_id   = ?${p}`); params.push(contactId);   p++; }
+  if (projectSlug){ where.push(`project_slug = ?${p}`); params.push(projectSlug); p++; }
   if (q) {
     // Tokenized search: each meaningful word (>=3 chars, max 8) must appear in
     // the title, excerpt, OR body. Searching body_html lets the spotlight
@@ -1807,7 +1819,8 @@ async function handlePostsList(req, env, origin, url) {
   const total = await env.DB.prepare(`SELECT COUNT(*) AS c FROM posts WHERE ${whereSql}`).bind(...params).first();
   const rows  = await env.DB.prepare(`
     SELECT id, slug, title, excerpt, cover_image, cover_image_alt, categories, tags,
-           author_name, status, published_at, updated_at, reading_time_min, wix_url, featured, main_category
+           author_name, status, published_at, updated_at, reading_time_min, wix_url, featured, main_category,
+           post_type, income, contact_id, project_slug
     FROM posts WHERE ${whereSql}
     ORDER BY COALESCE(published_at, updated_at) DESC
     LIMIT ${limit} OFFSET ${offset}
@@ -1962,6 +1975,13 @@ function rowToPostSummary(r) {
     reading_time_min: r.reading_time_min,
     wix_url: r.wix_url,
     featured: r.featured ? 1 : 0,
+    // Monday.com replacement fields — surface on every post payload so the
+    // dashboard list views (and the editor sidebar) can render them without
+    // a second fetch.
+    post_type:    r.post_type    || 'Editorial',
+    income:       r.income == null ? null : Number(r.income),
+    contact_id:   r.contact_id   || null,
+    project_slug: r.project_slug || null,
   };
 }
 // Serve every migrated Wix image from our own R2 (the originals were copied to
@@ -2765,6 +2785,8 @@ async function handlePostsCreate(req, env, origin) {
   const now   = Math.floor(Date.now() / 1000);
   const id    = body.id || ('tmw-' + cryptoRandomId(12));
 
+  await ensureContactsTable(env); // also bootstraps the new posts columns
+
   const row = normalizePost({
     id, slug: await slug, title,
     excerpt: (body.excerpt || '').toString(),
@@ -2784,6 +2806,10 @@ async function handlePostsCreate(req, env, origin) {
     created_at: now, updated_at: now,
     reading_time_min: estimateReadingMinutes((body.body_html || '').toString()),
   });
+  const postType    = normalizePostType(body.post_type);
+  const income      = body.income == null || body.income === '' ? null : Number(body.income);
+  const contactId   = body.contact_id || null;
+  const projectSlug = body.project_slug ? String(body.project_slug).toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 160) : null;
 
   try {
     await env.DB.prepare(`
@@ -2791,18 +2817,31 @@ async function handlePostsCreate(req, env, origin) {
         id, slug, title, excerpt, body_html, cover_image, cover_image_alt,
         categories, tags, author_name, author_id, status, published_at,
         reading_time_min, seo_title, seo_description, wix_id, wix_url,
-        body_source, created_at, updated_at
-      ) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?16,?17,?18,?19,?20,?21)
+        body_source, post_type, income, contact_id, project_slug,
+        created_at, updated_at
+      ) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?16,?17,?18,?19,?20,?21,?22,?23,?24,?25)
     `).bind(
       row.id, row.slug, row.title, row.excerpt, row.body_html, row.cover_image, row.cover_image_alt,
       row.categories, row.tags, row.author_name, row.author_id, row.status, row.published_at,
       row.reading_time_min, row.seo_title, row.seo_description, row.wix_id, row.wix_url,
-      row.body_source, row.created_at, row.updated_at,
+      row.body_source, postType, income, contactId, projectSlug,
+      row.created_at, row.updated_at,
     ).run();
   } catch (e) {
     return json({ error: 'insert failed', detail: e.message || String(e) }, { status: 500 }, env, origin);
   }
-  return json({ ok: true, post: rowToPostFull(row) }, {}, env, origin);
+  const fresh = await env.DB.prepare(`SELECT * FROM posts WHERE id = ?1`).bind(row.id).first();
+  return json({ ok: true, post: rowToPostFull(fresh) }, {}, env, origin);
+}
+
+const POST_TYPE_ENUM = new Set(['Editorial','Barter','Potential Barter','Partner','Paid']);
+function normalizePostType(v) {
+  if (v == null || v === '') return 'Editorial';
+  const s = String(v).trim();
+  if (POST_TYPE_ENUM.has(s)) return s;
+  // Case-insensitive match for tolerance — e.g. 'paid' → 'Paid'.
+  for (const t of POST_TYPE_ENUM) if (t.toLowerCase() === s.toLowerCase()) return t;
+  return 'Editorial';
 }
 
 async function handlePostsUpdate(req, env, origin, id) {
@@ -2816,6 +2855,8 @@ async function handlePostsUpdate(req, env, origin, id) {
   const existing = await env.DB.prepare(`SELECT * FROM posts WHERE id = ?1`).bind(id).first();
   if (!existing) return json({ error: 'post not found', id }, { status: 404 }, env, origin);
 
+  await ensureContactsTable(env); // also bootstraps the new posts columns
+
   // Field-by-field merge: only update keys present in the request body.
   const patch = {};
   for (const k of ['title','excerpt','body_html','cover_image','cover_image_alt',
@@ -2827,6 +2868,10 @@ async function handlePostsUpdate(req, env, origin, id) {
   if ('featured'   in body) patch.featured   = body.featured ? 1 : 0;
   if ('main_category' in body) patch.main_category = body.main_category ? String(body.main_category) : null;
   if ('published_at'  in body) patch.published_at  = body.published_at ? Number(body.published_at) : null;
+  if ('post_type'    in body) patch.post_type    = normalizePostType(body.post_type);
+  if ('income'       in body) patch.income       = body.income === '' || body.income == null ? null : Number(body.income);
+  if ('contact_id'   in body) patch.contact_id   = body.contact_id || null;
+  if ('project_slug' in body) patch.project_slug = body.project_slug ? String(body.project_slug).toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 160) : null;
   if ('slug'       in body && body.slug && body.slug !== existing.slug) {
     patch.slug = await ensureUniqueSlug(env, slugify(body.slug), id);
   }
@@ -2902,6 +2947,172 @@ export async function ensureCarouselTable(env) {
     env.DB.prepare(`CREATE INDEX IF NOT EXISTS idx_carousels_slug    ON carousels(slug)`),
     env.DB.prepare(`CREATE INDEX IF NOT EXISTS idx_carousels_updated ON carousels(updated_at DESC)`),
   ]);
+}
+
+// ─── Contacts + post-extension bootstrap ───────────────────────────────────
+// Same self-bootstrap pattern as carousels: idempotent CREATE/ALTER on first
+// request. The ALTER calls add the new Editorial/Paid/Contact tracking columns
+// to the existing posts table; each is wrapped so a re-run is a no-op once
+// the column exists. Mirrors gallery.js's `pin` column add.
+export async function ensureContactsTable(env) {
+  if (!env.DB) return;
+  await env.DB.batch([
+    env.DB.prepare(`CREATE TABLE IF NOT EXISTS contacts (
+      id          TEXT    PRIMARY KEY,
+      name        TEXT    NOT NULL,
+      email       TEXT,
+      company     TEXT,
+      phone       TEXT,
+      tags        TEXT    DEFAULT '[]',
+      notes       TEXT,
+      created_at  INTEGER NOT NULL,
+      updated_at  INTEGER NOT NULL
+    )`),
+    env.DB.prepare(`CREATE INDEX IF NOT EXISTS idx_contacts_name    ON contacts(name)`),
+    env.DB.prepare(`CREATE INDEX IF NOT EXISTS idx_contacts_email   ON contacts(email)   WHERE email IS NOT NULL`),
+    env.DB.prepare(`CREATE INDEX IF NOT EXISTS idx_contacts_company ON contacts(company) WHERE company IS NOT NULL`),
+  ]);
+  // Posts table extensions — Monday.com sheet replacement fields. Try/catch
+  // each so a re-run silently no-ops once the column exists (D1 returns an
+  // error on duplicate-column ADD).
+  for (const sql of [
+    `ALTER TABLE posts ADD COLUMN post_type    TEXT DEFAULT 'Editorial'`,
+    `ALTER TABLE posts ADD COLUMN income       REAL`,
+    `ALTER TABLE posts ADD COLUMN contact_id   TEXT`,
+    `ALTER TABLE posts ADD COLUMN project_slug TEXT`,
+  ]) {
+    try { await env.DB.prepare(sql).run(); } catch (_) { /* already exists */ }
+  }
+  for (const sql of [
+    `CREATE INDEX IF NOT EXISTS idx_posts_contact   ON posts(contact_id)   WHERE contact_id   IS NOT NULL`,
+    `CREATE INDEX IF NOT EXISTS idx_posts_project   ON posts(project_slug) WHERE project_slug IS NOT NULL`,
+    `CREATE INDEX IF NOT EXISTS idx_posts_type_date ON posts(post_type, published_at DESC)`,
+  ]) {
+    try { await env.DB.prepare(sql).run(); } catch (_) {}
+  }
+}
+
+function rowToContact(r, postCount) {
+  if (!r) return null;
+  let tags = [];
+  try { tags = JSON.parse(r.tags || '[]'); if (!Array.isArray(tags)) tags = []; } catch { tags = []; }
+  return {
+    id: r.id,
+    name: r.name || '',
+    email: r.email || '',
+    company: r.company || '',
+    phone: r.phone || '',
+    tags,
+    notes: r.notes || '',
+    post_count: typeof postCount === 'number' ? postCount : null,
+    created_at: r.created_at,
+    updated_at: r.updated_at,
+  };
+}
+
+function normalizeContactTags(v) {
+  if (Array.isArray(v)) return v.map(String).map(s => s.trim()).filter(Boolean);
+  if (typeof v === 'string') return v.split(',').map(s => s.trim()).filter(Boolean);
+  return [];
+}
+
+async function handleContactsList(req, env, origin, url) {
+  const authCheck = await requireAdminToken(req, env, origin);
+  if (authCheck) return authCheck;
+  await ensureContactsTable(env);
+  const limit  = clampInt(url.searchParams.get('limit'), 200, 1, 1000);
+  const offset = clampInt(url.searchParams.get('offset'), 0, 0, 100000);
+  const q     = (url.searchParams.get('q') || '').trim().toLowerCase();
+  const tag   = (url.searchParams.get('tag') || '').trim();
+  const where = []; const params = []; let p = 1;
+  if (q)   { where.push(`(LOWER(name) LIKE ?${p} OR LOWER(email) LIKE ?${p} OR LOWER(company) LIKE ?${p})`); params.push('%'+q+'%'); p++; }
+  if (tag) { where.push(`tags LIKE ?${p}`); params.push('%"'+tag+'"%'); p++; }
+  const whereSql = where.length ? 'WHERE ' + where.join(' AND ') : '';
+  const total = await env.DB.prepare(`SELECT COUNT(*) AS c FROM contacts ${whereSql}`).bind(...params).first();
+  const rows  = (await env.DB.prepare(
+    `SELECT id, name, email, company, phone, tags, notes, created_at, updated_at
+     FROM contacts ${whereSql} ORDER BY LOWER(name) ASC LIMIT ${limit} OFFSET ${offset}`
+  ).bind(...params).all()).results || [];
+  // Bulk post-count lookup so the list view can show "12 posts" per contact
+  // without N+1 queries. One IN-list query is cheap even for 1000 contacts.
+  let counts = {};
+  if (rows.length) {
+    const placeholders = rows.map((_, i) => `?${i+1}`).join(',');
+    const cRows = (await env.DB.prepare(
+      `SELECT contact_id, COUNT(*) AS c FROM posts WHERE contact_id IN (${placeholders}) GROUP BY contact_id`
+    ).bind(...rows.map(r => r.id)).all()).results || [];
+    for (const cr of cRows) counts[cr.contact_id] = cr.c;
+  }
+  return json(
+    { items: rows.map(r => rowToContact(r, counts[r.id] || 0)), total: total ? total.c : 0, limit, offset, hasMore: offset + rows.length < (total ? total.c : 0) },
+    {}, env, origin,
+  );
+}
+
+async function handleContactGet(req, env, origin, id) {
+  const authCheck = await requireAdminToken(req, env, origin);
+  if (authCheck) return authCheck;
+  await ensureContactsTable(env);
+  const row = await env.DB.prepare(`SELECT * FROM contacts WHERE id = ?1`).bind(id).first();
+  if (!row) return json({ error: 'contact not found' }, { status: 404 }, env, origin);
+  const posts = (await env.DB.prepare(
+    `SELECT slug, title, post_type, income, published_at, status
+     FROM posts WHERE contact_id = ?1 ORDER BY COALESCE(published_at, updated_at) DESC LIMIT 500`
+  ).bind(id).all()).results || [];
+  return json({ contact: rowToContact(row, posts.length), posts }, {}, env, origin);
+}
+
+async function handleContactsCreate(req, env, origin) {
+  const authCheck = await requireAdminToken(req, env, origin);
+  if (authCheck) return authCheck;
+  await ensureContactsTable(env);
+  let body; try { body = await req.json(); } catch { return json({ error: 'invalid JSON' }, { status: 400 }, env, origin); }
+  const name = (body.name || '').toString().trim();
+  if (!name) return json({ error: 'name is required' }, { status: 400 }, env, origin);
+  const now = Math.floor(Date.now() / 1000);
+  const id = body.id || ('cnt-' + cryptoRandomId(12));
+  const tagsJson = JSON.stringify(normalizeContactTags(body.tags));
+  try {
+    await env.DB.prepare(
+      `INSERT INTO contacts (id, name, email, company, phone, tags, notes, created_at, updated_at)
+       VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?8)`
+    ).bind(id, name, body.email || null, body.company || null, body.phone || null, tagsJson, body.notes || null, now).run();
+  } catch (e) {
+    return json({ error: 'insert failed', detail: e.message || String(e) }, { status: 500 }, env, origin);
+  }
+  const row = await env.DB.prepare(`SELECT * FROM contacts WHERE id = ?1`).bind(id).first();
+  return json({ ok: true, contact: rowToContact(row, 0) }, {}, env, origin);
+}
+
+async function handleContactsUpdate(req, env, origin, id) {
+  const authCheck = await requireAdminToken(req, env, origin);
+  if (authCheck) return authCheck;
+  await ensureContactsTable(env);
+  const existing = await env.DB.prepare(`SELECT * FROM contacts WHERE id = ?1`).bind(id).first();
+  if (!existing) return json({ error: 'contact not found' }, { status: 404 }, env, origin);
+  let body; try { body = await req.json(); } catch { return json({ error: 'invalid JSON' }, { status: 400 }, env, origin); }
+  const patch = {};
+  for (const k of ['name','email','company','phone','notes']) if (k in body) patch[k] = body[k];
+  if ('tags' in body) patch.tags = JSON.stringify(normalizeContactTags(body.tags));
+  if (!Object.keys(patch).length) return json({ ok: true, contact: rowToContact(existing), note: 'no changes' }, {}, env, origin);
+  patch.updated_at = Math.floor(Date.now() / 1000);
+  const keys = Object.keys(patch);
+  const setSql = keys.map((k, i) => `${k} = ?${i+1}`).join(', ');
+  const args = keys.map(k => patch[k]); args.push(id);
+  await env.DB.prepare(`UPDATE contacts SET ${setSql} WHERE id = ?${keys.length+1}`).bind(...args).run();
+  const updated = await env.DB.prepare(`SELECT * FROM contacts WHERE id = ?1`).bind(id).first();
+  return json({ ok: true, contact: rowToContact(updated) }, {}, env, origin);
+}
+
+async function handleContactsDelete(req, env, origin, id) {
+  const authCheck = await requireAdminToken(req, env, origin);
+  if (authCheck) return authCheck;
+  await ensureContactsTable(env);
+  // Detach from any posts so we don't leave dangling FKs. Posts stay; the
+  // contact slot just empties — the editor will show "(no contact)".
+  await env.DB.prepare(`UPDATE posts SET contact_id = NULL WHERE contact_id = ?1`).bind(id).run();
+  const r = await env.DB.prepare(`DELETE FROM contacts WHERE id = ?1`).bind(id).run();
+  return json({ ok: true, id, deleted: r.meta && r.meta.changes ? r.meta.changes : 0 }, {}, env, origin);
 }
 
 function rowToCarousel(r) {
@@ -5204,6 +5415,23 @@ export default {
         const m = url.pathname.match(/^\/admin\/wix-debug\/([^/]+)\/?$/);
         if (m && request.method === 'GET') {
           return await handleWixDebug(request, env, origin, m[1]);
+        }
+      }
+      // /contacts — Monday-replacement CRM. Admin-only on every verb; no
+      // public read path. The admin UI at admin.oftmw.com/contacts.html
+      // drives the list + filter + edit flows; the post editor's Contact
+      // picker hits GET /contacts?q=… for autocomplete and POST /contacts
+      // for inline "create new".
+      if (url.pathname === '/contacts' || url.pathname === '/contacts/') {
+        if (request.method === 'GET')  return await handleContactsList(request, env, origin, url);
+        if (request.method === 'POST') return await handleContactsCreate(request, env, origin);
+      }
+      {
+        const m = url.pathname.match(/^\/contacts\/([^/]+)\/?$/);
+        if (m) {
+          if (request.method === 'GET')    return await handleContactGet(request, env, origin, m[1]);
+          if (request.method === 'PATCH')  return await handleContactsUpdate(request, env, origin, m[1]);
+          if (request.method === 'DELETE') return await handleContactsDelete(request, env, origin, m[1]);
         }
       }
       // /post/:slug — LEGACY scrape fallback (kept for backwards compat

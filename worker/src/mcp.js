@@ -21,7 +21,7 @@
 */
 
 import { isAuthorized } from './oauth.js';
-import { getGoogleAccessToken, signPayload, previewSecret, ensureCarouselTable } from './index.js';
+import { getGoogleAccessToken, signPayload, previewSecret, ensureCarouselTable, ensureContactsTable } from './index.js';
 
 // serverInfo per the MCP `Implementation` shape. `title`/`websiteUrl`/`icons`
 // were added in spec 2025-11-25 (SEP-973). Clients that support icons (e.g.
@@ -211,6 +211,10 @@ const TOOLS = [
         category: { type: 'string', description: 'Primary category label (optional)' },
         cover_image: { type: 'string', description: 'Absolute cover image URL (optional)' },
         linked_project: { type: 'string', description: 'Slug of the Map of Tomorrow project this article covers — embeds the live project card (status, intel, stats) in the post, exactly like the Studio "linked project" picker. Use the slug from search_projects. Always set this when the article is about a tracked project.' },
+        post_type:   { type: 'string', enum: ['Editorial', 'Barter', 'Potential Barter', 'Partner', 'Paid'], description: 'Editorial/commercial classification (Monday-replacement). Default Editorial.' },
+        income:      { type: 'number', description: 'Dollar amount captured for the post (paid/barter/partner). Omit for Editorial.' },
+        contact_id:  { type: 'string', description: 'Studio contact id (from list_contacts) — the PR/brand contact tied to this post.' },
+        project_slug:{ type: 'string', description: 'Map of Tomorrow project slug this post should be linked to in the dashboard (separate from the in-body embed — `linked_project` controls the embed; `project_slug` is the structured link the dashboard groups posts by).' },
       },
       required: ['title'],
     },
@@ -228,6 +232,10 @@ const TOOLS = [
         category: { type: 'string' },
         cover_image: { type: 'string' },
         linked_project: { type: 'string', description: 'Slug of the Map of Tomorrow project to link — embeds the live project card (added once if not already present). Use to connect an existing draft to its project.' },
+        post_type:   { type: 'string', enum: ['Editorial', 'Barter', 'Potential Barter', 'Partner', 'Paid'] },
+        income:      { type: 'number' },
+        contact_id:  { type: 'string' },
+        project_slug:{ type: 'string' },
       },
       required: ['slug'],
     },
@@ -581,6 +589,80 @@ const TOOLS = [
   {
     name: 'remove_brand_note',
     description: 'Retire one note from the brand brain by its id (from get_brand_brain) — use when a preference changes or a note was wrong.',
+    inputSchema: { type: 'object', properties: { id: { type: 'string' } }, required: ['id'] },
+  },
+
+  // ── Contacts (Monday.com replacement) ───────────────────────────────────────
+  // Lightweight CRM of the PR/brand contacts behind each post. One contact per
+  // post (posts.contact_id). Tags are free-form (Travel/Real Estate/Hospitality/
+  // Wellness are the seed chips); "connected posts" is computed live from
+  // posts.contact_id, so we never duplicate.
+  {
+    name: 'list_contacts',
+    description: 'List Studio contacts (brand owners, PR reps, agency leads) — the Monday.com Contact column replacement. Returns name, email, company, tags, and a live post count per contact. Filter by a tag chip (Travel/Real Estate/Hospitality/Wellness/etc) or free-text on name/email/company. For looking up a single contact by id (with their full connected-post list), use get_contact.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        query: { type: 'string', description: 'Free-text match against name, email, or company (case-insensitive substring)' },
+        tag:   { type: 'string', description: 'Filter to contacts carrying this tag (exact, case-sensitive)' },
+        limit: { type: 'integer', description: 'Max results (default 100, max 500)' },
+        offset:{ type: 'integer', description: 'Pagination offset' },
+      },
+    },
+  },
+  {
+    name: 'search_contacts',
+    description: 'Alias for list_contacts with the free-text query promoted to first-class — use this when you have a name/email/company fragment and want the matching contact(s). Identical return shape.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        query: { type: 'string', description: 'Free-text match against name, email, company' },
+        limit: { type: 'integer' },
+      },
+      required: ['query'],
+    },
+  },
+  {
+    name: 'get_contact',
+    description: 'Get a single Studio contact by id, including every post connected to them (posts.contact_id reverse lookup). Returns the contact record + the list of {slug, title, post_type, income, date, status} for each connected post — the same data the admin Contacts page renders.',
+    inputSchema: { type: 'object', properties: { id: { type: 'string' } }, required: ['id'] },
+  },
+  {
+    name: 'create_contact',
+    description: 'Create a new Studio contact in the Monday-replacement CRM. Use when assigning a contact to a post and the person is not already in the system (the post editor surfaces this as an inline "+ Create new contact"). Returns the new id so the caller can immediately set posts.contact_id to it.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        name:    { type: 'string', description: 'Full name (required)' },
+        email:   { type: 'string', description: 'Primary email' },
+        company: { type: 'string', description: 'Company / agency the contact represents' },
+        phone:   { type: 'string', description: 'Optional phone number' },
+        tags:    { type: 'array', items: { type: 'string' }, description: 'Free-form tags — seed chips are Travel, Real Estate, Hospitality, Wellness. Pass as a string array (or a comma-separated string).' },
+        notes:   { type: 'string', description: 'Optional free-form notes about the relationship' },
+      },
+      required: ['name'],
+    },
+  },
+  {
+    name: 'update_contact',
+    description: 'Update fields on an existing Studio contact. Only the keys you pass change; tags pass FULL replacement (omit to leave tags as-is, pass [] to clear).',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        id:      { type: 'string', description: 'Contact id' },
+        name:    { type: 'string' },
+        email:   { type: 'string' },
+        company: { type: 'string' },
+        phone:   { type: 'string' },
+        tags:    { type: 'array', items: { type: 'string' }, description: 'FULL replacement list of tags' },
+        notes:   { type: 'string' },
+      },
+      required: ['id'],
+    },
+  },
+  {
+    name: 'delete_contact',
+    description: 'Delete a Studio contact. Any posts that reference this contact_id are detached (their contact_id is set to NULL — the post itself is untouched). Cannot be undone; use only when the contact was a duplicate or was created in error.',
     inputSchema: { type: 'object', properties: { id: { type: 'string' } }, required: ['id'] },
   },
 ];
@@ -1183,15 +1265,13 @@ const IMPL = {
     if (!args.slug) throw new Error('slug is required');
     const r = await env.DB.prepare(
       `SELECT slug, title, excerpt, status, published_at, categories, tags, author_name,
-              cover_image, seo_title, seo_description, body_html, reading_time_min
+              cover_image, seo_title, seo_description, body_html, reading_time_min,
+              post_type, income, contact_id, project_slug
        FROM posts WHERE slug = ?1 LIMIT 1`
     ).bind(String(args.slug).toLowerCase()).first();
     if (!r) throw new Error('no post with slug "' + args.slug + '"');
     const views = await viewsForSlugs(env, [r.slug]);
     let body = r.body_html || '';
-    // full:true returns the complete body (capped high to avoid pathological
-    // payloads) so the model can copy exact substrings for edit_post_draft;
-    // the default keeps responses light by truncating long bodies.
     const wantFull = args.full === true || args.full === 'true';
     const LIMIT = wantFull ? 600000 : 24000;
     const truncated = body.length > LIMIT;
@@ -1202,6 +1282,10 @@ const IMPL = {
       author: r.author_name || '', cover_image: r.cover_image || '',
       seo_title: r.seo_title || '', seo_description: r.seo_description || '',
       reading_time_min: r.reading_time_min || null, views: views[r.slug] || 0,
+      post_type:    r.post_type    || 'Editorial',
+      income:       r.income == null ? null : Number(r.income),
+      contact_id:   r.contact_id   || null,
+      project_slug: r.project_slug || null,
       body_html: body, body_truncated: truncated,
     };
   },
@@ -1529,11 +1613,17 @@ const IMPL = {
     const categories = args.category ? JSON.stringify([String(args.category)]) : '[]';
     const reading = Math.max(1, Math.round(text.split(/\s+/).filter(Boolean).length / 200));
     const now = Math.floor(Date.now() / 1000);
+    await ensureContactsTable(env);
+    const postType    = normalizePostTypeMcp(args.post_type);
+    const income      = args.income == null || args.income === '' ? null : Number(args.income);
+    const contactId   = args.contact_id || null;
+    const projSlugMcp = args.project_slug ? String(args.project_slug).toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 160) : null;
     await env.DB.prepare(
       `INSERT INTO posts (id, slug, title, excerpt, body_html, cover_image, categories, tags,
-                          author_name, status, published_at, reading_time_min, body_source, created_at, updated_at)
-       VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, '[]', ?8, 'draft', NULL, ?9, 'studio-mcp', ?10, ?10)`
-    ).bind(id, slug, title, excerpt, bodyHtml, args.cover_image || null, categories, 'Jake Nicholas', reading, now).run();
+                          author_name, status, published_at, reading_time_min, body_source,
+                          post_type, income, contact_id, project_slug, created_at, updated_at)
+       VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, '[]', ?8, 'draft', NULL, ?9, 'studio-mcp', ?10, ?11, ?12, ?13, ?14, ?14)`
+    ).bind(id, slug, title, excerpt, bodyHtml, args.cover_image || null, categories, 'Jake Nicholas', reading, postType, income, contactId, projSlugMcp, now).run();
     return {
       ok: true, id, slug, status: 'draft', linked_project: linkedSlug || undefined,
       edit_url: 'https://admin.oftmw.com/post.html?id=' + id,
@@ -1568,7 +1658,11 @@ const IMPL = {
     else if (derivedExcerpt && args.body_markdown != null) { sets.push(`excerpt = ?${p++}`); params.push(derivedExcerpt); }
     if (args.category != null) { sets.push(`categories = ?${p++}`); params.push(JSON.stringify([String(args.category)])); }
     if (args.cover_image != null) { sets.push(`cover_image = ?${p++}`); params.push(String(args.cover_image)); }
-    if (!sets.length) throw new Error('nothing to update — pass at least one of title/body_markdown/excerpt/category/cover_image/linked_project');
+    if (args.post_type != null)    { sets.push(`post_type = ?${p++}`);    params.push(normalizePostTypeMcp(args.post_type)); }
+    if ('income'      in args)     { sets.push(`income = ?${p++}`);       params.push(args.income == null || args.income === '' ? null : Number(args.income)); }
+    if ('contact_id'  in args)     { sets.push(`contact_id = ?${p++}`);   params.push(args.contact_id || null); }
+    if ('project_slug' in args)    { sets.push(`project_slug = ?${p++}`); params.push(args.project_slug ? String(args.project_slug).toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 160) : null); }
+    if (!sets.length) throw new Error('nothing to update — pass at least one of title/body_markdown/excerpt/category/cover_image/linked_project/post_type/income/contact_id/project_slug');
     sets.push(`updated_at = ?${p++}`); params.push(Math.floor(Date.now() / 1000));
     params.push(slug);
     await env.DB.prepare(`UPDATE posts SET ${sets.join(', ')} WHERE slug = ?${p}`).bind(...params).run();
@@ -2411,7 +2505,131 @@ const IMPL = {
     await env.DB.prepare('UPDATE brand_notes SET active = 0 WHERE id = ?1').bind(id).run();
     return { ok: true, id, removed: true };
   },
+
+  // ── Contacts (Monday-replacement CRM) ────────────────────────────────────
+  async list_contacts(args, env) { return mcpListContacts(args, env); },
+  async search_contacts(args, env) { return mcpListContacts({ query: args.query, limit: args.limit }, env); },
+  async get_contact(args, env) {
+    if (!env.DB) throw new Error('D1 not configured');
+    await ensureContactsTable(env);
+    const id = String(args.id || '').trim();
+    if (!id) throw new Error('id is required');
+    const row = await env.DB.prepare(`SELECT * FROM contacts WHERE id = ?1`).bind(id).first();
+    if (!row) throw new Error('no contact with id "' + id + '"');
+    const posts = (await env.DB.prepare(
+      `SELECT slug, title, post_type, income, published_at, status
+       FROM posts WHERE contact_id = ?1 ORDER BY COALESCE(published_at, updated_at) DESC LIMIT 500`
+    ).bind(id).all()).results || [];
+    return { contact: mcpContactRow(row, posts.length), posts: posts.map((p) => ({
+      slug: p.slug, title: p.title, post_type: p.post_type || 'Editorial',
+      income: p.income == null ? null : Number(p.income),
+      date: iso(p.published_at), status: p.status,
+    })) };
+  },
+  async create_contact(args, env) {
+    if (!env.DB) throw new Error('D1 not configured');
+    await ensureContactsTable(env);
+    const name = String(args.name || '').trim();
+    if (!name) throw new Error('name is required');
+    const id = 'cnt-' + (crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2));
+    const tagsJson = JSON.stringify(mcpNormalizeContactTags(args.tags));
+    const now = Math.floor(Date.now() / 1000);
+    await env.DB.prepare(
+      `INSERT INTO contacts (id, name, email, company, phone, tags, notes, created_at, updated_at)
+       VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?8)`
+    ).bind(id, name, args.email || null, args.company || null, args.phone || null, tagsJson, args.notes || null, now).run();
+    const row = await env.DB.prepare(`SELECT * FROM contacts WHERE id = ?1`).bind(id).first();
+    return { ok: true, contact: mcpContactRow(row, 0), note: 'Wire this contact to a post by setting contact_id="' + id + '" on update_post_draft.' };
+  },
+  async update_contact(args, env) {
+    if (!env.DB) throw new Error('D1 not configured');
+    await ensureContactsTable(env);
+    const id = String(args.id || '').trim();
+    if (!id) throw new Error('id is required');
+    const existing = await env.DB.prepare(`SELECT * FROM contacts WHERE id = ?1`).bind(id).first();
+    if (!existing) throw new Error('no contact with id "' + id + '"');
+    const sets = []; const params = []; let p = 1;
+    for (const k of ['name','email','company','phone','notes']) {
+      if (args[k] != null) { sets.push(`${k} = ?${p++}`); params.push(args[k] === '' ? null : String(args[k])); }
+    }
+    if (Array.isArray(args.tags) || typeof args.tags === 'string') {
+      sets.push(`tags = ?${p++}`); params.push(JSON.stringify(mcpNormalizeContactTags(args.tags)));
+    }
+    if (!sets.length) throw new Error('nothing to update — pass at least one of name/email/company/phone/tags/notes');
+    sets.push(`updated_at = ?${p++}`); params.push(Math.floor(Date.now() / 1000));
+    params.push(id);
+    await env.DB.prepare(`UPDATE contacts SET ${sets.join(', ')} WHERE id = ?${p}`).bind(...params).run();
+    const updated = await env.DB.prepare(`SELECT * FROM contacts WHERE id = ?1`).bind(id).first();
+    return { ok: true, contact: mcpContactRow(updated) };
+  },
+  async delete_contact(args, env) {
+    if (!env.DB) throw new Error('D1 not configured');
+    await ensureContactsTable(env);
+    const id = String(args.id || '').trim();
+    if (!id) throw new Error('id is required');
+    // Detach from posts first so we don't leave dangling refs.
+    await env.DB.prepare(`UPDATE posts SET contact_id = NULL WHERE contact_id = ?1`).bind(id).run();
+    const r = await env.DB.prepare(`DELETE FROM contacts WHERE id = ?1`).bind(id).run();
+    return { ok: true, id, deleted: r.meta && r.meta.changes ? r.meta.changes : 0 };
+  },
 };
+
+// ── Post-type normalization (Monday.com replacement vocabulary) ──────────
+const POST_TYPE_ENUM_MCP = new Set(['Editorial','Barter','Potential Barter','Partner','Paid']);
+function normalizePostTypeMcp(v) {
+  if (v == null || v === '') return 'Editorial';
+  const s = String(v).trim();
+  if (POST_TYPE_ENUM_MCP.has(s)) return s;
+  for (const t of POST_TYPE_ENUM_MCP) if (t.toLowerCase() === s.toLowerCase()) return t;
+  return 'Editorial';
+}
+
+// ── Contacts helpers (shared by list/search/get/create/update) ───────────
+function mcpNormalizeContactTags(v) {
+  if (Array.isArray(v)) return v.map(String).map((s) => s.trim()).filter(Boolean);
+  if (typeof v === 'string') return v.split(',').map((s) => s.trim()).filter(Boolean);
+  return [];
+}
+function mcpContactRow(r, postCount) {
+  let tags = [];
+  try { tags = JSON.parse(r.tags || '[]'); if (!Array.isArray(tags)) tags = []; } catch (_) {}
+  return {
+    id: r.id, name: r.name || '', email: r.email || '', company: r.company || '',
+    phone: r.phone || '', tags, notes: r.notes || '',
+    post_count: typeof postCount === 'number' ? postCount : null,
+    created: iso(r.created_at), updated: iso(r.updated_at),
+  };
+}
+async function mcpListContacts(args, env) {
+  if (!env.DB) throw new Error('D1 not configured');
+  await ensureContactsTable(env);
+  const limit  = Math.min(Math.max(parseInt(args.limit, 10) || 100, 1), 500);
+  const offset = Math.max(parseInt(args.offset, 10) || 0, 0);
+  const q   = (args.query || '').trim().toLowerCase();
+  const tag = (args.tag   || '').trim();
+  const where = []; const params = []; let p = 1;
+  if (q)   { where.push(`(LOWER(name) LIKE ?${p} OR LOWER(email) LIKE ?${p} OR LOWER(company) LIKE ?${p})`); params.push('%'+q+'%'); p++; }
+  if (tag) { where.push(`tags LIKE ?${p}`); params.push('%"'+tag+'"%'); p++; }
+  const whereSql = where.length ? 'WHERE ' + where.join(' AND ') : '';
+  const total = await env.DB.prepare(`SELECT COUNT(*) c FROM contacts ${whereSql}`).bind(...params).first();
+  const rows  = (await env.DB.prepare(
+    `SELECT id, name, email, company, phone, tags, notes, created_at, updated_at
+     FROM contacts ${whereSql} ORDER BY LOWER(name) ASC LIMIT ${limit} OFFSET ${offset}`
+  ).bind(...params).all()).results || [];
+  let counts = {};
+  if (rows.length) {
+    const placeholders = rows.map((_, i) => `?${i+1}`).join(',');
+    const cRows = (await env.DB.prepare(
+      `SELECT contact_id, COUNT(*) c FROM posts WHERE contact_id IN (${placeholders}) GROUP BY contact_id`
+    ).bind(...rows.map((r) => r.id)).all()).results || [];
+    for (const cr of cRows) counts[cr.contact_id] = cr.c;
+  }
+  return {
+    count: rows.length,
+    total: total ? total.c : 0,
+    contacts: rows.map((r) => mcpContactRow(r, counts[r.id] || 0)),
+  };
+}
 
 function firmList(all, field, args) {
   const q = (args && args.query || '').toLowerCase();

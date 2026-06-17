@@ -71,6 +71,17 @@ CREATE TABLE IF NOT EXISTS posts (
   wix_id            TEXT,                     -- original Wix post id for re-sync
   wix_url           TEXT,                     -- original oftmw.com/post/<slug>
   body_source       TEXT    DEFAULT 'wix-import',  -- 'wix-import' | 'studio' | 'wix-scrape'
+  -- Editorial/commercial classification — replaces the Monday.com tracking sheet.
+  -- post_type:  'Editorial' (default) | 'Barter' | 'Potential Barter' | 'Partner' | 'Paid'
+  -- income:     dollar amount captured for paid/barter/partner posts; nullable
+  -- contact_id: FK to the contacts table (single contact per post)
+  -- project_slug: FK to the Map of Tomorrow project this post covers; auto-set
+  --              from the brand→project match during the Monday migration and
+  --              editable in the Studio sidebar afterward
+  post_type     TEXT DEFAULT 'Editorial',
+  income        REAL,
+  contact_id    TEXT,
+  project_slug  TEXT,
   created_at        INTEGER NOT NULL,
   updated_at        INTEGER NOT NULL
 );
@@ -79,6 +90,36 @@ CREATE        INDEX IF NOT EXISTS idx_posts_slug         ON posts(slug);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_posts_wix_id       ON posts(wix_id)         WHERE wix_id IS NOT NULL;
 CREATE        INDEX IF NOT EXISTS idx_posts_pub          ON posts(status, published_at DESC);
 CREATE        INDEX IF NOT EXISTS idx_posts_author       ON posts(author_id, published_at DESC);
+CREATE        INDEX IF NOT EXISTS idx_posts_contact      ON posts(contact_id)     WHERE contact_id IS NOT NULL;
+CREATE        INDEX IF NOT EXISTS idx_posts_project      ON posts(project_slug)   WHERE project_slug IS NOT NULL;
+CREATE        INDEX IF NOT EXISTS idx_posts_type_date    ON posts(post_type, published_at DESC);
+
+-- ---------------------------------------------------------------------------
+-- contacts: lightweight CRM. One row per person we work with (PR rep, brand
+-- owner, agency contact). Replaces the per-post Contact column from the
+-- Monday.com sheet. Tags are a freeform JSON array (Travel / Real Estate /
+-- Hospitality / Wellness — the seed set rendered as chips in the admin).
+-- The reverse lookup "all posts this contact owns" is computed live by
+-- querying posts.contact_id, so we keep no denormalized post list here.
+--
+-- Self-bootstraps via ensureContactsTable() on first request, mirroring
+-- the carousels / galleries pattern.
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS contacts (
+  id           TEXT    PRIMARY KEY,           -- 'cnt-<uuid>'
+  name         TEXT    NOT NULL,
+  email        TEXT,
+  company      TEXT,
+  phone        TEXT,
+  tags         TEXT    DEFAULT '[]',          -- JSON array of free-form tags
+  notes        TEXT,
+  created_at   INTEGER NOT NULL,
+  updated_at   INTEGER NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_contacts_name    ON contacts(name);
+CREATE INDEX IF NOT EXISTS idx_contacts_email   ON contacts(email)   WHERE email IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_contacts_company ON contacts(company) WHERE company IS NOT NULL;
 
 -- Lightweight key-value table for sync state (resume cursors, last-run
 -- timestamps). Lets the importer pick up where it left off if interrupted.
