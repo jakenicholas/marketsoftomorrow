@@ -4546,7 +4546,7 @@ async function requireAdminToken(req, env, origin) {
 // GET /admin/auth/login?redirect=<page> — kick off GitHub OAuth.
 async function handleAuthLogin(env, url) {
   if (!env.GITHUB_CLIENT_ID || !env.SESSION_SECRET) return new Response('GitHub OAuth not configured on the worker.', { status: 500 });
-  const redirect = url.searchParams.get('redirect') || 'https://www.oftmw.com/journal/studio/';
+  const redirect = url.searchParams.get('redirect') || 'https://admin.oftmw.com/';
   const state = await signPayload({ r: redirect, exp: Math.floor(Date.now() / 1000) + 600 }, env.SESSION_SECRET);
   const gh = new URL('https://github.com/login/oauth/authorize');
   gh.searchParams.set('client_id', env.GITHUB_CLIENT_ID);

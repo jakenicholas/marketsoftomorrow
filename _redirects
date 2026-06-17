@@ -1,0 +1,7 @@
+# Cloudflare Pages redirects for www.oftmw.com.
+#
+# The Studio admin used to live at /studio/* on this site; it's now its own
+# Cloudflare Access-gated deployment at admin.oftmw.com. Catch every bookmark
+# and transparently bounce to the canonical admin. The trailing 301! forces
+# the redirect even if a file by the same path exists in the bundle.
+/studio/* https://admin.oftmw.com/:splat 301!
