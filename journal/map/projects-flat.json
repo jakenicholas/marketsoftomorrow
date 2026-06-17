@@ -1368,7 +1368,7 @@
     "Delivery": "Announced",
     "DeliveryDate": "",
     "StartDate": "",
-    "ProjectType": "Hotel, Golf, Park, Retail, Entertainment, Marina",
+    "ProjectType": "Hotel, Retail, Entertainment, Mixed-Use",
     "PreferredType": "Mixed-Use",
     "Architect": "1jn",
     "ArchitectSlugs": "1jn",
@@ -1391,8 +1391,38 @@
     "DeliverySpeculative": "1",
     "DatesSpeculative": "1",
     "Price": "",
-    "UpdatedAt": "2026-06-17T17:47:08.407Z",
-    "StatusHistory": []
+    "UpdatedAt": "2026-06-17T18:02:48.333Z",
+    "StatusHistory": [
+      {
+        "at": "2026-06-17T17:58:22.897Z",
+        "source_url": "https://www.oftmw.com/post/lake-worth-beach-explores-adding-new-hotels-convention-hub-and-nicklaus-designed-golf-course",
+        "note": "Copperline Partners proposes H.O.R.I.Z.O.N., an oceanfront hotels, convention, retail, and Nicklaus-designed golf redevelopment in Lake Worth Beach.",
+        "type": "backfill",
+        "to": "announced",
+        "effective_date": "2025-01"
+      },
+      {
+        "at": "2026-06-17T18:02:48.333Z",
+        "source_url": "https://www.oftmw.com/post/lake-worth-beach-explores-adding-new-hotels-convention-hub-and-nicklaus-designed-golf-course",
+        "note": "Re-classified to Mixed-Use: two Hyatt hotels, convention space, retail/dining, and a marine discovery center.",
+        "type": "field",
+        "field": "types",
+        "from": [
+          "Hotel",
+          "Golf",
+          "Park",
+          "Retail",
+          "Entertainment",
+          "Marina"
+        ],
+        "to": [
+          "Hotel",
+          "Retail",
+          "Entertainment",
+          "Mixed-Use"
+        ]
+      }
+    ]
   },
   {
     "Title": "Marina Village",
@@ -9665,7 +9695,7 @@
     "Longitude": "-82.527431",
     "Description": "Waterfront condo towers within a yacht‑club community featuring marina access, pool decks, and social club spaces in Tampa.",
     "DescriptionLong": "Waterfront condo towers within a yacht‑club community featuring marina access, pool decks, and social club spaces in Tampa.",
-    "Delivery": "Opening Soon",
+    "Delivery": "Now Open",
     "DeliveryDate": "2026-04",
     "StartDate": "2024-05-09",
     "ProjectType": "Residences, Marina",
@@ -9691,7 +9721,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-06-10T20:44:23.505Z",
+    "UpdatedAt": "2026-06-17T18:16:17.230Z",
     "StatusHistory": [
       {
         "at": "2026-06-05T01:55:11.977Z",
@@ -9738,6 +9768,14 @@
         "type": "milestone",
         "phase": "topping-out",
         "effective_date": "2025-05"
+      },
+      {
+        "at": "2026-06-17T18:16:17.230Z",
+        "source_url": "tmw://auto-promote",
+        "from": "coming-soon",
+        "to": "open",
+        "effective_date": "2026-04",
+        "note": "Auto-promoted: delivery date 2026-04 has passed"
       }
     ]
   },
@@ -22241,7 +22279,7 @@
     "Longitude": "-86.763894",
     "Description": "A 134-unit boutique wellness-focused apartment community in Wedgewood-Houston with saltwater pool, red light saunas, cold plunge, and Technogym fitness center.",
     "DescriptionLong": "A 134-unit boutique apartment community in Nashville's Wedgewood-Houston neighborhood, developed by The Bradley Projects. Following the same wellness-driven approach as the team's earlier project The Lanes, DELUX WeHo prioritizes natural light, livability, and intentional living over scale. Residences range from approximately 500 to 1,500 square feet across studio, one-, two-, and three-bedroom layouts, including loft-style floor plans that separate living and private spaces, with oversized windows and private balconies throughout. Wellness and recovery amenities include a saltwater pool, two red light saunas, a cold plunge, a dedicated recovery studio, and a Technogym fitness center. The property also features 5,000 square feet of street-level retail and sits within two blocks of Soho House Nashville, Michelin-starred Bastion, Hermès Nashville, and Pastis.",
-    "Delivery": "Opening Soon",
+    "Delivery": "Now Open",
     "DeliveryDate": "2026-05",
     "StartDate": "2024-08",
     "ProjectType": "Residences",
@@ -22267,7 +22305,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-06-10T11:26:40.893Z",
+    "UpdatedAt": "2026-06-17T18:16:17.230Z",
     "StatusHistory": [
       {
         "at": "2026-06-10T11:26:40.893Z",
@@ -22277,6 +22315,14 @@
         "field": "neighborhood",
         "from": null,
         "to": "Wedgewood-Houston"
+      },
+      {
+        "at": "2026-06-17T18:16:17.230Z",
+        "source_url": "tmw://auto-promote",
+        "from": "coming-soon",
+        "to": "open",
+        "effective_date": "2026-05",
+        "note": "Auto-promoted: delivery date 2026-05 has passed"
       }
     ]
   },
@@ -28619,7 +28665,7 @@
     "Title": "Saravela",
     "Slug": "saravela",
     "City": "Sarasota",
-    "Neighborhood": "Downtown",
+    "Neighborhood": "Downtown Sarasota",
     "Latitude": "27.3402059",
     "Longitude": "-82.5464463",
     "Description": "A two-tower luxury condominium development rising on North Tamiami Trail near Sarasota Bay — downtown Sarasota's first new high-rise designed for short-term rental freedom, with 282 fully furnished residences, 11 townhomes, and more than 47,000 square feet of amenities across six dedicated levels.",
@@ -28627,7 +28673,7 @@
     "Delivery": "Announced",
     "DeliveryDate": "2029",
     "StartDate": "",
-    "ProjectType": "Residences, Retail",
+    "ProjectType": "Residences",
     "PreferredType": "Residences",
     "Architect": "Kimmich Smith Architecture, ID & Design International",
     "ArchitectSlugs": "kimmich-smith-architecture, id-design-international",
@@ -28642,7 +28688,7 @@
     "Image5": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/af2159c85b2c-5TH-FLOOR-PREMIER-CLUB-LOUNGE-GAME-VIEW-NewTv.jpeg",
     "Keys": "",
     "Units": "282",
-    "Floors": "19",
+    "Floors": "18",
     "ConfigSummary": "",
     "DeliveryPhases": "",
     "IsDistrict": "",
@@ -28650,8 +28696,49 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-06-17T17:47:08.407Z",
-    "StatusHistory": []
+    "UpdatedAt": "2026-06-17T18:02:52.075Z",
+    "StatusHistory": [
+      {
+        "at": "2026-06-17T17:58:26.548Z",
+        "source_url": "https://thetampabay100.com/real-estate/2025/12/19/gsp-development-unveils-saravela-sarasotas-bold-new-landmark-of-luxury-living-flexibility/32858/",
+        "note": "GSP Development unveils Saravela, a two-tower luxury condominium with a flexible short-term-rental model in downtown Sarasota.",
+        "type": "field",
+        "field": "floors",
+        "from": 19,
+        "to": 18
+      },
+      {
+        "at": "2026-06-17T17:58:26.548Z",
+        "source_url": "https://thetampabay100.com/real-estate/2025/12/19/gsp-development-unveils-saravela-sarasotas-bold-new-landmark-of-luxury-living-flexibility/32858/",
+        "note": "GSP Development unveils Saravela, a two-tower luxury condominium with a flexible short-term-rental model in downtown Sarasota.",
+        "type": "field",
+        "field": "neighborhood",
+        "from": "Downtown",
+        "to": "Downtown Sarasota"
+      },
+      {
+        "at": "2026-06-17T17:58:26.548Z",
+        "source_url": "https://thetampabay100.com/real-estate/2025/12/19/gsp-development-unveils-saravela-sarasotas-bold-new-landmark-of-luxury-living-flexibility/32858/",
+        "note": "GSP Development unveils Saravela, a two-tower luxury condominium with a flexible short-term-rental model in downtown Sarasota.",
+        "type": "backfill",
+        "to": "announced",
+        "effective_date": "2025-12-19"
+      },
+      {
+        "at": "2026-06-17T18:02:52.075Z",
+        "source_url": "https://thetampabay100.com/real-estate/2025/12/19/gsp-development-unveils-saravela-sarasotas-bold-new-landmark-of-luxury-living-flexibility/32858/",
+        "note": "Confirmed Residences: 282 condos plus townhomes (ancillary ground-floor retail) in downtown Sarasota.",
+        "type": "field",
+        "field": "types",
+        "from": [
+          "Residences",
+          "Retail"
+        ],
+        "to": [
+          "Residences"
+        ]
+      }
+    ]
   },
   {
     "Title": "Aria Reserve",
@@ -29607,8 +29694,8 @@
     "Delivery": "Under Construction",
     "DeliveryDate": "",
     "StartDate": "2026-06",
-    "ProjectType": "Residences, Retail",
-    "PreferredType": "Residences",
+    "ProjectType": "Residences, Retail, Mixed-Use",
+    "PreferredType": "Mixed-Use",
     "Architect": "Kevin Tsai Architecture",
     "ArchitectSlugs": "kevin-tsai-architecture",
     "Developer": "Westland Development Group",
@@ -29630,7 +29717,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-06-17T17:56:15.164Z",
+    "UpdatedAt": "2026-06-17T18:00:51.173Z",
     "StatusHistory": [
       {
         "at": "2026-06-17T17:56:15.164Z",
@@ -29639,6 +29726,39 @@
         "type": "backfill",
         "to": "announced",
         "effective_date": "2025-09"
+      },
+      {
+        "at": "2026-06-17T17:58:44.181Z",
+        "source_url": "https://therealdeal.com/la/2026/06/16/largest-apartment-project-in-beverly-hills-scores-financing/",
+        "note": "Secures $85M construction loan via Marcus & Millichap as the project moves into construction.",
+        "type": "milestone",
+        "phase": "financing",
+        "effective_date": "2026-06-16"
+      },
+      {
+        "at": "2026-06-17T18:00:51.173Z",
+        "source_url": "https://therealdeal.com/la/2026/06/16/largest-apartment-project-in-beverly-hills-scores-financing/",
+        "note": "Re-classified to Mixed-Use: 140 residences over ~13,300 sq ft of ground-floor retail/restaurant space.",
+        "type": "field",
+        "field": "types",
+        "from": [
+          "Residences",
+          "Retail"
+        ],
+        "to": [
+          "Residences",
+          "Retail",
+          "Mixed-Use"
+        ]
+      },
+      {
+        "at": "2026-06-17T18:00:51.173Z",
+        "source_url": "https://therealdeal.com/la/2026/06/16/largest-apartment-project-in-beverly-hills-scores-financing/",
+        "note": "Re-classified to Mixed-Use: 140 residences over ~13,300 sq ft of ground-floor retail/restaurant space.",
+        "type": "field",
+        "field": "preferred_type",
+        "from": "Residences",
+        "to": "Mixed-Use"
       }
     ]
   },
@@ -29654,7 +29774,7 @@
     "Delivery": "Under Construction",
     "DeliveryDate": "2027",
     "StartDate": "2026-06",
-    "ProjectType": "Residences, Retail",
+    "ProjectType": "Residences",
     "PreferredType": "Residences",
     "Architect": "",
     "ArchitectSlugs": "",
@@ -29677,8 +29797,31 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-06-17T17:47:08.407Z",
-    "StatusHistory": []
+    "UpdatedAt": "2026-06-17T18:00:55.407Z",
+    "StatusHistory": [
+      {
+        "at": "2026-06-17T17:58:47.880Z",
+        "source_url": "https://www.perecredit.com/madison-realty-funds-92m-construction-loan-for-florida-multifamily-development/",
+        "note": "Kolter closes a $92M construction loan from Madison Realty Capital and kicks off construction.",
+        "type": "milestone",
+        "phase": "financing",
+        "effective_date": "2026"
+      },
+      {
+        "at": "2026-06-17T18:00:55.407Z",
+        "source_url": "https://floridayimby.com/2025/08/alton-delray-planned-for-industrial-area-at-2101-s-congress-ave-delray-beach-fl.html",
+        "note": "Confirmed single-use Residences: 386-unit multifamily community (amenities only, no other primary use).",
+        "type": "field",
+        "field": "types",
+        "from": [
+          "Residences",
+          "Retail"
+        ],
+        "to": [
+          "Residences"
+        ]
+      }
+    ]
   },
   {
     "Title": "725 Randolph",
@@ -29692,7 +29835,7 @@
     "Delivery": "Announced",
     "DeliveryDate": "",
     "StartDate": "",
-    "ProjectType": "Office, Retail",
+    "ProjectType": "Office",
     "PreferredType": "Office",
     "Architect": "Kohn Pedersen Fox",
     "ArchitectSlugs": "kohn-pedersen-fox",
@@ -29715,7 +29858,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-06-17T17:57:13.707Z",
+    "UpdatedAt": "2026-06-17T18:01:43.177Z",
     "StatusHistory": [
       {
         "at": "2026-06-17T17:57:13.707Z",
@@ -29733,6 +29876,28 @@
         "type": "backfill",
         "to": "announced",
         "effective_date": "2023-01-05"
+      },
+      {
+        "at": "2026-06-17T17:58:55.079Z",
+        "source_url": "https://www.chicagobusiness.com/real-estate/commercial/ccb-sidley-austin-related-midwest-skyscraper-20260616/",
+        "note": "Sidley Austin signs as anchor tenant, taking more than half the office space and clearing the way to break ground.",
+        "type": "milestone",
+        "phase": "tenant",
+        "effective_date": "2026-06-16"
+      },
+      {
+        "at": "2026-06-17T18:01:43.177Z",
+        "source_url": "https://therealdeal.com/chicago/2023/01/05/related-midwest-veers-fulton-market-plans-to-office-tower/",
+        "note": "Confirmed single-use Office: ~1M sq ft KPF office tower (ground-floor retail and gym are amenities).",
+        "type": "field",
+        "field": "types",
+        "from": [
+          "Office",
+          "Retail"
+        ],
+        "to": [
+          "Office"
+        ]
       }
     ]
   },
@@ -29748,8 +29913,8 @@
     "Delivery": "Announced",
     "DeliveryDate": "2028",
     "StartDate": "",
-    "ProjectType": "Hotel, Residences, Golf, Mixed-Use",
-    "PreferredType": "Mixed-Use",
+    "ProjectType": "Resort, Hotel, Residences, Spa, Golf",
+    "PreferredType": "Resort",
     "Architect": "Studio MK27, Álvarez Díaz & Villalón, EDSA",
     "ArchitectSlugs": "studio-mk27, alvarez-diaz-villalon, edsa",
     "Developer": "Reuben Brothers, Three Rules Capital, Mandarin Oriental Hotel Group",
@@ -29771,8 +29936,46 @@
     "DeliverySpeculative": "1",
     "DatesSpeculative": "1",
     "Price": "",
-    "UpdatedAt": "2026-06-17T17:47:08.407Z",
-    "StatusHistory": []
+    "UpdatedAt": "2026-06-17T18:01:47.826Z",
+    "StatusHistory": [
+      {
+        "at": "2026-06-17T17:57:28.553Z",
+        "source_url": "https://press.mandarinoriental.com/puerto-rico",
+        "note": "Mandarin Oriental to debut in Puerto Rico with a resort and residences at Esencia, Boquerón Bay.",
+        "type": "backfill",
+        "to": "announced",
+        "effective_date": "2025-01-22"
+      },
+      {
+        "at": "2026-06-17T18:01:47.826Z",
+        "source_url": "https://press.mandarinoriental.com/puerto-rico",
+        "note": "Re-classified to Resort: Mandarin Oriental resort with branded residences, spa, and golf at Esencia.",
+        "type": "field",
+        "field": "types",
+        "from": [
+          "Hotel",
+          "Residences",
+          "Golf",
+          "Mixed-Use"
+        ],
+        "to": [
+          "Resort",
+          "Hotel",
+          "Residences",
+          "Spa",
+          "Golf"
+        ]
+      },
+      {
+        "at": "2026-06-17T18:01:47.826Z",
+        "source_url": "https://press.mandarinoriental.com/puerto-rico",
+        "note": "Re-classified to Resort: Mandarin Oriental resort with branded residences, spa, and golf at Esencia.",
+        "type": "field",
+        "field": "preferred_type",
+        "from": "Mixed-Use",
+        "to": "Resort"
+      }
+    ]
   },
   {
     "Title": "NoMad Singapore",
@@ -29801,7 +30004,7 @@
     "Image5": "",
     "Keys": "173",
     "Units": "",
-    "Floors": "",
+    "Floors": "19",
     "ConfigSummary": "",
     "DeliveryPhases": "",
     "IsDistrict": "",
@@ -29809,8 +30012,26 @@
     "DeliverySpeculative": "1",
     "DatesSpeculative": "1",
     "Price": "",
-    "UpdatedAt": "2026-06-17T17:47:08.407Z",
-    "StatusHistory": []
+    "UpdatedAt": "2026-06-17T17:57:32.340Z",
+    "StatusHistory": [
+      {
+        "at": "2026-06-17T17:57:32.340Z",
+        "source_url": "https://www.uol.com.sg/wp-content/uploads/uol-news-releases/Media_Release_UOL_to_open_NoMad_hotel_5_May_2025.pdf",
+        "note": "UOL and Hilton to open NoMad's first Asia-Pacific hotel on Orchard Road, redeveloping Faber House.",
+        "type": "field",
+        "field": "floors",
+        "from": null,
+        "to": 19
+      },
+      {
+        "at": "2026-06-17T17:57:32.340Z",
+        "source_url": "https://www.uol.com.sg/wp-content/uploads/uol-news-releases/Media_Release_UOL_to_open_NoMad_hotel_5_May_2025.pdf",
+        "note": "UOL and Hilton to open NoMad's first Asia-Pacific hotel on Orchard Road, redeveloping Faber House.",
+        "type": "backfill",
+        "to": "announced",
+        "effective_date": "2025-05-05"
+      }
+    ]
   },
   {
     "Title": "Kempinski Grace Bay",
@@ -29824,8 +30045,8 @@
     "Delivery": "Breaking Ground",
     "DeliveryDate": "2028",
     "StartDate": "2025-11-18",
-    "ProjectType": "Hotel, Residences, Mixed-Use",
-    "PreferredType": "Mixed-Use",
+    "ProjectType": "Resort, Hotel, Residences, Spa",
+    "PreferredType": "Resort",
     "Architect": "",
     "ArchitectSlugs": "",
     "Developer": "JTRE",
@@ -29847,7 +30068,7 @@
     "DeliverySpeculative": "1",
     "DatesSpeculative": "1",
     "Price": "",
-    "UpdatedAt": "2026-06-17T17:55:59.647Z",
+    "UpdatedAt": "2026-06-17T18:00:10.942Z",
     "StatusHistory": [
       {
         "at": "2026-06-17T17:55:59.647Z",
@@ -29865,6 +30086,41 @@
         "type": "backfill",
         "to": "announced",
         "effective_date": "2023-11-15"
+      },
+      {
+        "at": "2026-06-17T17:58:40.182Z",
+        "source_url": "https://www.kempinski.com/en/press-room/kempinski-grace-bay-breaks-ground-on-turks-and-caicos-iconic-grace-bay-beach",
+        "note": "Groundbreaking ceremony held on Grace Bay Beach with the TCI Premier; construction begins.",
+        "type": "backfill",
+        "to": "breaking-ground",
+        "effective_date": "2025-11-18"
+      },
+      {
+        "at": "2026-06-17T18:00:10.942Z",
+        "source_url": "https://www.kempinski.com/en/development/upcoming-openings/kempinski-grace-bay-turks-caicos",
+        "note": "Re-classified to Resort: Kempinski-branded beachfront resort with branded residences and villas (Resort is the umbrella category).",
+        "type": "field",
+        "field": "types",
+        "from": [
+          "Hotel",
+          "Residences",
+          "Mixed-Use"
+        ],
+        "to": [
+          "Resort",
+          "Hotel",
+          "Residences",
+          "Spa"
+        ]
+      },
+      {
+        "at": "2026-06-17T18:00:10.942Z",
+        "source_url": "https://www.kempinski.com/en/development/upcoming-openings/kempinski-grace-bay-turks-caicos",
+        "note": "Re-classified to Resort: Kempinski-branded beachfront resort with branded residences and villas (Resort is the umbrella category).",
+        "type": "field",
+        "field": "preferred_type",
+        "from": "Mixed-Use",
+        "to": "Resort"
       }
     ]
   },
@@ -29880,8 +30136,8 @@
     "Delivery": "Opening Soon",
     "DeliveryDate": "2026-08",
     "StartDate": "",
-    "ProjectType": "Hotel",
-    "PreferredType": "Hotel",
+    "ProjectType": "Resort, Hotel, Spa, Residences",
+    "PreferredType": "Resort",
     "Architect": "",
     "ArchitectSlugs": "",
     "Developer": "Blue Flag Capital, Bain Capital Real Estate, Collared Martin Hospitality",
@@ -29903,7 +30159,7 @@
     "DeliverySpeculative": "1",
     "DatesSpeculative": "1",
     "Price": "",
-    "UpdatedAt": "2026-06-17T17:56:26.164Z",
+    "UpdatedAt": "2026-06-17T18:00:59.680Z",
     "StatusHistory": [
       {
         "at": "2026-06-17T17:56:26.164Z",
@@ -29930,6 +30186,31 @@
         "type": "backfill",
         "to": "announced",
         "effective_date": "2025-10-02"
+      },
+      {
+        "at": "2026-06-17T18:00:59.680Z",
+        "source_url": "https://www.hospitalitynet.org/announcement/41013342/faraway-jackson-hole.html",
+        "note": "Re-classified to Resort: Teton Village mountain resort (Faraway brand) with spa, dining, and residences.",
+        "type": "field",
+        "field": "types",
+        "from": [
+          "Hotel"
+        ],
+        "to": [
+          "Resort",
+          "Hotel",
+          "Spa",
+          "Residences"
+        ]
+      },
+      {
+        "at": "2026-06-17T18:00:59.680Z",
+        "source_url": "https://www.hospitalitynet.org/announcement/41013342/faraway-jackson-hole.html",
+        "note": "Re-classified to Resort: Teton Village mountain resort (Faraway brand) with spa, dining, and residences.",
+        "type": "field",
+        "field": "preferred_type",
+        "from": "Hotel",
+        "to": "Resort"
       }
     ]
   },
@@ -29984,7 +30265,7 @@
     "Title": "Equinox Resort Anguilla Port Nimara",
     "Slug": "equinox-resort-anguilla-port-nimara",
     "City": "The Valley",
-    "Neighborhood": "Port Nimara",
+    "Neighborhood": "West End",
     "Latitude": "18.17621",
     "Longitude": "-63.14517",
     "Description": "Equinox Hotels' first Caribbean resort — anchoring the new Port Nimara waterfront development on Anguilla's southwest coast with 62 rooms, 36 villas, 35 branded residences, and a 118-berth superyacht marina.",
@@ -29992,8 +30273,8 @@
     "Delivery": "Announced",
     "DeliveryDate": "2029",
     "StartDate": "",
-    "ProjectType": "Hotel, Residences, Marina, Mixed-Use",
-    "PreferredType": "Mixed-Use",
+    "ProjectType": "Resort, Hotel, Residences, Marina, Spa",
+    "PreferredType": "Resort",
     "Architect": "",
     "ArchitectSlugs": "",
     "Developer": "South West Harbour Inc., SF Investments Ltd., Time Equities Inc., Antillean Developments Inc.",
@@ -30015,8 +30296,55 @@
     "DeliverySpeculative": "1",
     "DatesSpeculative": "1",
     "Price": "",
-    "UpdatedAt": "2026-06-17T17:47:08.407Z",
-    "StatusHistory": []
+    "UpdatedAt": "2026-06-17T18:02:02.976Z",
+    "StatusHistory": [
+      {
+        "at": "2026-06-17T17:57:35.621Z",
+        "source_url": "https://www.businesswire.com/news/home/20251118862628/en/Equinox-Hotels-Continues-Global-Expansion-Announcing-Equinox-Resort-Anguilla-Port-Nimara-Anchored-in-a-Premier-Luxury-Marina",
+        "note": "Equinox Hotels announces its first Caribbean resort, anchored by a luxury marina at Port Nimara, Anguilla.",
+        "type": "field",
+        "field": "neighborhood",
+        "from": "Port Nimara",
+        "to": "West End"
+      },
+      {
+        "at": "2026-06-17T17:57:35.621Z",
+        "source_url": "https://www.businesswire.com/news/home/20251118862628/en/Equinox-Hotels-Continues-Global-Expansion-Announcing-Equinox-Resort-Anguilla-Port-Nimara-Anchored-in-a-Premier-Luxury-Marina",
+        "note": "Equinox Hotels announces its first Caribbean resort, anchored by a luxury marina at Port Nimara, Anguilla.",
+        "type": "backfill",
+        "to": "announced",
+        "effective_date": "2025-11-18"
+      },
+      {
+        "at": "2026-06-17T18:02:02.976Z",
+        "source_url": "https://www.businesswire.com/news/home/20251118862628/en/Equinox-Hotels-Continues-Global-Expansion-Announcing-Equinox-Resort-Anguilla-Port-Nimara-Anchored-in-a-Premier-Luxury-Marina",
+        "note": "Re-classified to Resort: Equinox Caribbean resort with branded residences and a luxury marina.",
+        "type": "field",
+        "field": "types",
+        "from": [
+          "Hotel",
+          "Residences",
+          "Marina",
+          "Mixed-Use"
+        ],
+        "to": [
+          "Resort",
+          "Hotel",
+          "Residences",
+          "Marina",
+          "Spa"
+        ]
+      },
+      {
+        "at": "2026-06-17T18:02:02.976Z",
+        "source_url": "https://www.businesswire.com/news/home/20251118862628/en/Equinox-Hotels-Continues-Global-Expansion-Announcing-Equinox-Resort-Anguilla-Port-Nimara-Anchored-in-a-Premier-Luxury-Marina",
+        "note": "Re-classified to Resort: Equinox Caribbean resort with branded residences and a luxury marina.",
+        "type": "field",
+        "field": "preferred_type",
+        "from": "Mixed-Use",
+        "to": "Resort"
+      }
+    ]
   },
   {
     "Title": "Nikki Beach Resort & Spa Antigua",
@@ -30027,11 +30355,11 @@
     "Longitude": "-61.87633",
     "Description": "The first Nikki Beach resort and branded residences in the Western Hemisphere — a $400M development on Antigua's Jolly Beach with 84 hotel rooms, 134 turnkey residences, and 7 four-bedroom beachfront villas.",
     "DescriptionLong": "Nikki Beach Resort & Spa Antigua is the first Nikki Beach resort and branded residences in the Western Hemisphere — a $400 million development on Jolly Beach. The project features 84 hotel rooms and suites alongside 134 turnkey residences (studios to three-bedroom) and 7 four-bedroom beachfront villas, all integrated with a full-service beach club, poolscape, dining venues, and wellness sanctuaries. Architecture by HKS Architects with interiors by ROAM Interior Design. Amenities include Cafe Nikki, Escape Beach Restaurant, beachfront pools, sunset lounges, and an 11,000 sq ft Nikki Spa + Tone Gym. Sales begin early 2026; resort opening planned for 2030. Branded residences start around $1.2M with villas from $5.5M.",
-    "Delivery": "Announced",
-    "DeliveryDate": "2030",
+    "Delivery": "Breaking Ground",
+    "DeliveryDate": "2028",
     "StartDate": "",
-    "ProjectType": "Hotel, Residences, Mixed-Use",
-    "PreferredType": "Mixed-Use",
+    "ProjectType": "Resort, Hotel, Residences, Spa",
+    "PreferredType": "Resort",
     "Architect": "HKS Architects, ROAM Interior Design",
     "ArchitectSlugs": "hks-architects, roam-interior-design",
     "Developer": "Nikki Beach Hospitality Group",
@@ -30043,8 +30371,8 @@
     "Image3": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_d607057bc9a44212949df9cfaa7ce3e7~mv2.jpeg",
     "Image4": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_eb82e30fba76400f8c20fd52b1bc5fae~mv2.jpeg",
     "Image5": "",
-    "Keys": "84",
-    "Units": "141",
+    "Keys": "82",
+    "Units": "181",
     "Floors": "",
     "ConfigSummary": "",
     "DeliveryPhases": "",
@@ -30053,14 +30381,85 @@
     "DeliverySpeculative": "1",
     "DatesSpeculative": "1",
     "Price": "",
-    "UpdatedAt": "2026-06-17T17:47:08.407Z",
-    "StatusHistory": []
+    "UpdatedAt": "2026-06-17T18:02:07.071Z",
+    "StatusHistory": [
+      {
+        "at": "2026-06-17T17:57:39.363Z",
+        "source_url": "https://www.prnewswire.com/news-releases/the--ayre-group-and-nikki-beach-hospitality-group-partner-to-bring-a-resort--spa-beach-club-and-residences-to-antigua-302281991.html",
+        "note": "Ayre Group and Nikki Beach partner to build a resort, spa, beach club, and residences at Jolly Beach, Antigua.",
+        "type": "date",
+        "field": "delivery_date",
+        "from": "2030",
+        "to": "2028"
+      },
+      {
+        "at": "2026-06-17T17:57:39.363Z",
+        "source_url": "https://www.prnewswire.com/news-releases/the--ayre-group-and-nikki-beach-hospitality-group-partner-to-bring-a-resort--spa-beach-club-and-residences-to-antigua-302281991.html",
+        "note": "Ayre Group and Nikki Beach partner to build a resort, spa, beach club, and residences at Jolly Beach, Antigua.",
+        "type": "field",
+        "field": "units",
+        "from": 141,
+        "to": 181
+      },
+      {
+        "at": "2026-06-17T17:57:39.363Z",
+        "source_url": "https://www.prnewswire.com/news-releases/the--ayre-group-and-nikki-beach-hospitality-group-partner-to-bring-a-resort--spa-beach-club-and-residences-to-antigua-302281991.html",
+        "note": "Ayre Group and Nikki Beach partner to build a resort, spa, beach club, and residences at Jolly Beach, Antigua.",
+        "type": "field",
+        "field": "keys",
+        "from": 84,
+        "to": 82
+      },
+      {
+        "at": "2026-06-17T17:57:39.363Z",
+        "source_url": "https://www.prnewswire.com/news-releases/the--ayre-group-and-nikki-beach-hospitality-group-partner-to-bring-a-resort--spa-beach-club-and-residences-to-antigua-302281991.html",
+        "note": "Ayre Group and Nikki Beach partner to build a resort, spa, beach club, and residences at Jolly Beach, Antigua.",
+        "type": "backfill",
+        "to": "announced",
+        "effective_date": "2024-10-21"
+      },
+      {
+        "at": "2026-06-17T17:59:01.252Z",
+        "source_url": "https://www.prnewswire.com/news-releases/the--ayre-group-and-nikki-beach-hospitality-group-partner-to-bring-a-resort--spa-beach-club-and-residences-to-antigua-302281991.html",
+        "note": "Groundbreaking ceremony held at Jolly Beach; roughly 36-month construction begins.",
+        "from": "announced",
+        "to": "breaking-ground",
+        "effective_date": "2024-10-21"
+      },
+      {
+        "at": "2026-06-17T18:02:07.071Z",
+        "source_url": "https://www.prnewswire.com/news-releases/the--ayre-group-and-nikki-beach-hospitality-group-partner-to-bring-a-resort--spa-beach-club-and-residences-to-antigua-302281991.html",
+        "note": "Re-classified to Resort: Nikki Beach resort, spa, beach club, and branded residences at Jolly Beach.",
+        "type": "field",
+        "field": "types",
+        "from": [
+          "Hotel",
+          "Residences",
+          "Mixed-Use"
+        ],
+        "to": [
+          "Resort",
+          "Hotel",
+          "Residences",
+          "Spa"
+        ]
+      },
+      {
+        "at": "2026-06-17T18:02:07.071Z",
+        "source_url": "https://www.prnewswire.com/news-releases/the--ayre-group-and-nikki-beach-hospitality-group-partner-to-bring-a-resort--spa-beach-club-and-residences-to-antigua-302281991.html",
+        "note": "Re-classified to Resort: Nikki Beach resort, spa, beach club, and branded residences at Jolly Beach.",
+        "type": "field",
+        "field": "preferred_type",
+        "from": "Mixed-Use",
+        "to": "Resort"
+      }
+    ]
   },
   {
     "Title": "The Stockman, Auberge Collection",
     "Slug": "the-stockman-auberge-collection",
     "City": "Steamboat Springs",
-    "Neighborhood": "Steamboat Resort Base",
+    "Neighborhood": "Ski Time Square",
     "Latitude": "40.45678",
     "Longitude": "-106.80442",
     "Description": "Steamboat Springs' first ultra-luxury slopeside resort — a 9-story Auberge Collection development with 59 hotel rooms and 95 private residences at the base of Steamboat Resort.",
@@ -30068,8 +30467,8 @@
     "Delivery": "Announced",
     "DeliveryDate": "2030",
     "StartDate": "2026",
-    "ProjectType": "Hotel, Residences, Mixed-Use",
-    "PreferredType": "Mixed-Use",
+    "ProjectType": "Resort, Hotel, Residences, Spa",
+    "PreferredType": "Resort",
     "Architect": "OZ Architecture, Nunzio Marc DeSantis Architects",
     "ArchitectSlugs": "oz-architecture, nunzio-marc-desantis-architects",
     "Developer": "Auberge Resorts Collection",
@@ -30091,8 +30490,53 @@
     "DeliverySpeculative": "1",
     "DatesSpeculative": "1",
     "Price": "",
-    "UpdatedAt": "2026-06-17T17:47:08.407Z",
-    "StatusHistory": []
+    "UpdatedAt": "2026-06-17T18:02:11.518Z",
+    "StatusHistory": [
+      {
+        "at": "2026-06-17T17:57:43.016Z",
+        "source_url": "https://www.hotelnewsresource.com/article140522.html",
+        "note": "Auberge Collection to open The Stockman, a ski-in/ski-out resort and residences in Steamboat Springs, opening 2030.",
+        "type": "field",
+        "field": "neighborhood",
+        "from": "Steamboat Resort Base",
+        "to": "Ski Time Square"
+      },
+      {
+        "at": "2026-06-17T17:57:43.016Z",
+        "source_url": "https://www.hotelnewsresource.com/article140522.html",
+        "note": "Auberge Collection to open The Stockman, a ski-in/ski-out resort and residences in Steamboat Springs, opening 2030.",
+        "type": "backfill",
+        "to": "announced",
+        "effective_date": "2026-03-20"
+      },
+      {
+        "at": "2026-06-17T18:02:11.518Z",
+        "source_url": "https://www.hotelnewsresource.com/article140522.html",
+        "note": "Re-classified to Resort: Auberge ski-in/ski-out resort with branded residences and spa.",
+        "type": "field",
+        "field": "types",
+        "from": [
+          "Hotel",
+          "Residences",
+          "Mixed-Use"
+        ],
+        "to": [
+          "Resort",
+          "Hotel",
+          "Residences",
+          "Spa"
+        ]
+      },
+      {
+        "at": "2026-06-17T18:02:11.518Z",
+        "source_url": "https://www.hotelnewsresource.com/article140522.html",
+        "note": "Re-classified to Resort: Auberge ski-in/ski-out resort with branded residences and spa.",
+        "type": "field",
+        "field": "preferred_type",
+        "from": "Mixed-Use",
+        "to": "Resort"
+      }
+    ]
   },
   {
     "Title": "Janu Residences Dubai",
@@ -30104,9 +30548,9 @@
     "Description": "Aman Group's first Janu hotel and branded residences in the Middle East — a Herzog & de Meuron-designed tower with a 150-key hotel, the world's first Janu Club, and 57 branded residences in the heart of Dubai's DIFC.",
     "DescriptionLong": "Janu Residences Dubai marks Aman Group's first residential offering in the Middle East and the second Janu destination globally (after Janu Tokyo 2024). Designed by Pritzker Prize-winning architects Herzog & de Meuron, the sculptural tower in Dubai International Financial Centre integrates a 150-key Janu hotel, the world's first global Janu Club, and 57 branded residences (two- to five-bedroom homes plus a signature penthouse). The tower rises from a reimagined souk-style courtyard anchored by a 59-foot-high lobby and overlooks Zabeel Palace Gardens with sweeping views toward the Burj Khalifa. The entire 34th floor is reserved exclusively for residents, with an infinity-edge pool and private lounge.",
     "Delivery": "Announced",
-    "DeliveryDate": "",
+    "DeliveryDate": "2027",
     "StartDate": "",
-    "ProjectType": "Hotel, Residences, Mixed-Use",
+    "ProjectType": "Hotel, Residences, Office, Retail, Mixed-Use",
     "PreferredType": "Mixed-Use",
     "Architect": "Herzog & de Meuron",
     "ArchitectSlugs": "herzog-de-meuron",
@@ -30129,8 +30573,45 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-06-17T17:47:08.407Z",
-    "StatusHistory": []
+    "UpdatedAt": "2026-06-17T18:02:15.234Z",
+    "StatusHistory": [
+      {
+        "at": "2026-06-17T17:57:46.345Z",
+        "source_url": "https://www.sleepermagazine.com/stories/projects/first-look-janu-dubai/",
+        "note": "H&H and Aman Group unveil Janu Residences Dubai at DIFC, designed by Herzog & de Meuron.",
+        "type": "date",
+        "field": "delivery_date",
+        "from": null,
+        "to": "2027"
+      },
+      {
+        "at": "2026-06-17T17:57:46.345Z",
+        "source_url": "https://www.sleepermagazine.com/stories/projects/first-look-janu-dubai/",
+        "note": "H&H and Aman Group unveil Janu Residences Dubai at DIFC, designed by Herzog & de Meuron.",
+        "type": "backfill",
+        "to": "announced",
+        "effective_date": "2026-02-11"
+      },
+      {
+        "at": "2026-06-17T18:02:15.234Z",
+        "source_url": "https://www.sleepermagazine.com/stories/projects/first-look-janu-dubai/",
+        "note": "Re-classified to Mixed-Use: DIFC tower combining a Janu hotel, residences, members' club, offices, and retail.",
+        "type": "field",
+        "field": "types",
+        "from": [
+          "Hotel",
+          "Residences",
+          "Mixed-Use"
+        ],
+        "to": [
+          "Hotel",
+          "Residences",
+          "Office",
+          "Retail",
+          "Mixed-Use"
+        ]
+      }
+    ]
   },
   {
     "Title": "Rosewood Blue Palace",
@@ -30144,8 +30625,8 @@
     "Delivery": "Opening Soon",
     "DeliveryDate": "2026-07",
     "StartDate": "",
-    "ProjectType": "",
-    "PreferredType": "Hotel",
+    "ProjectType": "Resort, Hotel, Residences, Spa",
+    "PreferredType": "Resort",
     "Architect": "K-Studio, Afroditi Krassa",
     "ArchitectSlugs": "k-studio, afroditi-krassa",
     "Developer": "Phāea",
@@ -30167,7 +30648,7 @@
     "DeliverySpeculative": "1",
     "DatesSpeculative": "1",
     "Price": "",
-    "UpdatedAt": "2026-06-17T17:56:33.012Z",
+    "UpdatedAt": "2026-06-17T18:01:05.628Z",
     "StatusHistory": [
       {
         "at": "2026-06-17T17:56:33.012Z",
@@ -30176,6 +30657,29 @@
         "type": "backfill",
         "to": "announced",
         "effective_date": "2023-11"
+      },
+      {
+        "at": "2026-06-17T18:01:05.628Z",
+        "source_url": "https://www.oftmw.com/post/rosewood-hotels-plans-greece-debut-with-new-luxury-resort/",
+        "note": "Re-classified to Resort: Rosewood-branded Crete resort with branded residences and spa.",
+        "type": "field",
+        "field": "types",
+        "from": [],
+        "to": [
+          "Resort",
+          "Hotel",
+          "Residences",
+          "Spa"
+        ]
+      },
+      {
+        "at": "2026-06-17T18:01:05.628Z",
+        "source_url": "https://www.oftmw.com/post/rosewood-hotels-plans-greece-debut-with-new-luxury-resort/",
+        "note": "Re-classified to Resort: Rosewood-branded Crete resort with branded residences and spa.",
+        "type": "field",
+        "field": "preferred_type",
+        "from": "Hotel",
+        "to": "Resort"
       }
     ]
   },
@@ -30191,8 +30695,8 @@
     "Delivery": "Announced",
     "DeliveryDate": "",
     "StartDate": "",
-    "ProjectType": "Hotel, Residences, Mixed-Use",
-    "PreferredType": "Mixed-Use",
+    "ProjectType": "Resort, Hotel, Residences, Spa",
+    "PreferredType": "Resort",
     "Architect": "",
     "ArchitectSlugs": "",
     "Developer": "Aman Group",
@@ -30214,14 +30718,50 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-06-17T17:47:08.407Z",
-    "StatusHistory": []
+    "UpdatedAt": "2026-06-17T18:02:20.049Z",
+    "StatusHistory": [
+      {
+        "at": "2026-06-17T17:57:50.219Z",
+        "source_url": "https://www.sleepermagazine.com/stories/projects/aman-group-announces-janu-debut-in-the-americas/",
+        "note": "Aman Group announces Janu Turks & Caicos, the brand's debut in the Americas, on Providenciales' northwest coast.",
+        "type": "backfill",
+        "to": "announced",
+        "effective_date": "2025-06-10"
+      },
+      {
+        "at": "2026-06-17T18:02:20.049Z",
+        "source_url": "https://www.sleepermagazine.com/stories/projects/aman-group-announces-janu-debut-in-the-americas/",
+        "note": "Re-classified to Resort: Janu (Aman) beachfront resort with serviced residences on Providenciales.",
+        "type": "field",
+        "field": "types",
+        "from": [
+          "Hotel",
+          "Residences",
+          "Mixed-Use"
+        ],
+        "to": [
+          "Resort",
+          "Hotel",
+          "Residences",
+          "Spa"
+        ]
+      },
+      {
+        "at": "2026-06-17T18:02:20.049Z",
+        "source_url": "https://www.sleepermagazine.com/stories/projects/aman-group-announces-janu-debut-in-the-americas/",
+        "note": "Re-classified to Resort: Janu (Aman) beachfront resort with serviced residences on Providenciales.",
+        "type": "field",
+        "field": "preferred_type",
+        "from": "Mixed-Use",
+        "to": "Resort"
+      }
+    ]
   },
   {
     "Title": "Limelight Charleston",
     "Slug": "limelight-charleston",
     "City": "Charleston",
-    "Neighborhood": "Historic District",
+    "Neighborhood": "Charleston Historic District",
     "Latitude": "32.78694",
     "Longitude": "-79.94104",
     "Description": "Aspen One's first East Coast Limelight Hotel — a 2028 boutique hotel and private branded residences in Charleston's Historic District, by Bittoni Architects.",
@@ -30242,8 +30782,8 @@
     "Image3": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_870c69963f4546d3b1226e79c9ee9d02~mv2.jpeg",
     "Image4": "",
     "Image5": "",
-    "Keys": "",
-    "Units": "",
+    "Keys": "50",
+    "Units": "16",
     "Floors": "",
     "ConfigSummary": "",
     "DeliveryPhases": "",
@@ -30252,8 +30792,44 @@
     "DeliverySpeculative": "1",
     "DatesSpeculative": "1",
     "Price": "",
-    "UpdatedAt": "2026-06-17T17:47:08.407Z",
-    "StatusHistory": []
+    "UpdatedAt": "2026-06-17T17:58:02.822Z",
+    "StatusHistory": [
+      {
+        "at": "2026-06-17T17:58:02.822Z",
+        "source_url": "https://www.prnewswire.com/news-releases/aspen-one-announces-first-east-coast-limelight-hotel-property-limelight-charleston-set-to-open-in-2028-302495021.html",
+        "note": "Aspen One announces Limelight Charleston, its first East Coast hotel, with hotel rooms and private residences on King Street, opening 2028.",
+        "type": "field",
+        "field": "units",
+        "from": null,
+        "to": 16
+      },
+      {
+        "at": "2026-06-17T17:58:02.822Z",
+        "source_url": "https://www.prnewswire.com/news-releases/aspen-one-announces-first-east-coast-limelight-hotel-property-limelight-charleston-set-to-open-in-2028-302495021.html",
+        "note": "Aspen One announces Limelight Charleston, its first East Coast hotel, with hotel rooms and private residences on King Street, opening 2028.",
+        "type": "field",
+        "field": "keys",
+        "from": null,
+        "to": 50
+      },
+      {
+        "at": "2026-06-17T17:58:02.822Z",
+        "source_url": "https://www.prnewswire.com/news-releases/aspen-one-announces-first-east-coast-limelight-hotel-property-limelight-charleston-set-to-open-in-2028-302495021.html",
+        "note": "Aspen One announces Limelight Charleston, its first East Coast hotel, with hotel rooms and private residences on King Street, opening 2028.",
+        "type": "field",
+        "field": "neighborhood",
+        "from": "Historic District",
+        "to": "Charleston Historic District"
+      },
+      {
+        "at": "2026-06-17T17:58:02.822Z",
+        "source_url": "https://www.prnewswire.com/news-releases/aspen-one-announces-first-east-coast-limelight-hotel-property-limelight-charleston-set-to-open-in-2028-302495021.html",
+        "note": "Aspen One announces Limelight Charleston, its first East Coast hotel, with hotel rooms and private residences on King Street, opening 2028.",
+        "type": "backfill",
+        "to": "announced",
+        "effective_date": "2025-07-01"
+      }
+    ]
   },
   {
     "Title": "Velara Resort & Residences",
@@ -30324,8 +30900,8 @@
     "Delivery": "Announced",
     "DeliveryDate": "2028",
     "StartDate": "",
-    "ProjectType": "Hotel, Residences",
-    "PreferredType": "Hotel",
+    "ProjectType": "Resort, Hotel, Residences, Spa",
+    "PreferredType": "Resort",
     "Architect": "",
     "ArchitectSlugs": "",
     "Developer": "Nolan Reynolds International, Kerzner International, Culinary Institute of America",
@@ -30338,7 +30914,7 @@
     "Image4": "",
     "Image5": "",
     "Keys": "61",
-    "Units": "",
+    "Units": "54",
     "Floors": "",
     "ConfigSummary": "",
     "DeliveryPhases": "",
@@ -30347,8 +30923,52 @@
     "DeliverySpeculative": "1",
     "DatesSpeculative": "1",
     "Price": "",
-    "UpdatedAt": "2026-06-17T17:47:08.407Z",
-    "StatusHistory": []
+    "UpdatedAt": "2026-06-17T18:02:31.851Z",
+    "StatusHistory": [
+      {
+        "at": "2026-06-17T17:58:06.200Z",
+        "source_url": "https://www.hospitalitynet.org/announcement/41012508.html",
+        "note": "Nolan Reynolds, Kerzner, and the Culinary Institute of America to develop One&Only Hudson Valley resort and private homes in Hyde Park.",
+        "type": "field",
+        "field": "units",
+        "from": null,
+        "to": 54
+      },
+      {
+        "at": "2026-06-17T17:58:06.200Z",
+        "source_url": "https://www.hospitalitynet.org/announcement/41012508.html",
+        "note": "Nolan Reynolds, Kerzner, and the Culinary Institute of America to develop One&Only Hudson Valley resort and private homes in Hyde Park.",
+        "type": "backfill",
+        "to": "announced",
+        "effective_date": "2025-04-23"
+      },
+      {
+        "at": "2026-06-17T18:02:31.851Z",
+        "source_url": "https://www.hospitalitynet.org/announcement/41012508.html",
+        "note": "Re-classified to Resort: One&Only resort with private homes and a longevity/wellness hub in Hyde Park.",
+        "type": "field",
+        "field": "types",
+        "from": [
+          "Hotel",
+          "Residences"
+        ],
+        "to": [
+          "Resort",
+          "Hotel",
+          "Residences",
+          "Spa"
+        ]
+      },
+      {
+        "at": "2026-06-17T18:02:31.851Z",
+        "source_url": "https://www.hospitalitynet.org/announcement/41012508.html",
+        "note": "Re-classified to Resort: One&Only resort with private homes and a longevity/wellness hub in Hyde Park.",
+        "type": "field",
+        "field": "preferred_type",
+        "from": "Hotel",
+        "to": "Resort"
+      }
+    ]
   },
   {
     "Title": "Casa Cipriani Miami Beach",
@@ -30385,8 +31005,17 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-06-17T17:47:08.407Z",
-    "StatusHistory": []
+    "UpdatedAt": "2026-06-17T17:58:09.616Z",
+    "StatusHistory": [
+      {
+        "at": "2026-06-17T17:58:09.616Z",
+        "source_url": "https://profilemiamire.com/miamirealestate/2025/3/25/first-on-profile-casa-cipriani-miami-revealed-on-miami-beach-featuring-private-members-club-hotel-and-residences",
+        "note": "13th Floor Investments and Midtown Equities reveal Casa Cipriani Miami Beach, with residences, an all-suite hotel, and a private members' club.",
+        "type": "backfill",
+        "to": "announced",
+        "effective_date": "2025-03-25"
+      }
+    ]
   },
   {
     "Title": "The Hoxton Nashville",
@@ -30438,7 +31067,7 @@
     "Delivery": "Announced",
     "DeliveryDate": "2028",
     "StartDate": "",
-    "ProjectType": "Hotel, Retail, Park, Mixed-Use",
+    "ProjectType": "Hotel, Retail, Mixed-Use",
     "PreferredType": "Mixed-Use",
     "Architect": "Heatherwick Studio",
     "ArchitectSlugs": "heatherwick-studio",
@@ -30461,8 +31090,35 @@
     "DeliverySpeculative": "1",
     "DatesSpeculative": "1",
     "Price": "",
-    "UpdatedAt": "2026-06-17T17:47:08.407Z",
-    "StatusHistory": []
+    "UpdatedAt": "2026-06-17T18:02:39.803Z",
+    "StatusHistory": [
+      {
+        "at": "2026-06-17T17:58:16.506Z",
+        "source_url": "https://www.designboom.com/architecture/heatherwick-studio-thailand-lanterns-bangkok-development-hatai-07-15-2025/",
+        "note": "Heatherwick Studio unveils Hatai, a lantern-inspired mixed-use development in Bangkok's Silom district anchored by Six Senses Bangkok.",
+        "type": "backfill",
+        "to": "announced",
+        "effective_date": "2025-07"
+      },
+      {
+        "at": "2026-06-17T18:02:39.803Z",
+        "source_url": "https://www.designboom.com/architecture/heatherwick-studio-thailand-lanterns-bangkok-development-hatai-07-15-2025/",
+        "note": "Re-classified to Mixed-Use: two hotels (incl. Six Senses), retail, and public/cultural space in Silom.",
+        "type": "field",
+        "field": "types",
+        "from": [
+          "Hotel",
+          "Retail",
+          "Park",
+          "Mixed-Use"
+        ],
+        "to": [
+          "Hotel",
+          "Retail",
+          "Mixed-Use"
+        ]
+      }
+    ]
   },
   {
     "Title": "Eco-Floating Hotel Qatar",
@@ -30621,7 +31277,7 @@
     "Title": "515 Fern",
     "Slug": "515-fern",
     "City": "West Palm Beach",
-    "Neighborhood": "Downtown",
+    "Neighborhood": "Downtown West Palm Beach",
     "Latitude": "26.710715",
     "Longitude": "-80.056187",
     "Description": "A 25-story, 471,000-square-foot office tower on the northwest corner of Fern Street and the Florida East Coast Railway tracks — expected to become the largest office building in downtown West Palm Beach, with 456,000 square feet of Class A office space, 15,000 square feet of retail, a new connector road parallel to the Brightline tracks, and a partially covered pedestrian pathway linking Brightline's downtown station to The Square.",
@@ -30629,7 +31285,7 @@
     "Delivery": "Announced",
     "DeliveryDate": "",
     "StartDate": "",
-    "ProjectType": "Office, Retail",
+    "ProjectType": "Office",
     "PreferredType": "Office",
     "Architect": "Elkus Manfredi Architects, Leo A Daly",
     "ArchitectSlugs": "elkus-manfredi-architects, leo-a-daly",
@@ -30652,8 +31308,40 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-06-17T17:47:08.407Z",
-    "StatusHistory": []
+    "UpdatedAt": "2026-06-17T18:02:44.265Z",
+    "StatusHistory": [
+      {
+        "at": "2026-06-17T17:58:19.879Z",
+        "source_url": "https://www.oftmw.com/post/515fernexpectedtobetallestofficebuildinginwestpalmbeach",
+        "note": "Related (Stephen Ross) proposes 515 Fern, set to become downtown West Palm Beach's tallest office tower.",
+        "type": "field",
+        "field": "neighborhood",
+        "from": "Downtown",
+        "to": "Downtown West Palm Beach"
+      },
+      {
+        "at": "2026-06-17T17:58:19.879Z",
+        "source_url": "https://www.oftmw.com/post/515fernexpectedtobetallestofficebuildinginwestpalmbeach",
+        "note": "Related (Stephen Ross) proposes 515 Fern, set to become downtown West Palm Beach's tallest office tower.",
+        "type": "backfill",
+        "to": "announced",
+        "effective_date": "2022-09-16"
+      },
+      {
+        "at": "2026-06-17T18:02:44.265Z",
+        "source_url": "https://www.oftmw.com/post/515fernexpectedtobetallestofficebuildinginwestpalmbeach",
+        "note": "Confirmed single-use Office: downtown WPB's tallest office tower (ancillary ground-floor retail).",
+        "type": "field",
+        "field": "types",
+        "from": [
+          "Office",
+          "Retail"
+        ],
+        "to": [
+          "Office"
+        ]
+      }
+    ]
   },
   {
     "Title": "Zannier Île de Bendor",
@@ -30743,8 +31431,8 @@
     "Delivery": "Opening Soon",
     "DeliveryDate": "2026",
     "StartDate": "",
-    "ProjectType": "Hotel, Spa, Residences",
-    "PreferredType": "Mixed-Use",
+    "ProjectType": "Resort, Hotel, Spa, Residences",
+    "PreferredType": "Resort",
     "Architect": "",
     "ArchitectSlugs": "",
     "Developer": "Squircle Capital, Four Seasons Hotels and Resorts, Clinique La Prairie",
@@ -30766,7 +31454,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-06-17T17:56:36.056Z",
+    "UpdatedAt": "2026-06-17T18:01:10.151Z",
     "StatusHistory": [
       {
         "at": "2026-06-17T17:56:36.056Z",
@@ -30775,6 +31463,33 @@
         "type": "backfill",
         "to": "announced",
         "effective_date": "2025-01"
+      },
+      {
+        "at": "2026-06-17T18:01:10.151Z",
+        "source_url": "https://www.prnewswire.com/news-releases/four-seasons-to-manage-the-iconic-park-gstaad-hotel-in-the-swiss-alps-302349740.html",
+        "note": "Re-classified to Resort: Four Seasons alpine resort with branded residences and spa.",
+        "type": "field",
+        "field": "types",
+        "from": [
+          "Hotel",
+          "Spa",
+          "Residences"
+        ],
+        "to": [
+          "Resort",
+          "Hotel",
+          "Spa",
+          "Residences"
+        ]
+      },
+      {
+        "at": "2026-06-17T18:01:10.151Z",
+        "source_url": "https://www.prnewswire.com/news-releases/four-seasons-to-manage-the-iconic-park-gstaad-hotel-in-the-swiss-alps-302349740.html",
+        "note": "Re-classified to Resort: Four Seasons alpine resort with branded residences and spa.",
+        "type": "field",
+        "field": "preferred_type",
+        "from": "Mixed-Use",
+        "to": "Resort"
       }
     ]
   },
@@ -30790,8 +31505,8 @@
     "Delivery": "Opening Soon",
     "DeliveryDate": "2026",
     "StartDate": "",
-    "ProjectType": "Hotel, Spa",
-    "PreferredType": "Hotel",
+    "ProjectType": "Resort, Hotel, Spa",
+    "PreferredType": "Resort",
     "Architect": "Tara Bernerd & Partners",
     "ArchitectSlugs": "tara-bernerd-partners",
     "Developer": "Six Senses Hotels Resorts Spas, IHG Hotels & Resorts",
@@ -30813,7 +31528,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-06-17T17:56:53.900Z",
+    "UpdatedAt": "2026-06-17T18:01:14.626Z",
     "StatusHistory": [
       {
         "at": "2026-06-17T17:56:53.900Z",
@@ -30822,6 +31537,31 @@
         "type": "backfill",
         "to": "announced",
         "effective_date": "2024-10-17"
+      },
+      {
+        "at": "2026-06-17T18:01:14.626Z",
+        "source_url": "https://www.ihgplc.com/en/news-and-media/news-releases/2024/six-senses-introduces-two-new-gemstones-into-the-brand-prestigious-italian-collection",
+        "note": "Re-classified to Resort: Six Senses-branded hotel with extensive spa/wellness programme in Brera.",
+        "type": "field",
+        "field": "types",
+        "from": [
+          "Hotel",
+          "Spa"
+        ],
+        "to": [
+          "Resort",
+          "Hotel",
+          "Spa"
+        ]
+      },
+      {
+        "at": "2026-06-17T18:01:14.626Z",
+        "source_url": "https://www.ihgplc.com/en/news-and-media/news-releases/2024/six-senses-introduces-two-new-gemstones-into-the-brand-prestigious-italian-collection",
+        "note": "Re-classified to Resort: Six Senses-branded hotel with extensive spa/wellness programme in Brera.",
+        "type": "field",
+        "field": "preferred_type",
+        "from": "Hotel",
+        "to": "Resort"
       }
     ]
   },
@@ -30837,8 +31577,8 @@
     "Delivery": "Opening Soon",
     "DeliveryDate": "2026",
     "StartDate": "",
-    "ProjectType": "Hotel, Spa",
-    "PreferredType": "Hotel",
+    "ProjectType": "Resort, Hotel, Spa",
+    "PreferredType": "Resort",
     "Architect": "",
     "ArchitectSlugs": "",
     "Developer": "Baccarat Hotels & Resorts, SH Hotels & Resorts",
@@ -30860,7 +31600,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-06-17T17:56:57.201Z",
+    "UpdatedAt": "2026-06-17T18:01:27.987Z",
     "StatusHistory": [
       {
         "at": "2026-06-17T17:56:57.201Z",
@@ -30878,6 +31618,31 @@
         "type": "backfill",
         "to": "announced",
         "effective_date": "2021-07-27"
+      },
+      {
+        "at": "2026-06-17T18:01:27.987Z",
+        "source_url": "https://www.prnewswire.com/news-releases/baccarat-hotel-florence-set-to-open-in-2024-301340549.html",
+        "note": "Re-classified to Resort: Baccarat-branded estate hotel at Villa Camerata with spa and grounds.",
+        "type": "field",
+        "field": "types",
+        "from": [
+          "Hotel",
+          "Spa"
+        ],
+        "to": [
+          "Resort",
+          "Hotel",
+          "Spa"
+        ]
+      },
+      {
+        "at": "2026-06-17T18:01:27.987Z",
+        "source_url": "https://www.prnewswire.com/news-releases/baccarat-hotel-florence-set-to-open-in-2024-301340549.html",
+        "note": "Re-classified to Resort: Baccarat-branded estate hotel at Villa Camerata with spa and grounds.",
+        "type": "field",
+        "field": "preferred_type",
+        "from": "Hotel",
+        "to": "Resort"
       }
     ]
   },
@@ -30893,8 +31658,8 @@
     "Delivery": "Opening Soon",
     "DeliveryDate": "2026-07",
     "StartDate": "",
-    "ProjectType": "Hotel, Spa",
-    "PreferredType": "Hotel",
+    "ProjectType": "Hotel, Residences, Mixed-Use",
+    "PreferredType": "Mixed-Use",
     "Architect": "Sir Aston Webb, Blair Associates Architecture, Pierre-Yves Rochon",
     "ArchitectSlugs": "sir-aston-webb, blair-associates-architecture, pierre-yves-rochon",
     "Developer": "Prime Investors Capital, Hilton",
@@ -30916,7 +31681,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-06-17T17:57:00.308Z",
+    "UpdatedAt": "2026-06-17T18:01:32.344Z",
     "StatusHistory": [
       {
         "at": "2026-06-17T17:57:00.308Z",
@@ -30943,6 +31708,31 @@
         "type": "backfill",
         "to": "announced",
         "effective_date": "2017-10-26"
+      },
+      {
+        "at": "2026-06-17T18:01:32.344Z",
+        "source_url": "https://stories.hilton.com/releases/admiralty-arch-appoints-and-welcomes-waldorf-astoria-to-london",
+        "note": "Re-classified to Mixed-Use: Waldorf Astoria hotel plus branded residences in the Admiralty Arch conversion.",
+        "type": "field",
+        "field": "types",
+        "from": [
+          "Hotel",
+          "Spa"
+        ],
+        "to": [
+          "Hotel",
+          "Residences",
+          "Mixed-Use"
+        ]
+      },
+      {
+        "at": "2026-06-17T18:01:32.344Z",
+        "source_url": "https://stories.hilton.com/releases/admiralty-arch-appoints-and-welcomes-waldorf-astoria-to-london",
+        "note": "Re-classified to Mixed-Use: Waldorf Astoria hotel plus branded residences in the Admiralty Arch conversion.",
+        "type": "field",
+        "field": "preferred_type",
+        "from": "Hotel",
+        "to": "Mixed-Use"
       }
     ]
   },
@@ -30981,7 +31771,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-06-17T17:57:03.783Z",
+    "UpdatedAt": "2026-06-17T17:58:51.160Z",
     "StatusHistory": [
       {
         "at": "2026-06-17T17:57:03.783Z",
@@ -30999,6 +31789,14 @@
         "type": "backfill",
         "to": "announced",
         "effective_date": "2022"
+      },
+      {
+        "at": "2026-06-17T17:58:51.160Z",
+        "source_url": "https://press.fourseasons.com/venice/hotel-news/2026/reservations-live/",
+        "note": "Reservations open ahead of the August 2026 debut.",
+        "type": "milestone",
+        "phase": "bookings",
+        "effective_date": "2026-03-19"
       }
     ]
   },
@@ -31014,8 +31812,8 @@
     "Delivery": "Opening Soon",
     "DeliveryDate": "2026",
     "StartDate": "",
-    "ProjectType": "Hotel, Spa",
-    "PreferredType": "Hotel",
+    "ProjectType": "Resort, Hotel, Spa",
+    "PreferredType": "Resort",
     "Architect": "ACPV Architects",
     "ArchitectSlugs": "acpv-architects",
     "Developer": "Bvlgari Hotels & Resorts, Marriott International",
@@ -31037,7 +31835,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-06-17T17:57:07.228Z",
+    "UpdatedAt": "2026-06-17T18:01:37.562Z",
     "StatusHistory": [
       {
         "at": "2026-06-17T17:57:07.228Z",
@@ -31046,6 +31844,31 @@
         "type": "backfill",
         "to": "announced",
         "effective_date": "2022-06-30"
+      },
+      {
+        "at": "2026-06-17T18:01:37.562Z",
+        "source_url": "https://www.bulgarihotels.com/en_US/ranfushi",
+        "note": "Re-classified to Resort: Bvlgari private-island villa resort in Raa Atoll with spa.",
+        "type": "field",
+        "field": "types",
+        "from": [
+          "Hotel",
+          "Spa"
+        ],
+        "to": [
+          "Resort",
+          "Hotel",
+          "Spa"
+        ]
+      },
+      {
+        "at": "2026-06-17T18:01:37.562Z",
+        "source_url": "https://www.bulgarihotels.com/en_US/ranfushi",
+        "note": "Re-classified to Resort: Bvlgari private-island villa resort in Raa Atoll with spa.",
+        "type": "field",
+        "field": "preferred_type",
+        "from": "Hotel",
+        "to": "Resort"
       }
     ]
   },
@@ -31343,6 +32166,44 @@
     "Keys": "",
     "Units": "",
     "Floors": "",
+    "ConfigSummary": "",
+    "DeliveryPhases": "",
+    "IsDistrict": "",
+    "StartSpeculative": "",
+    "DeliverySpeculative": "",
+    "DatesSpeculative": "",
+    "Price": "",
+    "UpdatedAt": "",
+    "StatusHistory": []
+  },
+  {
+    "Title": "Gallery at SoMi Parc",
+    "Slug": "gallery-at-somi-parc",
+    "City": "South Miami",
+    "Neighborhood": "Downtown",
+    "Latitude": "25.7082222",
+    "Longitude": "-80.2899295",
+    "Description": "A 15-story, 350-unit affordable housing development in the heart of South Miami — 273,000 rentable square feet serving households earning between 20% and 80% of AMI, including 51 Link Units for residents with special needs, steps from the South Miami Metrorail station and Sunset Drive.",
+    "DescriptionLong": "Gallery at SoMi Parc is a 15-story, 350-unit affordable housing development rising in the heart of South Miami, delivering 273,000 rentable square feet of apartment homes serving households earning between 20% and 80% of the Area Median Income (AMI). The development includes 51 Link Units designated for individuals with special needs, alongside working families across the income spectrum. Each home features quartz countertops, luxury vinyl tile flooring, porcelain tile in bathrooms, modern plumbing fixtures, window treatments, and Energy Star-rated appliances including an in-unit washer and dryer and dishwasher. The amenity program includes a resort-style pool, fitness center, multipurpose room, and a private landscaped courtyard with BBQ. The location places residents steps from the South Miami Metrorail station on Sunset Drive, walking distance from South Miami Hospital, and blocks from the tree-lined commercial heart of South Miami's downtown — with the University of Miami's main campus bordering the city to the east, and Coral Gables, Pinecrest, and Coconut Grove all within a few minutes.",
+    "Delivery": "Under Construction",
+    "DeliveryDate": "2028",
+    "StartDate": "2026-06",
+    "ProjectType": "Residences",
+    "PreferredType": "Residences",
+    "Architect": "",
+    "ArchitectSlugs": "",
+    "Developer": "Related Urban",
+    "DeveloperSlugs": "related-urban",
+    "Featured": "",
+    "OfficialWebsite": "",
+    "ImageURL": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/5607ee1ac371-503974608_17894845626240033_1387399188596134588_n.jpg",
+    "Image2": "",
+    "Image3": "",
+    "Image4": "",
+    "Image5": "",
+    "Keys": "",
+    "Units": "350",
+    "Floors": "15",
     "ConfigSummary": "",
     "DeliveryPhases": "",
     "IsDistrict": "",
