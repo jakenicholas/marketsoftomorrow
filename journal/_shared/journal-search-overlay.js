@@ -943,6 +943,38 @@
     if (s>0) s += Math.min(6, (+f.project_count||0)*0.4);
     return s;
   }
+  // Journal-search synonym groups. Any token in a group matches every other
+  // member, in both directions, when scoring articles or fanning out body
+  // searches. Cleanly handles the common case where users type "miami condos"
+  // but our newer copy says "Residences" / "Condominium" / "Tower". Each group
+  // is checked in O(1) via TOKEN_SYNONYM_INDEX (token → variants array).
+  var TOKEN_SYNONYM_GROUPS = [
+    ['condo','condos','condominium','condominiums','residence','residences','residential','apartment','apartments','unit','units','home','homes','tower','towers','high-rise','highrise','skyscraper','penthouse','penthouses'],
+    ['hotel','hotels','resort','resorts','inn','hospitality'],
+    ['restaurant','restaurants','eatery','eateries','dining','food-hall','foodhall'],
+    ['office','offices','workplace','workspace','workspaces'],
+    ['retail','shopping','mall','malls','shops','shop','store','stores','plaza'],
+    ['airport','airports','terminal','terminals'],
+    ['stadium','stadiums','arena','arenas','ballpark','ballparks'],
+    ['marina','marinas'],
+    ['museum','museums','gallery','galleries'],
+  ];
+  var TOKEN_SYNONYM_INDEX = (function(){
+    var idx = {};
+    TOKEN_SYNONYM_GROUPS.forEach(function(g){ g.forEach(function(t){ idx[t] = g; }); });
+    return idx;
+  })();
+  function expandToken(t){ return TOKEN_SYNONYM_INDEX[t] || [t]; }
+  // True if ANY synonym of `t` appears in the haystack string `hay`.
+  function tokenInHay(t, hay){
+    var variants = TOKEN_SYNONYM_INDEX[t];
+    if (!variants) return hay.indexOf(t) >= 0;
+    for (var i = 0; i < variants.length; i++) {
+      if (hay.indexOf(variants[i]) >= 0) return true;
+    }
+    return false;
+  }
+
   function scoreArticle(a, toks, full){
     var title=norm(a.title), exc=norm(a.excerpt), cats=norm((a.categories||[]).join(' ')), tags=norm((a.tags||[]).join(' '));
     var hay = title+' '+exc+' '+cats+' '+tags;
@@ -952,7 +984,10 @@
     if (meaningful.length>=2){
       var need = Math.ceil(meaningful.length*0.6);
       var havePhrase = full && hay.indexOf(full)>=0;
-      var haveWords = meaningful.filter(function(t){ return hay.indexOf(t)>=0; }).length;
+      // Synonym-aware coverage so "miami condos" still scores an article
+      // titled "<X> Residences in Miami" — "condos" hits via the residence/
+      // condominium variants.
+      var haveWords = meaningful.filter(function(t){ return tokenInHay(t, hay); }).length;
       if (!havePhrase && haveWords < need) return 0;
     }
     var s=0;
@@ -964,10 +999,14 @@
     var inTitle=0;
     for (var i=0;i<toks.length;i++){
       var t = toks[i];
-      if (title.indexOf(t)>=0){ s+=10; inTitle++; }
-      if (cats.indexOf(t)>=0) s+=6;
-      if (tags.indexOf(t)>=0) s+=5;
-      if (exc.indexOf(t)>=0)  s+=3;
+      // Each field check counts the token OR any of its synonyms. Direct
+      // hits still beat synonym hits via the title bonus block — exact
+      // "condos" in the title scores +10, plus the indexOf below preserves
+      // the existing weight ordering across all fields.
+      if (tokenInHay(t, title)){ s+=10; inTitle++; }
+      if (tokenInHay(t, cats))  s+=6;
+      if (tokenInHay(t, tags))  s+=5;
+      if (tokenInHay(t, exc))   s+=3;
     }
     if (meaningful.length>=2 && inTitle>=meaningful.length) s+=24;
     return s;
@@ -1953,20 +1992,48 @@
     _bodyMatchFor = q; // mark up front so we fire at most once per query
     var terms = stoks.filter(function(t){ return t.length >= 4; });
     if (!terms.length) return;
-    var url = WORKER_URL + '/posts?status=published&limit=25&q=' + encodeURIComponent(stoks.join(' '));
-    fetch(url, { cache:'no-store' })
-      .then(function(r){ return r.ok ? r.json() : null; })
-      .then(function(d){
-        if (token !== _renderToken) return; // user moved on
+
+    // Build the set of alt queries: the original PLUS one variant per
+    // synonym-eligible token, swapping just that token for each of its
+    // synonyms. Cap to keep traffic + merge cost reasonable. "miami condos"
+    // becomes ["miami condos", "miami residences", "miami condominium",
+    // "miami tower", "miami penthouse"], catching newer copy that doesn't
+    // literally use the word "condos".
+    var altQueries = [stoks.join(' ')];
+    var seenQ = {}; seenQ[altQueries[0]] = 1;
+    for (var i = 0; i < stoks.length && altQueries.length < 6; i++) {
+      var t = stoks[i];
+      var variants = TOKEN_SYNONYM_INDEX[t];
+      if (!variants) continue;
+      for (var v = 0; v < variants.length && altQueries.length < 6; v++) {
+        var alt = variants[v];
+        if (alt === t) continue;
+        var copy = stoks.slice(); copy[i] = alt;
+        var key = copy.join(' ');
+        if (seenQ[key]) continue;
+        seenQ[key] = 1;
+        altQueries.push(key);
+      }
+    }
+
+    Promise.all(altQueries.map(function(qs){
+      return fetch(WORKER_URL + '/posts?status=published&limit=25&q=' + encodeURIComponent(qs), { cache:'no-store' })
+        .then(function(r){ return r.ok ? r.json() : null; })
+        .catch(function(){ return null; });
+    })).then(function(results){
+      if (token !== _renderToken) return; // user moved on
+      var seen = {};
+      ARTICLES.forEach(function(a){ var k = a.slug || a.id; if (k) seen[k] = 1; });
+      var added = 0;
+      results.forEach(function(d){
         var items = (d && Array.isArray(d.items)) ? d.items : [];
-        if (!items.length) return;
-        var seen = {};
-        ARTICLES.forEach(function(a){ var k = a.slug || a.id; if (k) seen[k] = 1; });
-        var added = 0;
-        items.forEach(function(a){ var k = a.slug || a.id; if (k && !seen[k]){ seen[k] = 1; ARTICLES.push(a); added++; } });
-        if (added) renderArticleSection(q, token, { fromBodyMerge: true });
-      })
-      .catch(function(){});
+        items.forEach(function(a){
+          var k = a.slug || a.id;
+          if (k && !seen[k]){ seen[k] = 1; ARTICLES.push(a); added++; }
+        });
+      });
+      if (added) renderArticleSection(q, token, { fromBodyMerge: true });
+    });
   }
 
   function runTextMatch(q, token, opts){
