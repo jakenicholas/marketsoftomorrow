@@ -154,6 +154,51 @@ html,body{background:var(--ink); color:var(--text); font-family:var(--sans); lin
 #toast.visible{opacity:1; transform:none}
 #toast.success{border-color:var(--green); color:var(--green-soft)}
 #toast.error{border-color:var(--danger); color:#ffb3b3}
+
+/* ─── Income + Contact picker (Monday.com replacement) ─── */
+.card.hidden{display:none}
+.income-input{display:flex; align-items:center; gap:8px}
+.income-input .dollar{font-family:var(--mono); font-size:14px; color:var(--mute-2); padding-left:2px}
+.income-input input{padding-left:8px}
+.contact-card .selected-contact{display:flex; align-items:flex-start; gap:10px; padding:11px 13px; background:rgba(167,139,250,.08); border:1px solid rgba(167,139,250,.36); border-radius:8px}
+.contact-card .selected-contact .info{flex:1; min-width:0}
+.contact-card .selected-contact .name{font-family:var(--serif); font-size:15px; font-weight:600; color:var(--white); margin-bottom:3px; line-height:1.25}
+.contact-card .selected-contact .meta{font-family:var(--mono); font-size:11px; color:var(--mute-2); line-height:1.4; word-break:break-word}
+.contact-card .selected-contact .meta a{color:var(--purple); text-decoration:none}
+.contact-card .selected-contact .meta a:hover{text-decoration:underline}
+.contact-card .selected-contact .detach{background:none; border:1px solid var(--hair-2); color:var(--mute-2); width:24px; height:24px; border-radius:5px; cursor:pointer; font-size:13px; line-height:1; padding:0; flex-shrink:0}
+.contact-card .selected-contact .detach:hover{color:var(--danger); border-color:var(--danger)}
+.contact-card .search-wrap{position:relative}
+.contact-card .search-wrap input{padding-right:36px}
+.contact-card .search-wrap .clear-search{position:absolute; right:8px; top:50%; transform:translateY(-50%); background:none; border:0; color:var(--mute); cursor:pointer; padding:2px 6px; font-size:14px; line-height:1; display:none}
+.contact-card .search-wrap.has-text .clear-search{display:block}
+.contact-card .results{margin-top:6px; background:var(--panel-2); border:1px solid var(--hair-2); border-radius:8px; max-height:240px; overflow-y:auto; display:none}
+.contact-card .results.show{display:block}
+.contact-card .results .row{padding:10px 12px; cursor:pointer; border-bottom:1px solid var(--hair); transition:background .12s}
+.contact-card .results .row:last-child{border-bottom:0}
+.contact-card .results .row:hover, .contact-card .results .row.kbd-active{background:rgba(167,139,250,.10)}
+.contact-card .results .row .rname{font-family:var(--sans); font-size:13.5px; color:var(--white); font-weight:500}
+.contact-card .results .row .rmeta{font-family:var(--mono); font-size:11px; color:var(--mute); margin-top:2px}
+.contact-card .results .row.create-new{color:var(--green); font-family:var(--mono); font-size:11.5px; letter-spacing:.06em; text-transform:uppercase; font-weight:700; text-align:center}
+.contact-card .results .row.create-new:hover{background:rgba(31,223,103,.10); color:var(--green-soft)}
+.contact-card .results .row.empty{color:var(--mute); font-family:var(--mono); font-size:11.5px; text-align:center; padding:14px 12px; cursor:default}
+.contact-card .results .row.empty:hover{background:transparent}
+
+/* Inline contact-create form (drops out when picker opens "+ New") */
+.contact-form{background:var(--panel-2); border:1px solid rgba(167,139,250,.36); border-radius:8px; padding:14px; margin-top:8px}
+.contact-form .row{display:flex; flex-direction:column; gap:5px; margin-bottom:10px}
+.contact-form .row label{font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--mute-2)}
+.contact-form .row input{background:rgba(255,255,255,.04); border:1px solid var(--hair-2); border-radius:6px; color:var(--white); font-family:inherit; font-size:13.5px; padding:8px 10px; outline:0}
+.contact-form .row input:focus{border-color:var(--purple)}
+.contact-form .tagchips{display:flex; flex-wrap:wrap; gap:5px; margin-top:6px}
+.contact-form .tagchips .tag{padding:4px 9px; border-radius:99px; font-family:var(--mono); font-size:10.5px; cursor:pointer; border:1px solid var(--hair-2); color:var(--mute-2); transition:all .12s; user-select:none}
+.contact-form .tagchips .tag.on{background:rgba(167,139,250,.18); border-color:var(--purple); color:#dccffe}
+.contact-form .tagchips .tag:hover{color:var(--white)}
+.contact-form .actions{display:flex; gap:8px; margin-top:10px; justify-content:flex-end}
+.contact-form .actions button{font-family:var(--mono); font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; font-weight:700; padding:8px 14px; border-radius:6px; border:1px solid var(--hair-2); background:rgba(255,255,255,.04); color:var(--text); cursor:pointer}
+.contact-form .actions button.save{background:var(--purple); border-color:var(--purple); color:#1a1024}
+.contact-form .actions button.save:hover{background:#bea8ff}
+.contact-form .actions button:disabled{opacity:.5; cursor:wait}
 </style>
   <script src="/_shared/admin-auth.js"></script>
   <script src="/_shared/media-browser.js" defer></script>
@@ -249,6 +294,63 @@ html,body{background:var(--ink); color:var(--text); font-family:var(--sans); lin
       <div class="chips" id="categoriesChips" style="margin-top:10px"></div>
       <label class="mainlabel" style="display:block; margin:14px 0 6px; font-size:12px; color:var(--gold-soft); letter-spacing:.04em">★ Main category <span style="color:var(--mute-2)">(shown on the site)</span></label>
       <select id="mainCatSelect"><option value="">— none —</option></select>
+    </div>
+
+    <div class="card">
+      <h4>Post Type</h4>
+      <select id="postTypeSelect">
+        <option value="Editorial">Editorial</option>
+        <option value="Barter">Barter</option>
+        <option value="Potential Barter">Potential Barter</option>
+        <option value="Partner">Partner</option>
+        <option value="Paid">Paid</option>
+      </select>
+    </div>
+
+    <div class="card hidden" id="incomeCard">
+      <h4>Income</h4>
+      <div class="income-input">
+        <span class="dollar">$</span>
+        <input type="number" id="incomeInput" placeholder="0" step="any" min="0" inputmode="decimal">
+      </div>
+    </div>
+
+    <div class="card contact-card" id="contactCard">
+      <h4>Contact</h4>
+      <div id="contactSelectedWrap" style="display:none">
+        <div class="selected-contact">
+          <div class="info">
+            <div class="name" id="contactSelName"></div>
+            <div class="meta" id="contactSelMeta"></div>
+          </div>
+          <button type="button" class="detach" id="contactDetachBtn" title="Detach contact">×</button>
+        </div>
+      </div>
+      <div id="contactPickerWrap">
+        <div class="search-wrap">
+          <input type="search" id="contactSearchInput" placeholder="Search by name, email, or company…" autocomplete="off">
+          <button type="button" class="clear-search" id="contactClearBtn" title="Clear">×</button>
+        </div>
+        <div class="results" id="contactResults"></div>
+      </div>
+      <div class="contact-form" id="contactCreateForm" style="display:none">
+        <div class="row"><label for="cfName">Name</label><input id="cfName" type="text" placeholder="Full name"></div>
+        <div class="row"><label for="cfEmail">Email</label><input id="cfEmail" type="email" placeholder="email@company.com"></div>
+        <div class="row"><label for="cfCompany">Company</label><input id="cfCompany" type="text" placeholder="Agency or brand"></div>
+        <div class="row">
+          <label>Tags</label>
+          <div class="tagchips" id="cfTagChips">
+            <span class="tag" data-tag="Travel">Travel</span>
+            <span class="tag" data-tag="Real Estate">Real Estate</span>
+            <span class="tag" data-tag="Hospitality">Hospitality</span>
+            <span class="tag" data-tag="Wellness">Wellness</span>
+          </div>
+        </div>
+        <div class="actions">
+          <button type="button" id="cfCancelBtn">Cancel</button>
+          <button type="button" class="save" id="cfSaveBtn">Create</button>
+        </div>
+      </div>
     </div>
 
     <div class="card">
@@ -495,6 +597,209 @@ const mainCatSelect = document.getElementById('mainCatSelect');
 const newCatInput = document.getElementById('newCatInput');
 const seoDescEl = document.getElementById('seoDescInput');
 
+// ─── Monday.com replacement fields (post_type / income / contact) ─────
+const postTypeEl     = document.getElementById('postTypeSelect');
+const incomeCard     = document.getElementById('incomeCard');
+const incomeEl       = document.getElementById('incomeInput');
+const contactCard    = document.getElementById('contactCard');
+const contactSelectedWrap = document.getElementById('contactSelectedWrap');
+const contactSelName = document.getElementById('contactSelName');
+const contactSelMeta = document.getElementById('contactSelMeta');
+const contactDetachBtn = document.getElementById('contactDetachBtn');
+const contactPickerWrap = document.getElementById('contactPickerWrap');
+const contactSearchInput = document.getElementById('contactSearchInput');
+const contactClearBtn    = document.getElementById('contactClearBtn');
+const contactResults     = document.getElementById('contactResults');
+const contactCreateForm  = document.getElementById('contactCreateForm');
+const cfName  = document.getElementById('cfName');
+const cfEmail = document.getElementById('cfEmail');
+const cfCompany = document.getElementById('cfCompany');
+const cfTagChips = document.getElementById('cfTagChips');
+const cfCancelBtn = document.getElementById('cfCancelBtn');
+const cfSaveBtn   = document.getElementById('cfSaveBtn');
+
+let currentContact = null; // { id, name, email, company, ... } or null
+let contactKbdIndex = -1;
+
+function syncIncomeVisibility() {
+  const t = postTypeEl.value;
+  // Income is meaningful only for non-Editorial post types.
+  incomeCard.classList.toggle('hidden', t === 'Editorial');
+  if (t === 'Editorial') incomeEl.value = '';
+}
+postTypeEl.addEventListener('change', () => { syncIncomeVisibility(); markDirty(); });
+incomeEl.addEventListener('input', markDirty);
+
+function renderSelectedContact() {
+  if (currentContact) {
+    contactSelName.textContent = currentContact.name || '(unnamed)';
+    const parts = [];
+    if (currentContact.company) parts.push(escHtml(currentContact.company));
+    if (currentContact.email)   parts.push(`<a href="mailto:${escAttr(currentContact.email)}">${escHtml(currentContact.email)}</a>`);
+    contactSelMeta.innerHTML = parts.join(' · ') || '<span style="opacity:.6">(no company/email on file)</span>';
+    contactSelectedWrap.style.display = '';
+    contactPickerWrap.style.display = 'none';
+    contactCreateForm.style.display = 'none';
+  } else {
+    contactSelectedWrap.style.display = 'none';
+    contactPickerWrap.style.display = '';
+  }
+}
+contactDetachBtn.addEventListener('click', () => {
+  currentContact = null; renderSelectedContact(); markDirty();
+  setTimeout(() => contactSearchInput.focus(), 0);
+});
+
+// Debounced search against GET /contacts?q=
+let contactSearchTimer = null;
+let contactSearchLast = '';
+async function runContactSearch(q) {
+  contactKbdIndex = -1;
+  if (!q) { renderContactResults([], ''); return; }
+  try {
+    const res = await fetch(WORKER_URL + '/contacts?limit=10&q=' + encodeURIComponent(q), {
+      headers: { 'Authorization': 'Bearer ' + getToken() }, cache: 'no-store',
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    if (q !== contactSearchLast) return; // raced — newer query took over
+    renderContactResults(data.items || [], q);
+  } catch (e) {
+    renderContactResults([], q, e.message);
+  }
+}
+function renderContactResults(items, q, err) {
+  const rows = [];
+  for (const c of items) {
+    const meta = [c.company, c.email].filter(Boolean).join(' · ') || `${c.post_count || 0} posts`;
+    rows.push(`<div class="row" data-pick="${escAttr(c.id)}"><div class="rname">${escHtml(c.name || '(unnamed)')}</div><div class="rmeta">${escHtml(meta)}</div></div>`);
+  }
+  if (!rows.length && q) {
+    rows.push(`<div class="row empty">${err ? 'Search failed: ' + escHtml(err) : 'No matches'}</div>`);
+  }
+  if (q) rows.push(`<div class="row create-new" data-create="${escAttr(q)}">+ Create new contact${q ? ` "${escHtml(q)}"` : ''}</div>`);
+  contactResults.innerHTML = rows.join('');
+  contactResults.classList.toggle('show', rows.length > 0);
+  contactResults.querySelectorAll('[data-pick]').forEach((row) => {
+    row.addEventListener('mousedown', (e) => { e.preventDefault(); pickContactById(row.dataset.pick, items); });
+  });
+  contactResults.querySelectorAll('[data-create]').forEach((row) => {
+    row.addEventListener('mousedown', (e) => { e.preventDefault(); openContactForm(row.dataset.create); });
+  });
+}
+function pickContactById(id, items) {
+  const c = items.find((x) => x.id === id);
+  if (!c) return;
+  currentContact = c;
+  contactSearchInput.value = '';
+  contactClearBtn.parentElement.classList.remove('has-text');
+  contactResults.classList.remove('show');
+  renderSelectedContact();
+  markDirty();
+}
+contactSearchInput.addEventListener('input', () => {
+  const q = contactSearchInput.value.trim();
+  contactSearchInput.parentElement.classList.toggle('has-text', !!q);
+  contactSearchLast = q;
+  clearTimeout(contactSearchTimer);
+  contactSearchTimer = setTimeout(() => runContactSearch(q), 180);
+});
+contactSearchInput.addEventListener('keydown', (e) => {
+  const rows = [...contactResults.querySelectorAll('.row[data-pick], .row.create-new[data-create]')];
+  if (e.key === 'ArrowDown') { e.preventDefault(); contactKbdIndex = Math.min(rows.length - 1, contactKbdIndex + 1); }
+  else if (e.key === 'ArrowUp') { e.preventDefault(); contactKbdIndex = Math.max(0, contactKbdIndex - 1); }
+  else if (e.key === 'Enter') {
+    if (contactKbdIndex >= 0 && rows[contactKbdIndex]) {
+      e.preventDefault();
+      rows[contactKbdIndex].dispatchEvent(new MouseEvent('mousedown'));
+      return;
+    }
+  } else if (e.key === 'Escape') { contactResults.classList.remove('show'); return; }
+  else return;
+  rows.forEach((r, i) => r.classList.toggle('kbd-active', i === contactKbdIndex));
+  if (rows[contactKbdIndex]) rows[contactKbdIndex].scrollIntoView({ block: 'nearest' });
+});
+contactSearchInput.addEventListener('focus', () => {
+  // Surface the most-recent results on refocus
+  if (contactSearchInput.value.trim()) contactResults.classList.add('show');
+});
+document.addEventListener('click', (e) => {
+  if (!contactCard.contains(e.target)) contactResults.classList.remove('show');
+});
+contactClearBtn.addEventListener('click', () => {
+  contactSearchInput.value = '';
+  contactSearchInput.parentElement.classList.remove('has-text');
+  contactResults.classList.remove('show');
+  contactSearchInput.focus();
+});
+
+// Inline contact-create form
+let cfTags = new Set();
+cfTagChips.querySelectorAll('.tag').forEach((el) => {
+  el.addEventListener('click', () => {
+    const t = el.dataset.tag;
+    if (cfTags.has(t)) { cfTags.delete(t); el.classList.remove('on'); }
+    else { cfTags.add(t); el.classList.add('on'); }
+  });
+});
+function openContactForm(prefillName) {
+  contactResults.classList.remove('show');
+  contactSearchInput.value = '';
+  contactSearchInput.parentElement.classList.remove('has-text');
+  cfName.value  = prefillName || '';
+  cfEmail.value = '';
+  cfCompany.value = '';
+  cfTags = new Set();
+  cfTagChips.querySelectorAll('.tag').forEach((el) => el.classList.remove('on'));
+  contactCreateForm.style.display = '';
+  setTimeout(() => (prefillName ? cfEmail : cfName).focus(), 0);
+}
+cfCancelBtn.addEventListener('click', () => { contactCreateForm.style.display = 'none'; });
+cfSaveBtn.addEventListener('click', async () => {
+  const name = cfName.value.trim();
+  if (!name) { toast('Name is required', 'error'); cfName.focus(); return; }
+  cfSaveBtn.disabled = true;
+  try {
+    const res = await fetch(WORKER_URL + '/contacts', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + getToken(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name,
+        email:   cfEmail.value.trim() || null,
+        company: cfCompany.value.trim() || null,
+        tags:    [...cfTags],
+      }),
+    });
+    if (!res.ok) { const t = await res.text(); throw new Error('HTTP ' + res.status + ': ' + t.slice(0, 200)); }
+    const data = await res.json();
+    currentContact = data.contact;
+    contactCreateForm.style.display = 'none';
+    renderSelectedContact();
+    markDirty();
+    toast('Contact created', 'success');
+  } catch (e) {
+    toast('Create failed: ' + e.message, 'error');
+  } finally {
+    cfSaveBtn.disabled = false;
+  }
+});
+
+async function hydrateContact(contactId) {
+  if (!contactId) { currentContact = null; renderSelectedContact(); return; }
+  try {
+    const res = await fetch(WORKER_URL + '/contacts/' + encodeURIComponent(contactId), {
+      headers: { 'Authorization': 'Bearer ' + getToken() }, cache: 'no-store',
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    currentContact = data.contact || null;
+  } catch (e) {
+    // Soft fail — keep the id but show a stub so the user can re-pick.
+    currentContact = { id: contactId, name: '(contact ' + contactId + ' — fetch failed)', email: '', company: '' };
+  }
+  renderSelectedContact();
+}
+
 let slugManuallyEdited = false;
 titleEl.addEventListener('input', () => {
   markDirty();
@@ -630,6 +935,10 @@ async function loadPost() {
     coverEl.value     = POST.cover_image || '';
     authorEl.value    = POST.author_name || '';
     seoDescEl.value   = POST.seo_description || '';
+    postTypeEl.value  = POST.post_type || 'Editorial';
+    incomeEl.value    = (POST.income == null) ? '' : String(POST.income);
+    syncIncomeVisibility();
+    hydrateContact(POST.contact_id || null);
     catsList = POST.categories || [];
     mainCat  = POST.main_category || defaultMain();
     renderCatChips();
@@ -649,6 +958,11 @@ async function loadPost() {
 
 // ─── Save / publish / delete ────────────────────────────────────
 function buildPayload() {
+  const postType = postTypeEl.value || 'Editorial';
+  // Income only persists for non-Editorial; the visibility toggle clears the
+  // input when switching back, but enforce here too as a belt-and-braces.
+  const rawIncome = incomeEl.value.trim();
+  const income = (postType !== 'Editorial' && rawIncome !== '') ? Number(rawIncome) : null;
   return {
     title:           titleEl.value.trim(),
     slug:            slugEl.value.trim(),
@@ -661,6 +975,9 @@ function buildPayload() {
     main_category:   mainCat || null,
     seo_title:       null,
     seo_description: seoDescEl.value.trim() || null,
+    post_type:       postType,
+    income:          income,
+    contact_id:      currentContact ? currentContact.id : null,
   };
 }
 
