@@ -40,9 +40,19 @@ WORKER = 'https://tmw.jake-ab7.workers.dev'
 XLSX   = os.environ.get('MIGRATE_XLSX', '/Users/jakenicholas/Downloads/Paid_Editorial_1781701593.xlsx')
 PROJECTS_FLAT = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'projects-flat.json')
 
-DATE_WINDOW_DAYS = 10
-MATCH_MIN        = 0.18   # min Jaccard-weighted score to accept a post match
-HTTP_PAUSE_S     = 0.04   # gentle pacing on the worker (~25 req/s)
+# Two-pass matching:
+#   Pass 1 — strong title match: for every (Monday row, post) pair within
+#            ±TITLE_PASS_WINDOW days where the brand string appears in the
+#            title (or every brand token does), claim greedily by score so
+#            confident matches win first.
+#   Pass 2 — date fallback: every Monday row IS a real post in the journal,
+#            so unmatched rows from pass 1 then claim ANY unclaimed post
+#            within widening date windows (the user's "they should all match
+#            by date" rule). Each post still claimed only once.
+TITLE_PASS_WINDOW = 14
+TITLE_PASS_MIN    = 0.45    # ≥ "every brand token in title" hits this floor
+DATE_FALLBACK_WINDOWS = [1, 2, 3, 5, 7, 14, 21]
+HTTP_PAUSE_S = 0.04   # gentle pacing on the worker (~25 req/s)
 
 # Accept the five canonical post types; map a handful of stray Monday values
 # to sane defaults. Anything else falls through to 'Editorial'.
@@ -225,46 +235,77 @@ def index_posts_by_date(posts):
     return by_day
 
 
-def find_post(row, by_day):
-    if not isinstance(row['launch_date'], datetime.datetime):
-        return None, 0.0, 'no-launch-date'
-    target = row['launch_date'].date()
-    candidates = []
-    for delta in range(-DATE_WINDOW_DAYS, DATE_WINDOW_DAYS + 1):
-        d = target + datetime.timedelta(days=delta)
-        candidates.extend(by_day.get(d, []))
-    if not candidates:
-        return None, 0.0, 'no-posts-in-window'
+def score_title_match(row, post):
+    """Score how strongly a post's title echoes the row's brand/campaign label.
+       Substring containment > every-brand-token-in-title > Jaccard backbone."""
     brand    = (row['brand'] or '').strip()
     brand_lc = brand.lower()
     brand_t  = tokens(brand)
-    # Strip the date suffix off the row name (e.g. "South Flagler House: March"
-    # → "South Flagler House") so the campaign month doesn't pollute matching.
-    name_no_suffix = row['name'].split(':')[0]
-    name_t = tokens(name_no_suffix)
-    best, best_score = None, 0.0
-    for p in candidates:
-        title    = (p['title'] or '').strip()
-        title_lc = title.lower()
-        tt       = tokens(title)
-        # ── Containment bonuses: the strongest possible signal.
-        contain = 0.0
-        if brand_lc and brand_lc in title_lc:
-            contain += 0.6                                   # full brand string appears verbatim
-        elif brand_t and all(tok in tt for tok in brand_t):
-            contain += 0.45                                  # every brand token is in the title (any order)
-        # ── Jaccard backbone
-        jb = jaccard(brand_t, tt)
-        jn = jaccard(name_t,  tt)
-        s = contain + 2 * jb + jn
-        # Date-distance tiebreak (closer wins ties).
-        dd = abs((datetime.date.fromtimestamp(p['published_at']) - target).days)
-        s -= 0.005 * dd
-        if s > best_score:
-            best, best_score = p, s
-    if best and best_score >= MATCH_MIN:
-        return best, best_score, ''
-    return None, best_score, 'below-threshold'
+    name_t   = tokens(row['name'].split(':')[0])
+    title    = (post['title'] or '').strip()
+    title_lc = title.lower()
+    tt       = tokens(title)
+    contain = 0.0
+    if brand_lc and brand_lc in title_lc:
+        contain += 0.6
+    elif brand_t and all(tok in tt for tok in brand_t):
+        contain += 0.45
+    return contain + 2 * jaccard(brand_t, tt) + jaccard(name_t, tt)
+
+
+def title_pass(rows_with_dates, by_day, claimed):
+    """Pass 1: collect every (row, post) candidate pair within
+       TITLE_PASS_WINDOW where the title score clears TITLE_PASS_MIN, then
+       assign greedily by score so the strongest matches win first."""
+    pairs = []   # (score, row_idx, post)
+    for idx, row in rows_with_dates:
+        target = row['launch_date'].date()
+        seen_ids = set()
+        for delta in range(-TITLE_PASS_WINDOW, TITLE_PASS_WINDOW + 1):
+            d = target + datetime.timedelta(days=delta)
+            for p in by_day.get(d, []):
+                if p['id'] in seen_ids: continue
+                seen_ids.add(p['id'])
+                s = score_title_match(row, p)
+                if s >= TITLE_PASS_MIN:
+                    # Date proximity is a tiebreak when titles tie
+                    dd = abs((datetime.date.fromtimestamp(p['published_at']) - target).days)
+                    pairs.append((s - 0.005 * dd, idx, p))
+    pairs.sort(key=lambda x: -x[0])
+    out = {}  # row_idx → (post, score)
+    for s, idx, p in pairs:
+        if idx in out: continue
+        if p['id'] in claimed: continue
+        out[idx] = (p, s)
+        claimed.add(p['id'])
+    return out
+
+
+def date_fallback(row, by_day, claimed):
+    """Pass 2: for a row still unmatched, claim ANY unclaimed post in the
+       smallest date window it fits. Picks title-best when multiple are in
+       the same window, but title score doesn't gate acceptance — the user's
+       rule is 'every Posted row IS a post on or near that date.'"""
+    target = row['launch_date'].date()
+    for window in DATE_FALLBACK_WINDOWS:
+        pool = []
+        for delta in range(-window, window + 1):
+            d = target + datetime.timedelta(days=delta)
+            for p in by_day.get(d, []):
+                if p['id'] not in claimed:
+                    pool.append(p)
+        if not pool:
+            continue
+        best, best_score = None, -1e9
+        for p in pool:
+            s = score_title_match(row, p)
+            dd = abs((datetime.date.fromtimestamp(p['published_at']) - target).days)
+            s -= 0.005 * dd
+            if s > best_score:
+                best, best_score = p, s
+        claimed.add(best['id'])
+        return best, best_score, f'date±{window}'
+    return None, 0.0, 'no-posts-within-21-days'
 
 
 # ─── Contact resolution ────────────────────────────────────────────────────
@@ -329,8 +370,24 @@ def main():
     unmatched = []
     stats = {'created_contacts': 0, 'reused_contacts': 0, 'updates': 0, 'project_links': 0}
 
+    # Slice the row set per --start / --limit BEFORE the two-pass matching,
+    # so a partial run still gets correct attribution.
+    rows.sort(key=lambda r: (r['launch_date'] is None, r['launch_date'] or datetime.datetime.max))
     end = len(rows) if args.limit == 0 else min(len(rows), args.start + args.limit)
-    for i, row in enumerate(rows[args.start:end], start=args.start):
+    rows_slice = rows[args.start:end]
+
+    # Two-pass post matching ─────────────────────────────────────────────────
+    # Pass 1 — confident title-match wins globally (highest score first), so
+    #          the obviously-correct pairs land regardless of iteration order.
+    # Pass 2 — every remaining row claims any unclaimed post on/near its
+    #          Launch Date. Both passes share `claimed` so a post never
+    #          attaches to two rows.
+    claimed = set()
+    rows_with_dates = [(i, r) for i, r in enumerate(rows_slice) if isinstance(r['launch_date'], datetime.datetime)]
+    title_assignments = title_pass(rows_with_dates, by_day, claimed)
+    print(f"  ✓ Title-pass matches: {len(title_assignments)}")
+
+    for i, row in enumerate(rows_slice):
         # ── post-type normalization
         pt_lc = (row['post_type'] or '').strip().lower()
         post_type = POST_TYPE_MAP.get(pt_lc, 'Editorial')
@@ -382,8 +439,14 @@ def main():
             if slug:
                 stats['project_links'] += 1
 
-        # ── find matching post
-        post, score, reason = find_post(row, by_day)
+        # ── find matching post (pass-1 result if any, else pass-2 fallback)
+        if i in title_assignments:
+            post, score = title_assignments[i]
+            reason = 'title-match'
+        elif isinstance(row['launch_date'], datetime.datetime):
+            post, score, reason = date_fallback(row, by_day, claimed)
+        else:
+            post, score, reason = None, 0.0, 'no-launch-date'
         if not post:
             unmatched.append({**row, 'reason': reason, 'best_score': round(score, 3)})
             continue
