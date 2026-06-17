@@ -879,7 +879,7 @@
     if (_loading) return _loading;
     _loading = Promise.all([
       fetch('https://www.oftmw.com/map/projects-flat.json', { cache:'no-cache' }).then(function(r){ return r.ok ? r.json() : []; }).catch(function(){ return []; }),
-      fetch('https://www.oftmw.com/firms-flat.json',         { cache:'no-cache' }).then(function(r){ return r.ok ? r.json() : []; }).catch(function(){ return []; }),
+      fetch('https://www.oftmw.com/map/firms-flat.json',     { cache:'no-cache' }).then(function(r){ return r.ok ? r.json() : []; }).catch(function(){ return []; }),
       loadArticles()
     ]).then(function(res){
       var p = res[0], f = res[1], a = res[2];
@@ -1748,7 +1748,52 @@
       rows = resid.rows;
       if (resid.label) s._areaLabel = resid.label;
     }
+    // Firm-in-place fallback: when the user asks about a developer/architect
+    // in a specific city/region and we have ZERO matches, broaden to the firm
+    // alone and surface what we DO have. e.g. "terra miami beach" → "no Terra
+    // projects in Miami Beach, however 14 in Miami." Picks the most-common
+    // city across the firm's portfolio as the "closest area."
+    if (rows.length === 0 && s.firm && (s.cities.length || s.region)) {
+      var sNoPlace = {};
+      for (var k in s) if (s.hasOwnProperty(k)) sNoPlace[k] = s[k];
+      sNoPlace.cities = []; sNoPlace.region = '';
+      var altRows = Core.smartRank(Core.smartFilter(sNoPlace, PROJECTS), sNoPlace);
+      if (altRows.length) {
+        var cityCounts = {};
+        altRows.forEach(function(p){
+          var c = String(p.City || '').split(',')[0].trim();
+          if (c) cityCounts[c] = (cityCounts[c] || 0) + 1;
+        });
+        var sortedCities = Object.keys(cityCounts).sort(function(a, b){
+          return cityCounts[b] - cityCounts[a];
+        });
+        var dominantCity = sortedCities[0] || '';
+        // Name the top city whenever it holds ≥ 25 % of the firm's tracked
+        // footprint OR has the plurality of projects — matches the user's
+        // expected "no X here, but N in <city>" copy pattern. A firm whose
+        // top city is below 25 % is genuinely scattered → mention no city.
+        var dominantShare = dominantCity ? cityCounts[dominantCity] / altRows.length : 0;
+        s._firmCityFallback = {
+          requestedPlace: s.cities[0] || s.region,
+          altCount: altRows.length,
+          altCity: dominantShare >= 0.25 ? dominantCity : '',
+        };
+        rows = altRows;
+      }
+    }
     var ans = Core.buildSmartAnswer(s, rows);
+    // When the firm-in-place fallback fired, rewrite the synthesized sentence
+    // so the user knows the result set is the firm's BROADER footprint, not a
+    // hit on the place they actually asked about.
+    if (s._firmCityFallback && s.firm) {
+      var fb = s._firmCityFallback;
+      var altLoc = fb.altCity ? ' in <b>' + esc(fb.altCity) + '</b>' : '';
+      var n2 = fb.altCount;
+      ans.html = 'No tracked <b>' + esc(s.firm.name) + '</b> developments in <b>'
+        + esc(fb.requestedPlace) + '</b> — but <b>' + n2 + ' '
+        + (n2 === 1 ? 'project' : 'projects') + '</b>' + altLoc
+        + (n2 === 1 ? ' is' : ' are') + ' tracked elsewhere.';
+    }
 
     // Header slot carries the "understood as" chips
     var chipsHtml = renderUnderstoodChips(s);
@@ -1833,7 +1878,11 @@
     renderArticleSection(q, token);
 
     // LLM upgrade: replace the deterministic sentence with prose (stats stay).
-    if (rows.length) fireSmartIntelUpgrade(q, s, rows);
+    // Skip the upgrade when the firm-in-place fallback fired — the deterministic
+    // sentence already explains the mismatch ("no Terra projects in Tampa, but
+    // N in Miami"), and the LLM, seeing the requested place doesn't match the
+    // returned rows, tends to produce a confused "tracked elsewhere" rewrite.
+    if (rows.length && !s._firmCityFallback) fireSmartIntelUpgrade(q, s, rows);
 
     // Count this query against the user's free quota (window.tmwIntel.FREE)
     try {

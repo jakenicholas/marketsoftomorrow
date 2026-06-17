@@ -372,7 +372,10 @@
       var sig = n.split(/\s+/).filter(function (t) { return t.length > 2 && !FIRM_STOP.has(t); });
       if (!sig.length) continue;
       var score = 0;
-      if (n.length >= 6 && (' ' + full + ' ').indexOf(' ' + n + ' ') >= 0)                  score = 3;  // whole name, word-bounded
+      // Word-bounded full-name match — safe at 4+ chars because the leading
+      // and trailing spaces enforce a true word boundary, so "Terra" can be
+      // detected without falsely matching "terraform" or "Terrazza".
+      if (n.length >= 4 && (' ' + full + ' ').indexOf(' ' + n + ' ') >= 0)                  score = 3;  // whole name, word-bounded
       else if (n.length >= 6 && full.indexOf(n) >= 0)                                       score = 2;  // whole name, substring
       else if (sig.length >= 2 && sig.every(function (t) { return hasWord(full, t); }))     score = 2;  // all distinctive tokens
       else if (sig.length === 1 && sig[0].length >= 6 && hasWord(full, sig[0]))             score = 1;  // one distinctive long token
