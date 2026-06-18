@@ -690,9 +690,9 @@ def coverage_section_html(articles, project_title, default_image):
 
     view_all_html = ''
     if total > 5:
-        # Use form-encoding (spaces become +) to match oftmw.com/search URL style.
+        # Use form-encoding (spaces become +) to match the oftmw.com/?q= search URL style.
         # quote_plus does exactly this.
-        search_url = f"https://www.oftmw.com/search?q={urllib.parse.quote_plus(project_title)}"
+        search_url = f"https://www.oftmw.com/?q={urllib.parse.quote_plus(project_title)}"
         view_all_html = f'''
           <a class="cv-view-all" href="{_escape_attr(search_url)}" target="_blank" rel="noopener">
             View all {total} articles
