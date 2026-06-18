@@ -2108,12 +2108,12 @@ def render_hub(city_type_pairs, city_pages, type_pages, state_pages=None, countr
       </div>
     </section>
 
-{state_section_html}
-{country_section_html}
     <section class="section">
       <h2>Browse by city</h2>
       <div class="related">{city_html}</div>
     </section>
+{state_section_html}
+{country_section_html}
     <section class="section">
       <h2>Browse by category</h2>
       <div class="related">{type_html}</div>
