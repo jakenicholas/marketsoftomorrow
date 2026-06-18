@@ -31,12 +31,15 @@ rehost the apex homepage, then delete Wix.
 ## Phase B — Domain + DNS move (July 31+)
 
 - [ ] At Wix: **unlock the domain** + get the **auth/EPP transfer code**.
-- [ ] **Transfer `oftmw.com` → Cloudflare Registrar** (or keep registrar, just change
-      nameservers — but full transfer is cleanest to leave Wix). Transfers take a few
-      days; the domain keeps resolving throughout.
+- [ ] **Transfer `oftmw.com` → GoDaddy (registrar).** Decision: registrar stays at
+      GoDaddy, DNS runs on Cloudflare (registrar and DNS are separate — this is a
+      standard, supported split). Initiate the transfer at GoDaddy with the Wix
+      EPP/auth code. Transfers take a few days; the domain keeps resolving throughout.
 - [ ] **Add `oftmw.com` as a zone in Cloudflare** → let it scan/import records →
       **manually verify** every record from the Phase A snapshot copied (esp. MX + TXT).
-- [ ] **Point nameservers at Cloudflare** (the actual cutover). Wait for propagation.
+- [ ] **At GoDaddy, change nameservers → the two Cloudflare NS** (the actual DNS
+      cutover). Wait for propagation. ⚠️ After this, manage ALL DNS records in the
+      Cloudflare dashboard — GoDaddy's DNS panel goes inert (editing it does nothing).
 - [ ] **Verify before declaring done:**
       - [ ] www / map / gallery / admin all resolve + load
       - [ ] **Send + receive a test email** (both directions)
@@ -56,6 +59,20 @@ rehost the apex homepage, then delete Wix.
         (`generate_pulse.py`, `generate_pages.py`, `backfill_articles.py`, `generate_articles.py`)
       - This kills the r2.dev rate-limit concern for good.
 - [ ] **Rehost the apex homepage** off Wix (Cloudflare Page / redirect).
+- [ ] **Retire `map.oftmw.com` off GitHub Pages → Cloudflare Pages, then make
+      `marketsoftomorrow` PRIVATE.** Goal: protect source/IP from being copied
+      (`tmw-admin` + `tmw-data` are ALREADY private; `marketsoftomorrow` is the
+      last public one only because GitHub Pages serves the live map from it).
+      **ORDER MATTERS — do NOT flip private first:** GitHub Pages won't serve a
+      private repo on a non-Pro plan, so the gap would take `map.oftmw.com`
+      down. Steps: (1) stand up the marketsoftomorrow build on **Cloudflare
+      Pages** (serves private repos), point the `map.oftmw.com` DNS at it, and
+      verify it loads; (2) update the `generate-pages.yml` Action — it deploys
+      via `actions/deploy-pages` (GitHub Pages), which stops working once
+      private, so re-point the build/deploy at Cloudflare Pages (or have CF
+      Pages build on push); (3) only then set repo visibility to private.
+      Note: this hides SOURCE/history, not the published JSON (the live site
+      still serves projects-flat.json etc. publicly — that's by design).
 
 ## Phase D — Decommission Wix
 
