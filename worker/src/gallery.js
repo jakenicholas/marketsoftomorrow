@@ -1053,7 +1053,7 @@ function renderGateHTML(g, base, opts = {}) {
 .gate-preview{position:absolute;inset:0;z-index:0;display:grid;grid-template-columns:repeat(3,1fr);grid-auto-rows:1fr;pointer-events:none;user-select:none;-webkit-user-select:none}
 /* One light, uniform blur across every image — non-interactive teaser, no
    gradient. A flat brightness knock keeps the PIN card readable on top. */
-.gate-preview img{width:100%;height:100%;object-fit:cover;filter:blur(8px) brightness(.8) saturate(1.05);transform:scale(1.04);-webkit-user-drag:none}
+.gate-preview img{width:100%;height:100%;object-fit:cover;filter:blur(4px) brightness(.8) saturate(1.05);transform:scale(1.03);-webkit-user-drag:none}
 .gate-preview-tag{position:absolute;z-index:2;top:18px;left:50%;transform:translateX(-50%);font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--cream);background:rgba(8,8,8,.42);border:1px solid var(--hair);padding:5px 12px;border-radius:999px;pointer-events:none;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
 @media(max-width:560px){.gate-preview{grid-template-columns:1fr}}
 .gate-card{position:relative;z-index:3;background:var(--panel);border:1px solid var(--hair2);border-radius:18px;padding:34px 30px;max-width:380px;width:100%;text-align:center;box-shadow:0 30px 90px rgba(0,0,0,.6)}
