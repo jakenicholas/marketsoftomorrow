@@ -98,7 +98,20 @@
       var email = (form.email.value || '').trim();
       if (!email) return;
       var btn = form.querySelector('button'); var orig = btn.textContent;
-      btn.disabled = true; btn.textContent = 'Working…';
+      btn.disabled = true; btn.textContent = 'Checking…';
+      // Known address? Route to login instead of re-subscribing the same email.
+      var status = window.tmwCheckEmail ? await window.tmwCheckEmail(email) : { account: false };
+      var panel = el.querySelector('.tmw-sub-panel');
+      function swapPanel() {
+        ['.tmw-sub-eyebrow', '.tmw-sub-h', '.tmw-sub-form', '.tmw-sub-msg'].forEach(function (sel) { var n = panel.querySelector(sel); if (n) n.style.display = 'none'; });
+        var host = document.createElement('div'); panel.appendChild(host); return host;
+      }
+      if (status.account) {
+        if (window.tmwAccountExistsPrompt) window.tmwAccountExistsPrompt(swapPanel(), { you: status.you });
+        else { btn.disabled = false; btn.textContent = orig; }
+        return;
+      }
+      btn.textContent = 'Working…';
       try {
         var r = await fetch(SUB_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: email, markets: MARKETS }) });
         var d = await r.json().catch(function () { return {}; });
@@ -109,12 +122,11 @@
           try { localStorage.setItem(SUB_EMAIL_KEY, email); } catch (_) {}
           // Step 2: offer a free account (add a password) — the SAME prompt the
           // article funnel uses, so the next page picks up where they left off.
-          var panel = el.querySelector('.tmw-sub-panel');
-          ['.tmw-sub-eyebrow', '.tmw-sub-h', '.tmw-sub-form', '.tmw-sub-msg'].forEach(function (sel) { var n = panel.querySelector(sel); if (n) n.style.display = 'none'; });
-          var faHost = document.createElement('div'); panel.appendChild(faHost);
-          var offered = window.tmwFreeAccountPrompt && window.tmwFreeAccountPrompt(faHost, email, function () { el.classList.remove('show'); });
+          // alreadyLive reframes the copy when the email was already on the list.
+          var faHost = swapPanel();
+          var offered = window.tmwFreeAccountPrompt && window.tmwFreeAccountPrompt(faHost, email, function () { el.classList.remove('show'); }, { alreadyLive: !!d.already_subscribed });
           if (!offered) {
-            msg.style.display = ''; msg.textContent = "✓ You're in! Welcome to TMW.";
+            msg.style.display = ''; msg.textContent = d.already_subscribed ? "✓ Your email's already live." : "✓ You're in! Welcome to TMW.";
             setTimeout(function () { el.classList.remove('show'); }, 2600);
           }
         } else { btn.disabled = false; btn.textContent = orig; }

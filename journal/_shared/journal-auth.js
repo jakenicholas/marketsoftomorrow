@@ -163,16 +163,73 @@
     document.head.appendChild(st);
   }
 
-  // Render the "add a password for a free account" step into `host`. Returns
-  // false (does nothing) if the visitor is already signed in. onClose(created?)
-  // fires when the user finishes or skips.
-  window.tmwFreeAccountPrompt = function (host, email, onClose) {
-    if (!host || window._tmwSignedIn) return false;
+  // ── 1d) Recognize an email the platform already knows ───────────────────
+  //    Lets every email-capture form (home newsletter strip, footer Subscribe,
+  //    article + markets pop-ups) route a KNOWN address to LOGIN ("you already
+  //    have an account") instead of letting the same email be re-submitted
+  //    forever. Resolves { account: bool, you?: bool }; fast-paths the signed-in
+  //    member's own address, else asks the worker /email-status (works
+  //    incognito). Never rejects — resolves { account:false } on any error so
+  //    the form still proceeds to its normal subscribe flow.
+  window.tmwCheckEmail = function (email) {
+    email = String(email || '').trim().toLowerCase();
+    return new Promise(function (resolve) {
+      if (!email || email.indexOf('@') < 1) { resolve({ account: false }); return; }
+      try {
+        var mem = window.tmwAuth && window.tmwAuth.member;
+        var myEmail = mem && ((mem.auth && mem.auth.email) || mem.email);
+        if (window._tmwSignedIn && myEmail && String(myEmail).toLowerCase() === email) {
+          resolve({ account: true, you: true }); return;
+        }
+      } catch (e) {}
+      try {
+        fetch('https://tmw.jake-ab7.workers.dev/email-status', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: email })
+        })
+          .then(function (r) { return r.ok ? r.json() : null; })
+          .then(function (d) { resolve({ account: !!(d && d.account) }); })
+          .catch(function () { resolve({ account: false }); });
+      } catch (e) { resolve({ account: false }); }
+    });
+  };
+
+  // Render the "this email already has an account → log in" step into `host`.
+  // Every email form falls back to this when tmwCheckEmail reports an account,
+  // so a known address never gets re-subscribed. opts.you = the visitor's own
+  // (signed-in) address.
+  window.tmwAccountExistsPrompt = function (host, opts) {
+    if (!host) return false;
+    opts = opts || {};
     injectFaCss();
     host.innerHTML =
       '<div class="tmw-fa">' +
-        '<div class="tmw-fa-h">You’re in — create your account</div>' +
-        '<div class="tmw-fa-sub">Your email’s already set. Add a password to follow projects, build a watchlist, and pick up where you left off.</div>' +
+        '<div class="tmw-fa-h">' + (opts.you ? 'You already have an account.' : 'This email already has an account.') + '</div>' +
+        '<div class="tmw-fa-sub">Log in to pick up your watchlist, follows, and Pro features — no need to sign up again.</div>' +
+        '<div class="tmw-fa-prof"><button type="button" class="tmw-fa-login">Log in →</button></div>' +
+      '</div>';
+    host.querySelector('.tmw-fa-login').addEventListener('click', function () {
+      var m = window.$memberstackDom;
+      if (m && m.openModal) m.openModal('LOGIN').then(function () { try { m.hideModal(); } catch (_) {} }).catch(function () {});
+    });
+    return true;
+  };
+
+  // Render the "add a password for a free account" step into `host`. Returns
+  // false (does nothing) if the visitor is already signed in. onClose(created?)
+  // fires when the user finishes or skips. opts.alreadyLive reframes the copy
+  // for an email we already had on the newsletter list ("your email is already
+  // live — create a password").
+  window.tmwFreeAccountPrompt = function (host, email, onClose, opts) {
+    if (!host || window._tmwSignedIn) return false;
+    opts = opts || {};
+    injectFaCss();
+    host.innerHTML =
+      '<div class="tmw-fa">' +
+        '<div class="tmw-fa-h">' + (opts.alreadyLive ? 'Your email’s already live — create a password' : 'You’re in — create your account') + '</div>' +
+        '<div class="tmw-fa-sub">' + (opts.alreadyLive
+          ? 'We found your subscription. Add a password to turn it into a free account — follow projects and build a watchlist.'
+          : 'Your email’s already set. Add a password to follow projects, build a watchlist, and pick up where you left off.') + '</div>' +
         '<form class="tmw-fa-form" novalidate>' +
           '<input type="password" name="pw" placeholder="Create a password" autocomplete="new-password" required>' +
           '<button type="submit">Create account</button>' +

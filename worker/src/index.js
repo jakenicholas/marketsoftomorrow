@@ -515,6 +515,55 @@ async function msFetchAllMembers(env) {
   return out;
 }
 
+// Set of every Memberstack member email (normalized), cached 120s so submit-
+// time existence checks don't page the Admin API on each call. New signups
+// self-heal within 2 min; the create-password step's 'exists' error is the
+// final backstop.
+async function msMemberEmailSet(env) {
+  const cache = caches.default;
+  const cacheKey = new Request('https://email-status.tmw.internal/ms-emails');
+  try {
+    const hit = await cache.match(cacheKey);
+    if (hit) return new Set(await hit.json());
+  } catch { /* fall through to refetch */ }
+  const members = await msFetchAllMembers(env);
+  // Admin-API member shape varies; check the known email locations so a schema
+  // quirk doesn't silently empty the set (which would make every lookup miss).
+  const emails = members
+    .map(m => String(
+      (m.auth && m.auth.email) || m.email ||
+      (m.customFields && (m.customFields.email || m.customFields['email-address'])) || ''
+    ).trim().toLowerCase())
+    .filter(Boolean);
+  try {
+    await cache.put(cacheKey, new Response(JSON.stringify(emails), {
+      headers: { 'Cache-Control': 'max-age=120', 'Content-Type': 'application/json' },
+    }));
+  } catch { /* best-effort cache */ }
+  return new Set(emails);
+}
+
+// POST /email-status { email } -> { ok, account }. Lets every email-capture
+// form recognize an address that already has a Memberstack account and route
+// the visitor to LOGIN instead of re-subscribing the same email forever.
+// Returns account-existence ONLY (a boolean) — no plan, name, or other PII.
+// "Subscribed but no account yet" is a separate state the subscribe worker
+// reports via already_subscribed. Fails OPEN (account:false) so a lookup error
+// never blocks a genuine signup.
+async function handleEmailStatus(request, env, origin) {
+  if (!env.MEMBERSTACK_SECRET_KEY) return json({ ok: false, account: false, reason: 'unconfigured' }, {}, env, origin);
+  let body = {};
+  try { body = await request.json(); } catch { /* empty body */ }
+  const email = String((body && body.email) || '').trim().toLowerCase();
+  if (!email || email.indexOf('@') < 1) return json({ ok: false, account: false }, {}, env, origin);
+  try {
+    const set = await msMemberEmailSet(env);
+    return json({ ok: true, account: set.has(email) }, {}, env, origin);
+  } catch {
+    return json({ ok: false, account: false }, {}, env, origin);
+  }
+}
+
 // ── Stripe — authoritative income (Memberstack bills through Stripe) ──────────
 // When STRIPE_SECRET_KEY is set we pull real money from Stripe instead of
 // estimating: MRR from active subscriptions (annual plans amortized to a monthly
@@ -5656,6 +5705,12 @@ export default {
       // failure so the page falls back to its deterministic answer.
       if (request.method === 'POST' && url.pathname === '/smart-answer') {
         return await handleSmartAnswer(request, env, origin);
+      }
+      // /email-status — does this email already have a Memberstack account?
+      // POST { email } -> { ok, account }. Lets every email form route a known
+      // address to LOGIN instead of re-subscribing it. Fails open to account:false.
+      if (request.method === 'POST' && url.pathname === '/email-status') {
+        return await handleEmailStatus(request, env, origin);
       }
       if (request.method === 'GET' && url.pathname === '/post-categories') {
         return await handlePostCategories(env, origin);

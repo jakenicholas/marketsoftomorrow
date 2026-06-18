@@ -900,7 +900,16 @@ footer .ft-logo .tmw-wordmark{width:118px}
     var btn=f.querySelector('button');
     var email=(input.value||'').trim();
     if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ input.focus(); return; }
-    var orig=btn.textContent; btn.disabled=true; btn.textContent='Subscribing…';
+    var orig=btn.textContent; btn.disabled=true; btn.textContent='Checking…';
+    // Known address? Route to login instead of re-subscribing the same email.
+    var status = window.tmwCheckEmail ? await window.tmwCheckEmail(email) : { account:false };
+    if(status.account){
+      var ahost=document.createElement('div'); f.parentNode.insertBefore(ahost, f.nextSibling); f.style.display='none';
+      if(window.tmwAccountExistsPrompt) window.tmwAccountExistsPrompt(ahost, { you: status.you });
+      else { ahost.innerHTML='<div style="font-family:var(--mono);font-size:13px;letter-spacing:.06em;color:var(--green);padding:14px 4px">You already have an account — log in.</div>'; }
+      return;
+    }
+    btn.textContent='Subscribing…';
     try{
       var r=await fetch(ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email,name:'',markets:MARKETS})});
       var d=await r.json().catch(function(){return{};});
@@ -908,8 +917,8 @@ footer .ft-logo .tmw-wordmark{width:118px}
         try{ if(window.gtag) window.gtag('event','subscribe_home'); }catch(_){}
         try{ localStorage.setItem('tmw-sub-email', email); }catch(_){}
         var host=document.createElement('div'); f.parentNode.insertBefore(host, f.nextSibling); f.style.display='none';
-        var offered = window.tmwFreeAccountPrompt && window.tmwFreeAccountPrompt(host, email, function(){ host.innerHTML='<div style="font-family:var(--mono);font-size:13px;letter-spacing:.06em;color:var(--green);padding:8px 4px">✓ You\'re all set.</div>'; });
-        if(!offered){ host.innerHTML='<div style="font-family:var(--mono);font-size:13px;letter-spacing:.06em;color:var(--green);padding:14px 4px">✓ You\'ve subscribed! Welcome to The Tuesday Brief.</div>'; }
+        var offered = window.tmwFreeAccountPrompt && window.tmwFreeAccountPrompt(host, email, function(){ host.innerHTML='<div style="font-family:var(--mono);font-size:13px;letter-spacing:.06em;color:var(--green);padding:8px 4px">✓ You\'re all set.</div>'; }, { alreadyLive: !!d.already_subscribed });
+        if(!offered){ host.innerHTML='<div style="font-family:var(--mono);font-size:13px;letter-spacing:.06em;color:var(--green);padding:14px 4px">'+(d.already_subscribed?'✓ Your email\'s already live.':'✓ You\'ve subscribed! Welcome to The Tuesday Brief.')+'</div>'; }
       }
       else { btn.disabled=false; btn.textContent=orig; input.focus(); }
     }catch(err){ btn.disabled=false; btn.textContent=orig; }
