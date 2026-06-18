@@ -1175,6 +1175,9 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
   </div>
 </section>
 
+<!-- Universal Partners — signature-partners spotlight slider (shared component, /_shared/partners.js) -->
+<div data-tmw-partners="spotlight"></div>
+
 <section class="cta" id="cta">
   <div class="cta-bg cta-pattern" aria-hidden="true"></div>
   <div class="wrap">
@@ -1436,6 +1439,8 @@ addEventListener('scroll',()=>{const y=scrollY; nav.style.transform=(y>last&&y>3
 })();
 </script>
 <script src="/_shared/member-track.js" defer></script>
+<!-- Universal Partners spotlight slider (shared, synced — /_shared/partners.js) -->
+<script src="/_shared/partners.js" defer></script>
 
 </body>
 </html>

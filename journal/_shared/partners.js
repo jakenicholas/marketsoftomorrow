@@ -218,6 +218,10 @@
     const partners = (partnersData.partners || []).filter(p => p && p.active !== false);
     const preview = clients.slice(0, CLIENT_PREVIEW);
     mount.classList.add('tmw-partners');
+    // Opt-in: <div data-tmw-partners="spotlight"> renders ONLY the signature-
+    // partners carousel (no client wall) — for pages that already show the full
+    // client list (e.g. the media kit, which has its own filterable partner grid).
+    const spotlightOnly = (mount.getAttribute('data-tmw-partners') || '').indexOf('spotlight') >= 0;
 
     const prevSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>';
     const nextSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>';
@@ -241,7 +245,7 @@
           '</div>' +
           '<div class="tmw-spot-dots"></div>'
         ) : '') +
-        (preview.length ? (
+        ((!spotlightOnly && preview.length) ? (
           '<div class="tmw-clients">' +
             '<div class="tmw-clients-head">' +
               '<h3 class="tmw-clients-title">We\'re grateful to work with some incredible people</h3>' +
