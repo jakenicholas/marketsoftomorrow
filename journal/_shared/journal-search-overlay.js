@@ -723,7 +723,7 @@
   // mirrored here so the overlay keeps the brand's curated phrasing.
   var STARTER_CHIPS = [
     'Tallest towers under construction in Florida',
-    'Hotels opening around the world this year',
+    'Hotels opening around the world soon',
     'New condos coming to West Palm Beach',
     'Recent golf course openings'
   ];
@@ -1731,7 +1731,10 @@
       s.typeLabel||'', (s.statusLabels||[]).join(' '), (s.phaseLabels||[]).join(' '),
       s.yearLabel||'', (s.sort&&s.sort.label)||''
     ].join(' '));
-    var residual = toks.filter(function(t){ return consumed.indexOf(t) < 0 && !RESIDUAL_STOP[t]; });
+    var residual = toks.filter(function(t){
+      var sing = t.replace(/s$/, '');  // "hotels" → "hotel" so a consumed type noun matches its plural
+      return consumed.indexOf(t) < 0 && consumed.indexOf(sing) < 0 && !RESIDUAL_STOP[t];
+    });
     if (!residual.length) return { rows: rows };
     var phrase = residual.join(' ');
     function blob(p){ return norm((p.Title||'')+' '+(p.Neighborhood||'')+' '+(p.DescriptionLong||'')+' '+(p.Description||'')); }
@@ -1807,7 +1810,11 @@
     // Narrow to a residual neighborhood/qualifier ("design district") the
     // structured parse ignored, and surface it as an "Area" chip. Skip
     // when we've already narrowed to one project by title.
-    if (!titleHit) {
+    // Residual narrowing (e.g. "design district") only makes sense when the query
+    // named a place to narrow WITHIN. For global type/status queries like "hotels
+    // opening around the world soon", leftover words ("world") must not filter the
+    // set down to the handful of projects that happen to mention them.
+    if (!titleHit && (s.cities.length || s.region)) {
       var resid = applyResidualText(q, s, rows);
       rows = resid.rows;
       if (resid.label) s._areaLabel = resid.label;
