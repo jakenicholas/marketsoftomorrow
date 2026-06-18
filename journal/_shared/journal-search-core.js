@@ -542,7 +542,7 @@
       statuses.add('Opening Soon'); statuses.add('Now Open');
       if (statusLabels.indexOf('Opening soon') < 0) statusLabels.push('Opening soon');
       if (statusLabels.indexOf('Open') < 0) statusLabels.push('Open');
-      yearMin = TY - 1; yearMax = TY + 1; yearLabel = 'recent + opening soon';
+      yearMin = TY - 1; yearMax = TY + 1; yearLabel = (TY - 1) + '–' + (TY + 1);
     }
 
     var place = region || cities.length;

@@ -1805,7 +1805,11 @@
     // Without this, the sentence (LLM-upgraded to the specific project)
     // and the "First delivery 2025" / "~7,144 residences total" stats grid
     // contradict each other.
-    var titleHit = pickTitleScopedProject(q, rows);
+    // Only scope to a single project when the query named a place to disambiguate
+    // within (e.g. "viceroy fort lauderdale"). For a global type/status query like
+    // "hotels opening around the world soon" a stray token ("world" → "Worldcenter")
+    // must not collapse the whole set down to one project.
+    var titleHit = (s.cities.length || s.region) ? pickTitleScopedProject(q, rows) : null;
     if (titleHit) rows = [titleHit];
     // Narrow to a residual neighborhood/qualifier ("design district") the
     // structured parse ignored, and surface it as an "Area" chip. Skip
