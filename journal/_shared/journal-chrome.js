@@ -87,16 +87,17 @@
       '<div><h4>Iconic Lists</h4><ul>' +
         '<li><a href="/golf/">Golf</a></li><li><a href="/restaurants/">Restaurants</a></li>' +
         '<li><a href="/hotels/">Hotels</a></li></ul></div>' +
-      '<div><h4>Company</h4><ul>' +
-        // SEO programmatic market hubs land first so the footer surfaces
-        // 91 indexable landing pages with one link. "Atlas" + "Map" ride
-        // above the static media/contact items.
+      '<div><h4>Data</h4><ul>' +
+        // SEO programmatic market hubs (91 indexable landing pages) lead the
+        // Data column; Map + Atlas sit alongside Tracked Markets.
         '<li><a href="/markets/">Tracked Markets</a></li>' +
-        '<li><a href="https://www.oftmw.com/atlas">Atlas</a></li>' +
         '<li><a href="https://www.oftmw.com/map">Map</a></li>' +
+        '<li><a href="https://www.oftmw.com/atlas">Atlas</a></li></ul></div>' +
+      '<div><h4>Company</h4><ul>' +
         '<li><a href="/media/">About Us</a></li>' +
         '<li><a href="/media/">Advertise</a></li>' +
-        '<li><a href="mailto:hello@oftmw.com">Contact</a></li></ul></div>' +
+        '<li><a href="mailto:hello@oftmw.com">Contact</a></li>' +
+        '<li><a href="#" onclick="window.tmwFooterSubscribe(event);return false;">Subscribe</a></li></ul></div>' +
     '</div><div class="ft-bot"><div>&copy; <span id="tmw-yr"></span> Markets of Tomorrow</div>' +
       '<div>The Future is Here</div></div></div></footer>';
 
@@ -159,7 +160,7 @@
     '}',
     '.tmw-chrome-foot{background:var(--ink-2); color:var(--mute-2); padding:60px 0 30px; border-top:1px solid var(--hair); margin-top:40px}',
     '.tmw-chrome-foot .wrap{max-width:1240px; margin:0 auto; padding:0 28px}',
-    '.tmw-chrome-foot .ft-grid{display:grid; grid-template-columns:1.5fr 1fr 1fr 1fr; gap:40px; padding-bottom:30px; border-bottom:1px solid var(--hair)}',
+    '.tmw-chrome-foot .ft-grid{display:grid; grid-template-columns:1.5fr 1fr 1fr 1fr 1fr; gap:40px; padding-bottom:30px; border-bottom:1px solid var(--hair)}',
     '.tmw-chrome-foot h4{font-family:var(--mono); font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:var(--white); margin-bottom:14px; font-weight:600}',
     '.tmw-chrome-foot ul{list-style:none; display:flex; flex-direction:column; gap:9px; font-size:14px; margin:0; padding:0}',
     '.tmw-chrome-foot ul a{color:var(--mute); transition:color .2s; text-decoration:none}',
@@ -220,6 +221,28 @@
     var f = document.createElement('div');
     f.innerHTML = footerHtml;
     document.body.appendChild(f.firstChild);
+
+    // Footer "Subscribe" → opens the same email-capture lightbox articles use.
+    // Works on any page: reuse the signup funnel if it's already loaded,
+    // otherwise lazy-load it (the funnel's own dedup guard prevents a double
+    // popup with its 3s auto-trigger).
+    window.tmwFooterSubscribe = function (ev) {
+      if (ev && ev.preventDefault) ev.preventDefault();
+      function go() {
+        try {
+          if (window.tmwSignupFunnel && window.tmwSignupFunnel.email) window.tmwSignupFunnel.email();
+          else if (window.tmwSignupFunnel && window.tmwSignupFunnel.open) window.tmwSignupFunnel.open();
+        } catch (e) {}
+      }
+      if (window.tmwSignupFunnel && (window.tmwSignupFunnel.email || window.tmwSignupFunnel.open)) { go(); return; }
+      var existing = document.querySelector('script[data-tmw-funnel-loader]');
+      if (existing) { existing.addEventListener('load', go); return; }
+      var s = document.createElement('script');
+      s.src = '/_shared/journal-signup-funnel.js';
+      s.setAttribute('data-tmw-funnel-loader', '');
+      s.onload = go;
+      document.body.appendChild(s);
+    };
 
     var yr = document.getElementById('tmw-yr');
     if (yr) yr.textContent = String(new Date().getFullYear());
