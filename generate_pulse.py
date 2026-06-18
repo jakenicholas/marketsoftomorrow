@@ -466,6 +466,9 @@ def match_article_to_all_projects(article: dict, projects: dict) -> list:
 # across runs even when articles fall off the RSS feed (which only holds
 # ~20 most recent items).
 ARTICLES_JSON = 'articles.json'
+# Human-set article→project links (D1 posts.project_slug), unioned into the
+# archive each run so manual links surface in Coverage on TMW everywhere.
+COVERAGE_LINKS_URL = 'https://tmw.jake-ab7.workers.dev/coverage-links'
 
 def load_articles_archive() -> dict:
     """Load the existing articles archive. Returns {} if missing."""
@@ -528,6 +531,45 @@ def _reassign_orphan_slugs(archive: dict, projects: dict) -> dict:
     return archive
 
 
+def merge_manual_coverage_links(archive: dict) -> int:
+    """Union human-set article→project links (D1 posts.project_slug, served by the
+    worker at COVERAGE_LINKS_URL) into the archive. Manual entries are flagged
+    `manual: True` so the per-project cap never evicts them and they always win
+    over a same-link auto match. Returns the count merged. Best-effort: a fetch
+    failure is logged and skipped so the build never breaks on a worker hiccup."""
+    try:
+        req = urllib.request.Request(COVERAGE_LINKS_URL, headers={'User-Agent': 'TMW-Pulse/1.0'})
+        with urllib.request.urlopen(req, timeout=20) as resp:
+            payload = json.loads(resp.read().decode('utf-8'))
+    except Exception as e:
+        print(f"   Manual coverage links: fetch failed ({e}) -- skipping")
+        return 0
+    links = payload.get('links') if isinstance(payload, dict) else payload
+    if not isinstance(links, list):
+        return 0
+    n = 0
+    for L in links:
+        slug = (L.get('project_slug') or '').strip()
+        link = (L.get('link') or '').strip()
+        if not slug or not link:
+            continue
+        entry = {
+            'guid': link,
+            'title': L.get('title') or '',
+            'link': link,
+            'image': L.get('image') or '',
+            'published_at': L.get('published_at') or '',
+            'manual': True,
+        }
+        existing = archive.setdefault(slug, [])
+        # Drop any prior (auto) entry for the same link; the manual flag wins.
+        existing = [e for e in existing if (e.get('link') or e.get('guid')) != link]
+        existing.append(entry)
+        archive[slug] = existing
+        n += 1
+    print(f"   Manual coverage links merged: {n}")
+    return n
+
 def update_articles_archive(articles: list, projects: dict) -> dict:
     """Merge current RSS articles into the archive, preserving existing entries.
 
@@ -582,6 +624,11 @@ def update_articles_archive(articles: list, projects: dict) -> dict:
         for t in unmatched_titles:
             print(f"     - {t}")
 
+    # Union the human-set links (Studio editor → D1 posts.project_slug) so a
+    # manual link surfaces in Coverage on TMW even when the project name never
+    # appears in the article text. Source of truth; re-synced every run.
+    merge_manual_coverage_links(archive)
+
     # Sort each project's articles newest first, dedupe by link (catching
     # any cross-source duplicates with different guids), and cap to a
     # reasonable depth so the JSON doesn't grow unbounded over years.
@@ -606,7 +653,11 @@ def update_articles_archive(articles: list, projects: dict) -> dict:
                     by_link[key] = e
         deduped = list(by_link.values())
         deduped.sort(key=lambda e: e.get('published_at') or '', reverse=True)
-        archive[slug] = deduped[:MAX_PER_PROJECT]
+        # Keep ALL manual (human-set) links, then fill the rest with the newest
+        # auto matches up to the cap — so manual coverage is never evicted.
+        manual = [e for e in deduped if e.get('manual')]
+        auto   = [e for e in deduped if not e.get('manual')]
+        archive[slug] = manual + auto[:max(0, MAX_PER_PROJECT - len(manual))]
     return archive
 
 def save_articles_archive(archive: dict):

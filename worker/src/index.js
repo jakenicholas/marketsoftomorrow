@@ -1985,6 +1985,33 @@ function rowToPostSummary(r) {
     campaign_id:  r.campaign_id  || null,
   };
 }
+
+// GET /coverage-links — every PUBLISHED post with a human-set project_slug (the
+// manual article→project links set in the Studio post editor). The hourly build
+// (generate_pulse.py) unions these into articles.json so manual links surface in
+// "Coverage on TMW" on every surface — even when the project name isn't in the
+// article text. Public + read-only (all published-post data is already public).
+async function handleCoverageLinks(env, origin) {
+  const rows = await env.DB.prepare(
+    `SELECT slug, title, cover_image, published_at, project_slug
+       FROM posts
+      WHERE project_slug IS NOT NULL AND project_slug != ''
+        AND status = 'published'`
+  ).all();
+  const links = [];
+  for (const r of (rows.results || [])) {
+    if (!r.slug || !r.project_slug) continue;
+    links.push({
+      project_slug: r.project_slug,
+      slug: r.slug,
+      title: r.title || '',
+      image: wixImagesToR2(r.cover_image) || '',
+      published_at: r.published_at ? new Date(r.published_at * 1000).toISOString() : '',
+      link: 'https://www.oftmw.com/post/' + r.slug,
+    });
+  }
+  return json({ links }, { headers: { 'Cache-Control': 'public, max-age=300, s-maxage=300' } }, env, origin);
+}
 // Serve every migrated Wix image from our own R2 (the originals were copied to
 // /media/wix/<file>), so the live site has no static.wixstatic.com dependency.
 // Strips Wix CDN transform suffixes (…~mv2.jpg/v1/fill/…) back to the original.
@@ -5515,6 +5542,9 @@ export default {
       }
       if (request.method === 'GET' && url.pathname === '/post-views') {
         return await handlePostViews(env, origin);
+      }
+      if (request.method === 'GET' && url.pathname === '/coverage-links') {
+        return await handleCoverageLinks(env, origin);
       }
       // Journal "active now" heartbeat (public): ping in, 5-min session count out.
       if (request.method === 'POST' && url.pathname === '/journal-ping') {
