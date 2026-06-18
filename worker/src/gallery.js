@@ -1051,7 +1051,7 @@ function renderGateHTML(g, base, opts = {}) {
   return `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow,noarchive"><title>${esc(g.title)} — Private gallery</title>${FONTS}
 <style>${BASE_CSS}
-.gate{position:relative;min-height:82vh;display:flex;align-items:center;justify-content:center;padding:24px;overflow:hidden}
+.gate{position:relative;min-height:100vh;min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:24px;overflow:hidden}
 .gate-preview{position:absolute;inset:0;z-index:0;display:grid;grid-template-columns:repeat(3,1fr);grid-auto-rows:1fr;pointer-events:none;user-select:none;-webkit-user-select:none}
 .gate-preview img{width:100%;height:100%;object-fit:cover;filter:brightness(.84) saturate(1.05);-webkit-user-drag:none}
 /* Progressive blur — sharp + fully visible at the top, dissolving to a heavy
