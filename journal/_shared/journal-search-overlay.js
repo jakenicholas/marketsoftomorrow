@@ -2184,7 +2184,8 @@
       // connected sibling (so the LLM has real cross-project context to
       // synthesize -- a single isolated project becomes the existing
       // hero card and doesn't need a synthesized sentence).
-      var trigger = question || (strongAnchor && connectedProjects.length > 0);
+      var cityHit = detectCityQuery(q);
+      var trigger = question || cityHit || (strongAnchor && connectedProjects.length > 0);
       if (trigger){
         if (!allowed){
           slotIntel.innerHTML = intelGateHtml();
@@ -2193,8 +2194,14 @@
           // For an anchor query, the projects we feed Intelligence are
           // the anchor + connected ones (dedup'd, capped at 5). For a
           // regular question we use the top-scored as before.
-          var intelProjects;
-          if (strongAnchor) {
+          var intelProjects, intelPlace = null;
+          if (cityHit) {
+            // Bare city query → city OVERVIEW: feed the whole city set so the
+            // answer covers the pipeline (count, dominant type, soonest opening,
+            // transformational anchors) — not just a coincidentally-named match.
+            intelProjects = PROJECTS.filter(inCity(cityHit));
+            intelPlace = cityHit;
+          } else if (strongAnchor) {
             intelProjects = [strongAnchor];
             var seenT = {}; seenT[strongAnchor.Title] = true;
             connectedProjects.forEach(function (p) {
@@ -2204,7 +2211,7 @@
           } else {
             intelProjects = pScored.slice(0, 5).map(function(x){ return x.p; });
           }
-          fireIntelligence(q, intelProjects, aScored.slice(0,3).map(function(x){ return x.a; }));
+          fireIntelligence(q, intelProjects, aScored.slice(0,3).map(function(x){ return x.a; }), intelPlace);
         } else if (Core){
           slotIntel.innerHTML = intelPanelHtml('loading', q);
           fireIntelligence(q, [], []);
@@ -2521,10 +2528,26 @@
   // Called from runQuery once per settled query. Bumps _intelToken so a
   // late-returning response for a stale query doesn't paint over the
   // current loading shell.
-  function fireIntelligence(q, topProjects, topArticles){
+  // Detect a bare city-name query (the whole query IS a city) so we answer it
+  // as a city overview rather than latching onto a coincidentally-named project
+  // (e.g. "nashville" anchoring on "Nashville Yards"). Returns display name|null.
+  function detectCityQuery(q){
+    var Core = window.TmwSearchCore;
+    if (!Core || !Core.buildCitySet || !Core.norm) return null;
+    var full = Core.norm(q).trim();
+    if (!full || full.split(/\s+/).length > 4) return null;
+    var set = Core.buildCitySet(PROJECTS), best = null;
+    set.forEach(function(disp, nc){ if (full === nc && (!best || nc.length > best.nc.length)) best = { disp: disp, nc: nc }; });
+    return best ? best.disp : null;
+  }
+  function inCity(cityDisp){
+    var Core = window.TmwSearchCore, target = Core.norm(cityDisp);
+    return function(p){ return Core.norm(String(p.City||'').split(',')[0].trim()) === target; };
+  }
+  function fireIntelligence(q, topProjects, topArticles, place){
     var Core = window.TmwSearchCore;
     if (!Core) return;
-    var facts = Core.buildIntelFacts(topProjects, topArticles);
+    var facts = Core.buildIntelFacts(topProjects, topArticles, place);
     var myToken = ++_intelToken;
     clearTimeout(_intelDebounce);
     _intelDebounce = setTimeout(function(){

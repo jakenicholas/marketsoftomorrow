@@ -5477,14 +5477,35 @@ async function handleSmartAnswer(request, env, origin) {
     largest: facts.largest || null,
     residences_total: facts.residencesTotal || null,
     first_delivery: facts.firstDelivery || null,
-    top: facts.top.slice(0, 8).map(p => ({
+    top: facts.top.slice(0, 12).map(p => ({
       name: String(p.name || '').slice(0, 80),
       city: String(p.city || '').slice(0, 60),
       status: String(p.status || '').slice(0, 40),
+      type: String(p.type || '').slice(0, 40),
       floors: p.floors || null,
       units: p.units || null,
       delivery: String(p.delivery || '').slice(0, 16),
+      district: !!p.district,
+      blurb: String(p.blurb || '').slice(0, 160),
     })),
+    dominant_type: facts.dominantType ? {
+      type: String(facts.dominantType.type || '').slice(0, 40),
+      count: Number(facts.dominantType.count) || null,
+      of: Number(facts.dominantType.of) || null,
+      scope: String(facts.dominantType.scope || '').slice(0, 16) || null,
+    } : null,
+    soonest: facts.soonest ? {
+      name: String(facts.soonest.name || '').slice(0, 80),
+      delivery: String(facts.soonest.delivery || '').slice(0, 16),
+      urgency: String(facts.soonest.urgency || '').slice(0, 24),
+      status: String(facts.soonest.status || '').slice(0, 24),
+    } : null,
+    flagships: Array.isArray(facts.flagships) ? facts.flagships.slice(0, 3).map(f => ({
+      name: String(f.name || '').slice(0, 80),
+      type: String(f.type || '').slice(0, 40),
+      district: !!f.district,
+      blurb: String(f.blurb || '').slice(0, 200),
+    })) : null,
   };
 
   const sig = await sha256Hex(SMART_ANSWER_MODEL + '|' + JSON.stringify(compact));
@@ -5499,25 +5520,31 @@ async function handleSmartAnswer(request, env, origin) {
   } catch { /* cache miss path */ }
 
   const system =
-    'You are TMW Intelligence, the analyst voice of Markets of Tomorrow, a real-estate development ' +
-    'intelligence publication. You are given a user search query and a set of VERIFIED facts pulled ' +
-    'from our project database. Write a single tight answer of 1-2 sentences that directly answers the ' +
-    'query and surfaces the most notable result.\n\n' +
-    'Rules:\n' +
-    '- Use ONLY the facts provided. Never invent or infer a number, project name, date, or place that ' +
-    'is not in the facts.\n' +
-    '- Lead with the headline the query is asking for (how many match, the tallest, the largest, where ' +
-    'they cluster) — do not list every item.\n' +
-    '- When the facts are several related projects sharing a place, name, or district, call out which is ' +
-    'opening soonest: a near-term delivery date or an "Opening Soon" / "Now Open" status is the ' +
-    'newsworthy lead and should be named explicitly.\n' +
-    '- If there is only ONE result, do NOT use superlatives like "tallest", "largest", or "stands as" — ' +
-    'a single project is not the most or least of anything. Just state it plainly.\n' +
-    '- Only say a project hit a milestone (topped out, secured financing, went vertical, etc.) if the ' +
-    'facts explicitly say so. Never assert a construction status the facts do not state.\n' +
-    '- Confident, editorial, concrete. No hype words, no preamble like "Based on", no markdown, no bullets.\n' +
-    '- Refer to projects by name exactly as given.\n' +
-    '- Output only the sentence(s), nothing else.';
+    'You are TMW Intelligence, the analyst voice of Markets of Tomorrow — a real-estate development ' +
+    'intelligence publication with sharp editorial instincts. You are given a search query and a set of ' +
+    'VERIFIED facts from our project database. Write a tight, insightful answer (1-3 sentences) that reads ' +
+    'like a knowledgeable analyst briefing an editor — not a database readout.\n\n' +
+    'Lead with whatever is most newsworthy, in this order:\n' +
+    '1. IMMINENCE — if `soonest` shows an opening within the next few months, that is the lead: name it and ' +
+    'its urgency (e.g. "Dolly Parton\'s SongTeller Hotel opens this month"). A near-term opening outranks an ' +
+    'already-open project.\n' +
+    '2. TRANSFORMATION — if `flagships` lists district-scale or stadium / mega mixed-use projects, name the ' +
+    'one(s) reshaping the area and say why, pulling scale specifics (acreage, cost, tower count) ONLY from ' +
+    'that project\'s `blurb`. This is the "whole new district" energy.\n' +
+    '3. PATTERN — if `dominant_type` shows the set leans one way (especially scope "opening soon"), say so ' +
+    '("hotel-led", "mostly residential").\n' +
+    '4. SCOPE — ground it with the count ("N tracked across {place}").\n\n' +
+    'For a CITY or REGION query (a `place` is set), weave these into a short editorial OVERVIEW: how many we ' +
+    'track, what the pipeline leans toward, the nearest-term opening, and the project(s) bringing the biggest ' +
+    'change. Do not just name the single top match.\n\n' +
+    'Hard rules:\n' +
+    '- Use ONLY the facts provided. Never invent or infer a number, name, date, status, or place not present. ' +
+    'Figures are verified, not generated.\n' +
+    '- Pull descriptive specifics (cost, acreage, scale) ONLY from a project\'s `blurb`; never invent them.\n' +
+    '- If there is only ONE result, state it plainly — no "tallest / largest / most".\n' +
+    '- Only assert a construction milestone if the facts explicitly say so.\n' +
+    '- Confident, concrete, editorial. No hype-for-hype, no preamble ("Based on…"), no markdown, no bullets, ' +
+    'no lists. Refer to projects by name exactly as given. Output only the answer prose.';
 
   let answer = null;
   try {
@@ -5530,7 +5557,7 @@ async function handleSmartAnswer(request, env, origin) {
       },
       body: JSON.stringify({
         model: SMART_ANSWER_MODEL,
-        max_tokens: 220,
+        max_tokens: 320,
         system,
         messages: [{ role: 'user', content: 'Query and verified facts (JSON):\n' + JSON.stringify(compact) }],
       }),

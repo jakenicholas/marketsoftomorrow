@@ -147,38 +147,31 @@
   // Mixes top projects + top articles into a single .top array. Articles
   // are tagged status='Article' so the LLM at least SEES the journal
   // coverage that may be the real answer to the question.
-  function buildIntelFacts(topProjects, topArticles) {
-    var top = [];
-    (topProjects || []).slice(0, 5).forEach(function (p) {
-      top.push({
-        name: p.Title || '',
-        city: p.City || '',
-        status: p.Delivery || '',
-        floors: floorsOf(p) || null,
-        units: unitsOf(p) || null,
-        delivery: fmtDelivery(p) || ''
-      });
-    });
+  function buildIntelFacts(topProjects, topArticles, place) {
+    var projects = (topProjects || []).filter(function (p) { return p && p.Title; });
+    var sig = computeSignals(projects);
+    var top = projects.slice(0, 10).map(factRow);
     (topArticles || []).slice(0, 3).forEach(function (a) {
       top.push({
-        name: a.title || '',
-        city: '',
-        status: 'Article',
-        floors: null,
-        units: null,
-        delivery: a.published_iso ? new Date(a.published_iso).toISOString().slice(0, 10) : ''
+        name: a.title || '', city: '', status: 'Article', type: '',
+        floors: null, units: null,
+        delivery: a.published_iso ? new Date(a.published_iso).toISOString().slice(0, 10) : '',
+        district: false, blurb: String(a.excerpt || '').slice(0, 140)
       });
     });
     return {
-      count: top.length || 1,
+      count: projects.length || top.length || 1,
       criteria: {},
       sort: null,
-      place: null,
+      place: place || null,
       tallest: null,
       largest: null,
       residencesTotal: null,
       firstDelivery: null,
-      top: top.slice(0, 8)
+      dominantType: sig.dominantType,
+      soonest: sig.soonest,
+      flagships: sig.flagships,
+      top: top.slice(0, 12)
     };
   }
 
@@ -775,6 +768,59 @@
     return { html: sentence, stats: stats.slice(0, 4) };
   }
 
+  // ── editorial signals — the patterns a TMW analyst would lead with ──
+  // Pure: derives "what's newsworthy here" from a set of project rows so the
+  // LLM can write an overview (imminence, transformation, dominant theme)
+  // instead of just naming the top-ranked match.
+  function _isDistrict(p) { return p.IsDistrict === true || p.IsDistrict === 'true' || p.IsDistrict === 1; }
+  function _primaryType(p) { return String(p.PreferredType || (p.ProjectType || '').split(',')[0] || '').trim(); }
+  function computeSignals(rows) {
+    rows = (rows || []).filter(function (p) { return p && p.Title && p.Delivery !== 'Article'; });
+    if (!rows.length) return { dominantType: null, soonest: null, flagships: null };
+    var d = new Date(), nowM = d.getFullYear() * 12 + d.getMonth();
+    var idx = function (dd) { var m = String(dd || '').match(/^(\d{4})(?:-(\d{2}))?/); return m ? (+m[1]) * 12 + ((m[2] ? +m[2] : 6) - 1) : null; };
+    // soonest UPCOMING opening (not already open) + how soon
+    var up = rows.filter(function (p) { return p.Delivery !== 'Now Open'; })
+      .map(function (p) { return { p: p, i: idx(p.DeliveryDate) }; })
+      .filter(function (x) { return x.i != null && x.i >= nowM - 1; })
+      .sort(function (a, b) { return a.i - b.i; });
+    // dominant type — what the near-term pipeline (next ~2 yrs of openings) leans
+    // toward, falling back to the whole set when the pipeline is thin. "Nashville
+    // is leaning toward hotels" is about what's COMING, not what's already built.
+    var nearRows = up.filter(function (x) { return x.i <= nowM + 24; }).map(function (x) { return x.p; });
+    var basisRows = nearRows.length >= 3 ? nearRows : rows;
+    var counts = {};
+    basisRows.forEach(function (p) { var t = _primaryType(p); if (t) counts[t] = (counts[t] || 0) + 1; });
+    var dt = null, dn = 0;
+    for (var k in counts) { if (counts[k] > dn) { dn = counts[k]; dt = k; } }
+    var dominantType = (basisRows.length >= 3 && dt && dn >= 2)
+      ? { type: dt, count: dn, of: basisRows.length, scope: (basisRows === nearRows ? 'opening soon' : 'tracked') } : null;
+    var soonest = null;
+    if (up.length) {
+      var u = up[0], diff = u.i - nowM;
+      var urg = diff <= 0 ? 'this month' : diff === 1 ? 'next month' : diff <= 3 ? ('in ~' + diff + ' months')
+              : (diff <= (11 - d.getMonth()) ? 'later this year' : (fmtDelivery(u.p) || u.p.DeliveryDate || ''));
+      soonest = { name: u.p.Title, delivery: fmtDelivery(u.p) || u.p.DeliveryDate || '', urgency: urg, status: u.p.Delivery || '' };
+    }
+    // transformational flagships — districts + stadium / mega mixed-use, biggest first
+    var scale = function (p) { return Math.max(floorsOf(p), unitsOf(p) / 10); };
+    var flagships = rows.filter(function (p) {
+      var t = norm(_primaryType(p) + ' ' + (p.ProjectType || ''));
+      return _isDistrict(p) || /mixed-use|stadium|arena|ballpark|airport|entertainment/.test(t);
+    }).sort(function (a, b) {
+      return ((_isDistrict(b) ? 1 : 0) - (_isDistrict(a) ? 1 : 0)) || (scale(b) - scale(a));
+    }).slice(0, 3).map(function (p) {
+      return { name: p.Title, type: _primaryType(p), district: _isDistrict(p), blurb: String(p.Description || '').slice(0, 180) };
+    });
+    return { dominantType: dominantType, soonest: soonest, flagships: flagships.length ? flagships : null };
+  }
+  // Enriched project shape shared by both fact-payload builders.
+  function factRow(p) {
+    return { name: p.Title || '', city: p.City || '', status: p.Delivery || '', type: _primaryType(p),
+      floors: floorsOf(p) || null, units: unitsOf(p) || null, delivery: fmtDelivery(p) || '',
+      district: _isDistrict(p), blurb: String(p.Description || '').slice(0, 140) };
+  }
+
   // Build the LLM facts payload from the resolved rows. Numbers are
   // DB-derived; the model is told to use only these. Used by the
   // /smart-answer upgrade step (replaces the deterministic sentence
@@ -790,6 +836,7 @@
     var yrs = rows.map(yearOf).filter(Boolean);
     var place = s.cities.length ? s.cities.join(' & ') : (s.region || null);
     var many = rows.length >= 2;
+    var sig = computeSignals(rows);
     return {
       count: rows.length,
       criteria: {
@@ -807,9 +854,10 @@
       largest: (many && largest) ? { name: largest.Title, units: maxU } : null,
       residencesTotal: rows.reduce(function (a, p) { return a + unitsOf(p); }, 0) || null,
       firstDelivery: yrs.length ? Math.min.apply(null, yrs) : null,
-      top: rows.slice(0, 8).map(function (p) {
-        return { name: p.Title, city: p.City || '', status: p.Delivery || '', floors: floorsOf(p) || null, units: unitsOf(p) || null, delivery: fmtDelivery(p) || '' };
-      })
+      dominantType: sig.dominantType,
+      soonest: sig.soonest,
+      flagships: sig.flagships,
+      top: rows.slice(0, 8).map(factRow)
     };
   }
 
@@ -849,6 +897,7 @@
     smartRank: smartRank,
     buildSmartAnswer: buildSmartAnswer,
     buildSmartFacts: buildSmartFacts,
+    computeSignals: computeSignals,
     detectFirm: detectFirm,
     buildCitySet: buildCitySet,
     // assets
