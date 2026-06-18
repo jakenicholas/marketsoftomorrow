@@ -84,7 +84,10 @@
       '</div>';
     document.body.appendChild(el);
 
-    function close() { el.classList.remove('show'); }
+    // Remove (not just hide) on close so build()'s singleton guard doesn't
+    // stay tripped — otherwise the footer "Subscribe" CTA silently no-ops
+    // after the auto-popup has been dismissed once. Mirrors buildAccountMode.
+    function close() { el.classList.remove('show'); setTimeout(function () { el.remove(); }, 350); }
     el.querySelector('.tmw-sub-x').addEventListener('click', close);
     el.addEventListener('click', function (e) { if (e.target === el) close(); });
 

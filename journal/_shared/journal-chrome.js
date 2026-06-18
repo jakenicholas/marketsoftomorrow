@@ -97,7 +97,7 @@
       '<div><h4>Company</h4><ul>' +
         '<li><a href="/media/">About Us</a></li>' +
         '<li><a href="/media/">Advertise</a></li>' +
-        '<li><a href="mailto:hello@oftmw.com">Contact</a></li>' +
+        '<li><a href="/media/#cta">Contact</a></li>' +
         '<li><a href="#" onclick="window.tmwFooterSubscribe(event);return false;">Subscribe</a></li></ul></div>' +
     '</div><div class="ft-bot"><div>&copy; <span id="tmw-yr"></span> Markets of Tomorrow</div>' +
       '<div>The Future is Here</div></div></div></footer>';
@@ -231,6 +231,11 @@
       if (ev && ev.preventDefault) ev.preventDefault();
       function go() {
         try {
+          // Clear any dismissed-but-not-removed popup so the funnel's singleton
+          // guard doesn't make this CTA a no-op. Only nuke hidden ones — a
+          // currently-open popup means there's nothing to do.
+          var stale = document.querySelector('.tmw-sub:not(.show)');
+          if (stale) stale.remove();
           if (window.tmwSignupFunnel && window.tmwSignupFunnel.email) window.tmwSignupFunnel.email();
           else if (window.tmwSignupFunnel && window.tmwSignupFunnel.open) window.tmwSignupFunnel.open();
         } catch (e) {}
