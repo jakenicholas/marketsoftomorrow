@@ -629,7 +629,11 @@ def build_link_candidates(corpus_articles: list, archive: dict) -> list:
                 'signal': sig + '+city',
                 'reason': f"{sig.capitalize()} “{firm}” + city “{city}” named in the article",
             })
+    # Newest first, then float developer+city (higher confidence than
+    # architect+city — architects spread across many projects in a city) to the
+    # top so the cap keeps the better candidates. Stable sort preserves date.
     cands.sort(key=lambda c: c.get('published_at') or '', reverse=True)
+    cands.sort(key=lambda c: 0 if c.get('signal', '').startswith('developer') else 1)
     return cands[:500]
 
 def merge_manual_coverage_links(archive: dict) -> int:
