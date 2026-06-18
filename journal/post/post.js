@@ -1086,13 +1086,13 @@ function escapeAttr(s) { return escapeHtml(s); }
     var el = document.createElement('div');
     el.className = 'tmw-sub';
     el.innerHTML =
-      '<div class="tmw-sub-panel" role="dialog" aria-label="Subscribe to the newsletter">' +
+      '<div class="tmw-sub-panel" role="dialog" aria-label="Create a free TMW account">' +
         '<button class="tmw-sub-x" aria-label="Close">&times;</button>' +
         '<div class="tmw-sub-eyebrow">The Future Is Here</div>' +
-        '<h3 class="tmw-sub-h">Separate yourself from millions of monthly readers and join our newsletter.</h3>' +
+        '<h3 class="tmw-sub-h">Go beyond the article. Get the data and updates behind every story — free.</h3>' +
         '<form class="tmw-sub-form">' +
           '<input type="email" name="email" placeholder="you@example.com" autocomplete="email" required>' +
-          '<button type="submit">Subscribe</button>' +
+          '<button type="submit">Join Free</button>' +
         '</form>' +
         '<div class="tmw-sub-msg" aria-live="polite"></div>' +
       '</div>';
@@ -1110,7 +1110,7 @@ function escapeAttr(s) { return escapeHtml(s); }
       var email = (form.email.value || '').trim();
       if (!email) return;
       var btn = form.querySelector('button'); var orig = btn.textContent;
-      btn.disabled = true; btn.textContent = 'Subscribing…';
+      btn.disabled = true; btn.textContent = 'Joining…';
       try {
         var r = await fetch(SUB_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: email, markets: MARKETS }) });
         var d = await r.json().catch(function () { return {}; });
@@ -1125,7 +1125,7 @@ function escapeAttr(s) { return escapeHtml(s); }
           var faHost = document.createElement('div'); panel.appendChild(faHost);
           var offered = window.tmwFreeAccountPrompt && window.tmwFreeAccountPrompt(faHost, email, function () { el.classList.remove('show'); });
           if (!offered) {
-            msg.style.display = ''; msg.textContent = "✓ You've subscribed! Welcome to The Weekly.";
+            msg.style.display = ''; msg.textContent = "✓ You're in! Welcome to TMW.";
             setTimeout(function () { el.classList.remove('show'); }, 2600);
           }
         } else { btn.disabled = false; btn.textContent = orig; }

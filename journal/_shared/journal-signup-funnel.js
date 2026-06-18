@@ -37,7 +37,7 @@
   var DELAY_MS = OPTS.delayMs || 3000;
   var SOURCE = OPTS.source || 'market_page';
   var EYEBROW = OPTS.eyebrow || 'The Future Is Here';
-  var HEADLINE = OPTS.headline || 'Separate yourself from millions of monthly readers and join our newsletter.';
+  var HEADLINE = OPTS.headline || 'Track tomorrow\'s developments. Get the data, maps, and updates — free.';
 
   function mark(v) { try { localStorage.setItem(KEY, v); } catch (e) {} }
   function subscribedEmail() { try { return localStorage.getItem(SUB_EMAIL_KEY); } catch (e) { return null; } }
@@ -72,13 +72,13 @@
     var el = document.createElement('div');
     el.className = 'tmw-sub';
     el.innerHTML =
-      '<div class="tmw-sub-panel" role="dialog" aria-label="Join the newsletter">' +
+      '<div class="tmw-sub-panel" role="dialog" aria-label="Create a free TMW account">' +
         '<button class="tmw-sub-x" aria-label="Close">&times;</button>' +
         '<div class="tmw-sub-eyebrow">' + esc(EYEBROW) + '</div>' +
         '<h3 class="tmw-sub-h">' + esc(HEADLINE) + '</h3>' +
         '<form class="tmw-sub-form">' +
           '<input type="email" name="email" placeholder="you@example.com" autocomplete="email" required>' +
-          '<button type="submit">Subscribe</button>' +
+          '<button type="submit">Join Free</button>' +
         '</form>' +
         '<div class="tmw-sub-msg" aria-live="polite"></div>' +
       '</div>';
@@ -95,7 +95,7 @@
       var email = (form.email.value || '').trim();
       if (!email) return;
       var btn = form.querySelector('button'); var orig = btn.textContent;
-      btn.disabled = true; btn.textContent = 'Subscribing…';
+      btn.disabled = true; btn.textContent = 'Joining…';
       try {
         var r = await fetch(SUB_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: email, markets: MARKETS }) });
         var d = await r.json().catch(function () { return {}; });
@@ -111,7 +111,7 @@
           var faHost = document.createElement('div'); panel.appendChild(faHost);
           var offered = window.tmwFreeAccountPrompt && window.tmwFreeAccountPrompt(faHost, email, function () { el.classList.remove('show'); });
           if (!offered) {
-            msg.style.display = ''; msg.textContent = "✓ You've subscribed! Welcome to The Weekly.";
+            msg.style.display = ''; msg.textContent = "✓ You're in! Welcome to TMW.";
             setTimeout(function () { el.classList.remove('show'); }, 2600);
           }
         } else { btn.disabled = false; btn.textContent = orig; }

@@ -307,10 +307,10 @@
 
         var headline, eyebrow;
         if (place) {
-          headline = 'Following ' + place + '? Get updates and more data with email sign-up.';
-          eyebrow = place + ' · The Weekly';
+          headline = 'Following ' + place + '? Get updates, maps, and full data — free.';
+          eyebrow = place + ' · Free Access';
         } else {
-          headline = 'Separate yourself from millions of monthly readers and join our newsletter.';
+          headline = 'Track tomorrow\'s developments. Get the data, maps, and updates — free.';
           eyebrow = 'The Future Is Here';
         }
         window.TMW_FUNNEL_OPTS = { headline: headline, eyebrow: eyebrow, source: 'market_page' };
