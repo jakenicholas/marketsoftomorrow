@@ -1,0 +1,26 @@
+name: Deploy Worker
+
+# Publishes the Cloudflare Worker (worker/) on push to main whenever worker code
+# changes. Secrets set via `wrangler secret put` persist on the deployed worker —
+# this only pushes code + the [vars] in wrangler.toml, so existing secrets are
+# untouched. Requires repo secret CLOUDFLARE_API_TOKEN (an "Edit Cloudflare
+# Workers" token). Add CLOUDFLARE_ACCOUNT_ID too if the token spans >1 account.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'worker/**'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy worker
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: worker
+          command: deploy
