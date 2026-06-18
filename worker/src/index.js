@@ -5521,7 +5521,20 @@ async function handleSmartAnswer(request, env, origin) {
     }
   } catch { /* rules are optional */ }
 
-  const sig = await sha256Hex(SMART_ANSWER_MODEL + '|' + JSON.stringify(compact) + '|' + JSON.stringify(learnedRules));
+  // Golden exemplars — a few approved answers the intel-review routine kept, fed
+  // as few-shot STYLE guides (voice + structure, not facts). Best-effort; optional.
+  let learnedExemplars = [];
+  try {
+    const er = await env.DB.prepare(
+      `SELECT props_json FROM events WHERE event_name = 'intel_exemplars' ORDER BY ts DESC LIMIT 1`
+    ).first();
+    if (er && er.props_json) {
+      const pj = JSON.parse(er.props_json);
+      if (Array.isArray(pj.exemplars)) learnedExemplars = pj.exemplars.filter(e => e && e.query && e.answer).slice(0, 3);
+    }
+  } catch { /* exemplars are optional */ }
+
+  const sig = await sha256Hex(SMART_ANSWER_MODEL + '|' + JSON.stringify(compact) + '|' + JSON.stringify(learnedRules) + '|' + JSON.stringify(learnedExemplars));
   const cache = caches.default;
   const cacheKey = new Request('https://smart-answer.tmw.internal/' + sig, { method: 'GET' });
   try {
@@ -5559,7 +5572,10 @@ async function handleSmartAnswer(request, env, origin) {
     '- Confident, concrete, editorial. No hype-for-hype, no preamble ("Based on…"), no markdown, no bullets, ' +
     'no lists. Refer to projects by name exactly as given. Output only the answer prose.' +
     (learnedRules.length ? '\n\nLearned house rules (from editor review of past answers — apply these too):\n'
-      + learnedRules.map(r => '- ' + r).join('\n') : '');
+      + learnedRules.map(r => '- ' + r).join('\n') : '') +
+    (learnedExemplars.length ? '\n\nExamples of excellent TMW answers — match their VOICE and STRUCTURE (how they '
+      + 'lead and frame), but NEVER reuse their specific projects, numbers, or places:\n'
+      + learnedExemplars.map((ex, i) => (i + 1) + '. Q: "' + ex.query + '" -> ' + ex.answer).join('\n') : '');
 
   let answer = null;
   try {
@@ -5663,6 +5679,37 @@ async function handleIntelRules(request, env, origin) {
   return json({ rules }, {}, env, origin);
 }
 
+// /intel-exemplars — GET the golden-answer exemplars fed as few-shot style
+// guides into the smart-answer prompt; POST { exemplars:[{query,answer}], note }
+// replaces them (the intel-review routine writes here). GET admin-gated via
+// ADMIN_READ_PATHS; POST gates here.
+async function handleIntelExemplars(request, env, origin) {
+  if (request.method === 'POST') {
+    const denied = await requireAdminToken(request, env, origin);
+    if (denied) return denied;
+    let body; try { body = await request.json(); } catch { return json({ error: 'bad json' }, { status: 400 }, env, origin); }
+    const exemplars = Array.isArray(body && body.exemplars)
+      ? body.exemplars
+          .filter(e => e && typeof e.query === 'string' && typeof e.answer === 'string' && e.query.trim() && e.answer.trim())
+          .map(e => ({ query: e.query.trim().slice(0, 160), answer: e.answer.trim().slice(0, 600) }))
+          .slice(0, 5)
+      : null;
+    if (!exemplars) return json({ error: 'exemplars array required' }, { status: 400 }, env, origin);
+    try {
+      await env.DB.prepare(`INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?, ?, ?, ?)`)
+        .bind(Math.floor(Date.now() / 1000), 'system:intel-review', 'intel_exemplars',
+              JSON.stringify({ exemplars, note: String((body && body.note) || '').slice(0, 200) })).run();
+    } catch (e) { return json({ error: 'db: ' + e.message }, { status: 500 }, env, origin); }
+    return json({ ok: true, count: exemplars.length }, {}, env, origin);
+  }
+  let exemplars = [];
+  try {
+    const rr = await env.DB.prepare(`SELECT props_json FROM events WHERE event_name = 'intel_exemplars' ORDER BY ts DESC LIMIT 1`).first();
+    if (rr && rr.props_json) { const pj = JSON.parse(rr.props_json); if (Array.isArray(pj.exemplars)) exemplars = pj.exemplars; }
+  } catch {}
+  return json({ exemplars }, {}, env, origin);
+}
+
 export default {
   async fetch(request, env) {
     const url    = new URL(request.url);
@@ -5713,7 +5760,7 @@ export default {
         '/watchlist', '/projects', '/activity', '/subscriptions', '/intel-queries', '/search-gaps',
         '/search-feedback', '/search-feedback/discoveries',
         '/funnel-stats',
-        '/intel-answers', '/intel-rules',
+        '/intel-answers', '/intel-rules', '/intel-exemplars',
       ]);
       if (request.method === 'GET' && ADMIN_READ_PATHS.has(url.pathname)) {
         const denied = await requireAdminToken(request, env, origin);
@@ -5804,6 +5851,9 @@ export default {
       }
       if (url.pathname === '/intel-rules') {
         return await handleIntelRules(request, env, origin);
+      }
+      if (url.pathname === '/intel-exemplars') {
+        return await handleIntelExemplars(request, env, origin);
       }
       if (request.method === 'GET' && url.pathname === '/blog') {
         return await handleBlog(env, origin, url);
