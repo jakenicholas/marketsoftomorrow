@@ -9148,67 +9148,6 @@
       "start_speculative": true,
       "delivery_speculative": true
     },
-    "manor-riverwalk-district": {
-      "estimate_years": 2.9,
-      "estimate_label": "~2.9 years",
-      "range_low": 1.7,
-      "range_high": 3.8,
-      "confidence": "medium",
-      "comparable_count": 12,
-      "good_count": 2,
-      "exact_count": 2,
-      "used_relaxed": false,
-      "avg_match_score": 0.49,
-      "avg_distance_km": 620.8,
-      "avg_distance_mi": 385.8,
-      "scale_used": true,
-      "firm_signal": {
-        "firm": "Related Group",
-        "count": 2,
-        "median_years": 2.73,
-        "stddev_years": 0.27,
-        "role": "developer",
-        "consistent": false,
-        "blend_weight": 0.55
-      },
-      "source": "comparables",
-      "project_type": "Residences",
-      "metro": "Tampa Bay",
-      "comparables": [
-        {
-          "name": "AQUA at Westshore Yacht Club",
-          "slug": "aqua-at-westshore-yacht-club",
-          "location": "Tampa",
-          "years": 1.9,
-          "score": 1.0,
-          "distance_km": 9.3,
-          "distance_mi": 5.8
-        },
-        {
-          "name": "The Residence at 400 Central",
-          "slug": "the-residence-at-400-central",
-          "location": "St. Petersburg",
-          "years": 3.1,
-          "score": 0.73,
-          "distance_km": 26.1,
-          "distance_mi": 16.2
-        },
-        {
-          "name": "Nautilus 220",
-          "slug": "nautilus-220",
-          "location": "Lake Park",
-          "years": 3.2,
-          "score": 0.64,
-          "distance_km": 270.1,
-          "distance_mi": 167.8
-        }
-      ],
-      "pattern_summary": "Among 12 residences projects in TMW's data, the median build time is 3 years (range 1.7–3.8). Adjusted to ~2.9 years for Related Group's own track record (~2.7-year typical pace across 2 prior projects).",
-      "dates_speculative": false,
-      "start_speculative": false,
-      "delivery_speculative": false,
-      "is_mixed_use": false
-    },
     "the55": {
       "estimate_years": 4.3,
       "estimate_label": "~4.3 years",
@@ -9993,13 +9932,13 @@
   },
   "stats": {
     "high": 5,
-    "medium": 14,
+    "medium": 13,
     "low": 39,
     "known_date": 341,
     "completed": 61,
-    "skipped": 52,
+    "skipped": 53,
     "no_type": 0,
-    "firm_boosted": 35,
+    "firm_boosted": 34,
     "speculative_softened": 102,
     "mixed_use_adjusted": 5
   }
