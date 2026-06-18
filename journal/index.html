@@ -1010,6 +1010,10 @@ const PAGE_SIZE     = 9;
 // Tomorrow", "Miami"). buildPills() hides buckets with no stories.
 const CATEGORY_BUCKETS = [
   { key: '*',            label: 'All',         match: () => true },
+  // Hotels is a vertical (the worker derives a "Hotels" category from hotel/
+  // resort/hospitality keywords), placed first so the footer "Focus Markets ›
+  // Hotels" link (/?market=hotels) resolves to this bucket.
+  { key: 'hotels',       label: 'Hotels',      match: c => /hotel|resort|hospitality/i.test(c) },
   { key: 'florida',      label: 'Florida',     match: c => /florida|miami|palm beach|orlando|tampa|jacksonville|sarasota|naples|fort lauderdale|boca|brickell|wynwood|delray/i.test(c) },
   { key: 'new-york',     label: 'New York',    match: c => /new york|nyc|manhattan|brooklyn|hamptons|hudson|queens|tribeca|soho/i.test(c) },
   { key: 'tennessee',    label: 'Tennessee',   match: c => /tennessee|nashville|memphis|knoxville/i.test(c) },
