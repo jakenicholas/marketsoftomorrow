@@ -469,6 +469,9 @@ ARTICLES_JSON = 'articles.json'
 # Human-set article→project links (D1 posts.project_slug), unioned into the
 # archive each run so manual links surface in Coverage on TMW everywhere.
 COVERAGE_LINKS_URL = 'https://tmw.jake-ab7.workers.dev/coverage-links'
+# Full published-post corpus (D1), so the matcher runs over ALL ~1,400 posts
+# each build instead of only the ~100-item RSS window. Paginated.
+CORPUS_URL = 'https://tmw.jake-ab7.workers.dev/corpus'
 
 def load_articles_archive() -> dict:
     """Load the existing articles archive. Returns {} if missing."""
@@ -530,6 +533,41 @@ def _reassign_orphan_slugs(archive: dict, projects: dict) -> dict:
     print(f"   Reassigned: {reassigned} entries moved, {dropped} dropped (no match)")
     return archive
 
+
+def fetch_corpus() -> list:
+    """Page through the full published-post corpus (worker /corpus, sourced from
+    D1) and return article dicts shaped for the matcher. This is what lets the
+    archive match EVERY post, not just the ~100 in the RSS window. Best-effort:
+    a fetch failure returns what we have so the build never breaks."""
+    out, offset, PAGE = [], 0, 1000
+    for _ in range(20):  # safety cap: up to 20k posts
+        try:
+            req = urllib.request.Request(f"{CORPUS_URL}?limit={PAGE}&offset={offset}",
+                                         headers={'User-Agent': 'TMW-Pulse/1.0'})
+            with urllib.request.urlopen(req, timeout=30) as resp:
+                payload = json.loads(resp.read().decode('utf-8'))
+        except Exception as e:
+            print(f"   Corpus fetch failed at offset {offset} ({e}) -- using what we have")
+            break
+        posts = payload.get('posts') or []
+        for p in posts:
+            link = (p.get('link') or '').strip()
+            if not link:
+                continue
+            out.append({
+                'guid': link,
+                'link': link,
+                'title_full': p.get('title') or '',
+                'title': p.get('title') or '',
+                'body': p.get('excerpt') or '',
+                'image': p.get('image') or '',
+                'published_at': p.get('published_at') or '',
+            })
+        if len(posts) < PAGE:
+            break
+        offset += PAGE
+    print(f"   Corpus fetched: {len(out)} posts")
+    return out
 
 def merge_manual_coverage_links(archive: dict) -> int:
     """Union human-set article→project links (D1 posts.project_slug, served by the
@@ -1144,10 +1182,13 @@ def main():
     print(f"   Wrote {PULSE_JSON} ({len(all_events)} events)")
 
     # 8. Update the articles archive (project_slug -> list of articles).
-    # Used by the Project Modal "Coverage on TMW" section. We re-scan every
-    # current RSS article (not just unseen ones) and merge into the archive
-    # by guid so newly-added projects retroactively pick up older coverage.
-    archive = update_articles_archive(articles, current_projects)
+    # Used by the Project Modal "Coverage on TMW" section. We match over the
+    # FULL published-post corpus (D1, via /corpus) PLUS the RSS items (which
+    # carry body text the corpus excerpt lacks), so every post — not just the
+    # ~100 in the RSS window — gets a shot at matching. Phase 1 manual links are
+    # unioned inside update_articles_archive; both are merged by guid.
+    corpus_articles = fetch_corpus()
+    archive = update_articles_archive(articles + corpus_articles, current_projects)
     save_articles_archive(archive)
     coverage_total = sum(len(v) for v in archive.values())
     print(f"   Wrote {ARTICLES_JSON} ({coverage_total} article entries across {len(archive)} projects)")

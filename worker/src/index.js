@@ -2012,6 +2012,34 @@ async function handleCoverageLinks(env, origin) {
   }
   return json({ links }, { headers: { 'Cache-Control': 'public, max-age=300, s-maxage=300' } }, env, origin);
 }
+
+// GET /corpus?limit=&offset= — the full published-post corpus (slug, title,
+// excerpt, image, published_at) for the article→project matcher. Paginated so
+// the build can page through all ~1,400 posts and match every one, instead of
+// only the ~100-item RSS window. Public + read-only.
+async function handleCorpus(env, origin, url) {
+  const limit  = clampInt(url.searchParams.get('limit'), 1000, 1, 2000);
+  const offset = clampInt(url.searchParams.get('offset'), 0, 0, 100000);
+  const rows = await env.DB.prepare(
+    `SELECT slug, title, excerpt, cover_image, published_at
+       FROM posts
+      WHERE status = 'published' AND slug IS NOT NULL AND slug != ''
+      ORDER BY published_at DESC
+      LIMIT ? OFFSET ?`
+  ).bind(limit, offset).all();
+  const posts = [];
+  for (const r of (rows.results || [])) {
+    posts.push({
+      slug: r.slug,
+      title: r.title || '',
+      excerpt: r.excerpt || '',
+      image: wixImagesToR2(r.cover_image) || '',
+      published_at: r.published_at ? new Date(r.published_at * 1000).toISOString() : '',
+      link: 'https://www.oftmw.com/post/' + r.slug,
+    });
+  }
+  return json({ posts, limit, offset, count: posts.length }, { headers: { 'Cache-Control': 'public, max-age=600, s-maxage=600' } }, env, origin);
+}
 // Serve every migrated Wix image from our own R2 (the originals were copied to
 // /media/wix/<file>), so the live site has no static.wixstatic.com dependency.
 // Strips Wix CDN transform suffixes (…~mv2.jpg/v1/fill/…) back to the original.
@@ -5545,6 +5573,9 @@ export default {
       }
       if (request.method === 'GET' && url.pathname === '/coverage-links') {
         return await handleCoverageLinks(env, origin);
+      }
+      if (request.method === 'GET' && url.pathname === '/corpus') {
+        return await handleCorpus(env, origin, url);
       }
       // Journal "active now" heartbeat (public): ping in, 5-min session count out.
       if (request.method === 'POST' && url.pathname === '/journal-ping') {
