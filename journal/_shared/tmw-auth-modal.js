@@ -478,6 +478,7 @@
     if (view === 'profile' || view === 'account') viewAccount(host, 'profile');
     else if (view === 'security') viewAccount(host, 'security');
     else if (view === 'watchlist') viewAccount(host, 'watchlist');
+    else if (view === 'articles') viewAccount(host, 'articles');
     else if (view === 'signup') viewSignup(host);
     else viewLogin(host);
   };

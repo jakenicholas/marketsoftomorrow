@@ -37,6 +37,17 @@
     document.head.appendChild(s);
   }
 
+  // Ensure the custom auth modal (Account / Articles / Watchlist tabs + the
+  // signed-out login UI) is present — the profile dropdown's quick-keys and the
+  // Join flow call window.tmwAuthModal. Idempotent; same guard journal-dock uses.
+  if (!document.querySelector('script[src*="tmw-auth-modal.js"], script[data-tmw-authui-loader]')) {
+    var am = document.createElement('script');
+    am.src = '/_shared/tmw-auth-modal.js';
+    am.defer = true;
+    am.setAttribute('data-tmw-authui-loader', '');
+    document.head.appendChild(am);
+  }
+
   // ── 1b) Free-account upgrade for newsletter subscribers ─────────────────
   //    When a logged-out visitor subscribes to the newsletter, we offer to
   //    turn that email into a free Memberstack account — they only add a
@@ -620,7 +631,14 @@
       '.tmw-auth .v2-profile-menu .v2-menu-divider{height:1px;background:rgba(255,255,255,0.08);margin:6px 4px}',
       '.tmw-auth .v2-profile-menu .v2-menu-signout{color:rgba(255,120,120,0.9)}',
       '.tmw-auth .v2-profile-menu .v2-menu-signout:hover{background:rgba(255,80,80,0.08);color:#ff6464}',
-      '.tmw-auth .v2-menu-label{flex:0 1 auto}'
+      '.tmw-auth .v2-menu-label{flex:0 1 auto}',
+      // Yellow PRO badge beside the avatar — shown via .show when the member is paid.
+      '.tmw-auth .v2-pro-chip{display:none;align-items:center;font-family:var(--mono,"JetBrains Mono",ui-monospace,monospace);font-size:9px;font-weight:800;letter-spacing:.12em;color:#0a0a0a;background:#FFD300;border-radius:5px;padding:3px 6px;line-height:1;margin-left:3px;flex-shrink:0;box-shadow:0 0 10px rgba(255,211,0,0.3)}',
+      '.tmw-auth .v2-pro-chip.show{display:inline-flex}',
+      // Watchlist quick-key: grayed for free members, with a small PRO tag.
+      '.tmw-auth .v2-profile-menu .v2-menu-watch .v2-menu-protag{display:none;font-style:normal;font-size:8px;font-weight:800;color:#0a0a0a;background:#FFD300;padding:1px 5px;border-radius:4px;margin-left:auto;letter-spacing:.06em;line-height:1.5}',
+      '.tmw-auth .v2-profile-menu .v2-menu-watch.is-locked{opacity:.5}',
+      '.tmw-auth .v2-profile-menu .v2-menu-watch.is-locked .v2-menu-protag{display:inline-block}'
     ]
       // Make the shared account/Join cluster authoritative on EVERY surface:
       // double the leading `.tmw-auth` class so these rules out-specify any
@@ -752,19 +770,21 @@
     host.innerHTML =
       '<button class="v2-profile-btn" type="button" aria-label="Join">' +
         '<span class="v2-login-text">Join</span>' + PROFILE_ICON +
-        '<span class="v2-premium-star">' + STAR_ICON + '</span>' +
       '</button>' +
-      // GO PRO pill removed from the header per design -- it was crowding
-      // the pulse + profile cluster on non-Pro accounts. The CTA now lives
-      // INSIDE the account dropdown below as the gold first item, only
-      // visible to signed-in non-Pro members (CSS :has() rule below the
-      // markup gates visibility against .v2-profile-btn.signed-in:not(.is-pro)).
+      // Pro members get a yellow "PRO" badge beside the avatar (shown via JS
+      // when paid). Replaces the old gold star accent. Free/signed-out: hidden.
+      '<span class="v2-pro-chip">PRO</span>' +
+      // GO PRO pill removed from the header per design. The CTA lives INSIDE the
+      // dropdown below as the gold first item; applyState() shows it for signed-in
+      // non-Pro members only (inline display beats the CSS so Pro never sees it).
       '<div class="v2-profile-menu" role="menu">' +
         '<button class="v2-menu-item v2-menu-pro" data-act="go-pro" role="menuitem">' +
           '<svg viewBox="0 0 24 24"><polygon points="13 2 4 14 11 14 9 22 20 10 13 10 15 2"/></svg>' +
           'Go Pro' +
         '</button>' +
         '<button class="v2-menu-item" data-act="account" role="menuitem"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-7 8-7s8 3 8 7"/></svg>Account</button>' +
+        '<button class="v2-menu-item" data-act="articles" role="menuitem"><svg viewBox="0 0 24 24"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M8 13h8M8 17h6"/></svg>Articles</button>' +
+        '<button class="v2-menu-item v2-menu-watch" data-act="watchlist" role="menuitem"><svg viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>Watchlist<em class="v2-menu-protag">PRO</em></button>' +
         '<div class="v2-menu-divider"></div>' +
         '<button class="v2-menu-item v2-menu-signout" data-act="signout" role="menuitem"><svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>Sign out</button>' +
       '</div>';
@@ -772,6 +792,8 @@
     var btn = host.querySelector('.v2-profile-btn');
     var menu = host.querySelector('.v2-profile-menu');
     var goPro = host.querySelector('[data-act="go-pro"]');
+    var proChip = host.querySelector('.v2-pro-chip');
+    var watchItem = host.querySelector('[data-act="watchlist"]');
     // Inject any extension items a surface registered (the map's Watchlist/Compare)
     // so this ONE shared menu carries them too.
     renderExtraMenuItems(menu);
@@ -784,7 +806,14 @@
       var cached = localStorage.getItem('tmw_auth_state');
       if (cached === 'in' || cached === 'pro') {
         btn.classList.add('signed-in');
-        if (cached === 'pro') btn.classList.add('is-pro');
+        if (cached === 'pro') {
+          btn.classList.add('is-pro');
+          if (proChip) proChip.classList.add('show');
+          goPro.style.display = 'none';
+        } else {
+          goPro.style.display = 'flex';
+          if (watchItem) watchItem.classList.add('is-locked');
+        }
         btn.setAttribute('aria-label', 'Profile menu');
       }
     } catch (_) {}
@@ -798,6 +827,12 @@
       btn.classList.toggle('signed-in', signedIn);
       btn.classList.toggle('is-pro', paid);
       btn.setAttribute('aria-label', signedIn ? 'Profile menu' : 'Join');
+      // Pro badge + Go Pro item + watchlist lock all follow the paid state.
+      // Inline display on Go Pro beats the stylesheet so a Pro member never
+      // sees it, and a signed-in free member always does (regardless of :has()).
+      if (proChip) proChip.classList.toggle('show', paid);
+      goPro.style.display = (signedIn && !paid) ? 'flex' : 'none';
+      if (watchItem) watchItem.classList.toggle('is-locked', !paid);
       if (!signedIn) menu.classList.remove('open');
       syncExtraMenuVisibility(menu);   // proOnly extension items follow paid state
       // Publish to the single source of truth: writes window._tmwSignedIn /
@@ -834,6 +869,18 @@
       // Native in-page paywall; fall back to the map deep-link if it hasn't loaded.
       if (typeof window.tmwShowPaywall === 'function') window.tmwShowPaywall('go-pro');
       else location.href = MAP_URL + '/?upgrade=1';
+    });
+    // Quick-keys → open the account modal on the matching tab. Articles (saved
+    // reads) is free; Watchlist is a Pro feature — the item is grayed for free
+    // members and its modal tab shows the lock + upgrade.
+    var articlesItem = host.querySelector('[data-act="articles"]');
+    if (articlesItem) articlesItem.addEventListener('click', function (e) {
+      e.stopPropagation(); menu.classList.remove('open');
+      if (typeof window.tmwAuthModal === 'function') window.tmwAuthModal('articles');
+    });
+    if (watchItem) watchItem.addEventListener('click', function (e) {
+      e.stopPropagation(); menu.classList.remove('open');
+      if (typeof window.tmwAuthModal === 'function') window.tmwAuthModal('watchlist');
     });
     host.querySelector('[data-act="account"]').addEventListener('click', function (e) {
       e.stopPropagation(); menu.classList.remove('open');
