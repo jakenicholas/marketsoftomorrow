@@ -5572,18 +5572,18 @@
       "is_mixed_use": false
     },
     "hb-capital-group-tower": {
-      "estimate_years": 3.1,
-      "estimate_label": "~3.1 years",
-      "range_low": 1.7,
-      "range_high": 4.8,
+      "estimate_years": 4.0,
+      "estimate_label": "~4 years",
+      "range_low": 3.7,
+      "range_high": 4.3,
       "confidence": "low",
-      "comparable_count": 10,
-      "good_count": 1,
-      "exact_count": 1,
+      "comparable_count": 1,
+      "good_count": 0,
+      "exact_count": 0,
       "used_relaxed": true,
-      "avg_match_score": 0.45,
-      "avg_distance_km": 428.4,
-      "avg_distance_mi": 266.2,
+      "avg_match_score": 0.34,
+      "avg_distance_km": 1515.6,
+      "avg_distance_mi": 941.7,
       "scale_used": true,
       "firm_signal": {
         "firm": "Kobi Karp",
@@ -5595,42 +5595,24 @@
         "blend_weight": 0.55
       },
       "source": "comparables",
-      "project_type": "Residences",
+      "project_type": "Mixed-Use",
       "metro": "Orlando",
       "comparables": [
         {
-          "name": "The Residence at 400 Central",
-          "slug": "the-residence-at-400-central",
-          "location": "St. Petersburg",
-          "years": 3.1,
-          "score": 0.76,
-          "distance_km": 150.7,
-          "distance_mi": 93.6
-        },
-        {
-          "name": "AQUA at Westshore Yacht Club",
-          "slug": "aqua-at-westshore-yacht-club",
-          "location": "Tampa",
-          "years": 1.9,
-          "score": 0.61,
-          "distance_km": 134.4,
-          "distance_mi": 83.5
-        },
-        {
-          "name": "Nautilus 220",
-          "slug": "nautilus-220",
-          "location": "Lake Park",
-          "years": 3.2,
-          "score": 0.49,
-          "distance_km": 234.0,
-          "distance_mi": 145.4
+          "name": "520 Fifth Avenue",
+          "slug": "520-fifth-avenue",
+          "location": "New York City",
+          "years": 3.5,
+          "score": 0.34,
+          "distance_km": 1515.6,
+          "distance_mi": 941.7
         }
       ],
-      "pattern_summary": "Among 10 residences projects in TMW's data, the median build time is 3.2 years (range 1.7–4.8). Adjusted to ~3.1 years for Kobi Karp's own track record (~3-year typical pace across 2 prior projects).",
+      "pattern_summary": "Mixed-use developments of this scale routinely span 3.7–4.3 years with phased delivery. Based on 1 completed mixed-use comparable, with an added complexity factor since cross-component coordination typically extends timelines.",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false,
-      "is_mixed_use": false
+      "is_mixed_use": true
     },
     "2823-broadway": {
       "estimate_years": 1.9,
@@ -6509,18 +6491,18 @@
       "delivery_speculative": false
     },
     "hale-hkala": {
-      "estimate_years": 0.4,
-      "estimate_label": "~5 months",
-      "days_out": 150,
-      "delivery_date": "2026-11-15",
+      "estimate_years": 0.3,
+      "estimate_label": "~4 months",
+      "days_out": 119,
+      "delivery_date": "2026-10-15",
       "source": "known_date",
       "precision": "month",
       "confidence": "medium",
-      "project_type": "Hotel",
+      "project_type": "Resort",
       "metro": "Other",
       "comparables": [],
       "comparable_count": 0,
-      "pattern_summary": "TMW estimates an opening in ~5 months based on project type and current stage.",
+      "pattern_summary": "TMW estimates an opening in ~4 months based on project type and current stage.",
       "dates_speculative": true,
       "start_speculative": true,
       "delivery_speculative": true
@@ -6924,10 +6906,10 @@
       "delivery_speculative": false
     },
     "one-beverly-hills": {
-      "estimate_years": 2.5,
-      "estimate_label": "~2.5 years",
-      "days_out": 927,
-      "delivery_date": "2028-12-31",
+      "estimate_years": 1.5,
+      "estimate_label": "~1.5 years",
+      "days_out": 561,
+      "delivery_date": "2027-12-31",
       "source": "known_date",
       "precision": "year",
       "confidence": "high",
@@ -6935,7 +6917,7 @@
       "metro": "Other",
       "comparables": [],
       "comparable_count": 0,
-      "pattern_summary": "Targeted for opening in ~2.5 years.",
+      "pattern_summary": "Targeted for opening in ~1.5 years.",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false
@@ -6983,7 +6965,7 @@
       "source": "known_date",
       "precision": "year",
       "confidence": "high",
-      "project_type": "Hotel",
+      "project_type": "Resort",
       "metro": "Other",
       "comparables": [],
       "comparable_count": 0,
@@ -6993,10 +6975,10 @@
       "delivery_speculative": false
     },
     "burj-binghatti-jacob-co-residences": {
-      "estimate_years": 0.5,
-      "estimate_label": "~6 months",
-      "days_out": 196,
-      "delivery_date": "2026-12-31",
+      "estimate_years": 1.5,
+      "estimate_label": "~1.5 years",
+      "days_out": 561,
+      "delivery_date": "2027-12-31",
       "source": "known_date",
       "precision": "year",
       "confidence": "high",
@@ -7004,7 +6986,7 @@
       "metro": "Dubai",
       "comparables": [],
       "comparable_count": 0,
-      "pattern_summary": "Targeted for opening in ~6 months.",
+      "pattern_summary": "Targeted for opening in ~1.5 years.",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false
@@ -7017,7 +6999,7 @@
       "source": "known_date",
       "precision": "year",
       "confidence": "high",
-      "project_type": "Office",
+      "project_type": "Mixed-Use",
       "metro": "Paris",
       "comparables": [],
       "comparable_count": 0,
@@ -7113,10 +7095,10 @@
       "delivery_speculative": false
     },
     "new-highmark-stadium": {
-      "estimate_years": 0.2,
-      "estimate_label": "~3 months",
-      "days_out": 89,
-      "delivery_date": "2026-09-15",
+      "estimate_years": 0.07,
+      "estimate_label": "27 days",
+      "days_out": 27,
+      "delivery_date": "2026-07-15",
       "source": "known_date",
       "precision": "month",
       "confidence": "high",
@@ -7124,7 +7106,7 @@
       "metro": "Other",
       "comparables": [],
       "comparable_count": 0,
-      "pattern_summary": "Targeted for opening in ~3 months.",
+      "pattern_summary": "Targeted for opening in 27 days.",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false
@@ -7449,6 +7431,58 @@
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false
+    },
+    "marina-bay-sands-expansion": {
+      "estimate_years": 4.6,
+      "estimate_label": "~4.6 years",
+      "range_low": 3.0,
+      "range_high": 8.1,
+      "confidence": "low",
+      "comparable_count": 2,
+      "good_count": 0,
+      "exact_count": 0,
+      "used_relaxed": true,
+      "avg_match_score": 0.29,
+      "avg_distance_km": 16888.3,
+      "avg_distance_mi": 10493.9,
+      "scale_used": true,
+      "firm_signal": {
+        "firm": "Populous",
+        "count": 1,
+        "median_years": 3.11,
+        "stddev_years": 0.0,
+        "role": "architect",
+        "consistent": false,
+        "blend_weight": 0.4
+      },
+      "source": "comparables",
+      "project_type": "Resort",
+      "metro": "Other",
+      "comparables": [
+        {
+          "name": "Naples Beach Club, A Four Seasons Resort",
+          "slug": "naples-beach-club-a-four-seasons-resort",
+          "location": "Naples",
+          "years": 3.0,
+          "score": 0.34,
+          "distance_km": 16905.7,
+          "distance_mi": 10504.7
+        },
+        {
+          "name": "The Belgrove Resort & Spa",
+          "slug": "the-belgrove-resort-spa",
+          "location": "West Palm Beach",
+          "years": 8.1,
+          "score": 0.24,
+          "distance_km": 16870.9,
+          "distance_mi": 10483.1
+        }
+      ],
+      "pattern_summary": "Among 2 resort projects in TMW's data, the median build time is 5.5 years (range 3–8.1). Adjusted to ~4.6 years for Populous's own track record (~3.1-year typical pace across 1 prior project).",
+      "dates_speculative": false,
+      "start_speculative": false,
+      "delivery_speculative": false,
+      "is_mixed_use": false
     },
     "cabot-revelstoke": {
       "estimate_years": 0.8,
@@ -7881,18 +7915,18 @@
       "delivery_speculative": false
     },
     "the-whale": {
-      "estimate_years": 1.0,
-      "estimate_label": "~12 months",
-      "days_out": 351,
-      "delivery_date": "2027-06-04",
+      "estimate_years": 1.5,
+      "estimate_label": "~1.5 years",
+      "days_out": 561,
+      "delivery_date": "2027-12-31",
       "source": "known_date",
-      "precision": "day",
+      "precision": "year",
       "confidence": "high",
       "project_type": "Museum",
       "metro": "Other",
       "comparables": [],
       "comparable_count": 0,
-      "pattern_summary": "Developer-announced opening in ~12 months.",
+      "pattern_summary": "Targeted for opening in ~1.5 years.",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false
@@ -9722,23 +9756,6 @@
       "start_speculative": false,
       "delivery_speculative": false
     },
-    "the-cooper": {
-      "estimate_years": 0.5,
-      "estimate_label": "~6 months",
-      "days_out": 196,
-      "delivery_date": "2026-12-31",
-      "source": "known_date",
-      "precision": "year",
-      "confidence": "high",
-      "project_type": "Hotel",
-      "metro": "Charleston",
-      "comparables": [],
-      "comparable_count": 0,
-      "pattern_summary": "Targeted for opening in ~6 months.",
-      "dates_speculative": false,
-      "start_speculative": false,
-      "delivery_speculative": false
-    },
     "tribune-tower-addition": {
       "estimate_years": 4.3,
       "estimate_label": "~4.3 years",
@@ -9933,13 +9950,13 @@
   "stats": {
     "high": 5,
     "medium": 13,
-    "low": 39,
-    "known_date": 341,
+    "low": 40,
+    "known_date": 340,
     "completed": 61,
-    "skipped": 53,
+    "skipped": 52,
     "no_type": 0,
-    "firm_boosted": 34,
+    "firm_boosted": 35,
     "speculative_softened": 102,
-    "mixed_use_adjusted": 5
+    "mixed_use_adjusted": 6
   }
 }
