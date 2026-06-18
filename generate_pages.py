@@ -759,6 +759,24 @@ DOSSIER_FINE_CONSTRUCTION = ['topping-out', 'halfway', 'going-vertical']  # high
 DOSSIER_FINE_NEAROPEN = ['bookings', 'move-in', 'tco']                    # highest-rank first
 
 
+def _is_hospitality_type(row):
+    """True when the project's primary type takes RESERVATIONS (hotel/resort).
+    Residential projects launch SALES instead — so the reservations/sales-launch
+    milestone must read differently by building type."""
+    primary = ((row.get('PreferredType') or row.get('ProjectType') or '').split(',')[0]).strip().lower()
+    return 'hotel' in primary or 'resort' in primary
+
+
+def _phase_label(row, phase, expected=False):
+    """Label for a timeline phase, type-aware where the wording depends on the
+    building type. The 'bookings' slot is reservations for a hotel ("Bookings
+    open") but a sales launch for residences ("Sales launched") — so a condo
+    timeline never reads like a hotel."""
+    if phase == 'bookings' and not _is_hospitality_type(row):
+        return 'Expected sales launch' if expected else 'Sales launched'
+    return (DOSSIER_EXPECTED_LABEL if expected else DOSSIER_LABEL).get(phase, phase)
+
+
 def _url_domain(u):
     try:
         from urllib.parse import urlparse
@@ -818,7 +836,7 @@ def build_milestones(row, articles=None):
     def entry(phase, date_str='', source_url='', estimated=False, sourced=False, note='', at=''):
         return {
             'phase': phase, 'rank': DOSSIER_RANK.get(phase, 0),
-            'label': DOSSIER_LABEL.get(phase, phase),
+            'label': _phase_label(row, phase),
             'date': date_str or '', 'date_display': _fmt_event_date(date_str),
             'source_url': source_url or '', 'source_domain': _url_domain(source_url),
             'estimated': bool(estimated), 'sourced': bool(sourced),
@@ -944,7 +962,7 @@ def build_milestones(row, articles=None):
             (phase == 'grand-opening' and cur_status != 'open') or (rank > cur_rank)
         )
         if m['projected'] and phase in DOSSIER_EXPECTED_LABEL:
-            m['label'] = DOSSIER_EXPECTED_LABEL[phase]
+            m['label'] = _phase_label(row, phase, expected=True)
         entries.append(m)
 
     # Order CHRONOLOGICALLY (by event date), not by phase rank — a financing or
