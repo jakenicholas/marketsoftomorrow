@@ -1085,6 +1085,15 @@
   var CHEV = '<svg class="tmw-fm-chev" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 6l4 4 4-4"/></svg>';
   var IG_SM = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4.5"/><circle cx="17.5" cy="6.5" r="1.2" fill="currentColor" stroke="none"/></svg>';
   var ARR2 = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h10M9 4l4 4-4 4"/></svg>';
+  // Social glyphs for the Focus Markets cards (IG reuses the outline IG_SM above).
+  var SOC_LI = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M4.98 3.5a2.5 2.5 0 11-.02 5.001A2.5 2.5 0 014.98 3.5zM3 9h4v12H3zM9 9h3.8v1.64h.05c.53-1 1.83-2.05 3.77-2.05 4.03 0 4.78 2.65 4.78 6.1V21h-4v-5.4c0-1.29-.02-2.95-1.8-2.95-1.8 0-2.07 1.4-2.07 2.85V21H9z"/></svg>';
+  var SOC_FB = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M22 12a10 10 0 10-11.56 9.88v-6.99H7.9V12h2.54V9.8c0-2.5 1.49-3.89 3.78-3.89 1.09 0 2.24.2 2.24.2v2.46h-1.26c-1.24 0-1.63.77-1.63 1.56V12h2.78l-.44 2.89h-2.34v6.99A10 10 0 0022 12z"/></svg>';
+  var SOC_X  = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.9 2.5h3.3l-7.2 8.26L23.7 21.5h-6.66l-5.21-6.82-5.96 6.82H2.56l7.7-8.84L1.4 2.5h6.83l4.71 6.23zm-1.16 17.04h1.83L7.13 4.36H5.16z"/></svg>';
+  // A (non-anchor) social icon button. The card itself is an <a>, so these can't
+  // be nested anchors — data-soc-url is opened by the delegated click handler.
+  function socIcon(url, label, svg) {
+    return '<span class="tmw-oc-soc" data-soc-url="' + url + '" role="link" tabindex="0" aria-label="' + label + '">' + svg + '</span>';
+  }
   function ic(p) { return '<svg viewBox="0 0 24 24">' + p + '</svg>'; }
   // Canonical TMW feature icons (also used in the intelligence section on each page).
   var HEX_IC = '<polygon points="12,4.3 18.65,8.16 18.65,15.84 12,19.68 5.35,15.84 5.35,8.16"/>';      // Intelligence = TMW hexagon
@@ -1119,14 +1128,17 @@
       '.tmw-oc-st{display:flex; flex-direction:column; gap:3px}',
       '.tmw-oc-st .v{font-family:var(--serif,Georgia,serif); font-weight:600; font-size:20px; color:#fff; letter-spacing:-.01em; line-height:1}',
       '.tmw-oc-st .k{font-family:var(--mono); font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:var(--mute,#9AA39C)}',
-      // Footer row: "Read articles" (left) + Instagram button (right), bottom-aligned.
-      '.tmw-oc-foot{margin-top:auto; padding-top:13px; display:flex; align-items:center; justify-content:space-between; gap:10px; position:relative}',
+      // Social row (IG · LinkedIn · Facebook · X) sits between two dividers
+      // (the stats border above + its own border below); then a slim
+      // "Read articles" row by itself.
+      '.tmw-oc-social{margin-top:auto; display:flex; align-items:center; gap:8px; padding:13px 0; border-bottom:1px solid rgba(255,255,255,.08)}',
+      '.tmw-oc-soc{flex:0 0 auto; display:flex; align-items:center; justify-content:center; width:30px; height:30px; border-radius:8px; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.12); color:var(--mute,#9AA39C); cursor:pointer; transition:background .2s, color .2s, border-color .2s}',
+      '.tmw-oc-soc:hover{background:rgba(31,223,103,.1); border-color:rgba(31,223,103,.3); color:#1FDF67}',
+      '.tmw-oc-soc svg{width:15px; height:15px}',
+      '.tmw-oc-foot{padding-top:11px; display:flex; align-items:center}',
       '.tmw-oc-read{display:inline-flex; align-items:center; gap:8px; white-space:nowrap; font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--gold-soft,#f0d68a)}',
       '.tmw-oc-read svg{width:13px; height:13px; transition:transform .2s}',
       '.tmw-oc:hover .tmw-oc-read{color:#fff} .tmw-oc:hover .tmw-oc-read svg{transform:translateX(3px)}',
-      '.tmw-oc-ig{flex:0 0 auto; display:flex; align-items:center; justify-content:center; width:30px; height:30px; border-radius:8px; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.12); color:var(--mute,#9AA39C); cursor:pointer; transition:background .2s, color .2s, border-color .2s}',
-      '.tmw-oc-ig:hover{background:rgba(31,223,103,.1); border-color:rgba(31,223,103,.3); color:#1FDF67}',
-      '.tmw-oc-ig svg{width:15px; height:15px}',
       // The Map — explore (free) + pro intelligence + Go Pro CTA.
       '.tmw-mm{display:grid; grid-template-columns:1fr 2fr; gap:22px 30px; max-width:980px}',
       '.tmw-mm-h{font-family:var(--mono); font-size:9.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--mute,#9AA39C); margin-bottom:8px}',
@@ -1179,9 +1191,10 @@
       '.tmw-oc-st .v{font-size:16px}',
       // Footer: "Read articles" anchored LEFT, Instagram anchored RIGHT, equal
       // padding to each edge of the tile (no centred-floating link).
-      '.tmw-oc-foot{gap:8px; padding-top:12px; justify-content:space-between}',
+      '.tmw-oc-foot{padding-top:10px}',
       '.tmw-oc-read{font-size:8.5px; letter-spacing:.06em; flex:0 1 auto; justify-content:flex-start; gap:6px}',
-      '.tmw-oc-ig{flex:0 0 auto; width:26px; height:26px}',
+      '.tmw-oc-social{gap:6px; padding:11px 0}',
+      '.tmw-oc-soc{flex:0 0 auto; width:26px; height:26px}',
       '.tmw-mm{grid-template-columns:1fr; max-width:none; gap:10px}',
       '.tmw-mm-pro-grid{grid-template-columns:1fr}',
       '.tmw-ll{grid-template-columns:1fr; max-width:none; gap:10px}',
@@ -1223,12 +1236,20 @@
   function focusMarketsPanel() {
     var cards = FOCUS_MARKETS.map(function (m) {
       var stats = m.s.slice(0, 2).map(function (v, i) { return '<div class="tmw-oc-st"><span class="v">' + v + '</span><span class="k">' + SK[i] + '</span></div>'; }).join('');
+      // Handles are {market}oftomorrow everywhere EXCEPT X, which is {market}oftmw.
+      var xh = m.h.replace(/tomorrow$/, 'tmw');
       return '<a class="tmw-oc" role="menuitem" href="' + JOURNAL_HOME + '?market=' + m.key + '">' +
         '<div class="tmw-oc-banner"><img src="' + m.img + '" alt="' + m.name + '" loading="lazy"></div>' +
         '<div class="tmw-oc-body"><span class="tmw-oc-name">' + m.name.replace(/ Tomorrow$/, '<br>Tomorrow') + '</span>' +
           '<div class="tmw-oc-stats">' + stats + '</div>' +
-          '<div class="tmw-oc-foot"><span class="tmw-oc-read">Read articles ' + ARR2 + '</span>' +
-            '<span class="tmw-oc-ig" data-ig="' + m.h + '" role="link" tabindex="0" aria-label="Instagram">' + IG_SM + '</span></div></div></a>';
+          '<div class="tmw-oc-social">' +
+            socIcon('https://www.instagram.com/' + m.h, 'Instagram @' + m.h, IG_SM) +
+            socIcon('https://www.linkedin.com/company/' + m.h, 'LinkedIn ' + m.h, SOC_LI) +
+            socIcon('https://www.facebook.com/' + m.h, 'Facebook ' + m.h, SOC_FB) +
+            socIcon('https://x.com/' + xh, 'X @' + xh, SOC_X) +
+          '</div>' +
+          '<div class="tmw-oc-foot"><span class="tmw-oc-read">Read articles ' + ARR2 + '</span></div>' +
+        '</div></a>';
     }).join('');
     return '<div class="tmw-nav-eyebrow">Each market — its own journal feed, social &amp; project coverage</div><div class="tmw-oc-grid">' + cards + '</div>';
   }
@@ -1271,12 +1292,20 @@
     '</div>';
   }
 
-  // IG icons inside the (anchor) market cards can't be nested anchors — handle
-  // their click manually so they open Instagram without following the card link.
+  // Social icons inside the (anchor) market cards can't be nested anchors —
+  // handle their click manually so they open the profile without following the
+  // card link. New cards use .tmw-oc-soc[data-soc-url]; .tmw-oc-ig kept for
+  // backward-compat.
   var _igWired = false;
   function wireIgClicks() {
     if (_igWired) return; _igWired = true;
     document.addEventListener('click', function (e) {
+      var soc = e.target.closest && e.target.closest('.tmw-oc-soc');
+      if (soc && soc.getAttribute('data-soc-url')) {
+        e.preventDefault(); e.stopPropagation();
+        window.open(soc.getAttribute('data-soc-url'), '_blank', 'noopener');
+        return;
+      }
       var ig = e.target.closest && e.target.closest('.tmw-oc-ig');
       if (!ig) return;
       e.preventDefault(); e.stopPropagation();
