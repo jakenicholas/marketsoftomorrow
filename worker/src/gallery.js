@@ -1043,19 +1043,33 @@ function renderGateHTML(g, base, opts = {}) {
   const previewHTML = previewImgs.length ? (
     `<div class="gate-preview-tag">Preview &middot; ${previewImgs.length} of ${total}</div>` +
     `<div class="gate-preview" aria-hidden="true">` +
-    previewImgs.map(im => `<img src="${base}/thumb/${keyToPath(im.key)}?w=500" alt="" loading="lazy" decoding="async" draggable="false" oncontextmenu="return false">`).join('') +
-    `</div>`
+    previewImgs.map(im => `<img src="${base}/thumb/${keyToPath(im.key)}?w=900" alt="" loading="lazy" decoding="async" draggable="false" oncontextmenu="return false">`).join('') +
+    `</div>` +
+    `<div class="gate-blur" aria-hidden="true"><i class="b1"></i><i class="b2"></i><i class="b3"></i><i class="b4"></i></div>` +
+    `<div class="gate-scrim" aria-hidden="true"></div>`
   ) : '';
   return `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow,noarchive"><title>${esc(g.title)} — Private gallery</title>${FONTS}
 <style>${BASE_CSS}
 .gate{position:relative;min-height:82vh;display:flex;align-items:center;justify-content:center;padding:24px;overflow:hidden}
-.gate-preview{position:absolute;inset:0;z-index:0;display:grid;grid-template-columns:repeat(3,1fr);grid-auto-rows:1fr;gap:8px;padding:8px;pointer-events:none;user-select:none;-webkit-user-select:none}
-.gate-preview img{width:100%;height:100%;object-fit:cover;border-radius:10px;filter:blur(11px) brightness(.6) saturate(1.05);transform:scale(1.06);-webkit-user-drag:none}
-.gate-preview::after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse 62% 72% at 50% 50%,rgba(8,8,8,.92) 0%,rgba(8,8,8,.78) 45%,rgba(8,8,8,.5) 100%)}
-.gate-preview-tag{position:absolute;z-index:1;top:18px;left:50%;transform:translateX(-50%);font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--mute2);background:rgba(8,8,8,.5);border:1px solid var(--hair);padding:5px 12px;border-radius:999px;pointer-events:none}
+.gate-preview{position:absolute;inset:0;z-index:0;display:grid;grid-template-columns:repeat(3,1fr);grid-auto-rows:1fr;pointer-events:none;user-select:none;-webkit-user-select:none}
+.gate-preview img{width:100%;height:100%;object-fit:cover;filter:brightness(.84) saturate(1.05);-webkit-user-drag:none}
+/* Progressive blur — sharp + fully visible at the top, dissolving to a heavy
+   blur toward the bottom. Each band blurs what's behind it (the sharp images)
+   over an increasing radius, masked to a descending slice so they blend into
+   one smooth gradient. */
+.gate-blur{position:absolute;inset:0;z-index:1;pointer-events:none}
+.gate-blur i{position:absolute;inset:0;display:block}
+.gate-blur .b1{-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);-webkit-mask-image:linear-gradient(to bottom,transparent 16%,#000 32%,#000 46%,transparent 60%);mask-image:linear-gradient(to bottom,transparent 16%,#000 32%,#000 46%,transparent 60%)}
+.gate-blur .b2{-webkit-backdrop-filter:blur(5px);backdrop-filter:blur(5px);-webkit-mask-image:linear-gradient(to bottom,transparent 34%,#000 50%,#000 64%,transparent 76%);mask-image:linear-gradient(to bottom,transparent 34%,#000 50%,#000 64%,transparent 76%)}
+.gate-blur .b3{-webkit-backdrop-filter:blur(11px);backdrop-filter:blur(11px);-webkit-mask-image:linear-gradient(to bottom,transparent 54%,#000 70%,transparent 92%);mask-image:linear-gradient(to bottom,transparent 54%,#000 70%,transparent 92%)}
+.gate-blur .b4{-webkit-backdrop-filter:blur(24px);backdrop-filter:blur(24px);-webkit-mask-image:linear-gradient(to bottom,transparent 74%,#000 90%,#000 100%);mask-image:linear-gradient(to bottom,transparent 74%,#000 90%,#000 100%)}
+/* Barely touch the top (keep it visible); gently ground the bottom + a soft
+   halo so the card seats cleanly. */
+.gate-scrim{position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(180deg,rgba(7,8,7,.10) 0%,rgba(7,8,7,.30) 56%,rgba(7,8,7,.64) 100%),radial-gradient(58% 52% at 50% 50%,rgba(7,8,7,.5) 0%,transparent 72%)}
+.gate-preview-tag{position:absolute;z-index:2;top:18px;left:50%;transform:translateX(-50%);font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--cream);background:rgba(8,8,8,.42);border:1px solid var(--hair);padding:5px 12px;border-radius:999px;pointer-events:none;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
 @media(max-width:560px){.gate-preview{grid-template-columns:repeat(2,1fr)}}
-.gate-card{position:relative;z-index:2;background:var(--panel);border:1px solid var(--hair2);border-radius:18px;padding:34px 30px;max-width:380px;width:100%;text-align:center;box-shadow:0 30px 90px rgba(0,0,0,.6)}
+.gate-card{position:relative;z-index:3;background:var(--panel);border:1px solid var(--hair2);border-radius:18px;padding:34px 30px;max-width:380px;width:100%;text-align:center;box-shadow:0 30px 90px rgba(0,0,0,.6)}
 .gate-card .lock{display:flex;justify-content:center;margin-bottom:14px;color:var(--green)}
 .gate-card h1{font-size:23px;margin-bottom:6px}
 .gate-card .meta{color:var(--mute2);font-size:12.5px;font-family:var(--mono);letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px}
