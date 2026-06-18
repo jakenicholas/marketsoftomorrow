@@ -815,23 +815,34 @@ def build_milestones(row, articles=None):
     cur_status = _dossier_status_code(row.get('Delivery', ''))
     cur_phase = DOSSIER_STATUS_TO_PHASE.get(cur_status, 'announced')
 
-    def entry(phase, date_str='', source_url='', estimated=False, sourced=False, note=''):
+    def entry(phase, date_str='', source_url='', estimated=False, sourced=False, note='', at=''):
         return {
             'phase': phase, 'rank': DOSSIER_RANK.get(phase, 0),
             'label': DOSSIER_LABEL.get(phase, phase),
             'date': date_str or '', 'date_display': _fmt_event_date(date_str),
             'source_url': source_url or '', 'source_domain': _url_domain(source_url),
             'estimated': bool(estimated), 'sourced': bool(sourced),
-            'note': (note or '').strip(),
+            'note': (note or '').strip(), 'at': at or '',
         }
 
     found = {}
     def consider(e):
         prev = found.get(e['phase'])
-        # Prefer a sourced entry, then one carrying a date.
-        if (prev is None
-                or (e['sourced'] and not prev['sourced'])
-                or (e['date'] and not prev['date'] and e['sourced'] == prev['sourced'])):
+        if prev is None:
+            found[e['phase']] = e
+            return
+        # Prefer a sourced entry over an unsourced fallback.
+        if e['sourced'] != prev['sourced']:
+            if e['sourced']:
+                found[e['phase']] = e
+            return
+        # Equally sourced: the most RECENTLY recorded entry wins. When the
+        # construction sweep re-logs a milestone with a corrected/refined event
+        # date, that newer record supersedes the earlier (often wrong) one
+        # instead of being dropped — that is how a date "updates with more info."
+        # Tie-break (same/no record stamp) to whichever carries an explicit date.
+        ea, pa = (e.get('at') or ''), (prev.get('at') or '')
+        if ea > pa or (ea == pa and e['date'] and not prev['date']):
             found[e['phase']] = e
 
     # 1) status_history: milestone events + status transitions.
@@ -846,11 +857,11 @@ def build_milestones(row, articles=None):
         if t == 'milestone':
             ph = (h.get('phase') or '').strip().lower()
             if ph in DOSSIER_RANK:
-                consider(entry(ph, ev or rec[:10], h.get('source_url', ''), estimated=not ev, sourced=True, note=h.get('note', '')))
+                consider(entry(ph, ev or rec[:10], h.get('source_url', ''), estimated=not ev, sourced=True, note=h.get('note', ''), at=rec))
         else:
             ph = DOSSIER_STATUS_TO_PHASE.get((h.get('to') or '').strip().lower())
             if ph:
-                consider(entry(ph, ev or rec[:10], h.get('source_url', ''), estimated=not ev, sourced=True, note=h.get('note', '')))
+                consider(entry(ph, ev or rec[:10], h.get('source_url', ''), estimated=not ev, sourced=True, note=h.get('note', ''), at=rec))
 
     # 2) field anchors.
     start_date = (row.get('StartDate', '') or '').strip()

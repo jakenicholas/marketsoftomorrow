@@ -530,6 +530,21 @@
       if (statusLabels.indexOf('Open') < 0) statusLabels.push('Open');
     }
 
+    // "soon" as a standalone word (e.g. "hotels opening around the world soon")
+    // means the LIVE window — what just opened AND what's about to. Unlike the
+    // strict "Opening Soon" status, surface BOTH recently-opened (Now Open) and
+    // upcoming (Opening Soon), bounded to a rolling year either side of THIS_YEAR
+    // so it reads as "the last/next ~12 months." Only fires when no explicit year
+    // was given and it isn't already a strict "recently opened" (recentish) ask.
+    var rolling = false;
+    if (hasWord(full, 'soon') && yearMin == null && !recentish) {
+      rolling = true;
+      statuses.add('Opening Soon'); statuses.add('Now Open');
+      if (statusLabels.indexOf('Opening soon') < 0) statusLabels.push('Opening soon');
+      if (statusLabels.indexOf('Open') < 0) statusLabels.push('Open');
+      yearMin = TY - 1; yearMax = TY + 1; yearLabel = 'recent + opening soon';
+    }
+
     var place = region || cities.length;
     var firm = detectFirm(full, opts.firms || []);
     var count = (statuses.size ? 1 : 0) + (phases.size ? 1 : 0) + (types.size ? 1 : 0) + (place ? 1 : 0) + (yearMin != null ? 1 : 0) + (sort ? 1 : 0) + (firm ? 1 : 0);
@@ -545,7 +560,7 @@
         types: types, typeLabel: typeLabel, typeNoun: typeNoun,
         region: region, cities: cities,
         yearMin: yearMin, yearMax: yearMax, yearLabel: yearLabel, yearMode: yearMode,
-        sort: sort, firm: firm
+        sort: sort, firm: firm, rolling: rolling
       };
     }
     if (count < 2) return null;  // no anchor + too little structure → normal search
@@ -556,7 +571,7 @@
       types: types, typeLabel: typeLabel, typeNoun: typeNoun,
       region: region, cities: cities,
       yearMin: yearMin, yearMax: yearMax, yearLabel: yearLabel,
-      sort: sort, firm: firm
+      sort: sort, firm: firm, rolling: rolling
     };
   }
 
@@ -642,6 +657,15 @@
       });
     } else if (s.sort && s.sort.key === 'updated') {
       rows.sort(function (a, b) { return String(b.UpdatedAt || '').localeCompare(String(a.UpdatedAt || '')); });
+    } else if (s.rolling) {
+      // Rolling "soon" window mixes just-opened + about-to-open. Editor's
+      // featured picks first, then newest date first so the freshest rise up.
+      rows.sort(function (a, b) {
+        if (a.Featured && !b.Featured) return -1;
+        if (!a.Featured && b.Featured) return 1;
+        var da = (a.DeliveryDate || ''), db = (b.DeliveryDate || '');
+        return da < db ? 1 : da > db ? -1 : 0;
+      });
     } else if (s.statuses && s.statuses.has && s.statuses.has('Opening Soon')) {
       // "Opening soon" implies temporal urgency — what's actually arriving
       // first. Sort by DeliveryDate asc; projects with no date (TBA / empty)
