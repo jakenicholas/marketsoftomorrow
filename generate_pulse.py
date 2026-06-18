@@ -588,6 +588,13 @@ def build_link_candidates(corpus_articles: list, archive: dict) -> list:
     for slug, entries in archive.items():
         for e in entries:
             covered.add((slug, (e.get('link') or e.get('guid') or '')))
+    # Dismissed candidates (admin Proposals review) never re-surface.
+    try:
+        with open('coverage_dismissed.json', 'r', encoding='utf-8') as f:
+            for d in json.load(f):
+                covered.add(((d.get('project_slug') or ''), (d.get('post_link') or '')))
+    except Exception:
+        pass
 
     def wb(term: str, text: str) -> bool:
         term = (term or '').lower().strip()
@@ -675,6 +682,39 @@ def merge_manual_coverage_links(archive: dict) -> int:
     print(f"   Manual coverage links merged: {n}")
     return n
 
+def merge_approved_links(archive: dict) -> int:
+    """Union human-APPROVED article→project links (coverage_approved.json, set in
+    the admin Proposals review) into the archive — same as manual links, flagged
+    manual:True so the cap never drops them. Best-effort on a missing file."""
+    try:
+        with open('coverage_approved.json', 'r', encoding='utf-8') as f:
+            links = json.load(f)
+    except Exception:
+        return 0
+    if not isinstance(links, list):
+        return 0
+    n = 0
+    for L in links:
+        slug = (L.get('project_slug') or '').strip()
+        link = (L.get('post_link') or '').strip()
+        if not slug or not link:
+            continue
+        entry = {
+            'guid': link, 'link': link,
+            'title': L.get('post_title') or '',
+            'image': L.get('post_image') or '',
+            'published_at': L.get('published_at') or '',
+            'manual': True,
+        }
+        existing = archive.setdefault(slug, [])
+        existing = [e for e in existing if (e.get('link') or e.get('guid')) != link]
+        existing.append(entry)
+        archive[slug] = existing
+        n += 1
+    if n:
+        print(f"   Approved review links merged: {n}")
+    return n
+
 def update_articles_archive(articles: list, projects: dict) -> dict:
     """Merge current RSS articles into the archive, preserving existing entries.
 
@@ -733,6 +773,7 @@ def update_articles_archive(articles: list, projects: dict) -> dict:
     # manual link surfaces in Coverage on TMW even when the project name never
     # appears in the article text. Source of truth; re-synced every run.
     merge_manual_coverage_links(archive)
+    merge_approved_links(archive)
 
     # Sort each project's articles newest first, dedupe by link (catching
     # any cross-source duplicates with different guids), and cap to a

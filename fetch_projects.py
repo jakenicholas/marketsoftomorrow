@@ -324,6 +324,26 @@ def build_name_map(records: list, label: str) -> dict:
 
 
 # --- MAIN -------------------------------------------------------------------
+def fetch_data_file_optional(path: str, default):
+    """Like fetch_data_file but NEVER fatal — returns `default` on 404 (file not
+    created yet) or any error. Used for the review-queue files the admin writes
+    (coverage_approved / coverage_dismissed), which may not exist on early runs."""
+    url = (f"https://api.github.com/repos/{TMW_DATA_OWNER}/{TMW_DATA_REPO}/"
+           f"contents/{path}?ref={TMW_DATA_REF}")
+    req = urllib.request.Request(url, headers={
+        'Accept': 'application/vnd.github.raw',
+        'Authorization': f'Bearer {TOKEN}',
+        'User-Agent': 'TMW-Map-Pipeline/1.0',
+        'X-GitHub-Api-Version': '2022-11-28',
+    })
+    try:
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            return json.loads(resp.read().decode('utf-8', errors='replace'))
+    except Exception as e:
+        print(f"  (optional {path}: {getattr(e, 'code', e)} — using default)")
+        return default
+
+
 def main():
     print("Fetching from tmw-data...")
     records = fetch_data_file(PROJECTS_PATH)
@@ -365,6 +385,16 @@ def main():
         json.dump(firms_payload, f, indent=2, ensure_ascii=False)
     print(f"  ✓ Wrote {OUTPUT_FIRMS_PATH} "
           f"({len(architect_records)} architects, {len(developer_records)} developers)")
+
+    # Review-queue files written by the admin Proposals tab → local copies for
+    # generate_pulse (approved links get unioned into coverage; dismissed pairs
+    # are excluded so they never re-surface as candidates).
+    for src, dst in [('data/coverage_approved.json',  'coverage_approved.json'),
+                     ('data/coverage_dismissed.json', 'coverage_dismissed.json')]:
+        val = fetch_data_file_optional(src, [])
+        with open(dst, 'w', encoding='utf-8') as f:
+            json.dump(val, f, ensure_ascii=False)
+        print(f"  ✓ Wrote {dst} ({len(val) if isinstance(val, list) else '?'} entries)")
 
     # Diagnostics: distribution of mapped statuses so a status-mapping
     # regression is visible in workflow logs without having to diff the
