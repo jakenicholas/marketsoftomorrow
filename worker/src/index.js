@@ -2021,7 +2021,7 @@ async function handleCorpus(env, origin, url) {
   const limit  = clampInt(url.searchParams.get('limit'), 1000, 1, 2000);
   const offset = clampInt(url.searchParams.get('offset'), 0, 0, 100000);
   const rows = await env.DB.prepare(
-    `SELECT slug, title, excerpt, cover_image, published_at
+    `SELECT slug, title, excerpt, cover_image, published_at, body_html
        FROM posts
       WHERE status = 'published' AND slug IS NOT NULL AND slug != ''
       ORDER BY published_at DESC
@@ -2029,10 +2029,15 @@ async function handleCorpus(env, origin, url) {
   ).bind(limit, offset).all();
   const posts = [];
   for (const r of (rows.results || [])) {
+    // Strip HTML + collapse whitespace; cap the body so the matcher has the
+    // lede/first section (where projects + firms are named) without shipping
+    // multi-MB of markup per post.
+    const body = (r.body_html || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 6000);
     posts.push({
       slug: r.slug,
       title: r.title || '',
       excerpt: r.excerpt || '',
+      body,
       image: wixImagesToR2(r.cover_image) || '',
       published_at: r.published_at ? new Date(r.published_at * 1000).toISOString() : '',
       link: 'https://www.oftmw.com/post/' + r.slug,

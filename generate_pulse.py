@@ -559,7 +559,9 @@ def fetch_corpus() -> list:
                 'link': link,
                 'title_full': p.get('title') or '',
                 'title': p.get('title') or '',
-                'body': p.get('excerpt') or '',
+                # excerpt + body so the matcher catches projects named anywhere
+                # in the article, not just the headline/summary.
+                'body': ((p.get('excerpt') or '') + ' ' + (p.get('body') or '')).strip(),
                 'image': p.get('image') or '',
                 'published_at': p.get('published_at') or '',
             })
