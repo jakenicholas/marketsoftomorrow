@@ -76,6 +76,7 @@ STATUS_CSS_CLASS = {
 CITY_TYPE_MIN = 3
 CITY_MIN      = 3            # lowered from 5 so smaller-but-real cities (Aventura, Tokyo, etc.) get hubs
 STATE_MIN     = 5            # threshold for /markets/<state>/ rollup pages — keeps SEO quality high
+COUNTRY_MIN   = 1            # threshold for /markets/<country>/ rollup pages — show every country we track
 
 # "Cities" whose value in the City field is actually a country name. These
 # get their own page like any other city hub (the threshold logic still
@@ -156,19 +157,25 @@ def sort_projects(projects: list[dict]) -> list[dict]:
     )
 
 # ─── Bucket builders ──────────────────────────────────────────────────
+# Type tags that have been retired platform-wide and must never surface as a
+# browsable category, even if a stray record still carries them. "Spa" is an
+# amenity, not a development category — it was removed from the database, and
+# this filter guarantees it never reappears on the site if re-tagged.
+RETIRED_TYPES = {'spa'}
+
 def _project_tags(p: dict) -> list[str]:
     """Return the canonical category tags for a project. Uses ProjectType
     (the comma-separated multi-tag field) so a mixed-use project like
     Cabot Revelstoke (Resort + Hotel + Residences + Entertainment)
     appears in EVERY category hub it actually belongs in, not just under
     its lone PreferredType sub-label ('Golf Resort'). Falls back to
-    PreferredType only when ProjectType is empty."""
+    PreferredType only when ProjectType is empty. Retired types are dropped."""
     raw = (p.get('ProjectType') or '').strip()
     tags = [t.strip() for t in raw.split(',') if t.strip()]
     if not tags:
         pt = (p.get('PreferredType') or '').strip()
         if pt: tags = [pt]
-    return tags
+    return [t for t in tags if t.lower() not in RETIRED_TYPES]
 
 def bucket_projects(projects: list[dict]):
     by_city_type: dict[tuple[str,str], list[dict]] = collections.defaultdict(list)
@@ -2205,6 +2212,35 @@ _STATE_FULL = {
     'ND':'North Dakota','SD':'South Dakota','NE':'Nebraska','IN':'Indiana','DC':'District of Columbia',
 }
 
+# ISO 3166-1 alpha-2 → country name. cityStateMap.json stores international
+# locations as ISO 3166-2 subdivision codes ("GB-ENG", "JP-13", "AE-DU",
+# "SA-07", "BS-NP"); the alpha-2 prefix is the country. US locations are stored
+# as bare state abbreviations (FL, NY, …) and roll up to "United States".
+ISO2_COUNTRY = {
+    'US': 'United States', 'GB': 'United Kingdom', 'JP': 'Japan',
+    'AE': 'United Arab Emirates', 'SA': 'Saudi Arabia', 'QA': 'Qatar',
+    'BS': 'Bahamas', 'TC': 'Turks and Caicos', 'KY': 'Cayman Islands',
+    'SG': 'Singapore', 'TH': 'Thailand', 'MY': 'Malaysia', 'KR': 'South Korea',
+    'CN': 'China', 'MX': 'Mexico', 'FR': 'France', 'IT': 'Italy', 'ES': 'Spain',
+    'PT': 'Portugal', 'GR': 'Greece', 'CH': 'Switzerland', 'NO': 'Norway',
+    'EG': 'Egypt', 'BZ': 'Belize', 'CA': 'Canada', 'AU': 'Australia',
+    'AG': 'Antigua and Barbuda', 'SX': 'Sint Maarten', 'AW': 'Aruba',
+    'BB': 'Barbados', 'DO': 'Dominican Republic', 'PR': 'Puerto Rico',
+    'CR': 'Costa Rica', 'AI': 'Anguilla', 'MT': 'Malta', 'VG': 'British Virgin Islands',
+    'MV': 'Maldives', 'ME': 'Montenegro',
+}
+
+def _derive_country(raw: str) -> str:
+    """Resolve a cityStateMap.json value (US state abbrev, ISO 3166-2 code, or
+    a bare country name) to a country name. US states → 'United States';
+    'GB-ENG' → 'United Kingdom'; a bare 'Saudi Arabia' stays as-is."""
+    raw = (raw or '').strip()
+    if not raw: return ''
+    if raw in _STATE_FULL: return 'United States'
+    if '-' in raw:
+        return ISO2_COUNTRY.get(raw.split('-', 1)[0], raw)
+    return ISO2_COUNTRY.get(raw, raw)
+
 def _city_region(city: str) -> str:
     """Return a display label for the city's state/region/country, sourced
     from cityStateMap.json. Used as the small subtitle below the city name
@@ -2216,10 +2252,12 @@ def _city_region(city: str) -> str:
             m = json.load(f)
         raw = (m.get(city) or '').strip()
         if not raw: return ''
-        full = _STATE_FULL.get(raw, raw)
         # US states get the country suffix to match the mockup language;
-        # everything else is already a country (or near enough) so stays bare.
-        return f'{full} · USA' if raw in _STATE_FULL else full
+        # international locations resolve their ISO code to a clean country
+        # name ("GB-ENG" → "United Kingdom") rather than leaking the raw code.
+        if raw in _STATE_FULL:
+            return f'{_STATE_FULL[raw]} · USA'
+        return _derive_country(raw)
     except (FileNotFoundError, json.JSONDecodeError):
         return ''
 
@@ -2578,16 +2616,49 @@ def main():
             state_pages_written += 1
             state_pages_for_hub.append((state_label, len(bucket)))
 
+    # ─── 3b. Country rollup pages /markets/<country>/ ────────────────
+    # Every project resolves to a country via cityStateMap (US states →
+    # "United States"; ISO 3166-2 codes → their country; a bare country name
+    # stays as-is). We aggregate ALL projects per country and render one
+    # national rollup page per country (reusing the state-page renderer —
+    # it's a generic geographic rollup). This is what powers a complete
+    # "Browse by country" rail instead of only the handful of cities whose
+    # name happens to be a country.
+    country_pages_for_hub: list[tuple[str, int]] = []
+    if city_to_state:
+        by_country: dict[str, list[dict]] = collections.defaultdict(list)
+        for p in projects:
+            c = (p.get('City') or '').strip()
+            raw = (city_to_state.get(c) or '').strip()
+            ctry = _derive_country(raw) if raw else _derive_country(c)
+            if ctry: by_country[ctry].append(p)
+        for country, bucket in by_country.items():
+            if len(bucket) < COUNTRY_MIN: continue
+            country_slug = slugify(country)
+            bucket_sorted = sort_projects(bucket)
+            html_out = render_state_page(
+                state_label=country,
+                state_code=country,
+                bucket=bucket_sorted,
+                by_city=by_city,
+                by_city_type=by_city_type,
+                city_to_state=city_to_state,
+            )
+            path = f"{OUTPUT_DIR}/{country_slug}/"
+            os.makedirs(path, exist_ok=True)
+            open(os.path.join(path, 'index.html'), 'w', encoding='utf-8').write(html_out)
+            generated_paths.append(f'/markets/{country_slug}/')
+            country_pages_for_hub.append((country, len(bucket)))
+
     # ─── 4. Hub /markets/index.html ──────────────────────────────────
     city_type_pairs_for_hub.sort(key=lambda x: -x[2])
     city_pages_for_hub.sort(key=lambda x: -x[1])
     type_pages_for_hub.sort(key=lambda x: -x[1])
     state_pages_for_hub.sort(key=lambda x: -x[1])
-    # Split: any "city" whose name is actually a country (Saudi Arabia,
-    # Bahamas, UAE, etc.) gets surfaced under "Browse by country" rather
-    # than mixed into the city rail. Each still gets its own /markets/
-    # <slug>/ page identically — only the hub presentation changes.
-    country_pages_for_hub = [(c, n) for c, n in city_pages_for_hub if c in COUNTRY_CITIES]
+    country_pages_for_hub.sort(key=lambda x: -x[1])
+    # Pseudo-cities whose name is actually a country (Saudi Arabia, Bahamas,
+    # Singapore, …) are now covered by the country rail above, so drop them
+    # from the city rail to avoid listing the same place twice.
     city_only_pages_for_hub = [(c, n) for c, n in city_pages_for_hub if c not in COUNTRY_CITIES]
     hub = render_hub(
         city_type_pairs_for_hub,
