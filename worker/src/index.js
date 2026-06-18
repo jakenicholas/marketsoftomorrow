@@ -5508,7 +5508,20 @@ async function handleSmartAnswer(request, env, origin) {
     })) : null,
   };
 
-  const sig = await sha256Hex(SMART_ANSWER_MODEL + '|' + JSON.stringify(compact));
+  // Learned editorial rules — written by the nightly intel-review routine so the
+  // model improves as we critique past answers. Best-effort; optional.
+  let learnedRules = [];
+  try {
+    const rr = await env.DB.prepare(
+      `SELECT props_json FROM events WHERE event_name = 'intel_rules' ORDER BY ts DESC LIMIT 1`
+    ).first();
+    if (rr && rr.props_json) {
+      const pj = JSON.parse(rr.props_json);
+      if (Array.isArray(pj.rules)) learnedRules = pj.rules.filter(r => typeof r === 'string').slice(0, 25);
+    }
+  } catch { /* rules are optional */ }
+
+  const sig = await sha256Hex(SMART_ANSWER_MODEL + '|' + JSON.stringify(compact) + '|' + JSON.stringify(learnedRules));
   const cache = caches.default;
   const cacheKey = new Request('https://smart-answer.tmw.internal/' + sig, { method: 'GET' });
   try {
@@ -5544,7 +5557,9 @@ async function handleSmartAnswer(request, env, origin) {
     '- If there is only ONE result, state it plainly — no "tallest / largest / most".\n' +
     '- Only assert a construction milestone if the facts explicitly say so.\n' +
     '- Confident, concrete, editorial. No hype-for-hype, no preamble ("Based on…"), no markdown, no bullets, ' +
-    'no lists. Refer to projects by name exactly as given. Output only the answer prose.';
+    'no lists. Refer to projects by name exactly as given. Output only the answer prose.' +
+    (learnedRules.length ? '\n\nLearned house rules (from editor review of past answers — apply these too):\n'
+      + learnedRules.map(r => '- ' + r).join('\n') : '');
 
   let answer = null;
   try {
@@ -5578,12 +5593,75 @@ async function handleSmartAnswer(request, env, origin) {
     }));
   } catch { /* caching is best-effort */ }
 
+  // Capture Q→A + the signals we had so the nightly intel-review routine can
+  // critique sufficiency and learn. Best-effort; never blocks the response.
+  try {
+    const digest = {
+      q, answer,
+      place: compact.place || null,
+      count: compact.count,
+      soonest: compact.soonest || null,
+      dominant_type: compact.dominant_type || null,
+      flagships: (compact.flagships || []).map(f => ({ name: f.name, type: f.type })),
+      top: (compact.top || []).slice(0, 8).map(t => t.name),
+      rules_applied: learnedRules.length,
+    };
+    await env.DB.prepare(`INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?, ?, ?, ?)`)
+      .bind(Math.floor(Date.now() / 1000), 'system:smart-answer', 'intel_answer', JSON.stringify(digest)).run();
+  } catch { /* logging is best-effort */ }
+
   return json({ answer }, {}, env, origin);
 }
 
 // ---------------------------------------------------------------------------
 // Main fetch handler
 // ---------------------------------------------------------------------------
+
+// GET /intel-answers — recent TMW Intelligence answers (query + synthesized
+// answer + the signals we had at the time), newest first. Feeds the nightly
+// intel-review routine that critiques sufficiency and learns. Admin-only.
+async function handleIntelAnswers(env, origin, url) {
+  if (!env.DB) return json({ items: [] }, {}, env, origin);
+  const limit = clampInt(url.searchParams.get('limit'), 60, 1, 200);
+  const hours = clampInt(url.searchParams.get('hours'), 48, 0, 24 * 60);
+  const minTs = hours ? (Math.floor(Date.now() / 1000) - hours * 3600) : 0;
+  const rs = await env.DB.prepare(
+    `SELECT ts, props_json FROM events WHERE event_name = 'intel_answer' AND ts >= ?
+     ORDER BY ts DESC LIMIT ?`
+  ).bind(minTs, limit).all();
+  const items = (rs.results || []).map(r => {
+    let p = {}; try { if (r.props_json) p = JSON.parse(r.props_json); } catch {}
+    return { ts: r.ts, ...p };
+  });
+  return json({ total: items.length, items }, {}, env, origin);
+}
+
+// /intel-rules — GET the learned editorial rules injected into the smart-answer
+// prompt; POST { rules:[..], note } replaces them (the nightly intel-review
+// routine writes here). GET is admin-gated via ADMIN_READ_PATHS; POST gates here.
+async function handleIntelRules(request, env, origin) {
+  if (request.method === 'POST') {
+    const denied = await requireAdminToken(request, env, origin);
+    if (denied) return denied;
+    let body; try { body = await request.json(); } catch { return json({ error: 'bad json' }, { status: 400 }, env, origin); }
+    const rules = Array.isArray(body && body.rules)
+      ? body.rules.filter(r => typeof r === 'string' && r.trim()).map(r => r.trim().slice(0, 300)).slice(0, 25)
+      : null;
+    if (!rules) return json({ error: 'rules array required' }, { status: 400 }, env, origin);
+    try {
+      await env.DB.prepare(`INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?, ?, ?, ?)`)
+        .bind(Math.floor(Date.now() / 1000), 'system:intel-review', 'intel_rules',
+              JSON.stringify({ rules, note: String((body && body.note) || '').slice(0, 200) })).run();
+    } catch (e) { return json({ error: 'db: ' + e.message }, { status: 500 }, env, origin); }
+    return json({ ok: true, count: rules.length }, {}, env, origin);
+  }
+  let rules = [];
+  try {
+    const rr = await env.DB.prepare(`SELECT props_json FROM events WHERE event_name = 'intel_rules' ORDER BY ts DESC LIMIT 1`).first();
+    if (rr && rr.props_json) { const pj = JSON.parse(rr.props_json); if (Array.isArray(pj.rules)) rules = pj.rules; }
+  } catch {}
+  return json({ rules }, {}, env, origin);
+}
 
 export default {
   async fetch(request, env) {
@@ -5635,6 +5713,7 @@ export default {
         '/watchlist', '/projects', '/activity', '/subscriptions', '/intel-queries', '/search-gaps',
         '/search-feedback', '/search-feedback/discoveries',
         '/funnel-stats',
+        '/intel-answers', '/intel-rules',
       ]);
       if (request.method === 'GET' && ADMIN_READ_PATHS.has(url.pathname)) {
         const denied = await requireAdminToken(request, env, origin);
@@ -5719,6 +5798,12 @@ export default {
       }
       if (request.method === 'GET' && url.pathname === '/intel-queries') {
         return await handleIntelQueries(env, origin, url);
+      }
+      if (request.method === 'GET' && url.pathname === '/intel-answers') {
+        return await handleIntelAnswers(env, origin, url);
+      }
+      if (url.pathname === '/intel-rules') {
+        return await handleIntelRules(request, env, origin);
       }
       if (request.method === 'GET' && url.pathname === '/blog') {
         return await handleBlog(env, origin, url);
