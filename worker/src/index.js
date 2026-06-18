@@ -5450,6 +5450,35 @@ async function sha256Hex(str) {
   return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
+// Log one TMW Intelligence answer (query + answer + signals digest) for the
+// nightly intel-review routine. Deduped to at most one row per query per 6h so
+// popular cache-HIT queries don't flood the log. Best-effort; never throws.
+async function logIntelAnswer(env, q, answer, compact) {
+  if (!env || !env.DB || !answer) return;
+  try {
+    let dup = false;
+    try {
+      const recent = await env.DB.prepare(
+        `SELECT 1 FROM events WHERE event_name = 'intel_answer' AND ts >= ?
+         AND json_extract(props_json, '$.q') = ? LIMIT 1`
+      ).bind(Math.floor(Date.now() / 1000) - 6 * 3600, q).first();
+      dup = !!recent;
+    } catch { dup = false; }
+    if (dup) return;
+    const digest = {
+      q, answer,
+      place: compact.place || null,
+      count: compact.count,
+      soonest: compact.soonest || null,
+      dominant_type: compact.dominant_type || null,
+      flagships: (compact.flagships || []).map(f => ({ name: f.name, type: f.type })),
+      top: (compact.top || []).slice(0, 8).map(t => t.name),
+    };
+    await env.DB.prepare(`INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?, ?, ?, ?)`)
+      .bind(Math.floor(Date.now() / 1000), 'system:smart-answer', 'intel_answer', JSON.stringify(digest)).run();
+  } catch { /* best-effort */ }
+}
+
 async function handleSmartAnswer(request, env, origin) {
   const fail = (reason) => json({ answer: null, reason }, {}, env, origin);
   let body;
@@ -5541,6 +5570,9 @@ async function handleSmartAnswer(request, env, origin) {
     const hit = await cache.match(cacheKey);
     if (hit) {
       const data = await hit.json();
+      // Capture cache HITS too — otherwise popular repeat queries (which answer
+      // from cache) never get logged and the review routine sees "no traffic".
+      await logIntelAnswer(env, q, data.answer, compact);
       return json({ answer: data.answer, cached: true }, {}, env, origin);
     }
   } catch { /* cache miss path */ }
@@ -5610,21 +5642,8 @@ async function handleSmartAnswer(request, env, origin) {
   } catch { /* caching is best-effort */ }
 
   // Capture Q→A + the signals we had so the nightly intel-review routine can
-  // critique sufficiency and learn. Best-effort; never blocks the response.
-  try {
-    const digest = {
-      q, answer,
-      place: compact.place || null,
-      count: compact.count,
-      soonest: compact.soonest || null,
-      dominant_type: compact.dominant_type || null,
-      flagships: (compact.flagships || []).map(f => ({ name: f.name, type: f.type })),
-      top: (compact.top || []).slice(0, 8).map(t => t.name),
-      rules_applied: learnedRules.length,
-    };
-    await env.DB.prepare(`INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?, ?, ?, ?)`)
-      .bind(Math.floor(Date.now() / 1000), 'system:smart-answer', 'intel_answer', JSON.stringify(digest)).run();
-  } catch { /* logging is best-effort */ }
+  // critique sufficiency and learn. Deduped + best-effort; never blocks.
+  await logIntelAnswer(env, q, answer, compact);
 
   return json({ answer }, {}, env, origin);
 }
