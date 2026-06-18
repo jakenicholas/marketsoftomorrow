@@ -994,8 +994,14 @@ export async function handleGallery(request, env, url, origin, deps) {
       if (g.pin_hash) {
         const tok = parseCookies(request)[viewCookieName(m[1])];
         if (!(await viewTokenValid(tok, m[1], deps, env))) {
-          return htmlResponse(renderGateHTML(g, base, { error: url.searchParams.get('e') === '1' }),
-            { status: 200, cache: 'private, no-store' });
+          // Pass the first few images for a blurred, non-interactive preview on
+          // the gate (originals + full set stay locked behind the PIN).
+          const allImgs = await getGalleryImages(env, m[1]);
+          return htmlResponse(renderGateHTML(g, base, {
+            error: url.searchParams.get('e') === '1',
+            preview: allImgs.slice(0, 6),
+            total: allImgs.length,
+          }), { status: 200, cache: 'private, no-store' });
         }
       }
       const images = await getGalleryImages(env, m[1]);
@@ -1029,11 +1035,27 @@ export async function handleGallery(request, env, url, origin, deps) {
 function renderGateHTML(g, base, opts = {}) {
   const meta = [g.category, g.location].filter(Boolean).map(esc).join(' &middot; ');
   const err = opts.error ? `<div class="gate-err">Incorrect PIN — try again.</div>` : '';
+  // Blurred, non-interactive teaser of the first few images — enough to entice
+  // without exposing the set. Low-res (w=500) + heavy CSS blur, pointer-events
+  // off, not draggable, no link/lightbox. Full-res originals stay /dl-gated.
+  const previewImgs = (opts.preview || []).slice(0, 6);
+  const total = opts.total || previewImgs.length;
+  const previewHTML = previewImgs.length ? (
+    `<div class="gate-preview-tag">Preview &middot; ${previewImgs.length} of ${total}</div>` +
+    `<div class="gate-preview" aria-hidden="true">` +
+    previewImgs.map(im => `<img src="${base}/thumb/${keyToPath(im.key)}?w=500" alt="" loading="lazy" decoding="async" draggable="false" oncontextmenu="return false">`).join('') +
+    `</div>`
+  ) : '';
   return `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow,noarchive"><title>${esc(g.title)} — Private gallery</title>${FONTS}
 <style>${BASE_CSS}
-.gate{min-height:82vh;display:flex;align-items:center;justify-content:center;padding:24px}
-.gate-card{background:var(--panel);border:1px solid var(--hair2);border-radius:18px;padding:34px 30px;max-width:380px;width:100%;text-align:center;box-shadow:0 30px 90px rgba(0,0,0,.6)}
+.gate{position:relative;min-height:82vh;display:flex;align-items:center;justify-content:center;padding:24px;overflow:hidden}
+.gate-preview{position:absolute;inset:0;z-index:0;display:grid;grid-template-columns:repeat(3,1fr);grid-auto-rows:1fr;gap:8px;padding:8px;pointer-events:none;user-select:none;-webkit-user-select:none}
+.gate-preview img{width:100%;height:100%;object-fit:cover;border-radius:10px;filter:blur(11px) brightness(.6) saturate(1.05);transform:scale(1.06);-webkit-user-drag:none}
+.gate-preview::after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse 62% 72% at 50% 50%,rgba(8,8,8,.92) 0%,rgba(8,8,8,.78) 45%,rgba(8,8,8,.5) 100%)}
+.gate-preview-tag{position:absolute;z-index:1;top:18px;left:50%;transform:translateX(-50%);font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--mute2);background:rgba(8,8,8,.5);border:1px solid var(--hair);padding:5px 12px;border-radius:999px;pointer-events:none}
+@media(max-width:560px){.gate-preview{grid-template-columns:repeat(2,1fr)}}
+.gate-card{position:relative;z-index:2;background:var(--panel);border:1px solid var(--hair2);border-radius:18px;padding:34px 30px;max-width:380px;width:100%;text-align:center;box-shadow:0 30px 90px rgba(0,0,0,.6)}
 .gate-card .lock{display:flex;justify-content:center;margin-bottom:14px;color:var(--green)}
 .gate-card h1{font-size:23px;margin-bottom:6px}
 .gate-card .meta{color:var(--mute2);font-size:12.5px;font-family:var(--mono);letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px}
@@ -1045,7 +1067,7 @@ function renderGateHTML(g, base, opts = {}) {
 .gate-card button:hover{filter:brightness(1.05)}
 .gate-card .home{display:inline-block;margin-top:16px;color:var(--mute2);text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase}
 </style></head><body>${navHTML(base || '')}
-<div class="gate"><div class="gate-card">
+<div class="gate">${previewHTML}<div class="gate-card">
   <div class="lock">${LOCK_SVG}</div>
   ${meta ? `<div class="meta">${meta}</div>` : ''}
   <h1>${esc(g.title)}</h1>
