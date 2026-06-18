@@ -24,7 +24,6 @@ Within each page, projects are sorted:
 
 Each generated page:
   - Uses the universal /_shared/journal-chrome.js header
-  - Wires /_shared/tmw-lightbox.js so project images zoom on click
   - Fires funnel beacons via window.tmwFunnelTrack (loaded transitively)
   - Includes JSON-LD CollectionPage + BreadcrumbList + ItemList for SERP
   - Cross-links to adjacent markets in the same city or type for interlink
@@ -290,7 +289,7 @@ def card_html(p: dict) -> str:
     return (
         f'<div class="card{" featured" if featured else ""}"{featured_attrs}>\n'
         f'  <a class="card-link" href="{ROOT_URL}/projects/{esc(slug)}/" aria-label="Open {title}">\n'
-        f'    <div class="card-img" data-lightbox-src="{img}" data-lightbox-caption="{cap}" style="background-image:url(\'{img}\')">{feat_badge}</div>\n'
+        f'    <div class="card-img" style="background-image:url(\'{img}\')">{feat_badge}</div>\n'
         f'    <div class="card-body">\n'
         f'      <div class="card-title">{title}</div>\n'
         f'      <div class="card-loc">{loc_line}</div>\n'
@@ -976,7 +975,7 @@ def render_page(
 
     <div class="pro-cta">
       <div class="l">
-        Get the full dataset for this market, weekly Slippage Report, and the TMW Forecast on every project.
+        Get the full dataset for this market and the TMW Forecast on every project.
         <em>The part of Pro that pays for itself.</em>
         <i>Markets of Tomorrow Pro · $24/mo</i>
       </div>
@@ -992,7 +991,6 @@ def render_page(
   <script src="/_shared/journal-dock.js" defer></script>
   <script src="/_shared/journal-search-core.js" defer></script>
   <script src="/_shared/journal-search-overlay.js" defer></script>
-  <script src="/_shared/tmw-lightbox.js" defer></script>
   <script>
     // Wires the Intelligence ask box + suggestion chips to the universal
     // overlay loaded by /_shared/journal-search-overlay.js. Every query is
@@ -1604,7 +1602,7 @@ def city_type_intro(city: str, ptype: str, projects: list[dict], top_arch: str|N
     intro += '.'
     if top_arch:
         intro += f' The cycle is anchored by <b>{esc(top_arch)}</b>, leading firm by project count in this market.'
-    intro += f' Every project links to a live status page with milestones, renderings, and our <a href="{ROOT_URL}/journal/">journal coverage</a>.'
+    intro += f' Every project links to a live status page with milestones, renderings, and our <a href="{ROOT_URL}/">journal coverage</a>.'
 
     top_dev, top_dev_n = _top_developer(projects)
     dev_line = (
@@ -1632,7 +1630,7 @@ def city_intro(city: str, projects: list[dict], top_types: list[tuple[str,int]])
     intro = (
         f'We\'re tracking <b>{n_total} new developments</b> in {city} across every category — '
         f'including {types_phrase}. Every project below links to a live status page with milestones, renderings, '
-        f'and our <a href="{ROOT_URL}/journal/">journal coverage</a>.'
+        f'and our <a href="{ROOT_URL}/">journal coverage</a>.'
     )
     status_line = (
         f'Right now: <b>{s["uc"]} under construction</b>, <b>{s["bg"]} breaking ground</b>, <b>{s["os"]} opening soon</b>, '
