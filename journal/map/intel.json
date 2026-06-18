@@ -1418,8 +1418,8 @@
       "firm_signal": {
         "firm": "Kohn Pedersen Fox",
         "count": 4,
-        "median_years": 4.25,
-        "stddev_years": 0.98,
+        "median_years": 4.23,
+        "stddev_years": 0.99,
         "role": "architect",
         "consistent": false,
         "blend_weight": 0.65
@@ -5813,8 +5813,8 @@
       "firm_signal": {
         "firm": "Kohn Pedersen Fox",
         "count": 4,
-        "median_years": 4.25,
-        "stddev_years": 0.98,
+        "median_years": 4.23,
+        "stddev_years": 0.99,
         "role": "architect",
         "consistent": false,
         "blend_weight": 0.65
@@ -7233,18 +7233,18 @@
       "delivery_speculative": false
     },
     "1-hotel-austin": {
-      "estimate_years": 0.2,
-      "estimate_label": "~2 months",
-      "days_out": 74,
-      "delivery_date": "2026-08-31",
+      "estimate_years": 0.16,
+      "estimate_label": "58 days",
+      "days_out": 58,
+      "delivery_date": "2026-08-15",
       "source": "known_date",
-      "precision": "day",
+      "precision": "month",
       "confidence": "high",
       "project_type": "Hotel",
       "metro": "Austin",
       "comparables": [],
       "comparable_count": 0,
-      "pattern_summary": "Developer-announced opening in ~2 months.",
+      "pattern_summary": "Targeted for opening in 58 days.",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false
@@ -7960,21 +7960,65 @@
       "delivery_speculative": true
     },
     "eturna-beachside-residences": {
-      "estimate_years": 0.5,
-      "estimate_label": "~6 months",
-      "days_out": 196,
-      "delivery_date": "2026-12-31",
-      "source": "known_date",
-      "precision": "year",
-      "confidence": "high",
+      "estimate_years": 2.6,
+      "estimate_label": "~2.6 years",
+      "range_low": 1.0,
+      "range_high": 4.8,
+      "confidence": "medium",
+      "comparable_count": 11,
+      "good_count": 3,
+      "exact_count": 3,
+      "used_relaxed": false,
+      "avg_match_score": 0.54,
+      "avg_distance_km": 515.0,
+      "avg_distance_mi": 320.0,
+      "scale_used": true,
+      "firm_signal": {
+        "firm": "Condra Property Group",
+        "count": 1,
+        "median_years": 2.17,
+        "stddev_years": 0.0,
+        "role": "developer",
+        "consistent": false,
+        "blend_weight": 0.4
+      },
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
-      "comparables": [],
-      "comparable_count": 0,
-      "pattern_summary": "Targeted for opening in ~6 months.",
+      "comparables": [
+        {
+          "name": "Arbor Coconut Grove",
+          "slug": "arbor-coconut-grove",
+          "location": "Miami",
+          "years": 8.4,
+          "score": 0.88,
+          "distance_km": 36.6,
+          "distance_mi": 22.7
+        },
+        {
+          "name": "Vita at Grove Isle",
+          "slug": "vita-at-grove-isle",
+          "location": "Coconut Grove",
+          "years": 2.0,
+          "score": 0.73,
+          "distance_km": 35.3,
+          "distance_mi": 21.9
+        },
+        {
+          "name": "Pier Sixty-Six",
+          "slug": "pier-sixty-six",
+          "location": "Fort Lauderdale",
+          "years": 4.8,
+          "score": 0.7,
+          "distance_km": 6.9,
+          "distance_mi": 4.3
+        }
+      ],
+      "pattern_summary": "Among 11 residences projects in TMW's data, the median build time is 2.8 years (range 1–4.8). Adjusted to ~2.6 years for Condra Property Group's own track record (~2.2-year typical pace across 1 prior project).",
       "dates_speculative": false,
       "start_speculative": false,
-      "delivery_speculative": false
+      "delivery_speculative": false,
+      "is_mixed_use": false
     },
     "vista-harbor-residences": {
       "estimate_years": 3.5,
@@ -9611,13 +9655,13 @@
   },
   "stats": {
     "high": 5,
-    "medium": 12,
+    "medium": 13,
     "low": 35,
-    "known_date": 335,
+    "known_date": 334,
     "completed": 60,
     "skipped": 55,
     "no_type": 0,
-    "firm_boosted": 33,
+    "firm_boosted": 34,
     "speculative_softened": 101,
     "mixed_use_adjusted": 1
   }
