@@ -37,7 +37,7 @@
   var DELAY_MS = OPTS.delayMs || 3000;
   var SOURCE = OPTS.source || 'market_page';
   var EYEBROW = OPTS.eyebrow || 'The Future Is Here';
-  var HEADLINE = OPTS.headline || 'Track tomorrow\'s developments. Get the data, maps, and updates — free.';
+  var HEADLINE = OPTS.headline || 'Track tomorrow\'s developments with TMW Intelligence — forecasts, data, and updates.';
 
   function mark(v) { try { localStorage.setItem(KEY, v); } catch (e) {} }
   function subscribedEmail() { try { return localStorage.getItem(SUB_EMAIL_KEY); } catch (e) { return null; } }
@@ -72,13 +72,13 @@
     var el = document.createElement('div');
     el.className = 'tmw-sub';
     el.innerHTML =
-      '<div class="tmw-sub-panel" role="dialog" aria-label="Create a free TMW account">' +
+      '<div class="tmw-sub-panel" role="dialog" aria-label="Create your TMW account">' +
         '<button class="tmw-sub-x" aria-label="Close">&times;</button>' +
         '<div class="tmw-sub-eyebrow">' + esc(EYEBROW) + '</div>' +
         '<h3 class="tmw-sub-h">' + esc(HEADLINE) + '</h3>' +
         '<form class="tmw-sub-form">' +
           '<input type="email" name="email" placeholder="you@example.com" autocomplete="email" required>' +
-          '<button type="submit">Join Free</button>' +
+          '<button type="submit">Get Access</button>' +
         '</form>' +
         '<div class="tmw-sub-msg" aria-live="polite"></div>' +
       '</div>';
@@ -95,7 +95,7 @@
       var email = (form.email.value || '').trim();
       if (!email) return;
       var btn = form.querySelector('button'); var orig = btn.textContent;
-      btn.disabled = true; btn.textContent = 'Joining…';
+      btn.disabled = true; btn.textContent = 'Working…';
       try {
         var r = await fetch(SUB_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: email, markets: MARKETS }) });
         var d = await r.json().catch(function () { return {}; });
@@ -129,7 +129,7 @@
     var el = document.createElement('div');
     el.className = 'tmw-sub';
     el.innerHTML =
-      '<div class="tmw-sub-panel" role="dialog" aria-label="Create your free account">' +
+      '<div class="tmw-sub-panel" role="dialog" aria-label="Create your account">' +
         '<button class="tmw-sub-x" aria-label="Close">&times;</button>' +
         '<div class="tmw-sub-eyebrow">' + esc(EYEBROW) + '</div>' +
         '<div class="tmw-sub-acct"></div>' +

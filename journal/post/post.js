@@ -1086,13 +1086,13 @@ function escapeAttr(s) { return escapeHtml(s); }
     var el = document.createElement('div');
     el.className = 'tmw-sub';
     el.innerHTML =
-      '<div class="tmw-sub-panel" role="dialog" aria-label="Create a free TMW account">' +
+      '<div class="tmw-sub-panel" role="dialog" aria-label="Create your TMW account">' +
         '<button class="tmw-sub-x" aria-label="Close">&times;</button>' +
         '<div class="tmw-sub-eyebrow">The Future Is Here</div>' +
-        '<h3 class="tmw-sub-h">Go beyond the article. Get the data and updates behind every story — free.</h3>' +
+        '<h3 class="tmw-sub-h">Go beyond the article — TMW Intelligence brings forecasts, data, and updates to every story.</h3>' +
         '<form class="tmw-sub-form">' +
           '<input type="email" name="email" placeholder="you@example.com" autocomplete="email" required>' +
-          '<button type="submit">Join Free</button>' +
+          '<button type="submit">Get Access</button>' +
         '</form>' +
         '<div class="tmw-sub-msg" aria-live="polite"></div>' +
       '</div>';
@@ -1110,7 +1110,7 @@ function escapeAttr(s) { return escapeHtml(s); }
       var email = (form.email.value || '').trim();
       if (!email) return;
       var btn = form.querySelector('button'); var orig = btn.textContent;
-      btn.disabled = true; btn.textContent = 'Joining…';
+      btn.disabled = true; btn.textContent = 'Working…';
       try {
         var r = await fetch(SUB_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: email, markets: MARKETS }) });
         var d = await r.json().catch(function () { return {}; });
@@ -1161,7 +1161,7 @@ function escapeAttr(s) { return escapeHtml(s); }
     var el = document.createElement('div');
     el.className = 'tmw-sub';
     el.innerHTML =
-      '<div class="tmw-sub-panel" role="dialog" aria-label="Create your free account">' +
+      '<div class="tmw-sub-panel" role="dialog" aria-label="Create your account">' +
         '<button class="tmw-sub-x" aria-label="Close">&times;</button>' +
         '<div class="tmw-sub-eyebrow">The Future Is Here</div>' +
         '<div class="tmw-sub-acct"></div>' +

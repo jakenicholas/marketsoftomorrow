@@ -307,10 +307,10 @@
 
         var headline, eyebrow;
         if (place) {
-          headline = 'Following ' + place + '? Get updates, maps, and full data — free.';
-          eyebrow = place + ' · Free Access';
+          headline = 'Following ' + place + '? Unlock TMW Intelligence — forecasts, the full pipeline, and updates.';
+          eyebrow = place + ' · TMW Intelligence';
         } else {
-          headline = 'Track tomorrow\'s developments. Get the data, maps, and updates — free.';
+          headline = 'Track tomorrow\'s developments with TMW Intelligence — forecasts, data, and updates.';
           eyebrow = 'The Future Is Here';
         }
         window.TMW_FUNNEL_OPTS = { headline: headline, eyebrow: eyebrow, source: 'market_page' };

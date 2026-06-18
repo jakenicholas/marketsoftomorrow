@@ -571,6 +571,67 @@ def fetch_corpus() -> list:
     print(f"   Corpus fetched: {len(out)} posts")
     return out
 
+def build_link_candidates(corpus_articles: list, archive: dict) -> list:
+    """Phase 2b: developer+city / architect+city candidate matches for HUMAN
+    REVIEW. A developer/architect has many projects in one city, so these carry
+    false-positive risk and are NOT auto-linked — they're written to
+    coverage_candidates.json for the admin review tab (approve → real link).
+    Excludes (project, post) pairs already covered in the archive."""
+    try:
+        with open('projects-flat.json', 'r', encoding='utf-8') as f:
+            projs = json.load(f)
+    except Exception:
+        return []
+    projs = projs if isinstance(projs, list) else projs.get('projects', [])
+    # Already-covered (project_slug, post_link) pairs — skip these.
+    covered = set()
+    for slug, entries in archive.items():
+        for e in entries:
+            covered.add((slug, (e.get('link') or e.get('guid') or '')))
+
+    def wb(term: str, text: str) -> bool:
+        term = (term or '').lower().strip()
+        return len(term) >= 4 and re.search(r'(?:^|\W)' + re.escape(term) + r'(?:\W|$)', text) is not None
+
+    # Pre-lower each article's searchable text once.
+    for a in corpus_articles:
+        a['_lc'] = html.unescape(((a.get('title_full') or '') + ' ' + (a.get('body') or '')).lower())
+
+    cands = []
+    for p in projs:
+        pslug = slugify(p.get('Title') or '')
+        city = (p.get('City') or '').strip()
+        dev = (p.get('Developer') or '').strip()
+        arch = (p.get('Architect') or '').strip()
+        if not pslug or not city or (not dev and not arch):
+            continue
+        for a in corpus_articles:
+            link = a.get('link') or ''
+            if not link or (pslug, link) in covered:
+                continue
+            t = a.get('_lc') or ''
+            if not wb(city, t):
+                continue
+            if dev and wb(dev, t):
+                sig, firm = 'developer', dev
+            elif arch and wb(arch, t):
+                sig, firm = 'architect', arch
+            else:
+                continue
+            cands.append({
+                'post_slug': link.rstrip('/').rsplit('/', 1)[-1],
+                'post_title': a.get('title_full') or '',
+                'post_link': link,
+                'post_image': a.get('image') or '',
+                'published_at': a.get('published_at') or '',
+                'project_slug': pslug,
+                'project_title': p.get('Title') or '',
+                'signal': sig + '+city',
+                'reason': f"{sig.capitalize()} “{firm}” + city “{city}” named in the article",
+            })
+    cands.sort(key=lambda c: c.get('published_at') or '', reverse=True)
+    return cands[:500]
+
 def merge_manual_coverage_links(archive: dict) -> int:
     """Union human-set article→project links (D1 posts.project_slug, served by the
     worker at COVERAGE_LINKS_URL) into the archive. Manual entries are flagged
@@ -1194,6 +1255,13 @@ def main():
     save_articles_archive(archive)
     coverage_total = sum(len(v) for v in archive.values())
     print(f"   Wrote {ARTICLES_JSON} ({coverage_total} article entries across {len(archive)} projects)")
+
+    # Phase 2b: developer/architect + city candidate matches for HUMAN review
+    # (false-positive risk → not auto-linked). The admin review tab reads this.
+    candidates = build_link_candidates(corpus_articles, archive)
+    with open('coverage_candidates.json', 'w', encoding='utf-8') as f:
+        json.dump(candidates, f, indent=2, ensure_ascii=False)
+    print(f"   Wrote coverage_candidates.json ({len(candidates)} dev/arch+city review candidates)")
 
     # 9. Save snapshot for next run
     save_snapshot(current_projects, seen_guids, seen_history_keys)

@@ -171,8 +171,8 @@
     injectFaCss();
     host.innerHTML =
       '<div class="tmw-fa">' +
-        '<div class="tmw-fa-h">You’re in — create your free account</div>' +
-        '<div class="tmw-fa-sub">Your email’s already set. Add a password to follow projects, build a watchlist, and pick up where you left off — across the journal and the map.</div>' +
+        '<div class="tmw-fa-h">You’re in — create your account</div>' +
+        '<div class="tmw-fa-sub">Your email’s already set. Add a password to follow projects, build a watchlist, and pick up where you left off.</div>' +
         '<form class="tmw-fa-form" novalidate>' +
           '<input type="password" name="pw" placeholder="Create a password" autocomplete="new-password" required>' +
           '<button type="submit">Create account</button>' +
