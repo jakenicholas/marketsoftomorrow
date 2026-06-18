@@ -536,13 +536,22 @@
     // upcoming (Opening Soon), bounded to a rolling year either side of THIS_YEAR
     // so it reads as "the last/next ~12 months." Only fires when no explicit year
     // was given and it isn't already a strict "recently opened" (recentish) ask.
-    var rolling = false;
+    var rolling = false, rollMin = null, rollMax = null;
     if (hasWord(full, 'soon') && yearMin == null && !recentish) {
       rolling = true;
       statuses.add('Opening Soon'); statuses.add('Now Open');
       if (statusLabels.indexOf('Opening soon') < 0) statusLabels.push('Opening soon');
       if (statusLabels.indexOf('Open') < 0) statusLabels.push('Open');
-      yearMin = TY - 1; yearMax = TY + 1; yearLabel = (TY - 1) + '–' + (TY + 1);
+      // Rolling window: recently opened (last 6 months) through opening within the
+      // next 12 months. Month-precise so a stale "2025" delivery doesn't read as
+      // "recent"; bare-year delivery dates resolve to mid-year for comparison.
+      var _now = opts.now ? new Date(opts.now) : new Date();
+      var _pad = function (n) { return (n < 10 ? '0' : '') + n; };
+      var _lo = new Date(_now.getFullYear(), _now.getMonth() - 6, 1);
+      var _hi = new Date(_now.getFullYear(), _now.getMonth() + 12, 1);
+      rollMin = _lo.getFullYear() + '-' + _pad(_lo.getMonth() + 1);
+      rollMax = _hi.getFullYear() + '-' + _pad(_hi.getMonth() + 1);
+      yearLabel = 'Recent–' + _hi.getFullYear();
     }
 
     var place = region || cities.length;
@@ -560,7 +569,7 @@
         types: types, typeLabel: typeLabel, typeNoun: typeNoun,
         region: region, cities: cities,
         yearMin: yearMin, yearMax: yearMax, yearLabel: yearLabel, yearMode: yearMode,
-        sort: sort, firm: firm, rolling: rolling
+        sort: sort, firm: firm, rolling: rolling, rollMin: rollMin, rollMax: rollMax
       };
     }
     if (count < 2) return null;  // no anchor + too little structure → normal search
@@ -571,7 +580,7 @@
       types: types, typeLabel: typeLabel, typeNoun: typeNoun,
       region: region, cities: cities,
       yearMin: yearMin, yearMax: yearMax, yearLabel: yearLabel,
-      sort: sort, firm: firm, rolling: rolling
+      sort: sort, firm: firm, rolling: rolling, rollMin: rollMin, rollMax: rollMax
     };
   }
 
@@ -625,6 +634,12 @@
       if (s.yearMin != null) {
         var y = s.yearMode === 'start' ? startYearOf(p) : yearOf(p);
         if (y == null || y < s.yearMin || y > s.yearMax) return false;
+      }
+      if (s.rollMin) {
+        var _m = String(p.DeliveryDate || '').match(/^(\d{4})(?:-(\d{2}))?/);
+        if (!_m) return false;
+        var _ym = _m[1] + '-' + (_m[2] || '06');  // bare year → mid-year
+        if (_ym < s.rollMin || _ym > s.rollMax) return false;
       }
       if (s.firm) {
         // Match by distinctive tokens (credits vary across editions). All-tokens-

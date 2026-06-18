@@ -1463,18 +1463,22 @@
 
   function renderUnderstoodChips(s){
     var chips = [];
+    // Top chips use controlled vocabulary — title-case each word ("opening soon"
+    // → "Opening Soon"). Leaves already-capitalised letters, digits, en-dashes and
+    // proper nouns (firm / city) untouched.
+    var tc = function (x) { return String(x).replace(/\b([a-z])/g, function (m, c) { return c.toUpperCase(); }); };
     if (s.firm) {
       var roleLbl = s.firm.role === 'developer' ? 'Developer' : (s.firm.role === 'architect' ? 'Architect' : 'Firm');
       chips.push('<span class="tmw-ov-uchip"><span class="ck">'+roleLbl+'</span> <b>'+esc(s.firm.name)+'</b></span>');
     }
-    if (s.phaseLabels && s.phaseLabels.length) chips.push('<span class="tmw-ov-uchip"><span class="ck">Milestone</span> <b>'+esc(s.phaseLabels.join(' / '))+'</b></span>');
-    if (s.statusLabels.length)                 chips.push('<span class="tmw-ov-uchip"><span class="ck">Status</span> <b>'+esc(s.statusLabels.join(' / '))+'</b></span>');
-    if (s.typeLabel)                           chips.push('<span class="tmw-ov-uchip"><span class="ck">Type</span> <b>'+esc(s.typeLabel)+'</b></span>');
+    if (s.phaseLabels && s.phaseLabels.length) chips.push('<span class="tmw-ov-uchip"><span class="ck">Milestone</span> <b>'+esc(tc(s.phaseLabels.join(' / ')))+'</b></span>');
+    if (s.statusLabels.length)                 chips.push('<span class="tmw-ov-uchip"><span class="ck">Status</span> <b>'+esc(tc(s.statusLabels.join(' / ')))+'</b></span>');
+    if (s.typeLabel)                           chips.push('<span class="tmw-ov-uchip"><span class="ck">Type</span> <b>'+esc(tc(s.typeLabel))+'</b></span>');
     if (s.cities.length)                       chips.push('<span class="tmw-ov-uchip"><span class="ck">City</span> <b>'+esc(s.cities.join(' & '))+'</b></span>');
     else if (s.region)                         chips.push('<span class="tmw-ov-uchip"><span class="ck">Region</span> <b>'+esc(s.region)+'</b></span>');
     if (s._areaLabel)                          chips.push('<span class="tmw-ov-uchip"><span class="ck">Area</span> <b>'+esc(s._areaLabel)+'</b></span>');
-    if (s.yearLabel)                           chips.push('<span class="tmw-ov-uchip"><span class="ck">'+(s.yearMode === 'start' ? 'Groundbreak' : 'Delivery')+'</span> <b>'+esc(s.yearLabel)+'</b></span>');
-    if (s.sort)                                chips.push('<span class="tmw-ov-uchip sort"><span class="ck">Sort</span> <b>'+esc(s.sort.label)+'</b></span>');
+    if (s.yearLabel)                           chips.push('<span class="tmw-ov-uchip"><span class="ck">'+(s.yearMode === 'start' ? 'Groundbreak' : 'Delivery')+'</span> <b>'+esc(tc(s.yearLabel))+'</b></span>');
+    if (s.sort)                                chips.push('<span class="tmw-ov-uchip sort"><span class="ck">Sort</span> <b>'+esc(tc(s.sort.label))+'</b></span>');
     if (!chips.length) return '';
     return '<div class="tmw-ov-understood"><span class="lead">Understood as</span>' + chips.join('') + '</div>';
   }
