@@ -1163,11 +1163,17 @@ function pulseNotTracking(e) {
   const tag = (e.tag || '').toLowerCase();
   return tag.indexOf('new on map') === -1 && tag.indexOf('added') === -1;
 }
-// Recency window + order match the header bell exactly (journal-dock.js): by
-// PUBLISH time (when we logged the item), not the historical milestone date —
-// so the ticker shows the same recent activity the bubble does, not old events.
-const PULSE_WINDOW_MS = 14 * 24 * 60 * 60 * 1000;
-function pulsePub(e) { const t = new Date(e.timestamp || e.event_date || 0).getTime(); return isNaN(t) ? 0 : t; }
+// Recency window + order match the header bell (journal-dock.js) AND the Atlas
+// "Recent movers" feed: milestones are windowed + sorted by when they HAPPENED
+// (event_date), so a backfilled milestone with an old event date never shows as
+// current activity. Articles (no event_date) fall back to publish time. 90-day
+// window so genuine recent movers populate the bar.
+const PULSE_WINDOW_MS = 90 * 24 * 60 * 60 * 1000;
+function pulsePub(e) {
+  const src = ((e.type || '').toLowerCase() === 'status_change' && e.event_date) ? e.event_date : (e.timestamp || e.event_date || 0);
+  const t = new Date(src).getTime();
+  return isNaN(t) ? 0 : t;
+}
 function pulseActive(list) {
   let d; try { d = new Set(JSON.parse(localStorage.getItem('tmw_pulse_dismissed') || '[]')); } catch (_) { d = new Set(); }
   const now = Date.now(), cutoff = now - PULSE_WINDOW_MS, upper = now + 2 * 24 * 60 * 60 * 1000;

@@ -1509,20 +1509,21 @@
     try { return new Date(ts).toLocaleDateString(undefined, { month:'short', day:'numeric' }); } catch(e){ return ''; }
   }
   function byTime(a,b){ return new Date(b.timestamp) - new Date(a.timestamp); }
-  // The feed is ordered + windowed by PUBLISH time — when we logged the pulse
-  // item (e.timestamp) — NOT the historical milestone date. A milestone we
-  // tracked this week is recent activity even if it happened months ago (e.g.
-  // "broke ground · Sep 2025" confirmed today). Using event_date hid almost
-  // everything because most milestone dates fall outside the 2-week window.
-  // The milestone date is still SHOWN in each item's meta; it just no longer
-  // gates recency.
+  // Milestones are ordered + windowed by when the milestone HAPPENED
+  // (event_date) — matching the Atlas "Recent movers" feed — so a backfilled
+  // milestone with an old event date never resurfaces as current activity just
+  // because we logged it today. Articles (no event_date) fall back to publish
+  // time. The window is 90 days (PULSE_WINDOW_MS), wide enough that genuine
+  // recent movers still populate the feed (a tight window hid almost everything).
   function evTime(e){
-    var d = (e && e.timestamp) ? e.timestamp : (e && e.event_date);
+    var typ = (e && e.type ? String(e.type) : '').toLowerCase();
+    var d = (typ === 'status_change' && e && e.event_date) ? e.event_date
+          : (e && e.timestamp) ? e.timestamp : (e && e.event_date);
     var t = new Date(d).getTime();
     return isNaN(t) ? 0 : t;
   }
   function byEvent(a,b){ return evTime(b) - evTime(a); }
-  var PULSE_WINDOW_MS = 14 * 24 * 60 * 60 * 1000;   // last 2 weeks only
+  var PULSE_WINDOW_MS = 90 * 24 * 60 * 60 * 1000;   // last 90 days by event date — matches Atlas Recent movers
   // Format a real event date (YYYY / YYYY-MM / YYYY-MM-DD) → "Nov 2025".
   function fmtEv(s){
     var m = String(s || '').match(/^(\d{4})(?:-(\d{2}))?(?:-(\d{2}))?/);
@@ -1576,7 +1577,7 @@
     var d = getDismissed();
     var now = Date.now(), cutoff = now - PULSE_WINDOW_MS, upper = now + 2 * 24 * 60 * 60 * 1000;
     return events
-      .filter(function(e){ var t = evTime(e); return t >= cutoff && t <= upper; })   // last 2 weeks by publish time
+      .filter(function(e){ var t = evTime(e); return t >= cutoff && t <= upper; })   // last 90 days by event date (Atlas parity)
       .filter(function(e){ return !d.has(eid(e)); })
       .slice(0, FEED_MAX);
   }
@@ -1606,7 +1607,7 @@
     if (!list.length){
       var fb = recentFallback();
       if (!fb.length) return '<div class="tmw-pulse-empty">You’re all caught up</div>';
-      return '<div class="tmw-pulse-note">Nothing new in the last two weeks — here’s the latest</div>' + fb.map(itemHtml).join('');
+      return '<div class="tmw-pulse-note">Nothing new lately — here’s the latest</div>' + fb.map(itemHtml).join('');
     }
     return list.map(itemHtml).join('');
   }
