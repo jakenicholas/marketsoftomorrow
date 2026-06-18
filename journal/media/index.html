@@ -139,17 +139,15 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
 .tattr .tn{font-size:14px; font-weight:600; color:var(--white)}
 .tattr .tr{font-family:var(--mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--gold-soft); margin-top:4px; text-shadow:0 0 16px rgba(230,197,116,.3)}
 .tattr .to{font-size:12.5px; color:var(--mute); margin-top:3px}
-.tst-tiles{display:flex; flex-direction:column; gap:9px; margin-top:18px; padding-top:18px; border-top:1px solid var(--hair)}
-.tst-btn{display:flex; align-items:center; gap:12px; padding:11px 13px; border-radius:12px; border:1px solid var(--hair); background:rgba(255,255,255,.03); text-decoration:none; color:inherit; transition:border-color .2s, background .2s, transform .2s}
+.tst-tiles{display:flex; gap:8px; margin-top:18px; padding-top:18px; border-top:1px solid var(--hair)}
+.tst-btn{flex:1; display:flex; align-items:center; justify-content:center; gap:8px; padding:13px 10px; border-radius:12px; border:1px solid var(--hair); background:rgba(255,255,255,.03); text-decoration:none; color:inherit; transition:border-color .2s, background .2s, transform .2s}
 .tst-btn:hover{border-color:rgba(230,197,116,.42); background:rgba(255,255,255,.06); transform:translateY(-1px)}
-.tst-btn .ti{flex:0 0 auto; width:32px; height:32px; border-radius:9px; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,.05); border:1px solid var(--hair2); color:var(--gold-soft)}
-.tst-btn .ti svg{width:16px; height:16px}
-.tst-btn .tb{flex:1; min-width:0}
-.tst-btn .tbt{display:block; font-size:13.5px; font-weight:600; color:var(--cream)}
-.tst-btn .tbd{display:block; font-size:12px; color:var(--mute); margin-top:2px; line-height:1.4}
-.tst-btn .tgo{flex:0 0 auto; color:var(--mute); transition:transform .2s}
+.tst-btn .ti{flex:0 0 auto; display:flex; color:var(--gold-soft)}
+.tst-btn .ti svg{width:18px; height:18px; display:block}
+.tst-btn .tb{position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0}
+.tst-btn .tgo{flex:0 0 auto; display:flex; color:var(--mute); transition:transform .2s}
 .tst-btn:hover .tgo{transform:translate(2px,-2px)}
-.tst-btn .tgo svg{width:14px; height:14px; display:block}
+.tst-btn .tgo svg{width:13px; height:13px; display:block}
 .hero .meta{font-family:var(--mono); font-size:12px; letter-spacing:.18em; text-transform:uppercase; color:var(--mute); margin-top:34px}
 /* floating market bubbles */
 .bubbles{position:absolute; inset:0; z-index:1; pointer-events:none}
@@ -1165,7 +1163,7 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
 
       <div class="tcard reveal d2">
         <div class="tquote-mark">&ldquo;</div>
-        <p class="tquote">Our Michelin Guide announcement with Markets of Tomorrow pulled <span class="hl-gold-strong">over 12,000 likes</span> across socials&mdash;and we got <span class="hl-gold-strong">booked instantly, five months out</span>. The reach turned a milestone into momentum we&rsquo;re still riding.</p>
+        <p class="tquote">Our Michelin Guide announcement with Markets of Tomorrow pulled <span class="hl-gold-strong">over 12,000 likes</span> on Instagram alone&mdash;and we got <span class="hl-gold-strong">booked instantly, five months out</span>. The reach turned a milestone into momentum we&rsquo;re still riding.</p>
         <div class="tattr"><div class="tn">Osmel Gonz&aacute;lez</div><div class="tr">Executive Chef</div><div class="to">Emelina &middot; West Palm Beach</div></div>
         <div class="tst-tiles">
           <a class="tst-btn" href="https://www.oftmw.com/post/emelina-becomes-the-world-s-first-cuban-restaurant-to-earn-a-michelin-star/" target="_blank" rel="noopener"><span class="ti"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h9l5 5v13H5z"/><path d="M14 3v5h5"/><path d="M8.5 13h7M8.5 17h7"/></svg></span><span class="tb"><span class="tbt">Website article</span><span class="tbd">Read the story</span></span><span class="tgo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7"/><path d="M9 7h8v8"/></svg></span></a>
