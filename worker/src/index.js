@@ -5459,6 +5459,9 @@ async function handleSmartAnswer(request, env, origin) {
     'is not in the facts.\n' +
     '- Lead with the headline the query is asking for (how many match, the tallest, the largest, where ' +
     'they cluster) — do not list every item.\n' +
+    '- When the facts are several related projects sharing a place, name, or district, call out which is ' +
+    'opening soonest: a near-term delivery date or an "Opening Soon" / "Now Open" status is the ' +
+    'newsworthy lead and should be named explicitly.\n' +
     '- If there is only ONE result, do NOT use superlatives like "tallest", "largest", or "stands as" — ' +
     'a single project is not the most or least of anything. Just state it plainly.\n' +
     '- Only say a project hit a milestone (topped out, secured financing, went vertical, etc.) if the ' +

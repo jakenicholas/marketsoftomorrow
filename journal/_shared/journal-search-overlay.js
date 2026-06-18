@@ -50,6 +50,24 @@
   function firstField(o, keys){ for (var i=0;i<keys.length;i++){ var k=keys[i]; if (o[k]!=null && String(o[k]).trim()!=='') return o[k]; } return ''; }
   function commaFirst(s){ return String(s||'').split(',')[0].trim(); }
   function tokenize(q){ return norm(q).split(/[^a-z0-9]+/).filter(Boolean); }
+  // Field matcher used by project scoring. SHORT needles (< 5 chars) must
+  // match as a whole word so a 4-letter brand like "nora" doesn't substring-
+  // match inside "panoramic" / "sonora" — that false positive is what used to
+  // drag ~20 unrelated projects (e.g. a resort with "panoramic" views) into a
+  // "Nora" search. Longer needles keep substring matching so "design",
+  // "revelstoke", etc. still hit. `hay` is expected already normalized.
+  function fieldHit(hay, t){
+    if (!t || !hay) return false;
+    if (t.length >= 5) return hay.indexOf(t) >= 0;
+    var i = hay.indexOf(t);
+    while (i >= 0){
+      var before = i === 0 ? '' : hay.charAt(i - 1);
+      var after  = hay.charAt(i + t.length);
+      if (!/[a-z0-9]/.test(before) && !/[a-z0-9]/.test(after)) return true;
+      i = hay.indexOf(t, i + 1);
+    }
+    return false;
+  }
   function isQuestion(q){
     var t = String(q||'').trim();
     if (!t) return false;
@@ -918,19 +936,19 @@
     var s = 0;
     if (title===full) s+=120;
     else if (title.indexOf(full)===0) s+=50;
-    else if (full && title.indexOf(full)>=0) s+=28;
+    else if (full && fieldHit(title, full)) s+=28;
     if (full && city===full) s+=22;
     if (full && nbhd && nbhd===full) s+=24;          // exact neighborhood match
-    else if (full && nbhd && nbhd.indexOf(full)>=0) s+=16;
+    else if (full && nbhd && fieldHit(nbhd, full)) s+=16;
     for (var i=0;i<toks.length;i++){
       var t = toks[i];
-      if (title.indexOf(t)>=0) s+=12;
-      if (city.indexOf(t)>=0)  s+=8;
-      if (nbhd && nbhd.indexOf(t)>=0) s+=9;          // neighborhood token match
-      if (type.indexOf(t)>=0)  s+=6;
-      if (arch.indexOf(t)>=0)  s+=5;
-      if (dev.indexOf(t)>=0)   s+=5;
-      if (desc.indexOf(t)>=0)  s+=2;
+      if (fieldHit(title, t)) s+=12;
+      if (fieldHit(city, t))  s+=8;
+      if (nbhd && fieldHit(nbhd, t)) s+=9;            // neighborhood token match
+      if (fieldHit(type, t))  s+=6;
+      if (fieldHit(arch, t))  s+=5;
+      if (fieldHit(dev, t))   s+=5;
+      if (fieldHit(desc, t))  s+=2;
     }
     if (s>0 && p.Featured) s+=1;
     return s;
@@ -2100,6 +2118,18 @@
         var anchorCity  = norm(strongAnchor.City  || '');
         var anchorDevTokens = (strongAnchor.Developer || '').toLowerCase()
           .split(/[,\s/&]+/).filter(function(t){ return t.length > 3; });
+        // Distinctive brand/district tokens of the anchor's name, dropping the
+        // generic structure suffix ("Nora House" -> ["nora"]). These connect
+        // same-place SIBLINGS that share the name but NOT the developer — e.g.
+        // "Nora House" -> "The Nora Hotel", "The Nora District". Without this
+        // the LLM only ever heard the one developer's projects and missed the
+        // district's soonest-opening building entirely.
+        var GENERIC_NAME = { house:1,hotel:1,hotels:1,tower:1,towers:1,residence:1,residences:1,
+          apartment:1,apartments:1,condo:1,condos:1,district:1,districts:1,villa:1,villas:1,
+          loft:1,lofts:1,suite:1,suites:1,club:1,resort:1,resorts:1,place:1,park:1,plaza:1,
+          center:1,centre:1,collection:1,phase:1,the:1,at:1,on:1,of:1,and:1 };
+        var anchorNameTokens = anchorTitle.split(/[^a-z0-9]+/)
+          .filter(function(t){ return t.length >= 4 && !GENERIC_NAME[t]; });
         var seen = {}; seen[strongAnchor.Title] = true;
         var scored = [];
         PROJECTS.forEach(function (p) {
@@ -2107,7 +2137,12 @@
           var sc = 0;
           var pDev  = (p.Developer || '').toLowerCase();
           var pCity = norm(p.City || '');
+          var pTitle = norm(p.Title || '');
           var pDesc = norm(firstField(p, ['DescriptionLong','Description']));
+          // Same place + shared distinctive name token = district sibling. Rank
+          // it ABOVE same-developer so the named district always leads.
+          if (anchorNameTokens.length && pCity === anchorCity &&
+              anchorNameTokens.some(function (t) { return fieldHit(pTitle, t); })) sc += 35;
           if (anchorDevTokens.length && pCity === anchorCity &&
               anchorDevTokens.some(function (t) { return pDev.indexOf(t) >= 0; })) sc += 30;
           if (anchorTitle.length >= 6 && pDesc.indexOf(anchorTitle) >= 0) sc += 20;
