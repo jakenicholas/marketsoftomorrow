@@ -2278,6 +2278,7 @@ def render_featured_markets_json(by_city: dict[str, list[dict]], path: str) -> i
     MARKET_IMAGE_OVERRIDES = {
         'Riviera Beach': 'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_445dcb51bfab4b5f97729a55a31eca71~mv2.jpg',  # 123 Ocean
         'Palm Beach':    'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_297b07c045bc4d1a9b0fbb166b176dee~mv2.webp',  # Palm Beach Residences
+        'Tampa':         'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_849dfca008d048fc8e457d6a3a684df6~mv2.jpg',  # hand-picked Tampa tile
     }
     def pick_image(projects: list[dict]) -> str | None:
         # Featured > Under Construction > anything with an image. We want
