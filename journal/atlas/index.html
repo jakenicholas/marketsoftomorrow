@@ -328,12 +328,12 @@
   .atlas-tile.purple .n{color:var(--purple-soft)}
 
   /* ── Dashboard 2-col grid + panel headers ── */
-  .atlas-dash{display:grid;grid-template-columns:1.4fr 1fr;gap:18px;align-items:start}
-  @media(max-width:900px){.atlas-dash{grid-template-columns:1fr}}
-  .atlas-dash .atlas-panel{margin-bottom:18px}
-  .atlas-dash-top{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start;margin-bottom:18px}
-  .atlas-dash-top .atlas-panel{margin-bottom:0}
-  @media(max-width:900px){.atlas-dash-top{grid-template-columns:1fr}}
+  /* Dashboard rows — two equal columns, items stretch to a shared height. */
+  .atlas-dash-row{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:stretch;margin-bottom:18px}
+  .atlas-dash-row > .atlas-panel{height:100%;margin-bottom:0}
+  .atlas-dash-stack{display:flex;flex-direction:column;gap:18px;min-width:0}
+  .atlas-dash-stack .atlas-panel{margin-bottom:0}
+  @media(max-width:900px){.atlas-dash-row{grid-template-columns:1fr}}
 
   /* ── Rich project-card grid (Overview) — ported from generate_market_pages.py ── */
   .apcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:14px}
@@ -360,15 +360,16 @@
   .apcards .pm-tl-stage:first-child{text-align:left}
   .apcards .pm-tl-stage:last-child{text-align:right}
   .apcards .pm-tl-stage.done{color:rgba(255,255,255,.5)}
-  .apcards .pp-minis{display:grid;grid-template-columns:repeat(auto-fit,minmax(72px,1fr));gap:6px;margin-top:14px;margin-bottom:14px}
+  .apcards .pp-minis{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:14px;margin-bottom:14px}
   .apcards .pp-mini{padding:10px 11px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.07);border-radius:10px;overflow:hidden}
+  .apcards .pp-mini-empty .v{color:rgba(255,255,255,.3)}
   .apcards .pp-mini .v{font-family:var(--sans);font-size:15px;font-weight:800;letter-spacing:-.02em;color:var(--white);white-space:nowrap}
   .apcards .pp-mini .k{font-family:var(--mono);font-size:8px;letter-spacing:.07em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-top:5px;white-space:nowrap}
   .apcards .pp-firms{display:grid;grid-template-columns:1fr 1fr;gap:8px}
   .apcards .pp-firm{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:13px 14px;text-decoration:none;color:inherit;display:block;transition:border-color .15s}
   .apcards .pp-firm:hover{border-color:rgba(31,223,103,.35)}
   .apcards .pp-firm .k{font-family:var(--mono);font-size:8.5px;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.4)}
-  .apcards .pp-firm .v{font-family:var(--sans);font-size:15px;font-weight:700;color:var(--white);margin-top:4px;line-height:1.25}
+  .apcards .pp-firm .v{font-family:var(--sans);font-size:15px;font-weight:700;color:var(--white);margin-top:4px;line-height:1.25;min-height:2.5em}
   .apcards .pp-firm .go{display:inline-block;margin-top:7px;font-family:var(--sans);font-size:11px;color:var(--green)}
   .apcards .pp-firm-empty{cursor:default}
   .apcards .pp-firm-empty:hover{border-color:rgba(255,255,255,.08)}
@@ -1494,6 +1495,7 @@
         { n: fmt(statusDistCount('Now Open')), l: 'Now open', c: 'green' },
         { n: fmt(s.units), l: 'Units in pipeline', c: 'purple' },
         { n: fmt(s.keys), l: 'Hotel keys', c: '' },
+        { n: fmt(s.floors), l: 'Floors planned', c: '' },
       ];
       return `<div class="atlas-tiles">${tiles.map(t =>
         `<div class="atlas-tile ${t.c}"><div class="n">${t.n}</div><div class="l">${t.l}</div></div>`).join('')}</div>`;
@@ -1546,14 +1548,14 @@
       const allowedCities = _filterActive()
         ? new Set(((ctx().leaderboards && ctx().leaderboards.cities) || []).map(c => c.name))
         : null;
-      const RECENT_MS = 90 * 86400000, FUTURE_SLACK = 14 * 86400000, nowT = Date.now();
+      const RECENT_MS = 365 * 86400000, FUTURE_SLACK = 14 * 86400000, nowT = Date.now();
       const evs = (atlasData.recent_activity || [])
         .filter(e => e.type === 'status_change' && e.event_date)
         .filter(e => !allowedCities || allowedCities.has(e.city))
         .map(e => { const d = parseEv(e.event_date); return { e, t: d ? d.getTime() : NaN }; })
         .filter(x => !isNaN(x.t) && (nowT - x.t) <= RECENT_MS && (nowT - x.t) >= -FUTURE_SLACK)
         .sort((a, b) => b.t - a.t)
-        .slice(0, 6)
+        .slice(0, 10)
         .map(x => x.e);
       if (!evs.length) return '';
       const rows = evs.map(e => {
@@ -1577,7 +1579,7 @@
           + `<div>${nm}<div class="mchg"><span class="to">${escapeHtml(tag)}</span> ${hexMarker(11)}</div>`
           + `${meta ? `<div class="msrc">${meta}</div>` : ''}</div></div>`;
       }).join('');
-      return `<div class="atlas-panel"><h3 class="atlas-ph"><span class="lbl">Recent movers</span><span class="hint">last 90 days</span></h3>${rows}</div>`;
+      return `<div class="atlas-panel"><h3 class="atlas-ph"><span class="lbl">Recent movers</span><span class="hint">last 12 months</span></h3>${rows}</div>`;
     }
 
     function renderIndexPanel() {
@@ -1638,14 +1640,18 @@
     function renderDashGrid() {
       return `
         <section class="atlas-section">
-          <div class="atlas-dash-top">
+          <div class="atlas-dash-row">
+            ${renderIndexPanel()}
+            <div class="atlas-dash-stack">
+              ${renderPurpleBars('cities', 'By metro', 'top markets')}
+              ${renderPurpleBars('types', 'By type', 'projects span types')}
+            </div>
+          </div>
+          <div class="atlas-dash-row">
             ${renderStageBars()}
             ${renderOpeningsPanel()}
           </div>
-          <div class="atlas-dash">
-            <div>${renderMovers()}</div>
-            <div>${renderIndexPanel()}${renderPurpleBars('cities', 'By metro', 'top markets')}${renderPurpleBars('types', 'By type', 'projects span types')}</div>
-          </div>
+          ${renderMovers()}
         </section>`;
     }
 
@@ -1697,7 +1703,9 @@
         return `<span class="pm-tl-stage ${cls}"${style}>${label}</span>`;
       }).join('');
       const sub = complete ? 'Delivered' : (p.deliveryDate ? 'Est. ' + _pcMonYear(p.deliveryDate) : '');
-      const dateHtml = sub ? `<div class="pm-tl-date">${escapeHtml(sub)}</div>` : '';
+      // Always render the date line (blank when absent) so the meter — and
+      // everything below it — lines up across every card in a row.
+      const dateHtml = `<div class="pm-tl-date">${sub ? escapeHtml(sub) : '&nbsp;'}</div>`;
       const knobLeft = pct >= 98 ? 'calc(100% - 18px)' : pct + '%';
       return `<div class="pm-tl">${dateHtml}
         <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
@@ -1708,8 +1716,10 @@
       </div>`;
     }
     function _pcMini(label, value) {
-      if (!value) return '';
-      return `<div class="pp-mini"><div class="v">${escapeHtml(value)}</div><div class="k">${escapeHtml(label)}</div></div>`;
+      // Always render the slot (em-dash when missing) so Start/Completion/Units/
+      // Floors columns line up across every card in the grid.
+      const has = value != null && value !== '';
+      return `<div class="pp-mini${has ? '' : ' pp-mini-empty'}"><div class="v">${has ? escapeHtml(value) : '—'}</div><div class="k">${escapeHtml(label)}</div></div>`;
     }
     function _pcFirm(label, firm) {
       const name = (firm && firm.name) ? firm.name : '';
@@ -1739,7 +1749,7 @@
         _pcMini('Units', _pcNum(p.units)),
         _pcMini('Floors', String(p.floors || '').trim()),
       ].join('');
-      const minisHtml = minis ? `<div class="pp-minis">${minis}</div>` : '';
+      const minisHtml = `<div class="pp-minis">${minis}</div>`;
       const firms = `<div class="pp-firms">${_pcFirm('Developer', (p.developers || [])[0])}${_pcFirm('Architect', (p.architects || [])[0])}</div>`;
       return `<div class="card${featured ? ' featured' : ''}"${featured ? ' data-featured="1"' : ''}>
         <a class="card-link" href="${escapeHtml(href)}" aria-label="Open ${title}">
@@ -2336,7 +2346,6 @@
           stickyhead,
           renderStateFilter(),
           renderHeadlineTiles(),
-          renderScale(),
           renderDashGrid(),
           renderProjectCards(),
           renderLeaderboardSection(),
