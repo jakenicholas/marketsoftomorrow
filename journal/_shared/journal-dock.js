@@ -1142,10 +1142,10 @@
       '.tmw-oc-read svg{width:13px; height:13px; transition:transform .2s}',
       '.tmw-oc:hover .tmw-oc-read{color:#fff} .tmw-oc:hover .tmw-oc-read svg{transform:translateX(3px)}',
       // The Map — explore (free) + pro intelligence + Go Pro CTA.
-      '.tmw-mm{display:grid; grid-template-columns:1fr; gap:14px; max-width:720px}',
+      '.tmw-mm{display:grid; grid-template-columns:1fr; gap:14px; max-width:1000px}',
       '.tmw-mm-h{font-family:var(--mono); font-size:9.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--mute,#9AA39C); margin-bottom:8px}',
       '.tmw-mm-h-span{grid-column:1/-1; margin-bottom:-6px}',
-      '.tmw-mm-pro-grid{display:grid; grid-template-columns:1fr 1fr; gap:4px 14px}',
+      '.tmw-mm-pro-grid{display:grid; grid-template-columns:1fr 1fr 1fr; gap:4px 14px}',
       '.tmw-mm-item{display:flex; gap:12px; padding:10px; border-radius:12px; text-decoration:none; transition:background .18s}',
       '.tmw-mm-item:hover{background:rgba(255,255,255,.05)}',
       '.tmw-mm-ic{flex:0 0 auto; width:34px; height:34px; border-radius:10px; display:flex; align-items:center; justify-content:center; background:rgba(167,139,250,.12); border:1px solid rgba(167,139,250,.3); color:#C4B5FD}',
