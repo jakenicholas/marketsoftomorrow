@@ -901,7 +901,7 @@ def render_page(firm, firm_projects, stats, coverage_items):
   <meta property="og:url" content="{canonical}">
   <meta property="og:image" content="{e(og_image)}">
   <meta name="twitter:card" content="summary_large_image">
-  <link rel="icon" href="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_71f3cd2ef61049028b2daf4e2ff71d52~mv2.png" type="image/png">
+  <link rel="icon" type="image/svg+xml" href="/media/img/favicon.svg">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1258,7 +1258,7 @@ def render_firm_hub(summaries, out_path):
   <meta property="og:title" content="All Firms ({CURRENT_YEAR}) | {SITE_NAME}">
   <meta property="og:description" content="{total_firms} firms with active projects worldwide. Filter, browse, find your firm.">
   <meta property="og:url" content="{MARKET_ROOT_URL}/firm/">
-  <link rel="icon" href="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_71f3cd2ef61049028b2daf4e2ff71d52~mv2.png" type="image/png">
+  <link rel="icon" type="image/svg+xml" href="/media/img/favicon.svg">
   {market_website_jsonld()}
   {hub_faq_ld}
   <link rel="preconnect" href="https://fonts.googleapis.com">

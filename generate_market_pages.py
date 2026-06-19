@@ -643,7 +643,7 @@ def render_page(
   <meta property="og:url" content="{esc(canonical)}">
   <meta property="og:image" content="{esc(og_image)}">
   <meta name="twitter:card" content="summary_large_image">
-  <link rel="icon" href="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_71f3cd2ef61049028b2daf4e2ff71d52~mv2.png" type="image/png">
+  <link rel="icon" type="image/svg+xml" href="/media/img/favicon.svg">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1709,7 +1709,7 @@ def render_html_sitemap(out_path: str, city_pages, type_pages, state_pages, city
   <meta name="description" content="Full sitemap of every market, state, category, and city page on Markets of Tomorrow. {len(state_pages) + len(city_pages) + len(type_pages) + len(city_type_pairs)} landing pages — find what you need fast.">
   <link rel="canonical" href="{canonical}">
   <meta name="robots" content="index, follow">
-  <link rel="icon" href="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_71f3cd2ef61049028b2daf4e2ff71d52~mv2.png" type="image/png">
+  <link rel="icon" type="image/svg+xml" href="/media/img/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -2003,7 +2003,7 @@ def render_hub(city_type_pairs, city_pages, type_pages, state_pages=None, countr
   <meta property="og:title" content="All Markets ({CURRENT_YEAR}) | {SITE_NAME}">
   <meta property="og:description" content="{total_links} live landing pages across {len(city_pages)} cities and {len(type_pages)} categories. Filter, browse, and ask anything.">
   <meta property="og:url" content="{canonical}">
-  <link rel="icon" href="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_71f3cd2ef61049028b2daf4e2ff71d52~mv2.png" type="image/png">
+  <link rel="icon" type="image/svg+xml" href="/media/img/favicon.svg">
   {website_jsonld()}
   {hub_faq_ld}
   <link rel="preconnect" href="https://fonts.googleapis.com">

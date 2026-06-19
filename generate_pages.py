@@ -1697,7 +1697,7 @@ def build_page(row, articles=None, nearby=None):
   <meta name="twitter:image" content="{image}">
 
   <!-- Favicon -->
-  <link rel="icon" href="{LOGO_URL}" type="image/png">
+  <link rel="icon" type="image/svg+xml" href="/media/img/favicon.svg">
 
   <!-- JSON-LD -->
   <script type="application/ld+json">{jsonld}</script>
@@ -3648,7 +3648,7 @@ def build_index(items):
   <meta property="og:title" content="All Projects | Markets of Tomorrow">
   <meta property="og:description" content="Browse {len(items)} future developments on the Map of Tomorrow.">
   <meta property="og:image" content="{DEFAULT_IMAGE}">
-  <link rel="icon" href="{LOGO_URL}" type="image/png">
+  <link rel="icon" type="image/svg+xml" href="/media/img/favicon.svg">
   <style>
     *, *::before, *::after {{ box-sizing: border-box; margin: 0; padding: 0; }}
     body {{ background: #0d0d0d; color: #fff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }}
