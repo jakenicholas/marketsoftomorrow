@@ -1265,7 +1265,10 @@ function escapeAttr(s) { return escapeHtml(s); }
 function setCmtCountBtn(n) {
   var b = document.getElementById('cmt-count-btn'); if (!b) return;
   n = n || 0;
-  b.innerHTML = '<span class="cc-num">' + n + '</span>';
+  var bd = b.querySelector('.cc-badge');
+  if (!bd) { bd = document.createElement('span'); bd.className = 'cc-badge'; b.appendChild(bd); }
+  bd.textContent = n;
+  bd.style.display = n > 0 ? '' : 'none';
   b.title = n + ' comment' + (n === 1 ? '' : 's');
 }
 function initComments(slug, post) {
@@ -1312,7 +1315,8 @@ function initComments(slug, post) {
     +'.tmw-cmt-ls{font-size:13.5px;color:#9AA39C;line-height:1.55;max-width:78%;margin-bottom:16px}'
     +'.tmw-cmt-cta{appearance:none;border:none;cursor:pointer;background:linear-gradient(135deg,#c4b5fd,#A78BFA);color:#1a1340;font-family:Inter,sans-serif;font-size:13px;font-weight:600;padding:10px 20px;border-radius:10px;box-shadow:0 0 20px rgba(167,139,250,.35)}'
     +'.tmw-cmt-cta:hover{box-shadow:0 0 28px rgba(167,139,250,.55)}'
-    +'.cc-num{font-family:Inter,system-ui,sans-serif;font-size:12.5px;font-weight:700;line-height:1}';
+    +'.cmt-count-ico{position:relative;overflow:visible}'
+    +'.cc-badge{position:absolute;top:-5px;right:-5px;min-width:17px;height:17px;padding:0 4px;border-radius:999px;display:flex;align-items:center;justify-content:center;font-family:Inter,system-ui,sans-serif;font-size:10px;font-weight:700;line-height:1;color:#B9A6FF;background:rgba(167,139,250,.20);border:1px solid rgba(167,139,250,.5);box-shadow:0 0 11px rgba(167,139,250,.55)}';
   if(!document.getElementById('tmw-cmt-css')){var st=document.createElement('style');st.id='tmw-cmt-css';st.textContent=CSS;document.head.appendChild(st);}
 
   // If a full-bleed project card is the last block of the article, drop its

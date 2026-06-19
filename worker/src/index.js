@@ -5836,8 +5836,8 @@ async function computeMemberGameStats(env, memberId) {
   }
   const streak = _gameStreak(days);
   const a = arts.size, sv = saved.size, mk = markets.size;
-  let xp = a * 10 + sv * 5 + mk * 25 + visits * 500 + shares * 50 + feedback * 20 + comments * 10 + intel * 2 + cSub * 25 + cAcc * 150 + streak * 5;
-  if (streak >= 7) xp += 25; if (streak >= 30) xp += 150;
+  let xp = a * 10 + sv * 5 + mk * 25 + visits * 500 + shares * 50 + feedback * 20 + comments * 10 + intel * 2 + cSub * 25 + cAcc * 150 + streak * 10;
+  xp += Math.floor(streak / 7) * 50;   // +50 bonus for every full week kept
   const rec = await ensureMemberRecord(env, memberId, email, earliest);
   // achievements — unlock + bonus XP
   const ach = {

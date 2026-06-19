@@ -1789,6 +1789,7 @@
   var WORKER = 'https://tmw.jake-ab7.workers.dev';
   var ACH = { founding:{n:'Founding Member',xp:100}, reader:{n:'Reader',xp:0}, globetrotter:{n:'Globetrotter',xp:150}, tastemaker:{n:'Tastemaker',xp:300}, centurion:{n:'Centurion',xp:250}, contributor:{n:'Contributor',xp:200} };
   var STAR = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>';
+  var LVLUP = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 15l-6-6-6 6"/><path d="M18 9l-6-6-6 6"/></svg>';
   var CSS = '#tmw-ach-wrap{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:2147483000;display:flex;flex-direction:column;gap:10px;align-items:center;pointer-events:none}'
     +'.tmw-ach{display:flex;align-items:center;gap:13px;min-width:300px;max-width:390px;padding:14px 18px;border-radius:16px;background:rgba(16,18,24,.92);border:1px solid rgba(230,197,116,.35);box-shadow:0 0 30px rgba(230,197,116,.22),0 18px 50px rgba(0,0,0,.5);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);font-family:Inter,system-ui,sans-serif;color:#ECEAE5;transform:translateY(22px);opacity:0;transition:transform .42s cubic-bezier(.2,.9,.3,1),opacity .42s;pointer-events:auto}'
     +'.tmw-ach.in{transform:translateY(0);opacity:1}'
@@ -1797,27 +1798,41 @@
     +'.tmw-ach-bd{flex:1;min-width:0}'
     +'.tmw-ach-k{font-family:"JetBrains Mono",monospace;font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:#e6c574;margin-bottom:3px}'
     +'.tmw-ach-n{font-family:Fraunces,Georgia,serif;font-size:17px;font-weight:600;color:#fff;line-height:1.1}'
-    +'.tmw-ach-xp{font-family:"JetBrains Mono",monospace;font-size:13px;font-weight:700;color:#42EB81;text-shadow:0 0 12px rgba(31,223,103,.4);flex:0 0 auto}';
+    +'.tmw-ach-xp{font-family:"JetBrains Mono",monospace;font-size:13px;font-weight:700;color:#42EB81;text-shadow:0 0 12px rgba(31,223,103,.4);flex:0 0 auto}'
+    +'.tmw-ach.lvl{border-color:rgba(167,139,250,.4);box-shadow:0 0 30px rgba(167,139,250,.25),0 18px 50px rgba(0,0,0,.5)}'
+    +'.tmw-ach.lvl .tmw-ach-ic{background:linear-gradient(135deg,#c4b5fd,#A78BFA);color:#1a1340;box-shadow:0 0 18px rgba(167,139,250,.45)}'
+    +'.tmw-ach.lvl .tmw-ach-k{color:#B9A6FF}'
+    +'.tmw-ach.lvl .tmw-ach-xp{color:#B9A6FF;text-shadow:0 0 12px rgba(167,139,250,.45)}';
   function ensureCss(){ if(!document.getElementById('tmw-ach-css')){var s=document.createElement('style');s.id='tmw-ach-css';s.textContent=CSS;document.head.appendChild(s);} }
-  function toast(key){
-    var a=ACH[key]; if(!a) return; ensureCss();
+  function pushToast(o){
+    ensureCss();
     var w=document.getElementById('tmw-ach-wrap'); if(!w){w=document.createElement('div');w.id='tmw-ach-wrap';document.body.appendChild(w);}
-    var el=document.createElement('div'); el.className='tmw-ach';
-    el.innerHTML='<div class="tmw-ach-ic">'+STAR+'</div><div class="tmw-ach-bd"><div class="tmw-ach-k">Achievement unlocked</div><div class="tmw-ach-n">'+a.n+'</div></div>'+(a.xp?'<div class="tmw-ach-xp">+'+a.xp+' XP</div>':'');
+    var el=document.createElement('div'); el.className='tmw-ach'+(o.lvl?' lvl':'');
+    el.innerHTML='<div class="tmw-ach-ic">'+(o.icon||STAR)+'</div><div class="tmw-ach-bd"><div class="tmw-ach-k">'+o.kicker+'</div><div class="tmw-ach-n">'+o.name+'</div></div>'+(o.sub?'<div class="tmw-ach-xp">'+o.sub+'</div>':'');
     w.appendChild(el);
     requestAnimationFrame(function(){ el.classList.add('in'); });
     setTimeout(function(){ el.classList.remove('in'); setTimeout(function(){ if(el.parentNode)el.parentNode.removeChild(el); },420); }, 5400);
   }
+  function toast(key){ var a=ACH[key]; if(!a) return; pushToast({kicker:'Achievement unlocked', name:a.n, sub:(a.xp?'+'+a.xp+' XP':'')}); }
+  function toastLevel(lvl,tier){ pushToast({kicker:'Level up', name:'Level '+lvl+(tier?' · '+tier:''), icon:LVLUP, lvl:true}); }
   function check(id){
     fetch(WORKER+'/member-stats?id='+encodeURIComponent(id),{cache:'no-store'}).then(function(r){return r.ok?r.json():null}).then(function(d){
-      if(!d||!d.achievements) return;
-      var now=Object.keys(d.achievements).filter(function(k){return d.achievements[k];});
-      var key='tmw_ach_'+id, prev=null;
-      try{ prev=JSON.parse(localStorage.getItem(key)||'null'); }catch(e){}
-      if(!Array.isArray(prev)){ try{ localStorage.setItem(key,JSON.stringify(now)); }catch(e){} return; }
-      var fresh=now.filter(function(k){ return prev.indexOf(k)<0; });
-      try{ localStorage.setItem(key,JSON.stringify(now)); }catch(e){}
-      fresh.forEach(function(k,i){ setTimeout(function(){ toast(k); }, i*450); });
+      if(!d) return;
+      // achievements
+      if(d.achievements){
+        var now=Object.keys(d.achievements).filter(function(k){return d.achievements[k];});
+        var key='tmw_ach_'+id, prev=null;
+        try{ prev=JSON.parse(localStorage.getItem(key)||'null'); }catch(e){}
+        if(!Array.isArray(prev)){ try{ localStorage.setItem(key,JSON.stringify(now)); }catch(e){} }
+        else { var fresh=now.filter(function(k){ return prev.indexOf(k)<0; }); try{ localStorage.setItem(key,JSON.stringify(now)); }catch(e){} fresh.forEach(function(k,i){ setTimeout(function(){ toast(k); }, i*450); }); }
+      }
+      // level-ups
+      if(typeof d.level==='number'){
+        var lk='tmw_lvl_'+id, plvl=NaN; try{ plvl=parseInt(localStorage.getItem(lk),10); }catch(e){}
+        if(isNaN(plvl)){ try{ localStorage.setItem(lk,String(d.level)); }catch(e){} }
+        else if(d.level>plvl){ try{ localStorage.setItem(lk,String(d.level)); }catch(e){} setTimeout(function(){ toastLevel(d.level,d.tier); }, 200); }
+        else if(d.level!==plvl){ try{ localStorage.setItem(lk,String(d.level)); }catch(e){} }
+      }
     }).catch(function(){});
   }
   (function wait(t){ t=t||0; var m=window.$memberstackDom; if(m&&m.getCurrentMember){ m.getCurrentMember().then(function(r){ var mem=r&&r.data; if(mem&&mem.id) check(mem.id); }).catch(function(){}); return; } if(++t>40) return; setTimeout(function(){wait(t);},250); })();
