@@ -1153,6 +1153,8 @@
       '.tmw-mm-ic svg{width:16px; height:16px; stroke:currentColor; fill:none; stroke-width:1.8}',
       '.tmw-mm-tx b{display:block; font-size:12px; font-weight:600; color:#fff}',
       '.tmw-mm-tx b em{font-style:normal; font-family:var(--mono); font-size:7.5px; letter-spacing:.12em; color:var(--gold-soft,#f0d68a); border:1px solid rgba(230,197,116,.42); border-radius:5px; padding:2px 5px; margin-left:7px; vertical-align:middle}',
+      '.tmw-mm-tx b em.fpro{color:#42EB81; border-color:rgba(31,223,103,.42)}',
+      '.tmw-mm-tx b em.ppro{color:#C4B5FD; border-color:rgba(167,139,250,.45)}',
       '.tmw-mm-tx i{font-style:normal; display:block; font-size:11px; color:var(--mute,#9AA39C); margin-top:2px}',
       '.tmw-mm-cta{grid-column:1/-1; display:flex; align-items:center; justify-content:space-between; gap:14px; padding:15px 18px; border-radius:13px; text-decoration:none; background:linear-gradient(120deg,rgba(167,139,250,.13),rgba(31,223,103,.06)); border:1px solid rgba(167,139,250,.3)}',
       '.tmw-mm-cta .t{font-family:var(--serif,Georgia,serif); font-weight:400; font-size:16px; line-height:1.25; letter-spacing:-.01em; text-transform:none; color:#fff}',
@@ -1262,7 +1264,13 @@
       return '<a class="tmw-mm-item" href="' + (href || UP) + '" data-paywall="' + ctx + '"><span class="tmw-mm-ic">' + ic(icon) + '</span><span class="tmw-mm-tx"><b>' + name + '<em>PRO</em></b><i>' + sub + '</i></span></a>';
     }
     return '<div class="tmw-mm">' +
-      '<div class="tmw-mm-h tmw-mm-h-span">Pro tools</div>' +
+      '<div class="tmw-mm-h">Explore the database &mdash; free</div>' +
+      '<div>' +
+        '<a class="tmw-mm-item" href="/markets/"><span class="tmw-mm-ic green">' + ic('<path d="M12 21s-7-6-7-11a7 7 0 0 1 14 0c0 5-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/>') + '</span><span class="tmw-mm-tx"><b>Tracked Markets<em class="fpro">FREE</em></b><i>173 cities, every project we watch.</i></span></a>' +
+        '<a class="tmw-mm-item" href="/firm/"><span class="tmw-mm-ic green">' + ic('<path d="M3 21h18M6 21V5a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v16M14 21V9h3a1 1 0 0 1 1 1v11M9 8h2M9 12h2M9 16h2"/>') + '</span><span class="tmw-mm-tx"><b>Developers &amp; Architects<em class="fpro">FREE</em></b><i>953 firms, ranked by pipeline.</i></span></a>' +
+        '<a class="tmw-mm-item" href="https://www.oftmw.com/atlas/"><span class="tmw-mm-ic">' + ic('<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>') + '</span><span class="tmw-mm-tx"><b>Openings Tracker<em class="ppro">PRO</em></b><i>What&apos;s opening next, by date.</i></span></a>' +
+      '</div>' +
+      '<div class="tmw-mm-h tmw-mm-h-span" style="margin-top:16px">Pro tools</div>' +
       '<div>' +
         '<a class="tmw-mm-item" href="' + U + '"><span class="tmw-mm-ic">' + ic('<path d="M9 18l-6 3V6l6-3 6 3 6-3v15l-6 3-6-3z"/><path d="M9 3v15M15 6v15"/>') + '</span><span class="tmw-mm-tx"><b>Interactive Map<em>PRO</em></b><i>396 projects across 40+ markets.</i></span></a>' +
         '<a class="tmw-mm-item" href="https://www.oftmw.com/atlas/"><span class="tmw-mm-ic">' + ic('<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>') + '</span><span class="tmw-mm-tx"><b>The Atlas<em>PRO</em></b><i>Every tracked project on one canvas.</i></span></a>' +
