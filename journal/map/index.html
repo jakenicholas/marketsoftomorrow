@@ -4265,6 +4265,8 @@
   #projectModal .dos-info > svg { width: 13px; height: 13px; display: block; }
   #projectModal .dos-tip { position: absolute; left: 0; bottom: calc(100% + 8px); width: max-content; max-width: 240px; background: #15110f; border: 1px solid rgba(255,255,255,.14); color: #ECEAE5; font-size: 12px; line-height: 1.45; padding: 8px 11px; border-radius: 9px; box-shadow: 0 14px 38px -12px rgba(0,0,0,.85); opacity: 0; visibility: hidden; transition: opacity .14s; z-index: 30; pointer-events: none; white-space: normal; }
   #projectModal .dos-info:hover .dos-tip, #projectModal .dos-info:focus .dos-tip { opacity: 1; visibility: visible; }
+  /* Mobile: right-anchor the info tooltip so it can't fall off the right edge. */
+  @media (max-width: 768px) { #projectModal .dos-tip { left: auto; right: 0; max-width: 78vw; } }
   #projectModal .dos-src { display: inline-flex; align-items: center; gap: 3px; margin-top: 4px; font-size: 11px; color: #42EB81; text-decoration: none; }
   #projectModal .dos-src .dos-arr { flex: none; }
   #projectModal .dos-src:hover { text-decoration: underline; }
@@ -13001,6 +13003,17 @@
       map.on('zoomstart', blurSuspend);
       map.on('moveend', blurRestore);
       map.on('zoomend', blurRestore);
+
+      // Initial-lag warm-up: on mobile the GL canvas/compositor isn't fully
+      // settled at create time, which makes the very first pan/zoom janky —
+      // until opening the drawer forces a layout reflow that "fixes" it. We
+      // replicate that reflow up front with deferred resize()+repaint() so the
+      // first interaction is smooth without needing to open the drawer.
+      const _warmMap = () => { try { map.resize(); map.triggerRepaint(); } catch (e) {} };
+      map.once('load', _warmMap);
+      setTimeout(_warmMap, 350);
+      setTimeout(_warmMap, 1000);
+      window.addEventListener('orientationchange', () => setTimeout(_warmMap, 250));
     }
 
     let activePopup, stationPopup, fullscreenMap;
@@ -19057,8 +19070,9 @@
         const modal = document.getElementById('paywallModal');
         modal.classList.add('active');
         // 24h-trial paywall is soft (dismissible) so the user keeps browsing
-        // the map; feature/other paywalls stay hard-blocking.
-        modal.classList.toggle('paywall-soft', triggerCtx === 'trial_ended');
+        // the map; feature/other paywalls stay hard-blocking. On the Atlas
+        // surface the trial paywall is a HARD lock — free users can't dismiss it.
+        modal.classList.toggle('paywall-soft', triggerCtx === 'trial_ended' && !document.body.classList.contains('atlas-mode'));
         // If already signed in, "Already a subscriber? Sign in" doesn't apply
         const wrap = document.getElementById('subPaywallSigninWrap');
         if (wrap) wrap.style.display = isSignedIn ? 'none' : '';
