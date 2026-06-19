@@ -109,6 +109,7 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .sdot{width:16px;height:16px;border-radius:50%;background:rgba(255,255,255,.05);border:1px solid var(--hair);flex:0 0 auto;transition:transform .2s}
 .sdot.on{background:linear-gradient(135deg,var(--gold-soft),var(--gold));border-color:transparent;box-shadow:0 0 10px rgba(230,197,116,.45)}
 .sdot.today{transform:scale(1.25);box-shadow:0 0 0 3px rgba(167,139,250,.22),0 0 14px rgba(230,197,116,.65)}
+.streak-ttl{font-family:var(--serif);font-size:22px;font-weight:600;color:var(--gold);text-shadow:0 0 18px rgba(230,197,116,.5)}
 .frm{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .f label{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--mute);margin-bottom:7px}
 .f input,.f select{width:100%;background:#14161a;border:1px solid var(--hair);border-radius:10px;color:#ECEAE5;font-family:var(--sans);font-size:14px;padding:11px 12px}
@@ -151,7 +152,7 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
       </div>
     </div>
     <div class="stats" id="stats"></div>
-    <div class="sechead"><h2>Daily streak</h2><span class="lbl" id="streakLbl">&nbsp;</span></div>
+    <div class="sechead"><h2>Daily streak</h2><span class="streak-ttl" id="streakLbl">&nbsp;</span></div>
     <div class="streak" id="streakStrip"></div>
     <div class="sechead"><h2>Your climb</h2><span class="lbl" id="rankLbl">&nbsp;</span></div>
     <div class="ladder" id="ladder"></div>
@@ -254,7 +255,7 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
     $('xpNow').innerHTML='<b>'+fmt(m.xp)+'</b> XP';
     var S=m.stats,T=[['articles','articles read'],['markets','markets followed'],['visits','venue visits'],['reach','reach generated'],['streak','day streak'],['saved','projects saved']];
     $('stats').innerHTML=T.map(function(t){return '<div class="stat"><div class="v">'+(typeof S[t[0]]==='number'?fmt(S[t[0]]):S[t[0]])+'</div><div class="k">'+t[1]+'</div></div>'}).join('');
-    (function(){ var streak=Math.max(0,S.streak||0),N=28,sh=''; for(var i=0;i<N;i++){var fe=N-1-i;sh+='<div class="sdot'+(fe<streak?' on':'')+(i===N-1?' today':'')+'"></div>';} var ss=$('streakStrip'); if(ss)ss.innerHTML=sh; var sl=$('streakLbl'); if(sl)sl.innerHTML=streak?('🔥 '+streak+'-day streak'):'Start your streak'; })();
+    (function(){ var streak=Math.max(0,S.streak||0); var N=Math.min(40,Math.max(28,Math.ceil(streak/0.72))); if(N<streak)N=streak; var sh=''; for(var i=0;i<N;i++){var on=i<streak,today=(i===streak-1);sh+='<div class="sdot'+(on?' on':'')+(today?' today':'')+'"></div>';} var ss=$('streakStrip'); if(ss)ss.innerHTML=sh; var sl=$('streakLbl'); if(sl)sl.textContent=streak?(streak+' Day Streak'):'Start your streak'; })();
     $('ladder').innerHTML=LEVELS.map(function(L){
       var st=L.lvl<cur.lvl?'done':L.lvl===cur.lvl?'cur':'lock';
       var tag=st==='done'?'<span class="tag done">Unlocked</span>':st==='cur'?'<span class="tag cur">You are here</span>':'<span class="tag lock">'+fmt(L.xp)+' XP</span>';
