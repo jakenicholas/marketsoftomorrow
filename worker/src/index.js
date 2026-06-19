@@ -5868,7 +5868,7 @@ async function handleMemberLists(env, origin, url) {
         const path = r.path || '';
         if (/^\/(journal\/)?post\//.test(path)) {
           const slug = path.replace(/\/+$/, '').replace(/^.*\/post\//, '');
-          if (slug && !seen.has(slug) && arts.length < 40) { seen.add(slug); arts.push({ slug, title: p.title || null, ts: r.ts }); }
+          if (slug && slug.indexOf('/') < 0 && !seen.has(slug) && arts.length < 40) { seen.add(slug); arts.push({ slug, title: p.title || null, ts: r.ts }); }
         }
       }
     }
