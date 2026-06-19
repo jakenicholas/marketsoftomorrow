@@ -140,6 +140,7 @@ nav.main .wrap{display:flex; align-items:center; justify-content:space-between; 
 .article-hero .byline .share .share-ico{width:34px; height:34px; display:inline-flex; align-items:center; justify-content:center; padding:0; border-radius:999px; border:1px solid var(--hair-2); color:var(--cream); background:transparent; cursor:pointer; transition:all .2s}
 .article-hero .byline .share .share-ico svg{width:16px; height:16px}
 .article-hero .byline .share .share-ico:hover{border-color:var(--green); color:var(--green); transform:translateY(-1px)}
+.article-hero .byline .share .share-ico.cmt-count-ico:hover{border-color:#A78BFA; color:#B9A6FF}
 .article-hero .byline .share .share-ico.copied{border-color:var(--green); color:var(--green)}
 /* Follow on Google (+) — sits LEFT of the heart. Same .share-ico
    shape, hover uses the brand green so it reads as a positive

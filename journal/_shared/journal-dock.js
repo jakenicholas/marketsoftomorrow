@@ -1815,6 +1815,8 @@
   }
   function toast(key){ var a=ACH[key]; if(!a) return; pushToast({kicker:'Achievement unlocked', name:a.n, sub:(a.xp?'+'+a.xp+' XP':'')}); }
   function toastLevel(lvl,tier){ pushToast({kicker:'Level up', name:'Level '+lvl+(tier?' · '+tier:''), icon:LVLUP, lvl:true}); }
+  // Console test helper: run tmwToastTest() on any oftmw.com page to preview both toasts.
+  window.tmwToastTest = function(){ toast('globetrotter'); setTimeout(function(){ toastLevel(4,'Insider'); }, 800); };
   function check(id){
     fetch(WORKER+'/member-stats?id='+encodeURIComponent(id),{cache:'no-store'}).then(function(r){return r.ok?r.json():null}).then(function(d){
       if(!d) return;
