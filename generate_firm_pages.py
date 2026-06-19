@@ -44,6 +44,8 @@ from collections import defaultdict
 # typography, cards, timeline boxes, firm bubbles, and Pro CTA verbatim.
 from generate_market_pages import (
     card_html as market_card_html,
+    paywall_grid,
+    PAYWALL_CSS, PAYWALL_HEAD, PAYWALL_BODY_JS, PAYWALL_JSONLD,
     _exclude_completed,
     _status_breakdown,
     _count_firms,
@@ -709,7 +711,10 @@ def render_page(firm, firm_projects, stats, coverage_items):
         f"{stats['in_progress']} active, {stats['completed']} completed."
     )
 
-    cards_html = '\n'.join(market_card_html(p) for p in active_sorted[:FEATURED_FIRM_GRID])
+    # Render every active project for this firm; soft paywall locks past the free cap.
+    firm_all_cards = [market_card_html(p) for p in active_sorted]
+    grid_html, paywall_note, gopro_pill, locked_n = paywall_grid(firm_all_cards, len(active_sorted), MARKET_ROOT_URL)
+    paywall_head = PAYWALL_HEAD + (PAYWALL_JSONLD if locked_n else '')
 
     # Stats strip — 5 cards (tracked / UC / BG / OS / NO), gold/amber tint as in market pages
     stats_cells = [
@@ -892,6 +897,7 @@ def render_page(firm, firm_projects, stats, coverage_items):
   <meta name="description" content="{e(description)}">
   <meta name="robots" content="index, follow">
   {org_jsonld}
+  {paywall_head}
   {faqs_ld}
   <link rel="canonical" href="{canonical}">
 
@@ -907,7 +913,7 @@ def render_page(firm, firm_projects, stats, coverage_items):
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
-  <style>{FIRM_CSS}</style>
+  <style>{FIRM_CSS}{PAYWALL_CSS}</style>
 </head>
 <body>
   <!-- Universal header injected by /_shared/journal-chrome.js -->
@@ -934,13 +940,11 @@ def render_page(firm, firm_projects, stats, coverage_items):
       <div class="section-head">
         <div>
           <div class="section-eyebrow">Featured projects</div>
-          <h2 class="section-title">{e(showing_note)}</h2>
+          <h2 class="section-title">{paywall_note}</h2>
         </div>
-        <div class="section-meta"><a class="see-all-pill" href="{MARKET_ROOT_URL}/map/?q={e(title)}">See all {stats['total']} on the map →</a></div>
+        <div class="section-meta">{gopro_pill if locked_n else f'<a class="see-all-pill" href="{MARKET_ROOT_URL}/map/?q={e(title)}">See all {stats["total"]} on the map →</a>'}</div>
       </div>
-      <div class="grid tmw-project-grid">
-{cards_html}
-      </div>
+      {grid_html}
     </section>
 
     <section class="section">
@@ -1062,6 +1066,7 @@ def render_page(firm, firm_projects, stats, coverage_items):
       }});
     }});
   </script>
+{PAYWALL_BODY_JS}
 </body>
 </html>
 """

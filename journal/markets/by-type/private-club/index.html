@@ -25,6 +25,7 @@
   <script type="application/ld+json">{"@context": "https://schema.org", "@type": "CollectionPage", "name": "1 New Private Clubs Worldwide (2026)", "description": "1 new private club developments worldwide across 1 cities", "url": "https://www.oftmw.com/markets/by-type/private-club/", "datePublished": "2026-06-01", "dateModified": "2026-06-19", "publisher": {"@type": "Organization", "name": "Markets of Tomorrow", "url": "https://www.oftmw.com"}, "mainEntity": {"@type": "ItemList", "numberOfItems": 1, "itemListElement": [{"@type": "ListItem", "position": 1, "url": "https://www.oftmw.com/projects/dutchman-s-pipe/", "name": "Dutchman's Pipe"}]}, "breadcrumb": {"@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "TMW", "item": "https://www.oftmw.com/"}, {"@type": "ListItem", "position": 2, "name": "Markets", "item": "https://www.oftmw.com/markets/"}, {"@type": "ListItem", "position": 3, "name": "By type", "item": "https://www.oftmw.com/markets/"}, {"@type": "ListItem", "position": 4, "name": "Private Club", "item": "https://www.oftmw.com/markets/by-type/private-club/"}]}}</script>
   <script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "Which cities have the most new private club?", "acceptedAnswer": {"@type": "Answer", "text": "The deepest private club pipelines are in West Palm Beach (1). We track 1 private club project total across 1 cities."}}, {"@type": "Question", "name": "How many new private club are under construction worldwide?", "acceptedAnswer": {"@type": "Answer", "text": "0 private club are currently under construction worldwide. Plus 0 breaking ground, 0 opening soon, and 0 announced in the global pipeline."}}, {"@type": "Question", "name": "Who is the most active developer in private club worldwide?", "acceptedAnswer": {"@type": "Answer", "text": "Witkoff Group leads the private club category with 1 active project. Their firm page shows every market they're building in."}}, {"@type": "Question", "name": "Who designs the most new private club?", "acceptedAnswer": {"@type": "Answer", "text": "Nicklaus Design is the architect of record on 1 private club project in our global dataset."}}, {"@type": "Question", "name": "How often is the private club development data updated?", "acceptedAnswer": {"@type": "Answer", "text": "Hourly. Our cron pipeline pulls fresh project data every hour and regenerates every market page. A status change confirmed today shows up within ~60 minutes."}}]}</script>
   
+  <script>try{if(localStorage.getItem('tmw_auth_state')==='pro')document.documentElement.classList.add('tmw-paid');}catch(e){}</script>
 
   <style>
     :root {
@@ -278,6 +279,49 @@
       .hero-eyebrow .he-updated { flex-basis: 100%; }
       .hero-eyebrow .he-updated::before { content: none; margin-right: 0; }
     }
+
+    /* ── Soft paywall: locked project cards (in-DOM for SEO, blurred for free) ── */
+    .tmw-locked { position: relative; margin-top: 14px; }
+    .tmw-locked-grid {
+      filter: blur(8px) saturate(.75); opacity: .55; pointer-events: none; user-select: none;
+      max-height: 300px; overflow: hidden;
+      -webkit-mask-image: linear-gradient(180deg,#000 0%,#000 32%,transparent 100%);
+              mask-image: linear-gradient(180deg,#000 0%,#000 32%,transparent 100%);
+    }
+    .tmw-gate { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 16px; }
+    .tmw-gate-inner {
+      text-align: center; max-width: 460px;
+      background: linear-gradient(180deg, rgba(22,20,32,.9), rgba(16,15,24,.97));
+      border: 1px solid rgba(167,139,250,.34); border-radius: 20px;
+      padding: 30px 34px; box-shadow: 0 24px 70px rgba(0,0,0,.55);
+      backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
+    }
+    .tmw-gate-badge {
+      display: inline-block; font-family: var(--mono); font-size: 10px; letter-spacing: .16em;
+      text-transform: uppercase; color: #0a0a0a; background: var(--gold);
+      padding: 4px 10px; border-radius: 999px; font-weight: 700; margin-bottom: 14px;
+    }
+    .tmw-gate-title { font-family: var(--serif); font-size: 25px; font-weight: 500; letter-spacing: -.016em; color: var(--white); line-height: 1.15; margin: 0 0 8px; }
+    .tmw-gate-sub { font-family: var(--sans); font-size: 13.5px; line-height: 1.5; color: var(--mute-2); margin: 0 0 20px; }
+    .tmw-gate-cta {
+      font-family: var(--sans); font-size: 14px; font-weight: 700; cursor: pointer;
+      color: #0a0a0a; background: var(--gold); border: none; border-radius: 999px;
+      padding: 13px 28px; transition: transform .12s, box-shadow .12s, background .12s;
+      box-shadow: 0 6px 22px rgba(230,197,116,.32);
+    }
+    .tmw-gate-cta:hover { transform: translateY(-1px); background: var(--gold-soft, #f0d68a); box-shadow: 0 10px 28px rgba(230,197,116,.45); }
+    /* Purple "Unlock all N" pill — twin of the gold see-all pill */
+    .see-all-pill.gopro-pill { color: var(--purple-soft); border-color: rgba(167,139,250,.5); background: rgba(167,139,250,.08); }
+    .see-all-pill.gopro-pill:hover { background: rgba(167,139,250,.16); border-color: rgba(167,139,250,.75); box-shadow: 0 0 22px rgba(167,139,250,.3); }
+    /* Free vs paid copy swaps */
+    .tmw-paid-only { display: none; }
+    /* Paid unlock — CSS reacts to journal-auth.js's html.tmw-paid class */
+    html.tmw-paid .tmw-locked-grid { filter: none; opacity: 1; pointer-events: auto; user-select: auto; max-height: none; overflow: visible; -webkit-mask-image: none; mask-image: none; }
+    html.tmw-paid .tmw-gate { display: none; }
+    html.tmw-paid .gopro-pill { display: none; }
+    html.tmw-paid .tmw-free-only { display: none; }
+    html.tmw-paid .tmw-paid-only { display: inline; }
+
   </style>
 </head>
 <body>
@@ -304,7 +348,7 @@
       <div class="section-head">
         <div>
           <div class="section-eyebrow">Featured projects</div>
-          <h2 class="section-title">All 0 we&#x27;re watching</h2>
+          <h2 class="section-title">All 0 we’re watching</h2>
         </div>
         <div class="section-meta"><a class="see-all-pill" href="https://www.oftmw.com/map/?q=Private Club">See all 0 on the map →</a></div>
       </div>
@@ -493,6 +537,21 @@
         });
       });
     });
+  </script>
+  <script>
+    (function () {
+      function goPro() {
+        try { window.tmwFunnelTrack && window.tmwFunnelTrack('go_pro_clicked', { source: 'page_paywall', path: location.pathname }); } catch (e) {}
+        if (window.tmwShowPaywall) window.tmwShowPaywall({ source: 'page_paywall' });
+        else window.location = 'https://www.oftmw.com/map/?upgrade=1';
+      }
+      document.addEventListener('click', function (e) {
+        var el = e.target.closest && e.target.closest('[data-gopro]');
+        if (!el) return;
+        e.preventDefault();
+        goPro();
+      });
+    })();
   </script>
 </body>
 </html>

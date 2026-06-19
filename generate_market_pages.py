@@ -93,6 +93,130 @@ COUNTRY_CITIES: set[str] = {
 }
 FEATURED_GRID_TARGET = 8     # cards are now 2-column with full timelines, so fewer per page
 
+# ─── Soft paywall ───────────────────────────────────────────────────
+# Market + firm pages are the source of truth for a market/firm's projects.
+# We render EVERY active project card into the HTML (great for SEO — unique
+# content + internal links to project/firm pages), show the first
+# PAYWALL_FREE_N free, and visually lock the rest behind a "Go Pro" gate.
+# Unlock is pure CSS reacting to the `html.tmw-paid` class that journal-auth.js
+# sets for paid members. Schema.org paywall markup (isAccessibleForFree:false
+# + hasPart cssSelector) tells Google the gating is intentional, not cloaking.
+PAYWALL_FREE_N = 6
+
+PAYWALL_CSS = """
+    /* ── Soft paywall: locked project cards (in-DOM for SEO, blurred for free) ── */
+    .tmw-locked { position: relative; margin-top: 14px; }
+    .tmw-locked-grid {
+      filter: blur(8px) saturate(.75); opacity: .55; pointer-events: none; user-select: none;
+      max-height: 300px; overflow: hidden;
+      -webkit-mask-image: linear-gradient(180deg,#000 0%,#000 32%,transparent 100%);
+              mask-image: linear-gradient(180deg,#000 0%,#000 32%,transparent 100%);
+    }
+    .tmw-gate { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 16px; }
+    .tmw-gate-inner {
+      text-align: center; max-width: 460px;
+      background: linear-gradient(180deg, rgba(22,20,32,.9), rgba(16,15,24,.97));
+      border: 1px solid rgba(167,139,250,.34); border-radius: 20px;
+      padding: 30px 34px; box-shadow: 0 24px 70px rgba(0,0,0,.55);
+      backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
+    }
+    .tmw-gate-badge {
+      display: inline-block; font-family: var(--mono); font-size: 10px; letter-spacing: .16em;
+      text-transform: uppercase; color: #0a0a0a; background: var(--gold);
+      padding: 4px 10px; border-radius: 999px; font-weight: 700; margin-bottom: 14px;
+    }
+    .tmw-gate-title { font-family: var(--serif); font-size: 25px; font-weight: 500; letter-spacing: -.016em; color: var(--white); line-height: 1.15; margin: 0 0 8px; }
+    .tmw-gate-sub { font-family: var(--sans); font-size: 13.5px; line-height: 1.5; color: var(--mute-2); margin: 0 0 20px; }
+    .tmw-gate-cta {
+      font-family: var(--sans); font-size: 14px; font-weight: 700; cursor: pointer;
+      color: #0a0a0a; background: var(--gold); border: none; border-radius: 999px;
+      padding: 13px 28px; transition: transform .12s, box-shadow .12s, background .12s;
+      box-shadow: 0 6px 22px rgba(230,197,116,.32);
+    }
+    .tmw-gate-cta:hover { transform: translateY(-1px); background: var(--gold-soft, #f0d68a); box-shadow: 0 10px 28px rgba(230,197,116,.45); }
+    /* Purple "Unlock all N" pill — twin of the gold see-all pill */
+    .see-all-pill.gopro-pill { color: var(--purple-soft); border-color: rgba(167,139,250,.5); background: rgba(167,139,250,.08); }
+    .see-all-pill.gopro-pill:hover { background: rgba(167,139,250,.16); border-color: rgba(167,139,250,.75); box-shadow: 0 0 22px rgba(167,139,250,.3); }
+    /* Free vs paid copy swaps */
+    .tmw-paid-only { display: none; }
+    /* Paid unlock — CSS reacts to journal-auth.js's html.tmw-paid class */
+    html.tmw-paid .tmw-locked-grid { filter: none; opacity: 1; pointer-events: auto; user-select: auto; max-height: none; overflow: visible; -webkit-mask-image: none; mask-image: none; }
+    html.tmw-paid .tmw-gate { display: none; }
+    html.tmw-paid .gopro-pill { display: none; }
+    html.tmw-paid .tmw-free-only { display: none; }
+    html.tmw-paid .tmw-paid-only { display: inline; }
+"""
+
+# Early inline (blocking, in <head>) — adds tmw-paid from the cached auth state
+# BEFORE first paint so returning Pro members never flash the locked state.
+PAYWALL_HEAD = (
+    "<script>try{if(localStorage.getItem('tmw_auth_state')==='pro')"
+    "document.documentElement.classList.add('tmw-paid');}catch(e){}</script>"
+)
+
+# Delegated click handler for every [data-gopro] affordance (gate CTA + pill).
+PAYWALL_BODY_JS = """  <script>
+    (function () {
+      function goPro() {
+        try { window.tmwFunnelTrack && window.tmwFunnelTrack('go_pro_clicked', { source: 'page_paywall', path: location.pathname }); } catch (e) {}
+        if (window.tmwShowPaywall) window.tmwShowPaywall({ source: 'page_paywall' });
+        else window.location = 'https://www.oftmw.com/map/?upgrade=1';
+      }
+      document.addEventListener('click', function (e) {
+        var el = e.target.closest && e.target.closest('[data-gopro]');
+        if (!el) return;
+        e.preventDefault();
+        goPro();
+      });
+    })();
+  </script>"""
+
+# Schema.org paywalled-content markup (Google-sanctioned, avoids cloaking flags).
+PAYWALL_JSONLD = (
+    '<script type="application/ld+json">'
+    '{"@context":"https://schema.org","@type":"WebPage","isAccessibleForFree":false,'
+    '"hasPart":{"@type":"WebPageElement","isAccessibleForFree":false,"cssSelector":".tmw-locked"}}'
+    '</script>'
+)
+
+
+def paywall_grid(cards, total, root_url, free_n=PAYWALL_FREE_N):
+    """Build the project grid with a soft paywall.
+
+    `cards` is the list of FULLY-rendered card HTML strings (all active
+    projects, already sorted). Returns (grid_html, note_html, pill_html,
+    locked_count). The locked cards stay in the DOM (SEO) but are blurred and
+    non-interactive until `html.tmw-paid` unlocks them via CSS.
+    """
+    free_cards = cards[:free_n]
+    locked_cards = cards[free_n:]
+    locked = len(locked_cards)
+    grid = '<div class="grid tmw-project-grid">\n' + '\n'.join(free_cards) + '\n      </div>'
+    if locked:
+        plural = 's' if locked != 1 else ''
+        grid += (
+            f'\n      <div class="tmw-locked" data-locked-count="{locked}">'
+            '\n        <div class="grid tmw-project-grid tmw-locked-grid">\n'
+            + '\n'.join(locked_cards) +
+            '\n        </div>'
+            '\n        <div class="tmw-gate"><div class="tmw-gate-inner">'
+            '<span class="tmw-gate-badge">★ TMW Pro</span>'
+            f'<h3 class="tmw-gate-title">Unlock {locked} more project{plural}</h3>'
+            '<p class="tmw-gate-sub">See the full pipeline — live status, delivery dates, '
+            'units and the developer &amp; architect on every project. Free shows the first six.</p>'
+            '<button type="button" class="tmw-gate-cta" data-gopro>Go Pro to unlock &rarr;</button>'
+            '</div></div>'
+            '\n      </div>'
+        )
+        note = (f'<span class="tmw-free-only">{free_n} of {total} — <em>Go Pro for all</em></span>'
+                f'<span class="tmw-paid-only">All {total} we’re watching</span>')
+        pill = (f'<a class="see-all-pill gopro-pill" data-gopro href="{root_url}/map/?upgrade=1">'
+                f'Unlock all {total} &rarr;</a>')
+    else:
+        note = f'All {total} we’re watching'
+        pill = ''
+    return grid, note, pill, locked
+
 # ─── Type label tweaks for natural English SEO H1s ───────────────────
 TYPE_PHRASING = {
     'Residences':   'Luxury Condos & Residences',
@@ -591,7 +715,10 @@ def render_page(
     # panels keep the full bucket so the total scope is still visible.
     active_projects = _exclude_completed(projects)
     total_count = len(active_projects)
-    cards_html = '\n'.join(card_html(p) for p in active_projects[:FEATURED_GRID_TARGET])
+    # Render EVERY active project (the page is the source of truth); the soft
+    # paywall shows the first PAYWALL_FREE_N free and locks the rest in-DOM.
+    all_cards = [card_html(p) for p in active_projects]
+    grid_html, paywall_note, gopro_pill, locked_n = paywall_grid(all_cards, total_count, ROOT_URL)
     firms_html = top_firms_html(projects)
     stats_html = stats_strip_html(projects)
     related_html = ''.join(
@@ -614,16 +741,14 @@ def render_page(
         f'      <div class="related">\n{more_types_html}\n      </div>\n'
         '    </section>\n'
     ) if more_types else ''
-    shown = min(FEATURED_GRID_TARGET, total_count)
-    showing_note = (
-        f'{shown} of {total_count} we\'re watching closely'
-        if total_count > FEATURED_GRID_TARGET
-        else f'All {total_count} we\'re watching'
+    # The page itself is now the destination. When projects are locked, the
+    # header pill becomes the purple "Unlock all N" Go-Pro CTA; small markets
+    # that fit under the free cap keep the quiet "see on the map" link.
+    see_all_link = gopro_pill if locked_n else (
+        f'<a class="see-all-pill" href="{ROOT_URL}/map/?q={esc(map_search)}">See all {total_count} on the map →</a>'
     )
-    # Gold-bordered pill with a soft glow — the "go look at everything on
-    # the map" CTA is the only chrome we want loud on the featured section,
-    # so we promote it from a plain link to a button-style affordance.
-    see_all_link = f'<a class="see-all-pill" href="{ROOT_URL}/map/?q={esc(map_search)}">See all {total_count} on the map →</a>'
+    # Early anti-flash unlock + (when locked) Schema.org paywall markup.
+    paywall_head = PAYWALL_HEAD + (PAYWALL_JSONLD if locked_n else '')
 
     return f"""<!DOCTYPE html>
 <html lang="en">
@@ -652,6 +777,7 @@ def render_page(
   <script type="application/ld+json">{ld}</script>
   {faq_ld}
   {extra_jsonld}
+  {paywall_head}
 
   <style>
     :root {{
@@ -905,6 +1031,7 @@ def render_page(
       .hero-eyebrow .he-updated {{ flex-basis: 100%; }}
       .hero-eyebrow .he-updated::before {{ content: none; margin-right: 0; }}
     }}
+{PAYWALL_CSS}
   </style>
 </head>
 <body>
@@ -927,13 +1054,11 @@ def render_page(
       <div class="section-head">
         <div>
           <div class="section-eyebrow">Featured projects</div>
-          <h2 class="section-title">{esc(showing_note)}</h2>
+          <h2 class="section-title">{paywall_note}</h2>
         </div>
         <div class="section-meta">{see_all_link}</div>
       </div>
-      <div class="grid tmw-project-grid">
-{cards_html}
-      </div>
+      {grid_html}
     </section>
 
     <section class="section">
@@ -1086,6 +1211,7 @@ def render_page(
       }});
     }});
   </script>
+{PAYWALL_BODY_JS}
 </body>
 </html>
 """

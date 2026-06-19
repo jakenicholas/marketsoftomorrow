@@ -8,6 +8,7 @@
   <meta name="description" content="1 project by HQ Hotels &amp; Residences tracked on Markets of Tomorrow · active in Miami · 229 residential units · tallest at 35 floors">
   <meta name="robots" content="index, follow">
   <script type="application/ld+json">{"@context": "https://schema.org", "@type": "Organization", "name": "HQ Hotels & Residences", "url": "https://www.oftmw.com/firm/hq-hotels-residences-in-partnership-with-marc-anthony/", "logo": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_64160581bc9a4d7d9260e046994899c3~mv2.jpg"}</script><script type="application/ld+json">{"@context": "https://schema.org", "@type": "CollectionPage", "name": "HQ Hotels & Residences — 1 Projects", "url": "https://www.oftmw.com/firm/hq-hotels-residences-in-partnership-with-marc-anthony/", "dateModified": "2026-06-19", "about": {"@context": "https://schema.org", "@type": "Organization", "name": "HQ Hotels & Residences", "url": "https://www.oftmw.com/firm/hq-hotels-residences-in-partnership-with-marc-anthony/", "logo": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_64160581bc9a4d7d9260e046994899c3~mv2.jpg"}}</script>
+  <script>try{if(localStorage.getItem('tmw_auth_state')==='pro')document.documentElement.classList.add('tmw-paid');}catch(e){}</script>
   <script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "What does HQ Hotels & Residences build?", "acceptedAnswer": {"@type": "Answer", "text": "HQ Hotels &amp; Residences works across Residences (1). See our full portfolio of 1 tracked projects above."}}, {"@type": "Question", "name": "Where does HQ Hotels & Residences build?", "acceptedAnswer": {"@type": "Answer", "text": "Active in 1 market — most projects in Miami (1). Each city links to a full local development map."}}, {"@type": "Question", "name": "How many projects does HQ Hotels & Residences have on Markets of Tomorrow?", "acceptedAnswer": {"@type": "Answer", "text": "1 project tracked — 1 active and 0 already delivered. The list rebuilds hourly from our database."}}, {"@type": "Question", "name": "What new HQ Hotels & Residences projects have been announced?", "acceptedAnswer": {"@type": "Answer", "text": "1 project by HQ Hotels &amp; Residences are in the announced phase — publicly committed but construction has not yet begun."}}, {"@type": "Question", "name": "What is the biggest project in the HQ Hotels & Residences pipeline?", "acceptedAnswer": {"@type": "Answer", "text": "HQ Residences Miami at 35 floors with 229 residential units, in Miami. Status: Announced. See the project →"}}, {"@type": "Question", "name": "How many residential units is HQ Hotels & Residences adding?", "acceptedAnswer": {"@type": "Answer", "text": "Across the active HQ Hotels &amp; Residences pipeline, the firm is adding 229 residential units across 1 active project."}}, {"@type": "Question", "name": "Who does HQ Hotels & Residences work with most often?", "acceptedAnswer": {"@type": "Answer", "text": "Frequent architects: Arquitectonica. Each links to that firm's full project list across all markets."}}, {"@type": "Question", "name": "How often is HQ Hotels &amp; Residences's project data updated?", "acceptedAnswer": {"@type": "Answer", "text": "Hourly. Our cron pipeline rebuilds every firm and market page from the live database every hour. A status change confirmed today shows up within ~60 minutes."}}]}</script>
   <link rel="canonical" href="https://www.oftmw.com/firm/hq-hotels-residences-in-partnership-with-marc-anthony/">
 
@@ -222,6 +223,48 @@
       .intel form { flex-direction: column; }
       .intel button { padding: 14px 0; }
     }
+
+    /* ── Soft paywall: locked project cards (in-DOM for SEO, blurred for free) ── */
+    .tmw-locked { position: relative; margin-top: 14px; }
+    .tmw-locked-grid {
+      filter: blur(8px) saturate(.75); opacity: .55; pointer-events: none; user-select: none;
+      max-height: 300px; overflow: hidden;
+      -webkit-mask-image: linear-gradient(180deg,#000 0%,#000 32%,transparent 100%);
+              mask-image: linear-gradient(180deg,#000 0%,#000 32%,transparent 100%);
+    }
+    .tmw-gate { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 16px; }
+    .tmw-gate-inner {
+      text-align: center; max-width: 460px;
+      background: linear-gradient(180deg, rgba(22,20,32,.9), rgba(16,15,24,.97));
+      border: 1px solid rgba(167,139,250,.34); border-radius: 20px;
+      padding: 30px 34px; box-shadow: 0 24px 70px rgba(0,0,0,.55);
+      backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
+    }
+    .tmw-gate-badge {
+      display: inline-block; font-family: var(--mono); font-size: 10px; letter-spacing: .16em;
+      text-transform: uppercase; color: #0a0a0a; background: var(--gold);
+      padding: 4px 10px; border-radius: 999px; font-weight: 700; margin-bottom: 14px;
+    }
+    .tmw-gate-title { font-family: var(--serif); font-size: 25px; font-weight: 500; letter-spacing: -.016em; color: var(--white); line-height: 1.15; margin: 0 0 8px; }
+    .tmw-gate-sub { font-family: var(--sans); font-size: 13.5px; line-height: 1.5; color: var(--mute-2); margin: 0 0 20px; }
+    .tmw-gate-cta {
+      font-family: var(--sans); font-size: 14px; font-weight: 700; cursor: pointer;
+      color: #0a0a0a; background: var(--gold); border: none; border-radius: 999px;
+      padding: 13px 28px; transition: transform .12s, box-shadow .12s, background .12s;
+      box-shadow: 0 6px 22px rgba(230,197,116,.32);
+    }
+    .tmw-gate-cta:hover { transform: translateY(-1px); background: var(--gold-soft, #f0d68a); box-shadow: 0 10px 28px rgba(230,197,116,.45); }
+    /* Purple "Unlock all N" pill — twin of the gold see-all pill */
+    .see-all-pill.gopro-pill { color: var(--purple-soft); border-color: rgba(167,139,250,.5); background: rgba(167,139,250,.08); }
+    .see-all-pill.gopro-pill:hover { background: rgba(167,139,250,.16); border-color: rgba(167,139,250,.75); box-shadow: 0 0 22px rgba(167,139,250,.3); }
+    /* Free vs paid copy swaps */
+    .tmw-paid-only { display: none; }
+    /* Paid unlock — CSS reacts to journal-auth.js's html.tmw-paid class */
+    html.tmw-paid .tmw-locked-grid { filter: none; opacity: 1; pointer-events: auto; user-select: auto; max-height: none; overflow: visible; -webkit-mask-image: none; mask-image: none; }
+    html.tmw-paid .tmw-gate { display: none; }
+    html.tmw-paid .gopro-pill { display: none; }
+    html.tmw-paid .tmw-free-only { display: none; }
+    html.tmw-paid .tmw-paid-only { display: inline; }
 </style>
 </head>
 <body>
@@ -253,7 +296,7 @@
       <div class="section-head">
         <div>
           <div class="section-eyebrow">Featured projects</div>
-          <h2 class="section-title">All 1 we&#x27;re watching</h2>
+          <h2 class="section-title">All 1 we’re watching</h2>
         </div>
         <div class="section-meta"><a class="see-all-pill" href="https://www.oftmw.com/map/?q=HQ Hotels &amp; Residences">See all 1 on the map →</a></div>
       </div>
@@ -431,6 +474,21 @@
         });
       });
     });
+  </script>
+  <script>
+    (function () {
+      function goPro() {
+        try { window.tmwFunnelTrack && window.tmwFunnelTrack('go_pro_clicked', { source: 'page_paywall', path: location.pathname }); } catch (e) {}
+        if (window.tmwShowPaywall) window.tmwShowPaywall({ source: 'page_paywall' });
+        else window.location = 'https://www.oftmw.com/map/?upgrade=1';
+      }
+      document.addEventListener('click', function (e) {
+        var el = e.target.closest && e.target.closest('[data-gopro]');
+        if (!el) return;
+        e.preventDefault();
+        goPro();
+      });
+    })();
   </script>
 </body>
 </html>

@@ -25,6 +25,7 @@
   <script type="application/ld+json">{"@context": "https://schema.org", "@type": "CollectionPage", "name": "4 New Bahamas Golf Clubs & Communities (2026)", "description": "4 new golf developments in Bahamas · 4 under construction · 261 total units", "url": "https://www.oftmw.com/markets/bahamas-golf/", "datePublished": "2026-06-01", "dateModified": "2026-06-19", "publisher": {"@type": "Organization", "name": "Markets of Tomorrow", "url": "https://www.oftmw.com"}, "mainEntity": {"@type": "ItemList", "numberOfItems": 4, "itemListElement": [{"@type": "ListItem", "position": 1, "url": "https://www.oftmw.com/projects/jacks-bay-club-resort/", "name": "Jack's Bay Club & Resort"}, {"@type": "ListItem", "position": 2, "url": "https://www.oftmw.com/projects/ritz-carlton-reserve-at-cotton-bay/", "name": "Ritz-Carlton Reserve at Cotton Bay"}, {"@type": "ListItem", "position": 3, "url": "https://www.oftmw.com/projects/the-green-at-abaco-club/", "name": "The Green at Abaco Club"}, {"@type": "ListItem", "position": 4, "url": "https://www.oftmw.com/projects/the-ocean-club/", "name": "The Ocean Club"}]}, "breadcrumb": {"@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "TMW", "item": "https://www.oftmw.com/"}, {"@type": "ListItem", "position": 2, "name": "Markets", "item": "https://www.oftmw.com/markets/"}, {"@type": "ListItem", "position": 3, "name": "Bahamas", "item": "https://www.oftmw.com/markets/bahamas/"}, {"@type": "ListItem", "position": 4, "name": "Golf", "item": "https://www.oftmw.com/markets/bahamas-golf/"}]}}</script>
   <script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "What new golf clubs are coming to Bahamas?", "acceptedAnswer": {"@type": "Answer", "text": "We track 4 new golf clubs developments in Bahamas — 4 under construction. Status is sourced from public filings, official announcements, and on-the-ground reporting; we update the live map within hours of confirming a change."}}, {"@type": "Question", "name": "How many golf courses are under construction in Bahamas?", "acceptedAnswer": {"@type": "Answer", "text": "4 golf clubs are currently under construction in Bahamas. View the live status on each in the pipeline grid above — every project links to a page with construction milestones, renderings, and our journal coverage."}}, {"@type": "Question", "name": "Who is building the most new golf clubs in Bahamas?", "acceptedAnswer": {"@type": "Answer", "text": "Eleuthera Properties Ltd leads Bahamas golf clubs with 1 active project. See every Eleuthera Properties Ltd project on TMW for status, milestones, and renderings."}}, {"@type": "Question", "name": "Which architects are designing new golf clubs in Bahamas?", "acceptedAnswer": {"@type": "Answer", "text": "Hart Howerton is the architect of record on 2 Bahamas golf clubs projects — the most of any firm in this market."}}, {"@type": "Question", "name": "How many total new residential units are being added in Bahamas?", "acceptedAnswer": {"@type": "Answer", "text": "Across the active Bahamas golf clubs pipeline, the developments we track will add 261 units. Pro members get unit counts by neighborhood and the per-project breakdown."}}, {"@type": "Question", "name": "When will the next wave of Bahamas golf clubs deliver?", "acceptedAnswer": {"@type": "Answer", "text": "Across the active pipeline, delivery dates run from 2026 through 2027. Individual delivery dates shift constantly — Pro members get our weekly Slippage Report flagging which projects have slipped this week."}}, {"@type": "Question", "name": "What is the biggest golf club planned in Bahamas by unit count?", "acceptedAnswer": {"@type": "Answer", "text": "Jack&#x27;s Bay Club &amp; Resort with 97 units is the largest by residential unit count in our Bahamas dataset. See the project →"}}, {"@type": "Question", "name": "What are the most-watched new golf clubs in Bahamas?", "acceptedAnswer": {"@type": "Answer", "text": "Our editors flag the highest-profile projects as Featured. The current Bahamas Featured set: Jack&#x27;s Bay Club &amp; Resort. Each is marked with a gold star in the pipeline grid above."}}, {"@type": "Question", "name": "How often is the Bahamas golf clubs data updated?", "acceptedAnswer": {"@type": "Answer", "text": "Hourly. Our cron pipeline pulls fresh project data every hour and regenerates this page (and every market and firm page) from the source-of-truth database. A status change confirmed today shows up within ~60 minutes."}}]}</script>
   <script type="application/ld+json">{"@context": "https://schema.org", "@type": "Place", "name": "Bahamas"}</script>
+  <script>try{if(localStorage.getItem('tmw_auth_state')==='pro')document.documentElement.classList.add('tmw-paid');}catch(e){}</script>
 
   <style>
     :root {
@@ -278,6 +279,49 @@
       .hero-eyebrow .he-updated { flex-basis: 100%; }
       .hero-eyebrow .he-updated::before { content: none; margin-right: 0; }
     }
+
+    /* ── Soft paywall: locked project cards (in-DOM for SEO, blurred for free) ── */
+    .tmw-locked { position: relative; margin-top: 14px; }
+    .tmw-locked-grid {
+      filter: blur(8px) saturate(.75); opacity: .55; pointer-events: none; user-select: none;
+      max-height: 300px; overflow: hidden;
+      -webkit-mask-image: linear-gradient(180deg,#000 0%,#000 32%,transparent 100%);
+              mask-image: linear-gradient(180deg,#000 0%,#000 32%,transparent 100%);
+    }
+    .tmw-gate { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 16px; }
+    .tmw-gate-inner {
+      text-align: center; max-width: 460px;
+      background: linear-gradient(180deg, rgba(22,20,32,.9), rgba(16,15,24,.97));
+      border: 1px solid rgba(167,139,250,.34); border-radius: 20px;
+      padding: 30px 34px; box-shadow: 0 24px 70px rgba(0,0,0,.55);
+      backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
+    }
+    .tmw-gate-badge {
+      display: inline-block; font-family: var(--mono); font-size: 10px; letter-spacing: .16em;
+      text-transform: uppercase; color: #0a0a0a; background: var(--gold);
+      padding: 4px 10px; border-radius: 999px; font-weight: 700; margin-bottom: 14px;
+    }
+    .tmw-gate-title { font-family: var(--serif); font-size: 25px; font-weight: 500; letter-spacing: -.016em; color: var(--white); line-height: 1.15; margin: 0 0 8px; }
+    .tmw-gate-sub { font-family: var(--sans); font-size: 13.5px; line-height: 1.5; color: var(--mute-2); margin: 0 0 20px; }
+    .tmw-gate-cta {
+      font-family: var(--sans); font-size: 14px; font-weight: 700; cursor: pointer;
+      color: #0a0a0a; background: var(--gold); border: none; border-radius: 999px;
+      padding: 13px 28px; transition: transform .12s, box-shadow .12s, background .12s;
+      box-shadow: 0 6px 22px rgba(230,197,116,.32);
+    }
+    .tmw-gate-cta:hover { transform: translateY(-1px); background: var(--gold-soft, #f0d68a); box-shadow: 0 10px 28px rgba(230,197,116,.45); }
+    /* Purple "Unlock all N" pill — twin of the gold see-all pill */
+    .see-all-pill.gopro-pill { color: var(--purple-soft); border-color: rgba(167,139,250,.5); background: rgba(167,139,250,.08); }
+    .see-all-pill.gopro-pill:hover { background: rgba(167,139,250,.16); border-color: rgba(167,139,250,.75); box-shadow: 0 0 22px rgba(167,139,250,.3); }
+    /* Free vs paid copy swaps */
+    .tmw-paid-only { display: none; }
+    /* Paid unlock — CSS reacts to journal-auth.js's html.tmw-paid class */
+    html.tmw-paid .tmw-locked-grid { filter: none; opacity: 1; pointer-events: auto; user-select: auto; max-height: none; overflow: visible; -webkit-mask-image: none; mask-image: none; }
+    html.tmw-paid .tmw-gate { display: none; }
+    html.tmw-paid .gopro-pill { display: none; }
+    html.tmw-paid .tmw-free-only { display: none; }
+    html.tmw-paid .tmw-paid-only { display: inline; }
+
   </style>
 </head>
 <body>
@@ -304,7 +348,7 @@
       <div class="section-head">
         <div>
           <div class="section-eyebrow">Featured projects</div>
-          <h2 class="section-title">All 4 we&#x27;re watching</h2>
+          <h2 class="section-title">All 4 we’re watching</h2>
         </div>
         <div class="section-meta"><a class="see-all-pill" href="https://www.oftmw.com/map/?q=Bahamas Golf">See all 4 on the map →</a></div>
       </div>
@@ -585,6 +629,21 @@
         });
       });
     });
+  </script>
+  <script>
+    (function () {
+      function goPro() {
+        try { window.tmwFunnelTrack && window.tmwFunnelTrack('go_pro_clicked', { source: 'page_paywall', path: location.pathname }); } catch (e) {}
+        if (window.tmwShowPaywall) window.tmwShowPaywall({ source: 'page_paywall' });
+        else window.location = 'https://www.oftmw.com/map/?upgrade=1';
+      }
+      document.addEventListener('click', function (e) {
+        var el = e.target.closest && e.target.closest('[data-gopro]');
+        if (!el) return;
+        e.preventDefault();
+        goPro();
+      });
+    })();
   </script>
 </body>
 </html>

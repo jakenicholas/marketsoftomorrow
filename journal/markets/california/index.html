@@ -25,6 +25,7 @@
   <script type="application/ld+json">{"@context": "https://schema.org", "@type": "CollectionPage", "name": "11 New Developments in California (2026)", "description": "11 new developments across California · 6 under construction · 970 residential units · tallest at 40 floors", "url": "https://www.oftmw.com/markets/california/", "datePublished": "2026-06-01", "dateModified": "2026-06-19", "publisher": {"@type": "Organization", "name": "Markets of Tomorrow", "url": "https://www.oftmw.com"}, "mainEntity": {"@type": "ItemList", "numberOfItems": 11, "itemListElement": [{"@type": "ListItem", "position": 1, "url": "https://www.oftmw.com/projects/one-beverly-hills/", "name": "One Beverly Hills"}, {"@type": "ListItem", "position": 2, "url": "https://www.oftmw.com/projects/andia-by-bosa/", "name": "Andia by Bosa"}, {"@type": "ListItem", "position": 3, "url": "https://www.oftmw.com/projects/coral-mountain-desert-club/", "name": "Coral Mountain Desert Club"}, {"@type": "ListItem", "position": 4, "url": "https://www.oftmw.com/projects/six-senses-napa-valley/", "name": "Six Senses Napa Valley"}, {"@type": "ListItem", "position": 5, "url": "https://www.oftmw.com/projects/sofi-stadium-district/", "name": "SoFi Stadium District"}, {"@type": "ListItem", "position": 6, "url": "https://www.oftmw.com/projects/the55/", "name": "The55"}, {"@type": "ListItem", "position": 7, "url": "https://www.oftmw.com/projects/lucas-museum-of-narrative-art/", "name": "Lucas Museum of Narrative Art"}, {"@type": "ListItem", "position": 8, "url": "https://www.oftmw.com/projects/david-geffen-galleries-at-lacma/", "name": "David Geffen Galleries at LACMA"}, {"@type": "ListItem", "position": 9, "url": "https://www.oftmw.com/projects/skyline-oc/", "name": "Skyline OC"}, {"@type": "ListItem", "position": 10, "url": "https://www.oftmw.com/projects/first-island/", "name": "First & Island"}]}, "breadcrumb": {"@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "TMW", "item": "https://www.oftmw.com/"}, {"@type": "ListItem", "position": 2, "name": "Markets", "item": "https://www.oftmw.com/markets/"}, {"@type": "ListItem", "position": 3, "name": "California", "item": "https://www.oftmw.com/markets/california/"}]}}</script>
   <script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "What new developments are coming to California?", "acceptedAnswer": {"@type": "Answer", "text": "We track 11 active developments across California — 6 under construction, 0 breaking ground, 1 opening soon, and 2 announced. Every city with at least 3 projects has a dedicated landing page (see below)."}}, {"@type": "Question", "name": "How many projects are under construction in California?", "acceptedAnswer": {"@type": "Answer", "text": "6 projects are currently under construction across California, ranging from luxury condos to mixed-use districts. Click any city below for the full local pipeline."}}, {"@type": "Question", "name": "What projects are opening soon in California?", "acceptedAnswer": {"@type": "Answer", "text": "1 project are flagged Opening Soon across California — expected to open within ~7 months."}}, {"@type": "Question", "name": "Which California cities have the most new developments?", "acceptedAnswer": {"@type": "Answer", "text": "The deepest pipelines are in San Diego (3), Beverly Hills (2), Los Angeles (2). California has 7 cities with active projects in our database."}}, {"@type": "Question", "name": "Who is the biggest developer building in California?", "acceptedAnswer": {"@type": "Answer", "text": "Bosa Development leads California with 2 active projects across cities."}}, {"@type": "Question", "name": "Which architects are designing the most new projects in California?", "acceptedAnswer": {"@type": "Answer", "text": "Foster + Partners is the architect of record on 1 California project — the most of any firm in the state."}}, {"@type": "Question", "name": "What is the tallest tower being built in California?", "acceptedAnswer": {"@type": "Answer", "text": "Andia by Bosa in San Diego at 40 floors. See the project →"}}, {"@type": "Question", "name": "How many new residential units are being added across California?", "acceptedAnswer": {"@type": "Answer", "text": "Across the active California pipeline, the developments we track will add 970 residential units across 11 projects."}}, {"@type": "Question", "name": "When will the next wave of California projects deliver?", "acceptedAnswer": {"@type": "Answer", "text": "Delivery dates across the active California pipeline run from 2026 through 2031. Individual delivery dates shift constantly — Pro members get our weekly Slippage Report."}}, {"@type": "Question", "name": "How often is the California development data updated?", "acceptedAnswer": {"@type": "Answer", "text": "Hourly. Our cron pipeline pulls fresh data from the source-of-truth database every hour and regenerates this page (and every market and firm page)."}}]}</script>
   
+  <script>try{if(localStorage.getItem('tmw_auth_state')==='pro')document.documentElement.classList.add('tmw-paid');}catch(e){}</script><script type="application/ld+json">{"@context":"https://schema.org","@type":"WebPage","isAccessibleForFree":false,"hasPart":{"@type":"WebPageElement","isAccessibleForFree":false,"cssSelector":".tmw-locked"}}</script>
 
   <style>
     :root {
@@ -278,6 +279,49 @@
       .hero-eyebrow .he-updated { flex-basis: 100%; }
       .hero-eyebrow .he-updated::before { content: none; margin-right: 0; }
     }
+
+    /* ── Soft paywall: locked project cards (in-DOM for SEO, blurred for free) ── */
+    .tmw-locked { position: relative; margin-top: 14px; }
+    .tmw-locked-grid {
+      filter: blur(8px) saturate(.75); opacity: .55; pointer-events: none; user-select: none;
+      max-height: 300px; overflow: hidden;
+      -webkit-mask-image: linear-gradient(180deg,#000 0%,#000 32%,transparent 100%);
+              mask-image: linear-gradient(180deg,#000 0%,#000 32%,transparent 100%);
+    }
+    .tmw-gate { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 16px; }
+    .tmw-gate-inner {
+      text-align: center; max-width: 460px;
+      background: linear-gradient(180deg, rgba(22,20,32,.9), rgba(16,15,24,.97));
+      border: 1px solid rgba(167,139,250,.34); border-radius: 20px;
+      padding: 30px 34px; box-shadow: 0 24px 70px rgba(0,0,0,.55);
+      backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
+    }
+    .tmw-gate-badge {
+      display: inline-block; font-family: var(--mono); font-size: 10px; letter-spacing: .16em;
+      text-transform: uppercase; color: #0a0a0a; background: var(--gold);
+      padding: 4px 10px; border-radius: 999px; font-weight: 700; margin-bottom: 14px;
+    }
+    .tmw-gate-title { font-family: var(--serif); font-size: 25px; font-weight: 500; letter-spacing: -.016em; color: var(--white); line-height: 1.15; margin: 0 0 8px; }
+    .tmw-gate-sub { font-family: var(--sans); font-size: 13.5px; line-height: 1.5; color: var(--mute-2); margin: 0 0 20px; }
+    .tmw-gate-cta {
+      font-family: var(--sans); font-size: 14px; font-weight: 700; cursor: pointer;
+      color: #0a0a0a; background: var(--gold); border: none; border-radius: 999px;
+      padding: 13px 28px; transition: transform .12s, box-shadow .12s, background .12s;
+      box-shadow: 0 6px 22px rgba(230,197,116,.32);
+    }
+    .tmw-gate-cta:hover { transform: translateY(-1px); background: var(--gold-soft, #f0d68a); box-shadow: 0 10px 28px rgba(230,197,116,.45); }
+    /* Purple "Unlock all N" pill — twin of the gold see-all pill */
+    .see-all-pill.gopro-pill { color: var(--purple-soft); border-color: rgba(167,139,250,.5); background: rgba(167,139,250,.08); }
+    .see-all-pill.gopro-pill:hover { background: rgba(167,139,250,.16); border-color: rgba(167,139,250,.75); box-shadow: 0 0 22px rgba(167,139,250,.3); }
+    /* Free vs paid copy swaps */
+    .tmw-paid-only { display: none; }
+    /* Paid unlock — CSS reacts to journal-auth.js's html.tmw-paid class */
+    html.tmw-paid .tmw-locked-grid { filter: none; opacity: 1; pointer-events: auto; user-select: auto; max-height: none; overflow: visible; -webkit-mask-image: none; mask-image: none; }
+    html.tmw-paid .tmw-gate { display: none; }
+    html.tmw-paid .gopro-pill { display: none; }
+    html.tmw-paid .tmw-free-only { display: none; }
+    html.tmw-paid .tmw-paid-only { display: inline; }
+
   </style>
 </head>
 <body>
@@ -304,9 +348,9 @@
       <div class="section-head">
         <div>
           <div class="section-eyebrow">Featured projects</div>
-          <h2 class="section-title">8 of 9 we&#x27;re watching closely</h2>
+          <h2 class="section-title"><span class="tmw-free-only">6 of 9 — <em>Go Pro for all</em></span><span class="tmw-paid-only">All 9 we’re watching</span></h2>
         </div>
-        <div class="section-meta"><a class="see-all-pill" href="https://www.oftmw.com/map/?q=California">See all 9 on the map →</a></div>
+        <div class="section-meta"><a class="see-all-pill gopro-pill" data-gopro href="https://www.oftmw.com/map/?upgrade=1">Unlock all 9 &rarr;</a></div>
       </div>
       <div class="grid tmw-project-grid">
 <div class="card featured" data-featured="1">
@@ -429,6 +473,9 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/westland-development-group/"><div class="k">Developer</div><div class="v">Westland Development Group</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/kevin-tsai-architecture/"><div class="k">Architect</div><div class="v">Kevin Tsai Architecture</div><span class="go">View firm profile →</span></a></div></div>
 </div>
+      </div>
+      <div class="tmw-locked" data-locked-count="3">
+        <div class="grid tmw-project-grid tmw-locked-grid">
 <div class="card">
   <a class="card-link" href="https://www.oftmw.com/projects/lucas-museum-of-narrative-art/" aria-label="Open Lucas Museum of Narrative Art">
     <div class="card-img" style="background-image:url('https://images.adsttc.com/media/images/6915/b4f2/9d4e/bd01/82e4/a73d/large_jpg/lucas-museum-of-narrative-art-by-mad-architects-to-open-in-los-angeles-in-september-2026_9.jpg')"></div>
@@ -469,6 +516,28 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/bosa-development/"><div class="k">Developer</div><div class="v">Bosa Development</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/james-km-cheng-architects/"><div class="k">Architect</div><div class="v">James KM Cheng Architects</div><span class="go">View firm profile →</span></a></div></div>
 </div>
+<div class="card">
+  <a class="card-link" href="https://www.oftmw.com/projects/navy-seal-museum-san-diego/" aria-label="Open Navy SEAL Museum San Diego">
+    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_20f4702d022240db9f2c5ea51cf48ef5~mv2.jpg')"></div>
+    <div class="card-body">
+      <div class="card-title">Navy SEAL Museum San Diego</div>
+      <div class="card-loc">San Diego · North Embarcadero</div>
+      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 15, 2026</span></div>
+      
+    <div class="pm-tl"><div class="pm-tl-date">5.5 yrs to delivery</div>
+      <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
+        <div class="pm-tl-empty" style="left:5%"></div>
+        <div class="pm-tl-knob" style="left:5%;box-shadow:0 2px 8px rgba(0,0,0,.5),0 0 0 2px rgba(167,139,250,.42),0 0 12px rgba(167,139,250,.55)">5%</div>
+      </div>
+      <div class="pm-tl-stages"><span class="pm-tl-stage on" style="color:#B9A6FF;font-weight:800;text-shadow:0 0 12px rgba(167,139,250,.5)">Announced</span><span class="pm-tl-stage ">Breaking Ground</span><span class="pm-tl-stage ">Construction</span><span class="pm-tl-stage ">Opening Soon</span><span class="pm-tl-stage ">Now Open</span></div>
+    </div>
+      <div class="pp-minis"><div class="pp-mini"><div class="v">2031</div><div class="k">Completion</div></div></div>
+    </div>
+  </a>
+  <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/navy-seal-museum-san-diego/"><div class="k">Developer</div><div class="v">Navy SEAL Museum San Diego</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/zgf-architects/"><div class="k">Architect</div><div class="v">ZGF Architects</div><span class="go">View firm profile →</span></a></div></div>
+</div>
+        </div>
+        <div class="tmw-gate"><div class="tmw-gate-inner"><span class="tmw-gate-badge">★ TMW Pro</span><h3 class="tmw-gate-title">Unlock 3 more projects</h3><p class="tmw-gate-sub">See the full pipeline — live status, delivery dates, units and the developer &amp; architect on every project. Free shows the first six.</p><button type="button" class="tmw-gate-cta" data-gopro>Go Pro to unlock &rarr;</button></div></div>
       </div>
     </section>
 
@@ -659,6 +728,21 @@
         });
       });
     });
+  </script>
+  <script>
+    (function () {
+      function goPro() {
+        try { window.tmwFunnelTrack && window.tmwFunnelTrack('go_pro_clicked', { source: 'page_paywall', path: location.pathname }); } catch (e) {}
+        if (window.tmwShowPaywall) window.tmwShowPaywall({ source: 'page_paywall' });
+        else window.location = 'https://www.oftmw.com/map/?upgrade=1';
+      }
+      document.addEventListener('click', function (e) {
+        var el = e.target.closest && e.target.closest('[data-gopro]');
+        if (!el) return;
+        e.preventDefault();
+        goPro();
+      });
+    })();
   </script>
 </body>
 </html>

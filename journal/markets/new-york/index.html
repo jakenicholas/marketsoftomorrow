@@ -25,6 +25,7 @@
   <script type="application/ld+json">{"@context": "https://schema.org", "@type": "CollectionPage", "name": "30 New Developments in New York (2026)", "description": "30 new developments across New York · 7 under construction · 7,453 residential units · tallest at 95 floors", "url": "https://www.oftmw.com/markets/new-york/", "datePublished": "2026-06-01", "dateModified": "2026-06-19", "publisher": {"@type": "Organization", "name": "Markets of Tomorrow", "url": "https://www.oftmw.com"}, "mainEntity": {"@type": "ItemList", "numberOfItems": 30, "itemListElement": [{"@type": "ListItem", "position": 1, "url": "https://www.oftmw.com/projects/hudson-yards-phase-2/", "name": "Hudson Yards West"}, {"@type": "ListItem", "position": 2, "url": "https://www.oftmw.com/projects/24-19-jackson-avenue/", "name": "24-19 Jackson Avenue"}, {"@type": "ListItem", "position": 3, "url": "https://www.oftmw.com/projects/262-fifth-avenue/", "name": "262 Fifth Avenue"}, {"@type": "ListItem", "position": 4, "url": "https://www.oftmw.com/projects/343-madison-ave/", "name": "343 Madison Ave"}, {"@type": "ListItem", "position": 5, "url": "https://www.oftmw.com/projects/70-hudson-yards/", "name": "70 Hudson Yards"}, {"@type": "ListItem", "position": 6, "url": "https://www.oftmw.com/projects/jfk-expansion/", "name": "JFK (Expansion)"}, {"@type": "ListItem", "position": 7, "url": "https://www.oftmw.com/projects/the-nell-new-york/", "name": "The Nell New York"}, {"@type": "ListItem", "position": 8, "url": "https://www.oftmw.com/projects/175-third-street/", "name": "175 Third Street"}, {"@type": "ListItem", "position": 9, "url": "https://www.oftmw.com/projects/2-world-trade-center/", "name": "2 World Trade Center"}, {"@type": "ListItem", "position": 10, "url": "https://www.oftmw.com/projects/255-east-77th-street/", "name": "255 East 77th Street"}]}, "breadcrumb": {"@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "TMW", "item": "https://www.oftmw.com/"}, {"@type": "ListItem", "position": 2, "name": "Markets", "item": "https://www.oftmw.com/markets/"}, {"@type": "ListItem", "position": 3, "name": "New York", "item": "https://www.oftmw.com/markets/new-york/"}]}}</script>
   <script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "What new developments are coming to New York?", "acceptedAnswer": {"@type": "Answer", "text": "We track 30 active developments across New York — 7 under construction, 2 breaking ground, 6 opening soon, and 8 announced. Every city with at least 3 projects has a dedicated landing page (see below)."}}, {"@type": "Question", "name": "How many projects are under construction in New York?", "acceptedAnswer": {"@type": "Answer", "text": "7 projects are currently under construction across New York, ranging from luxury condos to mixed-use districts. Click any city below for the full local pipeline."}}, {"@type": "Question", "name": "What projects are opening soon in New York?", "acceptedAnswer": {"@type": "Answer", "text": "6 projects are flagged Opening Soon across New York — expected to open within ~7 months."}}, {"@type": "Question", "name": "Which New York cities have the most new developments?", "acceptedAnswer": {"@type": "Answer", "text": "The deepest pipelines are in New York City (25), New York (1), Sag Harbor (1). New York has 6 cities with active projects in our database."}}, {"@type": "Question", "name": "Who is the biggest developer building in New York?", "acceptedAnswer": {"@type": "Answer", "text": "Naftali Group leads New York with 6 active projects across cities."}}, {"@type": "Question", "name": "Which architects are designing the most new projects in New York?", "acceptedAnswer": {"@type": "Answer", "text": "Robert A.M. Stern Architects is the architect of record on 4 New York projects — the most of any firm in the state."}}, {"@type": "Question", "name": "What is the tallest tower being built in New York?", "acceptedAnswer": {"@type": "Answer", "text": "175 Park Ave in New York City at 95 floors. See the project →"}}, {"@type": "Question", "name": "How many new residential units are being added across New York?", "acceptedAnswer": {"@type": "Answer", "text": "Across the active New York pipeline, the developments we track will add 7,453 residential units across 30 projects."}}, {"@type": "Question", "name": "When will the next wave of New York projects deliver?", "acceptedAnswer": {"@type": "Answer", "text": "Delivery dates across the active New York pipeline run from 2022 through 2032. Individual delivery dates shift constantly — Pro members get our weekly Slippage Report."}}, {"@type": "Question", "name": "How often is the New York development data updated?", "acceptedAnswer": {"@type": "Answer", "text": "Hourly. Our cron pipeline pulls fresh data from the source-of-truth database every hour and regenerates this page (and every market and firm page)."}}]}</script>
   
+  <script>try{if(localStorage.getItem('tmw_auth_state')==='pro')document.documentElement.classList.add('tmw-paid');}catch(e){}</script><script type="application/ld+json">{"@context":"https://schema.org","@type":"WebPage","isAccessibleForFree":false,"hasPart":{"@type":"WebPageElement","isAccessibleForFree":false,"cssSelector":".tmw-locked"}}</script>
 
   <style>
     :root {
@@ -278,6 +279,49 @@
       .hero-eyebrow .he-updated { flex-basis: 100%; }
       .hero-eyebrow .he-updated::before { content: none; margin-right: 0; }
     }
+
+    /* ── Soft paywall: locked project cards (in-DOM for SEO, blurred for free) ── */
+    .tmw-locked { position: relative; margin-top: 14px; }
+    .tmw-locked-grid {
+      filter: blur(8px) saturate(.75); opacity: .55; pointer-events: none; user-select: none;
+      max-height: 300px; overflow: hidden;
+      -webkit-mask-image: linear-gradient(180deg,#000 0%,#000 32%,transparent 100%);
+              mask-image: linear-gradient(180deg,#000 0%,#000 32%,transparent 100%);
+    }
+    .tmw-gate { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 16px; }
+    .tmw-gate-inner {
+      text-align: center; max-width: 460px;
+      background: linear-gradient(180deg, rgba(22,20,32,.9), rgba(16,15,24,.97));
+      border: 1px solid rgba(167,139,250,.34); border-radius: 20px;
+      padding: 30px 34px; box-shadow: 0 24px 70px rgba(0,0,0,.55);
+      backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
+    }
+    .tmw-gate-badge {
+      display: inline-block; font-family: var(--mono); font-size: 10px; letter-spacing: .16em;
+      text-transform: uppercase; color: #0a0a0a; background: var(--gold);
+      padding: 4px 10px; border-radius: 999px; font-weight: 700; margin-bottom: 14px;
+    }
+    .tmw-gate-title { font-family: var(--serif); font-size: 25px; font-weight: 500; letter-spacing: -.016em; color: var(--white); line-height: 1.15; margin: 0 0 8px; }
+    .tmw-gate-sub { font-family: var(--sans); font-size: 13.5px; line-height: 1.5; color: var(--mute-2); margin: 0 0 20px; }
+    .tmw-gate-cta {
+      font-family: var(--sans); font-size: 14px; font-weight: 700; cursor: pointer;
+      color: #0a0a0a; background: var(--gold); border: none; border-radius: 999px;
+      padding: 13px 28px; transition: transform .12s, box-shadow .12s, background .12s;
+      box-shadow: 0 6px 22px rgba(230,197,116,.32);
+    }
+    .tmw-gate-cta:hover { transform: translateY(-1px); background: var(--gold-soft, #f0d68a); box-shadow: 0 10px 28px rgba(230,197,116,.45); }
+    /* Purple "Unlock all N" pill — twin of the gold see-all pill */
+    .see-all-pill.gopro-pill { color: var(--purple-soft); border-color: rgba(167,139,250,.5); background: rgba(167,139,250,.08); }
+    .see-all-pill.gopro-pill:hover { background: rgba(167,139,250,.16); border-color: rgba(167,139,250,.75); box-shadow: 0 0 22px rgba(167,139,250,.3); }
+    /* Free vs paid copy swaps */
+    .tmw-paid-only { display: none; }
+    /* Paid unlock — CSS reacts to journal-auth.js's html.tmw-paid class */
+    html.tmw-paid .tmw-locked-grid { filter: none; opacity: 1; pointer-events: auto; user-select: auto; max-height: none; overflow: visible; -webkit-mask-image: none; mask-image: none; }
+    html.tmw-paid .tmw-gate { display: none; }
+    html.tmw-paid .gopro-pill { display: none; }
+    html.tmw-paid .tmw-free-only { display: none; }
+    html.tmw-paid .tmw-paid-only { display: inline; }
+
   </style>
 </head>
 <body>
@@ -304,9 +348,9 @@
       <div class="section-head">
         <div>
           <div class="section-eyebrow">Featured projects</div>
-          <h2 class="section-title">8 of 23 we&#x27;re watching closely</h2>
+          <h2 class="section-title"><span class="tmw-free-only">6 of 23 — <em>Go Pro for all</em></span><span class="tmw-paid-only">All 23 we’re watching</span></h2>
         </div>
-        <div class="section-meta"><a class="see-all-pill" href="https://www.oftmw.com/map/?q=New York">See all 23 on the map →</a></div>
+        <div class="section-meta"><a class="see-all-pill gopro-pill" data-gopro href="https://www.oftmw.com/map/?upgrade=1">Unlock all 23 &rarr;</a></div>
       </div>
       <div class="grid tmw-project-grid">
 <div class="card featured" data-featured="1">
@@ -429,6 +473,9 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/jfk-millennium-partners-vantage-group/"><div class="k">Developer</div><div class="v">JFK Millennium Partners</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/corgan/"><div class="k">Architect</div><div class="v">Corgan</div><span class="go">View firm profile →</span></a></div></div>
 </div>
+      </div>
+      <div class="tmw-locked" data-locked-count="17">
+        <div class="grid tmw-project-grid tmw-locked-grid">
 <div class="card">
   <a class="card-link" href="https://www.oftmw.com/projects/the-nell-new-york/" aria-label="Open The Nell New York">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/7234cd136e20-Homepage_-_Media_Collage4_-_Left_-_Living_room.png')"></div>
@@ -469,6 +516,308 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/charney-companies/"><div class="k">Developer</div><div class="v">Charney Companies</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/bjarke-ingels-group/"><div class="k">Architect</div><div class="v">Bjarke Ingels Group</div><span class="go">View firm profile →</span></a></div></div>
 </div>
+<div class="card">
+  <a class="card-link" href="https://www.oftmw.com/projects/2-world-trade-center/" aria-label="Open 2 World Trade Center">
+    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_a80c8c205bc4481397e040797f1e4a72~mv2.webp')"></div>
+    <div class="card-body">
+      <div class="card-title">2 World Trade Center</div>
+      <div class="card-loc">New York City</div>
+      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
+      
+    <div class="pm-tl"><div class="pm-tl-date">5.5 yrs to delivery</div>
+      <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
+        <div class="pm-tl-empty" style="left:23%"></div>
+        <div class="pm-tl-knob" style="left:23%;box-shadow:0 2px 8px rgba(0,0,0,.5),0 0 0 2px rgba(167,139,250,.42),0 0 12px rgba(167,139,250,.55)">23%</div>
+      </div>
+      <div class="pm-tl-stages"><span class="pm-tl-stage done">Announced</span><span class="pm-tl-stage on" style="color:#B9A6FF;font-weight:800;text-shadow:0 0 12px rgba(167,139,250,.5)">Breaking Ground</span><span class="pm-tl-stage ">Construction</span><span class="pm-tl-stage ">Opening Soon</span><span class="pm-tl-stage ">Now Open</span></div>
+    </div>
+      <div class="pp-minis"><div class="pp-mini"><div class="v">2026</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2031</div><div class="k">Completion</div></div><div class="pp-mini"><div class="v">55</div><div class="k">Floors</div></div></div>
+    </div>
+  </a>
+  <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/silverstein-properties/"><div class="k">Developer</div><div class="v">Silverstein Properties</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/foster-partners/"><div class="k">Architect</div><div class="v">Foster + Partners</div><span class="go">View firm profile →</span></a></div></div>
+</div>
+<div class="card">
+  <a class="card-link" href="https://www.oftmw.com/projects/255-east-77th-street/" aria-label="Open 255 East 77th Street">
+    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/6cb7e32f646c-255e77-residences-exterior.jpg')"></div>
+    <div class="card-body">
+      <div class="card-title">255 East 77th Street</div>
+      <div class="card-loc">New York City</div>
+      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
+      
+    <div class="pm-tl"><div class="pm-tl-date">6 months to delivery</div>
+      <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
+        <div class="pm-tl-empty" style="left:78%"></div>
+        <div class="pm-tl-knob" style="left:78%;box-shadow:0 2px 8px rgba(0,0,0,.5),0 0 0 2px rgba(167,139,250,.42),0 0 12px rgba(167,139,250,.55)">78%</div>
+      </div>
+      <div class="pm-tl-stages"><span class="pm-tl-stage done">Announced</span><span class="pm-tl-stage done">Breaking Ground</span><span class="pm-tl-stage done">Construction</span><span class="pm-tl-stage on" style="color:#B9A6FF;font-weight:800;text-shadow:0 0 12px rgba(167,139,250,.5)">Opening Soon</span><span class="pm-tl-stage ">Now Open</span></div>
+    </div>
+      <div class="pp-minis"><div class="pp-mini"><div class="v">2023</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2026</div><div class="k">Completion</div></div><div class="pp-mini"><div class="v">62</div><div class="k">Units</div></div><div class="pp-mini"><div class="v">36</div><div class="k">Floors</div></div></div>
+    </div>
+  </a>
+  <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/naftali-group/"><div class="k">Developer</div><div class="v">Naftali Group</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/robert-am-stern-architects/"><div class="k">Architect</div><div class="v">Robert A.M. Stern Architects</div><span class="go">View firm profile →</span></a></div></div>
+</div>
+<div class="card">
+  <a class="card-link" href="https://www.oftmw.com/projects/faraway-sag-harbor/" aria-label="Open Faraway Sag Harbor">
+    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/68dd32_c500b5259cfa4230b3299c02be16f8f8~mv2.jpg')"></div>
+    <div class="card-body">
+      <div class="card-title">Faraway Sag Harbor</div>
+      <div class="card-loc">Sag Harbor</div>
+      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 17, 2026</span></div>
+      
+    <div class="pm-tl"><div class="pm-tl-date">8 weeks to delivery</div>
+      <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
+        <div class="pm-tl-empty" style="left:78%"></div>
+        <div class="pm-tl-knob" style="left:78%;box-shadow:0 2px 8px rgba(0,0,0,.5),0 0 0 2px rgba(167,139,250,.42),0 0 12px rgba(167,139,250,.55)">78%</div>
+      </div>
+      <div class="pm-tl-stages"><span class="pm-tl-stage done">Announced</span><span class="pm-tl-stage done">Breaking Ground</span><span class="pm-tl-stage done">Construction</span><span class="pm-tl-stage on" style="color:#B9A6FF;font-weight:800;text-shadow:0 0 12px rgba(167,139,250,.5)">Opening Soon</span><span class="pm-tl-stage ">Now Open</span></div>
+    </div>
+      <div class="pp-minis"><div class="pp-mini"><div class="v">2026</div><div class="k">Completion</div></div></div>
+    </div>
+  </a>
+  <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/blue-flag-capital/"><div class="k">Developer</div><div class="v">Blue Flag Capital</div><span class="go">View firm profile →</span></a><div class="pp-firm pp-firm-empty"><div class="k">Architect</div><div class="v" style="opacity:.45">—</div></div></div></div>
+</div>
+<div class="card">
+  <a class="card-link" href="https://www.oftmw.com/projects/malabar-residences/" aria-label="Open Malabar Residences">
+    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_81504faf2a86404ea3d8746cfb6b0285~mv2.jpg')"></div>
+    <div class="card-body">
+      <div class="card-title">Malabar Residences</div>
+      <div class="card-loc">New York City · Midtown East</div>
+      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 17, 2026</span></div>
+      
+    <div class="pm-tl"><div class="pm-tl-date">8 weeks to delivery</div>
+      <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
+        <div class="pm-tl-empty" style="left:78%"></div>
+        <div class="pm-tl-knob" style="left:78%;box-shadow:0 2px 8px rgba(0,0,0,.5),0 0 0 2px rgba(167,139,250,.42),0 0 12px rgba(167,139,250,.55)">78%</div>
+      </div>
+      <div class="pm-tl-stages"><span class="pm-tl-stage done">Announced</span><span class="pm-tl-stage done">Breaking Ground</span><span class="pm-tl-stage done">Construction</span><span class="pm-tl-stage on" style="color:#B9A6FF;font-weight:800;text-shadow:0 0 12px rgba(167,139,250,.5)">Opening Soon</span><span class="pm-tl-stage ">Now Open</span></div>
+    </div>
+      <div class="pp-minis"><div class="pp-mini"><div class="v">2022</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2026</div><div class="k">Completion</div></div><div class="pp-mini"><div class="v">145</div><div class="k">Units</div></div><div class="pp-mini"><div class="v">28</div><div class="k">Floors</div></div></div>
+    </div>
+  </a>
+  <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/mrr-development-anand-mahindra-rotem-rosen/"><div class="k">Developer</div><div class="v">MRR Development (Anand Mahindra &amp; Rotem Rosen)</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/oda-architecture/"><div class="k">Architect</div><div class="v">ODA Architecture</div><span class="go">View firm profile →</span></a></div></div>
+</div>
+<div class="card">
+  <a class="card-link" href="https://www.oftmw.com/projects/new-highmark-stadium/" aria-label="Open New Highmark Stadium">
+    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_25424c85ce404060bc93aed739604e57~mv2.jpg')"></div>
+    <div class="card-body">
+      <div class="card-title">New Highmark Stadium</div>
+      <div class="card-loc">Orchard Park</div>
+      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 17, 2026</span></div>
+      
+    <div class="pm-tl"><div class="pm-tl-date">4 weeks to delivery</div>
+      <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
+        <div class="pm-tl-empty" style="left:78%"></div>
+        <div class="pm-tl-knob" style="left:78%;box-shadow:0 2px 8px rgba(0,0,0,.5),0 0 0 2px rgba(167,139,250,.42),0 0 12px rgba(167,139,250,.55)">78%</div>
+      </div>
+      <div class="pm-tl-stages"><span class="pm-tl-stage done">Announced</span><span class="pm-tl-stage done">Breaking Ground</span><span class="pm-tl-stage done">Construction</span><span class="pm-tl-stage on" style="color:#B9A6FF;font-weight:800;text-shadow:0 0 12px rgba(167,139,250,.5)">Opening Soon</span><span class="pm-tl-stage ">Now Open</span></div>
+    </div>
+      <div class="pp-minis"><div class="pp-mini"><div class="v">2023</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2026</div><div class="k">Completion</div></div></div>
+    </div>
+  </a>
+  <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/pegula-sports-entertainment/"><div class="k">Developer</div><div class="v">Pegula Sports &amp; Entertainment</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/populous/"><div class="k">Architect</div><div class="v">Populous</div><span class="go">View firm profile →</span></a></div></div>
+</div>
+<div class="card">
+  <a class="card-link" href="https://www.oftmw.com/projects/rolex-hq/" aria-label="Open Rolex HQ">
+    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_974e8965f9da470dbfd33b581610b8c1~mv2.jpg')"></div>
+    <div class="card-body">
+      <div class="card-title">Rolex HQ</div>
+      <div class="card-loc">New York City · Midtown</div>
+      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 17, 2026</span></div>
+      
+    <div class="pm-tl"><div class="pm-tl-date">5 months to delivery</div>
+      <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
+        <div class="pm-tl-empty" style="left:78%"></div>
+        <div class="pm-tl-knob" style="left:78%;box-shadow:0 2px 8px rgba(0,0,0,.5),0 0 0 2px rgba(167,139,250,.42),0 0 12px rgba(167,139,250,.55)">78%</div>
+      </div>
+      <div class="pm-tl-stages"><span class="pm-tl-stage done">Announced</span><span class="pm-tl-stage done">Breaking Ground</span><span class="pm-tl-stage done">Construction</span><span class="pm-tl-stage on" style="color:#B9A6FF;font-weight:800;text-shadow:0 0 12px rgba(167,139,250,.5)">Opening Soon</span><span class="pm-tl-stage ">Now Open</span></div>
+    </div>
+      <div class="pp-minis"><div class="pp-mini"><div class="v">2023</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2026</div><div class="k">Completion</div></div><div class="pp-mini"><div class="v">30</div><div class="k">Floors</div></div></div>
+    </div>
+  </a>
+  <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/rolex-sa/"><div class="k">Developer</div><div class="v">Rolex SA</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/david-chipperfield-architects/"><div class="k">Architect</div><div class="v">David Chipperfield Architects</div><span class="go">View firm profile →</span></a></div></div>
+</div>
+<div class="card">
+  <a class="card-link" href="https://www.oftmw.com/projects/the-willow/" aria-label="Open The Willow">
+    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_8c858dcb124d48c5a620a5f7dcb4e107~mv2.jpeg')"></div>
+    <div class="card-body">
+      <div class="card-title">The Willow</div>
+      <div class="card-loc">New York City</div>
+      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
+      
+    <div class="pm-tl"><div class="pm-tl-date">6 months to delivery</div>
+      <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
+        <div class="pm-tl-empty" style="left:78%"></div>
+        <div class="pm-tl-knob" style="left:78%;box-shadow:0 2px 8px rgba(0,0,0,.5),0 0 0 2px rgba(167,139,250,.42),0 0 12px rgba(167,139,250,.55)">78%</div>
+      </div>
+      <div class="pm-tl-stages"><span class="pm-tl-stage done">Announced</span><span class="pm-tl-stage done">Breaking Ground</span><span class="pm-tl-stage done">Construction</span><span class="pm-tl-stage on" style="color:#B9A6FF;font-weight:800;text-shadow:0 0 12px rgba(167,139,250,.5)">Opening Soon</span><span class="pm-tl-stage ">Now Open</span></div>
+    </div>
+      <div class="pp-minis"><div class="pp-mini"><div class="v">2024</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2026</div><div class="k">Completion</div></div><div class="pp-mini"><div class="v">69</div><div class="k">Units</div></div><div class="pp-mini"><div class="v">19</div><div class="k">Floors</div></div></div>
+    </div>
+  </a>
+  <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/naftali-group/"><div class="k">Developer</div><div class="v">Naftali Group</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/cookfox-architects/"><div class="k">Architect</div><div class="v">COOKFOX Architects</div><span class="go">View firm profile →</span></a></div></div>
+</div>
+<div class="card">
+  <a class="card-link" href="https://www.oftmw.com/projects/175-park-ave/" aria-label="Open 175 Park Ave">
+    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_4c622766aac74eabae52528299fd93db~mv2.jpg')"></div>
+    <div class="card-body">
+      <div class="card-title">175 Park Ave</div>
+      <div class="card-loc">New York City · Midtown East</div>
+      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
+      
+    <div class="pm-tl"><div class="pm-tl-date">6.5 yrs to delivery</div>
+      <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
+        <div class="pm-tl-empty" style="left:5%"></div>
+        <div class="pm-tl-knob" style="left:5%;box-shadow:0 2px 8px rgba(0,0,0,.5),0 0 0 2px rgba(167,139,250,.42),0 0 12px rgba(167,139,250,.55)">5%</div>
+      </div>
+      <div class="pm-tl-stages"><span class="pm-tl-stage on" style="color:#B9A6FF;font-weight:800;text-shadow:0 0 12px rgba(167,139,250,.5)">Announced</span><span class="pm-tl-stage ">Breaking Ground</span><span class="pm-tl-stage ">Construction</span><span class="pm-tl-stage ">Opening Soon</span><span class="pm-tl-stage ">Now Open</span></div>
+    </div>
+      <div class="pp-minis"><div class="pp-mini"><div class="v">2032</div><div class="k">Completion</div></div><div class="pp-mini"><div class="v">95</div><div class="k">Floors</div></div></div>
+    </div>
+  </a>
+  <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/rxr-realty/"><div class="k">Developer</div><div class="v">RXR Realty</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/skidmore/"><div class="k">Architect</div><div class="v">Skidmore</div><span class="go">View firm profile →</span></a></div></div>
+</div>
+<div class="card">
+  <a class="card-link" href="https://www.oftmw.com/projects/310-greenwich-street/" aria-label="Open 310 Greenwich Street">
+    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/f23be788e016-57b32f5132236d3a1cfa0263cc43388f4ee7207b-777x432.jpeg')"></div>
+    <div class="card-body">
+      <div class="card-title">310 Greenwich Street</div>
+      <div class="card-loc">New York City · Tribeca</div>
+      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 19, 2026</span></div>
+      
+    <div class="pm-tl">
+      <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
+        <div class="pm-tl-empty" style="left:5%"></div>
+        <div class="pm-tl-knob" style="left:5%;box-shadow:0 2px 8px rgba(0,0,0,.5),0 0 0 2px rgba(167,139,250,.42),0 0 12px rgba(167,139,250,.55)">5%</div>
+      </div>
+      <div class="pm-tl-stages"><span class="pm-tl-stage on" style="color:#B9A6FF;font-weight:800;text-shadow:0 0 12px rgba(167,139,250,.5)">Announced</span><span class="pm-tl-stage ">Breaking Ground</span><span class="pm-tl-stage ">Construction</span><span class="pm-tl-stage ">Opening Soon</span><span class="pm-tl-stage ">Now Open</span></div>
+    </div>
+      <div class="pp-minis"><div class="pp-mini"><div class="v">Announced</div><div class="k">Completion</div></div><div class="pp-mini"><div class="v">976</div><div class="k">Units</div></div><div class="pp-mini"><div class="v">72</div><div class="k">Floors</div></div></div>
+    </div>
+  </a>
+  <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/vornado-realty-trust/"><div class="k">Developer</div><div class="v">Vornado Realty Trust</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/morris-adjmi-architects/"><div class="k">Architect</div><div class="v">Morris Adjmi Architects</div><span class="go">View firm profile →</span></a></div></div>
+</div>
+<div class="card">
+  <a class="card-link" href="https://www.oftmw.com/projects/346-madison-avenue/" aria-label="Open 346 Madison Avenue">
+    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/9523d42a9025-260528_4.jpeg')"></div>
+    <div class="card-body">
+      <div class="card-title">346 Madison Avenue</div>
+      <div class="card-loc">New York City · Midtown East</div>
+      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
+      
+    <div class="pm-tl"><div class="pm-tl-date">5.5 yrs to delivery</div>
+      <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
+        <div class="pm-tl-empty" style="left:5%"></div>
+        <div class="pm-tl-knob" style="left:5%;box-shadow:0 2px 8px rgba(0,0,0,.5),0 0 0 2px rgba(167,139,250,.42),0 0 12px rgba(167,139,250,.55)">5%</div>
+      </div>
+      <div class="pm-tl-stages"><span class="pm-tl-stage on" style="color:#B9A6FF;font-weight:800;text-shadow:0 0 12px rgba(167,139,250,.5)">Announced</span><span class="pm-tl-stage ">Breaking Ground</span><span class="pm-tl-stage ">Construction</span><span class="pm-tl-stage ">Opening Soon</span><span class="pm-tl-stage ">Now Open</span></div>
+    </div>
+      <div class="pp-minis"><div class="pp-mini"><div class="v">2026</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2031</div><div class="k">Completion</div></div><div class="pp-mini"><div class="v">46</div><div class="k">Floors</div></div></div>
+    </div>
+  </a>
+  <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/sl-green/"><div class="k">Developer</div><div class="v">SL Green</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/kpf/"><div class="k">Architect</div><div class="v">KPF</div><span class="go">View firm profile →</span></a></div></div>
+</div>
+<div class="card">
+  <a class="card-link" href="https://www.oftmw.com/projects/affirmation-tower/" aria-label="Open Affirmation Tower">
+    <div class="card-img" style="background-image:url('https://newyorkyimby.com/wp-content/uploads/2024/03/affirmation-tower-main.jpg')"></div>
+    <div class="card-body">
+      <div class="card-title">Affirmation Tower</div>
+      <div class="card-loc">New York City · Hudson Yards</div>
+      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 15, 2026</span></div>
+      
+    <div class="pm-tl">
+      <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
+        <div class="pm-tl-empty" style="left:5%"></div>
+        <div class="pm-tl-knob" style="left:5%;box-shadow:0 2px 8px rgba(0,0,0,.5),0 0 0 2px rgba(167,139,250,.42),0 0 12px rgba(167,139,250,.55)">5%</div>
+      </div>
+      <div class="pm-tl-stages"><span class="pm-tl-stage on" style="color:#B9A6FF;font-weight:800;text-shadow:0 0 12px rgba(167,139,250,.5)">Announced</span><span class="pm-tl-stage ">Breaking Ground</span><span class="pm-tl-stage ">Construction</span><span class="pm-tl-stage ">Opening Soon</span><span class="pm-tl-stage ">Now Open</span></div>
+    </div>
+      <div class="pp-minis"><div class="pp-mini"><div class="v">TBD</div><div class="k">Completion</div></div></div>
+    </div>
+  </a>
+  <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/the-peebles-corporation/"><div class="k">Developer</div><div class="v">The Peebles Corporation</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/oma/"><div class="k">Architect</div><div class="v">OMA</div><span class="go">View firm profile →</span></a></div></div>
+</div>
+<div class="card">
+  <a class="card-link" href="https://www.oftmw.com/projects/one-only-hudson-valley/" aria-label="Open One&amp;Only Hudson Valley">
+    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_8566ce3b6d804887a5b439c04d6ef4a3~mv2.jpeg')"></div>
+    <div class="card-body">
+      <div class="card-title">One&amp;Only Hudson Valley</div>
+      <div class="card-loc">Hyde Park · Hudson Valley</div>
+      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 17, 2026</span></div>
+      
+    <div class="pm-tl"><div class="pm-tl-date">2.5 yrs to delivery</div>
+      <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
+        <div class="pm-tl-empty" style="left:5%"></div>
+        <div class="pm-tl-knob" style="left:5%;box-shadow:0 2px 8px rgba(0,0,0,.5),0 0 0 2px rgba(167,139,250,.42),0 0 12px rgba(167,139,250,.55)">5%</div>
+      </div>
+      <div class="pm-tl-stages"><span class="pm-tl-stage on" style="color:#B9A6FF;font-weight:800;text-shadow:0 0 12px rgba(167,139,250,.5)">Announced</span><span class="pm-tl-stage ">Breaking Ground</span><span class="pm-tl-stage ">Construction</span><span class="pm-tl-stage ">Opening Soon</span><span class="pm-tl-stage ">Now Open</span></div>
+    </div>
+      <div class="pp-minis"><div class="pp-mini"><div class="v">2028</div><div class="k">Completion</div></div><div class="pp-mini"><div class="v">54</div><div class="k">Units</div></div></div>
+    </div>
+  </a>
+  <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/nolan-reynolds-international/"><div class="k">Developer</div><div class="v">Nolan Reynolds International</div><span class="go">View firm profile →</span></a><div class="pp-firm pp-firm-empty"><div class="k">Architect</div><div class="v" style="opacity:.45">—</div></div></div></div>
+</div>
+<div class="card">
+  <a class="card-link" href="https://www.oftmw.com/projects/penn-station-redevelopment/" aria-label="Open Penn Station Redevelopment">
+    <div class="card-img" style="background-image:url('https://www.mas.org/wp-content/uploads/2017/12/penn-station-rendering-lobby-with-sunshine-pano.jpg')"></div>
+    <div class="card-body">
+      <div class="card-title">Penn Station Redevelopment</div>
+      <div class="card-loc">New York City · Midtown</div>
+      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
+      
+    <div class="pm-tl"><div class="pm-tl-date">6.5 yrs to delivery</div>
+      <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
+        <div class="pm-tl-empty" style="left:5%"></div>
+        <div class="pm-tl-knob" style="left:5%;box-shadow:0 2px 8px rgba(0,0,0,.5),0 0 0 2px rgba(167,139,250,.42),0 0 12px rgba(167,139,250,.55)">5%</div>
+      </div>
+      <div class="pm-tl-stages"><span class="pm-tl-stage on" style="color:#B9A6FF;font-weight:800;text-shadow:0 0 12px rgba(167,139,250,.5)">Announced</span><span class="pm-tl-stage ">Breaking Ground</span><span class="pm-tl-stage ">Construction</span><span class="pm-tl-stage ">Opening Soon</span><span class="pm-tl-stage ">Now Open</span></div>
+    </div>
+      <div class="pp-minis"><div class="pp-mini"><div class="v">2027</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2032</div><div class="k">Completion</div></div></div>
+    </div>
+  </a>
+  <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/empire-state-development/"><div class="k">Developer</div><div class="v">Empire State Development</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/skidmore/"><div class="k">Architect</div><div class="v">Skidmore</div><span class="go">View firm profile →</span></a></div></div>
+</div>
+<div class="card">
+  <a class="card-link" href="https://www.oftmw.com/projects/ruby-new-york-city/" aria-label="Open Ruby New York City">
+    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/963b4702e841-241-West-28th-Street-in-Chelsea-Manhattan.png')"></div>
+    <div class="card-body">
+      <div class="card-title">Ruby New York City</div>
+      <div class="card-loc">New York City · Herald Square</div>
+      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 15, 2026</span></div>
+      
+    <div class="pm-tl"><div class="pm-tl-date">18 months to delivery</div>
+      <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
+        <div class="pm-tl-empty" style="left:5%"></div>
+        <div class="pm-tl-knob" style="left:5%;box-shadow:0 2px 8px rgba(0,0,0,.5),0 0 0 2px rgba(167,139,250,.42),0 0 12px rgba(167,139,250,.55)">5%</div>
+      </div>
+      <div class="pm-tl-stages"><span class="pm-tl-stage on" style="color:#B9A6FF;font-weight:800;text-shadow:0 0 12px rgba(167,139,250,.5)">Announced</span><span class="pm-tl-stage ">Breaking Ground</span><span class="pm-tl-stage ">Construction</span><span class="pm-tl-stage ">Opening Soon</span><span class="pm-tl-stage ">Now Open</span></div>
+    </div>
+      <div class="pp-minis"><div class="pp-mini"><div class="v">2026</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2027</div><div class="k">Completion</div></div><div class="pp-mini"><div class="v">187</div><div class="k">Units</div></div><div class="pp-mini"><div class="v">18</div><div class="k">Floors</div></div></div>
+    </div>
+  </a>
+  <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/ac-developers/"><div class="k">Developer</div><div class="v">Ac Developers</div><span class="go">View firm profile →</span></a><div class="pp-firm pp-firm-empty"><div class="k">Architect</div><div class="v" style="opacity:.45">—</div></div></div></div>
+</div>
+<div class="card">
+  <a class="card-link" href="https://www.oftmw.com/projects/the-wolseley-hotel-new-york/" aria-label="Open The Wolseley Hotel New York">
+    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/b8f610827fc7-T0316TheWolseleyHotel_C_HR.webp')"></div>
+    <div class="card-body">
+      <div class="card-title">The Wolseley Hotel New York</div>
+      <div class="card-loc">New York City · Midtown</div>
+      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 15, 2026</span></div>
+      
+    <div class="pm-tl"><div class="pm-tl-date">18 months to delivery</div>
+      <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
+        <div class="pm-tl-empty" style="left:5%"></div>
+        <div class="pm-tl-knob" style="left:5%;box-shadow:0 2px 8px rgba(0,0,0,.5),0 0 0 2px rgba(167,139,250,.42),0 0 12px rgba(167,139,250,.55)">5%</div>
+      </div>
+      <div class="pm-tl-stages"><span class="pm-tl-stage on" style="color:#B9A6FF;font-weight:800;text-shadow:0 0 12px rgba(167,139,250,.5)">Announced</span><span class="pm-tl-stage ">Breaking Ground</span><span class="pm-tl-stage ">Construction</span><span class="pm-tl-stage ">Opening Soon</span><span class="pm-tl-stage ">Now Open</span></div>
+    </div>
+      <div class="pp-minis"><div class="pp-mini"><div class="v">2027</div><div class="k">Completion</div></div><div class="pp-mini"><div class="v">76</div><div class="k">Units</div></div></div>
+    </div>
+  </a>
+  <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/bjgh/"><div class="k">Developer</div><div class="v">BJGH</div><span class="go">View firm profile →</span></a><div class="pp-firm pp-firm-empty"><div class="k">Architect</div><div class="v" style="opacity:.45">—</div></div></div></div>
+</div>
+        </div>
+        <div class="tmw-gate"><div class="tmw-gate-inner"><span class="tmw-gate-badge">★ TMW Pro</span><h3 class="tmw-gate-title">Unlock 17 more projects</h3><p class="tmw-gate-sub">See the full pipeline — live status, delivery dates, units and the developer &amp; architect on every project. Free shows the first six.</p><button type="button" class="tmw-gate-cta" data-gopro>Go Pro to unlock &rarr;</button></div></div>
       </div>
     </section>
 
@@ -671,6 +1020,21 @@
         });
       });
     });
+  </script>
+  <script>
+    (function () {
+      function goPro() {
+        try { window.tmwFunnelTrack && window.tmwFunnelTrack('go_pro_clicked', { source: 'page_paywall', path: location.pathname }); } catch (e) {}
+        if (window.tmwShowPaywall) window.tmwShowPaywall({ source: 'page_paywall' });
+        else window.location = 'https://www.oftmw.com/map/?upgrade=1';
+      }
+      document.addEventListener('click', function (e) {
+        var el = e.target.closest && e.target.closest('[data-gopro]');
+        if (!el) return;
+        e.preventDefault();
+        goPro();
+      });
+    })();
   </script>
 </body>
 </html>
