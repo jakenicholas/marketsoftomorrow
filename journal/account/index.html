@@ -39,8 +39,8 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .xpline{display:flex;justify-content:space-between;font-size:12.5px;color:var(--mute)}.xpline b{color:var(--gold);font-weight:500}
 .miniCard{position:relative;overflow:hidden;border-radius:16px;background:#101218;border:1px solid var(--hair);padding:18px;height:100%;min-height:180px;display:flex;flex-direction:column;justify-content:space-between}
 .miniCard::after{content:"";position:absolute;right:-40px;top:-40px;width:160px;height:160px;border-radius:50%;background:radial-gradient(closest-side,rgba(167,139,250,.30),transparent);pointer-events:none}
-.miniCard::before{content:"";position:absolute;top:-25%;left:-75%;width:55%;height:150%;z-index:3;pointer-events:none;transform:skewX(-20deg);background:linear-gradient(90deg,transparent,rgba(255,255,255,.06) 38%,rgba(255,255,255,.32) 50%,rgba(255,255,255,.06) 62%,transparent);animation:cardGlare 5.5s ease-in-out infinite}
-@keyframes cardGlare{0%{left:-75%}14%{left:135%}100%{left:135%}}
+.miniCard::before{content:"";position:absolute;top:-35%;left:-95%;width:75%;height:170%;z-index:3;pointer-events:none;transform:skewX(-20deg);filter:blur(13px);background:linear-gradient(90deg,transparent,rgba(255,255,255,.04) 28%,rgba(255,255,255,.20) 50%,rgba(255,255,255,.04) 72%,transparent);animation:cardGlare 7s ease-in-out infinite}
+@keyframes cardGlare{0%{left:-95%}40%{left:155%}100%{left:155%}}
 .mcTop{position:relative;z-index:1;display:flex;flex-direction:column;align-items:flex-start;gap:9px}
 .mc-logo{height:30px;width:auto;display:block;filter:brightness(0) invert(1)}
 .mcMarket{font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold)}
@@ -84,6 +84,31 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .geolist{position:absolute;left:0;right:0;top:100%;margin-top:5px;background:#14161a;border:1px solid var(--hair2);border-radius:10px;overflow:hidden;z-index:6;box-shadow:0 16px 38px rgba(0,0,0,.55)}
 .geoitem{padding:10px 13px;font-size:13px;color:#ECEAE5;cursor:pointer}
 .geoitem:hover{background:rgba(255,255,255,.06)}
+/* exact copy of the map desktop-sidebar project tile */
+.grid-item{background:rgba(20,20,20,0.8);border-radius:6px;cursor:pointer;position:relative;padding:5px;display:flex;flex-direction:column;height:100%;overflow:visible;text-decoration:none;color:inherit;transition:transform .2s,box-shadow .2s}
+.grid-item:hover{transform:translateY(-3px);box-shadow:0 16px 40px rgba(0,0,0,.45)}
+.grid-item .image-wrapper{position:relative;overflow:hidden;border-radius:4px;flex-shrink:0;background:rgba(20,20,20,0.8);min-height:150px}
+.grid-item img{width:100%;height:150px;object-fit:cover;display:block;background:rgba(20,20,20,0.8)}
+.grid-item-content{padding:6px;display:flex;flex-direction:column;flex:1}
+.grid-item-content h3{margin:0 0 3px;font-size:13px;color:#fff!important;font-family:var(--sans);font-weight:600}
+.grid-item-content p.city{margin:0 0 auto 0;font-size:11px;color:#ccc!important;padding-bottom:6px}
+.featured-badge{position:absolute;top:-2px;left:0;background:#FFD300;color:#000;padding:3px 8px;border-radius:12px;font-size:10px;font-weight:600;display:flex;align-items:center;gap:4px;z-index:2;box-shadow:0 2px 4px rgba(0,0,0,0.3)}
+.featured-badge svg{width:10px;height:10px;fill:#000}
+.delivery-bar{display:flex;align-items:center;gap:5px;padding:4px 6px 5px;border-top:1px solid rgba(255,255,255,0.06);margin-top:auto}
+.delivery-bar-label{font-size:8px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;white-space:nowrap;flex-shrink:0}
+.delivery-bar-track{flex:1;height:2px;border-radius:1px;overflow:hidden;background:rgba(255,255,255,0.08)}
+.delivery-bar-fill{height:100%;border-radius:1px}
+.delivery-bar-stages{display:none}
+.delivery-bar.announced .delivery-bar-label{color:rgba(255,255,255,0.4)}.delivery-bar.announced .delivery-bar-fill{background:rgba(255,255,255,0.3)}
+.delivery-bar.breaking .delivery-bar-label{color:#FFD300}.delivery-bar.breaking .delivery-bar-fill{background:#FFD300}
+.delivery-bar.construction .delivery-bar-label{color:#FF9500}.delivery-bar.construction .delivery-bar-fill{background:#FF9500}
+.delivery-bar.opening .delivery-bar-label{color:#1FDF67}.delivery-bar.opening .delivery-bar-fill{background:#1FDF67}
+.delivery-bar.open .delivery-bar-label{color:#1FDF67}.delivery-bar.open .delivery-bar-fill{background:#1FDF67}
+/* daily-streak bubble timeline */
+.streak{display:flex;align-items:center;gap:7px;flex-wrap:wrap;padding:8px 2px 4px}
+.sdot{width:16px;height:16px;border-radius:50%;background:rgba(255,255,255,.05);border:1px solid var(--hair);flex:0 0 auto;transition:transform .2s}
+.sdot.on{background:linear-gradient(135deg,var(--gold-soft),var(--gold));border-color:transparent;box-shadow:0 0 10px rgba(230,197,116,.45)}
+.sdot.today{transform:scale(1.25);box-shadow:0 0 0 3px rgba(167,139,250,.22),0 0 14px rgba(230,197,116,.65)}
 .frm{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .f label{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--mute);margin-bottom:7px}
 .f input,.f select{width:100%;background:#14161a;border:1px solid var(--hair);border-radius:10px;color:#ECEAE5;font-family:var(--sans);font-size:14px;padding:11px 12px}
@@ -126,6 +151,8 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
       </div>
     </div>
     <div class="stats" id="stats"></div>
+    <div class="sechead"><h2>Daily streak</h2><span class="lbl" id="streakLbl">&nbsp;</span></div>
+    <div class="streak" id="streakStrip"></div>
     <div class="sechead"><h2>Your climb</h2><span class="lbl" id="rankLbl">&nbsp;</span></div>
     <div class="ladder" id="ladder"></div>
     <div class="sechead"><h2>Achievements</h2></div>
@@ -150,7 +177,7 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
 
   <section data-tab-panel="account" hidden>
     <div class="sechead"><h2>Account &amp; security</h2></div>
-    <div class="card">
+    <div class="card" style="position:relative;z-index:20">
       <div class="lbl" style="margin-bottom:16px">Profile</div>
       <div class="frm">
         <div class="f"><label>First name</label><input id="pf_first"></div>
@@ -161,7 +188,7 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
       </div>
       <div class="aActions"><button class="btn primary" id="btnSave">Save profile</button><span class="savemsg" id="saveMsg"></span></div>
     </div>
-    <div class="card" style="margin-top:16px">
+    <div class="card" style="margin-top:16px;position:relative;z-index:1">
       <div class="lbl" style="margin-bottom:6px">Security &amp; billing</div>
       <div class="arow"><span class="k">Email</span><span class="v" id="acctEmail">&mdash;</span></div>
       <div class="arow"><span class="k">Member</span><span class="v" id="acctNo">No. 001 &middot; Founding</span></div>
@@ -227,6 +254,7 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
     $('xpNow').innerHTML='<b>'+fmt(m.xp)+'</b> XP';
     var S=m.stats,T=[['articles','articles read'],['markets','markets followed'],['visits','venue visits'],['reach','reach generated'],['streak','day streak'],['saved','projects saved']];
     $('stats').innerHTML=T.map(function(t){return '<div class="stat"><div class="v">'+(typeof S[t[0]]==='number'?fmt(S[t[0]]):S[t[0]])+'</div><div class="k">'+t[1]+'</div></div>'}).join('');
+    (function(){ var streak=Math.max(0,S.streak||0),N=28,sh=''; for(var i=0;i<N;i++){var fe=N-1-i;sh+='<div class="sdot'+(fe<streak?' on':'')+(i===N-1?' today':'')+'"></div>';} var ss=$('streakStrip'); if(ss)ss.innerHTML=sh; var sl=$('streakLbl'); if(sl)sl.innerHTML=streak?('🔥 '+streak+'-day streak'):'Start your streak'; })();
     $('ladder').innerHTML=LEVELS.map(function(L){
       var st=L.lvl<cur.lvl?'done':L.lvl===cur.lvl?'cur':'lock';
       var tag=st==='done'?'<span class="tag done">Unlocked</span>':st==='cur'?'<span class="tag cur">You are here</span>':'<span class="tag lock">'+fmt(L.xp)+' XP</span>';
@@ -285,11 +313,32 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
       var bySlug={}; arr.forEach(function(p){var s=projectSlugify(p.Title); if(s&&!bySlug[s])bySlug[s]=p;});
       $('wlCount').textContent=favs.length+(favs.length===1?' project':' projects');
       if(!favs.length){ $('watchList').innerHTML='<div class="empty">No tracked projects yet. Star projects on the <a href="https://www.oftmw.com/map" target="_blank" rel="noopener">map</a> to build your watchlist.</div>'; return; }
-      $('watchList').innerHTML='<div class="grid">'+favs.map(function(slug){
-        var p=bySlug[slug]||{}; var msl=p.Title?mapSlug(p.Title):slug.replace(/-/g,'');
-        return gcard('https://www.oftmw.com/map/?project='+encodeURIComponent(msl), p.ImageURL||p.Image2||'', p.City||'', p.Title||humanize(slug));
-      }).join('')+'</div>';
+      $('watchList').innerHTML='<div class="grid">'+favs.map(function(slug){ return projTile(bySlug[slug]||{}, slug); }).join('')+'</div>';
     }).catch(function(){ _wlDone=false; $('watchList').innerHTML='<div class="empty">Couldn\'t load your watchlist &mdash; try a refresh.</div>'; });
+  }
+  // exact map desktop-sidebar tile (renderProjectCard + deliveryBarHTML, ported)
+  function deliveryBarHTML(delivery){
+    if(!delivery) return '';
+    var d=String(delivery).toLowerCase(), cls,label,pct;
+    if(d.indexOf('announced')>=0){cls='announced';label='Announced';pct=10;}
+    else if(d.indexOf('breaking')>=0){cls='breaking';label='Breaking Ground';pct=30;}
+    else if(d.indexOf('construction')>=0){cls='construction';label='Under Construction';pct=60;}
+    else if(d.indexOf('opening')>=0){cls='opening';label='Opening Soon';pct=85;}
+    else if(d.indexOf('open')>=0){cls='open';label='Now Open';pct=100;}
+    else {cls='announced';label=delivery;pct=10;}
+    return '<div class="delivery-bar '+cls+'"><span class="delivery-bar-label">'+esc(label)+'</span><div class="delivery-bar-track"><div class="delivery-bar-fill" style="width:'+pct+'%;--fill-pct:'+pct+'"></div></div><div class="delivery-bar-stages"><span>Announced</span><span>Building</span><span>Open</span></div></div>';
+  }
+  function projTile(p, slug){
+    var msl=p.Title?mapSlug(p.Title):String(slug).replace(/-/g,'');
+    var img=p.ImageURL||p.Image2||'';
+    var type=(p.PreferredType&&p.PreferredType.trim())||((p.ProjectType||'').split(',')[0]||'').trim();
+    var meta=esc(p.City||'—')+(type?' &middot; '+esc(type):'');
+    return '<a class="grid-item visible" href="https://www.oftmw.com/map/?project='+encodeURIComponent(msl)+'" target="_blank" rel="noopener">'+
+      '<div class="image-wrapper">'+(img?'<img src="'+esc(img)+'" loading="lazy" alt="'+esc(p.Title||'')+'">':'')+'</div>'+
+      (p.Featured?'<div class="featured-badge"><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>Featured</div>':'')+
+      '<div class="grid-item-content"><h3>'+esc(p.Title||humanize(slug))+'</h3><p class="city">'+meta+'</p></div>'+
+      deliveryBarHTML(p.Delivery)+
+    '</a>';
   }
 
   function loadSaved(){
