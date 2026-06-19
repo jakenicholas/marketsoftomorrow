@@ -630,6 +630,15 @@
     text-transform: uppercase;
     margin-top: 2px;
   }
+  /* Coming soon — purple treatment */
+  .atlas-coming-panel{background:linear-gradient(160deg,rgba(124,92,224,.12),rgba(167,139,250,.035));border:1px solid rgba(167,139,250,.24)}
+  .atlas-coming-panel .atlas-coming-bucket-head{color:var(--purple-soft);border-bottom-color:rgba(167,139,250,.16)}
+  .atlas-coming-panel .atlas-coming-bucket[data-bucket="30d"] .atlas-coming-bucket-dot{background:#C9B8FF}
+  .atlas-coming-panel .atlas-coming-bucket[data-bucket="90d"] .atlas-coming-bucket-dot{background:#A78BFA}
+  .atlas-coming-panel .atlas-coming-bucket[data-bucket="rest"] .atlas-coming-bucket-dot{background:#7C5CE0}
+  .atlas-coming-panel .atlas-coming-row{border-bottom-color:rgba(167,139,250,.08)}
+  .atlas-coming-panel .atlas-coming-row:hover{background:rgba(167,139,250,.08);box-shadow:inset 2px 0 0 var(--purple)}
+  .atlas-coming-panel .atlas-coming-days-num{color:var(--purple-soft)}
 
   /* Side-by-side desktop layout for these two sections */
   .atlas-coverage-coming-grid {
@@ -1899,7 +1908,18 @@
     }
 
     function renderComingSoon() {
-      const data = atlasData.coming_soon || [];
+      let data = atlasData.coming_soon || [];
+      if (!data.length) return '';
+      // Scope to the Market Calculator. coming_soon rows carry only title/city,
+      // so match them against the filtered project set by title (and slug).
+      if (_filterActive()) {
+        const fl = filterProjectsByCalc();
+        if (fl) {
+          const allow = new Set();
+          fl.forEach(p => { const t = (p.title || '').toLowerCase().trim(); if (t) allow.add(t); allow.add(_pcSlug(p.title || '')); });
+          data = data.filter(p => allow.has((p.title || '').toLowerCase().trim()) || (p.slug && allow.has(p.slug)) || allow.has(_pcSlug(p.title || '')));
+        }
+      }
       if (!data.length) return '';
       const buckets = { '30d': [], '90d': [], 'rest': [] };
       data.forEach(p => { if (buckets[p.bucket]) buckets[p.bucket].push(p); });
@@ -1944,7 +1964,7 @@
               <p class="atlas-section-sub">Projects delivering through year-end.</p>
             </div>
           </div>
-          <div class="atlas-panel">${sections}</div>
+          <div class="atlas-panel atlas-coming-panel">${sections}</div>
         </section>`;
     }
 
