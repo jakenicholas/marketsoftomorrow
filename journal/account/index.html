@@ -281,6 +281,13 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
       var tag=st==='done'?'<span class="tag done">Unlocked</span>':st==='cur'?'<span class="tag cur">You are here</span>':'<span class="tag lock">'+fmt(L.xp)+' XP</span>';
       return '<div class="lv '+st+'"><div class="lvnode">'+(st==='done'?'✓':L.lvl)+'</div><div class="lvbody"><div class="t"><div class="lvtier">'+tierName(L,m)+'</div><div class="lvunlock">'+L.unlock+'</div></div>'+tag+'</div></div>';
     }).join('');
+    var ach=m.achievements||{};
+    BADGES[0].on=(ach.founding!=null)?ach.founding:!!m.founding;
+    BADGES[1].on=(ach.reader!=null)?ach.reader:((S.articles||0)>=30);
+    BADGES[2].on=(ach.globetrotter!=null)?ach.globetrotter:((S.markets||0)>=5);
+    BADGES[3].on=(ach.tastemaker!=null)?ach.tastemaker:false;
+    BADGES[4].on=(ach.centurion!=null)?ach.centurion:((S.visits||0)>=25);
+    BADGES[5].on=(ach.contributor!=null)?ach.contributor:false;
     $('badges').innerHTML=BADGES.map(function(b){return '<div class="bdg"><div class="bi '+(b.on?'on':'off')+'">'+b.ic+'</div><div><div class="bn">'+b.n+'</div><div class="bd">'+b.d+'</div></div></div>'}).join('');
   }
   render(DEMO);

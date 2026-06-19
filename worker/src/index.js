@@ -5838,12 +5838,22 @@ async function computeMemberGameStats(env, memberId) {
   const a = arts.size, sv = saved.size, mk = markets.size;
   let xp = a * 10 + sv * 5 + mk * 25 + visits * 500 + shares * 50 + feedback * 20 + comments * 10 + intel * 2 + cSub * 25 + cAcc * 150 + streak * 5;
   if (streak >= 7) xp += 25; if (streak >= 30) xp += 150;
-  const lvl = levelForXp(xp);
   const rec = await ensureMemberRecord(env, memberId, email, earliest);
+  // achievements — unlock + bonus XP
+  const ach = {
+    founding: !!(rec && rec.founding),
+    reader: a >= 30,
+    globetrotter: mk >= 5,
+    tastemaker: reach >= 50000,
+    centurion: visits >= 25,
+    contributor: cAcc >= 1
+  };
+  xp += (ach.founding ? 100 : 0) + (ach.globetrotter ? 150 : 0) + (ach.centurion ? 250 : 0) + (ach.tastemaker ? 300 : 0) + (ach.contributor ? 200 : 0);
+  const lvl = levelForXp(xp);
   return { name, xp, level: lvl.lvl, tier: lvl.tier,
     memberNo: rec ? rec.member_no : null,
     since: (rec && rec.joined_at) ? new Date(rec.joined_at * 1000).getUTCFullYear() : null,
-    founding: !!(rec && rec.founding), market: (rec && rec.market) || null,
+    founding: !!(rec && rec.founding), market: (rec && rec.market) || null, achievements: ach,
     stats: { articles: a, markets: mk, visits, reach: _reachStr(reach), streak, saved: sv, comments } };
 }
 
