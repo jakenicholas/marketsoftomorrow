@@ -62,8 +62,15 @@
   .atlas-filter-bar {
     margin-bottom: 32px;
     display: flex;
-    align-items: center;
-    gap: 12px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  .atlas-filter-row { display: flex; align-items: center; gap: 12px; min-width: 0; }
+  .atlas-filter-label {
+    flex: 0 0 auto; width: 40px;
+    font-family: var(--mono); font-size: 9.5px; letter-spacing: .14em; text-transform: uppercase;
+    color: rgba(255,255,255,.38);
   }
   .atlas-filter-pills {
     display: flex;
@@ -1081,7 +1088,7 @@
 
     // ── Render functions ────────────────────────────────────────────────
     function renderOpeningsByYear() {
-      const data = atlasData.openings_by_year || [];
+      const data = ctx().openings_by_year || [];
       if (!data.length) return '';
       const max = Math.max(...data.map(d => d.count), 1);
       const rows = data.map(d => {
@@ -1109,19 +1116,29 @@
 
     function renderStateFilter() {
       const states = atlasData.available_states || [];
-      if (!states.length) return '';
+      const types = atlasData.available_types || [];
+      if (!states.length && !types.length) return '';
       const total = (atlasData.hero_stats && atlasData.hero_stats.total_projects) || states.reduce((s, x) => s + x.count, 0);
-      const pills = states.map(s => `
+      const statePills = states.map(s => `
         <button class="atlas-filter-pill ${currentStateFilter === s.code ? 'active' : ''}" data-state="${escapeHtml(s.code)}" type="button">
           ${escapeHtml(s.label)} <span class="atlas-filter-count">${s.count}</span>
-        </button>
-      `).join('');
+        </button>`).join('');
+      const typePills = types.map(t => `
+        <button class="atlas-filter-pill ${currentTypeFilter === t.type ? 'active' : ''}" data-type="${escapeHtml(t.type)}" type="button">
+          ${escapeHtml(t.type)} <span class="atlas-filter-count">${t.count}</span>
+        </button>`).join('');
       return `
         <div class="atlas-filter-bar">
-          <div class="atlas-filter-pills">
-            <button class="atlas-filter-pill ${currentStateFilter === 'ALL' ? 'active' : ''}" data-state="ALL" type="button">All <span class="atlas-filter-count">${total}</span></button>
-            ${pills}
-          </div>
+          <div class="atlas-filter-row"><span class="atlas-filter-label">Place</span>
+            <div class="atlas-filter-pills">
+              <button class="atlas-filter-pill ${currentStateFilter === 'ALL' ? 'active' : ''}" data-state="ALL" type="button">All <span class="atlas-filter-count">${total}</span></button>
+              ${statePills}
+            </div></div>
+          <div class="atlas-filter-row"><span class="atlas-filter-label">Type</span>
+            <div class="atlas-filter-pills">
+              <button class="atlas-filter-pill ${currentTypeFilter === 'ALL' ? 'active' : ''}" data-type="ALL" type="button">All types</button>
+              ${typePills}
+            </div></div>
         </div>`;
     }
 
@@ -1134,13 +1151,62 @@
     let currentTimelineStatus = 'all';
     let currentTimelineFeatured = false;
 
+    let currentTypeFilter = 'ALL';
+    // Global filter context: when a state and/or type filter is active, every
+    // panel reads from a single client recompute over atlasData.projects (the
+    // compact per-project array). No filter → the precomputed global fields.
+    let _ctxCache = null, _ctxKey = '';
+    function _filterActive() {
+      return (currentStateFilter && currentStateFilter !== 'ALL') || (currentTypeFilter && currentTypeFilter !== 'ALL');
+    }
+    function computeCtx() {
+      const ps = atlasData.projects || [];
+      const st = (currentStateFilter && currentStateFilter !== 'ALL') ? currentStateFilter : null;
+      const ty = (currentTypeFilter && currentTypeFilter !== 'ALL') ? currentTypeFilter : null;
+      const fp = ps.filter(p => (!st || p.st === st) && (!ty || p.ty === ty));
+      const nowY = new Date().getFullYear();
+      const devM = new Map(), archM = new Map(), cityM = new Map(), typeM = new Map();
+      const statusM = new Map(), openM = new Map(), momM = new Map();
+      const devCity = new Map(), archCity = new Map();
+      let underC = 0, openThis = 0, units = 0, keys = 0, floors = 0;
+      function bump(map, key, name, slug) { let e = map.get(key); if (!e) { e = { name: name, slug: slug || '', count: 0 }; map.set(key, e); } e.count++; if (slug && !e.slug) e.slug = slug; }
+      function trackCity(m, name, city) { if (!city) return; let c = m.get(name); if (!c) { c = new Map(); m.set(name, c); } c.set(city, (c.get(city) || 0) + 1); }
+      fp.forEach(p => {
+        (p.dv || []).forEach(d => { bump(devM, d[0], d[0], d[1]); trackCity(devCity, d[0], p.ci); });
+        (p.ar || []).forEach(d => { bump(archM, d[0], d[0], d[1]); trackCity(archCity, d[0], p.ci); });
+        if (p.ci) bump(cityM, p.ci, p.ci, '');
+        if (p.ty) bump(typeM, p.ty, p.ty, '');
+        if (p.sl) statusM.set(p.sl, (statusM.get(p.sl) || 0) + 1);
+        if (p.sl === 'Construction') underC++;
+        if (p.yr && p.sl !== 'Now Open') { if (p.yr === nowY) openThis++; if (p.yr >= nowY && p.yr <= nowY + 4) openM.set(p.yr, (openM.get(p.yr) || 0) + 1); }
+        if (p.sm) momM.set(p.sm, (momM.get(p.sm) || 0) + 1);
+        units += (p.u || 0); keys += (p.k || 0); floors += (p.fl || 0);
+      });
+      function topCity(m) { let best = '', bc = 0; if (m) m.forEach((c, city) => { if (c > bc) { bc = c; best = city; } }); return best; }
+      function sortTop(m, n, subFn) { return [...m.values()].sort((a, b) => b.count - a.count).slice(0, n).map(e => ({ name: e.name, slug: e.slug, count: e.count, sub: subFn ? subFn(e) : '' })); }
+      const subFirm = (cm) => (e) => { const tc = topCity(cm.get(e.name)); return tc ? (e.count + ' in ' + tc) : (e.count + ' project' + (e.count !== 1 ? 's' : '')); };
+      const order = (atlasData.status_distribution || []).map(d => d.label);
+      const statusDist = (order.length ? order : [...statusM.keys()]).map(label => ({ label: label, count: statusM.get(label) || 0 }));
+      const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const momentum = [...momM.keys()].sort().slice(-12).map(k => { const a2 = k.split('-'); return { month: MON[parseInt(a2[1], 10) - 1], year: parseInt(a2[0], 10), count: momM.get(k) }; });
+      return {
+        leaderboards: { developers: sortTop(devM, 40, subFirm(devCity)), architects: sortTop(archM, 40, subFirm(archCity)), cities: sortTop(cityM, 40), types: sortTop(typeM, 40) },
+        status_distribution: statusDist,
+        momentum: momentum,
+        openings_by_year: [...openM.entries()].sort((a, b) => a[0] - b[0]).map(([year, count]) => ({ year: year, count: count })),
+        hero_stats: { total_projects: fp.length, under_construction: underC, opening_this_year: openThis, total_dollars_short: (atlasData.hero_stats || {}).total_dollars_short },
+        scale: { units: units, keys: keys, floors: floors },
+      };
+    }
+    function ctx() {
+      if (!_filterActive()) return atlasData;
+      const key = currentStateFilter + '|' + currentTypeFilter;
+      if (_ctxKey !== key) { _ctxCache = computeCtx(); _ctxKey = key; }
+      return _ctxCache;
+    }
     function leaderboardSource(key) {
-      if (currentStateFilter === 'ALL') {
-        return (atlasData.leaderboards && atlasData.leaderboards[key]) || [];
-      }
-      const byState = atlasData.leaderboards_by_state || {};
-      const stateLb = byState[currentStateFilter] || {};
-      return stateLb[key] || [];
+      const c = ctx();
+      return (c.leaderboards && c.leaderboards[key]) || [];
     }
 
     function renderLeaderboardRows(key) {
@@ -1211,7 +1277,7 @@
     }
 
     function renderDistribution() {
-      const dist = atlasData.status_distribution || [];
+      const dist = ctx().status_distribution || [];
       const max = dist.length ? Math.max(...dist.map(d => d.count)) : 1;
       const rows = dist.map(d => {
         const pct = (d.count / max) * 100;
@@ -1231,7 +1297,7 @@
     }
 
     function renderMomentum() {
-      const m = atlasData.momentum || [];
+      const m = ctx().momentum || [];
       const max = m.length ? Math.max(...m.map(x => x.count), 1) : 1;
       const bars = m.map(b => {
         const h = (b.count / max) * 100;
@@ -1249,7 +1315,7 @@
 
     // Scale of the tracked pipeline — total units / hotel keys / floors.
     function renderScale() {
-      const s = atlasData.scale;
+      const s = ctx().scale;
       if (!s || (!s.units && !s.keys && !s.floors)) return '';
       const fmt = (n) => {
         n = Number(n) || 0;
@@ -1273,7 +1339,7 @@
 
     // What's being built, by project type (purple bars).
     function renderByType() {
-      const types = (atlasData.leaderboards && atlasData.leaderboards.types) || [];
+      const types = (ctx().leaderboards && ctx().leaderboards.types) || [];
       if (!types.length) return '';
       const top = types.slice(0, 8);
       const max = Math.max(...top.map(t => t.count || 0), 1);
@@ -1320,11 +1386,7 @@
     // active state filter. Falls back to the global top-level fields. This is
     // what makes the new modules respond to the filter like the leaderboards do.
     function activeCore() {
-      if (currentStateFilter && currentStateFilter !== 'ALL') {
-        const bs = (atlasData.by_state || {})[currentStateFilter];
-        if (bs) return bs;
-      }
-      return atlasData;
+      return ctx();
     }
 
     function statusDistCount(label) {
@@ -1700,6 +1762,7 @@
 
       const cityToState = buildCityStateMap();
       const stateFilter = (currentStateFilter && currentStateFilter !== 'ALL') ? currentStateFilter : null;
+      const typeFilter = (currentTypeFilter && currentTypeFilter !== 'ALL') ? currentTypeFilter : null;
 
       const STATUS_INFO = {
         'announced':       { label: 'Announced',       color: '#9CA3AF' },
@@ -1750,6 +1813,10 @@
         if (stateFilter) {
           const projectState = cityToState[p.city] || 'Other';
           if (projectState !== stateFilter) return false;
+        }
+        if (typeFilter) {
+          const pty = ((p.projectType || '') .split(',')[0] || '').trim();
+          if (pty !== typeFilter) return false;
         }
         if (currentTimelineFeatured && !p.featured) return false;
         return true;
@@ -2068,12 +2135,19 @@
         });
       });
 
-      // State filter pills
+      // Filter pills — Place (data-state) and Type (data-type). Each row is
+      // independent so state and type combine (e.g. Florida + Hotel).
       document.querySelectorAll('.atlas-filter-pill').forEach(pill => {
         pill.addEventListener('click', function() {
-          document.querySelectorAll('.atlas-filter-pill').forEach(p => p.classList.remove('active'));
-          this.classList.add('active');
-          currentStateFilter = this.dataset.state;
+          if (this.dataset.state !== undefined) {
+            document.querySelectorAll('.atlas-filter-pill[data-state]').forEach(p => p.classList.remove('active'));
+            this.classList.add('active');
+            currentStateFilter = this.dataset.state;
+          } else if (this.dataset.type !== undefined) {
+            document.querySelectorAll('.atlas-filter-pill[data-type]').forEach(p => p.classList.remove('active'));
+            this.classList.add('active');
+            currentTypeFilter = this.dataset.type;
+          } else { return; }
           Object.keys(lbState).forEach(k => { lbState[k].showAll = false; });
           // Full re-render so EVERY module (tiles, stage bars, movers, index,
           // by-metro, by-type and the leaderboards) reflects the filter. The

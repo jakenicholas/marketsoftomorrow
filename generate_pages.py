@@ -3370,8 +3370,33 @@ def build_atlas_json(rows, pulse_path='pulse.json', articles_archive=None):
     # event-dated milestones — so it stays in sync with the project dossiers. The
     # old LastChange-based `movers` array is retired.)
 
+    # --- Compact per-project array for client-side state×type filtering ---
+    # Lets the Atlas re-slice every panel for any (state, type) combination
+    # without a combinatorial precompute. Short keys to limit payload size.
+    available_types = [{'type': t, 'count': c} for t, c in type_counts.most_common() if t]
+    def _liteint(v):
+        try: return int(float((v or '').strip()))
+        except (ValueError, TypeError): return 0
+    projects_lite = []
+    for row in rows:
+        city = (row.get('City', '') or '').strip()
+        st = _state_for_city(city)
+        ty = _normalize_project_type(row.get('ProjectType', ''))
+        status_label, _, _ = delivery_info((row.get('Delivery', '') or '').strip())
+        dd = _parse_iso_date((row.get('DeliveryDate', '') or '').strip())
+        yr = dd.year if dd else None
+        sd = _parse_iso_date((row.get('StartDate', '') or '').strip())
+        sm = f'{sd.year:04d}-{sd.month:02d}' if sd else None
+        devs = [[n, dev_name_to_slug.get(n, '')] for n in _split_entities((row.get('Developer', '') or '').strip())]
+        archs = [[n, arch_name_to_slug.get(n, '')] for n in _split_entities((row.get('Architect', '') or '').strip())]
+        projects_lite.append({'st': st, 'ty': ty, 'sl': status_label, 'yr': yr, 'sm': sm, 'ci': city,
+                              'u': _liteint(row.get('Units', '')), 'k': _liteint(row.get('Keys', '')), 'fl': _liteint(row.get('Floors', '')),
+                              'dv': devs, 'ar': archs})
+
     return {
         'generated_at': now.isoformat(),
+        'available_types': available_types,
+        'projects': projects_lite,
         'hero_stats': {
             'total_projects': total_projects,
             'total_dollars_short': _format_dollars_short(total_dollars),
