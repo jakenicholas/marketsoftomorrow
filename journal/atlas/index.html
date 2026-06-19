@@ -72,6 +72,16 @@
     font-family: var(--mono); font-size: 9.5px; letter-spacing: .14em; text-transform: uppercase;
     color: rgba(255,255,255,.38);
   }
+  /* Market-calculator-style filter (mirrors the /markets hub) */
+  .atlas-calc { margin-bottom: 32px; }
+  .mc-box { background: linear-gradient(120deg, rgba(167,139,250,.10), rgba(255,211,0,.03)); border: 1px solid rgba(167,139,250,.30); border-radius: 18px; padding: 22px 24px; }
+  .mc-row { display: grid; grid-template-columns: 1.2fr 1fr 1fr auto; gap: 12px; align-items: end; margin: 0; }
+  .mc-field label { display:block; font-family: var(--mono); font-size: 10px; letter-spacing:.14em; text-transform: uppercase; color: var(--purple-bright,#A78BFA); margin-bottom: 8px; font-weight: 600; }
+  .mc-field select { width: 100%; background: rgba(0,0,0,.45); border: 1px solid rgba(167,139,250,.32); border-radius: 10px; padding: 13px 15px; font-family: var(--sans); font-size: 14px; color: #fff; appearance: none; cursor: pointer; }
+  .mc-field select:focus { outline: 0; border-color: var(--purple-bright,#A78BFA); }
+  .mc-go { font-family: var(--mono); font-size: 11px; letter-spacing:.12em; text-transform: uppercase; font-weight: 700; padding: 13px 22px; border-radius: 10px; background: var(--purple,#A78BFA); color: #0a0a0a; border: 0; cursor: pointer; white-space: nowrap; }
+  .mc-go:hover { filter: brightness(1.08); }
+  @media (max-width: 720px) { .mc-row { grid-template-columns: 1fr 1fr; } .mc-go { grid-column: 1 / -1; } }
   .atlas-filter-pills {
     display: flex;
     gap: 8px;
@@ -1118,27 +1128,33 @@
       const states = atlasData.available_states || [];
       const types = atlasData.available_types || [];
       if (!states.length && !types.length) return '';
-      const total = (atlasData.hero_stats && atlasData.hero_stats.total_projects) || states.reduce((s, x) => s + x.count, 0);
-      const statePills = states.map(s => `
-        <button class="atlas-filter-pill ${currentStateFilter === s.code ? 'active' : ''}" data-state="${escapeHtml(s.code)}" type="button">
-          ${escapeHtml(s.label)} <span class="atlas-filter-count">${s.count}</span>
-        </button>`).join('');
-      const typePills = types.map(t => `
-        <button class="atlas-filter-pill ${currentTypeFilter === t.type ? 'active' : ''}" data-type="${escapeHtml(t.type)}" type="button">
-          ${escapeHtml(t.type)} <span class="atlas-filter-count">${t.count}</span>
-        </button>`).join('');
+      // City options from the project array (cities with ≥2 tracked projects).
+      const cityC = {};
+      (atlasData.projects || []).forEach(p => { if (p.ci) cityC[p.ci] = (cityC[p.ci] || 0) + 1; });
+      const cities = Object.keys(cityC).filter(c => cityC[c] >= 2).sort((a, b) => cityC[b] - cityC[a]);
+      const placeVal = (currentStateFilter && currentStateFilter !== 'ALL') ? ('st:' + currentStateFilter)
+                     : (currentCityFilter && currentCityFilter !== 'ALL') ? ('ci:' + currentCityFilter) : '';
+      const stateOpts = states.map(s => `<option value="st:${escapeHtml(s.code)}"${placeVal === 'st:' + s.code ? ' selected' : ''}>${escapeHtml(s.label)} (${s.count})</option>`).join('');
+      const cityOpts = cities.map(c => `<option value="ci:${escapeHtml(c)}"${placeVal === 'ci:' + c ? ' selected' : ''}>${escapeHtml(c)} (${cityC[c]})</option>`).join('');
+      const catOpts = types.map(t => `<option value="${escapeHtml(t.type)}"${currentTypeFilter === t.type ? ' selected' : ''}>${escapeHtml(t.type)} (${t.count})</option>`).join('');
+      const nowY = new Date().getFullYear();
+      const yearOpts = [nowY, nowY + 1, nowY + 2, nowY + 4].map(y => `<option value="${y}"${String(currentYearFilter) === String(y) ? ' selected' : ''}>By end of ${y}</option>`).join('');
       return `
-        <div class="atlas-filter-bar">
-          <div class="atlas-filter-row"><span class="atlas-filter-label">Place</span>
-            <div class="atlas-filter-pills">
-              <button class="atlas-filter-pill ${currentStateFilter === 'ALL' ? 'active' : ''}" data-state="ALL" type="button">All <span class="atlas-filter-count">${total}</span></button>
-              ${statePills}
-            </div></div>
-          <div class="atlas-filter-row"><span class="atlas-filter-label">Type</span>
-            <div class="atlas-filter-pills">
-              <button class="atlas-filter-pill ${currentTypeFilter === 'ALL' ? 'active' : ''}" data-type="ALL" type="button">All types</button>
-              ${typePills}
-            </div></div>
+        <div class="atlas-calc">
+          <div class="mc-box"><form class="mc-row" id="atlas-calc-form">
+            <div class="mc-field"><label>Market</label><select id="ac-place">
+              <option value="">Any market</option>
+              <optgroup label="States">${stateOpts}</optgroup>
+              <optgroup label="Cities">${cityOpts}</optgroup>
+            </select></div>
+            <div class="mc-field"><label>Category</label><select id="ac-cat">
+              <option value="">Any category</option>${catOpts}
+            </select></div>
+            <div class="mc-field"><label>Delivery by</label><select id="ac-year">
+              <option value="">Any time</option>${yearOpts}
+            </select></div>
+            <button type="submit" class="mc-go">Show me →</button>
+          </form></div>
         </div>`;
     }
 
@@ -1152,18 +1168,25 @@
     let currentTimelineFeatured = false;
 
     let currentTypeFilter = 'ALL';
-    // Global filter context: when a state and/or type filter is active, every
-    // panel reads from a single client recompute over atlasData.projects (the
-    // compact per-project array). No filter → the precomputed global fields.
+    let currentCityFilter = 'ALL';
+    let currentYearFilter = '';   // '', '2026', '2027'… → projects delivering by end of year
+    // Global filter context: when any filter is active, every panel reads from
+    // a single client recompute over atlasData.projects (the compact per-project
+    // array). No filter → the precomputed global fields.
     let _ctxCache = null, _ctxKey = '';
     function _filterActive() {
-      return (currentStateFilter && currentStateFilter !== 'ALL') || (currentTypeFilter && currentTypeFilter !== 'ALL');
+      return (currentStateFilter && currentStateFilter !== 'ALL') ||
+             (currentCityFilter && currentCityFilter !== 'ALL') ||
+             (currentTypeFilter && currentTypeFilter !== 'ALL') ||
+             !!currentYearFilter;
     }
     function computeCtx() {
       const ps = atlasData.projects || [];
       const st = (currentStateFilter && currentStateFilter !== 'ALL') ? currentStateFilter : null;
+      const ci = (currentCityFilter && currentCityFilter !== 'ALL') ? currentCityFilter : null;
       const ty = (currentTypeFilter && currentTypeFilter !== 'ALL') ? currentTypeFilter : null;
-      const fp = ps.filter(p => (!st || p.st === st) && (!ty || p.ty === ty));
+      const yr = currentYearFilter ? parseInt(currentYearFilter, 10) : null;
+      const fp = ps.filter(p => (!st || p.st === st) && (!ci || p.ci === ci) && (!ty || p.ty === ty) && (!yr || (p.yr && p.yr <= yr)));
       const nowY = new Date().getFullYear();
       const devM = new Map(), archM = new Map(), cityM = new Map(), typeM = new Map();
       const statusM = new Map(), openM = new Map(), momM = new Map();
@@ -1200,7 +1223,7 @@
     }
     function ctx() {
       if (!_filterActive()) return atlasData;
-      const key = currentStateFilter + '|' + currentTypeFilter;
+      const key = currentStateFilter + '|' + currentCityFilter + '|' + currentTypeFilter + '|' + currentYearFilter;
       if (_ctxKey !== key) { _ctxCache = computeCtx(); _ctxKey = key; }
       return _ctxCache;
     }
@@ -1763,6 +1786,8 @@
       const cityToState = buildCityStateMap();
       const stateFilter = (currentStateFilter && currentStateFilter !== 'ALL') ? currentStateFilter : null;
       const typeFilter = (currentTypeFilter && currentTypeFilter !== 'ALL') ? currentTypeFilter : null;
+      const cityFilter = (currentCityFilter && currentCityFilter !== 'ALL') ? currentCityFilter : null;
+      const yearFilter = currentYearFilter ? parseInt(currentYearFilter, 10) : null;
 
       const STATUS_INFO = {
         'announced':       { label: 'Announced',       color: '#9CA3AF' },
@@ -1815,8 +1840,13 @@
           if (projectState !== stateFilter) return false;
         }
         if (typeFilter) {
-          const pty = ((p.projectType || '') .split(',')[0] || '').trim();
+          const pty = ((p.projectType || '').split(',')[0] || '').trim();
           if (pty !== typeFilter) return false;
+        }
+        if (cityFilter && p.city !== cityFilter) return false;
+        if (yearFilter) {
+          const dy = parseInt(String(p.deliveryDate || '').slice(0, 4), 10);
+          if (!dy || dy > yearFilter) return false;
         }
         if (currentTimelineFeatured && !p.featured) return false;
         return true;
@@ -2054,12 +2084,13 @@
       const root = document.getElementById('atlasRoot');
       if (!root) return;
       syncHeadOffset();
-      const stickyhead = '<div class="atlas-stickyhead">' + renderViewTabs() + renderStateFilter() + '</div>';
+      const stickyhead = '<div class="atlas-stickyhead">' + renderViewTabs() + '</div>';
       const sections = [];
       if (currentAtlasView === 'timeline') {
-        sections.push(stickyhead, renderTimelineSection());
+        sections.push(renderStateFilter(), stickyhead, renderTimelineSection());
       } else {
         sections.push(
+          renderStateFilter(),
           renderIntelHeader(),
           stickyhead,
           renderHeadlineTiles(),
@@ -2135,29 +2166,28 @@
         });
       });
 
-      // Filter pills — Place (data-state) and Type (data-type). Each row is
-      // independent so state and type combine (e.g. Florida + Hotel).
-      document.querySelectorAll('.atlas-filter-pill').forEach(pill => {
-        pill.addEventListener('click', function() {
-          if (this.dataset.state !== undefined) {
-            document.querySelectorAll('.atlas-filter-pill[data-state]').forEach(p => p.classList.remove('active'));
-            this.classList.add('active');
-            currentStateFilter = this.dataset.state;
-          } else if (this.dataset.type !== undefined) {
-            document.querySelectorAll('.atlas-filter-pill[data-type]').forEach(p => p.classList.remove('active'));
-            this.classList.add('active');
-            currentTypeFilter = this.dataset.type;
-          } else { return; }
-          Object.keys(lbState).forEach(k => { lbState[k].showAll = false; });
-          // Full re-render so EVERY module (tiles, stage bars, movers, index,
-          // by-metro, by-type and the leaderboards) reflects the filter. The
-          // active leaderboard tab is preserved via currentLbKey; restore scroll
-          // so the page doesn't jump to the top on a filter tap.
-          const y = window.pageYOffset;
-          renderAll();
-          window.scrollTo({ top: y, behavior: 'auto' });
-        });
-      });
+      // Market calculator — Market (state/city) · Category · Delivery by.
+      // Applies on select change and on "Show me", re-rendering every panel.
+      function applyCalc() {
+        const place = document.getElementById('ac-place');
+        const cat = document.getElementById('ac-cat');
+        const yr = document.getElementById('ac-year');
+        const pv = place ? place.value : '';
+        if (pv.indexOf('st:') === 0) { currentStateFilter = pv.slice(3); currentCityFilter = 'ALL'; }
+        else if (pv.indexOf('ci:') === 0) { currentCityFilter = pv.slice(3); currentStateFilter = 'ALL'; }
+        else { currentStateFilter = 'ALL'; currentCityFilter = 'ALL'; }
+        currentTypeFilter = (cat && cat.value) ? cat.value : 'ALL';
+        currentYearFilter = (yr && yr.value) ? yr.value : '';
+        Object.keys(lbState).forEach(k => { lbState[k].showAll = false; });
+        const y = window.pageYOffset;
+        renderAll();
+        window.scrollTo({ top: y, behavior: 'auto' });
+      }
+      const calcForm = document.getElementById('atlas-calc-form');
+      if (calcForm) {
+        calcForm.addEventListener('submit', function(e) { e.preventDefault(); applyCalc(); });
+        ['ac-place', 'ac-cat', 'ac-year'].forEach(id => { const el = document.getElementById(id); if (el) el.addEventListener('change', applyCalc); });
+      }
       // Leaderboard tab switching
       document.querySelectorAll('.atlas-lb-tab').forEach(btn => {
         btn.addEventListener('click', function() {
