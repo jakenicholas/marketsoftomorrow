@@ -262,6 +262,20 @@
       document.body.appendChild(authScript);
     }
 
+    // Profile avatar → full-screen account dashboard (/account), replacing the
+    // small dropdown. Capture phase + stopImmediatePropagation so we beat the
+    // dropdown's own click handler. Signed-out "Join" pill is left untouched.
+    if (!window.__tmwAccountNavWired) {
+      window.__tmwAccountNavWired = true;
+      document.addEventListener('click', function (e) {
+        var btn = e.target && e.target.closest && e.target.closest('.v2-profile-btn.signed-in');
+        if (!btn) return;
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        location.href = '/account';
+      }, true);
+    }
+
     // Go-Pro paywall popup — load it on every page so the "Go Pro" CTA and
     // "Pro members" links work everywhere (the SEO market pages reference
     // window.tmwShowPaywall but never loaded the script, so they used to just

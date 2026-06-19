@@ -5763,6 +5763,96 @@ async function handleIntelExemplars(request, env, origin) {
   return json({ exemplars }, {}, env, origin);
 }
 
+// ── Member gamification — XP / levels / stats (Phase 1) ──────────────────────
+// XP is computed live from the event log (the events table is the ledger); no
+// member XP column or migration needed. Writes ride normal events.
+const GAME_LEVELS = [
+  { lvl: 1, tier: 'Reader', xp: 0 }, { lvl: 2, tier: 'Member', xp: 300 },
+  { lvl: 3, tier: 'Local', xp: 900 }, { lvl: 4, tier: 'Insider', xp: 1800 },
+  { lvl: 5, tier: 'Tastemaker', xp: 3000 }, { lvl: 6, tier: 'Curator', xp: 5500 },
+  { lvl: 7, tier: 'Authority', xp: 10000 }, { lvl: 8, tier: 'Luminary', xp: 18000 },
+];
+function levelForXp(xp) { let c = GAME_LEVELS[0]; for (const L of GAME_LEVELS) { if (xp >= L.xp) c = L; } return c; }
+function _gameStreak(daySet) {
+  if (!daySet.size) return 0;
+  const today = Math.floor(Date.now() / 1000 / 86400);
+  if (!daySet.has(today) && !daySet.has(today - 1)) return 0;
+  let d = daySet.has(today) ? today : today - 1, s = 0;
+  while (daySet.has(d)) { s++; d--; } return s;
+}
+function _reachStr(n) { n = Number(n) || 0; return n >= 1000 ? (Math.round(n / 100) / 10) + 'k' : String(n); }
+
+async function computeMemberGameStats(env, memberId) {
+  const rs = await env.DB.prepare(
+    `SELECT event_name, ts, member_name, path, props_json FROM events WHERE member_id = ? LIMIT 20000`
+  ).bind(memberId).all();
+  const rows = rs.results || [];
+  const arts = new Set(), saved = new Set(), markets = new Set(), days = new Set();
+  let visits = 0, reach = 0, shares = 0, feedback = 0, intel = 0, cSub = 0, cAcc = 0, name = null;
+  for (const r of rows) {
+    let p = {}; try { if (r.props_json) p = JSON.parse(r.props_json); } catch {}
+    if (r.member_name && !name) name = r.member_name;
+    if (r.ts) days.add(Math.floor(r.ts / 86400));
+    const path = r.path || '';
+    switch (r.event_name) {
+      case 'page_view': if (/^\/(journal\/)?post\//.test(path)) arts.add(path.replace(/\/+$/, '')); break;
+      case 'favorite_added': saved.add(p.slug || p.project_slug || path || ('f' + saved.size)); break;
+      case 'favorite_removed': saved.delete(p.slug || p.project_slug || path); break;
+      case 'market_followed': if (p.market) markets.add(String(p.market).toLowerCase()); break;
+      case 'partner_checkin': visits++; break;
+      case 'share_posted': shares++; reach += Number(p.reach) || 0; break;
+      case 'article_feedback': feedback++; break;
+      case 'contribution': cSub++; if (p.status === 'accepted') cAcc++; break;
+      case 'contribution_accepted': cAcc++; break;
+      case 'intel_query': intel++; break;
+    }
+  }
+  const streak = _gameStreak(days);
+  const a = arts.size, sv = saved.size, mk = markets.size;
+  let xp = a * 10 + sv * 5 + mk * 25 + visits * 500 + shares * 50 + feedback * 20 + intel * 2 + cSub * 25 + cAcc * 150 + streak * 5;
+  if (streak >= 7) xp += 25; if (streak >= 30) xp += 150;
+  const lvl = levelForXp(xp);
+  return { name, xp, level: lvl.lvl, tier: lvl.tier,
+    stats: { articles: a, markets: mk, visits, reach: _reachStr(reach), streak, saved: sv } };
+}
+
+// GET /member-stats?id=<memberId> — a member's own XP/level/stats for the account
+// dashboard. Public-by-id (non-sensitive gamification data); session-bind later.
+async function handleMemberStats(env, origin, url) {
+  if (!env.DB) return json({ error: 'no db' }, { status: 500 }, env, origin);
+  const id = String(url.searchParams.get('id') || '').slice(0, 120);
+  if (!id) return json({ error: 'id required' }, { status: 400 }, env, origin);
+  try { return json(await computeMemberGameStats(env, id), {}, env, origin); }
+  catch (e) { return json({ error: 'stats: ' + e.message }, { status: 500 }, env, origin); }
+}
+
+// POST /article-feedback { member_id, slug, note, member_name? } — a member's
+// private note on an article (editorial signal + XP). Logged as an event.
+async function handleArticleFeedback(request, env, origin) {
+  let b; try { b = await request.json(); } catch { return json({ error: 'bad json' }, { status: 400 }, env, origin); }
+  const id = String((b && b.member_id) || '').slice(0, 120), slug = String((b && b.slug) || '').slice(0, 200), note = String((b && b.note) || '').trim().slice(0, 2000);
+  if (!id || !slug || note.length < 2) return json({ error: 'member_id, slug, note required' }, { status: 400 }, env, origin);
+  try {
+    await env.DB.prepare(`INSERT INTO events (ts, member_id, member_name, event_name, path, props_json) VALUES (?,?,?,?,?,?)`)
+      .bind(Math.floor(Date.now() / 1000), id, (b && b.member_name) || null, 'article_feedback', '/post/' + slug, JSON.stringify({ slug, note })).run();
+  } catch (e) { return json({ error: 'db: ' + e.message }, { status: 500 }, env, origin); }
+  return json({ ok: true, xp: 20 }, {}, env, origin);
+}
+
+// POST /contribution { member_id, type:'edit'|'add', target?, payload, member_name? }
+// — a member's suggested DB edit/addition. Lands as a pending event for review.
+async function handleContribution(request, env, origin) {
+  let b; try { b = await request.json(); } catch { return json({ error: 'bad json' }, { status: 400 }, env, origin); }
+  const id = String((b && b.member_id) || '').slice(0, 120), type = ((b && b.type) === 'add' ? 'add' : 'edit');
+  const payload = String((b && (b.payload || b.note)) || '').trim().slice(0, 4000), target = String((b && b.target) || '').slice(0, 200);
+  if (!id || payload.length < 3) return json({ error: 'member_id and payload required' }, { status: 400 }, env, origin);
+  try {
+    await env.DB.prepare(`INSERT INTO events (ts, member_id, member_name, event_name, props_json) VALUES (?,?,?,?,?)`)
+      .bind(Math.floor(Date.now() / 1000), id, (b && b.member_name) || null, 'contribution', JSON.stringify({ type, target, payload, status: 'pending' })).run();
+  } catch (e) { return json({ error: 'db: ' + e.message }, { status: 500 }, env, origin); }
+  return json({ ok: true, status: 'pending', xp: type === 'add' ? 50 : 25 }, {}, env, origin);
+}
+
 export default {
   async fetch(request, env) {
     const url    = new URL(request.url);
@@ -5907,6 +5997,15 @@ export default {
       }
       if (url.pathname === '/intel-exemplars') {
         return await handleIntelExemplars(request, env, origin);
+      }
+      if (request.method === 'GET' && url.pathname === '/member-stats') {
+        return await handleMemberStats(env, origin, url);
+      }
+      if (request.method === 'POST' && url.pathname === '/article-feedback') {
+        return await handleArticleFeedback(request, env, origin);
+      }
+      if (request.method === 'POST' && url.pathname === '/contribution') {
+        return await handleContribution(request, env, origin);
       }
       if (request.method === 'GET' && url.pathname === '/blog') {
         return await handleBlog(env, origin, url);
