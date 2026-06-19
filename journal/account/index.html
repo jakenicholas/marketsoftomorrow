@@ -143,10 +143,7 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
         <div class="f"><label>Last name</label><input id="pf_last"></div>
         <div class="f"><label>Profession</label><input id="pf_prof"></div>
         <div class="f"><label>Company</label><input id="pf_co"></div>
-        <div class="f"><label>Based (city)</label><input id="pf_based"></div>
-        <div class="f"><label>Home market</label><select id="pf_market">
-          <option value="">Select&hellip;</option><option>Florida</option><option>Tennessee</option><option>New York</option><option>Rockies</option><option>Caribbean</option><option>Other</option>
-        </select></div>
+        <div class="f"><label>Home market</label><input id="pf_based" placeholder="Florida, Tennessee, Miami&hellip;"></div>
       </div>
       <div class="aActions"><button class="btn primary" id="btnSave">Save profile</button><span class="savemsg" id="saveMsg"></span></div>
     </div>
@@ -264,12 +261,12 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
 
   $('btnSave').addEventListener('click',function(){
     var m=ms(); if(!m||!m.updateMember){ $('saveMsg').textContent='Not signed in'; return; }
-    var market=$('pf_market').value||'';
-    var cf={'first-name':$('pf_first').value.trim(),'last-name':$('pf_last').value.trim(),'profession':$('pf_prof').value.trim(),'company-name':$('pf_co').value.trim(),'based':$('pf_based').value.trim(),'home-market':market};
+    var based=$('pf_based').value.trim();
+    var cf={'first-name':$('pf_first').value.trim(),'last-name':$('pf_last').value.trim(),'profession':$('pf_prof').value.trim(),'company-name':$('pf_co').value.trim(),'based':based};
     $('saveMsg').textContent='Saving…';
     m.updateMember({customFields:cf}).then(function(){
       $('saveMsg').textContent='Saved ✓';
-      var cm=$('cardMarket'); if(cm){cm.textContent=market;cm.style.display=market?'':'none';}
+      var cm=$('cardMarket'); if(cm){cm.textContent=based;cm.style.display=based?'':'none';}
       var nm=((cf['first-name']||'')+' '+(cf['last-name']||'')).trim(); if(nm){$('nm').textContent=nm;$('cardName').textContent=nm.toUpperCase();$('av').textContent=ini(nm);}
       setTimeout(function(){$('saveMsg').textContent='';},2500);
     }).catch(function(){ $('saveMsg').textContent='Could not save'; });
@@ -280,11 +277,11 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
     var cf=mem.customFields||{};
     var email=(mem.auth&&mem.auth.email)||mem.email;
     var nm=((cf['first-name']||'')+' '+(cf['last-name']||'')).trim();
-    var market=cf['home-market']||null;
+    var market=cf['based']||null;
     if(email){ $('acctEmail').textContent=email; $('who').textContent=email; }
     $('pf_first').value=cf['first-name']||''; $('pf_last').value=cf['last-name']||'';
     $('pf_prof').value=cf['profession']||''; $('pf_co').value=cf['company-name']||'';
-    $('pf_based').value=cf['based']||''; if(market)$('pf_market').value=market;
+    $('pf_based').value=cf['based']||'';
     fetch(WORKER+'/member-stats?id='+encodeURIComponent(mem.id),{cache:'no-store'}).then(function(r){return r.ok?r.json():null}).then(function(d){
       var base=Object.assign({},DEMO);
       if(d&&!d.error) base=Object.assign(base,d);
