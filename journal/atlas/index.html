@@ -331,6 +331,9 @@
   .atlas-dash{display:grid;grid-template-columns:1.4fr 1fr;gap:18px;align-items:start}
   @media(max-width:900px){.atlas-dash{grid-template-columns:1fr}}
   .atlas-dash .atlas-panel{margin-bottom:18px}
+  .atlas-dash-top{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start;margin-bottom:18px}
+  .atlas-dash-top .atlas-panel{margin-bottom:0}
+  @media(max-width:900px){.atlas-dash-top{grid-template-columns:1fr}}
   .atlas-ph{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--mute);margin:0 0 16px;display:flex;align-items:center;gap:9px;justify-content:space-between;font-weight:600}
   .atlas-ph .lbl{display:flex;align-items:center;gap:9px}
   .atlas-ph .hint{font-size:9px;letter-spacing:.06em;color:var(--mute);font-weight:400;text-transform:none}
@@ -1461,8 +1464,8 @@
 
     function renderMovers() {
       // Sourced from the Pulse feed (recent_activity) — the SAME event-dated, sourced
-      // milestones the project dossiers use. (Pulse events are global; the state
-      // filter doesn't apply to this "what's happening across the map" feed.)
+      // milestones the project dossiers use. When the calculator is engaged the feed
+      // is scoped to the cities in the active filter.
       const TAGDOT = {
         'Now Open': 'var(--green)', 'Opened': 'var(--green)', 'Coming soon': '#6CA8FF', 'Opening Soon': '#6CA8FF',
         'Under construction': 'var(--orange)', 'Going vertical': 'var(--orange)', 'Topped out': 'var(--orange)', 'Halfway there': 'var(--orange)',
@@ -1488,9 +1491,15 @@
       // by the event date (newest first) and limited to the last ~90 days, so a
       // backfilled milestone with an old event date never shows up as a current
       // mover. (Additions/tracking are not movers — they have no event date.)
+      // When the calculator is engaged, scope movers to cities present in the
+      // active filter (the only clean geo signal Pulse events carry).
+      const allowedCities = _filterActive()
+        ? new Set(((ctx().leaderboards && ctx().leaderboards.cities) || []).map(c => c.name))
+        : null;
       const RECENT_MS = 90 * 86400000, FUTURE_SLACK = 14 * 86400000, nowT = Date.now();
       const evs = (atlasData.recent_activity || [])
         .filter(e => e.type === 'status_change' && e.event_date)
+        .filter(e => !allowedCities || allowedCities.has(e.city))
         .map(e => { const d = parseEv(e.event_date); return { e, t: d ? d.getTime() : NaN }; })
         .filter(x => !isNaN(x.t) && (nowT - x.t) <= RECENT_MS && (nowT - x.t) >= -FUTURE_SLACK)
         .sort((a, b) => b.t - a.t)
@@ -1564,11 +1573,27 @@
       return `<div class="atlas-panel intel"><h3 class="atlas-ph"><span class="lbl">${escapeHtml(title)}</span><span class="hint">${escapeHtml(hint)}</span></h3>${rows}</div>`;
     }
 
+    function renderOpeningsPanel() {
+      const data = ctx().openings_by_year || [];
+      if (!data.length) return '';
+      const max = Math.max(...data.map(d => d.count), 1);
+      const total = data.reduce((a, d) => a + d.count, 0);
+      const rows = data.map(d =>
+        `<div class="atlas-stage"><span class="lab">${d.year}</span>`
+        + `<div class="track"><div class="fill st-coming" style="width:${(d.count / max) * 100}%"></div></div>`
+        + `<span class="val">${d.count}</span></div>`).join('');
+      return `<div class="atlas-panel"><h3 class="atlas-ph"><span class="lbl">Openings outlook</span><span class="hint">${total} delivering</span></h3>${rows}</div>`;
+    }
+
     function renderDashGrid() {
       return `
         <section class="atlas-section">
+          <div class="atlas-dash-top">
+            ${renderStageBars()}
+            ${renderOpeningsPanel()}
+          </div>
           <div class="atlas-dash">
-            <div>${renderStageBars()}${renderMovers()}</div>
+            <div>${renderMovers()}</div>
             <div>${renderIndexPanel()}${renderPurpleBars('cities', 'By metro', 'top markets')}${renderPurpleBars('types', 'By type', 'projects span types')}</div>
           </div>
         </section>`;
@@ -2087,17 +2112,16 @@
       const stickyhead = '<div class="atlas-stickyhead">' + renderViewTabs() + '</div>';
       const sections = [];
       if (currentAtlasView === 'timeline') {
-        sections.push(renderStateFilter(), stickyhead, renderTimelineSection());
+        sections.push(stickyhead, renderStateFilter(), renderTimelineSection());
       } else {
         sections.push(
           renderIntelHeader(),
-          renderStateFilter(),
           stickyhead,
+          renderStateFilter(),
           renderHeadlineTiles(),
           renderScale(),
           renderDashGrid(),
           renderLeaderboardSection(),
-          renderOpeningsByYear(),
           renderCoverageAndComing(),
           renderFootnote()
         );
