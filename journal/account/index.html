@@ -295,7 +295,11 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
     BADGES[5].on=(ach.contributor!=null)?ach.contributor:false;
     $('badges').innerHTML=BADGES.map(function(b){return '<div class="bdg"><div class="bi '+(b.on?'on':'off')+'">'+b.ic+'</div><div><div class="bn">'+b.n+'</div><div class="bd">'+b.d+'</div></div></div>'}).join('');
   }
-  render(DEMO);
+  // Paint from the last-known cached view immediately so level/XP/stats are
+  // correct on first load (no DEMO flash), then hydrate refreshes it.
+  function cacheView(b){ try{ localStorage.setItem('tmw_acct_view', JSON.stringify(b)); }catch(e){} }
+  var _cachedView=null; try{ _cachedView=JSON.parse(localStorage.getItem('tmw_acct_view')||'null'); }catch(e){}
+  render((_cachedView&&_cachedView.stats)?_cachedView:DEMO);
 
   // resolve the signed-in member straight from Memberstack (source of truth) — cached, single resolution
   var _memP=null;
@@ -457,7 +461,7 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
       var wl=Array.isArray(j.favorites)?j.favorites.length:0;
       var mk=Array.isArray(j.markets_followed)?j.markets_followed.length:0; cacheMarkets(j.markets_followed||[]);
       base.stats=Object.assign({},base.stats,{saved:wl,markets:mk});
-      render(base);
+      render(base); cacheView(base);
       renderMarkets(j.markets_followed||[]);
     });
   });
